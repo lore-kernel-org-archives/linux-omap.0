@@ -1,196 +1,229 @@
-From: jean-philippe francois <jp.francois@cynove.com>
-Subject: Re: omap3-isp : panic using previewer from V4L input
-Date: Tue, 14 May 2013 11:29:39 +0200
-Message-ID: <CAGGh5h0eAdk+2pHcNn+xBgpvWmGgTa87_WN5GP-64Gexm-oK_Q@mail.gmail.com>
-References: <CAGGh5h00H10F7GWgjyhN_5Zn8JNMXRptt4FF+u=NHDdTXFD2MA@mail.gmail.com>
-	<7361840.3pfFsIn2FS@avalon>
-	<CAGGh5h1zzF7mKgof=jcEBHVmnG9i-A=xpzc9Ri8bHL5xe7bnuQ@mail.gmail.com>
+From: Yegor Yefremov <yegor_sub1@visionsystems.de>
+Subject: am3517: failed to boot 3.10-rc1
+Date: Tue, 14 May 2013 11:24:44 +0200
+Message-ID: <519202DC.10100@visionsystems.de>
+Reply-To: yegor_sub1@visionsystems.de
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:64313 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756437Ab3ENJ3l convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 May 2013 05:29:41 -0400
-In-Reply-To: <CAGGh5h1zzF7mKgof=jcEBHVmnG9i-A=xpzc9Ri8bHL5xe7bnuQ@mail.gmail.com>
+Received: from ns.vscom.de ([62.145.30.242]:59237 "EHLO mail.visionsystems.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756288Ab3ENJvZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 May 2013 05:51:25 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Mark A. Greer" <mgreer@animalcreek.com>, Maxim Podbereznyy <lisarden@gmail.com>
 
-Hi Laurent,
+Trying to boot 3.10-rc1 on an am3515 based board. With the same .config=
+ as 3.7 the system comes to RTC stops there. I've also tried make omap2=
+plus_defconfig with no visible difference. I'm booting from MMC card an=
+d it will be detected by the system. Kernel is from http://git.kernel.o=
+rg/cgit/linux/kernel/git/torvalds/linux.git, latest commit f722406faae2=
+d073cc1d01063d1123c35425939e. Are there any pending patches needed to b=
+oot on am3517?
 
-I have a beagle xm board, but no sensor board. Is it possible to have
-the omap3-isp initialised ?
-I would like to try my program on a beagle board to eliminate any
-hardware related problem.
-=46rom the board file in mainline kernel, it seems omap3_init_camera is
-not called, do you know any kernel tree
-where isp is initialized for beagle board ?
+Here bootlog:
 
-Thank you,
-Jean-Philippe Fran=C3=A7ois
+Booting from mmc ...
+## Booting kernel from Legacy Image at 82000000 ...
+   Image Name:   Linux-3.10.0-rc1-dirty
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    3750728 Bytes =3D 3.6 MiB
+   Load Address: 80008000
+   Entry Point:  80008000
+   Verifying Checksum ... OK
+   Loading Kernel Image ... OK
+OK
 
+Starting kernel ...
 
+[    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] Linux version 3.10.0-rc1-dirty (YegorYefremov@developmen=
+t1) (gcc version 4.5.3 (Buildroot 2012.05-rc2-00022-g339098e) ) #27 SMP=
+ Tue May 14 11:10:08 CEST 2013
+[    0.000000] CPU: ARMv7 Processor [411fc087] revision 7 (ARMv7), cr=3D=
+10c5387d
+[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT nonaliasin=
+g instruction cache
+[    0.000000] Machine: OMAP3517/AM3517 EVM
+[    0.000000] Ignoring tag cmdline (using the default kernel command l=
+ine)
+[    0.000000] cma: CMA: reserved 16 MiB at 8e800000
+[    0.000000] Memory policy: ECC disabled, Data cache writeback
+[    0.000000] CPU: All CPU(s) started in SVC mode.
+[    0.000000] AM3517 ES1.1 (l2cache sgx neon )
+[    0.000000] PERCPU: Embedded 9 pages/cpu @c0ecd000 s13632 r8192 d150=
+40 u36864
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  =
+Total pages: 64768
+[    0.000000] Kernel command line: root=3D/dev/mmcblk0p2 rootwait cons=
+ole=3DttyO2,115200 nohlt
+[    0.000000] PID hash table entries: 1024 (order: 0, 4096 bytes)
+[    0.000000] Dentry cache hash table entries: 32768 (order: 5, 131072=
+ bytes)
+[    0.000000] Inode-cache hash table entries: 16384 (order: 4, 65536 b=
+ytes)
+[    0.000000] Memory: 255MB =3D 255MB total
+[    0.000000] Memory: 229308k/229308k available, 32836k reserved, 0K h=
+ighmem
+[    0.000000] Virtual kernel memory layout:
+[    0.000000]     vector  : 0xffff0000 - 0xffff1000   (   4 kB)
+[    0.000000]     fixmap  : 0xfff00000 - 0xfffe0000   ( 896 kB)
+[    0.000000]     vmalloc : 0xd0800000 - 0xff000000   ( 744 MB)
+[    0.000000]     lowmem  : 0xc0000000 - 0xd0000000   ( 256 MB)
+[    0.000000]     pkmap   : 0xbfe00000 - 0xc0000000   (   2 MB)
+[    0.000000]     modules : 0xbf000000 - 0xbfe00000   (  14 MB)
+[    0.000000]       .text : 0xc0008000 - 0xc0689084   (6661 kB)
+[    0.000000]       .init : 0xc068a000 - 0xc06e2540   ( 354 kB)
+[    0.000000]       .data : 0xc06e4000 - 0xc0764f68   ( 516 kB)
+[    0.000000]        .bss : 0xc0764f68 - 0xc0cc6b58   (5511 kB)
+[    0.000000] Hierarchical RCU implementation.
+[    0.000000]  RCU restricting CPUs from NR_CPUS=3D2 to nr_cpu_ids=3D1=
+=2E
+[    0.000000] NR_IRQS:16 nr_irqs:16 16
+[    0.000000] IRQ: Found an INTC at 0xfa200000 (revision 4.0) with 96 =
+interrupts
+[    0.000000] Total of 96 interrupts on 1 active controller
+[    0.000000] Clocking rate (Crystal/Core/MPU): 26.0/332/500 MHz
+[    0.000000] OMAP clockevent source: timer1 at 32768 Hz
+[    0.000000] sched_clock: 32 bits at 32kHz, resolution 30517ns, wraps=
+ every 131071999ms
+[    0.000000] OMAP clocksource: 32k_counter at 32768 Hz
+[    0.000000] Console: colour dummy device 80x30
+[    0.000000] Lock dependency validator: Copyright (c) 2006 Red Hat, I=
+nc., Ingo Molnar
+[    0.000000] ... MAX_LOCKDEP_SUBCLASSES:  8
+[    0.000000] ... MAX_LOCK_DEPTH:          48
+[    0.000000] ... MAX_LOCKDEP_KEYS:        8191
+[    0.000000] ... CLASSHASH_SIZE:          4096
+[    0.000000] ... MAX_LOCKDEP_ENTRIES:     16384
+[    0.000000] ... MAX_LOCKDEP_CHAINS:      32768
+[    0.000000] ... CHAINHASH_SIZE:          16384
+[    0.000000]  memory used by lock dependency info: 3695 kB
+[    0.000000]  per task-struct memory footprint: 1152 bytes
+[    0.001464] Calibrating delay loop... 329.31 BogoMIPS (lpj=3D1646592=
+)
+[    0.119567] pid_max: default: 32768 minimum: 301
+[    0.120330] Security Framework initialized
+[    0.120544] Mount-cache hash table entries: 512
+[    0.125946] CPU: Testing write buffer coherency: ok
+[    0.128051] CPU0: thread -1, cpu 0, socket -1, mpidr 0
+[    0.128204] Setting up static identity map for 0xc04a99c8 - 0xc04a9a=
+20
+[    0.133209] Brought up 1 CPUs
+[    0.133270] SMP: Total of 1 processors activated (329.31 BogoMIPS).
+[    0.133270] CPU: All CPU(s) started in SVC mode.
+[    0.137817] devtmpfs: initialized
+[    0.205139] pinctrl core: initialized pinctrl subsystem
+[    0.212188] regulator-dummy: no parameters
+[    0.217559] NET: Registered protocol family 16
+[    0.230255] DMA: preallocated 256 KiB pool for atomic coherent alloc=
+ations
+[    0.233306] omap-gpmc omap-gpmc: GPMC revision 5.0
+[    0.249542] OMAP GPIO hardware version 2.5
+[    0.276336] omap_mux_init: Add partition: #1: core, flags: 4
+[    0.296539] omap_mux_get_by_name: Could not find signal uart4_rx.uar=
+t4_rx
+[    0.305114] Reprogramming SDRC clock to 332000000 Hz
+[    0.314483] hw-breakpoint: debug architecture 0x4 unsupported.
+[    0.336059] OMAP DMA hardware revision 4.0
+[    0.341400]  arm-pmu: alias fck already exists
+[    0.428009] bio: create slab <bio-0> at 0
+[    0.555541] omap-dma-engine omap-dma-engine: OMAP DMA engine driver
+[    0.557830] hsusb1_reset: 3300 mV
+[    0.570617] SCSI subsystem initialized
+[    0.580078] omap_i2c omap_i2c.1: bus 1 rev3.3 at 400 kHz
+[    0.584442] omap_i2c omap_i2c.2: bus 2 rev3.3 at 400 kHz
+[    0.588378] omap_i2c omap_i2c.3: bus 3 rev3.3 at 400 kHz
+[    0.600799] Switching to clocksource 32k_counter
+[    0.820800] NET: Registered protocol family 2
+[    0.824340] TCP established hash table entries: 2048 (order: 2, 1638=
+4 bytes)
+[    0.824645] TCP bind hash table entries: 2048 (order: 4, 73728 bytes=
+)
+[    0.826019] TCP: Hash tables configured (established 2048 bind 2048)
+[    0.826416] TCP: reno registered
+[    0.826477] UDP hash table entries: 256 (order: 2, 20480 bytes)
+[    0.826873] UDP-Lite hash table entries: 256 (order: 2, 20480 bytes)
+[    0.829101] NET: Registered protocol family 1
+[    0.832214] RPC: Registered named UNIX socket transport module.
+[    0.832275] RPC: Registered udp transport module.
+[    0.832275] RPC: Registered tcp transport module.
+[    0.832305] RPC: Registered tcp NFSv4.1 backchannel transport module=
+=2E
+[    0.833953] NetWinder Floating Point Emulator V0.97 (double precisio=
+n)
+[    0.834472] CPU PMU: probing PMU on CPU 0
+[    0.834533] hw perfevents: enabled with ARMv7 Cortex-A8 PMU driver, =
+5 counters available
+[    1.104064] VFS: Disk quotas dquot_6.5.2
+[    1.104431] Dquot-cache hash table entries: 1024 (order 0, 4096 byte=
+s)
+[    1.108551] NFS: Registering the id_resolver key type
+[    1.109283] Key type id_resolver registered
+[    1.109313] Key type id_legacy registered
+[    1.109558] jffs2: version 2.2. (NAND) (SUMMARY)  =E2=94=AC=E2=8C=90=
+ 2001-2006 Red Hat, Inc.
+[    1.110443] msgmni has been set to 479
+[    1.116119] io scheduler noop registered
+[    1.116149] io scheduler deadline registered
+[    1.116271] io scheduler cfq registered (default)
+[    1.118896] Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
+[    1.131408] omap_uart.0: ttyO0 at MMIO 0x4806a000 (irq =3D 88) is a =
+OMAP UART0
+[    1.135284] omap_uart.1: ttyO1 at MMIO 0x4806c000 (irq =3D 89) is a =
+OMAP UART1
+[    1.138183] omap_uart.2: ttyO2 at MMIO 0x49020000 (irq =3D 90) is a =
+OMAP UART2
+[    1.769134] console [ttyO2] enabled
+[    1.775909] omap_uart.3: ttyO3 at MMIO 0x4809e000 (irq =3D 100) is a=
+ OMAP UART3
+[    1.834869] brd: module loaded
+[    1.868225] loop: module loaded
+[    1.879669] mtdoops: mtd device (mtddev=3Dname/number) must be suppl=
+ied
+[    1.911224] mousedev: PS/2 mouse device common for all mice
+[    1.940277] rtc-s35390a 1-0030: rtc core: registered rtc-s35390a as =
+rtc0
+[    1.948974] i2c /dev entries driver
+[    1.959381] Driver for 1-wire Dallas network protocol.
+[    1.972198] omap_wdt: OMAP Watchdog Timer Rev 0x31: initial timeout =
+60 sec
+[    1.985198] omap-dma-engine omap-dma-engine: allocating channel for =
+62
+[    1.992523] omap-dma-engine omap-dma-engine: allocating channel for =
+61
+[    2.043548] omap-dma-engine omap-dma-engine: allocating channel for =
+48
+[    2.050506] omap-dma-engine omap-dma-engine: allocating channel for =
+47
+[    2.091613] mmc0: host does not support reading read-only switch. as=
+suming write-enable.
+[    2.103668] mmc0: new high speed SD card at address 0007
+[    2.115600] mmcblk0: mmc0:0007 SD02G 1.84 GiB
+[    2.129333] oprofile: using arm/armv7
+[    2.135131] TCP: cubic registered
+[    2.138641] Initializing XFRM netlink socket
+[    2.143707] NET: Registered protocol family 17
+[    2.148559] NET: Registered protocol family 15
+[    2.153991] Key type dns_resolver registered
+[    2.158630] VFP support v0.3: implementor 41 architecture 3 part 30 =
+variant c rev 1
+[    2.177581] voltdm_scale: No voltage scale API registered for vdd_mp=
+u_iva
+[    2.184906] voltdm_scale: No voltage scale API registered for vdd_co=
+re
+[    2.193328]  mmcblk0: p1 p2
+[    2.200012] PM: no software I/O chain control; some wakeups may be l=
+ost
+[    2.207855] ThumbEE CPU extension supported.
+[    2.212615] Registering SWP/SWPB emulation handler
+[    2.236633] rtc-s35390a 1-0030: setting system clock to 2000-01-01 0=
+1:20:01 UTC (946689601)
 
-2013/5/7 jean-philippe francois <jp.francois@cynove.com>:
-> 2013/5/7 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> Hi Jean-Philippe,
->>
->> (CC'ed linux-omap)
->>
->> On Monday 06 May 2013 10:59:07 jean-philippe francois wrote:
->>> Hi,
->>>
->>> I am trying to use the previewer to debayer pictures coming from th=
-e
->>> filesystem instead of the capture hardware. The media-ctl links are=
- as
->>> follows :
->>>
->>> preview V4L input -> preview pad 0 (sink), preview pad 1(src)
->>> ->preview V4L output.
->>>
->>> Input output format is set via media-ctl for the preview element, a=
-nd
->>> via the V4L2 api for the V4L2 file descriptors. I am using USERPTR
->>> buffer allocated via memalign, and the application goes like this :
->>>
->>> REQBUFS 1 buf on on input
->>> REQBUFS 1 buf on output
->>> alloc buffers
->>> QBUF on input
->>> QBUF on output
->>> STREAMON on output
->>> STREAMON on input
->>> DQBUF on output.
->>>
->>> The board either panics or hangs (though HUNG_TASK_DETECTION and
->>> SOFT_LOCKUP_DETECTION is set)
->>
->> Does it happen every time you run the application, including on the =
-first run
->> after a cold boot ?
->
-> Yes, every time.
-> Previewer usage in device to memory mode works fine.
-> Tested on 3.6.11 and 3.9 with the same results.
-> The only difference observed so far between runs is that sometimes
-> the board hangs without anything printed on the console.
->
->>
->>> Please find attached the panic log, and the application code.
->>
->> (log inlined)
->>
->>> omap3isp omap3isp: can't find source, failing now
->>> omap3isp omap3isp: can't find source, failing now
->>
->> Those are harmless warnings. I have a fix for them, I'll repost it.
->>
->>> ------------[ cut here ]------------
->>> Kernel BUG at c019bb1c [verbose debug info unavailable]
->>> Internal error: Oops - BUG: 0 [#1] PREEMPT ARM
->>> Modules linked in: omap3_isp ov10630(O)
->>> CPU: 0    Tainted: G           O  (3.9.0 #3)
->>> PC is at omap3_l3_app_irq+0x3c/0xbc
->>
->> L3 APP interconnect timeout errors are not supposed to happen. This =
-is the
->> first time I see one. Maybe someone on the linux-omap list will have=
- some
->> clues regarding how to debug this.
->>
->>> LR is at handle_irq_event_percpu+0x28/0x10c
->>> pc : [<c019bb1c>]    lr : [<c006b354>]    psr: 20000193
->>> sp : c0507e58  ip : 00060000  fp : 00000000
->>> r10: cf804dc0  r9 : ffff9e65  r8 : 00200000
->>> r7 : 00000000  r6 : 00001000  r5 : 00000000  r4 : cf87f3c0
->>> r3 : 00000000  r2 : 00001000  r1 : cf8ffc80  r0 : 00001000
->>> Flags: nzCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kerne=
-l
->>> Control: 10c5387d  Table: 8fa80019  DAC: 00000015
->>> Process swapper (pid: 0, stack limit =3D 0xc0506230)
->>> Stack: (0xc0507e58 to 0xc0508000)
->>> 7e40:                                                      00000002=
- cf87f3c0
->>> 7e60:0000001a 00000000 00000000 c006b354 cf804dc0 cf87f3c0 cf804dc0=
- c0506000
->>> 7e80:cf87f3c0 c0507f0c 00200000 ffff9e65 c054d640 c006b490 cf804dc0=
- c0507f80
->>> 7ea0:ffffffff c006da68 0000001a c006ac44 0000001a c000ebc8 0000000a=
- c0507ed8
->>> 7ec0:0000001a c0008594 c054d600 c003400c 60000113 c000df00 00000001=
- c054d600
->>> 7ee0:00000101 c0506000 00000002 00000000 ffffffff c0507fb4 00200000=
- ffff9e65
->>> 7f00:c054d640 00000000 c0526f28 c0507f20 c054d600 c003400c 60000113=
- ffffffff
->>> 7f20:cf805c40 c0506000 c0511c98 c0507fb4 80004059 00000035 00000000=
- ffffffff
->>> 7f40:c0507fb4 80004059 413fc082 00000000 00000000 c003440c 00000035=
- c000ebcc
->>> 7f60:00000025 c0507f80 00000035 c0008594 c0506008 c000ed78 20000013=
- c000df00
->>> 7f80:c0547548 c050fb50 00000001 c0506000 c050e0d8 00000000 c04fb954=
- c0510844
->>> 7fa0:80004059 413fc082 00000000 00000000 00000000 c0507fc8 c0506008=
- c000ed78
->>> 7fc0:20000013 ffffffff c036c958 c04da7a8 ffffffff ffffffff c04da344=
- 00000000
->>> 7fe0:c04fb958 271ae41c 00000000 10c53c7d c050e028 80008070 00000000=
- 00000000
->>> [<c019bb1c>] (omap3_l3_app_irq+0x3c/0xbc)
->>> from [<c006b354>] (handle_irq_event_percpu+0x28/0x10c)
->>> [<c006b354>] (handle_irq_event_percpu+0x28/0x10c)
->>> from [<c006b490>] (handle_irq_event+0x58/0x74)
->>> [<c006b490>] (handle_irq_event+0x58/0x74)
->>> from [<c006da68>] (handle_level_irq+0xd8/0x110)
->>> [<c006da68>] (handle_level_irq+0xd8/0x110)
->>> from [<c006ac44>] (generic_handle_irq+0x20/0x30)
->>> [<c006ac44>] (generic_handle_irq+0x20/0x30)
->>> from [<c000ebc8>] (handle_IRQ+0x60/0x84)
->>> [<c000ebc8>] (handle_IRQ+0x60/0x84)
->>> from [<c0008594>] (omap3_intc_handle_irq+0x58/0x6c)
->>> [<c0008594>] (omap3_intc_handle_irq+0x58/0x6c)
->>> from [<c000df00>] (__irq_svc+0x40/0x70)
->>> Exception stack(0xc0507ed8 to 0xc0507f20)
->>> 7ec0:                                                      00000001=
- c054d600
->>> 7ee0:00000101 c0506000 00000002 00000000 ffffffff c0507fb4 00200000=
- ffff9e65
->>> 7f00:c054d640 00000000 c0526f28 c0507f20 c054d600 c003400c 60000113=
- ffffffff
->>> [<c000df00>] (__irq_svc+0x40/0x70)
->>> from [<c003400c>] (__do_softirq+0x60/0x184)
->>> [<c003400c>] (__do_softirq+0x60/0x184)
->>> from [<c003440c>] (irq_exit+0x70/0xc4)
->>> [<c003440c>] (irq_exit+0x70/0xc4)
->>> from [<c000ebcc>] (handle_IRQ+0x64/0x84)
->>> [<c000ebcc>] (handle_IRQ+0x64/0x84)
->>> from [<c0008594>] (omap3_intc_handle_irq+0x58/0x6c)
->>> [<c0008594>] (omap3_intc_handle_irq+0x58/0x6c)
->>> from [<c000df00>] (__irq_svc+0x40/0x70)
->>> Exception stack(0xc0507f80 to 0xc0507fc8)
->>> 7f80:c0547548 c050fb50 00000001 c0506000 c050e0d8 00000000 c04fb954=
- c0510844
->>> 7fa0:80004059 413fc082 00000000 00000000 00000000 c0507fc8 c0506008=
- c000ed78
->>> 7fc0:20000013 ffffffff
->>> [<c000df00>] (__irq_svc+0x40/0x70) from [<c000ed78>] (cpu_idle+0x60=
-/0x90)
->>> [<c000ed78>] (cpu_idle+0x60/0x90)
->>> from [<c04da7a8>] (start_kernel+0x234/0x284)
->>> Code: e0022006 e0033007 e1920003 0a000002 (e7f001f2)
->>> ---[ end trace 58d781a6c1166535 ]---
->>> Kernel panic - not syncing: Fatal exception in interrupt
->>
->> --
->> Regards,
->>
->> Laurent Pinchart
->>
+Yegor
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
