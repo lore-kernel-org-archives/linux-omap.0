@@ -1,37 +1,85 @@
-From: Illia Smyrnov <x0194613@ti.com>
-Subject: Re: [PATCH] spi: spi-omap2-mcspi.c: Add dts for slave device configuration.
-Date: Tue, 14 May 2013 12:53:31 +0300
-Message-ID: <5192099B.4000203@ti.com>
-References: <1364252415-3613-1-git-send-email-matthias.bgg@gmail.com> <CAB=otbTtRN9xyO0whNz-UbW+Xo0_X8XWLcWZt=7MfUfrnNqwww@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CAB=otbTtRN9xyO0whNz-UbW+Xo0_X8XWLcWZt=7MfUfrnNqwww@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Daniel Mack <zonque@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, ezequiel.garcia@free-electrons.com
+From: Vivek Gautam <gautam.vivek@samsung.com>
+Subject: [PATCH] usb: dwc3: Fix compilation break when building with
+ USB_DWC3_DUAL_ROLE=y
+Date: Tue, 14 May 2013 17:32:16 +0530
+Message-ID: <1368532936-3768-1-git-send-email-gautam.vivek@samsung.com>
+References: <CAFp+6iG9eGsJT3PcjN3DMwEF1z2vzmQUK+0spx6JV9FsacRRhw@mail.gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <CAFp+6iG9eGsJT3PcjN3DMwEF1z2vzmQUK+0spx6JV9FsacRRhw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: kbuild-all@01.org, gregkh@linuxfoundation.org, jencce.kernelmentor@gmail.com, sfr@canb.auug.org.au, gautam.vivek@samsung.com, Felipe Balbi <balbi@ti.com>, Fengguang Wu <fengguang.wu@intel.com>
 List-Id: linux-omap@vger.kernel.org
 
+The commit:
+388e5c5 usb: dwc3: remove dwc3 dependency on host AND gadget
+breaks compilation when
+USB=y, USB_GADGET=m, USB_DWC3=y and USB_DWC3_DUAL_ROLE=y.
 
-> @@ -745,6 +781,11 @@ static int omap2_mcspi_setup_transfer(struct
-> spi_device *spi,
->          mcspi = spi_master_get_devdata(spi->master);
->          spi_cntrl = mcspi->master;
->
-> +       if (!cd && spi->dev.of_node) {
-> +               cd = omap2_mcspi_get_slave_ctrldata(spi);
- > +               spi->controller_data = cd;
+drivers/built-in.o: In function `dwc3_gadget_giveback':
+drivers/usb/dwc3/gadget.c:271: undefined reference to `usb_gadget_unmap_request'
+drivers/built-in.o: In function `__dwc3_gadget_kick_transfer':
+drivers/usb/dwc3/gadget.c:1005: undefined reference to `usb_gadget_unmap_request'
+drivers/built-in.o: In function `__dwc3_gadget_ep_queue':
+drivers/usb/dwc3/gadget.c:1073: undefined reference to `usb_gadget_map_request'
+drivers/built-in.o: In function `dwc3_gadget_reset_interrupt':
+drivers/usb/dwc3/gadget.c:2165: undefined reference to `usb_gadget_set_state'
+drivers/built-in.o: In function `dwc3_gadget_init':
+drivers/usb/dwc3/gadget.c:2647: undefined reference to `usb_add_gadget_udc'
+drivers/built-in.o: In function `dwc3_gadget_exit':
+drivers/usb/dwc3/gadget.c:2681: undefined reference to `usb_del_gadget_udc'
+drivers/built-in.o: In function `__dwc3_ep0_do_control_data':
+drivers/usb/dwc3/ep0.c:929: undefined reference to `usb_gadget_map_request'
+drivers/usb/dwc3/ep0.c:906: undefined reference to `usb_gadget_map_request'
+drivers/built-in.o: In function `dwc3_ep0_set_config':
+drivers/usb/dwc3/ep0.c:575: undefined reference to `usb_gadget_set_state'
+drivers/built-in.o: In function `dwc3_ep0_set_address':
+drivers/usb/dwc3/ep0.c:520: undefined reference to `usb_gadget_set_state'
+drivers/usb/dwc3/ep0.c:522: undefined reference to `usb_gadget_set_state'
+drivers/built-in.o: In function `dwc3_ep0_set_config':
+drivers/usb/dwc3/ep0.c:556: undefined reference to `usb_gadget_set_state'
 
-Here you call omap2_mcspi_get_slave_ctrldata function that allocate 
-memory for cd structure, but this memory never freed.
+Making changes similar to patch:
+71a5e61 usb: chipidea: fix and improve dependencies if usb host or gadget support is built as module
 
-Also, why do you read DT data in omap2_mcspi_setup_transfer function?
-Under certain conditions the omap2_mcspi_setup_transfer function may be 
-calling for each transfer and each call it will check (!cd && 
-spi->dev.of_node) condition.
+Let us limit the DWC3 mode to depend on corresponding usb-subsystem
+and USB_DWC3.
 
-Consider to move DT data read code from omap2_mcspi_setup_transfer to
-omap2_mcspi_setup function and free spi->controller_data pointer in 
-omap2_mcspi_cleanup function.
+Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+---
+ drivers/usb/dwc3/Kconfig |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
+index ea5ee9c..757aa18 100644
+--- a/drivers/usb/dwc3/Kconfig
++++ b/drivers/usb/dwc3/Kconfig
+@@ -19,21 +19,21 @@ choice
+ 
+ config USB_DWC3_HOST
+ 	bool "Host only mode"
+-	depends on USB
++	depends on USB=y || USB=USB_DWC3
+ 	help
+ 	  Select this when you want to use DWC3 in host mode only,
+ 	  thereby the gadget feature will be regressed.
+ 
+ config USB_DWC3_GADGET
+ 	bool "Gadget only mode"
+-	depends on USB_GADGET
++	depends on USB_GADGET=y || USB_GADGET=USB_DWC3
+ 	help
+ 	  Select this when you want to use DWC3 in gadget mode only,
+ 	  thereby the host feature will be regressed.
+ 
+ config USB_DWC3_DUAL_ROLE
+ 	bool "Dual Role mode"
+-	depends on (USB && USB_GADGET)
++	depends on ((USB=y || USB=USB_DWC3) && (USB_GADGET=y || USB_GADGET=USB_DWC3))
+ 	help
+ 	  This is the default mode of working of DWC3 controller where
+ 	  both host and gadget features are enabled.
+-- 
+1.7.6.5
