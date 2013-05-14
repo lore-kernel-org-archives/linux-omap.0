@@ -1,85 +1,63 @@
-From: Vivek Gautam <gautam.vivek@samsung.com>
-Subject: [PATCH] usb: dwc3: Fix compilation break when building with
- USB_DWC3_DUAL_ROLE=y
-Date: Tue, 14 May 2013 17:32:16 +0530
-Message-ID: <1368532936-3768-1-git-send-email-gautam.vivek@samsung.com>
-References: <CAFp+6iG9eGsJT3PcjN3DMwEF1z2vzmQUK+0spx6JV9FsacRRhw@mail.gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <CAFp+6iG9eGsJT3PcjN3DMwEF1z2vzmQUK+0spx6JV9FsacRRhw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: kbuild-all@01.org, gregkh@linuxfoundation.org, jencce.kernelmentor@gmail.com, sfr@canb.auug.org.au, gautam.vivek@samsung.com, Felipe Balbi <balbi@ti.com>, Fengguang Wu <fengguang.wu@intel.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: am3517: failed to boot 3.10-rc1
+Date: Tue, 14 May 2013 15:52:16 +0300
+Message-ID: <20130514125216.GE21107@arwen.pp.htv.fi>
+References: <519202DC.10100@visionsystems.de>
+Reply-To: <balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="UnaWdueM1EBWVRzC"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:44082 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756770Ab3ENMwi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 May 2013 08:52:38 -0400
+Content-Disposition: inline
+In-Reply-To: <519202DC.10100@visionsystems.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Yegor Yefremov <yegor_sub1@visionsystems.de>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Mark A. Greer" <mgreer@animalcreek.com>, Maxim Podbereznyy <lisarden@gmail.com>
 
-The commit:
-388e5c5 usb: dwc3: remove dwc3 dependency on host AND gadget
-breaks compilation when
-USB=y, USB_GADGET=m, USB_DWC3=y and USB_DWC3_DUAL_ROLE=y.
+--UnaWdueM1EBWVRzC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-drivers/built-in.o: In function `dwc3_gadget_giveback':
-drivers/usb/dwc3/gadget.c:271: undefined reference to `usb_gadget_unmap_request'
-drivers/built-in.o: In function `__dwc3_gadget_kick_transfer':
-drivers/usb/dwc3/gadget.c:1005: undefined reference to `usb_gadget_unmap_request'
-drivers/built-in.o: In function `__dwc3_gadget_ep_queue':
-drivers/usb/dwc3/gadget.c:1073: undefined reference to `usb_gadget_map_request'
-drivers/built-in.o: In function `dwc3_gadget_reset_interrupt':
-drivers/usb/dwc3/gadget.c:2165: undefined reference to `usb_gadget_set_state'
-drivers/built-in.o: In function `dwc3_gadget_init':
-drivers/usb/dwc3/gadget.c:2647: undefined reference to `usb_add_gadget_udc'
-drivers/built-in.o: In function `dwc3_gadget_exit':
-drivers/usb/dwc3/gadget.c:2681: undefined reference to `usb_del_gadget_udc'
-drivers/built-in.o: In function `__dwc3_ep0_do_control_data':
-drivers/usb/dwc3/ep0.c:929: undefined reference to `usb_gadget_map_request'
-drivers/usb/dwc3/ep0.c:906: undefined reference to `usb_gadget_map_request'
-drivers/built-in.o: In function `dwc3_ep0_set_config':
-drivers/usb/dwc3/ep0.c:575: undefined reference to `usb_gadget_set_state'
-drivers/built-in.o: In function `dwc3_ep0_set_address':
-drivers/usb/dwc3/ep0.c:520: undefined reference to `usb_gadget_set_state'
-drivers/usb/dwc3/ep0.c:522: undefined reference to `usb_gadget_set_state'
-drivers/built-in.o: In function `dwc3_ep0_set_config':
-drivers/usb/dwc3/ep0.c:556: undefined reference to `usb_gadget_set_state'
+On Tue, May 14, 2013 at 11:24:44AM +0200, Yegor Yefremov wrote:
+> Trying to boot 3.10-rc1 on an am3515 based board. With the same
+> .config as 3.7 the system comes to RTC stops there. I've also tried
+> make omap2plus_defconfig with no visible difference. I'm booting from
+> MMC card and it will be detected by the system. Kernel is from
+> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git, latest
+> commit f722406faae2d073cc1d01063d1123c35425939e. Are there any pending
+> patches needed to boot on am3517?
 
-Making changes similar to patch:
-71a5e61 usb: chipidea: fix and improve dependencies if usb host or gadget support is built as module
+does v3.9 work ? Can you bisect ?
 
-Let us limit the DWC3 mode to depend on corresponding usb-subsystem
-and USB_DWC3.
+--=20
+balbi
 
-Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
----
- drivers/usb/dwc3/Kconfig |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+--UnaWdueM1EBWVRzC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
-index ea5ee9c..757aa18 100644
---- a/drivers/usb/dwc3/Kconfig
-+++ b/drivers/usb/dwc3/Kconfig
-@@ -19,21 +19,21 @@ choice
- 
- config USB_DWC3_HOST
- 	bool "Host only mode"
--	depends on USB
-+	depends on USB=y || USB=USB_DWC3
- 	help
- 	  Select this when you want to use DWC3 in host mode only,
- 	  thereby the gadget feature will be regressed.
- 
- config USB_DWC3_GADGET
- 	bool "Gadget only mode"
--	depends on USB_GADGET
-+	depends on USB_GADGET=y || USB_GADGET=USB_DWC3
- 	help
- 	  Select this when you want to use DWC3 in gadget mode only,
- 	  thereby the host feature will be regressed.
- 
- config USB_DWC3_DUAL_ROLE
- 	bool "Dual Role mode"
--	depends on (USB && USB_GADGET)
-+	depends on ((USB=y || USB=USB_DWC3) && (USB_GADGET=y || USB_GADGET=USB_DWC3))
- 	help
- 	  This is the default mode of working of DWC3 controller where
- 	  both host and gadget features are enabled.
--- 
-1.7.6.5
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRkjOAAAoJEIaOsuA1yqREQ6YQAIWKVc7jK1ezJp+WbF4zGoYr
+gOGvugVhUZibNleO6gwWqRJv9j6rGRUYfKfJNPQNhtWzX5sKVgCUMnRLbqJdPegL
+u9rxj/go25DCc9f5tWV8Bnbresv8y3Vr0xobZoQ96iPlMLcy3jqYfFEjkh5+1/VG
+a5g0C+XaAzHD/D1L+kzS3VgZhzZYOpJ29iuXINmIHanzR8lCyHIkyMDfYRfTP+zG
+kWUJGF3H4sYTsTHQbMq8FoW3REb/leCRlYB7YfUb5VnSkMiEZpSU2bFrfv2/0uPD
+6YcDHuctZvfUlhnnE0wEpddEw5jC/But+3syIhf1cZOCrznS1SP0CkV4k04I5mW/
+67EIxPWb3BQ+YDemH9YSXXh4c3dNdcQTm2v16+XXZWIwDVpOCdIyShPG1psWBY8W
+1gtFx2oWIcZohg2zAoDgjiz+YyUr0oSCo8jJi121u/lgq+tp8yVvK+2045hDNQo1
++Jf+1CPU5VDAf9jayLSKM5DAI6/aBUCg/dxqYfnnh/sJHUY5tVDot7sG7rLJ0/xJ
+5qfGDAPHnSzHmh2aro9p+aUXtjlI422VPvVHXz1XkeYqsFsj2R8mEDNo9R8GUCGV
+zIPrnAre1x5k9d2bR/4vDQJQouuj8mMf/8qP+SuJbhPKxnEkkASOIRTL4NibSmQi
+aQ7PW3L88fsBjGY1EEIt
+=RClQ
+-----END PGP SIGNATURE-----
+
+--UnaWdueM1EBWVRzC--
