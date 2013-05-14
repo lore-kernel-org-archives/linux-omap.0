@@ -1,311 +1,231 @@
 From: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
-Subject: [PATCH v3 1/3] gpio/omap: replace open coded read-modify-write with _gpio_rmw function.
-Date: Tue, 14 May 2013 22:54:25 +0200
-Message-ID: <1368564867-11142-1-git-send-email-andreas.fenkart@streamunlimited.com>
+Subject: [PATCH v3 2/3] gpio/omap: modify wake-up register with interrupt enable.
+Date: Tue, 14 May 2013 22:54:26 +0200
+Message-ID: <1368564867-11142-2-git-send-email-andreas.fenkart@streamunlimited.com>
+References: <1368564867-11142-1-git-send-email-andreas.fenkart@streamunlimited.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:55023 "EHLO mout.gmx.net"
+Received: from mout.gmx.net ([212.227.15.15]:63476 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757791Ab3ENUyf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 May 2013 16:54:35 -0400
-Received: from mailout-de.gmx.net ([10.1.76.16]) by mrigmx.server.lan
- (mrigmx001) with ESMTP (Nemesis) id 0Lobhc-1U0IfT3tFq-00gUou for
- <linux-omap@vger.kernel.org>; Tue, 14 May 2013 22:54:33 +0200
+	id S1757791Ab3ENUym (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 May 2013 16:54:42 -0400
+Received: from mailout-de.gmx.net ([10.1.76.33]) by mrigmx.server.lan
+ (mrigmx001) with ESMTP (Nemesis) id 0MDjlo-1UjUr904PW-00H5i2 for
+ <linux-omap@vger.kernel.org>; Tue, 14 May 2013 22:54:41 +0200
+In-Reply-To: <1368564867-11142-1-git-send-email-andreas.fenkart@streamunlimited.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: santosh.shilimkar@ti.com
 Cc: khilman@deeprootsystems.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, balbi@ti.com, linux-omap@vger.kernel.org, daniel@zonque.org, jon-hunter@ti.com, Andreas Fenkart <andreas.fenkart@streamunlimited.com>
 
-By also making it return the modified value, we save the readl
-needed to update the context.
+OMAP4430 TRM chap. 25.4.5.2
+To reduce dynamic consumption, an efficient idle scheme is based on the
+following:
+=E2=80=A2 An efficient local autoclock gating for each module
+=E2=80=A2 The implementation of control sideband signals between the PR=
+CM module
+  and each module
+This enhanced idle control allows clocks to be activated and deactivate=
+d
+safely without requiring complex software management. The idle mode
+request, idle acknowledge, and wake-up request are sideband signals
+between the PRCM module and the general-purpose interface
+
+OMAP4430 TRM chap. 25.4.6.2
+There must be a correlation between the wake-up enable and interrupt
+enable register. If a GPIO pin has a wake-up configured on it, it must
+also have the corresponding interrupt enabled. Otherwise, it is possibl=
+e
+there is a wake-up event, but after exiting the IDLE state, no interrup=
+t
+is generated; the corresponding bit from the interrupt status register =
+is
+not cleared, and the module does not acknowledge a future idle request.
+
+Up to now _set_gpio_triggering() is also handling the wake-up enable
+register. According the TRM this should be in sync with the interrupt
+enable. Wakeup is still enabled by default, since the module would not
+wake from idle otherwise.
+The enabled_wakeup_gpios was introduced to remember an explicit
+_set_gpio_wakeup beyond a mask/unmask cycle. Calling the flag flag
+disabled_wakeup_gpios would spare the problem of initializing it, but
+feels very unnatural to read.
+
+Wakeup functionality is completely untested, since the AM335x
+lacks a IRQWAKEN register.
 
 Signed-off-by: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
 ---
- drivers/gpio/gpio-omap.c |  162 ++++++++++++++--------------------------------
- 1 file changed, 50 insertions(+), 112 deletions(-)
+ drivers/gpio/gpio-omap.c |   68 ++++++++++++++++++++++++++++++--------=
+--------
+ 1 file changed, 45 insertions(+), 23 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 159f5c5..082919e 100644
+index 082919e..44a93be 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -87,6 +87,19 @@ struct gpio_bank {
- #define GPIO_BIT(bank, gpio) (1 << GPIO_INDEX(bank, gpio))
- #define GPIO_MOD_CTRL_BIT	BIT(0)
- 
-+static inline u32 _gpio_rmw(void __iomem *base, u32 reg, u32 mask, bool set)
-+{
-+	u32 l = __raw_readl(base + reg);
-+
-+	if (set)
-+		l |= mask;
-+	else
-+		l &= ~mask;
-+
-+	__raw_writel(l, base + reg);
-+	return l;
-+}
-+
- static int irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq)
- {
- 	return gpio_irq - bank->irq_base + bank->chip.base;
-@@ -94,20 +107,10 @@ static int irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq)
- 
- static void _set_gpio_direction(struct gpio_bank *bank, int gpio, int is_input)
- {
--	void __iomem *reg = bank->base;
--	u32 l;
+@@ -57,6 +57,7 @@ struct gpio_bank {
+ 	struct irq_domain *domain;
+ 	u32 non_wakeup_gpios;
+ 	u32 enabled_non_wakeup_gpios;
++	u32 enabled_wakeup_gpios;
+ 	struct gpio_regs context;
+ 	u32 saved_datain;
+ 	u32 level_mask;
+@@ -287,12 +288,6 @@ static inline void set_gpio_trigger(struct gpio_ba=
+nk *bank, int gpio,
+ 		_gpio_rmw(base, bank->regs->fallingdetect,
+ 			  gpio_bit, trigger & IRQ_TYPE_EDGE_FALLING);
+=20
+-	if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
+-		bank->context.wake_en =3D
+-			_gpio_rmw(base, bank->regs->wkup_en, gpio_bit,
+-				  trigger !=3D 0);
+-	}
 -
--	reg += bank->regs->direction;
--	l = __raw_readl(reg);
--	if (is_input)
--		l |= 1 << gpio;
--	else
--		l &= ~(1 << gpio);
--	__raw_writel(l, reg);
--	bank->context.oe = l;
-+	bank->context.oe = _gpio_rmw(bank->base, bank->regs->direction, 1 <<
-+				     gpio, is_input);
- }
- 
--
- /* set data out value using dedicate set/clear register */
- static void _set_gpio_dataout_reg(struct gpio_bank *bank, int gpio, int enable)
- {
-@@ -128,17 +131,8 @@ static void _set_gpio_dataout_reg(struct gpio_bank *bank, int gpio, int enable)
- /* set data out value using mask register */
- static void _set_gpio_dataout_mask(struct gpio_bank *bank, int gpio, int enable)
- {
--	void __iomem *reg = bank->base + bank->regs->dataout;
--	u32 gpio_bit = GPIO_BIT(bank, gpio);
--	u32 l;
--
--	l = __raw_readl(reg);
--	if (enable)
--		l |= gpio_bit;
--	else
--		l &= ~gpio_bit;
--	__raw_writel(l, reg);
--	bank->context.dataout = l;
-+	bank->context.dataout = _gpio_rmw(bank->base, bank->regs->dataout,
-+					  GPIO_BIT(bank, gpio), enable);
- }
- 
- static int _get_gpio_datain(struct gpio_bank *bank, int offset)
-@@ -155,18 +149,6 @@ static int _get_gpio_dataout(struct gpio_bank *bank, int offset)
- 	return (__raw_readl(reg) & (1 << offset)) != 0;
- }
- 
--static inline void _gpio_rmw(void __iomem *base, u32 reg, u32 mask, bool set)
--{
--	int l = __raw_readl(base + reg);
--
--	if (set)
--		l |= mask;
--	else
--		l &= ~mask;
--
--	__raw_writel(l, base + reg);
--}
--
- static inline void _gpio_dbck_enable(struct gpio_bank *bank)
- {
- 	if (bank->dbck_enable_mask && !bank->dbck_enabled) {
-@@ -291,28 +273,24 @@ static inline void set_gpio_trigger(struct gpio_bank *bank, int gpio,
- 	void __iomem *base = bank->base;
- 	u32 gpio_bit = 1 << gpio;
- 
--	_gpio_rmw(base, bank->regs->leveldetect0, gpio_bit,
--		  trigger & IRQ_TYPE_LEVEL_LOW);
--	_gpio_rmw(base, bank->regs->leveldetect1, gpio_bit,
--		  trigger & IRQ_TYPE_LEVEL_HIGH);
--	_gpio_rmw(base, bank->regs->risingdetect, gpio_bit,
--		  trigger & IRQ_TYPE_EDGE_RISING);
--	_gpio_rmw(base, bank->regs->fallingdetect, gpio_bit,
--		  trigger & IRQ_TYPE_EDGE_FALLING);
- 
- 	bank->context.leveldetect0 =
--			__raw_readl(bank->base + bank->regs->leveldetect0);
-+		_gpio_rmw(base, bank->regs->leveldetect0,
-+			  gpio_bit, trigger & IRQ_TYPE_LEVEL_LOW);
- 	bank->context.leveldetect1 =
--			__raw_readl(bank->base + bank->regs->leveldetect1);
-+		_gpio_rmw(base, bank->regs->leveldetect1,
-+			  gpio_bit, trigger & IRQ_TYPE_LEVEL_HIGH);
- 	bank->context.risingdetect =
--			__raw_readl(bank->base + bank->regs->risingdetect);
-+		_gpio_rmw(base, bank->regs->risingdetect,
-+			  gpio_bit, trigger & IRQ_TYPE_EDGE_RISING);
- 	bank->context.fallingdetect =
--			__raw_readl(bank->base + bank->regs->fallingdetect);
-+		_gpio_rmw(base, bank->regs->fallingdetect,
-+			  gpio_bit, trigger & IRQ_TYPE_EDGE_FALLING);
- 
- 	if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
--		_gpio_rmw(base, bank->regs->wkup_en, gpio_bit, trigger != 0);
- 		bank->context.wake_en =
--			__raw_readl(bank->base + bank->regs->wkup_en);
-+			_gpio_rmw(base, bank->regs->wkup_en, gpio_bit,
-+				  trigger != 0);
- 	}
- 
  	/* This part needs to be executed always for OMAP{34xx, 44xx} */
-@@ -406,9 +384,9 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio,
- 			l |= 1 << (gpio << 1);
- 
- 		/* Enable wake-up during idle for dynamic tick */
--		_gpio_rmw(base, bank->regs->wkup_en, 1 << gpio, trigger);
- 		bank->context.wake_en =
--			__raw_readl(bank->base + bank->regs->wkup_en);
-+			_gpio_rmw(base, bank->regs->wkup_en, 1 << gpio,
-+				  trigger);
+ 	if (!bank->regs->irqctrl) {
+ 		/* On omap24xx proceed only when valid GPIO bit is set */
+@@ -350,12 +345,13 @@ static int _set_gpio_triggering(struct gpio_bank =
+*bank, int gpio,
+ 							unsigned trigger)
+ {
+ 	void __iomem *reg =3D bank->base;
+-	void __iomem *base =3D bank->base;
+ 	u32 l =3D 0;
+=20
+-	if (bank->regs->leveldetect0 && bank->regs->wkup_en) {
++	if (bank->regs->leveldetect0) {
++		/* edge both flanks simultaneously / plus level */
+ 		set_gpio_trigger(bank, gpio, trigger);
+ 	} else if (bank->regs->irqctrl) {
++		/* edge single flank */
+ 		reg +=3D bank->regs->irqctrl;
+=20
+ 		l =3D __raw_readl(reg);
+@@ -370,6 +366,7 @@ static int _set_gpio_triggering(struct gpio_bank *b=
+ank, int gpio,
+=20
+ 		__raw_writel(l, reg);
+ 	} else if (bank->regs->edgectrl1) {
++		/* edge both flanks simultaneously */
+ 		if (gpio & 0x08)
+ 			reg +=3D bank->regs->edgectrl2;
+ 		else
+@@ -382,11 +379,6 @@ static int _set_gpio_triggering(struct gpio_bank *=
+bank, int gpio,
+ 			l |=3D 2 << (gpio << 1);
+ 		if (trigger & IRQ_TYPE_EDGE_FALLING)
+ 			l |=3D 1 << (gpio << 1);
+-
+-		/* Enable wake-up during idle for dynamic tick */
+-		bank->context.wake_en =3D
+-			_gpio_rmw(base, bank->regs->wkup_en, 1 << gpio,
+-				  trigger);
  		__raw_writel(l, reg);
  	}
  	return 0;
-@@ -450,19 +428,16 @@ static int gpio_irq_type(struct irq_data *d, unsigned type)
- 
- static void _clear_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+@@ -485,10 +477,19 @@ static void _disable_gpio_irqbank(struct gpio_ban=
+k *bank, int gpio_mask)
+=20
+ static inline void _set_gpio_irqenable(struct gpio_bank *bank, int gpi=
+o, int enable)
  {
--	void __iomem *reg = bank->base;
-+	void __iomem *base = bank->base;
- 
--	reg += bank->regs->irqstatus;
--	__raw_writel(gpio_mask, reg);
-+	__raw_writel(gpio_mask, base + bank->regs->irqstatus);
- 
- 	/* Workaround for clearing DSP GPIO interrupts to allow retention */
--	if (bank->regs->irqstatus2) {
--		reg = bank->base + bank->regs->irqstatus2;
--		__raw_writel(gpio_mask, reg);
--	}
-+	if (bank->regs->irqstatus2)
-+		__raw_writel(gpio_mask, base + bank->regs->irqstatus2);
- 
- 	/* Flush posted write for the irq status to avoid spurious interrupts */
--	__raw_readl(reg);
-+	__raw_readl(base + bank->regs->irqstatus);
++	u32 gpio_bit =3D GPIO_BIT(bank, gpio);
++	void __iomem *base =3D bank->base;
++
+ 	if (enable)
+-		_enable_gpio_irqbank(bank, GPIO_BIT(bank, gpio));
++		_enable_gpio_irqbank(bank, gpio_bit);
+ 	else
+-		_disable_gpio_irqbank(bank, GPIO_BIT(bank, gpio));
++		_disable_gpio_irqbank(bank, gpio_bit);
++
++	if (bank->enabled_wakeup_gpios & gpio_bit) {
++		/* Enable wake-up during idle for dynamic tick */
++		bank->context.wake_en =3D
++			_gpio_rmw(base, bank->regs->wkup_en, gpio_bit, enable);
++	}
  }
- 
- static inline void _clear_gpio_irqstatus(struct gpio_bank *bank, int gpio)
-@@ -486,46 +461,26 @@ static u32 _get_gpio_irqbank_mask(struct gpio_bank *bank)
- 
- static void _enable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
- {
--	void __iomem *reg = bank->base;
--	u32 l;
--
- 	if (bank->regs->set_irqenable) {
--		reg += bank->regs->set_irqenable;
--		l = gpio_mask;
- 		bank->context.irqenable1 |= gpio_mask;
-+		__raw_writel(gpio_mask, bank->base + bank->regs->set_irqenable);
- 	} else {
--		reg += bank->regs->irqenable;
--		l = __raw_readl(reg);
--		if (bank->regs->irqenable_inv)
--			l &= ~gpio_mask;
--		else
--			l |= gpio_mask;
--		bank->context.irqenable1 = l;
-+		bank->context.irqenable1 =
-+			_gpio_rmw(bank->base, bank->regs->irqenable, gpio_mask,
-+				  bank->regs->irqenable_inv ? false : true);
+=20
+ /*
+@@ -511,8 +512,27 @@ static int _set_gpio_wakeup(struct gpio_bank *bank=
+, int gpio, int enable)
  	}
--
--	__raw_writel(l, reg);
- }
- 
- static void _disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
- {
--	void __iomem *reg = bank->base;
--	u32 l;
--
- 	if (bank->regs->clr_irqenable) {
--		reg += bank->regs->clr_irqenable;
--		l = gpio_mask;
- 		bank->context.irqenable1 &= ~gpio_mask;
-+		__raw_writel(gpio_mask, bank->base + bank->regs->clr_irqenable);
- 	} else {
--		reg += bank->regs->irqenable;
--		l = __raw_readl(reg);
--		if (bank->regs->irqenable_inv)
--			l |= gpio_mask;
--		else
--			l &= ~gpio_mask;
--		bank->context.irqenable1 = l;
-+		bank->context.irqenable1 =
-+			_gpio_rmw(bank->base, bank->regs->irqenable, gpio_mask,
-+				  bank->regs->irqenable_inv ?: false);
- 	}
--
--	__raw_writel(l, reg);
- }
- 
- static inline void _set_gpio_irqenable(struct gpio_bank *bank, int gpio, int enable)
-@@ -556,12 +511,8 @@ static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
- 	}
- 
+=20
  	spin_lock_irqsave(&bank->lock, flags);
--	if (enable)
--		bank->context.wake_en |= gpio_bit;
--	else
--		bank->context.wake_en &= ~gpio_bit;
--
--	__raw_writel(bank->context.wake_en, bank->base + bank->regs->wkup_en);
-+	bank->context.wake_en = _gpio_rmw(bank->base, bank->regs->wkup_en,
-+					  gpio_bit, enable);
+-	bank->context.wake_en =3D _gpio_rmw(bank->base, bank->regs->wkup_en,
+-					  gpio_bit, enable);
++
++	if (enable)
++		bank->enabled_wakeup_gpios |=3D gpio_bit;
++	else
++		bank->enabled_wakeup_gpios &=3D ~gpio_bit;
++
++	/*
++	 * OMAP4430 TRM, 25.4.6.2
++	 * If there is a wake-up event, but after exiting the IDLE
++	 * state, no interrupt is generated; the corresponding bit from
++	 * the interrupt status register is not cleared, and the
++	 * module does not acknowledge a future idle request.
++	 */
++	if (enable && !(bank->context.irqenable1 & gpio_bit))
++		dev_warn(bank->dev, "Wake-up/IRQ enable mismatch for GPIO%d\n",
++			 gpio);
++	else
++		bank->context.wake_en =3D _gpio_rmw(bank->base,
++						  bank->regs->wkup_en,
++						  gpio_bit, enable);
++
  	spin_unlock_irqrestore(&bank->lock, flags);
- 
+=20
  	return 0;
-@@ -604,21 +555,14 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+@@ -525,6 +545,10 @@ static void _reset_gpio(struct gpio_bank *bank, in=
+t gpio)
+ 	_clear_gpio_irqstatus(bank, gpio);
+ 	_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), IRQ_TYPE_NONE);
+ 	_clear_gpio_debounce(bank, gpio);
++
++	/* wakeup enabled by default */
++	if (!(bank->non_wakeup_gpios & GPIO_BIT(bank, gpio)))
++		bank->enabled_wakeup_gpios |=3D GPIO_BIT(bank, gpio);
+ }
+=20
+ /* Use disable_irq_wake() and enable_irq_wake() functions from drivers=
+ */
+@@ -554,6 +578,10 @@ static int omap_gpio_request(struct gpio_chip *chi=
+p, unsigned offset)
+ 	 */
  	_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
- 
+=20
++	/* wakeup enabled by default */
++	if (!(bank->non_wakeup_gpios & (1 << offset)))
++		bank->enabled_wakeup_gpios |=3D 1 << offset;
++
  	if (bank->regs->pinctrl) {
--		void __iomem *reg = bank->base + bank->regs->pinctrl;
--
  		/* Claim the pin for MPU */
--		__raw_writel(__raw_readl(reg) | (1 << offset), reg);
-+		_gpio_rmw(bank->base, bank->regs->pinctrl, 1 << offset, 1);
- 	}
- 
- 	if (bank->regs->ctrl && !bank->mod_usage) {
--		void __iomem *reg = bank->base + bank->regs->ctrl;
--		u32 ctrl;
+ 		_gpio_rmw(bank->base, bank->regs->pinctrl, 1 << offset, 1);
+@@ -580,12 +608,6 @@ static void omap_gpio_free(struct gpio_chip *chip,=
+ unsigned offset)
+=20
+ 	spin_lock_irqsave(&bank->lock, flags);
+=20
+-	if (bank->regs->wkup_en) {
+-		/* Disable wake-up during idle for dynamic tick */
+-		bank->context.wake_en =3D
+-			_gpio_rmw(base, bank->regs->wkup_en, 1 << offset, 0);
+-	}
 -
--		ctrl = __raw_readl(reg);
- 		/* Module is enabled, clocks are not gated */
--		ctrl &= ~GPIO_MOD_CTRL_BIT;
--		__raw_writel(ctrl, reg);
--		bank->context.ctrl = ctrl;
-+		bank->context.ctrl = _gpio_rmw(bank->base, bank->regs->ctrl,
-+					       GPIO_MOD_CTRL_BIT, 0);
- 	}
- 
- 	bank->mod_usage |= 1 << offset;
-@@ -638,22 +582,16 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
- 
- 	if (bank->regs->wkup_en) {
- 		/* Disable wake-up during idle for dynamic tick */
--		_gpio_rmw(base, bank->regs->wkup_en, 1 << offset, 0);
- 		bank->context.wake_en =
--			__raw_readl(bank->base + bank->regs->wkup_en);
-+			_gpio_rmw(base, bank->regs->wkup_en, 1 << offset, 0);
- 	}
- 
- 	bank->mod_usage &= ~(1 << offset);
- 
+ 	bank->mod_usage &=3D ~(1 << offset);
+=20
  	if (bank->regs->ctrl && !bank->mod_usage) {
--		void __iomem *reg = bank->base + bank->regs->ctrl;
--		u32 ctrl;
--
--		ctrl = __raw_readl(reg);
- 		/* Module is disabled, clocks are gated */
--		ctrl |= GPIO_MOD_CTRL_BIT;
--		__raw_writel(ctrl, reg);
--		bank->context.ctrl = ctrl;
-+		bank->context.ctrl = _gpio_rmw(base, bank->regs->ctrl,
-+					       GPIO_MOD_CTRL_BIT, 1);
- 	}
- 
- 	_reset_gpio(bank, bank->chip.base + offset);
--- 
+--=20
 1.7.10.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
