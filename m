@@ -1,102 +1,76 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH] ARM: OMAP2+: Allow NAND transfer mode to be specified
- in DT
-Date: Wed, 15 May 2013 05:28:37 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73E9C47EC@DBDE04.ent.ti.com>
-References: <5171A43C.7040602@newflow.co.uk>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3] ARM:dts:omap4-panda:Update the LED support for the
+ panda DTS
+Date: Wed, 15 May 2013 00:29:16 -0500
+Message-ID: <20130515052916.GA15607@kahuna>
+References: <1368541076-6854-1-git-send-email-dmurphy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54936 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751186Ab3EOF2v convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 May 2013 01:28:51 -0400
-In-Reply-To: <5171A43C.7040602@newflow.co.uk>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1368541076-6854-1-git-send-email-dmurphy-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Jackson <mpfj-list@newflow.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-Acked-by: Pekon Gupta <pekon@ti.com>
+$subject - add a space?
+s/ARM:dts:omap4-panda:Update/ARM: dts: omap4-panda: Update/ ?
 
-> OMAP devices support various NAND transfer modes.
+On 09:17-20130514, Dan Murphy wrote:
+> The GPIO for LED D1 on the omap4-panda a1-a3 rev and the omap4-panda-es
+> are different.
 > 
-> Currently all device-tree definitions will use the default "prefetch
-> polled" mode, so this patch enables the transfer mode to be specified
-> in the device-tree.
+> A1-A3 = gpio_wk7
+Thanks for fixing this - this is a key fix else, GPIO_7 which controls
+VSEL for VDD_MPU on PandaBoard-ES will create all kind of ruckus (change
+voltage on heartbeat)!
+> ES = gpio_110
+> 
+> There is no change to LED D2
+> 
+> Abstract away the pinmux and the LED definitions for the two boards into
+> the respective DTS files.
+> 
+> Signed-off-by: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
 > ---
->  .../devicetree/bindings/mtd/gpmc-nand.txt          |    8 ++++++++
->  arch/arm/mach-omap2/gpmc.c                         |   14 ++++++++++++++
->  2 files changed, 22 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> index e7f8d7e..cd4a19b 100644
-> --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> @@ -29,6 +29,13 @@ Optional properties:
->  		"bch4"		4-bit BCH ecc code
->  		"bch8"		8-bit BCH ecc code
-> 
-> + - ti,nand-xfer-type:		A string setting the data transfer type.
-> One of:
-> +
-> +		"prefetch-polled"	Prefetch polled mode (default)
-> +		"polled"		Polled mode, without prefetch
-> +		"prefetch-dma"		Prefetch enabled sDMA
-> mode
-> +		"prefetch-irq"		Prefetch enabled irq mode
-> +
->   - elm_id:	Specifies elm device node. This is required to support
-> BCH
->   		error correction using ELM module.
-> 
-> @@ -55,6 +62,7 @@ Example for an AM33xx board:
->  			reg = <0 0 0>; /* CS0, offset 0 */
->  			nand-bus-width = <16>;
->  			ti,nand-ecc-opt = "bch8";
-> +			ti,nand-xfer-type = "polled";
-> 
->  			gpmc,sync-clk = <0>;
->  			gpmc,cs-on = <0>;
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-
-> omap2/gpmc.c
-> index 410e1ba..2f47f76 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -1212,6 +1212,13 @@ static const char * const nand_ecc_opts[] = {
->  	[OMAP_ECC_BCH8_CODE_HW]			= "bch8",
+[...]
+> diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
+> index f1d8c21..8d1ba03 100644
+> --- a/arch/arm/boot/dts/omap4-panda-es.dts
+> +++ b/arch/arm/boot/dts/omap4-panda-es.dts
+> @@ -34,3 +34,43 @@
+>  		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
+>  		>;
 >  };
-> 
-> +static const char * const nand_xfer_types[] = {
-> +	[NAND_OMAP_PREFETCH_POLLED]		= "prefetch-
-> polled",
-> +	[NAND_OMAP_POLLED]			= "polled",
-> +	[NAND_OMAP_PREFETCH_DMA]		= "prefetch-
-> dma",
-> +	[NAND_OMAP_PREFETCH_IRQ]		= "prefetch-irq",
+> +
+> +&leds {
+> +	compatible = "gpio-leds";
+> +	heartbeat {
+> +		label = "pandaboard::status1";
+> +		gpios = <&gpio4 14 0>;
+> +		linux,default-trigger = "heartbeat";
+> +	};
+> +	mmc {
+> +		label = "pandaboard::status2";
+> +		gpios = <&gpio1 8 0>;
+> +		linux,default-trigger = "gpio";
+mmc0?
+> +	};
 > +};
 > +
->  static int gpmc_probe_nand_child(struct platform_device *pdev,
->  				 struct device_node *child)
->  {
-> @@ -1241,6 +1248,13 @@ static int gpmc_probe_nand_child(struct
-> platform_device *pdev,
->  				break;
->  			}
-> 
-> +	if (!of_property_read_string(child, "ti,nand-xfer-type", &s))
-> +		for (val = 0; val < ARRAY_SIZE(nand_xfer_types); val++)
-> +			if (!strcasecmp(s, nand_xfer_types[val])) {
-> +				gpmc_nand_data->xfer_type = val;
-> +				break;
-> +			}
-> +
->  	val = of_get_nand_bus_width(child);
->  	if (val == 16)
->  		gpmc_nand_data->devsize = NAND_BUSWIDTH_16;
-> --
-> 1.7.9.5
-> --
+Other that that,
+Tested-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+-- 
+Regards,
+Nishanth Menon
