@@ -1,62 +1,57 @@
-From: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Subject: Re: am3517: failed to boot 3.10-rc1
-Date: Wed, 15 May 2013 11:31:40 +0200
-Message-ID: <519355FC.5050206@visionsystems.de>
-References: <519202DC.10100@visionsystems.de> <20130514125216.GE21107@arwen.pp.htv.fi> <519235C5.1010608@visionsystems.de> <5193493C.8020301@visionsystems.de>
-Reply-To: yegor_sub1@visionsystems.de
+From: Tomi Valkeinen <tomi.valkeinen@iki.fi>
+Subject: Re: [PATCH] ARM: OMAP4: change the device names in usb_bind_phy
+Date: Wed, 15 May 2013 13:53:58 +0300
+Message-ID: <51936946.3030507@iki.fi>
+References: <1366697656-14315-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.vscom.de ([62.145.30.242]:59933 "EHLO mail.visionsystems.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751927Ab3EOJbz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 May 2013 05:31:55 -0400
-In-Reply-To: <5193493C.8020301@visionsystems.de>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1366697656-14315-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Mark A. Greer" <mgreer@animalcreek.com>, Maxim Podbereznyy <lisarden@gmail.com>
 
-On 15.05.2013 10:37, Yegor Yefremov wrote:
-> On 14.05.2013 15:01, Yegor Yefremov wrote:
->> On 14.05.2013 14:52, Felipe Balbi wrote:
->>> On Tue, May 14, 2013 at 11:24:44AM +0200, Yegor Yefremov wrote:
->>>> Trying to boot 3.10-rc1 on an am3515 based board. With the same
->>>> .config as 3.7 the system comes to RTC stops there. I've also tried
->>>> make omap2plus_defconfig with no visible difference. I'm booting from
->>>> MMC card and it will be detected by the system. Kernel is from
->>>> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git, latest
->>>> commit f722406faae2d073cc1d01063d1123c35425939e. Are there any pending
->>>> patches needed to boot on am3517?
->>> does v3.9 work ? Can you bisect ?
->>
->> 'git checkout v3.9' version is working, will try to bisect.
+On 23/04/13 09:14, Kishon Vijay Abraham I wrote:
+> After the device names are created using PLATFORM_DEVID_AUTO, the old
+> device names given in usb_bind_phy are no longer valid causing the musb
+> controller not to get the phy reference. Updated the usb_bind_phy with
+> the new device names to get MUSB functional in omap4 panda.
 > 
-> This is bisect's result:
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+> Tested in OMAP4 PANDA.
+>  arch/arm/mach-omap2/board-4430sdp.c    |    2 +-
+>  arch/arm/mach-omap2/board-omap4panda.c |    2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> f7b861b7a6d9d1838cbbb5f4053e61578b86d134 is the first bad commit
-> commit f7b861b7a6d9d1838cbbb5f4053e61578b86d134
-> Author: Thomas Gleixner <tglx@linutronix.de>
-> Date:   Thu Mar 21 22:49:38 2013 +0100
-> 
->     arm: Use generic idle loop
-> 
->     Use the generic idle loop and replace enable/disable_hlt with the
->     respective core functions.
-> 
->     Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
->     Cc: Linus Torvalds <torvalds@linux-foundation.org>
->     Cc: Rusty Russell <rusty@rustcorp.com.au>
->     Cc: Paul McKenney <paulmck@linux.vnet.ibm.com>
->     Cc: Peter Zijlstra <peterz@infradead.org>
->     Reviewed-by: Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
->     Cc: Magnus Damm <magnus.damm@gmail.com>
->     Cc: Russell King <linux@arm.linux.org.uk>
->     Tested-by: Kevin Hilman <khilman@linaro.org> # OMAP
->     Link: http://lkml.kernel.org/r/20130321215233.826238797@linutronix.de
-> 
-> :040000 040000 887517403888ff3947bce216aa4c1ff3ce3af434 8dc5236688a80fc64fa4112ce6136ecf3a19bac9 M      arch
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> index 00d7290..56a9a4f 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -730,7 +730,7 @@ static void __init omap_4430sdp_init(void)
+>  	omap4_sdp4430_wifi_init();
+>  	omap4_twl6030_hsmmc_init(mmc);
+>  
+> -	usb_bind_phy("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
+> +	usb_bind_phy("musb-hdrc.2.auto", 0, "omap-usb2.3.auto");
+>  	usb_musb_init(&musb_board_data);
+>  
+>  	status = omap_ethernet_init();
 
-We had such a problem long ago (https://patchwork.kernel.org/patch/1220061/ and http://www.spinics.net/lists/arm-kernel/msg168865.html) and the workaround was to use hohlt in kernel parameters. But with this patch the "nohlt" has gone. So now we need a solution, that fixes the root of the problem.
+I'm seeing
 
+[    2.190155] unable to find transceiver
+[    2.190155] HS USB OTG: no transceiver configured
+[    2.190155] musb-hdrc musb-hdrc.0.auto: musb_init_controller failed
+with status -517
+[    2.207458] platform musb-hdrc.0.auto: Driver musb-hdrc requests
+probe deferral
+
+on 4430sdp with v3.10-rc1. Does that mean that the musb-hdrc.0.auto was
+indeed correct, and the new value of musb-hdrc.2.auto is not?
+
+The musb-hdrc id is wrong on overo also.
+
+ Tomi
