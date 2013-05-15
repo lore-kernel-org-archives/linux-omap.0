@@ -1,50 +1,44 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCHv5 1/2] driver: tty: serial: Move "uart_console" def to
- core header file.
-Date: Wed, 15 May 2013 20:27:58 +0530
-Message-ID: <5193A276.9030308@ti.com>
-References: <1367006686-3720-1-git-send-email-sourav.poddar@ti.com> <1367006686-3720-2-git-send-email-sourav.poddar@ti.com> <87vc79uezo.fsf@linaro.org> <20130426221817.GA28377@kroah.com> <51939EFD.60900@ti.com> <20130515145711.GA1796@kroah.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: [PATCHv2 0/3] arm: enable TI SoC thermal driver
+Date: Wed, 15 May 2013 10:58:45 -0400
+Message-ID: <1368629928-6723-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130515145711.GA1796@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Kevin Hilman <khilman@linaro.org>, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:49422 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755699Ab3EOO7I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 May 2013 10:59:08 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-On Wednesday 15 May 2013 08:27 PM, Greg KH wrote:
-> On Wed, May 15, 2013 at 08:13:09PM +0530, Sourav Poddar wrote:
->> Hi Greg,
->> On Saturday 27 April 2013 03:48 AM, Greg KH wrote:
->>> On Fri, Apr 26, 2013 at 03:03:07PM -0700, Kevin Hilman wrote:
->>>> Hi Greg,
->>>>
->>>> Sourav Poddar<sourav.poddar@ti.com>   writes:
->>>>
->>>>> Move "uart_console" definition to serial core header file, so that it can be
->>>>> used by serial drivers.
->>>>> Get rid of the uart_console defintion from mpc52xx_uart driver.
->>>>>
->>>>> Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
->>>>> Cc: Felipe Balbi<balbi@ti.com>
->>>>> Cc: Rajendra nayak<rnayak@ti.com>
->>>>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
->>>>> Reviewed-by: Felipe Balbi<balbi@ti.com>
->>>> Can you queue up this patch (and 2/2)?  Once these are in, I will queue
->>>> up the corresponding arch/arm changes which can go independently.
->>>>
->>>> And feel free to add
->>>>
->>>> Reviewed-by: Kevin Hilman<khilman@linaro.org>
->>>> Tested-by: Kevin Hilman<khilman@linaro.org>
->>> I will do so after 3.10-rc1 is out, it is _way_ too late in the
->>> development cycle for me to add these to my trees right now, considering
->>> they are pretty much closed at the moment.
->>>
->> Do you want me to rebase this patches on top of 3.10-rc1?
-> That would be great to have, thanks.
->
-> greg k-h
-Ok. Will do that and resend.
+Hello,
+
+Idea is to add the missing bits under arch/arm/*omap* required
+to enable by default the ti-soc-thermal driver. I am planing to
+move it out of staging tree. It would be interesting to get
+feedback from other ppl. By enabling it by default we could reach
+more ppl for testing it across the supported chips.
+
+The difference from v1 is just that patch 01 doe snot include the
+dts prefix, as it is not supposed to be DTS related.
+
+BR,
+
+Eduardo Valentin (3):
+  arm: introduce config HAS_BANDGAP
+  arm: dts: add bandgap entry for OMAP443x devices
+  arm: dts: add bandgap entry for OMAP4460 devices
+
+ arch/arm/Kconfig                | 3 +++
+ arch/arm/boot/dts/omap443x.dtsi | 4 ++++
+ arch/arm/boot/dts/omap4460.dtsi | 9 +++++++++
+ arch/arm/mach-omap2/Kconfig     | 1 +
+ 4 files changed, 17 insertions(+)
+
+-- 
+1.8.2.1.342.gfa7285d
+
