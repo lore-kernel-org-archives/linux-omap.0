@@ -1,88 +1,53 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v3 4/6] ARM: OMAP2+: serial: Remove the un-used slave idle hooks
-Date: Wed, 15 May 2013 20:18:40 +0530
-Message-ID: <1368629322-3170-5-git-send-email-rnayak@ti.com>
-References: <1368629322-3170-1-git-send-email-rnayak@ti.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCHv5 1/2] driver: tty: serial: Move "uart_console" def to
+ core header file.
+Date: Wed, 15 May 2013 10:57:11 -0400
+Message-ID: <20130515145711.GA1796@kroah.com>
+References: <1367006686-3720-1-git-send-email-sourav.poddar@ti.com>
+ <1367006686-3720-2-git-send-email-sourav.poddar@ti.com>
+ <87vc79uezo.fsf@linaro.org>
+ <20130426221817.GA28377@kroah.com>
+ <51939EFD.60900@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54310 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759261Ab3EOOuK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 May 2013 10:50:10 -0400
-In-Reply-To: <1368629322-3170-1-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <51939EFD.60900@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: santosh.shilimkar@ti.com, linux@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, nm@ti.com, Rajendra nayak <rnayak@ti.com>
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+On Wed, May 15, 2013 at 08:13:09PM +0530, Sourav Poddar wrote:
+> Hi Greg,
+> On Saturday 27 April 2013 03:48 AM, Greg KH wrote:
+> >On Fri, Apr 26, 2013 at 03:03:07PM -0700, Kevin Hilman wrote:
+> >>Hi Greg,
+> >>
+> >>Sourav Poddar<sourav.poddar@ti.com>  writes:
+> >>
+> >>>Move "uart_console" definition to serial core header file, so that it can be
+> >>>used by serial drivers.
+> >>>Get rid of the uart_console defintion from mpc52xx_uart driver.
+> >>>
+> >>>Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
+> >>>Cc: Felipe Balbi<balbi@ti.com>
+> >>>Cc: Rajendra nayak<rnayak@ti.com>
+> >>>Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
+> >>>Reviewed-by: Felipe Balbi<balbi@ti.com>
+> >>Can you queue up this patch (and 2/2)?  Once these are in, I will queue
+> >>up the corresponding arch/arm changes which can go independently.
+> >>
+> >>And feel free to add
+> >>
+> >>Reviewed-by: Kevin Hilman<khilman@linaro.org>
+> >>Tested-by: Kevin Hilman<khilman@linaro.org>
+> >I will do so after 3.10-rc1 is out, it is _way_ too late in the
+> >development cycle for me to add these to my trees right now, considering
+> >they are pretty much closed at the moment.
+> >
+> Do you want me to rebase this patches on top of 3.10-rc1?
 
-UART IP idle handling now taken care by runtime pm backend(hwmod) indirectly
-and OMAP serial driver is also cleaned up accordingly.
+That would be great to have, thanks.
 
-So remove the un-used slave idle platforms hooks now.
-
-Tested-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Tested-by: Sourav Poddar <sourav.poddar@ti.com>
-Signed-off-by: Rajendra nayak <rnayak@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/serial.c |   31 -------------------------------
- 1 file changed, 31 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 8396b5b..f660156 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -95,38 +95,9 @@ static void omap_uart_enable_wakeup(struct device *dev, bool enable)
- 		omap_hwmod_disable_wakeup(od->hwmods[0]);
- }
- 
--/*
-- * Errata i291: [UART]:Cannot Acknowledge Idle Requests
-- * in Smartidle Mode When Configured for DMA Operations.
-- * WA: configure uart in force idle mode.
-- */
--static void omap_uart_set_noidle(struct device *dev)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--	struct omap_device *od = to_omap_device(pdev);
--
--	omap_hwmod_set_slave_idlemode(od->hwmods[0], HWMOD_IDLEMODE_NO);
--}
--
--static void omap_uart_set_smartidle(struct device *dev)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--	struct omap_device *od = to_omap_device(pdev);
--	u8 idlemode;
--
--	if (od->hwmods[0]->class->sysc->idlemodes & SIDLE_SMART_WKUP)
--		idlemode = HWMOD_IDLEMODE_SMART_WKUP;
--	else
--		idlemode = HWMOD_IDLEMODE_SMART;
--
--	omap_hwmod_set_slave_idlemode(od->hwmods[0], idlemode);
--}
--
- #else
- static void omap_uart_enable_wakeup(struct device *dev, bool enable)
- {}
--static void omap_uart_set_noidle(struct device *dev) {}
--static void omap_uart_set_smartidle(struct device *dev) {}
- #endif /* CONFIG_PM */
- 
- #ifdef CONFIG_OMAP_MUX
-@@ -299,8 +270,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
- 	omap_up.uartclk = OMAP24XX_BASE_BAUD * 16;
- 	omap_up.flags = UPF_BOOT_AUTOCONF;
- 	omap_up.get_context_loss_count = omap_pm_get_dev_context_loss_count;
--	omap_up.set_forceidle = omap_uart_set_smartidle;
--	omap_up.set_noidle = omap_uart_set_noidle;
- 	omap_up.enable_wakeup = omap_uart_enable_wakeup;
- 	omap_up.dma_rx_buf_size = info->dma_rx_buf_size;
- 	omap_up.dma_rx_timeout = info->dma_rx_timeout;
--- 
-1.7.9.5
-
+greg k-h
