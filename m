@@ -1,145 +1,74 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v4] ARM:dts:omap4-panda: Update the LED support for the
- panda DTS
-Date: Wed, 15 May 2013 12:05:16 -0500
-Message-ID: <20130515170516.GA6135@kahuna>
-References: <1368636386-17138-1-git-send-email-dmurphy@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP3: Fix iva2_pwrdm settings for 3703
+Date: Wed, 15 May 2013 10:07:35 -0700
+Message-ID: <20130515170734.GI5600@atomide.com>
+References: <20130515002537.GG5600@atomide.com>
+ <20130515015212.GB3268@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:30430 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759551Ab3EORHi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 May 2013 13:07:38 -0400
 Content-Disposition: inline
-In-Reply-To: <1368636386-17138-1-git-send-email-dmurphy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Murphy <dmurphy@ti.com>
-Cc: b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20130515015212.GB3268@animalcreek.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mark A. Greer" <mgreer@animalcreek.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@linaro.org>, Paul Walmsley <paul@pwsan.com>
 
-On 11:46-20130515, Dan Murphy wrote:
-> The GPIO for LED D1 on the omap4-panda a1-a3 rev and the omap4-panda-es
-> are different.
+* Mark A. Greer <mgreer@animalcreek.com> [130514 18:57]:
+> On Tue, May 14, 2013 at 05:25:37PM -0700, Tony Lindgren wrote:
+> > Commit a819c4f1 (ARM: OMAP3: PM: Only access IVA if one exists)
+> > changed PM to not access IVA registers on omaps that don't have
+> > them. Turns out we still need to idle iva2 as otherwise iva2_pwrdm
+> > will stay on and block deeper idle states.
+> > 
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > 
+> > ---
+> > 
+> > Paul & Kevin, do you have better ideas for fixing this?
+> > 
+> > --- a/arch/arm/mach-omap2/pm34xx.c
+> > +++ b/arch/arm/mach-omap2/pm34xx.c
+> > @@ -546,8 +546,10 @@ static void __init prcm_setup_regs(void)
+> >  	/* Clear any pending PRCM interrupts */
+> >  	omap2_prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
+> >  
+> > -	if (omap3_has_iva())
+> > -		omap3_iva_idle();
+> > +	/*
+> > +	 * We need to idle iva2_pwrdm even on am3703 with no iva2.
+> > +	 */
+> > +	omap3_iva_idle();
+> >  
+> >  	omap3_d2d_idle();
+> >  }
 > 
-> A1-A3 = gpio_wk7
-> ES = gpio_110
+> [Kevin, Paul, some background: Tony discovered that the am3703 needs
+> to have omap3_iva_idle() called even though its not supposed to have
+> an IVA.]
 > 
-> There is no change to LED D2
+> This is potentially bad for other SoC's that don't have an IVA so I don't
+> think its the way to go.  My preference would be to set the OMAP3_HAS_IVA
+> flag for the am3703 only since its the one with the bug.  Maybe something
+> in id.c:omap3xxx_check_features() but I don't see any existing way to check
+> for an am3703 vs. other am37xx SoCs.  Any ideas?
 > 
-> Abstract away the pinmux and the LED definitions for the two boards into
-> the respective DTS files.
-> 
-> Signed-off-by: Dan Murphy <dmurphy@ti.com>
-> ---
-nit: Giving patch history is a nice practise.
->  arch/arm/boot/dts/omap4-panda-common.dtsi |   16 +++++++++++-
->  arch/arm/boot/dts/omap4-panda-es.dts      |   40 +++++++++++++++++++++++++++++
->  2 files changed, 55 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-> index 03bd60d..2b516af 100644
-> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-> @@ -16,7 +16,7 @@
->  		reg = <0x80000000 0x40000000>; /* 1 GB */
->  	};
->  
-> -	leds {
-> +	leds: leds {
->  		compatible = "gpio-leds";
->  		heartbeat {
->  			label = "pandaboard::status1";
-> @@ -137,6 +137,20 @@
-I missed noticing this previously, Apologies on the same.
-Considering that drivers/leds/leds-gpio.c has ability to handle pinctrl,
-One better option might be to provide pinctrl phandle with leds -
-Couple of reasons why this might be good:
-a) one gets the following warning at boot:
-"leds-gpio leds.8: pins are not configured from the driver"
-b) you donot need to setup the pins by default at boot - it is not
-mandatory for the system functionality, instead we do it *if* the driver
-is enabled.
-Further, optionally, all you'd have to do in panda-es.dts is the following
-&led_wkgpio_pins {
-		pinctrl-single,pins = <
-			0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
-		>;
-}
-Similarly for gpios override for panda-es.
+> Another option, I suppose, is a dts entry but I don't like that at all.
 
->  	};
->  };
->  
-> +&omap4_pmx_wkup {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <
-> +		&led_wkgpio_pins
-> +	>;
-> +
-> +	led_wkgpio_pins: pinmux_leds_wkpins {
-> +		pinctrl-single,pins = <
-> +			0x1a 0x3	/* gpio_wk7 OUTPUT | MODE 3 */
-> +			0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
-> +		>;
-> +	};
-> +};
-> +
->  &i2c1 {
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&i2c1_pins>;
-> diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
-> index f1d8c21..e6f696d 100644
-> --- a/arch/arm/boot/dts/omap4-panda-es.dts
-> +++ b/arch/arm/boot/dts/omap4-panda-es.dts
-> @@ -34,3 +34,43 @@
->  		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
->  		>;
->  };
-> +
-> +&leds {
-> +	compatible = "gpio-leds";
-> +	heartbeat {
-> +		label = "pandaboard::status1";
-> +		gpios = <&gpio4 14 0>;
-> +		linux,default-trigger = "heartbeat";
-> +	};
-> +	mmc {
-> +		label = "pandaboard::status2";
-> +		gpios = <&gpio1 8 0>;
-> +		linux,default-trigger = "mmc0";
-> +	};
-> +};
-> +
-> +&omap4_pmx_core {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <
-> +		&led_gpio_pins
-> +	>;
-> +
-> +	led_gpio_pins: gpio_led_pmx {
-> +		pinctrl-single,pins = <
-> +			0xb6 0x3	/* gpio_110 OUTPUT | MODE 3 */
-> +		>;
-> +	};
-> +};
-> +
-> +&omap4_pmx_wkup {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <
-> +		&led_wkgpio_pins
-> +	>;
-> +
-> +	led_wkgpio_pins: pinmux_leds_wkpins {
-> +		pinctrl-single,pins = <
-> +			0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
-> +		>;
-> +	};
-> +};
-> -- 
-> 1.7.5.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It seems that iva2_pwrdm is there for all omap3 even if OMAP3_HAS_IVA
+flag is unset. And if that's the case, iva2 clocks still need to be idled
+in all cases.
 
--- 
+It's possible that not all steps in omap3_iva_idle() are needed though.
+I can debug further to see which part of the omap3_iva_idle() are needed.
+
+Mark, do you have some omap3 with no iva (other than am3703) to test the
+idle states with?
+
 Regards,
-Nishanth Menon
+
+Tony
