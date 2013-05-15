@@ -1,50 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP baseline test results for v3.9
-Date: Tue, 14 May 2013 15:52:21 -0700
-Message-ID: <20130514225221.GD5600@atomide.com>
-References: <alpine.DEB.2.00.1305081933270.19747@utopia.booyaka.com>
- <20130514211328.GC5600@atomide.com>
- <alpine.DEB.2.00.1305142116001.4368@utopia.booyaka.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: omap3-isp : panic using previewer from V4L input
+Date: Wed, 15 May 2013 03:32:43 +0200
+Message-ID: <1579245.NgheaxZSaI@avalon>
+References: <CAGGh5h00H10F7GWgjyhN_5Zn8JNMXRptt4FF+u=NHDdTXFD2MA@mail.gmail.com> <CAGGh5h1zzF7mKgof=jcEBHVmnG9i-A=xpzc9Ri8bHL5xe7bnuQ@mail.gmail.com> <CAGGh5h0eAdk+2pHcNn+xBgpvWmGgTa87_WN5GP-64Gexm-oK_Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62330 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758431Ab3ENWwY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 May 2013 18:52:24 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1305142116001.4368@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <CAGGh5h0eAdk+2pHcNn+xBgpvWmGgTa87_WN5GP-64Gexm-oK_Q@mail.gmail.com>
+Sender: linux-media-owner@vger.kernel.org
+To: jean-philippe francois <jp.francois@cynove.com>
+Cc: linux-media <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@linaro.org>
 
-* Paul Walmsley <paul@pwsan.com> [130514 14:24]:
-> On Tue, 14 May 2013, Tony Lindgren wrote:
-> 
-> > Hi,
-> > 
-> > * Paul Walmsley <paul@pwsan.com> [130508 12:45]:
-> > > 
-> > > PM off, dynamic idle:
-> > >     FAIL ( 2/ 5): 4430es2panda, 4460pandaes
-> > >     Pass ( 3/ 5): 3530es3beagle, 3730beaglexm, 37xxevm
-> > 
-> > Looking at your pm logs, 3730beaglexm won't hit off-idle.
-> > I've pasted the relevant lines from your logs below.
-> > 
-> > Is this a known issue?
-> 
-> Yes, the Beagle XM in my testbed is a 3630ES1.0.  From the PM logs:
-> 
-> [   63.154418] omap3_pm_off_mode_enable: Core OFF disabled due to errata 
-> i583
-> 
-> I should probably clarify how this is reported in the test results.
+Hi Jean-Philippe,
 
-Thanks that explains. BTW, the "PM off" naming might make some
-people think that CONFIG_PM is not set :)
+On Tuesday 14 May 2013 11:29:39 jean-philippe francois wrote:
+> Hi Laurent,
+> 
+> I have a beagle xm board, but no sensor board. Is it possible to have
+> the omap3-isp initialised ?
 
+Yes it is. You will just need to call omap3_init_camera() in your board code 
+with a pointer to platform data that contain an empty list of subdevs. 
+Something like
+
+static struct isp_v4l2_subdevs_group beagle_camera_subdevs[] = {
+	{ },
+};
+
+static struct isp_platform_data beagle_isp_platform_data = {
+	.subdevs = beagle_camera_subdevs,
+};
+
+static int __init beagle_camera_init(void)
+{
+	if (!machine_is_omap3_beagle())
+		return 0;
+
+	omap3_init_camera(&beagle_isp_platform_data);
+
+	return 0;
+}
+late_initcall(beagle_camera_init);
+
+should do (you will also need to include the appropriate headers).
+
+> I would like to try my program on a beagle board to eliminate any
+> hardware related problem.
+> From the board file in mainline kernel, it seems omap3_init_camera is
+> not called, do you know any kernel tree where isp is initialized for beagle
+> board ?
+
+-- 
 Regards,
 
-Tony
+Laurent Pinchart
