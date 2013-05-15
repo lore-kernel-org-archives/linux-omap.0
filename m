@@ -1,84 +1,62 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: MTD : cannot reserve enough PEBs for bad PEB handling
-Date: Wed, 15 May 2013 10:55:36 +0300
-Message-ID: <1368604536.13665.25.camel@sauron.fi.intel.com>
-References: <51750526.70508@newflow.co.uk>
-Reply-To: dedekind1@gmail.com
+From: Yegor Yefremov <yegor_sub1@visionsystems.de>
+Subject: Re: am3517: failed to boot 3.10-rc1
+Date: Wed, 15 May 2013 10:37:16 +0200
+Message-ID: <5193493C.8020301@visionsystems.de>
+References: <519202DC.10100@visionsystems.de> <20130514125216.GE21107@arwen.pp.htv.fi> <519235C5.1010608@visionsystems.de>
+Reply-To: yegor_sub1@visionsystems.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51750526.70508@newflow.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Jackson <mpfj-list@newflow.co.uk>
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from hhlx01.vscom.de ([62.145.30.242]:48708 "EHLO
+	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756602Ab3EOIha (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 May 2013 04:37:30 -0400
+In-Reply-To: <519235C5.1010608@visionsystems.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Mark A. Greer" <mgreer@animalcreek.com>, Maxim Podbereznyy <lisarden@gmail.com>
 
-On Mon, 2013-04-22 at 10:38 +0100, Mark Jackson wrote:
-> I'm trying to work out how to generate a "valid" UBI image, but I keep
-> getting a "cannot get enough PEBs" warning.
+On 14.05.2013 15:01, Yegor Yefremov wrote:
+> On 14.05.2013 14:52, Felipe Balbi wrote:
+>> On Tue, May 14, 2013 at 11:24:44AM +0200, Yegor Yefremov wrote:
+>>> Trying to boot 3.10-rc1 on an am3515 based board. With the same
+>>> .config as 3.7 the system comes to RTC stops there. I've also tried
+>>> make omap2plus_defconfig with no visible difference. I'm booting from
+>>> MMC card and it will be detected by the system. Kernel is from
+>>> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git, latest
+>>> commit f722406faae2d073cc1d01063d1123c35425939e. Are there any pending
+>>> patches needed to boot on am3517?
+>> does v3.9 work ? Can you bisect ?
 > 
-> I generate my image (destined for a 64MB NAND partition) using:-
-> 
-> $ mkfs.ubifs -d output/target -e 0x1f000 -c 483 -m 0x800 -x none -F -o
-> output/images/rootfs.ubifs
-> $ ubinize -o output/images/rootfs.ubi -m 0x800 -p 0x20000 -s 512 -O 2048
-> ubinize.cfg
-> 
-> My .cfg file is:-
-> 
-> [ubifs]
-> mode=ubi
-> vol_id=0
-> vol_type=dynamic
-> vol_name=rootfs
-> vol_alignment=1
-> vol_flags=autoresize
-> vol_size=61MiB
-> image=output/images/rootfs.ubifs
-> 
-> And the resulting image is:-
-> 
-> -rw-rw-r-- 1 mpfj mpfj 9437184 Apr 16 10:19 rootfs.ubi
-> 
-> This is then written to a freshly erased 64MB NAND partition, and
-> appears to mount correctly, apart from the warning about not enough
-> reserved PEBs, as follows:-
-> 
-> ...
-> [    0.792456] UBI: attaching mtd7 to ubi0
-> [    1.540858] UBI: scanning is finished
-> [    1.557578] UBI warning: print_rsvd_warning: cannot reserve enough
-> PEBs for bad PEB handling, reserved 4, need 40
-> [    1.561346] UBI: attached mtd7 (name "rootfs", size 64 MiB) to ubi0
-> [    1.561404] UBI: PEB size: 131072 bytes (128 KiB), LEB size: 126976 bytes
-> [    1.561434] UBI: min./max. I/O unit sizes: 2048/2048, sub-page size 512
-> [    1.561464] UBI: VID header offset: 2048 (aligned 2048), data offset:
-> 4096
-> [    1.561493] UBI: good PEBs: 512, bad PEBs: 0, corrupted PEBs: 0
-> [    1.561520] UBI: user volume: 1, internal volumes: 1, max. volumes
-> count: 128
-> [    1.561554] UBI: max/mean erase counter: 2/1, WL threshold: 4096,
-> image sequence number: 1434266085
-> [    1.561591] UBI: available PEBs: 0, total reserved PEBs: 512, PEBs
-> reserved for bad PEB handling: 4
-> [    1.562374] UBI: background thread "ubi_bgt0d" started, PID 598
-> ...
-> 
-> I think I've calculated the various option values correctly for
-> mkfs.ubifs and ubinize.
-> 
-> But since I'm getting the warning, can anyone explain where I've gone
-> wrong ?
+> 'git checkout v3.9' version is working, will try to bisect.
 
-This is because UBI is trying to reserve 40 PEBs for bad block handling.
-Why so much? See the explanations here:
+This is bisect's result:
 
-http://www.linux-mtd.infradead.org/doc/ubi.html#L_max_beb
+f7b861b7a6d9d1838cbbb5f4053e61578b86d134 is the first bad commit
+commit f7b861b7a6d9d1838cbbb5f4053e61578b86d134
+Author: Thomas Gleixner <tglx@linutronix.de>
+Date:   Thu Mar 21 22:49:38 2013 +0100
 
-You may adjust this value, but the default for UBI is the most
-pessimistic scenario.
+    arm: Use generic idle loop
 
--- 
-Best Regards,
-Artem Bityutskiy
+    Use the generic idle loop and replace enable/disable_hlt with the
+    respective core functions.
+
+    Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+    Cc: Linus Torvalds <torvalds@linux-foundation.org>
+    Cc: Rusty Russell <rusty@rustcorp.com.au>
+    Cc: Paul McKenney <paulmck@linux.vnet.ibm.com>
+    Cc: Peter Zijlstra <peterz@infradead.org>
+    Reviewed-by: Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+    Cc: Magnus Damm <magnus.damm@gmail.com>
+    Cc: Russell King <linux@arm.linux.org.uk>
+    Tested-by: Kevin Hilman <khilman@linaro.org> # OMAP
+    Link: http://lkml.kernel.org/r/20130321215233.826238797@linutronix.de
+
+:040000 040000 887517403888ff3947bce216aa4c1ff3ce3af434 8dc5236688a80fc64fa4112ce6136ecf3a19bac9 M      arch
+
+Any idea?
+
+Yegor
