@@ -1,124 +1,92 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v3 1/6] ARM: OMAP2+: hwmod: Fix sidle programming in _enable_sysc()/_idle_sysc()
-Date: Wed, 15 May 2013 20:18:37 +0530
-Message-ID: <1368629322-3170-2-git-send-email-rnayak@ti.com>
-References: <1368629322-3170-1-git-send-email-rnayak@ti.com>
+Subject: [PATCH v3 0/6] ARM: OMAP2+: hwmod and SERIAL: Remove sysc handling from driver
+Date: Wed, 15 May 2013 20:18:36 +0530
+Message-ID: <1368629322-3170-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58317 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759389Ab3EOOtv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 May 2013 10:49:51 -0400
-In-Reply-To: <1368629322-3170-1-git-send-email-rnayak@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:54294 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759386Ab3EOOty (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 May 2013 10:49:54 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: santosh.shilimkar@ti.com, linux@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, nm@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-_enable_sysc() and _idle_sysc() handle the midle mode programming correctly
-and program HWMOD_IDLEMODE_SMART or HWMOD_IDLEMODE_SMART_WKUP respectively
-for supported IPs (The ones which support hardware controlled midle modes)
+changes in v3:
+1. Fix the patch ordering issue (which otherwise broke git-bisect) as pointed
+out by Kevin Hilman. I missed re-sending these out with the fix in time for
+the 3.10 merge window. Thanks to Nishanth Menon for picking these up and doing
+a rebase against 3.10-rc1.
+Thanks also to Sourav and Vaibhav Bedia for running tests on 4430sdp and
+beaglebone.
 
-However the same programming logic is missing when it comes to sidle mode
-programming. Here they seem to just set HWMOD_IDLEMODE_SMART (Again for the
-ones which support hardware controlled sidle modes)
-
-This problem was hidden due to the fact that a call to _enable_wakeup()
-in those same functions would overwrite the idlemodes and program them
-correctly (to HWMOD_IDLEMODE_SMART_WKUP in the supported cases)
-
-So fix the sidlemode handling correctly in these functions and handle the
-_enable_wakeup() for SIDLEMODE supported IPs same as the way its handled
-for MIDLEMODE supported ones.
-
-Tested-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Tested-by: Sourav Poddar <sourav.poddar@ti.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+changes in v2:
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   42 +++++++++++++++++++++++---------------
- 1 file changed, 25 insertions(+), 17 deletions(-)
+1. Addressed the concerns from Paul Wamsley around cleanups in
+_enable_wakeup()/_disable_wakeup(), and left them intact
+2. Updates in changelogs in the serial patch about changes
+needed when dma support is added back for serial
+3. Dropped 1/8 from v1 since its already pulled in
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index d25a95f..c28552b 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1356,13 +1356,26 @@ static void _enable_sysc(struct omap_hwmod *oh)
- 
- 	clkdm = _get_clkdm(oh);
- 	if (sf & SYSC_HAS_SIDLEMODE) {
-+		if (oh->flags & HWMOD_SWSUP_SIDLE) {
-+			idlemode = HWMOD_IDLEMODE_NO;
-+		} else {
-+			if (sf & SYSC_HAS_ENAWAKEUP)
-+				_enable_wakeup(oh, &v);
-+			if (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP)
-+				idlemode = HWMOD_IDLEMODE_SMART_WKUP;
-+			else
-+				idlemode = HWMOD_IDLEMODE_SMART;
-+		}
-+
-+		/*
-+		 * This is special handling for some IPs like
-+		 * 32k sync timer. Force them to idle!
-+		 */
- 		clkdm_act = (clkdm && clkdm->flags & CLKDM_ACTIVE_WITH_MPU);
- 		if (clkdm_act && !(oh->class->sysc->idlemodes &
- 				   (SIDLE_SMART | SIDLE_SMART_WKUP)))
- 			idlemode = HWMOD_IDLEMODE_FORCE;
--		else
--			idlemode = (oh->flags & HWMOD_SWSUP_SIDLE) ?
--				HWMOD_IDLEMODE_NO : HWMOD_IDLEMODE_SMART;
-+
- 		_set_slave_idlemode(oh, idlemode, &v);
- 	}
- 
-@@ -1391,10 +1404,6 @@ static void _enable_sysc(struct omap_hwmod *oh)
- 	    (sf & SYSC_HAS_CLOCKACTIVITY))
- 		_set_clockactivity(oh, oh->class->sysc->clockact, &v);
- 
--	/* If slave is in SMARTIDLE, also enable wakeup */
--	if ((sf & SYSC_HAS_SIDLEMODE) && !(oh->flags & HWMOD_SWSUP_SIDLE))
--		_enable_wakeup(oh, &v);
--
- 	_write_sysconfig(v, oh);
- 
- 	/*
-@@ -1430,13 +1439,16 @@ static void _idle_sysc(struct omap_hwmod *oh)
- 	sf = oh->class->sysc->sysc_flags;
- 
- 	if (sf & SYSC_HAS_SIDLEMODE) {
--		/* XXX What about HWMOD_IDLEMODE_SMART_WKUP? */
--		if (oh->flags & HWMOD_SWSUP_SIDLE ||
--		    !(oh->class->sysc->idlemodes &
--		      (SIDLE_SMART | SIDLE_SMART_WKUP)))
-+		if (oh->flags & HWMOD_SWSUP_SIDLE) {
- 			idlemode = HWMOD_IDLEMODE_FORCE;
--		else
--			idlemode = HWMOD_IDLEMODE_SMART;
-+		} else {
-+			if (sf & SYSC_HAS_ENAWAKEUP)
-+				_enable_wakeup(oh, &v);
-+			if (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP)
-+				idlemode = HWMOD_IDLEMODE_SMART_WKUP;
-+			else
-+				idlemode = HWMOD_IDLEMODE_SMART;
-+		}
- 		_set_slave_idlemode(oh, idlemode, &v);
- 	}
- 
-@@ -1455,10 +1467,6 @@ static void _idle_sysc(struct omap_hwmod *oh)
- 		_set_master_standbymode(oh, idlemode, &v);
- 	}
- 
--	/* If slave is in SMARTIDLE, also enable wakeup */
--	if ((sf & SYSC_HAS_SIDLEMODE) && !(oh->flags & HWMOD_SWSUP_SIDLE))
--		_enable_wakeup(oh, &v);
--
- 	_write_sysconfig(v, oh);
- }
- 
+The patches are based of 'fixes-non-critical' branch of
+'git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap' tree
+since patch 1/8 from v1 was pulled in here.
+
+Patches can be found here:
+git://github.com/rrnayak/linux.git sysc-cleanups
+---
+
+OMAP UART IP needs manual idle modes based on functional state of the
+IP. Currently this is handled by the driver with function pointers
+implemented in platform code.
+
+This however breaks in case of device tree because of missing
+idle handling. 
+
+The series tries to address the issue and tries to remove complete
+sysc handling from serial driver.
+
+Patches has been tested on OMAP4430 SDP and OMAP5 EVM where the console
+sluggishness was observed without idle mode handling. CPUIDLE and
+suspend tested ok on these devices.
+
+Thanks to Vaibhav Bedia for testing on Beaglebone(AM33XX) with suspend and
+also the UART async wakeup from suspend.
+
+Thanks to Sourav Poddar for Beagle XM(OMAP3630) devices testing with
+retention and offmode in Idle and suspend for non-DT builds.
+
+Serial driver platform code still has one more function pointer
+left which is used to trigger io_ring(). This one needs some
+discussion with pincontrol driver folks on how to implement
+such a feature with generic pincontrol driver.
+
+Rajendra Nayak (2):
+  ARM: OMAP2+: hwmod: Fix sidle programming in
+    _enable_sysc()/_idle_sysc()
+  ARM: OMAP2+: hwmod: Add a new flag to handle SIDLE in SWSUP only in
+    active
+
+Santosh Shilimkar (4):
+  ARM: OMAP2+: hwmod-data: UART IP needs software control to manage
+    sidle modes
+  ARM: OMAP2+: serial: Remove the un-used slave idle hooks
+  SERIAL: OMAP: Remove the slave idle handling from the driver
+  ARM: OMAP2+: hwmod: Remove sysc slave idle and auto idle apis
+
+ arch/arm/mach-omap2/omap_hwmod.c                   |  111 +++++---------------
+ arch/arm/mach-omap2/omap_hwmod.h                   |    7 +-
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    3 +
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |    6 ++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    4 +
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 +-
+ arch/arm/mach-omap2/serial.c                       |   31 ------
+ drivers/tty/serial/omap-serial.c                   |   23 ----
+ include/linux/platform_data/serial-omap.h          |    2 -
+ 9 files changed, 48 insertions(+), 145 deletions(-)
+
 -- 
 1.7.9.5
 
