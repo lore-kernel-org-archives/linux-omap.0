@@ -1,72 +1,63 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 0/6] ARM; OMAP2+: hwmod and SERIAL: Remove sysc handling
- from driver
-Date: Wed, 15 May 2013 20:30:52 +0530
-Message-ID: <5193A324.8090703@ti.com>
-References: <1366973695-2088-1-git-send-email-rnayak@ti.com> <87ppxhxixu.fsf@linaro.org> <20130510140200.GA11267@kahuna>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCHv2 3/3] arm: dts: add bandgap entry for OMAP4460 devices
+Date: Wed, 15 May 2013 17:23:33 +0200
+Message-ID: <5193A875.1020000@ti.com>
+References: <1368629928-6723-1-git-send-email-eduardo.valentin@ti.com> <1368629928-6723-4-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49613 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759184Ab3EOPB6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 May 2013 11:01:58 -0400
-In-Reply-To: <20130510140200.GA11267@kahuna>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1368629928-6723-4-git-send-email-eduardo.valentin@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Kevin Hilman <khilman@linaro.org>, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux@arm.linux.org.uk, paul@pwsan.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Friday 10 May 2013 07:32 PM, Nishanth Menon wrote:
-> On 11:09-20130426, Kevin Hilman wrote:
->> Rajendra Nayak <rnayak@ti.com> writes:
->>
->> [...]
->>
->>> OMAP UART IP needs manual idle modes based on functional state of the
->>> IP. Currently this is handled by the driver with function pointers
->>> implemented in platform code.
->>>
->>> This however breaks in case of device tree because of missing
->>> idle handling. 
->>>
->>> The series tries to address the issue and tries to remove complete
->>> sysc handling from serial driver.
->>
->> Other than the minor nit about the order of the series for bisect, 
->>
->> Reviewed-by: Kevin Hilman <khilman@linaro.org>
->>
->> Also tested this on OMAP4/Panda where I was having the sluggish console
->> issues using DT boot, and and can confirm that this fixes the problem:
->>
->> Tested-by: Kevin Hilman <khilman@linaro.org>  # OMAP4/Panda
->>
-> I saw the same let of console sluggishness on SDP4430, Panda, Panda-ES
-> as well on latest linus master.
-> 
-> For reference, I have rebased the series to latest master and fixes the
-> sequencing:
-> https://github.com/nmenon/linux-2.6-playground/commits/push/uart-fixes-sidle-3.10
-> based on:
-> master 70eba42 Merge tag 'please-pull-pstore' of git://git.kernel.org/pub/scm/linux/kernel/git/aegl/linux
-> 
-> Rajendra,
-> Would you be able to repost this series so that we can get this into
-> 3.10-rc2+?
+Hi Eduardo,
 
-Tony/Paul,
+On 05/15/2013 04:58 PM, Eduardo Valentin wrote:
+> Include bandgap devices for OMAP4460 devices.
+>=20
+> Cc: "Beno=C3=AEt Cousson" <b-cousson@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: linux-omap@vger.kernel.org
+> Cc: devicetree-discuss@lists.ozlabs.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-kernel@vger.kernel.org
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+> ---
+>  arch/arm/boot/dts/omap4460.dtsi | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+>=20
+> diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap=
+4460.dtsi
+> index 2cf227c..e5bfbfe 100644
+> --- a/arch/arm/boot/dts/omap4460.dtsi
+> +++ b/arch/arm/boot/dts/omap4460.dtsi
+> @@ -29,4 +29,13 @@
+>  			     <0 55 0x4>;
+>  		ti,hwmods =3D "debugss";
+>  	};
+> +
+> +	bandgap {
+> +		reg =3D <0x4a002260 0x4
+> +			0x4a00232C 0x4
+> +			0x4a002378 0x18>;
+> +		compatible =3D "ti,omap4460-bandgap";
+> +		interrupts =3D <0 126 4>; /* talert */
+> +		ti,tshut-gpio =3D <86>;
 
-I just posted the v3 of these out [1] based off 3.10-rc1. Can we pull these in into -rc since
-these actually fix the console sluggishness introduced in this merge window (we always had issues
-with UART sidle handling with DT but never saw issues in mainline because of some static deps which got
-removed this merge window  I guess which would otherwise hide the issue).
+Why do you need a custom attribute for GPIO? Cannot you use the standar=
+d
+one?
 
-regards,
-Rajendra
+Where is the gpio controller phandle?
 
-[1] http://marc.info/?l=linux-omap&m=136862939928398&w=2
+Usually it looks like this:
 
-> 
+	gpios =3D <&gpio1 8 0>;
 
+
+Regards,
+Benoit
