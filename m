@@ -1,77 +1,124 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v3 2/6] ARM: OMAP2+: hwmod: Add a new flag to handle SIDLE in SWSUP only in active
-Date: Wed, 15 May 2013 20:18:38 +0530
-Message-ID: <1368629322-3170-3-git-send-email-rnayak@ti.com>
+Subject: [PATCH v3 1/6] ARM: OMAP2+: hwmod: Fix sidle programming in _enable_sysc()/_idle_sysc()
+Date: Wed, 15 May 2013 20:18:37 +0530
+Message-ID: <1368629322-3170-2-git-send-email-rnayak@ti.com>
 References: <1368629322-3170-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58313 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:58317 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759384Ab3EOOtu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 May 2013 10:49:50 -0400
+	with ESMTP id S1759389Ab3EOOtv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 May 2013 10:49:51 -0400
 In-Reply-To: <1368629322-3170-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: santosh.shilimkar@ti.com, linux@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, nm@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-Some IPs (like UART) need the sidle mode to be controlled in SW only
-while they are active. Once they go inactive, they need the IP to be
-put back in HW control so they are also wakeup capable.
+_enable_sysc() and _idle_sysc() handle the midle mode programming correctly
+and program HWMOD_IDLEMODE_SMART or HWMOD_IDLEMODE_SMART_WKUP respectively
+for supported IPs (The ones which support hardware controlled midle modes)
 
-The flag HWMOD_SWSUP_SIDLE takes care of IPs which need the sidle
-mode to be *always* controlled in SWSUP. We now have a need to control
-IPs sidle mode in SWSUP only while its active.
+However the same programming logic is missing when it comes to sidle mode
+programming. Here they seem to just set HWMOD_IDLEMODE_SMART (Again for the
+ones which support hardware controlled sidle modes)
 
-So define a new flag 'HWMOD_SWSUP_SIDLE_ACT' to help the framework
-know about these new IP requirements.
+This problem was hidden due to the fact that a call to _enable_wakeup()
+in those same functions would overwrite the idlemodes and program them
+correctly (to HWMOD_IDLEMODE_SMART_WKUP in the supported cases)
+
+So fix the sidlemode handling correctly in these functions and handle the
+_enable_wakeup() for SIDLEMODE supported IPs same as the way its handled
+for MIDLEMODE supported ones.
 
 Tested-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 Tested-by: Sourav Poddar <sourav.poddar@ti.com>
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |    3 ++-
- arch/arm/mach-omap2/omap_hwmod.h |    4 ++++
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/omap_hwmod.c |   42 +++++++++++++++++++++++---------------
+ 1 file changed, 25 insertions(+), 17 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index c28552b..5739429 100644
+index d25a95f..c28552b 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1356,7 +1356,8 @@ static void _enable_sysc(struct omap_hwmod *oh)
+@@ -1356,13 +1356,26 @@ static void _enable_sysc(struct omap_hwmod *oh)
  
  	clkdm = _get_clkdm(oh);
  	if (sf & SYSC_HAS_SIDLEMODE) {
--		if (oh->flags & HWMOD_SWSUP_SIDLE) {
-+		if (oh->flags & HWMOD_SWSUP_SIDLE ||
-+		    oh->flags & HWMOD_SWSUP_SIDLE_ACT) {
- 			idlemode = HWMOD_IDLEMODE_NO;
- 		} else {
- 			if (sf & SYSC_HAS_ENAWAKEUP)
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-index fe59629..8498774 100644
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -463,6 +463,9 @@ struct omap_hwmod_omap4_prcm {
-  *     is kept in force-standby mode. Failing to do so causes PM problems
-  *     with musb on OMAP3630 at least. Note that musb has a dedicated register
-  *     to control MSTANDBY signal when MIDLEMODE is set to force-standby.
-+ * HWMOD_SWSUP_SIDLE_ACT: omap_hwmod code should manually bring the module
-+ *     out of idle, but rely on smart-idle to the put it back in idle,
-+ *     so the wakeups are still functional (Only known case for now is UART)
-  */
- #define HWMOD_SWSUP_SIDLE			(1 << 0)
- #define HWMOD_SWSUP_MSTANDBY			(1 << 1)
-@@ -476,6 +479,7 @@ struct omap_hwmod_omap4_prcm {
- #define HWMOD_EXT_OPT_MAIN_CLK			(1 << 9)
- #define HWMOD_BLOCK_WFI				(1 << 10)
- #define HWMOD_FORCE_MSTANDBY			(1 << 11)
-+#define HWMOD_SWSUP_SIDLE_ACT			(1 << 12)
++		if (oh->flags & HWMOD_SWSUP_SIDLE) {
++			idlemode = HWMOD_IDLEMODE_NO;
++		} else {
++			if (sf & SYSC_HAS_ENAWAKEUP)
++				_enable_wakeup(oh, &v);
++			if (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP)
++				idlemode = HWMOD_IDLEMODE_SMART_WKUP;
++			else
++				idlemode = HWMOD_IDLEMODE_SMART;
++		}
++
++		/*
++		 * This is special handling for some IPs like
++		 * 32k sync timer. Force them to idle!
++		 */
+ 		clkdm_act = (clkdm && clkdm->flags & CLKDM_ACTIVE_WITH_MPU);
+ 		if (clkdm_act && !(oh->class->sysc->idlemodes &
+ 				   (SIDLE_SMART | SIDLE_SMART_WKUP)))
+ 			idlemode = HWMOD_IDLEMODE_FORCE;
+-		else
+-			idlemode = (oh->flags & HWMOD_SWSUP_SIDLE) ?
+-				HWMOD_IDLEMODE_NO : HWMOD_IDLEMODE_SMART;
++
+ 		_set_slave_idlemode(oh, idlemode, &v);
+ 	}
  
- /*
-  * omap_hwmod._int_flags definitions
+@@ -1391,10 +1404,6 @@ static void _enable_sysc(struct omap_hwmod *oh)
+ 	    (sf & SYSC_HAS_CLOCKACTIVITY))
+ 		_set_clockactivity(oh, oh->class->sysc->clockact, &v);
+ 
+-	/* If slave is in SMARTIDLE, also enable wakeup */
+-	if ((sf & SYSC_HAS_SIDLEMODE) && !(oh->flags & HWMOD_SWSUP_SIDLE))
+-		_enable_wakeup(oh, &v);
+-
+ 	_write_sysconfig(v, oh);
+ 
+ 	/*
+@@ -1430,13 +1439,16 @@ static void _idle_sysc(struct omap_hwmod *oh)
+ 	sf = oh->class->sysc->sysc_flags;
+ 
+ 	if (sf & SYSC_HAS_SIDLEMODE) {
+-		/* XXX What about HWMOD_IDLEMODE_SMART_WKUP? */
+-		if (oh->flags & HWMOD_SWSUP_SIDLE ||
+-		    !(oh->class->sysc->idlemodes &
+-		      (SIDLE_SMART | SIDLE_SMART_WKUP)))
++		if (oh->flags & HWMOD_SWSUP_SIDLE) {
+ 			idlemode = HWMOD_IDLEMODE_FORCE;
+-		else
+-			idlemode = HWMOD_IDLEMODE_SMART;
++		} else {
++			if (sf & SYSC_HAS_ENAWAKEUP)
++				_enable_wakeup(oh, &v);
++			if (oh->class->sysc->idlemodes & SIDLE_SMART_WKUP)
++				idlemode = HWMOD_IDLEMODE_SMART_WKUP;
++			else
++				idlemode = HWMOD_IDLEMODE_SMART;
++		}
+ 		_set_slave_idlemode(oh, idlemode, &v);
+ 	}
+ 
+@@ -1455,10 +1467,6 @@ static void _idle_sysc(struct omap_hwmod *oh)
+ 		_set_master_standbymode(oh, idlemode, &v);
+ 	}
+ 
+-	/* If slave is in SMARTIDLE, also enable wakeup */
+-	if ((sf & SYSC_HAS_SIDLEMODE) && !(oh->flags & HWMOD_SWSUP_SIDLE))
+-		_enable_wakeup(oh, &v);
+-
+ 	_write_sysconfig(v, oh);
+ }
+ 
 -- 
 1.7.9.5
 
