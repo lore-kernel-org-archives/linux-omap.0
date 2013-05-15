@@ -1,73 +1,43 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: [PATCH v3] ARM:dts:omap4-panda:Update the LED support for the
- panda DTS
-Date: Wed, 15 May 2013 06:56:26 -0500
-Message-ID: <519377EA.8070105@ti.com>
-References: <1368541076-6854-1-git-send-email-dmurphy@ti.com> <20130515052916.GA15607@kahuna>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP5: select SCU
+Date: Wed, 15 May 2013 18:06:57 +0530
+Message-ID: <51938169.4060109@ti.com>
+References: <1368550638-2046-1-git-send-email-vincent.stehle@laposte.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130515052916.GA15607@kahuna>
+In-Reply-To: <1368550638-2046-1-git-send-email-vincent.stehle@laposte.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: =?UTF-8?B?VmluY2VudCBTdGVobMOp?= <vincent.stehle@laposte.net>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?B?VmluY2VudCBTdGVobMOp?= <v-stehle@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-NM
-On 05/15/2013 12:29 AM, Nishanth Menon wrote:
-> $subject - add a space?
-> s/ARM:dts:omap4-panda:Update/ARM: dts: omap4-panda: Update/ ?
-Will fix.
-> On 09:17-20130514, Dan Murphy wrote:
->> The GPIO for LED D1 on the omap4-panda a1-a3 rev and the omap4-panda-es
->> are different.
->>
->> A1-A3 = gpio_wk7
-> Thanks for fixing this - this is a key fix else, GPIO_7 which controls
-> VSEL for VDD_MPU on PandaBoard-ES will create all kind of ruckus (change
-> voltage on heartbeat)!
->> ES = gpio_110
->>
->> There is no change to LED D2
->>
->> Abstract away the pinmux and the LED definitions for the two boards into
->> the respective DTS files.
->>
->> Signed-off-by: Dan Murphy <dmurphy@ti.com>
->> ---
-> [...]
->> diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
->> index f1d8c21..8d1ba03 100644
->> --- a/arch/arm/boot/dts/omap4-panda-es.dts
->> +++ b/arch/arm/boot/dts/omap4-panda-es.dts
->> @@ -34,3 +34,43 @@
->>  		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
->>  		>;
->>  };
->> +
->> +&leds {
->> +	compatible = "gpio-leds";
->> +	heartbeat {
->> +		label = "pandaboard::status1";
->> +		gpios = <&gpio4 14 0>;
->> +		linux,default-trigger = "heartbeat";
->> +	};
->> +	mmc {
->> +		label = "pandaboard::status2";
->> +		gpios = <&gpio1 8 0>;
->> +		linux,default-trigger = "gpio";
-> mmc0?
-Good point why would I call it mmc and then set the trigger to gpio.
+On Tuesday 14 May 2013 10:27 PM, Vincent Stehl=C3=A9 wrote:
+> From: Vincent Stehl=C3=A9 <v-stehle@ti.com>
+>=20
+> OMAP5 needs SCU in SMP.
+>=20
+> This fixes the following link errors:
+>=20
+>   arch/arm/mach-omap2/built-in.o: In function `scu_gp_set':
+>   arch/arm/mach-omap2/sleep44xx.S:132: undefined reference to `scu_po=
+wer_mode'
+>   arch/arm/mach-omap2/built-in.o: In function `scu_gp_clear':
+>   arch/arm/mach-omap2/sleep44xx.S:229: undefined reference to `scu_po=
+wer_mode'
+>   arch/arm/mach-omap2/built-in.o: In function `omap4_smp_prepare_cpus=
+':
+>   arch/arm/mach-omap2/omap-smp.c:211: undefined reference to `scu_ena=
+ble'
+>   arch/arm/mach-omap2/built-in.o: In function `omap4_smp_init_cpus':
+>   arch/arm/mach-omap2/omap-smp.c:185: undefined reference to `scu_get=
+_core_count'
+>=20
+> Signed-off-by: Vincent Stehl=C3=A9 <v-stehle@ti.com>
+> ---
+OMAP5 doesn't need the SCU. So Nak for the patch. I haven't noticed
+this earlier. Do you know which commit broke this ?
 
-Will fix it.
->> +	};
->> +};
->> +
-> Other that that,
-> Tested-by: Nishanth Menon <nm@ti.com>
-
-
--- 
-------------------
-Dan Murphy
+Regards,
+Santosh
