@@ -1,15 +1,15 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v3 6/6] ARM: OMAP2+: hwmod: Remove sysc slave idle and auto idle apis
-Date: Wed, 15 May 2013 20:18:42 +0530
-Message-ID: <1368629322-3170-7-git-send-email-rnayak@ti.com>
+Subject: [PATCH v3 5/6] SERIAL: OMAP: Remove the slave idle handling from the driver
+Date: Wed, 15 May 2013 20:18:41 +0530
+Message-ID: <1368629322-3170-6-git-send-email-rnayak@ti.com>
 References: <1368629322-3170-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42662 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759304Ab3EOOtt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 May 2013 10:49:49 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:58314 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759386Ab3EOOtu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 May 2013 10:49:50 -0400
 In-Reply-To: <1368629322-3170-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,119 +18,84 @@ Cc: santosh.shilimkar@ti.com, linux@arm.linux.org.uk, paul@pwsan.com, khilman@de
 
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-With the OMAP serial driver sysc cleanup patches in this series, we can
-now remove the hwmod external apis for sysc fiddling.
+UART IP slave idle handling now taken care by runtime pm backend(hwmod layer)
+so remove the hackery from the driver.
 
-While at this, also remove unused sysc auto idle api from hwmod code.
+As discussed on the list, in future if dma mode needs to be brought
+back to this driver, UART sysc handling needs to be updated in
+framework such a way that no-idle/force idle profile can be supported.
+Given the broken dma mode for OMAP uarts, its very unlikely.
 
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Tested-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 Tested-by: Sourav Poddar <sourav.poddar@ti.com>
 Signed-off-by: Rajendra nayak <rnayak@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   68 --------------------------------------
- arch/arm/mach-omap2/omap_hwmod.h |    3 --
- 2 files changed, 71 deletions(-)
+ drivers/tty/serial/omap-serial.c          |   23 -----------------------
+ include/linux/platform_data/serial-omap.h |    2 --
+ 2 files changed, 25 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 5739429..0393142 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2255,42 +2255,6 @@ static int _idle(struct omap_hwmod *oh)
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 30d4f7a..f0b9f6b 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -202,26 +202,6 @@ static int serial_omap_get_context_loss_count(struct uart_omap_port *up)
+ 	return pdata->get_context_loss_count(up->dev);
  }
  
- /**
-- * omap_hwmod_set_ocp_autoidle - set the hwmod's OCP autoidle bit
-- * @oh: struct omap_hwmod *
-- * @autoidle: desired AUTOIDLE bitfield value (0 or 1)
-- *
-- * Sets the IP block's OCP autoidle bit in hardware, and updates our
-- * local copy. Intended to be used by drivers that require
-- * direct manipulation of the AUTOIDLE bits.
-- * Returns -EINVAL if @oh is null or is not in the ENABLED state, or passes
-- * along the return value from _set_module_autoidle().
-- *
-- * Any users of this function should be scrutinized carefully.
-- */
--int omap_hwmod_set_ocp_autoidle(struct omap_hwmod *oh, u8 autoidle)
+-static void serial_omap_set_forceidle(struct uart_omap_port *up)
 -{
--	u32 v;
--	int retval = 0;
--	unsigned long flags;
+-	struct omap_uart_port_info *pdata = up->dev->platform_data;
 -
--	if (!oh || oh->_state != _HWMOD_STATE_ENABLED)
--		return -EINVAL;
+-	if (!pdata || !pdata->set_forceidle)
+-		return;
 -
--	spin_lock_irqsave(&oh->_lock, flags);
--
--	v = oh->_sysc_cache;
--
--	retval = _set_module_autoidle(oh, autoidle, &v);
--
--	if (!retval)
--		_write_sysconfig(v, oh);
--
--	spin_unlock_irqrestore(&oh->_lock, flags);
--
--	return retval;
+-	pdata->set_forceidle(up->dev);
 -}
 -
--/**
-  * _shutdown - shutdown an omap_hwmod
-  * @oh: struct omap_hwmod *
-  *
-@@ -3189,38 +3153,6 @@ error:
+-static void serial_omap_set_noidle(struct uart_omap_port *up)
+-{
+-	struct omap_uart_port_info *pdata = up->dev->platform_data;
+-
+-	if (!pdata || !pdata->set_noidle)
+-		return;
+-
+-	pdata->set_noidle(up->dev);
+-}
+-
+ static void serial_omap_enable_wakeup(struct uart_omap_port *up, bool enable)
+ {
+ 	struct omap_uart_port_info *pdata = up->dev->platform_data;
+@@ -298,8 +278,6 @@ static void serial_omap_stop_tx(struct uart_port *port)
+ 		serial_out(up, UART_IER, up->ier);
+ 	}
+ 
+-	serial_omap_set_forceidle(up);
+-
+ 	pm_runtime_mark_last_busy(up->dev);
+ 	pm_runtime_put_autosuspend(up->dev);
  }
+@@ -364,7 +342,6 @@ static void serial_omap_start_tx(struct uart_port *port)
  
- /**
-- * omap_hwmod_set_slave_idlemode - set the hwmod's OCP slave idlemode
-- * @oh: struct omap_hwmod *
-- * @idlemode: SIDLEMODE field bits (shifted to bit 0)
-- *
-- * Sets the IP block's OCP slave idlemode in hardware, and updates our
-- * local copy.  Intended to be used by drivers that have some erratum
-- * that requires direct manipulation of the SIDLEMODE bits.  Returns
-- * -EINVAL if @oh is null, or passes along the return value from
-- * _set_slave_idlemode().
-- *
-- * XXX Does this function have any current users?  If not, we should
-- * remove it; it is better to let the rest of the hwmod code handle this.
-- * Any users of this function should be scrutinized carefully.
-- */
--int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode)
--{
--	u32 v;
--	int retval = 0;
--
--	if (!oh)
--		return -EINVAL;
--
--	v = oh->_sysc_cache;
--
--	retval = _set_slave_idlemode(oh, idlemode, &v);
--	if (!retval)
--		_write_sysconfig(v, oh);
--
--	return retval;
--}
--
--/**
-  * omap_hwmod_lookup - look up a registered omap_hwmod by name
-  * @name: name of the omap_hwmod to look up
-  *
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-index 8498774..0c898f5 100644
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -645,9 +645,6 @@ int omap_hwmod_read_hardreset(struct omap_hwmod *oh, const char *name);
- int omap_hwmod_enable_clocks(struct omap_hwmod *oh);
- int omap_hwmod_disable_clocks(struct omap_hwmod *oh);
+ 	pm_runtime_get_sync(up->dev);
+ 	serial_omap_enable_ier_thri(up);
+-	serial_omap_set_noidle(up);
+ 	pm_runtime_mark_last_busy(up->dev);
+ 	pm_runtime_put_autosuspend(up->dev);
+ }
+diff --git a/include/linux/platform_data/serial-omap.h b/include/linux/platform_data/serial-omap.h
+index ff9b0aa..c860c1b 100644
+--- a/include/linux/platform_data/serial-omap.h
++++ b/include/linux/platform_data/serial-omap.h
+@@ -43,8 +43,6 @@ struct omap_uart_port_info {
+ 	int			DTR_present;
  
--int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode);
--int omap_hwmod_set_ocp_autoidle(struct omap_hwmod *oh, u8 autoidle);
--
- int omap_hwmod_reset(struct omap_hwmod *oh);
- void omap_hwmod_ocp_barrier(struct omap_hwmod *oh);
+ 	int (*get_context_loss_count)(struct device *);
+-	void (*set_forceidle)(struct device *);
+-	void (*set_noidle)(struct device *);
+ 	void (*enable_wakeup)(struct device *, bool);
+ };
  
 -- 
 1.7.9.5
