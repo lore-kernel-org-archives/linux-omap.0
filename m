@@ -1,201 +1,137 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v3 3/6] ARM: OMAP2+: hwmod-data: UART IP needs software control to manage sidle modes
-Date: Wed, 15 May 2013 20:18:39 +0530
-Message-ID: <1368629322-3170-4-git-send-email-rnayak@ti.com>
+Subject: [PATCH v3 6/6] ARM: OMAP2+: hwmod: Remove sysc slave idle and auto idle apis
+Date: Wed, 15 May 2013 20:18:42 +0530
+Message-ID: <1368629322-3170-7-git-send-email-rnayak@ti.com>
 References: <1368629322-3170-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58303 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759384Ab3EOOtp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 May 2013 10:49:45 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42662 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759304Ab3EOOtt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 May 2013 10:49:49 -0400
 In-Reply-To: <1368629322-3170-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: santosh.shilimkar@ti.com, linux@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, nm@ti.com, Rajendra Nayak <rnayak@ti.com>
+Cc: santosh.shilimkar@ti.com, linux@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, nm@ti.com, Rajendra nayak <rnayak@ti.com>
 
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-OMAP UART IP needs software control for slave idle modes based on functional
-state of the IP. i.e The IP slave idle settings should be set to 'noidle' when
-being used and then put back to 'smart_idle' when unused. Currently this is
-handled by the driver with function pointers implemented in platform code.
-This however breaks in case of device tree because of missing idle handling
-APIs.
+With the OMAP serial driver sysc cleanup patches in this series, we can
+now remove the hwmod external apis for sysc fiddling.
 
-Previous patches in this series added a flag HWMOD_SWSUP_SIDLE_ACTIVE which
-takes care of the mentioned requirement. Hence add the flag for all UART IPs
-to take advantage of feature supported by framework.
-
-Subsequent patches removes the slave idle handling from driver code.
+While at this, also remove unused sysc auto idle api from hwmod code.
 
 Tested-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 Tested-by: Sourav Poddar <sourav.poddar@ti.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Rajendra nayak <rnayak@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    3 +++
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |    6 ++++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    4 ++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 +++++-
- 4 files changed, 18 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/omap_hwmod.c |   68 --------------------------------------
+ arch/arm/mach-omap2/omap_hwmod.h |    3 --
+ 2 files changed, 71 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-index c8c64b3..d05fc7b 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-@@ -512,6 +512,7 @@ struct omap_hwmod omap2xxx_uart1_hwmod = {
- 	.mpu_irqs	= omap2_uart1_mpu_irqs,
- 	.sdma_reqs	= omap2_uart1_sdma_reqs,
- 	.main_clk	= "uart1_fck",
-+	.flags		= HWMOD_SWSUP_SIDLE_ACT,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = CORE_MOD,
-@@ -531,6 +532,7 @@ struct omap_hwmod omap2xxx_uart2_hwmod = {
- 	.mpu_irqs	= omap2_uart2_mpu_irqs,
- 	.sdma_reqs	= omap2_uart2_sdma_reqs,
- 	.main_clk	= "uart2_fck",
-+	.flags		= HWMOD_SWSUP_SIDLE_ACT,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = CORE_MOD,
-@@ -550,6 +552,7 @@ struct omap_hwmod omap2xxx_uart3_hwmod = {
- 	.mpu_irqs	= omap2_uart3_mpu_irqs,
- 	.sdma_reqs	= omap2_uart3_sdma_reqs,
- 	.main_clk	= "uart3_fck",
-+	.flags		= HWMOD_SWSUP_SIDLE_ACT,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = CORE_MOD,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index 01d8f32..075f7cc 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -1995,6 +1995,7 @@ static struct omap_hwmod am33xx_uart1_hwmod = {
- 	.name		= "uart1",
- 	.class		= &uart_class,
- 	.clkdm_name	= "l4_wkup_clkdm",
-+	.flags		= HWMOD_SWSUP_SIDLE_ACT,
- 	.mpu_irqs	= am33xx_uart1_irqs,
- 	.sdma_reqs	= uart1_edma_reqs,
- 	.main_clk	= "dpll_per_m2_div4_wkupdm_ck",
-@@ -2015,6 +2016,7 @@ static struct omap_hwmod am33xx_uart2_hwmod = {
- 	.name		= "uart2",
- 	.class		= &uart_class,
- 	.clkdm_name	= "l4ls_clkdm",
-+	.flags		= HWMOD_SWSUP_SIDLE_ACT,
- 	.mpu_irqs	= am33xx_uart2_irqs,
- 	.sdma_reqs	= uart1_edma_reqs,
- 	.main_clk	= "dpll_per_m2_div4_ck",
-@@ -2042,6 +2044,7 @@ static struct omap_hwmod am33xx_uart3_hwmod = {
- 	.name		= "uart3",
- 	.class		= &uart_class,
- 	.clkdm_name	= "l4ls_clkdm",
-+	.flags		= HWMOD_SWSUP_SIDLE_ACT,
- 	.mpu_irqs	= am33xx_uart3_irqs,
- 	.sdma_reqs	= uart3_edma_reqs,
- 	.main_clk	= "dpll_per_m2_div4_ck",
-@@ -2062,6 +2065,7 @@ static struct omap_hwmod am33xx_uart4_hwmod = {
- 	.name		= "uart4",
- 	.class		= &uart_class,
- 	.clkdm_name	= "l4ls_clkdm",
-+	.flags		= HWMOD_SWSUP_SIDLE_ACT,
- 	.mpu_irqs	= am33xx_uart4_irqs,
- 	.sdma_reqs	= uart1_edma_reqs,
- 	.main_clk	= "dpll_per_m2_div4_ck",
-@@ -2082,6 +2086,7 @@ static struct omap_hwmod am33xx_uart5_hwmod = {
- 	.name		= "uart5",
- 	.class		= &uart_class,
- 	.clkdm_name	= "l4ls_clkdm",
-+	.flags		= HWMOD_SWSUP_SIDLE_ACT,
- 	.mpu_irqs	= am33xx_uart5_irqs,
- 	.sdma_reqs	= uart1_edma_reqs,
- 	.main_clk	= "dpll_per_m2_div4_ck",
-@@ -2102,6 +2107,7 @@ static struct omap_hwmod am33xx_uart6_hwmod = {
- 	.name		= "uart6",
- 	.class		= &uart_class,
- 	.clkdm_name	= "l4ls_clkdm",
-+	.flags		= HWMOD_SWSUP_SIDLE_ACT,
- 	.mpu_irqs	= am33xx_uart6_irqs,
- 	.sdma_reqs	= uart1_edma_reqs,
- 	.main_clk	= "dpll_per_m2_div4_ck",
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 4083606..31c7126 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -490,6 +490,7 @@ static struct omap_hwmod omap3xxx_uart1_hwmod = {
- 	.mpu_irqs	= omap2_uart1_mpu_irqs,
- 	.sdma_reqs	= omap2_uart1_sdma_reqs,
- 	.main_clk	= "uart1_fck",
-+	.flags		= HWMOD_SWSUP_SIDLE_ACT,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = CORE_MOD,
-@@ -508,6 +509,7 @@ static struct omap_hwmod omap3xxx_uart2_hwmod = {
- 	.mpu_irqs	= omap2_uart2_mpu_irqs,
- 	.sdma_reqs	= omap2_uart2_sdma_reqs,
- 	.main_clk	= "uart2_fck",
-+	.flags		= HWMOD_SWSUP_SIDLE_ACT,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = CORE_MOD,
-@@ -526,6 +528,7 @@ static struct omap_hwmod omap3xxx_uart3_hwmod = {
- 	.mpu_irqs	= omap2_uart3_mpu_irqs,
- 	.sdma_reqs	= omap2_uart3_sdma_reqs,
- 	.main_clk	= "uart3_fck",
-+	.flags		= HWMOD_SWSUP_SIDLE_ACT,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = OMAP3430_PER_MOD,
-@@ -555,6 +558,7 @@ static struct omap_hwmod omap36xx_uart4_hwmod = {
- 	.mpu_irqs	= uart4_mpu_irqs,
- 	.sdma_reqs	= uart4_sdma_reqs,
- 	.main_clk	= "uart4_fck",
-+	.flags		= HWMOD_SWSUP_SIDLE_ACT,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = OMAP3430_PER_MOD,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index eaba9dc..848b6dc 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -3434,6 +3434,7 @@ static struct omap_hwmod omap44xx_uart1_hwmod = {
- 	.name		= "uart1",
- 	.class		= &omap44xx_uart_hwmod_class,
- 	.clkdm_name	= "l4_per_clkdm",
-+	.flags		= HWMOD_SWSUP_SIDLE_ACT,
- 	.mpu_irqs	= omap44xx_uart1_irqs,
- 	.sdma_reqs	= omap44xx_uart1_sdma_reqs,
- 	.main_clk	= "func_48m_fclk",
-@@ -3462,6 +3463,7 @@ static struct omap_hwmod omap44xx_uart2_hwmod = {
- 	.name		= "uart2",
- 	.class		= &omap44xx_uart_hwmod_class,
- 	.clkdm_name	= "l4_per_clkdm",
-+	.flags		= HWMOD_SWSUP_SIDLE_ACT,
- 	.mpu_irqs	= omap44xx_uart2_irqs,
- 	.sdma_reqs	= omap44xx_uart2_sdma_reqs,
- 	.main_clk	= "func_48m_fclk",
-@@ -3490,7 +3492,8 @@ static struct omap_hwmod omap44xx_uart3_hwmod = {
- 	.name		= "uart3",
- 	.class		= &omap44xx_uart_hwmod_class,
- 	.clkdm_name	= "l4_per_clkdm",
--	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
-+	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET |
-+				HWMOD_SWSUP_SIDLE_ACT,
- 	.mpu_irqs	= omap44xx_uart3_irqs,
- 	.sdma_reqs	= omap44xx_uart3_sdma_reqs,
- 	.main_clk	= "func_48m_fclk",
-@@ -3519,6 +3522,7 @@ static struct omap_hwmod omap44xx_uart4_hwmod = {
- 	.name		= "uart4",
- 	.class		= &omap44xx_uart_hwmod_class,
- 	.clkdm_name	= "l4_per_clkdm",
-+	.flags		= HWMOD_SWSUP_SIDLE_ACT,
- 	.mpu_irqs	= omap44xx_uart4_irqs,
- 	.sdma_reqs	= omap44xx_uart4_sdma_reqs,
- 	.main_clk	= "func_48m_fclk",
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 5739429..0393142 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2255,42 +2255,6 @@ static int _idle(struct omap_hwmod *oh)
+ }
+ 
+ /**
+- * omap_hwmod_set_ocp_autoidle - set the hwmod's OCP autoidle bit
+- * @oh: struct omap_hwmod *
+- * @autoidle: desired AUTOIDLE bitfield value (0 or 1)
+- *
+- * Sets the IP block's OCP autoidle bit in hardware, and updates our
+- * local copy. Intended to be used by drivers that require
+- * direct manipulation of the AUTOIDLE bits.
+- * Returns -EINVAL if @oh is null or is not in the ENABLED state, or passes
+- * along the return value from _set_module_autoidle().
+- *
+- * Any users of this function should be scrutinized carefully.
+- */
+-int omap_hwmod_set_ocp_autoidle(struct omap_hwmod *oh, u8 autoidle)
+-{
+-	u32 v;
+-	int retval = 0;
+-	unsigned long flags;
+-
+-	if (!oh || oh->_state != _HWMOD_STATE_ENABLED)
+-		return -EINVAL;
+-
+-	spin_lock_irqsave(&oh->_lock, flags);
+-
+-	v = oh->_sysc_cache;
+-
+-	retval = _set_module_autoidle(oh, autoidle, &v);
+-
+-	if (!retval)
+-		_write_sysconfig(v, oh);
+-
+-	spin_unlock_irqrestore(&oh->_lock, flags);
+-
+-	return retval;
+-}
+-
+-/**
+  * _shutdown - shutdown an omap_hwmod
+  * @oh: struct omap_hwmod *
+  *
+@@ -3189,38 +3153,6 @@ error:
+ }
+ 
+ /**
+- * omap_hwmod_set_slave_idlemode - set the hwmod's OCP slave idlemode
+- * @oh: struct omap_hwmod *
+- * @idlemode: SIDLEMODE field bits (shifted to bit 0)
+- *
+- * Sets the IP block's OCP slave idlemode in hardware, and updates our
+- * local copy.  Intended to be used by drivers that have some erratum
+- * that requires direct manipulation of the SIDLEMODE bits.  Returns
+- * -EINVAL if @oh is null, or passes along the return value from
+- * _set_slave_idlemode().
+- *
+- * XXX Does this function have any current users?  If not, we should
+- * remove it; it is better to let the rest of the hwmod code handle this.
+- * Any users of this function should be scrutinized carefully.
+- */
+-int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode)
+-{
+-	u32 v;
+-	int retval = 0;
+-
+-	if (!oh)
+-		return -EINVAL;
+-
+-	v = oh->_sysc_cache;
+-
+-	retval = _set_slave_idlemode(oh, idlemode, &v);
+-	if (!retval)
+-		_write_sysconfig(v, oh);
+-
+-	return retval;
+-}
+-
+-/**
+  * omap_hwmod_lookup - look up a registered omap_hwmod by name
+  * @name: name of the omap_hwmod to look up
+  *
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+index 8498774..0c898f5 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -645,9 +645,6 @@ int omap_hwmod_read_hardreset(struct omap_hwmod *oh, const char *name);
+ int omap_hwmod_enable_clocks(struct omap_hwmod *oh);
+ int omap_hwmod_disable_clocks(struct omap_hwmod *oh);
+ 
+-int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode);
+-int omap_hwmod_set_ocp_autoidle(struct omap_hwmod *oh, u8 autoidle);
+-
+ int omap_hwmod_reset(struct omap_hwmod *oh);
+ void omap_hwmod_ocp_barrier(struct omap_hwmod *oh);
+ 
 -- 
 1.7.9.5
 
