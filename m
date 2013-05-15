@@ -1,128 +1,113 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [PATCHv2 3/3] arm: dts: add bandgap entry for OMAP4460 devices
-Date: Wed, 15 May 2013 12:36:58 -0400
-Message-ID: <5193B9AA.7020507@ti.com>
-References: <1368629928-6723-1-git-send-email-eduardo.valentin@ti.com>
- <1368629928-6723-4-git-send-email-eduardo.valentin@ti.com>
- <5193A875.1020000@ti.com>
+From: Dan Murphy <dmurphy@ti.com>
+Subject: [PATCH v4] ARM:dts:omap4-panda: Update the LED support for the panda DTS
+Date: Wed, 15 May 2013 11:46:26 -0500
+Message-ID: <1368636386-17138-1-git-send-email-dmurphy@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6716343872136691422=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5193A875.1020000@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Dan Murphy <dmurphy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============6716343872136691422==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="----enig2AHSMNFSXBHAXNXAONRQT"
+The GPIO for LED D1 on the omap4-panda a1-a3 rev and the omap4-panda-es
+are different.
 
-------enig2AHSMNFSXBHAXNXAONRQT
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+A1-A3 = gpio_wk7
+ES = gpio_110
 
-On 15-05-2013 11:23, Benoit Cousson wrote:
-> Hi Eduardo,
->=20
-> On 05/15/2013 04:58 PM, Eduardo Valentin wrote:
->> Include bandgap devices for OMAP4460 devices.
->>
->> Cc: "Beno=C3=AEt Cousson" <b-cousson@ti.com>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: Russell King <linux@arm.linux.org.uk>
->> Cc: linux-omap@vger.kernel.org
->> Cc: devicetree-discuss@lists.ozlabs.org
->> Cc: linux-arm-kernel@lists.infradead.org
->> Cc: linux-kernel@vger.kernel.org
->> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
->> ---
->>  arch/arm/boot/dts/omap4460.dtsi | 9 +++++++++
->>  1 file changed, 9 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap4=
-460.dtsi
->> index 2cf227c..e5bfbfe 100644
->> --- a/arch/arm/boot/dts/omap4460.dtsi
->> +++ b/arch/arm/boot/dts/omap4460.dtsi
->> @@ -29,4 +29,13 @@
->>  			     <0 55 0x4>;
->>  		ti,hwmods =3D "debugss";
->>  	};
->> +
->> +	bandgap {
->> +		reg =3D <0x4a002260 0x4
->> +			0x4a00232C 0x4
->> +			0x4a002378 0x18>;
->> +		compatible =3D "ti,omap4460-bandgap";
->> +		interrupts =3D <0 126 4>; /* talert */
->> +		ti,tshut-gpio =3D <86>;
+There is no change to LED D2
 
+Abstract away the pinmux and the LED definitions for the two boards into
+the respective DTS files.
 
+Signed-off-by: Dan Murphy <dmurphy@ti.com>
+---
+ arch/arm/boot/dts/omap4-panda-common.dtsi |   16 +++++++++++-
+ arch/arm/boot/dts/omap4-panda-es.dts      |   40 +++++++++++++++++++++++++++++
+ 2 files changed, 55 insertions(+), 1 deletions(-)
 
->=20
-> Why do you need a custom attribute for GPIO? Cannot you use the standar=
-d
-> one?
-
-I believe it was by your suggestion :-), during the first attempts to
-send this driver. But could not find the thread link :-( sorry.
-
-
-I guess the reasoning to mark it as a ti specific is because it will be
-used as IRQ line to treat thermal shutdown (in SW).
-
->=20
-> Where is the gpio controller phandle?
->=20
-> Usually it looks like this:
->=20
-> 	gpios =3D <&gpio1 8 0>;
->=20
->=20
-> Regards,
-> Benoit
->=20
->=20
->=20
-
-
-
-------enig2AHSMNFSXBHAXNXAONRQT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iF4EAREIAAYFAlGTuaoACgkQCXcVR3XQvP0mewEA80FWDjFHsyjQKn6zoEavUGEw
-Y/jcu3nmm1lZFuG3pagBANQBOpLfSHCykCv38SNWdNV6//KxTJCmQuYEDpG+QZ5d
-=LBcc
------END PGP SIGNATURE-----
-
-------enig2AHSMNFSXBHAXNXAONRQT--
-
-
---===============6716343872136691422==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============6716343872136691422==--
+diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+index 03bd60d..2b516af 100644
+--- a/arch/arm/boot/dts/omap4-panda-common.dtsi
++++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+@@ -16,7 +16,7 @@
+ 		reg = <0x80000000 0x40000000>; /* 1 GB */
+ 	};
+ 
+-	leds {
++	leds: leds {
+ 		compatible = "gpio-leds";
+ 		heartbeat {
+ 			label = "pandaboard::status1";
+@@ -137,6 +137,20 @@
+ 	};
+ };
+ 
++&omap4_pmx_wkup {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++		&led_wkgpio_pins
++	>;
++
++	led_wkgpio_pins: pinmux_leds_wkpins {
++		pinctrl-single,pins = <
++			0x1a 0x3	/* gpio_wk7 OUTPUT | MODE 3 */
++			0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
++		>;
++	};
++};
++
+ &i2c1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&i2c1_pins>;
+diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
+index f1d8c21..e6f696d 100644
+--- a/arch/arm/boot/dts/omap4-panda-es.dts
++++ b/arch/arm/boot/dts/omap4-panda-es.dts
+@@ -34,3 +34,43 @@
+ 		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
+ 		>;
+ };
++
++&leds {
++	compatible = "gpio-leds";
++	heartbeat {
++		label = "pandaboard::status1";
++		gpios = <&gpio4 14 0>;
++		linux,default-trigger = "heartbeat";
++	};
++	mmc {
++		label = "pandaboard::status2";
++		gpios = <&gpio1 8 0>;
++		linux,default-trigger = "mmc0";
++	};
++};
++
++&omap4_pmx_core {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++		&led_gpio_pins
++	>;
++
++	led_gpio_pins: gpio_led_pmx {
++		pinctrl-single,pins = <
++			0xb6 0x3	/* gpio_110 OUTPUT | MODE 3 */
++		>;
++	};
++};
++
++&omap4_pmx_wkup {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++		&led_wkgpio_pins
++	>;
++
++	led_wkgpio_pins: pinmux_leds_wkpins {
++		pinctrl-single,pins = <
++			0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
++		>;
++	};
++};
+-- 
+1.7.5.4
