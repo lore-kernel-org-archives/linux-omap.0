@@ -1,102 +1,77 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v3 5/6] SERIAL: OMAP: Remove the slave idle handling from the driver
-Date: Wed, 15 May 2013 20:18:41 +0530
-Message-ID: <1368629322-3170-6-git-send-email-rnayak@ti.com>
+Subject: [PATCH v3 2/6] ARM: OMAP2+: hwmod: Add a new flag to handle SIDLE in SWSUP only in active
+Date: Wed, 15 May 2013 20:18:38 +0530
+Message-ID: <1368629322-3170-3-git-send-email-rnayak@ti.com>
 References: <1368629322-3170-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58314 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:58313 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759386Ab3EOOtu (ORCPT
+	with ESMTP id S1759384Ab3EOOtu (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 May 2013 10:49:50 -0400
 In-Reply-To: <1368629322-3170-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: santosh.shilimkar@ti.com, linux@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, nm@ti.com, Rajendra nayak <rnayak@ti.com>
+Cc: santosh.shilimkar@ti.com, linux@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, nm@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Some IPs (like UART) need the sidle mode to be controlled in SW only
+while they are active. Once they go inactive, they need the IP to be
+put back in HW control so they are also wakeup capable.
 
-UART IP slave idle handling now taken care by runtime pm backend(hwmod layer)
-so remove the hackery from the driver.
+The flag HWMOD_SWSUP_SIDLE takes care of IPs which need the sidle
+mode to be *always* controlled in SWSUP. We now have a need to control
+IPs sidle mode in SWSUP only while its active.
 
-As discussed on the list, in future if dma mode needs to be brought
-back to this driver, UART sysc handling needs to be updated in
-framework such a way that no-idle/force idle profile can be supported.
-Given the broken dma mode for OMAP uarts, its very unlikely.
+So define a new flag 'HWMOD_SWSUP_SIDLE_ACT' to help the framework
+know about these new IP requirements.
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Tested-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 Tested-by: Sourav Poddar <sourav.poddar@ti.com>
-Signed-off-by: Rajendra nayak <rnayak@ti.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- drivers/tty/serial/omap-serial.c          |   23 -----------------------
- include/linux/platform_data/serial-omap.h |    2 --
- 2 files changed, 25 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |    3 ++-
+ arch/arm/mach-omap2/omap_hwmod.h |    4 ++++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 30d4f7a..f0b9f6b 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -202,26 +202,6 @@ static int serial_omap_get_context_loss_count(struct uart_omap_port *up)
- 	return pdata->get_context_loss_count(up->dev);
- }
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index c28552b..5739429 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1356,7 +1356,8 @@ static void _enable_sysc(struct omap_hwmod *oh)
  
--static void serial_omap_set_forceidle(struct uart_omap_port *up)
--{
--	struct omap_uart_port_info *pdata = up->dev->platform_data;
--
--	if (!pdata || !pdata->set_forceidle)
--		return;
--
--	pdata->set_forceidle(up->dev);
--}
--
--static void serial_omap_set_noidle(struct uart_omap_port *up)
--{
--	struct omap_uart_port_info *pdata = up->dev->platform_data;
--
--	if (!pdata || !pdata->set_noidle)
--		return;
--
--	pdata->set_noidle(up->dev);
--}
--
- static void serial_omap_enable_wakeup(struct uart_omap_port *up, bool enable)
- {
- 	struct omap_uart_port_info *pdata = up->dev->platform_data;
-@@ -298,8 +278,6 @@ static void serial_omap_stop_tx(struct uart_port *port)
- 		serial_out(up, UART_IER, up->ier);
- 	}
+ 	clkdm = _get_clkdm(oh);
+ 	if (sf & SYSC_HAS_SIDLEMODE) {
+-		if (oh->flags & HWMOD_SWSUP_SIDLE) {
++		if (oh->flags & HWMOD_SWSUP_SIDLE ||
++		    oh->flags & HWMOD_SWSUP_SIDLE_ACT) {
+ 			idlemode = HWMOD_IDLEMODE_NO;
+ 		} else {
+ 			if (sf & SYSC_HAS_ENAWAKEUP)
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+index fe59629..8498774 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -463,6 +463,9 @@ struct omap_hwmod_omap4_prcm {
+  *     is kept in force-standby mode. Failing to do so causes PM problems
+  *     with musb on OMAP3630 at least. Note that musb has a dedicated register
+  *     to control MSTANDBY signal when MIDLEMODE is set to force-standby.
++ * HWMOD_SWSUP_SIDLE_ACT: omap_hwmod code should manually bring the module
++ *     out of idle, but rely on smart-idle to the put it back in idle,
++ *     so the wakeups are still functional (Only known case for now is UART)
+  */
+ #define HWMOD_SWSUP_SIDLE			(1 << 0)
+ #define HWMOD_SWSUP_MSTANDBY			(1 << 1)
+@@ -476,6 +479,7 @@ struct omap_hwmod_omap4_prcm {
+ #define HWMOD_EXT_OPT_MAIN_CLK			(1 << 9)
+ #define HWMOD_BLOCK_WFI				(1 << 10)
+ #define HWMOD_FORCE_MSTANDBY			(1 << 11)
++#define HWMOD_SWSUP_SIDLE_ACT			(1 << 12)
  
--	serial_omap_set_forceidle(up);
--
- 	pm_runtime_mark_last_busy(up->dev);
- 	pm_runtime_put_autosuspend(up->dev);
- }
-@@ -364,7 +342,6 @@ static void serial_omap_start_tx(struct uart_port *port)
- 
- 	pm_runtime_get_sync(up->dev);
- 	serial_omap_enable_ier_thri(up);
--	serial_omap_set_noidle(up);
- 	pm_runtime_mark_last_busy(up->dev);
- 	pm_runtime_put_autosuspend(up->dev);
- }
-diff --git a/include/linux/platform_data/serial-omap.h b/include/linux/platform_data/serial-omap.h
-index ff9b0aa..c860c1b 100644
---- a/include/linux/platform_data/serial-omap.h
-+++ b/include/linux/platform_data/serial-omap.h
-@@ -43,8 +43,6 @@ struct omap_uart_port_info {
- 	int			DTR_present;
- 
- 	int (*get_context_loss_count)(struct device *);
--	void (*set_forceidle)(struct device *);
--	void (*set_noidle)(struct device *);
- 	void (*enable_wakeup)(struct device *, bool);
- };
- 
+ /*
+  * omap_hwmod._int_flags definitions
 -- 
 1.7.9.5
 
