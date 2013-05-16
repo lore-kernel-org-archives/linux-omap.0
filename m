@@ -1,36 +1,28 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v3 0/6] ARM: OMAP2+: hwmod and SERIAL: Remove sysc handling
- from driver
-Date: Thu, 16 May 2013 18:32:43 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1305161831390.21357@utopia.booyaka.com>
-References: <1368629322-3170-1-git-send-email-rnayak@ti.com>
+Subject: Re: OMAP baseline test results for v3.9
+Date: Thu, 16 May 2013 18:33:28 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1305161832520.21357@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1305081933270.19747@utopia.booyaka.com> <20130514211328.GC5600@atomide.com> <alpine.DEB.2.00.1305142116001.4368@utopia.booyaka.com> <20130514225221.GD5600@atomide.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:46287 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:46317 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752207Ab3EPSco (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 14:32:44 -0400
-In-Reply-To: <1368629322-3170-1-git-send-email-rnayak@ti.com>
+	with ESMTP id S1753241Ab3EPSd3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 14:33:29 -0400
+In-Reply-To: <20130514225221.GD5600@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux@arm.linux.org.uk, khilman@deeprootsystems.com, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, nm@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@linaro.org>
 
-On Wed, 15 May 2013, Rajendra Nayak wrote:
+On Tue, 14 May 2013, Tony Lindgren wrote:
 
-> OMAP UART IP needs manual idle modes based on functional state of the
-> IP. Currently this is handled by the driver with function pointers
-> implemented in platform code.
-> 
-> This however breaks in case of device tree because of missing
-> idle handling. 
-> 
-> The series tries to address the issue and tries to remove complete
-> sysc handling from serial driver.
+> Thanks that explains. BTW, the "PM off" naming might make some
+> people think that CONFIG_PM is not set :)
 
-These look good to me.  Will queue them for v3.10-rc once they pass local 
-testing here.
+That's a good point.  Will rename that and probably split the 3730 Beagle 
+XM into its own testing category.
 
 
 - Paul
