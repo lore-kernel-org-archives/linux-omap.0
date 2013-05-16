@@ -1,90 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH, v2] ARM: omap2: gpmc: fix compilation warning
-Date: Thu, 16 May 2013 10:39:24 -0700
-Message-ID: <20130516173923.GA5600@atomide.com>
-References: <20130508222639.GM32546@atomide.com>
- <1368552043-3764-1-git-send-email-vincent.stehle@laposte.net>
+Subject: Re: [PATCH V5 1/6] clk: OMAP: introduce device tree binding to
+ kernel clock data
+Date: Thu, 16 May 2013 10:43:56 -0700
+Message-ID: <20130516174355.GB5600@atomide.com>
+References: <1368039976-29648-1-git-send-email-nm@ti.com>
+ <1368039976-29648-2-git-send-email-nm@ti.com>
+ <20130513235119.10068.47040@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47055 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752873Ab3EPRj0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 13:39:26 -0400
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1368552043-3764-1-git-send-email-vincent.stehle@laposte.net>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20130513235119.10068.47040@quantum>
+Sender: linux-doc-owner@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
-To: Vincent =?utf-8?Q?Stehl=C3=A9?= <vincent.stehle@laposte.net>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Vincent =?utf-8?Q?Stehl=C3=A9?= <v-stehle@ti.com>, trivial@kernel.org
 
-* Vincent Stehl=C3=A9 <vincent.stehle@laposte.net> [130514 10:26]:
-> From: Vincent Stehl=C3=A9 <v-stehle@ti.com>
->=20
-> Fix the following compilation warning:
->=20
->   arch/arm/mach-omap2/gpmc.c: In function 'gpmc_probe_generic_child':
->   arch/arm/mach-omap2/gpmc.c:1477:4: warning: format '%x' expects arg=
-ument of type 'unsigned int', but argument 4 has type 'resource_size_t'=
- [-Wformat]
->=20
-> Signed-off-by: Vincent Stehl=C3=A9 <v-stehle@ti.com>
-> Cc: trivial@kernel.org
-> ---
->=20
-> Tony wrote:
-> > You should just change the format for dev_err instead of the castin=
-g.
->=20
-> Hi,
->=20
-> Sorry for the late answer; it seems this is a bit more complicated af=
-ter all,
-> as res.start can be 32b or 64b in LPAE. The common solution seems to =
-be: cast
-> to long long in all cases and print accordingly. Would you like this =
-better?
+* Mike Turquette <mturquette@linaro.org> [130513 16:56]:
+> Quoting Nishanth Menon (2013-05-08 12:06:11)
+> <snip>
+> > Overall strategy introduced here is simple: a clock node described in
+> > device tree blob is used to identify the exact clock provided in the
+> > SoC specific data. This is then linked back using of_clk_add_provider
+> > to the device node to be accessible by of_clk_get.
+> > 
+> 
+> FYI, I'm working on moving the OMAP clocks over to DT which is a better
+> alternative than this patch.  I'll share what I have on the list,
+> hopefully next week.
 
-Oh OK. In this case the GPMC is always within the 32-bit address space.
+That's good news! What's your plan on using the indexing the clocks?
 
-But considering that similar issue will be there for other code with
-LPAE, how about add something generic to arch/arm/include/asm/io.h like=
-:
+I'd rather avoid indexing as that's basically same as the old IRQ
+numbering and GPIO numbering schemes that don't work well in the long
+term.
 
-#define PHYS_ADDR32(x)	((__force u32)(x))
-#define PHYS_ADDR64(x)	((__force u64)(x))
-
-Or maybe something like that already exists.
+We already have quite a few sets of clocks for omaps, so the indexing
+is already an issue. My thinking is that indexing should only be used
+if the same physical clock has multiple outputs.
 
 Regards,
 
 Tony
-
->  arch/arm/mach-omap2/gpmc.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 6c4da12..e74501e 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -1473,8 +1473,8 @@ static int gpmc_probe_generic_child(struct plat=
-form_device *pdev,
->  	 */
->  	ret =3D gpmc_cs_remap(cs, res.start);
->  	if (ret < 0) {
-> -		dev_err(&pdev->dev, "cannot remap GPMC CS %d to 0x%x\n",
-> -			cs, res.start);
-> +		dev_err(&pdev->dev, "cannot remap GPMC CS %d to 0x%llx\n",
-> +			cs, (long long)res.start);
->  		goto err;
->  	}
-> =20
-> --=20
-> 1.7.10.4
->=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
