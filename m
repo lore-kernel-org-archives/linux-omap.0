@@ -1,35 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: OMAP2+: Simplify NAND support
-Date: Thu, 16 May 2013 09:21:45 -0700
-Message-ID: <20130516162144.GY5600@atomide.com>
-References: <1367331082-27944-1-git-send-email-jon-hunter@ti.com>
+Subject: Re: usb: musb: Fix LapDock enumeration on omap for boot and slow
+ cable insertion
+Date: Thu, 16 May 2013 10:15:20 -0700
+Message-ID: <20130516171520.GZ5600@atomide.com>
+References: <20130503175016.GV28721@atomide.com>
+ <20130503180132.GW28721@atomide.com>
+ <20130515140537.GC26183@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61680 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22614 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752508Ab3EPQVu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 12:21:50 -0400
+	with ESMTP id S1752739Ab3EPRPX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 13:15:23 -0400
 Content-Disposition: inline
-In-Reply-To: <1367331082-27944-1-git-send-email-jon-hunter@ti.com>
+In-Reply-To: <20130515140537.GC26183@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>, Kishon Vijay Abraham I <kishon@ti.com>
 
-* Jon Hunter <jon-hunter@ti.com> [130430 07:16]:
-> Commit 8c8a777 (ARM: OMAP2+: Add function to read GPMC settings from
-> device-tree) added a device-tree property "gpmc,device-nand" to indicate
-> is the GPMC child device is NAND. This commit should have updated the
-> GPMC NAND documentation (Documentation/devicetree/bindings/mtd/gpmc-nand.txt)
-> to list the property "gpmc,device-nand" as a required property and also
-> updated the example. However, this property is redundant and not needed
-> because the GPMC child device node for NAND is called "nand". Therefore,
-> remove this property.
+* Felipe Balbi <balbi@ti.com> [130515 07:11]:
+> On Fri, May 03, 2013 at 11:01:33AM -0700, Tony Lindgren wrote:
+> > * Tony Lindgren <tony@atomide.com> [130503 10:55]:
+> > > Looks like we can get VBUS interrupt before the ID interrupt
 > 
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> how can this happen ? VBUS interrupt happens when you connect to a port
+> which is sourcing VBUS to you, while ID interrupt happens when ID is
+> grounded, meaning that you should be sourcing VBUS.
 
-Thanks applying into omap-for-v3.11/gpmc.
+Yes, in this case we get both interrupts and the order depends
+on how fast/slow the cable is inserted.
+ 
+> Have you hacked a Hub to backfeed 5V to OMAP by any chance ?
+
+..as that's how the LapDock seems to behave backfeeding 5V.
+
+It would be interesting to take a look at the signaling on it,
+but I think my old beagle sniffer is fried.
+
+Looking at the "Figure 6-1: Common State Diagram" on page 32 in
+"USB_OTG_and_EH_3-0_release_1_1_10May2012.pdf" the logic is the
+following depending on the order of interrupt:
+
+start -> id ground -> a_idle -> a_wait_vrise -> a_wait_bcon...
+
+or
+
+start -> vbus -> b_idle -> id ground -> a_idle -> a_wait_vrise ->
+a_wait_bcon...
+
+I don't think having the VBUS there actually violates that if
+we just should follow the ID state and accept that a_wait_vrise
+is already satisfied and not even try to turn the VBUS at MUSB
+end in that case.
 
 Regards,
 
