@@ -1,91 +1,170 @@
-From: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Subject: Re: [PATCH] ARM: OMAP3: Fix iva2_pwrdm settings for 3703
-Date: Thu, 16 May 2013 12:19:20 +0200
-Message-ID: <5194B2A8.8020608@visionsystems.de>
-References: <20130515002537.GG5600@atomide.com> <20130515015212.GB3268@animalcreek.com> <20130515170734.GI5600@atomide.com> <20130515215028.GA11883@animalcreek.com>
-Reply-To: yegor_sub1@visionsystems.de
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: Re: [PATCHv2 3/3] arm: dts: add bandgap entry for OMAP4460 devices
+Date: Thu, 16 May 2013 08:27:27 -0400
+Message-ID: <5194D0AF.3010407@ti.com>
+References: <1368629928-6723-1-git-send-email-eduardo.valentin@ti.com>
+ <1368629928-6723-4-git-send-email-eduardo.valentin@ti.com>
+ <5193A875.1020000@ti.com> <5193B9AA.7020507@ti.com> <519488D3.5070003@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.vscom.de ([62.145.30.242]:36600 "EHLO mail.visionsystems.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752197Ab3EPMIY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 May 2013 08:08:24 -0400
-In-Reply-To: <20130515215028.GA11883@animalcreek.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============5730588031658618725=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <519488D3.5070003@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@linaro.org>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 15.05.2013 23:50, Mark A. Greer wrote:
-> On Wed, May 15, 2013 at 10:07:35AM -0700, Tony Lindgren wrote:
->> * Mark A. Greer <mgreer@animalcreek.com> [130514 18:57]:
->>> On Tue, May 14, 2013 at 05:25:37PM -0700, Tony Lindgren wrote:
->>>> Commit a819c4f1 (ARM: OMAP3: PM: Only access IVA if one exists)
->>>> changed PM to not access IVA registers on omaps that don't have
->>>> them. Turns out we still need to idle iva2 as otherwise iva2_pwrdm
->>>> will stay on and block deeper idle states.
+--===============5730588031658618725==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="----enig2WPGVVWNXVXLSNVGIKHOK"
+
+------enig2WPGVVWNXVXLSNVGIKHOK
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+On 16-05-2013 03:20, Benoit Cousson wrote:
+> Hi Eduardo,
+>=20
+> On 05/15/2013 06:36 PM, Eduardo Valentin wrote:
+>> On 15-05-2013 11:23, Benoit Cousson wrote:
+>>> Hi Eduardo,
+>>>
+>>> On 05/15/2013 04:58 PM, Eduardo Valentin wrote:
+>>>> Include bandgap devices for OMAP4460 devices.
 >>>>
->>>> Signed-off-by: Tony Lindgren <tony@atomide.com>
->>>>
+>>>> Cc: "Beno=C3=AEt Cousson" <b-cousson@ti.com>
+>>>> Cc: Tony Lindgren <tony@atomide.com>
+>>>> Cc: Russell King <linux@arm.linux.org.uk>
+>>>> Cc: linux-omap@vger.kernel.org
+>>>> Cc: devicetree-discuss@lists.ozlabs.org
+>>>> Cc: linux-arm-kernel@lists.infradead.org
+>>>> Cc: linux-kernel@vger.kernel.org
+>>>> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 >>>> ---
+>>>>  arch/arm/boot/dts/omap4460.dtsi | 9 +++++++++
+>>>>  1 file changed, 9 insertions(+)
 >>>>
->>>> Paul & Kevin, do you have better ideas for fixing this?
->>>>
->>>> --- a/arch/arm/mach-omap2/pm34xx.c
->>>> +++ b/arch/arm/mach-omap2/pm34xx.c
->>>> @@ -546,8 +546,10 @@ static void __init prcm_setup_regs(void)
->>>>  	/* Clear any pending PRCM interrupts */
->>>>  	omap2_prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
->>>>  
->>>> -	if (omap3_has_iva())
->>>> -		omap3_iva_idle();
->>>> +	/*
->>>> +	 * We need to idle iva2_pwrdm even on am3703 with no iva2.
->>>> +	 */
->>>> +	omap3_iva_idle();
->>>>  
->>>>  	omap3_d2d_idle();
->>>>  }
->>>
->>> [Kevin, Paul, some background: Tony discovered that the am3703 needs
->>> to have omap3_iva_idle() called even though its not supposed to have
->>> an IVA.]
->>>
->>> This is potentially bad for other SoC's that don't have an IVA so I don't
->>> think its the way to go.  My preference would be to set the OMAP3_HAS_IVA
->>> flag for the am3703 only since its the one with the bug.  Maybe something
->>> in id.c:omap3xxx_check_features() but I don't see any existing way to check
->>> for an am3703 vs. other am37xx SoCs.  Any ideas?
->>>
->>> Another option, I suppose, is a dts entry but I don't like that at all.
+>>>> diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/oma=
+p4460.dtsi
+>>>> index 2cf227c..e5bfbfe 100644
+>>>> --- a/arch/arm/boot/dts/omap4460.dtsi
+>>>> +++ b/arch/arm/boot/dts/omap4460.dtsi
+>>>> @@ -29,4 +29,13 @@
+>>>>  			     <0 55 0x4>;
+>>>>  		ti,hwmods =3D "debugss";
+>>>>  	};
+>>>> +
+>>>> +	bandgap {
+>>>> +		reg =3D <0x4a002260 0x4
+>>>> +			0x4a00232C 0x4
+>>>> +			0x4a002378 0x18>;
+>>>> +		compatible =3D "ti,omap4460-bandgap";
+>>>> +		interrupts =3D <0 126 4>; /* talert */
+>>>> +		ti,tshut-gpio =3D <86>;
 >>
->> It seems that iva2_pwrdm is there for all omap3 even if OMAP3_HAS_IVA
->> flag is unset. And if that's the case, iva2 clocks still need to be idled
->> in all cases.
-> 
-> Ahh, this takes us to the "Great TI Docs Mystery" :) -- its basically
-> impossible to tell because despite what their docs may say, the hardware
-> can be quite different.  I'm not sure how to proceed other than trial &
-> error with as many different SoCs as we can find.
-> 
->> It's possible that not all steps in omap3_iva_idle() are needed though.
->> I can debug further to see which part of the omap3_iva_idle() are needed.
 >>
->> Mark, do you have some omap3 with no iva (other than am3703) to test the
->> idle states with?
-> 
-> I have an am35xx which isn't supposed to have an IVA so I can test with it
-> (although, I'm not sure how well the kernel works on the am35xx these days).
-> 
-> I'm a bit busy today but I'll try booting the am35xx tomorrow and if it
-> comes up, see what I can figure out.
+>>
+>>>
+>>> Why do you need a custom attribute for GPIO? Cannot you use the stand=
+ard
+>>> one?
+>>
+>> I believe it was by your suggestion :-), during the first attempts to
+>> send this driver. But could not find the thread link :-( sorry.
+>=20
+> Ooops :-) I do not remember that... maybe it was long time ago, before
+> we had any decent binding available for GPIO and IRQ...
+>=20
 
-I think this issue is relevant to am3517 as you can see from this thread: http://thread.gmane.org/gmane.linux.ports.arm.omap/97903
-I could boot only with your patch http://www.spinics.net/lists/arm-kernel/msg168865.html
 
-I have such a system running, so if you have any other patches/ideas to test, I would do it.
+Probably it was because by that time we didnt have GPIO binding ready, ye=
+ah.
 
-Yegor
+>> I guess the reasoning to mark it as a ti specific is because it will b=
+e
+>> used as IRQ line to treat thermal shutdown (in SW).
+>=20
+> Mmm, ok, so in that case, it is not even a gpio, but an interrupt entry=
 
+> that is needed like that:
+>=20
+> 	interrupt-parent =3D <&gpio3>;
+> 	interrupts =3D <22>; /* gpio line 86 */
+>=20
+> Except that we already have an IRQ line connected to GIC for the
+> Talert... I'm not sure we can have 2 different IRQ controllers for one
+> device :-(
+>=20
+> We need to check.
+>=20
+
+
+Yeah, I also dont think this will work, because we will reparent the
+interrupt, setting to a different controller. That will break the TALERT
+signal already defined at GIC (check original patch).
+
+I propose keeping the way I sent. Unless there is a way to set two
+different controllers to same device.
+
+> Regards,
+> Benoit
+>=20
+>=20
+>>> Where is the gpio controller phandle?
+>>>
+>>> Usually it looks like this:
+>>>
+>>> 	gpios =3D <&gpio1 8 0>;
+>>>
+>>>
+>>> Regards,
+>>> Benoit
+>>>
+>>>
+>>>
+>>
+>>
+>=20
+>=20
+>=20
+
+
+
+------enig2WPGVVWNXVXLSNVGIKHOK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iF4EAREIAAYFAlGU0K8ACgkQCXcVR3XQvP3STgEA3qVqjYpu0sXO/xLYF2jcIQAO
+k2rSR8Wr7+SFbbuNmmgA/25JHmBHftgHR19NSqadmsQKq8SQ8iUookOvkC9bm4zV
+=s5/6
+-----END PGP SIGNATURE-----
+
+------enig2WPGVVWNXVXLSNVGIKHOK--
+
+
+--===============5730588031658618725==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============5730588031658618725==--
