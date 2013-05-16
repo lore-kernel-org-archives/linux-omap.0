@@ -1,90 +1,45 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: v3.10-rc1: backlight brightness after boot on N900
-Date: Thu, 16 May 2013 07:52:12 +0300
-Message-ID: <519465FC.9090002@ti.com>
-References: <20130515171845.GB3157@blackmetal.musicnaut.iki.fi>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: [PATCH 0/2] mtd:nand:omap2: ECC support clean-up for omap2-nand driver
+Date: Thu, 16 May 2013 11:41:58 +0530
+Message-ID: <1368684720-26763-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="----enig2WKOCBKSPBCJOKLNCWNIA"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46447 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:50315 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753958Ab3EPEw0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 00:52:26 -0400
-In-Reply-To: <20130515171845.GB3157@blackmetal.musicnaut.iki.fi>
+	with ESMTP id S1752913Ab3EPGMm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 02:12:42 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-omap@vger.kernel.org
+To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: "Gupta, Pekon" <pekon@ti.com>, avinashphilip@ti.com, arnd@arndb.de, tony@atomide.com, balbi@ti.com
 
-------enig2WKOCBKSPBCJOKLNCWNIA
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+From: "Gupta, Pekon" <pekon@ti.com>
 
-On 15/05/13 20:18, Aaro Koskinen wrote:
-> Hi,
->=20
-> Is it expected that after boot you get 0 brightness i.e. a seemingly
-> blank display on N900 with 3.10-rc1?
->=20
-> First thought after seeing a blank display was that the probe
-> issues are still there, but everything was fine and after setting
-> /sys/class/backlight/acx565akm/brightness you get a picture.
->=20
-> Just wondering how the initial brightness is determined anyway?
+This patch series makes ECC scheme selection for omap2-nand driver more 
+user-friendly.It also adds scalability for large page-sized NAND devices,
+and adding new ECC schemes in future.
 
-There were some small changes merged in v3.10 related to acx's
-backlight, but they were removing dead code so I don't see how those
-could affect...
+[PATCH 1/2]
+	- clean-up and optimization for supported ECC schemes.
+	- added checks for Kconfigs required by specific ECC schemes.
 
-Looking at the driver, the bl is initialized:
+[PATCH 2/2]
+	- add DT options for selecting supported ECC scheme.
 
-	if (md->has_bc)
-		brightness =3D acx565akm_get_actual_brightness(md);
-	else
-		brightness =3D 0;
+Gupta, Pekon (2):
+  mtd:nand:omap2: clean-up BCHx_HW and BCHx_SW ECC configurations in
+    device_probe
+  ARM: OMAP2+: cleaned-up DT support of various ECC schemes
 
-And has_bc is set only if the model is detected as MIPID_VER_ACX565AKM
-(that's the panel in final N900, isn't it?). So what comes to my mind is
-that either the model is detected wrong, or the
-acx565akm_get_actual_brightness() which reads the current BL from the
-panel happens to return 0, either because of an error, or because the
-bootloader has set the BL to 0.
+ .../devicetree/bindings/mtd/gpmc-nand.txt          |  37 +-
+ arch/arm/boot/dts/am335x-evm.dts                   |   2 +-
+ arch/arm/mach-omap2/gpmc.c                         |  12 +-
+ drivers/mtd/nand/omap2.c                           | 432 ++++++++++-----------
+ include/linux/platform_data/elm.h                  |   4 +
+ include/linux/platform_data/mtd-nand-omap2.h       |  22 +-
+ 6 files changed, 258 insertions(+), 251 deletions(-)
 
-But why either of those would've changed with v3.10... No idea...
+-- 
+1.8.1
 
-Can you add debug prints to see which code paths are taken there
-(drivers/video/omap2/displays/panel-acx565akm.c, around line 580). The
-panel model should also be printed with "omapfb: %s rev %02x LCD detected=
-".
-
- Tomi
-
-
-
-------enig2WKOCBKSPBCJOKLNCWNIA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJRlGX/AAoJEPo9qoy8lh71fuMP/0IPvFMul2AuoqI4O+yh6Xwv
-vcHTT06xbjJ2vXLxpNhRCvA3ZANeq2v5EyoGwfY4WkxrAKQOKPoPiy3SEi+HyMTH
-aSoaKooe+PCy7PpiYDiB4aMZPjpAoOptD2As4T9qBjC4jy10G6HjWh8kr5b2+r0U
-tPEoDH02X94BdgTmm4sN9X8Fno/fYcdQLQrKtykO3qhSAc2nCPvwDofhkFbhRJhA
-Oh7CRCIM9f996qNDjwODCCrXCyKBIkbTDO32QD1uQFQ5xKnXt4VT5c9031qXN67K
-ZSE9EkO+SJzWyDO6vQIhNjD4KiTgnMQOOQLyzL2UFEaRkJ00NAfyW9qMxzaGGCTr
-mwLSdakAiw9wL0jlNabsBtZT0f8cuq/8I9VNtrJVZLVVvtRjk1oJ2QcTlj+kzFGe
-OfV888s8CsMOrv7mw3/LbwEIBWKtKGVhpGSSx2ZLMyse9AUzHdReNhm6zThcRjzh
-8CJxWpJ66O6Se8QYW11tviA8PCMtNGNSNjqh0g/nLyN7lt9VRBXr0+DHwr21vFJ1
-p9vQDYJTC1aViUeGaJv91iZbumo6z1vYznMC1CemldWDGo2Raz4gpKgmoIgZ0/Iy
-nMN/lMcFMntsM60YOCjsZU9xsxcwP5Mhq6yogorTOeAAtUXAE4DezVrdjYHafYRS
-j1vVIuWMRBH8EKhIRrV+
-=We85
------END PGP SIGNATURE-----
-
-------enig2WKOCBKSPBCJOKLNCWNIA--
