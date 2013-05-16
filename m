@@ -1,60 +1,90 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: usb: musb: Fix LapDock enumeration on omap for boot and slow
- cable insertion
-Date: Thu, 16 May 2013 10:15:20 -0700
-Message-ID: <20130516171520.GZ5600@atomide.com>
-References: <20130503175016.GV28721@atomide.com>
- <20130503180132.GW28721@atomide.com>
- <20130515140537.GC26183@arwen.pp.htv.fi>
+Subject: Re: [PATCH, v2] ARM: omap2: gpmc: fix compilation warning
+Date: Thu, 16 May 2013 10:39:24 -0700
+Message-ID: <20130516173923.GA5600@atomide.com>
+References: <20130508222639.GM32546@atomide.com>
+ <1368552043-3764-1-git-send-email-vincent.stehle@laposte.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22614 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752739Ab3EPRPX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 13:15:23 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47055 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752873Ab3EPRj0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 13:39:26 -0400
 Content-Disposition: inline
-In-Reply-To: <20130515140537.GC26183@arwen.pp.htv.fi>
+In-Reply-To: <1368552043-3764-1-git-send-email-vincent.stehle@laposte.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>, Kishon Vijay Abraham I <kishon@ti.com>
+To: Vincent =?utf-8?Q?Stehl=C3=A9?= <vincent.stehle@laposte.net>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Vincent =?utf-8?Q?Stehl=C3=A9?= <v-stehle@ti.com>, trivial@kernel.org
 
-* Felipe Balbi <balbi@ti.com> [130515 07:11]:
-> On Fri, May 03, 2013 at 11:01:33AM -0700, Tony Lindgren wrote:
-> > * Tony Lindgren <tony@atomide.com> [130503 10:55]:
-> > > Looks like we can get VBUS interrupt before the ID interrupt
-> 
-> how can this happen ? VBUS interrupt happens when you connect to a port
-> which is sourcing VBUS to you, while ID interrupt happens when ID is
-> grounded, meaning that you should be sourcing VBUS.
+* Vincent Stehl=C3=A9 <vincent.stehle@laposte.net> [130514 10:26]:
+> From: Vincent Stehl=C3=A9 <v-stehle@ti.com>
+>=20
+> Fix the following compilation warning:
+>=20
+>   arch/arm/mach-omap2/gpmc.c: In function 'gpmc_probe_generic_child':
+>   arch/arm/mach-omap2/gpmc.c:1477:4: warning: format '%x' expects arg=
+ument of type 'unsigned int', but argument 4 has type 'resource_size_t'=
+ [-Wformat]
+>=20
+> Signed-off-by: Vincent Stehl=C3=A9 <v-stehle@ti.com>
+> Cc: trivial@kernel.org
+> ---
+>=20
+> Tony wrote:
+> > You should just change the format for dev_err instead of the castin=
+g.
+>=20
+> Hi,
+>=20
+> Sorry for the late answer; it seems this is a bit more complicated af=
+ter all,
+> as res.start can be 32b or 64b in LPAE. The common solution seems to =
+be: cast
+> to long long in all cases and print accordingly. Would you like this =
+better?
 
-Yes, in this case we get both interrupts and the order depends
-on how fast/slow the cable is inserted.
- 
-> Have you hacked a Hub to backfeed 5V to OMAP by any chance ?
+Oh OK. In this case the GPMC is always within the 32-bit address space.
 
-..as that's how the LapDock seems to behave backfeeding 5V.
+But considering that similar issue will be there for other code with
+LPAE, how about add something generic to arch/arm/include/asm/io.h like=
+:
 
-It would be interesting to take a look at the signaling on it,
-but I think my old beagle sniffer is fried.
+#define PHYS_ADDR32(x)	((__force u32)(x))
+#define PHYS_ADDR64(x)	((__force u64)(x))
 
-Looking at the "Figure 6-1: Common State Diagram" on page 32 in
-"USB_OTG_and_EH_3-0_release_1_1_10May2012.pdf" the logic is the
-following depending on the order of interrupt:
-
-start -> id ground -> a_idle -> a_wait_vrise -> a_wait_bcon...
-
-or
-
-start -> vbus -> b_idle -> id ground -> a_idle -> a_wait_vrise ->
-a_wait_bcon...
-
-I don't think having the VBUS there actually violates that if
-we just should follow the ID state and accept that a_wait_vrise
-is already satisfied and not even try to turn the VBUS at MUSB
-end in that case.
+Or maybe something like that already exists.
 
 Regards,
 
 Tony
+
+>  arch/arm/mach-omap2/gpmc.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 6c4da12..e74501e 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -1473,8 +1473,8 @@ static int gpmc_probe_generic_child(struct plat=
+form_device *pdev,
+>  	 */
+>  	ret =3D gpmc_cs_remap(cs, res.start);
+>  	if (ret < 0) {
+> -		dev_err(&pdev->dev, "cannot remap GPMC CS %d to 0x%x\n",
+> -			cs, res.start);
+> +		dev_err(&pdev->dev, "cannot remap GPMC CS %d to 0x%llx\n",
+> +			cs, (long long)res.start);
+>  		goto err;
+>  	}
+> =20
+> --=20
+> 1.7.10.4
+>=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
