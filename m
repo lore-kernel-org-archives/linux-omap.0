@@ -1,45 +1,139 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP3: Fix iva2_pwrdm settings for 3703
-Date: Thu, 16 May 2013 11:54:44 -0700
-Message-ID: <20130516185444.GK5600@atomide.com>
-References: <20130515002537.GG5600@atomide.com>
- <20130515015212.GB3268@animalcreek.com>
- <20130515170734.GI5600@atomide.com>
- <20130515215028.GA11883@animalcreek.com>
- <5194B2A8.8020608@visionsystems.de>
- <20130516183516.GJ5600@atomide.com>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH V5 1/6] clk: OMAP: introduce device tree binding to kernel
+ clock data
+Date: Thu, 16 May 2013 12:46:32 -0700
+Message-ID: <20130516194632.12127.59935@quantum>
+References: <1368039976-29648-1-git-send-email-nm@ti.com>
+ <1368039976-29648-2-git-send-email-nm@ti.com>
+ <20130513235119.10068.47040@quantum> <20130516174355.GB5600@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:45655 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750835Ab3EPSyt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 14:54:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20130516183516.GJ5600@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130516174355.GB5600@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, linux-doc@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Cc: "Mark A. Greer" <mgreer@animalcreek.com>, Kevin Hilman <khilman@linaro.org>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [130516 11:40]:
-> * Yegor Yefremov <yegor_sub1@visionsystems.de> [130516 05:13]:
+Quoting Tony Lindgren (2013-05-16 10:43:56)
+> * Mike Turquette <mturquette@linaro.org> [130513 16:56]:
+> > Quoting Nishanth Menon (2013-05-08 12:06:11)
+> > <snip>
+> > > Overall strategy introduced here is simple: a clock node described in
+> > > device tree blob is used to identify the exact clock provided in the
+> > > SoC specific data. This is then linked back using of_clk_add_provider
+> > > to the device node to be accessible by of_clk_get.
+> > > 
 > > 
-> > I think this issue is relevant to am3517 as you can see from this thread: http://thread.gmane.org/gmane.linux.ports.arm.omap/97903
-> > I could boot only with your patch http://www.spinics.net/lists/arm-kernel/msg168865.html
+> > FYI, I'm working on moving the OMAP clocks over to DT which is a better
+> > alternative than this patch.  I'll share what I have on the list,
+> > hopefully next week.
 > 
-> OK sounds like Mark's patch as http://www.spinics.net/lists/arm-kernel/msg168865.html
-> is needed as a fix.
+> That's good news! What's your plan on using the indexing the clocks?
+> 
+> I'd rather avoid indexing as that's basically same as the old IRQ
+> numbering and GPIO numbering schemes that don't work well in the long
+> term.
+> 
+> We already have quite a few sets of clocks for omaps, so the indexing
+> is already an issue. My thinking is that indexing should only be used
+> if the same physical clock has multiple outputs.
+> 
 
-Yegor, thinking about your boot issue more, I'm thinking that you
-have your board .init_time = omap3_secure_sync32k_timer_init, or
-some non-waking gpt timer. And that means the system won't wake to
-timer events.
+At present I am actually describing the clock hardware in DT.  Each
+clock is a node (not a device) using the established clock binding in
+Documentation/devicetree/bindings/clocks/clock-bindings.txt.
 
-The system should still wake to timer events even if you have no
-wake-up events configred, so Mark's patch probably does not fix
-the right issue for you.
+To do this I am introducing new bindings for the common types: gate, mux
+& divider.  These are the ones I am migrating to DT first.  Eventually
+I'll create bindings for the OMAP-specifc clocks after this.
+
+I currently have this DT approach co-existing with the static data.  As
+a start I have used the fixed-clock and mux-clock bindings to put all of
+the root clocks and sys_clk into arch/arm/boot/dts/omap4-clocks.dtsi.
+This file is included by arch/arm/boot/dts/omap4.dtsi.
+
+The DT clocks are parsed prior to the static clock registration:
+
+diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
+index 88e37a4..7cc4cae 100644
+--- a/arch/arm/mach-omap2/cclock44xx_data.c
++++ b/arch/arm/mach-omap2/cclock44xx_data.c
+@@ -27,6 +27,7 @@
+ #include <linux/clk-private.h>
+ #include <linux/clkdev.h>
+ #include <linux/io.h>
++#include <linux/clk/omap.h>
+ 
+ #include "soc.h"
+ #include "iomap.h"
+@@ -1442,27 +1443,11 @@ static struct omap_clk omap443x_clks[] = {
+  * clocks common to omap44xx
+  */
+ static struct omap_clk omap44xx_clks[] = {
+-	CLK(NULL,	"extalt_clkin_ck",		&extalt_clkin_ck),
+ 	CLK(NULL,	"pad_clks_src_ck",		&pad_clks_src_ck),
+ 	CLK(NULL,	"pad_clks_ck",			&pad_clks_ck),
+-	CLK(NULL,	"pad_slimbus_core_clks_ck",	&pad_slimbus_core_clks_ck),
+-	CLK(NULL,	"secure_32k_clk_src_ck",	&secure_32k_clk_src_ck),
+ 	CLK(NULL,	"slimbus_src_clk",		&slimbus_src_clk),
+ 	CLK(NULL,	"slimbus_clk",			&slimbus_clk),
+ 	CLK(NULL,	"sys_32k_ck",			&sys_32k_ck),
+-	CLK(NULL,	"virt_12000000_ck",		&virt_12000000_ck),
+-	CLK(NULL,	"virt_13000000_ck",		&virt_13000000_ck),
+-	CLK(NULL,	"virt_16800000_ck",		&virt_16800000_ck),
+-	CLK(NULL,	"virt_19200000_ck",		&virt_19200000_ck),
+-	CLK(NULL,	"virt_26000000_ck",		&virt_26000000_ck),
+-	CLK(NULL,	"virt_27000000_ck",		&virt_27000000_ck),
+-	CLK(NULL,	"virt_38400000_ck",		&virt_38400000_ck),
+-	CLK(NULL,	"sys_clkin_ck",			&sys_clkin_ck),
+-	CLK(NULL,	"tie_low_clock_ck",		&tie_low_clock_ck),
+-	CLK(NULL,	"utmi_phy_clkout_ck",		&utmi_phy_clkout_ck),
+-	CLK(NULL,	"xclk60mhsp1_ck",		&xclk60mhsp1_ck),
+-	CLK(NULL,	"xclk60mhsp2_ck",		&xclk60mhsp2_ck),
+-	CLK(NULL,	"xclk60motg_ck",		&xclk60motg_ck),
+ 	CLK(NULL,	"abe_dpll_bypass_clk_mux_ck",	&abe_dpll_bypass_clk_mux_ck),
+ 	CLK(NULL,	"abe_dpll_refclk_mux_ck",	&abe_dpll_refclk_mux_ck),
+ 	CLK(NULL,	"dpll_abe_ck",			&dpll_abe_ck),
+@@ -1690,6 +1675,9 @@ int __init omap4xxx_clk_init(void)
+ {
+ 	int rc;
+ 
++	/* FIXME register clocks from DT first */
++	dt_omap_clk_init();
++
+ 	if (cpu_is_omap443x()) {
+ 		cpu_mask = RATE_IN_4430;
+ 		omap_clocks_register(omap443x_clks, ARRAY_SIZE(omap443x_clks));
+
+
+Ideally dt_omap_clk_init() will go away and instead by replaced by the
+probe from drivers/clk/omap/clk.c (new omap clock driver).  However I
+still need to register the root clocks before the PLLs and other
+dividers for now to avoid many issues (divide by zero errors, failed
+reparent operations, etc).  And furthermore I don't think the hwmod code
+will work if the clock tree is not populated before module_init.  So for
+now the omap clock driver does not properly probe or call module_init,
+but some day that might be fixed.
+
+I know that putting all of the data into DT is not a popular idea with
+everybody.  I also know that I am not a DT expert, so I'm sure there are
+some better approaches to the some of the decisions I'm making.  I'll
+post an RFC to the list next week with cleaned-up patches and then we
+can all take it from there.
 
 Regards,
+Mike
 
-Tony
+> Regards,
+> 
+> Tony
