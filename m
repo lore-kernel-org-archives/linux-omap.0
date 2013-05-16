@@ -1,91 +1,90 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH] ARM: OMAP3: Fix iva2_pwrdm settings for 3703
-Date: Wed, 15 May 2013 14:50:28 -0700
-Message-ID: <20130515215028.GA11883@animalcreek.com>
-References: <20130515002537.GG5600@atomide.com>
- <20130515015212.GB3268@animalcreek.com>
- <20130515170734.GI5600@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: v3.10-rc1: backlight brightness after boot on N900
+Date: Thu, 16 May 2013 07:52:12 +0300
+Message-ID: <519465FC.9090002@ti.com>
+References: <20130515171845.GB3157@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20130515170734.GI5600@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@linaro.org>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="----enig2WKOCBKSPBCJOKLNCWNIA"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:46447 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753958Ab3EPEw0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 00:52:26 -0400
+In-Reply-To: <20130515171845.GB3157@blackmetal.musicnaut.iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org
 
-On Wed, May 15, 2013 at 10:07:35AM -0700, Tony Lindgren wrote:
-> * Mark A. Greer <mgreer@animalcreek.com> [130514 18:57]:
-> > On Tue, May 14, 2013 at 05:25:37PM -0700, Tony Lindgren wrote:
-> > > Commit a819c4f1 (ARM: OMAP3: PM: Only access IVA if one exists)
-> > > changed PM to not access IVA registers on omaps that don't have
-> > > them. Turns out we still need to idle iva2 as otherwise iva2_pwrdm
-> > > will stay on and block deeper idle states.
-> > > 
-> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > > 
-> > > ---
-> > > 
-> > > Paul & Kevin, do you have better ideas for fixing this?
-> > > 
-> > > --- a/arch/arm/mach-omap2/pm34xx.c
-> > > +++ b/arch/arm/mach-omap2/pm34xx.c
-> > > @@ -546,8 +546,10 @@ static void __init prcm_setup_regs(void)
-> > >  	/* Clear any pending PRCM interrupts */
-> > >  	omap2_prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
-> > >  
-> > > -	if (omap3_has_iva())
-> > > -		omap3_iva_idle();
-> > > +	/*
-> > > +	 * We need to idle iva2_pwrdm even on am3703 with no iva2.
-> > > +	 */
-> > > +	omap3_iva_idle();
-> > >  
-> > >  	omap3_d2d_idle();
-> > >  }
-> > 
-> > [Kevin, Paul, some background: Tony discovered that the am3703 needs
-> > to have omap3_iva_idle() called even though its not supposed to have
-> > an IVA.]
-> > 
-> > This is potentially bad for other SoC's that don't have an IVA so I don't
-> > think its the way to go.  My preference would be to set the OMAP3_HAS_IVA
-> > flag for the am3703 only since its the one with the bug.  Maybe something
-> > in id.c:omap3xxx_check_features() but I don't see any existing way to check
-> > for an am3703 vs. other am37xx SoCs.  Any ideas?
-> > 
-> > Another option, I suppose, is a dts entry but I don't like that at all.
-> 
-> It seems that iva2_pwrdm is there for all omap3 even if OMAP3_HAS_IVA
-> flag is unset. And if that's the case, iva2 clocks still need to be idled
-> in all cases.
+------enig2WKOCBKSPBCJOKLNCWNIA
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Ahh, this takes us to the "Great TI Docs Mystery" :) -- its basically
-impossible to tell because despite what their docs may say, the hardware
-can be quite different.  I'm not sure how to proceed other than trial &
-error with as many different SoCs as we can find.
+On 15/05/13 20:18, Aaro Koskinen wrote:
+> Hi,
+>=20
+> Is it expected that after boot you get 0 brightness i.e. a seemingly
+> blank display on N900 with 3.10-rc1?
+>=20
+> First thought after seeing a blank display was that the probe
+> issues are still there, but everything was fine and after setting
+> /sys/class/backlight/acx565akm/brightness you get a picture.
+>=20
+> Just wondering how the initial brightness is determined anyway?
 
-> It's possible that not all steps in omap3_iva_idle() are needed though.
-> I can debug further to see which part of the omap3_iva_idle() are needed.
-> 
-> Mark, do you have some omap3 with no iva (other than am3703) to test the
-> idle states with?
+There were some small changes merged in v3.10 related to acx's
+backlight, but they were removing dead code so I don't see how those
+could affect...
 
-I have an am35xx which isn't supposed to have an IVA so I can test with it
-(although, I'm not sure how well the kernel works on the am35xx these days).
+Looking at the driver, the bl is initialized:
 
-I'm a bit busy today but I'll try booting the am35xx tomorrow and if it
-comes up, see what I can figure out.
+	if (md->has_bc)
+		brightness =3D acx565akm_get_actual_brightness(md);
+	else
+		brightness =3D 0;
 
-Mark
---
+And has_bc is set only if the model is detected as MIPID_VER_ACX565AKM
+(that's the panel in final N900, isn't it?). So what comes to my mind is
+that either the model is detected wrong, or the
+acx565akm_get_actual_brightness() which reads the current BL from the
+panel happens to return 0, either because of an error, or because the
+bootloader has set the BL to 0.
+
+But why either of those would've changed with v3.10... No idea...
+
+Can you add debug prints to see which code paths are taken there
+(drivers/video/omap2/displays/panel-acx565akm.c, around line 580). The
+panel model should also be printed with "omapfb: %s rev %02x LCD detected=
+".
+
+ Tomi
+
+
+
+------enig2WKOCBKSPBCJOKLNCWNIA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRlGX/AAoJEPo9qoy8lh71fuMP/0IPvFMul2AuoqI4O+yh6Xwv
+vcHTT06xbjJ2vXLxpNhRCvA3ZANeq2v5EyoGwfY4WkxrAKQOKPoPiy3SEi+HyMTH
+aSoaKooe+PCy7PpiYDiB4aMZPjpAoOptD2As4T9qBjC4jy10G6HjWh8kr5b2+r0U
+tPEoDH02X94BdgTmm4sN9X8Fno/fYcdQLQrKtykO3qhSAc2nCPvwDofhkFbhRJhA
+Oh7CRCIM9f996qNDjwODCCrXCyKBIkbTDO32QD1uQFQ5xKnXt4VT5c9031qXN67K
+ZSE9EkO+SJzWyDO6vQIhNjD4KiTgnMQOOQLyzL2UFEaRkJ00NAfyW9qMxzaGGCTr
+mwLSdakAiw9wL0jlNabsBtZT0f8cuq/8I9VNtrJVZLVVvtRjk1oJ2QcTlj+kzFGe
+OfV888s8CsMOrv7mw3/LbwEIBWKtKGVhpGSSx2ZLMyse9AUzHdReNhm6zThcRjzh
+8CJxWpJ66O6Se8QYW11tviA8PCMtNGNSNjqh0g/nLyN7lt9VRBXr0+DHwr21vFJ1
+p9vQDYJTC1aViUeGaJv91iZbumo6z1vYznMC1CemldWDGo2Raz4gpKgmoIgZ0/Iy
+nMN/lMcFMntsM60YOCjsZU9xsxcwP5Mhq6yogorTOeAAtUXAE4DezVrdjYHafYRS
+j1vVIuWMRBH8EKhIRrV+
+=We85
+-----END PGP SIGNATURE-----
+
+------enig2WKOCBKSPBCJOKLNCWNIA--
