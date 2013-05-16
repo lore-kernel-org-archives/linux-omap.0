@@ -1,33 +1,69 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ARM: OMAP2+: Allow NAND transfer mode to be
- specified in DT
-Date: Thu, 16 May 2013 08:56:06 -0700
-Message-ID: <20130516155605.GU5600@atomide.com>
-References: <51767D49.1010909@newflow.co.uk>
+Subject: Re: [PATCH] ARM: OMAP4: change the device names in usb_bind_phy
+Date: Thu, 16 May 2013 08:58:57 -0700
+Message-ID: <20130516155857.GV5600@atomide.com>
+References: <1366697656-14315-1-git-send-email-kishon@ti.com>
+ <51936946.3030507@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51912 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752163Ab3EPP4J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 11:56:09 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:40368 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752812Ab3EPP7J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 11:59:09 -0400
 Content-Disposition: inline
-In-Reply-To: <51767D49.1010909@newflow.co.uk>
+In-Reply-To: <51936946.3030507@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Jackson <mpfj-list@newflow.co.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>
+To: Tomi Valkeinen <tomi.valkeinen@iki.fi>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
 
-* Mark Jackson <mpfj-list@newflow.co.uk> [130423 05:28]:
-> OMAP devices support various NAND transfer modes.
+* Tomi Valkeinen <tomi.valkeinen@iki.fi> [130515 03:59]:
+> On 23/04/13 09:14, Kishon Vijay Abraham I wrote:
+> > After the device names are created using PLATFORM_DEVID_AUTO, the old
+> > device names given in usb_bind_phy are no longer valid causing the musb
+> > controller not to get the phy reference. Updated the usb_bind_phy with
+> > the new device names to get MUSB functional in omap4 panda.
+> > 
+> > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> > ---
+> > Tested in OMAP4 PANDA.
+> >  arch/arm/mach-omap2/board-4430sdp.c    |    2 +-
+> >  arch/arm/mach-omap2/board-omap4panda.c |    2 +-
+> >  2 files changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> > index 00d7290..56a9a4f 100644
+> > --- a/arch/arm/mach-omap2/board-4430sdp.c
+> > +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> > @@ -730,7 +730,7 @@ static void __init omap_4430sdp_init(void)
+> >  	omap4_sdp4430_wifi_init();
+> >  	omap4_twl6030_hsmmc_init(mmc);
+> >  
+> > -	usb_bind_phy("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
+> > +	usb_bind_phy("musb-hdrc.2.auto", 0, "omap-usb2.3.auto");
+> >  	usb_musb_init(&musb_board_data);
+> >  
+> >  	status = omap_ethernet_init();
 > 
-> Currently all device-tree definitions will use the default "prefetch
-> polled" mode, so this patch enables the transfer mode to be specified
-> in the device-tree.
+> I'm seeing
 > 
-> Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
+> [    2.190155] unable to find transceiver
+> [    2.190155] HS USB OTG: no transceiver configured
+> [    2.190155] musb-hdrc musb-hdrc.0.auto: musb_init_controller failed
+> with status -517
+> [    2.207458] platform musb-hdrc.0.auto: Driver musb-hdrc requests
+> probe deferral
+> 
+> on 4430sdp with v3.10-rc1. Does that mean that the musb-hdrc.0.auto was
+> indeed correct, and the new value of musb-hdrc.2.auto is not?
 
-Thanks applying into omap-for-v3.11/gpmc with Pekon's ack.
+Just checking.. Do you have CONFIG_OMAP_OCP2SCP=y in your .config? Sounds
+like the some transceivers should depend on that for omap4.
+ 
+> The musb-hdrc id is wrong on overo also.
+
+Hmm has there been a fix posted for that?
 
 Regards,
 
