@@ -1,53 +1,35 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH 00/33] devm improvement series, part 1, take 2
-Date: Thu, 16 May 2013 16:11:02 +0300
-Message-ID: <1368709862.15764.224.camel@sauron.fi.intel.com>
-References: <1368702961-4325-1-git-send-email-wsa@the-dreams.de>
- <1368705452.15764.217.camel@sauron.fi.intel.com>
- <CAKohpokUy7QfvKkzGH025Zs5VkUhr8zRLeo3caG3LAnLfptzww@mail.gmail.com>
-Reply-To: dedekind1@gmail.com
+From: =?UTF-8?B?VmluY2VudCBTdGVobMOp?= <v-stehle@ti.com>
+Subject: Re: [PATCH] ARM: OMAP5: select SCU
+Date: Thu, 16 May 2013 15:10:29 +0200
+Message-ID: <5194DAC5.9080203@ti.com>
+References: <1368550638-2046-1-git-send-email-vincent.stehle@laposte.net> <51938169.4060109@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <devel-bounces@linuxdriverproject.org>
-In-Reply-To: <CAKohpokUy7QfvKkzGH025Zs5VkUhr8zRLeo3caG3LAnLfptzww@mail.gmail.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
- <mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel/>
-List-Post: <mailto:devel@linuxdriverproject.org>
-List-Help: <mailto:devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/devel>,
- <mailto:devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: devel-bounces@linuxdriverproject.org
-Sender: "devel" <devel-bounces@linuxdriverproject.org>
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: linux-mips@linux-mips.org, alsa-devel@alsa-project.org, Alessandro Zummo <a.zummo@towertech.it>, Wolfram Sang <wsa@the-dreams.de>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Thierry Reding <thierry.reding@avionic-design.de>, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Jaroslav Kysela <perex@perex.cz>, linux-ide@vger.kernel.org, linux-mtd@lists.infradead.org, linux-i2c@vger.kernel.org, Evgeniy Polyakov <zbr@ioremap.net>, ac100@lists.launchpad.net, devel@driverdev.osuosl.org, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, Herbert Xu <herbert@gondor.apana.org.au>, Samuel Ortiz <sameo@linux.intel.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Vinod Koul <vinod.koul@intel.com>, linux-pm@vger.kernel.org, cpufreq@vger.kernel.org, Eduardo Valentin <eduardo.valentin@>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51938169.4060109@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: =?UTF-8?B?VmluY2VudCBTdGVobMOp?= <vincent.stehle@laposte.net>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 2013-05-16 at 18:25 +0530, Viresh Kumar wrote:
-> On 16 May 2013 17:27, Artem Bityutskiy <dedekind1@gmail.com> wrote:
-> > On Thu, 2013-05-16 at 13:15 +0200, Wolfram Sang wrote:
-> >> Despite various architectures and platform dependencies, I managed to
-> >> compile
-> >> test 45 out of 57 modified files locally using heuristics and
-> >> defconfigs.
-> >> If somebody knows how to create a minimal .config with a certain
-> >> kconfig symbol
-> >> (and its dependencies) set, I'd love to hear about it.
-> >
-> > If you find this out, please, share!
-> 
-> Are you guys looking for "make savedefconfig" ??
+On 05/15/2013 02:36 PM, Santosh Shilimkar wrote:
+> OMAP5 doesn't need the SCU. So Nak for the patch.
 
-No. It is more like:
+Hi,
 
-I have changed this strange driver.
+I agree that it is a pure link issue.
 
-I want to compile-test my changes.
+> I haven't noticed
+> this earlier. Do you know which commit broke this ?
 
-I need a defconfig which would have this driver enabled. I also want to
-know <arch> for my "make ARCH=<arch>" command.
+After some bisecting I arrived at this merge commit:
 
--- 
-Best Regards,
-Artem Bityutskiy
+  5497e7b Merge branch 'late/fixes' into fixes
+
+Indeed, if I revert it (-m 1) the result does link properly. I'll try to
+isolate it further.
+
+Best regards,
+
+V.
