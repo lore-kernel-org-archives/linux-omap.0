@@ -1,34 +1,154 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH 00/33] devm improvement series, part 1, take 2
-Date: Thu, 16 May 2013 18:13:58 +0200
-Message-ID: <20130516161355.GA3032@katana>
-References: <1368702961-4325-1-git-send-email-wsa@the-dreams.de>
- <1368705452.15764.217.camel@sauron.fi.intel.com>
- <CAKohpokUy7QfvKkzGH025Zs5VkUhr8zRLeo3caG3LAnLfptzww@mail.gmail.com>
- <1368709862.15764.224.camel@sauron.fi.intel.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 06/13] mmc: omap_hsmmc: add dt pbias and control mmc
+ support
+Date: Thu, 16 May 2013 09:16:51 -0700
+Message-ID: <20130516161650.GW5600@atomide.com>
+References: <1367330633-5941-1-git-send-email-balajitk@ti.com>
+ <1367330633-5941-7-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mips-bounce@linux-mips.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:29148 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754644Ab3EPQQy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 12:16:54 -0400
 Content-Disposition: inline
-In-Reply-To: <1368709862.15764.224.camel@sauron.fi.intel.com>
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-List-help: <mailto:ecartis@linux-mips.org?Subject=help>
-List-unsubscribe: <mailto:ecartis@linux-mips.org?subject=unsubscribe%20linux-mips>
-List-software: Ecartis version 1.0.0
-List-subscribe: <mailto:ecartis@linux-mips.org?subject=subscribe%20linux-mips>
-List-owner: <mailto:ralf@linux-mips.org>
-List-post: <mailto:linux-mips@linux-mips.org>
-List-archive: <http://www.linux-mips.org/archives/linux-mips/>
-To: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, alsa-devel@alsa-project.org, linux-usb@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Matt Mackall <mpm@selenic.com>, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Jaroslav Kysela <perex@perex.cz>, linux-ide@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>, netdev@vger.kernel.org, linux-mtd@lists.infradead.org, linux-i2c@vger.kernel.org, Evgeniy Polyakov <zbr@ioremap.net>, Wan ZongShun <mcuos.com@gmail.com>, ac100@lists.launchpad.net, devel@driverdev.osuosl.org, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, Herbert Xu <herbert@gondor.apana.org.au>, Florian
+In-Reply-To: <1367330633-5941-7-git-send-email-balajitk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, b-cousson@ti.com
 
+Hi,
 
-> I need a defconfig which would have this driver enabled. 
+* Balaji T K <balajitk@ti.com> [130430 07:09]:
+> Add omap_hsmmc_control to support pbias, high speed mode configuration for mmc1,
+> loopback clock configuration (when external transceiver is used) for mmc2
 
-My wish would be a minimal config. Right now, I try to build the driver
-with the current config and when that fails I grep through the
-(uncompressed) defconfigs for the symbol needed. Gives me 45/57 success
-rate on this series. Not perfect, but the best I could come up with
-without writing a .config-generator myself.
+Thanks for working on this, few suggestions inlined below.
+ 
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -182,6 +182,7 @@ struct omap_hsmmc_host {
+>  	struct omap_hsmmc_next	next_data;
+>  
+>  	struct	omap_mmc_platform_data	*pdata;
+> +	struct omap_hsmmc_control	*ctrl_mmc;
+>  	int needs_vmmc:1;
+>  	int needs_vmmc_aux:1;
+>  };
+> @@ -265,6 +266,8 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
+>  
+>  	if (mmc_slot(host).before_set_reg)
+>  		mmc_slot(host).before_set_reg(dev, slot, power_on, vdd);
+> +	if (host->ctrl_mmc && host->ctrl_mmc->before)
+> +		host->ctrl_mmc->before(host->ctrl_mmc->dev, power_on, vdd);
+>  
+>  	/*
+>  	 * Assume Vcc regulator is used only to power the card ... OMAP
+> @@ -302,6 +305,8 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
+>  
+>  	if (mmc_slot(host).after_set_reg)
+>  		mmc_slot(host).after_set_reg(dev, slot, power_on, vdd);
+> +	if (host->ctrl_mmc && host->ctrl_mmc->after)
+> +		host->ctrl_mmc->after(host->ctrl_mmc->dev, power_on, vdd);
+>  
+>  	return ret;
+>  }
+
+These before and after functions should be first converted to just usual
+regulator_set_voltage() eventually. In the PBIAS case it's really a mux
+plus a comparator, but we can set it up as a regulator. And on some boards
+it can be an external regulator like we have the legacy callbacks for in
+mach-omap2/hsmmc.c.
+
+> +++ b/drivers/mmc/host/omap_hsmmc_control.c
+> @@ -0,0 +1,466 @@
+> +static void omap_control_mmc_writel(u32 reg, u32 *base2)
+> +{
+> +	if (base2)
+> +		__raw_writel(reg, base2);
+> +	return;
+> +}
+> +
+> +static u32 omap_control_mmc_readl(u32 *base2)
+> +{
+> +	u32 pbias_reg = 0;
+> +
+> +	if (base2)
+> +		pbias_reg = __raw_readl(base2);
+> +	return pbias_reg;
+> +}
+> +
+> +static void omap2430_mmc1_active_overwrite(u32 __iomem *devconf1, int vdd)
+> +{
+> +	u32 reg;
+> +
+> +	reg = omap_control_mmc_readl(devconf1);
+> +	if ((1 << vdd) >= MMC_VDD_30_31)
+> +		reg |= OMAP243X_MMC1_ACTIVE_OVERWRITE;
+> +	else
+> +		reg &= ~OMAP243X_MMC1_ACTIVE_OVERWRITE;
+> +	omap_control_mmc_writel(reg, devconf1);
+> +}
+> +/* pbias configuration for omap2430, omap3 */
+> +static void omap_hsmmc1_before_set_reg(struct device *dev,
+> +				  int power_on, int vdd)
+> +{
+> +	u32 reg;
+> +	struct omap_hsmmc_control *ctl_mmc = dev_get_drvdata(dev);
+> +
+> +	if (ctl_mmc->devconf1)
+> +		omap2430_mmc1_active_overwrite(ctl_mmc->devconf1, vdd);
+> +
+> +	reg = omap_control_mmc_readl(ctl_mmc->pbias);
+> +	reg &= ~OMAP2_PBIASLITEPWRDNZ0;
+> +	omap_control_mmc_writel(reg, ctl_mmc->pbias);
+> +}
+> +
+> +static void omap_hsmmc1_after_set_reg(struct device *dev,
+> +				 int power_on, int vdd)
+> +{
+> +	u32 reg;
+> +	struct omap_hsmmc_control *ctl_mmc = dev_get_drvdata(dev);
+> +
+> +	/* 100ms delay required for PBIAS configuration */
+> +	msleep(100);
+> +
+> +	if (power_on) {
+> +		reg = omap_control_mmc_readl(ctl_mmc->pbias);
+> +		reg |= OMAP2_PBIASLITEPWRDNZ0;
+> +		if ((1 << vdd) <= MMC_VDD_165_195)
+> +			reg &= ~OMAP2_PBIASLITEVMODE0;
+> +		else
+> +			reg |= OMAP2_PBIASLITEVMODE0;
+> +		omap_control_mmc_writel(reg, ctl_mmc->pbias);
+> +	} else {
+> +		reg = omap_control_mmc_readl(ctl_mmc->pbias);
+> +		reg |= (OMAP2_PBIASLITEPWRDNZ0 |
+> +			OMAP2_PBIASLITEVMODE0);
+> +		omap_control_mmc_writel(reg, ctl_mmc->pbias);
+> +	}
+> +}
+...
+
+This all we can simplify quite a bit by defining the PBIAS register
+as pinctrl-single,bits with two different named modes. One for
+1.8V and for 3.3V. This way the PBIAS register is abstracted for
+various omaps in the .dts file as the register is different.
+
+Then this file should just define a new regulator that requests the
+defined pinctrl named mode with pinctrl_select_state().
+
+Now the only thing missing AFAIK is getting the comparator value
+for checks with the generic pinconf framework. But you can already
+get the raw register value with pin_config_get() and add the
+checking to this driver until pinconf allows us to do that.
+
+BTW, the same can then be done for the USB transceivers if we
+figure out a way to properly deal with comparators with generic
+pinconf.
+
+Regards,
+
+Tony
