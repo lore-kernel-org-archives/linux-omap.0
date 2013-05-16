@@ -1,27 +1,32 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [Resned/PATCHv5 0/2] Serial fixes
-Date: Thu, 16 May 2013 07:07:29 -0700
-Message-ID: <87ip2jt3vi.fsf@linaro.org>
-References: <1368632138-31695-1-git-send-email-sourav.poddar@ti.com>
+From: =?UTF-8?B?VmluY2VudCBTdGVobMOp?= <v-stehle@ti.com>
+Subject: Re: [PATCH] ARM: OMAP5: select SCU
+Date: Thu, 16 May 2013 16:29:07 +0200
+Message-ID: <5194ED33.7050502@ti.com>
+References: <1368550638-2046-1-git-send-email-vincent.stehle@laposte.net> <51938169.4060109@ti.com> <5194DAC5.9080203@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1368632138-31695-1-git-send-email-sourav.poddar@ti.com> (Sourav
-	Poddar's message of "Wed, 15 May 2013 21:05:36 +0530")
-Sender: linux-serial-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: gregkh@linuxfoundation.org, tony@atomide.com, rmk+kernel@arm.linux.org.uk, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Rajendra nayak <rnayak@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5194DAC5.9080203@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: =?UTF-8?B?VmluY2VudCBTdGVobMOp?= <vincent.stehle@laposte.net>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Sourav Poddar <sourav.poddar@ti.com> writes:
+So the exact commit breaking OMAP5 link for me is:
 
-> Hi Greg,
->
-> I have rebased this patch series on top of 3.10-rc1.
+  883a106 ARM: default machine descriptor for multiplatform
 
-Thanks for the rebase.  
+The breakage seems to be a side effect of not selecting ARCH_VEXPRESS
+any more, which causes HAVE_ARM_SCU to not be selected any more, too,
+when compiling only for OMAP5. IMHO this only reveals a deeper issue.
 
-Once Greg queues these, I will queue the OMAP specific pieces (which are
-not strictly dependent on the core changes.)
+Probably the ideal fix would be to remove all references to the scu_
+functions for OMAP5, but those seem to exist in files and functions,
+common to OMAP4 and 5 (sleep44xx.S, omap-smp.c).
 
-Kevin
+How would you deal with that, please?
+
+Best regards,
+
+V.
