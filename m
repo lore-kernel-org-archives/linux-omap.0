@@ -1,21 +1,17 @@
 From: jean-philippe francois <jp.francois@cynove.com>
 Subject: Re: omap3 : isp clock a : Difference between dmesg frequency and
  actual frequency with 3.9
-Date: Thu, 16 May 2013 09:54:07 +0200
-Message-ID: <CAGGh5h0zsTLGp-Bzy8FEpESqp7Vs2wUfpiu8Mqtu9Uy9EhwTyA@mail.gmail.com>
+Date: Thu, 16 May 2013 10:21:14 +0200
+Message-ID: <CAGGh5h3cFqCyjhncLTSfuL+vceO6CWDUTWgBsLGW=-spn6Z8qA@mail.gmail.com>
 References: <CAGGh5h1CKAUKwdM=Y7W5_ycDoucXLVF8vpxpEKJF_5naGzhPDQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:33512 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756242Ab3EPHyJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 03:54:09 -0400
+Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <CAGGh5h1CKAUKwdM=Y7W5_ycDoucXLVF8vpxpEKJF_5naGzhPDQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-media-owner@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-media <linux-media@vger.kernel.org>
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+List-Id: linux-omap@vger.kernel.org
 
 2013/5/15 jean-philippe francois <jp.francois@cynove.com>:
 > Hi,
@@ -36,6 +32,8 @@ Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 >
 > The crystal clock is 19.2 MHz
 > All this was correct with 3.6.11.
+>
+Sorry for the resend, wrong tab and enter key sequence in gmail ...
 
 It seems the dpll4_m5_ck is not correctly set,
 3.6.11 code in isp.c (without error handling)
@@ -50,6 +48,29 @@ It seems the dpll4_m5_ck is not correctly set,
     r = clk_set_rate(isp->clock[ISP_CLK_CAM_MCLK],
               CM_CAM_MCLK_HZ/divisor);
 
+    r = clk_prepare_enable(isp->clock[ISP_CLK_CAM_MCLK]);
 
->
-> Jean-Philippe Francois
+The PLL settings ie multiplier and divisor are the same in each case,
+but the dmesg output differ :
+Here is what happens when isp_enable_clock is called on 3.6
+
+3.6
+    [   10.133697] Entering cam_set_xclk
+    [   10.137573] clock: clksel_round_rate_div: dpll4_m5_ck
+target_rate 172800000
+    [   10.137573] clock: new_div = 5, new_rate = 172800000
+    [   10.137603] clock: dpll4_m5_ck: set rate to 172800000
+    [   10.138061] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+24685714 Hz
+
+3.9
+    [    9.095581] Entering cam_set_xclk
+    [    9.102661] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+24685714 Hz
+
+So the frequency setting register are correctly set, but the actual
+output frequency is not.
+maybe dpll4 is not correctly locked ? I will also check
+isp_enable_clock is really called.
+But I suppose it is, because except for the frequency, everything is
+working correctly.
