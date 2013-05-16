@@ -1,200 +1,94 @@
-From: =?UTF-8?q?Vincent=20Stehl=C3=A9?= <vincent.stehle@laposte.net>
-Subject: [RFC PATCH v2] ARM: OMAP4+: protect SCU code compilation
-Date: Thu, 16 May 2013 18:00:12 +0200
-Message-ID: <1368720012-21064-1-git-send-email-vincent.stehle@laposte.net>
-References: <51938169.4060109@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@iki.fi>
+Subject: Re: [PATCH] ARM: OMAP4: change the device names in usb_bind_phy
+Date: Thu, 16 May 2013 19:05:46 +0300
+Message-ID: <519503DA.5070303@iki.fi>
+References: <1366697656-14315-1-git-send-email-kishon@ti.com> <51936946.3030507@iki.fi> <20130516155857.GV5600@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:48926 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752759Ab3EPQAa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 May 2013 12:00:30 -0400
-In-Reply-To: <51938169.4060109@ti.com>
+Received: from mail-la0-f49.google.com ([209.85.215.49]:39443 "EHLO
+	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752163Ab3EPQFv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 12:05:51 -0400
+In-Reply-To: <20130516155857.GV5600@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, v-stehle@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
 
-=46rom: Vincent Stehl=C3=A9 <v-stehle@ti.com>
+On 16/05/13 18:58, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@iki.fi> [130515 03:59]:
+>> On 23/04/13 09:14, Kishon Vijay Abraham I wrote:
+>>> After the device names are created using PLATFORM_DEVID_AUTO, the old
+>>> device names given in usb_bind_phy are no longer valid causing the musb
+>>> controller not to get the phy reference. Updated the usb_bind_phy with
+>>> the new device names to get MUSB functional in omap4 panda.
+>>>
+>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>> ---
+>>> Tested in OMAP4 PANDA.
+>>>  arch/arm/mach-omap2/board-4430sdp.c    |    2 +-
+>>>  arch/arm/mach-omap2/board-omap4panda.c |    2 +-
+>>>  2 files changed, 2 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+>>> index 00d7290..56a9a4f 100644
+>>> --- a/arch/arm/mach-omap2/board-4430sdp.c
+>>> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+>>> @@ -730,7 +730,7 @@ static void __init omap_4430sdp_init(void)
+>>>  	omap4_sdp4430_wifi_init();
+>>>  	omap4_twl6030_hsmmc_init(mmc);
+>>>  
+>>> -	usb_bind_phy("musb-hdrc.0.auto", 0, "omap-usb2.1.auto");
+>>> +	usb_bind_phy("musb-hdrc.2.auto", 0, "omap-usb2.3.auto");
+>>>  	usb_musb_init(&musb_board_data);
+>>>  
+>>>  	status = omap_ethernet_init();
+>>
+>> I'm seeing
+>>
+>> [    2.190155] unable to find transceiver
+>> [    2.190155] HS USB OTG: no transceiver configured
+>> [    2.190155] musb-hdrc musb-hdrc.0.auto: musb_init_controller failed
+>> with status -517
+>> [    2.207458] platform musb-hdrc.0.auto: Driver musb-hdrc requests
+>> probe deferral
+>>
+>> on 4430sdp with v3.10-rc1. Does that mean that the musb-hdrc.0.auto was
+>> indeed correct, and the new value of musb-hdrc.2.auto is not?
+> 
+> Just checking.. Do you have CONFIG_OMAP_OCP2SCP=y in your .config? Sounds
+> like the some transceivers should depend on that for omap4.
 
-This fixes the following link error when compiling only for OMAP5:
+Yes, I have OCP2SCP=y.
 
-  arch/arm/mach-omap2/built-in.o: In function `scu_gp_set':
-  arch/arm/mach-omap2/sleep44xx.S:132: undefined reference to `scu_powe=
-r_mode'
-  arch/arm/mach-omap2/built-in.o: In function `scu_gp_clear':
-  arch/arm/mach-omap2/sleep44xx.S:229: undefined reference to `scu_powe=
-r_mode'
-  arch/arm/mach-omap2/built-in.o: In function `omap4_smp_prepare_cpus':
-  arch/arm/mach-omap2/omap-smp.c:211: undefined reference to `scu_enabl=
-e'
-  arch/arm/mach-omap2/built-in.o: In function `omap4_smp_init_cpus':
-  arch/arm/mach-omap2/omap-smp.c:185: undefined reference to `scu_get_c=
-ore_count'
+>> The musb-hdrc id is wrong on overo also.
+> 
+> Hmm has there been a fix posted for that?
 
-Signed-off-by: Vincent Stehl=C3=A9 <v-stehle@ti.com>
----
+I couldn't find with a quick look. We debugged and discussed this on an irc
+channel with Kishon, who said he'll send a patch. Changing the musb-hdrc ID
+on overo fixed the issue, and it looks very similar to the error on 4430sdp.
+The overo fix was just:
 
-
-Hi Santosh,
-
-Here is a try at "gating" all SCU references from OMAP4/5 common code. =
-That
-does build and run for me on OMAP4 and 5. On OMAP4, System.map files ar=
-e even
-identical with and without the patch.
-
-How would you like this, please?
-
-Best regards,
-
-V.
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 4ca6b68..a496774 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -472,7 +472,7 @@ static void __init overo_init(void)
+                                  mt46h32m32lf6_sdrc_params);
+        board_nand_init(overo_nand_partitions,
+                        ARRAY_SIZE(overo_nand_partitions), NAND_CS, 0, NULL);
+-       usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
++       usb_bind_phy("musb-hdrc.1.auto", 0, "twl4030_usb");
+        usb_musb_init(NULL);
+ 
+        usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
 
 
- arch/arm/mach-omap2/omap-smp.c  |   10 ++++++++++
- arch/arm/mach-omap2/sleep44xx.S |   10 ++++++++++
- 2 files changed, 20 insertions(+)
+Is that ID "randomly" chosen? Doesn't that mean that it'll just get broken
+every now and then?
 
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-=
-smp.c
-index 2a551f9..45c8b5d 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -21,7 +21,9 @@
- #include <linux/io.h>
- #include <linux/irqchip/arm-gic.h>
-=20
-+#ifdef CONFIG_HAVE_ARM_SCU
- #include <asm/smp_scu.h>
-+#endif
-=20
- #include "omap-secure.h"
- #include "omap-wakeupgen.h"
-@@ -41,15 +43,19 @@
-=20
- u16 pm44xx_errata;
-=20
-+#ifdef CONFIG_HAVE_ARM_SCU
- /* SCU base address */
- static void __iomem *scu_base;
-+#endif
-=20
- static DEFINE_SPINLOCK(boot_lock);
-=20
-+#ifdef CONFIG_HAVE_ARM_SCU
- void __iomem *omap4_get_scu_base(void)
- {
- 	return scu_base;
- }
-+#endif
-=20
- static void __cpuinit omap4_secondary_init(unsigned int cpu)
- {
-@@ -176,6 +182,7 @@ static void __init omap4_smp_init_cpus(void)
- 	/* Use ARM cpuid check here, as SoC detection will not work so early =
-*/
- 	cpu_id =3D read_cpuid_id() & CPU_MASK;
- 	if (cpu_id =3D=3D CPU_CORTEX_A9) {
-+#ifdef CONFIG_HAVE_ARM_SCU
- 		/*
- 		 * Currently we can't call ioremap here because
- 		 * SoC detection won't work until after init_early.
-@@ -183,6 +190,7 @@ static void __init omap4_smp_init_cpus(void)
- 		scu_base =3D  OMAP2_L4_IO_ADDRESS(scu_a9_get_base());
- 		BUG_ON(!scu_base);
- 		ncores =3D scu_get_core_count(scu_base);
-+#endif
- 	} else if (cpu_id =3D=3D CPU_CORTEX_A15) {
- 		ncores =3D OMAP5_CORE_COUNT;
- 	}
-@@ -203,12 +211,14 @@ static void __init omap4_smp_prepare_cpus(unsigne=
-d int max_cpus)
- 	void *startup_addr =3D omap_secondary_startup;
- 	void __iomem *base =3D omap_get_wakeupgen_base();
-=20
-+#ifdef CONFIG_HAVE_ARM_SCU
- 	/*
- 	 * Initialise the SCU and wake up the secondary core using
- 	 * wakeup_secondary().
- 	 */
- 	if (scu_base)
- 		scu_enable(scu_base);
-+#endif
-=20
- 	if (cpu_is_omap446x()) {
- 		startup_addr =3D omap_secondary_startup_4460;
-diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/slee=
-p44xx.S
-index 88ff83a..3e73a32 100644
---- a/arch/arm/mach-omap2/sleep44xx.S
-+++ b/arch/arm/mach-omap2/sleep44xx.S
-@@ -10,7 +10,11 @@
-  */
-=20
- #include <linux/linkage.h>
-+
-+#ifdef CONFIG_HAVE_ARM_SCU
- #include <asm/smp_scu.h>
-+#endif
-+
- #include <asm/memory.h>
- #include <asm/hardware/cache-l2x0.h>
-=20
-@@ -70,6 +74,7 @@ ENTRY(omap4_finish_suspend)
- 	 * Flush all data from the L1 data cache before disabling
- 	 * SCTLR.C bit.
- 	 */
-+#ifdef CONFIG_HAVE_ARM_SCU
- 	bl	omap4_get_sar_ram_base
- 	ldr	r9, [r0, #OMAP_TYPE_OFFSET]
- 	cmp	r9, #0x1			@ Check for HS device
-@@ -81,6 +86,7 @@ ENTRY(omap4_finish_suspend)
- 	DO_SMC
- 	ldmfd   r13!, {r4-r12, r14}
- skip_secure_l1_clean:
-+#endif
- 	bl	v7_flush_dcache_all
-=20
- 	/*
-@@ -108,6 +114,7 @@ skip_secure_l1_clean:
- 	 * preventing the CPU from receiving cache, TLB, or BTB
- 	 * maintenance operations broadcast by other CPUs in the cluster.
- 	 */
-+#ifdef CONFIG_HAVE_ARM_SCU
- 	bl	omap4_get_sar_ram_base
- 	mov	r8, r0
- 	ldr	r9, [r8, #OMAP_TYPE_OFFSET]
-@@ -131,6 +138,7 @@ scu_gp_set:
- 	bl	omap4_get_scu_base
- 	bl	scu_power_mode
- skip_scu_gp_set:
-+#endif
- 	mrc	p15, 0, r0, c1, c1, 2		@ Read NSACR data
- 	tst	r0, #(1 << 18)
- 	mrcne	p15, 0, r0, c1, c0, 1
-@@ -211,6 +219,7 @@ do_WFI:
- 	orreq	r0, r0, #(1 << 6)
- 	mcreq	p15, 0, r0, c1, c0, 1
- 	isb
-+#ifdef CONFIG_HAVE_ARM_SCU
- 	bl	omap4_get_sar_ram_base
- 	mov	r8, r0
- 	ldr	r9, [r8, #OMAP_TYPE_OFFSET]
-@@ -228,6 +237,7 @@ scu_gp_clear:
- 	mov	r1, #SCU_PM_NORMAL
- 	bl	scu_power_mode
- skip_scu_gp_clear:
-+#endif
- 	isb
- 	dsb
- 	ldmfd	sp!, {r4-r12, pc}
---=20
-1.7.10.4
+ Tomi
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
