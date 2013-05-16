@@ -1,76 +1,54 @@
 From: jean-philippe francois <jp.francois@cynove.com>
-Subject: Re: omap3 : isp clock a : Difference between dmesg frequency and
- actual frequency with 3.9
-Date: Thu, 16 May 2013 10:21:14 +0200
-Message-ID: <CAGGh5h3cFqCyjhncLTSfuL+vceO6CWDUTWgBsLGW=-spn6Z8qA@mail.gmail.com>
-References: <CAGGh5h1CKAUKwdM=Y7W5_ycDoucXLVF8vpxpEKJF_5naGzhPDQ@mail.gmail.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2+: cleaned-up DT support of various ECC schemes
+Date: Thu, 16 May 2013 10:29:04 +0200
+Message-ID: <CAGGh5h3WGGRcQgpns7EOso1yqvrzKmCAbQo9XZoMyhv0Q1KT4Q@mail.gmail.com>
+References: <1368684720-26763-1-git-send-email-pekon@ti.com>
+	<1368684720-26763-3-git-send-email-pekon@ti.com>
+	<CAGGh5h16kxdPRtPQ4vRzLA4iMxjTurPpdzBiEHaM9zb+y8fJBg@mail.gmail.com>
+	<20980858CB6D3A4BAE95CA194937D5E73E9C4EC5@DBDE04.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <CAGGh5h1CKAUKwdM=Y7W5_ycDoucXLVF8vpxpEKJF_5naGzhPDQ@mail.gmail.com>
-Sender: linux-media-owner@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-media <linux-media@vger.kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:34231 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756335Ab3EPI3G convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 04:29:06 -0400
+Received: by mail-wi0-f178.google.com with SMTP id ey16so2439061wid.11
+        for <linux-omap@vger.kernel.org>; Thu, 16 May 2013 01:29:04 -0700 (PDT)
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73E9C4EC5@DBDE04.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Philip, Avinash" <avinashphilip@ti.com>, "arnd@arndb.de" <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, "Balbi, Felipe" <balbi@ti.com>
 
-2013/5/15 jean-philippe francois <jp.francois@cynove.com>:
-> Hi,
+2013/5/16 Gupta, Pekon <pekon@ti.com>:
+>> >
+>>
+>> OMAP_ECC_BCH4_CODE_HW_DETECTION_SW and
+>> OMAP_ECC_BCH4_CODE_HW
+>> seems to exist in the code, but are not in the changelog, and not in
+>> the device tree binding documentation.
+>>
 >
-> I am working on a dm3730 based camera.
-> The sensor input clock is provided by the cpu via the CAM_XCLK pin.
-> Here is the corresponding log :
+> Yes, I plan to omit them from code also, in next series as it does no=
+t
+> make sense to support both BCH4 and BCH8 at same time, when most
+> users would opt for BCH8.
+> Also, BCH4 was kept for legacy purposes, and was not tested on all de=
+vices.
+> Therefore I have purposely omitted it from documentation.
 >
-> [    9.115966] Entering cam_set_xclk
-> [    9.119781] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 24685714 Hz
-> [    9.121337] ov10x33 1-0010: sensor id : 0xa630
-> [   10.293640] Entering cam_set_xclk
-> [   10.297149] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
-> [   10.393920] Entering cam_set_xclk
-> [   10.397979] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 24685714 Hz
->
-> However, when mesured on the actual pin, the frequency is around 30 MHz
->
-> The crystal clock is 19.2 MHz
-> All this was correct with 3.6.11.
->
-Sorry for the resend, wrong tab and enter key sequence in gmail ...
 
-It seems the dpll4_m5_ck is not correctly set,
-3.6.11 code in isp.c (without error handling)
+We have shipped devices with BCH4 nand.  This would be a regression for=
+ us.
 
-    r = clk_set_rate(isp->clock[ISP_CLK_DPLL4_M5_CK],
-              CM_CAM_MCLK_HZ/divisor);
-    ...
-    r = clk_enable(isp->clock[ISP_CLK_CAM_MCLK]);
+Regards,
+Jean-Philippe Fran=C3=A7ois.
 
-3.9 code in isp.c (without error handling)
-
-    r = clk_set_rate(isp->clock[ISP_CLK_CAM_MCLK],
-              CM_CAM_MCLK_HZ/divisor);
-
-    r = clk_prepare_enable(isp->clock[ISP_CLK_CAM_MCLK]);
-
-The PLL settings ie multiplier and divisor are the same in each case,
-but the dmesg output differ :
-Here is what happens when isp_enable_clock is called on 3.6
-
-3.6
-    [   10.133697] Entering cam_set_xclk
-    [   10.137573] clock: clksel_round_rate_div: dpll4_m5_ck
-target_rate 172800000
-    [   10.137573] clock: new_div = 5, new_rate = 172800000
-    [   10.137603] clock: dpll4_m5_ck: set rate to 172800000
-    [   10.138061] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
-24685714 Hz
-
-3.9
-    [    9.095581] Entering cam_set_xclk
-    [    9.102661] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
-24685714 Hz
-
-So the frequency setting register are correctly set, but the actual
-output frequency is not.
-maybe dpll4 is not correctly locked ? I will also check
-isp_enable_clock is really called.
-But I suppose it is, because except for the frequency, everything is
-working correctly.
+> with regards, pekon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
