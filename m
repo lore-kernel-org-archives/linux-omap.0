@@ -1,60 +1,157 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: [PATCH] ARM: omap2: remove CONFIG_ARCH_OMAP2PLUS_TYPICAL
-Date: Thu, 16 May 2013 08:29:10 -0500
-Message-ID: <1368710950-2306-1-git-send-email-robherring2@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f181.google.com ([209.85.214.181]:58974 "EHLO
-	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754014Ab3EPN3Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 09:29:24 -0400
-Received: by mail-ob0-f181.google.com with SMTP id dn14so3327868obc.40
-        for <linux-omap@vger.kernel.org>; Thu, 16 May 2013 06:29:24 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: jean-philippe francois <jp.francois@cynove.com>
+Subject: Re: omap3 : isp clock a : Difference between dmesg frequency and
+ actual frequency with 3.9
+Date: Thu, 16 May 2013 15:52:03 +0200
+Message-ID: <CAGGh5h1hVb5rihksHOF29eU=VedDqrhtjnGA8eG7mMQdQVKVuA@mail.gmail.com>
+References: <CAGGh5h1CKAUKwdM=Y7W5_ycDoucXLVF8vpxpEKJF_5naGzhPDQ@mail.gmail.com>
+	<CAGGh5h3cFqCyjhncLTSfuL+vceO6CWDUTWgBsLGW=-spn6Z8qA@mail.gmail.com>
+	<4943563.lUEuHDFNBN@avalon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <4943563.lUEuHDFNBN@avalon>
+Sender: linux-media-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-media <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Rob Herring <rob.herring@calxeda.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-From: Rob Herring <rob.herring@calxeda.com>
+2013/5/16 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Jean-Philippe,
+>
+> On Thursday 16 May 2013 10:21:14 jean-philippe francois wrote:
+>> 2013/5/15 jean-philippe francois <jp.francois@cynove.com>:
+>> > Hi,
+>> >
+>> > I am working on a dm3730 based camera.
+>> > The sensor input clock is provided by the cpu via the CAM_XCLK pin=
+=2E
+>> > Here is the corresponding log :
+>> >
+>> > [    9.115966] Entering cam_set_xclk
+>> > [    9.119781] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+>> > 24685714 Hz
+>> > [    9.121337] ov10x33 1-0010: sensor id : 0xa630
+>> > [   10.293640] Entering cam_set_xclk
+>> > [   10.297149] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to=
+ 0 Hz
+>> > [   10.393920] Entering cam_set_xclk
+>> > [   10.397979] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+>> > 24685714 Hz
+>> >
+>> > However, when mesured on the actual pin, the frequency is around 3=
+0 MHz
+>> >
+>> > The crystal clock is 19.2 MHz
+>> > All this was correct with 3.6.11.
+>>
+>> Sorry for the resend, wrong tab and enter key sequence in gmail ...
+>>
+>> It seems the dpll4_m5_ck is not correctly set,
+>> 3.6.11 code in isp.c (without error handling)
+>>
+>>     r =3D clk_set_rate(isp->clock[ISP_CLK_DPLL4_M5_CK],
+>>               CM_CAM_MCLK_HZ/divisor);
+>>     ...
+>>     r =3D clk_enable(isp->clock[ISP_CLK_CAM_MCLK]);
+>>
+>> 3.9 code in isp.c (without error handling)
+>>
+>>     r =3D clk_set_rate(isp->clock[ISP_CLK_CAM_MCLK],
+>>               CM_CAM_MCLK_HZ/divisor);
+>>
+>>     r =3D clk_prepare_enable(isp->clock[ISP_CLK_CAM_MCLK]);
+>>
+>> The PLL settings ie multiplier and divisor are the same in each case=
+,
+>> but the dmesg output differ :
+>> Here is what happens when isp_enable_clock is called on 3.6
+>>
+>> 3.6
+>>     [   10.133697] Entering cam_set_xclk
+>>     [   10.137573] clock: clksel_round_rate_div: dpll4_m5_ck
+>> target_rate 172800000
+>>     [   10.137573] clock: new_div =3D 5, new_rate =3D 172800000
+>>     [   10.137603] clock: dpll4_m5_ck: set rate to 172800000
+>>     [   10.138061] omap3isp omap3isp: isp_set_xclk(): cam_xclka set =
+to
+>> 24685714 Hz
+>>
+>> 3.9
+>>     [    9.095581] Entering cam_set_xclk
+>>     [    9.102661] omap3isp omap3isp: isp_set_xclk(): cam_xclka set =
+to
+>> 24685714 Hz
+>>
+>> So the frequency setting register are correctly set, but the actual
+>> output frequency is not.
+>> maybe dpll4 is not correctly locked ? I will also check
+>> isp_enable_clock is really called.
+>> But I suppose it is, because except for the frequency, everything is
+>> working correctly.
+>
+> Does the following patch fix the issue ?
+>
+Hi Laurent, thank you for your help.
 
-CONFIG_ARCH_OMAP2PLUS_TYPICAL is selecting user defined features, not h/w
-required options. This does not play well with multi-platform kernels and
-belongs in a defconfig.
+I am on a dm3730, si I already had the back propagation thing.
+I tried the patch anyway, but it did not solve the issue.
+If I look at the registers, on both version :
 
-Signed-off-by: Rob Herring <rob.herring@calxeda.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
----
- arch/arm/mach-omap2/Kconfig | 17 -----------------
- 1 file changed, 17 deletions(-)
+0x48004d44 contains 0x04816807 whiche gives a dpll4 frequency of 864 MH=
+z
+0x48004f40  contains 0x5 which gives a cam_mclk frequency of 172,8 MHz
+0x480bc050 (ISP.TCTRL_CTRL) contains 0x7 which should give a 24 MHz fre=
+quency
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index f49cd51..9d4b5f7 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -26,23 +26,6 @@ if ARCH_OMAP2PLUS
- 
- menu "TI OMAP2/3/4 Specific Features"
- 
--config ARCH_OMAP2PLUS_TYPICAL
--	bool "Typical OMAP configuration"
--	default y
--	select AEABI
--	select HIGHMEM
--	select I2C
--	select I2C_OMAP
--	select MENELAUS if ARCH_OMAP2
--	select NEON if ARCH_OMAP3 || ARCH_OMAP4 || SOC_OMAP5
--	select PM_RUNTIME
--	select REGULATOR
--	select TWL4030_CORE if ARCH_OMAP3 || ARCH_OMAP4
--	select TWL4030_POWER if ARCH_OMAP3 || ARCH_OMAP4
--	select VFP
--	help
--	  Compile a kernel suitable for booting most boards
--
- config SOC_HAS_OMAP2_SDRC
- 	bool "OMAP2 SDRAM Controller support"
- 
--- 
-1.8.1.2
+In my dmesg output, I never see a message like the following but for dp=
+ll4_ck.
 
+omap3_noncore_dpll_set_rate: dpll5_ck: set rate: locking rate to 120000=
+000.
+
+I wonder why.
+
+
+
+> commit 577f8ea9ba7b1276096713b8148b3a8fca96d805
+> Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Date:   Thu May 16 13:15:40 2013 +0200
+>
+>     ARM: OMAP3: clock: Back-propagate rate change from cam_mclk to dp=
+ll4_m5 on all OMAP3 platforms
+>
+>     Commit 7b2e1277598e4187c9be3e61fd9b0f0423f97986 ("ARM: OMAP3: clo=
+ck:
+>     Back-propagate rate change from cam_mclk to dpll4_m5") enabled cl=
+ock
+>     rate back-propagation from cam_mclk do dpll4_m5 on OMAP3630 only.
+>     Perform back-propagation on other OMAP3 platforms as well.
+>
+>     Reported-by: Jean-Philippe Fran=C3=A7ois <jp.francois@cynove.com>
+>     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.co=
+m>
+>
+> diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-om=
+ap2/cclock3xxx_data.c
+> index 4579c3c..c21065a 100644
+> --- a/arch/arm/mach-omap2/cclock3xxx_data.c
+> +++ b/arch/arm/mach-omap2/cclock3xxx_data.c
+> @@ -418,7 +418,8 @@ static struct clk_hw_omap dpll4_m5x2_ck_hw =3D {
+>         .clkdm_name     =3D "dpll4_clkdm",
+>  };
+>
+> -DEFINE_STRUCT_CLK(dpll4_m5x2_ck, dpll4_m5x2_ck_parent_names, dpll4_m=
+5x2_ck_ops);
+> +DEFINE_STRUCT_CLK_FLAGS(dpll4_m5x2_ck, dpll4_m5x2_ck_parent_names,
+> +                       dpll4_m5x2_ck_ops, CLK_SET_RATE_PARENT);
+>
+>  static struct clk dpll4_m5x2_ck_3630 =3D {
+>         .name           =3D "dpll4_m5x2_ck",
+>
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
