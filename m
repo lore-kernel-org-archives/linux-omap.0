@@ -1,47 +1,36 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM : omap : remove __init for _enable_preprogram
-Date: Thu, 16 May 2013 11:15:36 -0700
-Message-ID: <20130516181536.GI5600@atomide.com>
-References: <1368547621-8570-1-git-send-email-jp.francois@cynove.com>
- <8738tpxwmj.fsf@linaro.org>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v4] ARM:dts:omap4-panda: Update the LED support for the
+ panda DTS
+Date: Thu, 16 May 2013 13:18:10 -0500
+Message-ID: <CAGo_u6pX+DdVNWqdPXDChzMr27YAXL_Zvt7DxWBijOCW0rXpkA@mail.gmail.com>
+References: <1368636386-17138-1-git-send-email-dmurphy@ti.com>
+	<20130515170516.GA6135@kahuna>
+	<5194FCDD.8080209@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49894 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751144Ab3EPSPl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 14:15:41 -0400
-Content-Disposition: inline
-In-Reply-To: <8738tpxwmj.fsf@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5194FCDD.8080209@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Murphy <dmurphy@ti.com>
+Cc: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, devicetree-discuss@lists.ozlabs.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: jp.francois@cynove.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, paul@pwsan.com
 
-* Kevin Hilman <khilman@linaro.org> [130514 11:13]:
-> jp.francois@cynove.com writes:
->=20
-> > _enable_preprogram is marked as __init, but is called from _enable =
-which is not.
-> > This results in oops once init is freed.
-> > Fix this by removing the __init marker.
-> >
-> > Signed-off-by: Jean-Philippe Fran=C3=A7ois <jp.francois@cynove.com>
->=20
-> Acked-by: Kevin Hilman <khilman@linaro.org>
->=20
-> Tony, this should probably be queued for v3.10-rc, and tagged for sta=
-ble.
+On Thu, May 16, 2013 at 10:35 AM, Dan Murphy <dmurphy@ti.com> wrote:
+> I am not sure you really want to do this.
+> If I make the pinctrl part of the led structure then the only way the gpio_wk7 on a1-a3 to be configured is when
+> the CONFIG_LEDS_GPIO flag is set.
+>
+> Do you really want that dependency?  You did say it was a key fix
+> At least this way the pins are configured regardless of that flag.
 
-Yes just applied the earlier version of this and added your
-ack with cc: stable.
+That is better as the system will be left in the pinmux configuration
+handed over from bootloader.
 
-Regards,
+The point being, muxing up pins even when not needed(config switched
+off) has no real benefit - in this case albeit, the default mux was
+causing a bug.
+pinctrl IMHO should be considered as any other resource, if it is not
+mandatory for boot, and needed only for a device functionality when
+probed, it should done there only.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+just my 2 cents.
