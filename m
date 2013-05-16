@@ -1,157 +1,77 @@
-From: jean-philippe francois <jp.francois@cynove.com>
-Subject: Re: omap3 : isp clock a : Difference between dmesg frequency and
- actual frequency with 3.9
-Date: Thu, 16 May 2013 15:52:03 +0200
-Message-ID: <CAGGh5h1hVb5rihksHOF29eU=VedDqrhtjnGA8eG7mMQdQVKVuA@mail.gmail.com>
-References: <CAGGh5h1CKAUKwdM=Y7W5_ycDoucXLVF8vpxpEKJF_5naGzhPDQ@mail.gmail.com>
-	<CAGGh5h3cFqCyjhncLTSfuL+vceO6CWDUTWgBsLGW=-spn6Z8qA@mail.gmail.com>
-	<4943563.lUEuHDFNBN@avalon>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [GIT PULL] OMAP PM cleanups for v3.10
+Date: Thu, 16 May 2013 07:02:35 -0700
+Message-ID: <87ppwrt43o.fsf@linaro.org>
+References: <87ehej1ena.fsf@linaro.org> <20130410181452.GG10155@atomide.com>
+	<20130423175934.GA6728@quad.lixom.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <4943563.lUEuHDFNBN@avalon>
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:48287 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751990Ab3EPOCi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 10:02:38 -0400
+Received: by mail-pa0-f45.google.com with SMTP id lj1so2547035pab.18
+        for <linux-omap@vger.kernel.org>; Thu, 16 May 2013 07:02:38 -0700 (PDT)
+In-Reply-To: <20130423175934.GA6728@quad.lixom.net> (Olof Johansson's message
+	of "Tue, 23 Apr 2013 10:59:34 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, arnd@arndb.de
 
-2013/5/16 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Jean-Philippe,
+Olof Johansson <olof@lixom.net> writes:
+
+> On Wed, Apr 10, 2013 at 11:14:52AM -0700, Tony Lindgren wrote:
+>> Hi,
+>> 
+>> Added Olof to cc, I suggest Olof pull this directly as we're starting
+>> to run out of time.
 >
-> On Thursday 16 May 2013 10:21:14 jean-philippe francois wrote:
->> 2013/5/15 jean-philippe francois <jp.francois@cynove.com>:
->> > Hi,
->> >
->> > I am working on a dm3730 based camera.
->> > The sensor input clock is provided by the cpu via the CAM_XCLK pin=
-=2E
->> > Here is the corresponding log :
->> >
->> > [    9.115966] Entering cam_set_xclk
->> > [    9.119781] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
->> > 24685714 Hz
->> > [    9.121337] ov10x33 1-0010: sensor id : 0xa630
->> > [   10.293640] Entering cam_set_xclk
->> > [   10.297149] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to=
- 0 Hz
->> > [   10.393920] Entering cam_set_xclk
->> > [   10.397979] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
->> > 24685714 Hz
->> >
->> > However, when mesured on the actual pin, the frequency is around 3=
-0 MHz
->> >
->> > The crystal clock is 19.2 MHz
->> > All this was correct with 3.6.11.
->>
->> Sorry for the resend, wrong tab and enter key sequence in gmail ...
->>
->> It seems the dpll4_m5_ck is not correctly set,
->> 3.6.11 code in isp.c (without error handling)
->>
->>     r =3D clk_set_rate(isp->clock[ISP_CLK_DPLL4_M5_CK],
->>               CM_CAM_MCLK_HZ/divisor);
->>     ...
->>     r =3D clk_enable(isp->clock[ISP_CLK_CAM_MCLK]);
->>
->> 3.9 code in isp.c (without error handling)
->>
->>     r =3D clk_set_rate(isp->clock[ISP_CLK_CAM_MCLK],
->>               CM_CAM_MCLK_HZ/divisor);
->>
->>     r =3D clk_prepare_enable(isp->clock[ISP_CLK_CAM_MCLK]);
->>
->> The PLL settings ie multiplier and divisor are the same in each case=
-,
->> but the dmesg output differ :
->> Here is what happens when isp_enable_clock is called on 3.6
->>
->> 3.6
->>     [   10.133697] Entering cam_set_xclk
->>     [   10.137573] clock: clksel_round_rate_div: dpll4_m5_ck
->> target_rate 172800000
->>     [   10.137573] clock: new_div =3D 5, new_rate =3D 172800000
->>     [   10.137603] clock: dpll4_m5_ck: set rate to 172800000
->>     [   10.138061] omap3isp omap3isp: isp_set_xclk(): cam_xclka set =
-to
->> 24685714 Hz
->>
->> 3.9
->>     [    9.095581] Entering cam_set_xclk
->>     [    9.102661] omap3isp omap3isp: isp_set_xclk(): cam_xclka set =
-to
->> 24685714 Hz
->>
->> So the frequency setting register are correctly set, but the actual
->> output frequency is not.
->> maybe dpll4 is not correctly locked ? I will also check
->> isp_enable_clock is really called.
->> But I suppose it is, because except for the frequency, everything is
->> working correctly.
+> Hi,
 >
-> Does the following patch fix the issue ?
+> I'm terribly sorry for dropping this one on the floor, in spite of repeated
+> pings from Tony. :(
 >
-Hi Laurent, thank you for your help.
+> If it wasn't for the fact that we're pushing back on some of the other
+> late submissions I'd be open to taking this, but to be fair it makes
+> more sense to merge it right after -rc1. The changes don't look like
+> they're truly critical for 3.10, and you should still be able to use
+> this as a base for your 3.11 changes, so hopefully this doesn't cause
+> too much trouble.
+>
+> So, please resend right after the merge window closes.
 
-I am on a dm3730, si I already had the back propagation thing.
-I tried the patch anyway, but it did not solve the issue.
-If I look at the registers, on both version :
+Pull request below.  It is unchanged and merges cleanly with v3.10-rc1.
 
-0x48004d44 contains 0x04816807 whiche gives a dpll4 frequency of 864 MH=
-z
-0x48004f40  contains 0x5 which gives a cam_mclk frequency of 172,8 MHz
-0x480bc050 (ISP.TCTRL_CTRL) contains 0x7 which should give a 24 MHz fre=
-quency
+Kevin
 
-In my dmesg output, I never see a message like the following but for dp=
-ll4_ck.
+The following changes since commit c309f7f46167e85d1aae2fd31f23e7d2b5cdfbe0:
 
-omap3_noncore_dpll_set_rate: dpll5_ck: set rate: locking rate to 120000=
-000.
+  Merge branch 'for_3.10/omap_generic_cleanup_v2' of git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux into omap-for-v3.10/cleanup-v2 (2013-03-28 14:45:31 -0700)
 
-I wonder why.
+are available in the git repository at:
 
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/omap-pm-v3.10/cleanup/pm
 
-> commit 577f8ea9ba7b1276096713b8148b3a8fca96d805
-> Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Date:   Thu May 16 13:15:40 2013 +0200
->
->     ARM: OMAP3: clock: Back-propagate rate change from cam_mclk to dp=
-ll4_m5 on all OMAP3 platforms
->
->     Commit 7b2e1277598e4187c9be3e61fd9b0f0423f97986 ("ARM: OMAP3: clo=
-ck:
->     Back-propagate rate change from cam_mclk to dpll4_m5") enabled cl=
-ock
->     rate back-propagation from cam_mclk do dpll4_m5 on OMAP3630 only.
->     Perform back-propagation on other OMAP3 platforms as well.
->
->     Reported-by: Jean-Philippe Fran=C3=A7ois <jp.francois@cynove.com>
->     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.co=
-m>
->
-> diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-om=
-ap2/cclock3xxx_data.c
-> index 4579c3c..c21065a 100644
-> --- a/arch/arm/mach-omap2/cclock3xxx_data.c
-> +++ b/arch/arm/mach-omap2/cclock3xxx_data.c
-> @@ -418,7 +418,8 @@ static struct clk_hw_omap dpll4_m5x2_ck_hw =3D {
->         .clkdm_name     =3D "dpll4_clkdm",
->  };
->
-> -DEFINE_STRUCT_CLK(dpll4_m5x2_ck, dpll4_m5x2_ck_parent_names, dpll4_m=
-5x2_ck_ops);
-> +DEFINE_STRUCT_CLK_FLAGS(dpll4_m5x2_ck, dpll4_m5x2_ck_parent_names,
-> +                       dpll4_m5x2_ck_ops, CLK_SET_RATE_PARENT);
->
->  static struct clk dpll4_m5x2_ck_3630 =3D {
->         .name           =3D "dpll4_m5x2_ck",
->
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+for you to fetch changes up to 705814b5ea6ff69d4da8ad581c3da5d26d1eae83:
+
+  ARM: OMAP4+: PM: Consolidate OMAP4 PM code to re-use it for OMAP5 (2013-04-09 10:53:06 -0700)
+
+----------------------------------------------------------------
+OMAP PM cleanups for v3.10
+
+----------------------------------------------------------------
+Santosh Shilimkar (4):
+      ARM: OMAP4: PM: Avoid expensive cpu_suspend() path for all CPU power states except off
+      ARM: OMAP4+: PM: Consolidate MPU subsystem PM code for re-use
+      ARM: OMAP4+: Make secondary_startup function name more consistent
+      ARM: OMAP4+: PM: Consolidate OMAP4 PM code to re-use it for OMAP5
+
+ arch/arm/mach-omap2/common.h              |  4 +-
+ arch/arm/mach-omap2/omap-headsmp.S        |  8 ++--
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c | 69 +++++++++++++++++++++++++------
+ arch/arm/mach-omap2/omap-smp.c            |  6 +--
+ arch/arm/mach-omap2/pm44xx.c              | 58 +++++++++++++++++++++-----
+ 5 files changed, 113 insertions(+), 32 deletions(-)
