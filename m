@@ -1,33 +1,55 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH 2/2] ARM: OMAP2+: cleaned-up DT support of various ECC
- schemes
-Date: Thu, 16 May 2013 07:52:19 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73E9C4EC5@DBDE04.ent.ti.com>
-References: <1368684720-26763-1-git-send-email-pekon@ti.com>
-	<1368684720-26763-3-git-send-email-pekon@ti.com>
- <CAGGh5h16kxdPRtPQ4vRzLA4iMxjTurPpdzBiEHaM9zb+y8fJBg@mail.gmail.com>
+From: jean-philippe francois <jp.francois@cynove.com>
+Subject: Re: omap3 : isp clock a : Difference between dmesg frequency and
+ actual frequency with 3.9
+Date: Thu, 16 May 2013 09:54:07 +0200
+Message-ID: <CAGGh5h0zsTLGp-Bzy8FEpESqp7Vs2wUfpiu8Mqtu9Uy9EhwTyA@mail.gmail.com>
+References: <CAGGh5h1CKAUKwdM=Y7W5_ycDoucXLVF8vpxpEKJF_5naGzhPDQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53153 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753062Ab3EPHwy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 May 2013 03:52:54 -0400
-In-Reply-To: <CAGGh5h16kxdPRtPQ4vRzLA4iMxjTurPpdzBiEHaM9zb+y8fJBg@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:33512 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756242Ab3EPHyJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 03:54:09 -0400
+In-Reply-To: <CAGGh5h1CKAUKwdM=Y7W5_ycDoucXLVF8vpxpEKJF_5naGzhPDQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jean-philippe francois <jp.francois@cynove.com>
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Philip, Avinash" <avinashphilip@ti.com>, "arnd@arndb.de" <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, "Balbi, Felipe" <balbi@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-media <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-PiA+DQo+IA0KPiBPTUFQX0VDQ19CQ0g0X0NPREVfSFdfREVURUNUSU9OX1NXIGFuZA0KPiBPTUFQ
-X0VDQ19CQ0g0X0NPREVfSFcNCj4gc2VlbXMgdG8gZXhpc3QgaW4gdGhlIGNvZGUsIGJ1dCBhcmUg
-bm90IGluIHRoZSBjaGFuZ2Vsb2csIGFuZCBub3QgaW4NCj4gdGhlIGRldmljZSB0cmVlIGJpbmRp
-bmcgZG9jdW1lbnRhdGlvbi4NCj4gDQoNClllcywgSSBwbGFuIHRvIG9taXQgdGhlbSBmcm9tIGNv
-ZGUgYWxzbywgaW4gbmV4dCBzZXJpZXMgYXMgaXQgZG9lcyBub3QNCm1ha2Ugc2Vuc2UgdG8gc3Vw
-cG9ydCBib3RoIEJDSDQgYW5kIEJDSDggYXQgc2FtZSB0aW1lLCB3aGVuIG1vc3QNCnVzZXJzIHdv
-dWxkIG9wdCBmb3IgQkNIOC4NCkFsc28sIEJDSDQgd2FzIGtlcHQgZm9yIGxlZ2FjeSBwdXJwb3Nl
-cywgYW5kIHdhcyBub3QgdGVzdGVkIG9uIGFsbCBkZXZpY2VzLg0KVGhlcmVmb3JlIEkgaGF2ZSBw
-dXJwb3NlbHkgb21pdHRlZCBpdCBmcm9tIGRvY3VtZW50YXRpb24uDQoNCndpdGggcmVnYXJkcywg
-cGVrb24NCg==
+2013/5/15 jean-philippe francois <jp.francois@cynove.com>:
+> Hi,
+>
+> I am working on a dm3730 based camera.
+> The sensor input clock is provided by the cpu via the CAM_XCLK pin.
+> Here is the corresponding log :
+>
+> [    9.115966] Entering cam_set_xclk
+> [    9.119781] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 24685714 Hz
+> [    9.121337] ov10x33 1-0010: sensor id : 0xa630
+> [   10.293640] Entering cam_set_xclk
+> [   10.297149] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
+> [   10.393920] Entering cam_set_xclk
+> [   10.397979] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 24685714 Hz
+>
+> However, when mesured on the actual pin, the frequency is around 30 MHz
+>
+> The crystal clock is 19.2 MHz
+> All this was correct with 3.6.11.
+
+It seems the dpll4_m5_ck is not correctly set,
+3.6.11 code in isp.c (without error handling)
+
+    r = clk_set_rate(isp->clock[ISP_CLK_DPLL4_M5_CK],
+              CM_CAM_MCLK_HZ/divisor);
+    ...
+    r = clk_enable(isp->clock[ISP_CLK_CAM_MCLK]);
+
+3.9 code in isp.c (without error handling)
+
+    r = clk_set_rate(isp->clock[ISP_CLK_CAM_MCLK],
+              CM_CAM_MCLK_HZ/divisor);
+
+
+>
+> Jean-Philippe Francois
