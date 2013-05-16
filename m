@@ -1,36 +1,32 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v4] ARM:dts:omap4-panda: Update the LED support for the
- panda DTS
-Date: Thu, 16 May 2013 13:18:10 -0500
-Message-ID: <CAGo_u6pX+DdVNWqdPXDChzMr27YAXL_Zvt7DxWBijOCW0rXpkA@mail.gmail.com>
-References: <1368636386-17138-1-git-send-email-dmurphy@ti.com>
-	<20130515170516.GA6135@kahuna>
-	<5194FCDD.8080209@ti.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH 00/33] devm improvement series, part 1, take 2
+Date: Thu, 16 May 2013 12:29:19 -0600
+Message-ID: <5195257F.3060309@wwwdotorg.org>
+References: <1368702961-4325-1-git-send-email-wsa@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5194FCDD.8080209@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Murphy <dmurphy@ti.com>
-Cc: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, devicetree-discuss@lists.ozlabs.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devel-bounces@linuxdriverproject.org>
+In-Reply-To: <1368702961-4325-1-git-send-email-wsa@the-dreams.de>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
+ <mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel/>
+List-Post: <mailto:devel@linuxdriverproject.org>
+List-Help: <mailto:devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/devel>,
+ <mailto:devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: devel-bounces@linuxdriverproject.org
+Sender: "devel" <devel-bounces@linuxdriverproject.org>
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-mips@linux-mips.org, alsa-devel@alsa-project.org, linux-usb@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Matt Mackall <mpm@selenic.com>, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Jaroslav Kysela <perex@perex.cz>, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-mtd@lists.infradead.org, linux-i2c@vger.kernel.org, Evgeniy Polyakov <zbr@ioremap.net>, Wan ZongShun <mcuos.com@gmail.com>, ac100@lists.launchpad.net, devel@driverdev.osuosl.org, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, Herbert Xu <herbert@gondor.apana.org.au>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, cpufreq@vger.kernel.org, Eduardo Valentin <eduardo.v>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 16, 2013 at 10:35 AM, Dan Murphy <dmurphy@ti.com> wrote:
-> I am not sure you really want to do this.
-> If I make the pinctrl part of the led structure then the only way the gpio_wk7 on a1-a3 to be configured is when
-> the CONFIG_LEDS_GPIO flag is set.
->
-> Do you really want that dependency?  You did say it was a key fix
-> At least this way the pins are configured regardless of that flag.
+On 05/16/2013 05:15 AM, Wolfram Sang wrote:
+> Lately, I have been experimenting how to improve the devm interface to make
+> writing device drivers easier and less error prone while also getting rid of
+> its subtle issues. I think it has more potential but still needs work and
+> definately conistency, especiall in its usage.
+...
 
-That is better as the system will be left in the pinmux configuration
-handed over from bootloader.
-
-The point being, muxing up pins even when not needed(config switched
-off) has no real benefit - in this case albeit, the default mux was
-causing a bug.
-pinctrl IMHO should be considered as any other resource, if it is not
-mandatory for boot, and needed only for a device functionality when
-probed, it should done there only.
-
-just my 2 cents.
+The Tegra parts in patches 4, 5, 8, 15, 16, 17, 29 all,
+Acked-by: Stephen Warren <swarren@nvidia.com>
