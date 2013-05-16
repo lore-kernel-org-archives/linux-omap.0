@@ -1,109 +1,165 @@
-From: jean-philippe francois <jp.francois@cynove.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: cleaned-up DT support of various ECC schemes
-Date: Thu, 16 May 2013 11:34:20 +0200
-Message-ID: <CAGGh5h2TWvf+N0gRxQQX8KHav4qwxa=BDHuYYa9f49rmQCKMUw@mail.gmail.com>
-References: <1368684720-26763-1-git-send-email-pekon@ti.com>
-	<1368684720-26763-3-git-send-email-pekon@ti.com>
-	<CAGGh5h16kxdPRtPQ4vRzLA4iMxjTurPpdzBiEHaM9zb+y8fJBg@mail.gmail.com>
-	<20980858CB6D3A4BAE95CA194937D5E73E9C4EC5@DBDE04.ent.ti.com>
-	<CAGGh5h3WGGRcQgpns7EOso1yqvrzKmCAbQo9XZoMyhv0Q1KT4Q@mail.gmail.com>
-	<20980858CB6D3A4BAE95CA194937D5E73E9C4F04@DBDE04.ent.ti.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: [PATCH 00/33] devm improvement series, part 1, take 2
+Date: Thu, 16 May 2013 13:15:28 +0200
+Message-ID: <1368702961-4325-1-git-send-email-wsa@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:34369 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751317Ab3EPJeV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 May 2013 05:34:21 -0400
-Received: by mail-wg0-f44.google.com with SMTP id a12so315376wgh.11
-        for <linux-omap@vger.kernel.org>; Thu, 16 May 2013 02:34:20 -0700 (PDT)
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73E9C4F04@DBDE04.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devel-bounces@linuxdriverproject.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
+ <mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel/>
+List-Post: <mailto:devel@linuxdriverproject.org>
+List-Help: <mailto:devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/devel>,
+ <mailto:devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: devel-bounces@linuxdriverproject.org
+Sender: "devel" <devel-bounces@linuxdriverproject.org>
+To: linux-kernel@vger.kernel.org
+Cc: linux-mips@linux-mips.org, alsa-devel@alsa-project.org, linux-usb@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Matt Mackall <mpm@selenic.com>, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Jaroslav Kysela <perex@perex.cz>, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-mtd@lists.infradead.org, linux-i2c@vger.kernel.org, Evgeniy Polyakov <zbr@ioremap.net>, Wan ZongShun <mcuos.com@gmail.com>, ac100@lists.launchpad.net, devel@driverdev.osuosl.org, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, Herbert Xu <herbert@gondor.apana.org.au>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Stephen Warren <swarren@wwwdotorg.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, cpufreq@vger.ke
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Philip, Avinash" <avinashphilip@ti.com>, "arnd@arndb.de" <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, "Balbi, Felipe" <balbi@ti.com>
 
-2013/5/16 Gupta, Pekon <pekon@ti.com>:
->
->> 2013/5/16 Gupta, Pekon <pekon@ti.com>:
->> >> >
->> >>
->> >> OMAP_ECC_BCH4_CODE_HW_DETECTION_SW and
->> >> OMAP_ECC_BCH4_CODE_HW
->> >> seems to exist in the code, but are not in the changelog, and not=
- in
->> >> the device tree binding documentation.
->> >>
->> >
->> > Yes, I plan to omit them from code also, in next series as it does=
- not
->> > make sense to support both BCH4 and BCH8 at same time, when most
->> > users would opt for BCH8.
->> > Also, BCH4 was kept for legacy purposes, and was not tested on all
->> devices.
->> > Therefore I have purposely omitted it from documentation.
->> >
->>
->> We have shipped devices with BCH4 nand.  This would be a regression
->> for us.
->>
-> [Pekon]: May I know the following details so that I can prioritize BC=
-H4 testing
-> - Which TI device have you productized ?
+Lately, I have been experimenting how to improve the devm interface to make
+writing device drivers easier and less error prone while also getting rid of
+its subtle issues. I think it has more potential but still needs work and
+definately conistency, especiall in its usage.
 
-dm3730
+The first thing I come up with is a low hanging fruit regarding
+devm_ioremap_resouce(). This function already checks if the passed resource is
+valid and gives an error message if not. So, we can remove similar checks from
+the drivers and get rid of a bit of code and a number of inconsistent error
+strings.
 
-> - Which kernel version you are using ? (Is it from mainline or SDK re=
-lease)
+Unlike the RFC version, this series only removes the unneeded check iff
+devm_ioremap_resource() follows platform_get_resource directly. The previous
+version tried to shuffle code if needed, too, what lead to an embarrasing bug.
+It turned out to me that shuffling code for all cases found will make the
+automated script too complex, so I am unsure if an automated cleanup is the
+proper tool for this case. Removing the easy stuff seems worthwhile to me,
+though, so I post this series in a simplified form.
 
-3.6.11, currently moving to 3.9
+Despite various architectures and platform dependencies, I managed to compile
+test 45 out of 57 modified files locally using heuristics and defconfigs.
+If somebody knows how to create a minimal .config with a certain kconfig symbol
+(and its dependencies) set, I'd love to hear about it.
 
-> - Which BCH4 ECC implementation you are using ?
->         BCH4_HW (using both GPMC and ELM H/W engines)
->         BCH4_HW_DETECTION_SW (using GPMC H/W and bch.h S/W libraries)
+Since this series looks quite different from the RFC (less files touched
+mainly) I did not copy over the ACKs from the RFC, although a few people agreed
+with the aproach basically (except the major flaw the old series had).
 
-I guess it is BCH4_HW_DETECTION_SW. Here is the relevant part of the
-machine board file patch :
+The repo is here [1]. I'd think it would be nice to have in 3.10. and sending a
+pull request to Linus would be easiest, probably. Some non-buggy RFC patches
+already slipped into subtrees, yet this won't cause any conflicts.
 
-+static struct omap_nand_platform_data cydm_nand_data =3D {
-+     .cs =3D 0,
-+     .ecc_opt =3D OMAP_ECC_BCH4_CODE_HW,
-+};
+Looking forward to comments.
+
+Thanks,
+
+   Wolfram
+
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git devm_no_resource_check
 
 
+Wolfram Sang (33):
+  drivers/ata: don't check resource with devm_ioremap_resource
+  drivers/char/hw_random: don't check resource with
+    devm_ioremap_resource
+  drivers/cpufreq: don't check resource with devm_ioremap_resource
+  drivers/dma: don't check resource with devm_ioremap_resource
+  drivers/gpio: don't check resource with devm_ioremap_resource
+  drivers/gpu/drm/exynos: don't check resource with
+    devm_ioremap_resource
+  drivers/gpu/host1x/drm: don't check resource with
+    devm_ioremap_resource
+  drivers/i2c/busses: don't check resource with devm_ioremap_resource
+  drivers/memory: don't check resource with devm_ioremap_resource
+  drivers/mfd: don't check resource with devm_ioremap_resource
+  drivers/misc: don't check resource with devm_ioremap_resource
+  drivers/mtd/nand: don't check resource with devm_ioremap_resource
+  drivers/net/ethernet/renesas: don't check resource with
+    devm_ioremap_resource
+  drivers/pinctrl: don't check resource with devm_ioremap_resource
+  drivers/pwm: don't check resource with devm_ioremap_resource
+  drivers/rtc: don't check resource with devm_ioremap_resource
+  drivers/spi: don't check resource with devm_ioremap_resource
+  drivers/staging/dwc2: don't check resource with devm_ioremap_resource
+  drivers/staging/nvec: don't check resource with devm_ioremap_resource
+  drivers/thermal: don't check resource with devm_ioremap_resource
+  drivers/usb/chipidea: don't check resource with devm_ioremap_resource
+  drivers/usb/gadget: don't check resource with devm_ioremap_resource
+  drivers/usb/host: don't check resource with devm_ioremap_resource
+  drivers/usb/phy: don't check resource with devm_ioremap_resource
+  drivers/video/omap2: don't check resource with devm_ioremap_resource
+  drivers/video/omap2/dss: don't check resource with
+    devm_ioremap_resource
+  drivers/w1/masters: don't check resource with devm_ioremap_resource
+  drivers/watchdog: don't check resource with devm_ioremap_resource
+  arch/arm/mach-tegra: don't check resource with devm_ioremap_resource
+  arch/arm/plat-samsung: don't check resource with
+    devm_ioremap_resource
+  arch/mips/lantiq/xway: don't check resource with
+    devm_ioremap_resource
+  sound/soc/fsl: don't check resource with devm_ioremap_resource
+  sound/soc/kirkwood: don't check resource with devm_ioremap_resource
 
-> - Is there a specific reason why        you opted for BCH4 instead of=
- BCH8 ?
->         (Though its only recent that OMAP_ECC_BCHx support is mainlin=
-ed
->         But, BCH8 support was available in TI SDK releases from quite=
- sometime.)
->
+ arch/arm/mach-tegra/tegra2_emc.c      |    5 -----
+ arch/arm/plat-samsung/adc.c           |    5 -----
+ arch/mips/lantiq/xway/gptu.c          |    4 ----
+ drivers/ata/pata_ep93xx.c             |    5 -----
+ drivers/char/hw_random/mxc-rnga.c     |    6 ------
+ drivers/char/hw_random/omap-rng.c     |    5 -----
+ drivers/cpufreq/kirkwood-cpufreq.c    |    4 ----
+ drivers/dma/tegra20-apb-dma.c         |    5 -----
+ drivers/gpio/gpio-mvebu.c             |    5 -----
+ drivers/gpio/gpio-tegra.c             |    5 -----
+ drivers/gpu/drm/exynos/exynos_hdmi.c  |    5 -----
+ drivers/gpu/host1x/drm/dc.c           |    5 -----
+ drivers/i2c/busses/i2c-s3c2410.c      |    5 -----
+ drivers/i2c/busses/i2c-sirf.c         |    6 ------
+ drivers/i2c/busses/i2c-tegra.c        |    5 -----
+ drivers/memory/emif.c                 |    6 ------
+ drivers/mfd/intel_msic.c              |    5 -----
+ drivers/misc/atmel-ssc.c              |    5 -----
+ drivers/mtd/nand/lpc32xx_mlc.c        |    5 -----
+ drivers/net/ethernet/renesas/sh_eth.c |    5 -----
+ drivers/pinctrl/pinctrl-coh901.c      |    5 -----
+ drivers/pinctrl/pinctrl-exynos5440.c  |    5 -----
+ drivers/pinctrl/pinctrl-samsung.c     |    5 -----
+ drivers/pinctrl/pinctrl-xway.c        |    4 ----
+ drivers/pwm/pwm-imx.c                 |    5 -----
+ drivers/pwm/pwm-puv3.c                |    5 -----
+ drivers/pwm/pwm-pxa.c                 |    5 -----
+ drivers/pwm/pwm-tegra.c               |    5 -----
+ drivers/pwm/pwm-tiecap.c              |    5 -----
+ drivers/pwm/pwm-tiehrpwm.c            |    5 -----
+ drivers/pwm/pwm-tipwmss.c             |    5 -----
+ drivers/pwm/pwm-vt8500.c              |    5 -----
+ drivers/rtc/rtc-nuc900.c              |    5 -----
+ drivers/rtc/rtc-omap.c                |    5 -----
+ drivers/rtc/rtc-s3c.c                 |    5 -----
+ drivers/rtc/rtc-tegra.c               |    6 ------
+ drivers/spi/spi-tegra20-sflash.c      |    5 -----
+ drivers/staging/dwc2/platform.c       |    5 -----
+ drivers/staging/nvec/nvec.c           |    5 -----
+ drivers/thermal/armada_thermal.c      |   10 ----------
+ drivers/thermal/dove_thermal.c        |    4 ----
+ drivers/thermal/exynos_thermal.c      |    5 -----
+ drivers/usb/chipidea/core.c           |    5 -----
+ drivers/usb/gadget/bcm63xx_udc.c      |   10 ----------
+ drivers/usb/host/ohci-nxp.c           |    6 ------
+ drivers/usb/phy/phy-mv-u3d-usb.c      |    5 -----
+ drivers/usb/phy/phy-mxs-usb.c         |    5 -----
+ drivers/usb/phy/phy-samsung-usb2.c    |    5 -----
+ drivers/usb/phy/phy-samsung-usb3.c    |    5 -----
+ drivers/video/omap2/dss/hdmi.c        |    4 ----
+ drivers/video/omap2/vrfb.c            |    5 -----
+ drivers/w1/masters/omap_hdq.c         |    5 -----
+ drivers/watchdog/ath79_wdt.c          |    5 -----
+ drivers/watchdog/davinci_wdt.c        |    5 -----
+ drivers/watchdog/imx2_wdt.c           |    5 -----
+ sound/soc/fsl/imx-ssi.c               |    6 ------
+ sound/soc/kirkwood/kirkwood-i2s.c     |    5 -----
+ 57 files changed, 296 deletions(-)
 
-No, I figured BCH4 was sufficient for my nand. In fact my previous ecc
-scheme (1 bit hamming) was not
-offering enough protection. I started investigating bch, and read that
-while the ti dvsdk bch code
-for computing the bch was ok, the error correction code was not, and
-the new BCH4 scheme
-resulted in all FF OOB data for an empty page, which was great. There
-was no real reason for
-choosing BCH4 over BCH8, but I thought the simpler the better.
-
-> I'll try to see if I can help you here, but going forward its always =
-recommended
-> to use higher ECC schemes (like BCH8), so that flash's lifetime is ex=
-tended on field.
->
-
->
->> Regards,
->> Jean-Philippe Fran=C3=A7ois.
->>
-> with regards, pekon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+1.7.10.4
