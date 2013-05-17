@@ -1,43 +1,99 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: v3.10-rc1: backlight brightness after boot on N900
-Date: Fri, 17 May 2013 22:17:23 +0300
-Message-ID: <20130517191723.GD31836@blackmetal.musicnaut.iki.fi>
-References: <20130515171845.GB3157@blackmetal.musicnaut.iki.fi>
- <519465FC.9090002@ti.com>
- <20130517182504.GC31836@blackmetal.musicnaut.iki.fi>
- <20130517184534.GZ5600@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/6] Drop legacy booting for omap4 for v3.11,
+ boot with device tree only
+Date: Fri, 17 May 2013 12:17:46 -0700
+Message-ID: <20130517191304.468.73487.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri1.pp.htv.fi ([213.243.153.184]:50187 "EHLO
-	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756626Ab3EQTRb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 15:17:31 -0400
-Content-Disposition: inline
-In-Reply-To: <20130517184534.GZ5600@atomide.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:18695 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756634Ab3EQTRv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 15:17:51 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jon Hunter <jon-hunter@ti.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+Hi all,
 
-On Fri, May 17, 2013 at 11:45:35AM -0700, Tony Lindgren wrote:
-> * Aaro Koskinen <aaro.koskinen@iki.fi> [130517 11:30]:
-> > So I bisected and it points to:
-> > 
-> > 	commit a2797beadfcb5a0974a30929b613b4d1adb023d1
-> > 	Author: Jon Hunter <jon-hunter@ti.com>
-> > 	Date:   Thu Apr 4 15:16:15 2013 -0500
-> > 
-> > 	    gpio/omap: force restore if context loss is not detectable
-> > 
-> > When I revert that commit from 3.10-rc1, the display works again as
-> > expected.
-> 
-> OK that should be fixed by ab6ec0fb (gpio/omap: ensure gpio context is initialised)
-> in linux-next. Can you check if that helps?
+Here are patches against v3.10-rc1 to drop omap4 legacy booting as
+things are now working well enough for booting omap4 with device
+tree.
 
-Yeah, that fixes it. Thanks,
+We already have am33xx and omap5 booting with device tree only,
+and converting omap4 is relatively easy with just two board-*.c
+files merged as we have not accepted any new board-*.c files for
+quite some time now.
 
-A.
+By working "well enough" I mean that I can use my omap4 panda-es
+with device tree with a Motorola LapDock with HDMI, DVI, HID, USB
+and WLAN using v3.10-rc1 and the patches in this series plus some
+extra patches that are driver related.
+
+Of course some things will need more work, like PM. But that
+has not yet been fully working for omap4 anyways, and that
+work can now be combined with omap5 PM work to some extent.
+
+Regards,
+
+Tony
+
+
+FYI, the extra patches I'm using in addition to these are:
+
+1. GPIO regression fix (needed at least for SDP nfsroot)
+
+   ab6ec0fb (gpio/omap: ensure gpio context is initialised)
+
+2. HSMMC DT pbias fix
+
+  [PATCH] mmc: omap_hsmmc: Fix the DT pbias workaround for MMC controllers 2 to 5
+
+3. WL12XX support patches
+
+   [PATCH 0/3] WLAN support for omap4 when booted with devicetree
+
+4. USB host support for panda dts changes
+
+   ARM: dts: omap4-panda: Add USB Host support
+
+5. Fix for LapDock enumeration
+
+   usb: musb: Fix LapDock enumeration on omap for boot and slow cable insertion
+
+---
+
+Tony Lindgren (6):
+      ARM: OMAP2+: Remove board-4430sdp.c
+      ARM: OMAP2+: Remove board-omap4panda.c
+      ARM: OMAP2+: Remove legacy mux data for omap4
+      ARM: OMAP2+: Remove omap4 pdata from hsmmc.c
+      ARM: OMAP2+: Remove omap4 pdata for USB
+      ARM: OMAP2+: Remove omap4 ocp2scp pdata
+
+
+ arch/arm/mach-omap2/Kconfig                |   22 
+ arch/arm/mach-omap2/Makefile               |    3 
+ arch/arm/mach-omap2/board-4430sdp.c        |  765 ----------------
+ arch/arm/mach-omap2/board-omap4panda.c     |  455 ---------
+ arch/arm/mach-omap2/devices.c              |  123 ---
+ arch/arm/mach-omap2/hsmmc.c                |  103 --
+ arch/arm/mach-omap2/mux.h                  |    3 
+ arch/arm/mach-omap2/mux44xx.c              | 1356 ----------------------------
+ arch/arm/mach-omap2/mux44xx.h              |  298 ------
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   21 
+ arch/arm/mach-omap2/usb-host.c             |  194 ----
+ arch/arm/mach-omap2/usb-musb.c             |    3 
+ drivers/bus/omap-ocp2scp.c                 |   60 -
+ include/linux/platform_data/omap_ocp2scp.h |   31 -
+ 14 files changed, 10 insertions(+), 3427 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/board-4430sdp.c
+ delete mode 100644 arch/arm/mach-omap2/board-omap4panda.c
+ delete mode 100644 arch/arm/mach-omap2/mux44xx.c
+ delete mode 100644 arch/arm/mach-omap2/mux44xx.h
+ delete mode 100644 include/linux/platform_data/omap_ocp2scp.h
+
+-- 
+Signature
