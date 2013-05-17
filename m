@@ -1,76 +1,52 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V2] ARM: AM33XX: Add missing .clkdm_name to
- clkdiv32k_ick clock
-Date: Fri, 17 May 2013 10:30:54 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EC8BFA7@DBDE04.ent.ti.com>
-References: <1364378666-23641-1-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1303271744510.17356@utopia.booyaka.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 2/2] mfd: twl-core: convert to module_i2c_driver()
+Date: Fri, 17 May 2013 13:46:46 +0300
+Message-ID: <51960A96.3050000@ti.com>
+References: <1366723151-23209-1-git-send-email-grygorii.strashko@ti.com> <1366723151-23209-3-git-send-email-grygorii.strashko@ti.com> <20130516221710.GU22822@zurbaran> <20130516225810.GQ5600@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53777 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:54572 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754794Ab3EQKbZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 06:31:25 -0400
-In-Reply-To: <alpine.DEB.2.00.1303271744510.17356@utopia.booyaka.com>
-Content-Language: en-US
+	id S1754750Ab3EQKtG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 May 2013 06:49:06 -0400
+In-Reply-To: <20130516225810.GQ5600@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+
+On 05/17/2013 01:58 AM, Tony Lindgren wrote:
+> * Samuel Ortiz <sameo@linux.intel.com> [130516 15:22]:
+>> Hi Grygorii,
+>>
+>> On Tue, Apr 23, 2013 at 04:19:10PM +0300, Grygorii Strashko wrote:
+>>> Shift TWL initialization to module/device init layer, because I2C now is
+>>> not initialized on subsys init layer and shifted to module/device init
+>>> layer instead.
+>>>
+>>> The I2C <--> TWL dependency should be resolved in drivers/Makefile now.
+>>>
+>>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>> Cc: linux-omap@vger.kernel.org
+>>> Cc: linux-kernel@vger.kernel.org
+>>>
+>>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>>> ---
+>>>   drivers/mfd/twl-core.c |   12 +-----------
+>>>   1 file changed, 1 insertion(+), 11 deletions(-)
+>> I applied this one to mfd-next for now, and will move it to mfd-fixes if
+>> someone confirms that this is indeed a fix.
+> Thanks, AFAIK it can wait until v3.11 merge window.
+>
+> Regards,
+>
+> Tony
+Thanks, it's optimization which reduces the number of deferred probes at 
+boot
+
+Regards,
+-grygorii
 
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Wednesday, March 27, 2013 11:15 PM
-> To: Tony Lindgren; Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
-> Nayak, Rajendra
-> Subject: Re: [PATCH-V2] ARM: AM33XX: Add missing .clkdm_name to
-> clkdiv32k_ick clock
-> 
-> On Wed, 27 Mar 2013, Vaibhav Hiremath wrote:
-> 
-> > It is required to enable respective clock-domain before
-> > enabling any clock/module inside that clock-domain.
-> >
-> > During common-clock migration, .clkdm_name field got missed
-> > for "clkdiv32k_ick" clock, which leaves "clk_24mhz_clkdm"
-> > unused; so it will be disabled even if childs of this clock-domain
-> > is enabled, which keeps child modules in idle mode.
-> >
-> > This fixes the kernel crash observed on AM335xEVM-SK platform,
-> > where clkdiv32_ick clock is being used as a gpio debounce clock
-> > and since clkdiv32k_ick is in idle mode it leads to below crash -
-> >
-> > Crash Log:
-> > ==========
-> > [    2.598347] Unhandled fault: external abort on non-linefetch
-> (0x1028) at
-> > 0xfa1ac150
-> > [    2.606434] Internal error: : 1028 [#1] SMP ARM
-> > [    2.611207] Modules linked in:
-> > [    2.614449] CPU: 0    Not tainted  (3.8.4-01382-g1f449cd-dirty #4)
-> > [    2.620973] PC is at _set_gpio_debounce+0x60/0x104
-> > [    2.626025] LR is at clk_enable+0x30/0x3c
-> >
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > Cc: Tony Lindgren <tony@atomide.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
-> > Cc: Rajendra Nayak <rnayak@ti.com>
-> 
-> Acked-by: Paul Walmsley <paul@pwsan.com>
-> 
-> Tony, if it isn't too late, could this one be added to your 3.9-rc
-> fixes
-> series?
-> 
-> 
-
-Looks like we missed this so far.
-
-Tony, can you merge this patch for v3.10-rc ?
-
-Thanks,
-Vaibhav
