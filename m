@@ -1,60 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v3.10-rc1
-Date: Fri, 17 May 2013 12:25:16 -0700
-Message-ID: <20130517192515.GC5600@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 6/6] ARM: OMAP2+: Remove omap4 ocp2scp pdata
+Date: Fri, 17 May 2013 23:05:31 +0300
+Message-ID: <20130517200531.GA17851@arwen.pp.htv.fi>
+References: <20130517191304.468.73487.stgit@localhost>
+ <20130517191803.468.32800.stgit@localhost>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37848 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753725Ab3EQTZV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 15:25:21 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:55349 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755998Ab3EQUG3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 16:06:29 -0400
 Content-Disposition: inline
+In-Reply-To: <20130517191803.468.32800.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>
 
-The following changes since commit f722406faae2d073cc1d01063d1123c35425939e:
+--pf9I7BMVVzbSWLtt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-  Linux 3.10-rc1 (2013-05-11 17:14:08 -0700)
+On Fri, May 17, 2013 at 12:18:03PM -0700, Tony Lindgren wrote:
+> This is omap4+ only and no longer needed as omap4+ can be booted
+> using device tree.
+>=20
+> Also remove the related pdata handling from the driver and the
+> now unneeded platform_data/omap_ocp2scp.h.
+>=20
+> Cc: Kishon Vijay Abraham I <kishon@ti.com>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: Olof Johansson <olof@lixom.net>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-are available in the git repository at:
+fine by me :-)
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10-rc1/fixes
+Acked-by: Felipe Balbi <balbi@ti.com>
 
-for you to fetch changes up to a6d25f4c951b8b28f2eaec6f891ff834622532f2:
+--=20
+balbi
 
-  ARM: AM33XX: Add missing .clkdm_name to clkdiv32k_ick clock (2013-05-17 10:07:45 -0700)
+--pf9I7BMVVzbSWLtt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-----------------------------------------------------------------
-Fixes for omaps:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-- a section mismatch fix for hwmod
-- boot fix for omap2plus_defconfig for omap2
-- musb interrupt fix when using device tree
-- am33xx clock fix that I missed earlier somehow
-- omap1 dma return code error fix
+iQIcBAEBAgAGBQJRlo2LAAoJEIaOsuA1yqRE2qwP/i3VFFd8mwyEqsJlggmFDBZX
+7dW0J5REuBPa2/rHeQmpP9/REalolbm4xjGZtFO3QqskC011NQHiCnr0tVfk8ZV6
+KzUPgxoXPw4JqT2TQ9SRVwMyOSULCX+4eJMksD4exqw/vVz7iKltpgtAibWqrtrc
+zqFSMMEXTYp46FaGyWppZy048un9b3j6mpoeTnHHuz1ppuGy7KwSbieFMCOvTWbd
+5WGfOHGKp+5uhWETpPYhwO0hyLCv855MuyRwr2FxHuZg8VoSVSMKXxWARu8DF6Yc
+rdsLunNR8ZadRCbDDn8x8vkq2XW82LfNOrGEpAq9eC6KCQEY1wj0iItI0VnJEa0u
+wX+JiSkflH2pw5Ymeo2EPpnynh2OyASoKsBzUhQe43p33pbQdh+xZNcB0P4GA293
+eHgGEypSTNlSj0eNoUNnTKpqY0xo3F67FB2f88CmOuw/Aw2jxgKQFD0NYk7Z9B0Q
+ZW1sT06gzSPKcB/IjF6RpxvzpMJZWd4yNhXNKcHpkW3a9zluLhm7UeeQNTTtQMfx
+Y0iFgR0lzuaBxFmhxG536m5rgX5O3t4DbsJE616f2pIfsSkaVB1pAkBW/DX35+Qw
+fxPcZp0Ifs2i4+T/diILuyaPeymdJSAf71I4fJ6ZhkPOARk8WjWJvJ7FDCMhXean
+yd6OS1/VK+EMgweAxih1
+=MHOK
+-----END PGP SIGNATURE-----
 
-----------------------------------------------------------------
-Paul Walmsley (1):
-      ARM: OMAP2+: Add missing CONFIG_ARCH_MULTI_V6=y to omap2plus_defconfig
-
-Tony Lindgren (1):
-      ARM: dts: Fix musb interrupt for device tree booting
-
-Vaibhav Hiremath (1):
-      ARM: AM33XX: Add missing .clkdm_name to clkdiv32k_ick clock
-
-Wei Yongjun (1):
-      ARM: OMAP: fix error return code in omap1_system_dma_init()
-
-jean-philippe francois (1):
-      ARM: OMAP: fix __init section mismatch for _enable_preprogram
-
- arch/arm/boot/dts/omap3.dtsi          |  2 +-
- arch/arm/configs/omap2plus_defconfig  |  1 +
- arch/arm/mach-omap1/dma.c             |  1 +
- arch/arm/mach-omap2/cclock33xx_data.c | 26 +++++++++++++++++++++++---
- arch/arm/mach-omap2/omap_hwmod.c      |  2 +-
- 5 files changed, 27 insertions(+), 5 deletions(-)
+--pf9I7BMVVzbSWLtt--
