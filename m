@@ -1,60 +1,72 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 0/2] ARM: OMAP AM33XX: clock data: Enable clkout2 output
- on SoC pad
-Date: Fri, 17 May 2013 11:07:38 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EC8C081@DBDE04.ent.ti.com>
-References: <1367919574-21353-1-git-send-email-hvaibhav@ti.com>
+Subject: RE: [PATCH] ARM: OMAP2+: AM33xx: Add missing reset status info to
+ GFX hwmod
+Date: Fri, 17 May 2013 11:08:27 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EC8C092@DBDE04.ent.ti.com>
+References: <1367693284-7870-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="Windows-1252"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55504 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752349Ab3EQLII convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 07:08:08 -0400
-In-Reply-To: <1367919574-21353-1-git-send-email-hvaibhav@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:56799 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752872Ab3EQLI6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 07:08:58 -0400
+In-Reply-To: <1367693284-7870-1-git-send-email-hvaibhav@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>
 
 
 > -----Original Message-----
 > From: Hiremath, Vaibhav
-> Sent: Tuesday, May 07, 2013 3:10 PM
+> Sent: Sunday, May 05, 2013 12:18 AM
 > To: linux-omap@vger.kernel.org
-> Cc: tony@atomide.com; Cousson, Benoit; paul@pwsan.com; linux-arm-
-> kernel@lists.infradead.org; Hiremath, Vaibhav
-> Subject: [PATCH 0/2] ARM: OMAP AM33XX: clock data: Enable clkout2
-> output on SoC pad
+> Cc: tony@atomide.com; linux-arm-kernel@lists.infradead.org; Hiremath,
+> Vaibhav; Paul Walmsley
+> Subject: [PATCH] ARM: OMAP2+: AM33xx: Add missing reset status info to
+> GFX hwmod
 > 
-> 'clkout2' comes out on the device pad and is being used by various
-> external on-board peripherals like, Audio codecs, Wilink and stuff.
-> So enable the clkout2 by default during init sequence itself
-> along with right pinmux configuration clkout2 output.
+> GFX has a reset status register (PRM_GFX.RM_GFX_RSTST),
+> so update the GFX hwmod data with .rstst_off and .st_shift
+> information.
 > 
-> Also, add the missing entry of "clkout2_ck" to the AM33xx clock table.
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_33xx_data.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
 > 
-> As far as enabling of clkout2 during init is concerned,
-> we can argue that it can be handled using DT property and enable
-> the clock only when specified; but not until OMAP clock-tree
-> migration to DT.
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> index d1cf3ab..38c7b04 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> @@ -329,7 +329,7 @@ static struct omap_hwmod_class
+> am33xx_gfx_hwmod_class = {
+>  };
 > 
-> Vaibhav Hiremath (2):
->   ARM: OMAP AM33XX: clock data: Enable clkout2 as part of init
->   ARM: dts: AM33XX: Set pinmux for clkout2 pad used for clock output
+>  static struct omap_hwmod_rst_info am33xx_gfx_resets[] = {
+> -	{ .name = "gfx", .rst_shift = 0 },
+> +	{ .name = "gfx", .rst_shift = 0, .st_shift = 0},
+>  };
 > 
->  arch/arm/boot/dts/am335x-bone.dts     |    8 +++++++-
->  arch/arm/boot/dts/am335x-evm.dts      |    8 +++++++-
->  arch/arm/boot/dts/am335x-evmsk.dts    |    8 +++++++-
->  arch/arm/mach-omap2/cclock33xx_data.c |    2 ++
->  4 files changed, 23 insertions(+), 3 deletions(-)
+>  static struct omap_hwmod_irq_info am33xx_gfx_irqs[] = {
+> @@ -347,6 +347,7 @@ static struct omap_hwmod am33xx_gfx_hwmod = {
+>  		.omap4	= {
+>  			.clkctrl_offs	= AM33XX_CM_GFX_GFX_CLKCTRL_OFFSET,
+>  			.rstctrl_offs	= AM33XX_RM_GFX_RSTCTRL_OFFSET,
+> +			.rstst_offs	= AM33XX_RM_GFX_RSTST_OFFSET,
+>  			.modulemode	= MODULEMODE_SWCTRL,
+>  		},
+>  	},
+> --
 
-Tony, Paul and Benoit,
+Tony and Paul,
 
-Any update on this series?
+Any Update on this one as well?
 
 Thanks,
 Vaibhav
-
