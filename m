@@ -1,80 +1,91 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH-V2] ARM: AM33XX: Add missing .clkdm_name to
- clkdiv32k_ick clock
-Date: Fri, 17 May 2013 10:10:17 -0700
-Message-ID: <20130517171016.GV5600@atomide.com>
-References: <1364378666-23641-1-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1303271744510.17356@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A83EC8BFA7@DBDE04.ent.ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP5: hwmod, prm/cm data files and updates
+ for 3.10
+Date: Fri, 17 May 2013 10:22:31 -0700
+Message-ID: <20130517172231.GW5600@atomide.com>
+References: <1363768852-18125-1-git-send-email-santosh.shilimkar@ti.com>
+ <20130401170539.GK10155@atomide.com>
+ <515BA76D.3000302@ti.com>
+ <alpine.DEB.2.00.1304031146230.2616@utopia.booyaka.com>
+ <515D6020.2030103@ti.com>
+ <20130404165208.GI10155@atomide.com>
+ <515DB110.9000503@ti.com>
+ <515F00B8.3000501@ti.com>
+ <5195E380.4040103@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19679 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:45895 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755698Ab3EQRKW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 13:10:22 -0400
+	with ESMTP id S1756351Ab3EQRWg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 13:22:36 -0400
 Content-Disposition: inline
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EC8BFA7@DBDE04.ent.ti.com>
+In-Reply-To: <5195E380.4040103@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Kristo, Tero" <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, "Valentin, Eduardo" <eduardo.valentin@ti.com>, "Anna, Suman" <s-anna@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-* Hiremath, Vaibhav <hvaibhav@ti.com> [130517 03:36]:
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [130517 01:02]:
+> Paul, Tony,
 > 
-> > -----Original Message-----
-> > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > Sent: Wednesday, March 27, 2013 11:15 PM
-> > To: Tony Lindgren; Hiremath, Vaibhav
-> > Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
-> > Nayak, Rajendra
-> > Subject: Re: [PATCH-V2] ARM: AM33XX: Add missing .clkdm_name to
-> > clkdiv32k_ick clock
+> On Friday 05 April 2013 10:20 PM, Santosh Shilimkar wrote:
+> > On Thursday 04 April 2013 10:27 PM, Santosh Shilimkar wrote:
+> >> On Thursday 04 April 2013 10:22 PM, Tony Lindgren wrote:
+> >>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130404 04:15]:
+> > [..]
 > > 
-> > On Wed, 27 Mar 2013, Vaibhav Hiremath wrote:
+> >>> Can't we already trim the am33xx hwmod data after your patches for
+> >>> v3.10 as am33xx is already DT only? Unfortunately we cannot create
+> >>> negative diffstat in other ways for v3.10 merge window as we cannot
+> >>> make omap4 DT only just quite yet.
+> >>>
+> >> Yes we can and I can take a stab it tomorrow. The only thing is I
+> >> might need some support for testing but thats manageable. Will
+> >> take a stab at it tomorrow and if everything goes well, post a
+> >> patch for smae.
+> >>
+> > Patch for the AM33XX to trim is end of the email. Thanks to
+> > Sricharan and Pekon for patch and testing. Looping both
+> > Vaibhav's if they have any objection on the patch.
 > > 
-> > > It is required to enable respective clock-domain before
-> > > enabling any clock/module inside that clock-domain.
-> > >
-> > > During common-clock migration, .clkdm_name field got missed
-> > > for "clkdiv32k_ick" clock, which leaves "clk_24mhz_clkdm"
-> > > unused; so it will be disabled even if childs of this clock-domain
-> > > is enabled, which keeps child modules in idle mode.
-> > >
-> > > This fixes the kernel crash observed on AM335xEVM-SK platform,
-> > > where clkdiv32_ick clock is being used as a gpio debounce clock
-> > > and since clkdiv32k_ick is in idle mode it leads to below crash -
-> > >
-> > > Crash Log:
-> > > ==========
-> > > [    2.598347] Unhandled fault: external abort on non-linefetch
-> > (0x1028) at
-> > > 0xfa1ac150
-> > > [    2.606434] Internal error: : 1028 [#1] SMP ARM
-> > > [    2.611207] Modules linked in:
-> > > [    2.614449] CPU: 0    Not tainted  (3.8.4-01382-g1f449cd-dirty #4)
-> > > [    2.620973] PC is at _set_gpio_debounce+0x60/0x104
-> > > [    2.626025] LR is at clk_enable+0x30/0x3c
-> > >
-> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > Cc: Tony Lindgren <tony@atomide.com>
-> > > Cc: Paul Walmsley <paul@pwsan.com>
-> > > Cc: Rajendra Nayak <rnayak@ti.com>
+> > Regards,
+> > Santosh
 > > 
-> > Acked-by: Paul Walmsley <paul@pwsan.com>
+> > From b95dd33fe59b8e77727eb3b1717d763bbf9a2893 Mon Sep 17 00:00:00 2001
+> > From: Sricharan R <r.sricharan@ti.com>
+> > Date: Fri, 5 Apr 2013 20:39:12 +0530
+> > Subject: [PATCH] ARM: AM33XX: hwmod data: Clean up the data file
 > > 
-> > Tony, if it isn't too late, could this one be added to your 3.9-rc
-> > fixes
-> > series?
-> > 
-> > 
-> 
-> Looks like we missed this so far.
-> 
-> Tony, can you merge this patch for v3.10-rc ?
+> For whatever reason, we again missed the merge window for the subject
+> series, I would like to know your plan on the subject series for
+> at least 3.11. Asking *well in advance* to avoid late merge related
+> discussions.
 
-Oops, sorry somehow this did not make it. I'll apply it to omap-for-v3.10/fixes
-with cc: stable flag.
+Yes, I think we should have now a omap5 hwmod data sized hole coming
+up with conversion of omap4 to be DT only. I'll post those patches
+today for the board file and legacy mux removal for omap4:
+
+12 files changed, 52 insertions(+), 3260 deletions(-)
+
+Those coupled with your am33xx hwmod cleanup patch and your omap4
+hwmod cleanup patch should allow us having the omap5 hwmod data
+without making the diffstats look too bad.
+ 
+> Thanks to Vaibhav, AM33XX patch is tested and validated with some
+> updates considering upcoming PM support for AM33XX. So that
+> patch will be included in the series.
+> 
+> Rajendra will follow up the patchset if there is some re-basing is
+> needed since I will away for few weeks because of travel. 
+
+OK, well the omap4 hwmod clean-up patch depends on first dropping
+the above mentioned omap4 legacy files.
+ 
+> OMAP5 data is the *only* thing which is gating the device to boot
+> from mainline.
+
+That's great!
 
 Regards,
 
