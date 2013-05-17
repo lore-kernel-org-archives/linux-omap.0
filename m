@@ -1,49 +1,94 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH v3 0/6] ARM: OMAP2+: hwmod and SERIAL: Remove sysc handling from driver
-Date: Fri, 17 May 2013 07:29:04 -0700
-Message-ID: <87txm1smrz.fsf@linaro.org>
-References: <1368629322-3170-1-git-send-email-rnayak@ti.com>
-	<alpine.DEB.2.00.1305161831390.21357@utopia.booyaka.com>
+From: Jean-Philippe Francois <jp.francois@cynove.com>
+Subject: [PATCH] ARM : omap3 : fix wrong container_of in clock36xx.c
+Date: Fri, 17 May 2013 17:51:26 +0200
+Message-ID: <1368805886-26085-1-git-send-email-jp.francois@cynove.com>
+References: <CAGGh5h3BNV7fE3jC0KSmA+2K6zKwVyHdeo8AW0gvmhgQsy8ZEg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f170.google.com ([209.85.192.170]:33410 "EHLO
-	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755317Ab3EQO3H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 10:29:07 -0400
-Received: by mail-pd0-f170.google.com with SMTP id 15so626385pdi.1
-        for <linux-omap@vger.kernel.org>; Fri, 17 May 2013 07:29:07 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1305161831390.21357@utopia.booyaka.com> (Paul
-	Walmsley's message of "Thu, 16 May 2013 18:32:43 +0000 (UTC)")
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:42281 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754985Ab3EQPwG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 11:52:06 -0400
+Received: by mail-wi0-f171.google.com with SMTP id hq7so557872wib.10
+        for <linux-omap@vger.kernel.org>; Fri, 17 May 2013 08:52:05 -0700 (PDT)
+In-Reply-To: <CAGGh5h3BNV7fE3jC0KSmA+2K6zKwVyHdeo8AW0gvmhgQsy8ZEg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux@arm.linux.org.uk, tony@atomide.com, sourav.poddar@ti.com, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, nm@ti.com
+To: paul@pwsan.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, mturquette@linaro.org, =?UTF-8?q?Jean-Philippe=20Fran=C3=A7ois?= <jp.francois@cynove.com>
 
-Hi Paul,
+omap36xx_pwrdn_clk_enable_with_hsdiv_restore expects the parent hw of t=
+he clock
+to be a clk_hw_omap. However, looking at cclock3xxx_data.c, all concern=
+ed clock
+have parent defined as clk_divider.
+=46ix the function to use clk_divider.=20
+Tested with  3.9 on dm3730.
 
-Paul Walmsley <paul@pwsan.com> writes:
+Signed-off-by: Jean-Philippe Fran=C3=A7ois <jp.francois@cynove.com>
 
-> On Wed, 15 May 2013, Rajendra Nayak wrote:
->
->> OMAP UART IP needs manual idle modes based on functional state of the
->> IP. Currently this is handled by the driver with function pointers
->> implemented in platform code.
->> 
->> This however breaks in case of device tree because of missing
->> idle handling. 
->> 
->> The series tries to address the issue and tries to remove complete
->> sysc handling from serial driver.
->
-> These look good to me.  Will queue them for v3.10-rc once they pass local 
-> testing here.
-
-I reviewed and tested v2 of this (Rajendra forgot to add the tags in
-v3) and also just sanity tested v3 of this on 4430/panda DT boot to
-verify the console issue is resolved.  Feel free to add:
-
-Reviewed-by: Kevin Hilman <khilman@linaro.org>
-Tested-by: Kevin Hilman <khilman@linaro.org>  # OMAP4/Panda
-
-Kevin
+Index: b/arch/arm/mach-omap2/clock36xx.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- a/arch/arm/mach-omap2/clock36xx.c
++++ b/arch/arm/mach-omap2/clock36xx.c
+@@ -20,11 +20,12 @@
+=20
+ #include <linux/kernel.h>
+ #include <linux/clk.h>
++#include <linux/clk-provider.h>
+ #include <linux/io.h>
+=20
+ #include "clock.h"
+ #include "clock36xx.h"
+-
++#define to_clk_divider(_hw) container_of(_hw, struct clk_divider, hw)
+=20
+ /**
+  * omap36xx_pwrdn_clk_enable_with_hsdiv_restore - enable clocks suffer=
+ing
+@@ -39,29 +40,28 @@
+  */
+ int omap36xx_pwrdn_clk_enable_with_hsdiv_restore(struct clk_hw *clk)
+ {
+-	struct clk_hw_omap *parent;
++	struct clk_divider *parent;
+ 	struct clk_hw *parent_hw;
+-	u32 dummy_v, orig_v, clksel_shift;
++	u32 dummy_v, orig_v;
+ 	int ret;
+=20
+ 	/* Clear PWRDN bit of HSDIVIDER */
+ 	ret =3D omap2_dflt_clk_enable(clk);
+=20
+ 	parent_hw =3D __clk_get_hw(__clk_get_parent(clk->clk));
+-	parent =3D to_clk_hw_omap(parent_hw);
++	parent =3D to_clk_divider(parent_hw);
+=20
+ 	/* Restore the dividers */
+ 	if (!ret) {
+-		clksel_shift =3D __ffs(parent->clksel_mask);
+-		orig_v =3D __raw_readl(parent->clksel_reg);
++		orig_v =3D __raw_readl(parent->reg);
+ 		dummy_v =3D orig_v;
+=20
+ 		/* Write any other value different from the Read value */
+-		dummy_v ^=3D (1 << clksel_shift);
+-		__raw_writel(dummy_v, parent->clksel_reg);
++		dummy_v ^=3D (1 << parent->shift);
++		__raw_writel(dummy_v, parent->reg);
+=20
+ 		/* Write the original divider */
+-		__raw_writel(orig_v, parent->clksel_reg);
++		__raw_writel(orig_v, parent->reg);
+ 	}
+=20
+ 	return ret;
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
