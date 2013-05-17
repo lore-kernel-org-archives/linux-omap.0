@@ -1,63 +1,101 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: [PATCH] i2c: busses: remove superfluous comment
-Date: Fri, 17 May 2013 11:53:23 +0200
-Message-ID: <1368784416-15306-1-git-send-email-wsa@the-dreams.de>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH-V2] ARM: OMAP3+: am33xx id: Add new am33xx specific function to check dev_feature
+Date: Fri, 17 May 2013 15:43:41 +0530
+Message-ID: <1368785621-31591-1-git-send-email-hvaibhav@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:34657 "EHLO pokefinder.org"
+Received: from comal.ext.ti.com ([198.47.26.152]:52912 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753529Ab3EQJwQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 May 2013 05:52:16 -0400
+	id S1751805Ab3EQKOQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 May 2013 06:14:16 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-i2c@vger.kernel.org
-Cc: Wolfram Sang <wsa@the-dreams.de>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@linaro.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-The comment already got copy&pasted around and is not really useful.
-Remove it.
+Layout of DEV_FEATURE register (offset = 0x604) is different
+between TI81xx and AM33xx device, so create separate function
+which will check for features available on specific AM33xx SoC
+and set the flags accordingly.
 
-Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Reviewed-by: Kevin Hilman <khilman@linaro.org>
 ---
- drivers/i2c/busses/i2c-davinci.c            |    1 -
- drivers/i2c/busses/i2c-designware-platdrv.c |    1 -
- drivers/i2c/busses/i2c-omap.c               |    1 -
- 3 files changed, 3 deletions(-)
+Changes from V1:
+	- Removed SHIFT value, as it never gets used in code
+	- Used BIT() macro for MASK definition
 
-diff --git a/drivers/i2c/busses/i2c-davinci.c b/drivers/i2c/busses/i2c-davinci.c
-index cf20e06..2daa253 100644
---- a/drivers/i2c/busses/i2c-davinci.c
-+++ b/drivers/i2c/busses/i2c-davinci.c
-@@ -646,7 +646,6 @@ static int davinci_i2c_probe(struct platform_device *pdev)
- 	struct resource *mem, *irq;
- 	int r;
- 
--	/* NOTE: driver uses the static register mapping */
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!mem) {
- 		dev_err(&pdev->dev, "no mem resource?\n");
-diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
-index 35b70a1..da53d64 100644
---- a/drivers/i2c/busses/i2c-designware-platdrv.c
-+++ b/drivers/i2c/busses/i2c-designware-platdrv.c
-@@ -87,7 +87,6 @@ static int dw_i2c_probe(struct platform_device *pdev)
- 	struct resource *mem;
- 	int irq, r;
- 
--	/* NOTE: driver uses the static register mapping */
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!mem) {
- 		dev_err(&pdev->dev, "no mem resource?\n");
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index e02f9e3..b241ae6 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1084,7 +1084,6 @@ omap_i2c_probe(struct platform_device *pdev)
- 	u32 rev;
- 	u16 minor, major, scheme;
- 
--	/* NOTE: driver uses the static register mapping */
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!mem) {
- 		dev_err(&pdev->dev, "no mem resource?\n");
--- 
-1.7.10.4
+ arch/arm/mach-omap2/control.h |    4 ++++
+ arch/arm/mach-omap2/id.c      |   13 +++++++++++++
+ arch/arm/mach-omap2/io.c      |    2 +-
+ arch/arm/mach-omap2/soc.h     |    1 +
+ 4 files changed, 19 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index e6c3281..174eb41 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -358,6 +358,10 @@
+ #define AM33XX_CONTROL_STATUS_SYSBOOT1_WIDTH		0x2
+ #define AM33XX_CONTROL_STATUS_SYSBOOT1_MASK		(0x3 << 22)
+
++/* DEV Feature register to identify AM33XX features */
++#define AM33XX_DEV_FEATURE		0x604
++#define AM33XX_SGX_MASK			BIT(29)
++
+ /* CONTROL OMAP STATUS register to identify OMAP3 features */
+ #define OMAP3_CONTROL_OMAP_STATUS	0x044c
+
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 1272c41..44be835 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -302,6 +302,19 @@ void __init ti81xx_check_features(void)
+ 	omap3_cpuinfo();
+ }
+
++void __init am33xx_check_features(void)
++{
++	u32 status;
++
++	omap_features = OMAP3_HAS_NEON;
++
++	status = omap_ctrl_readl(AM33XX_DEV_FEATURE);
++	if (status & AM33XX_SGX_MASK)
++		omap_features |= OMAP3_HAS_SGX;
++
++	omap3_cpuinfo();
++}
++
+ void __init omap3xxx_check_revision(void)
+ {
+ 	const char *cpu_rev;
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 09abf99..06a8946 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -576,7 +576,7 @@ void __init am33xx_init_early(void)
+ 	omap2_set_globals_prm(AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRCM_BASE));
+ 	omap2_set_globals_cm(AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRCM_BASE), NULL);
+ 	omap3xxx_check_revision();
+-	ti81xx_check_features();
++	am33xx_check_features();
+ 	am33xx_voltagedomains_init();
+ 	am33xx_powerdomains_init();
+ 	am33xx_clockdomains_init();
+diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
+index 197cc16..fd4507b 100644
+--- a/arch/arm/mach-omap2/soc.h
++++ b/arch/arm/mach-omap2/soc.h
+@@ -424,6 +424,7 @@ void omap4xxx_check_revision(void);
+ void omap5xxx_check_revision(void);
+ void omap3xxx_check_features(void);
+ void ti81xx_check_features(void);
++void am33xx_check_features(void);
+ void omap4xxx_check_features(void);
+
+ /*
+--
+1.7.0.4
 
