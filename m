@@ -1,81 +1,76 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] ARM: OMAP3+: am33xx id: Add new am33xx specific
- function to check dev_feature
-Date: Fri, 17 May 2013 10:15:09 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EC8BF4F@DBDE04.ent.ti.com>
-References: <1367996313-6676-1-git-send-email-hvaibhav@ti.com>
- <87bo8e1r8o.fsf@linaro.org>
+Subject: RE: [PATCH-V2] ARM: AM33XX: Add missing .clkdm_name to
+ clkdiv32k_ick clock
+Date: Fri, 17 May 2013 10:30:54 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EC8BFA7@DBDE04.ent.ti.com>
+References: <1364378666-23641-1-git-send-email-hvaibhav@ti.com>
+ <alpine.DEB.2.00.1303271744510.17356@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="Windows-1252"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52983 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:53777 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754181Ab3EQKPj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 06:15:39 -0400
-In-Reply-To: <87bo8e1r8o.fsf@linaro.org>
+	id S1754794Ab3EQKbZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 06:31:25 -0400
+In-Reply-To: <alpine.DEB.2.00.1303271744510.17356@utopia.booyaka.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
 
 
 > -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@linaro.org]
-> Sent: Tuesday, May 14, 2013 3:23 AM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; tony@atomide.com; linux-arm-
-> kernel@lists.infradead.org
-> Subject: Re: [PATCH] ARM: OMAP3+: am33xx id: Add new am33xx specific
-> function to check dev_feature
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Wednesday, March 27, 2013 11:15 PM
+> To: Tony Lindgren; Hiremath, Vaibhav
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
+> Nayak, Rajendra
+> Subject: Re: [PATCH-V2] ARM: AM33XX: Add missing .clkdm_name to
+> clkdiv32k_ick clock
 > 
-> Vaibhav Hiremath <hvaibhav@ti.com> writes:
+> On Wed, 27 Mar 2013, Vaibhav Hiremath wrote:
 > 
-> > Layout of DEV_FEATURE register (offset = 0x604) is different
-> > between TI81xx and AM33xx device, so create separate function
-> > which will check for features available on specific AM33xx SoC
-> > and set the flags accordingly.
+> > It is required to enable respective clock-domain before
+> > enabling any clock/module inside that clock-domain.
+> >
+> > During common-clock migration, .clkdm_name field got missed
+> > for "clkdiv32k_ick" clock, which leaves "clk_24mhz_clkdm"
+> > unused; so it will be disabled even if childs of this clock-domain
+> > is enabled, which keeps child modules in idle mode.
+> >
+> > This fixes the kernel crash observed on AM335xEVM-SK platform,
+> > where clkdiv32_ick clock is being used as a gpio debounce clock
+> > and since clkdiv32k_ick is in idle mode it leads to below crash -
+> >
+> > Crash Log:
+> > ==========
+> > [    2.598347] Unhandled fault: external abort on non-linefetch
+> (0x1028) at
+> > 0xfa1ac150
+> > [    2.606434] Internal error: : 1028 [#1] SMP ARM
+> > [    2.611207] Modules linked in:
+> > [    2.614449] CPU: 0    Not tainted  (3.8.4-01382-g1f449cd-dirty #4)
+> > [    2.620973] PC is at _set_gpio_debounce+0x60/0x104
+> > [    2.626025] LR is at clk_enable+0x30/0x3c
 > >
 > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Cc: Rajendra Nayak <rnayak@ti.com>
 > 
-> Minor nit below, otherwise...
+> Acked-by: Paul Walmsley <paul@pwsan.com>
 > 
-> Reviewed-by: Kevin Hilman <khilman@linaro.org>
+> Tony, if it isn't too late, could this one be added to your 3.9-rc
+> fixes
+> series?
 > 
-> > ---
-> >  arch/arm/mach-omap2/control.h |    5 +++++
-> >  arch/arm/mach-omap2/id.c      |   13 +++++++++++++
-> >  arch/arm/mach-omap2/io.c      |    2 +-
-> >  arch/arm/mach-omap2/soc.h     |    1 +
-> >  4 files changed, 20 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-
-> omap2/control.h
-> > index e6c3281..4acdfc5 100644
-> > --- a/arch/arm/mach-omap2/control.h
-> > +++ b/arch/arm/mach-omap2/control.h
-> > @@ -358,6 +358,11 @@
-> >  #define AM33XX_CONTROL_STATUS_SYSBOOT1_WIDTH		0x2
-> >  #define AM33XX_CONTROL_STATUS_SYSBOOT1_MASK		(0x3 << 22)
-> >
-> > +/* DEV Feature register to identify AM33XX features */
-> > +#define AM33XX_DEV_FEATURE		0x604
-> > +#define AM33XX_SGX_SHIFT		29
 > 
-> You don't need the shift value anywhere in the code, so...
-> 
-> > +#define AM33XX_SGX_MASK			(1 << AM33XX_SGX_SHIFT)
-> 
-> #define AM33XX_SGX_MASK		BIT(29)
-> 
-> instead?
-> 
-> Otherwise, rest of patch looks fine.
-> 
-Thanks for the review Kevin.
-I just sent out V2 version of the patch with your reviewed-by
-With changes you mentioned.
+
+Looks like we missed this so far.
+
+Tony, can you merge this patch for v3.10-rc ?
 
 Thanks,
 Vaibhav
