@@ -1,121 +1,81 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: [PATCH v6] ARM:dts:omap4-panda: Update the LED support for the
- panda DTS
-Date: Fri, 17 May 2013 11:17:17 -0500
-Message-ID: <5196580D.1070209@ti.com>
-References: <1368806552-8851-1-git-send-email-dmurphy@ti.com> <20130517161525.GA30014@kahuna>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: am3517: failed to boot 3.10-rc1
+Date: Fri, 17 May 2013 09:51:32 -0700
+Message-ID: <87li7dsg6j.fsf@linaro.org>
+References: <519202DC.10100@visionsystems.de>
+	<20130514125216.GE21107@arwen.pp.htv.fi>
+	<519235C5.1010608@visionsystems.de>
+	<5193493C.8020301@visionsystems.de>
+	<519355FC.5050206@visionsystems.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130517161525.GA30014@kahuna>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, b-cousson@ti.com, tony@atomide.com
-Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-da0-f47.google.com ([209.85.210.47]:47803 "EHLO
+	mail-da0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755785Ab3EQQvf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 12:51:35 -0400
+Received: by mail-da0-f47.google.com with SMTP id k13so2476118dae.34
+        for <linux-omap@vger.kernel.org>; Fri, 17 May 2013 09:51:35 -0700 (PDT)
+In-Reply-To: <519355FC.5050206@visionsystems.de> (Yegor Yefremov's message of
+	"Wed, 15 May 2013 11:31:40 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: yegor_sub1@visionsystems.de
+Cc: balbi@ti.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Mark A. Greer" <mgreer@animalcreek.com>, Maxim Podbereznyy <lisarden@gmail.com>
 
-On 05/17/2013 11:15 AM, Nishanth Menon wrote:
-> On 11:02-20130517, Dan Murphy wrote:
->> The GPIO for LED D1 on the omap4-panda a1-a3 rev and the omap4-panda-es
->> are different.
->>
->> A1-A3 = gpio_wk7
->> ES = gpio_110
->>
->> There is no change to LED D2
->>
->> Abstract away the pinmux and the LED definitions for the two boards into
->> the respective DTS files.
->>
->> Signed-off-by: Dan Murphy <dmurphy@ti.com>
->> ---
->> Changes in this version:
->> 	- review comments incorporated.
->> Previous version of this patch was discussed in:
->> 	https://patchwork.kernel.org/patch/2582771/
-> one minor nit,
-> $subject could do with space after the ':'
-> otherwise, it looks fine to me. Will suggest waiting for further
-> reviewers if they have an opinion prior to a new rev.
-Thanks NM I will queue up this change locally and await further review prior to sending v7.
+Yegor Yefremov <yegor_sub1@visionsystems.de> writes:
 
->>  arch/arm/boot/dts/omap4-panda-common.dtsi |   16 +++++++++++++++-
->>  arch/arm/boot/dts/omap4-panda-es.dts      |   28 ++++++++++++++++++++++++++++
->>  2 files changed, 43 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
->> index 03bd60d..5fd59b3 100644
->> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
->> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
->> @@ -16,8 +16,13 @@
->>  		reg = <0x80000000 0x40000000>; /* 1 GB */
->>  	};
->>  
->> -	leds {
->> +	leds: leds {
->>  		compatible = "gpio-leds";
->> +		pinctrl-names = "default";
->> +		pinctrl-0 = <
->> +			&led_wkgpio_pins
->> +		>;
->> +
->>  		heartbeat {
->>  			label = "pandaboard::status1";
->>  			gpios = <&gpio1 7 0>;
->> @@ -137,6 +142,15 @@
->>  	};
->>  };
->>  
->> +&omap4_pmx_wkup {
->> +	led_wkgpio_pins: pinmux_leds_wkpins {
->> +		pinctrl-single,pins = <
->> +			0x1a 0x3	/* gpio_wk7 OUTPUT | MODE 3 */
->> +			0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
->> +		>;
->> +	};
->> +};
->> +
->>  &i2c1 {
->>  	pinctrl-names = "default";
->>  	pinctrl-0 = <&i2c1_pins>;
->> diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
->> index f1d8c21..c968a3b 100644
->> --- a/arch/arm/boot/dts/omap4-panda-es.dts
->> +++ b/arch/arm/boot/dts/omap4-panda-es.dts
->> @@ -34,3 +34,31 @@
->>  		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
->>  		>;
->>  };
->> +
->> +&omap4_pmx_core {
->> +	led_gpio_pins: gpio_led_pmx {
->> +		pinctrl-single,pins = <
->> +			0xb6 0x3	/* gpio_110 OUTPUT | MODE 3 */
->> +		>;
->> +	};
->> +};
->> +
->> +&led_wkgpio_pins {
->> +	pinctrl-single,pins = <
->> +		0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
->> +	>;
->> +};
->> +
->> +&leds {
->> +	pinctrl-0 = <
->> +		&led_gpio_pins
->> +		&led_wkgpio_pins
->> +	>;
->> +
->> +	heartbeat {
->> +		gpios = <&gpio4 14 0>;
->> +	};
->> +	mmc {
->> +		gpios = <&gpio1 8 0>;
->> +	};
->> +};
+> On 15.05.2013 10:37, Yegor Yefremov wrote:
+>> On 14.05.2013 15:01, Yegor Yefremov wrote:
+>>> On 14.05.2013 14:52, Felipe Balbi wrote:
+>>>> On Tue, May 14, 2013 at 11:24:44AM +0200, Yegor Yefremov wrote:
+>>>>> Trying to boot 3.10-rc1 on an am3515 based board. With the same
+>>>>> .config as 3.7 the system comes to RTC stops there. I've also tried
+>>>>> make omap2plus_defconfig with no visible difference. I'm booting from
+>>>>> MMC card and it will be detected by the system. Kernel is from
+>>>>> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git, latest
+>>>>> commit f722406faae2d073cc1d01063d1123c35425939e. Are there any pending
+>>>>> patches needed to boot on am3517?
+>>>> does v3.9 work ? Can you bisect ?
+>>>
+>>> 'git checkout v3.9' version is working, will try to bisect.
+>> 
+>> This is bisect's result:
+>> 
+>> f7b861b7a6d9d1838cbbb5f4053e61578b86d134 is the first bad commit
+>> commit f7b861b7a6d9d1838cbbb5f4053e61578b86d134
+>> Author: Thomas Gleixner <tglx@linutronix.de>
+>> Date:   Thu Mar 21 22:49:38 2013 +0100
+>> 
+>>     arm: Use generic idle loop
+>> 
+>>     Use the generic idle loop and replace enable/disable_hlt with the
+>>     respective core functions.
+>> 
+>>     Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+>>     Cc: Linus Torvalds <torvalds@linux-foundation.org>
+>>     Cc: Rusty Russell <rusty@rustcorp.com.au>
+>>     Cc: Paul McKenney <paulmck@linux.vnet.ibm.com>
+>>     Cc: Peter Zijlstra <peterz@infradead.org>
+>>     Reviewed-by: Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+>>     Cc: Magnus Damm <magnus.damm@gmail.com>
+>>     Cc: Russell King <linux@arm.linux.org.uk>
+>>     Tested-by: Kevin Hilman <khilman@linaro.org> # OMAP
+>>     Link: http://lkml.kernel.org/r/20130321215233.826238797@linutronix.de
+>> 
+>> :040000 040000 887517403888ff3947bce216aa4c1ff3ce3af434 8dc5236688a80fc64fa4112ce6136ecf3a19bac9 M      arch
+>
+> We had such a problem long ago
+> (https://patchwork.kernel.org/patch/1220061/ and
+> http://www.spinics.net/lists/arm-kernel/msg168865.html) and the
+> workaround was to use hohlt in kernel parameters. But with this patch
+> the "nohlt" has gone. So now we need a solution, that fixes the root
+> of the problem.
 
+The broken 'nohlt' feature was indeed a regression caused by the above
+patch, but there's already a fix queued for v3.10-rc2[1], so -rc1 will
+need the patch applied manually.
 
--- 
-------------------
-Dan Murphy
+Kevin
+
+[1] https://lkml.org/lkml/2013/5/5/6
