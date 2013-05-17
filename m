@@ -1,317 +1,60 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 6/6] ARM: OMAP2+: Remove omap4 ocp2scp pdata
-Date: Fri, 17 May 2013 12:18:03 -0700
-Message-ID: <20130517191803.468.32800.stgit@localhost>
-References: <20130517191304.468.73487.stgit@localhost>
+Subject: [GIT PULL] omap fixes for v3.10-rc1
+Date: Fri, 17 May 2013 12:25:16 -0700
+Message-ID: <20130517192515.GC5600@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:21972 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37848 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756634Ab3EQTSI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 15:18:08 -0400
-In-Reply-To: <20130517191304.468.73487.stgit@localhost>
+	with ESMTP id S1753725Ab3EQTZV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 15:25:21 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-This is omap4+ only and no longer needed as omap4+ can be booted
-using device tree.
+The following changes since commit f722406faae2d073cc1d01063d1123c35425939e:
 
-Also remove the related pdata handling from the driver and the
-now unneeded platform_data/omap_ocp2scp.h.
+  Linux 3.10-rc1 (2013-05-11 17:14:08 -0700)
 
-Cc: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Olof Johansson <olof@lixom.net>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/devices.c              |   78 ----------------------------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   21 --------
- drivers/bus/omap-ocp2scp.c                 |   60 ----------------------
- include/linux/platform_data/omap_ocp2scp.h |   31 -----------
- 4 files changed, 190 deletions(-)
- delete mode 100644 include/linux/platform_data/omap_ocp2scp.h
+are available in the git repository at:
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 0fd3834..3f2c85a 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -19,7 +19,6 @@
- #include <linux/of.h>
- #include <linux/pinctrl/machine.h>
- #include <linux/platform_data/omap4-keypad.h>
--#include <linux/platform_data/omap_ocp2scp.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/map.h>
-@@ -513,82 +512,6 @@ static void omap_init_vout(void)
- static inline void omap_init_vout(void) {}
- #endif
- 
--#if defined(CONFIG_OMAP_OCP2SCP) || defined(CONFIG_OMAP_OCP2SCP_MODULE)
--static int count_ocp2scp_devices(struct omap_ocp2scp_dev *ocp2scp_dev)
--{
--	int cnt	= 0;
--
--	while (ocp2scp_dev->drv_name != NULL) {
--		cnt++;
--		ocp2scp_dev++;
--	}
--
--	return cnt;
--}
--
--static void __init omap_init_ocp2scp(void)
--{
--	struct omap_hwmod	*oh;
--	struct platform_device	*pdev;
--	int			bus_id = -1, dev_cnt = 0, i;
--	struct omap_ocp2scp_dev	*ocp2scp_dev;
--	const char		*oh_name, *name;
--	struct omap_ocp2scp_platform_data *pdata;
--
--	if (!cpu_is_omap44xx())
--		return;
--
--	oh_name = "ocp2scp_usb_phy";
--	name	= "omap-ocp2scp";
--
--	oh = omap_hwmod_lookup(oh_name);
--	if (!oh) {
--		pr_err("%s: could not find omap_hwmod for %s\n", __func__,
--								oh_name);
--		return;
--	}
--
--	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
--	if (!pdata) {
--		pr_err("%s: No memory for ocp2scp pdata\n", __func__);
--		return;
--	}
--
--	ocp2scp_dev = oh->dev_attr;
--	dev_cnt = count_ocp2scp_devices(ocp2scp_dev);
--
--	if (!dev_cnt) {
--		pr_err("%s: No devices connected to ocp2scp\n", __func__);
--		kfree(pdata);
--		return;
--	}
--
--	pdata->devices = kzalloc(sizeof(struct omap_ocp2scp_dev *)
--					* dev_cnt, GFP_KERNEL);
--	if (!pdata->devices) {
--		pr_err("%s: No memory for ocp2scp pdata devices\n", __func__);
--		kfree(pdata);
--		return;
--	}
--
--	for (i = 0; i < dev_cnt; i++, ocp2scp_dev++)
--		pdata->devices[i] = ocp2scp_dev;
--
--	pdata->dev_cnt	= dev_cnt;
--
--	pdev = omap_device_build(name, bus_id, oh, pdata, sizeof(*pdata));
--	if (IS_ERR(pdev)) {
--		pr_err("Could not build omap_device for %s %s\n",
--						name, oh_name);
--		kfree(pdata->devices);
--		kfree(pdata);
--		return;
--	}
--}
--#else
--static inline void omap_init_ocp2scp(void) { }
--#endif
--
- /*-------------------------------------------------------------------------*/
- 
- static int __init omap2_init_devices(void)
-@@ -616,7 +539,6 @@ static int __init omap2_init_devices(void)
- 	omap_init_sti();
- 	omap_init_rng();
- 	omap_init_vout();
--	omap_init_ocp2scp();
- 
- 	return 0;
- }
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index eaba9dc..8b60678 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -21,7 +21,6 @@
- #include <linux/io.h>
- #include <linux/platform_data/gpio-omap.h>
- #include <linux/power/smartreflex.h>
--#include <linux/platform_data/omap_ocp2scp.h>
- #include <linux/i2c-omap.h>
- 
- #include <linux/omap-dma.h>
-@@ -2695,25 +2694,6 @@ static struct omap_hwmod_class omap44xx_ocp2scp_hwmod_class = {
- 	.sysc	= &omap44xx_ocp2scp_sysc,
- };
- 
--/* ocp2scp dev_attr */
--static struct resource omap44xx_usb_phy_and_pll_addrs[] = {
--	{
--		.name		= "usb_phy",
--		.start		= 0x4a0ad080,
--		.end		= 0x4a0ae000,
--		.flags		= IORESOURCE_MEM,
--	},
--	{ }
--};
--
--static struct omap_ocp2scp_dev ocp2scp_dev_attr[] = {
--	{
--		.drv_name       = "omap-usb2",
--		.res		= omap44xx_usb_phy_and_pll_addrs,
--	},
--	{ }
--};
--
- /* ocp2scp_usb_phy */
- static struct omap_hwmod omap44xx_ocp2scp_usb_phy_hwmod = {
- 	.name		= "ocp2scp_usb_phy",
-@@ -2737,7 +2717,6 @@ static struct omap_hwmod omap44xx_ocp2scp_usb_phy_hwmod = {
- 			.modulemode   = MODULEMODE_HWCTRL,
- 		},
- 	},
--	.dev_attr	= ocp2scp_dev_attr,
- };
- 
- /*
-diff --git a/drivers/bus/omap-ocp2scp.c b/drivers/bus/omap-ocp2scp.c
-index fe71916..5511f98 100644
---- a/drivers/bus/omap-ocp2scp.c
-+++ b/drivers/bus/omap-ocp2scp.c
-@@ -22,26 +22,6 @@
- #include <linux/pm_runtime.h>
- #include <linux/of.h>
- #include <linux/of_platform.h>
--#include <linux/platform_data/omap_ocp2scp.h>
--
--/**
-- * _count_resources - count for the number of resources
-- * @res: struct resource *
-- *
-- * Count and return the number of resources populated for the device that is
-- * connected to ocp2scp.
-- */
--static unsigned _count_resources(struct resource *res)
--{
--	int cnt	= 0;
--
--	while (res->start != res->end) {
--		cnt++;
--		res++;
--	}
--
--	return cnt;
--}
- 
- static int ocp2scp_remove_devices(struct device *dev, void *c)
- {
-@@ -55,11 +35,7 @@ static int ocp2scp_remove_devices(struct device *dev, void *c)
- static int omap_ocp2scp_probe(struct platform_device *pdev)
- {
- 	int ret;
--	unsigned res_cnt, i;
- 	struct device_node *np = pdev->dev.of_node;
--	struct platform_device *pdev_child;
--	struct omap_ocp2scp_platform_data *pdata = pdev->dev.platform_data;
--	struct omap_ocp2scp_dev *dev;
- 
- 	if (np) {
- 		ret = of_platform_populate(np, NULL, NULL, &pdev->dev);
-@@ -68,48 +44,12 @@ static int omap_ocp2scp_probe(struct platform_device *pdev)
- 			    "failed to add resources for ocp2scp child\n");
- 			goto err0;
- 		}
--	} else if (pdata) {
--		for (i = 0, dev = *pdata->devices; i < pdata->dev_cnt; i++,
--		    dev++) {
--			res_cnt = _count_resources(dev->res);
--
--			pdev_child = platform_device_alloc(dev->drv_name,
--			    PLATFORM_DEVID_AUTO);
--			if (!pdev_child) {
--				dev_err(&pdev->dev,
--				  "failed to allocate mem for ocp2scp child\n");
--				goto err0;
--			}
--
--			ret = platform_device_add_resources(pdev_child,
--			    dev->res, res_cnt);
--			if (ret) {
--				dev_err(&pdev->dev,
--				 "failed to add resources for ocp2scp child\n");
--				goto err1;
--			}
--
--			pdev_child->dev.parent	= &pdev->dev;
--
--			ret = platform_device_add(pdev_child);
--			if (ret) {
--				dev_err(&pdev->dev,
--				   "failed to register ocp2scp child device\n");
--				goto err1;
--			}
--		}
--	} else {
--		dev_err(&pdev->dev, "OCP2SCP initialized without plat data\n");
--		return -EINVAL;
- 	}
- 
- 	pm_runtime_enable(&pdev->dev);
- 
- 	return 0;
- 
--err1:
--	platform_device_put(pdev_child);
--
- err0:
- 	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
- 
-diff --git a/include/linux/platform_data/omap_ocp2scp.h b/include/linux/platform_data/omap_ocp2scp.h
-deleted file mode 100644
-index 5c6c393..0000000
---- a/include/linux/platform_data/omap_ocp2scp.h
-+++ /dev/null
-@@ -1,31 +0,0 @@
--/*
-- * omap_ocp2scp.h -- ocp2scp header file
-- *
-- * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * Author: Kishon Vijay Abraham I <kishon@ti.com>
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- */
--
--#ifndef __DRIVERS_OMAP_OCP2SCP_H
--#define __DRIVERS_OMAP_OCP2SCP_H
--
--struct omap_ocp2scp_dev {
--	const char			*drv_name;
--	struct resource			*res;
--};
--
--struct omap_ocp2scp_platform_data {
--	int				dev_cnt;
--	struct omap_ocp2scp_dev		**devices;
--};
--#endif /* __DRIVERS_OMAP_OCP2SCP_H */
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10-rc1/fixes
 
+for you to fetch changes up to a6d25f4c951b8b28f2eaec6f891ff834622532f2:
+
+  ARM: AM33XX: Add missing .clkdm_name to clkdiv32k_ick clock (2013-05-17 10:07:45 -0700)
+
+----------------------------------------------------------------
+Fixes for omaps:
+
+- a section mismatch fix for hwmod
+- boot fix for omap2plus_defconfig for omap2
+- musb interrupt fix when using device tree
+- am33xx clock fix that I missed earlier somehow
+- omap1 dma return code error fix
+
+----------------------------------------------------------------
+Paul Walmsley (1):
+      ARM: OMAP2+: Add missing CONFIG_ARCH_MULTI_V6=y to omap2plus_defconfig
+
+Tony Lindgren (1):
+      ARM: dts: Fix musb interrupt for device tree booting
+
+Vaibhav Hiremath (1):
+      ARM: AM33XX: Add missing .clkdm_name to clkdiv32k_ick clock
+
+Wei Yongjun (1):
+      ARM: OMAP: fix error return code in omap1_system_dma_init()
+
+jean-philippe francois (1):
+      ARM: OMAP: fix __init section mismatch for _enable_preprogram
+
+ arch/arm/boot/dts/omap3.dtsi          |  2 +-
+ arch/arm/configs/omap2plus_defconfig  |  1 +
+ arch/arm/mach-omap1/dma.c             |  1 +
+ arch/arm/mach-omap2/cclock33xx_data.c | 26 +++++++++++++++++++++++---
+ arch/arm/mach-omap2/omap_hwmod.c      |  2 +-
+ 5 files changed, 27 insertions(+), 5 deletions(-)
