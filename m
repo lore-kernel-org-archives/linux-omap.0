@@ -1,91 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP5: hwmod, prm/cm data files and updates
- for 3.10
-Date: Fri, 17 May 2013 10:22:31 -0700
-Message-ID: <20130517172231.GW5600@atomide.com>
-References: <1363768852-18125-1-git-send-email-santosh.shilimkar@ti.com>
- <20130401170539.GK10155@atomide.com>
- <515BA76D.3000302@ti.com>
- <alpine.DEB.2.00.1304031146230.2616@utopia.booyaka.com>
- <515D6020.2030103@ti.com>
- <20130404165208.GI10155@atomide.com>
- <515DB110.9000503@ti.com>
- <515F00B8.3000501@ti.com>
- <5195E380.4040103@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: change the device names in usb_bind_phy
+Date: Fri, 17 May 2013 10:23:35 -0700
+Message-ID: <20130517172335.GX5600@atomide.com>
+References: <1366697656-14315-1-git-send-email-kishon@ti.com>
+ <51936946.3030507@iki.fi>
+ <20130516155857.GV5600@atomide.com>
+ <519503DA.5070303@iki.fi>
+ <20130516162034.GX5600@atomide.com>
+ <5195C28C.40300@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:45895 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756351Ab3EQRWg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 13:22:36 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5195E380.4040103@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <5195C28C.40300@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@iki.fi>, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Kristo, Tero" <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, "Valentin, Eduardo" <eduardo.valentin@ti.com>, "Anna, Suman" <s-anna@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [130517 01:02]:
-> Paul, Tony,
+* Kishon Vijay Abraham I <kishon@ti.com> [130516 22:45]:
+> Hi,
 > 
-> On Friday 05 April 2013 10:20 PM, Santosh Shilimkar wrote:
-> > On Thursday 04 April 2013 10:27 PM, Santosh Shilimkar wrote:
-> >> On Thursday 04 April 2013 10:22 PM, Tony Lindgren wrote:
-> >>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130404 04:15]:
-> > [..]
-> > 
-> >>> Can't we already trim the am33xx hwmod data after your patches for
-> >>> v3.10 as am33xx is already DT only? Unfortunately we cannot create
-> >>> negative diffstat in other ways for v3.10 merge window as we cannot
-> >>> make omap4 DT only just quite yet.
+> On Thursday 16 May 2013 09:50 PM, Tony Lindgren wrote:
+> >* Tomi Valkeinen <tomi.valkeinen@iki.fi> [130516 09:11]:
+> >>On 16/05/13 18:58, Tony Lindgren wrote:
+> >>>* Tomi Valkeinen <tomi.valkeinen@iki.fi> [130515 03:59]:
 > >>>
-> >> Yes we can and I can take a stab it tomorrow. The only thing is I
-> >> might need some support for testing but thats manageable. Will
-> >> take a stab at it tomorrow and if everything goes well, post a
-> >> patch for smae.
+> >>>Just checking.. Do you have CONFIG_OMAP_OCP2SCP=y in your .config? Sounds
+> >>>like the some transceivers should depend on that for omap4.
 > >>
-> > Patch for the AM33XX to trim is end of the email. Thanks to
-> > Sricharan and Pekon for patch and testing. Looping both
-> > Vaibhav's if they have any objection on the patch.
-> > 
-> > Regards,
-> > Santosh
-> > 
-> > From b95dd33fe59b8e77727eb3b1717d763bbf9a2893 Mon Sep 17 00:00:00 2001
-> > From: Sricharan R <r.sricharan@ti.com>
-> > Date: Fri, 5 Apr 2013 20:39:12 +0530
-> > Subject: [PATCH] ARM: AM33XX: hwmod data: Clean up the data file
-> > 
-> For whatever reason, we again missed the merge window for the subject
-> series, I would like to know your plan on the subject series for
-> at least 3.11. Asking *well in advance* to avoid late merge related
-> discussions.
-
-Yes, I think we should have now a omap5 hwmod data sized hole coming
-up with conversion of omap4 to be DT only. I'll post those patches
-today for the board file and legacy mux removal for omap4:
-
-12 files changed, 52 insertions(+), 3260 deletions(-)
-
-Those coupled with your am33xx hwmod cleanup patch and your omap4
-hwmod cleanup patch should allow us having the omap5 hwmod data
-without making the diffstats look too bad.
- 
-> Thanks to Vaibhav, AM33XX patch is tested and validated with some
-> updates considering upcoming PM support for AM33XX. So that
-> patch will be included in the series.
+> >>Yes, I have OCP2SCP=y.
+> >
+> >Hmm well no idea beyond that then. Sounds like Kishon should check it.
+> >
+> >>>>The musb-hdrc id is wrong on overo also.
+> >>>
+> >>>Hmm has there been a fix posted for that?
+> >>
+> >>I couldn't find with a quick look. We debugged and discussed this on an irc
+> >>channel with Kishon, who said he'll send a patch. Changing the musb-hdrc ID
+> >>on overo fixed the issue, and it looks very similar to the error on 4430sdp.
+> >>The overo fix was just:
 > 
-> Rajendra will follow up the patchset if there is some re-basing is
-> needed since I will away for few weeks because of travel. 
+> hmm.. I think using device name to bind the controller and the phy
+> can no longer be used reliably. I think it's better to have
+> something like what Grant suggested in my other patch series.. to
+> have the phy reference into the host controllers platform_data
+> structure. And for the phy reference I'll have label and id.
+> 
+> Does this makes sense to you?
 
-OK, well the omap4 hwmod clean-up patch depends on first dropping
-the above mentioned omap4 legacy files.
- 
-> OMAP5 data is the *only* thing which is gating the device to boot
-> from mainline.
-
-That's great!
+Sounds OK to me, but I guess that would be for v3.11. I think we
+still need a fix for at least overo for v3.10?
 
 Regards,
 
