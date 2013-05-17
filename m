@@ -1,53 +1,54 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: reset handling in am335x hwmod data
-Date: Fri, 17 May 2013 13:19:23 -0500
-Message-ID: <20130517181922.GA4439@kahuna>
-References: <87ehij8lpb.fsf@dell.be.48ers.dk>
- <alpine.DEB.2.00.1212232033030.8937@utopia.booyaka.com>
- <20130517135022.GH14133@arwen.pp.htv.fi>
- <877gixsfdz.fsf@linaro.org>
- <87vc6hlbnz.fsf@dell.be.48ers.dk>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: v3.10-rc1: backlight brightness after boot on N900
+Date: Fri, 17 May 2013 21:25:04 +0300
+Message-ID: <20130517182504.GC31836@blackmetal.musicnaut.iki.fi>
+References: <20130515171845.GB3157@blackmetal.musicnaut.iki.fi>
+ <519465FC.9090002@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50495 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753802Ab3EQSTf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 14:19:35 -0400
+Received: from filtteri1.pp.htv.fi ([213.243.153.184]:59360 "EHLO
+	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755129Ab3EQSZM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 May 2013 14:25:12 -0400
 Content-Disposition: inline
-In-Reply-To: <87vc6hlbnz.fsf@dell.be.48ers.dk>
+In-Reply-To: <519465FC.9090002@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Korsgaard <jacmet@sunsite.dk>
-Cc: Kevin Hilman <khilman@linaro.org>, balbi@ti.com, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jon Hunter <jon-hunter@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-On 20:10-20130517, Peter Korsgaard wrote:
-> >>>>> "Kevin" == Kevin Hilman <khilman@linaro.org> writes:
+On Thu, May 16, 2013 at 07:52:12AM +0300, Tomi Valkeinen wrote:
+> On 15/05/13 20:18, Aaro Koskinen wrote:
+> > Is it expected that after boot you get 0 brightness i.e. a seemingly
+> > blank display on N900 with 3.10-rc1?
 > 
->  >> In this case, we cannot reset that bank, otherwise Starter Kit will
->  >> never boot in mainline. Bad PCB design, I know, but it's not something
->  >> we can change now :-)
+> There were some small changes merged in v3.10 related to acx's
+> backlight, but they were removing dead code so I don't see how those
+> could affect...
+
+[...]
+
+> So what comes to my mind is that either the model is detected wrong,
+> or the acx565akm_get_actual_brightness() which reads the current BL from
+> the panel happens to return 0, either because of an error, or because
+> the bootloader has set the BL to 0.
 > 
->  Kevin> FWIW, we've seen this before (GPIO connected to PMIC reset is a
->  Kevin> fun one), and this is why we have omap_hwmod_no_setup_reset().
-> 
-> Yes, but there's no dts bindings for this, and from a quick test the
-> reset handling happens before the device tree is probed.
-I have the same issue with TPS62361 on Palmas -> GPIO controls the
-voltage register supplying MPU, without any driver setting things up,
-GPIO gets reset and obviously voltage value switches to an voltage where
-device does not function.
+> But why either of those would've changed with v3.10... No idea...
 
-Solution I am working on to solve this is [1]: snippet is part of a
-patch that I am working on atm.
+The panel is detected and probed correctly. So something else is wrong.
+It's not a bootloader issue, because booting 3.9 right after 3.10-rc1
+makes the display work again correctly.
 
-This is the right way to do it IMHO. Will allow the driver to exist when
-HWMOD will be eventually replaced by some other framework.
+So I bisected and it points to:
 
+	commit a2797beadfcb5a0974a30929b613b4d1adb023d1
+	Author: Jon Hunter <jon-hunter@ti.com>
+	Date:   Thu Apr 4 15:16:15 2013 -0500
 
-[1]: http://pastebin.com/XPmAB1Zb
+	    gpio/omap: force restore if context loss is not detectable
 
- 
--- 
-Regards,
-Nishanth Menon
+When I revert that commit from 3.10-rc1, the display works again as
+expected.
+
+A.
