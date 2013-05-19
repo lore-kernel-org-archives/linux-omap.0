@@ -1,105 +1,142 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH 4/4 v2] ARM: OMAP2+: updated ECC scheme attributes for
- omap2-nand DT
-Date: Sat, 18 May 2013 11:05:26 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73E9C54B6@DBDE04.ent.ti.com>
-References: <1368791418-14330-1-git-send-email-pekon@ti.com>
- <1368791418-14330-5-git-send-email-pekon@ti.com>
- <201305171446.06023.arnd@arndb.de>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.10-rc1
+Date: Sun, 19 May 2013 22:03:39 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1305192159080.2656@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51945 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752913Ab3ERLGI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 May 2013 07:06:08 -0400
-In-Reply-To: <201305171446.06023.arnd@arndb.de>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([74.50.51.50]:43842 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752215Ab3ESWDk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 May 2013 18:03:40 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Philip, Avinash" <avinashphilip@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Balbi, Felipe" <balbi@ti.com>, "jp.francois@cynove.com" <jp.francois@cynove.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
 
-> On Friday 17 May 2013, Gupta, Pekon wrote:
-> > From: "Gupta, Pekon" <pekon@ti.com>
-> >
-> > Updates ECC scheme selection string same to same as used in omap2-
-> driver code.
-> > This makes the DT configurations easy to understand and map to actual
-> code.
-> >
-> > Signed-off-by: Gupta, Pekon <pekon@ti.com>
-> 
-> This moves the binding in the wrong direction. First of all, you should
-> never
-> make incompatible changes to a specification document.
-> 
-> > -	"bch8_hw_detection_sw" 	8-bit BCH with ECC calculation in
-> hardware
-> > -				and error detection in software
-> > -				- requires Kconfig
-> CONFIG_MTD_NAND_ECC_BCH
-> 
-> The binding before your change is already broken since it refers to
-> Linux-specific Kconfig symbols, and you fail to fix that.
-> 
-[Pekon]: There are two constrains due to which I could not remove
-Kconfig dependency
-(1) Some BCHx ECC schemes are using generic lib/bch.h and nand_bch.h 
-generic libraries, which further depend on 'CONFIG_MTD_NAND_ECC_BCH'.
-So I have to include that dependency, so that incorrect ECC scheme 
-selection In DT does not break linker.
 
-(2) Other alternative could have been to always include lib/bch.h and 
-nand_bch.h. But that would have bloated the omap2-driver footprint,
-especially when 80% of the time these libraries were not getting used.
+Here are some basic OMAP test results for Linux v3.10-rc1.
+Logs and other details at:
 
-(3) I did not want to change things so drastically that it breaks on legacy
-devices. Some users are now migrating to latest kernel from older 
-versions. I din't want to make migration more tough :-)
-
-However, I tried to fix some existing issues due to incorrect selection of
-Kconfigs, and I tried making things simpler from user's point-of-view.
-
-Like, if you don't select a correct Kconfig along with matching ECC scheme
-Then your device_initialization would cleanly exit giving you msg:
-pr_err("selected ECC scheme not supported or not enabled\n");
+    http://www.pwsan.com/omap/testlogs/test_v3.10-rc1/20130518212204/
 
 
-when running the linker.> > +
-> 	"OMAP_ECC_BCH4_CODE_HW_DETECTION_SW"
-> > +					4-bit BCH with ECC calculation in
-> > +					hardware & error detection in
-> software.
-> > +					- requires
-> CONFIG_MTD_NAND_ECC_BCH
-> 
-> Instead you make it worse by using /more/ Linux-isms in the binding.
-> 
-> 	Arnd
+Test summary
+------------
 
-[Pekon]: The update binding attribute string is done for following reasons:
-(1) make it more user-friendly. The string you put in the DT is same, 
-You see while browsing thru the driver code.
-My assessment was that most mainline user are much tech-savy 
-they themselves try to dig into the code and analyze the issue.
-Thus for them, reducing the gap between driver nomenclature and 
-DT bindings was my way of thinking.
+Build: uImage:
+    Pass (16/16): am33xx_only, n800_multi_omap2xxx, n800_only_a,
+                  omap1_defconfig, omap1_defconfig_1510innovator_only, 
+                  omap1_defconfig_5912osk_only, omap2plus_defconfig, 
+                  omap2plus_defconfig_2430sdp_only
+                  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm, 
+                  omap2plus_defconfig_omap2_4_only, 
+                  omap2plus_defconfig_omap3_4_only, 
+                  rmk_omap3430_ldp_allnoconfig, 
+                  rmk_omap3430_ldp_oldconfig, 
+                  rmk_omap4430_sdp_allnoconfig, 
+                  rmk_omap4430_sdp_oldconfig
 
-(2) prefix of 'OMAP_ECC_xx' was required because I wanted to 
-Differentiate Some ECC schemes implementations from the ones 
-already present in generic driver (nand_base.c)
-Example: there are following favours of same BCH-ECC scheme now..
-- NAND_ECC_SOFT_BCH:  purely S/W based ECC scheme
-- OMAP_ECC_BCH4_HW_DETECTION_SW: partly S/w partly H/W based
-- OMAP_ECC_BCH4_MODE_HW: fully H/W based ECC scheme.
+Build: zImage:
+    Pass ( 1/ 1): omap2plus_defconfig
 
-Anyway these are just my way of thinking.. 
-If you have some suggestions, in following a particular nomenclature
-OR particular way of streamlining the driver, please elaborate..
-Any feedbacks would help to improve..
+Boot to userspace:
+    FAIL ( 6/12): 2430sdp, 3517evm, 37xxevm, am335xbone, am335xbonelt, cmt3517
+    Pass ( 6/12): 2420n800, 3530es3beagle, 3730beaglexm, 4430es2panda,
+                  4460pandaes, 5912osk
+
+PM: chip retention via suspend:
+    FAIL ( 4/ 6): 2430sdp, 37xxevm, 4430es2panda, 4460pandaes
+    Pass ( 2/ 6): 3530es3beagle, 3730beaglexm
+
+PM: chip retention via dynamic idle:
+    FAIL ( 4/ 6): 2430sdp, 37xxevm, 4430es2panda, 4460pandaes
+    Pass ( 2/ 6): 3530es3beagle, 3730beaglexm
+
+PM: chip off except CORE via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off except CORE via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 3/ 4): 37xxevm, 4430es2panda, 4460pandaes
+    Pass ( 1/ 4): 3530es3beagle
+
+PM: chip off via dynamic idle:
+    FAIL ( 3/ 4): 37xxevm, 4430es2panda, 4460pandaes
+    Pass ( 1/ 4): 3530es3beagle
 
 
-With regards, pekon
+
+Failing tests: fixed by posted patches
+--------------------------------------
+
+Boot:
+
+* ARMv6 OMAPs don't boot with omap2plus_defconfig
+  - missing Kconfig 
+  - http://marc.info/?l=linux-omap&m=136872761502689&w=2
+
+* 3517EVM & CM-T3517: boot hangs with MMC root
+  - Possibly fixed by https://lkml.org/lkml/2013/5/5/6
+
+
+Failing tests: needing investigation
+------------------------------------
+
+Boot tests:
+
+* 3517EVM & CM-T3517: boot hangs with NFS root
+  - Likely some Kconfig, board file, and PM issues with EMAC
+  - Longstanding bug
+  - Not currently part of the automated test suite
+
+* 37xx EVM: boot fails
+  - Cause unknown
+
+Boot warnings:
+
+* CM-T3517: L3 in-band error with IPSS during boot
+  - Cause unknown but see http://marc.info/?l=linux-omap&m=134833869730129&w=2
+  - Longstanding issue; does not occur on the 3517EVM
+
+PM tests:
+
+* 2430sdp: power domains not entering retention
+  - Cause unknown
+
+* 3730 Beagle XM: does not serial wake from off-idle suspend when console
+  UART doesn't clock-gate ("debug ignore_loglevel")
+  - Cause unknown
+  - Not yet part of the automated test suite
+  - Re-tested at v3.7; still failing:
+    http://www.pwsan.com/omap/transcripts/20121211-3730beaglexm-3.7-pm-offmode-fail-debug.txt
+
+* 4430es2panda: pwrdm state mismatch on CAM, DSS
+
+* 4430es2panda: CORE, TESLA, IVAHD, L3INIT didn't enter target state
+  - Probably due to lack of reset code for M3, DSP, SL2IF, FSUSB
+    per discussion with Tero Kristo
+  - Likely dependent on the bootloader version
+    - fails with 2012.07-00136-g755de79
+  - http://marc.info/?l=linux-arm-kernel&m=136432340618226&w=2
+
+* 4430es2panda: MPU, ABE didn't enter target state
+  - New for v3.10-rc
+
+* 4460pandaes: pwrdm state mismatch on DSS, ABE, IVAHD, TESLA
+
+* 4460pandaes: chip not entering retention in dynamic idle
+  - Presumably 4430es2panda also fails this
+  - Suspend-to-RAM enters full chip retention
+
+Other:
+
+* 4430es2panda: omap_hwmod: l3_instr: _wait_target_disable failed
+  - Unknown cause; could be due to the lack of hierarchical enable/disable
+    in hwmod code
+  - Jon Hunter and Santosh Shilimkar report this does not appear with
+    the same X-loader/bootloader on his 4430ES2.3 Panda, so could be
+    ES-level dependent
