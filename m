@@ -1,65 +1,52 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] ARM: dts: AM33XX: Set pinmux for clkout2 pad used
- for clock output
-Date: Mon, 20 May 2013 02:51:02 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1305200250250.2656@utopia.booyaka.com>
-References: <1367919574-21353-1-git-send-email-hvaibhav@ti.com> <1367919574-21353-3-git-send-email-hvaibhav@ti.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [v2, 3/3] ARM: dts: AM33XX: Add NAND flash device tree data to
+ am335x-evm
+Date: Mon, 20 May 2013 04:44:31 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73E9C5629@DBDE04.ent.ti.com>
+References: <ebfab3e9123b3e50b9a9678c1480191addd86d59.1359007746.git.avinashphilip@ti.com>
+ <517F5126.5000509@ti.com> <20130508235404.GX32546@atomide.com>
+ <20980858CB6D3A4BAE95CA194937D5E73E9C320D@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:44350 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754374Ab3ETCvD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 May 2013 22:51:03 -0400
-In-Reply-To: <1367919574-21353-3-git-send-email-hvaibhav@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73E9C320D@DBDE04.ent.ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Cousson, Benoit" <b-cousson@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Philip, Avinash" <avinashphilip@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "zonque@gmail.com" <zonque@gmail.com>, "jacmet@sunsite.dk" <jacmet@sunsite.dk>, "Nori, Sekhar" <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
 
-Hi
-
-something that you should fix:
-
-On Tue, 7 May 2013, Vaibhav Hiremath wrote:
-
-> xdma_event_intr1.clkout2 pad can be used to source clock
-> from either 32K OSC or any of the PLL (except MPU) outputs.
-> On the existing AM335x based boards (EVM, EVM-SK and Bone),
-> this pad is used to feed the clock to audio codes.
+ 
+> > > >
+> > > >  	am33xx_pinmux: pinmux@44e10800 {
+> > > >  		pinctrl-names = "default";
+> > > > -		pinctrl-0 = <&matrix_keypad_s0 &volume_keys_s0>;
+> > > > +		pinctrl-0 = <&matrix_keypad_s0 &volume_keys_s0
+> > > > +			&nandflash_pins_s0>;
+> > >
+> > > Why add this to the board level fallback (called pinctrl hogs, I think)?
+> > > This can be part of nand node you added below so that the pinctrl will
+> > > take effect when nand gets probed instead of all the time.
+> >
+> > Yes we should have all the pinctrl entries under the related drivers.
+> > This makes it easy remux pins during runtime if needed, and also
+> > allows unloading pinctrl-single.ko for development.
+> >
+> Yes, accepted. This has been already fixed in v3 of this patch set.
+> If all fine, then please pull this for next merge..
 > 
-> So, this patch configures the pinmux to get clkout2 on the pad.
+> http://lists.infradead.org/pipermail/linux-mtd/2013-May/046712.html
 > 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
->  arch/arm/boot/dts/am335x-bone.dts  |    8 +++++++-
->  arch/arm/boot/dts/am335x-evm.dts   |    8 +++++++-
->  arch/arm/boot/dts/am335x-evmsk.dts |    8 +++++++-
->  3 files changed, 21 insertions(+), 3 deletions(-)
+> http://lists.infradead.org/pipermail/linux-mtd/2013-May/046814.html
 > 
-> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-> index bfba6fc..f4630a3 100644
-> --- a/arch/arm/boot/dts/am335x-bone.dts
-> +++ b/arch/arm/boot/dts/am335x-bone.dts
-> @@ -26,7 +26,7 @@
->  
->  	am33xx_pinmux: pinmux@44e10800 {
->  		pinctrl-names = "default";
-> -		pinctrl-0 = <>;
-> +		pinctrl-0 = <&clkout2_pin>;
->  
->  		user_leds_s0: user_leds_s0 {
->  			pinctrl-single,pins = <
-> @@ -50,6 +50,12 @@
->  				0x174 0x00	/* uart0_txd.uart0_txd PULLDOWN | MODE0 */
->  			>;
->  		};
-> +
-> +		clkout2_pin: pinumx_clkout2_pin {
+> http://lists.infradead.org/pipermail/linux-mtd/2013-May/046710.html
+> 
+> 
+> with regards, pekon
 
-"pinmux" is misspelled here and in several other parts of this file.
+Request you to please accept | provide feedbacks on this patch series.
+These are waiting acceptance since Jan-2013, and are necessary for 
+DT based configs for board having NAND support.
 
-
-
-
-- Paul
+with regards, pekon
