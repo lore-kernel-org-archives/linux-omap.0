@@ -1,185 +1,126 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: reset handling in am335x hwmod data
-Date: Mon, 20 May 2013 13:03:44 -0500
-Message-ID: <20130520180344.GA7653@kahuna>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: reset handling in am335x hwmod data
+Date: Mon, 20 May 2013 18:20:29 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EC8EFEC@DBDE04.ent.ti.com>
 References: <87ehij8lpb.fsf@dell.be.48ers.dk>
  <alpine.DEB.2.00.1212232033030.8937@utopia.booyaka.com>
- <20130517135022.GH14133@arwen.pp.htv.fi>
- <877gixsfdz.fsf@linaro.org>
- <87vc6hlbnz.fsf@dell.be.48ers.dk>
- <20130517181922.GA4439@kahuna>
+ <20130517135022.GH14133@arwen.pp.htv.fi> <877gixsfdz.fsf@linaro.org>
+ <87vc6hlbnz.fsf@dell.be.48ers.dk> <20130517181922.GA4439@kahuna>
  <79CD15C6BA57404B839C016229A409A83EC8E827@DBDE04.ent.ti.com>
  <79CD15C6BA57404B839C016229A409A83EC8E84F@DBDE04.ent.ti.com>
  <20130520150617.GA22835@kahuna>
  <79CD15C6BA57404B839C016229A409A83EC8EF60@DBDE04.ent.ti.com>
+ <20130520180344.GA7653@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36347 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756189Ab3ETSEB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 May 2013 14:04:01 -0400
-Content-Disposition: inline
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EC8EF60@DBDE04.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:38879 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757575Ab3ETSUt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 May 2013 14:20:49 -0400
+In-Reply-To: <20130520180344.GA7653@kahuna>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Menon, Nishanth" <nm@ti.com>
 Cc: Peter Korsgaard <jacmet@sunsite.dk>, Kevin Hilman <khilman@linaro.org>, "Balbi, Felipe" <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On 12:47-20130520, Hiremath, Vaibhav wrote:
-[...]
-> > > > >
-> > > > > On 20:10-20130517, Peter Korsgaard wrote:
-> > > > > > >>>>> "Kevin" =3D=3D Kevin Hilman <khilman@linaro.org> writ=
-es:
-> > > > > >
-> > > > > >  >> In this case, we cannot reset that bank, otherwise Star=
-ter
-> > Kit
-> > > > > will
-> > > > > >  >> never boot in mainline. Bad PCB design, I know, but it'=
-s
-> > not
-> > > > > something
-> > > > > >  >> we can change now :-)
-> > > > > >
-> > > > > >  Kevin> FWIW, we've seen this before (GPIO connected to PMI=
-C
-> > reset
-> > > > is
-> > > > > a
-> > > > > >  Kevin> fun one), and this is why we have
-> > > > > omap_hwmod_no_setup_reset().
-> > > > > >
-> > > > > > Yes, but there's no dts bindings for this, and from a quick
-> > test
-> > > > the
-> > > > > > reset handling happens before the device tree is probed.
-> > > > > I have the same issue with TPS62361 on Palmas -> GPIO control=
-s
-> > the
-> > > > > voltage register supplying MPU, without any driver setting th=
-ings
-> > up,
-> > > > > GPIO gets reset and obviously voltage value switches to an
-> > voltage
-> > > > > where
-> > > > > device does not function.
-> > > > >
-> > > > > Solution I am working on to solve this is [1]: snippet is par=
-t of
-> > a
-> > > > > patch that I am working on atm.
-> > > > >
-> > > > > This is the right way to do it IMHO. Will allow the driver to
-> > exist
-> > > > > when
-> > > > > HWMOD will be eventually replaced by some other framework.
-> > > > >
-> > > > >
-> > > > > [1]: http://pastebin.com/XPmAB1Zb
-> > > > >
-> > > > >
-> > > >
-> > > > Both seems to be different to me. What we need is to
-> > > > Avoid reset of whole GPIO bank during kernel boot.
-> > Yes - that is what the above does - as long as the GPIO is requeste=
-d
-> > and
-> > set to the right level by the relevant driver, it is not "unused" a=
-nd
-> > hence not reset at late_init.
-> >=20
->=20
-> May be I am missing something here,
->=20
-> Isn't _setup_reset() function asserts ocp_reset? And it is core_initc=
-all.
-Hmm.. You are right, I missed that :(
->=20
-> > I am a little unclear as to why this needs to have anything to do w=
-ith
-> > the precise under-lying mechanism (hwmod or something else). May be
-> > "both seem to be different to me" needs a little further elaboratio=
-n?
-> >=20
->=20
-> GPIO is connected to the DDR VTT control pin, and we have observed th=
-at
-> Due to GPIO bank reset as part of hwmod init during bootup.
->=20
-> > Is this because there is no need for an EMIF driver to handle DDR? =
-and
-> > reset of the GPIO will occur as EMIF is configured at bootloader an=
-d
-> > there is no need to do that in kernel, correspondingly there is no
-> > "driver" to hold the gpio?
-> > > >
-> > > > Ideally, it would have been much better if drivers starts handl=
-ing
-> > > > Idle, ocp reset and standby on their own (killing dependency on
-> > hwmod
-> > > > init layer).
-> > > >
-> > > > But looking at current state,
-> > > > I agree we need to use DT property here, so how about
-> > > > Adding DT property  to GPIO node itself. But we have to parse
-> > I believe you mean at OMAP specific  DT property for hwmod?
-> > something like ti,hwmod-no-init-reset?
->=20
-> That=E2=80=99s the idea.
->=20
-> > > > It early during hwmod init stage. We should read all DT nodes
-> > > > Inside function __setup() function, that way can get rid of
-> > > > HWMOD_INIT_NO_RESET flag completely. Also, this will handle
-> > > > Both ocp_reset and domain reset.
-> > > >
-> > >
-> > > Forgot to mention,
-> > >
-> > > Since this is kernel boot failure issue, I think,
-> > > By the time we reach to conclusion, another approach is to
-> > > set "HWMOD_INIT_NO_RESET" flag For GPIO0 bank.
-> > a) if the GPIO gets moved over to some other GPIO bank on another
-> > platform,
-> > this wont work
->=20
-> Yes that=E2=80=99s true, but such schematic interface is not recommen=
-ded.
-> And we have not seen any known side-effect of not resetting GPIO0 ban=
-k.
-unless you mark the GPIO as taken, another driver could in-adverantly
-take over the GPIO and set it to a wrong level (we had a similar story
-with LED gpio between Panda Vs Panda-ES).
-
->=20
-> > b) for platforms that dont use gpio to hold DDR power, maybe this i=
-s
-> > not
-> > even relevant and the GPIO bank can safely be reset?
-> > >
->=20
-> As I mentioned, there is no known side-effect of not resetting GPIO b=
-ank 0.
-It should depend on the platform.
-
-There are other uses for hwmod-no-reset -> Eg. boot logo displayed by
-bootloader - if there is a reset of DSS block and re-configuration, we'=
-d
-notice a blank-out, which is not desirable either. There could be a few
-other usage based on no-reset.
-
-In all cases, you'd prefer to make this:
-a) platform dependent (board dts)
-b) reserve GPIO as well so that no other driver'd take it - if they
-attempt ther'd at least be some form of warning.
-
---=20
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IE1lbm9uLCBOaXNoYW50aA0K
+PiBTZW50OiBNb25kYXksIE1heSAyMCwgMjAxMyAxMTozNCBQTQ0KPiBUbzogSGlyZW1hdGgsIFZh
+aWJoYXYNCj4gQ2M6IFBldGVyIEtvcnNnYWFyZDsgS2V2aW4gSGlsbWFuOyBCYWxiaSwgRmVsaXBl
+OyBQYXVsIFdhbG1zbGV5OyBsaW51eC0NCj4gb21hcEB2Z2VyLmtlcm5lbC5vcmc7IFRvbnkgTGlu
+ZGdyZW4NCj4gU3ViamVjdDogUmU6IHJlc2V0IGhhbmRsaW5nIGluIGFtMzM1eCBod21vZCBkYXRh
+DQo+IA0KPiBPbiAxMjo0Ny0yMDEzMDUyMCwgSGlyZW1hdGgsIFZhaWJoYXYgd3JvdGU6DQo+IFsu
+Li5dDQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gT24gMjA6MTAtMjAxMzA1MTcsIFBldGVyIEtv
+cnNnYWFyZCB3cm90ZToNCj4gPiA+ID4gPiA+ID4gPj4+Pj4gIktldmluIiA9PSBLZXZpbiBIaWxt
+YW4gPGtoaWxtYW5AbGluYXJvLm9yZz4gd3JpdGVzOg0KPiA+ID4gPiA+ID4gPg0KPiA+ID4gPiA+
+ID4gPiAgPj4gSW4gdGhpcyBjYXNlLCB3ZSBjYW5ub3QgcmVzZXQgdGhhdCBiYW5rLCBvdGhlcndp
+c2UNCj4gU3RhcnRlcg0KPiA+ID4gS2l0DQo+ID4gPiA+ID4gPiB3aWxsDQo+ID4gPiA+ID4gPiA+
+ICA+PiBuZXZlciBib290IGluIG1haW5saW5lLiBCYWQgUENCIGRlc2lnbiwgSSBrbm93LCBidXQN
+Cj4gaXQncw0KPiA+ID4gbm90DQo+ID4gPiA+ID4gPiBzb21ldGhpbmcNCj4gPiA+ID4gPiA+ID4g
+ID4+IHdlIGNhbiBjaGFuZ2Ugbm93IDotKQ0KPiA+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gPiAg
+S2V2aW4+IEZXSVcsIHdlJ3ZlIHNlZW4gdGhpcyBiZWZvcmUgKEdQSU8gY29ubmVjdGVkIHRvDQo+
+IFBNSUMNCj4gPiA+IHJlc2V0DQo+ID4gPiA+ID4gaXMNCj4gPiA+ID4gPiA+IGENCj4gPiA+ID4g
+PiA+ID4gIEtldmluPiBmdW4gb25lKSwgYW5kIHRoaXMgaXMgd2h5IHdlIGhhdmUNCj4gPiA+ID4g
+PiA+IG9tYXBfaHdtb2Rfbm9fc2V0dXBfcmVzZXQoKS4NCj4gPiA+ID4gPiA+ID4NCj4gPiA+ID4g
+PiA+ID4gWWVzLCBidXQgdGhlcmUncyBubyBkdHMgYmluZGluZ3MgZm9yIHRoaXMsIGFuZCBmcm9t
+IGEgcXVpY2sNCj4gPiA+IHRlc3QNCj4gPiA+ID4gPiB0aGUNCj4gPiA+ID4gPiA+ID4gcmVzZXQg
+aGFuZGxpbmcgaGFwcGVucyBiZWZvcmUgdGhlIGRldmljZSB0cmVlIGlzIHByb2JlZC4NCj4gPiA+
+ID4gPiA+IEkgaGF2ZSB0aGUgc2FtZSBpc3N1ZSB3aXRoIFRQUzYyMzYxIG9uIFBhbG1hcyAtPiBH
+UElPDQo+IGNvbnRyb2xzDQo+ID4gPiB0aGUNCj4gPiA+ID4gPiA+IHZvbHRhZ2UgcmVnaXN0ZXIg
+c3VwcGx5aW5nIE1QVSwgd2l0aG91dCBhbnkgZHJpdmVyIHNldHRpbmcNCj4gdGhpbmdzDQo+ID4g
+PiB1cCwNCj4gPiA+ID4gPiA+IEdQSU8gZ2V0cyByZXNldCBhbmQgb2J2aW91c2x5IHZvbHRhZ2Ug
+dmFsdWUgc3dpdGNoZXMgdG8gYW4NCj4gPiA+IHZvbHRhZ2UNCj4gPiA+ID4gPiA+IHdoZXJlDQo+
+ID4gPiA+ID4gPiBkZXZpY2UgZG9lcyBub3QgZnVuY3Rpb24uDQo+ID4gPiA+ID4gPg0KPiA+ID4g
+PiA+ID4gU29sdXRpb24gSSBhbSB3b3JraW5nIG9uIHRvIHNvbHZlIHRoaXMgaXMgWzFdOiBzbmlw
+cGV0IGlzDQo+IHBhcnQgb2YNCj4gPiA+IGENCj4gPiA+ID4gPiA+IHBhdGNoIHRoYXQgSSBhbSB3
+b3JraW5nIG9uIGF0bS4NCj4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiBUaGlzIGlzIHRoZSByaWdo
+dCB3YXkgdG8gZG8gaXQgSU1ITy4gV2lsbCBhbGxvdyB0aGUgZHJpdmVyIHRvDQo+ID4gPiBleGlz
+dA0KPiA+ID4gPiA+ID4gd2hlbg0KPiA+ID4gPiA+ID4gSFdNT0Qgd2lsbCBiZSBldmVudHVhbGx5
+IHJlcGxhY2VkIGJ5IHNvbWUgb3RoZXIgZnJhbWV3b3JrLg0KPiA+ID4gPiA+ID4NCj4gPiA+ID4g
+PiA+DQo+ID4gPiA+ID4gPiBbMV06IGh0dHA6Ly9wYXN0ZWJpbi5jb20vWFBtQUIxWmINCj4gPiA+
+ID4gPiA+DQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gQm90aCBzZWVtcyB0byBi
+ZSBkaWZmZXJlbnQgdG8gbWUuIFdoYXQgd2UgbmVlZCBpcyB0bw0KPiA+ID4gPiA+IEF2b2lkIHJl
+c2V0IG9mIHdob2xlIEdQSU8gYmFuayBkdXJpbmcga2VybmVsIGJvb3QuDQo+ID4gPiBZZXMgLSB0
+aGF0IGlzIHdoYXQgdGhlIGFib3ZlIGRvZXMgLSBhcyBsb25nIGFzIHRoZSBHUElPIGlzDQo+IHJl
+cXVlc3RlZA0KPiA+ID4gYW5kDQo+ID4gPiBzZXQgdG8gdGhlIHJpZ2h0IGxldmVsIGJ5IHRoZSBy
+ZWxldmFudCBkcml2ZXIsIGl0IGlzIG5vdCAidW51c2VkIg0KPiBhbmQNCj4gPiA+IGhlbmNlIG5v
+dCByZXNldCBhdCBsYXRlX2luaXQuDQo+ID4gPg0KPiA+DQo+ID4gTWF5IGJlIEkgYW0gbWlzc2lu
+ZyBzb21ldGhpbmcgaGVyZSwNCj4gPg0KPiA+IElzbid0IF9zZXR1cF9yZXNldCgpIGZ1bmN0aW9u
+IGFzc2VydHMgb2NwX3Jlc2V0PyBBbmQgaXQgaXMNCj4gY29yZV9pbml0Y2FsbC4NCj4gSG1tLi4g
+WW91IGFyZSByaWdodCwgSSBtaXNzZWQgdGhhdCA6KA0KPiA+DQo+ID4gPiBJIGFtIGEgbGl0dGxl
+IHVuY2xlYXIgYXMgdG8gd2h5IHRoaXMgbmVlZHMgdG8gaGF2ZSBhbnl0aGluZyB0byBkbw0KPiB3
+aXRoDQo+ID4gPiB0aGUgcHJlY2lzZSB1bmRlci1seWluZyBtZWNoYW5pc20gKGh3bW9kIG9yIHNv
+bWV0aGluZyBlbHNlKS4gTWF5IGJlDQo+ID4gPiAiYm90aCBzZWVtIHRvIGJlIGRpZmZlcmVudCB0
+byBtZSIgbmVlZHMgYSBsaXR0bGUgZnVydGhlcg0KPiBlbGFib3JhdGlvbj8NCj4gPiA+DQo+ID4N
+Cj4gPiBHUElPIGlzIGNvbm5lY3RlZCB0byB0aGUgRERSIFZUVCBjb250cm9sIHBpbiwgYW5kIHdl
+IGhhdmUgb2JzZXJ2ZWQNCj4gdGhhdA0KPiA+IER1ZSB0byBHUElPIGJhbmsgcmVzZXQgYXMgcGFy
+dCBvZiBod21vZCBpbml0IGR1cmluZyBib290dXAuDQo+ID4NCj4gPiA+IElzIHRoaXMgYmVjYXVz
+ZSB0aGVyZSBpcyBubyBuZWVkIGZvciBhbiBFTUlGIGRyaXZlciB0byBoYW5kbGUgRERSPw0KPiBh
+bmQNCj4gPiA+IHJlc2V0IG9mIHRoZSBHUElPIHdpbGwgb2NjdXIgYXMgRU1JRiBpcyBjb25maWd1
+cmVkIGF0IGJvb3Rsb2FkZXINCj4gYW5kDQo+ID4gPiB0aGVyZSBpcyBubyBuZWVkIHRvIGRvIHRo
+YXQgaW4ga2VybmVsLCBjb3JyZXNwb25kaW5nbHkgdGhlcmUgaXMgbm8NCj4gPiA+ICJkcml2ZXIi
+IHRvIGhvbGQgdGhlIGdwaW8/DQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBJZGVhbGx5LCBpdCB3b3Vs
+ZCBoYXZlIGJlZW4gbXVjaCBiZXR0ZXIgaWYgZHJpdmVycyBzdGFydHMNCj4gaGFuZGxpbmcNCj4g
+PiA+ID4gPiBJZGxlLCBvY3AgcmVzZXQgYW5kIHN0YW5kYnkgb24gdGhlaXIgb3duIChraWxsaW5n
+IGRlcGVuZGVuY3kgb24NCj4gPiA+IGh3bW9kDQo+ID4gPiA+ID4gaW5pdCBsYXllcikuDQo+ID4g
+PiA+ID4NCj4gPiA+ID4gPiBCdXQgbG9va2luZyBhdCBjdXJyZW50IHN0YXRlLA0KPiA+ID4gPiA+
+IEkgYWdyZWUgd2UgbmVlZCB0byB1c2UgRFQgcHJvcGVydHkgaGVyZSwgc28gaG93IGFib3V0DQo+
+ID4gPiA+ID4gQWRkaW5nIERUIHByb3BlcnR5ICB0byBHUElPIG5vZGUgaXRzZWxmLiBCdXQgd2Ug
+aGF2ZSB0byBwYXJzZQ0KPiA+ID4gSSBiZWxpZXZlIHlvdSBtZWFuIGF0IE9NQVAgc3BlY2lmaWMg
+IERUIHByb3BlcnR5IGZvciBod21vZD8NCj4gPiA+IHNvbWV0aGluZyBsaWtlIHRpLGh3bW9kLW5v
+LWluaXQtcmVzZXQ/DQo+ID4NCj4gPiBUaGF04oCZcyB0aGUgaWRlYS4NCj4gPg0KPiA+ID4gPiA+
+IEl0IGVhcmx5IGR1cmluZyBod21vZCBpbml0IHN0YWdlLiBXZSBzaG91bGQgcmVhZCBhbGwgRFQg
+bm9kZXMNCj4gPiA+ID4gPiBJbnNpZGUgZnVuY3Rpb24gX19zZXR1cCgpIGZ1bmN0aW9uLCB0aGF0
+IHdheSBjYW4gZ2V0IHJpZCBvZg0KPiA+ID4gPiA+IEhXTU9EX0lOSVRfTk9fUkVTRVQgZmxhZyBj
+b21wbGV0ZWx5LiBBbHNvLCB0aGlzIHdpbGwgaGFuZGxlDQo+ID4gPiA+ID4gQm90aCBvY3BfcmVz
+ZXQgYW5kIGRvbWFpbiByZXNldC4NCj4gPiA+ID4gPg0KPiA+ID4gPg0KPiA+ID4gPiBGb3Jnb3Qg
+dG8gbWVudGlvbiwNCj4gPiA+ID4NCj4gPiA+ID4gU2luY2UgdGhpcyBpcyBrZXJuZWwgYm9vdCBm
+YWlsdXJlIGlzc3VlLCBJIHRoaW5rLA0KPiA+ID4gPiBCeSB0aGUgdGltZSB3ZSByZWFjaCB0byBj
+b25jbHVzaW9uLCBhbm90aGVyIGFwcHJvYWNoIGlzIHRvDQo+ID4gPiA+IHNldCAiSFdNT0RfSU5J
+VF9OT19SRVNFVCIgZmxhZyBGb3IgR1BJTzAgYmFuay4NCj4gPiA+IGEpIGlmIHRoZSBHUElPIGdl
+dHMgbW92ZWQgb3ZlciB0byBzb21lIG90aGVyIEdQSU8gYmFuayBvbiBhbm90aGVyDQo+ID4gPiBw
+bGF0Zm9ybSwNCj4gPiA+IHRoaXMgd29udCB3b3JrDQo+ID4NCj4gPiBZZXMgdGhhdOKAmXMgdHJ1
+ZSwgYnV0IHN1Y2ggc2NoZW1hdGljIGludGVyZmFjZSBpcyBub3QgcmVjb21tZW5kZWQuDQo+ID4g
+QW5kIHdlIGhhdmUgbm90IHNlZW4gYW55IGtub3duIHNpZGUtZWZmZWN0IG9mIG5vdCByZXNldHRp
+bmcgR1BJTzANCj4gYmFuay4NCj4gdW5sZXNzIHlvdSBtYXJrIHRoZSBHUElPIGFzIHRha2VuLCBh
+bm90aGVyIGRyaXZlciBjb3VsZCBpbi1hZHZlcmFudGx5DQo+IHRha2Ugb3ZlciB0aGUgR1BJTyBh
+bmQgc2V0IGl0IHRvIGEgd3JvbmcgbGV2ZWwgKHdlIGhhZCBhIHNpbWlsYXIgc3RvcnkNCj4gd2l0
+aCBMRUQgZ3BpbyBiZXR3ZWVuIFBhbmRhIFZzIFBhbmRhLUVTKS4NCj4gDQo+ID4NCj4gPiA+IGIp
+IGZvciBwbGF0Zm9ybXMgdGhhdCBkb250IHVzZSBncGlvIHRvIGhvbGQgRERSIHBvd2VyLCBtYXli
+ZSB0aGlzDQo+IGlzDQo+ID4gPiBub3QNCj4gPiA+IGV2ZW4gcmVsZXZhbnQgYW5kIHRoZSBHUElP
+IGJhbmsgY2FuIHNhZmVseSBiZSByZXNldD8NCj4gPiA+ID4NCj4gPg0KPiA+IEFzIEkgbWVudGlv
+bmVkLCB0aGVyZSBpcyBubyBrbm93biBzaWRlLWVmZmVjdCBvZiBub3QgcmVzZXR0aW5nIEdQSU8N
+Cj4gYmFuayAwLg0KPiBJdCBzaG91bGQgZGVwZW5kIG9uIHRoZSBwbGF0Zm9ybS4NCj4gDQo+IFRo
+ZXJlIGFyZSBvdGhlciB1c2VzIGZvciBod21vZC1uby1yZXNldCAtPiBFZy4gYm9vdCBsb2dvIGRp
+c3BsYXllZCBieQ0KPiBib290bG9hZGVyIC0gaWYgdGhlcmUgaXMgYSByZXNldCBvZiBEU1MgYmxv
+Y2sgYW5kIHJlLWNvbmZpZ3VyYXRpb24sDQo+IHdlJ2QNCj4gbm90aWNlIGEgYmxhbmstb3V0LCB3
+aGljaCBpcyBub3QgZGVzaXJhYmxlIGVpdGhlci4gVGhlcmUgY291bGQgYmUgYSBmZXcNCj4gb3Ro
+ZXIgdXNhZ2UgYmFzZWQgb24gbm8tcmVzZXQuDQo+IA0KPiBJbiBhbGwgY2FzZXMsIHlvdSdkIHBy
+ZWZlciB0byBtYWtlIHRoaXM6DQo+IGEpIHBsYXRmb3JtIGRlcGVuZGVudCAoYm9hcmQgZHRzKQ0K
+PiBiKSByZXNlcnZlIEdQSU8gYXMgd2VsbCBzbyB0aGF0IG5vIG90aGVyIGRyaXZlcidkIHRha2Ug
+aXQgLSBpZiB0aGV5DQo+IGF0dGVtcHQgdGhlcidkIGF0IGxlYXN0IGJlIHNvbWUgZm9ybSBvZiB3
+YXJuaW5nLg0KPiANCkNvbXBsZXRlbHkgYWdyZWUgd2l0aCB5b3Ugb24gYm90aCB0aGUgcG9pbnRz
+LCBhbmQgbXkgcG9pbnQgYW5kIGFsbCBteSBjb21tZW50cw0KV2VyZSBtb3JlIHJlbGF0ZWQgdG8g
+b3B0aW9uICdhJyBhYm92ZS4NCg0KVGhhbmtzLA0KVmFpYmhhdg0K
