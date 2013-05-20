@@ -1,27 +1,39 @@
-From: =?windows-1251?Q?=FE=EB=E8=FF?= <eduardoales@dalvear.com.ar>
-Subject: =?windows-1251?Q?=D2=E5=F5=ED=EE=EB=EE=E3=E8=E8_=E2_=EF?=
-	=?windows-1251?Q?=EE=E4=E4=E5=F0=E6=EA=F3?=
-Date: Mon, 20 May 2013 02:47:04 +0300
-Message-ID: <B8C59D75D59840F1BE117567D8FEC297@vtdt>
-Reply-To: =?windows-1251?Q?=FE=EB=E8=FF?= <darkegor@hkucc.hku.hk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 0/2] ARM: OMAP AM33XX: clock data: Enable clkout2 output
+ on SoC pad
+Date: Mon, 20 May 2013 02:47:21 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1305200246080.2656@utopia.booyaka.com>
+References: <1367919574-21353-1-git-send-email-hvaibhav@ti.com> <79CD15C6BA57404B839C016229A409A83EC8C081@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="windows-1251";
-Content-Transfer-Encoding: base64
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1778294230-1369018041=:2656"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [200.43.183.101] ([200.43.183.101]:51698 "EHLO
-	mail.dalvear.com.ar" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1754778Ab3ESXu6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 May 2013 19:50:58 -0400
+Received: from utopia.booyaka.com ([74.50.51.50]:44323 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755223Ab3ETCrW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 May 2013 22:47:22 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EC8C081@DBDE04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: cir6n@vlrginia.edu, childlibfil12@rambler.ru, linux-omap@vger.kernel.org, mail1995@inbox.ru, maxik-98@mail.ru
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-ICDP7vHl8ujy5SDt4Pg6IGh0dHA6Ly9nb28uZ2wvMktXbkwgLiDK7u3q8OXy7eD/IPHo8fLl7OAg
-7+7k4PfoIPP36Ozu4+4g8/fl4e3u4+4g7ODy5fDo4OvgIC0g9O7q8/Eg7eAg8OXn8+v88uDyLiDO
-8f/n4PL8IPHl4f8g4u7r/OPu8u3uIOIg6uDm5O7pIPLl8PDo8u7w6Ogg7Ojw4C4g0/Hq7vDl7e3u
-5SDo5/P35e3o5S4g7+7x8uj3/CDg7OXw6Org7fHq6Okg/+f76iDy5e/l8Pwg7+7t//Lt7iDr/uHu
-7PMgLiDd6vHv8OXx8S3q8/DxIOTr/yDt7uLl7fzq6PUg6CDv8O7k4ujt8/L79S4g3erx7+vz4PLo
-8PP+8vH/IO3l7+7k8ODm4OXs++Ug/erx7/Dl8fEt7OXy7uT7LiDv7uTn4O3/8vzx/yDx4Ozu8ODn
-4ujy6OXsLCDv7vLw5e3o8O7i4PL8IO/g7P/y/C4gyOfj7vLu4ujy/CDx4u7+IOHo7uPw4PTo/iDw
-4Oft7u7h8ODn7eXlLCDi7vHv++vg8vwg7/Dl6O3y5fDl8e377CDn4O3/8ujl7C4gDQogDQo=
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--843723315-1778294230-1369018041=:2656
+Content-Type: TEXT/PLAIN; charset=Windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+On Fri, 17 May 2013, Hiremath, Vaibhav wrote:
+
+> Tony, Paul and Benoit,
+>=20
+> Any update on this series?
+
+Most of the changes are DT-related, so it should probably go in via=20
+Beno=EEt.  I'll ack the clock side, but have a comment on patch 2, to be=20
+sent shortly.
+
+
+- Paul
+--843723315-1778294230-1369018041=:2656--
