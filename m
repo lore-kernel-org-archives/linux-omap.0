@@ -1,104 +1,51 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: reset handling in am335x hwmod data
-Date: Mon, 20 May 2013 06:55:09 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EC8E84F@DBDE04.ent.ti.com>
-References: <87ehij8lpb.fsf@dell.be.48ers.dk>
- <alpine.DEB.2.00.1212232033030.8937@utopia.booyaka.com>
- <20130517135022.GH14133@arwen.pp.htv.fi> <877gixsfdz.fsf@linaro.org>
- <87vc6hlbnz.fsf@dell.be.48ers.dk> <20130517181922.GA4439@kahuna>
- <79CD15C6BA57404B839C016229A409A83EC8E827@DBDE04.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/6] ARM: OMAP2+: Remove board-4430sdp.c
+Date: Mon, 20 May 2013 10:54:47 +0100
+Message-ID: <20130520095447.GR21614@n2100.arm.linux.org.uk>
+References: <20130517191304.468.73487.stgit@localhost> <20130517191751.468.89202.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39739 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754079Ab3ETGz3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 May 2013 02:55:29 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EC8E827@DBDE04.ent.ti.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53548 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752738Ab3ETJzZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 May 2013 05:55:25 -0400
+Content-Disposition: inline
+In-Reply-To: <20130517191751.468.89202.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Menon, Nishanth" <nm@ti.com>, Peter Korsgaard <jacmet@sunsite.dk>
-Cc: Kevin Hilman <khilman@linaro.org>, "Balbi, Felipe" <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
+On Fri, May 17, 2013 at 12:17:51PM -0700, Tony Lindgren wrote:
+> We can now boot with device tree. If you don't want to update u-boot,
+> you can boot with appended DTB with the following instructions:
+> 
+> 1. Make sure you have the appended DTB support in .config
+> 
+>    CONFIG_ARM_APPENDED_DTB=y
+>    CONFIG_ARM_ATAG_DTB_COMPAT=y
+>    CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND=y
+> 
+> 2. Build the zImage
+> 
+>    $ ARCH=arm CROSS_COMPILE=... make zImage
+> 
+> 3. Build the device tree blobs
+> 
+>    $ ARCH=arm CROSS_COMPILE=... make dtbs
+> 
+> 4. Append the dtb to zImage
+> 
+>    $ cat arch/arm/boot/zImage arch/arm/boot/dts/omap4-sdp.dtb > /tmp/appended
+> 
+> 5. Use mkimage to produce the appended device tree uImage
+> 
+>    $ mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x80008000 \
+>      -n "Linux" -d /tmp/appended /tmp/uImage
+> 
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Hiremath, Vaibhav
-> Sent: Monday, May 20, 2013 12:09 PM
-> To: Menon, Nishanth; Peter Korsgaard
-> Cc: Kevin Hilman; Balbi, Felipe; Paul Walmsley; linux-
-> omap@vger.kernel.org; Tony Lindgren
-> Subject: RE: reset handling in am335x hwmod data
-> 
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Menon, Nishanth
-> > Sent: Friday, May 17, 2013 11:49 PM
-> > To: Peter Korsgaard
-> > Cc: Kevin Hilman; Balbi, Felipe; Paul Walmsley; linux-
-> > omap@vger.kernel.org; Tony Lindgren
-> > Subject: Re: reset handling in am335x hwmod data
-> >
-> > On 20:10-20130517, Peter Korsgaard wrote:
-> > > >>>>> "Kevin" == Kevin Hilman <khilman@linaro.org> writes:
-> > >
-> > >  >> In this case, we cannot reset that bank, otherwise Starter Kit
-> > will
-> > >  >> never boot in mainline. Bad PCB design, I know, but it's not
-> > something
-> > >  >> we can change now :-)
-> > >
-> > >  Kevin> FWIW, we've seen this before (GPIO connected to PMIC reset
-> is
-> > a
-> > >  Kevin> fun one), and this is why we have
-> > omap_hwmod_no_setup_reset().
-> > >
-> > > Yes, but there's no dts bindings for this, and from a quick test
-> the
-> > > reset handling happens before the device tree is probed.
-> > I have the same issue with TPS62361 on Palmas -> GPIO controls the
-> > voltage register supplying MPU, without any driver setting things up,
-> > GPIO gets reset and obviously voltage value switches to an voltage
-> > where
-> > device does not function.
-> >
-> > Solution I am working on to solve this is [1]: snippet is part of a
-> > patch that I am working on atm.
-> >
-> > This is the right way to do it IMHO. Will allow the driver to exist
-> > when
-> > HWMOD will be eventually replaced by some other framework.
-> >
-> >
-> > [1]: http://pastebin.com/XPmAB1Zb
-> >
-> >
-> 
-> Both seems to be different to me. What we need is to
-> Avoid reset of whole GPIO bank during kernel boot.
-> 
-> Ideally, it would have been much better if drivers starts handling
-> Idle, ocp reset and standby on their own (killing dependency on hwmod
-> init layer).
-> 
-> But looking at current state,
-> I agree we need to use DT property here, so how about
-> Adding DT property  to GPIO node itself. But we have to parse
-> It early during hwmod init stage. We should read all DT nodes
-> Inside function __setup() function, that way can get rid of
-> HWMOD_INIT_NO_RESET flag completely. Also, this will handle
-> Both ocp_reset and domain reset.
-> 
-
-Forgot to mention, 
-
-Since this is kernel boot failure issue, I think,
-By the time we reach to conclusion, another approach is to 
-set "HWMOD_INIT_NO_RESET" flag For GPIO0 bank.
-
-Thanks,
-Vaibhav
+Okay, I'm removing the 4430SDP from the boot test system once this goes
+in, because this will mean rewriting the build system to cope with this
+stuff.
