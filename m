@@ -1,113 +1,58 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V2 2/2] ARM: dts: AM33XX: Set pinmux for clkout2 pad used for clock output
-Date: Mon, 20 May 2013 18:58:10 +0530
-Message-ID: <1369056490-12632-3-git-send-email-hvaibhav@ti.com>
-References: <1369056490-12632-1-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH-V2] ARM: OMAP2+: AM33xx: Fix missing reset status data to GFX hwmod
+Date: Mon, 20 May 2013 19:08:36 +0530
+Message-ID: <1369057116-31423-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55874 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51564 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756632Ab3ETN2t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 May 2013 09:28:49 -0400
-In-Reply-To: <1369056490-12632-1-git-send-email-hvaibhav@ti.com>
+	id S1756421Ab3ETNjK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 May 2013 09:39:10 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, paul@pwsan.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: paul@pwsan.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-xdma_event_intr1.clkout2 pad can be used to source clock
-from either 32K OSC or any of the PLL (except MPU) outputs.
-On the existing AM335x based boards (EVM, EVM-SK and Bone),
-this pad is used to feed the clock to audio codes.
+GFX has a reset status register (PRM_GFX.RM_GFX_RSTST),
+so update the GFX hwmod data with .rstst_off and .st_shift
+information.
 
-So, this patch configures the pinmux to get clkout2 on the pad.
+Although it doesn't have impact on kernel boot, but this is
+regression fix from original hwmod commit.
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/am335x-bone.dts  |    8 +++++++-
- arch/arm/boot/dts/am335x-evm.dts   |    8 +++++++-
- arch/arm/boot/dts/am335x-evmsk.dts |    8 +++++++-
- 3 files changed, 21 insertions(+), 3 deletions(-)
+Changes from V1 (No code change):
+	- Updated commit description to mention its regression
+	  from original commit.
 
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index bfba6fc..74bfcc6 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -26,7 +26,7 @@
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
- 	am33xx_pinmux: pinmux@44e10800 {
- 		pinctrl-names = "default";
--		pinctrl-0 = <>;
-+		pinctrl-0 = <&clkout2_pin>;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+index d1cf3ab..38c7b04 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -329,7 +329,7 @@ static struct omap_hwmod_class am33xx_gfx_hwmod_class = {
+ };
 
- 		user_leds_s0: user_leds_s0 {
- 			pinctrl-single,pins = <
-@@ -50,6 +50,12 @@
- 				0x174 0x00	/* uart0_txd.uart0_txd PULLDOWN | MODE0 */
- 			>;
- 		};
-+
-+		clkout2_pin: pinmux_clkout2_pin {
-+			pinctrl-single,pins = <
-+				0x1b4 0x03	/* xdma_event_intr1.clkout2 OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT */
-+			>;
-+		};
- 	};
+ static struct omap_hwmod_rst_info am33xx_gfx_resets[] = {
+-	{ .name = "gfx", .rst_shift = 0 },
++	{ .name = "gfx", .rst_shift = 0, .st_shift = 0},
+ };
 
- 	ocp {
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 7647c9d..896d392 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -26,7 +26,7 @@
-
- 	am33xx_pinmux: pinmux@44e10800 {
- 		pinctrl-names = "default";
--		pinctrl-0 = <&matrix_keypad_s0 &volume_keys_s0>;
-+		pinctrl-0 = <&matrix_keypad_s0 &volume_keys_s0 &clkout2_pin>;
-
- 		matrix_keypad_s0: matrix_keypad_s0 {
- 			pinctrl-single,pins = <
-@@ -65,6 +65,12 @@
- 				0x174 0x00	/* uart0_txd.uart0_txd PULLDOWN | MODE0 */
- 			>;
- 		};
-+
-+		clkout2_pin: pinmux_clkout2_pin {
-+			pinctrl-single,pins = <
-+				0x1b4 0x03	/* xdma_event_intr1.clkout2 OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT */
-+			>;
-+		};
- 	};
-
- 	ocp {
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index 0eec644..4d81dbc 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -32,7 +32,7 @@
-
- 	am33xx_pinmux: pinmux@44e10800 {
- 		pinctrl-names = "default";
--		pinctrl-0 = <&gpio_keys_s0>;
-+		pinctrl-0 = <&gpio_keys_s0 &clkout2_pin>;
-
- 		user_leds_s0: user_leds_s0 {
- 			pinctrl-single,pins = <
-@@ -65,6 +65,12 @@
- 				0x174 0x00	/* uart0_txd.uart0_txd PULLDOWN | MODE0 */
- 			>;
- 		};
-+
-+		clkout2_pin: pinmux_clkout2_pin {
-+			pinctrl-single,pins = <
-+				0x1b4 0x03	/* xdma_event_intr1.clkout2 OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT */
-+			>;
-+		};
- 	};
-
- 	ocp {
+ static struct omap_hwmod_irq_info am33xx_gfx_irqs[] = {
+@@ -347,6 +347,7 @@ static struct omap_hwmod am33xx_gfx_hwmod = {
+ 		.omap4	= {
+ 			.clkctrl_offs	= AM33XX_CM_GFX_GFX_CLKCTRL_OFFSET,
+ 			.rstctrl_offs	= AM33XX_RM_GFX_RSTCTRL_OFFSET,
++			.rstst_offs	= AM33XX_RM_GFX_RSTST_OFFSET,
+ 			.modulemode	= MODULEMODE_SWCTRL,
+ 		},
+ 	},
 --
 1.7.0.4
 
