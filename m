@@ -1,74 +1,104 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/6] ARM: OMAP2+: Remove board-4430sdp.c
-Date: Mon, 20 May 2013 10:10:16 -0700
-Message-ID: <20130520171012.GG10378@atomide.com>
-References: <20130517191304.468.73487.stgit@localhost>
- <20130517191751.468.89202.stgit@localhost>
- <20130520095447.GR21614@n2100.arm.linux.org.uk>
+Subject: Re: [BISECTED] 3.10-rc1 OMAP1 GPIO IRQ regression
+Date: Mon, 20 May 2013 10:46:21 -0700
+Message-ID: <20130520174621.GI10378@atomide.com>
+References: <20130513205302.GA3157@blackmetal.musicnaut.iki.fi>
+ <20130516180933.GG5600@atomide.com>
+ <20130516210006.GA31836@blackmetal.musicnaut.iki.fi>
+ <20130516214430.GN5600@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11590 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:35791 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752898Ab3ETRKX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 May 2013 13:10:23 -0400
+	with ESMTP id S1751262Ab3ETRqc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 May 2013 13:46:32 -0400
 Content-Disposition: inline
-In-Reply-To: <20130520095447.GR21614@n2100.arm.linux.org.uk>
+In-Reply-To: <20130516214430.GN5600@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, Grant Likely <grant.likely@secretlab.ca>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [130520 03:00]:
-> On Fri, May 17, 2013 at 12:17:51PM -0700, Tony Lindgren wrote:
-> > We can now boot with device tree. If you don't want to update u-boot,
-> > you can boot with appended DTB with the following instructions:
+* Tony Lindgren <tony@atomide.com> [130516 14:50]:
+> * Aaro Koskinen <aaro.koskinen@iki.fi> [130516 14:05]:
+> > On Thu, May 16, 2013 at 11:09:34AM -0700, Tony Lindgren wrote:
+> > > * Aaro Koskinen <aaro.koskinen@iki.fi> [130513 13:58]:
+> > > > I tested 3.10-rc1 on OMAP1 / Nokia 770, and Retu MFD probe is broken:
+> > > > 
+> > > > [    2.264221] retu-mfd 2-0001: Retu v3.2 found
+> > > > [    2.281951] retu-mfd 2-0001: Failed to allocate IRQs: -12
+> > > > [    2.300140] retu-mfd: probe of 2-0001 failed with error -12
+> > > > 
+> > > > The error is coming from regmap code. According to git bisect, it is
+> > > > caused by:
+> > > > 
+> > > > 	commit ede4d7a5b9835510fd1f724367f68d2fa4128453
+> > > > 	Author: Jon Hunter <jon-hunter@ti.com>
+> > > > 	Date:   Fri Mar 1 11:22:47 2013 -0600
+> > > > 
+> > > > 	    gpio/omap: convert gpio irq domain to linear mapping
+> > > > 
+> > > > The commit does not anymore revert cleanly, and I haven't yet tried
+> > > > crafting a manual revert, so any fix proposals/ideas are welcome...
+> > > 
+> > > Hmm this might be a bit trickier to fix. Obviously the real solution
+> > > is to convert omap1 to SPARSE_IRQ like we did for omap2+.
+> > > 
+> > > For the -rc cycle, it might be possible to fix this by adding a
+> > > different irq_to_gpio() and gpio_to_irq() functions for omap1.
 > > 
-> > 1. Make sure you have the appended DTB support in .config
-> > 
-> >    CONFIG_ARM_APPENDED_DTB=y
-> >    CONFIG_ARM_ATAG_DTB_COMPAT=y
-> >    CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND=y
-> > 
-> > 2. Build the zImage
-> > 
-> >    $ ARCH=arm CROSS_COMPILE=... make zImage
-> > 
-> > 3. Build the device tree blobs
-> > 
-> >    $ ARCH=arm CROSS_COMPILE=... make dtbs
-> > 
-> > 4. Append the dtb to zImage
-> > 
-> >    $ cat arch/arm/boot/zImage arch/arm/boot/dts/omap4-sdp.dtb > /tmp/appended
-> > 
-> > 5. Use mkimage to produce the appended device tree uImage
-> > 
-> >    $ mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x80008000 \
-> >      -n "Linux" -d /tmp/appended /tmp/uImage
-> > 
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > The commit reverts cleanly if we also revert
+> > 3513cdeccc647d41c4a9ff923af17deaaac04a66 (gpio/omap: optimise interrupt
+> > service routine), which seems to be just some minor optimization. The
+> > result is below, and with it 770 works again.
 > 
-> Okay, I'm removing the 4430SDP from the boot test system once this goes
-> in, because this will mean rewriting the build system to cope with this
-> stuff.
+> Hmm in this case it seems that we should just fix it rather than go back
+> to the old code, so let's take a look at that first.
 
-OK, up to you. At least I check the results of your build system
-occasionally though.
-
-I know people don't want to have more uImage handling in the kernel,
-but maybe we could add handling for board specific uImage targets
-for compability?
-
-Maybe something like dtbname.uImage-dtba:
-
-$ make omap4-sdp.uImage-dtba
-
-And then that would take care of steps 3 - 5 automatically?
-
-Of course the alternative is to update u-boot, but that's not always
-possible for some legacy boards.
+Does the following fix it for you or do we need to fix something else
+there too?
 
 Regards,
 
 Tony
+
+
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1094,6 +1094,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ 	const struct omap_gpio_platform_data *pdata;
+ 	struct resource *res;
+ 	struct gpio_bank *bank;
++	int irq_base;
+ 
+ 	match = of_match_device(of_match_ptr(omap_gpio_match), dev);
+ 
+@@ -1135,11 +1136,23 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ 				pdata->get_context_loss_count;
+ 	}
+ 
+-
+-	bank->domain = irq_domain_add_linear(node, bank->width,
+-					     &irq_domain_simple_ops, NULL);
+-	if (!bank->domain)
++	/*
++	 * REVISIT: Once we have omap1 supporting  SPARSE_IRQ, we can drop
++	 * irq_alloc_descs() and irq_domain_add_legacy() and just do:
++	 *
++	 * bank->domain = irq_domain_add_linear(node, bank->width,
++	 *				     &irq_domain_simple_ops, NULL);
++	 * if (!bank->domain)
++	 *	return -ENODEV;
++	 */
++	irq_base = irq_alloc_descs(-1, 0, bank->width, 0);
++	if (irq_base < 0) {
++		dev_err(dev, "Couldn't allocate IRQ numbers\n");
+ 		return -ENODEV;
++	}
++
++	bank->domain = irq_domain_add_legacy(node, bank->width, irq_base,
++					     0, &irq_domain_simple_ops, NULL);
+ 
+ 	if (bank->regs->set_dataout && bank->regs->clr_dataout)
+ 		bank->set_dataout = _set_gpio_dataout_reg;
