@@ -1,25 +1,43 @@
-From: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
-Subject: [pandaboard] device tree booting fails
-Date: Tue, 21 May 2013 21:37:37 +0200
-Message-ID: <519BCD01.9090908@math.uni-bielefeld.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] rtc: rtc-twl: Fix missing device_init_wakeup() when booted
+ with device tree
+Date: Tue, 21 May 2013 14:40:27 -0700
+Message-ID: <20130521214026.GV10378@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kvm21.math.uni-bielefeld.de ([129.70.14.14]:42558 "EHLO
-	kvm21.math.uni-bielefeld.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751769Ab3EUTvH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 May 2013 15:51:07 -0400
-Received: from [192.168.0.34] (ip-178-203-233-164.unitymediagroup.de [178.203.233.164])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(Client did not present a certificate)
-	by kvm21.math.uni-bielefeld.de (Postfix) with ESMTPSA id 5B92F6044F
-	for <linux-omap@vger.kernel.org>; Tue, 21 May 2013 21:42:47 +0200 (CEST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alessandro Zummo <a.zummo@towertech.it>
+Cc: rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Forwarding as suggested by Tony Lindgren.
+When booted in legacy mode device_init_wakeup() gets called
+by drivers/mfd/twl-core.c when the children are initialized.
+However, when booted using device tree, the children are
+created with of_platform_populate() instead add_children().
 
-https://bugzilla.kernel.org/show_bug.cgi?id=58611
+This means that the RTC driver will not have device_init_wakeup()
+set, and we need to call it from the driver probe like RTC drivers
+typically do.
+
+Without this we cannot test PM wake-up events on omaps for
+cases where there may not be any physical wake-up event.
+
+Reported-by: Kevin Hilman <khilman@linaro.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+---
+
+This fix is for the -rc cycle please.
+
+--- a/drivers/rtc/rtc-twl.c
++++ b/drivers/rtc/rtc-twl.c
+@@ -524,6 +524,7 @@ static int twl_rtc_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	platform_set_drvdata(pdev, rtc);
++	device_init_wakeup(&pdev->dev, 1);
+ 	return 0;
+ 
+ out2:
