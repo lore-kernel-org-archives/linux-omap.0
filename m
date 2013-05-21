@@ -1,13 +1,13 @@
 From: Libo Chen <libo.chen@huawei.com>
-Subject: [PATCH 04/19] drivers/usb/dwc3: add missing platform_driver owner
-Date: Tue, 21 May 2013 10:42:12 +0800
-Message-ID: <1369104132-7060-1-git-send-email-libo.chen@huawei.com>
+Subject: [PATCH 02/19] drivers/usb/host: add missing platform_driver owner
+Date: Tue, 21 May 2013 10:42:07 +0800
+Message-ID: <1369104127-6284-1-git-send-email-libo.chen@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com, gregkh@linuxfoundation.org
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, lizefan@huawei.com, libo.chen@huawei.com
+To: stern@rowland.harvard.edu, gregkh@linuxfoundation.org, balbi@ti.com, sarah.a.sharp@linux.intel.com
+Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lizefan@huawei.com, libo.chen@huawei.com
 List-Id: linux-omap@vger.kernel.org
 
 set the owner of platform_driver, to ensure that the
@@ -15,46 +15,124 @@ caller of driver holds a module refernece
 
 Signed-off-by: Libo Chen <libo.chen@huawei.com>
 ---
- drivers/usb/dwc3/core.c        |    1 +
- drivers/usb/dwc3/dwc3-exynos.c |    1 +
- drivers/usb/dwc3/dwc3-omap.c   |    1 +
- 3 files changed, 3 insertions(+), 0 deletions(-)
+ drivers/usb/host/ehci-atmel.c   |    1 +
+ drivers/usb/host/ehci-msm.c     |    1 +
+ drivers/usb/host/ehci-mv.c      |    1 +
+ drivers/usb/host/ehci-mxc.c     |    1 +
+ drivers/usb/host/ehci-omap.c    |    1 +
+ drivers/usb/host/ehci-spear.c   |    1 +
+ drivers/usb/host/isp1760-if.c   |    1 +
+ drivers/usb/host/oxu210hp-hcd.c |    1 +
+ drivers/usb/host/xhci-plat.c    |    1 +
+ 9 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index c35d49d..570c2df 100644
---- a/drivers/usb/dwc3/core.c
-+++ b/drivers/usb/dwc3/core.c
-@@ -766,6 +766,7 @@ static struct platform_driver dwc3_driver = {
- 	.remove		= dwc3_remove,
+diff --git a/drivers/usb/host/ehci-atmel.c b/drivers/usb/host/ehci-atmel.c
+index 6642009..4fbb59b 100644
+--- a/drivers/usb/host/ehci-atmel.c
++++ b/drivers/usb/host/ehci-atmel.c
+@@ -182,6 +182,7 @@ static struct platform_driver ehci_atmel_driver = {
+ 	.shutdown	= usb_hcd_platform_shutdown,
  	.driver		= {
- 		.name	= "dwc3",
+ 		.name	= "atmel-ehci",
 +		.owner	= THIS_MODULE,
- 		.of_match_table	= of_match_ptr(of_dwc3_match),
- 		.pm	= DWC3_PM_OPS,
+ 		.of_match_table	= of_match_ptr(atmel_ehci_dt_ids),
  	},
-diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
-index a8afe6e..831aa81 100644
---- a/drivers/usb/dwc3/dwc3-exynos.c
-+++ b/drivers/usb/dwc3/dwc3-exynos.c
-@@ -219,6 +219,7 @@ static struct platform_driver dwc3_exynos_driver = {
- 	.remove		= dwc3_exynos_remove,
+ };
+diff --git a/drivers/usb/host/ehci-msm.c b/drivers/usb/host/ehci-msm.c
+index 0f717dc..03e94d7 100644
+--- a/drivers/usb/host/ehci-msm.c
++++ b/drivers/usb/host/ehci-msm.c
+@@ -191,6 +191,7 @@ static struct platform_driver ehci_msm_driver = {
+ 	.remove	= ehci_msm_remove,
+ 	.driver = {
+ 		   .name = "msm_hsusb_host",
++		   .owner = THIS_MODULE,
+ 		   .pm = &ehci_msm_dev_pm_ops,
+ 	},
+ };
+diff --git a/drivers/usb/host/ehci-mv.c b/drivers/usb/host/ehci-mv.c
+index 4020629..ba12653 100644
+--- a/drivers/usb/host/ehci-mv.c
++++ b/drivers/usb/host/ehci-mv.c
+@@ -335,6 +335,7 @@ static struct platform_driver ehci_mv_driver = {
+ 	.shutdown = mv_ehci_shutdown,
+ 	.driver = {
+ 		   .name = "mv-ehci",
++		   .owner = THIS_MODULE,
+ 		   .bus = &platform_bus_type,
+ 		   },
+ 	.id_table = ehci_id_table,
+diff --git a/drivers/usb/host/ehci-mxc.c b/drivers/usb/host/ehci-mxc.c
+index c369767..e9c9651 100644
+--- a/drivers/usb/host/ehci-mxc.c
++++ b/drivers/usb/host/ehci-mxc.c
+@@ -214,6 +214,7 @@ static struct platform_driver ehci_mxc_driver = {
+ 	.shutdown = ehci_mxc_drv_shutdown,
+ 	.driver = {
+ 		   .name = "mxc-ehci",
++		   .owner	= THIS_MODULE,
+ 	},
+ };
+ 
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index 3d1491b..f630e62 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -294,6 +294,7 @@ static struct platform_driver ehci_hcd_omap_driver = {
+ 	/*.resume		= ehci_hcd_omap_resume, */
+ 	.driver = {
+ 		.name		= hcd_name,
++		.owner	= THIS_MODULE,
+ 		.of_match_table = of_match_ptr(omap_ehci_dt_ids),
+ 	}
+ };
+diff --git a/drivers/usb/host/ehci-spear.c b/drivers/usb/host/ehci-spear.c
+index 61ecfb3..2df73be 100644
+--- a/drivers/usb/host/ehci-spear.c
++++ b/drivers/usb/host/ehci-spear.c
+@@ -172,6 +172,7 @@ static struct platform_driver spear_ehci_hcd_driver = {
+ 	.shutdown	= usb_hcd_platform_shutdown,
  	.driver		= {
- 		.name	= "exynos-dwc3",
+ 		.name = "spear-ehci",
 +		.owner	= THIS_MODULE,
- 		.of_match_table = of_match_ptr(exynos_dwc3_match),
- 		.pm	= DEV_PM_OPS,
- 	},
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 34638b9..3aaf87f 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -468,6 +468,7 @@ static struct platform_driver dwc3_omap_driver = {
- 	.remove		= dwc3_omap_remove,
- 	.driver		= {
- 		.name	= "omap-dwc3",
+ 		.bus = &platform_bus_type,
+ 		.pm = &ehci_spear_pm_ops,
+ 		.of_match_table = of_match_ptr(spear_ehci_id_table),
+diff --git a/drivers/usb/host/isp1760-if.c b/drivers/usb/host/isp1760-if.c
+index bbb791b..9c572da 100644
+--- a/drivers/usb/host/isp1760-if.c
++++ b/drivers/usb/host/isp1760-if.c
+@@ -435,6 +435,7 @@ static struct platform_driver isp1760_plat_driver = {
+ 	.remove	= isp1760_plat_remove,
+ 	.driver	= {
+ 		.name	= "isp1760",
 +		.owner	= THIS_MODULE,
- 		.of_match_table	= of_dwc3_match,
- 		.pm	= DEV_PM_OPS,
  	},
+ };
+ 
+diff --git a/drivers/usb/host/oxu210hp-hcd.c b/drivers/usb/host/oxu210hp-hcd.c
+index 4f0f033..c5e1d1f 100644
+--- a/drivers/usb/host/oxu210hp-hcd.c
++++ b/drivers/usb/host/oxu210hp-hcd.c
+@@ -3947,6 +3947,7 @@ static struct platform_driver oxu_driver = {
+ 	.resume		= oxu_drv_resume,
+ 	.driver = {
+ 		.name = "oxu210hp-hcd",
++		.owner	= THIS_MODULE,
+ 		.bus = &platform_bus_type
+ 	}
+ };
+diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
+index df90fe5..34a6067 100644
+--- a/drivers/usb/host/xhci-plat.c
++++ b/drivers/usb/host/xhci-plat.c
+@@ -190,6 +190,7 @@ static struct platform_driver usb_xhci_driver = {
+ 	.remove	= xhci_plat_remove,
+ 	.driver	= {
+ 		.name = "xhci-hcd",
++		.owner	= THIS_MODULE,
+ 	},
+ };
+ MODULE_ALIAS("platform:xhci-hcd");
 -- 
 1.7.1
