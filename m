@@ -1,36 +1,60 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 6/6] ARM: OMAP2+: Remove omap4 ocp2scp pdata
-Date: Tue, 21 May 2013 17:23:46 +0530
-Message-ID: <519B604A.9040300@ti.com>
-References: <20130517191304.468.73487.stgit@localhost> <20130517191803.468.32800.stgit@localhost>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH] ARM: OMAP4: change the device names in usb_bind_phy
+Date: Tue, 21 May 2013 14:08:51 +0200
+Message-ID: <519B63D3.7040600@epfl.ch>
+References: <1366697656-14315-1-git-send-email-kishon@ti.com> <51936946.3030507@iki.fi> <20130516155857.GV5600@atomide.com> <519503DA.5070303@iki.fi> <20130516162034.GX5600@atomide.com> <5195C28C.40300@ti.com> <20130517172335.GX5600@atomide.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47706 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753096Ab3EULya (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 May 2013 07:54:30 -0400
-In-Reply-To: <20130517191803.468.32800.stgit@localhost>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130517172335.GX5600@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Felipe Balbi <balbi@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Tomi Valkeinen <tomi.valkeinen@iki.fi>, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
+List-Id: linux-omap@vger.kernel.org
 
-On Saturday 18 May 2013 12:48 AM, Tony Lindgren wrote:
-> This is omap4+ only and no longer needed as omap4+ can be booted
-> using device tree.
+
+On 05/17/2013 07:23 PM, Tony Lindgren wrote:
+> * Kishon Vijay Abraham I <kishon@ti.com> [130516 22:45]:
+>> Hi,
+>>
+>> On Thursday 16 May 2013 09:50 PM, Tony Lindgren wrote:
+>>> * Tomi Valkeinen <tomi.valkeinen@iki.fi> [130516 09:11]:
+>>>> On 16/05/13 18:58, Tony Lindgren wrote:
+>>>>> * Tomi Valkeinen <tomi.valkeinen@iki.fi> [130515 03:59]:
+>>>>>
+>>>>> Just checking.. Do you have CONFIG_OMAP_OCP2SCP=y in your .config? Sounds
+>>>>> like the some transceivers should depend on that for omap4.
+>>>>
+>>>> Yes, I have OCP2SCP=y.
+>>>
+>>> Hmm well no idea beyond that then. Sounds like Kishon should check it.
+>>>
+>>>>>> The musb-hdrc id is wrong on overo also.
+>>>>>
+>>>>> Hmm has there been a fix posted for that?
+>>>>
+>>>> I couldn't find with a quick look. We debugged and discussed this on an irc
+>>>> channel with Kishon, who said he'll send a patch. Changing the musb-hdrc ID
+>>>> on overo fixed the issue, and it looks very similar to the error on 4430sdp.
+>>>> The overo fix was just:
+>>
+>> hmm.. I think using device name to bind the controller and the phy
+>> can no longer be used reliably. I think it's better to have
+>> something like what Grant suggested in my other patch series.. to
+>> have the phy reference into the host controllers platform_data
+>> structure. And for the phy reference I'll have label and id.
+>>
+>> Does this makes sense to you?
 >
-> Also remove the related pdata handling from the driver and the
-> now unneeded platform_data/omap_ocp2scp.h.
+> Sounds OK to me, but I guess that would be for v3.11. I think we
+> still need a fix for at least overo for v3.10?
 >
-> Cc: Kishon Vijay Abraham I <kishon@ti.com>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Olof Johansson <olof@lixom.net>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Reviewed-by: Kishon Vijay Abraham I <kishon@ti.com>
+Indead, musb-hdrc is broken on overo with 3.10-rc2. The patch posted in this
+thread fixes the issue.
 
-Thanks
-Kishon
+Regards,
+
+Florian
