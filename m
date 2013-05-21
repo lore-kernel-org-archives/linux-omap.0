@@ -1,89 +1,25 @@
-From: Jon Hunter <jgchunter@gmail.com>
-Subject: Re: [BISECTED] 3.10-rc1 OMAP1 GPIO IRQ regression
-Date: Tue, 21 May 2013 20:37:16 +0100
-Message-ID: <519BCCEC.8010303@gmail.com>
-References: <20130513205302.GA3157@blackmetal.musicnaut.iki.fi> <20130516180933.GG5600@atomide.com> <20130516210006.GA31836@blackmetal.musicnaut.iki.fi> <20130516214430.GN5600@atomide.com> <20130520174621.GI10378@atomide.com> <20130521173936.GE31836@blackmetal.musicnaut.iki.fi>
+From: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
+Subject: [pandaboard] device tree booting fails
+Date: Tue, 21 May 2013 21:37:37 +0200
+Message-ID: <519BCD01.9090908@math.uni-bielefeld.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:59041 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752054Ab3EUThU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 May 2013 15:37:20 -0400
-Received: by mail-wi0-f172.google.com with SMTP id ey16so3127199wid.17
-        for <linux-omap@vger.kernel.org>; Tue, 21 May 2013 12:37:19 -0700 (PDT)
-In-Reply-To: <20130521173936.GE31836@blackmetal.musicnaut.iki.fi>
+Received: from kvm21.math.uni-bielefeld.de ([129.70.14.14]:42558 "EHLO
+	kvm21.math.uni-bielefeld.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751769Ab3EUTvH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 May 2013 15:51:07 -0400
+Received: from [192.168.0.34] (ip-178-203-233-164.unitymediagroup.de [178.203.233.164])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(Client did not present a certificate)
+	by kvm21.math.uni-bielefeld.de (Postfix) with ESMTPSA id 5B92F6044F
+	for <linux-omap@vger.kernel.org>; Tue, 21 May 2013 21:42:47 +0200 (CEST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
 
+Forwarding as suggested by Tony Lindgren.
 
-On 21/05/13 18:39, Aaro Koskinen wrote:
-> On Mon, May 20, 2013 at 10:46:21AM -0700, Tony Lindgren wrote:
->> * Tony Lindgren <tony@atomide.com> [130516 14:50]:
->>> * Aaro Koskinen <aaro.koskinen@iki.fi> [130516 14:05]:
->>>> On Thu, May 16, 2013 at 11:09:34AM -0700, Tony Lindgren wrote:
->>>>> * Aaro Koskinen <aaro.koskinen@iki.fi> [130513 13:58]:
->>>>>> I tested 3.10-rc1 on OMAP1 / Nokia 770, and Retu MFD probe is broken:
->>>>>>
->>>>>> [    2.264221] retu-mfd 2-0001: Retu v3.2 found
->>>>>> [    2.281951] retu-mfd 2-0001: Failed to allocate IRQs: -12
->>>>>> [    2.300140] retu-mfd: probe of 2-0001 failed with error -12
->>>>>>
->>>>>> The error is coming from regmap code. According to git bisect, it is
->>>>>> caused by:
->>>>>>
->>>>>> 	commit ede4d7a5b9835510fd1f724367f68d2fa4128453
->>>>>> 	Author: Jon Hunter <jon-hunter@ti.com>
->>>>>> 	Date:   Fri Mar 1 11:22:47 2013 -0600
->>>>>>
->>>>>> 	    gpio/omap: convert gpio irq domain to linear mapping
->>>>>>
->>>>>> The commit does not anymore revert cleanly, and I haven't yet tried
->>>>>> crafting a manual revert, so any fix proposals/ideas are welcome...
->>>>>
->>>>> Hmm this might be a bit trickier to fix. Obviously the real solution
->>>>> is to convert omap1 to SPARSE_IRQ like we did for omap2+.
->>>>>
->>>>> For the -rc cycle, it might be possible to fix this by adding a
->>>>> different irq_to_gpio() and gpio_to_irq() functions for omap1.
->>>>
->>>> The commit reverts cleanly if we also revert
->>>> 3513cdeccc647d41c4a9ff923af17deaaac04a66 (gpio/omap: optimise interrupt
->>>> service routine), which seems to be just some minor optimization. The
->>>> result is below, and with it 770 works again.
->>>
->>> Hmm in this case it seems that we should just fix it rather than go back
->>> to the old code, so let's take a look at that first.
->>
->> Does the following fix it for you or do we need to fix something else
->> there too?
-> 
-> Thanks, that fixes Retu probe on 770.
-
-Sorry for not responding sooner, but I have been moving. 
-
->From looking at the code it appears that the regmap_add_irq_chip()
-is failing in the retu driver. I am not sure if this will work, 
-but have you tried making the following change to the retu driver 
-so that it also uses irq_domain_add_linear() as well? Just a thought ...
-
-Cheers
-Jon
-
-diff --git a/drivers/mfd/retu-mfd.c b/drivers/mfd/retu-mfd.c
-index a183098..7ad8cd4 100644
---- a/drivers/mfd/retu-mfd.c
-+++ b/drivers/mfd/retu-mfd.c
-@@ -267,7 +267,7 @@ static int retu_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
-        if (ret < 0)
-                return ret;
- 
--       ret = regmap_add_irq_chip(rdev->regmap, i2c->irq, IRQF_ONESHOT, -1,
-+       ret = regmap_add_irq_chip(rdev->regmap, i2c->irq, IRQF_ONESHOT, 0,
-                                  rdat->irq_chip, &rdev->irq_data);
-        if (ret < 0)
-                return ret;
-
+https://bugzilla.kernel.org/show_bug.cgi?id=58611
