@@ -1,70 +1,105 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: hwmod/serial: fix DT case
-Date: Tue, 21 May 2013 11:11:10 -0700
-Message-ID: <20130521181109.GR10378@atomide.com>
-References: <alpine.DEB.2.00.1305192331390.2656@utopia.booyaka.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH] ARM: OMAP3: Fix iva2_pwrdm settings for 3703
+Date: Tue, 21 May 2013 11:20:03 -0700
+Message-ID: <87zjvokxf0.fsf@linaro.org>
+References: <20130515002537.GG5600@atomide.com>
+	<20130515015212.GB3268@animalcreek.com>
+	<20130515170734.GI5600@atomide.com>
+	<20130515215028.GA11883@animalcreek.com>
+	<5194B2A8.8020608@visionsystems.de>
+	<20130517185620.GF28484@animalcreek.com>
+	<CAGm1_ks10f=6aBxWHzd6KxAaFGfnZUNWrQrSZeFwsT3He9r0Ow@mail.gmail.com>
+	<20130520220540.GL10378@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:39954 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755259Ab3EUSLP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 May 2013 14:11:15 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1305192331390.2656@utopia.booyaka.com>
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:38227 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753642Ab3EUSUH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 May 2013 14:20:07 -0400
+Received: by mail-pa0-f45.google.com with SMTP id lj1so981736pab.32
+        for <linux-omap@vger.kernel.org>; Tue, 21 May 2013 11:20:07 -0700 (PDT)
+In-Reply-To: <20130520220540.GL10378@atomide.com> (Tony Lindgren's message of
+	"Mon, 20 May 2013 15:05:40 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Yegor Yefremov <yegorslists@googlemail.com>, "Mark A. Greer" <mgreer@animalcreek.com>, Yegor Yefremov <yegor_sub1@visionsystems.de>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Olof,
+Tony Lindgren <tony@atomide.com> writes:
 
-Care to pull this into your fixes directly?
+> * Yegor Yefremov <yegorslists@googlemail.com> [130517 14:34]:
+>> On Fri, May 17, 2013 at 8:56 PM, Mark A. Greer <mgreer@animalcreek.com> wrote:
+>> > On Thu, May 16, 2013 at 12:19:20PM +0200, Yegor Yefremov wrote:
+>> >> On 15.05.2013 23:50, Mark A. Greer wrote:
+>> >> > On Wed, May 15, 2013 at 10:07:35AM -0700, Tony Lindgren wrote:
+>> >
+>> >> >> Mark, do you have some omap3 with no iva (other than am3703) to test the
+>> >> >> idle states with?
+>> >> >
+>> >> > I have an am35xx which isn't supposed to have an IVA so I can test with it
+>> >> > (although, I'm not sure how well the kernel works on the am35xx these days).
+>> >> >
+>> >> > I'm a bit busy today but I'll try booting the am35xx tomorrow and if it
+>> >> > comes up, see what I can figure out.
+>> >>
+>> >> I think this issue is relevant to am3517 as you can see from this
+>> >> thread: http://thread.gmane.org/gmane.linux.ports.arm.omap/97903
+>> >> I could boot only with your patch http://www.spinics.net/lists/arm-kernel/msg168865.html
+>> >>
+>> >> I have such a system running, so if you have any other patches/ideas to test, I would do it.
+>> >
+>> > Yegor, since I've so far been unable to get my am3517evm to fire up, can
+>> > you play around with the 3517 to see if there appears to be iva registers
+>> > that can be read/written to safely?  In particular, can the code that idles
+>> > the iva be run safely on an am3517?
+>> 
+>> I'll look into this next week. am3517 and IVA seems to be a really big
+>> mystery. In the TI forum will be stated, there is no IVA:
+>> http://e2e.ti.com/support/arm/sitara_arm/f/791/t/150961.aspx, but TRM
+>> has various appearances of IVA2 registers, but no real
+>> description/explanation of what is IVA and how to eat it.
+>
+> On 3703 it looks like the whole omap3_iva_idle() reset is needed, except
+> for setting the iva2 bootmode to idle. So I'm planning to merge the following
+> patch with just comments update this week unless somebody has a better fix
+> in mind.
+>
+> Regards,
+>
+> Tony
+>
+>
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Tue, 14 May 2013 20:28:15 -0700
+> Subject: [PATCH] ARM: OMAP3: Fix iva2_pwrdm settings for 3703
+>
+> Commit a819c4f1 (ARM: OMAP3: PM: Only access IVA if one exists)
+> changed PM to not access IVA registers on omaps that don't have
+> them. Turns out we still need to idle iva2 as otherwise
+> iva2_pwrdm will stay on and block deeper idle states.
+>
+> It seems that the only part of the reset that may not be needed
+> is the setting of the iva2 boot mode to idle. But as that register
+> seems to be there and is harmless if no iva2 is on the SoC, it's
+> probably safest to do the complete reset.
+>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Regards,
+Acked-by: Kevin Hilman <khilman@linaro.org>
 
-Tony
-
-* Paul Walmsley <paul@pwsan.com> [130519 16:39]:
-> The following changes since commit f722406faae2d073cc1d01063d1123c35425939e:
-> 
->   Linux 3.10-rc1 (2013-05-11 17:14:08 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-fixes-a-for-3.10-rc
-> 
-> for you to fetch changes up to 3260c76055afc6c9396e5ad9f9e599505ea8891f:
-> 
->   ARM: OMAP2+: hwmod: Remove sysc slave idle and auto idle apis (2013-05-19 16:37:15 -0600)
-> 
-> ----------------------------------------------------------------
-> Fix the OMAP serial driver to work correctly on OMAP4 when booting
-> with DT.
-> 
-> Basic build, boot, and PM test logs are here - unfortunately, not for
-> the DT case yet:
-> 
-> http://www.pwsan.com/omap/testlogs/uart_idle_fix_v3.10-rc/20130519164010/
-> 
-> ----------------------------------------------------------------
-> Rajendra Nayak (2):
->       ARM: OMAP2+: hwmod: Fix sidle programming in _enable_sysc()/_idle_sysc()
->       ARM: OMAP2+: hwmod: Add a new flag to handle SIDLE in SWSUP only in active
-> 
-> Santosh Shilimkar (4):
->       ARM: OMAP2+: hwmod-data: UART IP needs software control to manage sidle modes
->       ARM: OMAP2+: serial: Remove the un-used slave idle hooks
->       SERIAL: OMAP: Remove the slave idle handling from the driver
->       ARM: OMAP2+: hwmod: Remove sysc slave idle and auto idle apis
-> 
->  arch/arm/mach-omap2/omap_hwmod.c                   |  111 +++++---------------
->  arch/arm/mach-omap2/omap_hwmod.h                   |    7 +-
->  arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    3 +
->  arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |    6 ++
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    4 +
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 +-
->  arch/arm/mach-omap2/serial.c                       |   31 ------
->  drivers/tty/serial/omap-serial.c                   |   23 ----
->  include/linux/platform_data/serial-omap.h          |    2 -
->  9 files changed, 48 insertions(+), 145 deletions(-)
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -546,8 +546,10 @@ static void __init prcm_setup_regs(void)
+>  	/* Clear any pending PRCM interrupts */
+>  	omap2_prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
+>  
+> -	if (omap3_has_iva())
+> -		omap3_iva_idle();
+> +	/*
+> +	 * We need to idle iva2_pwrdm even on am3703 with no iva2.
+> +	 */
+> +	omap3_iva_idle();
+>  
+>  	omap3_d2d_idle();
+>  }
