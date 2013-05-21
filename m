@@ -1,85 +1,28 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [net-next resend PATCH 3/6] ARM: dts: AM33XX: Add pinmux configuration for CPSW to beaglebone
-Date: Tue, 21 May 2013 15:25:00 +0530
-Message-ID: <1369130103-743-4-git-send-email-mugunthanvnm@ti.com>
-References: <1369130103-743-1-git-send-email-mugunthanvnm@ti.com>
+From: Barry Song <21cnbao@gmail.com>
+Subject: the Usage of ROM and RAM of Cortex-M3 on OMAP4
+Date: Tue, 21 May 2013 18:04:24 +0800
+Message-ID: <CAGsJ_4x+TC04ajK5DYV8CSvRk6xvnmATuj35ruetWjMgLAYcbQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1369130103-743-1-git-send-email-mugunthanvnm@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, benoit.cousson@linaro.orgm, paul@pwsan.com, Mugunthan V N <mugunthanvnm@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qc0-f177.google.com ([209.85.216.177]:44658 "EHLO
+	mail-qc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753136Ab3EUKEp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 May 2013 06:04:45 -0400
+Received: by mail-qc0-f177.google.com with SMTP id e1so214941qcy.22
+        for <linux-omap@vger.kernel.org>; Tue, 21 May 2013 03:04:44 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: pandaboard@googlegroups.com, linux-omap@vger.kernel.org
 
-Add pinmux configurations for MII based CPSW ethernet to am335x-bone.
-In this patch, only single named mode/state is added and these pins
-are configured during pinctrl driver initialization.
+Hi All,
+typically on OMAP4, Cortex-A9 will load the Cortex-M3 firmware and let
+M3 run from the firmware. for example, on Android, Linux kernel will
+use remoteproc module to load ducati-m3-core0.xem3 of Ducati.
+but after reading the datasheet of OMAP4, there are internal 16KB ROM
+and 64KB RAM for Cortex-M3. And the ROM is bootable. I'd like to know
+who is using the embedded ROM and RAM and how they use. and can the
+Cortex-M3 boot from ROM directly by itself?
 
-Default mode is nothing but the values required for the module during
-active state. With this configurations module is functional as
-expected.
-
-Todo:
-- if an idle state is available for pins, add support for it.
-
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
- arch/arm/boot/dts/am335x-bone.dts |   38 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
-
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 5302f79..97294a6 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -36,6 +36,33 @@
- 				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
- 			>;
- 		};
-+
-+		cpsw_default: cpsw_default {
-+			pinctrl-single,pins = <
-+				/* Slave 1 */
-+				0x110 0x20	/* mii1_rxerr.mii1_rxerr, MODE0 | INPUT */
-+				0x114 0x0	/* mii1_txen.mii1_txen, MODE0 | OUTPUT */
-+				0x118 0x20	/* mii1_rxdv.mii1_rxdv, MODE0 | INPUT_PULLDOWN */
-+				0x11c 0x0	/* mii1_txd3.mii1_txd3, MODE0 | OUTPUT */
-+				0x120 0x0	/* mii1_txd2.mii1_txd2, MODE0 | OUTPUT */
-+				0x124 0x0	/* mii1_txd1.mii1_txd1, MODE0 | OUTPUT */
-+				0x128 0x0	/* mii1_txd0.mii1_txd0, MODE0 | OUTPUT */
-+				0x12c 0x20	/* mii1_txclk.mii1_txclk, MODE0 | INPUT_PULLDOWN */
-+				0x130 0x20	/* mii1_rxclk.mii1_rxclk, MODE0 | INPUT_PULLDOWN */
-+				0x134 0x20	/* mii1_rxd3.mii1_rxd3, MODE0 | INPUT_PULLDOWN */
-+				0x138 0x20	/* mii1_rxd2.mii1_rxd2, MODE0 | INPUT_PULLDOWN */
-+				0x13c 0x20	/* mii1_rxd1.mii1_rxd1, MODE0 | INPUT_PULLDOWN */
-+				0x140 0x20	/* mii1_rxd0.mii1_rxd0, MODE0 | INPUT_PULLDOWN */
-+			>;
-+		};
-+
-+		davinci_mdio_default: davinci_mdio_default {
-+			pinctrl-single,pins = <
-+				/* MDIO */
-+				0x148 0x30	/* mdio_data.mdio_data, MODE0 | INPUT_PULLUP */
-+				0x14c 0x10	/* mdio_clk.mdio_clk, MODE0 | OUTPUT_PULLUP */
-+			>;
-+		};
- 	};
- 
- 	ocp {
-@@ -136,3 +163,14 @@
- &cpsw_emac1 {
- 	phy_id = <&davinci_mdio>, <1>;
- };
-+
-+&mac {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&cpsw_default>;
-+
-+};
-+
-+&davinci_mdio {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&davinci_mdio_default>;
-+};
--- 
-1.7.9.5
+Thanks
+barry
