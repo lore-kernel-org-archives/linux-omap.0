@@ -1,48 +1,37 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH] arm: omap: board-overo: reset GPIO for SMSC911x
-Date: Tue, 21 May 2013 15:47:51 +0200
-Message-ID: <1369144071-10673-1-git-send-email-florian.vaussard@epfl.ch>
+From: Nicolas Dechesne <ndec13@gmail.com>
+Subject: Re: the Usage of ROM and RAM of Cortex-M3 on OMAP4
+Date: Tue, 21 May 2013 15:52:27 +0200
+Message-ID: <CAOT3miLBOT2h7758bQDyTm5mNXPcjfFYoADGqS7Set9CwPexTQ@mail.gmail.com>
+References: <CAGsJ_4x+TC04ajK5DYV8CSvRk6xvnmATuj35ruetWjMgLAYcbQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.epfl.ch ([128.178.224.219]:51916 "HELO smtp4.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754664Ab3EUNsS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 May 2013 09:48:18 -0400
+Received: from mail-oa0-f44.google.com ([209.85.219.44]:53695 "EHLO
+	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752612Ab3EUNws (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 May 2013 09:52:48 -0400
+Received: by mail-oa0-f44.google.com with SMTP id n12so817959oag.17
+        for <linux-omap@vger.kernel.org>; Tue, 21 May 2013 06:52:47 -0700 (PDT)
+In-Reply-To: <CAGsJ_4x+TC04ajK5DYV8CSvRk6xvnmATuj35ruetWjMgLAYcbQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Steve Sakoman <sakoman@gmail.com>, Mike Rapoport <mike@compulab.co.il>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
+To: Barry Song <21cnbao@gmail.com>
+Cc: "pandaboard@googlegroups.com" <pandaboard@googlegroups.com>, linux-omap@vger.kernel.org
 
-The reset GPIO should be set for the SMSC911x, otherwise the controller
-will not work and probing will fail. In the case of the tobi-duo
-expansion board, the second controller shares the same GPIO, thus no
-more changes are required (not tested).
+On Tue, May 21, 2013 at 12:04 PM, Barry Song <21cnbao@gmail.com> wrote:
+> Hi All,
+> typically on OMAP4, Cortex-A9 will load the Cortex-M3 firmware and let
+> M3 run from the firmware. for example, on Android, Linux kernel will
+> use remoteproc module to load ducati-m3-core0.xem3 of Ducati.
+> but after reading the datasheet of OMAP4, there are internal 16KB ROM
+> and 64KB RAM for Cortex-M3. And the ROM is bootable. I'd like to know
+> who is using the embedded ROM and RAM and how they use. and can the
+> Cortex-M3 boot from ROM directly by itself?
+>
 
-Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
----
- arch/arm/mach-omap2/board-overo.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 4ca6b68..5748b5d 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -68,6 +68,7 @@
- 
- #define OVERO_SMSC911X_CS      5
- #define OVERO_SMSC911X_GPIO    176
-+#define OVERO_SMSC911X_NRESET  64
- #define OVERO_SMSC911X2_CS     4
- #define OVERO_SMSC911X2_GPIO   65
- 
-@@ -122,7 +123,7 @@ static struct omap_smsc911x_platform_data smsc911x_cfg = {
- 	.id		= 0,
- 	.cs             = OVERO_SMSC911X_CS,
- 	.gpio_irq       = OVERO_SMSC911X_GPIO,
--	.gpio_reset     = -EINVAL,
-+	.gpio_reset     = OVERO_SMSC911X_NRESET,
- 	.flags		= SMSC911X_USE_32BIT,
- };
- 
--- 
-1.7.5.4
-
+i don't think the ROM is being used. at least i am not aware of anyone
+who would have developed a ROM code for Ducati... so i don't think you
+can use the ROM. as for the RAM if you refer to what's called 'SL2
+memory', it's being used by the codecs (IVAHD), it's just RAM that can
+be used freely if you don't use IVAHD.
