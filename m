@@ -1,389 +1,1023 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [RFC PATCH 4/4] HACK: OMAP4460/TPS/TWL/PandaBoardES - Enable VP regulator for cpufreq
-Date: Wed, 22 May 2013 13:18:37 -0500
-Message-ID: <1369246717-4167-5-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [RFC PATCH 3/4] PM / AVS: Introduce support for OMAP Voltage
+ Processor(VP) with device tree nodes
+Date: Wed, 22 May 2013 13:18:36 -0500
+Message-ID: <1369246717-4167-4-git-send-email-nm@ti.com>
 References: <1369246717-4167-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1369246717-4167-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1369246717-4167-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This is just an example patch - Tested on PandaBoard-ES OMAP4460
-Connectivity is as follows:
-VP_MPU -> VC_CH_MPU -> VC -> TPS62361
-TPS62631 Voltage register selection is done using GPIO (GPIO_WK 7)
-VP_IVA -> VC_CH_IVA -> VC -> TWL6030/vcore2
-VP_CORE -> VC_CH_CORE -> VC -> TWL6030/vcore1
+Texas Instrument's OMAP SoC generations since OMAP3-5 introduced an TI
+custom hardware block to better facilitate and standardize integration
+of Power Management ICs which communicate over I2C called Voltage
+Processor(VP).
 
-NOT-Signed-off-by: Nishanth Menon <nm@ti.com>
+This is an specialized hardware block meant to support PMIC chips only
+over Voltage Controller(VC) interface. This provides an interface for
+SmartReflex AVS module to send adjustment steps which is converted into
+voltage values and send onwards by VP to VC. VP is also used to set the
+voltage of the PMIC by commanding using "forceupdate".
+
+We have an existing implementation in mach-omap2 which has been
+re factored and moved out as a separate driver. This new driver is DT
+only and the separation was meant to get a maintainable driver which
+does not have to deal with legacy platform_data dependencies. The legacy
+driver is retained to support non-DT boot and functionality will be
+migrated to the DT-only version as we enable features.
+
+Currently, this implementation considers only the basic steps needed for
+voltage scaling and exposing voltage processor which hooks on to Voltage
+Controller driver and OMAP PMIC driver to provide an regulator interface
+over OMAP PMIC driver.
+
+We may need to do additional timing configurations to enable Low power
+mode voltage transitions and to hook the Adaptive Voltage
+Scaling(AVS) implementation for OMAP which also uses the same voltage
+controller to talk to PMICs. This needs to be addressed in a later
+series.
+
+This driver is meant to interface with OMAP PMIC driver when the
+controller driver registers it's operations with OMAP PMIC driver and
+associates with an voltage controller channel. This enables the full
+communication path between the OMAP PMIC regulator to the external PMIC
+hardware over OMAP Voltage Processor and OMAP Voltage Controller.
+
+[grygorii.strashko-l0cyMroinI0@public.gmane.org: co-developer]
+Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap4-panda-es.dts |   55 +++++++++++++++++++--
- arch/arm/boot/dts/omap4.dtsi         |   84 +++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap4460.dtsi      |    1 +
- arch/arm/boot/dts/tps62361.dtsi      |   90 ++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/twl6030.dtsi       |   68 +++++++++++++++++++++++++
- 5 files changed, 294 insertions(+), 4 deletions(-)
- create mode 100644 arch/arm/boot/dts/tps62361.dtsi
+ .../devicetree/bindings/power/omap-vp.txt          |   39 +
+ drivers/power/avs/Makefile                         |    2 +-
+ drivers/power/avs/omap_vp.c                        |  886 ++++++++++++++++++++
+ 3 files changed, 926 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/power/omap-vp.txt
+ create mode 100644 drivers/power/avs/omap_vp.c
 
-diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
-index 08d2e38..71aa5f3 100644
---- a/arch/arm/boot/dts/omap4-panda-es.dts
-+++ b/arch/arm/boot/dts/omap4-panda-es.dts
-@@ -43,10 +43,18 @@
- 	};
- };
- 
--&led_wkgpio_pins {
--	pinctrl-single,pins = <
--		0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
--	>;
-+&omap4_pmx_wkup {
-+	led_wkgpio_pins: pinmux_leds_wkpins {
-+		pinctrl-single,pins = <
-+			0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
-+		>;
-+	};
-+
-+	tps62361_wkgpio_pins: pinmux_tps62361_wkpins {
-+		pinctrl-single,pins = <
-+			0x1a 0xa03	/* gpio_wk7 OUTPUT | MODE 3 |OFF_HI */
-+		>;
-+	};
- };
- 
- &leds {
-@@ -68,3 +76,42 @@
- 		linux,default-trigger = "mmc0";
- 	};
- };
-+
-+#define TPS62361_PD_VSEL0
-+#include "tps62361.dtsi"
-+
-+/* Board Specific configuration */
-+&omap_tps62361 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+		&tps62361_wkgpio_pins
-+	>;
-+	gpios = <&gpio1 7 1>;	/* gpio_wk7 Set to HIGH */
-+
-+	ti,boot-voltage-micro-volts=<1203000>;
-+	ti,vp=<&vp_mpu>;
-+};
-+
-+&omap_twl6030_vcore1 {
-+	ti,boot-voltage-micro-volts=<1200000>;
-+	ti,vp=<&vp_core>;
-+};
-+
-+&omap_twl6030_vcore2 {
-+	ti,boot-voltage-micro-volts=<1200000>;
-+	ti,vp = <&vp_iva>;
-+};
-+
-+&omap_twl6030_vcore3 {
-+	status = "disabled";
-+};
-+
-+&vc_mpu {
-+	/* Due to potential lifetime impact, OFF voltage is set to RET V: TPS*/
-+	ti,off-micro-volts = <750000>;
-+};
-+
-+&vc {
-+	ti,i2c-high-speed;
-+	ti,i2c-pad-load=<3>;
-+};
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 1c6d969..b9fd360 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -108,6 +108,11 @@
- 			ti,hwmods = "counter_32k";
- 		};
- 
-+		sysclk_in: sys_clkin {
-+			#clock-cells = <0>;
-+			compatible = "ti,omap-clock";
-+		};
-+
- 		dpll_mpu: dpll_mpu {
- 			#clock-cells = <0>;
- 			compatible = "ti,omap-clock";
-@@ -667,5 +672,84 @@
- 			ram-bits = <12>;
- 			ti,has-mailbox;
- 		};
-+
-+	vc: vc@0x4A307B88 {
-+			compatible = "ti,omap4-vc";
-+			clocks = <&sysclk_in>;
-+			reg = <0x4A307B88 0x40>;
-+			reg-names = "base-address";
-+
-+			ti,i2c-high-speed; /* belongs to board file */
-+			vc_mpu: vc_mpu {
-+				compatible = "ti,omap4-vc-channel-mpu";
-+				ti,master-channel;
-+				ti,retention-micro-volts = <750000>;
-+				ti,off-micro-volts = <0>;
-+			};
-+
-+			vc_iva: vc_iva {
-+				compatible = "ti,omap4-vc-channel-iva";
-+				ti,retention-micro-volts = <750000>;
-+				ti,off-micro-volts = <0>;
-+			};
-+
-+			vc_core: vc_core {
-+				compatible = "ti,omap4-vc-channel-core";
-+				ti,retention-micro-volts = <750000>;
-+				ti,off-micro-volts = <0>;
-+			};
-+		};
-+
-+		vp_mpu: vp@0x4a307b58 {
-+			compatible = "ti,omap4-vp";
-+
-+			reg = <0x4a307b58 0x18>, <0x4A306014 0x4>;
-+			reg-names = "base-address", "int-address";
-+			ti,tranxdone-status-mask=<0x20>;
-+
-+			clocks = <&sysclk_in>;
-+
-+			ti,vc-channel = <&vc_mpu>;
-+			ti,min-step-micro-volts = <10000>;
-+			ti,max-step-micro-volts = <50000>;
-+			/* HACKs: belongs to SoC specific file */
-+			ti,min-micro-volts = <750000>;
-+			ti,max-micro-volts = <1410000>;
-+		};
-+
-+		vp_iva: vp@0x4a307b70 {
-+			compatible = "ti,omap4-vp";
-+
-+			reg = <0x4a307b70 0x18>, <0x4A306010 0x4>;
-+			reg-names = "base-address", "int-address";
-+			ti,tranxdone-status-mask=<0x20000000>;
-+
-+			clocks = <&sysclk_in>;
-+
-+			ti,vc-channel = <&vc_iva>;
-+			/* HACKs: belongs to SoC specific file */
-+			ti,min-step-micro-volts = <10000>;
-+			ti,max-step-micro-volts = <50000>;
-+			ti,min-micro-volts = <750000>;
-+			ti,max-micro-volts = <1260000>;
-+		};
-+
-+		vp_core: vp@0x4a307b40 {
-+			compatible = "ti,omap4-vp";
-+
-+			reg = <0x4a307b40 0x18>, <0x4A306010 0x4>;
-+			reg-names = "base-address", "int-address";
-+			ti,tranxdone-status-mask=<0x200000>;
-+
-+			clocks = <&sysclk_in>;
-+
-+			regulator_name = "vdd_core";
-+			ti,vc-channel = <&vc_core>;
-+			/* HACKs: belongs to SoC specific file */
-+			ti,min-step-micro-volts = <10000>;
-+			ti,max-step-micro-volts = <50000>;
-+			ti,min-micro-volts = <830000>;
-+			ti,max-micro-volts = <1200000>;
-+		};
- 	};
- };
-diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap4460.dtsi
-index 2cf227c..6937d92 100644
---- a/arch/arm/boot/dts/omap4460.dtsi
-+++ b/arch/arm/boot/dts/omap4460.dtsi
-@@ -20,6 +20,7 @@
- 				920000  1313000
- 			>;
- 			clock-latency = <300000>; /* From legacy driver */
-+			cpu0-supply = <&omap_tps62361>; /* HACK: belongs to board file */
- 		};
- 	};
- 
-diff --git a/arch/arm/boot/dts/tps62361.dtsi b/arch/arm/boot/dts/tps62361.dtsi
+diff --git a/Documentation/devicetree/bindings/power/omap-vp.txt b/Documentation/devicetree/bindings/power/omap-vp.txt
 new file mode 100644
-index 0000000..b82a50f
+index 0000000..b690e35
 --- /dev/null
-+++ b/arch/arm/boot/dts/tps62361.dtsi
-@@ -0,0 +1,90 @@
++++ b/Documentation/devicetree/bindings/power/omap-vp.txt
+@@ -0,0 +1,39 @@
++Voltage Controller driver for Texas Instruments OMAP SoCs
 +
-+/* Add blah blah */
++Voltage Controller Properties:
++The following are the properties of the voltage controller node
++Required Properties:
++- compatible: Should be one of:
++  - "ti,omap3-vp" - for OMAP3 family of devices
++  - "ti,omap4-vp" - for OMAP4 family of devices
++  - "ti,omap5-vp" - for OMAP5 family of devices
++- reg: Address and length of the register set for the device. It contains
++  the information of registers in the same order as described by reg-names
++- reg-names: Should contain the reg names
++  - "base-address"	- contains base address of VP module
++  - "int-address"	- contains base address of interrupt register for VP module
++- clocks: should point to the clock node used by VC module, usually sysclk
++- ti,min-micro-volts - SoC supported min operational voltage in micro-volts
++- ti,max-micro-volts - SoC supported max operational voltage in micro-volts
++- ti,min-step-micro-volts - SoC supported min operational voltage steps in micro-volts
++- ti,max-step-micro-volts - SoC supported max operational voltage steps in micro-volts
++- ti,tranxdone-status-mask: Mask to the int-register to write-to-clear mask
++	indicating VP has completed operation in sending command to Voltage Controller.
++- ti,vc-channel - phandle to the Voltage Controller Channel device used by this Voltage
++	Processor.
++Example:
++vp_mpu: vp@0x4a307b58 {
++	compatible = "ti,omap4-vp";
 +
-+/* Register set definitions */
-+#define REG_TPS6236X_SET_0		0x00
-+#define REG_TPS6236X_SET_1		0x01
-+#define REG_TPS6236X_SET_2		0x02
-+#define REG_TPS6236X_SET_3		0x03
-+#define REG_TPS6236X_CTRL		0x04
-+#define REG_TPS6236X_TEMP		0x05
-+#define REG_TPS6236X_RAMP_CTRL		0x06
-+#define REG_TPS6236X_CHIP_ID0		0x08
-+#define REG_TPS6236X_CHIP_ID1		0x09
++	reg = <0x4a307b58 0x18>, <0x4A306014 0x4>;
++	reg-names = "base-address", "int-address";
++	ti,tranxdone-status-mask=<0x20>;
 +
-+/* Register field definitions for REG_TPS6236X_CTRL */
-+#define REG_TPS6236X_CTRL_PD_EN		(1 << 7)
-+#define REG_TPS6236X_CTRL_PD_VSEL0	(1 << 6)
-+#define REG_TPS6236X_CTRL_PD_VSEL1	(1 << 5)
++	clocks = <&sysclk_in>;
 +
-+/* Register field definitions for REG_TPS6236X_RAMP_CTRL */
-+#define REG_TPS6236X_RAMP_CTRL_RMP_SHIFT 5
-+#define REG_TPS6236X_RAMP_CTRL_EN_DISC	(1 << 2)
-+#define REG_TPS6236X_RAMP_CTRL_RAMP_PFM	(1 << 1)
-+
-+/* Value definitions for REG_TPS6236X_RAMP_CTRL::RMP field */
-+#define RMP_32MV_USEC			0x0
-+#define RMP_16MV_USEC			0x1
-+#define RMP_8MV_USEC			0x2
-+#define RMP_4MV_USEC			0x3
-+#define RMP_2MV_USEC			0x4
-+#define RMP_1MV_USEC			0x5
-+
-+/* Selected values */
-+#define RMP_VALUE			(RMP_32MV_USEC << REG_TPS6236X_RAMP_CTRL_RMP_SHIFT | REG_TPS6236X_RAMP_CTRL_EN_DISC | REG_TPS6236X_RAMP_CTRL_RAMP_PFM)
-+
-+#ifdef TPS62361_PD_VSEL0
-+#define _CTRL_VALUE0			(REG_TPS6236X_CTRL_PD_EN | REG_TPS6236X_CTRL_PD_VSEL0)
-+#else
-+#define _CTRL_VALUE0			0x0
-+#endif
-+#ifdef TPS62361_PD_VSEL1
-+#define _CTRL_VALUE1			(REG_TPS6236X_CTRL_PD_EN | REG_TPS6236X_CTRL_PD_VSEL0)
-+#else
-+#define _CTRL_VALUE1			0x0
-+#endif
-+
-+#if defined(TPS62361_PD_VSEL0) || defined(TPS62361_PD_VSEL1)
-+#define _CTRL_VALUE			(_CTRL_VALUE0 | _CTRL_VALUE0)
-+#endif
-+
-+/ {
-+	omap_tps62361: tps62361 {
-+		compatible = "ti,omap-pmic";
-+		ti,non-zero-voltage-selector;
-+
-+		/* Slave address */
-+		ti,i2c-slave-address = <0x60>;
-+		/* I2C register address */
-+		ti,i2c-voltage-register = <0x01>; /* Set 1 */
-+		ti,i2c-command-register = <0x01>; /* Set 1 */
-+
-+		/* Slew rate in uV */
-+		ti,slew-rate-microvolt = <32000>;
-+		/* Step size in uV */
-+		ti,step-size-microvolt = <10000>;
-+		regulator-min-microvolt= <500000>;
-+		regulator-max-microvolt= <1770000>;
-+
-+		/* Optional - any voltage selector offset to care about */
-+		ti,voltage-selector-offset = <0x0>;
-+		/* Optional - what mask to apply on vsel value before doing operations on it */
-+		ti,voltage-selector-mask =<0x7F>;
-+		/* Optional - what bits to always set on voltage selector when sending to PMIC */
-+		ti,voltage-selector-set-bits =<0x80>; /* PFM mode */
-+
-+		/* Optional - Any access to be done over I2C SR to setup registers */
-+		ti,setup_commands=<
-+			/* register_addr value */
-+			/* Setup Slew (ramp) rate */
-+			REG_TPS6236X_RAMP_CTRL RMP_VALUE
-+			/* Setup PMIC internal pull if needed */
-+#ifdef _CTRL_VALUE
-+			REG_TPS6236X_CTRL  _CTRL_VALUE
-+#endif
-+			/* Enable thermal shutdown - 0 is enable :) */
-+			REG_TPS6236X_TEMP	0x0
-+			/* Setup the internal pulls */
-+		>;
-+	};
++	ti,vc-channel = <&vc_mpu>;
++	ti,min-step-micro-volts = <10000>;
++	ti,max-step-micro-volts = <50000>;
++	ti,min-micro-volts = <750000>;
++	ti,max-micro-volts = <1410000>;
 +};
-diff --git a/arch/arm/boot/dts/twl6030.dtsi b/arch/arm/boot/dts/twl6030.dtsi
-index 2e3bd31..5e1f4ed 100644
---- a/arch/arm/boot/dts/twl6030.dtsi
-+++ b/arch/arm/boot/dts/twl6030.dtsi
-@@ -103,4 +103,72 @@
- 		compatible = "ti,twl6030-pwmled";
- 		#pwm-cells = <2>;
- 	};
+diff --git a/drivers/power/avs/Makefile b/drivers/power/avs/Makefile
+index 95d5f59..535cab5 100644
+--- a/drivers/power/avs/Makefile
++++ b/drivers/power/avs/Makefile
+@@ -3,7 +3,7 @@ obj-$(CONFIG_POWER_AVS_OMAP)		+= smartreflex.o
+ ifneq ($(CONFIG_POWER_TI_HARDWARE_VOLTAGE_CONTROL),)
+ 
+ # OMAP Common
+-omap-volt-common			=  omap_vc.o
++omap-volt-common			=  omap_vc.o omap_vp.o
+ 
+ # OMAP SoC specific
+ ifneq ($(CONFIG_ARCH_OMAP3),)
+diff --git a/drivers/power/avs/omap_vp.c b/drivers/power/avs/omap_vp.c
+new file mode 100644
+index 0000000..b6a155d
+--- /dev/null
++++ b/drivers/power/avs/omap_vp.c
+@@ -0,0 +1,886 @@
++/*
++ * OMAP Voltage Processor (VP) interface
++ *
++ * Idea based on arch/arm/mach-omap2/vp.c
++ *
++ * Copyright (C) 2013 Texas Instruments Incorporated
++ * Grygorii Strashko
++ * Nishanth Menon
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/of_device.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
++#include <linux/regulator/omap-pmic-regulator.h>
++#include <linux/regmap.h>
++#include "omap_vc.h"
 +
-+	omap_twl6030_vcore1: vcore1 {
-+		compatible = "ti,omap-pmic";
++#define DRIVER_NAME	"omap-vp"
 +
-+		/* Slave address */
-+		ti,i2c-slave-address = <0x12>;
-+		/* I2C register address */
-+		ti,i2c-voltage-register = <0x55>;
-+		ti,i2c-command-register = <0x56>;
++/**
++ * omap_vp_test_timeout - busy-loop, testing a condition
++ * @cond: condition to test until it evaluates to true
++ * @timeout: maximum number of microseconds in the timeout
++ * @index: loop index (integer)
++ *
++ * Loop waiting for @cond to become true or until at least @timeout
++ * microseconds have passed.  To use, define some integer @index in the
++ * calling code.  After running, if @index == @timeout, then the loop has
++ * timed out.
++ */
++#define omap_vp_test_timeout(cond, timeout, index)		\
++({								\
++	for (index = 0; index < timeout; index++) {		\
++		if (cond)					\
++			break;					\
++		udelay(1);					\
++	}							\
++})
 +
-+		/* Slew rate in uV */
-+		ti,slew-rate-microvolt = <9000>;
-+		/* Step size in uV */
-+		ti,step-size-microvolt = <12660>;
-+		regulator-min-microvolt= <709000>;
-+		regulator-max-microvolt= <1418000>;
++/**
++ * struct omap_vp_reg_data - Voltage processor register offsets
++ * @config:	CONFIG register
++ * @status:	STATUS register
++ * @vlimitto:	VLIMITTO register
++ * @voltage:	VOLTAGE register
++ * @step_max:	STEP_MAX register
++ * @step_min:	STEP_MAX register
++ */
++struct omap_vp_reg_data {
++	u8 config;
++	u8 status;
++	u8 vlimitto;
++	u8 voltage;
++	u8 step_max;
++	u8 step_min;
++};
 +
-+		/* Optional - any voltage selector offset to care about */
-+		ti,voltage-selector-offset = <0x1>;
-+		/* Optional - what mask to apply on vsel value before doing operations on it */
-+		ti,voltage-selector-mask =<0x7F>;
-+	};
++static const struct omap_vp_reg_data omap_vp_reg_type1 = {
++	.config = 0x00,
++	.status = 0x14,
++	.vlimitto = 0x0C,
++	.voltage = 0x10,
++	.step_max = 0x08,
++	.step_min = 0x04,
++};
 +
-+	omap_twl6030_vcore2: vcore2 {
-+		compatible = "ti,omap-pmic";
++static const struct omap_vp_reg_data omap_vp_reg_type2 = {
++	.config = 0x00,
++	.status = 0x04,
++	.vlimitto = 0x08,
++	.voltage = 0x0C,
++	.step_max = 0x10,
++	.step_min = 0x14,
++};
 +
-+		/* Slave address */
-+		ti,i2c-slave-address = <0x12>;
-+		/* I2C register address */
-+		ti,i2c-voltage-register = <0x5b>;
-+		ti,i2c-command-register = <0x5c>;
++/* Config register masks - All revisions */
++#define CONFIG_ERROR_OFFSET_MASK	(0xff << 24)
++#define CONFIG_ERROR_GAIN_MASK		(0xff << 16)
++#define CONFIG_INIT_VOLTAGE_MASK	(0xff << 8)
++#define CONFIG_TIMEOUT_ENABLE_MASK	(0x01 << 3)
++#define CONFIG_INITVDD_MASK		(0x01 << 2)
++#define CONFIG_FORCEUPDATE_MASK		(0x01 << 1)
++#define CONFIG_VP_ENABLE_MASK		(0x01 << 0)
 +
-+		/* Slew rate in uV */
-+		ti,slew-rate-microvolt = <9000>;
-+		/* Step size in uV */
-+		ti,step-size-microvolt = <12660>;
-+		/* Min voltage in uV for continous operational range at step size */
-+		regulator-min-microvolt= <709000>;
-+		regulator-max-microvolt= <1418000>;
++/* Status register masks - All revisions */
++#define STATUS_VP_IN_IDLE_MASK		(0x01 << 0)
 +
-+		/* Optional - any voltage selector offset to care about */
-+		ti,voltage-selector-offset = <0x1>;
-+		/* Optional - what mask to apply on vsel value before doing operations on it */
-+		ti,voltage-selector-mask =<0x7F>;
-+	};
++/* Vlmitto register masks - All revisions */
++#define VLIMITTO_VDDMAX_MASK		(0xff << 24)
++#define VLIMITTO_VDDMIN_MASK		(0xff << 16)
++#define VLIMITTO_TIMEOUT_MASK		(0xffff << 0)
 +
-+	omap_twl6030_vcore3: vcore3 {
-+		compatible = "ti,omap-pmic";
++/* Voltage register masks - All revisions */
++#define VOLTAGE_MASK			(0xff << 0)
 +
-+		/* Slave address */
-+		ti,i2c-slave-address = <0x12>;
-+		/* I2C register address */
-+		ti,i2c-voltage-register = <0x61>;
-+		ti,i2c-command-register = <0x62>;
++/* Step max/min register masks - All revisions */
++#define STEP_SMPSTIMEOUT_MASK		(0xffff << 8)
++#define STEP_VSTEP_MASK			(0xff << 0)
 +
++/* 32 bit voltage processor registers */
++static struct regmap_config omap_vp_regmap_config = {
++	.reg_bits = 32,
++	.val_bits = 32,
++	.reg_stride = 4,
++};
 +
-+		/* Slew rate in uV */
-+		ti,slew-rate-microvolt = <9000>;
-+		/* Step size in uV */
-+		ti,step-size-microvolt = <12660>;
-+		regulator-min-microvolt= <709000>;
-+		regulator-max-microvolt= <1418000>;
++/**
++ * struct omap_vp - Structure representing Voltage Processor info
++ * @dev:		device pointer for Voltage Processor
++ * @list:		list head for VP list.
++ * @usage_count:	Usage count - only 1 user at a time.(not always module)
++ * @clk_rate:		Sysclk rate for VP computation.
++ * @vc:			Voltage controller channel corresponding to VP
++ * @pmic:		PMIC used for this path
++ * @regmap:		regmap for VP instance
++ * @regs:		register map
++ * @int_base:		interrupt register base address
++ * @txdone_mask:	TRANXDONE interrupt mask for this VP instance in intreg
++ * @min_uV:		minimum voltage allowed by VP in micro-volts
++ * @max_uV:		maximum voltage allowed by VP in micro-volts
++ * @min_step_uV:	minimum continous voltage step in micro-volts for VP
++ * @max_step_uV:	maximum continous voltage step in micro-volts for VP
++ */
++struct omap_vp {
++	struct device *dev;
++	struct list_head list;
++	int usage_count;
 +
-+		/* Optional - any voltage selector offset to care about */
-+		ti,voltage-selector-offset = <0x1>;
-+		/* Optional - what mask to apply on vsel value before doing operations on it */
-+		ti,voltage-selector-mask =<0x7F>;
-+	};
- };
++	unsigned long clk_rate;
++	struct omap_vc_channel_info *vc;
++	struct omap_pmic *pmic;
++
++	struct regmap *regmap;
++	const struct omap_vp_reg_data *regs;
++
++	void __iomem *int_base;
++	u32 txdone_mask;
++
++	u32 min_uV;
++	u32 max_uV;
++	u32 min_step_uV;
++	u32 max_step_uV;
++};
++
++static const struct of_device_id omap_vp_of_match[] = {
++	{.compatible = "ti,omap3-vp", .data = &omap_vp_reg_type1},
++	{.compatible = "ti,omap4-vp", .data = &omap_vp_reg_type2},
++	{.compatible = "ti,omap5-vp", .data = &omap_vp_reg_type2},
++	{},
++};
++MODULE_DEVICE_TABLE(of, omap_vp_of_match);
++
++static LIST_HEAD(omap_vp_list);
++static DEFINE_MUTEX(omap_vp_list_mutex);
++
++/**
++ * omap_vp_check_txdone() - inline helper to see if TRANXDONE is set
++ * @vp:	pointer to voltage processor
++ */
++static inline bool omap_vp_check_txdone(const struct omap_vp *vp)
++{
++	return !!(readl(vp->int_base) & vp->txdone_mask);
++}
++
++/**
++ * omap_vp_clear_txdone() - inline helper to clear TRANXDONE
++ * @vp:	pointer to voltage processor
++ *
++ * write of 1 bit clears that interrupt bit only.
++ */
++static inline void omap_vp_clear_txdone(const struct omap_vp *vp)
++{
++	writel(vp->txdone_mask, vp->int_base);
++};
++
++/**
++ * omap_vp_read_idle() - inline helper to read idle register
++ * @regmap:	regmap for voltage processor
++ * @regs:	registers for voltage processor
++ */
++static inline u32 omap_vp_read_idle(struct regmap *regmap,
++				    const struct omap_vp_reg_data *regs)
++{
++	u32 val = 0;
++	regmap_read(regmap, regs->status, &val);
++	return val;
++}
++
++/**
++ * omap_vp_wait_for_idle() - Wait for Voltage processor to idle
++ * @vp:	pointer to voltage processor
++ *
++ * helper to ensure that VP is idle (no pending AVS / previous VP operations)
++ */
++static inline int omap_vp_wait_for_idle(struct omap_vp *vp)
++{
++	struct device *dev = vp->dev;
++	struct regmap *regmap = vp->regmap;
++	const struct omap_vp_reg_data *regs = vp->regs;
++	struct omap_pmic *pmic = vp->pmic;
++	int timeout;
++
++	omap_vp_test_timeout((omap_vp_read_idle(regmap, regs) &
++			      STATUS_VP_IN_IDLE_MASK), pmic->i2c_timeout_us,
++			     timeout);
++
++	if (timeout >= pmic->i2c_timeout_us) {
++		dev_warn_ratelimited(dev, "%s: idle timedout(%d)\n",
++				     __func__, pmic->i2c_timeout_us);
++		return -ETIMEDOUT;
++	}
++
++	return 0;
++}
++
++/**
++ * omap_vp_set_init_voltage() - Setup voltage for transmission.
++ * @vp:	pointer to voltage processor
++ * @volt: voltage to setup the voltage processor with
++ */
++static int omap_vp_set_init_voltage(struct omap_vp *vp, u32 volt)
++{
++	struct regmap *regmap = vp->regmap;
++	const struct omap_vp_reg_data *regs = vp->regs;
++	struct omap_pmic *pmic = vp->pmic;
++	struct omap_pmic_ops *ops = pmic->ops;
++	char vsel;
++	int ret;
++
++	ret = ops->uv_to_vsel(pmic, volt, &vsel);
++	if (ret)
++		return ret;
++
++	ret = regmap_update_bits(regmap, regs->config,
++				 (CONFIG_INIT_VOLTAGE_MASK |
++				  CONFIG_FORCEUPDATE_MASK |
++				  CONFIG_INITVDD_MASK),
++				 vsel << __ffs(CONFIG_INIT_VOLTAGE_MASK));
++	if (ret)
++		return ret;
++
++	/* Trigger initVDD value copy to voltage processor */
++	ret = regmap_update_bits(regmap, regs->config,
++				 CONFIG_INITVDD_MASK, CONFIG_INITVDD_MASK);
++	if (ret)
++		return ret;
++
++	/* Clear initVDD copy trigger bit */
++	ret = regmap_update_bits(regmap, regs->config,
++				 CONFIG_INITVDD_MASK, 0x0);
++
++	return ret;
++}
++
++/**
++ * omap_vp_get_current_voltage() - get the current voltage processor voltage
++ * @vp:	pointer to voltage processor
++ * @uv:	returns with voltage in micro-volts if read was successful.
++ */
++static int omap_vp_get_current_voltage(struct omap_vp *vp, u32 *uv)
++{
++	struct device *dev = vp->dev;
++	struct regmap *regmap = vp->regmap;
++	const struct omap_vp_reg_data *regs = vp->regs;
++	struct omap_pmic *pmic = vp->pmic;
++	struct omap_pmic_ops *ops = pmic->ops;
++	u32 val;
++	u8 vsel;
++	int ret;
++
++	ret = regmap_read(regmap, regs->config, &val);
++	if (ret) {
++		dev_warn_ratelimited(dev,
++				     "%s: unable to read config reg (%d)\n",
++				     __func__, ret);
++		return ret;
++	}
++
++	val &= CONFIG_INIT_VOLTAGE_MASK;
++	vsel = val >> __ffs(CONFIG_INIT_VOLTAGE_MASK);
++	ret = ops->vsel_to_uv(pmic, vsel, &val);
++
++	if (!ret)
++		*uv = val;
++	return ret;
++}
++
++/**
++ * omap_vp_forceupdate_scale() - Update voltage on PMIC using VP "Forceupdate"
++ * @vp:			pointer to voltage processor
++ * @target_volt:	voltage to set the PMIC to
++ *
++ * This will wait for the slew duration to ensure that the voltage is sync-ed
++ * on the PMIC.
++ */
++static int omap_vp_forceupdate_scale(struct omap_vp *vp, u32 target_volt)
++{
++	struct device *dev = vp->dev;
++	struct regmap *regmap = vp->regmap;
++	const struct omap_vp_reg_data *regs = vp->regs;
++	struct omap_pmic *pmic = vp->pmic;
++	int ret, timeout = 0, max_timeout;
++	u32 old_volt = 0;
++	u32 smps_transition_uv, smps_delay;
++
++	ret = omap_vp_wait_for_idle(vp);
++	if (ret)
++		return ret;
++
++	ret = omap_vp_get_current_voltage(vp, &old_volt);
++	if (ret) {
++		dev_warn_ratelimited(dev,
++				     "%s: Unable to convert old voltage(%d)\n",
++				     __func__, ret);
++		/* We will use worst case start voltage - 0V for delay */
++	}
++
++	/*
++	 * Clear all pending TransactionDone interrupt/status. Typical latency
++	 * is <3us - use an conservative value from pmic info.
++	 */
++	max_timeout = 2 * pmic->i2c_timeout_us;
++	while (timeout++ < max_timeout) {
++		omap_vp_clear_txdone(vp);
++		if (!omap_vp_check_txdone(vp))
++			break;
++		udelay(1);
++	}
++	if (timeout >= max_timeout) {
++		dev_warn_ratelimited(dev,
++				     "%s: TRANXDONE not clear(t=%d v=%d)\n",
++				     __func__, max_timeout, target_volt);
++		return -ETIMEDOUT;
++	}
++
++	ret = omap_vp_set_init_voltage(vp, target_volt);
++	if (ret) {
++		dev_warn_ratelimited(dev,
++				     "%s: Fail set init voltage at v=%d(%d)\n",
++				     __func__, target_volt, ret);
++		return ret;
++	}
++
++	/* Force update of voltage */
++	ret = regmap_update_bits(regmap, regs->config,
++				 CONFIG_FORCEUPDATE_MASK,
++				 CONFIG_FORCEUPDATE_MASK);
++	if (ret) {
++		dev_warn_ratelimited(dev,
++				     "%s: Forceupdate not set v=%d (%d)\n",
++				     __func__, target_volt, ret);
++		return ret;
++	}
++
++	/*
++	 * Wait for TransactionDone. Typical latency is <200us.
++	 * Depends on SMPSWAITTIMEMIN/MAX and voltage change
++	 */
++	timeout = 0;
++	omap_vp_test_timeout(omap_vp_check_txdone(vp), max_timeout, timeout);
++	if (timeout >= max_timeout) {
++		dev_warn_ratelimited(dev,
++				     "%s: TRANXDONE not set(t=%d v=%d)\n",
++				     __func__, max_timeout, target_volt);
++		return -ETIMEDOUT;
++	}
++
++	/*
++	 * Due to the inability of OMAP Voltage controller OR voltage processor
++	 * to precisely know when the voltage has achieved the requested value,
++	 * we need a delay loop to ensure that the voltage has transitioned to
++	 * the required level.
++	 */
++	smps_transition_uv = abs(target_volt - old_volt);
++
++	/* delta_voltage / slew_rate, 2uS added as buffer */
++	smps_delay = DIV_ROUND_UP(smps_transition_uv, pmic->slew_rate_uV) + 2;
++
++	/* We dont want to sleep for too long either */
++	usleep_range(smps_delay, smps_delay + 2);
++
++	/*
++	 * Disable TransactionDone interrupt , clear all status, clear
++	 * control registers
++	 */
++	timeout = 0;
++	while (timeout++ < max_timeout) {
++		omap_vp_clear_txdone(vp);
++		if (!omap_vp_check_txdone(vp))
++			break;
++		udelay(1);
++	}
++	if (timeout >= max_timeout) {
++		dev_warn_ratelimited(dev,
++				     "%s: TRANXDONE not recleared(t=%d v=%d)\n",
++				     __func__, max_timeout, target_volt);
++		return -ETIMEDOUT;
++	}
++
++	/* Clear force bit */
++	ret = regmap_update_bits(regmap, regs->config,
++				 CONFIG_FORCEUPDATE_MASK, 0x0);
++	if (ret) {
++		dev_warn_ratelimited(dev,
++				     "%s: Forceupdate not cleared v=%d (%d)\n",
++				     __func__, target_volt, ret);
++		return ret;
++	}
++
++	/* Do the required updates */
++	ret = omap_vc_channel_set_on_voltage(vp->vc, target_volt);
++	if (ret) {
++		dev_warn_ratelimited(dev,
++				     "%s: Fail update VC onV at v=%d (%d)\n",
++				     __func__, target_volt, ret);
++		return ret;
++	}
++
++	/* Now, Wait for VP to idle down */
++	ret = omap_vp_wait_for_idle(vp);
++
++	return ret;
++}
++
++/**
++ * omap_vp_setup() - Setup voltage processor
++ * @vp:	pointer to voltage processor
++ */
++static int omap_vp_setup(struct omap_vp *vp)
++{
++	struct omap_pmic *pmic = vp->pmic;
++	struct omap_pmic_ops *ops = pmic->ops;
++	struct regmap *regmap = vp->regmap;
++	const struct omap_vp_reg_data *regs = vp->regs;
++	u32 val, clk_rate, timeout, waittime;
++	u8 vstepmin, vstepmax;
++	u8 vddmin, vddmax;
++	int ret;
++
++	/* Div 1000 to avoid overflow */
++	clk_rate = vp->clk_rate / 1000;
++
++	ret = ops->uv_to_vsel(pmic, vp->min_uV, &vddmin);
++	if (ret)
++		return ret;
++	ret = ops->uv_to_vsel(pmic, vp->max_uV, &vddmax);
++	if (ret)
++		return ret;
++
++	timeout = DIV_ROUND_UP_ULL(clk_rate * pmic->i2c_timeout_us, 1000);
++	waittime = DIV_ROUND_UP_ULL(pmic->step_size_uV * clk_rate,
++				    1000 * pmic->slew_rate_uV);
++
++	vstepmin = DIV_ROUND_UP(vp->min_step_uV, pmic->step_size_uV);
++	vstepmax = DIV_ROUND_UP(vp->max_step_uV, pmic->step_size_uV);
++
++	/* VSTEPMIN */
++	val =
++	    (waittime << __ffs(STEP_SMPSTIMEOUT_MASK)) & STEP_SMPSTIMEOUT_MASK;
++	val |= (vstepmin << __ffs(STEP_VSTEP_MASK)) & STEP_VSTEP_MASK;
++	ret = regmap_write(regmap, regs->step_min, val);
++	if (ret)
++		return ret;
++
++	/* VSTEPMIN */
++	val =
++	    (waittime << __ffs(STEP_SMPSTIMEOUT_MASK)) & STEP_SMPSTIMEOUT_MASK;
++	val |= (vstepmax << __ffs(STEP_VSTEP_MASK)) & STEP_VSTEP_MASK;
++	ret = regmap_write(regmap, regs->step_max, val);
++	if (ret)
++		return ret;
++
++	/* VLIMITTO */
++	val = (vddmax << __ffs(VLIMITTO_VDDMAX_MASK)) & VLIMITTO_VDDMAX_MASK;
++	val |= (vddmin << __ffs(VLIMITTO_VDDMIN_MASK)) & VLIMITTO_VDDMIN_MASK;
++	val |=
++	    (timeout << __ffs(VLIMITTO_TIMEOUT_MASK)) & VLIMITTO_TIMEOUT_MASK;
++	ret = regmap_write(regmap, regs->vlimitto, val);
++	if (ret)
++		return ret;
++
++	/* CONFIG */
++	ret =
++	    regmap_update_bits(regmap, regs->config, CONFIG_TIMEOUT_ENABLE_MASK,
++			       CONFIG_TIMEOUT_ENABLE_MASK);
++	if (ret)
++		return ret;
++
++	return ret;
++}
++
++/**
++ * devm_omap_vp_release() -  helper to keep track of free usage.
++ * @dev:	device
++ * @res:	resource
++ */
++static void devm_omap_vp_release(struct device *dev, void *res)
++{
++	struct omap_vp *vp = *((struct omap_vp **)res);
++
++	mutex_lock(&omap_vp_list_mutex);
++
++	if (!vp->usage_count) {
++		vp->pmic = NULL;
++		vp->vc = NULL;
++	}
++	module_put(vp->dev->driver->owner);
++
++	mutex_unlock(&omap_vp_list_mutex);
++
++	return;
++}
++
++/**
++ * of_get_omap_vp() - get the pmic node
++ * @dev:	device to pull information from
++ */
++static struct device_node *of_get_omap_vp(struct device *dev)
++{
++	struct device_node *pmic_node = NULL;
++	char *prop_name = "ti,vp";
++
++	dev_dbg(dev, "%s: Looking up %s from device tree\n", __func__,
++		prop_name);
++
++	pmic_node = of_parse_phandle(dev->of_node, prop_name, 0);
++
++	if (!pmic_node) {
++		dev_err(dev, "%s: Looking up %s property in node %s failed",
++			__func__, prop_name, dev->of_node->full_name);
++		return ERR_PTR(-ENODEV);
++	}
++	return pmic_node;
++}
++
++/**
++ * devm_omap_vp_get() - managed request to get a VP device
++ * @dev:	Generic device to handle the request for
++ * @pmic:	PMIC resource this will be assigned to
++ *
++ * Ensures that vp usage count is maintained. Uses managed device,
++ * so everything is undone on driver detach.
++ *
++ * Return: -EPROBE_DEFER if the node is present, however device is
++ * not yet probed.
++ * -EINVAL if bad pointers or node description is not found.
++ * -ENODEV if the property cannot be found
++ * -ENOMEM if allocation could not be done.
++ *  device pointer to vp dev if all successful.
++ *  Error handling should be performed with IS_ERR
++ */
++static struct device *devm_omap_vp_get(struct device *dev,
++				       struct omap_pmic *pmic)
++{
++	struct omap_vp *vp, **ptr;
++	struct device_node *node;
++	struct device *vp_dev;
++	struct omap_vc_channel_info *vc;
++	u32 min_uV, max_uV;
++	int ret = 0;
++
++	if (!dev || !dev->of_node) {
++		pr_err("%s: invalid parameters\n", __func__);
++		return ERR_PTR(-EINVAL);
++	}
++
++	node = of_get_omap_vp(dev);
++	if (IS_ERR(node))
++		return (void *)node;
++
++	mutex_lock(&omap_vp_list_mutex);
++	list_for_each_entry(vp, &omap_vp_list, list)
++	    if (vp->dev->of_node == node)
++		goto found;
++
++	/* Node definition is present, but not probed yet.. request defer */
++	vp_dev = ERR_PTR(-EPROBE_DEFER);
++	goto out_unlock;
++
++found:
++	vp_dev = vp->dev;
++	if (!try_module_get(vp_dev->driver->owner)) {
++		dev_err(dev, "%s: Cant get device owner\n", __func__);
++		vp_dev = ERR_PTR(-EINVAL);
++		goto out_unlock;
++	}
++
++	/* Allow ONLY 1 user at a time */
++	if (vp->usage_count) {
++		dev_err(dev, "%s: device %s is busy..\n", __func__,
++			dev_name(vp_dev));
++		ret = -EBUSY;
++		goto out;
++	}
++	vc = devm_omap_vc_channel_get(vp_dev, pmic);
++	if (IS_ERR(vc)) {
++		ret = PTR_ERR(vc);
++		dev_err(dev, "%s: vc channel not ready(%d) in %s?\n",
++			__func__, ret, dev_name(vp_dev));
++		goto out;
++	}
++	vp->vc = vc;
++	vp->pmic = pmic;
++
++	/* Adjust our voltages */
++	/* Cant go below PMIC min voltage */
++	min_uV = max(vp->min_uV, pmic->min_uV);
++	/* Cant go below SoC retention voltage for operational case */
++	min_uV = max(min_uV, vc->retention_uV);
++	vp->min_uV = min_uV;
++
++	/* Cant go above PMIC max voltage */
++	max_uV = min(vp->max_uV, pmic->max_uV);
++	vp->max_uV = max_uV;
++
++	ret = omap_vp_setup(vp);
++	if (ret) {
++		dev_err(dev, "%s: Failed to setup vp (%d) dev %s\n",
++			__func__, ret, dev_name(vp_dev));
++		goto out;
++	}
++
++	if (pmic->boot_voltage_uV) {
++		ret = omap_vp_forceupdate_scale(vp, pmic->boot_voltage_uV);
++		if (ret) {
++			dev_err(dev, "%s: Failed to set boot voltage %d(%d)\n",
++				__func__, pmic->boot_voltage_uV, ret);
++			goto out;
++		}
++	}
++
++	ptr = devres_alloc(devm_omap_vp_release, sizeof(*ptr), GFP_KERNEL);
++	if (!ptr) {
++		ret = -ENOMEM;
++		goto out;
++	}
++	*ptr = vp;
++	vp->usage_count++;
++	devres_add(dev, ptr);
++
++out:
++	if (ret) {
++		module_put(vp_dev->driver->owner);
++		vp_dev = ERR_PTR(ret);
++	}
++out_unlock:
++	mutex_unlock(&omap_vp_list_mutex);
++
++	return vp_dev;
++}
++
++/**
++ * omap_vp_voltage_set() - controller operation to set voltage
++ * @dev:	VP device to set voltage
++ * @uv:		voltage in micro-volts to set
++ */
++static int omap_vp_voltage_set(struct device *dev, u32 uv)
++{
++	struct omap_vp *vp = dev_get_drvdata(dev);
++
++	if (!vp)
++		return -EINVAL;
++	if (!vp->pmic || !vp->vc)
++		return -EINVAL;
++
++	return omap_vp_forceupdate_scale(vp, uv);
++}
++
++/**
++ * omap_vp_voltage_get() - controller operation to get voltage
++ * @dev:	VP device to get voltage from
++ * @uv:		returns voltage in micro-volts if successful
++ */
++static int omap_vp_voltage_get(struct device *dev, u32 *uv)
++{
++	struct omap_vp *vp = dev_get_drvdata(dev);
++
++	if (!vp || !uv)
++		return -EINVAL;
++	if (!vp->pmic || !vp->vc)
++		return -EINVAL;
++
++	return omap_vp_get_current_voltage(vp, uv);
++}
++
++/**
++ * omap_vp_voltage_get_range() - controller function to return VP voltage range
++ * @dev:	VP device to query
++ * @min_uv:	if successful, returns min voltage supported by VP
++ * @max_uv:	if successful, returns max voltage supported by VP
++ */
++static int omap_vp_voltage_get_range(struct device *dev, u32 *min_uv,
++				     u32 *max_uv)
++{
++	struct omap_vp *vp = dev_get_drvdata(dev);
++
++	if (!vp || !min_uv || !max_uv)
++		return -EINVAL;
++	if (!vp->pmic || !vp->vc)
++		return -EINVAL;
++
++	*min_uv = vp->min_uV;
++	*max_uv = vp->max_uV;
++	return 0;
++}
++
++static struct omap_pmic_controller_ops voltage_processor_ops = {
++	.devm_pmic_register = devm_omap_vp_get,
++	.voltage_set = omap_vp_voltage_set,
++	.voltage_get = omap_vp_voltage_get,
++	.voltage_get_range = omap_vp_voltage_get_range,
++};
++static bool voltage_processor_ops_registered;
++
++static int omap_vp_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct device_node *node = dev->of_node;
++	const struct of_device_id *match;
++	struct omap_vp *vp;
++	struct resource *res;
++	struct regmap *regmap;
++	char *pname;
++	struct clk *clk;
++	int ret = 0;
++	void __iomem *base, *int_base;
++
++	if (!node) {
++		dev_err(dev, "%s: missing device tree nodes?\n", __func__);
++		return -EINVAL;
++	}
++
++	match = of_match_device(omap_vp_of_match, dev);
++	if (!match) {
++		/* We do not expect this to happen */
++		dev_err(dev, "%s: Unable to match device\n", __func__);
++		return -ENODEV;
++	}
++	if (!match->data) {
++		dev_err(dev, "%s: Bad data in match\n", __func__);
++		return -EINVAL;
++	}
++
++	pname = "base-address";
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, pname);
++	base = devm_request_and_ioremap(dev, res);
++	if (!base) {
++		dev_err(dev, "Unable to map '%s'\n", pname);
++		return -EADDRNOTAVAIL;
++	}
++	pname = "int-address";
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, pname);
++	if (!res) {
++		dev_err(dev, "Missing '%s' IO resource\n", pname);
++		return -ENODEV;
++	}
++
++	/*
++	 * We may have shared interrupt register offsets which are
++	 * write-1-to-clear between domains ensuring exclusivity.
++	 */
++	int_base = devm_ioremap_nocache(dev, res->start, resource_size(res));
++	if (!int_base) {
++		dev_err(dev, "Unable to map '%s'\n", pname);
++		return -ENOMEM;
++	}
++
++	regmap = devm_regmap_init_mmio(dev, base, &omap_vp_regmap_config);
++	if (IS_ERR(regmap)) {
++		ret = PTR_ERR(regmap);
++		dev_err(dev, "regmap init failed(%d)\n", ret);
++		return ret;
++	}
++
++	vp = devm_kzalloc(dev, sizeof(*vp), GFP_KERNEL);
++	if (!vp) {
++		dev_err(dev, "%s: Unable to allocate VP\n", __func__);
++		return -ENOMEM;
++	}
++	vp->dev = dev;
++	vp->regs = match->data;
++	vp->regmap = regmap;
++	vp->int_base = int_base;
++
++	clk = clk_get(dev, NULL);
++	if (IS_ERR(clk)) {
++		ret = PTR_ERR(clk);
++		dev_err(dev, "%s: Unable to get clk(%d)\n", __func__, ret);
++		return ret;
++	}
++	vp->clk_rate = clk_get_rate(clk);
++	/* We dont need the clk any more */
++	clk_put(clk);
++
++	pname = "ti,min-micro-volts";
++	ret = of_property_read_u32(node, pname, &vp->min_uV);
++	if (ret)
++		goto invalid_of_property;
++
++	pname = "ti,max-micro-volts";
++	ret = of_property_read_u32(node, pname, &vp->max_uV);
++	if (ret || !vp->max_uV)
++		goto invalid_of_property;
++
++	pname = "ti,min-step-micro-volts";
++	ret = of_property_read_u32(node, pname, &vp->min_step_uV);
++	if (ret || !vp->min_step_uV)
++		goto invalid_of_property;
++
++	pname = "ti,max-step-micro-volts";
++	ret = of_property_read_u32(node, pname, &vp->max_step_uV);
++	if (ret || !vp->max_step_uV)
++		goto invalid_of_property;
++
++	pname = "ti,tranxdone-status-mask";
++	ret = of_property_read_u32(node, pname, &vp->txdone_mask);
++	if (ret || !vp->txdone_mask)
++		goto invalid_of_property;
++
++	platform_set_drvdata(pdev, vp);
++
++	mutex_lock(&omap_vp_list_mutex);
++	if (!voltage_processor_ops_registered) {
++		ret = omap_pmic_register_controller_ops(&voltage_processor_ops);
++		if (ret)
++			dev_err(dev, "Failed register pmic cops (%d)\n", ret);
++		else
++			voltage_processor_ops_registered = true;
++	}
++	if (!ret)
++		list_add(&vp->list, &omap_vp_list);
++
++	mutex_unlock(&omap_vp_list_mutex);
++	return ret;
++
++invalid_of_property:
++	if (!ret) {
++		dev_err(dev, "%s: Invalid value 0x0 in '%s' property.\n",
++			__func__, pname);
++		ret = -EINVAL;
++	} else {
++		dev_err(dev, "%s: Missing/Invalid '%s' property - error(%d)\n",
++			__func__, pname, ret);
++	}
++	return ret;
++}
++
++static int omap_vp_remove(struct platform_device *pdev)
++{
++	struct omap_vp *vp = platform_get_drvdata(pdev);
++
++	mutex_lock(&omap_vp_list_mutex);
++	list_del(&vp->list);
++	mutex_unlock(&omap_vp_list_mutex);
++
++	return 0;
++}
++
++static struct platform_driver omap_vp_driver = {
++	.probe = omap_vp_probe,
++	.remove = omap_vp_remove,
++	.driver = {
++		   .name = DRIVER_NAME,
++		   .owner = THIS_MODULE,
++		   .of_match_table = of_match_ptr(omap_vp_of_match),
++		   },
++};
++module_platform_driver(omap_vp_driver);
++
++MODULE_DESCRIPTION("OMAP Voltage Processor Regulator Driver");
++MODULE_LICENSE("GPL v2");
++MODULE_ALIAS("platform:" DRIVER_NAME);
++MODULE_AUTHOR("Texas Instruments Inc.");
 -- 
 1.7.9.5
