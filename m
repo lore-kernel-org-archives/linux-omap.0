@@ -1,66 +1,39 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH] ARM: dts: omap3-devkit8000: fix NAND memory binding
-Date: Thu, 23 May 2013 10:11:37 +0200
-Message-ID: <1369296697-22495-1-git-send-email-florian.vaussard@epfl.ch>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [net-next resend PATCH 1/6] net: cpsw: enhance pinctrl support
+Date: Thu, 23 May 2013 14:44:48 +0530
+Message-ID: <519DDE08.5080504@ti.com>
+References: <1369130103-743-1-git-send-email-mugunthanvnm@ti.com> <1369130103-743-2-git-send-email-mugunthanvnm@ti.com> <20130522.235741.135665074490271750.davem@davemloft.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:45538 "HELO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751336Ab3EWILs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 May 2013 04:11:48 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58942 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756588Ab3EWJPP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 May 2013 05:15:15 -0400
+In-Reply-To: <20130522.235741.135665074490271750.davem@davemloft.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Florian Vaussard <florian.vaussard@epfl.ch>
+To: David Miller <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, benoit.cousson@linaro.orgm, paul@pwsan.com, gururaja.hebbar@ti.com
 
-Commit d36b4cd 'ARM: OMAP2+: Add additional GPMC timing parameters'
-updated GPMC binding, but omap3-devkit8000 was not updated accordingly,
-resulting in a broken configuration.
+On 5/23/2013 12:27 PM, David Miller wrote:
+> From: Mugunthan V N <mugunthanvnm@ti.com>
+> Date: Tue, 21 May 2013 15:24:58 +0530
+>
+>> +		priv->pins_default = pinctrl_lookup_state(priv->pinctrl,
+>> +						PINCTRL_STATE_DEFAULT);
+> This is not indented correctly.
+>
+> Argument on the second, and subsequent, lines of a function call
+> must start at the first column after the openning parenthesis of
+> the function call itself.
+>
+> Please audit for this problem in your entire patch series, fix
+> it up, and resubmit the full set of patches.
+>
+> Thanks.
+Will fix it and submit the patch.
 
-Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
----
- arch/arm/boot/dts/omap3-devkit8000.dts |   29 +++++++++++++++--------------
- 1 files changed, 15 insertions(+), 14 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/omap3-devkit8000.dts
-index 8a5cdcc..e5b35f5 100644
---- a/arch/arm/boot/dts/omap3-devkit8000.dts
-+++ b/arch/arm/boot/dts/omap3-devkit8000.dts
-@@ -123,20 +123,21 @@
- 		reg = <0 0 0>; /* CS0, offset 0 */
- 		nand-bus-width = <16>;
- 
--		gpmc,sync-clk = <0>;
--		gpmc,cs-on = <0>;
--		gpmc,cs-rd-off = <44>;
--		gpmc,cs-wr-off = <44>;
--		gpmc,adv-on = <6>;
--		gpmc,adv-rd-off = <34>;
--		gpmc,adv-wr-off = <44>;
--		gpmc,we-off = <40>;
--		gpmc,oe-off = <54>;
--		gpmc,access = <64>;
--		gpmc,rd-cycle = <82>;
--		gpmc,wr-cycle = <82>;
--		gpmc,wr-access = <40>;
--		gpmc,wr-data-mux-bus = <0>;
-+		gpmc,device-nand;
-+		gpmc,sync-clki-ps = <0>;
-+		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <44>;
-+		gpmc,cs-wr-off-ns = <44>;
-+		gpmc,adv-on-ns = <6>;
-+		gpmc,adv-rd-off-ns = <34>;
-+		gpmc,adv-wr-off-ns = <44>;
-+		gpmc,we-off-ns = <40>;
-+		gpmc,oe-off-ns = <54>;
-+		gpmc,access-ns = <64>;
-+		gpmc,rd-cycle-ns = <82>;
-+		gpmc,wr-cycle-ns = <82>;
-+		gpmc,wr-access-ns = <40>;
-+		gpmc,wr-data-mux-bus-ns = <0>;
- 
- 		#address-cells = <1>;
- 		#size-cells = <1>;
--- 
-1.7.5.4
-
+Regards
+Mugunthan V N
