@@ -1,115 +1,41 @@
-From: Jon Hunter <jgchunter@gmail.com>
-Subject: Re: [BISECTED] 3.10-rc1 OMAP1 GPIO IRQ regression
-Date: Thu, 23 May 2013 20:02:05 +0100
-Message-ID: <519E67AD.6070702@gmail.com>
-References: <20130513205302.GA3157@blackmetal.musicnaut.iki.fi> <20130516180933.GG5600@atomide.com> <20130516210006.GA31836@blackmetal.musicnaut.iki.fi> <20130516214430.GN5600@atomide.com> <20130520174621.GI10378@atomide.com> <20130521173936.GE31836@blackmetal.musicnaut.iki.fi> <519BCCEC.8010303@gmail.com> <20130522212054.GG31836@blackmetal.musicnaut.iki.fi>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [net-next resend PATCH 1/6] net: cpsw: enhance pinctrl support
+Date: Thu, 23 May 2013 12:10:37 -0700 (PDT)
+Message-ID: <20130523.121037.84357412382839522.davem@davemloft.net>
+References: <1369130103-743-2-git-send-email-mugunthanvnm@ti.com>
+	<20130522.235741.135665074490271750.davem@davemloft.net>
+	<1BAFE6F6C881BF42822005164F1491C33EBF928C@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:45474 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758592Ab3EWTCL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 May 2013 15:02:11 -0400
-Received: by mail-wg0-f46.google.com with SMTP id l18so2235003wgh.13
-        for <linux-omap@vger.kernel.org>; Thu, 23 May 2013 12:02:09 -0700 (PDT)
-In-Reply-To: <20130522212054.GG31836@blackmetal.musicnaut.iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1BAFE6F6C881BF42822005164F1491C33EBF928C@DBDE04.ent.ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: gururaja.hebbar@ti.com
+Cc: mugunthanvnm@ti.com, netdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, benoit.cousson@linaro.orgm, paul@pwsan.com
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, linux-arm-kernel@lists.infradead.org
 
+From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Date: Thu, 23 May 2013 11:28:38 +0000
 
-On 22/05/13 22:20, Aaro Koskinen wrote:
-> On Tue, May 21, 2013 at 08:37:16PM +0100, Jon Hunter wrote:
->> On 21/05/13 18:39, Aaro Koskinen wrote:
->>> On Mon, May 20, 2013 at 10:46:21AM -0700, Tony Lindgren wrote:
->>>> * Tony Lindgren <tony@atomide.com> [130516 14:50]:
->>>>> * Aaro Koskinen <aaro.koskinen@iki.fi> [130516 14:05]:
->>>>>> On Thu, May 16, 2013 at 11:09:34AM -0700, Tony Lindgren wrote:
->>>>>>> * Aaro Koskinen <aaro.koskinen@iki.fi> [130513 13:58]:
->>>>>>>> I tested 3.10-rc1 on OMAP1 / Nokia 770, and Retu MFD probe is broken:
->>>>>>>>
->>>>>>>> [    2.264221] retu-mfd 2-0001: Retu v3.2 found
->>>>>>>> [    2.281951] retu-mfd 2-0001: Failed to allocate IRQs: -12
->>>>>>>> [    2.300140] retu-mfd: probe of 2-0001 failed with error -12
->>>>>>>>
->>>>>>>> The error is coming from regmap code. According to git bisect, it is
->>>>>>>> caused by:
->>>>>>>>
->>>>>>>> 	commit ede4d7a5b9835510fd1f724367f68d2fa4128453
->>>>>>>> 	Author: Jon Hunter <jon-hunter@ti.com>
->>>>>>>> 	Date:   Fri Mar 1 11:22:47 2013 -0600
->>>>>>>>
->>>>>>>> 	    gpio/omap: convert gpio irq domain to linear mapping
->>>>>>>>
->>>>>>>> The commit does not anymore revert cleanly, and I haven't yet tried
->>>>>>>> crafting a manual revert, so any fix proposals/ideas are welcome...
->>>>>>>
->>>>>>> Hmm this might be a bit trickier to fix. Obviously the real solution
->>>>>>> is to convert omap1 to SPARSE_IRQ like we did for omap2+.
->>>>>>>
->>>>>>> For the -rc cycle, it might be possible to fix this by adding a
->>>>>>> different irq_to_gpio() and gpio_to_irq() functions for omap1.
->>>>>>
->>>>>> The commit reverts cleanly if we also revert
->>>>>> 3513cdeccc647d41c4a9ff923af17deaaac04a66 (gpio/omap: optimise interrupt
->>>>>> service routine), which seems to be just some minor optimization. The
->>>>>> result is below, and with it 770 works again.
->>>>>
->>>>> Hmm in this case it seems that we should just fix it rather than go back
->>>>> to the old code, so let's take a look at that first.
->>>>
->>>> Does the following fix it for you or do we need to fix something else
->>>> there too?
->>>
->>> Thanks, that fixes Retu probe on 770.
->>
->> Sorry for not responding sooner, but I have been moving. 
->>
->> From looking at the code it appears that the regmap_add_irq_chip()
->> is failing in the retu driver. I am not sure if this will work, 
->> but have you tried making the following change to the retu driver 
->> so that it also uses irq_domain_add_linear() as well? Just a thought ...
+> On Thu, May 23, 2013 at 12:27:41, David Miller wrote:
+>> From: Mugunthan V N <mugunthanvnm@ti.com>
+>> Date: Tue, 21 May 2013 15:24:58 +0530
+>> 
+>> > +		priv->pins_default = pinctrl_lookup_state(priv->pinctrl,
+>> > +						PINCTRL_STATE_DEFAULT);
+>> 
+>> This is not indented correctly.
+>> 
+>> Argument on the second, and subsequent, lines of a function call
+>> must start at the first column after the openning parenthesis of
+>> the function call itself.
 > 
-> This will trigger WARNING: at drivers/base/regmap/regmap-irq.c:514.
-
-Sorry, there is another change needed. Can you try ...
-
-diff --git a/drivers/mfd/retu-mfd.c b/drivers/mfd/retu-mfd.c
-index a183098..9080cd6 100644
---- a/drivers/mfd/retu-mfd.c
-+++ b/drivers/mfd/retu-mfd.c
-@@ -267,14 +267,13 @@ static int retu_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
-        if (ret < 0)
-                return ret;
- 
--       ret = regmap_add_irq_chip(rdev->regmap, i2c->irq, IRQF_ONESHOT, -1,
-+       ret = regmap_add_irq_chip(rdev->regmap, i2c->irq, IRQF_ONESHOT, 0,
-                                  rdat->irq_chip, &rdev->irq_data);
-        if (ret < 0)
-                return ret;
- 
-        ret = mfd_add_devices(rdev->dev, -1, rdat->children, rdat->nchildren,
--                             NULL, regmap_irq_chip_get_base(rdev->irq_data),
--                             NULL);
-+                             NULL, 0, regmap_irq_get_domain(rdev->irq_data));
-        if (ret < 0) {
-                regmap_del_irq_chip(i2c->irq, rdev->irq_data);
-                return ret;
- 
-> Also other drivers report GPIO IRQ issues later in the boot, e.g.
+> Well, if I am correct, doing so will make the line cross 80 character limit.
+> If you could (please I ask), can you let me know how it can be handled in 
+> above situation. I will make the changes/corrections and re-send it.
 > 
-> [    3.907928] genirq: Flags mismatch irq 0. 00000001 (serial wakeup) vs. 00002000 (RETU)
-> [    3.923706] No interrupt for UART wake GPIO: 37
+> Thanks a lot in advance.
 
-Looks like the gpio is just conflicting with the RETU driver.
- 
-> With Tony's patch (without any Retu modifications), the boot is clean. So
-> I guess gpio-omap fix is needed.
-
-Ideally it would be good if the RETU can use linear domains and then may be this
-can be avoided.
-
-Cheers
-Jon
+Avoid the deep indentation by coding the basic block into a helper
+function.
