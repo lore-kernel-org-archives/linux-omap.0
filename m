@@ -1,100 +1,53 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [net-next PATCH v2 5/6] ARM: dts: AM33XX: Add pinmux configuration for CPSW to EVMsk
-Date: Thu, 23 May 2013 18:00:27 +0530
-Message-ID: <1369312228-3308-6-git-send-email-mugunthanvnm@ti.com>
-References: <1369312228-3308-1-git-send-email-mugunthanvnm@ti.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [PATCH 1/1] USB: ehci-omap: Reset dma_mask pointer on probe
+Date: Thu, 23 May 2013 10:11:29 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1305231009230.1459-100000@iolanthe.rowland.org>
+References: <1369304387-29610-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1369312228-3308-1-git-send-email-mugunthanvnm@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, benoit.cousson@linaro.org, paul@pwsan.com, Mugunthan V N <mugunthanvnm@ti.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1369304387-29610-2-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add pinmux configurations for MII based CPSW ethernet to AM335x EVMsk.
-In this patch, only single named mode/state is added and these pins
-are configured during pinctrl driver initialization.
+On Thu, 23 May 2013, Roger Quadros wrote:
 
-Default mode is nothing but the values required for the module during
-active state. With this configurations module is functional as
-expected.
+> Device tree probed devices don't get dma_mask set. Previously
+> we were setting the dma_mask pointer only if it was NULL.
+> However, the address of 'omap_ehci_dma_mask' would change
+> each time the module is unloaded and loaded back thus causing
+> the devices dma_mask pointer to be invalid on the next load.
+> 
+> This will cause page faults if any driver tries to access the
+> old dma_mask pointer.
+> 
+> Unconditionally re-setting the dma_mask pointer fixes this problem.
 
-Todo:
-- if an idle state is available for pins, add support for it.
+> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+> index 3d1491b..b33e306 100644
+> --- a/drivers/usb/host/ehci-omap.c
+> +++ b/drivers/usb/host/ehci-omap.c
+> @@ -146,8 +146,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+>  	 * Since shared usb code relies on it, set it here for now.
+>  	 * Once we have dma capability bindings this can go away.
+>  	 */
+> -	if (!pdev->dev.dma_mask)
+> -		pdev->dev.dma_mask = &omap_ehci_dma_mask;
+> +	pdev->dev.dma_mask = &omap_ehci_dma_mask;
 
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
- arch/arm/boot/dts/am335x-evmsk.dts |   50 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 50 insertions(+)
+Is this the solution that people have agreed on?  There has been a lot 
+of discussion on this topic.  In particular, there has been talk about 
+fixing it in the DT core.
 
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index acbcac3..12cbe4e 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -51,6 +51,46 @@
- 				0x9c 0x27	/* gpmc_ben0_cle.gpio2_5, INPUT | MODE7 */
- 			>;
- 		};
-+
-+		cpsw_default: cpsw_default {
-+			pinctrl-single,pins = <
-+				/* Slave 1 */
-+				0x114 0x2	/* mii1_txen.rgmii1_tctl, MODE2 | OUTPUT */
-+				0x118 0x22	/* mii1_rxdv.rgmii1_rctl, MODE2 | INPUT_PULLDOWN */
-+				0x11c 0x2	/* mii1_txd3.rgmii1_td3, MODE2 | OUTPUT */
-+				0x120 0x2	/* mii1_txd2.rgmii1_td2, MODE2 | OUTPUT */
-+				0x124 0x2	/* mii1_txd1.rgmii1_td1, MODE2 | OUTPUT */
-+				0x128 0x2	/* mii1_txd0.rgmii1_td0, MODE2 | OUTPUT */
-+				0x12c 0x2	/* mii1_txclk.rgmii1_tclk, MODE2 | OUTPUT */
-+				0x130 0x22	/* mii1_rxclk.rgmii1_rclk, MODE2 | INPUT_PULLDOWN */
-+				0x134 0x22	/* mii1_rxd3.rgmii1_rd3, MODE2 | INPUT_PULLDOWN */
-+				0x138 0x22	/* mii1_rxd2.rgmii1_rd2, MODE2 | INPUT_PULLDOWN */
-+				0x13c 0x22	/* mii1_rxd1.rgmii1_rd1, MODE2 | INPUT_PULLDOWN */
-+				0x140 0x22	/* mii1_rxd0.rgmii1_rd0, MODE2 | INPUT_PULLDOWN */
-+
-+				/* Slave 2 */
-+				0x40 0x2	/* gpmc_a0.rgmii2_tctl", MODE2 | OUTPUT */
-+				0x44 0x22	/* gpmc_a1.rgmii2_rctl", MODE2 | INPUT_PULLDOWN */
-+				0x48 0x2	/* gpmc_a2.rgmii2_td3", MODE2 | OUTPUT */
-+				0x4c 0x2	/* gpmc_a3.rgmii2_td2", MODE2 | OUTPUT */
-+				0x50 0x2	/* gpmc_a4.rgmii2_td1", MODE2 | OUTPUT */
-+				0x54 0x2	/* gpmc_a5.rgmii2_td0", MODE2 | OUTPUT */
-+				0x58 0x2	/* gpmc_a6.rgmii2_tclk", MODE2 | OUTPUT */
-+				0x5c 0x22	/* gpmc_a7.rgmii2_rclk", MODE2 | INPUT_PULLDOWN */
-+				0x60 0x22	/* gpmc_a8.rgmii2_rd3", MODE2 | INPUT_PULLDOWN */
-+				0x64 0x22	/* gpmc_a9.rgmii2_rd2", MODE2 | INPUT_PULLDOWN */
-+				0x68 0x22	/* gpmc_a10.rgmii2_rd1", MODE2 | INPUT_PULLDOWN */
-+				0x6c 0x22	/* gpmc_a11.rgmii2_rd0", MODE2 | INPUT_PULLDOWN */
-+			>;
-+		};
-+
-+		davinci_mdio_default: davinci_mdio_default {
-+			pinctrl-single,pins = <
-+				/* MDIO */
-+				0x148 0x30	/* mdio_data.mdio_data, MODE0 | INPUT_PULLUP */
-+				0x14c 0x10	/* mdio_clk.mdio_clk, MODE0 | OUTPUT_PULLUP */
-+			>;
-+		};
- 	};
- 
- 	ocp {
-@@ -249,6 +289,16 @@
- 	};
- };
- 
-+&mac {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&cpsw_default>;
-+};
-+
-+&davinci_mdio {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&davinci_mdio_default>;
-+};
-+
- &cpsw_emac0 {
- 	phy_id = <&davinci_mdio>, <0>;
- };
--- 
-1.7.9.5
+This particular approach doesn't seem very robust.  What if 
+pdev->dev.dma_mask is already set to a different value for some good 
+reason?
+
+Alan Stern
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
