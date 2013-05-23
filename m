@@ -1,36 +1,53 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH] ARM: dts: OMAP4. fix missing omap4-sdp-es23plus.dtb in dtbs target
-Date: Thu, 23 May 2013 17:45:28 +0200
-Message-ID: <1369323928-4971-1-git-send-email-florian.vaussard@epfl.ch>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:58892 "HELO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754876Ab3EWPqb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 May 2013 11:46:31 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v2 0/5] ARM: dts: OMAP2+: use preprocessor for device trees
+Date: Thu, 23 May 2013 12:00:22 -0400
+Message-ID: <519E3D16.2090003@ti.com>
+References: <1369323421-4180-1-git-send-email-florian.vaussard@epfl.ch>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1369323421-4180-1-git-send-email-florian.vaussard@epfl.ch>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Florian Vaussard <florian.vaussard@epfl.ch>
+Cc: Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-When making the dtbs target, omap4-sdp-es23plus.dtb is not built.
+On Thursday 23 May 2013 11:36 AM, Florian Vaussard wrote:
+> Hello,
+> 
+> Following a similar proposal by Stephen Warren for tegra [1], this series
+> makes use of the C preprocessor when compiling OMAP DT files, and
+> accomplishes some improvements to improve overall readability.
+> 
+> Patch 1 is a preparation for the rest of the series.
+> Patch 2 uses existing constants for GPIOs. Patch 3 does the same for
+> IRQs. Patch 4 creates a new header for OMAP's padmux, and patch 5 uses
+> it to simplify pinctrl DT.
+> 
+> For all targets, the .dtb files were diff-tested before and after
+> applying the series to guarantee identity.
+> 
 
-Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
----
- arch/arm/boot/dts/Makefile |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> Florian Vaussard (5):
+>   ARM: dts: OMAP2+: use #include for all device trees
+>   ARM: dts: OMAP2+: use existing constants for GPIOs
+>   ARM: dts: OMAP4/5: use existing constants for IRQs
+>   ARM: dts: OMAP2+: header file for pinctrl constants
+>   ARM: dts: OMAP2+: use pinctrl constants
+> 
+I just quickly scanned the series and patches looks
+good to my eyes. Its a nice clean-up to align OMAP
+dts files with others.
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index b9f7121..d55cb26 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -149,6 +149,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
- 	omap4-panda-es.dtb \
- 	omap4-var-som.dtb \
- 	omap4-sdp.dtb \
-+	omap4-sdp-es23plus.dtb \
- 	omap5-evm.dtb \
- 	am335x-evm.dtb \
- 	am335x-evmsk.dtb \
--- 
-1.7.5.4
-
+FWIW,
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
