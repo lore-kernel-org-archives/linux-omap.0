@@ -1,35 +1,32 @@
-From: "Dr.Evance Williams" <dr.evance@email.com>
-Subject: Investment
-Date: Thu, 23 May 2013 02:04:47 -0700
-Message-ID: <20130523010457.DODL2008.nschwmtas03p.mx.bigpond.com@nschwcmgw06p>
-Reply-To: <drr.wi@outlook.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [net-next resend PATCH 1/6] net: cpsw: enhance pinctrl support
+Date: Wed, 22 May 2013 23:57:41 -0700 (PDT)
+Message-ID: <20130522.235741.135665074490271750.davem@davemloft.net>
+References: <1369130103-743-1-git-send-email-mugunthanvnm@ti.com>
+	<1369130103-743-2-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1251"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nschwqsrv02p.mx.bigpond.com ([61.9.189.234]:45096 "EHLO
-	nschwqsrv02p.mx.bigpond.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756946Ab3EWBkU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 May 2013 21:40:20 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1369130103-743-2-git-send-email-mugunthanvnm@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: mugunthanvnm@ti.com
+Cc: netdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, benoit.cousson@linaro.orgm, paul@pwsan.com, gururaja.hebbar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Description: Dear Friend,
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Date: Tue, 21 May 2013 15:24:58 +0530
 
-For a brief on my personality; my Name is Dr. Evance William a Retired South Africa politician, I based in 
-U.K ( Great Britain ) I am 58 years of age,married with wife and 4 (four) lovely children.I am interested 
-in establishingand operating a very viable business as a means of investment abroad. I do not know too 
-well on how this can be done in your country, and I will need you to help me in this regard.
+> +		priv->pins_default = pinctrl_lookup_state(priv->pinctrl,
+> +						PINCTRL_STATE_DEFAULT);
 
-My preference is Real Estate Investment, or any good profit yielding businesses and I would appreciate 
-any viable ideas you could come up with. I will also need you to assist me in getting me properties like 
-Home and Agriculture Lands,as I am proposing to invest the sum of  ($3.5 MILLION USD) I do not know 
-if you can be of help to me, I have had so many problems with the British Government just because I 
-was formerly holding a public office and they want to investigate my assets.
+This is not indented correctly.
 
-please send your reply to drr.wi@cox.net
-Regards,
+Argument on the second, and subsequent, lines of a function call
+must start at the first column after the openning parenthesis of
+the function call itself.
 
-Dr.Evance Williams
+Please audit for this problem in your entire patch series, fix
+it up, and resubmit the full set of patches.
+
+Thanks.
