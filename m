@@ -1,208 +1,80 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] ARM: OMAP2+: omap-usb-host: Fix memory leaks
-Date: Fri, 24 May 2013 16:06:58 +0300
-Message-ID: <1369400818-31625-1-git-send-email-rogerq@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 1/3] drivers: regulator: palmas: add an API to set/clear the switch bit on SMPS10
+Date: Fri, 24 May 2013 20:01:34 +0530
+Message-ID: <1369405896-30246-2-git-send-email-kishon@ti.com>
+References: <1369405896-30246-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com
-Cc: linux@arm.linux.org.uk, shc_work@mail.ru, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1369405896-30246-1-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: myungjoo.ham@samsung.com, cw00.choi@samsung.com, balbi@ti.com, ldewangan@nvidia.com, gg@slimlogic.co.uk, lgirdwood@gmail.com, broonie@kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: grant.likely@linaro.org, rob.herring@calxeda.com, rob@landley.net, gregkh@linuxfoundation.org, george.cherian@ti.com, kishon@ti.com, sameo@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
 
-Fix memory leaks in the error path.
-Also, use platform_device_register_full() to allocate
-the platform devices and set platform data.
+From: Graeme Gregory <gg@slimlogic.co.uk>
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Added an API to set/clear the switch bit on SMPS10 which can be used by
+palmas usb. The switch bit should be set in order for palmas to
+supply VBUS and is needed when OMAP is acting as USB HOST.
+
+Signed-off-by: Graeme Gregory <gg@slimlogic.co.uk>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/mach-omap2/usb-host.c |  106 +++++++++++++++++++++-------------------
- 1 files changed, 56 insertions(+), 50 deletions(-)
+ drivers/regulator/palmas-regulator.c | 26 ++++++++++++++++++++++++++
+ include/linux/mfd/palmas.h           |  2 ++
+ 2 files changed, 28 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
-index aa27d7f..609b330 100644
---- a/arch/arm/mach-omap2/usb-host.c
-+++ b/arch/arm/mach-omap2/usb-host.c
-@@ -28,6 +28,7 @@
- #include <linux/io.h>
- #include <linux/gpio.h>
- #include <linux/usb/phy.h>
-+#include <linux/usb/nop-usb-xceiv.h>
- 
- #include "soc.h"
- #include "omap_device.h"
-@@ -560,7 +561,8 @@ static int usbhs_add_regulator(char *name, char *dev_id, char *dev_supply,
- 	struct regulator_init_data *reg_data;
- 	struct fixed_voltage_config *config;
- 	struct platform_device *pdev;
--	int ret;
-+	struct platform_device_info pdevinfo;
-+	int ret = -ENOMEM;
- 
- 	supplies = kzalloc(sizeof(*supplies), GFP_KERNEL);
- 	if (!supplies)
-@@ -571,7 +573,7 @@ static int usbhs_add_regulator(char *name, char *dev_id, char *dev_supply,
- 
- 	reg_data = kzalloc(sizeof(*reg_data), GFP_KERNEL);
- 	if (!reg_data)
--		return -ENOMEM;
-+		goto err_data;
- 
- 	reg_data->constraints.valid_ops_mask = REGULATOR_CHANGE_STATUS;
- 	reg_data->consumer_supplies = supplies;
-@@ -580,39 +582,53 @@ static int usbhs_add_regulator(char *name, char *dev_id, char *dev_supply,
- 	config = kmemdup(&hsusb_reg_config, sizeof(hsusb_reg_config),
- 			GFP_KERNEL);
- 	if (!config)
--		return -ENOMEM;
-+		goto err_config;
-+
-+	config->supply_name = kstrdup(name, GFP_KERNEL);
-+	if (!config->supply_name)
-+		goto err_supplyname;
- 
--	config->supply_name = name;
- 	config->gpio = gpio;
- 	config->enable_high = polarity;
- 	config->init_data = reg_data;
- 
- 	/* create a regulator device */
--	pdev = kzalloc(sizeof(*pdev), GFP_KERNEL);
--	if (!pdev)
--		return -ENOMEM;
-+	memset(&pdevinfo, 0, sizeof(pdevinfo));
-+	pdevinfo.name = reg_name;
-+	pdevinfo.id = PLATFORM_DEVID_AUTO;
-+	pdevinfo.data = config;
-+	pdevinfo.size_data = sizeof(*config);
- 
--	pdev->id = PLATFORM_DEVID_AUTO;
--	pdev->name = reg_name;
--	pdev->dev.platform_data = config;
-+	pdev = platform_device_register_full(&pdevinfo);
-+	if (IS_ERR(pdev)) {
-+		ret = PTR_ERR(pdev);
-+		pr_err("%s: Failed registering regulator %s for %s : %d\n",
-+				__func__, name, dev_id, ret);
-+		goto err_register;
-+	}
- 
--	ret = platform_device_register(pdev);
--	if (ret)
--		pr_err("%s: Failed registering regulator %s for %s\n",
--				__func__, name, dev_id);
-+	return 0;
- 
-+err_register:
-+	kfree(config->supply_name);
-+err_supplyname:
-+	kfree(config);
-+err_config:
-+	kfree(reg_data);
-+err_data:
-+	kfree(supplies);
+diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
+index 92ceed0..d57ab55 100644
+--- a/drivers/regulator/palmas-regulator.c
++++ b/drivers/regulator/palmas-regulator.c
+@@ -465,6 +465,32 @@ static int palmas_smps_set_ramp_delay(struct regulator_dev *rdev,
  	return ret;
  }
  
-+#define MAX_STR 20
++/**
++ * palmas_set_switch_smps10() - set or clear the switch bit on SMPS10
++ * @param palmas pointer to the palmas mfd structure
++ * @param sw boolean to indicate switch status
++ *
++ * There is not a way to represent this function within the regulator
++ * framework. This sets/clears the switch of SMPS10 so SMPS10_OUT1 and
++ * SMPS10_OUT2 are shorted together.
++ */
++int palmas_set_switch_smps10(struct palmas *palmas, int sw)
++{
++	unsigned int reg;
 +
- int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
- {
--	char *rail_name;
--	int i, len;
-+	char rail_name[MAX_STR];
-+	int i;
- 	struct platform_device *pdev;
- 	char *phy_id;
--
--	/* the phy_id will be something like "nop_usb_xceiv.1" */
--	len = strlen(nop_name) + 3; /* 3 -> ".1" and NULL terminator */
-+	struct platform_device_info pdevinfo;
- 
- 	for (i = 0; i < num_phys; i++) {
- 
-@@ -627,25 +643,26 @@ int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
- 			!gpio_is_valid(phy->vcc_gpio))
- 			continue;
- 
--		/* create a NOP PHY device */
--		pdev = kzalloc(sizeof(*pdev), GFP_KERNEL);
--		if (!pdev)
--			return -ENOMEM;
--
--		pdev->id = phy->port;
--		pdev->name = nop_name;
--		pdev->dev.platform_data = phy->platform_data;
--
--		phy_id = kmalloc(len, GFP_KERNEL);
--		if (!phy_id)
-+		phy_id = kmalloc(MAX_STR, GFP_KERNEL);
-+		if (!phy_id) {
-+			pr_err("%s: kmalloc() failed\n", __func__);
- 			return -ENOMEM;
-+		}
- 
--		scnprintf(phy_id, len, "nop_usb_xceiv.%d\n",
--					pdev->id);
--
--		if (platform_device_register(pdev)) {
--			pr_err("%s: Failed to register device %s\n",
--				__func__,  phy_id);
-+		/* create a NOP PHY device */
-+		memset(&pdevinfo, 0, sizeof(pdevinfo));
-+		pdevinfo.name = nop_name;
-+		pdevinfo.id = phy->port;
-+		pdevinfo.data = phy->platform_data;
-+		pdevinfo.size_data = sizeof(struct nop_usb_xceiv_platform_data);
++	palmas_smps_read(palmas, PALMAS_SMPS10_CTRL, &reg);
 +
-+		scnprintf(phy_id, MAX_STR, "nop_usb_xceiv.%d",
-+					phy->port);
-+		pdev = platform_device_register_full(&pdevinfo);
-+		if (IS_ERR(pdev)) {
-+			pr_err("%s: Failed to register device %s : %ld\n",
-+				__func__,  phy_id, PTR_ERR(pdev));
-+			kfree(phy_id);
- 			continue;
- 		}
++	if (sw)
++		reg |= SMPS10_SWITCH_EN;
++	else
++		reg &= ~SMPS10_SWITCH_EN;
++
++	palmas_smps_write(palmas, PALMAS_SMPS10_CTRL, reg);
++
++	return 0;
++}
++EXPORT_SYMBOL(palmas_set_switch_smps10);
++
+ static struct regulator_ops palmas_ops_smps = {
+ 	.is_enabled		= palmas_is_enabled_smps,
+ 	.enable			= palmas_enable_smps,
+diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
+index 8f21daf..6df375d 100644
+--- a/include/linux/mfd/palmas.h
++++ b/include/linux/mfd/palmas.h
+@@ -404,6 +404,8 @@ enum usb_irq_events {
+ 	N_PALMAS_USB_VOTG_SESS_VLD,
+ };
  
-@@ -653,26 +670,15 @@ int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
- 
- 		/* Do we need RESET regulator ? */
- 		if (gpio_is_valid(phy->reset_gpio)) {
--
--			rail_name = kmalloc(13, GFP_KERNEL);
--			if (!rail_name)
--				return -ENOMEM;
--
--			scnprintf(rail_name, 13, "hsusb%d_reset", phy->port);
--
-+			scnprintf(rail_name, MAX_STR,
-+					"hsusb%d_reset", phy->port);
- 			usbhs_add_regulator(rail_name, phy_id, "reset",
- 						phy->reset_gpio, 1);
- 		}
- 
- 		/* Do we need VCC regulator ? */
- 		if (gpio_is_valid(phy->vcc_gpio)) {
--
--			rail_name = kmalloc(13, GFP_KERNEL);
--			if (!rail_name)
--				return -ENOMEM;
--
--			scnprintf(rail_name, 13, "hsusb%d_vcc", phy->port);
--
-+			scnprintf(rail_name, MAX_STR, "hsusb%d_vcc", phy->port);
- 			usbhs_add_regulator(rail_name, phy_id, "vcc",
- 					phy->vcc_gpio, phy->vcc_polarity);
- 		}
++extern int palmas_set_switch_smps10(struct palmas *palmas, int sw);
++
+ /* defines so we can store the mux settings */
+ #define PALMAS_GPIO_0_MUXED					(1 << 0)
+ #define PALMAS_GPIO_1_MUXED					(1 << 1)
 -- 
-1.7.4.1
+1.8.1.2
+
