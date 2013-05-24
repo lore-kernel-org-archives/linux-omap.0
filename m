@@ -1,92 +1,51 @@
-From: Jean-Philippe Francois <jp.francois@cynove.com>
-Subject: [PATCH 1/1] ARM : omap3 : fix wrong container_of in clock36xx.c
-Date: Fri, 24 May 2013 09:33:05 +0200
-Message-ID: <1369380785-23374-1-git-send-email-jp.francois@cynove.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH 1/2] ARM: dts: omap3-igep0020: Add NAND flash support
+Date: Fri, 24 May 2013 13:29:10 +0200
+Message-ID: <CAAwP0s3S8OZ7Riu80jVuj=07cHwGayP_VEEd11ye_mYT0qcxxA@mail.gmail.com>
+References: <1368214271-22780-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:44349 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756887Ab3EXHd2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 May 2013 03:33:28 -0400
-Received: by mail-wi0-f180.google.com with SMTP id hn14so2526348wib.13
-        for <linux-omap@vger.kernel.org>; Fri, 24 May 2013 00:33:27 -0700 (PDT)
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:62408 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751988Ab3EXL3b (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 May 2013 07:29:31 -0400
+Received: by mail-ie0-f174.google.com with SMTP id 10so11738531ied.19
+        for <linux-omap@vger.kernel.org>; Fri, 24 May 2013 04:29:30 -0700 (PDT)
+In-Reply-To: <1368214271-22780-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, mturquette@linaro.org, =?UTF-8?q?Jean-Philippe=20Fran=C3=A7ois?= <jp.francois@cynove.com>
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: =?UTF-8?Q?Beno=C3=AEt_Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-omap36xx_pwrdn_clk_enable_with_hsdiv_restore expects the parent hw of t=
-he clock
-to be a clk_hw_omap. However, looking at cclock3xxx_data.c, all concern=
-ed clock
-have parent defined as clk_divider.
-=46ix the function to use clk_divider.=20
-Tested with  3.9 on dm3730.
+On Fri, May 10, 2013 at 9:31 PM, Javier Martinez Canillas
+<javier.martinez@collabora.co.uk> wrote:
+> The IGEPv2 board has an 512MB NAND flash memory.
+>
+> Add a device node for this NAND and its parition layout.
+>
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> ---
+>
+> Benoit,
+>
+> This patch depends on a previous posted patch:
+>
+> [PATCH] ARM: dts: omap3-igep0020: Add SMSC911x LAN chip support
+>
+> Best regards,
+> Javier
+>
+>  arch/arm/boot/dts/omap3-igep0020.dts |   50 +++++++++++++++++++++++++++++++++-
+>  1 files changed, 49 insertions(+), 1 deletions(-)
+>
 
-Signed-off-by: Jean-Philippe Fran=C3=A7ois <jp.francois@cynove.com>
+Hello Benoit,
 
-Index: b/arch/arm/mach-omap2/clock36xx.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- a/arch/arm/mach-omap2/clock36xx.c
-+++ b/arch/arm/mach-omap2/clock36xx.c
-@@ -20,11 +20,12 @@
-=20
- #include <linux/kernel.h>
- #include <linux/clk.h>
-+#include <linux/clk-provider.h>
- #include <linux/io.h>
-=20
- #include "clock.h"
- #include "clock36xx.h"
--
-+#define to_clk_divider(_hw) container_of(_hw, struct clk_divider, hw)
-=20
- /**
-  * omap36xx_pwrdn_clk_enable_with_hsdiv_restore - enable clocks suffer=
-ing
-@@ -39,29 +40,28 @@
-  */
- int omap36xx_pwrdn_clk_enable_with_hsdiv_restore(struct clk_hw *clk)
- {
--	struct clk_hw_omap *parent;
-+	struct clk_divider *parent;
- 	struct clk_hw *parent_hw;
--	u32 dummy_v, orig_v, clksel_shift;
-+	u32 dummy_v, orig_v;
- 	int ret;
-=20
- 	/* Clear PWRDN bit of HSDIVIDER */
- 	ret =3D omap2_dflt_clk_enable(clk);
-=20
- 	parent_hw =3D __clk_get_hw(__clk_get_parent(clk->clk));
--	parent =3D to_clk_hw_omap(parent_hw);
-+	parent =3D to_clk_divider(parent_hw);
-=20
- 	/* Restore the dividers */
- 	if (!ret) {
--		clksel_shift =3D __ffs(parent->clksel_mask);
--		orig_v =3D __raw_readl(parent->clksel_reg);
-+		orig_v =3D __raw_readl(parent->reg);
- 		dummy_v =3D orig_v;
-=20
- 		/* Write any other value different from the Read value */
--		dummy_v ^=3D (1 << clksel_shift);
--		__raw_writel(dummy_v, parent->clksel_reg);
-+		dummy_v ^=3D (1 << parent->shift);
-+		__raw_writel(dummy_v, parent->reg);
-=20
- 		/* Write the original divider */
--		__raw_writel(orig_v, parent->clksel_reg);
-+		__raw_writel(orig_v, parent->reg);
- 	}
-=20
- 	return ret;
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Any comments on these patches?
+
+Should I resend or if you want I can put all IGEP DT patches on a
+branch and send a pull request if that's easier for you.
+
+Tnaks a lot and best regards,
+Javier
