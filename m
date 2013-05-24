@@ -1,57 +1,134 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH 1/3] drivers: regulator: palmas: add an API to set/clear
- the switch bit on SMPS10
-Date: Fri, 24 May 2013 19:09:14 +0400
-Message-ID: <519F829A.6070604@cogentembedded.com>
-References: <1369405896-30246-1-git-send-email-kishon@ti.com> <1369405896-30246-2-git-send-email-kishon@ti.com>
+From: Dan Murphy <dmurphy@ti.com>
+Subject: Re: [PATCH v6] ARM:dts:omap4-panda: Update the LED support for the
+ panda DTS
+Date: Fri, 24 May 2013 13:56:55 -0500
+Message-ID: <519FB7F7.7080009@ti.com>
+References: <1368806552-8851-1-git-send-email-dmurphy@ti.com>
+ <20130517161525.GA30014@kahuna> <5196580D.1070209@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1369405896-30246-2-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5196580D.1070209@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>, b-cousson@ti.com, tony@atomide.com
+Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
-
-On 24-05-2013 18:31, Kishon Vijay Abraham I wrote:
-
-> From: Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>
-
-> Added an API to set/clear the switch bit on SMPS10 which can be used by
-> palmas usb. The switch bit should be set in order for palmas to
-> supply VBUS and is needed when OMAP is acting as USB HOST.
-
-> Signed-off-by: Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>
-> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> ---
->   drivers/regulator/palmas-regulator.c | 26 ++++++++++++++++++++++++++
->   include/linux/mfd/palmas.h           |  2 ++
->   2 files changed, 28 insertions(+)
-
-> diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-> index 92ceed0..d57ab55 100644
-> --- a/drivers/regulator/palmas-regulator.c
-> +++ b/drivers/regulator/palmas-regulator.c
-> @@ -465,6 +465,32 @@ static int palmas_smps_set_ramp_delay(struct regulator_dev *rdev,
->   	return ret;
->   }
+On 05/17/2013 11:17 AM, Dan Murphy wrote:
+> On 05/17/2013 11:15 AM, Nishanth Menon wrote:
+>> On 11:02-20130517, Dan Murphy wrote:
+>>> The GPIO for LED D1 on the omap4-panda a1-a3 rev and the omap4-panda-es
+>>> are different.
+>>>
+>>> A1-A3 = gpio_wk7
+>>> ES = gpio_110
+>>>
+>>> There is no change to LED D2
+>>>
+>>> Abstract away the pinmux and the LED definitions for the two boards into
+>>> the respective DTS files.
+>>>
+>>> Signed-off-by: Dan Murphy <dmurphy@ti.com>
+>>> ---
+>>> Changes in this version:
+>>> 	- review comments incorporated.
+>>> Previous version of this patch was discussed in:
+>>> 	https://patchwork.kernel.org/patch/2582771/
+>> one minor nit,
+>> $subject could do with space after the ':'
+>> otherwise, it looks fine to me. Will suggest waiting for further
+>> reviewers if they have an opinion prior to a new rev.
+> Thanks NM I will queue up this change locally and await further review prior to sending v7.
 >
-> +/**
-> + * palmas_set_switch_smps10() - set or clear the switch bit on SMPS10
-> + * @param palmas pointer to the palmas mfd structure
-> + * @param sw boolean to indicate switch status
+>>>  arch/arm/boot/dts/omap4-panda-common.dtsi |   16 +++++++++++++++-
+>>>  arch/arm/boot/dts/omap4-panda-es.dts      |   28 ++++++++++++++++++++++++++++
+>>>  2 files changed, 43 insertions(+), 1 deletions(-)
+>>>
+>>> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+>>> index 03bd60d..5fd59b3 100644
+>>> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
+>>> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+>>> @@ -16,8 +16,13 @@
+>>>  		reg = <0x80000000 0x40000000>; /* 1 GB */
+>>>  	};
+>>>  
+>>> -	leds {
+>>> +	leds: leds {
+>>>  		compatible = "gpio-leds";
+>>> +		pinctrl-names = "default";
+>>> +		pinctrl-0 = <
+>>> +			&led_wkgpio_pins
+>>> +		>;
+>>> +
+>>>  		heartbeat {
+>>>  			label = "pandaboard::status1";
+>>>  			gpios = <&gpio1 7 0>;
+>>> @@ -137,6 +142,15 @@
+>>>  	};
+>>>  };
+>>>  
+>>> +&omap4_pmx_wkup {
+>>> +	led_wkgpio_pins: pinmux_leds_wkpins {
+>>> +		pinctrl-single,pins = <
+>>> +			0x1a 0x3	/* gpio_wk7 OUTPUT | MODE 3 */
+>>> +			0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
+>>> +		>;
+>>> +	};
+>>> +};
+>>> +
+>>>  &i2c1 {
+>>>  	pinctrl-names = "default";
+>>>  	pinctrl-0 = <&i2c1_pins>;
+>>> diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
+>>> index f1d8c21..c968a3b 100644
+>>> --- a/arch/arm/boot/dts/omap4-panda-es.dts
+>>> +++ b/arch/arm/boot/dts/omap4-panda-es.dts
+>>> @@ -34,3 +34,31 @@
+>>>  		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
+>>>  		>;
+>>>  };
+>>> +
+>>> +&omap4_pmx_core {
+>>> +	led_gpio_pins: gpio_led_pmx {
+>>> +		pinctrl-single,pins = <
+>>> +			0xb6 0x3	/* gpio_110 OUTPUT | MODE 3 */
+>>> +		>;
+>>> +	};
+>>> +};
+>>> +
+>>> +&led_wkgpio_pins {
+>>> +	pinctrl-single,pins = <
+>>> +		0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
+>>> +	>;
+>>> +};
+>>> +
+>>> +&leds {
+>>> +	pinctrl-0 = <
+>>> +		&led_gpio_pins
+>>> +		&led_wkgpio_pins
+>>> +	>;
+>>> +
+>>> +	heartbeat {
+>>> +		gpios = <&gpio4 14 0>;
+>>> +	};
+>>> +	mmc {
+>>> +		gpios = <&gpio1 8 0>;
+>>> +	};
+>>> +};
+>
+Any additional comments besides the headline?
 
-    Please follow the kernel-doc style described in 
-Documentation/kernel-doc-nano-HOWTO.txt.
+If not I will post v7
 
-[...]
-
-WBR, Sergei
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+------------------
+Dan Murphy
