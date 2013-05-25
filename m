@@ -1,67 +1,124 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] ARM: DTS: OMAP4: Panda/SDP: twl6030: fix mux for IRQ pin and msecure line
-Date: Fri, 24 May 2013 15:15:41 -0700
-Message-ID: <87ppwgdnxu.fsf@linaro.org>
-References: <1369423702-31501-1-git-send-email-khilman@linaro.org>
-	<20130524200954.GA2344@kahuna> <20130524203231.GA2555@kahuna>
-	<87obc0f54r.fsf@linaro.org>
-	<CAGo_u6oz1v1J-6z5W-X7CsOmi+7SAMicz1LZTv0sVXhej1DJ2Q@mail.gmail.com>
-	<87a9nkf3mu.fsf@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain
+Subject: [PATCH v2] ARM: DTS: OMAP4: Panda/SDP: twl6030: fix mux for IRQ pin and msecure line
+Date: Fri, 24 May 2013 17:24:21 -0700
+Message-ID: <1369441461-18888-1-git-send-email-khilman@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:57066 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756154Ab3EXWPp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 May 2013 18:15:45 -0400
-Received: by mail-pa0-f42.google.com with SMTP id bj3so4790544pad.29
-        for <linux-omap@vger.kernel.org>; Fri, 24 May 2013 15:15:44 -0700 (PDT)
-In-Reply-To: <87a9nkf3mu.fsf@linaro.org> (Kevin Hilman's message of "Fri, 24
-	May 2013 14:51:21 -0700")
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:51497 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750757Ab3EYAYZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 May 2013 20:24:25 -0400
+Received: by mail-pa0-f43.google.com with SMTP id hz11so2147255pad.16
+        for <linux-omap@vger.kernel.org>; Fri, 24 May 2013 17:24:25 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 
-Kevin Hilman <khilman@linaro.org> writes:
+Earlier commits ensured proper muxing of pins related to proper
+TWL6030 behavior: see commit 265a2bc8 (ARM: OMAP3: TWL4030: ensure
+sys_nirq1 is mux'd and wakeup enabled) and commit 1ef43369 (ARM:
+OMAP4: TWL: mux sys_drm_msecure as output for PMIC).
 
-> Nishanth Menon <nm@ti.com> writes:
+However these only fixed legacy boot and not DT boot.  For DT boot,
+the default mux values need to be set properly in DT.
 
-[...]
+Special thanks to Nishanth Menon for the review and catching some
+major flaws in earlier versions.
 
->> Actually 2 things:
->>
->> a) patch seems to do the wrong thing for 4460 - 0x18 offset should
->> have been used instead of 0x14 which is correct for 4430?
->
-> I see, thanks.  I'll double check the TRMs.
->
->> b) yes, I understand,  the current settings we did worked, but the
->> mode(0) we are setting to is real weird - we are setting it up for
->> clk0 out - I cant even think why it is even working in the first place
->> :( - is it because we are pumping out sysclkout and as a result we are
->> lucky that msecure is being sampled at the right point by twl6030
->> allowing rtc access? either way, IMHO, the configuration is wrong.
->
-> Ah, yes.  Mode zero is definitely wrong.   When I did the original patch
-> for legacy mode, I just duplicated the settings u-boot was using.  Guess
-> it's a fluke that it works.
+Tested on OMAP4430/Panda and OMAP4460/Panda-ES.
 
-Actually, for legacy mode, it's set correctly in mode 2.  This line:
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Kevin Hilman <khilman@linaro.org>
+---
+Applies to v3.10-rc2
 
-	omap_mux_init_signal("fref_clk0_out.sys_drm_msecure", OMAP_PIN_OUTPUT);
+ arch/arm/boot/dts/omap4-panda-common.dtsi | 20 ++++++++++++++++++++
+ arch/arm/boot/dts/omap4-sdp.dts           | 20 ++++++++++++++++++++
+ 2 files changed, 40 insertions(+)
 
-does the right thing based on the signal name.    But for DT boot, I
-defintely screwed it up by setting it to mode (and putting it in the
-wrong padconf section.)
+diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+index 03bd60d..eeb734e 100644
+--- a/arch/arm/boot/dts/omap4-panda-common.dtsi
++++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+@@ -56,9 +56,23 @@
+ 	};
+ };
+ 
++&omap4_pmx_wkup {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++			&twl6030_wkup_pins
++	>;
++
++	twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
++		pinctrl-single,pins = <
++			0x14 0x2        /* fref_clk0_out.sys_drm_msecure OUTPUT | MODE2 */
++		>;
++	};
++};
++
+ &omap4_pmx_core {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <
++			&twl6030_pins
+ 			&twl6040_pins
+ 			&mcpdm_pins
+ 			&mcbsp1_pins
+@@ -66,6 +80,12 @@
+ 			&tpd12s015_pins
+ 	>;
+ 
++	twl6030_pins: pinmux_twl6030_pins {
++		pinctrl-single,pins = <
++			0x15e 0x4118	/* sys_nirq1.sys_nirq1 OMAP_WAKEUP_EN | INPUT_PULLUP | MODE0 */
++		>;
++	};
++
+ 	twl6040_pins: pinmux_twl6040_pins {
+ 		pinctrl-single,pins = <
+ 			0xe0 0x3	/* hdq_sio.gpio_127 OUTPUT | MODE3 */
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+index a35d9cd..98505a2 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -142,9 +142,23 @@
+ 	};
+ };
+ 
++&omap4_pmx_wkup {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++			&twl6030_wkup_pins
++	>;
++
++	twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
++		pinctrl-single,pins = <
++			0x14 0x2        /* fref_clk0_out.sys_drm_msecure OUTPUT | MODE2 */
++		>;
++	};
++};
++
+ &omap4_pmx_core {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <
++			&twl6030_pins
+ 			&twl6040_pins
+ 			&mcpdm_pins
+ 			&dmic_pins
+@@ -179,6 +193,12 @@
+ 		>;
+ 	};
+ 
++	twl6030_pins: pinmux_twl6030_pins {
++		pinctrl-single,pins = <
++			0x15e 0x4118	/* sys_nirq1.sys_nirq1 OMAP_WAKEUP_EN | INPUT_PULLUP | MODE0 */
++		>;
++	};
++
+ 	twl6040_pins: pinmux_twl6040_pins {
+ 		pinctrl-single,pins = <
+ 			0xe0 0x3	/* hdq_sio.gpio_127 OUTPUT | MODE3 */
+-- 
+1.8.2
 
-Also, are you *really* sure about the offset difference between 4430 and
-4460 here?  I don't have access to NDA docs anymore, so I cannot double
-check this.
-
-What I do know is that the legacy code is using 0x54 for both, and if I
-simply comment out that 'sys_drm_msecure' line above, RTC wake stops
-working (legacy boot) on both 4430 and 4460, so that seems like pretty
-stront evidence that it's the same offset on both.
-
-Kevin
