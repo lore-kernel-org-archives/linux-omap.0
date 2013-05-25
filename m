@@ -1,124 +1,71 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: [PATCH v2] ARM: DTS: OMAP4: Panda/SDP: twl6030: fix mux for IRQ pin and msecure line
-Date: Fri, 24 May 2013 17:24:21 -0700
-Message-ID: <1369441461-18888-1-git-send-email-khilman@linaro.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:51497 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750757Ab3EYAYZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 May 2013 20:24:25 -0400
-Received: by mail-pa0-f43.google.com with SMTP id hz11so2147255pad.16
-        for <linux-omap@vger.kernel.org>; Fri, 24 May 2013 17:24:25 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Laxman Dewangan <ldewangan@nvidia.com>
+Subject: Re: [PATCH 1/3] drivers: regulator: palmas: add an API to set/clear
+ the switch bit on SMPS10
+Date: Sat, 25 May 2013 22:30:25 +0530
+Message-ID: <51A0EE29.6060708@nvidia.com>
+References: <1369405896-30246-1-git-send-email-kishon@ti.com> <1369405896-30246-2-git-send-email-kishon@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1369405896-30246-2-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: "myungjoo.ham@samsung.com" <myungjoo.ham@samsung.com>, "cw00.choi@samsung.com" <cw00.choi@samsung.com>, "balbi@ti.com" <balbi@ti.com>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, "lgirdwood@gmail.com" <lgirdwood@gmail.com>, "broonie@kernel.org" <broonie@kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rob@landley.net" <rob@landley.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "george.cherian@ti.com" <george.cherian@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 
-Earlier commits ensured proper muxing of pins related to proper
-TWL6030 behavior: see commit 265a2bc8 (ARM: OMAP3: TWL4030: ensure
-sys_nirq1 is mux'd and wakeup enabled) and commit 1ef43369 (ARM:
-OMAP4: TWL: mux sys_drm_msecure as output for PMIC).
+Hi Kishon/Graeme,
 
-However these only fixed legacy boot and not DT boot.  For DT boot,
-the default mux values need to be set properly in DT.
+On Friday 24 May 2013 08:01 PM, Kishon Vijay Abraham I wrote:
+> From: Graeme Gregory <gg@slimlogic.co.uk>
+>
+> Added an API to set/clear the switch bit on SMPS10 which can be used by
+> palmas usb. The switch bit should be set in order for palmas to
+> supply VBUS and is needed when OMAP is acting as USB HOST.
+>
+> Signed-off-by: Graeme Gregory <gg@slimlogic.co.uk>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>   drivers/regulator/palmas-regulator.c | 26 ++++++++++++++++++++++++++
+>   include/linux/mfd/palmas.h           |  2 ++
+>   2 files changed, 28 insertions(+)
+>
+> diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
+> index 92ceed0..d57ab55 100644
+> --- a/drivers/regulator/palmas-regulator.c
+> +++ b/drivers/regulator/palmas-regulator.c
+> @@ -465,6 +465,32 @@ static int palmas_smps_set_ramp_delay(struct regulator_dev *rdev,
+>   	return ret;
+>   }
+>   
+> +/**
+> + * palmas_set_switch_smps10() - set or clear the switch bit on SMPS10
+> + * @param palmas pointer to the palmas mfd structure
+> + * @param sw boolean to indicate switch status
+> + *
+> + * There is not a way to represent this function within the regulator
+> + * framework. This sets/clears the switch of SMPS10 so SMPS10_OUT1 and
+> + * SMPS10_OUT2 are shorted together.
+> + */
+>
 
-Special thanks to Nishanth Menon for the review and catching some
-major flaws in earlier versions.
+As per datasheet, SMPS10 has 2 outputs, OUT1 and OUT2.
+OUT2 is always available either through parasitic diode or bypass switch 
+or boost mode. It can not be off at all.
+OUT2 can be enable/disable through the switch bit.
 
-Tested on OMAP4430/Panda and OMAP4460/Panda-ES.
+The smps10 regulator is implemented  enable/disable on which it just 
+enable/disable boost mode.
+I think this is not proper control, actually we should control OUT1 
+switch on regulator enable/disable of the smps10.
 
-Cc: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Kevin Hilman <khilman@linaro.org>
----
-Applies to v3.10-rc2
+And hence in this case, we will not need this API.
 
- arch/arm/boot/dts/omap4-panda-common.dtsi | 20 ++++++++++++++++++++
- arch/arm/boot/dts/omap4-sdp.dts           | 20 ++++++++++++++++++++
- 2 files changed, 40 insertions(+)
+Otherwise it will difficult to use this api outside of palmas.
 
-diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-index 03bd60d..eeb734e 100644
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -56,9 +56,23 @@
- 	};
- };
- 
-+&omap4_pmx_wkup {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+			&twl6030_wkup_pins
-+	>;
-+
-+	twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
-+		pinctrl-single,pins = <
-+			0x14 0x2        /* fref_clk0_out.sys_drm_msecure OUTPUT | MODE2 */
-+		>;
-+	};
-+};
-+
- &omap4_pmx_core {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <
-+			&twl6030_pins
- 			&twl6040_pins
- 			&mcpdm_pins
- 			&mcbsp1_pins
-@@ -66,6 +80,12 @@
- 			&tpd12s015_pins
- 	>;
- 
-+	twl6030_pins: pinmux_twl6030_pins {
-+		pinctrl-single,pins = <
-+			0x15e 0x4118	/* sys_nirq1.sys_nirq1 OMAP_WAKEUP_EN | INPUT_PULLUP | MODE0 */
-+		>;
-+	};
-+
- 	twl6040_pins: pinmux_twl6040_pins {
- 		pinctrl-single,pins = <
- 			0xe0 0x3	/* hdq_sio.gpio_127 OUTPUT | MODE3 */
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index a35d9cd..98505a2 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -142,9 +142,23 @@
- 	};
- };
- 
-+&omap4_pmx_wkup {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+			&twl6030_wkup_pins
-+	>;
-+
-+	twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
-+		pinctrl-single,pins = <
-+			0x14 0x2        /* fref_clk0_out.sys_drm_msecure OUTPUT | MODE2 */
-+		>;
-+	};
-+};
-+
- &omap4_pmx_core {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <
-+			&twl6030_pins
- 			&twl6040_pins
- 			&mcpdm_pins
- 			&dmic_pins
-@@ -179,6 +193,12 @@
- 		>;
- 	};
- 
-+	twl6030_pins: pinmux_twl6030_pins {
-+		pinctrl-single,pins = <
-+			0x15e 0x4118	/* sys_nirq1.sys_nirq1 OMAP_WAKEUP_EN | INPUT_PULLUP | MODE0 */
-+		>;
-+	};
-+
- 	twl6040_pins: pinmux_twl6040_pins {
- 		pinctrl-single,pins = <
- 			0xe0 0x3	/* hdq_sio.gpio_127 OUTPUT | MODE3 */
--- 
-1.8.2
+In tegra platform, we have connected the USB-VBUS supply from 
+SMPS10-OUT1 and usb driver control the vbus enabled/disable and so it 
+can not call this API. This functionality need to be exposed through the 
+regulator only.
+
 
