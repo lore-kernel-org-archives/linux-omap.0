@@ -1,26 +1,63 @@
-From: "Xie Yalong" <kumar@oomsindia.com>
-Subject: Re: Contact me
-Date: Sun, 26 May 2013 00:18:49 +0530 (IST)
-Message-ID: <7572.41.203.67.53.1369507729.squirrel@email.oomsindia.com>
-Reply-To: xieyalong13@qq.com
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [net-next PATCH v2 1/6] net: cpsw: enhance pinctrl support
+Date: Sat, 25 May 2013 23:42:48 -0700 (PDT)
+Message-ID: <20130525.234248.683332656832128763.davem@davemloft.net>
+References: <1369312228-3308-1-git-send-email-mugunthanvnm@ti.com>
+ <1369312228-3308-2-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from email.oomsindia.com ([182.71.37.108]:48675 "EHLO
-	oomsserver.oomsindia.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757816Ab3EYThJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 25 May 2013 15:37:09 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1369312228-3308-2-git-send-email-mugunthanvnm-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: mugunthanvnm-l0cyMroinI0@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, gururaja.hebbar-l0cyMroinI0@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Date: Thu, 23 May 2013 18:00:23 +0530
 
+> From: Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+> 
+> Amend cpsw controller to optionally take a pin control handle and set
+> the state of the pins to:
+> 
+> - "default" on boot, resume
+> - "sleep" on suspend()
+> 
+> This should make it possible to optimize energy usage for the pins
+> for the suspend/resume cycle.
+> 
+> If any of the above pin states are missing in dt, a warning message
+> about the missing state is displayed.
+> If certain pin-states are not available, to remove this warning message
+> pass respective state name with null phandler.
+> 
+> Signed-off-by: Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 
+This still needs some work:
 
-Hallo,my name is Xie Yalong former personal assistant to the former deputy
-governor of the eastern province of Shandong(Mr.Huang Sheng).I would like
-you to assist me with re-profiling a certain sum.Please reply to:
-xieyalong13@qq.com if interested for further details.
-Xie Yalong.
+> +		/*
+> +		* Since we continue even when pinctrl node is not found,
+> +		* Invalidate pins as not available. This is to make sure that
+> +		* IS_ERR(pins_xxx) results in failure when used.
+> +		*/
 
+The second, third, fourth, and fifth lines are not tabbed correctly.  They
+should all be two TABs and a SPACE.
+
+Secondly, comments in the networking are to be formatted:
+
+	/* Like
+	 * this.
+	 */
