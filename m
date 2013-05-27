@@ -1,127 +1,578 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [BISECTED] 3.10-rc1 OMAP1 GPIO IRQ regression
-Date: Sun, 26 May 2013 22:07:10 +0300
-Message-ID: <20130526190710.GA3345@blackmetal.musicnaut.iki.fi>
-References: <20130513205302.GA3157@blackmetal.musicnaut.iki.fi>
- <20130516180933.GG5600@atomide.com>
- <20130516210006.GA31836@blackmetal.musicnaut.iki.fi>
- <20130516214430.GN5600@atomide.com>
- <20130520174621.GI10378@atomide.com>
- <20130521173936.GE31836@blackmetal.musicnaut.iki.fi>
- <519BCCEC.8010303@gmail.com>
- <20130522212054.GG31836@blackmetal.musicnaut.iki.fi>
- <519E67AD.6070702@gmail.com>
+From: Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH v5 2/3] extcon: Palmas Extcon Driver
+Date: Mon, 27 May 2013 14:34:55 +0900
+Message-ID: <51A2F07F.8070009@samsung.com>
+References: <1369405896-30246-1-git-send-email-kishon@ti.com>
+ <1369405896-30246-3-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri2.pp.htv.fi ([213.243.153.185]:49676 "EHLO
-	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754855Ab3EZTHQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 May 2013 15:07:16 -0400
-Content-Disposition: inline
-In-Reply-To: <519E67AD.6070702@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-reply-to: <1369405896-30246-3-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: myungjoo.ham@samsung.com, balbi@ti.com, ldewangan@nvidia.com, gg@slimlogic.co.uk, lgirdwood@gmail.com, broonie@kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, grant.likely@linaro.org, rob.herring@calxeda.com, rob@landley.net, gregkh@linuxfoundation.org, george.cherian@ti.com, sameo@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jgchunter@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Thu, May 23, 2013 at 08:02:05PM +0100, Jon Hunter wrote:
-> On 22/05/13 22:20, Aaro Koskinen wrote:
-> > On Tue, May 21, 2013 at 08:37:16PM +0100, Jon Hunter wrote:
-> >> On 21/05/13 18:39, Aaro Koskinen wrote:
-> >>> On Mon, May 20, 2013 at 10:46:21AM -0700, Tony Lindgren wrote:
-> >>>> * Tony Lindgren <tony@atomide.com> [130516 14:50]:
-> >>>>> * Aaro Koskinen <aaro.koskinen@iki.fi> [130516 14:05]:
-> >>>>>> On Thu, May 16, 2013 at 11:09:34AM -0700, Tony Lindgren wrote:
-> >>>>>>> * Aaro Koskinen <aaro.koskinen@iki.fi> [130513 13:58]:
-> >>>>>>>> I tested 3.10-rc1 on OMAP1 / Nokia 770, and Retu MFD probe is broken:
-> >>>>>>>>
-> >>>>>>>> [    2.264221] retu-mfd 2-0001: Retu v3.2 found
-> >>>>>>>> [    2.281951] retu-mfd 2-0001: Failed to allocate IRQs: -12
-> >>>>>>>> [    2.300140] retu-mfd: probe of 2-0001 failed with error -12
-> >>>>>>>>
-> >>>>>>>> The error is coming from regmap code. According to git bisect, it is
-> >>>>>>>> caused by:
-> >>>>>>>>
-> >>>>>>>> 	commit ede4d7a5b9835510fd1f724367f68d2fa4128453
-> >>>>>>>> 	Author: Jon Hunter <jon-hunter@ti.com>
-> >>>>>>>> 	Date:   Fri Mar 1 11:22:47 2013 -0600
-> >>>>>>>>
-> >>>>>>>> 	    gpio/omap: convert gpio irq domain to linear mapping
-> >>>>>>>>
-> >>>>>>>> The commit does not anymore revert cleanly, and I haven't yet tried
-> >>>>>>>> crafting a manual revert, so any fix proposals/ideas are welcome...
-> >>>>>>>
-> >>>>>>> Hmm this might be a bit trickier to fix. Obviously the real solution
-> >>>>>>> is to convert omap1 to SPARSE_IRQ like we did for omap2+.
-> >>>>>>>
-> >>>>>>> For the -rc cycle, it might be possible to fix this by adding a
-> >>>>>>> different irq_to_gpio() and gpio_to_irq() functions for omap1.
-> >>>>>>
-> >>>>>> The commit reverts cleanly if we also revert
-> >>>>>> 3513cdeccc647d41c4a9ff923af17deaaac04a66 (gpio/omap: optimise interrupt
-> >>>>>> service routine), which seems to be just some minor optimization. The
-> >>>>>> result is below, and with it 770 works again.
-> >>>>>
-> >>>>> Hmm in this case it seems that we should just fix it rather than go back
-> >>>>> to the old code, so let's take a look at that first.
-> >>>>
-> >>>> Does the following fix it for you or do we need to fix something else
-> >>>> there too?
-> >>>
-> >>> Thanks, that fixes Retu probe on 770.
-> >>
-> >> Sorry for not responding sooner, but I have been moving. 
-> >>
-> >> From looking at the code it appears that the regmap_add_irq_chip()
-> >> is failing in the retu driver. I am not sure if this will work, 
-> >> but have you tried making the following change to the retu driver 
-> >> so that it also uses irq_domain_add_linear() as well? Just a thought ...
-> > 
-> > This will trigger WARNING: at drivers/base/regmap/regmap-irq.c:514.
-> 
-> Sorry, there is another change needed. Can you try ...
+Hi Kishon,
 
-I don't see much improvement with this. Although Retu probe succeeds,
-genirq error logs are still there. Also none of the GPIO irqs used by
-other drivers seem to be working at all, e.g. touchscreen.
+I have some comment about this patch
+and upload modified patch to following repository (extcon-for-palmas).
+- http://git.kernel.org/cgit/linux/kernel/git/chanwoo/extcon.git/commit/?h=extcon-for-palmas&id=f2b7cb80699cbe1a5fd6c97ef2c600915f8d7f2c
 
-A.
+This patchset include patch related to other module
+,so I need your opinion to apply this patchset to git repository.
 
-> diff --git a/drivers/mfd/retu-mfd.c b/drivers/mfd/retu-mfd.c
-> index a183098..9080cd6 100644
-> --- a/drivers/mfd/retu-mfd.c
-> +++ b/drivers/mfd/retu-mfd.c
-> @@ -267,14 +267,13 @@ static int retu_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
->         if (ret < 0)
->                 return ret;
+On 05/24/2013 11:31 PM, Kishon Vijay Abraham I wrote:
+> From: Graeme Gregory <gg@slimlogic.co.uk>
+>
+> This is the driver for the USB comparator built into the palmas chip. It
+> handles the various USB OTG events that can be generated by cable
+> insertion/removal.
+>
+> Signed-off-by: Graeme Gregory <gg@slimlogic.co.uk>
+> Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
+> Signed-off-by: Ruchika Kharwar <ruchika@ti.com>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Signed-off-by: George Cherian <george.cherian@ti.com>
+> [kishon@ti.com: adapted palmas usb driver to use the extcon framework]
+> Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
+> ---
+> Changes from v4:
+> * removed no_control_vbus property (to be used if the platform wants to use
+> its own vbus control.
+> * removed unnecessary headers
+> * moved the palmas_usb_state to palmas.h
+> * misc cleanups
+> *A checkpatch warning "WARNING: static const char * array should
+>  probably be static const char * const"is ignored since it introduces a
+>  compilation warning.
+> Changes from v3:
+> * adapted the driver to extcon framework (so moved to drivers/extcon)
+> * removed palmas_usb_(write/read) and replaced all calls with
+>   palmas_(read/write).
+> * ignored a checkpatch warning in the line 
+> 	static const char *palmas_extcon_cable[] = {
+>   as it seemed to be incorrect?
+> * removed all references to OMAP in this driver.
+> * couldn't test this driver with mainline as omap5 panda is not booting
+>   with mainline.
+> * A comment to change to platform_get_irq from regmap is not done as I felt
+>   the data should come from regmap in this case. Graeme?
+> Changes from v2:
+> * Moved the driver to drivers/usb/phy/
+> * Added a bit more explanation in Kconfig
+>  .../devicetree/bindings/extcon/extcon-twl.txt      |  16 +
+>  drivers/extcon/Kconfig                             |   7 +
+>  drivers/extcon/Makefile                            |   1 +
+>  drivers/extcon/extcon-palmas.c                     | 341 +++++++++++++++++++++
+>  include/linux/mfd/palmas.h                         |  25 +-
+>  5 files changed, 380 insertions(+), 10 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/extcon/extcon-twl.txt
+>  create mode 100644 drivers/extcon/extcon-palmas.c
+>
+> diff --git a/Documentation/devicetree/bindings/extcon/extcon-twl.txt b/Documentation/devicetree/bindings/extcon/extcon-twl.txt
+> new file mode 100644
+> index 0000000..8ffdeed
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/extcon/extcon-twl.txt
+> @@ -0,0 +1,15 @@
+> +EXTCON FOR TWL CHIPS
+> +
+> +PALMAS USB COMPARATOR
+> +Required Properties:
+> + - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb"
+> + - vbus-supply : phandle to the regulator device tree node.
+> +
+> +Optional Properties:
+> + - ti,wakeup : To enable the wakeup comparator in probe
+> +
+> +palmas-usb {
+> +       compatible = "ti,twl6035-usb", "ti,palmas-usb";
+> +       vbus-supply = <&smps10_reg>;
+> +       ti,wakeup;
+> +};
+> diff --git a/drivers/extcon/Kconfig b/drivers/extcon/Kconfig
+> index 3297301..63f454e 100644
+> --- a/drivers/extcon/Kconfig
+> +++ b/drivers/extcon/Kconfig
+> @@ -53,4 +53,11 @@ config EXTCON_ARIZONA
+>  	  with Wolfson Arizona devices. These are audio CODECs with
+>  	  advanced audio accessory detection support.
 >  
-> -       ret = regmap_add_irq_chip(rdev->regmap, i2c->irq, IRQF_ONESHOT, -1,
-> +       ret = regmap_add_irq_chip(rdev->regmap, i2c->irq, IRQF_ONESHOT, 0,
->                                   rdat->irq_chip, &rdev->irq_data);
->         if (ret < 0)
->                 return ret;
+> +config EXTCON_PALMAS
+> +	tristate "Palmas USB EXTCON support"
+> +	depends on MFD_PALMAS
+You should add REGULATOR_PALMAS dependency because
+palmas_set_switch_smps10() is defined in palmas regulator driver.
+
++    depends on MFD_PALMAS && REGULATOR_PALMAS
+
+> +	help
+> +	  Say Y here to enable support for USB peripheral and USB host
+> +	  detection by palmas usb.
+> +
+>  endif # MULTISTATE_SWITCH
+> diff --git a/drivers/extcon/Makefile b/drivers/extcon/Makefile
+> index f98a3c4..540e2c3 100644
+> --- a/drivers/extcon/Makefile
+> +++ b/drivers/extcon/Makefile
+> @@ -8,3 +8,4 @@ obj-$(CONFIG_EXTCON_ADC_JACK)	+= extcon-adc-jack.o
+>  obj-$(CONFIG_EXTCON_MAX77693)	+= extcon-max77693.o
+>  obj-$(CONFIG_EXTCON_MAX8997)	+= extcon-max8997.o
+>  obj-$(CONFIG_EXTCON_ARIZONA)	+= extcon-arizona.o
+> +obj-$(CONFIG_EXTCON_PALMAS)	+= extcon-palmas.o
+> diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
+> new file mode 100644
+> index 0000000..9e613e9
+> --- /dev/null
+> +++ b/drivers/extcon/extcon-palmas.c
+> @@ -0,0 +1,341 @@
+> +/*
+> + * Palmas USB transceiver driver
+> + *
+> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * Author: Graeme Gregory <gg@slimlogic.co.uk>
+> + * Author: Kishon Vijay Abraham I <kishon@ti.com>
+> + *
+> + * Based on twl6030_usb.c
+> + *
+> + * Author: Hema HK <hemahk@ti.com>
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/usb/phy_companion.h>
+> +#include <linux/err.h>
+> +#include <linux/mfd/palmas.h>
+> +#include <linux/of.h>
+> +#include <linux/of_platform.h>
+> +
+> +static const char *palmas_extcon_cable[] = {
+> +	[0] = "USB",
+> +	[1] = "USB-HOST",
+> +	NULL,
+> +};
+> +
+> +static const int mutually_exclusive[] = {0x3, 0x0};
+> +
+> +static void palmas_usb_wakeup(struct palmas *palmas, int enable)
+> +{
+> +	if (enable)
+> +		palmas_write(palmas, PALMAS_USB_OTG_BASE, PALMAS_USB_WAKEUP,
+> +			PALMAS_USB_WAKEUP_ID_WK_UP_COMP);
+> +	else
+> +		palmas_write(palmas, PALMAS_USB_OTG_BASE, PALMAS_USB_WAKEUP, 0);
+> +}
+> +
+> +static irqreturn_t palmas_vbus_irq_handler(int irq, void *_palmas_usb)
+> +{
+> +	int ret;
+> +	struct palmas_usb *palmas_usb = _palmas_usb;
+> +	unsigned int vbus_line_state;
+> +
+> +	palmas_read(palmas_usb->palmas, PALMAS_INTERRUPT_BASE,
+> +		PALMAS_INT3_LINE_STATE, &vbus_line_state);
+> +
+> +	if (vbus_line_state & PALMAS_INT3_LINE_STATE_VBUS) {
+> +		if (palmas_usb->linkstat != PALMAS_USB_STATE_VBUS) {
+> +			if (palmas_usb->vbus_reg) {
+> +				ret = regulator_enable(palmas_usb->vbus_reg);
+> +				if (ret) {
+> +					dev_dbg(palmas_usb->dev,
+> +						"regulator enable failed\n");
+> +					goto ret0;
+
+I prefer to use consistent name of goto statement becuase you use
+'fail_' prefix in palmas_usb_probe()
+-                    goto ret0;
++                    goto fail;
+
+> +				}
+> +			}
+> +			palmas_usb->linkstat = PALMAS_USB_STATE_VBUS;
+> +			extcon_set_cable_state(&palmas_usb->edev, "USB", true);
+> +		} else {
+> +			dev_dbg(palmas_usb->dev,
+> +				"Spurious connect event detected\n");
+> +		}
+> +	} else if (!(vbus_line_state & PALMAS_INT3_LINE_STATE_VBUS)) {
+> +		if (palmas_usb->linkstat == PALMAS_USB_STATE_VBUS) {
+> +			if (palmas_usb->vbus_reg)
+> +				regulator_disable(palmas_usb->vbus_reg);
+> +			palmas_usb->linkstat = PALMAS_USB_STATE_DISCONNECT;
+> +			extcon_set_cable_state(&palmas_usb->edev, "USB", false);
+> +		} else {
+> +			dev_dbg(palmas_usb->dev,
+> +				"Spurious disconnect event detected\n");
+> +		}
+> +	}
+> +
+> +ret0:
+ditto.
+
+-ret0:
++fail:
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +static irqreturn_t palmas_id_irq_handler(int irq, void *_palmas_usb)
+> +{
+> +	int			ret;
+> +	unsigned int		set;
+> +	struct palmas_usb	*palmas_usb = _palmas_usb;
+You should use space instead of tab when defined local variables.
+
++    int ret;
++    unsigned int set;
++    struct palmas_usb *palmas_usb = _palmas_usb;
+
+> +
+> +	palmas_read(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
+> +		PALMAS_USB_ID_INT_LATCH_SET, &set);
+> +
+> +	if (set & PALMAS_USB_ID_INT_SRC_ID_GND) {
+> +		palmas_set_switch_smps10(palmas_usb->palmas, 1);
+> +		if (palmas_usb->vbus_reg) {
+> +			ret = regulator_enable(palmas_usb->vbus_reg);
+> +			if (ret) {
+> +				dev_dbg(palmas_usb->dev,
+> +					"regulator enable failed\n");
+> +				goto ret0;
+
+ditto.
+
+> +			}
+> +		}
+> +		palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
+> +			PALMAS_USB_ID_INT_EN_HI_SET,
+> +			PALMAS_USB_ID_INT_EN_HI_SET_ID_FLOAT);
+> +		palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
+> +			PALMAS_USB_ID_INT_EN_HI_CLR,
+> +			PALMAS_USB_ID_INT_EN_HI_CLR_ID_GND);
+> +		palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
+> +			PALMAS_USB_ID_INT_LATCH_CLR,
+> +			PALMAS_USB_ID_INT_EN_HI_CLR_ID_GND);
+> +		palmas_usb->linkstat = PALMAS_USB_STATE_ID;
+> +		extcon_set_cable_state(&palmas_usb->edev, "USB-HOST", true);
+> +	} else if (set & PALMAS_USB_ID_INT_SRC_ID_FLOAT) {
+> +		palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
+> +			PALMAS_USB_ID_INT_EN_HI_SET,
+> +			PALMAS_USB_ID_INT_EN_HI_SET_ID_GND);
+> +		palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
+> +			PALMAS_USB_ID_INT_EN_HI_CLR,
+> +			PALMAS_USB_ID_INT_EN_HI_CLR_ID_FLOAT);
+> +		palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
+> +			PALMAS_USB_ID_INT_LATCH_CLR,
+> +			PALMAS_USB_ID_INT_EN_HI_CLR_ID_FLOAT);
+> +		if (palmas_usb->vbus_reg)
+> +			regulator_disable(palmas_usb->vbus_reg);
+> +		palmas_set_switch_smps10(palmas_usb->palmas, 0);
+> +		palmas_usb->linkstat = PALMAS_USB_STATE_DISCONNECT;
+> +		extcon_set_cable_state(&palmas_usb->edev, "USB-HOST", false);
+> +	}
+> +
+> +ret0:
+
+ditto.
+
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +static void palmas_enable_irq(struct palmas_usb *palmas_usb)
+> +{
+> +	palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
+> +		PALMAS_USB_VBUS_CTRL_SET,
+> +		PALMAS_USB_VBUS_CTRL_SET_VBUS_ACT_COMP);
+> +
+> +	palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
+> +		PALMAS_USB_ID_CTRL_SET, PALMAS_USB_ID_CTRL_SET_ID_ACT_COMP);
+> +
+> +	palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
+> +		PALMAS_USB_ID_INT_EN_HI_SET,
+> +		PALMAS_USB_ID_INT_EN_HI_SET_ID_GND);
+> +
+> +	palmas_vbus_irq_handler(palmas_usb->vbus_irq, palmas_usb);
+> +
+> +	/* cold plug for host mode needs this delay */
+> +	msleep(30);
+> +	palmas_id_irq_handler(palmas_usb->id_irq, palmas_usb);
+> +}
+> +
+> +static void palmas_set_vbus_work(struct work_struct *data)
+> +{
+> +	int ret;
+> +	struct palmas_usb *palmas_usb = container_of(data, struct palmas_usb,
+> +								set_vbus_work);
+> +
+> +	/*
+> +	 * Start driving VBUS. Set OPA_MODE bit in CHARGERUSB_CTRL1
+> +	 * register. This enables boost mode.
+> +	 */
+> +
+> +	if (palmas_usb->vbus_enable) {
+> +		ret = regulator_enable(palmas_usb->vbus_reg);
+> +		if (ret)
+> +			dev_dbg(palmas_usb->dev, "regulator enable failed\n");
+> +	} else {
+> +		regulator_disable(palmas_usb->vbus_reg);
+> +	}
+> +}
+> +
+> +static int palmas_set_vbus(struct phy_companion *comparator, bool enabled)
+> +{
+> +	struct palmas_usb *palmas_usb = comparator_to_palmas(comparator);
+> +
+> +	palmas_usb->vbus_enable = enabled;
+> +	schedule_work(&palmas_usb->set_vbus_work);
+> +
+> +	return 0;
+> +}
+> +
+> +static int palmas_start_srp(struct phy_companion *comparator)
+> +{
+> +	struct palmas_usb *palmas_usb = comparator_to_palmas(comparator);
+> +
+> +	palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
+> +		PALMAS_USB_VBUS_CTRL_SET, PALMAS_USB_VBUS_CTRL_SET_VBUS_DISCHRG
+> +		| PALMAS_USB_VBUS_CTRL_SET_VBUS_IADP_SINK);
+> +	palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
+> +		PALMAS_USB_VBUS_CTRL_SET,
+> +		PALMAS_USB_VBUS_CTRL_SET_VBUS_CHRG_VSYS |
+> +		PALMAS_USB_VBUS_CTRL_SET_VBUS_IADP_SINK);
+> +
+> +	msleep(100);
+> +
+> +	palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
+> +		PALMAS_USB_VBUS_CTRL_CLR,
+> +		PALMAS_USB_VBUS_CTRL_SET_VBUS_CHRG_VSYS |
+> +		PALMAS_USB_VBUS_CTRL_SET_VBUS_CHRG_VSYS);
+> +
+> +	return 0;
+> +}
+> +
+> +static int palmas_usb_probe(struct platform_device *pdev)
+> +{
+> +	struct palmas *palmas = dev_get_drvdata(pdev->dev.parent);
+> +	struct palmas_usb_platform_data	*pdata = pdev->dev.platform_data;
+> +	struct device_node *node = pdev->dev.of_node;
+> +	struct palmas_usb *palmas_usb;
+> +	int status;
+> +
+> +	if (node && !pdata) {
+> +		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+> +
+> +		if (!pdata)
+> +			return -ENOMEM;
+> +
+> +		pdata->wakeup = of_property_read_bool(node, "ti,wakeup");
+> +	}
+> +
+> +	if (!pdata)
+> +		return -EINVAL;
+I think that if condition of first if statement is true,
+second if statement is unnecessary. So, I prefer
+to modify if/else statement as following:
+
++	} else if (!pdata) {
+		return -EINVAL;
++	}
+
+ 
+> +
+> +	palmas_usb = devm_kzalloc(&pdev->dev, sizeof(*palmas_usb), GFP_KERNEL);
+> +	if (!palmas_usb)
+> +		return -ENOMEM;
+> +
+> +	palmas->usb		= palmas_usb;
+> +	palmas_usb->palmas	= palmas;
+> +
+> +	palmas_usb->dev		= &pdev->dev;
+
+You should use space instead of tab when assign some value to variables.
+
++	palmas->usb = palmas_usb;
++	palmas_usb->palmas = palmas;
++
++	palmas_usb->dev= &pdev->dev;
+
+
+> +
+> +	palmas_usb->id_otg_irq = regmap_irq_get_virq(palmas->irq_data,
+> +						PALMAS_ID_OTG_IRQ);
+> +	palmas_usb->id_irq = regmap_irq_get_virq(palmas->irq_data,
+> +						PALMAS_ID_IRQ);
+> +	palmas_usb->vbus_otg_irq = regmap_irq_get_virq(palmas->irq_data,
+> +						PALMAS_VBUS_OTG_IRQ);
+> +	palmas_usb->vbus_irq = regmap_irq_get_virq(palmas->irq_data,
+> +						PALMAS_VBUS_IRQ);
+> +
+> +	palmas_usb->comparator.set_vbus	= palmas_set_vbus;
+> +	palmas_usb->comparator.start_srp = palmas_start_srp;
+> +
+> +	palmas_usb_wakeup(palmas, pdata->wakeup);
+> +
+> +	palmas_usb->vbus_reg = devm_regulator_get(&pdev->dev, "vbus");
+> +	if (IS_ERR(palmas_usb->vbus_reg)) {
+> +		dev_err(&pdev->dev, "vbus init failed\n");
+> +		return PTR_ERR(palmas_usb->vbus_reg);
+> +	}
+> +
+> +	INIT_WORK(&palmas_usb->set_vbus_work, palmas_set_vbus_work);
+> +
+> +	platform_set_drvdata(pdev, palmas_usb);
+> +
+> +	palmas_usb->edev.name = "palmas-usb";
+> +	palmas_usb->edev.supported_cable = palmas_extcon_cable;
+> +	palmas_usb->edev.mutually_exclusive = mutually_exclusive;
+> +
+> +	status = extcon_dev_register(&palmas_usb->edev, palmas_usb->dev);
+> +	if (status) {
+> +		dev_err(&pdev->dev, "failed to register extcon device\n");
+> +		goto fail_irq;
+> +	}
+> +
+> +	status = devm_request_threaded_irq(palmas_usb->dev, palmas_usb->id_irq,
+> +			NULL, palmas_id_irq_handler,
+> +			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
+> +			"palmas_usb_id", palmas_usb);
+> +	if (status < 0) {
+> +		dev_err(&pdev->dev, "can't get IRQ %d, err %d\n",
+> +					palmas_usb->id_irq, status);
+> +		goto fail_extcon;
+> +	}
+> +
+> +	status = devm_request_threaded_irq(palmas_usb->dev,
+> +			palmas_usb->vbus_irq, NULL, palmas_vbus_irq_handler,
+> +			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
+> +			"palmas_usb_vbus", palmas_usb);
+> +	if (status < 0) {
+> +		dev_err(&pdev->dev, "can't get IRQ %d, err %d\n",
+> +					palmas_usb->vbus_irq, status);
+> +		goto fail_extcon;
+> +	}
+> +
+> +	palmas_enable_irq(palmas_usb);
+> +
+> +	return 0;
+> +
+> +fail_extcon:
+> +	extcon_dev_unregister(&palmas_usb->edev);
+> +
+> +fail_irq:
+> +	cancel_work_sync(&palmas_usb->set_vbus_work);
+> +
+> +	return status;
+> +}
+> +
+> +static int palmas_usb_remove(struct platform_device *pdev)
+> +{
+> +	struct palmas_usb *palmas_usb = platform_get_drvdata(pdev);
+> +
+> +		cancel_work_sync(&palmas_usb->set_vbus_work);
+> +	extcon_dev_unregister(&palmas_usb->edev);
+> +
+> +	return 0;
+> +}
+> +
+> +static struct of_device_id of_palmas_match_tbl[] = {
+> +	{ .compatible = "ti,palmas-usb", },
+> +	{ .compatible = "ti,twl6035-usb", },
+> +	{ /* end */ }
+> +};
+> +
+> +static struct platform_driver palmas_usb_driver = {
+> +	.probe = palmas_usb_probe,
+> +	.remove = palmas_usb_remove,
+> +	.driver = {
+> +		.name = "palmas-usb",
+> +		.of_match_table = of_palmas_match_tbl,
+> +		.owner = THIS_MODULE,
+> +	},
+> +};
+> +
+> +module_platform_driver(palmas_usb_driver);
+> +
+> +MODULE_ALIAS("platform:palmas-usb");
+> +MODULE_AUTHOR("Graeme Gregory <gg@slimlogic.co.uk>");
+> +MODULE_DESCRIPTION("Palmas USB transceiver driver");
+> +MODULE_LICENSE("GPL");
+> +MODULE_DEVICE_TABLE(of, of_palmas_match_tbl);
+> diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
+> index 6df375d..eb4846b 100644
+> --- a/include/linux/mfd/palmas.h
+> +++ b/include/linux/mfd/palmas.h
+> @@ -20,6 +20,8 @@
+>  #include <linux/leds.h>
+>  #include <linux/regmap.h>
+>  #include <linux/regulator/driver.h>
+> +#include <linux/extcon.h>
+> +#include <linux/usb/phy_companion.h>
 >  
->         ret = mfd_add_devices(rdev->dev, -1, rdat->children, rdat->nchildren,
-> -                             NULL, regmap_irq_chip_get_base(rdev->irq_data),
-> -                             NULL);
-> +                             NULL, 0, regmap_irq_get_domain(rdev->irq_data));
->         if (ret < 0) {
->                 regmap_del_irq_chip(i2c->irq, rdev->irq_data);
->                 return ret;
+>  #define PALMAS_NUM_CLIENTS		3
 >  
-> > Also other drivers report GPIO IRQ issues later in the boot, e.g.
-> > 
-> > [    3.907928] genirq: Flags mismatch irq 0. 00000001 (serial wakeup) vs. 00002000 (RETU)
-> > [    3.923706] No interrupt for UART wake GPIO: 37
-> 
-> Looks like the gpio is just conflicting with the RETU driver.
+> @@ -37,6 +39,12 @@ struct palmas_gpadc;
+>  struct palmas_resource;
+>  struct palmas_usb;
 >  
-> > With Tony's patch (without any Retu modifications), the boot is clean. So
-> > I guess gpio-omap fix is needed.
-> 
-> Ideally it would be good if the RETU can use linear domains and then may be this
-> can be avoided.
-> 
-> Cheers
-> Jon
+> +enum palmas_usb_state {
+> +	PALMAS_USB_STATE_DISCONNECT,
+> +	PALMAS_USB_STATE_VBUS,
+> +	PALMAS_USB_STATE_ID,
+> +};
+> +
+>  struct palmas {
+>  	struct device *dev;
+>  
+> @@ -180,9 +188,6 @@ struct palmas_pmic_platform_data {
+>  };
+>  
+>  struct palmas_usb_platform_data {
+> -	/* Set this if platform wishes its own vbus control */
+> -	int no_control_vbus;
+> -
+>  	/* Do we enable the wakeup comparator on probe */
+>  	int wakeup;
+>  };
+> @@ -350,22 +355,22 @@ struct palmas_usb {
+>  	struct palmas *palmas;
+>  	struct device *dev;
+>  
+> -	/* for vbus reporting with irqs disabled */
+> -	spinlock_t lock;
+> +	struct extcon_dev edev;
+> +	struct phy_companion comparator;
+>  
+>  	struct regulator *vbus_reg;
+>  
+>  	/* used to set vbus, in atomic path */
+>  	struct work_struct set_vbus_work;
+>  
+> -	int irq1;
+> -	int irq2;
+> -	int irq3;
+> -	int irq4;
+> +	int id_otg_irq;
+> +	int id_irq;
+> +	int vbus_otg_irq;
+> +	int vbus_irq;
+>  
+>  	int vbus_enable;
+>  
+> -	u8 linkstat;
+> +	enum palmas_usb_state linkstat;
+>  };
+>  
+>  #define comparator_to_palmas(x) container_of((x), struct palmas_usb, comparator)
+
