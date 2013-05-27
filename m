@@ -1,57 +1,65 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH 1/4] usb: dwc3: gadget: free trb pool only from epnum 2
-Date: Mon, 27 May 2013 14:35:49 +0530
-Message-ID: <1369645549-14867-1-git-send-email-george.cherian@ti.com>
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: Re: [PATCH v2 2/2] ARM: dts: omap3-igep0030: Add NAND flash support
+Date: Mon, 27 May 2013 11:08:06 +0200
+Message-ID: <51A32276.5010206@collabora.co.uk>
+References: <1368214859-23558-1-git-send-email-javier.martinez@collabora.co.uk> <51A31BFE.7090908@ti.com> <51A31E56.4020101@collabora.co.uk> <51A31F54.1020001@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, George Cherian <george.cherian@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:48089 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752629Ab3E0JIU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 May 2013 05:08:20 -0400
+In-Reply-To: <51A31F54.1020001@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-we never allocate a TRB pool for physical endpoints
-0 and 1 so trying to free it (a invalid TRB pool pointer)
-will lead us in a warning while removing dwc3.ko module.
+On 05/27/2013 10:54 AM, Benoit Cousson wrote:
+> On 05/27/2013 10:50 AM, Javier Martinez Canillas wrote:
+>> On 05/27/2013 10:40 AM, Benoit Cousson wrote:
+>>> Hi Javier,
+>>>
+>> 
+>> Hi Benoit,
+>> 
+>>> On 05/10/2013 09:40 PM, Javier Martinez Canillas wrote:
+>>>> The IGEP COM Module has an 512MB NAND flash memory.
+>>>>
+>>>> Add a device node for this NAND and its parition layout.
+>>>>
+>>>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+>>>> ---
+>>>>
+>>>> Changes since v1:
+>>>>  - I just realized that sent a wrong version of the patch, sorry for the noise
+>>>
+>>> And what about the first one? For igep0020?
+>>>
+>>> Thanks,
+>>> Benoit
+>>>
+>> 
+>> For the igep0020 the first one was already correct. I just sent the wrong one
+>> for the igep0030 and that's why I had to send a v2 for this patch. Sorry for the
+>> confusion.
+> 
+> OK, I've just applied the v1 igep0020 and v2 igep0030 after fixing the
+> changelog typo" "parition".
+> 
+> Patches are available here:
+> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+> for_3.11/dts
+> 
+> Regards,
+> Benoit
+> 
+> 
+> 
 
-In order to fix the situation, all we have to do is skip
-dwc3_free_trb_pool() for physical endpoints 0 and 1 just
-as we while deleting endpoints from the endpoints list.
+Perfect, thanks a lot!
 
-Signed-off-by: George Cherian <george.cherian@ti.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/usb/dwc3/gadget.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index 2b6e7e0..1c246f9 100644
---- a/drivers/usb/dwc3/gadget.c
-+++ b/drivers/usb/dwc3/gadget.c
-@@ -1706,12 +1706,20 @@ static void dwc3_gadget_free_endpoints(struct dwc3 *dwc)
- 		dep = dwc->eps[epnum];
- 		if (!dep)
- 			continue;
-+		/*
-+		 * physical endpoints 0 and 1 are special. They form the
-+		 * bi-directional USB endpoint 0.
-+		 *
-+		 * For those two physical endpoints, we don't allocate a TRB
-+		 * pool nor do we add them the endpoints list. Due to that, we
-+		 * should these two operations otherwise we would end up with
-+		 * all sorts of bugs when removing dwc3.ko.
-+		 */
- 
--		dwc3_free_trb_pool(dep);
--
--		if (epnum != 0 && epnum != 1)
-+		if (epnum != 0 && epnum != 1) {
-+			dwc3_free_trb_pool(dep);
- 			list_del(&dep->endpoint.ep_list);
--
-+		}
- 		kfree(dep);
- 	}
- }
--- 
-1.8.1.4
+Best regards,
+Javier
