@@ -1,7 +1,7 @@
 From: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
-Subject: [PATCH v1 2/3] PM / AVS: SmartReflex: use omap_sr * for minmax interfaces
-Date: Mon, 27 May 2013 14:09:23 +0300
-Message-ID: <1369652964-14484-3-git-send-email-andrii.tseglytskyi@ti.com>
+Subject: [PATCH v1 3/3] PM / AVS: SmartReflex: use omap_sr * for enable/disable interface
+Date: Mon, 27 May 2013 14:09:24 +0300
+Message-ID: <1369652964-14484-4-git-send-email-andrii.tseglytskyi@ti.com>
 References: <1369652964-14484-1-git-send-email-andrii.tseglytskyi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -23,45 +23,64 @@ direct connection between SR driver and SR class. This allows
 us to optimize and not do additional lookups where none is
 required.
 
-sr_configure_minmax() is interface function between SR driver
-and SR class. It is typically used by Class driver to
-configure MINMAXAVG module inside SmartReflex module.
-Now it takes struct omap_sr* as input parameter.
+sr_enable() and sr_disable() are interface functions between
+SR driver and SR class. They are typically used by Class driver
+to enable/disable SmartReflex hardware module.
+Now they take struct omap_sr* as input parameter.
 
 Signed-off-by: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
 Acked-by: Nishanth Menon <nm@ti.com>
 ---
- drivers/power/avs/smartreflex.c   |   14 +++++++-------
- include/linux/power/smartreflex.h |    2 +-
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/smartreflex-class3.c |    4 ++--
+ drivers/power/avs/smartreflex.c          |   23 +++++++++++------------
+ include/linux/power/smartreflex.h        |    4 ++--
+ 3 files changed, 15 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
-index 155a050..ef92716 100644
---- a/drivers/power/avs/smartreflex.c
-+++ b/drivers/power/avs/smartreflex.c
-@@ -459,9 +459,9 @@ int sr_disable_errgen(struct omap_sr *sr)
+diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
+index 6c26dc1..7a42e19 100644
+--- a/arch/arm/mach-omap2/smartreflex-class3.c
++++ b/arch/arm/mach-omap2/smartreflex-class3.c
+@@ -26,14 +26,14 @@ static int sr_class3_enable(struct omap_sr *sr)
+ 	}
+ 
+ 	omap_vp_enable(sr->voltdm);
+-	return sr_enable(sr->voltdm, volt);
++	return sr_enable(sr, volt);
  }
  
- /**
-- * sr_configure_minmax() - Configures the smrtreflex to perform AVS using the
-+ * sr_configure_minmax() - Configures the SmartReflex to perform AVS using the
-  *			 minmaxavg module.
-- * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
-+ * @sr:			SR module to be configured.
-  *
-  * This API is to be called from the smartreflex class driver to
-  * configure the minmaxavg module inside the smartreflex module.
-@@ -470,16 +470,16 @@ int sr_disable_errgen(struct omap_sr *sr)
-  * SR CLASS 2 can choose between ERROR module and MINMAXAVG
-  * module. Returns 0 on success and error value in case of failure.
-  */
--int sr_configure_minmax(struct voltagedomain *voltdm)
-+int sr_configure_minmax(struct omap_sr *sr)
+ static int sr_class3_disable(struct omap_sr *sr, int is_volt_reset)
  {
- 	u32 sr_config, sr_avgwt;
- 	u32 senp_en = 0, senn_en = 0;
- 	u8 senp_shift, senn_shift;
+ 	sr_disable_errgen(sr);
+ 	omap_vp_disable(sr->voltdm);
+-	sr_disable(sr->voltdm);
++	sr_disable(sr);
+ 	if (is_volt_reset)
+ 		voltdm_reset(sr->voltdm);
+ 
+diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
+index ef92716..af4e70b 100644
+--- a/drivers/power/avs/smartreflex.c
++++ b/drivers/power/avs/smartreflex.c
+@@ -546,7 +546,7 @@ int sr_configure_minmax(struct omap_sr *sr)
+ 
+ /**
+  * sr_enable() - Enables the smartreflex module.
+- * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
++ * @sr:		pointer to which the SR module to be configured belongs to.
+  * @volt:	The voltage at which the Voltage domain associated with
+  *		the smartreflex module is operating at.
+  *		This is required only to program the correct Ntarget value.
+@@ -555,16 +555,16 @@ int sr_configure_minmax(struct omap_sr *sr)
+  * enable a smartreflex module. Returns 0 on success. Returns error
+  * value if the voltage passed is wrong or if ntarget value is wrong.
+  */
+-int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
++int sr_enable(struct omap_sr *sr, unsigned long volt)
+ {
+ 	struct omap_volt_data *volt_data;
 -	struct omap_sr *sr = _sr_lookup(voltdm);
+ 	struct omap_sr_nvalue_table *nvalue_row;
+ 	int ret;
  
 -	if (IS_ERR(sr)) {
 -		pr_warning("%s: omap_sr struct for voltdm not found\n",	__func__);
@@ -72,19 +91,44 @@ index 155a050..ef92716 100644
 +		return -EINVAL;
  	}
  
- 	if (!sr->clk_length)
+ 	volt_data = omap_voltage_get_voltdata(sr->voltdm, volt);
+@@ -606,17 +606,16 @@ int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
+ 
+ /**
+  * sr_disable() - Disables the smartreflex module.
+- * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
++ * @sr:		pointer to which the SR module to be configured belongs to.
+  *
+  * This API is to be called from the smartreflex class driver to
+  * disable a smartreflex module.
+  */
+-void sr_disable(struct voltagedomain *voltdm)
++void sr_disable(struct omap_sr *sr)
+ {
+-	struct omap_sr *sr = _sr_lookup(voltdm);
+-
+-	if (IS_ERR(sr)) {
+-		pr_warning("%s: omap_sr struct for voltdm not found\n",	__func__);
++	if (!sr) {
++		pr_warn("%s: NULL omap_sr from %pF\n", __func__,
++			(void *)_RET_IP_);
+ 		return;
+ 	}
+ 
 diff --git a/include/linux/power/smartreflex.h b/include/linux/power/smartreflex.h
-index 9c3b9ad..648be77 100644
+index 648be77..d8b187c3 100644
 --- a/include/linux/power/smartreflex.h
 +++ b/include/linux/power/smartreflex.h
-@@ -303,7 +303,7 @@ int sr_enable(struct voltagedomain *voltdm, unsigned long volt);
- void sr_disable(struct voltagedomain *voltdm);
+@@ -299,8 +299,8 @@ void omap_sr_disable_reset_volt(struct voltagedomain *voltdm);
+ void omap_sr_register_pmic(struct omap_sr_pmic_data *pmic_data);
+ 
+ /* Smartreflex driver hooks to be called from Smartreflex class driver */
+-int sr_enable(struct voltagedomain *voltdm, unsigned long volt);
+-void sr_disable(struct voltagedomain *voltdm);
++int sr_enable(struct omap_sr *sr, unsigned long volt);
++void sr_disable(struct omap_sr *sr);
  int sr_configure_errgen(struct omap_sr *sr);
  int sr_disable_errgen(struct omap_sr *sr);
--int sr_configure_minmax(struct voltagedomain *voltdm);
-+int sr_configure_minmax(struct omap_sr *sr);
- 
- /* API to register the smartreflex class driver with the smartreflex driver */
- int sr_register_class(struct omap_sr_class_data *class_data);
+ int sr_configure_minmax(struct omap_sr *sr);
 -- 
 1.7.9.5
