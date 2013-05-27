@@ -1,38 +1,38 @@
-From: "Cherian, George" <george.cherian@ti.com>
-Subject: RE: [PATCH 1/4] usb: dwc3: gadget: free trb pool only from epnum 2
-Date: Mon, 27 May 2013 09:30:49 +0000
-Message-ID: <BD228B1E3C6D7740B44C214F9AEEACE335E02F@DBDE04.ent.ti.com>
-References: <1369645549-14867-1-git-send-email-george.cherian@ti.com>
+From: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
+Subject: [PATCH v1 2/3] PM / AVS: SmartReflex: disable runtime PM on driver remove
+Date: Mon, 27 May 2013 14:07:25 +0300
+Message-ID: <1369652846-14412-3-git-send-email-andrii.tseglytskyi@ti.com>
+References: <1369652846-14412-1-git-send-email-andrii.tseglytskyi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1369645549-14867-1-git-send-email-george.cherian@ti.com>
-Content-Language: en-US
+In-Reply-To: <1369652846-14412-1-git-send-email-andrii.tseglytskyi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "Balbi, Felipe" <balbi@ti.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+To: Kevin Hilman <khilman@linaro.org>, J Keerthy <j-keerthy@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Runtime PM should be disabled for device on driver remove,
+otherwise runtime PM will be not balanced, and this will cause
+an error message, on next driver probe.
 
+Signed-off-by: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
+Acked-by: Nishanth Menon <nm@ti.com>
+---
+ drivers/power/avs/smartreflex.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-> -----Original Message-----
-> From: Cherian, George
-> Sent: Monday, May 27, 2013 2:36 PM
-> To: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org; linux-
-> kernel@vger.kernel.org
-> Cc: Balbi, Felipe; gregkh@linuxfoundation.org; Cherian, George
-> Subject: [PATCH 1/4] usb: dwc3: gadget: free trb pool only from epnum 2
-
-Please read [PATCH 1/4] as [PATCH 1/1].
-> 
-> we never allocate a TRB pool for physical endpoints
-> 0 and 1 so trying to free it (a invalid TRB pool pointer)
-> will lead us in a warning while removing dwc3.ko module.
-> 
-> In order to fix the situation, all we have to do is skip
-> dwc3_free_trb_pool() for physical endpoints 0 and 1 just
-> as we while deleting endpoints from the endpoints list.
-> 
-> Signed-off-by: George Cherian <george.cherian@ti.com>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
+diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
+index f34d34d..9b56648 100644
+--- a/drivers/power/avs/smartreflex.c
++++ b/drivers/power/avs/smartreflex.c
+@@ -1032,6 +1032,7 @@ static int omap_sr_remove(struct platform_device *pdev)
+ 	if (sr_info->dbg_dir)
+ 		debugfs_remove_recursive(sr_info->dbg_dir);
+ 
++	pm_runtime_disable(&pdev->dev);
+ 	list_del(&sr_info->node);
+ 	iounmap(sr_info->base);
+ 	kfree(sr_info->name);
+-- 
+1.7.9.5
