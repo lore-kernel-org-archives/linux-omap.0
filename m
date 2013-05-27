@@ -1,101 +1,140 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v2 2/2] ARM: dts: omap3-igep0030: Add NAND flash support
-Date: Mon, 27 May 2013 10:40:30 +0200
-Message-ID: <51A31BFE.7090908@ti.com>
-References: <1368214859-23558-1-git-send-email-javier.martinez@collabora.co.uk>
+Subject: Re: [PATCH] ARM: dts: omap3-igep0020: Add SMSC911x LAN chip support
+Date: Mon, 27 May 2013 10:41:40 +0200
+Message-ID: <51A31C44.4030600@ti.com>
+References: <1366216329-10677-1-git-send-email-javier.martinez@collabora.co.uk> <CAAwP0s2M7WOva27-viWjZq9CrjsZStn6cJZ8KhJVWTxHkKdP7A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42342 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:42385 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757124Ab3E0Ikv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 May 2013 04:40:51 -0400
-In-Reply-To: <1368214859-23558-1-git-send-email-javier.martinez@collabora.co.uk>
+	id S1757124Ab3E0Ilu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 May 2013 04:41:50 -0400
+In-Reply-To: <CAAwP0s2M7WOva27-viWjZq9CrjsZStn6cJZ8KhJVWTxHkKdP7A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jon Hunter <jgchunter@gmail.com>, devicetree-discuss@lists.ozlabs.org, linux-omap <linux-omap@vger.kernel.org>
+
++ new Jon's email address.
 
 Hi Javier,
 
-On 05/10/2013 09:40 PM, Javier Martinez Canillas wrote:
-> The IGEP COM Module has an 512MB NAND flash memory.
-> 
-> Add a device node for this NAND and its parition layout.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> ---
-> 
-> Changes since v1:
->  - I just realized that sent a wrong version of the patch, sorry for the noise
+Sorry for the delay.
 
-And what about the first one? For igep0020?
+On 05/09/2013 12:37 AM, Javier Martinez Canillas wrote:
+> On Wed, Apr 17, 2013 at 6:32 PM, Javier Martinez Canillas
+> <javier.martinez@collabora.co.uk> wrote:
+>> The IGEPv2 board has an SMSC LAN9221i ethernet chip connected to
+>> the OMAP3 processor though the General-Purpose Memory Controller.
+>>
+>> This patch adds a device node for the ethernet chip as a GPMC child
+>> and all its dependencies (regulators, GPIO and pin muxs).
+>>
+>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+>> ---
+>>  arch/arm/boot/dts/omap3-igep.dtsi    |    6 ++++
+>>  arch/arm/boot/dts/omap3-igep0020.dts |   53 ++++++++++++++++++++++++++++++++++
+>>  2 files changed, 59 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
+>> index f8fe3b7..d5cd504 100644
+>> --- a/arch/arm/boot/dts/omap3-igep.dtsi
+>> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
+>> @@ -62,6 +62,12 @@
+>>                         0x126 0x0100    /* sdmmc1_dat7.sdmmc1_dat7 INPUT | MODE 0 */
+>>                 >;
+>>         };
+>> +
+>> +       smsc911x_pins: pinmux_smsc911x_pins {
+>> +               pinctrl-single,pins = <
+>> +                        0x1a2 0x0104    /* mcspi1_cs2.gpio_176 INPUT | MODE4 */
+>> +               >;
+>> +       };
+>>  };
+>>
+>>  &i2c1 {
+>> diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
+>> index e2b9849..4bac32e 100644
+>> --- a/arch/arm/boot/dts/omap3-igep0020.dts
+>> +++ b/arch/arm/boot/dts/omap3-igep0020.dts
+>> @@ -40,6 +40,18 @@
+>>                         gpios = <&twl_gpio 19 1>;
+>>                 };
+>>         };
+>> +
+>> +       vddvario: regulator-vddvario {
+>> +                 compatible = "regulator-fixed";
+>> +                 regulator-name = "vddvario";
+>> +                 regulator-always-on;
+>> +       };
+>> +
+>> +       vdd33a: regulator-vdd33a {
+>> +               compatible = "regulator-fixed";
+>> +               regulator-name = "vdd33a";
+>> +               regulator-always-on;
+>> +       };
+>>  };
+>>
+>>  &i2c3 {
+>> @@ -54,3 +66,44 @@
+>>                 reg = <0x50>;
+>>         };
+>>  };
+>> +
+>> +&gpmc {
+>> +       ranges = <5 0 0x2c000000 0x1000000>;
+>> +       ethernet@5,0 {
+>> +               pinctrl-names = "default";
+>> +               pinctrl-0 = <&smsc911x_pins>;
+>> +               compatible = "smsc,lan9221", "smsc,lan9115";
+>> +               reg = <5 0 0xff>;
+>> +               bank-width = <2>;
+>> +
+>> +               gpmc,mux-add-data;
+>> +               gpmc,cs-on-ns = <0>;
+>> +               gpmc,cs-rd-off-ns = <186>;
+>> +               gpmc,cs-wr-off-ns = <186>;
+>> +               gpmc,adv-on-ns = <12>;
+>> +               gpmc,adv-rd-off-ns = <48>;
+>> +               gpmc,adv-wr-off-ns = <48>;
+>> +               gpmc,oe-on-ns = <54>;
+>> +               gpmc,oe-off-ns = <168>;
+>> +               gpmc,we-on-ns = <54>;
+>> +               gpmc,we-off-ns = <168>;
+>> +               gpmc,rd-cycle-ns = <186>;
+>> +               gpmc,wr-cycle-ns = <186>;
+>> +               gpmc,access-ns = <114>;
+>> +               gpmc,page-burst-access-ns = <6>;
+>> +               gpmc,bus-turnaround-ns = <12>;
+>> +               gpmc,cycle2cycle-delay-ns = <18>;
+>> +               gpmc,wr-data-mux-bus-ns = <90>;
+>> +               gpmc,wr-access-ns = <186>;
+>> +               gpmc,cycle2cycle-samecsen;
+>> +               gpmc,cycle2cycle-diffcsen;
+>> +
+>> +               interrupt-parent = <&gpio6>;
+>> +               interrupts = <16 8>;
+>> +               vmmc-supply = <&vddvario>;
+>> +               vmmc_aux-supply = <&vdd33a>;
+>> +               reg-io-width = <4>;
+>> +
+>> +               smsc,save-mac-address;
+>> +       };
+>> +};
+>> --
+>> 1.7.7.6
+>>
+>> --
+> 
+> Hi Benoit,
+> 
+> Any comments on this patch?
+
+Nope, it looks good to me. I've just applied it.
 
 Thanks,
 Benoit
 
-> 
->  arch/arm/boot/dts/omap3-igep0030.dts |   50 ++++++++++++++++++++++++++++++++++
->  1 files changed, 50 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-igep0030.dts b/arch/arm/boot/dts/omap3-igep0030.dts
-> index 9dc48d2..f65bc3a 100644
-> --- a/arch/arm/boot/dts/omap3-igep0030.dts
-> +++ b/arch/arm/boot/dts/omap3-igep0030.dts
-> @@ -42,3 +42,53 @@
->  		};
->  	};
->  };
-> +
-> +&gpmc {
-> +	ranges = <0 0 0x00000000 0x20000000>;
-> +
-> +	nand@0,0 {
-> +		linux,mtd-name= "micron,mt29c4g96maz";
-> +		reg = <0 0 0>;
-> +		nand-bus-width = <16>;
-> +		ti,nand-ecc-opt = "bch8";
-> +
-> +		gpmc,sync-clk-ps = <0>;
-> +		gpmc,cs-on-ns = <0>;
-> +		gpmc,cs-rd-off-ns = <44>;
-> +		gpmc,cs-wr-off-ns = <44>;
-> +		gpmc,adv-on-ns = <6>;
-> +		gpmc,adv-rd-off-ns = <34>;
-> +		gpmc,adv-wr-off-ns = <44>;
-> +		gpmc,we-off-ns = <40>;
-> +		gpmc,oe-off-ns = <54>;
-> +		gpmc,access-ns = <64>;
-> +		gpmc,rd-cycle-ns = <82>;
-> +		gpmc,wr-cycle-ns = <82>;
-> +		gpmc,wr-access-ns = <40>;
-> +		gpmc,wr-data-mux-bus-ns = <0>;
-> +
-> +		#address-cells = <1>;
-> +		#size-cells = <1>;
-> +
-> +		partition@0 {
-> +			label = "SPL";
-> +			reg = <0 0x100000>;
-> +		};
-> +		partition@0x80000 {
-> +			label = "U-Boot";
-> +			reg = <0x100000 0x180000>;
-> +		};
-> +		partition@0x1c0000 {
-> +			label = "Environment";
-> +			reg = <0x280000 0x100000>;
-> +		};
-> +		partition@0x280000 {
-> +			label = "Kernel";
-> +			reg = <0x380000 0x300000>;
-> +		};
-> +		partition@0x780000 {
-> +			label = "Filesystem";
-> +			reg = <0x680000 0x1f980000>;
-> +		};
-> +	};
-> +};
-> 
 
