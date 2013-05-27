@@ -1,69 +1,46 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v2 10/14] ARM: OMAP2+: AM43x: basic dt support
-Date: Mon, 27 May 2013 20:06:53 +0530
-Message-ID: <2a3357fbbd9f103aa55cf720f64f6313d5133040.1369658705.git.afzal@ti.com>
+From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 08/14] ARM: OMAP2+: AM43x: GP or HS ?
+Date: Mon, 27 May 2013 20:06:33 +0530
+Message-ID: <7c2e50ddc9c6a3395147fbe1395985daf93abe8f.1369658705.git.afzal@ti.com>
 References: <cover.1369658705.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1369658705.git.afzal@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <benoit.cousson@linaro.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Ankur Kishore <a-kishore@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <cover.1369658705.git.afzal-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Benoit Cousson <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Describe minimal DT boot machine details for AM43x based SoC's. AM43x
-SoC's are ARM Cortex-A9 based with one core. AM43x is similar to
-AM335x w.r.t L4 PER/WKUP memory map. AM43x has a sync timer, here that
-is being used as clocksource, while 1ms dmtimer as clockevent.
+Detect whether GP or HS, similar to the AM335x way.
 
-Signed-off-by: Ankur Kishore <a-kishore@ti.com>
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
+Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
 ---
+ arch/arm/mach-omap2/id.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-v2: Rely on dmtimer & synctimer for clockevent/source, map peripheral
-	memory as in AM335x
-
- arch/arm/mach-omap2/board-generic.c | 16 ++++++++++++++++
- arch/arm/mach-omap2/timer.c         |  2 +-
- 2 files changed, 17 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 88aa6b1..e5fbfed 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -185,3 +185,19 @@ DT_MACHINE_START(OMAP5_DT, "Generic OMAP5 (Flattened Device Tree)")
- 	.restart	= omap44xx_restart,
- MACHINE_END
- #endif
-+
-+#ifdef CONFIG_SOC_AM43XX
-+static const char *am43_boards_compat[] __initdata = {
-+	"ti,am43",
-+	NULL,
-+};
-+
-+DT_MACHINE_START(AM43_DT, "Generic AM43 (Flattened Device Tree)")
-+	.map_io		= am33xx_map_io,
-+	.init_early	= am43xx_init_early,
-+	.init_irq	= omap_gic_of_init,
-+	.init_machine	= omap_generic_init,
-+	.init_time	= omap3_sync32k_timer_init,
-+	.dt_compat	= am43_boards_compat,
-+MACHINE_END
-+#endif
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 8e0c390..5f148e7 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -582,7 +582,7 @@ OMAP_SYS_32K_TIMER_INIT(2, 1, "timer_32k_ck", "ti,timer-alwon",
- 			2, "timer_sys_ck", NULL);
- #endif /* CONFIG_ARCH_OMAP2 */
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index c9c3f7d..0c28ef6 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -55,7 +55,7 @@ int omap_type(void)
  
--#ifdef CONFIG_ARCH_OMAP3
-+#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM43XX)
- OMAP_SYS_32K_TIMER_INIT(3, 1, "timer_32k_ck", "ti,timer-alwon",
- 			2, "timer_sys_ck", NULL);
- OMAP_SYS_32K_TIMER_INIT(3_secure, 12, "secure_32k_fck", "ti,timer-secure",
+ 	if (cpu_is_omap24xx()) {
+ 		val = omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
+-	} else if (soc_is_am33xx()) {
++	} else if (soc_is_am33xx() || soc_is_am43xx()) {
+ 		val = omap_ctrl_readl(AM33XX_CONTROL_STATUS);
+ 	} else if (cpu_is_omap34xx()) {
+ 		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
 -- 
 1.7.12
