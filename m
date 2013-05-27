@@ -1,100 +1,99 @@
-From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 00/14] ARM: OMAP2+: AM43x initial support
-Date: Mon, 27 May 2013 20:03:27 +0530
-Message-ID: <cover.1369658705.git.afzal@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v2 01/14] ARM: OMAP2+: separate out OMAP4 restart
+Date: Mon, 27 May 2013 20:05:19 +0530
+Message-ID: <5f0f6150bbb195bb338feaa2db45580301061635.1369658705.git.afzal@ti.com>
+References: <cover.1369658705.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Benoit Cousson <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1369658705.git.afzal@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <benoit.cousson@linaro.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Separate out OMAP4 restart and have it similar to other platforms, in
+a different file. Main motive is to reuse omap4-common on platforms
+other than OMAP4, like AM43x, even if OMAP4 is deselected (otherwise
+would have caused build breakage).
 
-This series adds initial support for AM43x based SoC's. To boot
-AM43x, in addition to these patches, PRCM support is also needed,
-which would be posted later as a separate series. DT sources doesn't
-have "ti,hwmod" entry - this would be added along with PRCM support.
-
-AM43x SoC's are based on ARM Cortex-A9 with one core. AM43x is similar
-to AM335x in it's peripheral capabilities, except a few additional
-ones, with many of the peripheral register mapping's similar. AM43x
-has a sync timer, which is being used as clocksource. Clockevent used
-is 1ms dmtimer.
-
-SoC has PL310 L2 cache, support for it would be added later.
-
-soc_is_am43xx() is introduced to handle AM43x specific details and
-soc_is_am437x() is a subclass of it - first member of the class.
-
-AM43x is currently in pre-silicon stage and currently there are no
-public documents.
-
-This has been tested on a pre-silicon platform that emulates AM43x SoC
-with additional changes on top of this.
-
-AM335x based board (AM335x EVM) has been verfied to boot as earlier
-with this series.
-
-Baseline: v3.10-rc3
-Dependency: "ARM: OMAP3+: am33xx id: Add new am33xx specific function to check dev_feature"
-		by Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-
-Regards
-Afzal
-
-v2: Major change - use SoC timer's outside of ARM instead of depending
-	on ARM SMP local timer for clockevent/source.
-
-Afzal Mohammed (13):
-  ARM: OMAP2+: separate out OMAP4 restart
-  ARM: OMAP2+: AM43x: Kconfig
-  ARM: OMAP2+: AM43x: kbuild
-  ARM: OMAP2+: AM43x: soc_is support
-  ARM: OMAP2+: AM437x: SoC revision detection
-  ARM: OMAP2+: AM43x: static mapping
-  ARM: OMAP2+: AM43x: early init
-  ARM: OMAP2+: AM43x: GP or HS ?
-  ARM: OMAP2+: AM43x: basic dt support
-  Documentation: dt: binding: omap: am43x timer
-  Documentation: dt: binding: omap: am43x counter
-  Documentation: dt: binding: serial: omap: am43x
-  ARM: dts: AM43x: initial support
-
-Sanjeev Premi (1):
-  ARM: OMAP2+: AM43x: SRAM base and size
-
- .../devicetree/bindings/arm/omap/counter.txt       |  1 +
- .../devicetree/bindings/arm/omap/timer.txt         |  2 +
- .../devicetree/bindings/serial/omap_serial.txt     |  1 +
- arch/arm/boot/dts/am4372.dtsi                      | 66 ++++++++++++++++++++++
- arch/arm/mach-omap2/Kconfig                        | 10 ++++
- arch/arm/mach-omap2/Makefile                       |  8 +++
- arch/arm/mach-omap2/am33xx.h                       |  1 +
- arch/arm/mach-omap2/board-generic.c                | 16 ++++++
- arch/arm/mach-omap2/cm33xx.h                       |  2 +-
- arch/arm/mach-omap2/common.h                       |  1 +
- arch/arm/mach-omap2/id.c                           |  8 ++-
- arch/arm/mach-omap2/io.c                           | 18 +++++-
- arch/arm/mach-omap2/omap4-common.c                 | 16 ------
- arch/arm/mach-omap2/omap4-restart.c                | 27 +++++++++
- arch/arm/mach-omap2/soc.h                          | 23 ++++++++
- arch/arm/mach-omap2/sram.c                         |  3 +
- arch/arm/mach-omap2/timer.c                        |  2 +-
- 17 files changed, 184 insertions(+), 21 deletions(-)
- create mode 100644 arch/arm/boot/dts/am4372.dtsi
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ arch/arm/mach-omap2/Makefile        |  2 ++
+ arch/arm/mach-omap2/omap4-common.c  | 16 ----------------
+ arch/arm/mach-omap2/omap4-restart.c | 27 +++++++++++++++++++++++++++
+ 3 files changed, 29 insertions(+), 16 deletions(-)
  create mode 100644 arch/arm/mach-omap2/omap4-restart.c
 
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 55a9d67..0fac8f4 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -58,6 +58,8 @@ obj-$(CONFIG_SOC_OMAP2420)		+= omap2-restart.o
+ obj-$(CONFIG_SOC_OMAP2430)		+= omap2-restart.o
+ obj-$(CONFIG_SOC_AM33XX)		+= am33xx-restart.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= omap3-restart.o
++obj-$(CONFIG_ARCH_OMAP4)		+= omap4-restart.o
++obj-$(CONFIG_SOC_OMAP5)			+= omap4-restart.o
+ 
+ # Pin multiplexing
+ obj-$(CONFIG_SOC_OMAP2420)		+= mux2420.o
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 13b27ff..38cd3a6 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -339,19 +339,3 @@ int __init omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers)
+ 	return 0;
+ }
+ #endif
+-
+-/**
+- * omap44xx_restart - trigger a software restart of the SoC
+- * @mode: the "reboot mode", see arch/arm/kernel/{setup,process}.c
+- * @cmd: passed from the userspace program rebooting the system (if provided)
+- *
+- * Resets the SoC.  For @cmd, see the 'reboot' syscall in
+- * kernel/sys.c.  No return value.
+- */
+-void omap44xx_restart(char mode, const char *cmd)
+-{
+-	/* XXX Should save 'cmd' into scratchpad for use after reboot */
+-	omap4_prminst_global_warm_sw_reset(); /* never returns */
+-	while (1);
+-}
+-
+diff --git a/arch/arm/mach-omap2/omap4-restart.c b/arch/arm/mach-omap2/omap4-restart.c
+new file mode 100644
+index 0000000..f90e02e
+--- /dev/null
++++ b/arch/arm/mach-omap2/omap4-restart.c
+@@ -0,0 +1,27 @@
++/*
++ * omap4-restart.c - Common to OMAP4 and OMAP5
++ *
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/types.h>
++#include "prminst44xx.h"
++
++/**
++ * omap44xx_restart - trigger a software restart of the SoC
++ * @mode: the "reboot mode", see arch/arm/kernel/{setup,process}.c
++ * @cmd: passed from the userspace program rebooting the system (if provided)
++ *
++ * Resets the SoC.  For @cmd, see the 'reboot' syscall in
++ * kernel/sys.c.  No return value.
++ */
++void omap44xx_restart(char mode, const char *cmd)
++{
++	/* XXX Should save 'cmd' into scratchpad for use after reboot */
++	omap4_prminst_global_warm_sw_reset(); /* never returns */
++	while (1)
++		;
++}
 -- 
 1.7.12
