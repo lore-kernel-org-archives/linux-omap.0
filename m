@@ -1,7 +1,7 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v2 07/14] ARM: OMAP2+: AM43x: early init
-Date: Mon, 27 May 2013 20:06:23 +0530
-Message-ID: <82f3b2b672a45b971fd0bb34366a6af368015db0.1369658705.git.afzal@ti.com>
+Subject: [PATCH v2 10/14] ARM: OMAP2+: AM43x: basic dt support
+Date: Mon, 27 May 2013 20:06:53 +0530
+Message-ID: <2a3357fbbd9f103aa55cf720f64f6313d5133040.1369658705.git.afzal@ti.com>
 References: <cover.1369658705.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,71 +9,61 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1369658705.git.afzal@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <benoit.cousson@linaro.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <benoit.cousson@linaro.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Ankur Kishore <a-kishore@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Minimal early init - PRCM initialization not yet taken care.
+Describe minimal DT boot machine details for AM43x based SoC's. AM43x
+SoC's are ARM Cortex-A9 based with one core. AM43x is similar to
+AM335x w.r.t L4 PER/WKUP memory map. AM43x has a sync timer, here that
+is being used as clocksource, while 1ms dmtimer as clockevent.
 
-Control module is similar (base address, feature register etc.) as
-that of AM335x, while PRCM base address is different. Instead of
-adding a new header file for AM43x, PRCM base address is added in
-AM335x header file as it is similar to it to a large extent.
-
+Signed-off-by: Ankur Kishore <a-kishore@ti.com>
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/am33xx.h |  1 +
- arch/arm/mach-omap2/common.h |  1 +
- arch/arm/mach-omap2/io.c     | 14 ++++++++++++++
- 3 files changed, 16 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/am33xx.h b/arch/arm/mach-omap2/am33xx.h
-index 43296c1..5eef093 100644
---- a/arch/arm/mach-omap2/am33xx.h
-+++ b/arch/arm/mach-omap2/am33xx.h
-@@ -21,6 +21,7 @@
- #define AM33XX_SCM_BASE		0x44E10000
- #define AM33XX_CTRL_BASE	AM33XX_SCM_BASE
- #define AM33XX_PRCM_BASE	0x44E00000
-+#define AM43XX_PRCM_BASE	0x44DF0000
- #define AM33XX_TAP_BASE		(AM33XX_CTRL_BASE + 0x3FC)
- 
- #endif /* __ASM_ARCH_AM33XX_H */
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index d555cf2..00f890e 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -96,6 +96,7 @@ void am33xx_init_early(void);
- void am35xx_init_early(void);
- void ti81xx_init_early(void);
- void am33xx_init_early(void);
-+void am43xx_init_early(void);
- void omap4430_init_early(void);
- void omap5_init_early(void);
- void omap3_init_late(void);	/* Do not use this one */
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 3a81221..f933f7f 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -586,6 +586,20 @@ void __init am33xx_init_early(void)
- }
+v2: Rely on dmtimer & synctimer for clockevent/source, map peripheral
+	memory as in AM335x
+
+ arch/arm/mach-omap2/board-generic.c | 16 ++++++++++++++++
+ arch/arm/mach-omap2/timer.c         |  2 +-
+ 2 files changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 88aa6b1..e5fbfed 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -185,3 +185,19 @@ DT_MACHINE_START(OMAP5_DT, "Generic OMAP5 (Flattened Device Tree)")
+ 	.restart	= omap44xx_restart,
+ MACHINE_END
  #endif
- 
-+#ifdef CONFIG_SOC_AM43XX
-+void __init am43xx_init_early(void)
-+{
-+	omap2_set_globals_tap(AM335X_CLASS,
-+			      AM33XX_L4_WK_IO_ADDRESS(AM33XX_TAP_BASE));
-+	omap2_set_globals_control(AM33XX_L4_WK_IO_ADDRESS(AM33XX_CTRL_BASE),
-+				  NULL);
-+	omap2_set_globals_prm(AM33XX_L4_WK_IO_ADDRESS(AM43XX_PRCM_BASE));
-+	omap2_set_globals_cm(AM33XX_L4_WK_IO_ADDRESS(AM43XX_PRCM_BASE), NULL);
-+	omap3xxx_check_revision();
-+	am33xx_check_features();
-+}
-+#endif
 +
- #ifdef CONFIG_ARCH_OMAP4
- void __init omap4430_init_early(void)
- {
++#ifdef CONFIG_SOC_AM43XX
++static const char *am43_boards_compat[] __initdata = {
++	"ti,am43",
++	NULL,
++};
++
++DT_MACHINE_START(AM43_DT, "Generic AM43 (Flattened Device Tree)")
++	.map_io		= am33xx_map_io,
++	.init_early	= am43xx_init_early,
++	.init_irq	= omap_gic_of_init,
++	.init_machine	= omap_generic_init,
++	.init_time	= omap3_sync32k_timer_init,
++	.dt_compat	= am43_boards_compat,
++MACHINE_END
++#endif
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 8e0c390..5f148e7 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -582,7 +582,7 @@ OMAP_SYS_32K_TIMER_INIT(2, 1, "timer_32k_ck", "ti,timer-alwon",
+ 			2, "timer_sys_ck", NULL);
+ #endif /* CONFIG_ARCH_OMAP2 */
+ 
+-#ifdef CONFIG_ARCH_OMAP3
++#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM43XX)
+ OMAP_SYS_32K_TIMER_INIT(3, 1, "timer_32k_ck", "ti,timer-alwon",
+ 			2, "timer_sys_ck", NULL);
+ OMAP_SYS_32K_TIMER_INIT(3_secure, 12, "secure_32k_fck", "ti,timer-secure",
 -- 
 1.7.12
