@@ -1,54 +1,141 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 0/2] ARM: OMAP AM33XX: clock data: Enable clkout2 output
- on SoC pad
-Date: Mon, 27 May 2013 14:27:15 +0200
-Message-ID: <51A35123.6040600@ti.com>
-References: <1367919574-21353-1-git-send-email-hvaibhav@ti.com> <79CD15C6BA57404B839C016229A409A83EC8C081@DBDE04.ent.ti.com> <alpine.DEB.2.00.1305200246080.2656@utopia.booyaka.com>
+From: "Vishwanathrao Badarkhe, Manish" <manishv.b@ti.com>
+Subject: RE: [PATCH] ARM: dts: omap2plus: remove interrupt-parent property
+Date: Mon, 27 May 2013 12:45:35 +0000
+Message-ID: <A4887BF146CD57468F700B415D2F470159537D@DBDE04.ent.ti.com>
+References: <1362996002-15552-1-git-send-email-manishv.b@ti.com>
+ <A4887BF146CD57468F700B415D2F470158738C@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58985 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932143Ab3E0M1o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 May 2013 08:27:44 -0400
-In-Reply-To: <alpine.DEB.2.00.1305200246080.2656@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <A4887BF146CD57468F700B415D2F470158738C@DBDE01.ent.ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Vishwanathrao Badarkhe, Manish" <manishv.b@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Salut Paul,
+Hi Benoit,
 
-On 05/20/2013 04:47 AM, Paul Walmsley wrote:
-> On Fri, 17 May 2013, Hiremath, Vaibhav wrote:
->=20
->> Tony, Paul and Benoit,
->>
->> Any update on this series?
->=20
-> Most of the changes are DT-related, so it should probably go in via=20
-> Beno=EEt.  I'll ack the clock side, but have a comment on patch 2, to=
- be=20
-> sent shortly.
+Are there any review comments on this patch?
+Could you please accept this patch if there are not any review comments?
 
-I've tried to apply that patch, but unfortunately, it does depend on
-that one:
+Thanks and Regards
+Manish Badarkhe
 
-https://patchwork.kernel.org/patch/2212081/
+-----Original Message-----
+From: Vishwanathrao Badarkhe, Manish 
+Sent: Friday, April 12, 2013 12:20 PM
+To: Vishwanathrao Badarkhe, Manish; devicetree-discuss@lists.ozlabs.org; linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
+Cc: tony@atomide.com; Cousson, Benoit; linux@arm.linux.org.uk
+Subject: RE: [PATCH] ARM: dts: omap2plus: remove interrupt-parent property
 
-If you did not already pulled the first one I can take both with your
-acked-by.
-Otherwise, I can take only the DTS ones.
+Hi Benoit,
+Are there any review comments on this patch? 
+Could you please accept this patch if there are not any review comments?
 
-Is that OK?
+Thanks
+Manish Badarkhe
 
-Thanks,
-Benoit
+-----Original Message-----
+From: Vishwanathrao Badarkhe, Manish 
+Sent: Monday, March 11, 2013 3:30 PM
+To: devicetree-discuss@lists.ozlabs.org; linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
+Cc: tony@atomide.com; Cousson, Benoit; linux@arm.linux.org.uk; Vishwanathrao Badarkhe, Manish
+Subject: [PATCH] ARM: dts: omap2plus: remove interrupt-parent property
 
+Removed interrupt-parent property from dts file as it is already
+with root node in dtsi file.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Vishwanathrao Badarkhe, Manish <manishv.b@ti.com>
+---
+:100644 100644 f624dc8... 36e839a... M	arch/arm/boot/dts/omap3-beagle.dts
+:100644 100644 e8ba1c2... a5375fd... M	arch/arm/boot/dts/omap3-evm.dts
+:100644 100644 4122efe... 389c9c7... M	arch/arm/boot/dts/omap4-panda.dts
+:100644 100644 43e5258... cdf5dfd... M	arch/arm/boot/dts/omap4-sdp.dts
+:100644 100644 6601e6a... 1d4a9d4... M	arch/arm/boot/dts/omap4-var-som.dts
+ arch/arm/boot/dts/omap3-beagle.dts  |    1 -
+ arch/arm/boot/dts/omap3-evm.dts     |    1 -
+ arch/arm/boot/dts/omap4-panda.dts   |    2 --
+ arch/arm/boot/dts/omap4-sdp.dts     |    2 --
+ arch/arm/boot/dts/omap4-var-som.dts |    1 -
+ 5 files changed, 0 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+index f624dc8..36e839a 100644
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -46,7 +46,6 @@
+ 	twl: twl@48 {
+ 		reg = <0x48>;
+ 		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+-		interrupt-parent = <&intc>;
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
+index e8ba1c2..a5375fd 100644
+--- a/arch/arm/boot/dts/omap3-evm.dts
++++ b/arch/arm/boot/dts/omap3-evm.dts
+@@ -34,7 +34,6 @@
+ 	twl: twl@48 {
+ 		reg = <0x48>;
+ 		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+-		interrupt-parent = <&intc>;
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+index 4122efe..389c9c7 100644
+--- a/arch/arm/boot/dts/omap4-panda.dts
++++ b/arch/arm/boot/dts/omap4-panda.dts
+@@ -119,7 +119,6 @@
+ 		reg = <0x48>;
+ 		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
+ 		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
+-		interrupt-parent = <&gic>;
+ 	};
+ 
+ 	twl6040: twl@4b {
+@@ -127,7 +126,6 @@
+ 		reg = <0x4b>;
+ 		/* SPI = 0, IRQ# = 119, 4 = active high level-sensitive */
+ 		interrupts = <0 119 4>; /* IRQ_SYS_2N cascaded to gic */
+-		interrupt-parent = <&gic>;
+ 		ti,audpwron-gpio = <&gpio4 31 0>;  /* gpio line 127 */
+ 
+ 		vio-supply = <&v1v8>;
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+index 43e5258..cdf5dfd 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -221,7 +221,6 @@
+ 		reg = <0x48>;
+ 		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
+ 		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
+-		interrupt-parent = <&gic>;
+ 	};
+ 
+ 	twl6040: twl@4b {
+@@ -229,7 +228,6 @@
+ 		reg = <0x4b>;
+ 		/* SPI = 0, IRQ# = 119, 4 = active high level-sensitive */
+ 		interrupts = <0 119 4>; /* IRQ_SYS_2N cascaded to gic */
+-		interrupt-parent = <&gic>;
+ 		ti,audpwron-gpio = <&gpio4 31 0>;  /* gpio line 127 */
+ 
+ 		vio-supply = <&v1v8>;
+diff --git a/arch/arm/boot/dts/omap4-var-som.dts b/arch/arm/boot/dts/omap4-var-som.dts
+index 6601e6a..1d4a9d4 100644
+--- a/arch/arm/boot/dts/omap4-var-som.dts
++++ b/arch/arm/boot/dts/omap4-var-som.dts
+@@ -35,7 +35,6 @@
+ 		reg = <0x48>;
+ 		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
+ 		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
+-		interrupt-parent = <&gic>;
+ 	};
+ };
+ 
+-- 
+1.7.4.1
