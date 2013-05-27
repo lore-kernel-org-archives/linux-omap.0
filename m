@@ -1,146 +1,94 @@
-From: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
-Subject: [PATCH v1 1/3] PM / AVS: SmartReflex: use omap_sr * for errgen interfaces
-Date: Mon, 27 May 2013 14:09:22 +0300
-Message-ID: <1369652964-14484-2-git-send-email-andrii.tseglytskyi@ti.com>
-References: <1369652964-14484-1-git-send-email-andrii.tseglytskyi@ti.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH v2 5/5] ARM: dts: OMAP2+: use pinctrl constants
+Date: Mon, 27 May 2013 13:11:11 +0200
+Message-ID: <51A33F4F.5010501@epfl.ch>
+References: <1369323421-4180-1-git-send-email-florian.vaussard@epfl.ch> <1369323421-4180-6-git-send-email-florian.vaussard@epfl.ch> <20130523184636.GE13507@atomide.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1369652964-14484-1-git-send-email-andrii.tseglytskyi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>, J Keerthy <j-keerthy@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp0.epfl.ch ([128.178.224.218]:58028 "HELO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1757683Ab3E0LLQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 May 2013 07:11:16 -0400
+In-Reply-To: <20130523184636.GE13507@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-SmartReflex driver interface is natively divided to two parts:
+Hello Tony,
 
-- external SmartReflex interface
-- interface between SmartReflex driver and SmartReflex Class
+Thanks for your review.
 
-Functions which belong to AVS class interface can use
-struct omap_sr* instead of struct voltatedomain*, to provide a
-direct connection between SR driver and SR class. This allows
-us to optimize and not do additional lookups where none is
-required.
+On 05/23/2013 08:46 PM, Tony Lindgren wrote:
+> * Florian Vaussard <florian.vaussard@epfl.ch> [130523 08:42]:
+>> index f39b237..b3cc896 100644
+>> --- a/arch/arm/boot/dts/omap2.dtsi
+>> +++ b/arch/arm/boot/dts/omap2.dtsi
+>> @@ -9,6 +9,7 @@
+>>    */
+>>
+>>   #include <dt-bindings/gpio/gpio.h>
+>> +#include <dt-bindings/pinctrl/omap.h>
+>>
+>>   #include "skeleton.dtsi"
+>>
+>> diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+>> index 434288f..2518e6a 100644
+>> --- a/arch/arm/boot/dts/omap3-beagle.dts
+>> +++ b/arch/arm/boot/dts/omap3-beagle.dts
+>> @@ -81,18 +81,18 @@
+>>
+>>   	hsusbb2_pins: pinmux_hsusbb2_pins {
+>>   		pinctrl-single,pins = <
+>> -			0x5c0 0x3  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_clk OUTPUT */
+>> -			0x5c2 0x3  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_stp OUTPUT */
+>> -			0x5c4 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dir INPUT | PULLDOWN */
+>> -			0x5c6 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_nxt INPUT | PULLDOWN */
+>> -			0x5c8 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat0 INPUT | PULLDOWN */
+>> -			0x5cA 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat1 INPUT | PULLDOWN */
+>> -			0x1a4 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat2 INPUT | PULLDOWN */
+>> -			0x1a6 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat3 INPUT | PULLDOWN */
+>> -			0x1a8 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat4 INPUT | PULLDOWN */
+>> -			0x1aa 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat5 INPUT | PULLDOWN */
+>> -			0x1ac 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat6 INPUT | PULLDOWN */
+>> -			0x1ae 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat7 INPUT | PULLDOWN */
+>> +			0x5c0 (OMAP_PIN_OUTPUT | OMAP_MUX_MODE3)		/* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_clk */
+>> +			0x5c2 (OMAP_PIN_OUTPUT | OMAP_MUX_MODE3)		/* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_stp */
+>> +			0x5c4 (OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE3)	/* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dir */
+>> +			0x5c6 (OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE3)	/* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_nxt */
+>> +			0x5c8 (OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE3)	/* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat0 */
+>> +			0x5cA (OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE3)	/* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat1 */
+>> +			0x1a4 (OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE3)	/* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat2 */
+>> +			0x1a6 (OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE3)	/* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat3 */
+>> +			0x1a8 (OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE3)	/* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat4 */
+>> +			0x1aa (OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE3)	/* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat5 */
+>> +			0x1ac (OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE3)	/* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat6 */
+>> +			0x1ae (OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE3)	/* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat7 */
+>>   		>;
+>>   	};
+>>   };
+>
+> Nice!
+>
+> While at it, can you lowercase the USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_clk
+> naming to usbb2_ulpittl_clk.usbb1_ulpiphy_clk? You can also leave out _MUXMODE
+> from these for consistency.
+>
 
-sr_disable_errgen() and sr_configure_errgen() are interface
-functions between SR driver and SR class. They are typically
-used by Class driver to configure error generator module during
-SmartReflex enable/disable sequence.
-Now they take struct omap_sr* as input parameter.
+Sure. I will send out a v3 ASAP.
 
-Signed-off-by: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
-Acked-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/smartreflex-class3.c |    4 ++--
- drivers/power/avs/smartreflex.c          |   26 +++++++++++++-------------
- include/linux/power/smartreflex.h        |    4 ++--
- 3 files changed, 17 insertions(+), 17 deletions(-)
+> I wonder if we can leave out the OMAP_ prefix from the mux mode defines
+> here and just assume PIN_OUTPUT etc would not conflict with other SoC's
+> naming?
+>
 
-diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
-index aee3c89..6c26dc1 100644
---- a/arch/arm/mach-omap2/smartreflex-class3.c
-+++ b/arch/arm/mach-omap2/smartreflex-class3.c
-@@ -31,7 +31,7 @@ static int sr_class3_enable(struct omap_sr *sr)
- 
- static int sr_class3_disable(struct omap_sr *sr, int is_volt_reset)
- {
--	sr_disable_errgen(sr->voltdm);
-+	sr_disable_errgen(sr);
- 	omap_vp_disable(sr->voltdm);
- 	sr_disable(sr->voltdm);
- 	if (is_volt_reset)
-@@ -42,7 +42,7 @@ static int sr_class3_disable(struct omap_sr *sr, int is_volt_reset)
- 
- static int sr_class3_configure(struct omap_sr *sr)
- {
--	return sr_configure_errgen(sr->voltdm);
-+	return sr_configure_errgen(sr);
- }
- 
- /* SR class3 structure */
-diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
-index 6b2238b..155a050 100644
---- a/drivers/power/avs/smartreflex.c
-+++ b/drivers/power/avs/smartreflex.c
-@@ -341,9 +341,9 @@ static struct omap_sr_nvalue_table *sr_retrieve_nvalue_row(
- /* Public Functions */
- 
- /**
-- * sr_configure_errgen() - Configures the smrtreflex to perform AVS using the
-+ * sr_configure_errgen() - Configures the SmartReflex to perform AVS using the
-  *			 error generator module.
-- * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
-+ * @sr:			SR module to be configured.
-  *
-  * This API is to be called from the smartreflex class driver to
-  * configure the error generator module inside the smartreflex module.
-@@ -352,17 +352,17 @@ static struct omap_sr_nvalue_table *sr_retrieve_nvalue_row(
-  * SR CLASS 2 can choose between ERROR module and MINMAXAVG
-  * module. Returns 0 on success and error value in case of failure.
-  */
--int sr_configure_errgen(struct voltagedomain *voltdm)
-+int sr_configure_errgen(struct omap_sr *sr)
- {
- 	u32 sr_config, sr_errconfig, errconfig_offs;
- 	u32 vpboundint_en, vpboundint_st;
- 	u32 senp_en = 0, senn_en = 0;
- 	u8 senp_shift, senn_shift;
--	struct omap_sr *sr = _sr_lookup(voltdm);
- 
--	if (IS_ERR(sr)) {
--		pr_warning("%s: omap_sr struct for voltdm not found\n",	__func__);
--		return PTR_ERR(sr);
-+	if (!sr) {
-+		pr_warn("%s: NULL omap_sr from %pF\n", __func__,
-+			(void *)_RET_IP_);
-+		return -EINVAL;
- 	}
- 
- 	if (!sr->clk_length)
-@@ -414,22 +414,22 @@ int sr_configure_errgen(struct voltagedomain *voltdm)
- 
- /**
-  * sr_disable_errgen() - Disables SmartReflex AVS module's errgen component
-- * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
-+ * @sr:			SR module to be configured.
-  *
-  * This API is to be called from the smartreflex class driver to
-  * disable the error generator module inside the smartreflex module.
-  *
-  * Returns 0 on success and error value in case of failure.
-  */
--int sr_disable_errgen(struct voltagedomain *voltdm)
-+int sr_disable_errgen(struct omap_sr *sr)
- {
- 	u32 errconfig_offs;
- 	u32 vpboundint_en, vpboundint_st;
--	struct omap_sr *sr = _sr_lookup(voltdm);
- 
--	if (IS_ERR(sr)) {
--		pr_warning("%s: omap_sr struct for voltdm not found\n",	__func__);
--		return PTR_ERR(sr);
-+	if (!sr) {
-+		pr_warn("%s: NULL omap_sr from %pF\n", __func__,
-+			(void *)_RET_IP_);
-+		return -EINVAL;
- 	}
- 
- 	switch (sr->ip_type) {
-diff --git a/include/linux/power/smartreflex.h b/include/linux/power/smartreflex.h
-index c0f44c2..9c3b9ad 100644
---- a/include/linux/power/smartreflex.h
-+++ b/include/linux/power/smartreflex.h
-@@ -301,8 +301,8 @@ void omap_sr_register_pmic(struct omap_sr_pmic_data *pmic_data);
- /* Smartreflex driver hooks to be called from Smartreflex class driver */
- int sr_enable(struct voltagedomain *voltdm, unsigned long volt);
- void sr_disable(struct voltagedomain *voltdm);
--int sr_configure_errgen(struct voltagedomain *voltdm);
--int sr_disable_errgen(struct voltagedomain *voltdm);
-+int sr_configure_errgen(struct omap_sr *sr);
-+int sr_disable_errgen(struct omap_sr *sr);
- int sr_configure_minmax(struct voltagedomain *voltdm);
- 
- /* API to register the smartreflex class driver with the smartreflex driver */
--- 
-1.7.9.5
+We can avoid conflicts as long as we do not include two headers from two 
+different arch,
+which should not happen if designed with care. I will do the change.
+
+Regards,
+
+Florian
