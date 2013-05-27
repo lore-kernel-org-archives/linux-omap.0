@@ -1,20 +1,42 @@
-From: info@elesym.ru
-Subject: =?windows-1251?B?0uXh/yDx8vDg+OjyIO/w7urg5+3o6iDs6Ov7?=
-	=?windows-1251?B?6Sw=?=
-Date: Mon, 27 May 2013 09:06:29 +0300
-Message-ID: <assp.08592d0ea5.0401715093.20130527094907@elesym.ru>
+From: George Cherian <george.cherian@ti.com>
+Subject: [PATCH 0/3] Adding AM437x support to dwc3-omap glue
+Date: Mon, 27 May 2013 13:32:54 +0530
+Message-ID: <1369641777-4509-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="windows-1251";
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 188-65-135-58.in-addr.netone.ru ([188.65.135.58]:59122 "EHLO
-	moscow-gw1.elesy.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756651Ab3E0H2W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 May 2013 03:28:22 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, nic@lasdigital.com, lebedev@mirkv.ru, customerservice@infotrieve.com, sean.gerrie@unn.ac.uk
 
-zeUg8vDg8vwg4vDl7P8g5/D/IQ0KyOfj7vLu4uvl7ejlIPDg5Ogg8uX1LCDq8u4g5PPs4OXyIO3g
-5ujy/CDt4Ojh7uv8+PP+IOL74+7k8yBodHRwOi8vZ29vLmdsL1VjMHNXPy9OTXFCUVJCbFltDQo=
+Initial patch set to add support for dwc3 in am437x platform.
+This patch series addresses the regiter map differences between
+OMAP5 and AM437x, to re-use the same driver.
+
+AM437x and OMAP5 dwc3 subsytem have different register map.
+Major differences are as follows.
+
+OMAP5 has one main interrupt and one misc interrupt
+Aegis has four main interrupts and one misc interrupt.
+
+Miscellanous Interrupt offsets are changed.
+UTMI OTG Control and Status Registers offsets are changed.
+DEBUG Configuration and Status Registers are changed.
+
+The main intend of the patch is to re-use the same wrapper driver
+for both OMAP5 and AM437x, by using the x_major in revision
+register and adjusting the offsets.
+
+
+George Cherian (3):
+  usb: dwc3: omap: Adding am437x specific register map changes
+  usb: dwc3: omap: Intialize the register offset values for OMAP5 and
+    AM437x
+  usb: dwc3: omap Modify dwc3_omap_readl/writel with offsets
+
+ drivers/usb/dwc3/dwc3-omap.c | 183 ++++++++++++++++++++++++++++++-------------
+ 1 file changed, 128 insertions(+), 55 deletions(-)
+
+-- 
+1.8.1.4
