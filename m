@@ -1,54 +1,50 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH v1 0/3] PM / AVS: SmartReflex: driver misc fixes
-Date: Tue, 28 May 2013 14:03:08 -0700
-Message-ID: <87li6ybywj.fsf@linaro.org>
-References: <1369652846-14412-1-git-send-email-andrii.tseglytskyi@ti.com>
+From: Jon Hunter <jgchunter@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP2+: timer: initialize before using oh_name
+Date: Tue, 28 May 2013 22:20:44 +0100
+Message-ID: <51A51FAC.5090606@gmail.com>
+References: <1369722288-15592-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1369652846-14412-1-git-send-email-andrii.tseglytskyi@ti.com>
-	(Andrii Tseglytskyi's message of "Mon, 27 May 2013 14:07:23 +0300")
+In-Reply-To: <1369722288-15592-1-git-send-email-afzal@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
-Cc: J Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Andrii Tseglytskyi <andrii.tseglytskyi@ti.com> writes:
 
-> The following patch series contain several misc fixes to SmartReflex driver:
->
-> 1. disable errgen before vpbound disable. Critical fix, needed for
-> proper work of AVS-VP communicaton protocol.
->
-> 2. disable runtime PM on driver remove. Trivial - runtime PM cleanup.
->
-> 3. fix driver name. Trivial - proper DRIVER_NAME was not defined
-> since SmartReflex driver was introduced with initial commit.
->
-> Patches are based on:
-> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-> tag: v3.10-rc2
->
-> Verified on OMAP4430. Boot - OK. SmartReflex registers debug dump - OK
->
-> Available on GitHub:
-> https://github.com/andriit/linux-omap-k3.8/commits/avs_sr_driver_misc_fixes_v01
->
-> Andrii Tseglytskyi (2):
->   PM / AVS: SmartReflex: disable runtime PM on driver remove
->   PM / AVS: SmartReflex: fix driver name
->
-> Nishanth Menon (1):
->   PM / AVS: SmartReflex: disable errgen before vpbound disable
->
->  drivers/power/avs/smartreflex.c |   15 +++++++++++----
->  1 file changed, 11 insertions(+), 4 deletions(-)
+On 28/05/13 07:24, Afzal Mohammed wrote:
+> of_property_read_string_index(...,&oh_name) in omap_dm_timer_init_one
+> does not alter the value of 'oh_name' even if the relevant function
+> fails and as 'oh_name' in stack may have a non-zero value, it would
+> be misunderstood by timer code that DT has specified "ti,hwmod"
+> property for timer. 'oh_name' in this scenario would be a junk value,
+> this would result in module not being enabled by hwmod API's for
+> timer, and in turn crash.
+> 
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> ---
+>  arch/arm/mach-omap2/timer.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index f8b23b8..8e0c390 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -220,7 +220,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+>  					 int posted)
+>  {
+>  	char name[10]; /* 10 = sizeof("gptXX_Xck0") */
+> -	const char *oh_name;
+> +	const char *oh_name = NULL;
+>  	struct device_node *np;
+>  	struct omap_hwmod *oh;
+>  	struct resource irq, mem;
 
-I had a minor comment on PATCH 1/3, otherwise these look good for v3.11
-(since they are not regressions, they don't qualify for v3.10.)
+Thanks!
 
-Please repost with the changes and be sure to copy linux-pm@vger.kernel.org
+Acked-by: Jon Hunter <jgchunter@gmail.com>
 
-Thanks,
-
-Kevin
+Cheers
+Jon
