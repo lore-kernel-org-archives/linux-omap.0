@@ -1,50 +1,45 @@
 From: Jon Hunter <jgchunter@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP2+: timer: initialize before using oh_name
-Date: Tue, 28 May 2013 22:20:44 +0100
-Message-ID: <51A51FAC.5090606@gmail.com>
-References: <1369722288-15592-1-git-send-email-afzal@ti.com>
+Subject: Re: [PATCH v2 11/14] Documentation: dt: binding: omap: am43x timer
+Date: Tue, 28 May 2013 22:25:09 +0100
+Message-ID: <51A520B5.8040803@gmail.com>
+References: <cover.1369658705.git.afzal@ti.com> <223d90dc9eeab13d8496690d336cdf0f7d27cd22.1369658705.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1369722288-15592-1-git-send-email-afzal@ti.com>
+In-Reply-To: <223d90dc9eeab13d8496690d336cdf0f7d27cd22.1369658705.git.afzal@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Afzal Mohammed <afzal@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@linaro.org>, Benoit Cousson <benoit.cousson@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
 
-On 28/05/13 07:24, Afzal Mohammed wrote:
-> of_property_read_string_index(...,&oh_name) in omap_dm_timer_init_one
-> does not alter the value of 'oh_name' even if the relevant function
-> fails and as 'oh_name' in stack may have a non-zero value, it would
-> be misunderstood by timer code that DT has specified "ti,hwmod"
-> property for timer. 'oh_name' in this scenario would be a junk value,
-> this would result in module not being enabled by hwmod API's for
-> timer, and in turn crash.
+On 27/05/13 15:37, Afzal Mohammed wrote:
+> AM43x timer bindings.
 > 
 > Signed-off-by: Afzal Mohammed <afzal@ti.com>
 > ---
->  arch/arm/mach-omap2/timer.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  Documentation/devicetree/bindings/arm/omap/timer.txt | 2 ++
+>  1 file changed, 2 insertions(+)
 > 
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index f8b23b8..8e0c390 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -220,7 +220,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
->  					 int posted)
->  {
->  	char name[10]; /* 10 = sizeof("gptXX_Xck0") */
-> -	const char *oh_name;
-> +	const char *oh_name = NULL;
->  	struct device_node *np;
->  	struct omap_hwmod *oh;
->  	struct resource irq, mem;
+> diff --git a/Documentation/devicetree/bindings/arm/omap/timer.txt b/Documentation/devicetree/bindings/arm/omap/timer.txt
+> index d02e27c..70cb398 100644
+> --- a/Documentation/devicetree/bindings/arm/omap/timer.txt
+> +++ b/Documentation/devicetree/bindings/arm/omap/timer.txt
+> @@ -14,6 +14,8 @@ Required properties:
+>  			ti,omap5430-timer (applicable to OMAP543x devices)
+>  			ti,am335x-timer	(applicable to AM335x devices)
+>  			ti,am335x-timer-1ms (applicable to AM335x devices)
+> +			"ti,am4372-timer-1ms", "ti,am335x-timer-1ms" for AM43x 1ms timer
+> +			"ti,am4372-timer", "ti,am335x-timer" for AM43x timers other than 1ms one
+>  
+>  - reg:			Contains timer register address range (base address and
+>  			length).
 
-Thanks!
+If you are adding more compatibility strings, then this implies that the
+AM43x timers are not 100% compatible with any other device listed (such
+as am335x or any omap device). That's fine but you should state that in
+the changelog. If the AM43x timer registers are 100% compatible with
+existing devices you should not add these.
 
-Acked-by: Jon Hunter <jgchunter@gmail.com>
-
-Cheers
 Jon
