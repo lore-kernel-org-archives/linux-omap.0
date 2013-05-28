@@ -1,26 +1,26 @@
 From: Jon Hunter <jgchunter@gmail.com>
 Subject: Re: [BISECTED] 3.10-rc1 OMAP1 GPIO IRQ regression
-Date: Tue, 28 May 2013 19:41:54 +0100
-Message-ID: <51A4FA72.2070402@gmail.com>
-References: <20130513205302.GA3157@blackmetal.musicnaut.iki.fi> <20130516180933.GG5600@atomide.com> <20130516210006.GA31836@blackmetal.musicnaut.iki.fi> <20130516214430.GN5600@atomide.com> <20130520174621.GI10378@atomide.com> <20130521173936.GE31836@blackmetal.musicnaut.iki.fi> <519BCCEC.8010303@gmail.com> <20130522212054.GG31836@blackmetal.musicnaut.iki.fi> <519E67AD.6070702@gmail.com> <20130523201358.GI31836@blackmetal.musicnaut.iki.fi>
+Date: Tue, 28 May 2013 19:42:41 +0100
+Message-ID: <51A4FAA1.5060504@gmail.com>
+References: <20130513205302.GA3157@blackmetal.musicnaut.iki.fi> <20130516180933.GG5600@atomide.com> <20130516210006.GA31836@blackmetal.musicnaut.iki.fi> <20130516214430.GN5600@atomide.com> <20130520174621.GI10378@atomide.com> <20130521173936.GE31836@blackmetal.musicnaut.iki.fi> <519BCCEC.8010303@gmail.com> <20130522212054.GG31836@blackmetal.musicnaut.iki.fi> <519E67AD.6070702@gmail.com> <20130526190710.GA3345@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:46561 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750761Ab3E1Sl7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 May 2013 14:41:59 -0400
-Received: by mail-wg0-f49.google.com with SMTP id y10so5560305wgg.28
-        for <linux-omap@vger.kernel.org>; Tue, 28 May 2013 11:41:57 -0700 (PDT)
-In-Reply-To: <20130523201358.GI31836@blackmetal.musicnaut.iki.fi>
+Received: from mail-we0-f169.google.com ([74.125.82.169]:64749 "EHLO
+	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750761Ab3E1Smo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 May 2013 14:42:44 -0400
+Received: by mail-we0-f169.google.com with SMTP id q55so5761353wes.0
+        for <linux-omap@vger.kernel.org>; Tue, 28 May 2013 11:42:43 -0700 (PDT)
+In-Reply-To: <20130526190710.GA3345@blackmetal.musicnaut.iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Aaro Koskinen <aaro.koskinen@iki.fi>
 Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, linux-arm-kernel@lists.infradead.org
 
 
-On 23/05/13 21:13, Aaro Koskinen wrote:
+On 26/05/13 20:07, Aaro Koskinen wrote:
 > On Thu, May 23, 2013 at 08:02:05PM +0100, Jon Hunter wrote:
 >> On 22/05/13 22:20, Aaro Koskinen wrote:
 >>> On Tue, May 21, 2013 at 08:37:16PM +0100, Jon Hunter wrote:
@@ -78,15 +78,10 @@ On 23/05/13 21:13, Aaro Koskinen wrote:
 >>
 >> Sorry, there is another change needed. Can you try ...
 > 
-> I will try this. However, I would also like to point out that Retu works
-> fine on N800/N810 (OMAP2). If the problem is in Retu, why only OMAP1
-> is affected?
+> I don't see much improvement with this. Although Retu probe succeeds,
+> genirq error logs are still there. Also none of the GPIO irqs used by
+> other drivers seem to be working at all, e.g. touchscreen.
 
-The problem is not with retu or the gpio driver per-se, its just that
-now they are conflicting because the way the irq domains are being
-allocated. So probably just getting lucky on the n8xx. I had tested on
-omap1-4 and had not seen any problems, but none of my boards used the
-retu driver.
+Care to share the log?
 
-Cheers
 Jon
