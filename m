@@ -1,36 +1,30 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH v3 0/5] ARM: dts: OMAP2+: use preprocessor for device
- trees
-Date: Tue, 28 May 2013 10:41:20 +0200
-Message-ID: <51A46DB0.5020508@epfl.ch>
-References: <1369666354-29152-1-git-send-email-florian.vaussard@epfl.ch>
-Reply-To: florian.vaussard@epfl.ch
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: [PATCH] dts: am33xx: Correct properties on gpmc node
+Date: Tue, 28 May 2013 11:50:40 +0200
+Message-ID: <87mwrfbfgv.fsf@dell.be.48ers.dk>
+References: <1369729497-11897-1-git-send-email-larsi@wh2.tu-dresden.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp5.epfl.ch ([128.178.224.8]:50604 "HELO smtp5.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S933529Ab3E1IlY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 May 2013 04:41:24 -0400
-In-Reply-To: <1369666354-29152-1-git-send-email-florian.vaussard@epfl.ch>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1369729497-11897-1-git-send-email-larsi@wh2.tu-dresden.de> (Lars
+	Poeschel's message of "Tue, 28 May 2013 10:24:57 +0200")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lars Poeschel <larsi@wh2.tu-dresden.de>
+Cc: poeschel@lemonage.de, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Florian Vaussard <florian.vaussard@epfl.ch>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
+>>>>> "Lars" == Lars Poeschel <larsi@wh2.tu-dresden.de> writes:
 
-On 05/27/2013 04:52 PM, Florian Vaussard wrote:
-> Hello,
->
-> Following a similar proposal by Stephen Warren for tegra [1], this series
-> makes use of the C preprocessor when compiling OMAP DT files, and
-> accomplishes some improvements to improve overall readability.
->
+ Lars> From: Lars Poeschel <poeschel@lemonage.de>
+ Lars> The gpmc driver is actually looking for "gpmc,num-cs" and
+ Lars> "gpmc,num-waitpins" properties in DT. The binding doc also states
+ Lars> this.
+ Lars> Correct the properties in the dts to provide the right values for the
+ Lars> gpmc driver.
 
-I realized that I should also address am* devices. I will wait for comments
-on this version, then post a v4. Sorry for the noise.
+ Lars> Signed-off-by: Lars Poeschel <poeschel@lemonage.de>
 
-Regards,
+Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
 
-Florian
+-- 
+Bye, Peter Korsgaard
