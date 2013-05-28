@@ -1,36 +1,39 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [RFC PATCH 1/4] arm: omap: Add phy binding info for musb in plat
- data
-Date: Tue, 28 May 2013 10:48:02 +0530
-Message-ID: <51A43E0A.8090201@ti.com>
-References: <1368796954-3499-1-git-send-email-kishon@ti.com>
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Subject: [PATCH] mmc: omap: fix error return code in mmc_omap_probe()
+Date: Tue, 28 May 2013 13:25:23 +0800
+Message-ID: <CAPgLHd9rFJf-sT85R6oiiopxoH7EYVrXVy6eYebT6yhkrSpTNg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1368796954-3499-1-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, tony@atomide.com
-Cc: linux@arm.linux.org.uk, eballetbo@gmail.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, tomi.valkeinen@ti.com, javier@dowhile0.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: jarkko.lavinen@nokia.com, cjb@laptop.org
+Cc: yongjun_wei@trendmicro.com.cn, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-On Friday 17 May 2013 06:52 PM, Kishon Vijay Abraham I wrote:
-> In order for controllers to get PHY in case of non dt boot, the phy
-> binding information (phy label) should be added in the platform
-> data of the controller.
+Fix to return -ENOMEM in the workqueue alloc error handling
+case instead of 0, as done elsewhere in this function.
 
-This series would be needed to get MUSB working in OMAP3 boards for 
-non-dt boot case. Do you think this is good enough to go in this rc cycle?
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ drivers/mmc/host/omap.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Thanks
-Kishon
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index 4b3e0eb..5d0bd0c 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -1455,8 +1455,10 @@ static int mmc_omap_probe(struct platform_device *pdev)
+ 	host->reg_shift = (mmc_omap7xx() ? 1 : 2);
+ 
+ 	host->mmc_omap_wq = alloc_workqueue("mmc_omap", 0, 0);
+-	if (!host->mmc_omap_wq)
++	if (!host->mmc_omap_wq) {
++		ret = -ENOMEM;
+ 		goto err_plat_cleanup;
++	}
+ 
+ 	for (i = 0; i < pdata->nr_slots; i++) {
+ 		ret = mmc_omap_new_slot(host, i);
+
