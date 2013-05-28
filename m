@@ -1,97 +1,63 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/3] palmas usb driver
-Date: Tue, 28 May 2013 20:35:54 +0300
-Message-ID: <20130528173554.GD15794@arwen.pp.htv.fi>
-References: <1369405896-30246-1-git-send-email-kishon@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2] usb: musb: fix clock naming
+Date: Tue, 28 May 2013 20:36:37 +0300
+Message-ID: <20130528173637.GE15794@arwen.pp.htv.fi>
+References: <1369725661-3114-1-git-send-email-yegorslists@googlemail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5480581547923333433=="
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1369405896-30246-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: george.cherian-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-List-Id: linux-omap@vger.kernel.org
-
---===============5480581547923333433==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="EY/WZ/HvNxOox07X"
+	protocol="application/pgp-signature"; boundary="zjcmjzIkjQU2rmur"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:47012 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964784Ab3E1Rhy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 May 2013 13:37:54 -0400
 Content-Disposition: inline
+In-Reply-To: <1369725661-3114-1-git-send-email-yegorslists@googlemail.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: yegorslists@googlemail.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, linux-usb@vger.kernel.org, kishon@ti.com, Jan Luebbe <jlu@pengutronix.de>
 
---EY/WZ/HvNxOox07X
+--zjcmjzIkjQU2rmur
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, May 24, 2013 at 08:01:33PM +0530, Kishon Vijay Abraham I wrote:
-> This patch series adds driver for palmas usb which is used to detect
-> attach/detach events of usb device and usb host.
+On Tue, May 28, 2013 at 09:21:01AM +0200, yegorslists@googlemail.com wrote:
+> From: Yegor Yefremov <yegorslists@googlemail.com>
 >=20
-> [PATCH v5 2/3] extcon: Palmas Extcon Driver which was sent previously
-> is added in this patch series itself. The revision history is added
-> in the patch comments section.
+> 'ick' was changed to 'hsotgusb_ick'
+> 'fck' was changed to 'hsotgusb_fck'
 >=20
-> A checkpatch warning "WARNING: static const char * array should
-> probably be static const char * const"is ignored since it introduces a
-> compilation warning.
->=20
-> Graeme Gregory (2):
->   drivers: regulator: palmas: add an API to set/clear the switch bit on
->     SMPS10
->   extcon: Palmas Extcon Driver
->=20
-> Kishon Vijay Abraham I (1):
->   usb: dwc3: use extcon fwrk to receive connect/disconnect notification
+> Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
+> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
 
-
-There were some comments to this series, what will happen with it ? Any
-new versions coming ?
+NAK. Fix your clock data.
 
 --=20
 balbi
 
---EY/WZ/HvNxOox07X
+--zjcmjzIkjQU2rmur
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRpOr6AAoJEIaOsuA1yqREfcoP/iObUJAcLsYrmg7OaERWUh8p
-M8lHfHbyXIse62fAu9yIWyga1NTF3+uAdS8mzeEx/krWLm4sZwOWwoO6mvXyK7+O
-k2nMeCEWSkIOzyrhAkpgiIFyUYvJvLta3GDlY3XSOl/SWYrGhR87wXiLOqQeA4N4
-DL0WQ+/CoCBV8UH5rxPWdS1bTukmcbgWtwkX1NedQlaiaZ0oiVMl9ydJ5duZ0H1A
-fphi3yq8l8hlTBVF+CR30H3v7xPosr3uBea4+YQY5tuB0ASX80tLBPlUicq3fjia
-rf4bbId86nlFFEllXiBSmnIdN21q7mv0Ncmowu5HdhUar1iX4vWJdvc6EA/w9CtA
-7tsSl913YViWk+LQbT15h6Imb7BbtXvodh3zTL6ceG+KHHtbLadGliJ1se3+y+Yl
-sBGooYjMfZdGNdgusU7kSCgnA1VH6tp8xi3Y/OxvQA8nLu92QFLctpHalrudntu3
-V6SX9m8S53ptvFUDnPQmOThQRWjMFzsBwYFmIDE7QegO4pNmGnGbS2wEVGgnMNUD
-+6JBdsQthBL31IfVjjBf2eL+pqhd5Q5bXwjR1Gi6cabWEu0lhMdNi/7CusVBLSg0
-oEF+77gDaf9Cs/+InwaNCHIPppZPJB6U+L+9i1KgvM3vMBhGJkCs0TVhfPULEWNk
-NPpXGGg7Qt+Bfuqcz2bD
-=kfuR
+iQIcBAEBAgAGBQJRpOslAAoJEIaOsuA1yqRE6n4P/A/6pMLbXMPT/XxHPeyHGLHy
+XlF5sUAs8j4EbZLtrPa6biOsdr2evOX6IqWfBiMN+HS6EFT9yh2lT43xTNdE4uTq
+bYHQnKpRFKxlFTcETANkgDzgvguU3ZOFCGKKnrYbKxhlfOn1OfqpS9iD6scoPmVX
+2gk8Ce8YVnIVFvHXa2MpK5/QqvHp6FFZtGbC9uLfladwTBG1/eRVrlOiO1IuXSrT
+ipiQmh4Cdv+sPqByrPKD43ucjtu8rpKOtTMXWWFMvKja20WxNm9pafgoGw4RQoJ4
+8em1Wwjzx4s5VWv5Kn2UtVdYyBp/nm/n/RNbeeURhfWCz8rumMlGqtp5+8dxiP+l
+LlCN9nzfcN3aCJRHVu4jxBuCySKsdHsQPqSmBsT0w5Tw7VfhGItS+Dn2f9fF8rnF
+NqalJGjXZniUun/Ta7byLOVdkHn21QxEQrEezgG1n/zvEZYz6descg5oS0EU48jG
+9gPHqweOJP9OfwvD4HXGiS3PjHW9d6ze9AVGmdwcWG3FCsr687An8moifUb1nAGK
+uh+fgPG1vjbbfu8eMDParCJGL6DEQRq7UaEce0keSh7v8DtoWHJzUpNq8NhQiE2B
+JxGW36ZKFhpWnypO8Fh0lDc1jgKC+2viTS9WpIxo2hG7Dt0suJ7grkXSYh8z6/33
+m5o/A3W8nJgfBRFeJcl1
+=Hmat
 -----END PGP SIGNATURE-----
 
---EY/WZ/HvNxOox07X--
-
---===============5480581547923333433==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-devicetree-discuss mailing list
-devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-https://lists.ozlabs.org/listinfo/devicetree-discuss
-
---===============5480581547923333433==--
+--zjcmjzIkjQU2rmur--
