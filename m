@@ -1,74 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [net-next PATCH v3 1/6] net: cpsw: enhance pinctrl support
-Date: Mon, 27 May 2013 14:36:01 -0700
-Message-ID: <20130527213600.GO13507@atomide.com>
-References: <1369592616-23972-1-git-send-email-mugunthanvnm@ti.com>
- <1369592616-23972-2-git-send-email-mugunthanvnm@ti.com>
+From: Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2] usb: dwc3: use extcon fwrk to receive
+ connect/disconnect notification
+Date: Tue, 28 May 2013 11:24:25 +0900
+Message-ID: <51A41559.20808@samsung.com>
+References: <1369405896-30246-1-git-send-email-kishon@ti.com>
+ <1369661740-15966-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19315 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751858Ab3E0VgG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 May 2013 17:36:06 -0400
-Content-Disposition: inline
-In-Reply-To: <1369592616-23972-2-git-send-email-mugunthanvnm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-reply-to: <1369661740-15966-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: george.cherian-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: netdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Hebbar Gururaja <gururaja.hebbar@ti.com>, benoit.cousson@linaro.org, linux-omap@vger.kernel.org, davem@davemloft.net
 
-* Mugunthan V N <mugunthanvnm@ti.com> [130526 11:28]:
-> From: Hebbar Gururaja <gururaja.hebbar@ti.com>
-> 
-> Amend cpsw controller to optionally take a pin control handle and set
-> the state of the pins to:
-> 
-> - "default" on boot, resume
-> - "sleep" on suspend()
-> 
-> This should make it possible to optimize energy usage for the pins
-> for the suspend/resume cycle.
-> 
-> If any of the above pin states are missing in dt, a warning message
-> about the missing state is displayed.
-> If certain pin-states are not available, to remove this warning message
-> pass respective state name with null phandler.
-> 
-> Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
-> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+On 05/27/2013 10:35 PM, Kishon Vijay Abraham I wrote:
+> Modified dwc3-omap to receive connect and disconnect notification using
+> extcon framework. Also did the necessary cleanups required after
+> adapting to extcon framework.
+>
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> Acked-by: Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 > ---
->  drivers/net/ethernet/ti/cpsw.c |   48 ++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 48 insertions(+)
-> 
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index 21a5b29..c9ed730 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -35,6 +35,7 @@
->  #include <linux/if_vlan.h>
->  
->  #include <linux/platform_data/cpsw.h>
-> +#include <linux/pinctrl/consumer.h>
->  
->  #include "cpsw_ale.h"
->  #include "cpts.h"
-> @@ -351,6 +352,11 @@ struct cpsw_priv {
->  	bool irq_enabled;
->  	struct cpts *cpts;
->  	u32 emac_port;
-> +
-> +	/* Two optional pin states - default & sleep */
-> +	struct pinctrl		*pinctrl;
-> +	struct pinctrl_state	*pins_def;
-> +	struct pinctrl_state	*pins_sleep;
->  };
+> Changes from v1:
+> * regulator enable/disable is now done here instead of palmas-usb as some users
+> of palmas-usb wont need regulator.
+>  drivers/usb/dwc3/dwc3-omap.c  | 103 ++++++++++++++++++++++++++++++++++--------
+>  include/linux/usb/dwc3-omap.h |  30 ------------
+>  2 files changed, 85 insertions(+), 48 deletions(-)
+>  delete mode 100644 include/linux/usb/dwc3-omap.h
+I think that usb or other maintainer have to confirm this patch
+for applying extcon-next branch.
 
-Which pins do you need to dynamically remux? If it's not all
-the pins, you should have three sets: default, active and idle.
-This way the static pins in the default group don't need to be
-constantly toggled.
-
-Regards,
-
-Tony
+Thanks,
+Chanwoo Choi
