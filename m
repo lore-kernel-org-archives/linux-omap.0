@@ -1,73 +1,97 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 3/3] usb: dwc3: omap Modify dwc3_omap_readl/writel with
- offsets
-Date: Tue, 28 May 2013 20:32:15 +0300
-Message-ID: <20130528173215.GB15794@arwen.pp.htv.fi>
-References: <1369641777-4509-1-git-send-email-george.cherian@ti.com>
- <1369641777-4509-4-git-send-email-george.cherian@ti.com>
-Reply-To: <balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 0/3] palmas usb driver
+Date: Tue, 28 May 2013 20:35:54 +0300
+Message-ID: <20130528173554.GD15794@arwen.pp.htv.fi>
+References: <1369405896-30246-1-git-send-email-kishon@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="s2ZSL+KKDSLx8OML"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1369641777-4509-4-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Content-Type: multipart/mixed; boundary="===============5480581547923333433=="
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1369405896-30246-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: george.cherian-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---s2ZSL+KKDSLx8OML
+--===============5480581547923333433==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="EY/WZ/HvNxOox07X"
+Content-Disposition: inline
+
+--EY/WZ/HvNxOox07X
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Mon, May 27, 2013 at 01:32:57PM +0530, George Cherian wrote:
-> This patch modifies dwc3_omap_readl/writel calls to accomodate
-> both OMAP5 and AM437x reg maps (It uses the cached register offsets).
-> Also renames OMAP5 IRQ1 as IRQMISC, IRQ1 bits as IRQMISC bits.
+On Fri, May 24, 2013 at 08:01:33PM +0530, Kishon Vijay Abraham I wrote:
+> This patch series adds driver for palmas usb which is used to detect
+> attach/detach events of usb device and usb host.
 >=20
-> Signed-off-by: George Cherian <george.cherian@ti.com>
+> [PATCH v5 2/3] extcon: Palmas Extcon Driver which was sent previously
+> is added in this patch series itself. The revision history is added
+> in the patch comments section.
+>=20
+> A checkpatch warning "WARNING: static const char * array should
+> probably be static const char * const"is ignored since it introduces a
+> compilation warning.
+>=20
+> Graeme Gregory (2):
+>   drivers: regulator: palmas: add an API to set/clear the switch bit on
+>     SMPS10
+>   extcon: Palmas Extcon Driver
+>=20
+> Kishon Vijay Abraham I (1):
+>   usb: dwc3: use extcon fwrk to receive connect/disconnect notification
 
-can you change this patch a bit so that it adds wrappers around
-dwc3_omap_*() ? The idea is the have the code look like:
 
-static u32 dwc3_omap_read_utmi_status(struct dwc3_omap *omap)
-{
-	return dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS +
-			omap->utmi_otg_offset);
-}
-
-(likewise for write and for all other offsets, of course)
-
-that way, reading/writing to registers which need the offset will be
-less error-prone and th driver will look a little nicer.
+There were some comments to this series, what will happen with it ? Any
+new versions coming ?
 
 --=20
 balbi
 
---s2ZSL+KKDSLx8OML
+--EY/WZ/HvNxOox07X
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRpOoeAAoJEIaOsuA1yqREQBQP+QE5A4V3wSjxx/OUvWjbHuhJ
-lenRJjh5sOP75CaV/OdUT+nR2Lh/I2BbXxpInrOYqlHIufN6opotNXHs7i6zUc5O
-3fs71Pn8gxaMUu48UoAPTVsk2uD5LsrS+ll2nY5mLzkmeZPMZUhdWwNKflLVLOtN
-RJSjhBEtDSeDTWTzeXWzr4IreV9XluUH36Umgsh//q/l2c/PfA5lfRQLm7E0xHc0
-5Cy9VwugIxW1hcqBRqC/gqRpUuq0RUY/1J6JKsk160xVR3Nia2imoSJyqi7wNwUX
-ciqj8YSYbESuyjmsv+GCsjtzlildmyzf4SfH5lzjLGymI8pRPLPwsExMCJal5MLB
-YZuyXWOs3f+MYrVbcL04axIubx0yBfQJc9OwH+dADpcjE0JrJmeFEwiFISC393Cm
-b1raMNXkgXlh6s9xd5m/A+h+wrTdMkXfv3zepCQJIWMUGNiceVdNyXff/wWF1WN+
-RiZ7Yf0pEEFB0i6G/sBaj1fgIyMEbLV3Cu2i/MrYwMTwRkeZBDAG0fzIGXhgB+CE
-TsINcz+B409/0lNK3HhBUUdevhD7O6VrPnBzkgM6zj92waEnhwZ0HeV9spUWVs3E
-pgTyMUuoMOO7IcMkI4scoO/+Pk+srh/jtuZHaKziAx2SxKe35JGbvUqvyLctscNg
-Aqs0tEaISoVGN7cyaHrA
-=K91l
+iQIcBAEBAgAGBQJRpOr6AAoJEIaOsuA1yqREfcoP/iObUJAcLsYrmg7OaERWUh8p
+M8lHfHbyXIse62fAu9yIWyga1NTF3+uAdS8mzeEx/krWLm4sZwOWwoO6mvXyK7+O
+k2nMeCEWSkIOzyrhAkpgiIFyUYvJvLta3GDlY3XSOl/SWYrGhR87wXiLOqQeA4N4
+DL0WQ+/CoCBV8UH5rxPWdS1bTukmcbgWtwkX1NedQlaiaZ0oiVMl9ydJ5duZ0H1A
+fphi3yq8l8hlTBVF+CR30H3v7xPosr3uBea4+YQY5tuB0ASX80tLBPlUicq3fjia
+rf4bbId86nlFFEllXiBSmnIdN21q7mv0Ncmowu5HdhUar1iX4vWJdvc6EA/w9CtA
+7tsSl913YViWk+LQbT15h6Imb7BbtXvodh3zTL6ceG+KHHtbLadGliJ1se3+y+Yl
+sBGooYjMfZdGNdgusU7kSCgnA1VH6tp8xi3Y/OxvQA8nLu92QFLctpHalrudntu3
+V6SX9m8S53ptvFUDnPQmOThQRWjMFzsBwYFmIDE7QegO4pNmGnGbS2wEVGgnMNUD
++6JBdsQthBL31IfVjjBf2eL+pqhd5Q5bXwjR1Gi6cabWEu0lhMdNi/7CusVBLSg0
+oEF+77gDaf9Cs/+InwaNCHIPppZPJB6U+L+9i1KgvM3vMBhGJkCs0TVhfPULEWNk
+NPpXGGg7Qt+Bfuqcz2bD
+=kfuR
 -----END PGP SIGNATURE-----
 
---s2ZSL+KKDSLx8OML--
+--EY/WZ/HvNxOox07X--
+
+--===============5480581547923333433==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--===============5480581547923333433==--
