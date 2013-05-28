@@ -1,77 +1,55 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [net-next PATCH v3 1/6] net: cpsw: enhance pinctrl support
-Date: Tue, 28 May 2013 19:35:09 +0530
-Message-ID: <51A4B995.9050203@ti.com>
-References: <1369592616-23972-1-git-send-email-mugunthanvnm@ti.com> <1369592616-23972-2-git-send-email-mugunthanvnm@ti.com> <20130527213600.GO13507@atomide.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH] ARM: OMAP: fix IVA2 module base address
+Date: Tue, 28 May 2013 07:30:05 -0700
+Message-ID: <87bo7vdvo2.fsf@linaro.org>
+References: <1369741577-21984-1-git-send-email-aida.mynzhasova@skitlab.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20130527213600.GO13507@atomide.com>
-Sender: netdev-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: netdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Hebbar Gururaja <gururaja.hebbar@ti.com>, benoit.cousson@linaro.org, linux-omap@vger.kernel.org, davem@davemloft.net
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f44.google.com ([209.85.160.44]:39530 "EHLO
+	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934123Ab3E1OaK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 May 2013 10:30:10 -0400
+Received: by mail-pb0-f44.google.com with SMTP id wz12so7941732pbc.31
+        for <linux-omap@vger.kernel.org>; Tue, 28 May 2013 07:30:09 -0700 (PDT)
+In-Reply-To: <1369741577-21984-1-git-send-email-aida.mynzhasova@skitlab.ru>
+	(Aida Mynzhasova's message of "Tue, 28 May 2013 15:46:17 +0400")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On 5/28/2013 3:06 AM, Tony Lindgren wrote:
-> * Mugunthan V N <mugunthanvnm@ti.com> [130526 11:28]:
->> From: Hebbar Gururaja <gururaja.hebbar@ti.com>
->>
->> Amend cpsw controller to optionally take a pin control handle and set
->> the state of the pins to:
->>
->> - "default" on boot, resume
->> - "sleep" on suspend()
->>
->> This should make it possible to optimize energy usage for the pins
->> for the suspend/resume cycle.
->>
->> If any of the above pin states are missing in dt, a warning message
->> about the missing state is displayed.
->> If certain pin-states are not available, to remove this warning message
->> pass respective state name with null phandler.
->>
->> Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
->> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
->> ---
->>   drivers/net/ethernet/ti/cpsw.c |   48 ++++++++++++++++++++++++++++++++++++++++
->>   1 file changed, 48 insertions(+)
->>
->> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
->> index 21a5b29..c9ed730 100644
->> --- a/drivers/net/ethernet/ti/cpsw.c
->> +++ b/drivers/net/ethernet/ti/cpsw.c
->> @@ -35,6 +35,7 @@
->>   #include <linux/if_vlan.h>
->>   
->>   #include <linux/platform_data/cpsw.h>
->> +#include <linux/pinctrl/consumer.h>
->>   
->>   #include "cpsw_ale.h"
->>   #include "cpts.h"
->> @@ -351,6 +352,11 @@ struct cpsw_priv {
->>   	bool irq_enabled;
->>   	struct cpts *cpts;
->>   	u32 emac_port;
->> +
->> +	/* Two optional pin states - default & sleep */
->> +	struct pinctrl		*pinctrl;
->> +	struct pinctrl_state	*pins_def;
->> +	struct pinctrl_state	*pins_sleep;
->>   };
-> Which pins do you need to dynamically remux? If it's not all
-> the pins, you should have three sets: default, active and idle.
-> This way the static pins in the default group don't need to be
-> constantly toggled.
+Aida Mynzhasova <aida.mynzhasova@skitlab.ru> writes:
+
+> This patch corrects the base address of IVA2 module on omap3430.
 >
-> Regards,
+> Signed-off-by: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
+
+I know it looks a bit weird to have a negative offset like this, but
+it's actually correct.  These offsets are used relative to
+prm_base (on 34xx, it's OMAP3430_PRM_BASE defined in omap34xx.h).
+So I suggest you double check the values there, and cross reference to
+the "PRCM Register Manual" section of the TRM (last section of the PRCM
+chapter.)
+
+Thanks,
+
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/prcm-common.h |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> Tony
-Tony
-
-I am using this for all the pins, in probe all the cpsw pins will be 
-configured
-and i have used the same in suspend/resume callback for power saving.
-
-Regards
-Mugunthan V N
+> diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+> index c7d355f..d5ec044 100644
+> --- a/arch/arm/mach-omap2/prcm-common.h
+> +++ b/arch/arm/mach-omap2/prcm-common.h
+> @@ -37,7 +37,7 @@
+>  #define OMAP2430_MDM_MOD				0xc00
+>  
+>  /* IVA2 module is < base on 3430 */
+> -#define OMAP3430_IVA2_MOD				-0x800
+> +#define OMAP3430_IVA2_MOD				0x800
+>  #define OMAP3430ES2_SGX_MOD				GFX_MOD
+>  #define OMAP3430_CCR_MOD				PLL_MOD
+>  #define OMAP3430_DSS_MOD				0x600
