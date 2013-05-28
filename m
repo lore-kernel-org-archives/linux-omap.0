@@ -1,50 +1,36 @@
-From: Lars Poeschel <larsi@wh2.tu-dresden.de>
-Subject: [PATCH] dts: am33xx: Correct properties on gpmc node
-Date: Tue, 28 May 2013 10:24:57 +0200
-Message-ID: <1369729497-11897-1-git-send-email-larsi@wh2.tu-dresden.de>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH v3 0/5] ARM: dts: OMAP2+: use preprocessor for device
+ trees
+Date: Tue, 28 May 2013 10:41:20 +0200
+Message-ID: <51A46DB0.5020508@epfl.ch>
+References: <1369666354-29152-1-git-send-email-florian.vaussard@epfl.ch>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: poeschel@lemonage.de, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp5.epfl.ch ([128.178.224.8]:50604 "HELO smtp5.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S933529Ab3E1IlY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 May 2013 04:41:24 -0400
+In-Reply-To: <1369666354-29152-1-git-send-email-florian.vaussard@epfl.ch>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Florian Vaussard <florian.vaussard@epfl.ch>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-From: Lars Poeschel <poeschel@lemonage.de>
 
-The gpmc driver is actually looking for "gpmc,num-cs" and
-"gpmc,num-waitpins" properties in DT. The binding doc also states
-this.
-Correct the properties in the dts to provide the right values for the
-gpmc driver.
+On 05/27/2013 04:52 PM, Florian Vaussard wrote:
+> Hello,
+>
+> Following a similar proposal by Stephen Warren for tegra [1], this series
+> makes use of the C preprocessor when compiling OMAP DT files, and
+> accomplishes some improvements to improve overall readability.
+>
 
-Signed-off-by: Lars Poeschel <poeschel@lemonage.de>
----
- arch/arm/boot/dts/am33xx.dtsi |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+I realized that I should also address am* devices. I will wait for comments
+on this version, then post a v4. Sorry for the noise.
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 1460d9b..8e1248f 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -409,8 +409,8 @@
- 			ti,hwmods = "gpmc";
- 			reg = <0x50000000 0x2000>;
- 			interrupts = <100>;
--			num-cs = <7>;
--			num-waitpins = <2>;
-+			gpmc,num-cs = <7>;
-+			gpmc,num-waitpins = <2>;
- 			#address-cells = <2>;
- 			#size-cells = <1>;
- 			status = "disabled";
--- 
-1.7.10.4
+Regards,
+
+Florian
