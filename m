@@ -1,87 +1,90 @@
-From: Jon Hunter <jgchunter@gmail.com>
-Subject: Re: [BISECTED] 3.10-rc1 OMAP1 GPIO IRQ regression
-Date: Tue, 28 May 2013 19:42:41 +0100
-Message-ID: <51A4FAA1.5060504@gmail.com>
-References: <20130513205302.GA3157@blackmetal.musicnaut.iki.fi> <20130516180933.GG5600@atomide.com> <20130516210006.GA31836@blackmetal.musicnaut.iki.fi> <20130516214430.GN5600@atomide.com> <20130520174621.GI10378@atomide.com> <20130521173936.GE31836@blackmetal.musicnaut.iki.fi> <519BCCEC.8010303@gmail.com> <20130522212054.GG31836@blackmetal.musicnaut.iki.fi> <519E67AD.6070702@gmail.com> <20130526190710.GA3345@blackmetal.musicnaut.iki.fi>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH v1 1/3] PM / AVS: SmartReflex: disable errgen before vpbound disable
+Date: Tue, 28 May 2013 11:45:09 -0700
+Message-ID: <87sj17aqq2.fsf@linaro.org>
+References: <1369652846-14412-1-git-send-email-andrii.tseglytskyi@ti.com>
+	<1369652846-14412-2-git-send-email-andrii.tseglytskyi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f169.google.com ([74.125.82.169]:64749 "EHLO
-	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750761Ab3E1Smo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 May 2013 14:42:44 -0400
-Received: by mail-we0-f169.google.com with SMTP id q55so5761353wes.0
-        for <linux-omap@vger.kernel.org>; Tue, 28 May 2013 11:42:43 -0700 (PDT)
-In-Reply-To: <20130526190710.GA3345@blackmetal.musicnaut.iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1369652846-14412-2-git-send-email-andrii.tseglytskyi@ti.com>
+	(Andrii Tseglytskyi's message of "Mon, 27 May 2013 14:07:24 +0300")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
+Cc: J Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, linux-arm-kernel@lists.infradead.org
 
+Andrii Tseglytskyi <andrii.tseglytskyi@ti.com> writes:
 
-On 26/05/13 20:07, Aaro Koskinen wrote:
-> On Thu, May 23, 2013 at 08:02:05PM +0100, Jon Hunter wrote:
->> On 22/05/13 22:20, Aaro Koskinen wrote:
->>> On Tue, May 21, 2013 at 08:37:16PM +0100, Jon Hunter wrote:
->>>> On 21/05/13 18:39, Aaro Koskinen wrote:
->>>>> On Mon, May 20, 2013 at 10:46:21AM -0700, Tony Lindgren wrote:
->>>>>> * Tony Lindgren <tony@atomide.com> [130516 14:50]:
->>>>>>> * Aaro Koskinen <aaro.koskinen@iki.fi> [130516 14:05]:
->>>>>>>> On Thu, May 16, 2013 at 11:09:34AM -0700, Tony Lindgren wrote:
->>>>>>>>> * Aaro Koskinen <aaro.koskinen@iki.fi> [130513 13:58]:
->>>>>>>>>> I tested 3.10-rc1 on OMAP1 / Nokia 770, and Retu MFD probe is broken:
->>>>>>>>>>
->>>>>>>>>> [    2.264221] retu-mfd 2-0001: Retu v3.2 found
->>>>>>>>>> [    2.281951] retu-mfd 2-0001: Failed to allocate IRQs: -12
->>>>>>>>>> [    2.300140] retu-mfd: probe of 2-0001 failed with error -12
->>>>>>>>>>
->>>>>>>>>> The error is coming from regmap code. According to git bisect, it is
->>>>>>>>>> caused by:
->>>>>>>>>>
->>>>>>>>>> 	commit ede4d7a5b9835510fd1f724367f68d2fa4128453
->>>>>>>>>> 	Author: Jon Hunter <jon-hunter@ti.com>
->>>>>>>>>> 	Date:   Fri Mar 1 11:22:47 2013 -0600
->>>>>>>>>>
->>>>>>>>>> 	    gpio/omap: convert gpio irq domain to linear mapping
->>>>>>>>>>
->>>>>>>>>> The commit does not anymore revert cleanly, and I haven't yet tried
->>>>>>>>>> crafting a manual revert, so any fix proposals/ideas are welcome...
->>>>>>>>>
->>>>>>>>> Hmm this might be a bit trickier to fix. Obviously the real solution
->>>>>>>>> is to convert omap1 to SPARSE_IRQ like we did for omap2+.
->>>>>>>>>
->>>>>>>>> For the -rc cycle, it might be possible to fix this by adding a
->>>>>>>>> different irq_to_gpio() and gpio_to_irq() functions for omap1.
->>>>>>>>
->>>>>>>> The commit reverts cleanly if we also revert
->>>>>>>> 3513cdeccc647d41c4a9ff923af17deaaac04a66 (gpio/omap: optimise interrupt
->>>>>>>> service routine), which seems to be just some minor optimization. The
->>>>>>>> result is below, and with it 770 works again.
->>>>>>>
->>>>>>> Hmm in this case it seems that we should just fix it rather than go back
->>>>>>> to the old code, so let's take a look at that first.
->>>>>>
->>>>>> Does the following fix it for you or do we need to fix something else
->>>>>> there too?
->>>>>
->>>>> Thanks, that fixes Retu probe on 770.
->>>>
->>>> Sorry for not responding sooner, but I have been moving. 
->>>>
->>>> From looking at the code it appears that the regmap_add_irq_chip()
->>>> is failing in the retu driver. I am not sure if this will work, 
->>>> but have you tried making the following change to the retu driver 
->>>> so that it also uses irq_domain_add_linear() as well? Just a thought ...
->>>
->>> This will trigger WARNING: at drivers/base/regmap/regmap-irq.c:514.
->>
->> Sorry, there is another change needed. Can you try ...
-> 
-> I don't see much improvement with this. Although Retu probe succeeds,
-> genirq error logs are still there. Also none of the GPIO irqs used by
-> other drivers seem to be working at all, e.g. touchscreen.
+> From: Nishanth Menon <nm@ti.com>
+>
+> vpboundsintr_en is available inside the IP block as an re-sycned
+> version and one which is not. Due to this, there is an 1 sysclk
+> cycle window where interruptz could be asserted low for 1 cycle.
+                             ^^^
 
-Care to share the log?
+Is that the way the cool kidz are spelling interrupts these days?  ;)
 
-Jon
+> IF, intr_en is cleared on the exact same cycle as the irqclr, an
+> additional pulse is generated which indicates for VP that
+> an additional adjustment of voltage is required.
+>
+> This results in VP doing two voltage adjustments for the SRERR
+> (based on configuration, upto 4 steps), instead of the needed
+> 1 step.
+> Due to the unexpected pulse from AVS which breaks the AVS-VP
+> communication protocol, VP also ends up in a stuck condition by
+> entering a state where VP module remains non-responsive
+> to any futher AVS adjustment events. This creates the symptom
+> called "TRANXDONE Timeout" scenario.
+>
+> By disabling errgen prior to disable of intr_en, this situation
+> can be avoided.
+>
+> Signed-off-by: Vincent Bour <v-bour@ti.com>
+> Signed-off-by: Leonardo Affortunati <l-affortunati@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Andrii.Tseglytskyi <andrii.tseglytskyi@ti.com>
+
+>From Documentation/SubbmittingPatches:
+
+   "If a person was not directly involved in the preparation or handling
+   of a patch but wishes to signify and record their approval of it then
+   they can arrange to have an Acked-by: line added to the patch's
+   changelog."
+
+Are all of the tags above co-authors or on the delivery path?  I suspect
+an Acked-by or Reviewed-by is more appropriate here.
+
+Otherwise, patch itself looks fine.
+
+Kevin
+
+> ---
+>  drivers/power/avs/smartreflex.c |   11 ++++++++---
+>  1 file changed, 8 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
+> index 6b2238b..f34d34d 100644
+> --- a/drivers/power/avs/smartreflex.c
+> +++ b/drivers/power/avs/smartreflex.c
+> @@ -449,12 +449,17 @@ int sr_disable_errgen(struct voltagedomain *voltdm)
+>  		return -EINVAL;
+>  	}
+>  
+> -	/* Disable the interrupts of ERROR module */
+> -	sr_modify_reg(sr, errconfig_offs, vpboundint_en | vpboundint_st, 0);
+> -
+>  	/* Disable the Sensor and errorgen */
+>  	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN, 0);
+>  
+> +	/*
+> +	 * Disable the interrupts of ERROR module
+> +	 * NOTE: modify is a read, modify,write - an implicit OCP barrier
+> +	 * which is required is present here - sequencing is critical
+> +	 * at this point (after errgen is disabled, vpboundint disable)
+> +	 */
+> +	sr_modify_reg(sr, errconfig_offs, vpboundint_en | vpboundint_st, 0);
+> +
+>  	return 0;
+>  }
