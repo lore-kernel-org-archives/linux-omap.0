@@ -1,24 +1,73 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v2] usb: omap2430: fix memleak in err case
-Date: Tue, 28 May 2013 18:34:15 +0300
-Message-ID: <CAHp75Ve6Y637=aROj9nLN-vPgBkecYJTm=uWQU7veeEaSSq==w@mail.gmail.com>
-References: <5192E650.3070303@huawei.com>
-	<519C3BD1.6050307@huawei.com>
-	<51A4A614.7080707@huawei.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 3/3] usb: dwc3: omap Modify dwc3_omap_readl/writel with
+ offsets
+Date: Tue, 28 May 2013 20:32:15 +0300
+Message-ID: <20130528173215.GB15794@arwen.pp.htv.fi>
+References: <1369641777-4509-1-git-send-email-george.cherian@ti.com>
+ <1369641777-4509-4-git-send-email-george.cherian@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="s2ZSL+KKDSLx8OML"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51A4A614.7080707@huawei.com>
+Content-Disposition: inline
+In-Reply-To: <1369641777-4509-4-git-send-email-george.cherian@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Libo Chen <clbchenlibo.chen@huawei.com>
-Cc: balbi@ti.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Li Zefan <lizefan@huawei.com>, USB <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+To: George Cherian <george.cherian@ti.com>
+Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
 List-Id: linux-omap@vger.kernel.org
 
-No go.
+--s2ZSL+KKDSLx8OML
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Check the 4b7e450fb5cefb5865c77999a675330206ab3b8a
-And update you tree, please.
+Hi,
 
---
-With Best Regards,
-Andy Shevchenko
+On Mon, May 27, 2013 at 01:32:57PM +0530, George Cherian wrote:
+> This patch modifies dwc3_omap_readl/writel calls to accomodate
+> both OMAP5 and AM437x reg maps (It uses the cached register offsets).
+> Also renames OMAP5 IRQ1 as IRQMISC, IRQ1 bits as IRQMISC bits.
+>=20
+> Signed-off-by: George Cherian <george.cherian@ti.com>
+
+can you change this patch a bit so that it adds wrappers around
+dwc3_omap_*() ? The idea is the have the code look like:
+
+static u32 dwc3_omap_read_utmi_status(struct dwc3_omap *omap)
+{
+	return dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS +
+			omap->utmi_otg_offset);
+}
+
+(likewise for write and for all other offsets, of course)
+
+that way, reading/writing to registers which need the offset will be
+less error-prone and th driver will look a little nicer.
+
+--=20
+balbi
+
+--s2ZSL+KKDSLx8OML
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRpOoeAAoJEIaOsuA1yqREQBQP+QE5A4V3wSjxx/OUvWjbHuhJ
+lenRJjh5sOP75CaV/OdUT+nR2Lh/I2BbXxpInrOYqlHIufN6opotNXHs7i6zUc5O
+3fs71Pn8gxaMUu48UoAPTVsk2uD5LsrS+ll2nY5mLzkmeZPMZUhdWwNKflLVLOtN
+RJSjhBEtDSeDTWTzeXWzr4IreV9XluUH36Umgsh//q/l2c/PfA5lfRQLm7E0xHc0
+5Cy9VwugIxW1hcqBRqC/gqRpUuq0RUY/1J6JKsk160xVR3Nia2imoSJyqi7wNwUX
+ciqj8YSYbESuyjmsv+GCsjtzlildmyzf4SfH5lzjLGymI8pRPLPwsExMCJal5MLB
+YZuyXWOs3f+MYrVbcL04axIubx0yBfQJc9OwH+dADpcjE0JrJmeFEwiFISC393Cm
+b1raMNXkgXlh6s9xd5m/A+h+wrTdMkXfv3zepCQJIWMUGNiceVdNyXff/wWF1WN+
+RiZ7Yf0pEEFB0i6G/sBaj1fgIyMEbLV3Cu2i/MrYwMTwRkeZBDAG0fzIGXhgB+CE
+TsINcz+B409/0lNK3HhBUUdevhD7O6VrPnBzkgM6zj92waEnhwZ0HeV9spUWVs3E
+pgTyMUuoMOO7IcMkI4scoO/+Pk+srh/jtuZHaKziAx2SxKe35JGbvUqvyLctscNg
+Aqs0tEaISoVGN7cyaHrA
+=K91l
+-----END PGP SIGNATURE-----
+
+--s2ZSL+KKDSLx8OML--
