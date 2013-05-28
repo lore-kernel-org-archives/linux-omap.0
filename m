@@ -1,49 +1,54 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH v2 0/5] ARM: dts: OMAP2+: use preprocessor for device
- trees
-Date: Tue, 28 May 2013 17:13:21 +0200
-Message-ID: <51A4C991.6050502@epfl.ch>
-References: <1369323421-4180-1-git-send-email-florian.vaussard@epfl.ch> <51A4C84E.4070005@wwwdotorg.org>
-Reply-To: florian.vaussard@epfl.ch
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: [PATCH] arm: omap2: fix AM33xx hwmod infos for UART2
+Date: Tue, 28 May 2013 17:17:45 +0200
+Message-ID: <1369754265-27712-1-git-send-email-thomas.petazzoni@free-electrons.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:47403 "HELO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S934389Ab3E1PNb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 May 2013 11:13:31 -0400
-In-Reply-To: <51A4C84E.4070005@wwwdotorg.org>
+Received: from mail.free-electrons.com ([94.23.35.102]:57249 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934418Ab3E1PRs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 May 2013 11:17:48 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hiremath Vaibhav <hvaibhav@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On 05/28/2013 05:07 PM, Stephen Warren wrote:
-> On 05/23/2013 09:36 AM, Florian Vaussard wrote:
->> Hello,
->>
->> Following a similar proposal by Stephen Warren for tegra [1], this series
->> makes use of the C preprocessor when compiling OMAP DT files, and
->> accomplishes some improvements to improve overall readability.
->>
->> Patch 1 is a preparation for the rest of the series.
->> Patch 2 uses existing constants for GPIOs. Patch 3 does the same for
->> IRQs. Patch 4 creates a new header for OMAP's padmux, and patch 5 uses
->> it to simplify pinctrl DT.
->>
->> For all targets, the .dtb files were diff-tested before and after
->> applying the series to guarantee identity.
->
-> The series briefly,
->
-> Reviewed-by: Stephen Warren <swarren@nvidia.com>
->
+The UART2 hwmod structure is pointing to the EDMA channels of UART1,
+which doesn't look right. This patch fixes this by making the UART2
+hwmod structure to a new structure that lists the EDMA channels to be
+used by the UART2.
 
-Thank you. FYI, I posted a v3 addressing Tony's comments [1].
+Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-Regards,
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+index 01d8f32..9113251 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -2006,6 +2006,13 @@ static struct omap_hwmod am33xx_uart1_hwmod = {
+ 	},
+ };
+ 
++/* uart2 */
++static struct omap_hwmod_dma_info uart2_edma_reqs[] = {
++	{ .name = "tx",	.dma_req = 28, },
++	{ .name = "rx",	.dma_req = 29, },
++	{ .dma_req = -1 }
++};
++
+ static struct omap_hwmod_irq_info am33xx_uart2_irqs[] = {
+ 	{ .irq = 73 + OMAP_INTC_START, },
+ 	{ .irq = -1 },
+@@ -2016,7 +2023,7 @@ static struct omap_hwmod am33xx_uart2_hwmod = {
+ 	.class		= &uart_class,
+ 	.clkdm_name	= "l4ls_clkdm",
+ 	.mpu_irqs	= am33xx_uart2_irqs,
+-	.sdma_reqs	= uart1_edma_reqs,
++	.sdma_reqs	= uart2_edma_reqs,
+ 	.main_clk	= "dpll_per_m2_div4_ck",
+ 	.prcm		= {
+ 		.omap4	= {
+-- 
+1.7.9.5
 
-Florian
-
-[1] http://thread.gmane.org/gmane.linux.ports.arm.omap/98320
