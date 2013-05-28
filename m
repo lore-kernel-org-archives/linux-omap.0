@@ -1,90 +1,88 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH v1 1/3] PM / AVS: SmartReflex: disable errgen before vpbound disable
-Date: Tue, 28 May 2013 11:45:09 -0700
-Message-ID: <87sj17aqq2.fsf@linaro.org>
-References: <1369652846-14412-1-git-send-email-andrii.tseglytskyi@ti.com>
-	<1369652846-14412-2-git-send-email-andrii.tseglytskyi@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] arm: configs: omap2plus_defconfig: enable USB bits which
+ work
+Date: Tue, 28 May 2013 22:24:13 +0300
+Message-ID: <20130528192413.GA13842@arwen.pp.htv.fi>
+References: <1368494600-18953-1-git-send-email-balbi@ti.com>
+ <87ip2ly7p7.fsf@linaro.org>
+ <519C7EB3.2040801@ti.com>
+ <87hahnc6je.fsf@linaro.org>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1369652846-14412-2-git-send-email-andrii.tseglytskyi@ti.com>
-	(Andrii Tseglytskyi's message of "Mon, 27 May 2013 14:07:24 +0300")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
-Cc: J Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="IJpNTDwzlM2Ie8A6"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:52810 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751655Ab3E1TZA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 May 2013 15:25:00 -0400
+Content-Disposition: inline
+In-Reply-To: <87hahnc6je.fsf@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, kevin.hilman@linaro.org, Kishon Vijay Abraham I <kishon@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>
 
-Andrii Tseglytskyi <andrii.tseglytskyi@ti.com> writes:
+--IJpNTDwzlM2Ie8A6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> From: Nishanth Menon <nm@ti.com>
->
-> vpboundsintr_en is available inside the IP block as an re-sycned
-> version and one which is not. Due to this, there is an 1 sysclk
-> cycle window where interruptz could be asserted low for 1 cycle.
-                             ^^^
+Hi,
 
-Is that the way the cool kidz are spelling interrupts these days?  ;)
+On Tue, May 28, 2013 at 11:18:13AM -0700, Kevin Hilman wrote:
+> Roger Quadros <rogerq@ti.com> writes:
+>=20
+> > On 05/14/2013 05:09 PM, Kevin Hilman wrote:
+>=20
+> [...]
+>=20
+> >>> @@ -206,10 +207,18 @@ CONFIG_USB_ANNOUNCE_NEW_DEVICES=3Dy
+> >>>  CONFIG_USB_DEVICEFS=3Dy
+> >>>  CONFIG_USB_SUSPEND=3Dy
+> >>>  CONFIG_USB_MON=3Dy
+> >>> +CONFIG_USB_EHCI_HCD=3Dy
+> >>=20
+> >> NAK (on this particular change)
+> >>=20
+> >> This cannot be enable by default yet as EHCI *still* breaks core
+> >> retention[1] (which has been broken since at least v3.5, almost a year
+> >> now.)
+> >
+> > True. Due to broken smart idle/wakeup, EHCI host has to rely on
+> > IO Daisy chaining mechanism for remote wakeup.
+> >
+> > So this can't be fixed till we have daisy chaining working with device =
+tree
+> > boot.=20
+>=20
+> ... and is anyone working on that?
 
-> IF, intr_en is cleared on the exact same cycle as the irqclr, an
-> additional pulse is generated which indicates for VP that
-> an additional adjustment of voltage is required.
->
-> This results in VP doing two voltage adjustments for the SRERR
-> (based on configuration, upto 4 steps), instead of the needed
-> 1 step.
-> Due to the unexpected pulse from AVS which breaks the AVS-VP
-> communication protocol, VP also ends up in a stuck condition by
-> entering a state where VP module remains non-responsive
-> to any futher AVS adjustment events. This creates the symptom
-> called "TRANXDONE Timeout" scenario.
->
-> By disabling errgen prior to disable of intr_en, this situation
-> can be avoided.
->
-> Signed-off-by: Vincent Bour <v-bour@ti.com>
-> Signed-off-by: Leonardo Affortunati <l-affortunati@ti.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Andrii.Tseglytskyi <andrii.tseglytskyi@ti.com>
+Let's ask Tero :-)
 
->From Documentation/SubbmittingPatches:
+--=20
+balbi
 
-   "If a person was not directly involved in the preparation or handling
-   of a patch but wishes to signify and record their approval of it then
-   they can arrange to have an Acked-by: line added to the patch's
-   changelog."
+--IJpNTDwzlM2Ie8A6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Are all of the tags above co-authors or on the delivery path?  I suspect
-an Acked-by or Reviewed-by is more appropriate here.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Otherwise, patch itself looks fine.
+iQIcBAEBAgAGBQJRpQRdAAoJEIaOsuA1yqREIZsP/3zB4VqGbuNJP/Ib0LxjDFOf
+O2yUeMRtId7FBSC77brb7IBHtqQcl58Gu0WMfZ6Ti6E7Te+Zl1jNCOPHYAE9U6f/
+g15i5iOHedtOCSZK0a5fdNaCpsE+QZTH8zUJ7LUo5li4jjwW+V6I2jg0NX2/j+Gt
++Qihh++RZ65IAqK4UbJgTU72pz7CIbqI8vPTpTs9pOsbfbKIJ/4avWUm0XrzB6NC
+a0YjXs0C2+i4pAuAZ+oUwe1r6hpG1Xn5n70fq7bBmocIktbsen9NB/nbszLD9g2h
+j1VwU9UJpPyoreN2TomJtWRGkr4AFnSDuxblqQYuY3T0Qpwn0f+F8Hu61aNOaWZB
+18Av2cMtbtaNTYoBjUbZdLW4+vgXmlcisssOXzH3ooo/q0EMkMwiSVSX6krI3vBk
+UJu7V78F+fFFrVx5hN6xqBZCYytSK96xxp26tU0jzlUEgoupbN0fqLcMZUpJSUJ3
+v3bGMqtsfKNld683jzp9vyEi7If9xDP6sll+6Jx8D4TW7845P8h/8rMN0nHQfpp3
+ddLKpdJ6auXZ3sShzC7raRl1PMY4VhgZ+BkJvS6D1UsBsBEh90JwWAZdwjOHaq3P
+K6R+EaJu4YHwywMS/NXRUD9YH8qFqgr4ZSz7nN4BnZ/KVqWY9i6INPukBLzm5a0Y
+sJkeVGJQm8rCx0n4BwP6
+=f8Z6
+-----END PGP SIGNATURE-----
 
-Kevin
-
-> ---
->  drivers/power/avs/smartreflex.c |   11 ++++++++---
->  1 file changed, 8 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
-> index 6b2238b..f34d34d 100644
-> --- a/drivers/power/avs/smartreflex.c
-> +++ b/drivers/power/avs/smartreflex.c
-> @@ -449,12 +449,17 @@ int sr_disable_errgen(struct voltagedomain *voltdm)
->  		return -EINVAL;
->  	}
->  
-> -	/* Disable the interrupts of ERROR module */
-> -	sr_modify_reg(sr, errconfig_offs, vpboundint_en | vpboundint_st, 0);
-> -
->  	/* Disable the Sensor and errorgen */
->  	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN, 0);
->  
-> +	/*
-> +	 * Disable the interrupts of ERROR module
-> +	 * NOTE: modify is a read, modify,write - an implicit OCP barrier
-> +	 * which is required is present here - sequencing is critical
-> +	 * at this point (after errgen is disabled, vpboundint disable)
-> +	 */
-> +	sr_modify_reg(sr, errconfig_offs, vpboundint_en | vpboundint_st, 0);
-> +
->  	return 0;
->  }
+--IJpNTDwzlM2Ie8A6--
