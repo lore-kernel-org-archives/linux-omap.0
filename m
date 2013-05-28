@@ -1,83 +1,92 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] ARM: DTS: OMAP4: Panda/SDP: twl6030: fix mux for IRQ pin and msecure line
-Date: Tue, 28 May 2013 11:33:15 -0700
-Message-ID: <87a9nfc5uc.fsf@linaro.org>
-References: <1369423702-31501-1-git-send-email-khilman@linaro.org>
-	<20130524200954.GA2344@kahuna> <20130524203231.GA2555@kahuna>
-	<87obc0f54r.fsf@linaro.org>
-	<CAGo_u6oz1v1J-6z5W-X7CsOmi+7SAMicz1LZTv0sVXhej1DJ2Q@mail.gmail.com>
-	<87a9nkf3mu.fsf@linaro.org> <87ppwgdnxu.fsf@linaro.org>
-	<CAGo_u6ruWQwSB8Z0BRLda7HunTyr9mGpx4eMSGdQZkCxKxbHbg@mail.gmail.com>
+From: Jon Hunter <jgchunter@gmail.com>
+Subject: Re: [BISECTED] 3.10-rc1 OMAP1 GPIO IRQ regression
+Date: Tue, 28 May 2013 19:41:54 +0100
+Message-ID: <51A4FA72.2070402@gmail.com>
+References: <20130513205302.GA3157@blackmetal.musicnaut.iki.fi> <20130516180933.GG5600@atomide.com> <20130516210006.GA31836@blackmetal.musicnaut.iki.fi> <20130516214430.GN5600@atomide.com> <20130520174621.GI10378@atomide.com> <20130521173936.GE31836@blackmetal.musicnaut.iki.fi> <519BCCEC.8010303@gmail.com> <20130522212054.GG31836@blackmetal.musicnaut.iki.fi> <519E67AD.6070702@gmail.com> <20130523201358.GI31836@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f54.google.com ([209.85.160.54]:49422 "EHLO
-	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751851Ab3E1SdT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 May 2013 14:33:19 -0400
-Received: by mail-pb0-f54.google.com with SMTP id ro12so8191968pbb.27
-        for <linux-omap@vger.kernel.org>; Tue, 28 May 2013 11:33:18 -0700 (PDT)
-In-Reply-To: <CAGo_u6ruWQwSB8Z0BRLda7HunTyr9mGpx4eMSGdQZkCxKxbHbg@mail.gmail.com>
-	(Nishanth Menon's message of "Sun, 26 May 2013 12:35:51 -0500")
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:46561 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750761Ab3E1Sl7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 May 2013 14:41:59 -0400
+Received: by mail-wg0-f49.google.com with SMTP id y10so5560305wgg.28
+        for <linux-omap@vger.kernel.org>; Tue, 28 May 2013 11:41:57 -0700 (PDT)
+In-Reply-To: <20130523201358.GI31836@blackmetal.musicnaut.iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Nishanth Menon <nm@ti.com> writes:
 
-> On Fri, May 24, 2013 at 5:15 PM, Kevin Hilman <khilman@linaro.org> wrote:
->> Kevin Hilman <khilman@linaro.org> writes:
->>
->>> Nishanth Menon <nm@ti.com> writes:
->>
->> [...]
->>
->>>> Actually 2 things:
+On 23/05/13 21:13, Aaro Koskinen wrote:
+> On Thu, May 23, 2013 at 08:02:05PM +0100, Jon Hunter wrote:
+>> On 22/05/13 22:20, Aaro Koskinen wrote:
+>>> On Tue, May 21, 2013 at 08:37:16PM +0100, Jon Hunter wrote:
+>>>> On 21/05/13 18:39, Aaro Koskinen wrote:
+>>>>> On Mon, May 20, 2013 at 10:46:21AM -0700, Tony Lindgren wrote:
+>>>>>> * Tony Lindgren <tony@atomide.com> [130516 14:50]:
+>>>>>>> * Aaro Koskinen <aaro.koskinen@iki.fi> [130516 14:05]:
+>>>>>>>> On Thu, May 16, 2013 at 11:09:34AM -0700, Tony Lindgren wrote:
+>>>>>>>>> * Aaro Koskinen <aaro.koskinen@iki.fi> [130513 13:58]:
+>>>>>>>>>> I tested 3.10-rc1 on OMAP1 / Nokia 770, and Retu MFD probe is broken:
+>>>>>>>>>>
+>>>>>>>>>> [    2.264221] retu-mfd 2-0001: Retu v3.2 found
+>>>>>>>>>> [    2.281951] retu-mfd 2-0001: Failed to allocate IRQs: -12
+>>>>>>>>>> [    2.300140] retu-mfd: probe of 2-0001 failed with error -12
+>>>>>>>>>>
+>>>>>>>>>> The error is coming from regmap code. According to git bisect, it is
+>>>>>>>>>> caused by:
+>>>>>>>>>>
+>>>>>>>>>> 	commit ede4d7a5b9835510fd1f724367f68d2fa4128453
+>>>>>>>>>> 	Author: Jon Hunter <jon-hunter@ti.com>
+>>>>>>>>>> 	Date:   Fri Mar 1 11:22:47 2013 -0600
+>>>>>>>>>>
+>>>>>>>>>> 	    gpio/omap: convert gpio irq domain to linear mapping
+>>>>>>>>>>
+>>>>>>>>>> The commit does not anymore revert cleanly, and I haven't yet tried
+>>>>>>>>>> crafting a manual revert, so any fix proposals/ideas are welcome...
+>>>>>>>>>
+>>>>>>>>> Hmm this might be a bit trickier to fix. Obviously the real solution
+>>>>>>>>> is to convert omap1 to SPARSE_IRQ like we did for omap2+.
+>>>>>>>>>
+>>>>>>>>> For the -rc cycle, it might be possible to fix this by adding a
+>>>>>>>>> different irq_to_gpio() and gpio_to_irq() functions for omap1.
+>>>>>>>>
+>>>>>>>> The commit reverts cleanly if we also revert
+>>>>>>>> 3513cdeccc647d41c4a9ff923af17deaaac04a66 (gpio/omap: optimise interrupt
+>>>>>>>> service routine), which seems to be just some minor optimization. The
+>>>>>>>> result is below, and with it 770 works again.
+>>>>>>>
+>>>>>>> Hmm in this case it seems that we should just fix it rather than go back
+>>>>>>> to the old code, so let's take a look at that first.
+>>>>>>
+>>>>>> Does the following fix it for you or do we need to fix something else
+>>>>>> there too?
+>>>>>
+>>>>> Thanks, that fixes Retu probe on 770.
 >>>>
->>>> a) patch seems to do the wrong thing for 4460 - 0x18 offset should
->>>> have been used instead of 0x14 which is correct for 4430?
+>>>> Sorry for not responding sooner, but I have been moving. 
+>>>>
+>>>> From looking at the code it appears that the regmap_add_irq_chip()
+>>>> is failing in the retu driver. I am not sure if this will work, 
+>>>> but have you tried making the following change to the retu driver 
+>>>> so that it also uses irq_domain_add_linear() as well? Just a thought ...
 >>>
->>> I see, thanks.  I'll double check the TRMs.
->>>
->>>> b) yes, I understand,  the current settings we did worked, but the
->>>> mode(0) we are setting to is real weird - we are setting it up for
->>>> clk0 out - I cant even think why it is even working in the first place
->>>> :( - is it because we are pumping out sysclkout and as a result we are
->>>> lucky that msecure is being sampled at the right point by twl6030
->>>> allowing rtc access? either way, IMHO, the configuration is wrong.
->>>
->>> Ah, yes.  Mode zero is definitely wrong.   When I did the original patch
->>> for legacy mode, I just duplicated the settings u-boot was using.  Guess
->>> it's a fluke that it works.
+>>> This will trigger WARNING: at drivers/base/regmap/regmap-irq.c:514.
 >>
->> Actually, for legacy mode, it's set correctly in mode 2.  This line:
->>
->>         omap_mux_init_signal("fref_clk0_out.sys_drm_msecure", OMAP_PIN_OUTPUT);
->>
->> does the right thing based on the signal name.    But for DT boot, I
->> defintely screwed it up by setting it to mode (and putting it in the
->> wrong padconf section.)
->>
->> Also, are you *really* sure about the offset difference between 4430 and
->> 4460 here?  I don't have access to NDA docs anymore, so I cannot double
->> check this.
->>
->> What I do know is that the legacy code is using 0x54 for both, and if I
->> simply comment out that 'sys_drm_msecure' line above, RTC wake stops
->> working (legacy boot) on both 4430 and 4460, so that seems like pretty
->> stront evidence that it's the same offset on both.
-> Schematics are public for PandaBoard ES and PandaBoard - as you can
-> see from that the registers connected are definitely different.
+>> Sorry, there is another change needed. Can you try ...
+> 
+> I will try this. However, I would also like to point out that Retu works
+> fine on N800/N810 (OMAP2). If the problem is in Retu, why only OMAP1
+> is affected?
 
-What I see from both schematics is that SYS_DRM_MSECURE is available on
-a few different pads, but on both 4430 and 4460, one of the places is in
-mode 2 of FREF_CLK0_OUT, which is at offset 0x54 on both SoCs.
+The problem is not with retu or the gpio driver per-se, its just that
+now they are conflicting because the way the irq domains are being
+allocated. So probably just getting lucky on the n8xx. I had tested on
+omap1-4 and had not seen any problems, but none of my boards used the
+retu driver.
 
-Based on that reading, and the fact that not correctly muxing that pad
-to mode 2 on *both* 4430 and 4460 makes the RTC work, I'm rather
-convinced that the offset should be the same for 4430 and 4460.
-
-What am I missing?
-
-Kevin
+Cheers
+Jon
