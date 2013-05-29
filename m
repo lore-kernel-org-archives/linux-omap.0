@@ -1,37 +1,45 @@
 From: Libo Chen <clbchenlibo.chen@huawei.com>
 Subject: Re: [PATCH v2] usb: omap2430: fix memleak in err case
-Date: Wed, 29 May 2013 08:52:42 +0800
-Message-ID: <51A5515A.5090307@huawei.com>
-References: <5192E650.3070303@huawei.com> <519C3BD1.6050307@huawei.com> <51A4A614.7080707@huawei.com> <CAHp75Ve6Y637=aROj9nLN-vPgBkecYJTm=uWQU7veeEaSSq==w@mail.gmail.com>
+Date: Wed, 29 May 2013 10:47:36 +0800
+Message-ID: <51A56C48.5000501@huawei.com>
+References: <5192E650.3070303@huawei.com> <519C3BD1.6050307@huawei.com> <51A4EC0A.2060506@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:6001 "EHLO
-	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757098Ab3E2AxP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 May 2013 20:53:15 -0400
-In-Reply-To: <CAHp75Ve6Y637=aROj9nLN-vPgBkecYJTm=uWQU7veeEaSSq==w@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51A4EC0A.2060506@cogentembedded.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, grant.likely@linaro.org, rob.herring@calxeda.com, Li Zefan <lizefan@huawei.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: balbi@ti.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Li Zefan <lizefan@huawei.com>, USB <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-On 2013/5/28 23:34, Andy Shevchenko wrote:
-> No go.
+On 2013/5/29 1:40, Sergei Shtylyov wrote:
+> Hello.
 > 
-> Check the 4b7e450fb5cefb5865c77999a675330206ab3b8a
-> And update you tree, please.
+> On 22-05-2013 7:30, Libo Chen wrote:
 > 
-> --
-> With Best Regards,
-> Andy Shevchenko
+>> when omap_get_control_dev faild, we should release related platform_device
 > 
+>> * Changelog from v1:
+>>     * fix spell: s/fail/fails/, s/relational/related/ , thank Sergei <sergei.shtylyov@cogentembedded.com>
 > 
+>    It seems you've actually replaced "fail" with "faild", not "fails".
 
-It had been changed :(
+sorry for my weak spell.
 
-Thanks,
+
+thanks again,
 
 Libo
 
+
+> 
+>> Signed-off-by: Libo Chen <libo.chen@huawei.com>
+>> ---
+>>   drivers/usb/musb/omap2430.c |    3 ++-
+>>   1 files changed, 2 insertions(+), 1 deletions(-)
+> 
+> WBR, Sergei
+> 
+> 
+> 
