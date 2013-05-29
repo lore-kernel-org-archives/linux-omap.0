@@ -1,91 +1,103 @@
-From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 11/14] Documentation: dt: binding: omap: am43x timer
-Date: Wed, 29 May 2013 10:39:18 +0200
-Message-ID: <51A5BEB6.6070809@ti.com>
-References: <cover.1369658705.git.afzal@ti.com>
- <223d90dc9eeab13d8496690d336cdf0f7d27cd22.1369658705.git.afzal@ti.com>
- <51A520B5.8040803@gmail.com> <51A52A16.1040204@wwwdotorg.org>
- <C8443D0743D26F4388EA172BF4E2A7A93EAFB044@DBDE04.ent.ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] ARM: DTS: OMAP4: Panda/SDP: twl6030: fix mux for IRQ
+ pin and msecure line
+Date: Wed, 29 May 2013 11:36:29 +0300
+Message-ID: <51A5BE0D.7030609@ti.com>
+References: <1369423702-31501-1-git-send-email-khilman@linaro.org> <20130524200954.GA2344@kahuna> <20130524203231.GA2555@kahuna> <87obc0f54r.fsf@linaro.org> <CAGo_u6oz1v1J-6z5W-X7CsOmi+7SAMicz1LZTv0sVXhej1DJ2Q@mail.gmail.com> <87a9nkf3mu.fsf@linaro.org> <87ppwgdnxu.fsf@linaro.org> <CAGo_u6ruWQwSB8Z0BRLda7HunTyr9mGpx4eMSGdQZkCxKxbHbg@mail.gmail.com> <87a9nfc5uc.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EAFB044-yXqyApvAXouIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>
-Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jon Hunter <jgchunter-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Benoit Cousson <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59283 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965092Ab3E2Ijz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 May 2013 04:39:55 -0400
+In-Reply-To: <87a9nfc5uc.fsf@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Afzal,
+On 05/28/2013 09:33 PM, Kevin Hilman wrote:
+> Nishanth Menon <nm@ti.com> writes:
+>
+>> On Fri, May 24, 2013 at 5:15 PM, Kevin Hilman <khilman@linaro.org> wrote:
+>>> Kevin Hilman <khilman@linaro.org> writes:
+>>>
+>>>> Nishanth Menon <nm@ti.com> writes:
+>>> [...]
+>>>
+>>>>> Actually 2 things:
+>>>>>
+>>>>> a) patch seems to do the wrong thing for 4460 - 0x18 offset should
+>>>>> have been used instead of 0x14 which is correct for 4430?
+>>>> I see, thanks.  I'll double check the TRMs.
+>>>>
+>>>>> b) yes, I understand,  the current settings we did worked, but the
+>>>>> mode(0) we are setting to is real weird - we are setting it up for
+>>>>> clk0 out - I cant even think why it is even working in the first place
+>>>>> :( - is it because we are pumping out sysclkout and as a result we are
+>>>>> lucky that msecure is being sampled at the right point by twl6030
+>>>>> allowing rtc access? either way, IMHO, the configuration is wrong.
+>>>> Ah, yes.  Mode zero is definitely wrong.   When I did the original patch
+>>>> for legacy mode, I just duplicated the settings u-boot was using.  Guess
+>>>> it's a fluke that it works.
+>>> Actually, for legacy mode, it's set correctly in mode 2.  This line:
+>>>
+>>>          omap_mux_init_signal("fref_clk0_out.sys_drm_msecure", OMAP_PIN_OUTPUT);
+>>>
+>>> does the right thing based on the signal name.    But for DT boot, I
+>>> defintely screwed it up by setting it to mode (and putting it in the
+>>> wrong padconf section.)
+>>>
+>>> Also, are you *really* sure about the offset difference between 4430 and
+>>> 4460 here?  I don't have access to NDA docs anymore, so I cannot double
+>>> check this.
+>>>
+>>> What I do know is that the legacy code is using 0x54 for both, and if I
+>>> simply comment out that 'sys_drm_msecure' line above, RTC wake stops
+>>> working (legacy boot) on both 4430 and 4460, so that seems like pretty
+>>> stront evidence that it's the same offset on both.
+>> Schematics are public for PandaBoard ES and PandaBoard - as you can
+>> see from that the registers connected are definitely different.
+> What I see from both schematics is that SYS_DRM_MSECURE is available on
+> a few different pads, but on both 4430 and 4460, one of the places is in
+> mode 2 of FREF_CLK0_OUT, which is at offset 0x54 on both SoCs.
+>
+> Based on that reading, and the fact that not correctly muxing that pad
+> to mode 2 on *both* 4430 and 4460 makes the RTC work, I'm rather
+> convinced that the offset should be the same for 4430 and 4460.
+>
+> What am I missing?
+Hi Kevin,
 
-On 05/29/2013 10:06 AM, Mohammed, Afzal wrote:
-> Hi Jon,
-> 
-> On Wed, May 29, 2013 at 03:35:10, Stephen Warren wrote:
->> On 05/28/2013 03:25 PM, Jon Hunter wrote:
-> 
->>>>  			ti,am335x-timer	(applicable to AM335x devices)
->>>>  			ti,am335x-timer-1ms (applicable to AM335x devices)
->>>> +			"ti,am4372-timer-1ms", "ti,am335x-timer-1ms" for AM43x 1ms timer
->>>> +			"ti,am4372-timer", "ti,am335x-timer" for AM43x timers other than 1ms one
-> 
->>> If you are adding more compatibility strings, then this implies that the
->>> AM43x timers are not 100% compatible with any other device listed (such
->>> as am335x or any omap device). That's fine but you should state that in
->>> the changelog. If the AM43x timer registers are 100% compatible with
->>> existing devices you should not add these.
->>
->> I'm not sure that's true; .dts files should always include a compatible
->> value that describes the most specific model of the HW, plus any
->> baseline compatible value that the HW is compatible with. This allows
->> any required quirks/fixes/... to be applied for the specific HW model
->> later even if nobody knows right now they'll be needed. Hence, defining
->> new compatible values doesn't necessarily mean incompatible HW.
-> 
-> Stephen took words out of my finger ;)
->  
-> Some explanations,I don;t 
-> 
-> 1. first compatible should be exact device [A], followed by compatible
-> model (if one)
-> 2. Minor effort in getting DT right the first time may help prevent
-> difficult effort later modifying it (if a necessity comes), considering
-> the fact that DT sources has  to move out of Kernel at some point of
-> time. And DT is not supposed to be modified, which may cause difficulty
-> for the users (I had been a minor victim of this during rebase).
-> 
-> As we both were in GPMC land earlier, an example,
-> 
-> If my memory is right, GPMC IP in am335x is rev 6, and IP has 8 chip
-> select, but one is not pinned out. Now assume that same IP is integrated
-> in another SoC (probably OMAP4 has rev 6). Here if we use same compatible
-> for both, driver cannot handle it properly (w/o knowledge about platform).
-> But if exact compatible is mentioned, without modifying DT (which should
-> be considered as a firmware) just by modifying Kernel, deciding based on
-> compatible would help achieve what is required.
+I've rechecked it too.
 
-That's true for the DTS itself, but here your are changing the binding
-documentation which is supposed to reflect the driver "interface" in the
-Device Tree model description.
+According to:
+Panda ES: 
+http://pandaboard.org/sites/default/files/board_reference/ES/750-2170-002-sch_revb.pdf
+Panda: 
+http://pandaboard.org/sites/default/files/board_reference/pandaboard-a/panda-a-schematic.pdf
 
-Since the driver does not support any new compatible string, you should
-not update the binding.
+AD2 (FREF_CLK0_OUT) is used for on both boards as H_SYS_DRM_MSEC - so, 
+valid offset is 0x14
+CONTROL_WKUP_PAD0_FREF_CLK0_OUT_PAD1_FREF_CLK3_REQ lowest 16 bit
 
-The driver and the binding will have to be changed the day you will have
-to update the driver to handle a bug / feature specific to that revision
-(ti,am4372-timer).
+FYI: in Android K3.0 and K3.4 this pin configured to "gpio_wk6" as following
+     omap_mux_init_signal("fref_clk0_out.gpio_wk6", OMAP_PIN_OUTPUT);
+     gpio_request(6, "msecure");
+     gpio_direction_output(6, 1);
 
-Since this series does not seems to update the driver, you should not
-update the bindings.
+http://git.omapzoom.org/?p=kernel/omap.git;a=commit;h=262669aebf4af4044a25e8292f0e27986e18445a
+
 
 Regards,
-Benoit
+Grygorii
+
+>
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
