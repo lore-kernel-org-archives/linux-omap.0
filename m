@@ -1,127 +1,87 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 03/14] ARM: OMAP4+: CM: Move function prototypes to common header for re-use
-Date: Wed, 29 May 2013 12:38:03 -0400
-Message-ID: <1369845494-30231-4-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 12/14] ARM: OMAP5: Enable build and frameowrk initialisations
+Date: Wed, 29 May 2013 12:38:12 -0400
+Message-ID: <1369845494-30231-13-git-send-email-santosh.shilimkar@ti.com>
 References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59603 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38805 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759515Ab3E2Qjs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 May 2013 12:39:48 -0400
+	id S1759623Ab3E2QkF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 May 2013 12:40:05 -0400
 In-Reply-To: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-OMAP5 reuses OMAP4 CM IP block which lets us re-use CM1/CM2 functions.
-So move the function prototypes from cm1_44xx.h, cm2_44xx.h to
-cm_prm44xx_54xx.h header. The suggestion came from Paul Walmsley
-as part of the OMAP5 data file review.
-
-This is preparatory  patch to add OMAP5 CM data file.
+Include the OMAP5 data files in build. Initialise the voltage, power,
+clock domains.
 
 Cc: Paul Walmsley <paul@pwsan.com>
 
-Acked-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/cm1_44xx.h     |    7 ++-----
- arch/arm/mach-omap2/cm2_44xx.h     |    7 ++-----
- arch/arm/mach-omap2/cm_44xx_54xx.h |   36 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 40 insertions(+), 10 deletions(-)
- create mode 100644 arch/arm/mach-omap2/cm_44xx_54xx.h
+ arch/arm/mach-omap2/Makefile |    4 ++++
+ arch/arm/mach-omap2/io.c     |    7 +++++++
+ 2 files changed, 11 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/cm1_44xx.h b/arch/arm/mach-omap2/cm1_44xx.h
-index 1bc00dc..5ae8fe3 100644
---- a/arch/arm/mach-omap2/cm1_44xx.h
-+++ b/arch/arm/mach-omap2/cm1_44xx.h
-@@ -25,6 +25,8 @@
- #ifndef __ARCH_ARM_MACH_OMAP2_CM1_44XX_H
- #define __ARCH_ARM_MACH_OMAP2_CM1_44XX_H
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 55a9d67..27448ab 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -127,6 +127,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= voltagedomains44xx_data.o
+ obj-$(CONFIG_SOC_AM33XX)		+= $(voltagedomain-common)
+ obj-$(CONFIG_SOC_AM33XX)                += voltagedomains33xx_data.o
+ obj-$(CONFIG_SOC_OMAP5)			+= $(voltagedomain-common)
++obj-$(CONFIG_SOC_OMAP5)                += voltagedomains54xx_data.o
  
-+#include "cm_44xx_54xx.h"
+ # OMAP powerdomain framework
+ powerdomain-common			+= powerdomain.o powerdomain-common.o
+@@ -141,6 +142,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= powerdomains44xx_data.o
+ obj-$(CONFIG_SOC_AM33XX)		+= $(powerdomain-common)
+ obj-$(CONFIG_SOC_AM33XX)		+= powerdomains33xx_data.o
+ obj-$(CONFIG_SOC_OMAP5)			+= $(powerdomain-common)
++obj-$(CONFIG_SOC_OMAP5)			+= powerdomains54xx_data.o
+ 
+ # PRCM clockdomain control
+ clockdomain-common			+= clockdomain.o
+@@ -156,6 +158,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= clockdomains44xx_data.o
+ obj-$(CONFIG_SOC_AM33XX)		+= $(clockdomain-common)
+ obj-$(CONFIG_SOC_AM33XX)		+= clockdomains33xx_data.o
+ obj-$(CONFIG_SOC_OMAP5)			+= $(clockdomain-common)
++obj-$(CONFIG_SOC_OMAP5)			+= clockdomains54xx_data.o
+ 
+ # Clock framework
+ obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common) clock2xxx.o
+@@ -198,6 +201,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_2xxx_3xxx_interconnect_data.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_3xxx_data.o
+ obj-$(CONFIG_SOC_AM33XX)		+= omap_hwmod_33xx_data.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
++obj-$(CONFIG_SOC_OMAP5)			+= omap_hwmod_54xx_data.o
+ 
+ # EMU peripherals
+ obj-$(CONFIG_OMAP3_EMU)			+= emu.o
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 09abf99..a0cc2bb 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -631,7 +631,14 @@ void __init omap5_init_early(void)
+ 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
+ 	omap_prm_base_init();
+ 	omap_cm_base_init();
++	omap44xx_prm_init();
+ 	omap5xxx_check_revision();
++	omap54xx_voltagedomains_init();
++	omap54xx_powerdomains_init();
++	omap54xx_clockdomains_init();
++	omap54xx_hwmod_init();
++	omap_hwmod_init_postsetup();
 +
- /* CM1 base address */
- #define OMAP4430_CM1_BASE		0x4a004000
- 
-@@ -217,9 +219,4 @@
- #define OMAP4_CM1_ABE_WDT3_CLKCTRL_OFFSET		0x0088
- #define OMAP4430_CM1_ABE_WDT3_CLKCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_ABE_INST, 0x0088)
- 
--/* Function prototypes */
--extern u32 omap4_cm1_read_inst_reg(s16 inst, u16 idx);
--extern void omap4_cm1_write_inst_reg(u32 val, s16 inst, u16 idx);
--extern u32 omap4_cm1_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
--
+ }
  #endif
-diff --git a/arch/arm/mach-omap2/cm2_44xx.h b/arch/arm/mach-omap2/cm2_44xx.h
-index b9de72d..ee5136d 100644
---- a/arch/arm/mach-omap2/cm2_44xx.h
-+++ b/arch/arm/mach-omap2/cm2_44xx.h
-@@ -25,6 +25,8 @@
- #ifndef __ARCH_ARM_MACH_OMAP2_CM2_44XX_H
- #define __ARCH_ARM_MACH_OMAP2_CM2_44XX_H
  
-+#include "cm_44xx_54xx.h"
-+
- /* CM2 base address */
- #define OMAP4430_CM2_BASE		0x4a008000
- 
-@@ -449,9 +451,4 @@
- #define OMAP4_CM_CEFUSE_CEFUSE_CLKCTRL_OFFSET		0x0020
- #define OMAP4430_CM_CEFUSE_CEFUSE_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CEFUSE_INST, 0x0020)
- 
--/* Function prototypes */
--extern u32 omap4_cm2_read_inst_reg(s16 inst, u16 idx);
--extern void omap4_cm2_write_inst_reg(u32 val, s16 inst, u16 idx);
--extern u32 omap4_cm2_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
--
- #endif
-diff --git a/arch/arm/mach-omap2/cm_44xx_54xx.h b/arch/arm/mach-omap2/cm_44xx_54xx.h
-new file mode 100644
-index 0000000..4154f86
---- /dev/null
-+++ b/arch/arm/mach-omap2/cm_44xx_54xx.h
-@@ -0,0 +1,36 @@
-+/*
-+ * OMAP44xx and OMAP54xx CM1/CM2 function prototypes
-+ *
-+ * Copyright (C) 2009-201333 Texas Instruments, Inc.
-+ * Copyright (C) 2009-2010 Nokia Corporation
-+ *
-+ * Paul Walmsley (paul@pwsan.com)
-+ * Rajendra Nayak (rnayak@ti.com)
-+ * Benoit Cousson (b-cousson@ti.com)
-+ *
-+ * This file is automatically generated from the OMAP hardware databases.
-+ * We respectfully ask that any modifications to this file be coordinated
-+ * with the public linux-omap@vger.kernel.org mailing list and the
-+ * authors above to ensure that the autogeneration scripts are kept
-+ * up-to-date with the file contents.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+
-+#ifndef __ARCH_ARM_MACH_OMAP2_CM_44XX_54XX_H
-+#define __ARCH_ARM_MACH_OMAP2_CM_44XX_55XX_H
-+
-+/* CM1 Function prototypes */
-+extern u32 omap4_cm1_read_inst_reg(s16 inst, u16 idx);
-+extern void omap4_cm1_write_inst_reg(u32 val, s16 inst, u16 idx);
-+extern u32 omap4_cm1_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
-+
-+/* CM2 Function prototypes */
-+extern u32 omap4_cm2_read_inst_reg(s16 inst, u16 idx);
-+extern void omap4_cm2_write_inst_reg(u32 val, s16 inst, u16 idx);
-+extern u32 omap4_cm2_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
-+
-+#endif
 -- 
 1.7.9.5
 
