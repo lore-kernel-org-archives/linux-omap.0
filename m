@@ -1,111 +1,43 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: [PATCH v7] ARM: dts: omap4-panda: Update the LED support for the panda DTS
-Date: Wed, 29 May 2013 06:20:27 -0500
-Message-ID: <1369826427-31963-1-git-send-email-dmurphy@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/5] USB: PHY: Improve PHY selection logic
+Date: Wed, 29 May 2013 14:43:26 +0300
+Message-ID: <1369827811-534-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54072 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965683Ab3E2LVE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 May 2013 07:21:04 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
+Cc: balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, adrienverge-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Dan Murphy <dmurphy@ti.com>
 
-The GPIO for LED D1 on the omap4-panda a1-a3 rev and the omap4-panda-es
-are different.
+Hi,
 
-A1-A3 = gpio_wk7
-ES = gpio_110
+Improve Kconfig so that the relevant PHY driver can be explicitely
+selected by the controller driver instead of relying on the user
+to do so.
 
-There is no change to LED D2
+Detailed description in patch 1.
 
-Abstract away the pinmux and the LED definitions for the two boards into
-the respective DTS files.
+cheers,
+-roger
 
-Signed-off-by: Dan Murphy <dmurphy@ti.com>
----
-v7 - Update headline to add spaces - https://patchwork.kernel.org/patch/2583661/
-v6 - Review comments updated - https://patchwork.kernel.org/patch/2582771/
-v5 - Provide pincrtl phandle to the gpio-led driver - https://patchwork.kernel.org/patch/2573981/
+Roger Quadros (5):
+  USB: PHY: Make PHY driver selection possible by controller drivers
+  USB: ehci-omap: select NOP_USB_XCEIV PHY driver
+  USB: ehci-msm: USB_EHCI_MSM need not depend on USB_PHY
+  USB: lpc32xx: USB_LPC32XX need not depend on USB_PHY
+  USB: OMAP: USB_OMAP need not depend USB_PHY
 
- arch/arm/boot/dts/omap4-panda-common.dtsi |   16 +++++++++++++++-
- arch/arm/boot/dts/omap4-panda-es.dts      |   28 ++++++++++++++++++++++++++++
- 2 files changed, 43 insertions(+), 1 deletions(-)
+ drivers/usb/Makefile       |    3 +--
+ drivers/usb/gadget/Kconfig |    2 --
+ drivers/usb/host/Kconfig   |    5 +----
+ drivers/usb/phy/Kconfig    |   31 +++++++++++++++++++++----------
+ 4 files changed, 23 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-index 03bd60d..5fd59b3 100644
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -16,8 +16,13 @@
- 		reg = <0x80000000 0x40000000>; /* 1 GB */
- 	};
- 
--	leds {
-+	leds: leds {
- 		compatible = "gpio-leds";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <
-+			&led_wkgpio_pins
-+		>;
-+
- 		heartbeat {
- 			label = "pandaboard::status1";
- 			gpios = <&gpio1 7 0>;
-@@ -137,6 +142,15 @@
- 	};
- };
- 
-+&omap4_pmx_wkup {
-+	led_wkgpio_pins: pinmux_leds_wkpins {
-+		pinctrl-single,pins = <
-+			0x1a 0x3	/* gpio_wk7 OUTPUT | MODE 3 */
-+			0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
-+		>;
-+	};
-+};
-+
- &i2c1 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&i2c1_pins>;
-diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
-index f1d8c21..c968a3b 100644
---- a/arch/arm/boot/dts/omap4-panda-es.dts
-+++ b/arch/arm/boot/dts/omap4-panda-es.dts
-@@ -34,3 +34,31 @@
- 		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
- 		>;
- };
-+
-+&omap4_pmx_core {
-+	led_gpio_pins: gpio_led_pmx {
-+		pinctrl-single,pins = <
-+			0xb6 0x3	/* gpio_110 OUTPUT | MODE 3 */
-+		>;
-+	};
-+};
-+
-+&led_wkgpio_pins {
-+	pinctrl-single,pins = <
-+		0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
-+	>;
-+};
-+
-+&leds {
-+	pinctrl-0 = <
-+		&led_gpio_pins
-+		&led_wkgpio_pins
-+	>;
-+
-+	heartbeat {
-+		gpios = <&gpio4 14 0>;
-+	};
-+	mmc {
-+		gpios = <&gpio1 8 0>;
-+	};
-+};
 -- 
-1.7.5.4
+1.7.4.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
