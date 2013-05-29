@@ -1,31 +1,96 @@
-From: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/1] i2c: omap: correct usage of the interrupt enable register
-Date: Wed, 29 May 2013 10:22:59 -0700
-Message-ID: <878v2x7lak.fsf@linaro.org>
-References: <1369812944-685-1-git-send-email-oleksandr.dmytryshyn@ti.com>
-	<1369812944-685-2-git-send-email-oleksandr.dmytryshyn@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 0/3] palmas usb driver
+Date: Wed, 29 May 2013 20:38:51 +0300
+Message-ID: <20130529173851.GC21290@arwen.pp.htv.fi>
+References: <1369405896-30246-1-git-send-email-kishon@ti.com>
+ <20130528173554.GD15794@arwen.pp.htv.fi>
+ <51A59AC9.9000908@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1369812944-685-2-git-send-email-oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
-	(Oleksandr Dmytryshyn's message of "Wed, 29 May 2013 10:35:44 +0300")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="t0UkRYy7tHLRMCai"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56817 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754614Ab3E2RkN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 May 2013 13:40:13 -0400
+Content-Disposition: inline
+In-Reply-To: <51A59AC9.9000908@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com, ldewangan@nvidia.com, gg@slimlogic.co.uk, lgirdwood@gmail.com, broonie@kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, grant.likely@linaro.org, rob.herring@calxeda.com, rob@landley.net, gregkh@linuxfoundation.org, george.cherian@ti.com, sameo@linux.intel.com
 
-Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org> writes:
+--t0UkRYy7tHLRMCai
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Starting from the OMAP chips with version2 registers scheme there are
-> 2 registers (I2C_IRQENABLE_SET and I2C_IRQENABLE_CLR) to manage
-> interrupts instead of the older OMAP chips with old scheme which have
-> only one register (I2C_IE).  Now we should use I2C_IRQENABLE_SET
-> register for enabling interrupts and I2C_IRQENABLE_CLR register for
-> disabling interrupts.
+Hi,
 
-Why?  (changelogs should always answer the "why" question)
+On Wed, May 29, 2013 at 11:36:01AM +0530, Kishon Vijay Abraham I wrote:
+> Hi Felipe,
+>=20
+> On Tuesday 28 May 2013 11:05 PM, Felipe Balbi wrote:
+> >On Fri, May 24, 2013 at 08:01:33PM +0530, Kishon Vijay Abraham I wrote:
+> >>This patch series adds driver for palmas usb which is used to detect
+> >>attach/detach events of usb device and usb host.
+> >>
+> >>[PATCH v5 2/3] extcon: Palmas Extcon Driver which was sent previously
+> >>is added in this patch series itself. The revision history is added
+> >>in the patch comments section.
+> >>
+> >>A checkpatch warning "WARNING: static const char * array should
+> >>probably be static const char * const"is ignored since it introduces a
+> >>compilation warning.
+> >>
+> >>Graeme Gregory (2):
+> >>   drivers: regulator: palmas: add an API to set/clear the switch bit on
+> >>     SMPS10
+> >>   extcon: Palmas Extcon Driver
+> >>
+> >>Kishon Vijay Abraham I (1):
+> >>   usb: dwc3: use extcon fwrk to receive connect/disconnect notification
+> >
+> >
+> >There were some comments to this series, what will happen with it ? Any
+> >new versions coming ?
+>=20
+> I've already sent new versions. Palmas Extcon Driver is already
+> queued in extcon-next.
+> Chanwoo can take this patch in his tree after your ACK. [PATCH v2]
+> usb: dwc3: use extcon fwrk to receive connect/disconnect
+> notification.
 
-IOW, what is broken without this change, how does it fail?  And equally
-important, how is it currently working?
+alright, thanks for the note, here it is:
 
-Kevin
+
+Acked-by: Felipe Balbi <balbi@ti.com>
+
+
+--=20
+balbi
+
+--t0UkRYy7tHLRMCai
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRpj0rAAoJEIaOsuA1yqREIzsP/1dko3amHbyWlLC9XjqFG2Wl
+KSyuIRF9U7Povtu907ASTNCCWhuE92SaO5oKfxw/5s8sRnXMLHyav7wBU8HHKYw7
+EJtSx2d8UiS1sj+0QHBOKQ3kKdlaSpS/9XOeRC93sLcP76iBBtsY9QAsGn5Xn1M5
+BmR3hczmHZSpGvdrLjPMZXo2hUa6/4uWz8IbWd70x7AmFAStaTn38Ej9KjhcWb+R
+ASvz039o74ViSEEgPfi214xxjlebV6btva/pn8jkhzf6VvwM6dcttR1wDHFBQonQ
+1ReNhukufB/s8SIgghUS5dG9FJidJsEQXO8aHxNPv1CY4MIlfBA63jTp4gHawGid
+4+eq72bXPO+9mSsOhd2cq7fCkrU7woRT3rlpKwByfdMI8yTEsHaRMKZvYZ3Yld3A
+gQgzJX+m/rG6ZwZN4NdDG1e6r93KIl5VQrXu8VXV6A1NkyqaEl6MylW+PUDJq1hz
+xlMg0+d20HFk/J6H8u55afvQIOcKWmW19ANBttv97ep3xjYiRMZUU0Vixvk1g2q/
+MTEy47eBiwxZvGzojdxqTknhwOOAudXcTwwPQpEMVXJjHwLu++IbzF22bTSS5eL+
+c96v483jTPrkx8OOwgZQ3ysAJrXVnbzNuR6IWkjeAqFB1PuuJF4/HZcNdstOX+B3
+O7OMZlJt24X2LWS5Jhg/
+=/KLz
+-----END PGP SIGNATURE-----
+
+--t0UkRYy7tHLRMCai--
