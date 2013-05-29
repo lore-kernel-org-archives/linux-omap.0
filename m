@@ -1,112 +1,156 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 05/14] ARM: OMAP4+: PRCM MPU: Move function prototypes to common header for re-use
-Date: Wed, 29 May 2013 12:38:05 -0400
-Message-ID: <1369845494-30231-6-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 11/14] ARM: OMAP5: voltagedomain data: Add OMAP5 voltage domain data
+Date: Wed, 29 May 2013 12:38:11 -0400
+Message-ID: <1369845494-30231-12-git-send-email-santosh.shilimkar@ti.com>
 References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59607 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38798 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759545Ab3E2Qjs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 May 2013 12:39:48 -0400
+	id S1757728Ab3E2Qj7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 May 2013 12:39:59 -0400
 In-Reply-To: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>
 
-OMAP5 reuses OMAP4 MPU PRCM IP block which lets us re-use functions.
-So move the function prototypes from prcm_mpu44xx.h to prcm_mpu_44xx_54xx.h
-header. The suggestion came from Paul Walmsley as part of the
-OMAP5 data file review.
+Add voltagedomain related data for OMAP54XX SOCs. OMAP4 OPP data is
+used for now. OMAP5 OPP data will be added as part of OMAP5 DVFS
+support.
 
-This is preparatory  patch to add OMAP5 MPU PRCM data file.
-
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 
-Acked-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/prcm_mpu44xx.h       |   14 +-----------
- arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h |   36 ++++++++++++++++++++++++++++++
- 2 files changed, 37 insertions(+), 13 deletions(-)
- create mode 100644 arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h
+ arch/arm/mach-omap2/voltage.h                 |    1 +
+ arch/arm/mach-omap2/voltagedomains54xx_data.c |  102 +++++++++++++++++++++++++
+ 2 files changed, 103 insertions(+)
+ create mode 100644 arch/arm/mach-omap2/voltagedomains54xx_data.c
 
-diff --git a/arch/arm/mach-omap2/prcm_mpu44xx.h b/arch/arm/mach-omap2/prcm_mpu44xx.h
-index 884af7b..059bd4f 100644
---- a/arch/arm/mach-omap2/prcm_mpu44xx.h
-+++ b/arch/arm/mach-omap2/prcm_mpu44xx.h
-@@ -25,12 +25,9 @@
- #ifndef __ARCH_ARM_MACH_OMAP2_PRCM_MPU44XX_H
- #define __ARCH_ARM_MACH_OMAP2_PRCM_MPU44XX_H
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index a0ce4f1..5998eed 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -171,6 +171,7 @@ extern void omap2xxx_voltagedomains_init(void);
+ extern void omap3xxx_voltagedomains_init(void);
+ extern void am33xx_voltagedomains_init(void);
+ extern void omap44xx_voltagedomains_init(void);
++extern void omap54xx_voltagedomains_init(void);
  
-+#include "prcm_mpu_44xx_54xx.h"
- #include "common.h"
- 
--# ifndef __ASSEMBLER__
--extern void __iomem *prcm_mpu_base;
--# endif
--
- #define OMAP4430_PRCM_MPU_BASE			0x48243000
- 
- #define OMAP44XX_PRCM_MPU_REGADDR(inst, reg)				\
-@@ -98,13 +95,4 @@ extern void __iomem *prcm_mpu_base;
- #define OMAP4_CM_CPU1_CLKSTCTRL_OFFSET		0x0018
- #define OMAP4430_CM_CPU1_CLKSTCTRL		OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_INST, 0x0018)
- 
--/* Function prototypes */
--# ifndef __ASSEMBLER__
--extern u32 omap4_prcm_mpu_read_inst_reg(s16 inst, u16 idx);
--extern void omap4_prcm_mpu_write_inst_reg(u32 val, s16 inst, u16 idx);
--extern u32 omap4_prcm_mpu_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst,
--					    s16 idx);
--extern void __init omap2_set_globals_prcm_mpu(void __iomem *prcm_mpu);
--# endif
--
- #endif
-diff --git a/arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h b/arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h
+ struct voltagedomain *voltdm_lookup(const char *name);
+ void voltdm_init(struct voltagedomain **voltdm_list);
+diff --git a/arch/arm/mach-omap2/voltagedomains54xx_data.c b/arch/arm/mach-omap2/voltagedomains54xx_data.c
 new file mode 100644
-index 0000000..ca149e7
+index 0000000..72b8971
 --- /dev/null
-+++ b/arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h
-@@ -0,0 +1,36 @@
++++ b/arch/arm/mach-omap2/voltagedomains54xx_data.c
+@@ -0,0 +1,102 @@
 +/*
-+ * OMAP44xx and OMAP54xx PRCM MPU function prototypes
++ * OMAP5 Voltage Management Routines
 + *
-+ * Copyright (C) 2010, 2013 Texas Instruments, Inc.
-+ * Copyright (C) 2010 Nokia Corporation
++ * Based on voltagedomains44xx_data.c
 + *
-+ * Paul Walmsley (paul@pwsan.com)
-+ * Rajendra Nayak (rnayak@ti.com)
-+ * Benoit Cousson (b-cousson@ti.com)
-+ *
-+ * This file is automatically generated from the OMAP hardware databases.
-+ * We respectfully ask that any modifications to this file be coordinated
-+ * with the public linux-omap@vger.kernel.org mailing list and the
-+ * authors above to ensure that the autogeneration scripts are kept
-+ * up-to-date with the file contents.
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
-+ *
 + */
++#include <linux/kernel.h>
++#include <linux/err.h>
++#include <linux/init.h>
 +
-+#ifndef __ARCH_ARM_MACH_OMAP2_PRCM_MPU_44XX_54XX_H
-+#define __ARCH_ARM_MACH_OMAP2_PRCM_MPU_44XX_54XX_H
++#include "common.h"
 +
-+#ifndef __ASSEMBLER__
-+extern void __iomem *prcm_mpu_base;
++#include "prm54xx.h"
++#include "voltage.h"
++#include "omap_opp_data.h"
++#include "vc.h"
++#include "vp.h"
 +
-+extern u32 omap4_prcm_mpu_read_inst_reg(s16 inst, u16 idx);
-+extern void omap4_prcm_mpu_write_inst_reg(u32 val, s16 inst, u16 idx);
-+extern u32 omap4_prcm_mpu_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst,
-+					    s16 idx);
-+extern void __init omap2_set_globals_prcm_mpu(void __iomem *prcm_mpu);
++static const struct omap_vfsm_instance omap5_vdd_mpu_vfsm = {
++	.voltsetup_reg = OMAP54XX_PRM_VOLTSETUP_MPU_RET_SLEEP_OFFSET,
++};
++
++static const struct omap_vfsm_instance omap5_vdd_mm_vfsm = {
++	.voltsetup_reg = OMAP54XX_PRM_VOLTSETUP_MM_RET_SLEEP_OFFSET,
++};
++
++static const struct omap_vfsm_instance omap5_vdd_core_vfsm = {
++	.voltsetup_reg = OMAP54XX_PRM_VOLTSETUP_CORE_RET_SLEEP_OFFSET,
++};
++
++static struct voltagedomain omap5_voltdm_mpu = {
++	.name = "mpu",
++	.scalable = true,
++	.read = omap4_prm_vcvp_read,
++	.write = omap4_prm_vcvp_write,
++	.rmw = omap4_prm_vcvp_rmw,
++	.vc = &omap4_vc_mpu,
++	.vfsm = &omap5_vdd_mpu_vfsm,
++	.vp = &omap4_vp_mpu,
++};
++
++static struct voltagedomain omap5_voltdm_mm = {
++	.name = "mm",
++	.scalable = true,
++	.read = omap4_prm_vcvp_read,
++	.write = omap4_prm_vcvp_write,
++	.rmw = omap4_prm_vcvp_rmw,
++	.vc = &omap4_vc_iva,
++	.vfsm = &omap5_vdd_mm_vfsm,
++	.vp = &omap4_vp_iva,
++};
++
++static struct voltagedomain omap5_voltdm_core = {
++	.name = "core",
++	.scalable = true,
++	.read = omap4_prm_vcvp_read,
++	.write = omap4_prm_vcvp_write,
++	.rmw = omap4_prm_vcvp_rmw,
++	.vc = &omap4_vc_core,
++	.vfsm = &omap5_vdd_core_vfsm,
++	.vp = &omap4_vp_core,
++};
++
++static struct voltagedomain omap5_voltdm_wkup = {
++	.name = "wkup",
++};
++
++static struct voltagedomain *voltagedomains_omap5[] __initdata = {
++	&omap5_voltdm_mpu,
++	&omap5_voltdm_mm,
++	&omap5_voltdm_core,
++	&omap5_voltdm_wkup,
++	NULL,
++};
++
++static const char *sys_clk_name __initdata = "sys_clkin";
++
++void __init omap54xx_voltagedomains_init(void)
++{
++	struct voltagedomain *voltdm;
++	int i;
++
++	/*
++	 * XXX Will depend on the process, validation, and binning
++	 * for the currently-running IC. Use OMAP4 data for time being.
++	 */
++#ifdef CONFIG_PM_OPP
++	omap5_voltdm_mpu.volt_data = omap446x_vdd_mpu_volt_data;
++	omap5_voltdm_mm.volt_data = omap446x_vdd_iva_volt_data;
++	omap5_voltdm_core.volt_data = omap446x_vdd_core_volt_data;
 +#endif
 +
-+#endif
++	for (i = 0; voltdm = voltagedomains_omap5[i], voltdm; i++)
++		voltdm->sys_clk.name = sys_clk_name;
++
++	voltdm_init(voltagedomains_omap5);
++};
 -- 
 1.7.9.5
 
