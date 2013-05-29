@@ -1,120 +1,151 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 00/14] ARM: OMAP5: hwmod, prm/cm data files and updates for 3.11
-Date: Wed, 29 May 2013 12:38:00 -0400
-Message-ID: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 01/14] ARM: OMAP4+: PRM: Move function prototypes to common header for re-use
+Date: Wed, 29 May 2013 12:38:01 -0400
+Message-ID: <1369845494-30231-2-git-send-email-santosh.shilimkar@ti.com>
+References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38750 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38766 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758214Ab3E2QjJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 May 2013 12:39:09 -0400
+	id S1759380Ab3E2QjZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 May 2013 12:39:25 -0400
+In-Reply-To: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Tony, Paul,
+OMAP5 reuses OMAP4 PRM IP block which lets us re-use PRM functions.
+So move the function prototypes from prm44xx.h to prm44xx_54xx.h
+header. The suggestion came from Paul Walmsley as part of the
+OMAP5 data file review.
 
-Here is another attempt to send the SOC data files for OMAP5 based devices.
-As aligned on list, I have dropped clock data from the series.
-That means for the boot, one clock data patch needs to be applied.
-It is available on my git tree in 'out_of_tree/omap5_clk_data' branch.
+This is preparatory  patch to add OMAP5 PRM data file.
 
-With OMAP5 and AM33XX support is DT only, respective hwmod files are cleaned
-up to remove iospace information and un-used hwmod. For 3.11 since OMAP4
-is also targeted as DT only, its hwmod data files is also cleaned up.
-Diffstat looks something like below.
+Cc: Paul Walmsley <paul@pwsan.com>
 
-27 files changed, 9013 insertions(+), 2764 deletions(-)
-
-One can easily notice that the OMAP5 SOC data has significantly come down
-becasue of iospace and rest of the hwmod clean-up.
-
-Thanks to Sricharan, Vaibhav Bedia, Vaibhav H, Rajendra and Benoit for the
-patches and testing.
-
-The following changes since commit e4aa937ec75df0eea0bee03bffa3303ad36c986b:
-
-  Linux 3.10-rc3 (2013-05-26 16:00:47 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git for_3.11/omap5_data_files
-
-for you to fetch changes up to 86b6a6dd106973df7f0c097fcb252e9e54b2f971:
-
-  ARM: OMAP4: hwmod data: Clean up the data file (2013-05-29 11:51:30 -0400)
-
-----------------------------------------------------------------
-
-Benoit Cousson (7):
-  ARM: OMAP5: PRM: Add OMAP54XX register and bitfield files
-  ARM: OMAP5: CM: Add OMAP54XX register and bitfield files
-  ARM: OMAP5: PRCM: Add OMAP54XX local MPU PRCM registers
-  ARM: OMAP5: SCRM: Add OMAP54XX header file.
-  ARM: OMAP5: clockdomain data: Add OMAP54XX data and update the header
-  ARM: OMAP5: powerdomain data: Add OMAP54XX data and update the header
-  ARM: OMAP5: hwmod data: Create initial OMAP5 SOC hwmod data
-
-Santosh Shilimkar (5):
-  ARM: OMAP4+: PRM: Move function prototypes to common header for
-    re-use
-  ARM: OMAP4+: CM: Move function prototypes to common header for re-use
-  ARM: OMAP4+: PRCM MPU: Move function prototypes to common header for
-    re-use
-  ARM: OMAP5: voltagedomain data: Add OMAP5 voltage domain data
-  ARM: OMAP5: Enable build and frameowrk initialisations
-
-Sricharan R (1):
-  ARM: OMAP4: hwmod data: Clean up the data file
-
-Vaibhav Hiremath (1):
-  ARM: AM33XX: hwmod data: irq, dma and addr info clean up
-
- arch/arm/mach-omap2/Makefile                  |    4 +
- arch/arm/mach-omap2/clockdomain.h             |    1 +
- arch/arm/mach-omap2/clockdomains54xx_data.c   |  464 +++++
- arch/arm/mach-omap2/cm-regbits-54xx.h         | 1737 ++++++++++++++++
- arch/arm/mach-omap2/cm1_44xx.h                |    7 +-
- arch/arm/mach-omap2/cm1_54xx.h                |  218 ++
- arch/arm/mach-omap2/cm2_44xx.h                |    7 +-
- arch/arm/mach-omap2/cm2_54xx.h                |  394 ++++
- arch/arm/mach-omap2/cm_44xx_54xx.h            |   36 +
- arch/arm/mach-omap2/io.c                      |    7 +
- arch/arm/mach-omap2/omap_hwmod.h              |    1 +
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c    | 1067 ----------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c    | 1661 +--------------
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c    | 2151 ++++++++++++++++++++
- arch/arm/mach-omap2/powerdomain.h             |    1 +
- arch/arm/mach-omap2/powerdomains54xx_data.c   |  331 +++
- arch/arm/mach-omap2/prcm44xx.h                |    6 +
- arch/arm/mach-omap2/prcm_mpu44xx.h            |   14 +-
- arch/arm/mach-omap2/prcm_mpu54xx.h            |   87 +
- arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h      |   36 +
- arch/arm/mach-omap2/prm-regbits-54xx.h        | 2701 +++++++++++++++++++++++++
- arch/arm/mach-omap2/prm44xx.h                 |   33 +-
- arch/arm/mach-omap2/prm44xx_54xx.h            |   58 +
- arch/arm/mach-omap2/prm54xx.h                 |  421 ++++
- arch/arm/mach-omap2/scrm54xx.h                |  231 +++
- arch/arm/mach-omap2/voltage.h                 |    1 +
- arch/arm/mach-omap2/voltagedomains54xx_data.c |  102 +
- 27 files changed, 9013 insertions(+), 2764 deletions(-)
- create mode 100644 arch/arm/mach-omap2/clockdomains54xx_data.c
- create mode 100644 arch/arm/mach-omap2/cm-regbits-54xx.h
- create mode 100644 arch/arm/mach-omap2/cm1_54xx.h
- create mode 100644 arch/arm/mach-omap2/cm2_54xx.h
- create mode 100644 arch/arm/mach-omap2/cm_44xx_54xx.h
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_54xx_data.c
- create mode 100644 arch/arm/mach-omap2/powerdomains54xx_data.c
- create mode 100644 arch/arm/mach-omap2/prcm_mpu54xx.h
- create mode 100644 arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h
- create mode 100644 arch/arm/mach-omap2/prm-regbits-54xx.h
+Acked-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/mach-omap2/prm44xx.h      |   33 +-------------------
+ arch/arm/mach-omap2/prm44xx_54xx.h |   58 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 59 insertions(+), 32 deletions(-)
  create mode 100644 arch/arm/mach-omap2/prm44xx_54xx.h
- create mode 100644 arch/arm/mach-omap2/prm54xx.h
- create mode 100644 arch/arm/mach-omap2/scrm54xx.h
- create mode 100644 arch/arm/mach-omap2/voltagedomains54xx_data.c
 
+diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
+index 8ee1fbd..7db2422 100644
+--- a/arch/arm/mach-omap2/prm44xx.h
++++ b/arch/arm/mach-omap2/prm44xx.h
+@@ -25,6 +25,7 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_PRM44XX_H
+ #define __ARCH_ARM_MACH_OMAP2_PRM44XX_H
+ 
++#include "prm44xx_54xx.h"
+ #include "prcm-common.h"
+ #include "prm.h"
+ 
+@@ -744,36 +745,4 @@
+ #define OMAP4_PRM_VC_ERRST_OFFSET			0x00f8
+ #define OMAP4430_PRM_VC_ERRST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00f8)
+ 
+-/* Function prototypes */
+-# ifndef __ASSEMBLER__
+-
+-extern u32 omap4_prm_read_inst_reg(s16 inst, u16 idx);
+-extern void omap4_prm_write_inst_reg(u32 val, s16 inst, u16 idx);
+-extern u32 omap4_prm_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
+-
+-/* OMAP4-specific VP functions */
+-u32 omap4_prm_vp_check_txdone(u8 vp_id);
+-void omap4_prm_vp_clear_txdone(u8 vp_id);
+-
+-/*
+- * OMAP4 access functions for voltage controller (VC) and
+- * voltage proccessor (VP) in the PRM.
+- */
+-extern u32 omap4_prm_vcvp_read(u8 offset);
+-extern void omap4_prm_vcvp_write(u32 val, u8 offset);
+-extern u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
+-
+-extern void omap44xx_prm_reconfigure_io_chain(void);
+-
+-/* PRM interrupt-related functions */
+-extern void omap44xx_prm_read_pending_irqs(unsigned long *events);
+-extern void omap44xx_prm_ocp_barrier(void);
+-extern void omap44xx_prm_save_and_clear_irqen(u32 *saved_mask);
+-extern void omap44xx_prm_restore_irqen(u32 *saved_mask);
+-
+-extern int __init omap44xx_prm_init(void);
+-extern u32 omap44xx_prm_get_reset_sources(void);
+-
+-# endif
+-
+ #endif
+diff --git a/arch/arm/mach-omap2/prm44xx_54xx.h b/arch/arm/mach-omap2/prm44xx_54xx.h
+new file mode 100644
+index 0000000..7cd22ab
+--- /dev/null
++++ b/arch/arm/mach-omap2/prm44xx_54xx.h
+@@ -0,0 +1,58 @@
++/*
++ * OMAP44xx and 54xx PRM common functions
++ *
++ * Copyright (C) 2009-2013 Texas Instruments, Inc.
++ * Copyright (C) 2009-2010 Nokia Corporation
++ *
++ * Paul Walmsley (paul@pwsan.com)
++ * Rajendra Nayak (rnayak@ti.com)
++ * Benoit Cousson (b-cousson@ti.com)
++ *
++ * This file is automatically generated from the OMAP hardware databases.
++ * We respectfully ask that any modifications to this file be coordinated
++ * with the public linux-omap@vger.kernel.org mailing list and the
++ * authors above to ensure that the autogeneration scripts are kept
++ * up-to-date with the file contents.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ */
++
++#ifndef __ARCH_ARM_MACH_OMAP2_PRM44XX_54XX_H
++#define __ARCH_ARM_MACH_OMAP2_PRM44XX_54XX_H
++
++/* Function prototypes */
++#ifndef __ASSEMBLER__
++
++extern u32 omap4_prm_read_inst_reg(s16 inst, u16 idx);
++extern void omap4_prm_write_inst_reg(u32 val, s16 inst, u16 idx);
++extern u32 omap4_prm_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
++
++/* OMAP4/OMAP5-specific VP functions */
++u32 omap4_prm_vp_check_txdone(u8 vp_id);
++void omap4_prm_vp_clear_txdone(u8 vp_id);
++
++/*
++ * OMAP4/OMAP5 access functions for voltage controller (VC) and
++ * voltage proccessor (VP) in the PRM.
++ */
++extern u32 omap4_prm_vcvp_read(u8 offset);
++extern void omap4_prm_vcvp_write(u32 val, u8 offset);
++extern u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
++
++extern void omap44xx_prm_reconfigure_io_chain(void);
++
++/* PRM interrupt-related functions */
++extern void omap44xx_prm_read_pending_irqs(unsigned long *events);
++extern void omap44xx_prm_ocp_barrier(void);
++extern void omap44xx_prm_save_and_clear_irqen(u32 *saved_mask);
++extern void omap44xx_prm_restore_irqen(u32 *saved_mask);
++
++extern int __init omap44xx_prm_init(void);
++extern u32 omap44xx_prm_get_reset_sources(void);
++
++#endif
++
++#endif
 -- 
 1.7.9.5
 
