@@ -1,85 +1,70 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [GIT PULL] ARM: OMAP5: hwmod, prm/cm data files and updates for
- 3.10
-Date: Wed, 29 May 2013 12:41:47 -0400
-Message-ID: <51A62FCB.601@ti.com>
-References: <1363768852-18125-1-git-send-email-santosh.shilimkar@ti.com> <20130401170539.GK10155@atomide.com> <515BA76D.3000302@ti.com> <alpine.DEB.2.00.1304031146230.2616@utopia.booyaka.com> <515D6020.2030103@ti.com> <20130404165208.GI10155@atomide.com> <515DB110.9000503@ti.com> <515F00B8.3000501@ti.com> <5195E380.4040103@ti.com> <20130517172231.GW5600@atomide.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH] ARM: DTS: OMAP4: Panda/SDP: twl6030: fix mux for IRQ
+ pin and msecure line
+Date: Wed, 29 May 2013 18:48:12 +0200
+Message-ID: <51A6314C.1080803@ti.com>
+References: <1369423702-31501-1-git-send-email-khilman@linaro.org> <20130524200954.GA2344@kahuna> <20130524203231.GA2555@kahuna> <87obc0f54r.fsf@linaro.org> <CAGo_u6oz1v1J-6z5W-X7CsOmi+7SAMicz1LZTv0sVXhej1DJ2Q@mail.gmail.com> <87a9nkf3mu.fsf@linaro.org> <51A5CCA5.7000700@ti.com> <87ehcpano0.fsf@linaro.org> <51A60F69.7050203@ti.com> <CAGa+x85ZzfX400eEGmTGPzRiC21S83VRiHYj38cqsJLjDF3L7g@mail.gmail.com> <51A6269E.2090001@ti.com> <87li6x9325.fsf@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38902 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757683Ab3E2QmL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 May 2013 12:42:11 -0400
-In-Reply-To: <20130517172231.GW5600@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:45161 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757827Ab3E2Qsm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 May 2013 12:48:42 -0400
+In-Reply-To: <87li6x9325.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Kristo, Tero" <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, "Valentin, Eduardo" <eduardo.valentin@ti.com>, "Anna, Suman" <s-anna@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
+To: Kevin Hilman <khilman@linaro.org>
+Cc: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>
 
-On Friday 17 May 2013 01:22 PM, Tony Lindgren wrote:
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130517 01:02]:
->> Paul, Tony,
+On 05/29/2013 06:13 PM, Kevin Hilman wrote:
+> "Cousson, Benoit" <b-cousson@ti.com> writes:
+> 
+>> On 5/29/2013 5:29 PM, Kevin Hilman wrote:
+>>>
+>>> On May 29, 2013 8:06 AM, "Cousson, Benoit" <b-cousson@ti.com
+>>> <mailto:b-cousson@ti.com>> wrote:
+>>>  >
+>>>  > On 5/29/2013 4:03 PM, Kevin Hilman wrote:
+>>>  >>
+>>>  >> "Cousson, Benoit" <b-cousson@ti.com <mailto:b-cousson@ti.com>> writes:
+>>>  >>
+>>>  >> [...]
+>>>  >>
+>>>  >>>>
+>>>  >>>> Let me respin this after some more doc reading.
+>>>  >>>
+>>>  >>>
+>>>  >>> Did you re-spin it already?
+>>>  >>
+>>>  >>
+>>>  >> Yes, v2 is here.
+>>>  >>
+>>>  >> http://marc.info/?l=linux-omap&m=136944147521955&w=2
+>>>  >>
+>>>  >> It also needed a rework because the fref_clk0_out pin is also in the
+>>>  >> wkup section of the padconf, not core.
+>>>  >
+>>>  >
+>>>  > OK, I'll wait for the v3 then :-)
+>>>  >
+>>>
+>>> Hmm, why? v2 has the wkup changes included.
 >>
->> On Friday 05 April 2013 10:20 PM, Santosh Shilimkar wrote:
->>> On Thursday 04 April 2013 10:27 PM, Santosh Shilimkar wrote:
->>>> On Thursday 04 April 2013 10:22 PM, Tony Lindgren wrote:
->>>>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130404 04:15]:
->>> [..]
->>>
->>>>> Can't we already trim the am33xx hwmod data after your patches for
->>>>> v3.10 as am33xx is already DT only? Unfortunately we cannot create
->>>>> negative diffstat in other ways for v3.10 merge window as we cannot
->>>>> make omap4 DT only just quite yet.
->>>>>
->>>> Yes we can and I can take a stab it tomorrow. The only thing is I
->>>> might need some support for testing but thats manageable. Will
->>>> take a stab at it tomorrow and if everything goes well, post a
->>>> patch for smae.
->>>>
->>> Patch for the AM33XX to trim is end of the email. Thanks to
->>> Sricharan and Pekon for patch and testing. Looping both
->>> Vaibhav's if they have any objection on the patch.
->>>
->>> Regards,
->>> Santosh
->>>
->>> From b95dd33fe59b8e77727eb3b1717d763bbf9a2893 Mon Sep 17 00:00:00 2001
->>> From: Sricharan R <r.sricharan@ti.com>
->>> Date: Fri, 5 Apr 2013 20:39:12 +0530
->>> Subject: [PATCH] ARM: AM33XX: hwmod data: Clean up the data file
->>>
->> For whatever reason, we again missed the merge window for the subject
->> series, I would like to know your plan on the subject series for
->> at least 3.11. Asking *well in advance* to avoid late merge related
->> discussions.
+>> Why? Because of my bad understanding of English :-)
+>> I understood: It also needs a rework...
 > 
-> Yes, I think we should have now a omap5 hwmod data sized hole coming
-> up with conversion of omap4 to be DT only. I'll post those patches
-> today for the board file and legacy mux removal for omap4:
+> Re-reading, I wasn't terribly clear.  Sorry for the confusion.
 > 
-> 12 files changed, 52 insertions(+), 3260 deletions(-)
+>> Sorry, I'll merge it.
 > 
-Cool.
+> I was hoping for an Ack from Nishanth since he had some questions about
+> it, but with the double checking from you and Grygorii, I think it
+> should go in for the -rc cycle.  (also, please add an Ack from Grygorii.)
 
-> Those coupled with your am33xx hwmod cleanup patch and your omap4
-> hwmod cleanup patch should allow us having the omap5 hwmod data
-> without making the diffstats look too bad.
->  
->> Thanks to Vaibhav, AM33XX patch is tested and validated with some
->> updates considering upcoming PM support for AM33XX. So that
->> patch will be included in the series.
->>
->> Rajendra will follow up the patchset if there is some re-basing is
->> needed since I will away for few weeks because of travel. 
-> 
-> OK, well the omap4 hwmod clean-up patch depends on first dropping
-> the above mentioned omap4 legacy files.
->  
-Have posted the series which includes AM33XX and OMAP4 data
-reduction patch as well.
+OK, I'll push the fix to Tony ASAP.
 
-regards,
-Santosh
+Thanks,
+Benoit
 
