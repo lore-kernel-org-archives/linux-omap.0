@@ -1,33 +1,111 @@
-From: Yegor Yefremov <yegorslists@googlemail.com>
-Subject: Re: [PATCH v2] usb: musb: fix clock naming
-Date: Wed, 29 May 2013 12:06:52 +0200
-Message-ID: <CAGm1_ks7Y8n1xKA=qiCCFcxgydRiyeJS08A8TPnbnEEmkJxVyg@mail.gmail.com>
-References: <1369725661-3114-1-git-send-email-yegorslists@googlemail.com> <20130528173637.GE15794@arwen.pp.htv.fi>
+From: Dan Murphy <dmurphy@ti.com>
+Subject: [PATCH v7] ARM: dts: omap4-panda: Update the LED support for the panda DTS
+Date: Wed, 29 May 2013 06:20:27 -0500
+Message-ID: <1369826427-31963-1-git-send-email-dmurphy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f43.google.com ([209.85.214.43]:51402 "EHLO
-	mail-bk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965230Ab3E2KHO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 May 2013 06:07:14 -0400
-In-Reply-To: <20130528173637.GE15794@arwen.pp.htv.fi>
+Received: from devils.ext.ti.com ([198.47.26.153]:54072 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965683Ab3E2LVE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 May 2013 07:21:04 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, linux-usb <linux-usb@vger.kernel.org>, kishon <kishon@ti.com>, Jan Luebbe <jlu@pengutronix.de>
+To: b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Dan Murphy <dmurphy@ti.com>
 
-On Tue, May 28, 2013 at 7:36 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Tue, May 28, 2013 at 09:21:01AM +0200, yegorslists@googlemail.com wrote:
->> From: Yegor Yefremov <yegorslists@googlemail.com>
->>
->> 'ick' was changed to 'hsotgusb_ick'
->> 'fck' was changed to 'hsotgusb_fck'
->>
->> Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
->> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
->
-> NAK. Fix your clock data.
+The GPIO for LED D1 on the omap4-panda a1-a3 rev and the omap4-panda-es
+are different.
 
-Do you mean here arch/arm/mach-omap2/cclock3xxx_data.c?
+A1-A3 = gpio_wk7
+ES = gpio_110
 
-Yegor
+There is no change to LED D2
+
+Abstract away the pinmux and the LED definitions for the two boards into
+the respective DTS files.
+
+Signed-off-by: Dan Murphy <dmurphy@ti.com>
+---
+v7 - Update headline to add spaces - https://patchwork.kernel.org/patch/2583661/
+v6 - Review comments updated - https://patchwork.kernel.org/patch/2582771/
+v5 - Provide pincrtl phandle to the gpio-led driver - https://patchwork.kernel.org/patch/2573981/
+
+ arch/arm/boot/dts/omap4-panda-common.dtsi |   16 +++++++++++++++-
+ arch/arm/boot/dts/omap4-panda-es.dts      |   28 ++++++++++++++++++++++++++++
+ 2 files changed, 43 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+index 03bd60d..5fd59b3 100644
+--- a/arch/arm/boot/dts/omap4-panda-common.dtsi
++++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+@@ -16,8 +16,13 @@
+ 		reg = <0x80000000 0x40000000>; /* 1 GB */
+ 	};
+ 
+-	leds {
++	leds: leds {
+ 		compatible = "gpio-leds";
++		pinctrl-names = "default";
++		pinctrl-0 = <
++			&led_wkgpio_pins
++		>;
++
+ 		heartbeat {
+ 			label = "pandaboard::status1";
+ 			gpios = <&gpio1 7 0>;
+@@ -137,6 +142,15 @@
+ 	};
+ };
+ 
++&omap4_pmx_wkup {
++	led_wkgpio_pins: pinmux_leds_wkpins {
++		pinctrl-single,pins = <
++			0x1a 0x3	/* gpio_wk7 OUTPUT | MODE 3 */
++			0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
++		>;
++	};
++};
++
+ &i2c1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&i2c1_pins>;
+diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
+index f1d8c21..c968a3b 100644
+--- a/arch/arm/boot/dts/omap4-panda-es.dts
++++ b/arch/arm/boot/dts/omap4-panda-es.dts
+@@ -34,3 +34,31 @@
+ 		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
+ 		>;
+ };
++
++&omap4_pmx_core {
++	led_gpio_pins: gpio_led_pmx {
++		pinctrl-single,pins = <
++			0xb6 0x3	/* gpio_110 OUTPUT | MODE 3 */
++		>;
++	};
++};
++
++&led_wkgpio_pins {
++	pinctrl-single,pins = <
++		0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
++	>;
++};
++
++&leds {
++	pinctrl-0 = <
++		&led_gpio_pins
++		&led_wkgpio_pins
++	>;
++
++	heartbeat {
++		gpios = <&gpio4 14 0>;
++	};
++	mmc {
++		gpios = <&gpio1 8 0>;
++	};
++};
+-- 
+1.7.5.4
+
