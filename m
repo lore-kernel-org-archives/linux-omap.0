@@ -1,54 +1,50 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [RFC/RFT] ARM: dts: add minimal DT support for Nokia N950 & N9
-Date: Wed, 29 May 2013 23:56:48 +0300
-Message-ID: <20130529205648.GC3345@blackmetal.musicnaut.iki.fi>
-References: <1369251845-29605-1-git-send-email-aaro.koskinen@iki.fi>
- <519DC39C.6010809@ti.com>
+From: Jon Hunter <jgchunter@gmail.com>
+Subject: Re: [BISECTED] 3.10-rc1 OMAP1 GPIO IRQ regression
+Date: Wed, 29 May 2013 22:29:07 +0100
+Message-ID: <51A67323.7030906@gmail.com>
+References: <20130516180933.GG5600@atomide.com> <20130516210006.GA31836@blackmetal.musicnaut.iki.fi> <20130516214430.GN5600@atomide.com> <20130520174621.GI10378@atomide.com> <20130521173936.GE31836@blackmetal.musicnaut.iki.fi> <519BCCEC.8010303@gmail.com> <20130522212054.GG31836@blackmetal.musicnaut.iki.fi> <519E67AD.6070702@gmail.com> <20130526190710.GA3345@blackmetal.musicnaut.iki.fi> <51A4FAA1.5060504@gmail.com> <20130529185518.GB3345@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri1.pp.htv.fi ([213.243.153.184]:51124 "EHLO
-	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966896Ab3E2U44 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 May 2013 16:56:56 -0400
-Content-Disposition: inline
-In-Reply-To: <519DC39C.6010809@ti.com>
+Received: from mail-we0-f169.google.com ([74.125.82.169]:47439 "EHLO
+	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935194Ab3E2V3M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 May 2013 17:29:12 -0400
+Received: by mail-we0-f169.google.com with SMTP id q55so6912404wes.0
+        for <linux-omap@vger.kernel.org>; Wed, 29 May 2013 14:29:11 -0700 (PDT)
+In-Reply-To: <20130529185518.GB3345@blackmetal.musicnaut.iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Sakari Ailus <sakari.ailus@iki.fi>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Hi,
 
-On Thu, May 23, 2013 at 09:22:04AM +0200, Benoit Cousson wrote:
-> On 05/22/2013 09:44 PM, Aaro Koskinen wrote:
-> > Add minimal DT support for Nokia N950 & N9. The basic boot works. I can
-> > connect to both devices with USB networking & ssh. dmesg output looks OK.
+On 29/05/13 19:55, Aaro Koskinen wrote:
+> Hi,
 > 
-> That's great! Tony will like that :-)
-> It is too bad I just have a N900 :-(
+> On Tue, May 28, 2013 at 07:42:41PM +0100, Jon Hunter wrote:
+>> Care to share the log?
 > 
-> > Functionality compared to the legacy board file:
-> > 
-> > 	- MMC not detected - reason unknown, any tips welcome
-> 
-> On OMAP4 panda I used to have the similar issue due to the pbias not set
-> properly.
-> 
-> > 	- OneNAND missing completely
-> 
-> The GPMC for OMAP3 support is pretty new, so maybe some tweak are still
-> needed.
-> 
-> Is it RFC because you are still working on the missing functionalities?
-> Otherwise the patches are already good to be merged if you want.
-> As soon as you don't break legacy boot, we can merge even half-working DTS.
+> Below are three logs from 3.10-rc3 / Nokia 770. I did not even compile
+> Retu this time, as it has nothing to do with GPIO IRQs being broken
+> on OMAP1.
 
-I was hoping to get the MMC working and OneNAND binding added before
-merging this... If we could do that, we could deprecate the legacy board
-file as DT would offer the same functionality.
+That's not entirely true. v3.10-rc3 is booting fine on an osk5912 and
+ethernet is working which is using a gpio for interrupts and it is
+getting interrupts.
 
-Anyway, if half-working DTS is also fine, I'll resend this as "PATCH"
-in a few days.
+> 1) broken vanilla 3.10-rc3: serial wakeup GPIO irq gets IRQ 0 and no
+> other GPIO IRQs seen in /proc/interrupts. genirq error logs seen in boot.
 
-A.
+Getting 0 for the irq number definitely looks like the problem.
+
+> 2) working 3.10-rc3 with Tony's fix <== this fix should be applied
+> (http://marc.info/?l=linux-arm-kernel&m=136907202628855&w=2). GPIO IRQs
+> are normal, e.g. touchscreen can be used.
+> 
+> 3) .config used.
+
+I am using the omap1_defconfig. Can you try that one for comparison?
+
+Jon
