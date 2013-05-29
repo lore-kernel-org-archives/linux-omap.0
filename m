@@ -1,90 +1,162 @@
 From: "Cousson, Benoit" <b-cousson@ti.com>
 Subject: Re: [PATCH] ARM: DTS: OMAP4: Panda/SDP: twl6030: fix mux for IRQ
  pin and msecure line
-Date: Wed, 29 May 2013 11:36:48 +0200
-Message-ID: <51A5CC30.4010707@ti.com>
-References: <1369423702-31501-1-git-send-email-khilman@linaro.org> <20130524200954.GA2344@kahuna> <20130524203231.GA2555@kahuna> <87obc0f54r.fsf@linaro.org> <CAGo_u6oz1v1J-6z5W-X7CsOmi+7SAMicz1LZTv0sVXhej1DJ2Q@mail.gmail.com> <87a9nkf3mu.fsf@linaro.org> <87ppwgdnxu.fsf@linaro.org> <CAGo_u6ruWQwSB8Z0BRLda7HunTyr9mGpx4eMSGdQZkCxKxbHbg@mail.gmail.com> <87a9nfc5uc.fsf@linaro.org>
+Date: Wed, 29 May 2013 11:38:45 +0200
+Message-ID: <51A5CCA5.7000700@ti.com>
+References: <1369423702-31501-1-git-send-email-khilman@linaro.org> <20130524200954.GA2344@kahuna> <20130524203231.GA2555@kahuna> <87obc0f54r.fsf@linaro.org> <CAGo_u6oz1v1J-6z5W-X7CsOmi+7SAMicz1LZTv0sVXhej1DJ2Q@mail.gmail.com> <87a9nkf3mu.fsf@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50031 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965375Ab3E2JhV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 May 2013 05:37:21 -0400
-In-Reply-To: <87a9nfc5uc.fsf@linaro.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38313 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965239Ab3E2JjR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 May 2013 05:39:17 -0400
+In-Reply-To: <87a9nkf3mu.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@linaro.org>
 Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Salut Kevin,
-
-On 5/28/2013 8:33 PM, Kevin Hilman wrote:
+On 5/24/2013 11:51 PM, Kevin Hilman wrote:
 > Nishanth Menon <nm@ti.com> writes:
 >
->> On Fri, May 24, 2013 at 5:15 PM, Kevin Hilman <khilman@linaro.org> wrote:
->>> Kevin Hilman <khilman@linaro.org> writes:
+>> On Fri, May 24, 2013 at 4:19 PM, Kevin Hilman <khilman@linaro.org> wrote:
+>>> Nishanth Menon <nm@ti.com> writes:
 >>>
->>>> Nishanth Menon <nm@ti.com> writes:
->>>
->>> [...]
->>>
->>>>> Actually 2 things:
+>>>> On 15:09-20130524, Nishanth Menon wrote:
+>>>>> On 12:28-20130524, Kevin Hilman wrote:
+>>>>>> Earlier commits ensured proper muxing of pins related to proper
+>>>>>> TWL6030 behavior: see commit 265a2bc8 (ARM: OMAP3: TWL4030: ensure
+>>>>>> sys_nirq1 is mux'd and wakeup enabled) and commit 1ef43369 (ARM:
+>>>>>> OMAP4: TWL: mux sys_drm_msecure as output for PMIC).
+>>>>>>
+>>>>>> However these only fixed legacy boot and not DT boot.  For DT boot,
+>>>>>> the default mux values need to be set properly in DT.
+>>>>>>
+>>>>>> Cc: Tony Lindgren <tony@atomide.com>
+>>>>>> Signed-off-by: Kevin Hilman <khilman@linaro.org>
+>>>>>> ---
+>>>>>> Applies on v3.10-rc2
+>>>>>>
+>>>>>>   arch/arm/boot/dts/omap4-panda-common.dtsi | 8 ++++++++
+>>>>>>   arch/arm/boot/dts/omap4-sdp.dts           | 8 ++++++++
+>>>>>>   2 files changed, 16 insertions(+)
+>>>>>>
+>>>>>> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+>>>>>> index 03bd60d..a7a9bc0 100644
+>>>>>> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
+>>>>>> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+>>>>>> @@ -59,6 +59,7 @@
+>>>>>>   &omap4_pmx_core {
+>>>>>>     pinctrl-names = "default";
+>>>>>>     pinctrl-0 = <
+>>>>>> +                  &twl6030_pins
+>>>>>>                     &twl6040_pins
+>>>>>>                     &mcpdm_pins
+>>>>>>                     &mcbsp1_pins
+>>>>>> @@ -66,6 +67,13 @@
+>>>>>>                     &tpd12s015_pins
+>>>>>>     >;
+>>>>>>
+>>>>>> +  twl6030_pins: pinmux_twl6030_pins {
+>>>>>> +          pinctrl-single,pins = <
+>>>>>> +                  0x15e 0x4118    /* sys_nirq1.sys_nirq1 OMAP_WAKEUP_EN | INPUT_PULLUP | MODE0 */
+>>>>> I can understand this - IRQ request comes here.
+>>>>> verified on OMAP4460 Panda-ES.
+>>>>> # omapconf read 0x4A10019C
+>>>>> 4118011B
 >>>>>
->>>>> a) patch seems to do the wrong thing for 4460 - 0x18 offset should
->>>>> have been used instead of 0x14 which is correct for 4430?
+>>>>>> +                  0x14 0x0        /* fref_clk0_out.sys_drm_msecure OUTPUT */
+>>>>> I do not understand this.
+>>>>> OMAP4460 TRM:
+>>>>> Register: CONTROL_WKUP_PAD0_FREF_CLK0_OUT_PAD1_FREF_CLK3_REQ
+>>>>> omapconf read 0x4A31E054
+>>>>> 010F010F
+>>>>>
+>>>>> I do not understand this configuration. mux modes for
+>>>>> FREF_CLK0_OUT_MUXMODE:
+>>>>> 0x0: Select fref_clk0_out
+>>>>> 0x1: Select fref_clk1_req
+>>>>> 0x2: Reserved
+>>>>> 0x3: Select gpio_wk6
+>>>>> 0x5: Select sdmmc2_dat7
+>>>>> 0x6: Select hw_dbg6
+>>>>> 0x7: Select safe_mode
+>>>>>
+>>>>> Why are we setting mode 0(clk out) here?
 >>>>
->>>> I see, thanks.  I'll double check the TRMs.
+>>>> I did a bit more research into this:
+>>>> MSECURE line needs to be set for us to set anything with TWL6030 RTC.
+>>>
+>>> Yes, the commit referenced in the changelog described that in detail.
+>>>
+>>>> PandaBoard ES(4460) = this is on OMAP PIN AD4
+>>>> PandaBoard (4430) = this is on OMAP PIN AD2
 >>>>
->>>>> b) yes, I understand,  the current settings we did worked, but the
->>>>> mode(0) we are setting to is real weird - we are setting it up for
->>>>> clk0 out - I cant even think why it is even working in the first place
->>>>> :( - is it because we are pumping out sysclkout and as a result we are
->>>>> lucky that msecure is being sampled at the right point by twl6030
->>>>> allowing rtc access? either way, IMHO, the configuration is wrong.
+>>>> translating this back,
+>>>> PandaBoard ES OMAp4460 pin AD4:
+>>>> FREF_CLK3_OUT/FREF_CLK2_REQ/SYS_SECURE_INDICATOR/GPIO_WK31/C2C_WAKEREQOUT/SDMMC2_DAT5/ATTILA_HW_DBG8/SAFE_MODE
+>>>> This is at register 0x4A31E054(higher 16 bits) - however since we are GP device,
+>>>> SYS_SECURE_INDICATOR(mode 2) is reserved.
+>>>> PandaBoard OMAP4430 pin AD2:
+>>>> FREF_CLK0_OUT/FREF_CLK1_REQ/SYS_DRM_MSECURE/GPIO_WK6/SDMMC2_DAT7/ATTILA_HW_DBG6/SAFE_MOD
+>>>> This is at register 0x4A31E054(lower 16 bits) - however since we are GP device,
+>>>> SYS_DRM_MSECURE(mode 2) is reserved.
 >>>>
->>>> Ah, yes.  Mode zero is definitely wrong.   When I did the original patch
->>>> for legacy mode, I just duplicated the settings u-boot was using.  Guess
->>>> it's a fluke that it works.
+>>>> To use RTC, we will have to use GPIO.
+>>>> on pandaboard ES, we need GPIO31 and PandaBoard, 6.
+>>>>
+>>>> Further the pinctrl offsets will vary as well between the same.
+>>>>
+>>>> IMHO, we need GPIO support and pinmux appropritate to the same to allow
+>>>> RTC to work.
 >>>
->>> Actually, for legacy mode, it's set correctly in mode 2.  This line:
+>>> I don't follow at all what you're trying to say.  The current settings
+>>> are working fine and have been tested on both 4430/Panda and 4460/Panda-ES.
 >>>
->>>          omap_mux_init_signal("fref_clk0_out.sys_drm_msecure", OMAP_PIN_OUTPUT);
+>>> The goal of this patch is to make default mux settings for twl6030 for
+>>> DT boot match current legacy boot in mainline.
 >>>
->>> does the right thing based on the signal name.    But for DT boot, I
->>> defintely screwed it up by setting it to mode (and putting it in the
->>> wrong padconf section.)
+>>> The commits referenced in the changelog setup some default muxing for
+>>> twl6030 (see changelogs referenced and mux calls in
+>>> twl-common.c:omap4_pmic_init())
 >>>
->>> Also, are you *really* sure about the offset difference between 4430 and
->>> 4460 here?  I don't have access to NDA docs anymore, so I cannot double
->>> check this.
+>>> Without those mux settings, RTC wakeup on legacy boot does not work
+>>> (tested on 4430/panda, 4460/Panda with recent u-boot v2013.04 where most
+>>> of the old mux setup is gone.)  With those settings, RTC wakeup works.
 >>>
->>> What I do know is that the legacy code is using 0x54 for both, and if I
->>> simply comment out that 'sys_drm_msecure' line above, RTC wake stops
->>> working (legacy boot) on both 4430 and 4460, so that seems like pretty
->>> stront evidence that it's the same offset on both.
->> Schematics are public for PandaBoard ES and PandaBoard - as you can
->> see from that the registers connected are definitely different.
+>>> Yes, the TRM has some mode bits marked as reserved, but that doesn't
+>>> mean they don't work.  It just means the documentation is squirreled
+>>> away in the secure TRM addendum.
+>>>
+>> Actually 2 things:
+>>
+>> a) patch seems to do the wrong thing for 4460 - 0x18 offset should
+>> have been used instead of 0x14 which is correct for 4430?
 >
-> What I see from both schematics is that SYS_DRM_MSECURE is available on
-> a few different pads, but on both 4430 and 4460, one of the places is in
-> mode 2 of FREF_CLK0_OUT, which is at offset 0x54 on both SoCs.
+> I see, thanks.  I'll double check the TRMs.
 >
-> Based on that reading, and the fact that not correctly muxing that pad
-> to mode 2 on *both* 4430 and 4460 makes the RTC work, I'm rather
-> convinced that the offset should be the same for 4430 and 4460.
+>> b) yes, I understand,  the current settings we did worked, but the
+>> mode(0) we are setting to is real weird - we are setting it up for
+>> clk0 out - I cant even think why it is even working in the first place
+>> :( - is it because we are pumping out sysclkout and as a result we are
+>> lucky that msecure is being sampled at the right point by twl6030
+>> allowing rtc access? either way, IMHO, the configuration is wrong.
 >
-> What am I missing?
+> Ah, yes.  Mode zero is definitely wrong.   When I did the original patch
+> for legacy mode, I just duplicated the settings u-boot was using.  Guess
+> it's a fluke that it works.
+>
+> Yet another thing wrong with my patch:  the fref_clk0 pad is in the WKUP
+> padconf section, and I put it at offset 0x14 in the CORE section, which
+> is yet another wrong place.
+>
+> Let me respin this after some more doc reading.
 
-I've just checked both specs and schematics and in the two cases the 
-exact same ball (AD2) is connected to the exact same signal 
-(mod2=sys_drm_msecure) and the registers offset inside the 
-control_module are the same as well.
+Did you re-spin it already?
 
-Nishanth,
-AD4 ball in both cases is used for USBB1_PHY_REFCLK signal.
+Beside that mode0 typo, it looks good to me.
 
 Thanks,
 Benoit
-
