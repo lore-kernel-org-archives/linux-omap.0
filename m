@@ -1,57 +1,59 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v6 1/9] drivers: phy: add generic PHY framework
-Date: Wed, 29 May 2013 11:08:46 +0530
-Message-ID: <51A59466.6090504@ti.com>
-References: <1367229812-30574-1-git-send-email-kishon@ti.com>
- <1367229812-30574-2-git-send-email-kishon@ti.com>
- <51A531A9.4030800@gmail.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 0/3] palmas usb driver
+Date: Wed, 29 May 2013 11:36:01 +0530
+Message-ID: <51A59AC9.9000908@ti.com>
+References: <1369405896-30246-1-git-send-email-kishon@ti.com>
+ <20130528173554.GD15794@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51A531A9.4030800@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: mchehab@redhat.com, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, swarren@nvidia.com, grant.likely@linaro.org, cesarb@cesarb.net, arnd@arndb.de, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, rob.herring@calxeda.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, santosh.shilimkar@ti.com, rob@landley.net, benoit.cousson@linaro.org, akpm@linux-foundation.org, shawn.guo@linaro.org, davem@davemloft.net
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20130528173554.GD15794-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: george.cherian-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Felipe,
 
-On Wednesday 29 May 2013 04:07 AM, Sylwester Nawrocki wrote:
-> Hi Kishon,
+On Tuesday 28 May 2013 11:05 PM, Felipe Balbi wrote:
+> On Fri, May 24, 2013 at 08:01:33PM +0530, Kishon Vijay Abraham I wrote:
+>> This patch series adds driver for palmas usb which is used to detect
+>> attach/detach events of usb device and usb host.
+>>
+>> [PATCH v5 2/3] extcon: Palmas Extcon Driver which was sent previously
+>> is added in this patch series itself. The revision history is added
+>> in the patch comments section.
+>>
+>> A checkpatch warning "WARNING: static const char * array should
+>> probably be static const char * const"is ignored since it introduces a
+>> compilation warning.
+>>
+>> Graeme Gregory (2):
+>>    drivers: regulator: palmas: add an API to set/clear the switch bit on
+>>      SMPS10
+>>    extcon: Palmas Extcon Driver
+>>
+>> Kishon Vijay Abraham I (1):
+>>    usb: dwc3: use extcon fwrk to receive connect/disconnect notification
 >
-> On 04/29/2013 12:03 PM, Kishon Vijay Abraham I wrote:
->> The PHY framework provides a set of APIs for the PHY drivers to
->> create/destroy a PHY and APIs for the PHY users to obtain a reference
->> to the
->> PHY with or without using phandle. For dt-boot, the PHY drivers should
->> also register *PHY provider* with the framework.
->>
->> PHY drivers should create the PHY by passing id and ops like init, exit,
->> power_on and power_off. This framework is also pm runtime enabled.
->>
->> The documentation for the generic PHY framework is added in
->> Documentation/phy.txt and the documentation for dt binding can be
->> found at
->> Documentation/devicetree/bindings/phy/phy-bindings.txt
->>
->> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
 >
-> Thanks for working on this. For the record, I plan to give this a try
-> in the end of this week, with my simple MIPI CSI/DSI PHY driver. I might
-> have some more comments then. For now just couple of remarks after
-> reading the documentation.
+> There were some comments to this series, what will happen with it ? Any
+> new versions coming ?
 
-Thanks for reviewing. I'll wait for your comments before posting the 
-next version.
+I've already sent new versions. Palmas Extcon Driver is already queued 
+in extcon-next.
+Chanwoo can take this patch in his tree after your ACK. [PATCH v2] usb: 
+dwc3: use extcon fwrk to receive connect/disconnect notification.
 
 Thanks
 Kishon
