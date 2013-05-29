@@ -1,34 +1,27 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 0/5] USB: PHY: Improve PHY selection logic
-Date: Wed, 29 May 2013 15:05:52 +0300
-Message-ID: <51A5EF20.6050905@ti.com>
-References: <1369827811-534-1-git-send-email-rogerq@ti.com> <4843252.ptIdMxoBef@wuerfel>
+From: "Pahan92" <admin@mato-design.com>
+Subject: =?windows-1251?B?x+Tw4OLx8uLz6fLl?=
+Date: Wed, 29 May 2013 15:16:52 +0300
+Message-ID: <83ia530ay40kn54$08go342a52$0658r4v38@c_natia>
+Reply-To: "Pahan92" <sarochka-78@ghd.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4843252.ptIdMxoBef@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu, kishon@ti.com, adrienverge@gmail.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=windows-1251
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from vweb05.nitrado.net ([194.169.211.60]:46859 "EHLO
+	vweb05.nitrado.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965855Ab3E2Mcd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 May 2013 08:32:33 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: mail1995@inbox.ru, linux-omap@vger.kernel.org, childlibfil12@rambler.ru, cir6n@vlrginia.edu, myusername@gmail.com
 
-On 05/29/2013 02:59 PM, Arnd Bergmann wrote:
-> On Wednesday 29 May 2013 14:43:26 Roger Quadros wrote:
->>
->> Improve Kconfig so that the relevant PHY driver can be explicitely
->> selected by the controller driver instead of relying on the user
->> to do so.
->>
->> Detailed description in patch 1.
-> 
-> I think you have to fold patches 3-5 into patch 1, otherwise you
-> get a circular dependency between the Kconfig options during
-> bisection.
->
-
-You are right. I'll fix that in v2. I'll first wait for more comments
-on the overall approach.
-
-cheers,
--roger
+=CD=E8=EA=E0=EA=E8=F5 =F3=F2=EE=EC=E8=F2=E5=EB=FC=ED=FB=F5 =F2=F0=E5=ED=
+=E8=F0=EE=E2=EE=EA! =C2=FB =EE=F2=F0=FB=E2=E0=E5=F2=E5=F1=FC =E8 =F2=E5=
+=EC =F1=E0=EC=FB=EC =F0=E5=E0=ED=E8=EC=E8=F0=F3=E5=F2=E5 =F1=EE=E1=F1=F2=
+=E2=E5=ED=ED=EE=EB=E8=F7=ED=EE=E5 =E7=F0=E5=ED=E8=E5! http://bit.ly/115=
+UVEe
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
