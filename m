@@ -1,49 +1,39 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/5] USB: ehci-omap: select NOP_USB_XCEIV PHY driver
-Date: Wed, 29 May 2013 14:43:28 +0300
-Message-ID: <1369827811-534-3-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 4/5] USB: lpc32xx: USB_LPC32XX need not depend on USB_PHY
+Date: Wed, 29 May 2013 14:43:30 +0300
+Message-ID: <1369827811-534-5-git-send-email-rogerq@ti.com>
 References: <1369827811-534-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1369827811-534-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, adrienverge-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1369827811-534-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: gregkh@linuxfoundation.org
+Cc: balbi@ti.com, stern@rowland.harvard.edu, kishon@ti.com, arnd@arndb.de, adrienverge@gmail.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Roland Stigge <stigge@antcom.de>
 List-Id: linux-omap@vger.kernel.org
 
-ehci-omap needs NOP_USB_XCEIV PHY driver to function
-properly, so select it. As the USB PHY drivers no longer
-depend on USB_PHY, it is safe to select the PHY drivers.
+As the USB PHY drivers no longer depend on USB_PHY but
+select it if needed, the controller drivers need not
+depend on USB_PHY. They can safely select the necessary
+PHY driver i.e. USB_ISP1301 in this case.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+CC: Roland Stigge <stigge@antcom.de>
 ---
- drivers/usb/host/Kconfig |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+ drivers/usb/gadget/Kconfig |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
-index 344d5e2..5561b47 100644
---- a/drivers/usb/host/Kconfig
-+++ b/drivers/usb/host/Kconfig
-@@ -150,13 +150,11 @@ config USB_EHCI_MXC
- config USB_EHCI_HCD_OMAP
- 	tristate "EHCI support for OMAP3 and later chips"
- 	depends on ARCH_OMAP
-+	select NOP_USB_XCEIV
- 	default y
- 	---help---
- 	  Enables support for the on-chip EHCI controller on
- 	  OMAP3 and later chips.
--	  If your system uses a PHY on the USB port, you will need to
--	  enable USB_PHY and the appropriate PHY driver as well. Most
--	  boards need the NOP_USB_XCEIV PHY driver.
- 
- config USB_EHCI_HCD_ORION
- 	tristate  "Support for Marvell EBU on-chip EHCI USB controller"
+diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig
+index f41aa0d..2b98bce 100644
+--- a/drivers/usb/gadget/Kconfig
++++ b/drivers/usb/gadget/Kconfig
+@@ -144,7 +144,6 @@ config USB_AT91
+ config USB_LPC32XX
+ 	tristate "LPC32XX USB Peripheral Controller"
+ 	depends on ARCH_LPC32XX
+-	depends on USB_PHY
+ 	select USB_ISP1301
+ 	help
+ 	   This option selects the USB device controller in the LPC32xx SoC.
 -- 
 1.7.4.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
