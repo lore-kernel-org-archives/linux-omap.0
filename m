@@ -1,52 +1,127 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH v3 0/5] ARM: dts: OMAP2+: use preprocessor for device
- trees
-Date: Wed, 29 May 2013 10:53:18 +0200
-Message-ID: <51A5C1FE.6020404@epfl.ch>
-References: <1369666354-29152-1-git-send-email-florian.vaussard@epfl.ch> <51A46DB0.5020508@epfl.ch> <51A5C068.9040308@ti.com>
-Reply-To: florian.vaussard@epfl.ch
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH v2 14/14] ARM: dts: AM43x: initial support
+Date: Wed, 29 May 2013 10:53:07 +0200
+Message-ID: <51A5C1F3.2070605@ti.com>
+References: <cover.1369658705.git.afzal@ti.com> <3790fa57fc4c69da12224fbcec17cd07c59771a0.1369658705.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp5.epfl.ch ([128.178.224.8]:57754 "HELO smtp5.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S965117Ab3E2IxX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 May 2013 04:53:23 -0400
-In-Reply-To: <51A5C068.9040308@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47908 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965117Ab3E2Ixo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 May 2013 04:53:44 -0400
+In-Reply-To: <3790fa57fc4c69da12224fbcec17cd07c59771a0.1369658705.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Rob Herring <rob.herring@calxeda.com>, Ankur Kishore <a-kishore@ti.com>, Grant Likely <grant.likely@linaro.org>, Benoit Cousson <benoit.cousson@linaro.org>, Florian Vaussard <florian.vaussard@epfl.ch>
 
-Hello Benoit,
++ Florian
 
-On 05/29/2013 10:46 AM, Benoit Cousson wrote:
-> Salut Florian,
->
-> On 05/28/2013 10:41 AM, Florian Vaussard wrote:
->>
->> On 05/27/2013 04:52 PM, Florian Vaussard wrote:
->>> Hello,
->>>
->>> Following a similar proposal by Stephen Warren for tegra [1], this series
->>> makes use of the C preprocessor when compiling OMAP DT files, and
->>> accomplishes some improvements to improve overall readability.
->
-> Thanks for that nice cleanup.
->
->> I realized that I should also address am* devices. I will wait for comments
->> on this version, then post a v4. Sorry for the noise.
->
-> That's up to you, but I can anyway already pulled that series. That AM*
-> patches can go later.
->
+Hi Afzal,
 
-I saw in your for_3.11/dts branch that you have a couple of patches 
-declaring
-new pinctrl bindings, so I should base my series of this branch to address
-these patches as well. So I will send a v4 anyway in the coming days.
+On 05/27/2013 04:37 PM, Afzal Mohammed wrote:
+> DT source (minimal) for AM4372 SoC to represent AM43x SoC's. Those
+> represented here are the minimal DT nodes necessary to get kernel
+> booting.
+> 
+> In DT nodes, "ti,hwmod" property has not been added, this would be
+> added along with PRCM support for AM43x.
+> 
+> Signed-off-by: Ankur Kishore <a-kishore@ti.com>
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> ---
+> 
+> v2: Add gptimer 1ms, timer2, synctimer and remove twd local timer
+> 
+>  arch/arm/boot/dts/am4372.dtsi | 66 +++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 66 insertions(+)
+>  create mode 100644 arch/arm/boot/dts/am4372.dtsi
+> 
+> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+> new file mode 100644
+> index 0000000..1d58298
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/am4372.dtsi
+> @@ -0,0 +1,66 @@
+> +/*
+> + * Device Tree Source for AM4372 SoC
+> + *
+> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + * This file is licensed under the terms of the GNU General Public License
+> + * version 2.  This program is licensed "as is" without any warranty of any
+> + * kind, whether express or implied.
+> + */
+> +
+> +/include/ "skeleton.dtsi"
 
-Thanks,
+You can now use the C preprocessor statement instead of this one.
+Florian already started doing the change [1].
 
-Florian
+Beside that detail, that patch looks good to me.
+I'll pull it separately of the series.
+
+Regards,
+Benoit
+
+[1] http://thread.gmane.org/gmane.linux.ports.arm.omap/98320
+
+> +
+> +/ {
+> +	compatible = "ti,am4372", "ti,am43";
+> +	interrupt-parent = <&gic>;
+> +
+> +
+> +	aliases {
+> +		serial0 = &uart1;
+> +	};
+> +
+> +	cpus {
+> +		cpu@0 {
+> +			compatible = "arm,cortex-a9";
+> +		};
+> +	};
+> +
+> +	gic: interrupt-controller@48241000 {
+> +		compatible = "arm,cortex-a9-gic";
+> +		interrupt-controller;
+> +		#interrupt-cells = <3>;
+> +		reg = <0x48241000 0x1000>,
+> +		      <0x48240100 0x0100>;
+> +	};
+> +
+> +	ocp {
+> +		compatible = "simple-bus";
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		ranges;
+> +
+> +		uart1: serial@44e09000 {
+> +			compatible = "ti,am4372-uart","ti,omap2-uart";
+> +			reg = <0x44e09000 0x2000>;
+> +			interrupts = <0 72 0x4>;
+> +		};
+> +
+> +		timer1: timer@44e31000 {
+> +			compatible = "ti,am4372-timer-1ms","ti,am335x-timer-1ms";
+> +			reg = <0x44e31000 0x400>;
+> +			interrupts = <0 67 0x4>;
+> +			ti,timer-alwon;
+> +		};
+> +
+> +		timer2: timer@48040000  {
+> +			compatible = "ti,am4372-timer","ti,am335x-timer";
+> +			reg = <0x48040000  0x400>;
+> +			interrupts = <0 68 0x4>;
+> +		};
+> +
+> +		counter32k: counter@44e86000 {
+> +			compatible = "ti,am4372-counter32k","ti,omap-counter32k";
+> +			reg = <0x44e86000 0x40>;
+> +		};
+> +	};
+> +};
+> 
+
