@@ -1,47 +1,41 @@
-From: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
-Subject: Re: [PATCH v1 1/3] PM / AVS: SmartReflex: disable errgen before vpbound
- disable
-Date: Wed, 29 May 2013 17:24:06 +0300
-Message-ID: <51A60F86.4090900@ti.com>
-References: <1369652846-14412-1-git-send-email-andrii.tseglytskyi@ti.com> <1369652846-14412-2-git-send-email-andrii.tseglytskyi@ti.com> <87sj17aqq2.fsf@linaro.org> <51A5D148.8050203@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH] ARM: DTS: OMAP4: Panda/SDP: twl6030: fix mux for IRQ
+ pin and msecure line
+Date: Wed, 29 May 2013 16:23:37 +0200
+Message-ID: <51A60F69.7050203@ti.com>
+References: <1369423702-31501-1-git-send-email-khilman@linaro.org> <20130524200954.GA2344@kahuna> <20130524203231.GA2555@kahuna> <87obc0f54r.fsf@linaro.org> <CAGo_u6oz1v1J-6z5W-X7CsOmi+7SAMicz1LZTv0sVXhej1DJ2Q@mail.gmail.com> <87a9nkf3mu.fsf@linaro.org> <51A5CCA5.7000700@ti.com> <87ehcpano0.fsf@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51A5D148.8050203@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: J Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60467 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966410Ab3E2PHV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 May 2013 11:07:21 -0400
+In-Reply-To: <87ehcpano0.fsf@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 05/29/2013 12:58 PM, Andrii Tseglytskyi wrote:
-> Hi Kevin,
+On 5/29/2013 4:03 PM, Kevin Hilman wrote:
+> "Cousson, Benoit" <b-cousson@ti.com> writes:
 >
-> Thanks a lot for your comments.
+> [...]
 >
-> On 05/28/2013 09:45 PM, Kevin Hilman wrote:
->> Andrii Tseglytskyi <andrii.tseglytskyi@ti.com> writes:
->>
->>> From: Nishanth Menon <nm@ti.com>
 >>>
->>> vpboundsintr_en is available inside the IP block as an re-sycned
->>> version and one which is not. Due to this, there is an 1 sysclk
->>> cycle window where interruptz could be asserted low for 1 cycle.
->>                               ^^^
+>>> Let me respin this after some more doc reading.
 >>
->> Is that the way the cool kidz are spelling interrupts these days?  ;)
+>> Did you re-spin it already?
 >
-> Oh! Shame on me. Thank you for catching this :)
-
-Shame on me again (((. Name "interruptz" is more less OK. This is the 
-name of signal between Voltage Processor and SmartReflex.
-In documentation it is referenced as "SR_SInterruptz". Anyway commit 
-message should be updated to make this more clear.
-
-
-[snip]
+> Yes, v2 is here.
 >
+> http://marc.info/?l=linux-omap&m=136944147521955&w=2
 >
+> It also needed a rework because the fref_clk0_out pin is also in the
+> wkup section of the padconf, not core.
 
-Regards,
-Andrii
+OK, I'll wait for the v3 then :-)
+
+Benoit
+
