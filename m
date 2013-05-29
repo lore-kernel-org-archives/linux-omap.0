@@ -1,60 +1,120 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH v2] OMAP: AES: Don't idle/start AES device between Encrypt operations
-Date: Wed, 29 May 2013 09:39:05 -0700
-Message-ID: <878v2x91w6.fsf@linaro.org>
-References: <1369785775-3737-1-git-send-email-joelagnel@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 00/14] ARM: OMAP5: hwmod, prm/cm data files and updates for 3.11
+Date: Wed, 29 May 2013 12:38:00 -0400
+Message-ID: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <1369785775-3737-1-git-send-email-joelagnel@ti.com> (Joel
-	A. Fernandes's message of "Tue, 28 May 2013 19:02:55 -0500")
-Sender: linux-crypto-owner@vger.kernel.org
-To: Joel A Fernandes <joelagnel@ti.com>
-Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org, Herbert Xu <herbert@gondor.hengli.com.au>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:38750 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758214Ab3E2QjJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 May 2013 12:39:09 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: paul@pwsan.com, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Joel A Fernandes <joelagnel@ti.com> writes:
+Tony, Paul,
 
-> Calling runtime PM API for every block causes serious perf hit to
-> crypto operations that are done on a long buffer.
-> As crypto is performed on a page boundary, encrypting large buffers can
-> cause a series of crypto operations divided by page. The runtime PM API
-> is also called those many times.
->
-> We call runtime_pm_get_sync only at beginning on the session (cra_init)
-> and runtime_pm_put at the end. This result in upto a 50% speedup as below.
-> This doesn't make the driver to keep the system awake as runtime get/put
-> is only called during a crypto session which completes usually quickly.
->
-> Before:
-> root@beagleboard:~# time -v openssl speed -evp aes-128-cbc
-> Doing aes-128-cbc for 3s on 16 size blocks: 13310 aes-128-cbc's in 0.01s
-> Doing aes-128-cbc for 3s on 64 size blocks: 13040 aes-128-cbc's in 0.04s
-> Doing aes-128-cbc for 3s on 256 size blocks: 9134 aes-128-cbc's in 0.03s
-> Doing aes-128-cbc for 3s on 1024 size blocks: 8939 aes-128-cbc's in 0.01s
-> Doing aes-128-cbc for 3s on 8192 size blocks: 4299 aes-128-cbc's in 0.00s
->
-> After:
-> root@beagleboard:~# time -v openssl speed -evp aes-128-cbc
-> Doing aes-128-cbc for 3s on 16 size blocks: 18911 aes-128-cbc's in 0.02s
-> Doing aes-128-cbc for 3s on 64 size blocks: 18878 aes-128-cbc's in 0.02s
-> Doing aes-128-cbc for 3s on 256 size blocks: 11878 aes-128-cbc's in 0.10s
-> Doing aes-128-cbc for 3s on 1024 size blocks: 11538 aes-128-cbc's in 0.05s
-> Doing aes-128-cbc for 3s on 8192 size blocks: 4857 aes-128-cbc's in 0.03s
->
-> While at it, also drop enter and exit pr_debugs, in related code. tracers
-> can be used for that.
->
-> Tested on a Beaglebone (AM335x SoC) board.
->
-> v3 changes:
-> Refreshed patch on kernel v3.10-rc3
->
-> Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
+Here is another attempt to send the SOC data files for OMAP5 based devices.
+As aligned on list, I have dropped clock data from the series.
+That means for the boot, one clock data patch needs to be applied.
+It is available on my git tree in 'out_of_tree/omap5_clk_data' branch.
 
-This patch had at least 2 acks (myself and Mark Greer) which you should
-include when reposting.  
+With OMAP5 and AM33XX support is DT only, respective hwmod files are cleaned
+up to remove iospace information and un-used hwmod. For 3.11 since OMAP4
+is also targeted as DT only, its hwmod data files is also cleaned up.
+Diffstat looks something like below.
 
-Also, changelog says v3 but subject says v2.
+27 files changed, 9013 insertions(+), 2764 deletions(-)
 
-Kevin
+One can easily notice that the OMAP5 SOC data has significantly come down
+becasue of iospace and rest of the hwmod clean-up.
+
+Thanks to Sricharan, Vaibhav Bedia, Vaibhav H, Rajendra and Benoit for the
+patches and testing.
+
+The following changes since commit e4aa937ec75df0eea0bee03bffa3303ad36c986b:
+
+  Linux 3.10-rc3 (2013-05-26 16:00:47 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git for_3.11/omap5_data_files
+
+for you to fetch changes up to 86b6a6dd106973df7f0c097fcb252e9e54b2f971:
+
+  ARM: OMAP4: hwmod data: Clean up the data file (2013-05-29 11:51:30 -0400)
+
+----------------------------------------------------------------
+
+Benoit Cousson (7):
+  ARM: OMAP5: PRM: Add OMAP54XX register and bitfield files
+  ARM: OMAP5: CM: Add OMAP54XX register and bitfield files
+  ARM: OMAP5: PRCM: Add OMAP54XX local MPU PRCM registers
+  ARM: OMAP5: SCRM: Add OMAP54XX header file.
+  ARM: OMAP5: clockdomain data: Add OMAP54XX data and update the header
+  ARM: OMAP5: powerdomain data: Add OMAP54XX data and update the header
+  ARM: OMAP5: hwmod data: Create initial OMAP5 SOC hwmod data
+
+Santosh Shilimkar (5):
+  ARM: OMAP4+: PRM: Move function prototypes to common header for
+    re-use
+  ARM: OMAP4+: CM: Move function prototypes to common header for re-use
+  ARM: OMAP4+: PRCM MPU: Move function prototypes to common header for
+    re-use
+  ARM: OMAP5: voltagedomain data: Add OMAP5 voltage domain data
+  ARM: OMAP5: Enable build and frameowrk initialisations
+
+Sricharan R (1):
+  ARM: OMAP4: hwmod data: Clean up the data file
+
+Vaibhav Hiremath (1):
+  ARM: AM33XX: hwmod data: irq, dma and addr info clean up
+
+ arch/arm/mach-omap2/Makefile                  |    4 +
+ arch/arm/mach-omap2/clockdomain.h             |    1 +
+ arch/arm/mach-omap2/clockdomains54xx_data.c   |  464 +++++
+ arch/arm/mach-omap2/cm-regbits-54xx.h         | 1737 ++++++++++++++++
+ arch/arm/mach-omap2/cm1_44xx.h                |    7 +-
+ arch/arm/mach-omap2/cm1_54xx.h                |  218 ++
+ arch/arm/mach-omap2/cm2_44xx.h                |    7 +-
+ arch/arm/mach-omap2/cm2_54xx.h                |  394 ++++
+ arch/arm/mach-omap2/cm_44xx_54xx.h            |   36 +
+ arch/arm/mach-omap2/io.c                      |    7 +
+ arch/arm/mach-omap2/omap_hwmod.h              |    1 +
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c    | 1067 ----------
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c    | 1661 +--------------
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c    | 2151 ++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomain.h             |    1 +
+ arch/arm/mach-omap2/powerdomains54xx_data.c   |  331 +++
+ arch/arm/mach-omap2/prcm44xx.h                |    6 +
+ arch/arm/mach-omap2/prcm_mpu44xx.h            |   14 +-
+ arch/arm/mach-omap2/prcm_mpu54xx.h            |   87 +
+ arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h      |   36 +
+ arch/arm/mach-omap2/prm-regbits-54xx.h        | 2701 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/prm44xx.h                 |   33 +-
+ arch/arm/mach-omap2/prm44xx_54xx.h            |   58 +
+ arch/arm/mach-omap2/prm54xx.h                 |  421 ++++
+ arch/arm/mach-omap2/scrm54xx.h                |  231 +++
+ arch/arm/mach-omap2/voltage.h                 |    1 +
+ arch/arm/mach-omap2/voltagedomains54xx_data.c |  102 +
+ 27 files changed, 9013 insertions(+), 2764 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/clockdomains54xx_data.c
+ create mode 100644 arch/arm/mach-omap2/cm-regbits-54xx.h
+ create mode 100644 arch/arm/mach-omap2/cm1_54xx.h
+ create mode 100644 arch/arm/mach-omap2/cm2_54xx.h
+ create mode 100644 arch/arm/mach-omap2/cm_44xx_54xx.h
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+ create mode 100644 arch/arm/mach-omap2/powerdomains54xx_data.c
+ create mode 100644 arch/arm/mach-omap2/prcm_mpu54xx.h
+ create mode 100644 arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h
+ create mode 100644 arch/arm/mach-omap2/prm-regbits-54xx.h
+ create mode 100644 arch/arm/mach-omap2/prm44xx_54xx.h
+ create mode 100644 arch/arm/mach-omap2/prm54xx.h
+ create mode 100644 arch/arm/mach-omap2/scrm54xx.h
+ create mode 100644 arch/arm/mach-omap2/voltagedomains54xx_data.c
+
+-- 
+1.7.9.5
+
