@@ -1,63 +1,96 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 06/14] ARM: OMAP5: PRCM: Add OMAP54XX local MPU PRCM registers
-Date: Wed, 29 May 2013 12:38:06 -0400
-Message-ID: <1369845494-30231-7-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 03/14] ARM: OMAP4+: CM: Move function prototypes to common header for re-use
+Date: Wed, 29 May 2013 12:38:03 -0400
+Message-ID: <1369845494-30231-4-git-send-email-santosh.shilimkar@ti.com>
 References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44677 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759574Ab3E2Qjt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 May 2013 12:39:49 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:59603 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759515Ab3E2Qjs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 May 2013 12:39:48 -0400
 In-Reply-To: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-From: Benoit Cousson <b-cousson@ti.com>
+OMAP5 reuses OMAP4 CM IP block which lets us re-use CM1/CM2 functions.
+So move the function prototypes from cm1_44xx.h, cm2_44xx.h to
+cm_prm44xx_54xx.h header. The suggestion came from Paul Walmsley
+as part of the OMAP5 data file review.
 
-Add the PRCM MPU registers for OMAP54XX platforms.
+This is preparatory  patch to add OMAP5 CM data file.
 
 Cc: Paul Walmsley <paul@pwsan.com>
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-[santosh.shilimkar@ti.com: Generated es2.0 data]
+Acked-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/prcm44xx.h     |    6 +++
- arch/arm/mach-omap2/prcm_mpu54xx.h |   87 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 93 insertions(+)
- create mode 100644 arch/arm/mach-omap2/prcm_mpu54xx.h
+ arch/arm/mach-omap2/cm1_44xx.h     |    7 ++-----
+ arch/arm/mach-omap2/cm2_44xx.h     |    7 ++-----
+ arch/arm/mach-omap2/cm_44xx_54xx.h |   36 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 40 insertions(+), 10 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/cm_44xx_54xx.h
 
-diff --git a/arch/arm/mach-omap2/prcm44xx.h b/arch/arm/mach-omap2/prcm44xx.h
-index 7334ffb..f429cdd 100644
---- a/arch/arm/mach-omap2/prcm44xx.h
-+++ b/arch/arm/mach-omap2/prcm44xx.h
-@@ -32,6 +32,12 @@
- #define OMAP4430_SCRM_PARTITION			4
- #define OMAP4430_PRCM_MPU_PARTITION		5
+diff --git a/arch/arm/mach-omap2/cm1_44xx.h b/arch/arm/mach-omap2/cm1_44xx.h
+index 1bc00dc..5ae8fe3 100644
+--- a/arch/arm/mach-omap2/cm1_44xx.h
++++ b/arch/arm/mach-omap2/cm1_44xx.h
+@@ -25,6 +25,8 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_CM1_44XX_H
+ #define __ARCH_ARM_MACH_OMAP2_CM1_44XX_H
  
-+#define OMAP54XX_PRM_PARTITION			1
-+#define OMAP54XX_CM_CORE_AON_PARTITION		2
-+#define OMAP54XX_CM_CORE_PARTITION		3
-+#define OMAP54XX_SCRM_PARTITION			4
-+#define OMAP54XX_PRCM_MPU_PARTITION		5
++#include "cm_44xx_54xx.h"
 +
- /*
-  * OMAP4_MAX_PRCM_PARTITIONS: set to the highest value of the PRCM partition
-  * IDs, plus one
-diff --git a/arch/arm/mach-omap2/prcm_mpu54xx.h b/arch/arm/mach-omap2/prcm_mpu54xx.h
+ /* CM1 base address */
+ #define OMAP4430_CM1_BASE		0x4a004000
+ 
+@@ -217,9 +219,4 @@
+ #define OMAP4_CM1_ABE_WDT3_CLKCTRL_OFFSET		0x0088
+ #define OMAP4430_CM1_ABE_WDT3_CLKCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_ABE_INST, 0x0088)
+ 
+-/* Function prototypes */
+-extern u32 omap4_cm1_read_inst_reg(s16 inst, u16 idx);
+-extern void omap4_cm1_write_inst_reg(u32 val, s16 inst, u16 idx);
+-extern u32 omap4_cm1_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
+-
+ #endif
+diff --git a/arch/arm/mach-omap2/cm2_44xx.h b/arch/arm/mach-omap2/cm2_44xx.h
+index b9de72d..ee5136d 100644
+--- a/arch/arm/mach-omap2/cm2_44xx.h
++++ b/arch/arm/mach-omap2/cm2_44xx.h
+@@ -25,6 +25,8 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_CM2_44XX_H
+ #define __ARCH_ARM_MACH_OMAP2_CM2_44XX_H
+ 
++#include "cm_44xx_54xx.h"
++
+ /* CM2 base address */
+ #define OMAP4430_CM2_BASE		0x4a008000
+ 
+@@ -449,9 +451,4 @@
+ #define OMAP4_CM_CEFUSE_CEFUSE_CLKCTRL_OFFSET		0x0020
+ #define OMAP4430_CM_CEFUSE_CEFUSE_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CEFUSE_INST, 0x0020)
+ 
+-/* Function prototypes */
+-extern u32 omap4_cm2_read_inst_reg(s16 inst, u16 idx);
+-extern void omap4_cm2_write_inst_reg(u32 val, s16 inst, u16 idx);
+-extern u32 omap4_cm2_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
+-
+ #endif
+diff --git a/arch/arm/mach-omap2/cm_44xx_54xx.h b/arch/arm/mach-omap2/cm_44xx_54xx.h
 new file mode 100644
-index 0000000..bc2ce32
+index 0000000..4154f86
 --- /dev/null
-+++ b/arch/arm/mach-omap2/prcm_mpu54xx.h
-@@ -0,0 +1,87 @@
++++ b/arch/arm/mach-omap2/cm_44xx_54xx.h
+@@ -0,0 +1,36 @@
 +/*
-+ * OMAP54xx PRCM MPU instance offset macros
++ * OMAP44xx and OMAP54xx CM1/CM2 function prototypes
 + *
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2009-201333 Texas Instruments, Inc.
++ * Copyright (C) 2009-2010 Nokia Corporation
 + *
 + * Paul Walmsley (paul@pwsan.com)
 + * Rajendra Nayak (rnayak@ti.com)
@@ -72,73 +105,21 @@ index 0000000..bc2ce32
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __ARCH_ARM_MACH_OMAP2_PRCM_MPU54XX_H
-+#define __ARCH_ARM_MACH_OMAP2_PRCM_MPU54XX_H
-+
-+#include "prcm_mpu_44xx_54xx.h"
-+#include "common.h"
-+
-+#define OMAP54XX_PRCM_MPU_BASE			0x48243000
-+
-+#define OMAP54XX_PRCM_MPU_REGADDR(inst, reg)				\
-+	OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE + (inst) + (reg))
-+
-+/* PRCM_MPU instances */
-+#define OMAP54XX_PRCM_MPU_OCP_SOCKET_INST	0x0000
-+#define OMAP54XX_PRCM_MPU_DEVICE_INST		0x0200
-+#define OMAP54XX_PRCM_MPU_PRM_C0_INST		0x0400
-+#define OMAP54XX_PRCM_MPU_CM_C0_INST		0x0600
-+#define OMAP54XX_PRCM_MPU_PRM_C1_INST		0x0800
-+#define OMAP54XX_PRCM_MPU_CM_C1_INST		0x0a00
-+
-+/* PRCM_MPU clockdomain register offsets (from instance start) */
-+#define OMAP54XX_PRCM_MPU_CM_C0_CPU0_CDOFFS	0x0000
-+#define OMAP54XX_PRCM_MPU_CM_C1_CPU1_CDOFFS	0x0000
-+
-+
-+/*
-+ * PRCM_MPU
 + *
-+ * The PRCM_MPU is a local PRCM inside the MPU subsystem. For the PRCM (global)
-+ * point of view the PRCM_MPU is a single entity. It shares the same
-+ * programming model as the global PRCM and thus can be assimilate as two new
-+ * MOD inside the PRCM
 + */
 +
-+/* PRCM_MPU.PRCM_MPU_OCP_SOCKET register offsets */
-+#define OMAP54XX_REVISION_PRCM_MPU_OFFSET			0x0000
++#ifndef __ARCH_ARM_MACH_OMAP2_CM_44XX_54XX_H
++#define __ARCH_ARM_MACH_OMAP2_CM_44XX_55XX_H
 +
-+/* PRCM_MPU.PRCM_MPU_DEVICE register offsets */
-+#define OMAP54XX_PRCM_MPU_PRM_RSTST_OFFSET			0x0000
-+#define OMAP54XX_PRCM_MPU_PRM_PSCON_COUNT_OFFSET		0x0004
-+#define OMAP54XX_PRM_FRAC_INCREMENTER_NUMERATOR_OFFSET		0x0010
-+#define OMAP54XX_PRM_FRAC_INCREMENTER_DENUMERATOR_RELOAD_OFFSET	0x0014
++/* CM1 Function prototypes */
++extern u32 omap4_cm1_read_inst_reg(s16 inst, u16 idx);
++extern void omap4_cm1_write_inst_reg(u32 val, s16 inst, u16 idx);
++extern u32 omap4_cm1_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
 +
-+/* PRCM_MPU.PRCM_MPU_PRM_C0 register offsets */
-+#define OMAP54XX_PM_CPU0_PWRSTCTRL_OFFSET			0x0000
-+#define OMAP54XX_PM_CPU0_PWRSTST_OFFSET				0x0004
-+#define OMAP54XX_RM_CPU0_CPU0_RSTCTRL_OFFSET			0x0010
-+#define OMAP54XX_RM_CPU0_CPU0_RSTST_OFFSET			0x0014
-+#define OMAP54XX_RM_CPU0_CPU0_CONTEXT_OFFSET			0x0024
-+
-+/* PRCM_MPU.PRCM_MPU_CM_C0 register offsets */
-+#define OMAP54XX_CM_CPU0_CLKSTCTRL_OFFSET			0x0000
-+#define OMAP54XX_CM_CPU0_CPU0_CLKCTRL_OFFSET			0x0020
-+#define OMAP54XX_CM_CPU0_CPU0_CLKCTRL				OMAP54XX_PRCM_MPU_REGADDR(OMAP54XX_PRCM_MPU_CM_C0_INST, 0x0020)
-+
-+/* PRCM_MPU.PRCM_MPU_PRM_C1 register offsets */
-+#define OMAP54XX_PM_CPU1_PWRSTCTRL_OFFSET			0x0000
-+#define OMAP54XX_PM_CPU1_PWRSTST_OFFSET				0x0004
-+#define OMAP54XX_RM_CPU1_CPU1_RSTCTRL_OFFSET			0x0010
-+#define OMAP54XX_RM_CPU1_CPU1_RSTST_OFFSET			0x0014
-+#define OMAP54XX_RM_CPU1_CPU1_CONTEXT_OFFSET			0x0024
-+
-+/* PRCM_MPU.PRCM_MPU_CM_C1 register offsets */
-+#define OMAP54XX_CM_CPU1_CLKSTCTRL_OFFSET			0x0000
-+#define OMAP54XX_CM_CPU1_CPU1_CLKCTRL_OFFSET			0x0020
-+#define OMAP54XX_CM_CPU1_CPU1_CLKCTRL				OMAP54XX_PRCM_MPU_REGADDR(OMAP54XX_PRCM_MPU_CM_C1_INST, 0x0020)
++/* CM2 Function prototypes */
++extern u32 omap4_cm2_read_inst_reg(s16 inst, u16 idx);
++extern void omap4_cm2_write_inst_reg(u32 val, s16 inst, u16 idx);
++extern u32 omap4_cm2_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
 +
 +#endif
 -- 
