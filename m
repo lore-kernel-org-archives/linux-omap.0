@@ -1,86 +1,75 @@
-From: Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
-Subject: [PATCH 1/1] i2c: omap: correct usage of the interrupt enable register
-Date: Wed, 29 May 2013 10:35:44 +0300
-Message-ID: <1369812944-685-2-git-send-email-oleksandr.dmytryshyn@ti.com>
-References: <1369812944-685-1-git-send-email-oleksandr.dmytryshyn@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v2 11/14] Documentation: dt: binding: omap: am43x timer
+Date: Wed, 29 May 2013 08:06:39 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EAFB044@DBDE04.ent.ti.com>
+References: <cover.1369658705.git.afzal@ti.com>
+ <223d90dc9eeab13d8496690d336cdf0f7d27cd22.1369658705.git.afzal@ti.com>
+ <51A520B5.8040803@gmail.com> <51A52A16.1040204@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1369812944-685-1-git-send-email-oleksandr.dmytryshyn@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51A52A16.1040204@wwwdotorg.org>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Stephen Warren <swarren@wwwdotorg.org>, Jon Hunter <jgchunter@gmail.com>
+Cc: Russell King <linux@arm.linux.org.uk>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@linaro.org>, Benoit Cousson <benoit.cousson@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Starting from the OMAP chips with version2 registers scheme there
-are 2 registers (I2C_IRQENABLE_SET and I2C_IRQENABLE_CLR) to manage
-interrupts instead of the older OMAP chips with old scheme which have
-only one register (I2C_IE). Now we should use I2C_IRQENABLE_SET
-register for enabling interrupts and  I2C_IRQENABLE_CLR register
-for disabling interrupts.
+Hi Jon,
 
-Because the registers I2C_IRQENABLE_SET and I2C_IE have the same
-addresses, the interrupt enabling procedure is unchanged.
+On Wed, May 29, 2013 at 03:35:10, Stephen Warren wrote:
+> On 05/28/2013 03:25 PM, Jon Hunter wrote:
 
-Change-Id: Ie49165990a4e7c67a4ccf2e4a66cd3b78f2e2b70
-Signed-off-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
----
- drivers/i2c/busses/i2c-omap.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+> >>  			ti,am335x-timer	(applicable to AM335x devices)
+> >>  			ti,am335x-timer-1ms (applicable to AM335x devices)
+> >> +			"ti,am4372-timer-1ms", "ti,am335x-timer-1ms" for AM43x 1ms timer
+> >> +			"ti,am4372-timer", "ti,am335x-timer" for AM43x timers other than 1ms one
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index e02f9e3..2419899 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -180,6 +180,8 @@ enum {
- #define I2C_OMAP_ERRATA_I207		(1 << 0)
- #define I2C_OMAP_ERRATA_I462		(1 << 1)
+> > If you are adding more compatibility strings, then this implies that the
+> > AM43x timers are not 100% compatible with any other device listed (such
+> > as am335x or any omap device). That's fine but you should state that in
+> > the changelog. If the AM43x timer registers are 100% compatible with
+> > existing devices you should not add these.
+> 
+> I'm not sure that's true; .dts files should always include a compatible
+> value that describes the most specific model of the HW, plus any
+> baseline compatible value that the HW is compatible with. This allows
+> any required quirks/fixes/... to be applied for the specific HW model
+> later even if nobody knows right now they'll be needed. Hence, defining
+> new compatible values doesn't necessarily mean incompatible HW.
+
+Stephen took words out of my finger ;)
  
-+#define OMAP_I2C_INTERRUPTS_MASK	0x6FFF
-+
- struct omap_i2c_dev {
- 	spinlock_t		lock;		/* IRQ synchronization */
- 	struct device		*dev;
-@@ -193,6 +195,7 @@ struct omap_i2c_dev {
- 						    long latency);
- 	u32			speed;		/* Speed of bus in kHz */
- 	u32			flags;
-+	u16			scheme;
- 	u16			cmd_err;
- 	u8			*buf;
- 	u8			*regs;
-@@ -1082,7 +1085,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	int irq;
- 	int r;
- 	u32 rev;
--	u16 minor, major, scheme;
-+	u16 minor, major;
- 
- 	/* NOTE: driver uses the static register mapping */
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-@@ -1159,8 +1162,8 @@ omap_i2c_probe(struct platform_device *pdev)
- 	 */
- 	rev = __raw_readw(dev->base + 0x04);
- 
--	scheme = OMAP_I2C_SCHEME(rev);
--	switch (scheme) {
-+	dev->scheme = OMAP_I2C_SCHEME(rev);
-+	switch (dev->scheme) {
- 	case OMAP_I2C_SCHEME_0:
- 		dev->regs = (u8 *)reg_map_ip_v1;
- 		dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG);
-@@ -1289,7 +1292,11 @@ static int omap_i2c_runtime_suspend(struct device *dev)
- 
- 	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
- 
--	omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
-+	if (_dev->scheme == OMAP_I2C_SCHEME_0)
-+		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
-+	else
-+		omap_i2c_write_reg(_dev, OMAP_I2C_IP_V2_IRQENABLE_CLR,
-+				   OMAP_I2C_INTERRUPTS_MASK);
- 
- 	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
- 		omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
--- 
-1.8.2.rc2
+Some explanations,
+
+1. first compatible should be exact device [A], followed by compatible
+model (if one)
+2. Minor effort in getting DT right the first time may help prevent
+difficult effort later modifying it (if a necessity comes), considering
+the fact that DT sources has  to move out of Kernel at some point of
+time. And DT is not supposed to be modified, which may cause difficulty
+for the users (I had been a minor victim of this during rebase).
+
+As we both were in GPMC land earlier, an example,
+
+If my memory is right, GPMC IP in am335x is rev 6, and IP has 8 chip
+select, but one is not pinned out. Now assume that same IP is integrated
+in another SoC (probably OMAP4 has rev 6). Here if we use same compatible
+for both, driver cannot handle it properly (w/o knowledge about platform).
+But if exact compatible is mentioned, without modifying DT (which should
+be considered as a firmware) just by modifying Kernel, deciding based on
+compatible would help achieve what is required.
+
+Regards
+Afzal
+
+[A] http://devicetree.org/Device_Tree_Usage#Understanding_the_compatible_Property
