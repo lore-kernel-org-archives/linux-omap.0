@@ -1,59 +1,97 @@
-From: "Cherian, George" <george.cherian@ti.com>
-Subject: RE: [PATCH 3/3] usb: dwc3: omap Modify dwc3_omap_readl/writel with
- offsets
-Date: Wed, 29 May 2013 06:54:04 +0000
-Message-ID: <BD228B1E3C6D7740B44C214F9AEEACE335F454@DBDE04.ent.ti.com>
-References: <1369641777-4509-1-git-send-email-george.cherian@ti.com>
- <1369641777-4509-4-git-send-email-george.cherian@ti.com>
- <20130528173215.GB15794@arwen.pp.htv.fi>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [Patch 3/3] clk: Avoid re-parenting orphan clk's having invalid
+ parent index.
+Date: Wed, 29 May 2013 00:18:09 -0700
+Message-ID: <20130529071809.6058.24017@quantum>
+References: <1367475929-32166-1-git-send-email-ambresh@ti.com>
+ <1367475929-32166-4-git-send-email-ambresh@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130528173215.GB15794@arwen.pp.htv.fi>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1367475929-32166-4-git-send-email-ambresh@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Cc: Nishanth Menon <nm@ti.com>, Rajendra <rnayak@ti.com>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Ambresh K <ambresh@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Quoting Ambresh K (2013-05-01 23:25:29)
+> From: Ambresh K <ambresh@ti.com>
+> 
+> Add orhan clk nodes having invalid parent index to list and use
+> the list to skip re-parenting orphan clk having invalid parents.
+> 
+> Signed-off-by: Ambresh K <ambresh@ti.com>
+> ---
+>  drivers/clk/clk.c |   21 +++++++++++++++++++--
+>  1 files changed, 19 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+> index f4d2c73..54d2aa3 100644
+> --- a/drivers/clk/clk.c
+> +++ b/drivers/clk/clk.c
+> @@ -32,6 +32,7 @@ static int enable_refcnt;
+>  
+>  static HLIST_HEAD(clk_root_list);
+>  static HLIST_HEAD(clk_orphan_list);
+> +static HLIST_HEAD(clk_orphan_invalid_parent);
 
+Why not re-use the clk_orphan_list?  Having an invalid value programmed
+into the hardware for selecting a parent essetially orphans a clock
+from a software point of view.  Is there a specific need for the new
+list?
 
-> -----Original Message-----
-> From: Balbi, Felipe
-> Sent: Tuesday, May 28, 2013 11:02 PM
-> To: Cherian, George
-> Cc: Balbi, Felipe; linux-usb@vger.kernel.org; linux-omap@vger.kernel.org;
-> linux-kernel@vger.kernel.org; gregkh@linuxfoundation.org
-> Subject: Re: [PATCH 3/3] usb: dwc3: omap Modify dwc3_omap_readl/writel
-> with offsets
-> 
-> Hi,
-> 
-> On Mon, May 27, 2013 at 01:32:57PM +0530, George Cherian wrote:
-> > This patch modifies dwc3_omap_readl/writel calls to accomodate
-> > both OMAP5 and AM437x reg maps (It uses the cached register offsets).
-> > Also renames OMAP5 IRQ1 as IRQMISC, IRQ1 bits as IRQMISC bits.
-> >
-> > Signed-off-by: George Cherian <george.cherian@ti.com>
-> 
-> can you change this patch a bit so that it adds wrappers around
-> dwc3_omap_*() ? The idea is the have the code look like:
-> 
-> static u32 dwc3_omap_read_utmi_status(struct dwc3_omap *omap)
-> {
-> 	return dwc3_omap_readl(omap->base,
-> USBOTGSS_UTMI_OTG_STATUS +
-> 			omap->utmi_otg_offset);
-> }
-> 
-> (likewise for write and for all other offsets, of course)
-> 
-> that way, reading/writing to registers which need the offset will be
-> less error-prone and th driver will look a little nicer.
+Regards,
+Mike
 
-Yes , I will do it in next version.
-> 
-> --
-> Balbi
--George
+>  static LIST_HEAD(clk_notifier_list);
+>  
+>  /***           locking             ***/
+> @@ -1532,8 +1533,8 @@ EXPORT_SYMBOL_GPL(clk_set_parent);
+>   */
+>  int __clk_init(struct device *dev, struct clk *clk)
+>  {
+> -       int i, ret = 0;
+> -       struct clk *orphan;
+> +       int i, ret = 0, skip = 0;
+> +       struct clk *orphan, *has_invalid_parent;
+>         struct hlist_node *tmp2;
+>  
+>         if (!clk)
+> @@ -1639,11 +1640,27 @@ int __clk_init(struct device *dev, struct clk *clk)
+>                 if (!strcmp(clk->name, orphan->name))
+>                         continue;
+>  
+> +               /* Skip iteration if orphan has invalid parent */
+> +               hlist_for_each_entry(has_invalid_parent,
+> +                               &clk_orphan_invalid_parent, child_node) {
+> +                       if (!strcmp(orphan->name, has_invalid_parent->name)) {
+> +                               skip = 1;
+> +                               break;
+> +                       }
+> +               }
+> +
+> +               if (skip) {
+> +                       skip = 0;
+> +                       continue;
+> +               }
+> +
+>                 if (orphan->ops->get_parent) {
+>                         i = orphan->ops->get_parent(orphan->hw);
+>                         if (i < 0) {
+>                                 pr_err("%s: orphan clk(%s) invalid parent\n",
+>                                                 __func__, orphan->name);
+> +                               hlist_add_head(&orphan->child_node,
+> +                                               &clk_orphan_invalid_parent);
+>                                 continue;
+>                         }
+>                         if (!strcmp(clk->name, orphan->parent_names[i]))
+> -- 
+> 1.7.4.1
