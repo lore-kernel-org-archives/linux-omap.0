@@ -1,102 +1,62 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 01/14] ARM: OMAP4+: PRM: Move function prototypes to common header for re-use
-Date: Wed, 29 May 2013 12:38:01 -0400
-Message-ID: <1369845494-30231-2-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 08/14] ARM: OMAP5: clockdomain data: Add OMAP54XX data and update the header
+Date: Wed, 29 May 2013 12:38:08 -0400
+Message-ID: <1369845494-30231-9-git-send-email-santosh.shilimkar@ti.com>
 References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38766 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53879 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759380Ab3E2QjZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 May 2013 12:39:25 -0400
+	id S1759635Ab3E2QkF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 May 2013 12:40:05 -0400
 In-Reply-To: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-OMAP5 reuses OMAP4 PRM IP block which lets us re-use PRM functions.
-So move the function prototypes from prm44xx.h to prm44xx_54xx.h
-header. The suggestion came from Paul Walmsley as part of the
-OMAP5 data file review.
+From: Benoit Cousson <b-cousson@ti.com>
 
-This is preparatory  patch to add OMAP5 PRM data file.
+Add the data file to describe all clock domains inside the OMAP54XX soc.
 
 Cc: Paul Walmsley <paul@pwsan.com>
 
-Acked-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+[santosh.shilimkar@ti.com: Generated es2.0 data]
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/prm44xx.h      |   33 +-------------------
- arch/arm/mach-omap2/prm44xx_54xx.h |   58 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 59 insertions(+), 32 deletions(-)
- create mode 100644 arch/arm/mach-omap2/prm44xx_54xx.h
+ arch/arm/mach-omap2/clockdomain.h           |    1 +
+ arch/arm/mach-omap2/clockdomains54xx_data.c |  464 +++++++++++++++++++++++++++
+ 2 files changed, 465 insertions(+)
+ create mode 100644 arch/arm/mach-omap2/clockdomains54xx_data.c
 
-diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
-index 8ee1fbd..7db2422 100644
---- a/arch/arm/mach-omap2/prm44xx.h
-+++ b/arch/arm/mach-omap2/prm44xx.h
-@@ -25,6 +25,7 @@
- #ifndef __ARCH_ARM_MACH_OMAP2_PRM44XX_H
- #define __ARCH_ARM_MACH_OMAP2_PRM44XX_H
+diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+index 2da3765..daeecf1 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -216,6 +216,7 @@ extern void __init omap243x_clockdomains_init(void);
+ extern void __init omap3xxx_clockdomains_init(void);
+ extern void __init am33xx_clockdomains_init(void);
+ extern void __init omap44xx_clockdomains_init(void);
++extern void __init omap54xx_clockdomains_init(void);
  
-+#include "prm44xx_54xx.h"
- #include "prcm-common.h"
- #include "prm.h"
- 
-@@ -744,36 +745,4 @@
- #define OMAP4_PRM_VC_ERRST_OFFSET			0x00f8
- #define OMAP4430_PRM_VC_ERRST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x00f8)
- 
--/* Function prototypes */
--# ifndef __ASSEMBLER__
--
--extern u32 omap4_prm_read_inst_reg(s16 inst, u16 idx);
--extern void omap4_prm_write_inst_reg(u32 val, s16 inst, u16 idx);
--extern u32 omap4_prm_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
--
--/* OMAP4-specific VP functions */
--u32 omap4_prm_vp_check_txdone(u8 vp_id);
--void omap4_prm_vp_clear_txdone(u8 vp_id);
--
--/*
-- * OMAP4 access functions for voltage controller (VC) and
-- * voltage proccessor (VP) in the PRM.
-- */
--extern u32 omap4_prm_vcvp_read(u8 offset);
--extern void omap4_prm_vcvp_write(u32 val, u8 offset);
--extern u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
--
--extern void omap44xx_prm_reconfigure_io_chain(void);
--
--/* PRM interrupt-related functions */
--extern void omap44xx_prm_read_pending_irqs(unsigned long *events);
--extern void omap44xx_prm_ocp_barrier(void);
--extern void omap44xx_prm_save_and_clear_irqen(u32 *saved_mask);
--extern void omap44xx_prm_restore_irqen(u32 *saved_mask);
--
--extern int __init omap44xx_prm_init(void);
--extern u32 omap44xx_prm_get_reset_sources(void);
--
--# endif
--
- #endif
-diff --git a/arch/arm/mach-omap2/prm44xx_54xx.h b/arch/arm/mach-omap2/prm44xx_54xx.h
+ extern void clkdm_add_autodeps(struct clockdomain *clkdm);
+ extern void clkdm_del_autodeps(struct clockdomain *clkdm);
+diff --git a/arch/arm/mach-omap2/clockdomains54xx_data.c b/arch/arm/mach-omap2/clockdomains54xx_data.c
 new file mode 100644
-index 0000000..7cd22ab
+index 0000000..1a3c69d
 --- /dev/null
-+++ b/arch/arm/mach-omap2/prm44xx_54xx.h
-@@ -0,0 +1,58 @@
++++ b/arch/arm/mach-omap2/clockdomains54xx_data.c
+@@ -0,0 +1,464 @@
 +/*
-+ * OMAP44xx and 54xx PRM common functions
++ * OMAP54XX Clock domains framework
 + *
-+ * Copyright (C) 2009-2013 Texas Instruments, Inc.
-+ * Copyright (C) 2009-2010 Nokia Corporation
++ * Copyright (C) 2013 Texas Instruments, Inc.
 + *
-+ * Paul Walmsley (paul@pwsan.com)
-+ * Rajendra Nayak (rnayak@ti.com)
++ * Abhijit Pagare (abhijitpagare@ti.com)
 + * Benoit Cousson (b-cousson@ti.com)
++ * Paul Walmsley (paul@pwsan.com)
 + *
 + * This file is automatically generated from the OMAP hardware databases.
 + * We respectfully ask that any modifications to this file be coordinated
@@ -107,45 +67,452 @@ index 0000000..7cd22ab
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
-+ *
 + */
 +
-+#ifndef __ARCH_ARM_MACH_OMAP2_PRM44XX_54XX_H
-+#define __ARCH_ARM_MACH_OMAP2_PRM44XX_54XX_H
++#include <linux/kernel.h>
++#include <linux/io.h>
 +
-+/* Function prototypes */
-+#ifndef __ASSEMBLER__
++#include "clockdomain.h"
++#include "cm1_54xx.h"
++#include "cm2_54xx.h"
 +
-+extern u32 omap4_prm_read_inst_reg(s16 inst, u16 idx);
-+extern void omap4_prm_write_inst_reg(u32 val, s16 inst, u16 idx);
-+extern u32 omap4_prm_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
++#include "cm-regbits-54xx.h"
++#include "prm54xx.h"
++#include "prcm44xx.h"
++#include "prcm_mpu54xx.h"
 +
-+/* OMAP4/OMAP5-specific VP functions */
-+u32 omap4_prm_vp_check_txdone(u8 vp_id);
-+void omap4_prm_vp_clear_txdone(u8 vp_id);
++/* Static Dependencies for OMAP4 Clock Domains */
 +
-+/*
-+ * OMAP4/OMAP5 access functions for voltage controller (VC) and
-+ * voltage proccessor (VP) in the PRM.
-+ */
-+extern u32 omap4_prm_vcvp_read(u8 offset);
-+extern void omap4_prm_vcvp_write(u32 val, u8 offset);
-+extern u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
++static struct clkdm_dep c2c_wkup_sleep_deps[] = {
++	{ .clkdm_name = "abe_clkdm" },
++	{ .clkdm_name = "emif_clkdm" },
++	{ .clkdm_name = "iva_clkdm" },
++	{ .clkdm_name = "l3init_clkdm" },
++	{ .clkdm_name = "l3main1_clkdm" },
++	{ .clkdm_name = "l3main2_clkdm" },
++	{ .clkdm_name = "l4cfg_clkdm" },
++	{ .clkdm_name = "l4per_clkdm" },
++	{ NULL },
++};
 +
-+extern void omap44xx_prm_reconfigure_io_chain(void);
++static struct clkdm_dep cam_wkup_sleep_deps[] = {
++	{ .clkdm_name = "emif_clkdm" },
++	{ .clkdm_name = "iva_clkdm" },
++	{ .clkdm_name = "l3main1_clkdm" },
++	{ NULL },
++};
 +
-+/* PRM interrupt-related functions */
-+extern void omap44xx_prm_read_pending_irqs(unsigned long *events);
-+extern void omap44xx_prm_ocp_barrier(void);
-+extern void omap44xx_prm_save_and_clear_irqen(u32 *saved_mask);
-+extern void omap44xx_prm_restore_irqen(u32 *saved_mask);
++static struct clkdm_dep dma_wkup_sleep_deps[] = {
++	{ .clkdm_name = "abe_clkdm" },
++	{ .clkdm_name = "dss_clkdm" },
++	{ .clkdm_name = "emif_clkdm" },
++	{ .clkdm_name = "ipu_clkdm" },
++	{ .clkdm_name = "iva_clkdm" },
++	{ .clkdm_name = "l3init_clkdm" },
++	{ .clkdm_name = "l3main1_clkdm" },
++	{ .clkdm_name = "l4cfg_clkdm" },
++	{ .clkdm_name = "l4per_clkdm" },
++	{ .clkdm_name = "l4sec_clkdm" },
++	{ .clkdm_name = "wkupaon_clkdm" },
++	{ NULL },
++};
 +
-+extern int __init omap44xx_prm_init(void);
-+extern u32 omap44xx_prm_get_reset_sources(void);
++static struct clkdm_dep dsp_wkup_sleep_deps[] = {
++	{ .clkdm_name = "abe_clkdm" },
++	{ .clkdm_name = "emif_clkdm" },
++	{ .clkdm_name = "iva_clkdm" },
++	{ .clkdm_name = "l3init_clkdm" },
++	{ .clkdm_name = "l3main1_clkdm" },
++	{ .clkdm_name = "l3main2_clkdm" },
++	{ .clkdm_name = "l4cfg_clkdm" },
++	{ .clkdm_name = "l4per_clkdm" },
++	{ .clkdm_name = "wkupaon_clkdm" },
++	{ NULL },
++};
 +
-+#endif
++static struct clkdm_dep dss_wkup_sleep_deps[] = {
++	{ .clkdm_name = "emif_clkdm" },
++	{ .clkdm_name = "iva_clkdm" },
++	{ .clkdm_name = "l3main2_clkdm" },
++	{ NULL },
++};
 +
-+#endif
++static struct clkdm_dep gpu_wkup_sleep_deps[] = {
++	{ .clkdm_name = "emif_clkdm" },
++	{ .clkdm_name = "iva_clkdm" },
++	{ .clkdm_name = "l3main1_clkdm" },
++	{ NULL },
++};
++
++static struct clkdm_dep ipu_wkup_sleep_deps[] = {
++	{ .clkdm_name = "abe_clkdm" },
++	{ .clkdm_name = "dsp_clkdm" },
++	{ .clkdm_name = "dss_clkdm" },
++	{ .clkdm_name = "emif_clkdm" },
++	{ .clkdm_name = "gpu_clkdm" },
++	{ .clkdm_name = "iva_clkdm" },
++	{ .clkdm_name = "l3init_clkdm" },
++	{ .clkdm_name = "l3main1_clkdm" },
++	{ .clkdm_name = "l3main2_clkdm" },
++	{ .clkdm_name = "l4cfg_clkdm" },
++	{ .clkdm_name = "l4per_clkdm" },
++	{ .clkdm_name = "l4sec_clkdm" },
++	{ .clkdm_name = "wkupaon_clkdm" },
++	{ NULL },
++};
++
++static struct clkdm_dep iva_wkup_sleep_deps[] = {
++	{ .clkdm_name = "emif_clkdm" },
++	{ .clkdm_name = "l3main1_clkdm" },
++	{ NULL },
++};
++
++static struct clkdm_dep l3init_wkup_sleep_deps[] = {
++	{ .clkdm_name = "abe_clkdm" },
++	{ .clkdm_name = "emif_clkdm" },
++	{ .clkdm_name = "iva_clkdm" },
++	{ .clkdm_name = "l4cfg_clkdm" },
++	{ .clkdm_name = "l4per_clkdm" },
++	{ .clkdm_name = "l4sec_clkdm" },
++	{ .clkdm_name = "wkupaon_clkdm" },
++	{ NULL },
++};
++
++static struct clkdm_dep l4sec_wkup_sleep_deps[] = {
++	{ .clkdm_name = "emif_clkdm" },
++	{ .clkdm_name = "l3main1_clkdm" },
++	{ .clkdm_name = "l4per_clkdm" },
++	{ NULL },
++};
++
++static struct clkdm_dep mipiext_wkup_sleep_deps[] = {
++	{ .clkdm_name = "abe_clkdm" },
++	{ .clkdm_name = "emif_clkdm" },
++	{ .clkdm_name = "iva_clkdm" },
++	{ .clkdm_name = "l3init_clkdm" },
++	{ .clkdm_name = "l3main1_clkdm" },
++	{ .clkdm_name = "l3main2_clkdm" },
++	{ .clkdm_name = "l4cfg_clkdm" },
++	{ .clkdm_name = "l4per_clkdm" },
++	{ NULL },
++};
++
++static struct clkdm_dep mpu_wkup_sleep_deps[] = {
++	{ .clkdm_name = "abe_clkdm" },
++	{ .clkdm_name = "dsp_clkdm" },
++	{ .clkdm_name = "dss_clkdm" },
++	{ .clkdm_name = "emif_clkdm" },
++	{ .clkdm_name = "gpu_clkdm" },
++	{ .clkdm_name = "ipu_clkdm" },
++	{ .clkdm_name = "iva_clkdm" },
++	{ .clkdm_name = "l3init_clkdm" },
++	{ .clkdm_name = "l3main1_clkdm" },
++	{ .clkdm_name = "l3main2_clkdm" },
++	{ .clkdm_name = "l4cfg_clkdm" },
++	{ .clkdm_name = "l4per_clkdm" },
++	{ .clkdm_name = "l4sec_clkdm" },
++	{ .clkdm_name = "wkupaon_clkdm" },
++	{ NULL },
++};
++
++static struct clockdomain l4sec_54xx_clkdm = {
++	.name		  = "l4sec_clkdm",
++	.pwrdm		  = { .name = "core_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_CORE_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_CORE_L4SEC_CDOFFS,
++	.dep_bit	  = OMAP54XX_L4SEC_STATDEP_SHIFT,
++	.wkdep_srcs	  = l4sec_wkup_sleep_deps,
++	.sleepdep_srcs	  = l4sec_wkup_sleep_deps,
++	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
++};
++
++static struct clockdomain iva_54xx_clkdm = {
++	.name		  = "iva_clkdm",
++	.pwrdm		  = { .name = "iva_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_IVA_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_IVA_IVA_CDOFFS,
++	.dep_bit	  = OMAP54XX_IVA_STATDEP_SHIFT,
++	.wkdep_srcs	  = iva_wkup_sleep_deps,
++	.sleepdep_srcs	  = iva_wkup_sleep_deps,
++	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
++};
++
++static struct clockdomain mipiext_54xx_clkdm = {
++	.name		  = "mipiext_clkdm",
++	.pwrdm		  = { .name = "core_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_CORE_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_CORE_MIPIEXT_CDOFFS,
++	.wkdep_srcs	  = mipiext_wkup_sleep_deps,
++	.sleepdep_srcs	  = mipiext_wkup_sleep_deps,
++	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
++};
++
++static struct clockdomain l3main2_54xx_clkdm = {
++	.name		  = "l3main2_clkdm",
++	.pwrdm		  = { .name = "core_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_CORE_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_CORE_L3MAIN2_CDOFFS,
++	.dep_bit	  = OMAP54XX_L3MAIN2_STATDEP_SHIFT,
++	.flags		  = CLKDM_CAN_HWSUP,
++};
++
++static struct clockdomain l3main1_54xx_clkdm = {
++	.name		  = "l3main1_clkdm",
++	.pwrdm		  = { .name = "core_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_CORE_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_CORE_L3MAIN1_CDOFFS,
++	.dep_bit	  = OMAP54XX_L3MAIN1_STATDEP_SHIFT,
++	.flags		  = CLKDM_CAN_HWSUP,
++};
++
++static struct clockdomain custefuse_54xx_clkdm = {
++	.name		  = "custefuse_clkdm",
++	.pwrdm		  = { .name = "custefuse_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_CUSTEFUSE_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_CUSTEFUSE_CUSTEFUSE_CDOFFS,
++	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
++};
++
++static struct clockdomain ipu_54xx_clkdm = {
++	.name		  = "ipu_clkdm",
++	.pwrdm		  = { .name = "core_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_CORE_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_CORE_IPU_CDOFFS,
++	.dep_bit	  = OMAP54XX_IPU_STATDEP_SHIFT,
++	.wkdep_srcs	  = ipu_wkup_sleep_deps,
++	.sleepdep_srcs	  = ipu_wkup_sleep_deps,
++	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
++};
++
++static struct clockdomain l4cfg_54xx_clkdm = {
++	.name		  = "l4cfg_clkdm",
++	.pwrdm		  = { .name = "core_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_CORE_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_CORE_L4CFG_CDOFFS,
++	.dep_bit	  = OMAP54XX_L4CFG_STATDEP_SHIFT,
++	.flags		  = CLKDM_CAN_HWSUP,
++};
++
++static struct clockdomain abe_54xx_clkdm = {
++	.name		  = "abe_clkdm",
++	.pwrdm		  = { .name = "abe_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_AON_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_AON_ABE_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_AON_ABE_ABE_CDOFFS,
++	.dep_bit	  = OMAP54XX_ABE_STATDEP_SHIFT,
++	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
++};
++
++static struct clockdomain dss_54xx_clkdm = {
++	.name		  = "dss_clkdm",
++	.pwrdm		  = { .name = "dss_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_DSS_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_DSS_DSS_CDOFFS,
++	.dep_bit	  = OMAP54XX_DSS_STATDEP_SHIFT,
++	.wkdep_srcs	  = dss_wkup_sleep_deps,
++	.sleepdep_srcs	  = dss_wkup_sleep_deps,
++	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
++};
++
++static struct clockdomain dsp_54xx_clkdm = {
++	.name		  = "dsp_clkdm",
++	.pwrdm		  = { .name = "dsp_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_AON_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_AON_DSP_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_AON_DSP_DSP_CDOFFS,
++	.dep_bit	  = OMAP54XX_DSP_STATDEP_SHIFT,
++	.wkdep_srcs	  = dsp_wkup_sleep_deps,
++	.sleepdep_srcs	  = dsp_wkup_sleep_deps,
++	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
++};
++
++static struct clockdomain c2c_54xx_clkdm = {
++	.name		  = "c2c_clkdm",
++	.pwrdm		  = { .name = "core_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_CORE_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_CORE_C2C_CDOFFS,
++	.wkdep_srcs	  = c2c_wkup_sleep_deps,
++	.sleepdep_srcs	  = c2c_wkup_sleep_deps,
++	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
++};
++
++static struct clockdomain l4per_54xx_clkdm = {
++	.name		  = "l4per_clkdm",
++	.pwrdm		  = { .name = "core_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_CORE_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_CORE_L4PER_CDOFFS,
++	.dep_bit	  = OMAP54XX_L4PER_STATDEP_SHIFT,
++	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
++};
++
++static struct clockdomain gpu_54xx_clkdm = {
++	.name		  = "gpu_clkdm",
++	.pwrdm		  = { .name = "gpu_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_GPU_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_GPU_GPU_CDOFFS,
++	.dep_bit	  = OMAP54XX_GPU_STATDEP_SHIFT,
++	.wkdep_srcs	  = gpu_wkup_sleep_deps,
++	.sleepdep_srcs	  = gpu_wkup_sleep_deps,
++	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
++};
++
++static struct clockdomain wkupaon_54xx_clkdm = {
++	.name		  = "wkupaon_clkdm",
++	.pwrdm		  = { .name = "wkupaon_pwrdm" },
++	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
++	.cm_inst	  = OMAP54XX_PRM_WKUPAON_CM_INST,
++	.clkdm_offs	  = OMAP54XX_PRM_WKUPAON_CM_WKUPAON_CDOFFS,
++	.dep_bit	  = OMAP54XX_WKUPAON_STATDEP_SHIFT,
++	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
++};
++
++static struct clockdomain mpu0_54xx_clkdm = {
++	.name		  = "mpu0_clkdm",
++	.pwrdm		  = { .name = "cpu0_pwrdm" },
++	.prcm_partition	  = OMAP54XX_PRCM_MPU_PARTITION,
++	.cm_inst	  = OMAP54XX_PRCM_MPU_CM_C0_INST,
++	.clkdm_offs	  = OMAP54XX_PRCM_MPU_CM_C0_CPU0_CDOFFS,
++	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
++};
++
++static struct clockdomain mpu1_54xx_clkdm = {
++	.name		  = "mpu1_clkdm",
++	.pwrdm		  = { .name = "cpu1_pwrdm" },
++	.prcm_partition	  = OMAP54XX_PRCM_MPU_PARTITION,
++	.cm_inst	  = OMAP54XX_PRCM_MPU_CM_C1_INST,
++	.clkdm_offs	  = OMAP54XX_PRCM_MPU_CM_C1_CPU1_CDOFFS,
++	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
++};
++
++static struct clockdomain coreaon_54xx_clkdm = {
++	.name		  = "coreaon_clkdm",
++	.pwrdm		  = { .name = "coreaon_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_COREAON_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_COREAON_COREAON_CDOFFS,
++	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
++};
++
++static struct clockdomain mpu_54xx_clkdm = {
++	.name		  = "mpu_clkdm",
++	.pwrdm		  = { .name = "mpu_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_AON_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_AON_MPU_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_AON_MPU_MPU_CDOFFS,
++	.wkdep_srcs	  = mpu_wkup_sleep_deps,
++	.sleepdep_srcs	  = mpu_wkup_sleep_deps,
++	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
++};
++
++static struct clockdomain l3init_54xx_clkdm = {
++	.name		  = "l3init_clkdm",
++	.pwrdm		  = { .name = "l3init_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_L3INIT_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_L3INIT_L3INIT_CDOFFS,
++	.dep_bit	  = OMAP54XX_L3INIT_STATDEP_SHIFT,
++	.wkdep_srcs	  = l3init_wkup_sleep_deps,
++	.sleepdep_srcs	  = l3init_wkup_sleep_deps,
++	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
++};
++
++static struct clockdomain dma_54xx_clkdm = {
++	.name		  = "dma_clkdm",
++	.pwrdm		  = { .name = "core_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_CORE_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_CORE_DMA_CDOFFS,
++	.wkdep_srcs	  = dma_wkup_sleep_deps,
++	.sleepdep_srcs	  = dma_wkup_sleep_deps,
++	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
++};
++
++static struct clockdomain l3instr_54xx_clkdm = {
++	.name		  = "l3instr_clkdm",
++	.pwrdm		  = { .name = "core_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_CORE_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_CORE_L3INSTR_CDOFFS,
++};
++
++static struct clockdomain emif_54xx_clkdm = {
++	.name		  = "emif_clkdm",
++	.pwrdm		  = { .name = "core_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_CORE_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_CORE_EMIF_CDOFFS,
++	.dep_bit	  = OMAP54XX_EMIF_STATDEP_SHIFT,
++	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
++};
++
++static struct clockdomain emu_54xx_clkdm = {
++	.name		  = "emu_clkdm",
++	.pwrdm		  = { .name = "emu_pwrdm" },
++	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
++	.cm_inst	  = OMAP54XX_PRM_EMU_CM_INST,
++	.clkdm_offs	  = OMAP54XX_PRM_EMU_CM_EMU_CDOFFS,
++	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
++};
++
++static struct clockdomain cam_54xx_clkdm = {
++	.name		  = "cam_clkdm",
++	.pwrdm		  = { .name = "cam_pwrdm" },
++	.prcm_partition	  = OMAP54XX_CM_CORE_PARTITION,
++	.cm_inst	  = OMAP54XX_CM_CORE_CAM_INST,
++	.clkdm_offs	  = OMAP54XX_CM_CORE_CAM_CAM_CDOFFS,
++	.wkdep_srcs	  = cam_wkup_sleep_deps,
++	.sleepdep_srcs	  = cam_wkup_sleep_deps,
++	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
++};
++
++/* As clockdomains are added or removed above, this list must also be changed */
++static struct clockdomain *clockdomains_omap54xx[] __initdata = {
++	&l4sec_54xx_clkdm,
++	&iva_54xx_clkdm,
++	&mipiext_54xx_clkdm,
++	&l3main2_54xx_clkdm,
++	&l3main1_54xx_clkdm,
++	&custefuse_54xx_clkdm,
++	&ipu_54xx_clkdm,
++	&l4cfg_54xx_clkdm,
++	&abe_54xx_clkdm,
++	&dss_54xx_clkdm,
++	&dsp_54xx_clkdm,
++	&c2c_54xx_clkdm,
++	&l4per_54xx_clkdm,
++	&gpu_54xx_clkdm,
++	&wkupaon_54xx_clkdm,
++	&mpu0_54xx_clkdm,
++	&mpu1_54xx_clkdm,
++	&coreaon_54xx_clkdm,
++	&mpu_54xx_clkdm,
++	&l3init_54xx_clkdm,
++	&dma_54xx_clkdm,
++	&l3instr_54xx_clkdm,
++	&emif_54xx_clkdm,
++	&emu_54xx_clkdm,
++	&cam_54xx_clkdm,
++	NULL
++};
++
++void __init omap54xx_clockdomains_init(void)
++{
++	clkdm_register_platform_funcs(&omap4_clkdm_operations);
++	clkdm_register_clkdms(clockdomains_omap54xx);
++	clkdm_complete_init();
++}
 -- 
 1.7.9.5
 
