@@ -1,42 +1,45 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] ARM: DTS: OMAP4: Panda/SDP: twl6030: fix mux for IRQ pin and msecure line
-Date: Wed, 29 May 2013 07:03:27 -0700
-Message-ID: <87ehcpano0.fsf@linaro.org>
-References: <1369423702-31501-1-git-send-email-khilman@linaro.org>
-	<20130524200954.GA2344@kahuna> <20130524203231.GA2555@kahuna>
-	<87obc0f54r.fsf@linaro.org>
-	<CAGo_u6oz1v1J-6z5W-X7CsOmi+7SAMicz1LZTv0sVXhej1DJ2Q@mail.gmail.com>
-	<87a9nkf3mu.fsf@linaro.org> <51A5CCA5.7000700@ti.com>
+From: Roland Stigge <stigge@antcom.de>
+Subject: Re: [PATCH 4/5] USB: lpc32xx: USB_LPC32XX need not depend on USB_PHY
+Date: Wed, 29 May 2013 16:06:37 +0200
+Message-ID: <51A60B6D.3060402@antcom.de>
+References: <1369827811-534-1-git-send-email-rogerq@ti.com> <1369827811-534-5-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:62264 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966716Ab3E2ODa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 May 2013 10:03:30 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rq2so9225631pbb.33
-        for <linux-omap@vger.kernel.org>; Wed, 29 May 2013 07:03:30 -0700 (PDT)
-In-Reply-To: <51A5CCA5.7000700@ti.com> (Benoit Cousson's message of "Wed, 29
-	May 2013 11:38:45 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1369827811-534-5-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu, kishon@ti.com, arnd@arndb.de, adrienverge@gmail.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-"Cousson, Benoit" <b-cousson@ti.com> writes:
+On 05/29/2013 01:43 PM, Roger Quadros wrote:
+> As the USB PHY drivers no longer depend on USB_PHY but
+> select it if needed, the controller drivers need not
+> depend on USB_PHY. They can safely select the necessary
+> PHY driver i.e. USB_ISP1301 in this case.
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 
-[...]
+Acked-by: Roland Stigge <stigge@antcom.de>
+Tested-by: Roland Stigge <stigge@antcom.de>
 
->>
->> Let me respin this after some more doc reading.
->
-> Did you re-spin it already?
+Thanks!
 
-Yes, v2 is here.  
-
-http://marc.info/?l=linux-omap&m=136944147521955&w=2
-
-It also needed a rework because the fref_clk0_out pin is also in the
-wkup section of the padconf, not core.
-
-Kevin
+> CC: Roland Stigge <stigge@antcom.de>
+> ---
+>  drivers/usb/gadget/Kconfig |    1 -
+>  1 files changed, 0 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig
+> index f41aa0d..2b98bce 100644
+> --- a/drivers/usb/gadget/Kconfig
+> +++ b/drivers/usb/gadget/Kconfig
+> @@ -144,7 +144,6 @@ config USB_AT91
+>  config USB_LPC32XX
+>  	tristate "LPC32XX USB Peripheral Controller"
+>  	depends on ARCH_LPC32XX
+> -	depends on USB_PHY
+>  	select USB_ISP1301
+>  	help
+>  	   This option selects the USB device controller in the LPC32xx SoC.
