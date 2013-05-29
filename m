@@ -1,45 +1,73 @@
-From: Libo Chen <clbchenlibo.chen@huawei.com>
-Subject: Re: [PATCH v2] usb: omap2430: fix memleak in err case
-Date: Wed, 29 May 2013 10:47:36 +0800
-Message-ID: <51A56C48.5000501@huawei.com>
-References: <5192E650.3070303@huawei.com> <519C3BD1.6050307@huawei.com> <51A4EC0A.2060506@cogentembedded.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] arm: omap2: fix AM33xx hwmod infos for UART2
+Date: Wed, 29 May 2013 05:22:23 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EC965EB@DBDE04.ent.ti.com>
+References: <1369754265-27712-1-git-send-email-thomas.petazzoni@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51A4EC0A.2060506@cogentembedded.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, grant.likely@linaro.org, rob.herring@calxeda.com, Li Zefan <lizefan@huawei.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60595 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751987Ab3E2FW5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 May 2013 01:22:57 -0400
+In-Reply-To: <1369754265-27712-1-git-send-email-thomas.petazzoni@free-electrons.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>
 
-On 2013/5/29 1:40, Sergei Shtylyov wrote:
-> Hello.
+> -----Original Message-----
+> From: Thomas Petazzoni [mailto:thomas.petazzoni@free-electrons.com]
+> Sent: Tuesday, May 28, 2013 8:48 PM
+> To: Tony Lindgren
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
+> Hiremath, Vaibhav; Paul Walmsley
+> Subject: [PATCH] arm: omap2: fix AM33xx hwmod infos for UART2
 > 
-> On 22-05-2013 7:30, Libo Chen wrote:
+> The UART2 hwmod structure is pointing to the EDMA channels of UART1,
+> which doesn't look right. This patch fixes this by making the UART2
+> hwmod structure to a new structure that lists the EDMA channels to be
+> used by the UART2.
 > 
->> when omap_get_control_dev faild, we should release related platform_device
+> Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_33xx_data.c |    9 ++++++++-
+>  1 file changed, 8 insertions(+), 1 deletion(-)
 > 
->> * Changelog from v1:
->>     * fix spell: s/fail/fails/, s/relational/related/ , thank Sergei <sergei.shtylyov@cogentembedded.com>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> index 01d8f32..9113251 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> @@ -2006,6 +2006,13 @@ static struct omap_hwmod am33xx_uart1_hwmod = {
+>  	},
+>  };
 > 
->    It seems you've actually replaced "fail" with "faild", not "fails".
+> +/* uart2 */
+> +static struct omap_hwmod_dma_info uart2_edma_reqs[] = {
+> +	{ .name = "tx",	.dma_req = 28, },
+> +	{ .name = "rx",	.dma_req = 29, },
+> +	{ .dma_req = -1 }
+> +};
+> +
+>  static struct omap_hwmod_irq_info am33xx_uart2_irqs[] = {
+>  	{ .irq = 73 + OMAP_INTC_START, },
+>  	{ .irq = -1 },
+> @@ -2016,7 +2023,7 @@ static struct omap_hwmod am33xx_uart2_hwmod = {
+>  	.class		= &uart_class,
+>  	.clkdm_name	= "l4ls_clkdm",
+>  	.mpu_irqs	= am33xx_uart2_irqs,
+> -	.sdma_reqs	= uart1_edma_reqs,
+> +	.sdma_reqs	= uart2_edma_reqs,
+>  	.main_clk	= "dpll_per_m2_div4_ck",
+>  	.prcm		= {
+>  		.omap4	= {
 
-sorry for my weak spell.
+Good catch.
 
+Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
-thanks again,
-
-Libo
-
-
-> 
->> Signed-off-by: Libo Chen <libo.chen@huawei.com>
->> ---
->>   drivers/usb/musb/omap2430.c |    3 ++-
->>   1 files changed, 2 insertions(+), 1 deletions(-)
-> 
-> WBR, Sergei
-> 
-> 
-> 
+Thanks,
+Vaibhav
