@@ -1,160 +1,495 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 10/32] OMAPDSS: split overlay manager creation
-Date: Thu, 30 May 2013 12:34:31 +0300
-Message-ID: <1369906493-27538-11-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 12/32] OMAPDSS: Implement display (dis)connect support
+Date: Thu, 30 May 2013 12:34:33 +0300
+Message-ID: <1369906493-27538-13-git-send-email-tomi.valkeinen@ti.com>
 References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41383 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030321Ab3E3Jff (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 05:35:35 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:42772 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030329Ab3E3Jfh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 May 2013 05:35:37 -0400
 In-Reply-To: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Split the function that creates overlay manager structs into two: one
-that creates just the structs, and one that creates the sysfs files for
-the manager.
+We currently have two steps in panel initialization and startup: probing
+and enabling. After the panel has been probed, it's ready and can be
+configured and later enabled.
 
-This will help us use the overlay manager structs with omapdrm in the
-following patches, while still leaving the sysfs files out.
+This model is not enough with more complex display pipelines, where we
+may have, for example, two panels, of which only one can be used at a
+time, connected to the same video output.
+
+To support that kind of scenarios, we need to add new step to the
+initialization: connect.
+
+This patch adds support for connecting and disconnecting panels. After
+probe, but before connect, no panel ops should be called. When the
+connect is called, a proper video pipeline is established, and the panel
+is ready for use. If some part in the video pipeline is already
+connected (by some other panel), the connect call fails.
+
+One key difference with the old style setup is that connect() handles
+also connecting to the overlay manager. This means that the omapfb (or
+omapdrm) no longer needs to figure out which overlay manager to use, but
+it can just call connect() on the panel, and the proper overlay manager
+is connected by omapdss.
+
+This also allows us to add back the support for dynamic switching
+between two exclusive panels. However, the current panel device model is
+not changed to support this, as the new device model is implemented in
+the following patches and the old model will be removed. The new device
+model supports dynamic switching.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/apply.c         |  9 ++++++---
- drivers/video/omap2/dss/dss.h           |  6 ++++--
- drivers/video/omap2/dss/manager-sysfs.c |  2 ++
- drivers/video/omap2/dss/manager.c       | 29 ++++++++++++++++++++++-------
- 4 files changed, 34 insertions(+), 12 deletions(-)
+ drivers/gpu/drm/omapdrm/omap_crtc.c      | 24 +++++++++++++++++
+ drivers/gpu/drm/omapdrm/omap_drv.c       | 12 ++++++++-
+ drivers/video/omap2/dss/apply.c          | 14 ++++++++++
+ drivers/video/omap2/dss/core.c           | 44 +++++++++++++++++++++++++++++++
+ drivers/video/omap2/dss/display-sysfs.c  | 28 +++++++++++---------
+ drivers/video/omap2/dss/manager-sysfs.c  | 45 ++++++++++++++++++++------------
+ drivers/video/omap2/dss/output.c         | 14 ++++++++++
+ drivers/video/omap2/omapfb/omapfb-main.c | 25 ++++++++++--------
+ include/video/omapdss.h                  | 23 ++++++++++++++++
+ 9 files changed, 188 insertions(+), 41 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
-index b84bd99..74d1d00 100644
---- a/drivers/video/omap2/dss/apply.c
-+++ b/drivers/video/omap2/dss/apply.c
-@@ -1577,7 +1577,8 @@ int omapdss_compat_init(void)
+diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdrm/omap_crtc.c
+index 02075bf..b2ab2f5 100644
+--- a/drivers/gpu/drm/omapdrm/omap_crtc.c
++++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
+@@ -94,6 +94,28 @@ uint32_t pipe2vbl(struct drm_crtc *crtc)
+ static struct omap_crtc *omap_crtcs[8];
  
- 	apply_init_priv();
- 
--	dss_init_overlay_managers(pdev);
-+	dss_init_overlay_managers();
-+	dss_init_overlay_managers_sysfs(pdev);
- 	dss_init_overlays(pdev);
- 
- 	for (i = 0; i < omap_dss_get_num_overlay_managers(); i++) {
-@@ -1640,7 +1641,8 @@ err_disp_sysfs:
- 	dss_uninstall_mgr_ops();
- 
- err_mgr_ops:
--	dss_uninit_overlay_managers(pdev);
-+	dss_uninit_overlay_managers_sysfs(pdev);
-+	dss_uninit_overlay_managers();
- 	dss_uninit_overlays(pdev);
- 
- 	compat_refcnt--;
-@@ -1668,7 +1670,8 @@ void omapdss_compat_uninit(void)
- 
- 	dss_uninstall_mgr_ops();
- 
--	dss_uninit_overlay_managers(pdev);
-+	dss_uninit_overlay_managers_sysfs(pdev);
-+	dss_uninit_overlay_managers();
- 	dss_uninit_overlays(pdev);
- out:
- 	mutex_unlock(&compat_init_lock);
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 8475893..7964d3b 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -194,8 +194,10 @@ void display_uninit_sysfs(struct platform_device *pdev,
- 		struct omap_dss_device *dssdev);
- 
- /* manager */
--int dss_init_overlay_managers(struct platform_device *pdev);
--void dss_uninit_overlay_managers(struct platform_device *pdev);
-+int dss_init_overlay_managers(void);
-+void dss_uninit_overlay_managers(void);
-+int dss_init_overlay_managers_sysfs(struct platform_device *pdev);
-+void dss_uninit_overlay_managers_sysfs(struct platform_device *pdev);
- int dss_mgr_simple_check(struct omap_overlay_manager *mgr,
- 		const struct omap_overlay_manager_info *info);
- int dss_mgr_check_timings(struct omap_overlay_manager *mgr,
-diff --git a/drivers/video/omap2/dss/manager-sysfs.c b/drivers/video/omap2/dss/manager-sysfs.c
-index 5104681..72784b3 100644
---- a/drivers/video/omap2/dss/manager-sysfs.c
-+++ b/drivers/video/omap2/dss/manager-sysfs.c
-@@ -511,4 +511,6 @@ void dss_manager_kobj_uninit(struct omap_overlay_manager *mgr)
- {
- 	kobject_del(&mgr->kobj);
- 	kobject_put(&mgr->kobj);
+ /* we can probably ignore these until we support command-mode panels: */
++static int omap_crtc_connect(struct omap_overlay_manager *mgr,
++		struct omap_dss_output *dst)
++{
++	if (mgr->output)
++		return -EINVAL;
 +
-+	memset(&mgr->kobj, 0, sizeof(mgr->kobj));
- }
-diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-index 2551eaa..1aac9b4 100644
---- a/drivers/video/omap2/dss/manager.c
-+++ b/drivers/video/omap2/dss/manager.c
-@@ -36,9 +36,9 @@
- static int num_managers;
- static struct omap_overlay_manager *managers;
- 
--int dss_init_overlay_managers(struct platform_device *pdev)
-+int dss_init_overlay_managers(void)
- {
--	int i, r;
-+	int i;
- 
- 	num_managers = dss_feat_get_num_mgrs();
- 
-@@ -76,6 +76,17 @@ int dss_init_overlay_managers(struct platform_device *pdev)
- 			dss_feat_get_supported_outputs(mgr->id);
- 
- 		INIT_LIST_HEAD(&mgr->overlays);
-+	}
++	if ((mgr->supported_outputs & dst->id) == 0)
++		return -EINVAL;
++
++	dst->manager = mgr;
++	mgr->output = dst;
 +
 +	return 0;
 +}
 +
-+int dss_init_overlay_managers_sysfs(struct platform_device *pdev)
++static void omap_crtc_disconnect(struct omap_overlay_manager *mgr,
++		struct omap_dss_output *dst)
 +{
-+	int i, r;
++	mgr->output->manager = NULL;
++	mgr->output = NULL;
++}
 +
-+	for (i = 0; i < num_managers; ++i) {
-+		struct omap_overlay_manager *mgr = &managers[i];
+ static void omap_crtc_start_update(struct omap_overlay_manager *mgr)
+ {
+ }
+@@ -138,6 +160,8 @@ static void omap_crtc_unregister_framedone_handler(
+ }
  
- 		r = dss_manager_kobj_init(mgr, pdev);
- 		if (r)
-@@ -85,18 +96,22 @@ int dss_init_overlay_managers(struct platform_device *pdev)
+ static const struct dss_mgr_ops mgr_ops = {
++		.connect = omap_crtc_connect,
++		.disconnect = omap_crtc_disconnect,
+ 		.start_update = omap_crtc_start_update,
+ 		.enable = omap_crtc_enable,
+ 		.disable = omap_crtc_disable,
+diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
+index f8947f9..58bd259 100644
+--- a/drivers/gpu/drm/omapdrm/omap_drv.c
++++ b/drivers/gpu/drm/omapdrm/omap_drv.c
+@@ -97,6 +97,7 @@ static int omap_modeset_init(struct drm_device *dev)
+ 	int num_mgrs = dss_feat_get_num_mgrs();
+ 	int num_crtcs;
+ 	int i, id = 0;
++	int r;
+ 
+ 	omap_crtc_pre_init();
+ 
+@@ -118,6 +119,7 @@ static int omap_modeset_init(struct drm_device *dev)
+ 		struct drm_connector *connector;
+ 		struct drm_encoder *encoder;
+ 		enum omap_channel channel;
++		struct omap_overlay_manager *mgr;
+ 
+ 		if (!dssdev->driver) {
+ 			dev_warn(dev->dev, "%s has no driver.. skipping it\n",
+@@ -133,6 +135,13 @@ static int omap_modeset_init(struct drm_device *dev)
+ 			continue;
+ 		}
+ 
++		r = dssdev->driver->connect(dssdev);
++		if (r) {
++			dev_err(dev->dev, "could not connect display: %s\n",
++					dssdev->name);
++			continue;
++		}
++
+ 		encoder = omap_encoder_init(dev, dssdev);
+ 
+ 		if (!encoder) {
+@@ -174,8 +183,9 @@ static int omap_modeset_init(struct drm_device *dev)
+ 		 * other possible channels to which the encoder can connect are
+ 		 * not considered.
+ 		 */
+-		channel = dssdev->output->dispc_channel;
+ 
++		mgr = omapdss_find_mgr_from_display(dssdev);
++		channel = mgr->id;
+ 		/*
+ 		 * if this channel hasn't already been taken by a previously
+ 		 * allocated crtc, we create a new crtc for it
+diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+index c844071..dbd3c2f 100644
+--- a/drivers/video/omap2/dss/apply.c
++++ b/drivers/video/omap2/dss/apply.c
+@@ -790,6 +790,18 @@ static void mgr_clear_shadow_dirty(struct omap_overlay_manager *mgr)
+ 	}
+ }
+ 
++static int dss_mgr_connect_compat(struct omap_overlay_manager *mgr,
++		struct omap_dss_output *dst)
++{
++	return mgr->set_output(mgr, dst);
++}
++
++static void dss_mgr_disconnect_compat(struct omap_overlay_manager *mgr,
++		struct omap_dss_output *dst)
++{
++	mgr->unset_output(mgr);
++}
++
+ static void dss_mgr_start_update_compat(struct omap_overlay_manager *mgr)
+ {
+ 	struct mgr_priv_data *mp = get_mgr_priv(mgr);
+@@ -1552,6 +1564,8 @@ static void dss_mgr_unregister_framedone_handler_compat(struct omap_overlay_mana
+ }
+ 
+ static const struct dss_mgr_ops apply_mgr_ops = {
++	.connect = dss_mgr_connect_compat,
++	.disconnect = dss_mgr_disconnect_compat,
+ 	.start_update = dss_mgr_start_update_compat,
+ 	.enable = dss_mgr_enable_compat,
+ 	.disable = dss_mgr_disable_compat,
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index 502ec1b..4bd8f79 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -371,6 +371,46 @@ static int dss_driver_remove(struct device *dev)
  	return 0;
  }
  
--void dss_uninit_overlay_managers(struct platform_device *pdev)
-+void dss_uninit_overlay_managers(void)
++static int omapdss_default_connect(struct omap_dss_device *dssdev)
 +{
-+	kfree(managers);
-+	managers = NULL;
-+	num_managers = 0;
++	struct omap_dss_output *out;
++	struct omap_overlay_manager *mgr;
++	int r;
++
++	out = dssdev->output;
++
++	if (out == NULL)
++		return -ENODEV;
++
++	mgr = omap_dss_get_overlay_manager(out->dispc_channel);
++	if (!mgr)
++		return -ENODEV;
++
++	r = dss_mgr_connect(mgr, out);
++	if (r)
++		return r;
++
++	return 0;
 +}
 +
-+void dss_uninit_overlay_managers_sysfs(struct platform_device *pdev)
- {
- 	int i;
- 
- 	for (i = 0; i < num_managers; ++i) {
- 		struct omap_overlay_manager *mgr = &managers[i];
++static void omapdss_default_disconnect(struct omap_dss_device *dssdev)
++{
++	struct omap_dss_output *out;
++	struct omap_overlay_manager *mgr;
 +
- 		dss_manager_kobj_uninit(mgr);
- 	}
--
--	kfree(managers);
--	managers = NULL;
--	num_managers = 0;
++	out = dssdev->output;
++
++	if (out == NULL)
++		return;
++
++	mgr = out->manager;
++
++	if (mgr == NULL)
++		return;
++
++	dss_mgr_disconnect(mgr, out);
++}
++
+ int omap_dss_register_driver(struct omap_dss_driver *dssdriver)
+ {
+ 	dssdriver->driver.bus = &dss_bus_type;
+@@ -384,6 +424,10 @@ int omap_dss_register_driver(struct omap_dss_driver *dssdriver)
+ 			omapdss_default_get_recommended_bpp;
+ 	if (dssdriver->get_timings == NULL)
+ 		dssdriver->get_timings = omapdss_default_get_timings;
++	if (dssdriver->connect == NULL)
++		dssdriver->connect = omapdss_default_connect;
++	if (dssdriver->disconnect == NULL)
++		dssdriver->disconnect = omapdss_default_disconnect;
+ 
+ 	return driver_register(&dssdriver->driver);
+ }
+diff --git a/drivers/video/omap2/dss/display-sysfs.c b/drivers/video/omap2/dss/display-sysfs.c
+index 18211a9..81d5dc6 100644
+--- a/drivers/video/omap2/dss/display-sysfs.c
++++ b/drivers/video/omap2/dss/display-sysfs.c
+@@ -33,9 +33,9 @@ static ssize_t display_enabled_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+ 	struct omap_dss_device *dssdev = to_dss_device(dev);
+-	bool enabled = dssdev->state != OMAP_DSS_DISPLAY_DISABLED;
+ 
+-	return snprintf(buf, PAGE_SIZE, "%d\n", enabled);
++	return snprintf(buf, PAGE_SIZE, "%d\n",
++			omapdss_device_is_enabled(dssdev));
  }
  
- int omap_dss_get_num_overlay_managers(void)
+ static ssize_t display_enabled_store(struct device *dev,
+@@ -44,20 +44,24 @@ static ssize_t display_enabled_store(struct device *dev,
+ {
+ 	struct omap_dss_device *dssdev = to_dss_device(dev);
+ 	int r;
+-	bool enabled;
++	bool enable;
+ 
+-	r = strtobool(buf, &enabled);
++	r = strtobool(buf, &enable);
+ 	if (r)
+ 		return r;
+ 
+-	if (enabled != (dssdev->state != OMAP_DSS_DISPLAY_DISABLED)) {
+-		if (enabled) {
+-			r = dssdev->driver->enable(dssdev);
+-			if (r)
+-				return r;
+-		} else {
+-			dssdev->driver->disable(dssdev);
+-		}
++	if (enable == omapdss_device_is_enabled(dssdev))
++		return size;
++
++	if (omapdss_device_is_connected(dssdev) == false)
++		return -ENODEV;
++
++	if (enable) {
++		r = dssdev->driver->enable(dssdev);
++		if (r)
++			return r;
++	} else {
++		dssdev->driver->disable(dssdev);
+ 	}
+ 
+ 	return size;
+diff --git a/drivers/video/omap2/dss/manager-sysfs.c b/drivers/video/omap2/dss/manager-sysfs.c
+index 72784b3..de7e7b5 100644
+--- a/drivers/video/omap2/dss/manager-sysfs.c
++++ b/drivers/video/omap2/dss/manager-sysfs.c
+@@ -50,6 +50,7 @@ static ssize_t manager_display_store(struct omap_overlay_manager *mgr,
+ 	int r = 0;
+ 	size_t len = size;
+ 	struct omap_dss_device *dssdev = NULL;
++	struct omap_dss_device *old_dssdev;
+ 
+ 	int match(struct omap_dss_device *dssdev, void *data)
+ 	{
+@@ -66,34 +67,44 @@ static ssize_t manager_display_store(struct omap_overlay_manager *mgr,
+ 	if (len > 0 && dssdev == NULL)
+ 		return -EINVAL;
+ 
+-	if (dssdev)
++	if (dssdev) {
+ 		DSSDBG("display %s found\n", dssdev->name);
+ 
+-	if (mgr->output) {
+-		r = mgr->unset_output(mgr);
+-		if (r) {
+-			DSSERR("failed to unset current output\n");
++		if (omapdss_device_is_connected(dssdev)) {
++			DSSERR("new display is already connected\n");
++			r = -EINVAL;
++			goto put_device;
++		}
++
++		if (omapdss_device_is_enabled(dssdev)) {
++			DSSERR("new display is not disabled\n");
++			r = -EINVAL;
+ 			goto put_device;
+ 		}
+ 	}
+ 
+-	if (dssdev) {
+-		struct omap_dss_output *out;
++	old_dssdev = mgr->get_device(mgr);
++	if (old_dssdev) {
++		if (omapdss_device_is_enabled(old_dssdev)) {
++			DSSERR("old display is not disabled\n");
++			r = -EINVAL;
++			goto put_device;
++		}
+ 
+-		out = omapdss_find_output_from_display(dssdev);
++		old_dssdev->driver->disconnect(old_dssdev);
++	}
+ 
+-		/*
+-		 * a registered device should have an output connected to it
+-		 * already
+-		 */
+-		if (!out) {
+-			DSSERR("device has no output connected to it\n");
++	if (dssdev) {
++		r = dssdev->driver->connect(dssdev);
++		if (r) {
++			DSSERR("failed to connect new device\n");
+ 			goto put_device;
+ 		}
+ 
+-		r = mgr->set_output(mgr, out);
+-		if (r) {
+-			DSSERR("failed to set manager output\n");
++		old_dssdev = mgr->get_device(mgr);
++		if (old_dssdev != dssdev) {
++			DSSERR("failed to connect device to this manager\n");
++			dssdev->driver->disconnect(dssdev);
+ 			goto put_device;
+ 		}
+ 
+diff --git a/drivers/video/omap2/dss/output.c b/drivers/video/omap2/dss/output.c
+index ab2c0f0..a53b08b 100644
+--- a/drivers/video/omap2/dss/output.c
++++ b/drivers/video/omap2/dss/output.c
+@@ -179,6 +179,20 @@ void dss_uninstall_mgr_ops(void)
+ }
+ EXPORT_SYMBOL(dss_uninstall_mgr_ops);
+ 
++int dss_mgr_connect(struct omap_overlay_manager *mgr,
++		struct omap_dss_output *dst)
++{
++	return dss_mgr_ops->connect(mgr, dst);
++}
++EXPORT_SYMBOL(dss_mgr_connect);
++
++void dss_mgr_disconnect(struct omap_overlay_manager *mgr,
++		struct omap_dss_output *dst)
++{
++	dss_mgr_ops->disconnect(mgr, dst);
++}
++EXPORT_SYMBOL(dss_mgr_disconnect);
++
+ void dss_mgr_set_timings(struct omap_overlay_manager *mgr,
+ 		const struct omap_video_timings *timings)
+ {
+diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
+index dd972c5..eacbafa 100644
+--- a/drivers/video/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/omap2/omapfb/omapfb-main.c
+@@ -1853,6 +1853,8 @@ static void omapfb_free_resources(struct omapfb2_device *fbdev)
+ 		if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED)
+ 			dssdev->driver->disable(dssdev);
+ 
++		dssdev->driver->disconnect(dssdev);
++
+ 		omap_dss_put_device(dssdev);
+ 	}
+ 
+@@ -2363,22 +2365,23 @@ static int omapfb_init_connections(struct omapfb2_device *fbdev,
+ 	int i, r;
+ 	struct omap_overlay_manager *mgr;
+ 
++	r = def_dssdev->driver->connect(def_dssdev);
++	if (r) {
++		dev_err(fbdev->dev, "failed to connect default display\n");
++		return r;
++	}
++
+ 	for (i = 0; i < fbdev->num_displays; ++i) {
+ 		struct omap_dss_device *dssdev = fbdev->displays[i].dssdev;
+-		struct omap_dss_output *out;
+ 
+-		out = omapdss_find_output_from_display(dssdev);
+-		if (!out)
++		if (dssdev == def_dssdev)
+ 			continue;
+ 
+-		mgr = omap_dss_get_overlay_manager(out->dispc_channel);
+-		if (!mgr)
+-			continue;
+-
+-		if (mgr->output)
+-			mgr->unset_output(mgr);
+-
+-		mgr->set_output(mgr, out);
++		/*
++		 * We don't care if the connect succeeds or not. We just want to
++		 * connect as many displays as possible.
++		 */
++		dssdev->driver->connect(dssdev);
+ 	}
+ 
+ 	mgr = omapdss_find_mgr_from_display(def_dssdev);
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 68b2345..f747266 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -689,6 +689,9 @@ struct omap_dss_driver {
+ 	int (*probe)(struct omap_dss_device *);
+ 	void (*remove)(struct omap_dss_device *);
+ 
++	int (*connect)(struct omap_dss_device *dssdev);
++	void (*disconnect)(struct omap_dss_device *dssdev);
++
+ 	int (*enable)(struct omap_dss_device *display);
+ 	void (*disable)(struct omap_dss_device *display);
+ 	int (*run_test)(struct omap_dss_device *display, int test);
+@@ -888,6 +891,11 @@ int omapdss_compat_init(void);
+ void omapdss_compat_uninit(void);
+ 
+ struct dss_mgr_ops {
++	int (*connect)(struct omap_overlay_manager *mgr,
++		struct omap_dss_output *dst);
++	void (*disconnect)(struct omap_overlay_manager *mgr,
++		struct omap_dss_output *dst);
++
+ 	void (*start_update)(struct omap_overlay_manager *mgr);
+ 	int (*enable)(struct omap_overlay_manager *mgr);
+ 	void (*disable)(struct omap_overlay_manager *mgr);
+@@ -904,6 +912,10 @@ struct dss_mgr_ops {
+ int dss_install_mgr_ops(const struct dss_mgr_ops *mgr_ops);
+ void dss_uninstall_mgr_ops(void);
+ 
++int dss_mgr_connect(struct omap_overlay_manager *mgr,
++		struct omap_dss_output *dst);
++void dss_mgr_disconnect(struct omap_overlay_manager *mgr,
++		struct omap_dss_output *dst);
+ void dss_mgr_set_timings(struct omap_overlay_manager *mgr,
+ 		const struct omap_video_timings *timings);
+ void dss_mgr_set_lcd_config(struct omap_overlay_manager *mgr,
+@@ -915,4 +927,15 @@ int dss_mgr_register_framedone_handler(struct omap_overlay_manager *mgr,
+ 		void (*handler)(void *), void *data);
+ void dss_mgr_unregister_framedone_handler(struct omap_overlay_manager *mgr,
+ 		void (*handler)(void *), void *data);
++
++static inline bool omapdss_device_is_connected(struct omap_dss_device *dssdev)
++{
++	return dssdev->output;
++}
++
++static inline bool omapdss_device_is_enabled(struct omap_dss_device *dssdev)
++{
++	return dssdev->state == OMAP_DSS_DISPLAY_ACTIVE;
++}
++
+ #endif
 -- 
 1.8.1.2
 
