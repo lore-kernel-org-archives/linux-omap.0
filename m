@@ -1,94 +1,92 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 17/32] OMAPDSS: SDI: clean up regulator init
-Date: Thu, 30 May 2013 12:34:38 +0300
-Message-ID: <1369906493-27538-18-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 18/32] OMAPDSS: VENC: clean up regulator init
+Date: Thu, 30 May 2013 12:34:39 +0300
+Message-ID: <1369906493-27538-19-git-send-email-tomi.valkeinen@ti.com>
 References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42776 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030342Ab3E3Jfo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 May 2013 05:35:44 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:37448 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030321Ab3E3Jfp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 May 2013 05:35:45 -0400
 In-Reply-To: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Clean up the SDI driver's regulator init to remove the (unused)
+Clean up the VENC driver's regulator init to remove the (unused)
 omap_dss_device parameter, renaming the function to a more sensible
 name, and making the code slightly clearer.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/sdi.c | 41 +++++++++++++++++++++--------------------
- 1 file changed, 21 insertions(+), 20 deletions(-)
+ drivers/video/omap2/dss/venc.c | 32 ++++++++++++++------------------
+ 1 file changed, 14 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
-index 2e3afb8..9801a6e 100644
---- a/drivers/video/omap2/dss/sdi.c
-+++ b/drivers/video/omap2/dss/sdi.c
-@@ -251,30 +251,31 @@ void omapdss_sdi_set_datapairs(struct omap_dss_device *dssdev, int datapairs)
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index 7b2e3ae..f484b9f 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -633,23 +633,22 @@ void omapdss_venc_invert_vid_out_polarity(struct omap_dss_device *dssdev,
+ 	mutex_unlock(&venc.venc_lock);
  }
- EXPORT_SYMBOL(omapdss_sdi_set_datapairs);
  
--static int sdi_init_display(struct omap_dss_device *dssdev)
-+static int sdi_init_regulator(void)
+-static int venc_init_display(struct omap_dss_device *dssdev)
++static int venc_init_regulator(void)
  {
--	DSSDBG("SDI init\n");
+-	DSSDBG("init_display\n");
++	struct regulator *vdda_dac;
+ 
+-	if (venc.vdda_dac_reg == NULL) {
+-		struct regulator *vdda_dac;
 -
--	if (sdi.vdds_sdi_reg == NULL) {
--		struct regulator *vdds_sdi;
--
--		vdds_sdi = dss_get_vdds_sdi();
--
--		if (IS_ERR(vdds_sdi)) {
--			vdds_sdi = regulator_get(&sdi.pdev->dev, "vdds_sdi");
--			if (IS_ERR(vdds_sdi)) {
--				DSSERR("can't get VDDS_SDI regulator\n");
--				return PTR_ERR(vdds_sdi);
--			}
--			sdi.vdds_sdi_from_core = false;
--		} else {
--			sdi.vdds_sdi_from_core = true;
--		}
-+	struct regulator *vdds_sdi;
-+
-+	if (sdi.vdds_sdi_reg != NULL)
+-		vdda_dac = regulator_get(&venc.pdev->dev, "vdda_dac");
++	if (venc.vdda_dac_reg != NULL)
 +		return 0;
  
-+	vdds_sdi = dss_get_vdds_sdi();
-+
-+	if (!IS_ERR(vdds_sdi)) {
-+		sdi.vdds_sdi_from_core = true;
- 		sdi.vdds_sdi_reg = vdds_sdi;
-+		return 0;
+-		if (IS_ERR(vdda_dac)) {
+-			DSSERR("can't get VDDA_DAC regulator\n");
+-			return PTR_ERR(vdda_dac);
+-		}
++	vdda_dac = regulator_get(&venc.pdev->dev, "vdda_dac");
+ 
+-		venc.vdda_dac_reg = vdda_dac;
++	if (IS_ERR(vdda_dac)) {
++		DSSERR("can't get VDDA_DAC regulator\n");
++		return PTR_ERR(vdda_dac);
  	}
  
--	return 0;
-+	vdds_sdi = regulator_get(&sdi.pdev->dev, "vdds_sdi");
++	venc.vdda_dac_reg = vdda_dac;
 +
-+	if (!IS_ERR(vdds_sdi)) {
-+		sdi.vdds_sdi_from_core = false;
-+		sdi.vdds_sdi_reg = vdds_sdi;
-+	}
-+
-+	DSSERR("can't get VDDS_SDI regulator\n");
-+
-+	return PTR_ERR(vdds_sdi);
+ 	return 0;
  }
  
- static struct omap_dss_device *sdi_find_dssdev(struct platform_device *pdev)
-@@ -322,7 +323,7 @@ static int sdi_probe_pdata(struct platform_device *sdidev)
+@@ -765,19 +764,16 @@ static int venc_probe_pdata(struct platform_device *vencdev)
+ 	if (!plat_dssdev)
+ 		return 0;
+ 
++	r = venc_init_regulator();
++	if (r)
++		return r;
++
+ 	dssdev = dss_alloc_and_init_device(&vencdev->dev);
+ 	if (!dssdev)
+ 		return -ENOMEM;
  
  	dss_copy_device_pdata(dssdev, plat_dssdev);
  
--	r = sdi_init_display(dssdev);
-+	r = sdi_init_regulator();
+-	r = venc_init_display(dssdev);
+-	if (r) {
+-		DSSERR("device %s init failed: %d\n", dssdev->name, r);
+-		dss_put_device(dssdev);
+-		return r;
+-	}
+-
+ 	r = omapdss_output_set_device(&venc.output, dssdev);
  	if (r) {
- 		DSSERR("device %s init failed: %d\n", dssdev->name, r);
- 		dss_put_device(dssdev);
+ 		DSSERR("failed to connect output to new device: %s\n",
 -- 
 1.8.1.2
 
