@@ -1,137 +1,75 @@
-From: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
-Subject: [PATCH] ARM: OMAP: TI816X: add powerdomains for TI816x
-Date: Thu, 30 May 2013 19:04:50 +0400
-Message-ID: <1369926290-30404-1-git-send-email-aida.mynzhasova@skitlab.ru>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.skitlab.ru ([217.65.220.135]:41298 "EHLO mail.skitlab.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756361Ab3E3PEz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 11:04:55 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/1] i2c: omap: correct usage of the interrupt enable
+ register
+Date: Thu, 30 May 2013 18:42:50 +0300
+Message-ID: <51A7737A.5000902@ti.com>
+References: <1369812944-685-1-git-send-email-oleksandr.dmytryshyn@ti.com> <1369812944-685-2-git-send-email-oleksandr.dmytryshyn@ti.com> <878v2x7lak.fsf@linaro.org> <51A71375.9030100@ti.com> <87obbsa6vh.fsf@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87obbsa6vh.fsf-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-This patch adds required structures for powerdomain initialization on
-the ti816x. It is impossible to use omap3430 structures in order to
-initialize powerdomains on ti816x, because there are big differences
-between PRCM module base address offsets on these CPUs.
+On 05/30/2013 05:18 PM, Kevin Hilman wrote:
+> Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org> writes:
+>
+>> On 05/29/2013 08:22 PM, Kevin Hilman wrote:
+>>> Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org> writes:
+>>>
+>>>> Starting from the OMAP chips with version2 registers scheme there are
+>>>> 2 registers (I2C_IRQENABLE_SET and I2C_IRQENABLE_CLR) to manage
+>>>> interrupts instead of the older OMAP chips with old scheme which have
+>>>> only one register (I2C_IE).  Now we should use I2C_IRQENABLE_SET
+>>>> register for enabling interrupts and I2C_IRQENABLE_CLR register for
+>>>> disabling interrupts.
+>>> Why?  (changelogs should always answer the "why" question)
+>>>
+>>> IOW, what is broken without this change, how does it fail?  And equally
+>>> important, how is it currently working?
+>>>
+>>> Kevin
+>>>
+>>>
+>> Hi, Kevin.
+>>
+>> If the i2c controller during suspend will generate an interrupt, it
+>> can lead to unpredictable behaviour in the kernel.
+>>
+>> Based on the logic of the kernel code interrupts from i2c should be
+>> prohibited during suspend. Kernel writes 0 to the I2C_IE register in
+>> the omap_i2c_runtime_suspend() function. In the other side kernel
+>> writes saved interrupt flags to the I2C_IE register in
+>> omap_i2c_runtime_resume() function. I.e. interrupts should be disabled
+>> during suspend.
+>>
+>> This works for chips with version1 registers scheme. Interrupts are
+>> disabled during suspend. For chips with version2 scheme registers
+>> writting 0 to the I2C_IE register does nothing (because now the
+>> I2C_IRQENABLE_SET register is located at this address ). This register
+>> is used to enable interrupts. For disabling interrupts
+>> I2C_IRQENABLE_CLR register should be used.
+>>
+>> I've checked that interrupts in the i2c controller are still enabled
+>> after writting 0 to the I2C_IE register. But with my patch interrupts
+>> are disabled in the omap_i2c_runtime_suspend() function.
+> Yes, I understand why your patch works, and it looks correct to me.
+>
+> My main concern is that the changelog is missing a detailed description
+> of the problem that is being solved, as well as a summary of why this
+> has ever worked.  I guess we've just been lucky and not seen interrupts
+> during suspend?
+>
+> Kevin
+Hi, Kevin.
 
-Signed-off-by: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
----
- arch/arm/mach-omap2/powerdomains3xxx_data.c |   62 +++++++++++++++++++++++++++
- arch/arm/mach-omap2/prcm-common.h           |   11 +++++
- 2 files changed, 73 insertions(+)
+Yes. You are right about the interrupts.
 
-diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-index f0e14e9..e2d4bd8 100644
---- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-@@ -336,6 +336,54 @@ static struct powerdomain dpll5_pwrdm = {
- 	.voltdm		  = { .name = "core" },
- };
- 
-+static struct powerdomain device_81xx_pwrdm = {
-+	.name		  = "device_pwrdm",
-+	.prcm_offs	  = TI81XX_PRM_DEVICE_MOD,
-+	.voltdm		  = { .name = "core" },
-+};
-+
-+static struct powerdomain active_816x_pwrdm = {
-+	.name		  = "active_pwrdm",
-+	.prcm_offs	  = TI816X_PRM_ACTIVE_MOD,
-+	.pwrsts		  = PWRSTS_OFF_ON,
-+	.voltdm		  = { .name = "core" },
-+};
-+
-+static struct powerdomain default_816x_pwrdm = {
-+	.name		  = "default_pwrdm",
-+	.prcm_offs	  = TI81XX_PRM_DEFAULT_MOD,
-+	.pwrsts		  = PWRSTS_OFF_ON,
-+	.voltdm		  = { .name = "core" },
-+};
-+
-+static struct powerdomain ivahd0_816x_pwrdm = {
-+	.name		  = "ivahd0_pwrdm",
-+	.prcm_offs	  = TI816X_PRM_IVAHD0_MOD,
-+	.pwrsts		  = PWRSTS_OFF_ON,
-+	.voltdm		  = { .name = "mpu_iva" },
-+};
-+
-+static struct powerdomain ivahd1_816x_pwrdm = {
-+	.name		  = "ivahd1_pwrdm",
-+	.prcm_offs	  = TI816X_PRM_IVAHD1_MOD,
-+	.pwrsts		  = PWRSTS_OFF_ON,
-+	.voltdm		  = { .name = "mpu_iva" },
-+};
-+
-+static struct powerdomain ivahd2_816x_pwrdm = {
-+	.name		  = "ivahd2_pwrdm",
-+	.prcm_offs	  = TI816X_PRM_IVAHD2_MOD,
-+	.pwrsts		  = PWRSTS_OFF_ON,
-+	.voltdm		  = { .name = "mpu_iva" },
-+};
-+
-+static struct powerdomain sgx_816x_pwrdm = {
-+	.name		  = "sgx_pwrdm",
-+	.prcm_offs	  = TI816X_PRM_SGX_MOD,
-+	.pwrsts		  = PWRSTS_OFF_ON,
-+	.voltdm		  = { .name = "core" },
-+};
-+
- /* As powerdomains are added or removed above, this list must also be changed */
- static struct powerdomain *powerdomains_omap3430_common[] __initdata = {
- 	&wkup_omap2_pwrdm,
-@@ -393,6 +441,17 @@ static struct powerdomain *powerdomains_am35x[] __initdata = {
- 	NULL
- };
- 
-+static struct powerdomain *powerdomains_ti81xx[] __initdata = {
-+	&device_81xx_pwrdm,
-+	&active_816x_pwrdm,
-+	&default_816x_pwrdm,
-+	&ivahd0_816x_pwrdm,
-+	&ivahd1_816x_pwrdm,
-+	&ivahd2_816x_pwrdm,
-+	&sgx_816x_pwrdm,
-+	NULL
-+};
-+
- void __init omap3xxx_powerdomains_init(void)
- {
- 	unsigned int rev;
-@@ -406,6 +465,9 @@ void __init omap3xxx_powerdomains_init(void)
- 
- 	if (rev == AM35XX_REV_ES1_0 || rev == AM35XX_REV_ES1_1) {
- 		pwrdm_register_pwrdms(powerdomains_am35x);
-+	} else if (rev == TI8168_REV_ES1_0 || rev == TI8168_REV_ES1_1
-+			|| rev == TI8168_REV_ES2_0 || rev == TI8168_REV_ES2_1) {
-+		pwrdm_register_pwrdms(powerdomains_ti81xx);
- 	} else {
- 		pwrdm_register_pwrdms(powerdomains_omap3430_common);
- 
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index c7d355f..ff1ac4a 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -48,6 +48,17 @@
- #define OMAP3430_NEON_MOD				0xb00
- #define OMAP3430ES2_USBHOST_MOD				0xc00
- 
-+/*
-+ * TI81XX PRM module offsets
-+ */
-+#define TI81XX_PRM_DEVICE_MOD			0x0000
-+#define TI816X_PRM_ACTIVE_MOD			0x0a00
-+#define TI81XX_PRM_DEFAULT_MOD			0x0b00
-+#define TI816X_PRM_IVAHD0_MOD			0x0c00
-+#define TI816X_PRM_IVAHD1_MOD			0x0d00
-+#define TI816X_PRM_IVAHD2_MOD			0x0e00
-+#define TI816X_PRM_SGX_MOD				0x0f00
-+
- /* 24XX register bits shared between CM & PRM registers */
- 
- /* CM_FCLKEN1_CORE, CM_ICLKEN1_CORE, PM_WKEN1_CORE shared bits */
 -- 
-1.7.10.4
 
+Best regards,
+Oleksandr Dmytryshyn | OMAP4 Platform
+GlobalLogic Inc. | Innovation by Design
