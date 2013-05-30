@@ -1,195 +1,272 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 03/27] OMAPDSS: add platform data structs for new panel drivers
-Date: Thu, 30 May 2013 12:35:56 +0300
-Message-ID: <1369906580-27585-4-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 05/27] ARM: OMAP: overo: use new display drivers
+Date: Thu, 30 May 2013 12:35:58 +0300
+Message-ID: <1369906580-27585-6-git-send-email-tomi.valkeinen@ti.com>
 References: <1369906580-27585-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42823 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030405Ab3E3Jgw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 May 2013 05:36:52 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41434 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030405Ab3E3Jgz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 May 2013 05:36:55 -0400
 In-Reply-To: <1369906580-27585-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-With the new DSS device model, we'll have new panel and encoder drivers.
-This patch adds the platform data structs for all the new drivers.
+Use the new display drivers for OMAP3 Overo board.
+
+Note that the LCD add-on boards for lcd43 and lcd35 use the same GPIOs
+for the panels. This means that both panel devices cannot be probed at
+the same time.
+
+DT will handle this correctly, i.e. the DT data will contain the panel
+device only for the add-on board that is attached. However, for the
+board file we need a hackish solution: We parse the kernel boot command
+line, and see whether lcd43 or lcd35 is set as a default display, and
+add the given one. Or, if neither is given, default to lcd43.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- include/video/omap-panel-data.h | 150 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 150 insertions(+)
+ arch/arm/mach-omap2/board-overo.c | 160 ++++++++++++++++++++++++--------------
+ 1 file changed, 100 insertions(+), 60 deletions(-)
 
-diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
-index 0c3b46d..317ee36 100644
---- a/include/video/omap-panel-data.h
-+++ b/include/video/omap-panel-data.h
-@@ -27,6 +27,8 @@
- #ifndef __OMAP_PANEL_DATA_H
- #define __OMAP_PANEL_DATA_H
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index a496774..51fdac6 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -71,6 +71,9 @@
+ #define OVERO_SMSC911X2_CS     4
+ #define OVERO_SMSC911X2_GPIO   65
  
-+#include <video/omapdss.h>
++/* whether to register LCD35 instead of LCD43 */
++static bool overo_use_lcd35;
 +
- struct omap_dss_device;
+ #if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
+ 	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
  
- /**
-@@ -147,4 +149,152 @@ struct panel_tpo_td043_data {
- 	int nreset_gpio;
+@@ -148,78 +151,94 @@ static inline void __init overo_init_smsc911x(void) { return; }
+ #define OVERO_GPIO_LCD_EN 144
+ #define OVERO_GPIO_LCD_BL 145
+ 
+-static struct tfp410_platform_data dvi_panel = {
+-	.i2c_bus_num		= 3,
+-	.power_down_gpio	= -1,
++static struct connector_atv_platform_data overo_tv_pdata = {
++	.name = "tv",
++	.source = "venc.0",
++	.connector_type = OMAP_DSS_VENC_TYPE_SVIDEO,
++	.invert_polarity = false,
  };
  
-+/**
-+ * panel_dpi platform data
-+ * @name: name for this display entity
-+ * @source: name of the display entity used as a video source
-+ * @data_lines: number of DPI datalines
-+ * @display_timing: timings for this panel
-+ * @backlight_gpio: gpio to enable/disable the backlight (or -1)
-+ * @enable_gpio: gpio to enable/disable the panel (or -1)
-+ */
-+struct panel_dpi_platform_data {
-+	const char *name;
-+	const char *source;
+-static struct omap_dss_device overo_dvi_device = {
+-	.name			= "dvi",
+-	.type			= OMAP_DISPLAY_TYPE_DPI,
+-	.driver_name		= "tfp410",
+-	.data			= &dvi_panel,
+-	.phy.dpi.data_lines	= 24,
++static struct platform_device overo_tv_device = {
++	.name                   = "connector-analog-tv",
++	.id                     = 0,
++	.dev.platform_data      = &overo_tv_pdata,
+ };
+ 
+-static struct omap_dss_device overo_tv_device = {
+-	.name = "tv",
+-	.driver_name = "venc",
+-	.type = OMAP_DISPLAY_TYPE_VENC,
+-	.phy.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
++static const struct display_timing overo_lcd43_videomode = {
++	.pixelclock	= { 0, 9200000, 0 },
 +
-+	int data_lines;
++	.hactive = { 0, 480, 0 },
++	.hfront_porch = { 0, 8, 0 },
++	.hback_porch = { 0, 4, 0 },
++	.hsync_len = { 0, 41, 0 },
 +
-+	const struct display_timing *display_timing;
++	.vactive = { 0, 272, 0 },
++	.vfront_porch = { 0, 4, 0 },
++	.vback_porch = { 0, 2, 0 },
++	.vsync_len = { 0, 10, 0 },
 +
-+	int backlight_gpio;
-+	int enable_gpio;
++	.flags = DISPLAY_FLAGS_HSYNC_LOW | DISPLAY_FLAGS_VSYNC_LOW |
++		DISPLAY_FLAGS_DE_HIGH | DISPLAY_FLAGS_PIXDATA_POSEDGE,
+ };
+ 
+-static struct panel_generic_dpi_data lcd43_panel = {
+-	.name			= "samsung_lte430wq_f0c",
+-	.num_gpios		= 2,
+-	.gpios			= {
+-		OVERO_GPIO_LCD_EN,
+-		OVERO_GPIO_LCD_BL
+-	},
++static struct panel_dpi_platform_data overo_lcd43_pdata = {
++	.name                   = "lcd43",
++	.source                 = "dpi.0",
++
++	.data_lines		= 24,
++
++	.display_timing		= &overo_lcd43_videomode,
++
++	.enable_gpio		= OVERO_GPIO_LCD_EN,
++	.backlight_gpio		= OVERO_GPIO_LCD_BL,
+ };
+ 
+-static struct omap_dss_device overo_lcd43_device = {
+-	.name			= "lcd43",
+-	.type			= OMAP_DISPLAY_TYPE_DPI,
+-	.driver_name		= "generic_dpi_panel",
+-	.data			= &lcd43_panel,
+-	.phy.dpi.data_lines	= 24,
++static struct platform_device overo_lcd43_device = {
++	.name                   = "panel-dpi",
++	.id                     = 0,
++	.dev.platform_data      = &overo_lcd43_pdata,
+ };
+ 
+-#if defined(CONFIG_PANEL_LGPHILIPS_LB035Q02) || \
+-	defined(CONFIG_PANEL_LGPHILIPS_LB035Q02_MODULE)
+-static struct panel_generic_dpi_data lcd35_panel = {
+-	.num_gpios		= 2,
+-	.gpios			= {
+-		OVERO_GPIO_LCD_EN,
+-		OVERO_GPIO_LCD_BL
+-	},
++static struct connector_dvi_platform_data overo_dvi_connector_pdata = {
++	.name                   = "dvi",
++	.source                 = "tfp410.0",
++	.i2c_bus_num            = 3,
+ };
+ 
+-static struct omap_dss_device overo_lcd35_device = {
+-	.type			= OMAP_DISPLAY_TYPE_DPI,
+-	.name			= "lcd35",
+-	.driver_name		= "lgphilips_lb035q02_panel",
+-	.phy.dpi.data_lines	= 24,
+-	.data			= &lcd35_panel,
++static struct platform_device overo_dvi_connector_device = {
++	.name                   = "connector-dvi",
++	.id                     = 0,
++	.dev.platform_data      = &overo_dvi_connector_pdata,
+ };
+-#endif
+ 
+-static struct omap_dss_device *overo_dss_devices[] = {
+-	&overo_dvi_device,
+-	&overo_tv_device,
+-#if defined(CONFIG_PANEL_LGPHILIPS_LB035Q02) || \
+-	defined(CONFIG_PANEL_LGPHILIPS_LB035Q02_MODULE)
+-	&overo_lcd35_device,
+-#endif
+-	&overo_lcd43_device,
++static struct encoder_tfp410_platform_data overo_tfp410_pdata = {
++	.name                   = "tfp410.0",
++	.source                 = "dpi.0",
++	.data_lines             = 24,
++	.power_down_gpio        = -1,
 +};
 +
-+/**
-+ * panel_dsicm platform data
-+ * @name: name for this display entity
-+ * @source: name of the display entity used as a video source
-+ * @reset_gpio: gpio to reset the panel (or -1)
-+ * @use_ext_te: use external TE GPIO
-+ * @ext_te_gpio: external TE GPIO
-+ * @ulps_timeout: time to wait before entering ULPS, 0 = disabled (ms)
-+ * @use_dsi_backlight: true if panel uses DSI command to control backlight
-+ * @pin_config: DSI pin configuration
-+ */
-+struct panel_dsicm_platform_data {
-+	const char *name;
-+	const char *source;
++static struct platform_device overo_tfp410_device = {
++	.name                   = "tfp410",
++	.id                     = 0,
++	.dev.platform_data      = &overo_tfp410_pdata,
+ };
+ 
+ static struct omap_dss_board_info overo_dss_data = {
+-	.num_devices	= ARRAY_SIZE(overo_dss_devices),
+-	.devices	= overo_dss_devices,
+-	.default_device	= &overo_dvi_device,
++	.default_display_name = "lcd43",
+ };
+ 
++static void __init overo_display_init(void)
++{
++	omap_display_init(&overo_dss_data);
 +
-+	int reset_gpio;
++	if (!overo_use_lcd35)
++		platform_device_register(&overo_lcd43_device);
++	platform_device_register(&overo_tfp410_device);
++	platform_device_register(&overo_dvi_connector_device);
++	platform_device_register(&overo_tv_device);
++}
 +
-+	bool use_ext_te;
-+	int ext_te_gpio;
+ static struct mtd_partition overo_nand_partitions[] = {
+ 	{
+ 		.name           = "xloader",
+@@ -407,24 +426,41 @@ static int __init overo_i2c_init(void)
+ 	return 0;
+ }
+ 
++static struct panel_lb035q02_platform_data overo_lcd35_pdata = {
++	.name                   = "lcd35",
++	.source                 = "dpi.0",
 +
-+	unsigned ulps_timeout;
++	.data_lines		= 24,
 +
-+	bool use_dsi_backlight;
-+
-+	struct omap_dsi_pin_config pin_config;
++	.enable_gpio		= OVERO_GPIO_LCD_EN,
++	.backlight_gpio		= OVERO_GPIO_LCD_BL,
 +};
 +
-+/**
-+ * panel_acx565akm platform data
-+ * @name: name for this display entity
-+ * @source: name of the display entity used as a video source
-+ * @reset_gpio: gpio to reset the panel (or -1)
-+ * @datapairs: number of SDI datapairs
++/*
++ * NOTE: We need to add either the lgphilips panel, or the lcd43 panel. The
++ * selection is done based on the overo_use_lcd35 field. If new SPI
++ * devices are added here, extra work is needed to make only the lgphilips panel
++ * affected by the overo_use_lcd35 field.
 + */
-+struct panel_acx565akm_platform_data {
-+	const char *name;
-+	const char *source;
+ static struct spi_board_info overo_spi_board_info[] __initdata = {
+-#if defined(CONFIG_PANEL_LGPHILIPS_LB035Q02) || \
+-	defined(CONFIG_PANEL_LGPHILIPS_LB035Q02_MODULE)
+ 	{
+-		.modalias		= "lgphilips_lb035q02_panel-spi",
++		.modalias		= "panel_lgphilips_lb035q02",
+ 		.bus_num		= 1,
+ 		.chip_select		= 1,
+ 		.max_speed_hz		= 500000,
+ 		.mode			= SPI_MODE_3,
++		.platform_data		= &overo_lcd35_pdata,
+ 	},
+-#endif
+ };
+ 
+ static int __init overo_spi_init(void)
+ {
+ 	overo_ads7846_init();
+-	spi_register_board_info(overo_spi_board_info,
+-			ARRAY_SIZE(overo_spi_board_info));
 +
-+	int reset_gpio;
++	if (overo_use_lcd35) {
++		spi_register_board_info(overo_spi_board_info,
++				ARRAY_SIZE(overo_spi_board_info));
++	}
+ 	return 0;
+ }
+ 
+@@ -462,11 +498,13 @@ static void __init overo_init(void)
+ {
+ 	int ret;
+ 
++	if (strstr(boot_command_line, "omapdss.def_disp=lcd35"))
++		overo_use_lcd35 = true;
 +
-+	int datapairs;
-+};
+ 	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	overo_i2c_init();
+ 	omap_hsmmc_init(mmc);
+-	omap_display_init(&overo_dss_data);
+ 	omap_serial_init();
+ 	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
+ 				  mt46h32m32lf6_sdrc_params);
+@@ -483,6 +521,8 @@ static void __init overo_init(void)
+ 	overo_init_keys();
+ 	omap_twl4030_audio_init("overo", NULL);
+ 
++	overo_display_init();
 +
-+/**
-+ * panel_lb035q02 platform data
-+ * @name: name for this display entity
-+ * @source: name of the display entity used as a video source
-+ * @data_lines: number of DPI datalines
-+ * @backlight_gpio: gpio to enable/disable the backlight (or -1)
-+ * @enable_gpio: gpio to enable/disable the panel (or -1)
-+ */
-+struct panel_lb035q02_platform_data {
-+	const char *name;
-+	const char *source;
-+
-+	int data_lines;
-+
-+	int backlight_gpio;
-+	int enable_gpio;
-+};
-+
-+/**
-+ * connector_dvi platform data
-+ * @name: name for this display entity
-+ * @source: name of the display entity used as a video source
-+ * @i2c_bus_num: i2c bus number to be used for reading EDID
-+ */
-+struct connector_dvi_platform_data {
-+	const char *name;
-+	const char *source;
-+	int i2c_bus_num;
-+};
-+
-+/**
-+ * connector_hdmi platform data
-+ * @name: name for this display entity
-+ * @source: name of the display entity used as a video source
-+ */
-+struct connector_hdmi_platform_data {
-+	const char *name;
-+	const char *source;
-+};
-+
-+/**
-+ * connector_atv platform data
-+ * @name: name for this display entity
-+ * @source: name of the display entity used as a video source
-+ * @connector_type: composite/svideo
-+ * @invert_polarity: invert signal polarity
-+ */
-+struct connector_atv_platform_data {
-+	const char *name;
-+	const char *source;
-+
-+	enum omap_dss_venc_type connector_type;
-+	bool invert_polarity;
-+};
-+
-+/**
-+ * encoder_tfp410 platform data
-+ * @name: name for this display entity
-+ * @power_down_gpio: gpio number for PD pin (or -1 if not available)
-+ * @data_lines: number of DPI datalines
-+ */
-+struct encoder_tfp410_platform_data {
-+	const char *name;
-+	const char *source;
-+	int power_down_gpio;
-+	int data_lines;
-+};
-+
-+/**
-+ * encoder_tpd12s015 platform data
-+ * @name: name for this display entity
-+ * @ct_cp_hpd_gpio: CT_CP_HPD gpio number
-+ * @ls_oe_gpio: LS_OE gpio number
-+ * @hpd_gpio: HPD gpio number
-+ */
-+struct encoder_tpd12s015_platform_data {
-+	const char *name;
-+	const char *source;
-+
-+	int ct_cp_hpd_gpio;
-+	int ls_oe_gpio;
-+	int hpd_gpio;
-+};
-+
- #endif /* __OMAP_PANEL_DATA_H */
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+ 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+ 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
 -- 
 1.8.1.2
 
