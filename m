@@ -1,68 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/RFT] ARM: dts: add minimal DT support for Nokia N950 & N9
-Date: Wed, 29 May 2013 17:08:42 -0700
-Message-ID: <20130530000841.GQ13507@atomide.com>
-References: <1369251845-29605-1-git-send-email-aaro.koskinen@iki.fi>
- <519DC39C.6010809@ti.com>
- <20130529205648.GC3345@blackmetal.musicnaut.iki.fi>
+Subject: Re: [PATCH 00/14] ARM: OMAP5: hwmod, prm/cm data files and updates
+ for 3.11
+Date: Wed, 29 May 2013 17:13:22 -0700
+Message-ID: <20130530001321.GR13507@atomide.com>
+References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:60543 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S966530Ab3E3AIq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 May 2013 20:08:46 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48810 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966530Ab3E3ANZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 May 2013 20:13:25 -0400
 Content-Disposition: inline
-In-Reply-To: <20130529205648.GC3345@blackmetal.musicnaut.iki.fi>
+In-Reply-To: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Sakari Ailus <sakari.ailus@iki.fi>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: paul@pwsan.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Aaro Koskinen <aaro.koskinen@iki.fi> [130529 14:02]:
-> Hi,
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [130529 09:44]:
+> Tony, Paul,
 > 
-> On Thu, May 23, 2013 at 09:22:04AM +0200, Benoit Cousson wrote:
-> > On 05/22/2013 09:44 PM, Aaro Koskinen wrote:
-> > > Add minimal DT support for Nokia N950 & N9. The basic boot works. I can
-> > > connect to both devices with USB networking & ssh. dmesg output looks OK.
-> > 
-> > That's great! Tony will like that :-)
-> > It is too bad I just have a N900 :-(
-> > 
-> > > Functionality compared to the legacy board file:
-> > > 
-> > > 	- MMC not detected - reason unknown, any tips welcome
-> > 
-> > On OMAP4 panda I used to have the similar issue due to the pbias not set
-> > properly.
-> > 
-> > > 	- OneNAND missing completely
-> > 
-> > The GPMC for OMAP3 support is pretty new, so maybe some tweak are still
-> > needed.
-> > 
-> > Is it RFC because you are still working on the missing functionalities?
-> > Otherwise the patches are already good to be merged if you want.
-> > As soon as you don't break legacy boot, we can merge even half-working DTS.
+> Here is another attempt to send the SOC data files for OMAP5 based devices.
+> As aligned on list, I have dropped clock data from the series.
+> That means for the boot, one clock data patch needs to be applied.
+> It is available on my git tree in 'out_of_tree/omap5_clk_data' branch.
 > 
-> I was hoping to get the MMC working and OneNAND binding added before
-> merging this... If we could do that, we could deprecate the legacy board
-> file as DT would offer the same functionality.
+> With OMAP5 and AM33XX support is DT only, respective hwmod files are cleaned
+> up to remove iospace information and un-used hwmod. For 3.11 since OMAP4
+> is also targeted as DT only, its hwmod data files is also cleaned up.
+> Diffstat looks something like below.
+> 
+> 27 files changed, 9013 insertions(+), 2764 deletions(-)
+> 
+> One can easily notice that the OMAP5 SOC data has significantly come down
+> becasue of iospace and rest of the hwmod clean-up.
 
-Great sounds like a plan. Take a look at the wl12xx patches I posted for
-setting up the MMC regulators, that might help with the MMC.
+Yes that's great. I'd like to take the last three patches into my yet to
+be posted omap-for-v3.11/cleanup branch with the omap4 legacy boot files
+now that -rc3 is out and the GPIO fix dependency has cleared.
 
-I doubt that the missing PBIAS support is an issue as the eMMC has it's
-own fixed regulator.
-
-Then the GPMC patches might do the trick with the OneNAND as there have
-been patches posted for various boards for NAND and smc911x.
- 
-> Anyway, if half-working DTS is also fine, I'll resend this as "PATCH"
-> in a few days.
-
-Yes that's cool.
+Paul, care to ack those three? Then you probably want to review queue
+the rest I presume.
 
 Regards,
 
