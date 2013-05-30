@@ -1,70 +1,60 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH 05/32] OMAPDSS: fix dss_get_ctx_loss_count for DT
-Date: Thu, 30 May 2013 09:36:17 -0700
-Message-ID: <874ndk5sse.fsf@linaro.org>
-References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com>
-	<1369906493-27538-6-git-send-email-tomi.valkeinen@ti.com>
+From: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 1/1] i2c: omap: correct usage of the interrupt enable register
+Date: Thu, 30 May 2013 09:46:18 -0700
+Message-ID: <87vc604dr9.fsf@linaro.org>
+References: <1369929379-19165-1-git-send-email-oleksandr.dmytryshyn@ti.com>
+	<1369929379-19165-2-git-send-email-oleksandr.dmytryshyn@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f169.google.com ([209.85.192.169]:46578 "EHLO
-	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935563Ab3E3QgU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 May 2013 12:36:20 -0400
-Received: by mail-pd0-f169.google.com with SMTP id y11so663738pdj.14
-        for <linux-omap@vger.kernel.org>; Thu, 30 May 2013 09:36:19 -0700 (PDT)
-In-Reply-To: <1369906493-27538-6-git-send-email-tomi.valkeinen@ti.com> (Tomi
-	Valkeinen's message of "Thu, 30 May 2013 12:34:26 +0300")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1369929379-19165-2-git-send-email-oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
+	(Oleksandr Dmytryshyn's message of "Thu, 30 May 2013 18:56:19 +0300")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
+Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org> writes:
 
-> When using DT, dss device does not have platform data. However,
-> dss_get_ctx_loss_count() uses dss device's platform data to find the
-> get_ctx_loss_count function pointer.
+> If the i2c controller during suspend will generate an interrupt, it
+> can lead to unpredictable behaviour in the kernel.
 >
-> To fix this, dss_get_ctx_loss_count() needs to be changed to get the
-> platform data from the omapdss device, which is a "virtual" device and
-> always has platform data.
+> Based on the logic of the kernel code interrupts from i2c should be
+> prohibited during suspend. Kernel writes 0 to the I2C_IE register in
+> the omap_i2c_runtime_suspend() function. In the other side kernel
+> writes saved interrupt flags to the I2C_IE register in
+> omap_i2c_runtime_resume() function. I.e. interrupts should be disabled
+> during suspend.
+>
+> This works for chips with version1 registers scheme. Interrupts are
+> disabled during suspend. For chips with version2 scheme registers
+> writting 0 to the I2C_IE register does nothing (because now the
+> I2C_IRQENABLE_SET register is located at this address). This register
+> is used to enable interrupts. For disabling interrupts
+> I2C_IRQENABLE_CLR register should be used.
+>
+> Because the registers I2C_IRQENABLE_SET and I2C_IE have the same
+> addresses, the interrupt enabling procedure is unchanged.
+>
+> Signed-off-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
 
-Dumb question (since the DSS device model has always been beyond my
-grasp): how/why does the virtual device still have platform_data on a DT
-boot?
+Much better, but still doesn't explain how/why this has been working up
+until now.  Have we just been lucky?
 
-Also, this context_loss_count and DT boot is starting to get cumbersome,
-and there's currently no (good) way of handling the context loss in a
-generic way without pdata function pointers.
+> ---
+>  drivers/i2c/busses/i2c-omap.c | 15 +++++++++++----
+>  1 file changed, 11 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index e02f9e3..2419899 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -180,6 +180,8 @@ enum {
+>  #define I2C_OMAP_ERRATA_I207		(1 << 0)
+>  #define I2C_OMAP_ERRATA_I462		(1 << 1)
+>  
+> +#define OMAP_I2C_INTERRUPTS_MASK	0x6FFF
 
-I'm starting to think we should move towards dropping this OMAP-specific
-context loss counting, and just assume context is always lost.  If there
-are performance problems, runtime PM autosuspend timeouts can be used to
-avoid the transitions.
-
-Or, on some devices, I suspect comparing a few registers against their
-power-on reset values might be a quicker way of detecting lost context
-and would avoid having to call into platform code all together.
+To be more clear, this should probably have v2 in the name.
 
 Kevin
-
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->  drivers/video/omap2/dss/dss.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-> index 94f66f9..bd01608 100644
-> --- a/drivers/video/omap2/dss/dss.c
-> +++ b/drivers/video/omap2/dss/dss.c
-> @@ -157,7 +157,8 @@ static void dss_restore_context(void)
->  
->  int dss_get_ctx_loss_count(void)
->  {
-> -	struct omap_dss_board_info *board_data = dss.pdev->dev.platform_data;
-> +	struct platform_device *core_pdev = dss_get_core_pdev();
-> +	struct omap_dss_board_info *board_data = core_pdev->dev.platform_data;
->  	int cnt;
->  
->  	if (!board_data->get_context_loss_count)
