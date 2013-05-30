@@ -1,90 +1,68 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v2 11/14] Documentation: dt: binding: omap: am43x timer
-Date: Thu, 30 May 2013 13:44:23 +0200
-Message-ID: <51A73B97.2020701@ti.com>
-References: <cover.1369658705.git.afzal@ti.com> <223d90dc9eeab13d8496690d336cdf0f7d27cd22.1369658705.git.afzal@ti.com> <51A520B5.8040803@gmail.com> <51A52A16.1040204@wwwdotorg.org> <C8443D0743D26F4388EA172BF4E2A7A93EAFB044@DBDE04.ent.ti.com> <51A5BEB6.6070809@ti.com> <51A61E60.4070708@wwwdotorg.org>
+From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Subject: Re: [PATCH 05/32] OMAPDSS: fix dss_get_ctx_loss_count for DT
+Date: Thu, 30 May 2013 13:09:45 +0200
+Message-ID: <20130530110945.GI19468@game.jcrosoft.org>
+References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com>
+ <1369906493-27538-6-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <51A61E60.4070708@wwwdotorg.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, Jon Hunter <jgchunter@gmail.com>, Russell King <linux@arm.linux.org.uk>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@linaro.org>, Benoit Cousson <benoit.cousson@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 10.mo5.mail-out.ovh.net ([46.105.52.148]:51348 "EHLO
+	mo5.mail-out.ovh.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752309Ab3E3MJC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 May 2013 08:09:02 -0400
+Received: from mail624.ha.ovh.net (b6.ovh.net [213.186.33.56])
+	by mo5.mail-out.ovh.net (Postfix) with SMTP id 6E02EFFADB3
+	for <linux-omap@vger.kernel.org>; Thu, 30 May 2013 13:13:54 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <1369906493-27538-6-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Hi Stephen,
-
-On 05/29/2013 05:27 PM, Stephen Warren wrote:
-> On 05/29/2013 02:39 AM, Benoit Cousson wrote:
->> Hi Afzal,
->>
->> On 05/29/2013 10:06 AM, Mohammed, Afzal wrote:
->>> Hi Jon,
->>>
->>> On Wed, May 29, 2013 at 03:35:10, Stephen Warren wrote:
->>>> On 05/28/2013 03:25 PM, Jon Hunter wrote:
->>>
->>>>>>  			ti,am335x-timer	(applicable to AM335x devices)
->>>>>>  			ti,am335x-timer-1ms (applicable to AM335x devices)
->>>>>> +			"ti,am4372-timer-1ms", "ti,am335x-timer-1ms" for AM43x 1ms timer
->>>>>> +			"ti,am4372-timer", "ti,am335x-timer" for AM43x timers other than 1ms one
->>>
->>>>> If you are adding more compatibility strings, then this implies that the
->>>>> AM43x timers are not 100% compatible with any other device listed (such
->>>>> as am335x or any omap device). That's fine but you should state that in
->>>>> the changelog. If the AM43x timer registers are 100% compatible with
->>>>> existing devices you should not add these.
->>>>
->>>> I'm not sure that's true; .dts files should always include a compatible
->>>> value that describes the most specific model of the HW, plus any
->>>> baseline compatible value that the HW is compatible with. This allows
->>>> any required quirks/fixes/... to be applied for the specific HW model
->>>> later even if nobody knows right now they'll be needed. Hence, defining
->>>> new compatible values doesn't necessarily mean incompatible HW.
->>>
->>> Stephen took words out of my finger ;)
->>>  
->>> Some explanations,I don;t 
->>>
->>> 1. first compatible should be exact device [A], followed by compatible
->>> model (if one)
->>> 2. Minor effort in getting DT right the first time may help prevent
->>> difficult effort later modifying it (if a necessity comes), considering
->>> the fact that DT sources has  to move out of Kernel at some point of
->>> time. And DT is not supposed to be modified, which may cause difficulty
->>> for the users (I had been a minor victim of this during rebase).
->>>
->>> As we both were in GPMC land earlier, an example,
->>>
->>> If my memory is right, GPMC IP in am335x is rev 6, and IP has 8 chip
->>> select, but one is not pinned out. Now assume that same IP is integrated
->>> in another SoC (probably OMAP4 has rev 6). Here if we use same compatible
->>> for both, driver cannot handle it properly (w/o knowledge about platform).
->>> But if exact compatible is mentioned, without modifying DT (which should
->>> be considered as a firmware) just by modifying Kernel, deciding based on
->>> compatible would help achieve what is required.
->>
->> That's true for the DTS itself, but here your are changing the binding
->> documentation which is supposed to reflect the driver "interface" in the
->> Device Tree model description.
->>
->> Since the driver does not support any new compatible string, you should
->> not update the binding.
+On 12:34 Thu 30 May     , Tomi Valkeinen wrote:
+> When using DT, dss device does not have platform data. However,
+> dss_get_ctx_loss_count() uses dss device's platform data to find the
+> get_ctx_loss_count function pointer.
 > 
-> I don't agree here; the DT binding should define all the required and/or
-> allowed values that must/should/can be present in the DT - the entire
-> legal schema. The set of all compatible values is included in that,
-> irrespective of whether a particular value actually (currently) defines
-> a different HW interface or not.
+> To fix this, dss_get_ctx_loss_count() needs to be changed to get the
+> platform data from the omapdss device, which is a "virtual" device and
+> always has platform data.
+> 
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>  drivers/video/omap2/dss/dss.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+> index 94f66f9..bd01608 100644
+> --- a/drivers/video/omap2/dss/dss.c
+> +++ b/drivers/video/omap2/dss/dss.c
+> @@ -157,7 +157,8 @@ static void dss_restore_context(void)
+>  
+>  int dss_get_ctx_loss_count(void)
+>  {
+> -	struct omap_dss_board_info *board_data = dss.pdev->dev.platform_data;
+> +	struct platform_device *core_pdev = dss_get_core_pdev();
+> +	struct omap_dss_board_info *board_data = core_pdev->dev.platform_data;
 
-Well, I tend to agree on the principle, but so far it was never really
-done like that. That's not necessarily a good excuse, but if we start
-adding new bindings for the huge number of OMAP|AM variants TI has been
-introduced for 10 years, I'd rather use a wildcard than a exhaustive
-list of all the devices.
-Something like ti,[omap|am]*-timer for example .
+	how about store the pdata in the drivers internal struct and if !dt
+	you ust do this
 
-Regards,
-Benoit
+	dss_dev->pdata = *pdev->dev.platform_data;
 
+	to copy it and we do not alloc it for dt
+
+Best Regards,
+J.
+>  	int cnt;
+>  
+>  	if (!board_data->get_context_loss_count)
+> -- 
+> 1.8.1.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
