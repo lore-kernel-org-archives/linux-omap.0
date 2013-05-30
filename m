@@ -1,63 +1,63 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 19/27] OMAPDSS: Add new HDMI Connector driver
-Date: Thu, 30 May 2013 12:36:12 +0300
-Message-ID: <1369906580-27585-20-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 20/27] OMAPDSS: Add new Analog TV Connector driver
+Date: Thu, 30 May 2013 12:36:13 +0300
+Message-ID: <1369906580-27585-21-git-send-email-tomi.valkeinen@ti.com>
 References: <1369906580-27585-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49901 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37530 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030444Ab3E3JhO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 05:37:14 -0400
+	id S1030428Ab3E3JhQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 May 2013 05:37:16 -0400
 In-Reply-To: <1369906580-27585-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add HDMI Connector driver which uses the new DSS device model and DSS
-ops.
+Add Analog TV Connector driver which uses the new DSS device model and
+DSS ops.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/displays-new/Kconfig          |   5 +
- drivers/video/omap2/displays-new/Makefile         |   1 +
- drivers/video/omap2/displays-new/connector-hdmi.c | 375 ++++++++++++++++++++++
- 3 files changed, 381 insertions(+)
- create mode 100644 drivers/video/omap2/displays-new/connector-hdmi.c
+ drivers/video/omap2/displays-new/Kconfig           |   5 +
+ drivers/video/omap2/displays-new/Makefile          |   1 +
+ .../video/omap2/displays-new/connector-analog-tv.c | 265 +++++++++++++++++++++
+ 3 files changed, 271 insertions(+)
+ create mode 100644 drivers/video/omap2/displays-new/connector-analog-tv.c
 
 diff --git a/drivers/video/omap2/displays-new/Kconfig b/drivers/video/omap2/displays-new/Kconfig
-index 76570fc..9a66413 100644
+index 9a66413..5326638 100644
 --- a/drivers/video/omap2/displays-new/Kconfig
 +++ b/drivers/video/omap2/displays-new/Kconfig
-@@ -18,4 +18,9 @@ config DISPLAY_CONNECTOR_DVI
+@@ -23,4 +23,9 @@ config DISPLAY_CONNECTOR_HDMI
  	help
- 	  Driver for a generic DVI connector.
+ 	  Driver for a generic HDMI connector.
  
-+config DISPLAY_CONNECTOR_HDMI
-+        tristate "HDMI Connector"
++config DISPLAY_CONNECTOR_ANALOG_TV
++        tristate "Analog TV Connector"
 +	help
-+	  Driver for a generic HDMI connector.
++	  Driver for a generic analog TV connector.
 +
  endmenu
 diff --git a/drivers/video/omap2/displays-new/Makefile b/drivers/video/omap2/displays-new/Makefile
-index ed7dd06..1007b5f 100644
+index 1007b5f..083bf08 100644
 --- a/drivers/video/omap2/displays-new/Makefile
 +++ b/drivers/video/omap2/displays-new/Makefile
-@@ -1,3 +1,4 @@
- obj-$(CONFIG_DISPLAY_ENCODER_TFP410) += encoder-tfp410.o
+@@ -2,3 +2,4 @@ obj-$(CONFIG_DISPLAY_ENCODER_TFP410) += encoder-tfp410.o
  obj-$(CONFIG_DISPLAY_ENCODER_TPD12S015) += encoder-tpd12s015.o
  obj-$(CONFIG_DISPLAY_CONNECTOR_DVI) += connector-dvi.o
-+obj-$(CONFIG_DISPLAY_CONNECTOR_HDMI) += connector-hdmi.o
-diff --git a/drivers/video/omap2/displays-new/connector-hdmi.c b/drivers/video/omap2/displays-new/connector-hdmi.c
+ obj-$(CONFIG_DISPLAY_CONNECTOR_HDMI) += connector-hdmi.o
++obj-$(CONFIG_DISPLAY_CONNECTOR_ANALOG_TV) += connector-analog-tv.o
+diff --git a/drivers/video/omap2/displays-new/connector-analog-tv.c b/drivers/video/omap2/displays-new/connector-analog-tv.c
 new file mode 100644
-index 0000000..c582671
+index 0000000..5338f36
 --- /dev/null
-+++ b/drivers/video/omap2/displays-new/connector-hdmi.c
-@@ -0,0 +1,375 @@
++++ b/drivers/video/omap2/displays-new/connector-analog-tv.c
+@@ -0,0 +1,265 @@
 +/*
-+ * HDMI Connector driver
++ * Analog TV Connector driver
 + *
 + * Copyright (C) 2013 Texas Instruments
 + * Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
@@ -71,27 +71,8 @@ index 0000000..c582671
 +#include <linux/module.h>
 +#include <linux/platform_device.h>
 +
-+#include <drm/drm_edid.h>
-+
 +#include <video/omapdss.h>
 +#include <video/omap-panel-data.h>
-+
-+static const struct omap_video_timings hdmic_default_timings = {
-+	.x_res		= 640,
-+	.y_res		= 480,
-+	.pixel_clock	= 25175,
-+	.hsw		= 96,
-+	.hfp		= 16,
-+	.hbp		= 48,
-+	.vsw		= 2,
-+	.vfp		= 11,
-+	.vbp		= 31,
-+
-+	.vsync_level	= OMAPDSS_SIG_ACTIVE_LOW,
-+	.hsync_level	= OMAPDSS_SIG_ACTIVE_LOW,
-+
-+	.interlace	= false,
-+};
 +
 +struct panel_drv_data {
 +	struct omap_dss_device dssdev;
@@ -100,11 +81,14 @@ index 0000000..c582671
 +	struct device *dev;
 +
 +	struct omap_video_timings timings;
++
++	enum omap_dss_venc_type connector_type;
++	bool invert_polarity;
 +};
 +
 +#define to_panel_data(x) container_of(x, struct panel_drv_data, dssdev)
 +
-+static int hdmic_connect(struct omap_dss_device *dssdev)
++static int tvc_connect(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
@@ -115,14 +99,14 @@ index 0000000..c582671
 +	if (omapdss_device_is_connected(dssdev))
 +		return 0;
 +
-+	r = in->ops.hdmi->connect(in, dssdev);
++	r = in->ops.atv->connect(in, dssdev);
 +	if (r)
 +		return r;
 +
 +	return 0;
 +}
 +
-+static void hdmic_disconnect(struct omap_dss_device *dssdev)
++static void tvc_disconnect(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
@@ -132,10 +116,10 @@ index 0000000..c582671
 +	if (!omapdss_device_is_connected(dssdev))
 +		return;
 +
-+	in->ops.hdmi->disconnect(in, dssdev);
++	in->ops.atv->disconnect(in, dssdev);
 +}
 +
-+static int hdmic_enable(struct omap_dss_device *dssdev)
++static int tvc_enable(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
@@ -149,9 +133,12 @@ index 0000000..c582671
 +	if (omapdss_device_is_enabled(dssdev))
 +		return 0;
 +
-+	in->ops.hdmi->set_timings(in, &ddata->timings);
++	in->ops.atv->set_timings(in, &ddata->timings);
 +
-+	r = in->ops.hdmi->enable(in);
++	in->ops.atv->set_type(in, ddata->connector_type);
++	in->ops.atv->invert_vid_out_polarity(in, ddata->invert_polarity);
++
++	r = in->ops.atv->enable(in);
 +	if (r)
 +		return r;
 +
@@ -160,7 +147,7 @@ index 0000000..c582671
 +	return r;
 +}
 +
-+static void hdmic_disable(struct omap_dss_device *dssdev)
++static void tvc_disable(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
@@ -170,12 +157,12 @@ index 0000000..c582671
 +	if (!omapdss_device_is_enabled(dssdev))
 +		return;
 +
-+	in->ops.hdmi->disable(in);
++	in->ops.atv->disable(in);
 +
 +	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
 +}
 +
-+static void hdmic_set_timings(struct omap_dss_device *dssdev,
++static void tvc_set_timings(struct omap_dss_device *dssdev,
 +		struct omap_video_timings *timings)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
@@ -184,10 +171,10 @@ index 0000000..c582671
 +	ddata->timings = *timings;
 +	dssdev->panel.timings = *timings;
 +
-+	in->ops.hdmi->set_timings(in, timings);
++	in->ops.atv->set_timings(in, timings);
 +}
 +
-+static void hdmic_get_timings(struct omap_dss_device *dssdev,
++static void tvc_get_timings(struct omap_dss_device *dssdev,
 +		struct omap_video_timings *timings)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
@@ -195,152 +182,52 @@ index 0000000..c582671
 +	*timings = ddata->timings;
 +}
 +
-+static int hdmic_check_timings(struct omap_dss_device *dssdev,
++static int tvc_check_timings(struct omap_dss_device *dssdev,
 +		struct omap_video_timings *timings)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
 +
-+	return in->ops.hdmi->check_timings(in, timings);
++	return in->ops.atv->check_timings(in, timings);
 +}
 +
-+static int hdmic_read_edid(struct omap_dss_device *dssdev,
-+		u8 *edid, int len)
++static u32 tvc_get_wss(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
 +
-+	return in->ops.hdmi->read_edid(in, edid, len);
++	return in->ops.atv->get_wss(in);
 +}
 +
-+static bool hdmic_detect(struct omap_dss_device *dssdev)
++static int tvc_set_wss(struct omap_dss_device *dssdev, u32 wss)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
 +
-+	return in->ops.hdmi->detect(in);
++	return in->ops.atv->set_wss(in, wss);
 +}
 +
-+static int hdmic_audio_enable(struct omap_dss_device *dssdev)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	struct omap_dss_device *in = ddata->in;
-+	int r;
++static struct omap_dss_driver tvc_driver = {
++	.connect		= tvc_connect,
++	.disconnect		= tvc_disconnect,
 +
-+	/* enable audio only if the display is active */
-+	if (!omapdss_device_is_enabled(dssdev))
-+		return -EPERM;
++	.enable			= tvc_enable,
++	.disable		= tvc_disable,
 +
-+	r = in->ops.hdmi->audio_enable(in);
-+	if (r)
-+		return r;
-+
-+	dssdev->audio_state = OMAP_DSS_AUDIO_ENABLED;
-+
-+	return 0;
-+}
-+
-+static void hdmic_audio_disable(struct omap_dss_device *dssdev)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	struct omap_dss_device *in = ddata->in;
-+
-+	in->ops.hdmi->audio_disable(in);
-+
-+	dssdev->audio_state = OMAP_DSS_AUDIO_DISABLED;
-+}
-+
-+static int hdmic_audio_start(struct omap_dss_device *dssdev)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	struct omap_dss_device *in = ddata->in;
-+	int r;
-+
-+	/*
-+	 * No need to check the panel state. It was checked when trasitioning
-+	 * to AUDIO_ENABLED.
-+	 */
-+	if (dssdev->audio_state != OMAP_DSS_AUDIO_ENABLED)
-+		return -EPERM;
-+
-+	r = in->ops.hdmi->audio_start(in);
-+	if (r)
-+		return r;
-+
-+	dssdev->audio_state = OMAP_DSS_AUDIO_PLAYING;
-+
-+	return 0;
-+}
-+
-+static void hdmic_audio_stop(struct omap_dss_device *dssdev)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	struct omap_dss_device *in = ddata->in;
-+
-+	in->ops.hdmi->audio_stop(in);
-+
-+	dssdev->audio_state = OMAP_DSS_AUDIO_ENABLED;
-+}
-+
-+static bool hdmic_audio_supported(struct omap_dss_device *dssdev)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	struct omap_dss_device *in = ddata->in;
-+
-+	if (!omapdss_device_is_enabled(dssdev))
-+		return false;
-+
-+	return in->ops.hdmi->audio_supported(in);
-+}
-+
-+static int hdmic_audio_config(struct omap_dss_device *dssdev,
-+		struct omap_dss_audio *audio)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	struct omap_dss_device *in = ddata->in;
-+	int r;
-+
-+	/* config audio only if the display is active */
-+	if (!omapdss_device_is_enabled(dssdev))
-+		return -EPERM;
-+
-+	r = in->ops.hdmi->audio_config(in, audio);
-+	if (r)
-+		return r;
-+
-+	dssdev->audio_state = OMAP_DSS_AUDIO_CONFIGURED;
-+
-+	return 0;
-+}
-+
-+static struct omap_dss_driver hdmic_driver = {
-+	.connect		= hdmic_connect,
-+	.disconnect		= hdmic_disconnect,
-+
-+	.enable			= hdmic_enable,
-+	.disable		= hdmic_disable,
-+
-+	.set_timings		= hdmic_set_timings,
-+	.get_timings		= hdmic_get_timings,
-+	.check_timings		= hdmic_check_timings,
++	.set_timings		= tvc_set_timings,
++	.get_timings		= tvc_get_timings,
++	.check_timings		= tvc_check_timings,
 +
 +	.get_resolution		= omapdss_default_get_resolution,
 +
-+	.read_edid		= hdmic_read_edid,
-+	.detect			= hdmic_detect,
-+
-+	.audio_enable		= hdmic_audio_enable,
-+	.audio_disable		= hdmic_audio_disable,
-+	.audio_start		= hdmic_audio_start,
-+	.audio_stop		= hdmic_audio_stop,
-+	.audio_supported	= hdmic_audio_supported,
-+	.audio_config		= hdmic_audio_config,
++	.get_wss		= tvc_get_wss,
++	.set_wss		= tvc_set_wss,
 +};
 +
-+static int hdmic_probe_pdata(struct platform_device *pdev)
++static int tvc_probe_pdata(struct platform_device *pdev)
 +{
 +	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
-+	struct connector_hdmi_platform_data *pdata;
++	struct connector_atv_platform_data *pdata;
 +	struct omap_dss_device *in, *dssdev;
 +
 +	pdata = dev_get_platdata(&pdev->dev);
@@ -353,13 +240,16 @@ index 0000000..c582671
 +
 +	ddata->in = in;
 +
++	ddata->connector_type = pdata->connector_type;
++	ddata->invert_polarity = ddata->invert_polarity;
++
 +	dssdev = &ddata->dssdev;
 +	dssdev->name = pdata->name;
 +
 +	return 0;
 +}
 +
-+static int hdmic_probe(struct platform_device *pdev)
++static int tvc_probe(struct platform_device *pdev)
 +{
 +	struct panel_drv_data *ddata;
 +	struct omap_dss_device *dssdev;
@@ -373,21 +263,21 @@ index 0000000..c582671
 +	ddata->dev = &pdev->dev;
 +
 +	if (dev_get_platdata(&pdev->dev)) {
-+		r = hdmic_probe_pdata(pdev);
++		r = tvc_probe_pdata(pdev);
 +		if (r)
 +			return r;
 +	} else {
 +		return -ENODEV;
 +	}
 +
-+	ddata->timings = hdmic_default_timings;
++	ddata->timings = omap_dss_pal_timings;
 +
 +	dssdev = &ddata->dssdev;
-+	dssdev->driver = &hdmic_driver;
++	dssdev->driver = &tvc_driver;
 +	dssdev->dev = &pdev->dev;
-+	dssdev->type = OMAP_DISPLAY_TYPE_HDMI;
++	dssdev->type = OMAP_DISPLAY_TYPE_VENC;
 +	dssdev->owner = THIS_MODULE;
-+	dssdev->panel.timings = hdmic_default_timings;
++	dssdev->panel.timings = omap_dss_pal_timings;
 +
 +	r = omapdss_register_display(dssdev);
 +	if (r) {
@@ -401,7 +291,7 @@ index 0000000..c582671
 +	return r;
 +}
 +
-+static int __exit hdmic_remove(struct platform_device *pdev)
++static int __exit tvc_remove(struct platform_device *pdev)
 +{
 +	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
 +	struct omap_dss_device *dssdev = &ddata->dssdev;
@@ -409,27 +299,27 @@ index 0000000..c582671
 +
 +	omapdss_unregister_display(&ddata->dssdev);
 +
-+	hdmic_disable(dssdev);
-+	hdmic_disconnect(dssdev);
++	tvc_disable(dssdev);
++	tvc_disconnect(dssdev);
 +
 +	omap_dss_put_device(in);
 +
 +	return 0;
 +}
 +
-+static struct platform_driver hdmi_connector_driver = {
-+	.probe	= hdmic_probe,
-+	.remove	= __exit_p(hdmic_remove),
++static struct platform_driver tvc_connector_driver = {
++	.probe	= tvc_probe,
++	.remove	= __exit_p(tvc_remove),
 +	.driver	= {
-+		.name	= "connector-hdmi",
++		.name	= "connector-analog-tv",
 +		.owner	= THIS_MODULE,
 +	},
 +};
 +
-+module_platform_driver(hdmi_connector_driver);
++module_platform_driver(tvc_connector_driver);
 +
 +MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@ti.com>");
-+MODULE_DESCRIPTION("HDMI Connector driver");
++MODULE_DESCRIPTION("Analog TV Connector driver");
 +MODULE_LICENSE("GPL");
 -- 
 1.8.1.2
