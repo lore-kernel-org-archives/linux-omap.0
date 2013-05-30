@@ -1,154 +1,241 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 22/27] OMAPDSS: Add new DSI Command Mode panel  driver
-Date: Thu, 30 May 2013 12:36:15 +0300
-Message-ID: <1369906580-27585-23-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 23/27] OMAPDSS: Add Sony ACX565AKM panel driver
+Date: Thu, 30 May 2013 12:36:16 +0300
+Message-ID: <1369906580-27585-24-git-send-email-tomi.valkeinen@ti.com>
 References: <1369906580-27585-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41452 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37534 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030451Ab3E3JhS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 05:37:18 -0400
+	id S1030453Ab3E3JhU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 May 2013 05:37:20 -0400
 In-Reply-To: <1369906580-27585-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add DSI Command Mode panel driver which uses the new DSS device model
-and DSS ops. This driver only supports a very basic set of features
-which should be common to all DSI command mode panels.
+Add Sony ACX565AKM panel driver which uses the new DSS device model and
+DSS ops.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/displays-new/Kconfig        |    5 +
- drivers/video/omap2/displays-new/Makefile       |    1 +
- drivers/video/omap2/displays-new/panel-dsi-cm.c | 1336 +++++++++++++++++++++++
- 3 files changed, 1342 insertions(+)
- create mode 100644 drivers/video/omap2/displays-new/panel-dsi-cm.c
+ drivers/video/omap2/displays-new/Kconfig           |   6 +
+ drivers/video/omap2/displays-new/Makefile          |   1 +
+ .../omap2/displays-new/panel-sony-acx565akm.c      | 864 +++++++++++++++++++++
+ 3 files changed, 871 insertions(+)
+ create mode 100644 drivers/video/omap2/displays-new/panel-sony-acx565akm.c
 
 diff --git a/drivers/video/omap2/displays-new/Kconfig b/drivers/video/omap2/displays-new/Kconfig
-index 1435f2f..c899d5a 100644
+index c899d5a..b7b13ac 100644
 --- a/drivers/video/omap2/displays-new/Kconfig
 +++ b/drivers/video/omap2/displays-new/Kconfig
-@@ -33,4 +33,9 @@ config PANEL_DPI
+@@ -38,4 +38,10 @@ config PANEL_DSI_CM
  	help
- 	  Driver for generic DPI panels.
+ 	  Driver for generic DSI command mode panels.
  
-+config PANEL_DSI_CM
-+	tristate "Generic DSI Command Mode Panel"
++config PANEL_SONY_ACX565AKM
++	tristate "ACX565AKM Panel"
++	depends on SPI && BACKLIGHT_CLASS_DEVICE
 +	help
-+	  Driver for generic DSI command mode panels.
++	  This is the LCD panel used on Nokia N900
 +
  endmenu
 diff --git a/drivers/video/omap2/displays-new/Makefile b/drivers/video/omap2/displays-new/Makefile
-index 54002d3..2e72ac3 100644
+index 2e72ac3..eff4b8a 100644
 --- a/drivers/video/omap2/displays-new/Makefile
 +++ b/drivers/video/omap2/displays-new/Makefile
-@@ -4,3 +4,4 @@ obj-$(CONFIG_DISPLAY_CONNECTOR_DVI) += connector-dvi.o
- obj-$(CONFIG_DISPLAY_CONNECTOR_HDMI) += connector-hdmi.o
+@@ -5,3 +5,4 @@ obj-$(CONFIG_DISPLAY_CONNECTOR_HDMI) += connector-hdmi.o
  obj-$(CONFIG_DISPLAY_CONNECTOR_ANALOG_TV) += connector-analog-tv.o
  obj-$(CONFIG_PANEL_DPI) += panel-dpi.o
-+obj-$(CONFIG_PANEL_DSI_CM) += panel-dsi-cm.o
-diff --git a/drivers/video/omap2/displays-new/panel-dsi-cm.c b/drivers/video/omap2/displays-new/panel-dsi-cm.c
+ obj-$(CONFIG_PANEL_DSI_CM) += panel-dsi-cm.o
++obj-$(CONFIG_PANEL_SONY_ACX565AKM) += panel-sony-acx565akm.o
+diff --git a/drivers/video/omap2/displays-new/panel-sony-acx565akm.c b/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
 new file mode 100644
-index 0000000..48af47d
+index 0000000..ca9c81e
 --- /dev/null
-+++ b/drivers/video/omap2/displays-new/panel-dsi-cm.c
-@@ -0,0 +1,1336 @@
++++ b/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
+@@ -0,0 +1,864 @@
 +/*
-+ * Generic DSI Command Mode panel driver
++ * Sony ACX565AKM LCD Panel driver
 + *
-+ * Copyright (C) 2013 Texas Instruments
-+ * Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
++ * Copyright (C) 2010 Nokia Corporation
++ *
++ * Original Driver Author: Imre Deak <imre.deak@nokia.com>
++ * Based on panel-generic.c by Tomi Valkeinen <tomi.valkeinen@nokia.com>
++ * Adapted to new DSS2 framework: Roger Quadros <roger.quadros@nokia.com>
 + *
 + * This program is free software; you can redistribute it and/or modify it
 + * under the terms of the GNU General Public License version 2 as published by
 + * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
 + */
 +
-+/* #define DEBUG */
-+
-+#include <linux/backlight.h>
-+#include <linux/delay.h>
-+#include <linux/fb.h>
-+#include <linux/gpio.h>
-+#include <linux/interrupt.h>
-+#include <linux/jiffies.h>
++#include <linux/kernel.h>
 +#include <linux/module.h>
 +#include <linux/platform_device.h>
++#include <linux/delay.h>
++#include <linux/spi/spi.h>
++#include <linux/jiffies.h>
 +#include <linux/sched.h>
-+#include <linux/slab.h>
-+#include <linux/workqueue.h>
++#include <linux/backlight.h>
++#include <linux/fb.h>
++#include <linux/gpio.h>
 +
 +#include <video/omapdss.h>
 +#include <video/omap-panel-data.h>
-+#include <video/mipi_display.h>
 +
-+/* DSI Virtual channel. Hardcoded for now. */
-+#define TCH 0
++#define MIPID_CMD_READ_DISP_ID		0x04
++#define MIPID_CMD_READ_RED		0x06
++#define MIPID_CMD_READ_GREEN		0x07
++#define MIPID_CMD_READ_BLUE		0x08
++#define MIPID_CMD_READ_DISP_STATUS	0x09
++#define MIPID_CMD_RDDSDR		0x0F
++#define MIPID_CMD_SLEEP_IN		0x10
++#define MIPID_CMD_SLEEP_OUT		0x11
++#define MIPID_CMD_DISP_OFF		0x28
++#define MIPID_CMD_DISP_ON		0x29
++#define MIPID_CMD_WRITE_DISP_BRIGHTNESS	0x51
++#define MIPID_CMD_READ_DISP_BRIGHTNESS	0x52
++#define MIPID_CMD_WRITE_CTRL_DISP	0x53
 +
-+#define DCS_READ_NUM_ERRORS	0x05
-+#define DCS_BRIGHTNESS		0x51
-+#define DCS_CTRL_DISPLAY	0x53
-+#define DCS_GET_ID1		0xda
-+#define DCS_GET_ID2		0xdb
-+#define DCS_GET_ID3		0xdc
++#define CTRL_DISP_BRIGHTNESS_CTRL_ON	(1 << 5)
++#define CTRL_DISP_AMBIENT_LIGHT_CTRL_ON	(1 << 4)
++#define CTRL_DISP_BACKLIGHT_ON		(1 << 2)
++#define CTRL_DISP_AUTO_BRIGHTNESS_ON	(1 << 1)
++
++#define MIPID_CMD_READ_CTRL_DISP	0x54
++#define MIPID_CMD_WRITE_CABC		0x55
++#define MIPID_CMD_READ_CABC		0x56
++
++#define MIPID_VER_LPH8923		3
++#define MIPID_VER_LS041Y3		4
++#define MIPID_VER_L4F00311		8
++#define MIPID_VER_ACX565AKM		9
 +
 +struct panel_drv_data {
-+	struct omap_dss_device dssdev;
++	struct omap_dss_device	dssdev;
 +	struct omap_dss_device *in;
 +
-+	struct omap_video_timings timings;
-+
-+	struct platform_device *pdev;
-+
-+	struct mutex lock;
-+
-+	struct backlight_device *bldev;
-+
-+	unsigned long	hw_guard_end;	/* next value of jiffies when we can
-+					 * issue the next sleep in/out command
-+					 */
-+	unsigned long	hw_guard_wait;	/* max guard time in jiffies */
-+
-+	/* panel HW configuration from DT or platform data */
 +	int reset_gpio;
-+	int ext_te_gpio;
++	int datapairs;
 +
-+	bool use_dsi_backlight;
++	struct omap_video_timings videomode;
 +
-+	struct omap_dsi_pin_config pin_config;
++	char		*name;
++	int		enabled;
++	int		model;
++	int		revision;
++	u8		display_id[3];
++	unsigned	has_bc:1;
++	unsigned	has_cabc:1;
++	unsigned	cabc_mode;
++	unsigned long	hw_guard_end;		/* next value of jiffies
++						   when we can issue the
++						   next sleep in/out command */
++	unsigned long	hw_guard_wait;		/* max guard time in jiffies */
 +
-+	/* runtime variables */
-+	bool enabled;
++	struct spi_device	*spi;
++	struct mutex		mutex;
 +
-+	bool te_enabled;
++	struct backlight_device *bl_dev;
++};
 +
-+	atomic_t do_update;
-+	int channel;
++static const struct omap_video_timings acx_panel_timings = {
++	.x_res		= 800,
++	.y_res		= 480,
++	.pixel_clock	= 24000,
++	.hfp		= 28,
++	.hsw		= 4,
++	.hbp		= 24,
++	.vfp		= 3,
++	.vsw		= 3,
++	.vbp		= 4,
 +
-+	struct delayed_work te_timeout_work;
++	.vsync_level	= OMAPDSS_SIG_ACTIVE_LOW,
++	.hsync_level	= OMAPDSS_SIG_ACTIVE_LOW,
 +
-+	bool intro_printed;
-+
-+	struct workqueue_struct *workqueue;
-+
-+	bool ulps_enabled;
-+	unsigned ulps_timeout;
-+	struct delayed_work ulps_work;
++	.data_pclk_edge	= OMAPDSS_DRIVE_SIG_RISING_EDGE,
++	.de_level	= OMAPDSS_SIG_ACTIVE_HIGH,
++	.sync_pclk_edge	= OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES,
 +};
 +
 +#define to_panel_data(p) container_of(p, struct panel_drv_data, dssdev)
 +
-+static irqreturn_t dsicm_te_isr(int irq, void *data);
-+static void dsicm_te_timeout_work_callback(struct work_struct *work);
-+static int _dsicm_enable_te(struct panel_drv_data *ddata, bool enable);
++static void acx565akm_transfer(struct panel_drv_data *ddata, int cmd,
++			      const u8 *wbuf, int wlen, u8 *rbuf, int rlen)
++{
++	struct spi_message	m;
++	struct spi_transfer	*x, xfer[5];
++	int			r;
 +
-+static int dsicm_panel_reset(struct panel_drv_data *ddata);
++	BUG_ON(ddata->spi == NULL);
 +
-+static void dsicm_ulps_work(struct work_struct *work);
++	spi_message_init(&m);
++
++	memset(xfer, 0, sizeof(xfer));
++	x = &xfer[0];
++
++	cmd &=  0xff;
++	x->tx_buf = &cmd;
++	x->bits_per_word = 9;
++	x->len = 2;
++
++	if (rlen > 1 && wlen == 0) {
++		/*
++		 * Between the command and the response data there is a
++		 * dummy clock cycle. Add an extra bit after the command
++		 * word to account for this.
++		 */
++		x->bits_per_word = 10;
++		cmd <<= 1;
++	}
++	spi_message_add_tail(x, &m);
++
++	if (wlen) {
++		x++;
++		x->tx_buf = wbuf;
++		x->len = wlen;
++		x->bits_per_word = 9;
++		spi_message_add_tail(x, &m);
++	}
++
++	if (rlen) {
++		x++;
++		x->rx_buf	= rbuf;
++		x->len		= rlen;
++		spi_message_add_tail(x, &m);
++	}
++
++	r = spi_sync(ddata->spi, &m);
++	if (r < 0)
++		dev_dbg(&ddata->spi->dev, "spi_sync %d\n", r);
++}
++
++static inline void acx565akm_cmd(struct panel_drv_data *ddata, int cmd)
++{
++	acx565akm_transfer(ddata, cmd, NULL, 0, NULL, 0);
++}
++
++static inline void acx565akm_write(struct panel_drv_data *ddata,
++			       int reg, const u8 *buf, int len)
++{
++	acx565akm_transfer(ddata, reg, buf, len, NULL, 0);
++}
++
++static inline void acx565akm_read(struct panel_drv_data *ddata,
++			      int reg, u8 *buf, int len)
++{
++	acx565akm_transfer(ddata, reg, NULL, 0, buf, len);
++}
 +
 +static void hw_guard_start(struct panel_drv_data *ddata, int guard_msec)
 +{
@@ -166,235 +253,164 @@ index 0000000..48af47d
 +	}
 +}
 +
-+static int dsicm_dcs_read_1(struct panel_drv_data *ddata, u8 dcs_cmd, u8 *data)
++static void set_sleep_mode(struct panel_drv_data *ddata, int on)
 +{
-+	struct omap_dss_device *in = ddata->in;
-+	int r;
-+	u8 buf[1];
++	int cmd;
 +
-+	r = in->ops.dsi->dcs_read(in, ddata->channel, dcs_cmd, buf, 1);
-+
-+	if (r < 0)
-+		return r;
-+
-+	*data = buf[0];
-+
-+	return 0;
-+}
-+
-+static int dsicm_dcs_write_0(struct panel_drv_data *ddata, u8 dcs_cmd)
-+{
-+	struct omap_dss_device *in = ddata->in;
-+	return in->ops.dsi->dcs_write(in, ddata->channel, &dcs_cmd, 1);
-+}
-+
-+static int dsicm_dcs_write_1(struct panel_drv_data *ddata, u8 dcs_cmd, u8 param)
-+{
-+	struct omap_dss_device *in = ddata->in;
-+	u8 buf[2] = { dcs_cmd, param };
-+
-+	return in->ops.dsi->dcs_write(in, ddata->channel, buf, 2);
-+}
-+
-+static int dsicm_sleep_in(struct panel_drv_data *ddata)
-+
-+{
-+	struct omap_dss_device *in = ddata->in;
-+	u8 cmd;
-+	int r;
-+
++	if (on)
++		cmd = MIPID_CMD_SLEEP_IN;
++	else
++		cmd = MIPID_CMD_SLEEP_OUT;
++	/*
++	 * We have to keep 120msec between sleep in/out commands.
++	 * (8.2.15, 8.2.16).
++	 */
 +	hw_guard_wait(ddata);
-+
-+	cmd = MIPI_DCS_ENTER_SLEEP_MODE;
-+	r = in->ops.dsi->dcs_write_nosync(in, ddata->channel, &cmd, 1);
-+	if (r)
-+		return r;
-+
++	acx565akm_cmd(ddata, cmd);
 +	hw_guard_start(ddata, 120);
-+
-+	msleep(5);
-+
-+	return 0;
 +}
 +
-+static int dsicm_sleep_out(struct panel_drv_data *ddata)
++static void set_display_state(struct panel_drv_data *ddata, int enabled)
 +{
-+	int r;
++	int cmd = enabled ? MIPID_CMD_DISP_ON : MIPID_CMD_DISP_OFF;
 +
-+	hw_guard_wait(ddata);
-+
-+	r = dsicm_dcs_write_0(ddata, MIPI_DCS_EXIT_SLEEP_MODE);
-+	if (r)
-+		return r;
-+
-+	hw_guard_start(ddata, 120);
-+
-+	msleep(5);
-+
-+	return 0;
++	acx565akm_cmd(ddata, cmd);
 +}
 +
-+static int dsicm_get_id(struct panel_drv_data *ddata, u8 *id1, u8 *id2, u8 *id3)
++static int panel_enabled(struct panel_drv_data *ddata)
 +{
-+	int r;
++	u32 disp_status;
++	int enabled;
 +
-+	r = dsicm_dcs_read_1(ddata, DCS_GET_ID1, id1);
-+	if (r)
-+		return r;
-+	r = dsicm_dcs_read_1(ddata, DCS_GET_ID2, id2);
-+	if (r)
-+		return r;
-+	r = dsicm_dcs_read_1(ddata, DCS_GET_ID3, id3);
-+	if (r)
-+		return r;
-+
-+	return 0;
++	acx565akm_read(ddata, MIPID_CMD_READ_DISP_STATUS,
++			(u8 *)&disp_status, 4);
++	disp_status = __be32_to_cpu(disp_status);
++	enabled = (disp_status & (1 << 17)) && (disp_status & (1 << 10));
++	dev_dbg(&ddata->spi->dev,
++		"LCD panel %senabled by bootloader (status 0x%04x)\n",
++		enabled ? "" : "not ", disp_status);
++	return enabled;
 +}
 +
-+static int dsicm_set_update_window(struct panel_drv_data *ddata,
-+		u16 x, u16 y, u16 w, u16 h)
++static int panel_detect(struct panel_drv_data *ddata)
 +{
-+	struct omap_dss_device *in = ddata->in;
-+	int r;
-+	u16 x1 = x;
-+	u16 x2 = x + w - 1;
-+	u16 y1 = y;
-+	u16 y2 = y + h - 1;
++	acx565akm_read(ddata, MIPID_CMD_READ_DISP_ID, ddata->display_id, 3);
++	dev_dbg(&ddata->spi->dev, "MIPI display ID: %02x%02x%02x\n",
++		ddata->display_id[0],
++		ddata->display_id[1],
++		ddata->display_id[2]);
 +
-+	u8 buf[5];
-+	buf[0] = MIPI_DCS_SET_COLUMN_ADDRESS;
-+	buf[1] = (x1 >> 8) & 0xff;
-+	buf[2] = (x1 >> 0) & 0xff;
-+	buf[3] = (x2 >> 8) & 0xff;
-+	buf[4] = (x2 >> 0) & 0xff;
-+
-+	r = in->ops.dsi->dcs_write_nosync(in, ddata->channel, buf, sizeof(buf));
-+	if (r)
-+		return r;
-+
-+	buf[0] = MIPI_DCS_SET_PAGE_ADDRESS;
-+	buf[1] = (y1 >> 8) & 0xff;
-+	buf[2] = (y1 >> 0) & 0xff;
-+	buf[3] = (y2 >> 8) & 0xff;
-+	buf[4] = (y2 >> 0) & 0xff;
-+
-+	r = in->ops.dsi->dcs_write_nosync(in, ddata->channel, buf, sizeof(buf));
-+	if (r)
-+		return r;
-+
-+	in->ops.dsi->bta_sync(in, ddata->channel);
-+
-+	return r;
-+}
-+
-+static void dsicm_queue_ulps_work(struct panel_drv_data *ddata)
-+{
-+	if (ddata->ulps_timeout > 0)
-+		queue_delayed_work(ddata->workqueue, &ddata->ulps_work,
-+				msecs_to_jiffies(ddata->ulps_timeout));
-+}
-+
-+static void dsicm_cancel_ulps_work(struct panel_drv_data *ddata)
-+{
-+	cancel_delayed_work(&ddata->ulps_work);
-+}
-+
-+static int dsicm_enter_ulps(struct panel_drv_data *ddata)
-+{
-+	struct omap_dss_device *in = ddata->in;
-+	int r;
-+
-+	if (ddata->ulps_enabled)
-+		return 0;
-+
-+	dsicm_cancel_ulps_work(ddata);
-+
-+	r = _dsicm_enable_te(ddata, false);
-+	if (r)
-+		goto err;
-+
-+	if (gpio_is_valid(ddata->ext_te_gpio))
-+		disable_irq(gpio_to_irq(ddata->ext_te_gpio));
-+
-+	in->ops.dsi->disable(in, false, true);
-+
-+	ddata->ulps_enabled = true;
-+
-+	return 0;
-+
-+err:
-+	dev_err(&ddata->pdev->dev, "enter ULPS failed");
-+	dsicm_panel_reset(ddata);
-+
-+	ddata->ulps_enabled = false;
-+
-+	dsicm_queue_ulps_work(ddata);
-+
-+	return r;
-+}
-+
-+static int dsicm_exit_ulps(struct panel_drv_data *ddata)
-+{
-+	struct omap_dss_device *in = ddata->in;
-+	int r;
-+
-+	if (!ddata->ulps_enabled)
-+		return 0;
-+
-+	r = in->ops.dsi->enable(in);
-+	if (r) {
-+		dev_err(&ddata->pdev->dev, "failed to enable DSI\n");
-+		goto err1;
++	switch (ddata->display_id[0]) {
++	case 0x10:
++		ddata->model = MIPID_VER_ACX565AKM;
++		ddata->name = "acx565akm";
++		ddata->has_bc = 1;
++		ddata->has_cabc = 1;
++		break;
++	case 0x29:
++		ddata->model = MIPID_VER_L4F00311;
++		ddata->name = "l4f00311";
++		break;
++	case 0x45:
++		ddata->model = MIPID_VER_LPH8923;
++		ddata->name = "lph8923";
++		break;
++	case 0x83:
++		ddata->model = MIPID_VER_LS041Y3;
++		ddata->name = "ls041y3";
++		break;
++	default:
++		ddata->name = "unknown";
++		dev_err(&ddata->spi->dev, "invalid display ID\n");
++		return -ENODEV;
 +	}
 +
-+	in->ops.dsi->enable_hs(in, ddata->channel, true);
++	ddata->revision = ddata->display_id[1];
 +
-+	r = _dsicm_enable_te(ddata, true);
-+	if (r) {
-+		dev_err(&ddata->pdev->dev, "failed to re-enable TE");
-+		goto err2;
-+	}
-+
-+	if (gpio_is_valid(ddata->ext_te_gpio))
-+		enable_irq(gpio_to_irq(ddata->ext_te_gpio));
-+
-+	dsicm_queue_ulps_work(ddata);
-+
-+	ddata->ulps_enabled = false;
++	dev_info(&ddata->spi->dev, "omapfb: %s rev %02x LCD detected\n",
++			ddata->name, ddata->revision);
 +
 +	return 0;
-+
-+err2:
-+	dev_err(&ddata->pdev->dev, "failed to exit ULPS");
-+
-+	r = dsicm_panel_reset(ddata);
-+	if (!r) {
-+		if (gpio_is_valid(ddata->ext_te_gpio))
-+			enable_irq(gpio_to_irq(ddata->ext_te_gpio));
-+		ddata->ulps_enabled = false;
-+	}
-+err1:
-+	dsicm_queue_ulps_work(ddata);
-+
-+	return r;
 +}
 +
-+static int dsicm_wake_up(struct panel_drv_data *ddata)
++/*----------------------Backlight Control-------------------------*/
++
++static void enable_backlight_ctrl(struct panel_drv_data *ddata, int enable)
 +{
-+	if (ddata->ulps_enabled)
-+		return dsicm_exit_ulps(ddata);
++	u16 ctrl;
 +
-+	dsicm_cancel_ulps_work(ddata);
-+	dsicm_queue_ulps_work(ddata);
-+	return 0;
++	acx565akm_read(ddata, MIPID_CMD_READ_CTRL_DISP, (u8 *)&ctrl, 1);
++	if (enable) {
++		ctrl |= CTRL_DISP_BRIGHTNESS_CTRL_ON |
++			CTRL_DISP_BACKLIGHT_ON;
++	} else {
++		ctrl &= ~(CTRL_DISP_BRIGHTNESS_CTRL_ON |
++			  CTRL_DISP_BACKLIGHT_ON);
++	}
++
++	ctrl |= 1 << 8;
++	acx565akm_write(ddata, MIPID_CMD_WRITE_CTRL_DISP, (u8 *)&ctrl, 2);
 +}
 +
-+static int dsicm_bl_update_status(struct backlight_device *dev)
++static void set_cabc_mode(struct panel_drv_data *ddata, unsigned mode)
++{
++	u16 cabc_ctrl;
++
++	ddata->cabc_mode = mode;
++	if (!ddata->enabled)
++		return;
++	cabc_ctrl = 0;
++	acx565akm_read(ddata, MIPID_CMD_READ_CABC, (u8 *)&cabc_ctrl, 1);
++	cabc_ctrl &= ~3;
++	cabc_ctrl |= (1 << 8) | (mode & 3);
++	acx565akm_write(ddata, MIPID_CMD_WRITE_CABC, (u8 *)&cabc_ctrl, 2);
++}
++
++static unsigned get_cabc_mode(struct panel_drv_data *ddata)
++{
++	return ddata->cabc_mode;
++}
++
++static unsigned get_hw_cabc_mode(struct panel_drv_data *ddata)
++{
++	u8 cabc_ctrl;
++
++	acx565akm_read(ddata, MIPID_CMD_READ_CABC, &cabc_ctrl, 1);
++	return cabc_ctrl & 3;
++}
++
++static void acx565akm_set_brightness(struct panel_drv_data *ddata, int level)
++{
++	int bv;
++
++	bv = level | (1 << 8);
++	acx565akm_write(ddata, MIPID_CMD_WRITE_DISP_BRIGHTNESS, (u8 *)&bv, 2);
++
++	if (level)
++		enable_backlight_ctrl(ddata, 1);
++	else
++		enable_backlight_ctrl(ddata, 0);
++}
++
++static int acx565akm_get_actual_brightness(struct panel_drv_data *ddata)
++{
++	u8 bv;
++
++	acx565akm_read(ddata, MIPID_CMD_READ_DISP_BRIGHTNESS, &bv, 1);
++
++	return bv;
++}
++
++
++static int acx565akm_bl_update_status(struct backlight_device *dev)
 +{
 +	struct panel_drv_data *ddata = dev_get_drvdata(&dev->dev);
-+	struct omap_dss_device *in = ddata->in;
 +	int r;
 +	int level;
++
++	dev_dbg(&ddata->spi->dev, "%s\n", __func__);
++
++	mutex_lock(&ddata->mutex);
 +
 +	if (dev->props.fb_blank == FB_BLANK_UNBLANK &&
 +			dev->props.power == FB_BLANK_UNBLANK)
@@ -402,404 +418,157 @@ index 0000000..48af47d
 +	else
 +		level = 0;
 +
-+	dev_dbg(&ddata->pdev->dev, "update brightness to %d\n", level);
++	r = 0;
++	if (ddata->has_bc)
++		acx565akm_set_brightness(ddata, level);
++	else
++		r = -ENODEV;
 +
-+	mutex_lock(&ddata->lock);
-+
-+	if (ddata->enabled) {
-+		in->ops.dsi->bus_lock(in);
-+
-+		r = dsicm_wake_up(ddata);
-+		if (!r)
-+			r = dsicm_dcs_write_1(ddata, DCS_BRIGHTNESS, level);
-+
-+		in->ops.dsi->bus_unlock(in);
-+	} else {
-+		r = 0;
-+	}
-+
-+	mutex_unlock(&ddata->lock);
++	mutex_unlock(&ddata->mutex);
 +
 +	return r;
 +}
 +
-+static int dsicm_bl_get_intensity(struct backlight_device *dev)
++static int acx565akm_bl_get_intensity(struct backlight_device *dev)
 +{
++	struct panel_drv_data *ddata = dev_get_drvdata(&dev->dev);
++
++	dev_dbg(&dev->dev, "%s\n", __func__);
++
++	if (!ddata->has_bc)
++		return -ENODEV;
++
 +	if (dev->props.fb_blank == FB_BLANK_UNBLANK &&
-+			dev->props.power == FB_BLANK_UNBLANK)
-+		return dev->props.brightness;
++			dev->props.power == FB_BLANK_UNBLANK) {
++		if (ddata->has_bc)
++			return acx565akm_get_actual_brightness(ddata);
++		else
++			return dev->props.brightness;
++	}
 +
 +	return 0;
 +}
 +
-+static const struct backlight_ops dsicm_bl_ops = {
-+	.get_brightness = dsicm_bl_get_intensity,
-+	.update_status  = dsicm_bl_update_status,
++static const struct backlight_ops acx565akm_bl_ops = {
++	.get_brightness = acx565akm_bl_get_intensity,
++	.update_status  = acx565akm_bl_update_status,
 +};
 +
-+static void dsicm_get_resolution(struct omap_dss_device *dssdev,
-+		u16 *xres, u16 *yres)
++/*--------------------Auto Brightness control via Sysfs---------------------*/
++
++static const char * const cabc_modes[] = {
++	"off",		/* always used when CABC is not supported */
++	"ui",
++	"still-image",
++	"moving-image",
++};
++
++static ssize_t show_cabc_mode(struct device *dev,
++		struct device_attribute *attr,
++		char *buf)
 +{
-+	*xres = dssdev->panel.timings.x_res;
-+	*yres = dssdev->panel.timings.y_res;
++	struct panel_drv_data *ddata = dev_get_drvdata(dev);
++	const char *mode_str;
++	int mode;
++	int len;
++
++	if (!ddata->has_cabc)
++		mode = 0;
++	else
++		mode = get_cabc_mode(ddata);
++	mode_str = "unknown";
++	if (mode >= 0 && mode < ARRAY_SIZE(cabc_modes))
++		mode_str = cabc_modes[mode];
++	len = snprintf(buf, PAGE_SIZE, "%s\n", mode_str);
++
++	return len < PAGE_SIZE - 1 ? len : PAGE_SIZE - 1;
 +}
 +
-+static ssize_t dsicm_num_errors_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
-+	struct omap_dss_device *in = ddata->in;
-+	u8 errors = 0;
-+	int r;
-+
-+	mutex_lock(&ddata->lock);
-+
-+	if (ddata->enabled) {
-+		in->ops.dsi->bus_lock(in);
-+
-+		r = dsicm_wake_up(ddata);
-+		if (!r)
-+			r = dsicm_dcs_read_1(ddata, DCS_READ_NUM_ERRORS,
-+					&errors);
-+
-+		in->ops.dsi->bus_unlock(in);
-+	} else {
-+		r = -ENODEV;
-+	}
-+
-+	mutex_unlock(&ddata->lock);
-+
-+	if (r)
-+		return r;
-+
-+	return snprintf(buf, PAGE_SIZE, "%d\n", errors);
-+}
-+
-+static ssize_t dsicm_hw_revision_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
-+	struct omap_dss_device *in = ddata->in;
-+	u8 id1, id2, id3;
-+	int r;
-+
-+	mutex_lock(&ddata->lock);
-+
-+	if (ddata->enabled) {
-+		in->ops.dsi->bus_lock(in);
-+
-+		r = dsicm_wake_up(ddata);
-+		if (!r)
-+			r = dsicm_get_id(ddata, &id1, &id2, &id3);
-+
-+		in->ops.dsi->bus_unlock(in);
-+	} else {
-+		r = -ENODEV;
-+	}
-+
-+	mutex_unlock(&ddata->lock);
-+
-+	if (r)
-+		return r;
-+
-+	return snprintf(buf, PAGE_SIZE, "%02x.%02x.%02x\n", id1, id2, id3);
-+}
-+
-+static ssize_t dsicm_store_ulps(struct device *dev,
++static ssize_t store_cabc_mode(struct device *dev,
 +		struct device_attribute *attr,
 +		const char *buf, size_t count)
 +{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
-+	struct omap_dss_device *in = ddata->in;
-+	unsigned long t;
-+	int r;
++	struct panel_drv_data *ddata = dev_get_drvdata(dev);
++	int i;
 +
-+	r = kstrtoul(buf, 0, &t);
-+	if (r)
-+		return r;
++	for (i = 0; i < ARRAY_SIZE(cabc_modes); i++) {
++		const char *mode_str = cabc_modes[i];
++		int cmp_len = strlen(mode_str);
 +
-+	mutex_lock(&ddata->lock);
++		if (count > 0 && buf[count - 1] == '\n')
++			count--;
++		if (count != cmp_len)
++			continue;
 +
-+	if (ddata->enabled) {
-+		in->ops.dsi->bus_lock(in);
-+
-+		if (t)
-+			r = dsicm_enter_ulps(ddata);
-+		else
-+			r = dsicm_wake_up(ddata);
-+
-+		in->ops.dsi->bus_unlock(in);
++		if (strncmp(buf, mode_str, cmp_len) == 0)
++			break;
 +	}
 +
-+	mutex_unlock(&ddata->lock);
++	if (i == ARRAY_SIZE(cabc_modes))
++		return -EINVAL;
 +
-+	if (r)
-+		return r;
++	if (!ddata->has_cabc && i != 0)
++		return -EINVAL;
++
++	mutex_lock(&ddata->mutex);
++	set_cabc_mode(ddata, i);
++	mutex_unlock(&ddata->mutex);
 +
 +	return count;
 +}
 +
-+static ssize_t dsicm_show_ulps(struct device *dev,
++static ssize_t show_cabc_available_modes(struct device *dev,
 +		struct device_attribute *attr,
 +		char *buf)
 +{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
-+	unsigned t;
++	struct panel_drv_data *ddata = dev_get_drvdata(dev);
++	int len;
++	int i;
 +
-+	mutex_lock(&ddata->lock);
-+	t = ddata->ulps_enabled;
-+	mutex_unlock(&ddata->lock);
++	if (!ddata->has_cabc)
++		return snprintf(buf, PAGE_SIZE, "%s\n", cabc_modes[0]);
 +
-+	return snprintf(buf, PAGE_SIZE, "%u\n", t);
++	for (i = 0, len = 0;
++	     len < PAGE_SIZE && i < ARRAY_SIZE(cabc_modes); i++)
++		len += snprintf(&buf[len], PAGE_SIZE - len, "%s%s%s",
++			i ? " " : "", cabc_modes[i],
++			i == ARRAY_SIZE(cabc_modes) - 1 ? "\n" : "");
++
++	return len < PAGE_SIZE ? len : PAGE_SIZE - 1;
 +}
 +
-+static ssize_t dsicm_store_ulps_timeout(struct device *dev,
-+		struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
-+	struct omap_dss_device *in = ddata->in;
-+	unsigned long t;
-+	int r;
++static DEVICE_ATTR(cabc_mode, S_IRUGO | S_IWUSR,
++		show_cabc_mode, store_cabc_mode);
++static DEVICE_ATTR(cabc_available_modes, S_IRUGO,
++		show_cabc_available_modes, NULL);
 +
-+	r = kstrtoul(buf, 0, &t);
-+	if (r)
-+		return r;
-+
-+	mutex_lock(&ddata->lock);
-+	ddata->ulps_timeout = t;
-+
-+	if (ddata->enabled) {
-+		/* dsicm_wake_up will restart the timer */
-+		in->ops.dsi->bus_lock(in);
-+		r = dsicm_wake_up(ddata);
-+		in->ops.dsi->bus_unlock(in);
-+	}
-+
-+	mutex_unlock(&ddata->lock);
-+
-+	if (r)
-+		return r;
-+
-+	return count;
-+}
-+
-+static ssize_t dsicm_show_ulps_timeout(struct device *dev,
-+		struct device_attribute *attr,
-+		char *buf)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
-+	unsigned t;
-+
-+	mutex_lock(&ddata->lock);
-+	t = ddata->ulps_timeout;
-+	mutex_unlock(&ddata->lock);
-+
-+	return snprintf(buf, PAGE_SIZE, "%u\n", t);
-+}
-+
-+static DEVICE_ATTR(num_dsi_errors, S_IRUGO, dsicm_num_errors_show, NULL);
-+static DEVICE_ATTR(hw_revision, S_IRUGO, dsicm_hw_revision_show, NULL);
-+static DEVICE_ATTR(ulps, S_IRUGO | S_IWUSR,
-+		dsicm_show_ulps, dsicm_store_ulps);
-+static DEVICE_ATTR(ulps_timeout, S_IRUGO | S_IWUSR,
-+		dsicm_show_ulps_timeout, dsicm_store_ulps_timeout);
-+
-+static struct attribute *dsicm_attrs[] = {
-+	&dev_attr_num_dsi_errors.attr,
-+	&dev_attr_hw_revision.attr,
-+	&dev_attr_ulps.attr,
-+	&dev_attr_ulps_timeout.attr,
++static struct attribute *bldev_attrs[] = {
++	&dev_attr_cabc_mode.attr,
++	&dev_attr_cabc_available_modes.attr,
 +	NULL,
 +};
 +
-+static struct attribute_group dsicm_attr_group = {
-+	.attrs = dsicm_attrs,
++static struct attribute_group bldev_attr_group = {
++	.attrs = bldev_attrs,
 +};
 +
-+static void dsicm_hw_reset(struct panel_drv_data *ddata)
-+{
-+	if (!gpio_is_valid(ddata->reset_gpio))
-+		return;
-+
-+	gpio_set_value(ddata->reset_gpio, 1);
-+	udelay(10);
-+	/* reset the panel */
-+	gpio_set_value(ddata->reset_gpio, 0);
-+	/* assert reset */
-+	udelay(10);
-+	gpio_set_value(ddata->reset_gpio, 1);
-+	/* wait after releasing reset */
-+	msleep(5);
-+}
-+
-+static int dsicm_power_on(struct panel_drv_data *ddata)
-+{
-+	struct omap_dss_device *in = ddata->in;
-+	u8 id1, id2, id3;
-+	int r;
-+	struct omap_dss_dsi_config dsi_config = {
-+		.mode = OMAP_DSS_DSI_CMD_MODE,
-+		.pixel_format = OMAP_DSS_DSI_FMT_RGB888,
-+		.timings = &ddata->timings,
-+		.hs_clk_min = 150000000,
-+		.hs_clk_max = 300000000,
-+		.lp_clk_min = 7000000,
-+		.lp_clk_max = 10000000,
-+	};
-+
-+	r = in->ops.dsi->configure_pins(in, &ddata->pin_config);
-+	if (r) {
-+		dev_err(&ddata->pdev->dev, "failed to configure DSI pins\n");
-+		goto err0;
-+	};
-+
-+	r = in->ops.dsi->set_config(in, &dsi_config);
-+	if (r) {
-+		dev_err(&ddata->pdev->dev, "failed to configure DSI\n");
-+		goto err0;
-+	}
-+
-+	r = in->ops.dsi->enable(in);
-+	if (r) {
-+		dev_err(&ddata->pdev->dev, "failed to enable DSI\n");
-+		goto err0;
-+	}
-+
-+	dsicm_hw_reset(ddata);
-+
-+	in->ops.dsi->enable_hs(in, ddata->channel, false);
-+
-+	r = dsicm_sleep_out(ddata);
-+	if (r)
-+		goto err;
-+
-+	r = dsicm_get_id(ddata, &id1, &id2, &id3);
-+	if (r)
-+		goto err;
-+
-+	r = dsicm_dcs_write_1(ddata, DCS_BRIGHTNESS, 0xff);
-+	if (r)
-+		goto err;
-+
-+	r = dsicm_dcs_write_1(ddata, DCS_CTRL_DISPLAY,
-+			(1<<2) | (1<<5));	/* BL | BCTRL */
-+	if (r)
-+		goto err;
-+
-+	r = dsicm_dcs_write_1(ddata, MIPI_DCS_SET_PIXEL_FORMAT,
-+		MIPI_DCS_PIXEL_FMT_24BIT);
-+	if (r)
-+		goto err;
-+
-+	r = dsicm_dcs_write_0(ddata, MIPI_DCS_SET_DISPLAY_ON);
-+	if (r)
-+		goto err;
-+
-+	r = _dsicm_enable_te(ddata, ddata->te_enabled);
-+	if (r)
-+		goto err;
-+
-+	r = in->ops.dsi->enable_video_output(in, ddata->channel);
-+	if (r)
-+		goto err;
-+
-+	ddata->enabled = 1;
-+
-+	if (!ddata->intro_printed) {
-+		dev_info(&ddata->pdev->dev, "panel revision %02x.%02x.%02x\n",
-+			id1, id2, id3);
-+		ddata->intro_printed = true;
-+	}
-+
-+	in->ops.dsi->enable_hs(in, ddata->channel, true);
-+
-+	return 0;
-+err:
-+	dev_err(&ddata->pdev->dev, "error while enabling panel, issuing HW reset\n");
-+
-+	dsicm_hw_reset(ddata);
-+
-+	in->ops.dsi->disable(in, true, false);
-+err0:
-+	return r;
-+}
-+
-+static void dsicm_power_off(struct panel_drv_data *ddata)
-+{
-+	struct omap_dss_device *in = ddata->in;
-+	int r;
-+
-+	in->ops.dsi->disable_video_output(in, ddata->channel);
-+
-+	r = dsicm_dcs_write_0(ddata, MIPI_DCS_SET_DISPLAY_OFF);
-+	if (!r)
-+		r = dsicm_sleep_in(ddata);
-+
-+	if (r) {
-+		dev_err(&ddata->pdev->dev,
-+				"error disabling panel, issuing HW reset\n");
-+		dsicm_hw_reset(ddata);
-+	}
-+
-+	in->ops.dsi->disable(in, true, false);
-+
-+	ddata->enabled = 0;
-+}
-+
-+static int dsicm_panel_reset(struct panel_drv_data *ddata)
-+{
-+	dev_err(&ddata->pdev->dev, "performing LCD reset\n");
-+
-+	dsicm_power_off(ddata);
-+	dsicm_hw_reset(ddata);
-+	return dsicm_power_on(ddata);
-+}
-+
-+static int dsicm_connect(struct omap_dss_device *dssdev)
++static int acx_connect(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
-+	struct device *dev = &ddata->pdev->dev;
 +	int r;
 +
 +	if (omapdss_device_is_connected(dssdev))
 +		return 0;
 +
-+	r = in->ops.dsi->connect(in, dssdev);
-+	if (r) {
-+		dev_err(dev, "Failed to connect to video source\n");
++	r = in->ops.sdi->connect(in, dssdev);
++	if (r)
 +		return r;
-+	}
-+
-+	r = in->ops.dsi->request_vc(ddata->in, &ddata->channel);
-+	if (r) {
-+		dev_err(dev, "failed to get virtual channel\n");
-+		goto err_req_vc;
-+	}
-+
-+	r = in->ops.dsi->set_vc_id(ddata->in, ddata->channel, TCH);
-+	if (r) {
-+		dev_err(dev, "failed to set VC_ID\n");
-+		goto err_vc_id;
-+	}
 +
 +	return 0;
-+
-+err_vc_id:
-+	in->ops.dsi->release_vc(ddata->in, ddata->channel);
-+err_req_vc:
-+	in->ops.dsi->disconnect(in, dssdev);
-+	return r;
 +}
 +
-+static void dsicm_disconnect(struct omap_dss_device *dssdev)
++static void acx_disconnect(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
@@ -807,407 +576,200 @@ index 0000000..48af47d
 +	if (!omapdss_device_is_connected(dssdev))
 +		return;
 +
-+	in->ops.dsi->release_vc(in, ddata->channel);
-+	in->ops.dsi->disconnect(in, dssdev);
++	in->ops.sdi->disconnect(in, dssdev);
 +}
 +
-+static int dsicm_enable(struct omap_dss_device *dssdev)
++static int acx_panel_power_on(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
 +	int r;
 +
-+	dev_dbg(&ddata->pdev->dev, "enable\n");
++	dev_dbg(&ddata->spi->dev, "%s\n", __func__);
 +
-+	mutex_lock(&ddata->lock);
++	in->ops.sdi->set_timings(in, &ddata->videomode);
++	in->ops.sdi->set_datapairs(in, ddata->datapairs);
 +
-+	if (!omapdss_device_is_connected(dssdev)) {
-+		r = -ENODEV;
-+		goto err;
++	r = in->ops.sdi->enable(in);
++	if (r) {
++		pr_err("%s sdi enable failed\n", __func__);
++		return r;
 +	}
 +
-+	if (omapdss_device_is_enabled(dssdev)) {
-+		r = 0;
-+		goto err;
++	/*FIXME tweak me */
++	msleep(50);
++
++	if (gpio_is_valid(ddata->reset_gpio))
++		gpio_set_value(ddata->reset_gpio, 1);
++
++	if (ddata->enabled) {
++		dev_dbg(&ddata->spi->dev, "panel already enabled\n");
++		return 0;
 +	}
 +
-+	in->ops.dsi->bus_lock(in);
++	/*
++	 * We have to meet all the following delay requirements:
++	 * 1. tRW: reset pulse width 10usec (7.12.1)
++	 * 2. tRT: reset cancel time 5msec (7.12.1)
++	 * 3. Providing PCLK,HS,VS signals for 2 frames = ~50msec worst
++	 *    case (7.6.2)
++	 * 4. 120msec before the sleep out command (7.12.1)
++	 */
++	msleep(120);
 +
-+	r = dsicm_power_on(ddata);
++	set_sleep_mode(ddata, 0);
++	ddata->enabled = 1;
 +
-+	in->ops.dsi->bus_unlock(in);
++	/* 5msec between sleep out and the next command. (8.2.16) */
++	msleep(5);
++	set_display_state(ddata, 1);
++	set_cabc_mode(ddata, ddata->cabc_mode);
++
++	mutex_unlock(&ddata->mutex);
++
++	return acx565akm_bl_update_status(ddata->bl_dev);
++}
++
++static void acx_panel_power_off(struct omap_dss_device *dssdev)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_dss_device *in = ddata->in;
++
++	dev_dbg(dssdev->dev, "%s\n", __func__);
++
++	if (!ddata->enabled)
++		return;
++
++	set_display_state(ddata, 0);
++	set_sleep_mode(ddata, 1);
++	ddata->enabled = 0;
++	/*
++	 * We have to provide PCLK,HS,VS signals for 2 frames (worst case
++	 * ~50msec) after sending the sleep in command and asserting the
++	 * reset signal. We probably could assert the reset w/o the delay
++	 * but we still delay to avoid possible artifacts. (7.6.1)
++	 */
++	msleep(50);
++
++	if (gpio_is_valid(ddata->reset_gpio))
++		gpio_set_value(ddata->reset_gpio, 0);
++
++	/* FIXME need to tweak this delay */
++	msleep(100);
++
++	in->ops.sdi->disable(in);
++}
++
++static int acx_enable(struct omap_dss_device *dssdev)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	int r;
++
++	dev_dbg(dssdev->dev, "%s\n", __func__);
++
++	if (!omapdss_device_is_connected(dssdev))
++		return -ENODEV;
++
++	if (omapdss_device_is_enabled(dssdev))
++		return 0;
++
++	mutex_lock(&ddata->mutex);
++	r = acx_panel_power_on(dssdev);
++	mutex_unlock(&ddata->mutex);
 +
 +	if (r)
-+		goto err;
++		return r;
 +
 +	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
 +
-+	mutex_unlock(&ddata->lock);
-+
 +	return 0;
-+err:
-+	dev_dbg(&ddata->pdev->dev, "enable failed\n");
-+	mutex_unlock(&ddata->lock);
-+	return r;
 +}
 +
-+static void dsicm_disable(struct omap_dss_device *dssdev)
++static void acx_disable(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	struct omap_dss_device *in = ddata->in;
-+	int r;
 +
-+	dev_dbg(&ddata->pdev->dev, "disable\n");
++	dev_dbg(dssdev->dev, "%s\n", __func__);
 +
-+	mutex_lock(&ddata->lock);
++	if (!omapdss_device_is_enabled(dssdev))
++		return;
 +
-+	dsicm_cancel_ulps_work(ddata);
-+
-+	in->ops.dsi->bus_lock(in);
-+
-+	if (omapdss_device_is_enabled(dssdev)) {
-+		r = dsicm_wake_up(ddata);
-+		if (!r)
-+			dsicm_power_off(ddata);
-+	}
-+
-+	in->ops.dsi->bus_unlock(in);
++	mutex_lock(&ddata->mutex);
++	acx_panel_power_off(dssdev);
++	mutex_unlock(&ddata->mutex);
 +
 +	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
-+
-+	mutex_unlock(&ddata->lock);
 +}
 +
-+static void dsicm_framedone_cb(int err, void *data)
-+{
-+	struct panel_drv_data *ddata = data;
-+	struct omap_dss_device *in = ddata->in;
-+
-+	dev_dbg(&ddata->pdev->dev, "framedone, err %d\n", err);
-+	in->ops.dsi->bus_unlock(ddata->in);
-+}
-+
-+static irqreturn_t dsicm_te_isr(int irq, void *data)
-+{
-+	struct panel_drv_data *ddata = data;
-+	struct omap_dss_device *in = ddata->in;
-+	int old;
-+	int r;
-+
-+	old = atomic_cmpxchg(&ddata->do_update, 1, 0);
-+
-+	if (old) {
-+		cancel_delayed_work(&ddata->te_timeout_work);
-+
-+		r = in->ops.dsi->update(in, ddata->channel, dsicm_framedone_cb,
-+				ddata);
-+		if (r)
-+			goto err;
-+	}
-+
-+	return IRQ_HANDLED;
-+err:
-+	dev_err(&ddata->pdev->dev, "start update failed\n");
-+	in->ops.dsi->bus_unlock(in);
-+	return IRQ_HANDLED;
-+}
-+
-+static void dsicm_te_timeout_work_callback(struct work_struct *work)
-+{
-+	struct panel_drv_data *ddata = container_of(work, struct panel_drv_data,
-+					te_timeout_work.work);
-+	struct omap_dss_device *in = ddata->in;
-+
-+	dev_err(&ddata->pdev->dev, "TE not received for 250ms!\n");
-+
-+	atomic_set(&ddata->do_update, 0);
-+	in->ops.dsi->bus_unlock(in);
-+}
-+
-+static int dsicm_update(struct omap_dss_device *dssdev,
-+				    u16 x, u16 y, u16 w, u16 h)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	struct omap_dss_device *in = ddata->in;
-+	int r;
-+
-+	dev_dbg(&ddata->pdev->dev, "update %d, %d, %d x %d\n", x, y, w, h);
-+
-+	mutex_lock(&ddata->lock);
-+	in->ops.dsi->bus_lock(in);
-+
-+	r = dsicm_wake_up(ddata);
-+	if (r)
-+		goto err;
-+
-+	if (!ddata->enabled) {
-+		r = 0;
-+		goto err;
-+	}
-+
-+	/* XXX no need to send this every frame, but dsi break if not done */
-+	r = dsicm_set_update_window(ddata, 0, 0,
-+			dssdev->panel.timings.x_res,
-+			dssdev->panel.timings.y_res);
-+	if (r)
-+		goto err;
-+
-+	if (ddata->te_enabled && gpio_is_valid(ddata->ext_te_gpio)) {
-+		schedule_delayed_work(&ddata->te_timeout_work,
-+				msecs_to_jiffies(250));
-+		atomic_set(&ddata->do_update, 1);
-+	} else {
-+		r = in->ops.dsi->update(in, ddata->channel, dsicm_framedone_cb,
-+				ddata);
-+		if (r)
-+			goto err;
-+	}
-+
-+	/* note: no bus_unlock here. unlock is in framedone_cb */
-+	mutex_unlock(&ddata->lock);
-+	return 0;
-+err:
-+	in->ops.dsi->bus_unlock(in);
-+	mutex_unlock(&ddata->lock);
-+	return r;
-+}
-+
-+static int dsicm_sync(struct omap_dss_device *dssdev)
++static void acx_set_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
 +
-+	dev_dbg(&ddata->pdev->dev, "sync\n");
++	ddata->videomode = *timings;
++	dssdev->panel.timings = *timings;
 +
-+	mutex_lock(&ddata->lock);
-+	in->ops.dsi->bus_lock(in);
-+	in->ops.dsi->bus_unlock(in);
-+	mutex_unlock(&ddata->lock);
-+
-+	dev_dbg(&ddata->pdev->dev, "sync done\n");
-+
-+	return 0;
++	in->ops.sdi->set_timings(in, timings);
 +}
 +
-+static int _dsicm_enable_te(struct panel_drv_data *ddata, bool enable)
++static void acx_get_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
 +{
-+	struct omap_dss_device *in = ddata->in;
-+	int r;
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +
-+	if (enable)
-+		r = dsicm_dcs_write_1(ddata, MIPI_DCS_SET_TEAR_ON, 0);
-+	else
-+		r = dsicm_dcs_write_0(ddata, MIPI_DCS_SET_TEAR_OFF);
-+
-+	if (!gpio_is_valid(ddata->ext_te_gpio))
-+		in->ops.dsi->enable_te(in, enable);
-+
-+	/* possible panel bug */
-+	msleep(100);
-+
-+	return r;
++	*timings = ddata->videomode;
 +}
 +
-+static int dsicm_enable_te(struct omap_dss_device *dssdev, bool enable)
++static int acx_check_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
-+	int r;
 +
-+	mutex_lock(&ddata->lock);
-+
-+	if (ddata->te_enabled == enable)
-+		goto end;
-+
-+	in->ops.dsi->bus_lock(in);
-+
-+	if (ddata->enabled) {
-+		r = dsicm_wake_up(ddata);
-+		if (r)
-+			goto err;
-+
-+		r = _dsicm_enable_te(ddata, enable);
-+		if (r)
-+			goto err;
-+	}
-+
-+	ddata->te_enabled = enable;
-+
-+	in->ops.dsi->bus_unlock(in);
-+end:
-+	mutex_unlock(&ddata->lock);
-+
-+	return 0;
-+err:
-+	in->ops.dsi->bus_unlock(in);
-+	mutex_unlock(&ddata->lock);
-+
-+	return r;
++	return in->ops.sdi->check_timings(in, timings);
 +}
 +
-+static int dsicm_get_te(struct omap_dss_device *dssdev)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	int r;
++static struct omap_dss_driver acx_ops = {
++	.connect	= acx_connect,
++	.disconnect	= acx_disconnect,
 +
-+	mutex_lock(&ddata->lock);
-+	r = ddata->te_enabled;
-+	mutex_unlock(&ddata->lock);
++	.enable		= acx_enable,
++	.disable	= acx_disable,
 +
-+	return r;
-+}
++	.set_timings	= acx_set_timings,
++	.get_timings	= acx_get_timings,
++	.check_timings	= acx_check_timings,
 +
-+static int dsicm_memory_read(struct omap_dss_device *dssdev,
-+		void *buf, size_t size,
-+		u16 x, u16 y, u16 w, u16 h)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	struct omap_dss_device *in = ddata->in;
-+	int r;
-+	int first = 1;
-+	int plen;
-+	unsigned buf_used = 0;
-+
-+	if (size < w * h * 3)
-+		return -ENOMEM;
-+
-+	mutex_lock(&ddata->lock);
-+
-+	if (!ddata->enabled) {
-+		r = -ENODEV;
-+		goto err1;
-+	}
-+
-+	size = min(w * h * 3,
-+			dssdev->panel.timings.x_res *
-+			dssdev->panel.timings.y_res * 3);
-+
-+	in->ops.dsi->bus_lock(in);
-+
-+	r = dsicm_wake_up(ddata);
-+	if (r)
-+		goto err2;
-+
-+	/* plen 1 or 2 goes into short packet. until checksum error is fixed,
-+	 * use short packets. plen 32 works, but bigger packets seem to cause
-+	 * an error. */
-+	if (size % 2)
-+		plen = 1;
-+	else
-+		plen = 2;
-+
-+	dsicm_set_update_window(ddata, x, y, w, h);
-+
-+	r = in->ops.dsi->set_max_rx_packet_size(in, ddata->channel, plen);
-+	if (r)
-+		goto err2;
-+
-+	while (buf_used < size) {
-+		u8 dcs_cmd = first ? 0x2e : 0x3e;
-+		first = 0;
-+
-+		r = in->ops.dsi->dcs_read(in, ddata->channel, dcs_cmd,
-+				buf + buf_used, size - buf_used);
-+
-+		if (r < 0) {
-+			dev_err(dssdev->dev, "read error\n");
-+			goto err3;
-+		}
-+
-+		buf_used += r;
-+
-+		if (r < plen) {
-+			dev_err(&ddata->pdev->dev, "short read\n");
-+			break;
-+		}
-+
-+		if (signal_pending(current)) {
-+			dev_err(&ddata->pdev->dev, "signal pending, "
-+					"aborting memory read\n");
-+			r = -ERESTARTSYS;
-+			goto err3;
-+		}
-+	}
-+
-+	r = buf_used;
-+
-+err3:
-+	in->ops.dsi->set_max_rx_packet_size(in, ddata->channel, 1);
-+err2:
-+	in->ops.dsi->bus_unlock(in);
-+err1:
-+	mutex_unlock(&ddata->lock);
-+	return r;
-+}
-+
-+static void dsicm_ulps_work(struct work_struct *work)
-+{
-+	struct panel_drv_data *ddata = container_of(work, struct panel_drv_data,
-+			ulps_work.work);
-+	struct omap_dss_device *dssdev = &ddata->dssdev;
-+	struct omap_dss_device *in = ddata->in;
-+
-+	mutex_lock(&ddata->lock);
-+
-+	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE || !ddata->enabled) {
-+		mutex_unlock(&ddata->lock);
-+		return;
-+	}
-+
-+	in->ops.dsi->bus_lock(in);
-+
-+	dsicm_enter_ulps(ddata);
-+
-+	in->ops.dsi->bus_unlock(in);
-+	mutex_unlock(&ddata->lock);
-+}
-+
-+static struct omap_dss_driver dsicm_ops = {
-+	.connect	= dsicm_connect,
-+	.disconnect	= dsicm_disconnect,
-+
-+	.enable		= dsicm_enable,
-+	.disable	= dsicm_disable,
-+
-+	.update		= dsicm_update,
-+	.sync		= dsicm_sync,
-+
-+	.get_resolution	= dsicm_get_resolution,
-+	.get_recommended_bpp = omapdss_default_get_recommended_bpp,
-+
-+	.enable_te	= dsicm_enable_te,
-+	.get_te		= dsicm_get_te,
-+
-+	.memory_read	= dsicm_memory_read,
++	.get_resolution	= omapdss_default_get_resolution,
 +};
 +
-+static int dsicm_probe_pdata(struct platform_device *pdev)
++static int acx_probe_pdata(struct spi_device *spi)
 +{
-+	const struct panel_dsicm_platform_data *pdata;
-+	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
++	const struct panel_acx565akm_platform_data *pdata;
++	struct panel_drv_data *ddata = dev_get_drvdata(&spi->dev);
 +	struct omap_dss_device *dssdev, *in;
++	int r;
 +
-+	pdata = dev_get_platdata(&pdev->dev);
++	pdata = dev_get_platdata(&spi->dev);
++
++	if (gpio_is_valid(pdata->reset_gpio)) {
++		r = devm_gpio_request_one(&spi->dev, pdata->reset_gpio,
++				GPIOF_OUT_INIT_LOW, "lcd reset");
++		if (r)
++			return r;
++	}
++	ddata->reset_gpio = pdata->reset_gpio;
 +
 +	in = omap_dss_find_output(pdata->source);
 +	if (in == NULL) {
-+		dev_err(&pdev->dev, "failed to find video source\n");
++		dev_err(&spi->dev, "failed to find video source '%s'\n",
++				pdata->source);
 +		return -EPROBE_DEFER;
 +	}
 +	ddata->in = in;
 +
-+	ddata->reset_gpio = pdata->reset_gpio;
-+
-+	if (pdata->use_ext_te)
-+		ddata->ext_te_gpio = pdata->ext_te_gpio;
-+	else
-+		ddata->ext_te_gpio = -1;
-+
-+	ddata->ulps_timeout = pdata->ulps_timeout;
-+
-+	ddata->use_dsi_backlight = pdata->use_dsi_backlight;
-+
-+	ddata->pin_config = pdata->pin_config;
++	ddata->datapairs = pdata->datapairs;
 +
 +	dssdev = &ddata->dssdev;
 +	dssdev->name = pdata->name;
@@ -1215,183 +777,149 @@ index 0000000..48af47d
 +	return 0;
 +}
 +
-+static int dsicm_probe(struct platform_device *pdev)
++static int acx565akm_spi_probe(struct spi_device *spi)
 +{
-+	struct backlight_properties props;
 +	struct panel_drv_data *ddata;
-+	struct backlight_device *bldev = NULL;
-+	struct device *dev = &pdev->dev;
 +	struct omap_dss_device *dssdev;
++	struct backlight_device *bldev;
++	int max_brightness, brightness;
++	struct backlight_properties props;
 +	int r;
 +
-+	dev_dbg(dev, "probe\n");
++	dev_dbg(&spi->dev, "%s\n", __func__);
 +
-+	ddata = devm_kzalloc(dev, sizeof(*ddata), GFP_KERNEL);
-+	if (!ddata)
++	spi->mode = SPI_MODE_3;
++
++	ddata = devm_kzalloc(&spi->dev, sizeof(*ddata), GFP_KERNEL);
++	if (ddata == NULL)
 +		return -ENOMEM;
 +
-+	platform_set_drvdata(pdev, ddata);
-+	ddata->pdev = pdev;
++	dev_set_drvdata(&spi->dev, ddata);
 +
-+	if (dev_get_platdata(dev)) {
-+		r = dsicm_probe_pdata(pdev);
++	ddata->spi = spi;
++
++	mutex_init(&ddata->mutex);
++
++	if (dev_get_platdata(&spi->dev)) {
++		r = acx_probe_pdata(spi);
 +		if (r)
 +			return r;
 +	} else {
 +		return -ENODEV;
 +	}
 +
-+	ddata->timings.x_res = 864;
-+	ddata->timings.y_res = 480;
-+	ddata->timings.pixel_clock = DIV_ROUND_UP(864 * 480 * 60, 1000);
++	if (gpio_is_valid(ddata->reset_gpio))
++		gpio_set_value(ddata->reset_gpio, 1);
++
++	/*
++	 * After reset we have to wait 5 msec before the first
++	 * command can be sent.
++	 */
++	msleep(5);
++
++	ddata->enabled = panel_enabled(ddata);
++
++	r = panel_detect(ddata);
++
++	if (!ddata->enabled && gpio_is_valid(ddata->reset_gpio))
++		gpio_set_value(ddata->reset_gpio, 0);
++
++	if (r) {
++		dev_err(&spi->dev, "%s panel detect error\n", __func__);
++		goto err_detect;
++	}
++
++	memset(&props, 0, sizeof(props));
++	props.fb_blank = FB_BLANK_UNBLANK;
++	props.power = FB_BLANK_UNBLANK;
++	props.type = BACKLIGHT_RAW;
++
++	bldev = backlight_device_register("acx565akm", &ddata->spi->dev,
++			ddata, &acx565akm_bl_ops, &props);
++	ddata->bl_dev = bldev;
++	if (ddata->has_cabc) {
++		r = sysfs_create_group(&bldev->dev.kobj, &bldev_attr_group);
++		if (r) {
++			dev_err(&bldev->dev,
++				"%s failed to create sysfs files\n", __func__);
++			goto err_sysfs;
++		}
++		ddata->cabc_mode = get_hw_cabc_mode(ddata);
++	}
++
++	max_brightness = 255;
++
++	if (ddata->has_bc)
++		brightness = acx565akm_get_actual_brightness(ddata);
++	else
++		brightness = 0;
++
++	bldev->props.max_brightness = max_brightness;
++	bldev->props.brightness = brightness;
++
++	acx565akm_bl_update_status(bldev);
++
++
++	ddata->videomode = acx_panel_timings;
 +
 +	dssdev = &ddata->dssdev;
-+	dssdev->dev = dev;
-+	dssdev->driver = &dsicm_ops;
-+	dssdev->panel.timings = ddata->timings;
-+	dssdev->type = OMAP_DISPLAY_TYPE_DSI;
++	dssdev->dev = &spi->dev;
++	dssdev->driver = &acx_ops;
++	dssdev->type = OMAP_DISPLAY_TYPE_SDI;
 +	dssdev->owner = THIS_MODULE;
-+
-+	dssdev->panel.dsi_pix_fmt = OMAP_DSS_DSI_FMT_RGB888;
-+	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE |
-+		OMAP_DSS_DISPLAY_CAP_TEAR_ELIM;
++	dssdev->panel.timings = ddata->videomode;
 +
 +	r = omapdss_register_display(dssdev);
 +	if (r) {
-+		dev_err(dev, "Failed to register panel\n");
++		dev_err(&spi->dev, "Failed to register panel\n");
 +		goto err_reg;
 +	}
 +
-+	mutex_init(&ddata->lock);
-+
-+	atomic_set(&ddata->do_update, 0);
-+
-+	if (gpio_is_valid(ddata->reset_gpio)) {
-+		r = devm_gpio_request_one(dev, ddata->reset_gpio,
-+				GPIOF_OUT_INIT_LOW, "taal rst");
-+		if (r) {
-+			dev_err(dev, "failed to request reset gpio\n");
-+			return r;
-+		}
-+	}
-+
-+	if (gpio_is_valid(ddata->ext_te_gpio)) {
-+		r = devm_gpio_request_one(dev, ddata->ext_te_gpio,
-+				GPIOF_IN, "taal irq");
-+		if (r) {
-+			dev_err(dev, "GPIO request failed\n");
-+			return r;
-+		}
-+
-+		r = devm_request_irq(dev, gpio_to_irq(ddata->ext_te_gpio),
-+				dsicm_te_isr,
-+				IRQF_TRIGGER_RISING,
-+				"taal vsync", ddata);
-+
-+		if (r) {
-+			dev_err(dev, "IRQ request failed\n");
-+			return r;
-+		}
-+
-+		INIT_DEFERRABLE_WORK(&ddata->te_timeout_work,
-+					dsicm_te_timeout_work_callback);
-+
-+		dev_dbg(dev, "Using GPIO TE\n");
-+	}
-+
-+	ddata->workqueue = create_singlethread_workqueue("dsicm_wq");
-+	if (ddata->workqueue == NULL) {
-+		dev_err(dev, "can't create workqueue\n");
-+		return -ENOMEM;
-+	}
-+	INIT_DELAYED_WORK(&ddata->ulps_work, dsicm_ulps_work);
-+
-+	dsicm_hw_reset(ddata);
-+
-+	if (ddata->use_dsi_backlight) {
-+		memset(&props, 0, sizeof(struct backlight_properties));
-+		props.max_brightness = 255;
-+
-+		props.type = BACKLIGHT_RAW;
-+		bldev = backlight_device_register(dev_name(dev),
-+				dev, ddata, &dsicm_bl_ops, &props);
-+		if (IS_ERR(bldev)) {
-+			r = PTR_ERR(bldev);
-+			goto err_bl;
-+		}
-+
-+		ddata->bldev = bldev;
-+
-+		bldev->props.fb_blank = FB_BLANK_UNBLANK;
-+		bldev->props.power = FB_BLANK_UNBLANK;
-+		bldev->props.brightness = 255;
-+
-+		dsicm_bl_update_status(bldev);
-+	}
-+
-+	r = sysfs_create_group(&dev->kobj, &dsicm_attr_group);
-+	if (r) {
-+		dev_err(dev, "failed to create sysfs files\n");
-+		goto err_sysfs_create;
-+	}
-+
 +	return 0;
 +
-+err_sysfs_create:
-+	if (bldev != NULL)
-+		backlight_device_unregister(bldev);
-+err_bl:
-+	destroy_workqueue(ddata->workqueue);
 +err_reg:
++	sysfs_remove_group(&bldev->dev.kobj, &bldev_attr_group);
++err_sysfs:
++	backlight_device_unregister(bldev);
++err_detect:
++	omap_dss_put_device(ddata->in);
 +	return r;
 +}
 +
-+static int __exit dsicm_remove(struct platform_device *pdev)
++static int acx565akm_spi_remove(struct spi_device *spi)
 +{
-+	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
++	struct panel_drv_data *ddata = dev_get_drvdata(&spi->dev);
 +	struct omap_dss_device *dssdev = &ddata->dssdev;
-+	struct backlight_device *bldev;
++	struct omap_dss_device *in = ddata->in;
 +
-+	dev_dbg(&pdev->dev, "remove\n");
++	dev_dbg(&ddata->spi->dev, "%s\n", __func__);
++
++	sysfs_remove_group(&ddata->bl_dev->dev.kobj, &bldev_attr_group);
++	backlight_device_unregister(ddata->bl_dev);
 +
 +	omapdss_unregister_display(dssdev);
 +
-+	dsicm_disable(dssdev);
-+	dsicm_disconnect(dssdev);
++	acx_disable(dssdev);
++	acx_disconnect(dssdev);
 +
-+	sysfs_remove_group(&pdev->dev.kobj, &dsicm_attr_group);
-+
-+	bldev = ddata->bldev;
-+	if (bldev != NULL) {
-+		bldev->props.power = FB_BLANK_POWERDOWN;
-+		dsicm_bl_update_status(bldev);
-+		backlight_device_unregister(bldev);
-+	}
-+
-+	omap_dss_put_device(ddata->in);
-+
-+	dsicm_cancel_ulps_work(ddata);
-+	destroy_workqueue(ddata->workqueue);
-+
-+	/* reset, to be sure that the panel is in a valid state */
-+	dsicm_hw_reset(ddata);
++	omap_dss_put_device(in);
 +
 +	return 0;
 +}
 +
-+static struct platform_driver dsicm_driver = {
-+	.probe = dsicm_probe,
-+	.remove = __exit_p(dsicm_remove),
++static struct spi_driver acx565akm_spi_driver = {
 +	.driver = {
-+		.name = "panel-dsi-cm",
-+		.owner = THIS_MODULE,
++		.name	= "acx565akm",
++		.owner	= THIS_MODULE,
 +	},
++	.probe	= acx565akm_spi_probe,
++	.remove	= acx565akm_spi_remove,
 +};
 +
-+module_platform_driver(dsicm_driver);
++module_spi_driver(acx565akm_spi_driver);
 +
-+MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@ti.com>");
-+MODULE_DESCRIPTION("Generic DSI Command Mode Panel Driver");
++MODULE_AUTHOR("Nokia Corporation");
++MODULE_DESCRIPTION("acx565akm LCD Driver");
 +MODULE_LICENSE("GPL");
 -- 
 1.8.1.2
