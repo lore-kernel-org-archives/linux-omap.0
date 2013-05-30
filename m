@@ -1,176 +1,48 @@
-From: Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/3] palmas usb driver
-Date: Thu, 30 May 2013 11:46:29 +0900
-Message-ID: <CAGTfZH2RbSZMNbH7NKtoLh-13WX0Z2iQ6_D4DcBgC1ej5PKTTQ@mail.gmail.com>
-References: <1369405896-30246-1-git-send-email-kishon@ti.com>
- <20130528173554.GD15794@arwen.pp.htv.fi> <51A59AC9.9000908@ti.com>
- <20130529173851.GC21290@arwen.pp.htv.fi>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [net-next PATCH 1/1] drivers: net: davinci_cpdma: remove CRC bytes from skb added by CPDMA
+Date: Thu, 30 May 2013 11:52:01 +0530
+Message-ID: <1369894922-27116-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1106535675768415329=="
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20130529173851.GC21290-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: george.cherian-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============1106535675768415329==
-Content-Type: multipart/alternative; boundary=089e013a19205d13df04dde681f9
+Additional 4 bytes found in the skb is the CRC calculated by the
+CPDMA hardware, check the CRC bit in CPDMA status field of
+Descriptor and remove the CRC length from the skb. This extra
+4 byte can be seen when capturing packets using tcpdump.
+This has been tested in TI816x platform.
 
---089e013a19205d13df04dde681f9
-Content-Type: text/plain; charset=ISO-8859-1
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+ drivers/net/ethernet/ti/davinci_cpdma.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-On Thu, May 30, 2013 at 2:38 AM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-
-> Hi,
->
-> On Wed, May 29, 2013 at 11:36:01AM +0530, Kishon Vijay Abraham I wrote:
-> > Hi Felipe,
-> >
-> > On Tuesday 28 May 2013 11:05 PM, Felipe Balbi wrote:
-> > >On Fri, May 24, 2013 at 08:01:33PM +0530, Kishon Vijay Abraham I wrote:
-> > >>This patch series adds driver for palmas usb which is used to detect
-> > >>attach/detach events of usb device and usb host.
-> > >>
-> > >>[PATCH v5 2/3] extcon: Palmas Extcon Driver which was sent previously
-> > >>is added in this patch series itself. The revision history is added
-> > >>in the patch comments section.
-> > >>
-> > >>A checkpatch warning "WARNING: static const char * array should
-> > >>probably be static const char * const"is ignored since it introduces a
-> > >>compilation warning.
-> > >>
-> > >>Graeme Gregory (2):
-> > >>   drivers: regulator: palmas: add an API to set/clear the switch bit
-> on
-> > >>     SMPS10
-> > >>   extcon: Palmas Extcon Driver
-> > >>
-> > >>Kishon Vijay Abraham I (1):
-> > >>   usb: dwc3: use extcon fwrk to receive connect/disconnect
-> notification
-> > >
-> > >
-> > >There were some comments to this series, what will happen with it ? Any
-> > >new versions coming ?
-> >
-> > I've already sent new versions. Palmas Extcon Driver is already
-> > queued in extcon-next.
-> > Chanwoo can take this patch in his tree after your ACK. [PATCH v2]
-> > usb: dwc3: use extcon fwrk to receive connect/disconnect
-> > notification.
->
-> alright, thanks for the note, here it is:
->
->
-> Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->
->
-> --
-> balbi
->
-
-OK, I applied this patchset on extcon-next branch
-and I will send pull-request to GregKH.
-
-You can check on following git repository:
-http://git.kernel.org/cgit/linux/kernel/git/chanwoo/extcon.git/log/?h=extcon-next
-
-Thanks,
-Chanwoo Choi
-
---089e013a19205d13df04dde681f9
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<div dir=3D"ltr"><div class=3D"gmail_extra"><div class=3D"gmail_quote">On T=
-hu, May 30, 2013 at 2:38 AM, Felipe Balbi <span dir=3D"ltr">&lt;<a href=3D"=
-mailto:balbi-l0cyMroinI0@public.gmane.org" target=3D"_blank">balbi-l0cyMroinI0@public.gmane.org</a>&gt;</span> wrote:<b=
-r><blockquote style=3D"margin:0px 0px 0px 0.8ex;padding-left:1ex;border-lef=
-t-color:rgb(204,204,204);border-left-width:1px;border-left-style:solid" cla=
-ss=3D"gmail_quote">
-Hi,<br>
-<div><div class=3D"h5"><br>
-On Wed, May 29, 2013 at 11:36:01AM +0530, Kishon Vijay Abraham I wrote:<br>
-&gt; Hi Felipe,<br>
-&gt;<br>
-&gt; On Tuesday 28 May 2013 11:05 PM, Felipe Balbi wrote:<br>
-&gt; &gt;On Fri, May 24, 2013 at 08:01:33PM +0530, Kishon Vijay Abraham I w=
-rote:<br>
-&gt; &gt;&gt;This patch series adds driver for palmas usb which is used to =
-detect<br>
-&gt; &gt;&gt;attach/detach events of usb device and usb host.<br>
-&gt; &gt;&gt;<br>
-&gt; &gt;&gt;[PATCH v5 2/3] extcon: Palmas Extcon Driver which was sent pre=
-viously<br>
-&gt; &gt;&gt;is added in this patch series itself. The revision history is =
-added<br>
-&gt; &gt;&gt;in the patch comments section.<br>
-&gt; &gt;&gt;<br>
-&gt; &gt;&gt;A checkpatch warning &quot;WARNING: static const char * array =
-should<br>
-&gt; &gt;&gt;probably be static const char * const&quot;is ignored since it=
- introduces a<br>
-&gt; &gt;&gt;compilation warning.<br>
-&gt; &gt;&gt;<br>
-&gt; &gt;&gt;Graeme Gregory (2):<br>
-&gt; &gt;&gt; =A0 drivers: regulator: palmas: add an API to set/clear the s=
-witch bit on<br>
-&gt; &gt;&gt; =A0 =A0 SMPS10<br>
-&gt; &gt;&gt; =A0 extcon: Palmas Extcon Driver<br>
-&gt; &gt;&gt;<br>
-&gt; &gt;&gt;Kishon Vijay Abraham I (1):<br>
-&gt; &gt;&gt; =A0 usb: dwc3: use extcon fwrk to receive connect/disconnect =
-notification<br>
-&gt; &gt;<br>
-&gt; &gt;<br>
-&gt; &gt;There were some comments to this series, what will happen with it =
-? Any<br>
-&gt; &gt;new versions coming ?<br>
-&gt;<br>
-&gt; I&#39;ve already sent new versions. Palmas Extcon Driver is already<br=
->
-&gt; queued in extcon-next.<br>
-&gt; Chanwoo can take this patch in his tree after your ACK. [PATCH v2]<br>
-&gt; usb: dwc3: use extcon fwrk to receive connect/disconnect<br>
-&gt; notification.<br>
-<br>
-</div></div>alright, thanks for the note, here it is:<br>
-<br>
-<br>
-Acked-by: Felipe Balbi &lt;<a href=3D"mailto:balbi-l0cyMroinI0@public.gmane.org">balbi-l0cyMroinI0@public.gmane.org</a>=
-&gt;<br>
-<span><font color=3D"#888888"><br>
-<br>
---<br>
-balbi<br></font></span></blockquote><div>=A0</div><div>OK, I applied this p=
-atchset on extcon-next branch<br>and I will send pull-request to GregKH.</d=
-iv><div>=A0</div><div>You can check on following git repository:<br><a href=
-=3D"http://git.kernel.org/cgit/linux/kernel/git/chanwoo/extcon.git/log/?h=
-=3Dextcon-next">http://git.kernel.org/cgit/linux/kernel/git/chanwoo/extcon.=
-git/log/?h=3Dextcon-next</a></div>
-<div>=A0</div><div>Thanks,<br>Chanwoo Choi=A0</div></div><br></div></div>
-
---089e013a19205d13df04dde681f9--
-
---===============1106535675768415329==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-devicetree-discuss mailing list
-devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-https://lists.ozlabs.org/listinfo/devicetree-discuss
-
---===============1106535675768415329==--
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+index 49dfd59..a377bc7 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.c
++++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+@@ -64,6 +64,7 @@
+ #define CPDMA_DESC_TO_PORT_EN	BIT(20)
+ #define CPDMA_TO_PORT_SHIFT	16
+ #define CPDMA_DESC_PORT_MASK	(BIT(18) | BIT(17) | BIT(16))
++#define CPDMA_DESC_CRC_LEN	4
+ 
+ #define CPDMA_TEARDOWN_VALUE	0xfffffffc
+ 
+@@ -798,6 +799,10 @@ static int __cpdma_chan_process(struct cpdma_chan *chan)
+ 		status = -EBUSY;
+ 		goto unlock_ret;
+ 	}
++
++	if (status & CPDMA_DESC_PASS_CRC)
++		outlen -= CPDMA_DESC_CRC_LEN;
++
+ 	status	= status & (CPDMA_DESC_EOQ | CPDMA_DESC_TD_COMPLETE |
+ 			    CPDMA_DESC_PORT_MASK);
+ 
+-- 
+1.7.9.5
