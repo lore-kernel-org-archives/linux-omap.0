@@ -1,63 +1,63 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 20/27] OMAPDSS: Add new Analog TV Connector driver
-Date: Thu, 30 May 2013 12:36:13 +0300
-Message-ID: <1369906580-27585-21-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 21/27] OMAPDSS: Add new simple DPI panel driver
+Date: Thu, 30 May 2013 12:36:14 +0300
+Message-ID: <1369906580-27585-22-git-send-email-tomi.valkeinen@ti.com>
 References: <1369906580-27585-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37530 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030428Ab3E3JhQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 05:37:16 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:42847 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030449Ab3E3JhR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 May 2013 05:37:17 -0400
 In-Reply-To: <1369906580-27585-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add Analog TV Connector driver which uses the new DSS device model and
-DSS ops.
+Add simple DPI Panel driver which uses the new DSS device model and DSS
+ops. A "simple" panel means one that does not require any special setup.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/displays-new/Kconfig           |   5 +
- drivers/video/omap2/displays-new/Makefile          |   1 +
- .../video/omap2/displays-new/connector-analog-tv.c | 265 +++++++++++++++++++++
- 3 files changed, 271 insertions(+)
- create mode 100644 drivers/video/omap2/displays-new/connector-analog-tv.c
+ drivers/video/omap2/displays-new/Kconfig     |   5 +
+ drivers/video/omap2/displays-new/Makefile    |   1 +
+ drivers/video/omap2/displays-new/panel-dpi.c | 270 +++++++++++++++++++++++++++
+ 3 files changed, 276 insertions(+)
+ create mode 100644 drivers/video/omap2/displays-new/panel-dpi.c
 
 diff --git a/drivers/video/omap2/displays-new/Kconfig b/drivers/video/omap2/displays-new/Kconfig
-index 9a66413..5326638 100644
+index 5326638..1435f2f 100644
 --- a/drivers/video/omap2/displays-new/Kconfig
 +++ b/drivers/video/omap2/displays-new/Kconfig
-@@ -23,4 +23,9 @@ config DISPLAY_CONNECTOR_HDMI
+@@ -28,4 +28,9 @@ config DISPLAY_CONNECTOR_ANALOG_TV
  	help
- 	  Driver for a generic HDMI connector.
+ 	  Driver for a generic analog TV connector.
  
-+config DISPLAY_CONNECTOR_ANALOG_TV
-+        tristate "Analog TV Connector"
++config PANEL_DPI
++	tristate "Generic DPI panel"
 +	help
-+	  Driver for a generic analog TV connector.
++	  Driver for generic DPI panels.
 +
  endmenu
 diff --git a/drivers/video/omap2/displays-new/Makefile b/drivers/video/omap2/displays-new/Makefile
-index 1007b5f..083bf08 100644
+index 083bf08..54002d3 100644
 --- a/drivers/video/omap2/displays-new/Makefile
 +++ b/drivers/video/omap2/displays-new/Makefile
-@@ -2,3 +2,4 @@ obj-$(CONFIG_DISPLAY_ENCODER_TFP410) += encoder-tfp410.o
- obj-$(CONFIG_DISPLAY_ENCODER_TPD12S015) += encoder-tpd12s015.o
+@@ -3,3 +3,4 @@ obj-$(CONFIG_DISPLAY_ENCODER_TPD12S015) += encoder-tpd12s015.o
  obj-$(CONFIG_DISPLAY_CONNECTOR_DVI) += connector-dvi.o
  obj-$(CONFIG_DISPLAY_CONNECTOR_HDMI) += connector-hdmi.o
-+obj-$(CONFIG_DISPLAY_CONNECTOR_ANALOG_TV) += connector-analog-tv.o
-diff --git a/drivers/video/omap2/displays-new/connector-analog-tv.c b/drivers/video/omap2/displays-new/connector-analog-tv.c
+ obj-$(CONFIG_DISPLAY_CONNECTOR_ANALOG_TV) += connector-analog-tv.o
++obj-$(CONFIG_PANEL_DPI) += panel-dpi.o
+diff --git a/drivers/video/omap2/displays-new/panel-dpi.c b/drivers/video/omap2/displays-new/panel-dpi.c
 new file mode 100644
-index 0000000..5338f36
+index 0000000..5f8f7e7
 --- /dev/null
-+++ b/drivers/video/omap2/displays-new/connector-analog-tv.c
-@@ -0,0 +1,265 @@
++++ b/drivers/video/omap2/displays-new/panel-dpi.c
+@@ -0,0 +1,270 @@
 +/*
-+ * Analog TV Connector driver
++ * Generic MIPI DPI Panel Driver
 + *
 + * Copyright (C) 2013 Texas Instruments
 + * Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
@@ -67,9 +67,10 @@ index 0000000..5338f36
 + * the Free Software Foundation.
 + */
 +
-+#include <linux/slab.h>
++#include <linux/gpio.h>
 +#include <linux/module.h>
 +#include <linux/platform_device.h>
++#include <linux/slab.h>
 +
 +#include <video/omapdss.h>
 +#include <video/omap-panel-data.h>
@@ -78,54 +79,48 @@ index 0000000..5338f36
 +	struct omap_dss_device dssdev;
 +	struct omap_dss_device *in;
 +
-+	struct device *dev;
++	int data_lines;
 +
-+	struct omap_video_timings timings;
++	struct omap_video_timings videomode;
 +
-+	enum omap_dss_venc_type connector_type;
-+	bool invert_polarity;
++	int backlight_gpio;
++	int enable_gpio;
 +};
 +
-+#define to_panel_data(x) container_of(x, struct panel_drv_data, dssdev)
++#define to_panel_data(p) container_of(p, struct panel_drv_data, dssdev)
 +
-+static int tvc_connect(struct omap_dss_device *dssdev)
++static int panel_dpi_connect(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
 +	int r;
 +
-+	dev_dbg(ddata->dev, "connect\n");
-+
 +	if (omapdss_device_is_connected(dssdev))
 +		return 0;
 +
-+	r = in->ops.atv->connect(in, dssdev);
++	r = in->ops.dpi->connect(in, dssdev);
 +	if (r)
 +		return r;
 +
 +	return 0;
 +}
 +
-+static void tvc_disconnect(struct omap_dss_device *dssdev)
++static void panel_dpi_disconnect(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
-+
-+	dev_dbg(ddata->dev, "disconnect\n");
 +
 +	if (!omapdss_device_is_connected(dssdev))
 +		return;
 +
-+	in->ops.atv->disconnect(in, dssdev);
++	in->ops.dpi->disconnect(in, dssdev);
 +}
 +
-+static int tvc_enable(struct omap_dss_device *dssdev)
++static int panel_dpi_enable(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
 +	int r;
-+
-+	dev_dbg(ddata->dev, "enable\n");
 +
 +	if (!omapdss_device_is_connected(dssdev))
 +		return -ENODEV;
@@ -133,151 +128,159 @@ index 0000000..5338f36
 +	if (omapdss_device_is_enabled(dssdev))
 +		return 0;
 +
-+	in->ops.atv->set_timings(in, &ddata->timings);
++	in->ops.dpi->set_data_lines(in, ddata->data_lines);
++	in->ops.dpi->set_timings(in, &ddata->videomode);
 +
-+	in->ops.atv->set_type(in, ddata->connector_type);
-+	in->ops.atv->invert_vid_out_polarity(in, ddata->invert_polarity);
-+
-+	r = in->ops.atv->enable(in);
++	r = in->ops.dpi->enable(in);
 +	if (r)
 +		return r;
 +
++	if (gpio_is_valid(ddata->enable_gpio))
++		gpio_set_value_cansleep(ddata->enable_gpio, 1);
++
++	if (gpio_is_valid(ddata->backlight_gpio))
++		gpio_set_value_cansleep(ddata->backlight_gpio, 1);
++
 +	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
 +
-+	return r;
++	return 0;
 +}
 +
-+static void tvc_disable(struct omap_dss_device *dssdev)
++static void panel_dpi_disable(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
-+
-+	dev_dbg(ddata->dev, "disable\n");
 +
 +	if (!omapdss_device_is_enabled(dssdev))
 +		return;
 +
-+	in->ops.atv->disable(in);
++	if (gpio_is_valid(ddata->enable_gpio))
++		gpio_set_value_cansleep(ddata->enable_gpio, 0);
++
++	if (gpio_is_valid(ddata->backlight_gpio))
++		gpio_set_value_cansleep(ddata->backlight_gpio, 0);
++
++	in->ops.dpi->disable(in);
 +
 +	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
 +}
 +
-+static void tvc_set_timings(struct omap_dss_device *dssdev,
++static void panel_dpi_set_timings(struct omap_dss_device *dssdev,
 +		struct omap_video_timings *timings)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
 +
-+	ddata->timings = *timings;
++	ddata->videomode = *timings;
 +	dssdev->panel.timings = *timings;
 +
-+	in->ops.atv->set_timings(in, timings);
++	in->ops.dpi->set_timings(in, timings);
 +}
 +
-+static void tvc_get_timings(struct omap_dss_device *dssdev,
++static void panel_dpi_get_timings(struct omap_dss_device *dssdev,
 +		struct omap_video_timings *timings)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +
-+	*timings = ddata->timings;
++	*timings = ddata->videomode;
 +}
 +
-+static int tvc_check_timings(struct omap_dss_device *dssdev,
++static int panel_dpi_check_timings(struct omap_dss_device *dssdev,
 +		struct omap_video_timings *timings)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
 +
-+	return in->ops.atv->check_timings(in, timings);
++	return in->ops.dpi->check_timings(in, timings);
 +}
 +
-+static u32 tvc_get_wss(struct omap_dss_device *dssdev)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	struct omap_dss_device *in = ddata->in;
++static struct omap_dss_driver panel_dpi_ops = {
++	.connect	= panel_dpi_connect,
++	.disconnect	= panel_dpi_disconnect,
 +
-+	return in->ops.atv->get_wss(in);
-+}
++	.enable		= panel_dpi_enable,
++	.disable	= panel_dpi_disable,
 +
-+static int tvc_set_wss(struct omap_dss_device *dssdev, u32 wss)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	struct omap_dss_device *in = ddata->in;
++	.set_timings	= panel_dpi_set_timings,
++	.get_timings	= panel_dpi_get_timings,
++	.check_timings	= panel_dpi_check_timings,
 +
-+	return in->ops.atv->set_wss(in, wss);
-+}
-+
-+static struct omap_dss_driver tvc_driver = {
-+	.connect		= tvc_connect,
-+	.disconnect		= tvc_disconnect,
-+
-+	.enable			= tvc_enable,
-+	.disable		= tvc_disable,
-+
-+	.set_timings		= tvc_set_timings,
-+	.get_timings		= tvc_get_timings,
-+	.check_timings		= tvc_check_timings,
-+
-+	.get_resolution		= omapdss_default_get_resolution,
-+
-+	.get_wss		= tvc_get_wss,
-+	.set_wss		= tvc_set_wss,
++	.get_resolution	= omapdss_default_get_resolution,
 +};
 +
-+static int tvc_probe_pdata(struct platform_device *pdev)
++static int panel_dpi_probe_pdata(struct platform_device *pdev)
 +{
++	const struct panel_dpi_platform_data *pdata;
 +	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
-+	struct connector_atv_platform_data *pdata;
-+	struct omap_dss_device *in, *dssdev;
++	struct omap_dss_device *dssdev, *in;
++	struct videomode vm;
 +
 +	pdata = dev_get_platdata(&pdev->dev);
 +
 +	in = omap_dss_find_output(pdata->source);
 +	if (in == NULL) {
-+		dev_err(&pdev->dev, "Failed to find video source\n");
-+		return -ENODEV;
++		dev_err(&pdev->dev, "failed to find video source '%s'\n",
++				pdata->source);
++		return -EPROBE_DEFER;
 +	}
 +
 +	ddata->in = in;
 +
-+	ddata->connector_type = pdata->connector_type;
-+	ddata->invert_polarity = ddata->invert_polarity;
++	ddata->data_lines = pdata->data_lines;
++
++	videomode_from_timing(pdata->display_timing, &vm);
++	videomode_to_omap_video_timings(&vm, &ddata->videomode);
 +
 +	dssdev = &ddata->dssdev;
 +	dssdev->name = pdata->name;
 +
++	ddata->enable_gpio = pdata->enable_gpio;
++	ddata->backlight_gpio = pdata->backlight_gpio;
++
 +	return 0;
 +}
 +
-+static int tvc_probe(struct platform_device *pdev)
++static int panel_dpi_probe(struct platform_device *pdev)
 +{
 +	struct panel_drv_data *ddata;
 +	struct omap_dss_device *dssdev;
 +	int r;
 +
 +	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
-+	if (!ddata)
++	if (ddata == NULL)
 +		return -ENOMEM;
 +
 +	platform_set_drvdata(pdev, ddata);
-+	ddata->dev = &pdev->dev;
 +
 +	if (dev_get_platdata(&pdev->dev)) {
-+		r = tvc_probe_pdata(pdev);
++		r = panel_dpi_probe_pdata(pdev);
 +		if (r)
 +			return r;
 +	} else {
 +		return -ENODEV;
 +	}
 +
-+	ddata->timings = omap_dss_pal_timings;
++	if (gpio_is_valid(ddata->enable_gpio)) {
++		r = devm_gpio_request_one(&pdev->dev, ddata->enable_gpio,
++				GPIOF_OUT_INIT_LOW, "panel enable");
++		if (r)
++			goto err_gpio;
++	}
++
++	if (gpio_is_valid(ddata->backlight_gpio)) {
++		r = devm_gpio_request_one(&pdev->dev, ddata->backlight_gpio,
++				GPIOF_OUT_INIT_LOW, "panel backlight");
++		if (r)
++			goto err_gpio;
++	}
 +
 +	dssdev = &ddata->dssdev;
-+	dssdev->driver = &tvc_driver;
 +	dssdev->dev = &pdev->dev;
-+	dssdev->type = OMAP_DISPLAY_TYPE_VENC;
++	dssdev->driver = &panel_dpi_ops;
++	dssdev->type = OMAP_DISPLAY_TYPE_DPI;
 +	dssdev->owner = THIS_MODULE;
-+	dssdev->panel.timings = omap_dss_pal_timings;
++	dssdev->panel.timings = ddata->videomode;
++	dssdev->phy.dpi.data_lines = ddata->data_lines;
 +
 +	r = omapdss_register_display(dssdev);
 +	if (r) {
@@ -286,40 +289,42 @@ index 0000000..5338f36
 +	}
 +
 +	return 0;
++
 +err_reg:
++err_gpio:
 +	omap_dss_put_device(ddata->in);
 +	return r;
 +}
 +
-+static int __exit tvc_remove(struct platform_device *pdev)
++static int __exit panel_dpi_remove(struct platform_device *pdev)
 +{
 +	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
 +	struct omap_dss_device *dssdev = &ddata->dssdev;
 +	struct omap_dss_device *in = ddata->in;
 +
-+	omapdss_unregister_display(&ddata->dssdev);
++	omapdss_unregister_display(dssdev);
 +
-+	tvc_disable(dssdev);
-+	tvc_disconnect(dssdev);
++	panel_dpi_disable(dssdev);
++	panel_dpi_disconnect(dssdev);
 +
 +	omap_dss_put_device(in);
 +
 +	return 0;
 +}
 +
-+static struct platform_driver tvc_connector_driver = {
-+	.probe	= tvc_probe,
-+	.remove	= __exit_p(tvc_remove),
-+	.driver	= {
-+		.name	= "connector-analog-tv",
-+		.owner	= THIS_MODULE,
++static struct platform_driver panel_dpi_driver = {
++	.probe = panel_dpi_probe,
++	.remove = __exit_p(panel_dpi_remove),
++	.driver = {
++		.name = "panel-dpi",
++		.owner = THIS_MODULE,
 +	},
 +};
 +
-+module_platform_driver(tvc_connector_driver);
++module_platform_driver(panel_dpi_driver);
 +
 +MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@ti.com>");
-+MODULE_DESCRIPTION("Analog TV Connector driver");
++MODULE_DESCRIPTION("Generic MIPI DPI Panel Driver");
 +MODULE_LICENSE("GPL");
 -- 
 1.8.1.2
