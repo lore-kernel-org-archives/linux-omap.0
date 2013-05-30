@@ -1,64 +1,42 @@
-From: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
-Subject: [PATCH] ARM: OMAP2: TI81XX: id: Add cpu id for TI816x ES2.0 and ES2.1
-Date: Thu, 30 May 2013 14:21:01 +0400
-Message-ID: <1369909261-23750-1-git-send-email-aida.mynzhasova@skitlab.ru>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.skitlab.ru ([217.65.220.135]:39589 "EHLO mail.skitlab.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030289Ab3E3KVI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 06:21:08 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
+Subject: [PATCH v1 0/2] PM / AVS: SmartReflex: optimization series
+Date: Thu, 30 May 2013 13:43:55 +0300
+Message-ID: <1369910637-19100-1-git-send-email-andrii.tseglytskyi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: khilman@linaro.org, j-keerthy@ti.com
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Currently omap3xxx_check_revision() detects ES1.0 and ES1.1 only,
-this patch extends it by adding ES2.0 and ES2.1 versions support.
+The following patch series introduces a few optimizations for SmartReflex driver.
 
-Signed-off-by: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
----
- arch/arm/mach-omap2/id.c  |   11 +++++++++--
- arch/arm/mach-omap2/soc.h |    2 ++
- 2 files changed, 11 insertions(+), 2 deletions(-)
+1. devm_* API usage for SmartReflex. This allows us to have brilliant resources
+handling - allocation/auto free, map/auto unmap. Another benefit - lot of error checks
+can be dropped.
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 1272c41..8b762a3 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -405,11 +405,18 @@ void __init omap3xxx_check_revision(void)
- 			cpu_rev = "1.0";
- 			break;
- 		case 1:
--		/* FALLTHROUGH */
--		default:
- 			omap_revision = TI8168_REV_ES1_1;
- 			cpu_rev = "1.1";
- 			break;
-+		case 2:
-+			omap_revision = TI8168_REV_ES2_0;
-+			cpu_rev = "2.0";
-+			break;
-+		case 3:
-+			/* FALLTHROUGH */
-+		default:
-+			omap_revision = TI8168_REV_ES2_1;
-+			cpu_rev = "2.1";
- 		}
- 		break;
- 	case 0xb944:
-diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
-index 197cc16..8e00226 100644
---- a/arch/arm/mach-omap2/soc.h
-+++ b/arch/arm/mach-omap2/soc.h
-@@ -383,6 +383,8 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define TI816X_CLASS		0x81600034
- #define TI8168_REV_ES1_0	TI816X_CLASS
- #define TI8168_REV_ES1_1	(TI816X_CLASS | (0x1 << 8))
-+#define TI8168_REV_ES2_0	(TI816X_CLASS | (0x2 << 8))
-+#define TI8168_REV_ES2_1	(TI816X_CLASS | (0x3 << 8))
- 
- #define TI814X_CLASS		0x81400034
- #define TI8148_REV_ES1_0	TI814X_CLASS
+2. Another small optimization resolves order of initialization between SmartReflex driver
+and SmartReflex class. Class is initialized before driver.
+
+Patches are based on:
+git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+tag: v3.10-rc3
+
+Verified on OMAP4430. Boot - OK. SmartReflex registers debug dump - OK
+
+Available on GitHub:
+https://github.com/andriit/linux-omap-k3.8/commits/avs_sr_driver_optimization_v02
+
+Andrii Tseglytskyi (2):
+  PM / AVS: SmartReflex: use devm_* API to initialize SmartReflex
+  PM / AVS: SmartReflex/class3: Fix order of initialization of SR class
+    and SR driver
+
+ arch/arm/mach-omap2/smartreflex-class3.c |    2 +-
+ drivers/power/avs/smartreflex.c          |   86 ++++++++----------------------
+ 2 files changed, 23 insertions(+), 65 deletions(-)
+
 -- 
-1.7.10.4
+1.7.9.5
 
