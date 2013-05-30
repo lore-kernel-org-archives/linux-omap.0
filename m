@@ -1,169 +1,400 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 20/32] OMAPDSS: remove dssdev uses in trivial cases
-Date: Thu, 30 May 2013 12:34:41 +0300
-Message-ID: <1369906493-27538-21-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 24/32] OMAPDSS: implement display sysfs without dss bus
+Date: Thu, 30 May 2013 12:34:45 +0300
+Message-ID: <1369906493-27538-25-git-send-email-tomi.valkeinen@ti.com>
 References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49827 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41389 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030352Ab3E3Jfs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 05:35:48 -0400
+	id S1030362Ab3E3Jfx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 May 2013 05:35:53 -0400
 In-Reply-To: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-In the future the "dssdev" parameter passed to output drivers will
-change its meaning. Instead of being a pointer to the panel device, it's
-a pointer to the output instance.
+We aim to remove the custom omapdss bus totally, as it's quite a strange
+construct and won't be compatible with common display framework. One
+problem on the road is that we have sysfs files for each display, and
+they depend on the omapdss bus.
 
-To make the transition easier, some of the uses for this dssdev
-parameter can be easily removed.
+This patch creates the display sysfs files independent of the omapdss
+bus. This gives us backwards compatibility without using the omapdss bus
+for the sysfs files.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/hdmi.c | 6 +++---
- drivers/video/omap2/dss/rfbi.c | 8 ++++----
- drivers/video/omap2/dss/sdi.c  | 6 +++---
- drivers/video/omap2/dss/venc.c | 6 +++---
- 4 files changed, 13 insertions(+), 13 deletions(-)
+ drivers/video/omap2/dss/apply.c         |  15 ++--
+ drivers/video/omap2/dss/core.c          |  28 -------
+ drivers/video/omap2/dss/display-sysfs.c | 125 ++++++++++++++++++--------------
+ drivers/video/omap2/dss/dss.h           |   6 +-
+ 4 files changed, 79 insertions(+), 95 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 960083b..6d1e97c 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -560,7 +560,7 @@ static int hdmi_power_on_full(struct omap_dss_device *dssdev)
+diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+index dbd3c2f..ced656a 100644
+--- a/drivers/video/omap2/dss/apply.c
++++ b/drivers/video/omap2/dss/apply.c
+@@ -1581,7 +1581,6 @@ static DEFINE_MUTEX(compat_init_lock);
+ int omapdss_compat_init(void)
  {
+ 	struct platform_device *pdev = dss_get_core_pdev();
+-	struct omap_dss_device *dssdev = NULL;
+ 	int i, r;
+ 
+ 	mutex_lock(&compat_init_lock);
+@@ -1627,12 +1626,9 @@ int omapdss_compat_init(void)
+ 	if (r)
+ 		goto err_mgr_ops;
+ 
+-	for_each_dss_dev(dssdev) {
+-		r = display_init_sysfs(pdev, dssdev);
+-		/* XXX uninit sysfs files on error */
+-		if (r)
+-			goto err_disp_sysfs;
+-	}
++	r = display_init_sysfs(pdev);
++	if (r)
++		goto err_disp_sysfs;
+ 
+ 	dispc_runtime_get();
+ 
+@@ -1649,6 +1645,7 @@ out:
+ 
+ err_init_irq:
+ 	dispc_runtime_put();
++	display_uninit_sysfs(pdev);
+ 
+ err_disp_sysfs:
+ 	dss_uninstall_mgr_ops();
+@@ -1668,7 +1665,6 @@ EXPORT_SYMBOL(omapdss_compat_init);
+ void omapdss_compat_uninit(void)
+ {
+ 	struct platform_device *pdev = dss_get_core_pdev();
+-	struct omap_dss_device *dssdev = NULL;
+ 
+ 	mutex_lock(&compat_init_lock);
+ 
+@@ -1677,8 +1673,7 @@ void omapdss_compat_uninit(void)
+ 
+ 	dss_dispc_uninitialize_irq();
+ 
+-	for_each_dss_dev(dssdev)
+-		display_uninit_sysfs(pdev, dssdev);
++	display_uninit_sysfs(pdev);
+ 
+ 	dss_uninstall_mgr_ops();
+ 
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index 186bc76..e88d5f0 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -284,37 +284,9 @@ static int dss_bus_match(struct device *dev, struct device_driver *driver)
+ 	return strcmp(dssdev->driver_name, driver->name) == 0;
+ }
+ 
+-static ssize_t device_name_show(struct device *dev,
+-		struct device_attribute *attr, char *buf)
+-{
+-	struct omap_dss_device *dssdev = to_dss_device(dev);
+-	return snprintf(buf, PAGE_SIZE, "%s\n",
+-			dssdev->name ?
+-			dssdev->name : "");
+-}
+-
+-static struct device_attribute default_dev_attrs[] = {
+-	__ATTR(name, S_IRUGO, device_name_show, NULL),
+-	__ATTR_NULL,
+-};
+-
+-static ssize_t driver_name_show(struct device_driver *drv, char *buf)
+-{
+-	struct omap_dss_driver *dssdrv = to_dss_driver(drv);
+-	return snprintf(buf, PAGE_SIZE, "%s\n",
+-			dssdrv->driver.name ?
+-			dssdrv->driver.name : "");
+-}
+-static struct driver_attribute default_drv_attrs[] = {
+-	__ATTR(name, S_IRUGO, driver_name_show, NULL),
+-	__ATTR_NULL,
+-};
+-
+ static struct bus_type dss_bus_type = {
+ 	.name = "omapdss",
+ 	.match = dss_bus_match,
+-	.dev_attrs = default_dev_attrs,
+-	.drv_attrs = default_drv_attrs,
+ };
+ 
+ static void dss_bus_release(struct device *dev)
+diff --git a/drivers/video/omap2/dss/display-sysfs.c b/drivers/video/omap2/dss/display-sysfs.c
+index 81d5dc6..58abbaf 100644
+--- a/drivers/video/omap2/dss/display-sysfs.c
++++ b/drivers/video/omap2/dss/display-sysfs.c
+@@ -22,17 +22,40 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/jiffies.h>
+ #include <linux/platform_device.h>
++#include <linux/sysfs.h>
+ 
+ #include <video/omapdss.h>
+ #include "dss.h"
+-#include "dss_features.h"
++
++static struct omap_dss_device *to_dss_device_sysfs(struct device *dev)
++{
++	struct omap_dss_device *dssdev = NULL;
++
++	for_each_dss_dev(dssdev) {
++		if (&dssdev->dev == dev) {
++			omap_dss_put_device(dssdev);
++			return dssdev;
++		}
++	}
++
++	return NULL;
++}
++
++static ssize_t display_name_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct omap_dss_device *dssdev = to_dss_device_sysfs(dev);
++
++	return snprintf(buf, PAGE_SIZE, "%s\n",
++			dssdev->name ?
++			dssdev->name : "");
++}
+ 
+ static ssize_t display_enabled_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+-	struct omap_dss_device *dssdev = to_dss_device(dev);
++	struct omap_dss_device *dssdev = to_dss_device_sysfs(dev);
+ 
+ 	return snprintf(buf, PAGE_SIZE, "%d\n",
+ 			omapdss_device_is_enabled(dssdev));
+@@ -42,7 +65,7 @@ static ssize_t display_enabled_store(struct device *dev,
+ 		struct device_attribute *attr,
+ 		const char *buf, size_t size)
+ {
+-	struct omap_dss_device *dssdev = to_dss_device(dev);
++	struct omap_dss_device *dssdev = to_dss_device_sysfs(dev);
  	int r;
- 	struct omap_video_timings *p;
--	struct omap_overlay_manager *mgr = dssdev->output->manager;
-+	struct omap_overlay_manager *mgr = hdmi.output.manager;
- 	unsigned long phy;
+ 	bool enable;
  
- 	r = hdmi_power_on_core(dssdev);
-@@ -623,7 +623,7 @@ err_pll_enable:
- 
- static void hdmi_power_off_full(struct omap_dss_device *dssdev)
+@@ -70,7 +93,7 @@ static ssize_t display_enabled_store(struct device *dev,
+ static ssize_t display_tear_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
  {
--	struct omap_overlay_manager *mgr = dssdev->output->manager;
-+	struct omap_overlay_manager *mgr = hdmi.output.manager;
- 
- 	dss_mgr_disable(mgr);
- 
-@@ -720,7 +720,7 @@ bool omapdss_hdmi_detect(void)
- 
- int omapdss_hdmi_display_enable(struct omap_dss_device *dssdev)
+-	struct omap_dss_device *dssdev = to_dss_device(dev);
++	struct omap_dss_device *dssdev = to_dss_device_sysfs(dev);
+ 	return snprintf(buf, PAGE_SIZE, "%d\n",
+ 			dssdev->driver->get_te ?
+ 			dssdev->driver->get_te(dssdev) : 0);
+@@ -79,7 +102,7 @@ static ssize_t display_tear_show(struct device *dev,
+ static ssize_t display_tear_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t size)
  {
--	struct omap_dss_output *out = dssdev->output;
-+	struct omap_dss_output *out = &hdmi.output;
- 	int r = 0;
- 
- 	DSSDBG("ENTER hdmi_display_enable\n");
-diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-index 1ff221e..cfcb52f 100644
---- a/drivers/video/omap2/dss/rfbi.c
-+++ b/drivers/video/omap2/dss/rfbi.c
-@@ -312,7 +312,7 @@ static int rfbi_transfer_area(struct omap_dss_device *dssdev,
- {
- 	u32 l;
+-	struct omap_dss_device *dssdev = to_dss_device(dev);
++	struct omap_dss_device *dssdev = to_dss_device_sysfs(dev);
  	int r;
--	struct omap_overlay_manager *mgr = dssdev->output->manager;
-+	struct omap_overlay_manager *mgr = rfbi.output.manager;
- 	u16 width = rfbi.timings.x_res;
- 	u16 height = rfbi.timings.y_res;
+ 	bool te;
  
-@@ -852,7 +852,7 @@ static void rfbi_dump_regs(struct seq_file *s)
- 
- static void rfbi_config_lcd_manager(struct omap_dss_device *dssdev)
+@@ -100,7 +123,7 @@ static ssize_t display_tear_store(struct device *dev,
+ static ssize_t display_timings_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
  {
--	struct omap_overlay_manager *mgr = dssdev->output->manager;
-+	struct omap_overlay_manager *mgr = rfbi.output.manager;
- 	struct dss_lcd_mgr_config mgr_config;
+-	struct omap_dss_device *dssdev = to_dss_device(dev);
++	struct omap_dss_device *dssdev = to_dss_device_sysfs(dev);
+ 	struct omap_video_timings t;
  
- 	mgr_config.io_pad_mode = DSS_IO_PAD_MODE_RFBI;
-@@ -890,7 +890,7 @@ static void rfbi_config_lcd_manager(struct omap_dss_device *dssdev)
- 
- int omapdss_rfbi_display_enable(struct omap_dss_device *dssdev)
+ 	if (!dssdev->driver->get_timings)
+@@ -117,7 +140,7 @@ static ssize_t display_timings_show(struct device *dev,
+ static ssize_t display_timings_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t size)
  {
--	struct omap_dss_output *out = dssdev->output;
-+	struct omap_dss_output *out = &rfbi.output;
+-	struct omap_dss_device *dssdev = to_dss_device(dev);
++	struct omap_dss_device *dssdev = to_dss_device_sysfs(dev);
+ 	struct omap_video_timings t = dssdev->panel.timings;
+ 	int r, found;
+ 
+@@ -156,7 +179,7 @@ static ssize_t display_timings_store(struct device *dev,
+ static ssize_t display_rotate_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+-	struct omap_dss_device *dssdev = to_dss_device(dev);
++	struct omap_dss_device *dssdev = to_dss_device_sysfs(dev);
+ 	int rotate;
+ 	if (!dssdev->driver->get_rotate)
+ 		return -ENOENT;
+@@ -167,7 +190,7 @@ static ssize_t display_rotate_show(struct device *dev,
+ static ssize_t display_rotate_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t size)
+ {
+-	struct omap_dss_device *dssdev = to_dss_device(dev);
++	struct omap_dss_device *dssdev = to_dss_device_sysfs(dev);
+ 	int rot, r;
+ 
+ 	if (!dssdev->driver->set_rotate || !dssdev->driver->get_rotate)
+@@ -187,7 +210,7 @@ static ssize_t display_rotate_store(struct device *dev,
+ static ssize_t display_mirror_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+-	struct omap_dss_device *dssdev = to_dss_device(dev);
++	struct omap_dss_device *dssdev = to_dss_device_sysfs(dev);
+ 	int mirror;
+ 	if (!dssdev->driver->get_mirror)
+ 		return -ENOENT;
+@@ -198,7 +221,7 @@ static ssize_t display_mirror_show(struct device *dev,
+ static ssize_t display_mirror_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t size)
+ {
+-	struct omap_dss_device *dssdev = to_dss_device(dev);
++	struct omap_dss_device *dssdev = to_dss_device_sysfs(dev);
  	int r;
+ 	bool mirror;
  
- 	if (out == NULL || out->manager == NULL) {
-@@ -933,7 +933,7 @@ EXPORT_SYMBOL(omapdss_rfbi_display_enable);
- 
- void omapdss_rfbi_display_disable(struct omap_dss_device *dssdev)
+@@ -219,7 +242,7 @@ static ssize_t display_mirror_store(struct device *dev,
+ static ssize_t display_wss_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
  {
--	struct omap_dss_output *out = dssdev->output;
-+	struct omap_dss_output *out = &rfbi.output;
+-	struct omap_dss_device *dssdev = to_dss_device(dev);
++	struct omap_dss_device *dssdev = to_dss_device_sysfs(dev);
+ 	unsigned int wss;
  
- 	dss_mgr_unregister_framedone_handler(out->manager,
- 			framedone_callback, NULL);
-diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
-index 9801a6e..e723687 100644
---- a/drivers/video/omap2/dss/sdi.c
-+++ b/drivers/video/omap2/dss/sdi.c
-@@ -112,7 +112,7 @@ static int sdi_calc_clock_div(unsigned long pclk,
- 
- static void sdi_config_lcd_manager(struct omap_dss_device *dssdev)
+ 	if (!dssdev->driver->get_wss)
+@@ -233,7 +256,7 @@ static ssize_t display_wss_show(struct device *dev,
+ static ssize_t display_wss_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t size)
  {
--	struct omap_overlay_manager *mgr = dssdev->output->manager;
-+	struct omap_overlay_manager *mgr = sdi.output.manager;
- 
- 	sdi.mgr_config.io_pad_mode = DSS_IO_PAD_MODE_BYPASS;
- 
-@@ -127,7 +127,7 @@ static void sdi_config_lcd_manager(struct omap_dss_device *dssdev)
- 
- int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
- {
--	struct omap_dss_output *out = dssdev->output;
-+	struct omap_dss_output *out = &sdi.output;
- 	struct omap_video_timings *t = &sdi.timings;
- 	struct dss_clock_info dss_cinfo;
- 	struct dispc_clock_info dispc_cinfo;
-@@ -224,7 +224,7 @@ EXPORT_SYMBOL(omapdss_sdi_display_enable);
- 
- void omapdss_sdi_display_disable(struct omap_dss_device *dssdev)
- {
--	struct omap_overlay_manager *mgr = dssdev->output->manager;
-+	struct omap_overlay_manager *mgr = sdi.output.manager;
- 
- 	dss_mgr_disable(mgr);
- 
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index f484b9f..af404b4 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -429,7 +429,7 @@ static const struct venc_config *venc_timings_to_config(
- 
- static int venc_power_on(struct omap_dss_device *dssdev)
- {
--	struct omap_overlay_manager *mgr = dssdev->output->manager;
-+	struct omap_overlay_manager *mgr = venc.output.manager;
- 	u32 l;
+-	struct omap_dss_device *dssdev = to_dss_device(dev);
++	struct omap_dss_device *dssdev = to_dss_device_sysfs(dev);
+ 	u32 wss;
  	int r;
  
-@@ -480,7 +480,7 @@ err0:
+@@ -254,6 +277,7 @@ static ssize_t display_wss_store(struct device *dev,
+ 	return size;
+ }
  
- static void venc_power_off(struct omap_dss_device *dssdev)
++static DEVICE_ATTR(name, S_IRUGO, display_name_show, NULL);
+ static DEVICE_ATTR(enabled, S_IRUGO|S_IWUSR,
+ 		display_enabled_show, display_enabled_store);
+ static DEVICE_ATTR(tear_elim, S_IRUGO|S_IWUSR,
+@@ -267,59 +291,54 @@ static DEVICE_ATTR(mirror, S_IRUGO|S_IWUSR,
+ static DEVICE_ATTR(wss, S_IRUGO|S_IWUSR,
+ 		display_wss_show, display_wss_store);
+ 
+-static struct device_attribute *display_sysfs_attrs[] = {
+-	&dev_attr_enabled,
+-	&dev_attr_tear_elim,
+-	&dev_attr_timings,
+-	&dev_attr_rotate,
+-	&dev_attr_mirror,
+-	&dev_attr_wss,
++static const struct attribute *display_sysfs_attrs[] = {
++	&dev_attr_name.attr,
++	&dev_attr_enabled.attr,
++	&dev_attr_tear_elim.attr,
++	&dev_attr_timings.attr,
++	&dev_attr_rotate.attr,
++	&dev_attr_mirror.attr,
++	&dev_attr_wss.attr,
+ 	NULL
+ };
+ 
+-int display_init_sysfs(struct platform_device *pdev,
+-		struct omap_dss_device *dssdev)
++int display_init_sysfs(struct platform_device *pdev)
  {
--	struct omap_overlay_manager *mgr = dssdev->output->manager;
-+	struct omap_overlay_manager *mgr = venc.output.manager;
+-	struct device_attribute *attr;
+-	int i, r;
++	struct omap_dss_device *dssdev = NULL;
++	int r;
  
- 	venc_write_reg(VENC_OUTPUT_CONTROL, 0);
- 	dss_set_dac_pwrdn_bgz(0);
-@@ -500,7 +500,7 @@ unsigned long venc_get_pixel_clock(void)
+-	/* create device sysfs files */
+-	i = 0;
+-	while ((attr = display_sysfs_attrs[i++]) != NULL) {
+-		r = device_create_file(&dssdev->dev, attr);
+-		if (r) {
+-			for (i = i - 2; i >= 0; i--) {
+-				attr = display_sysfs_attrs[i];
+-				device_remove_file(&dssdev->dev, attr);
+-			}
++	for_each_dss_dev(dssdev) {
++		struct kobject *kobj = &dssdev->dev.kobj;
  
- int omapdss_venc_display_enable(struct omap_dss_device *dssdev)
+-			DSSERR("failed to create sysfs file\n");
+-			return r;
++		r = sysfs_create_files(kobj, display_sysfs_attrs);
++		if (r) {
++			DSSERR("failed to create sysfs files\n");
++			goto err;
+ 		}
+-	}
+ 
+-	/* create display? sysfs links */
+-	r = sysfs_create_link(&pdev->dev.kobj, &dssdev->dev.kobj,
+-			dev_name(&dssdev->dev));
+-	if (r) {
+-		while ((attr = display_sysfs_attrs[i++]) != NULL)
+-			device_remove_file(&dssdev->dev, attr);
++		r = sysfs_create_link(&pdev->dev.kobj, kobj, dssdev->alias);
++		if (r) {
++			sysfs_remove_files(kobj, display_sysfs_attrs);
+ 
+-		DSSERR("failed to create sysfs display link\n");
+-		return r;
++			DSSERR("failed to create sysfs display link\n");
++			goto err;
++		}
+ 	}
+ 
+ 	return 0;
++
++err:
++	display_uninit_sysfs(pdev);
++
++	return r;
+ }
+ 
+-void display_uninit_sysfs(struct platform_device *pdev,
+-		struct omap_dss_device *dssdev)
++void display_uninit_sysfs(struct platform_device *pdev)
  {
--	struct omap_dss_output *out = dssdev->output;
-+	struct omap_dss_output *out = &venc.output;
- 	int r;
+-	struct device_attribute *attr;
+-	int i = 0;
+-
+-	sysfs_remove_link(&pdev->dev.kobj, dev_name(&dssdev->dev));
++	struct omap_dss_device *dssdev = NULL;
  
- 	DSSDBG("venc_display_enable\n");
+-	while ((attr = display_sysfs_attrs[i++]) != NULL)
+-		device_remove_file(&dssdev->dev, attr);
++	for_each_dss_dev(dssdev) {
++		sysfs_remove_link(&pdev->dev.kobj, dssdev->alias);
++		sysfs_remove_files(&dssdev->dev.kobj, display_sysfs_attrs);
++	}
+ }
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 7964d3b..03d729a 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -188,10 +188,8 @@ int dss_suspend_all_devices(void);
+ int dss_resume_all_devices(void);
+ void dss_disable_all_devices(void);
+ 
+-int display_init_sysfs(struct platform_device *pdev,
+-		struct omap_dss_device *dssdev);
+-void display_uninit_sysfs(struct platform_device *pdev,
+-		struct omap_dss_device *dssdev);
++int display_init_sysfs(struct platform_device *pdev);
++void display_uninit_sysfs(struct platform_device *pdev);
+ 
+ /* manager */
+ int dss_init_overlay_managers(void);
 -- 
 1.8.1.2
 
