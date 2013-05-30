@@ -1,76 +1,73 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 06/32] OMAPDSS: DPI: fix regulators for DT
-Date: Thu, 30 May 2013 15:05:00 +0200
-Message-ID: <201305301505.00529.arnd@arndb.de>
-References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com> <20130530111253.GJ19468@game.jcrosoft.org> <51A73990.5040709@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH 1/1] i2c: omap: correct usage of the interrupt enable register
+Date: Thu, 30 May 2013 07:18:26 -0700
+Message-ID: <87obbsa6vh.fsf@linaro.org>
+References: <1369812944-685-1-git-send-email-oleksandr.dmytryshyn@ti.com>
+	<1369812944-685-2-git-send-email-oleksandr.dmytryshyn@ti.com>
+	<878v2x7lak.fsf@linaro.org> <51A71375.9030100@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:50780 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754310Ab3E3NFI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 May 2013 09:05:08 -0400
-In-Reply-To: <51A73990.5040709@ti.com>
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:55067 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932276Ab3E3OSa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 May 2013 10:18:30 -0400
+Received: by mail-pd0-f178.google.com with SMTP id w11so435136pde.9
+        for <linux-omap@vger.kernel.org>; Thu, 30 May 2013 07:18:29 -0700 (PDT)
+In-Reply-To: <51A71375.9030100@ti.com> (Oleksandr Dmytryshyn's message of
+	"Thu, 30 May 2013 11:53:09 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@linaro.org>, gregkh@linuxfoundation.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday 30 May 2013, Tomi Valkeinen wrote:
->   On 30/05/13 14:12, Jean-Christophe PLAGNIOL-VILLARD wrote:
-> > On 12:34 Thu 30 May     , Tomi Valkeinen wrote:
-> >> On some platforms DPI requires a regulator to be enabled to power up the
-> >> output pins. This regulator is, for some reason, currently attached to
-> >> the virtual omapdss device, instead of the DPI device. This does not
-> >> work for DT, as the regulator mappings need to be described in the DT
-> >> data, and the virtual omapdss device is not present there.
-> >>
-> >> Fix the issue by acquiring the regulator in the DPI device. To retain
-> >> compatibility with the current board files, the old method of getting
-> >> the regulator is kept. The old method can be removed when the board
-> >> files have been changed to pass the regulator to DPI.
-> > 
-> > as discuss with Arnd we should handle regular enable and disable at device
-> > probe for every device as we do for pinctrl
-> 
-> I'm not sure what you mean. Enable of what? The regulator? Why would we
-> enable it in the device's probe, as the device may never even be used?
+Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com> writes:
 
-It's an idea I had a while ago, but not yet discussed in the open.
+> On 05/29/2013 08:22 PM, Kevin Hilman wrote:
+>> Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com> writes:
+>>
+>>> Starting from the OMAP chips with version2 registers scheme there are
+>>> 2 registers (I2C_IRQENABLE_SET and I2C_IRQENABLE_CLR) to manage
+>>> interrupts instead of the older OMAP chips with old scheme which have
+>>> only one register (I2C_IE).  Now we should use I2C_IRQENABLE_SET
+>>> register for enabling interrupts and I2C_IRQENABLE_CLR register for
+>>> disabling interrupts.
+>> Why?  (changelogs should always answer the "why" question)
+>>
+>> IOW, what is broken without this change, how does it fail?  And equally
+>> important, how is it currently working?
+>>
+>> Kevin
+>>
+>>
+> Hi, Kevin.
+>
+> If the i2c controller during suspend will generate an interrupt, it
+> can lead to unpredictable behaviour in the kernel.
+>
+> Based on the logic of the kernel code interrupts from i2c should be
+> prohibited during suspend. Kernel writes 0 to the I2C_IE register in
+> the omap_i2c_runtime_suspend() function. In the other side kernel
+> writes saved interrupt flags to the I2C_IE register in
+> omap_i2c_runtime_resume() function. I.e. interrupts should be disabled
+> during suspend.
+>
+> This works for chips with version1 registers scheme. Interrupts are
+> disabled during suspend. For chips with version2 scheme registers
+> writting 0 to the I2C_IE register does nothing (because now the
+> I2C_IRQENABLE_SET register is located at this address ). This register
+> is used to enable interrupts. For disabling interrupts
+> I2C_IRQENABLE_CLR register should be used.
+>
+> I've checked that interrupts in the i2c controller are still enabled
+> after writting 0 to the I2C_IE register. But with my patch interrupts
+> are disabled in the omap_i2c_runtime_suspend() function.
 
-Jean-Christophe just posted patches to move the mapping of interrupt numbers
-into platform_drv_probe(), just before calling the driver ->probe() callback,
-and we already have similar code to set up the default pinctrl state of
-a device before calling probe().
+Yes, I understand why your patch works, and it looks correct to me.  
 
-This can be extended to further subsystems, but that has to be done
-carefully to avoid regressions. Ideally we would move a lot of boilerplate
-code out of the driver specific ->probe() function into common code.
-Possible candidates for this include:
+My main concern is that the changelog is missing a detailed description
+of the problem that is being solved, as well as a summary of why this
+has ever worked.  I guess we've just been lucky and not seen interrupts
+during suspend?
 
-* calling devm_request_mem_region for the "reg" property
-* calling devm_ioremap on the "reg" property"
-* calling devm_gpio_request for all gpio lines
-* calling devm_regulator_get on all regulators
-* calling devm_reset_control_get on all reset lines
-* calling devm_dma_request_slave_channel on all dma channels
-* calling devm_of_pwm_get for all pwm channels
-* ...
-
-For most of these (maybe all), I think we need some form of opt-in
-model on the driver side because there are cases where aquiring some
-of these resources is not mandatory, and it only works if the driver
-is using DT probing.
-
-IF we want to do this, it also needs a lot of thought, and we shouldn't
-do it carelessly. We might also need some extra infrastructure in revres
-to simplify access to the resources we got from the OF node.
-
-The irq resources are particularly trivial because we already claim
-them in of_platform_populate, so moving that to platform_drv_probe()
-is straightforward and solves existing bugs without creating a huge
-regression potential, but it's harder for the others.
-
-	Arnd
+Kevin
