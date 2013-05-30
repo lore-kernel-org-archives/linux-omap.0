@@ -1,141 +1,101 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 23/32] OMAPDSS: don't use dss bus in suspend/resume
-Date: Thu, 30 May 2013 12:34:44 +0300
-Message-ID: <1369906493-27538-24-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 22/32] OMAPDSS: use the panel list in omap_dss_get_next_device
+Date: Thu, 30 May 2013 12:34:43 +0300
+Message-ID: <1369906493-27538-23-git-send-email-tomi.valkeinen@ti.com>
 References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49832 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030342Ab3E3Jfw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 05:35:52 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:42780 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030337Ab3E3Jfv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 May 2013 05:35:51 -0400
 In-Reply-To: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-We have support functions to suspend and resume all the displays that
-are used with system suspend. These functions use the dss bus to iterate
-the display devices.
-
-As we aim to remove the custom dss bus totally, this patch removes the
-explicit use of dss bus from these functions. Instead the
-for_each_dss_dev() macro is used to go through the devices.
+omap_dss_get_next_device() uses the dss bus to iterate over the
+displays. This patch changes omap_dss_get_next_device() to use the new
+panel list instead.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/display.c | 77 ++++++++++++++-------------------------
- 1 file changed, 28 insertions(+), 49 deletions(-)
+ drivers/video/omap2/dss/display.c | 54 ++++++++++++++++++++++++++++-----------
+ 1 file changed, 39 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
-index ba83ec3..dfe3322 100644
+index 1c175a4..ba83ec3 100644
 --- a/drivers/video/omap2/dss/display.c
 +++ b/drivers/video/omap2/dss/display.c
-@@ -76,74 +76,53 @@ void omapdss_default_get_timings(struct omap_dss_device *dssdev,
+@@ -191,27 +191,51 @@ void omap_dss_put_device(struct omap_dss_device *dssdev)
  }
- EXPORT_SYMBOL(omapdss_default_get_timings);
+ EXPORT_SYMBOL(omap_dss_put_device);
  
--static int dss_suspend_device(struct device *dev, void *data)
--{
--	struct omap_dss_device *dssdev = to_dss_device(dev);
--
--	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE) {
--		dssdev->activate_after_resume = false;
--		return 0;
--	}
--
--	dssdev->driver->disable(dssdev);
--
--	dssdev->activate_after_resume = true;
--
--	return 0;
--}
--
- int dss_suspend_all_devices(void)
+-/* ref count of the found device is incremented. ref count
+- * of from-device is decremented. */
++/*
++ * ref count of the found device is incremented.
++ * ref count of from-device is decremented.
++ */
+ struct omap_dss_device *omap_dss_get_next_device(struct omap_dss_device *from)
  {
--	int r;
--	struct bus_type *bus = dss_get_bus();
--
--	r = bus_for_each_dev(bus, NULL, NULL, dss_suspend_device);
--	if (r) {
--		/* resume all displays that were suspended */
--		dss_resume_all_devices();
--		return r;
--	}
--
--	return 0;
--}
-+	struct omap_dss_device *dssdev = NULL;
+-	struct device *dev;
+-	struct device *dev_start = NULL;
+-	struct omap_dss_device *dssdev = NULL;
++	struct list_head *l;
++	struct omap_dss_device *dssdev;
++
++	mutex_lock(&panel_list_mutex);
  
--static int dss_resume_device(struct device *dev, void *data)
--{
--	int r;
--	struct omap_dss_device *dssdev = to_dss_device(dev);
-+	for_each_dss_dev(dssdev) {
-+		if (!dssdev->driver)
-+			continue;
- 
--	if (dssdev->activate_after_resume) {
--		r = dssdev->driver->enable(dssdev);
--		if (r)
--			return r;
-+		if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
-+			dssdev->driver->disable(dssdev);
-+			dssdev->activate_after_resume = true;
-+		} else {
-+			dssdev->activate_after_resume = false;
-+		}
+-	int match(struct device *dev, void *data)
+-	{
+-		return 1;
++	if (list_empty(&panel_list)) {
++		dssdev = NULL;
++		goto out;
  	}
  
--	dssdev->activate_after_resume = false;
--
- 	return 0;
- }
- 
- int dss_resume_all_devices(void)
- {
--	struct bus_type *bus = dss_get_bus();
--
--	return bus_for_each_dev(bus, NULL, NULL, dss_resume_device);
--}
-+	struct omap_dss_device *dssdev = NULL;
- 
--static int dss_disable_device(struct device *dev, void *data)
--{
--	struct omap_dss_device *dssdev = to_dss_device(dev);
-+	for_each_dss_dev(dssdev) {
-+		if (!dssdev->driver)
-+			continue;
- 
--	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED)
--		dssdev->driver->disable(dssdev);
-+		if (dssdev->activate_after_resume) {
-+			dssdev->driver->enable(dssdev);
-+			dssdev->activate_after_resume = false;
+-	if (from)
+-		dev_start = &from->dev;
+-	dev = bus_find_device(dss_get_bus(), dev_start, NULL, match);
+-	if (dev)
+-		dssdev = to_dss_device(dev);
+-	if (from)
+-		put_device(&from->dev);
++	if (from == NULL) {
++		dssdev = list_first_entry(&panel_list, struct omap_dss_device,
++				panel_list);
++		omap_dss_get_device(dssdev);
++		goto out;
++	}
++
++	omap_dss_put_device(from);
++
++	list_for_each(l, &panel_list) {
++		dssdev = list_entry(l, struct omap_dss_device, panel_list);
++		if (dssdev == from) {
++			if (list_is_last(l, &panel_list)) {
++				dssdev = NULL;
++				goto out;
++			}
++
++			dssdev = list_entry(l->next, struct omap_dss_device,
++					panel_list);
++			omap_dss_get_device(dssdev);
++			goto out;
 +		}
 +	}
  
- 	return 0;
- }
- 
- void dss_disable_all_devices(void)
- {
--	struct bus_type *bus = dss_get_bus();
--	bus_for_each_dev(bus, NULL, NULL, dss_disable_device);
-+	struct omap_dss_device *dssdev = NULL;
++	WARN(1, "'from' dssdev not found\n");
 +
-+	for_each_dss_dev(dssdev) {
-+		if (!dssdev->driver)
-+			continue;
-+
-+		if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
-+			dssdev->driver->disable(dssdev);
-+	}
++	dssdev = NULL;
++out:
++	mutex_unlock(&panel_list_mutex);
+ 	return dssdev;
  }
- 
- static LIST_HEAD(panel_list);
+ EXPORT_SYMBOL(omap_dss_get_next_device);
 -- 
 1.8.1.2
 
