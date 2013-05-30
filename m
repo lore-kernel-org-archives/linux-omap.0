@@ -1,88 +1,94 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 16/32] OMAPDSS: HDMI: add hdmi_init_regulator
-Date: Thu, 30 May 2013 12:34:37 +0300
-Message-ID: <1369906493-27538-17-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 17/32] OMAPDSS: SDI: clean up regulator init
+Date: Thu, 30 May 2013 12:34:38 +0300
+Message-ID: <1369906493-27538-18-git-send-email-tomi.valkeinen@ti.com>
 References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41388 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030337Ab3E3Jfn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 05:35:43 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:42776 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030342Ab3E3Jfo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 May 2013 05:35:44 -0400
 In-Reply-To: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Separate regulator init code into its own function for clarity.
+Clean up the SDI driver's regulator init to remove the (unused)
+omap_dss_device parameter, renaming the function to a more sensible
+name, and making the code slightly clearer.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/hdmi.c | 42 ++++++++++++++++++++++++++----------------
- 1 file changed, 26 insertions(+), 16 deletions(-)
+ drivers/video/omap2/dss/sdi.c | 41 +++++++++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 99f4ab5..960083b 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -328,6 +328,29 @@ static void hdmi_runtime_put(void)
- 	WARN_ON(r < 0 && r != -ENOSYS);
+diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
+index 2e3afb8..9801a6e 100644
+--- a/drivers/video/omap2/dss/sdi.c
++++ b/drivers/video/omap2/dss/sdi.c
+@@ -251,30 +251,31 @@ void omapdss_sdi_set_datapairs(struct omap_dss_device *dssdev, int datapairs)
  }
+ EXPORT_SYMBOL(omapdss_sdi_set_datapairs);
  
-+static int hdmi_init_regulator(void)
-+{
-+	struct regulator *reg;
+-static int sdi_init_display(struct omap_dss_device *dssdev)
++static int sdi_init_regulator(void)
+ {
+-	DSSDBG("SDI init\n");
+-
+-	if (sdi.vdds_sdi_reg == NULL) {
+-		struct regulator *vdds_sdi;
+-
+-		vdds_sdi = dss_get_vdds_sdi();
+-
+-		if (IS_ERR(vdds_sdi)) {
+-			vdds_sdi = regulator_get(&sdi.pdev->dev, "vdds_sdi");
+-			if (IS_ERR(vdds_sdi)) {
+-				DSSERR("can't get VDDS_SDI regulator\n");
+-				return PTR_ERR(vdds_sdi);
+-			}
+-			sdi.vdds_sdi_from_core = false;
+-		} else {
+-			sdi.vdds_sdi_from_core = true;
+-		}
++	struct regulator *vdds_sdi;
 +
-+	if (hdmi.vdda_hdmi_dac_reg != NULL)
++	if (sdi.vdds_sdi_reg != NULL)
 +		return 0;
+ 
++	vdds_sdi = dss_get_vdds_sdi();
 +
-+	reg = devm_regulator_get(&hdmi.pdev->dev, "vdda_hdmi_dac");
++	if (!IS_ERR(vdds_sdi)) {
++		sdi.vdds_sdi_from_core = true;
+ 		sdi.vdds_sdi_reg = vdds_sdi;
++		return 0;
+ 	}
+ 
+-	return 0;
++	vdds_sdi = regulator_get(&sdi.pdev->dev, "vdds_sdi");
 +
-+	/* DT HACK: try VDAC to make omapdss work for o4 sdp/panda */
-+	if (IS_ERR(reg))
-+		reg = devm_regulator_get(&hdmi.pdev->dev, "VDAC");
-+
-+	if (IS_ERR(reg)) {
-+		DSSERR("can't get VDDA_HDMI_DAC regulator\n");
-+		return PTR_ERR(reg);
++	if (!IS_ERR(vdds_sdi)) {
++		sdi.vdds_sdi_from_core = false;
++		sdi.vdds_sdi_reg = vdds_sdi;
 +	}
 +
-+	hdmi.vdda_hdmi_dac_reg = reg;
++	DSSERR("can't get VDDS_SDI regulator\n");
 +
-+	return 0;
-+}
-+
- static int hdmi_init_display(struct omap_dss_device *dssdev)
- {
- 	int r;
-@@ -342,22 +365,9 @@ static int hdmi_init_display(struct omap_dss_device *dssdev)
++	return PTR_ERR(vdds_sdi);
+ }
  
- 	dss_init_hdmi_ip_ops(&hdmi.ip_data, omapdss_get_version());
+ static struct omap_dss_device *sdi_find_dssdev(struct platform_device *pdev)
+@@ -322,7 +323,7 @@ static int sdi_probe_pdata(struct platform_device *sdidev)
  
--	if (hdmi.vdda_hdmi_dac_reg == NULL) {
--		struct regulator *reg;
--
--		reg = devm_regulator_get(&hdmi.pdev->dev, "vdda_hdmi_dac");
--
--		/* DT HACK: try VDAC to make omapdss work for o4 sdp/panda */
--		if (IS_ERR(reg))
--			reg = devm_regulator_get(&hdmi.pdev->dev, "VDAC");
--
--		if (IS_ERR(reg)) {
--			DSSERR("can't get VDDA_HDMI_DAC regulator\n");
--			return PTR_ERR(reg);
--		}
--
--		hdmi.vdda_hdmi_dac_reg = reg;
--	}
-+	r = hdmi_init_regulator();
-+	if (r)
-+		return r;
+ 	dss_copy_device_pdata(dssdev, plat_dssdev);
  
- 	r = gpio_request_array(gpios, ARRAY_SIZE(gpios));
- 	if (r)
+-	r = sdi_init_display(dssdev);
++	r = sdi_init_regulator();
+ 	if (r) {
+ 		DSSERR("device %s init failed: %d\n", dssdev->name, r);
+ 		dss_put_device(dssdev);
 -- 
 1.8.1.2
 
