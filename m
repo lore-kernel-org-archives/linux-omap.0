@@ -1,71 +1,71 @@
-From: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
-Subject: [PATCH v1 2/2] PM / AVS: SmartReflex/class3: Fix order of initialization of SR class and SR driver
-Date: Thu, 30 May 2013 13:43:57 +0300
-Message-ID: <1369910637-19100-3-git-send-email-andrii.tseglytskyi@ti.com>
-References: <1369910637-19100-1-git-send-email-andrii.tseglytskyi@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] ASoC: OMAP: Remove obsolete Makefile line
+Date: Thu, 30 May 2013 11:49:34 +0100
+Message-ID: <20130530104934.GH5180@sirena.org.uk>
+References: <1369899460.23034.31.camel@x61.thuisdomein>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1369910637-19100-1-git-send-email-andrii.tseglytskyi@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: khilman@linaro.org, j-keerthy@ti.com
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============5162463096939597865=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1369899460.23034.31.camel@x61.thuisdomein>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>, linux-kernel@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-SmartReflex consists of three entities: SR device, SR class and
-SR driver. SmartReflex driver depends on SmartReflex class, but
-order of their initialization is not clear. They both use
-late_initcall(), and order depends on Makefile calls.
-Patch moves initialization of SR class to device_initcall(),
-and removes redundant call of sr_late_init().
 
-This provides predictable order of SmartReflex initcalls:
-1. device_initcall() -> SmartReflex class init
-2. late_initcall() -> SmartReflex driver init
+--===============5162463096939597865==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="dDnEQgWzhgf+8aPe"
+Content-Disposition: inline
 
-Signed-off-by: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
----
- arch/arm/mach-omap2/smartreflex-class3.c |    2 +-
- drivers/power/avs/smartreflex.c          |    9 ---------
- 2 files changed, 1 insertion(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
-index aee3c89..50523b8 100644
---- a/arch/arm/mach-omap2/smartreflex-class3.c
-+++ b/arch/arm/mach-omap2/smartreflex-class3.c
-@@ -59,4 +59,4 @@ static int __init sr_class3_init(void)
- 	pr_info("SmartReflex Class3 initialized\n");
- 	return sr_register_class(&class3_data);
- }
--omap_late_initcall(sr_class3_init);
-+omap_device_initcall(sr_class3_init);
-diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
-index 60cf0ee..8a68b4f 100644
---- a/drivers/power/avs/smartreflex.c
-+++ b/drivers/power/avs/smartreflex.c
-@@ -651,8 +651,6 @@ void sr_disable(struct voltagedomain *voltdm)
-  */
- int sr_register_class(struct omap_sr_class_data *class_data)
- {
--	struct omap_sr *sr_info;
--
- 	if (!class_data) {
- 		pr_warning("%s:, Smartreflex class data passed is NULL\n",
- 			__func__);
-@@ -667,13 +665,6 @@ int sr_register_class(struct omap_sr_class_data *class_data)
- 
- 	sr_class = class_data;
- 
--	/*
--	 * Call into late init to do intializations that require
--	 * both sr driver and sr class driver to be initiallized.
--	 */
--	list_for_each_entry(sr_info, &sr_list, node)
--		sr_late_init(sr_info);
--
- 	return 0;
- }
- 
--- 
-1.7.9.5
+--dDnEQgWzhgf+8aPe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+On Thu, May 30, 2013 at 09:37:40AM +0200, Paul Bolle wrote:
+> Support for omap2evm was removed in v3.0. But only one of its two
+> lines in this Makefile was removed. Remove the second line too.
+
+Applied, thanks.
+
+--dDnEQgWzhgf+8aPe
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRpy67AAoJELSic+t+oim9Y4EP/iUtZB4Sk6RTcCOGkreB2nd5
+o8v0/IGoMCk/75BD0UTB/AenW6Wus4/INm1hsUPHoW1uGxI69Y63ZHqkiOMAwwQu
+c2YdLqvRoPsjBFMGewAhVl9LS9ASMXR32FLJFUux4JB22vouNTzzX1Gc6w8lmNrx
+tvpqVtt7ks3tyQ15N9wxkwVodcd2ectpkp6XS8ohmHy7Ueyz+csjrQCthsiD15Db
+6SwyN2b8i07vPDNKTvYab4RCgewIWwZVtwocvgHPj8tOsvZ8Yx9tjTD6+QmKt9Ur
+llAlmKwlx4EJBTZV4gcC9arfhd8JDq93Q6Cc3JZDFgspqcFtFhSSDg/WImyOjaA6
+0Uyhqa8ln7o32y5sgY+K+w8cuwt2n5BRkJAI9UrggqXIn4ovbVNkiehGCJtxh/u6
++GNKkw+EbAD1s+oUQgMvSUGsgHNMBg1LZ1Al9AAY2xqbxjGFFjSnb4BiVyE4+5X2
+iGS0QrVzTthD66CQFI2fQx85fmgKd90fncB6hEx+LzvWqC/qKX/46y0OfbB+4EFA
+2D6p72sVG9a/DXq/yH2I7N/yR4D2e6f/a9+cTrN/iYZkNvB4Wx6qrkc911mI0x7V
+MJiWa/oTLojzZ3nnvV1YDVQZpuYAMpI1VCP8+1jUFfuCb0tZWe3hhGuq1Z/ct1Gp
+VlOkJRCx2+6xNbkDLlEJ
+=L6CF
+-----END PGP SIGNATURE-----
+
+--dDnEQgWzhgf+8aPe--
+
+--===============5162463096939597865==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============5162463096939597865==--
