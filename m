@@ -1,172 +1,229 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 00/27] OMAPDSS: dss-dev-model (Part 2/2)
-Date: Thu, 30 May 2013 12:35:53 +0300
-Message-ID: <1369906580-27585-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 01/27] OMAPDSS: public omapdss_register_output()
+Date: Thu, 30 May 2013 12:35:54 +0300
+Message-ID: <1369906580-27585-2-git-send-email-tomi.valkeinen@ti.com>
+References: <1369906580-27585-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41428 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49874 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030397Ab3E3Jgr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 05:36:47 -0400
+	id S1030397Ab3E3Jgu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 May 2013 05:36:50 -0400
+In-Reply-To: <1369906580-27585-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Igor Grinberg <grinberg@compulab.co.il>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi,
+In order to allow multiple display block in a video pipeline, we need to
+give the drivers way to register themselves. For now we have
+the omapdss_register_display() which is used to register panels, and
+dss_register_output() which is used to register DSS encoders.
 
-Here's are the first sets of patches targeting towards enabling DT for DSS and
-changing the DSS device model to be more versatile. The exact division of the
-sets of patches is still a bit open, and some splitting up for arch/driver
-changes is needed, but most likely there will be at least the following major
-sets, each based on the former one:
+This patch makes dss_register_output() public (with the name of
+omapdss_register_output), which can be used to register also external
+encoders. The distinction between register_output and register_display
+is that a "display" is an entity at the end of the videopipeline, and
+"output" is something inside the pipeline.
 
-- base, containing cleanups and changes that do not yet really bring bigger new
-  features
-- dev-model, implements the new DSS device model, including new panel drivers
-- dt, adds DSS DT support (not at all ready yet, although works for a few boards)
+The registration and naming will be made saner in the future, but the
+current names and functions are kept to minimize changes during the dss
+device model transition.
 
-The patches can be found from the following branches:
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/omap2/dss/dpi.c    | 4 ++--
+ drivers/video/omap2/dss/dsi.c    | 4 ++--
+ drivers/video/omap2/dss/dss.h    | 4 ----
+ drivers/video/omap2/dss/hdmi.c   | 4 ++--
+ drivers/video/omap2/dss/output.c | 7 +++++--
+ drivers/video/omap2/dss/rfbi.c   | 4 ++--
+ drivers/video/omap2/dss/sdi.c    | 4 ++--
+ drivers/video/omap2/dss/venc.c   | 4 ++--
+ include/video/omapdss.h          | 2 ++
+ 9 files changed, 19 insertions(+), 18 deletions(-)
 
-git://gitorious.org/linux-omap-dss2/linux.git work/dss-dev-model-base
-git://gitorious.org/linux-omap-dss2/linux.git work/dss-dev-model
-git://gitorious.org/linux-omap-dss2/linux.git work/dss-dev-model-dt
-
-The set you are looking at is the "dev-model" set.
-
-The "dev-model" implements a new model for display drivers. The model is very
-much in the direction of CDF (Common Display Framework) as has been discussed
-on the mailing lists. However, it's still OMAP specific, and, for example, the
-display ops have not been improved but they were just copied from the old DSS
-API to make the conversion simpler.
-
-The first main change with the "dev-model" is that display devices/drivers are
-no longer special omapdss device/driver types, but they are (usually)
-devices/drivers of their control bus. This means that many devices/drivers are
-platform devices/drivers, but some are i2c or spi devices/drivers.
-
-The other main change is the use of "ops" instead of direct function calls.
-This allows us to create "chains" of display entities, which allows us to
-(finally) create proper drivers for external encoders. As an example, a board
-with an external DSI-to-LVDS encoder chip and an LVDS panel was previously
-modelled with a single display driver, handling both the encoder and the panel.
-Now we can have separate drivers for the encoder and for the panel.
-
-Note that to keep the old drivers and board files working, the old drivers and
-the omapdss support needed for those is not removed yet. This makes the code
-quite messy in a few places. The old code can be removed after all the panels
-and board files have been converted.
-
-In this set, the following board files have been converted so far:
-- OMAP4 Blaze
-- OMAP4 Panda
-- Overo
-- Beagle
-- RX51 (not tested)
-
-The panel drivers needed for the above have been converted, but there's still a
-bunch of panel drivers not converted. Also, DSS RFBI driver has not been
-converted.
-
-The "dev-model" set brings back the support to have multiple panel devices
-connected to the same video output, of which only one can be enabled at a time.
-For example, DVI and a panel connected to OMAP's DPI output.
-
-Overo board has an added difficulty to support the above: Overo board file adds
-two panel devices, lcd43 and lcd35 (in reality those panels are not attached at
-the same time, as they are located in add-on boards). Both panels have the same
-GPIO used for reset. This causes a problem as when the panel drivers are
-loaded, both drivers try to acquire the same GPIO, and the latter one fails.
-
-To solve the problem, I added kernel boot command line parsing to Overo's board
-file. The code looks for "default display" parameter for omapdss, and uses that
-to decide which panel device to add.
-
-Note that the above is not Overo specific, but as far as I know, Overo is the
-only board having such a setup.
-
- Tomi
-
-
-Tomi Valkeinen (27):
-  OMAPDSS: public omapdss_register_output()
-  OMAPDSS: modify get/find functions to go through the device chain
-  OMAPDSS: add platform data structs for new panel drivers
-  ARM: OMAP: dss-common: use new display drivers
-  ARM: OMAP: overo: use new display drivers
-  ARM: OMAP: rx51: use new display drivers
-  ARM: OMAP: beagle: use new display drivers
-  OMAPDSS: add OMAP_DISPLAY_TYPE_DVI
-  drm/omap: DVI connector fix
-  OMAPDSS: DPI: Add ops
-  OMAPDSS: SDI: Add ops
-  OMAPDSS: DVI: Add ops
-  OMAPDSS: AnalogTV: Add ops
-  OMAPDSS: HDMI: Add ops
-  OMAPDSS: DSI: Add ops
-  OMAPDSS: Add new TFP410 Encoder driver
-  OMAPDSS: Add new TPD12S015 Encoder driver
-  OMAPDSS: Add new DVI Connector driver
-  OMAPDSS: Add new HDMI Connector driver
-  OMAPDSS: Add new Analog TV Connector driver
-  OMAPDSS: Add new simple DPI panel driver
-  OMAPDSS: Add new DSI Command Mode panel  driver
-  OMAPDSS: Add Sony ACX565AKM panel driver
-  OMAPDSS: Add LG.Philips LB035Q02 panel driver
-  ARM: OMAP: fix dsi regulator names
-  ARM: OMAP: add vdds_dsi supply for dpi.0
-  ARM: OMAP: add vdds_sdi supply for sdi.0
-
- arch/arm/mach-omap2/board-cm-t35.c                 |    3 +-
- arch/arm/mach-omap2/board-devkit8000.c             |    1 +
- arch/arm/mach-omap2/board-ldp.c                    |    3 +-
- arch/arm/mach-omap2/board-omap3beagle.c            |   56 +-
- arch/arm/mach-omap2/board-omap3pandora.c           |    1 +
- arch/arm/mach-omap2/board-overo.c                  |  160 ++-
- arch/arm/mach-omap2/board-rx51-peripherals.c       |   13 +
- arch/arm/mach-omap2/board-rx51-video.c             |   35 +-
- arch/arm/mach-omap2/dss-common.c                   |  185 +--
- arch/arm/mach-omap2/twl-common.c                   |    1 +
- drivers/gpu/drm/omapdrm/omap_drv.c                 |    6 +-
- drivers/video/omap2/Kconfig                        |    1 +
- drivers/video/omap2/Makefile                       |    1 +
- drivers/video/omap2/displays-new/Kconfig           |   52 +
- drivers/video/omap2/displays-new/Makefile          |    9 +
- .../video/omap2/displays-new/connector-analog-tv.c |  265 ++++
- drivers/video/omap2/displays-new/connector-dvi.c   |  351 +++++
- drivers/video/omap2/displays-new/connector-hdmi.c  |  375 ++++++
- drivers/video/omap2/displays-new/encoder-tfp410.c  |  270 ++++
- .../video/omap2/displays-new/encoder-tpd12s015.c   |  395 ++++++
- drivers/video/omap2/displays-new/panel-dpi.c       |  270 ++++
- drivers/video/omap2/displays-new/panel-dsi-cm.c    | 1336 ++++++++++++++++++++
- .../omap2/displays-new/panel-lgphilips-lb035q02.c  |  358 ++++++
- .../omap2/displays-new/panel-sony-acx565akm.c      |  864 +++++++++++++
- drivers/video/omap2/dss/apply.c                    |   14 +-
- drivers/video/omap2/dss/display.c                  |    1 +
- drivers/video/omap2/dss/dpi.c                      |   74 +-
- drivers/video/omap2/dss/dsi.c                      |   97 +-
- drivers/video/omap2/dss/dss.h                      |    4 -
- drivers/video/omap2/dss/hdmi.c                     |  252 +++-
- drivers/video/omap2/dss/output.c                   |   15 +-
- drivers/video/omap2/dss/rfbi.c                     |    4 +-
- drivers/video/omap2/dss/sdi.c                      |   82 +-
- drivers/video/omap2/dss/venc.c                     |   76 +-
- include/video/omap-panel-data.h                    |  150 +++
- include/video/omapdss.h                            |  195 ++-
- 36 files changed, 5758 insertions(+), 217 deletions(-)
- create mode 100644 drivers/video/omap2/displays-new/Kconfig
- create mode 100644 drivers/video/omap2/displays-new/Makefile
- create mode 100644 drivers/video/omap2/displays-new/connector-analog-tv.c
- create mode 100644 drivers/video/omap2/displays-new/connector-dvi.c
- create mode 100644 drivers/video/omap2/displays-new/connector-hdmi.c
- create mode 100644 drivers/video/omap2/displays-new/encoder-tfp410.c
- create mode 100644 drivers/video/omap2/displays-new/encoder-tpd12s015.c
- create mode 100644 drivers/video/omap2/displays-new/panel-dpi.c
- create mode 100644 drivers/video/omap2/displays-new/panel-dsi-cm.c
- create mode 100644 drivers/video/omap2/displays-new/panel-lgphilips-lb035q02.c
- create mode 100644 drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+index 0afbcd5..3299e27 100644
+--- a/drivers/video/omap2/dss/dpi.c
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -693,14 +693,14 @@ static void dpi_init_output(struct platform_device *pdev)
+ 	out->dispc_channel = dpi_get_channel();
+ 	out->owner = THIS_MODULE;
+ 
+-	dss_register_output(out);
++	omapdss_register_output(out);
+ }
+ 
+ static void __exit dpi_uninit_output(struct platform_device *pdev)
+ {
+ 	struct omap_dss_device *out = &dpi.output;
+ 
+-	dss_unregister_output(out);
++	omapdss_unregister_output(out);
+ }
+ 
+ static int omap_dpi_probe(struct platform_device *pdev)
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index 2f90019..4ecc0c1 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -5426,7 +5426,7 @@ static void dsi_init_output(struct platform_device *dsidev)
+ 	out->dispc_channel = dsi_get_channel(dsi->module_id);
+ 	out->owner = THIS_MODULE;
+ 
+-	dss_register_output(out);
++	omapdss_register_output(out);
+ }
+ 
+ static void dsi_uninit_output(struct platform_device *dsidev)
+@@ -5434,7 +5434,7 @@ static void dsi_uninit_output(struct platform_device *dsidev)
+ 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
+ 	struct omap_dss_device *out = &dsi->output;
+ 
+-	dss_unregister_output(out);
++	omapdss_unregister_output(out);
+ }
+ 
+ /* DSI1 HW IP initialisation */
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 67a509e..902d458 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -179,10 +179,6 @@ void dss_put_device(struct omap_dss_device *dssdev);
+ void dss_copy_device_pdata(struct omap_dss_device *dst,
+ 		const struct omap_dss_device *src);
+ 
+-/* output */
+-void dss_register_output(struct omap_dss_device *out);
+-void dss_unregister_output(struct omap_dss_device *out);
+-
+ /* display */
+ int dss_suspend_all_devices(void);
+ int dss_resume_all_devices(void);
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index 1a7b179..42376d1 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -1044,14 +1044,14 @@ static void hdmi_init_output(struct platform_device *pdev)
+ 	out->dispc_channel = OMAP_DSS_CHANNEL_DIGIT;
+ 	out->owner = THIS_MODULE;
+ 
+-	dss_register_output(out);
++	omapdss_register_output(out);
+ }
+ 
+ static void __exit hdmi_uninit_output(struct platform_device *pdev)
+ {
+ 	struct omap_dss_device *out = &hdmi.output;
+ 
+-	dss_unregister_output(out);
++	omapdss_unregister_output(out);
+ }
+ 
+ /* HDMI HW IP initialisation */
+diff --git a/drivers/video/omap2/dss/output.c b/drivers/video/omap2/dss/output.c
+index 9ad7d21..0ba168e 100644
+--- a/drivers/video/omap2/dss/output.c
++++ b/drivers/video/omap2/dss/output.c
+@@ -92,15 +92,18 @@ err:
+ }
+ EXPORT_SYMBOL(omapdss_output_unset_device);
+ 
+-void dss_register_output(struct omap_dss_device *out)
++int omapdss_register_output(struct omap_dss_device *out)
+ {
+ 	list_add_tail(&out->list, &output_list);
++	return 0;
+ }
++EXPORT_SYMBOL(omapdss_register_output);
+ 
+-void dss_unregister_output(struct omap_dss_device *out)
++void omapdss_unregister_output(struct omap_dss_device *out)
+ {
+ 	list_del(&out->list);
+ }
++EXPORT_SYMBOL(omapdss_unregister_output);
+ 
+ struct omap_dss_device *omap_dss_get_output(enum omap_dss_output_id id)
+ {
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index f18c946..fdfe6e6 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -1022,14 +1022,14 @@ static void rfbi_init_output(struct platform_device *pdev)
+ 	out->dispc_channel = OMAP_DSS_CHANNEL_LCD;
+ 	out->owner = THIS_MODULE;
+ 
+-	dss_register_output(out);
++	omapdss_register_output(out);
+ }
+ 
+ static void __exit rfbi_uninit_output(struct platform_device *pdev)
+ {
+ 	struct omap_dss_device *out = &rfbi.output;
+ 
+-	dss_unregister_output(out);
++	omapdss_unregister_output(out);
+ }
+ 
+ /* RFBI HW IP initialisation */
+diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
+index 10268a2..0343d08 100644
+--- a/drivers/video/omap2/dss/sdi.c
++++ b/drivers/video/omap2/dss/sdi.c
+@@ -350,14 +350,14 @@ static void sdi_init_output(struct platform_device *pdev)
+ 	out->dispc_channel = OMAP_DSS_CHANNEL_LCD;
+ 	out->owner = THIS_MODULE;
+ 
+-	dss_register_output(out);
++	omapdss_register_output(out);
+ }
+ 
+ static void __exit sdi_uninit_output(struct platform_device *pdev)
+ {
+ 	struct omap_dss_device *out = &sdi.output;
+ 
+-	dss_unregister_output(out);
++	omapdss_unregister_output(out);
+ }
+ 
+ static int omap_sdi_probe(struct platform_device *pdev)
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index 0deb771..291a40d 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -794,14 +794,14 @@ static void venc_init_output(struct platform_device *pdev)
+ 	out->dispc_channel = OMAP_DSS_CHANNEL_DIGIT;
+ 	out->owner = THIS_MODULE;
+ 
+-	dss_register_output(out);
++	omapdss_register_output(out);
+ }
+ 
+ static void __exit venc_uninit_output(struct platform_device *pdev)
+ {
+ 	struct omap_dss_device *out = &venc.output;
+ 
+-	dss_unregister_output(out);
++	omapdss_unregister_output(out);
+ }
+ 
+ /* VENC HW IP initialisation */
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index b2e6160..3582edf 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -793,6 +793,8 @@ struct omap_overlay_manager *omap_dss_get_overlay_manager(int num);
+ int omap_dss_get_num_overlays(void);
+ struct omap_overlay *omap_dss_get_overlay(int num);
+ 
++int omapdss_register_output(struct omap_dss_device *output);
++void omapdss_unregister_output(struct omap_dss_device *output);
+ struct omap_dss_device *omap_dss_get_output(enum omap_dss_output_id id);
+ struct omap_dss_device *omap_dss_find_output(const char *name);
+ struct omap_dss_device *omap_dss_find_output_by_node(struct device_node *node);
 -- 
 1.8.1.2
 
