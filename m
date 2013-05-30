@@ -1,147 +1,141 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 19/32] OMAPDSS: add videomode conversion support
-Date: Thu, 30 May 2013 12:34:40 +0300
-Message-ID: <1369906493-27538-20-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 23/32] OMAPDSS: don't use dss bus in suspend/resume
+Date: Thu, 30 May 2013 12:34:44 +0300
+Message-ID: <1369906493-27538-24-git-send-email-tomi.valkeinen@ti.com>
 References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37452 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49832 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030349Ab3E3Jfr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 05:35:47 -0400
+	id S1030342Ab3E3Jfw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 May 2013 05:35:52 -0400
 In-Reply-To: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add helper functions to convert between omapdss specific video timings
-and the common videomode.
+We have support functions to suspend and resume all the displays that
+are used with system suspend. These functions use the dss bus to iterate
+the display devices.
 
-Eventually omapdss will be changed to use only the common video timings,
-and these helper functions will make the transition easier.
+As we aim to remove the custom dss bus totally, this patch removes the
+explicit use of dss bus from these functions. Instead the
+for_each_dss_dev() macro is used to go through the devices.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/Kconfig   |  1 +
- drivers/video/omap2/dss/display.c | 69 +++++++++++++++++++++++++++++++++++++++
- include/video/omapdss.h           |  7 ++++
- 3 files changed, 77 insertions(+)
+ drivers/video/omap2/dss/display.c | 77 ++++++++++++++-------------------------
+ 1 file changed, 28 insertions(+), 49 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
-index cb0f145..8f70a83 100644
---- a/drivers/video/omap2/dss/Kconfig
-+++ b/drivers/video/omap2/dss/Kconfig
-@@ -1,5 +1,6 @@
- menuconfig OMAP2_DSS
-         tristate "OMAP2+ Display Subsystem support"
-+	select VIDEOMODE_HELPERS
-         help
- 	  OMAP2+ Display Subsystem support.
- 
 diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
-index 0aa8ad8..72ac058 100644
+index ba83ec3..dfe3322 100644
 --- a/drivers/video/omap2/dss/display.c
 +++ b/drivers/video/omap2/dss/display.c
-@@ -219,3 +219,72 @@ void omap_dss_stop_device(struct omap_dss_device *dssdev)
+@@ -76,74 +76,53 @@ void omapdss_default_get_timings(struct omap_dss_device *dssdev,
  }
- EXPORT_SYMBOL(omap_dss_stop_device);
+ EXPORT_SYMBOL(omapdss_default_get_timings);
  
-+void videomode_to_omap_video_timings(const struct videomode *vm,
-+		struct omap_video_timings *ovt)
-+{
-+	memset(ovt, 0, sizeof(*ovt));
-+
-+	ovt->pixel_clock = vm->pixelclock / 1000;
-+	ovt->x_res = vm->hactive;
-+	ovt->hbp = vm->hback_porch;
-+	ovt->hfp = vm->hfront_porch;
-+	ovt->hsw = vm->hsync_len;
-+	ovt->y_res = vm->vactive;
-+	ovt->vbp = vm->vback_porch;
-+	ovt->vfp = vm->vfront_porch;
-+	ovt->vsw = vm->vsync_len;
-+
-+	ovt->vsync_level = vm->flags & DISPLAY_FLAGS_VSYNC_HIGH ?
-+		OMAPDSS_SIG_ACTIVE_HIGH :
-+		OMAPDSS_SIG_ACTIVE_LOW;
-+	ovt->hsync_level = vm->flags & DISPLAY_FLAGS_HSYNC_HIGH ?
-+		OMAPDSS_SIG_ACTIVE_HIGH :
-+		OMAPDSS_SIG_ACTIVE_LOW;
-+	ovt->de_level = vm->flags & DISPLAY_FLAGS_DE_HIGH ?
-+		OMAPDSS_SIG_ACTIVE_HIGH :
-+		OMAPDSS_SIG_ACTIVE_HIGH;
-+	ovt->data_pclk_edge = vm->flags & DISPLAY_FLAGS_PIXDATA_POSEDGE ?
-+		OMAPDSS_DRIVE_SIG_RISING_EDGE :
-+		OMAPDSS_DRIVE_SIG_FALLING_EDGE;
-+
-+	ovt->sync_pclk_edge = OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES;
-+}
-+EXPORT_SYMBOL(videomode_to_omap_video_timings);
-+
-+void omap_video_timings_to_videomode(const struct omap_video_timings *ovt,
-+		struct videomode *vm)
-+{
-+	memset(vm, 0, sizeof(*vm));
-+
-+	vm->pixelclock = ovt->pixel_clock * 1000;
-+
-+	vm->hactive = ovt->x_res;
-+	vm->hback_porch = ovt->hbp;
-+	vm->hfront_porch = ovt->hfp;
-+	vm->hsync_len = ovt->hsw;
-+	vm->vactive = ovt->y_res;
-+	vm->vback_porch = ovt->vbp;
-+	vm->vfront_porch = ovt->vfp;
-+	vm->vsync_len = ovt->vsw;
-+
-+	if (ovt->hsync_level == OMAPDSS_SIG_ACTIVE_HIGH)
-+		vm->flags |= DISPLAY_FLAGS_HSYNC_HIGH;
-+	else
-+		vm->flags |= DISPLAY_FLAGS_HSYNC_LOW;
-+
-+	if (ovt->vsync_level == OMAPDSS_SIG_ACTIVE_HIGH)
-+		vm->flags |= DISPLAY_FLAGS_VSYNC_HIGH;
-+	else
-+		vm->flags |= DISPLAY_FLAGS_VSYNC_LOW;
-+
-+	if (ovt->de_level == OMAPDSS_SIG_ACTIVE_HIGH)
-+		vm->flags |= DISPLAY_FLAGS_DE_HIGH;
-+	else
-+		vm->flags |= DISPLAY_FLAGS_DE_LOW;
-+
-+	if (ovt->data_pclk_edge == OMAPDSS_DRIVE_SIG_RISING_EDGE)
-+		vm->flags |= DISPLAY_FLAGS_PIXDATA_POSEDGE;
-+	else
-+		vm->flags |= DISPLAY_FLAGS_PIXDATA_NEGEDGE;
-+}
-+EXPORT_SYMBOL(omap_video_timings_to_videomode);
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index f747266..6c422f7 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -23,6 +23,8 @@
- #include <linux/device.h>
- #include <linux/interrupt.h>
+-static int dss_suspend_device(struct device *dev, void *data)
+-{
+-	struct omap_dss_device *dssdev = to_dss_device(dev);
+-
+-	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE) {
+-		dssdev->activate_after_resume = false;
+-		return 0;
+-	}
+-
+-	dssdev->driver->disable(dssdev);
+-
+-	dssdev->activate_after_resume = true;
+-
+-	return 0;
+-}
+-
+ int dss_suspend_all_devices(void)
+ {
+-	int r;
+-	struct bus_type *bus = dss_get_bus();
+-
+-	r = bus_for_each_dev(bus, NULL, NULL, dss_suspend_device);
+-	if (r) {
+-		/* resume all displays that were suspended */
+-		dss_resume_all_devices();
+-		return r;
+-	}
+-
+-	return 0;
+-}
++	struct omap_dss_device *dssdev = NULL;
  
-+#include <video/videomode.h>
-+
- #define DISPC_IRQ_FRAMEDONE		(1 << 0)
- #define DISPC_IRQ_VSYNC			(1 << 1)
- #define DISPC_IRQ_EVSYNC_EVEN		(1 << 2)
-@@ -767,6 +769,11 @@ const char *omapdss_get_default_display_name(void);
- int omap_dss_start_device(struct omap_dss_device *dssdev);
- void omap_dss_stop_device(struct omap_dss_device *dssdev);
+-static int dss_resume_device(struct device *dev, void *data)
+-{
+-	int r;
+-	struct omap_dss_device *dssdev = to_dss_device(dev);
++	for_each_dss_dev(dssdev) {
++		if (!dssdev->driver)
++			continue;
  
-+void videomode_to_omap_video_timings(const struct videomode *vm,
-+		struct omap_video_timings *ovt);
-+void omap_video_timings_to_videomode(const struct omap_video_timings *ovt,
-+		struct videomode *vm);
+-	if (dssdev->activate_after_resume) {
+-		r = dssdev->driver->enable(dssdev);
+-		if (r)
+-			return r;
++		if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
++			dssdev->driver->disable(dssdev);
++			dssdev->activate_after_resume = true;
++		} else {
++			dssdev->activate_after_resume = false;
++		}
+ 	}
+ 
+-	dssdev->activate_after_resume = false;
+-
+ 	return 0;
+ }
+ 
+ int dss_resume_all_devices(void)
+ {
+-	struct bus_type *bus = dss_get_bus();
+-
+-	return bus_for_each_dev(bus, NULL, NULL, dss_resume_device);
+-}
++	struct omap_dss_device *dssdev = NULL;
+ 
+-static int dss_disable_device(struct device *dev, void *data)
+-{
+-	struct omap_dss_device *dssdev = to_dss_device(dev);
++	for_each_dss_dev(dssdev) {
++		if (!dssdev->driver)
++			continue;
+ 
+-	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED)
+-		dssdev->driver->disable(dssdev);
++		if (dssdev->activate_after_resume) {
++			dssdev->driver->enable(dssdev);
++			dssdev->activate_after_resume = false;
++		}
++	}
+ 
+ 	return 0;
+ }
+ 
+ void dss_disable_all_devices(void)
+ {
+-	struct bus_type *bus = dss_get_bus();
+-	bus_for_each_dev(bus, NULL, NULL, dss_disable_device);
++	struct omap_dss_device *dssdev = NULL;
 +
- int dss_feat_get_num_mgrs(void);
- int dss_feat_get_num_ovls(void);
- enum omap_display_type dss_feat_get_supported_displays(enum omap_channel channel);
++	for_each_dss_dev(dssdev) {
++		if (!dssdev->driver)
++			continue;
++
++		if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
++			dssdev->driver->disable(dssdev);
++	}
+ }
+ 
+ static LIST_HEAD(panel_list);
 -- 
 1.8.1.2
 
