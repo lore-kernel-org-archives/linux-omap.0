@@ -1,12 +1,12 @@
 From: Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: [PATCH 0/3] palmas usb driver
-Date: Thu, 30 May 2013 11:44:49 +0900
-Message-ID: <CAGTfZH0bXxcmzELAgz08KioSJs2k1XOzA4NBshkO91Kzw=3viQ@mail.gmail.com>
+Date: Thu, 30 May 2013 11:46:29 +0900
+Message-ID: <CAGTfZH2RbSZMNbH7NKtoLh-13WX0Z2iQ6_D4DcBgC1ej5PKTTQ@mail.gmail.com>
 References: <1369405896-30246-1-git-send-email-kishon@ti.com>
  <20130528173554.GD15794@arwen.pp.htv.fi> <51A59AC9.9000908@ti.com>
  <20130529173851.GC21290@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5872913985592236856=="
+Content-Type: multipart/mixed; boundary="===============1106535675768415329=="
 Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 In-Reply-To: <20130529173851.GC21290-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
 List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
@@ -23,10 +23,10 @@ To: balbi-l0cyMroinI0@public.gmane.org
 Cc: george.cherian-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---===============5872913985592236856==
-Content-Type: multipart/alternative; boundary=047d7b3a843a6ae60e04dde67bb9
+--===============1106535675768415329==
+Content-Type: multipart/alternative; boundary=089e013a19205d13df04dde681f9
 
---047d7b3a843a6ae60e04dde67bb9
+--089e013a19205d13df04dde681f9
 Content-Type: text/plain; charset=ISO-8859-1
 
 On Thu, May 30, 2013 at 2:38 AM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
@@ -75,6 +75,10 @@ On Thu, May 30, 2013 at 2:38 AM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.or
 > Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 >
 >
+> --
+> balbi
+>
+
 OK, I applied this patchset on extcon-next branch
 and I will send pull-request to GregKH.
 
@@ -84,18 +88,18 @@ http://git.kernel.org/cgit/linux/kernel/git/chanwoo/extcon.git/log/?h=extcon-nex
 Thanks,
 Chanwoo Choi
 
---047d7b3a843a6ae60e04dde67bb9
+--089e013a19205d13df04dde681f9
 Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
 <div dir=3D"ltr"><div class=3D"gmail_extra"><div class=3D"gmail_quote">On T=
 hu, May 30, 2013 at 2:38 AM, Felipe Balbi <span dir=3D"ltr">&lt;<a href=3D"=
 mailto:balbi-l0cyMroinI0@public.gmane.org" target=3D"_blank">balbi-l0cyMroinI0@public.gmane.org</a>&gt;</span> wrote:<b=
-r><blockquote class=3D"gmail_quote" style=3D"margin:0px 0px 0px 0.8ex;borde=
-r-left:1px solid rgb(204,204,204);padding-left:1ex">
-
+r><blockquote style=3D"margin:0px 0px 0px 0.8ex;padding-left:1ex;border-lef=
+t-color:rgb(204,204,204);border-left-width:1px;border-left-style:solid" cla=
+ss=3D"gmail_quote">
 Hi,<br>
-<div><div><br>
+<div><div class=3D"h5"><br>
 On Wed, May 29, 2013 at 11:36:01AM +0530, Kishon Vijay Abraham I wrote:<br>
 &gt; Hi Felipe,<br>
 &gt;<br>
@@ -143,22 +147,22 @@ notification<br>
 </div></div>alright, thanks for the note, here it is:<br>
 <br>
 <br>
-Acked-by: Felipe Balbi &lt;<a href=3D"mailto:balbi-l0cyMroinI0@public.gmane.org" target=3D"_blank=
-">balbi-l0cyMroinI0@public.gmane.org</a>&gt;<br>
+Acked-by: Felipe Balbi &lt;<a href=3D"mailto:balbi-l0cyMroinI0@public.gmane.org">balbi-l0cyMroinI0@public.gmane.org</a>=
+&gt;<br>
 <span><font color=3D"#888888"><br>
-</font></span></blockquote></div><br>OK, I applied this patchset on extcon-=
-next branch<br>and I will send pull-request to GregKH.<br><br>You can check=
- on following git repository:<br><a href=3D"http://git.kernel.org/cgit/linu=
-x/kernel/git/chanwoo/extcon.git/log/?h=3Dextcon-next" target=3D"_blank">htt=
-p://git.kernel.org/cgit/linux/kernel/git/chanwoo/extcon.git/log/?h=3Dextcon=
--next</a><br>
+<br>
+--<br>
+balbi<br></font></span></blockquote><div>=A0</div><div>OK, I applied this p=
+atchset on extcon-next branch<br>and I will send pull-request to GregKH.</d=
+iv><div>=A0</div><div>You can check on following git repository:<br><a href=
+=3D"http://git.kernel.org/cgit/linux/kernel/git/chanwoo/extcon.git/log/?h=
+=3Dextcon-next">http://git.kernel.org/cgit/linux/kernel/git/chanwoo/extcon.=
+git/log/?h=3Dextcon-next</a></div>
+<div>=A0</div><div>Thanks,<br>Chanwoo Choi=A0</div></div><br></div></div>
 
-<br></div><div class=3D"gmail_extra">Thanks,<br>Chanwoo Choi<br></div><div =
-class=3D"gmail_extra"><br></div></div>
+--089e013a19205d13df04dde681f9--
 
---047d7b3a843a6ae60e04dde67bb9--
-
---===============5872913985592236856==
+--===============1106535675768415329==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -169,4 +173,4 @@ devicetree-discuss mailing list
 devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 https://lists.ozlabs.org/listinfo/devicetree-discuss
 
---===============5872913985592236856==--
+--===============1106535675768415329==--
