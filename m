@@ -1,60 +1,75 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 06/32] OMAPDSS: DPI: fix regulators for DT
-Date: Thu, 30 May 2013 14:35:44 +0300
-Message-ID: <51A73990.5040709@ti.com>
-References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com> <1369906493-27538-7-git-send-email-tomi.valkeinen@ti.com> <20130530111253.GJ19468@game.jcrosoft.org>
+Subject: Re: [PATCH 03/32] OMAPDSS: add omap_dss_find_output()
+Date: Thu, 30 May 2013 14:40:10 +0300
+Message-ID: <51A73A9A.8010801@ti.com>
+References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com> <1369906493-27538-4-git-send-email-tomi.valkeinen@ti.com> <20130530110707.GH19468@game.jcrosoft.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="----enig2EDNKKAIJBQEPIMERRIPQ"
+	boundary="----enig2GEQIIJPMEHWFVPGLCDUB"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45873 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46023 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934703Ab3E3Lfx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 07:35:53 -0400
-In-Reply-To: <20130530111253.GJ19468@game.jcrosoft.org>
+	id S1751113Ab3E3LkN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 May 2013 07:40:13 -0400
+In-Reply-To: <20130530110707.GH19468@game.jcrosoft.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Arnd Bergmann <arnd@arndb.de>, Linus Walleij <linus.walleij@linaro.org>, gregkh@linuxfoundation.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-------enig2EDNKKAIJBQEPIMERRIPQ
+------enig2GEQIIJPMEHWFVPGLCDUB
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 30/05/13 14:12, Jean-Christophe PLAGNIOL-VILLARD wrote:
+On 30/05/13 14:07, Jean-Christophe PLAGNIOL-VILLARD wrote:
 > On 12:34 Thu 30 May     , Tomi Valkeinen wrote:
->> On some platforms DPI requires a regulator to be enabled to power up t=
-he
->> output pins. This regulator is, for some reason, currently attached to=
-
->> the virtual omapdss device, instead of the DPI device. This does not
->> work for DT, as the regulator mappings need to be described in the DT
->> data, and the virtual omapdss device is not present there.
+>> Add a support function to find a DSS output by given name. This is use=
+d
+>> in later patches to link the panels to DSS outputs.
 >>
->> Fix the issue by acquiring the regulator in the DPI device. To retain
->> compatibility with the current board files, the old method of getting
->> the regulator is kept. The old method can be removed when the board
->> files have been changed to pass the regulator to DPI.
->=20
-> as discuss with Arnd we should handle regular enable and disable at dev=
-ice
-> probe for every device as we do for pinctrl
+>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>> ---
+>>  drivers/video/omap2/dss/output.c | 13 +++++++++++++
+>>  include/video/omapdss.h          |  1 +
+>>  2 files changed, 14 insertions(+)
+>>
+>> diff --git a/drivers/video/omap2/dss/output.c b/drivers/video/omap2/ds=
+s/output.c
+>> index 5214df6..3274628 100644
+>> --- a/drivers/video/omap2/dss/output.c
+>> +++ b/drivers/video/omap2/dss/output.c
+>> @@ -115,6 +115,19 @@ struct omap_dss_output *omap_dss_get_output(enum =
+omap_dss_output_id id)
+>>  }
+>>  EXPORT_SYMBOL(omap_dss_get_output);
+> GPL please
 
-I'm not sure what you mean. Enable of what? The regulator? Why would we
-enable it in the device's probe, as the device may never even be used?
+The omapdss driver uses EXPORT_SYMBOL. I don't want to start mixing both
+EXPORT_SYMBOLs and EXPORT_SYMBOL_GPLs.
 
-Or do you mean regulator_get()? Doing that in DPI driver's probe is
-problematic, as not all boards have any panels using DPI, and thus they
-may not have the regulator set up, but all boards have the DPI device
-added automatically. So for those boards the DPI probe would fail,
-always, if we tried to get the regulator.
+>> +struct omap_dss_output *omap_dss_find_output(const char *name)
+>> +{
+>> +	struct omap_dss_output *out;
+>> +
+>> +	list_for_each_entry(out, &output_list, list) {
+>> +		if (strcmp(out->name, name) =3D=3D 0)
+>> +			return out;
+>> +	}
+>> +
+>> +	return NULL;
+>> +}
+> I this in so many drivers could we have a macro to generate such functi=
+on?
+
+What would that help? Wouldn't it just increase the code size of the kern=
+el?
 
  Tomi
 
 
 
-------enig2EDNKKAIJBQEPIMERRIPQ
+------enig2GEQIIJPMEHWFVPGLCDUB
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -63,19 +78,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.12 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJRpzmQAAoJEPo9qoy8lh7178MP/jqiuUSCrUGMPrlOEj7Ujx5B
-elzSifZ9sN9jdMO3Syb03YIxKIZpV+9r6eP+QSYhhDIG4+O+zNq8DsMVcw2+uz5Q
-ZyBm63I7aoV/HVH9HqG3sRo2nibi83JHcHg2XjFlTuxSlXp2V/eL/aQX/lgL2a5f
-AF4wmOwH3tVP381BPZdI003ZF/tsOa1URxcRq1FgiCj3A7BjnDawavXZ29hVcZbF
-9G8rbh1psTAw/0dxxVebfzkSQWeexENgQjxflpl7Yk4tqc9aIvJzI3H0vzkSlE3s
-gAHmDN3xvnHtfpE77oSN98pkn6nYMu0gQKWwy3/lAiCsGifmvPNNbrVKqSrv7kqz
-NHMWX1twHGh6xOfxEIPEP3aDLeIdzW1YWTSB92igeq8K1DTdhYyT5e9J6+hRayFz
-FekBLCWHG4WzAAij/8D7Md6CCXxaR4FXmhu9HHVRi8uuVS5HFhL0OxP4+j1DmeG4
-DX+oWA4EK6SoG6unAC+pbr/HZc5GfUaf4+1VlHCgSR+TU5iMQT8whdGWKNX5DqAl
-Me+Qs+5nWKVoAzCCrv6qWoiFTDr3zkZlVlG+IYUD7dp6frPvTXZrabHpXL1J2VY7
-yjLKlibrty5udBqiYexFIno4N5784edppxckJOLRX9IBHmMW14n+VTbB0xHMzXJm
-BYNr3/ULbmirdMqfhoqq
-=1WFa
+iQIcBAEBAgAGBQJRpzqaAAoJEPo9qoy8lh71dF8P/AzhvXY/SzDGt66OlVRRnTmh
+6BicGTRMeD2uubRclOmG9+NkkkDWARomLYglUmDAP4iMq+UiHaDG5m8cgNrGsKIZ
+9RRjt/i3iEHv63UYdhKyrDkypo/bbDpe/cj+ZaLJhy2L/tOSIlF6xvw8Ca//0E+X
+uEOO9asT9kquio1YjA3RBLMB4h4ZVP/d266zRlfLMg/UENjvpPjktHaq9D8nUcYc
++tyJSXnBipKCJCqd8xD0Aow6YRPBhfuzyMcWSfTMcelaCkvV+IxXxWpERcGsbbla
+Rm39fc8A3Eijih2mhzLLU5BgPKL18leTU6Gx1HJc1SZqZA9VDTxDg4W7vZkrLdB6
+Lnw2Xtg17hcxnM0tjFBdTzx2TOa5LvTx/O6F+FxsRCwRQ0FhJJvRsuVq8DYExpb8
+FGg5xTFXXuw8JeC/JkC0JS5dNelsUqmWN9fUnjWfvEVWS+VK1t7br+oAlQvIJY0p
+nbDDrh7LmTs8pprSX1q4U1mHdQrT+WdinE+qV/FE7vfr24SY08Y9Atgr1v6uv64B
+eeTrdppSFQIjPh9WDl40T9psx9Q4oZdHdjCeGSBKFBLcYt2/eXpCnhMD2qpVXXc2
+hJus+y2NjbQUmZbDMosqckP7ULAq6VG2xIytmWmV9L+SONs++kNlkbvDHvVYEMQp
+0mvPgnqv+9kxxOTHNj3o
+=Qk5x
 -----END PGP SIGNATURE-----
 
-------enig2EDNKKAIJBQEPIMERRIPQ--
+------enig2GEQIIJPMEHWFVPGLCDUB--
