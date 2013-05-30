@@ -1,40 +1,64 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Subject: [PATCH 2/7] usb, dwc3: remove redundant D0 power state set
-Date: Thu, 30 May 2013 18:19:40 +0800
-Message-ID: <1369909180-33136-1-git-send-email-wangyijing@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
+Subject: [PATCH] ARM: OMAP2: TI81XX: id: Add cpu id for TI816x ES2.0 and ES2.1
+Date: Thu, 30 May 2013 14:21:01 +0400
+Message-ID: <1369909261-23750-1-git-send-email-aida.mynzhasova@skitlab.ru>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:37989 "EHLO
-	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S968106Ab3E3KUF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 May 2013 06:20:05 -0400
+Received: from mail.skitlab.ru ([217.65.220.135]:39589 "EHLO mail.skitlab.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030289Ab3E3KVI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 May 2013 06:21:08 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, Hanjun Guo <guohanjun@huawei.com>, Jiang Liu <liuj97@gmail.com>, Yijing Wang <wangyijing@huawei.com>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Pci_enable_device() will set device power state to D0,
-so it's no need to do it again in dwc3_pci_probe().
+Currently omap3xxx_check_revision() detects ES1.0 and ES1.1 only,
+this patch extends it by adding ES2.0 and ES2.1 versions support.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+Signed-off-by: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
 ---
- drivers/usb/dwc3/dwc3-pci.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/id.c  |   11 +++++++++--
+ arch/arm/mach-omap2/soc.h |    2 ++
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/usb/dwc3/dwc3-pci.c b/drivers/usb/dwc3/dwc3-pci.c
-index 227d4a7..c068608 100644
---- a/drivers/usb/dwc3/dwc3-pci.c
-+++ b/drivers/usb/dwc3/dwc3-pci.c
-@@ -133,7 +133,6 @@ static int dwc3_pci_probe(struct pci_dev *pci,
- 		return -ENODEV;
- 	}
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 1272c41..8b762a3 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -405,11 +405,18 @@ void __init omap3xxx_check_revision(void)
+ 			cpu_rev = "1.0";
+ 			break;
+ 		case 1:
+-		/* FALLTHROUGH */
+-		default:
+ 			omap_revision = TI8168_REV_ES1_1;
+ 			cpu_rev = "1.1";
+ 			break;
++		case 2:
++			omap_revision = TI8168_REV_ES2_0;
++			cpu_rev = "2.0";
++			break;
++		case 3:
++			/* FALLTHROUGH */
++		default:
++			omap_revision = TI8168_REV_ES2_1;
++			cpu_rev = "2.1";
+ 		}
+ 		break;
+ 	case 0xb944:
+diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
+index 197cc16..8e00226 100644
+--- a/arch/arm/mach-omap2/soc.h
++++ b/arch/arm/mach-omap2/soc.h
+@@ -383,6 +383,8 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define TI816X_CLASS		0x81600034
+ #define TI8168_REV_ES1_0	TI816X_CLASS
+ #define TI8168_REV_ES1_1	(TI816X_CLASS | (0x1 << 8))
++#define TI8168_REV_ES2_0	(TI816X_CLASS | (0x2 << 8))
++#define TI8168_REV_ES2_1	(TI816X_CLASS | (0x3 << 8))
  
--	pci_set_power_state(pci, PCI_D0);
- 	pci_set_master(pci);
- 
- 	ret = dwc3_pci_register_phys(glue);
+ #define TI814X_CLASS		0x81400034
+ #define TI8148_REV_ES1_0	TI814X_CLASS
 -- 
-1.7.1
-
+1.7.10.4
 
