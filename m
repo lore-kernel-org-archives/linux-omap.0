@@ -1,22 +1,22 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 12/27] OMAPDSS: DVI: Add ops
-Date: Thu, 30 May 2013 12:36:05 +0300
-Message-ID: <1369906580-27585-13-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 13/27] OMAPDSS: AnalogTV: Add ops
+Date: Thu, 30 May 2013 12:36:06 +0300
+Message-ID: <1369906580-27585-14-git-send-email-tomi.valkeinen@ti.com>
 References: <1369906580-27585-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37524 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49890 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030428Ab3E3JhF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 05:37:05 -0400
+	id S1030416Ab3E3JhG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 May 2013 05:37:06 -0400
 In-Reply-To: <1369906580-27585-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add "ops" style method for using DVI functionality.
+Add "ops" style method for using analog TV functionality.
 
 Ops style calls will allow us to have arbitrarily long display
 pipelines, where each entity can call ops in the previous display
@@ -24,18 +24,116 @@ entity.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- include/video/omapdss.h | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ drivers/video/omap2/dss/venc.c | 72 ++++++++++++++++++++++++++++++++++++++++++
+ include/video/omapdss.h        | 26 +++++++++++++++
+ 2 files changed, 98 insertions(+)
 
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index 291a40d..f5ee767 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -568,6 +568,16 @@ int omapdss_venc_check_timings(struct omap_dss_device *dssdev,
+ 	return -EINVAL;
+ }
+ 
++static void venc_get_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	mutex_lock(&venc.venc_lock);
++
++	*timings = venc.timings;
++
++	mutex_unlock(&venc.venc_lock);
++}
++
+ u32 omapdss_venc_get_wss(struct omap_dss_device *dssdev)
+ {
+ 	/* Invert due to VENC_L21_WC_CTL:INV=1 */
+@@ -783,6 +793,67 @@ static int venc_probe_pdata(struct platform_device *vencdev)
+ 	return 0;
+ }
+ 
++static int venc_connect(struct omap_dss_device *dssdev,
++		struct omap_dss_device *dst)
++{
++	struct omap_overlay_manager *mgr;
++	int r;
++
++	r = venc_init_regulator();
++	if (r)
++		return r;
++
++	mgr = omap_dss_get_overlay_manager(dssdev->dispc_channel);
++	if (!mgr)
++		return -ENODEV;
++
++	r = dss_mgr_connect(mgr, dssdev);
++	if (r)
++		return r;
++
++	r = omapdss_output_set_device(dssdev, dst);
++	if (r) {
++		DSSERR("failed to connect output to new device: %s\n",
++				dst->name);
++		dss_mgr_disconnect(mgr, dssdev);
++		return r;
++	}
++
++	return 0;
++}
++
++static void venc_disconnect(struct omap_dss_device *dssdev,
++		struct omap_dss_device *dst)
++{
++	WARN_ON(dst != dssdev->device);
++
++	if (dst != dssdev->device)
++		return;
++
++	omapdss_output_unset_device(dssdev);
++
++	if (dssdev->manager)
++		dss_mgr_disconnect(dssdev->manager, dssdev);
++}
++
++static const struct omapdss_atv_ops venc_ops = {
++	.connect = venc_connect,
++	.disconnect = venc_disconnect,
++
++	.enable = omapdss_venc_display_enable,
++	.disable = omapdss_venc_display_disable,
++
++	.check_timings = omapdss_venc_check_timings,
++	.set_timings = omapdss_venc_set_timings,
++	.get_timings = venc_get_timings,
++
++	.set_type = omapdss_venc_set_type,
++	.invert_vid_out_polarity = omapdss_venc_invert_vid_out_polarity,
++
++	.set_wss = omapdss_venc_set_wss,
++	.get_wss = omapdss_venc_get_wss,
++};
++
+ static void venc_init_output(struct platform_device *pdev)
+ {
+ 	struct omap_dss_device *out = &venc.output;
+@@ -792,6 +863,7 @@ static void venc_init_output(struct platform_device *pdev)
+ 	out->output_type = OMAP_DISPLAY_TYPE_VENC;
+ 	out->name = "venc.0";
+ 	out->dispc_channel = OMAP_DSS_CHANNEL_DIGIT;
++	out->ops.atv = &venc_ops;
+ 	out->owner = THIS_MODULE;
+ 
+ 	omapdss_register_output(out);
 diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index 79e9ec8..9f87fc0 100644
+index 9f87fc0..cb6c478 100644
 --- a/include/video/omapdss.h
 +++ b/include/video/omapdss.h
-@@ -611,6 +611,23 @@ struct omapdss_sdi_ops {
- 	void (*set_datapairs)(struct omap_dss_device *dssdev, int datapairs);
+@@ -628,6 +628,31 @@ struct omapdss_dvi_ops {
+ 			struct omap_video_timings *timings);
  };
  
-+struct omapdss_dvi_ops {
++struct omapdss_atv_ops {
 +	int (*connect)(struct omap_dss_device *dssdev,
 +			struct omap_dss_device *dst);
 +	void (*disconnect)(struct omap_dss_device *dssdev,
@@ -50,16 +148,24 @@ index 79e9ec8..9f87fc0 100644
 +			struct omap_video_timings *timings);
 +	void (*get_timings)(struct omap_dss_device *dssdev,
 +			struct omap_video_timings *timings);
++
++	void (*set_type)(struct omap_dss_device *dssdev,
++		enum omap_dss_venc_type type);
++	void (*invert_vid_out_polarity)(struct omap_dss_device *dssdev,
++		bool invert_polarity);
++
++	int (*set_wss)(struct omap_dss_device *dssdev, u32 wss);
++	u32 (*get_wss)(struct omap_dss_device *dssdev);
 +};
 +
  struct omap_dss_device {
  	/* old device, to be removed */
  	struct device old_dev;
-@@ -686,6 +703,7 @@ struct omap_dss_device {
- 	union {
+@@ -704,6 +729,7 @@ struct omap_dss_device {
  		const struct omapdss_dpi_ops *dpi;
  		const struct omapdss_sdi_ops *sdi;
-+		const struct omapdss_dvi_ops *dvi;
+ 		const struct omapdss_dvi_ops *dvi;
++		const struct omapdss_atv_ops *atv;
  	} ops;
  
  	/* helper variable for driver suspend/resume */
