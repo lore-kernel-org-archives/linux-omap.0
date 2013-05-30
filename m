@@ -1,227 +1,355 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 15/27] OMAPDSS: DSI: Add ops
-Date: Thu, 30 May 2013 12:36:08 +0300
-Message-ID: <1369906580-27585-16-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 16/27] OMAPDSS: Add new TFP410 Encoder driver
+Date: Thu, 30 May 2013 12:36:09 +0300
+Message-ID: <1369906580-27585-17-git-send-email-tomi.valkeinen@ti.com>
 References: <1369906580-27585-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41443 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37527 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030420Ab3E3JhJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 05:37:09 -0400
+	id S1030436Ab3E3JhK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 May 2013 05:37:10 -0400
 In-Reply-To: <1369906580-27585-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add "ops" style method for using DSI functionality.
-
-Ops style calls will allow us to have arbitrarily long display
-pipelines, where each entity can call ops in the previous display
-entity.
+Add TFP410 DPI-to-DVI Encoder driver which uses the new DSS device
+model and DSS ops.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dsi.c | 93 +++++++++++++++++++++++++++++++++++++++++++
- include/video/omapdss.h       | 58 +++++++++++++++++++++++++++
- 2 files changed, 151 insertions(+)
+ drivers/video/omap2/Kconfig                       |   1 +
+ drivers/video/omap2/Makefile                      |   1 +
+ drivers/video/omap2/displays-new/Kconfig          |   9 +
+ drivers/video/omap2/displays-new/Makefile         |   1 +
+ drivers/video/omap2/displays-new/encoder-tfp410.c | 270 ++++++++++++++++++++++
+ 5 files changed, 282 insertions(+)
+ create mode 100644 drivers/video/omap2/displays-new/Kconfig
+ create mode 100644 drivers/video/omap2/displays-new/Makefile
+ create mode 100644 drivers/video/omap2/displays-new/encoder-tfp410.c
 
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 4ecc0c1..a6b7d85 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -383,6 +383,15 @@ static inline struct dsi_data *dsi_get_dsidrv_data(struct platform_device *dside
+diff --git a/drivers/video/omap2/Kconfig b/drivers/video/omap2/Kconfig
+index b07b2b0..56cad0f 100644
+--- a/drivers/video/omap2/Kconfig
++++ b/drivers/video/omap2/Kconfig
+@@ -6,5 +6,6 @@ if ARCH_OMAP2PLUS
+ source "drivers/video/omap2/dss/Kconfig"
+ source "drivers/video/omap2/omapfb/Kconfig"
+ source "drivers/video/omap2/displays/Kconfig"
++source "drivers/video/omap2/displays-new/Kconfig"
  
- static inline struct platform_device *dsi_get_dsidev_from_dssdev(struct omap_dss_device *dssdev)
- {
-+	/* HACK: dssdev can be either the panel device, when using old API, or
-+	 * the dsi device itself, when using the new API. So we solve this for
-+	 * now by checking the dssdev->id. This will be removed when the old API
-+	 * is removed.
-+	 */
-+	if (dssdev->id == OMAP_DSS_OUTPUT_DSI1 ||
-+			dssdev->id == OMAP_DSS_OUTPUT_DSI2)
-+		return to_platform_device(dssdev->dev);
+ endif
+diff --git a/drivers/video/omap2/Makefile b/drivers/video/omap2/Makefile
+index 296e5c5..86873c2 100644
+--- a/drivers/video/omap2/Makefile
++++ b/drivers/video/omap2/Makefile
+@@ -2,4 +2,5 @@ obj-$(CONFIG_OMAP2_VRFB) += vrfb.o
+ 
+ obj-$(CONFIG_OMAP2_DSS) += dss/
+ obj-y += displays/
++obj-y += displays-new/
+ obj-$(CONFIG_FB_OMAP2) += omapfb/
+diff --git a/drivers/video/omap2/displays-new/Kconfig b/drivers/video/omap2/displays-new/Kconfig
+new file mode 100644
+index 0000000..92c2324
+--- /dev/null
++++ b/drivers/video/omap2/displays-new/Kconfig
+@@ -0,0 +1,9 @@
++menu "OMAP Display Device Drivers"
++        depends on OMAP2_DSS
 +
- 	return to_platform_device(dssdev->output->dev);
- }
- 
-@@ -5412,6 +5421,89 @@ static int dsi_probe_pdata(struct platform_device *dsidev)
- 	return 0;
- }
- 
-+static int dsi_connect(struct omap_dss_device *dssdev,
++config DISPLAY_ENCODER_TFP410
++        tristate "TFP410 DPI to DVI Encoder"
++	help
++	  Driver for TFP410 DPI to DVI encoder.
++
++endmenu
+diff --git a/drivers/video/omap2/displays-new/Makefile b/drivers/video/omap2/displays-new/Makefile
+new file mode 100644
+index 0000000..b0d3457
+--- /dev/null
++++ b/drivers/video/omap2/displays-new/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_DISPLAY_ENCODER_TFP410) += encoder-tfp410.o
+diff --git a/drivers/video/omap2/displays-new/encoder-tfp410.c b/drivers/video/omap2/displays-new/encoder-tfp410.c
+new file mode 100644
+index 0000000..5fff526
+--- /dev/null
++++ b/drivers/video/omap2/displays-new/encoder-tfp410.c
+@@ -0,0 +1,270 @@
++/*
++ * TFP410 DPI-to-DVI encoder driver
++ *
++ * Copyright (C) 2013 Texas Instruments
++ * Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ */
++
++#include <linux/gpio.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++
++#include <video/omapdss.h>
++#include <video/omap-panel-data.h>
++
++struct panel_drv_data {
++	struct omap_dss_device dssdev;
++	struct omap_dss_device *in;
++
++	int pd_gpio;
++	int data_lines;
++
++	struct omap_video_timings timings;
++};
++
++#define to_panel_data(x) container_of(x, struct panel_drv_data, dssdev)
++
++static int tfp410_connect(struct omap_dss_device *dssdev,
 +		struct omap_dss_device *dst)
 +{
-+	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
-+	struct omap_overlay_manager *mgr;
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_dss_device *in = ddata->in;
 +	int r;
 +
-+	r = dsi_regulator_init(dsidev);
++	if (omapdss_device_is_connected(dssdev))
++		return -EBUSY;
++
++	r = in->ops.dpi->connect(in, dssdev);
 +	if (r)
 +		return r;
 +
-+	mgr = omap_dss_get_overlay_manager(dssdev->dispc_channel);
-+	if (!mgr)
-+		return -ENODEV;
-+
-+	r = dss_mgr_connect(mgr, dssdev);
-+	if (r)
-+		return r;
-+
-+	r = omapdss_output_set_device(dssdev, dst);
-+	if (r) {
-+		DSSERR("failed to connect output to new device: %s\n",
-+				dssdev->name);
-+		dss_mgr_disconnect(mgr, dssdev);
-+		return r;
-+	}
++	dst->output = dssdev;
++	dssdev->device = dst;
 +
 +	return 0;
 +}
 +
-+static void dsi_disconnect(struct omap_dss_device *dssdev,
++static void tfp410_disconnect(struct omap_dss_device *dssdev,
 +		struct omap_dss_device *dst)
 +{
-+	WARN_ON(dst != dssdev->device);
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_dss_device *in = ddata->in;
 +
++	WARN_ON(!omapdss_device_is_connected(dssdev));
++	if (!omapdss_device_is_connected(dssdev))
++		return;
++
++	WARN_ON(dst != dssdev->device);
 +	if (dst != dssdev->device)
 +		return;
 +
-+	omapdss_output_unset_device(dssdev);
++	dst->output = NULL;
++	dssdev->device = NULL;
 +
-+	if (dssdev->manager)
-+		dss_mgr_disconnect(dssdev->manager, dssdev);
++	in->ops.dpi->disconnect(in, &ddata->dssdev);
 +}
 +
-+static const struct omapdss_dsi_ops dsi_ops = {
-+	.connect = dsi_connect,
-+	.disconnect = dsi_disconnect,
++static int tfp410_enable(struct omap_dss_device *dssdev)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_dss_device *in = ddata->in;
++	int r;
 +
-+	.bus_lock = dsi_bus_lock,
-+	.bus_unlock = dsi_bus_unlock,
++	if (!omapdss_device_is_connected(dssdev))
++		return -ENODEV;
 +
-+	.enable = omapdss_dsi_display_enable,
-+	.disable = omapdss_dsi_display_disable,
++	if (omapdss_device_is_enabled(dssdev))
++		return 0;
 +
-+	.enable_hs = omapdss_dsi_vc_enable_hs,
++	in->ops.dpi->set_timings(in, &ddata->timings);
++	in->ops.dpi->set_data_lines(in, ddata->data_lines);
 +
-+	.configure_pins = omapdss_dsi_configure_pins,
-+	.set_config = omapdss_dsi_set_config,
++	r = in->ops.dpi->enable(in);
++	if (r)
++		return r;
 +
-+	.enable_video_output = dsi_enable_video_output,
-+	.disable_video_output = dsi_disable_video_output,
++	if (gpio_is_valid(ddata->pd_gpio))
++		gpio_set_value_cansleep(ddata->pd_gpio, 1);
 +
-+	.update = omap_dsi_update,
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
 +
-+	.enable_te = omapdss_dsi_enable_te,
++	return 0;
++}
 +
-+	.request_vc = omap_dsi_request_vc,
-+	.set_vc_id = omap_dsi_set_vc_id,
-+	.release_vc = omap_dsi_release_vc,
++static void tfp410_disable(struct omap_dss_device *dssdev)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_dss_device *in = ddata->in;
 +
-+	.dcs_write = dsi_vc_dcs_write,
-+	.dcs_write_nosync = dsi_vc_dcs_write_nosync,
-+	.dcs_read = dsi_vc_dcs_read,
++	if (!omapdss_device_is_enabled(dssdev))
++		return;
 +
-+	.gen_write = dsi_vc_generic_write,
-+	.gen_write_nosync = dsi_vc_generic_write_nosync,
-+	.gen_read = dsi_vc_generic_read,
++	if (gpio_is_valid(ddata->pd_gpio))
++		gpio_set_value_cansleep(ddata->pd_gpio, 0);
 +
-+	.bta_sync = dsi_vc_send_bta_sync,
++	in->ops.dpi->disable(in);
 +
-+	.set_max_rx_packet_size = dsi_vc_set_max_rx_packet_size,
++	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
++}
++
++static void tfp410_set_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_dss_device *in = ddata->in;
++
++	ddata->timings = *timings;
++	dssdev->panel.timings = *timings;
++
++	in->ops.dpi->set_timings(in, timings);
++}
++
++static void tfp410_get_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++
++	*timings = ddata->timings;
++}
++
++static int tfp410_check_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_dss_device *in = ddata->in;
++
++	return in->ops.dpi->check_timings(in, timings);
++}
++
++static const struct omapdss_dvi_ops tfp410_dvi_ops = {
++	.connect	= tfp410_connect,
++	.disconnect	= tfp410_disconnect,
++
++	.enable		= tfp410_enable,
++	.disable	= tfp410_disable,
++
++	.check_timings	= tfp410_check_timings,
++	.set_timings	= tfp410_set_timings,
++	.get_timings	= tfp410_get_timings,
 +};
 +
- static void dsi_init_output(struct platform_device *dsidev)
- {
- 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
-@@ -5424,6 +5516,7 @@ static void dsi_init_output(struct platform_device *dsidev)
- 	out->output_type = OMAP_DISPLAY_TYPE_DSI;
- 	out->name = dsi->module_id == 0 ? "dsi.0" : "dsi.1";
- 	out->dispc_channel = dsi_get_channel(dsi->module_id);
-+	out->ops.dsi = &dsi_ops;
- 	out->owner = THIS_MODULE;
- 
- 	omapdss_register_output(out);
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index f0aee54..f8c26c5 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -694,6 +694,63 @@ struct omapdss_hdmi_ops {
- 	void (*audio_stop)(struct omap_dss_device *dssdev);
- };
- 
-+struct omapdss_dsi_ops {
-+	int (*connect)(struct omap_dss_device *dssdev,
-+			struct omap_dss_device *dst);
-+	void (*disconnect)(struct omap_dss_device *dssdev,
-+			struct omap_dss_device *dst);
++static int tfp410_probe_pdata(struct platform_device *pdev)
++{
++	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
++	struct encoder_tfp410_platform_data *pdata;
++	struct omap_dss_device *dssdev, *in;
++	int r, gpio;
 +
-+	int (*enable)(struct omap_dss_device *dssdev);
-+	void (*disable)(struct omap_dss_device *dssdev, bool disconnect_lanes,
-+			bool enter_ulps);
++	pdata = dev_get_platdata(&pdev->dev);
++	gpio = pdata->power_down_gpio;
 +
-+	/* bus configuration */
-+	int (*set_config)(struct omap_dss_device *dssdev,
-+			const struct omap_dss_dsi_config *cfg);
-+	int (*configure_pins)(struct omap_dss_device *dssdev,
-+			const struct omap_dsi_pin_config *pin_cfg);
++	if (gpio_is_valid(gpio)) {
++		r = devm_gpio_request_one(&pdev->dev, gpio,
++				GPIOF_OUT_INIT_LOW, "tfp410 pd");
++		if (r) {
++			dev_err(&pdev->dev, "Failed to request PD GPIO %d\n",
++					gpio);
++			return r;
++		}
 +
-+	void (*enable_hs)(struct omap_dss_device *dssdev, int channel,
-+			bool enable);
-+	int (*enable_te)(struct omap_dss_device *dssdev, bool enable);
++		ddata->pd_gpio = gpio;
++	} else {
++		ddata->pd_gpio = -1;
++	}
 +
-+	int (*update)(struct omap_dss_device *dssdev, int channel,
-+			void (*callback)(int, void *), void *data);
++	ddata->data_lines = pdata->data_lines;
 +
-+	void (*bus_lock)(struct omap_dss_device *dssdev);
-+	void (*bus_unlock)(struct omap_dss_device *dssdev);
++	in = omap_dss_find_output(pdata->source);
++	if (in == NULL) {
++		dev_err(&pdev->dev, "Failed to find video source\n");
++		return -ENODEV;
++	}
 +
-+	int (*enable_video_output)(struct omap_dss_device *dssdev, int channel);
-+	void (*disable_video_output)(struct omap_dss_device *dssdev,
-+			int channel);
++	ddata->in = in;
 +
-+	int (*request_vc)(struct omap_dss_device *dssdev, int *channel);
-+	int (*set_vc_id)(struct omap_dss_device *dssdev, int channel,
-+			int vc_id);
-+	void (*release_vc)(struct omap_dss_device *dssdev, int channel);
++	dssdev = &ddata->dssdev;
++	dssdev->name = pdata->name;
 +
-+	/* data transfer */
-+	int (*dcs_write)(struct omap_dss_device *dssdev, int channel,
-+			u8 *data, int len);
-+	int (*dcs_write_nosync)(struct omap_dss_device *dssdev, int channel,
-+			u8 *data, int len);
-+	int (*dcs_read)(struct omap_dss_device *dssdev, int channel, u8 dcs_cmd,
-+			u8 *data, int len);
++	return 0;
++}
 +
-+	int (*gen_write)(struct omap_dss_device *dssdev, int channel,
-+			u8 *data, int len);
-+	int (*gen_write_nosync)(struct omap_dss_device *dssdev, int channel,
-+			u8 *data, int len);
-+	int (*gen_read)(struct omap_dss_device *dssdev, int channel,
-+			u8 *reqdata, int reqlen,
-+			u8 *data, int len);
++static int tfp410_probe(struct platform_device *pdev)
++{
++	struct panel_drv_data *ddata;
++	struct omap_dss_device *dssdev;
++	int r;
 +
-+	int (*bta_sync)(struct omap_dss_device *dssdev, int channel);
++	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
++	if (!ddata)
++		return -ENOMEM;
 +
-+	int (*set_max_rx_packet_size)(struct omap_dss_device *dssdev,
-+			int channel, u16 plen);
++	platform_set_drvdata(pdev, ddata);
++
++	if (dev_get_platdata(&pdev->dev)) {
++		r = tfp410_probe_pdata(pdev);
++		if (r)
++			return r;
++	} else {
++		return -ENODEV;
++	}
++
++	dssdev = &ddata->dssdev;
++	dssdev->ops.dvi = &tfp410_dvi_ops;
++	dssdev->dev = &pdev->dev;
++	dssdev->type = OMAP_DISPLAY_TYPE_DPI;
++	dssdev->output_type = OMAP_DISPLAY_TYPE_DVI;
++	dssdev->owner = THIS_MODULE;
++	dssdev->phy.dpi.data_lines = ddata->data_lines;
++
++	r = omapdss_register_output(dssdev);
++	if (r) {
++		dev_err(&pdev->dev, "Failed to register output\n");
++		goto err_reg;
++	}
++
++	return 0;
++err_reg:
++	omap_dss_put_device(ddata->in);
++	return r;
++}
++
++static int __exit tfp410_remove(struct platform_device *pdev)
++{
++	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
++	struct omap_dss_device *dssdev = &ddata->dssdev;
++	struct omap_dss_device *in = ddata->in;
++
++	omapdss_unregister_output(&ddata->dssdev);
++
++	WARN_ON(omapdss_device_is_enabled(dssdev));
++	if (omapdss_device_is_enabled(dssdev))
++		tfp410_disable(dssdev);
++
++	WARN_ON(omapdss_device_is_connected(dssdev));
++	if (omapdss_device_is_connected(dssdev))
++		tfp410_disconnect(dssdev, dssdev->device);
++
++	omap_dss_put_device(in);
++
++	return 0;
++}
++
++static struct platform_driver tfp410_driver = {
++	.probe	= tfp410_probe,
++	.remove	= __exit_p(tfp410_remove),
++	.driver	= {
++		.name	= "tfp410",
++		.owner	= THIS_MODULE,
++	},
 +};
 +
- struct omap_dss_device {
- 	/* old device, to be removed */
- 	struct device old_dev;
-@@ -772,6 +829,7 @@ struct omap_dss_device {
- 		const struct omapdss_dvi_ops *dvi;
- 		const struct omapdss_hdmi_ops *hdmi;
- 		const struct omapdss_atv_ops *atv;
-+		const struct omapdss_dsi_ops *dsi;
- 	} ops;
- 
- 	/* helper variable for driver suspend/resume */
++module_platform_driver(tfp410_driver);
++
++MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@ti.com>");
++MODULE_DESCRIPTION("TFP410 DPI to DVI encoder driver");
++MODULE_LICENSE("GPL");
 -- 
 1.8.1.2
 
