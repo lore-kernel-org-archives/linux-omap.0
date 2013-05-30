@@ -1,96 +1,90 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 03/32] OMAPDSS: add omap_dss_find_output()
-Date: Thu, 30 May 2013 14:40:10 +0300
-Message-ID: <51A73A9A.8010801@ti.com>
-References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com> <1369906493-27538-4-git-send-email-tomi.valkeinen@ti.com> <20130530110707.GH19468@game.jcrosoft.org>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH v2 11/14] Documentation: dt: binding: omap: am43x timer
+Date: Thu, 30 May 2013 13:44:23 +0200
+Message-ID: <51A73B97.2020701@ti.com>
+References: <cover.1369658705.git.afzal@ti.com> <223d90dc9eeab13d8496690d336cdf0f7d27cd22.1369658705.git.afzal@ti.com> <51A520B5.8040803@gmail.com> <51A52A16.1040204@wwwdotorg.org> <C8443D0743D26F4388EA172BF4E2A7A93EAFB044@DBDE04.ent.ti.com> <51A5BEB6.6070809@ti.com> <51A61E60.4070708@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="----enig2GEQIIJPMEHWFVPGLCDUB"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46023 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751113Ab3E3LkN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 07:40:13 -0400
-In-Reply-To: <20130530110707.GH19468@game.jcrosoft.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <51A61E60.4070708@wwwdotorg.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, Jon Hunter <jgchunter@gmail.com>, Russell King <linux@arm.linux.org.uk>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@linaro.org>, Benoit Cousson <benoit.cousson@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-------enig2GEQIIJPMEHWFVPGLCDUB
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Stephen,
 
-On 30/05/13 14:07, Jean-Christophe PLAGNIOL-VILLARD wrote:
-> On 12:34 Thu 30 May     , Tomi Valkeinen wrote:
->> Add a support function to find a DSS output by given name. This is use=
-d
->> in later patches to link the panels to DSS outputs.
+On 05/29/2013 05:27 PM, Stephen Warren wrote:
+> On 05/29/2013 02:39 AM, Benoit Cousson wrote:
+>> Hi Afzal,
 >>
->> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->> ---
->>  drivers/video/omap2/dss/output.c | 13 +++++++++++++
->>  include/video/omapdss.h          |  1 +
->>  2 files changed, 14 insertions(+)
+>> On 05/29/2013 10:06 AM, Mohammed, Afzal wrote:
+>>> Hi Jon,
+>>>
+>>> On Wed, May 29, 2013 at 03:35:10, Stephen Warren wrote:
+>>>> On 05/28/2013 03:25 PM, Jon Hunter wrote:
+>>>
+>>>>>>  			ti,am335x-timer	(applicable to AM335x devices)
+>>>>>>  			ti,am335x-timer-1ms (applicable to AM335x devices)
+>>>>>> +			"ti,am4372-timer-1ms", "ti,am335x-timer-1ms" for AM43x 1ms timer
+>>>>>> +			"ti,am4372-timer", "ti,am335x-timer" for AM43x timers other than 1ms one
+>>>
+>>>>> If you are adding more compatibility strings, then this implies that the
+>>>>> AM43x timers are not 100% compatible with any other device listed (such
+>>>>> as am335x or any omap device). That's fine but you should state that in
+>>>>> the changelog. If the AM43x timer registers are 100% compatible with
+>>>>> existing devices you should not add these.
+>>>>
+>>>> I'm not sure that's true; .dts files should always include a compatible
+>>>> value that describes the most specific model of the HW, plus any
+>>>> baseline compatible value that the HW is compatible with. This allows
+>>>> any required quirks/fixes/... to be applied for the specific HW model
+>>>> later even if nobody knows right now they'll be needed. Hence, defining
+>>>> new compatible values doesn't necessarily mean incompatible HW.
+>>>
+>>> Stephen took words out of my finger ;)
+>>>  
+>>> Some explanations,I don;t 
+>>>
+>>> 1. first compatible should be exact device [A], followed by compatible
+>>> model (if one)
+>>> 2. Minor effort in getting DT right the first time may help prevent
+>>> difficult effort later modifying it (if a necessity comes), considering
+>>> the fact that DT sources has  to move out of Kernel at some point of
+>>> time. And DT is not supposed to be modified, which may cause difficulty
+>>> for the users (I had been a minor victim of this during rebase).
+>>>
+>>> As we both were in GPMC land earlier, an example,
+>>>
+>>> If my memory is right, GPMC IP in am335x is rev 6, and IP has 8 chip
+>>> select, but one is not pinned out. Now assume that same IP is integrated
+>>> in another SoC (probably OMAP4 has rev 6). Here if we use same compatible
+>>> for both, driver cannot handle it properly (w/o knowledge about platform).
+>>> But if exact compatible is mentioned, without modifying DT (which should
+>>> be considered as a firmware) just by modifying Kernel, deciding based on
+>>> compatible would help achieve what is required.
 >>
->> diff --git a/drivers/video/omap2/dss/output.c b/drivers/video/omap2/ds=
-s/output.c
->> index 5214df6..3274628 100644
->> --- a/drivers/video/omap2/dss/output.c
->> +++ b/drivers/video/omap2/dss/output.c
->> @@ -115,6 +115,19 @@ struct omap_dss_output *omap_dss_get_output(enum =
-omap_dss_output_id id)
->>  }
->>  EXPORT_SYMBOL(omap_dss_get_output);
-> GPL please
+>> That's true for the DTS itself, but here your are changing the binding
+>> documentation which is supposed to reflect the driver "interface" in the
+>> Device Tree model description.
+>>
+>> Since the driver does not support any new compatible string, you should
+>> not update the binding.
+> 
+> I don't agree here; the DT binding should define all the required and/or
+> allowed values that must/should/can be present in the DT - the entire
+> legal schema. The set of all compatible values is included in that,
+> irrespective of whether a particular value actually (currently) defines
+> a different HW interface or not.
 
-The omapdss driver uses EXPORT_SYMBOL. I don't want to start mixing both
-EXPORT_SYMBOLs and EXPORT_SYMBOL_GPLs.
+Well, I tend to agree on the principle, but so far it was never really
+done like that. That's not necessarily a good excuse, but if we start
+adding new bindings for the huge number of OMAP|AM variants TI has been
+introduced for 10 years, I'd rather use a wildcard than a exhaustive
+list of all the devices.
+Something like ti,[omap|am]*-timer for example .
 
->> +struct omap_dss_output *omap_dss_find_output(const char *name)
->> +{
->> +	struct omap_dss_output *out;
->> +
->> +	list_for_each_entry(out, &output_list, list) {
->> +		if (strcmp(out->name, name) =3D=3D 0)
->> +			return out;
->> +	}
->> +
->> +	return NULL;
->> +}
-> I this in so many drivers could we have a macro to generate such functi=
-on?
+Regards,
+Benoit
 
-What would that help? Wouldn't it just increase the code size of the kern=
-el?
-
- Tomi
-
-
-
-------enig2GEQIIJPMEHWFVPGLCDUB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJRpzqaAAoJEPo9qoy8lh71dF8P/AzhvXY/SzDGt66OlVRRnTmh
-6BicGTRMeD2uubRclOmG9+NkkkDWARomLYglUmDAP4iMq+UiHaDG5m8cgNrGsKIZ
-9RRjt/i3iEHv63UYdhKyrDkypo/bbDpe/cj+ZaLJhy2L/tOSIlF6xvw8Ca//0E+X
-uEOO9asT9kquio1YjA3RBLMB4h4ZVP/d266zRlfLMg/UENjvpPjktHaq9D8nUcYc
-+tyJSXnBipKCJCqd8xD0Aow6YRPBhfuzyMcWSfTMcelaCkvV+IxXxWpERcGsbbla
-Rm39fc8A3Eijih2mhzLLU5BgPKL18leTU6Gx1HJc1SZqZA9VDTxDg4W7vZkrLdB6
-Lnw2Xtg17hcxnM0tjFBdTzx2TOa5LvTx/O6F+FxsRCwRQ0FhJJvRsuVq8DYExpb8
-FGg5xTFXXuw8JeC/JkC0JS5dNelsUqmWN9fUnjWfvEVWS+VK1t7br+oAlQvIJY0p
-nbDDrh7LmTs8pprSX1q4U1mHdQrT+WdinE+qV/FE7vfr24SY08Y9Atgr1v6uv64B
-eeTrdppSFQIjPh9WDl40T9psx9Q4oZdHdjCeGSBKFBLcYt2/eXpCnhMD2qpVXXc2
-hJus+y2NjbQUmZbDMosqckP7ULAq6VG2xIytmWmV9L+SONs++kNlkbvDHvVYEMQp
-0mvPgnqv+9kxxOTHNj3o
-=Qk5x
------END PGP SIGNATURE-----
-
-------enig2GEQIIJPMEHWFVPGLCDUB--
