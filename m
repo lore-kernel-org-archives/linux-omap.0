@@ -1,1725 +1,721 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 25/32] OMAPDSS: Add panel dev pointer to dssdev
-Date: Thu, 30 May 2013 12:34:46 +0300
-Message-ID: <1369906493-27538-26-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 27/32] OMAPDSS: combine omap_dss_output into omap_dss_device
+Date: Thu, 30 May 2013 12:34:48 +0300
+Message-ID: <1369906493-27538-28-git-send-email-tomi.valkeinen@ti.com>
 References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49837 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49842 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030366Ab3E3Jfz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 05:35:55 -0400
+	id S1030352Ab3E3Jf6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 May 2013 05:35:58 -0400
 In-Reply-To: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-We are about to remove the dss bus support, which also means that the
-omap_dss_device won't be a real device anymore. This means that the
-embedded "dev" struct needs to be removed from omap_dss_device.
+We currently have omap_dss_device, which represents an external display
+device, sometimes an external encoder, sometimes a panel. Then we have
+omap_dss_output, which represents DSS's output encoder.
 
-After we've finished the removal of the dss bus, we see the following
-changes:
+In the future with new display device model, we construct a video
+pipeline from the display blocks. To accomplish this, all the blocks
+need to be presented by the same entity.
 
-- struct omap_dss_device won't be a real Linux device anymore, but more
-  like a "display entity".
-- struct omap_dss_driver won't be a Linux device driver, but "display
-  entity ops".
-- The panel devices/drivers won't be omapdss devices/drivers, but
-  platform/i2c/spi/etc devices/drivers, whichever fits the control
-  mechanism of the panel.
-- The panel drivers will create omap_dss_device and omap_dss_driver,
-  fill the required fields, and register the omap_dss_device to
-  omapdss.
-- omap_dss_device won't have an embedded dev struct anymore, but a
-  dev pointer to the actual device that manages the omap_dss_device.
-
-The model described above resembles the model that has been discussed
-with CDF (common display framework).
-
-For the duration of the conversion, we temporarily have two devs in the
-dssdev, the old "old_dev", which is a full embedded device struct, and the
-new "dev", which is a pointer to the device. "old_dev" will be removed
-in the future.
-
-For devices belonging to dss bus the dev is initialized to point to
-old_dev. This way all the code can just use the dev, for both old and
-new style panels.
-
-Both the new and old style panel drivers work during the conversion, and
-only after the dss bus support is removed will the old style panels stop
-to compile.
+Thus, this patch combines omap_dss_output into omap_dss_device. Some of
+the fields in omap_dss_output are already found in omap_dss_device, but
+some are not. This means we'll have DSS output specific fields in
+omap_dss_device, which is not very nice. However, it is easier to just
+keep those output specific fields there for now, and after transition to
+new display device model is made, they can be cleaned up easier than
+could be done now.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/displays/panel-acx565akm.c     |  16 +-
- drivers/video/omap2/displays/panel-generic-dpi.c   |  26 ++--
- .../omap2/displays/panel-lgphilips-lb035q02.c      |  10 +-
- drivers/video/omap2/displays/panel-n8x0.c          |  30 ++--
- .../omap2/displays/panel-nec-nl8048hl11-01b.c      |   4 +-
- drivers/video/omap2/displays/panel-picodlp.c       |  32 ++--
- .../video/omap2/displays/panel-sharp-ls037v7dw01.c |  10 +-
- drivers/video/omap2/displays/panel-taal.c          | 164 ++++++++++-----------
- drivers/video/omap2/displays/panel-tfp410.c        |  32 ++--
- .../video/omap2/displays/panel-tpo-td043mtea1.c    |  36 ++---
- drivers/video/omap2/dss/core.c                     |  18 ++-
- drivers/video/omap2/dss/display-sysfs.c            |   7 +-
- drivers/video/omap2/dss/display.c                  |   9 +-
- drivers/video/omap2/dss/venc_panel.c               |  16 +-
- include/video/omapdss.h                            |   8 +-
- 15 files changed, 212 insertions(+), 206 deletions(-)
+ drivers/gpu/drm/omapdrm/omap_crtc.c |  4 +--
+ drivers/gpu/drm/omapdrm/omap_drv.c  |  2 +-
+ drivers/video/omap2/dss/apply.c     |  6 ++--
+ drivers/video/omap2/dss/core.c      |  4 +--
+ drivers/video/omap2/dss/dpi.c       | 12 +++----
+ drivers/video/omap2/dss/dsi.c       | 18 +++++-----
+ drivers/video/omap2/dss/dss.h       |  4 +--
+ drivers/video/omap2/dss/hdmi.c      | 12 +++----
+ drivers/video/omap2/dss/output.c    | 32 +++++++++---------
+ drivers/video/omap2/dss/rfbi.c      | 14 ++++----
+ drivers/video/omap2/dss/sdi.c       | 12 +++----
+ drivers/video/omap2/dss/venc.c      | 12 +++----
+ include/video/omapdss.h             | 66 +++++++++++++++++--------------------
+ 13 files changed, 96 insertions(+), 102 deletions(-)
 
-diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/video/omap2/displays/panel-acx565akm.c
-index d7f69c0..3fd100f 100644
---- a/drivers/video/omap2/displays/panel-acx565akm.c
-+++ b/drivers/video/omap2/displays/panel-acx565akm.c
-@@ -510,7 +510,7 @@ static int acx_panel_probe(struct omap_dss_device *dssdev)
- 	int max_brightness, brightness;
- 	struct backlight_properties props;
+diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdrm/omap_crtc.c
+index b2ab2f5..4cec678 100644
+--- a/drivers/gpu/drm/omapdrm/omap_crtc.c
++++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
+@@ -95,7 +95,7 @@ static struct omap_crtc *omap_crtcs[8];
  
--	dev_dbg(&dssdev->dev, "%s\n", __func__);
-+	dev_dbg(dssdev->dev, "%s\n", __func__);
- 
- 	if (!panel_data)
+ /* we can probably ignore these until we support command-mode panels: */
+ static int omap_crtc_connect(struct omap_overlay_manager *mgr,
+-		struct omap_dss_output *dst)
++		struct omap_dss_device *dst)
+ {
+ 	if (mgr->output)
  		return -EINVAL;
-@@ -519,7 +519,7 @@ static int acx_panel_probe(struct omap_dss_device *dssdev)
- 	dssdev->panel.timings = acx_panel_timings;
- 
- 	if (gpio_is_valid(panel_data->reset_gpio)) {
--		r = devm_gpio_request_one(&dssdev->dev, panel_data->reset_gpio,
-+		r = devm_gpio_request_one(dssdev->dev, panel_data->reset_gpio,
- 				GPIOF_OUT_INIT_LOW, "lcd reset");
- 		if (r)
- 			return r;
-@@ -538,7 +538,7 @@ static int acx_panel_probe(struct omap_dss_device *dssdev)
- 
- 	r = panel_detect(md);
- 	if (r) {
--		dev_err(&dssdev->dev, "%s panel detect error\n", __func__);
-+		dev_err(dssdev->dev, "%s panel detect error\n", __func__);
- 		if (!md->enabled && gpio_is_valid(panel_data->reset_gpio))
- 			gpio_set_value(panel_data->reset_gpio, 0);
- 
-@@ -593,7 +593,7 @@ static void acx_panel_remove(struct omap_dss_device *dssdev)
- {
- 	struct acx565akm_device *md = &acx_dev;
- 
--	dev_dbg(&dssdev->dev, "%s\n", __func__);
-+	dev_dbg(dssdev->dev, "%s\n", __func__);
- 	sysfs_remove_group(&md->bl_dev->dev.kobj, &bldev_attr_group);
- 	backlight_device_unregister(md->bl_dev);
- 	mutex_lock(&acx_dev.mutex);
-@@ -607,7 +607,7 @@ static int acx_panel_power_on(struct omap_dss_device *dssdev)
- 	struct panel_acx565akm_data *panel_data = get_panel_data(dssdev);
- 	int r;
- 
--	dev_dbg(&dssdev->dev, "%s\n", __func__);
-+	dev_dbg(dssdev->dev, "%s\n", __func__);
- 
- 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
- 		return 0;
-@@ -667,7 +667,7 @@ static void acx_panel_power_off(struct omap_dss_device *dssdev)
- 	struct acx565akm_device *md = &acx_dev;
- 	struct panel_acx565akm_data *panel_data = get_panel_data(dssdev);
- 
--	dev_dbg(&dssdev->dev, "%s\n", __func__);
-+	dev_dbg(dssdev->dev, "%s\n", __func__);
- 
- 	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
- 		return;
-@@ -704,7 +704,7 @@ static int acx_panel_enable(struct omap_dss_device *dssdev)
- {
- 	int r;
- 
--	dev_dbg(&dssdev->dev, "%s\n", __func__);
-+	dev_dbg(dssdev->dev, "%s\n", __func__);
- 	r = acx_panel_power_on(dssdev);
- 
- 	if (r)
-@@ -716,7 +716,7 @@ static int acx_panel_enable(struct omap_dss_device *dssdev)
- 
- static void acx_panel_disable(struct omap_dss_device *dssdev)
- {
--	dev_dbg(&dssdev->dev, "%s\n", __func__);
-+	dev_dbg(dssdev->dev, "%s\n", __func__);
- 	acx_panel_power_off(dssdev);
- 	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
- }
-diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
-index 97363f7..bebebd4 100644
---- a/drivers/video/omap2/displays/panel-generic-dpi.c
-+++ b/drivers/video/omap2/displays/panel-generic-dpi.c
-@@ -536,7 +536,7 @@ static int generic_dpi_panel_power_on(struct omap_dss_device *dssdev)
- {
- 	int r, i;
- 	struct panel_generic_dpi_data *panel_data = get_panel_data(dssdev);
--	struct panel_drv_data *drv_data = dev_get_drvdata(&dssdev->dev);
-+	struct panel_drv_data *drv_data = dev_get_drvdata(dssdev->dev);
- 	struct panel_config *panel_config = drv_data->panel_config;
- 
- 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
-@@ -567,7 +567,7 @@ err0:
- static void generic_dpi_panel_power_off(struct omap_dss_device *dssdev)
- {
- 	struct panel_generic_dpi_data *panel_data = get_panel_data(dssdev);
--	struct panel_drv_data *drv_data = dev_get_drvdata(&dssdev->dev);
-+	struct panel_drv_data *drv_data = dev_get_drvdata(dssdev->dev);
- 	struct panel_config *panel_config = drv_data->panel_config;
- 	int i;
- 
-@@ -593,7 +593,7 @@ static int generic_dpi_panel_probe(struct omap_dss_device *dssdev)
- 	struct panel_drv_data *drv_data = NULL;
- 	int i, r;
- 
--	dev_dbg(&dssdev->dev, "probe\n");
-+	dev_dbg(dssdev->dev, "probe\n");
- 
- 	if (!panel_data || !panel_data->name)
- 		return -EINVAL;
-@@ -609,7 +609,7 @@ static int generic_dpi_panel_probe(struct omap_dss_device *dssdev)
- 		return -EINVAL;
- 
- 	for (i = 0; i < panel_data->num_gpios; ++i) {
--		r = devm_gpio_request_one(&dssdev->dev, panel_data->gpios[i],
-+		r = devm_gpio_request_one(dssdev->dev, panel_data->gpios[i],
- 				panel_data->gpio_invert[i] ?
- 				GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW,
- 				"panel gpio");
-@@ -619,7 +619,7 @@ static int generic_dpi_panel_probe(struct omap_dss_device *dssdev)
- 
- 	dssdev->panel.timings = panel_config->timings;
- 
--	drv_data = devm_kzalloc(&dssdev->dev, sizeof(*drv_data), GFP_KERNEL);
-+	drv_data = devm_kzalloc(dssdev->dev, sizeof(*drv_data), GFP_KERNEL);
- 	if (!drv_data)
- 		return -ENOMEM;
- 
-@@ -628,21 +628,21 @@ static int generic_dpi_panel_probe(struct omap_dss_device *dssdev)
- 
- 	mutex_init(&drv_data->lock);
- 
--	dev_set_drvdata(&dssdev->dev, drv_data);
-+	dev_set_drvdata(dssdev->dev, drv_data);
- 
- 	return 0;
+@@ -110,7 +110,7 @@ static int omap_crtc_connect(struct omap_overlay_manager *mgr,
  }
  
- static void __exit generic_dpi_panel_remove(struct omap_dss_device *dssdev)
+ static void omap_crtc_disconnect(struct omap_overlay_manager *mgr,
+-		struct omap_dss_output *dst)
++		struct omap_dss_device *dst)
  {
--	dev_dbg(&dssdev->dev, "remove\n");
-+	dev_dbg(dssdev->dev, "remove\n");
+ 	mgr->output->manager = NULL;
+ 	mgr->output = NULL;
+diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
+index 58bd259..a72100c 100644
+--- a/drivers/gpu/drm/omapdrm/omap_drv.c
++++ b/drivers/gpu/drm/omapdrm/omap_drv.c
+@@ -259,7 +259,7 @@ static int omap_modeset_init(struct drm_device *dev)
+ 		struct drm_encoder *encoder = priv->encoders[i];
+ 		struct omap_dss_device *dssdev =
+ 					omap_encoder_get_dssdev(encoder);
+-		struct omap_dss_output *output;
++		struct omap_dss_device *output;
  
--	dev_set_drvdata(&dssdev->dev, NULL);
-+	dev_set_drvdata(dssdev->dev, NULL);
+ 		output = omapdss_find_output_from_display(dssdev);
+ 
+diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+index ced656a..752b985 100644
+--- a/drivers/video/omap2/dss/apply.c
++++ b/drivers/video/omap2/dss/apply.c
+@@ -791,13 +791,13 @@ static void mgr_clear_shadow_dirty(struct omap_overlay_manager *mgr)
  }
  
- static int generic_dpi_panel_enable(struct omap_dss_device *dssdev)
+ static int dss_mgr_connect_compat(struct omap_overlay_manager *mgr,
+-		struct omap_dss_output *dst)
++		struct omap_dss_device *dst)
  {
--	struct panel_drv_data *drv_data = dev_get_drvdata(&dssdev->dev);
-+	struct panel_drv_data *drv_data = dev_get_drvdata(dssdev->dev);
- 	int r;
- 
- 	mutex_lock(&drv_data->lock);
-@@ -660,7 +660,7 @@ err:
- 
- static void generic_dpi_panel_disable(struct omap_dss_device *dssdev)
- {
--	struct panel_drv_data *drv_data = dev_get_drvdata(&dssdev->dev);
-+	struct panel_drv_data *drv_data = dev_get_drvdata(dssdev->dev);
- 
- 	mutex_lock(&drv_data->lock);
- 
-@@ -674,7 +674,7 @@ static void generic_dpi_panel_disable(struct omap_dss_device *dssdev)
- static void generic_dpi_panel_set_timings(struct omap_dss_device *dssdev,
- 		struct omap_video_timings *timings)
- {
--	struct panel_drv_data *drv_data = dev_get_drvdata(&dssdev->dev);
-+	struct panel_drv_data *drv_data = dev_get_drvdata(dssdev->dev);
- 
- 	mutex_lock(&drv_data->lock);
- 
-@@ -688,7 +688,7 @@ static void generic_dpi_panel_set_timings(struct omap_dss_device *dssdev,
- static void generic_dpi_panel_get_timings(struct omap_dss_device *dssdev,
- 		struct omap_video_timings *timings)
- {
--	struct panel_drv_data *drv_data = dev_get_drvdata(&dssdev->dev);
-+	struct panel_drv_data *drv_data = dev_get_drvdata(dssdev->dev);
- 
- 	mutex_lock(&drv_data->lock);
- 
-@@ -700,7 +700,7 @@ static void generic_dpi_panel_get_timings(struct omap_dss_device *dssdev,
- static int generic_dpi_panel_check_timings(struct omap_dss_device *dssdev,
- 		struct omap_video_timings *timings)
- {
--	struct panel_drv_data *drv_data = dev_get_drvdata(&dssdev->dev);
-+	struct panel_drv_data *drv_data = dev_get_drvdata(dssdev->dev);
- 	int r;
- 
- 	mutex_lock(&drv_data->lock);
-diff --git a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
-index 4ea6548..6c51430 100644
---- a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
-+++ b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
-@@ -109,12 +109,12 @@ static int lb035q02_panel_probe(struct omap_dss_device *dssdev)
- 
- 	dssdev->panel.timings = lb035q02_timings;
- 
--	ld = devm_kzalloc(&dssdev->dev, sizeof(*ld), GFP_KERNEL);
-+	ld = devm_kzalloc(dssdev->dev, sizeof(*ld), GFP_KERNEL);
- 	if (!ld)
- 		return -ENOMEM;
- 
- 	for (i = 0; i < panel_data->num_gpios; ++i) {
--		r = devm_gpio_request_one(&dssdev->dev, panel_data->gpios[i],
-+		r = devm_gpio_request_one(dssdev->dev, panel_data->gpios[i],
- 				panel_data->gpio_invert[i] ?
- 				GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW,
- 				"panel gpio");
-@@ -123,7 +123,7 @@ static int lb035q02_panel_probe(struct omap_dss_device *dssdev)
- 	}
- 
- 	mutex_init(&ld->lock);
--	dev_set_drvdata(&dssdev->dev, ld);
-+	dev_set_drvdata(dssdev->dev, ld);
- 
- 	return 0;
- }
-@@ -134,7 +134,7 @@ static void lb035q02_panel_remove(struct omap_dss_device *dssdev)
- 
- static int lb035q02_panel_enable(struct omap_dss_device *dssdev)
- {
--	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
-+	struct lb035q02_data *ld = dev_get_drvdata(dssdev->dev);
- 	int r;
- 
- 	mutex_lock(&ld->lock);
-@@ -153,7 +153,7 @@ err:
- 
- static void lb035q02_panel_disable(struct omap_dss_device *dssdev)
- {
--	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
-+	struct lb035q02_data *ld = dev_get_drvdata(dssdev->dev);
- 
- 	mutex_lock(&ld->lock);
- 
-diff --git a/drivers/video/omap2/displays/panel-n8x0.c b/drivers/video/omap2/displays/panel-n8x0.c
-index f94ead6..d3860c5 100644
---- a/drivers/video/omap2/displays/panel-n8x0.c
-+++ b/drivers/video/omap2/displays/panel-n8x0.c
-@@ -311,16 +311,16 @@ static int n8x0_panel_power_on(struct omap_dss_device *dssdev)
- 	switch (rev & 0xfc) {
- 	case 0x9c:
- 		ddata->blizzard_ver = BLIZZARD_VERSION_S1D13744;
--		dev_info(&dssdev->dev, "s1d13744 LCD controller rev %d "
-+		dev_info(dssdev->dev, "s1d13744 LCD controller rev %d "
- 			"initialized (CNF pins %x)\n", rev & 0x03, conf & 0x07);
- 		break;
- 	case 0xa4:
- 		ddata->blizzard_ver = BLIZZARD_VERSION_S1D13745;
--		dev_info(&dssdev->dev, "s1d13745 LCD controller rev %d "
-+		dev_info(dssdev->dev, "s1d13745 LCD controller rev %d "
- 			"initialized (CNF pins %x)\n", rev & 0x03, conf & 0x07);
- 		break;
- 	default:
--		dev_err(&dssdev->dev, "invalid s1d1374x revision %02x\n", rev);
-+		dev_err(dssdev->dev, "invalid s1d1374x revision %02x\n", rev);
- 		r = -ENODEV;
- 		goto err_inv_chip;
- 	}
-@@ -341,13 +341,13 @@ static int n8x0_panel_power_on(struct omap_dss_device *dssdev)
- 		panel_name = "ls041y3";
- 		break;
- 	default:
--		dev_err(&dssdev->dev, "invalid display ID 0x%x\n",
-+		dev_err(dssdev->dev, "invalid display ID 0x%x\n",
- 				display_id[0]);
- 		r = -ENODEV;
- 		goto err_inv_panel;
- 	}
- 
--	dev_info(&dssdev->dev, "%s rev %02x LCD detected\n",
-+	dev_info(dssdev->dev, "%s rev %02x LCD detected\n",
- 			panel_name, display_id[1]);
- 
- 	send_sleep_out(spi);
-@@ -416,7 +416,7 @@ static int n8x0_panel_probe(struct omap_dss_device *dssdev)
- 	struct panel_drv_data *ddata;
- 	int r;
- 
--	dev_dbg(&dssdev->dev, "probe\n");
-+	dev_dbg(dssdev->dev, "probe\n");
- 
- 	if (!bdata)
- 		return -EINVAL;
-@@ -434,14 +434,14 @@ static int n8x0_panel_probe(struct omap_dss_device *dssdev)
- 	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE;
- 
- 	if (gpio_is_valid(bdata->panel_reset)) {
--		r = devm_gpio_request_one(&dssdev->dev, bdata->panel_reset,
-+		r = devm_gpio_request_one(dssdev->dev, bdata->panel_reset,
- 				GPIOF_OUT_INIT_LOW, "PANEL RESET");
- 		if (r)
- 			return r;
- 	}
- 
- 	if (gpio_is_valid(bdata->ctrl_pwrdown)) {
--		r = devm_gpio_request_one(&dssdev->dev, bdata->ctrl_pwrdown,
-+		r = devm_gpio_request_one(dssdev->dev, bdata->ctrl_pwrdown,
- 				GPIOF_OUT_INIT_LOW, "PANEL PWRDOWN");
- 		if (r)
- 			return r;
-@@ -452,9 +452,9 @@ static int n8x0_panel_probe(struct omap_dss_device *dssdev)
- 
- static void n8x0_panel_remove(struct omap_dss_device *dssdev)
- {
--	dev_dbg(&dssdev->dev, "remove\n");
-+	dev_dbg(dssdev->dev, "remove\n");
- 
--	dev_set_drvdata(&dssdev->dev, NULL);
-+	dev_set_drvdata(dssdev->dev, NULL);
+ 	return mgr->set_output(mgr, dst);
  }
  
- static int n8x0_panel_enable(struct omap_dss_device *dssdev)
-@@ -462,7 +462,7 @@ static int n8x0_panel_enable(struct omap_dss_device *dssdev)
- 	struct panel_drv_data *ddata = get_drv_data(dssdev);
- 	int r;
- 
--	dev_dbg(&dssdev->dev, "enable\n");
-+	dev_dbg(dssdev->dev, "enable\n");
- 
- 	mutex_lock(&ddata->lock);
- 
-@@ -488,7 +488,7 @@ static void n8x0_panel_disable(struct omap_dss_device *dssdev)
+ static void dss_mgr_disconnect_compat(struct omap_overlay_manager *mgr,
+-		struct omap_dss_output *dst)
++		struct omap_dss_device *dst)
  {
- 	struct panel_drv_data *ddata = get_drv_data(dssdev);
- 
--	dev_dbg(&dssdev->dev, "disable\n");
-+	dev_dbg(dssdev->dev, "disable\n");
- 
- 	mutex_lock(&ddata->lock);
- 
-@@ -521,13 +521,13 @@ static int n8x0_panel_update(struct omap_dss_device *dssdev,
- 	struct panel_drv_data *ddata = get_drv_data(dssdev);
- 	u16 dw, dh;
- 
--	dev_dbg(&dssdev->dev, "update\n");
-+	dev_dbg(dssdev->dev, "update\n");
- 
- 	dw = dssdev->panel.timings.x_res;
- 	dh = dssdev->panel.timings.y_res;
- 
- 	if (x != 0 || y != 0 || w != dw || h != dh) {
--		dev_err(&dssdev->dev, "invaid update region %d, %d, %d, %d\n",
-+		dev_err(dssdev->dev, "invaid update region %d, %d, %d, %d\n",
- 			x, y, w, h);
- 		return -EINVAL;
- 	}
-@@ -548,7 +548,7 @@ static int n8x0_panel_sync(struct omap_dss_device *dssdev)
- {
- 	struct panel_drv_data *ddata = get_drv_data(dssdev);
- 
--	dev_dbg(&dssdev->dev, "sync\n");
-+	dev_dbg(dssdev->dev, "sync\n");
- 
- 	mutex_lock(&ddata->lock);
- 	rfbi_bus_lock();
-diff --git a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-index 20c3cd9..6b9f792 100644
---- a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-+++ b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-@@ -98,14 +98,14 @@ static int nec_8048_panel_probe(struct omap_dss_device *dssdev)
- 	dssdev->panel.timings = nec_8048_panel_timings;
- 
- 	if (gpio_is_valid(pd->qvga_gpio)) {
--		r = devm_gpio_request_one(&dssdev->dev, pd->qvga_gpio,
-+		r = devm_gpio_request_one(dssdev->dev, pd->qvga_gpio,
- 				GPIOF_OUT_INIT_HIGH, "lcd QVGA");
- 		if (r)
- 			return r;
- 	}
- 
- 	if (gpio_is_valid(pd->res_gpio)) {
--		r = devm_gpio_request_one(&dssdev->dev, pd->res_gpio,
-+		r = devm_gpio_request_one(dssdev->dev, pd->res_gpio,
- 				GPIOF_OUT_INIT_LOW, "lcd RES");
- 		if (r)
- 			return r;
-diff --git a/drivers/video/omap2/displays/panel-picodlp.c b/drivers/video/omap2/displays/panel-picodlp.c
-index 62f2db0..875b890 100644
---- a/drivers/video/omap2/displays/panel-picodlp.c
-+++ b/drivers/video/omap2/displays/panel-picodlp.c
-@@ -351,7 +351,7 @@ static struct i2c_driver picodlp_i2c_driver = {
- static int picodlp_panel_power_on(struct omap_dss_device *dssdev)
- {
- 	int r, trial = 100;
--	struct picodlp_data *picod = dev_get_drvdata(&dssdev->dev);
-+	struct picodlp_data *picod = dev_get_drvdata(dssdev->dev);
- 	struct picodlp_panel_data *picodlp_pdata = get_panel_data(dssdev);
- 
- 	gpio_set_value(picodlp_pdata->pwrgood_gpio, 0);
-@@ -360,7 +360,7 @@ static int picodlp_panel_power_on(struct omap_dss_device *dssdev)
- 
- 	while (!gpio_get_value(picodlp_pdata->emu_done_gpio)) {
- 		if (!trial--) {
--			dev_err(&dssdev->dev, "emu_done signal not"
-+			dev_err(dssdev->dev, "emu_done signal not"
- 						" going high\n");
- 			return -ETIMEDOUT;
- 		}
-@@ -378,7 +378,7 @@ static int picodlp_panel_power_on(struct omap_dss_device *dssdev)
- 
- 	r = omapdss_dpi_display_enable(dssdev);
- 	if (r) {
--		dev_err(&dssdev->dev, "failed to enable DPI\n");
-+		dev_err(dssdev->dev, "failed to enable DPI\n");
- 		goto err1;
- 	}
- 
-@@ -418,7 +418,7 @@ static int picodlp_panel_probe(struct omap_dss_device *dssdev)
- 	if (!picodlp_pdata)
- 		return -EINVAL;
- 
--	picod = devm_kzalloc(&dssdev->dev, sizeof(*picod), GFP_KERNEL);
-+	picod = devm_kzalloc(dssdev->dev, sizeof(*picod), GFP_KERNEL);
- 	if (!picod)
- 		return -ENOMEM;
- 
-@@ -428,23 +428,23 @@ static int picodlp_panel_probe(struct omap_dss_device *dssdev)
- 
- 	adapter = i2c_get_adapter(picodlp_adapter_id);
- 	if (!adapter) {
--		dev_err(&dssdev->dev, "can't get i2c adapter\n");
-+		dev_err(dssdev->dev, "can't get i2c adapter\n");
- 		return -ENODEV;
- 	}
- 
- 	picodlp_i2c_client = i2c_new_device(adapter, &picodlp_i2c_board_info);
- 	if (!picodlp_i2c_client) {
--		dev_err(&dssdev->dev, "can't add i2c device::"
-+		dev_err(dssdev->dev, "can't add i2c device::"
- 					 " picodlp_i2c_client is NULL\n");
- 		return -ENODEV;
- 	}
- 
- 	picod->picodlp_i2c_client = picodlp_i2c_client;
- 
--	dev_set_drvdata(&dssdev->dev, picod);
-+	dev_set_drvdata(dssdev->dev, picod);
- 
- 	if (gpio_is_valid(picodlp_pdata->emu_done_gpio)) {
--		r = devm_gpio_request_one(&dssdev->dev,
-+		r = devm_gpio_request_one(dssdev->dev,
- 				picodlp_pdata->emu_done_gpio,
- 				GPIOF_IN, "DLP EMU DONE");
- 		if (r)
-@@ -452,7 +452,7 @@ static int picodlp_panel_probe(struct omap_dss_device *dssdev)
- 	}
- 
- 	if (gpio_is_valid(picodlp_pdata->pwrgood_gpio)) {
--		r = devm_gpio_request_one(&dssdev->dev,
-+		r = devm_gpio_request_one(dssdev->dev,
- 				picodlp_pdata->pwrgood_gpio,
- 				GPIOF_OUT_INIT_LOW, "DLP PWRGOOD");
- 		if (r)
-@@ -464,21 +464,21 @@ static int picodlp_panel_probe(struct omap_dss_device *dssdev)
- 
- static void picodlp_panel_remove(struct omap_dss_device *dssdev)
- {
--	struct picodlp_data *picod = dev_get_drvdata(&dssdev->dev);
-+	struct picodlp_data *picod = dev_get_drvdata(dssdev->dev);
- 
- 	i2c_unregister_device(picod->picodlp_i2c_client);
--	dev_set_drvdata(&dssdev->dev, NULL);
--	dev_dbg(&dssdev->dev, "removing picodlp panel\n");
-+	dev_set_drvdata(dssdev->dev, NULL);
-+	dev_dbg(dssdev->dev, "removing picodlp panel\n");
- 
- 	kfree(picod);
+ 	mgr->unset_output(mgr);
+ }
+@@ -1166,7 +1166,7 @@ static void dss_mgr_get_info(struct omap_overlay_manager *mgr,
  }
  
- static int picodlp_panel_enable(struct omap_dss_device *dssdev)
+ static int dss_mgr_set_output(struct omap_overlay_manager *mgr,
+-		struct omap_dss_output *output)
++		struct omap_dss_device *output)
  {
--	struct picodlp_data *picod = dev_get_drvdata(&dssdev->dev);
-+	struct picodlp_data *picod = dev_get_drvdata(dssdev->dev);
  	int r;
- 
--	dev_dbg(&dssdev->dev, "enabling picodlp panel\n");
-+	dev_dbg(dssdev->dev, "enabling picodlp panel\n");
- 
- 	mutex_lock(&picod->lock);
- 	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED) {
-@@ -494,7 +494,7 @@ static int picodlp_panel_enable(struct omap_dss_device *dssdev)
- 
- static void picodlp_panel_disable(struct omap_dss_device *dssdev)
- {
--	struct picodlp_data *picod = dev_get_drvdata(&dssdev->dev);
-+	struct picodlp_data *picod = dev_get_drvdata(dssdev->dev);
- 
- 	mutex_lock(&picod->lock);
- 	/* Turn off DLP Power */
-@@ -504,7 +504,7 @@ static void picodlp_panel_disable(struct omap_dss_device *dssdev)
- 	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
- 	mutex_unlock(&picod->lock);
- 
--	dev_dbg(&dssdev->dev, "disabling picodlp panel\n");
-+	dev_dbg(dssdev->dev, "disabling picodlp panel\n");
- }
- 
- static void picodlp_get_resolution(struct omap_dss_device *dssdev,
-diff --git a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
-index 74cb0eb..78f0a67 100644
---- a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
-+++ b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
-@@ -66,35 +66,35 @@ static int sharp_ls_panel_probe(struct omap_dss_device *dssdev)
- 	dssdev->panel.timings = sharp_ls_timings;
- 
- 	if (gpio_is_valid(pd->mo_gpio)) {
--		r = devm_gpio_request_one(&dssdev->dev, pd->mo_gpio,
-+		r = devm_gpio_request_one(dssdev->dev, pd->mo_gpio,
- 				GPIOF_OUT_INIT_LOW, "lcd MO");
- 		if (r)
- 			return r;
- 	}
- 
- 	if (gpio_is_valid(pd->lr_gpio)) {
--		r = devm_gpio_request_one(&dssdev->dev, pd->lr_gpio,
-+		r = devm_gpio_request_one(dssdev->dev, pd->lr_gpio,
- 				GPIOF_OUT_INIT_HIGH, "lcd LR");
- 		if (r)
- 			return r;
- 	}
- 
- 	if (gpio_is_valid(pd->ud_gpio)) {
--		r = devm_gpio_request_one(&dssdev->dev, pd->ud_gpio,
-+		r = devm_gpio_request_one(dssdev->dev, pd->ud_gpio,
- 				GPIOF_OUT_INIT_HIGH, "lcd UD");
- 		if (r)
- 			return r;
- 	}
- 
- 	if (gpio_is_valid(pd->resb_gpio)) {
--		r = devm_gpio_request_one(&dssdev->dev, pd->resb_gpio,
-+		r = devm_gpio_request_one(dssdev->dev, pd->resb_gpio,
- 				GPIOF_OUT_INIT_LOW, "lcd RESB");
- 		if (r)
- 			return r;
- 	}
- 
- 	if (gpio_is_valid(pd->ini_gpio)) {
--		r = devm_gpio_request_one(&dssdev->dev, pd->ini_gpio,
-+		r = devm_gpio_request_one(dssdev->dev, pd->ini_gpio,
- 				GPIOF_OUT_INIT_LOW, "lcd INI");
- 		if (r)
- 			return r;
-diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-index c4f78bd..c731d3c 100644
---- a/drivers/video/omap2/displays/panel-taal.c
-+++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -237,7 +237,7 @@ static int taal_set_update_window(struct taal_data *td,
- 
- static void taal_queue_esd_work(struct omap_dss_device *dssdev)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 
- 	if (td->esd_interval > 0)
- 		queue_delayed_work(td->workqueue, &td->esd_work,
-@@ -246,14 +246,14 @@ static void taal_queue_esd_work(struct omap_dss_device *dssdev)
- 
- static void taal_cancel_esd_work(struct omap_dss_device *dssdev)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 
- 	cancel_delayed_work(&td->esd_work);
- }
- 
- static void taal_queue_ulps_work(struct omap_dss_device *dssdev)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 
- 	if (td->ulps_timeout > 0)
- 		queue_delayed_work(td->workqueue, &td->ulps_work,
-@@ -262,14 +262,14 @@ static void taal_queue_ulps_work(struct omap_dss_device *dssdev)
- 
- static void taal_cancel_ulps_work(struct omap_dss_device *dssdev)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 
- 	cancel_delayed_work(&td->ulps_work);
- }
- 
- static int taal_enter_ulps(struct omap_dss_device *dssdev)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	int r;
- 
- 	if (td->ulps_enabled)
-@@ -291,7 +291,7 @@ static int taal_enter_ulps(struct omap_dss_device *dssdev)
- 	return 0;
- 
- err:
--	dev_err(&dssdev->dev, "enter ULPS failed");
-+	dev_err(dssdev->dev, "enter ULPS failed");
- 	taal_panel_reset(dssdev);
- 
- 	td->ulps_enabled = false;
-@@ -303,7 +303,7 @@ err:
- 
- static int taal_exit_ulps(struct omap_dss_device *dssdev)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	int r;
- 
- 	if (!td->ulps_enabled)
-@@ -311,7 +311,7 @@ static int taal_exit_ulps(struct omap_dss_device *dssdev)
- 
- 	r = omapdss_dsi_display_enable(dssdev);
- 	if (r) {
--		dev_err(&dssdev->dev, "failed to enable DSI\n");
-+		dev_err(dssdev->dev, "failed to enable DSI\n");
- 		goto err1;
- 	}
- 
-@@ -319,7 +319,7 @@ static int taal_exit_ulps(struct omap_dss_device *dssdev)
- 
- 	r = _taal_enable_te(dssdev, true);
- 	if (r) {
--		dev_err(&dssdev->dev, "failed to re-enable TE");
-+		dev_err(dssdev->dev, "failed to re-enable TE");
- 		goto err2;
- 	}
- 
-@@ -333,7 +333,7 @@ static int taal_exit_ulps(struct omap_dss_device *dssdev)
- 	return 0;
- 
- err2:
--	dev_err(&dssdev->dev, "failed to exit ULPS");
-+	dev_err(dssdev->dev, "failed to exit ULPS");
- 
- 	r = taal_panel_reset(dssdev);
- 	if (!r) {
-@@ -349,7 +349,7 @@ err1:
- 
- static int taal_wake_up(struct omap_dss_device *dssdev)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 
- 	if (td->ulps_enabled)
- 		return taal_exit_ulps(dssdev);
-@@ -362,7 +362,7 @@ static int taal_wake_up(struct omap_dss_device *dssdev)
- static int taal_bl_update_status(struct backlight_device *dev)
- {
- 	struct omap_dss_device *dssdev = dev_get_drvdata(&dev->dev);
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	int r;
- 	int level;
- 
-@@ -372,7 +372,7 @@ static int taal_bl_update_status(struct backlight_device *dev)
- 	else
- 		level = 0;
- 
--	dev_dbg(&dssdev->dev, "update brightness to %d\n", level);
-+	dev_dbg(dssdev->dev, "update brightness to %d\n", level);
- 
- 	mutex_lock(&td->lock);
- 
-@@ -418,7 +418,7 @@ static ssize_t taal_num_errors_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
- 	struct omap_dss_device *dssdev = to_dss_device(dev);
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	u8 errors = 0;
- 	int r;
- 
-@@ -448,7 +448,7 @@ static ssize_t taal_hw_revision_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
- 	struct omap_dss_device *dssdev = to_dss_device(dev);
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	u8 id1, id2, id3;
- 	int r;
- 
-@@ -486,7 +486,7 @@ static ssize_t show_cabc_mode(struct device *dev,
- 		char *buf)
- {
- 	struct omap_dss_device *dssdev = to_dss_device(dev);
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	const char *mode_str;
- 	int mode;
- 	int len;
-@@ -506,7 +506,7 @@ static ssize_t store_cabc_mode(struct device *dev,
- 		const char *buf, size_t count)
- {
- 	struct omap_dss_device *dssdev = to_dss_device(dev);
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	int i;
- 	int r;
- 
-@@ -568,7 +568,7 @@ static ssize_t taal_store_esd_interval(struct device *dev,
- 		const char *buf, size_t count)
- {
- 	struct omap_dss_device *dssdev = to_dss_device(dev);
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 
- 	unsigned long t;
- 	int r;
-@@ -592,7 +592,7 @@ static ssize_t taal_show_esd_interval(struct device *dev,
- 		char *buf)
- {
- 	struct omap_dss_device *dssdev = to_dss_device(dev);
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	unsigned t;
- 
- 	mutex_lock(&td->lock);
-@@ -607,7 +607,7 @@ static ssize_t taal_store_ulps(struct device *dev,
- 		const char *buf, size_t count)
- {
- 	struct omap_dss_device *dssdev = to_dss_device(dev);
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	unsigned long t;
- 	int r;
- 
-@@ -641,7 +641,7 @@ static ssize_t taal_show_ulps(struct device *dev,
- 		char *buf)
- {
- 	struct omap_dss_device *dssdev = to_dss_device(dev);
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	unsigned t;
- 
- 	mutex_lock(&td->lock);
-@@ -656,7 +656,7 @@ static ssize_t taal_store_ulps_timeout(struct device *dev,
- 		const char *buf, size_t count)
- {
- 	struct omap_dss_device *dssdev = to_dss_device(dev);
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	unsigned long t;
- 	int r;
- 
-@@ -687,7 +687,7 @@ static ssize_t taal_show_ulps_timeout(struct device *dev,
- 		char *buf)
- {
- 	struct omap_dss_device *dssdev = to_dss_device(dev);
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	unsigned t;
- 
- 	mutex_lock(&td->lock);
-@@ -727,7 +727,7 @@ static struct attribute_group taal_attr_group = {
- 
- static void taal_hw_reset(struct omap_dss_device *dssdev)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 
- 	if (!gpio_is_valid(td->reset_gpio))
- 		return;
-@@ -768,13 +768,13 @@ static int taal_probe(struct omap_dss_device *dssdev)
- 	struct backlight_device *bldev = NULL;
- 	int r;
- 
--	dev_dbg(&dssdev->dev, "probe\n");
-+	dev_dbg(dssdev->dev, "probe\n");
- 
--	td = devm_kzalloc(&dssdev->dev, sizeof(*td), GFP_KERNEL);
-+	td = devm_kzalloc(dssdev->dev, sizeof(*td), GFP_KERNEL);
- 	if (!td)
- 		return -ENOMEM;
- 
--	dev_set_drvdata(&dssdev->dev, td);
-+	dev_set_drvdata(dssdev->dev, td);
- 	td->dssdev = dssdev;
- 
- 	if (dssdev->data) {
-@@ -797,41 +797,41 @@ static int taal_probe(struct omap_dss_device *dssdev)
- 	atomic_set(&td->do_update, 0);
- 
- 	if (gpio_is_valid(td->reset_gpio)) {
--		r = devm_gpio_request_one(&dssdev->dev, td->reset_gpio,
-+		r = devm_gpio_request_one(dssdev->dev, td->reset_gpio,
- 				GPIOF_OUT_INIT_LOW, "taal rst");
- 		if (r) {
--			dev_err(&dssdev->dev, "failed to request reset gpio\n");
-+			dev_err(dssdev->dev, "failed to request reset gpio\n");
- 			return r;
- 		}
- 	}
- 
- 	if (gpio_is_valid(td->ext_te_gpio)) {
--		r = devm_gpio_request_one(&dssdev->dev, td->ext_te_gpio,
-+		r = devm_gpio_request_one(dssdev->dev, td->ext_te_gpio,
- 				GPIOF_IN, "taal irq");
- 		if (r) {
--			dev_err(&dssdev->dev, "GPIO request failed\n");
-+			dev_err(dssdev->dev, "GPIO request failed\n");
- 			return r;
- 		}
- 
--		r = devm_request_irq(&dssdev->dev, gpio_to_irq(td->ext_te_gpio),
-+		r = devm_request_irq(dssdev->dev, gpio_to_irq(td->ext_te_gpio),
- 				taal_te_isr,
- 				IRQF_TRIGGER_RISING,
- 				"taal vsync", dssdev);
- 
- 		if (r) {
--			dev_err(&dssdev->dev, "IRQ request failed\n");
-+			dev_err(dssdev->dev, "IRQ request failed\n");
- 			return r;
- 		}
- 
- 		INIT_DEFERRABLE_WORK(&td->te_timeout_work,
- 					taal_te_timeout_work_callback);
- 
--		dev_dbg(&dssdev->dev, "Using GPIO TE\n");
-+		dev_dbg(dssdev->dev, "Using GPIO TE\n");
- 	}
- 
- 	td->workqueue = create_singlethread_workqueue("taal_esd");
- 	if (td->workqueue == NULL) {
--		dev_err(&dssdev->dev, "can't create ESD workqueue\n");
-+		dev_err(dssdev->dev, "can't create ESD workqueue\n");
- 		return -ENOMEM;
- 	}
- 	INIT_DEFERRABLE_WORK(&td->esd_work, taal_esd_work);
-@@ -844,8 +844,8 @@ static int taal_probe(struct omap_dss_device *dssdev)
- 		props.max_brightness = 255;
- 
- 		props.type = BACKLIGHT_RAW;
--		bldev = backlight_device_register(dev_name(&dssdev->dev),
--				&dssdev->dev, dssdev, &taal_bl_ops, &props);
-+		bldev = backlight_device_register(dev_name(dssdev->dev),
-+				dssdev->dev, dssdev, &taal_bl_ops, &props);
- 		if (IS_ERR(bldev)) {
- 			r = PTR_ERR(bldev);
- 			goto err_bl;
-@@ -862,19 +862,19 @@ static int taal_probe(struct omap_dss_device *dssdev)
- 
- 	r = omap_dsi_request_vc(dssdev, &td->channel);
- 	if (r) {
--		dev_err(&dssdev->dev, "failed to get virtual channel\n");
-+		dev_err(dssdev->dev, "failed to get virtual channel\n");
- 		goto err_req_vc;
- 	}
- 
- 	r = omap_dsi_set_vc_id(dssdev, td->channel, TCH);
- 	if (r) {
--		dev_err(&dssdev->dev, "failed to set VC_ID\n");
-+		dev_err(dssdev->dev, "failed to set VC_ID\n");
- 		goto err_vc_id;
- 	}
- 
--	r = sysfs_create_group(&dssdev->dev.kobj, &taal_attr_group);
-+	r = sysfs_create_group(&dssdev->dev->kobj, &taal_attr_group);
- 	if (r) {
--		dev_err(&dssdev->dev, "failed to create sysfs files\n");
-+		dev_err(dssdev->dev, "failed to create sysfs files\n");
- 		goto err_vc_id;
- 	}
- 
-@@ -892,12 +892,12 @@ err_bl:
- 
- static void __exit taal_remove(struct omap_dss_device *dssdev)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	struct backlight_device *bldev;
- 
--	dev_dbg(&dssdev->dev, "remove\n");
-+	dev_dbg(dssdev->dev, "remove\n");
- 
--	sysfs_remove_group(&dssdev->dev.kobj, &taal_attr_group);
-+	sysfs_remove_group(&dssdev->dev->kobj, &taal_attr_group);
- 	omap_dsi_release_vc(dssdev, td->channel);
- 
- 	bldev = td->bldev;
-@@ -917,7 +917,7 @@ static void __exit taal_remove(struct omap_dss_device *dssdev)
- 
- static int taal_power_on(struct omap_dss_device *dssdev)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	u8 id1, id2, id3;
- 	int r;
- 	struct omap_dss_dsi_config dsi_config = {
-@@ -932,19 +932,19 @@ static int taal_power_on(struct omap_dss_device *dssdev)
- 
- 	r = omapdss_dsi_configure_pins(dssdev, &td->pin_config);
- 	if (r) {
--		dev_err(&dssdev->dev, "failed to configure DSI pins\n");
-+		dev_err(dssdev->dev, "failed to configure DSI pins\n");
- 		goto err0;
- 	};
- 
- 	r = omapdss_dsi_set_config(dssdev, &dsi_config);
- 	if (r) {
--		dev_err(&dssdev->dev, "failed to configure DSI\n");
-+		dev_err(dssdev->dev, "failed to configure DSI\n");
- 		goto err0;
- 	}
- 
- 	r = omapdss_dsi_display_enable(dssdev);
- 	if (r) {
--		dev_err(&dssdev->dev, "failed to enable DSI\n");
-+		dev_err(dssdev->dev, "failed to enable DSI\n");
- 		goto err0;
- 	}
- 
-@@ -999,10 +999,10 @@ static int taal_power_on(struct omap_dss_device *dssdev)
- 	td->enabled = 1;
- 
- 	if (!td->intro_printed) {
--		dev_info(&dssdev->dev, "panel revision %02x.%02x.%02x\n",
-+		dev_info(dssdev->dev, "panel revision %02x.%02x.%02x\n",
- 			id1, id2, id3);
- 		if (td->cabc_broken)
--			dev_info(&dssdev->dev,
-+			dev_info(dssdev->dev,
- 					"old Taal version, CABC disabled\n");
- 		td->intro_printed = true;
- 	}
-@@ -1011,7 +1011,7 @@ static int taal_power_on(struct omap_dss_device *dssdev)
- 
- 	return 0;
- err:
--	dev_err(&dssdev->dev, "error while enabling panel, issuing HW reset\n");
-+	dev_err(dssdev->dev, "error while enabling panel, issuing HW reset\n");
- 
- 	taal_hw_reset(dssdev);
- 
-@@ -1022,7 +1022,7 @@ err0:
- 
- static void taal_power_off(struct omap_dss_device *dssdev)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	int r;
- 
- 	dsi_disable_video_output(dssdev, td->channel);
-@@ -1032,7 +1032,7 @@ static void taal_power_off(struct omap_dss_device *dssdev)
- 		r = taal_sleep_in(td);
- 
- 	if (r) {
--		dev_err(&dssdev->dev,
-+		dev_err(dssdev->dev,
- 				"error disabling panel, issuing HW reset\n");
- 		taal_hw_reset(dssdev);
- 	}
-@@ -1044,7 +1044,7 @@ static void taal_power_off(struct omap_dss_device *dssdev)
- 
- static int taal_panel_reset(struct omap_dss_device *dssdev)
- {
--	dev_err(&dssdev->dev, "performing LCD reset\n");
-+	dev_err(dssdev->dev, "performing LCD reset\n");
- 
- 	taal_power_off(dssdev);
- 	taal_hw_reset(dssdev);
-@@ -1053,10 +1053,10 @@ static int taal_panel_reset(struct omap_dss_device *dssdev)
- 
- static int taal_enable(struct omap_dss_device *dssdev)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	int r;
- 
--	dev_dbg(&dssdev->dev, "enable\n");
-+	dev_dbg(dssdev->dev, "enable\n");
- 
- 	mutex_lock(&td->lock);
- 
-@@ -1082,16 +1082,16 @@ static int taal_enable(struct omap_dss_device *dssdev)
- 
- 	return 0;
- err:
--	dev_dbg(&dssdev->dev, "enable failed\n");
-+	dev_dbg(dssdev->dev, "enable failed\n");
- 	mutex_unlock(&td->lock);
- 	return r;
- }
- 
- static void taal_disable(struct omap_dss_device *dssdev)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 
--	dev_dbg(&dssdev->dev, "disable\n");
-+	dev_dbg(dssdev->dev, "disable\n");
- 
- 	mutex_lock(&td->lock);
- 
-@@ -1118,14 +1118,14 @@ static void taal_disable(struct omap_dss_device *dssdev)
- static void taal_framedone_cb(int err, void *data)
- {
- 	struct omap_dss_device *dssdev = data;
--	dev_dbg(&dssdev->dev, "framedone, err %d\n", err);
-+	dev_dbg(dssdev->dev, "framedone, err %d\n", err);
- 	dsi_bus_unlock(dssdev);
- }
- 
- static irqreturn_t taal_te_isr(int irq, void *data)
- {
- 	struct omap_dss_device *dssdev = data;
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	int old;
- 	int r;
- 
-@@ -1142,7 +1142,7 @@ static irqreturn_t taal_te_isr(int irq, void *data)
- 
- 	return IRQ_HANDLED;
- err:
--	dev_err(&dssdev->dev, "start update failed\n");
-+	dev_err(dssdev->dev, "start update failed\n");
- 	dsi_bus_unlock(dssdev);
- 	return IRQ_HANDLED;
- }
-@@ -1153,7 +1153,7 @@ static void taal_te_timeout_work_callback(struct work_struct *work)
- 					te_timeout_work.work);
- 	struct omap_dss_device *dssdev = td->dssdev;
- 
--	dev_err(&dssdev->dev, "TE not received for 250ms!\n");
-+	dev_err(dssdev->dev, "TE not received for 250ms!\n");
- 
- 	atomic_set(&td->do_update, 0);
- 	dsi_bus_unlock(dssdev);
-@@ -1162,10 +1162,10 @@ static void taal_te_timeout_work_callback(struct work_struct *work)
- static int taal_update(struct omap_dss_device *dssdev,
- 				    u16 x, u16 y, u16 w, u16 h)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	int r;
- 
--	dev_dbg(&dssdev->dev, "update %d, %d, %d x %d\n", x, y, w, h);
-+	dev_dbg(dssdev->dev, "update %d, %d, %d x %d\n", x, y, w, h);
- 
- 	mutex_lock(&td->lock);
- 	dsi_bus_lock(dssdev);
-@@ -1208,23 +1208,23 @@ err:
- 
- static int taal_sync(struct omap_dss_device *dssdev)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 
--	dev_dbg(&dssdev->dev, "sync\n");
-+	dev_dbg(dssdev->dev, "sync\n");
- 
- 	mutex_lock(&td->lock);
- 	dsi_bus_lock(dssdev);
- 	dsi_bus_unlock(dssdev);
- 	mutex_unlock(&td->lock);
- 
--	dev_dbg(&dssdev->dev, "sync done\n");
-+	dev_dbg(dssdev->dev, "sync done\n");
- 
- 	return 0;
- }
- 
- static int _taal_enable_te(struct omap_dss_device *dssdev, bool enable)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	int r;
- 
- 	if (enable)
-@@ -1243,7 +1243,7 @@ static int _taal_enable_te(struct omap_dss_device *dssdev, bool enable)
- 
- static int taal_enable_te(struct omap_dss_device *dssdev, bool enable)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	int r;
- 
- 	mutex_lock(&td->lock);
-@@ -1279,7 +1279,7 @@ err:
- 
- static int taal_get_te(struct omap_dss_device *dssdev)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	int r;
- 
- 	mutex_lock(&td->lock);
-@@ -1291,7 +1291,7 @@ static int taal_get_te(struct omap_dss_device *dssdev)
- 
- static int taal_run_test(struct omap_dss_device *dssdev, int test_num)
- {
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 	u8 id1, id2, id3;
- 	int r;
- 
-@@ -1336,7 +1336,7 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
- 	int first = 1;
- 	int plen;
- 	unsigned buf_used = 0;
--	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct taal_data *td = dev_get_drvdata(dssdev->dev);
- 
- 	if (size < w * h * 3)
- 		return -ENOMEM;
-@@ -1380,19 +1380,19 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
- 				buf + buf_used, size - buf_used);
- 
- 		if (r < 0) {
--			dev_err(&dssdev->dev, "read error\n");
-+			dev_err(dssdev->dev, "read error\n");
- 			goto err3;
- 		}
- 
- 		buf_used += r;
- 
- 		if (r < plen) {
--			dev_err(&dssdev->dev, "short read\n");
-+			dev_err(dssdev->dev, "short read\n");
- 			break;
- 		}
- 
- 		if (signal_pending(current)) {
--			dev_err(&dssdev->dev, "signal pending, "
-+			dev_err(dssdev->dev, "signal pending, "
- 					"aborting memory read\n");
- 			r = -ERESTARTSYS;
- 			goto err3;
-@@ -1450,26 +1450,26 @@ static void taal_esd_work(struct work_struct *work)
- 
- 	r = taal_wake_up(dssdev);
- 	if (r) {
--		dev_err(&dssdev->dev, "failed to exit ULPS\n");
-+		dev_err(dssdev->dev, "failed to exit ULPS\n");
- 		goto err;
- 	}
- 
- 	r = taal_dcs_read_1(td, MIPI_DCS_GET_DIAGNOSTIC_RESULT, &state1);
- 	if (r) {
--		dev_err(&dssdev->dev, "failed to read Taal status\n");
-+		dev_err(dssdev->dev, "failed to read Taal status\n");
- 		goto err;
- 	}
- 
- 	/* Run self diagnostics */
- 	r = taal_sleep_out(td);
- 	if (r) {
--		dev_err(&dssdev->dev, "failed to run Taal self-diagnostics\n");
-+		dev_err(dssdev->dev, "failed to run Taal self-diagnostics\n");
- 		goto err;
- 	}
- 
- 	r = taal_dcs_read_1(td, MIPI_DCS_GET_DIAGNOSTIC_RESULT, &state2);
- 	if (r) {
--		dev_err(&dssdev->dev, "failed to read Taal status\n");
-+		dev_err(dssdev->dev, "failed to read Taal status\n");
- 		goto err;
- 	}
- 
-@@ -1477,7 +1477,7 @@ static void taal_esd_work(struct work_struct *work)
- 	 * Bit6 if the test passes.
- 	 */
- 	if (!((state1 ^ state2) & (1 << 6))) {
--		dev_err(&dssdev->dev, "LCD self diagnostics failed\n");
-+		dev_err(dssdev->dev, "LCD self diagnostics failed\n");
- 		goto err;
- 	}
- 	/* Self-diagnostics result is also shown on TE GPIO line. We need
-@@ -1495,7 +1495,7 @@ static void taal_esd_work(struct work_struct *work)
- 	mutex_unlock(&td->lock);
- 	return;
- err:
--	dev_err(&dssdev->dev, "performing LCD reset\n");
-+	dev_err(dssdev->dev, "performing LCD reset\n");
- 
- 	taal_panel_reset(dssdev);
- 
-diff --git a/drivers/video/omap2/displays/panel-tfp410.c b/drivers/video/omap2/displays/panel-tfp410.c
-index 46039c4..1fdfb15 100644
---- a/drivers/video/omap2/displays/panel-tfp410.c
-+++ b/drivers/video/omap2/displays/panel-tfp410.c
-@@ -59,7 +59,7 @@ struct panel_drv_data {
- 
- static int tfp410_power_on(struct omap_dss_device *dssdev)
- {
--	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
-+	struct panel_drv_data *ddata = dev_get_drvdata(dssdev->dev);
- 	int r;
- 
- 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
-@@ -82,7 +82,7 @@ err0:
- 
- static void tfp410_power_off(struct omap_dss_device *dssdev)
- {
--	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
-+	struct panel_drv_data *ddata = dev_get_drvdata(dssdev->dev);
- 
- 	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
- 		return;
-@@ -99,7 +99,7 @@ static int tfp410_probe(struct omap_dss_device *dssdev)
- 	int r;
- 	int i2c_bus_num;
- 
--	ddata = devm_kzalloc(&dssdev->dev, sizeof(*ddata), GFP_KERNEL);
-+	ddata = devm_kzalloc(dssdev->dev, sizeof(*ddata), GFP_KERNEL);
- 	if (!ddata)
- 		return -ENOMEM;
- 
-@@ -119,10 +119,10 @@ static int tfp410_probe(struct omap_dss_device *dssdev)
- 	}
- 
- 	if (gpio_is_valid(ddata->pd_gpio)) {
--		r = devm_gpio_request_one(&dssdev->dev, ddata->pd_gpio,
-+		r = devm_gpio_request_one(dssdev->dev, ddata->pd_gpio,
- 				GPIOF_OUT_INIT_LOW, "tfp410 pd");
- 		if (r) {
--			dev_err(&dssdev->dev, "Failed to request PD GPIO %d\n",
-+			dev_err(dssdev->dev, "Failed to request PD GPIO %d\n",
- 					ddata->pd_gpio);
- 			return r;
- 		}
-@@ -133,7 +133,7 @@ static int tfp410_probe(struct omap_dss_device *dssdev)
- 
- 		adapter = i2c_get_adapter(i2c_bus_num);
- 		if (!adapter) {
--			dev_err(&dssdev->dev, "Failed to get I2C adapter, bus %d\n",
-+			dev_err(dssdev->dev, "Failed to get I2C adapter, bus %d\n",
- 					i2c_bus_num);
- 			return -EPROBE_DEFER;
- 		}
-@@ -141,28 +141,28 @@ static int tfp410_probe(struct omap_dss_device *dssdev)
- 		ddata->i2c_adapter = adapter;
- 	}
- 
--	dev_set_drvdata(&dssdev->dev, ddata);
-+	dev_set_drvdata(dssdev->dev, ddata);
- 
- 	return 0;
- }
- 
- static void __exit tfp410_remove(struct omap_dss_device *dssdev)
- {
--	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
-+	struct panel_drv_data *ddata = dev_get_drvdata(dssdev->dev);
- 
- 	mutex_lock(&ddata->lock);
- 
- 	if (ddata->i2c_adapter)
- 		i2c_put_adapter(ddata->i2c_adapter);
- 
--	dev_set_drvdata(&dssdev->dev, NULL);
-+	dev_set_drvdata(dssdev->dev, NULL);
- 
- 	mutex_unlock(&ddata->lock);
- }
- 
- static int tfp410_enable(struct omap_dss_device *dssdev)
- {
--	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
-+	struct panel_drv_data *ddata = dev_get_drvdata(dssdev->dev);
- 	int r;
- 
- 	mutex_lock(&ddata->lock);
-@@ -178,7 +178,7 @@ static int tfp410_enable(struct omap_dss_device *dssdev)
- 
- static void tfp410_disable(struct omap_dss_device *dssdev)
- {
--	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
-+	struct panel_drv_data *ddata = dev_get_drvdata(dssdev->dev);
- 
- 	mutex_lock(&ddata->lock);
- 
-@@ -192,7 +192,7 @@ static void tfp410_disable(struct omap_dss_device *dssdev)
- static void tfp410_set_timings(struct omap_dss_device *dssdev,
- 		struct omap_video_timings *timings)
- {
--	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
-+	struct panel_drv_data *ddata = dev_get_drvdata(dssdev->dev);
- 
- 	mutex_lock(&ddata->lock);
- 	omapdss_dpi_set_timings(dssdev, timings);
-@@ -203,7 +203,7 @@ static void tfp410_set_timings(struct omap_dss_device *dssdev,
- static void tfp410_get_timings(struct omap_dss_device *dssdev,
- 		struct omap_video_timings *timings)
- {
--	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
-+	struct panel_drv_data *ddata = dev_get_drvdata(dssdev->dev);
- 
- 	mutex_lock(&ddata->lock);
- 	*timings = dssdev->panel.timings;
-@@ -213,7 +213,7 @@ static void tfp410_get_timings(struct omap_dss_device *dssdev,
- static int tfp410_check_timings(struct omap_dss_device *dssdev,
- 		struct omap_video_timings *timings)
- {
--	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
-+	struct panel_drv_data *ddata = dev_get_drvdata(dssdev->dev);
- 	int r;
- 
- 	mutex_lock(&ddata->lock);
-@@ -258,7 +258,7 @@ static int tfp410_ddc_read(struct i2c_adapter *adapter,
- static int tfp410_read_edid(struct omap_dss_device *dssdev,
- 		u8 *edid, int len)
- {
--	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
-+	struct panel_drv_data *ddata = dev_get_drvdata(dssdev->dev);
- 	int r, l, bytes_read;
- 
- 	mutex_lock(&ddata->lock);
-@@ -298,7 +298,7 @@ err:
- 
- static bool tfp410_detect(struct omap_dss_device *dssdev)
- {
--	struct panel_drv_data *ddata = dev_get_drvdata(&dssdev->dev);
-+	struct panel_drv_data *ddata = dev_get_drvdata(dssdev->dev);
- 	unsigned char out;
- 	int r;
- 
-diff --git a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
-index abf2bc4..7729b6f 100644
---- a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
-+++ b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
-@@ -126,7 +126,7 @@ static int tpo_td043_write_mirror(struct spi_device *spi, bool h, bool v)
- 
- static int tpo_td043_set_hmirror(struct omap_dss_device *dssdev, bool enable)
- {
--	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(&dssdev->dev);
-+	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(dssdev->dev);
- 
- 	tpo_td043->hmirror = enable;
- 	return tpo_td043_write_mirror(tpo_td043->spi, tpo_td043->hmirror,
-@@ -135,7 +135,7 @@ static int tpo_td043_set_hmirror(struct omap_dss_device *dssdev, bool enable)
- 
- static bool tpo_td043_get_hmirror(struct omap_dss_device *dssdev)
- {
--	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(&dssdev->dev);
-+	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(dssdev->dev);
- 
- 	return tpo_td043->hmirror;
- }
-@@ -338,7 +338,7 @@ static void tpo_td043_power_off(struct tpo_td043_device *tpo_td043)
- 
- static int tpo_td043_enable_dss(struct omap_dss_device *dssdev)
- {
--	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(&dssdev->dev);
-+	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(dssdev->dev);
- 	int r;
- 
- 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
-@@ -372,7 +372,7 @@ err0:
- 
- static void tpo_td043_disable_dss(struct omap_dss_device *dssdev)
- {
--	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(&dssdev->dev);
-+	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(dssdev->dev);
- 
- 	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
- 		return;
-@@ -385,14 +385,14 @@ static void tpo_td043_disable_dss(struct omap_dss_device *dssdev)
- 
- static int tpo_td043_enable(struct omap_dss_device *dssdev)
- {
--	dev_dbg(&dssdev->dev, "enable\n");
-+	dev_dbg(dssdev->dev, "enable\n");
- 
- 	return tpo_td043_enable_dss(dssdev);
- }
- 
- static void tpo_td043_disable(struct omap_dss_device *dssdev)
- {
--	dev_dbg(&dssdev->dev, "disable\n");
-+	dev_dbg(dssdev->dev, "disable\n");
- 
- 	tpo_td043_disable_dss(dssdev);
- 
-@@ -405,10 +405,10 @@ static int tpo_td043_probe(struct omap_dss_device *dssdev)
- 	struct panel_tpo_td043_data *pdata = get_panel_data(dssdev);
- 	int ret = 0;
- 
--	dev_dbg(&dssdev->dev, "probe\n");
-+	dev_dbg(dssdev->dev, "probe\n");
- 
- 	if (tpo_td043 == NULL) {
--		dev_err(&dssdev->dev, "missing tpo_td043_device\n");
-+		dev_err(dssdev->dev, "missing tpo_td043_device\n");
- 		return -ENODEV;
- 	}
- 
-@@ -423,28 +423,28 @@ static int tpo_td043_probe(struct omap_dss_device *dssdev)
- 	tpo_td043->mode = TPO_R02_MODE_800x480;
- 	memcpy(tpo_td043->gamma, tpo_td043_def_gamma, sizeof(tpo_td043->gamma));
- 
--	tpo_td043->vcc_reg = regulator_get(&dssdev->dev, "vcc");
-+	tpo_td043->vcc_reg = regulator_get(dssdev->dev, "vcc");
- 	if (IS_ERR(tpo_td043->vcc_reg)) {
--		dev_err(&dssdev->dev, "failed to get LCD VCC regulator\n");
-+		dev_err(dssdev->dev, "failed to get LCD VCC regulator\n");
- 		ret = PTR_ERR(tpo_td043->vcc_reg);
- 		goto fail_regulator;
- 	}
- 
- 	if (gpio_is_valid(tpo_td043->nreset_gpio)) {
--		ret = devm_gpio_request_one(&dssdev->dev,
-+		ret = devm_gpio_request_one(dssdev->dev,
- 				tpo_td043->nreset_gpio, GPIOF_OUT_INIT_LOW,
- 				"lcd reset");
- 		if (ret < 0) {
--			dev_err(&dssdev->dev, "couldn't request reset GPIO\n");
-+			dev_err(dssdev->dev, "couldn't request reset GPIO\n");
- 			goto fail_gpio_req;
- 		}
- 	}
- 
--	ret = sysfs_create_group(&dssdev->dev.kobj, &tpo_td043_attr_group);
-+	ret = sysfs_create_group(&dssdev->dev->kobj, &tpo_td043_attr_group);
- 	if (ret)
--		dev_warn(&dssdev->dev, "failed to create sysfs files\n");
-+		dev_warn(dssdev->dev, "failed to create sysfs files\n");
- 
--	dev_set_drvdata(&dssdev->dev, tpo_td043);
-+	dev_set_drvdata(dssdev->dev, tpo_td043);
- 
- 	return 0;
- 
-@@ -457,11 +457,11 @@ fail_regulator:
- 
- static void tpo_td043_remove(struct omap_dss_device *dssdev)
- {
--	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(&dssdev->dev);
-+	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(dssdev->dev);
- 
--	dev_dbg(&dssdev->dev, "remove\n");
-+	dev_dbg(dssdev->dev, "remove\n");
- 
--	sysfs_remove_group(&dssdev->dev.kobj, &tpo_td043_attr_group);
-+	sysfs_remove_group(&dssdev->dev->kobj, &tpo_td043_attr_group);
- 	regulator_put(tpo_td043->vcc_reg);
- }
  
 diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index e88d5f0..98a688e 100644
+index 98a688e..44493224 100644
 --- a/drivers/video/omap2/dss/core.c
 +++ b/drivers/video/omap2/dss/core.c
-@@ -429,30 +429,32 @@ struct omap_dss_device *dss_alloc_and_init_device(struct device *parent)
- 	if (!dssdev)
- 		return NULL;
+@@ -345,7 +345,7 @@ static int dss_driver_remove(struct device *dev)
  
--	dssdev->dev.bus = &dss_bus_type;
--	dssdev->dev.parent = parent;
--	dssdev->dev.release = omap_dss_dev_release;
--	dev_set_name(&dssdev->dev, "display%d", disp_num_counter++);
-+	dssdev->old_dev.bus = &dss_bus_type;
-+	dssdev->old_dev.parent = parent;
-+	dssdev->old_dev.release = omap_dss_dev_release;
-+	dev_set_name(&dssdev->old_dev, "display%d", disp_num_counter++);
- 
--	device_initialize(&dssdev->dev);
-+	device_initialize(&dssdev->old_dev);
- 
- 	return dssdev;
- }
- 
- int dss_add_device(struct omap_dss_device *dssdev)
+ static int omapdss_default_connect(struct omap_dss_device *dssdev)
  {
-+	dssdev->dev = &dssdev->old_dev;
-+
- 	omapdss_register_display(dssdev);
--	return device_add(&dssdev->dev);
-+	return device_add(&dssdev->old_dev);
- }
- 
- void dss_put_device(struct omap_dss_device *dssdev)
- {
--	put_device(&dssdev->dev);
-+	put_device(&dssdev->old_dev);
- }
- 
- void dss_unregister_device(struct omap_dss_device *dssdev)
- {
--	device_unregister(&dssdev->dev);
-+	device_unregister(&dssdev->old_dev);
- 	omapdss_unregister_display(dssdev);
- }
- 
-diff --git a/drivers/video/omap2/dss/display-sysfs.c b/drivers/video/omap2/dss/display-sysfs.c
-index 58abbaf..21d7f77 100644
---- a/drivers/video/omap2/dss/display-sysfs.c
-+++ b/drivers/video/omap2/dss/display-sysfs.c
-@@ -33,7 +33,7 @@ static struct omap_dss_device *to_dss_device_sysfs(struct device *dev)
- 	struct omap_dss_device *dssdev = NULL;
- 
- 	for_each_dss_dev(dssdev) {
--		if (&dssdev->dev == dev) {
-+		if (dssdev->dev == dev) {
- 			omap_dss_put_device(dssdev);
- 			return dssdev;
- 		}
-@@ -308,7 +308,7 @@ int display_init_sysfs(struct platform_device *pdev)
+-	struct omap_dss_output *out;
++	struct omap_dss_device *out;
+ 	struct omap_overlay_manager *mgr;
  	int r;
  
- 	for_each_dss_dev(dssdev) {
--		struct kobject *kobj = &dssdev->dev.kobj;
-+		struct kobject *kobj = &dssdev->dev->kobj;
+@@ -367,7 +367,7 @@ static int omapdss_default_connect(struct omap_dss_device *dssdev)
  
- 		r = sysfs_create_files(kobj, display_sysfs_attrs);
- 		if (r) {
-@@ -339,6 +339,7 @@ void display_uninit_sysfs(struct platform_device *pdev)
- 
- 	for_each_dss_dev(dssdev) {
- 		sysfs_remove_link(&pdev->dev.kobj, dssdev->alias);
--		sysfs_remove_files(&dssdev->dev.kobj, display_sysfs_attrs);
-+		sysfs_remove_files(&dssdev->dev->kobj,
-+				display_sysfs_attrs);
- 	}
- }
-diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
-index dfe3322..a9a1d55 100644
---- a/drivers/video/omap2/dss/display.c
-+++ b/drivers/video/omap2/dss/display.c
-@@ -160,13 +160,13 @@ EXPORT_SYMBOL(omapdss_unregister_display);
- 
- void omap_dss_get_device(struct omap_dss_device *dssdev)
+ static void omapdss_default_disconnect(struct omap_dss_device *dssdev)
  {
--	get_device(&dssdev->dev);
-+	get_device(dssdev->dev);
- }
- EXPORT_SYMBOL(omap_dss_get_device);
+-	struct omap_dss_output *out;
++	struct omap_dss_device *out;
+ 	struct omap_overlay_manager *mgr;
  
- void omap_dss_put_device(struct omap_dss_device *dssdev)
+ 	out = dssdev->output;
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+index d369927..03d8afd 100644
+--- a/drivers/video/omap2/dss/dpi.c
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -49,7 +49,7 @@ static struct {
+ 	struct dss_lcd_mgr_config mgr_config;
+ 	int data_lines;
+ 
+-	struct omap_dss_output output;
++	struct omap_dss_device output;
+ } dpi;
+ 
+ static struct platform_device *dpi_get_dsidev(enum omap_channel channel)
+@@ -348,7 +348,7 @@ static void dpi_config_lcd_manager(struct omap_overlay_manager *mgr)
+ 
+ int omapdss_dpi_display_enable(struct omap_dss_device *dssdev)
  {
--	put_device(&dssdev->dev);
-+	put_device(dssdev->dev);
- }
- EXPORT_SYMBOL(omap_dss_put_device);
- 
-@@ -240,9 +240,8 @@ int omap_dss_start_device(struct omap_dss_device *dssdev)
- 		return -ENODEV;
- 	}
- 
--	if (!try_module_get(dssdev->dev.driver->owner)) {
-+	if (!try_module_get(dssdev->dev->driver->owner))
- 		return -ENODEV;
--	}
- 
- 	return 0;
- }
-@@ -250,7 +249,7 @@ EXPORT_SYMBOL(omap_dss_start_device);
- 
- void omap_dss_stop_device(struct omap_dss_device *dssdev)
- {
--	module_put(dssdev->dev.driver->owner);
-+	module_put(dssdev->dev->driver->owner);
- }
- EXPORT_SYMBOL(omap_dss_stop_device);
- 
-diff --git a/drivers/video/omap2/dss/venc_panel.c b/drivers/video/omap2/dss/venc_panel.c
-index 0d2b1a0..f7d92c5 100644
---- a/drivers/video/omap2/dss/venc_panel.c
-+++ b/drivers/video/omap2/dss/venc_panel.c
-@@ -107,19 +107,19 @@ static int venc_panel_probe(struct omap_dss_device *dssdev)
- 
- 	dssdev->panel.timings = default_timings;
- 
--	return device_create_file(&dssdev->dev, &dev_attr_output_type);
-+	return device_create_file(dssdev->dev, &dev_attr_output_type);
- }
- 
- static void venc_panel_remove(struct omap_dss_device *dssdev)
- {
--	device_remove_file(&dssdev->dev, &dev_attr_output_type);
-+	device_remove_file(dssdev->dev, &dev_attr_output_type);
- }
- 
- static int venc_panel_enable(struct omap_dss_device *dssdev)
- {
+-	struct omap_dss_output *out = &dpi.output;
++	struct omap_dss_device *out = &dpi.output;
  	int r;
  
--	dev_dbg(&dssdev->dev, "venc_panel_enable\n");
-+	dev_dbg(dssdev->dev, "venc_panel_enable\n");
+ 	mutex_lock(&dpi.lock);
+@@ -684,11 +684,11 @@ static int dpi_probe_pdata(struct platform_device *dpidev)
  
- 	mutex_lock(&venc_panel.lock);
- 
-@@ -150,7 +150,7 @@ err:
- 
- static void venc_panel_disable(struct omap_dss_device *dssdev)
+ static void dpi_init_output(struct platform_device *pdev)
  {
--	dev_dbg(&dssdev->dev, "venc_panel_disable\n");
-+	dev_dbg(dssdev->dev, "venc_panel_disable\n");
+-	struct omap_dss_output *out = &dpi.output;
++	struct omap_dss_device *out = &dpi.output;
  
- 	mutex_lock(&venc_panel.lock);
+-	out->pdev = pdev;
++	out->dev = &pdev->dev;
+ 	out->id = OMAP_DSS_OUTPUT_DPI;
+-	out->type = OMAP_DISPLAY_TYPE_DPI;
++	out->output_type = OMAP_DISPLAY_TYPE_DPI;
+ 	out->name = "dpi.0";
+ 	out->dispc_channel = dpi_get_channel();
  
-@@ -167,7 +167,7 @@ end:
- static void venc_panel_set_timings(struct omap_dss_device *dssdev,
- 		struct omap_video_timings *timings)
+@@ -697,7 +697,7 @@ static void dpi_init_output(struct platform_device *pdev)
+ 
+ static void __exit dpi_uninit_output(struct platform_device *pdev)
  {
--	dev_dbg(&dssdev->dev, "venc_panel_set_timings\n");
-+	dev_dbg(dssdev->dev, "venc_panel_set_timings\n");
+-	struct omap_dss_output *out = &dpi.output;
++	struct omap_dss_device *out = &dpi.output;
  
- 	mutex_lock(&venc_panel.lock);
- 
-@@ -180,21 +180,21 @@ static void venc_panel_set_timings(struct omap_dss_device *dssdev,
- static int venc_panel_check_timings(struct omap_dss_device *dssdev,
- 		struct omap_video_timings *timings)
- {
--	dev_dbg(&dssdev->dev, "venc_panel_check_timings\n");
-+	dev_dbg(dssdev->dev, "venc_panel_check_timings\n");
- 
- 	return omapdss_venc_check_timings(dssdev, timings);
+ 	dss_unregister_output(out);
  }
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index 892838e..9aafefc 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -363,7 +363,7 @@ struct dsi_data {
+ 	enum omap_dss_dsi_mode mode;
+ 	struct omap_dss_dsi_videomode_timings vm_timings;
  
- static u32 venc_panel_get_wss(struct omap_dss_device *dssdev)
- {
--	dev_dbg(&dssdev->dev, "venc_panel_get_wss\n");
-+	dev_dbg(dssdev->dev, "venc_panel_get_wss\n");
- 
- 	return omapdss_venc_get_wss(dssdev);
- }
- 
- static int venc_panel_set_wss(struct omap_dss_device *dssdev, u32 wss)
- {
--	dev_dbg(&dssdev->dev, "venc_panel_set_wss\n");
-+	dev_dbg(dssdev->dev, "venc_panel_set_wss\n");
- 
- 	return omapdss_venc_set_wss(dssdev, wss);
- }
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index b19a8d2..f8e0e64 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -596,7 +596,11 @@ struct omap_dss_output {
+-	struct omap_dss_output output;
++	struct omap_dss_device output;
  };
  
+ struct dsi_packet_sent_handler_data {
+@@ -383,12 +383,12 @@ static inline struct dsi_data *dsi_get_dsidrv_data(struct platform_device *dside
+ 
+ static inline struct platform_device *dsi_get_dsidev_from_dssdev(struct omap_dss_device *dssdev)
+ {
+-	return dssdev->output->pdev;
++	return to_platform_device(dssdev->output->dev);
+ }
+ 
+ struct platform_device *dsi_get_dsidev_from_id(int module)
+ {
+-	struct omap_dss_output *out;
++	struct omap_dss_device *out;
+ 	enum omap_dss_output_id	id;
+ 
+ 	switch (module) {
+@@ -404,7 +404,7 @@ struct platform_device *dsi_get_dsidev_from_id(int module)
+ 
+ 	out = omap_dss_get_output(id);
+ 
+-	return out ? out->pdev : NULL;
++	return out ? to_platform_device(out->dev) : NULL;
+ }
+ 
+ static inline void dsi_write_reg(struct platform_device *dsidev,
+@@ -4133,7 +4133,7 @@ int dsi_enable_video_output(struct omap_dss_device *dssdev, int channel)
+ 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
+ 	struct omap_overlay_manager *mgr = dsi->output.manager;
+ 	int bpp = dsi_get_pixel_size(dsi->pix_fmt);
+-	struct omap_dss_output *out = &dsi->output;
++	struct omap_dss_device *out = &dsi->output;
+ 	u8 data_type;
+ 	u16 word_count;
+ 	int r;
+@@ -5415,13 +5415,13 @@ static int dsi_probe_pdata(struct platform_device *dsidev)
+ static void dsi_init_output(struct platform_device *dsidev)
+ {
+ 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
+-	struct omap_dss_output *out = &dsi->output;
++	struct omap_dss_device *out = &dsi->output;
+ 
+-	out->pdev = dsidev;
++	out->dev = &dsidev->dev;
+ 	out->id = dsi->module_id == 0 ?
+ 			OMAP_DSS_OUTPUT_DSI1 : OMAP_DSS_OUTPUT_DSI2;
+ 
+-	out->type = OMAP_DISPLAY_TYPE_DSI;
++	out->output_type = OMAP_DISPLAY_TYPE_DSI;
+ 	out->name = dsi->module_id == 0 ? "dsi.0" : "dsi.1";
+ 	out->dispc_channel = dsi_get_channel(dsi->module_id);
+ 
+@@ -5431,7 +5431,7 @@ static void dsi_init_output(struct platform_device *dsidev)
+ static void dsi_uninit_output(struct platform_device *dsidev)
+ {
+ 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
+-	struct omap_dss_output *out = &dsi->output;
++	struct omap_dss_device *out = &dsi->output;
+ 
+ 	dss_unregister_output(out);
+ }
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 03d729a..67a509e 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -180,8 +180,8 @@ void dss_copy_device_pdata(struct omap_dss_device *dst,
+ 		const struct omap_dss_device *src);
+ 
+ /* output */
+-void dss_register_output(struct omap_dss_output *out);
+-void dss_unregister_output(struct omap_dss_output *out);
++void dss_register_output(struct omap_dss_device *out);
++void dss_unregister_output(struct omap_dss_device *out);
+ 
+ /* display */
+ int dss_suspend_all_devices(void);
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index e7fe182..e33e708 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -70,7 +70,7 @@ static struct {
+ 	int ls_oe_gpio;
+ 	int hpd_gpio;
+ 
+-	struct omap_dss_output output;
++	struct omap_dss_device output;
+ } hdmi;
+ 
+ /*
+@@ -720,7 +720,7 @@ bool omapdss_hdmi_detect(void)
+ 
+ int omapdss_hdmi_display_enable(struct omap_dss_device *dssdev)
+ {
+-	struct omap_dss_output *out = &hdmi.output;
++	struct omap_dss_device *out = &hdmi.output;
+ 	int r = 0;
+ 
+ 	DSSDBG("ENTER hdmi_display_enable\n");
+@@ -1035,11 +1035,11 @@ static int hdmi_probe_pdata(struct platform_device *pdev)
+ 
+ static void hdmi_init_output(struct platform_device *pdev)
+ {
+-	struct omap_dss_output *out = &hdmi.output;
++	struct omap_dss_device *out = &hdmi.output;
+ 
+-	out->pdev = pdev;
++	out->dev = &pdev->dev;
+ 	out->id = OMAP_DSS_OUTPUT_HDMI;
+-	out->type = OMAP_DISPLAY_TYPE_HDMI;
++	out->output_type = OMAP_DISPLAY_TYPE_HDMI;
+ 	out->name = "hdmi.0";
+ 	out->dispc_channel = OMAP_DSS_CHANNEL_DIGIT;
+ 
+@@ -1048,7 +1048,7 @@ static void hdmi_init_output(struct platform_device *pdev)
+ 
+ static void __exit hdmi_uninit_output(struct platform_device *pdev)
+ {
+-	struct omap_dss_output *out = &hdmi.output;
++	struct omap_dss_device *out = &hdmi.output;
+ 
+ 	dss_unregister_output(out);
+ }
+diff --git a/drivers/video/omap2/dss/output.c b/drivers/video/omap2/dss/output.c
+index a53b08b..cc81fec 100644
+--- a/drivers/video/omap2/dss/output.c
++++ b/drivers/video/omap2/dss/output.c
+@@ -27,7 +27,7 @@
+ static LIST_HEAD(output_list);
+ static DEFINE_MUTEX(output_lock);
+ 
+-int omapdss_output_set_device(struct omap_dss_output *out,
++int omapdss_output_set_device(struct omap_dss_device *out,
+ 		struct omap_dss_device *dssdev)
+ {
+ 	int r;
+@@ -41,7 +41,7 @@ int omapdss_output_set_device(struct omap_dss_output *out,
+ 		goto err;
+ 	}
+ 
+-	if (out->type != dssdev->type) {
++	if (out->output_type != dssdev->type) {
+ 		DSSERR("output type and display type don't match\n");
+ 		r = -EINVAL;
+ 		goto err;
+@@ -60,7 +60,7 @@ err:
+ }
+ EXPORT_SYMBOL(omapdss_output_set_device);
+ 
+-int omapdss_output_unset_device(struct omap_dss_output *out)
++int omapdss_output_unset_device(struct omap_dss_device *out)
+ {
+ 	int r;
+ 
+@@ -92,19 +92,19 @@ err:
+ }
+ EXPORT_SYMBOL(omapdss_output_unset_device);
+ 
+-void dss_register_output(struct omap_dss_output *out)
++void dss_register_output(struct omap_dss_device *out)
+ {
+ 	list_add_tail(&out->list, &output_list);
+ }
+ 
+-void dss_unregister_output(struct omap_dss_output *out)
++void dss_unregister_output(struct omap_dss_device *out)
+ {
+ 	list_del(&out->list);
+ }
+ 
+-struct omap_dss_output *omap_dss_get_output(enum omap_dss_output_id id)
++struct omap_dss_device *omap_dss_get_output(enum omap_dss_output_id id)
+ {
+-	struct omap_dss_output *out;
++	struct omap_dss_device *out;
+ 
+ 	list_for_each_entry(out, &output_list, list) {
+ 		if (out->id == id)
+@@ -115,9 +115,9 @@ struct omap_dss_output *omap_dss_get_output(enum omap_dss_output_id id)
+ }
+ EXPORT_SYMBOL(omap_dss_get_output);
+ 
+-struct omap_dss_output *omap_dss_find_output(const char *name)
++struct omap_dss_device *omap_dss_find_output(const char *name)
+ {
+-	struct omap_dss_output *out;
++	struct omap_dss_device *out;
+ 
+ 	list_for_each_entry(out, &output_list, list) {
+ 		if (strcmp(out->name, name) == 0)
+@@ -128,12 +128,12 @@ struct omap_dss_output *omap_dss_find_output(const char *name)
+ }
+ EXPORT_SYMBOL(omap_dss_find_output);
+ 
+-struct omap_dss_output *omap_dss_find_output_by_node(struct device_node *node)
++struct omap_dss_device *omap_dss_find_output_by_node(struct device_node *node)
+ {
+-	struct omap_dss_output *out;
++	struct omap_dss_device *out;
+ 
+ 	list_for_each_entry(out, &output_list, list) {
+-		if (out->pdev->dev.of_node == node)
++		if (out->dev->of_node == node)
+ 			return out;
+ 	}
+ 
+@@ -141,7 +141,7 @@ struct omap_dss_output *omap_dss_find_output_by_node(struct device_node *node)
+ }
+ EXPORT_SYMBOL(omap_dss_find_output_by_node);
+ 
+-struct omap_dss_output *omapdss_find_output_from_display(struct omap_dss_device *dssdev)
++struct omap_dss_device *omapdss_find_output_from_display(struct omap_dss_device *dssdev)
+ {
+ 	return dssdev->output;
+ }
+@@ -149,7 +149,7 @@ EXPORT_SYMBOL(omapdss_find_output_from_display);
+ 
+ struct omap_overlay_manager *omapdss_find_mgr_from_display(struct omap_dss_device *dssdev)
+ {
+-	struct omap_dss_output *out;
++	struct omap_dss_device *out;
+ 
+ 	out = omapdss_find_output_from_display(dssdev);
+ 
+@@ -180,14 +180,14 @@ void dss_uninstall_mgr_ops(void)
+ EXPORT_SYMBOL(dss_uninstall_mgr_ops);
+ 
+ int dss_mgr_connect(struct omap_overlay_manager *mgr,
+-		struct omap_dss_output *dst)
++		struct omap_dss_device *dst)
+ {
+ 	return dss_mgr_ops->connect(mgr, dst);
+ }
+ EXPORT_SYMBOL(dss_mgr_connect);
+ 
+ void dss_mgr_disconnect(struct omap_overlay_manager *mgr,
+-		struct omap_dss_output *dst)
++		struct omap_dss_device *dst)
+ {
+ 	dss_mgr_ops->disconnect(mgr, dst);
+ }
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index 30ff0e0..35836eb 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -117,7 +117,7 @@ static struct {
+ 	int data_lines;
+ 	struct rfbi_timings intf_timings;
+ 
+-	struct omap_dss_output output;
++	struct omap_dss_device output;
+ } rfbi;
+ 
+ static inline void rfbi_write_reg(const struct rfbi_reg idx, u32 val)
+@@ -890,7 +890,7 @@ static void rfbi_config_lcd_manager(struct omap_dss_device *dssdev)
+ 
+ int omapdss_rfbi_display_enable(struct omap_dss_device *dssdev)
+ {
+-	struct omap_dss_output *out = &rfbi.output;
++	struct omap_dss_device *out = &rfbi.output;
+ 	int r;
+ 
+ 	if (out == NULL || out->manager == NULL) {
+@@ -925,7 +925,7 @@ EXPORT_SYMBOL(omapdss_rfbi_display_enable);
+ 
+ void omapdss_rfbi_display_disable(struct omap_dss_device *dssdev)
+ {
+-	struct omap_dss_output *out = &rfbi.output;
++	struct omap_dss_device *out = &rfbi.output;
+ 
+ 	dss_mgr_unregister_framedone_handler(out->manager,
+ 			framedone_callback, NULL);
+@@ -1013,11 +1013,11 @@ static int rfbi_probe_pdata(struct platform_device *rfbidev)
+ 
+ static void rfbi_init_output(struct platform_device *pdev)
+ {
+-	struct omap_dss_output *out = &rfbi.output;
++	struct omap_dss_device *out = &rfbi.output;
+ 
+-	out->pdev = pdev;
++	out->dev = &pdev->dev;
+ 	out->id = OMAP_DSS_OUTPUT_DBI;
+-	out->type = OMAP_DISPLAY_TYPE_DBI;
++	out->output_type = OMAP_DISPLAY_TYPE_DBI;
+ 	out->name = "rfbi.0";
+ 	out->dispc_channel = OMAP_DSS_CHANNEL_LCD;
+ 
+@@ -1026,7 +1026,7 @@ static void rfbi_init_output(struct platform_device *pdev)
+ 
+ static void __exit rfbi_uninit_output(struct platform_device *pdev)
+ {
+-	struct omap_dss_output *out = &rfbi.output;
++	struct omap_dss_device *out = &rfbi.output;
+ 
+ 	dss_unregister_output(out);
+ }
+diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
+index ce37c80..a226c37 100644
+--- a/drivers/video/omap2/dss/sdi.c
++++ b/drivers/video/omap2/dss/sdi.c
+@@ -41,7 +41,7 @@ static struct {
+ 	struct omap_video_timings timings;
+ 	int datapairs;
+ 
+-	struct omap_dss_output output;
++	struct omap_dss_device output;
+ } sdi;
+ 
+ struct sdi_clk_calc_ctx {
+@@ -127,7 +127,7 @@ static void sdi_config_lcd_manager(struct omap_dss_device *dssdev)
+ 
+ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
+ {
+-	struct omap_dss_output *out = &sdi.output;
++	struct omap_dss_device *out = &sdi.output;
+ 	struct omap_video_timings *t = &sdi.timings;
+ 	struct dss_clock_info dss_cinfo;
+ 	struct dispc_clock_info dispc_cinfo;
+@@ -341,11 +341,11 @@ static int sdi_probe_pdata(struct platform_device *sdidev)
+ 
+ static void sdi_init_output(struct platform_device *pdev)
+ {
+-	struct omap_dss_output *out = &sdi.output;
++	struct omap_dss_device *out = &sdi.output;
+ 
+-	out->pdev = pdev;
++	out->dev = &pdev->dev;
+ 	out->id = OMAP_DSS_OUTPUT_SDI;
+-	out->type = OMAP_DISPLAY_TYPE_SDI;
++	out->output_type = OMAP_DISPLAY_TYPE_SDI;
+ 	out->name = "sdi.0";
+ 	out->dispc_channel = OMAP_DSS_CHANNEL_LCD;
+ 
+@@ -354,7 +354,7 @@ static void sdi_init_output(struct platform_device *pdev)
+ 
+ static void __exit sdi_uninit_output(struct platform_device *pdev)
+ {
+-	struct omap_dss_output *out = &sdi.output;
++	struct omap_dss_device *out = &sdi.output;
+ 
+ 	dss_unregister_output(out);
+ }
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index bac904c..7bfcba4 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -304,7 +304,7 @@ static struct {
+ 	enum omap_dss_venc_type type;
+ 	bool invert_polarity;
+ 
+-	struct omap_dss_output output;
++	struct omap_dss_device output;
+ } venc;
+ 
+ static inline void venc_write_reg(int idx, u32 val)
+@@ -500,7 +500,7 @@ unsigned long venc_get_pixel_clock(void)
+ 
+ int omapdss_venc_display_enable(struct omap_dss_device *dssdev)
+ {
+-	struct omap_dss_output *out = &venc.output;
++	struct omap_dss_device *out = &venc.output;
+ 	int r;
+ 
+ 	DSSDBG("venc_display_enable\n");
+@@ -785,11 +785,11 @@ static int venc_probe_pdata(struct platform_device *vencdev)
+ 
+ static void venc_init_output(struct platform_device *pdev)
+ {
+-	struct omap_dss_output *out = &venc.output;
++	struct omap_dss_device *out = &venc.output;
+ 
+-	out->pdev = pdev;
++	out->dev = &pdev->dev;
+ 	out->id = OMAP_DSS_OUTPUT_VENC;
+-	out->type = OMAP_DISPLAY_TYPE_VENC;
++	out->output_type = OMAP_DISPLAY_TYPE_VENC;
+ 	out->name = "venc.0";
+ 	out->dispc_channel = OMAP_DSS_CHANNEL_DIGIT;
+ 
+@@ -798,7 +798,7 @@ static void venc_init_output(struct platform_device *pdev)
+ 
+ static void __exit venc_uninit_output(struct platform_device *pdev)
+ {
+-	struct omap_dss_output *out = &venc.output;
++	struct omap_dss_device *out = &venc.output;
+ 
+ 	dss_unregister_output(out);
+ }
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 3aa89c4..5046264 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -515,7 +515,7 @@ struct omap_overlay_manager {
+ 	enum omap_dss_output_id supported_outputs;
+ 
+ 	/* dynamic fields */
+-	struct omap_dss_output *output;
++	struct omap_dss_device *output;
+ 
+ 	/*
+ 	 * The following functions do not block:
+@@ -529,7 +529,7 @@ struct omap_overlay_manager {
+ 	 */
+ 
+ 	int (*set_output)(struct omap_overlay_manager *mgr,
+-		struct omap_dss_output *output);
++		struct omap_dss_device *output);
+ 	int (*unset_output)(struct omap_overlay_manager *mgr);
+ 
+ 	int (*set_manager_info)(struct omap_overlay_manager *mgr,
+@@ -572,29 +572,6 @@ struct omap_dss_writeback_info {
+ 	u8 pre_mult_alpha;
+ };
+ 
+-struct omap_dss_output {
+-	struct list_head list;
+-
+-	const char *name;
+-
+-	/* display type supported by the output */
+-	enum omap_display_type type;
+-
+-	/* DISPC channel for this output */
+-	enum omap_channel dispc_channel;
+-
+-	/* output instance */
+-	enum omap_dss_output_id id;
+-
+-	/* output's platform device pointer */
+-	struct platform_device *pdev;
+-
+-	/* dynamic fields */
+-	struct omap_overlay_manager *manager;
+-
+-	struct omap_dss_device *device;
+-};
+-
  struct omap_dss_device {
--	struct device dev;
-+	/* old device, to be removed */
-+	struct device old_dev;
+ 	/* old device, to be removed */
+ 	struct device old_dev;
+@@ -608,6 +585,7 @@ struct omap_dss_device {
+ 	char alias[16];
+ 
+ 	enum omap_display_type type;
++	enum omap_display_type output_type;
+ 
+ 	/* obsolete, to be removed */
+ 	enum omap_channel channel;
+@@ -669,7 +647,7 @@ struct omap_dss_device {
+ 
+ 	enum omap_display_caps caps;
+ 
+-	struct omap_dss_output *output;
++	struct omap_dss_device *output;
+ 
+ 	enum omap_dss_display_state state;
+ 
+@@ -680,6 +658,22 @@ struct omap_dss_device {
+ 	void (*platform_disable)(struct omap_dss_device *dssdev);
+ 	int (*set_backlight)(struct omap_dss_device *dssdev, int level);
+ 	int (*get_backlight)(struct omap_dss_device *dssdev);
 +
-+	/* new device, pointer to panel device */
-+	struct device *dev;
++
++	/* OMAP DSS output specific fields */
++
++	struct list_head list;
++
++	/* DISPC channel for this output */
++	enum omap_channel dispc_channel;
++
++	/* output instance */
++	enum omap_dss_output_id id;
++
++	/* dynamic fields */
++	struct omap_overlay_manager *manager;
++
++	struct omap_dss_device *device;
+ };
  
- 	struct list_head panel_list;
+ struct omap_dss_hdmi_data
+@@ -797,14 +791,14 @@ struct omap_overlay_manager *omap_dss_get_overlay_manager(int num);
+ int omap_dss_get_num_overlays(void);
+ struct omap_overlay *omap_dss_get_overlay(int num);
  
-@@ -855,7 +859,7 @@ int dispc_ovl_setup(enum omap_plane plane, const struct omap_overlay_info *oi,
- 		bool mem_to_mem);
+-struct omap_dss_output *omap_dss_get_output(enum omap_dss_output_id id);
+-struct omap_dss_output *omap_dss_find_output(const char *name);
+-struct omap_dss_output *omap_dss_find_output_by_node(struct device_node *node);
+-int omapdss_output_set_device(struct omap_dss_output *out,
++struct omap_dss_device *omap_dss_get_output(enum omap_dss_output_id id);
++struct omap_dss_device *omap_dss_find_output(const char *name);
++struct omap_dss_device *omap_dss_find_output_by_node(struct device_node *node);
++int omapdss_output_set_device(struct omap_dss_device *out,
+ 		struct omap_dss_device *dssdev);
+-int omapdss_output_unset_device(struct omap_dss_output *out);
++int omapdss_output_unset_device(struct omap_dss_device *out);
  
- #define to_dss_driver(x) container_of((x), struct omap_dss_driver, driver)
--#define to_dss_device(x) container_of((x), struct omap_dss_device, dev)
-+#define to_dss_device(x) container_of((x), struct omap_dss_device, old_dev)
+-struct omap_dss_output *omapdss_find_output_from_display(struct omap_dss_device *dssdev);
++struct omap_dss_device *omapdss_find_output_from_display(struct omap_dss_device *dssdev);
+ struct omap_overlay_manager *omapdss_find_mgr_from_display(struct omap_dss_device *dssdev);
  
- void omapdss_dsi_vc_enable_hs(struct omap_dss_device *dssdev, int channel,
- 		bool enable);
+ void omapdss_default_get_resolution(struct omap_dss_device *dssdev,
+@@ -908,9 +902,9 @@ void omapdss_compat_uninit(void);
+ 
+ struct dss_mgr_ops {
+ 	int (*connect)(struct omap_overlay_manager *mgr,
+-		struct omap_dss_output *dst);
++		struct omap_dss_device *dst);
+ 	void (*disconnect)(struct omap_overlay_manager *mgr,
+-		struct omap_dss_output *dst);
++		struct omap_dss_device *dst);
+ 
+ 	void (*start_update)(struct omap_overlay_manager *mgr);
+ 	int (*enable)(struct omap_overlay_manager *mgr);
+@@ -929,9 +923,9 @@ int dss_install_mgr_ops(const struct dss_mgr_ops *mgr_ops);
+ void dss_uninstall_mgr_ops(void);
+ 
+ int dss_mgr_connect(struct omap_overlay_manager *mgr,
+-		struct omap_dss_output *dst);
++		struct omap_dss_device *dst);
+ void dss_mgr_disconnect(struct omap_overlay_manager *mgr,
+-		struct omap_dss_output *dst);
++		struct omap_dss_device *dst);
+ void dss_mgr_set_timings(struct omap_overlay_manager *mgr,
+ 		const struct omap_video_timings *timings);
+ void dss_mgr_set_lcd_config(struct omap_overlay_manager *mgr,
 -- 
 1.8.1.2
 
