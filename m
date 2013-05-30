@@ -1,68 +1,81 @@
 From: Ruchika Kharwar <ruchika@ti.com>
-Subject: [PATCH] jacinto6 : usb3_phy: Updated dpll M,N values.
-Date: Thu, 30 May 2013 14:54:09 -0500
-Message-ID: <1369943649-982-1-git-send-email-ruchika@ti.com>
+Subject: [PATCH] usb: dwc3: Addition of "dr_mode" dt property.
+Date: Thu, 30 May 2013 15:14:54 -0500
+Message-ID: <1369944894-3176-1-git-send-email-ruchika@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52639 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752524Ab3E3TyM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 15:54:12 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Landley <rob@landley.net>, Ruchika Kharwar <ruchika@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ruchika Kharwar <ruchika@ti.com>
 
-Addition of the M and N recommended values for the USB3 PHY DPLL.
-Sysclk for DRA7xx is 20MHz.
-This yields:
-Clk = 20MHz * M/(N+1) = 20MHz * 1000 /(7+1) = 2.5 Ghz
+This patch adds an optional parameter "dr_mode" to the dwc3 core device node.
+In the case the compile flag for the DWC3 controller is set to
+"USB_DWC3_DUAL_ROLE" a device tree could restrain to either functionality of
+host or gadget. In the case the device tree does not use this optional flag or
+specifies it superfluously to "drd" the functionality will be that
+of a dual role device.
 
 Signed-off-by: Ruchika Kharwar <ruchika@ti.com>
 ---
- drivers/usb/phy/phy-omap-usb3.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+ Documentation/devicetree/bindings/usb/dwc3.txt |    3 ++-
+ drivers/usb/dwc3/core.c                        |   21 +++++++++++++++++----
+ 2 files changed, 19 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/usb/phy/phy-omap-usb3.c b/drivers/usb/phy/phy-omap-usb3.c
-index a6e60b1..efe6e14 100644
---- a/drivers/usb/phy/phy-omap-usb3.c
-+++ b/drivers/usb/phy/phy-omap-usb3.c
-@@ -27,7 +27,7 @@
- #include <linux/delay.h>
- #include <linux/usb/omap_control_usb.h>
+diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
+index 7a95c65..2f5d584 100644
+--- a/Documentation/devicetree/bindings/usb/dwc3.txt
++++ b/Documentation/devicetree/bindings/usb/dwc3.txt
+@@ -10,7 +10,8 @@ Required properties:
  
--#define	NUM_SYS_CLKS		5
-+#define	NUM_SYS_CLKS		6
- #define	PLL_STATUS		0x00000004
- #define	PLL_GO			0x00000008
- #define	PLL_CONFIGURATION1	0x0000000C
-@@ -62,6 +62,7 @@ enum sys_clk_rate {
- 	CLK_RATE_12MHZ,
- 	CLK_RATE_16MHZ,
- 	CLK_RATE_19MHZ,
-+	CLK_RATE_20MHZ,
- 	CLK_RATE_26MHZ,
- 	CLK_RATE_38MHZ
- };
-@@ -72,6 +73,8 @@ static struct usb_dpll_params omap_usb3_dpll_params[NUM_SYS_CLKS] = {
- 	{1172, 8, 4, 20, 65537},	/* 19.2 MHz */
- 	{1250, 12, 4, 20, 0},		/* 26 MHz */
- 	{3125, 47, 4, 20, 92843},	/* 38.4 MHz */
-+	{1000, 7, 4, 10, 0},            /* 20 MHz */
-+
- };
+ Optional properties:
+  - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
+-
++ - dr_mode: determines the mode of core. Supported modes are "gadget", "host"
++   and "drd".
+ This is usually a subnode to DWC3 glue to which it is connected.
  
- static int omap_usb3_suspend(struct usb_phy *x, int suspend)
-@@ -122,6 +125,8 @@ static inline enum sys_clk_rate __get_sys_clk_index(unsigned long rate)
- 		return CLK_RATE_16MHZ;
- 	case 19200000:
- 		return CLK_RATE_19MHZ;
-+	case 20000000:
-+		return CLK_RATE_20MHZ;
- 	case 26000000:
- 		return CLK_RATE_26MHZ;
- 	case 38400000:
+ dwc3@4a030000 {
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index c35d49d..e11660a 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -378,7 +378,7 @@ static int dwc3_probe(struct platform_device *pdev)
+ 	void			*mem;
+ 
+ 	u8			mode;
+-
++	char			*dr_mode;
+ 	mem = devm_kzalloc(dev, sizeof(*dwc) + DWC3_ALIGN_MASK, GFP_KERNEL);
+ 	if (!mem) {
+ 		dev_err(dev, "not enough memory\n");
+@@ -520,9 +520,22 @@ static int dwc3_probe(struct platform_device *pdev)
+ 		mode = DWC3_MODE_HOST;
+ 	else if (IS_ENABLED(CONFIG_USB_DWC3_GADGET))
+ 		mode = DWC3_MODE_DEVICE;
+-	else
+-		mode = DWC3_MODE_DRD;
+-
++	else {
++		if (of_property_read_string(node, "dr_mode", &dr_mode))
++			mode = DWC3_MODE_DRD;
++		else {
++			if (strcmp(dr_mode, "host") == 0)
++				mode = DWC3_MODE_HOST;
++			else if (strcmp(dr_mode, "gadget") == 0)
++				mode = DWC3_MODE_DEVICE;
++			else if (strcmp(dr_mode, "drd") == 0)
++				mode = DWC3_MODE_DRD;
++			else {
++				dev_err(dev, "invalid dr_mode property value\n");
++				goto err2;
++			}
++		}
++	}
+ 	switch (mode) {
+ 	case DWC3_MODE_DEVICE:
+ 		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
 -- 
 1.7.5.4
 
