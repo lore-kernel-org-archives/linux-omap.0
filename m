@@ -1,48 +1,46 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [net-next PATCH 1/1] drivers: net: davinci_cpdma: remove CRC bytes from skb added by CPDMA
-Date: Thu, 30 May 2013 11:52:01 +0530
-Message-ID: <1369894922-27116-1-git-send-email-mugunthanvnm@ti.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH] dts: am33xx: Correct properties on gpmc node
+Date: Thu, 30 May 2013 06:44:02 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73E9C8B98@DBDE04.ent.ti.com>
+References: <1369729497-11897-1-git-send-email-larsi@wh2.tu-dresden.de>
+ <87mwrfbfgv.fsf@dell.be.48ers.dk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <87mwrfbfgv.fsf@dell.be.48ers.dk>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Korsgaard <jacmet@sunsite.dk>, Lars Poeschel <larsi@wh2.tu-dresden.de>
+Cc: "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson,
+ Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "poeschel@lemonage.de" <poeschel@lemonage.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Additional 4 bytes found in the skb is the CRC calculated by the
-CPDMA hardware, check the CRC bit in CPDMA status field of
-Descriptor and remove the CRC length from the skb. This extra
-4 byte can be seen when capturing packets using tcpdump.
-This has been tested in TI816x platform.
+> >>>>> "Lars" == Lars Poeschel <larsi@wh2.tu-dresden.de> writes:
+> 
+>  Lars> From: Lars Poeschel <poeschel@lemonage.de>
+>  Lars> The gpmc driver is actually looking for "gpmc,num-cs" and
+>  Lars> "gpmc,num-waitpins" properties in DT. The binding doc also states
+>  Lars> this.
+>  Lars> Correct the properties in the dts to provide the right values for the
+>  Lars> gpmc driver.
+> 
+>  Lars> Signed-off-by: Lars Poeschel <poeschel@lemonage.de>
+> 
+> Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
+> 
+Acked-by: Pekon Gupta <pekon@ti.com>
 
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
- drivers/net/ethernet/ti/davinci_cpdma.c |    5 +++++
- 1 file changed, 5 insertions(+)
+My another patch [V3, 2/3] on same can be dropped, in lieu of this one..
+http://www.spinics.net/lists/linux-omap/msg91167.html
 
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index 49dfd59..a377bc7 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -64,6 +64,7 @@
- #define CPDMA_DESC_TO_PORT_EN	BIT(20)
- #define CPDMA_TO_PORT_SHIFT	16
- #define CPDMA_DESC_PORT_MASK	(BIT(18) | BIT(17) | BIT(16))
-+#define CPDMA_DESC_CRC_LEN	4
- 
- #define CPDMA_TEARDOWN_VALUE	0xfffffffc
- 
-@@ -798,6 +799,10 @@ static int __cpdma_chan_process(struct cpdma_chan *chan)
- 		status = -EBUSY;
- 		goto unlock_ret;
- 	}
-+
-+	if (status & CPDMA_DESC_PASS_CRC)
-+		outlen -= CPDMA_DESC_CRC_LEN;
-+
- 	status	= status & (CPDMA_DESC_EOQ | CPDMA_DESC_TD_COMPLETE |
- 			    CPDMA_DESC_PORT_MASK);
- 
--- 
-1.7.9.5
+
+with regards, pekon
