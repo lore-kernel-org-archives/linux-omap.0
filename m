@@ -1,62 +1,63 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 17/27] OMAPDSS: Add new TPD12S015 Encoder driver
-Date: Thu, 30 May 2013 12:36:10 +0300
-Message-ID: <1369906580-27585-18-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 19/27] OMAPDSS: Add new HDMI Connector driver
+Date: Thu, 30 May 2013 12:36:12 +0300
+Message-ID: <1369906580-27585-20-git-send-email-tomi.valkeinen@ti.com>
 References: <1369906580-27585-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41447 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49901 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030438Ab3E3JhL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 May 2013 05:37:11 -0400
+	id S1030444Ab3E3JhO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 May 2013 05:37:14 -0400
 In-Reply-To: <1369906580-27585-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add TPD12S015 HDMI ESD protection and level shifter encoder driver which
-uses the new DSS device model and DSS ops.
+Add HDMI Connector driver which uses the new DSS device model and DSS
+ops.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/displays-new/Kconfig           |   6 +
- drivers/video/omap2/displays-new/Makefile          |   1 +
- .../video/omap2/displays-new/encoder-tpd12s015.c   | 395 +++++++++++++++++++++
- 3 files changed, 402 insertions(+)
- create mode 100644 drivers/video/omap2/displays-new/encoder-tpd12s015.c
+ drivers/video/omap2/displays-new/Kconfig          |   5 +
+ drivers/video/omap2/displays-new/Makefile         |   1 +
+ drivers/video/omap2/displays-new/connector-hdmi.c | 375 ++++++++++++++++++++++
+ 3 files changed, 381 insertions(+)
+ create mode 100644 drivers/video/omap2/displays-new/connector-hdmi.c
 
 diff --git a/drivers/video/omap2/displays-new/Kconfig b/drivers/video/omap2/displays-new/Kconfig
-index 92c2324..6e4af85 100644
+index 76570fc..9a66413 100644
 --- a/drivers/video/omap2/displays-new/Kconfig
 +++ b/drivers/video/omap2/displays-new/Kconfig
-@@ -6,4 +6,10 @@ config DISPLAY_ENCODER_TFP410
+@@ -18,4 +18,9 @@ config DISPLAY_CONNECTOR_DVI
  	help
- 	  Driver for TFP410 DPI to DVI encoder.
+ 	  Driver for a generic DVI connector.
  
-+config DISPLAY_ENCODER_TPD12S015
-+        tristate "TPD12S015 HDMI ESD protection and level shifter"
++config DISPLAY_CONNECTOR_HDMI
++        tristate "HDMI Connector"
 +	help
-+	  Driver for TPD12S015, which offers HDMI ESD protection and level
-+	  shifting.
++	  Driver for a generic HDMI connector.
 +
  endmenu
 diff --git a/drivers/video/omap2/displays-new/Makefile b/drivers/video/omap2/displays-new/Makefile
-index b0d3457..c2ee45e 100644
+index ed7dd06..1007b5f 100644
 --- a/drivers/video/omap2/displays-new/Makefile
 +++ b/drivers/video/omap2/displays-new/Makefile
-@@ -1 +1,2 @@
+@@ -1,3 +1,4 @@
  obj-$(CONFIG_DISPLAY_ENCODER_TFP410) += encoder-tfp410.o
-+obj-$(CONFIG_DISPLAY_ENCODER_TPD12S015) += encoder-tpd12s015.o
-diff --git a/drivers/video/omap2/displays-new/encoder-tpd12s015.c b/drivers/video/omap2/displays-new/encoder-tpd12s015.c
+ obj-$(CONFIG_DISPLAY_ENCODER_TPD12S015) += encoder-tpd12s015.o
+ obj-$(CONFIG_DISPLAY_CONNECTOR_DVI) += connector-dvi.o
++obj-$(CONFIG_DISPLAY_CONNECTOR_HDMI) += connector-hdmi.o
+diff --git a/drivers/video/omap2/displays-new/connector-hdmi.c b/drivers/video/omap2/displays-new/connector-hdmi.c
 new file mode 100644
-index 0000000..d510c8e
+index 0000000..c582671
 --- /dev/null
-+++ b/drivers/video/omap2/displays-new/encoder-tpd12s015.c
-@@ -0,0 +1,395 @@
++++ b/drivers/video/omap2/displays-new/connector-hdmi.c
+@@ -0,0 +1,375 @@
 +/*
-+ * TPD12S015 HDMI ESD protection & level shifter chip driver
++ * HDMI Connector driver
 + *
 + * Copyright (C) 2013 Texas Instruments
 + * Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
@@ -66,108 +67,87 @@ index 0000000..d510c8e
 + * the Free Software Foundation.
 + */
 +
-+#include <linux/module.h>
 +#include <linux/slab.h>
-+#include <linux/gpio.h>
++#include <linux/module.h>
 +#include <linux/platform_device.h>
++
++#include <drm/drm_edid.h>
 +
 +#include <video/omapdss.h>
 +#include <video/omap-panel-data.h>
++
++static const struct omap_video_timings hdmic_default_timings = {
++	.x_res		= 640,
++	.y_res		= 480,
++	.pixel_clock	= 25175,
++	.hsw		= 96,
++	.hfp		= 16,
++	.hbp		= 48,
++	.vsw		= 2,
++	.vfp		= 11,
++	.vbp		= 31,
++
++	.vsync_level	= OMAPDSS_SIG_ACTIVE_LOW,
++	.hsync_level	= OMAPDSS_SIG_ACTIVE_LOW,
++
++	.interlace	= false,
++};
 +
 +struct panel_drv_data {
 +	struct omap_dss_device dssdev;
 +	struct omap_dss_device *in;
 +
-+	int ct_cp_hpd_gpio;
-+	int ls_oe_gpio;
-+	int hpd_gpio;
++	struct device *dev;
 +
 +	struct omap_video_timings timings;
 +};
 +
 +#define to_panel_data(x) container_of(x, struct panel_drv_data, dssdev)
 +
-+static int tpd_connect(struct omap_dss_device *dssdev,
-+		struct omap_dss_device *dst)
++static int hdmic_connect(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
 +	int r;
 +
-+	r = gpio_request_one(ddata->ct_cp_hpd_gpio, GPIOF_OUT_INIT_LOW,
-+			"hdmi_ct_cp_hpd");
-+	if (r)
-+		goto err_ct_cp_hpd;
++	dev_dbg(ddata->dev, "connect\n");
 +
-+	if (gpio_is_valid(ddata->ls_oe_gpio)) {
-+		r = gpio_request_one(ddata->ls_oe_gpio, GPIOF_OUT_INIT_LOW,
-+				"hdmi_ls_oe");
-+		if (r)
-+			goto err_ls_oe;
-+	}
-+
-+	r = gpio_request_one(ddata->hpd_gpio, GPIOF_DIR_IN,
-+			"hdmi_hpd");
-+	if (r)
-+		goto err_hpd;
-+
-+
-+	/* XXX */
-+	in->ops.hdmi->set_hpd_gpio(in, ddata->hpd_gpio);
++	if (omapdss_device_is_connected(dssdev))
++		return 0;
 +
 +	r = in->ops.hdmi->connect(in, dssdev);
 +	if (r)
-+		goto err_conn;
-+
-+	dst->output = dssdev;
-+	dssdev->device = dst;
++		return r;
 +
 +	return 0;
-+
-+err_conn:
-+	gpio_free(ddata->hpd_gpio);
-+err_hpd:
-+	if (gpio_is_valid(ddata->ls_oe_gpio))
-+		gpio_free(ddata->ls_oe_gpio);
-+err_ls_oe:
-+	gpio_free(ddata->ct_cp_hpd_gpio);
-+err_ct_cp_hpd:
-+	return r;
 +}
 +
-+static void tpd_disconnect(struct omap_dss_device *dssdev,
-+		struct omap_dss_device *dst)
++static void hdmic_disconnect(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
 +
-+	WARN_ON(dst != dssdev->device);
++	dev_dbg(ddata->dev, "disconnect\n");
 +
-+	if (dst != dssdev->device)
++	if (!omapdss_device_is_connected(dssdev))
 +		return;
 +
-+	dst->output = NULL;
-+	dssdev->device = NULL;
-+
-+	in->ops.hdmi->disconnect(in, &ddata->dssdev);
-+
-+	gpio_free(ddata->hpd_gpio);
-+	if (gpio_is_valid(ddata->ls_oe_gpio))
-+		gpio_free(ddata->ls_oe_gpio);
-+	gpio_free(ddata->ct_cp_hpd_gpio);
++	in->ops.hdmi->disconnect(in, dssdev);
 +}
 +
-+static int tpd_enable(struct omap_dss_device *dssdev)
++static int hdmic_enable(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
 +	int r;
 +
-+	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
-+		return 0;
++	dev_dbg(ddata->dev, "enable\n");
 +
-+	gpio_set_value(ddata->ct_cp_hpd_gpio, 1);
-+	gpio_set_value(ddata->ls_oe_gpio, 1);
++	if (!omapdss_device_is_connected(dssdev))
++		return -ENODEV;
++
++	if (omapdss_device_is_enabled(dssdev))
++		return 0;
 +
 +	in->ops.hdmi->set_timings(in, &ddata->timings);
 +
@@ -175,34 +155,27 @@ index 0000000..d510c8e
 +	if (r)
 +		return r;
 +
-+	if (gpio_is_valid(ddata->ls_oe_gpio))
-+		gpio_set_value_cansleep(ddata->ls_oe_gpio, 1);
-+
 +	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
 +
 +	return r;
 +}
 +
-+static void tpd_disable(struct omap_dss_device *dssdev)
++static void hdmic_disable(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
 +
-+	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
++	dev_dbg(ddata->dev, "disable\n");
++
++	if (!omapdss_device_is_enabled(dssdev))
 +		return;
 +
-+	if (gpio_is_valid(ddata->ls_oe_gpio))
-+		gpio_set_value_cansleep(ddata->ls_oe_gpio, 0);
-+
 +	in->ops.hdmi->disable(in);
-+
-+	gpio_set_value(ddata->ct_cp_hpd_gpio, 0);
-+	gpio_set_value(ddata->ls_oe_gpio, 0);
 +
 +	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
 +}
 +
-+static void tpd_set_timings(struct omap_dss_device *dssdev,
++static void hdmic_set_timings(struct omap_dss_device *dssdev,
 +		struct omap_video_timings *timings)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
@@ -214,7 +187,7 @@ index 0000000..d510c8e
 +	in->ops.hdmi->set_timings(in, timings);
 +}
 +
-+static void tpd_get_timings(struct omap_dss_device *dssdev,
++static void hdmic_get_timings(struct omap_dss_device *dssdev,
 +		struct omap_video_timings *timings)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
@@ -222,149 +195,155 @@ index 0000000..d510c8e
 +	*timings = ddata->timings;
 +}
 +
-+static int tpd_check_timings(struct omap_dss_device *dssdev,
++static int hdmic_check_timings(struct omap_dss_device *dssdev,
 +		struct omap_video_timings *timings)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
-+	int r;
 +
-+	r = in->ops.hdmi->check_timings(in, timings);
-+
-+	return r;
++	return in->ops.hdmi->check_timings(in, timings);
 +}
 +
-+static int tpd_read_edid(struct omap_dss_device *dssdev,
++static int hdmic_read_edid(struct omap_dss_device *dssdev,
 +		u8 *edid, int len)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
-+	bool need_enable;
++
++	return in->ops.hdmi->read_edid(in, edid, len);
++}
++
++static bool hdmic_detect(struct omap_dss_device *dssdev)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_dss_device *in = ddata->in;
++
++	return in->ops.hdmi->detect(in);
++}
++
++static int hdmic_audio_enable(struct omap_dss_device *dssdev)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	struct omap_dss_device *in = ddata->in;
 +	int r;
 +
-+	need_enable = dssdev->state == OMAP_DSS_DISPLAY_DISABLED;
++	/* enable audio only if the display is active */
++	if (!omapdss_device_is_enabled(dssdev))
++		return -EPERM;
 +
-+	if (need_enable) {
-+		gpio_set_value(ddata->ct_cp_hpd_gpio, 1);
-+		gpio_set_value(ddata->ls_oe_gpio, 1);
-+	}
++	r = in->ops.hdmi->audio_enable(in);
++	if (r)
++		return r;
 +
-+	r = in->ops.hdmi->read_edid(in, edid, len);
++	dssdev->audio_state = OMAP_DSS_AUDIO_ENABLED;
 +
-+	if (need_enable) {
-+		gpio_set_value(ddata->ct_cp_hpd_gpio, 0);
-+		gpio_set_value(ddata->ls_oe_gpio, 0);
-+	}
-+
-+	return r;
++	return 0;
 +}
 +
-+static bool tpd_detect(struct omap_dss_device *dssdev)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	struct omap_dss_device *in = ddata->in;
-+	bool need_enable;
-+	bool det;
-+
-+	need_enable = dssdev->state == OMAP_DSS_DISPLAY_DISABLED;
-+
-+	if (need_enable) {
-+		gpio_set_value(ddata->ct_cp_hpd_gpio, 1);
-+		gpio_set_value(ddata->ls_oe_gpio, 1);
-+	}
-+
-+	det = in->ops.hdmi->detect(in);
-+
-+	if (need_enable) {
-+		gpio_set_value(ddata->ct_cp_hpd_gpio, 0);
-+		gpio_set_value(ddata->ls_oe_gpio, 0);
-+	}
-+
-+	return det;
-+}
-+
-+static int tpd_audio_enable(struct omap_dss_device *dssdev)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	struct omap_dss_device *in = ddata->in;
-+
-+	return in->ops.hdmi->audio_enable(in);
-+}
-+
-+static void tpd_audio_disable(struct omap_dss_device *dssdev)
++static void hdmic_audio_disable(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
 +
 +	in->ops.hdmi->audio_disable(in);
++
++	dssdev->audio_state = OMAP_DSS_AUDIO_DISABLED;
 +}
 +
-+static int tpd_audio_start(struct omap_dss_device *dssdev)
++static int hdmic_audio_start(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
++	int r;
 +
-+	return in->ops.hdmi->audio_start(in);
++	/*
++	 * No need to check the panel state. It was checked when trasitioning
++	 * to AUDIO_ENABLED.
++	 */
++	if (dssdev->audio_state != OMAP_DSS_AUDIO_ENABLED)
++		return -EPERM;
++
++	r = in->ops.hdmi->audio_start(in);
++	if (r)
++		return r;
++
++	dssdev->audio_state = OMAP_DSS_AUDIO_PLAYING;
++
++	return 0;
 +}
 +
-+static void tpd_audio_stop(struct omap_dss_device *dssdev)
++static void hdmic_audio_stop(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
 +
 +	in->ops.hdmi->audio_stop(in);
++
++	dssdev->audio_state = OMAP_DSS_AUDIO_ENABLED;
 +}
 +
-+static bool tpd_audio_supported(struct omap_dss_device *dssdev)
++static bool hdmic_audio_supported(struct omap_dss_device *dssdev)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
++
++	if (!omapdss_device_is_enabled(dssdev))
++		return false;
 +
 +	return in->ops.hdmi->audio_supported(in);
 +}
 +
-+static int tpd_audio_config(struct omap_dss_device *dssdev,
++static int hdmic_audio_config(struct omap_dss_device *dssdev,
 +		struct omap_dss_audio *audio)
 +{
 +	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +	struct omap_dss_device *in = ddata->in;
++	int r;
 +
-+	return in->ops.hdmi->audio_config(in, audio);
++	/* config audio only if the display is active */
++	if (!omapdss_device_is_enabled(dssdev))
++		return -EPERM;
++
++	r = in->ops.hdmi->audio_config(in, audio);
++	if (r)
++		return r;
++
++	dssdev->audio_state = OMAP_DSS_AUDIO_CONFIGURED;
++
++	return 0;
 +}
 +
-+static const struct omapdss_hdmi_ops tpd_hdmi_ops = {
-+	.connect		= tpd_connect,
-+	.disconnect		= tpd_disconnect,
++static struct omap_dss_driver hdmic_driver = {
++	.connect		= hdmic_connect,
++	.disconnect		= hdmic_disconnect,
 +
-+	.enable			= tpd_enable,
-+	.disable		= tpd_disable,
++	.enable			= hdmic_enable,
++	.disable		= hdmic_disable,
 +
-+	.check_timings		= tpd_check_timings,
-+	.set_timings		= tpd_set_timings,
-+	.get_timings		= tpd_get_timings,
++	.set_timings		= hdmic_set_timings,
++	.get_timings		= hdmic_get_timings,
++	.check_timings		= hdmic_check_timings,
 +
-+	.read_edid		= tpd_read_edid,
-+	.detect			= tpd_detect,
++	.get_resolution		= omapdss_default_get_resolution,
 +
-+	.audio_enable		= tpd_audio_enable,
-+	.audio_disable		= tpd_audio_disable,
-+	.audio_start		= tpd_audio_start,
-+	.audio_stop		= tpd_audio_stop,
-+	.audio_supported	= tpd_audio_supported,
-+	.audio_config		= tpd_audio_config,
++	.read_edid		= hdmic_read_edid,
++	.detect			= hdmic_detect,
++
++	.audio_enable		= hdmic_audio_enable,
++	.audio_disable		= hdmic_audio_disable,
++	.audio_start		= hdmic_audio_start,
++	.audio_stop		= hdmic_audio_stop,
++	.audio_supported	= hdmic_audio_supported,
++	.audio_config		= hdmic_audio_config,
 +};
 +
-+static int tpd_probe_pdata(struct platform_device *pdev)
++static int hdmic_probe_pdata(struct platform_device *pdev)
 +{
 +	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
-+	struct encoder_tpd12s015_platform_data *pdata;
-+	struct omap_dss_device *dssdev, *in;
++	struct connector_hdmi_platform_data *pdata;
++	struct omap_dss_device *in, *dssdev;
 +
 +	pdata = dev_get_platdata(&pdev->dev);
-+
-+	ddata->ct_cp_hpd_gpio = pdata->ct_cp_hpd_gpio;
-+	ddata->ls_oe_gpio = pdata->ls_oe_gpio;
-+	ddata->hpd_gpio = pdata->hpd_gpio;
 +
 +	in = omap_dss_find_output(pdata->source);
 +	if (in == NULL) {
@@ -380,10 +359,10 @@ index 0000000..d510c8e
 +	return 0;
 +}
 +
-+static int tpd_probe(struct platform_device *pdev)
++static int hdmic_probe(struct platform_device *pdev)
 +{
-+	struct omap_dss_device *in, *dssdev;
 +	struct panel_drv_data *ddata;
++	struct omap_dss_device *dssdev;
 +	int r;
 +
 +	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
@@ -391,64 +370,66 @@ index 0000000..d510c8e
 +		return -ENOMEM;
 +
 +	platform_set_drvdata(pdev, ddata);
++	ddata->dev = &pdev->dev;
 +
 +	if (dev_get_platdata(&pdev->dev)) {
-+		r = tpd_probe_pdata(pdev);
++		r = hdmic_probe_pdata(pdev);
 +		if (r)
 +			return r;
 +	} else {
 +		return -ENODEV;
 +	}
 +
++	ddata->timings = hdmic_default_timings;
++
 +	dssdev = &ddata->dssdev;
-+	dssdev->ops.hdmi = &tpd_hdmi_ops;
++	dssdev->driver = &hdmic_driver;
 +	dssdev->dev = &pdev->dev;
 +	dssdev->type = OMAP_DISPLAY_TYPE_HDMI;
-+	dssdev->output_type = OMAP_DISPLAY_TYPE_HDMI;
 +	dssdev->owner = THIS_MODULE;
++	dssdev->panel.timings = hdmic_default_timings;
 +
-+	in = ddata->in;
-+
-+	r = omapdss_register_output(dssdev);
++	r = omapdss_register_display(dssdev);
 +	if (r) {
-+		dev_err(&pdev->dev, "Failed to register output\n");
++		dev_err(&pdev->dev, "Failed to register panel\n");
 +		goto err_reg;
 +	}
 +
 +	return 0;
 +err_reg:
-+	omap_dss_put_device(in);
++	omap_dss_put_device(ddata->in);
 +	return r;
 +}
 +
-+static int __exit tpd_remove(struct platform_device *pdev)
++static int __exit hdmic_remove(struct platform_device *pdev)
 +{
 +	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
++	struct omap_dss_device *dssdev = &ddata->dssdev;
 +	struct omap_dss_device *in = ddata->in;
 +
-+	omapdss_unregister_output(&ddata->dssdev);
++	omapdss_unregister_display(&ddata->dssdev);
 +
-+	if (ddata->dssdev.output)
-+		in->ops.hdmi->disconnect(in, &ddata->dssdev);
++	hdmic_disable(dssdev);
++	hdmic_disconnect(dssdev);
 +
 +	omap_dss_put_device(in);
 +
 +	return 0;
 +}
 +
-+static struct platform_driver tpd_driver = {
-+	.probe	= tpd_probe,
-+	.remove	= __exit_p(tpd_remove),
++static struct platform_driver hdmi_connector_driver = {
++	.probe	= hdmic_probe,
++	.remove	= __exit_p(hdmic_remove),
 +	.driver	= {
-+		.name	= "tpd12s015",
++		.name	= "connector-hdmi",
 +		.owner	= THIS_MODULE,
 +	},
 +};
 +
-+module_platform_driver(tpd_driver);
++module_platform_driver(hdmi_connector_driver);
 +
 +MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@ti.com>");
-+MODULE_DESCRIPTION("TPD12S015 driver");
++MODULE_DESCRIPTION("HDMI Connector driver");
 +MODULE_LICENSE("GPL");
 -- 
 1.8.1.2
