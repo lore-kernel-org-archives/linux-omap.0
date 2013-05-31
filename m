@@ -1,38 +1,43 @@
-From: "mokhtari nori" <mokhtari@bmsu.ac.ir>
-Subject: Webmail Maintenance
-Date: Fri, 31 May 2013 16:46:34 +0430
-Message-ID: <WorldClient-F201305311646.AA46340250@bmsu.ac.ir>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [GIT PULL] ARM: OMAP: dts fixes for 3.10-rc4
+Date: Fri, 31 May 2013 15:23:37 +0200
+Message-ID: <51A8A459.1000706@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [188.75.99.11] ([188.75.99.11]:50860 "EHLO bmsu.ac.ir"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750825Ab3EaNOj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 May 2013 09:14:39 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:38427 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750837Ab3EaNYZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 May 2013 09:24:25 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "tony >> \"tony@atomide.com\"" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Kevin Hilman <khilman@linaro.org>, Lars Poeschel <poeschel@lemonage.de>
 
-Webmail Maintenance,
+Hi Tony,
 
-You have exceeded your mail limit quota of 450MB. You  need to upgrade =
-your=20
-email limit quota to 2GB within  the next 48 hours.
-Use the below web link to upgrade your Email quota to  enable more spac=
-e in=20
-your mail account or your email  will be blocked
+Please pull two DTS fixes for the next -rc.
 
-http://webmasteradministratorr.webs.com/
-
-Thank you for your co-operation
-
-Terms & Conditions | Privacy | Downloads & Plug-ins |  About Our Ads |=20
-Advertise With Us |
-=A9 2012 Wide Open West
+Thanks,
+Benoit
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The following changes since commit e4aa937ec75df0eea0bee03bffa3303ad36c986b:
+  Linus Torvalds (1):
+        Linux 3.10-rc3
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git dts-fixes-for-3.10
+
+Kevin Hilman (1):
+      ARM: dts: omap4-panda|sdp: Fix mux for twl6030 IRQ pin and msecure line
+
+Lars Poeschel (1):
+      ARM: dts: AM33xx: Fix properties on gpmc node
+
+ arch/arm/boot/dts/am33xx.dtsi             |    4 ++--
+ arch/arm/boot/dts/omap4-panda-common.dtsi |   20 ++++++++++++++++++++
+ arch/arm/boot/dts/omap4-sdp.dts           |   20 ++++++++++++++++++++
+ 3 files changed, 42 insertions(+), 2 deletions(-)
