@@ -1,104 +1,69 @@
-From: Michael Grzeschik <mgr@pengutronix.de>
-Subject: Re: [PATCH] usb: dwc3: Addition of "dr_mode" dt property.
-Date: Fri, 31 May 2013 10:10:52 +0200
-Message-ID: <20130531081052.GA14047@pengutronix.de>
-References: <1369944894-3176-1-git-send-email-ruchika@ti.com>
+From: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 1/1] i2c: omap: correct usage of the interrupt enable
+ register
+Date: Fri, 31 May 2013 11:19:08 +0300
+Message-ID: <51A85CFC.2000904@ti.com>
+References: <1369929379-19165-1-git-send-email-oleksandr.dmytryshyn@ti.com> <1369929379-19165-2-git-send-email-oleksandr.dmytryshyn@ti.com> <87vc604dr9.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1369944894-3176-1-git-send-email-ruchika@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Ruchika Kharwar <ruchika@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Landley <rob@landley.net>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87vc604dr9.fsf-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On 05/30/2013 07:46 PM, Kevin Hilman wrote:
+> Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org> writes:
+>
+>> If the i2c controller during suspend will generate an interrupt, it
+>> can lead to unpredictable behaviour in the kernel.
+>>
+>> Based on the logic of the kernel code interrupts from i2c should be
+>> prohibited during suspend. Kernel writes 0 to the I2C_IE register in
+>> the omap_i2c_runtime_suspend() function. In the other side kernel
+>> writes saved interrupt flags to the I2C_IE register in
+>> omap_i2c_runtime_resume() function. I.e. interrupts should be disabled
+>> during suspend.
+>>
+>> This works for chips with version1 registers scheme. Interrupts are
+>> disabled during suspend. For chips with version2 scheme registers
+>> writting 0 to the I2C_IE register does nothing (because now the
+>> I2C_IRQENABLE_SET register is located at this address). This register
+>> is used to enable interrupts. For disabling interrupts
+>> I2C_IRQENABLE_CLR register should be used.
+>>
+>> Because the registers I2C_IRQENABLE_SET and I2C_IE have the same
+>> addresses, the interrupt enabling procedure is unchanged.
+>>
+>> Signed-off-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
+> Much better, but still doesn't explain how/why this has been working up
+> until now.  Have we just been lucky?
+Yes, this has been working up until now because we've just been lucky.
+>
+>> ---
+>>   drivers/i2c/busses/i2c-omap.c | 15 +++++++++++----
+>>   1 file changed, 11 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+>> index e02f9e3..2419899 100644
+>> --- a/drivers/i2c/busses/i2c-omap.c
+>> +++ b/drivers/i2c/busses/i2c-omap.c
+>> @@ -180,6 +180,8 @@ enum {
+>>   #define I2C_OMAP_ERRATA_I207		(1 << 0)
+>>   #define I2C_OMAP_ERRATA_I462		(1 << 1)
+>>   
+>> +#define OMAP_I2C_INTERRUPTS_MASK	0x6FFF
+> To be more clear, this should probably have v2 in the name.
+I'll rename this mask in the patch-set v3
+>
+> Kevin
+>
 
-On Thu, May 30, 2013 at 03:14:54PM -0500, Ruchika Kharwar wrote:
-> This patch adds an optional parameter "dr_mode" to the dwc3 core device node.
-> In the case the compile flag for the DWC3 controller is set to
-> "USB_DWC3_DUAL_ROLE" a device tree could restrain to either functionality of
-> host or gadget. In the case the device tree does not use this optional flag or
-> specifies it superfluously to "drd" the functionality will be that
-> of a dual role device.
-> 
-> Signed-off-by: Ruchika Kharwar <ruchika@ti.com>
-> ---
->  Documentation/devicetree/bindings/usb/dwc3.txt |    3 ++-
->  drivers/usb/dwc3/core.c                        |   21 +++++++++++++++++----
->  2 files changed, 19 insertions(+), 5 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
-> index 7a95c65..2f5d584 100644
-> --- a/Documentation/devicetree/bindings/usb/dwc3.txt
-> +++ b/Documentation/devicetree/bindings/usb/dwc3.txt
-> @@ -10,7 +10,8 @@ Required properties:
->  
->  Optional properties:
->   - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
-> -
-> + - dr_mode: determines the mode of core. Supported modes are "gadget", "host"
-> +   and "drd".
->  This is usually a subnode to DWC3 glue to which it is connected.
->  
->  dwc3@4a030000 {
-> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-> index c35d49d..e11660a 100644
-> --- a/drivers/usb/dwc3/core.c
-> +++ b/drivers/usb/dwc3/core.c
-> @@ -378,7 +378,7 @@ static int dwc3_probe(struct platform_device *pdev)
->  	void			*mem;
->  
->  	u8			mode;
-> -
-> +	char			*dr_mode;
->  	mem = devm_kzalloc(dev, sizeof(*dwc) + DWC3_ALIGN_MASK, GFP_KERNEL);
->  	if (!mem) {
->  		dev_err(dev, "not enough memory\n");
-> @@ -520,9 +520,22 @@ static int dwc3_probe(struct platform_device *pdev)
->  		mode = DWC3_MODE_HOST;
->  	else if (IS_ENABLED(CONFIG_USB_DWC3_GADGET))
->  		mode = DWC3_MODE_DEVICE;
-> -	else
-> -		mode = DWC3_MODE_DRD;
-> -
-> +	else {
-> +		if (of_property_read_string(node, "dr_mode", &dr_mode))
-> +			mode = DWC3_MODE_DRD;
-> +		else {
-> +			if (strcmp(dr_mode, "host") == 0)
-> +				mode = DWC3_MODE_HOST;
-> +			else if (strcmp(dr_mode, "gadget") == 0)
-> +				mode = DWC3_MODE_DEVICE;
-> +			else if (strcmp(dr_mode, "drd") == 0)
-> +				mode = DWC3_MODE_DRD;
-> +			else {
-> +				dev_err(dev, "invalid dr_mode property value\n");
-> +				goto err2;
-> +			}
-> +		}
-> +	}
->  	switch (mode) {
->  	case DWC3_MODE_DEVICE:
->  		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
-> -- 
-
-Why not help to make use of that code?
-
-https://patchwork.kernel.org/patch/2193321/
-
-We currently stuck in the discussion about all possible dr_mode
-properties. There came up a device that is host and device capable,
-but not otg.
-
-What does the property drd stand for?
-
-Thanks,
-Michael
 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+
+Best regards,
+Oleksandr Dmytryshyn | OMAP4 Platform
+GlobalLogic Inc. | Innovation by Design
