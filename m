@@ -1,124 +1,323 @@
 From: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
-Subject: Re: [RESEND PATCH v2 1/3] mmc: omap_hsmmc: Enable SDIO IRQ using a
- GPIO in idle mode.
-Date: Fri, 31 May 2013 09:59:28 +0200
-Message-ID: <20130531075858.GA16701@kuttelsuppe>
-References: <1368607516-2789-1-git-send-email-andreas.fenkart@streamunlimited.com>
- <1368607516-2789-2-git-send-email-andreas.fenkart@streamunlimited.com>
- <20130520205815.GJ10378@atomide.com>
+Subject: Re: [PATCH v3 1/3] gpio/omap: replace open coded read-modify-write
+ with _gpio_rmw function.
+Date: Fri, 31 May 2013 10:01:31 +0200
+Message-ID: <20130531080131.GB16701@kuttelsuppe>
+References: <1368564867-11142-1-git-send-email-andreas.fenkart@streamunlimited.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mout.gmx.net ([212.227.17.20]:61660 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751028Ab3EaIBx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 31 May 2013 04:01:53 -0400
+Received: from mailout-de.gmx.net ([10.1.76.28]) by mrigmx.server.lan
+ (mrigmx002) with ESMTP (Nemesis) id 0Lvvs3-1ULaIE2HaH-017qNi for
+ <linux-omap@vger.kernel.org>; Fri, 31 May 2013 10:01:51 +0200
 Content-Disposition: inline
-In-Reply-To: <20130520205815.GJ10378@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Andreas Fenkart <andreas.fenkart@streamunlimited.com>, cjb@laptop.org, arnd@arndb.de, svenkatr@ti.com, balajitk@ti.com, grant.likely@secretlab.ca, linux-mmc@vger.kernel.org, rob@landley.net, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, zonque@gmail.com
+In-Reply-To: <1368564867-11142-1-git-send-email-andreas.fenkart@streamunlimited.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+Cc: santosh.shilimkar@ti.com, khilman@deeprootsystems.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, balbi@ti.com, linux-omap@vger.kernel.org, daniel@zonque.org, jon-hunter@ti.com
 
-Hi,
+FYI,
 
 this email adress will soon expire,
-my alternate email adress is
+this is my alternate adress: afenkart at gmail.com
 
-afenkart at gmail.com
-
-On Mon, May 20, 2013 at 01:58:16PM -0700, Tony Lindgren wrote:
-> * Andreas Fenkart <andreas.fenkart@streamunlimited.com> [130515 01:51]:
-> > Without functional clock the omap_hsmmc module can't forward SDIO IRQs to
-> > the system. This patch reconfigures dat1 line as a gpio while the fclk is
-> > off. When the fclk is present it uses the standard SDIO IRQ detection of
-> > the module.
-> > 
-> > The gpio irq is managed via the 'disable_depth' ref counter of the irq
-> > subsystem, this driver simply calls enable_irq/disable_irq when needed.
-> > 
-> >                       sdio irq    sdio irq
-> >                       unmasked     masked
-> >    -----------------------------------------
-> >     runtime default  |    1     |   2
-> >     runtime suspend  |    0     |   1
-> > 
-> >                   irq disable depth
-> > 
-> > 
-> > only when sdio irq is enabled AND the module is idle, the reference
-> > count drops to zero and the gpio irq is effectively armed.
-> > 
-> > Patch was tested on AM335x/Stream800. Test setup was two modules
-> > with sdio wifi cards. Modules where connected to a dual-band AP, each
-> > module using a different band. One of module was running iperf as server
-> > the other as client connecting to the server in a while true loop. Test
-> > was running for 4+ weeks. There were about 60 Mio. suspend/resume
-> > transitions. Test was shut down regularly.
+On Tue, May 14, 2013 at 10:54:25PM +0200, Andreas Fenkart wrote:
+> By also making it return the modified value, we save the readl
+> needed to update the context.
 > 
-> Looks like this somehow breaks detecting of eMMC on mmc2 for me at least
-> with the non-dt legacyboot. For a removable mmc1 still keeps working.
+> Signed-off-by: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+> ---
+>  drivers/gpio/gpio-omap.c |  162 ++++++++++++++--------------------------------
+>  1 file changed, 50 insertions(+), 112 deletions(-)
 > 
-> For mmc2 I have .nonremovable = true and no gpio_cd or gpio_wp.
-> 
-> Also few comments below.
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index 159f5c5..082919e 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -87,6 +87,19 @@ struct gpio_bank {
+>  #define GPIO_BIT(bank, gpio) (1 << GPIO_INDEX(bank, gpio))
+>  #define GPIO_MOD_CTRL_BIT	BIT(0)
 >  
-> > --- a/drivers/mmc/host/omap_hsmmc.c
-> > +++ b/drivers/mmc/host/omap_hsmmc.c
-> > +	host->pinctrl = devm_pinctrl_get(&pdev->dev);
-> > +	if (IS_ERR(host->pinctrl)) {
-> > +		ret = PTR_ERR(host->pinctrl);
-> > +		goto err_pinctrl;
-> > +	}
-> > +
-> > +	host->active = pinctrl_lookup_state(host->pinctrl,
-> > +					    PINCTRL_STATE_DEFAULT);
-> > +	if (IS_ERR(host->active)) {
-> > +		dev_warn(mmc_dev(host->mmc), "Unable to lookup active pinmux\n");
-> > +		ret = PTR_ERR(host->active);
-> > +		goto err_pinctrl_state;
-> > +	}
+> +static inline u32 _gpio_rmw(void __iomem *base, u32 reg, u32 mask, bool set)
+> +{
+> +	u32 l = __raw_readl(base + reg);
+> +
+> +	if (set)
+> +		l |= mask;
+> +	else
+> +		l &= ~mask;
+> +
+> +	__raw_writel(l, base + reg);
+> +	return l;
+> +}
+> +
+>  static int irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq)
+>  {
+>  	return gpio_irq - bank->irq_base + bank->chip.base;
+> @@ -94,20 +107,10 @@ static int irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq)
+>  
+>  static void _set_gpio_direction(struct gpio_bank *bank, int gpio, int is_input)
+>  {
+> -	void __iomem *reg = bank->base;
+> -	u32 l;
+> -
+> -	reg += bank->regs->direction;
+> -	l = __raw_readl(reg);
+> -	if (is_input)
+> -		l |= 1 << gpio;
+> -	else
+> -		l &= ~(1 << gpio);
+> -	__raw_writel(l, reg);
+> -	bank->context.oe = l;
+> +	bank->context.oe = _gpio_rmw(bank->base, bank->regs->direction, 1 <<
+> +				     gpio, is_input);
+>  }
+>  
+> -
+>  /* set data out value using dedicate set/clear register */
+>  static void _set_gpio_dataout_reg(struct gpio_bank *bank, int gpio, int enable)
+>  {
+> @@ -128,17 +131,8 @@ static void _set_gpio_dataout_reg(struct gpio_bank *bank, int gpio, int enable)
+>  /* set data out value using mask register */
+>  static void _set_gpio_dataout_mask(struct gpio_bank *bank, int gpio, int enable)
+>  {
+> -	void __iomem *reg = bank->base + bank->regs->dataout;
+> -	u32 gpio_bit = GPIO_BIT(bank, gpio);
+> -	u32 l;
+> -
+> -	l = __raw_readl(reg);
+> -	if (enable)
+> -		l |= gpio_bit;
+> -	else
+> -		l &= ~gpio_bit;
+> -	__raw_writel(l, reg);
+> -	bank->context.dataout = l;
+> +	bank->context.dataout = _gpio_rmw(bank->base, bank->regs->dataout,
+> +					  GPIO_BIT(bank, gpio), enable);
+>  }
+>  
+>  static int _get_gpio_datain(struct gpio_bank *bank, int offset)
+> @@ -155,18 +149,6 @@ static int _get_gpio_dataout(struct gpio_bank *bank, int offset)
+>  	return (__raw_readl(reg) & (1 << offset)) != 0;
+>  }
+>  
+> -static inline void _gpio_rmw(void __iomem *base, u32 reg, u32 mask, bool set)
+> -{
+> -	int l = __raw_readl(base + reg);
+> -
+> -	if (set)
+> -		l |= mask;
+> -	else
+> -		l &= ~mask;
+> -
+> -	__raw_writel(l, base + reg);
+> -}
+> -
+>  static inline void _gpio_dbck_enable(struct gpio_bank *bank)
+>  {
+>  	if (bank->dbck_enable_mask && !bank->dbck_enabled) {
+> @@ -291,28 +273,24 @@ static inline void set_gpio_trigger(struct gpio_bank *bank, int gpio,
+>  	void __iomem *base = bank->base;
+>  	u32 gpio_bit = 1 << gpio;
+>  
+> -	_gpio_rmw(base, bank->regs->leveldetect0, gpio_bit,
+> -		  trigger & IRQ_TYPE_LEVEL_LOW);
+> -	_gpio_rmw(base, bank->regs->leveldetect1, gpio_bit,
+> -		  trigger & IRQ_TYPE_LEVEL_HIGH);
+> -	_gpio_rmw(base, bank->regs->risingdetect, gpio_bit,
+> -		  trigger & IRQ_TYPE_EDGE_RISING);
+> -	_gpio_rmw(base, bank->regs->fallingdetect, gpio_bit,
+> -		  trigger & IRQ_TYPE_EDGE_FALLING);
+>  
+>  	bank->context.leveldetect0 =
+> -			__raw_readl(bank->base + bank->regs->leveldetect0);
+> +		_gpio_rmw(base, bank->regs->leveldetect0,
+> +			  gpio_bit, trigger & IRQ_TYPE_LEVEL_LOW);
+>  	bank->context.leveldetect1 =
+> -			__raw_readl(bank->base + bank->regs->leveldetect1);
+> +		_gpio_rmw(base, bank->regs->leveldetect1,
+> +			  gpio_bit, trigger & IRQ_TYPE_LEVEL_HIGH);
+>  	bank->context.risingdetect =
+> -			__raw_readl(bank->base + bank->regs->risingdetect);
+> +		_gpio_rmw(base, bank->regs->risingdetect,
+> +			  gpio_bit, trigger & IRQ_TYPE_EDGE_RISING);
+>  	bank->context.fallingdetect =
+> -			__raw_readl(bank->base + bank->regs->fallingdetect);
+> +		_gpio_rmw(base, bank->regs->fallingdetect,
+> +			  gpio_bit, trigger & IRQ_TYPE_EDGE_FALLING);
+>  
+>  	if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
+> -		_gpio_rmw(base, bank->regs->wkup_en, gpio_bit, trigger != 0);
+>  		bank->context.wake_en =
+> -			__raw_readl(bank->base + bank->regs->wkup_en);
+> +			_gpio_rmw(base, bank->regs->wkup_en, gpio_bit,
+> +				  trigger != 0);
+>  	}
+>  
+>  	/* This part needs to be executed always for OMAP{34xx, 44xx} */
+> @@ -406,9 +384,9 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio,
+>  			l |= 1 << (gpio << 1);
+>  
+>  		/* Enable wake-up during idle for dynamic tick */
+> -		_gpio_rmw(base, bank->regs->wkup_en, 1 << gpio, trigger);
+>  		bank->context.wake_en =
+> -			__raw_readl(bank->base + bank->regs->wkup_en);
+> +			_gpio_rmw(base, bank->regs->wkup_en, 1 << gpio,
+> +				  trigger);
+>  		__raw_writel(l, reg);
+>  	}
+>  	return 0;
+> @@ -450,19 +428,16 @@ static int gpio_irq_type(struct irq_data *d, unsigned type)
+>  
+>  static void _clear_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+>  {
+> -	void __iomem *reg = bank->base;
+> +	void __iomem *base = bank->base;
+>  
+> -	reg += bank->regs->irqstatus;
+> -	__raw_writel(gpio_mask, reg);
+> +	__raw_writel(gpio_mask, base + bank->regs->irqstatus);
+>  
+>  	/* Workaround for clearing DSP GPIO interrupts to allow retention */
+> -	if (bank->regs->irqstatus2) {
+> -		reg = bank->base + bank->regs->irqstatus2;
+> -		__raw_writel(gpio_mask, reg);
+> -	}
+> +	if (bank->regs->irqstatus2)
+> +		__raw_writel(gpio_mask, base + bank->regs->irqstatus2);
+>  
+>  	/* Flush posted write for the irq status to avoid spurious interrupts */
+> -	__raw_readl(reg);
+> +	__raw_readl(base + bank->regs->irqstatus);
+>  }
+>  
+>  static inline void _clear_gpio_irqstatus(struct gpio_bank *bank, int gpio)
+> @@ -486,46 +461,26 @@ static u32 _get_gpio_irqbank_mask(struct gpio_bank *bank)
+>  
+>  static void _enable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+>  {
+> -	void __iomem *reg = bank->base;
+> -	u32 l;
+> -
+>  	if (bank->regs->set_irqenable) {
+> -		reg += bank->regs->set_irqenable;
+> -		l = gpio_mask;
+>  		bank->context.irqenable1 |= gpio_mask;
+> +		__raw_writel(gpio_mask, bank->base + bank->regs->set_irqenable);
+>  	} else {
+> -		reg += bank->regs->irqenable;
+> -		l = __raw_readl(reg);
+> -		if (bank->regs->irqenable_inv)
+> -			l &= ~gpio_mask;
+> -		else
+> -			l |= gpio_mask;
+> -		bank->context.irqenable1 = l;
+> +		bank->context.irqenable1 =
+> +			_gpio_rmw(bank->base, bank->regs->irqenable, gpio_mask,
+> +				  bank->regs->irqenable_inv ? false : true);
+>  	}
+> -
+> -	__raw_writel(l, reg);
+>  }
+>  
+>  static void _disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+>  {
+> -	void __iomem *reg = bank->base;
+> -	u32 l;
+> -
+>  	if (bank->regs->clr_irqenable) {
+> -		reg += bank->regs->clr_irqenable;
+> -		l = gpio_mask;
+>  		bank->context.irqenable1 &= ~gpio_mask;
+> +		__raw_writel(gpio_mask, bank->base + bank->regs->clr_irqenable);
+>  	} else {
+> -		reg += bank->regs->irqenable;
+> -		l = __raw_readl(reg);
+> -		if (bank->regs->irqenable_inv)
+> -			l |= gpio_mask;
+> -		else
+> -			l &= ~gpio_mask;
+> -		bank->context.irqenable1 = l;
+> +		bank->context.irqenable1 =
+> +			_gpio_rmw(bank->base, bank->regs->irqenable, gpio_mask,
+> +				  bank->regs->irqenable_inv ?: false);
+>  	}
+> -
+> -	__raw_writel(l, reg);
+>  }
+>  
+>  static inline void _set_gpio_irqenable(struct gpio_bank *bank, int gpio, int enable)
+> @@ -556,12 +511,8 @@ static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
+>  	}
+>  
+>  	spin_lock_irqsave(&bank->lock, flags);
+> -	if (enable)
+> -		bank->context.wake_en |= gpio_bit;
+> -	else
+> -		bank->context.wake_en &= ~gpio_bit;
+> -
+> -	__raw_writel(bank->context.wake_en, bank->base + bank->regs->wkup_en);
+> +	bank->context.wake_en = _gpio_rmw(bank->base, bank->regs->wkup_en,
+> +					  gpio_bit, enable);
+>  	spin_unlock_irqrestore(&bank->lock, flags);
+>  
+>  	return 0;
+> @@ -604,21 +555,14 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+>  	_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
+>  
+>  	if (bank->regs->pinctrl) {
+> -		void __iomem *reg = bank->base + bank->regs->pinctrl;
+> -
+>  		/* Claim the pin for MPU */
+> -		__raw_writel(__raw_readl(reg) | (1 << offset), reg);
+> +		_gpio_rmw(bank->base, bank->regs->pinctrl, 1 << offset, 1);
+>  	}
+>  
+>  	if (bank->regs->ctrl && !bank->mod_usage) {
+> -		void __iomem *reg = bank->base + bank->regs->ctrl;
+> -		u32 ctrl;
+> -
+> -		ctrl = __raw_readl(reg);
+>  		/* Module is enabled, clocks are not gated */
+> -		ctrl &= ~GPIO_MOD_CTRL_BIT;
+> -		__raw_writel(ctrl, reg);
+> -		bank->context.ctrl = ctrl;
+> +		bank->context.ctrl = _gpio_rmw(bank->base, bank->regs->ctrl,
+> +					       GPIO_MOD_CTRL_BIT, 0);
+>  	}
+>  
+>  	bank->mod_usage |= 1 << offset;
+> @@ -638,22 +582,16 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+>  
+>  	if (bank->regs->wkup_en) {
+>  		/* Disable wake-up during idle for dynamic tick */
+> -		_gpio_rmw(base, bank->regs->wkup_en, 1 << offset, 0);
+>  		bank->context.wake_en =
+> -			__raw_readl(bank->base + bank->regs->wkup_en);
+> +			_gpio_rmw(base, bank->regs->wkup_en, 1 << offset, 0);
+>  	}
+>  
+>  	bank->mod_usage &= ~(1 << offset);
+>  
+>  	if (bank->regs->ctrl && !bank->mod_usage) {
+> -		void __iomem *reg = bank->base + bank->regs->ctrl;
+> -		u32 ctrl;
+> -
+> -		ctrl = __raw_readl(reg);
+>  		/* Module is disabled, clocks are gated */
+> -		ctrl |= GPIO_MOD_CTRL_BIT;
+> -		__raw_writel(ctrl, reg);
+> -		bank->context.ctrl = ctrl;
+> +		bank->context.ctrl = _gpio_rmw(base, bank->regs->ctrl,
+> +					       GPIO_MOD_CTRL_BIT, 1);
+>  	}
+>  
+>  	_reset_gpio(bank, bank->chip.base + offset);
+> -- 
+> 1.7.10.4
 > 
-> This should be checked, we have systems with all muxing done statically
-> in the bootloader. And we also have systems that provide the default
-> pinctrl state only as they don't need remuxing. So at most a warning should
-> be printed.
-> 
-> >  static int omap_hsmmc_runtime_resume(struct device *dev)
-> >  {
-> >  	struct omap_hsmmc_host *host;
-> > +	unsigned long flags;
-> > +	int ret = 0;
-> >  
-> >  	host = platform_get_drvdata(to_platform_device(dev));
-> >  	omap_hsmmc_context_restore(host);
-> >  	dev_dbg(dev, "enabled\n");
-> >  
-> > -	return 0;
-> > +	if (mmc_slot(host).sdio_irq && host->pinctrl) {
-> > +		disable_irq(mmc_slot(host).sdio_irq);
-> > +
-> > +		ret = pinctrl_select_state(host->pinctrl, host->active);
-> > +		if (ret < 0) {
-> > +			dev_warn(mmc_dev(host->mmc), "Unable to select active pinmux\n");
-> > +			return ret;
-> > +		}
-> > +
-> > +		spin_lock_irqsave(&host->irq_lock, flags);
-> > +		host->active_pinmux = true;
-> > +
-> > +		if (host->sdio_irq_en) {
-> > +			OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
-> > +			OMAP_HSMMC_WRITE(host->base, ISE, CIRQ_EN);
-> > +			OMAP_HSMMC_WRITE(host->base, IE, CIRQ_EN);
-> > +		}
-> > +		spin_unlock_irqrestore(&host->irq_lock, flags);
-> > +	}
-> > +	return ret;
-> >  }
-> 
-> The check for sdio_irq && host->pinctrl looks broken too as we may
-> have not dynamic muxing via pinctrl needed for let's say omap3 based
-> systems.
-> 
-> Other than that, looks good to me.
-> 
-> Regards,
-> 
-> Tony
