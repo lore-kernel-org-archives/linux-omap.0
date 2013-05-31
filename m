@@ -1,72 +1,39 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: [PATCH] rtc: rtc-twl: ensure IRQ is wakeup enabled
-Date: Fri, 31 May 2013 15:37:07 -0700
-Message-ID: <1370039827-25033-1-git-send-email-khilman@linaro.org>
+Subject: [PATCH 0/3] ARM: DTS: misc. OMAP3 fixes for proper wakeup
+Date: Fri, 31 May 2013 15:45:54 -0700
+Message-ID: <1370040357-25794-1-git-send-email-khilman@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:61484 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757683Ab3EaWhL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 May 2013 18:37:11 -0400
-Received: by mail-pd0-f178.google.com with SMTP id w11so2887367pde.9
-        for <linux-omap@vger.kernel.org>; Fri, 31 May 2013 15:37:10 -0700 (PDT)
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:48741 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755186Ab3EaWqA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 May 2013 18:46:00 -0400
+Received: by mail-pd0-f172.google.com with SMTP id 10so2912794pdi.17
+        for <linux-omap@vger.kernel.org>; Fri, 31 May 2013 15:46:00 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: rtc-linux@googlegroups.com, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-kernel@lists.linaro.org, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, open list <linux-kernel@vger.kernel.org>
+To: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-Currently, the RTC IRQ is never wakeup-enabled so is not capable of
-bringing the system out of suspend.
+Benoit,
 
-On OMAP platforms, we have gotten by without this because the TWL RTC
-is on an I2C-connected chip which is capable of waking up the OMAP via
-the IO ring when the OMAP is in low-power states.
+Here are handful of DT updates while working on getting PM functionality
+working for DT boot on OMAP3.
 
-However, if the OMAP suspends without hitting the low-power states
-(and the IO ring is not enabled), RTC wakeups will not work because
-the IRQ is not wakeup enabled.
+Kevin
 
-To fix, ensure the RTC IRQ is wakeup enabled whenever the RTC alarm is
-set.
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Kevin Hilman <khilman@linaro.org>
----
- drivers/rtc/rtc-twl.c | 16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+Kevin Hilman (3):
+  ARM: DTS: OMAP3: beagle/overo: mux console UART, enable wakeup
+  ARM: DTS: OMAP3: beagle: enable user button via gpio_keys, enable
+    wakeup
+  ARM: DTS: TWL4030: fix mux and wakeup for SYS_NIRQ line
 
-diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
-index 8751a52..bbda0fd 100644
---- a/drivers/rtc/rtc-twl.c
-+++ b/drivers/rtc/rtc-twl.c
-@@ -213,12 +213,24 @@ static int mask_rtc_irq_bit(unsigned char bit)
- 
- static int twl_rtc_alarm_irq_enable(struct device *dev, unsigned enabled)
- {
-+	struct platform_device *pdev = to_platform_device(dev);
-+	int irq = platform_get_irq(pdev, 0);
-+	static bool twl_rtc_wake_enabled;
- 	int ret;
- 
--	if (enabled)
-+	if (enabled) {
- 		ret = set_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
--	else
-+		if (device_can_wakeup(dev) && !twl_rtc_wake_enabled) {
-+			enable_irq_wake(irq);
-+			twl_rtc_wake_enabled = true;
-+		}
-+	} else {
- 		ret = mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
-+		if (twl_rtc_wake_enabled) {
-+			disable_irq_wake(irq);
-+			twl_rtc_wake_enabled = false;
-+		}
-+	}
- 
- 	return ret;
- }
+ arch/arm/boot/dts/omap3-beagle-xm.dts | 39 +++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-beagle.dts    | 37 +++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-overo.dtsi    | 14 +++++++++++++
+ arch/arm/boot/dts/twl4030.dtsi        | 17 +++++++++++++++
+ 4 files changed, 107 insertions(+)
+
 -- 
 1.8.2
 
