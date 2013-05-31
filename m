@@ -1,112 +1,81 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: [PATCH v9] ARM: dts: omap4-panda: Update the LED support for the panda DTS
-Date: Fri, 31 May 2013 10:19:51 -0500
-Message-ID: <1370013591-25957-1-git-send-email-dmurphy@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 05/32] OMAPDSS: fix dss_get_ctx_loss_count for DT
+Date: Fri, 31 May 2013 18:17:43 +0300
+Message-ID: <51A8BF17.4050209@ti.com>
+References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com> <1369906493-27538-6-git-send-email-tomi.valkeinen@ti.com> <874ndk5sse.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49729 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45821 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756181Ab3EaPU1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 May 2013 11:20:27 -0400
+	id S1756457Ab3EaPUy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 31 May 2013 11:20:54 -0400
+In-Reply-To: <874ndk5sse.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Dan Murphy <dmurphy@ti.com>
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The GPIO for LED D1 on the omap4-panda a1-a3 rev and the omap4-panda-es
-are different.
+On 05/30/2013 07:36 PM, Kevin Hilman wrote:
+> Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
+>
+>> When using DT, dss device does not have platform data. However,
+>> dss_get_ctx_loss_count() uses dss device's platform data to find the
+>> get_ctx_loss_count function pointer.
+>>
+>> To fix this, dss_get_ctx_loss_count() needs to be changed to get the
+>> platform data from the omapdss device, which is a "virtual" device and
+>> always has platform data.
+> Dumb question (since the DSS device model has always been beyond my
+> grasp): how/why does the virtual device still have platform_data on a DT
+> boot?
+>
+> Also, this context_loss_count and DT boot is starting to get cumbersome,
+> and there's currently no (good) way of handling the context loss in a
+> generic way without pdata function pointers.
+>
+> I'm starting to think we should move towards dropping this OMAP-specific
+> context loss counting, and just assume context is always lost.  If there
+> are performance problems, runtime PM autosuspend timeouts can be used to
+> avoid the transitions.
+>
+> Or, on some devices, I suspect comparing a few registers against their
+> power-on reset values might be a quicker way of detecting lost context
+> and would avoid having to call into platform code all together.
+Hi Kevin,
+I've a question:
+Why don't add API in "Kernel/Base PM" framework for context lost detection?
+Like pm_was_ctx_lost().
 
-A1-A3 = gpio_wk7
-ES = gpio_110
-
-There is no change to LED D2
-
-Abstract away the pinmux and the LED definitions for the two boards into
-the respective DTS files.
-
-Signed-off-by: Dan Murphy <dmurphy@ti.com>
----
-v9 - Removed comments for mux config - https://patchwork.kernel.org/patch/2644391/
-v8 - Rebase to latest and use pinctrl macros - https://patchwork.kernel.org/patch/2629351/
-v7 - Update headline to add spaces - https://patchwork.kernel.org/patch/2583661/
-v6 - Review comments updated - https://patchwork.kernel.org/patch/2582771/
-v5 - Provide pincrtl phandle to the gpio-led driver - https://patchwork.kernel.org/patch/2573981/
- arch/arm/boot/dts/omap4-panda-common.dtsi |   16 +++++++++++++++-
- arch/arm/boot/dts/omap4-panda-es.dts      |   28 ++++++++++++++++++++++++++++
- 2 files changed, 43 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-index d5d144a..800fa4e 100644
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -16,8 +16,13 @@
- 		reg = <0x80000000 0x40000000>; /* 1 GB */
- 	};
- 
--	leds {
-+	leds: leds {
- 		compatible = "gpio-leds";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <
-+			&led_wkgpio_pins
-+		>;
-+
- 		heartbeat {
- 			label = "pandaboard::status1";
- 			gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
-@@ -157,6 +162,15 @@
- 	};
- };
- 
-+&omap4_pmx_wkup {
-+	led_wkgpio_pins: pinmux_leds_wkpins {
-+		pinctrl-single,pins = <
-+			0x1a (PIN_OUTPUT | MUX_MODE3)	/* gpio_wk7 */
-+			0x1c (PIN_OUTPUT | MUX_MODE3)	/* gpio_wk8 */
-+		>;
-+	};
-+};
-+
- &i2c1 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&i2c1_pins>;
-diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
-index 5cfdf19..0a7812f 100644
---- a/arch/arm/boot/dts/omap4-panda-es.dts
-+++ b/arch/arm/boot/dts/omap4-panda-es.dts
-@@ -34,3 +34,31 @@
- 		0x5e (PIN_INPUT | MUX_MODE0)		/* hdmi_sda.hdmi_sda */
- 		>;
- };
-+
-+&omap4_pmx_core {
-+	led_gpio_pins: gpio_led_pmx {
-+		pinctrl-single,pins = <
-+			0xb6 (PIN_OUTPUT | MUX_MODE3)	/* gpio_110 */
-+		>;
-+	};
-+};
-+
-+&led_wkgpio_pins {
-+	pinctrl-single,pins = <
-+		0x1c (PIN_OUTPUT | MUX_MODE3)	/* gpio_wk8 */
-+	>;
-+};
-+
-+&leds {
-+	pinctrl-0 = <
-+		&led_gpio_pins
-+		&led_wkgpio_pins
-+	>;
-+
-+	heartbeat {
-+		gpios = <&gpio4 14 0>;
-+	};
-+	mmc {
-+		gpios = <&gpio1 8 0>;
-+	};
-+};
--- 
-1.7.5.4
+If this topic has been discussed already (many times)) - sorry for the 
+noise.
+And I'll be very appreciate if you can point me on corresponding 
+discussions.
+>
+> Kevin
+>
+>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>> ---
+>>   drivers/video/omap2/dss/dss.c | 3 ++-
+>>   1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+>> index 94f66f9..bd01608 100644
+>> --- a/drivers/video/omap2/dss/dss.c
+>> +++ b/drivers/video/omap2/dss/dss.c
+>> @@ -157,7 +157,8 @@ static void dss_restore_context(void)
+>>   
+>>   int dss_get_ctx_loss_count(void)
+>>   {
+>> -	struct omap_dss_board_info *board_data = dss.pdev->dev.platform_data;
+>> +	struct platform_device *core_pdev = dss_get_core_pdev();
+>> +	struct omap_dss_board_info *board_data = core_pdev->dev.platform_data;
+>>   	int cnt;
+>>   
+>>   	if (!board_data->get_context_loss_count)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
