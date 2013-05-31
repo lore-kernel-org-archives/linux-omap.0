@@ -1,88 +1,65 @@
 From: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 11/11] i2c: omap: enhance pinctrl support
-Date: Fri, 31 May 2013 11:07:02 -0700
-Message-ID: <87bo7r10s9.fsf@linaro.org>
-References: <1369995191-20855-1-git-send-email-gururaja.hebbar@ti.com>
-	<1369995191-20855-12-git-send-email-gururaja.hebbar@ti.com>
+Subject: Re: [PATCH v4 0/1] i2c: omap: correct usage of the interrupt enable register
+Date: Fri, 31 May 2013 12:23:52 -0700
+Message-ID: <87vc5zymuv.fsf@linaro.org>
+References: <1370007211-9736-1-git-send-email-oleksandr.dmytryshyn@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1369995191-20855-12-git-send-email-gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-	(Hebbar Gururaja's message of "Fri, 31 May 2013 15:43:11 +0530")
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1370007211-9736-1-git-send-email-oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
+	(Oleksandr Dmytryshyn's message of "Fri, 31 May 2013 16:33:30 +0300")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-+Linus Walleij (pinctrl maintainer)
+Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org> writes:
 
-Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org> writes:
-
-> Amend the I2C omap pin controller to optionally take a pin control
-> handle and set the state of the pins to:
+> I've just removed unnecessary Change-Id line.
 >
-> - "default" on boot, resume and before performing an i2c transfer
-> - "idle" after initial default, after resume default, and after each
-> i2c xfer
-> - "sleep" on suspend()
+> If the i2c controller during suspend will generate an interrupt, it
+> can lead to unpredictable behaviour in the kernel.
 >
-> By optionally putting the pins into sleep state in the suspend callback
-> we can accomplish two things.
-> - One is to minimize current leakage from pins and thus save power,
-> - second, we can prevent the IP from driving pins output in an
-> uncontrolled manner, which may happen if the power domain drops the
-> domain regulator.
+> Based on the logic of the kernel code interrupts from i2c should be
+> prohibited during suspend. Kernel writes 0 to the I2C_IE register in
+> the omap_i2c_runtime_suspend() function. In the other side kernel
+> writes saved interrupt flags to the I2C_IE register in
+> omap_i2c_runtime_resume() function. I.e. interrupts should be disabled
+> during suspend.
 >
-> Note:
-> A .suspend & .resume callback is added which simply puts the pins to sleep
-> state upon suspend & are moved to default & idle state upon resume.
+> This works for chips with version1 registers scheme. Interrupts are
+> disabled during suspend. For chips with version2 scheme registers
+> writting 0 to the I2C_IE register does nothing (because now the
+> I2C_IRQENABLE_SET register is located at this address). This register
+> is used to enable interrupts. For disabling interrupts
+> I2C_IRQENABLE_CLR register should be used.
 >
-> If any of the above pin states are missing in dt, a warning message
-> about the missing state is displayed.
-> If certain pin-states are not available, to remove this warning message
-> pass respective state name with null phandler.
+> Because the registers I2C_IRQENABLE_SET and I2C_IE have the same
+> addresses, the interrupt enabling procedure is unchanged.
 >
-> (Changes based on i2c-nomadik.c)
+> I've checked that interrupts in the i2c controller are still enabled
+> after writting 0 to the I2C_IE register. But with my patch interrupts
+> are disabled in the omap_i2c_runtime_suspend() function. 
 >
-> Signed-off-by: Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-> Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> This has been working up until now because we've just been lucky. 
 
-[...]
+This belongs in the changelog of the patch, not the cover letter and
+needs more detail.
 
-> @@ -1123,14 +1138,47 @@ omap_i2c_probe(struct platform_device *pdev)
->  		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
->  	}
->  
-> -	dev->pins = devm_pinctrl_get_select_default(&pdev->dev);
-> -	if (IS_ERR(dev->pins)) {
-> -		if (PTR_ERR(dev->pins) == -EPROBE_DEFER)
-> +	dev->pinctrl = devm_pinctrl_get(&pdev->dev);
-> +	if (!IS_ERR(dev->pinctrl)) {
-> +		dev->pins_default = pinctrl_lookup_state(dev->pinctrl,
-> +							 PINCTRL_STATE_DEFAULT);
-
-This part is already done by probe in driver core, why does it need to
-be done again.  dev->pins->default_state should already have this.
-(c.f. pinctrl_bind_pins() in drivers/base/pinctrl.c)
-
-But that brings up a bigger question about whether or not we should be
-doing the rest of this (idle/sleep) pin management in the drivers or in
-the driver core as well.  I would much prefer it be handled by the
-driver core.
-
-In fact, since these are all PM related events, it should probably be
-handled by the PM core and seems pretty straight forward to do so.
+Also, you don't need a cover letter on a 1-patch series.
 
 Kevin
+
+> Next patch fixes it.
+>
+> Patch is based on:
+> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+> tag: v3.10-rc2
+>
+> Verified on OMAP4430.
+>
+> Oleksandr Dmytryshyn (1):
+>   i2c: omap: correct usage of the interrupt enable register
+>
+>  drivers/i2c/busses/i2c-omap.c | 15 +++++++++++----
+>  1 file changed, 11 insertions(+), 4 deletions(-)
