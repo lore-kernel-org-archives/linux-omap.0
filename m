@@ -1,103 +1,93 @@
-From: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 1/1] i2c: omap: correct usage of the interrupt enable
- register
-Date: Fri, 31 May 2013 07:06:48 -0500
-Message-ID: <51A89258.7050308@ti.com>
-References: <1369988788-23987-1-git-send-email-oleksandr.dmytryshyn@ti.com> <1369988788-23987-2-git-send-email-oleksandr.dmytryshyn@ti.com>
+From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Subject: [PATCH v4 4/5] ARM: dts: OMAP2+: Header file for pinctrl constants
+Date: Fri, 31 May 2013 14:32:58 +0200
+Message-ID: <1370003579-30219-5-git-send-email-florian.vaussard@epfl.ch>
+References: <1370003579-30219-1-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1369988788-23987-2-git-send-email-oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1370003579-30219-1-git-send-email-florian.vaussard-p8DiymsW2f8@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 05/31/2013 03:26 AM, Oleksandr Dmytryshyn wrote:
-> If the i2c controller during suspend will generate an interrupt, it
-> can lead to unpredictable behaviour in the kernel.
->
-> Based on the logic of the kernel code interrupts from i2c should be
-> prohibited during suspend. Kernel writes 0 to the I2C_IE register in
-> the omap_i2c_runtime_suspend() function. In the other side kernel
-> writes saved interrupt flags to the I2C_IE register in
-> omap_i2c_runtime_resume() function. I.e. interrupts should be disabled
-> during suspend.
->
-> This works for chips with version1 registers scheme. Interrupts are
-> disabled during suspend. For chips with version2 scheme registers
-> writting 0 to the I2C_IE register does nothing (because now the
-> I2C_IRQENABLE_SET register is located at this address). This register
-> is used to enable interrupts. For disabling interrupts
-> I2C_IRQENABLE_CLR register should be used.
->
-> Because the registers I2C_IRQENABLE_SET and I2C_IE have the same
-> addresses, the interrupt enabling procedure is unchanged.
->
-> Change-Id: Ie49165990a4e7c67a4ccf2e4a66cd3b78f2e2b70
-Remove this.
-> Signed-off-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/i2c/busses/i2c-omap.c | 15 +++++++++++----
->  1 file changed, 11 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index e02f9e3..64c26f9 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -180,6 +180,8 @@ enum {
->  #define I2C_OMAP_ERRATA_I207		(1 << 0)
->  #define I2C_OMAP_ERRATA_I462		(1 << 1)
->  
-> +#define OMAP_I2C_IP_V2_INTERRUPTS_MASK	0x6FFF
-> +
->  struct omap_i2c_dev {
->  	spinlock_t		lock;		/* IRQ synchronization */
->  	struct device		*dev;
-> @@ -193,6 +195,7 @@ struct omap_i2c_dev {
->  						    long latency);
->  	u32			speed;		/* Speed of bus in kHz */
->  	u32			flags;
-> +	u16			scheme;
->  	u16			cmd_err;
->  	u8			*buf;
->  	u8			*regs;
-> @@ -1082,7 +1085,7 @@ omap_i2c_probe(struct platform_device *pdev)
->  	int irq;
->  	int r;
->  	u32 rev;
-> -	u16 minor, major, scheme;
-> +	u16 minor, major;
->  
->  	/* NOTE: driver uses the static register mapping */
->  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> @@ -1159,8 +1162,8 @@ omap_i2c_probe(struct platform_device *pdev)
->  	 */
->  	rev = __raw_readw(dev->base + 0x04);
->  
-> -	scheme = OMAP_I2C_SCHEME(rev);
-> -	switch (scheme) {
-> +	dev->scheme = OMAP_I2C_SCHEME(rev);
-> +	switch (dev->scheme) {
->  	case OMAP_I2C_SCHEME_0:
->  		dev->regs = (u8 *)reg_map_ip_v1;
->  		dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG);
-> @@ -1289,7 +1292,11 @@ static int omap_i2c_runtime_suspend(struct device *dev)
->  
->  	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
->  
-> -	omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
-> +	if (_dev->scheme == OMAP_I2C_SCHEME_0)
-> +		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
-> +	else
-> +		omap_i2c_write_reg(_dev, OMAP_I2C_IP_V2_IRQENABLE_CLR,
-> +				   OMAP_I2C_IP_V2_INTERRUPTS_MASK);
->  
->  	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
->  		omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
+Most of the constants are taken from arch/arm/mach-omap2/mux.h.
+Define some others for the PIN_OUTPUT_* flavours.
 
+Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Acked-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Reviewed-by: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+---
+ include/dt-bindings/pinctrl/omap.h |   50 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 50 insertions(+), 0 deletions(-)
+ create mode 100644 include/dt-bindings/pinctrl/omap.h
 
+diff --git a/include/dt-bindings/pinctrl/omap.h b/include/dt-bindings/pinctrl/omap.h
+new file mode 100644
+index 0000000..370df3f
+--- /dev/null
++++ b/include/dt-bindings/pinctrl/omap.h
+@@ -0,0 +1,50 @@
++/*
++ * This header provides constants for OMAP pinctrl bindings.
++ *
++ * Copyright (C) 2009 Nokia
++ * Copyright (C) 2009-2010 Texas Instruments
++ */
++
++/* 34xx mux mode options for each pin. See TRM for options */
++#define MUX_MODE0	0
++#define MUX_MODE1	1
++#define MUX_MODE2	2
++#define MUX_MODE3	3
++#define MUX_MODE4	4
++#define MUX_MODE5	5
++#define MUX_MODE6	6
++#define MUX_MODE7	7
++
++/* 24xx/34xx mux bit defines */
++#define PULL_ENA		(1 << 3)
++#define PULL_UP			(1 << 4)
++#define ALTELECTRICALSEL	(1 << 5)
++
++/* 34xx specific mux bit defines */
++#define INPUT_EN		(1 << 8)
++#define OFF_EN			(1 << 9)
++#define OFFOUT_EN		(1 << 10)
++#define OFFOUT_VAL		(1 << 11)
++#define OFF_PULL_EN		(1 << 12)
++#define OFF_PULL_UP		(1 << 13)
++#define WAKEUP_EN		(1 << 14)
++
++/* 44xx specific mux bit defines */
++#define WAKEUP_EVENT		(1 << 15)
++
++/* Active pin states */
++#define PIN_OUTPUT		0
++#define PIN_OUTPUT_PULLUP	(PIN_OUTPUT | PULL_ENA | PULL_UP)
++#define PIN_OUTPUT_PULLDOWN	(PIN_OUTPUT | PULL_ENA)
++#define PIN_INPUT		INPUT_EN
++#define PIN_INPUT_PULLUP	(PULL_ENA | INPUT_EN | PULL_UP)
++#define PIN_INPUT_PULLDOWN	(PULL_ENA | INPUT_EN)
++
++/* Off mode states */
++#define PIN_OFF_NONE		0
++#define PIN_OFF_OUTPUT_HIGH	(OFF_EN | OFFOUT_EN | OFFOUT_VAL)
++#define PIN_OFF_OUTPUT_LOW	(OFF_EN | OFFOUT_EN)
++#define PIN_OFF_INPUT_PULLUP	(OFF_EN | OFF_PULL_EN | OFF_PULL_UP)
++#define PIN_OFF_INPUT_PULLDOWN	(OFF_EN | OFF_PULL_EN)
++#define PIN_OFF_WAKEUPENABLE	WAKEUP_EN
++
 -- 
-------------------
-Dan Murphy
+1.7.5.4
