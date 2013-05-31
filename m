@@ -1,59 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mfd: twl-core: convert to module_init()
-Date: Fri, 31 May 2013 14:20:04 -0700
-Message-ID: <20130531212003.GR6467@atomide.com>
-References: <1370033794-5357-1-git-send-email-khilman@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Kevin Hilman <khilman@linaro.org>
+Subject: [PATCH] mfd: twl4030: allow IRQ wake enable to succeed on subchip IRQs
+Date: Fri, 31 May 2013 14:44:54 -0700
+Message-ID: <1370036694-26210-1-git-send-email-khilman@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:49649 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754716Ab3EaVUJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 May 2013 17:20:09 -0400
-Content-Disposition: inline
-In-Reply-To: <1370033794-5357-1-git-send-email-khilman@linaro.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:49736 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752017Ab3EaVo6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 May 2013 17:44:58 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rq2so2865636pbb.33
+        for <linux-omap@vger.kernel.org>; Fri, 31 May 2013 14:44:57 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, open list <linux-kernel@vger.kernel.org>
+To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, open list <linux-kernel@vger.kernel.org>
 
-* Kevin Hilman <khilman@linaro.org> [130531 14:02]:
-> There's no reason for twl-core to be subsys_inicall anymore.  Anything
-> using twl that early needs a rethink, or deferred probe changes.
-> 
-> Boot tested and RTC wake tested (via TWL RTC) on OMAP platforms:
-> 3530/Beagle, 3730/Beagle-xM, 3530/Overo, 3730/Overo-STORM, 4430/Panda,
-> 4460/Panda-ES.
-> 
-> Cc: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Kevin Hilman <khilman@linaro.org>
+The genirq IRQ wake method will default to failure if the irq_chip
+does not provide a set_wake method.  However, for TWL4030 sub-chip
+IRQs, we want the wake enable to succeed even though we don't provide
+a set_wake method.  This allows sub-chip IRQs to still be flagged as
+wakeup capable, and allow them to wakeup from suspend (or abort
+suspend if they fire during suspend.)
 
-Totally agree:
+To fix, use the IRQCHIP_SKIP_SET_WAKE flag in the irq_chip.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Kevin Hilman <khilman@linaro.org>
+---
+ drivers/mfd/twl4030-irq.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-> ---
->  drivers/mfd/twl-core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-> index 89ab4d9..7749b9e 100644
-> --- a/drivers/mfd/twl-core.c
-> +++ b/drivers/mfd/twl-core.c
-> @@ -1309,7 +1309,7 @@ static int __init twl_init(void)
->  {
->  	return i2c_add_driver(&twl_driver);
->  }
-> -subsys_initcall(twl_init);
-> +module_init(twl_init);
->  
->  static void __exit twl_exit(void)
->  {
-> -- 
-> 1.8.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
+index a5f9888..3fa7df2 100644
+--- a/drivers/mfd/twl4030-irq.c
++++ b/drivers/mfd/twl4030-irq.c
+@@ -573,6 +573,7 @@ static struct irq_chip twl4030_sih_irq_chip = {
+ 	.irq_set_type	= twl4030_sih_set_type,
+ 	.irq_bus_lock	= twl4030_sih_bus_lock,
+ 	.irq_bus_sync_unlock = twl4030_sih_bus_sync_unlock,
++	.flags		= IRQCHIP_SKIP_SET_WAKE,
+ };
+ 
+ /*----------------------------------------------------------------------*/
+-- 
+1.8.2
+
