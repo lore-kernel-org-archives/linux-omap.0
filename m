@@ -1,1113 +1,699 @@
 From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH v4 3/5] ARM: dts: OMAP4/5: Use existing constants for IRQs
-Date: Fri, 31 May 2013 14:32:57 +0200
-Message-ID: <1370003579-30219-4-git-send-email-florian.vaussard@epfl.ch>
+Subject: [PATCH v4 5/5] ARM: dts: OMAP2+: Use pinctrl constants
+Date: Fri, 31 May 2013 14:32:59 +0200
+Message-ID: <1370003579-30219-6-git-send-email-florian.vaussard@epfl.ch>
 References: <1370003579-30219-1-git-send-email-florian.vaussard@epfl.ch>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.epfl.ch ([128.178.224.219]:43060 "HELO smtp4.epfl.ch"
+Received: from smtp4.epfl.ch ([128.178.224.219]:43084 "HELO smtp4.epfl.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1756452Ab3EaMdT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 May 2013 08:33:19 -0400
+	id S1756266Ab3EaMdV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 31 May 2013 08:33:21 -0400
 In-Reply-To: <1370003579-30219-1-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Benoit Cousson <b-cousson@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-Use the constants defined in include/dt-bindings/interrupt-controller/
-to enhance readability.
+Using constants for pinctrl allows a better readability, and removes
+redundancy with comments.
 
 Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Reviewed-by: Stephen Warren <swarren@nvidia.com>
 ---
- arch/arm/boot/dts/omap4-panda-common.dtsi |    8 +-
- arch/arm/boot/dts/omap4-sdp.dts           |    6 +-
- arch/arm/boot/dts/omap4-var-som.dts       |    4 +-
- arch/arm/boot/dts/omap4.dtsi              |  113 +++++++++++++-------------
- arch/arm/boot/dts/omap4460.dtsi           |    4 +-
- arch/arm/boot/dts/omap5.dtsi              |  123 +++++++++++++++--------------
- 6 files changed, 130 insertions(+), 128 deletions(-)
+ arch/arm/boot/dts/omap2.dtsi              |    1 +
+ arch/arm/boot/dts/omap3-beagle.dts        |   24 ++++----
+ arch/arm/boot/dts/omap3-igep.dtsi         |   34 +++++-----
+ arch/arm/boot/dts/omap3.dtsi              |    1 +
+ arch/arm/boot/dts/omap4-panda-a4.dts      |    6 +-
+ arch/arm/boot/dts/omap4-panda-common.dtsi |   54 ++++++++--------
+ arch/arm/boot/dts/omap4-panda-es.dts      |    6 +-
+ arch/arm/boot/dts/omap4-sdp-es23plus.dts  |    6 +-
+ arch/arm/boot/dts/omap4-sdp.dts           |   98 ++++++++++++++--------------
+ arch/arm/boot/dts/omap4.dtsi              |    1 +
+ arch/arm/boot/dts/omap5-evm.dts           |   88 +++++++++++++-------------
+ arch/arm/boot/dts/omap5.dtsi              |    1 +
+ 12 files changed, 162 insertions(+), 158 deletions(-)
 
+diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
+index f39b237..b3cc896 100644
+--- a/arch/arm/boot/dts/omap2.dtsi
++++ b/arch/arm/boot/dts/omap2.dtsi
+@@ -9,6 +9,7 @@
+  */
+ 
+ #include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/pinctrl/omap.h>
+ 
+ #include "skeleton.dtsi"
+ 
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+index 434288f..6d47c4b 100644
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -81,18 +81,18 @@
+ 
+ 	hsusbb2_pins: pinmux_hsusbb2_pins {
+ 		pinctrl-single,pins = <
+-			0x5c0 0x3  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_clk OUTPUT */
+-			0x5c2 0x3  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_stp OUTPUT */
+-			0x5c4 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dir INPUT | PULLDOWN */
+-			0x5c6 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_nxt INPUT | PULLDOWN */
+-			0x5c8 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat0 INPUT | PULLDOWN */
+-			0x5cA 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat1 INPUT | PULLDOWN */
+-			0x1a4 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat2 INPUT | PULLDOWN */
+-			0x1a6 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat3 INPUT | PULLDOWN */
+-			0x1a8 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat4 INPUT | PULLDOWN */
+-			0x1aa 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat5 INPUT | PULLDOWN */
+-			0x1ac 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat6 INPUT | PULLDOWN */
+-			0x1ae 0x10b  /* USBB2_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat7 INPUT | PULLDOWN */
++			0x5c0 (PIN_OUTPUT | MUX_MODE3)		/* usbb2_ulpitll_clk.usbb1_ulpiphy_clk */
++			0x5c2 (PIN_OUTPUT | MUX_MODE3)		/* usbb2_ulpitll_clk.usbb1_ulpiphy_stp */
++			0x5c4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dir */
++			0x5c6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_nxt */
++			0x5c8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat0 */
++			0x5cA (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat1 */
++			0x1a4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat2 */
++			0x1a6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat3 */
++			0x1a8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat4 */
++			0x1aa (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat5 */
++			0x1ac (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat6 */
++			0x1ae (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat7 */
+ 		>;
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
+index d1d2ba7..5224c29 100644
+--- a/arch/arm/boot/dts/omap3-igep.dtsi
++++ b/arch/arm/boot/dts/omap3-igep.dtsi
+@@ -29,43 +29,43 @@
+ &omap3_pmx_core {
+ 	uart1_pins: pinmux_uart1_pins {
+ 		pinctrl-single,pins = <
+-			0x152 0x100	/* uart1_rx.uart1_rx INPUT | MODE0 */
+-			0x14c 0		/* uart1_tx.uart1_tx OUTPUT | MODE0 */
++			0x152 (PIN_INPUT | MUX_MODE0)		/* uart1_rx.uart1_rx */
++			0x14c (PIN_OUTPUT |MUX_MODE0)		/* uart1_tx.uart1_tx */
+ 		>;
+ 	};
+ 
+ 	uart2_pins: pinmux_uart2_pins {
+ 		pinctrl-single,pins = <
+-			0x14a 0x100	/* uart2_rx.uart2_rx INPUT | MODE0 */
+-			0x148 0		/* uart2_tx.uart2_tx OUTPUT | MODE0 */
++			0x14a (PIN_INPUT | MUX_MODE0)		/* uart2_rx.uart2_rx */
++			0x148 (PIN_OUTPUT | MUX_MODE0)		/* uart2_tx.uart2_tx */
+ 		>;
+ 	};
+ 
+ 	uart3_pins: pinmux_uart3_pins {
+ 		pinctrl-single,pins = <
+-			0x16e 0x100	/* uart3_rx.uart3_rx INPUT | MODE0 */
+-			0x170 0		/* uart3_tx.uart3_tx OUTPUT | MODE0 */
++			0x16e (PIN_INPUT | MUX_MODE0)		/* uart3_rx.uart3_rx */
++			0x170 (PIN_OUTPUT | MUX_MODE0)		/* uart3_tx.uart3_tx */
+ 		>;
+ 	};
+ 
+ 	mmc1_pins: pinmux_mmc1_pins {
+ 		pinctrl-single,pins = <
+-			0x114 0x0118    /* sdmmc1_clk.sdmmc1_clk INPUT PULLUP | MODE 0 */
+-			0x116 0x0118    /* sdmmc1_cmd.sdmmc1_cmd INPUT PULLUP | MODE 0 */
+-			0x118 0x0118 	/* sdmmc1_dat0.sdmmc1_dat0 INPUT PULLUP | MODE 0 */
+-			0x11a 0x0118	/* sdmmc1_dat1.sdmmc1_dat1 INPUT PULLUP | MODE 0 */
+-			0x11c 0x0118	/* sdmmc1_dat2.sdmmc1_dat2 INPUT PULLUP | MODE 0 */
+-			0x11e 0x0118	/* sdmmc1_dat3.sdmmc1_dat3 INPUT PULLUP | MODE 0 */
+-			0x120 0x0100	/* sdmmc1_dat4.sdmmc1_dat4 INPUT | MODE 0 */
+-			0x122 0x0100	/* sdmmc1_dat5.sdmmc1_dat5 INPUT | MODE 0 */
+-			0x124 0x0100	/* sdmmc1_dat6.sdmmc1_dat6 INPUT | MODE 0 */
+-			0x126 0x0100	/* sdmmc1_dat7.sdmmc1_dat7 INPUT | MODE 0 */
++			0x114 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_clk.sdmmc1_clk */
++			0x116 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_cmd.sdmmc1_cmd */
++			0x118 (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat0.sdmmc1_dat0 */
++			0x11a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat1.sdmmc1_dat1 */
++			0x11c (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat2.sdmmc1_dat2 */
++			0x11e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat3.sdmmc1_dat3 */
++			0x120 (PIN_INPUT | MUX_MODE0)		/* sdmmc1_dat4.sdmmc1_dat4 */
++			0x122 (PIN_INPUT | MUX_MODE0)		/* sdmmc1_dat5.sdmmc1_dat5 */
++			0x124 (PIN_INPUT | MUX_MODE0)		/* sdmmc1_dat6.sdmmc1_dat6 */
++			0x126 (PIN_INPUT | MUX_MODE0)		/* sdmmc1_dat7.sdmmc1_dat7 */
+ 		>;
+ 	};
+ 
+ 	smsc911x_pins: pinmux_smsc911x_pins {
+ 		pinctrl-single,pins = <
+-                        0x1a2 0x0104    /* mcspi1_cs2.gpio_176 INPUT | MODE4 */
++			0x1a2 (PIN_INPUT | MUX_MODE4)		/* mcspi1_cs2.gpio_176 */
+ 		>;
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index fac923b..6d05ee0 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -9,6 +9,7 @@
+  */
+ 
+ #include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/pinctrl/omap.h>
+ 
+ #include "skeleton.dtsi"
+ 
+diff --git a/arch/arm/boot/dts/omap4-panda-a4.dts b/arch/arm/boot/dts/omap4-panda-a4.dts
+index f18fb5c..133f1b7 100644
+--- a/arch/arm/boot/dts/omap4-panda-a4.dts
++++ b/arch/arm/boot/dts/omap4-panda-a4.dts
+@@ -13,8 +13,8 @@
+ /* Pandaboard Rev A4+ have external pullups on SCL & SDA */
+ &dss_hdmi_pins {
+ 	pinctrl-single,pins = <
+-		0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
+-		0x5c 0x100	/* hdmi_scl.hdmi_scl INPUT | MODE 0 */
+-		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
++		0x5a (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
++		0x5c (PIN_INPUT | MUX_MODE0)		/* hdmi_scl.hdmi_scl */
++		0x5e (PIN_INPUT | MUX_MODE0)		/* hdmi_sda.hdmi_sda */
+ 		>;
+ };
 diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-index f5bec4d..8d09cf5 100644
+index 8d09cf5..d5d144a 100644
 --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
 +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -165,16 +165,16 @@
+@@ -64,7 +64,7 @@
  
- 	twl: twl@48 {
- 		reg = <0x48>;
--		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
--		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
-+		/* IRQ# = 7 */
-+		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N cascaded to gic */
- 		interrupt-parent = <&gic>;
+ 	twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
+ 		pinctrl-single,pins = <
+-			0x14 0x2        /* fref_clk0_out.sys_drm_msecure OUTPUT | MODE2 */
++			0x14 (PIN_OUTPUT | MUX_MODE2)		/* fref_clk0_out.sys_drm_msecure */
+ 		>;
+ 	};
+ };
+@@ -82,77 +82,77 @@
+ 
+ 	twl6030_pins: pinmux_twl6030_pins {
+ 		pinctrl-single,pins = <
+-			0x15e 0x4118	/* sys_nirq1.sys_nirq1 OMAP_WAKEUP_EN | INPUT_PULLUP | MODE0 */
++			0x15e (WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0)	/* sys_nirq1.sys_nirq1 */
+ 		>;
  	};
  
- 	twl6040: twl@4b {
- 		compatible = "ti,twl6040";
- 		reg = <0x4b>;
--		/* SPI = 0, IRQ# = 119, 4 = active high level-sensitive */
--		interrupts = <0 119 4>; /* IRQ_SYS_2N cascaded to gic */
-+		/* IRQ# = 119 */
-+		interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_2N cascaded to gic */
- 		interrupt-parent = <&gic>;
- 		ti,audpwron-gpio = <&gpio4 31 0>;  /* gpio line 127 */
+ 	twl6040_pins: pinmux_twl6040_pins {
+ 		pinctrl-single,pins = <
+-			0xe0 0x3	/* hdq_sio.gpio_127 OUTPUT | MODE3 */
+-			0x160 0x100	/* sys_nirq2.sys_nirq2 INPUT | MODE0 */
++			0xe0 (PIN_OUTPUT | MUX_MODE3)	/* hdq_sio.gpio_127 */
++			0x160 (PIN_INPUT | MUX_MODE0)	/* sys_nirq2.sys_nirq2 */
+ 		>;
+ 	};
  
+ 	mcpdm_pins: pinmux_mcpdm_pins {
+ 		pinctrl-single,pins = <
+-			0xc6 0x108	/* abe_pdm_ul_data.abe_pdm_ul_data INPUT PULLDOWN | MODE0 */
+-			0xc8 0x108	/* abe_pdm_dl_data.abe_pdm_dl_data INPUT PULLDOWN | MODE0 */
+-			0xca 0x118	/* abe_pdm_frame.abe_pdm_frame INPUT PULLUP | MODE0 */
+-			0xcc 0x108	/* abe_pdm_lb_clk.abe_pdm_lb_clk INPUT PULLDOWN | MODE0 */
+-			0xce 0x108	/* abe_clks.abe_clks INPUT PULLDOWN | MODE0 */
++			0xc6 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_pdm_ul_data.abe_pdm_ul_data */
++			0xc8 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_pdm_dl_data.abe_pdm_dl_data */
++			0xca (PIN_INPUT_PULLUP   | MUX_MODE0)	/* abe_pdm_frame.abe_pdm_frame */
++			0xcc (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_pdm_lb_clk.abe_pdm_lb_clk */
++			0xce (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_clks.abe_clks */
+ 		>;
+ 	};
+ 
+ 	mcbsp1_pins: pinmux_mcbsp1_pins {
+ 		pinctrl-single,pins = <
+-			0xbe 0x100	/* abe_mcbsp1_clkx.abe_mcbsp1_clkx INPUT | MODE0 */
+-			0xc0 0x108	/* abe_mcbsp1_dr.abe_mcbsp1_dr INPUT PULLDOWN | MODE0 */
+-			0xc2 0x8		/* abe_mcbsp1_dx.abe_mcbsp1_dx OUTPUT PULLDOWN | MODE0 */
+-			0xc4 0x100	/* abe_mcbsp1_fsx.abe_mcbsp1_fsx INPUT | MODE0 */
++			0xbe (PIN_INPUT | MUX_MODE0)		/* abe_mcbsp1_clkx.abe_mcbsp1_clkx */
++			0xc0 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_mcbsp1_dr.abe_mcbsp1_dr */
++			0xc2 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* abe_mcbsp1_dx.abe_mcbsp1_dx */
++			0xc4 (PIN_INPUT | MUX_MODE0)		/* abe_mcbsp1_fsx.abe_mcbsp1_fsx */
+ 		>;
+ 	};
+ 
+ 	dss_hdmi_pins: pinmux_dss_hdmi_pins {
+ 		pinctrl-single,pins = <
+-			0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
+-			0x5c 0x118	/* hdmi_scl.hdmi_scl INPUT PULLUP | MODE 0 */
+-			0x5e 0x118	/* hdmi_sda.hdmi_sda INPUT PULLUP | MODE 0 */
++			0x5a (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
++			0x5c (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_scl.hdmi_scl */
++			0x5e (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_sda.hdmi_sda */
+ 		>;
+ 	};
+ 
+ 	tpd12s015_pins: pinmux_tpd12s015_pins {
+ 		pinctrl-single,pins = <
+-			0x22 0x3	/* gpmc_a17.gpio_41 OUTPUT | MODE3 */
+-			0x48 0x3	/* gpmc_nbe1.gpio_60 OUTPUT | MODE3 */
+-			0x58 0x10b	/* hdmi_hpd.gpio_63 INPUT PULLDOWN | MODE3 */
++			0x22 (PIN_OUTPUT | MUX_MODE3)		/* gpmc_a17.gpio_41 */
++			0x48 (PIN_OUTPUT | MUX_MODE3)		/* gpmc_nbe1.gpio_60 */
++			0x58 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* hdmi_hpd.gpio_63 */
+ 		>;
+ 	};
+ 
+ 	i2c1_pins: pinmux_i2c1_pins {
+ 		pinctrl-single,pins = <
+-			0xe2 0x118        /* i2c1_scl PULLUP | INPUTENABLE | MODE0 */
+-			0xe4 0x118        /* i2c1_sda PULLUP | INPUTENABLE | MODE0 */
++			0xe2 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_scl */
++			0xe4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_sda */
+ 		>;
+ 	};
+ 
+ 	i2c2_pins: pinmux_i2c2_pins {
+ 		pinctrl-single,pins = <
+-			0xe6 0x118        /* i2c2_scl PULLUP | INPUTENABLE | MODE0 */
+-			0xe8 0x118        /* i2c2_sda PULLUP | INPUTENABLE | MODE0 */
++			0xe6 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c2_scl */
++			0xe8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c2_sda */
+ 		>;
+ 	};
+ 
+ 	i2c3_pins: pinmux_i2c3_pins {
+ 		pinctrl-single,pins = <
+-			0xea 0x118        /* i2c3_scl PULLUP | INPUTENABLE | MODE0 */
+-			0xec 0x118     /* i2c3_sda PULLUP | INPUTENABLE | MODE0 */
++			0xea (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c3_scl */
++			0xec (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c3_sda */
+ 		>;
+ 	};
+ 
+ 	i2c4_pins: pinmux_i2c4_pins {
+ 		pinctrl-single,pins = <
+-			0xee 0x118        /* i2c4_scl PULLUP | INPUTENABLE | MODE0 */
+-			0xf0 0x118     /* i2c4_sda PULLUP | INPUTENABLE | MODE0 */
++			0xee (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c4_scl */
++			0xf0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c4_sda */
+ 		>;
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
+index c6f012e..5cfdf19 100644
+--- a/arch/arm/boot/dts/omap4-panda-es.dts
++++ b/arch/arm/boot/dts/omap4-panda-es.dts
+@@ -29,8 +29,8 @@
+ /* PandaboardES has external pullups on SCL & SDA */
+ &dss_hdmi_pins {
+ 	pinctrl-single,pins = <
+-		0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
+-		0x5c 0x100	/* hdmi_scl.hdmi_scl INPUT | MODE 0 */
+-		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
++		0x5a (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
++		0x5c (PIN_INPUT | MUX_MODE0)		/* hdmi_scl.hdmi_scl */
++		0x5e (PIN_INPUT | MUX_MODE0)		/* hdmi_sda.hdmi_sda */
+ 		>;
+ };
+diff --git a/arch/arm/boot/dts/omap4-sdp-es23plus.dts b/arch/arm/boot/dts/omap4-sdp-es23plus.dts
+index 4f26355..aad5dda 100644
+--- a/arch/arm/boot/dts/omap4-sdp-es23plus.dts
++++ b/arch/arm/boot/dts/omap4-sdp-es23plus.dts
+@@ -10,8 +10,8 @@
+ /* SDP boards with 4430 ES2.3+ or 4460 have external pullups on SCL & SDA */
+ &dss_hdmi_pins {
+ 	pinctrl-single,pins = <
+-		0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
+-		0x5c 0x100	/* hdmi_scl.hdmi_scl INPUT | MODE 0 */
+-		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
++		0x5a (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
++		0x5c (PIN_INPUT | MUX_MODE0)		/* hdmi_scl.hdmi_scl */
++		0x5e (PIN_INPUT | MUX_MODE0)		/* hdmi_sda.hdmi_sda */
+ 		>;
+ };
 diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 7a26194..e9df3ea 100644
+index e9df3ea..7951b4e 100644
 --- a/arch/arm/boot/dts/omap4-sdp.dts
 +++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -306,7 +306,7 @@
- 	twl: twl@48 {
- 		reg = <0x48>;
- 		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
--		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
-+		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N cascaded to gic */
- 		interrupt-parent = <&gic>;
- 	};
+@@ -150,7 +150,7 @@
  
-@@ -314,7 +314,7 @@
- 		compatible = "ti,twl6040";
- 		reg = <0x4b>;
- 		/* SPI = 0, IRQ# = 119, 4 = active high level-sensitive */
--		interrupts = <0 119 4>; /* IRQ_SYS_2N cascaded to gic */
-+		interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_2N cascaded to gic */
- 		interrupt-parent = <&gic>;
- 		ti,audpwron-gpio = <&gpio4 31 0>;  /* gpio line 127 */
- 
-@@ -395,7 +395,7 @@
- 		spi-max-frequency = <24000000>;
- 		reg = <0>;
- 		interrupt-parent = <&gpio2>;
--		interrupts = <2 8>; /* gpio line 34, low triggered */
-+		interrupts = <2 IRQ_TYPE_LEVEL_LOW>; /* gpio line 34 */
- 		vdd-supply = <&vdd_eth>;
+ 	twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
+ 		pinctrl-single,pins = <
+-			0x14 0x2        /* fref_clk0_out.sys_drm_msecure OUTPUT | MODE2 */
++			0x14 (PIN_OUTPUT | MUX_MODE2)		/* fref_clk0_out.sys_drm_msecure */
+ 		>;
  	};
  };
-diff --git a/arch/arm/boot/dts/omap4-var-som.dts b/arch/arm/boot/dts/omap4-var-som.dts
-index 6593607..b41269e 100644
---- a/arch/arm/boot/dts/omap4-var-som.dts
-+++ b/arch/arm/boot/dts/omap4-var-som.dts
-@@ -34,7 +34,7 @@
- 	twl: twl@48 {
- 		reg = <0x48>;
- 		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
--		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
-+		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N cascaded to gic */
- 		interrupt-parent = <&gic>;
+@@ -170,129 +170,129 @@
+ 
+ 	uart2_pins: pinmux_uart2_pins {
+ 		pinctrl-single,pins = <
+-			0xd8 0x118	/* uart2_cts.uart2_cts INPUT_PULLUP | MODE0 */
+-			0xda 0		/* uart2_rts.uart2_rts OUTPUT | MODE0 */
+-			0xdc 0x118	/* uart2_rx.uart2_rx INPUT_PULLUP | MODE0 */
+-			0xde 0		/* uart2_tx.uart2_tx OUTPUT | MODE0 */
++			0xd8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart2_cts.uart2_cts */
++			0xda (PIN_OUTPUT | MUX_MODE0)		/* uart2_rts.uart2_rts */
++			0xdc (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart2_rx.uart2_rx */
++			0xde (PIN_OUTPUT | MUX_MODE0)		/* uart2_tx.uart2_tx */
+ 		>;
  	};
- };
-@@ -68,7 +68,7 @@
- 		spi-max-frequency = <24000000>;
- 		reg = <0>;
- 		interrupt-parent = <&gpio6>;
--		interrupts = <11 8>; /* gpio line 171, low triggered */
-+		interrupts = <11 IRQ_TYPE_LEVEL_LOW>; /* gpio line 171 */
- 		vdd-supply = <&vdd_eth>;
+ 
+ 	uart3_pins: pinmux_uart3_pins {
+ 		pinctrl-single,pins = <
+-			0x100 0x118	/* uart3_cts_rctx.uart3_cts_rctx INPUT_PULLUP | MODE0 */
+-			0x102 0		/* uart3_rts_sd.uart3_rts_sd OUTPUT | MODE0 */
+-			0x104 0x100	/* uart3_rx_irrx.uart3_rx_irrx INPUT | MODE0 */
+-			0x106 0		/* uart3_tx_irtx.uart3_tx_irtx OUTPUT | MODE0 */
++			0x100 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart3_cts_rctx.uart3_cts_rctx */
++			0x102 (PIN_OUTPUT | MUX_MODE0)		/* uart3_rts_sd.uart3_rts_sd */
++			0x104 (PIN_INPUT | MUX_MODE0)		/* uart3_rx_irrx.uart3_rx_irrx */
++			0x106 (PIN_OUTPUT | MUX_MODE0)		/* uart3_tx_irtx.uart3_tx_irtx */
+ 		>;
+ 	};
+ 
+ 	uart4_pins: pinmux_uart4_pins {
+ 		pinctrl-single,pins = <
+-			0x11c 0x100	/* uart4_rx.uart4_rx INPUT | MODE0 */
+-			0x11e 0		/* uart4_tx.uart4_tx OUTPUT | MODE0 */
++			0x11c (PIN_INPUT | MUX_MODE0)		/* uart4_rx.uart4_rx */
++			0x11e (PIN_OUTPUT | MUX_MODE0)		/* uart4_tx.uart4_tx */
+ 		>;
+ 	};
+ 
+ 	twl6030_pins: pinmux_twl6030_pins {
+ 		pinctrl-single,pins = <
+-			0x15e 0x4118	/* sys_nirq1.sys_nirq1 OMAP_WAKEUP_EN | INPUT_PULLUP | MODE0 */
++			0x15e (WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0)	/* sys_nirq1.sys_nirq1 */
+ 		>;
+ 	};
+ 
+ 	twl6040_pins: pinmux_twl6040_pins {
+ 		pinctrl-single,pins = <
+-			0xe0 0x3	/* hdq_sio.gpio_127 OUTPUT | MODE3 */
+-			0x160 0x100	/* sys_nirq2.sys_nirq2 INPUT | MODE0 */
++			0xe0 (PIN_OUTPUT | MUX_MODE3)		/* hdq_sio.gpio_127 */
++			0x160 (PIN_INPUT | MUX_MODE0)		/* sys_nirq2.sys_nirq2 */
+ 		>;
+ 	};
+ 
+ 	mcpdm_pins: pinmux_mcpdm_pins {
+ 		pinctrl-single,pins = <
+-			0xc6 0x108	/* abe_pdm_ul_data.abe_pdm_ul_data INPUT PULLDOWN | MODE0 */
+-			0xc8 0x108	/* abe_pdm_dl_data.abe_pdm_dl_data INPUT PULLDOWN | MODE0 */
+-			0xca 0x118	/* abe_pdm_frame.abe_pdm_frame INPUT PULLUP | MODE0 */
+-			0xcc 0x108	/* abe_pdm_lb_clk.abe_pdm_lb_clk INPUT PULLDOWN | MODE0 */
+-			0xce 0x108	/* abe_clks.abe_clks INPUT PULLDOWN | MODE0 */
++			0xc6 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_pdm_ul_data.abe_pdm_ul_data */
++			0xc8 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_pdm_dl_data.abe_pdm_dl_data */
++			0xca (PIN_INPUT_PULLUP | MUX_MODE0)	/* abe_pdm_frame.abe_pdm_frame */
++			0xcc (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_pdm_lb_clk.abe_pdm_lb_clk */
++			0xce (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_clks.abe_clks */
+ 		>;
+ 	};
+ 
+ 	dmic_pins: pinmux_dmic_pins {
+ 		pinctrl-single,pins = <
+-			0xd0 0		/* abe_dmic_clk1.abe_dmic_clk1 OUTPUT | MODE0 */
+-			0xd2 0x100	/* abe_dmic_din1.abe_dmic_din1 INPUT | MODE0 */
+-			0xd4 0x100	/* abe_dmic_din2.abe_dmic_din2 INPUT | MODE0 */
+-			0xd6 0x100	/* abe_dmic_din3.abe_dmic_din3 INPUT | MODE0 */
++			0xd0 (PIN_OUTPUT | MUX_MODE0)		/* abe_dmic_clk1.abe_dmic_clk1 */
++			0xd2 (PIN_INPUT | MUX_MODE0)		/* abe_dmic_din1.abe_dmic_din1 */
++			0xd4 (PIN_INPUT | MUX_MODE0)		/* abe_dmic_din2.abe_dmic_din2 */
++			0xd6 (PIN_INPUT | MUX_MODE0)		/* abe_dmic_din3.abe_dmic_din3 */
+ 		>;
+ 	};
+ 
+ 	mcbsp1_pins: pinmux_mcbsp1_pins {
+ 		pinctrl-single,pins = <
+-			0xbe 0x100	/* abe_mcbsp1_clkx.abe_mcbsp1_clkx INPUT | MODE0 */
+-			0xc0 0x108	/* abe_mcbsp1_dr.abe_mcbsp1_dr INPUT PULLDOWN | MODE0 */
+-			0xc2 0x8	/* abe_mcbsp1_dx.abe_mcbsp1_dx OUTPUT PULLDOWN | MODE0 */
+-			0xc4 0x100	/* abe_mcbsp1_fsx.abe_mcbsp1_fsx INPUT | MODE0 */
++			0xbe (PIN_INPUT | MUX_MODE0)		/* abe_mcbsp1_clkx.abe_mcbsp1_clkx */
++			0xc0 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_mcbsp1_dr.abe_mcbsp1_dr */
++			0xc2 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* abe_mcbsp1_dx.abe_mcbsp1_dx */
++			0xc4 (PIN_INPUT | MUX_MODE0)		/* abe_mcbsp1_fsx.abe_mcbsp1_fsx */
+ 		>;
+ 	};
+ 
+ 	mcbsp2_pins: pinmux_mcbsp2_pins {
+ 		pinctrl-single,pins = <
+-			0xb6 0x100	/* abe_mcbsp2_clkx.abe_mcbsp2_clkx INPUT | MODE0 */
+-			0xb8 0x108	/* abe_mcbsp2_dr.abe_mcbsp2_dr INPUT PULLDOWN | MODE0 */
+-			0xba 0x8	/* abe_mcbsp2_dx.abe_mcbsp2_dx OUTPUT PULLDOWN | MODE0 */
+-			0xbc 0x100	/* abe_mcbsp2_fsx.abe_mcbsp2_fsx INPUT | MODE0 */
++			0xb6 (PIN_INPUT | MUX_MODE0)		/* abe_mcbsp2_clkx.abe_mcbsp2_clkx */
++			0xb8 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_mcbsp2_dr.abe_mcbsp2_dr */
++			0xba (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* abe_mcbsp2_dx.abe_mcbsp2_dx */
++			0xbc (PIN_INPUT | MUX_MODE0)		/* abe_mcbsp2_fsx.abe_mcbsp2_fsx */
+ 		>;
+ 	};
+ 
+ 	mcspi1_pins: pinmux_mcspi1_pins {
+ 		pinctrl-single,pins = <
+-			0xf2 0x100	/*  mcspi1_clk.mcspi1_clk INPUT | MODE0 */
+-			0xf4 0x100	/*  mcspi1_somi.mcspi1_somi INPUT | MODE0 */
+-			0xf6 0x100	/*  mcspi1_simo.mcspi1_simo INPUT | MODE0 */
+-			0xf8 0x100	/*  mcspi1_cs0.mcspi1_cs0 INPUT | MODE0*/
++			0xf2 (PIN_INPUT | MUX_MODE0)		/*  mcspi1_clk.mcspi1_clk */
++			0xf4 (PIN_INPUT | MUX_MODE0)		/*  mcspi1_somi.mcspi1_somi */
++			0xf6 (PIN_INPUT | MUX_MODE0)		/*  mcspi1_simo.mcspi1_simo */
++			0xf8 (PIN_INPUT | MUX_MODE0)		/*  mcspi1_cs0.mcspi1_cs0 */
+ 		>;
+ 	};
+ 
+ 	dss_hdmi_pins: pinmux_dss_hdmi_pins {
+ 		pinctrl-single,pins = <
+-			0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
+-			0x5c 0x118	/* hdmi_scl.hdmi_scl INPUT PULLUP | MODE 0 */
+-			0x5e 0x118	/* hdmi_sda.hdmi_sda INPUT PULLUP | MODE 0 */
++			0x5a (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
++			0x5c (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_scl.hdmi_scl */
++			0x5e (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_sda.hdmi_sda */
+ 		>;
+ 	};
+ 
+ 	tpd12s015_pins: pinmux_tpd12s015_pins {
+ 		pinctrl-single,pins = <
+-			0x22 0x3	/* gpmc_a17.gpio_41 OUTPUT | MODE3 */
+-			0x48 0x3	/* gpmc_nbe1.gpio_60 OUTPUT | MODE3 */
+-			0x58 0x10b	/* hdmi_hpd.gpio_63 INPUT PULLDOWN | MODE3 */
++			0x22 (PIN_OUTPUT | MUX_MODE3)		/* gpmc_a17.gpio_41 */
++			0x48 (PIN_OUTPUT | MUX_MODE3)		/* gpmc_nbe1.gpio_60 */
++			0x58 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* hdmi_hpd.gpio_63 */
+ 		>;
+ 	};
+ 
+ 	i2c1_pins: pinmux_i2c1_pins {
+ 		pinctrl-single,pins = <
+-			0xe2 0x118        /* i2c1_scl PULLUP | INPUTENABLE | MODE0 */
+-			0xe4 0x118       /* i2c1_sda PULLUP | INPUTENABLE | MODE0 */
++			0xe2 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_scl */
++			0xe4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_sda */
+ 		>;
+ 	};
+ 
+ 	i2c2_pins: pinmux_i2c2_pins {
+ 		pinctrl-single,pins = <
+-                        0xe6 0x118        /* i2c2_scl PULLUP | INPUTENABLE | MODE0 */
+-                        0xe8 0x118        /* i2c2_sda PULLUP | INPUTENABLE | MODE0 */
++			0xe6 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c2_scl */
++			0xe8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c2_sda */
+ 		>;
+ 	};
+ 
+ 	i2c3_pins: pinmux_i2c3_pins {
+ 		pinctrl-single,pins = <
+-			0xea 0x118        /* i2c3_scl PULLUP | INPUTENABLE | MODE0 */
+-			0xec 0x118     /* i2c3_sda PULLUP | INPUTENABLE | MODE0 */
++			0xea (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c3_scl */
++			0xec (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c3_sda */
+ 		>;
+ 	};
+ 
+ 	i2c4_pins: pinmux_i2c4_pins {
+ 		pinctrl-single,pins = <
+-			0xee 0x118        /* i2c4_scl PULLUP | INPUTENABLE | MODE0 */
+-			0xf0 0x118     /* i2c4_sda PULLUP | INPUTENABLE | MODE0 */
++			0xee (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c4_scl */
++			0xf0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c4_sda */
+ 		>;
  	};
  };
 diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 4160d7d..6137aff 100644
+index 6137aff..463b97d 100644
 --- a/arch/arm/boot/dts/omap4.dtsi
 +++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -7,6 +7,7 @@
-  */
+@@ -8,6 +8,7 @@
  
  #include <dt-bindings/gpio/gpio.h>
-+#include <dt-bindings/interrupt-controller/arm-gic.h>
+ #include <dt-bindings/interrupt-controller/arm-gic.h>
++#include <dt-bindings/pinctrl/omap.h>
  
  #include "skeleton.dtsi"
  
-@@ -50,7 +51,7 @@
- 	local-timer@0x48240600 {
- 		compatible = "arm,cortex-a9-twd-timer";
- 		reg = <0x48240600 0x20>;
--		interrupts = <1 13 0x304>;
-+		interrupts = <GIC_PPI 13 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_HIGH)>;
+diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
+index f5f55d1..22e9ee8 100644
+--- a/arch/arm/boot/dts/omap5-evm.dts
++++ b/arch/arm/boot/dts/omap5-evm.dts
+@@ -40,106 +40,106 @@
+ 
+ 	twl6040_pins: pinmux_twl6040_pins {
+ 		pinctrl-single,pins = <
+-			0x18a 0x6	/* perslimbus2_clock.gpio5_145 OUTPUT | MODE6 */
++			0x18a (PIN_OUTPUT | MUX_MODE6)	/* perslimbus2_clock.gpio5_145 */
+ 		>;
  	};
  
- 	/*
-@@ -91,8 +92,8 @@
- 		reg = <0x44000000 0x1000>,
- 		      <0x44800000 0x2000>,
- 		      <0x45000000 0x1000>;
--		interrupts = <0 9 0x4>,
--			     <0 10 0x4>;
-+		interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
-+			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
+ 	mcpdm_pins: pinmux_mcpdm_pins {
+ 		pinctrl-single,pins = <
+-			0x142 0x108	/* abe_clks.abe_clks INPUT PULLDOWN | MODE0 */
+-			0x15c 0x108	/* abemcpdm_ul_data.abemcpdm_ul_data INPUT PULLDOWN | MODE0 */
+-			0x15e 0x108	/* abemcpdm_dl_data.abemcpdm_dl_data INPUT PULLDOWN | MODE0 */
+-			0x160 0x118	/* abemcpdm_frame.abemcpdm_frame INPUT PULLUP | MODE0 */
+-			0x162 0x108	/* abemcpdm_lb_clk.abemcpdm_lb_clk INPUT PULLDOWN | MODE0 */
++			0x142 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abe_clks.abe_clks */
++			0x15c (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abemcpdm_ul_data.abemcpdm_ul_data */
++			0x15e (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abemcpdm_dl_data.abemcpdm_dl_data */
++			0x160 (PIN_INPUT_PULLUP | MUX_MODE0)	/* abemcpdm_frame.abemcpdm_frame */
++			0x162 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abemcpdm_lb_clk.abemcpdm_lb_clk */
+ 		>;
+ 	};
  
- 		counter32k: counter@4a304000 {
- 			compatible = "ti,omap-counter32k";
-@@ -120,10 +121,10 @@
- 		sdma: dma-controller@4a056000 {
- 			compatible = "ti,omap4430-sdma";
- 			reg = <0x4a056000 0x1000>;
--			interrupts = <0 12 0x4>,
--				     <0 13 0x4>,
--				     <0 14 0x4>,
--				     <0 15 0x4>;
-+			interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 15 IRQ_TYPE_LEVEL_HIGH>;
- 			#dma-cells = <1>;
- 			#dma-channels = <32>;
- 			#dma-requests = <127>;
-@@ -132,7 +133,7 @@
- 		gpio1: gpio@4a310000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x4a310000 0x200>;
--			interrupts = <0 29 0x4>;
-+			interrupts = <GIC_SPI 29 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio1";
- 			ti,gpio-always-on;
- 			gpio-controller;
-@@ -144,7 +145,7 @@
- 		gpio2: gpio@48055000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x48055000 0x200>;
--			interrupts = <0 30 0x4>;
-+			interrupts = <GIC_SPI 30 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio2";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -155,7 +156,7 @@
- 		gpio3: gpio@48057000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x48057000 0x200>;
--			interrupts = <0 31 0x4>;
-+			interrupts = <GIC_SPI 31 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio3";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -166,7 +167,7 @@
- 		gpio4: gpio@48059000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x48059000 0x200>;
--			interrupts = <0 32 0x4>;
-+			interrupts = <GIC_SPI 32 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio4";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -177,7 +178,7 @@
- 		gpio5: gpio@4805b000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x4805b000 0x200>;
--			interrupts = <0 33 0x4>;
-+			interrupts = <GIC_SPI 33 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio5";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -188,7 +189,7 @@
- 		gpio6: gpio@4805d000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x4805d000 0x200>;
--			interrupts = <0 34 0x4>;
-+			interrupts = <GIC_SPI 34 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio6";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -201,7 +202,7 @@
- 			reg = <0x50000000 0x1000>;
- 			#address-cells = <2>;
- 			#size-cells = <1>;
--			interrupts = <0 20 0x4>;
-+			interrupts = <GIC_SPI 20 IRQ_TYPE_LEVEL_HIGH>;
- 			gpmc,num-cs = <8>;
- 			gpmc,num-waitpins = <4>;
- 			ti,hwmods = "gpmc";
-@@ -210,7 +211,7 @@
- 		uart1: serial@4806a000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x4806a000 0x100>;
--			interrupts = <0 72 0x4>;
-+			interrupts = <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart1";
- 			clock-frequency = <48000000>;
- 		};
-@@ -218,7 +219,7 @@
- 		uart2: serial@4806c000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x4806c000 0x100>;
--			interrupts = <0 73 0x4>;
-+			interrupts = <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart2";
- 			clock-frequency = <48000000>;
- 		};
-@@ -226,7 +227,7 @@
- 		uart3: serial@48020000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x48020000 0x100>;
--			interrupts = <0 74 0x4>;
-+			interrupts = <GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart3";
- 			clock-frequency = <48000000>;
- 		};
-@@ -234,7 +235,7 @@
- 		uart4: serial@4806e000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x4806e000 0x100>;
--			interrupts = <0 70 0x4>;
-+			interrupts = <GIC_SPI 70 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart4";
- 			clock-frequency = <48000000>;
- 		};
-@@ -242,7 +243,7 @@
- 		i2c1: i2c@48070000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x48070000 0x100>;
--			interrupts = <0 56 0x4>;
-+			interrupts = <GIC_SPI 56 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c1";
-@@ -251,7 +252,7 @@
- 		i2c2: i2c@48072000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x48072000 0x100>;
--			interrupts = <0 57 0x4>;
-+			interrupts = <GIC_SPI 57 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c2";
-@@ -260,7 +261,7 @@
- 		i2c3: i2c@48060000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x48060000 0x100>;
--			interrupts = <0 61 0x4>;
-+			interrupts = <GIC_SPI 61 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c3";
-@@ -269,7 +270,7 @@
- 		i2c4: i2c@48350000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x48350000 0x100>;
--			interrupts = <0 62 0x4>;
-+			interrupts = <GIC_SPI 62 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c4";
-@@ -278,7 +279,7 @@
- 		mcspi1: spi@48098000 {
- 			compatible = "ti,omap4-mcspi";
- 			reg = <0x48098000 0x200>;
--			interrupts = <0 65 0x4>;
-+			interrupts = <GIC_SPI 65 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi1";
-@@ -298,7 +299,7 @@
- 		mcspi2: spi@4809a000 {
- 			compatible = "ti,omap4-mcspi";
- 			reg = <0x4809a000 0x200>;
--			interrupts = <0 66 0x4>;
-+			interrupts = <GIC_SPI 66 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi2";
-@@ -313,7 +314,7 @@
- 		mcspi3: spi@480b8000 {
- 			compatible = "ti,omap4-mcspi";
- 			reg = <0x480b8000 0x200>;
--			interrupts = <0 91 0x4>;
-+			interrupts = <GIC_SPI 91 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi3";
-@@ -325,7 +326,7 @@
- 		mcspi4: spi@480ba000 {
- 			compatible = "ti,omap4-mcspi";
- 			reg = <0x480ba000 0x200>;
--			interrupts = <0 48 0x4>;
-+			interrupts = <GIC_SPI 48 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi4";
-@@ -337,7 +338,7 @@
- 		mmc1: mmc@4809c000 {
- 			compatible = "ti,omap4-hsmmc";
- 			reg = <0x4809c000 0x400>;
--			interrupts = <0 83 0x4>;
-+			interrupts = <GIC_SPI 83 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc1";
- 			ti,dual-volt;
- 			ti,needs-special-reset;
-@@ -348,7 +349,7 @@
- 		mmc2: mmc@480b4000 {
- 			compatible = "ti,omap4-hsmmc";
- 			reg = <0x480b4000 0x400>;
--			interrupts = <0 86 0x4>;
-+			interrupts = <GIC_SPI 86 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc2";
- 			ti,needs-special-reset;
- 			dmas = <&sdma 47>, <&sdma 48>;
-@@ -358,7 +359,7 @@
- 		mmc3: mmc@480ad000 {
- 			compatible = "ti,omap4-hsmmc";
- 			reg = <0x480ad000 0x400>;
--			interrupts = <0 94 0x4>;
-+			interrupts = <GIC_SPI 94 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc3";
- 			ti,needs-special-reset;
- 			dmas = <&sdma 77>, <&sdma 78>;
-@@ -368,7 +369,7 @@
- 		mmc4: mmc@480d1000 {
- 			compatible = "ti,omap4-hsmmc";
- 			reg = <0x480d1000 0x400>;
--			interrupts = <0 96 0x4>;
-+			interrupts = <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc4";
- 			ti,needs-special-reset;
- 			dmas = <&sdma 57>, <&sdma 58>;
-@@ -378,7 +379,7 @@
- 		mmc5: mmc@480d5000 {
- 			compatible = "ti,omap4-hsmmc";
- 			reg = <0x480d5000 0x400>;
--			interrupts = <0 59 0x4>;
-+			interrupts = <GIC_SPI 59 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc5";
- 			ti,needs-special-reset;
- 			dmas = <&sdma 59>, <&sdma 60>;
-@@ -388,7 +389,7 @@
- 		wdt2: wdt@4a314000 {
- 			compatible = "ti,omap4-wdt", "ti,omap3-wdt";
- 			reg = <0x4a314000 0x80>;
--			interrupts = <0 80 0x4>;
-+			interrupts = <GIC_SPI 80 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "wd_timer2";
- 		};
+ 	dmic_pins: pinmux_dmic_pins {
+ 		pinctrl-single,pins = <
+-			0x144 0x100	/* abedmic_din1.abedmic_din1 INPUT | MODE0 */
+-			0x146 0x100	/* abedmic_din2.abedmic_din2 INPUT | MODE0 */
+-			0x148 0x100	/* abedmic_din3.abedmic_din3 INPUT | MODE0 */
+-			0x14a 0		/* abedmic_clk1.abedmic_clk1 OUTPUT | MODE0 */
++			0x144 (PIN_INPUT | MUX_MODE0)		/* abedmic_din1.abedmic_din1 */
++			0x146 (PIN_INPUT | MUX_MODE0)		/* abedmic_din2.abedmic_din2 */
++			0x148 (PIN_INPUT | MUX_MODE0)		/* abedmic_din3.abedmic_din3 */
++			0x14a (PIN_OUTPUT | MUX_MODE0)		/* abedmic_clk1.abedmic_clk1 */
+ 		>;
+ 	};
  
-@@ -397,7 +398,7 @@
- 			reg = <0x40132000 0x7f>, /* MPU private access */
- 			      <0x49032000 0x7f>; /* L3 Interconnect */
- 			reg-names = "mpu", "dma";
--			interrupts = <0 112 0x4>;
-+			interrupts = <GIC_SPI 112 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mcpdm";
- 			dmas = <&sdma 65>,
- 			       <&sdma 66>;
-@@ -409,7 +410,7 @@
- 			reg = <0x4012e000 0x7f>, /* MPU private access */
- 			      <0x4902e000 0x7f>; /* L3 Interconnect */
- 			reg-names = "mpu", "dma";
--			interrupts = <0 114 0x4>;
-+			interrupts = <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "dmic";
- 			dmas = <&sdma 67>;
- 			dma-names = "up_link";
-@@ -420,7 +421,7 @@
- 			reg = <0x40122000 0xff>, /* MPU private access */
- 			      <0x49022000 0xff>; /* L3 Interconnect */
- 			reg-names = "mpu", "dma";
--			interrupts = <0 17 0x4>;
-+			interrupts = <GIC_SPI 17 IRQ_TYPE_LEVEL_HIGH>;
- 			interrupt-names = "common";
- 			ti,buffer-size = <128>;
- 			ti,hwmods = "mcbsp1";
-@@ -434,7 +435,7 @@
- 			reg = <0x40124000 0xff>, /* MPU private access */
- 			      <0x49024000 0xff>; /* L3 Interconnect */
- 			reg-names = "mpu", "dma";
--			interrupts = <0 22 0x4>;
-+			interrupts = <GIC_SPI 22 IRQ_TYPE_LEVEL_HIGH>;
- 			interrupt-names = "common";
- 			ti,buffer-size = <128>;
- 			ti,hwmods = "mcbsp2";
-@@ -448,7 +449,7 @@
- 			reg = <0x40126000 0xff>, /* MPU private access */
- 			      <0x49026000 0xff>; /* L3 Interconnect */
- 			reg-names = "mpu", "dma";
--			interrupts = <0 23 0x4>;
-+			interrupts = <GIC_SPI 23 IRQ_TYPE_LEVEL_HIGH>;
- 			interrupt-names = "common";
- 			ti,buffer-size = <128>;
- 			ti,hwmods = "mcbsp3";
-@@ -461,7 +462,7 @@
- 			compatible = "ti,omap4-mcbsp";
- 			reg = <0x48096000 0xff>; /* L4 Interconnect */
- 			reg-names = "mpu";
--			interrupts = <0 16 0x4>;
-+			interrupts = <GIC_SPI 16 IRQ_TYPE_LEVEL_HIGH>;
- 			interrupt-names = "common";
- 			ti,buffer-size = <128>;
- 			ti,hwmods = "mcbsp4";
-@@ -473,7 +474,7 @@
- 		keypad: keypad@4a31c000 {
- 			compatible = "ti,omap4-keypad";
- 			reg = <0x4a31c000 0x80>;
--			interrupts = <0 120 0x4>;
-+			interrupts = <GIC_SPI 120 IRQ_TYPE_LEVEL_HIGH>;
- 			reg-names = "mpu";
- 			ti,hwmods = "kbd";
- 		};
-@@ -481,7 +482,7 @@
- 		emif1: emif@4c000000 {
- 			compatible = "ti,emif-4d";
- 			reg = <0x4c000000 0x100>;
--			interrupts = <0 110 0x4>;
-+			interrupts = <GIC_SPI 110 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "emif1";
- 			phy-type = <1>;
- 			hw-caps-read-idle-ctrl;
-@@ -492,7 +493,7 @@
- 		emif2: emif@4d000000 {
- 			compatible = "ti,emif-4d";
- 			reg = <0x4d000000 0x100>;
--			interrupts = <0 111 0x4>;
-+			interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "emif2";
- 			phy-type = <1>;
- 			hw-caps-read-idle-ctrl;
-@@ -517,7 +518,7 @@
- 		timer1: timer@4a318000 {
- 			compatible = "ti,omap3430-timer";
- 			reg = <0x4a318000 0x80>;
--			interrupts = <0 37 0x4>;
-+			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer1";
- 			ti,timer-alwon;
- 		};
-@@ -525,21 +526,21 @@
- 		timer2: timer@48032000 {
- 			compatible = "ti,omap3430-timer";
- 			reg = <0x48032000 0x80>;
--			interrupts = <0 38 0x4>;
-+			interrupts = <GIC_SPI 38 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer2";
- 		};
+ 	mcbsp1_pins: pinmux_mcbsp1_pins {
+ 		pinctrl-single,pins = <
+-			0x14c 0x101	/* abedmic_clk2.abemcbsp1_fsx INPUT | MODE1 */
+-			0x14e 0x9	/* abedmic_clk3.abemcbsp1_dx OUTPUT PULLDOWN | MODE1 */
+-			0x150 0x101	/* abeslimbus1_clock.abemcbsp1_clkx INPUT | MODE0 */
+-			0x152 0x109	/* abeslimbus1_data.abemcbsp1_dr INPUT PULLDOWN | MODE1 */
++			0x14c (PIN_INPUT | MUX_MODE1)		/* abedmic_clk2.abemcbsp1_fsx */
++			0x14e (PIN_OUTPUT_PULLDOWN | MUX_MODE1)	/* abedmic_clk3.abemcbsp1_dx */
++			0x150 (PIN_INPUT | MUX_MODE1)		/* abeslimbus1_clock.abemcbsp1_clkx */
++			0x152 (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* abeslimbus1_data.abemcbsp1_dr */
+ 		>;
+ 	};
  
- 		timer3: timer@48034000 {
- 			compatible = "ti,omap4430-timer";
- 			reg = <0x48034000 0x80>;
--			interrupts = <0 39 0x4>;
-+			interrupts = <GIC_SPI 39 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer3";
- 		};
+ 	mcbsp2_pins: pinmux_mcbsp2_pins {
+ 		pinctrl-single,pins = <
+-			0x154 0x108	/* abemcbsp2_dr.abemcbsp2_dr INPUT PULLDOWN | MODE0 */
+-			0x156 0x8	/* abemcbsp2_dx.abemcbsp2_dx OUTPUT PULLDOWN | MODE0 */
+-			0x158 0x100	/* abemcbsp2_fsx.abemcbsp2_fsx INPUT | MODE0 */
+-			0x15a 0x100	/* abemcbsp2_clkx.abemcbsp2_clkx INPUT | MODE0 */
++			0x154 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* abemcbsp2_dr.abemcbsp2_dr */
++			0x156 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* abemcbsp2_dx.abemcbsp2_dx */
++			0x158 (PIN_INPUT | MUX_MODE0)		/* abemcbsp2_fsx.abemcbsp2_fsx */
++			0x15a (PIN_INPUT | MUX_MODE0)		/* abemcbsp2_clkx.abemcbsp2_clkx */
+ 		>;
+ 	};
  
- 		timer4: timer@48036000 {
- 			compatible = "ti,omap4430-timer";
- 			reg = <0x48036000 0x80>;
--			interrupts = <0 40 0x4>;
-+			interrupts = <GIC_SPI 40 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer4";
- 		};
+-        i2c1_pins: pinmux_i2c1_pins {
+-                pinctrl-single,pins = <
+-                        0x1b2 0x118        /* i2c1_scl PULLUP | INPUTENABLE | MODE0 */
+-                        0x1b4 0x118        /* i2c1_sda PULLUP | INPUTENABLE | MODE0 */
+-                >;
+-        };
++	i2c1_pins: pinmux_i2c1_pins {
++		pinctrl-single,pins = <
++			0x1b2 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_scl */
++			0x1b4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_sda */
++		>;
++	};
  
-@@ -547,7 +548,7 @@
- 			compatible = "ti,omap4430-timer";
- 			reg = <0x40138000 0x80>,
- 			      <0x49038000 0x80>;
--			interrupts = <0 41 0x4>;
-+			interrupts = <GIC_SPI 41 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer5";
- 			ti,timer-dsp;
- 		};
-@@ -556,7 +557,7 @@
- 			compatible = "ti,omap4430-timer";
- 			reg = <0x4013a000 0x80>,
- 			      <0x4903a000 0x80>;
--			interrupts = <0 42 0x4>;
-+			interrupts = <GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer6";
- 			ti,timer-dsp;
- 		};
-@@ -565,7 +566,7 @@
- 			compatible = "ti,omap4430-timer";
- 			reg = <0x4013c000 0x80>,
- 			      <0x4903c000 0x80>;
--			interrupts = <0 43 0x4>;
-+			interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer7";
- 			ti,timer-dsp;
- 		};
-@@ -574,7 +575,7 @@
- 			compatible = "ti,omap4430-timer";
- 			reg = <0x4013e000 0x80>,
- 			      <0x4903e000 0x80>;
--			interrupts = <0 44 0x4>;
-+			interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer8";
- 			ti,timer-pwm;
- 			ti,timer-dsp;
-@@ -583,7 +584,7 @@
- 		timer9: timer@4803e000 {
- 			compatible = "ti,omap4430-timer";
- 			reg = <0x4803e000 0x80>;
--			interrupts = <0 45 0x4>;
-+			interrupts = <GIC_SPI 45 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer9";
- 			ti,timer-pwm;
- 		};
-@@ -591,7 +592,7 @@
- 		timer10: timer@48086000 {
- 			compatible = "ti,omap3430-timer";
- 			reg = <0x48086000 0x80>;
--			interrupts = <0 46 0x4>;
-+			interrupts = <GIC_SPI 46 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer10";
- 			ti,timer-pwm;
- 		};
-@@ -599,7 +600,7 @@
- 		timer11: timer@48088000 {
- 			compatible = "ti,omap4430-timer";
- 			reg = <0x48088000 0x80>;
--			interrupts = <0 47 0x4>;
-+			interrupts = <GIC_SPI 47 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer11";
- 			ti,timer-pwm;
- 		};
-@@ -607,7 +608,7 @@
- 		usbhstll: usbhstll@4a062000 {
- 			compatible = "ti,usbhs-tll";
- 			reg = <0x4a062000 0x1000>;
--			interrupts = <0 78 0x4>;
-+			interrupts = <GIC_SPI 78 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "usb_tll_hs";
- 		};
+ 	i2c2_pins: pinmux_i2c2_pins {
+ 		pinctrl-single,pins = <
+-			0x178 0x100        /* i2c2_scl INPUTENABLE | MODE0 */
+-			0x17a 0x100        /* i2c2_sda INPUTENABLE | MODE0 */
++			0x178 (PIN_INPUT | MUX_MODE0)		/* i2c2_scl */
++			0x17a (PIN_INPUT | MUX_MODE0)		/* i2c2_sda */
+ 		>;
+ 	};
  
-@@ -623,14 +624,14 @@
- 				compatible = "ti,ohci-omap3", "usb-ohci";
- 				reg = <0x4a064800 0x400>;
- 				interrupt-parent = <&gic>;
--				interrupts = <0 76 0x4>;
-+				interrupts = <GIC_SPI 76 IRQ_TYPE_LEVEL_HIGH>;
- 			};
+ 	i2c3_pins: pinmux_i2c3_pins {
+ 		pinctrl-single,pins = <
+-			0x13a 0x100        /* i2c3_scl INPUTENABLE | MODE0 */
+-			0x13c 0x100     /* i2c3_sda INPUTENABLE | MODE0 */
++			0x13a (PIN_INPUT | MUX_MODE0)		/* i2c3_scl */
++			0x13c (PIN_INPUT | MUX_MODE0)		/* i2c3_sda */
+ 		>;
+ 	};
  
- 			usbhsehci: ehci@4a064c00 {
- 				compatible = "ti,ehci-omap", "usb-ehci";
- 				reg = <0x4a064c00 0x400>;
- 				interrupt-parent = <&gic>;
--				interrupts = <0 77 0x4>;
-+				interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
- 			};
- 		};
+ 	i2c4_pins: pinmux_i2c4_pins {
+ 		pinctrl-single,pins = <
+-			0xb8 0x100        /* i2c4_scl INPUTENABLE | MODE0 */
+-			0xba 0x100     /* i2c4_sda INPUTENABLE | MODE0 */
++			0xb8 (PIN_INPUT | MUX_MODE0)		/* i2c4_scl */
++			0xba (PIN_INPUT | MUX_MODE0)		/* i2c4_sda */
+ 		>;
+ 	};
  
-@@ -645,7 +646,7 @@
- 		usb_otg_hs: usb_otg_hs@4a0ab000 {
- 			compatible = "ti,omap4-musb";
- 			reg = <0x4a0ab000 0x7ff>;
--			interrupts = <0 92 0x4>, <0 93 0x4>;
-+			interrupts = <GIC_SPI 92 IRQ_TYPE_LEVEL_HIGH>, <GIC_SPI 93 IRQ_TYPE_LEVEL_HIGH>;
- 			interrupt-names = "mc", "dma";
- 			ti,hwmods = "usb_otg_hs";
- 			usb-phy = <&usb2_phy>;
-diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap4460.dtsi
-index 41762c2..19628b1 100644
---- a/arch/arm/boot/dts/omap4460.dtsi
-+++ b/arch/arm/boot/dts/omap4460.dtsi
-@@ -25,8 +25,8 @@
+ 	i2c5_pins: pinmux_i2c5_pins {
+ 		pinctrl-single,pins = <
+-			0x184 0x100        /* i2c5_scl INPUTENABLE | MODE0 */
+-			0x186 0x100     /* i2c5_sda INPUTENABLE | MODE0 */
++			0x184 (PIN_INPUT | MUX_MODE0)		/* i2c5_scl */
++			0x186 (PIN_INPUT | MUX_MODE0)		/* i2c5_sda */
+ 		>;
+ 	};
  
- 	pmu {
- 		compatible = "arm,cortex-a9-pmu";
--		interrupts = <0 54 0x4>,
--			     <0 55 0x4>;
-+		interrupts = <GIC_SPI 54 IRQ_TYPE_LEVEL_HIGH>,
-+			     <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
- 		ti,hwmods = "debugss";
+ 	mcspi2_pins: pinmux_mcspi2_pins {
+ 		pinctrl-single,pins = <
+-			0xbc 0x100	/*  MCSPI2_CLK INPUTENABLE | MODE0 */
+-			0xbe 0x100	/*  MCSPI2_SIMO INPUTENABLE | MODE0 */
+-			0xc0 0x118	/*  MCSPI2_SOMI PULLUP | INPUTENABLE | MODE0*/
+-			0xc2 0x0	/*  MCSPI2_CS MODE0*/
++			0xbc (PIN_INPUT | MUX_MODE0)		/*  mcspi2_clk */
++			0xbe (PIN_INPUT | MUX_MODE0)		/*  mcspi2_simo */
++			0xc0 (PIN_INPUT_PULLUP | MUX_MODE0)	/*  mcspi2_somi */
++			0xc2 (PIN_OUTPUT | MUX_MODE0)		/*  mcspi2_cs */
+ 		>;
+ 	};
+ 
+ 	mcspi3_pins: pinmux_mcspi3_pins {
+ 		pinctrl-single,pins = <
+-			0x78 0x101	/*  MCSPI2_SOMI INPUTENABLE | MODE1 */
+-			0x7a 0x101	/*  MCSPI2_CS INPUTENABLE | MODE1 */
+-			0x7c 0x101	/*  MCSPI2_SIMO INPUTENABLE | MODE1 */
+-			0x7e 0x101	/*  MCSPI2_CLK INPUTENABLE | MODE1 */
++			0x78 (PIN_INPUT | MUX_MODE1)		/*  mcspi2_somi */
++			0x7a (PIN_INPUT | MUX_MODE1)		/*  mcspi2_cs */
++			0x7c (PIN_INPUT | MUX_MODE1)		/*  mcspi2_simo */
++			0x7e (PIN_INPUT | MUX_MODE1)		/*  mcspi2_clk */
+ 		>;
+ 	};
+ 
+ 	mcspi4_pins: pinmux_mcspi4_pins {
+ 		pinctrl-single,pins = <
+-			0x164 0x101	/*  MCSPI2_CLK INPUTENABLE | MODE1 */
+-			0x168 0x101	/*  MCSPI2_SIMO INPUTENABLE | MODE1 */
+-			0x16a 0x101	/*  MCSPI2_SOMI INPUTENABLE | MODE1 */
+-			0x16c 0x101	/*  MCSPI2_CS INPUTENABLE | MODE1 */
++			0x164 (PIN_INPUT | MUX_MODE1)		/*  mcspi2_clk */
++			0x168 (PIN_INPUT | MUX_MODE1)		/*  mcspi2_simo */
++			0x16a (PIN_INPUT | MUX_MODE1)		/*  mcspi2_somi */
++			0x16c (PIN_INPUT | MUX_MODE1)		/*  mcspi2_cs */
+ 		>;
  	};
  };
 diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index f4f86d6..2b80653 100644
+index 2b80653..08558c9 100644
 --- a/arch/arm/boot/dts/omap5.dtsi
 +++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -8,6 +8,7 @@
-  */
+@@ -9,6 +9,7 @@
  
  #include <dt-bindings/gpio/gpio.h>
-+#include <dt-bindings/interrupt-controller/arm-gic.h>
+ #include <dt-bindings/interrupt-controller/arm-gic.h>
++#include <dt-bindings/pinctrl/omap.h>
  
  #include "skeleton.dtsi"
  
-@@ -38,11 +39,11 @@
- 
- 	timer {
- 		compatible = "arm,armv7-timer";
--		/* PPI secure/nonsecure IRQ, active low level-sensitive */
--		interrupts = <1 13 0x308>,
--			     <1 14 0x308>,
--			     <1 11 0x308>,
--			     <1 10 0x308>;
-+		/* PPI secure/nonsecure IRQ */
-+		interrupts = <GIC_PPI 13 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>,
-+			     <GIC_PPI 14 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>,
-+			     <GIC_PPI 11 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>,
-+			     <GIC_PPI 10 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>;
- 		clock-frequency = <6144000>;
- 	};
- 
-@@ -84,8 +85,8 @@
- 		reg = <0x44000000 0x2000>,
- 		      <0x44800000 0x3000>,
- 		      <0x45000000 0x4000>;
--		interrupts = <0 9 0x4>,
--			     <0 10 0x4>;
-+		interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
-+			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
- 
- 		counter32k: counter@4ae04000 {
- 			compatible = "ti,omap-counter32k";
-@@ -113,10 +114,10 @@
- 		sdma: dma-controller@4a056000 {
- 			compatible = "ti,omap4430-sdma";
- 			reg = <0x4a056000 0x1000>;
--			interrupts = <0 12 0x4>,
--				     <0 13 0x4>,
--				     <0 14 0x4>,
--				     <0 15 0x4>;
-+			interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 15 IRQ_TYPE_LEVEL_HIGH>;
- 			#dma-cells = <1>;
- 			#dma-channels = <32>;
- 			#dma-requests = <127>;
-@@ -125,7 +126,7 @@
- 		gpio1: gpio@4ae10000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x4ae10000 0x200>;
--			interrupts = <0 29 0x4>;
-+			interrupts = <GIC_SPI 29 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio1";
- 			ti,gpio-always-on;
- 			gpio-controller;
-@@ -137,7 +138,7 @@
- 		gpio2: gpio@48055000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x48055000 0x200>;
--			interrupts = <0 30 0x4>;
-+			interrupts = <GIC_SPI 30 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio2";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -148,7 +149,7 @@
- 		gpio3: gpio@48057000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x48057000 0x200>;
--			interrupts = <0 31 0x4>;
-+			interrupts = <GIC_SPI 31 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio3";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -159,7 +160,7 @@
- 		gpio4: gpio@48059000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x48059000 0x200>;
--			interrupts = <0 32 0x4>;
-+			interrupts = <GIC_SPI 32 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio4";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -170,7 +171,7 @@
- 		gpio5: gpio@4805b000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x4805b000 0x200>;
--			interrupts = <0 33 0x4>;
-+			interrupts = <GIC_SPI 33 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio5";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -181,7 +182,7 @@
- 		gpio6: gpio@4805d000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x4805d000 0x200>;
--			interrupts = <0 34 0x4>;
-+			interrupts = <GIC_SPI 34 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio6";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -192,7 +193,7 @@
- 		gpio7: gpio@48051000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x48051000 0x200>;
--			interrupts = <0 35 0x4>;
-+			interrupts = <GIC_SPI 35 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio7";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -203,7 +204,7 @@
- 		gpio8: gpio@48053000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x48053000 0x200>;
--			interrupts = <0 121 0x4>;
-+			interrupts = <GIC_SPI 121 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "gpio8";
- 			gpio-controller;
- 			#gpio-cells = <2>;
-@@ -216,7 +217,7 @@
- 			reg = <0x50000000 0x1000>;
- 			#address-cells = <2>;
- 			#size-cells = <1>;
--			interrupts = <0 20 0x4>;
-+			interrupts = <GIC_SPI 20 IRQ_TYPE_LEVEL_HIGH>;
- 			gpmc,num-cs = <8>;
- 			gpmc,num-waitpins = <4>;
- 			ti,hwmods = "gpmc";
-@@ -225,7 +226,7 @@
- 		i2c1: i2c@48070000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x48070000 0x100>;
--			interrupts = <0 56 0x4>;
-+			interrupts = <GIC_SPI 56 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c1";
-@@ -234,7 +235,7 @@
- 		i2c2: i2c@48072000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x48072000 0x100>;
--			interrupts = <0 57 0x4>;
-+			interrupts = <GIC_SPI 57 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c2";
-@@ -243,7 +244,7 @@
- 		i2c3: i2c@48060000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x48060000 0x100>;
--			interrupts = <0 61 0x4>;
-+			interrupts = <GIC_SPI 61 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c3";
-@@ -252,7 +253,7 @@
- 		i2c4: i2c@4807a000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x4807a000 0x100>;
--			interrupts = <0 62 0x4>;
-+			interrupts = <GIC_SPI 62 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c4";
-@@ -261,7 +262,7 @@
- 		i2c5: i2c@4807c000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x4807c000 0x100>;
--			interrupts = <0 60 0x4>;
-+			interrupts = <GIC_SPI 60 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c5";
-@@ -270,7 +271,7 @@
- 		mcspi1: spi@48098000 {
- 			compatible = "ti,omap4-mcspi";
- 			reg = <0x48098000 0x200>;
--			interrupts = <0 65 0x4>;
-+			interrupts = <GIC_SPI 65 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi1";
-@@ -290,7 +291,7 @@
- 		mcspi2: spi@4809a000 {
- 			compatible = "ti,omap4-mcspi";
- 			reg = <0x4809a000 0x200>;
--			interrupts = <0 66 0x4>;
-+			interrupts = <GIC_SPI 66 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi2";
-@@ -305,7 +306,7 @@
- 		mcspi3: spi@480b8000 {
- 			compatible = "ti,omap4-mcspi";
- 			reg = <0x480b8000 0x200>;
--			interrupts = <0 91 0x4>;
-+			interrupts = <GIC_SPI 91 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi3";
-@@ -317,7 +318,7 @@
- 		mcspi4: spi@480ba000 {
- 			compatible = "ti,omap4-mcspi";
- 			reg = <0x480ba000 0x200>;
--			interrupts = <0 48 0x4>;
-+			interrupts = <GIC_SPI 48 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi4";
-@@ -329,7 +330,7 @@
- 		uart1: serial@4806a000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x4806a000 0x100>;
--			interrupts = <0 72 0x4>;
-+			interrupts = <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart1";
- 			clock-frequency = <48000000>;
- 		};
-@@ -337,7 +338,7 @@
- 		uart2: serial@4806c000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x4806c000 0x100>;
--			interrupts = <0 73 0x4>;
-+			interrupts = <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart2";
- 			clock-frequency = <48000000>;
- 		};
-@@ -345,7 +346,7 @@
- 		uart3: serial@48020000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x48020000 0x100>;
--			interrupts = <0 74 0x4>;
-+			interrupts = <GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart3";
- 			clock-frequency = <48000000>;
- 		};
-@@ -353,7 +354,7 @@
- 		uart4: serial@4806e000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x4806e000 0x100>;
--			interrupts = <0 70 0x4>;
-+			interrupts = <GIC_SPI 70 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart4";
- 			clock-frequency = <48000000>;
- 		};
-@@ -361,7 +362,7 @@
- 		uart5: serial@48066000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x48066000 0x100>;
--			interrupts = <0 105 0x4>;
-+			interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart5";
- 			clock-frequency = <48000000>;
- 		};
-@@ -369,7 +370,7 @@
- 		uart6: serial@48068000 {
- 			compatible = "ti,omap4-uart";
- 			reg = <0x48068000 0x100>;
--			interrupts = <0 106 0x4>;
-+			interrupts = <GIC_SPI 106 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "uart6";
- 			clock-frequency = <48000000>;
- 		};
-@@ -377,7 +378,7 @@
- 		mmc1: mmc@4809c000 {
- 			compatible = "ti,omap4-hsmmc";
- 			reg = <0x4809c000 0x400>;
--			interrupts = <0 83 0x4>;
-+			interrupts = <GIC_SPI 83 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc1";
- 			ti,dual-volt;
- 			ti,needs-special-reset;
-@@ -388,7 +389,7 @@
- 		mmc2: mmc@480b4000 {
- 			compatible = "ti,omap4-hsmmc";
- 			reg = <0x480b4000 0x400>;
--			interrupts = <0 86 0x4>;
-+			interrupts = <GIC_SPI 86 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc2";
- 			ti,needs-special-reset;
- 			dmas = <&sdma 47>, <&sdma 48>;
-@@ -398,7 +399,7 @@
- 		mmc3: mmc@480ad000 {
- 			compatible = "ti,omap4-hsmmc";
- 			reg = <0x480ad000 0x400>;
--			interrupts = <0 94 0x4>;
-+			interrupts = <GIC_SPI 94 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc3";
- 			ti,needs-special-reset;
- 			dmas = <&sdma 77>, <&sdma 78>;
-@@ -408,7 +409,7 @@
- 		mmc4: mmc@480d1000 {
- 			compatible = "ti,omap4-hsmmc";
- 			reg = <0x480d1000 0x400>;
--			interrupts = <0 96 0x4>;
-+			interrupts = <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc4";
- 			ti,needs-special-reset;
- 			dmas = <&sdma 57>, <&sdma 58>;
-@@ -418,7 +419,7 @@
- 		mmc5: mmc@480d5000 {
- 			compatible = "ti,omap4-hsmmc";
- 			reg = <0x480d5000 0x400>;
--			interrupts = <0 59 0x4>;
-+			interrupts = <GIC_SPI 59 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc5";
- 			ti,needs-special-reset;
- 			dmas = <&sdma 59>, <&sdma 60>;
-@@ -436,7 +437,7 @@
- 			reg = <0x40132000 0x7f>, /* MPU private access */
- 			      <0x49032000 0x7f>; /* L3 Interconnect */
- 			reg-names = "mpu", "dma";
--			interrupts = <0 112 0x4>;
-+			interrupts = <GIC_SPI 112 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mcpdm";
- 			dmas = <&sdma 65>,
- 			       <&sdma 66>;
-@@ -448,7 +449,7 @@
- 			reg = <0x4012e000 0x7f>, /* MPU private access */
- 			      <0x4902e000 0x7f>; /* L3 Interconnect */
- 			reg-names = "mpu", "dma";
--			interrupts = <0 114 0x4>;
-+			interrupts = <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "dmic";
- 			dmas = <&sdma 67>;
- 			dma-names = "up_link";
-@@ -459,7 +460,7 @@
- 			reg = <0x40122000 0xff>, /* MPU private access */
- 			      <0x49022000 0xff>; /* L3 Interconnect */
- 			reg-names = "mpu", "dma";
--			interrupts = <0 17 0x4>;
-+			interrupts = <GIC_SPI 17 IRQ_TYPE_LEVEL_HIGH>;
- 			interrupt-names = "common";
- 			ti,buffer-size = <128>;
- 			ti,hwmods = "mcbsp1";
-@@ -473,7 +474,7 @@
- 			reg = <0x40124000 0xff>, /* MPU private access */
- 			      <0x49024000 0xff>; /* L3 Interconnect */
- 			reg-names = "mpu", "dma";
--			interrupts = <0 22 0x4>;
-+			interrupts = <GIC_SPI 22 IRQ_TYPE_LEVEL_HIGH>;
- 			interrupt-names = "common";
- 			ti,buffer-size = <128>;
- 			ti,hwmods = "mcbsp2";
-@@ -487,7 +488,7 @@
- 			reg = <0x40126000 0xff>, /* MPU private access */
- 			      <0x49026000 0xff>; /* L3 Interconnect */
- 			reg-names = "mpu", "dma";
--			interrupts = <0 23 0x4>;
-+			interrupts = <GIC_SPI 23 IRQ_TYPE_LEVEL_HIGH>;
- 			interrupt-names = "common";
- 			ti,buffer-size = <128>;
- 			ti,hwmods = "mcbsp3";
-@@ -499,7 +500,7 @@
- 		timer1: timer@4ae18000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x4ae18000 0x80>;
--			interrupts = <0 37 0x4>;
-+			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer1";
- 			ti,timer-alwon;
- 		};
-@@ -507,21 +508,21 @@
- 		timer2: timer@48032000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x48032000 0x80>;
--			interrupts = <0 38 0x4>;
-+			interrupts = <GIC_SPI 38 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer2";
- 		};
- 
- 		timer3: timer@48034000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x48034000 0x80>;
--			interrupts = <0 39 0x4>;
-+			interrupts = <GIC_SPI 39 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer3";
- 		};
- 
- 		timer4: timer@48036000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x48036000 0x80>;
--			interrupts = <0 40 0x4>;
-+			interrupts = <GIC_SPI 40 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer4";
- 		};
- 
-@@ -529,7 +530,7 @@
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x40138000 0x80>,
- 			      <0x49038000 0x80>;
--			interrupts = <0 41 0x4>;
-+			interrupts = <GIC_SPI 41 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer5";
- 			ti,timer-dsp;
- 		};
-@@ -538,7 +539,7 @@
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x4013a000 0x80>,
- 			      <0x4903a000 0x80>;
--			interrupts = <0 42 0x4>;
-+			interrupts = <GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer6";
- 			ti,timer-dsp;
- 			ti,timer-pwm;
-@@ -548,7 +549,7 @@
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x4013c000 0x80>,
- 			      <0x4903c000 0x80>;
--			interrupts = <0 43 0x4>;
-+			interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer7";
- 			ti,timer-dsp;
- 		};
-@@ -557,7 +558,7 @@
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x4013e000 0x80>,
- 			      <0x4903e000 0x80>;
--			interrupts = <0 44 0x4>;
-+			interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer8";
- 			ti,timer-dsp;
- 			ti,timer-pwm;
-@@ -566,21 +567,21 @@
- 		timer9: timer@4803e000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x4803e000 0x80>;
--			interrupts = <0 45 0x4>;
-+			interrupts = <GIC_SPI 45 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer9";
- 		};
- 
- 		timer10: timer@48086000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x48086000 0x80>;
--			interrupts = <0 46 0x4>;
-+			interrupts = <GIC_SPI 46 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer10";
- 		};
- 
- 		timer11: timer@48088000 {
- 			compatible = "ti,omap5430-timer";
- 			reg = <0x48088000 0x80>;
--			interrupts = <0 47 0x4>;
-+			interrupts = <GIC_SPI 47 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer11";
- 			ti,timer-pwm;
- 		};
-@@ -588,7 +589,7 @@
- 		wdt2: wdt@4ae14000 {
- 			compatible = "ti,omap5-wdt", "ti,omap3-wdt";
- 			reg = <0x4ae14000 0x80>;
--			interrupts = <0 80 0x4>;
-+			interrupts = <GIC_SPI 80 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "wd_timer2";
- 		};
- 
-@@ -597,7 +598,7 @@
- 			ti,hwmods	= "emif1";
- 			phy-type	= <2>; /* DDR PHY type: Intelli PHY */
- 			reg = <0x4c000000 0x400>;
--			interrupts = <0 110 0x4>;
-+			interrupts = <GIC_SPI 110 IRQ_TYPE_LEVEL_HIGH>;
- 			hw-caps-read-idle-ctrl;
- 			hw-caps-ll-interface;
- 			hw-caps-temp-alert;
-@@ -608,7 +609,7 @@
- 			ti,hwmods	= "emif2";
- 			phy-type	= <2>; /* DDR PHY type: Intelli PHY */
- 			reg = <0x4d000000 0x400>;
--			interrupts = <0 111 0x4>;
-+			interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
- 			hw-caps-read-idle-ctrl;
- 			hw-caps-ll-interface;
- 			hw-caps-temp-alert;
-@@ -626,7 +627,7 @@
- 			compatible = "ti,dwc3";
- 			ti,hwmods = "usb_otg_ss";
- 			reg = <0x4a020000 0x1000>;
--			interrupts = <0 93 4>;
-+			interrupts = <GIC_SPI 93 IRQ_TYPE_LEVEL_HIGH>;
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			utmi-mode = <2>;
-@@ -634,7 +635,7 @@
- 			dwc3@4a030000 {
- 				compatible = "synopsys,dwc3";
- 				reg = <0x4a030000 0x1000>;
--				interrupts = <0 92 4>;
-+				interrupts = <GIC_SPI 92 IRQ_TYPE_LEVEL_HIGH>;
- 				usb-phy = <&usb2_phy>, <&usb3_phy>;
- 				tx-fifo-resize;
- 			};
 -- 
 1.7.5.4
 
