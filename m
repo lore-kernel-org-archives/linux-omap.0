@@ -1,50 +1,72 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH v1] ARM: dts: omap4-panda: Update the twl6040 gpio to
- macro definition
-Date: Fri, 31 May 2013 18:12:56 +0200
-Message-ID: <51A8CC08.6090305@epfl.ch>
-References: <1370015122-26792-1-git-send-email-dmurphy@ti.com>
-Reply-To: florian.vaussard@epfl.ch
+From: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 1/1] i2c: omap: correct usage of the interrupt enable register
+Date: Fri, 31 May 2013 10:24:07 -0700
+Message-ID: <87txlj2hc8.fsf@linaro.org>
+References: <1369929379-19165-1-git-send-email-oleksandr.dmytryshyn@ti.com>
+	<1369929379-19165-2-git-send-email-oleksandr.dmytryshyn@ti.com>
+	<87vc604dr9.fsf@linaro.org> <51A85CFC.2000904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.epfl.ch ([128.178.224.219]:50668 "HELO smtp4.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753627Ab3EaQNB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 May 2013 12:13:01 -0400
-In-Reply-To: <1370015122-26792-1-git-send-email-dmurphy@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <51A85CFC.2000904-l0cyMroinI0@public.gmane.org> (Oleksandr Dmytryshyn's message of
+	"Fri, 31 May 2013 11:19:08 +0300")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Dan Murphy <dmurphy@ti.com>
-Cc: b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Hello Dan,
+Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org> writes:
 
-On 05/31/2013 05:45 PM, Dan Murphy wrote:
-> Update the dt property ti,audpwron-gpio to use the
-> gpio macro definition for GPIO_ACTIVE_HIGH.
->
-> Signed-off-by: Dan Murphy <dmurphy@ti.com>
-> ---
->   arch/arm/boot/dts/omap4-panda-common.dtsi |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-> index 800fa4e..00cbaa5 100644
-> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-> @@ -190,7 +190,7 @@
->   		/* IRQ# = 119 */
->   		interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_2N cascaded to gic */
->   		interrupt-parent = <&gic>;
-> -		ti,audpwron-gpio = <&gpio4 31 0>;  /* gpio line 127 */
-> +		ti,audpwron-gpio = <&gpio4 31 GPIO_ACTIVE_HIGH>;  /* gpio line 127 */
->
->   		vio-supply = <&v1v8>;
->   		v2v1-supply = <&v2v1>;
->
+> On 05/30/2013 07:46 PM, Kevin Hilman wrote:
+>> Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org> writes:
+>>
+>>> If the i2c controller during suspend will generate an interrupt, it
+>>> can lead to unpredictable behaviour in the kernel.
+>>>
+>>> Based on the logic of the kernel code interrupts from i2c should be
+>>> prohibited during suspend. Kernel writes 0 to the I2C_IE register in
+>>> the omap_i2c_runtime_suspend() function. In the other side kernel
+>>> writes saved interrupt flags to the I2C_IE register in
+>>> omap_i2c_runtime_resume() function. I.e. interrupts should be disabled
+>>> during suspend.
+>>>
+>>> This works for chips with version1 registers scheme. Interrupts are
+>>> disabled during suspend. For chips with version2 scheme registers
+>>> writting 0 to the I2C_IE register does nothing (because now the
+>>> I2C_IRQENABLE_SET register is located at this address). This register
+>>> is used to enable interrupts. For disabling interrupts
+>>> I2C_IRQENABLE_CLR register should be used.
+>>>
+>>> Because the registers I2C_IRQENABLE_SET and I2C_IE have the same
+>>> addresses, the interrupt enabling procedure is unchanged.
+>>>
+>>> Signed-off-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
+>> Much better, but still doesn't explain how/why this has been working up
+>> until now.  Have we just been lucky?
+> Yes, this has been working up until now because we've just been lucky.
 
-I missed it during the conversion, thank you.
+What I'm trying to say is you need to describe that in the changelog,
+with more details.  e.g. we've been lucky not to have any interrupts
+fire during the suspend path, otherwise we would have....
 
-Reviewed-by: Florian Vaussard <florian.vaussard@epfl.ch>
+Kevin
+
+
+>>
+>>> ---
+>>>   drivers/i2c/busses/i2c-omap.c | 15 +++++++++++----
+>>>   1 file changed, 11 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+>>> index e02f9e3..2419899 100644
+>>> --- a/drivers/i2c/busses/i2c-omap.c
+>>> +++ b/drivers/i2c/busses/i2c-omap.c
+>>> @@ -180,6 +180,8 @@ enum {
+>>>   #define I2C_OMAP_ERRATA_I207		(1 << 0)
+>>>   #define I2C_OMAP_ERRATA_I462		(1 << 1)
+>>>   +#define OMAP_I2C_INTERRUPTS_MASK	0x6FFF
+>> To be more clear, this should probably have v2 in the name.
+> I'll rename this mask in the patch-set v3
+>>
+>> Kevin
+>>
