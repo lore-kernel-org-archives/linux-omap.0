@@ -1,45 +1,49 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: [PATCH] mfd: twl4030: allow IRQ wake enable to succeed on subchip IRQs
-Date: Fri, 31 May 2013 14:44:54 -0700
-Message-ID: <1370036694-26210-1-git-send-email-khilman@linaro.org>
+From: "Anna, Suman" <s-anna@ti.com>
+Subject: RE: [PATCH 1/2] ARM: dts: OMAP5: add PWM capability to timer nodes
+ missing it
+Date: Fri, 31 May 2013 22:17:13 +0000
+Message-ID: <37C860A02101E749A747FA2D3C1E3C504BE487@DLEE11.ent.ti.com>
+References: <1366240995-53538-1-git-send-email-s-anna@ti.com>
+ <516F3696.9080008@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:49736 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752017Ab3EaVo6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 May 2013 17:44:58 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rq2so2865636pbb.33
-        for <linux-omap@vger.kernel.org>; Fri, 31 May 2013 14:44:57 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58049 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753129Ab3EaWRl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 31 May 2013 18:17:41 -0400
+In-Reply-To: <516F3696.9080008@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, open list <linux-kernel@vger.kernel.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>
 
-The genirq IRQ wake method will default to failure if the irq_chip
-does not provide a set_wake method.  However, for TWL4030 sub-chip
-IRQs, we want the wake enable to succeed even though we don't provide
-a set_wake method.  This allows sub-chip IRQs to still be flagged as
-wakeup capable, and allow them to wakeup from suspend (or abort
-suspend if they fire during suspend.)
-
-To fix, use the IRQCHIP_SKIP_SET_WAKE flag in the irq_chip.
-
-Signed-off-by: Kevin Hilman <khilman@linaro.org>
----
- drivers/mfd/twl4030-irq.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
-index a5f9888..3fa7df2 100644
---- a/drivers/mfd/twl4030-irq.c
-+++ b/drivers/mfd/twl4030-irq.c
-@@ -573,6 +573,7 @@ static struct irq_chip twl4030_sih_irq_chip = {
- 	.irq_set_type	= twl4030_sih_set_type,
- 	.irq_bus_lock	= twl4030_sih_bus_lock,
- 	.irq_bus_sync_unlock = twl4030_sih_bus_sync_unlock,
-+	.flags		= IRQCHIP_SKIP_SET_WAKE,
- };
- 
- /*----------------------------------------------------------------------*/
--- 
-1.8.2
-
+QmVub2l0LCBUb255LA0KIA0KPiBPbiAwNC8xNy8yMDEzIDA2OjIzIFBNLCBTdW1hbiBBbm5hIHdy
+b3RlOg0KPiA+IE9NQVA1IGhhcyA2IHRpbWVycyAoR1BUaW1lcnMgNSwgNiwgOCB0byAxMSkgdGhh
+dCBhcmUgY2FwYWJsZSBvZiBQV00uDQo+ID4gVGhlIFBXTSBjYXBhYmlsaXR5IHByb3BlcnR5IGlz
+IG1pc3NpbmcgZnJvbSB0aGUgbm9kZSBkZWZpbml0aW9ucyBvZg0KPiA+IGNvdXBsZSBvZiB0aW1l
+cnMsIGFuZCB0aGlzIGhhcyBiZWVuIGZpeGVkLg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTogU3Vt
+YW4gQW5uYSA8cy1hbm5hQHRpLmNvbT4NCj4gPiAtLS0NCj4gPiAgYXJjaC9hcm0vYm9vdC9kdHMv
+b21hcDUuZHRzaSB8IDMgKysrDQo+ID4gIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKykN
+Cj4gPg0KPiA+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNpIGIvYXJj
+aC9hcm0vYm9vdC9kdHMvb21hcDUuZHRzaQ0KPiA+IGluZGV4IDc5MGJiMmEuLjBkMTU1ZjUgMTAw
+NjQ0DQo+ID4gLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRzaQ0KPiA+ICsrKyBiL2Fy
+Y2gvYXJtL2Jvb3QvZHRzL29tYXA1LmR0c2kNCj4gPiBAQCAtNDIyLDYgKzQyMiw3IEBADQo+ID4g
+IAkJCWludGVycnVwdHMgPSA8MCA0MSAweDQ+Ow0KPiA+ICAJCQl0aSxod21vZHMgPSAidGltZXI1
+IjsNCj4gPiAgCQkJdGksdGltZXItZHNwOw0KPiA+ICsJCQl0aSx0aW1lci1wd207DQo+ID4gIAkJ
+fTsNCj4gPg0KPiA+ICAJCXRpbWVyNjogdGltZXJANDAxM2EwMDAgew0KPiA+IEBAIC00NTgsNiAr
+NDU5LDcgQEANCj4gPiAgCQkJcmVnID0gPDB4NDgwM2UwMDAgMHg4MD47DQo+ID4gIAkJCWludGVy
+cnVwdHMgPSA8MCA0NSAweDQ+Ow0KPiA+ICAJCQl0aSxod21vZHMgPSAidGltZXI5IjsNCj4gPiAr
+CQkJdGksdGltZXItcHdtOw0KPiA+ICAJCX07DQo+ID4NCj4gPiAgCQl0aW1lcjEwOiB0aW1lckA0
+ODA4NjAwMCB7DQo+ID4gQEAgLTQ2NSw2ICs0NjcsNyBAQA0KPiA+ICAJCQlyZWcgPSA8MHg0ODA4
+NjAwMCAweDgwPjsNCj4gPiAgCQkJaW50ZXJydXB0cyA9IDwwIDQ2IDB4ND47DQo+ID4gIAkJCXRp
+LGh3bW9kcyA9ICJ0aW1lcjEwIjsNCj4gPiArCQkJdGksdGltZXItcHdtOw0KPiA+ICAJCX07DQo+
+ID4NCj4gPiAgCQl0aW1lcjExOiB0aW1lckA0ODA4ODAwMCB7DQo+IA0KPiBNYWtlIHN1cmUgeW91
+IGNvcHkgdGhlIGxpbnV4LWFybSBhbmQgZGV2aWNlLXRyZWUgbWFpbGluZyBsaXN0cy4NCj4gDQo+
+IEFja2VkLWJ5OiBKb24gSHVudGVyIDxqb24taHVudGVyQHRpLmNvbT4NCj4gDQoNCkNhbiB5b3Ug
+aW5jbHVkZSB0aGlzIHBhdGNoIGluIHlvdXIgbmV4dCBmaXhlcyBwdWxsIHJlcXVlc3QgKGlmIHlv
+dSBoYXZlbid0DQphbHJlYWR5IGRvbmUgc28pPyBUaGUgb3RoZXIgcGF0Y2ggaW4gdGhlIHNlcmll
+cyBpcyBhIGZlYXR1cmUgY2hhbmdlLCBidXQNCnRoaXMgaXMgYSBmaXgsIGFuZCBjYW4gZ28gaW50
+byAzLjEwIGl0c2VsZi4NCg0KUmVnYXJkcw0KU3VtYW4NCg==
