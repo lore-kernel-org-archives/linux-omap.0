@@ -1,65 +1,54 @@
-From: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v4 0/1] i2c: omap: correct usage of the interrupt enable register
-Date: Fri, 31 May 2013 12:23:52 -0700
-Message-ID: <87vc5zymuv.fsf@linaro.org>
-References: <1370007211-9736-1-git-send-email-oleksandr.dmytryshyn@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH 05/32] OMAPDSS: fix dss_get_ctx_loss_count for DT
+Date: Fri, 31 May 2013 12:31:43 -0700
+Message-ID: <871u8nymhs.fsf@linaro.org>
+References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com>
+	<1369906493-27538-6-git-send-email-tomi.valkeinen@ti.com>
+	<874ndk5sse.fsf@linaro.org> <51A8BF17.4050209@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1370007211-9736-1-git-send-email-oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
-	(Oleksandr Dmytryshyn's message of "Fri, 31 May 2013 16:33:30 +0300")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:62487 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756928Ab3EaTbq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 May 2013 15:31:46 -0400
+Received: by mail-pb0-f43.google.com with SMTP id ma3so2724977pbc.2
+        for <linux-omap@vger.kernel.org>; Fri, 31 May 2013 12:31:46 -0700 (PDT)
+In-Reply-To: <51A8BF17.4050209@ti.com> (Grygorii Strashko's message of "Fri,
+	31 May 2013 18:17:43 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org> writes:
+Hi Grygorii,
 
-> I've just removed unnecessary Change-Id line.
->
-> If the i2c controller during suspend will generate an interrupt, it
-> can lead to unpredictable behaviour in the kernel.
->
-> Based on the logic of the kernel code interrupts from i2c should be
-> prohibited during suspend. Kernel writes 0 to the I2C_IE register in
-> the omap_i2c_runtime_suspend() function. In the other side kernel
-> writes saved interrupt flags to the I2C_IE register in
-> omap_i2c_runtime_resume() function. I.e. interrupts should be disabled
-> during suspend.
->
-> This works for chips with version1 registers scheme. Interrupts are
-> disabled during suspend. For chips with version2 scheme registers
-> writting 0 to the I2C_IE register does nothing (because now the
-> I2C_IRQENABLE_SET register is located at this address). This register
-> is used to enable interrupts. For disabling interrupts
-> I2C_IRQENABLE_CLR register should be used.
->
-> Because the registers I2C_IRQENABLE_SET and I2C_IE have the same
-> addresses, the interrupt enabling procedure is unchanged.
->
-> I've checked that interrupts in the i2c controller are still enabled
-> after writting 0 to the I2C_IE register. But with my patch interrupts
-> are disabled in the omap_i2c_runtime_suspend() function. 
->
-> This has been working up until now because we've just been lucky. 
+Grygorii Strashko <grygorii.strashko@ti.com> writes:
 
-This belongs in the changelog of the patch, not the cover letter and
-needs more detail.
+[...]
 
-Also, you don't need a cover letter on a 1-patch series.
+> I've a question:
+> Why don't add API in "Kernel/Base PM" framework for context lost detection?
+> Like pm_was_ctx_lost().
+
+I'm not aware of any proposals to do this in a generic way.  Feel free
+to propose one if you're so moved.
+
+One complexity is that such a call is not needed on platforms that use
+generic power domains (not OMAP). With gen_pd, the runtime PM callbacks
+do not get called unless the power domains actually lose power.  So for
+gen_pd, you assume context has been lost when your runtime PM callbacks
+are called.
+
+This is a bit different than how we've done it on OMAP, and there's been
+some work in exploring how to adapt OMAP to gen_pd, but there's not
+anyone actively working on it at the moment.
+
+That being said, I'm still leaning towards simply removing the context
+loss logic from all the OMAP drivers.  This feature adds a relatively
+minor optimization, and a more configurable optimization could be done
+using runtime PM autosuspend timeouts (configurable from userspace.)
+Combined with the fact that adoption of gen_pd means we don't need it,
+I'm included to drop it all together.
 
 Kevin
-
-> Next patch fixes it.
->
-> Patch is based on:
-> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-> tag: v3.10-rc2
->
-> Verified on OMAP4430.
->
-> Oleksandr Dmytryshyn (1):
->   i2c: omap: correct usage of the interrupt enable register
->
->  drivers/i2c/busses/i2c-omap.c | 15 +++++++++++----
->  1 file changed, 11 insertions(+), 4 deletions(-)
