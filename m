@@ -1,46 +1,129 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH v2 1/1] ARM: dts: OMAP4/AM35xx: Fix missing dtb in the dtbs target
-Date: Fri, 31 May 2013 16:05:51 +0200
-Message-ID: <1370009151-32362-2-git-send-email-florian.vaussard@epfl.ch>
-References: <1370009151-32362-1-git-send-email-florian.vaussard@epfl.ch>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH v7] ARM: dts: omap4-panda: Update the LED support for
+ the panda DTS
+Date: Fri, 31 May 2013 16:06:42 +0200
+Message-ID: <51A8AE72.5010601@ti.com>
+References: <1369826427-31963-1-git-send-email-dmurphy@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:54480 "HELO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751374Ab3EaOGI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 May 2013 10:06:08 -0400
-In-Reply-To: <1370009151-32362-1-git-send-email-florian.vaussard@epfl.ch>
+Received: from comal.ext.ti.com ([198.47.26.152]:41756 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751236Ab3EaOHV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 31 May 2013 10:07:21 -0400
+In-Reply-To: <1369826427-31963-1-git-send-email-dmurphy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Florian Vaussard <florian.vaussard@epfl.ch>
+To: Dan Murphy <dmurphy@ti.com>
+Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-When making the dtbs target on OMAP/AM35xx, some trees are not
-built.
+Hi Dan,
 
-Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
----
- arch/arm/boot/dts/Makefile |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+On 05/29/2013 01:20 PM, Dan Murphy wrote:
+> The GPIO for LED D1 on the omap4-panda a1-a3 rev and the omap4-panda-es
+> are different.
+> 
+> A1-A3 = gpio_wk7clean
+> ES = gpio_110
+> 
+> There is no change to LED D2
+> 
+> Abstract away the pinmux and the LED definitions for the two boards into
+> the respective DTS files.
+> 
+> Signed-off-by: Dan Murphy <dmurphy@ti.com>
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index b9f7121..8eadd4e 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -149,10 +149,13 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
- 	omap4-panda-es.dtb \
- 	omap4-var-som.dtb \
- 	omap4-sdp.dtb \
-+	omap4-sdp-es23plus.dtb \
- 	omap5-evm.dtb \
- 	am335x-evm.dtb \
- 	am335x-evmsk.dtb \
--	am335x-bone.dtb
-+	am335x-bone.dtb \
-+	am3517-evm.dtb \
-+	am3517_mt_ventoux.dtb
- dtb-$(CONFIG_ARCH_ORION5X) += orion5x-lacie-ethernet-disk-mini-v2.dtb
- dtb-$(CONFIG_ARCH_PRIMA2) += prima2-evb.dtb
- dtb-$(CONFIG_ARCH_U8500) += snowball.dtb \
--- 
-1.7.5.4
+That patch was good... until Florian introduces some new constant to
+improve the readability of the DTS [1].
+
+Could you rebase on the lastest for_3.11/dts and use the macros for the
+GPIO and pinctrl nodes?
+
+Thanks,
+Benoit
+
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg89684.html
+
+> ---
+> v7 - Update headline to add spaces - https://patchwork.kernel.org/patch/2583661/
+> v6 - Review comments updated - https://patchwork.kernel.org/patch/2582771/
+> v5 - Provide pincrtl phandle to the gpio-led driver - https://patchwork.kernel.org/patch/2573981/
+> 
+>  arch/arm/boot/dts/omap4-panda-common.dtsi |   16 +++++++++++++++-
+>  arch/arm/boot/dts/omap4-panda-es.dts      |   28 ++++++++++++++++++++++++++++
+>  2 files changed, 43 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+> index 03bd60d..5fd59b3 100644
+> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
+> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+> @@ -16,8 +16,13 @@
+>  		reg = <0x80000000 0x40000000>; /* 1 GB */
+>  	};
+>  
+> -	leds {
+> +	leds: leds {
+>  		compatible = "gpio-leds";
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <
+> +			&led_wkgpio_pins
+> +		>;
+> +
+>  		heartbeat {
+>  			label = "pandaboard::status1";
+>  			gpios = <&gpio1 7 0>;
+> @@ -137,6 +142,15 @@
+>  	};
+>  };
+>  
+> +&omap4_pmx_wkup {
+> +	led_wkgpio_pins: pinmux_leds_wkpins {
+> +		pinctrl-single,pins = <
+> +			0x1a 0x3	/* gpio_wk7 OUTPUT | MODE 3 */
+> +			0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
+> +		>;
+> +	};
+> +};
+> +
+>  &i2c1 {
+>  	pinctrl-names = "default";
+>  	pinctrl-0 = <&i2c1_pins>;
+> diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
+> index f1d8c21..c968a3b 100644
+> --- a/arch/arm/boot/dts/omap4-panda-es.dts
+> +++ b/arch/arm/boot/dts/omap4-panda-es.dts
+> @@ -34,3 +34,31 @@
+>  		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
+>  		>;
+>  };
+> +
+> +&omap4_pmx_core {
+> +	led_gpio_pins: gpio_led_pmx {
+> +		pinctrl-single,pins = <
+> +			0xb6 0x3	/* gpio_110 OUTPUT | MODE 3 */
+> +		>;
+> +	};
+> +};
+> +
+> +&led_wkgpio_pins {
+> +	pinctrl-single,pins = <
+> +		0x1c 0x3	/* gpio_wk8 OUTPUT | MODE 3 */
+> +	>;
+> +};
+> +
+> +&leds {
+> +	pinctrl-0 = <
+> +		&led_gpio_pins
+> +		&led_wkgpio_pins
+> +	>;
+> +
+> +	heartbeat {
+> +		gpios = <&gpio4 14 0>;
+> +	};
+> +	mmc {
+> +		gpios = <&gpio1 8 0>;
+> +	};
+> +};
+> 
 
