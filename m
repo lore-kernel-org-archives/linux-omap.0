@@ -1,72 +1,90 @@
-From: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 1/1] i2c: omap: correct usage of the interrupt enable register
-Date: Fri, 31 May 2013 10:24:07 -0700
-Message-ID: <87txlj2hc8.fsf@linaro.org>
-References: <1369929379-19165-1-git-send-email-oleksandr.dmytryshyn@ti.com>
-	<1369929379-19165-2-git-send-email-oleksandr.dmytryshyn@ti.com>
-	<87vc604dr9.fsf@linaro.org> <51A85CFC.2000904@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH 11/11] i2c: omap: enhance pinctrl support
+Date: Fri, 31 May 2013 10:34:59 -0700
+Message-ID: <87k3mf2gu4.fsf@linaro.org>
+References: <1369995191-20855-1-git-send-email-gururaja.hebbar@ti.com>
+	<1369995191-20855-12-git-send-email-gururaja.hebbar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51A85CFC.2000904-l0cyMroinI0@public.gmane.org> (Oleksandr Dmytryshyn's message of
-	"Fri, 31 May 2013 11:19:08 +0300")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:44283 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753303Ab3EaRfD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 May 2013 13:35:03 -0400
+Received: by mail-pd0-f171.google.com with SMTP id z11so2565487pdj.16
+        for <linux-omap@vger.kernel.org>; Fri, 31 May 2013 10:35:02 -0700 (PDT)
+In-Reply-To: <1369995191-20855-12-git-send-email-gururaja.hebbar@ti.com>
+	(Hebbar Gururaja's message of "Fri, 31 May 2013 15:43:11 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hebbar Gururaja <gururaja.hebbar@ti.com>
+Cc: grant.likely@linaro.org, linus.walleij@linaro.org, rob.herring@calxeda.com, davinci-linux-open-source@linux.davincidsp.com, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, vaibhav.bedia@ti.com, sudhakar.raj@ti.com, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org
 
-Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org> writes:
+Hebbar Gururaja <gururaja.hebbar@ti.com> writes:
 
-> On 05/30/2013 07:46 PM, Kevin Hilman wrote:
->> Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org> writes:
->>
->>> If the i2c controller during suspend will generate an interrupt, it
->>> can lead to unpredictable behaviour in the kernel.
->>>
->>> Based on the logic of the kernel code interrupts from i2c should be
->>> prohibited during suspend. Kernel writes 0 to the I2C_IE register in
->>> the omap_i2c_runtime_suspend() function. In the other side kernel
->>> writes saved interrupt flags to the I2C_IE register in
->>> omap_i2c_runtime_resume() function. I.e. interrupts should be disabled
->>> during suspend.
->>>
->>> This works for chips with version1 registers scheme. Interrupts are
->>> disabled during suspend. For chips with version2 scheme registers
->>> writting 0 to the I2C_IE register does nothing (because now the
->>> I2C_IRQENABLE_SET register is located at this address). This register
->>> is used to enable interrupts. For disabling interrupts
->>> I2C_IRQENABLE_CLR register should be used.
->>>
->>> Because the registers I2C_IRQENABLE_SET and I2C_IE have the same
->>> addresses, the interrupt enabling procedure is unchanged.
->>>
->>> Signed-off-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
->> Much better, but still doesn't explain how/why this has been working up
->> until now.  Have we just been lucky?
-> Yes, this has been working up until now because we've just been lucky.
+> Amend the I2C omap pin controller to optionally take a pin control
+> handle and set the state of the pins to:
+>
+> - "default" on boot, resume and before performing an i2c transfer
+> - "idle" after initial default, after resume default, and after each
+> i2c xfer
+> - "sleep" on suspend()
+>
+> By optionally putting the pins into sleep state in the suspend callback
+> we can accomplish two things.
+> - One is to minimize current leakage from pins and thus save power,
+> - second, we can prevent the IP from driving pins output in an
+> uncontrolled manner, which may happen if the power domain drops the
+> domain regulator.
+>
+> Note:
+> A .suspend & .resume callback is added which simply puts the pins to sleep
+> state upon suspend & are moved to default & idle state upon resume.
+>
+> If any of the above pin states are missing in dt, a warning message
+> about the missing state is displayed.
+> If certain pin-states are not available, to remove this warning message
+> pass respective state name with null phandler.
+>
+> (Changes based on i2c-nomadik.c)
+>
+> Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Wolfram Sang <wsa@the-dreams.de>
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-i2c@vger.kernel.org
 
-What I'm trying to say is you need to describe that in the changelog,
-with more details.  e.g. we've been lucky not to have any interrupts
-fire during the suspend path, otherwise we would have....
+[...]
+
+> @@ -664,7 +673,13 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+>  
+>  out:
+>  	pm_runtime_mark_last_busy(dev->dev);
+> +
+>  	pm_runtime_put_autosuspend(dev->dev);
+> +	/* Optionally let pins go into idle state */
+> +	if (!IS_ERR(dev->pins_idle))
+> +		if (pinctrl_select_state(dev->pinctrl, dev->pins_idle))
+> +			dev_err(dev->dev, "could not set pins to idle state\n");
+
+This is wrong.  You're changing the muxing before the device actually
+goes idle.  Anything you want to happen when the device actually idles
+for real has to be in runtime PM callbacks.
+
+Looking below, I see it's already in the callbacks, so why is it here also?
+
+[...]
+
+> @@ -1300,6 +1348,10 @@ static int omap_i2c_runtime_suspend(struct device *dev)
+>  		omap_i2c_read_reg(_dev, OMAP_I2C_STAT_REG);
+>  	}
+>  
+> +	if (!IS_ERR(_dev->pins_idle))
+> +		if (pinctrl_select_state(_dev->pinctrl, _dev->pins_idle))
+> +			dev_err(dev, "could not set pins to idle state\n");
+> +
+>  	return 0;
+>  }
+>  
 
 Kevin
-
-
->>
->>> ---
->>>   drivers/i2c/busses/i2c-omap.c | 15 +++++++++++----
->>>   1 file changed, 11 insertions(+), 4 deletions(-)
->>>
->>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
->>> index e02f9e3..2419899 100644
->>> --- a/drivers/i2c/busses/i2c-omap.c
->>> +++ b/drivers/i2c/busses/i2c-omap.c
->>> @@ -180,6 +180,8 @@ enum {
->>>   #define I2C_OMAP_ERRATA_I207		(1 << 0)
->>>   #define I2C_OMAP_ERRATA_I462		(1 << 1)
->>>   +#define OMAP_I2C_INTERRUPTS_MASK	0x6FFF
->> To be more clear, this should probably have v2 in the name.
-> I'll rename this mask in the patch-set v3
->>
->> Kevin
->>
