@@ -1,48 +1,49 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 0/3] ARM: OMAP: add corrected DSS regulator supplies
-Date: Fri, 31 May 2013 10:37:51 +0300
-Message-ID: <1369985874-8571-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 3/3] ARM: OMAP: add vdds_sdi supply for omapdss_sdi.0
+Date: Fri, 31 May 2013 10:37:54 +0300
+Message-ID: <1369985874-8571-4-git-send-email-tomi.valkeinen@ti.com>
+References: <1369985874-8571-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49471 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49472 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752012Ab3EaHim (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753342Ab3EaHim (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 31 May 2013 03:38:42 -0400
+In-Reply-To: <1369985874-8571-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi Tony,
+SDI driver gets currently the vdds_sdi regulator via omapdss device.
+This is not correct, and we'll change the SDI driver to get the
+regulator directly via omapdss_sdi.0 device.
 
-Here are a few patches adding corrected DSS regulator supplies. The current
-ones in the board files are not really correct, although the dss driver works
-ok with them.
+This patch changes the rx51 board file to add vdds_dsi supply for
+omapdss_sdi.0 device.
 
-So these patches add new regulator supply entries. When these are merged, I'll
-change omapdss driver to use the new ones, instead of the old ones. After that,
-we can remove the old ones from the board files.
+Note that the vdds_sdi supply for omapdss device is still left there, as
+the current display driver uses it. When both the board files and the
+display driver has been changed, we can remove the unused supply.
 
-Note that these patches were also present in the big DSS series I sent
-yesterday. There's no reason for these patches to be there, so I'm sending them
-separately, and will drop these from my DSS series.
-
- Tomi
-
-Tomi Valkeinen (3):
-  ARM: OMAP: fix dsi regulator names
-  ARM: OMAP: add vdds_dsi supply for omapdss_dpi.0
-  ARM: OMAP: add vdds_sdi supply for omapdss_sdi.0
-
- arch/arm/mach-omap2/board-cm-t35.c           | 3 ++-
- arch/arm/mach-omap2/board-devkit8000.c       | 1 +
- arch/arm/mach-omap2/board-ldp.c              | 3 ++-
- arch/arm/mach-omap2/board-omap3pandora.c     | 1 +
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
  arch/arm/mach-omap2/board-rx51-peripherals.c | 1 +
- arch/arm/mach-omap2/twl-common.c             | 1 +
- 6 files changed, 8 insertions(+), 2 deletions(-)
+ 1 file changed, 1 insertion(+)
 
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 18ca61e..9c2dd10 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -553,6 +553,7 @@ static struct regulator_consumer_supply rx51_vio_supplies[] = {
+ 
+ static struct regulator_consumer_supply rx51_vaux1_consumers[] = {
+ 	REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
++	REGULATOR_SUPPLY("vdds_sdi", "omapdss_sdi.0"),
+ 	/* Si4713 supply */
+ 	REGULATOR_SUPPLY("vdd", "2-0063"),
+ 	/* lis3lv02d */
 -- 
 1.8.1.2
 
