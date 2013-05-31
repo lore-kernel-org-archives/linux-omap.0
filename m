@@ -1,40 +1,43 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: [PATCH v1] ARM: dts: omap4-panda: Update the twl6040 gpio to macro definition
-Date: Fri, 31 May 2013 10:45:22 -0500
-Message-ID: <1370015122-26792-1-git-send-email-dmurphy@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] gpio/omap: omap_gpio_init_context stub must be inline
+Date: Fri, 31 May 2013 17:59:46 +0200
+Message-ID: <2942784.trumtc2GjZ@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51050 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753051Ab3EaPpx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 May 2013 11:45:53 -0400
+Received: from moutng.kundenserver.de ([212.227.17.8]:51136 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752843Ab3EaQAK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 May 2013 12:00:10 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Dan Murphy <dmurphy@ti.com>
+To: Linus Walleij <linus.ml.walleij@gmail.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Jon Hunter <jon-hunter@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>
 
-Update the dt property ti,audpwron-gpio to use the
-gpio macro definition for GPIO_ACTIVE_HIGH.
+The bug fix 352a2d5bf "gpio/omap: ensure gpio context is initialised"
+has caused a new warning for omap1_defconfig:
 
-Signed-off-by: Dan Murphy <dmurphy@ti.com>
+drivers/gpio/gpio-omap.c:1465:13: warning: 'omap_gpio_init_context' defined but not used [-Wunused-function]
+ static void omap_gpio_init_context(struct gpio_bank *p) {}
+             ^
+
+The solution is to mark the stub function as 'static inline' so
+it gets left out of the build when unused.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/arm/boot/dts/omap4-panda-common.dtsi |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-index 800fa4e..00cbaa5 100644
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -190,7 +190,7 @@
- 		/* IRQ# = 119 */
- 		interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_2N cascaded to gic */
- 		interrupt-parent = <&gic>;
--		ti,audpwron-gpio = <&gpio4 31 0>;  /* gpio line 127 */
-+		ti,audpwron-gpio = <&gpio4 31 GPIO_ACTIVE_HIGH>;  /* gpio line 127 */
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index d3f7d2d..e5fba65 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1462,7 +1462,7 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
+ #else
+ #define omap_gpio_runtime_suspend NULL
+ #define omap_gpio_runtime_resume NULL
+-static void omap_gpio_init_context(struct gpio_bank *p) {}
++static inline void omap_gpio_init_context(struct gpio_bank *p) {}
+ #endif
  
- 		vio-supply = <&v1v8>;
- 		v2v1-supply = <&v2v1>;
--- 
-1.7.5.4
+ static const struct dev_pm_ops gpio_pm_ops = {
 
