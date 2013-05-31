@@ -1,155 +1,103 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: [PATCH 1/2] ARM: OMAP2+: gpmc: get number of useable GPMC chip-selects via DT
-Date: Fri, 31 May 2013 17:31:30 +0530
-Message-ID: <1370001691-29320-1-git-send-email-pekon@ti.com>
+From: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 1/1] i2c: omap: correct usage of the interrupt enable
+ register
+Date: Fri, 31 May 2013 07:06:48 -0500
+Message-ID: <51A89258.7050308@ti.com>
+References: <1369988788-23987-1-git-send-email-oleksandr.dmytryshyn@ti.com> <1369988788-23987-2-git-send-email-oleksandr.dmytryshyn@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35570 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756254Ab3EaMBr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 May 2013 08:01:47 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1369988788-23987-2-git-send-email-oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
-Cc: Jon Hunter <jgchunter@gmail.com>, "Gupta, Pekon" <pekon@ti.com>
 
-From: "Gupta, Pekon" <pekon@ti.com>
+On 05/31/2013 03:26 AM, Oleksandr Dmytryshyn wrote:
+> If the i2c controller during suspend will generate an interrupt, it
+> can lead to unpredictable behaviour in the kernel.
+>
+> Based on the logic of the kernel code interrupts from i2c should be
+> prohibited during suspend. Kernel writes 0 to the I2C_IE register in
+> the omap_i2c_runtime_suspend() function. In the other side kernel
+> writes saved interrupt flags to the I2C_IE register in
+> omap_i2c_runtime_resume() function. I.e. interrupts should be disabled
+> during suspend.
+>
+> This works for chips with version1 registers scheme. Interrupts are
+> disabled during suspend. For chips with version2 scheme registers
+> writting 0 to the I2C_IE register does nothing (because now the
+> I2C_IRQENABLE_SET register is located at this address). This register
+> is used to enable interrupts. For disabling interrupts
+> I2C_IRQENABLE_CLR register should be used.
+>
+> Because the registers I2C_IRQENABLE_SET and I2C_IE have the same
+> addresses, the interrupt enabling procedure is unchanged.
+>
+> Change-Id: Ie49165990a4e7c67a4ccf2e4a66cd3b78f2e2b70
+Remove this.
+> Signed-off-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/i2c/busses/i2c-omap.c | 15 +++++++++++----
+>  1 file changed, 11 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index e02f9e3..64c26f9 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -180,6 +180,8 @@ enum {
+>  #define I2C_OMAP_ERRATA_I207		(1 << 0)
+>  #define I2C_OMAP_ERRATA_I462		(1 << 1)
+>  
+> +#define OMAP_I2C_IP_V2_INTERRUPTS_MASK	0x6FFF
+> +
+>  struct omap_i2c_dev {
+>  	spinlock_t		lock;		/* IRQ synchronization */
+>  	struct device		*dev;
+> @@ -193,6 +195,7 @@ struct omap_i2c_dev {
+>  						    long latency);
+>  	u32			speed;		/* Speed of bus in kHz */
+>  	u32			flags;
+> +	u16			scheme;
+>  	u16			cmd_err;
+>  	u8			*buf;
+>  	u8			*regs;
+> @@ -1082,7 +1085,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>  	int irq;
+>  	int r;
+>  	u32 rev;
+> -	u16 minor, major, scheme;
+> +	u16 minor, major;
+>  
+>  	/* NOTE: driver uses the static register mapping */
+>  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> @@ -1159,8 +1162,8 @@ omap_i2c_probe(struct platform_device *pdev)
+>  	 */
+>  	rev = __raw_readw(dev->base + 0x04);
+>  
+> -	scheme = OMAP_I2C_SCHEME(rev);
+> -	switch (scheme) {
+> +	dev->scheme = OMAP_I2C_SCHEME(rev);
+> +	switch (dev->scheme) {
+>  	case OMAP_I2C_SCHEME_0:
+>  		dev->regs = (u8 *)reg_map_ip_v1;
+>  		dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG);
+> @@ -1289,7 +1292,11 @@ static int omap_i2c_runtime_suspend(struct device *dev)
+>  
+>  	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
+>  
+> -	omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
+> +	if (_dev->scheme == OMAP_I2C_SCHEME_0)
+> +		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
+> +	else
+> +		omap_i2c_write_reg(_dev, OMAP_I2C_IP_V2_IRQENABLE_CLR,
+> +				   OMAP_I2C_IP_V2_INTERRUPTS_MASK);
+>  
+>  	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
+>  		omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
 
-This patch enables usage of DT property 'gpmc,num-cs' as already documented in
-Documentation/devicetree/bindings/bus/ti-gpmc.txt
 
-Though GPMC hardware supports upto 8 chip-selects, but all chip-selects may
-not be available for use because:
-- chip-select pin may not be bonded out at SoC device boundary.
-- chip-select pin-mux may conflict with other pins usage.
-- board level constrains.
-
-gpmc,num-cs allows user to configure maximum number of GPMC chip-selects
-available for use on any given platform. This ensures:
-- GPMC child nodes having chip-selects within allowed range are only probed.
-- And un-used GPMC chip-selects remain blocked.(may be for security reasons).
-
-Signed-off-by: Gupta, Pekon <pekon@ti.com>
----
- arch/arm/mach-omap2/gpmc.c | 38 +++++++++++++++++++++++++++++---------
- 1 file changed, 29 insertions(+), 9 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 6c4da12..490bca8 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -155,6 +155,7 @@ static struct resource	gpmc_cs_mem[GPMC_CS_NUM];
- static DEFINE_SPINLOCK(gpmc_mem_lock);
- /* Define chip-selects as reserved by default until probe completes */
- static unsigned int gpmc_cs_map = ((1 << GPMC_CS_NUM) - 1);
-+static unsigned int gpmc_cs_num = GPMC_CS_NUM;
- static unsigned int gpmc_nr_waitpins;
- static struct device *gpmc_dev;
- static int gpmc_irq;
-@@ -521,8 +522,10 @@ static int gpmc_cs_remap(int cs, u32 base)
- 	int ret;
- 	u32 old_base, size;
- 
--	if (cs > GPMC_CS_NUM)
-+	if (cs > gpmc_cs_num) {
-+		pr_err("%s: requested chip-select is disabled\n", __func__);
- 		return -ENODEV;
-+	}
- 	gpmc_cs_get_memconf(cs, &old_base, &size);
- 	if (base == old_base)
- 		return 0;
-@@ -545,9 +548,10 @@ int gpmc_cs_request(int cs, unsigned long size, unsigned long *base)
- 	struct resource *res = &gpmc_cs_mem[cs];
- 	int r = -1;
- 
--	if (cs > GPMC_CS_NUM)
-+	if (cs > gpmc_cs_num) {
-+		pr_err("%s: requested chip-select is disabled\n", __func__);
- 		return -ENODEV;
--
-+	}
- 	size = gpmc_mem_align(size);
- 	if (size > (1 << GPMC_SECTION_SHIFT))
- 		return -ENOMEM;
-@@ -582,7 +586,7 @@ EXPORT_SYMBOL(gpmc_cs_request);
- void gpmc_cs_free(int cs)
- {
- 	spin_lock(&gpmc_mem_lock);
--	if (cs >= GPMC_CS_NUM || cs < 0 || !gpmc_cs_reserved(cs)) {
-+	if (cs >= gpmc_cs_num || cs < 0 || !gpmc_cs_reserved(cs)) {
- 		printk(KERN_ERR "Trying to free non-reserved GPMC CS%d\n", cs);
- 		BUG();
- 		spin_unlock(&gpmc_mem_lock);
-@@ -777,7 +781,7 @@ static void gpmc_mem_exit(void)
- {
- 	int cs;
- 
--	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
-+	for (cs = 0; cs < gpmc_cs_num; cs++) {
- 		if (!gpmc_cs_mem_enabled(cs))
- 			continue;
- 		gpmc_cs_delete_mem(cs);
-@@ -798,7 +802,7 @@ static void gpmc_mem_init(void)
- 	gpmc_mem_root.end = GPMC_MEM_END;
- 
- 	/* Reserve all regions that has been set up by bootloader */
--	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
-+	for (cs = 0; cs < gpmc_cs_num; cs++) {
- 		u32 base, size;
- 
- 		if (!gpmc_cs_mem_enabled(cs))
-@@ -1513,6 +1517,20 @@ static int gpmc_probe_dt(struct platform_device *pdev)
- 	if (!of_id)
- 		return 0;
- 
-+	ret = of_property_read_u32(pdev->dev.of_node, "gpmc,num-cs",
-+				   &gpmc_cs_num);
-+	if (ret < 0) {
-+		pr_err("%s: number of chip-selects not defined\n", __func__);
-+		return ret;
-+	} else if (gpmc_cs_num < 1) {
-+		pr_err("%s: all chip-selects are disabled\n", __func__);
-+		return -EINVAL;
-+	} else if (gpmc_cs_num > GPMC_CS_NUM) {
-+		pr_err("%s: number of supported chip-selects cannot be > %d\n",
-+					 __func__, GPMC_CS_NUM);
-+		return -EINVAL;
-+	}
-+
- 	ret = of_property_read_u32(pdev->dev.of_node, "gpmc,num-waitpins",
- 				   &gpmc_nr_waitpins);
- 	if (ret < 0) {
-@@ -1610,8 +1628,10 @@ static int gpmc_probe(struct platform_device *pdev)
- 	/* Now the GPMC is initialised, unreserve the chip-selects */
- 	gpmc_cs_map = 0;
- 
--	if (!pdev->dev.of_node)
-+	if (!pdev->dev.of_node) {
-+		gpmc_cs_num	 = GPMC_CS_NUM;
- 		gpmc_nr_waitpins = GPMC_NR_WAITPINS;
-+	}
- 
- 	rc = gpmc_probe_dt(pdev);
- 	if (rc < 0) {
-@@ -1715,7 +1735,7 @@ void omap3_gpmc_save_context(void)
- 	gpmc_context.prefetch_config1 = gpmc_read_reg(GPMC_PREFETCH_CONFIG1);
- 	gpmc_context.prefetch_config2 = gpmc_read_reg(GPMC_PREFETCH_CONFIG2);
- 	gpmc_context.prefetch_control = gpmc_read_reg(GPMC_PREFETCH_CONTROL);
--	for (i = 0; i < GPMC_CS_NUM; i++) {
-+	for (i = 0; i < gpmc_cs_num; i++) {
- 		gpmc_context.cs_context[i].is_valid = gpmc_cs_mem_enabled(i);
- 		if (gpmc_context.cs_context[i].is_valid) {
- 			gpmc_context.cs_context[i].config1 =
-@@ -1747,7 +1767,7 @@ void omap3_gpmc_restore_context(void)
- 	gpmc_write_reg(GPMC_PREFETCH_CONFIG1, gpmc_context.prefetch_config1);
- 	gpmc_write_reg(GPMC_PREFETCH_CONFIG2, gpmc_context.prefetch_config2);
- 	gpmc_write_reg(GPMC_PREFETCH_CONTROL, gpmc_context.prefetch_control);
--	for (i = 0; i < GPMC_CS_NUM; i++) {
-+	for (i = 0; i < gpmc_cs_num; i++) {
- 		if (gpmc_context.cs_context[i].is_valid) {
- 			gpmc_cs_write_reg(i, GPMC_CS_CONFIG1,
- 				gpmc_context.cs_context[i].config1);
 -- 
-1.8.1
-
+------------------
+Dan Murphy
