@@ -1,95 +1,90 @@
-From: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 1/1] i2c: omap: correct usage of the interrupt enable register
-Date: Fri, 31 May 2013 16:33:31 +0300
-Message-ID: <1370007211-9736-2-git-send-email-oleksandr.dmytryshyn@ti.com>
-References: <1370007211-9736-1-git-send-email-oleksandr.dmytryshyn@ti.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH] ARM: dts: omap3-devkit8000: fix NAND memory binding
+Date: Fri, 31 May 2013 15:49:31 +0200
+Message-ID: <51A8AA6B.6010608@epfl.ch>
+References: <1369296697-22495-1-git-send-email-florian.vaussard@epfl.ch>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1370007211-9736-1-git-send-email-oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp4.epfl.ch ([128.178.224.219]:46599 "HELO smtp4.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755235Ab3EaNtg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 31 May 2013 09:49:36 -0400
+In-Reply-To: <1369296697-22495-1-git-send-email-florian.vaussard@epfl.ch>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Florian Vaussard <florian.vaussard@epfl.ch>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-If the i2c controller during suspend will generate an interrupt, it
-can lead to unpredictable behaviour in the kernel.
+Hello,
 
-Based on the logic of the kernel code interrupts from i2c should be
-prohibited during suspend. Kernel writes 0 to the I2C_IE register in
-the omap_i2c_runtime_suspend() function. In the other side kernel
-writes saved interrupt flags to the I2C_IE register in
-omap_i2c_runtime_resume() function. I.e. interrupts should be disabled
-during suspend.
+Gentle ping. Does someone has any comments on this fix? Can someone 
+tests on the real hardware?
 
-This works for chips with version1 registers scheme. Interrupts are
-disabled during suspend. For chips with version2 scheme registers
-writting 0 to the I2C_IE register does nothing (because now the
-I2C_IRQENABLE_SET register is located at this address). This register
-is used to enable interrupts. For disabling interrupts
-I2C_IRQENABLE_CLR register should be used.
+Regards,
 
-Because the registers I2C_IRQENABLE_SET and I2C_IE have the same
-addresses, the interrupt enabling procedure is unchanged.
+Florian
 
-Signed-off-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
----
- drivers/i2c/busses/i2c-omap.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+On 05/23/2013 10:11 AM, Florian Vaussard wrote:
+> Commit d36b4cd 'ARM: OMAP2+: Add additional GPMC timing parameters'
+> updated GPMC binding, but omap3-devkit8000 was not updated accordingly,
+> resulting in a broken configuration.
+>
+> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+> ---
+>   arch/arm/boot/dts/omap3-devkit8000.dts |   29 +++++++++++++++--------------
+>   1 files changed, 15 insertions(+), 14 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/omap3-devkit8000.dts
+> index 8a5cdcc..e5b35f5 100644
+> --- a/arch/arm/boot/dts/omap3-devkit8000.dts
+> +++ b/arch/arm/boot/dts/omap3-devkit8000.dts
+> @@ -123,20 +123,21 @@
+>   		reg = <0 0 0>; /* CS0, offset 0 */
+>   		nand-bus-width = <16>;
+>
+> -		gpmc,sync-clk = <0>;
+> -		gpmc,cs-on = <0>;
+> -		gpmc,cs-rd-off = <44>;
+> -		gpmc,cs-wr-off = <44>;
+> -		gpmc,adv-on = <6>;
+> -		gpmc,adv-rd-off = <34>;
+> -		gpmc,adv-wr-off = <44>;
+> -		gpmc,we-off = <40>;
+> -		gpmc,oe-off = <54>;
+> -		gpmc,access = <64>;
+> -		gpmc,rd-cycle = <82>;
+> -		gpmc,wr-cycle = <82>;
+> -		gpmc,wr-access = <40>;
+> -		gpmc,wr-data-mux-bus = <0>;
+> +		gpmc,device-nand;
+> +		gpmc,sync-clki-ps = <0>;
+> +		gpmc,cs-on-ns = <0>;
+> +		gpmc,cs-rd-off-ns = <44>;
+> +		gpmc,cs-wr-off-ns = <44>;
+> +		gpmc,adv-on-ns = <6>;
+> +		gpmc,adv-rd-off-ns = <34>;
+> +		gpmc,adv-wr-off-ns = <44>;
+> +		gpmc,we-off-ns = <40>;
+> +		gpmc,oe-off-ns = <54>;
+> +		gpmc,access-ns = <64>;
+> +		gpmc,rd-cycle-ns = <82>;
+> +		gpmc,wr-cycle-ns = <82>;
+> +		gpmc,wr-access-ns = <40>;
+> +		gpmc,wr-data-mux-bus-ns = <0>;
+>
+>   		#address-cells = <1>;
+>   		#size-cells = <1>;
+>
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index e02f9e3..64c26f9 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -180,6 +180,8 @@ enum {
- #define I2C_OMAP_ERRATA_I207		(1 << 0)
- #define I2C_OMAP_ERRATA_I462		(1 << 1)
- 
-+#define OMAP_I2C_IP_V2_INTERRUPTS_MASK	0x6FFF
-+
- struct omap_i2c_dev {
- 	spinlock_t		lock;		/* IRQ synchronization */
- 	struct device		*dev;
-@@ -193,6 +195,7 @@ struct omap_i2c_dev {
- 						    long latency);
- 	u32			speed;		/* Speed of bus in kHz */
- 	u32			flags;
-+	u16			scheme;
- 	u16			cmd_err;
- 	u8			*buf;
- 	u8			*regs;
-@@ -1082,7 +1085,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	int irq;
- 	int r;
- 	u32 rev;
--	u16 minor, major, scheme;
-+	u16 minor, major;
- 
- 	/* NOTE: driver uses the static register mapping */
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-@@ -1159,8 +1162,8 @@ omap_i2c_probe(struct platform_device *pdev)
- 	 */
- 	rev = __raw_readw(dev->base + 0x04);
- 
--	scheme = OMAP_I2C_SCHEME(rev);
--	switch (scheme) {
-+	dev->scheme = OMAP_I2C_SCHEME(rev);
-+	switch (dev->scheme) {
- 	case OMAP_I2C_SCHEME_0:
- 		dev->regs = (u8 *)reg_map_ip_v1;
- 		dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG);
-@@ -1289,7 +1292,11 @@ static int omap_i2c_runtime_suspend(struct device *dev)
- 
- 	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
- 
--	omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
-+	if (_dev->scheme == OMAP_I2C_SCHEME_0)
-+		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
-+	else
-+		omap_i2c_write_reg(_dev, OMAP_I2C_IP_V2_IRQENABLE_CLR,
-+				   OMAP_I2C_IP_V2_INTERRUPTS_MASK);
- 
- 	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
- 		omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
 -- 
-1.8.2.rc2
+Florian Vaussard
+EPFL - STI - IMT - LSRO1
+MEB330 - Station 9
+1015 Lausanne / Switzerland
+
+tel: +41 21 693 78 39
+fax: +41 21 693 78 07
+http://lsro.epfl.ch
