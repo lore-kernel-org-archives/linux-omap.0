@@ -1,183 +1,54 @@
 From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH 2/4] ARM: dts: AM33XX: Use existing constants for GPIOs
-Date: Fri, 31 May 2013 14:42:20 +0200
-Message-ID: <1370004142-30506-3-git-send-email-florian.vaussard@epfl.ch>
+Subject: [PATCH 3/4] ARM: dts: AM33XX: Specific pinctrl header
+Date: Fri, 31 May 2013 14:42:21 +0200
+Message-ID: <1370004142-30506-4-git-send-email-florian.vaussard@epfl.ch>
 References: <1370004142-30506-1-git-send-email-florian.vaussard@epfl.ch>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:40448 "HELO smtp0.epfl.ch"
+Received: from smtp0.epfl.ch ([128.178.224.218]:40463 "HELO smtp0.epfl.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755860Ab3EaMmx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 May 2013 08:42:53 -0400
+	id S1755505Ab3EaMmz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 31 May 2013 08:42:55 -0400
 In-Reply-To: <1370004142-30506-1-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Benoit Cousson <b-cousson@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>, Vaibhav Hiremath <hvaibhav@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-Use standard GPIO constants to enhance the readability of DT GPIOs.
+The pinctrl IP inside the AM33XX family differs slightly from
+what is found on OMAP2+. Define a specific header to take account
+of the differences.
 
 Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
 ---
- arch/arm/boot/dts/am335x-bone.dts  |    8 ++++----
- arch/arm/boot/dts/am335x-evm.dts   |   14 +++++++-------
- arch/arm/boot/dts/am335x-evmsk.dts |   16 ++++++++--------
- arch/arm/boot/dts/am33xx.dtsi      |    2 ++
- 4 files changed, 21 insertions(+), 19 deletions(-)
+ include/dt-bindings/pinctrl/am33xx.h |   19 +++++++++++++++++++
+ 1 files changed, 19 insertions(+), 0 deletions(-)
+ create mode 100644 include/dt-bindings/pinctrl/am33xx.h
 
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 0365e56..5bfb7dd 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -88,27 +88,27 @@
- 
- 		led@2 {
- 			label = "beaglebone:green:heartbeat";
--			gpios = <&gpio1 21 0>;
-+			gpios = <&gpio1 21 GPIO_ACTIVE_HIGH>;
- 			linux,default-trigger = "heartbeat";
- 			default-state = "off";
- 		};
- 
- 		led@3 {
- 			label = "beaglebone:green:mmc0";
--			gpios = <&gpio1 22 0>;
-+			gpios = <&gpio1 22 GPIO_ACTIVE_HIGH>;
- 			linux,default-trigger = "mmc0";
- 			default-state = "off";
- 		};
- 
- 		led@4 {
- 			label = "beaglebone:green:usr2";
--			gpios = <&gpio1 23 0>;
-+			gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;
- 			default-state = "off";
- 		};
- 
- 		led@5 {
- 			label = "beaglebone:green:usr3";
--			gpios = <&gpio1 24 0>;
-+			gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
- 			default-state = "off";
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 629476e..0fbecfd 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -159,12 +159,12 @@
- 		debounce-delay-ms = <5>;
- 		col-scan-delay-us = <2>;
- 
--		row-gpios = <&gpio1 25 0	/* Bank1, pin25 */
--			     &gpio1 26 0	/* Bank1, pin26 */
--			     &gpio1 27 0>;	/* Bank1, pin27 */
-+		row-gpios = <&gpio1 25 GPIO_ACTIVE_HIGH		/* Bank1, pin25 */
-+			     &gpio1 26 GPIO_ACTIVE_HIGH		/* Bank1, pin26 */
-+			     &gpio1 27 GPIO_ACTIVE_HIGH>;	/* Bank1, pin27 */
- 
--		col-gpios = <&gpio1 21 0	/* Bank1, pin21 */
--			     &gpio1 22 0>;	/* Bank1, pin22 */
-+		col-gpios = <&gpio1 21 GPIO_ACTIVE_HIGH		/* Bank1, pin21 */
-+			     &gpio1 22 GPIO_ACTIVE_HIGH>;	/* Bank1, pin22 */
- 
- 		linux,keymap = <0x0000008b	/* MENU */
- 				0x0100009e	/* BACK */
-@@ -183,14 +183,14 @@
- 		switch@9 {
- 			label = "volume-up";
- 			linux,code = <115>;
--			gpios = <&gpio0 2 1>;
-+			gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;
- 			gpio-key,wakeup;
- 		};
- 
- 		switch@10 {
- 			label = "volume-down";
- 			linux,code = <114>;
--			gpios = <&gpio0 3 1>;
-+			gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
- 			gpio-key,wakeup;
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index a339a76..289ba2c 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -144,26 +144,26 @@
- 
- 		led@1 {
- 			label = "evmsk:green:usr0";
--			gpios = <&gpio1 4 0>;
-+			gpios = <&gpio1 4 GPIO_ACTIVE_HIGH>;
- 			default-state = "off";
- 		};
- 
- 		led@2 {
- 			label = "evmsk:green:usr1";
--			gpios = <&gpio1 5 0>;
-+			gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
- 			default-state = "off";
- 		};
- 
- 		led@3 {
- 			label = "evmsk:green:mmc0";
--			gpios = <&gpio1 6 0>;
-+			gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
- 			linux,default-trigger = "mmc0";
- 			default-state = "off";
- 		};
- 
- 		led@4 {
- 			label = "evmsk:green:heartbeat";
--			gpios = <&gpio1 7 0>;
-+			gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
- 			linux,default-trigger = "heartbeat";
- 			default-state = "off";
- 		};
-@@ -177,26 +177,26 @@
- 		switch@1 {
- 			label = "button0";
- 			linux,code = <0x100>;
--			gpios = <&gpio2 3 0>;
-+			gpios = <&gpio2 3 GPIO_ACTIVE_HIGH>;
- 		};
- 
- 		switch@2 {
- 			label = "button1";
- 			linux,code = <0x101>;
--			gpios = <&gpio2 2 0>;
-+			gpios = <&gpio2 2 GPIO_ACTIVE_HIGH>;
- 		};
- 
- 		switch@3 {
- 			label = "button2";
- 			linux,code = <0x102>;
--			gpios = <&gpio0 30 0>;
-+			gpios = <&gpio0 30 GPIO_ACTIVE_HIGH>;
- 			gpio-key,wakeup;
- 		};
- 
- 		switch@4 {
- 			label = "button3";
- 			linux,code = <0x103>;
--			gpios = <&gpio2 5 0>;
-+			gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;
- 		};
- 	};
- };
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 016c460..f116c79 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -8,6 +8,8 @@
-  * kind, whether express or implied.
-  */
- 
-+#include <dt-bindings/gpio/gpio.h>
+diff --git a/include/dt-bindings/pinctrl/am33xx.h b/include/dt-bindings/pinctrl/am33xx.h
+new file mode 100644
+index 0000000..9ffb6c2
+--- /dev/null
++++ b/include/dt-bindings/pinctrl/am33xx.h
+@@ -0,0 +1,19 @@
++/*
++ * This header provides constants specific to AM33XX pinctrl bindings.
++ */
 +
- #include "skeleton.dtsi"
- 
- / {
++#include <include/dt-bindings/pinctrl/omap.h>
++
++/* am33xx specific mux bit defines */
++#undef  INPUT_EN
++#define INPUT_EN		(1 << 5)
++#define SLEWCTRL_FAST		(1 << 6)
++
++/* update macro depending on INPUT_EN */
++#undef  PIN_INPUT
++#undef  PIN_INPUT_PULLUP
++#undef  PIN_INPUT_PULLDOWN
++#define PIN_INPUT		INPUT_EN
++#define PIN_INPUT_PULLUP	(PULL_ENA | INPUT_EN | PULL_UP)
++#define PIN_INPUT_PULLDOWN	(PULL_ENA | INPUT_EN)
++
 -- 
 1.7.5.4
 
