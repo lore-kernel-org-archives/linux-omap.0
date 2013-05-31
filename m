@@ -1,89 +1,102 @@
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH 3/3] usb: dwc3: use extcon fwrk to receive
- connect/disconnect notification
-Date: Fri, 31 May 2013 08:45:31 +0900
-Message-ID: <51A7E49B.1010704@samsung.com>
-References: <1369405896-30246-1-git-send-email-kishon@ti.com>
- <1369405896-30246-4-git-send-email-kishon@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] usb: dwc3: Addition of "dr_mode" dt property.
+Date: Fri, 31 May 2013 07:33:41 +0300
+Message-ID: <20130531043341.GA8279@arwen.pp.htv.fi>
+References: <1369936591-29605-1-git-send-email-ruchika@ti.com>
+ <51A7AE26.90909@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ReaqsoxgOBHFXBhH"
 Return-path: <linux-doc-owner@vger.kernel.org>
-In-reply-to: <1369405896-30246-4-git-send-email-kishon@ti.com>
+Content-Disposition: inline
+In-Reply-To: <51A7AE26.90909@ti.com>
 Sender: linux-doc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: myungjoo.ham@samsung.com, balbi@ti.com, ldewangan@nvidia.com, gg@slimlogic.co.uk, lgirdwood@gmail.com, broonie@kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, grant.likely@linaro.org, rob.herring@calxeda.com, rob@landley.net, gregkh@linuxfoundation.org, george.cherian@ti.com, sameo@linux.intel.com
+To: Dan Murphy <dmurphy@ti.com>
+Cc: Ruchika Kharwar <ruchika@ti.com>, linux-usb@vger.kernel.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Landley <rob@landley.net>
 List-Id: linux-omap@vger.kernel.org
 
+--ReaqsoxgOBHFXBhH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 05/24/2013 11:31 PM, Kishon Vijay Abraham I wrote:
-> Modified dwc3-omap to receive connect and disconnect notification using
-> extcon framework. Also did the necessary cleanups required after
-> adapting to extcon framework.
->
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  drivers/usb/dwc3/dwc3-omap.c  | 80 +++++++++++++++++++++++++++++++++----------
->  include/linux/usb/dwc3-omap.h | 30 ----------------
->  2 files changed, 62 insertions(+), 48 deletions(-)
->  delete mode 100644 include/linux/usb/dwc3-omap.h
+Hi,
 
-Hi Kishon,
+On Thu, May 30, 2013 at 02:53:10PM -0500, Dan Murphy wrote:
+> > @@ -520,9 +520,23 @@ static int dwc3_probe(struct platform_device *pdev)
+> >  		mode =3D DWC3_MODE_HOST;
+> >  	else if (IS_ENABLED(CONFIG_USB_DWC3_GADGET))
+> >  		mode =3D DWC3_MODE_DEVICE;
+> > -	else
+> > -		mode =3D DWC3_MODE_DRD;
+> > -
+> > +	else {
+> > +		if (of_property_read_string(node, "dr_mode", &dr_mode)) {
+> This will not execute if the either CONFIG options are set and then
+> the DT property is not even honored
+> Did you test this with multiple CONFIG options?
+> There seems to be a conflict between CONFIGs and runtime operation.
 
-Thi patch is suspended until fix following build error.
-(If kernel builds extcon fwr as module, dwc3-omap.c happen error message)
+this is alright. We still want to honor the users who chose to compile
+the driver for gadget-only. In that case, there is no choice to be made.
 
----
-tree:   git://git.kernel.org/pub/scm/linux/kernel/git/chanwoo/extcon extcon-next
-head:   30f5d6ea2561c2a54e40b1e8e8f9bb30e064e01b
-commit: 30f5d6ea2561c2a54e40b1e8e8f9bb30e064e01b [3/3] usb: dwc3: use extcon fwrk to receive connect/disconnect notification
-config: i386-randconfig-x14-0530 (attached as .config)
+Now, if you build the driver in its entirety (meaning, DRD), you can
+still choose in runtime if you want the driver to behave as host-only or
+gadget-only.
 
-All error/warnings:
+Picture a situation where you have a single SoC with multiple instances
+of this IP and you want to make sure that e.g. ports 1-3 are host-only,
+port 4 is peripheral-only and port 5 is DRD.
 
-   drivers/built-in.o: In function `dwc3_omap_remove':
-   dwc3-omap.c:(.text+0x8c0fa): undefined reference to `extcon_unregister_interest'
-   dwc3-omap.c:(.text+0x8c102): undefined reference to `extcon_unregister_interest'
-   drivers/built-in.o: In function `dwc3_omap_probe':
-   dwc3-omap.c:(.text+0x8c5e6): undefined reference to `extcon_get_extcon_dev'
-   dwc3-omap.c:(.text+0x8c6a4): undefined reference to `extcon_register_interest'
-   dwc3-omap.c:(.text+0x8c6c9): undefined reference to `extcon_register_interest'
-   dwc3-omap.c:(.text+0x8c831): undefined reference to `extcon_get_cable_state'
-   dwc3-omap.c:(.text+0x8c851): undefined reference to `extcon_get_cable_state'
----
+> > +			dev_warn(dev, "Missing dr_mode so assuming DWC3_MODE_DRD\n");
+> If dr_mode is an optional parameter why would the dev_warn say it is miss=
+ing?
+> Do we even want to warn here?
 
-Also, I missed a issue of this patch. If h/w target use other USB device
-instead of "palmas-usb", dwc-omap.c driver won't be operating.
-So, I propose two method about this issue.
-First, we can get extcon device name through platform data or dt.
-Two, When use extcon_register_interest() to register notifier block,
-NULL pointer pass to extcon_register_interest() instead of specific extcon
-device name(palmas-usb). If extcon_register_interest() check NULL
-pointer of extcon device name parameter, extcon fwr will find previous
-registered extcon device and then register notifier block of consumer
-device driver(dwc3-omap.c) to previous registered extcon device.
+Yes. Definitely yes. That would mean a less than optimal DTS file.
+Still, for the sake of sensible defaults, we can still choose to work on
+DRD mode, assuming full capabilities in case user didn't write proper
+DTS, still user should be notified about it.
 
-> +	edev = extcon_get_extcon_dev("palmas-usb");
-> +	if (!edev) {
-> +		dev_dbg(dev, "couldn't get extcon device\n");
-> +		return -EPROBE_DEFER;
-> +	}
-> +
->  	spin_lock_init(&omap->lock);
->  
->  	omap->dev	= dev;
->  	omap->irq	= irq;
->  	omap->base	= base;
-> +	omap->vbus_nb.notifier_call = dwc3_omap_vbus_notifier;
-> +	extcon_register_interest(&omap->extcon_vbus_dev, "palmas-usb", "USB",
-> +		&omap->vbus_nb);
-> +	omap->id_nb.notifier_call = dwc3_omap_id_notifier;
-> +	extcon_register_interest(&omap->extcon_id_dev, "palmas-usb", "USB-HOST",
-> +		&omap->id_nb);
->  	dev->dma_mask	= &dwc3_omap_dma_mask;
->  
-> +
+> > +			mode =3D DWC3_MODE_DRD;
+> > +		} else {
+> > +			if (strcmp(dr_mode, "host") =3D=3D 0)
+> > +				mode =3D DWC3_MODE_HOST;
+> What if CONFIG_USB_DWC3_HOST is not enabled?
 
-Thanks,
-Chanwoo Choi
+No issues, this will only execute if DRD is enabled, which means both
+Host and Device are built in the final binary.
 
+> > +			else if (strcmp(dr_mode, "gadget") =3D=3D 0)
+> > +				mode =3D DWC3_MODE_DEVICE;
+> What if CONFIG_USB_DWC3_GADGET is not enabled?
+
+see above.
+
+--=20
+balbi
+
+--ReaqsoxgOBHFXBhH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRqCglAAoJEIaOsuA1yqRErVAP/iq77JtrgEkx0Okt8WLDdLmo
+7o9SJEFqjidk79lk30bX0poJi2B5+FC41i+t2Yfiaa+h5/E2vSwME+vMTAslhzos
+2gSvhgk5nPXepZaaQki0/cXhCBdsonwk1KfDklRSjqx8wAxIdozEkEwTqbh/tjhu
+SRay4dp7r5zY0exCRy/W4+2qihskJV0SUthUn0JLL5uN1L6jsRya4+NrSVr9/xa3
+iEIWQ+5oKIJNif0HGusyGNKW3uGhsOd4bWARUPyph+Ashb6vu/ZrrAB18gvRRRTJ
+LjhHLxoTkNtDY1BJZXdRSxytDsv8OA6XW4RVAYgpPXlUUeQigDJtYnUlpwC7rMSb
+tVSvcNAcoSY0m0orLTnKX7PTsMO01/dz7b/pEg3uW2OL5tWNJtWiAYdzV4UAm1SU
+tWRF9kNiT2MUE0/DirKdnGrDb/KAmk8bmmiA/HyI/BUp2pvbsR7iwRiKr7GYLnCc
+seN1KUl9W6FG2sxn5V8yaDd40ueaJWQcrkITWnRU4PrmJXV3+9rej9F1Z4jyWu1+
+7pmgrPv2qoafjR3ggoZ7aKYfSBLWYDKPrlrGbgUBU/FiMul+bSXwjLag6piBs1UA
+9QzTXmlONYum0Y89cSpv9sqVcqM6kMVha/DhvIPMW7Hpg1UJn/YKDZ5RcuBNkKSG
+SrA2+Q1N28UVM5HHVAj5
+=7KWG
+-----END PGP SIGNATURE-----
+
+--ReaqsoxgOBHFXBhH--
