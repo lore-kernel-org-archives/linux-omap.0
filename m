@@ -1,323 +1,104 @@
-From: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
-Subject: Re: [PATCH v3 1/3] gpio/omap: replace open coded read-modify-write
- with _gpio_rmw function.
-Date: Fri, 31 May 2013 10:01:31 +0200
-Message-ID: <20130531080131.GB16701@kuttelsuppe>
-References: <1368564867-11142-1-git-send-email-andreas.fenkart@streamunlimited.com>
+From: Michael Grzeschik <mgr@pengutronix.de>
+Subject: Re: [PATCH] usb: dwc3: Addition of "dr_mode" dt property.
+Date: Fri, 31 May 2013 10:10:52 +0200
+Message-ID: <20130531081052.GA14047@pengutronix.de>
+References: <1369944894-3176-1-git-send-email-ruchika@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:61660 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751028Ab3EaIBx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 May 2013 04:01:53 -0400
-Received: from mailout-de.gmx.net ([10.1.76.28]) by mrigmx.server.lan
- (mrigmx002) with ESMTP (Nemesis) id 0Lvvs3-1ULaIE2HaH-017qNi for
- <linux-omap@vger.kernel.org>; Fri, 31 May 2013 10:01:51 +0200
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1368564867-11142-1-git-send-email-andreas.fenkart@streamunlimited.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1369944894-3176-1-git-send-email-ruchika@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Ruchika Kharwar <ruchika@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Landley <rob@landley.net>
 List-Id: linux-omap@vger.kernel.org
-To: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
-Cc: santosh.shilimkar@ti.com, khilman@deeprootsystems.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, balbi@ti.com, linux-omap@vger.kernel.org, daniel@zonque.org, jon-hunter@ti.com
 
-FYI,
+Hi,
 
-this email adress will soon expire,
-this is my alternate adress: afenkart at gmail.com
-
-On Tue, May 14, 2013 at 10:54:25PM +0200, Andreas Fenkart wrote:
-> By also making it return the modified value, we save the readl
-> needed to update the context.
+On Thu, May 30, 2013 at 03:14:54PM -0500, Ruchika Kharwar wrote:
+> This patch adds an optional parameter "dr_mode" to the dwc3 core device node.
+> In the case the compile flag for the DWC3 controller is set to
+> "USB_DWC3_DUAL_ROLE" a device tree could restrain to either functionality of
+> host or gadget. In the case the device tree does not use this optional flag or
+> specifies it superfluously to "drd" the functionality will be that
+> of a dual role device.
 > 
-> Signed-off-by: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+> Signed-off-by: Ruchika Kharwar <ruchika@ti.com>
 > ---
->  drivers/gpio/gpio-omap.c |  162 ++++++++++++++--------------------------------
->  1 file changed, 50 insertions(+), 112 deletions(-)
+>  Documentation/devicetree/bindings/usb/dwc3.txt |    3 ++-
+>  drivers/usb/dwc3/core.c                        |   21 +++++++++++++++++----
+>  2 files changed, 19 insertions(+), 5 deletions(-)
 > 
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 159f5c5..082919e 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -87,6 +87,19 @@ struct gpio_bank {
->  #define GPIO_BIT(bank, gpio) (1 << GPIO_INDEX(bank, gpio))
->  #define GPIO_MOD_CTRL_BIT	BIT(0)
+> diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
+> index 7a95c65..2f5d584 100644
+> --- a/Documentation/devicetree/bindings/usb/dwc3.txt
+> +++ b/Documentation/devicetree/bindings/usb/dwc3.txt
+> @@ -10,7 +10,8 @@ Required properties:
 >  
-> +static inline u32 _gpio_rmw(void __iomem *base, u32 reg, u32 mask, bool set)
-> +{
-> +	u32 l = __raw_readl(base + reg);
-> +
-> +	if (set)
-> +		l |= mask;
-> +	else
-> +		l &= ~mask;
-> +
-> +	__raw_writel(l, base + reg);
-> +	return l;
-> +}
-> +
->  static int irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq)
->  {
->  	return gpio_irq - bank->irq_base + bank->chip.base;
-> @@ -94,20 +107,10 @@ static int irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq)
->  
->  static void _set_gpio_direction(struct gpio_bank *bank, int gpio, int is_input)
->  {
-> -	void __iomem *reg = bank->base;
-> -	u32 l;
+>  Optional properties:
+>   - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
 > -
-> -	reg += bank->regs->direction;
-> -	l = __raw_readl(reg);
-> -	if (is_input)
-> -		l |= 1 << gpio;
+> + - dr_mode: determines the mode of core. Supported modes are "gadget", "host"
+> +   and "drd".
+>  This is usually a subnode to DWC3 glue to which it is connected.
+>  
+>  dwc3@4a030000 {
+> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> index c35d49d..e11660a 100644
+> --- a/drivers/usb/dwc3/core.c
+> +++ b/drivers/usb/dwc3/core.c
+> @@ -378,7 +378,7 @@ static int dwc3_probe(struct platform_device *pdev)
+>  	void			*mem;
+>  
+>  	u8			mode;
+> -
+> +	char			*dr_mode;
+>  	mem = devm_kzalloc(dev, sizeof(*dwc) + DWC3_ALIGN_MASK, GFP_KERNEL);
+>  	if (!mem) {
+>  		dev_err(dev, "not enough memory\n");
+> @@ -520,9 +520,22 @@ static int dwc3_probe(struct platform_device *pdev)
+>  		mode = DWC3_MODE_HOST;
+>  	else if (IS_ENABLED(CONFIG_USB_DWC3_GADGET))
+>  		mode = DWC3_MODE_DEVICE;
 > -	else
-> -		l &= ~(1 << gpio);
-> -	__raw_writel(l, reg);
-> -	bank->context.oe = l;
-> +	bank->context.oe = _gpio_rmw(bank->base, bank->regs->direction, 1 <<
-> +				     gpio, is_input);
->  }
->  
+> -		mode = DWC3_MODE_DRD;
 > -
->  /* set data out value using dedicate set/clear register */
->  static void _set_gpio_dataout_reg(struct gpio_bank *bank, int gpio, int enable)
->  {
-> @@ -128,17 +131,8 @@ static void _set_gpio_dataout_reg(struct gpio_bank *bank, int gpio, int enable)
->  /* set data out value using mask register */
->  static void _set_gpio_dataout_mask(struct gpio_bank *bank, int gpio, int enable)
->  {
-> -	void __iomem *reg = bank->base + bank->regs->dataout;
-> -	u32 gpio_bit = GPIO_BIT(bank, gpio);
-> -	u32 l;
-> -
-> -	l = __raw_readl(reg);
-> -	if (enable)
-> -		l |= gpio_bit;
-> -	else
-> -		l &= ~gpio_bit;
-> -	__raw_writel(l, reg);
-> -	bank->context.dataout = l;
-> +	bank->context.dataout = _gpio_rmw(bank->base, bank->regs->dataout,
-> +					  GPIO_BIT(bank, gpio), enable);
->  }
->  
->  static int _get_gpio_datain(struct gpio_bank *bank, int offset)
-> @@ -155,18 +149,6 @@ static int _get_gpio_dataout(struct gpio_bank *bank, int offset)
->  	return (__raw_readl(reg) & (1 << offset)) != 0;
->  }
->  
-> -static inline void _gpio_rmw(void __iomem *base, u32 reg, u32 mask, bool set)
-> -{
-> -	int l = __raw_readl(base + reg);
-> -
-> -	if (set)
-> -		l |= mask;
-> -	else
-> -		l &= ~mask;
-> -
-> -	__raw_writel(l, base + reg);
-> -}
-> -
->  static inline void _gpio_dbck_enable(struct gpio_bank *bank)
->  {
->  	if (bank->dbck_enable_mask && !bank->dbck_enabled) {
-> @@ -291,28 +273,24 @@ static inline void set_gpio_trigger(struct gpio_bank *bank, int gpio,
->  	void __iomem *base = bank->base;
->  	u32 gpio_bit = 1 << gpio;
->  
-> -	_gpio_rmw(base, bank->regs->leveldetect0, gpio_bit,
-> -		  trigger & IRQ_TYPE_LEVEL_LOW);
-> -	_gpio_rmw(base, bank->regs->leveldetect1, gpio_bit,
-> -		  trigger & IRQ_TYPE_LEVEL_HIGH);
-> -	_gpio_rmw(base, bank->regs->risingdetect, gpio_bit,
-> -		  trigger & IRQ_TYPE_EDGE_RISING);
-> -	_gpio_rmw(base, bank->regs->fallingdetect, gpio_bit,
-> -		  trigger & IRQ_TYPE_EDGE_FALLING);
->  
->  	bank->context.leveldetect0 =
-> -			__raw_readl(bank->base + bank->regs->leveldetect0);
-> +		_gpio_rmw(base, bank->regs->leveldetect0,
-> +			  gpio_bit, trigger & IRQ_TYPE_LEVEL_LOW);
->  	bank->context.leveldetect1 =
-> -			__raw_readl(bank->base + bank->regs->leveldetect1);
-> +		_gpio_rmw(base, bank->regs->leveldetect1,
-> +			  gpio_bit, trigger & IRQ_TYPE_LEVEL_HIGH);
->  	bank->context.risingdetect =
-> -			__raw_readl(bank->base + bank->regs->risingdetect);
-> +		_gpio_rmw(base, bank->regs->risingdetect,
-> +			  gpio_bit, trigger & IRQ_TYPE_EDGE_RISING);
->  	bank->context.fallingdetect =
-> -			__raw_readl(bank->base + bank->regs->fallingdetect);
-> +		_gpio_rmw(base, bank->regs->fallingdetect,
-> +			  gpio_bit, trigger & IRQ_TYPE_EDGE_FALLING);
->  
->  	if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
-> -		_gpio_rmw(base, bank->regs->wkup_en, gpio_bit, trigger != 0);
->  		bank->context.wake_en =
-> -			__raw_readl(bank->base + bank->regs->wkup_en);
-> +			_gpio_rmw(base, bank->regs->wkup_en, gpio_bit,
-> +				  trigger != 0);
->  	}
->  
->  	/* This part needs to be executed always for OMAP{34xx, 44xx} */
-> @@ -406,9 +384,9 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio,
->  			l |= 1 << (gpio << 1);
->  
->  		/* Enable wake-up during idle for dynamic tick */
-> -		_gpio_rmw(base, bank->regs->wkup_en, 1 << gpio, trigger);
->  		bank->context.wake_en =
-> -			__raw_readl(bank->base + bank->regs->wkup_en);
-> +			_gpio_rmw(base, bank->regs->wkup_en, 1 << gpio,
-> +				  trigger);
->  		__raw_writel(l, reg);
->  	}
->  	return 0;
-> @@ -450,19 +428,16 @@ static int gpio_irq_type(struct irq_data *d, unsigned type)
->  
->  static void _clear_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
->  {
-> -	void __iomem *reg = bank->base;
-> +	void __iomem *base = bank->base;
->  
-> -	reg += bank->regs->irqstatus;
-> -	__raw_writel(gpio_mask, reg);
-> +	__raw_writel(gpio_mask, base + bank->regs->irqstatus);
->  
->  	/* Workaround for clearing DSP GPIO interrupts to allow retention */
-> -	if (bank->regs->irqstatus2) {
-> -		reg = bank->base + bank->regs->irqstatus2;
-> -		__raw_writel(gpio_mask, reg);
-> -	}
-> +	if (bank->regs->irqstatus2)
-> +		__raw_writel(gpio_mask, base + bank->regs->irqstatus2);
->  
->  	/* Flush posted write for the irq status to avoid spurious interrupts */
-> -	__raw_readl(reg);
-> +	__raw_readl(base + bank->regs->irqstatus);
->  }
->  
->  static inline void _clear_gpio_irqstatus(struct gpio_bank *bank, int gpio)
-> @@ -486,46 +461,26 @@ static u32 _get_gpio_irqbank_mask(struct gpio_bank *bank)
->  
->  static void _enable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
->  {
-> -	void __iomem *reg = bank->base;
-> -	u32 l;
-> -
->  	if (bank->regs->set_irqenable) {
-> -		reg += bank->regs->set_irqenable;
-> -		l = gpio_mask;
->  		bank->context.irqenable1 |= gpio_mask;
-> +		__raw_writel(gpio_mask, bank->base + bank->regs->set_irqenable);
->  	} else {
-> -		reg += bank->regs->irqenable;
-> -		l = __raw_readl(reg);
-> -		if (bank->regs->irqenable_inv)
-> -			l &= ~gpio_mask;
-> -		else
-> -			l |= gpio_mask;
-> -		bank->context.irqenable1 = l;
-> +		bank->context.irqenable1 =
-> +			_gpio_rmw(bank->base, bank->regs->irqenable, gpio_mask,
-> +				  bank->regs->irqenable_inv ? false : true);
->  	}
-> -
-> -	__raw_writel(l, reg);
->  }
->  
->  static void _disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
->  {
-> -	void __iomem *reg = bank->base;
-> -	u32 l;
-> -
->  	if (bank->regs->clr_irqenable) {
-> -		reg += bank->regs->clr_irqenable;
-> -		l = gpio_mask;
->  		bank->context.irqenable1 &= ~gpio_mask;
-> +		__raw_writel(gpio_mask, bank->base + bank->regs->clr_irqenable);
->  	} else {
-> -		reg += bank->regs->irqenable;
-> -		l = __raw_readl(reg);
-> -		if (bank->regs->irqenable_inv)
-> -			l |= gpio_mask;
-> -		else
-> -			l &= ~gpio_mask;
-> -		bank->context.irqenable1 = l;
-> +		bank->context.irqenable1 =
-> +			_gpio_rmw(bank->base, bank->regs->irqenable, gpio_mask,
-> +				  bank->regs->irqenable_inv ?: false);
->  	}
-> -
-> -	__raw_writel(l, reg);
->  }
->  
->  static inline void _set_gpio_irqenable(struct gpio_bank *bank, int gpio, int enable)
-> @@ -556,12 +511,8 @@ static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
->  	}
->  
->  	spin_lock_irqsave(&bank->lock, flags);
-> -	if (enable)
-> -		bank->context.wake_en |= gpio_bit;
-> -	else
-> -		bank->context.wake_en &= ~gpio_bit;
-> -
-> -	__raw_writel(bank->context.wake_en, bank->base + bank->regs->wkup_en);
-> +	bank->context.wake_en = _gpio_rmw(bank->base, bank->regs->wkup_en,
-> +					  gpio_bit, enable);
->  	spin_unlock_irqrestore(&bank->lock, flags);
->  
->  	return 0;
-> @@ -604,21 +555,14 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
->  	_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
->  
->  	if (bank->regs->pinctrl) {
-> -		void __iomem *reg = bank->base + bank->regs->pinctrl;
-> -
->  		/* Claim the pin for MPU */
-> -		__raw_writel(__raw_readl(reg) | (1 << offset), reg);
-> +		_gpio_rmw(bank->base, bank->regs->pinctrl, 1 << offset, 1);
->  	}
->  
->  	if (bank->regs->ctrl && !bank->mod_usage) {
-> -		void __iomem *reg = bank->base + bank->regs->ctrl;
-> -		u32 ctrl;
-> -
-> -		ctrl = __raw_readl(reg);
->  		/* Module is enabled, clocks are not gated */
-> -		ctrl &= ~GPIO_MOD_CTRL_BIT;
-> -		__raw_writel(ctrl, reg);
-> -		bank->context.ctrl = ctrl;
-> +		bank->context.ctrl = _gpio_rmw(bank->base, bank->regs->ctrl,
-> +					       GPIO_MOD_CTRL_BIT, 0);
->  	}
->  
->  	bank->mod_usage |= 1 << offset;
-> @@ -638,22 +582,16 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
->  
->  	if (bank->regs->wkup_en) {
->  		/* Disable wake-up during idle for dynamic tick */
-> -		_gpio_rmw(base, bank->regs->wkup_en, 1 << offset, 0);
->  		bank->context.wake_en =
-> -			__raw_readl(bank->base + bank->regs->wkup_en);
-> +			_gpio_rmw(base, bank->regs->wkup_en, 1 << offset, 0);
->  	}
->  
->  	bank->mod_usage &= ~(1 << offset);
->  
->  	if (bank->regs->ctrl && !bank->mod_usage) {
-> -		void __iomem *reg = bank->base + bank->regs->ctrl;
-> -		u32 ctrl;
-> -
-> -		ctrl = __raw_readl(reg);
->  		/* Module is disabled, clocks are gated */
-> -		ctrl |= GPIO_MOD_CTRL_BIT;
-> -		__raw_writel(ctrl, reg);
-> -		bank->context.ctrl = ctrl;
-> +		bank->context.ctrl = _gpio_rmw(base, bank->regs->ctrl,
-> +					       GPIO_MOD_CTRL_BIT, 1);
->  	}
->  
->  	_reset_gpio(bank, bank->chip.base + offset);
+> +	else {
+> +		if (of_property_read_string(node, "dr_mode", &dr_mode))
+> +			mode = DWC3_MODE_DRD;
+> +		else {
+> +			if (strcmp(dr_mode, "host") == 0)
+> +				mode = DWC3_MODE_HOST;
+> +			else if (strcmp(dr_mode, "gadget") == 0)
+> +				mode = DWC3_MODE_DEVICE;
+> +			else if (strcmp(dr_mode, "drd") == 0)
+> +				mode = DWC3_MODE_DRD;
+> +			else {
+> +				dev_err(dev, "invalid dr_mode property value\n");
+> +				goto err2;
+> +			}
+> +		}
+> +	}
+>  	switch (mode) {
+>  	case DWC3_MODE_DEVICE:
+>  		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
 > -- 
-> 1.7.10.4
-> 
+
+Why not help to make use of that code?
+
+https://patchwork.kernel.org/patch/2193321/
+
+We currently stuck in the discussion about all possible dr_mode
+properties. There came up a device that is host and device capable,
+but not otg.
+
+What does the property drd stand for?
+
+Thanks,
+Michael
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
