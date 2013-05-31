@@ -1,102 +1,234 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: dwc3: Addition of "dr_mode" dt property.
-Date: Fri, 31 May 2013 07:33:41 +0300
-Message-ID: <20130531043341.GA8279@arwen.pp.htv.fi>
-References: <1369936591-29605-1-git-send-email-ruchika@ti.com>
- <51A7AE26.90909@ti.com>
-Reply-To: <balbi@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: omap-usb-host: Fix memory leaks
+Date: Fri, 31 May 2013 10:17:14 +0300
+Message-ID: <51A84E7A.106@ti.com>
+References: <1369400818-31625-1-git-send-email-rogerq@ti.com>
+ <20130530210025.GE6467@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ReaqsoxgOBHFXBhH"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <51A7AE26.90909@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Dan Murphy <dmurphy@ti.com>
-Cc: Ruchika Kharwar <ruchika@ti.com>, linux-usb@vger.kernel.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Landley <rob@landley.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130530210025.GE6467@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux@arm.linux.org.uk, shc_work@mail.ru, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---ReaqsoxgOBHFXBhH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Tony,
 
-Hi,
+On 05/31/2013 12:00 AM, Tony Lindgren wrote:
+> Hi Roger,
+> 
+> * Roger Quadros <rogerq@ti.com> [130524 06:12]:
+>> Fix memory leaks in the error path.
+>> Also, use platform_device_register_full() to allocate
+>> the platform devices and set platform data.
+> 
+> If you need this for the v3.10-rc, you should describe why this patch
+> is needed and ideally have some oops or regression causing commit
+> listed. Care to update the description for that?
 
-On Thu, May 30, 2013 at 02:53:10PM -0500, Dan Murphy wrote:
-> > @@ -520,9 +520,23 @@ static int dwc3_probe(struct platform_device *pdev)
-> >  		mode =3D DWC3_MODE_HOST;
-> >  	else if (IS_ENABLED(CONFIG_USB_DWC3_GADGET))
-> >  		mode =3D DWC3_MODE_DEVICE;
-> > -	else
-> > -		mode =3D DWC3_MODE_DRD;
-> > -
-> > +	else {
-> > +		if (of_property_read_string(node, "dr_mode", &dr_mode)) {
-> This will not execute if the either CONFIG options are set and then
-> the DT property is not even honored
-> Did you test this with multiple CONFIG options?
-> There seems to be a conflict between CONFIGs and runtime operation.
+There is no oops or regression happening. Just that there will be a
+small memory leak if any of the memory allocations fail or if the
+platform device is destroyed.
 
-this is alright. We still want to honor the users who chose to compile
-the driver for gadget-only. In that case, there is no choice to be made.
+If it doesn't look that serious to you then it can wait.
+But if we move to device tree only boot then this patch and the file
+"usb-host.c" might not be required at all.
 
-Now, if you build the driver in its entirety (meaning, DRD), you can
-still choose in runtime if you want the driver to behave as host-only or
-gadget-only.
+cheers,
+-roger
 
-Picture a situation where you have a single SoC with multiple instances
-of this IP and you want to make sure that e.g. ports 1-3 are host-only,
-port 4 is peripheral-only and port 5 is DRD.
-
-> > +			dev_warn(dev, "Missing dr_mode so assuming DWC3_MODE_DRD\n");
-> If dr_mode is an optional parameter why would the dev_warn say it is miss=
-ing?
-> Do we even want to warn here?
-
-Yes. Definitely yes. That would mean a less than optimal DTS file.
-Still, for the sake of sensible defaults, we can still choose to work on
-DRD mode, assuming full capabilities in case user didn't write proper
-DTS, still user should be notified about it.
-
-> > +			mode =3D DWC3_MODE_DRD;
-> > +		} else {
-> > +			if (strcmp(dr_mode, "host") =3D=3D 0)
-> > +				mode =3D DWC3_MODE_HOST;
-> What if CONFIG_USB_DWC3_HOST is not enabled?
-
-No issues, this will only execute if DRD is enabled, which means both
-Host and Device are built in the final binary.
-
-> > +			else if (strcmp(dr_mode, "gadget") =3D=3D 0)
-> > +				mode =3D DWC3_MODE_DEVICE;
-> What if CONFIG_USB_DWC3_GADGET is not enabled?
-
-see above.
-
---=20
-balbi
-
---ReaqsoxgOBHFXBhH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRqCglAAoJEIaOsuA1yqRErVAP/iq77JtrgEkx0Okt8WLDdLmo
-7o9SJEFqjidk79lk30bX0poJi2B5+FC41i+t2Yfiaa+h5/E2vSwME+vMTAslhzos
-2gSvhgk5nPXepZaaQki0/cXhCBdsonwk1KfDklRSjqx8wAxIdozEkEwTqbh/tjhu
-SRay4dp7r5zY0exCRy/W4+2qihskJV0SUthUn0JLL5uN1L6jsRya4+NrSVr9/xa3
-iEIWQ+5oKIJNif0HGusyGNKW3uGhsOd4bWARUPyph+Ashb6vu/ZrrAB18gvRRRTJ
-LjhHLxoTkNtDY1BJZXdRSxytDsv8OA6XW4RVAYgpPXlUUeQigDJtYnUlpwC7rMSb
-tVSvcNAcoSY0m0orLTnKX7PTsMO01/dz7b/pEg3uW2OL5tWNJtWiAYdzV4UAm1SU
-tWRF9kNiT2MUE0/DirKdnGrDb/KAmk8bmmiA/HyI/BUp2pvbsR7iwRiKr7GYLnCc
-seN1KUl9W6FG2sxn5V8yaDd40ueaJWQcrkITWnRU4PrmJXV3+9rej9F1Z4jyWu1+
-7pmgrPv2qoafjR3ggoZ7aKYfSBLWYDKPrlrGbgUBU/FiMul+bSXwjLag6piBs1UA
-9QzTXmlONYum0Y89cSpv9sqVcqM6kMVha/DhvIPMW7Hpg1UJn/YKDZ5RcuBNkKSG
-SrA2+Q1N28UVM5HHVAj5
-=7KWG
------END PGP SIGNATURE-----
-
---ReaqsoxgOBHFXBhH--
+>  
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/usb-host.c |  106 +++++++++++++++++++++-------------------
+>>  1 files changed, 56 insertions(+), 50 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+>> index aa27d7f..609b330 100644
+>> --- a/arch/arm/mach-omap2/usb-host.c
+>> +++ b/arch/arm/mach-omap2/usb-host.c
+>> @@ -28,6 +28,7 @@
+>>  #include <linux/io.h>
+>>  #include <linux/gpio.h>
+>>  #include <linux/usb/phy.h>
+>> +#include <linux/usb/nop-usb-xceiv.h>
+>>  
+>>  #include "soc.h"
+>>  #include "omap_device.h"
+>> @@ -560,7 +561,8 @@ static int usbhs_add_regulator(char *name, char *dev_id, char *dev_supply,
+>>  	struct regulator_init_data *reg_data;
+>>  	struct fixed_voltage_config *config;
+>>  	struct platform_device *pdev;
+>> -	int ret;
+>> +	struct platform_device_info pdevinfo;
+>> +	int ret = -ENOMEM;
+>>  
+>>  	supplies = kzalloc(sizeof(*supplies), GFP_KERNEL);
+>>  	if (!supplies)
+>> @@ -571,7 +573,7 @@ static int usbhs_add_regulator(char *name, char *dev_id, char *dev_supply,
+>>  
+>>  	reg_data = kzalloc(sizeof(*reg_data), GFP_KERNEL);
+>>  	if (!reg_data)
+>> -		return -ENOMEM;
+>> +		goto err_data;
+>>  
+>>  	reg_data->constraints.valid_ops_mask = REGULATOR_CHANGE_STATUS;
+>>  	reg_data->consumer_supplies = supplies;
+>> @@ -580,39 +582,53 @@ static int usbhs_add_regulator(char *name, char *dev_id, char *dev_supply,
+>>  	config = kmemdup(&hsusb_reg_config, sizeof(hsusb_reg_config),
+>>  			GFP_KERNEL);
+>>  	if (!config)
+>> -		return -ENOMEM;
+>> +		goto err_config;
+>> +
+>> +	config->supply_name = kstrdup(name, GFP_KERNEL);
+>> +	if (!config->supply_name)
+>> +		goto err_supplyname;
+>>  
+>> -	config->supply_name = name;
+>>  	config->gpio = gpio;
+>>  	config->enable_high = polarity;
+>>  	config->init_data = reg_data;
+>>  
+>>  	/* create a regulator device */
+>> -	pdev = kzalloc(sizeof(*pdev), GFP_KERNEL);
+>> -	if (!pdev)
+>> -		return -ENOMEM;
+>> +	memset(&pdevinfo, 0, sizeof(pdevinfo));
+>> +	pdevinfo.name = reg_name;
+>> +	pdevinfo.id = PLATFORM_DEVID_AUTO;
+>> +	pdevinfo.data = config;
+>> +	pdevinfo.size_data = sizeof(*config);
+>>  
+>> -	pdev->id = PLATFORM_DEVID_AUTO;
+>> -	pdev->name = reg_name;
+>> -	pdev->dev.platform_data = config;
+>> +	pdev = platform_device_register_full(&pdevinfo);
+>> +	if (IS_ERR(pdev)) {
+>> +		ret = PTR_ERR(pdev);
+>> +		pr_err("%s: Failed registering regulator %s for %s : %d\n",
+>> +				__func__, name, dev_id, ret);
+>> +		goto err_register;
+>> +	}
+>>  
+>> -	ret = platform_device_register(pdev);
+>> -	if (ret)
+>> -		pr_err("%s: Failed registering regulator %s for %s\n",
+>> -				__func__, name, dev_id);
+>> +	return 0;
+>>  
+>> +err_register:
+>> +	kfree(config->supply_name);
+>> +err_supplyname:
+>> +	kfree(config);
+>> +err_config:
+>> +	kfree(reg_data);
+>> +err_data:
+>> +	kfree(supplies);
+>>  	return ret;
+>>  }
+>>  
+>> +#define MAX_STR 20
+>> +
+>>  int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
+>>  {
+>> -	char *rail_name;
+>> -	int i, len;
+>> +	char rail_name[MAX_STR];
+>> +	int i;
+>>  	struct platform_device *pdev;
+>>  	char *phy_id;
+>> -
+>> -	/* the phy_id will be something like "nop_usb_xceiv.1" */
+>> -	len = strlen(nop_name) + 3; /* 3 -> ".1" and NULL terminator */
+>> +	struct platform_device_info pdevinfo;
+>>  
+>>  	for (i = 0; i < num_phys; i++) {
+>>  
+>> @@ -627,25 +643,26 @@ int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
+>>  			!gpio_is_valid(phy->vcc_gpio))
+>>  			continue;
+>>  
+>> -		/* create a NOP PHY device */
+>> -		pdev = kzalloc(sizeof(*pdev), GFP_KERNEL);
+>> -		if (!pdev)
+>> -			return -ENOMEM;
+>> -
+>> -		pdev->id = phy->port;
+>> -		pdev->name = nop_name;
+>> -		pdev->dev.platform_data = phy->platform_data;
+>> -
+>> -		phy_id = kmalloc(len, GFP_KERNEL);
+>> -		if (!phy_id)
+>> +		phy_id = kmalloc(MAX_STR, GFP_KERNEL);
+>> +		if (!phy_id) {
+>> +			pr_err("%s: kmalloc() failed\n", __func__);
+>>  			return -ENOMEM;
+>> +		}
+>>  
+>> -		scnprintf(phy_id, len, "nop_usb_xceiv.%d\n",
+>> -					pdev->id);
+>> -
+>> -		if (platform_device_register(pdev)) {
+>> -			pr_err("%s: Failed to register device %s\n",
+>> -				__func__,  phy_id);
+>> +		/* create a NOP PHY device */
+>> +		memset(&pdevinfo, 0, sizeof(pdevinfo));
+>> +		pdevinfo.name = nop_name;
+>> +		pdevinfo.id = phy->port;
+>> +		pdevinfo.data = phy->platform_data;
+>> +		pdevinfo.size_data = sizeof(struct nop_usb_xceiv_platform_data);
+>> +
+>> +		scnprintf(phy_id, MAX_STR, "nop_usb_xceiv.%d",
+>> +					phy->port);
+>> +		pdev = platform_device_register_full(&pdevinfo);
+>> +		if (IS_ERR(pdev)) {
+>> +			pr_err("%s: Failed to register device %s : %ld\n",
+>> +				__func__,  phy_id, PTR_ERR(pdev));
+>> +			kfree(phy_id);
+>>  			continue;
+>>  		}
+>>  
+>> @@ -653,26 +670,15 @@ int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
+>>  
+>>  		/* Do we need RESET regulator ? */
+>>  		if (gpio_is_valid(phy->reset_gpio)) {
+>> -
+>> -			rail_name = kmalloc(13, GFP_KERNEL);
+>> -			if (!rail_name)
+>> -				return -ENOMEM;
+>> -
+>> -			scnprintf(rail_name, 13, "hsusb%d_reset", phy->port);
+>> -
+>> +			scnprintf(rail_name, MAX_STR,
+>> +					"hsusb%d_reset", phy->port);
+>>  			usbhs_add_regulator(rail_name, phy_id, "reset",
+>>  						phy->reset_gpio, 1);
+>>  		}
+>>  
+>>  		/* Do we need VCC regulator ? */
+>>  		if (gpio_is_valid(phy->vcc_gpio)) {
+>> -
+>> -			rail_name = kmalloc(13, GFP_KERNEL);
+>> -			if (!rail_name)
+>> -				return -ENOMEM;
+>> -
+>> -			scnprintf(rail_name, 13, "hsusb%d_vcc", phy->port);
+>> -
+>> +			scnprintf(rail_name, MAX_STR, "hsusb%d_vcc", phy->port);
+>>  			usbhs_add_regulator(rail_name, phy_id, "vcc",
+>>  					phy->vcc_gpio, phy->vcc_polarity);
+>>  		}
+>> -- 
+>> 1.7.4.1
+>>
