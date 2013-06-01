@@ -1,33 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND PATCH v2 1/3] mmc: omap_hsmmc: Enable SDIO IRQ using a
- GPIO in idle mode.
-Date: Sat, 1 Jun 2013 07:44:02 -0700
-Message-ID: <20130601144402.GA3331@atomide.com>
-References: <1368607516-2789-1-git-send-email-andreas.fenkart@streamunlimited.com>
- <1368607516-2789-2-git-send-email-andreas.fenkart@streamunlimited.com>
- <20130520205815.GJ10378@atomide.com>
- <20130531075858.GA16701@kuttelsuppe>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] usb: dwc3: core: Cocci spatch "odd_ptr_err.spatch"
+Date: Sat, 1 Jun 2013 20:00:58 +0300
+Message-ID: <20130601170058.GD15095@arwen.pp.htv.fi>
+References: <1370081459.29224.44.camel@localhost.localdomain>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="hoZxPH4CaxYzWscb"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130531075858.GA16701@kuttelsuppe>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Andreas Fenkart <andreas.fenkart@streamunlimited.com>, afenkart@gmail.com
-Cc: cjb@laptop.org, arnd@arndb.de, svenkatr@ti.com, balajitk@ti.com, grant.likely@secretlab.ca, linux-mmc@vger.kernel.org, rob@landley.net, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, zonque@gmail.com
+In-Reply-To: <1370081459.29224.44.camel@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Meyer <thomas@m3y3r.de>
+Cc: balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Andreas Fenkart <andreas.fenkart@streamunlimited.com> [130531 01:05]:
-> Hi,
-> 
-> this email adress will soon expire,
-> my alternate email adress is
+--hoZxPH4CaxYzWscb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-OK, noticed that the SDIO wake behaves in a different way between
-wl12xx and mwifiex, and there's an issue with the muxing still for
-legacy non-SDIO booting. So at least one more update coming from me
-for this patch.
+On Sat, Jun 01, 2013 at 12:10:59PM +0200, Thomas Meyer wrote:
+>=20
+> Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
 
-Regards,
+-ENOLOG
 
-Tony
+--=20
+balbi
+
+--hoZxPH4CaxYzWscb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRqijKAAoJEIaOsuA1yqRERsMP/07xB2MplDw1XAKwhw7jJ4uL
+ghLLPNOOf+pSZM9n9TA48DE+hpT1cxq39yKH7bIjiyRSbZiBvhIDZfcCLc2khjGh
+uWrmj/vmBshRzmiQrOR8rDsC+U3wGEdMA3z2KIu9TEoxSEKkoe/6JeiZYbFY+0vr
+okqUCZoacI1qhCOuGkok8chvmewLm3jbpFghNQ92DnvHA1p/q7kt0UGUY27vr1EK
+va45qcQV0TQJnL1C0HCcyWFjTtiNtV28l2Wk0pb73CeCmcGWONtwcB0ricEpuCn8
+CfVpckwXJ0ZzQNaQg19RzKa7/v+ey2oHDXzxULi6RphBB+H0lfg0HruuSRU8b2QC
+4fj01gCFe+He6UaaAQv2QlRzzSjWbk/QG3t6omNXPIn12tLkF9wgah+SZOy4hES5
+dxfCHRbxlHbJmlNWd/Cnb+FZSDBVwo79jiKVvIo45wMdetWxvb6pVQLr4UnKyvHB
+JQVzNrDtXcis9Yz207pKEW0ekBDSjbdbqDeaTn1xCusSGZyBaEEwuyA6n7BQM16c
+IDbrfpp5MJCxsT7CZERI/NxHLdFM20RlrmTVBEGio72KmA1wc7JBKTxbVwPPWj3u
+8a0HrB6ASyXw3mk0uqmW8IvFjh6zbEqeHNhrWv/So+wTBK3Jd8kefpSKmjb5Vbn4
+N7r3HgghKAFrTF4j3xLP
+=f3ti
+-----END PGP SIGNATURE-----
+
+--hoZxPH4CaxYzWscb--
