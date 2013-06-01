@@ -1,32 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [net-next PATCH 1/1] drivers: net: davinci_cpdma: remove CRC
- bytes from skb added by CPDMA
-Date: Fri, 31 May 2013 17:27:16 -0700 (PDT)
-Message-ID: <20130531.172716.1763640633059509974.davem@davemloft.net>
-References: <1369894922-27116-1-git-send-email-mugunthanvnm@ti.com>
+From: Giancarlo Canales <gcanales90@gmail.com>
+Subject: McSPI Problem on the DM3703
+Date: Fri, 31 May 2013 20:30:08 -0400
+Message-ID: <CAG748=9cSUazoRtkZ_RHrbpG4A6uihV0HATZZz=UmpdvU3rLnA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:43306 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755009Ab3FAA1R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 May 2013 20:27:17 -0400
-In-Reply-To: <1369894922-27116-1-git-send-email-mugunthanvnm@ti.com>
+Received: from mail-vc0-f182.google.com ([209.85.220.182]:63891 "EHLO
+	mail-vc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755009Ab3FAAaJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 May 2013 20:30:09 -0400
+Received: by mail-vc0-f182.google.com with SMTP id gf12so1505664vcb.27
+        for <linux-omap@vger.kernel.org>; Fri, 31 May 2013 17:30:08 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: mugunthanvnm@ti.com
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Date: Thu, 30 May 2013 11:52:01 +0530
+Linux OMAP Kernel community,
 
-> Additional 4 bytes found in the skb is the CRC calculated by the
-> CPDMA hardware, check the CRC bit in CPDMA status field of
-> Descriptor and remove the CRC length from the skb. This extra
-> 4 byte can be seen when capturing packets using tcpdump.
-> This has been tested in TI816x platform.
-> 
-> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+I've ran into a bit of a pickle when using McSPI on the DM3703. Lets
+say that the spi-test (spidev/userspace) program can successfully
+generate CLK, SIMO, and CS signals on every SPI (1,2,3) channel you
+test it on, but when you go ahead and use a kernel module (like
+ENC28J60) through either SPI2 or SPI3, no clock is generated, but you
+can still see the SIMO and CS signals. The signs look great when you
+use SPI1.
 
-Applied.
+I'm using a 3.0.0 Kernel, and hope that someone can please help me out
+with this one.
+
+Thanks
