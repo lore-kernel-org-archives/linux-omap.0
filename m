@@ -1,73 +1,43 @@
-From: "Strashko, Grygorii" <grygorii.strashko@ti.com>
-Subject: RE: [PATCH] mfd: twl-core: convert to module_init()
-Date: Sat, 1 Jun 2013 07:59:03 +0000
-Message-ID: <902E09E6452B0E43903E4F2D568737AB31F402@DNCE04.ent.ti.com>
-References: <1370033794-5357-1-git-send-email-khilman@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] serial: omap: repair building without PM_SLEEP
+Date: Sat, 01 Jun 2013 11:18:13 +0200
+Message-ID: <1844339.mxci2DdvBF@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1370033794-5357-1-git-send-email-khilman@linaro.org>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.10]:61012 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751946Ab3FAJSK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 Jun 2013 05:18:10 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sourav Poddar <sourav.poddar@ti.com>, Kevin Hilman <khilman@linaro.org>, Felipe Balbi <balbi@ti.com>
 
-Hi Kevin,
+A recent bug fix in 3.10, ddd85e225c "serial: omap: prevent runtime PM for
+"no_console_suspend"", introduced a regression from an obvious typo:
 
-It's done alreday here:
-https://patchwork.kernel.org/patch/2477541/ - mfd: twl-core: convert to module_i2c_driver()
- (Samuel has taken this one)
-- and -
-https://patchwork.kernel.org/patch/2477561/ - i2c: omap: convert to module_platform_driver()
- (you can vote here - TWL can't be shifted without I2C)
+drivers/tty/serial/omap-serial.c:1677:14: error: 'serial_omap_complete' 
+	undeclared here (not in a function)
 
-(Sent from Web Outlook - sorry if format is wrong)
-Best regards,
-- Grygorii Strashko 
+This changes the incorrectly added macro to the one that we need instead.
 
-________________________________________
-From: linux-omap-owner@vger.kernel.org [linux-omap-owner@vger.kernel.org] on behalf of Kevin Hilman [khilman@linaro.org]
-Sent: Friday, May 31, 2013 11:56 PM
-To: Samuel Ortiz; Tony Lindgren
-Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; open list
-Subject: [PATCH] mfd: twl-core: convert to module_init()
-
-There's no reason for twl-core to be subsys_inicall anymore.  Anything
-using twl that early needs a rethink, or deferred probe changes.
-
-Boot tested and RTC wake tested (via TWL RTC) on OMAP platforms:
-3530/Beagle, 3730/Beagle-xM, 3530/Overo, 3730/Overo-STORM, 4430/Panda,
-4460/Panda-ES.
-
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Kevin Hilman <khilman@linaro.org>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/mfd/twl-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Please apply for 3.10-rc
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 89ab4d9..7749b9e 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -1309,7 +1309,7 @@ static int __init twl_init(void)
- {
-        return i2c_add_driver(&twl_driver);
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 393a8eb..1aaeca8 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -1326,7 +1326,7 @@ static int serial_omap_resume(struct device *dev)
  }
--subsys_initcall(twl_init);
-+module_init(twl_init);
-
- static void __exit twl_exit(void)
- {
---
-1.8.2
+ #else
+ #define serial_omap_prepare NULL
+-#define serial_omap_prepare NULL
++#define serial_omap_complete NULL
+ #endif /* CONFIG_PM_SLEEP */
+ 
+ static void omap_serial_fill_features_erratas(struct uart_omap_port *up)
 
