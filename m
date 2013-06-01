@@ -1,79 +1,35 @@
-From: Thomas Meyer <thomas@m3y3r.de>
-Subject: [PATCH] ARM: OMAP: Cocci spatch "ptr_ret.spatch"
-Date: Sat, 01 Jun 2013 11:44:44 +0200
-Message-ID: <1370079884.29224.16.camel@localhost.localdomain>
+From: Thomas Meyer <thomas-VsYtu1Qij5c@public.gmane.org>
+Subject: [PATCH] usb: dwc3: core: Cocci spatch "odd_ptr_err.spatch"
+Date: Sat, 01 Jun 2013 12:10:59 +0200
+Message-ID: <1370081459.29224.44.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: khilman@deeprootsystems.com, tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
-Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
+Signed-off-by: Thomas Meyer <thomas-VsYtu1Qij5c@public.gmane.org>
 ---
 
-diff -u -p a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -66,7 +66,7 @@ static int __init omap3_l3_init(void)
+diff -u -p a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -450,7 +450,7 @@ static int dwc3_probe(struct platform_de
+ 	}
  
- 	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
+ 	if (IS_ERR(dwc->usb3_phy)) {
+-		ret = PTR_ERR(dwc->usb2_phy);
++		ret = PTR_ERR(dwc->usb3_phy);
  
--	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
-+	return PTR_RET(pdev);
- }
- omap_postcore_initcall(omap3_l3_init);
- 
-@@ -100,7 +100,7 @@ static int __init omap4_l3_init(void)
- 
- 	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
- 
--	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
-+	return PTR_RET(pdev);
- }
- omap_postcore_initcall(omap4_l3_init);
- 
-diff -u -p a/arch/arm/mach-omap2/fb.c b/arch/arm/mach-omap2/fb.c
---- a/arch/arm/mach-omap2/fb.c
-+++ b/arch/arm/mach-omap2/fb.c
-@@ -83,10 +83,7 @@ static int __init omap_init_vrfb(void)
- 	pdev = platform_device_register_resndata(NULL, "omapvrfb", -1,
- 			res, num_res, NULL, 0);
- 
--	if (IS_ERR(pdev))
--		return PTR_ERR(pdev);
--	else
--		return 0;
-+	return PTR_RET(pdev);
- }
- 
- omap_arch_initcall(omap_init_vrfb);
-diff -u -p a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -1678,7 +1678,7 @@ static int __init omap_gpmc_init(void)
- 	pdev = omap_device_build(DEVICE_NAME, -1, oh, NULL, 0);
- 	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
- 
--	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
-+	return PTR_RET(pdev);
- }
- omap_postcore_initcall(omap_gpmc_init);
- 
-diff -u -p a/arch/arm/mach-omap2/pmu.c b/arch/arm/mach-omap2/pmu.c
---- a/arch/arm/mach-omap2/pmu.c
-+++ b/arch/arm/mach-omap2/pmu.c
-@@ -54,10 +54,7 @@ static int __init omap2_init_pmu(unsigne
- 	WARN(IS_ERR(omap_pmu_dev), "Can't build omap_device for %s.\n",
- 	     dev_name);
- 
--	if (IS_ERR(omap_pmu_dev))
--		return PTR_ERR(omap_pmu_dev);
--
--	return 0;
-+	return PTR_RET(omap_pmu_dev);
- }
- 
- static int __init omap_init_pmu(void)
+ 		/*
+ 		 * if -ENXIO is returned, it means PHY layer wasn't
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
