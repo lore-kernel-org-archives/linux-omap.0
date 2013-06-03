@@ -1,102 +1,74 @@
-From: Michael Grzeschik <mgr@pengutronix.de>
-Subject: Re: [PATCH] usb: dwc3: Addition of "dr_mode" dt property.
-Date: Mon, 3 Jun 2013 14:09:25 +0200
-Message-ID: <20130603120925.GB14047@pengutronix.de>
-References: <1369945881-3989-1-git-send-email-ruchika@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: Strange OMAP3 LCD display regression - bisected.
+Date: Mon, 3 Jun 2013 15:16:49 +0300
+Message-ID: <51AC8931.8050808@ti.com>
+References: <20130602165019.655da2eb@notabene.brown> <CAGGh5h0ZsY0J4o6TbMDjD+kOs94SqkFv4gxEhQLgiX9ihdYnPA@mail.gmail.com> <20130603212050.5a28fad6@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1369945881-3989-1-git-send-email-ruchika@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, Ruchika Kharwar <ruchika@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Landley <rob@landley.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="----enig2EBGOLWNJVHJMFOTIXQCF"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46490 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757164Ab3FCMRA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Jun 2013 08:17:00 -0400
+In-Reply-To: <20130603212050.5a28fad6@notabene.brown>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: jean-philippe francois <jp.francois@cynove.com>, linux-omap <linux-omap@vger.kernel.org>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi Felipe,
+------enig2EBGOLWNJVHJMFOTIXQCF
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, May 30, 2013 at 03:31:21PM -0500, Ruchika Kharwar wrote:
-> This patch adds an optional parameter "dr_mode" to the dwc3 core device node.
-> In the case the compile flag for the DWC3 controller is set to
-> "USB_DWC3_DUAL_ROLE" a device tree could restrain to either functionality of
-> host or gadget. In the case the device tree does not use this optional flag or
-> specifies it superfluously to "drd" the functionality will be that
-> of a dual role device.
-> 
-> Signed-off-by: Ruchika Kharwar <ruchika@ti.com>
-> ---
->  Documentation/devicetree/bindings/usb/dwc3.txt |    3 ++-
->  drivers/usb/dwc3/core.c                        |   20 +++++++++++++++++---
->  2 files changed, 19 insertions(+), 4 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
-> index 7a95c65..2f5d584 100644
-> --- a/Documentation/devicetree/bindings/usb/dwc3.txt
-> +++ b/Documentation/devicetree/bindings/usb/dwc3.txt
-> @@ -10,7 +10,8 @@ Required properties:
->  
->  Optional properties:
->   - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
-> -
-> + - dr_mode: determines the mode of core. Supported modes are "gadget", "host"
-> +   and "drd".
->  This is usually a subnode to DWC3 glue to which it is connected.
->  
->  dwc3@4a030000 {
-> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-> index c35d49d..05c0c8b 100644
-> --- a/drivers/usb/dwc3/core.c
-> +++ b/drivers/usb/dwc3/core.c
-> @@ -378,6 +378,7 @@ static int dwc3_probe(struct platform_device *pdev)
->  	void			*mem;
->  
->  	u8			mode;
-> +	char			*dr_mode;
->  
->  	mem = devm_kzalloc(dev, sizeof(*dwc) + DWC3_ALIGN_MASK, GFP_KERNEL);
->  	if (!mem) {
-> @@ -520,9 +521,22 @@ static int dwc3_probe(struct platform_device *pdev)
->  		mode = DWC3_MODE_HOST;
->  	else if (IS_ENABLED(CONFIG_USB_DWC3_GADGET))
->  		mode = DWC3_MODE_DEVICE;
-> -	else
-> -		mode = DWC3_MODE_DRD;
-> -
-> +	else {
-> +		if (of_property_read_string(node, "dr_mode", &dr_mode))
-> +			mode = DWC3_MODE_DRD;
-> +		else {
-> +			if (strcmp(dr_mode, "host") == 0)
-> +				mode = DWC3_MODE_HOST;
-> +			else if (strcmp(dr_mode, "gadget") == 0)
-> +				mode = DWC3_MODE_DEVICE;
-> +			else if (strcmp(dr_mode, "drd") == 0)
-> +				mode = DWC3_MODE_DRD;
-> +			else {
-> +				dev_err(dev, "invalid dr_mode property value\n");
-> +				goto err2;
-> +			}
-> +		}
-> +	}
->  	switch (mode) {
->  	case DWC3_MODE_DEVICE:
->  		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
-> -- 
-> 1.7.5.4
+On 03/06/13 14:20, NeilBrown wrote:
 
-this is more likely to be solved with a common property description for
-the gadget layer. We have some prepared parts in the latest patch series:
+> Panel isn't 100% yet - sometimes uniform white again after resume from
+> suspend, and I see
+>=20
+> [  202.881500] omapdss APPLY error: cannot set timings for lcd: manager=
+ needs to be disabled
+> [  202.881530] omapdss APPLY error: cannot apply lcd config for lcd: ma=
+nager needs to be disabled
+>=20
+> which I don't think I saw before, but I'm happy to track that down myse=
+lf
 
-[PATCH 1/7] USB: add devicetree helpers for determining dr_mode and phy_type
-http://www.spinics.net/lists/linux-usb/msg86829.html
+One quite recent change was that omapdss only allows changing output
+config, including video timings, when the output is disabled. Changing
+timings when output is enabled did not work very reliably even before,
+but now omapdss makes sure it's not done. There may be a bug somewhere
+related to that.
 
-What do you think?
+You only see those when resuming?
 
-Thanks,
-Michael
+ Tomi
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+
+
+------enig2EBGOLWNJVHJMFOTIXQCF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRrIkxAAoJEPo9qoy8lh714ucP/2SXFAczG66g+j7r+Ij9pweP
+2VKfsI7PSnOkzItitmE4LTSneKMicDCbZg7R18El8HC4VcW6yIaL4X3NzpKJRyb5
+4PPd8FM2lTkf+wdhSeo61g+eVbHrnGj3R49/b10hs862TRLpUqMFgtsk3tOuhFPt
+Rxhftt3khC92ZjL7Dwnr+9+jMRTMKEzw2PvgoCXTRaxVPoSg1NkxeJHjwEHsKQ/1
+owpfv4kM68u2l0KknaXnP5m3WS3J5kjQDA6FF3eMZ3/EelyoC4s7NcGNAjT8Tjy/
+BOpROf3GRolboTl4yqfxHrcz6+2vEpSyMBz987HAblS0YaB/guSXBO7sZ8/SRWhy
+wlvo9/UzgbBIKFXc/SaRaD87UB13EN/tw6Y5pYE40GtipbpOyAD1SH193Mdkao7Q
+1T7Y87G274ZjL4AldMbBjUUJIWk51SSv5ufS1MxGCRprpKezwILdMxcyEb1Jb9tW
+JaIXvVwLk3Elxoedjjv5QaTJHpr/DXwBM136eGj8b0c7uRB3zkcg54DLGIwBCOc6
+Au+YWHAyfOEtZpqh4Ak820NenFAM7fWDGOVFo9tUYTPDk4K8gZQQ4Lz1Pxn+3Uvj
+g9gO2u0JtbKS4TGwT+j1QJsbiJSL0iN9FpSnGDutnSksf4w5sfeENsE3huxwEleQ
+adIbWryRiN0/QaSHbw19
+=HKOJ
+-----END PGP SIGNATURE-----
+
+------enig2EBGOLWNJVHJMFOTIXQCF--
