@@ -1,47 +1,36 @@
 From: jgq516@gmail.com
 Subject: Re: keystone2 board hangs with smp kernel
-Date: Mon, 03 Jun 2013 10:33:04 +0800
-Message-ID: <51AC0060.40505@gmail.com>
+Date: Mon, 03 Jun 2013 11:47:20 +0800
+Message-ID: <51AC11C8.3020009@gmail.com>
 References: <51ABFD0B.3020701@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:40918 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757089Ab3FCCdM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Jun 2013 22:33:12 -0400
-Received: by mail-pd0-f178.google.com with SMTP id w16so165256pde.9
-        for <linux-omap@vger.kernel.org>; Sun, 02 Jun 2013 19:33:12 -0700 (PDT)
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:65526 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750846Ab3FCDr0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Jun 2013 23:47:26 -0400
+Received: by mail-pb0-f54.google.com with SMTP id ro12so5020477pbb.41
+        for <linux-omap@vger.kernel.org>; Sun, 02 Jun 2013 20:47:26 -0700 (PDT)
 Received: from [128.224.163.23] ([1.202.252.122])
-        by mx.google.com with ESMTPSA id nz3sm490620pbb.33.2013.06.02.19.33.07
+        by mx.google.com with ESMTPSA id lq4sm60970307pab.19.2013.06.02.20.47.23
         for <linux-omap@vger.kernel.org>
         (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Sun, 02 Jun 2013 19:33:09 -0700 (PDT)
+        Sun, 02 Jun 2013 20:47:25 -0700 (PDT)
 In-Reply-To: <51ABFD0B.3020701@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+
+Oops, I forgot to load boot monitor code before run smp kernel.
+
+Regards,
+Xiao
 
 On 06/03/2013 10:18 AM, jgq516@gmail.com wrote:
 > Hello Cyril,
 >
-Oops seems Cyril has left TI since I got below infos.
-
-Delivery to the following recipient failed permanently:
-
-      cyril@ti.com
-
-Technical details of permanent failure:
-Google tried to deliver your message, but it was rejected by the server for the recipient domain ti.com by cluster5.us.messagelabs.com. [216.82.253.147].
-
-The error that the other server returned was:
-550 Invalid recipient<cyril@ti.com>  (#5.1.1)
-
-Could someone else can help about that? Thanks.
-
-Regards,
-Xiao
 > I have got one TI keystone2 board, and tried different tags of tree: 
 > git://arago-project.org/git/projects/linux-keystone.git,
 > but seems the kernel always hangs as follows, and kernel runs ok if 
