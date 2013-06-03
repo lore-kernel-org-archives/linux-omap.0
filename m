@@ -1,66 +1,63 @@
-From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v1] ARM: dts: omap4-panda: Update the twl6040 gpio to
- macro definition
-Date: Mon, 3 Jun 2013 16:20:25 +0200
-Message-ID: <51ACA629.3060505@ti.com>
-References: <1370015122-26792-1-git-send-email-dmurphy@ti.com>
- <51A8CC08.6090305@epfl.ch>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP: dts fixes for 3.10-rc4
+Date: Mon, 3 Jun 2013 16:34:33 +0200
+Message-ID: <51ACA979.9060801@ti.com>
+References: <51A8A459.1000706@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <51A8CC08.6090305-p8DiymsW2f8@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51A8A459.1000706@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "tony@atomide.com" <tony@atomide.com>
+Cc: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Kevin Hilman <khilman@linaro.org>, Lars Poeschel <poeschel@lemonage.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Dan,
+Hi Tony,
 
-On 05/31/2013 06:12 PM, Florian Vaussard wrote:
-> Hello Dan,
+On 05/31/2013 03:23 PM, Benoit Cousson wrote:
+> Hi Tony,
 > 
-> On 05/31/2013 05:45 PM, Dan Murphy wrote:
->> Update the dt property ti,audpwron-gpio to use the
->> gpio macro definition for GPIO_ACTIVE_HIGH.
->>
->> Signed-off-by: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
->> ---
->>   arch/arm/boot/dts/omap4-panda-common.dtsi |    2 +-
->>   1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi
->> b/arch/arm/boot/dts/omap4-panda-common.dtsi
->> index 800fa4e..00cbaa5 100644
->> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
->> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
->> @@ -190,7 +190,7 @@
->>           /* IRQ# = 119 */
->>           interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>; /*
->> IRQ_SYS_2N cascaded to gic */
->>           interrupt-parent = <&gic>;
->> -        ti,audpwron-gpio = <&gpio4 31 0>;  /* gpio line 127 */
->> +        ti,audpwron-gpio = <&gpio4 31 GPIO_ACTIVE_HIGH>;  /* gpio
->> line 127 */
->>
->>           vio-supply = <&v1v8>;
->>           v2v1-supply = <&v2v1>;
->>
-> 
-> I missed it during the conversion, thank you.
-> 
-> Reviewed-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+> Please pull two DTS fixes for the next -rc.
 
-I've just applied it with Florian's Reviewed-by.
+Please ignore that one. I'll send a new one with one more fix ASAP.
 
 Thanks,
 Benoit
+
+> 
+> Thanks,
+> Benoit
+> 
+> 
+> The following changes since commit e4aa937ec75df0eea0bee03bffa3303ad36c986b:
+>   Linus Torvalds (1):
+>         Linux 3.10-rc3
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git dts-fixes-for-3.10
+> 
+> Kevin Hilman (1):
+>       ARM: dts: omap4-panda|sdp: Fix mux for twl6030 IRQ pin and msecure line
+> 
+> Lars Poeschel (1):
+>       ARM: dts: AM33xx: Fix properties on gpmc node
+> 
+>  arch/arm/boot/dts/am33xx.dtsi             |    4 ++--
+>  arch/arm/boot/dts/omap4-panda-common.dtsi |   20 ++++++++++++++++++++
+>  arch/arm/boot/dts/omap4-sdp.dts           |   20 ++++++++++++++++++++
+>  3 files changed, 42 insertions(+), 2 deletions(-)
+> _______________________________________________
+> devicetree-discuss mailing list
+> devicetree-discuss@lists.ozlabs.org
+> https://lists.ozlabs.org/listinfo/devicetree-discuss
+> 
