@@ -1,36 +1,29 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] serial: omap: repair building without PM_SLEEP
-Date: Mon, 3 Jun 2013 10:07:30 -0700
-Message-ID: <20130603170730.GA30767@kroah.com>
-References: <1844339.mxci2DdvBF@wuerfel>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v2 0/2] USB: PHY: Improve PHY selection logic
+Date: Mon, 3 Jun 2013 10:47:09 -0700
+Message-ID: <20130603174709.GA11059@kroah.com>
+References: <1369999743-11758-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1844339.mxci2DdvBF@wuerfel>
+In-Reply-To: <1369999743-11758-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sourav Poddar <sourav.poddar@ti.com>, Kevin Hilman <khilman@linaro.org>, Felipe Balbi <balbi@ti.com>
+To: Roger Quadros <rogerq@ti.com>
+Cc: stern@rowland.harvard.edu, balbi@ti.com, arnd@arndb.de, adrienverge@gmail.com, kishon@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Jun 01, 2013 at 11:18:13AM +0200, Arnd Bergmann wrote:
-> A recent bug fix in 3.10, ddd85e225c "serial: omap: prevent runtime PM for
-> "no_console_suspend"", introduced a regression from an obvious typo:
-
-I don't see that commit id, or commit, in Linus's tree at all.  Where do
-you see it?
-
-> drivers/tty/serial/omap-serial.c:1677:14: error: 'serial_omap_complete' 
-> 	undeclared here (not in a function)
+On Fri, May 31, 2013 at 02:29:01PM +0300, Roger Quadros wrote:
+> Hi,
 > 
-> This changes the incorrectly added macro to the one that we need instead.
+> Improve Kconfig so that the relevant PHY driver can be explicitely
+> selected by the controller driver instead of relying on the user
+> to do so.
 > 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
-> Please apply for 3.10-rc
+> Detailed description in patch 1.
 
-Really?  It doesn't apply to 3.10-rc3 or -rc4 from what I can tell.
+Felipe needs to take these, not I.
 
-confused,
+thanks,
 
 greg k-h
