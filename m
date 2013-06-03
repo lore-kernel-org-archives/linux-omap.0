@@ -1,21 +1,21 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH 1/3] ARM: DTS: OMAP3: beagle/overo: mux console UART, enable wakeup
-Date: Mon, 03 Jun 2013 14:26:42 -0700
-Message-ID: <87zjv6khrh.fsf@linaro.org>
+Subject: Re: [PATCH 3/3] ARM: DTS: TWL4030: fix mux and wakeup for SYS_NIRQ line
+Date: Mon, 03 Jun 2013 15:19:25 -0700
+Message-ID: <87mwr6kfbm.fsf@linaro.org>
 References: <1370040357-25794-1-git-send-email-khilman@linaro.org>
-	<1370040357-25794-2-git-send-email-khilman@linaro.org>
-	<51AC639F.3040504@epfl.ch>
+	<1370040357-25794-4-git-send-email-khilman@linaro.org>
+	<51AC667D.6070409@epfl.ch>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:60152 "EHLO
-	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753676Ab3FCV0q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jun 2013 17:26:46 -0400
-Received: by mail-pb0-f49.google.com with SMTP id jt11so2138637pbb.36
-        for <linux-omap@vger.kernel.org>; Mon, 03 Jun 2013 14:26:45 -0700 (PDT)
-In-Reply-To: <51AC639F.3040504@epfl.ch> (Florian Vaussard's message of "Mon,
-	03 Jun 2013 11:36:31 +0200")
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:54187 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759508Ab3FCWT3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jun 2013 18:19:29 -0400
+Received: by mail-pb0-f42.google.com with SMTP id uo1so6342215pbc.15
+        for <linux-omap@vger.kernel.org>; Mon, 03 Jun 2013 15:19:28 -0700 (PDT)
+In-Reply-To: <51AC667D.6070409@epfl.ch> (Florian Vaussard's message of "Mon,
+	03 Jun 2013 11:48:45 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: florian.vaussard@epfl.ch
@@ -26,45 +26,74 @@ Florian Vaussard <florian.vaussard@epfl.ch> writes:
 > Hello Kevin,
 >
 > On 06/01/2013 12:45 AM, Kevin Hilman wrote:
->> Ensure the console uart (UART3) on these boards is mux'd correctly, and
->> IO ring wakeup is enabled.
+>> On most OMAP3 platforms, the twl4030 IRQ line is connected to the
+>> SYS_NIRQ line on OMAP.  Therefore, configure the defaults for the
+>> SYS_NIRQ pin in the twl4030 DTS file.
 >>
->> This is needed for serial console wakeups when using DT boot.
+>> Boards that hook up the twl4030 differently can easily override this
+>> in their board-specific DTS file.
+>>
+>> This allows RTC wake from off-mode to work again on OMAP3-based
+>> platforms with twl4030.  Tested on 3530/Beagle, 3730/Beagle-xM,
+>> 3530/Overo, 3730/Overo-STORM.
 >>
 >> Signed-off-by: Kevin Hilman <khilman@linaro.org>
 >> ---
->>   arch/arm/boot/dts/omap3-beagle-xm.dts | 14 ++++++++++++++
->>   arch/arm/boot/dts/omap3-beagle.dts    | 12 ++++++++++++
->>   arch/arm/boot/dts/omap3-overo.dtsi    | 14 ++++++++++++++
->>   3 files changed, 40 insertions(+)
+>>   arch/arm/boot/dts/twl4030.dtsi | 17 +++++++++++++++++
+>>   1 file changed, 17 insertions(+)
 >>
->> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
->> index 3046d1f..ca067b0 100644
->> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
->> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
->> @@ -126,3 +126,17 @@
->>   	mode = <3>;
->>   	power = <50>;
+>> diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
+>> index b3034da..c7fe9f6 100644
+>> --- a/arch/arm/boot/dts/twl4030.dtsi
+>> +++ b/arch/arm/boot/dts/twl4030.dtsi
+>> @@ -13,6 +13,8 @@
+>>   	compatible = "ti,twl4030";
+>>   	interrupt-controller;
+>>   	#interrupt-cells = <1>;
+>> +	pinctrl-names = "default";
+>> +	pinctrl-0 = <&twl4030_pins>;
+>>
+>>   	rtc {
+>>   		compatible = "ti,twl4030-rtc";
+>> @@ -92,3 +94,18 @@
+>>   		#pwm-cells = <2>;
+>>   	};
 >>   };
 >> +
 >> +&omap3_pmx_core {
->> +	uart3_pins: pinmux_uart3_pins {
+>
+> Here you are making the TWL4030 to explicitly depend on OMAP3. Could
+> this chip be used by another target? If the case, I would put this
+> piece of code in the files including twl4030. Otherwise it's ok here.
+
+I talked this over with Tony before posting.  In theorry, it could be
+used on other platforms.  In practice, it's only used on OMAP.  We can
+easily move this to board files if needed later, but thought it would be
+simpler to put it here.  I'll let Benoit decide.
+
+>> +	/*
+>> +	 * On most OMAP3 platforms, the twl4030 IRQ line is connected
+>> +         * to the SYS_NIRQ line on OMAP.  Therefore, configure the
+>> +         * defaults for the SYS_NIRQ pin here.  Boards that hook up
+>> +         * the twl4030 differently can easily override this in their
+>> +         * board-specific DTS file.
+>> +	 */
+>> +	twl4030_pins: pinmux_twl4030_pins {
 >> +		pinctrl-single,pins = <
->> +			0x16e 0x4100	/* uart3_rx_irrx.uart3_rx_irrx WAKEUP | INPUT | MODE0 */
->> +			0x170 0x0	/* uart3_tx_irtx.uart3_tx_irtx OUTPUT | MODE0 */
+>> +			0x1b0 0x4118 /*	sys_nirq.sys_nirq WAKEUP | INPUT_PULLUP | MODE 0 */
 >
-> If you go through Benoit's tree, could you use the newly introduced
-> constants [1]? They are defined
-> in include/dt-bindings/pinctrl/omap.h. The above will look:
+> By using pinctrl constants:
 >
-> 			0x16e (PIN_INPUT | WAKEUP_EVENT | MUX_MODE0)
-> /* uart3_rx_irrx.uart3_rx_irrx */
-> 			0x170 (PIN_OUTPUT | MUX_MODE0)			/* uart3_tx_irtx.uart3_tx_irtx */
+> 			0x1b0 (PIN_INPUT_PULLUP | WAKEUP_EN | MUX_MODE0)	/* sys_nirq.sys_nirq */
 
-Excellent, thanks for the pointer.  I hadn't yet read through your
-pre-processor series, but I really like the readability improvements.
+Yup.
 
-I'll respin these on top of your changes.
+>> +		>;
+>> +	};
+>> +};
+>>
+>
+> I will test this afternoon on an Overo.
 
 Thanks,
 
