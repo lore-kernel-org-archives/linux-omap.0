@@ -1,28 +1,57 @@
 From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v2 0/2] USB: PHY: Improve PHY selection logic
-Date: Mon, 3 Jun 2013 10:47:09 -0700
-Message-ID: <20130603174709.GA11059@kroah.com>
-References: <1369999743-11758-1-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH 1/1] USB: ehci-omap: Reset dma_mask pointer on probe
+Date: Mon, 3 Jun 2013 10:51:08 -0700
+Message-ID: <20130603175108.GA11188@kroah.com>
+References: <Pine.LNX.4.44L0.1305231009230.1459-100000@iolanthe.rowland.org>
+ <519E2BD4.9020906@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38439 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756029Ab3FCRvJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jun 2013 13:51:09 -0400
 Content-Disposition: inline
-In-Reply-To: <1369999743-11758-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: stern@rowland.harvard.edu, balbi@ti.com, arnd@arndb.de, adrienverge@gmail.com, kishon@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <519E2BD4.9020906@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-On Fri, May 31, 2013 at 02:29:01PM +0300, Roger Quadros wrote:
-> Hi,
+On Thu, May 23, 2013 at 05:46:44PM +0300, Roger Quadros wrote:
+> On 05/23/2013 05:11 PM, Alan Stern wrote:
+> > On Thu, 23 May 2013, Roger Quadros wrote:
+> > 
+> >> Device tree probed devices don't get dma_mask set. Previously
+> >> we were setting the dma_mask pointer only if it was NULL.
+> >> However, the address of 'omap_ehci_dma_mask' would change
+> >> each time the module is unloaded and loaded back thus causing
+> >> the devices dma_mask pointer to be invalid on the next load.
+> >>
+> >> This will cause page faults if any driver tries to access the
+> >> old dma_mask pointer.
+> >>
+> >> Unconditionally re-setting the dma_mask pointer fixes this problem.
+> > 
+> >> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+> >> index 3d1491b..b33e306 100644
+> >> --- a/drivers/usb/host/ehci-omap.c
+> >> +++ b/drivers/usb/host/ehci-omap.c
+> >> @@ -146,8 +146,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+> >>  	 * Since shared usb code relies on it, set it here for now.
+> >>  	 * Once we have dma capability bindings this can go away.
+> >>  	 */
+> >> -	if (!pdev->dev.dma_mask)
+> >> -		pdev->dev.dma_mask = &omap_ehci_dma_mask;
+> >> +	pdev->dev.dma_mask = &omap_ehci_dma_mask;
+> > 
+> > Is this the solution that people have agreed on?  There has been a lot 
+> > of discussion on this topic.  In particular, there has been talk about 
+> > fixing it in the DT core.
 > 
-> Improve Kconfig so that the relevant PHY driver can be explicitely
-> selected by the controller driver instead of relying on the user
-> to do so.
-> 
-> Detailed description in patch 1.
+> Fixing it in DT core would be best.
 
-Felipe needs to take these, not I.
+Then please do that.
 
 thanks,
 
