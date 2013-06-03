@@ -1,178 +1,107 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.10-rc4
-Date: Mon, 3 Jun 2013 10:37:58 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1306031029050.8116@utopia.booyaka.com>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: Strange OMAP3 LCD display regression - bisected.
+Date: Mon, 3 Jun 2013 21:20:50 +1000
+Message-ID: <20130603212050.5a28fad6@notabene.brown>
+References: <20130602165019.655da2eb@notabene.brown>
+	<CAGGh5h0ZsY0J4o6TbMDjD+kOs94SqkFv4gxEhQLgiX9ihdYnPA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/D/MeYLm00/4xyArgJMTaH3q"; protocol="application/pgp-signature"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:54961 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753097Ab3FCKh7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jun 2013 06:37:59 -0400
+Received: from cantor2.suse.de ([195.135.220.15]:54904 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755764Ab3FCLVD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Jun 2013 07:21:03 -0400
+In-Reply-To: <CAGGh5h0ZsY0J4o6TbMDjD+kOs94SqkFv4gxEhQLgiX9ihdYnPA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: jean-philippe francois <jp.francois@cynove.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Rajendra Nayak <rnayak@ti.com>, Mike Turquette <mturquette@ti.com>, Paul Walmsley <paul@pwsan.com>
 
+--Sig_/D/MeYLm00/4xyArgJMTaH3q
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
+On Mon, 3 Jun 2013 10:13:18 +0200 jean-philippe francois
+<jp.francois@cynove.com> wrote:
 
-Here are some basic OMAP test results for Linux v3.10-rc4.
-Logs and other details at:
+> 2013/6/2 NeilBrown <neilb@suse.de>:
+> >
+> > Hi Tomi, Rajendra and other,
+> >  I have run into a rather strange regression with the LCD panel display=
+ on my
+> >  GTA04 (OMAP3630 based phone) that you might be able to help me with.
+> >
+> >  I bisected down to two patches, neither of which cause the problem by
+> >  themselves, but both together do.
+> >
+> >  They are:
+> >
+> > commit bd0f5cc3641cb76ae8fa2cc4924c29da157f8b2d
+> > Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > Date:   Thu Dec 13 14:21:30 2012 +0200
+> >
+> >     OMAPDSS: fix TV-out issue with DSI PLL
+> >
+> > and
+> >
+> > commit f7f73aab3d5bd19ba0f72ff00fb6b3be28e1a4d3
+> > Author: Rajendra Nayak <rnayak@ti.com>
+> > Date:   Fri Apr 27 16:27:51 2012 +0530
+> >
+> >     ARM: OMAP: clock: Switch to COMMON clk
+> >
+> >
+> > Yes - rather odd.
+> >
+>=20
+> Does this patch solve your issue ?
+>=20
+> https://patchwork.kernel.org/patch/2634161/
+>=20
 
-    http://www.pwsan.com/omap/testlogs/test_v3.10-rc4/20130603034317/
+Yes.  Thank you and Paul for pointing me to this patch.  I apply it and the
+strange artefact goes away.
 
+Panel isn't 100% yet - sometimes uniform white again after resume from
+suspend, and I see
 
-Test summary
-------------
+[  202.881500] omapdss APPLY error: cannot set timings for lcd: manager nee=
+ds to be disabled
+[  202.881530] omapdss APPLY error: cannot apply lcd config for lcd: manage=
+r needs to be disabled
 
-Build: uImage:
-    Pass (16/16): am33xx_only, n800_multi_omap2xxx, n800_only_a,
-                  omap1_defconfig, omap1_defconfig_1510innovator_only, 
-                  omap1_defconfig_5912osk_only, omap2plus_defconfig, 
-                  omap2plus_defconfig_2430sdp_only
-                  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm, 
-                  omap2plus_defconfig_omap2_4_only, 
-                  omap2plus_defconfig_omap3_4_only, 
-                  rmk_omap3430_ldp_allnoconfig, 
-                  rmk_omap3430_ldp_oldconfig, 
-                  rmk_omap4430_sdp_allnoconfig, 
-                  rmk_omap4430_sdp_oldconfig
+which I don't think I saw before, but I'm happy to track that down myself
 
-Build: zImage:
-    Pass ( 1/ 1): omap2plus_defconfig
+So you can add a
 
-Boot to userspace:
-    FAIL ( 3/12): 37xxevm, am335xbone, am335xbonelt
-    Pass ( 9/12): 2420n800, 2430sdp, 3517evm, 3530es3beagle,
-                  3730beaglexm, 4430es2panda, 4460pandaes, 5912osk,
-                  cmt3517
+   Tested-by: NeilBrown <neilb@suse.de>
 
-PM: chip retention via suspend:
-    FAIL ( 3/ 6): 2430sdp, 37xxevm, 4430es2panda
-    Pass ( 3/ 6): 3530es3beagle, 3730beaglexm, 4460pandaes
+to that patch if you like.
 
-PM: chip retention via dynamic idle:
-    FAIL ( 4/ 6): 2430sdp, 37xxevm, 4430es2panda, 4460pandaes
-    Pass ( 2/ 6): 3530es3beagle, 3730beaglexm
+Thanks,
+NeilBrown
 
-PM: chip off except CORE via suspend:
-    Pass ( 1/ 1): 3730beaglexm
+--Sig_/D/MeYLm00/4xyArgJMTaH3q
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
-PM: chip off except CORE via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
 
-PM: chip off via suspend:
-    FAIL ( 3/ 4): 37xxevm, 4430es2panda, 4460pandaes
-    Pass ( 1/ 4): 3530es3beagle
+iQIVAwUBUax8Ejnsnt1WYoG5AQK4sQ/+PTiLYuQFAkvoF4R2HH3oOS4S6eWBd1iq
+ZWZVeZRSO3tqn05tZqSkz/uTeGXBjW2D4DYvsQ+rUC4S7GRgQxZn3a/xYjALGoFu
+OTIy5MbqISPjB/8B84BAIZ96ubQAWfU4XczEUP74YR8Fnjp2YIhpd7ESdDkXzEza
+maKGl3oJo2uetTHnMBfgb/Wtff1xkWtY5RsKtdqZZR8ngjPsYymLNprYre1CLH+n
+zDsioeE1pyRdJYk44XZ/CsmS3TEJlaqafQVfqSWekpwFfCc7bwC5wkv3UFJ+IxTC
+dCRvWFQ7dhdLHxcPv26vFNe9xNdhZQ1Q3oAE86jznwqWCj8QHiGefJIoM/KXPoYN
+S+0j87OiNCQ/g7lOray3KJ8QzL3/9i8WfFvD6RrxloAHZLOz7uBZx/8y23IysFu9
+iEAVuovgLJ1m9TgFendB8PxlDG5PydT9NArqxn6kl3jEMi1VEI74InpsX2/NkiWr
+blIEsOK2HEa1NVGFZjLmUg1LiWUWpNVmY0Lt0avpasGvAybvJfl5LDliQ7vcme8T
+A+Q0y4LfJreuY6YHoyC63VgHTJTmLqR2/z439fvAv9cq/jnEVbZSImaNrqWKF+CH
+mXRCKyszoGwLCt94mF9Mif/wxoybf5HIR0bvljw8aZB4For1hyWJxDE3BISKupQ9
+cg2n8S3Xi0A=
+=Gv+d
+-----END PGP SIGNATURE-----
 
-PM: chip off via dynamic idle:
-    FAIL ( 3/ 4): 37xxevm, 4430es2panda, 4460pandaes
-    Pass ( 1/ 4): 3530es3beagle
-
-
-Failing tests: fixed by posted patches
---------------------------------------
-
-(none)
-
-
-Failing tests: needing investigation
-------------------------------------
-
-Boot tests:
-
-* 3517EVM & CM-T3517: boot hangs with NFS root
-  - Likely some Kconfig, board file, and PM issues with EMAC
-  - Longstanding bug
-  - Not currently part of the automated test suite
-
-* 37xx EVM: boot fails
-  - Cause unknown
-
-Boot warnings:
-
-* 2420N800, 2430sdp: failed to get counter_32k resource
-  - "omap2_sync32k_clocksource_init: failed to get counter_32k resource"
-  - Cause unknown
-
-* CM-T3517: L3 in-band error with IPSS during boot
-  - Cause unknown but see http://marc.info/?l=linux-omap&m=134833869730129&w=2
-  - Longstanding issue; does not occur on the 3517EVM
-
-* 2430SDP, 3730 Beagle XM, 3530 Beagle, 3517EVM, CM-T3517: {dmic,mcpdm} lookup failure
-  - Cause unknown
-  - These IP blocks don't exist on OMAP3xxx/AM35xx chips
-
-* 3730 Beagle XM, am335xbone, CM-T3517: uart4_rx.uart4_rx mux failure
-  - Cause unknown
-
-PM tests:
-
-* 2430sdp: power domains not entering retention
-  - Cause unknown
-
-* 3730 Beagle XM: does not serial wake from off-idle suspend when console
-  UART doesn't clock-gate ("debug ignore_loglevel")
-  - Cause unknown
-  - Not yet part of the automated test suite
-  - Re-tested at v3.7; still failing:
-    http://www.pwsan.com/omap/transcripts/20121211-3730beaglexm-3.7-pm-offmode-fail-debug.txt
-
-* 4430es2panda: pwrdm state mismatch on CAM, DSS
-
-* 4430es2panda: CORE, TESLA, IVAHD, L3INIT didn't enter target state
-  - Probably due to lack of reset code for M3, DSP, SL2IF, FSUSB
-    per discussion with Tero Kristo
-  - Likely dependent on the bootloader version
-    - fails with 2012.07-00136-g755de79
-  - http://marc.info/?l=linux-arm-kernel&m=136432340618226&w=2
-
-* 4430es2panda: MPU, ABE didn't enter target state
-  - New for v3.10-rc
-
-* 4460pandaes: pwrdm state mismatch on DSS, ABE, IVAHD, TESLA
-
-* 4460pandaes: chip not entering retention in dynamic idle
-  - Presumably 4430es2panda also fails this
-  - Suspend-to-RAM enters full chip retention
-
-Other:
-
-* 4430es2panda: omap_hwmod: l3_instr: _wait_target_disable failed
-  - Unknown cause; could be due to the lack of hierarchical enable/disable
-    in hwmod code
-  - Jon Hunter and Santosh Shilimkar report this does not appear with
-    the same X-loader/bootloader on his 4430ES2.3 Panda, so could be
-    ES-level dependent
-
-Failing tests: reported by others 
----------------------------------
-
-- RTC wakeup from suspend broken on 3730beaglexm
-  - as of v3.10-rc1
-  - discussion here: http://marc.info/?l=linux-omap&m=136915841625434&w=2
-
-
-vmlinux object size
-(delta in bytes from test_v3.10-rc3 
-(e4aa937ec75df0eea0bee03bffa3303ad36c986b)):
-   text     data      bss    total  kernel
-   -328        0        0     -328  am33xx_only
-    +64        0        0      +64  n800_multi_omap2xxx
-    +32        0        0      +32  n800_only_a
-   -512        0        0     -512  omap1_defconfig
-   -512        0        0     -512  omap1_defconfig_1510innovator_only
-   -512        0        0     -512  omap1_defconfig_5912osk_only
-   -328        0        0     -328  omap2plus_defconfig
-   -376        0        0     -376  omap2plus_defconfig_2430sdp_only
-   -328        0        0     -328  omap2plus_defconfig_cpupm
-   -328        0        0     -328  omap2plus_defconfig_no_pm
-   -328        0        0     -328  omap2plus_defconfig_omap2_4_only
-   -328        0        0     -328  omap2plus_defconfig_omap3_4_only
-   -384        0        0     -384  rmk_omap3430_ldp_allnoconfig
-    +79      +16        0      +95  rmk_omap3430_ldp_oldconfig
-   -384        0        0     -384  rmk_omap4430_sdp_allnoconfig
-   +115      -16        0      +99  rmk_omap4430_sdp_oldconfig
-
-
-
+--Sig_/D/MeYLm00/4xyArgJMTaH3q--
