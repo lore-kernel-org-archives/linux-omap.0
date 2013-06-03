@@ -1,43 +1,44 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] serial: omap: repair building without PM_SLEEP
-Date: Mon, 03 Jun 2013 11:50:09 -0700
-Message-ID: <871u8jm3ku.fsf@linaro.org>
-References: <1844339.mxci2DdvBF@wuerfel> <20130603170730.GA30767@kroah.com>
+Subject: Re: [PATCH] mfd: twl-core: convert to module_init()
+Date: Mon, 03 Jun 2013 13:58:03 -0700
+Message-ID: <87li6qlxno.fsf@linaro.org>
+References: <1370033794-5357-1-git-send-email-khilman@linaro.org>
+	<902E09E6452B0E43903E4F2D568737AB31F402@DNCE04.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130603170730.GA30767@kroah.com> (Greg Kroah-Hartman's message
-	of "Mon, 3 Jun 2013 10:07:30 -0700")
+In-Reply-To: <902E09E6452B0E43903E4F2D568737AB31F402@DNCE04.ent.ti.com>
+	(Grygorii Strashko's message of "Sat, 1 Jun 2013 07:59:03 +0000")
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sourav Poddar <sourav.poddar@ti.com>, Felipe Balbi <balbi@ti.com>
+To: "Strashko, Grygorii" <grygorii.strashko@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Greg Kroah-Hartman <gregkh@linuxfoundation.org> writes:
+"Strashko, Grygorii" <grygorii.strashko@ti.com> writes:
 
-> On Sat, Jun 01, 2013 at 11:18:13AM +0200, Arnd Bergmann wrote:
->> A recent bug fix in 3.10, ddd85e225c "serial: omap: prevent runtime PM for
->> "no_console_suspend"", introduced a regression from an obvious typo:
+> Hi Kevin,
 >
-> I don't see that commit id, or commit, in Linus's tree at all.  Where do
-> you see it?
+> It's done alreday here:
+> https://patchwork.kernel.org/patch/2477541/ - mfd: twl-core: convert to module_i2c_driver()
+>  (Samuel has taken this one)
 
-It's in linux-next (from your tty-next branch.)
+Excellent, thanks for pointing it out, somehow I missed that thread.  My
+patch can be ignored.
 
->> drivers/tty/serial/omap-serial.c:1677:14: error: 'serial_omap_complete' 
->> 	undeclared here (not in a function)
->> 
->> This changes the incorrectly added macro to the one that we need instead.
->> 
->> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> - and -
+> https://patchwork.kernel.org/patch/2477561/ - i2c: omap: convert to module_platform_driver()
+>  (you can vote here - TWL can't be shifted without I2C)
 
-Acked-by: Kevin Hilman <khilman@linaro.org>
+This one (combined with the first one) makes twl_rtc fail to initialize
+properly on OMAP3 DT boot, with an error like this:
 
->> ---
->> Please apply for 3.10-rc
->
-> Really?  It doesn't apply to 3.10-rc3 or -rc4 from what I can tell.
+         twl_rtc rtc.22: hctosys: invalid date/time
 
-Right, this is -next material, not v3.10.
+Reverting that you get the expected result:
+
+          twl_rtc rtc.22: setting system clock to 2000-01-01 00:00:00 UTC (946684800)
+
+I didn't debug any further, but for now, at least patch 2 needs a little
+more work/debug.
 
 Kevin
