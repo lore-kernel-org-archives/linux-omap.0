@@ -1,62 +1,115 @@
-From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
-Subject: [PATCH v2 0/4] ARM: dts: AM3XXX: Use preprocessor for device trees
-Date: Mon,  3 Jun 2013 16:12:21 +0200
-Message-ID: <1370268745-15860-1-git-send-email-florian.vaussard@epfl.ch>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH v3] ARM: dts: AM43x: initial support
+Date: Mon, 3 Jun 2013 16:15:10 +0200
+Message-ID: <51ACA4EE.6070603@ti.com>
+References: <1370265594-12883-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1370265594-12883-1-git-send-email-afzal@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Ankur Kishore <a-kishore@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+On 06/03/2013 03:19 PM, Afzal Mohammed wrote:
+> DT source (minimal) for AM4372 SoC to represent AM43x SoC's. Those
+> represented here are the minimal DT nodes necessary to get kernel
+> booting.
+> 
+> In DT nodes, "ti,hwmod" property has not been added, this would be
+> added along with PRCM support for AM43x.
+> 
+> Signed-off-by: Ankur Kishore <a-kishore@ti.com>
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
 
-Following my series for OMAP2+, this series makes use of the C preprocessor
-when compiling AM3xxx DT files, and accomplishes some improvements to improve
-overall readability.
-
-The .dtb files were diff-tested before and after applying the series to
-guarantee identity for all targets.
-
-To enable pullup/down on the pad, the bit should be cleared on AM33xx, where
-it should be set on OMAP3. This was wrong in my first version.
-
-This series is based on Benoit's 'for_3.11/dts' branch.
+Thanks Afzal. I've just applied it in my branch.
 
 Regards,
+Benoit
 
-Florian
-
->From v2:
-- Rebased on Benoit's 'for_3.11/dts'
-- Fixed inversed bit to enable pullups ('1' on OMAP, but '0' on AM33xx)
-
-Florian Vaussard (4):
-  ARM: dts: AM3XXX: Use #include for all device trees
-  ARM: dts: AM33XX: Use existing constants for GPIOs
-  ARM: dts: AM33XX: Specific pinctrl header
-  ARM: dts: AM33XX: Use pinctrl constants
-
- arch/arm/boot/dts/am335x-bone.dts       |   28 ++++++------
- arch/arm/boot/dts/am335x-evm.dts        |   76 +++++++++++++++---------------
- arch/arm/boot/dts/am335x-evmsk.dts      |   46 +++++++++---------
- arch/arm/boot/dts/am33xx.dtsi           |    5 ++-
- arch/arm/boot/dts/am3517-evm.dts        |    2 +-
- arch/arm/boot/dts/am3517_mt_ventoux.dts |    2 +-
- include/dt-bindings/pinctrl/am33xx.h    |   37 +++++++++++++++
- 7 files changed, 118 insertions(+), 78 deletions(-)
- create mode 100644 include/dt-bindings/pinctrl/am33xx.h
-
--- 
-1.7.5.4
+> ---
+> 
+> v3: Make use of C preprocessor, rebased over Benoit's 'for_3.11/dts' branch
+> v2: Add gptimer 1ms, timer2, synctimer and remove twd local timer
+> 
+>  arch/arm/boot/dts/am4372.dtsi | 68 +++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 68 insertions(+)
+>  create mode 100644 arch/arm/boot/dts/am4372.dtsi
+> 
+> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+> new file mode 100644
+> index 0000000..ddc1df7
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/am4372.dtsi
+> @@ -0,0 +1,68 @@
+> +/*
+> + * Device Tree Source for AM4372 SoC
+> + *
+> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + * This file is licensed under the terms of the GNU General Public License
+> + * version 2.  This program is licensed "as is" without any warranty of any
+> + * kind, whether express or implied.
+> + */
+> +
+> +#include <dt-bindings/interrupt-controller/arm-gic.h>
+> +
+> +#include "skeleton.dtsi"
+> +
+> +/ {
+> +	compatible = "ti,am4372", "ti,am43";
+> +	interrupt-parent = <&gic>;
+> +
+> +
+> +	aliases {
+> +		serial0 = &uart0;
+> +	};
+> +
+> +	cpus {
+> +		cpu@0 {
+> +			compatible = "arm,cortex-a9";
+> +		};
+> +	};
+> +
+> +	gic: interrupt-controller@48241000 {
+> +		compatible = "arm,cortex-a9-gic";
+> +		interrupt-controller;
+> +		#interrupt-cells = <3>;
+> +		reg = <0x48241000 0x1000>,
+> +		      <0x48240100 0x0100>;
+> +	};
+> +
+> +	ocp {
+> +		compatible = "simple-bus";
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		ranges;
+> +
+> +		uart0: serial@44e09000 {
+> +			compatible = "ti,am4372-uart","ti,omap2-uart";
+> +			reg = <0x44e09000 0x2000>;
+> +			interrupts = <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
+> +		};
+> +
+> +		timer1: timer@44e31000 {
+> +			compatible = "ti,am4372-timer-1ms","ti,am335x-timer-1ms";
+> +			reg = <0x44e31000 0x400>;
+> +			interrupts = <GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>;
+> +			ti,timer-alwon;
+> +		};
+> +
+> +		timer2: timer@48040000  {
+> +			compatible = "ti,am4372-timer","ti,am335x-timer";
+> +			reg = <0x48040000  0x400>;
+> +			interrupts = <GIC_SPI 68 IRQ_TYPE_LEVEL_HIGH>;
+> +		};
+> +
+> +		counter32k: counter@44e86000 {
+> +			compatible = "ti,am4372-counter32k","ti,omap-counter32k";
+> +			reg = <0x44e86000 0x40>;
+> +		};
+> +	};
+> +};
+> 
