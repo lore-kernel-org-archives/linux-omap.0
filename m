@@ -1,44 +1,57 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] mfd: twl-core: convert to module_init()
-Date: Mon, 03 Jun 2013 13:58:03 -0700
-Message-ID: <87li6qlxno.fsf@linaro.org>
-References: <1370033794-5357-1-git-send-email-khilman@linaro.org>
-	<902E09E6452B0E43903E4F2D568737AB31F402@DNCE04.ent.ti.com>
+Subject: Re: [PATCH 1/2] i2c: omap: convert to module_platform_driver()
+Date: Mon, 03 Jun 2013 13:59:31 -0700
+Message-ID: <87fvwylxl8.fsf@linaro.org>
+References: <1366723151-23209-1-git-send-email-grygorii.strashko@ti.com>
+	<1366723151-23209-2-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <902E09E6452B0E43903E4F2D568737AB31F402@DNCE04.ent.ti.com>
-	(Grygorii Strashko's message of "Sat, 1 Jun 2013 07:59:03 +0000")
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Strashko, Grygorii" <grygorii.strashko@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f177.google.com ([209.85.192.177]:59215 "EHLO
+	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755695Ab3FCU7f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jun 2013 16:59:35 -0400
+Received: by mail-pd0-f177.google.com with SMTP id u10so526731pdi.36
+        for <linux-omap@vger.kernel.org>; Mon, 03 Jun 2013 13:59:34 -0700 (PDT)
+In-Reply-To: <1366723151-23209-2-git-send-email-grygorii.strashko@ti.com>
+	(Grygorii Strashko's message of "Tue, 23 Apr 2013 16:19:09 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
 
-"Strashko, Grygorii" <grygorii.strashko@ti.com> writes:
+Grygorii Strashko <grygorii.strashko@ti.com> writes:
 
-> Hi Kevin,
+> The OMAP I2C driver has a relation to pinctrl-single driver. As result,
+> its probe will be deferred during system boot until late init time,
+> because the pinctrl-single is initizalized as moudle/device init time.
+> This, in turn, will delay initialization of all I2C devices (like mfd,
+> I2C regulators and etc.) and cause boot delay (more over, it can broken
+> initialization of drivers which are not ready to use deferred probe
+> mechanism yet, for example DSS).
 >
-> It's done alreday here:
-> https://patchwork.kernel.org/patch/2477541/ - mfd: twl-core: convert to module_i2c_driver()
->  (Samuel has taken this one)
+> There are no sense to keep OMAP I2C initialization on subsys init layer
+> any more, hence shift it to module/device layer where the i2c <-->
+> pinctrl-single dependency is resolved in drivers/Makefile now.
+>
+> Cc: Wolfram Sang <wsa@the-dreams.de>
+> Cc: "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-i2c@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-Excellent, thanks for pointing it out, somehow I missed that thread.  My
-patch can be ignored.
-
-> - and -
-> https://patchwork.kernel.org/patch/2477561/ - i2c: omap: convert to module_platform_driver()
->  (you can vote here - TWL can't be shifted without I2C)
-
-This one (combined with the first one) makes twl_rtc fail to initialize
-properly on OMAP3 DT boot, with an error like this:
+Testing this patch with PATCH 1/2, the twl_rtc driver fails to correctly
+initialize on OMAP3:
 
          twl_rtc rtc.22: hctosys: invalid date/time
 
-Reverting that you get the expected result:
+instead of the expected result:
 
           twl_rtc rtc.22: setting system clock to 2000-01-01 00:00:00 UTC (946684800)
 
-I didn't debug any further, but for now, at least patch 2 needs a little
-more work/debug.
+so something is still not right for the init sequence.
 
 Kevin
