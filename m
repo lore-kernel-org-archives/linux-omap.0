@@ -1,115 +1,183 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v3] ARM: dts: AM43x: initial support
-Date: Mon, 3 Jun 2013 18:49:54 +0530
-Message-ID: <1370265594-12883-1-git-send-email-afzal@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Ankur Kishore <a-kishore@ti.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: [PATCH v2 2/4] ARM: dts: AM33XX: Use existing constants for GPIOs
+Date: Mon,  3 Jun 2013 16:12:23 +0200
+Message-ID: <1370268745-15860-3-git-send-email-florian.vaussard@epfl.ch>
+References: <1370268745-15860-1-git-send-email-florian.vaussard@epfl.ch>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp5.epfl.ch ([128.178.224.8]:58766 "HELO smtp5.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755880Ab3FCOMp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Jun 2013 10:12:45 -0400
+In-Reply-To: <1370268745-15860-1-git-send-email-florian.vaussard@epfl.ch>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Joel A Fernandes <agnel.joel@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-DT source (minimal) for AM4372 SoC to represent AM43x SoC's. Those
-represented here are the minimal DT nodes necessary to get kernel
-booting.
+Use standard GPIO constants to enhance the readability of DT GPIOs.
 
-In DT nodes, "ti,hwmod" property has not been added, this would be
-added along with PRCM support for AM43x.
-
-Signed-off-by: Ankur Kishore <a-kishore@ti.com>
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
+Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
 ---
+ arch/arm/boot/dts/am335x-bone.dts  |    8 ++++----
+ arch/arm/boot/dts/am335x-evm.dts   |   14 +++++++-------
+ arch/arm/boot/dts/am335x-evmsk.dts |   16 ++++++++--------
+ arch/arm/boot/dts/am33xx.dtsi      |    2 ++
+ 4 files changed, 21 insertions(+), 19 deletions(-)
 
-v3: Make use of C preprocessor, rebased over Benoit's 'for_3.11/dts' branch
-v2: Add gptimer 1ms, timer2, synctimer and remove twd local timer
-
- arch/arm/boot/dts/am4372.dtsi | 68 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 68 insertions(+)
- create mode 100644 arch/arm/boot/dts/am4372.dtsi
-
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-new file mode 100644
-index 0000000..ddc1df7
---- /dev/null
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -0,0 +1,68 @@
-+/*
-+ * Device Tree Source for AM4372 SoC
-+ *
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2.  This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ */
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 0365e56..5bfb7dd 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -88,27 +88,27 @@
+ 
+ 		led@2 {
+ 			label = "beaglebone:green:heartbeat";
+-			gpios = <&gpio1 21 0>;
++			gpios = <&gpio1 21 GPIO_ACTIVE_HIGH>;
+ 			linux,default-trigger = "heartbeat";
+ 			default-state = "off";
+ 		};
+ 
+ 		led@3 {
+ 			label = "beaglebone:green:mmc0";
+-			gpios = <&gpio1 22 0>;
++			gpios = <&gpio1 22 GPIO_ACTIVE_HIGH>;
+ 			linux,default-trigger = "mmc0";
+ 			default-state = "off";
+ 		};
+ 
+ 		led@4 {
+ 			label = "beaglebone:green:usr2";
+-			gpios = <&gpio1 23 0>;
++			gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;
+ 			default-state = "off";
+ 		};
+ 
+ 		led@5 {
+ 			label = "beaglebone:green:usr3";
+-			gpios = <&gpio1 24 0>;
++			gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
+ 			default-state = "off";
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index 9302773..b74dbdf 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -264,12 +264,12 @@
+ 		debounce-delay-ms = <5>;
+ 		col-scan-delay-us = <2>;
+ 
+-		row-gpios = <&gpio1 25 0	/* Bank1, pin25 */
+-			     &gpio1 26 0	/* Bank1, pin26 */
+-			     &gpio1 27 0>;	/* Bank1, pin27 */
++		row-gpios = <&gpio1 25 GPIO_ACTIVE_HIGH		/* Bank1, pin25 */
++			     &gpio1 26 GPIO_ACTIVE_HIGH		/* Bank1, pin26 */
++			     &gpio1 27 GPIO_ACTIVE_HIGH>;	/* Bank1, pin27 */
+ 
+-		col-gpios = <&gpio1 21 0	/* Bank1, pin21 */
+-			     &gpio1 22 0>;	/* Bank1, pin22 */
++		col-gpios = <&gpio1 21 GPIO_ACTIVE_HIGH		/* Bank1, pin21 */
++			     &gpio1 22 GPIO_ACTIVE_HIGH>;	/* Bank1, pin22 */
+ 
+ 		linux,keymap = <0x0000008b	/* MENU */
+ 				0x0100009e	/* BACK */
+@@ -288,14 +288,14 @@
+ 		switch@9 {
+ 			label = "volume-up";
+ 			linux,code = <115>;
+-			gpios = <&gpio0 2 1>;
++			gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;
+ 			gpio-key,wakeup;
+ 		};
+ 
+ 		switch@10 {
+ 			label = "volume-down";
+ 			linux,code = <114>;
+-			gpios = <&gpio0 3 1>;
++			gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
+ 			gpio-key,wakeup;
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 83ded8e..16d17d6 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -144,26 +144,26 @@
+ 
+ 		led@1 {
+ 			label = "evmsk:green:usr0";
+-			gpios = <&gpio1 4 0>;
++			gpios = <&gpio1 4 GPIO_ACTIVE_HIGH>;
+ 			default-state = "off";
+ 		};
+ 
+ 		led@2 {
+ 			label = "evmsk:green:usr1";
+-			gpios = <&gpio1 5 0>;
++			gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
+ 			default-state = "off";
+ 		};
+ 
+ 		led@3 {
+ 			label = "evmsk:green:mmc0";
+-			gpios = <&gpio1 6 0>;
++			gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+ 			linux,default-trigger = "mmc0";
+ 			default-state = "off";
+ 		};
+ 
+ 		led@4 {
+ 			label = "evmsk:green:heartbeat";
+-			gpios = <&gpio1 7 0>;
++			gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
+ 			linux,default-trigger = "heartbeat";
+ 			default-state = "off";
+ 		};
+@@ -177,26 +177,26 @@
+ 		switch@1 {
+ 			label = "button0";
+ 			linux,code = <0x100>;
+-			gpios = <&gpio2 3 0>;
++			gpios = <&gpio2 3 GPIO_ACTIVE_HIGH>;
+ 		};
+ 
+ 		switch@2 {
+ 			label = "button1";
+ 			linux,code = <0x101>;
+-			gpios = <&gpio2 2 0>;
++			gpios = <&gpio2 2 GPIO_ACTIVE_HIGH>;
+ 		};
+ 
+ 		switch@3 {
+ 			label = "button2";
+ 			linux,code = <0x102>;
+-			gpios = <&gpio0 30 0>;
++			gpios = <&gpio0 30 GPIO_ACTIVE_HIGH>;
+ 			gpio-key,wakeup;
+ 		};
+ 
+ 		switch@4 {
+ 			label = "button3";
+ 			linux,code = <0x103>;
+-			gpios = <&gpio2 5 0>;
++			gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;
+ 		};
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index f6a0117..d62feb2 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -8,6 +8,8 @@
+  * kind, whether express or implied.
+  */
+ 
++#include <dt-bindings/gpio/gpio.h>
 +
-+#include <dt-bindings/interrupt-controller/arm-gic.h>
-+
-+#include "skeleton.dtsi"
-+
-+/ {
-+	compatible = "ti,am4372", "ti,am43";
-+	interrupt-parent = <&gic>;
-+
-+
-+	aliases {
-+		serial0 = &uart0;
-+	};
-+
-+	cpus {
-+		cpu@0 {
-+			compatible = "arm,cortex-a9";
-+		};
-+	};
-+
-+	gic: interrupt-controller@48241000 {
-+		compatible = "arm,cortex-a9-gic";
-+		interrupt-controller;
-+		#interrupt-cells = <3>;
-+		reg = <0x48241000 0x1000>,
-+		      <0x48240100 0x0100>;
-+	};
-+
-+	ocp {
-+		compatible = "simple-bus";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges;
-+
-+		uart0: serial@44e09000 {
-+			compatible = "ti,am4372-uart","ti,omap2-uart";
-+			reg = <0x44e09000 0x2000>;
-+			interrupts = <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
-+		};
-+
-+		timer1: timer@44e31000 {
-+			compatible = "ti,am4372-timer-1ms","ti,am335x-timer-1ms";
-+			reg = <0x44e31000 0x400>;
-+			interrupts = <GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>;
-+			ti,timer-alwon;
-+		};
-+
-+		timer2: timer@48040000  {
-+			compatible = "ti,am4372-timer","ti,am335x-timer";
-+			reg = <0x48040000  0x400>;
-+			interrupts = <GIC_SPI 68 IRQ_TYPE_LEVEL_HIGH>;
-+		};
-+
-+		counter32k: counter@44e86000 {
-+			compatible = "ti,am4372-counter32k","ti,omap-counter32k";
-+			reg = <0x44e86000 0x40>;
-+		};
-+	};
-+};
+ #include "skeleton.dtsi"
+ 
+ / {
 -- 
-1.7.12
+1.7.5.4
+
