@@ -1,107 +1,102 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: Strange OMAP3 LCD display regression - bisected.
-Date: Mon, 3 Jun 2013 21:20:50 +1000
-Message-ID: <20130603212050.5a28fad6@notabene.brown>
-References: <20130602165019.655da2eb@notabene.brown>
-	<CAGGh5h0ZsY0J4o6TbMDjD+kOs94SqkFv4gxEhQLgiX9ihdYnPA@mail.gmail.com>
+From: Michael Grzeschik <mgr@pengutronix.de>
+Subject: Re: [PATCH] usb: dwc3: Addition of "dr_mode" dt property.
+Date: Mon, 3 Jun 2013 14:09:25 +0200
+Message-ID: <20130603120925.GB14047@pengutronix.de>
+References: <1369945881-3989-1-git-send-email-ruchika@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/D/MeYLm00/4xyArgJMTaH3q"; protocol="application/pgp-signature"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:54904 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755764Ab3FCLVD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Jun 2013 07:21:03 -0400
-In-Reply-To: <CAGGh5h0ZsY0J4o6TbMDjD+kOs94SqkFv4gxEhQLgiX9ihdYnPA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1369945881-3989-1-git-send-email-ruchika@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, Ruchika Kharwar <ruchika@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Landley <rob@landley.net>
 List-Id: linux-omap@vger.kernel.org
-To: jean-philippe francois <jp.francois@cynove.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Rajendra Nayak <rnayak@ti.com>, Mike Turquette <mturquette@ti.com>, Paul Walmsley <paul@pwsan.com>
 
---Sig_/D/MeYLm00/4xyArgJMTaH3q
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi Felipe,
 
-On Mon, 3 Jun 2013 10:13:18 +0200 jean-philippe francois
-<jp.francois@cynove.com> wrote:
+On Thu, May 30, 2013 at 03:31:21PM -0500, Ruchika Kharwar wrote:
+> This patch adds an optional parameter "dr_mode" to the dwc3 core device node.
+> In the case the compile flag for the DWC3 controller is set to
+> "USB_DWC3_DUAL_ROLE" a device tree could restrain to either functionality of
+> host or gadget. In the case the device tree does not use this optional flag or
+> specifies it superfluously to "drd" the functionality will be that
+> of a dual role device.
+> 
+> Signed-off-by: Ruchika Kharwar <ruchika@ti.com>
+> ---
+>  Documentation/devicetree/bindings/usb/dwc3.txt |    3 ++-
+>  drivers/usb/dwc3/core.c                        |   20 +++++++++++++++++---
+>  2 files changed, 19 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
+> index 7a95c65..2f5d584 100644
+> --- a/Documentation/devicetree/bindings/usb/dwc3.txt
+> +++ b/Documentation/devicetree/bindings/usb/dwc3.txt
+> @@ -10,7 +10,8 @@ Required properties:
+>  
+>  Optional properties:
+>   - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
+> -
+> + - dr_mode: determines the mode of core. Supported modes are "gadget", "host"
+> +   and "drd".
+>  This is usually a subnode to DWC3 glue to which it is connected.
+>  
+>  dwc3@4a030000 {
+> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> index c35d49d..05c0c8b 100644
+> --- a/drivers/usb/dwc3/core.c
+> +++ b/drivers/usb/dwc3/core.c
+> @@ -378,6 +378,7 @@ static int dwc3_probe(struct platform_device *pdev)
+>  	void			*mem;
+>  
+>  	u8			mode;
+> +	char			*dr_mode;
+>  
+>  	mem = devm_kzalloc(dev, sizeof(*dwc) + DWC3_ALIGN_MASK, GFP_KERNEL);
+>  	if (!mem) {
+> @@ -520,9 +521,22 @@ static int dwc3_probe(struct platform_device *pdev)
+>  		mode = DWC3_MODE_HOST;
+>  	else if (IS_ENABLED(CONFIG_USB_DWC3_GADGET))
+>  		mode = DWC3_MODE_DEVICE;
+> -	else
+> -		mode = DWC3_MODE_DRD;
+> -
+> +	else {
+> +		if (of_property_read_string(node, "dr_mode", &dr_mode))
+> +			mode = DWC3_MODE_DRD;
+> +		else {
+> +			if (strcmp(dr_mode, "host") == 0)
+> +				mode = DWC3_MODE_HOST;
+> +			else if (strcmp(dr_mode, "gadget") == 0)
+> +				mode = DWC3_MODE_DEVICE;
+> +			else if (strcmp(dr_mode, "drd") == 0)
+> +				mode = DWC3_MODE_DRD;
+> +			else {
+> +				dev_err(dev, "invalid dr_mode property value\n");
+> +				goto err2;
+> +			}
+> +		}
+> +	}
+>  	switch (mode) {
+>  	case DWC3_MODE_DEVICE:
+>  		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
+> -- 
+> 1.7.5.4
 
-> 2013/6/2 NeilBrown <neilb@suse.de>:
-> >
-> > Hi Tomi, Rajendra and other,
-> >  I have run into a rather strange regression with the LCD panel display=
- on my
-> >  GTA04 (OMAP3630 based phone) that you might be able to help me with.
-> >
-> >  I bisected down to two patches, neither of which cause the problem by
-> >  themselves, but both together do.
-> >
-> >  They are:
-> >
-> > commit bd0f5cc3641cb76ae8fa2cc4924c29da157f8b2d
-> > Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > Date:   Thu Dec 13 14:21:30 2012 +0200
-> >
-> >     OMAPDSS: fix TV-out issue with DSI PLL
-> >
-> > and
-> >
-> > commit f7f73aab3d5bd19ba0f72ff00fb6b3be28e1a4d3
-> > Author: Rajendra Nayak <rnayak@ti.com>
-> > Date:   Fri Apr 27 16:27:51 2012 +0530
-> >
-> >     ARM: OMAP: clock: Switch to COMMON clk
-> >
-> >
-> > Yes - rather odd.
-> >
->=20
-> Does this patch solve your issue ?
->=20
-> https://patchwork.kernel.org/patch/2634161/
->=20
+this is more likely to be solved with a common property description for
+the gadget layer. We have some prepared parts in the latest patch series:
 
-Yes.  Thank you and Paul for pointing me to this patch.  I apply it and the
-strange artefact goes away.
+[PATCH 1/7] USB: add devicetree helpers for determining dr_mode and phy_type
+http://www.spinics.net/lists/linux-usb/msg86829.html
 
-Panel isn't 100% yet - sometimes uniform white again after resume from
-suspend, and I see
-
-[  202.881500] omapdss APPLY error: cannot set timings for lcd: manager nee=
-ds to be disabled
-[  202.881530] omapdss APPLY error: cannot apply lcd config for lcd: manage=
-r needs to be disabled
-
-which I don't think I saw before, but I'm happy to track that down myself
-
-So you can add a
-
-   Tested-by: NeilBrown <neilb@suse.de>
-
-to that patch if you like.
+What do you think?
 
 Thanks,
-NeilBrown
+Michael
 
---Sig_/D/MeYLm00/4xyArgJMTaH3q
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIVAwUBUax8Ejnsnt1WYoG5AQK4sQ/+PTiLYuQFAkvoF4R2HH3oOS4S6eWBd1iq
-ZWZVeZRSO3tqn05tZqSkz/uTeGXBjW2D4DYvsQ+rUC4S7GRgQxZn3a/xYjALGoFu
-OTIy5MbqISPjB/8B84BAIZ96ubQAWfU4XczEUP74YR8Fnjp2YIhpd7ESdDkXzEza
-maKGl3oJo2uetTHnMBfgb/Wtff1xkWtY5RsKtdqZZR8ngjPsYymLNprYre1CLH+n
-zDsioeE1pyRdJYk44XZ/CsmS3TEJlaqafQVfqSWekpwFfCc7bwC5wkv3UFJ+IxTC
-dCRvWFQ7dhdLHxcPv26vFNe9xNdhZQ1Q3oAE86jznwqWCj8QHiGefJIoM/KXPoYN
-S+0j87OiNCQ/g7lOray3KJ8QzL3/9i8WfFvD6RrxloAHZLOz7uBZx/8y23IysFu9
-iEAVuovgLJ1m9TgFendB8PxlDG5PydT9NArqxn6kl3jEMi1VEI74InpsX2/NkiWr
-blIEsOK2HEa1NVGFZjLmUg1LiWUWpNVmY0Lt0avpasGvAybvJfl5LDliQ7vcme8T
-A+Q0y4LfJreuY6YHoyC63VgHTJTmLqR2/z439fvAv9cq/jnEVbZSImaNrqWKF+CH
-mXRCKyszoGwLCt94mF9Mif/wxoybf5HIR0bvljw8aZB4For1hyWJxDE3BISKupQ9
-cg2n8S3Xi0A=
-=Gv+d
------END PGP SIGNATURE-----
-
---Sig_/D/MeYLm00/4xyArgJMTaH3q--
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
