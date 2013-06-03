@@ -1,101 +1,71 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] ARM: OMAP: Cocci spatch "ptr_ret.spatch"
-Date: Mon, 03 Jun 2013 14:17:50 -0700
-Message-ID: <878v2qlwqp.fsf@linaro.org>
-References: <1370079884.29224.16.camel@localhost.localdomain>
+Subject: Re: [PATCH 1/3] ARM: DTS: OMAP3: beagle/overo: mux console UART, enable wakeup
+Date: Mon, 03 Jun 2013 14:26:42 -0700
+Message-ID: <87zjv6khrh.fsf@linaro.org>
+References: <1370040357-25794-1-git-send-email-khilman@linaro.org>
+	<1370040357-25794-2-git-send-email-khilman@linaro.org>
+	<51AC639F.3040504@epfl.ch>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:59316 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754261Ab3FCVRy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jun 2013 17:17:54 -0400
-Received: by mail-pa0-f52.google.com with SMTP id bg2so1061841pad.11
-        for <linux-omap@vger.kernel.org>; Mon, 03 Jun 2013 14:17:53 -0700 (PDT)
-In-Reply-To: <1370079884.29224.16.camel@localhost.localdomain> (Thomas Meyer's
-	message of "Sat, 01 Jun 2013 11:44:44 +0200")
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:60152 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753676Ab3FCV0q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jun 2013 17:26:46 -0400
+Received: by mail-pb0-f49.google.com with SMTP id jt11so2138637pbb.36
+        for <linux-omap@vger.kernel.org>; Mon, 03 Jun 2013 14:26:45 -0700 (PDT)
+In-Reply-To: <51AC639F.3040504@epfl.ch> (Florian Vaussard's message of "Mon,
+	03 Jun 2013 11:36:31 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Meyer <thomas@m3y3r.de>
-Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: florian.vaussard@epfl.ch
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Thomas Meyer <thomas@m3y3r.de> writes:
+Florian Vaussard <florian.vaussard@epfl.ch> writes:
 
-> Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
-
-Could use a changelog, but otherwise
-
-Acked-by: Kevin Hilman <khilman@linaro.org>
-
-> ---
+> Hello Kevin,
 >
-> diff -u -p a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -66,7 +66,7 @@ static int __init omap3_l3_init(void)
->  
->  	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
->  
-> -	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
-> +	return PTR_RET(pdev);
->  }
->  omap_postcore_initcall(omap3_l3_init);
->  
-> @@ -100,7 +100,7 @@ static int __init omap4_l3_init(void)
->  
->  	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
->  
-> -	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
-> +	return PTR_RET(pdev);
->  }
->  omap_postcore_initcall(omap4_l3_init);
->  
-> diff -u -p a/arch/arm/mach-omap2/fb.c b/arch/arm/mach-omap2/fb.c
-> --- a/arch/arm/mach-omap2/fb.c
-> +++ b/arch/arm/mach-omap2/fb.c
-> @@ -83,10 +83,7 @@ static int __init omap_init_vrfb(void)
->  	pdev = platform_device_register_resndata(NULL, "omapvrfb", -1,
->  			res, num_res, NULL, 0);
->  
-> -	if (IS_ERR(pdev))
-> -		return PTR_ERR(pdev);
-> -	else
-> -		return 0;
-> +	return PTR_RET(pdev);
->  }
->  
->  omap_arch_initcall(omap_init_vrfb);
-> diff -u -p a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -1678,7 +1678,7 @@ static int __init omap_gpmc_init(void)
->  	pdev = omap_device_build(DEVICE_NAME, -1, oh, NULL, 0);
->  	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
->  
-> -	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
-> +	return PTR_RET(pdev);
->  }
->  omap_postcore_initcall(omap_gpmc_init);
->  
-> diff -u -p a/arch/arm/mach-omap2/pmu.c b/arch/arm/mach-omap2/pmu.c
-> --- a/arch/arm/mach-omap2/pmu.c
-> +++ b/arch/arm/mach-omap2/pmu.c
-> @@ -54,10 +54,7 @@ static int __init omap2_init_pmu(unsigne
->  	WARN(IS_ERR(omap_pmu_dev), "Can't build omap_device for %s.\n",
->  	     dev_name);
->  
-> -	if (IS_ERR(omap_pmu_dev))
-> -		return PTR_ERR(omap_pmu_dev);
-> -
-> -	return 0;
-> +	return PTR_RET(omap_pmu_dev);
->  }
->  
->  static int __init omap_init_pmu(void)
+> On 06/01/2013 12:45 AM, Kevin Hilman wrote:
+>> Ensure the console uart (UART3) on these boards is mux'd correctly, and
+>> IO ring wakeup is enabled.
+>>
+>> This is needed for serial console wakeups when using DT boot.
+>>
+>> Signed-off-by: Kevin Hilman <khilman@linaro.org>
+>> ---
+>>   arch/arm/boot/dts/omap3-beagle-xm.dts | 14 ++++++++++++++
+>>   arch/arm/boot/dts/omap3-beagle.dts    | 12 ++++++++++++
+>>   arch/arm/boot/dts/omap3-overo.dtsi    | 14 ++++++++++++++
+>>   3 files changed, 40 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
+>> index 3046d1f..ca067b0 100644
+>> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
+>> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+>> @@ -126,3 +126,17 @@
+>>   	mode = <3>;
+>>   	power = <50>;
+>>   };
+>> +
+>> +&omap3_pmx_core {
+>> +	uart3_pins: pinmux_uart3_pins {
+>> +		pinctrl-single,pins = <
+>> +			0x16e 0x4100	/* uart3_rx_irrx.uart3_rx_irrx WAKEUP | INPUT | MODE0 */
+>> +			0x170 0x0	/* uart3_tx_irtx.uart3_tx_irtx OUTPUT | MODE0 */
 >
+> If you go through Benoit's tree, could you use the newly introduced
+> constants [1]? They are defined
+> in include/dt-bindings/pinctrl/omap.h. The above will look:
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+> 			0x16e (PIN_INPUT | WAKEUP_EVENT | MUX_MODE0)
+> /* uart3_rx_irrx.uart3_rx_irrx */
+> 			0x170 (PIN_OUTPUT | MUX_MODE0)			/* uart3_tx_irtx.uart3_tx_irtx */
+
+Excellent, thanks for the pointer.  I hadn't yet read through your
+pre-processor series, but I really like the readability improvements.
+
+I'll respin these on top of your changes.
+
+Thanks,
+
+Kevin
