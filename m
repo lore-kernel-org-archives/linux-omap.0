@@ -1,57 +1,101 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH 1/2] i2c: omap: convert to module_platform_driver()
-Date: Mon, 03 Jun 2013 13:59:31 -0700
-Message-ID: <87fvwylxl8.fsf@linaro.org>
-References: <1366723151-23209-1-git-send-email-grygorii.strashko@ti.com>
-	<1366723151-23209-2-git-send-email-grygorii.strashko@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: Cocci spatch "ptr_ret.spatch"
+Date: Mon, 03 Jun 2013 14:17:50 -0700
+Message-ID: <878v2qlwqp.fsf@linaro.org>
+References: <1370079884.29224.16.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:59215 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755695Ab3FCU7f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jun 2013 16:59:35 -0400
-Received: by mail-pd0-f177.google.com with SMTP id u10so526731pdi.36
-        for <linux-omap@vger.kernel.org>; Mon, 03 Jun 2013 13:59:34 -0700 (PDT)
-In-Reply-To: <1366723151-23209-2-git-send-email-grygorii.strashko@ti.com>
-	(Grygorii Strashko's message of "Tue, 23 Apr 2013 16:19:09 +0300")
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:59316 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754261Ab3FCVRy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jun 2013 17:17:54 -0400
+Received: by mail-pa0-f52.google.com with SMTP id bg2so1061841pad.11
+        for <linux-omap@vger.kernel.org>; Mon, 03 Jun 2013 14:17:53 -0700 (PDT)
+In-Reply-To: <1370079884.29224.16.camel@localhost.localdomain> (Thomas Meyer's
+	message of "Sat, 01 Jun 2013 11:44:44 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Thomas Meyer <thomas@m3y3r.de>
+Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Grygorii Strashko <grygorii.strashko@ti.com> writes:
+Thomas Meyer <thomas@m3y3r.de> writes:
 
-> The OMAP I2C driver has a relation to pinctrl-single driver. As result,
-> its probe will be deferred during system boot until late init time,
-> because the pinctrl-single is initizalized as moudle/device init time.
-> This, in turn, will delay initialization of all I2C devices (like mfd,
-> I2C regulators and etc.) and cause boot delay (more over, it can broken
-> initialization of drivers which are not ready to use deferred probe
-> mechanism yet, for example DSS).
+> Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
+
+Could use a changelog, but otherwise
+
+Acked-by: Kevin Hilman <khilman@linaro.org>
+
+> ---
 >
-> There are no sense to keep OMAP I2C initialization on subsys init layer
-> any more, hence shift it to module/device layer where the i2c <-->
-> pinctrl-single dependency is resolved in drivers/Makefile now.
+> diff -u -p a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -66,7 +66,7 @@ static int __init omap3_l3_init(void)
+>  
+>  	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
+>  
+> -	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
+> +	return PTR_RET(pdev);
+>  }
+>  omap_postcore_initcall(omap3_l3_init);
+>  
+> @@ -100,7 +100,7 @@ static int __init omap4_l3_init(void)
+>  
+>  	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
+>  
+> -	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
+> +	return PTR_RET(pdev);
+>  }
+>  omap_postcore_initcall(omap4_l3_init);
+>  
+> diff -u -p a/arch/arm/mach-omap2/fb.c b/arch/arm/mach-omap2/fb.c
+> --- a/arch/arm/mach-omap2/fb.c
+> +++ b/arch/arm/mach-omap2/fb.c
+> @@ -83,10 +83,7 @@ static int __init omap_init_vrfb(void)
+>  	pdev = platform_device_register_resndata(NULL, "omapvrfb", -1,
+>  			res, num_res, NULL, 0);
+>  
+> -	if (IS_ERR(pdev))
+> -		return PTR_ERR(pdev);
+> -	else
+> -		return 0;
+> +	return PTR_RET(pdev);
+>  }
+>  
+>  omap_arch_initcall(omap_init_vrfb);
+> diff -u -p a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -1678,7 +1678,7 @@ static int __init omap_gpmc_init(void)
+>  	pdev = omap_device_build(DEVICE_NAME, -1, oh, NULL, 0);
+>  	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
+>  
+> -	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
+> +	return PTR_RET(pdev);
+>  }
+>  omap_postcore_initcall(omap_gpmc_init);
+>  
+> diff -u -p a/arch/arm/mach-omap2/pmu.c b/arch/arm/mach-omap2/pmu.c
+> --- a/arch/arm/mach-omap2/pmu.c
+> +++ b/arch/arm/mach-omap2/pmu.c
+> @@ -54,10 +54,7 @@ static int __init omap2_init_pmu(unsigne
+>  	WARN(IS_ERR(omap_pmu_dev), "Can't build omap_device for %s.\n",
+>  	     dev_name);
+>  
+> -	if (IS_ERR(omap_pmu_dev))
+> -		return PTR_ERR(omap_pmu_dev);
+> -
+> -	return 0;
+> +	return PTR_RET(omap_pmu_dev);
+>  }
+>  
+>  static int __init omap_init_pmu(void)
 >
-> Cc: Wolfram Sang <wsa@the-dreams.de>
-> Cc: "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-i2c@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
 >
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-
-Testing this patch with PATCH 1/2, the twl_rtc driver fails to correctly
-initialize on OMAP3:
-
-         twl_rtc rtc.22: hctosys: invalid date/time
-
-instead of the expected result:
-
-          twl_rtc rtc.22: setting system clock to 2000-01-01 00:00:00 UTC (946684800)
-
-so something is still not right for the init sequence.
-
-Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
