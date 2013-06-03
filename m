@@ -1,86 +1,115 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 1/2] ARM: dts: OMAP5: add PWM capability to timer nodes
- missing it
-Date: Mon, 3 Jun 2013 14:55:27 +0200
-Message-ID: <51AC923F.2010607@ti.com>
-References: <1366240995-53538-1-git-send-email-s-anna@ti.com> <516F3696.9080008@ti.com> <37C860A02101E749A747FA2D3C1E3C504BE487@DLEE11.ent.ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v3] ARM: dts: AM43x: initial support
+Date: Mon, 3 Jun 2013 18:49:54 +0530
+Message-ID: <1370265594-12883-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43079 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754150Ab3FCM4A (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Jun 2013 08:56:00 -0400
-In-Reply-To: <37C860A02101E749A747FA2D3C1E3C504BE487@DLEE11.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Ankur Kishore <a-kishore@ti.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Anna, Suman" <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>
 
-Hi Suman,
+DT source (minimal) for AM4372 SoC to represent AM43x SoC's. Those
+represented here are the minimal DT nodes necessary to get kernel
+booting.
 
-On 06/01/2013 12:17 AM, Anna, Suman wrote:
-> Benoit, Tony,
->  
->> On 04/17/2013 06:23 PM, Suman Anna wrote:
->>> OMAP5 has 6 timers (GPTimers 5, 6, 8 to 11) that are capable of PWM.
->>> The PWM capability property is missing from the node definitions of
->>> couple of timers, and this has been fixed.
->>>
->>> Signed-off-by: Suman Anna <s-anna@ti.com>
->>> ---
->>>  arch/arm/boot/dts/omap5.dtsi | 3 +++
->>>  1 file changed, 3 insertions(+)
->>>
->>> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
->>> index 790bb2a..0d155f5 100644
->>> --- a/arch/arm/boot/dts/omap5.dtsi
->>> +++ b/arch/arm/boot/dts/omap5.dtsi
->>> @@ -422,6 +422,7 @@
->>>  			interrupts = <0 41 0x4>;
->>>  			ti,hwmods = "timer5";
->>>  			ti,timer-dsp;
->>> +			ti,timer-pwm;
->>>  		};
->>>
->>>  		timer6: timer@4013a000 {
->>> @@ -458,6 +459,7 @@
->>>  			reg = <0x4803e000 0x80>;
->>>  			interrupts = <0 45 0x4>;
->>>  			ti,hwmods = "timer9";
->>> +			ti,timer-pwm;
->>>  		};
->>>
->>>  		timer10: timer@48086000 {
->>> @@ -465,6 +467,7 @@
->>>  			reg = <0x48086000 0x80>;
->>>  			interrupts = <0 46 0x4>;
->>>  			ti,hwmods = "timer10";
->>> +			ti,timer-pwm;
->>>  		};
->>>
->>>  		timer11: timer@48088000 {
->>
->> Make sure you copy the linux-arm and device-tree mailing lists.
->>
->> Acked-by: Jon Hunter <jon-hunter@ti.com>
->>
-> 
-> Can you include this patch in your next fixes pull request (if you haven't
-> already done so)? The other patch in the series is a feature change, but
-> this is a fix, and can go into 3.10 itself.
+In DT nodes, "ti,hwmod" property has not been added, this would be
+added along with PRCM support for AM43x.
 
-I've just sent a pull request with two fixes to Tony. Since -rc4 is
-already there, I'll update it with this fix.
+Signed-off-by: Ankur Kishore <a-kishore@ti.com>
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
 
-Tony,
+v3: Make use of C preprocessor, rebased over Benoit's 'for_3.11/dts' branch
+v2: Add gptimer 1ms, timer2, synctimer and remove twd local timer
 
-I will resend a new pull-request rebased on -rc4 that will include this
-new fix.
+ arch/arm/boot/dts/am4372.dtsi | 68 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 68 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am4372.dtsi
 
-Regards,
-Benoit
-
-
-
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+new file mode 100644
+index 0000000..ddc1df7
+--- /dev/null
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -0,0 +1,68 @@
++/*
++ * Device Tree Source for AM4372 SoC
++ *
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2.  This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ */
++
++#include <dt-bindings/interrupt-controller/arm-gic.h>
++
++#include "skeleton.dtsi"
++
++/ {
++	compatible = "ti,am4372", "ti,am43";
++	interrupt-parent = <&gic>;
++
++
++	aliases {
++		serial0 = &uart0;
++	};
++
++	cpus {
++		cpu@0 {
++			compatible = "arm,cortex-a9";
++		};
++	};
++
++	gic: interrupt-controller@48241000 {
++		compatible = "arm,cortex-a9-gic";
++		interrupt-controller;
++		#interrupt-cells = <3>;
++		reg = <0x48241000 0x1000>,
++		      <0x48240100 0x0100>;
++	};
++
++	ocp {
++		compatible = "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		uart0: serial@44e09000 {
++			compatible = "ti,am4372-uart","ti,omap2-uart";
++			reg = <0x44e09000 0x2000>;
++			interrupts = <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
++		};
++
++		timer1: timer@44e31000 {
++			compatible = "ti,am4372-timer-1ms","ti,am335x-timer-1ms";
++			reg = <0x44e31000 0x400>;
++			interrupts = <GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>;
++			ti,timer-alwon;
++		};
++
++		timer2: timer@48040000  {
++			compatible = "ti,am4372-timer","ti,am335x-timer";
++			reg = <0x48040000  0x400>;
++			interrupts = <GIC_SPI 68 IRQ_TYPE_LEVEL_HIGH>;
++		};
++
++		counter32k: counter@44e86000 {
++			compatible = "ti,am4372-counter32k","ti,omap-counter32k";
++			reg = <0x44e86000 0x40>;
++		};
++	};
++};
+-- 
+1.7.12
