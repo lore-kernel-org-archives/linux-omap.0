@@ -1,58 +1,40 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 1/1] USB: ehci-omap: Reset dma_mask pointer on probe
-Date: Mon, 3 Jun 2013 10:51:08 -0700
-Message-ID: <20130603175108.GA11188@kroah.com>
-References: <Pine.LNX.4.44L0.1305231009230.1459-100000@iolanthe.rowland.org>
- <519E2BD4.9020906@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] serial: omap: repair building without PM_SLEEP
+Date: Mon, 3 Jun 2013 20:43:38 +0200
+Message-ID: <201306032043.38656.arnd@arndb.de>
+References: <1844339.mxci2DdvBF@wuerfel> <20130603170730.GA30767@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38439 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756029Ab3FCRvJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jun 2013 13:51:09 -0400
-Content-Disposition: inline
-In-Reply-To: <519E2BD4.9020906@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130603170730.GA30767@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sourav Poddar <sourav.poddar@ti.com>, Kevin Hilman <khilman@linaro.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-On Thu, May 23, 2013 at 05:46:44PM +0300, Roger Quadros wrote:
-> On 05/23/2013 05:11 PM, Alan Stern wrote:
-> > On Thu, 23 May 2013, Roger Quadros wrote:
-> > 
-> >> Device tree probed devices don't get dma_mask set. Previously
-> >> we were setting the dma_mask pointer only if it was NULL.
-> >> However, the address of 'omap_ehci_dma_mask' would change
-> >> each time the module is unloaded and loaded back thus causing
-> >> the devices dma_mask pointer to be invalid on the next load.
-> >>
-> >> This will cause page faults if any driver tries to access the
-> >> old dma_mask pointer.
-> >>
-> >> Unconditionally re-setting the dma_mask pointer fixes this problem.
-> > 
-> >> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-> >> index 3d1491b..b33e306 100644
-> >> --- a/drivers/usb/host/ehci-omap.c
-> >> +++ b/drivers/usb/host/ehci-omap.c
-> >> @@ -146,8 +146,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
-> >>  	 * Since shared usb code relies on it, set it here for now.
-> >>  	 * Once we have dma capability bindings this can go away.
-> >>  	 */
-> >> -	if (!pdev->dev.dma_mask)
-> >> -		pdev->dev.dma_mask = &omap_ehci_dma_mask;
-> >> +	pdev->dev.dma_mask = &omap_ehci_dma_mask;
-> > 
-> > Is this the solution that people have agreed on?  There has been a lot 
-> > of discussion on this topic.  In particular, there has been talk about 
-> > fixing it in the DT core.
+On Monday 03 June 2013, Greg Kroah-Hartman wrote:
+> On Sat, Jun 01, 2013 at 11:18:13AM +0200, Arnd Bergmann wrote:
+> > A recent bug fix in 3.10, ddd85e225c "serial: omap: prevent runtime PM for
+> > "no_console_suspend"", introduced a regression from an obvious typo:
 > 
-> Fixing it in DT core would be best.
+> I don't see that commit id, or commit, in Linus's tree at all.  Where do
+> you see it?
+> 
+> > drivers/tty/serial/omap-serial.c:1677:14: error: 'serial_omap_complete' 
+> >       undeclared here (not in a function)
+> > 
+> > This changes the incorrectly added macro to the one that we need instead.
+> > 
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> > ---
+> > Please apply for 3.10-rc
+> 
+> Really?  It doesn't apply to 3.10-rc3 or -rc4 from what I can tell.
 
-Then please do that.
+Sorry, my mistake. Since the bug was introduced as part of a bug fix
+I assumed it was in 3.10-rc but did not look carefully. The problem
+only exists in tty-next at the moment.
 
-thanks,
-
-greg k-h
+	Arnd
