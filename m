@@ -1,42 +1,103 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: Strange OMAP3 LCD display regression - bisected.
-Date: Mon, 3 Jun 2013 13:03:40 +0530
-Message-ID: <51AC46D4.9020503@ti.com>
-References: <20130602165019.655da2eb@notabene.brown> <51AC44A2.8050605@ti.com>
+From: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v5] i2c: omap: correct usage of the interrupt enable register
+Date: Mon, 3 Jun 2013 10:37:20 +0300
+Message-ID: <1370245040-14753-1-git-send-email-oleksandr.dmytryshyn@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56007 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750818Ab3FCHd5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jun 2013 03:33:57 -0400
-In-Reply-To: <51AC44A2.8050605@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: NeilBrown <neilb@suse.de>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-Tomi,
+We've been lucky not to have any interrupts fire during the suspend
+path, otherwise we would have unpredictable behaviour in the kernel.
 
-> 
-> Odd, indeed. Without reverting the patch, the DSS uses a clock from the
-> PRCM as func clock and for pixel clock. As the common clock framework is
-> somehow involved in the breakage, maybe (pure guess) something related
-> to the PRCM clock is configured wrong.
+Based on the logic of the kernel code interrupts from i2c should be
+prohibited during suspend. Kernel writes 0 to the I2C_IE register in
+the omap_i2c_runtime_suspend() function. In the other side kernel
+writes saved interrupt flags to the I2C_IE register in
+omap_i2c_runtime_resume() function. I.e. interrupts should be disabled
+during suspend.
 
-So whats the specific PRCM clock thats used here? I can go check if there is
-something different in the way its modeled with/without common clk.
+This works for chips with version1 registers scheme. Interrupts are
+disabled during suspend. For chips with version2 scheme registers
+writting 0 to the I2C_IE register does nothing (because now the
+I2C_IRQENABLE_SET register is located at this address). This register
+is used to enable interrupts. For disabling interrupts
+I2C_IRQENABLE_CLR register should be used.
 
-regards,
-Rajendra
+Because the registers I2C_IRQENABLE_SET and I2C_IE have the same
+addresses, the interrupt enabling procedure is unchanged.
 
-> 
-> And with reverting the above patch, DSS uses DSI PLL for fclk and pclk,
-> and DSI PLL in turn only needs sysclk, so maybe the possible problem
-> with PRCM doesn't affect this case.
-> 
->  Tomi
-> 
-> 
+I've checked that interrupts in the i2c controller are still enabled
+after writting 0 to the I2C_IRQENABLE_SET register. With this patch
+interrupts are disabled in the omap_i2c_runtime_suspend() function.
 
+Patch is based on:
+git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+tag: v3.10-rc2
+
+Verified on OMAP4430.
+
+Signed-off-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index e02f9e3..64c26f9 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -180,6 +180,8 @@ enum {
+ #define I2C_OMAP_ERRATA_I207		(1 << 0)
+ #define I2C_OMAP_ERRATA_I462		(1 << 1)
+ 
++#define OMAP_I2C_IP_V2_INTERRUPTS_MASK	0x6FFF
++
+ struct omap_i2c_dev {
+ 	spinlock_t		lock;		/* IRQ synchronization */
+ 	struct device		*dev;
+@@ -193,6 +195,7 @@ struct omap_i2c_dev {
+ 						    long latency);
+ 	u32			speed;		/* Speed of bus in kHz */
+ 	u32			flags;
++	u16			scheme;
+ 	u16			cmd_err;
+ 	u8			*buf;
+ 	u8			*regs;
+@@ -1082,7 +1085,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	int irq;
+ 	int r;
+ 	u32 rev;
+-	u16 minor, major, scheme;
++	u16 minor, major;
+ 
+ 	/* NOTE: driver uses the static register mapping */
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+@@ -1159,8 +1162,8 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	 */
+ 	rev = __raw_readw(dev->base + 0x04);
+ 
+-	scheme = OMAP_I2C_SCHEME(rev);
+-	switch (scheme) {
++	dev->scheme = OMAP_I2C_SCHEME(rev);
++	switch (dev->scheme) {
+ 	case OMAP_I2C_SCHEME_0:
+ 		dev->regs = (u8 *)reg_map_ip_v1;
+ 		dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG);
+@@ -1289,7 +1292,11 @@ static int omap_i2c_runtime_suspend(struct device *dev)
+ 
+ 	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
+ 
+-	omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
++	if (_dev->scheme == OMAP_I2C_SCHEME_0)
++		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
++	else
++		omap_i2c_write_reg(_dev, OMAP_I2C_IP_V2_IRQENABLE_CLR,
++				   OMAP_I2C_IP_V2_INTERRUPTS_MASK);
+ 
+ 	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
+ 		omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
+-- 
+1.8.2.rc2
