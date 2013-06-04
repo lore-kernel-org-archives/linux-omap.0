@@ -1,62 +1,98 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/1] USB: ehci-omap: Reset dma_mask pointer on probe
-Date: Tue, 4 Jun 2013 12:48:05 +0300
-Message-ID: <51ADB7D5.8070708@ti.com>
-References: <Pine.LNX.4.44L0.1305231009230.1459-100000@iolanthe.rowland.org> <519E2BD4.9020906@ti.com> <20130603175108.GA11188@kroah.com>
+From: "Hebbar, Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 11/11] i2c: omap: enhance pinctrl support
+Date: Tue, 4 Jun 2013 09:50:49 +0000
+Message-ID: <1BAFE6F6C881BF42822005164F1491C33EC22349@DBDE04.ent.ti.com>
+References: <1369995191-20855-1-git-send-email-gururaja.hebbar@ti.com>
+	<1369995191-20855-12-git-send-email-gururaja.hebbar@ti.com>
+	<87bo7r10s9.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130603175108.GA11188-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <87bo7r10s9.fsf-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: "davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org" <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 06/03/2013 08:51 PM, Greg KH wrote:
-> On Thu, May 23, 2013 at 05:46:44PM +0300, Roger Quadros wrote:
->> On 05/23/2013 05:11 PM, Alan Stern wrote:
->>> On Thu, 23 May 2013, Roger Quadros wrote:
->>>
->>>> Device tree probed devices don't get dma_mask set. Previously
->>>> we were setting the dma_mask pointer only if it was NULL.
->>>> However, the address of 'omap_ehci_dma_mask' would change
->>>> each time the module is unloaded and loaded back thus causing
->>>> the devices dma_mask pointer to be invalid on the next load.
->>>>
->>>> This will cause page faults if any driver tries to access the
->>>> old dma_mask pointer.
->>>>
->>>> Unconditionally re-setting the dma_mask pointer fixes this problem.
->>>
->>>> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
->>>> index 3d1491b..b33e306 100644
->>>> --- a/drivers/usb/host/ehci-omap.c
->>>> +++ b/drivers/usb/host/ehci-omap.c
->>>> @@ -146,8 +146,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
->>>>  	 * Since shared usb code relies on it, set it here for now.
->>>>  	 * Once we have dma capability bindings this can go away.
->>>>  	 */
->>>> -	if (!pdev->dev.dma_mask)
->>>> -		pdev->dev.dma_mask = &omap_ehci_dma_mask;
->>>> +	pdev->dev.dma_mask = &omap_ehci_dma_mask;
->>>
->>> Is this the solution that people have agreed on?  There has been a lot 
->>> of discussion on this topic.  In particular, there has been talk about 
->>> fixing it in the DT core.
->>
->> Fixing it in DT core would be best.
+On Fri, May 31, 2013 at 23:37:02, Kevin Hilman wrote:
+> +Linus Walleij (pinctrl maintainer)
 > 
-> Then please do that.
->
+> Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org> writes:
+> 
+> > Amend the I2C omap pin controller to optionally take a pin control
+> > handle and set the state of the pins to:
+> >
+> > - "default" on boot, resume and before performing an i2c transfer
+> > - "idle" after initial default, after resume default, and after each
+> > i2c xfer
+> > - "sleep" on suspend()
+> >
+> > By optionally putting the pins into sleep state in the suspend callback
+> > we can accomplish two things.
+> > - One is to minimize current leakage from pins and thus save power,
+> > - second, we can prevent the IP from driving pins output in an
+> > uncontrolled manner, which may happen if the power domain drops the
+> > domain regulator.
+> >
+> > Note:
+> > A .suspend & .resume callback is added which simply puts the pins to sleep
+> > state upon suspend & are moved to default & idle state upon resume.
+> >
+> > If any of the above pin states are missing in dt, a warning message
+> > about the missing state is displayed.
+> > If certain pin-states are not available, to remove this warning message
+> > pass respective state name with null phandler.
+> >
+> > (Changes based on i2c-nomadik.c)
+> >
+> > Signed-off-by: Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+> > Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> > Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+> > Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> 
+> [...]
+> 
+> > @@ -1123,14 +1138,47 @@ omap_i2c_probe(struct platform_device *pdev)
+> >  		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
+> >  	}
+> >  
+> > -	dev->pins = devm_pinctrl_get_select_default(&pdev->dev);
+> > -	if (IS_ERR(dev->pins)) {
+> > -		if (PTR_ERR(dev->pins) == -EPROBE_DEFER)
+> > +	dev->pinctrl = devm_pinctrl_get(&pdev->dev);
+> > +	if (!IS_ERR(dev->pinctrl)) {
+> > +		dev->pins_default = pinctrl_lookup_state(dev->pinctrl,
+> > +							 PINCTRL_STATE_DEFAULT);
+> 
+> This part is already done by probe in driver core, why does it need to
+> be done again.  dev->pins->default_state should already have this.
+> (c.f. pinctrl_bind_pins() in drivers/base/pinctrl.c)
+> 
+> But that brings up a bigger question about whether or not we should be
+> doing the rest of this (idle/sleep) pin management in the drivers or in
+> the driver core as well.  I would much prefer it be handled by the
+> driver core.
+> 
+> In fact, since these are all PM related events, it should probably be
+> handled by the PM core and seems pretty straight forward to do so.
 
-It seems [1] went into 3.10-rc3 so this issue is fixed for 3.10.
+Let me pull out some info about these and come back
 
-[1] https://patchwork.kernel.org/patch/2537021/
+> 
+> Kevin
+> 
 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Regards, 
+Gururaja
