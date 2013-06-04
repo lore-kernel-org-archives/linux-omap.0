@@ -1,71 +1,85 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCHv3 1/3] arm: introduce config HAS_BANDGAP
-Date: Tue, 4 Jun 2013 08:42:09 -0400
-Message-ID: <1370349729-10517-1-git-send-email-eduardo.valentin@ti.com>
-References: <51ADDE7A.6090205@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [net-next PATCH 1/8] drivers: net: phy: at803x code cleanup on
+ register and unregister driver
+Date: Tue, 4 Jun 2013 18:13:22 +0530
+Message-ID: <51ADE0EA.7060008@ti.com>
+References: <1370326212-17580-1-git-send-email-mugunthanvnm@ti.com> <1370326212-17580-2-git-send-email-mugunthanvnm@ti.com> <51ADD73E.40405@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54079 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752044Ab3FDMmx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jun 2013 08:42:53 -0400
-In-Reply-To: <51ADDE7A.6090205@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:56793 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751906Ab3FDMnm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Jun 2013 08:43:42 -0400
+In-Reply-To: <51ADD73E.40405@cogentembedded.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Fabio Stevam <festevam@gmail.com>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, benoit.cousson@linaro.org, paul@pwsan.com, Matus Ujhelyi <ujhelyi.m@gmail.com>
 
-Bandgap is a device used to measure temperature on
-electronic equipments. It is widely used in digital
-integrated circuits. It is based on the dependency
-between silicon voltage and temperature.
+On 6/4/2013 5:32 PM, Sergei Shtylyov wrote:
+> Hello.
+>
+> On 04-06-2013 10:10, Mugunthan V N wrote:
+>
+>> Make use of phy_drivers_register/phy_drivers_unregister to 
+>> register/unregister
+>> multiple phy drivers in a single module.
+>
+>> Cc: Matus Ujhelyi <ujhelyi.m@gmail.com>
+>> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+>> ---
+>>   drivers/net/phy/at803x.c |   35 ++++++++++-------------------------
+>>   1 file changed, 10 insertions(+), 25 deletions(-)
+>
+>> diff --git a/drivers/net/phy/at803x.c b/drivers/net/phy/at803x.c
+>> index 45cbc10..a1063e1 100644
+>> --- a/drivers/net/phy/at803x.c
+>> +++ b/drivers/net/phy/at803x.c
+>> @@ -108,8 +108,9 @@ static int at803x_config_init(struct phy_device 
+>> *phydev)
+>>       return 0;
+>>   }
+>>
+>> -/* ATHEROS 8035 */
+>> -static struct phy_driver at8035_driver = {
+>> +static struct phy_driver at803x_driver[] = {
+>> +{
+>> +    /* ATHEROS 8035 */
+>>       .phy_id        = 0x004dd072,
+>>       .name        = "Atheros 8035 ethernet",
+>>       .phy_id_mask    = 0xffffffef,
+>
+>     That's improper indentation. Needs to be shifted by one tab.
+This indentation is as per the coding style followed in all ethernet
+phy drivers. If this need so to be changed, it must be a separate patch
+for all the ethernet phy drivers.
+>
+>> @@ -136,32 +135,18 @@ static struct phy_driver at8030_driver = {
+>>       .driver        = {
+>>           .owner = THIS_MODULE,
+>>       },
+>> -};
+>> +} };
+>
+>    Looks ugly...
+This is also the same as per the style followed in ethernet phy drivers
+Please refer the below grep output
 
-This patch introduce HAS_BANDGAP config entry.
-This config is a boolean value so that arch
-code can flag if they feature a bandgap device.
+$ grep -rnaI "} };" drivers/net/phy/*
+drivers/net/phy/at803x.c:201:} };
+drivers/net/phy/bcm63xx.c:101:} };
+drivers/net/phy/bcm87xx.c:217:} };
+drivers/net/phy/broadcom.c:829:} };
+drivers/net/phy/cicada.c:130:} };
+drivers/net/phy/davicom.c:183:} };
+drivers/net/phy/icplus.c:254:} };
+drivers/net/phy/lxt.c:313:} };
+drivers/net/phy/micrel.c:323:} };
+drivers/net/phy/smsc.c:242:} };
+drivers/net/phy/ste10Xp.c:113:} };
+drivers/net/phy/vitesse.c:192:} };
 
-This config entry follows the same idea behind
-ARCH_HAS_CPUFREQ.
-
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: Fabio Stevam <festevam@gmail.com>
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
----
- arch/arm/Kconfig            | 3 +++
- arch/arm/mach-omap2/Kconfig | 1 +
- 2 files changed, 4 insertions(+)
-
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index d423d58..bcbdec9 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -174,6 +174,9 @@ config ARCH_HAS_CPUFREQ
- 	  and that the relevant menu configurations are displayed for
- 	  it.
- 
-+config ARCH_HAS_BANDGAP
-+	bool
-+
- config GENERIC_HWEIGHT
- 	bool
- 	default y
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index f49cd51..8620ab5 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -4,6 +4,7 @@ config ARCH_OMAP
- config ARCH_OMAP2PLUS
- 	bool "TI OMAP2/3/4/5 SoCs with device tree support" if (ARCH_MULTI_V6 || ARCH_MULTI_V7)
- 	select ARCH_HAS_CPUFREQ
-+	select ARCH_HAS_BANDGAP
- 	select ARCH_HAS_HOLES_MEMORYMODEL
- 	select ARCH_OMAP
- 	select ARCH_REQUIRE_GPIOLIB
--- 
-1.8.2.1.342.gfa7285d
-
+Regards
+Mugunthan V N
