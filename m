@@ -1,138 +1,55 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] rtc: rtc-twl: ensure IRQ is wakeup enabled
-Date: Tue, 04 Jun 2013 10:46:44 -0700
-Message-ID: <877gi94vln.fsf@linaro.org>
-References: <1370039827-25033-1-git-send-email-khilman@linaro.org>
-	<51ADD031.2090808@ti.com>
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [PATCH] i2c: Let users disable "Probe an I2C bus for certain
+ devices"
+Date: Tue, 4 Jun 2013 19:49:02 +0200
+Message-ID: <20130604174900.GA2992@katana>
+References: <1370367222-19353-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:37088 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752834Ab3FDRqs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jun 2013 13:46:48 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rq2so569895pbb.5
-        for <linux-omap@vger.kernel.org>; Tue, 04 Jun 2013 10:46:47 -0700 (PDT)
-In-Reply-To: <51ADD031.2090808@ti.com> (Grygorii Strashko's message of "Tue, 4
-	Jun 2013 14:32:01 +0300")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HlL+5n6rz5pIUxbD"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1370367222-19353-1-git-send-email-grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: rtc-linux@googlegroups.com, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-kernel@lists.linaro.org, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, open list <linux-kernel@vger.kernel.org>
-
-Grygorii Strashko <grygorii.strashko@ti.com> writes:
-
-> Hi Kevin,
->
-> On 06/01/2013 01:37 AM, Kevin Hilman wrote:
->> Currently, the RTC IRQ is never wakeup-enabled so is not capable of
->> bringing the system out of suspend.
->>
->> On OMAP platforms, we have gotten by without this because the TWL RTC
->> is on an I2C-connected chip which is capable of waking up the OMAP via
->> the IO ring when the OMAP is in low-power states.
->>
->> However, if the OMAP suspends without hitting the low-power states
->> (and the IO ring is not enabled), RTC wakeups will not work because
->> the IRQ is not wakeup enabled.
-> As I understand, IRQ wake up capabilities are set/clear simultaneously with
-> IRQ unmasking/masking on OMAP4+ in omap-wakeupgen.c.
-> So, it should work without this patch on OMAP4+.
-
-It might work on OMAP4 for wakeup from suspend, but without properly
-declaring the IRQ as a wakeup source, it will not abort suspend if the
-RTC fires during the suspend process.  To abort suspend, the IRQ must be
-declared as a wakeup IRQ.
-
-> But if TWL is used on non OMAP4+ platform then it is needed.  (OMAP3:
-> I haven't found the place where IRQ wakeup capabilities are
-> configured, would be appreciate if you can point me on)
-
-IRQ wakeup is a genirq feature that trickles into the irq_chip (in OMAP3
-case, it's the twl4030 irq_chip.)
-
-On OMAP3, as mentioned in the changelog, RTC wake has been working fine
-without this because we default to CORE retention, so wakeup happens via
-the IO ring.  However, if you prevent retention during suspend, then
-this IRQ will not wake the system.
-
-Kevin
-
->>
->> To fix, ensure the RTC IRQ is wakeup enabled whenever the RTC alarm is
->> set.
->>
->> Cc: Alessandro Zummo <a.zummo@towertech.it>
->> Cc: Andrew Morton <akpm@linux-foundation.org>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Signed-off-by: Kevin Hilman <khilman@linaro.org>
->> ---
->>   drivers/rtc/rtc-twl.c | 16 ++++++++++++++--
->>   1 file changed, 14 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
->> index 8751a52..bbda0fd 100644
->> --- a/drivers/rtc/rtc-twl.c
->> +++ b/drivers/rtc/rtc-twl.c
->> @@ -213,12 +213,24 @@ static int mask_rtc_irq_bit(unsigned char bit)
->>     static int twl_rtc_alarm_irq_enable(struct device *dev, unsigned
->> enabled)
->>   {
->> +	struct platform_device *pdev = to_platform_device(dev);
->> +	int irq = platform_get_irq(pdev, 0);
->> +	static bool twl_rtc_wake_enabled;
->>   	int ret;
->>   -	if (enabled)
->> +	if (enabled) {
->>   		ret = set_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
->> -	else
->> +		if (device_can_wakeup(dev) && !twl_rtc_wake_enabled) {
->> +			enable_irq_wake(irq);
->> +			twl_rtc_wake_enabled = true;
->> +		}
->> +	} else {
->>   		ret = mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
->> +		if (twl_rtc_wake_enabled) {
->> +			disable_irq_wake(irq);
->> +			twl_rtc_wake_enabled = false;
->> +		}
->> +	}
->>     	return ret;
->>   }
-> twl-rtc has suspend/resume callbacks implemented, so I think it's the
-> better place
-> for this code and twl_rtc_wake_enabled can be dropped.
-
-In theory, that might be the better place (and that's where I put these
-at first), but unfortunately, it doesn't work that way because the
-twl6030-irq core enables/diables the parent IRQ wake feature using PM
-notifiers (which was done to avoid potential lock recursion[1].)
-
-During suspend, the notifier runs at suspend_prepare() time, which is
-well before the driver's ->suspend() method is called.  The result is
-that the parents IRQ wakeup capabilies are never set.
-
-Kevin
 
 
-[1]
-commit ab2b9260df67e29d5bd69d989f2f84f8c2ed4238
-Author: Todd Poynor <toddpoynor@google.com>
-Date:   Tue Oct 4 11:52:29 2011 +0200
+--HlL+5n6rz5pIUxbD
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-    mfd: Fix twl6030 lockdep recursion warning on setting wake IRQs
-    
-    LOCKDEP explicitly sets all irq_desc locks as a single lock-class,
-    causing "possible recursive locking detected" when the TWL RTC
-    driver calls through enable_irq_wake to twl6030_irq_set_wake,
-    which recursively calls irq_set_irq_wake.  Although the
-    irq_desc and lock are different, LOCKDEP treats these as
-    equivalent, presumably due to problems that can be incurred
-    when locking more than one irq_desc, so best to avoid this.
-    
-    Suspend/resume actions implemented as PM notifiers to avoid
-    touch the TWL core for this.
-    
-    Signed-off-by: Todd Poynor <toddpoynor@google.com>
-    Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-    Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
+On Tue, Jun 04, 2013 at 08:33:42PM +0300, Grygorii Strashko wrote:
+
+> Currently the I2C devices instantiation Method 3 "Probe an I2C bus for
+> certain devices" (see Documentation/i2c/instantiating-devices) is always
+> enabled for all platforms (boards) and can't be disabled.
+
+Not true. Set .class = 0 for your adapter. I always ask authors of new
+drivers if they really need to set .class to something.
+
+
+--HlL+5n6rz5pIUxbD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRriiMAAoJEBQN5MwUoCm2UO4P/RZGhzuhHA6Ps/hZg45o5Ura
+DsENTFBlJNLg7hbHssv0jNkyw8RUR6S/8CY8hhHli6BwVoVd7+2WBxIAkSImmmE6
+Yx88+RvBH8nBspR4YUqqrh0XIcTVtrfjV2XM17Cb6AKFoI6mBbVw1R1iOPZbg2XU
+R0tT9P0PtE4H6lyOa2UEZv3LqBi7ywuDcwU6uaXAOeF2cKZl1/PFXEinMcJO8zXK
+B1UkWGk1z6woPIYbk6lsTGripqMDe/B7zXlJFFN/JY74rmo8q1PMJEnPGmI9bAzc
+gOHtDfiwOi59GSHJPBnJxQNNPcCIBFfME1JgQQoOuJBDMAk0U4fCmLJx7XAinzKx
+Ih1KovGz2uqdUVU2nL20nXsErvPLKKp5g8f436pIUGEi/qGmF0YoSH4eahRcLZoE
+8eihODJAhBP/gY4xB1vmO8vKSayIbFkTvN9zOcVTtTBTmSQ5vkzkvWOkVJFgj9kj
+zxq+YsYCCigr3QBJLfVtauvcZcN6+QPpuw7REbgPmn5Hv9vy9Poo+3UsS7AVhvDB
+ZYIHHVM5kSDlD+Ym0FMjlVpCYMZGlBZNcntQGP5y9cQng9xDNFoY4pZno0hUkX6C
+5CusnbUw6SYmd2BPHaSBPq7kzdRUK1eZmLVumUrJD/edjtSGYlG4glKjV6GcdgIO
+bTWtMOUM4AH6eQXIh2tK
+=dmQs
+-----END PGP SIGNATURE-----
+
+--HlL+5n6rz5pIUxbD--
