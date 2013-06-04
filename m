@@ -1,67 +1,62 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Request for OMAPDSS testing
-Date: Tue, 4 Jun 2013 10:40:37 +0300
-Message-ID: <51AD99F5.7060506@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/1] USB: ehci-omap: Reset dma_mask pointer on probe
+Date: Tue, 4 Jun 2013 12:48:05 +0300
+Message-ID: <51ADB7D5.8070708@ti.com>
+References: <Pine.LNX.4.44L0.1305231009230.1459-100000@iolanthe.rowland.org> <519E2BD4.9020906@ti.com> <20130603175108.GA11188@kroah.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="----enig2IPOQQUHCLGVUFCONTFCV"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40170 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759981Ab3FDHkx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Jun 2013 03:40:53 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130603175108.GA11188-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, Igor Grinberg <grinberg@compulab.co.il>, Thomas Weber <weber@corscience.de>, Mike Rapoport <mike@compulab.co.il>, Steve Sakoman <steve@sakoman.com>, =?windows-1252?Q?Gra=9Evydas_Ignotas?= <notasas@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-------enig2IPOQQUHCLGVUFCONTFCV
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On 06/03/2013 08:51 PM, Greg KH wrote:
+> On Thu, May 23, 2013 at 05:46:44PM +0300, Roger Quadros wrote:
+>> On 05/23/2013 05:11 PM, Alan Stern wrote:
+>>> On Thu, 23 May 2013, Roger Quadros wrote:
+>>>
+>>>> Device tree probed devices don't get dma_mask set. Previously
+>>>> we were setting the dma_mask pointer only if it was NULL.
+>>>> However, the address of 'omap_ehci_dma_mask' would change
+>>>> each time the module is unloaded and loaded back thus causing
+>>>> the devices dma_mask pointer to be invalid on the next load.
+>>>>
+>>>> This will cause page faults if any driver tries to access the
+>>>> old dma_mask pointer.
+>>>>
+>>>> Unconditionally re-setting the dma_mask pointer fixes this problem.
+>>>
+>>>> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+>>>> index 3d1491b..b33e306 100644
+>>>> --- a/drivers/usb/host/ehci-omap.c
+>>>> +++ b/drivers/usb/host/ehci-omap.c
+>>>> @@ -146,8 +146,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+>>>>  	 * Since shared usb code relies on it, set it here for now.
+>>>>  	 * Once we have dma capability bindings this can go away.
+>>>>  	 */
+>>>> -	if (!pdev->dev.dma_mask)
+>>>> -		pdev->dev.dma_mask = &omap_ehci_dma_mask;
+>>>> +	pdev->dev.dma_mask = &omap_ehci_dma_mask;
+>>>
+>>> Is this the solution that people have agreed on?  There has been a lot 
+>>> of discussion on this topic.  In particular, there has been talk about 
+>>> fixing it in the DT core.
+>>
+>> Fixing it in DT core would be best.
+> 
+> Then please do that.
+>
 
-Hi guys,
+It seems [1] went into 3.10-rc3 so this issue is fixed for 3.10.
 
-I've made some big changes on the omapdss device model, which involves
-converting all the panel drivers. I've got only a bunch of boards, so I
-hope some of you can perhaps do some minimal tests on some other boards.
+[1] https://patchwork.kernel.org/patch/2537021/
 
-I've got: Beagle (old one), Panda, 4430SDP, Overo with LCD43.
-
-The code can be found from the below git branch. It's based on 3.10-rc1.
-
-git://gitorious.org/linux-omap-dss2/linux.git work/dss-dev-model
-
-All you need to do to get things working is to enable the new panel
-drivers from kernel config, under Device drivers/Graphics support/OMAP2+
-Display Subsystem support/OMAP Display Device Drivers/
-
-Thanks in advance!
-
- Tomi
-
-
-------enig2IPOQQUHCLGVUFCONTFCV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJRrZn1AAoJEPo9qoy8lh71jisP/3Kg2fW0NSq55rBZic7/aPAj
-JI51zY/v2xGZzXeBzuYEbnXUz7hiNpH610iVH9IfEjxM+bvGuzdpze+MrCj+yC2f
-EqkK4TXhj9FQn2BOoEcQB6Iifyth21JdbPV86mBuGrvtaifvgr1FVSuTqWj4s6uz
-6t3hye7G4V+fowlMW0CeTJ6RUVfW61HVoY08Jg6T3kikb1MkwEvx1/stdQ/wUEEz
-ArkJ/K1sVtBgKkATU4Bwl4N3O80K07pFRpvUd/LKzbJXIc1v7rukESyITH2kkSDD
-PeoeUNuB5cztPujaDBAvRcwppOvTmLC73pZEfuiyoIBmkpcOzExWUQDT89H6sw7n
-EP4xij3tQYpqL7jomJHS2rNEFqseHBLzJ5OEVObc3RPzfAJ0alCIOoA2MYTC/s5x
-BL5QNQrO3NpbX+UB/+TB5fFB2wXA1WG1/tfdVgvFAGn5ysb56HhZcZM1wKIJoVAE
-0muuO3P22kF/6rufYAyEuMTMARAaZOGsZEXAzn9voEYhY9IANyaxMpqfpOv/LX94
-W/UYuWCk+z0vPD+z1ySWq6ulxwR6Ql8flZP+sO+Y4cWbTeavScEXs91doY1HONUF
-9uF+/o4mq897+3/h7CtgYl9K4pvtytYSwG0DLANySKq8ejjJNf4/a/cud3SzUbJJ
-Pn2XnHXY398VJureUjUT
-=brM0
------END PGP SIGNATURE-----
-
-------enig2IPOQQUHCLGVUFCONTFCV--
+cheers,
+-roger
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
