@@ -1,187 +1,55 @@
 From: Mike Turquette <mturquette@linaro.org>
-Subject: [PATCH RFC 2/3] ARM: dts: omap4 clock data
-Date: Mon,  3 Jun 2013 23:39:17 -0700
-Message-ID: <1370327958-19776-3-git-send-email-mturquette@linaro.org>
-References: <1370327958-19776-1-git-send-email-mturquette@linaro.org>
+Subject: [PATCH RFC 0/3] first pass converting omap4 clock data to DT
+Date: Mon,  3 Jun 2013 23:39:15 -0700
+Message-ID: <1370327958-19776-1-git-send-email-mturquette@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f51.google.com ([209.85.160.51]:61454 "EHLO
-	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755923Ab3FDGjj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jun 2013 02:39:39 -0400
-Received: by mail-pb0-f51.google.com with SMTP id um15so3642167pbc.10
-        for <linux-omap@vger.kernel.org>; Mon, 03 Jun 2013 23:39:38 -0700 (PDT)
-In-Reply-To: <1370327958-19776-1-git-send-email-mturquette@linaro.org>
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:42750 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751359Ab3FDGjd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jun 2013 02:39:33 -0400
+Received: by mail-pd0-f180.google.com with SMTP id 14so6757793pdc.11
+        for <linux-omap@vger.kernel.org>; Mon, 03 Jun 2013 23:39:32 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Tero Kristo <t-kristo@ti.com>, Rajendra <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, Benoit Cousson <b-cousson@ti.com>, Mike Turquette <mturquette@linaro.org>, Joel A Fernandes <joelagnel@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Tero Kristo <t-kristo@ti.com>, Rajendra <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, Benoit Cousson <b-cousson@ti.com>, Mike Turquette <mturquette@linaro.org>
 
-This is a first pass at creating a unique node for each clock in the
-OMAP4 power, reset and & clock manager (PRCM).  So far I have only
-converted mux clocks & fixed-rate clocks, which coexist with the current
-clock data in the kernel.  The rest needs to be done but better to
-publish early and often to see what others think of this approach.
+This is a very incomplete conversion of a handful of OMAP4 PRCM clocks
+from the statically defined clock data in
+arch/arm/mach-omap2/cclock44xx_data.c to a new dts file in
+arch/arm/boot/dts/omap4-clocks.dtsi.
 
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Joel A Fernandes <joelagnel@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Mike Turquette <mturquette@linaro.org>
----
- arch/arm/boot/dts/omap4-clocks.dtsi | 128 ++++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap4.dtsi        |   2 +
- 2 files changed, 130 insertions(+)
+I am not a DT expert so many of the choices here may be quite disgusting
+to look at, or may be on the right path.  In particular I simply include
+the new omap4-clocks.dtsi from omap4.dtsi, which feels a bit kludgey.
+Also this series depends on the basic clock bindings RFC I posted
+earlier today[1].
+
+I actually have an omap4-clock.dtsi file with many more clocks converted
+to the mux-clock, divider-clock, fixed-clock, fixed-factor and
+(unpublished) gate-clock bindings in my local repo, but it is not
+currently booting.  I wanted to get this early preview out regardless.
+
+[1] http://article.gmane.org/gmane.linux.kernel/1501216
+
+Mike Turquette (3):
+  clk: omap: introduce clock driver
+  ARM: dts: omap4 clock data
+  ARM: omap4: register DT clocks & remove old data
+
+ arch/arm/boot/dts/omap4-clocks.dtsi   | 128 ++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap4.dtsi          |   2 +
+ arch/arm/mach-omap2/cclock44xx_data.c |  54 ++------------
+ drivers/clk/Makefile                  |   1 +
+ drivers/clk/omap/Makefile             |   1 +
+ drivers/clk/omap/clk.c                |  55 +++++++++++++++
+ include/linux/clk/omap.h              |  24 +++++++
+ 7 files changed, 217 insertions(+), 48 deletions(-)
  create mode 100644 arch/arm/boot/dts/omap4-clocks.dtsi
+ create mode 100644 drivers/clk/omap/Makefile
+ create mode 100644 drivers/clk/omap/clk.c
+ create mode 100644 include/linux/clk/omap.h
 
-diff --git a/arch/arm/boot/dts/omap4-clocks.dtsi b/arch/arm/boot/dts/omap4-clocks.dtsi
-new file mode 100644
-index 0000000..664e100
---- /dev/null
-+++ b/arch/arm/boot/dts/omap4-clocks.dtsi
-@@ -0,0 +1,128 @@
-+/*
-+ * Copyright (C) 2013 Linaro Incorporated - http://www.linaro.org/
-+ *
-+ * Mike Turquette <mturquette@linaro.org>
-+ *
-+ * Data is automatically generated from the OMAP hardware databases.  If
-+ * changes need to be made, do not edit this file directly.  Instead contact
-+ * the following developers who will update the code generator:
-+ *
-+ * Benoit Cousson <benoit.cousson@linaro.org>
-+ * Rajendra Nayak <rnayak@ti.com>
-+ * Mike Turquette <mturquette@linaro.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/* FIXME need to print the address directly */
-+/*
-+#include "../../mach-omap2/prm44xx.h"
-+#include "../../mach-omap2/cm2_44xx.h"
-+#include "../../mach-omap2/cm1_44xx.h"
-+*/
-+
-+
-+/* Root clocks */
-+
-+extalt_clkin_ck: extalt_clkin_ck {
-+	#clock-cells = <0>;
-+	compatible = "fixed-clock";
-+	clock-frequency = <59000000>;
-+};
-+
-+pad_slimbus_core_clks_ck: pad_slimbus_core_clks_ck {
-+	#clock-cells = <0>;
-+	compatible = "fixed-clock";
-+	clock-frequency = <12000000>;
-+};
-+
-+secure_32k_clk_src_ck: secure_32k_clk_src_ck {
-+	#clock-cells = <0>;
-+	compatible = "fixed-clock";
-+	clock-frequency = <32768>;
-+};
-+
-+virt_12000000_ck: virt_12000000_ck {
-+	#clock-cells = <0>;
-+	compatible = "fixed-clock";
-+	clock-frequency = <12000000>;
-+};
-+
-+virt_13000000_ck: virt_13000000_ck {
-+	#clock-cells = <0>;
-+	compatible = "fixed-clock";
-+	clock-frequency = <13000000>;
-+};
-+
-+virt_16800000_ck: virt_16800000_ck {
-+	#clock-cells = <0>;
-+	compatible = "fixed-clock";
-+	clock-frequency = <16800000>;
-+};
-+
-+virt_19200000_ck: virt_19200000_ck {
-+	#clock-cells = <0>;
-+	compatible = "fixed-clock";
-+	clock-frequency = <19200000>;
-+};
-+
-+virt_26000000_ck: virt_26000000_ck {
-+	#clock-cells = <0>;
-+	compatible = "fixed-clock";
-+	clock-frequency = <26000000>;
-+};
-+
-+virt_27000000_ck: virt_27000000_ck {
-+	#clock-cells = <0>;
-+	compatible = "fixed-clock";
-+	clock-frequency = <27000000>;
-+};
-+
-+virt_38400000_ck: virt_38400000_ck {
-+	#clock-cells = <0>;
-+	compatible = "fixed-clock";
-+	clock-frequency = <38400000>;
-+};
-+
-+sys_clkin_dt: sys_clkin_dt@4a306110 {
-+	#clock-cells = <0>;
-+	compatible = "mux-clock";
-+	clocks = <&virt_12000000_ck>, <&virt_13000000_ck>, <&virt_16800000_ck>, <&virt_19200000_ck>, <&virt_26000000_ck>, <&virt_27000000_ck>, <&virt_38400000_ck>;
-+	reg = <0x4a306110 0x4>;
-+	mask = <0x7>;
-+	shift = <0>;
-+	index_one;
-+};
-+
-+tie_low_clock_ck: tie_low_clock_ck {
-+	#clock-cells = <0>;
-+	compatible = "fixed-clock";
-+	clock-frequency = <0>;
-+};
-+
-+utmi_phy_clkout_ck: utmi_phy_clkout_ck {
-+	#clock-cells = <0>;
-+	compatible = "fixed-clock";
-+	clock-frequency = <60000000>;
-+};
-+
-+xclk60mhsp1_ck: xclk60mhsp1_ck {
-+	#clock-cells = <0>;
-+	compatible = "fixed-clock";
-+	clock-frequency = <60000000>;
-+};
-+
-+xclk60mhsp2_ck: xclk60mhsp2_ck {
-+	#clock-cells = <0>;
-+	compatible = "fixed-clock";
-+	clock-frequency = <60000000>;
-+};
-+
-+xclk60motg_ck: xclk60motg_ck {
-+	#clock-cells = <0>;
-+	compatible = "fixed-clock";
-+	clock-frequency = <60000000>;
-+};
-+
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 2a56428..70608db 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -106,6 +106,8 @@
- 			ti,hwmods = "counter_32k";
- 		};
- 
-+		/include/ "omap4-clocks.dtsi"
-+
- 		omap4_pmx_core: pinmux@4a100040 {
- 			compatible = "ti,omap4-padconf", "pinctrl-single";
- 			reg = <0x4a100040 0x0196>;
 -- 
 1.8.1.2
 
