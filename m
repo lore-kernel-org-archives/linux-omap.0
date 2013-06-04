@@ -1,68 +1,46 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] rtc: rtc-twl: ensure IRQ is wakeup enabled
-Date: Mon, 3 Jun 2013 16:13:03 -0700
-Message-ID: <20130603161303.55e9da049744656541e9048f@linux-foundation.org>
-References: <1370039827-25033-1-git-send-email-khilman@linaro.org>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [net-next PATCH 0/8] add phy driver for Atheros AR8031 and CPSW phy-mode DT enhancement
+Date: Tue, 4 Jun 2013 11:40:03 +0530
+Message-ID: <1370326212-17580-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41089 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757635Ab3FCXNE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Jun 2013 19:13:04 -0400
-In-Reply-To: <1370039827-25033-1-git-send-email-khilman@linaro.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:35172 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751507Ab3FDGJh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Jun 2013 02:09:37 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-kernel@lists.linaro.org, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, open list <linux-kernel@vger.kernel.org>
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, benoit.cousson@linaro.org, paul@pwsan.com, Mugunthan V N <mugunthanvnm@ti.com>
 
-On Fri, 31 May 2013 15:37:07 -0700 Kevin Hilman <khilman@linaro.org> wrote:
+This patch series adds the following feature
+* Atheros phy driver code cleanup
+* Add AT8031 phy driver to at803x driver
+* Add RGMII tx delay support via phy_if
+* Add phy_if DT enhancement to CPSW Driver and DT
 
-> Currently, the RTC IRQ is never wakeup-enabled so is not capable of
-> bringing the system out of suspend.
-> 
-> On OMAP platforms, we have gotten by without this because the TWL RTC
-> is on an I2C-connected chip which is capable of waking up the OMAP via
-> the IO ring when the OMAP is in low-power states.
-> 
-> However, if the OMAP suspends without hitting the low-power states
-> (and the IO ring is not enabled), RTC wakeups will not work because
-> the IRQ is not wakeup enabled.
-> 
-> To fix, ensure the RTC IRQ is wakeup enabled whenever the RTC alarm is
-> set.
-> 
-> --- a/drivers/rtc/rtc-twl.c
-> +++ b/drivers/rtc/rtc-twl.c
-> @@ -213,12 +213,24 @@ static int mask_rtc_irq_bit(unsigned char bit)
->  
->  static int twl_rtc_alarm_irq_enable(struct device *dev, unsigned enabled)
->  {
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +	int irq = platform_get_irq(pdev, 0);
-> +	static bool twl_rtc_wake_enabled;
->  	int ret;
->  
-> -	if (enabled)
-> +	if (enabled) {
->  		ret = set_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
-> -	else
-> +		if (device_can_wakeup(dev) && !twl_rtc_wake_enabled) {
-> +			enable_irq_wake(irq);
-> +			twl_rtc_wake_enabled = true;
-> +		}
-> +	} else {
->  		ret = mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
-> +		if (twl_rtc_wake_enabled) {
-> +			disable_irq_wake(irq);
-> +			twl_rtc_wake_enabled = false;
-> +		}
-> +	}
+Mugunthan V N (8):
+  drivers: net: phy: at803x code cleanup on register and unregister
+    driver
+  drivers: net: phy: at803x: seperate wol specific code to wol standard
+    apis
+  drivers: net: phy: at803x: add interface mode support
+  drivers: net: phy: at803x: add support for AT8031
+  ARM: OMAP2+: omap2plus_defconfig: Enable Atheros support
+  ARM: dts: AM33XX: Add CPSW phy_id device tree data to am335x-evmsk
+  drivers: net: ethernet: cpsw: add phy-mode support to cpsw driver
+  ARM: dts: AM33XX: Add phy-mode to CPSW node
 
-Why do we need this (slightly racy) logic with twl_rtc_wake_enabled? 
-Other drivers don't do this.
+ Documentation/devicetree/bindings/net/cpsw.txt |    6 ++
+ arch/arm/boot/dts/am335x-bone.dts              |    2 +
+ arch/arm/boot/dts/am335x-evm.dts               |    2 +
+ arch/arm/boot/dts/am335x-evmsk.dts             |   10 ++
+ arch/arm/configs/omap2plus_defconfig           |    1 +
+ drivers/net/ethernet/ti/cpsw.c                 |    2 +
+ drivers/net/phy/at803x.c                       |  128 ++++++++++++++++--------
+ 7 files changed, 111 insertions(+), 40 deletions(-)
 
-Should we test device_may_wakeup() befre running disable_irq_wake()? 
-Most drivers seem to do this, but it's all a bit foggy.
+-- 
+1.7.9.5
 
