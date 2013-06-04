@@ -1,25 +1,24 @@
 From: Mike Turquette <mturquette@linaro.org>
-Subject: [PATCH RFC 1/3] clk: omap: introduce clock driver
-Date: Mon,  3 Jun 2013 23:39:16 -0700
-Message-ID: <1370327958-19776-2-git-send-email-mturquette@linaro.org>
+Subject: [PATCH RFC 3/3] ARM: omap4: register DT clocks & remove old data
+Date: Mon,  3 Jun 2013 23:39:18 -0700
+Message-ID: <1370327958-19776-4-git-send-email-mturquette@linaro.org>
 References: <1370327958-19776-1-git-send-email-mturquette@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f50.google.com ([209.85.160.50]:63751 "EHLO
+Received: from mail-pb0-f50.google.com ([209.85.160.50]:51616 "EHLO
 	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751359Ab3FDGjf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jun 2013 02:39:35 -0400
-Received: by mail-pb0-f50.google.com with SMTP id wy17so6710860pbc.23
-        for <linux-omap@vger.kernel.org>; Mon, 03 Jun 2013 23:39:35 -0700 (PDT)
+	with ESMTP id S1757966Ab3FDGjm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jun 2013 02:39:42 -0400
+Received: by mail-pb0-f50.google.com with SMTP id wy17so6770418pbc.9
+        for <linux-omap@vger.kernel.org>; Mon, 03 Jun 2013 23:39:41 -0700 (PDT)
 In-Reply-To: <1370327958-19776-1-git-send-email-mturquette@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Tero Kristo <t-kristo@ti.com>, Rajendra <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, Benoit Cousson <b-cousson@ti.com>, Mike Turquette <mturquette@linaro.org>, Joel A Fernandes <joelagnel@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-Parses OMAP clock data from DT and registers those clocks with the clock
-framework.  dt_omap_clk_init must be called early during boot for timer
-initialization so it is exported and called from the existing clock code
-instead of probing like a real driver.
+Now that some of the OMAP4 PRCM clock data has been converted to a
+DeviceTree representation it is no longer needed as static clock data.
+Register the DT clocks first, followed by the remaining static clocks.
 
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
@@ -29,131 +28,134 @@ Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Mike Turquette <mturquette@linaro.org>
 ---
-This driver simply matches the basic bindings (so far).  Eventually it
-would match omap-specific bindings for DPLLs, CLKOUTX2 and strange leaf
-clocks as well.  This doesn't scale well since non-OMAP related clock
-data (e.g. a pmic or discrete audio codec) will get grouped into this
-driver if it matches on a basic clock type.  Suggestions?
+ arch/arm/mach-omap2/cclock44xx_data.c | 54 ++++-------------------------------
+ 1 file changed, 6 insertions(+), 48 deletions(-)
 
- drivers/clk/Makefile      |  1 +
- drivers/clk/omap/Makefile |  1 +
- drivers/clk/omap/clk.c    | 55 +++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/clk/omap.h  | 24 +++++++++++++++++++++
- 4 files changed, 81 insertions(+)
- create mode 100644 drivers/clk/omap/Makefile
- create mode 100644 drivers/clk/omap/clk.c
- create mode 100644 include/linux/clk/omap.h
-
-diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
-index f51b52b..efd4f2a 100644
---- a/drivers/clk/Makefile
-+++ b/drivers/clk/Makefile
-@@ -31,6 +31,7 @@ obj-$(CONFIG_ARCH_VT8500)	+= clk-vt8500.o
- obj-$(CONFIG_ARCH_ZYNQ)		+= clk-zynq.o
- obj-$(CONFIG_ARCH_TEGRA)	+= tegra/
- obj-$(CONFIG_PLAT_SAMSUNG)	+= samsung/
-+obj-$(CONFIG_ARCH_OMAP)		+= omap/
- 
- obj-$(CONFIG_X86)		+= x86/
- 
-diff --git a/drivers/clk/omap/Makefile b/drivers/clk/omap/Makefile
-new file mode 100644
-index 0000000..8195931
---- /dev/null
-+++ b/drivers/clk/omap/Makefile
-@@ -0,0 +1 @@
-+obj-y					+= clk.o
-diff --git a/drivers/clk/omap/clk.c b/drivers/clk/omap/clk.c
-new file mode 100644
-index 0000000..e9e5c95
---- /dev/null
-+++ b/drivers/clk/omap/clk.c
-@@ -0,0 +1,55 @@
-+/*
-+ * OMAP PRCM clock driver
-+ *
-+ * Copyright (C) 2013 Linaro.org - http://www.linaro.org
-+ * 	Mike Turquette <mturquette@linaro.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/clk-provider.h>
+diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
+index 88e37a4..97fd65c 100644
+--- a/arch/arm/mach-omap2/cclock44xx_data.c
++++ b/arch/arm/mach-omap2/cclock44xx_data.c
+@@ -27,6 +27,7 @@
+ #include <linux/clk-private.h>
+ #include <linux/clkdev.h>
+ #include <linux/io.h>
 +#include <linux/clk/omap.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/of_device.h>
-+#include <linux/platform_device.h>
+ 
+ #include "soc.h"
+ #include "iomap.h"
+@@ -61,18 +62,12 @@
+ 
+ /* Root clocks */
+ 
+-DEFINE_CLK_FIXED_RATE(extalt_clkin_ck, CLK_IS_ROOT, 59000000, 0x0);
+-
+ DEFINE_CLK_FIXED_RATE(pad_clks_src_ck, CLK_IS_ROOT, 12000000, 0x0);
+ 
+ DEFINE_CLK_GATE(pad_clks_ck, "pad_clks_src_ck", &pad_clks_src_ck, 0x0,
+ 		OMAP4430_CM_CLKSEL_ABE, OMAP4430_PAD_CLKS_GATE_SHIFT,
+ 		0x0, NULL);
+ 
+-DEFINE_CLK_FIXED_RATE(pad_slimbus_core_clks_ck, CLK_IS_ROOT, 12000000, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(secure_32k_clk_src_ck, CLK_IS_ROOT, 32768, 0x0);
+-
+ DEFINE_CLK_FIXED_RATE(slimbus_src_clk, CLK_IS_ROOT, 12000000, 0x0);
+ 
+ DEFINE_CLK_GATE(slimbus_clk, "slimbus_src_clk", &slimbus_src_clk, 0x0,
+@@ -81,20 +76,6 @@ DEFINE_CLK_GATE(slimbus_clk, "slimbus_src_clk", &slimbus_src_clk, 0x0,
+ 
+ DEFINE_CLK_FIXED_RATE(sys_32k_ck, CLK_IS_ROOT, 32768, 0x0);
+ 
+-DEFINE_CLK_FIXED_RATE(virt_12000000_ck, CLK_IS_ROOT, 12000000, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(virt_13000000_ck, CLK_IS_ROOT, 13000000, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(virt_16800000_ck, CLK_IS_ROOT, 16800000, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(virt_19200000_ck, CLK_IS_ROOT, 19200000, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(virt_26000000_ck, CLK_IS_ROOT, 26000000, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(virt_27000000_ck, CLK_IS_ROOT, 27000000, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(virt_38400000_ck, CLK_IS_ROOT, 38400000, 0x0);
+-
+ static const char *sys_clkin_ck_parents[] = {
+ 	"virt_12000000_ck", "virt_13000000_ck", "virt_16800000_ck",
+ 	"virt_19200000_ck", "virt_26000000_ck", "virt_27000000_ck",
+@@ -105,16 +86,6 @@ DEFINE_CLK_MUX(sys_clkin_ck, sys_clkin_ck_parents, NULL, 0x0,
+ 	       OMAP4430_CM_SYS_CLKSEL, OMAP4430_SYS_CLKSEL_SHIFT,
+ 	       OMAP4430_SYS_CLKSEL_WIDTH, CLK_MUX_INDEX_ONE, NULL);
+ 
+-DEFINE_CLK_FIXED_RATE(tie_low_clock_ck, CLK_IS_ROOT, 0, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(utmi_phy_clkout_ck, CLK_IS_ROOT, 60000000, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(xclk60mhsp1_ck, CLK_IS_ROOT, 60000000, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(xclk60mhsp2_ck, CLK_IS_ROOT, 60000000, 0x0);
+-
+-DEFINE_CLK_FIXED_RATE(xclk60motg_ck, CLK_IS_ROOT, 60000000, 0x0);
+-
+ /* Module clocks and DPLL outputs */
+ 
+ static const char *abe_dpll_bypass_clk_mux_ck_parents[] = {
+@@ -826,7 +797,7 @@ DEFINE_CLK_GATE(dss_sys_clk, "syc_clk_div_ck", &syc_clk_div_ck, 0x0,
+ 		OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 		OMAP4430_OPTFCLKEN_SYS_CLK_SHIFT, 0x0, NULL);
+ 
+-DEFINE_CLK_GATE(dss_tv_clk, "extalt_clkin_ck", &extalt_clkin_ck, 0x0,
++DEFINE_CLK_GATE(dss_tv_clk, "extalt_clkin_ck", NULL, 0x0,
+ 		OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 		OMAP4430_OPTFCLKEN_TV_CLK_SHIFT, 0x0, NULL);
+ 
+@@ -1051,7 +1022,7 @@ DEFINE_CLK_GATE(slimbus2_fclk_0, "func_24mc_fclk", &func_24mc_fclk, 0x0,
+ 		OMAP4430_OPTFCLKEN_PER24MC_GFCLK_SHIFT, 0x0, NULL);
+ 
+ DEFINE_CLK_GATE(slimbus2_slimbus_clk, "pad_slimbus_core_clks_ck",
+-		&pad_slimbus_core_clks_ck, 0x0,
++		NULL, 0x0,
+ 		OMAP4430_CM_L4PER_SLIMBUS2_CLKCTRL,
+ 		OMAP4430_OPTFCLKEN_SLIMBUS_CLK_SHIFT, 0x0, NULL);
+ 
+@@ -1442,27 +1413,11 @@ static struct omap_clk omap443x_clks[] = {
+  * clocks common to omap44xx
+  */
+ static struct omap_clk omap44xx_clks[] = {
+-	CLK(NULL,	"extalt_clkin_ck",		&extalt_clkin_ck),
+ 	CLK(NULL,	"pad_clks_src_ck",		&pad_clks_src_ck),
+ 	CLK(NULL,	"pad_clks_ck",			&pad_clks_ck),
+-	CLK(NULL,	"pad_slimbus_core_clks_ck",	&pad_slimbus_core_clks_ck),
+-	CLK(NULL,	"secure_32k_clk_src_ck",	&secure_32k_clk_src_ck),
+ 	CLK(NULL,	"slimbus_src_clk",		&slimbus_src_clk),
+ 	CLK(NULL,	"slimbus_clk",			&slimbus_clk),
+ 	CLK(NULL,	"sys_32k_ck",			&sys_32k_ck),
+-	CLK(NULL,	"virt_12000000_ck",		&virt_12000000_ck),
+-	CLK(NULL,	"virt_13000000_ck",		&virt_13000000_ck),
+-	CLK(NULL,	"virt_16800000_ck",		&virt_16800000_ck),
+-	CLK(NULL,	"virt_19200000_ck",		&virt_19200000_ck),
+-	CLK(NULL,	"virt_26000000_ck",		&virt_26000000_ck),
+-	CLK(NULL,	"virt_27000000_ck",		&virt_27000000_ck),
+-	CLK(NULL,	"virt_38400000_ck",		&virt_38400000_ck),
+-	CLK(NULL,	"sys_clkin_ck",			&sys_clkin_ck),
+-	CLK(NULL,	"tie_low_clock_ck",		&tie_low_clock_ck),
+-	CLK(NULL,	"utmi_phy_clkout_ck",		&utmi_phy_clkout_ck),
+-	CLK(NULL,	"xclk60mhsp1_ck",		&xclk60mhsp1_ck),
+-	CLK(NULL,	"xclk60mhsp2_ck",		&xclk60mhsp2_ck),
+-	CLK(NULL,	"xclk60motg_ck",		&xclk60motg_ck),
+ 	CLK(NULL,	"abe_dpll_bypass_clk_mux_ck",	&abe_dpll_bypass_clk_mux_ck),
+ 	CLK(NULL,	"abe_dpll_refclk_mux_ck",	&abe_dpll_refclk_mux_ck),
+ 	CLK(NULL,	"dpll_abe_ck",			&dpll_abe_ck),
+@@ -1690,6 +1645,9 @@ int __init omap4xxx_clk_init(void)
+ {
+ 	int rc;
+ 
++	/* FIXME register clocks from DT first */
++	dt_omap_clk_init();
 +
-+/* FIXME - should the OMAP PRCM clock driver match generic types? */
-+static const struct of_device_id clk_match[] = {
-+	{.compatible = "fixed-clock", .data = of_fixed_clk_setup, },
-+	{.compatible = "mux-clock", .data = of_mux_clk_setup, },
-+	{.compatible = "fixed-factor-clock",
-+		.data = of_fixed_factor_clk_setup, },
-+	{},
-+};
-+
-+static int omap_clk_probe(struct platform_device *pdev)
-+{
-+	of_clk_init(clk_match);
-+	return 0;
-+}
-+
-+static struct platform_driver omap_clk_driver = {
-+	.probe = omap_clk_probe,
-+	.driver = {
-+		   .name = "omap_clk",
-+		   .of_match_table = of_match_ptr(clk_match),
-+		   },
-+};
-+
-+/* FIXME - need to initialize early; skip real driver registration & probe */
-+int __init dt_omap_clk_init(void)
-+{
-+	return omap_clk_probe(NULL);
-+}
-+
-+MODULE_DESCRIPTION("OMAP Clock driver");
-+MODULE_AUTHOR("Texas Instruments Inc.");
-+MODULE_LICENSE("GPL v2");
-diff --git a/include/linux/clk/omap.h b/include/linux/clk/omap.h
-new file mode 100644
-index 0000000..504e838
---- /dev/null
-+++ b/include/linux/clk/omap.h
-@@ -0,0 +1,24 @@
-+/*
-+ * Copyright (C) 2010 Broadcom
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#ifndef __LINUX_CLK_OMAP_H_
-+#define __LINUX_CLK_OMAP_H_
-+
-+int __init dt_omap_clk_init(void);
-+
-+#endif
+ 	if (cpu_is_omap443x()) {
+ 		cpu_mask = RATE_IN_4430;
+ 		omap_clocks_register(omap443x_clks, ARRAY_SIZE(omap443x_clks));
 -- 
 1.8.1.2
 
