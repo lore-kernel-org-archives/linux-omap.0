@@ -1,91 +1,87 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [net-next PATCH 1/8] drivers: net: phy: at803x code cleanup on
- register and unregister driver
-Date: Tue, 04 Jun 2013 17:43:20 +0400
-Message-ID: <51ADEEF8.6040503@cogentembedded.com>
-References: <1370326212-17580-1-git-send-email-mugunthanvnm@ti.com> <1370326212-17580-2-git-send-email-mugunthanvnm@ti.com> <51ADD73E.40405@cogentembedded.com> <51ADE0EA.7060008@ti.com>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v6 1/9] drivers: phy: add generic PHY framework
+Date: Tue, 04 Jun 2013 15:43:18 +0200
+Message-ID: <51ADEEF6.1030200@samsung.com>
+References: <1367229812-30574-1-git-send-email-kishon@ti.com>
+ <1367229812-30574-2-git-send-email-kishon@ti.com>
+ <51ADBF9B.5060403@samsung.com> <51ADDCD9.8080400@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:57457 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754300Ab3FDNnU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jun 2013 09:43:20 -0400
-Received: by mail-lb0-f180.google.com with SMTP id r10so667083lbi.39
-        for <linux-omap@vger.kernel.org>; Tue, 04 Jun 2013 06:43:19 -0700 (PDT)
-In-Reply-To: <51ADE0EA.7060008@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-reply-to: <51ADDCD9.8080400@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: grant.likely@linaro.org, tony@atomide.com, balbi@ti.com, arnd@arndb.de, swarren@nvidia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, benoit.cousson@linaro.org, mchehab@redhat.com, akpm@linux-foundation.org, cesarb@cesarb.net, davem@davemloft.net, rnayak@ti.com, shawn.guo@linaro.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, benoit.cousson@linaro.org, paul@pwsan.com, Matus Ujhelyi <ujhelyi.m@gmail.com>
 
-On 06/04/2013 04:43 PM, Mugunthan V N wrote:
+Hi,
 
->
->>
->>> Make use of phy_drivers_register/phy_drivers_unregister to 
->>> register/unregister
->>> multiple phy drivers in a single module.
->>
->>> Cc: Matus Ujhelyi <ujhelyi.m@gmail.com>
->>> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
->>> ---
->>>   drivers/net/phy/at803x.c |   35 ++++++++++-------------------------
->>>   1 file changed, 10 insertions(+), 25 deletions(-)
->>
->>> diff --git a/drivers/net/phy/at803x.c b/drivers/net/phy/at803x.c
->>> index 45cbc10..a1063e1 100644
->>> --- a/drivers/net/phy/at803x.c
->>> +++ b/drivers/net/phy/at803x.c
->>> @@ -108,8 +108,9 @@ static int at803x_config_init(struct phy_device 
->>> *phydev)
->>>       return 0;
->>>   }
->>>
->>> -/* ATHEROS 8035 */
->>> -static struct phy_driver at8035_driver = {
->>> +static struct phy_driver at803x_driver[] = {
+On 06/04/2013 02:26 PM, Kishon Vijay Abraham I wrote:
+>>> +static inline int phy_init(struct phy *phy)
 >>> +{
->>> +    /* ATHEROS 8035 */
->>>       .phy_id        = 0x004dd072,
->>>       .name        = "Atheros 8035 ethernet",
->>>       .phy_id_mask    = 0xffffffef,
+>>> +	pm_runtime_get_sync(&phy->dev);
 >>
->>     That's improper indentation. Needs to be shifted by one tab.
-> This indentation is as per the coding style followed in all ethernet
-> phy drivers. If this need so to be changed, it must be a separate patch
-> for all the ethernet phy drivers.
+>> Hmm, no need to check return value here ? Also it looks a bit unexpe=
+cted to
+>=20
+> I purposely dint check the return values in order to support platform=
+s=20
+> that don=92t enable pm_runtime.
+
+Then I guess this should be called conditionally and any errors returne=
+d
+if runtime PM is enabled ? Not sure if pm_runtime_enabled() would be
+helpful such situation.
+
+>> possibly have runtime_resume callback of a PHY device called before =
+ops->init()
+>> call ? It seems a bit unclear what the purpose of init() callback is=
+=2E
+>=20
+> Not really. Anything that is used to initialize the PHY (internal=20
+> configuration) can go in phy_init. Usually in runtime_resume callback=
+,=20
+> optional functional clocks are enabled and also in some cases context=
+=20
+> restore is done. So it really makes sense to enable clocks/module=20
+> (pm_runtime_get_sync) before doing a PHY configuration (phy_init).
+
+OK, that makes sense. All PHY device resources must be prepared anyway
+before a PHY object is registered with the PHY core.
+
+>>> +	if (phy->ops->init)
+>>> +		return phy->ops->init(phy);
+>>> +
+>>> +	return -EINVAL;
+>>> +}
+>>> +
+>>> +static inline int phy_exit(struct phy *phy)
+>>> +{
+>>> +	int ret =3D -EINVAL;
+>>> +
+>>> +	if (phy->ops->exit)
+>>> +		ret =3D phy->ops->exit(phy);
+>>> +
+>>> +	pm_runtime_put_sync(&phy->dev);
+>>> +
+>>> +	return ret;
+>>> +}
 >>
->>> @@ -136,32 +135,18 @@ static struct phy_driver at8030_driver = {
->>>       .driver        = {
->>>           .owner = THIS_MODULE,
->>>       },
->>> -};
->>> +} };
->>
->>    Looks ugly...
-> This is also the same as per the style followed in ethernet phy drivers
-> Please refer the below grep output
->
-> $ grep -rnaI "} };" drivers/net/phy/*
-> drivers/net/phy/at803x.c:201:} };
-> drivers/net/phy/bcm63xx.c:101:} };
-> drivers/net/phy/bcm87xx.c:217:} };
-> drivers/net/phy/broadcom.c:829:} };
-> drivers/net/phy/cicada.c:130:} };
-> drivers/net/phy/davicom.c:183:} };
-> drivers/net/phy/icplus.c:254:} };
-> drivers/net/phy/lxt.c:313:} };
-> drivers/net/phy/micrel.c:323:} };
-> drivers/net/phy/smsc.c:242:} };
-> drivers/net/phy/ste10Xp.c:113:} };
-> drivers/net/phy/vitesse.c:192:} };
+>> Do phy_init/phy_exit need to be mandatory ? What if there is really
+>=20
+> No. phy_init/phy_exit is not mandatory at all.
+>> nothing to do in those callbacks ? Perhaps -ENOIOCTLCMD should be
+>> returned if a callback is not implemented, so PHY users can recogniz=
+e
+>> such situation and proceed ?
+>=20
+> So currently these APIs return -EINVAL if these callbacks are not=20
+> populated which is good enough IMHO.
 
-    Sorry for the noise, coldn't imagine they're all that bad. :-)
+But -EINVAL could be well returned from the callback function. Perhaps
+ENOTSUPP could be used instead ?
 
-> Regards
-> Mugunthan V N
 
-WBR, Sergei
-
+Thanks,
+Sylwester
