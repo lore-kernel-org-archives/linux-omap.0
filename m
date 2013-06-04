@@ -1,45 +1,86 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v2 00/14] ARM: OMAP2+: AM43x initial support
-Date: Tue, 4 Jun 2013 11:25:45 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EB14140@DBDE04.ent.ti.com>
-References: <cover.1369658705.git.afzal@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] rtc: rtc-twl: ensure IRQ is wakeup enabled
+Date: Tue, 4 Jun 2013 14:32:01 +0300
+Message-ID: <51ADD031.2090808@ti.com>
+References: <1370039827-25033-1-git-send-email-khilman@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <cover.1369658705.git.afzal@ti.com>
-Content-Language: en-US
-Sender: linux-doc-owner@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Benoit Cousson <benoit.cousson@linaro.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:59916 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751674Ab3FDLgX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Jun 2013 07:36:23 -0400
+In-Reply-To: <1370039827-25033-1-git-send-email-khilman@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: rtc-linux@googlegroups.com, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-kernel@lists.linaro.org, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, open list <linux-kernel@vger.kernel.org>
 
-SGkgVG9ueSwNCg0KT24gTW9uLCBNYXkgMjcsIDIwMTMgYXQgMjA6MDM6MjcsIE1vaGFtbWVkLCBB
-ZnphbCB3cm90ZToNCg0KPiBUaGlzIHNlcmllcyBhZGRzIGluaXRpYWwgc3VwcG9ydCBmb3IgQU00
-M3ggYmFzZWQgU29DJ3MuIFRvIGJvb3QNCj4gQU00M3gsIGluIGFkZGl0aW9uIHRvIHRoZXNlIHBh
-dGNoZXMsIFBSQ00gc3VwcG9ydCBpcyBhbHNvIG5lZWRlZCwNCj4gd2hpY2ggd291bGQgYmUgcG9z
-dGVkIGxhdGVyIGFzIGEgc2VwYXJhdGUgc2VyaWVzLiBEVCBzb3VyY2VzIGRvZXNuJ3QNCj4gaGF2
-ZSAidGksaHdtb2QiIGVudHJ5IC0gdGhpcyB3b3VsZCBiZSBhZGRlZCBhbG9uZyB3aXRoIFBSQ00g
-c3VwcG9ydC4NCj4gDQo+IEFNNDN4IFNvQydzIGFyZSBiYXNlZCBvbiBBUk0gQ29ydGV4LUE5IHdp
-dGggb25lIGNvcmUuIEFNNDN4IGlzIHNpbWlsYXINCj4gdG8gQU0zMzV4IGluIGl0J3MgcGVyaXBo
-ZXJhbCBjYXBhYmlsaXRpZXMsIGV4Y2VwdCBhIGZldyBhZGRpdGlvbmFsDQo+IG9uZXMsIHdpdGgg
-bWFueSBvZiB0aGUgcGVyaXBoZXJhbCByZWdpc3RlciBtYXBwaW5nJ3Mgc2ltaWxhci4gQU00M3gN
-Cj4gaGFzIGEgc3luYyB0aW1lciwgd2hpY2ggaXMgYmVpbmcgdXNlZCBhcyBjbG9ja3NvdXJjZS4g
-Q2xvY2tldmVudCB1c2VkDQo+IGlzIDFtcyBkbXRpbWVyLg0KPiANCj4gU29DIGhhcyBQTDMxMCBM
-MiBjYWNoZSwgc3VwcG9ydCBmb3IgaXQgd291bGQgYmUgYWRkZWQgbGF0ZXIuDQo+IA0KPiBzb2Nf
-aXNfYW00M3h4KCkgaXMgaW50cm9kdWNlZCB0byBoYW5kbGUgQU00M3ggc3BlY2lmaWMgZGV0YWls
-cyBhbmQNCj4gc29jX2lzX2FtNDM3eCgpIGlzIGEgc3ViY2xhc3Mgb2YgaXQgLSBmaXJzdCBtZW1i
-ZXIgb2YgdGhlIGNsYXNzLg0KPiANCj4gQU00M3ggaXMgY3VycmVudGx5IGluIHByZS1zaWxpY29u
-IHN0YWdlIGFuZCBjdXJyZW50bHkgdGhlcmUgYXJlIG5vDQo+IHB1YmxpYyBkb2N1bWVudHMuDQo+
-IA0KPiBUaGlzIGhhcyBiZWVuIHRlc3RlZCBvbiBhIHByZS1zaWxpY29uIHBsYXRmb3JtIHRoYXQg
-ZW11bGF0ZXMgQU00M3ggU29DDQo+IHdpdGggYWRkaXRpb25hbCBjaGFuZ2VzIG9uIHRvcCBvZiB0
-aGlzLg0KPiANCj4gQU0zMzV4IGJhc2VkIGJvYXJkIChBTTMzNXggRVZNKSBoYXMgYmVlbiB2ZXJm
-aWVkIHRvIGJvb3QgYXMgZWFybGllcg0KPiB3aXRoIHRoaXMgc2VyaWVzLg0KPiANCj4gQmFzZWxp
-bmU6IHYzLjEwLXJjMw0KPiBEZXBlbmRlbmN5OiAiQVJNOiBPTUFQMys6IGFtMzN4eCBpZDogQWRk
-IG5ldyBhbTMzeHggc3BlY2lmaWMgZnVuY3Rpb24gdG8gY2hlY2sgZGV2X2ZlYXR1cmUiDQo+IAkJ
-YnkgVmFpYmhhdiBIaXJlbWF0aCA8aHZhaWJoYXZAdGkuY29tPg0KDQpJZiB5b3UgaGF2ZSBhbnkg
-Y29tbWVudHMgb24gdGhpcyBzZXJpZXMgcGxlYXNlIGxldCBtZSBrbm93LCBlbHNlIGlmDQp5b3Ug
-YXJlIG9rYXkgd2l0aCB0aGlzLCBwbGVhc2UgY29uc2lkZXIgcGF0Y2hlcyAxLTEwIGZvciBpbmNs
-dXNpb24NCmluIHRoZSBjb21pbmcgbWVyZ2Ugd2luZG93Lg0KDQpQYXRjaCAxNC8xNCBoYXMgYmVl
-biB0YWtlbiBieSBCZW5vaXQgYW5kIHBhdGNoZXMgMTEtMTMgYXJlIHRvIGJlDQpkcm9wcGVkIChh
-cyBwZXIgZGlzY3Vzc2lvbiBpbiAxMS8xNCB0aHJlYWQpDQoNClJlZ2FyZHMNCkFmemFsDQoNCg==
+Hi Kevin,
+
+On 06/01/2013 01:37 AM, Kevin Hilman wrote:
+> Currently, the RTC IRQ is never wakeup-enabled so is not capable of
+> bringing the system out of suspend.
+>
+> On OMAP platforms, we have gotten by without this because the TWL RTC
+> is on an I2C-connected chip which is capable of waking up the OMAP via
+> the IO ring when the OMAP is in low-power states.
+>
+> However, if the OMAP suspends without hitting the low-power states
+> (and the IO ring is not enabled), RTC wakeups will not work because
+> the IRQ is not wakeup enabled.
+As I understand, IRQ wake up capabilities are set/clear simultaneously with
+IRQ unmasking/masking on OMAP4+ in omap-wakeupgen.c.
+So, it should work without this patch on OMAP4+.
+But if TWL is used on non OMAP4+ platform then it is needed.
+(OMAP3: I haven't found the place where IRQ wakeup capabilities are 
+configured,
+would be appreciate if you can point me on)
+>
+> To fix, ensure the RTC IRQ is wakeup enabled whenever the RTC alarm is
+> set.
+>
+> Cc: Alessandro Zummo <a.zummo@towertech.it>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Kevin Hilman <khilman@linaro.org>
+> ---
+>   drivers/rtc/rtc-twl.c | 16 ++++++++++++++--
+>   1 file changed, 14 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
+> index 8751a52..bbda0fd 100644
+> --- a/drivers/rtc/rtc-twl.c
+> +++ b/drivers/rtc/rtc-twl.c
+> @@ -213,12 +213,24 @@ static int mask_rtc_irq_bit(unsigned char bit)
+>   
+>   static int twl_rtc_alarm_irq_enable(struct device *dev, unsigned enabled)
+>   {
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	int irq = platform_get_irq(pdev, 0);
+> +	static bool twl_rtc_wake_enabled;
+>   	int ret;
+>   
+> -	if (enabled)
+> +	if (enabled) {
+>   		ret = set_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
+> -	else
+> +		if (device_can_wakeup(dev) && !twl_rtc_wake_enabled) {
+> +			enable_irq_wake(irq);
+> +			twl_rtc_wake_enabled = true;
+> +		}
+> +	} else {
+>   		ret = mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
+> +		if (twl_rtc_wake_enabled) {
+> +			disable_irq_wake(irq);
+> +			twl_rtc_wake_enabled = false;
+> +		}
+> +	}
+>   
+>   	return ret;
+>   }
+twl-rtc has suspend/resume callbacks implemented, so I think it's the 
+better place
+for this code and twl_rtc_wake_enabled can be dropped.
+
