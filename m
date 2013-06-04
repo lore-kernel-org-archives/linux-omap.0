@@ -1,53 +1,43 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 09/11] mmc: omap_hsmmc: enhance pinctrl support
-Date: Tue, 4 Jun 2013 09:11:00 +0200
-Message-ID: <CACRpkdbiYX5q8rvtV3Xcv7VdiJo2-6rGHNtvB1V=8C_qCpc=JA@mail.gmail.com>
-References: <1369995191-20855-1-git-send-email-gururaja.hebbar@ti.com>
-	<1369995191-20855-10-git-send-email-gururaja.hebbar@ti.com>
+From: Yijing Wang <wangyijing@huawei.com>
+Subject: [RESEND][PATCH 2/7] usb, dwc3: remove redundant D0 power state set
+Date: Tue, 4 Jun 2013 15:13:39 +0800
+Message-ID: <1370330019-12620-1-git-send-email-wangyijing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1369995191-20855-10-git-send-email-gururaja.hebbar@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Hebbar Gururaja <gururaja.hebbar@ti.com>
-Cc: Kevin Hilman <khilman@linaro.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>, sudhakar.raj@ti.com, Balaji T K <balajitk@ti.com>, Chris Ball <cjb@laptop.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:20324 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751803Ab3FDHOu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jun 2013 03:14:50 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
-On Fri, May 31, 2013 at 12:13 PM, Hebbar Gururaja
-<gururaja.hebbar@ti.com> wrote:
+Pci_enable_device() will set device power state to D0,
+so it's no need to do it again in dwc3_pci_probe().
 
-> Amend the hsmmc controller to optionally take a pin control handle and
-> set the state of the pins to:
->
-> - "default" on boot, resume and before performing a mmc transfer
-> - "idle" after initial default, after resume default, and after each
-> mmc/sd card access
-> - "sleep" on suspend()
->
-> By optionally putting the pins into sleep state in the suspend callback
-> we can accomplish two things.
-> - One is to minimize current leakage from pins and thus save power,
-> - second, we can prevent the IP from driving pins output in an
-> uncontrolled manner, which may happen if the power domain drops the
-> domain regulator.
->
-> If any of the above pin states are missing in dt, a warning message
-> about the missing state is displayed.
-> If certain pin-states are not available, to remove this warning message
-> pass respective state name with null phandler.
->
-> Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
-> Cc: Balaji T K <balajitk@ti.com>
-> Cc: Chris Ball <cjb@laptop.org>
-> Cc: linux-mmc@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: linux-omap@vger.kernel.org
+Cc: linux-usb@vger.kernel.org
+---
+ drivers/usb/dwc3/dwc3-pci.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-This is perfectly correct.
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+diff --git a/drivers/usb/dwc3/dwc3-pci.c b/drivers/usb/dwc3/dwc3-pci.c
+index 227d4a7..c068608 100644
+--- a/drivers/usb/dwc3/dwc3-pci.c
++++ b/drivers/usb/dwc3/dwc3-pci.c
+@@ -133,7 +133,6 @@ static int dwc3_pci_probe(struct pci_dev *pci,
+ 		return -ENODEV;
+ 	}
+ 
+-	pci_set_power_state(pci, PCI_D0);
+ 	pci_set_master(pci);
+ 
+ 	ret = dwc3_pci_register_phys(glue);
+-- 
+1.7.1
 
-As the PM code seems to be similar across platforms I have had
-loose plans to move this to the device core as well, but right now
-I'm too busy with other things, and it can surely be refactored later.
 
-Yours,
-Linus Walleij
