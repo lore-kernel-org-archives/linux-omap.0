@@ -1,94 +1,88 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] rtc: rtc-twl: ensure IRQ is wakeup enabled
-Date: Tue, 04 Jun 2013 10:54:54 -0700
-Message-ID: <87k3m93gnl.fsf@linaro.org>
-References: <1370039827-25033-1-git-send-email-khilman@linaro.org>
-	<20130603161303.55e9da049744656541e9048f@linux-foundation.org>
+Subject: Re: [PATCH 3/3] ARM: DTS: TWL4030: fix mux and wakeup for SYS_NIRQ line
+Date: Tue, 04 Jun 2013 10:58:46 -0700
+Message-ID: <878v2p3gh5.fsf@linaro.org>
+References: <1370040357-25794-1-git-send-email-khilman@linaro.org>
+	<1370040357-25794-4-git-send-email-khilman@linaro.org>
+	<51AC667D.6070409@epfl.ch> <87mwr6kfbm.fsf@linaro.org>
+	<20130603223935.GU3803@titan.lakedaemon.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:58631 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750990Ab3FDRy6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jun 2013 13:54:58 -0400
-Received: by mail-pd0-f176.google.com with SMTP id r11so585215pdi.35
-        for <linux-omap@vger.kernel.org>; Tue, 04 Jun 2013 10:54:58 -0700 (PDT)
-In-Reply-To: <20130603161303.55e9da049744656541e9048f@linux-foundation.org>
-	(Andrew Morton's message of "Mon, 3 Jun 2013 16:13:03 -0700")
+Received: from mail-pb0-f47.google.com ([209.85.160.47]:47762 "EHLO
+	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750811Ab3FDR6t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jun 2013 13:58:49 -0400
+Received: by mail-pb0-f47.google.com with SMTP id rr4so579634pbb.34
+        for <linux-omap@vger.kernel.org>; Tue, 04 Jun 2013 10:58:49 -0700 (PDT)
+In-Reply-To: <20130603223935.GU3803@titan.lakedaemon.net> (Jason Cooper's
+	message of "Mon, 3 Jun 2013 18:39:35 -0400")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-kernel@lists.linaro.org, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, open list <linux-kernel@vger.kernel.org>
+To: Jason Cooper <jason@lakedaemon.net>
+Cc: florian.vaussard@epfl.ch, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Andrew Morton <akpm@linux-foundation.org> writes:
+Jason Cooper <jason@lakedaemon.net> writes:
 
-> On Fri, 31 May 2013 15:37:07 -0700 Kevin Hilman <khilman@linaro.org> wrote:
+> On Mon, Jun 03, 2013 at 03:19:25PM -0700, Kevin Hilman wrote:
+>> Florian Vaussard <florian.vaussard@epfl.ch> writes:
+>> 
+>> > Hello Kevin,
+>> >
+>> > On 06/01/2013 12:45 AM, Kevin Hilman wrote:
+>> >> On most OMAP3 platforms, the twl4030 IRQ line is connected to the
+>> >> SYS_NIRQ line on OMAP.  Therefore, configure the defaults for the
+>> >> SYS_NIRQ pin in the twl4030 DTS file.
+>> >>
+>> >> Boards that hook up the twl4030 differently can easily override this
+>> >> in their board-specific DTS file.
+>> >>
+>> >> This allows RTC wake from off-mode to work again on OMAP3-based
+>> >> platforms with twl4030.  Tested on 3530/Beagle, 3730/Beagle-xM,
+>> >> 3530/Overo, 3730/Overo-STORM.
+>> >>
+>> >> Signed-off-by: Kevin Hilman <khilman@linaro.org>
+>> >> ---
+>> >>   arch/arm/boot/dts/twl4030.dtsi | 17 +++++++++++++++++
+>> >>   1 file changed, 17 insertions(+)
+>> >>
+>> >> diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
+>> >> index b3034da..c7fe9f6 100644
+>> >> --- a/arch/arm/boot/dts/twl4030.dtsi
+>> >> +++ b/arch/arm/boot/dts/twl4030.dtsi
+>> >> @@ -13,6 +13,8 @@
+>> >>   	compatible = "ti,twl4030";
+>> >>   	interrupt-controller;
+>> >>   	#interrupt-cells = <1>;
+>> >> +	pinctrl-names = "default";
+>> >> +	pinctrl-0 = <&twl4030_pins>;
+>> >>
+>> >>   	rtc {
+>> >>   		compatible = "ti,twl4030-rtc";
+>> >> @@ -92,3 +94,18 @@
+>> >>   		#pwm-cells = <2>;
+>> >>   	};
+>> >>   };
+>> >> +
+>> >> +&omap3_pmx_core {
+>> >
+>> > Here you are making the TWL4030 to explicitly depend on OMAP3. Could
+>> > this chip be used by another target? If the case, I would put this
+>> > piece of code in the files including twl4030. Otherwise it's ok here.
+>> 
+>> I talked this over with Tony before posting.  In theorry, it could be
+>> used on other platforms.  In practice, it's only used on OMAP.  We can
+>> easily move this to board files if needed later, but thought it would be
+>> simpler to put it here.  I'll let Benoit decide.
 >
->> Currently, the RTC IRQ is never wakeup-enabled so is not capable of
->> bringing the system out of suspend.
->> 
->> On OMAP platforms, we have gotten by without this because the TWL RTC
->> is on an I2C-connected chip which is capable of waking up the OMAP via
->> the IO ring when the OMAP is in low-power states.
->> 
->> However, if the OMAP suspends without hitting the low-power states
->> (and the IO ring is not enabled), RTC wakeups will not work because
->> the IRQ is not wakeup enabled.
->> 
->> To fix, ensure the RTC IRQ is wakeup enabled whenever the RTC alarm is
->> set.
->> 
->> --- a/drivers/rtc/rtc-twl.c
->> +++ b/drivers/rtc/rtc-twl.c
->> @@ -213,12 +213,24 @@ static int mask_rtc_irq_bit(unsigned char bit)
->>  
->>  static int twl_rtc_alarm_irq_enable(struct device *dev, unsigned enabled)
->>  {
->> +	struct platform_device *pdev = to_platform_device(dev);
->> +	int irq = platform_get_irq(pdev, 0);
->> +	static bool twl_rtc_wake_enabled;
->>  	int ret;
->>  
->> -	if (enabled)
->> +	if (enabled) {
->>  		ret = set_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
->> -	else
->> +		if (device_can_wakeup(dev) && !twl_rtc_wake_enabled) {
->> +			enable_irq_wake(irq);
->> +			twl_rtc_wake_enabled = true;
->> +		}
->> +	} else {
->>  		ret = mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
->> +		if (twl_rtc_wake_enabled) {
->> +			disable_irq_wake(irq);
->> +			twl_rtc_wake_enabled = false;
->> +		}
->> +	}
->
-> Why do we need this (slightly racy) logic with twl_rtc_wake_enabled? 
-> Other drivers don't do this.
+> What about omap boards that don't use the twl4030?  eg I'm currently
+> tinkering with a board that uses a tps6507x...
 
-I suspect the other drivers don't do this because they're making these
-calls in their suspend/resume callbacks and can make assumptions about 
-the order and balance of the calls (e.g. the PM core will not call your
-resume callback if your suspend callback hasn't been called.)  What's
-being protected against is imbalanced calling of the IRQ wake calls
-(e.g. calling disable_irq_wake() on an IRQ where enable_irq_wake() has
-not been called.)
+Then you'll be inclding tps6507x.dtsi instead of twl4030.dtsi and won't
+be affected by this patch at all.
 
-In this patch, I'm using the rtc_alarm_irq_enable() function instead of
-the suspend/resume functions because of some limitations of parent
-device of this one (I described that at the end of a previous reponse to
-this thread[1].)  Because of that, I cannot make the same assumptions
-about the ordering of enable/disable calls to this function.
-
-> Should we test device_may_wakeup() befre running disable_irq_wake()? 
-> Most drivers seem to do this, but it's all a bit foggy.
-
-I suppose I could've added that check too for symmetry, but it would be
-redundant because the twl_rtc_wake_enabled flag can only be set when
-device_can_wakeup() == true.
+Your board file should setup the muxing (using this as an example) for
+how your board wires the TPS chip to the OMAP.
 
 Kevin
 
-[1] http://marc.info/?l=linux-omap&m=137036801320665&w=2
