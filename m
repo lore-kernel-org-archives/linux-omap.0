@@ -1,55 +1,94 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: Re: [PATCH] i2c: Let users disable "Probe an I2C bus for certain
- devices"
-Date: Tue, 4 Jun 2013 19:49:02 +0200
-Message-ID: <20130604174900.GA2992@katana>
-References: <1370367222-19353-1-git-send-email-grygorii.strashko@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH] rtc: rtc-twl: ensure IRQ is wakeup enabled
+Date: Tue, 04 Jun 2013 10:54:54 -0700
+Message-ID: <87k3m93gnl.fsf@linaro.org>
+References: <1370039827-25033-1-git-send-email-khilman@linaro.org>
+	<20130603161303.55e9da049744656541e9048f@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HlL+5n6rz5pIUxbD"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1370367222-19353-1-git-send-email-grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:58631 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750990Ab3FDRy6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jun 2013 13:54:58 -0400
+Received: by mail-pd0-f176.google.com with SMTP id r11so585215pdi.35
+        for <linux-omap@vger.kernel.org>; Tue, 04 Jun 2013 10:54:58 -0700 (PDT)
+In-Reply-To: <20130603161303.55e9da049744656541e9048f@linux-foundation.org>
+	(Andrew Morton's message of "Mon, 3 Jun 2013 16:13:03 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-kernel@lists.linaro.org, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, open list <linux-kernel@vger.kernel.org>
 
+Andrew Morton <akpm@linux-foundation.org> writes:
 
---HlL+5n6rz5pIUxbD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> On Fri, 31 May 2013 15:37:07 -0700 Kevin Hilman <khilman@linaro.org> wrote:
+>
+>> Currently, the RTC IRQ is never wakeup-enabled so is not capable of
+>> bringing the system out of suspend.
+>> 
+>> On OMAP platforms, we have gotten by without this because the TWL RTC
+>> is on an I2C-connected chip which is capable of waking up the OMAP via
+>> the IO ring when the OMAP is in low-power states.
+>> 
+>> However, if the OMAP suspends without hitting the low-power states
+>> (and the IO ring is not enabled), RTC wakeups will not work because
+>> the IRQ is not wakeup enabled.
+>> 
+>> To fix, ensure the RTC IRQ is wakeup enabled whenever the RTC alarm is
+>> set.
+>> 
+>> --- a/drivers/rtc/rtc-twl.c
+>> +++ b/drivers/rtc/rtc-twl.c
+>> @@ -213,12 +213,24 @@ static int mask_rtc_irq_bit(unsigned char bit)
+>>  
+>>  static int twl_rtc_alarm_irq_enable(struct device *dev, unsigned enabled)
+>>  {
+>> +	struct platform_device *pdev = to_platform_device(dev);
+>> +	int irq = platform_get_irq(pdev, 0);
+>> +	static bool twl_rtc_wake_enabled;
+>>  	int ret;
+>>  
+>> -	if (enabled)
+>> +	if (enabled) {
+>>  		ret = set_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
+>> -	else
+>> +		if (device_can_wakeup(dev) && !twl_rtc_wake_enabled) {
+>> +			enable_irq_wake(irq);
+>> +			twl_rtc_wake_enabled = true;
+>> +		}
+>> +	} else {
+>>  		ret = mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
+>> +		if (twl_rtc_wake_enabled) {
+>> +			disable_irq_wake(irq);
+>> +			twl_rtc_wake_enabled = false;
+>> +		}
+>> +	}
+>
+> Why do we need this (slightly racy) logic with twl_rtc_wake_enabled? 
+> Other drivers don't do this.
 
-On Tue, Jun 04, 2013 at 08:33:42PM +0300, Grygorii Strashko wrote:
+I suspect the other drivers don't do this because they're making these
+calls in their suspend/resume callbacks and can make assumptions about 
+the order and balance of the calls (e.g. the PM core will not call your
+resume callback if your suspend callback hasn't been called.)  What's
+being protected against is imbalanced calling of the IRQ wake calls
+(e.g. calling disable_irq_wake() on an IRQ where enable_irq_wake() has
+not been called.)
 
-> Currently the I2C devices instantiation Method 3 "Probe an I2C bus for
-> certain devices" (see Documentation/i2c/instantiating-devices) is always
-> enabled for all platforms (boards) and can't be disabled.
+In this patch, I'm using the rtc_alarm_irq_enable() function instead of
+the suspend/resume functions because of some limitations of parent
+device of this one (I described that at the end of a previous reponse to
+this thread[1].)  Because of that, I cannot make the same assumptions
+about the ordering of enable/disable calls to this function.
 
-Not true. Set .class = 0 for your adapter. I always ask authors of new
-drivers if they really need to set .class to something.
+> Should we test device_may_wakeup() befre running disable_irq_wake()? 
+> Most drivers seem to do this, but it's all a bit foggy.
 
+I suppose I could've added that check too for symmetry, but it would be
+redundant because the twl_rtc_wake_enabled flag can only be set when
+device_can_wakeup() == true.
 
---HlL+5n6rz5pIUxbD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Kevin
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRriiMAAoJEBQN5MwUoCm2UO4P/RZGhzuhHA6Ps/hZg45o5Ura
-DsENTFBlJNLg7hbHssv0jNkyw8RUR6S/8CY8hhHli6BwVoVd7+2WBxIAkSImmmE6
-Yx88+RvBH8nBspR4YUqqrh0XIcTVtrfjV2XM17Cb6AKFoI6mBbVw1R1iOPZbg2XU
-R0tT9P0PtE4H6lyOa2UEZv3LqBi7ywuDcwU6uaXAOeF2cKZl1/PFXEinMcJO8zXK
-B1UkWGk1z6woPIYbk6lsTGripqMDe/B7zXlJFFN/JY74rmo8q1PMJEnPGmI9bAzc
-gOHtDfiwOi59GSHJPBnJxQNNPcCIBFfME1JgQQoOuJBDMAk0U4fCmLJx7XAinzKx
-Ih1KovGz2uqdUVU2nL20nXsErvPLKKp5g8f436pIUGEi/qGmF0YoSH4eahRcLZoE
-8eihODJAhBP/gY4xB1vmO8vKSayIbFkTvN9zOcVTtTBTmSQ5vkzkvWOkVJFgj9kj
-zxq+YsYCCigr3QBJLfVtauvcZcN6+QPpuw7REbgPmn5Hv9vy9Poo+3UsS7AVhvDB
-ZYIHHVM5kSDlD+Ym0FMjlVpCYMZGlBZNcntQGP5y9cQng9xDNFoY4pZno0hUkX6C
-5CusnbUw6SYmd2BPHaSBPq7kzdRUK1eZmLVumUrJD/edjtSGYlG4glKjV6GcdgIO
-bTWtMOUM4AH6eQXIh2tK
-=dmQs
------END PGP SIGNATURE-----
-
---HlL+5n6rz5pIUxbD--
+[1] http://marc.info/?l=linux-omap&m=137036801320665&w=2
