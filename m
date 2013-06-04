@@ -1,59 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RFC 2/3] ARM: dts: omap4 clock data
-Date: Tue, 4 Jun 2013 12:37:45 -0700
-Message-ID: <20130604193744.GP3331@atomide.com>
-References: <1370327958-19776-1-git-send-email-mturquette@linaro.org>
- <1370327958-19776-3-git-send-email-mturquette@linaro.org>
- <20130604145543.GK3331@atomide.com>
- <20130604183449.10233.48956@quantum>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 0/2] USB: PHY: Improve PHY selection logic
+Date: Tue, 4 Jun 2013 23:26:32 +0300
+Message-ID: <20130604202632.GF28302@arwen.pp.htv.fi>
+References: <1369999743-11758-1-git-send-email-rogerq@ti.com>
+ <20130603174709.GA11059@kroah.com>
+ <51AD9462.4020300@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38039 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750808Ab3FDThv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Jun 2013 15:37:51 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ExXT7PjY8AI4Hyfa"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130604183449.10233.48956@quantum>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <51AD9462.4020300@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, Greg KH <gregkh@linuxfoundation.org>, stern@rowland.harvard.edu, arnd@arndb.de, adrienverge@gmail.com, kishon@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Tero Kristo <t-kristo@ti.com>, Rajendra <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, Benoit Cousson <b-cousson@ti.com>, Joel A Fernandes <joelagnel@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-* Mike Turquette <mturquette@linaro.org> [130604 11:40]:
-> Quoting Tony Lindgren (2013-06-04 07:55:43)
-> > * Mike Turquette <mturquette@linaro.org> [130603 23:45]:
-> > > This is a first pass at creating a unique node for each clock in the
-> > > OMAP4 power, reset and & clock manager (PRCM).  So far I have only
-> > > converted mux clocks & fixed-rate clocks, which coexist with the current
-> > > clock data in the kernel.  The rest needs to be done but better to
-> > > publish early and often to see what others think of this approach.
-> > 
-> > > +/* FIXME need to print the address directly */
-> > > +/*
-> > > +#include "../../mach-omap2/prm44xx.h"
-> > > +#include "../../mach-omap2/cm2_44xx.h"
-> > > +#include "../../mach-omap2/cm1_44xx.h"
-> > > +*/
-> > 
-> > I don't think you're using the above includes any longer
-> > in this file?
-> > 
-> 
-> Correct.  I actually spotted this before emailing the patches out at
-> midnight, but by then I didn't care to fix it.  The benefits of marking
-> a patch as "RFC" ;-)
+--ExXT7PjY8AI4Hyfa
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-:)
- 
-> I had a mind to use the new preprocessor capabilities of dtc for the
-> PRCM bit masks and shift values, but instead I ended up using the raw
-> hex values.  I've actually come to prefer using the raw hex values for
-> DT, which I think makes more sense for a description of the hardware
-> which is not tied to any Linux implementation.
+Hi,
 
-Agreed, especially if the value is only used once.
+On Tue, Jun 04, 2013 at 10:16:50AM +0300, Roger Quadros wrote:
+> On 06/03/2013 08:47 PM, Greg KH wrote:
+> > On Fri, May 31, 2013 at 02:29:01PM +0300, Roger Quadros wrote:
+> >> Hi,
+> >>
+> >> Improve Kconfig so that the relevant PHY driver can be explicitely
+> >> selected by the controller driver instead of relying on the user
+> >> to do so.
+> >>
+> >> Detailed description in patch 1.
+> >=20
+> > Felipe needs to take these, not I.
+> >=20
+>=20
+> Felipe,
+>=20
+> Could you please take these if appropriate? Thanks.
 
-Regards,
+it's for v3.11 merge window, right ? I think I'll enjoy the rest of my
+vacations before taking these patches ;-)
 
-Tony
+I'll be back on office next monday, cheers
+
+--=20
+balbi
+
+--ExXT7PjY8AI4Hyfa
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRrk14AAoJEIaOsuA1yqREfE0QAJrSD5F1pIRggSxJPV3NyZMl
+hfWJkNI2V7r2CMIsnCaesqmxfQijGTnhZSM7fYL8Vd44v+hmB9V1FuJO0xHiD/Z9
+4OXGhIMUa3cC/FMTqn7Mtp9XqLSUHYcakMq0tc0XbZH63dQrRYOrwZvQCoqlTqX2
+z3Xkll+gmrxBS4o7xDsYq8TQK2nFy+Ybg8CFTkYcPiAgKV9Mb8mMAWtlbPvHXfJI
+tBD5QHSSsx0bfhnl+qcxPAzqA/maRSZVkOx1AHZTzjYX/dgK/3cdYLSE+mzojejU
+41XwB6hMNu1oBToLAgg14Ow8RYZL9b64VcykBTp3nFPBM+JE/x8iTDVlGl+u5VD3
+sSwmJi936jaAr2vIgNp/JUVeLGXN6OIOt238xUlLNHdWhQBHRJUt5Q0NmPMOnFtz
+VzG08Ben/DM7pecZbhG/ZJy1bE4hl2WiX+Fn65U65M8sGbjyqs7xgIvK57o6KnAi
+hCFS8vWcSyaETZ1joQQtZI9g79oK6e/zfbyU5h+IyRzxehagLHZaSeXpLXeKETKo
+yPoAm3Z1AcRE0jyDvYYrM8KmE+UO2g1bZl0XtF3PSud39NGP5PiHweH2njDI3XUL
+Jfj6sKoC81/UBbUI8+fCBYBb1B7swWm1VggDLeeaAQEsvpJKqqDeo7M/mMwyJ49V
+EPTdrBSPdm09LKLNMnCb
+=XTPF
+-----END PGP SIGNATURE-----
+
+--ExXT7PjY8AI4Hyfa--
