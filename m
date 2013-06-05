@@ -1,124 +1,109 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/2] i2c: omap: convert to module_platform_driver()
-Date: Wed, 5 Jun 2013 14:28:48 +0300
-Message-ID: <51AF20F0.30000@ti.com>
-References: <1366723151-23209-1-git-send-email-grygorii.strashko@ti.com> <1366723151-23209-2-git-send-email-grygorii.strashko@ti.com> <87fvwylxl8.fsf@linaro.org> <51ADD06B.3000201@ti.com> <87zjv5zq41.fsf@linaro.org>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH 2/4] ARM: dts: omap5-uevm: Add USB Host support
+Date: Wed, 5 Jun 2013 17:20:26 +0530
+Message-ID: <51AF2602.1000904@ti.com>
+References: <1370414770-1485-1-git-send-email-r.sricharan@ti.com> <1370414770-1485-3-git-send-email-r.sricharan@ti.com> <51AF13C8.1010307@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87zjv5zq41.fsf-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Ben Dooks (embedded platforms)" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38389 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751968Ab3FELuz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Jun 2013 07:50:55 -0400
+In-Reply-To: <51AF13C8.1010307@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com
 
-On 06/04/2013 09:29 PM, Kevin Hilman wrote:
-> Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
+Hi Roger,
+
+On Wednesday 05 June 2013 04:02 PM, Roger Quadros wrote:
+> Hi Sricharan,
 >
->> Hi Kevin,
->> On 06/03/2013 11:59 PM, Kevin Hilman wrote:
->>> Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
->>>
->>>> The OMAP I2C driver has a relation to pinctrl-single driver. As result,
->>>> its probe will be deferred during system boot until late init time,
->>>> because the pinctrl-single is initizalized as moudle/device init time.
->>>> This, in turn, will delay initialization of all I2C devices (like mfd,
->>>> I2C regulators and etc.) and cause boot delay (more over, it can broken
->>>> initialization of drivers which are not ready to use deferred probe
->>>> mechanism yet, for example DSS).
->>>>
->>>> There are no sense to keep OMAP I2C initialization on subsys init layer
->>>> any more, hence shift it to module/device layer where the i2c <-->
->>>> pinctrl-single dependency is resolved in drivers/Makefile now.
->>>>
->>>> Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
->>>> Cc: "Ben Dooks (embedded platforms)" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
->>>> Cc: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
->>>> Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>> Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>
->>>> Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
->>> Testing this patch with PATCH 1/2, the twl_rtc driver fails to correctly
->>> initialize on OMAP3:
->>>
->>>            twl_rtc rtc.22: hctosys: invalid date/time
->>>
->>> instead of the expected result:
->>>
->>>             twl_rtc rtc.22: setting system clock to 2000-01-01 00:00:00 UTC (946684800)
->>>
->>> so something is still not right for the init sequence.
->>>
->>> Kevin
->> I think, the root cause of the problem isn't this patch - it's just
->> yet another side effect
->> of using deferred probes :). I've taken a look on twl-rtc code and
->> found possible error place
->> static int __init twl_rtc_init(void)
->> {
->>      if (twl_class_is_4030()) <------ here,
->>          rtc_reg_map = (u8 *) twl4030_rtc_reg_map;
->>      else
->>          rtc_reg_map = (u8 *) twl6030_rtc_reg_map;
->>
->>      return platform_driver_register(&twl4030rtc_driver);
->> }
->> In drivers/Makefile:
->> obj-$(CONFIG_RTC_LIB)        += rtc/  <------ RTC is placed before I2C
->> obj-y                += i2c/ media/ <----- and only here I2C bus
->> instantiates TWL-core device
->> and configures twl_priv->twl_id
->>
->> Thats why it's working on my OMAP4/twl6030 board. Could you check if
->> below fix will work on OMAP3:
-> Yes, your fix works.  Thanks for digging into it.
+> Thanks for sending this, but some parts are outdated. See below.
 >
-> Care to send a proper patch?  Please be sure to send to Andrew Morton
-> also, since he'll be the one to queue the RTC patch.
-Hi Kevin,
-
-The similar patch already exists:
-https://patchwork.kernel.org/patch/2448251/ - [v2,1/2] RTC: rtc-twl: Fix 
-rtc_reg_map initialization
-from Peter Ujfalusi
-
--grygorii
-
->
->> diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
->> index 8751a52..aaa5015 100644
->> --- a/drivers/rtc/rtc-twl.c
->> +++ b/drivers/rtc/rtc-twl.c
->> @@ -469,6 +469,11 @@ static int twl_rtc_probe(struct platform_device *pdev)
->>          if (irq <= 0)
->>                  goto out1;
+> On 06/05/2013 09:46 AM, Sricharan R wrote:
+>> From: Roger Quadros <rogerq@ti.com>
 >>
->> +       if (twl_class_is_4030())
->> +               rtc_reg_map = (u8 *) twl4030_rtc_reg_map;
->> +       else
->> +               rtc_reg_map = (u8 *) twl6030_rtc_reg_map;
+>> Provide the RESET regulators for the USB PHYs, the USB Host
+>> port modes and the PHY devices.
+>>
+>> Also provide pin multiplexer information for the USB host
+>> pins.
+>>
+>> Cc: Roger Quadros <rogerq@ti.com>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> [Sricharan R <r.sricharan@ti.com>: Replaced constants with preprocessor macros]
+>> Signed-off-by: Sricharan R <r.sricharan@ti.com>
+>> ---
+>>  arch/arm/boot/dts/omap5-uevm.dts |   77 ++++++++++++++++++++++++++++++++++++++
+>>  arch/arm/boot/dts/omap5.dtsi     |   30 +++++++++++++++
+>>  2 files changed, 107 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+>> index 843a001..cf862df 100644
+>> --- a/arch/arm/boot/dts/omap5-uevm.dts
+>> +++ b/arch/arm/boot/dts/omap5-uevm.dts
+>> @@ -25,6 +25,47 @@
+>>  		regulator-max-microvolt = <3000000>;
+>>  	};
+>>  
+>> +	/* HS USB Port 2 RESET */
+>> +	hsusb2_reset: hsusb2_reset_reg {
+>> +		compatible = "regulator-fixed";
+>> +		regulator-name = "hsusb2_reset";
+>> +		regulator-min-microvolt = <3300000>;
+>> +		regulator-max-microvolt = <3300000>;
+>> +		gpio = <&gpio3 16 GPIO_ACTIVE_HIGH>; /* gpio3_80 HUB_NRESET */
+>> +		startup-delay-us = <70000>;
+>> +		enable-active-high;
+>> +	};
 >> +
->>          ret = twl_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
->>          if (ret < 0)
->>                  goto out1;
->> @@ -610,11 +615,6 @@ static struct platform_driver twl4030rtc_driver = {
->>
->>   static int __init twl_rtc_init(void)
->>   {
->> -       if (twl_class_is_4030())
->> -               rtc_reg_map = (u8 *) twl4030_rtc_reg_map;
->> -       else
->> -               rtc_reg_map = (u8 *) twl6030_rtc_reg_map;
->> -
->>          return platform_driver_register(&twl4030rtc_driver);
->>   }
->>   module_init(twl_rtc_init);
->>
->> Unfortunately, I have no OMAP3 HW and can't check it.
-> I suggest you find a Beagle or Gumstix/Overo type board someplace.
-> There is an abundance of cheap OMAP3 hardware available.
+>> +	/* HS USB Host PHY on PORT 2 */
+>> +	hsusb2_phy: hsusb2_phy {
+>> +		compatible = "usb-nop-xceiv";
+>> +		reset-supply = <&hsusb2_reset>;
+>> +	};
+>> +
+>> +	/* HS USB Port 3 RESET */
+>> +	hsusb3_reset: hsusb3_reset_reg {
+>> +		compatible = "regulator-fixed";
+>> +		regulator-name = "hsusb3_reset";
+>> +		regulator-min-microvolt = <3300000>;
+>> +		regulator-max-microvolt = <3300000>;
+>> +		gpio = <&gpio3 15 GPIO_ACTIVE_HIGH>; /* gpio3_79 ETH_NRESET */
+>> +		startup-delay-us = <70000>;
+>> +		enable-active-high;
+>> +	};
+>> +
+>> +	/* HS USB Host PHY on PORT 3 */
+>> +	hsusb3_phy: hsusb3_phy {
+>> +		compatible = "usb-nop-xceiv";
+>> +		reset-supply = <&hsusb3_reset>;
+>> +	};
+>> +
+>> +	/* hsusb2_phy is clocked by FREF_CLK1 i.e. auxclk1 */
+>> +	clock_alias {
+>> +		clock-name = "auxclk1_ck";
+>> +		clock-alias = "main_clk";
+>> +		device = <&hsusb2_phy>;
+>> +		clock-frequency = <19200000>; /* 19.2 MHz */
+>> +	};
+> clock_alias node is not required. Instead we need to rely on proper clock binding
+> and provide reference to the clock phandle in the PHY node.
 >
-> Kevin
+> as an example please see here
+> https://lkml.org/lkml/2013/4/19/124
 >
+> However this clock binding technique is still under discussion/transition.
+> https://patchwork.kernel.org/patch/2541331/
+>
+> So, I suggest you leave the auxclk1 part out for now and we can get it in later once
+> the clock binding stuff is sorted out. The side effect of this is that PORT 2 (i.e. USB Hub)
+> will not work. USB Ethernet should still work IMO.
+  Ok will drop that part then.
+
+Thanks,
+ Sricharan
