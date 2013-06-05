@@ -1,89 +1,187 @@
-From: Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH RFC 0/3] first pass converting omap4 clock data to DT
-Date: Tue, 04 Jun 2013 23:45:45 -0700
-Message-ID: <20130605064545.10233.72880@quantum>
-References: <1370327958-19776-1-git-send-email-mturquette@linaro.org>
- <1370352534.25965.52.camel@sokoban>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: [PATCH 2/4] ARM: dts: omap5-uevm: Add USB Host support
+Date: Wed, 5 Jun 2013 12:16:08 +0530
+Message-ID: <1370414770-1485-3-git-send-email-r.sricharan@ti.com>
+References: <1370414770-1485-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1370352534.25965.52.camel@sokoban>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: t-kristo-l0cyMroinI0@public.gmane.orgTero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:58620 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752208Ab3FEGqo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Jun 2013 02:46:44 -0400
+In-Reply-To: <1370414770-1485-1-git-send-email-r.sricharan@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: r.sricharan@ti.com, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com, Roger Quadros <rogerq@ti.com>
 
-Quoting Tero Kristo (2013-06-04 06:28:54)
-> Hi Mike,
-> 
-> On Mon, 2013-06-03 at 23:39 -0700, Mike Turquette wrote:
-> > This is a very incomplete conversion of a handful of OMAP4 PRCM clocks
-> > from the statically defined clock data in
-> > arch/arm/mach-omap2/cclock44xx_data.c to a new dts file in
-> > arch/arm/boot/dts/omap4-clocks.dtsi.
-> 
-> I gave a quick try for this set and it seems to be working nicely, so
-> for at least me this approach is fine. Feel free to add tested-by me if
-> you like (for the basic clock bindings also.) Can't comment much on the
-> DT stuff though as my experience is rather limited on it.
-> 
-> > I am not a DT expert so many of the choices here may be quite disgusting
-> > to look at, or may be on the right path.  In particular I simply include
-> > the new omap4-clocks.dtsi from omap4.dtsi, which feels a bit kludgey.
-> > Also this series depends on the basic clock bindings RFC I posted
-> > earlier today[1].
-> > 
-> > I actually have an omap4-clock.dtsi file with many more clocks converted
-> > to the mux-clock, divider-clock, fixed-clock, fixed-factor and
-> > (unpublished) gate-clock bindings in my local repo, but it is not
-> > currently booting.  I wanted to get this early preview out regardless.
-> 
-> Any way I can get access to your local tree? Can you push a branch
-> somewhere? I could provide you debugging support on this at least, as I
-> spent quite a bit of time earlier moving the clock data under
-> drivers/clk... I guess you are probably seeing similar issues I faced.
-> 
+From: Roger Quadros <rogerq@ti.com>
 
-I'll be pushing changes to my github tree:
-git://github.com/mturquette/linux.git clk-next-omap-dt
-https://github.com/mturquette/linux/tree/clk-next-omap-dt
+Provide the RESET regulators for the USB PHYs, the USB Host
+port modes and the PHY devices.
 
-For now it is just this series based on the prerequisites, based on
-clk-next, based on -rc3.
+Also provide pin multiplexer information for the USB host
+pins.
 
-Regards,
-Mike
+Cc: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+[Sricharan R <r.sricharan@ti.com>: Replaced constants with preprocessor macros]
+Signed-off-by: Sricharan R <r.sricharan@ti.com>
+---
+ arch/arm/boot/dts/omap5-uevm.dts |   77 ++++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap5.dtsi     |   30 +++++++++++++++
+ 2 files changed, 107 insertions(+)
 
-> -Tero
-> 
-> > 
-> > [1] http://article.gmane.org/gmane.linux.kernel/1501216
-> > 
-> > Mike Turquette (3):
-> >   clk: omap: introduce clock driver
-> >   ARM: dts: omap4 clock data
-> >   ARM: omap4: register DT clocks & remove old data
-> > 
-> >  arch/arm/boot/dts/omap4-clocks.dtsi   | 128 ++++++++++++++++++++++++++++++++++
-> >  arch/arm/boot/dts/omap4.dtsi          |   2 +
-> >  arch/arm/mach-omap2/cclock44xx_data.c |  54 ++------------
-> >  drivers/clk/Makefile                  |   1 +
-> >  drivers/clk/omap/Makefile             |   1 +
-> >  drivers/clk/omap/clk.c                |  55 +++++++++++++++
-> >  include/linux/clk/omap.h              |  24 +++++++
-> >  7 files changed, 217 insertions(+), 48 deletions(-)
-> >  create mode 100644 arch/arm/boot/dts/omap4-clocks.dtsi
-> >  create mode 100644 drivers/clk/omap/Makefile
-> >  create mode 100644 drivers/clk/omap/clk.c
-> >  create mode 100644 include/linux/clk/omap.h
-> >
+diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+index 843a001..cf862df 100644
+--- a/arch/arm/boot/dts/omap5-uevm.dts
++++ b/arch/arm/boot/dts/omap5-uevm.dts
+@@ -25,6 +25,47 @@
+ 		regulator-max-microvolt = <3000000>;
+ 	};
+ 
++	/* HS USB Port 2 RESET */
++	hsusb2_reset: hsusb2_reset_reg {
++		compatible = "regulator-fixed";
++		regulator-name = "hsusb2_reset";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		gpio = <&gpio3 16 GPIO_ACTIVE_HIGH>; /* gpio3_80 HUB_NRESET */
++		startup-delay-us = <70000>;
++		enable-active-high;
++	};
++
++	/* HS USB Host PHY on PORT 2 */
++	hsusb2_phy: hsusb2_phy {
++		compatible = "usb-nop-xceiv";
++		reset-supply = <&hsusb2_reset>;
++	};
++
++	/* HS USB Port 3 RESET */
++	hsusb3_reset: hsusb3_reset_reg {
++		compatible = "regulator-fixed";
++		regulator-name = "hsusb3_reset";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		gpio = <&gpio3 15 GPIO_ACTIVE_HIGH>; /* gpio3_79 ETH_NRESET */
++		startup-delay-us = <70000>;
++		enable-active-high;
++	};
++
++	/* HS USB Host PHY on PORT 3 */
++	hsusb3_phy: hsusb3_phy {
++		compatible = "usb-nop-xceiv";
++		reset-supply = <&hsusb3_reset>;
++	};
++
++	/* hsusb2_phy is clocked by FREF_CLK1 i.e. auxclk1 */
++	clock_alias {
++		clock-name = "auxclk1_ck";
++		clock-alias = "main_clk";
++		device = <&hsusb2_phy>;
++		clock-frequency = <19200000>; /* 19.2 MHz */
++	};
+ };
+ 
+ &omap5_pmx_core {
+@@ -35,6 +76,7 @@
+ 			&dmic_pins
+ 			&mcbsp1_pins
+ 			&mcbsp2_pins
++			&usbhost_pins
+ 	>;
+ 
+ 	twl6040_pins: pinmux_twl6040_pins {
+@@ -120,6 +162,32 @@
+ 			0x16c (PIN_INPUT | MUX_MODE1)		/*  mcspi2_cs */
+ 		>;
+ 	};
++
++	usbhost_pins: pinmux_usbhost_pins {
++		pinctrl-single,pins = <
++			0x84 (PIN_INPUT | MUX_MODE0) /* usbb2_hsic_strobe INPUT | MODE 0 */
++			0x86 (PIN_INPUT | MUX_MODE0) /* usbb2_hsic_data INPUT | MODE 0 */
++
++			0x19e (PIN_INPUT | MUX_MODE0) /* usbb3_hsic_strobe INPUT | MODE 0 */
++			0x1a0 (PIN_INPUT | MUX_MODE0) /* usbb3_hsic_data INPUT | MODE 0 */
++
++			0x70 (PIN_OUTPUT | MUX_MODE6) /* gpio3_80 OUTPUT | MODE 6 HUB_NRESET */
++			0x6e (PIN_OUTPUT | MUX_MODE6) /* gpio3_79 OUTPUT | MODE 6 ETH_NRESET */
++		>;
++	};
++};
++
++&omap5_pmx_wkup {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++			&usbhost_wkup_pins
++	>;
++
++	usbhost_wkup_pins: pinmux_usbhost_wkup_pins {
++		pinctrl-single,pins = <
++			0x1A (PIN_OUTPUT | MUX_MODE0) /* fref_clk1_out OUTPUT | MODE 7 for USB hub clk */
++		>;
++	};
+ };
+ 
+ &mmc1 {
+@@ -164,6 +232,15 @@
+ 	status = "disabled";
+ };
+ 
++&usbhshost {
++	port2-mode = "ehci-hsic";
++	port3-mode = "ehci-hsic";
++};
++
++&usbhsehci {
++	phys = <0 &hsusb2_phy &hsusb3_phy>;
++};
++
+ &mcspi1 {
+ 
+ };
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 1e84db8..67d6e1f 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -666,5 +666,35 @@
+ 				ctrl-module = <&omap_control_usb>;
+ 			};
+ 		};
++
++		usbhstll: usbhstll@4a062000 {
++			compatible = "ti,usbhs-tll";
++			reg = <0x4a062000 0x1000>;
++			interrupts = <0 78 IRQ_TYPE_LEVEL_HIGH>;
++			ti,hwmods = "usb_tll_hs";
++		};
++
++		usbhshost: usbhshost@4a064000 {
++			compatible = "ti,usbhs-host";
++			reg = <0x4a064000 0x800>;
++			ti,hwmods = "usb_host_hs";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
++
++			usbhsohci: ohci@4a064800 {
++				compatible = "ti,ohci-omap3", "usb-ohci";
++				reg = <0x4a064800 0x400>;
++				interrupt-parent = <&gic>;
++				interrupts = <0 76 IRQ_TYPE_LEVEL_HIGH>;
++			};
++
++			usbhsehci: ehci@4a064c00 {
++				compatible = "ti,ehci-omap", "usb-ehci";
++				reg = <0x4a064c00 0x400>;
++				interrupt-parent = <&gic>;
++				interrupts = <0 77 IRQ_TYPE_LEVEL_HIGH>;
++			};
++		};
+ 	};
+ };
+-- 
+1.7.9.5
+
