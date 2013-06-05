@@ -1,181 +1,82 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH 1/4] ARM: dts: omap5: Rename omap5-evm to omap5-uevm
-Date: Wed, 5 Jun 2013 12:24:27 +0530
-Message-ID: <1370415267-1624-1-git-send-email-r.sricharan@ti.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH 3/3] ARM: DTS: TWL4030: fix mux and wakeup for SYS_NIRQ
+ line
+Date: Wed, 05 Jun 2013 09:41:28 +0200
+Message-ID: <51AEEBA8.1070301@epfl.ch>
+References: <1370040357-25794-1-git-send-email-khilman@linaro.org> <1370040357-25794-4-git-send-email-khilman@linaro.org> <51AC667D.6070409@epfl.ch> <87mwr6kfbm.fsf@linaro.org>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52074 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752090Ab3FEGzD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Jun 2013 02:55:03 -0400
+Received: from smtp4.epfl.ch ([128.178.224.219]:50053 "HELO smtp4.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752141Ab3FEHlg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Jun 2013 03:41:36 -0400
+In-Reply-To: <87mwr6kfbm.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: devicetree-discuss@lists.ozlabs.org, r.sricharan@ti.com, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The uevm is the official board supported for the OMAP5 soc
-in mainline. The uevm has an OMAP5432 with a DDR3 memory.
-Renaming the board dts file and adding the following cleanups.
 
- * There are no devices connected on I2C 2,3,4 buses. So remove
-   the pinmux data for the same.
 
- * DDR3 memory is used in the uevm. Neither DVFS or temperature
-   polling is supported with DDR3. So remove the DDR3 device and
-   emif nodes.
+On 06/04/2013 12:19 AM, Kevin Hilman wrote:
+> Florian Vaussard <florian.vaussard@epfl.ch> writes:
+>
+>> Hello Kevin,
+>>
+>> On 06/01/2013 12:45 AM, Kevin Hilman wrote:
+>>> On most OMAP3 platforms, the twl4030 IRQ line is connected to the
+>>> SYS_NIRQ line on OMAP.  Therefore, configure the defaults for the
+>>> SYS_NIRQ pin in the twl4030 DTS file.
+>>>
+>>> Boards that hook up the twl4030 differently can easily override this
+>>> in their board-specific DTS file.
+>>>
+>>> This allows RTC wake from off-mode to work again on OMAP3-based
+>>> platforms with twl4030.  Tested on 3530/Beagle, 3730/Beagle-xM,
+>>> 3530/Overo, 3730/Overo-STORM.
+>>>
+>>> Signed-off-by: Kevin Hilman <khilman@linaro.org>
+>>> ---
+>>>    arch/arm/boot/dts/twl4030.dtsi | 17 +++++++++++++++++
+>>>    1 file changed, 17 insertions(+)
+>>>
+>>> diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
+>>> index b3034da..c7fe9f6 100644
+>>> --- a/arch/arm/boot/dts/twl4030.dtsi
+>>> +++ b/arch/arm/boot/dts/twl4030.dtsi
+>>> @@ -13,6 +13,8 @@
+>>>    	compatible = "ti,twl4030";
+>>>    	interrupt-controller;
+>>>    	#interrupt-cells = <1>;
+>>> +	pinctrl-names = "default";
+>>> +	pinctrl-0 = <&twl4030_pins>;
+>>>
+>>>    	rtc {
+>>>    		compatible = "ti,twl4030-rtc";
+>>> @@ -92,3 +94,18 @@
+>>>    		#pwm-cells = <2>;
+>>>    	};
+>>>    };
+>>> +
+>>> +&omap3_pmx_core {
+>>
+>> Here you are making the TWL4030 to explicitly depend on OMAP3. Could
+>> this chip be used by another target? If the case, I would put this
+>> piece of code in the files including twl4030. Otherwise it's ok here.
+>
+> I talked this over with Tony before posting.  In theorry, it could be
+> used on other platforms.  In practice, it's only used on OMAP.  We can
+> easily move this to board files if needed later, but thought it would be
+> simpler to put it here.  I'll let Benoit decide.
+>
 
- * Keypad is not supported on uevm. So remove the device node.
+Ok, so I am fine with your approach. If need arises later, we can have
+a .dtsi file in-between to make the glue layer and avoid duplication inside
+board files.
 
-Signed-off-by: Sricharan R <r.sricharan@ti.com>
----
- arch/arm/boot/dts/Makefile                         |    2 +-
- .../arm/boot/dts/{omap5-evm.dts => omap5-uevm.dts} |   83 +-------------------
- 2 files changed, 4 insertions(+), 81 deletions(-)
- rename arch/arm/boot/dts/{omap5-evm.dts => omap5-uevm.dts} (73%)
+Regards,
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index f0895c5..13b86bf 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -149,7 +149,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
- 	omap4-panda-es.dtb \
- 	omap4-var-som.dtb \
- 	omap4-sdp.dtb \
--	omap5-evm.dtb \
-+	omap5-uevm.dtb \
- 	am335x-evm.dtb \
- 	am335x-evmsk.dtb \
- 	am335x-bone.dtb
-diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-similarity index 73%
-rename from arch/arm/boot/dts/omap5-evm.dts
-rename to arch/arm/boot/dts/omap5-uevm.dts
-index 22e9ee8..843a001 100644
---- a/arch/arm/boot/dts/omap5-evm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -8,11 +8,10 @@
- /dts-v1/;
- 
- #include "omap5.dtsi"
--#include "samsung_k3pe0e000b.dtsi"
- 
- / {
--	model = "TI OMAP5 EVM board";
--	compatible = "ti,omap5-evm", "ti,omap5";
-+	model = "TI OMAP5 uEVM board";
-+	compatible = "ti,omap5-uevm", "ti,omap5";
- 
- 	memory {
- 		device_type = "memory";
-@@ -88,27 +87,6 @@
- 		>;
- 	};
- 
--	i2c2_pins: pinmux_i2c2_pins {
--		pinctrl-single,pins = <
--			0x178 (PIN_INPUT | MUX_MODE0)		/* i2c2_scl */
--			0x17a (PIN_INPUT | MUX_MODE0)		/* i2c2_sda */
--		>;
--	};
--
--	i2c3_pins: pinmux_i2c3_pins {
--		pinctrl-single,pins = <
--			0x13a (PIN_INPUT | MUX_MODE0)		/* i2c3_scl */
--			0x13c (PIN_INPUT | MUX_MODE0)		/* i2c3_sda */
--		>;
--	};
--
--	i2c4_pins: pinmux_i2c4_pins {
--		pinctrl-single,pins = <
--			0xb8 (PIN_INPUT | MUX_MODE0)		/* i2c4_scl */
--			0xba (PIN_INPUT | MUX_MODE0)		/* i2c4_sda */
--		>;
--	};
--
- 	i2c5_pins: pinmux_i2c5_pins {
- 		pinctrl-single,pins = <
- 			0x184 (PIN_INPUT | MUX_MODE0)		/* i2c5_scl */
-@@ -175,39 +153,6 @@
- 	clock-frequency = <400000>;
- };
- 
--&i2c2 {
--	pinctrl-names = "default";
--	pinctrl-0 = <&i2c2_pins>;
--
--	clock-frequency = <400000>;
--
--	/* Pressure Sensor */
--	bmp085@77 {
--		compatible = "bosch,bmp085";
--		reg = <0x77>;
--	};
--};
--
--&i2c3 {
--	pinctrl-names = "default";
--	pinctrl-0 = <&i2c3_pins>;
--
--	clock-frequency = <400000>;
--};
--
--&i2c4 {
--	pinctrl-names = "default";
--	pinctrl-0 = <&i2c4_pins>;
--
--	clock-frequency = <400000>;
--
--	/* Temperature Sensor */
--	tmp102@48{
--		compatible = "ti,tmp102";
--		reg = <0x48>;
--	};
--};
--
- &i2c5 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&i2c5_pins>;
-@@ -215,32 +160,10 @@
- 	clock-frequency = <400000>;
- };
- 
--&keypad {
--	keypad,num-rows = <8>;
--	keypad,num-columns = <8>;
--	linux,keymap = <0x02020073	/* VOLUP */
--			0x02030072	/* VOLDOWM */
--			0x020400e7	/* SEND */
--			0x02050066	/* HOME */
--			0x0206006b	/* END */
--			0x020700d9>;	/* SEARCH */
--	linux,input-no-autorepeat;
--};
--
- &mcbsp3 {
- 	status = "disabled";
- };
- 
--&emif1 {
--	cs1-used;
--	device-handle = <&samsung_K3PE0E000B>;
--};
--
--&emif2 {
--	cs1-used;
--	device-handle = <&samsung_K3PE0E000B>;
--};
--
- &mcspi1 {
- 
- };
--- 
-1.7.9.5
-
+Florian
