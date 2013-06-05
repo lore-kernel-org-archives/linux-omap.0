@@ -1,213 +1,63 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH 2/4] ARM: dts: omap5-uevm: Add USB Host support
-Date: Wed, 05 Jun 2013 09:59:28 +0200
-Message-ID: <51AEEFE0.50107@epfl.ch>
-References: <1370414770-1485-1-git-send-email-r.sricharan@ti.com> <1370414770-1485-3-git-send-email-r.sricharan@ti.com>
-Reply-To: florian.vaussard@epfl.ch
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [PATCH v2] OMAP: AES: Don't idle/start AES device between
+ Encrypt operations
+Date: Wed, 5 Jun 2013 16:53:27 +0800
+Message-ID: <20130605085327.GC12202@gondor.apana.org.au>
+References: <1369785775-3737-1-git-send-email-joelagnel@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:54228 "HELO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752526Ab3FEH7d (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Jun 2013 03:59:33 -0400
-In-Reply-To: <1370414770-1485-3-git-send-email-r.sricharan@ti.com>
+Received: from ringil.hengli.com.au ([178.18.16.133]:54667 "EHLO
+	fornost.hengli.com.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752948Ab3FEIx3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jun 2013 04:53:29 -0400
+Content-Disposition: inline
+In-Reply-To: <1369785775-3737-1-git-send-email-joelagnel@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com, Roger Quadros <rogerq@ti.com>
+To: Joel A Fernandes <joelagnel@ti.com>
+Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hello,
+On Tue, May 28, 2013 at 07:02:55PM -0500, Joel A Fernandes wrote:
+> Calling runtime PM API for every block causes serious perf hit to
+> crypto operations that are done on a long buffer.
+> As crypto is performed on a page boundary, encrypting large buffers can
+> cause a series of crypto operations divided by page. The runtime PM API
+> is also called those many times.
+> 
+> We call runtime_pm_get_sync only at beginning on the session (cra_init)
+> and runtime_pm_put at the end. This result in upto a 50% speedup as below.
+> This doesn't make the driver to keep the system awake as runtime get/put
+> is only called during a crypto session which completes usually quickly.
+> 
+> Before:
+> root@beagleboard:~# time -v openssl speed -evp aes-128-cbc
+> Doing aes-128-cbc for 3s on 16 size blocks: 13310 aes-128-cbc's in 0.01s
+> Doing aes-128-cbc for 3s on 64 size blocks: 13040 aes-128-cbc's in 0.04s
+> Doing aes-128-cbc for 3s on 256 size blocks: 9134 aes-128-cbc's in 0.03s
+> Doing aes-128-cbc for 3s on 1024 size blocks: 8939 aes-128-cbc's in 0.01s
+> Doing aes-128-cbc for 3s on 8192 size blocks: 4299 aes-128-cbc's in 0.00s
+> 
+> After:
+> root@beagleboard:~# time -v openssl speed -evp aes-128-cbc
+> Doing aes-128-cbc for 3s on 16 size blocks: 18911 aes-128-cbc's in 0.02s
+> Doing aes-128-cbc for 3s on 64 size blocks: 18878 aes-128-cbc's in 0.02s
+> Doing aes-128-cbc for 3s on 256 size blocks: 11878 aes-128-cbc's in 0.10s
+> Doing aes-128-cbc for 3s on 1024 size blocks: 11538 aes-128-cbc's in 0.05s
+> Doing aes-128-cbc for 3s on 8192 size blocks: 4857 aes-128-cbc's in 0.03s
+> 
+> While at it, also drop enter and exit pr_debugs, in related code. tracers
+> can be used for that.
+> 
+> Tested on a Beaglebone (AM335x SoC) board.
+> 
+> v3 changes:
+> Refreshed patch on kernel v3.10-rc3
+> 
+> Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
 
-Some very minor comments.
-
-On 06/05/2013 08:46 AM, Sricharan R wrote:
-> From: Roger Quadros <rogerq@ti.com>
->
-> Provide the RESET regulators for the USB PHYs, the USB Host
-> port modes and the PHY devices.
->
-> Also provide pin multiplexer information for the USB host
-> pins.
->
-> Cc: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> [Sricharan R <r.sricharan@ti.com>: Replaced constants with preprocessor macros]
-> Signed-off-by: Sricharan R <r.sricharan@ti.com>
-> ---
->   arch/arm/boot/dts/omap5-uevm.dts |   77 ++++++++++++++++++++++++++++++++++++++
->   arch/arm/boot/dts/omap5.dtsi     |   30 +++++++++++++++
->   2 files changed, 107 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-> index 843a001..cf862df 100644
-> --- a/arch/arm/boot/dts/omap5-uevm.dts
-> +++ b/arch/arm/boot/dts/omap5-uevm.dts
-> @@ -25,6 +25,47 @@
->   		regulator-max-microvolt = <3000000>;
->   	};
->
-> +	/* HS USB Port 2 RESET */
-> +	hsusb2_reset: hsusb2_reset_reg {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "hsusb2_reset";
-> +		regulator-min-microvolt = <3300000>;
-> +		regulator-max-microvolt = <3300000>;
-> +		gpio = <&gpio3 16 GPIO_ACTIVE_HIGH>; /* gpio3_80 HUB_NRESET */
-> +		startup-delay-us = <70000>;
-> +		enable-active-high;
-> +	};
-> +
-> +	/* HS USB Host PHY on PORT 2 */
-> +	hsusb2_phy: hsusb2_phy {
-> +		compatible = "usb-nop-xceiv";
-> +		reset-supply = <&hsusb2_reset>;
-> +	};
-> +
-> +	/* HS USB Port 3 RESET */
-> +	hsusb3_reset: hsusb3_reset_reg {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "hsusb3_reset";
-> +		regulator-min-microvolt = <3300000>;
-> +		regulator-max-microvolt = <3300000>;
-> +		gpio = <&gpio3 15 GPIO_ACTIVE_HIGH>; /* gpio3_79 ETH_NRESET */
-> +		startup-delay-us = <70000>;
-> +		enable-active-high;
-> +	};
-> +
-> +	/* HS USB Host PHY on PORT 3 */
-> +	hsusb3_phy: hsusb3_phy {
-> +		compatible = "usb-nop-xceiv";
-> +		reset-supply = <&hsusb3_reset>;
-> +	};
-> +
-> +	/* hsusb2_phy is clocked by FREF_CLK1 i.e. auxclk1 */
-> +	clock_alias {
-> +		clock-name = "auxclk1_ck";
-> +		clock-alias = "main_clk";
-> +		device = <&hsusb2_phy>;
-> +		clock-frequency = <19200000>; /* 19.2 MHz */
-> +	};
->   };
->
->   &omap5_pmx_core {
-> @@ -35,6 +76,7 @@
->   			&dmic_pins
->   			&mcbsp1_pins
->   			&mcbsp2_pins
-> +			&usbhost_pins
->   	>;
->
->   	twl6040_pins: pinmux_twl6040_pins {
-> @@ -120,6 +162,32 @@
->   			0x16c (PIN_INPUT | MUX_MODE1)		/*  mcspi2_cs */
->   		>;
->   	};
-> +
-> +	usbhost_pins: pinmux_usbhost_pins {
-> +		pinctrl-single,pins = <
-> +			0x84 (PIN_INPUT | MUX_MODE0) /* usbb2_hsic_strobe INPUT | MODE 0 */
-> +			0x86 (PIN_INPUT | MUX_MODE0) /* usbb2_hsic_data INPUT | MODE 0 */
-
-Comments are redundant with the constants, so maybe you can leave this 
-part out.
-Same for a few others below.
-
-> +
-> +			0x19e (PIN_INPUT | MUX_MODE0) /* usbb3_hsic_strobe INPUT | MODE 0 */
-> +			0x1a0 (PIN_INPUT | MUX_MODE0) /* usbb3_hsic_data INPUT | MODE 0 */
-> +
-> +			0x70 (PIN_OUTPUT | MUX_MODE6) /* gpio3_80 OUTPUT | MODE 6 HUB_NRESET */
-> +			0x6e (PIN_OUTPUT | MUX_MODE6) /* gpio3_79 OUTPUT | MODE 6 ETH_NRESET */
-> +		>;
-> +	};
-> +};
-> +
-> +&omap5_pmx_wkup {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <
-> +			&usbhost_wkup_pins
-> +	>;
-> +
-> +	usbhost_wkup_pins: pinmux_usbhost_wkup_pins {
-> +		pinctrl-single,pins = <
-> +			0x1A (PIN_OUTPUT | MUX_MODE0) /* fref_clk1_out OUTPUT | MODE 7 for USB hub clk */
-
-Mismatch between constants and comments, which mode should it be?
-
-> +		>;
-> +	};
->   };
->
->   &mmc1 {
-> @@ -164,6 +232,15 @@
->   	status = "disabled";
->   };
->
-> +&usbhshost {
-> +	port2-mode = "ehci-hsic";
-> +	port3-mode = "ehci-hsic";
-> +};
-> +
-> +&usbhsehci {
-> +	phys = <0 &hsusb2_phy &hsusb3_phy>;
-> +};
-> +
->   &mcspi1 {
->
->   };
-> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> index 1e84db8..67d6e1f 100644
-> --- a/arch/arm/boot/dts/omap5.dtsi
-> +++ b/arch/arm/boot/dts/omap5.dtsi
-> @@ -666,5 +666,35 @@
->   				ctrl-module = <&omap_control_usb>;
->   			};
->   		};
-> +
-> +		usbhstll: usbhstll@4a062000 {
-> +			compatible = "ti,usbhs-tll";
-> +			reg = <0x4a062000 0x1000>;
-> +			interrupts = <0 78 IRQ_TYPE_LEVEL_HIGH>;
-
-I guess that here you can replace '0' with GIC_SPI.
-
-> +			ti,hwmods = "usb_tll_hs";
-> +		};
-> +
-> +		usbhshost: usbhshost@4a064000 {
-> +			compatible = "ti,usbhs-host";
-> +			reg = <0x4a064000 0x800>;
-> +			ti,hwmods = "usb_host_hs";
-> +			#address-cells = <1>;
-> +			#size-cells = <1>;
-> +			ranges;
-> +
-> +			usbhsohci: ohci@4a064800 {
-> +				compatible = "ti,ohci-omap3", "usb-ohci";
-> +				reg = <0x4a064800 0x400>;
-> +				interrupt-parent = <&gic>;
-> +				interrupts = <0 76 IRQ_TYPE_LEVEL_HIGH>;
-
-Same here.
-
-> +			};
-> +
-> +			usbhsehci: ehci@4a064c00 {
-> +				compatible = "ti,ehci-omap", "usb-ehci";
-> +				reg = <0x4a064c00 0x400>;
-> +				interrupt-parent = <&gic>;
-> +				interrupts = <0 77 IRQ_TYPE_LEVEL_HIGH>;
-
-And here.
-
-> +			};
-> +		};
->   	};
->   };
->
-
-Regards,
-
-Florian
+Patch applied.  Thanks!
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
