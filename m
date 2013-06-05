@@ -1,64 +1,90 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH 1/2] i2c: omap: convert to module_platform_driver()
-Date: Wed, 5 Jun 2013 15:50:48 +0200
-Message-ID: <20130605135048.GB2934@katana>
-References: <1366723151-23209-1-git-send-email-grygorii.strashko@ti.com>
- <1366723151-23209-2-git-send-email-grygorii.strashko@ti.com>
- <87fvwylxl8.fsf@linaro.org>
- <51ADD06B.3000201@ti.com>
- <87zjv5zq41.fsf@linaro.org>
- <51AF20F0.30000@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 3/3] ARM: DTS: TWL4030: fix mux and wakeup for SYS_NIRQ
+ line
+Date: Wed, 5 Jun 2013 15:52:09 +0200
+Message-ID: <51AF4289.50602@ti.com>
+References: <1370040357-25794-1-git-send-email-khilman@linaro.org> <1370040357-25794-4-git-send-email-khilman@linaro.org> <51AC667D.6070409@epfl.ch> <87mwr6kfbm.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wq9mPyueHGvFACwf"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:53164 "EHLO pokefinder.org"
+Received: from comal.ext.ti.com ([198.47.26.152]:51676 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752718Ab3FENtE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Jun 2013 09:49:04 -0400
-Content-Disposition: inline
-In-Reply-To: <51AF20F0.30000@ti.com>
+	id S1755806Ab3FENwl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Jun 2013 09:52:41 -0400
+In-Reply-To: <87mwr6kfbm.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: florian.vaussard@epfl.ch, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+
+Salut Kevin,
+
+On 06/04/2013 12:19 AM, Kevin Hilman wrote:
+> Florian Vaussard <florian.vaussard@epfl.ch> writes:
+> 
+>> Hello Kevin,
+>>
+>> On 06/01/2013 12:45 AM, Kevin Hilman wrote:
+>>> On most OMAP3 platforms, the twl4030 IRQ line is connected to the
+>>> SYS_NIRQ line on OMAP.  Therefore, configure the defaults for the
+>>> SYS_NIRQ pin in the twl4030 DTS file.
+>>>
+>>> Boards that hook up the twl4030 differently can easily override this
+>>> in their board-specific DTS file.
+>>>
+>>> This allows RTC wake from off-mode to work again on OMAP3-based
+>>> platforms with twl4030.  Tested on 3530/Beagle, 3730/Beagle-xM,
+>>> 3530/Overo, 3730/Overo-STORM.
+>>>
+>>> Signed-off-by: Kevin Hilman <khilman@linaro.org>
+>>> ---
+>>>   arch/arm/boot/dts/twl4030.dtsi | 17 +++++++++++++++++
+>>>   1 file changed, 17 insertions(+)
+>>>
+>>> diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
+>>> index b3034da..c7fe9f6 100644
+>>> --- a/arch/arm/boot/dts/twl4030.dtsi
+>>> +++ b/arch/arm/boot/dts/twl4030.dtsi
+>>> @@ -13,6 +13,8 @@
+>>>   	compatible = "ti,twl4030";
+>>>   	interrupt-controller;
+>>>   	#interrupt-cells = <1>;
+>>> +	pinctrl-names = "default";
+>>> +	pinctrl-0 = <&twl4030_pins>;
+>>>
+>>>   	rtc {
+>>>   		compatible = "ti,twl4030-rtc";
+>>> @@ -92,3 +94,18 @@
+>>>   		#pwm-cells = <2>;
+>>>   	};
+>>>   };
+>>> +
+>>> +&omap3_pmx_core {
+>>
+>> Here you are making the TWL4030 to explicitly depend on OMAP3. Could
+>> this chip be used by another target? If the case, I would put this
+>> piece of code in the files including twl4030. Otherwise it's ok here.
+> 
+> I talked this over with Tony before posting.  In theorry, it could be
+> used on other platforms.  In practice, it's only used on OMAP.  We can
+> easily move this to board files if needed later, but thought it would be
+> simpler to put it here.  I'll let Benoit decide.
+
+Yeah, I don't like that either. Some twl variants are used on other
+platform. And these variants might include the original twl4030 as a
+base. None of them are in mainline for sure, but anyway adding SoC stuff
+in external IC file is not a good practice.
+
+I don't want people in the future using that as an excuse for similar hacks.
+
+The easiest way is to create an extra file including the platform free
+twl4030 file and adding the OMAP3 specific config on top of that.
+Every OMAP3 boards will the used that file. Otherwise you can hack each
+boards.
 
 
---wq9mPyueHGvFACwf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Regards,
+Benoit
 
 
-> The similar patch already exists:
-> https://patchwork.kernel.org/patch/2448251/ - [v2,1/2] RTC: rtc-twl:
-> Fix rtc_reg_map initialization
-> from Peter Ujfalusi
-
-So, I think it is best if you resend this patch after all the fixes it
-needs are applied or you resend the series with all patches it depends
-on. Which should then probably go via arm-soc. Or?
-
-
---wq9mPyueHGvFACwf
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRr0I4AAoJEBQN5MwUoCm2P/AQAJMIs20ZMapwSiHTjbxmTwnC
-g37LT4J/myLchAXowmI0H0CnDO5mppUkKGsWyeVnIBJt1kkQMY735sdnf2KRNqJ2
-muEgy/cx1AQad+S3kRE/Z/ni6KaPk2t1hw6nbpP3Ah7mdWJJjeG54ifGt4GGp3fE
-dFzB+s++HAaiUPPNqMaaIMFiaX1NmcWkrIEOGxaF0y3QCkPlyFXFulCgejJwkfle
-8JDXwWVfRms7DXp6LqhzSr8CiONRhtqmHYzgnVb1Hr+DD0q32ZCZWGocb/NJYLim
-gauYXT70+JAatBW0FOJsZSnrkmPgVt6WgZlv2aKsHnQ6DoGeJ/fmnhjSYBc3Itk1
-aPbvwSYD/jYeeJeelw4AOeNs7HfMMLsmvgiJxWXwwia96yhJk5Bp0nUQlykgG89o
-gAiwwe2PUONu8ZuwVCGGkcpHCzJeN/lMmuBc9npZ/MctsY4tI2RT4dCjQy2SXxt1
-Uy2Aqy554qvG1g1y28qvXOy+ZZcaBBj/Oag43Rqkt1XNy+rW+mfPKp6HXy1mKYYo
-HohvFD88GpHoeO/ZgsuhEnJNu5SR0Pw2UKibdf3x9frhqP3PFqRB/Z6yvECFsfGr
-FqQToex2i1v9aqbS2yIPOlXrYKYAdjwlh7TXixghTTNYLLoJ1J4/OGSmLRE7+7fd
-tQrHnQuEOZJszHdMFR3z
-=IztA
------END PGP SIGNATURE-----
-
---wq9mPyueHGvFACwf--
