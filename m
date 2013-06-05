@@ -1,81 +1,212 @@
 From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH 3/3] ARM: DTS: TWL4030: fix mux and wakeup for SYS_NIRQ
- line
-Date: Wed, 05 Jun 2013 09:41:28 +0200
-Message-ID: <51AEEBA8.1070301@epfl.ch>
-References: <1370040357-25794-1-git-send-email-khilman@linaro.org> <1370040357-25794-4-git-send-email-khilman@linaro.org> <51AC667D.6070409@epfl.ch> <87mwr6kfbm.fsf@linaro.org>
+Subject: Re: [PATCH 2/4] ARM: dts: omap5-uevm: Add USB Host support
+Date: Wed, 05 Jun 2013 09:59:28 +0200
+Message-ID: <51AEEFE0.50107@epfl.ch>
+References: <1370414770-1485-1-git-send-email-r.sricharan@ti.com> <1370414770-1485-3-git-send-email-r.sricharan@ti.com>
 Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.epfl.ch ([128.178.224.219]:50053 "HELO smtp4.epfl.ch"
+Received: from smtp0.epfl.ch ([128.178.224.218]:54228 "HELO smtp0.epfl.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752141Ab3FEHlg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Jun 2013 03:41:36 -0400
-In-Reply-To: <87mwr6kfbm.fsf@linaro.org>
+	id S1752526Ab3FEH7d (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Jun 2013 03:59:33 -0400
+In-Reply-To: <1370414770-1485-3-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com, Roger Quadros <rogerq@ti.com>
 
+Hello,
 
+Some very minor comments.
 
-On 06/04/2013 12:19 AM, Kevin Hilman wrote:
-> Florian Vaussard <florian.vaussard@epfl.ch> writes:
+On 06/05/2013 08:46 AM, Sricharan R wrote:
+> From: Roger Quadros <rogerq@ti.com>
 >
->> Hello Kevin,
->>
->> On 06/01/2013 12:45 AM, Kevin Hilman wrote:
->>> On most OMAP3 platforms, the twl4030 IRQ line is connected to the
->>> SYS_NIRQ line on OMAP.  Therefore, configure the defaults for the
->>> SYS_NIRQ pin in the twl4030 DTS file.
->>>
->>> Boards that hook up the twl4030 differently can easily override this
->>> in their board-specific DTS file.
->>>
->>> This allows RTC wake from off-mode to work again on OMAP3-based
->>> platforms with twl4030.  Tested on 3530/Beagle, 3730/Beagle-xM,
->>> 3530/Overo, 3730/Overo-STORM.
->>>
->>> Signed-off-by: Kevin Hilman <khilman@linaro.org>
->>> ---
->>>    arch/arm/boot/dts/twl4030.dtsi | 17 +++++++++++++++++
->>>    1 file changed, 17 insertions(+)
->>>
->>> diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
->>> index b3034da..c7fe9f6 100644
->>> --- a/arch/arm/boot/dts/twl4030.dtsi
->>> +++ b/arch/arm/boot/dts/twl4030.dtsi
->>> @@ -13,6 +13,8 @@
->>>    	compatible = "ti,twl4030";
->>>    	interrupt-controller;
->>>    	#interrupt-cells = <1>;
->>> +	pinctrl-names = "default";
->>> +	pinctrl-0 = <&twl4030_pins>;
->>>
->>>    	rtc {
->>>    		compatible = "ti,twl4030-rtc";
->>> @@ -92,3 +94,18 @@
->>>    		#pwm-cells = <2>;
->>>    	};
->>>    };
->>> +
->>> +&omap3_pmx_core {
->>
->> Here you are making the TWL4030 to explicitly depend on OMAP3. Could
->> this chip be used by another target? If the case, I would put this
->> piece of code in the files including twl4030. Otherwise it's ok here.
+> Provide the RESET regulators for the USB PHYs, the USB Host
+> port modes and the PHY devices.
 >
-> I talked this over with Tony before posting.  In theorry, it could be
-> used on other platforms.  In practice, it's only used on OMAP.  We can
-> easily move this to board files if needed later, but thought it would be
-> simpler to put it here.  I'll let Benoit decide.
+> Also provide pin multiplexer information for the USB host
+> pins.
 >
+> Cc: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> [Sricharan R <r.sricharan@ti.com>: Replaced constants with preprocessor macros]
+> Signed-off-by: Sricharan R <r.sricharan@ti.com>
+> ---
+>   arch/arm/boot/dts/omap5-uevm.dts |   77 ++++++++++++++++++++++++++++++++++++++
+>   arch/arm/boot/dts/omap5.dtsi     |   30 +++++++++++++++
+>   2 files changed, 107 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+> index 843a001..cf862df 100644
+> --- a/arch/arm/boot/dts/omap5-uevm.dts
+> +++ b/arch/arm/boot/dts/omap5-uevm.dts
+> @@ -25,6 +25,47 @@
+>   		regulator-max-microvolt = <3000000>;
+>   	};
+>
+> +	/* HS USB Port 2 RESET */
+> +	hsusb2_reset: hsusb2_reset_reg {
+> +		compatible = "regulator-fixed";
+> +		regulator-name = "hsusb2_reset";
+> +		regulator-min-microvolt = <3300000>;
+> +		regulator-max-microvolt = <3300000>;
+> +		gpio = <&gpio3 16 GPIO_ACTIVE_HIGH>; /* gpio3_80 HUB_NRESET */
+> +		startup-delay-us = <70000>;
+> +		enable-active-high;
+> +	};
+> +
+> +	/* HS USB Host PHY on PORT 2 */
+> +	hsusb2_phy: hsusb2_phy {
+> +		compatible = "usb-nop-xceiv";
+> +		reset-supply = <&hsusb2_reset>;
+> +	};
+> +
+> +	/* HS USB Port 3 RESET */
+> +	hsusb3_reset: hsusb3_reset_reg {
+> +		compatible = "regulator-fixed";
+> +		regulator-name = "hsusb3_reset";
+> +		regulator-min-microvolt = <3300000>;
+> +		regulator-max-microvolt = <3300000>;
+> +		gpio = <&gpio3 15 GPIO_ACTIVE_HIGH>; /* gpio3_79 ETH_NRESET */
+> +		startup-delay-us = <70000>;
+> +		enable-active-high;
+> +	};
+> +
+> +	/* HS USB Host PHY on PORT 3 */
+> +	hsusb3_phy: hsusb3_phy {
+> +		compatible = "usb-nop-xceiv";
+> +		reset-supply = <&hsusb3_reset>;
+> +	};
+> +
+> +	/* hsusb2_phy is clocked by FREF_CLK1 i.e. auxclk1 */
+> +	clock_alias {
+> +		clock-name = "auxclk1_ck";
+> +		clock-alias = "main_clk";
+> +		device = <&hsusb2_phy>;
+> +		clock-frequency = <19200000>; /* 19.2 MHz */
+> +	};
+>   };
+>
+>   &omap5_pmx_core {
+> @@ -35,6 +76,7 @@
+>   			&dmic_pins
+>   			&mcbsp1_pins
+>   			&mcbsp2_pins
+> +			&usbhost_pins
+>   	>;
+>
+>   	twl6040_pins: pinmux_twl6040_pins {
+> @@ -120,6 +162,32 @@
+>   			0x16c (PIN_INPUT | MUX_MODE1)		/*  mcspi2_cs */
+>   		>;
+>   	};
+> +
+> +	usbhost_pins: pinmux_usbhost_pins {
+> +		pinctrl-single,pins = <
+> +			0x84 (PIN_INPUT | MUX_MODE0) /* usbb2_hsic_strobe INPUT | MODE 0 */
+> +			0x86 (PIN_INPUT | MUX_MODE0) /* usbb2_hsic_data INPUT | MODE 0 */
 
-Ok, so I am fine with your approach. If need arises later, we can have
-a .dtsi file in-between to make the glue layer and avoid duplication inside
-board files.
+Comments are redundant with the constants, so maybe you can leave this 
+part out.
+Same for a few others below.
+
+> +
+> +			0x19e (PIN_INPUT | MUX_MODE0) /* usbb3_hsic_strobe INPUT | MODE 0 */
+> +			0x1a0 (PIN_INPUT | MUX_MODE0) /* usbb3_hsic_data INPUT | MODE 0 */
+> +
+> +			0x70 (PIN_OUTPUT | MUX_MODE6) /* gpio3_80 OUTPUT | MODE 6 HUB_NRESET */
+> +			0x6e (PIN_OUTPUT | MUX_MODE6) /* gpio3_79 OUTPUT | MODE 6 ETH_NRESET */
+> +		>;
+> +	};
+> +};
+> +
+> +&omap5_pmx_wkup {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <
+> +			&usbhost_wkup_pins
+> +	>;
+> +
+> +	usbhost_wkup_pins: pinmux_usbhost_wkup_pins {
+> +		pinctrl-single,pins = <
+> +			0x1A (PIN_OUTPUT | MUX_MODE0) /* fref_clk1_out OUTPUT | MODE 7 for USB hub clk */
+
+Mismatch between constants and comments, which mode should it be?
+
+> +		>;
+> +	};
+>   };
+>
+>   &mmc1 {
+> @@ -164,6 +232,15 @@
+>   	status = "disabled";
+>   };
+>
+> +&usbhshost {
+> +	port2-mode = "ehci-hsic";
+> +	port3-mode = "ehci-hsic";
+> +};
+> +
+> +&usbhsehci {
+> +	phys = <0 &hsusb2_phy &hsusb3_phy>;
+> +};
+> +
+>   &mcspi1 {
+>
+>   };
+> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> index 1e84db8..67d6e1f 100644
+> --- a/arch/arm/boot/dts/omap5.dtsi
+> +++ b/arch/arm/boot/dts/omap5.dtsi
+> @@ -666,5 +666,35 @@
+>   				ctrl-module = <&omap_control_usb>;
+>   			};
+>   		};
+> +
+> +		usbhstll: usbhstll@4a062000 {
+> +			compatible = "ti,usbhs-tll";
+> +			reg = <0x4a062000 0x1000>;
+> +			interrupts = <0 78 IRQ_TYPE_LEVEL_HIGH>;
+
+I guess that here you can replace '0' with GIC_SPI.
+
+> +			ti,hwmods = "usb_tll_hs";
+> +		};
+> +
+> +		usbhshost: usbhshost@4a064000 {
+> +			compatible = "ti,usbhs-host";
+> +			reg = <0x4a064000 0x800>;
+> +			ti,hwmods = "usb_host_hs";
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +			ranges;
+> +
+> +			usbhsohci: ohci@4a064800 {
+> +				compatible = "ti,ohci-omap3", "usb-ohci";
+> +				reg = <0x4a064800 0x400>;
+> +				interrupt-parent = <&gic>;
+> +				interrupts = <0 76 IRQ_TYPE_LEVEL_HIGH>;
+
+Same here.
+
+> +			};
+> +
+> +			usbhsehci: ehci@4a064c00 {
+> +				compatible = "ti,ehci-omap", "usb-ehci";
+> +				reg = <0x4a064c00 0x400>;
+> +				interrupt-parent = <&gic>;
+> +				interrupts = <0 77 IRQ_TYPE_LEVEL_HIGH>;
+
+And here.
+
+> +			};
+> +		};
+>   	};
+>   };
+>
 
 Regards,
 
