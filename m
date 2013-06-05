@@ -1,120 +1,52 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] rtc: rtc-twl: ensure IRQ is wakeup enabled
-Date: Wed, 05 Jun 2013 08:32:20 -0700
-Message-ID: <87d2s0zi7v.fsf@linaro.org>
-References: <1370039827-25033-1-git-send-email-khilman@linaro.org>
-	<51ADD031.2090808@ti.com> <877gi94vln.fsf@linaro.org>
-	<51AF4C0D.3060203@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] gpio/omap: omap_gpio_init_context stub must be inline
+Date: Wed, 5 Jun 2013 08:38:47 -0700
+Message-ID: <20130605153847.GV3331@atomide.com>
+References: <2942784.trumtc2GjZ@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51AF4C0D.3060203@ti.com> (Grygorii Strashko's message of "Wed, 5
-	Jun 2013 17:32:45 +0300")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: rtc-linux@googlegroups.com, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-kernel@lists.linaro.org, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26478 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753913Ab3FEPiw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jun 2013 11:38:52 -0400
+Content-Disposition: inline
+In-Reply-To: <2942784.trumtc2GjZ@wuerfel>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Linus Walleij <linus.ml.walleij@gmail.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jon Hunter <jon-hunter@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>
 
-Grygorii Strashko <grygorii.strashko@ti.com> writes:
+* Arnd Bergmann <arnd@arndb.de> [130531 09:05]:
+> The bug fix 352a2d5bf "gpio/omap: ensure gpio context is initialised"
+> has caused a new warning for omap1_defconfig:
+> 
+> drivers/gpio/gpio-omap.c:1465:13: warning: 'omap_gpio_init_context' defined but not used [-Wunused-function]
+>  static void omap_gpio_init_context(struct gpio_bank *p) {}
+>              ^
+> 
+> The solution is to mark the stub function as 'static inline' so
+> it gets left out of the build when unused.
 
-> On 06/04/2013 08:46 PM, Kevin Hilman wrote:
->> Grygorii Strashko <grygorii.strashko@ti.com> writes:
->>
->>> Hi Kevin,
->>>
->>> On 06/01/2013 01:37 AM, Kevin Hilman wrote:
->>>> Currently, the RTC IRQ is never wakeup-enabled so is not capable of
->>>> bringing the system out of suspend.
->>>>
->>>> On OMAP platforms, we have gotten by without this because the TWL RTC
->>>> is on an I2C-connected chip which is capable of waking up the OMAP via
->>>> the IO ring when the OMAP is in low-power states.
->>>>
->>>> However, if the OMAP suspends without hitting the low-power states
->>>> (and the IO ring is not enabled), RTC wakeups will not work because
->>>> the IRQ is not wakeup enabled.
->>> As I understand, IRQ wake up capabilities are set/clear simultaneously with
->>> IRQ unmasking/masking on OMAP4+ in omap-wakeupgen.c.
->>> So, it should work without this patch on OMAP4+.
->> It might work on OMAP4 for wakeup from suspend, but without properly
->> declaring the IRQ as a wakeup source, it will not abort suspend if the
->> RTC fires during the suspend process.  To abort suspend, the IRQ must be
->> declared as a wakeup IRQ.
->>
->>> But if TWL is used on non OMAP4+ platform then it is needed.  (OMAP3:
->>> I haven't found the place where IRQ wakeup capabilities are
->>> configured, would be appreciate if you can point me on)
->> IRQ wakeup is a genirq feature that trickles into the irq_chip (in OMAP3
->> case, it's the twl4030 irq_chip.)
->>
->> On OMAP3, as mentioned in the changelog, RTC wake has been working fine
->> without this because we default to CORE retention, so wakeup happens via
->> the IO ring.  However, if you prevent retention during suspend, then
->> this IRQ will not wake the system.
->>
->> Kevin
->>
->>>> To fix, ensure the RTC IRQ is wakeup enabled whenever the RTC alarm is
->>>> set.
->>>>
->>>> Cc: Alessandro Zummo <a.zummo@towertech.it>
->>>> Cc: Andrew Morton <akpm@linux-foundation.org>
->>>> Cc: Tony Lindgren <tony@atomide.com>
->>>> Signed-off-by: Kevin Hilman <khilman@linaro.org>
->>>> ---
->>>>    drivers/rtc/rtc-twl.c | 16 ++++++++++++++--
->>>>    1 file changed, 14 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
->>>> index 8751a52..bbda0fd 100644
->>>> --- a/drivers/rtc/rtc-twl.c
->>>> +++ b/drivers/rtc/rtc-twl.c
->>>> @@ -213,12 +213,24 @@ static int mask_rtc_irq_bit(unsigned char bit)
->>>>      static int twl_rtc_alarm_irq_enable(struct device *dev, unsigned
->>>> enabled)
->>>>    {
->>>> +	struct platform_device *pdev = to_platform_device(dev);
->>>> +	int irq = platform_get_irq(pdev, 0);
->>>> +	static bool twl_rtc_wake_enabled;
->>>>    	int ret;
->>>>    -	if (enabled)
->>>> +	if (enabled) {
->>>>    		ret = set_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
->>>> -	else
->>>> +		if (device_can_wakeup(dev) && !twl_rtc_wake_enabled) {
->>>> +			enable_irq_wake(irq);
->>>> +			twl_rtc_wake_enabled = true;
->>>> +		}
->>>> +	} else {
->>>>    		ret = mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
->>>> +		if (twl_rtc_wake_enabled) {
->>>> +			disable_irq_wake(irq);
->>>> +			twl_rtc_wake_enabled = false;
->>>> +		}
->>>> +	}
->>>>      	return ret;
->>>>    }
->>> twl-rtc has suspend/resume callbacks implemented, so I think it's the
->>> better place
->>> for this code and twl_rtc_wake_enabled can be dropped.
->> In theory, that might be the better place (and that's where I put these
->> at first), but unfortunately, it doesn't work that way because the
->> twl6030-irq core enables/diables the parent IRQ wake feature using PM
->> notifiers (which was done to avoid potential lock recursion[1].)
->>
->> During suspend, the notifier runs at suspend_prepare() time, which is
->> well before the driver's ->suspend() method is called.  The result is
->> that the parents IRQ wakeup capabilies are never set.
-> Sorry, forget about this patch - have no questions for this patch anymore.
->
-> Thanks.
->
-> Just FYI. It seems, The suspend will never be aborted on OMAP4 by SYSN_IRQ
-> because of these two patches:
-> 782baa2 mfd: Disable twl6030 IRQ during suspend
-> 9c6079a genirq: Do not consider disabled wakeup irqs
-
-You're right for the parent TWL IRQ, but the child interrupts (e.g. RTC)
-would still abort suspend if wakeup enabled.
-
-Kevin
+Acked-by: Tony Lindgren <tony@atomide.com>
+ 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index d3f7d2d..e5fba65 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -1462,7 +1462,7 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
+>  #else
+>  #define omap_gpio_runtime_suspend NULL
+>  #define omap_gpio_runtime_resume NULL
+> -static void omap_gpio_init_context(struct gpio_bank *p) {}
+> +static inline void omap_gpio_init_context(struct gpio_bank *p) {}
+>  #endif
+>  
+>  static const struct dev_pm_ops gpio_pm_ops = {
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
