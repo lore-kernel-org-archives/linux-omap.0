@@ -1,63 +1,68 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH v2] OMAP: AES: Don't idle/start AES device between
- Encrypt operations
-Date: Wed, 5 Jun 2013 16:53:27 +0800
-Message-ID: <20130605085327.GC12202@gondor.apana.org.au>
-References: <1369785775-3737-1-git-send-email-joelagnel@ti.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v9 1/9] ARM: davinci: move private EDMA API to arm/common
+Date: Wed, 5 Jun 2013 14:24:38 +0530
+Message-ID: <51AEFCCE.4040608@ti.com>
+References: <1362586540-10393-1-git-send-email-mporter@ti.com>
+	<1362586540-10393-2-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ringil.hengli.com.au ([178.18.16.133]:54667 "EHLO
-	fornost.hengli.com.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752948Ab3FEIx3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jun 2013 04:53:29 -0400
-Content-Disposition: inline
-In-Reply-To: <1369785775-3737-1-git-send-email-joelagnel@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1362586540-10393-2-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm->
 List-Id: linux-omap@vger.kernel.org
-To: Joel A Fernandes <joelagnel@ti.com>
-Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Tue, May 28, 2013 at 07:02:55PM -0500, Joel A Fernandes wrote:
-> Calling runtime PM API for every block causes serious perf hit to
-> crypto operations that are done on a long buffer.
-> As crypto is performed on a page boundary, encrypting large buffers can
-> cause a series of crypto operations divided by page. The runtime PM API
-> is also called those many times.
-> 
-> We call runtime_pm_get_sync only at beginning on the session (cra_init)
-> and runtime_pm_put at the end. This result in upto a 50% speedup as below.
-> This doesn't make the driver to keep the system awake as runtime get/put
-> is only called during a crypto session which completes usually quickly.
-> 
-> Before:
-> root@beagleboard:~# time -v openssl speed -evp aes-128-cbc
-> Doing aes-128-cbc for 3s on 16 size blocks: 13310 aes-128-cbc's in 0.01s
-> Doing aes-128-cbc for 3s on 64 size blocks: 13040 aes-128-cbc's in 0.04s
-> Doing aes-128-cbc for 3s on 256 size blocks: 9134 aes-128-cbc's in 0.03s
-> Doing aes-128-cbc for 3s on 1024 size blocks: 8939 aes-128-cbc's in 0.01s
-> Doing aes-128-cbc for 3s on 8192 size blocks: 4299 aes-128-cbc's in 0.00s
-> 
-> After:
-> root@beagleboard:~# time -v openssl speed -evp aes-128-cbc
-> Doing aes-128-cbc for 3s on 16 size blocks: 18911 aes-128-cbc's in 0.02s
-> Doing aes-128-cbc for 3s on 64 size blocks: 18878 aes-128-cbc's in 0.02s
-> Doing aes-128-cbc for 3s on 256 size blocks: 11878 aes-128-cbc's in 0.10s
-> Doing aes-128-cbc for 3s on 1024 size blocks: 11538 aes-128-cbc's in 0.05s
-> Doing aes-128-cbc for 3s on 8192 size blocks: 4857 aes-128-cbc's in 0.03s
-> 
-> While at it, also drop enter and exit pr_debugs, in related code. tracers
-> can be used for that.
-> 
-> Tested on a Beaglebone (AM335x SoC) board.
-> 
-> v3 changes:
-> Refreshed patch on kernel v3.10-rc3
-> 
-> Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
+Hi Russell,
 
-Patch applied.  Thanks!
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+On 3/6/2013 9:45 PM, Matt Porter wrote:
+> Move mach-davinci/dma.c to common/edma.c so it can be used
+> by OMAP (specifically AM33xx) as well.
+> 
+> Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+> Acked-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+
+Can you please ack this movement of davinci private EDMA implementation
+to arch/arm/common? I would like to take this patch through davinci tree
+for v3.11.
+
+Thanks,
+Sekhar
+
+> ---
+>  arch/arm/Kconfig                                   |    1 +
+>  arch/arm/common/Kconfig                            |    3 +
+>  arch/arm/common/Makefile                           |    1 +
+>  arch/arm/{mach-davinci/dma.c => common/edma.c}     |    2 +-
+>  arch/arm/mach-davinci/Makefile                     |    2 +-
+>  arch/arm/mach-davinci/board-tnetv107x-evm.c        |    2 +-
+>  arch/arm/mach-davinci/davinci.h                    |    2 +-
+>  arch/arm/mach-davinci/devices-tnetv107x.c          |    2 +-
+>  arch/arm/mach-davinci/devices.c                    |    6 +-
+>  arch/arm/mach-davinci/dm355.c                      |    2 +-
+>  arch/arm/mach-davinci/dm365.c                      |    2 +-
+>  arch/arm/mach-davinci/dm644x.c                     |    2 +-
+>  arch/arm/mach-davinci/dm646x.c                     |    2 +-
+>  arch/arm/mach-davinci/include/mach/da8xx.h         |    2 +-
+>  drivers/dma/edma.c                                 |    2 +-
+>  drivers/mmc/host/davinci_mmc.c                     |    1 +
+>  include/linux/mfd/davinci_voicecodec.h             |    3 +-
+>  .../mach => include/linux/platform_data}/edma.h    |   89 +-------------------
+>  include/linux/platform_data/spi-davinci.h          |    2 +-
+>  sound/soc/davinci/davinci-evm.c                    |    1 +
+>  sound/soc/davinci/davinci-pcm.c                    |    1 +
+>  sound/soc/davinci/davinci-pcm.h                    |    2 +-
+>  sound/soc/davinci/davinci-sffsdr.c                 |    5 +-
+>  23 files changed, 33 insertions(+), 104 deletions(-)
+>  rename arch/arm/{mach-davinci/dma.c => common/edma.c} (99%)
+>  rename {arch/arm/mach-davinci/include/mach => include/linux/platform_data}/edma.h (59%)
+> 
