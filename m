@@ -1,86 +1,38 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [net-next PATCH v4 5/5] ARM: dts: AM33XX: Add pinmux configuration for CPSW to am335x EVM
-Date: Wed, 5 Jun 2013 22:38:19 +0530
-Message-ID: <1370452099-24026-6-git-send-email-mugunthanvnm@ti.com>
-References: <1370452099-24026-1-git-send-email-mugunthanvnm@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1370452099-24026-1-git-send-email-mugunthanvnm@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, benoit.cousson@linaro.org, paul@pwsan.com, Mugunthan V N <mugunthanvnm@ti.com>
+From: Emil Goode <emilgoode@gmail.com>
+Subject: [PATCH] OMAPDSS: Remove kfree for memory allocated with devm_kzalloc
+Date: Wed,  5 Jun 2013 19:29:56 +0200
+Message-ID: <1370453396-18043-1-git-send-email-emilgoode@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:56104 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756721Ab3FERaJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jun 2013 13:30:09 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: archit@ti.com, axel.lin@gmail.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Emil Goode <emilgoode@gmail.com>
 
-Add pinmux configurations for RGMII based CPSW ethernet to am335x-evm.
-In this patch, only single named mode/state is added and these pins
-are configured during pinctrl driver initialization.
+It's not necessary to free memory allocated with devm_kzalloc
+in a remove function and using kfree leads to a double free.
 
-Default mode is nothing but the values required for the module during
-active state. With this configurations module is functional as
-expected.
-
-Todo:
-- if an idle state is available for pins, add support for it.
-
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+Signed-off-by: Emil Goode <emilgoode@gmail.com>
 ---
- arch/arm/boot/dts/am335x-evm.dts |   36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ drivers/video/omap2/displays/panel-picodlp.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 814ee03..5db4b05 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -44,6 +44,32 @@
- 				0x154 0x27	/* spi0_d0.gpio0_3, INPUT | MODE7 */
- 			>;
- 		};
-+
-+		cpsw_default: cpsw_default {
-+			pinctrl-single,pins = <
-+				/* Slave 1 */
-+				0x114 0x2	/* mii1_txen.rgmii1_tctl, MODE2 | OUTPUT */
-+				0x118 0x22	/* mii1_rxdv.rgmii1_rctl, MODE2 | INPUT_PULLDOWN */
-+				0x11c 0x2	/* mii1_txd3.rgmii1_td3, MODE2 | OUTPUT */
-+				0x120 0x2	/* mii1_txd2.rgmii1_td2, MODE2 | OUTPUT */
-+				0x124 0x2	/* mii1_txd1.rgmii1_td1, MODE2 | OUTPUT */
-+				0x128 0x2	/* mii1_txd0.rgmii1_td0, MODE2 | OUTPUT */
-+				0x12c 0x2	/* mii1_txclk.rgmii1_tclk, MODE2 | OUTPUT */
-+				0x130 0x22	/* mii1_rxclk.rgmii1_rclk, MODE2 | INPUT_PULLDOWN */
-+				0x134 0x22	/* mii1_rxd3.rgmii1_rd3, MODE2 | INPUT_PULLDOWN */
-+				0x138 0x22	/* mii1_rxd2.rgmii1_rd2, MODE2 | INPUT_PULLDOWN */
-+				0x13c 0x22	/* mii1_rxd1.rgmii1_rd1, MODE2 | INPUT_PULLDOWN */
-+				0x140 0x22	/* mii1_rxd0.rgmii1_rd0, MODE2 | INPUT_PULLDOWN */
-+			>;
-+		};
-+
-+		davinci_mdio_default: davinci_mdio_default {
-+			pinctrl-single,pins = <
-+				/* MDIO */
-+				0x148 0x30	/* mdio_data.mdio_data, MODE0 | INPUT_PULLUP */
-+				0x14c 0x10	/* mdio_clk.mdio_clk, MODE0 | OUTPUT_PULLUP */
-+			>;
-+		};
- 	};
+diff --git a/drivers/video/omap2/displays/panel-picodlp.c b/drivers/video/omap2/displays/panel-picodlp.c
+index 62f2db0..859e111 100644
+--- a/drivers/video/omap2/displays/panel-picodlp.c
++++ b/drivers/video/omap2/displays/panel-picodlp.c
+@@ -469,8 +469,6 @@ static void picodlp_panel_remove(struct omap_dss_device *dssdev)
+ 	i2c_unregister_device(picod->picodlp_i2c_client);
+ 	dev_set_drvdata(&dssdev->dev, NULL);
+ 	dev_dbg(&dssdev->dev, "removing picodlp panel\n");
+-
+-	kfree(picod);
+ }
  
- 	ocp {
-@@ -237,6 +263,16 @@
- 	};
- };
- 
-+&mac {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&cpsw_default>;
-+};
-+
-+&davinci_mdio {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&davinci_mdio_default>;
-+};
-+
- &cpsw_emac0 {
- 	phy_id = <&davinci_mdio>, <0>;
- 	phy-mode = "rgmii-txid";
+ static int picodlp_panel_enable(struct omap_dss_device *dssdev)
 -- 
-1.7.9.5
+1.7.10.4
+
