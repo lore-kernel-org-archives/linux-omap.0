@@ -1,76 +1,74 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v2 0/4] ARM: dts: AM3XXX: Use preprocessor for device trees
-Date: Wed, 5 Jun 2013 14:49:00 +0200
-Message-ID: <51AF33BC.4020708@ti.com>
-References: <1370268745-15860-1-git-send-email-florian.vaussard@epfl.ch>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1370268745-15860-1-git-send-email-florian.vaussard@epfl.ch>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>, "Mohammed, Afzal" <afzal@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, Joel A Fernandes <agnel.joel@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
+Subject: Broken DM816x support in Linux 3.10-rc4
+Date: Wed,  5 Jun 2013 17:34:50 +0400
+Message-ID: <1370439295-9160-1-git-send-email-aida.mynzhasova@skitlab.ru>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-+ Afzal,
+Not so long ago I tried to boot Linux 3.10-rc4 kernel on DM816x EVM
+board. Unfortunately, my attempts were failed by reason of poor
+support of DM81xx-based devices in new kernels.
 
-Hi Vaibhav and Afzal,
+Actually, on Linux 3.10-rc4 kernel early initialization of board
+is failed when it tries to initialize power domains:
 
-Can someone test this series before I pull it. I still don't have any AM
-board to do it myself :-(
+[    0.000000] Unhandled fault: external abort on non-linefetch (0x1028) 
+at 0xfa17f8e4
+[    0.000000] Internal error: : 1028 [#1] SMP ARM
+[    0.000000] Modules linked in:
+[    0.000000] CPU: 0 PID: 0 Comm: swapper Not tainted 
+3.10.0-rc3-00001-g0e5443c-dirty #12
+[    0.000000] task: c076fc50 ti: c0764000 task.ti: c0764000
+[    0.000000] PC is at omap2_pwrdm_wait_transition+0x1c/0xac
+[    0.000000] LR is at pwrdm_register_pwrdms+0x15c/0x1ac
+[    0.000000] pc : [<c0031698>]    lr : [<c0036010>]    psr: 60000193
+[    0.000000] sp : c0765f28  ip : c07bebe0  fp : 00000001
+[    0.000000] r10: c07e6a90  r9 : 00000000  r8 : c07e6944
+[    0.000000] r7 : c0754a50  r6 : c064f264  r5 : c0775298  r4 : c0773e9c
+[    0.000000] r3 : fffff8e4  r2 : fa17f8e4  r1 : 00000004  r0 : c0775298
+[    0.000000] Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM 
+Segment kernel
+[    0.000000] Control: 10c5387d  Table: 80004019  DAC: 00000017
+[    0.000000] Process swapper (pid: 0, stack limit = 0xc0764240)
+[    0.000000] Stack: (0xc0765f28 to 0xc0766000)
+[    0.000000] 5f20:                   c0773e9c c0775298 c064f264 
+c0754a50 c0773ee4 c0036010
+[    0.000000] 5f40: 35170034 81600134 c05125a8 fa180000 80000200 
+c0771348 c07b1b48 c07475ac
+[    0.000000] 5f60: c0771348 c07191fc c0647c40 c0711598 16c00000 
+c0d24fb4 c06450ac c070c148
+[    0.000000] 5f80: c0765f98 c0765f90 c0771134 c0765fdc 00000000 
+00000000 00000000 00000000
+[    0.000000] 5fa0: c0643878 00000001 00000000 c0748774 c0771134 
+c076c880 413fc082 00000000
+[    0.000000] 5fc0: 00000000 c07086fc 00000000 00000000 00000000 
+00000000 00000000 c0748778
+[    0.000000] 5fe0: 10c53c7d c076c910 c0748774 c0771134 80004059 
+80008074 00000000 00000000
+[    0.000000] [<c0031698>] (omap2_pwrdm_wait_transition+0x1c/0xac) from 
+[<c0036010>] (pwrdm_register_pwrdms+0x15c/0x1ac)
+[    0.000000] [<c0036010>] (pwrdm_register_pwrdms+0x15c/0x1ac) from 
+[<c07191fc>] (omap3xxx_powerdomains_init+0x50/0x144)
+[    0.000000] [<c07191fc>] (omap3xxx_powerdomains_init+0x50/0x144) from 
+[<c0711598>] (ti81xx_init_early+0xcc/0x178)
+[    0.000000] [<c0711598>] (ti81xx_init_early+0xcc/0x178) from 
+[<c070c148>] (setup_arch+0x5ac/0x800)
+[    0.000000] [<c070c148>] (setup_arch+0x5ac/0x800) from [<c07086fc>] 
+(start_kernel+0x7c/0x330)
+[    0.000000] [<c07086fc>] (start_kernel+0x7c/0x330) from [<80008074>] 
+(0x80008074)
+[    0.000000] Code: e1d030f8 e5982000 e28330e4 e0822003 (e5921000)
+[    0.000000] ---[ end trace 1b75b31a2719ed1c ]---
 
-In theory, it should be fine since Florian already checked the diff, but
-just in case.
+So, I suggest you this patch series, which fixes that kernel crush and
+adds new functions/structures, required for early initialization on
+DM816x (power and clock domains, hwmods). After applying these patches
+the kernel is able to successfully continue booting till clock
+initialization (will be added later).
 
 Thanks,
-Benoit
 
-
-On 06/03/2013 04:12 PM, Florian Vaussard wrote:
-> Hello,
-> 
-> Following my series for OMAP2+, this series makes use of the C preprocessor
-> when compiling AM3xxx DT files, and accomplishes some improvements to improve
-> overall readability.
-> 
-> The .dtb files were diff-tested before and after applying the series to
-> guarantee identity for all targets.
-> 
-> To enable pullup/down on the pad, the bit should be cleared on AM33xx, where
-> it should be set on OMAP3. This was wrong in my first version.
-> 
-> This series is based on Benoit's 'for_3.11/dts' branch.
-> 
-> Regards,
-> 
-> Florian
-> 
-> From v2:
-> - Rebased on Benoit's 'for_3.11/dts'
-> - Fixed inversed bit to enable pullups ('1' on OMAP, but '0' on AM33xx)
-> 
-> Florian Vaussard (4):
->   ARM: dts: AM3XXX: Use #include for all device trees
->   ARM: dts: AM33XX: Use existing constants for GPIOs
->   ARM: dts: AM33XX: Specific pinctrl header
->   ARM: dts: AM33XX: Use pinctrl constants
-> 
->  arch/arm/boot/dts/am335x-bone.dts       |   28 ++++++------
->  arch/arm/boot/dts/am335x-evm.dts        |   76 +++++++++++++++---------------
->  arch/arm/boot/dts/am335x-evmsk.dts      |   46 +++++++++---------
->  arch/arm/boot/dts/am33xx.dtsi           |    5 ++-
->  arch/arm/boot/dts/am3517-evm.dts        |    2 +-
->  arch/arm/boot/dts/am3517_mt_ventoux.dts |    2 +-
->  include/dt-bindings/pinctrl/am33xx.h    |   37 +++++++++++++++
->  7 files changed, 118 insertions(+), 78 deletions(-)
->  create mode 100644 include/dt-bindings/pinctrl/am33xx.h
-> 
+Aida
