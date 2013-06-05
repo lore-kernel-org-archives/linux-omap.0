@@ -1,85 +1,112 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [net-next PATCH v4 1/5] net: cpsw: enhance pinctrl support
-Date: Wed, 5 Jun 2013 20:23:45 +0100
-Message-ID: <20130605192345.GH31367@sirena.org.uk>
-References: <1370452099-24026-1-git-send-email-mugunthanvnm@ti.com>
- <1370452099-24026-2-git-send-email-mugunthanvnm@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5837998748277611889=="
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1370452099-24026-2-git-send-email-mugunthanvnm-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [BISECTED] 3.10-rc1 OMAP1 GPIO IRQ regression
+Date: Wed, 05 Jun 2013 23:33:55 +0100
+Message-ID: <20130605223355.EDC113E10E4@localhost>
+References: <20130513205302.GA3157@blackmetal.musicnaut.iki.fi> <20130516180933.GG5600@atomide.com> <20130516210006.GA31836@blackmetal.musicnaut.iki.fi> <20130516214430.GN5600@atomide.com> <20130520174621.GI10378@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ea0-f179.google.com ([209.85.215.179]:41985 "EHLO
+	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757905Ab3FEWeA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jun 2013 18:34:00 -0400
+Received: by mail-ea0-f179.google.com with SMTP id b15so567194eae.38
+        for <linux-omap@vger.kernel.org>; Wed, 05 Jun 2013 15:33:59 -0700 (PDT)
+In-Reply-To: <20130520174621.GI10378@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>
 
+On Mon, 20 May 2013 10:46:21 -0700, Tony Lindgren <tony@atomide.com> wrote:
+> * Tony Lindgren <tony@atomide.com> [130516 14:50]:
+> > * Aaro Koskinen <aaro.koskinen@iki.fi> [130516 14:05]:
+> > > On Thu, May 16, 2013 at 11:09:34AM -0700, Tony Lindgren wrote:
+> > > > * Aaro Koskinen <aaro.koskinen@iki.fi> [130513 13:58]:
+> > > > > I tested 3.10-rc1 on OMAP1 / Nokia 770, and Retu MFD probe is broken:
+> > > > > 
+> > > > > [    2.264221] retu-mfd 2-0001: Retu v3.2 found
+> > > > > [    2.281951] retu-mfd 2-0001: Failed to allocate IRQs: -12
+> > > > > [    2.300140] retu-mfd: probe of 2-0001 failed with error -12
+> > > > > 
+> > > > > The error is coming from regmap code. According to git bisect, it is
+> > > > > caused by:
+> > > > > 
+> > > > > 	commit ede4d7a5b9835510fd1f724367f68d2fa4128453
+> > > > > 	Author: Jon Hunter <jon-hunter@ti.com>
+> > > > > 	Date:   Fri Mar 1 11:22:47 2013 -0600
+> > > > > 
+> > > > > 	    gpio/omap: convert gpio irq domain to linear mapping
+> > > > > 
+> > > > > The commit does not anymore revert cleanly, and I haven't yet tried
+> > > > > crafting a manual revert, so any fix proposals/ideas are welcome...
+> > > > 
+> > > > Hmm this might be a bit trickier to fix. Obviously the real solution
+> > > > is to convert omap1 to SPARSE_IRQ like we did for omap2+.
+> > > > 
+> > > > For the -rc cycle, it might be possible to fix this by adding a
+> > > > different irq_to_gpio() and gpio_to_irq() functions for omap1.
+> > > 
+> > > The commit reverts cleanly if we also revert
+> > > 3513cdeccc647d41c4a9ff923af17deaaac04a66 (gpio/omap: optimise interrupt
+> > > service routine), which seems to be just some minor optimization. The
+> > > result is below, and with it 770 works again.
+> > 
+> > Hmm in this case it seems that we should just fix it rather than go back
+> > to the old code, so let's take a look at that first.
+> 
+> Does the following fix it for you or do we need to fix something else
+> there too?
+> 
 
---===============5837998748277611889==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="kY7Q1I7FwGue0/xS"
-Content-Disposition: inline
+Hi Tony,
 
+Do you want me to apply this fix? It sounds like it solves the symptoms,
+but I'd like to know more about what the root cause is.
 
---kY7Q1I7FwGue0/xS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Send me your s-o-b line and I'll apply the patch
 
-On Wed, Jun 05, 2013 at 10:38:15PM +0530, Mugunthan V N wrote:
-> From: Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
->=20
-> Amend cpsw controller to optionally take a pin control handle and set
-> the state of the pins to:
->=20
-> - "default" on boot, resume
-> - "sleep" on suspend()
+g.
 
-Linus Walleij posted some patches which factor the state setting code
-out into generic functions earlier on today - it probably makes sense to
-pick those up rather than open coding
+> 
+> 
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -1094,6 +1094,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
+>  	const struct omap_gpio_platform_data *pdata;
+>  	struct resource *res;
+>  	struct gpio_bank *bank;
+> +	int irq_base;
+>  
+>  	match = of_match_device(of_match_ptr(omap_gpio_match), dev);
+>  
+> @@ -1135,11 +1136,23 @@ static int omap_gpio_probe(struct platform_device *pdev)
+>  				pdata->get_context_loss_count;
+>  	}
+>  
+> -
+> -	bank->domain = irq_domain_add_linear(node, bank->width,
+> -					     &irq_domain_simple_ops, NULL);
+> -	if (!bank->domain)
+> +	/*
+> +	 * REVISIT: Once we have omap1 supporting  SPARSE_IRQ, we can drop
+> +	 * irq_alloc_descs() and irq_domain_add_legacy() and just do:
+> +	 *
+> +	 * bank->domain = irq_domain_add_linear(node, bank->width,
+> +	 *				     &irq_domain_simple_ops, NULL);
+> +	 * if (!bank->domain)
+> +	 *	return -ENODEV;
+> +	 */
+> +	irq_base = irq_alloc_descs(-1, 0, bank->width, 0);
+> +	if (irq_base < 0) {
+> +		dev_err(dev, "Couldn't allocate IRQ numbers\n");
+>  		return -ENODEV;
+> +	}
+> +
+> +	bank->domain = irq_domain_add_legacy(node, bank->width, irq_base,
+> +					     0, &irq_domain_simple_ops, NULL);
+>  
+>  	if (bank->regs->set_dataout && bank->regs->clr_dataout)
+>  		bank->set_dataout = _set_gpio_dataout_reg;
 
---kY7Q1I7FwGue0/xS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRr5A+AAoJELSic+t+oim9Tt4P/2kgMjKssw6c6sBUmpjPw9Ft
-dX0eBErXLq62o0+KLDsEF+2sRXB++lNC1BIMpFLh19ocKVIsG5EIR78nny7yvHEH
-y/agXhUN6js3YpKKmQ2AOTJEGLtrJ5PRnW1/q6NVFDwlaf1gNHOXQ3m3DTBwJE9z
-FjNeUm4PBBbT8DD80ks2y+IE4PMki3ubxPAPtMxlf+4DdmbsSziIKXXU1pyHkM6c
-14xw+Chv2dIikoHPx7JTE8tteL/YIFTAYQQo2n7URXe5CIBdTW5nHzjZ87nmBQZN
-uwe1GV7B+cMxt3wqfptoUAEkf0s8FEns1eKumcyCreXK4YtvpYSfwcHrM9HULQqf
-d7XzQ1V/cP/nXDgEbeymGe2QSCeaJTY7h+++qG+vLEptsg+a6wHVMpUVkeml7iQB
-Ijh3MsW0hYbY49xRRLdpWUx2zNJZEfbj5vxm0PGaR0UXLr3KLQOlnXH5DFn110uV
-SjQuRfz0QQcWBsLrL079DmR1ojA4YbNl7N4ZhlHIP7dMJj4l4Cw3xwQ//Ub+o3NA
-FptamzUPeTHVQxV8y418k0jT7gctMiaQyvhsuSog34aHuWZmyPqUOxjOp7Ib0OLV
-lbn6CTED394ui1J2b5q4rDLiSZY2Ypw5UbYdlMrGMpIHjOB4OuoeqdLAEbyZ316H
-hxATrzzdw7kNZJrYzugV
-=E6qz
------END PGP SIGNATURE-----
-
---kY7Q1I7FwGue0/xS--
-
---===============5837998748277611889==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-devicetree-discuss mailing list
-devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-https://lists.ozlabs.org/listinfo/devicetree-discuss
-
---===============5837998748277611889==--
+-- 
+Grant Likely, B.Sc, P.Eng.
+Secret Lab Technologies, Ltd.
