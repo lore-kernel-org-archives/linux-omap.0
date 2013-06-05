@@ -1,107 +1,79 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 2/4] ARM: dts: omap5-uevm: Add USB Host support
-Date: Wed, 5 Jun 2013 13:32:40 +0300
-Message-ID: <51AF13C8.1010307@ti.com>
-References: <1370414770-1485-1-git-send-email-r.sricharan@ti.com> <1370414770-1485-3-git-send-email-r.sricharan@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH] rtc: rtc-twl: fix initialization sequence
+Date: Wed, 5 Jun 2013 14:19:22 +0300
+Message-ID: <1370431162-24185-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34814 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753336Ab3FEKdP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Jun 2013 06:33:15 -0400
-In-Reply-To: <1370414770-1485-3-git-send-email-r.sricharan@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rtc-linux@googlegroups.com, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com
 
-Hi Sricharan,
+The twl-rtc has the following dependencies from other drivers during the boot:
+pinctrl
+|-i2c-omap
+  |- twl-core
+     |- twl-rtc
 
-Thanks for sending this, but some parts are outdated. See below.
+The i2c-omap probe may be deferred because pinctrl iss not ready yet. As result,
+i2c-omap will be probed at late init time. Which, in turn, will delay twl-core
+initialization till late init time too.
 
-On 06/05/2013 09:46 AM, Sricharan R wrote:
-> From: Roger Quadros <rogerq@ti.com>
-> 
-> Provide the RESET regulators for the USB PHYs, the USB Host
-> port modes and the PHY devices.
-> 
-> Also provide pin multiplexer information for the USB host
-> pins.
-> 
-> Cc: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> [Sricharan R <r.sricharan@ti.com>: Replaced constants with preprocessor macros]
-> Signed-off-by: Sricharan R <r.sricharan@ti.com>
-> ---
->  arch/arm/boot/dts/omap5-uevm.dts |   77 ++++++++++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/omap5.dtsi     |   30 +++++++++++++++
->  2 files changed, 107 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-> index 843a001..cf862df 100644
-> --- a/arch/arm/boot/dts/omap5-uevm.dts
-> +++ b/arch/arm/boot/dts/omap5-uevm.dts
-> @@ -25,6 +25,47 @@
->  		regulator-max-microvolt = <3000000>;
->  	};
->  
-> +	/* HS USB Port 2 RESET */
-> +	hsusb2_reset: hsusb2_reset_reg {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "hsusb2_reset";
-> +		regulator-min-microvolt = <3300000>;
-> +		regulator-max-microvolt = <3300000>;
-> +		gpio = <&gpio3 16 GPIO_ACTIVE_HIGH>; /* gpio3_80 HUB_NRESET */
-> +		startup-delay-us = <70000>;
-> +		enable-active-high;
-> +	};
-> +
-> +	/* HS USB Host PHY on PORT 2 */
-> +	hsusb2_phy: hsusb2_phy {
-> +		compatible = "usb-nop-xceiv";
-> +		reset-supply = <&hsusb2_reset>;
-> +	};
-> +
-> +	/* HS USB Port 3 RESET */
-> +	hsusb3_reset: hsusb3_reset_reg {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "hsusb3_reset";
-> +		regulator-min-microvolt = <3300000>;
-> +		regulator-max-microvolt = <3300000>;
-> +		gpio = <&gpio3 15 GPIO_ACTIVE_HIGH>; /* gpio3_79 ETH_NRESET */
-> +		startup-delay-us = <70000>;
-> +		enable-active-high;
-> +	};
-> +
-> +	/* HS USB Host PHY on PORT 3 */
-> +	hsusb3_phy: hsusb3_phy {
-> +		compatible = "usb-nop-xceiv";
-> +		reset-supply = <&hsusb3_reset>;
-> +	};
-> +
-> +	/* hsusb2_phy is clocked by FREF_CLK1 i.e. auxclk1 */
-> +	clock_alias {
-> +		clock-name = "auxclk1_ck";
-> +		clock-alias = "main_clk";
-> +		device = <&hsusb2_phy>;
-> +		clock-frequency = <19200000>; /* 19.2 MHz */
-> +	};
+But, the twl-rtc driver is registered from finction twl_rtc_init() at
+module(device) init time and contains part of its initialization code within it.
+Unfortunatelly, this code depends on twl-core which may be not ready at that
+moment and, as result, wrong register map will be selected
+(on OMAP3 twl6030_rtc_reg_map will be selected instead of twl4030_rtc_reg_map).
 
-clock_alias node is not required. Instead we need to rely on proper clock binding
-and provide reference to the clock phandle in the PHY node.
+static int __init twl_rtc_init(void)
+{
+    if (twl_class_is_4030()) <--- twl-core might be not ready here
+                             <--- and twl_class_is_4030() will return 0
+        rtc_reg_map = (u8 *) twl4030_rtc_reg_map;
+    else
+        rtc_reg_map = (u8 *) twl6030_rtc_reg_map;
 
-as an example please see here
-https://lkml.org/lkml/2013/4/19/124
+    return platform_driver_register(&twl4030rtc_driver);
+}
 
-However this clock binding technique is still under discussion/transition.
-https://patchwork.kernel.org/patch/2541331/
+Hence, move register map selection code in twl_rtc_probe() to solve this issue.
 
-So, I suggest you leave the auxclk1 part out for now and we can get it in later once
-the clock binding stuff is sorted out. The side effect of this is that PORT 2 (i.e. USB Hub)
-will not work. USB Ethernet should still work IMO.
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ drivers/rtc/rtc-twl.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-cheers,
--roger
-
+diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
+index bbda0fd..1698115 100644
+--- a/drivers/rtc/rtc-twl.c
++++ b/drivers/rtc/rtc-twl.c
+@@ -481,6 +481,11 @@ static int twl_rtc_probe(struct platform_device *pdev)
+ 	if (irq <= 0)
+ 		goto out1;
+ 
++	if (twl_class_is_4030())
++		rtc_reg_map = (u8 *) twl4030_rtc_reg_map;
++	else
++		rtc_reg_map = (u8 *) twl6030_rtc_reg_map;
++
+ 	ret = twl_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
+ 	if (ret < 0)
+ 		goto out1;
+@@ -622,11 +627,6 @@ static struct platform_driver twl4030rtc_driver = {
+ 
+ static int __init twl_rtc_init(void)
+ {
+-	if (twl_class_is_4030())
+-		rtc_reg_map = (u8 *) twl4030_rtc_reg_map;
+-	else
+-		rtc_reg_map = (u8 *) twl6030_rtc_reg_map;
+-
+ 	return platform_driver_register(&twl4030rtc_driver);
+ }
+ module_init(twl_rtc_init);
+-- 
+1.7.9.5
