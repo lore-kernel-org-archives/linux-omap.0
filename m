@@ -1,158 +1,46 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: [PATCH v2 10/10] ARM: dts: omap4: add pbias and mmc_init pinctrl states
-Date: Fri, 7 Jun 2013 00:44:19 +0530
-Message-ID: <1370546059-24181-11-git-send-email-balajitk@ti.com>
-References: <20130523184045.GD13507@atomide.com>
- <1370546059-24181-1-git-send-email-balajitk@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: Request for OMAPDSS testing
+Date: Thu, 6 Jun 2013 23:43:42 +0300
+Message-ID: <20130606204342.GB3507@blackmetal.musicnaut.iki.fi>
+References: <51AD99F5.7060506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41250 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752830Ab3FFTOy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jun 2013 15:14:54 -0400
-In-Reply-To: <1370546059-24181-1-git-send-email-balajitk@ti.com>
+Received: from filtteri5.pp.htv.fi ([213.243.153.188]:46797 "EHLO
+	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751989Ab3FFUnu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jun 2013 16:43:50 -0400
+Content-Disposition: inline
+In-Reply-To: <51AD99F5.7060506@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com, b-cousson@ti.com, devicetree-discuss@lists.ozlabs.org
-Cc: Balaji T K <balajitk@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, Thomas Weber <weber@corscience.de>, Mike Rapoport <mike@compulab.co.il>, Steve Sakoman <steve@sakoman.com>, =?utf-8?Q?Gra=C5=BEvydas?= Ignotas <notasas@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-add pbias states for pbias 0, 1.8V, 3V
-add sd/mmc1 pull strength values for control_mmc1 in mmc_init pinctrl state
+Hi,
 
-Signed-off-by: Balaji T K <balajitk@ti.com>
----
- arch/arm/boot/dts/omap4-panda-common.dtsi |   34 +++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap4-sdp.dts           |   34 +++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap4.dtsi              |   11 +++++++++
- 3 files changed, 79 insertions(+), 0 deletions(-)
+On Tue, Jun 04, 2013 at 10:40:37AM +0300, Tomi Valkeinen wrote:
+> I've made some big changes on the omapdss device model, which involves
+> converting all the panel drivers. I've got only a bunch of boards, so I
+> hope some of you can perhaps do some minimal tests on some other boards.
+> 
+> I've got: Beagle (old one), Panda, 4430SDP, Overo with LCD43.
+> 
+> The code can be found from the below git branch. It's based on 3.10-rc1.
+> 
+> git://gitorious.org/linux-omap-dss2/linux.git work/dss-dev-model
+> 
+> All you need to do to get things working is to enable the new panel
+> drivers from kernel config, under Device drivers/Graphics support/OMAP2+
+> Display Subsystem support/OMAP Display Device Drivers/
 
-diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-index 03bd60d..d6ffbb1 100644
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -137,6 +137,34 @@
- 	};
- };
- 
-+&omap4_padconf_global {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <>;
-+	pbias_off: pinmux_pbias_off {
-+		pinctrl-single,bits = <
-+			0x60 0x00000000 0x07e00000	/* pbias */
-+		>;
-+	};
-+
-+	pbias_1v8: pinmux_pbias_1v8 {
-+		pinctrl-single,bits = <
-+			0x60 0x04400000 0x07e00000	/* pbias */
-+		>;
-+	};
-+
-+	pbias_3v: pinmux_pbias_3v {
-+		pinctrl-single,bits = <
-+			0x60 0x04600000 0x07e00000	/* pbias */
-+		>;
-+	};
-+
-+	mmc1_init: pinmux_mmc1_init {
-+		pinctrl-single,bits = <
-+			0x88 0xce000000 0xfe000000	/* control_mmc1 */
-+		>;
-+	};
-+};
-+
- &i2c1 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&i2c1_pins>;
-@@ -197,6 +225,12 @@
- };
- 
- &mmc1 {
-+	pinctrl-names = "default", "mmc_init", "pbias_off", "pbias_1v8", "pbias_3v";
-+	pinctrl-0 = <>;
-+	pinctrl-1 = <&mmc1_init>;
-+	pinctrl-2 = <&pbias_off>;
-+	pinctrl-3 = <&pbias_1v8>;
-+	pinctrl-4 = <&pbias_3v>;
- 	vmmc-supply = <&vmmc>;
- 	bus-width = <8>;
- };
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index a35d9cd..b1c0e86 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -142,6 +142,34 @@
- 	};
- };
- 
-+&omap4_padconf_global {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <>;
-+	pbias_off: pinmux_pbias_off {
-+		pinctrl-single,bits = <
-+			0x60 0x00000000 0x07e00000	/* pbias */
-+		>;
-+	};
-+
-+	pbias_1v8: pinmux_pbias_1v8 {
-+		pinctrl-single,bits = <
-+			0x60 0x04400000 0x07e00000	/* pbias */
-+		>;
-+	};
-+
-+	pbias_3v: pinmux_pbias_3v {
-+		pinctrl-single,bits = <
-+			0x60 0x04600000 0x07e00000	/* pbias */
-+		>;
-+	};
-+
-+	mmc1_init: pinmux_mmc1_init {
-+		pinctrl-single,bits = <
-+			0x88 0xce000000 0xfe000000	/* control_mmc1 */
-+		>;
-+	};
-+};
-+
- &omap4_pmx_core {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <
-@@ -381,6 +409,12 @@
- };
- 
- &mmc1 {
-+	pinctrl-names = "default", "mmc_init", "pbias_off", "pbias_1v8", "pbias_3v";
-+	pinctrl-0 = <>;
-+	pinctrl-1 = <&mmc1_init>;
-+	pinctrl-2 = <&pbias_off>;
-+	pinctrl-3 = <&pbias_1v8>;
-+	pinctrl-4 = <&pbias_3v>;
- 	vmmc-supply = <&vmmc>;
- 	bus-width = <8>;
- };
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 2a56428..41f575d 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -114,6 +114,17 @@
- 			pinctrl-single,register-width = <16>;
- 			pinctrl-single,function-mask = <0x7fff>;
- 		};
-+
-+		omap4_padconf_global: pinmux@4a100600 {
-+			compatible = "ti,omap4-padconf", "pinctrl-single";
-+			reg = <0x4a1005a0 0x170>;
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			pinctrl-single,bit-per-mux;
-+			pinctrl-single,register-width = <32>;
-+			pinctrl-single,function-mask = <0xffffffff>;
-+		};
-+
- 		omap4_pmx_wkup: pinmux@4a31e040 {
- 			compatible = "ti,omap4-padconf", "pinctrl-single";
- 			reg = <0x4a31e040 0x0038>;
--- 
-1.7.5.4
+I tested Nokia N900 by pulling your tree and doing the following .config
+changes:
 
+	# CONFIG_PANEL_ACX565AKM is not set
+
+	CONFIG_PANEL_SONY_ACX565AKM=y
+
+The frame buffer console seems to work OK.
+
+A.
