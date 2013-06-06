@@ -1,67 +1,111 @@
-From: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
-Subject: Re: [PATCH 0/5] Broken DM816x support in Linux 3.10-rc4
-Date: Thu, 06 Jun 2013 10:03:42 +0400
-Message-ID: <51B0263E.6000109@skitlab.ru>
-References: <1370446156-11788-1-git-send-email-aida.mynzhasova@skitlab.ru> <alpine.DEB.2.02.1306060346390.15042@utopia.booyaka.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [net-next PATCH v4 3/5] ARM: dts: AM33XX: Add pinmux configuration
+ for CPSW to beaglebone
+Date: Thu, 06 Jun 2013 09:06:21 +0200
+Message-ID: <51B034ED.7040603@epfl.ch>
+References: <1370452099-24026-1-git-send-email-mugunthanvnm@ti.com> <1370452099-24026-4-git-send-email-mugunthanvnm@ti.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.02.1306060346390.15042@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp0.epfl.ch ([128.178.224.218]:45221 "HELO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754662Ab3FFHG0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 6 Jun 2013 03:06:26 -0400
+In-Reply-To: <1370452099-24026-4-git-send-email-mugunthanvnm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, benoit.cousson@linaro.org, paul@pwsan.com
 
-On 06.06.2013 07:54, Paul Walmsley wrote:
-> =DA=C4=D2=C1=D7=D3=D4=D7=D5=CA=D4=C5,
+Hello,
+
+On 06/05/2013 07:08 PM, Mugunthan V N wrote:
+> Add pinmux configurations for MII based CPSW ethernet to am335x-bone.
+> In this patch, only single named mode/state is added and these pins
+> are configured during pinctrl driver initialization.
 >
-> On Wed, 5 Jun 2013, Aida Mynzhasova wrote:
+> Default mode is nothing but the values required for the module during
+> active state. With this configurations module is functional as
+> expected.
 >
->> Not so long ago I tried to boot Linux 3.10-rc4 kernel on DM816x EVM
->> board. Unfortunately, my attempts were failed by reason of poor
->> support of DM81xx-based devices in new kernels.
+> Todo:
+> - if an idle state is available for pins, add support for it.
 >
-> Yeah, TI pretty much gave up on trying to get support for that chip
-> upstream a few years ago.  Same for DM814x.
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+> ---
+>   arch/arm/boot/dts/am335x-bone.dts |   38 +++++++++++++++++++++++++++++++++++++
+>   1 file changed, 38 insertions(+)
 >
->> So, I suggest you this patch series, which fixes that kernel crush a=
-nd
->> adds new functions/structures, required for early initialization on
->> DM816x (power and clock domains, hwmods). After applying these patch=
-es
->> the kernel is able to successfully continue booting till clock
->> initialization (will be added later).
+> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+> index 4b5a8e0..008a13b 100644
+> --- a/arch/arm/boot/dts/am335x-bone.dts
+> +++ b/arch/arm/boot/dts/am335x-bone.dts
+> @@ -36,6 +36,33 @@
+>   				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
+>   			>;
+>   		};
+> +
+> +		cpsw_default: cpsw_default {
+> +			pinctrl-single,pins = <
+> +				/* Slave 1 */
+> +				0x110 0x20	/* mii1_rxerr.mii1_rxerr, MODE0 | INPUT */
+
+Here I guess that the comment should be INPUT_PULLDOWN, instead of INPUT.
+
+> +				0x114 0x0	/* mii1_txen.mii1_txen, MODE0 | OUTPUT */
+
+As bit PULLUDENABLE is 0, the pulldown is enabled according to the TRM, 
+right?
+Is this a desirable behaviour, as it will consume power when outputting 
+a high level?
+And consequently, the comment should probably be OUTPUT_PULLDOWN, no?
+
+> +				0x118 0x20	/* mii1_rxdv.mii1_rxdv, MODE0 | INPUT_PULLDOWN */
+> +				0x11c 0x0	/* mii1_txd3.mii1_txd3, MODE0 | OUTPUT */
+> +				0x120 0x0	/* mii1_txd2.mii1_txd2, MODE0 | OUTPUT */
+> +				0x124 0x0	/* mii1_txd1.mii1_txd1, MODE0 | OUTPUT */
+> +				0x128 0x0	/* mii1_txd0.mii1_txd0, MODE0 | OUTPUT */
+
+Same questions here.
+
+> +				0x12c 0x20	/* mii1_txclk.mii1_txclk, MODE0 | INPUT_PULLDOWN */
+> +				0x130 0x20	/* mii1_rxclk.mii1_rxclk, MODE0 | INPUT_PULLDOWN */
+> +				0x134 0x20	/* mii1_rxd3.mii1_rxd3, MODE0 | INPUT_PULLDOWN */
+> +				0x138 0x20	/* mii1_rxd2.mii1_rxd2, MODE0 | INPUT_PULLDOWN */
+> +				0x13c 0x20	/* mii1_rxd1.mii1_rxd1, MODE0 | INPUT_PULLDOWN */
+> +				0x140 0x20	/* mii1_rxd0.mii1_rxd0, MODE0 | INPUT_PULLDOWN */
+> +			>;
+> +		};
+> +
+> +		davinci_mdio_default: davinci_mdio_default {
+> +			pinctrl-single,pins = <
+> +				/* MDIO */
+> +				0x148 0x30	/* mdio_data.mdio_data, MODE0 | INPUT_PULLUP */
+> +				0x14c 0x10	/* mdio_clk.mdio_clk, MODE0 | OUTPUT_PULLUP */
+> +			>;
+> +		};
+>   	};
 >
-> OK, it will be great to get my DM8168EVM booting on mainline.  But th=
-ere
-> are a few preliminary issues with the patches:
->
-> 1. All new chip and board support needs to be DT-only.  So, no new bo=
-ard
-> files.  Also, all the hwmod data shouldn't have IRQ, DMA, etc. data -=
- that
-> should come from DT.  See for example the recently posted patch "[PAT=
-CH
-> 13/14] ARM: AM33XX: hwmod data: irq, dma and addr info clean up"
->
-> 2. Looks like patch 2 is missing from the list.  If it's too big for =
-the
-> list, please break it down into smaller patches.
->
-> 3. Did you write this code and data, hwmods, etc., or did it come fro=
-m a
-> TI kernel?  Please note this clearly in the patch descriptions.
->
->
-> - Paul
+>   	ocp {
+> @@ -138,3 +165,14 @@
+>   	phy_id = <&davinci_mdio>, <1>;
+>   	phy-mode = "mii";
+>   };
+> +
+> +&mac {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&cpsw_default>;
+> +
+> +};
+> +
+> +&davinci_mdio {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&davinci_mdio_default>;
+> +};
 >
 
-Hi!
+Regards,
 
-Thanks for reply!
-ok, I'll rewrite code by means of DT and add some additional notes to=20
-patch description.
-
-Aida.
+Florian
