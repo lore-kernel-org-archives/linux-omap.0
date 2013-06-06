@@ -1,111 +1,45 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [net-next PATCH v4 3/5] ARM: dts: AM33XX: Add pinmux configuration
- for CPSW to beaglebone
-Date: Thu, 06 Jun 2013 09:06:21 +0200
-Message-ID: <51B034ED.7040603@epfl.ch>
-References: <1370452099-24026-1-git-send-email-mugunthanvnm@ti.com> <1370452099-24026-4-git-send-email-mugunthanvnm@ti.com>
-Reply-To: florian.vaussard@epfl.ch
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH] OMAPDSS: Remove kfree for memory allocated with devm_kzalloc
+Date: Thu, 6 Jun 2013 12:40:01 +0530
+Message-ID: <51B035C9.1070506@ti.com>
+References: <1370453396-18043-1-git-send-email-emilgoode@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:45221 "HELO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754662Ab3FFHG0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Jun 2013 03:06:26 -0400
-In-Reply-To: <1370452099-24026-4-git-send-email-mugunthanvnm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1370453396-18043-1-git-send-email-emilgoode@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Emil Goode <emilgoode@gmail.com>
+Cc: axel.lin@gmail.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, benoit.cousson@linaro.org, paul@pwsan.com
 
-Hello,
+Hi,
 
-On 06/05/2013 07:08 PM, Mugunthan V N wrote:
-> Add pinmux configurations for MII based CPSW ethernet to am335x-bone.
-> In this patch, only single named mode/state is added and these pins
-> are configured during pinctrl driver initialization.
+On Wednesday 05 June 2013 10:59 PM, Emil Goode wrote:
+> It's not necessary to free memory allocated with devm_kzalloc
+> in a remove function and using kfree leads to a double free.
+
+Looks fine to me. Tomi, could you take this for 3.11?
+
+Archit
+
 >
-> Default mode is nothing but the values required for the module during
-> active state. With this configurations module is functional as
-> expected.
->
-> Todo:
-> - if an idle state is available for pins, add support for it.
->
-> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+> Signed-off-by: Emil Goode <emilgoode@gmail.com>
 > ---
->   arch/arm/boot/dts/am335x-bone.dts |   38 +++++++++++++++++++++++++++++++++++++
->   1 file changed, 38 insertions(+)
+>   drivers/video/omap2/displays/panel-picodlp.c |    2 --
+>   1 file changed, 2 deletions(-)
 >
-> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-> index 4b5a8e0..008a13b 100644
-> --- a/arch/arm/boot/dts/am335x-bone.dts
-> +++ b/arch/arm/boot/dts/am335x-bone.dts
-> @@ -36,6 +36,33 @@
->   				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
->   			>;
->   		};
-> +
-> +		cpsw_default: cpsw_default {
-> +			pinctrl-single,pins = <
-> +				/* Slave 1 */
-> +				0x110 0x20	/* mii1_rxerr.mii1_rxerr, MODE0 | INPUT */
-
-Here I guess that the comment should be INPUT_PULLDOWN, instead of INPUT.
-
-> +				0x114 0x0	/* mii1_txen.mii1_txen, MODE0 | OUTPUT */
-
-As bit PULLUDENABLE is 0, the pulldown is enabled according to the TRM, 
-right?
-Is this a desirable behaviour, as it will consume power when outputting 
-a high level?
-And consequently, the comment should probably be OUTPUT_PULLDOWN, no?
-
-> +				0x118 0x20	/* mii1_rxdv.mii1_rxdv, MODE0 | INPUT_PULLDOWN */
-> +				0x11c 0x0	/* mii1_txd3.mii1_txd3, MODE0 | OUTPUT */
-> +				0x120 0x0	/* mii1_txd2.mii1_txd2, MODE0 | OUTPUT */
-> +				0x124 0x0	/* mii1_txd1.mii1_txd1, MODE0 | OUTPUT */
-> +				0x128 0x0	/* mii1_txd0.mii1_txd0, MODE0 | OUTPUT */
-
-Same questions here.
-
-> +				0x12c 0x20	/* mii1_txclk.mii1_txclk, MODE0 | INPUT_PULLDOWN */
-> +				0x130 0x20	/* mii1_rxclk.mii1_rxclk, MODE0 | INPUT_PULLDOWN */
-> +				0x134 0x20	/* mii1_rxd3.mii1_rxd3, MODE0 | INPUT_PULLDOWN */
-> +				0x138 0x20	/* mii1_rxd2.mii1_rxd2, MODE0 | INPUT_PULLDOWN */
-> +				0x13c 0x20	/* mii1_rxd1.mii1_rxd1, MODE0 | INPUT_PULLDOWN */
-> +				0x140 0x20	/* mii1_rxd0.mii1_rxd0, MODE0 | INPUT_PULLDOWN */
-> +			>;
-> +		};
-> +
-> +		davinci_mdio_default: davinci_mdio_default {
-> +			pinctrl-single,pins = <
-> +				/* MDIO */
-> +				0x148 0x30	/* mdio_data.mdio_data, MODE0 | INPUT_PULLUP */
-> +				0x14c 0x10	/* mdio_clk.mdio_clk, MODE0 | OUTPUT_PULLUP */
-> +			>;
-> +		};
->   	};
+> diff --git a/drivers/video/omap2/displays/panel-picodlp.c b/drivers/video/omap2/displays/panel-picodlp.c
+> index 62f2db0..859e111 100644
+> --- a/drivers/video/omap2/displays/panel-picodlp.c
+> +++ b/drivers/video/omap2/displays/panel-picodlp.c
+> @@ -469,8 +469,6 @@ static void picodlp_panel_remove(struct omap_dss_device *dssdev)
+>   	i2c_unregister_device(picod->picodlp_i2c_client);
+>   	dev_set_drvdata(&dssdev->dev, NULL);
+>   	dev_dbg(&dssdev->dev, "removing picodlp panel\n");
+> -
+> -	kfree(picod);
+>   }
 >
->   	ocp {
-> @@ -138,3 +165,14 @@
->   	phy_id = <&davinci_mdio>, <1>;
->   	phy-mode = "mii";
->   };
-> +
-> +&mac {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&cpsw_default>;
-> +
-> +};
-> +
-> +&davinci_mdio {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&davinci_mdio_default>;
-> +};
+>   static int picodlp_panel_enable(struct omap_dss_device *dssdev)
 >
-
-Regards,
-
-Florian
