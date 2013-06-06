@@ -1,46 +1,46 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: Request for OMAPDSS testing
-Date: Thu, 6 Jun 2013 23:43:42 +0300
-Message-ID: <20130606204342.GB3507@blackmetal.musicnaut.iki.fi>
-References: <51AD99F5.7060506@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH 13/14] ARM: AM33XX: hwmod data: irq, dma and addr info clean up
+Date: Thu, 06 Jun 2013 15:27:21 -0700
+Message-ID: <87zjv2ooxi.fsf@linaro.org>
+References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
+	<1369845494-30231-14-git-send-email-santosh.shilimkar@ti.com>
+	<alpine.DEB.2.02.1306060355320.15042@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri5.pp.htv.fi ([213.243.153.188]:46797 "EHLO
-	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751989Ab3FFUnu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jun 2013 16:43:50 -0400
-Content-Disposition: inline
-In-Reply-To: <51AD99F5.7060506@ti.com>
+Received: from mail-pd0-f181.google.com ([209.85.192.181]:35900 "EHLO
+	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751693Ab3FFW1Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jun 2013 18:27:25 -0400
+Received: by mail-pd0-f181.google.com with SMTP id 14so1323000pdj.26
+        for <linux-omap@vger.kernel.org>; Thu, 06 Jun 2013 15:27:25 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.02.1306060355320.15042@utopia.booyaka.com> (Paul
+	Walmsley's message of "Thu, 6 Jun 2013 04:00:39 +0000 (UTC)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, Thomas Weber <weber@corscience.de>, Mike Rapoport <mike@compulab.co.il>, Steve Sakoman <steve@sakoman.com>, =?utf-8?Q?Gra=C5=BEvydas?= Ignotas <notasas@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, Sricharan R <r.sricharan@ti.com>
 
-Hi,
+Paul Walmsley <paul@pwsan.com> writes:
 
-On Tue, Jun 04, 2013 at 10:40:37AM +0300, Tomi Valkeinen wrote:
-> I've made some big changes on the omapdss device model, which involves
-> converting all the panel drivers. I've got only a bunch of boards, so I
-> hope some of you can perhaps do some minimal tests on some other boards.
-> 
-> I've got: Beagle (old one), Panda, 4430SDP, Overo with LCD43.
-> 
-> The code can be found from the below git branch. It's based on 3.10-rc1.
-> 
-> git://gitorious.org/linux-omap-dss2/linux.git work/dss-dev-model
-> 
-> All you need to do to get things working is to enable the new panel
-> drivers from kernel config, under Device drivers/Graphics support/OMAP2+
-> Display Subsystem support/OMAP Display Device Drivers/
+> On Wed, 29 May 2013, Santosh Shilimkar wrote:
+>
+>> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>> 
+>> AM33XX only supports DT boot mode and with addition of
+>> extracting module resources like, irq, dma and address space
+>> from DT block, so now we can remove duplicate information from
+>> hwmod data file.
+>
+> OK, guess I'll take your word for it that it all works.  The
+> BeagleBone-white with appended DTB hasn't booted here since v3.7.
+> And the BeagleBone-black with discrete DTB doesn't boot at all with
+> current mainline, only with the TI vendor kernel & DTB...
 
-I tested Nokia N900 by pulling your tree and doing the following .config
-changes:
+Anyone care to shed light on what's missing for BeagleBone boot with
+mainline currently?  
 
-	# CONFIG_PANEL_ACX565AKM is not set
+I've also not been able to boot a mainline kernel on the BeagleBone for
+some time.
 
-	CONFIG_PANEL_SONY_ACX565AKM=y
-
-The frame buffer console seems to work OK.
-
-A.
+Kevin
