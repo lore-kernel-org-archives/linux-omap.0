@@ -1,7 +1,7 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 2/4] ARM: dts: AM33XX: Add PWMSS device tree nodes
-Date: Thu,  6 Jun 2013 15:52:37 +0200
-Message-ID: <1370526759-31163-3-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 4/4] ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evmsk
+Date: Thu,  6 Jun 2013 15:52:39 +0200
+Message-ID: <1370526759-31163-5-git-send-email-bigeasy@linutronix.de>
 References: <1370526759-31163-1-git-send-email-bigeasy@linutronix.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1370526759-31163-1-git-send-email-bigeasy@linutronix.de>
@@ -12,112 +12,64 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Philip Avinash <avinashphilip@ti.com>
 
-Add PWMSS device tree nodes in relation with ECAP & EHRPWM DT nodes to
-AM33XX SoC family. Also populates device tree nodes for ECAP & EHRPWM by
-adding necessary properties like pwm-cells, base reg & set disabled as
-status.
+PWM output from ecap2 uses as backlight source. Also adds low threshold
+value to have a uniform divisions in brightness-levels scales with
+inverse polarity.
 
 Signed-off-by: Philip Avinash <avinashphilip@ti.com>
 Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- arch/arm/boot/dts/am33xx.dtsi |   84 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 84 insertions(+)
+ arch/arm/boot/dts/am335x-evmsk.dts |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 1460d9b..7fa9c5f 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -343,6 +343,90 @@
- 			ti,hwmods = "usb_otg_hs";
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index f67c360..c21fdaf 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -51,6 +51,12 @@
+ 				0x9c 0x27	/* gpmc_ben0_cle.gpio2_5, INPUT | MODE7 */
+ 			>;
  		};
++
++		ecap2_pins: backlight_pins {
++			pinctrl-single,pins = <
++				0x19c 0x4	/* mcasp0_ahclkr.ecap2_in_pwm2_out MODE4 */
++			>;
++		};
+ 	};
  
-+		epwmss0: epwmss@48300000 {
-+			compatible = "ti,am33xx-pwmss";
-+			reg = <0x48300000 0x10>;
-+			ti,hwmods = "epwmss0";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			status = "disabled";
-+			ranges = <0x48300100 0x48300100 0x80   /* ECAP */
-+				  0x48300180 0x48300180 0x80   /* EQEP */
-+				  0x48300200 0x48300200 0x80>; /* EHRPWM */
-+
-+			ecap0: ecap@48300100 {
-+				compatible = "ti,am33xx-ecap";
-+				#pwm-cells = <3>;
-+				reg = <0x48300100 0x80>;
-+				ti,hwmods = "ecap0";
-+				status = "disabled";
-+			};
-+
-+			ehrpwm0: ehrpwm@48300200 {
-+				compatible = "ti,am33xx-ehrpwm";
-+				#pwm-cells = <3>;
-+				reg = <0x48300200 0x80>;
-+				ti,hwmods = "ehrpwm0";
-+				status = "disabled";
-+			};
-+		};
-+
-+		epwmss1: epwmss@48302000 {
-+			compatible = "ti,am33xx-pwmss";
-+			reg = <0x48302000 0x10>;
-+			ti,hwmods = "epwmss1";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			status = "disabled";
-+			ranges = <0x48302100 0x48302100 0x80   /* ECAP */
-+				  0x48302180 0x48302180 0x80   /* EQEP */
-+				  0x48302200 0x48302200 0x80>; /* EHRPWM */
-+
-+			ecap1: ecap@48302100 {
-+				compatible = "ti,am33xx-ecap";
-+				#pwm-cells = <3>;
-+				reg = <0x48302100 0x80>;
-+				ti,hwmods = "ecap1";
-+				status = "disabled";
-+			};
-+
-+			ehrpwm1: ehrpwm@48302200 {
-+				compatible = "ti,am33xx-ehrpwm";
-+				#pwm-cells = <3>;
-+				reg = <0x48302200 0x80>;
-+				ti,hwmods = "ehrpwm1";
-+				status = "disabled";
-+			};
-+		};
+ 	ocp {
+@@ -94,6 +100,16 @@
+ 				st,max-limit-z = <750>;
+ 			};
+ 		};
 +
 +		epwmss2: epwmss@48304000 {
-+			compatible = "ti,am33xx-pwmss";
-+			reg = <0x48304000 0x10>;
-+			ti,hwmods = "epwmss2";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			status = "disabled";
-+			ranges = <0x48304100 0x48304100 0x80   /* ECAP */
-+				  0x48304180 0x48304180 0x80   /* EQEP */
-+				  0x48304200 0x48304200 0x80>; /* EHRPWM */
++			status = "okay";
 +
 +			ecap2: ecap@48304100 {
-+				compatible = "ti,am33xx-ecap";
-+				#pwm-cells = <3>;
-+				reg = <0x48304100 0x80>;
-+				ti,hwmods = "ecap2";
-+				status = "disabled";
-+			};
-+
-+			ehrpwm2: ehrpwm@48304200 {
-+				compatible = "ti,am33xx-ehrpwm";
-+				#pwm-cells = <3>;
-+				reg = <0x48304200 0x80>;
-+				ti,hwmods = "ehrpwm2";
-+				status = "disabled";
++				status = "okay";
++				pinctrl-names = "default";
++				pinctrl-0 = <&ecap2_pins>;
 +			};
 +		};
+ 	};
+ 
+ 	vbat: fixedregulator@0 {
+@@ -170,6 +186,13 @@
+ 			gpios = <&gpio2 5 0>;
+ 		};
+ 	};
 +
- 		mac: ethernet@4a100000 {
- 			compatible = "ti,cpsw";
- 			ti,hwmods = "cpgmac0";
++	backlight {
++		compatible = "pwm-backlight";
++		pwms = <&ecap2 0 50000 1>;
++		brightness-levels = <0 58 61 66 75 90 125 170 255>;
++		default-brightness-level = <8>;
++	};
+ };
+ 
+ /include/ "tps65910.dtsi"
 -- 
 1.7.10.4
