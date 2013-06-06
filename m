@@ -1,181 +1,182 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V2 2/4] ARM: dts: omap5-uevm: Add USB Host support
-Date: Thu, 6 Jun 2013 23:18:37 +0530
-Message-ID: <1370540919-4339-3-git-send-email-r.sricharan@ti.com>
+Subject: [PATCH V2 1/4] ARM: dts: omap5: Rename omap5-evm to omap5-uevm
+Date: Thu, 6 Jun 2013 23:18:36 +0530
+Message-ID: <1370540919-4339-2-git-send-email-r.sricharan@ti.com>
 References: <1370540919-4339-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53449 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35977 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753142Ab3FFRt0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Jun 2013 13:49:26 -0400
+	id S1753522Ab3FFRt1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 6 Jun 2013 13:49:27 -0400
 In-Reply-To: <1370540919-4339-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: devicetree-discuss@lists.ozlabs.org, r.sricharan@ti.com, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com, Roger Quadros <rogerq@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, r.sricharan@ti.com, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com
 
-From: Roger Quadros <rogerq@ti.com>
+The uevm is the official board supported for the OMAP5 soc
+in mainline. The uevm has an OMAP5432 with a DDR3 memory.
+Renaming the board dts file and adding the following cleanups.
 
-Provide the RESET regulators for the USB PHYs, the USB Host
-port modes and the PHY devices.
+ * There are no devices connected on I2C 2,3,4 buses. So remove
+   the pinmux data for the same.
 
-Also provide pin multiplexer information for the USB host
-pins.
+ * DDR3 memory is used in the uevm. Neither DVFS or temperature
+   polling is supported with DDR3. So remove the DDR3 device and
+   emif nodes.
 
-Cc: Roger Quadros <rogerq@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-[Sricharan R <r.sricharan@ti.com>: Replaced constants with preprocessor macros]
+ * Keypad is not supported on uevm. So remove the device node.
+
 Signed-off-by: Sricharan R <r.sricharan@ti.com>
 ---
- [v2] Removed the clk_alias node and removed the redundant comments
+ arch/arm/boot/dts/Makefile                         |    2 +-
+ .../arm/boot/dts/{omap5-evm.dts => omap5-uevm.dts} |   83 +-------------------
+ 2 files changed, 4 insertions(+), 81 deletions(-)
+ rename arch/arm/boot/dts/{omap5-evm.dts => omap5-uevm.dts} (73%)
 
- arch/arm/boot/dts/omap5-uevm.dts |   70 ++++++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap5.dtsi     |   30 ++++++++++++++++
- 2 files changed, 100 insertions(+)
-
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 843a001..a31e42f 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index f0895c5..13b86bf 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -149,7 +149,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+ 	omap4-panda-es.dtb \
+ 	omap4-var-som.dtb \
+ 	omap4-sdp.dtb \
+-	omap5-evm.dtb \
++	omap5-uevm.dtb \
+ 	am335x-evm.dtb \
+ 	am335x-evmsk.dtb \
+ 	am335x-bone.dtb
+diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+similarity index 73%
+rename from arch/arm/boot/dts/omap5-evm.dts
+rename to arch/arm/boot/dts/omap5-uevm.dts
+index 22e9ee8..843a001 100644
+--- a/arch/arm/boot/dts/omap5-evm.dts
 +++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -25,6 +25,40 @@
- 		regulator-max-microvolt = <3000000>;
- 	};
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -8,11 +8,10 @@
+ /dts-v1/;
  
-+	/* HS USB Port 2 RESET */
-+	hsusb2_reset: hsusb2_reset_reg {
-+		compatible = "regulator-fixed";
-+		regulator-name = "hsusb2_reset";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		gpio = <&gpio3 16 GPIO_ACTIVE_HIGH>; /* gpio3_80 HUB_NRESET */
-+		startup-delay-us = <70000>;
-+		enable-active-high;
-+	};
-+
-+	/* HS USB Host PHY on PORT 2 */
-+	hsusb2_phy: hsusb2_phy {
-+		compatible = "usb-nop-xceiv";
-+		reset-supply = <&hsusb2_reset>;
-+	};
-+
-+	/* HS USB Port 3 RESET */
-+	hsusb3_reset: hsusb3_reset_reg {
-+		compatible = "regulator-fixed";
-+		regulator-name = "hsusb3_reset";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		gpio = <&gpio3 15 GPIO_ACTIVE_HIGH>; /* gpio3_79 ETH_NRESET */
-+		startup-delay-us = <70000>;
-+		enable-active-high;
-+	};
-+
-+	/* HS USB Host PHY on PORT 3 */
-+	hsusb3_phy: hsusb3_phy {
-+		compatible = "usb-nop-xceiv";
-+		reset-supply = <&hsusb3_reset>;
-+	};
-+
- };
+ #include "omap5.dtsi"
+-#include "samsung_k3pe0e000b.dtsi"
  
- &omap5_pmx_core {
-@@ -35,6 +69,7 @@
- 			&dmic_pins
- 			&mcbsp1_pins
- 			&mcbsp2_pins
-+			&usbhost_pins
- 	>;
+ / {
+-	model = "TI OMAP5 EVM board";
+-	compatible = "ti,omap5-evm", "ti,omap5";
++	model = "TI OMAP5 uEVM board";
++	compatible = "ti,omap5-uevm", "ti,omap5";
  
- 	twl6040_pins: pinmux_twl6040_pins {
-@@ -120,6 +155,32 @@
- 			0x16c (PIN_INPUT | MUX_MODE1)		/*  mcspi2_cs */
+ 	memory {
+ 		device_type = "memory";
+@@ -88,27 +87,6 @@
  		>;
  	};
-+
-+	usbhost_pins: pinmux_usbhost_pins {
-+		pinctrl-single,pins = <
-+			0x84 (PIN_INPUT | MUX_MODE0) /* usbb2_hsic_strobe */
-+			0x86 (PIN_INPUT | MUX_MODE0) /* usbb2_hsic_data */
-+
-+			0x19e (PIN_INPUT | MUX_MODE0) /* usbb3_hsic_strobe */
-+			0x1a0 (PIN_INPUT | MUX_MODE0) /* usbb3_hsic_data */
-+
-+			0x70 (PIN_OUTPUT | MUX_MODE6) /* gpio3_80 HUB_NRESET */
-+			0x6e (PIN_OUTPUT | MUX_MODE6) /* gpio3_79 ETH_NRESET */
-+		>;
-+	};
-+};
-+
-+&omap5_pmx_wkup {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+			&usbhost_wkup_pins
-+	>;
-+
-+	usbhost_wkup_pins: pinmux_usbhost_wkup_pins {
-+		pinctrl-single,pins = <
-+			0x1A (PIN_OUTPUT | MUX_MODE0) /* fref_clk1_out, USB hub clk */
-+		>;
-+	};
+ 
+-	i2c2_pins: pinmux_i2c2_pins {
+-		pinctrl-single,pins = <
+-			0x178 (PIN_INPUT | MUX_MODE0)		/* i2c2_scl */
+-			0x17a (PIN_INPUT | MUX_MODE0)		/* i2c2_sda */
+-		>;
+-	};
+-
+-	i2c3_pins: pinmux_i2c3_pins {
+-		pinctrl-single,pins = <
+-			0x13a (PIN_INPUT | MUX_MODE0)		/* i2c3_scl */
+-			0x13c (PIN_INPUT | MUX_MODE0)		/* i2c3_sda */
+-		>;
+-	};
+-
+-	i2c4_pins: pinmux_i2c4_pins {
+-		pinctrl-single,pins = <
+-			0xb8 (PIN_INPUT | MUX_MODE0)		/* i2c4_scl */
+-			0xba (PIN_INPUT | MUX_MODE0)		/* i2c4_sda */
+-		>;
+-	};
+-
+ 	i2c5_pins: pinmux_i2c5_pins {
+ 		pinctrl-single,pins = <
+ 			0x184 (PIN_INPUT | MUX_MODE0)		/* i2c5_scl */
+@@ -175,39 +153,6 @@
+ 	clock-frequency = <400000>;
  };
  
- &mmc1 {
-@@ -164,6 +225,15 @@
+-&i2c2 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&i2c2_pins>;
+-
+-	clock-frequency = <400000>;
+-
+-	/* Pressure Sensor */
+-	bmp085@77 {
+-		compatible = "bosch,bmp085";
+-		reg = <0x77>;
+-	};
+-};
+-
+-&i2c3 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&i2c3_pins>;
+-
+-	clock-frequency = <400000>;
+-};
+-
+-&i2c4 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&i2c4_pins>;
+-
+-	clock-frequency = <400000>;
+-
+-	/* Temperature Sensor */
+-	tmp102@48{
+-		compatible = "ti,tmp102";
+-		reg = <0x48>;
+-	};
+-};
+-
+ &i2c5 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&i2c5_pins>;
+@@ -215,32 +160,10 @@
+ 	clock-frequency = <400000>;
+ };
+ 
+-&keypad {
+-	keypad,num-rows = <8>;
+-	keypad,num-columns = <8>;
+-	linux,keymap = <0x02020073	/* VOLUP */
+-			0x02030072	/* VOLDOWM */
+-			0x020400e7	/* SEND */
+-			0x02050066	/* HOME */
+-			0x0206006b	/* END */
+-			0x020700d9>;	/* SEARCH */
+-	linux,input-no-autorepeat;
+-};
+-
+ &mcbsp3 {
  	status = "disabled";
  };
  
-+&usbhshost {
-+	port2-mode = "ehci-hsic";
-+	port3-mode = "ehci-hsic";
-+};
-+
-+&usbhsehci {
-+	phys = <0 &hsusb2_phy &hsusb3_phy>;
-+};
-+
+-&emif1 {
+-	cs1-used;
+-	device-handle = <&samsung_K3PE0E000B>;
+-};
+-
+-&emif2 {
+-	cs1-used;
+-	device-handle = <&samsung_K3PE0E000B>;
+-};
+-
  &mcspi1 {
  
- };
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 1e84db8..accab62 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -666,5 +666,35 @@
- 				ctrl-module = <&omap_control_usb>;
- 			};
- 		};
-+
-+		usbhstll: usbhstll@4a062000 {
-+			compatible = "ti,usbhs-tll";
-+			reg = <0x4a062000 0x1000>;
-+			interrupts = <GIC_SPI 78 IRQ_TYPE_LEVEL_HIGH>;
-+			ti,hwmods = "usb_tll_hs";
-+		};
-+
-+		usbhshost: usbhshost@4a064000 {
-+			compatible = "ti,usbhs-host";
-+			reg = <0x4a064000 0x800>;
-+			ti,hwmods = "usb_host_hs";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
-+
-+			usbhsohci: ohci@4a064800 {
-+				compatible = "ti,ohci-omap3", "usb-ohci";
-+				reg = <0x4a064800 0x400>;
-+				interrupt-parent = <&gic>;
-+				interrupts = <GIC_SPI 76 IRQ_TYPE_LEVEL_HIGH>;
-+			};
-+
-+			usbhsehci: ehci@4a064c00 {
-+				compatible = "ti,ehci-omap", "usb-ehci";
-+				reg = <0x4a064c00 0x400>;
-+				interrupt-parent = <&gic>;
-+				interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
-+			};
-+		};
- 	};
  };
 -- 
 1.7.9.5
