@@ -1,50 +1,59 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 14/14] ARM: OMAP4: hwmod data: Clean up the data file
-Date: Thu, 6 Jun 2013 14:30:34 -0400
-Message-ID: <51B0D54A.1090107@ti.com>
-References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com> <1369845494-30231-15-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.02.1306061754560.5152@utopia.booyaka.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 2/4] ARM: dts: omap5-uevm: Add USB Host support
+Date: Thu, 6 Jun 2013 13:46:17 -0500
+Message-ID: <20130606184617.GA25579@kahuna>
+References: <1370414770-1485-1-git-send-email-r.sricharan@ti.com>
+ <1370414770-1485-3-git-send-email-r.sricharan@ti.com>
+ <20130605135739.GA11193@kahuna>
+ <51B0CC15.6010809@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55507 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751201Ab3FFSa6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Jun 2013 14:30:58 -0400
-In-Reply-To: <alpine.DEB.2.02.1306061754560.5152@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39787 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752490Ab3FFSql (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jun 2013 14:46:41 -0400
+Content-Disposition: inline
+In-Reply-To: <51B0CC15.6010809@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Sricharan R <r.sricharan@ti.com>
-Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com, Roger Quadros <rogerq@ti.com>
 
-On Thursday 06 June 2013 01:57 PM, Paul Walmsley wrote:
-> On Wed, 29 May 2013, Santosh Shilimkar wrote:
-> 
->> From: Sricharan R <r.sricharan@ti.com>
->>
->> - The IO resource information like dma request lines, irq number and
->>   ocp address space can be populated via dt blob. So such data is stripped
->>   from OMAP4 SOC hwmod data file.
->>
->> - The devices which are still missing the device tree bindings,
->>   address space entries are not removed yet. When such devices add
->>   the dt bindings, respective address space data can be deleted.
->>
->> - Also other unnessecary hwmods like firewalls are removed as a part of this.
->>
->> The above update, results in reduction of about ~1650 lines of code.
->>
->> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Signed-off-by: Sricharan R <r.sricharan@ti.com>
-> 
-> I assume that you're not autogenerating this data any more, based on
-> your change list above.  If that's correct, please also remove
-> the paragraph at the top of the file:
-> 
-The data is auto-generated. I let Sricharan comment if it is otherwise
-in the final version of the patch. 
+On 23:21-20130606, Sricharan R wrote:
+> Hi,
+> On Wednesday 05 June 2013 07:27 PM, Nishanth Menon wrote:
+> > On 12:16-20130605, Sricharan R wrote:
+> >> From: Roger Quadros <rogerq@ti.com>
+> > [...]
+> >> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+> >> index 843a001..cf862df 100644
+> >> --- a/arch/arm/boot/dts/omap5-uevm.dts
+> >> +++ b/arch/arm/boot/dts/omap5-uevm.dts
+> > <snip>
+> >> +	/* hsusb2_phy is clocked by FREF_CLK1 i.e. auxclk1 */
+> >> +	clock_alias {
+> >> +		clock-name = "auxclk1_ck";
+> >> +		clock-alias = "main_clk";
+> > is'nt this better to use with clock node?
+> Roger was suggesting to remove this for now. Posted
+> V2 following that.
+> Are you suggesting to go with your clock-binding patch ?
+you cannot. Mike has already rejected that approach and I have dropped
+that series and wont be following up.
+See discussion https://patchwork.kernel.org/patch/2541331/
 
-Sricharan ?
+instead the new approach being discussed
+https://patchwork.kernel.org/patch/2657351/ and related discussions is
+the way to go.
 
+That said, it practically blocks introduction of all code that depend on
+dts nodes :(, no matter how I dont like being blocked and my many series
+delayed, I believe Mike, Tero, Rajendra are doing the right architecture
+and we should wait for it's upstream introduction.
+
+That is just my 2 cents.
+
+-- 
 Regards,
-Santosh
+Nishanth Menon
