@@ -1,58 +1,36 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/5] Broken DM816x support in Linux 3.10-rc4
-Date: Thu, 6 Jun 2013 03:54:55 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1306060346390.15042@utopia.booyaka.com>
-References: <1370446156-11788-1-git-send-email-aida.mynzhasova@skitlab.ru>
+Subject: Re: [PATCH 13/14] ARM: AM33XX: hwmod data: irq, dma and addr info
+ clean up
+Date: Thu, 6 Jun 2013 04:00:39 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1306060355320.15042@utopia.booyaka.com>
+References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com> <1369845494-30231-14-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-942192677-1370490748=:15042"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1370446156-11788-1-git-send-email-aida.mynzhasova@skitlab.ru>
-Content-ID: <alpine.DEB.2.02.1306060352520.15042@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:37883 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750698Ab3FFEAk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jun 2013 00:00:40 -0400
+In-Reply-To: <1369845494-30231-14-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, Sricharan R <r.sricharan@ti.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Wed, 29 May 2013, Santosh Shilimkar wrote:
 
---843723315-942192677-1370490748=:15042
-Content-Type: TEXT/PLAIN; CHARSET=KOI8-R
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.02.1306060352521.15042@utopia.booyaka.com>
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> AM33XX only supports DT boot mode and with addition of
+> extracting module resources like, irq, dma and address space
+> from DT block, so now we can remove duplicate information from
+> hwmod data file.
 
-=DA=C4=D2=C1=D7=D3=D4=D7=D5=CA=D4=C5,
+OK, guess I'll take your word for it that it all works.  The
+BeagleBone-white with appended DTB hasn't booted here since v3.7.
+And the BeagleBone-black with discrete DTB doesn't boot at all with
+current mainline, only with the TI vendor kernel & DTB...
 
-On Wed, 5 Jun 2013, Aida Mynzhasova wrote:
-
-> Not so long ago I tried to boot Linux 3.10-rc4 kernel on DM816x EVM
-> board. Unfortunately, my attempts were failed by reason of poor
-> support of DM81xx-based devices in new kernels.
-
-Yeah, TI pretty much gave up on trying to get support for that chip=20
-upstream a few years ago.  Same for DM814x.
-
-> So, I suggest you this patch series, which fixes that kernel crush and=20
-> adds new functions/structures, required for early initialization on=20
-> DM816x (power and clock domains, hwmods). After applying these patches=20
-> the kernel is able to successfully continue booting till clock=20
-> initialization (will be added later).
-
-OK, it will be great to get my DM8168EVM booting on mainline.  But there=20
-are a few preliminary issues with the patches:
-
-1. All new chip and board support needs to be DT-only.  So, no new board=20
-files.  Also, all the hwmod data shouldn't have IRQ, DMA, etc. data - that=
-=20
-should come from DT.  See for example the recently posted patch "[PATCH=20
-13/14] ARM: AM33XX: hwmod data: irq, dma and addr info clean up"
-
-2. Looks like patch 2 is missing from the list.  If it's too big for the=20
-list, please break it down into smaller patches.
-
-3. Did you write this code and data, hwmods, etc., or did it come from a=20
-TI kernel?  Please note this clearly in the patch descriptions.
-
+Acked-by: Paul Walmsley <paul@pwsan.com>
 
 - Paul
---843723315-942192677-1370490748=:15042--
