@@ -1,58 +1,94 @@
-From: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Subject: Re: [PATCH] arm/omap: use const char properly
-Date: Thu, 6 Jun 2013 16:42:40 +0300
-Message-ID: <CAB=otbRkdAxWoQq0wsUNdgdWg-TUs0wY58AXhfxAQ24JCj_80Q@mail.gmail.com>
-References: <1370525079-22195-1-git-send-email-bigeasy@linutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f175.google.com ([209.85.214.175]:43077 "EHLO
-	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751078Ab3FFNml (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jun 2013 09:42:41 -0400
-Received: by mail-ob0-f175.google.com with SMTP id xn12so4725216obc.34
-        for <linux-omap@vger.kernel.org>; Thu, 06 Jun 2013 06:42:40 -0700 (PDT)
-In-Reply-To: <1370525079-22195-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH 1/4] ARM: AM33XX: clk: Add clock node for EHRPWM TBCLK
+Date: Thu,  6 Jun 2013 15:52:36 +0200
+Message-ID: <1370526759-31163-2-git-send-email-bigeasy@linutronix.de>
+References: <1370526759-31163-1-git-send-email-bigeasy@linutronix.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1370526759-31163-1-git-send-email-bigeasy@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Philip Avinash <avinashphilip@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Hi Sebastian,
+From: Philip Avinash <avinashphilip@ti.com>
 
-On Thu, Jun 6, 2013 at 4:24 PM, Sebastian Andrzej Siewior
-<bigeasy@linutronix.de> wrote:
-> The itention was probably to make both pointers const but as it is now,
-> it is just const used twice.
+EHRPWM module requires explicit clock gating of TBCLK from control
+module. Hence add TBCLK clock node in clock tree for EHRPWM modules.
 
-Yes, it's a typo I did accidentally. Good catch!
+Signed-off-by: Philip Avinash <avinashphilip@ti.com>
+[bigeasy: remove CK_AM33XX]
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ arch/arm/mach-omap2/cclock33xx_data.c |   30 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/control.h         |    8 ++++++++
+ 2 files changed, 38 insertions(+)
 
-Regards,
-Ruslan
-
->
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> ---
->  arch/arm/mach-omap2/id.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 1272c41..54e4c16 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -601,7 +601,7 @@ void __init omap2_set_globals_tap(u32 class, void __iomem *tap)
->
->  #ifdef CONFIG_SOC_BUS
->
-> -static const char const *omap_types[] = {
-> +static const char * const omap_types[] = {
->         [OMAP2_DEVICE_TYPE_TEST]        = "TST",
->         [OMAP2_DEVICE_TYPE_EMU]         = "EMU",
->         [OMAP2_DEVICE_TYPE_SEC]         = "HS",
-> --
-> 1.7.10.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
+index af3544c..0346de5 100644
+--- a/arch/arm/mach-omap2/cclock33xx_data.c
++++ b/arch/arm/mach-omap2/cclock33xx_data.c
+@@ -862,6 +862,33 @@ static struct clk_hw_omap wdt1_fck_hw = {
+ 
+ DEFINE_STRUCT_CLK(wdt1_fck, wdt_ck_parents, gpio_fck_ops);
+ 
++static const char *pwmss_clk_parents[] = {
++	"dpll_per_m2_ck",
++};
++
++static const struct clk_ops ehrpwm_tbclk_ops = {
++	.enable		= &omap2_dflt_clk_enable,
++	.disable	= &omap2_dflt_clk_disable,
++};
++
++DEFINE_CLK_OMAP_MUX_GATE(ehrpwm0_tbclk, "l4ls_clkdm",
++			 NULL, NULL, 0,
++			 AM33XX_CTRL_REGADDR(AM33XX_PWMSS_TBCLK_CLKCTRL),
++			 AM33XX_PWMSS0_TBCLKEN_SHIFT,
++			 NULL, pwmss_clk_parents, ehrpwm_tbclk_ops);
++
++DEFINE_CLK_OMAP_MUX_GATE(ehrpwm1_tbclk, "l4ls_clkdm",
++			 NULL, NULL, 0,
++			 AM33XX_CTRL_REGADDR(AM33XX_PWMSS_TBCLK_CLKCTRL),
++			 AM33XX_PWMSS1_TBCLKEN_SHIFT,
++			 NULL, pwmss_clk_parents, ehrpwm_tbclk_ops);
++
++DEFINE_CLK_OMAP_MUX_GATE(ehrpwm2_tbclk, "l4ls_clkdm",
++			 NULL, NULL, 0,
++			 AM33XX_CTRL_REGADDR(AM33XX_PWMSS_TBCLK_CLKCTRL),
++			 AM33XX_PWMSS2_TBCLKEN_SHIFT,
++			 NULL, pwmss_clk_parents, ehrpwm_tbclk_ops);
++
+ /*
+  * clkdev
+  */
+@@ -942,6 +969,9 @@ static struct omap_clk am33xx_clks[] = {
+ 	CLK(NULL,	"clkout2_div_ck",	&clkout2_div_ck),
+ 	CLK(NULL,	"timer_32k_ck",		&clkdiv32k_ick),
+ 	CLK(NULL,	"timer_sys_ck",		&sys_clkin_ck),
++	CLK("48300200.ehrpwm",	"tbclk",	&ehrpwm0_tbclk),
++	CLK("48302200.ehrpwm",	"tbclk",	&ehrpwm1_tbclk),
++	CLK("48304200.ehrpwm",	"tbclk",	&ehrpwm2_tbclk),
+ };
+ 
+ 
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index e6c3281..35d17a6 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -358,6 +358,14 @@
+ #define AM33XX_CONTROL_STATUS_SYSBOOT1_WIDTH		0x2
+ #define AM33XX_CONTROL_STATUS_SYSBOOT1_MASK		(0x3 << 22)
+ 
++/* AM33XX PWMSS Control register */
++#define AM33XX_PWMSS_TBCLK_CLKCTRL			0x664
++
++/* AM33XX  PWMSS Control bitfields */
++#define AM33XX_PWMSS0_TBCLKEN_SHIFT			0
++#define AM33XX_PWMSS1_TBCLKEN_SHIFT			1
++#define AM33XX_PWMSS2_TBCLKEN_SHIFT			2
++
+ /* CONTROL OMAP STATUS register to identify OMAP3 features */
+ #define OMAP3_CONTROL_OMAP_STATUS	0x044c
+ 
+-- 
+1.7.10.4
