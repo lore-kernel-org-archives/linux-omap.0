@@ -1,7 +1,7 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 1/4] ARM: AM33XX: clk: Add clock node for EHRPWM TBCLK
-Date: Thu,  6 Jun 2013 15:52:36 +0200
-Message-ID: <1370526759-31163-2-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 3/4] ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evm
+Date: Thu,  6 Jun 2013 15:52:38 +0200
+Message-ID: <1370526759-31163-4-git-send-email-bigeasy@linutronix.de>
 References: <1370526759-31163-1-git-send-email-bigeasy@linutronix.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1370526759-31163-1-git-send-email-bigeasy@linutronix.de>
@@ -12,83 +12,63 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Philip Avinash <avinashphilip@ti.com>
 
-EHRPWM module requires explicit clock gating of TBCLK from control
-module. Hence add TBCLK clock node in clock tree for EHRPWM modules.
+PWM output from ecap0 uses as backlight source. Also adds low threshold
+value to have a uniform divisions in brightness-levels scales.
 
 Signed-off-by: Philip Avinash <avinashphilip@ti.com>
-[bigeasy: remove CK_AM33XX]
+Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- arch/arm/mach-omap2/cclock33xx_data.c |   30 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/control.h         |    8 ++++++++
- 2 files changed, 38 insertions(+)
+ arch/arm/boot/dts/am335x-evm.dts |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/cclock33xx_data.c b/arch/arm/mach-omap2/cclock33xx_data.c
-index af3544c..0346de5 100644
---- a/arch/arm/mach-omap2/cclock33xx_data.c
-+++ b/arch/arm/mach-omap2/cclock33xx_data.c
-@@ -862,6 +862,33 @@ static struct clk_hw_omap wdt1_fck_hw = {
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index 0423298..35b2f77 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -44,6 +44,12 @@
+ 				0x154 0x27	/* spi0_d0.gpio0_3, INPUT | MODE7 */
+ 			>;
+ 		};
++
++		ecap0_pins: backlight_pins {
++			pinctrl-single,pins = <
++				0x164 0x0	/* eCAP0_in_PWM0_out.eCAP0_in_PWM0_out MODE0 */
++			>;
++		};
+ 	};
  
- DEFINE_STRUCT_CLK(wdt1_fck, wdt_ck_parents, gpio_fck_ops);
+ 	ocp {
+@@ -102,6 +108,16 @@
+ 				reg = <0x48>;
+ 			};
+ 		};
++
++		epwmss0: epwmss@48300000 {
++			status = "okay";
++
++			ecap0: ecap@48300100 {
++				status = "okay";
++				pinctrl-names = "default";
++				pinctrl-0 = <&ecap0_pins>;
++			};
++		};
+ 	};
  
-+static const char *pwmss_clk_parents[] = {
-+	"dpll_per_m2_ck",
-+};
+ 	vbat: fixedregulator@0 {
+@@ -158,6 +174,13 @@
+ 			gpio-key,wakeup;
+ 		};
+ 	};
 +
-+static const struct clk_ops ehrpwm_tbclk_ops = {
-+	.enable		= &omap2_dflt_clk_enable,
-+	.disable	= &omap2_dflt_clk_disable,
-+};
-+
-+DEFINE_CLK_OMAP_MUX_GATE(ehrpwm0_tbclk, "l4ls_clkdm",
-+			 NULL, NULL, 0,
-+			 AM33XX_CTRL_REGADDR(AM33XX_PWMSS_TBCLK_CLKCTRL),
-+			 AM33XX_PWMSS0_TBCLKEN_SHIFT,
-+			 NULL, pwmss_clk_parents, ehrpwm_tbclk_ops);
-+
-+DEFINE_CLK_OMAP_MUX_GATE(ehrpwm1_tbclk, "l4ls_clkdm",
-+			 NULL, NULL, 0,
-+			 AM33XX_CTRL_REGADDR(AM33XX_PWMSS_TBCLK_CLKCTRL),
-+			 AM33XX_PWMSS1_TBCLKEN_SHIFT,
-+			 NULL, pwmss_clk_parents, ehrpwm_tbclk_ops);
-+
-+DEFINE_CLK_OMAP_MUX_GATE(ehrpwm2_tbclk, "l4ls_clkdm",
-+			 NULL, NULL, 0,
-+			 AM33XX_CTRL_REGADDR(AM33XX_PWMSS_TBCLK_CLKCTRL),
-+			 AM33XX_PWMSS2_TBCLKEN_SHIFT,
-+			 NULL, pwmss_clk_parents, ehrpwm_tbclk_ops);
-+
- /*
-  * clkdev
-  */
-@@ -942,6 +969,9 @@ static struct omap_clk am33xx_clks[] = {
- 	CLK(NULL,	"clkout2_div_ck",	&clkout2_div_ck),
- 	CLK(NULL,	"timer_32k_ck",		&clkdiv32k_ick),
- 	CLK(NULL,	"timer_sys_ck",		&sys_clkin_ck),
-+	CLK("48300200.ehrpwm",	"tbclk",	&ehrpwm0_tbclk),
-+	CLK("48302200.ehrpwm",	"tbclk",	&ehrpwm1_tbclk),
-+	CLK("48304200.ehrpwm",	"tbclk",	&ehrpwm2_tbclk),
++	backlight {
++		compatible = "pwm-backlight";
++		pwms = <&ecap0 0 50000 0>;
++		brightness-levels = <0 51 53 56 62 75 101 152 255>;
++		default-brightness-level = <8>;
++	};
  };
  
- 
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index e6c3281..35d17a6 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -358,6 +358,14 @@
- #define AM33XX_CONTROL_STATUS_SYSBOOT1_WIDTH		0x2
- #define AM33XX_CONTROL_STATUS_SYSBOOT1_MASK		(0x3 << 22)
- 
-+/* AM33XX PWMSS Control register */
-+#define AM33XX_PWMSS_TBCLK_CLKCTRL			0x664
-+
-+/* AM33XX  PWMSS Control bitfields */
-+#define AM33XX_PWMSS0_TBCLKEN_SHIFT			0
-+#define AM33XX_PWMSS1_TBCLKEN_SHIFT			1
-+#define AM33XX_PWMSS2_TBCLKEN_SHIFT			2
-+
- /* CONTROL OMAP STATUS register to identify OMAP3 features */
- #define OMAP3_CONTROL_OMAP_STATUS	0x044c
- 
+ /include/ "tps65910.dtsi"
 -- 
 1.7.10.4
