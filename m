@@ -1,54 +1,58 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 1/1] of/irq: store IRQ trigger/level in struct resource flags
-Date: Thu, 06 Jun 2013 00:34:22 +0100
-Message-ID: <20130605233422.3D6DE3E10E4@localhost>
-References: <1365148088-11175-1-git-send-email-javier.martinez@collabora.co.uk>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f175.google.com ([209.85.215.175]:61399 "EHLO
-	mail-ea0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752352Ab3FEXe0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jun 2013 19:34:26 -0400
-Received: by mail-ea0-f175.google.com with SMTP id d15so1820761eaj.34
-        for <linux-omap@vger.kernel.org>; Wed, 05 Jun 2013 16:34:25 -0700 (PDT)
-In-Reply-To: <1365148088-11175-1-git-send-email-javier.martinez@collabora.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/5] Broken DM816x support in Linux 3.10-rc4
+Date: Thu, 6 Jun 2013 03:54:55 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1306060346390.15042@utopia.booyaka.com>
+References: <1370446156-11788-1-git-send-email-aida.mynzhasova@skitlab.ru>
+Mime-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-942192677-1370490748=:15042"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1370446156-11788-1-git-send-email-aida.mynzhasova@skitlab.ru>
+Content-ID: <alpine.DEB.2.02.1306060352520.15042@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@nvidia.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-On Fri,  5 Apr 2013 09:48:08 +0200, Javier Martinez Canillas <javier.martinez@collabora.co.uk> wrote:
-[...]
-> irq_of_parse_and_map() calls to irq_create_of_mapping() which calls to
-> the correct xlate function handler according to "#interrupt-cells"
-> (irq_domain_xlate_onecell or irq_domain_xlate_twocell) and to
-> irq_set_irq_type() to set the IRQ type.
-> 
-> But the type is never returned so it can't be saved on the IRQ struct
-> resource flags member.
-> 
-> This means that drivers that need the IRQ type/level flags defined in
-> the DT won't be able to get it.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-[...]
-> diff --git a/include/linux/of_irq.h b/include/linux/of_irq.h
-> index 535cecf..98aec57 100644
-> --- a/include/linux/of_irq.h
-> +++ b/include/linux/of_irq.h
-> @@ -66,6 +66,10 @@ extern int of_irq_map_one(struct device_node *device, int index,
->  extern unsigned int irq_create_of_mapping(struct device_node *controller,
->  					  const u32 *intspec,
->  					  unsigned int intsize);
-> +extern unsigned int irq_create_of_mapping_type(struct device_node *controller,
-> +					       const u32 *intspec,
-> +					       unsigned int intsize,
-> +					       unsigned int *otype);
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-I count 11 users of irq_create_of_mapping(). That's a managable number
-to update. Instead of creating a new function, please modify the
-existing one and split it off into a separate patch.
+--843723315-942192677-1370490748=:15042
+Content-Type: TEXT/PLAIN; CHARSET=KOI8-R
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.02.1306060352521.15042@utopia.booyaka.com>
 
-Otherwise the patch looks fine to me.
+=DA=C4=D2=C1=D7=D3=D4=D7=D5=CA=D4=C5,
 
-g.
+On Wed, 5 Jun 2013, Aida Mynzhasova wrote:
 
+> Not so long ago I tried to boot Linux 3.10-rc4 kernel on DM816x EVM
+> board. Unfortunately, my attempts were failed by reason of poor
+> support of DM81xx-based devices in new kernels.
+
+Yeah, TI pretty much gave up on trying to get support for that chip=20
+upstream a few years ago.  Same for DM814x.
+
+> So, I suggest you this patch series, which fixes that kernel crush and=20
+> adds new functions/structures, required for early initialization on=20
+> DM816x (power and clock domains, hwmods). After applying these patches=20
+> the kernel is able to successfully continue booting till clock=20
+> initialization (will be added later).
+
+OK, it will be great to get my DM8168EVM booting on mainline.  But there=20
+are a few preliminary issues with the patches:
+
+1. All new chip and board support needs to be DT-only.  So, no new board=20
+files.  Also, all the hwmod data shouldn't have IRQ, DMA, etc. data - that=
+=20
+should come from DT.  See for example the recently posted patch "[PATCH=20
+13/14] ARM: AM33XX: hwmod data: irq, dma and addr info clean up"
+
+2. Looks like patch 2 is missing from the list.  If it's too big for the=20
+list, please break it down into smaller patches.
+
+3. Did you write this code and data, hwmods, etc., or did it come from a=20
+TI kernel?  Please note this clearly in the patch descriptions.
+
+
+- Paul
+--843723315-942192677-1370490748=:15042--
