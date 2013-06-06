@@ -1,40 +1,38 @@
-From: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v2 0/4] ARM: dts: AM3XXX: Use preprocessor for device trees
-Date: Thu, 6 Jun 2013 05:28:13 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EB16EED@DBDE04.ent.ti.com>
-References: <1370268745-15860-1-git-send-email-florian.vaussard@epfl.ch>
- <51AF33BC.4020708@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [net-next PATCH v4 1/5] net: cpsw: enhance pinctrl support
+Date: Thu, 6 Jun 2013 11:29:39 +0530
+Message-ID: <51B0254B.4090304@ti.com>
+References: <1370452099-24026-1-git-send-email-mugunthanvnm@ti.com> <1370452099-24026-2-git-send-email-mugunthanvnm@ti.com> <20130605192345.GH31367@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <51AF33BC.4020708-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
-Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59702 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753650Ab3FFGAP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 6 Jun 2013 02:00:15 -0400
+In-Reply-To: <20130605192345.GH31367@sirena.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, benoit.cousson@linaro.org, paul@pwsan.com, Hebbar Gururaja <gururaja.hebbar@ti.com>
 
-Hi Benoit,
-
-On Wed, Jun 05, 2013 at 18:19:00, Cousson, Benoit wrote:
-> + Afzal,
-> 
-> Hi Vaibhav and Afzal,
-> 
-> Can someone test this series before I pull it. I still don't have any AM
-> board to do it myself :-(
-
-Tested-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org> (am335x evm)
+On 6/6/2013 12:53 AM, Mark Brown wrote:
+> On Wed, Jun 05, 2013 at 10:38:15PM +0530, Mugunthan V N wrote:
+>> From: Hebbar Gururaja <gururaja.hebbar@ti.com>
+>>
+>> Amend cpsw controller to optionally take a pin control handle and set
+>> the state of the pins to:
+>>
+>> - "default" on boot, resume
+>> - "sleep" on suspend()
+> Linus Walleij posted some patches which factor the state setting code
+> out into generic functions earlier on today - it probably makes sense to
+> pick those up rather than open coding
+But this can go in as Linus Walleij's patch is not accepted yet. Once 
+that is
+accepted and present in net git repo I will submit a separate patch to use
+those APIs from pin ctrl core.
 
 Regards
-Afzal
+Mugunthan V N
