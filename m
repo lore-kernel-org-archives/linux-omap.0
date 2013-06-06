@@ -1,7 +1,7 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 3/4] ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evm
-Date: Thu,  6 Jun 2013 15:52:38 +0200
-Message-ID: <1370526759-31163-4-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 2/4] ARM: dts: AM33XX: Add PWMSS device tree nodes
+Date: Thu,  6 Jun 2013 15:52:37 +0200
+Message-ID: <1370526759-31163-3-git-send-email-bigeasy@linutronix.de>
 References: <1370526759-31163-1-git-send-email-bigeasy@linutronix.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1370526759-31163-1-git-send-email-bigeasy@linutronix.de>
@@ -12,63 +12,112 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Philip Avinash <avinashphilip@ti.com>
 
-PWM output from ecap0 uses as backlight source. Also adds low threshold
-value to have a uniform divisions in brightness-levels scales.
+Add PWMSS device tree nodes in relation with ECAP & EHRPWM DT nodes to
+AM33XX SoC family. Also populates device tree nodes for ECAP & EHRPWM by
+adding necessary properties like pwm-cells, base reg & set disabled as
+status.
 
 Signed-off-by: Philip Avinash <avinashphilip@ti.com>
 Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- arch/arm/boot/dts/am335x-evm.dts |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ arch/arm/boot/dts/am33xx.dtsi |   84 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 84 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 0423298..35b2f77 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -44,6 +44,12 @@
- 				0x154 0x27	/* spi0_d0.gpio0_3, INPUT | MODE7 */
- 			>;
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 1460d9b..7fa9c5f 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -343,6 +343,90 @@
+ 			ti,hwmods = "usb_otg_hs";
  		};
-+
-+		ecap0_pins: backlight_pins {
-+			pinctrl-single,pins = <
-+				0x164 0x0	/* eCAP0_in_PWM0_out.eCAP0_in_PWM0_out MODE0 */
-+			>;
-+		};
- 	};
  
- 	ocp {
-@@ -102,6 +108,16 @@
- 				reg = <0x48>;
- 			};
- 		};
-+
 +		epwmss0: epwmss@48300000 {
-+			status = "okay";
++			compatible = "ti,am33xx-pwmss";
++			reg = <0x48300000 0x10>;
++			ti,hwmods = "epwmss0";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			status = "disabled";
++			ranges = <0x48300100 0x48300100 0x80   /* ECAP */
++				  0x48300180 0x48300180 0x80   /* EQEP */
++				  0x48300200 0x48300200 0x80>; /* EHRPWM */
 +
 +			ecap0: ecap@48300100 {
-+				status = "okay";
-+				pinctrl-names = "default";
-+				pinctrl-0 = <&ecap0_pins>;
++				compatible = "ti,am33xx-ecap";
++				#pwm-cells = <3>;
++				reg = <0x48300100 0x80>;
++				ti,hwmods = "ecap0";
++				status = "disabled";
++			};
++
++			ehrpwm0: ehrpwm@48300200 {
++				compatible = "ti,am33xx-ehrpwm";
++				#pwm-cells = <3>;
++				reg = <0x48300200 0x80>;
++				ti,hwmods = "ehrpwm0";
++				status = "disabled";
 +			};
 +		};
- 	};
- 
- 	vbat: fixedregulator@0 {
-@@ -158,6 +174,13 @@
- 			gpio-key,wakeup;
- 		};
- 	};
 +
-+	backlight {
-+		compatible = "pwm-backlight";
-+		pwms = <&ecap0 0 50000 0>;
-+		brightness-levels = <0 51 53 56 62 75 101 152 255>;
-+		default-brightness-level = <8>;
-+	};
- };
- 
- /include/ "tps65910.dtsi"
++		epwmss1: epwmss@48302000 {
++			compatible = "ti,am33xx-pwmss";
++			reg = <0x48302000 0x10>;
++			ti,hwmods = "epwmss1";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			status = "disabled";
++			ranges = <0x48302100 0x48302100 0x80   /* ECAP */
++				  0x48302180 0x48302180 0x80   /* EQEP */
++				  0x48302200 0x48302200 0x80>; /* EHRPWM */
++
++			ecap1: ecap@48302100 {
++				compatible = "ti,am33xx-ecap";
++				#pwm-cells = <3>;
++				reg = <0x48302100 0x80>;
++				ti,hwmods = "ecap1";
++				status = "disabled";
++			};
++
++			ehrpwm1: ehrpwm@48302200 {
++				compatible = "ti,am33xx-ehrpwm";
++				#pwm-cells = <3>;
++				reg = <0x48302200 0x80>;
++				ti,hwmods = "ehrpwm1";
++				status = "disabled";
++			};
++		};
++
++		epwmss2: epwmss@48304000 {
++			compatible = "ti,am33xx-pwmss";
++			reg = <0x48304000 0x10>;
++			ti,hwmods = "epwmss2";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			status = "disabled";
++			ranges = <0x48304100 0x48304100 0x80   /* ECAP */
++				  0x48304180 0x48304180 0x80   /* EQEP */
++				  0x48304200 0x48304200 0x80>; /* EHRPWM */
++
++			ecap2: ecap@48304100 {
++				compatible = "ti,am33xx-ecap";
++				#pwm-cells = <3>;
++				reg = <0x48304100 0x80>;
++				ti,hwmods = "ecap2";
++				status = "disabled";
++			};
++
++			ehrpwm2: ehrpwm@48304200 {
++				compatible = "ti,am33xx-ehrpwm";
++				#pwm-cells = <3>;
++				reg = <0x48304200 0x80>;
++				ti,hwmods = "ehrpwm2";
++				status = "disabled";
++			};
++		};
++
+ 		mac: ethernet@4a100000 {
+ 			compatible = "ti,cpsw";
+ 			ti,hwmods = "cpgmac0";
 -- 
 1.7.10.4
