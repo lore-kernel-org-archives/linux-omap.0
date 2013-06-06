@@ -1,27 +1,36 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/2] i2c: omap: convert to module_platform_driver()
-Date: Thu, 6 Jun 2013 17:58:24 +0300
-Message-ID: <51B0A390.1030807@ti.com>
-References: <1366723151-23209-1-git-send-email-grygorii.strashko@ti.com> <1366723151-23209-2-git-send-email-grygorii.strashko@ti.com> <87fvwylxl8.fsf@linaro.org> <51ADD06B.3000201@ti.com> <87zjv5zq41.fsf@linaro.org> <51AF20F0.30000@ti.com> <20130605135048.GB2934@katana>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 1/1] ARM : omap3 : fix wrong container_of in
+ clock36xx.c
+Date: Thu, 6 Jun 2013 15:31:56 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1306061517430.5152@utopia.booyaka.com>
+References: <1369903827-2025-1-git-send-email-jp.francois@cynove.com> <alpine.DEB.2.02.1306051814520.10103@utopia.booyaka.com> <CAGGh5h1gBin0vWFf=SpB4eCQX69a2U+J6u2ccF_Oo_4R62+5fQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130605135048.GB2934@katana>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Cc: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Ben Dooks (embedded platforms)" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:39265 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751254Ab3FFPb5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Jun 2013 11:31:57 -0400
+In-Reply-To: <CAGGh5h1gBin0vWFf=SpB4eCQX69a2U+J6u2ccF_Oo_4R62+5fQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>, jean-philippe francois <jp.francois@cynove.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, NeilBrown <neilb@suse.de>, Kevin Hilman <khilman@linaro.org>
 
-On 06/05/2013 04:50 PM, Wolfram Sang wrote:
->> The similar patch already exists:
->> https://patchwork.kernel.org/patch/2448251/ - [v2,1/2] RTC: rtc-twl:
->> Fix rtc_reg_map initialization
->> from Peter Ujfalusi
-> So, I think it is best if you resend this patch after all the fixes it
-> needs are applied or you resend the series with all patches it depends
-> on. Which should then probably go via arm-soc. Or?
->
-It can wait - I'll track and resend after twl-rtc patches.
+On Thu, 6 Jun 2013, jean-philippe francois wrote:
 
--grygorii
+> Does the first version [1] of the patch, that only touch the MSB of
+> the divider also trigger the
+> bug ?
+> 
+> [1]  https://patchwork.kernel.org/patch/2609681/
+
+That one passes the PM test here.  Will take this one for v3.10-rc fixes 
+instead, since it fixes a known DSS problem and the original code wasn't 
+correct.
+
+Jean, could you work with Mike to come up with a better approach for 
+v3.11 or v3.12?
+
+
+- Paul
