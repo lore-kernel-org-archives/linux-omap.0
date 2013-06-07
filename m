@@ -1,26 +1,36 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/4] pinctrl: single: omap: Add SoC specific module for
- wake-up events
-Date: Fri, 07 Jun 2013 13:50:44 -0700
-Message-ID: <20130607205044.16513.27675.stgit@localhost>
+Subject: [PATCH 2/4] pinctrl: single: Add hardware specific hooks for IRQ
+ and GPIO wake-up events
+Date: Fri, 07 Jun 2013 13:50:40 -0700
+Message-ID: <20130607205040.16513.36794.stgit@localhost>
 References: <20130607203936.16513.57494.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:21695 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757130Ab3FGUuq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 16:50:46 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:54721 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757401Ab3FGUuo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 16:50:44 -0400
 In-Reply-To: <20130607203936.16513.57494.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linus.walleij@linaro.org
 Cc: devicetree-discuss@lists.ozlabs.org, Haojian Zhuang <haojian.zhuang@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 
-For wake-up events from deeper idle modes we need to check the
-configured padconf registers for the wake-up bit and then call
-the related interrupt handler.
+At least on omaps, each board typically has at least one device
+configured as wake-up capable from deeper idle modes. In the
+deeper idle modes the normal interrupt wake-up path won't work
+as the logic is powered off and separate wake-up hardware is
+available either via IO ring or GPIO hardware. The wake-up
+event can be device specific, or may need to be dynamically
+remuxed to GPIO input for wake-up events. When the wake-up
+event happens, it's IRQ need to be called so the device won't
+lose interrupts.
+
+Allow supporting IRQ and GPIO wake-up events if a hardware
+spefific module is registered for the enable and disable
+calls.
 
 Done in collaboration with Roger Quadros <rogerq@ti.com>.
 
@@ -30,328 +40,249 @@ Cc: devicetree-discuss@lists.ozlabs.org
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/pinctrl/Makefile                          |    3 
- drivers/pinctrl/pinctrl-single-omap.c             |  287 +++++++++++++++++++++
- include/linux/platform_data/pinctrl-single-omap.h |    4 
- 3 files changed, 293 insertions(+), 1 deletion(-)
- create mode 100644 drivers/pinctrl/pinctrl-single-omap.c
- create mode 100644 include/linux/platform_data/pinctrl-single-omap.h
+ .../devicetree/bindings/pinctrl/pinctrl-single.txt |    5 +
+ drivers/pinctrl/pinctrl-single.c                   |  104 +++++++++++++++++---
+ drivers/pinctrl/pinctrl-single.h                   |   28 +++++
+ 3 files changed, 123 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/pinctrl/Makefile b/drivers/pinctrl/Makefile
-index 9bdaeb8..abf7f01 100644
---- a/drivers/pinctrl/Makefile
-+++ b/drivers/pinctrl/Makefile
-@@ -30,7 +30,8 @@ obj-$(CONFIG_PINCTRL_NOMADIK)	+= pinctrl-nomadik.o
- obj-$(CONFIG_PINCTRL_STN8815)	+= pinctrl-nomadik-stn8815.o
- obj-$(CONFIG_PINCTRL_DB8500)	+= pinctrl-nomadik-db8500.o
- obj-$(CONFIG_PINCTRL_DB8540)	+= pinctrl-nomadik-db8540.o
--obj-$(CONFIG_PINCTRL_SINGLE)	+= pinctrl-single.o
-+pcs-$(CONFIG_ARCH_OMAP2PLUS)	+= pinctrl-single-omap.o
-+obj-$(CONFIG_PINCTRL_SINGLE)	+= pinctrl-single.o $(pcs-y)
- obj-$(CONFIG_PINCTRL_SIRF)	+= pinctrl-sirf.o
- obj-$(CONFIG_PINCTRL_SUNXI)	+= pinctrl-sunxi.o
- obj-$(CONFIG_PINCTRL_TEGRA)	+= pinctrl-tegra.o
-diff --git a/drivers/pinctrl/pinctrl-single-omap.c b/drivers/pinctrl/pinctrl-single-omap.c
-new file mode 100644
-index 0000000..680cf81
---- /dev/null
-+++ b/drivers/pinctrl/pinctrl-single-omap.c
-@@ -0,0 +1,287 @@
-+/*
-+ * pinctrl-single-omap - omap specific wake-up irq handler
-+ *
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ */
+diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt
+index 08f0c3d..5dfd74b 100644
+--- a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt
++++ b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt
+@@ -68,6 +68,10 @@ Optional properties:
+   The number of parameters is depend on #pinctrl-single,gpio-range-cells
+   property.
+ 
++- interrrupts : the interrupt that a function may have for a wake-up event
 +
-+#include <linux/err.h>
-+#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include <linux/irq.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
-+#include <linux/platform_device.h>
-+#include <linux/platform_data/pinctrl-single-omap.h>
-+#include <linux/pm_runtime.h>
++- gpios: the gpio that a function may have for a wake-up event
 +
-+#include "pinctrl-single.h"
-+
-+#define OMAP_WAKEUP_EN		(1 << 14)
-+#define OMAP_WAKEUP_EVENT	(1 << 15)
-+#define OMAP_WAKEUP_EVENT_MASK	(OMAP_WAKEUP_EN | OMAP_WAKEUP_EVENT)
-+
-+struct pcs_omap {
-+	unsigned int irq;
-+	struct device *dev;
-+	struct list_head wakeirqs;
-+	struct pcs_soc soc;
-+	void (*reconfigure_io_chain)(void);
-+	struct mutex mutex;
-+};
-+
-+static int pcs_omap_reg_init(const struct pcs_soc *soc, struct pcs_reg *r)
-+{
-+	struct pcs_omap *pcso = container_of(soc, struct pcs_omap, soc);
-+	struct list_head *pos;
-+	struct pcs_reg *pcsoi;
-+	int res = 0;
-+
-+	if (!(r->val & OMAP_WAKEUP_EN))
-+		return 0;
-+
-+	if (r->irq <= 0)
-+		return 0;
-+
-+	mutex_lock(&pcso->mutex);
-+	list_for_each(pos, &pcso->wakeirqs) {
-+		pcsoi = list_entry(pos, struct pcs_reg, node);
-+		if (r->reg == pcsoi->reg) {
-+			pcsoi->read = r->read;
-+			pcsoi->write = r->write;
-+			pcsoi->reg = r->reg;
-+			pcsoi->val = r->val;
-+			pcsoi->irq = r->irq;
-+			pcsoi->gpio = r->gpio;
-+			res++;
-+			goto out;
-+		}
-+	}
-+	pcsoi = devm_kzalloc(pcso->dev, sizeof(*r), GFP_KERNEL);
-+	if (!pcsoi) {
-+		mutex_unlock(&pcso->mutex);
-+		res = -ENOMEM;
-+		goto out;
-+	}
-+	*pcsoi = *r;
-+	list_add_tail(&pcsoi->node, &pcso->wakeirqs);
-+
-+out:
-+	mutex_unlock(&pcso->mutex);
-+
-+	if (res && pcso->reconfigure_io_chain)
-+		pcso->reconfigure_io_chain();
-+
-+	return res > 0 ? 0 : res;
-+}
-+
-+static int pcs_update_list(const struct pcs_soc *soc, struct pcs_reg *r)
-+{
-+	struct pcs_omap *pcso = container_of(soc, struct pcs_omap, soc);
-+	struct list_head *pos;
-+	int changed = 0;
-+
-+	if (!r->irq)
-+		return 0;
-+
-+	mutex_lock(&pcso->mutex);
-+	list_for_each(pos, &pcso->wakeirqs) {
-+		struct pcs_reg *pcsoi;
-+
-+		pcsoi = list_entry(pos, struct pcs_reg, node);
-+		if ((r->reg == pcsoi->reg) &&
-+		    (r->val != pcsoi->val)) {
-+			pcsoi->val = r->val;
-+			changed++;
-+		}
-+	}
-+	mutex_unlock(&pcso->mutex);
-+
-+	if (pcso->reconfigure_io_chain && changed)
-+		pcso->reconfigure_io_chain();
-+
-+	return 0;
-+}
-+
-+static int pcs_omap_enable(const struct pcs_soc *soc, struct pcs_reg *r)
-+{
-+	return pcs_update_list(soc, r);
-+}
-+
-+static void pcs_omap_disable(const struct pcs_soc *soc, struct pcs_reg *r)
-+{
-+	pcs_update_list(soc, r);
-+}
-+
-+static irqreturn_t pcs_omap_handle_irq(int irq, void *data)
-+{
-+	struct pcs_omap *pcso = data;
-+	struct list_head *pos;
-+	unsigned int wakeirq;
-+
-+	list_for_each(pos, &pcso->wakeirqs) {
-+		struct pcs_reg *pcsoi;
-+		u16 val;
-+
-+		pcsoi = list_entry(pos, struct pcs_reg, node);
-+		wakeirq = pcsoi->irq;
-+		val = pcsoi->read(pcsoi->reg);
-+		if ((val & OMAP_WAKEUP_EVENT_MASK) == OMAP_WAKEUP_EVENT_MASK)
-+			generic_handle_irq(wakeirq);
-+	}
-+
-+	if (pcso->reconfigure_io_chain)
-+		pcso->reconfigure_io_chain();
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/*
-+ * Note that omap2430 has 8-bit padconf registers and uses
-+ * the plain pinctrl-single binding.
-+ */
-+static const struct of_device_id pcs_omap_of_match[] = {
-+	{ .compatible = "ti,omap3-padconf", },
-+	{ .compatible = "ti,omap4-padconf", },
-+	{ .compatible = "ti,omap5-padconf", },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, pcs_omap_of_match);
-+
-+/* SoC glue */
-+static bool soc_found;
-+static unsigned int soc_irq;
-+static void (*soc_reconfigure_io_chain)(void);
-+
-+/* Fill in the SoC glue */
-+static int pcs_omap_soc_probe(struct platform_device *pdev)
-+{
-+	struct pcs_omap_pdata *pdata = pdev->dev.platform_data;
-+
-+	if (pdata) {
-+		soc_irq = pdata->irq;
-+		soc_reconfigure_io_chain = pdata->reconfigure_io_chain;
-+		soc_found = true;
-+	}
-+
-+	return 0;
-+}
-+
-+static int pcs_omap_probe(struct platform_device *pdev)
-+{
-+	const struct of_device_id *match;
-+	struct pcs_omap *pcso;
-+	struct pcs_soc *soc;
-+	int ret;
-+
-+	match = of_match_device(pcs_omap_of_match, &pdev->dev);
-+	if (!match) {
-+		dev_err(&pdev->dev, "no match found\n");
-+		return -ENODEV;
-+	}
-+
-+	if (!soc_found) {
-+		dev_dbg(&pdev->dev,
-+			"%s deferring as SoC glue not yet registered\n",
-+			 __func__);
-+		return -EPROBE_DEFER;
-+	}
-+
-+	pcso = devm_kzalloc(&pdev->dev, sizeof(*pcso), GFP_KERNEL);
-+	if (!pcso)
-+		return -ENOMEM;
-+
-+	pcso->dev = &pdev->dev;
-+	mutex_init(&pcso->mutex);
-+	INIT_LIST_HEAD(&pcso->wakeirqs);
-+	pcso->irq = soc_irq;
-+	pcso->reconfigure_io_chain = soc_reconfigure_io_chain;
-+	soc = &pcso->soc;
-+	soc->reg_init = pcs_omap_reg_init;
-+	soc->enable = pcs_omap_enable;
-+	soc->disable = pcs_omap_disable;
-+	soc->flags = PCS_HAS_FUNCTION_GPIO | PCS_HAS_FUNCTION_IRQ;
-+
-+	ret = pinctrl_single_probe(pdev, soc);
-+	if (ret) {
-+		dev_err(&pdev->dev, "could not probe pictrl_single driver: %i\n",
-+			ret);
-+		return ret;
-+	}
-+
-+	ret = request_irq(soc_irq, pcs_omap_handle_irq,
-+			  IRQF_SHARED | IRQF_NO_SUSPEND,
-+			  "pinctrl-single-omap", pcso);
-+	if (ret) {
-+		dev_err(&pdev->dev, "could not get irq%i: %i\n",
-+			soc_irq, ret);
-+		return ret;
-+	}
-+
-+	platform_set_drvdata(pdev, pcso);
-+	pm_runtime_enable(&pdev->dev);
-+
-+	return 0;
-+}
-+
-+static int pcs_omap_remove(struct platform_device *pdev)
-+{
-+	struct pcs_omap *pcso = platform_get_drvdata(pdev);
-+
-+	pinctrl_single_remove(pdev);
-+	free_irq(pcso->irq, NULL);
-+	pm_runtime_disable(&pdev->dev);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver pcs_omap_driver = {
-+	.probe		= pcs_omap_probe,
-+	.remove		= pcs_omap_remove,
-+	.driver		= {
-+		.name	= "pinctrl-single-omap",
-+		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(pcs_omap_of_match),
-+	},
-+};
-+
-+/* Dummy driver for registering SoC glue */
-+static struct platform_driver pcs_omap_soc_driver = {
-+	.probe = pcs_omap_soc_probe,
-+	.driver	= {
-+		.name = "pinctrl-single-omap-soc",
-+		.owner = THIS_MODULE,
-+	},
-+};
-+
-+static int __init pcs_omap_init(void)
-+{
-+	platform_driver_register(&pcs_omap_soc_driver);
-+	platform_driver_register(&pcs_omap_driver);
-+
-+	return 0;
-+}
-+module_init(pcs_omap_init);
-+
-+static void __exit pcs_omap_exit(void)
-+{
-+	platform_driver_unregister(&pcs_omap_driver);
-+	platform_driver_unregister(&pcs_omap_soc_driver);
-+}
-+module_exit(pcs_omap_exit);
-+
-+MODULE_ALIAS("platform: pinctrl-single-omap");
-+MODULE_AUTHOR("Texas Instruments Inc.");
-+MODULE_DESCRIPTION("pinctrl-single-omap driver");
-+MODULE_LICENSE("GPL v2");
-diff --git a/include/linux/platform_data/pinctrl-single-omap.h b/include/linux/platform_data/pinctrl-single-omap.h
-new file mode 100644
-index 0000000..bd92efc
---- /dev/null
-+++ b/include/linux/platform_data/pinctrl-single-omap.h
-@@ -0,0 +1,4 @@
-+struct pcs_omap_pdata {
+ 		/* pin base, nr pins & gpio function */
+ 		pinctrl-single,gpio-range = <&range 0 3 0 &range 3 9 1>;
+ 
+@@ -204,6 +208,7 @@ pmx_gpio: pinmux@d401e000 {
+ 			0xdc 0x118
+ 			0xde 0
+ 		>;
++		interrupts = <74>;
+ 	};
+ };
+ 
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index 0f178d1..7cb7940 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -19,6 +19,8 @@
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <linux/of_address.h>
++#include <linux/of_gpio.h>
++#include <linux/of_irq.h>
+ 
+ #include <linux/pinctrl/pinctrl.h>
+ #include <linux/pinctrl/pinmux.h>
+@@ -95,6 +97,8 @@ struct pcs_conf_type {
+  * @nvals:	number of entries in vals array
+  * @pgnames:	array of pingroup names the function uses
+  * @npgnames:	number of pingroup names the function uses
++ * @irq:	optional irq associated with the function
++ * @gpio:	optional gpio associated with the function
+  * @node:	list node
+  */
+ struct pcs_function {
+@@ -105,6 +109,8 @@ struct pcs_function {
+ 	int npgnames;
+ 	struct pcs_conf_vals *conf;
+ 	int nconfs;
 +	int irq;
-+	void (*reconfigure_io_chain)(void);
++	int gpio;
+ 	struct list_head node;
+ };
+ 
+@@ -410,6 +416,18 @@ static int pcs_get_function(struct pinctrl_dev *pctldev, unsigned pin,
+ 	return 0;
+ }
+ 
++static void pcs_reg_init(struct pcs_reg *p, struct pcs_device *pcs,
++			 struct pcs_function *func,
++			 void __iomem *reg, unsigned val)
++{
++	p->read = pcs->read;
++	p->write = pcs->write;
++	p->irq = func->irq;
++	p->gpio = func->gpio;
++	p->reg = reg;
++	p->val = val;
++}
++
+ static int pcs_enable(struct pinctrl_dev *pctldev, unsigned fselector,
+ 	unsigned group)
+ {
+@@ -442,6 +460,12 @@ static int pcs_enable(struct pinctrl_dev *pctldev, unsigned fselector,
+ 		val &= ~mask;
+ 		val |= (vals->val & mask);
+ 		pcs->write(val, vals->reg);
++		if ((func->irq || func->gpio) && pcs->soc && pcs->soc->enable) {
++			struct pcs_reg pcsr;
++
++			pcs_reg_init(&pcsr, pcs, func, vals->reg, val);
++			pcs->soc->enable(pcs->soc, &pcsr);
++		}
+ 	}
+ 
+ 	return 0;
+@@ -466,18 +490,6 @@ static void pcs_disable(struct pinctrl_dev *pctldev, unsigned fselector,
+ 		return;
+ 	}
+ 
+-	/*
+-	 * Ignore disable if function-off is not specified. Some hardware
+-	 * does not have clearly defined disable function. For pin specific
+-	 * off modes, you can use alternate named states as described in
+-	 * pinctrl-bindings.txt.
+-	 */
+-	if (pcs->foff == PCS_OFF_DISABLED) {
+-		dev_dbg(pcs->dev, "ignoring disable for %s function%i\n",
+-			func->name, fselector);
+-		return;
+-	}
+-
+ 	dev_dbg(pcs->dev, "disabling function%i %s\n",
+ 		fselector, func->name);
+ 
+@@ -488,8 +500,28 @@ static void pcs_disable(struct pinctrl_dev *pctldev, unsigned fselector,
+ 		vals = &func->vals[i];
+ 		val = pcs->read(vals->reg);
+ 		val &= ~pcs->fmask;
+-		val |= pcs->foff << pcs->fshift;
+-		pcs->write(val, vals->reg);
++
++		/*
++		 * Ignore disable if function-off is not specified. Some
++		 * hardware does not have clearly defined disable function.
++		 * For pin specific off modes, you can use alternate named
++		 * states as described in pinctrl-bindings.txt.
++		 */
++		if (pcs->foff == PCS_OFF_DISABLED) {
++			dev_dbg(pcs->dev, "ignoring disable for %s function%i\n",
++				func->name, fselector);
++		} else {
++			val |= pcs->foff << pcs->fshift;
++			pcs->write(val, vals->reg);
++		}
++
++		if ((func->irq || func->gpio) &&
++		    pcs->soc && pcs->soc->disable) {
++			struct pcs_reg pcsr;
++
++			pcs_reg_init(&pcsr, pcs, func, vals->reg, val);
++			pcs->soc->disable(pcs->soc, &pcsr);
++		}
+ 	}
+ }
+ 
+@@ -1007,6 +1039,32 @@ static void pcs_add_conf4(struct pcs_device *pcs, struct device_node *np,
+ 	add_setting(settings, param, ret);
+ }
+ 
++static int pcs_parse_wakeup(struct pcs_device *pcs, struct device_node *np,
++			     struct pcs_function *function)
++{
++	struct pcs_reg pcsr;
++	int i, ret = 0;
++
++	for (i = 0; i < function->nvals; i++) {
++		struct pcs_func_vals *vals;
++		unsigned mask;
++
++		vals = &function->vals[i];
++		if (!vals->mask)
++			mask = pcs->fmask;
++		else
++			mask = pcs->fmask & vals->mask;
++
++		pcs_reg_init(&pcsr, pcs, function, vals->reg,
++			     vals->val & mask);
++		ret = pcs->soc->reg_init(pcs->soc, &pcsr);
++		if (ret)
++			break;
++	}
++
++	return ret;
++}
++
+ static int pcs_parse_pinconf(struct pcs_device *pcs, struct device_node *np,
+ 			     struct pcs_function *func,
+ 			     struct pinctrl_map **map)
+@@ -1176,6 +1234,24 @@ static int pcs_parse_one_pinctrl_entry(struct pcs_device *pcs,
+ 	} else {
+ 		*num_maps = 1;
+ 	}
++
++	if (pcs->flags & PCS_HAS_FUNCTION_IRQ)
++		function->irq = irq_of_parse_and_map(np, 0);
++
++	if (pcs->flags & PCS_HAS_FUNCTION_GPIO) {
++		function->gpio = of_get_gpio(np, 0);
++		if (function->gpio > 0 && !function->irq) {
++			if (gpio_is_valid(function->gpio))
++				function->irq = gpio_to_irq(function->gpio);
++		}
++	}
++
++	if (function->irq > 0 && pcs->soc && pcs->soc->reg_init) {
++		res = pcs_parse_wakeup(pcs, np, function);
++		if (res)
++			goto free_pingroups;
++	}
++
+ 	return 0;
+ 
+ free_pingroups:
+diff --git a/drivers/pinctrl/pinctrl-single.h b/drivers/pinctrl/pinctrl-single.h
+index 18f3205..c2dcc7a 100644
+--- a/drivers/pinctrl/pinctrl-single.h
++++ b/drivers/pinctrl/pinctrl-single.h
+@@ -1,13 +1,41 @@
++/**
++ * struct pcs_reg - pinctrl register
++ * @read:	pinctrl-single provided register read function
++ * @write:	pinctrl-single provided register write function
++ * @reg:	virtual address of a register
++ * @val:	pinctrl configured value of the register
++ * @irq:	optional irq specified for wake-up for example
++ * @gpio:	optional gpio specified for wake-up for example
++ * @node:	optional list
++ */
++struct pcs_reg {
++	unsigned (*read)(void __iomem *reg);
++	void (*write)(unsigned val, void __iomem *reg);
++	void __iomem *reg;
++	unsigned val;
++	int irq;
++	int gpio;
++	struct list_head node;
 +};
++
++#define PCS_HAS_FUNCTION_GPIO   (1 << 2)
++#define PCS_HAS_FUNCTION_IRQ    (1 << 1)
+ #define PCS_HAS_PINCONF         (1 << 0)
+ 
+ /**
+  * struct pcs_soc - SoC specific interface to pinctrl-single
+  * @data:	SoC specific data pointer
+  * @flags:	mask of PCS_HAS_xxx values
++ * @reg_init:	SoC specific register init function
++ * @enable:	SoC specific enable function
++ * @disable:	SoC specific disable function
+  */
+ struct pcs_soc {
+ 	void *data;
+ 	unsigned flags;
++	int (*reg_init)(const struct pcs_soc *soc, struct pcs_reg *r);
++	int (*enable)(const struct pcs_soc *soc, struct pcs_reg *r);
++	void (*disable)(const struct pcs_soc *soc, struct pcs_reg *r);
+ };
+ 
+ extern int pinctrl_single_probe(struct platform_device *pdev,
 
