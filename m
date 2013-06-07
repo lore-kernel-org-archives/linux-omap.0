@@ -1,72 +1,71 @@
 From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH] i2c: Let users disable "Probe an I2C bus for certain
- devices"
-Date: Fri, 7 Jun 2013 11:06:23 +0200
-Message-ID: <20130607090623.GC3428@katana>
-References: <1370367222-19353-1-git-send-email-grygorii.strashko@ti.com>
- <20130604174900.GA2992@katana>
- <51AF63C7.9070007@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Sr1nOIr3CvdE5hEN"
+Subject: [RFC] i2c: add deprecation warning for class based instantiation
+Date: Fri,  7 Jun 2013 11:09:26 +0200
+Message-ID: <1370596166-12404-1-git-send-email-wsa@the-dreams.de>
+References: <20130607090623.GC3428@katana>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <51AF63C7.9070007@ti.com>
+In-Reply-To: <20130607090623.GC3428@katana>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>
 List-Id: linux-omap@vger.kernel.org
 
+Class based instantiation can cause huge delays when booting. This
+mechanism was used when it was not possible to describe slaves on I2C
+busses. We now have other mechanisms, so most embedded I2C will not need
+classes and it was explicitly not recommended to use them. Add a
+deprecation warning for drivers who want to disable class based in the
+near future to gain boot-up time, so users relying on this technique can
+switch to something better. They really should.
 
---Sr1nOIr3CvdE5hEN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+---
+ drivers/i2c/busses/i2c-omap.c |    2 +-
+ drivers/i2c/i2c-core.c        |    6 ++++++
+ include/linux/i2c.h           |    1 +
+ 3 files changed, 8 insertions(+), 1 deletion(-)
 
-
-> 3) Thinking about Mainline: To reach the same target - no I2C
-> detection - and taking
-> into account above assumption "No changes in default behavior"
-> the following will need to be done:
-> - change i2c-omap/i2c-gpio DT bindings and add parameter which will
-> allow to change
->   .class value for adapter. Not sure, it's possible because this parameter
->   will be Linux and not HW specific (smth. like "i2c_disable_detection")
-> - update drivers i2c-omap/i2c-gpio to use "i2c_disable_detection"
-> - update OMAP4/5 DTS files
->=20
-> So, It seemed a good solution for me to add 6 lines of code in i2c-core.c
-> instead of doing all that stuff.
-
-Well... I understand the "default behaviour" issue, yet I still think
-that setting class to 0 is the right thing to do. OMAP is an embedded
-SoC which always had i2c_board_info or devictree which are the preferred
-ways of instantiating. Given that, I would accept a patch setting it to
-0. The more user friendly way might be to introduce a new class which
-makes users aware of the issue. Proof of concept follows, only compile
-tested.
-
-
---Sr1nOIr3CvdE5hEN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRsaKPAAoJEBQN5MwUoCm2QpYP/jD5ltUb6TztwZcMtJ6k7kRc
-7RQN+trAbEhD7YmiwOa/6Ud24ea9wuC8oFW7Cg8U5sGlehBe728T8Zo84gz5Qecn
-SdYv5Xw7FXJhmEA2mK/WAtsdLC8hgACaduDtMAhYO9DQ7xWlxuuQP/RKjm/AYp64
-LOeKVUPuLF07e4yiXl/KuIDczYwzdl8l81VPLhmQdnF+OyHgJ5o1yGGYBQ6Kk22I
-Dp2CeNNHIFlEIzE9aOikzfv/lGdbLTwmJURzNAEMHKMEZFWYPknb/DUxzp74xJLW
-Xwmbg2uf4hV3msTeWIvIbZV5XMI5D9nHoJYvvPEQoTIsyiUO4jODQq1rq0v55Ya0
-d1gGWwfvEjWq0UOzyMGkDPgM7P767xn8rzMuzN2uUqx2Y3uye7XyARDVzwg2fCiH
-nIC7+4DD+JQMB0bR1VYVcJnlfWY9cvk/acweQYTgUz4BDn++gpqf/26VC0296Iz+
-ZayUNBMKBp7mCOPu0uHgltVujnILBPVbd11CzjUdIZN899xPGWQTZlDi8cpWxxXb
-N8ZBBnC2LBYnCxmJHurdP3lHazcDiU4EKcRecSx9sNhknALIvtdk51wWT67Fa2pi
-P1+lXbjh+tMqSEw2iIHfqDCWSQG2hrUcqGJBxv22DiMPm/UrqTkdzfXMovhwVbY9
-7qHgRyfWKX+A1nfTWowk
-=wYPj
------END PGP SIGNATURE-----
-
---Sr1nOIr3CvdE5hEN--
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index e02f9e3..f06109f 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1231,7 +1231,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	adap = &dev->adapter;
+ 	i2c_set_adapdata(adap, dev);
+ 	adap->owner = THIS_MODULE;
+-	adap->class = I2C_CLASS_HWMON;
++	adap->class = I2C_CLASS_HWMON | I2C_CLASS_DEPRECATED;
+ 	strlcpy(adap->name, "OMAP I2C adapter", sizeof(adap->name));
+ 	adap->algo = &omap_i2c_algo;
+ 	adap->dev.parent = &pdev->dev;
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 48e31ed..47ea1f0 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -999,6 +999,12 @@ static int i2c_register_adapter(struct i2c_adapter *adap)
+ 		return -EINVAL;
+ 	}
+ 
++	if (adap->class & I2C_CLASS_DEPRECATED)
++		dev_warn(&adap->dev, "This adapter will soon drop class based "
++			"instantiation of slaves\nPlease make sure all its I2C "
++			"devices are instantiated by other means.\nCheck "
++			"'Documentation/i2c/instantiating-devices' for details\n");
++
+ 	rt_mutex_init(&adap->bus_lock);
+ 	mutex_init(&adap->userspace_clients_lock);
+ 	INIT_LIST_HEAD(&adap->userspace_clients);
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index e988fa9..ffab838 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -473,6 +473,7 @@ void i2c_unlock_adapter(struct i2c_adapter *);
+ #define I2C_CLASS_HWMON		(1<<0)	/* lm_sensors, ... */
+ #define I2C_CLASS_DDC		(1<<3)	/* DDC bus on graphics adapters */
+ #define I2C_CLASS_SPD		(1<<7)	/* Memory modules */
++#define I2C_CLASS_DEPRECATED	(1<<8)	/* Warn users that adapter will stop using classes */
+ 
+ /* Internal numbers to terminate lists */
+ #define I2C_CLIENT_END		0xfffeU
+-- 
+1.7.10.4
