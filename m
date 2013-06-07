@@ -1,206 +1,87 @@
-From: J Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] ARM: dts: add dtsi for palmas
-Date: Fri, 7 Jun 2013 16:58:24 +0530
-Message-ID: <1370604504-32310-1-git-send-email-j-keerthy@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: i2c issue on Panda with DT boot, v3.10-rc4
+Date: Fri, 7 Jun 2013 14:53:54 +0300
+Message-ID: <51B1C9D2.6060703@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: b-cousson@ti.com, devicetree-discuss@lists.ozlabs.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ldewangan@nvidia.com, grant.likely@secretlab.ca, swarren@wwwdotorg.org, swarren@nvidia.com, sameo@linux.intel.com, gg@slimlogic.co.uk, lee.jones@linaro.org, J Keerthy <j-keerthy@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="----enig2JQAIGSFAVWNSCEQPBEDN"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57325 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752230Ab3FGLx5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 07:53:57 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>
 
-Adds palmas mfd and palmas regulator nodes. This is
-based on the patch series:
+------enig2JQAIGSFAVWNSCEQPBEDN
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg89957.html
+Hi,
 
-The device tree nodes are based on:
-https://lkml.org/lkml/2013/6/6/25
+I was testing DT boot with 3.10-rc1 and Pandaboard, and couldn't get the
+DVI output's EDID reading to work. Testing with i2cget and i2cdump, I
+see that I can read individual bytes with i2cget, but using i2cdump
+doesn't work, it just shows 'XX'es.
 
-Signed-off-by: J Keerthy <j-keerthy@ti.com>
-Signed-off-by: Graeme Gregory <gg@slimlogic.co.uk>
----
- arch/arm/boot/dts/palmas.dtsi |  171 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 171 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/boot/dts/palmas.dtsi
+The same issue is there with 3.10-rc4, although with that one I get
+timeouts with i2cdump, whereas there were no timeouts with -rc1.
 
-diff --git a/arch/arm/boot/dts/palmas.dtsi b/arch/arm/boot/dts/palmas.dtsi
-new file mode 100644
-index 0000000..be631b5
---- /dev/null
-+++ b/arch/arm/boot/dts/palmas.dtsi
-@@ -0,0 +1,171 @@
-+/*
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <dt-bindings/interrupt-controller/irq.h>
-+
-+&palmas {
-+	compatible = "ti,palmas";
-+	interrupt-controller;
-+	#interrupt-cells = <2>;
-+
-+	palmas_pmic {
-+		compatible = "ti,palmas-pmic";
-+		interrupt-parent = <&palmas>;
-+		interrupts = <14 IRQ_TYPE_NONE>;
-+		interrupt-name = "short-irq";
-+
-+		ti,ldo6-vibrator;
-+
-+		regulators {
-+			smps123_reg: smps123 {
-+				regulator-name = "smps123";
-+				regulator-min-microvolt = < 600000>;
-+				regulator-max-microvolt = <1500000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			smps45_reg: smps45 {
-+				regulator-name = "smps45";
-+				regulator-min-microvolt = < 600000>;
-+				regulator-max-microvolt = <1310000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			smps6_reg: smps6 {
-+				regulator-name = "smps6";
-+				regulator-min-microvolt = <1200000>;
-+				regulator-max-microvolt = <1200000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			smps7_reg: smps7 {
-+				regulator-name = "smps7";
-+				regulator-min-microvolt = <1800000>;
-+				regulator-max-microvolt = <1800000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			smps8_reg: smps8 {
-+				regulator-name = "smps8";
-+				regulator-min-microvolt = < 600000>;
-+				regulator-max-microvolt = <1310000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			smps9_reg: smps9 {
-+				regulator-name = "smps9";
-+				regulator-min-microvolt = <2100000>;
-+				regulator-max-microvolt = <2100000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+				ti,smps-range = <0x80>;
-+			};
-+
-+			smps10_reg: smps10 {
-+				regulator-name = "smps10";
-+				regulator-min-microvolt = <5000000>;
-+				regulator-max-microvolt = <5000000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo1_reg: ldo1 {
-+				regulator-name = "ldo1";
-+				regulator-min-microvolt = <2800000>;
-+				regulator-max-microvolt = <2800000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo2_reg: ldo2 {
-+				regulator-name = "ldo2";
-+				regulator-min-microvolt = <2900000>;
-+				regulator-max-microvolt = <2900000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo3_reg: ldo3 {
-+				regulator-name = "ldo3";
-+				regulator-min-microvolt = <3000000>;
-+				regulator-max-microvolt = <3000000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo4_reg: ldo4 {
-+				regulator-name = "ldo4";
-+				regulator-min-microvolt = <2200000>;
-+				regulator-max-microvolt = <2200000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo5_reg: ldo5 {
-+				regulator-name = "ldo5";
-+				regulator-min-microvolt = <1800000>;
-+				regulator-max-microvolt = <1800000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo6_reg: ldo6 {
-+				regulator-name = "ldo6";
-+				regulator-min-microvolt = <1500000>;
-+				regulator-max-microvolt = <1500000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo7_reg: ldo7 {
-+				regulator-name = "ldo7";
-+				regulator-min-microvolt = <1500000>;
-+				regulator-max-microvolt = <1500000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo8_reg: ldo8 {
-+				regulator-name = "ldo8";
-+				regulator-min-microvolt = <1500000>;
-+				regulator-max-microvolt = <1500000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo9_reg: ldo9 {
-+				regulator-name = "ldo9";
-+				regulator-min-microvolt = <1800000>;
-+				regulator-max-microvolt = <3300000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldoln_reg: ldoln {
-+				regulator-name = "ldoln";
-+				regulator-min-microvolt = <1800000>;
-+				regulator-max-microvolt = <1800000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldousb_reg: ldousb {
-+				regulator-name = "ldousb";
-+				regulator-min-microvolt = <3250000>;
-+				regulator-max-microvolt = <3250000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+		};
-+	};
-+};
--- 
-1.7.5.4
+# i2cget -y 2 0x50 0x10
+0x0a
+# i2cget -y 2 0x50 0x20
+0x0f
+# i2cget -y 2 0x50 0x30
+0x01
+# i2cget -y 2 0x50 0x40
+0x36
+# i2cget -y 2 0x50 0x50
+0x4c
+# i2cdump -y 2 0x50
+No size specified (using byte-data access)
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 00 [   72.814086] omap_i2c 48060000.i2c: timeout waiting for bus read=
+y
+XX [   73.825134] omap_i2c 48060000.i2c: timeout waiting for bus ready
+XX [   74.835327] omap_i2c 48060000.i2c: timeout waiting for bus ready
+XX [   76.097167] omap_i2c 48060000.i2c: timeout waiting for bus ready
+XX [   77.160736] omap_i2c 48060000.i2c: timeout waiting for bus ready
+XX [   78.174682] omap_i2c 48060000.i2c: timeout waiting for bus ready
+XX [   79.194824] omap_i2c 48060000.i2c: timeout waiting for bus ready
+XX [   80.242980] omap_i2c 48060000.i2c: timeout waiting for bus ready
+
+i2cdump works fine with non-DT boot (but the i2c bus number is 3).
+
+Any ideas?
+
+ Tomi
+
+
+------enig2JQAIGSFAVWNSCEQPBEDN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRscnSAAoJEPo9qoy8lh71dEgP/0t/zznzjzePwdWFb47n37yH
+1Nwtk1khNi+1mYtfdDZUpFSMfegLprIQQbXIEWncy9mICZxAUiw2oMEtNUCEFYWW
+7nIz/STR/ukMguPpYimi8h44aOgOy8r3Z5HZ+VwKV4slpVcHgqhMD2VB/ejryE3N
+k9Sft7azD+IAeSWsAXP+NRtV97Y10V7XfnShh92PKJr2idPAaah57yD8uaIypCaH
+FQyjo/2QnX8QoEUnl7B9bVtYf6+E5sIzoiHgw0aGJbh9tXeMhTlkh/k3CfdzkFoU
+JKspFAE2a5dazqaD2t3deQE00N11P0WLcSe0jOHvAECuMRlKmUq3LnQD2GLBg2gj
+7VuKHMeFmXvDSqiOkfY9TuO/2kQm/b+lVSopGO2bPz4CzL9EM7WPZAupdweSCC+/
+jhRUieaWVshJR3wUyPNfuFzgC0Btym1ngJcl14e6FY/8vMWKzV4BYn8xO+OUEycn
+z9XgialTQzcdePs/N7Pl6xkQHuXwvAz5SXCQU/gtqiBBQMrrE+qqTQwyS0p5LbCu
+tb1g4qCj0/JQ5W+uoiFGLLh+kAbNlbBZepP/Va7pChdgKfkUb2ikK/Hm+tb5PpoT
+SuBKakYe9y1Agli9RtponkvO63kp9Ybgl3dDFFq5Rdi0usAe6vFCn62BoZy6dC5e
+czbUpEw4akUHP+lWD7lD
+=b9gK
+-----END PGP SIGNATURE-----
+
+------enig2JQAIGSFAVWNSCEQPBEDN--
