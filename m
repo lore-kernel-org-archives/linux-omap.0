@@ -1,41 +1,72 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH 14/14] ARM: OMAP4: hwmod data: Clean up the data file
-Date: Fri, 7 Jun 2013 14:31:04 +0530
-Message-ID: <51B1A150.9020307@ti.com>
-References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com> <1369845494-30231-15-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.02.1306061754560.5152@utopia.booyaka.com> <51B0D54A.1090107@ti.com> <51B175E4.1060909@ti.com> <alpine.DEB.2.02.1306070751210.32163@utopia.booyaka.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH] i2c: Let users disable "Probe an I2C bus for certain
+ devices"
+Date: Fri, 7 Jun 2013 11:06:23 +0200
+Message-ID: <20130607090623.GC3428@katana>
+References: <1370367222-19353-1-git-send-email-grygorii.strashko@ti.com>
+ <20130604174900.GA2992@katana>
+ <51AF63C7.9070007@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49905 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751721Ab3FGJBj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Jun 2013 05:01:39 -0400
-In-Reply-To: <alpine.DEB.2.02.1306070751210.32163@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Sr1nOIr3CvdE5hEN"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <51AF63C7.9070007@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Ambresh K <ambresh@ti.com>, "Kristo, Tero" <t-kristo@ti.com>
 
-On Friday 07 June 2013 01:22 PM, Paul Walmsley wrote:
-> cc Beno=EEt
->
-> On Fri, 7 Jun 2013, Sricharan R wrote:
->
->> I used autogen to remove the data, but some of the data were not in =
-sync
->> with the mainline .(like abe, dss, aess, context register offsets et=
-c..).
->> So i have to sync them manually.
-> OK.  Are you going to fix the differences up soon?
->
-> - Paul
-+ Ambresh and Tero for autogen.
 
-Regards,
- Sricharan
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Sr1nOIr3CvdE5hEN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+
+> 3) Thinking about Mainline: To reach the same target - no I2C
+> detection - and taking
+> into account above assumption "No changes in default behavior"
+> the following will need to be done:
+> - change i2c-omap/i2c-gpio DT bindings and add parameter which will
+> allow to change
+>   .class value for adapter. Not sure, it's possible because this parameter
+>   will be Linux and not HW specific (smth. like "i2c_disable_detection")
+> - update drivers i2c-omap/i2c-gpio to use "i2c_disable_detection"
+> - update OMAP4/5 DTS files
+>=20
+> So, It seemed a good solution for me to add 6 lines of code in i2c-core.c
+> instead of doing all that stuff.
+
+Well... I understand the "default behaviour" issue, yet I still think
+that setting class to 0 is the right thing to do. OMAP is an embedded
+SoC which always had i2c_board_info or devictree which are the preferred
+ways of instantiating. Given that, I would accept a patch setting it to
+0. The more user friendly way might be to introduce a new class which
+makes users aware of the issue. Proof of concept follows, only compile
+tested.
+
+
+--Sr1nOIr3CvdE5hEN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRsaKPAAoJEBQN5MwUoCm2QpYP/jD5ltUb6TztwZcMtJ6k7kRc
+7RQN+trAbEhD7YmiwOa/6Ud24ea9wuC8oFW7Cg8U5sGlehBe728T8Zo84gz5Qecn
+SdYv5Xw7FXJhmEA2mK/WAtsdLC8hgACaduDtMAhYO9DQ7xWlxuuQP/RKjm/AYp64
+LOeKVUPuLF07e4yiXl/KuIDczYwzdl8l81VPLhmQdnF+OyHgJ5o1yGGYBQ6Kk22I
+Dp2CeNNHIFlEIzE9aOikzfv/lGdbLTwmJURzNAEMHKMEZFWYPknb/DUxzp74xJLW
+Xwmbg2uf4hV3msTeWIvIbZV5XMI5D9nHoJYvvPEQoTIsyiUO4jODQq1rq0v55Ya0
+d1gGWwfvEjWq0UOzyMGkDPgM7P767xn8rzMuzN2uUqx2Y3uye7XyARDVzwg2fCiH
+nIC7+4DD+JQMB0bR1VYVcJnlfWY9cvk/acweQYTgUz4BDn++gpqf/26VC0296Iz+
+ZayUNBMKBp7mCOPu0uHgltVujnILBPVbd11CzjUdIZN899xPGWQTZlDi8cpWxxXb
+N8ZBBnC2LBYnCxmJHurdP3lHazcDiU4EKcRecSx9sNhknALIvtdk51wWT67Fa2pi
+P1+lXbjh+tMqSEw2iIHfqDCWSQG2hrUcqGJBxv22DiMPm/UrqTkdzfXMovhwVbY9
+7qHgRyfWKX+A1nfTWowk
+=wYPj
+-----END PGP SIGNATURE-----
+
+--Sr1nOIr3CvdE5hEN--
