@@ -1,68 +1,44 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH V3 0/4] ARM: dts: omap5: Cleanup and updates for DT files
-Date: Fri, 7 Jun 2013 21:16:10 +0530
-Message-ID: <51B20042.3070804@ti.com>
-References: <1370611370-14715-1-git-send-email-r.sricharan@ti.com> <51B1F389.30002@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 13/14] ARM: AM33XX: hwmod data: irq, dma and addr info
+ clean up
+Date: Fri, 7 Jun 2013 09:13:09 -0700
+Message-ID: <20130607161308.GZ3331@atomide.com>
+References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
+ <1369845494-30231-14-git-send-email-santosh.shilimkar@ti.com>
+ <alpine.DEB.2.02.1306060355320.15042@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57719 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754981Ab3FGPqq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Jun 2013 11:46:46 -0400
-In-Reply-To: <51B1F389.30002@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:28672 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756412Ab3FGQNM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 12:13:12 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1306060355320.15042@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, tony@atomide.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, Sricharan R <r.sricharan@ti.com>
 
-On Friday 07 June 2013 08:21 PM, Benoit Cousson wrote:
-> Thanks for the quick update.
->
-> I've just applied the series in my for_3.11/dts branch.
- Thanks..
+* Paul Walmsley <paul@pwsan.com> [130605 21:06]:
+> On Wed, 29 May 2013, Santosh Shilimkar wrote:
+> 
+> > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> > 
+> > AM33XX only supports DT boot mode and with addition of
+> > extracting module resources like, irq, dma and address space
+> > from DT block, so now we can remove duplicate information from
+> > hwmod data file.
+> 
+> OK, guess I'll take your word for it that it all works.  The
+> BeagleBone-white with appended DTB hasn't booted here since v3.7.
+> And the BeagleBone-black with discrete DTB doesn't boot at all with
+> current mainline, only with the TI vendor kernel & DTB...
+> 
+> Acked-by: Paul Walmsley <paul@pwsan.com>
+
+Thanks applying into omap-for-v3.11/cleanup.
 
 Regards,
- Sricharan
-> Regards,
-> Benoit
->
->
-> On 06/07/2013 03:22 PM, Sricharan R wrote:
->> uevm is the only official board supported for OMAP5 soc in the mainline.
->> This series deprecates the support for existent sevm which will no more
->> be supported in mainline and renames the board dts file accordingly.
->> Also a few additional device DT entry updates are done.
->>
->> This is on top of the below branch
->>     git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
->>     for_3.11/dts
->>
->> Boot tested on omap5-uevm after pulling in the data from below place
->>     git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git
->>     HWMOD DATA: for_3.11/omap5_data_files
->>     CLOCK DATA: out_of_tree/omap5_clk_data
->>
->> Dan Murphy (1):
->>   ARM: dts: omap5-uevm: Add LED support for uEVM blue LED
->>
->> Roger Quadros (1):
->>   ARM: dts: omap5-uevm: Add USB Host support
->>
->> Sourav Poddar (1):
->>   ARM: dts: omap5-uevm: Add uart pinctrl data
->>
->> Sricharan R (1):
->>   ARM: dts: omap5: Make uevm as the official board and deprecate sevm
->>     support
->>
->>  arch/arm/boot/dts/Makefile       |    2 +-
->>  arch/arm/boot/dts/omap5-evm.dts  |  261 --------------------------------
->>  arch/arm/boot/dts/omap5-uevm.dts |  311 ++++++++++++++++++++++++++++++++++++++
->>  arch/arm/boot/dts/omap5.dtsi     |   30 ++++
->>  4 files changed, 342 insertions(+), 262 deletions(-)
->>  delete mode 100644 arch/arm/boot/dts/omap5-evm.dts
->>  create mode 100644 arch/arm/boot/dts/omap5-uevm.dts
->>
 
+Tony
