@@ -1,50 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [net-next PATCH v4 1/5] net: cpsw: enhance pinctrl support
-Date: Fri, 07 Jun 2013 00:42:34 -0700 (PDT)
-Message-ID: <20130607.004234.2007576325541054686.davem@davemloft.net>
-References: <51B0254B.4090304@ti.com>
-	<20130606085049.GL31367@sirena.org.uk>
-	<CACRpkdYxsXZBo1p6EefbE7n6XxYZCGokz-yCq03TTbGavaKEvg@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 14/14] ARM: OMAP4: hwmod data: Clean up the data file
+Date: Fri, 7 Jun 2013 07:52:36 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1306070751210.32163@utopia.booyaka.com>
+References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com> <1369845494-30231-15-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.02.1306061754560.5152@utopia.booyaka.com> <51B0D54A.1090107@ti.com> <51B175E4.1060909@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-873993345-1370591556=:32163"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:39043 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751023Ab3FGHmq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 03:42:46 -0400
-In-Reply-To: <CACRpkdYxsXZBo1p6EefbE7n6XxYZCGokz-yCq03TTbGavaKEvg@mail.gmail.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:43719 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752311Ab3FGHwh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 03:52:37 -0400
+In-Reply-To: <51B175E4.1060909@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linus.walleij@linaro.org
-Cc: broonie@kernel.org, mugunthanvnm@ti.com, netdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, gururaja.hebbar@ti.com, benoit.cousson@linaro.org, linux-omap@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-From: Linus Walleij <linus.walleij@linaro.org>
-Date: Fri, 7 Jun 2013 09:31:58 +0200
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> On Thu, Jun 6, 2013 at 10:50 AM, Mark Brown <broonie@kernel.org> wrote:
->> On Thu, Jun 06, 2013 at 11:29:39AM +0530, Mugunthan V N wrote:
->>> On 6/6/2013 12:53 AM, Mark Brown wrote:
->>
->>> >Linus Walleij posted some patches which factor the state setting code
->>> >out into generic functions earlier on today - it probably makes sense to
->>> >pick those up rather than open coding
->>
->>> But this can go in as Linus Walleij's patch is not accepted yet.
->>> Once that is
->>> accepted and present in net git repo I will submit a separate patch to use
->>> those APIs from pin ctrl core.
->>
->> Linus' change has pretty much gone in already but in any case what would
->> be sensible here would be to write this in turns of Linus' changes and
->> then send the patch to him to add to his series so it can go in via the
->> same route.  One of the major reasons for the patch was that lots of
->> people were querying the amount of noise caused by this sort of change.
-> 
-> I agree. We should be able to settle on the new core API quite soon,
-> then I can carry the patch to this driver if you obtain David's ACK.
+--843723315-873993345-1370591556=:32163
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-If you want to merge the direct networking parts of this series into
-another tree, I'm fine with that:
+cc Beno=EEt
 
-Acked-by: David S. Miller <davem@davemloft.net>
+On Fri, 7 Jun 2013, Sricharan R wrote:
+
+> I used autogen to remove the data, but some of the data were not in sync
+> with the mainline .(like abe, dss, aess, context register offsets etc..).
+> So i have to sync them manually.
+
+OK.  Are you going to fix the differences up soon?
+
+- Paul
+--843723315-873993345-1370591556=:32163--
