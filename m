@@ -1,22 +1,22 @@
 From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [PATCH 2/3] ARM: dts: AM33XX: Add pinmux configuration for CPSW to EVMsk
-Date: Fri, 7 Jun 2013 17:02:53 +0530
-Message-ID: <1370604775-21264-3-git-send-email-mugunthanvnm@ti.com>
+Subject: [PATCH 3/3] ARM: dts: AM33XX: Add pinmux configuration for CPSW to am335x EVM
+Date: Fri, 7 Jun 2013 17:02:54 +0530
+Message-ID: <1370604775-21264-4-git-send-email-mugunthanvnm@ti.com>
 References: <1370604775-21264-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50620 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50626 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753052Ab3FGLcJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Jun 2013 07:32:09 -0400
+	id S1753052Ab3FGLcO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Jun 2013 07:32:14 -0400
 In-Reply-To: <1370604775-21264-1-git-send-email-mugunthanvnm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: benoit.cousson@linaro.org
 Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Mugunthan V N <mugunthanvnm@ti.com>
 
-Add pinmux configurations for RGMII based CPSW ethernet to AM335x EVMsk.
+Add pinmux configurations for RGMII based CPSW ethernet to am335x-evm.
 
 Default mode is nothing but the values required for the module during
 active state. With this configurations module is functional as
@@ -28,15 +28,15 @@ energy usage for the pins for the suspend/resume cycle
 
 Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 ---
- arch/arm/boot/dts/am335x-evmsk.dts |   92 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 92 insertions(+)
+ arch/arm/boot/dts/am335x-evm.dts |   64 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index 338b681..a0c201d 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -71,6 +71,86 @@
- 				0x1b4 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)		/* xdma_event_intr1.clkout2 */
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index 2c53247..a1a0880 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -91,6 +91,58 @@
+ 				0x9c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_be0n_cle.gpmc_be0n_cle */
  			>;
  		};
 +
@@ -55,20 +55,6 @@ index 338b681..a0c201d 100644
 +				0x138 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd2.rgmii1_rd2 */
 +				0x13c (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd1.rgmii1_rd1 */
 +				0x140 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd0.rgmii1_rd0 */
-+
-+				/* Slave 2 */
-+				0x40 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a0.rgmii2_tctl */
-+				0x44 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a1.rgmii2_rctl */
-+				0x48 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a2.rgmii2_td3 */
-+				0x4c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a3.rgmii2_td2 */
-+				0x50 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a4.rgmii2_td1 */
-+				0x54 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a5.rgmii2_td0 */
-+				0x58 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a6.rgmii2_tclk */
-+				0x5c (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a7.rgmii2_rclk */
-+				0x60 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a8.rgmii2_rd3 */
-+				0x64 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a9.rgmii2_rd2 */
-+				0x68 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a10.rgmii2_rd1 */
-+				0x6c (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a11.rgmii2_rd0 */
 +			>;
 +		};
 +
@@ -87,20 +73,6 @@ index 338b681..a0c201d 100644
 +				0x138 (PIN_INPUT_PULLDOWN | MUX_MODE7)
 +				0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)
 +				0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+
-+				/* Slave 2 reset value*/
-+				0x40 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x44 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x48 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x4c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x50 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x54 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x58 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x5c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x60 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x64 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x68 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x6c (PIN_INPUT_PULLDOWN | MUX_MODE7)
 +			>;
 +		};
 +
@@ -122,11 +94,10 @@ index 338b681..a0c201d 100644
  	};
  
  	ocp {
-@@ -277,3 +357,15 @@
- 		};
+@@ -378,6 +430,18 @@
  	};
  };
-+
+ 
 +&mac {
 +	pinctrl-names = "default", "sleep";
 +	pinctrl-0 = <&cpsw_default>;
@@ -138,6 +109,10 @@ index 338b681..a0c201d 100644
 +	pinctrl-0 = <&davinci_mdio_default>;
 +	pinctrl-1 = <&davinci_mdio_sleep>;
 +};
++
+ &cpsw_emac0 {
+ 	phy_id = <&davinci_mdio>, <0>;
+ };
 -- 
 1.7.9.5
 
