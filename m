@@ -1,99 +1,59 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 06/32] OMAPDSS: DPI: fix regulators for DT
-Date: Fri, 7 Jun 2013 11:26:15 +0530
-Message-ID: <51B175FF.90804@ti.com>
-References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com> <1369906493-27538-7-git-send-email-tomi.valkeinen@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH 2/4] ARM: dts: omap5-uevm: Add USB Host support
+Date: Fri, 7 Jun 2013 11:38:00 +0530
+Message-ID: <51B178C0.1040901@ti.com>
+References: <1370414770-1485-1-git-send-email-r.sricharan@ti.com> <1370414770-1485-3-git-send-email-r.sricharan@ti.com> <20130605135739.GA11193@kahuna> <51B0CC15.6010809@ti.com> <20130606184617.GA25579@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41202 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750857Ab3FGF53 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Jun 2013 01:57:29 -0400
-In-Reply-To: <1369906493-27538-7-git-send-email-tomi.valkeinen@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:41243 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752528Ab3FGGI2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 02:08:28 -0400
+In-Reply-To: <20130606184617.GA25579@kahuna>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, rnayak@ti.com, b-cousson@ti.com, Roger Quadros <rogerq@ti.com>
 
-On Thursday 30 May 2013 03:04 PM, Tomi Valkeinen wrote:
-> On some platforms DPI requires a regulator to be enabled to power up the
-> output pins. This regulator is, for some reason, currently attached to
-> the virtual omapdss device, instead of the DPI device. This does not
-> work for DT, as the regulator mappings need to be described in the DT
-> data, and the virtual omapdss device is not present there.
+On Friday 07 June 2013 12:16 AM, Nishanth Menon wrote:
+> On 23:21-20130606, Sricharan R wrote:
+>> Hi,
+>> On Wednesday 05 June 2013 07:27 PM, Nishanth Menon wrote:
+>>> On 12:16-20130605, Sricharan R wrote:
+>>>> From: Roger Quadros <rogerq@ti.com>
+>>> [...]
+>>>> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+>>>> index 843a001..cf862df 100644
+>>>> --- a/arch/arm/boot/dts/omap5-uevm.dts
+>>>> +++ b/arch/arm/boot/dts/omap5-uevm.dts
+>>> <snip>
+>>>> +	/* hsusb2_phy is clocked by FREF_CLK1 i.e. auxclk1 */
+>>>> +	clock_alias {
+>>>> +		clock-name = "auxclk1_ck";
+>>>> +		clock-alias = "main_clk";
+>>> is'nt this better to use with clock node?
+>> Roger was suggesting to remove this for now. Postedhen 
+>> V2 following that.
+>> Are you suggesting to go with your clock-binding patch ?
+> you cannot. Mike has already rejected that approach and I have dropped
+> that series and wont be following up.
+> See discussion https://patchwork.kernel.org/patch/2541331/
 >
-> Fix the issue by acquiring the regulator in the DPI device. To retain
-> compatibility with the current board files, the old method of getting
-> the regulator is kept. The old method can be removed when the board
-> files have been changed to pass the regulator to DPI.
+> instead the new approach being discussed
+> https://patchwork.kernel.org/patch/2657351/ and related discussions is
+> the way to go.
 >
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->   drivers/video/omap2/dss/dpi.c | 21 ++++++++++++++++++---
->   1 file changed, 18 insertions(+), 3 deletions(-)
+> That said, it practically blocks introduction of all code that depend on
+> dts nodes :(, no matter how I dont like being blocked and my many series
+> delayed, I believe Mike, Tero, Rajendra are doing the right architecture
+> and we should wait for it's upstream introduction.
 >
-> diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-> index ef8fca2..43f6b26 100644
-> --- a/drivers/video/omap2/dss/dpi.c
-> +++ b/drivers/video/omap2/dss/dpi.c
-> @@ -37,7 +37,10 @@
->   #include "dss_features.h"
+> That is just my 2 cents.
 >
->   static struct {
-> +	struct platform_device *pdev;
-
-We don't really need to add a new member here for getting the output's 
-device pointer. It's already there in dpi.output.dev.
-
-Archit
-
-> +
->   	struct regulator *vdds_dsi_reg;
-> +	bool vdds_dsi_from_core;
->   	struct platform_device *dsidev;
->
->   	struct mutex lock;
-> @@ -583,10 +586,15 @@ static int dpi_init_display(struct omap_dss_device *dssdev)
->   		struct regulator *vdds_dsi;
->
->   		vdds_dsi = dss_get_vdds_dsi();
-> -
->   		if (IS_ERR(vdds_dsi)) {
-> -			DSSERR("can't get VDDS_DSI regulator\n");
-> -			return PTR_ERR(vdds_dsi);
-> +			vdds_dsi = regulator_get(&dpi.pdev->dev, "vdds_dsi");
-> +			if (IS_ERR(vdds_dsi)) {
-> +				DSSERR("can't get VDDS_DSI regulator\n");
-> +				return PTR_ERR(vdds_dsi);
-> +			}
-> +			dpi.vdds_dsi_from_core = false;
-> +		} else {
-> +			dpi.vdds_dsi_from_core = true;
->   		}
->
->   		dpi.vdds_dsi_reg = vdds_dsi;
-> @@ -702,6 +710,8 @@ static int omap_dpi_probe(struct platform_device *pdev)
->   {
->   	int r;
->
-> +	dpi.pdev = pdev;
-> +
->   	mutex_init(&dpi.lock);
->
->   	dpi_init_output(pdev);
-> @@ -725,6 +735,11 @@ static int __exit omap_dpi_remove(struct platform_device *pdev)
->
->   	dpi_uninit_output(pdev);
->
-> +	if (dpi.vdds_dsi_reg != NULL && dpi.vdds_dsi_from_core == false) {
-> +		regulator_put(dpi.vdds_dsi_reg);
-> +		dpi.vdds_dsi_reg = NULL;
-> +	}
-> +
->   	return 0;
->   }
->
->
+ Thanks for the details. So dropping the alias for now, should be fine.
+ 
+Regards,
+ Sricharan
 
