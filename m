@@ -1,249 +1,83 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH] ARM: dts: add dtsi for palmas
-Date: Fri, 7 Jun 2013 12:32:39 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229EA66D@DBDE04.ent.ti.com>
-References: <1370604504-32310-1-git-send-email-j-keerthy@ti.com>,<51B1D1A9.40702@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: i2c issue on Panda with DT boot, v3.10-rc4
+Date: Fri, 7 Jun 2013 15:36:38 +0300
+Message-ID: <51B1D3D6.2020803@ti.com>
+References: <51B1C9D2.6060703@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52903 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752118Ab3FGMdF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 08:33:05 -0400
-In-Reply-To: <51B1D1A9.40702@ti.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:59791 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752658Ab3FGMkQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 08:40:16 -0400
+In-Reply-To: <51B1C9D2.6060703@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "swarren@nvidia.com" <swarren@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, "lee.jones@linaro.org" <lee.jones@linaro.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Hi Benoit,
-
-Thanks for the quick response.
-________________________________________
-From: Cousson, Benoit
-Sent: Friday, June 07, 2013 5:57 PM
-To: J, KEERTHY
-Cc: devicetree-discuss@lists.ozlabs.org; linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org; ldewangan@nvidia.com; grant.likely@secretlab.ca; swarren@wwwdotorg.org; swarren@nvidia.com; sameo@linux.intel.com; gg@slimlogic.co.uk; lee.jones@linaro.org
-Subject: Re: [PATCH] ARM: dts: add dtsi for palmas
-
-Hi Keerthy,
-
-On 06/07/2013 01:28 PM, J Keerthy wrote:
-> Adds palmas mfd and palmas regulator nodes. This is
-> based on the patch series:
+hi Tomi,
+On 06/07/2013 02:53 PM, Tomi Valkeinen wrote:
+> Hi,
 >
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg89957.html
+> I was testing DT boot with 3.10-rc1 and Pandaboard, and couldn't get the
+> DVI output's EDID reading to work. Testing with i2cget and i2cdump, I
+> see that I can read individual bytes with i2cget, but using i2cdump
+> doesn't work, it just shows 'XX'es.
 >
-> The device tree nodes are based on:
-> https://lkml.org/lkml/2013/6/6/25
-
-It looks like the board node to use palmas is missing? I cannot find it
-in the previous series as well?
-
-Yes. This is just the palmas.dtsi which will be included in the board file.
-
+> The same issue is there with 3.10-rc4, although with that one I get
+> timeouts with i2cdump, whereas there were no timeouts with -rc1.
 >
-> Signed-off-by: J Keerthy <j-keerthy@ti.com>
-> Signed-off-by: Graeme Gregory <gg@slimlogic.co.uk>
-> ---
->  arch/arm/boot/dts/palmas.dtsi |  171 +++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 171 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/boot/dts/palmas.dtsi
+> # i2cget -y 2 0x50 0x10
+> 0x0a
+> # i2cget -y 2 0x50 0x20
+> 0x0f
+> # i2cget -y 2 0x50 0x30
+> 0x01
+> # i2cget -y 2 0x50 0x40
+> 0x36
+> # i2cget -y 2 0x50 0x50
+> 0x4c
+> # i2cdump -y 2 0x50
+> No size specified (using byte-data access)
+>       0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+> 00: 00 [   72.814086] omap_i2c 48060000.i2c: timeout waiting for bus ready
+> XX [   73.825134] omap_i2c 48060000.i2c: timeout waiting for bus ready
+> XX [   74.835327] omap_i2c 48060000.i2c: timeout waiting for bus ready
+> XX [   76.097167] omap_i2c 48060000.i2c: timeout waiting for bus ready
+> XX [   77.160736] omap_i2c 48060000.i2c: timeout waiting for bus ready
+> XX [   78.174682] omap_i2c 48060000.i2c: timeout waiting for bus ready
+> XX [   79.194824] omap_i2c 48060000.i2c: timeout waiting for bus ready
+> XX [   80.242980] omap_i2c 48060000.i2c: timeout waiting for bus ready
 >
-> diff --git a/arch/arm/boot/dts/palmas.dtsi b/arch/arm/boot/dts/palmas.dtsi
-> new file mode 100644
-> index 0000000..be631b5
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/palmas.dtsi
-> @@ -0,0 +1,171 @@
-> +/*
-> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <dt-bindings/interrupt-controller/irq.h>
-> +
-> +&palmas {
-> +     compatible = "ti,palmas";
-> +     interrupt-controller;
-> +     #interrupt-cells = <2>;
-
-The I2C address should be there as well. We used to put it in the board
-file, but this is really an I2C device specific information and not
-board specific in that case.
-
-This again i will send another patch on top of the existing board
-file. That will have the I2C address. This patch only adds the
-standalone palmas.dtsi.
-
-Regards,
-Keerthy
-
-Regards,
-Benoit
-
-
-> +
-> +     palmas_pmic {
-> +             compatible = "ti,palmas-pmic";
-> +             interrupt-parent = <&palmas>;
-> +             interrupts = <14 IRQ_TYPE_NONE>;
-> +             interrupt-name = "short-irq";
-> +
-> +             ti,ldo6-vibrator;
-> +
-> +             regulators {
-> +                     smps123_reg: smps123 {
-> +                             regulator-name = "smps123";
-> +                             regulator-min-microvolt = < 600000>;
-> +                             regulator-max-microvolt = <1500000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                     };
-> +
-> +                     smps45_reg: smps45 {
-> +                             regulator-name = "smps45";
-> +                             regulator-min-microvolt = < 600000>;
-> +                             regulator-max-microvolt = <1310000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                     };
-> +
-> +                     smps6_reg: smps6 {
-> +                             regulator-name = "smps6";
-> +                             regulator-min-microvolt = <1200000>;
-> +                             regulator-max-microvolt = <1200000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                     };
-> +
-> +                     smps7_reg: smps7 {
-> +                             regulator-name = "smps7";
-> +                             regulator-min-microvolt = <1800000>;
-> +                             regulator-max-microvolt = <1800000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                     };
-> +
-> +                     smps8_reg: smps8 {
-> +                             regulator-name = "smps8";
-> +                             regulator-min-microvolt = < 600000>;
-> +                             regulator-max-microvolt = <1310000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                     };
-> +
-> +                     smps9_reg: smps9 {
-> +                             regulator-name = "smps9";
-> +                             regulator-min-microvolt = <2100000>;
-> +                             regulator-max-microvolt = <2100000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                             ti,smps-range = <0x80>;
-> +                     };
-> +
-> +                     smps10_reg: smps10 {
-> +                             regulator-name = "smps10";
-> +                             regulator-min-microvolt = <5000000>;
-> +                             regulator-max-microvolt = <5000000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                     };
-> +
-> +                     ldo1_reg: ldo1 {
-> +                             regulator-name = "ldo1";
-> +                             regulator-min-microvolt = <2800000>;
-> +                             regulator-max-microvolt = <2800000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                     };
-> +
-> +                     ldo2_reg: ldo2 {
-> +                             regulator-name = "ldo2";
-> +                             regulator-min-microvolt = <2900000>;
-> +                             regulator-max-microvolt = <2900000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                     };
-> +
-> +                     ldo3_reg: ldo3 {
-> +                             regulator-name = "ldo3";
-> +                             regulator-min-microvolt = <3000000>;
-> +                             regulator-max-microvolt = <3000000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                     };
-> +
-> +                     ldo4_reg: ldo4 {
-> +                             regulator-name = "ldo4";
-> +                             regulator-min-microvolt = <2200000>;
-> +                             regulator-max-microvolt = <2200000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                     };
-> +
-> +                     ldo5_reg: ldo5 {
-> +                             regulator-name = "ldo5";
-> +                             regulator-min-microvolt = <1800000>;
-> +                             regulator-max-microvolt = <1800000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                     };
-> +
-> +                     ldo6_reg: ldo6 {
-> +                             regulator-name = "ldo6";
-> +                             regulator-min-microvolt = <1500000>;
-> +                             regulator-max-microvolt = <1500000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                     };
-> +
-> +                     ldo7_reg: ldo7 {
-> +                             regulator-name = "ldo7";
-> +                             regulator-min-microvolt = <1500000>;
-> +                             regulator-max-microvolt = <1500000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                     };
-> +
-> +                     ldo8_reg: ldo8 {
-> +                             regulator-name = "ldo8";
-> +                             regulator-min-microvolt = <1500000>;
-> +                             regulator-max-microvolt = <1500000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                     };
-> +
-> +                     ldo9_reg: ldo9 {
-> +                             regulator-name = "ldo9";
-> +                             regulator-min-microvolt = <1800000>;
-> +                             regulator-max-microvolt = <3300000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                     };
-> +
-> +                     ldoln_reg: ldoln {
-> +                             regulator-name = "ldoln";
-> +                             regulator-min-microvolt = <1800000>;
-> +                             regulator-max-microvolt = <1800000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                     };
-> +
-> +                     ldousb_reg: ldousb {
-> +                             regulator-name = "ldousb";
-> +                             regulator-min-microvolt = <3250000>;
-> +                             regulator-max-microvolt = <3250000>;
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-> +                     };
-> +             };
-> +     };
-> +};
+> i2cdump works fine with non-DT boot (but the i2c bus number is 3).
 >
+> Any ideas?
+>
+>   Tomi
+>
+Could you check if below change will help you, pls?
+iff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 13d1eca..66a62e7 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -615,11 +615,11 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+         if (dev->cmd_err & OMAP_I2C_STAT_NACK) {
+                 if (msg->flags & I2C_M_IGNORE_NAK)
+                         return 0;
+-               if (stop) {
+-                       w = omap_i2c_read_reg(dev, OMAP_I2C_CON_REG);
+-                       w |= OMAP_I2C_CON_STP;
+-                       omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, w);
+-               }
++
++               w = omap_i2c_read_reg(dev, OMAP_I2C_CON_REG);
++               w |= OMAP_I2C_CON_STP;
++               omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, w);
++
+                 return -EREMOTEIO;
+         }
+         return -EIO;
 
+-grygorii
