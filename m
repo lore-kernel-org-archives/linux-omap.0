@@ -1,71 +1,45 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: [RFC] i2c: add deprecation warning for class based instantiation
-Date: Fri,  7 Jun 2013 11:09:26 +0200
-Message-ID: <1370596166-12404-1-git-send-email-wsa@the-dreams.de>
-References: <20130607090623.GC3428@katana>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130607090623.GC3428@katana>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 14/14] ARM: OMAP4: hwmod data: Clean up the data file
+Date: Fri, 7 Jun 2013 12:46:23 +0300
+Message-ID: <1370598383.25965.73.camel@sokoban>
+References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
+ <1369845494-30231-15-git-send-email-santosh.shilimkar@ti.com>
+ <alpine.DEB.2.02.1306061754560.5152@utopia.booyaka.com>
+ <51B0D54A.1090107@ti.com> <51B175E4.1060909@ti.com>
+ <alpine.DEB.2.02.1306070751210.32163@utopia.booyaka.com>
+ <51B1A150.9020307@ti.com>
+Reply-To: t-kristo@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51B1A150.9020307@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Ambresh K <ambresh@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Class based instantiation can cause huge delays when booting. This
-mechanism was used when it was not possible to describe slaves on I2C
-busses. We now have other mechanisms, so most embedded I2C will not need
-classes and it was explicitly not recommended to use them. Add a
-deprecation warning for drivers who want to disable class based in the
-near future to gain boot-up time, so users relying on this technique can
-switch to something better. They really should.
-
-Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
----
- drivers/i2c/busses/i2c-omap.c |    2 +-
- drivers/i2c/i2c-core.c        |    6 ++++++
- include/linux/i2c.h           |    1 +
- 3 files changed, 8 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index e02f9e3..f06109f 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1231,7 +1231,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	adap = &dev->adapter;
- 	i2c_set_adapdata(adap, dev);
- 	adap->owner = THIS_MODULE;
--	adap->class = I2C_CLASS_HWMON;
-+	adap->class = I2C_CLASS_HWMON | I2C_CLASS_DEPRECATED;
- 	strlcpy(adap->name, "OMAP I2C adapter", sizeof(adap->name));
- 	adap->algo = &omap_i2c_algo;
- 	adap->dev.parent = &pdev->dev;
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index 48e31ed..47ea1f0 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -999,6 +999,12 @@ static int i2c_register_adapter(struct i2c_adapter *adap)
- 		return -EINVAL;
- 	}
- 
-+	if (adap->class & I2C_CLASS_DEPRECATED)
-+		dev_warn(&adap->dev, "This adapter will soon drop class based "
-+			"instantiation of slaves\nPlease make sure all its I2C "
-+			"devices are instantiated by other means.\nCheck "
-+			"'Documentation/i2c/instantiating-devices' for details\n");
-+
- 	rt_mutex_init(&adap->bus_lock);
- 	mutex_init(&adap->userspace_clients_lock);
- 	INIT_LIST_HEAD(&adap->userspace_clients);
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-index e988fa9..ffab838 100644
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -473,6 +473,7 @@ void i2c_unlock_adapter(struct i2c_adapter *);
- #define I2C_CLASS_HWMON		(1<<0)	/* lm_sensors, ... */
- #define I2C_CLASS_DDC		(1<<3)	/* DDC bus on graphics adapters */
- #define I2C_CLASS_SPD		(1<<7)	/* Memory modules */
-+#define I2C_CLASS_DEPRECATED	(1<<8)	/* Warn users that adapter will stop using classes */
- 
- /* Internal numbers to terminate lists */
- #define I2C_CLIENT_END		0xfffeU
--- 
-1.7.10.4
+T24gRnJpLCAyMDEzLTA2LTA3IGF0IDE0OjMxICswNTMwLCBTcmljaGFyYW4gUiB3cm90ZToKPiBP
+biBGcmlkYXkgMDcgSnVuZSAyMDEzIDAxOjIyIFBNLCBQYXVsIFdhbG1zbGV5IHdyb3RlOgo+ID4g
+Y2MgQmVub8OudAo+ID4KPiA+IE9uIEZyaSwgNyBKdW4gMjAxMywgU3JpY2hhcmFuIFIgd3JvdGU6
+Cj4gPgo+ID4+IEkgdXNlZCBhdXRvZ2VuIHRvIHJlbW92ZSB0aGUgZGF0YSwgYnV0IHNvbWUgb2Yg
+dGhlIGRhdGEgd2VyZSBub3QgaW4gc3luYwo+ID4+IHdpdGggdGhlIG1haW5saW5lIC4obGlrZSBh
+YmUsIGRzcywgYWVzcywgY29udGV4dCByZWdpc3RlciBvZmZzZXRzIGV0Yy4uKS4KPiA+PiBTbyBp
+IGhhdmUgdG8gc3luYyB0aGVtIG1hbnVhbGx5Lgo+ID4gT0suICBBcmUgeW91IGdvaW5nIHRvIGZp
+eCB0aGUgZGlmZmVyZW5jZXMgdXAgc29vbj8KPiA+Cj4gPiAtIFBhdWwKPiArIEFtYnJlc2ggYW5k
+IFRlcm8gZm9yIGF1dG9nZW4uCgpUaGlzIGlzIG5vdCBnb2luZyB0byBoYXBwZW4gc29vbiwgaWYg
+ZXZlci4gV2UgbWlnaHQgY29uc2lkZXIgZG9pbmcgdGhpcwppZiBhIGNvbXBsZXRlIG92ZXJoYXVs
+IGZvciB0aGUgaHdtb2QgZGF0YSBpcyBnb2luZyB0byBiZSBkb25lIGF0IHNvbWUKcG9pbnQgc28g
+dGhhdCByZS1nZW5lcmF0aW5nIHRoZSBuZXcgZm9ybWF0IGlzIGVhc2llci4KCi1UZXJvCgoKCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1r
+ZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpo
+dHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJu
+ZWwK
