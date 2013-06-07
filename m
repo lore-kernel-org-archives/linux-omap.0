@@ -1,37 +1,81 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 14/14] ARM: OMAP4: hwmod data: Clean up the data file
-Date: Fri, 7 Jun 2013 07:52:36 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1306070751210.32163@utopia.booyaka.com>
-References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com> <1369845494-30231-15-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.02.1306061754560.5152@utopia.booyaka.com> <51B0D54A.1090107@ti.com> <51B175E4.1060909@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 12/32] OMAPDSS: Implement display (dis)connect support
+Date: Fri, 7 Jun 2013 11:31:59 +0300
+Message-ID: <51B19A7F.3010300@ti.com>
+References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com> <1369906493-27538-13-git-send-email-tomi.valkeinen@ti.com> <51B181AC.3070400@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-873993345-1370591556=:32163"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="----enig2GFNNUBILEKKTTXPLRGLK"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:43719 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752311Ab3FGHwh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 03:52:37 -0400
-In-Reply-To: <51B175E4.1060909@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:48134 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751391Ab3FGIcE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 04:32:04 -0400
+In-Reply-To: <51B181AC.3070400@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+------enig2GFNNUBILEKKTTXPLRGLK
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
---843723315-873993345-1370591556=:32163
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+On 07/06/13 09:46, Archit Taneja wrote:
 
-cc Beno=EEt
+>> @@ -384,6 +424,10 @@ int omap_dss_register_driver(struct
+>> omap_dss_driver *dssdriver)
+>>               omapdss_default_get_recommended_bpp;
+>>       if (dssdriver->get_timings =3D=3D NULL)
+>>           dssdriver->get_timings =3D omapdss_default_get_timings;
+>> +    if (dssdriver->connect =3D=3D NULL)
+>> +        dssdriver->connect =3D omapdss_default_connect;
+>> +    if (dssdriver->disconnect =3D=3D NULL)
+>> +        dssdriver->disconnect =3D omapdss_default_disconnect;
+>=20
+> I was wondering if these should be apis rather than driver ops. One
+> advantage of having them as functions used by omapfb/omapdrm would be
+> that a panel driver wouldn't override the default_connect/disconnect op=
+s.
+>=20
+> Even though they are named omapdss_default_connect/disconnect, I don't
+> think there is another option by which a panel driver may chose to
+> connect to omapdss outputs, right?
 
-On Fri, 7 Jun 2013, Sricharan R wrote:
+Those "default" functions are used only for the old panel drivers, and
+are removed when the old drivers are not needed anymore. They allow us
+to add the connect support without modifying the old drivers.
 
-> I used autogen to remove the data, but some of the data were not in sync
-> with the mainline .(like abe, dss, aess, context register offsets etc..).
-> So i have to sync them manually.
+The new drivers may do other stuff in connect/disconnect. For example,
+see panel-dsicm.c.
 
-OK.  Are you going to fix the differences up soon?
+ Tomi
 
-- Paul
---843723315-873993345-1370591556=:32163--
+
+
+------enig2GFNNUBILEKKTTXPLRGLK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRsZqCAAoJEPo9qoy8lh7144IP/RPtGj2yckvPnHPA3P9Xb7Qh
+quFCvdCxe49YxkHzXKc/WXnBbNJTDj1vsw4Fkt7Z88OZ0zxxAXPxtDUs6VjFX5HY
+TCAGKaPD9Du7DAAEaaD6BaLwHH9Y5qIUTihfIrRDMu5BxUgyFV8hRtKf8WxLNHN6
+lc4OBAPM8odERsZHApfLhczZ3Z0nH17KGTYFL7xHFoVtGHlimkG8CivFROC5S887
+agNS+dXAVoL9IKkcwpMn3X7+pWt2LV8V+QF86vrh2dUIcyDIQipkONlfCuKXBw8C
+e/3L9FYhr2ZRXcFa8hz6hoD4eEk8KsI8hE99zgbmvDylF+uHm4VMXj3no+G6WR06
+TfbfvwDaxAQ4mk/5aHhHRmrmv5rOMHHNSMQZzJ7fDlm4gzW70WdrF8VfMSfO9e7i
+HIflIJHDvcRRqmVdwlVs+CTzYQ5AjEnTOPG33MqWl0Smb01OgPYwf3lVAa5YsLg9
+Lbwelwhu6ulWmz8Hu9PZbglSbexP/Gutv3M6iuJEKq8Q8e9RTXY6fr6FlQEAQ/Vn
+1OfkJg4iZaMsyXcDH5st0j93+QKs8i8xWrxKNDvEo54pA9gidWNnzml6jEQLxJqA
+mTS+4emRHwIihL4gd9315BZWuRqYxtXN99TO3Qe/Sdn61c3lH6ihy4QFl5mGVoE7
+vQ5wfv2Xqi+g+lRonA7e
+=UgJP
+-----END PGP SIGNATURE-----
+
+------enig2GFNNUBILEKKTTXPLRGLK--
