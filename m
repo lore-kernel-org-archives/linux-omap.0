@@ -1,13 +1,13 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
 Subject: [PATCH 0/5] v3.10-rc4: fix OMAP4 boot failure if CONFIG_SENSORS_LM75=y
-Date: Fri, 7 Jun 2013 21:43:27 +0300
-Message-ID: <1370630612-4014-1-git-send-email-grygorii.strashko@ti.com>
+Date: Fri, 7 Jun 2013 21:46:03 +0300
+Message-ID: <1370630768-4077-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Kevin Hilman <khilman@linaro.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 Hi All,
@@ -236,8 +236,8 @@ Kevin Hilman (1):
  1 file changed, 16 insertions(+), 36 deletions(-)
 
 
-CC: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-CC: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-CC: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+CC: Kevin Hilman <khilman@linaro.org>
+CC: Tomi Valkeinen <tomi.valkeinen@ti.com>
+CC: Felipe Balbi <balbi@ti.com>
 -- 
 1.7.9.5
