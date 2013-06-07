@@ -1,288 +1,101 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/4] pinctrl: single: Add hardware specific hooks for IRQ
- and GPIO wake-up events
-Date: Fri, 07 Jun 2013 13:50:40 -0700
-Message-ID: <20130607205040.16513.36794.stgit@localhost>
-References: <20130607203936.16513.57494.stgit@localhost>
+From: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/5] i2c: omap: fix spurious IRQs: disable/enable IRQ at INTC when idle
+Date: Fri, 07 Jun 2013 13:51:27 -0700
+Message-ID: <87li6llk4w.fsf@linaro.org>
+References: <1370630768-4077-1-git-send-email-grygorii.strashko@ti.com>
+	<1370630768-4077-2-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:54721 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757401Ab3FGUuo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 16:50:44 -0400
-In-Reply-To: <20130607203936.16513.57494.stgit@localhost>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1370630768-4077-2-git-send-email-grygorii.strashko-l0cyMroinI0@public.gmane.org>
+	(Grygorii Strashko's message of "Fri, 7 Jun 2013 21:46:04 +0300")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linus.walleij@linaro.org
-Cc: devicetree-discuss@lists.ozlabs.org, Haojian Zhuang <haojian.zhuang@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 
-At least on omaps, each board typically has at least one device
-configured as wake-up capable from deeper idle modes. In the
-deeper idle modes the normal interrupt wake-up path won't work
-as the logic is powered off and separate wake-up hardware is
-available either via IO ring or GPIO hardware. The wake-up
-event can be device specific, or may need to be dynamically
-remuxed to GPIO input for wake-up events. When the wake-up
-event happens, it's IRQ need to be called so the device won't
-lose interrupts.
+Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
 
-Allow supporting IRQ and GPIO wake-up events if a hardware
-spefific module is registered for the enable and disable
-calls.
+> From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+>
+> Currently, runtime PM is used to keep the device enabled only during
+> active transfers and for a configurable runtime PM autosuspend timout
+> after an xfer.
+>
+> In addition to idling the device, driver's ->runtime_suspend() method
+> currently disables device interrupts when idle.  However, on some SoCs
+> (notably OMAP4+), the I2C hardware may shared with other coprocessors.
+> This means that the MPU will still recieve interrupts if a coprocessor
+> is using the I2C device.  To avoid this, also disable interrupts at
+> the MPU INTC when idling the device in ->runtime_suspend() (and
+> re-enable them in ->runtime_resume().)  This part based on an original
+> patch from Shubhrajyoti Datta.  NOTE: for proper sharing the I2C with
+> a coprocessor, this driver still needs hwspinlock support added.
+>
+> More over, this patch fixes the kernel boot failure which happens when
+> CONFIG_SENSORS_LM75=y:
+>
+> [    2.251220] WARNING: at drivers/bus/omap_l3_noc.c:113 l3_interrupt_handler+0x140/0x184()
+> [    2.257781] L3 custom error: MASTER:MPU TARGET:L4 PER2
+> [    2.264373] Modules linked in:
+> [    2.268463] CPU: 0 PID: 2 Comm: kthreadd Not tainted 3.10.0-rc4-00034-g042dd60-dirty #64
+> [    2.270385] [<c001a80c>] (unwind_backtrace+0x0/0xf0) from [<c0017238>] (show_stack+0x10/0x14)
+> [    2.286102] [<c0017238>] (show_stack+0x10/0x14) from [<c0040fd0>] (warn_slowpath_common+0x4c/0x68)
+> [    2.295593] [<c0040fd0>] (warn_slowpath_common+0x4c/0x68) from [<c0041080>] (warn_slowpath_fmt+0x30/0x40)
+> [    2.299987] [<c0041080>] (warn_slowpath_fmt+0x30/0x40) from [<c02c5ed0>] (l3_interrupt_handler+0x140/0x184)
+> [    2.315582] [<c02c5ed0>] (l3_interrupt_handler+0x140/0x184) from [<c009ffb8>] (handle_irq_event_percpu+0x58/0x258)
+> [    2.323364] [<c009ffb8>] (handle_irq_event_percpu+0x58/0x258) from [<c00a01f4>] (handle_irq_event+0x3c/0x5c)
+> [    2.327819] [<c00a01f4>] (handle_irq_event+0x3c/0x5c) from [<c00a2f7c>] (handle_fasteoi_irq+0xbc/0x164)
+> [    2.337829] [<c00a2f7c>] (handle_fasteoi_irq+0xbc/0x164) from [<c009f978>] (generic_handle_irq+0x20/0x30)
+> [    2.357513] [<c009f978>] (generic_handle_irq+0x20/0x30) from [<c0014168>] (handle_IRQ+0x4c/0xac)
+> [    2.366821] [<c0014168>] (handle_IRQ+0x4c/0xac) from [<c00085b4>] (gic_handle_irq+0x28/0x5c)
+> [    2.375762] [<c00085b4>] (gic_handle_irq+0x28/0x5c) from [<c04f08a4>] (__irq_svc+0x44/0x5c)
+> [    2.379821] Exception stack(0xdb085ec0 to 0xdb085f08)
+> [    2.389953] 5ec0: 00000001 00000001 00000000 db07ea00 40000113 db2317a8 db084000 000002f1
+> [    2.389953] 5ee0: db07ea00 00000000 00000000 00000000 c04fd990 db085f08 c009170c c04f03e8
+> [    2.405609] 5f00: 20000113 ffffffff
+> [    2.408355] [<c04f08a4>] (__irq_svc+0x44/0x5c) from [<c04f03e8>] (_raw_spin_unlock_irqrestore+0x34/0x44)
+> [    2.418304] [<c04f03e8>] (_raw_spin_unlock_irqrestore+0x34/0x44) from [<c00403c0>] (do_fork+0xa4/0x2d4)
+> [    2.427795] [<c00403c0>] (do_fork+0xa4/0x2d4) from [<c0040620>] (kernel_thread+0x30/0x38)
+> [    2.437805] [<c0040620>] (kernel_thread+0x30/0x38) from [<c0063888>] (kthreadd+0xd4/0x13c)
+> [    2.448364] [<c0063888>] (kthreadd+0xd4/0x13c) from [<c0013308>] (ret_from_fork+0x14/0x2c)
+> [    2.448364] ---[ end trace da8cf92c433d1616 ]---
+>
+> The root casue of crash is race between omap_i2c_runtime_suspend()
+>  and omap_i2c_isr_thread()
 
-Done in collaboration with Roger Quadros <rogerq@ti.com>.
+If there's a race here, then it's not the same problem which is
+described above, unless the CPU2 IRQ is happening because of a shared
+user of I2C, in which case it doesn't need any additional explanation.
 
-Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- .../devicetree/bindings/pinctrl/pinctrl-single.txt |    5 +
- drivers/pinctrl/pinctrl-single.c                   |  104 +++++++++++++++++---
- drivers/pinctrl/pinctrl-single.h                   |   28 +++++
- 3 files changed, 123 insertions(+), 14 deletions(-)
+>
+> CPU1:                                   CPU2:
+> |-omap_i2c_xfer                         |
+>   |- pm_runtime_put_autosuspend()       |
+>      |-timeout                          |-omap_i2c_isr()
+>                                           |-return IRQ_WAKE_THREAD;
+>      |-omap_i2c_runtime_suspend()       |
+>                                         |-omap_i2c_isr_thread()
+>                                           |- oops is here - I2C module is in idle state
 
-diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt
-index 08f0c3d..5dfd74b 100644
---- a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt
-+++ b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt
-@@ -68,6 +68,10 @@ Optional properties:
-   The number of parameters is depend on #pinctrl-single,gpio-range-cells
-   property.
- 
-+- interrrupts : the interrupt that a function may have for a wake-up event
-+
-+- gpios: the gpio that a function may have for a wake-up event
-+
- 		/* pin base, nr pins & gpio function */
- 		pinctrl-single,gpio-range = <&range 0 3 0 &range 3 9 1>;
- 
-@@ -204,6 +208,7 @@ pmx_gpio: pinmux@d401e000 {
- 			0xdc 0x118
- 			0xde 0
- 		>;
-+		interrupts = <74>;
- 	};
- };
- 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index 0f178d1..7cb7940 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -19,6 +19,8 @@
- #include <linux/of.h>
- #include <linux/of_device.h>
- #include <linux/of_address.h>
-+#include <linux/of_gpio.h>
-+#include <linux/of_irq.h>
- 
- #include <linux/pinctrl/pinctrl.h>
- #include <linux/pinctrl/pinmux.h>
-@@ -95,6 +97,8 @@ struct pcs_conf_type {
-  * @nvals:	number of entries in vals array
-  * @pgnames:	array of pingroup names the function uses
-  * @npgnames:	number of pingroup names the function uses
-+ * @irq:	optional irq associated with the function
-+ * @gpio:	optional gpio associated with the function
-  * @node:	list node
-  */
- struct pcs_function {
-@@ -105,6 +109,8 @@ struct pcs_function {
- 	int npgnames;
- 	struct pcs_conf_vals *conf;
- 	int nconfs;
-+	int irq;
-+	int gpio;
- 	struct list_head node;
- };
- 
-@@ -410,6 +416,18 @@ static int pcs_get_function(struct pinctrl_dev *pctldev, unsigned pin,
- 	return 0;
- }
- 
-+static void pcs_reg_init(struct pcs_reg *p, struct pcs_device *pcs,
-+			 struct pcs_function *func,
-+			 void __iomem *reg, unsigned val)
-+{
-+	p->read = pcs->read;
-+	p->write = pcs->write;
-+	p->irq = func->irq;
-+	p->gpio = func->gpio;
-+	p->reg = reg;
-+	p->val = val;
-+}
-+
- static int pcs_enable(struct pinctrl_dev *pctldev, unsigned fselector,
- 	unsigned group)
- {
-@@ -442,6 +460,12 @@ static int pcs_enable(struct pinctrl_dev *pctldev, unsigned fselector,
- 		val &= ~mask;
- 		val |= (vals->val & mask);
- 		pcs->write(val, vals->reg);
-+		if ((func->irq || func->gpio) && pcs->soc && pcs->soc->enable) {
-+			struct pcs_reg pcsr;
-+
-+			pcs_reg_init(&pcsr, pcs, func, vals->reg, val);
-+			pcs->soc->enable(pcs->soc, &pcsr);
-+		}
- 	}
- 
- 	return 0;
-@@ -466,18 +490,6 @@ static void pcs_disable(struct pinctrl_dev *pctldev, unsigned fselector,
- 		return;
- 	}
- 
--	/*
--	 * Ignore disable if function-off is not specified. Some hardware
--	 * does not have clearly defined disable function. For pin specific
--	 * off modes, you can use alternate named states as described in
--	 * pinctrl-bindings.txt.
--	 */
--	if (pcs->foff == PCS_OFF_DISABLED) {
--		dev_dbg(pcs->dev, "ignoring disable for %s function%i\n",
--			func->name, fselector);
--		return;
--	}
--
- 	dev_dbg(pcs->dev, "disabling function%i %s\n",
- 		fselector, func->name);
- 
-@@ -488,8 +500,28 @@ static void pcs_disable(struct pinctrl_dev *pctldev, unsigned fselector,
- 		vals = &func->vals[i];
- 		val = pcs->read(vals->reg);
- 		val &= ~pcs->fmask;
--		val |= pcs->foff << pcs->fshift;
--		pcs->write(val, vals->reg);
-+
-+		/*
-+		 * Ignore disable if function-off is not specified. Some
-+		 * hardware does not have clearly defined disable function.
-+		 * For pin specific off modes, you can use alternate named
-+		 * states as described in pinctrl-bindings.txt.
-+		 */
-+		if (pcs->foff == PCS_OFF_DISABLED) {
-+			dev_dbg(pcs->dev, "ignoring disable for %s function%i\n",
-+				func->name, fselector);
-+		} else {
-+			val |= pcs->foff << pcs->fshift;
-+			pcs->write(val, vals->reg);
-+		}
-+
-+		if ((func->irq || func->gpio) &&
-+		    pcs->soc && pcs->soc->disable) {
-+			struct pcs_reg pcsr;
-+
-+			pcs_reg_init(&pcsr, pcs, func, vals->reg, val);
-+			pcs->soc->disable(pcs->soc, &pcsr);
-+		}
- 	}
- }
- 
-@@ -1007,6 +1039,32 @@ static void pcs_add_conf4(struct pcs_device *pcs, struct device_node *np,
- 	add_setting(settings, param, ret);
- }
- 
-+static int pcs_parse_wakeup(struct pcs_device *pcs, struct device_node *np,
-+			     struct pcs_function *function)
-+{
-+	struct pcs_reg pcsr;
-+	int i, ret = 0;
-+
-+	for (i = 0; i < function->nvals; i++) {
-+		struct pcs_func_vals *vals;
-+		unsigned mask;
-+
-+		vals = &function->vals[i];
-+		if (!vals->mask)
-+			mask = pcs->fmask;
-+		else
-+			mask = pcs->fmask & vals->mask;
-+
-+		pcs_reg_init(&pcsr, pcs, function, vals->reg,
-+			     vals->val & mask);
-+		ret = pcs->soc->reg_init(pcs->soc, &pcsr);
-+		if (ret)
-+			break;
-+	}
-+
-+	return ret;
-+}
-+
- static int pcs_parse_pinconf(struct pcs_device *pcs, struct device_node *np,
- 			     struct pcs_function *func,
- 			     struct pinctrl_map **map)
-@@ -1176,6 +1234,24 @@ static int pcs_parse_one_pinctrl_entry(struct pcs_device *pcs,
- 	} else {
- 		*num_maps = 1;
- 	}
-+
-+	if (pcs->flags & PCS_HAS_FUNCTION_IRQ)
-+		function->irq = irq_of_parse_and_map(np, 0);
-+
-+	if (pcs->flags & PCS_HAS_FUNCTION_GPIO) {
-+		function->gpio = of_get_gpio(np, 0);
-+		if (function->gpio > 0 && !function->irq) {
-+			if (gpio_is_valid(function->gpio))
-+				function->irq = gpio_to_irq(function->gpio);
-+		}
-+	}
-+
-+	if (function->irq > 0 && pcs->soc && pcs->soc->reg_init) {
-+		res = pcs_parse_wakeup(pcs, np, function);
-+		if (res)
-+			goto free_pingroups;
-+	}
-+
- 	return 0;
- 
- free_pingroups:
-diff --git a/drivers/pinctrl/pinctrl-single.h b/drivers/pinctrl/pinctrl-single.h
-index 18f3205..c2dcc7a 100644
---- a/drivers/pinctrl/pinctrl-single.h
-+++ b/drivers/pinctrl/pinctrl-single.h
-@@ -1,13 +1,41 @@
-+/**
-+ * struct pcs_reg - pinctrl register
-+ * @read:	pinctrl-single provided register read function
-+ * @write:	pinctrl-single provided register write function
-+ * @reg:	virtual address of a register
-+ * @val:	pinctrl configured value of the register
-+ * @irq:	optional irq specified for wake-up for example
-+ * @gpio:	optional gpio specified for wake-up for example
-+ * @node:	optional list
-+ */
-+struct pcs_reg {
-+	unsigned (*read)(void __iomem *reg);
-+	void (*write)(unsigned val, void __iomem *reg);
-+	void __iomem *reg;
-+	unsigned val;
-+	int irq;
-+	int gpio;
-+	struct list_head node;
-+};
-+
-+#define PCS_HAS_FUNCTION_GPIO   (1 << 2)
-+#define PCS_HAS_FUNCTION_IRQ    (1 << 1)
- #define PCS_HAS_PINCONF         (1 << 0)
- 
- /**
-  * struct pcs_soc - SoC specific interface to pinctrl-single
-  * @data:	SoC specific data pointer
-  * @flags:	mask of PCS_HAS_xxx values
-+ * @reg_init:	SoC specific register init function
-+ * @enable:	SoC specific enable function
-+ * @disable:	SoC specific disable function
-  */
- struct pcs_soc {
- 	void *data;
- 	unsigned flags;
-+	int (*reg_init)(const struct pcs_soc *soc, struct pcs_reg *r);
-+	int (*enable)(const struct pcs_soc *soc, struct pcs_reg *r);
-+	void (*disable)(const struct pcs_soc *soc, struct pcs_reg *r);
- };
- 
- extern int pinctrl_single_probe(struct platform_device *pdev,
+If this is happening, I don't think it's related to $SUBJECT patch (but
+is probably hidden by it.)
 
+Instead, what probably needs to happen in this is case is that
+omap_i2c_isr() should be doing a "mark last busy" to reset the
+autosuspend timeout.  And, that should be done in a separate patch.
+
+> Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+
+Both the From: and Signed-off should be from my TI address since the
+work was done while I was working for TI.
+
+Also, if you change the original patch/changelog, you should add a line
+here like:
+
+[grygorii.strashko-l0cyMroinI0@public.gmane.org]: updated changlog
+
+> Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+
+Kevin
