@@ -1,50 +1,60 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCHv3 4/6] arm: dts: add bandgap entry for OMAP4460 devices
-Date: Fri, 7 Jun 2013 16:46:06 -0400
-Message-ID: <1370637968-23299-5-git-send-email-eduardo.valentin@ti.com>
+Subject: [PATCHv3 5/6] arm: omap2plus_defconfig: enable TI bandgap driver
+Date: Fri, 7 Jun 2013 16:46:07 -0400
+Message-ID: <1370637968-23299-6-git-send-email-eduardo.valentin@ti.com>
 References: <1370637968-23299-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1370637968-23299-1-git-send-email-eduardo.valentin@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, grant.likely@linaro.org
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, Eduardo Valentin <eduardo.valentin@ti.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, AnilKumar Ch <anilkumar@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Include bandgap devices for OMAP4460 devices.
+Enable the bandgap driver for TI SoCs thermal support.
 
-Cc: "Beno=C3=AEt Cousson" <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
 Cc: Russell King <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org
-Cc: devicetree-discuss@lists.ozlabs.org
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: AnilKumar Ch <anilkumar@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: linux-arm-kernel@lists.infradead.org
 Cc: linux-kernel@vger.kernel.org
 Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- arch/arm/boot/dts/omap4460.dtsi | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/arm/configs/omap2plus_defconfig | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap44=
-60.dtsi
-index 2cf227c..ea97201 100644
---- a/arch/arm/boot/dts/omap4460.dtsi
-+++ b/arch/arm/boot/dts/omap4460.dtsi
-@@ -29,4 +29,13 @@
- 			     <0 55 0x4>;
- 		ti,hwmods =3D "debugss";
- 	};
-+
-+	bandgap {
-+		reg =3D <0x4a002260 0x4
-+			0x4a00232C 0x4
-+			0x4a002378 0x18>;
-+		compatible =3D "ti,omap4460-bandgap";
-+		interrupts =3D <0 126 4>; /* talert */
-+		gpios =3D <&gpio3 22 0>; /* tshut */
-+	};
- };
---=20
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index c1ef64b..6e6c494 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -151,6 +151,13 @@ CONFIG_W1=y
+ CONFIG_POWER_SUPPLY=y
+ CONFIG_SENSORS_LM75=m
+ CONFIG_WATCHDOG=y
++CONFIG_THERMAL=y
++CONFIG_THERMAL_HWMON=y
++CONFIG_THERMAL_DEFAULT_GOV_STEP_WISE=y
++CONFIG_THERMAL_GOV_FAIR_SHARE=y
++CONFIG_THERMAL_GOV_STEP_WISE=y
++CONFIG_THERMAL_GOV_USER_SPACE=y
++CONFIG_CPU_THERMAL=y
+ CONFIG_OMAP_WATCHDOG=y
+ CONFIG_TWL4030_WATCHDOG=y
+ CONFIG_MFD_TPS65217=y
+@@ -237,6 +244,10 @@ CONFIG_RTC_DRV_TWL4030=y
+ CONFIG_RTC_DRV_OMAP=y
+ CONFIG_DMADEVICES=y
+ CONFIG_DMA_OMAP=y
++CONFIG_TI_SOC_THERMAL=y
++CONFIG_TI_THERMAL=y
++CONFIG_OMAP4_THERMAL=y
++CONFIG_OMAP5_THERMAL=y
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_FS_XATTR is not set
+-- 
 1.8.2.1.342.gfa7285d
