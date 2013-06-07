@@ -1,54 +1,64 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [net-next PATCH v4 1/5] net: cpsw: enhance pinctrl support
-Date: Fri, 7 Jun 2013 20:19:15 +0530
-Message-ID: <51B1F2EB.80109@ti.com>
-References: <51B0254B.4090304@ti.com> <20130606085049.GL31367@sirena.org.uk> <CACRpkdYxsXZBo1p6EefbE7n6XxYZCGokz-yCq03TTbGavaKEvg@mail.gmail.com> <20130607.004234.2007576325541054686.davem@davemloft.net>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH V3 0/4] ARM: dts: omap5: Cleanup and updates for DT files
+Date: Fri, 7 Jun 2013 16:51:53 +0200
+Message-ID: <51B1F389.30002@ti.com>
+References: <1370611370-14715-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20130607.004234.2007576325541054686.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: linus.walleij@linaro.org, broonie@kernel.org, netdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, gururaja.hebbar@ti.com, benoit.cousson@linaro.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38111 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754783Ab3FGOwd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Jun 2013 10:52:33 -0400
+In-Reply-To: <1370611370-14715-1-git-send-email-r.sricharan@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, tony@atomide.com
 
-On 6/7/2013 1:12 PM, David Miller wrote:
-> From: Linus Walleij <linus.walleij@linaro.org>
-> Date: Fri, 7 Jun 2013 09:31:58 +0200
->
->> On Thu, Jun 6, 2013 at 10:50 AM, Mark Brown <broonie@kernel.org> wrote:
->>> On Thu, Jun 06, 2013 at 11:29:39AM +0530, Mugunthan V N wrote:
->>>> On 6/6/2013 12:53 AM, Mark Brown wrote:
->>>>> Linus Walleij posted some patches which factor the state setting code
->>>>> out into generic functions earlier on today - it probably makes sense to
->>>>> pick those up rather than open coding
->>>> But this can go in as Linus Walleij's patch is not accepted yet.
->>>> Once that is
->>>> accepted and present in net git repo I will submit a separate patch to use
->>>> those APIs from pin ctrl core.
->>> Linus' change has pretty much gone in already but in any case what would
->>> be sensible here would be to write this in turns of Linus' changes and
->>> then send the patch to him to add to his series so it can go in via the
->>> same route.  One of the major reasons for the patch was that lots of
->>> people were querying the amount of noise caused by this sort of change.
->> I agree. We should be able to settle on the new core API quite soon,
->> then I can carry the patch to this driver if you obtain David's ACK.
-> If you want to merge the direct networking parts of this series into
-> another tree, I'm fine with that:
->
-> Acked-by: David S. Miller <davem@davemloft.net>
-David
+Thanks for the quick update.
 
-Can you the below patch series as i have adopted pinctrl PM api in 
-another series,
-this patch has direct usage of pinctrl_select_state apis
-http://marc.info/?l=linux-netdev&m=137054250018667&w=2
+I've just applied the series in my for_3.11/dts branch.
 
-Linus Walleij
+Regards,
+Benoit
 
-Please drop this patch series and take my other [atch set mentioned above
-with David's Ack.
 
-Regards
-Mugunthan V N
+On 06/07/2013 03:22 PM, Sricharan R wrote:
+> uevm is the only official board supported for OMAP5 soc in the mainline.
+> This series deprecates the support for existent sevm which will no more
+> be supported in mainline and renames the board dts file accordingly.
+> Also a few additional device DT entry updates are done.
+> 
+> This is on top of the below branch
+>     git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+>     for_3.11/dts
+> 
+> Boot tested on omap5-uevm after pulling in the data from below place
+>     git://git.kernel.org/pub/scm/linux/kernel/git/ssantosh/linux.git
+>     HWMOD DATA: for_3.11/omap5_data_files
+>     CLOCK DATA: out_of_tree/omap5_clk_data
+> 
+> Dan Murphy (1):
+>   ARM: dts: omap5-uevm: Add LED support for uEVM blue LED
+> 
+> Roger Quadros (1):
+>   ARM: dts: omap5-uevm: Add USB Host support
+> 
+> Sourav Poddar (1):
+>   ARM: dts: omap5-uevm: Add uart pinctrl data
+> 
+> Sricharan R (1):
+>   ARM: dts: omap5: Make uevm as the official board and deprecate sevm
+>     support
+> 
+>  arch/arm/boot/dts/Makefile       |    2 +-
+>  arch/arm/boot/dts/omap5-evm.dts  |  261 --------------------------------
+>  arch/arm/boot/dts/omap5-uevm.dts |  311 ++++++++++++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/omap5.dtsi     |   30 ++++
+>  4 files changed, 342 insertions(+), 262 deletions(-)
+>  delete mode 100644 arch/arm/boot/dts/omap5-evm.dts
+>  create mode 100644 arch/arm/boot/dts/omap5-uevm.dts
+> 
+
