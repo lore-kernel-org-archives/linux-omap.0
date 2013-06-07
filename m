@@ -1,55 +1,64 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH 09/11] mmc: omap_hsmmc: enhance pinctrl support
-Date: Fri, 7 Jun 2013 19:06:07 +0530
-Message-ID: <51B1E1C7.7050407@ti.com>
-References: <1369995191-20855-1-git-send-email-gururaja.hebbar@ti.com> <1369995191-20855-10-git-send-email-gururaja.hebbar@ti.com> <20130604144632.GI3331@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC v1] MFD: Change TWL6025 references to TWL6032
+Date: Fri, 7 Jun 2013 15:36:49 +0100
+Message-ID: <20130607143649.GS31367@sirena.org.uk>
+References: <1370602390-12306-1-git-send-email-oleksandr.kozaruk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20130604144632.GI3331@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Hebbar Gururaja <gururaja.hebbar@ti.com>, khilman@linaro.org, linus.walleij@linaro.org, sudhakar.raj@ti.com, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, vaibhav.bedia@ti.com, linux-omap@vger.kernel.org, Chris Ball <cjb@laptop.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FU8v9NgvNgS/pFcX"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:58141 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752395Ab3FGOhN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 10:37:13 -0400
+Content-Disposition: inline
+In-Reply-To: <1370602390-12306-1-git-send-email-oleksandr.kozaruk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-On Tuesday 04 June 2013 08:16 PM, Tony Lindgren wrote:
-> * Hebbar Gururaja <gururaja.hebbar@ti.com> [130531 03:19]:
->> Amend the hsmmc controller to optionally take a pin control handle and
->> set the state of the pins to:
->>
->> - "default" on boot, resume and before performing a mmc transfer
->> - "idle" after initial default, after resume default, and after each
->> mmc/sd card access
->> - "sleep" on suspend()
->>
->> By optionally putting the pins into sleep state in the suspend callback
->> we can accomplish two things.
->> - One is to minimize current leakage from pins and thus save power,
->> - second, we can prevent the IP from driving pins output in an
->> uncontrolled manner, which may happen if the power domain drops the
->> domain regulator.
->>
->> If any of the above pin states are missing in dt, a warning message
->> about the missing state is displayed.
->> If certain pin-states are not available, to remove this warning message
->> pass respective state name with null phandler.
->
-> There's a similar patch in the "[RESEND PATCH v2 1/3] mmc: omap_hsmmc:
-> Enable SDIO IRQ using a GPIO in idle mode" thread. It also makes the
-> SDIO interrupts to work, so we need to consider that too.
->
-
-Hi Tony,
-
-I will try to combine both of these and make use of
-pinctrl_pm_select_[*]_state helper functions.
+To: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, sameo@linux.intel.com, lgirdwood@gmail.com, balbi@ti.com, peter.ujfalusi@ti.com, t-kristo@ti.com, tony@atomide.com, Graeme Gregory <gg@slimlogic.co.uk>
 
 
-> We can merge the dynamic pinmuxing parts separately, but they should
-> be in a separate function like I posted later on in the thread above.
->
-> Regards,
->
-> Tony
->
+--FU8v9NgvNgS/pFcX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Jun 07, 2013 at 01:53:10PM +0300, Oleksandr Kozaruk wrote:
+> From: Graeme Gregory <gg@slimlogic.co.uk>
+>=20
+> The TWL6025 was never released beyond sample form and was replaced by
+> the PhoenixLite range of chips - TWL6032. Change the references to
+> reference the TWL6032 class and name the registers to twl6032 in line with
+> an actual released chip name to avoid confusion.
+>=20
+> Currently there is no users of TWL6025 in the code.=20
+
+Given that the chip exists even if not widely distributed it seems as
+well to keep the twl6025 references in there at least in the device ID
+table - it won't do any harm to people using the twl6032 name and might
+help someone who happens to pick up an old board for whatever reason.
+
+--FU8v9NgvNgS/pFcX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRse/+AAoJELSic+t+oim93xoP/23IcxsY6qp7RLRyio73nOU8
+ChOatNoEVZKxtlUIY1pdbmaOFDSflWh13mlvmDP/PMwc5athsyOaPx5unfyvDaOz
+Vf8h/gnLaB8GFbF29OyRZtRLOjMqtdpnXOa5CaUTxjEgWpcIxuw6sl3JBwCD/fgg
+bk7u4bjVd6wxog1YSwHVeK4uID/TDKsANacoMbT2wcLrU8ZeyE+ywoIlugJFnGnS
+ArsrM27Dov9tFdXd6/5kGioGIHhBmH6bFqi0KAVAOc3E4uORroekeYMP2uAuAbvs
+dFHvnaJ+5mh2x7y5KBpsYzFSgYUNiUwgM42LlerXJw/7aLv+94tWYlgTd01tLXDt
+RetwrL+lYzACKRH71nI4fQpndv9vqNLaa0Z5rJ70esh0Qxtqat8Dd73KLEG++otD
+hJgQMMWxwkKQyS9lL8v4rGQWO/4qtApaqMCdoCtpXLJM62e2DUENA9LKEARywBrO
+mbweCDtSKhMAETUtEt5Z/sZ4t7+Sv7TjtbUn4EpEldx7NC1KMYeulv1ufyDoh3s5
+7JoB9S5U95eh4pOm9hRn5hFX1pskNDvNeVNt2f4kK6UbKbpyRJ3JVcxc+p1CcPfX
+6SuL5YxmLx5KRtJCHM38PvF3bejjSF6TLbZ8c2taQn38fdIw3Hi46f+oJU1tTQsu
+1OiH2G39aJ7NqO39DHZ/
+=vGWS
+-----END PGP SIGNATURE-----
+
+--FU8v9NgvNgS/pFcX--
