@@ -1,66 +1,33 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: i2c issue on Panda with DT boot, v3.10-rc4
-Date: Fri, 7 Jun 2013 10:57:06 -0700
-Message-ID: <20130607175705.GC3331@atomide.com>
-References: <51B1C9D2.6060703@ti.com>
- <51B1D3D6.2020803@ti.com>
- <51B1D654.9070107@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH V2 14/14] ARM: OMAP4: hwmod data: Clean up the data
+ file
+Date: Fri, 7 Jun 2013 18:10:14 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1306071807510.7753@utopia.booyaka.com>
+References: <1370606175-22599-1-git-send-email-r.sricharan@ti.com> <alpine.DEB.2.02.1306071230500.5589@utopia.booyaka.com> <20130607162927.GA3331@atomide.com> <20130607175005.GB3331@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:28754 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755822Ab3FGR5H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 13:57:07 -0400
-Content-Disposition: inline
-In-Reply-To: <51B1D654.9070107@ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:47477 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755977Ab3FGSKP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 14:10:15 -0400
+In-Reply-To: <20130607175005.GB3331@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sricharan R <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, rnayak@ti.com, b-cousson@ti.com, t-kristo@ti.com, ambresh@ti.com
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [130607 05:53]:
-> On 07/06/13 15:36, Grygorii Strashko wrote:
-> 
-> > Could you check if below change will help you, pls?
-> > iff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> > index 13d1eca..66a62e7 100644
-> > --- a/drivers/i2c/busses/i2c-omap.c
-> > +++ b/drivers/i2c/busses/i2c-omap.c
-> > @@ -615,11 +615,11 @@ static int omap_i2c_xfer_msg(struct i2c_adapter
-> > *adap,
-> >         if (dev->cmd_err & OMAP_I2C_STAT_NACK) {
-> >                 if (msg->flags & I2C_M_IGNORE_NAK)
-> >                         return 0;
-> > -               if (stop) {
-> > -                       w = omap_i2c_read_reg(dev, OMAP_I2C_CON_REG);
-> > -                       w |= OMAP_I2C_CON_STP;
-> > -                       omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, w);
-> > -               }
-> > +
-> > +               w = omap_i2c_read_reg(dev, OMAP_I2C_CON_REG);
-> > +               w |= OMAP_I2C_CON_STP;
-> > +               omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, w);
-> > +
-> >                 return -EREMOTEIO;
-> >         }
-> >         return -EIO;
-> 
-> With that one, I don't get timeouts, but it still doesn't work (i.e.
-> behavior is the same as on -rc1).
-> 
-> When I run i2cdump the first time, I see that it (probably) manages to
-> read the first byte, as that's "00". Everything after that are 'XX'es.
+On Fri, 7 Jun 2013, Tony Lindgren wrote:
 
-Hmm I suggest git bisect, I'm pretty sure I was using my panda es
-with my omap4 DT conversion patches against v3.10-rc1.
+> I had to undo the following parts to avoid regressions on omap4sdp.
+> Can you please follow up on fixing the related issues so the fixup
+> won't be needed?
 
-In any case, please also test your changes against the current
-omap-for-v3.11/cleanup branch that drops omap4 legacy hwmod data for
-the parts that should come from DT. If you see some additional issues
-with that, we can revert the related parts of the last patch in
-omap-for-v3.11/cleanup.
+Well, I can't even test it at the moment.  So it's probably best for 
+Santosh and Sricharan to fix those issues - they're the ones who are 
+responsible for testing the patch before it's sent.  Unless there's
+some specific reason why I'd be the best person to do it?
 
-Regards,
 
-Tony
+
+- Paul
