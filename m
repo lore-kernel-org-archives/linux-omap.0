@@ -1,46 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP: hwmod/clock: more fixes for v3.10-rc
-Date: Fri, 7 Jun 2013 15:06:37 -0700
-Message-ID: <20130607220636.GN3331@atomide.com>
-References: <alpine.DEB.2.02.1306061746150.5152@utopia.booyaka.com>
+Subject: Re: [GIT PULL v2] ARM: dts: OMAP fixes for 3.10-rc5
+Date: Fri, 7 Jun 2013 15:07:07 -0700
+Message-ID: <20130607220706.GO3331@atomide.com>
+References: <51ACA9FA.9000308@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:24635 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:25621 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756072Ab3FGWGm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 18:06:42 -0400
+	with ESMTP id S1755822Ab3FGWHK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 18:07:10 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1306061746150.5152@utopia.booyaka.com>
+In-Reply-To: <51ACA9FA.9000308@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Kevin Hilman <khilman@linaro.org>, Lars Poeschel <poeschel@lemonage.de>, Suman Anna <s-anna@ti.com>
 
-* Paul Walmsley <paul@pwsan.com> [130606 10:54]:
-> Hi Tony
+* Benoit Cousson <b-cousson@ti.com> [130603 07:42]:
+> Hi Tony,
 > 
-> The following changes since commit d683b96b072dc4680fc74964eca77e6a23d1fa6e:
-> 
->   Linux 3.10-rc4 (2013-06-02 17:11:17 +0900)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-fixes-b-for-3.10-rc
-> 
-> for you to fetch changes up to a93d8a1cea0899982993e9a93404c6f78b123697:
-> 
->   ARM: omap3: clock: fix wrong container_of in clock36xx.c (2013-06-06 08:48:07 -0600)
-> 
-> ----------------------------------------------------------------
-> More OMAP hwmod and clock fixes for v3.10-rc.  Fixes the AM33xx UART2.
-> Also fixes some CCF-related breakage on OMAP36xx/37xx, affecting DSS
-> at the very least.
-> 
-> Basic test logs for this branch are here:
-> 
-> http://www.pwsan.com/omap/testlogs/fixes_b_v3.10-rc/20130606093449/
+> Please pull three DTS fixes for the next -rc.
 
 Thanks pulling into omap-for-v3.10/fixes.
 
+Regards,
+
 Tony
+ 
+> The following changes since commit d683b96b072dc4680fc74964eca77e6a23d1fa6e:
+>   Linus Torvalds (1):
+>         Linux 3.10-rc4
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git dts-fixes-for-3.10
+> 
+> Kevin Hilman (1):
+>       ARM: dts: omap4-panda|sdp: Fix mux for twl6030 IRQ pin and msecure line
+> 
+> Lars Poeschel (1):
+>       ARM: dts: AM33xx: Fix properties on gpmc node
+> 
+> Suman Anna (1):
+>       ARM: dts: OMAP5: Fix missing PWM capability to timer nodes
+> 
+>  arch/arm/boot/dts/am33xx.dtsi             |    4 ++--
+>  arch/arm/boot/dts/omap4-panda-common.dtsi |   20 ++++++++++++++++++++
+>  arch/arm/boot/dts/omap4-sdp.dts           |   20 ++++++++++++++++++++
+>  arch/arm/boot/dts/omap5.dtsi              |    3 +++
+>  4 files changed, 45 insertions(+), 2 deletions(-)
