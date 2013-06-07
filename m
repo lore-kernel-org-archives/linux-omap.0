@@ -1,155 +1,108 @@
 From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 14/32] OMAPDSS: DSI: cleanup regulator init
-Date: Fri, 7 Jun 2013 12:19:00 +0530
-Message-ID: <51B1825C.9050206@ti.com>
-References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com> <1369906493-27538-15-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 15/32] OMAPDSS: DPI: cleanup pll & regulator init
+Date: Fri, 7 Jun 2013 12:21:35 +0530
+Message-ID: <51B182F7.7050002@ti.com>
+References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com> <1369906493-27538-16-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43153 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:43266 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752553Ab3FGGuO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 02:50:14 -0400
-In-Reply-To: <1369906493-27538-15-git-send-email-tomi.valkeinen@ti.com>
+	with ESMTP id S1750871Ab3FGGwt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 02:52:49 -0400
+In-Reply-To: <1369906493-27538-16-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
 On Thursday 30 May 2013 03:04 PM, Tomi Valkeinen wrote:
-> Separate the regulator initialization code to its own function, removing
-> duplicate code.
+> Split regulator and DSI PLL init code to their own functions for
+> clarity.
 >
 > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 > ---
->   drivers/video/omap2/dss/dsi.c | 82 ++++++++++++++++---------------------------
->   1 file changed, 31 insertions(+), 51 deletions(-)
+>   drivers/video/omap2/dss/dpi.c | 100 ++++++++++++++++++++++--------------------
+>   1 file changed, 53 insertions(+), 47 deletions(-)
 >
-> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-> index bdddd0d..37ca980 100644
-> --- a/drivers/video/omap2/dss/dsi.c
-> +++ b/drivers/video/omap2/dss/dsi.c
-> @@ -1114,6 +1114,30 @@ void dsi_runtime_put(struct platform_device *dsidev)
->   	WARN_ON(r < 0 && r != -ENOSYS);
+> diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+> index 43f6b26..66ba9a6 100644
+> --- a/drivers/video/omap2/dss/dpi.c
+> +++ b/drivers/video/omap2/dss/dpi.c
+> @@ -545,6 +545,53 @@ static int dpi_verify_dsi_pll(struct platform_device *dsidev)
+>   	return 0;
 >   }
 >
-> +static int dsi_regulator_init(struct platform_device *dsidev)
+> +static int dpi_init_regulator(void)
 > +{
-> +	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
 > +	struct regulator *vdds_dsi;
 > +
-> +	if (dsi->vdds_dsi_reg != NULL)
+> +	if (!dss_has_feature(FEAT_DPI_USES_VDDS_DSI))
 > +		return 0;
 > +
-> +	vdds_dsi = regulator_get(&dsi->pdev->dev, "vdds_dsi");
+> +	if (dpi.vdds_dsi_reg)
+> +		return 0;
 > +
-> +	/* DT HACK: try VCXIO to make omapdss work for o4 sdp/panda */
-> +	if (IS_ERR(vdds_dsi))
-> +		vdds_dsi = regulator_get(&dsi->pdev->dev, "VCXIO");
+> +	vdds_dsi = dss_get_vdds_dsi();
 > +
-
-We could use devm_ versions here too right?
-
-Archit
-
-> +	if (IS_ERR(vdds_dsi)) {
-> +		DSSERR("can't get VDDS_DSI regulator\n");
-> +		return PTR_ERR(vdds_dsi);
+> +	if (!IS_ERR(vdds_dsi)) {
+> +		dpi.vdds_dsi_from_core = true;
+> +		dpi.vdds_dsi_reg = vdds_dsi;
+> +		return 0;
 > +	}
 > +
-> +	dsi->vdds_dsi_reg = vdds_dsi;
+> +	vdds_dsi = regulator_get(&dpi.pdev->dev, "vdds_dsi");
+> +	if (!IS_ERR(vdds_dsi)) {
+> +		dpi.vdds_dsi_from_core = false;
+> +		dpi.vdds_dsi_reg = vdds_dsi;
+> +		return 0;
+> +	}
 > +
-> +	return 0;
+> +	return PTR_ERR(vdds_dsi);
 > +}
 > +
->   /* source clock for DSI PLL. this could also be PCLKFREE */
->   static inline void dsi_enable_pll_clock(struct platform_device *dsidev,
->   		bool enable)
-> @@ -1592,22 +1616,9 @@ int dsi_pll_init(struct platform_device *dsidev, bool enable_hsclk,
->   	 */
->   	enable_hsclk = enable_hsdiv = true;
->
-> -	if (dsi->vdds_dsi_reg == NULL) {
-> -		struct regulator *vdds_dsi;
-> -
-> -		vdds_dsi = regulator_get(&dsi->pdev->dev, "vdds_dsi");
-> -
-> -		/* DT HACK: try VCXIO to make omapdss work for o4 sdp/panda */
-> -		if (IS_ERR(vdds_dsi))
-> -			vdds_dsi = regulator_get(&dsi->pdev->dev, "VCXIO");
-> -
-> -		if (IS_ERR(vdds_dsi)) {
-> -			DSSERR("can't get VDDS_DSI regulator\n");
-> -			return PTR_ERR(vdds_dsi);
-> -		}
-> -
-> -		dsi->vdds_dsi_reg = vdds_dsi;
-> -	}
-> +	r = dsi_regulator_init(dsidev);
-> +	if (r)
-> +		return r;
->
->   	dsi_enable_pll_clock(dsidev, 1);
->   	/*
-> @@ -5225,34 +5236,6 @@ static enum omap_channel dsi_get_channel(int module_id)
+> +static void dpi_init_pll(void)
+> +{
+> +	struct platform_device *dsidev;
+> +
+> +	if (dpi.dsidev)
+> +		return;
+> +
+> +	dsidev = dpi_get_dsidev(dpi.output.dispc_channel);
+> +	if (!dsidev)
+> +		return;
+> +
+> +	if (dpi_verify_dsi_pll(dsidev)) {
+> +		DSSWARN("DSI PLL not operational\n");
+> +		return;
+> +	}
+> +
+> +	dpi.dsidev = dsidev;
+> +}
+> +
+>   /*
+>    * Return a hardcoded channel for the DPI output. This should work for
+>    * current use cases, but this can be later expanded to either resolve
+> @@ -575,46 +622,6 @@ static enum omap_channel dpi_get_channel(void)
 >   	}
 >   }
 >
-> -static int dsi_init_display(struct omap_dss_device *dssdev)
+> -static int dpi_init_display(struct omap_dss_device *dssdev)
 > -{
-> -	struct platform_device *dsidev =
-> -			dsi_get_dsidev_from_id(dssdev->phy.dsi.module);
-> -	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
+> -	struct platform_device *dsidev;
 > -
-> -	DSSDBG("DSI init\n");
+> -	DSSDBG("init_display\n");
 > -
-> -	if (dsi->vdds_dsi_reg == NULL) {
+> -	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI) &&
+> -					dpi.vdds_dsi_reg == NULL) {
 > -		struct regulator *vdds_dsi;
 > -
-> -		vdds_dsi = regulator_get(&dsi->pdev->dev, "vdds_dsi");
-> -
-> -		/* DT HACK: try VCXIO to make omapdss work for o4 sdp/panda */
-> -		if (IS_ERR(vdds_dsi))
-> -			vdds_dsi = regulator_get(&dsi->pdev->dev, "VCXIO");
-> -
+> -		vdds_dsi = dss_get_vdds_dsi();
 > -		if (IS_ERR(vdds_dsi)) {
-> -			DSSERR("can't get VDDS_DSI regulator\n");
-> -			return PTR_ERR(vdds_dsi);
-> -		}
-> -
-> -		dsi->vdds_dsi_reg = vdds_dsi;
-> -	}
-> -
-> -	return 0;
-> -}
-> -
->   int omap_dsi_request_vc(struct omap_dss_device *dssdev, int *channel)
->   {
->   	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
-> @@ -5410,19 +5393,16 @@ static int dsi_probe_pdata(struct platform_device *dsidev)
->   	if (!plat_dssdev)
->   		return 0;
->
-> +	r = dsi_regulator_init(dsidev);
-> +	if (r)
-> +		return r;
-> +
->   	dssdev = dss_alloc_and_init_device(&dsidev->dev);
->   	if (!dssdev)
->   		return -ENOMEM;
->
->   	dss_copy_device_pdata(dssdev, plat_dssdev);
->
-> -	r = dsi_init_display(dssdev);
-> -	if (r) {
-> -		DSSERR("device %s init failed: %d\n", dssdev->name, r);
-> -		dss_put_device(dssdev);
-> -		return r;
-> -	}
-> -
->   	r = omapdss_output_set_device(&dsi->output, dssdev);
->   	if (r) {
->   		DSSERR("failed to connect output to new device: %s\n",
->
+> -			vdds_dsi = regulator_get(&dpi.pdev->dev, "vdds_dsi");
+
+same comment about devm_ usage here, and the next few patches.
+
+Archit
 
