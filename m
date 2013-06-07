@@ -1,180 +1,93 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V3 2/4] ARM: dts: omap5-uevm: Add USB Host support
-Date: Fri, 7 Jun 2013 18:52:48 +0530
-Message-ID: <1370611370-14715-3-git-send-email-r.sricharan@ti.com>
+Subject: [PATCH V3 4/4] ARM: dts: omap5-uevm: Add uart pinctrl data
+Date: Fri, 7 Jun 2013 18:52:50 +0530
+Message-ID: <1370611370-14715-5-git-send-email-r.sricharan@ti.com>
 References: <1370611370-14715-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33849 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753453Ab3FGNXc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 09:23:32 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:33474 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752763Ab3FGNX3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Jun 2013 09:23:29 -0400
 In-Reply-To: <1370611370-14715-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: devicetree-discuss@lists.ozlabs.org, r.sricharan@ti.com, tony@atomide.com, b-cousson@ti.com, Roger Quadros <rogerq@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, r.sricharan@ti.com, tony@atomide.com, b-cousson@ti.com, Sourav Poddar <sourav.poddar@ti.com>
 
-From: Roger Quadros <rogerq@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
 
-Provide the RESET regulators for the USB PHYs, the USB Host
-port modes and the PHY devices.
+Booting omap5 uevm results in the following error
+"did not get pins for uart error: -19"
 
-Also provide pin multiplexer information for the USB host
-pins.
+This happens because omap5 uevm dts file is not adapted to use uart through pinctrl
+framework. Populating uart pinctrl data to get rid of the error.
 
-Cc: Roger Quadros <rogerq@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Cc: Sourav Poddar <sourav.poddar@ti.com>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 [Sricharan R <r.sricharan@ti.com>: Replaced constants with preprocessor macros]
 Signed-off-by: Sricharan R <r.sricharan@ti.com>
 ---
- arch/arm/boot/dts/omap5-uevm.dts |   70 ++++++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap5.dtsi     |   30 ++++++++++++++++
- 2 files changed, 100 insertions(+)
+ arch/arm/boot/dts/omap5-uevm.dts |   41 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 843a001..a31e42f 100644
+index 6e8bb86..927db1e 100644
 --- a/arch/arm/boot/dts/omap5-uevm.dts
 +++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -25,6 +25,40 @@
- 		regulator-max-microvolt = <3000000>;
- 	};
- 
-+	/* HS USB Port 2 RESET */
-+	hsusb2_reset: hsusb2_reset_reg {
-+		compatible = "regulator-fixed";
-+		regulator-name = "hsusb2_reset";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		gpio = <&gpio3 16 GPIO_ACTIVE_HIGH>; /* gpio3_80 HUB_NRESET */
-+		startup-delay-us = <70000>;
-+		enable-active-high;
-+	};
-+
-+	/* HS USB Host PHY on PORT 2 */
-+	hsusb2_phy: hsusb2_phy {
-+		compatible = "usb-nop-xceiv";
-+		reset-supply = <&hsusb2_reset>;
-+	};
-+
-+	/* HS USB Port 3 RESET */
-+	hsusb3_reset: hsusb3_reset_reg {
-+		compatible = "regulator-fixed";
-+		regulator-name = "hsusb3_reset";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		gpio = <&gpio3 15 GPIO_ACTIVE_HIGH>; /* gpio3_79 ETH_NRESET */
-+		startup-delay-us = <70000>;
-+		enable-active-high;
-+	};
-+
-+	/* HS USB Host PHY on PORT 3 */
-+	hsusb3_phy: hsusb3_phy {
-+		compatible = "usb-nop-xceiv";
-+		reset-supply = <&hsusb3_reset>;
-+	};
-+
- };
- 
- &omap5_pmx_core {
-@@ -35,6 +69,7 @@
- 			&dmic_pins
- 			&mcbsp1_pins
- 			&mcbsp2_pins
-+			&usbhost_pins
- 	>;
- 
- 	twl6040_pins: pinmux_twl6040_pins {
-@@ -120,6 +155,32 @@
- 			0x16c (PIN_INPUT | MUX_MODE1)		/*  mcspi2_cs */
+@@ -184,6 +184,32 @@
+ 			0x196 (PIN_OUTPUT | MUX_MODE6) /* uart3_cts_rctx.gpio5_153 */
  		>;
  	};
 +
-+	usbhost_pins: pinmux_usbhost_pins {
++	uart1_pins: pinmux_uart1_pins {
 +		pinctrl-single,pins = <
-+			0x84 (PIN_INPUT | MUX_MODE0) /* usbb2_hsic_strobe */
-+			0x86 (PIN_INPUT | MUX_MODE0) /* usbb2_hsic_data */
-+
-+			0x19e (PIN_INPUT | MUX_MODE0) /* usbb3_hsic_strobe */
-+			0x1a0 (PIN_INPUT | MUX_MODE0) /* usbb3_hsic_data */
-+
-+			0x70 (PIN_OUTPUT | MUX_MODE6) /* gpio3_80 HUB_NRESET */
-+			0x6e (PIN_OUTPUT | MUX_MODE6) /* gpio3_79 ETH_NRESET */
++			0x60 (PIN_OUTPUT | MUX_MODE0) /* uart1_tx.uart1_cts */
++			0x62 (PIN_INPUT_PULLUP | MUX_MODE0) /* uart1_tx.uart1_cts */
++			0x64 (PIN_INPUT_PULLUP | MUX_MODE0) /* uart1_rx.uart1_rts */
++			0x66 (PIN_OUTPUT | MUX_MODE0) /* uart1_rx.uart1_rts */
 +		>;
 +	};
-+};
 +
-+&omap5_pmx_wkup {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+			&usbhost_wkup_pins
-+	>;
-+
-+	usbhost_wkup_pins: pinmux_usbhost_wkup_pins {
++	uart3_pins: pinmux_uart3_pins {
 +		pinctrl-single,pins = <
-+			0x1A (PIN_OUTPUT | MUX_MODE0) /* fref_clk1_out, USB hub clk */
++			0x19a (PIN_OUTPUT | MUX_MODE0) /* uart3_rts_irsd.uart3_tx_irtx */
++			0x19c (PIN_INPUT_PULLUP | MUX_MODE0) /* uart3_rx_irrx.uart3_usbb3_hsic */
 +		>;
 +	};
++
++	uart5_pins: pinmux_uart5_pins {
++		pinctrl-single,pins = <
++			0x170 (PIN_INPUT_PULLUP | MUX_MODE0) /* uart5_rx.uart5_rx */
++			0x172 (PIN_OUTPUT | MUX_MODE0) /* uart5_tx.uart5_tx */
++			0x174 (PIN_INPUT_PULLUP | MUX_MODE0) /* uart5_cts.uart5_rts */
++			0x176 (PIN_OUTPUT | MUX_MODE0) /* uart5_cts.uart5_rts */
++		>;
++	};
++
  };
  
- &mmc1 {
-@@ -164,6 +225,15 @@
- 	status = "disabled";
+ &omap5_pmx_wkup {
+@@ -268,3 +294,18 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&mcspi4_pins>;
  };
- 
-+&usbhshost {
-+	port2-mode = "ehci-hsic";
-+	port3-mode = "ehci-hsic";
++
++&uart1 {
++        pinctrl-names = "default";
++        pinctrl-0 = <&uart1_pins>;
 +};
 +
-+&usbhsehci {
-+	phys = <0 &hsusb2_phy &hsusb3_phy>;
++&uart3 {
++        pinctrl-names = "default";
++        pinctrl-0 = <&uart3_pins>;
 +};
 +
- &mcspi1 {
- 
- };
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 1e84db8..accab62 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -666,5 +666,35 @@
- 				ctrl-module = <&omap_control_usb>;
- 			};
- 		};
-+
-+		usbhstll: usbhstll@4a062000 {
-+			compatible = "ti,usbhs-tll";
-+			reg = <0x4a062000 0x1000>;
-+			interrupts = <GIC_SPI 78 IRQ_TYPE_LEVEL_HIGH>;
-+			ti,hwmods = "usb_tll_hs";
-+		};
-+
-+		usbhshost: usbhshost@4a064000 {
-+			compatible = "ti,usbhs-host";
-+			reg = <0x4a064000 0x800>;
-+			ti,hwmods = "usb_host_hs";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
-+
-+			usbhsohci: ohci@4a064800 {
-+				compatible = "ti,ohci-omap3", "usb-ohci";
-+				reg = <0x4a064800 0x400>;
-+				interrupt-parent = <&gic>;
-+				interrupts = <GIC_SPI 76 IRQ_TYPE_LEVEL_HIGH>;
-+			};
-+
-+			usbhsehci: ehci@4a064c00 {
-+				compatible = "ti,ehci-omap", "usb-ehci";
-+				reg = <0x4a064c00 0x400>;
-+				interrupt-parent = <&gic>;
-+				interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
-+			};
-+		};
- 	};
- };
++&uart5 {
++        pinctrl-names = "default";
++        pinctrl-0 = <&uart5_pins>;
++};
 -- 
 1.7.9.5
 
