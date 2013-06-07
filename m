@@ -1,49 +1,67 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 19/32] OMAPDSS: add videomode conversion support
-Date: Fri, 7 Jun 2013 11:35:43 +0300
-Message-ID: <51B19B5F.2060005@ti.com>
-References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com> <1369906493-27538-20-git-send-email-tomi.valkeinen@ti.com> <51B18687.6000602@ti.com>
+Subject: Re: Request for OMAPDSS testing
+Date: Fri, 7 Jun 2013 11:39:57 +0300
+Message-ID: <51B19C5D.3060406@ti.com>
+References: <51AD99F5.7060506@ti.com> <20130606204342.GB3507@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="----enig2WUSNPNVHBDFDKBPAGWFC"
+	boundary="----enig2ATJRKFDOOPPOGGOTIDTP"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48398 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751327Ab3FGIfq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Jun 2013 04:35:46 -0400
-In-Reply-To: <51B18687.6000602@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:48573 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751721Ab3FGIkU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 04:40:20 -0400
+In-Reply-To: <20130606204342.GB3507@blackmetal.musicnaut.iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, Thomas Weber <weber@corscience.de>, Mike Rapoport <mike@compulab.co.il>, Steve Sakoman <steve@sakoman.com>, =?windows-1252?Q?Gra=9Evydas_Ignotas?= <notasas@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-------enig2WUSNPNVHBDFDKBPAGWFC
-Content-Type: text/plain; charset=ISO-8859-1
+------enig2ATJRKFDOOPPOGGOTIDTP
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 07/06/13 10:06, Archit Taneja wrote:
-> On Thursday 30 May 2013 03:04 PM, Tomi Valkeinen wrote:
->> Add helper functions to convert between omapdss specific video timings=
-
->> and the common videomode.
->>
->> Eventually omapdss will be changed to use only the common video timing=
-s,
->> and these helper functions will make the transition easier.
+On 06/06/13 23:43, Aaro Koskinen wrote:
+> Hi,
 >=20
-> So we now use omap_video_timings, videomode, drm_display_mode, and
-> fb_var_screeninfo, fun! :)
+> On Tue, Jun 04, 2013 at 10:40:37AM +0300, Tomi Valkeinen wrote:
+>> I've made some big changes on the omapdss device model, which involves=
 
-Yes, although videomode is only used when passing videomode from the
-board file. I wanted to make that right from the start.
-omap_video_timings is still used everywhere else in omapdss.
+>> converting all the panel drivers. I've got only a bunch of boards, so =
+I
+>> hope some of you can perhaps do some minimal tests on some other board=
+s.
+>>
+>> I've got: Beagle (old one), Panda, 4430SDP, Overo with LCD43.
+>>
+>> The code can be found from the below git branch. It's based on 3.10-rc=
+1.
+>>
+>> git://gitorious.org/linux-omap-dss2/linux.git work/dss-dev-model
+>>
+>> All you need to do to get things working is to enable the new panel
+>> drivers from kernel config, under Device drivers/Graphics support/OMAP=
+2+
+>> Display Subsystem support/OMAP Display Device Drivers/
+>=20
+> I tested Nokia N900 by pulling your tree and doing the following .confi=
+g
+> changes:
+>=20
+> 	# CONFIG_PANEL_ACX565AKM is not set
+>=20
+> 	CONFIG_PANEL_SONY_ACX565AKM=3Dy
+>=20
+> The frame buffer console seems to work OK.
+
+Excellent, thanks!
 
  Tomi
 
 
 
-------enig2WUSNPNVHBDFDKBPAGWFC
+------enig2ATJRKFDOOPPOGGOTIDTP
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -52,19 +70,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.12 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJRsZtfAAoJEPo9qoy8lh71kdcP/jxLI7ca+PRDX7F49xdEC2Iw
-KnhEVubvxqMffNJ2F2+sNYbXH6VVNNj2zyD4xLh9uI8XXoYjHWH5LFkOcaE2Mdk9
-uNbuVbVlETN4RupeWr7ZVyYVGNkONFCLYIrdcuu0isLWLredDeyX19+kLTr7Cinc
-o3LVgQCrigwwpQcnoexe03XmJMxhbEexd1ecbkpnEaNnO+9QcmIJ832xVmEoCcQH
-a3wU/5rzjqojLYNXA3FEJF8CrE9j/biPjDXvKbBYFZ0EoI7Ja3gJDhgGkdqb5l2o
-EAF+7gXUY+4oxbWg0eWagUtFu7JkX7K7JoKTr10+3rUQkrX6LTa0tU5remCR8EDc
-KnOOUb9NHqa7PvatsnA1dTk8IFEUYHd4Wo2isjJ0Mvx8ZJztBOCzfMweIxtu47/H
-bXs78zmi2j8m6RHEXvswSPqYHhhyl/nhh4PWiJMhdpTTmOEAD9s2osI08y+8rZRp
-O5/5Afd30ileVKinNC38KUTaT+8ks+l9VBGox81FsOmmNo9DzH7BEwNKVRthtYtC
-Z0OkK7N8xYkQSvYIoWJ/I1+PbtdGK6LtuPjZxscHxliKdDfmBUSYfe2kLEoBLrvH
-pziD5ak6CIRKvjTI20AhMYoNAaXy1toEvOOzfefd3ce6Ji6nOHVCaFWAcEAlac9J
-wFrszTsrSWpqhiVfrrU6
-=qPyR
+iQIbBAEBAgAGBQJRsZxdAAoJEPo9qoy8lh71ipEP+OcUO3S8ukIQjnxM/3OmbCkx
+q6zyB7zv7a8w7JHJvknITRl4MRrFlJ5MnStEuogTevrDTJF5e4bwdDtvRrqmnj4Q
+Jvz55Heg79jNbLMuNlY1wu8Iauv7afhuSuYauNg7y3V3RfVmTzHZgQNwt8dX7D8r
+qXGvNvdWkv9FTs+A6J4qVADnWb4FVCed8wdJh44vNMdNLvYUWa5AEDYAuTbFQemP
+i8NbTGlH3irgzWM9yYpj2VI8PqoLrvPsvuHPMq03JChu5fsleMk6sYEyjyOqhUZy
+zTRIWAOMyNZcqf6wojW0iAawMMs/awYq/Ij2FBNUGbqhtYivip2z6GPB6P4ck6zS
+9sCK3wCb7FmJLHxXPp/PZV9EEOXDfJhqgzJai4+/62eHhr0kYWAWszlYP+Y2kpsn
+AqpsyVN9XkhQinJYFqBcQWp5iKm11vYGbxzrwclNfcFFBTDoJe5wLyUxc5V3drKL
+kUgw0gOfh6B2N/Oj4tKY4gsvLa57MMDbw56Yip1yJChjlj0rsEwUAlf1xzqTF141
+oC7shvw0j7weB1suR+tQsGaC/RShVqwN7grQ6mrMu7FJQi3eVUved4j6ywM7LIDd
+/UF3NVWdJSxf2HunLrAMI38CRVGx/zuF3OgFtCT4Bk3X6mboFIFgTwlpReyhUEmp
+cJdqsyMVCXFGtsrQnwo=
+=eH1s
 -----END PGP SIGNATURE-----
 
-------enig2WUSNPNVHBDFDKBPAGWFC--
+------enig2ATJRKFDOOPPOGGOTIDTP--
