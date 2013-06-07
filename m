@@ -1,56 +1,73 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 14/14] ARM: OMAP4: hwmod data: Clean up the data file
-Date: Fri, 7 Jun 2013 09:50:40 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1306070949300.32163@utopia.booyaka.com>
-References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>  <1369845494-30231-15-git-send-email-santosh.shilimkar@ti.com>  <alpine.DEB.2.02.1306061754560.5152@utopia.booyaka.com>  <51B0D54A.1090107@ti.com> <51B175E4.1060909@ti.com>
- <alpine.DEB.2.02.1306070751210.32163@utopia.booyaka.com>  <51B1A150.9020307@ti.com> <1370598383.25965.73.camel@sokoban>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 10/32] OMAPDSS: split overlay manager creation
+Date: Fri, 7 Jun 2013 12:53:30 +0300
+Message-ID: <51B1AD9A.7040904@ti.com>
+References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com> <1369906493-27538-11-git-send-email-tomi.valkeinen@ti.com> <51B17B6C.6050801@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1336670744-1370598640=:32163"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="----enig2TJMCWLSLPPJALKSVPAPM"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:44737 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752462Ab3FGJul (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 05:50:41 -0400
-In-Reply-To: <1370598383.25965.73.camel@sokoban>
+Received: from comal.ext.ti.com ([198.47.26.152]:41168 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753798Ab3FGJxd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Jun 2013 05:53:33 -0400
+In-Reply-To: <51B17B6C.6050801@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Ambresh K <ambresh@ti.com>
+To: Archit Taneja <archit@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+------enig2TJMCWLSLPPJALKSVPAPM
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
---843723315-1336670744-1370598640=:32163
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-On Fri, 7 Jun 2013, Tero Kristo wrote:
-
-> On Fri, 2013-06-07 at 14:31 +0530, Sricharan R wrote:
-> > On Friday 07 June 2013 01:22 PM, Paul Walmsley wrote:
-> > > cc Beno=C3=AEt
-> > >
-> > > On Fri, 7 Jun 2013, Sricharan R wrote:
-> > >
-> > >> I used autogen to remove the data, but some of the data were not in =
-sync
-> > >> with the mainline .(like abe, dss, aess, context register offsets et=
-c..).
-> > >> So i have to sync them manually.
-> > > OK.  Are you going to fix the differences up soon?
-> > >
-> > > - Paul
-> > + Ambresh and Tero for autogen.
+On 07/06/13 09:19, Archit Taneja wrote:
+> On Thursday 30 May 2013 03:04 PM, Tomi Valkeinen wrote:
+>> Split the function that creates overlay manager structs into two: one
+>> that creates just the structs, and one that creates the sysfs files fo=
+r
+>> the manager.
+>>
+>> This will help us use the overlay manager structs with omapdrm in the
+>> following patches, while still leaving the sysfs files out.
 >=20
-> This is not going to happen soon, if ever. We might consider doing this
-> if a complete overhaul for the hwmod data is going to be done at some
-> point so that re-generating the new format is easier.
+> Maybe the omapdss Makefile should also reflect this change, we could
+> move manager.o so that it doesn't look like a compat file any more.
 
-OK.  Sricharan, how about reposting the OMAP4 hwmod data patch and drop=20
-the comment regarding autogeneration?  That will be more accurate and will=
-=20
-save some more lines.
+It's not quite non-compat file either, as it has compat code also. So
+more refactoring is needed if to make a proper compat/non-compat
+division. I'll keep it unchanged for the moment, but at some point it'd
+be nice to compile the compat stuff only if omapfb is enabled. Or, maybe
+move the compat stuff into omapfb (but that gives a problem with omap_vou=
+t).
+
+ Tomi
 
 
-- Paul
---843723315-1336670744-1370598640=:32163--
+
+------enig2TJMCWLSLPPJALKSVPAPM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRsa2aAAoJEPo9qoy8lh71k7gP/R0+ee0YYfKum5a61z+D4S2I
+us5yww1oSrxXsDMRvMpQjYgSzQP3H9BJ64/ruDpYu9chbwHpcmJfvfGPRpzMWc6Q
+vDwQUrpKgjXl2YOF/Kfjy6PnRAlc5PwVZylGM0Nxs6Rse7BWr4x2PGRtHK5COoRk
+n6JKJj48XHQEu0CWOl700+PYeQZy1PCihp/X0TiAUN9x+CqtwV0e7vuvXRiFCLDF
+EhHaqqeTg4KBWECLGXVeM73v0VZmrPJmYUzeIt/uvFoM90vfWda9rdLqk6mfi14L
+eH4WUGHLOb4FStMn4at3tkQ7WQYhfKobniMlkVd790vvFyRCvMpKqaH8zw+m1kTV
+9ixhIYcHu64+1Wl5CAuY7vn5KG0d8eCcjtAXIwVHC3FAdjnpou0eQ68Hzq9TrJJj
+iP8TiIvmrz7KvB9h/dbKT50GxOQ3++h+pMkuogspiPiUgGOjxM7gs7W2lgUSfD6M
+Iu7vkYTNDEkYBtkAyyVhJpF1ZBXKXM0HbhlmNNkcQcriw0Byo9dELg1Jee/Dt2xa
+BcaJbsHNYYjGTRP1uqQFinqQNaOfVGxahUQu5/SOu/vhD0k0ZV999FvDxfa3vh4N
+TlPKjViuT9xb6a5iNxvKQ2Cz/YigYorunFnBMZcCNSkTLNWbaK49IUTA0n460Gsx
+SptquLoOpkptjetpWSCD
+=r5rE
+-----END PGP SIGNATURE-----
+
+------enig2TJMCWLSLPPJALKSVPAPM--
