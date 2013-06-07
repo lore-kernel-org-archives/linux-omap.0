@@ -1,529 +1,167 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v9 1/9] ARM: davinci: move private EDMA API to arm/common
-Date: Fri, 7 Jun 2013 11:47:11 +0530
-Message-ID: <51B17AE7.4070403@ti.com>
-References: <1362586540-10393-1-git-send-email-mporter@ti.com>
-	<1362586540-10393-2-git-send-email-mporter@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 10/32] OMAPDSS: split overlay manager creation
+Date: Fri, 7 Jun 2013 11:49:24 +0530
+Message-ID: <51B17B6C.6050801@ti.com>
+References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com> <1369906493-27538-11-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1362586540-10393-2-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel@list>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:42231 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751471Ab3FGGUi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Jun 2013 02:20:38 -0400
+In-Reply-To: <1369906493-27538-11-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-+ Chris since the patch has some davinci_mmc.c changes.
+On Thursday 30 May 2013 03:04 PM, Tomi Valkeinen wrote:
+> Split the function that creates overlay manager structs into two: one
+> that creates just the structs, and one that creates the sysfs files for
+> the manager.
+>
+> This will help us use the overlay manager structs with omapdrm in the
+> following patches, while still leaving the sysfs files out.
 
-Chris, Mark,
+Maybe the omapdss Makefile should also reflect this change, we could 
+move manager.o so that it doesn't look like a compat file any more.
 
-On 3/6/2013 9:45 PM, Matt Porter wrote:
-> Move mach-davinci/dma.c to common/edma.c so it can be used
-> by OMAP (specifically AM33xx) as well.
-> 
-> Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-> Acked-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Archit
 
-Can you please ack changes in mmc and sound respectively? I would like
-to take the patch for v3.11.
-
-Thanks,
-Sekhar
-
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 > ---
->  arch/arm/Kconfig                                   |    1 +
->  arch/arm/common/Kconfig                            |    3 +
->  arch/arm/common/Makefile                           |    1 +
->  arch/arm/{mach-davinci/dma.c => common/edma.c}     |    2 +-
->  arch/arm/mach-davinci/Makefile                     |    2 +-
->  arch/arm/mach-davinci/board-tnetv107x-evm.c        |    2 +-
->  arch/arm/mach-davinci/davinci.h                    |    2 +-
->  arch/arm/mach-davinci/devices-tnetv107x.c          |    2 +-
->  arch/arm/mach-davinci/devices.c                    |    6 +-
->  arch/arm/mach-davinci/dm355.c                      |    2 +-
->  arch/arm/mach-davinci/dm365.c                      |    2 +-
->  arch/arm/mach-davinci/dm644x.c                     |    2 +-
->  arch/arm/mach-davinci/dm646x.c                     |    2 +-
->  arch/arm/mach-davinci/include/mach/da8xx.h         |    2 +-
->  drivers/dma/edma.c                                 |    2 +-
->  drivers/mmc/host/davinci_mmc.c                     |    1 +
->  include/linux/mfd/davinci_voicecodec.h             |    3 +-
->  .../mach => include/linux/platform_data}/edma.h    |   89 +-------------------
->  include/linux/platform_data/spi-davinci.h          |    2 +-
->  sound/soc/davinci/davinci-evm.c                    |    1 +
->  sound/soc/davinci/davinci-pcm.c                    |    1 +
->  sound/soc/davinci/davinci-pcm.h                    |    2 +-
->  sound/soc/davinci/davinci-sffsdr.c                 |    5 +-
->  23 files changed, 33 insertions(+), 104 deletions(-)
->  rename arch/arm/{mach-davinci/dma.c => common/edma.c} (99%)
->  rename {arch/arm/mach-davinci/include/mach => include/linux/platform_data}/edma.h (59%)
-> 
-> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-> index 5b71469..cb80a4d 100644
-> --- a/arch/arm/Kconfig
-> +++ b/arch/arm/Kconfig
-> @@ -956,6 +956,7 @@ config ARCH_DAVINCI
->  	select GENERIC_IRQ_CHIP
->  	select HAVE_IDE
->  	select NEED_MACH_GPIO_H
-> +	select TI_PRIV_EDMA
->  	select USE_OF
->  	select ZONE_DMA
->  	help
-> diff --git a/arch/arm/common/Kconfig b/arch/arm/common/Kconfig
-> index 9353184..c3a4e9c 100644
-> --- a/arch/arm/common/Kconfig
-> +++ b/arch/arm/common/Kconfig
-> @@ -17,3 +17,6 @@ config SHARP_PARAM
->  
->  config SHARP_SCOOP
->  	bool
+>   drivers/video/omap2/dss/apply.c         |  9 ++++++---
+>   drivers/video/omap2/dss/dss.h           |  6 ++++--
+>   drivers/video/omap2/dss/manager-sysfs.c |  2 ++
+>   drivers/video/omap2/dss/manager.c       | 29 ++++++++++++++++++++++-------
+>   4 files changed, 34 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+> index b84bd99..74d1d00 100644
+> --- a/drivers/video/omap2/dss/apply.c
+> +++ b/drivers/video/omap2/dss/apply.c
+> @@ -1577,7 +1577,8 @@ int omapdss_compat_init(void)
+>
+>   	apply_init_priv();
+>
+> -	dss_init_overlay_managers(pdev);
+> +	dss_init_overlay_managers();
+> +	dss_init_overlay_managers_sysfs(pdev);
+>   	dss_init_overlays(pdev);
+>
+>   	for (i = 0; i < omap_dss_get_num_overlay_managers(); i++) {
+> @@ -1640,7 +1641,8 @@ err_disp_sysfs:
+>   	dss_uninstall_mgr_ops();
+>
+>   err_mgr_ops:
+> -	dss_uninit_overlay_managers(pdev);
+> +	dss_uninit_overlay_managers_sysfs(pdev);
+> +	dss_uninit_overlay_managers();
+>   	dss_uninit_overlays(pdev);
+>
+>   	compat_refcnt--;
+> @@ -1668,7 +1670,8 @@ void omapdss_compat_uninit(void)
+>
+>   	dss_uninstall_mgr_ops();
+>
+> -	dss_uninit_overlay_managers(pdev);
+> +	dss_uninit_overlay_managers_sysfs(pdev);
+> +	dss_uninit_overlay_managers();
+>   	dss_uninit_overlays(pdev);
+>   out:
+>   	mutex_unlock(&compat_init_lock);
+> diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+> index 8475893..7964d3b 100644
+> --- a/drivers/video/omap2/dss/dss.h
+> +++ b/drivers/video/omap2/dss/dss.h
+> @@ -194,8 +194,10 @@ void display_uninit_sysfs(struct platform_device *pdev,
+>   		struct omap_dss_device *dssdev);
+>
+>   /* manager */
+> -int dss_init_overlay_managers(struct platform_device *pdev);
+> -void dss_uninit_overlay_managers(struct platform_device *pdev);
+> +int dss_init_overlay_managers(void);
+> +void dss_uninit_overlay_managers(void);
+> +int dss_init_overlay_managers_sysfs(struct platform_device *pdev);
+> +void dss_uninit_overlay_managers_sysfs(struct platform_device *pdev);
+>   int dss_mgr_simple_check(struct omap_overlay_manager *mgr,
+>   		const struct omap_overlay_manager_info *info);
+>   int dss_mgr_check_timings(struct omap_overlay_manager *mgr,
+> diff --git a/drivers/video/omap2/dss/manager-sysfs.c b/drivers/video/omap2/dss/manager-sysfs.c
+> index 5104681..72784b3 100644
+> --- a/drivers/video/omap2/dss/manager-sysfs.c
+> +++ b/drivers/video/omap2/dss/manager-sysfs.c
+> @@ -511,4 +511,6 @@ void dss_manager_kobj_uninit(struct omap_overlay_manager *mgr)
+>   {
+>   	kobject_del(&mgr->kobj);
+>   	kobject_put(&mgr->kobj);
 > +
-> +config TI_PRIV_EDMA
-> +	bool
-> diff --git a/arch/arm/common/Makefile b/arch/arm/common/Makefile
-> index dc8dd0d..9643c50 100644
-> --- a/arch/arm/common/Makefile
-> +++ b/arch/arm/common/Makefile
-> @@ -11,3 +11,4 @@ obj-$(CONFIG_SHARP_PARAM)	+= sharpsl_param.o
->  obj-$(CONFIG_SHARP_SCOOP)	+= scoop.o
->  obj-$(CONFIG_PCI_HOST_ITE8152)  += it8152.o
->  obj-$(CONFIG_ARM_TIMER_SP804)	+= timer-sp.o
-> +obj-$(CONFIG_TI_PRIV_EDMA)	+= edma.o
-> diff --git a/arch/arm/mach-davinci/dma.c b/arch/arm/common/edma.c
-> similarity index 99%
-> rename from arch/arm/mach-davinci/dma.c
-> rename to arch/arm/common/edma.c
-> index 45b7c71..dcaeb8e 100644
-> --- a/arch/arm/mach-davinci/dma.c
-> +++ b/arch/arm/common/edma.c
-> @@ -25,7 +25,7 @@
->  #include <linux/io.h>
->  #include <linux/slab.h>
->  
-> -#include <mach/edma.h>
-> +#include <linux/platform_data/edma.h>
->  
->  /* Offsets matching "struct edmacc_param" */
->  #define PARM_OPT		0x00
-> diff --git a/arch/arm/mach-davinci/Makefile b/arch/arm/mach-davinci/Makefile
-> index fb5c1aa..493a36b 100644
-> --- a/arch/arm/mach-davinci/Makefile
-> +++ b/arch/arm/mach-davinci/Makefile
-> @@ -5,7 +5,7 @@
->  
->  # Common objects
->  obj-y 			:= time.o clock.o serial.o psc.o \
-> -			   dma.o usb.o common.o sram.o aemif.o
-> +			   usb.o common.o sram.o aemif.o
->  
->  obj-$(CONFIG_DAVINCI_MUX)		+= mux.o
->  
-> diff --git a/arch/arm/mach-davinci/board-tnetv107x-evm.c b/arch/arm/mach-davinci/board-tnetv107x-evm.c
-> index 4f41602..10c9efd 100644
-> --- a/arch/arm/mach-davinci/board-tnetv107x-evm.c
-> +++ b/arch/arm/mach-davinci/board-tnetv107x-evm.c
-> @@ -26,12 +26,12 @@
->  #include <linux/input.h>
->  #include <linux/input/matrix_keypad.h>
->  #include <linux/spi/spi.h>
-> +#include <linux/platform_data/edma.h>
->  
->  #include <asm/mach/arch.h>
->  #include <asm/mach-types.h>
->  
->  #include <mach/irqs.h>
-> -#include <mach/edma.h>
->  #include <mach/mux.h>
->  #include <mach/cp_intc.h>
->  #include <mach/tnetv107x.h>
-> diff --git a/arch/arm/mach-davinci/davinci.h b/arch/arm/mach-davinci/davinci.h
-> index 12d544b..d26a6bc 100644
-> --- a/arch/arm/mach-davinci/davinci.h
-> +++ b/arch/arm/mach-davinci/davinci.h
-> @@ -23,9 +23,9 @@
->  #include <linux/platform_device.h>
->  #include <linux/spi/spi.h>
->  #include <linux/platform_data/davinci_asp.h>
-> +#include <linux/platform_data/edma.h>
->  #include <linux/platform_data/keyscan-davinci.h>
->  #include <mach/hardware.h>
-> -#include <mach/edma.h>
->  
->  #include <media/davinci/vpfe_capture.h>
->  #include <media/davinci/vpif_types.h>
-> diff --git a/arch/arm/mach-davinci/devices-tnetv107x.c b/arch/arm/mach-davinci/devices-tnetv107x.c
-> index 773ab07..ba37760 100644
-> --- a/arch/arm/mach-davinci/devices-tnetv107x.c
-> +++ b/arch/arm/mach-davinci/devices-tnetv107x.c
-> @@ -18,10 +18,10 @@
->  #include <linux/dma-mapping.h>
->  #include <linux/clk.h>
->  #include <linux/slab.h>
-> +#include <linux/platform_data/edma.h>
->  
->  #include <mach/common.h>
->  #include <mach/irqs.h>
-> -#include <mach/edma.h>
->  #include <mach/tnetv107x.h>
->  
->  #include "clock.h"
-> diff --git a/arch/arm/mach-davinci/devices.c b/arch/arm/mach-davinci/devices.c
-> index 4c48a36..ca0c7b3 100644
-> --- a/arch/arm/mach-davinci/devices.c
-> +++ b/arch/arm/mach-davinci/devices.c
-> @@ -19,9 +19,10 @@
->  #include <mach/irqs.h>
->  #include <mach/cputype.h>
->  #include <mach/mux.h>
-> -#include <mach/edma.h>
->  #include <linux/platform_data/mmc-davinci.h>
->  #include <mach/time.h>
-> +#include <linux/platform_data/edma.h>
+> +	memset(&mgr->kobj, 0, sizeof(mgr->kobj));
+>   }
+> diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
+> index 2551eaa..1aac9b4 100644
+> --- a/drivers/video/omap2/dss/manager.c
+> +++ b/drivers/video/omap2/dss/manager.c
+> @@ -36,9 +36,9 @@
+>   static int num_managers;
+>   static struct omap_overlay_manager *managers;
+>
+> -int dss_init_overlay_managers(struct platform_device *pdev)
+> +int dss_init_overlay_managers(void)
+>   {
+> -	int i, r;
+> +	int i;
+>
+>   	num_managers = dss_feat_get_num_mgrs();
+>
+> @@ -76,6 +76,17 @@ int dss_init_overlay_managers(struct platform_device *pdev)
+>   			dss_feat_get_supported_outputs(mgr->id);
+>
+>   		INIT_LIST_HEAD(&mgr->overlays);
+> +	}
 > +
->  
->  #include "davinci.h"
->  #include "clock.h"
-> @@ -34,6 +35,9 @@
->  #define DM365_MMCSD0_BASE	     0x01D11000
->  #define DM365_MMCSD1_BASE	     0x01D00000
->  
-> +#define DAVINCI_DMA_MMCRXEVT	26
-> +#define DAVINCI_DMA_MMCTXEVT	27
+> +	return 0;
+> +}
 > +
->  void __iomem  *davinci_sysmod_base;
->  
->  void davinci_map_sysmod(void)
-> diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
-> index b49c3b7..53998d8 100644
-> --- a/arch/arm/mach-davinci/dm355.c
-> +++ b/arch/arm/mach-davinci/dm355.c
-> @@ -19,7 +19,6 @@
->  #include <asm/mach/map.h>
->  
->  #include <mach/cputype.h>
-> -#include <mach/edma.h>
->  #include <mach/psc.h>
->  #include <mach/mux.h>
->  #include <mach/irqs.h>
-> @@ -28,6 +27,7 @@
->  #include <mach/common.h>
->  #include <linux/platform_data/spi-davinci.h>
->  #include <mach/gpio-davinci.h>
-> +#include <linux/platform_data/edma.h>
->  
->  #include "davinci.h"
->  #include "clock.h"
-> diff --git a/arch/arm/mach-davinci/dm365.c b/arch/arm/mach-davinci/dm365.c
-> index 6c39805..9b41d33 100644
-> --- a/arch/arm/mach-davinci/dm365.c
-> +++ b/arch/arm/mach-davinci/dm365.c
-> @@ -18,11 +18,11 @@
->  #include <linux/platform_device.h>
->  #include <linux/dma-mapping.h>
->  #include <linux/spi/spi.h>
-> +#include <linux/platform_data/edma.h>
->  
->  #include <asm/mach/map.h>
->  
->  #include <mach/cputype.h>
-> -#include <mach/edma.h>
->  #include <mach/psc.h>
->  #include <mach/mux.h>
->  #include <mach/irqs.h>
-> diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-> index db1dd92..e8bf21f 100644
-> --- a/arch/arm/mach-davinci/dm644x.c
-> +++ b/arch/arm/mach-davinci/dm644x.c
-> @@ -12,11 +12,11 @@
->  #include <linux/clk.h>
->  #include <linux/serial_8250.h>
->  #include <linux/platform_device.h>
-> +#include <linux/platform_data/edma.h>
->  
->  #include <asm/mach/map.h>
->  
->  #include <mach/cputype.h>
-> -#include <mach/edma.h>
->  #include <mach/irqs.h>
->  #include <mach/psc.h>
->  #include <mach/mux.h>
-> diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
-> index ac7b431..6d52a32 100644
-> --- a/arch/arm/mach-davinci/dm646x.c
-> +++ b/arch/arm/mach-davinci/dm646x.c
-> @@ -13,11 +13,11 @@
->  #include <linux/clk.h>
->  #include <linux/serial_8250.h>
->  #include <linux/platform_device.h>
-> +#include <linux/platform_data/edma.h>
->  
->  #include <asm/mach/map.h>
->  
->  #include <mach/cputype.h>
-> -#include <mach/edma.h>
->  #include <mach/irqs.h>
->  #include <mach/psc.h>
->  #include <mach/mux.h>
-> diff --git a/arch/arm/mach-davinci/include/mach/da8xx.h b/arch/arm/mach-davinci/include/mach/da8xx.h
-> index de439b7..311daec 100644
-> --- a/arch/arm/mach-davinci/include/mach/da8xx.h
-> +++ b/arch/arm/mach-davinci/include/mach/da8xx.h
-> @@ -20,8 +20,8 @@
->  #include <linux/videodev2.h>
->  
->  #include <mach/serial.h>
-> -#include <mach/edma.h>
->  #include <mach/pm.h>
-> +#include <linux/platform_data/edma.h>
->  #include <linux/platform_data/i2c-davinci.h>
->  #include <linux/platform_data/mmc-davinci.h>
->  #include <linux/platform_data/usb-davinci.h>
-> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-> index cd7e328..5f3e532 100644
-> --- a/drivers/dma/edma.c
-> +++ b/drivers/dma/edma.c
-> @@ -24,7 +24,7 @@
->  #include <linux/slab.h>
->  #include <linux/spinlock.h>
->  
-> -#include <mach/edma.h>
-> +#include <linux/platform_data/edma.h>
->  
->  #include "dmaengine.h"
->  #include "virt-dma.h"
-> diff --git a/drivers/mmc/host/davinci_mmc.c b/drivers/mmc/host/davinci_mmc.c
-> index 2063677..f5d46ea 100644
-> --- a/drivers/mmc/host/davinci_mmc.c
-> +++ b/drivers/mmc/host/davinci_mmc.c
-> @@ -35,6 +35,7 @@
->  #include <linux/edma.h>
->  #include <linux/mmc/mmc.h>
->  
-> +#include <linux/platform_data/edma.h>
->  #include <linux/platform_data/mmc-davinci.h>
->  
->  /*
-> diff --git a/include/linux/mfd/davinci_voicecodec.h b/include/linux/mfd/davinci_voicecodec.h
-> index 0ab6132..7dd6524 100644
-> --- a/include/linux/mfd/davinci_voicecodec.h
-> +++ b/include/linux/mfd/davinci_voicecodec.h
-> @@ -26,8 +26,7 @@
->  #include <linux/kernel.h>
->  #include <linux/platform_device.h>
->  #include <linux/mfd/core.h>
-> -
-> -#include <mach/edma.h>
-> +#include <linux/platform_data/edma.h>
->  
->  /*
->   * Register values.
-> diff --git a/arch/arm/mach-davinci/include/mach/edma.h b/include/linux/platform_data/edma.h
-> similarity index 59%
-> rename from arch/arm/mach-davinci/include/mach/edma.h
-> rename to include/linux/platform_data/edma.h
-> index 7e84c90..2344ea2 100644
-> --- a/arch/arm/mach-davinci/include/mach/edma.h
-> +++ b/include/linux/platform_data/edma.h
-> @@ -1,28 +1,12 @@
->  /*
-> - *  TI DAVINCI dma definitions
-> + *  TI EDMA definitions
->   *
-> - *  Copyright (C) 2006-2009 Texas Instruments.
-> + *  Copyright (C) 2006-2013 Texas Instruments.
->   *
->   *  This program is free software; you can redistribute  it and/or modify it
->   *  under  the terms of  the GNU General  Public License as published by the
->   *  Free Software Foundation;  either version 2 of the  License, or (at your
->   *  option) any later version.
-> - *
-> - *  THIS  SOFTWARE  IS PROVIDED   ``AS  IS'' AND   ANY  EXPRESS OR IMPLIED
-> - *  WARRANTIES,   INCLUDING, BUT NOT  LIMITED  TO, THE IMPLIED WARRANTIES OF
-> - *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN
-> - *  NO  EVENT  SHALL   THE AUTHOR  BE    LIABLE FOR ANY   DIRECT, INDIRECT,
-> - *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-> - *  NOT LIMITED   TO, PROCUREMENT OF  SUBSTITUTE GOODS  OR SERVICES; LOSS OF
-> - *  USE, DATA,  OR PROFITS; OR  BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-> - *  ANY THEORY OF LIABILITY, WHETHER IN  CONTRACT, STRICT LIABILITY, OR TORT
-> - *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-> - *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-> - *
-> - *  You should have received a copy of the  GNU General Public License along
-> - *  with this program; if not, write  to the Free Software Foundation, Inc.,
-> - *  675 Mass Ave, Cambridge, MA 02139, USA.
-> - *
->   */
->  
->  /*
-> @@ -69,11 +53,6 @@ struct edmacc_param {
->  	unsigned int ccnt;
->  };
->  
-> -#define CCINT0_INTERRUPT     16
-> -#define CCERRINT_INTERRUPT   17
-> -#define TCERRINT0_INTERRUPT   18
-> -#define TCERRINT1_INTERRUPT   19
-> -
->  /* fields in edmacc_param.opt */
->  #define SAM		BIT(0)
->  #define DAM		BIT(1)
-> @@ -87,70 +66,6 @@ struct edmacc_param {
->  #define TCCHEN		BIT(22)
->  #define ITCCHEN		BIT(23)
->  
-> -#define TRWORD (0x7<<2)
-> -#define PAENTRY (0x1ff<<5)
-> -
-> -/* Drivers should avoid using these symbolic names for dm644x
-> - * channels, and use platform_device IORESOURCE_DMA resources
-> - * instead.  (Other DaVinci chips have different peripherals
-> - * and thus have different DMA channel mappings.)
-> - */
-> -#define DAVINCI_DMA_MCBSP_TX              2
-> -#define DAVINCI_DMA_MCBSP_RX              3
-> -#define DAVINCI_DMA_VPSS_HIST             4
-> -#define DAVINCI_DMA_VPSS_H3A              5
-> -#define DAVINCI_DMA_VPSS_PRVU             6
-> -#define DAVINCI_DMA_VPSS_RSZ              7
-> -#define DAVINCI_DMA_IMCOP_IMXINT          8
-> -#define DAVINCI_DMA_IMCOP_VLCDINT         9
-> -#define DAVINCI_DMA_IMCO_PASQINT         10
-> -#define DAVINCI_DMA_IMCOP_DSQINT         11
-> -#define DAVINCI_DMA_SPI_SPIX             16
-> -#define DAVINCI_DMA_SPI_SPIR             17
-> -#define DAVINCI_DMA_UART0_URXEVT0        18
-> -#define DAVINCI_DMA_UART0_UTXEVT0        19
-> -#define DAVINCI_DMA_UART1_URXEVT1        20
-> -#define DAVINCI_DMA_UART1_UTXEVT1        21
-> -#define DAVINCI_DMA_UART2_URXEVT2        22
-> -#define DAVINCI_DMA_UART2_UTXEVT2        23
-> -#define DAVINCI_DMA_MEMSTK_MSEVT         24
-> -#define DAVINCI_DMA_MMCRXEVT             26
-> -#define DAVINCI_DMA_MMCTXEVT             27
-> -#define DAVINCI_DMA_I2C_ICREVT           28
-> -#define DAVINCI_DMA_I2C_ICXEVT           29
-> -#define DAVINCI_DMA_GPIO_GPINT0          32
-> -#define DAVINCI_DMA_GPIO_GPINT1          33
-> -#define DAVINCI_DMA_GPIO_GPINT2          34
-> -#define DAVINCI_DMA_GPIO_GPINT3          35
-> -#define DAVINCI_DMA_GPIO_GPINT4          36
-> -#define DAVINCI_DMA_GPIO_GPINT5          37
-> -#define DAVINCI_DMA_GPIO_GPINT6          38
-> -#define DAVINCI_DMA_GPIO_GPINT7          39
-> -#define DAVINCI_DMA_GPIO_GPBNKINT0       40
-> -#define DAVINCI_DMA_GPIO_GPBNKINT1       41
-> -#define DAVINCI_DMA_GPIO_GPBNKINT2       42
-> -#define DAVINCI_DMA_GPIO_GPBNKINT3       43
-> -#define DAVINCI_DMA_GPIO_GPBNKINT4       44
-> -#define DAVINCI_DMA_TIMER0_TINT0         48
-> -#define DAVINCI_DMA_TIMER1_TINT1         49
-> -#define DAVINCI_DMA_TIMER2_TINT2         50
-> -#define DAVINCI_DMA_TIMER3_TINT3         51
-> -#define DAVINCI_DMA_PWM0                 52
-> -#define DAVINCI_DMA_PWM1                 53
-> -#define DAVINCI_DMA_PWM2                 54
-> -
-> -/* DA830 specific EDMA3 information */
-> -#define EDMA_DA830_NUM_DMACH		32
-> -#define EDMA_DA830_NUM_TCC		32
-> -#define EDMA_DA830_NUM_PARAMENTRY	128
-> -#define EDMA_DA830_NUM_EVQUE		2
-> -#define EDMA_DA830_NUM_TC		2
-> -#define EDMA_DA830_CHMAP_EXIST		0
-> -#define EDMA_DA830_NUM_REGIONS		4
-> -#define DA830_DMACH2EVENT_MAP0		0x000FC03Fu
-> -#define DA830_DMACH2EVENT_MAP1		0x00000000u
-> -#define DA830_EDMA_ARM_OWN		0x30FFCCFFu
-> -
->  /*ch_status paramater of callback function possible values*/
->  #define DMA_COMPLETE 1
->  #define DMA_CC_ERROR 2
-> diff --git a/include/linux/platform_data/spi-davinci.h b/include/linux/platform_data/spi-davinci.h
-> index 7af305b..8dc2fa47 100644
-> --- a/include/linux/platform_data/spi-davinci.h
-> +++ b/include/linux/platform_data/spi-davinci.h
-> @@ -19,7 +19,7 @@
->  #ifndef __ARCH_ARM_DAVINCI_SPI_H
->  #define __ARCH_ARM_DAVINCI_SPI_H
->  
-> -#include <mach/edma.h>
-> +#include <linux/platform_data/edma.h>
->  
->  #define SPI_INTERN_CS	0xFF
->  
-> diff --git a/sound/soc/davinci/davinci-evm.c b/sound/soc/davinci/davinci-evm.c
-> index 484b22c..fd7c45b 100644
-> --- a/sound/soc/davinci/davinci-evm.c
-> +++ b/sound/soc/davinci/davinci-evm.c
-> @@ -14,6 +14,7 @@
->  #include <linux/timer.h>
->  #include <linux/interrupt.h>
->  #include <linux/platform_device.h>
-> +#include <linux/platform_data/edma.h>
->  #include <linux/i2c.h>
->  #include <sound/core.h>
->  #include <sound/pcm.h>
-> diff --git a/sound/soc/davinci/davinci-pcm.c b/sound/soc/davinci/davinci-pcm.c
-> index afab81f..9bdd71b 100644
-> --- a/sound/soc/davinci/davinci-pcm.c
-> +++ b/sound/soc/davinci/davinci-pcm.c
-> @@ -17,6 +17,7 @@
->  #include <linux/dma-mapping.h>
->  #include <linux/kernel.h>
->  #include <linux/genalloc.h>
-> +#include <linux/platform_data/edma.h>
->  
->  #include <sound/core.h>
->  #include <sound/pcm.h>
-> diff --git a/sound/soc/davinci/davinci-pcm.h b/sound/soc/davinci/davinci-pcm.h
-> index b6ef703..fbb710c 100644
-> --- a/sound/soc/davinci/davinci-pcm.h
-> +++ b/sound/soc/davinci/davinci-pcm.h
-> @@ -14,7 +14,7 @@
->  
->  #include <linux/genalloc.h>
->  #include <linux/platform_data/davinci_asp.h>
-> -#include <mach/edma.h>
-> +#include <linux/platform_data/edma.h>
->  
->  struct davinci_pcm_dma_params {
->  	int channel;			/* sync dma channel ID */
-> diff --git a/sound/soc/davinci/davinci-sffsdr.c b/sound/soc/davinci/davinci-sffsdr.c
-> index 5be65aa..76ea586 100644
-> --- a/sound/soc/davinci/davinci-sffsdr.c
-> +++ b/sound/soc/davinci/davinci-sffsdr.c
-> @@ -17,6 +17,7 @@
->  #include <linux/timer.h>
->  #include <linux/interrupt.h>
->  #include <linux/platform_device.h>
-> +#include <linux/platform_data/edma.h>
->  #include <linux/gpio.h>
->  #include <sound/core.h>
->  #include <sound/pcm.h>
-> @@ -28,12 +29,14 @@
->  #include <asm/plat-sffsdr/sffsdr-fpga.h>
->  #endif
->  
-> -#include <mach/edma.h>
->  
->  #include "../codecs/pcm3008.h"
->  #include "davinci-pcm.h"
->  #include "davinci-i2s.h"
->  
-> +#define DAVINCI_DMA_MCBSP_TX	2
-> +#define DAVINCI_DMA_MCBSP_RX	3
+> +int dss_init_overlay_managers_sysfs(struct platform_device *pdev)
+> +{
+> +	int i, r;
 > +
->  /*
->   * CLKX and CLKR are the inputs for the Sample Rate Generator.
->   * FSX and FSR are outputs, driven by the sample Rate Generator.
-> 
+> +	for (i = 0; i < num_managers; ++i) {
+> +		struct omap_overlay_manager *mgr = &managers[i];
+>
+>   		r = dss_manager_kobj_init(mgr, pdev);
+>   		if (r)
+> @@ -85,18 +96,22 @@ int dss_init_overlay_managers(struct platform_device *pdev)
+>   	return 0;
+>   }
+>
+> -void dss_uninit_overlay_managers(struct platform_device *pdev)
+> +void dss_uninit_overlay_managers(void)
+> +{
+> +	kfree(managers);
+> +	managers = NULL;
+> +	num_managers = 0;
+> +}
+> +
+> +void dss_uninit_overlay_managers_sysfs(struct platform_device *pdev)
+>   {
+>   	int i;
+>
+>   	for (i = 0; i < num_managers; ++i) {
+>   		struct omap_overlay_manager *mgr = &managers[i];
+> +
+>   		dss_manager_kobj_uninit(mgr);
+>   	}
+> -
+> -	kfree(managers);
+> -	managers = NULL;
+> -	num_managers = 0;
+>   }
+>
+>   int omap_dss_get_num_overlay_managers(void)
+>
+
