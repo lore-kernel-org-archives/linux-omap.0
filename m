@@ -1,44 +1,68 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCHv3 6/6] arm: omap2plus_defconfig: enable DRA752 thermal support by default
-Date: Fri, 7 Jun 2013 16:46:08 -0400
-Message-ID: <1370637968-23299-7-git-send-email-eduardo.valentin@ti.com>
-References: <1370637968-23299-1-git-send-email-eduardo.valentin@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/4] pinctrl single support for SoC specific features
+Date: Fri, 07 Jun 2013 13:50:32 -0700
+Message-ID: <20130607203936.16513.57494.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1370637968-23299-1-git-send-email-eduardo.valentin@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: tony@atomide.com, grant.likely@linaro.org
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, Eduardo Valentin <eduardo.valentin@ti.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, AnilKumar Ch <anilkumar@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:21362 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754898Ab3FGUug (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 16:50:36 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linus.walleij@linaro.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Make DRA752 thermal support enabled on omap2plus_defconfig
+Hi all,
 
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: AnilKumar Ch <anilkumar@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+Here are few patches to add support for SoC specific features
+to pinctrl-single. This is needed at least for omaps to support
+IO chain wake-up events from deeper idle states.
+
+With this patch series, device drivers can request named pinctrl
+states like active and idle from the PM runtime suspend and resume
+calls to set the wake enable bits for selected pins. Further
+the device driver can toggle the wake-up feature as needed based on
+the device_may_wakeup() state set by the standard sysfs
+power/wakeup entry.
+
+This is implemented in a separate pinctrl-single-omap driver that
+works together with pinctrl-single. This way the SoC specific
+are separated from the common pinctrl-single, and allows a relatively
+easy way to implement SoC specific things like wake-up events,
+pin interrupts, and GPIO.
+
+Regards,
+
+Tony
+
 ---
- arch/arm/configs/omap2plus_defconfig | 1 +
- 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 6e6c494..07aab0b 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -248,6 +248,7 @@ CONFIG_TI_SOC_THERMAL=y
- CONFIG_TI_THERMAL=y
- CONFIG_OMAP4_THERMAL=y
- CONFIG_OMAP5_THERMAL=y
-+CONFIG_DRA752_THERMAL=y
- CONFIG_EXT2_FS=y
- CONFIG_EXT3_FS=y
- # CONFIG_EXT3_FS_XATTR is not set
+Tony Lindgren (4):
+      pinctrl: single: Prepare for supporting SoC specific features
+      pinctrl: single: Add hardware specific hooks for IRQ and GPIO wake-up events
+      pinctrl: single: omap: Add SoC specific module for wake-up events
+      ARM: OMAP: Move DT wake-up event handling over to use pinctrl-single-omap
+
+
+ .../devicetree/bindings/pinctrl/pinctrl-single.txt |    5 
+ arch/arm/boot/dts/omap3.dtsi                       |    4 
+ arch/arm/boot/dts/omap4.dtsi                       |    4 
+ arch/arm/boot/dts/omap5.dtsi                       |    4 
+ arch/arm/mach-omap2/mux.c                          |    8 -
+ arch/arm/mach-omap2/pm34xx.c                       |    2 
+ arch/arm/mach-omap2/prm_common.c                   |   26 ++
+ drivers/pinctrl/Makefile                           |    3 
+ drivers/pinctrl/pinctrl-single-omap.c              |  287 ++++++++++++++++++++
+ drivers/pinctrl/pinctrl-single.c                   |  157 +++++++++--
+ drivers/pinctrl/pinctrl-single.h                   |   43 +++
+ include/linux/platform_data/pinctrl-single-omap.h  |    4 
+ 12 files changed, 508 insertions(+), 39 deletions(-)
+ create mode 100644 drivers/pinctrl/pinctrl-single-omap.c
+ create mode 100644 drivers/pinctrl/pinctrl-single.h
+ create mode 100644 include/linux/platform_data/pinctrl-single-omap.h
+
 -- 
-1.8.2.1.342.gfa7285d
-
+Signature
