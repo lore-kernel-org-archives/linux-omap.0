@@ -1,45 +1,56 @@
-From: Tero Kristo <t-kristo@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
 Subject: Re: [PATCH 14/14] ARM: OMAP4: hwmod data: Clean up the data file
-Date: Fri, 7 Jun 2013 12:46:23 +0300
-Message-ID: <1370598383.25965.73.camel@sokoban>
-References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
- <1369845494-30231-15-git-send-email-santosh.shilimkar@ti.com>
- <alpine.DEB.2.02.1306061754560.5152@utopia.booyaka.com>
- <51B0D54A.1090107@ti.com> <51B175E4.1060909@ti.com>
- <alpine.DEB.2.02.1306070751210.32163@utopia.booyaka.com>
- <51B1A150.9020307@ti.com>
-Reply-To: t-kristo@ti.com
+Date: Fri, 7 Jun 2013 09:50:40 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1306070949300.32163@utopia.booyaka.com>
+References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>  <1369845494-30231-15-git-send-email-santosh.shilimkar@ti.com>  <alpine.DEB.2.02.1306061754560.5152@utopia.booyaka.com>  <51B0D54A.1090107@ti.com> <51B175E4.1060909@ti.com>
+ <alpine.DEB.2.02.1306070751210.32163@utopia.booyaka.com>  <51B1A150.9020307@ti.com> <1370598383.25965.73.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51B1A150.9020307@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Ambresh K <ambresh@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1336670744-1370598640=:32163"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:44737 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752462Ab3FGJul (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 05:50:41 -0400
+In-Reply-To: <1370598383.25965.73.camel@sokoban>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Ambresh K <ambresh@ti.com>
 
-T24gRnJpLCAyMDEzLTA2LTA3IGF0IDE0OjMxICswNTMwLCBTcmljaGFyYW4gUiB3cm90ZToKPiBP
-biBGcmlkYXkgMDcgSnVuZSAyMDEzIDAxOjIyIFBNLCBQYXVsIFdhbG1zbGV5IHdyb3RlOgo+ID4g
-Y2MgQmVub8OudAo+ID4KPiA+IE9uIEZyaSwgNyBKdW4gMjAxMywgU3JpY2hhcmFuIFIgd3JvdGU6
-Cj4gPgo+ID4+IEkgdXNlZCBhdXRvZ2VuIHRvIHJlbW92ZSB0aGUgZGF0YSwgYnV0IHNvbWUgb2Yg
-dGhlIGRhdGEgd2VyZSBub3QgaW4gc3luYwo+ID4+IHdpdGggdGhlIG1haW5saW5lIC4obGlrZSBh
-YmUsIGRzcywgYWVzcywgY29udGV4dCByZWdpc3RlciBvZmZzZXRzIGV0Yy4uKS4KPiA+PiBTbyBp
-IGhhdmUgdG8gc3luYyB0aGVtIG1hbnVhbGx5Lgo+ID4gT0suICBBcmUgeW91IGdvaW5nIHRvIGZp
-eCB0aGUgZGlmZmVyZW5jZXMgdXAgc29vbj8KPiA+Cj4gPiAtIFBhdWwKPiArIEFtYnJlc2ggYW5k
-IFRlcm8gZm9yIGF1dG9nZW4uCgpUaGlzIGlzIG5vdCBnb2luZyB0byBoYXBwZW4gc29vbiwgaWYg
-ZXZlci4gV2UgbWlnaHQgY29uc2lkZXIgZG9pbmcgdGhpcwppZiBhIGNvbXBsZXRlIG92ZXJoYXVs
-IGZvciB0aGUgaHdtb2QgZGF0YSBpcyBnb2luZyB0byBiZSBkb25lIGF0IHNvbWUKcG9pbnQgc28g
-dGhhdCByZS1nZW5lcmF0aW5nIHRoZSBuZXcgZm9ybWF0IGlzIGVhc2llci4KCi1UZXJvCgoKCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1r
-ZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpo
-dHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJu
-ZWwK
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--843723315-1336670744-1370598640=:32163
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+On Fri, 7 Jun 2013, Tero Kristo wrote:
+
+> On Fri, 2013-06-07 at 14:31 +0530, Sricharan R wrote:
+> > On Friday 07 June 2013 01:22 PM, Paul Walmsley wrote:
+> > > cc Beno=C3=AEt
+> > >
+> > > On Fri, 7 Jun 2013, Sricharan R wrote:
+> > >
+> > >> I used autogen to remove the data, but some of the data were not in =
+sync
+> > >> with the mainline .(like abe, dss, aess, context register offsets et=
+c..).
+> > >> So i have to sync them manually.
+> > > OK.  Are you going to fix the differences up soon?
+> > >
+> > > - Paul
+> > + Ambresh and Tero for autogen.
+>=20
+> This is not going to happen soon, if ever. We might consider doing this
+> if a complete overhaul for the hwmod data is going to be done at some
+> point so that re-generating the new format is easier.
+
+OK.  Sricharan, how about reposting the OMAP4 hwmod data patch and drop=20
+the comment regarding autogeneration?  That will be more accurate and will=
+=20
+save some more lines.
+
+
+- Paul
+--843723315-1336670744-1370598640=:32163--
