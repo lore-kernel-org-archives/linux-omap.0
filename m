@@ -1,170 +1,54 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2 3/3] ARM: DTS: TWL4030: fix mux and wakeup for
- SYS_NIRQ line
-Date: Thu, 6 Jun 2013 18:42:01 -0500
-Message-ID: <20130606234201.GA26919@kahuna>
-References: <1370040357-25794-1-git-send-email-khilman@linaro.org>
- <1370561253-15523-1-git-send-email-khilman@linaro.org>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH 14/14] ARM: OMAP4: hwmod data: Clean up the data file
+Date: Fri, 7 Jun 2013 11:25:48 +0530
+Message-ID: <51B175E4.1060909@ti.com>
+References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com> <1369845494-30231-15-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.02.1306061754560.5152@utopia.booyaka.com> <51B0D54A.1090107@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54541 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:58197 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751693Ab3FFXm2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Jun 2013 19:42:28 -0400
-Content-Disposition: inline
-In-Reply-To: <1370561253-15523-1-git-send-email-khilman@linaro.org>
+	id S1750971Ab3FGF4W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Jun 2013 01:56:22 -0400
+In-Reply-To: <51B0D54A.1090107@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 16:27-20130606, Kevin Hilman wrote:
-> On most OMAP3 platforms, the twl4030 IRQ line is connected to the
-> SYS_NIRQ line on OMAP.  Add another DTS include file
-> (twl4030_omap3_mux.dtsi) for boards that hook up the twl4030 this way
-> to include.
-> 
-> This allows RTC wake from off-mode to work again on OMAP3-based
-> platforms with twl4030.  Tested on 3530/Beagle, 3730/Beagle-xM,
-> 3530/Overo, 3730/Overo-STORM.
-> 
-> Special thanks to Florian Vaussard for suggesting use of preprocessor
-> feature.
-> 
-> Cc: Florian Vaussard <florian.vaussard@epfl.ch>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Signed-off-by: Kevin Hilman <khilman@linaro.org>
-> ---
-> v2: Updated to change board files instead of twl4030 file.
-> 
->  arch/arm/boot/dts/omap3-beagle-xm.dts    |  1 +
->  arch/arm/boot/dts/omap3-beagle.dts       |  1 +
->  arch/arm/boot/dts/omap3-devkit8000.dts   |  1 +
->  arch/arm/boot/dts/omap3-evm.dts          |  1 +
->  arch/arm/boot/dts/omap3-igep.dtsi        |  1 +
->  arch/arm/boot/dts/omap3-overo.dtsi       |  1 +
->  arch/arm/boot/dts/omap3430-sdp.dts       |  1 +
->  arch/arm/boot/dts/twl4030_omap3_mux.dtsi | 17 +++++++++++++++++
-minor comment:
-can we do twl4030_omap3 instead? That way, I can add in twl4030 VP
-specific parameters which are OMAP3 specific?
-one additional minor comment below:
+On Friday 07 June 2013 12:00 AM, Santosh Shilimkar wrote:
+> On Thursday 06 June 2013 01:57 PM, Paul Walmsley wrote:
+>> On Wed, 29 May 2013, Santosh Shilimkar wrote:
+>>
+>>> From: Sricharan R <r.sricharan@ti.com>
+>>>
+>>> - The IO resource information like dma request lines, irq number and
+>>>   ocp address space can be populated via dt blob. So such data is stripped
+>>>   from OMAP4 SOC hwmod data file.
+>>>
+>>> - The devices which are still missing the device tree bindings,
+>>>   address space entries are not removed yet. When such devices add
+>>>   the dt bindings, respective address space data can be deleted.
+>>>
+>>> - Also other unnessecary hwmods like firewalls are removed as a part of this.
+>>>
+>>> The above update, results in reduction of about ~1650 lines of code.
+>>>
+>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>> Signed-off-by: Sricharan R <r.sricharan@ti.com>
+>> I assume that you're not autogenerating this data any more, based on
+>> your change list above.  If that's correct, please also remove
+>> the paragraph at the top of the file:
+>>
+> The data is auto-generated. I let Sricharan comment if it is otherwise
+> in the final version of the patch. 
+>
+> Sricharan ?
+I used autogen to remove the data, but some of the data were not in sync
+with the mainline .(like abe, dss, aess, context register offsets etc..).
+So i have to sync them manually.
 
->  8 files changed, 24 insertions(+)
->  create mode 100644 arch/arm/boot/dts/twl4030_omap3_mux.dtsi
-> 
-> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-> index ad17b6b..1afb563 100644
-> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-> @@ -96,6 +96,7 @@
->  };
->  
->  #include "twl4030.dtsi"
-> +#include "twl4030_omap3_mux.dtsi"
->  
->  &i2c2 {
->  	clock-frequency = <400000>;
-> diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-> index eb7e02a..d5810d7 100644
-> --- a/arch/arm/boot/dts/omap3-beagle.dts
-> +++ b/arch/arm/boot/dts/omap3-beagle.dts
-> @@ -135,6 +135,7 @@
->  };
->  
->  #include "twl4030.dtsi"
-> +#include "twl4030_omap3_mux.dtsi"
->  
->  &mmc1 {
->  	vmmc-supply = <&vmmc1>;
-> diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/omap3-devkit8000.dts
-> index 5be71b1..166b90c 100644
-> --- a/arch/arm/boot/dts/omap3-devkit8000.dts
-> +++ b/arch/arm/boot/dts/omap3-devkit8000.dts
-> @@ -81,6 +81,7 @@
->  };
->  
->  #include "twl4030.dtsi"
-> +#include "twl4030_omap3_mux.dtsi"
->  
->  &mmc1 {
->  	vmmc-supply = <&vmmc1>;
-> diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
-> index baa24bb..ad7ab86 100644
-> --- a/arch/arm/boot/dts/omap3-evm.dts
-> +++ b/arch/arm/boot/dts/omap3-evm.dts
-> @@ -45,6 +45,7 @@
->  };
->  
->  #include "twl4030.dtsi"
-> +#include "twl4030_omap3_mux.dtsi"
->  
->  &i2c2 {
->  	clock-frequency = <400000>;
-> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
-> index 5224c29..3107dc3 100644
-> --- a/arch/arm/boot/dts/omap3-igep.dtsi
-> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
-> @@ -87,6 +87,7 @@
->  };
->  
->  #include "twl4030.dtsi"
-> +#include "twl4030_omap3_mux.dtsi"
->  
->  &i2c2 {
->  	clock-frequency = <400000>;
-> diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
-> index 144a5a2..bb55907 100644
-> --- a/arch/arm/boot/dts/omap3-overo.dtsi
-> +++ b/arch/arm/boot/dts/omap3-overo.dtsi
-> @@ -50,6 +50,7 @@
->  };
->  
->  #include "twl4030.dtsi"
-> +#include "twl4030_omap3_mux.dtsi"
->  
->  /* i2c2 pins are used for gpio */
->  &i2c2 {
-> diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/omap3430-sdp.dts
-> index 2a725a0..df3b918 100644
-> --- a/arch/arm/boot/dts/omap3430-sdp.dts
-> +++ b/arch/arm/boot/dts/omap3430-sdp.dts
-> @@ -29,6 +29,7 @@
->  };
->  
->  #include "twl4030.dtsi"
-> +#include "twl4030_omap3_mux.dtsi"
->  
->  &mmc1 {
->  	vmmc-supply = <&vmmc1>;
-> diff --git a/arch/arm/boot/dts/twl4030_omap3_mux.dtsi b/arch/arm/boot/dts/twl4030_omap3_mux.dtsi
-> new file mode 100644
-> index 0000000..1bd0f9f
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/twl4030_omap3_mux.dtsi
-> @@ -0,0 +1,17 @@
-some license text?
-> +&twl {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&twl4030_pins>;
-> +};
-> +
-> +&omap3_pmx_core {
-> +	/*
-> +	 * On most OMAP3 platforms, the twl4030 IRQ line is connected
-> +         * to the SYS_NIRQ line on OMAP.  Therefore, configure the
-> +         * defaults for the SYS_NIRQ pin here.
-^^^ tab?
-
-> +	 */
-> +	twl4030_pins: pinmux_twl4030_pins {
-> +		pinctrl-single,pins = <
-> +			0x1b0 (PIN_INPUT_PULLUP | PIN_OFF_WAKEUPENABLE | MUX_MODE0) /* sys_nirq.sys_nirq */
-> +		>;
-> +	};
-> +};
-
--- 
 Regards,
-Nishanth Menon
+ Sricharan
+
