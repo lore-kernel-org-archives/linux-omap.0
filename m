@@ -1,212 +1,251 @@
 From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 11/32] OMAPDRM: fix overlay manager handling
-Date: Fri, 7 Jun 2013 11:51:56 +0530
-Message-ID: <51B17C04.9070106@ti.com>
-References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com> <1369906493-27538-12-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 12/32] OMAPDSS: Implement display (dis)connect support
+Date: Fri, 7 Jun 2013 12:16:04 +0530
+Message-ID: <51B181AC.3070400@ti.com>
+References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com> <1369906493-27538-13-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37069 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:43382 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752312Ab3FGGXK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Jun 2013 02:23:10 -0400
-In-Reply-To: <1369906493-27538-12-git-send-email-tomi.valkeinen@ti.com>
+	id S1751023Ab3FGGrT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Jun 2013 02:47:19 -0400
+In-Reply-To: <1369906493-27538-13-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
 On Thursday 30 May 2013 03:04 PM, Tomi Valkeinen wrote:
-> Currently omapdrm creates crtcs, which map directly to DSS overlay
-> managers, only on demand at init time. This would make it difficult to
-> manage connecting the display entities in the future, as the code cannot
-> just search for a suitable overlay manager.
+> We currently have two steps in panel initialization and startup: probing
+> and enabling. After the panel has been probed, it's ready and can be
+> configured and later enabled.
 >
-> We cannot fix this the sane way, which would be to create crtcs for each
-> overlay manager, because we need an overlay for each crtc. With limited
-> number of overlays, that's not possible.
+> This model is not enough with more complex display pipelines, where we
+> may have, for example, two panels, of which only one can be used at a
+> time, connected to the same video output.
 >
-> So the solution for now is to detach the overlay manager from the crtc.
-> crtcs are still created on demand at init time, but all overlay managers
-> are always initialized by the omapdss.
+> To support that kind of scenarios, we need to add new step to the
+> initialization: connect.
 >
-> This way we can create and connect whole display pipelines from the
-> overlay manager to the display, regardless of which crtcs omapdrm would
-> create.
+> This patch adds support for connecting and disconnecting panels. After
+> probe, but before connect, no panel ops should be called. When the
+> connect is called, a proper video pipeline is established, and the panel
+> is ready for use. If some part in the video pipeline is already
+> connected (by some other panel), the connect call fails.
+>
+> One key difference with the old style setup is that connect() handles
+> also connecting to the overlay manager. This means that the omapfb (or
+> omapdrm) no longer needs to figure out which overlay manager to use, but
+> it can just call connect() on the panel, and the proper overlay manager
+> is connected by omapdss.
+>
+> This also allows us to add back the support for dynamic switching
+> between two exclusive panels. However, the current panel device model is
+> not changed to support this, as the new device model is implemented in
+> the following patches and the old model will be removed. The new device
+> model supports dynamic switching.
 >
 > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 > ---
->   drivers/gpu/drm/omapdrm/omap_crtc.c | 22 +++++++++++++++-------
->   drivers/gpu/drm/omapdrm/omap_drv.c  |  2 ++
->   drivers/gpu/drm/omapdrm/omap_drv.h  |  1 +
->   drivers/video/omap2/dss/apply.c     |  3 ---
->   drivers/video/omap2/dss/dispc.c     |  4 ++++
->   5 files changed, 22 insertions(+), 10 deletions(-)
+>   drivers/gpu/drm/omapdrm/omap_crtc.c      | 24 +++++++++++++++++
+>   drivers/gpu/drm/omapdrm/omap_drv.c       | 12 ++++++++-
+>   drivers/video/omap2/dss/apply.c          | 14 ++++++++++
+>   drivers/video/omap2/dss/core.c           | 44 +++++++++++++++++++++++++++++++
+>   drivers/video/omap2/dss/display-sysfs.c  | 28 +++++++++++---------
+>   drivers/video/omap2/dss/manager-sysfs.c  | 45 ++++++++++++++++++++------------
+>   drivers/video/omap2/dss/output.c         | 14 ++++++++++
+>   drivers/video/omap2/omapfb/omapfb-main.c | 25 ++++++++++--------
+>   include/video/omapdss.h                  | 23 ++++++++++++++++
+>   9 files changed, 188 insertions(+), 41 deletions(-)
 >
 > diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdrm/omap_crtc.c
-> index 79b200a..02075bf 100644
+> index 02075bf..b2ab2f5 100644
 > --- a/drivers/gpu/drm/omapdrm/omap_crtc.c
 > +++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
-> @@ -40,7 +40,7 @@ struct omap_crtc {
->   	 * mgr->id.)  Eventually this will be replaced w/ something
->   	 * more common-panel-framework-y
->   	 */
-> -	struct omap_overlay_manager mgr;
-> +	struct omap_overlay_manager *mgr;
+> @@ -94,6 +94,28 @@ uint32_t pipe2vbl(struct drm_crtc *crtc)
+>   static struct omap_crtc *omap_crtcs[8];
 >
->   	struct omap_video_timings timings;
->   	bool enabled;
-> @@ -90,6 +90,9 @@ uint32_t pipe2vbl(struct drm_crtc *crtc)
->    * job of sequencing the setup of the video pipe in the proper order
->    */
->
-> +/* ovl-mgr-id -> crtc */
-> +static struct omap_crtc *omap_crtcs[8];
-> +
 >   /* we can probably ignore these until we support command-mode panels: */
->   static void omap_crtc_start_update(struct omap_overlay_manager *mgr)
->   {
-> @@ -107,7 +110,7 @@ static void omap_crtc_disable(struct omap_overlay_manager *mgr)
->   static void omap_crtc_set_timings(struct omap_overlay_manager *mgr,
->   		const struct omap_video_timings *timings)
->   {
-> -	struct omap_crtc *omap_crtc = container_of(mgr, struct omap_crtc, mgr);
-> +	struct omap_crtc *omap_crtc = omap_crtcs[mgr->id];
->   	DBG("%s", omap_crtc->name);
->   	omap_crtc->timings = *timings;
->   	omap_crtc->full_update = true;
-> @@ -116,7 +119,7 @@ static void omap_crtc_set_timings(struct omap_overlay_manager *mgr,
->   static void omap_crtc_set_lcd_config(struct omap_overlay_manager *mgr,
->   		const struct dss_lcd_mgr_config *config)
->   {
-> -	struct omap_crtc *omap_crtc = container_of(mgr, struct omap_crtc, mgr);
-> +	struct omap_crtc *omap_crtc = omap_crtcs[mgr->id];
->   	DBG("%s", omap_crtc->name);
->   	dispc_mgr_set_lcd_config(omap_crtc->channel, config);
->   }
-> @@ -569,7 +572,7 @@ static void omap_crtc_pre_apply(struct omap_drm_apply *apply)
->   	} else {
->   		if (encoder) {
->   			omap_encoder_set_enabled(encoder, false);
-> -			omap_encoder_update(encoder, &omap_crtc->mgr,
-> +			omap_encoder_update(encoder, omap_crtc->mgr,
->   					&omap_crtc->timings);
->   			omap_encoder_set_enabled(encoder, true);
->   			omap_crtc->full_update = false;
-> @@ -595,6 +598,11 @@ static const char *channel_names[] = {
->   		[OMAP_DSS_CHANNEL_LCD2] = "lcd2",
->   };
-
-Since we are creating overlay managers structs now, we could get rid of 
-the channel_names strings above and use mgr->name instead. Not 
-necessary, of course.
-
-Archit
-
->
-> +void omap_crtc_pre_init(void)
+> +static int omap_crtc_connect(struct omap_overlay_manager *mgr,
+> +		struct omap_dss_output *dst)
 > +{
-> +	dss_install_mgr_ops(&mgr_ops);
+> +	if (mgr->output)
+> +		return -EINVAL;
+> +
+> +	if ((mgr->supported_outputs & dst->id) == 0)
+> +		return -EINVAL;
+> +
+> +	dst->manager = mgr;
+> +	mgr->output = dst;
+> +
+> +	return 0;
 > +}
 > +
->   /* initialize crtc */
->   struct drm_crtc *omap_crtc_init(struct drm_device *dev,
->   		struct drm_plane *plane, enum omap_channel channel, int id)
-> @@ -635,9 +643,7 @@ struct drm_crtc *omap_crtc_init(struct drm_device *dev,
->   	omap_irq_register(dev, &omap_crtc->error_irq);
->
->   	/* temporary: */
-> -	omap_crtc->mgr.id = channel;
-> -
-> -	dss_install_mgr_ops(&mgr_ops);
-> +	omap_crtc->mgr = omap_dss_get_overlay_manager(channel);
->
->   	/* TODO: fix hard-coded setup.. add properties! */
->   	info = &omap_crtc->info;
-> @@ -651,6 +657,8 @@ struct drm_crtc *omap_crtc_init(struct drm_device *dev,
->
->   	omap_plane_install_properties(omap_crtc->plane, &crtc->base);
->
-> +	omap_crtcs[channel] = omap_crtc;
+> +static void omap_crtc_disconnect(struct omap_overlay_manager *mgr,
+> +		struct omap_dss_output *dst)
+> +{
+> +	mgr->output->manager = NULL;
+> +	mgr->output = NULL;
+> +}
 > +
->   	return crtc;
+>   static void omap_crtc_start_update(struct omap_overlay_manager *mgr)
+>   {
+>   }
+> @@ -138,6 +160,8 @@ static void omap_crtc_unregister_framedone_handler(
+>   }
 >
->   fail:
+>   static const struct dss_mgr_ops mgr_ops = {
+> +		.connect = omap_crtc_connect,
+> +		.disconnect = omap_crtc_disconnect,
+>   		.start_update = omap_crtc_start_update,
+>   		.enable = omap_crtc_enable,
+>   		.disable = omap_crtc_disable,
 > diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
-> index 691e760..f8947f9 100644
+> index f8947f9..58bd259 100644
 > --- a/drivers/gpu/drm/omapdrm/omap_drv.c
 > +++ b/drivers/gpu/drm/omapdrm/omap_drv.c
-> @@ -98,6 +98,8 @@ static int omap_modeset_init(struct drm_device *dev)
+> @@ -97,6 +97,7 @@ static int omap_modeset_init(struct drm_device *dev)
+>   	int num_mgrs = dss_feat_get_num_mgrs();
 >   	int num_crtcs;
 >   	int i, id = 0;
+> +	int r;
 >
-> +	omap_crtc_pre_init();
+>   	omap_crtc_pre_init();
+>
+> @@ -118,6 +119,7 @@ static int omap_modeset_init(struct drm_device *dev)
+>   		struct drm_connector *connector;
+>   		struct drm_encoder *encoder;
+>   		enum omap_channel channel;
+> +		struct omap_overlay_manager *mgr;
+>
+>   		if (!dssdev->driver) {
+>   			dev_warn(dev->dev, "%s has no driver.. skipping it\n",
+> @@ -133,6 +135,13 @@ static int omap_modeset_init(struct drm_device *dev)
+>   			continue;
+>   		}
+>
+> +		r = dssdev->driver->connect(dssdev);
+> +		if (r) {
+> +			dev_err(dev->dev, "could not connect display: %s\n",
+> +					dssdev->name);
+> +			continue;
+> +		}
 > +
->   	drm_mode_config_init(dev);
+>   		encoder = omap_encoder_init(dev, dssdev);
 >
->   	omap_drm_irq_install(dev);
-> diff --git a/drivers/gpu/drm/omapdrm/omap_drv.h b/drivers/gpu/drm/omapdrm/omap_drv.h
-> index 215a20d..14f17da 100644
-> --- a/drivers/gpu/drm/omapdrm/omap_drv.h
-> +++ b/drivers/gpu/drm/omapdrm/omap_drv.h
-> @@ -157,6 +157,7 @@ const struct omap_video_timings *omap_crtc_timings(struct drm_crtc *crtc);
->   enum omap_channel omap_crtc_channel(struct drm_crtc *crtc);
->   int omap_crtc_apply(struct drm_crtc *crtc,
->   		struct omap_drm_apply *apply);
-> +void omap_crtc_pre_init(void);
->   struct drm_crtc *omap_crtc_init(struct drm_device *dev,
->   		struct drm_plane *plane, enum omap_channel channel, int id);
+>   		if (!encoder) {
+> @@ -174,8 +183,9 @@ static int omap_modeset_init(struct drm_device *dev)
+>   		 * other possible channels to which the encoder can connect are
+>   		 * not considered.
+>   		 */
+> -		channel = dssdev->output->dispc_channel;
 >
+> +		mgr = omapdss_find_mgr_from_display(dssdev);
+> +		channel = mgr->id;
+>   		/*
+>   		 * if this channel hasn't already been taken by a previously
+>   		 * allocated crtc, we create a new crtc for it
 > diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
-> index 74d1d00..c844071 100644
+> index c844071..dbd3c2f 100644
 > --- a/drivers/video/omap2/dss/apply.c
 > +++ b/drivers/video/omap2/dss/apply.c
-> @@ -1577,7 +1577,6 @@ int omapdss_compat_init(void)
+> @@ -790,6 +790,18 @@ static void mgr_clear_shadow_dirty(struct omap_overlay_manager *mgr)
+>   	}
+>   }
 >
->   	apply_init_priv();
->
-> -	dss_init_overlay_managers();
->   	dss_init_overlay_managers_sysfs(pdev);
->   	dss_init_overlays(pdev);
->
-> @@ -1642,7 +1641,6 @@ err_disp_sysfs:
->
->   err_mgr_ops:
->   	dss_uninit_overlay_managers_sysfs(pdev);
-> -	dss_uninit_overlay_managers();
->   	dss_uninit_overlays(pdev);
->
->   	compat_refcnt--;
-> @@ -1671,7 +1669,6 @@ void omapdss_compat_uninit(void)
->   	dss_uninstall_mgr_ops();
->
->   	dss_uninit_overlay_managers_sysfs(pdev);
-> -	dss_uninit_overlay_managers();
->   	dss_uninit_overlays(pdev);
->   out:
->   	mutex_unlock(&compat_init_lock);
-> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-> index b33b016..83d7bb9 100644
-> --- a/drivers/video/omap2/dss/dispc.c
-> +++ b/drivers/video/omap2/dss/dispc.c
-> @@ -3710,6 +3710,8 @@ static int __init omap_dispchw_probe(struct platform_device *pdev)
->
->   	dispc_runtime_put();
->
-> +	dss_init_overlay_managers();
+> +static int dss_mgr_connect_compat(struct omap_overlay_manager *mgr,
+> +		struct omap_dss_output *dst)
+> +{
+> +	return mgr->set_output(mgr, dst);
+> +}
 > +
->   	dss_debugfs_create_file("dispc", dispc_dump_regs);
->
->   	return 0;
-> @@ -3723,6 +3725,8 @@ static int __exit omap_dispchw_remove(struct platform_device *pdev)
+> +static void dss_mgr_disconnect_compat(struct omap_overlay_manager *mgr,
+> +		struct omap_dss_output *dst)
+> +{
+> +	mgr->unset_output(mgr);
+> +}
+> +
+>   static void dss_mgr_start_update_compat(struct omap_overlay_manager *mgr)
 >   {
->   	pm_runtime_disable(&pdev->dev);
+>   	struct mgr_priv_data *mp = get_mgr_priv(mgr);
+> @@ -1552,6 +1564,8 @@ static void dss_mgr_unregister_framedone_handler_compat(struct omap_overlay_mana
+>   }
 >
-> +	dss_uninit_overlay_managers();
-> +
+>   static const struct dss_mgr_ops apply_mgr_ops = {
+> +	.connect = dss_mgr_connect_compat,
+> +	.disconnect = dss_mgr_disconnect_compat,
+>   	.start_update = dss_mgr_start_update_compat,
+>   	.enable = dss_mgr_enable_compat,
+>   	.disable = dss_mgr_disable_compat,
+> diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+> index 502ec1b..4bd8f79 100644
+> --- a/drivers/video/omap2/dss/core.c
+> +++ b/drivers/video/omap2/dss/core.c
+> @@ -371,6 +371,46 @@ static int dss_driver_remove(struct device *dev)
 >   	return 0;
 >   }
 >
->
+> +static int omapdss_default_connect(struct omap_dss_device *dssdev)
+> +{
+> +	struct omap_dss_output *out;
+> +	struct omap_overlay_manager *mgr;
+> +	int r;
+> +
+> +	out = dssdev->output;
+> +
+> +	if (out == NULL)
+> +		return -ENODEV;
+> +
+> +	mgr = omap_dss_get_overlay_manager(out->dispc_channel);
+> +	if (!mgr)
+> +		return -ENODEV;
+> +
+> +	r = dss_mgr_connect(mgr, out);
+> +	if (r)
+> +		return r;
+> +
+> +	return 0;
+> +}
+> +
+> +static void omapdss_default_disconnect(struct omap_dss_device *dssdev)
+> +{
+> +	struct omap_dss_output *out;
+> +	struct omap_overlay_manager *mgr;
+> +
+> +	out = dssdev->output;
+> +
+> +	if (out == NULL)
+> +		return;
+> +
+> +	mgr = out->manager;
+> +
+> +	if (mgr == NULL)
+> +		return;
+> +
+> +	dss_mgr_disconnect(mgr, out);
+> +}
+> +
+>   int omap_dss_register_driver(struct omap_dss_driver *dssdriver)
+>   {
+>   	dssdriver->driver.bus = &dss_bus_type;
+> @@ -384,6 +424,10 @@ int omap_dss_register_driver(struct omap_dss_driver *dssdriver)
+>   			omapdss_default_get_recommended_bpp;
+>   	if (dssdriver->get_timings == NULL)
+>   		dssdriver->get_timings = omapdss_default_get_timings;
+> +	if (dssdriver->connect == NULL)
+> +		dssdriver->connect = omapdss_default_connect;
+> +	if (dssdriver->disconnect == NULL)
+> +		dssdriver->disconnect = omapdss_default_disconnect;
+
+I was wondering if these should be apis rather than driver ops. One 
+advantage of having them as functions used by omapfb/omapdrm would be 
+that a panel driver wouldn't override the default_connect/disconnect ops.
+
+Even though they are named omapdss_default_connect/disconnect, I don't 
+think there is another option by which a panel driver may chose to 
+connect to omapdss outputs, right?
+
+Archit
 
