@@ -1,51 +1,103 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCHv3 0/6] arm: enable TI SoC thermal driver
-Date: Fri, 7 Jun 2013 16:46:02 -0400
-Message-ID: <1370637968-23299-1-git-send-email-eduardo.valentin@ti.com>
+Subject: [PATCHv3 1/6] thermal: ti-soc-thermal: use standard GPIO DT bindings
+Date: Fri, 7 Jun 2013 16:46:03 -0400
+Message-ID: <1370637968-23299-2-git-send-email-eduardo.valentin@ti.com>
+References: <1370637968-23299-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1370637968-23299-1-git-send-email-eduardo.valentin@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, grant.likely@linaro.org
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, Eduardo Valentin <eduardo.valentin@ti.com>, Zhang Rui <rui.zhang@intel.com>, Rob Herring <rob.herring@calxeda.com>, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+This change updates the ti-soc-thermal driver to use
+standard GPIO DT bindings to read the GPIO number associated
+to thermal shutdown IRQ, in case the device features it.
 
-Idea is to add the missing bits under arch/arm/*omap* required
-to enable by default the ti-soc-thermal driver. I am planing to
-move it out of staging tree. This has been scheduled to 3.11.
+Previously, the code was using a specific DT bindings.
+As now OMAP supports the standard way to model GPIOs,
+there is no point in having a ti specific binding.
 
-It would be interesting to get
-feedback from other ppl. By enabling it by default we could reach
-more ppl for testing it across the supported chips.
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: linux-pm@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: devicetree-discuss@lists.ozlabs.org
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ drivers/staging/ti-soc-thermal/ti-bandgap.c       | 8 ++------
+ drivers/staging/ti-soc-thermal/ti_soc_thermal.txt | 9 +++++----
+ 2 files changed, 7 insertions(+), 10 deletions(-)
 
-The difference from v2 is that now the driver is changed to use
-GPIO bindings for Tshut as suggested by Benoit and I added
-a simple description what is bandgap.
-
-The difference from v1 is just that patch 01 doe snot include the
-dts prefix, as it is not supposed to be DTS related.
-
-
-Eduardo Valentin (6):
-  thermal: ti-soc-thermal: use standard GPIO DT bindings
-  arm: introduce config HAS_BANDGAP
-  arm: dts: add bandgap entry for OMAP443x devices
-  arm: dts: add bandgap entry for OMAP4460 devices
-  arm: omap2plus_defconfig: enable TI bandgap driver
-  arm: omap2plus_defconfig: enable DRA752 thermal support by default
-
- arch/arm/Kconfig                                  |  3 +++
- arch/arm/boot/dts/omap443x.dtsi                   |  4 ++++
- arch/arm/boot/dts/omap4460.dtsi                   |  9 +++++++++
- arch/arm/configs/omap2plus_defconfig              | 12 ++++++++++++
- arch/arm/mach-omap2/Kconfig                       |  1 +
- drivers/staging/ti-soc-thermal/ti-bandgap.c       |  8 ++------
- drivers/staging/ti-soc-thermal/ti_soc_thermal.txt |  9 +++++----
- 7 files changed, 36 insertions(+), 10 deletions(-)
-
+diff --git a/drivers/staging/ti-soc-thermal/ti-bandgap.c b/drivers/staging/ti-soc-thermal/ti-bandgap.c
+index f20c1cf..c7fc0d0 100644
+--- a/drivers/staging/ti-soc-thermal/ti-bandgap.c
++++ b/drivers/staging/ti-soc-thermal/ti-bandgap.c
+@@ -38,6 +38,7 @@
+ #include <linux/of_device.h>
+ #include <linux/of_platform.h>
+ #include <linux/of_irq.h>
++#include <linux/of_gpio.h>
+ #include <linux/io.h>
+ 
+ #include "ti-bandgap.h"
+@@ -1123,7 +1124,6 @@ static struct ti_bandgap *ti_bandgap_build(struct platform_device *pdev)
+ 	const struct of_device_id *of_id;
+ 	struct ti_bandgap *bgp;
+ 	struct resource *res;
+-	u32 prop;
+ 	int i;
+ 
+ 	/* just for the sake */
+@@ -1167,11 +1167,7 @@ static struct ti_bandgap *ti_bandgap_build(struct platform_device *pdev)
+ 	} while (res);
+ 
+ 	if (TI_BANDGAP_HAS(bgp, TSHUT)) {
+-		if (of_property_read_u32(node, "ti,tshut-gpio", &prop) < 0) {
+-			dev_err(&pdev->dev, "missing tshut gpio in device tree\n");
+-			return ERR_PTR(-EINVAL);
+-		}
+-		bgp->tshut_gpio = prop;
++		bgp->tshut_gpio = of_get_gpio(node, 0);
+ 		if (!gpio_is_valid(bgp->tshut_gpio)) {
+ 			dev_err(&pdev->dev, "invalid gpio for tshut (%d)\n",
+ 				bgp->tshut_gpio);
+diff --git a/drivers/staging/ti-soc-thermal/ti_soc_thermal.txt b/drivers/staging/ti-soc-thermal/ti_soc_thermal.txt
+index a4a33d1..382bd98 100644
+--- a/drivers/staging/ti-soc-thermal/ti_soc_thermal.txt
++++ b/drivers/staging/ti-soc-thermal/ti_soc_thermal.txt
+@@ -17,8 +17,9 @@ Required properties:
+ - interrupts : this entry should indicate which interrupt line
+ the talert signal is routed to;
+ Specific:
+-- ti,tshut-gpio : this entry should be used to inform which GPIO
+-line the tshut signal is routed to;
++- gpios : this entry should be used to inform which GPIO
++line the tshut signal is routed to. The informed GPIO will
++be treated as an IRQ;
+ - regs : this entry must also be specified and it is specific
+ to each bandgap version, because the mapping may change from
+ soc to soc, apart of depending on available features.
+@@ -37,7 +38,7 @@ bandgap {
+ 		0x4a002378 0x18>;
+ 	compatible = "ti,omap4460-bandgap";
+ 	interrupts = <0 126 4>; /* talert */
+-	ti,tshut-gpio = <86>;
++	gpios = <&gpio3 22 0>; /* tshut */
+ };
+ 
+ OMAP4470:
+@@ -47,7 +48,7 @@ bandgap {
+ 		0x4a002378 0x18>;
+ 	compatible = "ti,omap4470-bandgap";
+ 	interrupts = <0 126 4>; /* talert */
+-	ti,tshut-gpio = <86>;
++	gpios = <&gpio3 22 0>; /* tshut */
+ };
+ 
+ OMAP5430:
 -- 
 1.8.2.1.342.gfa7285d
-
