@@ -1,87 +1,190 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: i2c issue on Panda with DT boot, v3.10-rc4
-Date: Fri, 7 Jun 2013 15:47:16 +0300
-Message-ID: <51B1D654.9070107@ti.com>
-References: <51B1C9D2.6060703@ti.com> <51B1D3D6.2020803@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: [PATCH V3 1/4] ARM: dts: omap5: Make uevm as the official board and deprecate sevm support
+Date: Fri, 7 Jun 2013 18:52:47 +0530
+Message-ID: <1370611370-14715-2-git-send-email-r.sricharan@ti.com>
+References: <1370611370-14715-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="----enig2FRSCBFWCOKSBPECWVWMO"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53740 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:33475 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754258Ab3FGMrS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Jun 2013 08:47:18 -0400
-In-Reply-To: <51B1D3D6.2020803@ti.com>
+	id S1752777Ab3FGNX3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Jun 2013 09:23:29 -0400
+In-Reply-To: <1370611370-14715-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: devicetree-discuss@lists.ozlabs.org, r.sricharan@ti.com, tony@atomide.com, b-cousson@ti.com
 
-------enig2FRSCBFWCOKSBPECWVWMO
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+The uevm is the only official board supported for the OMAP5 soc
+in mainline. The existent sevm platform will no more be supported.
+Hence cleaning up the board dts file to have only the data
+required for uevm.
 
-On 07/06/13 15:36, Grygorii Strashko wrote:
+Renaming the board dts file and adding the following cleanups.
 
-> Could you check if below change will help you, pls?
-> iff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap=
-=2Ec
-> index 13d1eca..66a62e7 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -615,11 +615,11 @@ static int omap_i2c_xfer_msg(struct i2c_adapter
-> *adap,
->         if (dev->cmd_err & OMAP_I2C_STAT_NACK) {
->                 if (msg->flags & I2C_M_IGNORE_NAK)
->                         return 0;
-> -               if (stop) {
-> -                       w =3D omap_i2c_read_reg(dev, OMAP_I2C_CON_REG);=
+ * There are no devices connected on I2C 2,3,4 buses. So remove
+   the pinmux data for the same.
 
-> -                       w |=3D OMAP_I2C_CON_STP;
-> -                       omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, w);
-> -               }
-> +
-> +               w =3D omap_i2c_read_reg(dev, OMAP_I2C_CON_REG);
-> +               w |=3D OMAP_I2C_CON_STP;
-> +               omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, w);
-> +
->                 return -EREMOTEIO;
->         }
->         return -EIO;
+ * OMAP5432 and DDR3 memory is used in the uevm. Temperature polling
+   is not supported with DDR3 memories. Because of DDR3 phy limitation
+   the voltage change across DVFS and all shadow registers for DVFS on
+   DDR3 is not supported. Hence the emif kernel driver is not required,
+   so removing the DDR3 device file and emif nodes for uevm.
 
-With that one, I don't get timeouts, but it still doesn't work (i.e.
-behavior is the same as on -rc1).
+ * Keypad is not supported on uevm. So remove the device node.
 
-When I run i2cdump the first time, I see that it (probably) manages to
-read the first byte, as that's "00". Everything after that are 'XX'es.
+Signed-off-by: Sricharan R <r.sricharan@ti.com>
+---
+ [V3] Rebased on top of Benoit's latest tip and improved the subject, changelog
 
- Tomi
+ arch/arm/boot/dts/Makefile                         |    2 +-
+ .../arm/boot/dts/{omap5-evm.dts => omap5-uevm.dts} |   83 +-------------------
+ 2 files changed, 4 insertions(+), 81 deletions(-)
+ rename arch/arm/boot/dts/{omap5-evm.dts => omap5-uevm.dts} (73%)
 
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index bd388b1..8e50761 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -150,7 +150,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+ 	omap4-var-som.dtb \
+ 	omap4-sdp.dtb \
+ 	omap4-sdp-es23plus.dtb \
+-	omap5-evm.dtb \
++	omap5-uevm.dtb \
+ 	am335x-evm.dtb \
+ 	am335x-evmsk.dtb \
+ 	am335x-bone.dtb \
+diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+similarity index 73%
+rename from arch/arm/boot/dts/omap5-evm.dts
+rename to arch/arm/boot/dts/omap5-uevm.dts
+index 22e9ee8..843a001 100644
+--- a/arch/arm/boot/dts/omap5-evm.dts
++++ b/arch/arm/boot/dts/omap5-uevm.dts
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -8,11 +8,10 @@
+ /dts-v1/;
+ 
+ #include "omap5.dtsi"
+-#include "samsung_k3pe0e000b.dtsi"
+ 
+ / {
+-	model = "TI OMAP5 EVM board";
+-	compatible = "ti,omap5-evm", "ti,omap5";
++	model = "TI OMAP5 uEVM board";
++	compatible = "ti,omap5-uevm", "ti,omap5";
+ 
+ 	memory {
+ 		device_type = "memory";
+@@ -88,27 +87,6 @@
+ 		>;
+ 	};
+ 
+-	i2c2_pins: pinmux_i2c2_pins {
+-		pinctrl-single,pins = <
+-			0x178 (PIN_INPUT | MUX_MODE0)		/* i2c2_scl */
+-			0x17a (PIN_INPUT | MUX_MODE0)		/* i2c2_sda */
+-		>;
+-	};
+-
+-	i2c3_pins: pinmux_i2c3_pins {
+-		pinctrl-single,pins = <
+-			0x13a (PIN_INPUT | MUX_MODE0)		/* i2c3_scl */
+-			0x13c (PIN_INPUT | MUX_MODE0)		/* i2c3_sda */
+-		>;
+-	};
+-
+-	i2c4_pins: pinmux_i2c4_pins {
+-		pinctrl-single,pins = <
+-			0xb8 (PIN_INPUT | MUX_MODE0)		/* i2c4_scl */
+-			0xba (PIN_INPUT | MUX_MODE0)		/* i2c4_sda */
+-		>;
+-	};
+-
+ 	i2c5_pins: pinmux_i2c5_pins {
+ 		pinctrl-single,pins = <
+ 			0x184 (PIN_INPUT | MUX_MODE0)		/* i2c5_scl */
+@@ -175,39 +153,6 @@
+ 	clock-frequency = <400000>;
+ };
+ 
+-&i2c2 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&i2c2_pins>;
+-
+-	clock-frequency = <400000>;
+-
+-	/* Pressure Sensor */
+-	bmp085@77 {
+-		compatible = "bosch,bmp085";
+-		reg = <0x77>;
+-	};
+-};
+-
+-&i2c3 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&i2c3_pins>;
+-
+-	clock-frequency = <400000>;
+-};
+-
+-&i2c4 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&i2c4_pins>;
+-
+-	clock-frequency = <400000>;
+-
+-	/* Temperature Sensor */
+-	tmp102@48{
+-		compatible = "ti,tmp102";
+-		reg = <0x48>;
+-	};
+-};
+-
+ &i2c5 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&i2c5_pins>;
+@@ -215,32 +160,10 @@
+ 	clock-frequency = <400000>;
+ };
+ 
+-&keypad {
+-	keypad,num-rows = <8>;
+-	keypad,num-columns = <8>;
+-	linux,keymap = <0x02020073	/* VOLUP */
+-			0x02030072	/* VOLDOWM */
+-			0x020400e7	/* SEND */
+-			0x02050066	/* HOME */
+-			0x0206006b	/* END */
+-			0x020700d9>;	/* SEARCH */
+-	linux,input-no-autorepeat;
+-};
+-
+ &mcbsp3 {
+ 	status = "disabled";
+ };
+ 
+-&emif1 {
+-	cs1-used;
+-	device-handle = <&samsung_K3PE0E000B>;
+-};
+-
+-&emif2 {
+-	cs1-used;
+-	device-handle = <&samsung_K3PE0E000B>;
+-};
+-
+ &mcspi1 {
+ 
+ };
+-- 
+1.7.9.5
 
-
-------enig2FRSCBFWCOKSBPECWVWMO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJRsdZUAAoJEPo9qoy8lh71Fx0QAJQz+G3ZYc+VyWONkq2QEKvV
-kPm92kwUZ/fIFr4w77OGdBv3cHtYE5O9okE8a0+x7vrjV3BpaFhRiYUmrV/7X2Ea
-Rk4KOXkU31HngXv1NmdH0lZKwAv4MEIQjMRRyM+TDB5uQLY27D/TkCY4nR82SXPa
-MRPGY8flnVM9/HMz583VmyuuSfNzKhsq1ar7a+pFoyQZuyL9QDWA08iwYrtPrQTt
-KgE/Um6lG2+7b+Axc6OYYYgmmqNg+ze31eRH6myZib8P2nyO9+pxqU8bUtPeM+RY
-UHcgRyqWwdJI0j+i/3rBLkNOuVj/BE6JvgDuLuAwNrLxnY9cKwb1uXP8JnU50rej
-x33E/5pB2BJTzl3g5iZHWrUcKKfNbuD9HfVvisUe+EdZ72MW6Yc3bL4a9xzHz+si
-A3UcxbUoEFt3ZZ351gurDsSKvIgSPwCVBUjezDWCWshy6DiFniw1h78E5F2ekRcF
-LmosSTxH44+Cr910GDXk4m3QCsRHVF4R/YcdYiNo4PNyFmeGegALJ3Fho716rXLT
-MRpxzV0pek3hLqbESiYwkRUpoyMeOUu4fcDQLcWW4soQIRzSwhu58xJi1/H84aaE
-vYPkOOaC6L33P6WulWskN0BRbuZkgkWOd77gaw2LoiRp6+aYzqZEq8Yn3y2dpiRg
-lfNbW77EnqYto94b0CGP
-=WOaw
------END PGP SIGNATURE-----
-
-------enig2FRSCBFWCOKSBPECWVWMO--
