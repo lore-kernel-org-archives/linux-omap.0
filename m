@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH 5/5] i2c: omap: remove omap_i2c_isr() hw irq handler
-Date: Fri, 7 Jun 2013 21:46:08 +0300
-Message-ID: <1370630768-4077-6-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH 1/5] i2c: omap: fix spurious IRQs: disable/enable IRQ at INTC when idle
+Date: Fri, 7 Jun 2013 21:46:04 +0300
+Message-ID: <1370630768-4077-2-git-send-email-grygorii.strashko@ti.com>
 References: <1370630768-4077-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,112 +9,95 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1370630768-4077-1-git-send-email-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Kevin Hilman <khilman@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The omap_i2c_isr() does the irq check and schedules threaded handler if any of
-enabled IRQs is active, but currently the I2C IRQs are enabled just once,
-when I2C IP is enabling (transfer started) and they aren't changed after that.
-More over, now the I2C INTC IRQ is disabled when I2C IP is idled.
-Thus, I2C IRQs will start coming only when we want that, and there is
-no sense to have omap_i2c_isr() anymore:
-- omap_i2c_isr_thread() does all needed checks
-- synchronization is provided IRQ Core.
+From: Kevin Hilman <khilman@deeprootsystems.com>
 
-So, get rid of omap_i2c_isr(), custom locking and
-struct omap_i2c_dev->lock variable.
+Currently, runtime PM is used to keep the device enabled only during
+active transfers and for a configurable runtime PM autosuspend timout
+after an xfer.
 
-CC: Kevin Hilman <khilman@linaro.org>
+In addition to idling the device, driver's ->runtime_suspend() method
+currently disables device interrupts when idle.  However, on some SoCs
+(notably OMAP4+), the I2C hardware may shared with other coprocessors.
+This means that the MPU will still recieve interrupts if a coprocessor
+is using the I2C device.  To avoid this, also disable interrupts at
+the MPU INTC when idling the device in ->runtime_suspend() (and
+re-enable them in ->runtime_resume().)  This part based on an original
+patch from Shubhrajyoti Datta.  NOTE: for proper sharing the I2C with
+a coprocessor, this driver still needs hwspinlock support added.
+
+More over, this patch fixes the kernel boot failure which happens when
+CONFIG_SENSORS_LM75=y:
+
+[    2.251220] WARNING: at drivers/bus/omap_l3_noc.c:113 l3_interrupt_handler+0x140/0x184()
+[    2.257781] L3 custom error: MASTER:MPU TARGET:L4 PER2
+[    2.264373] Modules linked in:
+[    2.268463] CPU: 0 PID: 2 Comm: kthreadd Not tainted 3.10.0-rc4-00034-g042dd60-dirty #64
+[    2.270385] [<c001a80c>] (unwind_backtrace+0x0/0xf0) from [<c0017238>] (show_stack+0x10/0x14)
+[    2.286102] [<c0017238>] (show_stack+0x10/0x14) from [<c0040fd0>] (warn_slowpath_common+0x4c/0x68)
+[    2.295593] [<c0040fd0>] (warn_slowpath_common+0x4c/0x68) from [<c0041080>] (warn_slowpath_fmt+0x30/0x40)
+[    2.299987] [<c0041080>] (warn_slowpath_fmt+0x30/0x40) from [<c02c5ed0>] (l3_interrupt_handler+0x140/0x184)
+[    2.315582] [<c02c5ed0>] (l3_interrupt_handler+0x140/0x184) from [<c009ffb8>] (handle_irq_event_percpu+0x58/0x258)
+[    2.323364] [<c009ffb8>] (handle_irq_event_percpu+0x58/0x258) from [<c00a01f4>] (handle_irq_event+0x3c/0x5c)
+[    2.327819] [<c00a01f4>] (handle_irq_event+0x3c/0x5c) from [<c00a2f7c>] (handle_fasteoi_irq+0xbc/0x164)
+[    2.337829] [<c00a2f7c>] (handle_fasteoi_irq+0xbc/0x164) from [<c009f978>] (generic_handle_irq+0x20/0x30)
+[    2.357513] [<c009f978>] (generic_handle_irq+0x20/0x30) from [<c0014168>] (handle_IRQ+0x4c/0xac)
+[    2.366821] [<c0014168>] (handle_IRQ+0x4c/0xac) from [<c00085b4>] (gic_handle_irq+0x28/0x5c)
+[    2.375762] [<c00085b4>] (gic_handle_irq+0x28/0x5c) from [<c04f08a4>] (__irq_svc+0x44/0x5c)
+[    2.379821] Exception stack(0xdb085ec0 to 0xdb085f08)
+[    2.389953] 5ec0: 00000001 00000001 00000000 db07ea00 40000113 db2317a8 db084000 000002f1
+[    2.389953] 5ee0: db07ea00 00000000 00000000 00000000 c04fd990 db085f08 c009170c c04f03e8
+[    2.405609] 5f00: 20000113 ffffffff
+[    2.408355] [<c04f08a4>] (__irq_svc+0x44/0x5c) from [<c04f03e8>] (_raw_spin_unlock_irqrestore+0x34/0x44)
+[    2.418304] [<c04f03e8>] (_raw_spin_unlock_irqrestore+0x34/0x44) from [<c00403c0>] (do_fork+0xa4/0x2d4)
+[    2.427795] [<c00403c0>] (do_fork+0xa4/0x2d4) from [<c0040620>] (kernel_thread+0x30/0x38)
+[    2.437805] [<c0040620>] (kernel_thread+0x30/0x38) from [<c0063888>] (kthreadd+0xd4/0x13c)
+[    2.448364] [<c0063888>] (kthreadd+0xd4/0x13c) from [<c0013308>] (ret_from_fork+0x14/0x2c)
+[    2.448364] ---[ end trace da8cf92c433d1616 ]---
+
+The root casue of crash is race between omap_i2c_runtime_suspend()
+ and omap_i2c_isr_thread()
+
+CPU1:                                   CPU2:
+|-omap_i2c_xfer                         |
+  |- pm_runtime_put_autosuspend()       |
+     |-timeout                          |-omap_i2c_isr()
+                                          |-return IRQ_WAKE_THREAD;
+     |-omap_i2c_runtime_suspend()       |
+                                        |-omap_i2c_isr_thread()
+                                          |- oops is here - I2C module is in idle state
+
+
+Cc: Nishanth Menon <nm@ti.com>
+Signed-off-by: Kevin Hilman <khilman@linaro.org>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
-
-This is clean-up patch.
-
- drivers/i2c/busses/i2c-omap.c |   33 +--------------------------------
- 1 file changed, 1 insertion(+), 32 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index b3daf3f..749f390 100644
+index 64c26f9..97844ff 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -183,7 +183,6 @@ enum {
- #define OMAP_I2C_IP_V2_INTERRUPTS_MASK	0x6FFF
+@@ -1290,6 +1290,8 @@ static int omap_i2c_runtime_suspend(struct device *dev)
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
  
- struct omap_i2c_dev {
--	spinlock_t		lock;		/* IRQ synchronization */
- 	struct device		*dev;
- 	void __iomem		*base;		/* virtual */
- 	int			irq;
-@@ -876,35 +875,10 @@ static int omap_i2c_transmit_data(struct omap_i2c_dev *dev, u8 num_bytes,
++	disable_irq(_dev->irq);
++
+ 	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
+ 
+ 	if (_dev->scheme == OMAP_I2C_SCHEME_0)
+@@ -1320,6 +1322,8 @@ static int omap_i2c_runtime_resume(struct device *dev)
+ 
+ 	__omap_i2c_init(_dev);
+ 
++	enable_irq(_dev->irq);
++
+ 	return 0;
  }
- 
- static irqreturn_t
--omap_i2c_isr(int irq, void *dev_id)
--{
--	struct omap_i2c_dev *dev = dev_id;
--	irqreturn_t ret = IRQ_HANDLED;
--	u16 mask;
--	u16 stat;
--
--	spin_lock(&dev->lock);
--	if (pm_runtime_suspended(dev->dev)) {
--		WARN_ONCE(true, "We should never be here!\n");
--		return IRQ_NONE;
--	}
- 
--	mask = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
--	stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
--
--	if (stat & mask)
--		ret = IRQ_WAKE_THREAD;
--
--	spin_unlock(&dev->lock);
--
--	return ret;
--}
--
--static irqreturn_t
- omap_i2c_isr_thread(int this_irq, void *dev_id)
- {
- 	struct omap_i2c_dev *dev = dev_id;
--	unsigned long flags;
- 	u16 bits;
- 	u16 stat;
- 	int err = 0, count = 0;
-@@ -914,7 +888,6 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
- 		return IRQ_NONE;
- 	}
- 
--	spin_lock_irqsave(&dev->lock, flags);
- 	do {
- 		bits = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
- 		stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-@@ -1035,8 +1008,6 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
- 	omap_i2c_complete_cmd(dev, err);
- 
- out:
--	spin_unlock_irqrestore(&dev->lock, flags);
--
- 	return IRQ_HANDLED;
- }
- 
-@@ -1146,8 +1117,6 @@ omap_i2c_probe(struct platform_device *pdev)
- 	dev->dev = &pdev->dev;
- 	dev->irq = irq;
- 
--	spin_lock_init(&dev->lock);
--
- 	platform_set_drvdata(pdev, dev);
- 	init_completion(&dev->cmd_complete);
- 
-@@ -1229,7 +1198,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 				IRQF_NO_SUSPEND, pdev->name, dev);
- 	else
- 		r = devm_request_threaded_irq(&pdev->dev, dev->irq,
--				omap_i2c_isr, omap_i2c_isr_thread,
-+				NULL, omap_i2c_isr_thread,
- 				IRQF_NO_SUSPEND | IRQF_ONESHOT,
- 				pdev->name, dev);
- 
+ #endif /* CONFIG_PM_RUNTIME */
 -- 
 1.7.9.5
