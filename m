@@ -1,52 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL v2] ARM: dts: OMAP fixes for 3.10-rc5
-Date: Fri, 7 Jun 2013 15:07:07 -0700
-Message-ID: <20130607220706.GO3331@atomide.com>
-References: <51ACA9FA.9000308@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix serial init for device tree based booting
+Date: Fri, 07 Jun 2013 15:20:55 -0700
+Message-ID: <87fvwtlfzs.fsf@linaro.org>
+References: <20130607215503.GK3331@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:25621 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755822Ab3FGWHK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 18:07:10 -0400
-Content-Disposition: inline
-In-Reply-To: <51ACA9FA.9000308@ti.com>
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:35081 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752999Ab3FGWU7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 18:20:59 -0400
+Received: by mail-pd0-f175.google.com with SMTP id 4so5339749pdd.20
+        for <linux-omap@vger.kernel.org>; Fri, 07 Jun 2013 15:20:59 -0700 (PDT)
+In-Reply-To: <20130607215503.GK3331@atomide.com> (Tony Lindgren's message of
+	"Fri, 7 Jun 2013 14:55:04 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Kevin Hilman <khilman@linaro.org>, Lars Poeschel <poeschel@lemonage.de>, Suman Anna <s-anna@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Benoit Cousson <b-cousson@ti.com> [130603 07:42]:
-> Hi Tony,
-> 
-> Please pull three DTS fixes for the next -rc.
+Tony Lindgren <tony@atomide.com> writes:
 
-Thanks pulling into omap-for-v3.10/fixes.
+> We don't want to call omap_serial_early_init() for device
+> tree based booting as the ports are initialized based on
+> the .dts entries.
+>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Regards,
+Reviewed-by: Kevin Hilman <khilman@linaro.org>
 
-Tony
- 
-> The following changes since commit d683b96b072dc4680fc74964eca77e6a23d1fa6e:
->   Linus Torvalds (1):
->         Linux 3.10-rc4
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git dts-fixes-for-3.10
-> 
-> Kevin Hilman (1):
->       ARM: dts: omap4-panda|sdp: Fix mux for twl6030 IRQ pin and msecure line
-> 
-> Lars Poeschel (1):
->       ARM: dts: AM33xx: Fix properties on gpmc node
-> 
-> Suman Anna (1):
->       ARM: dts: OMAP5: Fix missing PWM capability to timer nodes
-> 
->  arch/arm/boot/dts/am33xx.dtsi             |    4 ++--
->  arch/arm/boot/dts/omap4-panda-common.dtsi |   20 ++++++++++++++++++++
->  arch/arm/boot/dts/omap4-sdp.dts           |   20 ++++++++++++++++++++
->  arch/arm/boot/dts/omap5.dtsi              |    3 +++
->  4 files changed, 45 insertions(+), 2 deletions(-)
+
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -176,6 +176,9 @@ static char *cmdline_find_option(char *str)
+>  
+>  static int __init omap_serial_early_init(void)
+>  {
+> +	if (of_have_populated_dt())
+> +		return -ENODEV;
+> +
+>  	do {
+>  		char oh_name[MAX_UART_HWMOD_NAME_LEN];
+>  		struct omap_hwmod *oh;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
