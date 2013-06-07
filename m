@@ -1,30 +1,56 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] ARM: OMAP: Move DT wake-up event handling over to
- use pinctrl-single-omap
-Date: Fri, 7 Jun 2013 13:52:19 -0700
-Message-ID: <20130607205219.GG3331@atomide.com>
-References: <20130607203936.16513.57494.stgit@localhost>
- <20130607205046.16513.2802.stgit@localhost>
+Subject: Re: [PATCH 09/11] mmc: omap_hsmmc: enhance pinctrl support
+Date: Fri, 7 Jun 2013 14:01:30 -0700
+Message-ID: <20130607210129.GH3331@atomide.com>
+References: <1369995191-20855-1-git-send-email-gururaja.hebbar@ti.com>
+ <1369995191-20855-10-git-send-email-gururaja.hebbar@ti.com>
+ <20130604144632.GI3331@atomide.com>
+ <51B1E1C7.7050407@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:57696 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756177Ab3FGUwX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 16:52:23 -0400
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130607205046.16513.2802.stgit@localhost>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <51B1E1C7.7050407@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: Hebbar Gururaja <gururaja.hebbar@ti.com>, khilman@linaro.org, linus.walleij@linaro.org, sudhakar.raj@ti.com, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, vaibhav.bedia@ti.com, linux-omap@vger.kernel.org, Chris Ball <cjb@laptop.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linus.walleij@linaro.org
-Cc: devicetree-discuss@lists.ozlabs.org, Haojian Zhuang <haojian.zhuang@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 
-* Tony Lindgren <tony@atomide.com> [130607 13:56]:
-> Now pinctrl-single-omap can handle the wake-up events for us now
-> as long as the events are configured in the .dts files.
+* Balaji T K <balajitk@ti.com> [130607 06:42]:
+> On Tuesday 04 June 2013 08:16 PM, Tony Lindgren wrote:
+> >* Hebbar Gururaja <gururaja.hebbar@ti.com> [130531 03:19]:
+> >>Amend the hsmmc controller to optionally take a pin control handle and
+> >>set the state of the pins to:
+> >>
+> >>- "default" on boot, resume and before performing a mmc transfer
+> >>- "idle" after initial default, after resume default, and after each
+> >>mmc/sd card access
+> >>- "sleep" on suspend()
+> >>
+> >>By optionally putting the pins into sleep state in the suspend callback
+> >>we can accomplish two things.
+> >>- One is to minimize current leakage from pins and thus save power,
+> >>- second, we can prevent the IP from driving pins output in an
+> >>uncontrolled manner, which may happen if the power domain drops the
+> >>domain regulator.
+> >>
+> >>If any of the above pin states are missing in dt, a warning message
+> >>about the missing state is displayed.
+> >>If certain pin-states are not available, to remove this warning message
+> >>pass respective state name with null phandler.
+> >
+> >There's a similar patch in the "[RESEND PATCH v2 1/3] mmc: omap_hsmmc:
+> >Enable SDIO IRQ using a GPIO in idle mode" thread. It also makes the
+> >SDIO interrupts to work, so we need to consider that too.
+> >
+> 
+> Hi Tony,
+> 
+> I will try to combine both of these and make use of
+> pinctrl_pm_select_[*]_state helper functions.
 
-This patch I should queue separately, the rest should go via
-the pinctrl tree.
+OK thanks, I'll separate out the pinctrl parts from Andreas' patch
+and repost.
 
 Regards,
 
