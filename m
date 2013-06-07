@@ -1,87 +1,48 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH v2 3/3] ARM: DTS: TWL4030: fix mux and wakeup for SYS_NIRQ line
-Date: Fri, 07 Jun 2013 09:59:14 -0700
-Message-ID: <87fvwtn9gd.fsf@linaro.org>
-References: <1370040357-25794-1-git-send-email-khilman@linaro.org>
-	<1370561253-15523-1-git-send-email-khilman@linaro.org>
-	<20130606234201.GA26919@kahuna>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 13/14] ARM: AM33XX: hwmod data: irq, dma and addr info
+ clean up
+Date: Fri, 7 Jun 2013 13:01:05 -0400
+Message-ID: <51B211D1.20100@ti.com>
+References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com> <1369845494-30231-14-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.02.1306060355320.15042@utopia.booyaka.com> <87zjv2ooxi.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:56561 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754981Ab3FGQ7S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 12:59:18 -0400
-Received: by mail-pd0-f172.google.com with SMTP id z10so1475682pdj.17
-        for <linux-omap@vger.kernel.org>; Fri, 07 Jun 2013 09:59:18 -0700 (PDT)
-In-Reply-To: <20130606234201.GA26919@kahuna> (Nishanth Menon's message of
-	"Thu, 6 Jun 2013 18:42:01 -0500")
+Received: from devils.ext.ti.com ([198.47.26.153]:45645 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754981Ab3FGRBb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 13:01:31 -0400
+In-Reply-To: <87zjv2ooxi.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Paul Walmsley <paul@pwsan.com>, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, Sricharan R <r.sricharan@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-Nishanth Menon <nm@ti.com> writes:
+On Thursday 06 June 2013 06:27 PM, Kevin Hilman wrote:
+> Paul Walmsley <paul@pwsan.com> writes:
+> 
+>> On Wed, 29 May 2013, Santosh Shilimkar wrote:
+>>
+>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>>>
+>>> AM33XX only supports DT boot mode and with addition of
+>>> extracting module resources like, irq, dma and address space
+>>> from DT block, so now we can remove duplicate information from
+>>> hwmod data file.
+>>
+>> OK, guess I'll take your word for it that it all works.  The
+>> BeagleBone-white with appended DTB hasn't booted here since v3.7.
+>> And the BeagleBone-black with discrete DTB doesn't boot at all with
+>> current mainline, only with the TI vendor kernel & DTB...
+> 
+> Anyone care to shed light on what's missing for BeagleBone boot with
+> mainline currently?  
+> 
+> I've also not been able to boot a mainline kernel on the BeagleBone for
+> some time.
+> 
+Looping Rajendra.
 
-> On 16:27-20130606, Kevin Hilman wrote:
->> On most OMAP3 platforms, the twl4030 IRQ line is connected to the
->> SYS_NIRQ line on OMAP.  Add another DTS include file
->> (twl4030_omap3_mux.dtsi) for boards that hook up the twl4030 this way
->> to include.
->> 
->> This allows RTC wake from off-mode to work again on OMAP3-based
->> platforms with twl4030.  Tested on 3530/Beagle, 3730/Beagle-xM,
->> 3530/Overo, 3730/Overo-STORM.
->> 
->> Special thanks to Florian Vaussard for suggesting use of preprocessor
->> feature.
->> 
->> Cc: Florian Vaussard <florian.vaussard@epfl.ch>
->> Cc: Benoit Cousson <b-cousson@ti.com>
->> Signed-off-by: Kevin Hilman <khilman@linaro.org>
->> ---
->> v2: Updated to change board files instead of twl4030 file.
->> 
->>  arch/arm/boot/dts/omap3-beagle-xm.dts    |  1 +
->>  arch/arm/boot/dts/omap3-beagle.dts       |  1 +
->>  arch/arm/boot/dts/omap3-devkit8000.dts   |  1 +
->>  arch/arm/boot/dts/omap3-evm.dts          |  1 +
->>  arch/arm/boot/dts/omap3-igep.dtsi        |  1 +
->>  arch/arm/boot/dts/omap3-overo.dtsi       |  1 +
->>  arch/arm/boot/dts/omap3430-sdp.dts       |  1 +
->>  arch/arm/boot/dts/twl4030_omap3_mux.dtsi | 17 +++++++++++++++++
-> minor comment:
-> can we do twl4030_omap3 instead? That way, I can add in twl4030 VP
-> specific parameters which are OMAP3 specific?
+Regards,
+Santosh
 
-Good idea, I'll rename it to twl4030_omap3.dtsi
-
-[...]
-
->> diff --git a/arch/arm/boot/dts/twl4030_omap3_mux.dtsi b/arch/arm/boot/dts/twl4030_omap3_mux.dtsi
->> new file mode 100644
->> index 0000000..1bd0f9f
->> --- /dev/null
->> +++ b/arch/arm/boot/dts/twl4030_omap3_mux.dtsi
->> @@ -0,0 +1,17 @@
-> some license text?
-
-oops
-
->> +&twl {
->> +	pinctrl-names = "default";
->> +	pinctrl-0 = <&twl4030_pins>;
->> +};
->> +
->> +&omap3_pmx_core {
->> +	/*
->> +	 * On most OMAP3 platforms, the twl4030 IRQ line is connected
->> +         * to the SYS_NIRQ line on OMAP.  Therefore, configure the
->> +         * defaults for the SYS_NIRQ pin here.
-> ^^^ tab?
-
-good catch.
-
-Thanks for the review, will make the changes and resubmit.
-
-Kevin
