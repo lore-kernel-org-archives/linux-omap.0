@@ -1,57 +1,51 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH] ARM: dts: add dtsi for palmas
-Date: Fri, 07 Jun 2013 13:56:05 -0600
-Message-ID: <51B23AD5.8060006@wwwdotorg.org>
-References: <1370604504-32310-1-git-send-email-j-keerthy@ti.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: [PATCHv3 0/6] arm: enable TI SoC thermal driver
+Date: Fri, 7 Jun 2013 16:46:02 -0400
+Message-ID: <1370637968-23299-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1370604504-32310-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: J Keerthy <j-keerthy@ti.com>
-Cc: b-cousson@ti.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ldewangan@nvidia.com, grant.likely@secretlab.ca, swarren@nvidia.com, sameo@linux.intel.com, gg@slimlogic.co.uk, lee.jones@linaro.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: tony@atomide.com, grant.likely@linaro.org
+Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, Eduardo Valentin <eduardo.valentin@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 06/07/2013 05:28 AM, J Keerthy wrote:
-> Adds palmas mfd and palmas regulator nodes. This is
-> based on the patch series:
-> 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg89957.html
-> 
-> The device tree nodes are based on:
-> https://lkml.org/lkml/2013/6/6/25
+Hello,
 
-> diff --git a/arch/arm/boot/dts/palmas.dtsi b/arch/arm/boot/dts/palmas.dtsi
+Idea is to add the missing bits under arch/arm/*omap* required
+to enable by default the ti-soc-thermal driver. I am planing to
+move it out of staging tree. This has been scheduled to 3.11.
 
-> +&palmas {
+It would be interesting to get
+feedback from other ppl. By enabling it by default we could reach
+more ppl for testing it across the supported chips.
 
-Hmmm. That (i.e. requiring the board file to declare the node, then
-setting up all the content by later including this file) is an
-interesting approach. I guess it's reasonable. The one issue is that it
-makes it a little harder for the board file to override any of the
-properties in this file., although it certainly is possible by including
-those overrides after the include.
+The difference from v2 is that now the driver is changed to use
+GPIO bindings for Tshut as suggested by Benoit and I added
+a simple description what is bandgap.
 
-Irrespective of that, some comments on this:
+The difference from v1 is just that patch 01 doe snot include the
+dts prefix, as it is not supposed to be DTS related.
 
-> +	palmas_pmic {
 
-> +		ti,ldo6-vibrator;
+Eduardo Valentin (6):
+  thermal: ti-soc-thermal: use standard GPIO DT bindings
+  arm: introduce config HAS_BANDGAP
+  arm: dts: add bandgap entry for OMAP443x devices
+  arm: dts: add bandgap entry for OMAP4460 devices
+  arm: omap2plus_defconfig: enable TI bandgap driver
+  arm: omap2plus_defconfig: enable DRA752 thermal support by default
 
-For example, what if the board doesn't want to have the property set?
+ arch/arm/Kconfig                                  |  3 +++
+ arch/arm/boot/dts/omap443x.dtsi                   |  4 ++++
+ arch/arm/boot/dts/omap4460.dtsi                   |  9 +++++++++
+ arch/arm/configs/omap2plus_defconfig              | 12 ++++++++++++
+ arch/arm/mach-omap2/Kconfig                       |  1 +
+ drivers/staging/ti-soc-thermal/ti-bandgap.c       |  8 ++------
+ drivers/staging/ti-soc-thermal/ti_soc_thermal.txt |  9 +++++----
+ 7 files changed, 36 insertions(+), 10 deletions(-)
 
-> +
-> +		regulators {
-> +			smps123_reg: smps123 {
-> +				regulator-name = "smps123";
-> +				regulator-min-microvolt = < 600000>;
-> +				regulator-max-microvolt = <1500000>;
+-- 
+1.8.2.1.342.gfa7285d
 
-Or what if the board wants to limit the voltage range of this regulator
-due to what it's used for on the board.
-
-> +				regulator-always-on;
-> +				regulator-boot-on;
-
-And those two properties are almost certainly board-specific policy.
