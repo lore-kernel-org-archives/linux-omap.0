@@ -1,67 +1,53 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: Request for OMAPDSS testing
-Date: Fri, 7 Jun 2013 11:39:57 +0300
-Message-ID: <51B19C5D.3060406@ti.com>
-References: <51AD99F5.7060506@ti.com> <20130606204342.GB3507@blackmetal.musicnaut.iki.fi>
+Subject: Re: [PATCH 15/32] OMAPDSS: DPI: cleanup pll & regulator init
+Date: Fri, 7 Jun 2013 11:45:39 +0300
+Message-ID: <51B19DB3.3060106@ti.com>
+References: <1369906493-27538-1-git-send-email-tomi.valkeinen@ti.com> <1369906493-27538-16-git-send-email-tomi.valkeinen@ti.com> <51B182F7.7050002@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="----enig2ATJRKFDOOPPOGGOTIDTP"
+	boundary="----enig2OXGGJHKKWUXRSNBMHNLI"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48573 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751721Ab3FGIkU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 04:40:20 -0400
-In-Reply-To: <20130606204342.GB3507@blackmetal.musicnaut.iki.fi>
+Received: from comal.ext.ti.com ([198.47.26.152]:37870 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753181Ab3FGIpl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Jun 2013 04:45:41 -0400
+In-Reply-To: <51B182F7.7050002@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, Thomas Weber <weber@corscience.de>, Mike Rapoport <mike@compulab.co.il>, Steve Sakoman <steve@sakoman.com>, =?windows-1252?Q?Gra=9Evydas_Ignotas?= <notasas@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Archit Taneja <archit@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-------enig2ATJRKFDOOPPOGGOTIDTP
-Content-Type: text/plain; charset=windows-1252
+------enig2OXGGJHKKWUXRSNBMHNLI
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 06/06/13 23:43, Aaro Koskinen wrote:
-> Hi,
->=20
-> On Tue, Jun 04, 2013 at 10:40:37AM +0300, Tomi Valkeinen wrote:
->> I've made some big changes on the omapdss device model, which involves=
+On 07/06/13 09:51, Archit Taneja wrote:
 
->> converting all the panel drivers. I've got only a bunch of boards, so =
-I
->> hope some of you can perhaps do some minimal tests on some other board=
-s.
->>
->> I've got: Beagle (old one), Panda, 4430SDP, Overo with LCD43.
->>
->> The code can be found from the below git branch. It's based on 3.10-rc=
-1.
->>
->> git://gitorious.org/linux-omap-dss2/linux.git work/dss-dev-model
->>
->> All you need to do to get things working is to enable the new panel
->> drivers from kernel config, under Device drivers/Graphics support/OMAP=
-2+
->> Display Subsystem support/OMAP Display Device Drivers/
+>> -static int dpi_init_display(struct omap_dss_device *dssdev)
+>> -{
+>> -    struct platform_device *dsidev;
+>> -
+>> -    DSSDBG("init_display\n");
+>> -
+>> -    if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI) &&
+>> -                    dpi.vdds_dsi_reg =3D=3D NULL) {
+>> -        struct regulator *vdds_dsi;
+>> -
+>> -        vdds_dsi =3D dss_get_vdds_dsi();
+>> -        if (IS_ERR(vdds_dsi)) {
+>> -            vdds_dsi =3D regulator_get(&dpi.pdev->dev, "vdds_dsi");
 >=20
-> I tested Nokia N900 by pulling your tree and doing the following .confi=
-g
-> changes:
->=20
-> 	# CONFIG_PANEL_ACX565AKM is not set
->=20
-> 	CONFIG_PANEL_SONY_ACX565AKM=3Dy
->=20
-> The frame buffer console seems to work OK.
+> same comment about devm_ usage here, and the next few patches.
 
-Excellent, thanks!
+Yes, good point. And that allows us to get rid of the 'vdds_dsi_from_core=
+'.
 
  Tomi
 
 
 
-------enig2ATJRKFDOOPPOGGOTIDTP
+------enig2OXGGJHKKWUXRSNBMHNLI
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -70,19 +56,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.12 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIbBAEBAgAGBQJRsZxdAAoJEPo9qoy8lh71ipEP+OcUO3S8ukIQjnxM/3OmbCkx
-q6zyB7zv7a8w7JHJvknITRl4MRrFlJ5MnStEuogTevrDTJF5e4bwdDtvRrqmnj4Q
-Jvz55Heg79jNbLMuNlY1wu8Iauv7afhuSuYauNg7y3V3RfVmTzHZgQNwt8dX7D8r
-qXGvNvdWkv9FTs+A6J4qVADnWb4FVCed8wdJh44vNMdNLvYUWa5AEDYAuTbFQemP
-i8NbTGlH3irgzWM9yYpj2VI8PqoLrvPsvuHPMq03JChu5fsleMk6sYEyjyOqhUZy
-zTRIWAOMyNZcqf6wojW0iAawMMs/awYq/Ij2FBNUGbqhtYivip2z6GPB6P4ck6zS
-9sCK3wCb7FmJLHxXPp/PZV9EEOXDfJhqgzJai4+/62eHhr0kYWAWszlYP+Y2kpsn
-AqpsyVN9XkhQinJYFqBcQWp5iKm11vYGbxzrwclNfcFFBTDoJe5wLyUxc5V3drKL
-kUgw0gOfh6B2N/Oj4tKY4gsvLa57MMDbw56Yip1yJChjlj0rsEwUAlf1xzqTF141
-oC7shvw0j7weB1suR+tQsGaC/RShVqwN7grQ6mrMu7FJQi3eVUved4j6ywM7LIDd
-/UF3NVWdJSxf2HunLrAMI38CRVGx/zuF3OgFtCT4Bk3X6mboFIFgTwlpReyhUEmp
-cJdqsyMVCXFGtsrQnwo=
-=eH1s
+iQIcBAEBAgAGBQJRsZ2zAAoJEPo9qoy8lh71TVcP/0a9iOb/w/QZo4vFqoWl1u+a
+sZOhrWnZ/5iP8zz93sE58n/UyaEbFmgUE9pXhD2IQnJS7gm0ViwWuGGXeomyjWyJ
+CgFFsqD9lRy0tCuQ5gQ+mKbp2xfUFc3W42tHYCW/n6cV/cNIFp67TUKIlVKPJsDJ
+cElMxSRzcMeHvi+z9ZhZwWiTswIjL9WKt3hsy/tPeCmToj8gzkB9s5D69D1/cIAD
+vTyRtsxJPKxwi4LOvgsKJITGQgNlgaxRfOzXQUWG6/+EpgChM3n9/wBci/gUv6DB
+0NUb5eHHlsOhR8ydIKeaKKnvJeoo8oTQkpKcCM/d+ckrGmaBzkWU70r4QQFJ28Ky
+eLOiOeXs5lXUUN1+56vr0n2FT+VfkRNrQiAlQl/fO1i0/JKXXKIvVOp/VsVxz53S
+K97Fv2/RCVw7W6UG3aGrscOg/NzodE16SRczTjk5AqEBaFfVoY+UR0ZNTF3PcmQa
+KGJMhRzp0kh8y5TP0UXghTKX+T8adl8hcBPgD3JiBumf8xK01mE/PTW8MeyzvBhe
+qxDWICpMDpFXtNiXQuX1Vh90bLBFr0NeLQELgkf6uwgRY9qmAKxXgPtVEGc8r4GY
+xstQqT2z3lb4zcxtu1H+SfnFPRta2ZrJfUy17Kdl5K+h+/NXDBSbhmQpTl2EsCzJ
+WFUqGgNQcEg0JqYYkmUe
+=5NOT
 -----END PGP SIGNATURE-----
 
-------enig2ATJRKFDOOPPOGGOTIDTP--
+------enig2OXGGJHKKWUXRSNBMHNLI--
