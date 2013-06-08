@@ -1,56 +1,76 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 1/7] omap: mailbox: check iomem resource before dereferencing it
-Date: Fri, 7 Jun 2013 20:57:33 -0500
-Message-ID: <1370656653-41212-1-git-send-email-s-anna@ti.com>
+Subject: [PATCH 3/7] omap: mailbox: call request_irq after mbox queues are allocated
+Date: Fri, 7 Jun 2013 20:57:51 -0500
+Message-ID: <1370656671-41285-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37308 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:55546 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751005Ab3FHCDL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Jun 2013 22:03:11 -0400
+	id S1751052Ab3FHCDR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Jun 2013 22:03:17 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Jassi Brar <jaswinder.singh@linaro.org>, Loic Pallardy <loic.pallardy@st.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>, Fernando Guzman Lugo <lugo.fernando@gmail.com>
 
-Add a NULL check for iomem resource in mailbox probe functions.
+The OMAP mailbox startup code is enabling the interrupt even before
+any of the associated mailbox queues are allocated. Any pending
+received mailbox message could cause a kernel panic as soon as
+the interrupt is enabled due to the dereferencing of non-existing
+mailbox queues within the ISR.
 
 Signed-off-by: Fernando Guzman Lugo <lugo.fernando@gmail.com>
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- arch/arm/mach-omap1/mailbox.c | 3 +++
- arch/arm/mach-omap2/mailbox.c | 3 +++
- 2 files changed, 6 insertions(+)
+ arch/arm/plat-omap/mailbox.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/mailbox.c b/arch/arm/mach-omap1/mailbox.c
-index efc8f20..a343d5f 100644
---- a/arch/arm/mach-omap1/mailbox.c
-+++ b/arch/arm/mach-omap1/mailbox.c
-@@ -152,6 +152,9 @@ static int omap1_mbox_probe(struct platform_device *pdev)
- 	list[0]->irq = platform_get_irq_byname(pdev, "dsp");
- 
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!mem)
-+		return -ENOENT;
-+
- 	mbox_base = ioremap(mem->start, resource_size(mem));
- 	if (!mbox_base)
- 		return -ENOMEM;
-diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index 0b08026..9fe0bf2 100644
---- a/arch/arm/mach-omap2/mailbox.c
-+++ b/arch/arm/mach-omap2/mailbox.c
-@@ -382,6 +382,9 @@ static int omap2_mbox_probe(struct platform_device *pdev)
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index 5fb4027..e1bd333 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -261,13 +261,6 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
  	}
  
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!mem)
-+		return -ENOENT;
-+
- 	mbox_base = ioremap(mem->start, resource_size(mem));
- 	if (!mbox_base)
- 		return -ENOMEM;
+ 	if (!mbox->use_count++) {
+-		ret = request_irq(mbox->irq, mbox_interrupt, IRQF_SHARED,
+-							mbox->name, mbox);
+-		if (unlikely(ret)) {
+-			pr_err("failed to register mailbox interrupt:%d\n",
+-									ret);
+-			goto fail_request_irq;
+-		}
+ 		mq = mbox_queue_alloc(mbox, NULL, mbox_tx_tasklet);
+ 		if (!mq) {
+ 			ret = -ENOMEM;
+@@ -282,17 +275,24 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
+ 		}
+ 		mbox->rxq = mq;
+ 		mq->mbox = mbox;
++		ret = request_irq(mbox->irq, mbox_interrupt, IRQF_SHARED,
++							mbox->name, mbox);
++		if (unlikely(ret)) {
++			pr_err("failed to register mailbox interrupt:%d\n",
++									ret);
++			goto fail_request_irq;
++		}
+ 
+ 		omap_mbox_enable_irq(mbox, IRQ_RX);
+ 	}
+ 	mutex_unlock(&mbox_configured_lock);
+ 	return 0;
+ 
++fail_request_irq:
++	mbox_queue_free(mbox->rxq);
+ fail_alloc_rxq:
+ 	mbox_queue_free(mbox->txq);
+ fail_alloc_txq:
+-	free_irq(mbox->irq, mbox);
+-fail_request_irq:
+ 	if (mbox->ops->shutdown)
+ 		mbox->ops->shutdown(mbox);
+ 	mbox->use_count--;
 -- 
 1.8.2
 
