@@ -1,355 +1,93 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] pinctrl: single: omap: Add SoC specific module for
- wake-up events
-Date: Sat, 8 Jun 2013 08:29:52 -0700
-Message-ID: <20130608152951.GS3331@atomide.com>
-References: <20130607203936.16513.57494.stgit@localhost>
- <20130607205044.16513.27675.stgit@localhost>
+From: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] spi: omap2-mcspi: Skip platform_get_resource_byname() for dt
+	case
+Date: Sat, 8 Jun 2013 22:05:38 +0530
+Message-ID: <1370709338-19810-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:37416 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751652Ab3FHP34 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Jun 2013 11:29:56 -0400
-Content-Disposition: inline
-In-Reply-To: <20130607205044.16513.27675.stgit@localhost>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, r.sricharan-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linus.walleij@linaro.org
-Cc: devicetree-discuss@lists.ozlabs.org, Haojian Zhuang <haojian.zhuang@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 
-For wake-up events from deeper idle modes we need to check the
-configured padconf registers for the wake-up bit and then call
-the related interrupt handler.
+McSPI driver probe will abort for DT case because of failed
+platform_get_resource_byname() lookup. Fix it by skipping resource
+byname lookup for device tree build.
 
-Done in collaboration with Roger Quadros <rogerq@ti.com>.
+Issue comes out when dma entries are removed from the hwmod data.
 
-Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
+Signed-off-by: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
 ---
+ drivers/spi/spi-omap2-mcspi.c |   36 +++++++++++++++++++++---------------
+ 1 file changed, 21 insertions(+), 15 deletions(-)
 
-Here's a version of against current Linux next to as also the
-Makefile entry for sirf had changed.
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index e4829aa..99172d2 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -1275,25 +1275,31 @@ static int omap2_mcspi_probe(struct platform_device *pdev)
+ 		struct resource *dma_res;
+ 
+ 		sprintf(dma_rx_ch_name, "rx%d", i);
+-		dma_res = platform_get_resource_byname(pdev, IORESOURCE_DMA,
+-				dma_rx_ch_name);
+-		if (!dma_res) {
+-			dev_dbg(&pdev->dev, "cannot get DMA RX channel\n");
+-			status = -ENODEV;
+-			break;
++
++		if (!pdev->dev.of_node) {
++			dma_res = platform_get_resource_byname(pdev,
++					IORESOURCE_DMA, dma_rx_ch_name);
++			if (!dma_res) {
++				dev_dbg(&pdev->dev, "cannot get DMA RX channel\n");
++				status = -ENODEV;
++				break;
++			}
++			mcspi->dma_channels[i].dma_rx_sync_dev = dma_res->start;
+ 		}
+ 
+-		mcspi->dma_channels[i].dma_rx_sync_dev = dma_res->start;
+ 		sprintf(dma_tx_ch_name, "tx%d", i);
+-		dma_res = platform_get_resource_byname(pdev, IORESOURCE_DMA,
+-				dma_tx_ch_name);
+-		if (!dma_res) {
+-			dev_dbg(&pdev->dev, "cannot get DMA TX channel\n");
+-			status = -ENODEV;
+-			break;
+-		}
+ 
+-		mcspi->dma_channels[i].dma_tx_sync_dev = dma_res->start;
++		if (!pdev->dev.of_node) {
++			dma_res = platform_get_resource_byname(pdev,
++					IORESOURCE_DMA, dma_tx_ch_name);
++
++			if (!dma_res) {
++				dev_dbg(&pdev->dev, "cannot get DMA TX channel\n");
++				status = -ENODEV;
++				break;
++			}
++			mcspi->dma_channels[i].dma_tx_sync_dev = dma_res->start;
++		}
+ 	}
+ 
+ 	if (status < 0)
+-- 
+1.7.9.5
 
-diff --git a/drivers/pinctrl/Makefile b/drivers/pinctrl/Makefile
-index 3b26e3c..d4c2214 100644
---- a/drivers/pinctrl/Makefile
-+++ b/drivers/pinctrl/Makefile
-@@ -31,7 +31,8 @@ obj-$(CONFIG_PINCTRL_NOMADIK)	+= pinctrl-nomadik.o
- obj-$(CONFIG_PINCTRL_STN8815)	+= pinctrl-nomadik-stn8815.o
- obj-$(CONFIG_PINCTRL_DB8500)	+= pinctrl-nomadik-db8500.o
- obj-$(CONFIG_PINCTRL_DB8540)	+= pinctrl-nomadik-db8540.o
--obj-$(CONFIG_PINCTRL_SINGLE)	+= pinctrl-single.o
-+pcs-$(CONFIG_ARCH_OMAP2PLUS)	+= pinctrl-single-omap.o
-+obj-$(CONFIG_PINCTRL_SINGLE)	+= pinctrl-single.o $(pcs-y)
- obj-$(CONFIG_PINCTRL_SIRF)	+= sirf/
- obj-$(CONFIG_PINCTRL_SUNXI)	+= pinctrl-sunxi.o
- obj-$(CONFIG_PINCTRL_TEGRA)	+= pinctrl-tegra.o
-diff --git a/drivers/pinctrl/pinctrl-single-omap.c b/drivers/pinctrl/pinctrl-single-omap.c
-new file mode 100644
-index 0000000..680cf81
---- /dev/null
-+++ b/drivers/pinctrl/pinctrl-single-omap.c
-@@ -0,0 +1,287 @@
-+/*
-+ * pinctrl-single-omap - omap specific wake-up irq handler
-+ *
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#include <linux/err.h>
-+#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include <linux/irq.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
-+#include <linux/platform_device.h>
-+#include <linux/platform_data/pinctrl-single-omap.h>
-+#include <linux/pm_runtime.h>
-+
-+#include "pinctrl-single.h"
-+
-+#define OMAP_WAKEUP_EN		(1 << 14)
-+#define OMAP_WAKEUP_EVENT	(1 << 15)
-+#define OMAP_WAKEUP_EVENT_MASK	(OMAP_WAKEUP_EN | OMAP_WAKEUP_EVENT)
-+
-+struct pcs_omap {
-+	unsigned int irq;
-+	struct device *dev;
-+	struct list_head wakeirqs;
-+	struct pcs_soc soc;
-+	void (*reconfigure_io_chain)(void);
-+	struct mutex mutex;
-+};
-+
-+static int pcs_omap_reg_init(const struct pcs_soc *soc, struct pcs_reg *r)
-+{
-+	struct pcs_omap *pcso = container_of(soc, struct pcs_omap, soc);
-+	struct list_head *pos;
-+	struct pcs_reg *pcsoi;
-+	int res = 0;
-+
-+	if (!(r->val & OMAP_WAKEUP_EN))
-+		return 0;
-+
-+	if (r->irq <= 0)
-+		return 0;
-+
-+	mutex_lock(&pcso->mutex);
-+	list_for_each(pos, &pcso->wakeirqs) {
-+		pcsoi = list_entry(pos, struct pcs_reg, node);
-+		if (r->reg == pcsoi->reg) {
-+			pcsoi->read = r->read;
-+			pcsoi->write = r->write;
-+			pcsoi->reg = r->reg;
-+			pcsoi->val = r->val;
-+			pcsoi->irq = r->irq;
-+			pcsoi->gpio = r->gpio;
-+			res++;
-+			goto out;
-+		}
-+	}
-+	pcsoi = devm_kzalloc(pcso->dev, sizeof(*r), GFP_KERNEL);
-+	if (!pcsoi) {
-+		mutex_unlock(&pcso->mutex);
-+		res = -ENOMEM;
-+		goto out;
-+	}
-+	*pcsoi = *r;
-+	list_add_tail(&pcsoi->node, &pcso->wakeirqs);
-+
-+out:
-+	mutex_unlock(&pcso->mutex);
-+
-+	if (res && pcso->reconfigure_io_chain)
-+		pcso->reconfigure_io_chain();
-+
-+	return res > 0 ? 0 : res;
-+}
-+
-+static int pcs_update_list(const struct pcs_soc *soc, struct pcs_reg *r)
-+{
-+	struct pcs_omap *pcso = container_of(soc, struct pcs_omap, soc);
-+	struct list_head *pos;
-+	int changed = 0;
-+
-+	if (!r->irq)
-+		return 0;
-+
-+	mutex_lock(&pcso->mutex);
-+	list_for_each(pos, &pcso->wakeirqs) {
-+		struct pcs_reg *pcsoi;
-+
-+		pcsoi = list_entry(pos, struct pcs_reg, node);
-+		if ((r->reg == pcsoi->reg) &&
-+		    (r->val != pcsoi->val)) {
-+			pcsoi->val = r->val;
-+			changed++;
-+		}
-+	}
-+	mutex_unlock(&pcso->mutex);
-+
-+	if (pcso->reconfigure_io_chain && changed)
-+		pcso->reconfigure_io_chain();
-+
-+	return 0;
-+}
-+
-+static int pcs_omap_enable(const struct pcs_soc *soc, struct pcs_reg *r)
-+{
-+	return pcs_update_list(soc, r);
-+}
-+
-+static void pcs_omap_disable(const struct pcs_soc *soc, struct pcs_reg *r)
-+{
-+	pcs_update_list(soc, r);
-+}
-+
-+static irqreturn_t pcs_omap_handle_irq(int irq, void *data)
-+{
-+	struct pcs_omap *pcso = data;
-+	struct list_head *pos;
-+	unsigned int wakeirq;
-+
-+	list_for_each(pos, &pcso->wakeirqs) {
-+		struct pcs_reg *pcsoi;
-+		u16 val;
-+
-+		pcsoi = list_entry(pos, struct pcs_reg, node);
-+		wakeirq = pcsoi->irq;
-+		val = pcsoi->read(pcsoi->reg);
-+		if ((val & OMAP_WAKEUP_EVENT_MASK) == OMAP_WAKEUP_EVENT_MASK)
-+			generic_handle_irq(wakeirq);
-+	}
-+
-+	if (pcso->reconfigure_io_chain)
-+		pcso->reconfigure_io_chain();
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/*
-+ * Note that omap2430 has 8-bit padconf registers and uses
-+ * the plain pinctrl-single binding.
-+ */
-+static const struct of_device_id pcs_omap_of_match[] = {
-+	{ .compatible = "ti,omap3-padconf", },
-+	{ .compatible = "ti,omap4-padconf", },
-+	{ .compatible = "ti,omap5-padconf", },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, pcs_omap_of_match);
-+
-+/* SoC glue */
-+static bool soc_found;
-+static unsigned int soc_irq;
-+static void (*soc_reconfigure_io_chain)(void);
-+
-+/* Fill in the SoC glue */
-+static int pcs_omap_soc_probe(struct platform_device *pdev)
-+{
-+	struct pcs_omap_pdata *pdata = pdev->dev.platform_data;
-+
-+	if (pdata) {
-+		soc_irq = pdata->irq;
-+		soc_reconfigure_io_chain = pdata->reconfigure_io_chain;
-+		soc_found = true;
-+	}
-+
-+	return 0;
-+}
-+
-+static int pcs_omap_probe(struct platform_device *pdev)
-+{
-+	const struct of_device_id *match;
-+	struct pcs_omap *pcso;
-+	struct pcs_soc *soc;
-+	int ret;
-+
-+	match = of_match_device(pcs_omap_of_match, &pdev->dev);
-+	if (!match) {
-+		dev_err(&pdev->dev, "no match found\n");
-+		return -ENODEV;
-+	}
-+
-+	if (!soc_found) {
-+		dev_dbg(&pdev->dev,
-+			"%s deferring as SoC glue not yet registered\n",
-+			 __func__);
-+		return -EPROBE_DEFER;
-+	}
-+
-+	pcso = devm_kzalloc(&pdev->dev, sizeof(*pcso), GFP_KERNEL);
-+	if (!pcso)
-+		return -ENOMEM;
-+
-+	pcso->dev = &pdev->dev;
-+	mutex_init(&pcso->mutex);
-+	INIT_LIST_HEAD(&pcso->wakeirqs);
-+	pcso->irq = soc_irq;
-+	pcso->reconfigure_io_chain = soc_reconfigure_io_chain;
-+	soc = &pcso->soc;
-+	soc->reg_init = pcs_omap_reg_init;
-+	soc->enable = pcs_omap_enable;
-+	soc->disable = pcs_omap_disable;
-+	soc->flags = PCS_HAS_FUNCTION_GPIO | PCS_HAS_FUNCTION_IRQ;
-+
-+	ret = pinctrl_single_probe(pdev, soc);
-+	if (ret) {
-+		dev_err(&pdev->dev, "could not probe pictrl_single driver: %i\n",
-+			ret);
-+		return ret;
-+	}
-+
-+	ret = request_irq(soc_irq, pcs_omap_handle_irq,
-+			  IRQF_SHARED | IRQF_NO_SUSPEND,
-+			  "pinctrl-single-omap", pcso);
-+	if (ret) {
-+		dev_err(&pdev->dev, "could not get irq%i: %i\n",
-+			soc_irq, ret);
-+		return ret;
-+	}
-+
-+	platform_set_drvdata(pdev, pcso);
-+	pm_runtime_enable(&pdev->dev);
-+
-+	return 0;
-+}
-+
-+static int pcs_omap_remove(struct platform_device *pdev)
-+{
-+	struct pcs_omap *pcso = platform_get_drvdata(pdev);
-+
-+	pinctrl_single_remove(pdev);
-+	free_irq(pcso->irq, NULL);
-+	pm_runtime_disable(&pdev->dev);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver pcs_omap_driver = {
-+	.probe		= pcs_omap_probe,
-+	.remove		= pcs_omap_remove,
-+	.driver		= {
-+		.name	= "pinctrl-single-omap",
-+		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(pcs_omap_of_match),
-+	},
-+};
-+
-+/* Dummy driver for registering SoC glue */
-+static struct platform_driver pcs_omap_soc_driver = {
-+	.probe = pcs_omap_soc_probe,
-+	.driver	= {
-+		.name = "pinctrl-single-omap-soc",
-+		.owner = THIS_MODULE,
-+	},
-+};
-+
-+static int __init pcs_omap_init(void)
-+{
-+	platform_driver_register(&pcs_omap_soc_driver);
-+	platform_driver_register(&pcs_omap_driver);
-+
-+	return 0;
-+}
-+module_init(pcs_omap_init);
-+
-+static void __exit pcs_omap_exit(void)
-+{
-+	platform_driver_unregister(&pcs_omap_driver);
-+	platform_driver_unregister(&pcs_omap_soc_driver);
-+}
-+module_exit(pcs_omap_exit);
-+
-+MODULE_ALIAS("platform: pinctrl-single-omap");
-+MODULE_AUTHOR("Texas Instruments Inc.");
-+MODULE_DESCRIPTION("pinctrl-single-omap driver");
-+MODULE_LICENSE("GPL v2");
-diff --git a/include/linux/platform_data/pinctrl-single-omap.h b/include/linux/platform_data/pinctrl-single-omap.h
-new file mode 100644
-index 0000000..bd92efc
---- /dev/null
-+++ b/include/linux/platform_data/pinctrl-single-omap.h
-@@ -0,0 +1,4 @@
-+struct pcs_omap_pdata {
-+	int irq;
-+	void (*reconfigure_io_chain)(void);
-+};
+
+------------------------------------------------------------------------------
+How ServiceNow helps IT people transform IT departments:
+1. A cloud service to automate IT design, transition and operations
+2. Dashboards that offer high-level views of enterprise services
+3. A single system of record for all IT processes
+http://p.sf.net/sfu/servicenow-d2d-j
