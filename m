@@ -1,40 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2 14/14] ARM: OMAP4: hwmod data: Clean up the data file
-Date: Sat, 8 Jun 2013 10:42:42 -0700
-Message-ID: <20130608174241.GU3331@atomide.com>
-References: <1370606175-22599-1-git-send-email-r.sricharan@ti.com>
- <alpine.DEB.2.02.1306071230500.5589@utopia.booyaka.com>
- <20130607162927.GA3331@atomide.com>
- <20130607175005.GB3331@atomide.com>
- <51B22303.2000002@ti.com>
- <20130607183748.GF3331@atomide.com>
- <51B22A1D.6020603@ti.com>
- <51B35FCB.5010801@ti.com>
- <20130608165719.GT3331@atomide.com>
- <448912EABC71F84BBCADFD3C67C4BE52800C6F@DBDE04.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 03/14] ARM: OMAP4+: CM: Move function prototypes to common
+ header for re-use
+Date: Sat, 8 Jun 2013 17:44:15 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1306081743280.7001@utopia.booyaka.com>
+References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com> <1369845494-30231-4-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:38687 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752360Ab3FHRmp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Jun 2013 13:42:45 -0400
-Content-Disposition: inline
-In-Reply-To: <448912EABC71F84BBCADFD3C67C4BE52800C6F@DBDE04.ent.ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:51953 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752253Ab3FHRoQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Jun 2013 13:44:16 -0400
+In-Reply-To: <1369845494-30231-4-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "R, Sricharan" <r.sricharan@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Kristo, Tero" <t-kristo@ti.com>, "K, Ambresh" <ambresh@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [130608 10:27]:
-> Sorry for top posting. We should still drop the IRQ data for those devices and only retain DMA data in that case.
+On Wed, 29 May 2013, Santosh Shilimkar wrote:
 
-OK
+> OMAP5 reuses OMAP4 CM IP block which lets us re-use CM1/CM2 functions.
+> So move the function prototypes from cm1_44xx.h, cm2_44xx.h to
+> cm_prm44xx_54xx.h header. The suggestion came from Paul Walmsley
+> as part of the OMAP5 data file review.
+> 
+> This is preparatory  patch to add OMAP5 CM data file.
+> 
+> Cc: Paul Walmsley <paul@pwsan.com>
 
-> Tony, can you please refresh your commit so that IRQ data is dropped from those devices ?
+...
 
-Additional patch please, I've already pushed it out.
+> new file mode 100644
+> index 0000000..4154f86
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/cm_44xx_54xx.h
+> @@ -0,0 +1,36 @@
+> +/*
+> + * OMAP44xx and OMAP54xx CM1/CM2 function prototypes
+> + *
+> + * Copyright (C) 2009-201333 Texas Instruments, Inc.
 
-Regards,
+Heh, looks like someone's a vi user ;-)
 
-Tony
+Fixed in the local copy here.
+
+
+- Paul
