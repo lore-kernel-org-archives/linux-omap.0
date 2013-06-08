@@ -1,101 +1,87 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] serial: omap: Fix device tree based PM runtime
-Date: Fri, 7 Jun 2013 16:00:22 -0700
-Message-ID: <20130607230022.GP3331@atomide.com>
-References: <20130607215835.GL3331@atomide.com>
- <87k3m5k07q.fsf@linaro.org>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH 0/7] move omap mailbox to drivers & minor fixes
+Date: Fri, 7 Jun 2013 20:57:18 -0500
+Message-ID: <1370656638-41177-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:55169 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754831Ab3FGXA0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Jun 2013 19:00:26 -0400
-Content-Disposition: inline
-In-Reply-To: <87k3m5k07q.fsf@linaro.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:55526 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751005Ab3FHCC5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Jun 2013 22:02:57 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Jassi Brar <jaswinder.singh@linaro.org>, Loic Pallardy <loic.pallardy@st.com>, Paul Walmsley <paul@pwsan.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 
-In the runtime_suspend function pdata is not being used, and
-also blocks the function in device tree based booting. Fix it
-by removing the unused pdata from the runtime_suspend function.
+Hi,
 
-Further, context loss count is not being passed in pdata, so
-let's just reinitialize the port every time for those case.
-This can be further optimized later on for the device tree
-case by adding detection for the hardware state and possibly
-by adding a driver specific autosuspend timeout.
+This series moves the OMAP mailbox code to drivers/mailbox folder
+and includes other minor fixes. The OMAP mailbox code is disabled
+for couple of releases now because of multi-platform support,
+and the move enables the driver to be built again and be functional.
 
-And doing this, we can then make the related dev_err into a
-dev_dbg message instead of an error.
+These also serve as the base preparatory patches for adapting the
+OMAP mailbox code to the upcoming mailbox framework, and for
+device-tree conversion.
 
-In order for the wake-up events to work, we also need to set
-autosuspend_timeout to -1 if 0, and also device_init_wakeup()
-as that's not being done by the platform init code for the
-device tree case.
+The first 4 patches in the series are minor fixes/cleanup and
+are applicable for 3.10 as well, but are noop until the driver
+is buildable. The 5th patch is almost identical to the one [1]
+posted (an additional error check for platform_get_irq is added)
+during the previous mailbox framework creation, and the last
+patch is a reworked version of previous patches from Omar [2].
+The first 3 patches are rebased versions from the previous
+series as well.
 
-Note that this does not affect legacy booting, and in fact
-might make it work for the cases where the context loss info
-is not being passed in pdata.
+I have tested this series on Panda 4 and Beagle-XM. I will post
+the remaining preparatory patches for DT conversion and new
+mailbox framework on Monday.
 
-Thanks to Kevin Hilman <khilman@linaro.org> for debugging
-and suggesting fixes for the autosuspend_timeout and
-device_init_wakeup() related initializiation.
+Suman Anna (7):
+  omap: mailbox: check iomem resource before dereferencing it
+  omap: mailbox: check for NULL nb in mailbox_put
+  omap: mailbox: call request_irq after mbox queues are allocated
+  omap: mailbox: correct the argument type for irq ops
+  ARM: OMAP2+: mbox: remove dependencies with soc.h
+  ARM: OMAP2+: add user and fifo info to mailbox platform data
+  mailbox/omap: move the OMAP mailbox framework to drivers
 
-Reviewed-by: Kevin Hilman <khilman@linaro.org>
-Tested-by: Kevin Hilman <khilman@linaro.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+[1] https://patchwork.kernel.org/patch/2261091/
+[2] https://patchwork.kernel.org/patch/2260901/
+    &
+    https://patchwork.kernel.org/patch/2261041/
 
----
+ arch/arm/configs/omap1_defconfig                   |   3 +-
+ arch/arm/mach-omap1/Makefile                       |   4 -
+ arch/arm/mach-omap2/Makefile                       |   3 -
+ arch/arm/mach-omap2/devices.c                      |  13 +-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  14 ++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  13 +
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  13 +
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |  15 ++
+ arch/arm/plat-omap/Kconfig                         |  16 --
+ arch/arm/plat-omap/Makefile                        |   3 -
+ drivers/mailbox/Kconfig                            |  34 +++
+ drivers/mailbox/Makefile                           |   6 +
+ .../mailbox.c => drivers/mailbox/mailbox-omap1.c   |  12 +-
+ .../mailbox.c => drivers/mailbox/mailbox-omap2.c   | 272 ++++++++-------------
+ .../mailbox.c => drivers/mailbox/omap-mailbox.c    |  57 ++++-
+ .../plat/mailbox.h => drivers/mailbox/omap-mbox.h  |  70 ++----
+ drivers/remoteproc/Kconfig                         |   3 +-
+ drivers/remoteproc/omap_remoteproc.c               |   2 +-
+ drivers/staging/tidspbridge/Kconfig                |   3 +-
+ .../tidspbridge/include/dspbridge/host_os.h        |   2 +-
+ include/linux/omap-mailbox.h                       |  29 +++
+ include/linux/platform_data/mailbox-omap.h         |  58 +++++
+ 22 files changed, 368 insertions(+), 277 deletions(-)
+ rename arch/arm/mach-omap1/mailbox.c => drivers/mailbox/mailbox-omap1.c (94%)
+ rename arch/arm/mach-omap2/mailbox.c => drivers/mailbox/mailbox-omap2.c (59%)
+ rename arch/arm/plat-omap/mailbox.c => drivers/mailbox/omap-mailbox.c (91%)
+ rename arch/arm/plat-omap/include/plat/mailbox.h => drivers/mailbox/omap-mbox.h (54%)
+ create mode 100644 include/linux/omap-mailbox.h
+ create mode 100644 include/linux/platform_data/mailbox-omap.h
 
-Here's an updated version with the white space fixed. Since
-you already acked it, I won't waste the opportunity to keep it
-in a single patch :)
+-- 
+1.8.2
 
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -197,7 +197,7 @@ static int serial_omap_get_context_loss_count(struct uart_omap_port *up)
- 	struct omap_uart_port_info *pdata = up->dev->platform_data;
- 
- 	if (!pdata || !pdata->get_context_loss_count)
--		return 0;
-+		return -EINVAL;
- 
- 	return pdata->get_context_loss_count(up->dev);
- }
-@@ -1482,6 +1482,9 @@ static int serial_omap_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, up);
- 	pm_runtime_enable(&pdev->dev);
-+	if (omap_up_info->autosuspend_timeout == 0)
-+		omap_up_info->autosuspend_timeout = -1;
-+	device_init_wakeup(up->dev, true);
- 	pm_runtime_use_autosuspend(&pdev->dev);
- 	pm_runtime_set_autosuspend_delay(&pdev->dev,
- 			omap_up_info->autosuspend_timeout);
-@@ -1591,14 +1594,10 @@ static void serial_omap_restore_context(struct uart_omap_port *up)
- static int serial_omap_runtime_suspend(struct device *dev)
- {
- 	struct uart_omap_port *up = dev_get_drvdata(dev);
--	struct omap_uart_port_info *pdata = dev->platform_data;
- 
- 	if (!up)
- 		return -EINVAL;
- 
--	if (!pdata)
--		return 0;
--
- 	up->context_loss_cnt = serial_omap_get_context_loss_count(up);
- 
- 	if (device_may_wakeup(dev)) {
-@@ -1626,7 +1625,7 @@ static int serial_omap_runtime_resume(struct device *dev)
- 	int loss_cnt = serial_omap_get_context_loss_count(up);
- 
- 	if (loss_cnt < 0) {
--		dev_err(dev, "serial_omap_get_context_loss_count failed : %d\n",
-+		dev_dbg(dev, "serial_omap_get_context_loss_count failed : %d\n",
- 			loss_cnt);
- 		serial_omap_restore_context(up);
- 	} else if (up->context_loss_cnt != loss_cnt) {
