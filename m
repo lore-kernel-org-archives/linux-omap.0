@@ -1,81 +1,240 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] mmc: omap_hsmmc: Fix context save and restore for
- DT
-Date: Sat, 8 Jun 2013 08:02:03 -0700
-Message-ID: <20130608150203.GQ3331@atomide.com>
-References: <20130607214557.18581.75288.stgit@localhost>
- <20130607214950.18581.56829.stgit@localhost>
- <20130608042553.GB20238@arwen.pp.htv.fi>
+Subject: Re: [PATCH 1/4] pinctrl: single: Prepare for supporting SoC
+ specific features
+Date: Sat, 8 Jun 2013 08:27:32 -0700
+Message-ID: <20130608152732.GR3331@atomide.com>
+References: <20130607203936.16513.57494.stgit@localhost>
+ <20130607205037.16513.84242.stgit@localhost>
+ <CAN1soZzLYpiakcgPR7mBOC7_mLFW=mZwOG98Dq6JpO+JHUW=cw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34768 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751652Ab3FHP1i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Jun 2013 11:27:38 -0400
 Content-Disposition: inline
-In-Reply-To: <20130608042553.GB20238@arwen.pp.htv.fi>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: cjb@laptop.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Balaji T K <balajitk@ti.com>, linux-arm-kernel@lists.infradead.org, Andreas Fenkart <afenkart@gmail.com>
+In-Reply-To: <CAN1soZzLYpiakcgPR7mBOC7_mLFW=mZwOG98Dq6JpO+JHUW=cw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Haojian Zhuang <haojian.zhuang@gmail.com>
+Cc: Walleij Linus <linus.walleij@linaro.org>, devicetree-discuss@lists.ozlabs.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Roger Quadros <rogerq@ti.com>
 
-* Felipe Balbi <balbi@ti.com> [130607 21:32]:
-> Hi,
+* Haojian Zhuang <haojian.zhuang@gmail.com> [130608 02:43]:
 > 
-> On Fri, Jun 07, 2013 at 02:49:50PM -0700, Tony Lindgren wrote:
-> > We want to get rid of the omap specific platform init code
-> > callbacks as they don't play nice with device tree.
+> Manjunathappa's pinctrl-single patch on enhancing bits is already merged.
+> This patch conflicts with his patch.
 > 
-> right, any plans to have similar functionality generically ? Maybe
-> something like:
-> 
-> probe()
-> {
-> 	...
-> 
-> 	/*
-> 	 * tell PM runtime layer that we can handle runtime
-> 	 * power gating of this device in certain conditions.
-> 	 *
-> 	 * Actual power gating will be triggered depending on
-> 	 * PM QoS wakeup requirements.
-> 	 */
-> 	pm_runtime_enable_power_gating(dev);
-> 
-> 	...
-> }
-> 
-> runtime_suspend()
-> {
-> 	if (pm_runtime_will_power_gate(dev))
-> 		save_context();
-> }
-> 
-> runtime_resume()
-> {
-> 	if (pm_runtime_has_lost_power(dev))
-> 		restore_context();
-> }
-> 
-> ???
+> Could you rebase your patches?
 
-Yes some kind of generic approach is needed too, at least for some
-drivers. The above API makes sense to me, sounds like you might
-have a PM runtime patch coming along those lines?
- 
-> > Let's convert the context loss check to be based on a
-> > register state detection instead.
-> 
-> that might not work always. Specially when you consider that default
-> register values can change on every silicon release. I guess the above
-> might be a bit nicer, although a lot more work :-p
-
-These are not revision registers, here the driver configured values
-are saved in PM runtime suspend, and then restored in resume.
-We are already doing the same for GPIO for example. In these cases the
-context loss count is not needed AFAIK.
-
-With some hardware it is of course possible that the power cycle is so
-short that the hardare is stuck in a limbo state and for those cases
-keeping track of the context loss via PM runtime.
+Sure. Looks like Linus W forgot to push out the branch as I don't see
+it yet in the pinctrl tree. Here's a version of this one against current
+Linux next + Manjunathappa's patches.
 
 Regards,
 
 Tony
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Sat, 8 Jun 2013 08:03:07 -0700
+Subject: [PATCH] pinctrl: single: Prepare for supporting SoC specific features
+
+Let's replace is_pinconf with flags and add struct pcs_soc so we
+can support also other features like pin wake-up events. Let's
+export the probe so the SoC specific modules can pass their
+SoC specific data to pinctrl-single if needed.
+
+Done in collaboration with Roger Quadros <rogerq@ti.com>.
+
+Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index 2899c86..e3b1f76 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -26,6 +26,7 @@
+ 
+ #include "core.h"
+ #include "pinconf.h"
++#include "pinctrl-single.h"
+ 
+ #define DRIVER_NAME			"pinctrl-single"
+ #define PCS_MUX_PINS_NAME		"pinctrl-single,pins"
+@@ -162,7 +163,6 @@ struct pcs_name {
+  * @fshift:	function register shift
+  * @foff:	value to turn mux off
+  * @fmax:	max number of functions in fmask
+- * @is_pinconf:	whether supports pinconf
+  * @bits_per_pin:number of bits per pin
+  * @names:	array of register names for pins
+  * @pins:	physical pins on the SoC
+@@ -176,6 +176,7 @@ struct pcs_name {
+  * @desc:	pin controller descriptor
+  * @read:	register read function to use
+  * @write:	register write function to use
++ * @soc:	SoC glue
+  */
+ struct pcs_device {
+ 	struct resource *res;
+@@ -190,8 +191,8 @@ struct pcs_device {
+ 	unsigned foff;
+ 	unsigned fmax;
+ 	bool bits_per_mux;
+-	bool is_pinconf;
+ 	unsigned bits_per_pin;
++	unsigned flags;
+ 	struct pcs_name *names;
+ 	struct pcs_data pins;
+ 	struct radix_tree_root pgtree;
+@@ -204,6 +205,7 @@ struct pcs_device {
+ 	struct pinctrl_desc desc;
+ 	unsigned (*read)(void __iomem *reg);
+ 	void (*write)(unsigned val, void __iomem *reg);
++	const struct pcs_soc *soc;
+ };
+ 
+ static int pcs_pinconf_get(struct pinctrl_dev *pctldev, unsigned pin,
+@@ -1049,7 +1051,7 @@ static int pcs_parse_pinconf(struct pcs_device *pcs, struct device_node *np,
+ 	};
+ 
+ 	/* If pinconf isn't supported, don't parse properties in below. */
+-	if (!pcs->is_pinconf)
++	if (!(pcs->flags & PCS_HAS_PINCONF))
+ 		return 0;
+ 
+ 	/* cacluate how much properties are supported in current node */
+@@ -1173,7 +1175,7 @@ static int pcs_parse_one_pinctrl_entry(struct pcs_device *pcs,
+ 	(*map)->data.mux.group = np->name;
+ 	(*map)->data.mux.function = np->name;
+ 
+-	if (pcs->is_pinconf) {
++	if (pcs->flags & PCS_HAS_PINCONF) {
+ 		res = pcs_parse_pinconf(pcs, np, function, map);
+ 		if (res)
+ 			goto free_pingroups;
+@@ -1294,7 +1296,7 @@ static int pcs_parse_bits_in_pinctrl_entry(struct pcs_device *pcs,
+ 	(*map)->data.mux.group = np->name;
+ 	(*map)->data.mux.function = np->name;
+ 
+-	if (pcs->is_pinconf) {
++	if (pcs->flags & PCS_HAS_PINCONF) {
+ 		dev_err(pcs->dev, "pinconf not supported\n");
+ 		goto free_pingroups;
+ 	}
+@@ -1483,18 +1485,14 @@ static int pcs_add_gpio_func(struct device_node *node, struct pcs_device *pcs)
+ 	return ret;
+ }
+ 
+-static int pcs_probe(struct platform_device *pdev)
++int pinctrl_single_probe(struct platform_device *pdev,
++			 const struct pcs_soc *soc)
+ {
+ 	struct device_node *np = pdev->dev.of_node;
+-	const struct of_device_id *match;
+ 	struct resource *res;
+ 	struct pcs_device *pcs;
+ 	int ret;
+ 
+-	match = of_match_device(pcs_of_match, &pdev->dev);
+-	if (!match)
+-		return -EINVAL;
+-
+ 	pcs = devm_kzalloc(&pdev->dev, sizeof(*pcs), GFP_KERNEL);
+ 	if (!pcs) {
+ 		dev_err(&pdev->dev, "could not allocate\n");
+@@ -1505,7 +1503,8 @@ static int pcs_probe(struct platform_device *pdev)
+ 	INIT_LIST_HEAD(&pcs->pingroups);
+ 	INIT_LIST_HEAD(&pcs->functions);
+ 	INIT_LIST_HEAD(&pcs->gpiofuncs);
+-	pcs->is_pinconf = match->data;
++	pcs->flags = soc->flags;
++	pcs->soc = soc;
+ 
+ 	PCS_GET_PROP_U32("pinctrl-single,register-width", &pcs->width,
+ 			 "register width not specified\n");
+@@ -1574,7 +1573,7 @@ static int pcs_probe(struct platform_device *pdev)
+ 	pcs->desc.name = DRIVER_NAME;
+ 	pcs->desc.pctlops = &pcs_pinctrl_ops;
+ 	pcs->desc.pmxops = &pcs_pinmux_ops;
+-	if (pcs->is_pinconf)
++	if (pcs->flags & PCS_HAS_PINCONF)
+ 		pcs->desc.confops = &pcs_pinconf_ops;
+ 	pcs->desc.owner = THIS_MODULE;
+ 
+@@ -1603,8 +1602,20 @@ free:
+ 
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(pinctrl_single_probe);
++
++static int pcs_probe(struct platform_device *pdev)
++{
++	const struct of_device_id *match;
++
++	match = of_match_device(pcs_of_match, &pdev->dev);
++	if (!match)
++		return -EINVAL;
++
++	return pinctrl_single_probe(pdev, (struct pcs_soc *)match->data);
++}
+ 
+-static int pcs_remove(struct platform_device *pdev)
++int pinctrl_single_remove(struct platform_device *pdev)
+ {
+ 	struct pcs_device *pcs = platform_get_drvdata(pdev);
+ 
+@@ -1615,17 +1626,26 @@ static int pcs_remove(struct platform_device *pdev)
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(pinctrl_single_remove);
++
++static struct pcs_soc pinctrl_single = {
++	.flags = 0,
++};
++
++static struct pcs_soc pinconf_single = {
++	.flags = PCS_HAS_PINCONF,
++};
+ 
+ static struct of_device_id pcs_of_match[] = {
+-	{ .compatible = "pinctrl-single", .data = (void *)false },
+-	{ .compatible = "pinconf-single", .data = (void *)true },
++	{ .compatible = "pinctrl-single", .data = &pinctrl_single },
++	{ .compatible = "pinconf-single", .data = &pinconf_single },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(of, pcs_of_match);
+ 
+ static struct platform_driver pcs_driver = {
+ 	.probe		= pcs_probe,
+-	.remove		= pcs_remove,
++	.remove		= pinctrl_single_remove,
+ 	.driver = {
+ 		.owner		= THIS_MODULE,
+ 		.name		= DRIVER_NAME,
+diff --git a/drivers/pinctrl/pinctrl-single.h b/drivers/pinctrl/pinctrl-single.h
+new file mode 100644
+index 0000000..18f3205
+--- /dev/null
++++ b/drivers/pinctrl/pinctrl-single.h
+@@ -0,0 +1,15 @@
++#define PCS_HAS_PINCONF         (1 << 0)
++
++/**
++ * struct pcs_soc - SoC specific interface to pinctrl-single
++ * @data:	SoC specific data pointer
++ * @flags:	mask of PCS_HAS_xxx values
++ */
++struct pcs_soc {
++	void *data;
++	unsigned flags;
++};
++
++extern int pinctrl_single_probe(struct platform_device *pdev,
++				const struct pcs_soc *soc);
++extern int pinctrl_single_remove(struct platform_device *pdev);
