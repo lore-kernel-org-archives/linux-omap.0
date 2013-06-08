@@ -1,46 +1,70 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 03/14] ARM: OMAP4+: CM: Move function prototypes to common
- header for re-use
-Date: Sat, 8 Jun 2013 17:44:15 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1306081743280.7001@utopia.booyaka.com>
-References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com> <1369845494-30231-4-git-send-email-santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 04/14] ARM: OMAP5: CM: Add OMAP54XX register and bitfield
+ files
+Date: Sat, 8 Jun 2013 17:54:28 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1306081749140.7001@utopia.booyaka.com>
+References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com> <1369845494-30231-5-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:51953 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:51993 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752253Ab3FHRoQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Jun 2013 13:44:16 -0400
-In-Reply-To: <1369845494-30231-4-git-send-email-santosh.shilimkar@ti.com>
+	with ESMTP id S1752215Ab3FHRy3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Jun 2013 13:54:29 -0400
+In-Reply-To: <1369845494-30231-5-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
 On Wed, 29 May 2013, Santosh Shilimkar wrote:
 
-> OMAP5 reuses OMAP4 CM IP block which lets us re-use CM1/CM2 functions.
-> So move the function prototypes from cm1_44xx.h, cm2_44xx.h to
-> cm_prm44xx_54xx.h header. The suggestion came from Paul Walmsley
-> as part of the OMAP5 data file review.
+> From: Benoit Cousson <b-cousson@ti.com>
 > 
-> This is preparatory  patch to add OMAP5 CM data file.
+> Add the new defines for OMAP54XX cm registers.
 > 
 > Cc: Paul Walmsley <paul@pwsan.com>
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> [santosh.shilimkar@ti.com: Generated es2.0 data]
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
 ...
 
+> diff --git a/arch/arm/mach-omap2/cm1_54xx.h b/arch/arm/mach-omap2/cm1_54xx.h
 > new file mode 100644
-> index 0000000..4154f86
+> index 0000000..7b1f3b6
 > --- /dev/null
-> +++ b/arch/arm/mach-omap2/cm_44xx_54xx.h
-> @@ -0,0 +1,36 @@
-> +/*
-> + * OMAP44xx and OMAP54xx CM1/CM2 function prototypes
-> + *
-> + * Copyright (C) 2009-201333 Texas Instruments, Inc.
+> +++ b/arch/arm/mach-omap2/cm1_54xx.h
 
-Heh, looks like someone's a vi user ;-)
+...
+
+> +
+> +/* Function prototypes */
+> +extern u32 omap4_cm1_read_inst_reg(s16 inst, u16 idx);
+> +extern void omap4_cm1_write_inst_reg(u32 val, s16 inst, u16 idx);
+> +extern u32 omap4_cm1_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
+
+No need for these since they're already prototyped in a common
+file in your earlier patch set.
+
+> diff --git a/arch/arm/mach-omap2/cm2_54xx.h b/arch/arm/mach-omap2/cm2_54xx.h
+> new file mode 100644
+> index 0000000..bab76bd
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/cm2_54xx.h
+> @@ -0,0 +1,394 @@
+
+...
+
+> +/* Function prototypes */
+> +extern u32 omap4_cm2_read_inst_reg(s16 inst, u16 idx);
+> +extern void omap4_cm2_write_inst_reg(u32 val, s16 inst, u16 idx);
+> +extern u32 omap4_cm2_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
+
+No need for these since they're already prototyped in a common
+file in your earlier patch set.
 
 Fixed in the local copy here.
 
