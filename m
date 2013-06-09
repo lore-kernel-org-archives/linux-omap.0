@@ -1,71 +1,78 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: Request for OMAPDSS testing
-Date: Sun, 9 Jun 2013 17:28:16 +0300
-Message-ID: <CANOLnONCuV_mXJAx8fahUraypeewug7RjNGyhXqVm8FYRAAUcg@mail.gmail.com>
-References: <51AD99F5.7060506@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: N900 device tree conversion: how to do first step
+Date: Sun, 9 Jun 2013 18:47:45 +0200
+Message-ID: <20130609164745.GB16066@amd.pavel.ucw.cz>
+References: <20130609015944.GA23559@amd.pavel.ucw.cz>
+ <201306091124.41251@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f43.google.com ([209.85.219.43]:59260 "EHLO
-	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752928Ab3FIO2R convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Jun 2013 10:28:17 -0400
-Received: by mail-oa0-f43.google.com with SMTP id i7so3383140oag.2
-        for <linux-omap@vger.kernel.org>; Sun, 09 Jun 2013 07:28:16 -0700 (PDT)
-In-Reply-To: <51AD99F5.7060506@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201306091124.41251@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, aaro.koskinen@iki.fi, linux-omap@vger.kernel.org, lauri.leukkunen@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Igor Grinberg <grinberg@compulab.co.il>, Thomas Weber <weber@corscience.de>, Mike Rapoport <mike@compulab.co.il>, Steve Sakoman <steve@sakoman.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hello,
+On Sun 2013-06-09 11:24:40, Pali Roh=E1r wrote:
+> On Sunday 09 June 2013 03:59:44 Pavel Machek wrote:
+> > Hi!
+> >=20
+> > I'd like to convert Nokia N900 to device tree.
+> >=20
+> > Unfortunately, serial port is not easily available (very
+> > special cable would be needed, does someone know where to get
+> > one?) and I don't have BDI (and very special cable would be
+> > needed, too).
+> >=20
+>=20
+> Hello,
+>=20
+> I used serial port only in qemu for debugging. Maybe you can try
+> to play with qemu first. Qemu has good n900 HW support.
 
-On Tue, Jun 4, 2013 at 10:40 AM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
- wrote:
-> I've made some big changes on the omapdss device model, which involve=
-s
-> converting all the panel drivers. I've got only a bunch of boards, so=
- I
-> hope some of you can perhaps do some minimal tests on some other boar=
-ds.
+Yes, qemu is helpful.
 
-Doesn't work on pandora (legacy boardfile boot):
+=46or the record: this is how you use it.
 
-[    1.418823] OMAP DSS rev 2.0
-[    1.447448] omapfb omapfb: no displays
-[    1.454101] omapfb omapfb: failed to setup omapfb
-[    1.459106] platform omapfb: Driver omapfb requests probe deferral
-=2E..
-[    2.156860] panel-tpo-td043mtea1 spi1.1: failed to get LCD VCC regul=
-ator
-[    2.164093] spi spi1.1: Driver panel-tpo-td043mtea1 requests probe d=
-eferral
-=2E..
+KERNEL=3D/data/l/linux-n900/zImage_dtb
+=2E/qflasher -m rx51 -x ./xloader-qemu.bin -s ./secondary-qemu.bin -k $=
+KERNEL -o n900.img -p k=3D6072
 
-Needs this small patch:
+> sd-empty
+=2E/qemu-system-arm -s -M n900 -mtdblock n900.img -sd sd-empty -serial
+stdio -clock unix -redir tcp:5555:10.0.2.15:22
 
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -335,7 +338,7 @@ static struct regulator_consumer_supply
-pandora_vdds_supplies[] =3D {
- };
+=2E..and this patch is needed to make it past rx51_init.
 
- static struct regulator_consumer_supply pandora_vcc_lcd_supply[] =3D {
--       REGULATOR_SUPPLY("vcc", "display0"),
-+       REGULATOR_SUPPLY("vcc", "spi1.1"),
- };
+Author: Pavel <pavel@ucw.cz>
+Date:   Sun Jun 9 18:45:39 2013 +0200
 
- static struct regulator_consumer_supply pandora_usb_phy_supply[] =3D {
+    Comment out errata workaround that breaks qemu.
 
-With that it shows Tux and fb console fine, so with above hunk:
-Tested-by: Grazvydas Ignotas <notasas@gmail.com>
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/boa=
+rd-rx51.c
+index 938e46f..0ffd7d3 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -108,11 +108,13 @@ static void __init rx51_init(void)
+ 	rx51_peripherals_init();
+ 	rx51_camera_init();
+=20
++#if 0
+ #ifdef CONFIG_ARM_ERRATA_430973
+ 	printk(KERN_INFO "RX-51: Enabling ARM errata 430973 workaround.\n");
+ 	/* set IBE to 1 */
+ 	rx51_secure_update_aux_cr(1 << 6, 0);
+ #endif
++#endif
+=20
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+ 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
 
 
---
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
