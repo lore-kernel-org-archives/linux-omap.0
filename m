@@ -1,91 +1,71 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: N900 device tree conversion: how to do first step
-Date: Sun, 9 Jun 2013 11:24:40 +0200
-Message-ID: <201306091124.41251@pali>
-References: <20130609015944.GA23559@amd.pavel.ucw.cz>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: Request for OMAPDSS testing
+Date: Sun, 9 Jun 2013 17:28:16 +0300
+Message-ID: <CANOLnONCuV_mXJAx8fahUraypeewug7RjNGyhXqVm8FYRAAUcg@mail.gmail.com>
+References: <51AD99F5.7060506@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart5024910.E8RVTgHMGR";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130609015944.GA23559@amd.pavel.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, aaro.koskinen@iki.fi, linux-omap@vger.kernel.org, lauri.leukkunen@nokia.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oa0-f43.google.com ([209.85.219.43]:59260 "EHLO
+	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752928Ab3FIO2R convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Jun 2013 10:28:17 -0400
+Received: by mail-oa0-f43.google.com with SMTP id i7so3383140oag.2
+        for <linux-omap@vger.kernel.org>; Sun, 09 Jun 2013 07:28:16 -0700 (PDT)
+In-Reply-To: <51AD99F5.7060506@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
---nextPart5024910.E8RVTgHMGR
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Sunday 09 June 2013 03:59:44 Pavel Machek wrote:
-> Hi!
->=20
-> I'd like to convert Nokia N900 to device tree.
->=20
-> Unfortunately, serial port is not easily available (very
-> special cable would be needed, does someone know where to get
-> one?) and I don't have BDI (and very special cable would be
-> needed, too).
->=20
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Igor Grinberg <grinberg@compulab.co.il>, Thomas Weber <weber@corscience.de>, Mike Rapoport <mike@compulab.co.il>, Steve Sakoman <steve@sakoman.com>, linux-omap <linux-omap@vger.kernel.org>
 
 Hello,
 
-I used serial port only in qemu for debugging. Maybe you can try
-to play with qemu first. Qemu has good n900 HW support.
+On Tue, Jun 4, 2013 at 10:40 AM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+> I've made some big changes on the omapdss device model, which involve=
+s
+> converting all the panel drivers. I've got only a bunch of boards, so=
+ I
+> hope some of you can perhaps do some minimal tests on some other boar=
+ds.
 
-But problematic is to create n900 mtd nand image bootable in
-qemu, because it needs closed source nokia bootloader and this
-needs to have CAL partition with some unknown data with is
-proprietary format.
+Doesn't work on pandora (legacy boardfile boot):
 
-Nevertheless, there is prebuilded qemu image with maemo5 and with
-special version of nokia patches qemu, which was (and still is)
-very good for testing anything for n900. Special version of qemu
-plus qemu image is part of MADDE development tool, look here:
+[    1.418823] OMAP DSS rev 2.0
+[    1.447448] omapfb omapfb: no displays
+[    1.454101] omapfb omapfb: failed to setup omapfb
+[    1.459106] platform omapfb: Driver omapfb requests probe deferral
+=2E..
+[    2.156860] panel-tpo-td043mtea1 spi1.1: failed to get LCD VCC regul=
+ator
+[    2.164093] spi spi1.1: Driver panel-tpo-td043mtea1 requests probe d=
+eferral
+=2E..
 
-Info: http://wiki.maemo.org/MADDE
-Download link: http://tablets-dev.nokia.com/MADDE.php
+Needs this small patch:
 
-Except skinning support and Opengl ES all other nokia patches were
-included into Linaro version of qemu, so you can use it without
-problems. But you still need proprietary bootloader and correct
-CAL partition.
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -335,7 +338,7 @@ static struct regulator_consumer_supply
+pandora_vdds_supplies[] =3D {
+ };
 
-But, nokia released closed redistributable version of bootloader
-for qemu and (proprietary) tool which generating mtd nand
-partition. You can pass kernel, initfs, rootfs images and it
-create correct mtd layout and automatically creating CAL.
+ static struct regulator_consumer_supply pandora_vcc_lcd_supply[] =3D {
+-       REGULATOR_SUPPLY("vcc", "display0"),
++       REGULATOR_SUPPLY("vcc", "spi1.1"),
+ };
 
-Proprietary n900 bootloader (two parts!) for qemu is here:
-http://download.meego.com/live/Trunk:/non-oss:/Testing/Trunk_Testing/i586/n=
-olo-qemu-0.20100910-1.2.i586.rpm
+ static struct regulator_consumer_supply pandora_usb_phy_supply[] =3D {
 
-Proprietary tool for creating mtd nand file is here:
-http://download.meego.com/live/Trunk:/non-oss:/Testing/Trunk_Testing/i586/q=
-flasher-21-1.2.i586.rpm
+With that it shows Tux and fb console fine, so with above hunk:
+Tested-by: Grazvydas Ignotas <notasas@gmail.com>
 
-PS: Sorry for too many closed SW, but there is no FOSS equivalent
-and this is the only one option how to use qemu n900 hw support.
-U-Boot is ported to n900, but depends on Nokia bootloader...
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart5024910.E8RVTgHMGR
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlG0SdkACgkQi/DJPQPkQ1JTmgCgtTUjEUwivW/hkR7tPIdRzZoA
-P9YAoISSHtgZpFOKtYqkfUctbG3YDs8y
-=Chox
------END PGP SIGNATURE-----
-
---nextPart5024910.E8RVTgHMGR--
+--
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
