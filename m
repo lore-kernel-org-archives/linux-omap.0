@@ -1,98 +1,222 @@
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: N900 device tree conversion: how to do first step
-Date: Sun, 9 Jun 2013 23:11:19 +0300
-Message-ID: <20130609201119.GA3190@blackmetal.musicnaut.iki.fi>
-References: <20130609015944.GA23559@amd.pavel.ucw.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130609015944.GA23559@amd.pavel.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+Subject: [PATCH 2/3] USB: OMAP: add omap-otg
+Date: Mon, 10 Jun 2013 01:40:05 +0300
+Message-ID: <1370817606-1008-3-git-send-email-aaro.koskinen@iki.fi>
+References: <1370817606-1008-1-git-send-email-aaro.koskinen@iki.fi>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri1.pp.htv.fi ([213.243.153.184]:49042 "EHLO
+	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750910Ab3FIWkV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Jun 2013 18:40:21 -0400
+In-Reply-To: <1370817606-1008-1-git-send-email-aaro.koskinen@iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Hi,
+Transceivers need to manage OTG controller state on OMAP1 to enable
+switching between peripheral and host modes. Provide a driver for that.
 
-On Sun, Jun 09, 2013 at 03:59:44AM +0200, Pavel Machek wrote:
-> I'd like to convert Nokia N900 to device tree.
-> 
-> Unfortunately, serial port is not easily available (very special cable
-> would be needed, does someone know where to get one?) and I don't have
-> BDI (and very special cable would be needed, too).
-> 
-> So I tried doing very small first step, hoping that I get booting
-> system... obviously I did not.
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ drivers/usb/phy/Kconfig        |   10 ++++
+ drivers/usb/phy/Makefile       |    1 +
+ drivers/usb/phy/phy-omap-otg.c |  126 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/usb/omap-otg.h   |   19 ++++++
+ 4 files changed, 156 insertions(+)
+ create mode 100644 drivers/usb/phy/phy-omap-otg.c
+ create mode 100644 include/linux/usb/omap-otg.h
 
-The following works for me, it's enough to boot and get the USB networking
-working. After that I can connect to the device with ssh. I don't use
-serial either, I just have initramfs with busybox+dropbear with hardcoded
-interface setup.
+diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
+index 7ef3eb8..2d2cd5f 100644
+--- a/drivers/usb/phy/Kconfig
++++ b/drivers/usb/phy/Kconfig
+@@ -135,6 +135,16 @@ config USB_GPIO_VBUS
+ 	  optionally control of a D+ pullup GPIO as well as a VBUS
+ 	  current limit regulator.
+ 
++config OMAP_OTG
++	tristate "OMAP USB OTG controller driver"
++	depends on ARCH_OMAP_OTG
++	help
++	  Enable this to support some transceivers on OMAP1 platforms. OTG
++	  controller is needed to switch between host and peripheral modes.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called omap-otg.
++
+ config USB_ISP1301
+ 	tristate "NXP ISP1301 USB transceiver support"
+ 	depends on USB || USB_GADGET
+diff --git a/drivers/usb/phy/Makefile b/drivers/usb/phy/Makefile
+index a9169cb..c7f391b 100644
+--- a/drivers/usb/phy/Makefile
++++ b/drivers/usb/phy/Makefile
+@@ -15,6 +15,7 @@ obj-$(CONFIG_ISP1301_OMAP)		+= phy-isp1301-omap.o
+ obj-$(CONFIG_MV_U3D_PHY)		+= phy-mv-u3d-usb.o
+ obj-$(CONFIG_NOP_USB_XCEIV)		+= phy-nop.o
+ obj-$(CONFIG_OMAP_CONTROL_USB)		+= phy-omap-control.o
++obj-$(CONFIG_OMAP_OTG)			+= phy-omap-otg.o
+ obj-$(CONFIG_OMAP_USB2)			+= phy-omap-usb2.o
+ obj-$(CONFIG_OMAP_USB3)			+= phy-omap-usb3.o
+ obj-$(CONFIG_SAMSUNG_USBPHY)		+= phy-samsung-usb.o
+diff --git a/drivers/usb/phy/phy-omap-otg.c b/drivers/usb/phy/phy-omap-otg.c
+new file mode 100644
+index 0000000..cb00ffe
+--- /dev/null
++++ b/drivers/usb/phy/phy-omap-otg.c
+@@ -0,0 +1,126 @@
++/*
++ * OMAP OTG controller driver
++ *
++ * Based on code from tahvo-usb.c and isp1301_omap.c drivers.
++ *
++ * Copyright (C) 2005-2006 Nokia Corporation
++ * Copyright (C) 2004 Texas Instruments
++ * Copyright (C) 2004 David Brownell
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/io.h>
++#include <linux/err.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/interrupt.h>
++#include <linux/usb/omap-otg.h>
++#include <linux/platform_device.h>
++
++struct otg_device {
++	void __iomem	*base;
++	struct mutex	serialize;
++};
++static struct otg_device *otg_dev;
++
++#define OMAP_OTG_CTRL		(otg_dev->base + 0x0c)
++#define OMAP_OTG_ASESSVLD	(1 << 20)
++#define OMAP_OTG_BSESSEND	(1 << 19)
++#define OMAP_OTG_BSESSVLD	(1 << 18)
++#define OMAP_OTG_VBUSVLD	(1 << 17)
++#define OMAP_OTG_ID		(1 << 16)
++#define OMAP_OTG_XCEIV_OUTPUTS \
++	(OMAP_OTG_ASESSVLD | OMAP_OTG_BSESSEND | OMAP_OTG_BSESSVLD | \
++	 OMAP_OTG_VBUSVLD  | OMAP_OTG_ID)
++
++static void omap_otg_ctrl(u32 outputs)
++{
++	u32 l;
++
++	l = readl(OMAP_OTG_CTRL);
++	l &= ~OMAP_OTG_XCEIV_OUTPUTS;
++	l |= outputs;
++	writel(l, OMAP_OTG_CTRL);
++}
++
++void omap_otg_set_mode(enum omap_otg_mode mode)
++{
++	if (!otg_dev) {
++		WARN(1, "%s: controller not present\n", __func__);
++		return;
++	}
++	mutex_lock(&otg_dev->serialize);
++	switch (mode) {
++	case OMAP_OTG_MODE_DEVICE:
++		/*
++		 * Set B-session valid.
++		 */
++		omap_otg_ctrl(OMAP_OTG_ID | OMAP_OTG_BSESSVLD);
++		break;
++	case OMAP_OTG_MODE_HOST:
++		/*
++		 * Set A-session valid.
++		 */
++		omap_otg_ctrl(OMAP_OTG_ASESSVLD);
++		break;
++	case OMAP_OTG_MODE_DISCONNECT:
++		/*
++		 * Set B-session end to indicate no VBUS.
++		 */
++		omap_otg_ctrl(OMAP_OTG_ID | OMAP_OTG_BSESSEND);
++		break;
++	default:
++		WARN(1, "%s: unknown mode: %d\n", __func__, mode);
++	}
++	mutex_unlock(&otg_dev->serialize);
++}
++EXPORT_SYMBOL_GPL(omap_otg_set_mode);
++
++static int omap_otg_probe(struct platform_device *dev)
++{
++	struct otg_device *odev;
++	u32 rev;
++
++	if (otg_dev)
++		return -EBUSY;
++
++	odev = devm_kzalloc(&dev->dev, sizeof(*odev), GFP_KERNEL);
++	if (!odev)
++		return -ENOMEM;
++
++	odev->base = devm_ioremap_resource(&dev->dev, &dev->resource[0]);
++	if (IS_ERR(odev->base))
++		return PTR_ERR(odev->base);
++
++	rev = readl(odev->base);
++	dev_info(&dev->dev, "OMAP USB OTG controller rev %d.%d\n",
++		 (rev >> 4) & 0xf, rev & 0xf);
++
++	mutex_init(&odev->serialize);
++
++	otg_dev = odev;
++
++	return 0;
++}
++
++static struct platform_driver omap_otg_driver = {
++	.probe		= omap_otg_probe,
++	.driver		= {
++		.owner	= THIS_MODULE,
++		.name	= "omap_otg",
++	},
++};
++module_platform_driver(omap_otg_driver);
++
++MODULE_DESCRIPTION("OMAP USB OTG controller driver");
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Aaro Koskinen <aaro.koskinen@iki.fi>");
+diff --git a/include/linux/usb/omap-otg.h b/include/linux/usb/omap-otg.h
+new file mode 100644
+index 0000000..fb3d7ab
+--- /dev/null
++++ b/include/linux/usb/omap-otg.h
+@@ -0,0 +1,19 @@
++/*
++ * OMAP OTG driver
++ *
++ * This file is subject to the terms and conditions of the GNU General Public
++ * License. See the file "COPYING" in the main directory of this archive for
++ * more details.
++ */
++#ifndef __LINUX_OMAP_OTG_H
++#define __LINUX_OMAP_OTG_H
++
++enum omap_otg_mode {
++	OMAP_OTG_MODE_DEVICE,
++	OMAP_OTG_MODE_HOST,
++	OMAP_OTG_MODE_DISCONNECT,
++};
++
++void omap_otg_set_mode(enum omap_otg_mode mode);
++
++#endif /* __LINUX_OMAP_OTG_H */
+-- 
+1.7.10.4
 
----8<---
-
-/dts-v1/;
-
-/include/ "omap34xx.dtsi"
-
-/ {
-	model = "Nokia N900";
-	compatible = "nokia,omap3-n900", "ti,omap3";
-
-	cpus {
-		cpu@0 {
-			cpu0-supply = <&vcc>;
-		};
-	};
-
-	memory {
-		device_type = "memory";
-		reg = <0x80000000 0x10000000>; /* 256 MB */
-	};
-
-};
-
-&i2c1 {
-	clock-frequency = <2200000>;
-
-	twl: twl@48 {
-		reg = <0x48>;
-		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-		interrupt-parent = <&intc>;
-	};
-};
-
-/include/ "twl4030.dtsi"
-
-&twl_gpio {
-	ti,pullups	= <0x0>;
-	ti,pulldowns	= <0x03ff3f>; /* BIT(0..5) | BIT(8..17) */
-};
-
-&i2c2 {
-	clock-frequency = <400000>;
-};
-
-&i2c3 {
-	clock-frequency = <100000>;
-};
-
-&mmc1 {
-	status = "disabled";
-};
-
-&mmc2 {
-	status = "disabled";
-};
-
-&mmc3 {
-	status = "disabled";
-};
-
-&usb_otg_hs {
-	interface-type = <0>;
-	usb-phy = <&usb2_phy>;
-	mode = <2>;
-	power = <50>;
-};
