@@ -1,151 +1,180 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP: hwmod/PRCM: add OMAP5 data
-Date: Sat, 8 Jun 2013 20:05:36 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1306082003200.7001@utopia.booyaka.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: N900 device tree conversion: how to do first step
+Date: Sun, 9 Jun 2013 03:59:44 +0200
+Message-ID: <20130609015944.GA23559@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:52218 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752555Ab3FHUFh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Jun 2013 16:05:37 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:47476 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751761Ab3FIB7u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Jun 2013 21:59:50 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Cc: aaro.koskinen@iki.fi, linux-omap@vger.kernel.org, lauri.leukkunen@nokia.com
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi!
 
-Hi Tony,
+I'd like to convert Nokia N900 to device tree.
 
-The following changes since commit d683b96b072dc4680fc74964eca77e6a23d1fa6e:
+Unfortunately, serial port is not easily available (very special cable
+would be needed, does someone know where to get one?) and I don't have
+BDI (and very special cable would be needed, too).
 
-  Linux 3.10-rc4 (2013-06-02 17:11:17 +0900)
+So I tried doing very small first step, hoping that I get booting
+system... obviously I did not.
 
-are available in the git repository at:
+I tried formally switching to device tree while still booting using
+hardcoded functions. No luck. Does anyone see what I did wrong?
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-a-for-3.11
+Is it possible that n900 has its main memory somewhere else than
+0x80000000?
 
-for you to fetch changes up to e4020aa9a8f37d860024fe8a8c8441f003606d2b:
+Thanks,
+									Pavel
 
-  ARM: OMAP5: Enable build and frameowrk initialisations (2013-06-08 12:00:05 -0600)
+diff --git a/.config b/.config
+index a36bbe2..130a7a8 100644
+--- a/.config
++++ b/.config
+@@ -498,11 +498,11 @@ CONFIG_ATAGS=y
+ # CONFIG_DEPRECATED_PARAM_STRUCT is not set
+ CONFIG_ZBOOT_ROM_TEXT=0x0
+ CONFIG_ZBOOT_ROM_BSS=0x0
+-# CONFIG_ARM_APPENDED_DTB is not set
+-CONFIG_CMDLINE="init=/sbin/preinit ubi.mtd=rootfs root=ubi0:rootfs rootfstype=ubifs rootflags=bulk_read,no_chk_data_crc rw mtdoops.mtddev=log console=tty0 console=ttyO2"
+-CONFIG_CMDLINE_FROM_BOOTLOADER=y
+-# CONFIG_CMDLINE_EXTEND is not set
+-# CONFIG_CMDLINE_FORCE is not set
++CONFIG_ARM_APPENDED_DTB=y
++CONFIG_ARM_ATAG_DTB_COMPAT=y
++# CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER is not set
++CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND=y
++CONFIG_CMDLINE=""
+ CONFIG_KEXEC=y
+ CONFIG_ATAGS_PROC=y
+ # CONFIG_CRASH_DUMP is not set
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 9c62558..7b1a075 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -119,6 +119,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+ 	omap3-beagle-xm.dtb \
+ 	omap3-evm.dtb \
+ 	omap3-tobi.dtb \
++	omap3-n900.dtb \
+ 	omap4-panda.dtb \
+ 	omap4-panda-a4.dtb \
+ 	omap4-panda-es.dtb \
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+new file mode 100644
+index 0000000..e093543
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -0,0 +1,35 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++/include/ "skeleton.dtsi"
++/* FIXME: "omap3.dtsi" */
++
++/ {
++	model = "Nokia N900";
++	compatible = "nokia,omap3-n900", "ti,omap3";
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x10000000>; /* 256 MB */
++	};
++};
++
++/*
++&mmc1 {
++	status = "disabled";
++};
++
++&mmc2 {
++	status = "disabled";
++};
++
++&mmc3 {
++	status = "disabled";
++};
++*/
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index 74f83a5..f857b5b 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -36,6 +36,8 @@
+ 
+ #define RX51_GPIO_SLEEP_IND 162
+ 
++/* This lights up left part of keyboard */
++
+ static struct gpio_led gpio_leds[] = {
+ 	{
+ 		.name	= "sleep_ind",
+@@ -119,21 +121,21 @@ static void __init rx51_init(void)
+ 	platform_device_register(&leds_gpio);
+ }
+ 
+-static void __init rx51_reserve(void)
+-{
+-	omap_reserve();
+-}
++static const char *omap3_boards_compat[] __initdata = {
++	"nokia,omap3-n900",
++        NULL,
++};
+ 
+-MACHINE_START(NOKIA_RX51, "Nokia RX-51 board")
+-	/* Maintainer: Lauri Leukkunen <lauri.leukkunen@nokia.com> */
+-	.atag_offset	= 0x100,
+-	.reserve	= rx51_reserve,
++DT_MACHINE_START(N900_DT, "Nokia N900 (Flattened Device Tree)")
++	.atag_offset    = 0x100,
++	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+-	.init_early	= omap3430_init_early,
+-	.init_irq	= omap3_init_irq,
+-	.handle_irq	= omap3_intc_handle_irq,
+-	.init_machine	= rx51_init,
+-	.init_late	= omap3430_init_late,
+-	.init_time	= omap3_sync32k_timer_init,
+-	.restart	= omap3xxx_restart,
++	.init_early     = omap3430_init_early,
++	.init_irq       = omap3_init_irq, /* FIXME: omap_intc_of_init, */
++	.handle_irq     = omap3_intc_handle_irq,
++	.init_machine   = rx51_init, /* FIXME: omap_generic_init, */
++	.init_late      = omap3430_init_late, /* FIXME: omap3_init_late, */
++	.init_time      = omap3_sync32k_timer_init,
++	.dt_compat      = omap3_boards_compat,
++	.restart        = omap3xxx_restart,
+ MACHINE_END
+diff --git a/mkit b/mkit
+index 354610c..e9ffc02 100755
+--- a/mkit
++++ b/mkit
+@@ -1,3 +1,4 @@
+ #!/bin/bash
+ ARCH=arm time make -j 3 && \
+-    sudo ../maemo/0xffff/src/0xFFFF -m arch/arm/boot/zImage -l -b 'root=/dev/mmcblk0p6 rootwait'
+\ No newline at end of file
++    cat arch/arm/boot/zImage arch/arm/boot/dts/omap3-n900.dtb > zImage_dtb && \
++    sudo ../maemo/0xffff/src/0xFFFF -m zImage_dtb -l -b 'root=/dev/mmcblk0p6 rootwait'
+\ No newline at end of file
 
-- ----------------------------------------------------------------
-Add support for the OMAP5 SoC family.
 
-As part of the transition to DT, no board files will be used
-for OMAP5.  The hwmod data is gradually being transitioned
-away from arch/arm/mach-omap2: IRQ, DMA, and memory map data
-has been moved to DT.  Hopefully the dev_attr and clock role
-data will be the next step.
-
-Basic test logs are available here, although not for OMAP5,
-since I don't have an OMAP5 board:
-http://www.pwsan.com/omap/testlogs/omap5_v3.10/20130608130949/
-
-- ----------------------------------------------------------------
-Benoit Cousson (7):
-      ARM: OMAP5: PRM: Add OMAP54XX register and bitfield files
-      ARM: OMAP5: CM: Add OMAP54XX register and bitfield files
-      ARM: OMAP5: PRCM: Add OMAP54XX local MPU PRCM registers
-      ARM: OMAP5: SCRM: Add OMAP54XX header file.
-      ARM: OMAP5: clockdomain data: Add OMAP54XX data and update the header
-      ARM: OMAP5: powerdomain data: Add OMAP54XX data and update the header
-      ARM: OMAP5: hwmod data: Create initial OMAP5 SOC hwmod data
-
-Santosh Shilimkar (5):
-      ARM: OMAP4+: PRM: Move function prototypes to common header for re-use
-      ARM: OMAP4+: CM: Move function prototypes to common header for re-use
-      ARM: OMAP4+: PRCM MPU: Move function prototypes to common header for re-use
-      ARM: OMAP5: voltagedomain data: Add OMAP5 voltage domain data
-      ARM: OMAP5: Enable build and frameowrk initialisations
-
- arch/arm/mach-omap2/Makefile                  |    4 +
- arch/arm/mach-omap2/clockdomain.h             |    1 +
- arch/arm/mach-omap2/clockdomains54xx_data.c   |  464 +++++
- arch/arm/mach-omap2/cm-regbits-54xx.h         | 1737 ++++++++++++++++
- arch/arm/mach-omap2/cm1_44xx.h                |    7 +-
- arch/arm/mach-omap2/cm1_54xx.h                |  213 ++
- arch/arm/mach-omap2/cm2_44xx.h                |    7 +-
- arch/arm/mach-omap2/cm2_54xx.h                |  389 ++++
- arch/arm/mach-omap2/cm_44xx_54xx.h            |   36 +
- arch/arm/mach-omap2/io.c                      |    6 +
- arch/arm/mach-omap2/omap_hwmod.h              |    1 +
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c    | 2151 ++++++++++++++++++++
- arch/arm/mach-omap2/powerdomain.h             |    1 +
- arch/arm/mach-omap2/powerdomains54xx_data.c   |  331 +++
- arch/arm/mach-omap2/prcm44xx.h                |    6 +
- arch/arm/mach-omap2/prcm_mpu44xx.h            |   14 +-
- arch/arm/mach-omap2/prcm_mpu54xx.h            |   87 +
- arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h      |   36 +
- arch/arm/mach-omap2/prm-regbits-54xx.h        | 2701 +++++++++++++++++++++++++
- arch/arm/mach-omap2/prm44xx.h                 |   33 +-
- arch/arm/mach-omap2/prm44xx_54xx.h            |   58 +
- arch/arm/mach-omap2/prm54xx.h                 |  421 ++++
- arch/arm/mach-omap2/scrm54xx.h                |  231 +++
- arch/arm/mach-omap2/voltage.h                 |    1 +
- arch/arm/mach-omap2/voltagedomains54xx_data.c |  102 +
- 25 files changed, 8983 insertions(+), 55 deletions(-)
- create mode 100644 arch/arm/mach-omap2/clockdomains54xx_data.c
- create mode 100644 arch/arm/mach-omap2/cm-regbits-54xx.h
- create mode 100644 arch/arm/mach-omap2/cm1_54xx.h
- create mode 100644 arch/arm/mach-omap2/cm2_54xx.h
- create mode 100644 arch/arm/mach-omap2/cm_44xx_54xx.h
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_54xx_data.c
- create mode 100644 arch/arm/mach-omap2/powerdomains54xx_data.c
- create mode 100644 arch/arm/mach-omap2/prcm_mpu54xx.h
- create mode 100644 arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h
- create mode 100644 arch/arm/mach-omap2/prm-regbits-54xx.h
- create mode 100644 arch/arm/mach-omap2/prm44xx_54xx.h
- create mode 100644 arch/arm/mach-omap2/prm54xx.h
- create mode 100644 arch/arm/mach-omap2/scrm54xx.h
- create mode 100644 arch/arm/mach-omap2/voltagedomains54xx_data.c
-
-vmlinux object size
-(delta in bytes from test_v3.10-rc4 (d683b96b072dc4680fc74964eca77e6a23d1fa6e)):
-   text     data      bss    total  kernel
-      0        0        0        0  am33xx_only
-      0        0        0        0  n800_multi_omap2xxx
-      0        0        0        0  n800_only_a
-      0        0        0        0  omap1_defconfig
-      0        0        0        0  omap1_defconfig_1510innovator_only
-      0        0        0        0  omap1_defconfig_5912osk_only
-  +8400   +19856      +64   +28320  omap2plus_defconfig
-      0        0        0        0  omap2plus_defconfig_2430sdp_only
-  +4304   +19888        0   +24192  omap2plus_defconfig_cpupm
-  +4304   +19216        0   +23520  omap2plus_defconfig_no_pm
-      0        0        0        0  omap2plus_defconfig_omap2_4_only
-      0        0        0        0  omap2plus_defconfig_omap3_4_only
-      0        0        0        0  rmk_omap3430_ldp_allnoconfig
-      0        0        0        0  rmk_omap3430_ldp_oldconfig
-      0        0        0        0  rmk_omap4430_sdp_allnoconfig
-      0        0        0        0  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.10-rc4 (d683b96b072dc4680fc74964eca77e6a23d1fa6e))
-  avail  rsrvd   high  freed  board          kconfig
-   -28k    28k      .      .  2430sdp        omap2plus_defconfig
-   -28k    28k      .      .  3517evm        omap2plus_defconfig
-   -28k    28k      .      .  3530es3beagle  omap2plus_defconfig
-   -28k    28k      .      .  3730beaglexm   omap2plus_defconfig
-   -28k    28k      .      .  4430es2panda   omap2plus_defconfig
-   -28k    28k      .      .  4460pandaes    omap2plus_defconfig
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRs430AAoJEMePsQ0LvSpLbToQALJiLerTnNzfXarzbh5WCVsa
-6y8tSuLRYK3HExtQdR8KCLM/RDQw2J/8CRZqFD0QOy0lv+rHbOP85lCaFFNfd3Hj
-G2M60ibMSotkLTUQZvK3nDXiI7BqZFwkr+OTJK3OhTWrasfI9RFl7ld9/DU/YiK+
-gJmwOyHvhUUGLQp09IRyG9vX4bq/OvCxdLLU3LAsu8/eu9FYqz+kvnBabAEKzOat
-p6RDuHodWjeP5I0R10yNI+qSj0K487FLf2RwyntbsSiijx9jHH3/4Iv8Y0dYZI11
-EtpMJcejlf6Cnz00ctbQXmBIzN28l1XLhD3zB9DyjjXY0AUJpsJONGq/EhFeVXFL
-uERhsYAzNd9VGEi8xrL6GISVNLrNPxsgtzoN96cpM0Zz4YzOPa0kVb2Oq9NMCuj6
-CBBfl3ASkTXc3e8SQ/1UUE81YLw1YYDM59x9mITZ11Isc8E4OMT8LvXZk4piV45j
-RSmwBqdDjXczRiZAue8aljrnumWAKDkpyM7FPlwTD4YxvzzILrnwP+hWp0wtNC6w
-hPB4pr8I5aoCeO+q0iHNcVMFsiMmEpxIuz2O+9wjmN5twYB+IDUfXhJKt2HePjmF
-rl6T3FYqZiuOF2dld8gR9IjQygR3W4gKAAoJfzcql5AOpQaSMCakq1iW+LQoU04W
-39dHL83bUff1AWO72JL9
-=Ebq7
------END PGP SIGNATURE-----
+ 
+ 
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
