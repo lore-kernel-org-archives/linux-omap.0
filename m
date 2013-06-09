@@ -1,102 +1,91 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP: some clock & hwmod changes for v3.11
-Date: Sun, 9 Jun 2013 09:11:13 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1306090909190.20050@utopia.booyaka.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: N900 device tree conversion: how to do first step
+Date: Sun, 9 Jun 2013 11:24:40 +0200
+Message-ID: <201306091124.41251@pali>
+References: <20130609015944.GA23559@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:53409 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753057Ab3FIJLO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Jun 2013 05:11:14 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed;
+  boundary="nextPart5024910.E8RVTgHMGR";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130609015944.GA23559@amd.pavel.ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, aaro.koskinen@iki.fi, linux-omap@vger.kernel.org, lauri.leukkunen@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+--nextPart5024910.E8RVTgHMGR
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Tony,
+On Sunday 09 June 2013 03:59:44 Pavel Machek wrote:
+> Hi!
+>=20
+> I'd like to convert Nokia N900 to device tree.
+>=20
+> Unfortunately, serial port is not easily available (very
+> special cable would be needed, does someone know where to get
+> one?) and I don't have BDI (and very special cable would be
+> needed, too).
+>=20
 
-The following changes since commit d683b96b072dc4680fc74964eca77e6a23d1fa6e:
+Hello,
 
-  Linux 3.10-rc4 (2013-06-02 17:11:17 +0900)
+I used serial port only in qemu for debugging. Maybe you can try
+to play with qemu first. Qemu has good n900 HW support.
 
-are available in the git repository at:
+But problematic is to create n900 mtd nand image bootable in
+qemu, because it needs closed source nokia bootloader and this
+needs to have CAL partition with some unknown data with is
+proprietary format.
 
-  http://git.kernel.org/cgit/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-b-for-3.11
+Nevertheless, there is prebuilded qemu image with maemo5 and with
+special version of nokia patches qemu, which was (and still is)
+very good for testing anything for n900. Special version of qemu
+plus qemu image is part of MADDE development tool, look here:
 
-for you to fetch changes up to 563ce4d51a555b45f5d43ff9cf127da8dac9f64d:
+Info: http://wiki.maemo.org/MADDE
+Download link: http://tablets-dev.nokia.com/MADDE.php
 
-  ARM: AM33XX: clk: Add clock node for EHRPWM TBCLK (2013-06-09 01:12:32 -0600)
+Except skinning support and Opengl ES all other nokia patches were
+included into Linaro version of qemu, so you can use it without
+problems. But you still need proprietary bootloader and correct
+CAL partition.
 
-- ----------------------------------------------------------------
-A few OMAP clock & hwmod changes for v3.11.
+But, nokia released closed redistributable version of bootloader
+for qemu and (proprietary) tool which generating mtd nand
+partition. You can pass kernel, initfs, rootfs images and it
+create correct mtd layout and automatically creating CAL.
 
-Basic test logs are here:
+Proprietary n900 bootloader (two parts!) for qemu is here:
+http://download.meego.com/live/Trunk:/non-oss:/Testing/Trunk_Testing/i586/n=
+olo-qemu-0.20100910-1.2.i586.rpm
 
-http://www.pwsan.com/omap/testlogs/prcm_devel_v3.11/20130609020805/
+Proprietary tool for creating mtd nand file is here:
+http://download.meego.com/live/Trunk:/non-oss:/Testing/Trunk_Testing/i586/q=
+flasher-21-1.2.i586.rpm
 
-- ----------------------------------------------------------------
-Philip Avinash (1):
-      ARM: AM33XX: clk: Add clock node for EHRPWM TBCLK
+PS: Sorry for too many closed SW, but there is no FOSS equivalent
+and this is the only one option how to use qemu n900 hw support.
+U-Boot is ported to n900, but depends on Nokia bootloader...
 
-Roger Quadros (1):
-      ARM: OMAP3: clock data: get rid of unused USB host clock aliases and dummies
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-Vaibhav Hiremath (1):
-      ARM: OMAP2+: AM33xx: Add missing reset status info to GFX hwmod
+--nextPart5024910.E8RVTgHMGR
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
- arch/arm/mach-omap2/cclock33xx_data.c      |   30 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/cclock3xxx_data.c      |   11 ----------
- arch/arm/mach-omap2/control.h              |    8 ++++++++
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c |    3 ++-
- 4 files changed, 40 insertions(+), 12 deletions(-)
-
-vmlinux object size
-(delta in bytes from test_v3.10-rc4 (d683b96b072dc4680fc74964eca77e6a23d1fa6e)):
-   text     data      bss    total  kernel
-      0     +448        0     +448  am33xx_only
-      0        0        0        0  n800_multi_omap2xxx
-      0        0        0        0  n800_only_a
-      0        0        0        0  omap1_defconfig
-      0        0        0        0  omap1_defconfig_1510innovator_only
-      0        0        0        0  omap1_defconfig_5912osk_only
-  +4096     +192        0    +4288  omap2plus_defconfig
-      0        0        0        0  omap2plus_defconfig_2430sdp_only
-      0     +192        0     +192  omap2plus_defconfig_cpupm
-      0     +192        0     +192  omap2plus_defconfig_no_pm
-      0        0        0        0  omap2plus_defconfig_omap2_4_only
-      0     +192        0     +192  omap2plus_defconfig_omap3_4_only
-   +176     +128     -176     +128  rmk_omap3430_ldp_allnoconfig
-      0     +192        0     +192  rmk_omap3430_ldp_oldconfig
-   +176     +128     -176     +128  rmk_omap4430_sdp_allnoconfig
-      0     +448        0     +448  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.10-rc4 (d683b96b072dc4680fc74964eca77e6a23d1fa6e))
-  avail  rsrvd   high  freed  board          kconfig
-    -8k     8k      .      .  2430sdp        omap2plus_defconfig
-    -8k     8k      .      .  3517evm        omap2plus_defconfig
-    -8k     8k      .      .  3530es3beagle  omap2plus_defconfig
-    -8k     8k      .      .  3730beaglexm   omap2plus_defconfig
-    -8k     8k      .      .  4430es2panda   omap2plus_defconfig
-    -8k     8k      .      .  4460pandaes    omap2plus_defconfig
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRtEYNAAoJEMePsQ0LvSpLgmMP/3Vq6DDNCTz6ZjsLG4AugQTc
-gdiQwk6RVYOUarJyNnQRPYNeHU3WiRL+v6K8bla577vseQEJ8qiomo0u/KMMDHAa
-AC++j7eGxcW7S4rakp6raU+ObRWMllqV3YhGVoGq69Sc/GYADPkOXuB1wdUTVk/6
-JXJKwE2/lh6/bDRHZzMr3oyXLEj+iNd3O1Yqc2HpBCYEPg+7U5HLCMBVGM2j8Trn
-2sNv6A8CfzKdmrOF+HBDurdESvbWfdm0dUO0hXAa4dc/L63SSiu4+Y9l+MWAmw02
-+CDdaHKfhRZXdj4jbwleZpgjeF5HYWWSTBEt9pnhS/qzV2zhZHjwBvdoq2e5aJeM
-Nxg3gegQMeqsMjeDAG9NpAASDSVBrKYh+/fdhUBf87EdpQZHfvgK13LKjfeNrljN
-YTMLa9A9IdHGWLe9MWiZfFaNlCnazb2Zu5c+i1XYZNS8puucKLaGu87Y7QEptPb9
-a67Xqj8dyGWw/cgsxXRCyoXfmpUxigwoSQq3RuUQ/ukyu6JX5veusFW1FWMRtWXp
-PA0sjwnEgAiwEpMmnJ4oTC1TzCOhaa7Pl6X8DlYMBkjiIHSjE/MCvG/1PuoXYoJa
-6E0qv9dK302iIbWpA/msVFuhAJ9lrDQHP5PWZQALrbI9uF2aVrp8ursI80N3XoPz
-ZIsWRfwCRbjesLdEWJUX
-=uJ2F
+iEYEABECAAYFAlG0SdkACgkQi/DJPQPkQ1JTmgCgtTUjEUwivW/hkR7tPIdRzZoA
+P9YAoISSHtgZpFOKtYqkfUctbG3YDs8y
+=Chox
 -----END PGP SIGNATURE-----
+
+--nextPart5024910.E8RVTgHMGR--
