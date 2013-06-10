@@ -1,95 +1,130 @@
-From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: add dtsi for palmas
-Date: Mon, 10 Jun 2013 11:29:47 +0200
-Message-ID: <51B59C8B.9000405@ti.com>
-References: <1370604504-32310-1-git-send-email-j-keerthy@ti.com>,
- <51B23AD5.8060006@wwwdotorg.org>
- <DC88CAD03C0052499C1907B327FC63229EAA39@DBDE04.ent.ti.com>
+From: "Quadros, Roger" <rogerq@ti.com>
+Subject: RE: [PATCH 3/4] pinctrl: single: omap: Add SoC specific module for
+ wake-up events
+Date: Mon, 10 Jun 2013 10:03:36 +0000
+Message-ID: <688FBEF7C8277944BE5AED9A41FB1EBC1AB12D0F@DNCE05.ent.ti.com>
+References: <20130607203936.16513.57494.stgit@localhost>,<20130607205044.16513.27675.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <DC88CAD03C0052499C1907B327FC63229EAA39-yXqyApvAXouIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "J, KEERTHY" <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: "swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org" <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org" <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org" <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:45815 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752613Ab3FJKEG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jun 2013 06:04:06 -0400
+In-Reply-To: <20130607205044.16513.27675.stgit@localhost>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>
+Cc: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Keerthy,
 
-On 06/10/2013 06:03 AM, J, KEERTHY wrote:
-> Hi Stephen,
-> 
-> Thanks for the review comments.
-> 
-> ________________________________________
-> From: Stephen Warren [swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org]
-> Sent: Saturday, June 08, 2013 1:26 AM
-> To: J, KEERTHY
-> Cc: Cousson, Benoit; devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org; grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org; swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org; sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org; gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org; lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-> Subject: Re: [PATCH] ARM: dts: add dtsi for palmas
-> 
-> On 06/07/2013 05:28 AM, J Keerthy wrote:
->> Adds palmas mfd and palmas regulator nodes. This is
->> based on the patch series:
->>
->> http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg89957.html
->>
->> The device tree nodes are based on:
->> https://lkml.org/lkml/2013/6/6/25
-> 
->> diff --git a/arch/arm/boot/dts/palmas.dtsi b/arch/arm/boot/dts/palmas.dtsi
-> 
->> +&palmas {
-> 
-> Hmmm. That (i.e. requiring the board file to declare the node, then
-> setting up all the content by later including this file) is an
-> interesting approach. I guess it's reasonable. The one issue is that it
-> makes it a little harder for the board file to override any of the
-> properties in this file., although it certainly is possible by including
-> those overrides after the include.
-> 
-> Irrespective of that, some comments on this:
-> 
->> +     palmas_pmic {
-> 
->> +             ti,ldo6-vibrator;
-> 
-> For example, what if the board doesn't want to have the property set?
-> 
->> +
->> +             regulators {
->> +                     smps123_reg: smps123 {
->> +                             regulator-name = "smps123";
->> +                             regulator-min-microvolt = < 600000>;
->> +                             regulator-max-microvolt = <1500000>;
-> 
-> Or what if the board wants to limit the voltage range of this regulator
-> due to what it's used for on the board.
-> 
->> +                             regulator-always-on;
->> +                             regulator-boot-on;
-> 
-> And those two properties are almost certainly board-specific policy.
-> 
-> Totally agree to all the above concerns. So can we have a custom .dtsi file
-> for a board+pmic combination? Or have only the required properties over ridden
-> in the board file?
 
-Yes, you can do that potentially if most OMAP5 boards will reuse the
-same kind of settings. Kevin has just done that for OMAP3 + twl4030.
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 
-In this case, since we do have only one board, I'm not sure it worth the
-effort.
+________________________________________
+From: Tony Lindgren [tony@atomide.com]
+Sent: Friday, June 07, 2013 11:50 PM
+To: linus.walleij@linaro.org
+Cc: devicetree-discuss@lists.ozlabs.org; Haojian Zhuang; Ujfalusi, Peter; linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; Quadros, Roger
+Subject: [PATCH 3/4] pinctrl: single: omap: Add SoC specific module for wake-up events
 
-Regards,
-Benoit
+For wake-up events from deeper idle modes we need to check the
+configured padconf registers for the wake-up bit and then call
+the related interrupt handler.
+
+Done in collaboration with Roger Quadros <rogerq@ti.com>.
+
+Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/pinctrl/Makefile                          |    3
+ drivers/pinctrl/pinctrl-single-omap.c             |  287 +++++++++++++++++++++
+ include/linux/platform_data/pinctrl-single-omap.h |    4
+ 3 files changed, 293 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/pinctrl/pinctrl-single-omap.c
+ create mode 100644 include/linux/platform_data/pinctrl-single-omap.h
+
+diff --git a/drivers/pinctrl/Makefile b/drivers/pinctrl/Makefile
+index 9bdaeb8..abf7f01 100644
+--- a/drivers/pinctrl/Makefile
++++ b/drivers/pinctrl/Makefile
+@@ -30,7 +30,8 @@ obj-$(CONFIG_PINCTRL_NOMADIK) += pinctrl-nomadik.o
+ obj-$(CONFIG_PINCTRL_STN8815)  += pinctrl-nomadik-stn8815.o
+ obj-$(CONFIG_PINCTRL_DB8500)   += pinctrl-nomadik-db8500.o
+ obj-$(CONFIG_PINCTRL_DB8540)   += pinctrl-nomadik-db8540.o
+-obj-$(CONFIG_PINCTRL_SINGLE)   += pinctrl-single.o
++pcs-$(CONFIG_ARCH_OMAP2PLUS)   += pinctrl-single-omap.o
++obj-$(CONFIG_PINCTRL_SINGLE)   += pinctrl-single.o $(pcs-y)
+ obj-$(CONFIG_PINCTRL_SIRF)     += pinctrl-sirf.o
+ obj-$(CONFIG_PINCTRL_SUNXI)    += pinctrl-sunxi.o
+ obj-$(CONFIG_PINCTRL_TEGRA)    += pinctrl-tegra.o
+diff --git a/drivers/pinctrl/pinctrl-single-omap.c b/drivers/pinctrl/pinctrl-single-omap.c
+new file mode 100644
+index 0000000..680cf81
+--- /dev/null
++++ b/drivers/pinctrl/pinctrl-single-omap.c
+@@ -0,0 +1,287 @@
++/*
++ * pinctrl-single-omap - omap specific wake-up irq handler
++ *
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ */
+<snip>
+
++
++static int __init pcs_omap_init(void)
++{
++       platform_driver_register(&pcs_omap_soc_driver);
++       platform_driver_register(&pcs_omap_driver);
++
++       return 0;
++}
++module_init(pcs_omap_init);
+
+It seems this has to be moved to an earlier place (e.g. subsys_initcall)
+else the pinctrl core fails to find the pinctrl device at the device creation
+time and bails out with -EPROBE_DEFER. Also, that device is never
+created again, so -EPROBE_DEFER doesn't seem to work there.
+
+The code i'm talking about is in dt_to_map_one_config()
+http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/pinctrl/devicetree.c#n109
+
++
++static void __exit pcs_omap_exit(void)
++{
++       platform_driver_unregister(&pcs_omap_driver);
++       platform_driver_unregister(&pcs_omap_soc_driver);
++}
++module_exit(pcs_omap_exit);
++
++MODULE_ALIAS("platform: pinctrl-single-omap");
++MODULE_AUTHOR("Texas Instruments Inc.");
++MODULE_DESCRIPTION("pinctrl-single-omap driver");
++MODULE_LICENSE("GPL v2");
+diff --git a/include/linux/platform_data/pinctrl-single-omap.h b/include/linux/platform_data/pinctrl-single-omap.h
+new file mode 100644
+index 0000000..bd92efc
+--- /dev/null
++++ b/include/linux/platform_data/pinctrl-single-omap.h
+@@ -0,0 +1,4 @@
++struct pcs_omap_pdata {
++       int irq;
++       void (*reconfigure_io_chain)(void);
++};
+
+
