@@ -1,78 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] mmc: omap_hsmmc: Remux pins to support SDIO
- interrupt and PM runtime
-Date: Mon, 10 Jun 2013 09:23:56 -0700
-Message-ID: <20130610162356.GL8164@atomide.com>
-References: <20130607214557.18581.75288.stgit@localhost>
- <20130607214957.18581.90624.stgit@localhost>
- <CACRpkdZ5CUvULBFpdHZ_AMotqfUdBcAQ63+8cT+r6TZ77bUWOA@mail.gmail.com>
+From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Subject: Re: [PATCH v2 1/2] ARM: dts: add dtsi for palmas
+Date: Mon, 10 Jun 2013 10:29:18 -0600
+Message-ID: <51B5FEDE.5070900@wwwdotorg.org>
+References: <1370855059-5342-1-git-send-email-j-keerthy@ti.com>
+ <1370855059-5342-2-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:16807 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132Ab3FJQYC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jun 2013 12:24:02 -0400
-Content-Disposition: inline
-In-Reply-To: <CACRpkdZ5CUvULBFpdHZ_AMotqfUdBcAQ63+8cT+r6TZ77bUWOA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1370855059-5342-2-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Chris Ball <cjb@laptop.org>, Balaji T K <balajitk@ti.com>, Andreas Fenkart <afenkart@gmail.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Linus Walleij <linus.walleij@linaro.org> [130610 09:09]:
-> 
-> You can use the new infrastructure to make the core select:
-> 
-> pinctrl_pm_select_default_state(host->dev);
-> pinctrl_pm_select_idle_state(host->dev);
+On 06/10/2013 03:04 AM, J Keerthy wrote:
+> Adds palmas mfd and palmas regulator nodes.
 
-OK great.
- 
-> What is the semantic difference between "default" and "active"?
+Nits:
 
-We only should remux the pins that need remuxing as that's done
-every time hitting idle. So I think we should have the following
-default groups:
+Well, you're really adding files that provide the nodes, not the nodes
+themselves.
 
-default		Static pins that don't change, no need to remux
-		configured in consumer driver probe like we already
-		do
+Palmas and MFD should be correctly capitalized.
 
-active		Optional dynamic pins remuxed for runtime, can be
-		configured and selected in consumer driver probe.
-		The consumer driver may also want to select this
-		state in PM runtime resume.
+> diff --git a/arch/arm/boot/dts/palmas.dtsi b/arch/arm/boot/dts/palmas.dtsi
 
-idle		Optional dynamic pins remuxed for idle. The consumer
-		driver may also want to select this state in PM
-		runtime suspend depending on device_can_wakeup()
-		and driver specific needs.
- 
-> If this is something very generic that a lot of platforms will want
-> to have, why not add it to include/linux/pinctrl/pinctrl-state.h
-> and augment the core to cache and handle this too?
+> +&palmas {
+...
+> +	palmas_pmic {
+...
+> +		ti,ldo6-vibrator;
 
-Yes we should do that assuming the above grouping makes sense
-to you.
- 
-> However in this case I *suspect* that what you really want
-> to do it to rename the state called "default" to "sleep"
-> (it appears the default state is sleepy) and then rename
-> the "active" state to "default" (as this is the defined semantic
-> meaning of "default" from <linux/pinctrl/pinctrl-state.h>.
+Isn't that board-specific? I don't know the HW well enough to say, but I
+assume that since there's a property, the whole point must be that some
+boards want it set and some don't.
 
-The idle state above could also be called sleep instead of idle
-if you prefer that.
+> +		regulators {
+> +			smps123_reg: smps123 {
+> +				regulator-name = "smps123";
+> +			};
 
-> But maybe I'm not quite getting the subtle difference between
-> "default" and "active" here so enlighten me.
+So the node labels here duplicate those in omap5-uevm.dts in patch 2/2.
+While dtc allows this, I don't think there's much point duplicating the
+labels. I'd tend to only put the labels in omap5-uevm.dts and not put
+them here. That will completely avoid the possibility of the labels in
+this file from conflicting with any other labels in any top-level
+board.dts file.
 
-I think the confusion is caused by the fact that we need three
-mux groups, not just two :) The toggling between active and idle
-is the hotpath as that can potentially happen for multiple drivers
-every time we enter and exit idle.
-
-Regards,
-
-Tony
+I also wonder if this file is actually terribly useful. The only thing
+that this file provides is the regulator-name property. It seems simpler
+just to put that into each board.dts file. The added advantage of doing
+that, is that if a board doesn't use a particular regulator, the node
+won't appear, and the regulator won't get registered.
