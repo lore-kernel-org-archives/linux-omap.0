@@ -1,101 +1,104 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC PATCH 1/4] regulator: Introduce OMAP regulator to control
- PMIC over VC/VP
-Date: Mon, 10 Jun 2013 11:31:31 +0100
-Message-ID: <20130610103131.GR31367@sirena.org.uk>
-References: <1369246717-4167-1-git-send-email-nm@ti.com>
- <1369246717-4167-2-git-send-email-nm@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@iki.fi>
+Subject: Re: [PATCH V2 14/14] ARM: OMAP4: hwmod data: Clean up the data file
+Date: Mon, 10 Jun 2013 13:38:30 +0300
+Message-ID: <51B5ACA6.2010101@iki.fi>
+References: <1370606175-22599-1-git-send-email-r.sricharan@ti.com> <alpine.DEB.2.02.1306071230500.5589@utopia.booyaka.com> <20130607162927.GA3331@atomide.com> <20130607175005.GB3331@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1139649006129072814=="
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1369246717-4167-2-git-send-email-nm-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-List-Id: linux-omap@vger.kernel.org
-
-
---===============1139649006129072814==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gxw6znBFH3c9xIzC"
-Content-Disposition: inline
+ protocol="application/pgp-signature";
+ boundary="----enig2MSDESSBTTAQTIBFIOSPP"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-la0-f52.google.com ([209.85.215.52]:52310 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753113Ab3FJKif (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jun 2013 06:38:35 -0400
+Received: by mail-la0-f52.google.com with SMTP id fo12so3613006lab.25
+        for <linux-omap@vger.kernel.org>; Mon, 10 Jun 2013 03:38:33 -0700 (PDT)
+In-Reply-To: <20130607175005.GB3331@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Sricharan R <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, rnayak@ti.com, b-cousson@ti.com, t-kristo@ti.com, ambresh@ti.com
+
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+------enig2MSDESSBTTAQTIBFIOSPP
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 07/06/13 20:50, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [130607 09:35]:
+>> * Paul Walmsley <paul@pwsan.com> [130607 05:38]:
+>>> On Fri, 7 Jun 2013, Sricharan R wrote:
+>>>
+>>>> - The IO resource information like dma request lines, irq number and=
+
+>>>>   ocp address space can be populated via dt blob. So such data is st=
+ripped
+>>>>   from OMAP4 SOC hwmod data file.
+>>>>
+>>>> - The devices which are still missing the device tree bindings,
+>>>>   address space entries are not removed yet. When such devices add
+>>>>   the dt bindings, respective address space data can be deleted.
+>>>>
+>>>> - Also other unnecessary hwmods like firewalls are removed as a part=
+ of this.
+>>>>   Since emif was getting registered only because of this firewalls l=
+inks,
+>>>>   the mpu->emif direct link is added now.
+>>>>
+>>>> The above update, results in reduction of about ~1650 lines of code.=
+
+>>>>
+>>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>> Signed-off-by: Sricharan R <r.sricharan@ti.com>
+>>>
+>>> Acked-by: Paul Walmsley <paul@pwsan.com>
+>>>
+>>> Can't test this one since I don't have an OMAP4 DT config set up in t=
+he testbed
+>>> yet.  Maybe will add that to the testbed after the v3.10 release.
+>>
+>> OK thanks, applying into omap-for-v3.11/cleanup.
+>=20
+> I had to undo the following parts to avoid regressions on omap4sdp.
+> Can you please follow up on fixing the related issues so the fixup
+> won't be needed?
+>=20
+> Seems to work now the same way as earlier for both omap4sdp and blaze
+> es, except for DSS, which seems to be a separate issue as posted by
+> Tomi. Pushed out now to omap-for-v3.11/cleanup.
+
+What issue do you refer to?
+
+DSS does not have DT bindings, and removing DSS from hwmod data will
+break DSS for omap4.
+
+ Tomi
 
 
---gxw6znBFH3c9xIzC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Wed, May 22, 2013 at 01:18:34PM -0500, Nishanth Menon wrote:
-
-So, the biggest problem here has been patch 4 (having to have a hack to
-deploy this stuff is a bit worrying) plus the general not having a real
-driver thing.
-
-> +- ti,i2c-slave-address - I2C slave address of the PMIC
-> +- ti,i2c-voltage-register - I2C register address where voltage commands are
-> +	to be set.
-> +- ti,i2c-command-register - I2C register address where commands are to be set
-> +	when OMAP enters low power state. This may be the same as
-> +	ti,i2c-voltage-register depending on the PMIC.
-> +- ti,slew-rate-microvolt - worst case slew rate of rise / fall for voltage
-> +	transition in microvolts per microseconds (uV/uS)
-> +- step-size-micro-volts - Step size in micovolts as to what one step in voltage
-> +	selector increment translates to. See example.
-> +- regulator-min-microvolt - Minimum voltage in microvolts which is supported by
-> +	the PMIC in ti,step-size-microvolt increments. See example.
-> +- regulator-max-microvolt - Maximum voltage in microvolts which is supported
-> +	by the PMIC in ti,step-size-microvolt increments. See example.
-
-The other thing is this whole business of encoding the properties of the
-PMIC in the DT like this.  Paul Walmsley has started doing some work for
-some similiar hardware where instead of doing this the regulator is in
-the DT as normal and then the driver for the offloaded voltage scaling
-gets the information about the register layout from the regulator
-driver.  This is a bit neater overall and would cope with determining
-which method to use at runtime.
-
---gxw6znBFH3c9xIzC
+------enig2MSDESSBTTAQTIBFIOSPP
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJRtasAAAoJELSic+t+oim9jasP/2dvydlJLP5IbSvqaG/6tgke
-O0T+KfvVqYSyaOFL6ob3x+PCKHkj9NvTxYPtvt+X45hrxJs+DELupn+FK76rFxdC
-KsEBi6kev9wZUFBMY0WgRTxPuk89vS8xJuFSB4gHEqvAyTlx6GqHIO5csllPP4gD
-bZR2VhCRoPnNCEd5oUg47zlh316Er3GhcXbOq8Q7uR9+y3IWFEdf0tZ6GkjPr/uZ
-2zBtPDni0uD3hDmULYSqLEcKoGWKpfiscjtl9lpupyY8dZNLkbBFPpvSObaFbpn0
-WDM8zIpXPKl6ruoHAt1jnZn413PmfVrbrPanfFFVe8nDJfJLQNVVt3YkzZrRLLln
-oevtYLhxxOCug0HCQdBSCQpNsVDEa48HV7AvprBOPm8+HPhafw8PtmV3lYFKkadA
-Xr1dDMQZYMzhjsVsFgV4jjMpbqGJS+xm0oD+nsU84scOM1ju671Qd1HBl0DVdJjv
-tPqO+D3IAt2ImBcGa4AR6+hqzBiNRjNTdXGnn25kViOedMDm93w3wGkL8OLPrGo1
-A06Q5hxJaZLgvZLdFGSwAwofAst34WxAD7QA1UT0I1Rf620Vn+2ZjUKq41QcKOrt
-6c2g0C1OmAgMrIKtAAaoUAyKdZtI98KfNS9ARfgQYwgYd5XjrGrSfS41VDMGP1Wk
-Z2qYTM5PE4PLqKo8oAqV
-=PxT3
+iQIcBAEBAgAGBQJRtaymAAoJEPo9qoy8lh71wKAP/3x9L94lk6Axn0yl4JWAoBpC
+MpQuBFB62wOSve5tpvtQtO902T5bmUwZOb8yeBnsxS+nzv2N8Juml0rxgT1xbPyd
+POTMKs48bsYfhOB3lHjR32qnCA75YfxCe/FmDxhNbsBm5LnGGSVjFyLSOIj/5Iwb
+coi+DgvKk16V/iwaWtBhHWZIVTS0oYRyuA00z/JCGHaHw+HKCWxlGqo63qEaZQqq
+iJR5n19zYZezeJbQSN0gRc7PXrRlICHL7kEqtkoDdCj4EX1lNEg8iL24+dT9HSbm
+i+OgzWYkS4UxQ45qJLPHIAbVOHVUdSDtRH/fT2YTpLXqMTuqjmfgZDa7zM3rV3Nl
+I9duknmJsHo9QpDuSaoKnzy5QD7TxdEhANnwW9hf+6ZJuhbHQNzedWdIAtelEBnP
+mgwLjnWqXX/Sdgrdhm71mwgUXGpe1li3u/4ahD6bMvuhOYtm7ZWBop4tz26zonOD
+t+X2tjKYjZQBJrpMCYFiwBkqozjWjfJf5hqGiY0LMsM1AryJfCA8w6eXjjvQqYZn
+vZXmdP8Cf1ImMWBlnSCtDFVpLxWa7ShNh3LF9UqqPj3axwpkR8hseZVn2KCrDihv
+QEkFb1WDjOgjQKClL19/SfT42mUVNPpkO5MMbIVfBnBw/jl8PwuI7TKUUgCfsbw8
+9+KBkpKqyA49nZgNWyIm
+=rOjD
 -----END PGP SIGNATURE-----
 
---gxw6znBFH3c9xIzC--
-
---===============1139649006129072814==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-devicetree-discuss mailing list
-devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-https://lists.ozlabs.org/listinfo/devicetree-discuss
-
---===============1139649006129072814==--
+------enig2MSDESSBTTAQTIBFIOSPP--
