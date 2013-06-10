@@ -1,41 +1,46 @@
-From: Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 1/2] ARM: dts: add dtsi for palmas
-Date: Mon, 10 Jun 2013 14:55:21 +0530
-Message-ID: <51B59B81.8040208@nvidia.com>
-References: <1370855059-5342-1-git-send-email-j-keerthy@ti.com>
- <1370855059-5342-2-git-send-email-j-keerthy@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH v3] ARM: DTS: TWL4030: fix mux and wakeup for SYS_NIRQ
+ line
+Date: Mon, 10 Jun 2013 11:22:11 +0200
+Message-ID: <51B59AC3.2080900@ti.com>
+References: <1370040357-25794-1-git-send-email-khilman@linaro.org> <1370629886-14170-1-git-send-email-khilman@linaro.org> <20130607193130.GA13205@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1370855059-5342-2-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org" <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:43994 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752284Ab3FJJWm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Jun 2013 05:22:42 -0400
+In-Reply-To: <20130607193130.GA13205@kahuna>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-On Monday 10 June 2013 02:34 PM, J Keerthy wrote:
-> Adds palmas mfd and palmas regulator nodes.
->
-> Signed-off-by: Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>
-> Signed-off-by: J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-> ---
->   arch/arm/boot/dts/palmas.dtsi |   98 +++++++++++++++++++++++++++++++++++++++++
+Hi Kevin,
 
-Hi Keerthy,
-Can you please add documentation for dt binding:
-Documentation/devicetree/bindings/mfd
+On 06/07/2013 09:31 PM, Nishanth Menon wrote:
+> On 11:31-20130607, Kevin Hilman wrote:
+>> On most OMAP3 platforms, the twl4030 IRQ line is connected to the
+>> SYS_NIRQ line on OMAP.  Add another DTS include file
+>> (twl4030_omap3.dtsi) for boards that hook up the twl4030 this way
+>> to include.
+>>
+>> This allows RTC wake from off-mode to work again on OMAP3-based
+>> platforms with twl4030.  Tested on 3530/Beagle, 3730/Beagle-xM,
+>> 3530/Overo, 3730/Overo-STORM.
+>>
+>> Special thanks to Florian Vaussard for suggesting use of preprocessor
+>> feature.
+>>
+>> Cc: Florian Vaussard <florian.vaussard@epfl.ch>
+>> Cc: Benoit Cousson <b-cousson@ti.com>
+>> Cc: Nishanth Menon <nm@ti.com>
+>> Signed-off-by: Kevin Hilman <khilman@linaro.org>
+> Thanks,
+> Reviewed-by: Nishanth Menon <nm@ti.com>
 
-Most of time we refer from this document for dt population.
+Thanks, I've just applied it in for_3.11/dts.
 
-Thanks,
-Laxman
+Benoit
