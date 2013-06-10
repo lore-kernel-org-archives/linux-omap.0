@@ -1,88 +1,61 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 3/4] mmc: omap_hsmmc: Remux pins to support SDIO interrupt
- and PM runtime
-Date: Mon, 10 Jun 2013 18:03:15 +0200
-Message-ID: <CACRpkdZ5CUvULBFpdHZ_AMotqfUdBcAQ63+8cT+r6TZ77bUWOA@mail.gmail.com>
-References: <20130607214557.18581.75288.stgit@localhost>
-	<20130607214957.18581.90624.stgit@localhost>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [RFC PATCH 1/4] regulator: Introduce OMAP regulator to control
+ PMIC over VC/VP
+Date: Mon, 10 Jun 2013 11:16:59 -0500
+Message-ID: <CAGo_u6qTiPpd0DDe3jnPh_UxTwox22azhcMGy=fftL8H+DGeyw@mail.gmail.com>
+References: <1369246717-4167-1-git-send-email-nm@ti.com>
+	<1369246717-4167-2-git-send-email-nm@ti.com>
+	<20130610103131.GR31367@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:64253 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752072Ab3FJQDP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jun 2013 12:03:15 -0400
-Received: by mail-ob0-f182.google.com with SMTP id va7so10148117obc.41
-        for <linux-omap@vger.kernel.org>; Mon, 10 Jun 2013 09:03:15 -0700 (PDT)
-In-Reply-To: <20130607214957.18581.90624.stgit@localhost>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130610103131.GR31367@sirena.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>, Paul Walmsley <paul@pwsan.com>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-doc@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Chris Ball <cjb@laptop.org>, Balaji T K <balajitk@ti.com>, Andreas Fenkart <afenkart@gmail.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Jun 7, 2013 at 11:49 PM, Tony Lindgren <tony@atomide.com> wrote:
++Paul.
 
-> On some omaps we need to remux MMC pins for PM, and for some omaps
-> we need to remux the SDIO IRQ pin.
+On Mon, Jun 10, 2013 at 5:31 AM, Mark Brown <broonie@kernel.org> wrote:
+> On Wed, May 22, 2013 at 01:18:34PM -0500, Nishanth Menon wrote:
 >
-> Based on an earlier patch by Andreas Fenkart <afenkart@gmail.com>.
-(...)
-> +       host->pinctrl = devm_pinctrl_get(host->dev);
-> +       if (IS_ERR(host->pinctrl)) {
-> +               dev_dbg(host->dev, "no pinctrl handle\n");
-> +               ret = 0;
-> +               goto out;
-> +       }
-> +
-> +       host->fixed = pinctrl_lookup_state(host->pinctrl,
-> +                                          PINCTRL_STATE_DEFAULT);
-> +       if (IS_ERR(host->fixed)) {
-> +               dev_dbg(host->dev,
-> +                        "pins are not configured from the driver\n");
-> +               host->fixed = NULL;
-> +               ret = 0;
-> +               goto out;
-> +       }
-> +
-> +       ret = pinctrl_select_state(host->pinctrl, host->fixed);
-> +       if (ret < 0)
-> +               goto err;
-> +
-> +       /* For most cases we don't have wake-ups, and exit after this */
-> +       host->active = pinctrl_lookup_state(host->pinctrl, "active");
-> +       if (IS_ERR(host->active)) {
-> +               ret = PTR_ERR(host->active);
-> +               host->active = NULL;
-> +               return 0;
-> +       }
-> +
-> +       host->idle = pinctrl_lookup_state(host->pinctrl,
-> +                                         PINCTRL_STATE_IDLE);
-> +       if (IS_ERR(host->idle)) {
-> +               ret = PTR_ERR(host->idle);
-> +               host->idle = NULL;
-> +               goto err;
-> +       }
+> So, the biggest problem here has been patch 4 (having to have a hack to
+> deploy this stuff is a bit worrying) plus the general not having a real
+> driver thing.
+Patch #4 in this series was a hack as it was not properly split up and
+organized as a proper DTS series -it was meant as a proof of concept -
+not entirely meant to indicate the remaining 1-3 patches were hacks
+:).
 
-You can use the new infrastructure to make the core select:
+>
+>> +- ti,i2c-slave-address - I2C slave address of the PMIC
+>> +- ti,i2c-voltage-register - I2C register address where voltage commands are
+>> +     to be set.
+>> +- ti,i2c-command-register - I2C register address where commands are to be set
+>> +     when OMAP enters low power state. This may be the same as
+>> +     ti,i2c-voltage-register depending on the PMIC.
+>> +- ti,slew-rate-microvolt - worst case slew rate of rise / fall for voltage
+>> +     transition in microvolts per microseconds (uV/uS)
+>> +- step-size-micro-volts - Step size in micovolts as to what one step in voltage
+>> +     selector increment translates to. See example.
+>> +- regulator-min-microvolt - Minimum voltage in microvolts which is supported by
+>> +     the PMIC in ti,step-size-microvolt increments. See example.
+>> +- regulator-max-microvolt - Maximum voltage in microvolts which is supported
+>> +     by the PMIC in ti,step-size-microvolt increments. See example.
+>
+> The other thing is this whole business of encoding the properties of the
+> PMIC in the DT like this.  Paul Walmsley has started doing some work for
+> some similiar hardware where instead of doing this the regulator is in
+> the DT as normal and then the driver for the offloaded voltage scaling
+> gets the information about the register layout from the regulator
+> driver.  This is a bit neater overall and would cope with determining
+> which method to use at runtime.
 
-pinctrl_pm_select_default_state(host->dev);
-pinctrl_pm_select_idle_state(host->dev);
+I think you mean http://marc.info/?t=137059249100003&r=1&w=2 series. I
+will dig into it. if it is possible for Tegra and OMAP to use the same
+framework and strategy to deal with these kind of h/w blocks, all the
+more better.
 
-What is the semantic difference between "default" and "active"?
-
-If this is something very generic that a lot of platforms will want
-to have, why not add it to include/linux/pinctrl/pinctrl-state.h
-and augment the core to cache and handle this too?
-
-However in this case I *suspect* that what you really want
-to do it to rename the state called "default" to "sleep"
-(it appears the default state is sleepy) and then rename
-the "active" state to "default" (as this is the defined semantic
-meaning of "default" from <linux/pinctrl/pinctrl-state.h>.
-
-But maybe I'm not quite getting the subtle difference between
-"default" and "active" here so enlighten me.
-
-Yours,
-Linus Walleij
+Regards,
+Nishanth Menon
