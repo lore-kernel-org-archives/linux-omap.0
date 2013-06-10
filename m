@@ -1,67 +1,56 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 2/7] omap: mailbox: check for NULL nb in mailbox_put
-Date: Mon, 10 Jun 2013 12:38:26 -0500
-Message-ID: <51B60F12.30708@ti.com>
-References: <1370656664-41250-1-git-send-email-s-anna@ti.com> <CA+Bv8XZW-Xv7D-TxqTiUF-t-QESMQqWGOq2fLshXVA-N7if_5w@mail.gmail.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH v1 0/3] PM / AVS: SmartReflex: use omap_sr * for class interfaces
+Date: Mon, 10 Jun 2013 10:45:48 -0700
+Message-ID: <87vc5ldflf.fsf@linaro.org>
+References: <1369652964-14484-1-git-send-email-andrii.tseglytskyi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45913 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751751Ab3FJRoB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jun 2013 13:44:01 -0400
-In-Reply-To: <CA+Bv8XZW-Xv7D-TxqTiUF-t-QESMQqWGOq2fLshXVA-N7if_5w@mail.gmail.com>
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:42131 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752182Ab3FJRpw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jun 2013 13:45:52 -0400
+Received: by mail-pb0-f41.google.com with SMTP id rp16so4002581pbb.14
+        for <linux-omap@vger.kernel.org>; Mon, 10 Jun 2013 10:45:51 -0700 (PDT)
+In-Reply-To: <1369652964-14484-1-git-send-email-andrii.tseglytskyi@ti.com>
+	(Andrii Tseglytskyi's message of "Mon, 27 May 2013 14:09:21 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Jassi Brar <jaswinder.singh@linaro.org>, Loic Pallardy <loic.pallardy@st.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Fernando Guzman Lugo <lugo.fernando@gmail.com>
+To: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
+Cc: J Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-Russ,
+Andrii Tseglytskyi <andrii.tseglytskyi@ti.com> writes:
 
-On 06/08/2013 01:46 PM, Russ Dill wrote:
-> On Fri, Jun 7, 2013 at 6:57 PM, Suman Anna <s-anna@ti.com> wrote:
->> The mailbox_put function must check the notifier block for
->> NULL before trying to unregister it.
-> 
-> I'm going to nack this one. Why must it check for NULL? None of the
-> callers pass a NULL argument and blocking_notifier_chain_unregister
-> handles a NULL nb argument just fine.
+> SmartReflex driver interface is natively divided to two parts:
+>
+> - external SmartReflex interface
+> - interface between SmartReflex driver and SmartReflex Class
+>
+> Functions which belong to AVS class interface can use
+> struct omap_sr* instead of struct voltatedomain*, to provide a
+> direct connection between SR driver and SR class. This allows
+> us to optimize and not do additional lookups where none is
+> required.
+>
+> Patches are based on:
+> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+> tag: v3.10-rc2
+>
+> Verified on OMAP4430. Boot - OK. SmartReflex registers debug dump - OK
+>
+> Available on GitHub:
+> https://github.com/andriit/linux-omap-k3.8/commits/avs_sr_driver_std_class_interfaces_v01
+>
+> Andrii Tseglytskyi (3):
+>   PM / AVS: SmartReflex: use omap_sr * for errgen interfaces
+>   PM / AVS: SmartReflex: use omap_sr * for minmax interfaces
+>   PM / AVS: SmartReflex: use omap_sr * for enable/disable interface
+>
+>  arch/arm/mach-omap2/smartreflex-class3.c |    8 ++--
+>  drivers/power/avs/smartreflex.c          |   63 +++++++++++++++---------------
+>  include/linux/power/smartreflex.h        |   10 ++---
+>  3 files changed, 40 insertions(+), 41 deletions(-)
 
-Thanks for the review. It should have been done differently, which is to
-print an error trace if the passed in arguments are NULL. Anyway, I will
-drop this since I expect this function to go away once this is adapted
-to the new framework.
+Thanks, queuing this series for v3.11.
 
-regards
-Suman
-
-> 
->> Signed-off-by: Fernando Guzman Lugo <lugo.fernando@gmail.com>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> ---
->>  arch/arm/plat-omap/mailbox.c | 3 ++-
->>  1 file changed, 2 insertions(+), 1 deletion(-)
->>
->> diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
->> index 42377ef..5fb4027 100644
->> --- a/arch/arm/plat-omap/mailbox.c
->> +++ b/arch/arm/plat-omap/mailbox.c
->> @@ -356,7 +356,8 @@ EXPORT_SYMBOL(omap_mbox_get);
->>
->>  void omap_mbox_put(struct omap_mbox *mbox, struct notifier_block *nb)
->>  {
->> -       blocking_notifier_chain_unregister(&mbox->notifier, nb);
->> +       if (nb)
->> +               blocking_notifier_chain_unregister(&mbox->notifier, nb);
->>         omap_mbox_fini(mbox);
->>  }
->>  EXPORT_SYMBOL(omap_mbox_put);
->> --
->> 1.8.2
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Kevin
