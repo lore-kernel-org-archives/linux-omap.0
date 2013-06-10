@@ -1,132 +1,57 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH 2/2] ARM: dts: OMAP5: add palmas node and omap specific
- palmas regulator properties
-Date: Mon, 10 Jun 2013 08:19:09 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229EAAC8@DBDE04.ent.ti.com>
-References: <1370845335-14926-1-git-send-email-j-keerthy@ti.com>
- <1370845335-14926-3-git-send-email-j-keerthy@ti.com>
- <20130610081208.GD24958@gmail.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH 13/14] ARM: AM33XX: hwmod data: irq, dma and addr info
+ clean up
+Date: Mon, 10 Jun 2013 14:05:53 +0530
+Message-ID: <51B58FE9.5040309@ti.com>
+References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com> <1369845494-30231-14-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.02.1306060355320.15042@utopia.booyaka.com> <87zjv2ooxi.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46774 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752256Ab3FJITf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jun 2013 04:19:35 -0400
-In-Reply-To: <20130610081208.GD24958@gmail.com>
-Content-Language: en-US
+Received: from comal.ext.ti.com ([198.47.26.152]:41525 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751971Ab3FJIga (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Jun 2013 04:36:30 -0400
+In-Reply-To: <87zjv2ooxi.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "swarren@nvidia.com" <swarren@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, Sricharan R <r.sricharan@ti.com>
 
-SGVsbG8gTGVlIEpvbmVzLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206
-IExlZSBKb25lcyBbbWFpbHRvOmxlZS5qb25lc0BsaW5hcm8ub3JnXQ0KPiBTZW50OiBNb25kYXks
-IEp1bmUgMTAsIDIwMTMgMTo0MiBQTQ0KPiBUbzogSiwgS0VFUlRIWQ0KPiBDYzogQ291c3Nvbiwg
-QmVub2l0OyBkZXZpY2V0cmVlLWRpc2N1c3NAbGlzdHMub3psYWJzLm9yZzsgbGludXgtDQo+IG9t
-YXBAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOw0KPiBsZGV3
-YW5nYW5AbnZpZGlhLmNvbTsgZ3JhbnQubGlrZWx5QHNlY3JldGxhYi5jYTsgc3dhcnJlbkB3d3dk
-b3Rvcmcub3JnOw0KPiBzd2FycmVuQG52aWRpYS5jb207IHNhbWVvQGxpbnV4LmludGVsLmNvbTsg
-Z2dAc2xpbWxvZ2ljLmNvLnVrDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMi8yXSBBUk06IGR0czog
-T01BUDU6IGFkZCBwYWxtYXMgbm9kZSBhbmQgb21hcA0KPiBzcGVjaWZpYyBwYWxtYXMgcmVndWxh
-dG9yIHByb3BlcnRpZXMNCj4gDQo+ID4gQWRkIHBhbG1hcyBub2RlIGFuZCBvbWFwIHNwZWNpZmlj
-IHBhbG1hcyByZWd1bGF0b3IgcHJvcGVydGllcy4NCj4gPg0KPiA+IFRoaXMgcGF0Y2ggaXMgYmFz
-ZWQgb246DQo+ID4NCj4gPiAJZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJu
-ZWwvZ2l0L2Jjb3Vzc29uL2xpbnV4LQ0KPiBvbWFwLWR0LmdpdA0KPiA+IAlmb3JfMy4xMS9kdHMN
-Cj4gDQo+IFRoZXJlJ3Mgbm8gbmVlZCBmb3IgdGhpcyB0byBiZSBpbiB0aGUgY29tbWl0IG1lc3Nh
-Z2UuDQo+IA0KDQpPay4gSSB3aWxsIHJlbW92ZSB0aGlzLg0KDQo+ID4gQm9vdCB0ZXN0ZWQgb24g
-b21hcDUtdWV2bSBib2FyZC4NCj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IEogS2VlcnRoeSA8ai1r
-ZWVydGh5QHRpLmNvbT4NCj4gPiAtLS0NCj4gPiAgYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2
-bS5kdHMgfCAgMTQ1DQo+ID4gKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysN
-Cj4gPiAgMSBmaWxlcyBjaGFuZ2VkLCAxNDUgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkN
-Cj4gPg0KPiA+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS11ZXZtLmR0cw0K
-PiA+IGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMNCj4gPiBpbmRleCA5MjdkYjFl
-Li44ODE3MmRiIDEwMDY0NA0KPiA+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LXVldm0u
-ZHRzDQo+ID4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMNCj4gPiBAQCAt
-MjU0LDYgKzI1NCwxNTEgQEANCj4gPiAgCXBpbmN0cmwtMCA9IDwmaTJjMV9waW5zPjsNCj4gPg0K
-PiA+ICAJY2xvY2stZnJlcXVlbmN5ID0gPDQwMDAwMD47DQo+ID4gKw0KPiA+ICsJcGFsbWFzOiBw
-YWxtYXNANDggew0KPiA+ICsJCXJlZyA9IDwweDQ4PjsNCj4gPiArCQkvKiBTUEkgPSAwLCBJUlEj
-ID0gNywgNCA9IGFjdGl2ZSBoaWdoIGxldmVsLXNlbnNpdGl2ZSAqLw0KPiANCj4gVGhlIGludGVy
-cnVwdCBwcm9wZXJ0eSBpcyBmYWlybHkgdWJpcXV0b3VzLiBUaGVyZSdzIG5vdCByZWFsbHkgYW55
-IG5lZWQNCj4gdG8gZG9jdW1lbnQgaXQgaW4gdGhpcyBtYW5vci4NCj4gDQo+ID4gKwkJaW50ZXJy
-dXB0cyA9IDwwIDcgND47IC8qIElSUV9TWVNfMU4gY2FzY2FkZWQgdG8gZ2ljICovDQo+IA0KPiBV
-c2UgdGhlIElSUSBpbmNsdWRlcyBpbiBkdC1iaW5kaW5ncy4NCg0KT29wcyBZZXMgSSB3aWxsIGlu
-Y2x1ZGUuDQoNCj4gDQo+ID4gKwkJaW50ZXJydXB0LXBhcmVudCA9IDwmZ2ljPjsNCj4gPiArCX07
-DQo+ID4gKw0KPiA+ICt9Ow0KPiA+ICsNCj4gPiArI2luY2x1ZGUgInBhbG1hcy5kdHNpIg0KPiAN
-Cj4gSSdtIGEgYml0IGNvbmZ1c2VkIGJ5IHRoaXMuIElzIGl0IG5vdyBjb21tb24gcHJhY3RpY2Ug
-dG8gYnJlYWsgb3V0DQo+IG5vZGVzIGluIHRoaXMgd2F5PyBJIGFzc3VtZSB0byBjb3VudGVyIG1h
-c3MgaW5kZW50YXRpb24sIGJ1dCBpdCdzIGEgYml0DQo+IGFsaWVuIHRvIG1lLg0KPiANCj4gPiAr
-JnBhbG1hcyB7DQo+ID4gKwlwYWxtYXNfcG1pYyB7DQo+ID4gKwkJdGksbGRvNi12aWJyYXRvcjsN
-Cj4gPiArDQo+ID4gKwkJcmVndWxhdG9ycyB7DQo+ID4gKwkJCXNtcHMxMjNfcmVnOiBzbXBzMTIz
-IHsNCj4gPiArCQkJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPCA2MDAwMDA+Ow0KPiA+ICsJ
-CQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MTUwMDAwMD47DQo+ID4gKwkJCQlyZWd1bGF0
-b3ItYWx3YXlzLW9uOw0KPiA+ICsJCQkJcmVndWxhdG9yLWJvb3Qtb247DQo+ID4gKwkJCX07DQo+
-IA0KPiBBcmUgdGhlc2UgYWxsIGJvYXJkIHNwZWNpZmljLCBvciBhcmUgdGhleSBzaGFyZWQgd2l0
-aCBhbnkgb3RoZXINCj4gcGxhdGZvcm0/DQoNClllcy4gSGVuY2UgbW92ZWQgYWxsIG9mIHRoZW0g
-dG8gYm9hcmQgZmlsZSBhcyBjb21wYXJlZCB0byBteQ0KTGFzdCBhcHByb2FjaCB3aGVuIEkgaGFk
-IGtlcHQgYWxsIG9mIHRoZW0gdW5kZXIgcGFsbWFzLmR0c2kuDQoNCj4gDQo+ID4gKwkJCXNtcHM0
-NV9yZWc6IHNtcHM0NSB7DQo+ID4gKwkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwgNjAw
-MDAwPjsNCj4gPiArCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDEzMTAwMDA+Ow0KPiA+
-ICsJCQkJcmVndWxhdG9yLWFsd2F5cy1vbjsNCj4gPiArCQkJCXJlZ3VsYXRvci1ib290LW9uOw0K
-PiA+ICsJCQl9Ow0KPiA+ICsNCj4gPiArCQkJc21wczZfcmVnOiBzbXBzNiB7DQo+ID4gKwkJCQly
-ZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwxMjAwMDAwPjsNCj4gPiArCQkJCXJlZ3VsYXRvci1t
-YXgtbWljcm92b2x0ID0gPDEyMDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxhdG9yLWFsd2F5cy1vbjsN
-Cj4gPiArCQkJCXJlZ3VsYXRvci1ib290LW9uOw0KPiA+ICsJCQl9Ow0KPiA+ICsNCj4gPiArCQkJ
-c21wczdfcmVnOiBzbXBzNyB7DQo+ID4gKwkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwx
-ODAwMDAwPjsNCj4gPiArCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDE4MDAwMDA+Ow0K
-PiA+ICsJCQkJcmVndWxhdG9yLWFsd2F5cy1vbjsNCj4gPiArCQkJCXJlZ3VsYXRvci1ib290LW9u
-Ow0KPiA+ICsJCQl9Ow0KPiA+ICsNCj4gPiArCQkJc21wczhfcmVnOiBzbXBzOCB7DQo+ID4gKwkJ
-CQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwgNjAwMDAwPjsNCj4gPiArCQkJCXJlZ3VsYXRv
-ci1tYXgtbWljcm92b2x0ID0gPDEzMTAwMDA+Ow0KPiA+ICsJCQkJcmVndWxhdG9yLWFsd2F5cy1v
-bjsNCj4gPiArCQkJCXJlZ3VsYXRvci1ib290LW9uOw0KPiA+ICsJCQl9Ow0KPiA+ICsNCj4gPiAr
-CQkJc21wczlfcmVnOiBzbXBzOSB7DQo+ID4gKwkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9
-IDwyMTAwMDAwPjsNCj4gPiArCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDIxMDAwMDA+
-Ow0KPiA+ICsJCQkJcmVndWxhdG9yLWFsd2F5cy1vbjsNCj4gPiArCQkJCXJlZ3VsYXRvci1ib290
-LW9uOw0KPiA+ICsJCQkJdGksc21wcy1yYW5nZSA9IDwweDgwPjsNCj4gPiArCQkJfTsNCj4gPiAr
-DQo+ID4gKwkJCXNtcHMxMF9yZWc6IHNtcHMxMCB7DQo+ID4gKwkJCQlyZWd1bGF0b3ItbWluLW1p
-Y3Jvdm9sdCA9IDw1MDAwMDAwPjsNCj4gPiArCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0g
-PDUwMDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxhdG9yLWFsd2F5cy1vbjsNCj4gPiArCQkJCXJlZ3Vs
-YXRvci1ib290LW9uOw0KPiA+ICsJCQl9Ow0KPiA+ICsNCj4gPiArCQkJbGRvMV9yZWc6IGxkbzEg
-ew0KPiA+ICsJCQkJcmVndWxhdG9yLW1pbi1taWNyb3ZvbHQgPSA8MjgwMDAwMD47DQo+ID4gKwkJ
-CQlyZWd1bGF0b3ItbWF4LW1pY3Jvdm9sdCA9IDwyODAwMDAwPjsNCj4gPiArCQkJCXJlZ3VsYXRv
-ci1hbHdheXMtb247DQo+ID4gKwkJCQlyZWd1bGF0b3ItYm9vdC1vbjsNCj4gPiArCQkJfTsNCj4g
-PiArDQo+ID4gKwkJCWxkbzJfcmVnOiBsZG8yIHsNCj4gPiArCQkJCXJlZ3VsYXRvci1taW4tbWlj
-cm92b2x0ID0gPDI5MDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8
-MjkwMDAwMD47DQo+ID4gKwkJCQlyZWd1bGF0b3ItYWx3YXlzLW9uOw0KPiA+ICsJCQkJcmVndWxh
-dG9yLWJvb3Qtb247DQo+ID4gKwkJCX07DQo+ID4gKw0KPiA+ICsJCQlsZG8zX3JlZzogbGRvMyB7
-DQo+ID4gKwkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwzMDAwMDAwPjsNCj4gPiArCQkJ
-CXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDMwMDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxhdG9y
-LWFsd2F5cy1vbjsNCj4gPiArCQkJCXJlZ3VsYXRvci1ib290LW9uOw0KPiA+ICsJCQl9Ow0KPiA+
-ICsNCj4gPiArCQkJbGRvNF9yZWc6IGxkbzQgew0KPiA+ICsJCQkJcmVndWxhdG9yLW1pbi1taWNy
-b3ZvbHQgPSA8MjIwMDAwMD47DQo+ID4gKwkJCQlyZWd1bGF0b3ItbWF4LW1pY3Jvdm9sdCA9IDwy
-MjAwMDAwPjsNCj4gPiArCQkJCXJlZ3VsYXRvci1hbHdheXMtb247DQo+ID4gKwkJCQlyZWd1bGF0
-b3ItYm9vdC1vbjsNCj4gPiArCQkJfTsNCj4gPiArDQo+ID4gKwkJCWxkbzVfcmVnOiBsZG81IHsN
-Cj4gPiArCQkJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPDE4MDAwMDA+Ow0KPiA+ICsJCQkJ
-cmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MTgwMDAwMD47DQo+ID4gKwkJCQlyZWd1bGF0b3It
-YWx3YXlzLW9uOw0KPiA+ICsJCQkJcmVndWxhdG9yLWJvb3Qtb247DQo+ID4gKwkJCX07DQo+ID4g
-Kw0KPiA+ICsJCQlsZG82X3JlZzogbGRvNiB7DQo+ID4gKwkJCQlyZWd1bGF0b3ItbWluLW1pY3Jv
-dm9sdCA9IDwxNTAwMDAwPjsNCj4gPiArCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDE1
-MDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxhdG9yLWFsd2F5cy1vbjsNCj4gPiArCQkJCXJlZ3VsYXRv
-ci1ib290LW9uOw0KPiA+ICsJCQl9Ow0KPiA+ICsNCj4gPiArCQkJbGRvN19yZWc6IGxkbzcgew0K
-PiA+ICsJCQkJcmVndWxhdG9yLW1pbi1taWNyb3ZvbHQgPSA8MTUwMDAwMD47DQo+ID4gKwkJCQly
-ZWd1bGF0b3ItbWF4LW1pY3Jvdm9sdCA9IDwxNTAwMDAwPjsNCj4gPiArCQkJCXJlZ3VsYXRvci1h
-bHdheXMtb247DQo+ID4gKwkJCQlyZWd1bGF0b3ItYm9vdC1vbjsNCj4gPiArCQkJfTsNCj4gPiAr
-DQo+ID4gKwkJCWxkbzhfcmVnOiBsZG84IHsNCj4gPiArCQkJCXJlZ3VsYXRvci1taW4tbWljcm92
-b2x0ID0gPDE1MDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MTUw
-MDAwMD47DQo+ID4gKwkJCQlyZWd1bGF0b3ItYWx3YXlzLW9uOw0KPiA+ICsJCQkJcmVndWxhdG9y
-LWJvb3Qtb247DQo+ID4gKwkJCX07DQo+ID4gKw0KPiA+ICsJCQlsZG85X3JlZzogbGRvOSB7DQo+
-ID4gKwkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwxODAwMDAwPjsNCj4gPiArCQkJCXJl
-Z3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDMzMDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxhdG9yLWFs
-d2F5cy1vbjsNCj4gPiArCQkJCXJlZ3VsYXRvci1ib290LW9uOw0KPiA+ICsJCQl9Ow0KPiA+ICsN
-Cj4gPiArCQkJbGRvbG5fcmVnOiBsZG9sbiB7DQo+ID4gKwkJCQlyZWd1bGF0b3ItbWluLW1pY3Jv
-dm9sdCA9IDwxODAwMDAwPjsNCj4gPiArCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDE4
-MDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxhdG9yLWFsd2F5cy1vbjsNCj4gPiArCQkJCXJlZ3VsYXRv
-ci1ib290LW9uOw0KPiA+ICsJCQl9Ow0KPiA+ICsNCj4gPiArCQkJbGRvdXNiX3JlZzogbGRvdXNi
-IHsNCj4gPiArCQkJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPDMyNTAwMDA+Ow0KPiA+ICsJ
-CQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MzI1MDAwMD47DQo+ID4gKwkJCQlyZWd1bGF0
-b3ItYWx3YXlzLW9uOw0KPiA+ICsJCQkJcmVndWxhdG9yLWJvb3Qtb247DQo+ID4gKwkJCX07DQo+
-ID4gKwkJfTsNCj4gPiArCX07DQo+ID4gIH07DQo+ID4NCj4gPiAgJmkyYzUgew0KPiANCj4gLS0N
-Cj4gTGVlIEpvbmVzDQo+IExpbmFybyBTVC1Fcmljc3NvbiBMYW5kaW5nIFRlYW0gTGVhZA0KPiBM
-aW5hcm8ub3JnIOKUgiBPcGVuIHNvdXJjZSBzb2Z0d2FyZSBmb3IgQVJNIFNvQ3MgRm9sbG93IExp
-bmFybzogRmFjZWJvb2sNCj4gfCBUd2l0dGVyIHwgQmxvZw0K
+Hi Kevin,
+
+On Friday 07 June 2013 03:57 AM, Kevin Hilman wrote:
+> Paul Walmsley <paul@pwsan.com> writes:
+>
+>> On Wed, 29 May 2013, Santosh Shilimkar wrote:
+>>
+>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>>>
+>>> AM33XX only supports DT boot mode and with addition of
+>>> extracting module resources like, irq, dma and address space
+>>> from DT block, so now we can remove duplicate information from
+>>> hwmod data file.
+>>
+>> OK, guess I'll take your word for it that it all works.  The
+>> BeagleBone-white with appended DTB hasn't booted here since v3.7.
+>> And the BeagleBone-black with discrete DTB doesn't boot at all with
+>> current mainline, only with the TI vendor kernel & DTB...
+>
+> Anyone care to shed light on what's missing for BeagleBone boot with
+> mainline currently?
+I have tested BeagleBone boot with today's mainline bootloader and
+kernel. It boots perfectly fine.
+
+Thanks and regards,
+Lokesh
+>
+> I've also not been able to boot a mainline kernel on the BeagleBone for
+> some time.
+>
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
