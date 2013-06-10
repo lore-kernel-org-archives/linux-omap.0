@@ -1,104 +1,238 @@
-From: Tomi Valkeinen <tomi.valkeinen@iki.fi>
-Subject: Re: [PATCH V2 14/14] ARM: OMAP4: hwmod data: Clean up the data file
-Date: Mon, 10 Jun 2013 13:38:30 +0300
-Message-ID: <51B5ACA6.2010101@iki.fi>
-References: <1370606175-22599-1-git-send-email-r.sricharan@ti.com> <alpine.DEB.2.02.1306071230500.5589@utopia.booyaka.com> <20130607162927.GA3331@atomide.com> <20130607175005.GB3331@atomide.com>
+From: "Quadros, Roger" <rogerq@ti.com>
+Subject: RE: [PATCH 4/4] ARM: OMAP: Move DT wake-up event handling over to
+ use pinctrl-single-omap
+Date: Mon, 10 Jun 2013 12:31:54 +0000
+Message-ID: <688FBEF7C8277944BE5AED9A41FB1EBC1AB12DA0@DNCE05.ent.ti.com>
+References: <20130607203936.16513.57494.stgit@localhost>,<20130607205046.16513.2802.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="----enig2MSDESSBTTAQTIBFIOSPP"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f52.google.com ([209.85.215.52]:52310 "EHLO
-	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753113Ab3FJKif (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jun 2013 06:38:35 -0400
-Received: by mail-la0-f52.google.com with SMTP id fo12so3613006lab.25
-        for <linux-omap@vger.kernel.org>; Mon, 10 Jun 2013 03:38:33 -0700 (PDT)
-In-Reply-To: <20130607175005.GB3331@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:54695 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751034Ab3FJMcX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jun 2013 08:32:23 -0400
+In-Reply-To: <20130607205046.16513.2802.stgit@localhost>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Sricharan R <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, rnayak@ti.com, b-cousson@ti.com, t-kristo@ti.com, ambresh@ti.com
+To: Tony Lindgren <tony@atomide.com>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>
+Cc: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
-------enig2MSDESSBTTAQTIBFIOSPP
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Tony, (sorry, on Outlook web)
 
-On 07/06/13 20:50, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [130607 09:35]:
->> * Paul Walmsley <paul@pwsan.com> [130607 05:38]:
->>> On Fri, 7 Jun 2013, Sricharan R wrote:
->>>
->>>> - The IO resource information like dma request lines, irq number and=
+-                       compatible = "ti,omap4-padconf", "pinctrl-single";
++                       compatible = "ti,omap4-padconf";
 
->>>>   ocp address space can be populated via dt blob. So such data is st=
-ripped
->>>>   from OMAP4 SOC hwmod data file.
->>>>
->>>> - The devices which are still missing the device tree bindings,
->>>>   address space entries are not removed yet. When such devices add
->>>>   the dt bindings, respective address space data can be deleted.
->>>>
->>>> - Also other unnecessary hwmods like firewalls are removed as a part=
- of this.
->>>>   Since emif was getting registered only because of this firewalls l=
-inks,
->>>>   the mpu->emif direct link is added now.
->>>>
->>>> The above update, results in reduction of about ~1650 lines of code.=
+This change is not necessary if we make sure the pinctrl-single-omap driver
+gets registered early enough, before the pinctrl devices are probed.
+ (e.g. subsys_initcall())
 
->>>>
->>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>> Signed-off-by: Sricharan R <r.sricharan@ti.com>
->>>
->>> Acked-by: Paul Walmsley <paul@pwsan.com>
->>>
->>> Can't test this one since I don't have an OMAP4 DT config set up in t=
-he testbed
->>> yet.  Maybe will add that to the testbed after the v3.10 release.
->>
->> OK thanks, applying into omap-for-v3.11/cleanup.
->=20
-> I had to undo the following parts to avoid regressions on omap4sdp.
-> Can you please follow up on fixing the related issues so the fixup
-> won't be needed?
->=20
-> Seems to work now the same way as earlier for both omap4sdp and blaze
-> es, except for DSS, which seems to be a separate issue as posted by
-> Tomi. Pushed out now to omap-for-v3.11/cleanup.
+I've commented about this in the other patch.
 
-What issue do you refer to?
-
-DSS does not have DT bindings, and removing DSS from hwmod data will
-break DSS for omap4.
-
- Tomi
+cheers,
+-roger
 
 
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 
-------enig2MSDESSBTTAQTIBFIOSPP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+________________________________________
+From: Tony Lindgren [tony@atomide.com]
+Sent: Friday, June 07, 2013 11:50 PM
+To: linus.walleij@linaro.org
+Cc: devicetree-discuss@lists.ozlabs.org; Haojian Zhuang; Ujfalusi, Peter; linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; Quadros, Roger
+Subject: [PATCH 4/4] ARM: OMAP: Move DT wake-up event handling over to use pinctrl-single-omap
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+Now pinctrl-single-omap can handle the wake-up events for us now
+as long as the events are configured in the .dts files.
 
-iQIcBAEBAgAGBQJRtaymAAoJEPo9qoy8lh71wKAP/3x9L94lk6Axn0yl4JWAoBpC
-MpQuBFB62wOSve5tpvtQtO902T5bmUwZOb8yeBnsxS+nzv2N8Juml0rxgT1xbPyd
-POTMKs48bsYfhOB3lHjR32qnCA75YfxCe/FmDxhNbsBm5LnGGSVjFyLSOIj/5Iwb
-coi+DgvKk16V/iwaWtBhHWZIVTS0oYRyuA00z/JCGHaHw+HKCWxlGqo63qEaZQqq
-iJR5n19zYZezeJbQSN0gRc7PXrRlICHL7kEqtkoDdCj4EX1lNEg8iL24+dT9HSbm
-i+OgzWYkS4UxQ45qJLPHIAbVOHVUdSDtRH/fT2YTpLXqMTuqjmfgZDa7zM3rV3Nl
-I9duknmJsHo9QpDuSaoKnzy5QD7TxdEhANnwW9hf+6ZJuhbHQNzedWdIAtelEBnP
-mgwLjnWqXX/Sdgrdhm71mwgUXGpe1li3u/4ahD6bMvuhOYtm7ZWBop4tz26zonOD
-t+X2tjKYjZQBJrpMCYFiwBkqozjWjfJf5hqGiY0LMsM1AryJfCA8w6eXjjvQqYZn
-vZXmdP8Cf1ImMWBlnSCtDFVpLxWa7ShNh3LF9UqqPj3axwpkR8hseZVn2KCrDihv
-QEkFb1WDjOgjQKClL19/SfT42mUVNPpkO5MMbIVfBnBw/jl8PwuI7TKUUgCfsbw8
-9+KBkpKqyA49nZgNWyIm
-=rOjD
------END PGP SIGNATURE-----
+Done in collaboration with Roger Quadros <rogerq@ti.com>.
 
-------enig2MSDESSBTTAQTIBFIOSPP--
+Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/omap3.dtsi     |    4 ++--
+ arch/arm/boot/dts/omap4.dtsi     |    4 ++--
+ arch/arm/boot/dts/omap5.dtsi     |    4 ++--
+ arch/arm/mach-omap2/mux.c        |    8 ++++++--
+ arch/arm/mach-omap2/pm34xx.c     |    2 ++
+ arch/arm/mach-omap2/prm_common.c |   26 ++++++++++++++++++++++++++
+ 6 files changed, 40 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 99ba6e1..847af56 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -94,7 +94,7 @@
+                };
+
+                omap3_pmx_core: pinmux@48002030 {
+-                       compatible = "ti,omap3-padconf", "pinctrl-single";
++                       compatible = "ti,omap3-padconf";
+                        reg = <0x48002030 0x05cc>;
+                        #address-cells = <1>;
+                        #size-cells = <0>;
+@@ -103,7 +103,7 @@
+                };
+
+                omap3_pmx_wkup: pinmux@0x48002a00 {
+-                       compatible = "ti,omap3-padconf", "pinctrl-single";
++                       compatible = "ti,omap3-padconf";
+                        reg = <0x48002a00 0x5c>;
+                        #address-cells = <1>;
+                        #size-cells = <0>;
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 2a56428..2a4f099 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -107,7 +107,7 @@
+                };
+
+                omap4_pmx_core: pinmux@4a100040 {
+-                       compatible = "ti,omap4-padconf", "pinctrl-single";
++                       compatible = "ti,omap4-padconf";
+                        reg = <0x4a100040 0x0196>;
+                        #address-cells = <1>;
+                        #size-cells = <0>;
+@@ -115,7 +115,7 @@
+                        pinctrl-single,function-mask = <0x7fff>;
+                };
+                omap4_pmx_wkup: pinmux@4a31e040 {
+-                       compatible = "ti,omap4-padconf", "pinctrl-single";
++                       compatible = "ti,omap4-padconf";
+                        reg = <0x4a31e040 0x0038>;
+                        #address-cells = <1>;
+                        #size-cells = <0>;
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 3dd7ff8..5515d58 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -100,7 +100,7 @@
+                };
+
+                omap5_pmx_core: pinmux@4a002840 {
+-                       compatible = "ti,omap4-padconf", "pinctrl-single";
++                       compatible = "ti,omap4-padconf";
+                        reg = <0x4a002840 0x01b6>;
+                        #address-cells = <1>;
+                        #size-cells = <0>;
+@@ -108,7 +108,7 @@
+                        pinctrl-single,function-mask = <0x7fff>;
+                };
+                omap5_pmx_wkup: pinmux@4ae0c840 {
+-                       compatible = "ti,omap4-padconf", "pinctrl-single";
++                       compatible = "ti,omap4-padconf";
+                        reg = <0x4ae0c840 0x0038>;
+                        #address-cells = <1>;
+                        #size-cells = <0>;
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index f82cf87..48094b58 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -811,6 +811,12 @@ int __init omap_mux_late_init(void)
+                }
+        }
+
++       omap_mux_dbg_init();
++
++       /* see pinctrl-single-omap for the wake-up interrupt handling */
++       if (of_have_populated_dt())
++               return 0;
++
+        ret = request_irq(omap_prcm_event_to_irq("io"),
+                omap_hwmod_mux_handle_irq, IRQF_SHARED | IRQF_NO_SUSPEND,
+                        "hwmod_io", omap_mux_late_init);
+@@ -818,8 +824,6 @@ int __init omap_mux_late_init(void)
+        if (ret)
+                pr_warning("mux: Failed to setup hwmod io irq %d\n", ret);
+
+-       omap_mux_dbg_init();
+-
+        return 0;
+ }
+
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index c018593..9b19b14 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -172,6 +172,8 @@ static int prcm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits)
+                        wkst = omap2_prm_read_mod_reg(module, wkst_off);
+                        wkst &= ~ignore_bits;
+                        c++;
++                       if (c > 10)
++                               break;
+                }
+                omap2_cm_write_mod_reg(iclk, module, iclk_off);
+                omap2_cm_write_mod_reg(fclk, module, fclk_off);
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index 228b850..b9af6a7 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -22,8 +22,10 @@
+ #include <linux/io.h>
+ #include <linux/irq.h>
+ #include <linux/interrupt.h>
++#include <linux/platform_data/pinctrl-single-omap.h>
+ #include <linux/slab.h>
+
++#include "soc.h"
+ #include "prm2xxx_3xxx.h"
+ #include "prm2xxx.h"
+ #include "prm3xxx.h"
+@@ -95,6 +97,7 @@ static void omap_prcm_irq_handler(unsigned int irq, struct irq_desc *desc)
+        struct irq_chip *chip = irq_desc_get_chip(desc);
+        unsigned int virtirq;
+        int nr_irq = prcm_irq_setup->nr_regs * 32;
++       int retries = 20;
+
+        /*
+         * If we are suspended, mask all interrupts from PRCM level,
+@@ -136,6 +139,9 @@ static void omap_prcm_irq_handler(unsigned int irq, struct irq_desc *desc)
+                /* Serve normal events next */
+                for_each_set_bit(virtirq, pending, nr_irq)
+                        generic_handle_irq(prcm_irq_setup->base_irq + virtirq);
++
++               if (retries-- < 1)
++                       break;
+        }
+        if (chip->irq_ack)
+                chip->irq_ack(&desc->irq_data);
+@@ -234,6 +240,15 @@ void omap_prcm_irq_complete(void)
+        prcm_irq_setup->restore_irqen(prcm_irq_setup->saved_mask);
+ }
+
++static struct pcs_omap_pdata pcs_pdata;
++
++static struct platform_device pinctrl_single_omap = {
++       .name   = "pinctrl-single-omap-soc",
++       .dev    = {
++               .platform_data = &pcs_pdata,
++       },
++};
++
+ /**
+  * omap_prcm_register_chain_handler - initializes the prcm chained interrupt
+  * handler based on provided parameters
+@@ -322,6 +337,17 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
+                prcm_irq_chips[i] = gc;
+        }
+
++       if (of_have_populated_dt()) {
++               pcs_pdata.irq = omap_prcm_event_to_irq("io");
++               if (cpu_is_omap34xx())
++                       pcs_pdata.reconfigure_io_chain =
++                               omap3xxx_prm_reconfigure_io_chain;
++               else
++                       pcs_pdata.reconfigure_io_chain =
++                               omap44xx_prm_reconfigure_io_chain;
++               platform_device_register(&pinctrl_single_omap);
++       }
++
+        return 0;
+
+ err:
+
+
