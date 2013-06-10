@@ -1,57 +1,39 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH 13/14] ARM: AM33XX: hwmod data: irq, dma and addr info
- clean up
-Date: Mon, 10 Jun 2013 14:05:53 +0530
-Message-ID: <51B58FE9.5040309@ti.com>
-References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com> <1369845494-30231-14-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.02.1306060355320.15042@utopia.booyaka.com> <87zjv2ooxi.fsf@linaro.org>
+From: J Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v2 0/2]  ARM: dts: Add palmas dtsi
+Date: Mon, 10 Jun 2013 14:34:17 +0530
+Message-ID: <1370855059-5342-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41525 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751971Ab3FJIga (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Jun 2013 04:36:30 -0400
-In-Reply-To: <87zjv2ooxi.fsf@linaro.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:49171 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751884Ab3FJJGQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jun 2013 05:06:16 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, Sricharan R <r.sricharan@ti.com>
+To: b-cousson@ti.com, devicetree-discuss@lists.ozlabs.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ldewangan@nvidia.com, grant.likely@secretlab.ca, swarren@wwwdotorg.org, swarren@nvidia.com, sameo@linux.intel.com, gg@slimlogic.co.uk, lee.jones@linaro.org, J Keerthy <j-keerthy@ti.com>
 
-Hi Kevin,
+This patch series adds palmas.dtsi and adds the omap5 specific palmas
+entries in the omap5-uevm board file.
 
-On Friday 07 June 2013 03:57 AM, Kevin Hilman wrote:
-> Paul Walmsley <paul@pwsan.com> writes:
->
->> On Wed, 29 May 2013, Santosh Shilimkar wrote:
->>
->>> From: Vaibhav Hiremath <hvaibhav@ti.com>
->>>
->>> AM33XX only supports DT boot mode and with addition of
->>> extracting module resources like, irq, dma and address space
->>> from DT block, so now we can remove duplicate information from
->>> hwmod data file.
->>
->> OK, guess I'll take your word for it that it all works.  The
->> BeagleBone-white with appended DTB hasn't booted here since v3.7.
->> And the BeagleBone-black with discrete DTB doesn't boot at all with
->> current mainline, only with the TI vendor kernel & DTB...
->
-> Anyone care to shed light on what's missing for BeagleBone boot with
-> mainline currently?
-I have tested BeagleBone boot with today's mainline bootloader and
-kernel. It boots perfectly fine.
+This patch series is based on:
 
-Thanks and regards,
-Lokesh
->
-> I've also not been able to boot a mainline kernel on the BeagleBone for
-> some time.
->
-> Kevin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+for_3.11/dts
+
+Boot tested on omap5-uevm board.
+
+J Keerthy (2):
+  ARM: dts: add dtsi for palmas
+  ARM: dts: OMAP5: add palmas node and omap specific palmas regulator
+    properties
+
+ arch/arm/boot/dts/omap5-uevm.dts |  147 ++++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/palmas.dtsi    |   98 +++++++++++++++++++++++++
+ 2 files changed, 245 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/boot/dts/palmas.dtsi
+
+-- 
+1.7.5.4
 
