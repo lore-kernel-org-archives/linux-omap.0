@@ -1,39 +1,188 @@
 From: J Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2 0/2]  ARM: dts: Add palmas dtsi
-Date: Mon, 10 Jun 2013 14:34:17 +0530
-Message-ID: <1370855059-5342-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v2 2/2] ARM: dts: OMAP5: add palmas node and omap specific palmas regulator properties
+Date: Mon, 10 Jun 2013 14:34:19 +0530
+Message-ID: <1370855059-5342-3-git-send-email-j-keerthy@ti.com>
+References: <1370855059-5342-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49171 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751884Ab3FJJGQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jun 2013 05:06:16 -0400
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1370855059-5342-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: b-cousson@ti.com, devicetree-discuss@lists.ozlabs.org
 Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ldewangan@nvidia.com, grant.likely@secretlab.ca, swarren@wwwdotorg.org, swarren@nvidia.com, sameo@linux.intel.com, gg@slimlogic.co.uk, lee.jones@linaro.org, J Keerthy <j-keerthy@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-This patch series adds palmas.dtsi and adds the omap5 specific palmas
-entries in the omap5-uevm board file.
+Add palmas node and omap specific palmas regulator properties.
 
-This patch series is based on:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
-for_3.11/dts
-
-Boot tested on omap5-uevm board.
-
-J Keerthy (2):
-  ARM: dts: add dtsi for palmas
-  ARM: dts: OMAP5: add palmas node and omap specific palmas regulator
-    properties
-
+Signed-off-by: J Keerthy <j-keerthy@ti.com>
+---
  arch/arm/boot/dts/omap5-uevm.dts |  147 ++++++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/palmas.dtsi    |   98 +++++++++++++++++++++++++
- 2 files changed, 245 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/boot/dts/palmas.dtsi
+ 1 files changed, 147 insertions(+), 0 deletions(-)
 
+diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+index 927db1e..ffbcc3f 100644
+--- a/arch/arm/boot/dts/omap5-uevm.dts
++++ b/arch/arm/boot/dts/omap5-uevm.dts
+@@ -8,6 +8,8 @@
+ /dts-v1/;
+ 
+ #include "omap5.dtsi"
++#include <dt-bindings/interrupt-controller/irq.h>
++#include <dt-bindings/interrupt-controller/arm-gic.h>
+ 
+ / {
+ 	model = "TI OMAP5 uEVM board";
+@@ -254,6 +256,151 @@
+ 	pinctrl-0 = <&i2c1_pins>;
+ 
+ 	clock-frequency = <400000>;
++
++	palmas: palmas@48 {
++		reg = <0x48>;
++		/* SPI = 0, IRQ# = 7, active high level-sensitive */
++		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N */
++		interrupt-parent = <&gic>;
++	};
++
++};
++
++#include "palmas.dtsi"
++
++&palmas {
++	palmas_pmic {
++		ti,ldo6-vibrator;
++
++		regulators {
++			smps123_reg: smps123 {
++				regulator-min-microvolt = < 600000>;
++				regulator-max-microvolt = <1500000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			smps45_reg: smps45 {
++				regulator-min-microvolt = < 600000>;
++				regulator-max-microvolt = <1310000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			smps6_reg: smps6 {
++				regulator-min-microvolt = <1200000>;
++				regulator-max-microvolt = <1200000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			smps7_reg: smps7 {
++				regulator-min-microvolt = <1800000>;
++				regulator-max-microvolt = <1800000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			smps8_reg: smps8 {
++				regulator-min-microvolt = < 600000>;
++				regulator-max-microvolt = <1310000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			smps9_reg: smps9 {
++				regulator-min-microvolt = <2100000>;
++				regulator-max-microvolt = <2100000>;
++				regulator-always-on;
++				regulator-boot-on;
++				ti,smps-range = <0x80>;
++			};
++
++			smps10_reg: smps10 {
++				regulator-min-microvolt = <5000000>;
++				regulator-max-microvolt = <5000000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo1_reg: ldo1 {
++				regulator-min-microvolt = <2800000>;
++				regulator-max-microvolt = <2800000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo2_reg: ldo2 {
++				regulator-min-microvolt = <2900000>;
++				regulator-max-microvolt = <2900000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo3_reg: ldo3 {
++				regulator-min-microvolt = <3000000>;
++				regulator-max-microvolt = <3000000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo4_reg: ldo4 {
++				regulator-min-microvolt = <2200000>;
++				regulator-max-microvolt = <2200000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo5_reg: ldo5 {
++				regulator-min-microvolt = <1800000>;
++				regulator-max-microvolt = <1800000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo6_reg: ldo6 {
++				regulator-min-microvolt = <1500000>;
++				regulator-max-microvolt = <1500000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo7_reg: ldo7 {
++				regulator-min-microvolt = <1500000>;
++				regulator-max-microvolt = <1500000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo8_reg: ldo8 {
++				regulator-min-microvolt = <1500000>;
++				regulator-max-microvolt = <1500000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo9_reg: ldo9 {
++				regulator-min-microvolt = <1800000>;
++				regulator-max-microvolt = <3300000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldoln_reg: ldoln {
++				regulator-min-microvolt = <1800000>;
++				regulator-max-microvolt = <1800000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldousb_reg: ldousb {
++				regulator-min-microvolt = <3250000>;
++				regulator-max-microvolt = <3250000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++		};
++	};
+ };
+ 
+ &i2c5 {
 -- 
 1.7.5.4
-
