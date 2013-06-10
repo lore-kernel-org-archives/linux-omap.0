@@ -1,130 +1,113 @@
 From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH v2 2/2] ARM: dts: OMAP5: add palmas node and omap
- specific palmas regulator properties
-Date: Mon, 10 Jun 2013 10:16:07 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229EABA5@DBDE04.ent.ti.com>
-References: <1370855059-5342-1-git-send-email-j-keerthy@ti.com>
- <1370855059-5342-3-git-send-email-j-keerthy@ti.com>
- <20130610100540.GI20297@gmail.com>
+Subject: RE: [PATCH] ARM: dts: add dtsi for palmas
+Date: Mon, 10 Jun 2013 10:17:58 +0000
+Message-ID: <DC88CAD03C0052499C1907B327FC63229EABB4@DBDE04.ent.ti.com>
+References: <1370604504-32310-1-git-send-email-j-keerthy@ti.com>,<51B23AD5.8060006@wwwdotorg.org>
+ <DC88CAD03C0052499C1907B327FC63229EAA39@DBDE04.ent.ti.com>
+ <51B59C8B.9000405@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38866 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751834Ab3FJKQd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Jun 2013 06:16:33 -0400
-In-Reply-To: <20130610100540.GI20297@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51B59C8B.9000405@ti.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, "lee.jones@linaro.org" <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "swarren@nvidia.com" <swarren@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
 
-SGVsbG8gTGVlIGpvbmVzLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206
-IExlZSBKb25lcyBbbWFpbHRvOmxlZS5qb25lc0BsaW5hcm8ub3JnXQ0KPiBTZW50OiBNb25kYXks
-IEp1bmUgMTAsIDIwMTMgMzozNiBQTQ0KPiBUbzogSiwgS0VFUlRIWQ0KPiBDYzogQ291c3Nvbiwg
-QmVub2l0OyBkZXZpY2V0cmVlLWRpc2N1c3NAbGlzdHMub3psYWJzLm9yZzsgbGludXgtDQo+IG9t
-YXBAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOw0KPiBsZGV3
-YW5nYW5AbnZpZGlhLmNvbTsgZ3JhbnQubGlrZWx5QHNlY3JldGxhYi5jYTsgc3dhcnJlbkB3d3dk
-b3Rvcmcub3JnOw0KPiBzd2FycmVuQG52aWRpYS5jb207IHNhbWVvQGxpbnV4LmludGVsLmNvbTsg
-Z2dAc2xpbWxvZ2ljLmNvLnVrDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjIgMi8yXSBBUk06IGR0
-czogT01BUDU6IGFkZCBwYWxtYXMgbm9kZSBhbmQgb21hcA0KPiBzcGVjaWZpYyBwYWxtYXMgcmVn
-dWxhdG9yIHByb3BlcnRpZXMNCj4gDQo+IE9uIE1vbiwgMTAgSnVuIDIwMTMsIEogS2VlcnRoeSB3
-cm90ZToNCj4gDQo+ID4gQWRkIHBhbG1hcyBub2RlIGFuZCBvbWFwIHNwZWNpZmljIHBhbG1hcyBy
-ZWd1bGF0b3IgcHJvcGVydGllcy4NCj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IEogS2VlcnRoeSA8
-ai1rZWVydGh5QHRpLmNvbT4NCj4gPiAtLS0NCj4gPiAgYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUt
-dWV2bS5kdHMgfCAgMTQ3DQo+ID4gKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysNCj4gPiAgMSBmaWxlcyBjaGFuZ2VkLCAxNDcgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMo
-LSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS11ZXZtLmR0
-cw0KPiA+IGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMNCj4gPiBpbmRleCA5Mjdk
-YjFlLi5mZmJjYzNmIDEwMDY0NA0KPiA+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LXVl
-dm0uZHRzDQo+ID4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMNCj4gPiBA
-QCAtOCw2ICs4LDggQEANCj4gPiAgL2R0cy12MS87DQo+ID4NCj4gPiAgI2luY2x1ZGUgIm9tYXA1
-LmR0c2kiDQo+ID4gKyNpbmNsdWRlIDxkdC1iaW5kaW5ncy9pbnRlcnJ1cHQtY29udHJvbGxlci9p
-cnEuaD4NCj4gPiArI2luY2x1ZGUgPGR0LWJpbmRpbmdzL2ludGVycnVwdC1jb250cm9sbGVyL2Fy
-bS1naWMuaD4NCj4gPg0KPiA+ICAvIHsNCj4gPiAgCW1vZGVsID0gIlRJIE9NQVA1IHVFVk0gYm9h
-cmQiOw0KPiA+IEBAIC0yNTQsNiArMjU2LDE1MSBAQA0KPiA+ICAJcGluY3RybC0wID0gPCZpMmMx
-X3BpbnM+Ow0KPiA+DQo+ID4gIAljbG9jay1mcmVxdWVuY3kgPSA8NDAwMDAwPjsNCj4gPiArDQo+
-ID4gKwlwYWxtYXM6IHBhbG1hc0A0OCB7DQo+ID4gKwkJcmVnID0gPDB4NDg+Ow0KPiA+ICsJCS8q
-IFNQSSA9IDAsIElSUSMgPSA3LCBhY3RpdmUgaGlnaCBsZXZlbC1zZW5zaXRpdmUgKi8NCj4gDQo+
-IEkgc3RpbGwgdGhpbmsgdGhpcyBpcyBzdXBlcmZsdW91cywgZXNwZWNpYWxseSBub3cgeW91J3Jl
-IHVzaW5nIHRoZQ0KPiBkZWZpbmVzIHdoaWNoIGJhc2ljYWxseSBzYXkgdGhlIHNhbWUgdGhpbmcu
-DQoNCkkgcmV0YWluZWQgdGhlIHdob2xlIGNvbW1lbnQgYXMgaXQgd2FzIG5lZWRlZCB0byBzcGVj
-aWZ5IElSUSMgYXMgNw0KQW5kIHRob3VnaHQgaXQgY29tcGxldGVseSBkZXNjcmliZWQgdGhlIGJl
-bG93IGludGVycnVwdCBwcm9wZXJ0eS4NCg0KSSBjYW4ga25vY2sgaXQgb2ZmIGlmIGl0IGlzIHRv
-dGFsbHkgdW5uZWNlc3NhcnkuDQoNCklmIHRoZXJlIGFyZSBubyBmdXJ0aGVyIGNvbW1lbnRzLiBD
-YW4gSSBhZGQgYSBSZXZpZXdlZC1ieT8NCg0KPiANCj4gPiArCQlpbnRlcnJ1cHRzID0gPEdJQ19T
-UEkgNyBJUlFfVFlQRV9MRVZFTF9ISUdIPjsgLyogSVJRX1NZU18xTg0KPiAqLw0KPiA+ICsJCWlu
-dGVycnVwdC1wYXJlbnQgPSA8JmdpYz47DQo+ID4gKwl9Ow0KPiA+ICsNCj4gPiArfTsNCj4gPiAr
-DQo+ID4gKyNpbmNsdWRlICJwYWxtYXMuZHRzaSINCj4gPiArDQo+ID4gKyZwYWxtYXMgew0KPiA+
-ICsJcGFsbWFzX3BtaWMgew0KPiA+ICsJCXRpLGxkbzYtdmlicmF0b3I7DQo+ID4gKw0KPiA+ICsJ
-CXJlZ3VsYXRvcnMgew0KPiA+ICsJCQlzbXBzMTIzX3JlZzogc21wczEyMyB7DQo+ID4gKwkJCQly
-ZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwgNjAwMDAwPjsNCj4gPiArCQkJCXJlZ3VsYXRvci1t
-YXgtbWljcm92b2x0ID0gPDE1MDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxhdG9yLWFsd2F5cy1vbjsN
-Cj4gPiArCQkJCXJlZ3VsYXRvci1ib290LW9uOw0KPiA+ICsJCQl9Ow0KPiA+ICsNCj4gPiArCQkJ
-c21wczQ1X3JlZzogc21wczQ1IHsNCj4gPiArCQkJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0g
-PCA2MDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MTMxMDAwMD47
-DQo+ID4gKwkJCQlyZWd1bGF0b3ItYWx3YXlzLW9uOw0KPiA+ICsJCQkJcmVndWxhdG9yLWJvb3Qt
-b247DQo+ID4gKwkJCX07DQo+ID4gKw0KPiA+ICsJCQlzbXBzNl9yZWc6IHNtcHM2IHsNCj4gPiAr
-CQkJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPDEyMDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxh
-dG9yLW1heC1taWNyb3ZvbHQgPSA8MTIwMDAwMD47DQo+ID4gKwkJCQlyZWd1bGF0b3ItYWx3YXlz
-LW9uOw0KPiA+ICsJCQkJcmVndWxhdG9yLWJvb3Qtb247DQo+ID4gKwkJCX07DQo+ID4gKw0KPiA+
-ICsJCQlzbXBzN19yZWc6IHNtcHM3IHsNCj4gPiArCQkJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0
-ID0gPDE4MDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MTgwMDAw
-MD47DQo+ID4gKwkJCQlyZWd1bGF0b3ItYWx3YXlzLW9uOw0KPiA+ICsJCQkJcmVndWxhdG9yLWJv
-b3Qtb247DQo+ID4gKwkJCX07DQo+ID4gKw0KPiA+ICsJCQlzbXBzOF9yZWc6IHNtcHM4IHsNCj4g
-PiArCQkJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPCA2MDAwMDA+Ow0KPiA+ICsJCQkJcmVn
-dWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MTMxMDAwMD47DQo+ID4gKwkJCQlyZWd1bGF0b3ItYWx3
-YXlzLW9uOw0KPiA+ICsJCQkJcmVndWxhdG9yLWJvb3Qtb247DQo+ID4gKwkJCX07DQo+ID4gKw0K
-PiA+ICsJCQlzbXBzOV9yZWc6IHNtcHM5IHsNCj4gPiArCQkJCXJlZ3VsYXRvci1taW4tbWljcm92
-b2x0ID0gPDIxMDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MjEw
-MDAwMD47DQo+ID4gKwkJCQlyZWd1bGF0b3ItYWx3YXlzLW9uOw0KPiA+ICsJCQkJcmVndWxhdG9y
-LWJvb3Qtb247DQo+ID4gKwkJCQl0aSxzbXBzLXJhbmdlID0gPDB4ODA+Ow0KPiA+ICsJCQl9Ow0K
-PiA+ICsNCj4gPiArCQkJc21wczEwX3JlZzogc21wczEwIHsNCj4gPiArCQkJCXJlZ3VsYXRvci1t
-aW4tbWljcm92b2x0ID0gPDUwMDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxhdG9yLW1heC1taWNyb3Zv
-bHQgPSA8NTAwMDAwMD47DQo+ID4gKwkJCQlyZWd1bGF0b3ItYWx3YXlzLW9uOw0KPiA+ICsJCQkJ
-cmVndWxhdG9yLWJvb3Qtb247DQo+ID4gKwkJCX07DQo+ID4gKw0KPiA+ICsJCQlsZG8xX3JlZzog
-bGRvMSB7DQo+ID4gKwkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwyODAwMDAwPjsNCj4g
-PiArCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDI4MDAwMDA+Ow0KPiA+ICsJCQkJcmVn
-dWxhdG9yLWFsd2F5cy1vbjsNCj4gPiArCQkJCXJlZ3VsYXRvci1ib290LW9uOw0KPiA+ICsJCQl9
-Ow0KPiA+ICsNCj4gPiArCQkJbGRvMl9yZWc6IGxkbzIgew0KPiA+ICsJCQkJcmVndWxhdG9yLW1p
-bi1taWNyb3ZvbHQgPSA8MjkwMDAwMD47DQo+ID4gKwkJCQlyZWd1bGF0b3ItbWF4LW1pY3Jvdm9s
-dCA9IDwyOTAwMDAwPjsNCj4gPiArCQkJCXJlZ3VsYXRvci1hbHdheXMtb247DQo+ID4gKwkJCQly
-ZWd1bGF0b3ItYm9vdC1vbjsNCj4gPiArCQkJfTsNCj4gPiArDQo+ID4gKwkJCWxkbzNfcmVnOiBs
-ZG8zIHsNCj4gPiArCQkJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPDMwMDAwMDA+Ow0KPiA+
-ICsJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MzAwMDAwMD47DQo+ID4gKwkJCQlyZWd1
-bGF0b3ItYWx3YXlzLW9uOw0KPiA+ICsJCQkJcmVndWxhdG9yLWJvb3Qtb247DQo+ID4gKwkJCX07
-DQo+ID4gKw0KPiA+ICsJCQlsZG80X3JlZzogbGRvNCB7DQo+ID4gKwkJCQlyZWd1bGF0b3ItbWlu
-LW1pY3Jvdm9sdCA9IDwyMjAwMDAwPjsNCj4gPiArCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0
-ID0gPDIyMDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxhdG9yLWFsd2F5cy1vbjsNCj4gPiArCQkJCXJl
-Z3VsYXRvci1ib290LW9uOw0KPiA+ICsJCQl9Ow0KPiA+ICsNCj4gPiArCQkJbGRvNV9yZWc6IGxk
-bzUgew0KPiA+ICsJCQkJcmVndWxhdG9yLW1pbi1taWNyb3ZvbHQgPSA8MTgwMDAwMD47DQo+ID4g
-KwkJCQlyZWd1bGF0b3ItbWF4LW1pY3Jvdm9sdCA9IDwxODAwMDAwPjsNCj4gPiArCQkJCXJlZ3Vs
-YXRvci1hbHdheXMtb247DQo+ID4gKwkJCQlyZWd1bGF0b3ItYm9vdC1vbjsNCj4gPiArCQkJfTsN
-Cj4gPiArDQo+ID4gKwkJCWxkbzZfcmVnOiBsZG82IHsNCj4gPiArCQkJCXJlZ3VsYXRvci1taW4t
-bWljcm92b2x0ID0gPDE1MDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQg
-PSA8MTUwMDAwMD47DQo+ID4gKwkJCQlyZWd1bGF0b3ItYWx3YXlzLW9uOw0KPiA+ICsJCQkJcmVn
-dWxhdG9yLWJvb3Qtb247DQo+ID4gKwkJCX07DQo+ID4gKw0KPiA+ICsJCQlsZG83X3JlZzogbGRv
-NyB7DQo+ID4gKwkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwxNTAwMDAwPjsNCj4gPiAr
-CQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDE1MDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxh
-dG9yLWFsd2F5cy1vbjsNCj4gPiArCQkJCXJlZ3VsYXRvci1ib290LW9uOw0KPiA+ICsJCQl9Ow0K
-PiA+ICsNCj4gPiArCQkJbGRvOF9yZWc6IGxkbzggew0KPiA+ICsJCQkJcmVndWxhdG9yLW1pbi1t
-aWNyb3ZvbHQgPSA8MTUwMDAwMD47DQo+ID4gKwkJCQlyZWd1bGF0b3ItbWF4LW1pY3Jvdm9sdCA9
-IDwxNTAwMDAwPjsNCj4gPiArCQkJCXJlZ3VsYXRvci1hbHdheXMtb247DQo+ID4gKwkJCQlyZWd1
-bGF0b3ItYm9vdC1vbjsNCj4gPiArCQkJfTsNCj4gPiArDQo+ID4gKwkJCWxkbzlfcmVnOiBsZG85
-IHsNCj4gPiArCQkJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPDE4MDAwMDA+Ow0KPiA+ICsJ
-CQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MzMwMDAwMD47DQo+ID4gKwkJCQlyZWd1bGF0
-b3ItYWx3YXlzLW9uOw0KPiA+ICsJCQkJcmVndWxhdG9yLWJvb3Qtb247DQo+ID4gKwkJCX07DQo+
-ID4gKw0KPiA+ICsJCQlsZG9sbl9yZWc6IGxkb2xuIHsNCj4gPiArCQkJCXJlZ3VsYXRvci1taW4t
-bWljcm92b2x0ID0gPDE4MDAwMDA+Ow0KPiA+ICsJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQg
-PSA8MTgwMDAwMD47DQo+ID4gKwkJCQlyZWd1bGF0b3ItYWx3YXlzLW9uOw0KPiA+ICsJCQkJcmVn
-dWxhdG9yLWJvb3Qtb247DQo+ID4gKwkJCX07DQo+ID4gKw0KPiA+ICsJCQlsZG91c2JfcmVnOiBs
-ZG91c2Igew0KPiA+ICsJCQkJcmVndWxhdG9yLW1pbi1taWNyb3ZvbHQgPSA8MzI1MDAwMD47DQo+
-ID4gKwkJCQlyZWd1bGF0b3ItbWF4LW1pY3Jvdm9sdCA9IDwzMjUwMDAwPjsNCj4gPiArCQkJCXJl
-Z3VsYXRvci1hbHdheXMtb247DQo+ID4gKwkJCQlyZWd1bGF0b3ItYm9vdC1vbjsNCj4gPiArCQkJ
-fTsNCj4gPiArCQl9Ow0KPiA+ICsJfTsNCj4gPiAgfTsNCj4gPg0KPiA+ICAmaTJjNSB7DQo+IA0K
-PiAtLQ0KPiBMZWUgSm9uZXMNCj4gTGluYXJvIFNULUVyaWNzc29uIExhbmRpbmcgVGVhbSBMZWFk
-DQo+IExpbmFyby5vcmcg4pSCIE9wZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcyBGb2xs
-b3cgTGluYXJvOiBGYWNlYm9vaw0KPiB8IFR3aXR0ZXIgfCBCbG9nDQoNClJlZ2FyZHMsDQpLZWVy
-dGh5DQo=
+Hi Benoit,
+
+> -----Original Message-----
+> From: Cousson, Benoit
+> Sent: Monday, June 10, 2013 3:00 PM
+> To: J, KEERTHY
+> Cc: Stephen Warren; devicetree-discuss@lists.ozlabs.org; linux-
+> omap@vger.kernel.org; linux-kernel@vger.kernel.org;
+> ldewangan@nvidia.com; grant.likely@secretlab.ca; swarren@nvidia.com;
+> sameo@linux.intel.com; gg@slimlogic.co.uk; lee.jones@linaro.org
+> Subject: Re: [PATCH] ARM: dts: add dtsi for palmas
+> 
+> Hi Keerthy,
+> 
+> On 06/10/2013 06:03 AM, J, KEERTHY wrote:
+> > Hi Stephen,
+> >
+> > Thanks for the review comments.
+> >
+> > ________________________________________
+> > From: Stephen Warren [swarren@wwwdotorg.org]
+> > Sent: Saturday, June 08, 2013 1:26 AM
+> > To: J, KEERTHY
+> > Cc: Cousson, Benoit; devicetree-discuss@lists.ozlabs.org;
+> > linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org;
+> > ldewangan@nvidia.com; grant.likely@secretlab.ca; swarren@nvidia.com;
+> > sameo@linux.intel.com; gg@slimlogic.co.uk; lee.jones@linaro.org
+> > Subject: Re: [PATCH] ARM: dts: add dtsi for palmas
+> >
+> > On 06/07/2013 05:28 AM, J Keerthy wrote:
+> >> Adds palmas mfd and palmas regulator nodes. This is based on the
+> >> patch series:
+> >>
+> >> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg89957.html
+> >>
+> >> The device tree nodes are based on:
+> >> https://lkml.org/lkml/2013/6/6/25
+> >
+> >> diff --git a/arch/arm/boot/dts/palmas.dtsi
+> >> b/arch/arm/boot/dts/palmas.dtsi
+> >
+> >> +&palmas {
+> >
+> > Hmmm. That (i.e. requiring the board file to declare the node, then
+> > setting up all the content by later including this file) is an
+> > interesting approach. I guess it's reasonable. The one issue is that
+> > it makes it a little harder for the board file to override any of the
+> > properties in this file., although it certainly is possible by
+> > including those overrides after the include.
+> >
+> > Irrespective of that, some comments on this:
+> >
+> >> +     palmas_pmic {
+> >
+> >> +             ti,ldo6-vibrator;
+> >
+> > For example, what if the board doesn't want to have the property set?
+> >
+> >> +
+> >> +             regulators {
+> >> +                     smps123_reg: smps123 {
+> >> +                             regulator-name = "smps123";
+> >> +                             regulator-min-microvolt = < 600000>;
+> >> +                             regulator-max-microvolt = <1500000>;
+> >
+> > Or what if the board wants to limit the voltage range of this
+> > regulator due to what it's used for on the board.
+> >
+> >> +                             regulator-always-on;
+> >> +                             regulator-boot-on;
+> >
+> > And those two properties are almost certainly board-specific policy.
+> >
+> > Totally agree to all the above concerns. So can we have a custom
+> .dtsi
+> > file for a board+pmic combination? Or have only the required
+> > properties over ridden in the board file?
+> 
+> Yes, you can do that potentially if most OMAP5 boards will reuse the
+> same kind of settings. Kevin has just done that for OMAP3 + twl4030.
+> 
+> In this case, since we do have only one board, I'm not sure it worth
+> the effort.
+
+I sent a V2 with only the most generic property in palmas.dtsi and the
+Configurable parameter under the board file. Let me know if that patch set
+Is fine.
+
+
+> 
+> Regards,
+> Benoit
+
+Regards,
+Keerthy
