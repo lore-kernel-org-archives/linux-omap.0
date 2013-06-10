@@ -1,35 +1,81 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] ARM: dts: add dtsi for palmas
-Date: Mon, 10 Jun 2013 09:04:20 +0100
-Message-ID: <20130610080420.GC24958@gmail.com>
-References: <1370604504-32310-1-git-send-email-j-keerthy@ti.com>
- <51B23AD5.8060006@wwwdotorg.org>
- <DC88CAD03C0052499C1907B327FC63229EAA39@DBDE04.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <DC88CAD03C0052499C1907B327FC63229EAA39@DBDE04.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
+From: Andreas Naumann <anaumann@ultratronik.de>
+Subject: [PATCH] omap2 dss: omap_display_init: Dont allow more than the maximum number of displays.
+Date: Mon, 10 Jun 2013 09:57:35 +0200
+Message-ID: <1370851055-15960-1-git-send-email-anaumann@ultratronik.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from dd5612.kasserver.com ([85.13.130.143]:55086 "EHLO
+	dd5612.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751770Ab3FJIH7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jun 2013 04:07:59 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, Andreas Naumann <anaumann@ultratronik.de>
 
-> Totally agree to all the above concerns. So can we have a custom .dts=
-i file
-> for a board+pmic combination? Or have only the required properties ov=
-er ridden
-> in the board file?
+Currently the maximum number of display is hardcoded in the array omapfb2_device. Made the number a #define and check it in init routine.
 
-The common approach is to only apply nodes and node properties to the
-=2Edtsi files which are appropriate for _all_ platforms which include
-them. Anything that is only relevant to a sub-set of boards should be
-in a higher ranking .dtsi file and finally, any settings which are
-board specific should be in the board's .dts file.
+Signed-off-by: Andreas Naumann <anaumann@ultratronik.de>
+---
+Our board supports a lot of panels and we could probably solve this more effectively, but arrays shouldnt silently overflow when using more than 10 displays. Created the patch on 3.1 and tested it there. This one is rebased on todays linux-omap.git
+ arch/arm/mach-omap2/display.c       |  5 +++++
+ drivers/video/omap2/omapfb/omapfb.h | 10 +++++-----
+ include/video/omapdss.h             |  2 ++
+ 3 files changed, 12 insertions(+), 5 deletions(-)
 
---=20
-Lee Jones
-Linaro ST-Ericsson Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index ff37be1..6f1a147 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -338,6 +338,11 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
+ 		return -ENODEV;
+ 	}
+ 
++	if( board_data->num_devices > OMAPFB_MAX_DISPLAY_NUM ){
++		pr_err("Trying to init more displays(%d) than possible.(%d)\n", board_data->num_devices, OMAPFB_MAX_DISPLAY_NUM);
++		return -ENODEV;
++	}
++
+ 	board_data->version = ver;
+ 	board_data->dsi_enable_pads = omap_dsi_enable_pads;
+ 	board_data->dsi_disable_pads = omap_dsi_disable_pads;
+diff --git a/drivers/video/omap2/omapfb/omapfb.h b/drivers/video/omap2/omapfb/omapfb.h
+index 623cd87..00d3fbc 100644
+--- a/drivers/video/omap2/omapfb/omapfb.h
++++ b/drivers/video/omap2/omapfb/omapfb.h
+@@ -96,15 +96,15 @@ struct omapfb2_device {
+ 	int state;
+ 
+ 	unsigned num_fbs;
+-	struct fb_info *fbs[10];
+-	struct omapfb2_mem_region regions[10];
++	struct fb_info *fbs[OMAPFB_MAX_DISPLAY_NUM];
++	struct omapfb2_mem_region regions[OMAPFB_MAX_DISPLAY_NUM];
+ 
+ 	unsigned num_displays;
+-	struct omapfb_display_data displays[10];
++	struct omapfb_display_data displays[OMAPFB_MAX_DISPLAY_NUM];
+ 	unsigned num_overlays;
+-	struct omap_overlay *overlays[10];
++	struct omap_overlay *overlays[OMAPFB_MAX_DISPLAY_NUM];
+ 	unsigned num_managers;
+-	struct omap_overlay_manager *managers[10];
++	struct omap_overlay_manager *managers[OMAPFB_MAX_DISPLAY_NUM];
+ 
+ 	struct workqueue_struct *auto_update_wq;
+ };
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index aeb4e9a..dfb054f 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -54,6 +54,8 @@
+ #define DISPC_IRQ_ACBIAS_COUNT_STAT3	(1 << 29)
+ #define DISPC_IRQ_FRAMEDONE3		(1 << 30)
+ 
++#define OMAPFB_MAX_DISPLAY_NUM	10
++
+ struct omap_dss_device;
+ struct omap_overlay_manager;
+ struct dss_lcd_mgr_config;
+-- 
+1.8.2.3
+
