@@ -1,46 +1,186 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP: some clock & hwmod changes for v3.11
-Date: Sun, 9 Jun 2013 21:20:32 -0700
-Message-ID: <20130610042032.GB8164@atomide.com>
-References: <alpine.DEB.2.02.1306090909190.20050@utopia.booyaka.com>
+From: J Keerthy <j-keerthy@ti.com>
+Subject: [PATCH 2/2] ARM: dts: OMAP5: add palmas node and omap specific palmas regulator properties
+Date: Mon, 10 Jun 2013 11:52:15 +0530
+Message-ID: <1370845335-14926-3-git-send-email-j-keerthy@ti.com>
+References: <1370845335-14926-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38997 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750769Ab3FJEUh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jun 2013 00:20:37 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1306090909190.20050@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1370845335-14926-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: b-cousson@ti.com, devicetree-discuss@lists.ozlabs.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ldewangan@nvidia.com, grant.likely@secretlab.ca, swarren@wwwdotorg.org, swarren@nvidia.com, sameo@linux.intel.com, gg@slimlogic.co.uk, lee.jones@linaro.org, J Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Paul Walmsley <paul@pwsan.com> [130609 02:17]:
-> Hi Tony,
-> 
-> The following changes since commit d683b96b072dc4680fc74964eca77e6a23d1fa6e:
-> 
->   Linux 3.10-rc4 (2013-06-02 17:11:17 +0900)
-> 
-> are available in the git repository at:
-> 
->   http://git.kernel.org/cgit/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-b-for-3.11
-> 
-> for you to fetch changes up to 563ce4d51a555b45f5d43ff9cf127da8dac9f64d:
-> 
->   ARM: AM33XX: clk: Add clock node for EHRPWM TBCLK (2013-06-09 01:12:32 -0600)
-> 
-> ----------------------------------------------------------------
-> A few OMAP clock & hwmod changes for v3.11.
-> 
-> Basic test logs are here:
-> 
-> http://www.pwsan.com/omap/testlogs/prcm_devel_v3.11/20130609020805/
+Add palmas node and omap specific palmas regulator properties.
 
-Thanks pulled into omap-for-v3.11/soc.
+This patch is based on:
 
-Regards,
+	git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+	for_3.11/dts
 
-Tony
+Boot tested on omap5-uevm board.
+
+Signed-off-by: J Keerthy <j-keerthy@ti.com>
+---
+ arch/arm/boot/dts/omap5-uevm.dts |  145 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 145 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+index 927db1e..88172db 100644
+--- a/arch/arm/boot/dts/omap5-uevm.dts
++++ b/arch/arm/boot/dts/omap5-uevm.dts
+@@ -254,6 +254,151 @@
+ 	pinctrl-0 = <&i2c1_pins>;
+ 
+ 	clock-frequency = <400000>;
++
++	palmas: palmas@48 {
++		reg = <0x48>;
++		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
++		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
++		interrupt-parent = <&gic>;
++	};
++
++};
++
++#include "palmas.dtsi"
++
++&palmas {
++	palmas_pmic {
++		ti,ldo6-vibrator;
++
++		regulators {
++			smps123_reg: smps123 {
++				regulator-min-microvolt = < 600000>;
++				regulator-max-microvolt = <1500000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			smps45_reg: smps45 {
++				regulator-min-microvolt = < 600000>;
++				regulator-max-microvolt = <1310000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			smps6_reg: smps6 {
++				regulator-min-microvolt = <1200000>;
++				regulator-max-microvolt = <1200000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			smps7_reg: smps7 {
++				regulator-min-microvolt = <1800000>;
++				regulator-max-microvolt = <1800000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			smps8_reg: smps8 {
++				regulator-min-microvolt = < 600000>;
++				regulator-max-microvolt = <1310000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			smps9_reg: smps9 {
++				regulator-min-microvolt = <2100000>;
++				regulator-max-microvolt = <2100000>;
++				regulator-always-on;
++				regulator-boot-on;
++				ti,smps-range = <0x80>;
++			};
++
++			smps10_reg: smps10 {
++				regulator-min-microvolt = <5000000>;
++				regulator-max-microvolt = <5000000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo1_reg: ldo1 {
++				regulator-min-microvolt = <2800000>;
++				regulator-max-microvolt = <2800000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo2_reg: ldo2 {
++				regulator-min-microvolt = <2900000>;
++				regulator-max-microvolt = <2900000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo3_reg: ldo3 {
++				regulator-min-microvolt = <3000000>;
++				regulator-max-microvolt = <3000000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo4_reg: ldo4 {
++				regulator-min-microvolt = <2200000>;
++				regulator-max-microvolt = <2200000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo5_reg: ldo5 {
++				regulator-min-microvolt = <1800000>;
++				regulator-max-microvolt = <1800000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo6_reg: ldo6 {
++				regulator-min-microvolt = <1500000>;
++				regulator-max-microvolt = <1500000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo7_reg: ldo7 {
++				regulator-min-microvolt = <1500000>;
++				regulator-max-microvolt = <1500000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo8_reg: ldo8 {
++				regulator-min-microvolt = <1500000>;
++				regulator-max-microvolt = <1500000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldo9_reg: ldo9 {
++				regulator-min-microvolt = <1800000>;
++				regulator-max-microvolt = <3300000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldoln_reg: ldoln {
++				regulator-min-microvolt = <1800000>;
++				regulator-max-microvolt = <1800000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++
++			ldousb_reg: ldousb {
++				regulator-min-microvolt = <3250000>;
++				regulator-max-microvolt = <3250000>;
++				regulator-always-on;
++				regulator-boot-on;
++			};
++		};
++	};
+ };
+ 
+ &i2c5 {
+-- 
+1.7.5.4
