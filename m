@@ -1,238 +1,73 @@
-From: "Quadros, Roger" <rogerq@ti.com>
-Subject: RE: [PATCH 4/4] ARM: OMAP: Move DT wake-up event handling over to
- use pinctrl-single-omap
-Date: Mon, 10 Jun 2013 12:31:54 +0000
-Message-ID: <688FBEF7C8277944BE5AED9A41FB1EBC1AB12DA0@DNCE05.ent.ti.com>
-References: <20130607203936.16513.57494.stgit@localhost>,<20130607205046.16513.2802.stgit@localhost>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH 13/14] ARM: AM33XX: hwmod data: irq, dma and addr info
+ clean up
+Date: Mon, 10 Jun 2013 18:13:12 +0530
+Message-ID: <51B5C9E0.1090704@ti.com>
+References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com> <1369845494-30231-14-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.02.1306060355320.15042@utopia.booyaka.com> <87zjv2ooxi.fsf@linaro.org> <51B58FE9.5040309@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54695 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55120 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751034Ab3FJMcX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jun 2013 08:32:23 -0400
-In-Reply-To: <20130607205046.16513.2802.stgit@localhost>
-Content-Language: en-US
+	id S1750812Ab3FJMnz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Jun 2013 08:43:55 -0400
+In-Reply-To: <51B58FE9.5040309@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>
-Cc: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, Sricharan R <r.sricharan@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-Hi Tony, (sorry, on Outlook web)
+Hi Paul,
+On Monday 10 June 2013 02:05 PM, Lokesh Vutla wrote:
+> Hi Kevin,
+>
+> On Friday 07 June 2013 03:57 AM, Kevin Hilman wrote:
+>> Paul Walmsley <paul@pwsan.com> writes:
+>>
+>>> On Wed, 29 May 2013, Santosh Shilimkar wrote:
+>>>
+>>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>>>>
+>>>> AM33XX only supports DT boot mode and with addition of
+>>>> extracting module resources like, irq, dma and address space
+>>>> from DT block, so now we can remove duplicate information from
+>>>> hwmod data file.
+>>>
+>>> OK, guess I'll take your word for it that it all works.  The
+>>> BeagleBone-white with appended DTB hasn't booted here since v3.7.
+>>> And the BeagleBone-black with discrete DTB doesn't boot at all with
+>>> current mainline, only with the TI vendor kernel & DTB...
+>>
+>> Anyone care to shed light on what's missing for BeagleBone boot with
+>> mainline currently?
+> I have tested BeagleBone boot with today's mainline bootloader and
+> kernel. It boots perfectly fine.
+I have taken the boot log for BeagleBone from the folllowing site:
+http://www.pwsan.com/omap/testlogs/test_v3.10-rc5/20130609031534/boot/am335xbone/
 
--                       compatible = "ti,omap4-padconf", "pinctrl-single";
-+                       compatible = "ti,omap4-padconf";
+I have reset to your U-Boot commit id and took latest mainline kernel.
+It boots fine in my setup.
+You can find the logs here: http://pastebin.com/ggVYs3RG
 
-This change is not necessary if we make sure the pinctrl-single-omap driver
-gets registered early enough, before the pinctrl devices are probed.
- (e.g. subsys_initcall())
-
-I've commented about this in the other patch.
-
-cheers,
--roger
-
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-
-________________________________________
-From: Tony Lindgren [tony@atomide.com]
-Sent: Friday, June 07, 2013 11:50 PM
-To: linus.walleij@linaro.org
-Cc: devicetree-discuss@lists.ozlabs.org; Haojian Zhuang; Ujfalusi, Peter; linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; Quadros, Roger
-Subject: [PATCH 4/4] ARM: OMAP: Move DT wake-up event handling over to use pinctrl-single-omap
-
-Now pinctrl-single-omap can handle the wake-up events for us now
-as long as the events are configured in the .dts files.
-
-Done in collaboration with Roger Quadros <rogerq@ti.com>.
-
-Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/omap3.dtsi     |    4 ++--
- arch/arm/boot/dts/omap4.dtsi     |    4 ++--
- arch/arm/boot/dts/omap5.dtsi     |    4 ++--
- arch/arm/mach-omap2/mux.c        |    8 ++++++--
- arch/arm/mach-omap2/pm34xx.c     |    2 ++
- arch/arm/mach-omap2/prm_common.c |   26 ++++++++++++++++++++++++++
- 6 files changed, 40 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 99ba6e1..847af56 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -94,7 +94,7 @@
-                };
-
-                omap3_pmx_core: pinmux@48002030 {
--                       compatible = "ti,omap3-padconf", "pinctrl-single";
-+                       compatible = "ti,omap3-padconf";
-                        reg = <0x48002030 0x05cc>;
-                        #address-cells = <1>;
-                        #size-cells = <0>;
-@@ -103,7 +103,7 @@
-                };
-
-                omap3_pmx_wkup: pinmux@0x48002a00 {
--                       compatible = "ti,omap3-padconf", "pinctrl-single";
-+                       compatible = "ti,omap3-padconf";
-                        reg = <0x48002a00 0x5c>;
-                        #address-cells = <1>;
-                        #size-cells = <0>;
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 2a56428..2a4f099 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -107,7 +107,7 @@
-                };
-
-                omap4_pmx_core: pinmux@4a100040 {
--                       compatible = "ti,omap4-padconf", "pinctrl-single";
-+                       compatible = "ti,omap4-padconf";
-                        reg = <0x4a100040 0x0196>;
-                        #address-cells = <1>;
-                        #size-cells = <0>;
-@@ -115,7 +115,7 @@
-                        pinctrl-single,function-mask = <0x7fff>;
-                };
-                omap4_pmx_wkup: pinmux@4a31e040 {
--                       compatible = "ti,omap4-padconf", "pinctrl-single";
-+                       compatible = "ti,omap4-padconf";
-                        reg = <0x4a31e040 0x0038>;
-                        #address-cells = <1>;
-                        #size-cells = <0>;
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 3dd7ff8..5515d58 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -100,7 +100,7 @@
-                };
-
-                omap5_pmx_core: pinmux@4a002840 {
--                       compatible = "ti,omap4-padconf", "pinctrl-single";
-+                       compatible = "ti,omap4-padconf";
-                        reg = <0x4a002840 0x01b6>;
-                        #address-cells = <1>;
-                        #size-cells = <0>;
-@@ -108,7 +108,7 @@
-                        pinctrl-single,function-mask = <0x7fff>;
-                };
-                omap5_pmx_wkup: pinmux@4ae0c840 {
--                       compatible = "ti,omap4-padconf", "pinctrl-single";
-+                       compatible = "ti,omap4-padconf";
-                        reg = <0x4ae0c840 0x0038>;
-                        #address-cells = <1>;
-                        #size-cells = <0>;
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index f82cf87..48094b58 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -811,6 +811,12 @@ int __init omap_mux_late_init(void)
-                }
-        }
-
-+       omap_mux_dbg_init();
-+
-+       /* see pinctrl-single-omap for the wake-up interrupt handling */
-+       if (of_have_populated_dt())
-+               return 0;
-+
-        ret = request_irq(omap_prcm_event_to_irq("io"),
-                omap_hwmod_mux_handle_irq, IRQF_SHARED | IRQF_NO_SUSPEND,
-                        "hwmod_io", omap_mux_late_init);
-@@ -818,8 +824,6 @@ int __init omap_mux_late_init(void)
-        if (ret)
-                pr_warning("mux: Failed to setup hwmod io irq %d\n", ret);
-
--       omap_mux_dbg_init();
--
-        return 0;
- }
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index c018593..9b19b14 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -172,6 +172,8 @@ static int prcm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits)
-                        wkst = omap2_prm_read_mod_reg(module, wkst_off);
-                        wkst &= ~ignore_bits;
-                        c++;
-+                       if (c > 10)
-+                               break;
-                }
-                omap2_cm_write_mod_reg(iclk, module, iclk_off);
-                omap2_cm_write_mod_reg(fclk, module, fclk_off);
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 228b850..b9af6a7 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -22,8 +22,10 @@
- #include <linux/io.h>
- #include <linux/irq.h>
- #include <linux/interrupt.h>
-+#include <linux/platform_data/pinctrl-single-omap.h>
- #include <linux/slab.h>
-
-+#include "soc.h"
- #include "prm2xxx_3xxx.h"
- #include "prm2xxx.h"
- #include "prm3xxx.h"
-@@ -95,6 +97,7 @@ static void omap_prcm_irq_handler(unsigned int irq, struct irq_desc *desc)
-        struct irq_chip *chip = irq_desc_get_chip(desc);
-        unsigned int virtirq;
-        int nr_irq = prcm_irq_setup->nr_regs * 32;
-+       int retries = 20;
-
-        /*
-         * If we are suspended, mask all interrupts from PRCM level,
-@@ -136,6 +139,9 @@ static void omap_prcm_irq_handler(unsigned int irq, struct irq_desc *desc)
-                /* Serve normal events next */
-                for_each_set_bit(virtirq, pending, nr_irq)
-                        generic_handle_irq(prcm_irq_setup->base_irq + virtirq);
-+
-+               if (retries-- < 1)
-+                       break;
-        }
-        if (chip->irq_ack)
-                chip->irq_ack(&desc->irq_data);
-@@ -234,6 +240,15 @@ void omap_prcm_irq_complete(void)
-        prcm_irq_setup->restore_irqen(prcm_irq_setup->saved_mask);
- }
-
-+static struct pcs_omap_pdata pcs_pdata;
-+
-+static struct platform_device pinctrl_single_omap = {
-+       .name   = "pinctrl-single-omap-soc",
-+       .dev    = {
-+               .platform_data = &pcs_pdata,
-+       },
-+};
-+
- /**
-  * omap_prcm_register_chain_handler - initializes the prcm chained interrupt
-  * handler based on provided parameters
-@@ -322,6 +337,17 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
-                prcm_irq_chips[i] = gc;
-        }
-
-+       if (of_have_populated_dt()) {
-+               pcs_pdata.irq = omap_prcm_event_to_irq("io");
-+               if (cpu_is_omap34xx())
-+                       pcs_pdata.reconfigure_io_chain =
-+                               omap3xxx_prm_reconfigure_io_chain;
-+               else
-+                       pcs_pdata.reconfigure_io_chain =
-+                               omap44xx_prm_reconfigure_io_chain;
-+               platform_device_register(&pinctrl_single_omap);
-+       }
-+
-        return 0;
-
- err:
-
+Thanks and regards,
+Lokesh
+>
+> Thanks and regards,
+> Lokesh
+>>
+>> I've also not been able to boot a mainline kernel on the BeagleBone for
+>> some time.
+>>
+>> Kevin
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
