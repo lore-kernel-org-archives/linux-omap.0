@@ -1,76 +1,74 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH] ARM: dts: add dtsi for palmas
-Date: Mon, 10 Jun 2013 04:03:37 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229EAA39@DBDE04.ent.ti.com>
-References: <1370604504-32310-1-git-send-email-j-keerthy@ti.com>,<51B23AD5.8060006@wwwdotorg.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP: hwmod/PRCM: add OMAP5 data
+Date: Sun, 9 Jun 2013 21:20:09 -0700
+Message-ID: <20130610042008.GA8164@atomide.com>
+References: <alpine.DEB.2.02.1306082003200.7001@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51B23AD5.8060006@wwwdotorg.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, "lee.jones@linaro.org" <lee.jones@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:44924 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750776Ab3FJEUQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jun 2013 00:20:16 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1306082003200.7001@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Stephen,
+* Paul Walmsley <paul@pwsan.com> [130608 13:11]:
+> Hi Tony,
+> 
+> The following changes since commit d683b96b072dc4680fc74964eca77e6a23d1fa6e:
+> 
+>   Linux 3.10-rc4 (2013-06-02 17:11:17 +0900)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-a-for-3.11
+> 
+> for you to fetch changes up to e4020aa9a8f37d860024fe8a8c8441f003606d2b:
+> 
+>   ARM: OMAP5: Enable build and frameowrk initialisations (2013-06-08 12:00:05 -0600)
+> 
+> ----------------------------------------------------------------
+> Add support for the OMAP5 SoC family.
+> 
+> As part of the transition to DT, no board files will be used
+> for OMAP5.  The hwmod data is gradually being transitioned
+> away from arch/arm/mach-omap2: IRQ, DMA, and memory map data
+> has been moved to DT.  Hopefully the dev_attr and clock role
+> data will be the next step.
+> 
+> Basic test logs are available here, although not for OMAP5,
+> since I don't have an OMAP5 board:
+> http://www.pwsan.com/omap/testlogs/omap5_v3.10/20130608130949/
 
-Thanks for the review comments.
-
-________________________________________
-From: Stephen Warren [swarren@wwwdotorg.org]
-Sent: Saturday, June 08, 2013 1:26 AM
-To: J, KEERTHY
-Cc: Cousson, Benoit; devicetree-discuss@lists.ozlabs.org; linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org; ldewangan@nvidia.com; grant.likely@secretlab.ca; swarren@nvidia.com; sameo@linux.intel.com; gg@slimlogic.co.uk; lee.jones@linaro.org
-Subject: Re: [PATCH] ARM: dts: add dtsi for palmas
-
-On 06/07/2013 05:28 AM, J Keerthy wrote:
-> Adds palmas mfd and palmas regulator nodes. This is
-> based on the patch series:
->
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg89957.html
->
-> The device tree nodes are based on:
-> https://lkml.org/lkml/2013/6/6/25
-
-> diff --git a/arch/arm/boot/dts/palmas.dtsi b/arch/arm/boot/dts/palmas.dtsi
-
-> +&palmas {
-
-Hmmm. That (i.e. requiring the board file to declare the node, then
-setting up all the content by later including this file) is an
-interesting approach. I guess it's reasonable. The one issue is that it
-makes it a little harder for the board file to override any of the
-properties in this file., although it certainly is possible by including
-those overrides after the include.
-
-Irrespective of that, some comments on this:
-
-> +     palmas_pmic {
-
-> +             ti,ldo6-vibrator;
-
-For example, what if the board doesn't want to have the property set?
-
-> +
-> +             regulators {
-> +                     smps123_reg: smps123 {
-> +                             regulator-name = "smps123";
-> +                             regulator-min-microvolt = < 600000>;
-> +                             regulator-max-microvolt = <1500000>;
-
-Or what if the board wants to limit the voltage range of this regulator
-due to what it's used for on the board.
-
-> +                             regulator-always-on;
-> +                             regulator-boot-on;
-
-And those two properties are almost certainly board-specific policy.
-
-Totally agree to all the above concerns. So can we have a custom .dtsi file
-for a board+pmic combination? Or have only the required properties over ridden
-in the board file?
+Thanks pulled into omap-for-v3.11/omap5. I removed the ocp2scp include
+as that's unused and the header is removed with the omap4 clean-up.
 
 Regards,
-Keerthy 
+
+Tony
+
+
+Author: Tony Lindgren <tony@atomide.com>
+Date:   Sun Jun 9 21:17:15 2013 -0700
+
+    ARM: OMAP5: Remove unused include for ocp2scp
+    
+    This header is not used, and is removed with the omap4 clean-up.
+    
+    Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+@@ -20,7 +20,6 @@
+ #include <linux/io.h>
+ #include <linux/platform_data/gpio-omap.h>
+ #include <linux/power/smartreflex.h>
+-#include <linux/platform_data/omap_ocp2scp.h>
+ #include <linux/i2c-omap.h>
+ 
+ #include <linux/omap-dma.h>
