@@ -1,48 +1,77 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: am335x: TSC & ADC reworking including DT pieces, take 4
-Date: Tue, 11 Jun 2013 16:23:58 +0200
-Message-ID: <20130611142358.GG29135@zurbaran>
-References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH v3] ARM: DTS: TWL4030: fix mux and wakeup for SYS_NIRQ line
+Date: Tue, 11 Jun 2013 07:30:35 -0700
+Message-ID: <874nd4d8j8.fsf@linaro.org>
+References: <1370040357-25794-1-git-send-email-khilman@linaro.org>
+	<1370629886-14170-1-git-send-email-khilman@linaro.org>
+	<20130607193130.GA13205@kahuna> <51B59AC3.2080900@ti.com>
+	<87fvwpex6k.fsf@linaro.org> <51B70B08.9030208@ti.com>
+	<51B70D57.4010208@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Lee Jones <lee.jones@linaro.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:54792 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752686Ab3FKOaj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jun 2013 10:30:39 -0400
+Received: by mail-pb0-f48.google.com with SMTP id ma3so3097652pbc.35
+        for <linux-omap@vger.kernel.org>; Tue, 11 Jun 2013 07:30:39 -0700 (PDT)
+In-Reply-To: <51B70D57.4010208@ti.com> (Benoit Cousson's message of "Tue, 11
+	Jun 2013 13:43:19 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-Hi Sebastian,
+Benoit Cousson <b-cousson@ti.com> writes:
 
-On Tue, Jun 11, 2013 at 01:30:46PM +0200, Sebastian Andrzej Siewior wrote:
-> I believe the whole thing should go via the MFD tree. It touches also
-> input & iio subsystem. I collected ACKs where I got some in the meantime.
-Please fix your commit logs, and your subject lines. It should be e.g.
-mfd: input: ti_am335x_adc: Blablabla
+> On 06/11/2013 01:33 PM, Cousson, Benoit wrote:
+>> On 6/10/2013 6:40 PM, Kevin Hilman wrote:
+>>> Benoit Cousson <b-cousson@ti.com> writes:
+>>>
+>>>> Hi Kevin,
+>>>>
+>>>> On 06/07/2013 09:31 PM, Nishanth Menon wrote:
+>>>>> On 11:31-20130607, Kevin Hilman wrote:
+>>>>>> On most OMAP3 platforms, the twl4030 IRQ line is connected to the
+>>>>>> SYS_NIRQ line on OMAP.  Add another DTS include file
+>>>>>> (twl4030_omap3.dtsi) for boards that hook up the twl4030 this way
+>>>>>> to include.
+>>>>>>
+>>>>>> This allows RTC wake from off-mode to work again on OMAP3-based
+>>>>>> platforms with twl4030.  Tested on 3530/Beagle, 3730/Beagle-xM,
+>>>>>> 3530/Overo, 3730/Overo-STORM.
+>>>>>>
+>>>>>> Special thanks to Florian Vaussard for suggesting use of preprocessor
+>>>>>> feature.
+>>>>>>
+>>>>>> Cc: Florian Vaussard <florian.vaussard@epfl.ch>
+>>>>>> Cc: Benoit Cousson <b-cousson@ti.com>
+>>>>>> Cc: Nishanth Menon <nm@ti.com>
+>>>>>> Signed-off-by: Kevin Hilman <khilman@linaro.org>
+>>>>> Thanks,
+>>>>> Reviewed-by: Nishanth Menon <nm@ti.com>
+>>>>
+>>>> Thanks, I've just applied it in for_3.11/dts.
+>>>
+>>> Thanks,
+>>>
+>>> Will you apply the first 2 from the series too?
+>>>
+>>>    ARM: DTS: OMAP3: beagle/overo: mux console UART, enable wakeup
+>>>    ARM: DTS: OMAP3: beagle: enable user button via gpio_keys, enable
+>>> wakeup
+>> 
+>> Thanks for the reminder, I kind of forgot these ones :-)
+>
+> BTW, do you have any v2 for these ones? This version does not use the
+> macros.
+> Moreover I cannot apply them on top of Florian's series :-(
 
-if it's mostly an mfd patch that also touches an input driver.
+Oops,  I thought I reposted those too.   All three are here:
 
-Then, this is a pretty big patchset, with iio, input and mfd all mixed
-together and it is likely to create merge conflicts.
->From what I can see from it, and please correct me if I'm
-wrong, the iio and input changes depend on the mfd ones, and not the
-other way around. If that's so, I'm going to ask you to reshuffle your
-patch set and separate the MFD changes from the iio and input ones. I'll
-take the MFD ones and will create an immutable branch for Jonathan and
-Dmitry to pull from and apply the iio and input changes on top of it.
-Merge conflicts should be mostly avoided that way.
-AFAICT, only patch #2 should be kept with input and iio bits mixed
-together with MFD as otherwise this would introduce functional breakage.
-Otherwise, all MFD bits from the other patches could be either separated
-or merged together (e.g. MFD bits from patches #6 and #8, and #16 and
-#17).
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git  for_3.11/dt
 
-Does that sound doable to you ?
+which is based on top of your for_3.11/dts branch.
 
-Cheers,
-Samuel.
-
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Kevin
