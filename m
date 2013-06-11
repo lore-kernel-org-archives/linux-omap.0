@@ -1,53 +1,67 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 22/22] iio/ti_am335x_adc: check if we found the value
-Date: Tue, 11 Jun 2013 13:31:08 +0200
-Message-ID: <1370950268-7224-23-git-send-email-bigeasy@linutronix.de>
-References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH v3] ARM: DTS: TWL4030: fix mux and wakeup for SYS_NIRQ
+ line
+Date: Tue, 11 Jun 2013 13:43:19 +0200
+Message-ID: <51B70D57.4010208@ti.com>
+References: <1370040357-25794-1-git-send-email-khilman@linaro.org> <1370629886-14170-1-git-send-email-khilman@linaro.org> <20130607193130.GA13205@kahuna> <51B59AC3.2080900@ti.com> <87fvwpex6k.fsf@linaro.org> <51B70B08.9030208@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:37635 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752717Ab3FKLnr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jun 2013 07:43:47 -0400
+In-Reply-To: <51B70B08.9030208@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-Usually we get all the values we wanted but it is possible, that te ADC
-unit is busy performing the conversation for the HW events. In that case
--EBUSY is returned and the user may re-call the function.
+On 06/11/2013 01:33 PM, Cousson, Benoit wrote:
+> On 6/10/2013 6:40 PM, Kevin Hilman wrote:
+>> Benoit Cousson <b-cousson@ti.com> writes:
+>>
+>>> Hi Kevin,
+>>>
+>>> On 06/07/2013 09:31 PM, Nishanth Menon wrote:
+>>>> On 11:31-20130607, Kevin Hilman wrote:
+>>>>> On most OMAP3 platforms, the twl4030 IRQ line is connected to the
+>>>>> SYS_NIRQ line on OMAP.  Add another DTS include file
+>>>>> (twl4030_omap3.dtsi) for boards that hook up the twl4030 this way
+>>>>> to include.
+>>>>>
+>>>>> This allows RTC wake from off-mode to work again on OMAP3-based
+>>>>> platforms with twl4030.  Tested on 3530/Beagle, 3730/Beagle-xM,
+>>>>> 3530/Overo, 3730/Overo-STORM.
+>>>>>
+>>>>> Special thanks to Florian Vaussard for suggesting use of preprocessor
+>>>>> feature.
+>>>>>
+>>>>> Cc: Florian Vaussard <florian.vaussard@epfl.ch>
+>>>>> Cc: Benoit Cousson <b-cousson@ti.com>
+>>>>> Cc: Nishanth Menon <nm@ti.com>
+>>>>> Signed-off-by: Kevin Hilman <khilman@linaro.org>
+>>>> Thanks,
+>>>> Reviewed-by: Nishanth Menon <nm@ti.com>
+>>>
+>>> Thanks, I've just applied it in for_3.11/dts.
+>>
+>> Thanks,
+>>
+>> Will you apply the first 2 from the series too?
+>>
+>>    ARM: DTS: OMAP3: beagle/overo: mux console UART, enable wakeup
+>>    ARM: DTS: OMAP3: beagle: enable user button via gpio_keys, enable
+>> wakeup
+> 
+> Thanks for the reminder, I kind of forgot these ones :-)
 
-Acked-by: Jonathan Cameron <jic23@kernel.org>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- drivers/iio/adc/ti_am335x_adc.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+BTW, do you have any v2 for these ones? This version does not use the
+macros.
+Moreover I cannot apply them on top of Florian's series :-(
 
-diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
-index 8ffe52d..4427e8e 100644
---- a/drivers/iio/adc/ti_am335x_adc.c
-+++ b/drivers/iio/adc/ti_am335x_adc.c
-@@ -145,6 +145,7 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
- 	int i;
- 	unsigned int fifo1count, read;
- 	u32 step = UINT_MAX;
-+	bool found = false;
- 
- 	/*
- 	 * When the sub-system is first enabled,
-@@ -169,11 +170,14 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
- 	fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
- 	for (i = 0; i < fifo1count; i++) {
- 		read = tiadc_readl(adc_dev, REG_FIFO1);
--		if (read >> 16 == step)
-+		if (read >> 16 == step) {
- 			*val = read & 0xfff;
-+			found = true;
-+		}
- 	}
- 	am335x_tsc_se_update(adc_dev->mfd_tscadc);
--
-+	if (found == false)
-+		return -EBUSY;
- 	return IIO_VAL_INT;
- }
- 
--- 
-1.7.10.4
+Regards,
+Benoit
+
+
