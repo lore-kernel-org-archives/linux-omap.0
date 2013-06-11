@@ -1,111 +1,79 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] ARM: dts: omap3-devkit8000: fix NAND memory binding
-Date: Tue, 11 Jun 2013 22:54:27 +0100
-Message-ID: <20130611215427.F07583E0D8D@localhost>
-References: <1369296697-22495-1-git-send-email-florian.vaussard@epfl.ch> <51A8AA6B.6010608@epfl.ch> <51B739DF.6080802@epfl.ch>
+Subject: Re: [PATCH] ARM: dts: Protect pinctrl headers against multiple inclusions
+Date: Tue, 11 Jun 2013 22:57:56 +0100
+Message-ID: <20130611215756.9B0CA3E0D8D@localhost>
+References: <1370962250-9745-1-git-send-email-florian.vaussard@epfl.ch>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:37641 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756048Ab3FKVyc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jun 2013 17:54:32 -0400
-Received: by mail-wi0-f169.google.com with SMTP id c10so2924360wiw.4
-        for <linux-omap@vger.kernel.org>; Tue, 11 Jun 2013 14:54:31 -0700 (PDT)
-In-Reply-To: <51B739DF.6080802@epfl.ch>
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:58769 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754946Ab3FKV6A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jun 2013 17:58:00 -0400
+Received: by mail-wg0-f52.google.com with SMTP id z12so5795484wgg.7
+        for <linux-omap@vger.kernel.org>; Tue, 11 Jun 2013 14:57:59 -0700 (PDT)
+In-Reply-To: <1370962250-9745-1-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>florian.vaussard@epfl.ch
+To: Florian Vaussard <florian.vaussard@epfl.ch>, Benoit Cousson <b-cousson@ti.com>
 Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org
 
-On Tue, 11 Jun 2013 16:53:19 +0200, Florian Vaussard <florian.vaussard@epfl.ch> wrote:
-> Hello,
+On Tue, 11 Jun 2013 16:50:50 +0200, Florian Vaussard <florian.vaussard@epfl.ch> wrote:
+> Pinctrl headers were not protected with #ifndef.
 > 
-> On 05/31/2013 03:49 PM, Florian Vaussard wrote:
-> > Hello,
-> >
-> > Gentle ping. Does someone has any comments on this fix? Can someone
-> > tests on the real hardware?
-> >
-> 
-> Nobody has this hardware somewhere in a drawer? :-)
+> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
 
-I've just gone ahead and applied it. As you say it's broken anyway, so
-if this is also broken, then at least it is /less/ broken. :)
+Obviously this needs to go in via whatever tree added the modified
+header files.
 
-g.
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
 
+> ---
+>  include/dt-bindings/pinctrl/am33xx.h |    5 +++++
+>  include/dt-bindings/pinctrl/omap.h   |    5 +++++
+>  2 files changed, 10 insertions(+), 0 deletions(-)
 > 
-> Regards,
-> 
-> Florian
-> 
-> > Regards,
-> >
-> > Florian
-> >
-> > On 05/23/2013 10:11 AM, Florian Vaussard wrote:
-> >> Commit d36b4cd 'ARM: OMAP2+: Add additional GPMC timing parameters'
-> >> updated GPMC binding, but omap3-devkit8000 was not updated accordingly,
-> >> resulting in a broken configuration.
-> >>
-> >> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-> >> ---
-> >>   arch/arm/boot/dts/omap3-devkit8000.dts |   29
-> >> +++++++++++++++--------------
-> >>   1 files changed, 15 insertions(+), 14 deletions(-)
-> >>
-> >> diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts
-> >> b/arch/arm/boot/dts/omap3-devkit8000.dts
-> >> index 8a5cdcc..e5b35f5 100644
-> >> --- a/arch/arm/boot/dts/omap3-devkit8000.dts
-> >> +++ b/arch/arm/boot/dts/omap3-devkit8000.dts
-> >> @@ -123,20 +123,21 @@
-> >>           reg = <0 0 0>; /* CS0, offset 0 */
-> >>           nand-bus-width = <16>;
-> >>
-> >> -        gpmc,sync-clk = <0>;
-> >> -        gpmc,cs-on = <0>;
-> >> -        gpmc,cs-rd-off = <44>;
-> >> -        gpmc,cs-wr-off = <44>;
-> >> -        gpmc,adv-on = <6>;
-> >> -        gpmc,adv-rd-off = <34>;
-> >> -        gpmc,adv-wr-off = <44>;
-> >> -        gpmc,we-off = <40>;
-> >> -        gpmc,oe-off = <54>;
-> >> -        gpmc,access = <64>;
-> >> -        gpmc,rd-cycle = <82>;
-> >> -        gpmc,wr-cycle = <82>;
-> >> -        gpmc,wr-access = <40>;
-> >> -        gpmc,wr-data-mux-bus = <0>;
-> >> +        gpmc,device-nand;
-> >> +        gpmc,sync-clki-ps = <0>;
-> >> +        gpmc,cs-on-ns = <0>;
-> >> +        gpmc,cs-rd-off-ns = <44>;
-> >> +        gpmc,cs-wr-off-ns = <44>;
-> >> +        gpmc,adv-on-ns = <6>;
-> >> +        gpmc,adv-rd-off-ns = <34>;
-> >> +        gpmc,adv-wr-off-ns = <44>;
-> >> +        gpmc,we-off-ns = <40>;
-> >> +        gpmc,oe-off-ns = <54>;
-> >> +        gpmc,access-ns = <64>;
-> >> +        gpmc,rd-cycle-ns = <82>;
-> >> +        gpmc,wr-cycle-ns = <82>;
-> >> +        gpmc,wr-access-ns = <40>;
-> >> +        gpmc,wr-data-mux-bus-ns = <0>;
-> >>
-> >>           #address-cells = <1>;
-> >>           #size-cells = <1>;
-> >>
-> >
-> 
+> diff --git a/include/dt-bindings/pinctrl/am33xx.h b/include/dt-bindings/pinctrl/am33xx.h
+> index a3fddd4..469e032 100644
+> --- a/include/dt-bindings/pinctrl/am33xx.h
+> +++ b/include/dt-bindings/pinctrl/am33xx.h
+> @@ -2,6 +2,9 @@
+>   * This header provides constants specific to AM33XX pinctrl bindings.
+>   */
+>  
+> +#ifndef _DT_BINDINGS_PINCTRL_AM33XX_H
+> +#define _DT_BINDINGS_PINCTRL_AM33XX_H
+> +
+>  #include <include/dt-bindings/pinctrl/omap.h>
+>  
+>  /* am33xx specific mux bit defines */
+> @@ -35,3 +38,5 @@
+>  #undef PIN_OFF_INPUT_PULLDOWN
+>  #undef PIN_OFF_WAKEUPENABLE
+>  
+> +#endif
+> +
+> diff --git a/include/dt-bindings/pinctrl/omap.h b/include/dt-bindings/pinctrl/omap.h
+> index 370df3f..edbd250 100644
+> --- a/include/dt-bindings/pinctrl/omap.h
+> +++ b/include/dt-bindings/pinctrl/omap.h
+> @@ -5,6 +5,9 @@
+>   * Copyright (C) 2009-2010 Texas Instruments
+>   */
+>  
+> +#ifndef _DT_BINDINGS_PINCTRL_OMAP_H
+> +#define _DT_BINDINGS_PINCTRL_OMAP_H
+> +
+>  /* 34xx mux mode options for each pin. See TRM for options */
+>  #define MUX_MODE0	0
+>  #define MUX_MODE1	1
+> @@ -48,3 +51,5 @@
+>  #define PIN_OFF_INPUT_PULLDOWN	(OFF_EN | OFF_PULL_EN)
+>  #define PIN_OFF_WAKEUPENABLE	WAKEUP_EN
+>  
+> +#endif
+> +
 > -- 
-> Florian Vaussard
-> EPFL - STI - IMT - LSRO1
-> MEB330 - Station 9
-> 1015 Lausanne / Switzerland
+> 1.7.5.4
 > 
-> tel: +41 21 693 78 39
-> fax: +41 21 693 78 07
-> http://lsro.epfl.ch
 > _______________________________________________
 > devicetree-discuss mailing list
 > devicetree-discuss@lists.ozlabs.org
