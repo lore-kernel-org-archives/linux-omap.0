@@ -1,214 +1,229 @@
-From: J Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v3] ARM: dts: OMAP5: Add palmas MFD node and regulator nodes
-Date: Tue, 11 Jun 2013 11:00:51 +0530
-Message-ID: <1370928651-6278-1-git-send-email-j-keerthy@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@iki.fi>
+Subject: Re: [PATCH V2 14/14] ARM: OMAP4: hwmod data: Clean up the data file
+Date: Tue, 11 Jun 2013 10:42:58 +0300
+Message-ID: <51B6D502.5010208@iki.fi>
+References: <1370606175-22599-1-git-send-email-r.sricharan@ti.com> <alpine.DEB.2.02.1306071230500.5589@utopia.booyaka.com> <20130607162927.GA3331@atomide.com> <20130607175005.GB3331@atomide.com> <51B5ACA6.2010101@iki.fi> <20130610141451.GE8164@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: b-cousson@ti.com, devicetree-discuss@lists.ozlabs.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ldewangan@nvidia.com, grant.likely@secretlab.ca, swarren@wwwdotorg.org, swarren@nvidia.com, sameo@linux.intel.com, gg@slimlogic.co.uk, lee.jones@linaro.org, J Keerthy <j-keerthy@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="----enig2VLBFQDEEVUGCGFAPAQPV"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-la0-f46.google.com ([209.85.215.46]:42558 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753918Ab3FKHnK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jun 2013 03:43:10 -0400
+Received: by mail-la0-f46.google.com with SMTP id eg20so6574210lab.19
+        for <linux-omap@vger.kernel.org>; Tue, 11 Jun 2013 00:43:09 -0700 (PDT)
+In-Reply-To: <20130610141451.GE8164@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Sricharan R <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, rnayak@ti.com, b-cousson@ti.com, t-kristo@ti.com, ambresh@ti.com
 
-This patch adds Palmas MFD node and the regulator nodes for OMAP5.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+------enig2VLBFQDEEVUGCGFAPAQPV
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-The node definitions are based on: https://lkml.org/lkml/2013/6/6/25
+On 10/06/13 17:14, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@iki.fi> [130610 03:44]:
 
-Boot tested on omap5-uevm board.
+>> DSS does not have DT bindings, and removing DSS from hwmod data will
+>> break DSS for omap4.
+>=20
+> Ah that's right. Care to post a patch reverting the minimal parts that
+> you need for omap4 against omap-for-v3.11/cleanup?
 
-Signed-off-by: Graeme Gregory <gg@slimlogic.co.uk>
-Signed-off-by: J Keerthy <j-keerthy@ti.com>
+This one adds back the DSS data.
+
+ Tomi
+
+
+=46rom e23a18fe14cbfebf9b08e3004aec92e05a86a117 Mon Sep 17 00:00:00 2001
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Date: Tue, 11 Jun 2013 10:37:19 +0300
+Subject: [PATCH] ARM: OMAP4: hwmod data: add DSS data back
+
+Commit 3b9b10151c6838af52244cec4af41a938bb5b7ec (ARM: OMAP4: hwmod data:
+Clean up the data file) removes hwmod data for omap4, including DSS
+data. DSS has not yet been converted to DT, so the hwmod data is still
+needed.
+
+This patch adds back the DSS parts of the hwmod data.
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/boot/dts/omap5-uevm.dts |  170 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 170 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 54 ++++++++++++++++++++++++=
+++++++
+ 1 file changed, 54 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 927db1e..6fbe47c 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -8,6 +8,8 @@
- /dts-v1/;
- 
- #include "omap5.dtsi"
-+#include <dt-bindings/interrupt-controller/irq.h>
-+#include <dt-bindings/interrupt-controller/arm-gic.h>
- 
- / {
- 	model = "TI OMAP5 uEVM board";
-@@ -254,6 +256,174 @@
- 	pinctrl-0 = <&i2c1_pins>;
- 
- 	clock-frequency = <400000>;
-+
-+	palmas: palmas@48 {
-+		reg = <0x48>;
-+		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N */
-+		interrupt-parent = <&gic>;
-+	};
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-o=
+map2/omap_hwmod_44xx_data.c
+index 5f5d631..c8d4957 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -619,6 +619,16 @@ static struct omap_hwmod_class omap44xx_dispc_hwmod_=
+class =3D {
+ };
+=20
+ /* dss_dispc */
++static struct omap_hwmod_irq_info omap44xx_dss_dispc_irqs[] =3D {
++	{ .irq =3D 25 + OMAP44XX_IRQ_GIC_START },
++	{ .irq =3D -1 }
 +};
 +
-+&palmas {
-+	compatible = "ti,palmas";
-+	interrupt-controller;
-+	#interrupt-cells = <2>;
++static struct omap_hwmod_dma_info omap44xx_dss_dispc_sdma_reqs[] =3D {
++	{ .dma_req =3D 5 + OMAP44XX_DMA_REQ_START },
++	{ .dma_req =3D -1 }
++};
 +
-+	palmas_pmic {
-+	compatible = "ti,palmas-pmic";
-+		interrupt-parent = <&palmas>;
-+		interrupts = <14 IRQ_TYPE_NONE>;
-+		interrupt-name = "short-irq";
-+
-+		ti,ldo6-vibrator;
-+
-+		regulators {
-+			smps123_reg: smps123 {
-+				regulator-name = "smps123";
-+				regulator-min-microvolt = < 600000>;
-+				regulator-max-microvolt = <1500000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			smps45_reg: smps45 {
-+				regulator-name = "smps45";
-+				regulator-min-microvolt = < 600000>;
-+				regulator-max-microvolt = <1310000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			smps6_reg: smps6 {
-+				regulator-name = "smps6";
-+				regulator-min-microvolt = <1200000>;
-+				regulator-max-microvolt = <1200000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			smps7_reg: smps7 {
-+				regulator-name = "smps7";
-+				regulator-min-microvolt = <1800000>;
-+				regulator-max-microvolt = <1800000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			smps8_reg: smps8 {
-+				regulator-name = "smps8";
-+				regulator-min-microvolt = < 600000>;
-+				regulator-max-microvolt = <1310000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			smps9_reg: smps9 {
-+				regulator-name = "smps9";
-+				regulator-min-microvolt = <2100000>;
-+				regulator-max-microvolt = <2100000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+				ti,smps-range = <0x80>;
-+			};
-+
-+			smps10_reg: smps10 {
-+				regulator-name = "smps10";
-+				regulator-min-microvolt = <5000000>;
-+				regulator-max-microvolt = <5000000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo1_reg: ldo1 {
-+				regulator-name = "ldo1";
-+				regulator-min-microvolt = <2800000>;
-+				regulator-max-microvolt = <2800000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo2_reg: ldo2 {
-+				regulator-name = "ldo2";
-+				regulator-min-microvolt = <2900000>;
-+				regulator-max-microvolt = <2900000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo3_reg: ldo3 {
-+				regulator-name = "ldo3";
-+				regulator-min-microvolt = <3000000>;
-+				regulator-max-microvolt = <3000000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo4_reg: ldo4 {
-+				regulator-name = "ldo4";
-+				regulator-min-microvolt = <2200000>;
-+				regulator-max-microvolt = <2200000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo5_reg: ldo5 {
-+				regulator-name = "ldo5";
-+				regulator-min-microvolt = <1800000>;
-+				regulator-max-microvolt = <1800000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo6_reg: ldo6 {
-+				regulator-name = "ldo6";
-+				regulator-min-microvolt = <1500000>;
-+				regulator-max-microvolt = <1500000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo7_reg: ldo7 {
-+				regulator-name = "ldo7";
-+				regulator-min-microvolt = <1500000>;
-+				regulator-max-microvolt = <1500000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo8_reg: ldo8 {
-+				regulator-name = "ldo8";
-+				regulator-min-microvolt = <1500000>;
-+				regulator-max-microvolt = <1500000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldo9_reg: ldo9 {
-+				regulator-name = "ldo9";
-+				regulator-min-microvolt = <1800000>;
-+				regulator-max-microvolt = <3300000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldoln_reg: ldoln {
-+				regulator-name = "ldoln";
-+				regulator-min-microvolt = <1800000>;
-+				regulator-max-microvolt = <1800000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+
-+			ldousb_reg: ldousb {
-+				regulator-name = "ldousb";
-+				regulator-min-microvolt = <3250000>;
-+				regulator-max-microvolt = <3250000>;
-+				regulator-always-on;
-+				regulator-boot-on;
-+			};
-+		};
-+	};
+ static struct omap_dss_dispc_dev_attr omap44xx_dss_dispc_dev_attr =3D {
+ 	.manager_count		=3D 3,
+ 	.has_framedonetv_irq	=3D 1
+@@ -628,6 +638,8 @@ static struct omap_hwmod omap44xx_dss_dispc_hwmod =3D=
+ {
+ 	.name		=3D "dss_dispc",
+ 	.class		=3D &omap44xx_dispc_hwmod_class,
+ 	.clkdm_name	=3D "l3_dss_clkdm",
++	.mpu_irqs	=3D omap44xx_dss_dispc_irqs,
++	.sdma_reqs	=3D omap44xx_dss_dispc_sdma_reqs,
+ 	.main_clk	=3D "dss_dss_clk",
+ 	.prcm =3D {
+ 		.omap4 =3D {
+@@ -660,6 +672,16 @@ static struct omap_hwmod_class omap44xx_dsi_hwmod_cl=
+ass =3D {
  };
- 
- &i2c5 {
--- 
-1.7.5.4
+=20
+ /* dss_dsi1 */
++static struct omap_hwmod_irq_info omap44xx_dss_dsi1_irqs[] =3D {
++	{ .irq =3D 53 + OMAP44XX_IRQ_GIC_START },
++	{ .irq =3D -1 }
++};
++
++static struct omap_hwmod_dma_info omap44xx_dss_dsi1_sdma_reqs[] =3D {
++	{ .dma_req =3D 74 + OMAP44XX_DMA_REQ_START },
++	{ .dma_req =3D -1 }
++};
++
+ static struct omap_hwmod_opt_clk dss_dsi1_opt_clks[] =3D {
+ 	{ .role =3D "sys_clk", .clk =3D "dss_sys_clk" },
+ };
+@@ -668,6 +690,8 @@ static struct omap_hwmod omap44xx_dss_dsi1_hwmod =3D =
+{
+ 	.name		=3D "dss_dsi1",
+ 	.class		=3D &omap44xx_dsi_hwmod_class,
+ 	.clkdm_name	=3D "l3_dss_clkdm",
++	.mpu_irqs	=3D omap44xx_dss_dsi1_irqs,
++	.sdma_reqs	=3D omap44xx_dss_dsi1_sdma_reqs,
+ 	.main_clk	=3D "dss_dss_clk",
+ 	.prcm =3D {
+ 		.omap4 =3D {
+@@ -680,6 +704,16 @@ static struct omap_hwmod omap44xx_dss_dsi1_hwmod =3D=
+ {
+ };
+=20
+ /* dss_dsi2 */
++static struct omap_hwmod_irq_info omap44xx_dss_dsi2_irqs[] =3D {
++	{ .irq =3D 84 + OMAP44XX_IRQ_GIC_START },
++	{ .irq =3D -1 }
++};
++
++static struct omap_hwmod_dma_info omap44xx_dss_dsi2_sdma_reqs[] =3D {
++	{ .dma_req =3D 83 + OMAP44XX_DMA_REQ_START },
++	{ .dma_req =3D -1 }
++};
++
+ static struct omap_hwmod_opt_clk dss_dsi2_opt_clks[] =3D {
+ 	{ .role =3D "sys_clk", .clk =3D "dss_sys_clk" },
+ };
+@@ -688,6 +722,8 @@ static struct omap_hwmod omap44xx_dss_dsi2_hwmod =3D =
+{
+ 	.name		=3D "dss_dsi2",
+ 	.class		=3D &omap44xx_dsi_hwmod_class,
+ 	.clkdm_name	=3D "l3_dss_clkdm",
++	.mpu_irqs	=3D omap44xx_dss_dsi2_irqs,
++	.sdma_reqs	=3D omap44xx_dss_dsi2_sdma_reqs,
+ 	.main_clk	=3D "dss_dss_clk",
+ 	.prcm =3D {
+ 		.omap4 =3D {
+@@ -720,6 +756,16 @@ static struct omap_hwmod_class omap44xx_hdmi_hwmod_c=
+lass =3D {
+ };
+=20
+ /* dss_hdmi */
++static struct omap_hwmod_irq_info omap44xx_dss_hdmi_irqs[] =3D {
++	{ .irq =3D 101 + OMAP44XX_IRQ_GIC_START },
++	{ .irq =3D -1 }
++};
++
++static struct omap_hwmod_dma_info omap44xx_dss_hdmi_sdma_reqs[] =3D {
++	{ .dma_req =3D 75 + OMAP44XX_DMA_REQ_START },
++	{ .dma_req =3D -1 }
++};
++
+ static struct omap_hwmod_opt_clk dss_hdmi_opt_clks[] =3D {
+ 	{ .role =3D "sys_clk", .clk =3D "dss_sys_clk" },
+ };
+@@ -733,6 +779,8 @@ static struct omap_hwmod omap44xx_dss_hdmi_hwmod =3D =
+{
+ 	 * set idle mode by software.
+ 	 */
+ 	.flags		=3D HWMOD_SWSUP_SIDLE,
++	.mpu_irqs	=3D omap44xx_dss_hdmi_irqs,
++	.sdma_reqs	=3D omap44xx_dss_hdmi_sdma_reqs,
+ 	.main_clk	=3D "dss_48mhz_clk",
+ 	.prcm =3D {
+ 		.omap4 =3D {
+@@ -765,6 +813,11 @@ static struct omap_hwmod_class omap44xx_rfbi_hwmod_c=
+lass =3D {
+ };
+=20
+ /* dss_rfbi */
++static struct omap_hwmod_dma_info omap44xx_dss_rfbi_sdma_reqs[] =3D {
++	{ .dma_req =3D 13 + OMAP44XX_DMA_REQ_START },
++	{ .dma_req =3D -1 }
++};
++
+ static struct omap_hwmod_opt_clk dss_rfbi_opt_clks[] =3D {
+ 	{ .role =3D "ick", .clk =3D "dss_fck" },
+ };
+@@ -773,6 +826,7 @@ static struct omap_hwmod omap44xx_dss_rfbi_hwmod =3D =
+{
+ 	.name		=3D "dss_rfbi",
+ 	.class		=3D &omap44xx_rfbi_hwmod_class,
+ 	.clkdm_name	=3D "l3_dss_clkdm",
++	.sdma_reqs	=3D omap44xx_dss_rfbi_sdma_reqs,
+ 	.main_clk	=3D "dss_dss_clk",
+ 	.prcm =3D {
+ 		.omap4 =3D {
+--=20
+1.8.1.2
+
+
+
+
+------enig2VLBFQDEEVUGCGFAPAQPV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRttUIAAoJEPo9qoy8lh71d+YP/jSNMdJ3UliE5NZ6HeU7jzN4
+ItnsoC1rJbI5GjTF+ohCj9Mwp5KQtJM1Ta588V1Sc1jlNvVDbcXXmaknzAbkt5Qu
+SAQzOh+2gRhELq9J8s2AJ3Mgol4m+UHJl0lT+nl6eBMs1GpZLwp0BXYmJw0xLD1z
+Lr/MvP4UEy+VhvROv8Je6gkXMXYV7JPsnrxQjV5tmW28WNYNQWB43lpUeTVkaS2n
+rpUIb0fQ8x+S3gouktQu6WzClkCAHvoUGeMpb2u0r9eSqqOVtkH9zkaNNU7pbmL1
+iNWdPfCkvl2ANZanERsvgfsT1HpxFomVkdfY1hGldxacEGhF3woFk8ShWvcI0FZi
+XvRjxrBHK01CERD4DVJi4CmV30fwpxZKC6Vb+zxcDpod8zS9Niql/5+AC2QrIN7X
+80BS7iRidCvd71y/yQcrpiVLyzvOAWZq6tDXwFU9wODKzudHpD33yr7C+shRZXcS
+oZKYxOE4XMr/hiAH/nIO2ou5fU9tuwIZII4aqmdwh1xM/jJKhKwtbtjTmO6/cD5M
+NiEBwG1SGilW5jo8CN12iG8xwPh3zaX3CmXQDSVyvQV1MFTnXLFPzcpwEy/5Xioa
+Z+5QXwaarkhdCQ8xHs8x4PuYE9p1wybODIKT1y8Jha3+9OZwnOenxCm+9qudhgtG
+2h0+iZEKQYuZRAyl2Qli
+=tEKn
+-----END PGP SIGNATURE-----
+
+------enig2VLBFQDEEVUGCGFAPAQPV--
