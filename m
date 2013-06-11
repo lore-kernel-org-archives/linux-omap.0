@@ -1,74 +1,66 @@
-From: Jonathan Cameron <jic23@kernel.org>
+From: Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
 Subject: Re: am335x: TSC & ADC reworking including DT pieces, take 4
-Date: Tue, 11 Jun 2013 17:27:48 +0100
-Message-ID: <1565f2fb-7f16-4910-8fa2-cd5700e8986d@email.android.com>
-References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de> <20130611142358.GG29135@zurbaran> <20130611160415.GA379@core.coreip.homeip.net> <20130611161506.GK29135@zurbaran>
+Date: Tue, 11 Jun 2013 19:01:21 +0200
+Message-ID: <51B757E1.2080205@metafoo.de>
+References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de> <20130611142358.GG29135@zurbaran> <20130611160415.GA379@core.coreip.homeip.net> <20130611161506.GK29135@zurbaran> <1565f2fb-7f16-4910-8fa2-cd5700e8986d@email.android.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20130611161506.GK29135@zurbaran>
-Sender: linux-input-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Lee Jones <lee.jones@linaro.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1565f2fb-7f16-4910-8fa2-cd5700e8986d-2ueSQiBKiTY7tOexoI0I+QC/G2K4zDHf@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On 06/11/2013 06:27 PM, Jonathan Cameron wrote:
+> 
+> 
+> Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+> 
+>> Hi Dmitry,
+>>
+>> On Tue, Jun 11, 2013 at 09:04:16AM -0700, Dmitry Torokhov wrote:
+>>> On Tue, Jun 11, 2013 at 04:23:58PM +0200, Samuel Ortiz wrote:
+>>>> Hi Sebastian,
+>>>>
+>>>> On Tue, Jun 11, 2013 at 01:30:46PM +0200, Sebastian Andrzej Siewior
+>> wrote:
+>>>>> I believe the whole thing should go via the MFD tree. It touches
+>> also
+>>>>> input & iio subsystem. I collected ACKs where I got some in the
+>> meantime.
+>>>> Please fix your commit logs, and your subject lines. It should be
+>> e.g.
+>>>> mfd: input: ti_am335x_adc: Blablabla
+>>>>
+>>>> if it's mostly an mfd patch that also touches an input driver.
+>>>>
+>>>> Then, this is a pretty big patchset, with iio, input and mfd all
+>> mixed
+>>>> together and it is likely to create merge conflicts.
+>>>> From what I can see from it, and please correct me if I'm
+>>>> wrong, the iio and input changes depend on the mfd ones, and not
+>> the
+>>>> other way around. If that's so, I'm going to ask you to reshuffle
+>> your
+>>>> patch set and separate the MFD changes from the iio and input ones.
+>> I'll
+>>>> take the MFD ones and will create an immutable branch for Jonathan
+>> and
+>>>> Dmitry to pull from and apply the iio and input changes on top of
+>> it.
+>>>> Merge conflicts should be mostly avoided that way.
+>>>
+>>> I purposely left this driver alone as I expected it would be merged
+>>> through MFD tree, so there should not be any merging issues on my
+>> side.
+>> Thanks for the notice.
+>> Jonathan, can you guarantee the same for the iio parts ?
+> I have also been avoiding taking any of these and there are unlikely to be any iio wide changes merging at this stage in cycle.  Hence these going through MFD is best plan.
+> 
+> Lars raised a couple of issues so would be best to wait for his ack if he hasn't already looked at this revision.
 
+The IIO bits look fine to me in this version.
 
-Samuel Ortiz <sameo@linux.intel.com> wrote:
-
->Hi Dmitry,
->
->On Tue, Jun 11, 2013 at 09:04:16AM -0700, Dmitry Torokhov wrote:
->> On Tue, Jun 11, 2013 at 04:23:58PM +0200, Samuel Ortiz wrote:
->> > Hi Sebastian,
->> > 
->> > On Tue, Jun 11, 2013 at 01:30:46PM +0200, Sebastian Andrzej Siewior
->wrote:
->> > > I believe the whole thing should go via the MFD tree. It touches
->also
->> > > input & iio subsystem. I collected ACKs where I got some in the
->meantime.
->> > Please fix your commit logs, and your subject lines. It should be
->e.g.
->> > mfd: input: ti_am335x_adc: Blablabla
->> > 
->> > if it's mostly an mfd patch that also touches an input driver.
->> > 
->> > Then, this is a pretty big patchset, with iio, input and mfd all
->mixed
->> > together and it is likely to create merge conflicts.
->> > From what I can see from it, and please correct me if I'm
->> > wrong, the iio and input changes depend on the mfd ones, and not
->the
->> > other way around. If that's so, I'm going to ask you to reshuffle
->your
->> > patch set and separate the MFD changes from the iio and input ones.
->I'll
->> > take the MFD ones and will create an immutable branch for Jonathan
->and
->> > Dmitry to pull from and apply the iio and input changes on top of
->it.
->> > Merge conflicts should be mostly avoided that way.
->> 
->> I purposely left this driver alone as I expected it would be merged
->> through MFD tree, so there should not be any merging issues on my
->side.
->Thanks for the notice.
->Jonathan, can you guarantee the same for the iio parts ?
-I have also been avoiding taking any of these and there are unlikely to be any iio wide changes merging at this stage in cycle.  Hence these going through MFD is best plan.
-
-Lars raised a couple of issues so would be best to wait for his ack if he hasn't already looked at this revision.
-
-Thanks
-
-Jonathan. 
->
->Sabastian, hold on before reworking your patchset.
->
->Cheers,
->Samuel.
-
--- 
-Sent from my Android phone with K-9 Mail. Please excuse my brevity.
+- Lars
