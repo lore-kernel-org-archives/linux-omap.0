@@ -1,16 +1,16 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: [PATCH 01/22] mfd/ti_am335x_tscadc: remove regmap
-Date: Tue, 11 Jun 2013 16:34:53 +0200
-Message-ID: <51B7358D.7000605@linutronix.de>
-References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de> <1370950268-7224-2-git-send-email-bigeasy@linutronix.de> <20130611142336.GE29135@zurbaran>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 04/22] input/ti_am33x_tsc: Order of TSC wires, made configurable
+Date: Tue, 11 Jun 2013 16:35:56 +0200
+Message-ID: <51B735CC.9080909@linutronix.de>
+References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de> <1370950268-7224-5-git-send-email-bigeasy@linutronix.de> <20130611142324.GD29135@zurbaran>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130611142336.GE29135@zurbaran>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20130611142324.GD29135@zurbaran>
+Sender: linux-input-owner@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Lee Jones <lee.jones@linaro.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, "Patil, Rachna" <rachna@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 On 06/11/2013 04:23 PM, Samuel Ortiz wrote:
@@ -18,19 +18,28 @@ On 06/11/2013 04:23 PM, Samuel Ortiz wrote:
 
 Hi Samuel,
 
->> Therefore this patch removes regmap part of the driver.
-> NAK. Using regmap is better than open coding your register accesses, and
-> the children not using this API is not a reason for the MFD driver to do
-> the same.
+> On Tue, Jun 11, 2013 at 01:30:50PM +0200, Sebastian Andrzej Siewior wrote:
+>> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
+>> index eeead15..2d78af8 100644
+>> --- a/include/linux/mfd/ti_am335x_tscadc.h
+>> +++ b/include/linux/mfd/ti_am335x_tscadc.h
+>> @@ -116,6 +113,13 @@
+>>  #define CNTRLREG_8WIRE		CNTRLREG_AFE_CTRL(3)
+>>  #define CNTRLREG_TSCENB		BIT(7)
+>>  
+>> +#define XPP			STEPCONFIG_XPP
+>> +#define XNP			STEPCONFIG_XNP
+>> +#define XNN			STEPCONFIG_XNN
+>> +#define YPP			STEPCONFIG_YPP
+>> +#define YPN			STEPCONFIG_YPN
+>> +#define YNN			STEPCONFIG_YNN
+> What is that for ? Isn't STEPCONFIG_XPP explicit enough ?
 
-There is no advantage over using regmap in the first place. It goes
-through a few layers, uses no caching because almost all registers are
-volatile and this is a direct bus. In the end it complicates more than
-it helps.
+Yeah :P It was added by the original author of the patch, I have no
+problem getting rid of it.
 
 > 
 > Cheers,
 > Samuel.
-> 
 
 Sebastian
