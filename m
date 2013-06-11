@@ -1,385 +1,514 @@
-From: Illia Smyrnov <illia.smyrnov-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 2/2] spi: omap2-mcspi: Add FIFO buffer support
-Date: Tue, 11 Jun 2013 20:09:15 +0300
-Message-ID: <1370970556-11713-3-git-send-email-illia.smyrnov@ti.com>
-References: <1370970556-11713-1-git-send-email-illia.smyrnov@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH v2 6/6] mailbox/omap: move the OMAP mailbox framework to drivers
+Date: Tue, 11 Jun 2013 12:04:06 -0500
+Message-ID: <1370970246-6848-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1370970556-11713-1-git-send-email-illia.smyrnov-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Illia Smyrnov <illia.smyrnov-l0cyMroinI0@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35861 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755801Ab3FKRJt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Jun 2013 13:09:49 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Jassi Brar <jaswinder.singh@linaro.org>, Loic Pallardy <loic.pallardy@st.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 
-The MCSPI controller has a built-in FIFO buffer to unload the DMA or interrupt
-handler and improve data throughput. This patch adds FIFO buffer support for SPI
-transfers in DMA mode.
+The mailbox hardware (in OMAP) uses a queued mailbox interrupt
+mechanism that provides a communication channel between processors
+through a set of registers and their associated interrupt signals
+by sending and receiving messages.
 
-The FIFO could be enabled for SPI module by setting up the "ti,spi-fifo-enabled"
-configuration parameter in DT.
-If FIFO enabled, the largest possible FIFO buffer size will be calculated and
-setup for each SPI transfer. Even if the FIFO is enabled in DT, it won't be used
-for the SPI transfers when: calculated FIFO buffer size is less then 2 bytes or
-the FIFO buffer size isn't multiple of the SPI word length.
+The OMAP mailbox framework/driver code is moved to be under
+drivers/mailbox, in preparation for adapting to a common mailbox
+driver framework. This allows the build for OMAP mailbox to be
+enabled (it was disabled during the multi-platform support).
 
-Signed-off-by: Illia Smyrnov <illia.smyrnov-l0cyMroinI0@public.gmane.org>
+As part of the migration from plat and mach code:
+- Kconfig symbols have been renamed to build OMAP1 or OMAP2+ drivers.
+- mailbox.h under plat-omap/plat/include has been split into a public
+  and private header files. The public header has only the API related
+  functions and types.
+- The module name mailbox.ko from plat-omap is changed to
+  omap-mailbox.ko
+- The module name mailbox_mach.ko from mach-omapX is changed as
+    mailbox_omap1.ko for OMAP1
+    mailbox_omap2.ko for OMAP2+
+
+Cc: Tony Lindgren <tony@atomide.com>
+[gregkh@linuxfoundation.org: ack for staging part]
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@copitl.com>
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- Documentation/devicetree/bindings/spi/omap-spi.txt |    8 +
- drivers/spi/spi-omap2-mcspi.c                      |  154 +++++++++++++++++--
- 2 files changed, 145 insertions(+), 17 deletions(-)
+ arch/arm/configs/omap1_defconfig                   |  3 +-
+ arch/arm/mach-omap1/Makefile                       |  4 --
+ arch/arm/mach-omap2/Makefile                       |  3 -
+ arch/arm/mach-omap2/devices.c                      |  4 +-
+ arch/arm/plat-omap/Kconfig                         | 16 -----
+ arch/arm/plat-omap/Makefile                        |  3 -
+ drivers/mailbox/Kconfig                            | 34 +++++++++++
+ drivers/mailbox/Makefile                           |  6 ++
+ .../mailbox.c => drivers/mailbox/mailbox-omap1.c   |  3 +-
+ .../mailbox.c => drivers/mailbox/mailbox-omap2.c   |  8 +--
+ .../mailbox.c => drivers/mailbox/omap-mailbox.c    | 36 +++++++++++-
+ .../plat/mailbox.h => drivers/mailbox/omap-mbox.h  | 68 +++++-----------------
+ drivers/remoteproc/Kconfig                         |  3 +-
+ drivers/remoteproc/omap_remoteproc.c               |  2 +-
+ drivers/staging/tidspbridge/Kconfig                |  3 +-
+ .../tidspbridge/include/dspbridge/host_os.h        |  2 +-
+ include/linux/omap-mailbox.h                       | 29 +++++++++
+ 17 files changed, 135 insertions(+), 92 deletions(-)
+ rename arch/arm/mach-omap1/mailbox.c => drivers/mailbox/mailbox-omap1.c (99%)
+ rename arch/arm/mach-omap2/mailbox.c => drivers/mailbox/mailbox-omap2.c (98%)
+ rename arch/arm/plat-omap/mailbox.c => drivers/mailbox/omap-mailbox.c (92%)
+ rename arch/arm/plat-omap/include/plat/mailbox.h => drivers/mailbox/omap-mbox.h (55%)
+ create mode 100644 include/linux/omap-mailbox.h
 
-diff --git a/Documentation/devicetree/bindings/spi/omap-spi.txt b/Documentation/devicetree/bindings/spi/omap-spi.txt
-index 938809c..636c1dc 100644
---- a/Documentation/devicetree/bindings/spi/omap-spi.txt
-+++ b/Documentation/devicetree/bindings/spi/omap-spi.txt
-@@ -9,6 +9,14 @@ Required properties:
- - ti,pindir-d0-out-d1-in: Select the D0 pin as output and D1 as
- 			  input. The default is D0 as input and
- 			  D1 as output.
-+- ti,spi-fifo-enabled: Enable use of the FIFO buffer. If enabled,
-+		       the largest possible FIFO buffer size will
-+		       be calculated and setup for each SPI transfer.
-+		       Even if the FIFO is enabled, it won't be used
-+		       for the SPI transfers when: calculated FIFO
-+		       buffer size is less then 2 bytes or the FIFO
-+		       buffer size isn't multiple of the SPI word
-+		       length. The FIFO buffer is disabled by default.
+diff --git a/arch/arm/configs/omap1_defconfig b/arch/arm/configs/omap1_defconfig
+index 9940f7b..d74edba 100644
+--- a/arch/arm/configs/omap1_defconfig
++++ b/arch/arm/configs/omap1_defconfig
+@@ -26,7 +26,8 @@ CONFIG_ARCH_OMAP=y
+ CONFIG_ARCH_OMAP1=y
+ CONFIG_OMAP_RESET_CLOCKS=y
+ # CONFIG_OMAP_MUX is not set
+-CONFIG_OMAP_MBOX_FWK=y
++CONFIG_MAILBOX=y
++CONFIG_OMAP1_MBOX=y
+ CONFIG_OMAP_32K_TIMER=y
+ CONFIG_OMAP_DM_TIMER=y
+ CONFIG_ARCH_OMAP730=y
+diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
+index 222d58c..3889b6c 100644
+--- a/arch/arm/mach-omap1/Makefile
++++ b/arch/arm/mach-omap1/Makefile
+@@ -19,10 +19,6 @@ obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
+ # Power Management
+ obj-$(CONFIG_PM) += pm.o sleep.o
  
- Example:
+-# DSP
+-obj-$(CONFIG_OMAP_MBOX_FWK)	+= mailbox_mach.o
+-mailbox_mach-objs		:= mailbox.o
+-
+ i2c-omap-$(CONFIG_I2C_OMAP)		:= i2c.o
+ obj-y					+= $(i2c-omap-m) $(i2c-omap-y)
  
-diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index 707f1db..220152a 100644
---- a/drivers/spi/spi-omap2-mcspi.c
-+++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -39,12 +39,15 @@
- #include <linux/of.h>
- #include <linux/of_device.h>
- #include <linux/pinctrl/consumer.h>
-+#include <linux/gcd.h>
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 55a9d67..f2d19af 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -203,9 +203,6 @@ obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
+ obj-$(CONFIG_OMAP3_EMU)			+= emu.o
+ obj-$(CONFIG_HW_PERF_EVENTS)		+= pmu.o
  
- #include <linux/spi/spi.h>
+-obj-$(CONFIG_OMAP_MBOX_FWK)		+= mailbox_mach.o
+-mailbox_mach-objs			:= mailbox.o
+-
+ iommu-$(CONFIG_OMAP_IOMMU)		:= omap-iommu.o
+ obj-y					+= $(iommu-m) $(iommu-y)
  
- #include <linux/platform_data/spi-omap2-mcspi.h>
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 4c97a86..73762ac 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -328,7 +328,7 @@ int __init omap4_keyboard_init(struct omap4_keypad_platform_data
+ 	return 0;
+ }
  
- #define OMAP2_MCSPI_MAX_FREQ		48000000
-+#define OMAP2_MCSPI_MAX_FIFODEPTH	64
-+#define OMAP2_MCSPI_MAX_FIFOWCNT	0xFFFF
- #define SPI_AUTOSUSPEND_TIMEOUT		2000
+-#if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
++#if defined(CONFIG_OMAP2PLUS_MBOX) || defined(CONFIG_OMAP2PLUS_MBOX_MODULE)
+ static inline void __init omap_init_mbox(void)
+ {
+ 	struct omap_hwmod *oh;
+@@ -352,7 +352,7 @@ static inline void __init omap_init_mbox(void)
+ }
+ #else
+ static inline void omap_init_mbox(void) { }
+-#endif /* CONFIG_OMAP_MBOX_FWK */
++#endif /* CONFIG_OMAP2PLUS_MBOX */
  
- #define OMAP2_MCSPI_REVISION		0x00
-@@ -54,6 +57,7 @@
- #define OMAP2_MCSPI_WAKEUPENABLE	0x20
- #define OMAP2_MCSPI_SYST		0x24
- #define OMAP2_MCSPI_MODULCTRL		0x28
-+#define OMAP2_MCSPI_XFERLEVEL		0x7c
+ static inline void omap_init_sti(void) {}
  
- /* per-channel banks, 0x14 bytes each, first is: */
- #define OMAP2_MCSPI_CHCONF0		0x2c
-@@ -63,6 +67,7 @@
- #define OMAP2_MCSPI_RX0			0x3c
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index ce66eb9..f82bae2 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -86,22 +86,6 @@ config OMAP_MUX_WARNINGS
+ 	  to change the pin multiplexing setup.	 When there are no warnings
+ 	  printed, it's safe to deselect OMAP_MUX for your product.
  
- /* per-register bitmasks: */
-+#define OMAP2_MCSPI_IRQSTATUS_EOW	BIT(17)
+-config OMAP_MBOX_FWK
+-	tristate "Mailbox framework support"
+-	depends on ARCH_OMAP && !ARCH_MULTIPLATFORM
+-	help
+-	  Say Y here if you want to use OMAP Mailbox framework support for
+-	  DSP, IVA1.0 and IVA2 in OMAP1/2/3.
+-
+-config OMAP_MBOX_KFIFO_SIZE
+-	int "Mailbox kfifo default buffer size (bytes)"
+-	depends on OMAP_MBOX_FWK
+-	default 256
+-	help
+-	  Specify the default size of mailbox's kfifo buffers (bytes).
+-	  This can also be changed at runtime (via the mbox_kfifo_size
+-	  module parameter).
+-
+ config OMAP_IOMMU_IVA2
+ 	bool
  
- #define OMAP2_MCSPI_MODULCTRL_SINGLE	BIT(0)
- #define OMAP2_MCSPI_MODULCTRL_MS	BIT(2)
-@@ -83,10 +88,13 @@
- #define OMAP2_MCSPI_CHCONF_IS		BIT(18)
- #define OMAP2_MCSPI_CHCONF_TURBO	BIT(19)
- #define OMAP2_MCSPI_CHCONF_FORCE	BIT(20)
-+#define OMAP2_MCSPI_CHCONF_FFET		BIT(27)
-+#define OMAP2_MCSPI_CHCONF_FFER		BIT(28)
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index 3119941..0b01b68 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -17,6 +17,3 @@ obj-$(CONFIG_OMAP_DEBUG_LEDS) += debug-leds.o
+ i2c-omap-$(CONFIG_I2C_OMAP) := i2c.o
+ obj-y += $(i2c-omap-m) $(i2c-omap-y)
  
- #define OMAP2_MCSPI_CHSTAT_RXS		BIT(0)
- #define OMAP2_MCSPI_CHSTAT_TXS		BIT(1)
- #define OMAP2_MCSPI_CHSTAT_EOT		BIT(2)
-+#define OMAP2_MCSPI_CHSTAT_TXFFE	BIT(3)
+-# OMAP mailbox framework
+-obj-$(CONFIG_OMAP_MBOX_FWK) += mailbox.o
+-
+diff --git a/drivers/mailbox/Kconfig b/drivers/mailbox/Kconfig
+index 9545c9f..c8b5c13 100644
+--- a/drivers/mailbox/Kconfig
++++ b/drivers/mailbox/Kconfig
+@@ -16,4 +16,38 @@ config PL320_MBOX
+ 	  Management Engine, primarily for cpufreq. Say Y here if you want
+ 	  to use the PL320 IPCM support.
  
- #define OMAP2_MCSPI_CHCTRL_EN		BIT(0)
++config OMAP_MBOX
++	tristate
++	help
++	  This option is selected by any OMAP architecture specific mailbox
++	  driver such as CONFIG_OMAP1_MBOX or CONFIG_OMAP2PLUS_MBOX. This
++	  enables the common OMAP mailbox framework code.
++
++config OMAP1_MBOX
++	tristate "OMAP1 Mailbox framework support"
++	depends on ARCH_OMAP1
++	select OMAP_MBOX
++	help
++	  Mailbox implementation for OMAP chips with hardware for
++	  interprocessor communication involving DSP in OMAP1. Say Y here
++	  if you want to use OMAP1 Mailbox framework support.
++
++config OMAP2PLUS_MBOX
++	tristate "OMAP2+ Mailbox framework support"
++	depends on ARCH_OMAP2PLUS
++	select OMAP_MBOX
++	help
++	  Mailbox implementation for OMAP family chips with hardware for
++	  interprocessor communication involving DSP, IVA1.0 and IVA2 in
++	  OMAP2/3; or IPU, IVA HD and DSP in OMAP4/5. Say Y here if you
++	  want to use OMAP2+ Mailbox framework support.
++
++config OMAP_MBOX_KFIFO_SIZE
++	int "Mailbox kfifo default buffer size (bytes)"
++	depends on OMAP2PLUS_MBOX || OMAP1_MBOX
++	default 256
++	help
++	  Specify the default size of mailbox's kfifo buffers (bytes).
++	  This can also be changed at runtime (via the mbox_kfifo_size
++	  module parameter).
+ endif
+diff --git a/drivers/mailbox/Makefile b/drivers/mailbox/Makefile
+index 543ad6a..e0facb3 100644
+--- a/drivers/mailbox/Makefile
++++ b/drivers/mailbox/Makefile
+@@ -1 +1,7 @@
+ obj-$(CONFIG_PL320_MBOX)	+= pl320-ipc.o
++
++obj-$(CONFIG_OMAP_MBOX)		+= omap-mailbox.o
++obj-$(CONFIG_OMAP1_MBOX)	+= mailbox_omap1.o
++mailbox_omap1-objs		:= mailbox-omap1.o
++obj-$(CONFIG_OMAP2PLUS_MBOX)	+= mailbox_omap2.o
++mailbox_omap2-objs		:= mailbox-omap2.o
+diff --git a/arch/arm/mach-omap1/mailbox.c b/drivers/mailbox/mailbox-omap1.c
+similarity index 99%
+rename from arch/arm/mach-omap1/mailbox.c
+rename to drivers/mailbox/mailbox-omap1.c
+index 7246a52..9001b76 100644
+--- a/arch/arm/mach-omap1/mailbox.c
++++ b/drivers/mailbox/mailbox-omap1.c
+@@ -13,7 +13,8 @@
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+ #include <linux/io.h>
+-#include <plat/mailbox.h>
++
++#include "omap-mbox.h"
  
-@@ -129,6 +137,8 @@ struct omap2_mcspi {
- 	struct omap2_mcspi_dma	*dma_channels;
+ #define MAILBOX_ARM2DSP1		0x00
+ #define MAILBOX_ARM2DSP1b		0x04
+diff --git a/arch/arm/mach-omap2/mailbox.c b/drivers/mailbox/mailbox-omap2.c
+similarity index 98%
+rename from arch/arm/mach-omap2/mailbox.c
+rename to drivers/mailbox/mailbox-omap2.c
+index de21198..eba380d 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/drivers/mailbox/mailbox-omap2.c
+@@ -19,7 +19,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/platform_data/mailbox-omap.h>
+ 
+-#include <plat/mailbox.h>
++#include "omap-mbox.h"
+ 
+ #define MAILBOX_REVISION		0x000
+ #define MAILBOX_MESSAGE(m)		(0x040 + 4 * (m))
+@@ -331,9 +331,9 @@ static int omap2_mbox_remove(struct platform_device *pdev)
+ }
+ 
+ static struct platform_driver omap2_mbox_driver = {
+-	.probe = omap2_mbox_probe,
+-	.remove = omap2_mbox_remove,
+-	.driver = {
++	.probe	= omap2_mbox_probe,
++	.remove	= omap2_mbox_remove,
++	.driver	= {
+ 		.name = "omap-mailbox",
+ 	},
+ };
+diff --git a/arch/arm/plat-omap/mailbox.c b/drivers/mailbox/omap-mailbox.c
+similarity index 92%
+rename from arch/arm/plat-omap/mailbox.c
+rename to drivers/mailbox/omap-mailbox.c
+index f65eaf0..d79a646 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/drivers/mailbox/omap-mailbox.c
+@@ -31,7 +31,7 @@
+ #include <linux/notifier.h>
+ #include <linux/module.h>
+ 
+-#include <plat/mailbox.h>
++#include "omap-mbox.h"
+ 
+ static struct omap_mbox **mboxes;
+ 
+@@ -116,6 +116,40 @@ out:
+ }
+ EXPORT_SYMBOL(omap_mbox_msg_send);
+ 
++void omap_mbox_save_ctx(struct omap_mbox *mbox)
++{
++	if (!mbox->ops->save_ctx) {
++		dev_err(mbox->dev, "%s:\tno save\n", __func__);
++		return;
++	}
++
++	mbox->ops->save_ctx(mbox);
++}
++EXPORT_SYMBOL(omap_mbox_save_ctx);
++
++void omap_mbox_restore_ctx(struct omap_mbox *mbox)
++{
++	if (!mbox->ops->restore_ctx) {
++		dev_err(mbox->dev, "%s:\tno restore\n", __func__);
++		return;
++	}
++
++	mbox->ops->restore_ctx(mbox);
++}
++EXPORT_SYMBOL(omap_mbox_restore_ctx);
++
++void omap_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
++{
++	mbox->ops->enable_irq(mbox, irq);
++}
++EXPORT_SYMBOL(omap_mbox_enable_irq);
++
++void omap_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
++{
++	mbox->ops->disable_irq(mbox, irq);
++}
++EXPORT_SYMBOL(omap_mbox_disable_irq);
++
+ static void mbox_tx_tasklet(unsigned long tx_data)
+ {
+ 	struct omap_mbox *mbox = (struct omap_mbox *)tx_data;
+diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/drivers/mailbox/omap-mbox.h
+similarity index 55%
+rename from arch/arm/plat-omap/include/plat/mailbox.h
+rename to drivers/mailbox/omap-mbox.h
+index e98f7e2..6cd38fc 100644
+--- a/arch/arm/plat-omap/include/plat/mailbox.h
++++ b/drivers/mailbox/omap-mbox.h
+@@ -1,20 +1,20 @@
+-/* mailbox.h */
++/*
++ * omap-mbox.h: OMAP mailbox internal definitions
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
+ 
+-#ifndef MAILBOX_H
+-#define MAILBOX_H
++#ifndef OMAP_MBOX_H
++#define OMAP_MBOX_H
+ 
+-#include <linux/spinlock.h>
+-#include <linux/workqueue.h>
+-#include <linux/interrupt.h>
+ #include <linux/device.h>
++#include <linux/interrupt.h>
+ #include <linux/kfifo.h>
+-
+-typedef u32 mbox_msg_t;
+-struct omap_mbox;
+-
+-typedef int __bitwise omap_mbox_irq_t;
+-#define IRQ_TX ((__force omap_mbox_irq_t) 1)
+-#define IRQ_RX ((__force omap_mbox_irq_t) 2)
++#include <linux/spinlock.h>
++#include <linux/workqueue.h>
++#include <linux/omap-mailbox.h>
+ 
+ typedef int __bitwise omap_mbox_type_t;
+ #define OMAP_MBOX_TYPE1 ((__force omap_mbox_type_t) 1)
+@@ -58,48 +58,10 @@ struct omap_mbox {
  	struct device		*dev;
- 	struct omap2_mcspi_regs ctx;
-+	int			fifo_depth;
-+	unsigned int		fifo_enabled:1;
- 	unsigned int		pin_dir:1;
+ 	void			*priv;
+ 	int			use_count;
+-	struct blocking_notifier_head   notifier;
++	struct blocking_notifier_head	notifier;
  };
  
-@@ -258,6 +268,60 @@ static void omap2_mcspi_set_master_mode(struct spi_master *master)
- 	ctx->modulctrl = l;
- }
- 
-+static void omap2_mcspi_set_fifo(const struct spi_device *spi,
-+				struct spi_transfer *t, int enable)
-+{
-+	struct spi_master *master = spi->master;
-+	struct omap2_mcspi_cs *cs = spi->controller_state;
-+	struct omap2_mcspi *mcspi;
-+	unsigned int wcnt;
-+	int fifo_depth, bytes_per_word;
-+	u32 chconf, xferlevel;
-+
-+	mcspi = spi_master_get_devdata(master);
-+	if (!mcspi->fifo_enabled)
-+		return;
-+
-+	chconf = mcspi_cached_chconf0(spi);
-+	if (enable) {
-+		bytes_per_word = mcspi_bytes_per_word(cs->word_len);
-+		if (t->len % bytes_per_word != 0)
-+			goto disable_fifo;
-+
-+		fifo_depth = gcd(t->len, OMAP2_MCSPI_MAX_FIFODEPTH);
-+		if (fifo_depth < 2 || fifo_depth % bytes_per_word != 0)
-+			goto disable_fifo;
-+
-+		wcnt = t->len / bytes_per_word;
-+		if (wcnt > OMAP2_MCSPI_MAX_FIFOWCNT)
-+			goto disable_fifo;
-+
-+		xferlevel = wcnt << 16;
-+		if (t->rx_buf != NULL) {
-+			chconf |= OMAP2_MCSPI_CHCONF_FFER;
-+			xferlevel |= (fifo_depth - 1) << 8;
-+		} else {
-+			chconf |= OMAP2_MCSPI_CHCONF_FFET;
-+			xferlevel |= fifo_depth - 1;
-+		}
-+
-+		mcspi_write_reg(master, OMAP2_MCSPI_XFERLEVEL, xferlevel);
-+		mcspi_write_chconf0(spi, chconf);
-+		mcspi->fifo_depth = fifo_depth;
-+
-+		return;
-+	}
-+
-+disable_fifo:
-+	if (t->rx_buf != NULL)
-+		chconf &= ~OMAP2_MCSPI_CHCONF_FFER;
-+	else
-+		chconf &= ~OMAP2_MCSPI_CHCONF_FFET;
-+
-+	mcspi_write_chconf0(spi, chconf);
-+	mcspi->fifo_depth = 0;
-+}
-+
- static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
- {
- 	struct spi_master	*spi_cntrl = mcspi->master;
-@@ -374,7 +438,7 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
- {
- 	struct omap2_mcspi	*mcspi;
- 	struct omap2_mcspi_dma  *mcspi_dma;
--	unsigned int		count;
-+	unsigned int		count, dma_count;
- 	u32			l;
- 	int			elements = 0;
- 	int			word_len, element_count;
-@@ -382,6 +446,11 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
- 	mcspi = spi_master_get_devdata(spi->master);
- 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
- 	count = xfer->len;
-+	dma_count = xfer->len;
-+
-+	if (mcspi->fifo_depth == 0)
-+		dma_count -= es;
-+
- 	word_len = cs->word_len;
- 	l = mcspi_cached_chconf0(spi);
- 
-@@ -395,16 +464,15 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
- 	if (mcspi_dma->dma_rx) {
- 		struct dma_async_tx_descriptor *tx;
- 		struct scatterlist sg;
--		size_t len = xfer->len - es;
- 
- 		dmaengine_slave_config(mcspi_dma->dma_rx, &cfg);
- 
--		if (l & OMAP2_MCSPI_CHCONF_TURBO)
--			len -= es;
-+		if ((l & OMAP2_MCSPI_CHCONF_TURBO) && mcspi->fifo_depth == 0)
-+			dma_count -= es;
- 
- 		sg_init_table(&sg, 1);
- 		sg_dma_address(&sg) = xfer->rx_dma;
--		sg_dma_len(&sg) = len;
-+		sg_dma_len(&sg) = dma_count;
- 
- 		tx = dmaengine_prep_slave_sg(mcspi_dma->dma_rx, &sg, 1,
- 				DMA_DEV_TO_MEM, DMA_PREP_INTERRUPT |
-@@ -424,6 +492,10 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
- 	wait_for_completion(&mcspi_dma->dma_rx_completion);
- 	dma_unmap_single(mcspi->dev, xfer->rx_dma, count,
- 			 DMA_FROM_DEVICE);
-+
-+	if (mcspi->fifo_depth > 0)
-+		return count;
-+
- 	omap2_mcspi_set_enable(spi, 0);
- 
- 	elements = element_count - 1;
-@@ -482,7 +554,10 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
- 	struct dma_slave_config	cfg;
- 	enum dma_slave_buswidth width;
- 	unsigned es;
-+	u32			burst;
- 	void __iomem		*chstat_reg;
-+	void __iomem            *irqstat_reg;
-+	int			wait_res;
- 
- 	mcspi = spi_master_get_devdata(spi->master);
- 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
-@@ -500,19 +575,27 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
- 		es = 4;
- 	}
- 
-+	count = xfer->len;
-+	burst = 1;
-+
-+	if (mcspi->fifo_depth > 0) {
-+		if (count > mcspi->fifo_depth)
-+			burst = mcspi->fifo_depth / es;
-+		else
-+			burst = count / es;
-+	}
-+
- 	memset(&cfg, 0, sizeof(cfg));
- 	cfg.src_addr = cs->phys + OMAP2_MCSPI_RX0;
- 	cfg.dst_addr = cs->phys + OMAP2_MCSPI_TX0;
- 	cfg.src_addr_width = width;
- 	cfg.dst_addr_width = width;
--	cfg.src_maxburst = 1;
--	cfg.dst_maxburst = 1;
-+	cfg.src_maxburst = burst;
-+	cfg.dst_maxburst = burst;
- 
- 	rx = xfer->rx_buf;
- 	tx = xfer->tx_buf;
- 
--	count = xfer->len;
+-int omap_mbox_msg_send(struct omap_mbox *, mbox_msg_t msg);
+-void omap_mbox_init_seq(struct omap_mbox *);
 -
- 	if (tx != NULL)
- 		omap2_mcspi_tx_dma(spi, xfer, cfg);
+-struct omap_mbox *omap_mbox_get(const char *, struct notifier_block *nb);
+-void omap_mbox_put(struct omap_mbox *mbox, struct notifier_block *nb);
+-
+ int omap_mbox_register(struct device *parent, struct omap_mbox **);
+ int omap_mbox_unregister(void);
  
-@@ -520,18 +603,38 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
- 		count = omap2_mcspi_rx_dma(spi, xfer, cfg, es);
+-static inline void omap_mbox_save_ctx(struct omap_mbox *mbox)
+-{
+-	if (!mbox->ops->save_ctx) {
+-		dev_err(mbox->dev, "%s:\tno save\n", __func__);
+-		return;
+-	}
+-
+-	mbox->ops->save_ctx(mbox);
+-}
+-
+-static inline void omap_mbox_restore_ctx(struct omap_mbox *mbox)
+-{
+-	if (!mbox->ops->restore_ctx) {
+-		dev_err(mbox->dev, "%s:\tno restore\n", __func__);
+-		return;
+-	}
+-
+-	mbox->ops->restore_ctx(mbox);
+-}
+-
+-static inline void omap_mbox_enable_irq(struct omap_mbox *mbox,
+-					omap_mbox_irq_t irq)
+-{
+-	mbox->ops->enable_irq(mbox, irq);
+-}
+-
+-static inline void omap_mbox_disable_irq(struct omap_mbox *mbox,
+-					 omap_mbox_irq_t irq)
+-{
+-	mbox->ops->disable_irq(mbox, irq);
+-}
+-
+-#endif /* MAILBOX_H */
++#endif /* OMAP_MBOX_H */
+diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
+index d4d377c..ce1743d 100644
+--- a/drivers/remoteproc/Kconfig
++++ b/drivers/remoteproc/Kconfig
+@@ -14,8 +14,9 @@ config OMAP_REMOTEPROC
+ 	depends on HAS_DMA
+ 	depends on ARCH_OMAP4 || SOC_OMAP5
+ 	depends on OMAP_IOMMU
+-	depends on OMAP_MBOX_FWK
+ 	select REMOTEPROC
++	select MAILBOX
++	select OMAP2PLUS_MBOX
+ 	select RPMSG
+ 	help
+ 	  Say y here to support OMAP's remote processors (dual M3
+diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
+index 0e396c1..5168972 100644
+--- a/drivers/remoteproc/omap_remoteproc.c
++++ b/drivers/remoteproc/omap_remoteproc.c
+@@ -27,8 +27,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/remoteproc.h>
++#include <linux/omap-mailbox.h>
  
- 	if (tx != NULL) {
--		chstat_reg = cs->base + OMAP2_MCSPI_CHSTAT0;
- 		wait_for_completion(&mcspi_dma->dma_tx_completion);
- 		dma_unmap_single(mcspi->dev, xfer->tx_dma, xfer->len,
- 				 DMA_TO_DEVICE);
+-#include <plat/mailbox.h>
+ #include <linux/platform_data/remoteproc-omap.h>
  
-+		if (mcspi->fifo_depth > 0) {
-+			irqstat_reg = mcspi->base + OMAP2_MCSPI_IRQSTATUS;
+ #include "omap_remoteproc.h"
+diff --git a/drivers/staging/tidspbridge/Kconfig b/drivers/staging/tidspbridge/Kconfig
+index 60848f1..165b918 100644
+--- a/drivers/staging/tidspbridge/Kconfig
++++ b/drivers/staging/tidspbridge/Kconfig
+@@ -5,7 +5,8 @@
+ menuconfig TIDSPBRIDGE
+ 	tristate "DSP Bridge driver"
+ 	depends on ARCH_OMAP3 && !ARCH_MULTIPLATFORM
+-	select OMAP_MBOX_FWK
++	select MAILBOX
++	select OMAP2PLUS_MBOX
+ 	help
+ 	  DSP/BIOS Bridge is designed for platforms that contain a GPP and
+ 	  one or more attached DSPs.  The GPP is considered the master or
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/host_os.h b/drivers/staging/tidspbridge/include/dspbridge/host_os.h
+index 7f3a1db..d1441db 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/host_os.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/host_os.h
+@@ -41,7 +41,7 @@
+ #include <linux/ioport.h>
+ #include <linux/platform_device.h>
+ #include <linux/clk.h>
+-#include <plat/mailbox.h>
++#include <linux/omap-mailbox.h>
+ #include <linux/pagemap.h>
+ #include <asm/cacheflush.h>
+ #include <linux/dma-mapping.h>
+diff --git a/include/linux/omap-mailbox.h b/include/linux/omap-mailbox.h
+new file mode 100644
+index 0000000..f8322d9
+--- /dev/null
++++ b/include/linux/omap-mailbox.h
+@@ -0,0 +1,29 @@
++/*
++ * omap-mailbox: interprocessor communication module for OMAP
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+			if (mcspi_wait_for_reg_bit(irqstat_reg,
-+						OMAP2_MCSPI_IRQSTATUS_EOW) < 0)
-+				dev_err(&spi->dev, "EOW timed out\n");
++#ifndef OMAP_MAILBOX_H
++#define OMAP_MAILBOX_H
 +
-+			mcspi_write_reg(mcspi->master, OMAP2_MCSPI_IRQSTATUS,
-+					OMAP2_MCSPI_IRQSTATUS_EOW);
-+		}
++typedef u32 mbox_msg_t;
++struct omap_mbox;
 +
- 		/* for TX_ONLY mode, be sure all words have shifted out */
- 		if (rx == NULL) {
--			if (mcspi_wait_for_reg_bit(chstat_reg,
--						OMAP2_MCSPI_CHSTAT_TXS) < 0)
--				dev_err(&spi->dev, "TXS timed out\n");
--			else if (mcspi_wait_for_reg_bit(chstat_reg,
--						OMAP2_MCSPI_CHSTAT_EOT) < 0)
-+			chstat_reg = cs->base + OMAP2_MCSPI_CHSTAT0;
-+			if (mcspi->fifo_depth > 0) {
-+				wait_res = mcspi_wait_for_reg_bit(chstat_reg,
-+						OMAP2_MCSPI_CHSTAT_TXFFE);
-+				if (wait_res < 0)
-+					dev_err(&spi->dev, "TXFFE timed out\n");
-+			} else {
-+				wait_res = mcspi_wait_for_reg_bit(chstat_reg,
-+						OMAP2_MCSPI_CHSTAT_TXS);
-+				if (wait_res < 0)
-+					dev_err(&spi->dev, "TXS timed out\n");
-+			}
-+			if (wait_res >= 0 &&
-+				(mcspi_wait_for_reg_bit(chstat_reg,
-+					OMAP2_MCSPI_CHSTAT_EOT) < 0))
- 				dev_err(&spi->dev, "EOT timed out\n");
- 		}
- 	}
-@@ -958,7 +1061,7 @@ static void omap2_mcspi_work(struct omap2_mcspi *mcspi, struct spi_message *m)
- 	cs = spi->controller_state;
- 	cd = spi->controller_data;
- 
--	omap2_mcspi_set_enable(spi, 1);
-+	omap2_mcspi_set_enable(spi, 0);
- 	list_for_each_entry(t, &m->transfers, transfer_list) {
- 		if (t->tx_buf == NULL && t->rx_buf == NULL && t->len) {
- 			status = -EINVAL;
-@@ -1006,6 +1109,13 @@ static void omap2_mcspi_work(struct omap2_mcspi *mcspi, struct spi_message *m)
- 		if (t->len) {
- 			unsigned	count;
- 
-+			if (mcspi->fifo_enabled &&
-+			    (mcspi_dma->dma_rx && mcspi_dma->dma_tx) &&
-+			    (m->is_dma_mapped || t->len >= DMA_MIN_BYTES))
-+				omap2_mcspi_set_fifo(spi, t, 1);
++typedef int __bitwise omap_mbox_irq_t;
++#define IRQ_TX ((__force omap_mbox_irq_t) 1)
++#define IRQ_RX ((__force omap_mbox_irq_t) 2)
 +
-+			omap2_mcspi_set_enable(spi, 1);
++int omap_mbox_msg_send(struct omap_mbox *, mbox_msg_t msg);
 +
- 			/* RX_ONLY mode needs dummy data in TX reg */
- 			if (t->tx_buf == NULL)
- 				__raw_writel(0, cs->base
-@@ -1032,6 +1142,11 @@ static void omap2_mcspi_work(struct omap2_mcspi *mcspi, struct spi_message *m)
- 			omap2_mcspi_force_cs(spi, 0);
- 			cs_active = 0;
- 		}
++struct omap_mbox *omap_mbox_get(const char *, struct notifier_block *nb);
++void omap_mbox_put(struct omap_mbox *mbox, struct notifier_block *nb);
 +
-+		omap2_mcspi_set_enable(spi, 0);
++void omap_mbox_save_ctx(struct omap_mbox *mbox);
++void omap_mbox_restore_ctx(struct omap_mbox *mbox);
++void omap_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq);
++void omap_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq);
 +
-+		if (mcspi->fifo_depth > 0)
-+			omap2_mcspi_set_fifo(spi, t, 0);
- 	}
- 	/* Restore defaults if they were overriden */
- 	if (par_override) {
-@@ -1052,8 +1167,10 @@ static void omap2_mcspi_work(struct omap2_mcspi *mcspi, struct spi_message *m)
- 
- 	omap2_mcspi_set_enable(spi, 0);
- 
--	m->status = status;
-+	if (mcspi->fifo_depth > 0 && t)
-+		omap2_mcspi_set_fifo(spi, t, 0);
- 
-+	m->status = status;
- }
- 
- static int omap2_mcspi_transfer_one_message(struct spi_master *master,
-@@ -1226,6 +1343,9 @@ static int omap2_mcspi_probe(struct platform_device *pdev)
- 		master->bus_num = bus_num++;
- 		if (of_get_property(node, "ti,pindir-d0-out-d1-in", NULL))
- 			mcspi->pin_dir = MCSPI_PINDIR_D0_OUT_D1_IN;
-+
-+		if (of_find_property(node, "ti,spi-fifo-enabled", NULL))
-+			mcspi->fifo_enabled = 1;
- 	} else {
- 		pdata = pdev->dev.platform_data;
- 		master->num_chipselect = pdata->num_cs;
++#endif /* OMAP_MAILBOX_H */
 -- 
-1.7.0.4
+1.8.2
 
-
-------------------------------------------------------------------------------
-This SF.net email is sponsored by Windows:
-
-Build for Windows Store.
-
-http://p.sf.net/sfu/windows-dev2dev
