@@ -1,7 +1,7 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 07/22] input/ti_am33x_tsc: remove platform_data support
-Date: Tue, 11 Jun 2013 13:30:53 +0200
-Message-ID: <1370950268-7224-8-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 09/22] iio/ti_am335x_adc: remove platform_data support
+Date: Tue, 11 Jun 2013 13:30:55 +0200
+Message-ID: <1370950268-7224-10-git-send-email-bigeasy@linutronix.de>
 References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
@@ -13,61 +13,61 @@ List-Id: linux-omap@vger.kernel.org
 This patch removes access to platform data mfd_tscadc_board because the
 platform is DT only.
 
-Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Acked-by: Jonathan Cameron <jic23@kernel.org>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/input/touchscreen/ti_am335x_tsc.c |   25 +------------------------
- 1 file changed, 1 insertion(+), 24 deletions(-)
+ drivers/iio/adc/ti_am335x_adc.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-index a44d2c4..66c5a26 100644
---- a/drivers/input/touchscreen/ti_am335x_tsc.c
-+++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-@@ -24,7 +24,6 @@
- #include <linux/clk.h>
- #include <linux/platform_device.h>
- #include <linux/io.h>
--#include <linux/input/ti_am335x_tsc.h>
- #include <linux/delay.h>
- #include <linux/of.h>
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index b24402c..2868c0c 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -26,7 +26,6 @@
  #include <linux/of_device.h>
-@@ -347,24 +346,6 @@ static int titsc_parse_dt(struct platform_device *pdev,
- 			ts_dev->config_inp, ARRAY_SIZE(ts_dev->config_inp));
- }
  
--static int titsc_parse_pdata(struct ti_tscadc_dev *tscadc_dev,
--					struct titsc *ts_dev)
--{
+ #include <linux/mfd/ti_am335x_tscadc.h>
+-#include <linux/platform_data/ti_am335x_adc.h>
+ 
+ struct tiadc_device {
+ 	struct ti_tscadc_dev *mfd_tscadc;
+@@ -153,14 +152,12 @@ static int tiadc_probe(struct platform_device *pdev)
+ {
+ 	struct iio_dev		*indio_dev;
+ 	struct tiadc_device	*adc_dev;
+-	struct ti_tscadc_dev	*tscadc_dev = ti_tscadc_dev_get(pdev);
 -	struct mfd_tscadc_board	*pdata = tscadc_dev->dev->platform_data;
--
--	if (!pdata)
--		return -EINVAL;
--
--	ts_dev->wires = pdata->tsc_init->wires;
--	ts_dev->x_plate_resistance =
--		pdata->tsc_init->x_plate_resistance;
--	ts_dev->steps_to_configure =
--		pdata->tsc_init->steps_to_configure;
--	memcpy(ts_dev->config_inp, pdata->tsc_init->wire_config,
--		sizeof(pdata->tsc_init->wire_config));
--	return 0;
--}
--
- /*
-  * The functions for inserting/removing driver as a module.
-  */
-@@ -390,11 +371,7 @@ static int titsc_probe(struct platform_device *pdev)
- 	ts_dev->input = input_dev;
- 	ts_dev->irq = tscadc_dev->irq;
+ 	struct device_node	*node = pdev->dev.of_node;
+ 	int			err;
+ 	u32			val32;
  
--	if (tscadc_dev->dev->platform_data)
--		err = titsc_parse_pdata(tscadc_dev, ts_dev);
--	else
--		err = titsc_parse_dt(pdev, ts_dev);
--
-+	err = titsc_parse_dt(pdev, ts_dev);
- 	if (err) {
- 		dev_err(&pdev->dev, "Could not find valid DT data.\n");
- 		goto err_free_mem;
+-	if (!pdata && !node) {
+-		dev_err(&pdev->dev, "Could not find platform data\n");
++	if (!node) {
++		dev_err(&pdev->dev, "Could not find valid DT data.\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -174,15 +171,11 @@ static int tiadc_probe(struct platform_device *pdev)
+ 
+ 	adc_dev->mfd_tscadc = ti_tscadc_dev_get(pdev);
+ 
+-	if (pdata)
+-		adc_dev->channels = pdata->adc_init->adc_channels;
+-	else {
+-		err = of_property_read_u32(node,
+-				"ti,adc-channels", &val32);
+-		if (err < 0)
+-			goto err_free_device;
+-		adc_dev->channels = val32;
+-	}
++	err = of_property_read_u32(node,
++			"ti,adc-channels", &val32);
++	if (err < 0)
++		goto err_free_device;
++	adc_dev->channels = val32;
+ 
+ 	indio_dev->dev.parent = &pdev->dev;
+ 	indio_dev->name = dev_name(&pdev->dev);
 -- 
 1.7.10.4
