@@ -1,82 +1,146 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: am335x: TSC & ADC reworking including DT pieces, take 4
-Date: Tue, 11 Jun 2013 17:29:22 +0200
-Message-ID: <51B74252.5090906@linutronix.de>
-References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de> <20130611142358.GG29135@zurbaran>
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: Re: [PATCH 3/3] ARM: dts: OMAP3: Use MTD constants for OMAP3 boards
+Date: Tue, 11 Jun 2013 17:29:43 +0200
+Message-ID: <51B74267.1000700@collabora.co.uk>
+References: <1370962138-9631-1-git-send-email-florian.vaussard@epfl.ch> <1370962138-9631-4-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130611142358.GG29135@zurbaran>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Lee Jones <lee.jones@linaro.org>, =?windows-1252?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:43852 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754692Ab3FKP3r (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jun 2013 11:29:47 -0400
+In-Reply-To: <1370962138-9631-4-git-send-email-florian.vaussard@epfl.ch>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Florian Vaussard <florian.vaussard@epfl.ch>
+Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, Anil Kumar <anilk4.v@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-On 06/11/2013 04:23 PM, Samuel Ortiz wrote:
-> Hi Sebastian,
+On 06/11/2013 04:48 PM, Florian Vaussard wrote:
+> Use the MTD constants for NAND and OneNAND nodes used in OMAP3
+> DTS.
+> 
+> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+> ---
+>  arch/arm/boot/dts/omap3-devkit8000.dts |   10 +++++-----
+>  arch/arm/boot/dts/omap3-igep0020.dts   |   10 +++++-----
+>  arch/arm/boot/dts/omap3-igep0030.dts   |   10 +++++-----
+>  arch/arm/boot/dts/omap3430-sdp.dts     |   28 ++++++++++++++--------------
+>  4 files changed, 29 insertions(+), 29 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/omap3-devkit8000.dts
+> index 5be71b1..08699cb 100644
+> --- a/arch/arm/boot/dts/omap3-devkit8000.dts
+> +++ b/arch/arm/boot/dts/omap3-devkit8000.dts
+> @@ -143,27 +143,27 @@
+>  
+>  		x-loader@0 {
+>  			label = "X-Loader";
+> -			reg = <0 0x80000>;
+> +			reg = <(0 * SZ_128K) (4 * SZ_128K)>;
+>  		};
+>  
+>  		bootloaders@80000 {
+>  			label = "U-Boot";
+> -			reg = <0x80000 0x1e0000>;
+> +			reg = <(4 * SZ_128K) (15 * SZ_128K)>;
+>  		};
+>  
+>  		bootloaders_env@260000 {
+>  			label = "U-Boot Env";
+> -			reg = <0x260000 0x20000>;
+> +			reg = <(19 * SZ_128K) (1 * SZ_128K)>;
+>  		};
+>  
+>  		kernel@280000 {
+>  			label = "Kernel";
+> -			reg = <0x280000 0x400000>;
+> +			reg = <(20 * SZ_128K) (32 * SZ_128K)>;
+>  		};
+>  
+>  		filesystem@680000 {
+>  			label = "File System";
+> -			reg = <0x680000 0xf980000>;
+> +			reg = <(52 * SZ_128K) MTDPART_SIZ_FULL>;
+>  		};
+>  	};
+>  };
+> diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
+> index e8c4828..3476b3c 100644
+> --- a/arch/arm/boot/dts/omap3-igep0020.dts
+> +++ b/arch/arm/boot/dts/omap3-igep0020.dts
+> @@ -97,23 +97,23 @@
+>  
+>  		partition@0 {
+>  			label = "SPL";
+> -			reg = <0 0x100000>;
+> +			reg = <(0 * SZ_256K) (4 * SZ_256K)>;
+>  		};
+>  		partition@0x80000 {
+>  			label = "U-Boot";
+> -			reg = <0x100000 0x180000>;
+> +			reg = <(4 * SZ_256K) (6 * SZ_256K)>;
+>  		};
+>  		partition@0x1c0000 {
+>  			label = "Environment";
+> -			reg = <0x280000 0x100000>;
+> +			reg = <(10 * SZ_256K) (4 * SZ_256K)>;
+>  		};
+>  		partition@0x280000 {
+>  			label = "Kernel";
+> -			reg = <0x380000 0x300000>;
+> +			reg = <(14 * SZ_256K) (12 * SZ_256K)>;
+>  		};
+>  		partition@0x780000 {
+>  			label = "Filesystem";
+> -			reg = <0x680000 0x1f980000>;
+> +			reg = <(26 * SZ_256K) MTDPART_SIZ_FULL>;
+>  		};
+>  	};
+>  
+> diff --git a/arch/arm/boot/dts/omap3-igep0030.dts b/arch/arm/boot/dts/omap3-igep0030.dts
+> index 644d053..e4f078c 100644
+> --- a/arch/arm/boot/dts/omap3-igep0030.dts
+> +++ b/arch/arm/boot/dts/omap3-igep0030.dts
+> @@ -72,23 +72,23 @@
+>  
+>  		partition@0 {
+>  			label = "SPL";
+> -			reg = <0 0x100000>;
+> +			reg = <(0 * SZ_256K) (4 * SZ_256K)>;
+>  		};
+>  		partition@0x80000 {
+>  			label = "U-Boot";
+> -			reg = <0x100000 0x180000>;
+> +			reg = <(4 * SZ_256K) (6 * SZ_256K)>;
+>  		};
+>  		partition@0x1c0000 {
+>  			label = "Environment";
+> -			reg = <0x280000 0x100000>;
+> +			reg = <(10 * SZ_256K) (4 * SZ_256K)>;
+>  		};
+>  		partition@0x280000 {
+>  			label = "Kernel";
+> -			reg = <0x380000 0x300000>;
+> +			reg = <(14 * SZ_256K) (12 * SZ_256K)>;
+>  		};
+>  		partition@0x780000 {
+>  			label = "Filesystem";
+> -			reg = <0x680000 0x1f980000>;
+> +			reg = <(26 * SZ_256K) MTDPART_SIZ_FULL>;
+>  		};
+>  	};
+>  };
 
-Hi Samuel,
+Hi Florian,
 
-> On Tue, Jun 11, 2013 at 01:30:46PM +0200, Sebastian Andrzej Siewior w=
-rote:
->> I believe the whole thing should go via the MFD tree. It touches als=
-o
->> input & iio subsystem. I collected ACKs where I got some in the mean=
-time.
-> Please fix your commit logs, and your subject lines. It should be e.g=
-=2E
-> mfd: input: ti_am335x_adc: Blablabla
->=20
-> if it's mostly an mfd patch that also touches an input driver.
+I don't have access to my IGEP board so I can test it right now but the patch
+looks good to me.
 
-I usually do "subsystem / driver: short description" but if you want
-the ":" as delimiter I can do this.
+In fact I wanted to use MTDPART_SIZ_FULL when added the NAND nodes since not all
+IGEP boards have 512MB flash but I didn't know that a value of 0 meant that.
 
-> Then, this is a pretty big patchset, with iio, input and mfd all mixe=
-d
-> together and it is likely to create merge conflicts.
-They somehow depend on each other. Otherwise I would have sent three
-series, one per subsystem.
+So thanks a lot for doing this!
 
->>From what I can see from it, and please correct me if I'm
-> wrong, the iio and input changes depend on the mfd ones, and not the
-> other way around. If that's so, I'm going to ask you to reshuffle you=
-r
-> patch set and separate the MFD changes from the iio and input ones. I=
-'ll
-> take the MFD ones and will create an immutable branch for Jonathan an=
-d
-> Dmitry to pull from and apply the iio and input changes on top of it.
-> Merge conflicts should be mostly avoided that way.
-> AFAICT, only patch #2 should be kept with input and iio bits mixed
-> together with MFD as otherwise this would introduce functional breaka=
-ge.
-> Otherwise, all MFD bits from the other patches could be either separa=
-ted
-> or merged together (e.g. MFD bits from patches #6 and #8, and #16 and
-> #17).
->=20
-> Does that sound doable to you ?
-
-The device renaming shouldn't matter since I added DT nodes for the mfd
-child devices earlier. But then the of_compatible assignments should
-go hand in hand. However if I split this then the driver won't work
-but then it does not now as well (because there is no platform_data
-provider in tree).
-
-Still. There is #18 which reworks the "step addressing" and involves
-changes in both (iio & input) at the same time.
-There is #21. Adding this to the initial "DT support" patch would be ba=
-d
-I think because it requires some changes on the iio side which have
-nothing to do with DT. Putting the iio changes before DT would require
-to make some change to platform-data part which will go away anyway.
-
-So I started collecting ACKs from input and iio to avoid this split. If
-you really want the split then I will start doing so=85
-
-> Cheers,
-> Samuel.
-
-Sebastian
+Acked-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
