@@ -1,42 +1,44 @@
 From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH 10/22] mfd/ti_am335x_tscadc: Add DT support
-Date: Tue, 11 Jun 2013 16:23:47 +0200
-Message-ID: <20130611142347.GF29135@zurbaran>
+Subject: Re: am335x: TSC & ADC reworking including DT pieces, take 4
+Date: Tue, 11 Jun 2013 16:23:58 +0200
+Message-ID: <20130611142358.GG29135@zurbaran>
 References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
- <1370950268-7224-11-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1370950268-7224-11-git-send-email-bigeasy@linutronix.de>
+In-Reply-To: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Lee Jones <lee.jones@linaro.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, "Patil, Rachna" <rachna@ti.com>, Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Lee Jones <lee.jones@linaro.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 Hi Sebastian,
 
-On Tue, Jun 11, 2013 at 01:30:56PM +0200, Sebastian Andrzej Siewior wrote:
-> From: "Patil, Rachna" <rachna@ti.com>
-> 
-> Make changes to add DT support in the MFD core driver.
-Which changes ?
+On Tue, Jun 11, 2013 at 01:30:46PM +0200, Sebastian Andrzej Siewior wrote:
+> I believe the whole thing should go via the MFD tree. It touches also
+> input & iio subsystem. I collected ACKs where I got some in the meantime.
+Please fix your commit logs, and your subject lines. It should be e.g.
+mfd: input: ti_am335x_adc: Blablabla
 
+if it's mostly an mfd patch that also touches an input driver.
 
-> [ panto@antoniou-consulting.com : use of_get_child_by_name
-> 	instead of of_find_node_by_name ]
-I have no idea where that is coming from. Please remove this kind of
-stuff and build a proper commit log instead.
+Then, this is a pretty big patchset, with iio, input and mfd all mixed
+together and it is likely to create merge conflicts.
+>From what I can see from it, and please correct me if I'm
+wrong, the iio and input changes depend on the mfd ones, and not the
+other way around. If that's so, I'm going to ask you to reshuffle your
+patch set and separate the MFD changes from the iio and input ones. I'll
+take the MFD ones and will create an immutable branch for Jonathan and
+Dmitry to pull from and apply the iio and input changes on top of it.
+Merge conflicts should be mostly avoided that way.
+AFAICT, only patch #2 should be kept with input and iio bits mixed
+together with MFD as otherwise this would introduce functional breakage.
+Otherwise, all MFD bits from the other patches could be either separated
+or merged together (e.g. MFD bits from patches #6 and #8, and #16 and
+#17).
 
-
-> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
-> Signed-off-by: Patil, Rachna <rachna@ti.com>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> [bigeasy: module alias, rename to ti,am3359-tscadc as it was tested on
->           AM3359]
-I honestly can't tell if this is a change from the last version of your
-patchset or a description of this patch changes in general.
-This is cluttering your commit logs, please remove this as well.
+Does that sound doable to you ?
 
 Cheers,
 Samuel.
