@@ -1,67 +1,95 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v3] ARM: DTS: TWL4030: fix mux and wakeup for SYS_NIRQ
- line
-Date: Tue, 11 Jun 2013 13:43:19 +0200
-Message-ID: <51B70D57.4010208@ti.com>
-References: <1370040357-25794-1-git-send-email-khilman@linaro.org> <1370629886-14170-1-git-send-email-khilman@linaro.org> <20130607193130.GA13205@kahuna> <51B59AC3.2080900@ti.com> <87fvwpex6k.fsf@linaro.org> <51B70B08.9030208@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37635 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752717Ab3FKLnr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jun 2013 07:43:47 -0400
-In-Reply-To: <51B70B08.9030208@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH 12/22] iio/ti_tscadc: provide datasheet_name and scan_type
+Date: Tue, 11 Jun 2013 13:30:58 +0200
+Message-ID: <1370950268-7224-13-git-send-email-bigeasy@linutronix.de>
+References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Pantelis Antoniou <panto@antoniou-consulting.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-On 06/11/2013 01:33 PM, Cousson, Benoit wrote:
-> On 6/10/2013 6:40 PM, Kevin Hilman wrote:
->> Benoit Cousson <b-cousson@ti.com> writes:
->>
->>> Hi Kevin,
->>>
->>> On 06/07/2013 09:31 PM, Nishanth Menon wrote:
->>>> On 11:31-20130607, Kevin Hilman wrote:
->>>>> On most OMAP3 platforms, the twl4030 IRQ line is connected to the
->>>>> SYS_NIRQ line on OMAP.  Add another DTS include file
->>>>> (twl4030_omap3.dtsi) for boards that hook up the twl4030 this way
->>>>> to include.
->>>>>
->>>>> This allows RTC wake from off-mode to work again on OMAP3-based
->>>>> platforms with twl4030.  Tested on 3530/Beagle, 3730/Beagle-xM,
->>>>> 3530/Overo, 3730/Overo-STORM.
->>>>>
->>>>> Special thanks to Florian Vaussard for suggesting use of preprocessor
->>>>> feature.
->>>>>
->>>>> Cc: Florian Vaussard <florian.vaussard@epfl.ch>
->>>>> Cc: Benoit Cousson <b-cousson@ti.com>
->>>>> Cc: Nishanth Menon <nm@ti.com>
->>>>> Signed-off-by: Kevin Hilman <khilman@linaro.org>
->>>> Thanks,
->>>> Reviewed-by: Nishanth Menon <nm@ti.com>
->>>
->>> Thanks, I've just applied it in for_3.11/dts.
->>
->> Thanks,
->>
->> Will you apply the first 2 from the series too?
->>
->>    ARM: DTS: OMAP3: beagle/overo: mux console UART, enable wakeup
->>    ARM: DTS: OMAP3: beagle: enable user button via gpio_keys, enable
->> wakeup
-> 
-> Thanks for the reminder, I kind of forgot these ones :-)
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
 
-BTW, do you have any v2 for these ones? This version does not use the
-macros.
-Moreover I cannot apply them on top of Florian's series :-(
+This patch provides the members "datasheet_name" and scan_type. This is
+the remaining part of the earlier patch where I (bigeasy) removed iio_map
+because it is now supplied by the device tree.
 
-Regards,
-Benoit
+Acked-by: Jonathan Cameron <jic23@kernel.org>
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+[bigeasy: use static AIN[0-8] names, use kcalloc(), removed iio_map,
+	patch description]
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/iio/adc/ti_am335x_adc.c |   29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
 
-
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index 2868c0c..9939810 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -24,6 +24,8 @@
+ #include <linux/iio/iio.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
++#include <linux/iio/machine.h>
++#include <linux/iio/driver.h>
+ 
+ #include <linux/mfd/ti_am335x_tscadc.h>
+ 
+@@ -84,29 +86,46 @@ static void tiadc_step_config(struct tiadc_device *adc_dev)
+ 	am335x_tsc_se_set(adc_dev->mfd_tscadc, step_en);
+ }
+ 
++static const char * const chan_name_ain[] = {
++	"AIN0",
++	"AIN1",
++	"AIN2",
++	"AIN3",
++	"AIN4",
++	"AIN5",
++	"AIN6",
++	"AIN7",
++};
++
+ static int tiadc_channel_init(struct iio_dev *indio_dev, int channels)
+ {
++	struct tiadc_device *adc_dev = iio_priv(indio_dev);
+ 	struct iio_chan_spec *chan_array;
++	struct iio_chan_spec *chan;
+ 	int i;
+ 
+ 	indio_dev->num_channels = channels;
+-	chan_array = kcalloc(indio_dev->num_channels,
++	chan_array = kcalloc(channels,
+ 			sizeof(struct iio_chan_spec), GFP_KERNEL);
+-
+ 	if (chan_array == NULL)
+ 		return -ENOMEM;
+ 
+-	for (i = 0; i < (indio_dev->num_channels); i++) {
+-		struct iio_chan_spec *chan = chan_array + i;
++	chan = chan_array;
++	for (i = 0; i < channels; i++, chan++) {
++
+ 		chan->type = IIO_VOLTAGE;
+ 		chan->indexed = 1;
+ 		chan->channel = i;
+ 		chan->info_mask_separate = BIT(IIO_CHAN_INFO_RAW);
++		chan->datasheet_name = chan_name_ain[i];
++		chan->scan_type.sign = 'u';
++		chan->scan_type.realbits = 12;
++		chan->scan_type.storagebits = 32;
+ 	}
+ 
+ 	indio_dev->channels = chan_array;
+ 
+-	return indio_dev->num_channels;
++	return 0;
+ }
+ 
+ static void tiadc_channels_remove(struct iio_dev *indio_dev)
+-- 
+1.7.10.4
