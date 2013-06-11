@@ -1,49 +1,46 @@
-From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-Subject: Re: [PATCH v3] ARM: dts: OMAP5: Add palmas MFD node and regulator
- nodes
-Date: Tue, 11 Jun 2013 10:01:43 -0600
-Message-ID: <51B749E7.6070808@wwwdotorg.org>
-References: <1370928651-6278-1-git-send-email-j-keerthy@ti.com>
+From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: am335x: TSC & ADC reworking including DT pieces, take 4
+Date: Tue, 11 Jun 2013 09:04:16 -0700
+Message-ID: <20130611160415.GA379@core.coreip.homeip.net>
+References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
+ <20130611142358.GG29135@zurbaran>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1370928651-6278-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20130611142358.GG29135@zurbaran>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 06/10/2013 11:30 PM, J Keerthy wrote:
-> This patch adds Palmas MFD node and the regulator nodes for OMAP5.
+Hi Samuel,
+
+On Tue, Jun 11, 2013 at 04:23:58PM +0200, Samuel Ortiz wrote:
+> Hi Sebastian,
 > 
-> The node definitions are based on: https://lkml.org/lkml/2013/6/6/25
+> On Tue, Jun 11, 2013 at 01:30:46PM +0200, Sebastian Andrzej Siewior wrote:
+> > I believe the whole thing should go via the MFD tree. It touches also
+> > input & iio subsystem. I collected ACKs where I got some in the meantime.
+> Please fix your commit logs, and your subject lines. It should be e.g.
+> mfd: input: ti_am335x_adc: Blablabla
 > 
-> Boot tested on omap5-uevm board.
+> if it's mostly an mfd patch that also touches an input driver.
+> 
+> Then, this is a pretty big patchset, with iio, input and mfd all mixed
+> together and it is likely to create merge conflicts.
+> From what I can see from it, and please correct me if I'm
+> wrong, the iio and input changes depend on the mfd ones, and not the
+> other way around. If that's so, I'm going to ask you to reshuffle your
+> patch set and separate the MFD changes from the iio and input ones. I'll
+> take the MFD ones and will create an immutable branch for Jonathan and
+> Dmitry to pull from and apply the iio and input changes on top of it.
+> Merge conflicts should be mostly avoided that way.
 
-> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+I purposely left this driver alone as I expected it would be merged
+through MFD tree, so there should not be any merging issues on my side.
 
-> +	palmas: palmas@48 {
-> +		reg = <0x48>;
-> +		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N */
-> +		interrupt-parent = <&gic>;
-> +	};
-> +};
-> +
-> +&palmas {
-> +	compatible = "ti,palmas";
-> +	interrupt-controller;
-> +	#interrupt-cells = <2>;
+Thanks.
 
-I don't really see the point of splitting the node into two parts if
-it's all going into a single file. It made sense if part of the node
-came from a common .dtsi file, but not so much when it doesn't.
+-- 
+Dmitry
