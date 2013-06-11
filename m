@@ -1,141 +1,45 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 3/4] mmc: omap_hsmmc: Remux pins to support SDIO interrupt
- and PM runtime
-Date: Tue, 11 Jun 2013 09:54:32 +0200
-Message-ID: <CACRpkdaEjLzXfA3HX5mra0Mjheia4e2O3kbvikeZQRsNczS7kg@mail.gmail.com>
-References: <20130607214557.18581.75288.stgit@localhost>
-	<20130607214957.18581.90624.stgit@localhost>
-	<CACRpkdZ5CUvULBFpdHZ_AMotqfUdBcAQ63+8cT+r6TZ77bUWOA@mail.gmail.com>
-	<20130610162356.GL8164@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 2/3] ARM: OMAP2+: devices: Do not print error when DMIC hwmod lookup fails
+Date: Tue, 11 Jun 2013 10:31:59 +0200
+Message-ID: <1370939520-16132-3-git-send-email-peter.ujfalusi@ti.com>
+References: <1370939520-16132-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20130610162356.GL8164@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@linaro.org>
-Cc: Chris Ball <cjb@laptop.org>, Balaji T K <balajitk@ti.com>, Andreas Fenkart <afenkart@gmail.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Brown <broonie@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57437 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752104Ab3FKIcb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jun 2013 04:32:31 -0400
+In-Reply-To: <1370939520-16132-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-On Mon, Jun 10, 2013 at 6:23 PM, Tony Lindgren <tony@atomide.com> wrote:
+It means that the SoC does not have DMIC IP
+.
+Reported-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ arch/arm/mach-omap2/devices.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-> We only should remux the pins that need remuxing as that's done
-> every time hitting idle. So I think we should have the following
-> default groups:
->
-> default         Static pins that don't change, no need to remux
->                 configured in consumer driver probe like we already
->                 do
->
-> active          Optional dynamic pins remuxed for runtime, can be
->                 configured and selected in consumer driver probe.
->                 The consumer driver may also want to select this
->                 state in PM runtime resume.
->
-> idle            Optional dynamic pins remuxed for idle. The consumer
->                 driver may also want to select this state in PM
->                 runtime suspend depending on device_can_wakeup()
->                 and driver specific needs.
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index b82538d..8f268b4 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -393,10 +393,8 @@ static void __init omap_init_dmic(void)
+ 	struct platform_device *pdev;
+ 
+ 	oh = omap_hwmod_lookup("dmic");
+-	if (!oh) {
+-		pr_err("Could not look up dmic hw_mod\n");
++	if (!oh)
+ 		return;
+-	}
+ 
+ 	pdev = omap_device_build("omap-dmic", -1, oh, NULL, 0);
+ 	WARN(IS_ERR(pdev), "Can't build omap_device for omap-dmic.\n");
+-- 
+1.8.2.1
 
-The one thing I don't understand is why a driver would select the
-active state in probe(), unless it's a driver that does not support
-runtime PM. (But maybe that's what you mean.)
-
-Compare this to <linus/pinctrl/pinctrl-state.h>:
-
-/**
- * @PINCTRL_STATE_DEFAULT: the state the pinctrl handle shall be put
- *      into as default, usually this means the pins are up and ready to
- *      be used by the device driver. This state is commonly used by
- *      hogs to configure muxing and pins at boot, and also as a state
- *      to go into when returning from sleep and idle in
- *      .pm_runtime_resume() or ordinary .resume() for example.
- * @PINCTRL_STATE_IDLE: the state the pinctrl handle shall be put into
- *      when the pins are idle. This is a state where the system is relaxed
- *      but not fully sleeping - some power may be on but clocks gated for
- *      example. Could typically be set from a pm_runtime_suspend() or
- *      pm_runtime_idle() operation.
- * @PINCTRL_STATE_SLEEP: the state the pinctrl handle shall be put into
- *      when the pins are sleeping. This is a state where the system is in
- *      its lowest sleep state. Could typically be set from an
- *      ordinary .suspend() function.
- */
-#define PINCTRL_STATE_DEFAULT "default"
-#define PINCTRL_STATE_IDLE "idle"
-#define PINCTRL_STATE_SLEEP "sleep"
-
-The way I currently use these in e.g.
-drivers/spi/spi-pl022 is:
-
-probe:
- -> default
-
-runtime_suspend:
- -> idle
-
-runtime_resume:
- -> default
-
-suspend:
- -> sleep
-
-resume:
-  -> default
-  -> idle
-
-Notice that we go to default then idle on probe and
-runtime resume. This is because the idle state is
-optional (as is the sleep state).
-
-So I guess if we should extend this terminology to match
-what you are using for the OMAP it would rather be like
-this:
-
-probe:
- -> default
-
-runtime_suspend:
- -> idle
-
-runtime_resume:
- -> default
- -> active
-
-suspend:
- -> sleep
-
-resume:
-  -> default
-  -> idle
-
-Just one more optional "active" state in runtime resume.
-Correct?
-
-If we can agree on this I will add the active state to the
-state table and add a container in the core for this as well
-as pinctrl_pm_select_active_state() so we can skip all the
-pointless boilerplate also in the OMAP drivers, plus increase
-the readability and portability quite a bit.
-
->> However in this case I *suspect* that what you really want
->> to do it to rename the state called "default" to "sleep"
->> (it appears the default state is sleepy) and then rename
->> the "active" state to "default" (as this is the defined semantic
->> meaning of "default" from <linux/pinctrl/pinctrl-state.h>.
->
-> The idle state above could also be called sleep instead of idle
-> if you prefer that.
-
-No I think we should reserve that name for the pin state
-associated with suspend(). Let's leave it like this.
-
-> I think the confusion is caused by the fact that we need three
-> mux groups, not just two :) The toggling between active and idle
-> is the hotpath as that can potentially happen for multiple drivers
-> every time we enter and exit idle.
-
-Actually we have the same thing, it's just that our "default"
-and "active" are the same thing. But it seems we need to
-add your granularity to this.
-
-Yours,
-Linus Walleij
