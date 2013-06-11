@@ -1,66 +1,87 @@
-From: Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
-Subject: Re: am335x: TSC & ADC reworking including DT pieces, take 4
-Date: Tue, 11 Jun 2013 19:01:21 +0200
-Message-ID: <51B757E1.2080205@metafoo.de>
-References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de> <20130611142358.GG29135@zurbaran> <20130611160415.GA379@core.coreip.homeip.net> <20130611161506.GK29135@zurbaran> <1565f2fb-7f16-4910-8fa2-cd5700e8986d@email.android.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH v2 0/6] move omap mailbox to drivers & minor fixes
+Date: Tue, 11 Jun 2013 12:03:23 -0500
+Message-ID: <1370970203-6634-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1565f2fb-7f16-4910-8fa2-cd5700e8986d-2ueSQiBKiTY7tOexoI0I+QC/G2K4zDHf@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:55317 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755651Ab3FKRJC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jun 2013 13:09:02 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Jassi Brar <jaswinder.singh@linaro.org>, Loic Pallardy <loic.pallardy@st.com>, Paul Walmsley <paul@pwsan.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 
-On 06/11/2013 06:27 PM, Jonathan Cameron wrote:
-> 
-> 
-> Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
-> 
->> Hi Dmitry,
->>
->> On Tue, Jun 11, 2013 at 09:04:16AM -0700, Dmitry Torokhov wrote:
->>> On Tue, Jun 11, 2013 at 04:23:58PM +0200, Samuel Ortiz wrote:
->>>> Hi Sebastian,
->>>>
->>>> On Tue, Jun 11, 2013 at 01:30:46PM +0200, Sebastian Andrzej Siewior
->> wrote:
->>>>> I believe the whole thing should go via the MFD tree. It touches
->> also
->>>>> input & iio subsystem. I collected ACKs where I got some in the
->> meantime.
->>>> Please fix your commit logs, and your subject lines. It should be
->> e.g.
->>>> mfd: input: ti_am335x_adc: Blablabla
->>>>
->>>> if it's mostly an mfd patch that also touches an input driver.
->>>>
->>>> Then, this is a pretty big patchset, with iio, input and mfd all
->> mixed
->>>> together and it is likely to create merge conflicts.
->>>> From what I can see from it, and please correct me if I'm
->>>> wrong, the iio and input changes depend on the mfd ones, and not
->> the
->>>> other way around. If that's so, I'm going to ask you to reshuffle
->> your
->>>> patch set and separate the MFD changes from the iio and input ones.
->> I'll
->>>> take the MFD ones and will create an immutable branch for Jonathan
->> and
->>>> Dmitry to pull from and apply the iio and input changes on top of
->> it.
->>>> Merge conflicts should be mostly avoided that way.
->>>
->>> I purposely left this driver alone as I expected it would be merged
->>> through MFD tree, so there should not be any merging issues on my
->> side.
->> Thanks for the notice.
->> Jonathan, can you guarantee the same for the iio parts ?
-> I have also been avoiding taking any of these and there are unlikely to be any iio wide changes merging at this stage in cycle.  Hence these going through MFD is best plan.
-> 
-> Lars raised a couple of issues so would be best to wait for his ack if he hasn't already looked at this revision.
+Hi,
 
-The IIO bits look fine to me in this version.
+This is an updated series addressing review comments from Russ Dill.
 
-- Lars
+Main changes in v2:
+===================
+- Dropped the patch "omap: mailbox: check for NULL nb in mailbox_put"
+- Removed the mailbox device attr data addition to OMAP4 hwmod files,
+  the hwmod cleanup of irqlines for 3.11 would cause the mailbox probe
+  to fail anyway when enabled. The data would have to be removed when
+  DT node for mailbox is added anyway, and there are no current active
+  users within the tree.
+- Other minor comments and patch description changes as per review
+  comments.
+
+I have tested this series on Panda 4 (using the removed OMAP4 hwmod
+changes on top of the series) and on Beagle-XM.
+
+v1:
+==
+The series moves the OMAP mailbox code to drivers/mailbox folder
+and includes other minor fixes. The OMAP mailbox code is disabled
+for couple of releases now because of multi-platform support,
+and the move enables the driver to be built again and be functional.
+
+These also serve as the base preparatory patches for adapting the
+OMAP mailbox code to the upcoming mailbox framework, and for
+device-tree conversion.
+
+http://marc.info/?l=linux-omap&m=137065697924665&w=2
+
+Suman Anna (6):
+  omap: mailbox: check iomem resource before dereferencing it
+  omap: mailbox: call request_irq after mbox queues are allocated
+  omap: mailbox: correct the argument type for irq ops
+  ARM: OMAP2+: mbox: remove dependencies with soc.h
+  ARM: OMAP2+: add user and fifo info to mailbox platform data
+  mailbox/omap: move the OMAP mailbox framework to drivers
+
+ arch/arm/configs/omap1_defconfig                   |   3 +-
+ arch/arm/mach-omap1/Makefile                       |   4 -
+ arch/arm/mach-omap2/Makefile                       |   3 -
+ arch/arm/mach-omap2/devices.c                      |  13 +-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  14 ++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  13 +
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  13 +
+ arch/arm/plat-omap/Kconfig                         |  16 --
+ arch/arm/plat-omap/Makefile                        |   3 -
+ drivers/mailbox/Kconfig                            |  34 +++
+ drivers/mailbox/Makefile                           |   6 +
+ .../mailbox.c => drivers/mailbox/mailbox-omap1.c   |  12 +-
+ .../mailbox.c => drivers/mailbox/mailbox-omap2.c   | 276 ++++++++-------------
+ .../mailbox.c => drivers/mailbox/omap-mailbox.c    |  54 +++-
+ .../plat/mailbox.h => drivers/mailbox/omap-mbox.h  |  70 ++----
+ drivers/remoteproc/Kconfig                         |   3 +-
+ drivers/remoteproc/omap_remoteproc.c               |   2 +-
+ drivers/staging/tidspbridge/Kconfig                |   3 +-
+ .../tidspbridge/include/dspbridge/host_os.h        |   2 +-
+ include/linux/omap-mailbox.h                       |  29 +++
+ include/linux/platform_data/mailbox-omap.h         |  58 +++++
+ 21 files changed, 355 insertions(+), 276 deletions(-)
+ rename arch/arm/mach-omap1/mailbox.c => drivers/mailbox/mailbox-omap1.c (94%)
+ rename arch/arm/mach-omap2/mailbox.c => drivers/mailbox/mailbox-omap2.c (59%)
+ rename arch/arm/plat-omap/mailbox.c => drivers/mailbox/omap-mailbox.c (92%)
+ rename arch/arm/plat-omap/include/plat/mailbox.h => drivers/mailbox/omap-mbox.h (54%)
+ create mode 100644 include/linux/omap-mailbox.h
+ create mode 100644 include/linux/platform_data/mailbox-omap.h
+
+-- 
+1.8.2
+
