@@ -1,63 +1,57 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 10/22] mfd/ti_am335x_tscadc: Add DT support
-Date: Tue, 11 Jun 2013 19:42:14 +0100
-Message-ID: <20130611184214.GB4320@laptop>
-References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
- <1370950268-7224-11-git-send-email-bigeasy@linutronix.de>
- <20130611142347.GF29135@zurbaran>
- <51B73756.5010004@linutronix.de>
- <20130611150505.GI29135@zurbaran>
- <51B74540.2020608@linutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <51B74540.2020608@linutronix.de>
-Sender: linux-input-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, "Patil, Rachna" <rachna@ti.com>, Pantelis Antoniou <panto@antoniou-consulting.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
+Date: Tue, 11 Jun 2013 22:25:49 +0100
+Message-ID: <20130611212550.03A823E0D8D@localhost>
+References: <1329321854-24490-1-git-send-email-b-cousson@ti.com> <515319D5.20105@wwwdotorg.org> <CACRpkdYXVLgCz1Tyu-Ls2V2OTc4R3cGNJhfQJB6Hiz_K9dkZYQ@mail.gmail.com> <5155C902.7080207@wwwdotorg.org> <CACRpkdYbs4-uudpRUY8e+7icYYkZrfM0kReP3pLL5DMiURJ4dg@mail.gmail.com> <5165CB9D.1090202@wwwdotorg.org> <CACRpkdYirFNqmGhA4K9CL4ve4NYhs8Rd3SFt1iwW9vHBkrcz8g@mail.gmail.com> <51671D7B.5060303@wwwdotorg.org> <CACRpkdbf32Ef77GmXk9id9+RRjcDRTr7S+F4nznoeZU8y=BT_Q@mail.gmail.com> <51673D70.3010503@wwwdotorg.org> <CAAwP0s0e2x33jZQhFRY+Hoo61SFqYKRgWk=1mL2+DNxSDJHz+A@mail.gmail.com> <CACRpkda4h+qXTvsirPAS7E7sjXhMLE62q=VDy53W8UchsYjbNg@mail.gmail.com> <516C31C3.9040505@wwwdotorg.org> <516C7C43.3040105@wwwdotorg.org> <516C8760.2050500@ti.com> <516D9B05.1000501@wwwdotorg.org> <516DA60A.5070000@ti.com> <516DCC
+ A8.3070108@wwwdotorg.org> <516DDB4D.9020500@ti.com> <CAAwP0s0-VNUoeSKaGbvoDeD7m7kZRdp5rCJ7iVpFoFAaQtXcmQ@mail.gmail.com> <CACRpkdaA_7Feuui-S65m--2FfvpoUkfn6b9SoWavAstZUS23ag@mail.gmail.com> <517AF22
+ C.9090901@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:38772 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754379Ab3FKVZz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jun 2013 17:25:55 -0400
+Received: by mail-wi0-f174.google.com with SMTP id k10so4470924wiv.13
+        for <linux-omap@vger.kernel.org>; Tue, 11 Jun 2013 14:25:54 -0700 (PDT)
+In-Reply-To: <517AF22C.9090901@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>, Linus Walleij <linus.walleij@linaro.org>
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Stephen Warren <swarren@wwwdotorg.org>, Alexandre Courbot <acourbot@nvidia.com>, Stephen Warren <swarren@nvidia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, 11 Jun 2013, Sebastian Andrzej Siewior wrote:
+On Fri, 26 Apr 2013 16:31:24 -0500, Jon Hunter <jon-hunter@ti.com> wrote:
+> 
+> On 04/26/2013 02:31 AM, Linus Walleij wrote:
+> > On Wed, Apr 17, 2013 at 2:41 AM, Javier Martinez Canillas
+> > <martinez.javier@gmail.com> wrote:
+> > 
+> > So:
+> > 
+> >> +static int omap_gpio_irq_domain_xlate(struct irq_domain *d,
+> >> +                                     struct device_node *ctrlr,
+> >> +                                     const u32 *intspec, unsigned int intsize,
+> >> +                                     irq_hw_number_t *out_hwirq,
+> >> +                                     unsigned int *out_type)
+> >> +{
+> >> +       int ret;
+> >> +       struct gpio_bank *bank = d->host_data;
+> >> +       int gpio = bank->chip.base + intspec[0];
+> >> +
+> >> +       if (WARN_ON(intsize < 2))
+> >> +               return -EINVAL;
+> >> +
+> >> +       ret = gpio_request_one(gpio, GPIOF_IN, ctrlr->full_name);
+> >> +       if (ret)
+> >> +               return ret;
+> > 
+> > So how to figure out if a device is already requesting this GPIO
+> > on some orthogonal axis?
+> 
+> I really don't think that is necessary. Hopefully, my other email [1]
+> elaborates on why. Let me know if this makes sense.
 
-> On 06/11/2013 05:05 PM, Samuel Ortiz wrote:
-> > Hi Sebastian,
->=20
-> Hi Samuel,
->=20
-> > On Tue, Jun 11, 2013 at 04:42:30PM +0200, Sebastian Andrzej Siewior=
- wrote:
-> >> In the end I would like not to post a patch with "From: !=3D me" a=
-nd
-> >> don't make change which the original author did not do. Also dropp=
-ing
-> >> their authorship isn't nice. What could we agree on?
-> > You probably don't want to change authorship unless the final patch=
- is
-> > really far from the original one. In which case you can change it a=
-nd
-> > mention the original author name in the commit log.
-> > If you have only made a few changes on top of the original patch, p=
-lease
-> > say so explicitely in the commit log. Don't bother if we're talking
-> > about small changes or cosmetic ones. But your commit log has to be
-> > readable and clear.
->=20
-> Commit 06c9494 on of many examples where cosmetic are recorded. But t=
-o
-> make some progress I rewrite the commit log to resolve this and don't
-> add anything to the sign-off area.
+I would agree here. If the irq specified happens to be a GPIO; then the
+onus is on the GPIO/IRQ controller driver to make sure that GPIO is
+actually set up to work as an IRQ.
 
-If you are submitting the patch, you still have to add your own SOB.
+g.
 
---=20
-Lee Jones
-Linaro ST-Ericsson Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
