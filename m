@@ -1,58 +1,53 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: [PATCH 17/22] mfd & iio/ti_am335x_adc: rename device from tiadc to TI-am335x-adc
-Date: Tue, 11 Jun 2013 13:31:03 +0200
-Message-ID: <1370950268-7224-18-git-send-email-bigeasy@linutronix.de>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH 22/22] iio/ti_am335x_adc: check if we found the value
+Date: Tue, 11 Jun 2013 13:31:08 +0200
+Message-ID: <1370950268-7224-23-git-send-email-bigeasy@linutronix.de>
 References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1370950268-7224-1-git-send-email-bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-TI-adc reads a little better compared to tiadc. And if we add am335x to
-it then we have the same naming scheme as the tsc side.
+Usually we get all the values we wanted but it is possible, that te ADC
+unit is busy performing the conversation for the HW events. In that case
+-EBUSY is returned and the user may re-call the function.
 
-Acked-by: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Acked-by: Jonathan Cameron <jic23@kernel.org>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/iio/adc/ti_am335x_adc.c |    3 +--
- drivers/mfd/ti_am335x_tscadc.c  |    2 +-
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/iio/adc/ti_am335x_adc.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
-index 9939810..4bec91e 100644
+index 8ffe52d..4427e8e 100644
 --- a/drivers/iio/adc/ti_am335x_adc.c
 +++ b/drivers/iio/adc/ti_am335x_adc.c
-@@ -292,7 +292,7 @@ MODULE_DEVICE_TABLE(of, ti_adc_dt_ids);
+@@ -145,6 +145,7 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+ 	int i;
+ 	unsigned int fifo1count, read;
+ 	u32 step = UINT_MAX;
++	bool found = false;
  
- static struct platform_driver tiadc_driver = {
- 	.driver = {
--		.name   = "tiadc",
-+		.name   = "TI-am335x-adc",
- 		.owner	= THIS_MODULE,
- 		.pm	= TIADC_PM_OPS,
- 		.of_match_table = of_match_ptr(ti_adc_dt_ids),
-@@ -300,7 +300,6 @@ static struct platform_driver tiadc_driver = {
- 	.probe	= tiadc_probe,
- 	.remove	= tiadc_remove,
- };
+ 	/*
+ 	 * When the sub-system is first enabled,
+@@ -169,11 +170,14 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+ 	fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
+ 	for (i = 0; i < fifo1count; i++) {
+ 		read = tiadc_readl(adc_dev, REG_FIFO1);
+-		if (read >> 16 == step)
++		if (read >> 16 == step) {
+ 			*val = read & 0xfff;
++			found = true;
++		}
+ 	}
+ 	am335x_tsc_se_update(adc_dev->mfd_tscadc);
 -
- module_platform_driver(tiadc_driver);
++	if (found == false)
++		return -EBUSY;
+ 	return IIO_VAL_INT;
+ }
  
- MODULE_DESCRIPTION("TI ADC controller driver");
-diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index bf33134..d3f48d2 100644
---- a/drivers/mfd/ti_am335x_tscadc.c
-+++ b/drivers/mfd/ti_am335x_tscadc.c
-@@ -204,7 +204,7 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
- 	if (adc_channels > 0) {
- 		tscadc->adc_cell = tscadc->used_cells;
- 		cell = &tscadc->cells[tscadc->used_cells++];
--		cell->name = "tiadc";
-+		cell->name = "TI-am335x-adc";
- 		cell->of_compatible = "ti,am3359-adc";
- 		cell->platform_data = &tscadc;
- 		cell->pdata_size = sizeof(tscadc);
 -- 
 1.7.10.4
