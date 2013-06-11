@@ -1,7 +1,7 @@
 From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [net PATCH 2/2] drivers: net: davinci_mdio: restore mdio clk divider in mdio resume
-Date: Tue, 11 Jun 2013 15:32:05 +0530
-Message-ID: <1370944925-11374-3-git-send-email-mugunthanvnm@ti.com>
+Subject: [net PATCH 1/2] drivers: net: davinci_mdio: moving mdio resume earlier than cpsw ethernet driver
+Date: Tue, 11 Jun 2013 15:32:04 +0530
+Message-ID: <1370944925-11374-2-git-send-email-mugunthanvnm@ti.com>
 References: <1370944925-11374-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,35 +12,29 @@ To: netdev@vger.kernel.org
 Cc: davem@davemloft.net, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-During suspend resume cycle all the register data is lost, so MDIO
-clock divier value gets reset. This patch restores the clock divider
-value.
+MDIO driver should resume before CPSW ethernet driver so that CPSW connect
+to the phy and start tx/rx ethernet packets, changing the suspend/resume
+apis with suspend_late/resume_early.
 
 Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 ---
- drivers/net/ethernet/ti/davinci_mdio.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/net/ethernet/ti/davinci_mdio.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
-index 74e56b3..c47f0db 100644
+index b2275d1..74e56b3 100644
 --- a/drivers/net/ethernet/ti/davinci_mdio.c
 +++ b/drivers/net/ethernet/ti/davinci_mdio.c
-@@ -459,15 +459,12 @@ static int davinci_mdio_suspend(struct device *dev)
- static int davinci_mdio_resume(struct device *dev)
- {
- 	struct davinci_mdio_data *data = dev_get_drvdata(dev);
--	u32 ctrl;
+@@ -476,8 +476,8 @@ static int davinci_mdio_resume(struct device *dev)
+ }
  
- 	pm_runtime_get_sync(data->dev);
+ static const struct dev_pm_ops davinci_mdio_pm_ops = {
+-	.suspend	= davinci_mdio_suspend,
+-	.resume		= davinci_mdio_resume,
++	.suspend_late	= davinci_mdio_suspend,
++	.resume_early	= davinci_mdio_resume,
+ };
  
- 	spin_lock(&data->lock);
- 	/* restart the scan state machine */
--	ctrl = __raw_readl(&data->regs->control);
--	ctrl |= CONTROL_ENABLE;
--	__raw_writel(ctrl, &data->regs->control);
-+	__davinci_mdio_reset(data);
- 
- 	data->suspended = false;
- 	spin_unlock(&data->lock);
+ static const struct of_device_id davinci_mdio_of_mtable[] = {
 -- 
 1.7.9.5
