@@ -1,59 +1,242 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v3] ARM: DTS: TWL4030: fix mux and wakeup for SYS_NIRQ
- line
-Date: Tue, 11 Jun 2013 13:33:28 +0200
-Message-ID: <51B70B08.9030208@ti.com>
-References: <1370040357-25794-1-git-send-email-khilman@linaro.org> <1370629886-14170-1-git-send-email-khilman@linaro.org> <20130607193130.GA13205@kahuna> <51B59AC3.2080900@ti.com> <87fvwpex6k.fsf@linaro.org>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: =?UTF-8?q?=5BPATCH=2003/22=5D=20input/ti=5Fam33x=5Ftsc=3A=20Step=20enable=20bits=20made=20configurable?=
+Date: Tue, 11 Jun 2013 13:30:49 +0200
+Message-ID: <1370950268-7224-4-git-send-email-bigeasy@linutronix.de>
+References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36851 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754666Ab3FKLd5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jun 2013 07:33:57 -0400
-In-Reply-To: <87fvwpex6k.fsf@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, "Patil, Rachna" <rachna@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-On 6/10/2013 6:40 PM, Kevin Hilman wrote:
-> Benoit Cousson <b-cousson@ti.com> writes:
->
->> Hi Kevin,
->>
->> On 06/07/2013 09:31 PM, Nishanth Menon wrote:
->>> On 11:31-20130607, Kevin Hilman wrote:
->>>> On most OMAP3 platforms, the twl4030 IRQ line is connected to the
->>>> SYS_NIRQ line on OMAP.  Add another DTS include file
->>>> (twl4030_omap3.dtsi) for boards that hook up the twl4030 this way
->>>> to include.
->>>>
->>>> This allows RTC wake from off-mode to work again on OMAP3-based
->>>> platforms with twl4030.  Tested on 3530/Beagle, 3730/Beagle-xM,
->>>> 3530/Overo, 3730/Overo-STORM.
->>>>
->>>> Special thanks to Florian Vaussard for suggesting use of preprocessor
->>>> feature.
->>>>
->>>> Cc: Florian Vaussard <florian.vaussard@epfl.ch>
->>>> Cc: Benoit Cousson <b-cousson@ti.com>
->>>> Cc: Nishanth Menon <nm@ti.com>
->>>> Signed-off-by: Kevin Hilman <khilman@linaro.org>
->>> Thanks,
->>> Reviewed-by: Nishanth Menon <nm@ti.com>
->>
->> Thanks, I've just applied it in for_3.11/dts.
->
-> Thanks,
->
-> Will you apply the first 2 from the series too?
->
->    ARM: DTS: OMAP3: beagle/overo: mux console UART, enable wakeup
->    ARM: DTS: OMAP3: beagle: enable user button via gpio_keys, enable wakeup
+=46rom: "Patil, Rachna" <rachna@ti.com>
 
-Thanks for the reminder, I kind of forgot these ones :-)
+Current code has hard coded value written to
+step enable bits. Now the bits are updated based
+on how many steps are needed to be configured got
+from platform data.
 
-Benoit
+The user needs to take care not to exceed
+the count more than 16. While using ADC and TSC
+one should take care to set this parameter correctly.
 
+Signed-off-by: Patil, Rachna <rachna@ti.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+[bigeasy: add lock, move to MFD, use in TSC & ADC]
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/iio/adc/ti_am335x_adc.c           |   20 ++++++++++++++++++--
+ drivers/input/touchscreen/ti_am335x_tsc.c |   12 ++++++++++--
+ drivers/mfd/ti_am335x_tscadc.c            |   29 +++++++++++++++++++++=
++++++++-
+ include/linux/mfd/ti_am335x_tscadc.h      |    8 ++++++--
+ 4 files changed, 62 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335=
+x_adc.c
+index 9db352e..543b9c4 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -42,10 +42,20 @@ static void tiadc_writel(struct tiadc_device *adc, =
+unsigned int reg,
+ 	writel(val, adc->mfd_tscadc->tscadc_base + reg);
+ }
+=20
++static u32 get_adc_step_mask(struct tiadc_device *adc_dev)
++{
++	u32 step_en;
++
++	step_en =3D ((1 << adc_dev->channels) - 1);
++	step_en <<=3D TOTAL_STEPS - adc_dev->channels + 1;
++	return step_en;
++}
++
+ static void tiadc_step_config(struct tiadc_device *adc_dev)
+ {
+ 	unsigned int stepconfig;
+ 	int i, channels =3D 0, steps;
++	u32 step_en;
+=20
+ 	/*
+ 	 * There are 16 configurable steps and 8 analog input
+@@ -69,7 +79,8 @@ static void tiadc_step_config(struct tiadc_device *ad=
+c_dev)
+ 				STEPCONFIG_OPENDLY);
+ 		channels++;
+ 	}
+-	tiadc_writel(adc_dev, REG_SE, STPENB_STEPENB);
++	step_en =3D get_adc_step_mask(adc_dev);
++	am335x_tsc_se_set(adc_dev->mfd_tscadc, step_en);
+ }
+=20
+ static int tiadc_channel_init(struct iio_dev *indio_dev, int channels)
+@@ -127,7 +138,7 @@ static int tiadc_read_raw(struct iio_dev *indio_dev=
+,
+ 		if (i =3D=3D chan->channel)
+ 			*val =3D readx1 & 0xfff;
+ 	}
+-	tiadc_writel(adc_dev, REG_SE, STPENB_STEPENB);
++	am335x_tsc_se_update(adc_dev->mfd_tscadc);
+=20
+ 	return IIO_VAL_INT;
+ }
+@@ -191,10 +202,15 @@ static int tiadc_probe(struct platform_device *pd=
+ev)
+ static int tiadc_remove(struct platform_device *pdev)
+ {
+ 	struct iio_dev *indio_dev =3D platform_get_drvdata(pdev);
++	struct tiadc_device *adc_dev =3D iio_priv(indio_dev);
++	u32 step_en;
+=20
+ 	iio_device_unregister(indio_dev);
+ 	tiadc_channels_remove(indio_dev);
+=20
++	step_en =3D get_adc_step_mask(adc_dev);
++	am335x_tsc_se_clr(adc_dev->mfd_tscadc, step_en);
++
+ 	iio_device_free(indio_dev);
+=20
+ 	return 0;
+diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/=
+touchscreen/ti_am335x_tsc.c
+index 16077d3..23d6a4d 100644
+--- a/drivers/input/touchscreen/ti_am335x_tsc.c
++++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+@@ -57,6 +57,7 @@ static void titsc_writel(struct titsc *tsc, unsigned =
+int reg,
+ static void titsc_step_config(struct titsc *ts_dev)
+ {
+ 	unsigned int	config;
++	unsigned int	stepenable =3D 0;
+ 	int i, total_steps;
+=20
+ 	/* Configure the Step registers */
+@@ -128,7 +129,9 @@ static void titsc_step_config(struct titsc *ts_dev)
+ 	titsc_writel(ts_dev, REG_STEPDELAY(total_steps + 2),
+ 			STEPCONFIG_OPENDLY);
+=20
+-	titsc_writel(ts_dev, REG_SE, STPENB_STEPENB_TC);
++	/* The steps1 =E2=80=A6 end and bit 0 for TS_Charge */
++	stepenable =3D (1 << (total_steps + 2)) - 1;
++	am335x_tsc_se_set(ts_dev->mfd_tscadc, stepenable);
+ }
+=20
+ static void titsc_read_coordinates(struct titsc *ts_dev,
+@@ -250,7 +253,7 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+=20
+ 	titsc_writel(ts_dev, REG_IRQSTATUS, irqclr);
+=20
+-	titsc_writel(ts_dev, REG_SE, STPENB_STEPENB_TC);
++	am335x_tsc_se_update(ts_dev->mfd_tscadc);
+ 	return IRQ_HANDLED;
+ }
+=20
+@@ -334,6 +337,11 @@ static int titsc_remove(struct platform_device *pd=
+ev)
+=20
+ 	free_irq(ts_dev->irq, ts_dev);
+=20
++	/* total steps followed by the enable mask */
++	steps =3D 2 * ts_dev->steps_to_configure + 2;
++	steps =3D (1 << steps) - 1;
++	am335x_tsc_se_clr(ts_dev->mfd_tscadc, steps);
++
+ 	input_unregister_device(ts_dev->input);
+=20
+ 	platform_set_drvdata(pdev, NULL);
+diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tsc=
+adc.c
+index 490b2bd..7b091c4 100644
+--- a/drivers/mfd/ti_am335x_tscadc.c
++++ b/drivers/mfd/ti_am335x_tscadc.c
+@@ -37,6 +37,32 @@ static void tscadc_writel(struct ti_tscadc_dev *tsad=
+c, unsigned int reg,
+ 	writel(val, tsadc->tscadc_base + reg);
+ }
+=20
++void am335x_tsc_se_update(struct ti_tscadc_dev *tsadc)
++{
++	tscadc_writel(tsadc, REG_SE, tsadc->reg_se_cache);
++}
++EXPORT_SYMBOL_GPL(am335x_tsc_se_update);
++
++void am335x_tsc_se_set(struct ti_tscadc_dev *tsadc, u32 val)
++{
++	spin_lock(&tsadc->reg_lock);
++	tsadc->reg_se_cache |=3D val;
++	spin_unlock(&tsadc->reg_lock);
++
++	am335x_tsc_se_update(tsadc);
++}
++EXPORT_SYMBOL_GPL(am335x_tsc_se_set);
++
++void am335x_tsc_se_clr(struct ti_tscadc_dev *tsadc, u32 val)
++{
++	spin_lock(&tsadc->reg_lock);
++	tsadc->reg_se_cache &=3D ~val;
++	spin_unlock(&tsadc->reg_lock);
++
++	am335x_tsc_se_update(tsadc);
++}
++EXPORT_SYMBOL_GPL(am335x_tsc_se_clr);
++
+ static void tscadc_idle_config(struct ti_tscadc_dev *config)
+ {
+ 	unsigned int idleconfig;
+@@ -110,6 +136,7 @@ static	int ti_tscadc_probe(struct platform_device *=
+pdev)
+ 		return -ENOMEM;
+ 	}
+=20
++	spin_lock_init(&tscadc->reg_lock);
+ 	pm_runtime_enable(&pdev->dev);
+ 	pm_runtime_get_sync(&pdev->dev);
+=20
+@@ -220,7 +247,7 @@ static int tscadc_resume(struct device *dev)
+ 			CNTRLREG_STEPID | CNTRLREG_4WIRE;
+ 	tscadc_writel(tscadc_dev, REG_CTRL, ctrl);
+ 	tscadc_idle_config(tscadc_dev);
+-	tscadc_writel(tscadc_dev, REG_SE, STPENB_STEPENB);
++	am335x_tsc_se_update(tscadc_dev);
+ 	restore =3D tscadc_readl(tscadc_dev, REG_CTRL);
+ 	tscadc_writel(tscadc_dev, REG_CTRL,
+ 			(restore | CNTRLREG_TSCSSENB));
+diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/t=
+i_am335x_tscadc.h
+index 5e430fe..eeead15 100644
+--- a/include/linux/mfd/ti_am335x_tscadc.h
++++ b/include/linux/mfd/ti_am335x_tscadc.h
+@@ -46,8 +46,6 @@
+ /* Step Enable */
+ #define STEPENB_MASK		(0x1FFFF << 0)
+ #define STEPENB(val)		((val) << 0)
+-#define STPENB_STEPENB		STEPENB(0x1FFFF)
+-#define STPENB_STEPENB_TC	STEPENB(0x1FFF)
+=20
+ /* IRQ enable */
+ #define IRQENB_HW_PEN		BIT(0)
+@@ -140,6 +138,8 @@ struct ti_tscadc_dev {
+ 	void __iomem *tscadc_base;
+ 	int irq;
+ 	struct mfd_cell cells[TSCADC_CELLS];
++	u32 reg_se_cache;
++	spinlock_t reg_lock;
+=20
+ 	/* tsc device */
+ 	struct titsc *tsc;
+@@ -155,4 +155,8 @@ static inline struct ti_tscadc_dev *ti_tscadc_dev_g=
+et(struct platform_device *p)
+ 	return *tscadc_dev;
+ }
+=20
++void am335x_tsc_se_update(struct ti_tscadc_dev *tsadc);
++void am335x_tsc_se_set(struct ti_tscadc_dev *tsadc, u32 val);
++void am335x_tsc_se_clr(struct ti_tscadc_dev *tsadc, u32 val);
++
+ #endif
+--=20
+1.7.10.4
