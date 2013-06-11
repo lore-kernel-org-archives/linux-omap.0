@@ -1,146 +1,91 @@
 From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: Re: [PATCH 3/3] ARM: dts: OMAP3: Use MTD constants for OMAP3 boards
-Date: Tue, 11 Jun 2013 17:29:43 +0200
-Message-ID: <51B74267.1000700@collabora.co.uk>
-References: <1370962138-9631-1-git-send-email-florian.vaussard@epfl.ch> <1370962138-9631-4-git-send-email-florian.vaussard@epfl.ch>
+Subject: Re: [PATCH 2/4] ARM: dts: omap3-tobi: Add SMSC911X node
+Date: Tue, 11 Jun 2013 17:35:21 +0200
+Message-ID: <51B743B9.3070809@collabora.co.uk>
+References: <1370962189-9689-1-git-send-email-florian.vaussard@epfl.ch> <1370962189-9689-3-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:43852 "EHLO
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:43878 "EHLO
 	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754692Ab3FKP3r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jun 2013 11:29:47 -0400
-In-Reply-To: <1370962138-9631-4-git-send-email-florian.vaussard@epfl.ch>
+	with ESMTP id S1754452Ab3FKPfY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jun 2013 11:35:24 -0400
+In-Reply-To: <1370962189-9689-3-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Florian Vaussard <florian.vaussard@epfl.ch>
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, Anil Kumar <anilk4.v@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-On 06/11/2013 04:48 PM, Florian Vaussard wrote:
-> Use the MTD constants for NAND and OneNAND nodes used in OMAP3
-> DTS.
+On 06/11/2013 04:49 PM, Florian Vaussard wrote:
+> The Tobi expansion boards embeds a SMSC LAN8700 PHY. Add the
+> corresponding node into the DT. The regulators are not designed
+> to be turned off.
 > 
 > Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
 > ---
->  arch/arm/boot/dts/omap3-devkit8000.dts |   10 +++++-----
->  arch/arm/boot/dts/omap3-igep0020.dts   |   10 +++++-----
->  arch/arm/boot/dts/omap3-igep0030.dts   |   10 +++++-----
->  arch/arm/boot/dts/omap3430-sdp.dts     |   28 ++++++++++++++--------------
->  4 files changed, 29 insertions(+), 29 deletions(-)
+>  arch/arm/boot/dts/omap3-tobi.dts |   48 ++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 48 insertions(+), 0 deletions(-)
 > 
-> diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/omap3-devkit8000.dts
-> index 5be71b1..08699cb 100644
-> --- a/arch/arm/boot/dts/omap3-devkit8000.dts
-> +++ b/arch/arm/boot/dts/omap3-devkit8000.dts
-> @@ -143,27 +143,27 @@
->  
->  		x-loader@0 {
->  			label = "X-Loader";
-> -			reg = <0 0x80000>;
-> +			reg = <(0 * SZ_128K) (4 * SZ_128K)>;
->  		};
->  
->  		bootloaders@80000 {
->  			label = "U-Boot";
-> -			reg = <0x80000 0x1e0000>;
-> +			reg = <(4 * SZ_128K) (15 * SZ_128K)>;
->  		};
->  
->  		bootloaders_env@260000 {
->  			label = "U-Boot Env";
-> -			reg = <0x260000 0x20000>;
-> +			reg = <(19 * SZ_128K) (1 * SZ_128K)>;
->  		};
->  
->  		kernel@280000 {
->  			label = "Kernel";
-> -			reg = <0x280000 0x400000>;
-> +			reg = <(20 * SZ_128K) (32 * SZ_128K)>;
->  		};
->  
->  		filesystem@680000 {
->  			label = "File System";
-> -			reg = <0x680000 0xf980000>;
-> +			reg = <(52 * SZ_128K) MTDPART_SIZ_FULL>;
+> diff --git a/arch/arm/boot/dts/omap3-tobi.dts b/arch/arm/boot/dts/omap3-tobi.dts
+> index c7eebbf..dea726f 100644
+> --- a/arch/arm/boot/dts/omap3-tobi.dts
+> +++ b/arch/arm/boot/dts/omap3-tobi.dts
+> @@ -24,6 +24,54 @@
+>  			linux,default-trigger = "heartbeat";
 >  		};
 >  	};
+> +
+> +	vddvario: regulator-vddvario {
+> +		  compatible = "regulator-fixed";
+> +		  regulator-name = "vddvario";
+> +		  regulator-always-on;
+> +	};
+> +
+> +	vdd33a: regulator-vdd33a {
+> +		compatible = "regulator-fixed";
+> +		regulator-name = "vdd33a";
+> +		regulator-always-on;
+> +	};
+> +};
+> +
+> +&gpmc {
+> +	ranges = <5 0 0x2c000000 0x1000000>;	/* CS5 */
+> +
+> +	ethernet@5,0 {
+> +		compatible = "smsc,lan9221", "smsc,lan9115";
+> +		reg = <5 0 0xff>;
+> +		bank-width = <2>;
+> +
+> +		gpmc,mux-add-data;
+> +		gpmc,cs-on-ns = <0>;
+> +		gpmc,cs-rd-off-ns = <42>;
+> +		gpmc,cs-wr-off-ns = <36>;
+> +		gpmc,adv-on-ns = <6>;
+> +		gpmc,adv-rd-off-ns = <12>;
+> +		gpmc,adv-wr-off-ns = <12>;
+> +		gpmc,oe-on-ns = <0>;
+> +		gpmc,oe-off-ns = <42>;
+> +		gpmc,we-on-ns = <0>;
+> +		gpmc,we-off-ns = <36>;
+> +		gpmc,rd-cycle-ns = <60>;
+> +		gpmc,wr-cycle-ns = <54>;
+> +		gpmc,access-ns = <36>;
+> +		gpmc,page-burst-access-ns = <0>;
+> +		gpmc,bus-turnaround-ns = <0>;
+> +		gpmc,cycle2cycle-delay-ns = <0>;
+> +		gpmc,wr-data-mux-bus-ns = <18>;
+> +		gpmc,wr-access-ns = <42>;
+> +		gpmc,cycle2cycle-samecsen;
+> +		gpmc,cycle2cycle-diffcsen;
+> +
+> +		interrupt-parent = <&gpio6>;
+> +		interrupts = <16 IRQ_TYPE_LEVEL_LOW>;	/* GPIO 176*/
+> +		reg-io-width = <4>;
+> +	};
 >  };
-> diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
-> index e8c4828..3476b3c 100644
-> --- a/arch/arm/boot/dts/omap3-igep0020.dts
-> +++ b/arch/arm/boot/dts/omap3-igep0020.dts
-> @@ -97,23 +97,23 @@
 >  
->  		partition@0 {
->  			label = "SPL";
-> -			reg = <0 0x100000>;
-> +			reg = <(0 * SZ_256K) (4 * SZ_256K)>;
->  		};
->  		partition@0x80000 {
->  			label = "U-Boot";
-> -			reg = <0x100000 0x180000>;
-> +			reg = <(4 * SZ_256K) (6 * SZ_256K)>;
->  		};
->  		partition@0x1c0000 {
->  			label = "Environment";
-> -			reg = <0x280000 0x100000>;
-> +			reg = <(10 * SZ_256K) (4 * SZ_256K)>;
->  		};
->  		partition@0x280000 {
->  			label = "Kernel";
-> -			reg = <0x380000 0x300000>;
-> +			reg = <(14 * SZ_256K) (12 * SZ_256K)>;
->  		};
->  		partition@0x780000 {
->  			label = "Filesystem";
-> -			reg = <0x680000 0x1f980000>;
-> +			reg = <(26 * SZ_256K) MTDPART_SIZ_FULL>;
->  		};
->  	};
->  
-> diff --git a/arch/arm/boot/dts/omap3-igep0030.dts b/arch/arm/boot/dts/omap3-igep0030.dts
-> index 644d053..e4f078c 100644
-> --- a/arch/arm/boot/dts/omap3-igep0030.dts
-> +++ b/arch/arm/boot/dts/omap3-igep0030.dts
-> @@ -72,23 +72,23 @@
->  
->  		partition@0 {
->  			label = "SPL";
-> -			reg = <0 0x100000>;
-> +			reg = <(0 * SZ_256K) (4 * SZ_256K)>;
->  		};
->  		partition@0x80000 {
->  			label = "U-Boot";
-> -			reg = <0x100000 0x180000>;
-> +			reg = <(4 * SZ_256K) (6 * SZ_256K)>;
->  		};
->  		partition@0x1c0000 {
->  			label = "Environment";
-> -			reg = <0x280000 0x100000>;
-> +			reg = <(10 * SZ_256K) (4 * SZ_256K)>;
->  		};
->  		partition@0x280000 {
->  			label = "Kernel";
-> -			reg = <0x380000 0x300000>;
-> +			reg = <(14 * SZ_256K) (12 * SZ_256K)>;
->  		};
->  		partition@0x780000 {
->  			label = "Filesystem";
-> -			reg = <0x680000 0x1f980000>;
-> +			reg = <(26 * SZ_256K) MTDPART_SIZ_FULL>;
->  		};
->  	};
->  };
+>  &i2c3 {
+> 
 
-Hi Florian,
-
-I don't have access to my IGEP board so I can test it right now but the patch
-looks good to me.
-
-In fact I wanted to use MTDPART_SIZ_FULL when added the NAND nodes since not all
-IGEP boards have 512MB flash but I didn't know that a value of 0 meant that.
-
-So thanks a lot for doing this!
-
-Acked-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Reviewed-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
