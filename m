@@ -1,111 +1,51 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH v2 3/6] omap: mailbox: correct the argument type for irq ops
-Date: Tue, 11 Jun 2013 12:03:51 -0500
-Message-ID: <1370970231-6743-1-git-send-email-s-anna@ti.com>
+From: Illia Smyrnov <illia.smyrnov@ti.com>
+Subject: [PATCH v2 0/2] spi: omap2-mcspi: add FIFO buffer support
+Date: Tue, 11 Jun 2013 20:09:13 +0300
+Message-ID: <1370970556-11713-1-git-send-email-illia.smyrnov@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52200 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48184 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755678Ab3FKRJX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Jun 2013 13:09:23 -0400
+	id S1755685Ab3FKRJd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Jun 2013 13:09:33 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Jassi Brar <jaswinder.singh@linaro.org>, Loic Pallardy <loic.pallardy@st.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
+To: Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Mark Brown <broonie@kernel.org>
+Cc: Illia Smyrnov <illia.smyrnov@ti.com>, Daniel Mack <zonque@gmail.com>, Matthias Brugger <matthias.bgg@gmail.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org
 
-The argument type used in the actual individual omap_mbox_ops
-for irqs should be omap_mbox_irq_t instead of omap_mbox_type_t.
+These patches introduce FIFO support for TI OMAP4/OMAP5 MCSPI controller.
+Using FIFO unload the DMA and improve data throughput. On Blaze (OMAP 4460) 
+ethernet throughput with MTU 1500 was increased:
+* for TX from 6.9476 Mbps (FIFO disabled) to 7.7982 Mbps (FIFO enabled),
+* for RX from 6.5120 Mbps (FIFO disabled) to 7.5461 Mbps (FIFO enabled).
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- arch/arm/mach-omap1/mailbox.c |  6 +++---
- arch/arm/mach-omap2/mailbox.c | 15 ++++-----------
- 2 files changed, 7 insertions(+), 14 deletions(-)
+The FIFO sanity test on OMAP5 Panda board also has been done. 
 
-diff --git a/arch/arm/mach-omap1/mailbox.c b/arch/arm/mach-omap1/mailbox.c
-index a343d5f..7246a52 100644
---- a/arch/arm/mach-omap1/mailbox.c
-+++ b/arch/arm/mach-omap1/mailbox.c
-@@ -86,21 +86,21 @@ static int omap1_mbox_fifo_full(struct omap_mbox *mbox)
- 
- /* irq */
- static void
--omap1_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_type_t irq)
-+omap1_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
- {
- 	if (irq == IRQ_RX)
- 		enable_irq(mbox->irq);
- }
- 
- static void
--omap1_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_type_t irq)
-+omap1_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
- {
- 	if (irq == IRQ_RX)
- 		disable_irq(mbox->irq);
- }
- 
- static int
--omap1_mbox_is_irq(struct omap_mbox *mbox, omap_mbox_type_t irq)
-+omap1_mbox_is_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
- {
- 	if (irq == IRQ_TX)
- 		return 0;
-diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index 9fe0bf2..b01aae6 100644
---- a/arch/arm/mach-omap2/mailbox.c
-+++ b/arch/arm/mach-omap2/mailbox.c
-@@ -61,9 +61,6 @@ struct omap_mbox2_priv {
- 	unsigned long irqdisable;
- };
- 
--static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
--				  omap_mbox_type_t irq);
--
- static inline unsigned int mbox_read_reg(size_t ofs)
- {
- 	return __raw_readl(mbox_base + ofs);
-@@ -124,8 +121,7 @@ static int omap2_mbox_fifo_full(struct omap_mbox *mbox)
- }
- 
- /* Mailbox IRQ handle functions */
--static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
--		omap_mbox_type_t irq)
-+static void omap2_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
- {
- 	struct omap_mbox2_priv *p = mbox->priv;
- 	u32 l, bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
-@@ -135,8 +131,7 @@ static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
- 	mbox_write_reg(l, p->irqenable);
- }
- 
--static void omap2_mbox_disable_irq(struct omap_mbox *mbox,
--		omap_mbox_type_t irq)
-+static void omap2_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
- {
- 	struct omap_mbox2_priv *p = mbox->priv;
- 	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
-@@ -147,8 +142,7 @@ static void omap2_mbox_disable_irq(struct omap_mbox *mbox,
- 	mbox_write_reg(bit, p->irqdisable);
- }
- 
--static void omap2_mbox_ack_irq(struct omap_mbox *mbox,
--		omap_mbox_type_t irq)
-+static void omap2_mbox_ack_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
- {
- 	struct omap_mbox2_priv *p = mbox->priv;
- 	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
-@@ -159,8 +153,7 @@ static void omap2_mbox_ack_irq(struct omap_mbox *mbox,
- 	mbox_read_reg(p->irqstatus);
- }
- 
--static int omap2_mbox_is_irq(struct omap_mbox *mbox,
--		omap_mbox_type_t irq)
-+static int omap2_mbox_is_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
- {
- 	struct omap_mbox2_priv *p = mbox->priv;
- 	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
--- 
-1.8.2
+The FIFO could be enabled for MCSPI by "ti,spi-fifo-enabled" in DT. If enabled,
+driver will calculate the largest possible FIFO buffer size taking into account
+MCSPI FIFO constraints for each SPI transfer.
+
+The MCSPI FIFO constraints are:
+* FIFO depth size defined as a multiple of the SPI word length;
+* transfer's data size is a multiple of FIFO depth;
+* transfer's words count less or equal 65535.
+
+Also FIFO buffer with 1 byte size is insignificant, so driver will setup FIFO if
+calculated size is within the 2 to 64 bytes range.
+
+--------------------
+v2:
+* driver calculate and setup optimal FIFO size for each SPI transfer;
+* "ti,spi-fifo-enabled" parameter in MCSPI DT node to enable FIFO;
+* no FIFO settings in SPI slaves nodes in DT;
+* Matthias Brugger patch was excluded from patch set.
+
+Illia Smyrnov (2):
+  spi: omap2-mcspi: Move bytes per word calculation to the function
+  spi: omap2-mcspi: Add FIFO buffer support
+
+ Documentation/devicetree/bindings/spi/omap-spi.txt |    8 +
+ drivers/spi/spi-omap2-mcspi.c                      |  173 +++++++++++++++++---
+ 2 files changed, 158 insertions(+), 23 deletions(-)
 
