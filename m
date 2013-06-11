@@ -1,73 +1,57 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: am335x: TSC & ADC reworking including DT pieces, take 4
-Date: Tue, 11 Jun 2013 18:18:57 +0200
-Message-ID: <51B74DF1.3010502@linutronix.de>
-References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de> <20130611142358.GG29135@zurbaran> <51B74252.5090906@linutronix.de> <20130611161054.GJ29135@zurbaran>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH 1/3] ARM: dts: Add headers with constants for MTD partitions
+Date: Tue, 11 Jun 2013 10:24:13 -0600
+Message-ID: <51B74F2D.2080804@wwwdotorg.org>
+References: <1370962138-9631-1-git-send-email-florian.vaussard@epfl.ch> <1370962138-9631-2-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20130611161054.GJ29135@zurbaran>
-Sender: linux-input-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Lee Jones <lee.jones@linaro.org>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:59975 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752182Ab3FKQYR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jun 2013 12:24:17 -0400
+In-Reply-To: <1370962138-9631-2-git-send-email-florian.vaussard@epfl.ch>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Florian Vaussard <florian.vaussard@epfl.ch>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Anil Kumar <anilk4.v@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-On 06/11/2013 06:10 PM, Samuel Ortiz wrote:
-> Hi Sebastian,
+On 06/11/2013 08:48 AM, Florian Vaussard wrote:
+> These constants can be used to easily declare MTD partitions inside
+> DTS.
+> 
+> The constants MTDPART_OFS_* are purposely not included. Indeed,
+> parse_ofpart_partitions() is expecting u64, but a DT cell is u32.
+> Negative constants, as defined by MTDPART_OFS_*, would be wrongly
+> interpreted by parse_ofpart_partitions(). Two cells should be
+> used to correctly encode the negative constants, but this breaks
+> current usage.
 
-Hi Samuel,
+I think addition of common headers like this needs an ack from
+Grant/Rob. I CC'd them here.
 
-> On Tue, Jun 11, 2013 at 05:29:22PM +0200, Sebastian Andrzej Siewior w=
-rote:
->>> Then, this is a pretty big patchset, with iio, input and mfd all mi=
-xed
->>> together and it is likely to create merge conflicts.
->> They somehow depend on each other. Otherwise I would have sent three
->> series, one per subsystem.
-> Of course they depend on each other, but the dependency is mostly for
-> iio and input to depend on the MFD changes.
+> diff --git a/include/dt-bindings/mtd/partitions.h b/include/dt-bindings/mtd/partitions.h
 
-Except for the one #18 as mentioned below.
+> + * This header provides constants used with MTD partitions.
+...
+> +/* Partition size */
+> +#define MTDPART_SIZ_FULL	0
 
->> Still. There is #18 which reworks the "step addressing" and involves
->> changes in both (iio & input) at the same time.
-> Would splitting iio and input break anything there ?
+Which binding document in Documentation/devicetree/bindings is this
+definition associated with? The comment above should really mention
+this. Documentation/devicetree/bindings/mtd/partition.txt doesn't seem
+to mention this value.
 
-Yes. Once the header files is modified without the two .c files the
-driver is not working. To fix this I need another patch making sure
-input + iio does not the header files and another to user it (once
-everything is merged).
+> diff --git a/include/dt-bindings/sizes.h b/include/dt-bindings/sizes.h
 
->> There is #21. Adding this to the initial "DT support" patch would be=
- bad
->> I think because it requires some changes on the iio side which have
->> nothing to do with DT. Putting the iio changes before DT would requi=
-re
->> to make some change to platform-data part which will go away anyway.
-> Wouldn't it workif you split this one into an MFD+dts file changes an=
-d
-> another one for the iio changes ?
+...
+> +#define SZ_1G				0x40000000
+> +#define SZ_2G				0x80000000
+> +
+> +#endif
 
-It would work in general. The first few DT-iio patches wouldn't make
-sense but then why not.
-
->> So I started collecting ACKs from input and iio to avoid this split.=
- If
->> you really want the split then I will start doing so=E2=80=A6
-> I think it would be nicer, yes.
-
-Nicer. I see. Please tell me what you think about #1 because I really
-would like to drop regmap and then I can start reshuffle the series :)
-
->=20
-> Cheers,
-> Samuel.
->=20
-
-Sebastian
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For MTD partitions specifically, SZ_4G and onwards would be useful in
+theory, although that would end up putting two cell values into a single
+macro. and then the values couldn't be added/or'd together. So, I'm not
+really sure if we want to add those larger values, but food for thought...
