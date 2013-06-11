@@ -1,91 +1,40 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: Re: [PATCH 2/4] ARM: dts: omap3-tobi: Add SMSC911X node
-Date: Tue, 11 Jun 2013 17:35:21 +0200
-Message-ID: <51B743B9.3070809@collabora.co.uk>
-References: <1370962189-9689-1-git-send-email-florian.vaussard@epfl.ch> <1370962189-9689-3-git-send-email-florian.vaussard@epfl.ch>
+From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Subject: Re: [PATCH 10/22] mfd/ti_am335x_tscadc: Add DT support
+Date: Tue, 11 Jun 2013 17:41:52 +0200
+Message-ID: <51B74540.2020608@linutronix.de>
+References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de> <1370950268-7224-11-git-send-email-bigeasy@linutronix.de> <20130611142347.GF29135@zurbaran> <51B73756.5010004@linutronix.de> <20130611150505.GI29135@zurbaran>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:43878 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754452Ab3FKPfY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Jun 2013 11:35:24 -0400
-In-Reply-To: <1370962189-9689-3-git-send-email-florian.vaussard@epfl.ch>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130611150505.GI29135@zurbaran>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-On 06/11/2013 04:49 PM, Florian Vaussard wrote:
-> The Tobi expansion boards embeds a SMSC LAN8700 PHY. Add the
-> corresponding node into the DT. The regulators are not designed
-> to be turned off.
-> 
-> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-> ---
->  arch/arm/boot/dts/omap3-tobi.dts |   48 ++++++++++++++++++++++++++++++++++++++
->  1 files changed, 48 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-tobi.dts b/arch/arm/boot/dts/omap3-tobi.dts
-> index c7eebbf..dea726f 100644
-> --- a/arch/arm/boot/dts/omap3-tobi.dts
-> +++ b/arch/arm/boot/dts/omap3-tobi.dts
-> @@ -24,6 +24,54 @@
->  			linux,default-trigger = "heartbeat";
->  		};
->  	};
-> +
-> +	vddvario: regulator-vddvario {
-> +		  compatible = "regulator-fixed";
-> +		  regulator-name = "vddvario";
-> +		  regulator-always-on;
-> +	};
-> +
-> +	vdd33a: regulator-vdd33a {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "vdd33a";
-> +		regulator-always-on;
-> +	};
-> +};
-> +
-> +&gpmc {
-> +	ranges = <5 0 0x2c000000 0x1000000>;	/* CS5 */
-> +
-> +	ethernet@5,0 {
-> +		compatible = "smsc,lan9221", "smsc,lan9115";
-> +		reg = <5 0 0xff>;
-> +		bank-width = <2>;
-> +
-> +		gpmc,mux-add-data;
-> +		gpmc,cs-on-ns = <0>;
-> +		gpmc,cs-rd-off-ns = <42>;
-> +		gpmc,cs-wr-off-ns = <36>;
-> +		gpmc,adv-on-ns = <6>;
-> +		gpmc,adv-rd-off-ns = <12>;
-> +		gpmc,adv-wr-off-ns = <12>;
-> +		gpmc,oe-on-ns = <0>;
-> +		gpmc,oe-off-ns = <42>;
-> +		gpmc,we-on-ns = <0>;
-> +		gpmc,we-off-ns = <36>;
-> +		gpmc,rd-cycle-ns = <60>;
-> +		gpmc,wr-cycle-ns = <54>;
-> +		gpmc,access-ns = <36>;
-> +		gpmc,page-burst-access-ns = <0>;
-> +		gpmc,bus-turnaround-ns = <0>;
-> +		gpmc,cycle2cycle-delay-ns = <0>;
-> +		gpmc,wr-data-mux-bus-ns = <18>;
-> +		gpmc,wr-access-ns = <42>;
-> +		gpmc,cycle2cycle-samecsen;
-> +		gpmc,cycle2cycle-diffcsen;
-> +
-> +		interrupt-parent = <&gpio6>;
-> +		interrupts = <16 IRQ_TYPE_LEVEL_LOW>;	/* GPIO 176*/
-> +		reg-io-width = <4>;
-> +	};
->  };
->  
->  &i2c3 {
-> 
+On 06/11/2013 05:05 PM, Samuel Ortiz wrote:
+> Hi Sebastian,
 
-Reviewed-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Hi Samuel,
+
+> On Tue, Jun 11, 2013 at 04:42:30PM +0200, Sebastian Andrzej Siewior wrote:
+>> In the end I would like not to post a patch with "From: != me" and
+>> don't make change which the original author did not do. Also dropping
+>> their authorship isn't nice. What could we agree on?
+> You probably don't want to change authorship unless the final patch is
+> really far from the original one. In which case you can change it and
+> mention the original author name in the commit log.
+> If you have only made a few changes on top of the original patch, please
+> say so explicitely in the commit log. Don't bother if we're talking
+> about small changes or cosmetic ones. But your commit log has to be
+> readable and clear.
+
+Commit 06c9494 on of many examples where cosmetic are recorded. But to
+make some progress I rewrite the commit log to resolve this and don't
+add anything to the sign-off area.
+
+> Cheers,
+> Samuel.
+
+Sebastian
