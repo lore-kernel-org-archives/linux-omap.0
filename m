@@ -1,82 +1,69 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v5] i2c: omap: correct usage of the interrupt enable
- register
-Date: Wed, 12 Jun 2013 20:20:47 +0200
-Message-ID: <20130612182046.GC3018@katana>
-References: <1370245040-14753-1-git-send-email-oleksandr.dmytryshyn@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/6] non-critical omap fixes for v3.11 merge window
+Date: Wed, 12 Jun 2013 11:24:33 -0700
+Message-ID: <36203.2315497801$1371061496@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VywGB/WGlW4DM4P8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:14704 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755994Ab3FLSYl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jun 2013 14:24:41 -0400
 Content-Disposition: inline
-In-Reply-To: <1370245040-14753-1-git-send-email-oleksandr.dmytryshyn@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
+The following changes since commit 317ddd256b9c24b0d78fa8018f80f1e495481a10:
 
---VywGB/WGlW4DM4P8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+  Linux 3.10-rc5 (2013-06-08 17:41:04 -0700)
 
-On Mon, Jun 03, 2013 at 10:37:20AM +0300, Oleksandr Dmytryshyn wrote:
-> We've been lucky not to have any interrupts fire during the suspend
-> path, otherwise we would have unpredictable behaviour in the kernel.
->=20
-> Based on the logic of the kernel code interrupts from i2c should be
-> prohibited during suspend. Kernel writes 0 to the I2C_IE register in
-> the omap_i2c_runtime_suspend() function. In the other side kernel
-> writes saved interrupt flags to the I2C_IE register in
-> omap_i2c_runtime_resume() function. I.e. interrupts should be disabled
-> during suspend.
->=20
-> This works for chips with version1 registers scheme. Interrupts are
-> disabled during suspend. For chips with version2 scheme registers
-> writting 0 to the I2C_IE register does nothing (because now the
-> I2C_IRQENABLE_SET register is located at this address). This register
-> is used to enable interrupts. For disabling interrupts
-> I2C_IRQENABLE_CLR register should be used.
->=20
-> Because the registers I2C_IRQENABLE_SET and I2C_IE have the same
-> addresses, the interrupt enabling procedure is unchanged.
->=20
-> I've checked that interrupts in the i2c controller are still enabled
-> after writting 0 to the I2C_IRQENABLE_SET register. With this patch
-> interrupts are disabled in the omap_i2c_runtime_suspend() function.
->=20
-> Patch is based on:
-> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-> tag: v3.10-rc2
->=20
-> Verified on OMAP4430.
->=20
-> Signed-off-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
+are available in the git repository at:
 
-Kevin, I think you are fine with this patch now?
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/fixes-non-critical-signed
 
+for you to fetch changes up to e41a5f88b374f7b1d87a72740d186be20cae4aa8:
 
---VywGB/WGlW4DM4P8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+  ARM: OMAP2+: omap-usb-host: Fix memory leaks (2013-06-12 10:04:10 -0700)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+----------------------------------------------------------------
+Non-critical fixes for omaps for v3.11 merge window.
 
-iQIcBAEBAgAGBQJRuLv+AAoJEBQN5MwUoCm2agoP/0Xdkhgc0bekBGA8p/GLMg37
-5iCp2bk0l94wGbd4gG7PvpKGZDom9el2BFmmM9moE7K/58MDe0e/yqNSFBBjtwLT
-Xbgbzul2t/kdmizJ5AXZ/LEKRSlc2fZV3WhgOTw3NyMi0mUvVP3YqtbPT4zgsq9D
-c7jZ5ER05PxAFJyj6noMMR3DYHmBWbLYp17/E7cTvzVO2GnUTS2JuZbkgX7AT+tz
-OST3AvdK883un8j9JHmHiQDHJh6qfA8dwbkIs42K/t8pZHF8JRocLOY8L04RUJO3
-qfORi+dUcgYBLcgCpIxbuR4Y+EYcSwLJVPDtixQrOWMmb180PtlFc1909d6cKkqB
-hZBEwnXdHkx10OjkT+4ens6yvZAh6/8q0MdKbG8RRPAQNlFvyKsDKRho16lz07yb
-b8L+wlUqjDbzZ+pnrX+eXXba2whOn9vm0p17gAENL1hvl0HSQjCPaVrZMUEgMp6K
-9jdI2mCaCkkVcDJSVfJizWJpgVvIi0sOobaNyzThJsqJle4G24kS3cPajjsj3HkX
-i9cCwxhDKdIrY+o7E53ZqcO9v7ZlAe1TuMLfOi1cXBxQU1unOEtbxs0bAyvFUSzD
-g7VJU/k01Gv7Dye0Eajn9qrtY2o6PJEeRm1gbkYngDHy/ndQ14UiyoQgXUv4hJam
-bULgo8KlEVzHie4nRVco
-=+2iR
------END PGP SIGNATURE-----
+----------------------------------------------------------------
+Peter Ujfalusi (3):
+      ARM: OMAP2+: devices: Do not print error when McPDM hwmod lookup fails
+      ARM: OMAP2+: devices: Do not print error when DMIC hwmod lookup fails
+      ARM: OMAP2+: devices: Do not print error when dss_hdmi hwmod lookup fails
 
---VywGB/WGlW4DM4P8--
+Roger Quadros (1):
+      ARM: OMAP2+: omap-usb-host: Fix memory leaks
+
+Sebastian Andrzej Siewior (1):
+      arm/omap: use const char properly
+
+Suman Anna (1):
+      ARM: OMAP2+: control: add OMAP5 support for dsp boot programming
+
+Tomi Valkeinen (3):
+      ARM: OMAP: fix dsi regulator names
+      ARM: OMAP: add vdds_dsi supply for omapdss_dpi.0
+      ARM: OMAP: add vdds_sdi supply for omapdss_sdi.0
+
+Tony Lindgren (2):
+      Merge branch 'dss-regulator' into omap-for-v3.11/fixes-non-critical
+      ARM: OMAP2+: Fix serial init for device tree based booting
+
+ arch/arm/mach-omap2/board-cm-t35.c           |   3 +-
+ arch/arm/mach-omap2/board-devkit8000.c       |   1 +
+ arch/arm/mach-omap2/board-ldp.c              |   3 +-
+ arch/arm/mach-omap2/board-omap3pandora.c     |   1 +
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   1 +
+ arch/arm/mach-omap2/control.c                |   1 +
+ arch/arm/mach-omap2/devices.c                |  12 +--
+ arch/arm/mach-omap2/id.c                     |   2 +-
+ arch/arm/mach-omap2/serial.c                 |   3 +
+ arch/arm/mach-omap2/twl-common.c             |   1 +
+ arch/arm/mach-omap2/usb-host.c               | 106 ++++++++++++++-------------
+ 11 files changed, 72 insertions(+), 62 deletions(-)
