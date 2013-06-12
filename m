@@ -1,122 +1,43 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 12/21] mfd: ti_tscadc: deal with partial activation
-Date: Wed, 12 Jun 2013 18:58:13 +0200
-Message-ID: <1371056302-12714-13-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 18/21] input: ti_am335x_tsc: ACK the HW_PEN irq in ISR
+Date: Wed, 12 Jun 2013 18:58:19 +0200
+Message-ID: <1371056302-12714-19-git-send-email-bigeasy@linutronix.de>
 References: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-input-owner@vger.kernel.org>
 In-Reply-To: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-input-owner@vger.kernel.org
 To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Pantelis Antoniou <panto@antoniou-consulting.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
+The interrupt source IRQENB_HW_PEN is enabled in suspend and suposed to
+be used as a wake up source. Once this interrupt source is unmaksed, the
+devices ends up in ISR and never continues.
+This change ACKs the interrupt and disables it so the system does not
+freeze.
 
-Fix the mfd device in the case where a subdevice might not be activated.
-
-Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/mfd/ti_am335x_tscadc.c       |   38 ++++++++++++++++++++++------------
- include/linux/mfd/ti_am335x_tscadc.h |    8 +++----
- 2 files changed, 28 insertions(+), 18 deletions(-)
+ drivers/input/touchscreen/ti_am335x_tsc.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index e78b9df..d05fcba 100644
---- a/drivers/mfd/ti_am335x_tscadc.c
-+++ b/drivers/mfd/ti_am335x_tscadc.c
-@@ -107,11 +107,14 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
- 	of_property_read_u32(node, "ti,adc-channels", &adc_channels);
- 
- 	total_channels = tsc_wires + adc_channels;
--
- 	if (total_channels > 8) {
- 		dev_err(&pdev->dev, "Number of i/p channels more than 8\n");
- 		return -EINVAL;
+diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+index 1bceb25..2ba7703 100644
+--- a/drivers/input/touchscreen/ti_am335x_tsc.c
++++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+@@ -308,6 +308,12 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+ 		irqclr |= IRQENB_PENUP;
  	}
-+	if (total_channels == 0) {
-+		dev_err(&pdev->dev, "Need atleast one channel.\n");
-+		return -EINVAL;
-+	}
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res) {
-@@ -202,28 +205,37 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
- 	ctrl |= CNTRLREG_TSCSSENB;
- 	tscadc_writel(tscadc, REG_CTRL, ctrl);
- 
-+	tscadc->used_cells = 0;
-+	tscadc->tsc_cell = -1;
-+	tscadc->adc_cell = -1;
++	if (status & IRQENB_HW_PEN) {
 +
- 	/* TSC Cell */
--	cell = &tscadc->cells[TSC_CELL];
--	cell->name = "tsc";
--	cell->of_compatible = "ti,am3359-tsc";
--	cell->platform_data = &tscadc;
--	cell->pdata_size = sizeof(tscadc);
-+	if (tsc_wires > 0) {
-+		tscadc->tsc_cell = tscadc->used_cells;
-+		cell = &tscadc->cells[tscadc->used_cells++];
-+		cell->name = "tsc";
-+		cell->of_compatible = "ti,am3359-tsc";
-+		cell->platform_data = &tscadc;
-+		cell->pdata_size = sizeof(tscadc);
++		titsc_writel(ts_dev, REG_IRQWAKEUP, 0x00);
++		titsc_writel(ts_dev, REG_IRQCLR, IRQENB_HW_PEN);
 +	}
++
+ 	titsc_writel(ts_dev, REG_IRQSTATUS, irqclr);
  
- 	/* ADC Cell */
--	cell = &tscadc->cells[ADC_CELL];
--	cell->name = "tiadc";
--	cell->of_compatible = "ti,am3359-adc";
--	cell->platform_data = &tscadc;
--	cell->pdata_size = sizeof(tscadc);
-+	if (adc_channels > 0) {
-+		tscadc->adc_cell = tscadc->used_cells;
-+		cell = &tscadc->cells[tscadc->used_cells++];
-+		cell->name = "tiadc";
-+		cell->of_compatible = "ti,am3359-adc";
-+		cell->platform_data = &tscadc;
-+		cell->pdata_size = sizeof(tscadc);
-+	}
- 
- 	err = mfd_add_devices(&pdev->dev, pdev->id, tscadc->cells,
--			TSCADC_CELLS, NULL, 0, NULL);
-+			tscadc->used_cells, NULL, 0, NULL);
- 	if (err < 0)
- 		goto err_disable_clk;
- 
- 	device_init_wakeup(&pdev->dev, true);
- 	platform_set_drvdata(pdev, tscadc);
--
- 	return 0;
- 
- err_disable_clk:
-diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
-index e36ae41..fe54ba4 100644
---- a/include/linux/mfd/ti_am335x_tscadc.h
-+++ b/include/linux/mfd/ti_am335x_tscadc.h
-@@ -120,11 +120,6 @@
- 
- #define TSCADC_CELLS		2
- 
--enum tscadc_cells {
--	TSC_CELL,
--	ADC_CELL,
--};
--
- struct mfd_tscadc_board {
- 	struct tsc_data *tsc_init;
- 	struct adc_data *adc_init;
-@@ -135,6 +130,9 @@ struct ti_tscadc_dev {
- 	struct regmap *regmap_tscadc;
- 	void __iomem *tscadc_base;
- 	int irq;
-+	int used_cells;	/* 1-2 */
-+	int tsc_cell;	/* -1 if not used */
-+	int adc_cell;	/* -1 if not used */
- 	struct mfd_cell cells[TSCADC_CELLS];
- 	u32 reg_se_cache;
- 	spinlock_t reg_lock;
+ 	am335x_tsc_se_update(ts_dev->mfd_tscadc);
 -- 
 1.7.10.4
+
