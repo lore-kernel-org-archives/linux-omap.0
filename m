@@ -1,46 +1,87 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 2/3] arm: gpmc: Low power transition support
-Date: Wed, 12 Jun 2013 10:38:54 -0700
-Message-ID: <20130612173854.GP8164@atomide.com>
-References: <1371034858-19984-1-git-send-email-pekon@ti.com>
- <1371034858-19984-3-git-send-email-pekon@ti.com>
- <20130612170126.GI8164@atomide.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v2 09/10] ARM: dts: omap3: add pbias and mmc_init pinctrl
+ states
+Date: Wed, 12 Jun 2013 23:13:58 +0530
+Message-ID: <51B8B35E.20307@ti.com>
+References: <20130523184045.GD13507@atomide.com> <1370546059-24181-1-git-send-email-balajitk@ti.com> <1370546059-24181-10-git-send-email-balajitk@ti.com> <20130612143548.GZ8164@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:51233 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751991Ab3FLRi7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jun 2013 13:38:59 -0400
-Content-Disposition: inline
-In-Reply-To: <20130612170126.GI8164@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20130612143548.GZ8164@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, b-cousson@ti.com, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, avinash philip <avinashphilip@ti.com>
 
-* Tony Lindgren <tony@atomide.com> [130612 10:08]:
-> * Pekon Gupta <pekon@ti.com> [130612 04:07]:
-> > From: avinash philip <avinashphilip@ti.com>
-> > 
-> > With GPMC converted to platform driver recently, adds low power
-> > transition support in driver itself.
-> 
-> Applying the first two patches of this series into omap-for-v3.11/gpmc.
-> Not taking the MTD patch, if it has dependencies to the first two
-> patches please let me know and also get an ack from Artem if you
-> want me to take it.
+On Wednesday 12 June 2013 08:05 PM, Tony Lindgren wrote:
+> * Balaji T K <balajitk@ti.com> [130606 12:20]:
+>> add pbias states for pbias 0, 1.8V, 3V
+>> add omap3 sd/mmc2 loop back clock config for devconf1 in mmc2_init pinctrl state
+>> add OMAP3430 sd/mmc1 loop back clock config for devconf0 in mmc1_init pinctrl state
+>> add OMAP3630 sd/mmc1 speed mode config for prog_io1 in mmc1_init pinctrl state
+>
+> Looks OK to me, except these should be under mmc1 for omap[345].dtsi files.
+>
 
-Oops, dropping the second patch in this series as it causes the
-following if only omap4 is selected for example:
+I think I can move &omap3_pmx_general to omap3.dtsi and override
+&pbias_1v8, &pbias_3v in omap36xx.dtsi, but I doubt pinctrl-[0,1,2,3,4]
+since pull up setting can vary between boards.
 
-arch/arm/mach-omap2/built-in.o: In function `gpmc_resume':
-dss-common.c:(.text+0x9a8): undefined reference to `omap3_gpmc_restore_context'
-arch/arm/mach-omap2/built-in.o: In function `gpmc_suspend':
-dss-common.c:(.text+0x9c8): undefined reference to `omap3_gpmc_save_context'
+> Regards,
+>
+> Tony
+>
+>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>> ---
+>>   arch/arm/boot/dts/omap3-beagle-xm.dts |   42 +++++++++++++++++++++++++++++++++
+>>   arch/arm/boot/dts/omap3-beagle.dts    |   42 +++++++++++++++++++++++++++++++++
+>>   arch/arm/boot/dts/omap3.dtsi          |   10 ++++++++
+>>   3 files changed, 94 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
+>> index 3046d1f..45d1642 100644
+>> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
+>> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+>> @@ -59,6 +59,40 @@
+>>   	};
+>>   };
+>>
+>> +&omap3_pmx_general {
+>> +	pinctrl-names = "default";
+>> +	pinctrl-0 = <>;
+>> +	pbias_off: pinmux_pbias_off {
+>> +		pinctrl-single,bits = <
+>> +			0x2b0 0x1 0x3	/* pbias */
+>> +		>;
+>> +	};
+>> +
+>> +	pbias_1v8: pinmux_pbias_1v8 {
+>> +		pinctrl-single,bits = <
+>> +			0x2b0 0x2 0x3	/* pbias */
+>> +		>;
+>> +	};
+>> +
+>> +	pbias_3v: pinmux_pbias_3v {
+>> +		pinctrl-single,bits = <
+>> +			0x2b0 0x3 0x3	/* pbias */
+>> +		>;
+>> +	};
+>> +
+>> +	mmc1_init: pinmux_mmc1_init {
+>> +		pinctrl-single,bits = <
+>> +			0x1d8 0x100000 0x100000	/* prog_io1 */
+>> +		>;
+>> +	};
+>> +
+>> +	mmc2_init: pinmux_mmc2_init {
+>> +		pinctrl-single,bits = <
+>> +			0x68 0x40 0x40	/* devconf1 */
+>> +		>;
+>> +	};
+>> +};
+>> +
+>>   &i2c1 {
+>>   	clock-frequency = <2600000>;
+>>
 
-Can you please take a lok and fix that?
-
-Regards,
-
-Tony
