@@ -1,73 +1,74 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/6] ARM: OMAP2+: Remove board-omap4panda.c
-Date: Wed, 12 Jun 2013 09:31:24 -0700
-Message-ID: <20130612163124.GD8164@atomide.com>
-References: <20130517191304.468.73487.stgit@localhost>
- <20130517191753.468.1734.stgit@localhost>
- <CACVXFVOp6n3RhZnWD_hRxqE8a8amPA5SRWfkVhz+yCGZTtGjvQ@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/4] ARM: dts: AM33XX: Add PWMSS device tree nodes
+Date: Wed, 12 Jun 2013 19:40:26 +0300
+Message-ID: <20130612164026.GC22120@arwen.pp.htv.fi>
+References: <1370526759-31163-1-git-send-email-bigeasy@linutronix.de>
+ <1370526759-31163-3-git-send-email-bigeasy@linutronix.de>
+ <51B89D78.6010906@linutronix.de>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="XWOWbaMNXpFDWE00"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43997 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751560Ab3FLQb2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jun 2013 12:31:28 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:55376 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757351Ab3FLQlo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Jun 2013 12:41:44 -0400
 Content-Disposition: inline
-In-Reply-To: <CACVXFVOp6n3RhZnWD_hRxqE8a8amPA5SRWfkVhz+yCGZTtGjvQ@mail.gmail.com>
+In-Reply-To: <51B89D78.6010906@linutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Philip Avinash <avinashphilip@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-* Ming Lei <tom.leiming@gmail.com> [130603 08:34]:
-> Hi,
-> 
-> On Sat, May 18, 2013 at 3:17 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > We can now boot with device tree. If you don't want to update u-boot,
-> > you can boot with appended DTB with the following instructions:
-> >
-> > 1. Make sure you have the appended DTB support in .config
-> >
-> >    CONFIG_ARM_APPENDED_DTB=y
-> >    CONFIG_ARM_ATAG_DTB_COMPAT=y
-> >    CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND=y
-> >
-> > 2. Build the zImage
-> >
-> >    $ ARCH=arm CROSS_COMPILE=... make zImage
-> >
-> > 3. Build the device tree blobs
-> >
-> >    $ ARCH=arm CROSS_COMPILE=... make dtbs
-> >
-> > 4. Append the correct panda dtb to zImage
-> >
-> >    Depending on your hardware it's omap4-panda.dtb, omap4-panda-a4.dtb
-> >    or omap4-panda-es.dtb.
-> >
-> >    $ cat arch/arm/boot/zImage arch/arm/boot/dts/omap4-panda-es.dtb > /tmp/appended
-> >
-> > 5. Use mkimage to produce the appended device tree uImage
-> >
-> >    $ mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x80008000 \
-> >      -n "Linux" -d /tmp/appended /tmp/uImage
-> 
-> I followed the above steps and tried devicetree on Pandaboard against
-> 3.10.0-rc3-next-20130528, and the board will hang during boot, but works
-> well with legacy mode.
-> 
->          Hardware: Pandaboard A1
->          dtb: omap4-panda.dtb
-> 
-> See 'dmesg' on below link:
-> 
->          http://kernel.ubuntu.com/~ming/up/panda-dts.dmesg
-> 
+--XWOWbaMNXpFDWE00
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hmm looks like it boots to init. Maybe add initcall_debug to the cmdline in
-case there's some late_initcall that causes the issue. It's probably some
-trivial issue causing it.
+Hi,
 
-Regards,
+On Wed, Jun 12, 2013 at 06:10:32PM +0200, Sebastian Andrzej Siewior wrote:
+> On 06/06/2013 03:52 PM, Sebastian Andrzej Siewior wrote:
+> > From: Philip Avinash <avinashphilip@ti.com>
+> >=20
+> > Add PWMSS device tree nodes in relation with ECAP & EHRPWM DT nodes to
+> > AM33XX SoC family. Also populates device tree nodes for ECAP & EHRPWM by
+> > adding necessary properties like pwm-cells, base reg & set disabled as
+> > status.
+> >=20
+> > Signed-off-by: Philip Avinash <avinashphilip@ti.com>
+> > Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+> > Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+>=20
+> Can someone please grab #2 till #4? Paul took just #1 as far as I can
+> tell.
 
-Tony
+DTS should be Benoit Cousson
+
+--=20
+balbi
+
+--XWOWbaMNXpFDWE00
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRuKR6AAoJEIaOsuA1yqRErY8QAIMQqji3CDR/ycenwR8GW2M4
+rf8BMZtrzU9JKsrpaC8vN/nDFQuqn+OxYQP472Cfk29MznWU8VGMwCE+lin7nXbh
+yISrCAPZ2EmbFRruH+oB3HMCsH+zkcW14vu1mUBfB6I3B8RI2/U6H4ca8q1wvFSm
+hw3R5q8vUmPaRdUzJbE4OqI8LZYAkhyzK1ic7OKwBb89MdAggm8o49yYn9ZIGJVj
+7MZnZiGU5obCZinyZP+rSdZ2dmeGI0UuLAS21M0IYO1yum/QxPotdT+e4Mko8j8U
+MWgNL+MhdwRArZxsgVwN29jRv9looitMUj4I9RSs+RgI9W18BbPf04QMBAmCvb47
+ZVrPmCDJI7keaCK/ZORUhOLcgPuEUjfjJskCLBKNiDOA3hYGVEKw30WrWzpSOdxw
+6vkIyKXS2Pi7kp0DRiPw75Q6bC6NWseIHZQy/TnNcKtfsWvjUtRInmvI0QYaYl0E
+pKp+htJNG8/nCzSV6HlzAl/0YcBU2hzv3W5o3PMIypHLqzFnxWXt9fBVQc5ZZq5i
+50UiKkExrB3aoZRib8tpq82K6+aRC4vu4iwOIF+TeR9X1gLnijV61AZA2GyqIVn4
+T+X29uwNTJePJ/mwv7OBBkM03Mi5U1bOMIW1oDugJteToxikWKtUk37Lm5MUtN8N
+outPOF9LfFIB3M4QElyj
+=weH5
+-----END PGP SIGNATURE-----
+
+--XWOWbaMNXpFDWE00--
