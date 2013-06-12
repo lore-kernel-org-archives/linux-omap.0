@@ -1,59 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 02/10] mmc: omap_hsmmc: make vcc and vcc_aux
- independent
-Date: Wed, 12 Jun 2013 07:38:11 -0700
-Message-ID: <20130612143810.GC8164@atomide.com>
-References: <20130523184045.GD13507@atomide.com>
- <1370546059-24181-1-git-send-email-balajitk@ti.com>
- <1370546059-24181-3-git-send-email-balajitk@ti.com>
- <20130612142553.GX8164@atomide.com>
- <51B886D1.9040700@ti.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: am335x: TSC & ADC reworking including DT pieces, take 4
+Date: Wed, 12 Jun 2013 16:41:33 +0200
+Message-ID: <20130612144133.GP29135@zurbaran>
+References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
+ <20130611142358.GG29135@zurbaran>
+ <20130611160415.GA379@core.coreip.homeip.net>
+ <20130611161506.GK29135@zurbaran>
+ <1565f2fb-7f16-4910-8fa2-cd5700e8986d@email.android.com>
+ <20130611175519.GL29135@zurbaran>
+ <51B877C7.8080001@linutronix.de>
+ <20130612135042.GO29135@zurbaran>
+ <51B87F58.9070000@linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <51B886D1.9040700@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, b-cousson@ti.com, devicetree-discuss@lists.ozlabs.org
+In-Reply-To: <51B87F58.9070000@linutronix.de>
+Sender: linux-input-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Jonathan Cameron <jic23@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jonathan Cameron <jic23@cam.ac.uk>, Lee Jones <lee.jones@linaro.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Balaji T K <balajitk@ti.com> [130612 07:39]:
-> On Wednesday 12 June 2013 07:55 PM, Tony Lindgren wrote:
-> >* Balaji T K <balajitk@ti.com> [130606 12:20]:
-> >>handle vcc and vcc_aux independently
-> >>
-> >>Signed-off-by: Balaji T K <balajitk@ti.com>
-> >>---
-> >>  drivers/mmc/host/omap_hsmmc.c |    9 +++++----
-> >>  1 files changed, 5 insertions(+), 4 deletions(-)
-> >>
-> >>diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> >>index 1865321..bda1a42 100644
-> >>--- a/drivers/mmc/host/omap_hsmmc.c
-> >>+++ b/drivers/mmc/host/omap_hsmmc.c
-> >>@@ -253,7 +253,7 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
-> >>  	 * If we don't see a Vcc regulator, assume it's a fixed
-> >>  	 * voltage always-on regulator.
-> >>  	 */
-> >>-	if (!host->vcc)
-> >>+	if (!host->vcc && !host->vcc_aux)
-> >>  		return 0;
-> >>  	/*
-> >>  	 * With DT, never turn OFF the regulator for MMC1. This is because
-> >
-> >Doesn't the above change break MMC for most boards that only pass
-> >one regulator and no aux regulator?
-> >
+On Wed, Jun 12, 2013 at 04:02:00PM +0200, Sebastian Andrzej Siewior wrote:
+> >> By keep the regmap code you mean I am allowed to remove the regmap
+> >> usage in mfd (keep patch #1) or do you insist on adding its usage in
+> >> iio and input?
+> > I insist on keeping it on the MFD driver, i.e. _not_ keeping patch #1.
 > 
-> No, I want to skip regulator operation in set_power function iff both
-> regulator are not present.
-> 
-> Earlier vcc was assumed/mandatory if vcc_aux is present.
-> Now, regulator operation will be handled if either one of vcc/vcc_aux is present,
+> This forces me redo a few things and most likely adding it to the
+> iio and input driver to be consistent here.
+I'm not asking for that. The current MFD code uses regmap fine without
+the iio and input using it, I don't see why you would have to add regmap
+support there.
 
-Ah OK yes sorry I misread your patch.
+> Could you please give a reason why using the regmap here is a good
+> thing? I mentioned a few why it is not and why is better to leave it
+> out.
+Yes, and I'm not convinced obviously. regmap prevents you from open
+coding your MMIO access, and this is the right approach.
 
-Regards,
+Cheers,
+Samuel.
 
-Tony
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
