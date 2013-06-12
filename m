@@ -1,78 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/6] ARM: OMAP2+: Remove board-omap4panda.c
-Date: Wed, 12 Jun 2013 10:14:08 -0700
-Message-ID: <20130612171407.GM8164@atomide.com>
-References: <20130517191304.468.73487.stgit@localhost>
- <20130517191753.468.1734.stgit@localhost>
- <CACVXFVOp6n3RhZnWD_hRxqE8a8amPA5SRWfkVhz+yCGZTtGjvQ@mail.gmail.com>
- <20130612163124.GD8164@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:45442 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754873Ab3FLROK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jun 2013 13:14:10 -0400
-Content-Disposition: inline
-In-Reply-To: <20130612163124.GD8164@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH 15/21] mfd: input: ti_am335x_tsc: rename device from tsc to TI-am335x-tsc
+Date: Wed, 12 Jun 2013 18:58:16 +0200
+Message-ID: <1371056302-12714-16-git-send-email-bigeasy@linutronix.de>
+References: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de>
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de>
+Sender: linux-input-owner@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>, Sricharan R <r.sricharan@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [130612 09:37]:
-> * Ming Lei <tom.leiming@gmail.com> [130603 08:34]:
-> > Hi,
-> > 
-> > On Sat, May 18, 2013 at 3:17 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > > We can now boot with device tree. If you don't want to update u-boot,
-> > > you can boot with appended DTB with the following instructions:
-> > >
-> > > 1. Make sure you have the appended DTB support in .config
-> > >
-> > >    CONFIG_ARM_APPENDED_DTB=y
-> > >    CONFIG_ARM_ATAG_DTB_COMPAT=y
-> > >    CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND=y
-> > >
-> > > 2. Build the zImage
-> > >
-> > >    $ ARCH=arm CROSS_COMPILE=... make zImage
-> > >
-> > > 3. Build the device tree blobs
-> > >
-> > >    $ ARCH=arm CROSS_COMPILE=... make dtbs
-> > >
-> > > 4. Append the correct panda dtb to zImage
-> > >
-> > >    Depending on your hardware it's omap4-panda.dtb, omap4-panda-a4.dtb
-> > >    or omap4-panda-es.dtb.
-> > >
-> > >    $ cat arch/arm/boot/zImage arch/arm/boot/dts/omap4-panda-es.dtb > /tmp/appended
-> > >
-> > > 5. Use mkimage to produce the appended device tree uImage
-> > >
-> > >    $ mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x80008000 \
-> > >      -n "Linux" -d /tmp/appended /tmp/uImage
-> > 
-> > I followed the above steps and tried devicetree on Pandaboard against
-> > 3.10.0-rc3-next-20130528, and the board will hang during boot, but works
-> > well with legacy mode.
-> > 
-> >          Hardware: Pandaboard A1
-> >          dtb: omap4-panda.dtb
-> > 
-> > See 'dmesg' on below link:
-> > 
-> >          http://kernel.ubuntu.com/~ming/up/panda-dts.dmesg
-> > 
-> 
-> Hmm looks like it boots to init. Maybe add initcall_debug to the cmdline in
-> case there's some late_initcall that causes the issue. It's probably some
-> trivial issue causing it.
+tsc is a very generic name. This patch adds a TI and HW prefix to it
+less generic.
 
-Sricharan, maybe give this a quick try if you have the original pandaboard?
-I only have pandaboard es.
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/input/touchscreen/ti_am335x_tsc.c |    2 +-
+ drivers/mfd/ti_am335x_tscadc.c            |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Regards,
+diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+index a1db55d..ff3215d 100644
+--- a/drivers/input/touchscreen/ti_am335x_tsc.c
++++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+@@ -491,7 +491,7 @@ static struct platform_driver ti_tsc_driver = {
+ 	.probe	= titsc_probe,
+ 	.remove	= titsc_remove,
+ 	.driver	= {
+-		.name   = "tsc",
++		.name   = "TI-am335x-tsc",
+ 		.owner	= THIS_MODULE,
+ 		.pm	= TITSC_PM_OPS,
+ 		.of_match_table = of_match_ptr(ti_tsc_dt_ids),
+diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+index d05fcba..5fb8b1d 100644
+--- a/drivers/mfd/ti_am335x_tscadc.c
++++ b/drivers/mfd/ti_am335x_tscadc.c
+@@ -213,7 +213,7 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 	if (tsc_wires > 0) {
+ 		tscadc->tsc_cell = tscadc->used_cells;
+ 		cell = &tscadc->cells[tscadc->used_cells++];
+-		cell->name = "tsc";
++		cell->name = "TI-am335x-tsc";
+ 		cell->of_compatible = "ti,am3359-tsc";
+ 		cell->platform_data = &tscadc;
+ 		cell->pdata_size = sizeof(tscadc);
+-- 
+1.7.10.4
 
-Tony 
