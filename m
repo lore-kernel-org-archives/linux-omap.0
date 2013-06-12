@@ -1,70 +1,245 @@
-From: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 01/10] ARM: OMAP2+: add needs_vmmc to hsmmc_info
-Date: Wed, 12 Jun 2013 22:30:08 +0530
-Message-ID: <51B8A918.5030605@ti.com>
-References: <20130523184045.GD13507@atomide.com>
- <1370546059-24181-1-git-send-email-balajitk@ti.com>
- <1370546059-24181-2-git-send-email-balajitk@ti.com>
- <20130612142409.GW8164@atomide.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: =?UTF-8?q?=5BPATCH=2002/21=5D=20input=3A=20ti=5Fam33x=5Ftsc=3A=20Step=20enable=20bits=20made=20configurable?=
+Date: Wed, 12 Jun 2013 18:58:03 +0200
+Message-ID: <1371056302-12714-3-git-send-email-bigeasy@linutronix.de>
+References: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20130612142409.GW8164-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, "Patil, Rachna" <rachna@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 12 June 2013 07:54 PM, Tony Lindgren wrote:
-> * Balaji T K <balajitk-l0cyMroinI0@public.gmane.org> [130606 12:20]:
->> Add needs_vmmc and needs_vmmc_aux to indicate whether regulator is
->> applicable so that omap_hsmmc can handle deferred probe error
->> properly for regulators.
->> Remove the assumption that vmmc_aux regulator to be available only if vmmc is
->> present. Platforms can have fixed-always-ON regulator for vmmc and/or vmmc_aux
->> in such cases regulator needed not be specified in board file.
->
-> Looks good to me, I suggest you resend this again a bit later once the
-> other changes are merged so we can avoid a dependency between arch/arm/mach-omap2
-> and MMC changes.
->
+=46rom: "Patil, Rachna" <rachna@ti.com>
 
-Ok, will separate the board changes and send the rest via mmc tree
+Current code has hard coded value written to
+step enable bits. Now the bits are updated based
+on how many steps are needed to be configured got
+from platform data.
 
-> Regards,
->
-> Tony
->
->> Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
->> ---
->>   arch/arm/mach-omap2/board-2430sdp.c          |    1 +
->>   arch/arm/mach-omap2/board-3430sdp.c          |    3 +++
->>   arch/arm/mach-omap2/board-cm-t35.c           |    2 ++
->>   arch/arm/mach-omap2/board-devkit8000.c       |    1 +
->>   arch/arm/mach-omap2/board-igep0020.c         |    3 +++
->>   arch/arm/mach-omap2/board-ldp.c              |    1 +
->>   arch/arm/mach-omap2/board-omap3beagle.c      |    2 ++
->>   arch/arm/mach-omap2/board-omap3evm.c         |    3 +++
->>   arch/arm/mach-omap2/board-omap3logic.c       |    1 +
->>   arch/arm/mach-omap2/board-omap3pandora.c     |    3 +++
->>   arch/arm/mach-omap2/board-omap3stalker.c     |    2 ++
->>   arch/arm/mach-omap2/board-omap3touchbook.c   |    2 ++
->>   arch/arm/mach-omap2/board-overo.c            |    1 +
->>   arch/arm/mach-omap2/board-rm680.c            |    1 +
->>   arch/arm/mach-omap2/board-rx51-peripherals.c |    3 +++
->>   arch/arm/mach-omap2/board-zoom-peripherals.c |    4 ++++
->>   arch/arm/mach-omap2/hsmmc.c                  |    2 ++
->>   arch/arm/mach-omap2/hsmmc.h                  |    2 ++
->>   include/linux/platform_data/mmc-omap.h       |    2 ++
->>   19 files changed, 39 insertions(+), 0 deletions(-)
->>
+The user needs to take care not to exceed
+the count more than 16. While using ADC and TSC
+one should take care to set this parameter correctly.
+
+Sebastian added the common lock and moved the code, that manipulates th=
+e
+steps, from into the mfd module.
+
+Signed-off-by: Patil, Rachna <rachna@ti.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/iio/adc/ti_am335x_adc.c           |   20 ++++++++++++++++++--
+ drivers/input/touchscreen/ti_am335x_tsc.c |   12 ++++++++++--
+ drivers/mfd/ti_am335x_tscadc.c            |   29 +++++++++++++++++++++=
++++++++-
+ include/linux/mfd/ti_am335x_tscadc.h      |    8 ++++++--
+ 4 files changed, 62 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335=
+x_adc.c
+index 9db352e..543b9c4 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -42,10 +42,20 @@ static void tiadc_writel(struct tiadc_device *adc, =
+unsigned int reg,
+ 	writel(val, adc->mfd_tscadc->tscadc_base + reg);
+ }
+=20
++static u32 get_adc_step_mask(struct tiadc_device *adc_dev)
++{
++	u32 step_en;
++
++	step_en =3D ((1 << adc_dev->channels) - 1);
++	step_en <<=3D TOTAL_STEPS - adc_dev->channels + 1;
++	return step_en;
++}
++
+ static void tiadc_step_config(struct tiadc_device *adc_dev)
+ {
+ 	unsigned int stepconfig;
+ 	int i, channels =3D 0, steps;
++	u32 step_en;
+=20
+ 	/*
+ 	 * There are 16 configurable steps and 8 analog input
+@@ -69,7 +79,8 @@ static void tiadc_step_config(struct tiadc_device *ad=
+c_dev)
+ 				STEPCONFIG_OPENDLY);
+ 		channels++;
+ 	}
+-	tiadc_writel(adc_dev, REG_SE, STPENB_STEPENB);
++	step_en =3D get_adc_step_mask(adc_dev);
++	am335x_tsc_se_set(adc_dev->mfd_tscadc, step_en);
+ }
+=20
+ static int tiadc_channel_init(struct iio_dev *indio_dev, int channels)
+@@ -127,7 +138,7 @@ static int tiadc_read_raw(struct iio_dev *indio_dev=
+,
+ 		if (i =3D=3D chan->channel)
+ 			*val =3D readx1 & 0xfff;
+ 	}
+-	tiadc_writel(adc_dev, REG_SE, STPENB_STEPENB);
++	am335x_tsc_se_update(adc_dev->mfd_tscadc);
+=20
+ 	return IIO_VAL_INT;
+ }
+@@ -191,10 +202,15 @@ static int tiadc_probe(struct platform_device *pd=
+ev)
+ static int tiadc_remove(struct platform_device *pdev)
+ {
+ 	struct iio_dev *indio_dev =3D platform_get_drvdata(pdev);
++	struct tiadc_device *adc_dev =3D iio_priv(indio_dev);
++	u32 step_en;
+=20
+ 	iio_device_unregister(indio_dev);
+ 	tiadc_channels_remove(indio_dev);
+=20
++	step_en =3D get_adc_step_mask(adc_dev);
++	am335x_tsc_se_clr(adc_dev->mfd_tscadc, step_en);
++
+ 	iio_device_free(indio_dev);
+=20
+ 	return 0;
+diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/=
+touchscreen/ti_am335x_tsc.c
+index 16077d3..23d6a4d 100644
+--- a/drivers/input/touchscreen/ti_am335x_tsc.c
++++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+@@ -57,6 +57,7 @@ static void titsc_writel(struct titsc *tsc, unsigned =
+int reg,
+ static void titsc_step_config(struct titsc *ts_dev)
+ {
+ 	unsigned int	config;
++	unsigned int	stepenable =3D 0;
+ 	int i, total_steps;
+=20
+ 	/* Configure the Step registers */
+@@ -128,7 +129,9 @@ static void titsc_step_config(struct titsc *ts_dev)
+ 	titsc_writel(ts_dev, REG_STEPDELAY(total_steps + 2),
+ 			STEPCONFIG_OPENDLY);
+=20
+-	titsc_writel(ts_dev, REG_SE, STPENB_STEPENB_TC);
++	/* The steps1 =E2=80=A6 end and bit 0 for TS_Charge */
++	stepenable =3D (1 << (total_steps + 2)) - 1;
++	am335x_tsc_se_set(ts_dev->mfd_tscadc, stepenable);
+ }
+=20
+ static void titsc_read_coordinates(struct titsc *ts_dev,
+@@ -250,7 +253,7 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+=20
+ 	titsc_writel(ts_dev, REG_IRQSTATUS, irqclr);
+=20
+-	titsc_writel(ts_dev, REG_SE, STPENB_STEPENB_TC);
++	am335x_tsc_se_update(ts_dev->mfd_tscadc);
+ 	return IRQ_HANDLED;
+ }
+=20
+@@ -334,6 +337,11 @@ static int titsc_remove(struct platform_device *pd=
+ev)
+=20
+ 	free_irq(ts_dev->irq, ts_dev);
+=20
++	/* total steps followed by the enable mask */
++	steps =3D 2 * ts_dev->steps_to_configure + 2;
++	steps =3D (1 << steps) - 1;
++	am335x_tsc_se_clr(ts_dev->mfd_tscadc, steps);
++
+ 	input_unregister_device(ts_dev->input);
+=20
+ 	platform_set_drvdata(pdev, NULL);
+diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tsc=
+adc.c
+index 772ea2a..90ccfc0 100644
+--- a/drivers/mfd/ti_am335x_tscadc.c
++++ b/drivers/mfd/ti_am335x_tscadc.c
+@@ -48,6 +48,32 @@ static const struct regmap_config tscadc_regmap_conf=
+ig =3D {
+ 	.val_bits =3D 32,
+ };
+=20
++void am335x_tsc_se_update(struct ti_tscadc_dev *tsadc)
++{
++	tscadc_writel(tsadc, REG_SE, tsadc->reg_se_cache);
++}
++EXPORT_SYMBOL_GPL(am335x_tsc_se_update);
++
++void am335x_tsc_se_set(struct ti_tscadc_dev *tsadc, u32 val)
++{
++	spin_lock(&tsadc->reg_lock);
++	tsadc->reg_se_cache |=3D val;
++	spin_unlock(&tsadc->reg_lock);
++
++	am335x_tsc_se_update(tsadc);
++}
++EXPORT_SYMBOL_GPL(am335x_tsc_se_set);
++
++void am335x_tsc_se_clr(struct ti_tscadc_dev *tsadc, u32 val)
++{
++	spin_lock(&tsadc->reg_lock);
++	tsadc->reg_se_cache &=3D ~val;
++	spin_unlock(&tsadc->reg_lock);
++
++	am335x_tsc_se_update(tsadc);
++}
++EXPORT_SYMBOL_GPL(am335x_tsc_se_clr);
++
+ static void tscadc_idle_config(struct ti_tscadc_dev *config)
+ {
+ 	unsigned int idleconfig;
+@@ -129,6 +155,7 @@ static	int ti_tscadc_probe(struct platform_device *=
+pdev)
+ 		goto ret;
+ 	}
+=20
++	spin_lock_init(&tscadc->reg_lock);
+ 	pm_runtime_enable(&pdev->dev);
+ 	pm_runtime_get_sync(&pdev->dev);
+=20
+@@ -239,7 +266,7 @@ static int tscadc_resume(struct device *dev)
+ 			CNTRLREG_STEPID | CNTRLREG_4WIRE;
+ 	tscadc_writel(tscadc_dev, REG_CTRL, ctrl);
+ 	tscadc_idle_config(tscadc_dev);
+-	tscadc_writel(tscadc_dev, REG_SE, STPENB_STEPENB);
++	am335x_tsc_se_update(tscadc_dev);
+ 	restore =3D tscadc_readl(tscadc_dev, REG_CTRL);
+ 	tscadc_writel(tscadc_dev, REG_CTRL,
+ 			(restore | CNTRLREG_TSCSSENB));
+diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/t=
+i_am335x_tscadc.h
+index 8114e4e..4258627 100644
+--- a/include/linux/mfd/ti_am335x_tscadc.h
++++ b/include/linux/mfd/ti_am335x_tscadc.h
+@@ -46,8 +46,6 @@
+ /* Step Enable */
+ #define STEPENB_MASK		(0x1FFFF << 0)
+ #define STEPENB(val)		((val) << 0)
+-#define STPENB_STEPENB		STEPENB(0x1FFFF)
+-#define STPENB_STEPENB_TC	STEPENB(0x1FFF)
+=20
+ /* IRQ enable */
+ #define IRQENB_HW_PEN		BIT(0)
+@@ -141,6 +139,8 @@ struct ti_tscadc_dev {
+ 	void __iomem *tscadc_base;
+ 	int irq;
+ 	struct mfd_cell cells[TSCADC_CELLS];
++	u32 reg_se_cache;
++	spinlock_t reg_lock;
+=20
+ 	/* tsc device */
+ 	struct titsc *tsc;
+@@ -156,4 +156,8 @@ static inline struct ti_tscadc_dev *ti_tscadc_dev_g=
+et(struct platform_device *p)
+ 	return *tscadc_dev;
+ }
+=20
++void am335x_tsc_se_update(struct ti_tscadc_dev *tsadc);
++void am335x_tsc_se_set(struct ti_tscadc_dev *tsadc, u32 val);
++void am335x_tsc_se_clr(struct ti_tscadc_dev *tsadc, u32 val);
++
+ #endif
+--=20
+1.7.10.4
