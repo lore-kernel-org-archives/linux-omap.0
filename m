@@ -1,113 +1,70 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 07/21] iio: ti_am335x_adc: Add DT support
-Date: Wed, 12 Jun 2013 18:58:08 +0200
-Message-ID: <1371056302-12714-8-git-send-email-bigeasy@linutronix.de>
-References: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:44574 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757429Ab3FLQ6l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jun 2013 12:58:41 -0400
-In-Reply-To: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+From: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 01/10] ARM: OMAP2+: add needs_vmmc to hsmmc_info
+Date: Wed, 12 Jun 2013 22:30:08 +0530
+Message-ID: <51B8A918.5030605@ti.com>
+References: <20130523184045.GD13507@atomide.com>
+ <1370546059-24181-1-git-send-email-balajitk@ti.com>
+ <1370546059-24181-2-git-send-email-balajitk@ti.com>
+ <20130612142409.GW8164@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20130612142409.GW8164-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, "Patil, Rachna" <rachna@ti.com>, Pantelis Antoniou <panto@antoniou-consulting.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-From: "Patil, Rachna" <rachna@ti.com>
+On Wednesday 12 June 2013 07:54 PM, Tony Lindgren wrote:
+> * Balaji T K <balajitk-l0cyMroinI0@public.gmane.org> [130606 12:20]:
+>> Add needs_vmmc and needs_vmmc_aux to indicate whether regulator is
+>> applicable so that omap_hsmmc can handle deferred probe error
+>> properly for regulators.
+>> Remove the assumption that vmmc_aux regulator to be available only if vmmc is
+>> present. Platforms can have fixed-always-ON regulator for vmmc and/or vmmc_aux
+>> in such cases regulator needed not be specified in board file.
+>
+> Looks good to me, I suggest you resend this again a bit later once the
+> other changes are merged so we can avoid a dependency between arch/arm/mach-omap2
+> and MMC changes.
+>
 
-Add DT support for client ADC driver.
+Ok, will separate the board changes and send the rest via mmc tree
 
-Acked-by: Jonathan Cameron <jic23@kernel.org>
-Signed-off-by: Patil, Rachna <rachna@ti.com>
-Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- drivers/iio/adc/ti_am335x_adc.c |   29 ++++++++++++++++++++++++-----
- drivers/mfd/ti_am335x_tscadc.c  |    1 +
- 2 files changed, 25 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
-index 543b9c4..b24402c 100644
---- a/drivers/iio/adc/ti_am335x_adc.c
-+++ b/drivers/iio/adc/ti_am335x_adc.c
-@@ -22,6 +22,8 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/iio/iio.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
- 
- #include <linux/mfd/ti_am335x_tscadc.h>
- #include <linux/platform_data/ti_am335x_adc.h>
-@@ -152,11 +154,12 @@ static int tiadc_probe(struct platform_device *pdev)
- 	struct iio_dev		*indio_dev;
- 	struct tiadc_device	*adc_dev;
- 	struct ti_tscadc_dev	*tscadc_dev = ti_tscadc_dev_get(pdev);
--	struct mfd_tscadc_board	*pdata;
-+	struct mfd_tscadc_board	*pdata = tscadc_dev->dev->platform_data;
-+	struct device_node	*node = pdev->dev.of_node;
- 	int			err;
-+	u32			val32;
- 
--	pdata = tscadc_dev->dev->platform_data;
--	if (!pdata || !pdata->adc_init) {
-+	if (!pdata && !node) {
- 		dev_err(&pdev->dev, "Could not find platform data\n");
- 		return -EINVAL;
- 	}
-@@ -169,8 +172,17 @@ static int tiadc_probe(struct platform_device *pdev)
- 	}
- 	adc_dev = iio_priv(indio_dev);
- 
--	adc_dev->mfd_tscadc = tscadc_dev;
--	adc_dev->channels = pdata->adc_init->adc_channels;
-+	adc_dev->mfd_tscadc = ti_tscadc_dev_get(pdev);
-+
-+	if (pdata)
-+		adc_dev->channels = pdata->adc_init->adc_channels;
-+	else {
-+		err = of_property_read_u32(node,
-+				"ti,adc-channels", &val32);
-+		if (err < 0)
-+			goto err_free_device;
-+		adc_dev->channels = val32;
-+	}
- 
- 	indio_dev->dev.parent = &pdev->dev;
- 	indio_dev->name = dev_name(&pdev->dev);
-@@ -260,11 +272,18 @@ static const struct dev_pm_ops tiadc_pm_ops = {
- #define TIADC_PM_OPS NULL
- #endif
- 
-+static const struct of_device_id ti_adc_dt_ids[] = {
-+	{ .compatible = "ti,am3359-adc", },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, ti_adc_dt_ids);
-+
- static struct platform_driver tiadc_driver = {
- 	.driver = {
- 		.name   = "tiadc",
- 		.owner	= THIS_MODULE,
- 		.pm	= TIADC_PM_OPS,
-+		.of_match_table = of_match_ptr(ti_adc_dt_ids),
- 	},
- 	.probe	= tiadc_probe,
- 	.remove	= tiadc_remove,
-diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index f509766..1d6c740 100644
---- a/drivers/mfd/ti_am335x_tscadc.c
-+++ b/drivers/mfd/ti_am335x_tscadc.c
-@@ -210,6 +210,7 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
- 	/* ADC Cell */
- 	cell = &tscadc->cells[ADC_CELL];
- 	cell->name = "tiadc";
-+	cell->of_compatible = "ti,am3359-adc";
- 	cell->platform_data = &tscadc;
- 	cell->pdata_size = sizeof(tscadc);
- 
--- 
-1.7.10.4
-
+> Regards,
+>
+> Tony
+>
+>> Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+>> ---
+>>   arch/arm/mach-omap2/board-2430sdp.c          |    1 +
+>>   arch/arm/mach-omap2/board-3430sdp.c          |    3 +++
+>>   arch/arm/mach-omap2/board-cm-t35.c           |    2 ++
+>>   arch/arm/mach-omap2/board-devkit8000.c       |    1 +
+>>   arch/arm/mach-omap2/board-igep0020.c         |    3 +++
+>>   arch/arm/mach-omap2/board-ldp.c              |    1 +
+>>   arch/arm/mach-omap2/board-omap3beagle.c      |    2 ++
+>>   arch/arm/mach-omap2/board-omap3evm.c         |    3 +++
+>>   arch/arm/mach-omap2/board-omap3logic.c       |    1 +
+>>   arch/arm/mach-omap2/board-omap3pandora.c     |    3 +++
+>>   arch/arm/mach-omap2/board-omap3stalker.c     |    2 ++
+>>   arch/arm/mach-omap2/board-omap3touchbook.c   |    2 ++
+>>   arch/arm/mach-omap2/board-overo.c            |    1 +
+>>   arch/arm/mach-omap2/board-rm680.c            |    1 +
+>>   arch/arm/mach-omap2/board-rx51-peripherals.c |    3 +++
+>>   arch/arm/mach-omap2/board-zoom-peripherals.c |    4 ++++
+>>   arch/arm/mach-omap2/hsmmc.c                  |    2 ++
+>>   arch/arm/mach-omap2/hsmmc.h                  |    2 ++
+>>   include/linux/platform_data/mmc-omap.h       |    2 ++
+>>   19 files changed, 39 insertions(+), 0 deletions(-)
+>>
