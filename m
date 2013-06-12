@@ -1,220 +1,78 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 20/21] iio: ti_am335x_adc: Allow to specify input line
-Date: Wed, 12 Jun 2013 18:58:21 +0200
-Message-ID: <1371056302-12714-21-git-send-email-bigeasy@linutronix.de>
-References: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/6] ARM: OMAP2+: Remove board-omap4panda.c
+Date: Wed, 12 Jun 2013 10:14:08 -0700
+Message-ID: <20130612171407.GM8164@atomide.com>
+References: <20130517191304.468.73487.stgit@localhost>
+ <20130517191753.468.1734.stgit@localhost>
+ <CACVXFVOp6n3RhZnWD_hRxqE8a8amPA5SRWfkVhz+yCGZTtGjvQ@mail.gmail.com>
+ <20130612163124.GD8164@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:45442 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754873Ab3FLROK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jun 2013 13:14:10 -0400
+Content-Disposition: inline
+In-Reply-To: <20130612163124.GD8164@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ming Lei <tom.leiming@gmail.com>, Sricharan R <r.sricharan@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-The TSC part allows to specify the input lines. The IIO part assumes
-that it usues always the last few, that means if IIO has adc-channels
-set to 2 it will use channel 6 and 7. However it might make sense to use
-only 6.
-This patch changes the device property (which was introduced recently
-and was never in an official release) in a way that the user can specify
-which of the AIN lines should be used. In Addition to this, the name is
-now AINx where x is the channel number i.e. for AIN6 we would have 6.
-Prior this, it always started counting at 0 which is confusing. In
-addition to this, it also checks for correct step number during reading
-and does not rely on proper FIFO depth.
+* Tony Lindgren <tony@atomide.com> [130612 09:37]:
+> * Ming Lei <tom.leiming@gmail.com> [130603 08:34]:
+> > Hi,
+> > 
+> > On Sat, May 18, 2013 at 3:17 AM, Tony Lindgren <tony@atomide.com> wrote:
+> > > We can now boot with device tree. If you don't want to update u-boot,
+> > > you can boot with appended DTB with the following instructions:
+> > >
+> > > 1. Make sure you have the appended DTB support in .config
+> > >
+> > >    CONFIG_ARM_APPENDED_DTB=y
+> > >    CONFIG_ARM_ATAG_DTB_COMPAT=y
+> > >    CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND=y
+> > >
+> > > 2. Build the zImage
+> > >
+> > >    $ ARCH=arm CROSS_COMPILE=... make zImage
+> > >
+> > > 3. Build the device tree blobs
+> > >
+> > >    $ ARCH=arm CROSS_COMPILE=... make dtbs
+> > >
+> > > 4. Append the correct panda dtb to zImage
+> > >
+> > >    Depending on your hardware it's omap4-panda.dtb, omap4-panda-a4.dtb
+> > >    or omap4-panda-es.dtb.
+> > >
+> > >    $ cat arch/arm/boot/zImage arch/arm/boot/dts/omap4-panda-es.dtb > /tmp/appended
+> > >
+> > > 5. Use mkimage to produce the appended device tree uImage
+> > >
+> > >    $ mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x80008000 \
+> > >      -n "Linux" -d /tmp/appended /tmp/uImage
+> > 
+> > I followed the above steps and tried devicetree on Pandaboard against
+> > 3.10.0-rc3-next-20130528, and the board will hang during boot, but works
+> > well with legacy mode.
+> > 
+> >          Hardware: Pandaboard A1
+> >          dtb: omap4-panda.dtb
+> > 
+> > See 'dmesg' on below link:
+> > 
+> >          http://kernel.ubuntu.com/~ming/up/panda-dts.dmesg
+> > 
+> 
+> Hmm looks like it boots to init. Maybe add initcall_debug to the cmdline in
+> case there's some late_initcall that causes the issue. It's probably some
+> trivial issue causing it.
 
-Acked-by: Jonathan Cameron <jic23@kernel.org>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- arch/arm/boot/dts/am335x-evm.dts |    2 +-
- drivers/iio/adc/ti_am335x_adc.c  |   57 +++++++++++++++++++++++++-------------
- drivers/mfd/ti_am335x_tscadc.c   |   20 +++++++++++--
- 3 files changed, 56 insertions(+), 23 deletions(-)
+Sricharan, maybe give this a quick try if you have the original pandaboard?
+I only have pandaboard es.
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 26fea97..0fa4c7f 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -255,6 +255,6 @@
- 	};
- 
- 	adc {
--		ti,adc-channels = <4>;
-+		ti,adc-channels = <4 5 6 7>;
- 	};
- };
-diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
-index 307a7c0..8ffe52d 100644
---- a/drivers/iio/adc/ti_am335x_adc.c
-+++ b/drivers/iio/adc/ti_am335x_adc.c
-@@ -32,6 +32,8 @@
- struct tiadc_device {
- 	struct ti_tscadc_dev *mfd_tscadc;
- 	int channels;
-+	u8 channel_line[8];
-+	u8 channel_step[8];
- };
- 
- static unsigned int tiadc_readl(struct tiadc_device *adc, unsigned int reg)
-@@ -57,7 +59,7 @@ static u32 get_adc_step_mask(struct tiadc_device *adc_dev)
- static void tiadc_step_config(struct tiadc_device *adc_dev)
- {
- 	unsigned int stepconfig;
--	int i, channels = 0, steps;
-+	int i, steps;
- 	u32 step_en;
- 
- 	/*
-@@ -71,16 +73,18 @@ static void tiadc_step_config(struct tiadc_device *adc_dev)
- 	 */
- 
- 	steps = TOTAL_STEPS - adc_dev->channels;
--	channels = TOTAL_CHANNELS - adc_dev->channels;
--
- 	stepconfig = STEPCONFIG_AVG_16 | STEPCONFIG_FIFO1;
- 
--	for (i = steps; i < TOTAL_STEPS; i++) {
--		tiadc_writel(adc_dev, REG_STEPCONFIG(i),
--				stepconfig | STEPCONFIG_INP(channels));
--		tiadc_writel(adc_dev, REG_STEPDELAY(i),
-+	for (i = 0; i < adc_dev->channels; i++) {
-+		int chan;
-+
-+		chan = adc_dev->channel_line[i];
-+		tiadc_writel(adc_dev, REG_STEPCONFIG(steps),
-+				stepconfig | STEPCONFIG_INP(chan));
-+		tiadc_writel(adc_dev, REG_STEPDELAY(steps),
- 				STEPCONFIG_OPENDLY);
--		channels++;
-+		adc_dev->channel_step[i] = steps;
-+		steps++;
- 	}
- 	step_en = get_adc_step_mask(adc_dev);
- 	am335x_tsc_se_set(adc_dev->mfd_tscadc, step_en);
-@@ -115,9 +119,9 @@ static int tiadc_channel_init(struct iio_dev *indio_dev, int channels)
- 
- 		chan->type = IIO_VOLTAGE;
- 		chan->indexed = 1;
--		chan->channel = i;
-+		chan->channel = adc_dev->channel_line[i];
- 		chan->info_mask_separate = BIT(IIO_CHAN_INFO_RAW);
--		chan->datasheet_name = chan_name_ain[i];
-+		chan->datasheet_name = chan_name_ain[chan->channel];
- 		chan->scan_type.sign = 'u';
- 		chan->scan_type.realbits = 12;
- 		chan->scan_type.storagebits = 32;
-@@ -139,7 +143,8 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
- {
- 	struct tiadc_device *adc_dev = iio_priv(indio_dev);
- 	int i;
--	unsigned int fifo1count, readx1;
-+	unsigned int fifo1count, read;
-+	u32 step = UINT_MAX;
- 
- 	/*
- 	 * When the sub-system is first enabled,
-@@ -152,11 +157,20 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
- 	 * Hence we need to flush out this data.
- 	 */
- 
-+	for (i = 0; i < ARRAY_SIZE(adc_dev->channel_step); i++) {
-+		if (chan->channel == adc_dev->channel_line[i]) {
-+			step = adc_dev->channel_step[i];
-+			break;
-+		}
-+	}
-+	if (WARN_ON_ONCE(step == UINT_MAX))
-+		return -EINVAL;
-+
- 	fifo1count = tiadc_readl(adc_dev, REG_FIFO1CNT);
- 	for (i = 0; i < fifo1count; i++) {
--		readx1 = tiadc_readl(adc_dev, REG_FIFO1);
--		if (i == chan->channel)
--			*val = readx1 & 0xfff;
-+		read = tiadc_readl(adc_dev, REG_FIFO1);
-+		if (read >> 16 == step)
-+			*val = read & 0xfff;
- 	}
- 	am335x_tsc_se_update(adc_dev->mfd_tscadc);
- 
-@@ -172,8 +186,11 @@ static int tiadc_probe(struct platform_device *pdev)
- 	struct iio_dev		*indio_dev;
- 	struct tiadc_device	*adc_dev;
- 	struct device_node	*node = pdev->dev.of_node;
-+	struct property		*prop;
-+	const __be32		*cur;
- 	int			err;
--	u32			val32;
-+	u32			val;
-+	int			channels = 0;
- 
- 	if (!node) {
- 		dev_err(&pdev->dev, "Could not find valid DT data.\n");
-@@ -190,11 +207,11 @@ static int tiadc_probe(struct platform_device *pdev)
- 
- 	adc_dev->mfd_tscadc = ti_tscadc_dev_get(pdev);
- 
--	err = of_property_read_u32(node,
--			"ti,adc-channels", &val32);
--	if (err < 0)
--		goto err_free_device;
--	adc_dev->channels = val32;
-+	of_property_for_each_u32(node, "ti,adc-channels", prop, cur, val) {
-+		adc_dev->channel_line[channels] = val;
-+		channels++;
-+	}
-+	adc_dev->channels = channels;
- 
- 	indio_dev->dev.parent = &pdev->dev;
- 	indio_dev->name = dev_name(&pdev->dev);
-diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index 2532339..b003a16 100644
---- a/drivers/mfd/ti_am335x_tscadc.c
-+++ b/drivers/mfd/ti_am335x_tscadc.c
-@@ -91,9 +91,13 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
- 	struct clk		*clk;
- 	struct device_node	*node = pdev->dev.of_node;
- 	struct mfd_cell		*cell;
-+	struct property         *prop;
-+	const __be32            *cur;
-+	u32			val;
- 	int			err, ctrl;
- 	int			clk_value, clock_rate;
- 	int			tsc_wires = 0, adc_channels = 0, total_channels;
-+	int			readouts = 0;
- 
- 	if (!pdev->dev.of_node) {
- 		dev_err(&pdev->dev, "Could not find valid DT data.\n");
-@@ -102,10 +106,17 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
- 
- 	node = of_get_child_by_name(pdev->dev.of_node, "tsc");
- 	of_property_read_u32(node, "ti,wires", &tsc_wires);
-+	of_property_read_u32(node, "ti,coordiante-readouts", &readouts);
- 
- 	node = of_get_child_by_name(pdev->dev.of_node, "adc");
--	of_property_read_u32(node, "ti,adc-channels", &adc_channels);
--
-+	of_property_for_each_u32(node, "ti,adc-channels", prop, cur, val) {
-+		adc_channels++;
-+		if (val > 7) {
-+			dev_err(&pdev->dev, " PIN numbers are 0..7 (not %d)\n",
-+					val);
-+			return -EINVAL;
-+		}
-+	}
- 	total_channels = tsc_wires + adc_channels;
- 	if (total_channels > 8) {
- 		dev_err(&pdev->dev, "Number of i/p channels more than 8\n");
-@@ -116,6 +127,11 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
-+	if (readouts * 2 + 2 + adc_channels > 16) {
-+		dev_err(&pdev->dev, "Too many step configurations requested\n");
-+		return -EINVAL;
-+	}
-+
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res) {
- 		dev_err(&pdev->dev, "no memory resource defined.\n");
--- 
-1.7.10.4
+Regards,
+
+Tony 
