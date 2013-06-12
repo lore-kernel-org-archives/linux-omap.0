@@ -1,104 +1,120 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH] ARM: dts: Protect pinctrl headers against multiple inclusions
-Date: Wed, 12 Jun 2013 08:42:43 +0200
-Message-ID: <51B81863.10403@epfl.ch>
-References: <1370962250-9745-1-git-send-email-florian.vaussard@epfl.ch> <20130611215756.9B0CA3E0D8D@localhost>
-Reply-To: florian.vaussard@epfl.ch
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH] extcon: Add an API to get extcon device from dt node
+Date: Wed, 12 Jun 2013 12:25:12 +0530
+Message-ID: <51B81B50.10508@ti.com>
+References: <1370276020-17446-2-git-send-email-kishon@ti.com> <1371001149-16906-1-git-send-email-cw00.choi@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.epfl.ch ([128.178.224.219]:42140 "HELO smtp4.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755215Ab3FLGmr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Jun 2013 02:42:47 -0400
-In-Reply-To: <20130611215756.9B0CA3E0D8D@localhost>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1371001149-16906-1-git-send-email-cw00.choi@samsung.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Chanwoo Choi <cw00.choi@samsung.com>
+Cc: myungjoo.ham@samsung.com, balbi@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, grant.likely@linaro.org, rob.herring@calxeda.com, rob@landley.net, gregkh@linuxfoundation.org, benoit.cousson@linaro.org, anish198519851985@gmail.com, pmeerw@pmeerw.net
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org
 
-Hello Grant,
+Hi Chanwoo Choi,
 
-On 06/11/2013 11:57 PM, Grant Likely wrote:
-> On Tue, 11 Jun 2013 16:50:50 +0200, Florian Vaussard <florian.vaussard@epfl.ch> wrote:
->> Pinctrl headers were not protected with #ifndef.
->>
->> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+On Wednesday 12 June 2013 07:09 AM, Chanwoo Choi wrote:
+> From: Kishon Vijay Abraham I <kishon@ti.com>
 >
-> Obviously this needs to go in via whatever tree added the modified
-> header files.
+> Added an API of_extcon_get_extcon_dev() to be used by drivers to get
+> extcon device in the case of dt boot (this can be used instead of
+> extcon_get_extcon_dev()).
 >
-
-I authored these files, sorry for this stupid omission. Benoit, can you
-take this patch?
-
-Regards,
-
-Florian
-
-> Acked-by: Grant Likely <grant.likely@secretlab.ca>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
+> Signed-off-by: Myungjoo Ham <myungjoo.ham@samsung.com>
+> ---
+>   drivers/extcon/Makefile          |  3 +++
+>   drivers/extcon/of-extcon.c       | 56 ++++++++++++++++++++++++++++++++++++++++
+>   include/linux/extcon/of-extcon.h | 30 +++++++++++++++++++++
+>   3 files changed, 89 insertions(+)
+>   create mode 100644 drivers/extcon/of-extcon.c
+>   create mode 100644 include/linux/extcon/of-extcon.h
 >
->> ---
->>   include/dt-bindings/pinctrl/am33xx.h |    5 +++++
->>   include/dt-bindings/pinctrl/omap.h   |    5 +++++
->>   2 files changed, 10 insertions(+), 0 deletions(-)
->>
->> diff --git a/include/dt-bindings/pinctrl/am33xx.h b/include/dt-bindings/pinctrl/am33xx.h
->> index a3fddd4..469e032 100644
->> --- a/include/dt-bindings/pinctrl/am33xx.h
->> +++ b/include/dt-bindings/pinctrl/am33xx.h
->> @@ -2,6 +2,9 @@
->>    * This header provides constants specific to AM33XX pinctrl bindings.
->>    */
->>
->> +#ifndef _DT_BINDINGS_PINCTRL_AM33XX_H
->> +#define _DT_BINDINGS_PINCTRL_AM33XX_H
->> +
->>   #include <include/dt-bindings/pinctrl/omap.h>
->>
->>   /* am33xx specific mux bit defines */
->> @@ -35,3 +38,5 @@
->>   #undef PIN_OFF_INPUT_PULLDOWN
->>   #undef PIN_OFF_WAKEUPENABLE
->>
->> +#endif
->> +
->> diff --git a/include/dt-bindings/pinctrl/omap.h b/include/dt-bindings/pinctrl/omap.h
->> index 370df3f..edbd250 100644
->> --- a/include/dt-bindings/pinctrl/omap.h
->> +++ b/include/dt-bindings/pinctrl/omap.h
->> @@ -5,6 +5,9 @@
->>    * Copyright (C) 2009-2010 Texas Instruments
->>    */
->>
->> +#ifndef _DT_BINDINGS_PINCTRL_OMAP_H
->> +#define _DT_BINDINGS_PINCTRL_OMAP_H
->> +
->>   /* 34xx mux mode options for each pin. See TRM for options */
->>   #define MUX_MODE0	0
->>   #define MUX_MODE1	1
->> @@ -48,3 +51,5 @@
->>   #define PIN_OFF_INPUT_PULLDOWN	(OFF_EN | OFF_PULL_EN)
->>   #define PIN_OFF_WAKEUPENABLE	WAKEUP_EN
->>
->> +#endif
->> +
->> --
->> 1.7.5.4
->>
->> _______________________________________________
->> devicetree-discuss mailing list
->> devicetree-discuss@lists.ozlabs.org
->> https://lists.ozlabs.org/listinfo/devicetree-discuss
+> diff --git a/drivers/extcon/Makefile b/drivers/extcon/Makefile
+> index 540e2c3..39cdf95 100644
+> --- a/drivers/extcon/Makefile
+> +++ b/drivers/extcon/Makefile
+> @@ -2,9 +2,12 @@
+>   # Makefile for external connector class (extcon) devices
+>   #
 >
+> +obj-$(CONFIG_OF)		+= of-extcon.o
+> +
+>   obj-$(CONFIG_EXTCON)		+= extcon-class.o
+>   obj-$(CONFIG_EXTCON_GPIO)	+= extcon-gpio.o
+>   obj-$(CONFIG_EXTCON_ADC_JACK)	+= extcon-adc-jack.o
+> +
+>   obj-$(CONFIG_EXTCON_MAX77693)	+= extcon-max77693.o
+>   obj-$(CONFIG_EXTCON_MAX8997)	+= extcon-max8997.o
+>   obj-$(CONFIG_EXTCON_ARIZONA)	+= extcon-arizona.o
+> diff --git a/drivers/extcon/of-extcon.c b/drivers/extcon/of-extcon.c
+> new file mode 100644
+> index 0000000..29f82b4
+> --- /dev/null
+> +++ b/drivers/extcon/of-extcon.c
+> @@ -0,0 +1,56 @@
+> +/*
+> + * OF helpers for External connector (extcon) framework
+> + *
+> + * Copyright (C) 2013 Texas Instruments, Inc.
+> + * Kishon Vijay Abraham I <kishon@ti.com>
+> + *
+> + * Copyright (C) 2013 Samsung Electronics
+> + * Chanwoo Choi <cw00.choi@samsung.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/slab.h>
+> +#include <linux/extcon.h>
+> +#include <linux/of.h>
+> +#include <linux/of_platform.h>
+> +#include <linux/extcon/of-extcon.h>
+> +
+> +struct extcon_dev *of_extcon_get_extcon_dev(struct device *dev, int index)
+> +{
+> +	struct device_node *node;
+> +	struct extcon_dev *edev;
+> +	struct platform_device *extcon_parent_dev;
+> +
+> +	if (!dev->of_node) {
+> +		dev_dbg(dev, "device does not have a device node entry\n");
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +
+> +	node = of_parse_phandle(dev->of_node, "extcon", index);
+> +	if (!node) {
+> +		dev_dbg(dev, "failed to get phandle in %s node\n",
+> +			dev->of_node->full_name);
+> +		return ERR_PTR(-ENODEV);
+> +	}
+> +
+> +	extcon_parent_dev = of_find_device_by_node(node);
+> +	if (!extcon_parent_dev) {
+> +		dev_dbg(dev, "unable to find device by node\n");
+> +		return ERR_PTR(-EPROBE_DEFER);
+> +	}
+> +
+> +	edev = extcon_get_extcon_dev(dev_name(&extcon_parent_dev->dev));
 
--- 
-Florian Vaussard
-EPFL - STI - IMT - LSRO1
-MEB330 - Station 9
-1015 Lausanne / Switzerland
+In order to get this working, I needed a small fix in extcon_dev_register
 
-tel: +41 21 693 78 39
-fax: +41 21 693 78 07
-http://lsro.epfl.ch
+-       dev_set_name(edev->dev, edev->name ? edev->name : dev_name(dev));
++       edev->name = edev->name ? edev->name : dev_name(dev);
++       dev_set_name(edev->dev, edev->name);
+
+Also using extcon_get_extcon_dev here requires the extcon driver not to 
+set edev.name since we use *dev_name* here. Hence I recommend using my 
+initial class iterative approach. Anyway its your call. Let me know if 
+have to float a new version of the patch (either the iterative approach 
+or having the fix I mentioned in extcon_dev_register).
+
+Thanks
+Kishon
