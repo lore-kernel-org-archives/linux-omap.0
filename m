@@ -1,74 +1,42 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/4] ARM: dts: AM33XX: Add PWMSS device tree nodes
-Date: Wed, 12 Jun 2013 19:40:26 +0300
-Message-ID: <20130612164026.GC22120@arwen.pp.htv.fi>
-References: <1370526759-31163-1-git-send-email-bigeasy@linutronix.de>
- <1370526759-31163-3-git-send-email-bigeasy@linutronix.de>
- <51B89D78.6010906@linutronix.de>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: gpmc: get number of useable GPMC
+ chip-selects via DT
+Date: Wed, 12 Jun 2013 09:57:43 -0700
+Message-ID: <20130612165742.GG8164@atomide.com>
+References: <1370001691-29320-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XWOWbaMNXpFDWE00"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55376 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757351Ab3FLQlo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Jun 2013 12:41:44 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:58326 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754494Ab3FLQ5p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jun 2013 12:57:45 -0400
 Content-Disposition: inline
-In-Reply-To: <51B89D78.6010906@linutronix.de>
+In-Reply-To: <1370001691-29320-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Philip Avinash <avinashphilip@ti.com>, Benoit Cousson <b-cousson@ti.com>
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Jon Hunter <jgchunter@gmail.com>
 
---XWOWbaMNXpFDWE00
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* Gupta, Pekon <pekon@ti.com> [130531 05:07]:
+> From: "Gupta, Pekon" <pekon@ti.com>
+> 
+> This patch enables usage of DT property 'gpmc,num-cs' as already documented in
+> Documentation/devicetree/bindings/bus/ti-gpmc.txt
+> 
+> Though GPMC hardware supports upto 8 chip-selects, but all chip-selects may
+> not be available for use because:
+> - chip-select pin may not be bonded out at SoC device boundary.
+> - chip-select pin-mux may conflict with other pins usage.
+> - board level constrains.
+> 
+> gpmc,num-cs allows user to configure maximum number of GPMC chip-selects
+> available for use on any given platform. This ensures:
+> - GPMC child nodes having chip-selects within allowed range are only probed.
+> - And un-used GPMC chip-selects remain blocked.(may be for security reasons).
 
-Hi,
+Thanks applying this patch into omap-for-v3.11/gpmc.
 
-On Wed, Jun 12, 2013 at 06:10:32PM +0200, Sebastian Andrzej Siewior wrote:
-> On 06/06/2013 03:52 PM, Sebastian Andrzej Siewior wrote:
-> > From: Philip Avinash <avinashphilip@ti.com>
-> >=20
-> > Add PWMSS device tree nodes in relation with ECAP & EHRPWM DT nodes to
-> > AM33XX SoC family. Also populates device tree nodes for ECAP & EHRPWM by
-> > adding necessary properties like pwm-cells, base reg & set disabled as
-> > status.
-> >=20
-> > Signed-off-by: Philip Avinash <avinashphilip@ti.com>
-> > Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-> > Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
->=20
-> Can someone please grab #2 till #4? Paul took just #1 as far as I can
-> tell.
+Regards,
 
-DTS should be Benoit Cousson
-
---=20
-balbi
-
---XWOWbaMNXpFDWE00
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRuKR6AAoJEIaOsuA1yqRErY8QAIMQqji3CDR/ycenwR8GW2M4
-rf8BMZtrzU9JKsrpaC8vN/nDFQuqn+OxYQP472Cfk29MznWU8VGMwCE+lin7nXbh
-yISrCAPZ2EmbFRruH+oB3HMCsH+zkcW14vu1mUBfB6I3B8RI2/U6H4ca8q1wvFSm
-hw3R5q8vUmPaRdUzJbE4OqI8LZYAkhyzK1ic7OKwBb89MdAggm8o49yYn9ZIGJVj
-7MZnZiGU5obCZinyZP+rSdZ2dmeGI0UuLAS21M0IYO1yum/QxPotdT+e4Mko8j8U
-MWgNL+MhdwRArZxsgVwN29jRv9looitMUj4I9RSs+RgI9W18BbPf04QMBAmCvb47
-ZVrPmCDJI7keaCK/ZORUhOLcgPuEUjfjJskCLBKNiDOA3hYGVEKw30WrWzpSOdxw
-6vkIyKXS2Pi7kp0DRiPw75Q6bC6NWseIHZQy/TnNcKtfsWvjUtRInmvI0QYaYl0E
-pKp+htJNG8/nCzSV6HlzAl/0YcBU2hzv3W5o3PMIypHLqzFnxWXt9fBVQc5ZZq5i
-50UiKkExrB3aoZRib8tpq82K6+aRC4vu4iwOIF+TeR9X1gLnijV61AZA2GyqIVn4
-T+X29uwNTJePJ/mwv7OBBkM03Mi5U1bOMIW1oDugJteToxikWKtUk37Lm5MUtN8N
-outPOF9LfFIB3M4QElyj
-=weH5
------END PGP SIGNATURE-----
-
---XWOWbaMNXpFDWE00--
+Tony
