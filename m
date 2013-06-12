@@ -1,43 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] ARM: OMAP: add corrected DSS regulator supplies
-Date: Wed, 12 Jun 2013 07:05:21 -0700
-Message-ID: <20130612140520.GT8164@atomide.com>
-References: <1369985874-8571-1-git-send-email-tomi.valkeinen@ti.com>
- <51B84FA5.80409@ti.com>
+Subject: Re: [PATCH 0/3] ARM: OMAP2+: devices: Silence hwmod lookup
+ failures (dmic/mcpdm)
+Date: Wed, 12 Jun 2013 07:10:50 -0700
+Message-ID: <20130612141050.GU8164@atomide.com>
+References: <1370939520-16132-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34727 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48838 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753181Ab3FLOFY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jun 2013 10:05:24 -0400
+	with ESMTP id S1754268Ab3FLOKy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jun 2013 10:10:54 -0400
 Content-Disposition: inline
-In-Reply-To: <51B84FA5.80409@ti.com>
+In-Reply-To: <1370939520-16132-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [130612 03:44]:
-> On 31/05/13 10:37, Tomi Valkeinen wrote:
-> > Hi Tony,
-> > 
-> > Here are a few patches adding corrected DSS regulator supplies. The current
-> > ones in the board files are not really correct, although the dss driver works
-> > ok with them.
-> > 
-> > So these patches add new regulator supply entries. When these are merged, I'll
-> > change omapdss driver to use the new ones, instead of the old ones. After that,
-> > we can remove the old ones from the board files.
-> > 
-> > Note that these patches were also present in the big DSS series I sent
-> > yesterday. There's no reason for these patches to be there, so I'm sending them
-> > separately, and will drop these from my DSS series.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [130611 01:37]:
+> Hi,
 > 
-> Ping.
+> Small patches to silence the hwmod lookup failures in case when we boot the
+> kernel on boards where the IPs are not present (OMAP2/3 vs McPDM, DMIC,
+> HDMI audio).
 
-Thanks, applying into omap-for-v.311/fixes-non-critical.
+Thanks applying into omap-for-v3.11/fixes-non-critical.
 
 Regards,
 
 Tony
+
+> Peter Ujfalusi (3):
+>   ARM: OMAP2+: devices: Do not print error when McPDM hwmod lookup fails
+>   ARM: OMAP2+: devices: Do not print error when DMIC hwmod lookup fails
+>   ARM: OMAP2+: devices: Do not print error when dss_hdmi hwmod lookup
+>     fails
+> 
+>  arch/arm/mach-omap2/devices.c | 12 +++---------
+>  1 file changed, 3 insertions(+), 9 deletions(-)
+> 
+> -- 
+> 1.8.2.1
+> 
