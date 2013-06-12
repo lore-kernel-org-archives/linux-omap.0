@@ -1,43 +1,73 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 18/21] input: ti_am335x_tsc: ACK the HW_PEN irq in ISR
-Date: Wed, 12 Jun 2013 18:58:19 +0200
-Message-ID: <1371056302-12714-19-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 10/21] mfd: ti_am335x_tscadc: remove platform_data support
+Date: Wed, 12 Jun 2013 18:58:11 +0200
+Message-ID: <1371056302-12714-11-git-send-email-bigeasy@linutronix.de>
 References: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-input-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-input-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Samuel Ortiz <sameo@linux.intel.com>
 Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-The interrupt source IRQENB_HW_PEN is enabled in suspend and suposed to
-be used as a wake up source. Once this interrupt source is unmaksed, the
-devices ends up in ISR and never continues.
-This change ACKs the interrupt and disables it so the system does not
-freeze.
+This patch removes access to platform data mfd_tscadc_board because the
+platform is DT only.
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/input/touchscreen/ti_am335x_tsc.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/mfd/ti_am335x_tscadc.c |   23 ++++++-----------------
+ 1 file changed, 6 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-index 1bceb25..2ba7703 100644
---- a/drivers/input/touchscreen/ti_am335x_tsc.c
-+++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-@@ -308,6 +308,12 @@ static irqreturn_t titsc_irq(int irq, void *dev)
- 		irqclr |= IRQENB_PENUP;
+diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+index 292d34e..e78b9df 100644
+--- a/drivers/mfd/ti_am335x_tscadc.c
++++ b/drivers/mfd/ti_am335x_tscadc.c
+@@ -26,8 +26,6 @@
+ #include <linux/of_device.h>
+ 
+ #include <linux/mfd/ti_am335x_tscadc.h>
+-#include <linux/input/ti_am335x_tsc.h>
+-#include <linux/platform_data/ti_am335x_adc.h>
+ 
+ static unsigned int tscadc_readl(struct ti_tscadc_dev *tsadc, unsigned int reg)
+ {
+@@ -91,31 +89,22 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 	struct ti_tscadc_dev	*tscadc;
+ 	struct resource		*res;
+ 	struct clk		*clk;
+-	struct mfd_tscadc_board	*pdata = pdev->dev.platform_data;
+ 	struct device_node	*node = pdev->dev.of_node;
+ 	struct mfd_cell		*cell;
+ 	int			err, ctrl;
+ 	int			clk_value, clock_rate;
+ 	int			tsc_wires = 0, adc_channels = 0, total_channels;
+ 
+-	if (!pdata && !pdev->dev.of_node) {
+-		dev_err(&pdev->dev, "Could not find platform data\n");
++	if (!pdev->dev.of_node) {
++		dev_err(&pdev->dev, "Could not find valid DT data.\n");
+ 		return -EINVAL;
  	}
  
-+	if (status & IRQENB_HW_PEN) {
-+
-+		titsc_writel(ts_dev, REG_IRQWAKEUP, 0x00);
-+		titsc_writel(ts_dev, REG_IRQCLR, IRQENB_HW_PEN);
-+	}
-+
- 	titsc_writel(ts_dev, REG_IRQSTATUS, irqclr);
+-	if (pdev->dev.platform_data) {
+-		if (pdata->tsc_init)
+-			tsc_wires = pdata->tsc_init->wires;
++	node = of_get_child_by_name(pdev->dev.of_node, "tsc");
++	of_property_read_u32(node, "ti,wires", &tsc_wires);
  
- 	am335x_tsc_se_update(ts_dev->mfd_tscadc);
+-		if (pdata->adc_init)
+-			adc_channels = pdata->adc_init->adc_channels;
+-	} else {
+-		node = of_get_child_by_name(pdev->dev.of_node, "tsc");
+-		of_property_read_u32(node, "ti,wires", &tsc_wires);
+-
+-		node = of_get_child_by_name(pdev->dev.of_node, "adc");
+-		of_property_read_u32(node, "ti,adc-channels", &adc_channels);
+-	}
++	node = of_get_child_by_name(pdev->dev.of_node, "adc");
++	of_property_read_u32(node, "ti,adc-channels", &adc_channels);
+ 
+ 	total_channels = tsc_wires + adc_channels;
+ 
 -- 
 1.7.10.4
-
