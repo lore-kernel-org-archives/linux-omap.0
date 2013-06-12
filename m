@@ -1,12 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/6] non-critical omap fixes for v3.11 merge window
-Date: Wed, 12 Jun 2013 11:24:33 -0700
-Message-ID: <23292.6883771599$1371061534@news.gmane.org>
+Subject: [GIT PULL 3/6] omap pm changes for v3.11 merge window
+Date: Wed, 12 Jun 2013 11:24:34 -0700
+Message-ID: <E1UmpjQ-0005cT-Lo@merlin.infradead.org>
+References: <pull-1371061475-206272>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
+In-Reply-To: <pull-1371061475-206272>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,54 +22,37 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 317ddd256b9c24b0d78fa8018f80f1e495481a10:
+The following changes since commit f722406faae2d073cc1d01063d1123c35425939e:
 
-  Linux 3.10-rc5 (2013-06-08 17:41:04 -0700)
+  Linux 3.10-rc1 (2013-05-11 17:14:08 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/fixes-non-critical-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/pm-signed
 
-for you to fetch changes up to e41a5f88b374f7b1d87a72740d186be20cae4aa8:
+for you to fetch changes up to 49a34fd5380d249ae8a2173399c62fc5a1fddd70:
 
-  ARM: OMAP2+: omap-usb-host: Fix memory leaks (2013-06-12 10:04:10 -0700)
-
-----------------------------------------------------------------
-Non-critical fixes for omaps for v3.11 merge window.
+  Merge tag 'omap-pm-v3.10/cleanup/pm' of git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm into omap-for-v3.11/pm (2013-05-16 08:27:49 -0700)
 
 ----------------------------------------------------------------
-Peter Ujfalusi (3):
-      ARM: OMAP2+: devices: Do not print error when McPDM hwmod lookup fails
-      ARM: OMAP2+: devices: Do not print error when DMIC hwmod lookup fails
-      ARM: OMAP2+: devices: Do not print error when dss_hdmi hwmod lookup fails
 
-Roger Quadros (1):
-      ARM: OMAP2+: omap-usb-host: Fix memory leaks
+Omap PM changes via Kevin Hilman <khilman@linaro.org>:
 
-Sebastian Andrzej Siewior (1):
-      arm/omap: use const char properly
+OMAP PM cleanups for v3.10
 
-Suman Anna (1):
-      ARM: OMAP2+: control: add OMAP5 support for dsp boot programming
+----------------------------------------------------------------
+Santosh Shilimkar (4):
+      ARM: OMAP4: PM: Avoid expensive cpu_suspend() path for all CPU power states except off
+      ARM: OMAP4+: PM: Consolidate MPU subsystem PM code for re-use
+      ARM: OMAP4+: Make secondary_startup function name more consistent
+      ARM: OMAP4+: PM: Consolidate OMAP4 PM code to re-use it for OMAP5
 
-Tomi Valkeinen (3):
-      ARM: OMAP: fix dsi regulator names
-      ARM: OMAP: add vdds_dsi supply for omapdss_dpi.0
-      ARM: OMAP: add vdds_sdi supply for omapdss_sdi.0
+Tony Lindgren (1):
+      Merge tag 'omap-pm-v3.10/cleanup/pm' of git://git.kernel.org/.../khilman/linux-omap-pm into omap-for-v3.11/pm
 
-Tony Lindgren (2):
-      Merge branch 'dss-regulator' into omap-for-v3.11/fixes-non-critical
-      ARM: OMAP2+: Fix serial init for device tree based booting
-
- arch/arm/mach-omap2/board-cm-t35.c           |   3 +-
- arch/arm/mach-omap2/board-devkit8000.c       |   1 +
- arch/arm/mach-omap2/board-ldp.c              |   3 +-
- arch/arm/mach-omap2/board-omap3pandora.c     |   1 +
- arch/arm/mach-omap2/board-rx51-peripherals.c |   1 +
- arch/arm/mach-omap2/control.c                |   1 +
- arch/arm/mach-omap2/devices.c                |  12 +--
- arch/arm/mach-omap2/id.c                     |   2 +-
- arch/arm/mach-omap2/serial.c                 |   3 +
- arch/arm/mach-omap2/twl-common.c             |   1 +
- arch/arm/mach-omap2/usb-host.c               | 106 ++++++++++++++-------------
- 11 files changed, 72 insertions(+), 62 deletions(-)
+ arch/arm/mach-omap2/common.h              |  4 +-
+ arch/arm/mach-omap2/omap-headsmp.S        |  8 ++--
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c | 69 +++++++++++++++++++++++++------
+ arch/arm/mach-omap2/omap-smp.c            |  6 +--
+ arch/arm/mach-omap2/pm44xx.c              | 58 +++++++++++++++++++++-----
+ 5 files changed, 113 insertions(+), 32 deletions(-)
