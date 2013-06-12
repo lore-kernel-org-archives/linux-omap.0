@@ -1,220 +1,52 @@
-From: J Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v5] ARM: dts: OMAP5: Add Palmas MFD node and regulator nodes
-Date: Wed, 12 Jun 2013 16:10:23 +0530
-Message-ID: <1371033624-32417-1-git-send-email-j-keerthy@ti.com>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH v4 0/3] suspend/resume support for OMAP nand driver
+Date: Wed, 12 Jun 2013 16:30:55 +0530
+Message-ID: <1371034858-19984-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: b-cousson@ti.com, devicetree-discuss@lists.ozlabs.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ldewangan@nvidia.com, grant.likely@secretlab.ca, swarren@wwwdotorg.org, swarren@nvidia.com, sameo@linux.intel.com, gg@slimlogic.co.uk, lee.jones@linaro.org, J Keerthy <j-keerthy@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38564 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754884Ab3FLLBa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Jun 2013 07:01:30 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com
+Cc: Pekon Gupta <pekon@ti.com>
 
-This patch adds Palmas MFD node and the regulator nodes for OMAP5.
+This patch series adds low power transition support for OMAP NAND driver.
+[Patch 1/3]: Adds pm_runtime calls to handle GPMC module probe and remove
+[Patch 2/3]: Adds GPMC suspend/resume support.
+[Patch 3/3]: Adds ELM suspend/resume support.
 
-The node definitions are based on: https://lkml.org/lkml/2013/6/6/25
+Tested on am335x-evm with NAND flash support, using following:
+	echo devices 	> /sys/power/pm_test
+	echo mem	> /sys/power/state
 
-Boot tested on omap5-uevm board.
+	echo core	> /sys/power/pm_test
+	echo mem	> /sys/power/state
 
-Signed-off-by: Graeme Gregory <gg@slimlogic.co.uk>
-Signed-off-by: J Keerthy <j-keerthy@ti.com>
----
-V5:
-Corrected the IRQ_TYPE flag for OMAP5 board.
+Changes Since v3:
+- CONFIG_PM -> CONFIG_PM_SLEEP
+- using struct dev_pm_ops via driver->pm, instead of struct platform_driver
+- rebased to 3.10-rc5
 
-V4:
-Removed splitting Palmas node.
+Changes Since v2:
+- Remove calll back of nand_suspend from omap2 nand driver, as the same call
+  already done from suspend activity mtd class driver.
 
-V3:
-Moved the entire Palmas device tree node to board file.
+[1] http://comments.gmane.org/gmane.linux.ports.arm.omap/91405
 
- arch/arm/boot/dts/omap5-uevm.dts |  167 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 167 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 927db1e..3d0b7b6 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -8,6 +8,8 @@
- /dts-v1/;
- 
- #include "omap5.dtsi"
-+#include <dt-bindings/interrupt-controller/irq.h>
-+#include <dt-bindings/interrupt-controller/arm-gic.h>
- 
- / {
- 	model = "TI OMAP5 uEVM board";
-@@ -254,6 +256,171 @@
- 	pinctrl-0 = <&i2c1_pins>;
- 
- 	clock-frequency = <400000>;
-+
-+	palmas: palmas@48 {
-+		reg = <0x48>;
-+		interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* IRQ_SYS_1N */
-+		interrupt-parent = <&gic>;
-+		compatible = "ti,palmas";
-+		interrupt-controller;
-+		#interrupt-cells = <2>;
-+
-+		palmas_pmic {
-+			compatible = "ti,palmas-pmic";
-+			interrupt-parent = <&palmas>;
-+			interrupts = <14 IRQ_TYPE_NONE>;
-+			interrupt-name = "short-irq";
-+
-+			ti,ldo6-vibrator;
-+
-+			regulators {
-+				smps123_reg: smps123 {
-+					regulator-name = "smps123";
-+					regulator-min-microvolt = < 600000>;
-+					regulator-max-microvolt = <1500000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				smps45_reg: smps45 {
-+					regulator-name = "smps45";
-+					regulator-min-microvolt = < 600000>;
-+					regulator-max-microvolt = <1310000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				smps6_reg: smps6 {
-+					regulator-name = "smps6";
-+					regulator-min-microvolt = <1200000>;
-+					regulator-max-microvolt = <1200000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				smps7_reg: smps7 {
-+					regulator-name = "smps7";
-+					regulator-min-microvolt = <1800000>;
-+					regulator-max-microvolt = <1800000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				smps8_reg: smps8 {
-+					regulator-name = "smps8";
-+					regulator-min-microvolt = < 600000>;
-+					regulator-max-microvolt = <1310000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				smps9_reg: smps9 {
-+					regulator-name = "smps9";
-+					regulator-min-microvolt = <2100000>;
-+					regulator-max-microvolt = <2100000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+					ti,smps-range = <0x80>;
-+				};
-+
-+				smps10_reg: smps10 {
-+					regulator-name = "smps10";
-+					regulator-min-microvolt = <5000000>;
-+					regulator-max-microvolt = <5000000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				ldo1_reg: ldo1 {
-+					regulator-name = "ldo1";
-+					regulator-min-microvolt = <2800000>;
-+					regulator-max-microvolt = <2800000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				ldo2_reg: ldo2 {
-+					regulator-name = "ldo2";
-+					regulator-min-microvolt = <2900000>;
-+					regulator-max-microvolt = <2900000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				ldo3_reg: ldo3 {
-+					regulator-name = "ldo3";
-+					regulator-min-microvolt = <3000000>;
-+					regulator-max-microvolt = <3000000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				ldo4_reg: ldo4 {
-+					regulator-name = "ldo4";
-+					regulator-min-microvolt = <2200000>;
-+					regulator-max-microvolt = <2200000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				ldo5_reg: ldo5 {
-+					regulator-name = "ldo5";
-+					regulator-min-microvolt = <1800000>;
-+					regulator-max-microvolt = <1800000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				ldo6_reg: ldo6 {
-+					regulator-name = "ldo6";
-+					regulator-min-microvolt = <1500000>;
-+					regulator-max-microvolt = <1500000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				ldo7_reg: ldo7 {
-+					regulator-name = "ldo7";
-+					regulator-min-microvolt = <1500000>;
-+					regulator-max-microvolt = <1500000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				ldo8_reg: ldo8 {
-+					regulator-name = "ldo8";
-+					regulator-min-microvolt = <1500000>;
-+					regulator-max-microvolt = <1500000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				ldo9_reg: ldo9 {
-+					regulator-name = "ldo9";
-+					regulator-min-microvolt = <1800000>;
-+					regulator-max-microvolt = <3300000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				ldoln_reg: ldoln {
-+					regulator-name = "ldoln";
-+					regulator-min-microvolt = <1800000>;
-+					regulator-max-microvolt = <1800000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				ldousb_reg: ldousb {
-+					regulator-name = "ldousb";
-+					regulator-min-microvolt = <3250000>;
-+					regulator-max-microvolt = <3250000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+			};
-+		};
-+	};
- };
- 
- &i2c5 {
+avinash philip (3):
+  arm: gpmc: Converts GPMC driver to pm_runtime capable
+  arm: gpmc: Low power transition support
+  mtd: devices: elm: Low power transition support
+
+ arch/arm/mach-omap2/gpmc.c | 27 +++++++++++++++++++++++++--
+ drivers/mtd/devices/elm.c  | 19 +++++++++++++++++++
+ 2 files changed, 44 insertions(+), 2 deletions(-)
+
 -- 
-1.7.5.4
+1.8.1
+
