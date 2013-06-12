@@ -1,91 +1,104 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 13/14] ARM: AM33XX: hwmod data: irq, dma and addr info
- clean up
-Date: Wed, 12 Jun 2013 06:26:13 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83ECAF7CB@DBDE04.ent.ti.com>
-References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
-	<1369845494-30231-14-git-send-email-santosh.shilimkar@ti.com>
-	<alpine.DEB.2.02.1306060355320.15042@utopia.booyaka.com>
- <87zjv2ooxi.fsf@linaro.org>
- <79CD15C6BA57404B839C016229A409A83ECAF796@DBDE04.ent.ti.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH] ARM: dts: Protect pinctrl headers against multiple inclusions
+Date: Wed, 12 Jun 2013 08:42:43 +0200
+Message-ID: <51B81863.10403@epfl.ch>
+References: <1370962250-9745-1-git-send-email-florian.vaussard@epfl.ch> <20130611215756.9B0CA3E0D8D@localhost>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54740 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750966Ab3FLG0q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jun 2013 02:26:46 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83ECAF796@DBDE04.ent.ti.com>
-Content-Language: en-US
+Received: from smtp4.epfl.ch ([128.178.224.219]:42140 "HELO smtp4.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755215Ab3FLGmr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Jun 2013 02:42:47 -0400
+In-Reply-To: <20130611215756.9B0CA3E0D8D@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Kevin Hilman <khilman@linaro.org>, Paul Walmsley <paul@pwsan.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "R, Sricharan" <r.sricharan@ti.com>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org
 
+Hello Grant,
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Hiremath, Vaibhav
-> Sent: Wednesday, June 12, 2013 11:34 AM
-> To: Kevin Hilman; Paul Walmsley
-> Cc: Shilimkar, Santosh; tony@atomide.com; linux-arm-
-> kernel@lists.infradead.org; linux-omap@vger.kernel.org; R, Sricharan
-> Subject: RE: [PATCH 13/14] ARM: AM33XX: hwmod data: irq, dma and addr
-> info clean up
-> 
-> 
-> > -----Original Message-----
-> > From: Kevin Hilman [mailto:khilman@linaro.org]
-> > Sent: Friday, June 07, 2013 3:57 AM
-> > To: Paul Walmsley
-> > Cc: Shilimkar, Santosh; tony@atomide.com; linux-arm-
-> > kernel@lists.infradead.org; linux-omap@vger.kernel.org; Hiremath,
-> > Vaibhav; R, Sricharan
-> > Subject: Re: [PATCH 13/14] ARM: AM33XX: hwmod data: irq, dma and addr
-> > info clean up
-> >
-> > Paul Walmsley <paul@pwsan.com> writes:
-> >
-> > > On Wed, 29 May 2013, Santosh Shilimkar wrote:
-> > >
-> > >> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > >>
-> > >> AM33XX only supports DT boot mode and with addition of
-> > >> extracting module resources like, irq, dma and address space
-> > >> from DT block, so now we can remove duplicate information from
-> > >> hwmod data file.
-> > >
-> > > OK, guess I'll take your word for it that it all works.  The
-> > > BeagleBone-white with appended DTB hasn't booted here since v3.7.
-> > > And the BeagleBone-black with discrete DTB doesn't boot at all with
-> > > current mainline, only with the TI vendor kernel & DTB...
-> >
-> > Anyone care to shed light on what's missing for BeagleBone boot with
-> > mainline currently?
-> >
-> > I've also not been able to boot a mainline kernel on the BeagleBone
-> for
-> > some time.
-> >
-> 
-> Sorry for delayed response, as I was on vacation for almost for a week.
-> 
-> I have just responded to this thread on complete analysis of the issue.
-> 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg90309.html
-> 
+On 06/11/2013 11:57 PM, Grant Likely wrote:
+> On Tue, 11 Jun 2013 16:50:50 +0200, Florian Vaussard <florian.vaussard@epfl.ch> wrote:
+>> Pinctrl headers were not protected with #ifndef.
+>>
+>> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+>
+> Obviously this needs to go in via whatever tree added the modified
+> header files.
+>
 
-I have also pushed the branch to github,
+I authored these files, sorry for this stupid omission. Benoit, can you
+take this patch?
 
-https://github.com/hvaibhav/am335x-linux.git  linus-master
+Regards,
 
-OR
+Florian
 
-https://github.com/hvaibhav/am335x-linux/tree/linus-master
+> Acked-by: Grant Likely <grant.likely@secretlab.ca>
+>
+>> ---
+>>   include/dt-bindings/pinctrl/am33xx.h |    5 +++++
+>>   include/dt-bindings/pinctrl/omap.h   |    5 +++++
+>>   2 files changed, 10 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/include/dt-bindings/pinctrl/am33xx.h b/include/dt-bindings/pinctrl/am33xx.h
+>> index a3fddd4..469e032 100644
+>> --- a/include/dt-bindings/pinctrl/am33xx.h
+>> +++ b/include/dt-bindings/pinctrl/am33xx.h
+>> @@ -2,6 +2,9 @@
+>>    * This header provides constants specific to AM33XX pinctrl bindings.
+>>    */
+>>
+>> +#ifndef _DT_BINDINGS_PINCTRL_AM33XX_H
+>> +#define _DT_BINDINGS_PINCTRL_AM33XX_H
+>> +
+>>   #include <include/dt-bindings/pinctrl/omap.h>
+>>
+>>   /* am33xx specific mux bit defines */
+>> @@ -35,3 +38,5 @@
+>>   #undef PIN_OFF_INPUT_PULLDOWN
+>>   #undef PIN_OFF_WAKEUPENABLE
+>>
+>> +#endif
+>> +
+>> diff --git a/include/dt-bindings/pinctrl/omap.h b/include/dt-bindings/pinctrl/omap.h
+>> index 370df3f..edbd250 100644
+>> --- a/include/dt-bindings/pinctrl/omap.h
+>> +++ b/include/dt-bindings/pinctrl/omap.h
+>> @@ -5,6 +5,9 @@
+>>    * Copyright (C) 2009-2010 Texas Instruments
+>>    */
+>>
+>> +#ifndef _DT_BINDINGS_PINCTRL_OMAP_H
+>> +#define _DT_BINDINGS_PINCTRL_OMAP_H
+>> +
+>>   /* 34xx mux mode options for each pin. See TRM for options */
+>>   #define MUX_MODE0	0
+>>   #define MUX_MODE1	1
+>> @@ -48,3 +51,5 @@
+>>   #define PIN_OFF_INPUT_PULLDOWN	(OFF_EN | OFF_PULL_EN)
+>>   #define PIN_OFF_WAKEUPENABLE	WAKEUP_EN
+>>
+>> +#endif
+>> +
+>> --
+>> 1.7.5.4
+>>
+>> _______________________________________________
+>> devicetree-discuss mailing list
+>> devicetree-discuss@lists.ozlabs.org
+>> https://lists.ozlabs.org/listinfo/devicetree-discuss
+>
 
+-- 
+Florian Vaussard
+EPFL - STI - IMT - LSRO1
+MEB330 - Station 9
+1015 Lausanne / Switzerland
 
-NOTE: Tested on BeagleBone-Black platform.
-
-Thanks,
-Vaibhav
+tel: +41 21 693 78 39
+fax: +41 21 693 78 07
+http://lsro.epfl.ch
