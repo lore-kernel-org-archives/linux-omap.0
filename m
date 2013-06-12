@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/6] omap pm changes for v3.11 merge window
-Date: Wed, 12 Jun 2013 11:24:34 -0700
-Message-ID: <E1UmpjQ-0005cT-Lo@merlin.infradead.org>
+Subject: [GIT PULL 4/6] omap gpmc changes for v3.11 merge window
+Date: Wed, 12 Jun 2013 11:24:35 -0700
+Message-ID: <E1Umpja-0005cr-1V@merlin.infradead.org>
 References: <pull-1371061475-206272>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -28,31 +28,35 @@ The following changes since commit f722406faae2d073cc1d01063d1123c35425939e:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/pm-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/gpmc-signed
 
-for you to fetch changes up to 49a34fd5380d249ae8a2173399c62fc5a1fddd70:
+for you to fetch changes up to b3f5525c55ce5cb67af06f04dbbf28358da23a2c:
 
-  Merge tag 'omap-pm-v3.10/cleanup/pm' of git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm into omap-for-v3.11/pm (2013-05-16 08:27:49 -0700)
-
-----------------------------------------------------------------
-
-Omap PM changes via Kevin Hilman <khilman@linaro.org>:
-
-OMAP PM cleanups for v3.10
+  ARM: OMAP2+: gpmc: Converts GPMC driver to pm_runtime capable (2013-06-12 09:56:30 -0700)
 
 ----------------------------------------------------------------
-Santosh Shilimkar (4):
-      ARM: OMAP4: PM: Avoid expensive cpu_suspend() path for all CPU power states except off
-      ARM: OMAP4+: PM: Consolidate MPU subsystem PM code for re-use
-      ARM: OMAP4+: Make secondary_startup function name more consistent
-      ARM: OMAP4+: PM: Consolidate OMAP4 PM code to re-use it for OMAP5
+Omap GPMC (General Purpose Memory Controller) changes.
 
-Tony Lindgren (1):
-      Merge tag 'omap-pm-v3.10/cleanup/pm' of git://git.kernel.org/.../khilman/linux-omap-pm into omap-for-v3.11/pm
+----------------------------------------------------------------
+Christoph Fritz (1):
+      ARM: OMAP2+: nand: reorganize gpmc timing values
 
- arch/arm/mach-omap2/common.h              |  4 +-
- arch/arm/mach-omap2/omap-headsmp.S        |  8 ++--
- arch/arm/mach-omap2/omap-mpuss-lowpower.c | 69 +++++++++++++++++++++++++------
- arch/arm/mach-omap2/omap-smp.c            |  6 +--
- arch/arm/mach-omap2/pm44xx.c              | 58 +++++++++++++++++++++-----
- 5 files changed, 113 insertions(+), 32 deletions(-)
+Gupta Pekon (1):
+      ARM: OMAP2+: gpmc: get number of useable GPMC chip-selects via DT
+
+Jon Hunter (1):
+      ARM: dts: OMAP2+: Simplify NAND support
+
+Mark Jackson (1):
+      ARM: OMAP2+: Allow NAND transfer mode to be specified in DT
+
+avinash philip (1):
+      ARM: OMAP2+: gpmc: Converts GPMC driver to pm_runtime capable
+
+ Documentation/devicetree/bindings/bus/ti-gpmc.txt  |  1 -
+ .../devicetree/bindings/mtd/gpmc-nand.txt          |  8 +++
+ arch/arm/boot/dts/omap3430-sdp.dts                 |  1 -
+ arch/arm/mach-omap2/board-flash.c                  |  3 ++
+ arch/arm/mach-omap2/gpmc-nand.c                    | 44 ++--------------
+ arch/arm/mach-omap2/gpmc.c                         | 61 +++++++++++++++++-----
+ 6 files changed, 63 insertions(+), 55 deletions(-)
