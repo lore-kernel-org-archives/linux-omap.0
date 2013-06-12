@@ -1,152 +1,155 @@
-From: anish singh <anish198519851985@gmail.com>
-Subject: Re: [PATCH] extcon: Add an API to get extcon device from dt node
-Date: Wed, 12 Jun 2013 10:46:51 +0530
-Message-ID: <CAK7N6voG_Fnt2yZ6xohNVSc_-ij0fP1f+DVuFu30JinScas7Ww@mail.gmail.com>
-References: <1370276020-17446-2-git-send-email-kishon@ti.com>
-	<1371001149-16906-1-git-send-email-cw00.choi@samsung.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 13/14] ARM: AM33XX: hwmod data: irq, dma and addr info
+ clean up
+Date: Wed, 12 Jun 2013 06:00:12 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83ECAF76E@DBDE04.ent.ti.com>
+References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
+ <1369845494-30231-14-git-send-email-santosh.shilimkar@ti.com>
+ <alpine.DEB.2.02.1306060355320.15042@utopia.booyaka.com>
+ <87zjv2ooxi.fsf@linaro.org> <51B58FE9.5040309@ti.com>
+ <877gi1ew3r.fsf@linaro.org> <51B6A43C.10301@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1371001149-16906-1-git-send-email-cw00.choi@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: kishon@ti.com, MyungJoo Ham <myungjoo.ham@samsung.com>, balbi@ti.com, devicetree-discuss@lists.ozlabs.org, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, linux-kernel-mail <linux-kernel@vger.kernel.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, grant.likely@linaro.org, rob.herring@calxeda.com, rob@landley.net, Greg KH <gregkh@linuxfoundation.org>, benoit.cousson@linaro.org, pmeerw@pmeerw.net
+Content-Type: text/plain; charset=Windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60456 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754688Ab3FLGAs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jun 2013 02:00:48 -0400
+In-Reply-To: <51B6A43C.10301@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Vutla, Lokesh" <lokeshvutla@ti.com>, Kevin Hilman <khilman@linaro.org>
+Cc: Paul Walmsley <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "R, Sricharan" <r.sricharan@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-On Wed, Jun 12, 2013 at 7:09 AM, Chanwoo Choi <cw00.choi@samsung.com> wrote:
-> From: Kishon Vijay Abraham I <kishon@ti.com>
->
-> Added an API of_extcon_get_extcon_dev() to be used by drivers to get
-> extcon device in the case of dt boot (this can be used instead of
-> extcon_get_extcon_dev()).
->
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
-> Signed-off-by: Myungjoo Ham <myungjoo.ham@samsung.com>
-> ---
->  drivers/extcon/Makefile          |  3 +++
->  drivers/extcon/of-extcon.c       | 56 ++++++++++++++++++++++++++++++++++++++++
->  include/linux/extcon/of-extcon.h | 30 +++++++++++++++++++++
->  3 files changed, 89 insertions(+)
->  create mode 100644 drivers/extcon/of-extcon.c
->  create mode 100644 include/linux/extcon/of-extcon.h
->
-> diff --git a/drivers/extcon/Makefile b/drivers/extcon/Makefile
-> index 540e2c3..39cdf95 100644
-> --- a/drivers/extcon/Makefile
-> +++ b/drivers/extcon/Makefile
-> @@ -2,9 +2,12 @@
->  # Makefile for external connector class (extcon) devices
->  #
->
-> +obj-$(CONFIG_OF)               += of-extcon.o
-> +
->  obj-$(CONFIG_EXTCON)           += extcon-class.o
->  obj-$(CONFIG_EXTCON_GPIO)      += extcon-gpio.o
->  obj-$(CONFIG_EXTCON_ADC_JACK)  += extcon-adc-jack.o
-> +
->  obj-$(CONFIG_EXTCON_MAX77693)  += extcon-max77693.o
->  obj-$(CONFIG_EXTCON_MAX8997)   += extcon-max8997.o
->  obj-$(CONFIG_EXTCON_ARIZONA)   += extcon-arizona.o
-> diff --git a/drivers/extcon/of-extcon.c b/drivers/extcon/of-extcon.c
-> new file mode 100644
-> index 0000000..29f82b4
-> --- /dev/null
-> +++ b/drivers/extcon/of-extcon.c
-> @@ -0,0 +1,56 @@
-> +/*
-> + * OF helpers for External connector (extcon) framework
-> + *
-> + * Copyright (C) 2013 Texas Instruments, Inc.
-> + * Kishon Vijay Abraham I <kishon@ti.com>
-> + *
-> + * Copyright (C) 2013 Samsung Electronics
-> + * Chanwoo Choi <cw00.choi@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/slab.h>
-> +#include <linux/extcon.h>
-> +#include <linux/of.h>
-> +#include <linux/of_platform.h>
-> +#include <linux/extcon/of-extcon.h>
-> +
-> +struct extcon_dev *of_extcon_get_extcon_dev(struct device *dev, int index)
-Can this be simpler name? of_extcon_get_dev or something like that?
-> +{
-> +       struct device_node *node;
-> +       struct extcon_dev *edev;
-> +       struct platform_device *extcon_parent_dev;
-> +
-> +       if (!dev->of_node) {
-> +               dev_dbg(dev, "device does not have a device node entry\n");
-> +               return ERR_PTR(-EINVAL);
-> +       }
-> +
-> +       node = of_parse_phandle(dev->of_node, "extcon", index);
-> +       if (!node) {
-> +               dev_dbg(dev, "failed to get phandle in %s node\n",
-> +                       dev->of_node->full_name);
-> +               return ERR_PTR(-ENODEV);
-> +       }
-> +
-> +       extcon_parent_dev = of_find_device_by_node(node);
-> +       if (!extcon_parent_dev) {
-> +               dev_dbg(dev, "unable to find device by node\n");
-> +               return ERR_PTR(-EPROBE_DEFER);
-> +       }
-> +
-> +       edev = extcon_get_extcon_dev(dev_name(&extcon_parent_dev->dev));
-> +       if (!edev) {
-> +               dev_dbg(dev, "unable to get extcon device : %s\n",
-> +                               dev_name(&extcon_parent_dev->dev));
-> +               return ERR_PTR(-ENODEV);
-> +       }
-> +
-> +       return edev;
-> +}
-> +EXPORT_SYMBOL_GPL(of_extcon_get_extcon_dev);
-> diff --git a/include/linux/extcon/of-extcon.h b/include/linux/extcon/of-extcon.h
-> new file mode 100644
-> index 0000000..77d01ba
-> --- /dev/null
-> +++ b/include/linux/extcon/of-extcon.h
-> @@ -0,0 +1,30 @@
-> +/*
-> + * OF helpers for External connector (extcon) framework
-> + *
-> + * Copyright (C) 2013 Texas Instruments, Inc.
-> + * Kishon Vijay Abraham I <kishon@ti.com>
-> + *
-> + * Copyright (C) 2013 Samsung Electronics
-> + * Chanwoo Choi <cw00.choi@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + */
-> +
-> +#ifndef __LINUX_OF_EXTCON_H
-> +#define __LINUX_OF_EXTCON_H
-> +
-> +#if defined(CONFIG_OF)
-> +extern struct extcon_dev
-> +       *of_extcon_get_extcon_dev(struct device *dev, int index);
-> +#else
-> +static inline struct extcon_dev
-> +       *of_extcon_get_extcon_dev(struct device *dev, int index);
-> +{
-> +       return NULL;
-> +}
-> +#endif /* CONFIG_OF */
-> +
-> +#endif /* __LINUX_OF_EXTCON_H */
-> --
-> 1.8.0
->
+
+> -----Original Message-----
+> From: Vutla, Lokesh
+> Sent: Tuesday, June 11, 2013 9:45 AM
+> To: Kevin Hilman
+> Cc: Paul Walmsley; Shilimkar, Santosh; tony@atomide.com; linux-arm-
+> kernel@lists.infradead.org; linux-omap@vger.kernel.org; Hiremath,
+> Vaibhav; R, Sricharan; Nayak, Rajendra
+> Subject: Re: [PATCH 13/14] ARM: AM33XX: hwmod data: irq, dma and addr
+> info clean up
+>=20
+> Hi Kevin,
+> On Monday 10 June 2013 10:33 PM, Kevin Hilman wrote:
+> > Hi Lokesh,
+> >
+> > Lokesh Vutla <lokeshvutla@ti.com> writes:
+> >
+> >> Hi Kevin,
+> >>
+> >> On Friday 07 June 2013 03:57 AM, Kevin Hilman wrote:
+> >>> Paul Walmsley <paul@pwsan.com> writes:
+> >>>
+> >>>> On Wed, 29 May 2013, Santosh Shilimkar wrote:
+> >>>>
+> >>>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> >>>>>
+> >>>>> AM33XX only supports DT boot mode and with addition of
+> >>>>> extracting module resources like, irq, dma and address space
+> >>>>> from DT block, so now we can remove duplicate information from
+> >>>>> hwmod data file.
+> >>>>
+> >>>> OK, guess I'll take your word for it that it all works.  The
+> >>>> BeagleBone-white with appended DTB hasn't booted here since v3.7=
+=2E
+> >>>> And the BeagleBone-black with discrete DTB doesn't boot at all
+> with
+> >>>> current mainline, only with the TI vendor kernel & DTB...
+> >>>
+> >>> Anyone care to shed light on what's missing for BeagleBone boot
+> with
+> >>> mainline currently?
+> >> I have tested BeagleBone boot with today's mainline bootloader and
+> >> kernel. It boots perfectly fine.
+> >
+> > Can you post git trees + branch names (and/or commit IDs) and also
+> > kernel config please?
+> Following are the details:
+> U-Boot:
+> url: 			git://git.denx.de/u-boot.git
+> branch :  	master
+> config:		am335x_evm
+> Top commit: 	"842033e pci: introduce CONFIG_PCI_INDIRECT_BRIDGE
+> option"
+>=20
+> Kernel:
+> url:
+> 	git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-
+> 2.6.git
+> branch:		master
+> config:		omap2plus_defocnfig
+> dtb file:		am335x-bone.dtb
+> Top commit:	"317ddd2 Linux 3.10-rc5" (On top of this I have a local
+> patch for appending dtb)
+> You can find the logs here: http://pastebin.com/vcBr0UhM
+>=20
+
+Paul/Kevin/Santosh,
+
+AM335x is booting up from Mainline, starting from v3.7, that=92s where =
+HWMOD data got merged to
+Mainline.
+
+We have discussed on this in the past as well, let me explain the issue=
+ here in detail
+again for everybody -
+
+In case of Am335x we have only two possible options, as AM335x only boo=
+ts up
+With DTB (Tested in BBB) -
+
+1. Mainline u-boot + mainline Kernel:
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
+1.a. Appended DTB method
+------------------------
+
+Here you __must__ enabled below config options in order to get kernel b=
+ooting,
+
+CONFIG_ARM_APPENDED_DTB=3Dy
+CONFIG_ARM_ATAG_DTB_COMPAT=3Dy
+CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=3Dy
+
+And, I have used below command to append DTB to kernel image
+
+# cat arch/arm/boot/zImage arch/arm/boot/dts/am335x-bone.dtb > zImage-a=
+ppend && mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x8=
+0008000 -n "Linux" -d zImage-append uImage-append
+
+
+I have attached complete log here with this mail for reference
+http://pastebin.com/82duFh78
+
+
+1.b. Discrete DTB and uImage method:
+------------------------------------
+
+Here you don=92t need to enable any extra config options. Plain omap2pl=
+us_defconfig
+Should work without any issues.
+
+I have attached complete log here with this mail for reference
+http://pastebin.com/Nqr0PiwW
+
+
+2. Older U-Boot (without DTB) + Mainline Kernel:
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
+This is same as #OPTION-1.a above.
+
+
+Thanks,
+Vaibhav
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
