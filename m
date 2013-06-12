@@ -1,34 +1,91 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 2/3] arm: gpmc: Low power transition support
-Date: Wed, 12 Jun 2013 10:01:27 -0700
-Message-ID: <20130612170126.GI8164@atomide.com>
-References: <1371034858-19984-1-git-send-email-pekon@ti.com>
- <1371034858-19984-3-git-send-email-pekon@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:12843 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754631Ab3FLRBc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jun 2013 13:01:32 -0400
-Content-Disposition: inline
-In-Reply-To: <1371034858-19984-3-git-send-email-pekon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: am335x: TSC & ADC reworking including DT pieces, take 5
+Date: Wed, 12 Jun 2013 18:58:01 +0200
+Message-ID: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, avinash philip <avinashphilip@ti.com>
 
-* Pekon Gupta <pekon@ti.com> [130612 04:07]:
-> From: avinash philip <avinashphilip@ti.com>
-> 
-> With GPMC converted to platform driver recently, adds low power
-> transition support in driver itself.
+Hi Samuel,
 
-Applying the first two patches of this series into omap-for-v3.11/gpmc.
-Not taking the MTD patch, if it has dependencies to the first two
-patches please let me know and also get an ack from Artem if you
-want me to take it.
+I did the cosmetic changes of the subject line and removed the changes
+from within the sob lines in each patch. I dropped the "#define XPP
+STEPCONFIG_XPP" thingy and patch #1 which removed regmap from mfd. Not
+that I agree with it, I just do not want to miss the merge window due to
+this.
 
-Regards,
+The following changes since commit d683b96b072dc4680fc74964eca77e6a23d1fa6e:
 
-Tony
+  Linux 3.10-rc4 (2013-06-02 17:11:17 +0900)
+
+are available in the git repository at:
+
+  git://breakpoint.cc/bigeasy/linux tags/am335x_tsc-adc
+
+for you to fetch changes up to 1460c152c53335b5403045d056502eda1204c33a:
+
+  iio: ti_am335x_adc: check if we found the value (2013-06-12 18:50:23 +0200)
+
+----------------------------------------------------------------
+A complete refurbished series inclunding:
+- DT support for the MFD, TSC and ADC driver & platform device support,
+  which has no users, has been killed.
+- iio_map from last series is gone and replaced by proper nodes in the
+  device tree.
+- suspend fixes which means correct data structs are taken and no
+  interrupt storm
+- fifo split which should problem with TSC & ADC beeing used at the same
+  time
+- The ADC channels are now checked before blindly applied. That means the
+  touch part reads X, Y and Z coordinates and does not mix them up. Same
+  goes for the IIO ADC driver.
+- The IIO ADC driver now creates files named in_voltageX_raw where X
+  represents the ADC line instead of a number starting at 0. A read from
+  this file can return -EBUSY in case touch is busy and the ADC didn't
+  collect a value.
+
+----------------------------------------------------------------
+Pantelis Antoniou (2):
+      iio: ti_tscadc: provide datasheet_name and scan_type
+      mfd: ti_tscadc: deal with partial activation
+
+Patil, Rachna (7):
+      input: ti_am33x_tsc: Step enable bits made configurable
+      input: ti_am33x_tsc: Order of TSC wires, made configurable
+      input: ti_am33x_tsc: remove unwanted fifo flush
+      input: ti_am33x_tsc: Add DT support
+      iio: ti_am335x_adc: Add DT support
+      mfd: ti_am335x_tscadc: Add DT support
+      arm: am33xx: add TSC/ADC mfd device support
+
+Sebastian Andrzej Siewior (12):
+      mfd: input: iio: ti_am335x_adc: use one structure for ti_tscadc_dev
+      input: ti_am33x_tsc: remove platform_data support
+      iio: ti_am335x_adc: remove platform_data support
+      mfd: ti_am335x_tscadc: remove platform_data support
+      input: mfd: ti_am335x_tsc remove remaining platform data pieces
+      mfd: input: ti_am335x_tsc: rename device from tsc to TI-am335x-tsc
+      mfd: iio: ti_am335x_adc: rename device from tiadc to TI-am335x-adc
+      input: ti_am335x_adc: use only FIFO0 and clean up a little
+      input: ti_am335x_tsc: ACK the HW_PEN irq in ISR
+      input: ti_am335x_tsc: return IRQ_NONE if there was no IRQ for us
+      iio: ti_am335x_adc: Allow to specify input line
+      iio: ti_am335x_adc: check if we found the value
+
+ .../bindings/input/touchscreen/ti-tsc-adc.txt      |   44 +++
+ arch/arm/boot/dts/am335x-evm.dts                   |   14 +
+ arch/arm/boot/dts/am33xx.dtsi                      |   18 ++
+ drivers/iio/adc/ti_am335x_adc.c                    |  132 ++++++---
+ drivers/input/touchscreen/ti_am335x_tsc.c          |  288 ++++++++++++++------
+ drivers/mfd/ti_am335x_tscadc.c                     |  112 ++++++--
+ include/linux/input/ti_am335x_tsc.h                |   23 --
+ include/linux/mfd/ti_am335x_tscadc.h               |   35 +--
+ include/linux/platform_data/ti_am335x_adc.h        |   14 -
+ 9 files changed, 486 insertions(+), 194 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
+ delete mode 100644 include/linux/input/ti_am335x_tsc.h
+ delete mode 100644 include/linux/platform_data/ti_am335x_adc.h
+
+Sebastian
