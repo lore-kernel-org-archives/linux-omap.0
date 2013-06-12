@@ -1,36 +1,43 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: am335x: TSC & ADC reworking including DT pieces, take 4
-Date: Wed, 12 Jun 2013 16:02:00 +0200
-Message-ID: <51B87F58.9070000@linutronix.de>
-References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de> <20130611142358.GG29135@zurbaran> <20130611160415.GA379@core.coreip.homeip.net> <20130611161506.GK29135@zurbaran> <1565f2fb-7f16-4910-8fa2-cd5700e8986d@email.android.com> <20130611175519.GL29135@zurbaran> <51B877C7.8080001@linutronix.de> <20130612135042.GO29135@zurbaran>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/3] ARM: OMAP: add corrected DSS regulator supplies
+Date: Wed, 12 Jun 2013 07:05:21 -0700
+Message-ID: <20130612140520.GT8164@atomide.com>
+References: <1369985874-8571-1-git-send-email-tomi.valkeinen@ti.com>
+ <51B84FA5.80409@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130612135042.GO29135@zurbaran>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34727 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753181Ab3FLOFY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jun 2013 10:05:24 -0400
+Content-Disposition: inline
+In-Reply-To: <51B84FA5.80409@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 06/12/2013 03:50 PM, Samuel Ortiz wrote:
-> Hi Sebastian,
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [130612 03:44]:
+> On 31/05/13 10:37, Tomi Valkeinen wrote:
+> > Hi Tony,
+> > 
+> > Here are a few patches adding corrected DSS regulator supplies. The current
+> > ones in the board files are not really correct, although the dss driver works
+> > ok with them.
+> > 
+> > So these patches add new regulator supply entries. When these are merged, I'll
+> > change omapdss driver to use the new ones, instead of the old ones. After that,
+> > we can remove the old ones from the board files.
+> > 
+> > Note that these patches were also present in the big DSS series I sent
+> > yesterday. There's no reason for these patches to be there, so I'm sending them
+> > separately, and will drop these from my DSS series.
+> 
+> Ping.
 
-Hi Samuel,
+Thanks, applying into omap-for-v.311/fixes-non-critical.
 
->> By keep the regmap code you mean I am allowed to remove the regmap
->> usage in mfd (keep patch #1) or do you insist on adding its usage in
->> iio and input?
-> I insist on keeping it on the MFD driver, i.e. _not_ keeping patch #1.
+Regards,
 
-This forces me redo a few things and most likely adding it to the
-iio and input driver to be consistent here.
-
-Could you please give a reason why using the regmap here is a good
-thing? I mentioned a few why it is not and why is better to leave it
-out.
-
-> Cheers,
-> Samuel.
-
-Sebastian
+Tony
