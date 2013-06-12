@@ -1,155 +1,100 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 13/14] ARM: AM33XX: hwmod data: irq, dma and addr info
- clean up
-Date: Wed, 12 Jun 2013 06:00:12 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83ECAF76E@DBDE04.ent.ti.com>
-References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
- <1369845494-30231-14-git-send-email-santosh.shilimkar@ti.com>
- <alpine.DEB.2.02.1306060355320.15042@utopia.booyaka.com>
- <87zjv2ooxi.fsf@linaro.org> <51B58FE9.5040309@ti.com>
- <877gi1ew3r.fsf@linaro.org> <51B6A43C.10301@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: Request for OMAPDSS testing
+Date: Wed, 12 Jun 2013 09:01:49 +0300
+Message-ID: <51B80ECD.3070607@ti.com>
+References: <51AD99F5.7060506@ti.com> <CANOLnONCuV_mXJAx8fahUraypeewug7RjNGyhXqVm8FYRAAUcg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=Windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="----enig2FUBKRCAADDAALQTVNHUP"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60456 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39306 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754688Ab3FLGAs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jun 2013 02:00:48 -0400
-In-Reply-To: <51B6A43C.10301@ti.com>
-Content-Language: en-US
+	id S1754398Ab3FLGCN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Jun 2013 02:02:13 -0400
+In-Reply-To: <CANOLnONCuV_mXJAx8fahUraypeewug7RjNGyhXqVm8FYRAAUcg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Vutla, Lokesh" <lokeshvutla@ti.com>, Kevin Hilman <khilman@linaro.org>
-Cc: Paul Walmsley <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "R, Sricharan" <r.sricharan@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Igor Grinberg <grinberg@compulab.co.il>, Thomas Weber <weber@corscience.de>, Mike Rapoport <mike@compulab.co.il>, Steve Sakoman <steve@sakoman.com>, linux-omap <linux-omap@vger.kernel.org>
 
+------enig2FUBKRCAADDAALQTVNHUP
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-> -----Original Message-----
-> From: Vutla, Lokesh
-> Sent: Tuesday, June 11, 2013 9:45 AM
-> To: Kevin Hilman
-> Cc: Paul Walmsley; Shilimkar, Santosh; tony@atomide.com; linux-arm-
-> kernel@lists.infradead.org; linux-omap@vger.kernel.org; Hiremath,
-> Vaibhav; R, Sricharan; Nayak, Rajendra
-> Subject: Re: [PATCH 13/14] ARM: AM33XX: hwmod data: irq, dma and addr
-> info clean up
+On 09/06/13 17:28, Grazvydas Ignotas wrote:
+> Hello,
 >=20
-> Hi Kevin,
-> On Monday 10 June 2013 10:33 PM, Kevin Hilman wrote:
-> > Hi Lokesh,
-> >
-> > Lokesh Vutla <lokeshvutla@ti.com> writes:
-> >
-> >> Hi Kevin,
-> >>
-> >> On Friday 07 June 2013 03:57 AM, Kevin Hilman wrote:
-> >>> Paul Walmsley <paul@pwsan.com> writes:
-> >>>
-> >>>> On Wed, 29 May 2013, Santosh Shilimkar wrote:
-> >>>>
-> >>>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >>>>>
-> >>>>> AM33XX only supports DT boot mode and with addition of
-> >>>>> extracting module resources like, irq, dma and address space
-> >>>>> from DT block, so now we can remove duplicate information from
-> >>>>> hwmod data file.
-> >>>>
-> >>>> OK, guess I'll take your word for it that it all works.  The
-> >>>> BeagleBone-white with appended DTB hasn't booted here since v3.7=
-=2E
-> >>>> And the BeagleBone-black with discrete DTB doesn't boot at all
-> with
-> >>>> current mainline, only with the TI vendor kernel & DTB...
-> >>>
-> >>> Anyone care to shed light on what's missing for BeagleBone boot
-> with
-> >>> mainline currently?
-> >> I have tested BeagleBone boot with today's mainline bootloader and
-> >> kernel. It boots perfectly fine.
-> >
-> > Can you post git trees + branch names (and/or commit IDs) and also
-> > kernel config please?
-> Following are the details:
-> U-Boot:
-> url: 			git://git.denx.de/u-boot.git
-> branch :  	master
-> config:		am335x_evm
-> Top commit: 	"842033e pci: introduce CONFIG_PCI_INDIRECT_BRIDGE
-> option"
+> On Tue, Jun 4, 2013 at 10:40 AM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+>> I've made some big changes on the omapdss device model, which involves=
+
+>> converting all the panel drivers. I've got only a bunch of boards, so =
+I
+>> hope some of you can perhaps do some minimal tests on some other board=
+s.
 >=20
-> Kernel:
-> url:
-> 	git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-
-> 2.6.git
-> branch:		master
-> config:		omap2plus_defocnfig
-> dtb file:		am335x-bone.dtb
-> Top commit:	"317ddd2 Linux 3.10-rc5" (On top of this I have a local
-> patch for appending dtb)
-> You can find the logs here: http://pastebin.com/vcBr0UhM
+> Doesn't work on pandora (legacy boardfile boot):
 >=20
+> [    1.418823] OMAP DSS rev 2.0
+> [    1.447448] omapfb omapfb: no displays
+> [    1.454101] omapfb omapfb: failed to setup omapfb
+> [    1.459106] platform omapfb: Driver omapfb requests probe deferral
+> ...
+> [    2.156860] panel-tpo-td043mtea1 spi1.1: failed to get LCD VCC regul=
+ator
+> [    2.164093] spi spi1.1: Driver panel-tpo-td043mtea1 requests probe d=
+eferral
+> ...
+>=20
+> Needs this small patch:
+>=20
+> --- a/arch/arm/mach-omap2/board-omap3pandora.c
+> +++ b/arch/arm/mach-omap2/board-omap3pandora.c
+> @@ -335,7 +338,7 @@ static struct regulator_consumer_supply
+> pandora_vdds_supplies[] =3D {
+>  };
+>=20
+>  static struct regulator_consumer_supply pandora_vcc_lcd_supply[] =3D {=
 
-Paul/Kevin/Santosh,
+> -       REGULATOR_SUPPLY("vcc", "display0"),
+> +       REGULATOR_SUPPLY("vcc", "spi1.1"),
+>  };
+>=20
+>  static struct regulator_consumer_supply pandora_usb_phy_supply[] =3D {=
 
-AM335x is booting up from Mainline, starting from v3.7, that=92s where =
-HWMOD data got merged to
-Mainline.
+>=20
+> With that it shows Tux and fb console fine, so with above hunk:
+> Tested-by: Grazvydas Ignotas <notasas@gmail.com>
 
-We have discussed on this in the past as well, let me explain the issue=
- here in detail
-again for everybody -
+Thanks, I've added the fix.
 
-In case of Am335x we have only two possible options, as AM335x only boo=
-ts up
-With DTB (Tested in BBB) -
-
-1. Mainline u-boot + mainline Kernel:
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-
-1.a. Appended DTB method
-------------------------
-
-Here you __must__ enabled below config options in order to get kernel b=
-ooting,
-
-CONFIG_ARM_APPENDED_DTB=3Dy
-CONFIG_ARM_ATAG_DTB_COMPAT=3Dy
-CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=3Dy
-
-And, I have used below command to append DTB to kernel image
-
-# cat arch/arm/boot/zImage arch/arm/boot/dts/am335x-bone.dtb > zImage-a=
-ppend && mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x8=
-0008000 -n "Linux" -d zImage-append uImage-append
-
-
-I have attached complete log here with this mail for reference
-http://pastebin.com/82duFh78
+ Tomi
 
 
-1.b. Discrete DTB and uImage method:
-------------------------------------
 
-Here you don=92t need to enable any extra config options. Plain omap2pl=
-us_defconfig
-Should work without any issues.
+------enig2FUBKRCAADDAALQTVNHUP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-I have attached complete log here with this mail for reference
-http://pastebin.com/Nqr0PiwW
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
+iQIcBAEBAgAGBQJRuA7RAAoJEPo9qoy8lh71Qp4QAI/iOBoGdbXg6+4Jndefy7i9
+vrILej3hB7s0rC9seQeq3Bw4JqMiGR1CP9D5G18QZcYnccvwFfUd+kA4Xk04Kb9L
+fUBbWVuXjMAjGyCxo4g5qncrX0jIFN0SFmeq2khQdWXEAVXE8Xu12tsucRJ2/rhl
+ZfV0i1prNgu28QHjRW7Hd2vB89p1vKu5P5ms1+MSXuebwjuhUchzG1K5q5gK3TH9
+IvRaLeq3SGg+SAAPgbkyUi8llNQFA6DGNsDUVYkYzRTgc9yrobIPQT53Fmw19eiE
+t6+1nhko5Yw8ngmZbazGu97yDd9wlV3I2nmwPoRYOP3J/9AtShEgTmyFoePAk7wZ
+uLgD84U3vw11uvYyhI09FeWrFL99C9OnxXi0qaR2xmyzDVQGEZrnxkCIUjOZaCr6
+KoP+MOcBcfehXQzMIdcKMQAmXADOcouHi16mOfMUSZ7meDDbEAopQ0lKs0CUHMy+
+QiwSh94MATbIRrom/vqEteUx3oN74mSkSC6dGGoYKn9m0QBBBVw71Iks78TTF3P5
+PECgH18nwenF9ByP1LBeXhInqgtKjuQjbgIwT1vV/j36aoj5M1xek/KcaCoW+N0R
+94nxcmWRvmeICoi146iQhXfegv1ywSJqMK30SUplS3ny6ytpXKSXjVkCMFOHoPs8
+wQjouOt8UdXn6VpO24dk
+=JOCQ
+-----END PGP SIGNATURE-----
 
-2. Older U-Boot (without DTB) + Mainline Kernel:
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-
-This is same as #OPTION-1.a above.
-
-
-Thanks,
-Vaibhav
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+------enig2FUBKRCAADDAALQTVNHUP--
