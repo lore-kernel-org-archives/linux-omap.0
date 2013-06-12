@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 5/6] omap soc changes for v3.11 merge window
+Subject: [GIT PULL 6/6] omap5 data for v3.11 merge window
 Date: Wed, 12 Jun 2013 11:24:35 -0700
-Message-ID: <E1Umpjr-0005dj-A3@merlin.infradead.org>
+Message-ID: <E1Umpk1-0005eT-9P@merlin.infradead.org>
 References: <pull-1371061475-206272>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -28,56 +28,85 @@ The following changes since commit 317ddd256b9c24b0d78fa8018f80f1e495481a10:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/soc-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/omap5-signed
 
-for you to fetch changes up to 4f288f081bb67813d35c10d1b2fa68e863c4b188:
+for you to fetch changes up to 6503a8e109a639760408f874c1251060d563942e:
 
-  ARM: OMAP2+: AM43x: SRAM base and size (2013-06-12 08:07:23 -0700)
-
-----------------------------------------------------------------
-Omap SoC changes. Mostly improves am33xx support, and adds
-minimal support for am43x SoCs.
+  ARM: OMAP5: Remove unused include for ocp2scp (2013-06-09 21:17:15 -0700)
 
 ----------------------------------------------------------------
-Afzal Mohammed (8):
-      ARM: OMAP2+: separate out OMAP4 restart
-      ARM: OMAP2+: AM43x: Kconfig
-      ARM: OMAP2+: AM43x: kbuild
-      ARM: OMAP2+: AM43x: soc_is support
-      ARM: OMAP2+: AM437x: SoC revision detection
-      ARM: OMAP2+: AM43x: static mapping
-      ARM: OMAP2+: AM43x: early init
-      ARM: OMAP2+: AM43x: GP or HS ?
+Omap5 SoC data via Paul Walmsley <paul@pwsan.com:
 
-Philip Avinash (1):
-      ARM: AM33XX: clk: Add clock node for EHRPWM TBCLK
+Add support for the OMAP5 SoC family.
 
-Roger Quadros (1):
-      ARM: OMAP3: clock data: get rid of unused USB host clock aliases and dummies
+As part of the transition to DT, no board files will be used
+for OMAP5.  The hwmod data is gradually being transitioned
+away from arch/arm/mach-omap2: IRQ, DMA, and memory map data
+has been moved to DT.  Hopefully the dev_attr and clock role
+data will be the next step.
 
-Sanjeev Premi (1):
-      ARM: OMAP2+: AM43x: SRAM base and size
+Basic test logs are available here, although not for OMAP5,
+since I don't have an OMAP5 board:
+http://www.pwsan.com/omap/testlogs/omap5_v3.10/20130608130949/
 
-Tony Lindgren (1):
-      Merge tag 'omap-devel-b-for-3.11' of http://git.kernel.org/cgit/linux/kernel/git/pjw/omap-pending into omap-for-v3.11/soc
+----------------------------------------------------------------
+Benoit Cousson (7):
+      ARM: OMAP5: PRM: Add OMAP54XX register and bitfield files
+      ARM: OMAP5: CM: Add OMAP54XX register and bitfield files
+      ARM: OMAP5: PRCM: Add OMAP54XX local MPU PRCM registers
+      ARM: OMAP5: SCRM: Add OMAP54XX header file.
+      ARM: OMAP5: clockdomain data: Add OMAP54XX data and update the header
+      ARM: OMAP5: powerdomain data: Add OMAP54XX data and update the header
+      ARM: OMAP5: hwmod data: Create initial OMAP5 SOC hwmod data
 
-Vaibhav Hiremath (1):
-      ARM: OMAP2+: AM33xx: Add missing reset status info to GFX hwmod
+Santosh Shilimkar (5):
+      ARM: OMAP4+: PRM: Move function prototypes to common header for re-use
+      ARM: OMAP4+: CM: Move function prototypes to common header for re-use
+      ARM: OMAP4+: PRCM MPU: Move function prototypes to common header for re-use
+      ARM: OMAP5: voltagedomain data: Add OMAP5 voltage domain data
+      ARM: OMAP5: Enable build and frameowrk initialisations
 
- arch/arm/mach-omap2/Kconfig                |  8 ++++++++
- arch/arm/mach-omap2/Makefile               |  8 ++++++++
- arch/arm/mach-omap2/am33xx.h               |  1 +
- arch/arm/mach-omap2/cclock33xx_data.c      | 30 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/cclock3xxx_data.c      | 11 -----------
- arch/arm/mach-omap2/cm33xx.h               |  2 +-
- arch/arm/mach-omap2/common.h               |  1 +
- arch/arm/mach-omap2/control.h              |  8 ++++++++
- arch/arm/mach-omap2/id.c                   |  8 +++++++-
- arch/arm/mach-omap2/io.c                   | 17 +++++++++++++++--
- arch/arm/mach-omap2/omap4-common.c         | 16 ----------------
- arch/arm/mach-omap2/omap4-restart.c        | 27 +++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c |  3 ++-
- arch/arm/mach-omap2/soc.h                  | 23 +++++++++++++++++++++++
- arch/arm/mach-omap2/sram.c                 |  3 +++
- 15 files changed, 134 insertions(+), 32 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omap4-restart.c
+Tony Lindgren (2):
+      Merge tag 'omap-devel-a-for-3.11' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.11/omap5
+      ARM: OMAP5: Remove unused include for ocp2scp
+
+ arch/arm/mach-omap2/Makefile                  |    4 +
+ arch/arm/mach-omap2/clockdomain.h             |    1 +
+ arch/arm/mach-omap2/clockdomains54xx_data.c   |  464 +++++
+ arch/arm/mach-omap2/cm-regbits-54xx.h         | 1737 ++++++++++++++++
+ arch/arm/mach-omap2/cm1_44xx.h                |    7 +-
+ arch/arm/mach-omap2/cm1_54xx.h                |  213 ++
+ arch/arm/mach-omap2/cm2_44xx.h                |    7 +-
+ arch/arm/mach-omap2/cm2_54xx.h                |  389 ++++
+ arch/arm/mach-omap2/cm_44xx_54xx.h            |   36 +
+ arch/arm/mach-omap2/io.c                      |    6 +
+ arch/arm/mach-omap2/omap_hwmod.h              |    1 +
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c    | 2150 ++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomain.h             |    1 +
+ arch/arm/mach-omap2/powerdomains54xx_data.c   |  331 +++
+ arch/arm/mach-omap2/prcm44xx.h                |    6 +
+ arch/arm/mach-omap2/prcm_mpu44xx.h            |   14 +-
+ arch/arm/mach-omap2/prcm_mpu54xx.h            |   87 +
+ arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h      |   36 +
+ arch/arm/mach-omap2/prm-regbits-54xx.h        | 2701 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/prm44xx.h                 |   33 +-
+ arch/arm/mach-omap2/prm44xx_54xx.h            |   58 +
+ arch/arm/mach-omap2/prm54xx.h                 |  421 ++++
+ arch/arm/mach-omap2/scrm54xx.h                |  231 +++
+ arch/arm/mach-omap2/voltage.h                 |    1 +
+ arch/arm/mach-omap2/voltagedomains54xx_data.c |  102 +
+ 25 files changed, 8982 insertions(+), 55 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/clockdomains54xx_data.c
+ create mode 100644 arch/arm/mach-omap2/cm-regbits-54xx.h
+ create mode 100644 arch/arm/mach-omap2/cm1_54xx.h
+ create mode 100644 arch/arm/mach-omap2/cm2_54xx.h
+ create mode 100644 arch/arm/mach-omap2/cm_44xx_54xx.h
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+ create mode 100644 arch/arm/mach-omap2/powerdomains54xx_data.c
+ create mode 100644 arch/arm/mach-omap2/prcm_mpu54xx.h
+ create mode 100644 arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h
+ create mode 100644 arch/arm/mach-omap2/prm-regbits-54xx.h
+ create mode 100644 arch/arm/mach-omap2/prm44xx_54xx.h
+ create mode 100644 arch/arm/mach-omap2/prm54xx.h
+ create mode 100644 arch/arm/mach-omap2/scrm54xx.h
+ create mode 100644 arch/arm/mach-omap2/voltagedomains54xx_data.c
