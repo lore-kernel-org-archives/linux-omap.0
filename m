@@ -1,45 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 07/14] ARM: OMAP2+: AM43x: early init
-Date: Wed, 12 Jun 2013 10:14:24 -0700
-Message-ID: <20130612171424.GN8164@atomide.com>
-References: <cover.1369658705.git.afzal@ti.com>
- <82f3b2b672a45b971fd0bb34366a6af368015db0.1369658705.git.afzal@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH 19/21] input: ti_am335x_tsc: return IRQ_NONE if there was no IRQ for us
+Date: Wed, 12 Jun 2013 18:58:20 +0200
+Message-ID: <1371056302-12714-20-git-send-email-bigeasy@linutronix.de>
+References: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <82f3b2b672a45b971fd0bb34366a6af368015db0.1369658705.git.afzal@ti.com>
+In-Reply-To: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <benoit.cousson@linaro.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-* Afzal Mohammed <afzal@ti.com> [130527 07:42]:
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -586,6 +586,20 @@ void __init am33xx_init_early(void)
->  }
->  #endif
->  
-> +#ifdef CONFIG_SOC_AM43XX
-> +void __init am43xx_init_early(void)
-> +{
-> +	omap2_set_globals_tap(AM335X_CLASS,
-> +			      AM33XX_L4_WK_IO_ADDRESS(AM33XX_TAP_BASE));
-> +	omap2_set_globals_control(AM33XX_L4_WK_IO_ADDRESS(AM33XX_CTRL_BASE),
-> +				  NULL);
-> +	omap2_set_globals_prm(AM33XX_L4_WK_IO_ADDRESS(AM43XX_PRCM_BASE));
-> +	omap2_set_globals_cm(AM33XX_L4_WK_IO_ADDRESS(AM43XX_PRCM_BASE), NULL);
-> +	omap3xxx_check_revision();
-> +	am33xx_check_features();
-> +}
-> +#endif
-> +
->  #ifdef CONFIG_ARCH_OMAP4
->  void __init omap4430_init_early(void)
->  {
+The previous patch ("input/ti_am335x_tsc: ACK the HW_PEN irq in ISR")
+acked the interrupt so we don't freeze if we don't handle an enabled
+interrupt source. The interrupt core has a mechanism for this and to get
+it work one should only say that it handled an interrupt if it is
+actually the case.
 
-I've updated this to remove am33xx_check_features() that we don't
-seem to have in the mainline yet.
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/input/touchscreen/ti_am335x_tsc.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-Tony
+diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+index 2ba7703..0e9f02a 100644
+--- a/drivers/input/touchscreen/ti_am335x_tsc.c
++++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+@@ -314,10 +314,12 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+ 		titsc_writel(ts_dev, REG_IRQCLR, IRQENB_HW_PEN);
+ 	}
+ 
+-	titsc_writel(ts_dev, REG_IRQSTATUS, irqclr);
+-
+-	am335x_tsc_se_update(ts_dev->mfd_tscadc);
+-	return IRQ_HANDLED;
++	if (irqclr) {
++		titsc_writel(ts_dev, REG_IRQSTATUS, irqclr);
++		am335x_tsc_se_update(ts_dev->mfd_tscadc);
++		return IRQ_HANDLED;
++	}
++	return IRQ_NONE;
+ }
+ 
+ static int titsc_parse_dt(struct platform_device *pdev,
+-- 
+1.7.10.4
