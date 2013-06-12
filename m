@@ -1,145 +1,34 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 01/21] mfd: input: iio: ti_am335x_adc: use one structure for ti_tscadc_dev
-Date: Wed, 12 Jun 2013 18:58:02 +0200
-Message-ID: <1371056302-12714-2-git-send-email-bigeasy@linutronix.de>
-References: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v4 2/3] arm: gpmc: Low power transition support
+Date: Wed, 12 Jun 2013 10:01:27 -0700
+Message-ID: <20130612170126.GI8164@atomide.com>
+References: <1371034858-19984-1-git-send-email-pekon@ti.com>
+ <1371034858-19984-3-git-send-email-pekon@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:12843 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754631Ab3FLRBc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jun 2013 13:01:32 -0400
+Content-Disposition: inline
+In-Reply-To: <1371034858-19984-3-git-send-email-pekon@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pekon Gupta <pekon@ti.com>
+Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, avinash philip <avinashphilip@ti.com>
 
-The mfd driver creates platform data for the child devices and it is the
-ti_tscadc_dev struct. This struct is copied for the two devices.
-The copy of the structure makes a common lock in this structure a little
-less usefull. Therefore the platform data is not a pointer to the
-structure and the same structure is used.
-While doing the change I noticed that the suspend/resume code assumes
-the wrong pointer for ti_tscadc_dev and this has been fixed as well.
+* Pekon Gupta <pekon@ti.com> [130612 04:07]:
+> From: avinash philip <avinashphilip@ti.com>
+> 
+> With GPMC converted to platform driver recently, adds low power
+> transition support in driver itself.
 
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- drivers/iio/adc/ti_am335x_adc.c           |    5 +++--
- drivers/input/touchscreen/ti_am335x_tsc.c |   16 +++++++++-------
- drivers/mfd/ti_am335x_tscadc.c            |    8 ++++----
- include/linux/mfd/ti_am335x_tscadc.h      |    7 +++++++
- 4 files changed, 23 insertions(+), 13 deletions(-)
+Applying the first two patches of this series into omap-for-v3.11/gpmc.
+Not taking the MTD patch, if it has dependencies to the first two
+patches please let me know and also get an ack from Artem if you
+want me to take it.
 
-diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
-index 5f9a7e7..9db352e 100644
---- a/drivers/iio/adc/ti_am335x_adc.c
-+++ b/drivers/iio/adc/ti_am335x_adc.c
-@@ -140,7 +140,7 @@ static int tiadc_probe(struct platform_device *pdev)
- {
- 	struct iio_dev		*indio_dev;
- 	struct tiadc_device	*adc_dev;
--	struct ti_tscadc_dev	*tscadc_dev = pdev->dev.platform_data;
-+	struct ti_tscadc_dev	*tscadc_dev = ti_tscadc_dev_get(pdev);
- 	struct mfd_tscadc_board	*pdata;
- 	int			err;
- 
-@@ -205,9 +205,10 @@ static int tiadc_suspend(struct device *dev)
- {
- 	struct iio_dev *indio_dev = dev_get_drvdata(dev);
- 	struct tiadc_device *adc_dev = iio_priv(indio_dev);
--	struct ti_tscadc_dev *tscadc_dev = dev->platform_data;
-+	struct ti_tscadc_dev *tscadc_dev;
- 	unsigned int idle;
- 
-+	tscadc_dev = ti_tscadc_dev_get(to_platform_device(dev));
- 	if (!device_may_wakeup(tscadc_dev->dev)) {
- 		idle = tiadc_readl(adc_dev, REG_CTRL);
- 		idle &= ~(CNTRLREG_TSCSSENB);
-diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-index 51e7b87..16077d3 100644
---- a/drivers/input/touchscreen/ti_am335x_tsc.c
-+++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-@@ -262,7 +262,7 @@ static int titsc_probe(struct platform_device *pdev)
- {
- 	struct titsc *ts_dev;
- 	struct input_dev *input_dev;
--	struct ti_tscadc_dev *tscadc_dev = pdev->dev.platform_data;
-+	struct ti_tscadc_dev *tscadc_dev = ti_tscadc_dev_get(pdev);
- 	struct mfd_tscadc_board	*pdata;
- 	int err;
- 
-@@ -329,8 +329,8 @@ static int titsc_probe(struct platform_device *pdev)
- 
- static int titsc_remove(struct platform_device *pdev)
- {
--	struct ti_tscadc_dev *tscadc_dev = pdev->dev.platform_data;
--	struct titsc *ts_dev = tscadc_dev->tsc;
-+	struct titsc *ts_dev = platform_get_drvdata(pdev);
-+	u32 steps;
- 
- 	free_irq(ts_dev->irq, ts_dev);
- 
-@@ -344,10 +344,11 @@ static int titsc_remove(struct platform_device *pdev)
- #ifdef CONFIG_PM
- static int titsc_suspend(struct device *dev)
- {
--	struct ti_tscadc_dev *tscadc_dev = dev->platform_data;
--	struct titsc *ts_dev = tscadc_dev->tsc;
-+	struct titsc *ts_dev = dev_get_drvdata(dev);
-+	struct ti_tscadc_dev *tscadc_dev;
- 	unsigned int idle;
- 
-+	tscadc_dev = ti_tscadc_dev_get(to_platform_device(dev));
- 	if (device_may_wakeup(tscadc_dev->dev)) {
- 		idle = titsc_readl(ts_dev, REG_IRQENABLE);
- 		titsc_writel(ts_dev, REG_IRQENABLE,
-@@ -359,9 +360,10 @@ static int titsc_suspend(struct device *dev)
- 
- static int titsc_resume(struct device *dev)
- {
--	struct ti_tscadc_dev *tscadc_dev = dev->platform_data;
--	struct titsc *ts_dev = tscadc_dev->tsc;
-+	struct titsc *ts_dev = dev_get_drvdata(dev);
-+	struct ti_tscadc_dev *tscadc_dev;
- 
-+	tscadc_dev = ti_tscadc_dev_get(to_platform_device(dev));
- 	if (device_may_wakeup(tscadc_dev->dev)) {
- 		titsc_writel(ts_dev, REG_IRQWAKEUP,
- 				0x00);
-diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index e9f3fb5..772ea2a 100644
---- a/drivers/mfd/ti_am335x_tscadc.c
-+++ b/drivers/mfd/ti_am335x_tscadc.c
-@@ -176,14 +176,14 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
- 	/* TSC Cell */
- 	cell = &tscadc->cells[TSC_CELL];
- 	cell->name = "tsc";
--	cell->platform_data = tscadc;
--	cell->pdata_size = sizeof(*tscadc);
-+	cell->platform_data = &tscadc;
-+	cell->pdata_size = sizeof(tscadc);
- 
- 	/* ADC Cell */
- 	cell = &tscadc->cells[ADC_CELL];
- 	cell->name = "tiadc";
--	cell->platform_data = tscadc;
--	cell->pdata_size = sizeof(*tscadc);
-+	cell->platform_data = &tscadc;
-+	cell->pdata_size = sizeof(tscadc);
- 
- 	err = mfd_add_devices(&pdev->dev, pdev->id, tscadc->cells,
- 			TSCADC_CELLS, NULL, 0, NULL);
-diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
-index c79ad5d..8114e4e 100644
---- a/include/linux/mfd/ti_am335x_tscadc.h
-+++ b/include/linux/mfd/ti_am335x_tscadc.h
-@@ -149,4 +149,11 @@ struct ti_tscadc_dev {
- 	struct adc_device *adc;
- };
- 
-+static inline struct ti_tscadc_dev *ti_tscadc_dev_get(struct platform_device *p)
-+{
-+	struct ti_tscadc_dev **tscadc_dev = p->dev.platform_data;
-+
-+	return *tscadc_dev;
-+}
-+
- #endif
--- 
-1.7.10.4
+Regards,
+
+Tony
