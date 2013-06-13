@@ -1,53 +1,64 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC PATCH 1/4] regulator: Introduce OMAP regulator to control
- PMIC over VC/VP
-Date: Thu, 13 Jun 2013 10:12:26 -0500
-Message-ID: <CAGo_u6pQ+_N0J8RObxhbgiQBm2tdW4oLziEjiHhqP1WV4HbGsQ@mail.gmail.com>
-References: <1369246717-4167-1-git-send-email-nm@ti.com>
-	<1369246717-4167-2-git-send-email-nm@ti.com>
-	<20130610103131.GR31367@sirena.org.uk>
-	<CAGo_u6qTiPpd0DDe3jnPh_UxTwox22azhcMGy=fftL8H+DGeyw@mail.gmail.com>
-	<20130610164905.GJ1403@sirena.org.uk>
-	<CAGo_u6ov=yaCwt8apbvW57ErAvhgUBHHw9gwADBC1fJUrfucUQ@mail.gmail.com>
-	<20130610180150.GQ1403@sirena.org.uk>
-	<20130613133950.GA32174@kahuna>
-	<20130613144726.GY1403@sirena.org.uk>
-	<20130613145803.GA32324@kahuna>
-	<20130613150710.GZ1403@sirena.org.uk>
+From: Graeme Gregory <gg@slimlogic.co.uk>
+Subject: Re: [RFC v1] MFD: Change TWL6025 references to TWL6032
+Date: Thu, 13 Jun 2013 11:32:42 +0100
+Message-ID: <20130613103242.GA5456@mint>
+References: <1370602390-12306-1-git-send-email-oleksandr.kozaruk@ti.com>
+ <20130607143649.GS31367@sirena.org.uk>
+ <c73c260b90be6e1640a430e8cbba6cac@slimlogic.co.uk>
+ <51B99D0D.4050603@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:57784 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751435Ab3FMPM1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 11:12:27 -0400
-In-Reply-To: <20130613150710.GZ1403@sirena.org.uk>
+Received: from www.xora.org.uk ([80.68.91.202]:39626 "EHLO
+	xora.vm.bytemark.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751454Ab3FMPSC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 11:18:02 -0400
+Content-Disposition: inline
+In-Reply-To: <51B99D0D.4050603@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Paul Walmsley <paul@pwsan.com>, Liam Girdwood <lgirdwood@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-doc@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>
+To: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
+Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, sameo@linux.intel.com, lgirdwood@gmail.com, balbi@ti.com, peter.ujfalusi@ti.com, t-kristo@ti.com, tony@atomide.com
 
-On Thu, Jun 13, 2013 at 10:07 AM, Mark Brown <broonie@kernel.org> wrote:
-> On Thu, Jun 13, 2013 at 09:58:03AM -0500, Nishanth Menon wrote:
->
->> I am proposing moving the following into OF match data.
->> ti,i2c-slave-address
->> ti,i2c-voltage-register
->> ti,i2c-command-register
->> ti,slew-rate-microvolt
->> ti,step-size-micro-volts
->> ti,voltage-selector-set-bits
->> ti,voltage-selector-mask
->> ti,voltage-selector-offset
->> ti,non-zero-voltage-selector
->
->> The only thing I propose to retain is board specific variations - e.g.
->> gpios, boot voltage and standard regulator min,max overrides if any.
->
->> I can also do voltage selector based operations while at it.
->
-> OK, this sounds like a step in the right direction.
-Thanks for the review and guidance. I will post a new RFC series with
-the above changes in a day or so.
-Regards,
-Nishanth Menon
+On Thu, Jun 13, 2013 at 01:21:01PM +0300, Oleksandr Kozaruk wrote:
+> On 06/07/2013 05:44 PM, gg@slimlogic.co.uk wrote:
+> >On 2013-06-07 15:36, Mark Brown wrote:
+> >>On Fri, Jun 07, 2013 at 01:53:10PM +0300, Oleksandr Kozaruk wrote:
+> >>>From: Graeme Gregory <gg@slimlogic.co.uk>
+> >>>
+> >>>The TWL6025 was never released beyond sample form and was replaced by
+> >>>the PhoenixLite range of chips - TWL6032. Change the references to
+> >>>reference the TWL6032 class and name the registers to twl6032
+> >>>in line with
+> >>>an actual released chip name to avoid confusion.
+> >>>
+> >>>Currently there is no users of TWL6025 in the code.
+> >>
+> >>Given that the chip exists even if not widely distributed it seems as
+> >>well to keep the twl6025 references in there at least in the device ID
+> >>table - it won't do any harm to people using the twl6032 name and might
+> >>help someone who happens to pick up an old board for whatever reason.
+> >
+> >I do not think any "old boards" exist, it really was a limited run!
+> >
+> >Graeme
+> >
+> Hello Mark, Graeme,
+> 
+> Taking in account that:
+> - there is no hardware to test twl6025, testing is not possible;
+> - there is no documentation for twl6025, and if there are any
+> changes to twl6032 is not known;
+> - twl6032 is available, and in production, twl6025 is not even found
+> on ti.com <http://ti.com>
+> 
+> So, what do you think, can this change be accepted?
+> 
+> // I apologize for sending personal e-mails, not to the mail list
+
+I have never seen a twl6025 board, it only ever existed AFAIK in lab samples
+which were used on a generic carrier board. twl6032 was the actual production
+device.
+
+Graeme
+
