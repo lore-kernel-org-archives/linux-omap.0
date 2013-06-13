@@ -1,51 +1,65 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: [GIT PULL] PM / AVS: SmartReflex: misc. cleanups for v3.11
-Date: Thu, 13 Jun 2013 15:16:30 -0700
-Message-ID: <87r4g5ac75.fsf@linaro.org>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH 2/3] USB: OMAP: add omap-otg
+Date: Fri, 14 Jun 2013 01:37:11 +0300
+Message-ID: <20130613223711.GD18360@blackmetal.musicnaut.iki.fi>
+References: <1370817606-1008-1-git-send-email-aaro.koskinen@iki.fi>
+ <1370817606-1008-3-git-send-email-aaro.koskinen@iki.fi>
+ <20130612151326.GE15056@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-pm@vger.kernel.org, nm@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri2.pp.htv.fi ([213.243.153.185]:48291 "EHLO
+	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752899Ab3FMWhW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 18:37:22 -0400
+Content-Disposition: inline
+In-Reply-To: <20130612151326.GE15056@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-Hi Rafael,
+Hi,
 
-Please pull the following cleanups to  AVS/SmartReflex for v3.11.
+On Wed, Jun 12, 2013 at 06:13:26PM +0300, Felipe Balbi wrote:
+> On Mon, Jun 10, 2013 at 01:40:05AM +0300, Aaro Koskinen wrote:
+> > +void omap_otg_set_mode(enum omap_otg_mode mode)
+> > +{
+> > +	if (!otg_dev) {
+> > +		WARN(1, "%s: controller not present\n", __func__);
+> > +		return;
+> > +	}
+> > +	mutex_lock(&otg_dev->serialize);
+> > +	switch (mode) {
+> > +	case OMAP_OTG_MODE_DEVICE:
+> > +		/*
+> > +		 * Set B-session valid.
+> > +		 */
+> > +		omap_otg_ctrl(OMAP_OTG_ID | OMAP_OTG_BSESSVLD);
+> > +		break;
+> > +	case OMAP_OTG_MODE_HOST:
+> > +		/*
+> > +		 * Set A-session valid.
+> > +		 */
+> > +		omap_otg_ctrl(OMAP_OTG_ASESSVLD);
+> > +		break;
+> > +	case OMAP_OTG_MODE_DISCONNECT:
+> > +		/*
+> > +		 * Set B-session end to indicate no VBUS.
+> > +		 */
+> > +		omap_otg_ctrl(OMAP_OTG_ID | OMAP_OTG_BSESSEND);
+> > +		break;
+> > +	default:
+> > +		WARN(1, "%s: unknown mode: %d\n", __func__, mode);
+> > +	}
+> > +	mutex_unlock(&otg_dev->serialize);
+> > +}
+> > +EXPORT_SYMBOL_GPL(omap_otg_set_mode);
+> 
+> looks like this should provide a extcon interface for its users.
+
+Is there any examples available? Anyway, I'll look into this.
 
 Thanks,
 
-Kevin
-
-The following changes since commit 317ddd256b9c24b0d78fa8018f80f1e495481a10:
-
-  Linux 3.10-rc5 (2013-06-08 17:41:04 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/omap-pm-v3.11/avs
-
-for you to fetch changes up to efca406b940e93e6af38c597eecd5fb79b39b7ea:
-
-  PM / AVS: SmartReflex: use devm_* API to initialize SmartReflex (2013-06-10 10:50:48 -0700)
-
-----------------------------------------------------------------
-PM / AVS: SmartReflex: misc. cleanups for v3.11
-
-----------------------------------------------------------------
-Andrii Tseglytskyi (6):
-      PM / AVS: SmartReflex: disable runtime PM on driver remove
-      PM / AVS: SmartReflex: fix driver name
-      PM / AVS: SmartReflex: use omap_sr * for errgen interfaces
-      PM / AVS: SmartReflex: use omap_sr * for minmax interfaces
-      PM / AVS: SmartReflex: use omap_sr * for enable/disable interface
-      PM / AVS: SmartReflex: use devm_* API to initialize SmartReflex
-
-Nishanth Menon (1):
-      PM / AVS: SmartReflex: disable errgen before vpbound disable
-
- arch/arm/mach-omap2/smartreflex-class3.c |   8 +-
- drivers/power/avs/smartreflex.c          | 154 +++++++++++++------------------
- include/linux/power/smartreflex.h        |  10 +-
- 3 files changed, 72 insertions(+), 100 deletions(-)
+A.
