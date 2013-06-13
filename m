@@ -1,124 +1,64 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH 13/14] ARM: AM33XX: hwmod data: irq, dma and addr info clean up
-Date: Wed, 12 Jun 2013 15:39:05 -0700
-Message-ID: <87mwqvar92.fsf@linaro.org>
-References: <1369845494-30231-1-git-send-email-santosh.shilimkar@ti.com>
-	<1369845494-30231-14-git-send-email-santosh.shilimkar@ti.com>
-	<alpine.DEB.2.02.1306060355320.15042@utopia.booyaka.com>
-	<87zjv2ooxi.fsf@linaro.org> <51B58FE9.5040309@ti.com>
-	<877gi1ew3r.fsf@linaro.org> <51B6A43C.10301@ti.com>
-	<79CD15C6BA57404B839C016229A409A83ECAF76E@DBDE04.ent.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 0/2] USB: PHY: Improve PHY selection logic
+Date: Thu, 13 Jun 2013 04:33:17 +0300
+Message-ID: <20130613013317.GA12078@arwen.pp.htv.fi>
+References: <1369999743-11758-1-git-send-email-rogerq@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:37665 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756916Ab3FLWjJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Jun 2013 18:39:09 -0400
-Received: by mail-pa0-f49.google.com with SMTP id ld11so4470952pab.22
-        for <linux-omap@vger.kernel.org>; Wed, 12 Jun 2013 15:39:08 -0700 (PDT)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83ECAF76E@DBDE04.ent.ti.com>
-	(Vaibhav Hiremath's message of "Wed, 12 Jun 2013 06:00:12 +0000")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6TrnltStXW4iwmi0"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1369999743-11758-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: gregkh@linuxfoundation.org, stern@rowland.harvard.edu, balbi@ti.com, arnd@arndb.de, adrienverge@gmail.com, kishon@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Vutla, Lokesh" <lokeshvutla@ti.com>, Paul Walmsley <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "R, Sricharan" <r.sricharan@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-Hi Vaibhav,
+--6TrnltStXW4iwmi0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-"Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+On Fri, May 31, 2013 at 02:29:01PM +0300, Roger Quadros wrote:
+> Hi,
+>=20
+> Improve Kconfig so that the relevant PHY driver can be explicitely
+> selected by the controller driver instead of relying on the user
+> to do so.
+>=20
+> Detailed description in patch 1.
+>=20
+> v2:
+> - Merge patches 3-5 into the first patch to prevent circular dependency
+> between the Kconfig options during bisection.
 
-[...]
+FYI, these patches were dropped because they cause linking issues as
+noted by Greg.
 
-> Paul/Kevin/Santosh,
->
-> AM335x is booting up from Mainline, starting from v3.7, that=E2=80=99=
-s where HWMOD data got merged to
-> Mainline.
->
-> We have discussed on this in the past as well, let me explain the iss=
-ue here in detail
-> again for everybody -
+--=20
+balbi
 
-Thanks for the detail.
+--6TrnltStXW4iwmi0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-In my case, after more debug, it appears that where I was putting the
-DTB in memory from u-boot was not working.   Using the addresses you
-used gets things working again.  Thanks.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-u-boot mainline (v2013.04) for BeagleBone has defaults that don't work
-appear together:
+iQIcBAEBAgAGBQJRuSFdAAoJEIaOsuA1yqREeUcP/RTWwOg3nsEv0pLqW4vyt4qi
++VYAWhf6Yb+SUePCuIJLhdpuI61KgsKwJ4F84uxWs4gChrgdHqigViMQeEAhTNsI
+QwbYBjQj2S/StszTYG1zRdseeBSL99Tvasqic9n7FP9MHg4QCkY8TR8VTzBKiHZ1
+x1y0yowEC5imcGtZjmyzI41hR29JU5dVAc7edImIztcNSoywmQTRGcSC/2Ga8dq2
+5yTuq0utqWv0Meumc0y2qVBbH1zZ/5bUFGfR91t4VxajEXYelC0sfuXpmDrX+hXD
+D9CLm68lOsuZFcTOzhqrfUjcsFFc8IoGrUyfxTDu4X7Kal4nOsp3C0B0utM/t2rp
+ybzXDsIif+hCY5h/K6g4Gb1rLSD8rakaEYNNezQCM/8qcTwMD8QJPr67wDKteYl1
+ghMwd4TNYKNfrv625JUIltzSJWmgCcZMBS7tRRB4gZVCGAkRkn+VxIB6nZa6+sOt
+vvEToa1EFIFjNJX3YFYhbmcMwj6SLDoNmfv1bJNV5K9ZxBf0O83CYIb6iV3W2V60
+bhdEouBPRIKxsjlw47Fj8erOo18S9b3mV40QSHWi3jpzfHbr3VtsVw5AxvciGwzI
+K3P/2MQmA39RUQ8V5vyZYqUITY83Xz+k61od61X8910FdYrCkIopIn0Y7E5NmFtN
+gDECdu2Tib29nyUpNu8h
+=aHBA
+-----END PGP SIGNATURE-----
 
-U-Boot# printenv loadaddr
-loadaddr=3D0x80200000
-U-Boot# printenv fdtaddr
-fdtaddr=3D0x80F80000
-
-Changing fdtaddr around got things working again.  It's probably a good
-idea to change the u-boot defaults to values that work, since that's a
-likely starting point for people.
-
-I'm now back to mainline booting well on both my original BeagleBone an=
-d
-my BeagleBone black.
-
-Thanks,
-
-Kevin
-
-> In case of Am335x we have only two possible options, as AM335x only b=
-oots up
-> With DTB (Tested in BBB) -
->
-> 1. Mainline u-boot + mainline Kernel:
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->
-> 1.a. Appended DTB method
-> ------------------------
->
-> Here you __must__ enabled below config options in order to get kernel=
- booting,
->
-> CONFIG_ARM_APPENDED_DTB=3Dy
-> CONFIG_ARM_ATAG_DTB_COMPAT=3Dy
-> CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=3Dy
->
-> And, I have used below command to append DTB to kernel image
->
-> # cat arch/arm/boot/zImage arch/arm/boot/dts/am335x-bone.dtb >
-> zImage-append && mkimage -A arm -O linux -T kernel -C none -a
-> 0x80008000 -e 0x80008000 -n "Linux" -d zImage-append uImage-append
->
->
-> I have attached complete log here with this mail for reference
-> http://pastebin.com/82duFh78
->
->
-> 1.b. Discrete DTB and uImage method:
-> ------------------------------------
->
-> Here you don=E2=80=99t need to enable any extra config options. Plain=
- omap2plus_defconfig
-> Should work without any issues.
->
-> I have attached complete log here with this mail for reference
-> http://pastebin.com/Nqr0PiwW
->
->
-> 2. Older U-Boot (without DTB) + Mainline Kernel:
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
->
-> This is same as #OPTION-1.a above.
->
->
-> Thanks,
-> Vaibhav
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--6TrnltStXW4iwmi0--
