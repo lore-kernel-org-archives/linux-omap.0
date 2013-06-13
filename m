@@ -1,116 +1,138 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [GIT PULL] omap dss board clean-up for v3.10 merge window
-Date: Thu, 13 Jun 2013 10:56:24 +0300
-Message-ID: <51B97B28.3060609@ti.com>
-References: <20130418033936.GC10155@atomide.com> <20130419184518.GA30836@quad.lixom.net> <51AC89F6.1050308@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v7 9/9] usb: phy: twl4030-usb: remove *set_suspend* and *phy_init* ops
+Date: Thu, 13 Jun 2013 14:13:59 +0530
+Message-ID: <1371113039-5784-10-git-send-email-kishon@ti.com>
+References: <1371113039-5784-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="----enig2KKCWXTUQVIPKQKHFQUIH"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38724 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755473Ab3FMH4x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Jun 2013 03:56:53 -0400
-In-Reply-To: <51AC89F6.1050308@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1371113039-5784-1-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: grant.likely@linaro.org, tony@atomide.com, balbi@ti.com, kishon@ti.com, arnd@arndb.de, swarren@nvidia.com, sylvester.nawrocki@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org
+Cc: rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, linux@arm.linux.org.uk, benoit.cousson@linaro.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, rnayak@ti.com, shawn.guo@linaro.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-------enig2KKCWXTUQVIPKQKHFQUIH
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Now that twl4030-usb is adapted to the new generic PHY framework,
+*set_suspend* and *phy_init* ops can be removed from twl4030-usb driver.
 
-Hi Tony,
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/usb/phy/phy-twl4030-usb.c |   55 ++++++++-----------------------------
+ 1 file changed, 12 insertions(+), 43 deletions(-)
 
-On 03/06/13 15:20, Tomi Valkeinen wrote:
+diff --git a/drivers/usb/phy/phy-twl4030-usb.c b/drivers/usb/phy/phy-twl4030-usb.c
+index fba9697..5245b86 100644
+--- a/drivers/usb/phy/phy-twl4030-usb.c
++++ b/drivers/usb/phy/phy-twl4030-usb.c
+@@ -422,25 +422,20 @@ static void twl4030_phy_power(struct twl4030_usb *twl, int on)
+ 	}
+ }
+ 
+-static void twl4030_phy_suspend(struct twl4030_usb *twl, int controller_off)
++static int twl4030_phy_power_off(struct phy *phy)
+ {
++	struct twl4030_usb *twl = dev_get_drvdata(&phy->dev);
++
+ 	if (twl->asleep)
+-		return;
++		return 0;
+ 
+ 	twl4030_phy_power(twl, 0);
+ 	twl->asleep = 1;
+ 	dev_dbg(twl->dev, "%s\n", __func__);
+-}
+-
+-static int twl4030_phy_power_off(struct phy *phy)
+-{
+-	struct twl4030_usb *twl = dev_get_drvdata(&phy->dev);
+-
+-	twl4030_phy_suspend(twl, 0);
+ 	return 0;
+ }
+ 
+-static void __twl4030_phy_resume(struct twl4030_usb *twl)
++static void __twl4030_phy_power_on(struct twl4030_usb *twl)
+ {
+ 	twl4030_phy_power(twl, 1);
+ 	twl4030_i2c_access(twl, 1);
+@@ -449,11 +444,13 @@ static void __twl4030_phy_resume(struct twl4030_usb *twl)
+ 		twl4030_i2c_access(twl, 0);
+ }
+ 
+-static void twl4030_phy_resume(struct twl4030_usb *twl)
++static int twl4030_phy_power_on(struct phy *phy)
+ {
++	struct twl4030_usb *twl = dev_get_drvdata(&phy->dev);
++
+ 	if (!twl->asleep)
+-		return;
+-	__twl4030_phy_resume(twl);
++		return 0;
++	__twl4030_phy_power_on(twl);
+ 	twl->asleep = 0;
+ 	dev_dbg(twl->dev, "%s\n", __func__);
+ 
+@@ -466,13 +463,6 @@ static void twl4030_phy_resume(struct twl4030_usb *twl)
+ 		cancel_delayed_work(&twl->id_workaround_work);
+ 		schedule_delayed_work(&twl->id_workaround_work, HZ);
+ 	}
+-}
+-
+-static int twl4030_phy_power_on(struct phy *phy)
+-{
+-	struct twl4030_usb *twl = dev_get_drvdata(&phy->dev);
+-
+-	twl4030_phy_resume(twl);
+ 	return 0;
+ }
+ 
+@@ -604,9 +594,9 @@ static void twl4030_id_workaround_work(struct work_struct *work)
+ 	}
+ }
+ 
+-static int twl4030_usb_phy_init(struct usb_phy *phy)
++static int twl4030_phy_init(struct phy *phy)
+ {
+-	struct twl4030_usb *twl = phy_to_twl(phy);
++	struct twl4030_usb *twl = dev_get_drvdata(&phy->dev);
+ 	enum omap_musb_vbus_id_status status;
+ 
+ 	/*
+@@ -628,25 +618,6 @@ static int twl4030_usb_phy_init(struct usb_phy *phy)
+ 	return 0;
+ }
+ 
+-static int twl4030_phy_init(struct phy *phy)
+-{
+-	struct twl4030_usb *twl = dev_get_drvdata(&phy->dev);
+-
+-	return twl4030_usb_phy_init(&twl->phy);
+-}
+-
+-static int twl4030_set_suspend(struct usb_phy *x, int suspend)
+-{
+-	struct twl4030_usb *twl = phy_to_twl(x);
+-
+-	if (suspend)
+-		twl4030_phy_suspend(twl, 1);
+-	else
+-		twl4030_phy_resume(twl);
+-
+-	return 0;
+-}
+-
+ static int twl4030_set_peripheral(struct usb_otg *otg,
+ 					struct usb_gadget *gadget)
+ {
+@@ -717,8 +688,6 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+ 	twl->phy.label		= "twl4030";
+ 	twl->phy.otg		= otg;
+ 	twl->phy.type		= USB_PHY_TYPE_USB2;
+-	twl->phy.set_suspend	= twl4030_set_suspend;
+-	twl->phy.init		= twl4030_usb_phy_init;
+ 
+ 	otg->phy		= &twl->phy;
+ 	otg->set_host		= twl4030_set_host;
+-- 
+1.7.10.4
 
-Any feeback about the below? I'm currently aiming for the option 2, and
-pushing only the driver changes for the next merge window, as that
-allows me to go forward without any arch/arm changes.
-
- tomi
-
-> I have a somewhat similar situation again for 3.11 (or possibly for
-> 3.12). I hope to hear from you what you think would be the best approac=
-h.
->=20
-> The background is that the omap display subsystem has a bunch of panel
-> drivers, and these drivers have used an OMAP DSS specific bus and drive=
-r
-> model. For various reasons I'm now converting the panel drivers to be
-> based on the panel's control bus, i.e. a panel controlled via i2c would=
-
-> be an i2c device/driver, a panel not controlled at all would be a
-> platform device/driver, etc.
->=20
-> The work involves changing the omapdss driver, converting the panel
-> drivers to the new driver model, and changing the board files that use
-> the panel.
->=20
-> I see two main approaches to this:
->=20
-> 1) Convert the panel drivers "in-place", i.e. have a commit which
-> changes a panel driver to the new model. This would mean that the
-> instant the commit is in, the boards using the panel do not work until
-> the board file has been changed.
->=20
-> 2) Convert the panel to a new file, i.e. basically make a copy of the
-> panel driver while converting it. This way the boards using the old
-> panel drivers will continue working. (This is how I have my patches
-> currently organized).
->=20
-> Option 1) feels more natural, but if the arch and driver changes go
-> through separate trees, there's a piece of history during the merge
-> window where the displays won't work on the OMAP boards.
->=20
-> Option 2) allows us to keep the boards always functional if the new
-> panel drivers are merged in 3.11, and the board file changes are merged=
-
-> in 3.12.
->=20
-> The downside is that it takes two kernel versions to get this in, and a=
-
-> third kernel version to finally remove all the old code. 3.11 and 3.12
-> would contain unused code, some of which will be in the kernel image
-> (omapdss side changes) and some of which won't be compiled at all (the
-> new panel drivers).
->=20
-> Do you think option 2 and splitting the work into three kernel versions=
-
-> is the way to go? Do you have some other ideas how to organize the merg=
-e
-> of these kind of changes?
->=20
->  Tomi
->=20
->=20
-
-
-
-------enig2KKCWXTUQVIPKQKHFQUIH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJRuXsoAAoJEPo9qoy8lh718L8P/iZeqo/bnEstFIKR2N7YnWDl
-mAzZ9n7k9ZQgczJNPPDkfjgEaLnB7Pq5ineqFrH6HFK3r5YXYUjrBzmTxpyBt+5Q
-vV6AUXudXFL08FlbLvZpYxmLSzzbKNPorT4WPLEbrWhtQ25am7lWKxKpaQOU59t4
-TUIPsPP1Jq+zOHQzS9EGhPfMiYaWvI9vZpc6LstiQ3Q3METOdHNZQV0INPXN2asy
-scDzcUoIsbMKMp+z4do3kFakPsH+4c0e/Rbh3H2W6YZhttTNKS91rruk5XAHSkwx
-HacvvtAEKe7HAzQVICBjVUYHIYONghS9CkMtWXoK9GcUzHpCUfoQrkX1iK2HpDQT
-wju+6IbgjIlVPEi7e2bx8QX8t43ibrLADff9QTq/q0wvK4q+TgW/hlNPOoV8LPui
-hQvJI1rV2hQ3wg/lsaGhoYdlUB5ORZ/oMH8FYlRz429fFjwXBv1XWzGeQblUj/P4
-1C8fNoOTpch788wXFNJOOdTLCZ93FKG3nQJeHGVUSjKyojOI1biWLPdMV3ujDmA3
-kLpxISRV051tVYuEXt46XOpk1L6SJ4SDSNCl0rkukZBrIVeXoStP0lxe6Dpn2ruD
-v762BJRt6rzvZhAGCJrEaXpMP7YJitrGN/nSj9FtjIkz2aSm/tSIoyHzyWiCUJ05
-2pC9OUs+xJ84PoFou4mx
-=7Vkr
------END PGP SIGNATURE-----
-
-------enig2KKCWXTUQVIPKQKHFQUIH--
