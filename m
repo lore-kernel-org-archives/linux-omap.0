@@ -1,70 +1,66 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [GIT PULL] move omap mailbox to drivers for v3.11
-Date: Thu, 13 Jun 2013 04:37:29 +0300
-Message-ID: <20130613013729.GB12078@arwen.pp.htv.fi>
-References: <1371074306-57583-1-git-send-email-s-anna@ti.com>
-Reply-To: <balbi@ti.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: RE: [PATCH v4] ARM: dts: OMAP5: Add palmas MFD node and regulator
+ nodes
+Date: Thu, 13 Jun 2013 04:09:22 +0000
+Message-ID: <DC88CAD03C0052499C1907B327FC63229EB4B8@DBDE04.ent.ti.com>
+References: <1371025140-25376-1-git-send-email-j-keerthy@ti.com>
+ <51B8990A.8030506@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wzJLGUyc3ArbnUjN"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50559 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56767 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756676Ab3FMBjK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Jun 2013 21:39:10 -0400
-Content-Disposition: inline
-In-Reply-To: <1371074306-57583-1-git-send-email-s-anna@ti.com>
+	id S1752054Ab3FMEJr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 00:09:47 -0400
+In-Reply-To: <51B8990A.8030506@wwwdotorg.org>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jassi Brar <jaswinder.singh@linaro.org>, Loic Pallardy <loic.pallardy@st.com>
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, "lee.jones@linaro.org" <lee.jones@linaro.org>
 
---wzJLGUyc3ArbnUjN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Stephen,
 
-Hi,
+> -----Original Message-----
+> From: Stephen Warren [mailto:swarren@wwwdotorg.org]
+> Sent: Wednesday, June 12, 2013 9:22 PM
+> To: J, KEERTHY
+> Cc: Cousson, Benoit; devicetree-discuss@lists.ozlabs.org; linux-
+> omap@vger.kernel.org; linux-kernel@vger.kernel.org;
+> ldewangan@nvidia.com; grant.likely@secretlab.ca; swarren@nvidia.com;
+> sameo@linux.intel.com; gg@slimlogic.co.uk; lee.jones@linaro.org
+> Subject: Re: [PATCH v4] ARM: dts: OMAP5: Add palmas MFD node and
+> regulator nodes
+> 
+> On 06/12/2013 02:19 AM, J Keerthy wrote:
+> > This patch adds Palmas MFD node and the regulator nodes for OMAP5.
+> >
+> > The node definitions are based on: https://lkml.org/lkml/2013/6/6/25
+> >
+> > Boot tested on omap5-uevm board.
+> 
+> Reviewed-by: Stephen Warren <swarren@nvidia.com>
 
-On Wed, Jun 12, 2013 at 04:58:26PM -0500, Suman Anna wrote:
-> The following changes since commit 317ddd256b9c24b0d78fa8018f80f1e495481a=
-10:
->=20
->   Linux 3.10-rc5 (2013-06-08 17:41:04 -0700)
->=20
-> are available in the git repository at:
->=20
->   git@github.com:sumananna/mailbox.git tags/omap-mailbox-for-v3.11
+Thanks..
 
-Tony might not have an ssh account on github, when sending pull requests
-make sure to use the git read-only URL.
+> 
+> > diff --git a/arch/arm/boot/dts/omap5-uevm.dts
+> > b/arch/arm/boot/dts/omap5-uevm.dts
+> 
+> > +	palmas: palmas@48 {
+> > +		reg = <0x48>;
+> > +		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N
+> */
+> > +		interrupt-parent = <&gic>;
+> > +		compatible = "ti,palmas";
+> 
+> ... although personally I prefer the compatible property to be right at
+> the top of each node, since it's what implies the schema for the rest
+> of the node. That's a tiny nit though; feel free to ignore it if the
+> OMAP files don't follow that convention.
 
-We even have separate url and pushurl attributes for the repository.
-Should be enough to just edit .git/config and fix it up.
+Sure. I will send hopefully the last version incorporating this :-).
 
---=20
-balbi
-
---wzJLGUyc3ArbnUjN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRuSJZAAoJEIaOsuA1yqREntkQAKJEVhhSEPLP/ZyD6jjmB1Jp
-jkNi9UyJzA4v2SuRch0dWI3spROXH+TsAZv1ja+15ZeAeKLObGCNhceem1gio4fj
-JhEpLY1JSnVwXXzrFP1o147B7vuy0zKTFfCK8LYICeNHZMYXGaoawKAe1F+719x6
-NZ3WXjTCFoJEE8guNU14e7zpYVAvJ3YVjakvktyvo9lorEf45k1wcHFPBmP7u/V0
-2/mHu/T9ZdLxDtVfpnopMTHrDCrYJl9M8azy5sNz1JLzLnW1w8MphAiSGQ2VrHSl
-ufRp2fjkI6qRKvpOFoTjhngvHyHYXb5NJNEVubOTnyPPyInOCutIOF+V+d4uG3zN
-/WU0ESj5R8dw9OvIVVrZoX+JWFx+hNi+2rS7AmcaFJ1/CmiIE9yiJ7tBM0RfBUTe
-XH+o9+duXzJZyKCiv4cDKY74tAxE4zXsZgjHFPDLcRGOXYhkVnsUB+xL70aVDNy9
-YmB6t/bLQ1qKYnVTTZNpJCSLtV0Mrd9xDwfRH4yQ6ytmrSCWvpmfHa+1tDc4SwYN
-6+nVUSb/xZN4WoAkjeLhncVQJe8qbMct87z6Nv5iobbUzgBc6iLri3wYWv/xrHQ7
-qoiixGzVQM/PTKNh2RTg2uZPjCNGNk5oBmkp4uCA0D64bQ7RnvUswX/11yn+2HfT
-SUoW5dUw3NDl6gl0d7cl
-=rI5Z
------END PGP SIGNATURE-----
-
---wzJLGUyc3ArbnUjN--
+Regards,
+Keerthy
