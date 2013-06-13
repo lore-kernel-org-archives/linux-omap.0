@@ -1,46 +1,48 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v2 02/14] ARM: OMAP2+: AM43x: Kconfig
-Date: Thu, 13 Jun 2013 10:02:18 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EB1E196@DBDE04.ent.ti.com>
-References: <cover.1369658705.git.afzal@ti.com>
- <7642e0c701680ea94a8cc84059ff19e500813bf1.1369658705.git.afzal@ti.com>
- <20130612171200.GL8164@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93EB1DEB2@DBDE04.ent.ti.com>
- <20130613095454.GY8164@atomide.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 0/2] Remove unused voltagedomain data for AM33xx
+Date: Thu, 13 Jun 2013 15:38:42 +0530
+Message-ID: <1371118124-15910-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130613095454.GY8164@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Grant Likely <grant.likely@linaro.org>, Benoit Cousson <benoit.cousson@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:59127 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756060Ab3FMKJ1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Jun 2013 06:09:27 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Hi Tony,
+Hi,
 
-On Thu, Jun 13, 2013 at 15:24:54, Tony Lindgren wrote:
-> * Mohammed, Afzal <afzal@ti.com> [130613 00:04]:
+The powerdomain framework today expects to always have a voltagedomain
+associated with a given powerdomain. We already have AM33xx which
+has no Voltage Controller/Voltage Processor as part of PRCM.
+There are more SoCs' to follow starting with AM437x and DRA7xx
+which do not have VC/VP.
 
-> > Patch 10 "ARM: OMAP2+: AM43x: basic dt support" is missing in
-> > omap-for-v3.11/soc branch and omap soc pull request, can you
-> > please help patch 10 also to go upstream.
-> 
-> Hmm if that's .dts changes, Benoit needs to queue that.
+Instead of adding dummy voltage domain data files, make the powerdomain
+framework aware of the fact that some SoCs' might not really have
+scalable voltage domains.
 
-It is not dts change.
+Patches are based of 3.10-rc5 and are boot tested on am335x bone.
 
-Patch 10 patches board-generic.c for DT boot (Benoit has already
-picked up dts, that is patch 14).
+Rajendra Nayak (2):
+  ARM: OMAP2+: Powerdomain: Remove the need to always have a
+    voltdm associated to a pwrdm
+  ARM: AM33xx: Remove the unused voltagedomain data
 
-Regards
-Afzal
+ arch/arm/mach-omap2/Makefile                  |    1 -
+ arch/arm/mach-omap2/io.c                      |    1 -
+ arch/arm/mach-omap2/powerdomain.c             |    5 +++
+ arch/arm/mach-omap2/powerdomain.h             |    2 ++
+ arch/arm/mach-omap2/prm33xx.c                 |    7 ++++
+ arch/arm/mach-omap2/voltage.h                 |    1 -
+ arch/arm/mach-omap2/voltagedomains33xx_data.c |   43 -------------------------
+ 7 files changed, 14 insertions(+), 46 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/voltagedomains33xx_data.c
+
+-- 
+1.7.9.5
+
