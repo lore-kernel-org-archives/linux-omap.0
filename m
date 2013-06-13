@@ -1,38 +1,25 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 02/14] ARM: OMAP2+: AM43x: Kconfig
-Date: Thu, 13 Jun 2013 02:54:54 -0700
-Message-ID: <20130613095454.GY8164@atomide.com>
-References: <cover.1369658705.git.afzal@ti.com>
- <7642e0c701680ea94a8cc84059ff19e500813bf1.1369658705.git.afzal@ti.com>
- <20130612171200.GL8164@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93EB1DEB2@DBDE04.ent.ti.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [net PATCH 0/2] Fixes for davinci MDIO on suspend/resume
+Date: Thu, 13 Jun 2013 02:57:26 -0700 (PDT)
+Message-ID: <20130613.025726.1446425087774615811.davem@davemloft.net>
+References: <1370944925-11374-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EB1DEB2@DBDE04.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <benoit.cousson@linaro.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1370944925-11374-1-git-send-email-mugunthanvnm@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: mugunthanvnm@ti.com
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Mohammed, Afzal <afzal@ti.com> [130613 00:04]:
-> Hi Tony,
-> 
-> On Wed, Jun 12, 2013 at 22:42:00, Tony Lindgren wrote:
-> 
-> > I've updated this patch to remove the "default y" and
-> > "depends on ARCH_OMAP2PLUS" entries for the usual reasons
-> > and applied the first ten patches into omap-for-v3.11/soc.
-> 
-> Thanks.
-> 
-> Patch 10 "ARM: OMAP2+: AM43x: basic dt support" is missing in
-> omap-for-v3.11/soc branch and omap soc pull request, can you
-> please help patch 10 also to go upstream.
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Date: Tue, 11 Jun 2013 15:32:03 +0530
 
-Hmm if that's .dts changes, Benoit needs to queue that.
+> This patch series fixes the following issues with Davinci MDIO
+> * Bring up MDIO driver earlier than Ethernet driver so that ethernet driver
+>   can communicate with the phy as soon as it is resumed.
+> * On suspend/resume cycle the MDIO divider will be set to reset value so
+>   this has to be programmed after resume.
 
-Regards,
-
-Tony
+Series applied, thanks.
