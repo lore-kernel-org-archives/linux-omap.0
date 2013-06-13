@@ -1,52 +1,50 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP: dma: Fix the kfree ordering
-Date: Thu, 13 Jun 2013 19:18:58 +0530
-Message-ID: <51B9CDCA.9010901@ti.com>
-References: <1371128960-24822-1-git-send-email-rnayak@ti.com> <1371128960-24822-4-git-send-email-rnayak@ti.com> <20130613131647.GS21614@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: N900 device tree conversion: how to do first step
+Date: Thu, 13 Jun 2013 07:10:01 -0700
+Message-ID: <20130613141001.GF8164@atomide.com>
+References: <20130609015944.GA23559@amd.pavel.ucw.cz>
+ <20130609201119.GA3190@blackmetal.musicnaut.iki.fi>
+ <20130613132624.GA3464@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38490 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754770Ab3FMNtd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 09:49:33 -0400
-In-Reply-To: <20130613131647.GS21614@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130613132624.GA3464@amd.pavel.ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thursday 13 June 2013 06:46 PM, Russell King - ARM Linux wrote:
-> On Thu, Jun 13, 2013 at 06:39:20PM +0530, Rajendra Nayak wrote:
->> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
->> index 8a71f75..8e16503 100644
->> --- a/arch/arm/plat-omap/dma.c
->> +++ b/arch/arm/plat-omap/dma.c
->> @@ -2111,8 +2111,8 @@ exit_dma_irq_fail:
->>  	}
->>  
->>  exit_dma_lch_fail:
->> -	kfree(p);
->>  	kfree(d);
->> +	kfree(p);
+* Pavel Machek <pavel@ucw.cz> [130613 06:32]:
+> Hi!
 > 
-> Err.
+> > > I'd like to convert Nokia N900 to device tree.
+> > > 
+> > > Unfortunately, serial port is not easily available (very special cable
+> > > would be needed, does someone know where to get one?) and I don't have
+> > > BDI (and very special cable would be needed, too).
+> > > 
+> > > So I tried doing very small first step, hoping that I get booting
+> > > system... obviously I did not.
+> > 
+> > The following works for me, it's enough to boot and get the USB networking
+> > working. After that I can connect to the device with ssh. I don't use
+> > serial either, I just have initramfs with busybox+dropbear with hardcoded
+> > interface setup.
 > 
->         p = pdev->dev.platform_data;
->         d                       = p->dma_attr;
+> Nice.... thanks a lot.
 > 
-> Why is it kfree'ing platform data in the first place?  This means that
-> a failed bind can't be reattempted later.  It also means that an unbind
-> plus rebind in userspace will free the platform data leaving stale
-> pointers behind.
+> Did you get video to work with the device tree? That's what I'd like
+> to accomplish now.
 
-Right, I just seemed to have overlooked the fact that p was pointing to
-platform data. Will remove all the kfree(p) and kfree(d) across the
-driver (I just realized this is also the case in .remove)
+The DSS code is still using pdata, see mach-omap2/dss-common.[ch].
+ 
+> If I init spi manually (and some more hacks), it works in the
+> qemu. But I have not tested on real hw for a while.
 
-> 
-> This is totally nonsense.  Don't kfree() data in your driver which you
-> haven't allocated yourself!
-> 
+You should be able to initialize spi by adding the .dts entry,
+or is there something missing in drivers/spi/spi-omap2-mcspi.c?
 
+Regards,
+
+Tony
