@@ -1,54 +1,51 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: [GIT PULL] OMAP: PM: remove OMAP-specific no_console_suspend handling
-Date: Thu, 13 Jun 2013 15:12:11 -0700
-Message-ID: <87zjutacec.fsf@linaro.org>
+Subject: [GIT PULL] PM / AVS: SmartReflex: misc. cleanups for v3.11
+Date: Thu, 13 Jun 2013 15:16:30 -0700
+Message-ID: <87r4g5ac75.fsf@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:48031 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757884Ab3FMWMP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 18:12:15 -0400
-Received: by mail-pb0-f53.google.com with SMTP id xb12so10687106pbc.40
-        for <linux-omap@vger.kernel.org>; Thu, 13 Jun 2013 15:12:14 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-pm@vger.kernel.org, nm@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Tony,
+Hi Rafael,
 
-Please pull this OMAP PM cleanup for v3.11.
+Please pull the following cleanups to  AVS/SmartReflex for v3.11.
 
 Thanks,
 
 Kevin
 
-The following changes since commit f722406faae2d073cc1d01063d1123c35425939e:
+The following changes since commit 317ddd256b9c24b0d78fa8018f80f1e495481a10:
 
-  Linux 3.10-rc1 (2013-05-11 17:14:08 -0700)
+  Linux 3.10-rc5 (2013-06-08 17:41:04 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/omap-pm-v3.11/cleanup/pm
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/omap-pm-v3.11/avs
 
-for you to fetch changes up to 4b7ec5accecdb136c7afaf8739a06d5335cc05aa:
+for you to fetch changes up to efca406b940e93e6af38c597eecd5fb79b39b7ea:
 
-  arm: omap2+: omap_device: remove no_idle_on_suspend (2013-05-16 07:09:09 -0700)
-
-----------------------------------------------------------------
-OMAP: PM: the serial core + driver can no handle no_console_suspend support
-without any SoC specific handlding or SoC-specific DT bindings.  Remove
-the now unused SoC specifics for OMAP.
+  PM / AVS: SmartReflex: use devm_* API to initialize SmartReflex (2013-06-10 10:50:48 -0700)
 
 ----------------------------------------------------------------
-Sourav Poddar (3):
-      arm: omap2+: serial: remove no_console_suspend support
-      arm: dts: am33xx: Remove "ti,no_idle_on_suspend" property.
-      arm: omap2+: omap_device: remove no_idle_on_suspend
+PM / AVS: SmartReflex: misc. cleanups for v3.11
 
- arch/arm/boot/dts/am33xx.dtsi     |  1 -
- arch/arm/mach-omap2/omap_device.c |  9 ++-------
- arch/arm/mach-omap2/omap_device.h | 10 ----------
- arch/arm/mach-omap2/serial.c      |  7 -------
- 4 files changed, 2 insertions(+), 25 deletions(-)
+----------------------------------------------------------------
+Andrii Tseglytskyi (6):
+      PM / AVS: SmartReflex: disable runtime PM on driver remove
+      PM / AVS: SmartReflex: fix driver name
+      PM / AVS: SmartReflex: use omap_sr * for errgen interfaces
+      PM / AVS: SmartReflex: use omap_sr * for minmax interfaces
+      PM / AVS: SmartReflex: use omap_sr * for enable/disable interface
+      PM / AVS: SmartReflex: use devm_* API to initialize SmartReflex
+
+Nishanth Menon (1):
+      PM / AVS: SmartReflex: disable errgen before vpbound disable
+
+ arch/arm/mach-omap2/smartreflex-class3.c |   8 +-
+ drivers/power/avs/smartreflex.c          | 154 +++++++++++++------------------
+ include/linux/power/smartreflex.h        |  10 +-
+ 3 files changed, 72 insertions(+), 100 deletions(-)
