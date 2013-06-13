@@ -1,106 +1,46 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 06/10] mmc: omap_hsmmc: add support for pbias configuration in dt
-Date: Thu, 13 Jun 2013 12:02:15 +0200
-Message-ID: <10084205.q81YqXBJ5H@avalon>
-References: <20130523184045.GD13507@atomide.com> <CACRpkdZAzAJW0UxGCSj-PWXTSi2Q6T8fqL9SQ+Y-91sELQ3SRQ@mail.gmail.com> <20130613095353.GX8164@atomide.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v2 02/14] ARM: OMAP2+: AM43x: Kconfig
+Date: Thu, 13 Jun 2013 10:02:18 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EB1E196@DBDE04.ent.ti.com>
+References: <cover.1369658705.git.afzal@ti.com>
+ <7642e0c701680ea94a8cc84059ff19e500813bf1.1369658705.git.afzal@ti.com>
+ <20130612171200.GL8164@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93EB1DEB2@DBDE04.ent.ti.com>
+ <20130613095454.GY8164@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48476 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754978Ab3FMKCI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 06:02:08 -0400
-In-Reply-To: <20130613095353.GX8164@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130613095454.GY8164@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Balaji T K <balajitk@ti.com>, Lee Jones <lee.jones@linaro.org>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Russell King <linux@arm.linux.org.uk>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Grant Likely <grant.likely@linaro.org>, Benoit Cousson <benoit.cousson@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+List-Id: linux-omap@vger.kernel.org
 
-On Thursday 13 June 2013 02:53:54 Tony Lindgren wrote:
-> * Linus Walleij <linus.walleij@linaro.org> [130613 02:42]:
-> > On Thu, Jun 6, 2013 at 9:14 PM, Balaji T K <balajitk@ti.com> wrote:
-> > > PBIAS register configuration is based on the regulator voltage
-> > > which supplies these pbias cells, sd i/o pads.
-> > > With PBIAS register address and bit definitions different across
-> > > omap[3,4,5], Simplify PBIAS configuration under three different
-> > > regulator voltage levels - O V, 1.8 V, 3 V. Corresponding pinctrl states
-> > > are defined as pbias_off, pbias_1v8, pbias_3v.
-> > > 
-> > > pinctrl state mmc_init is used for configuring speed mode, loopback
-> > > clock (in devconf0/devconf1/prog_io1 register for omap3) and pull
-> > > strength configuration (in control_mmc1 for omap4)
-> > > 
-> > > Signed-off-by: Balaji T K <balajitk@ti.com>
-> > 
-> > You *need* Lee Jones and Mark Brown to review this.
-> > Maybe Laurent has something to add too.
-> > 
-> > Ux500 had the very same thing, and there this was solved using
-> > a GPIO regulator for "vqmmc" a level-shifter. I vaguely remember
-> > Laurent doing something similar with the SH stuff.
+Hi Tony,
 
-The SH pinctrl driver registers an MMC regulator. The code is available at 
-git://git.kernel.org/pub/scm/linux/kernel/git/horms/renesas.git. Look at 
-drivers/pinctrl/sh-pfc/pfc-sh73a0.c in tags/renesas-next-20130611v2.
+On Thu, Jun 13, 2013 at 15:24:54, Tony Lindgren wrote:
+> * Mohammed, Afzal <afzal@ti.com> [130613 00:04]:
 
-> > > +       /* 100ms delay required for PBIAS configuration */
-> > > +       msleep(100);
-> > > +       if (!vdd && host->pinctrl && host->pbias_off) {
-> > > +               ret = pinctrl_select_state(host->pinctrl,
-> > > host->pbias_off);
-> > > +               if (ret < 0)
-> > > +                       dev_err(host->dev, "pinctrl pbias_off select
-> > > error\n"); +       } else if (((1 << vdd) <= MMC_VDD_165_195) &&
-> > > host->pinctrl && +                       host->pbias_1v8) {
-> > > +               ret = pinctrl_select_state(host->pinctrl,
-> > > host->pbias_1v8);
-> > > +               if (ret < 0)
-> > > +                       dev_err(host->dev, "pinctrl pbias_1v8 select
-> > > error\n"); +       } else if (((1 << vdd) > MMC_VDD_165_195) &&
-> > > host->pinctrl && +                       host->pbias_3v) {
-> > > +               ret = pinctrl_select_state(host->pinctrl,
-> > > host->pbias_3v);
-> > > +               if (ret < 0)
-> > > +                       dev_err(host->dev, "pinctrl pbias_3v select
-> > > error\n"); +       }
-> > 
-> > So why does the pin control API control bias voltage?
+> > Patch 10 "ARM: OMAP2+: AM43x: basic dt support" is missing in
+> > omap-for-v3.11/soc branch and omap soc pull request, can you
+> > please help patch 10 also to go upstream.
 > 
-> I agree, it should be a regulator for the MMC driver and that's what I
-> already suggested earlier. Having it as a regulator allows us to get
-> rid of all the non-standard before and after calls in the omap_hsmmc.c.
-> This way the omap_hsmmc.c code can handle the internal and external
-> voltages the same way.
-> 
-> > This seem so intuitively wrong as it can possibly get, clearly this
-> > is regulator territory.
-> 
-> The PBIAS for MMC1 is a mux + comparator for the MMC pin, so it makes
-> sense for the regulator driver to access the register via pinctrl API.
-> I think the reason why we have registers like this and the USB comparators
-> in the omap SCM (System Control Module) as the all seem to relate to
-> pin states.
-> 
-> > This also looks strange from an MMC point of view.
-> 
-> Yes I agree, it should be a regulator for MMC. Doing it this way just
-> adds yet more code that's usable for only one of the omap MMC
-> controllers.
-> 
-> > It just seems these bits in these registers should be poked at
-> > by the regulator world, not the pinctrl world. That the bits are
-> > in the middle of pinctrl things does not really matter.
-> > 
-> > > +       usleep_range(350, 400);
-> > 
-> > And the regulator framework supports power-on delays.
-> 
-> Yes. And it seems that the delays should not be needed, but instead
-> the comparator bits should be checked.
+> Hmm if that's .dts changes, Benoit needs to queue that.
 
--- 
-Regards,
+It is not dts change.
 
-Laurent Pinchart
+Patch 10 patches board-generic.c for DT boot (Benoit has already
+picked up dts, that is patch 14).
 
+Regards
+Afzal
