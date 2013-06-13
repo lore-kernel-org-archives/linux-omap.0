@@ -1,70 +1,52 @@
-From: Ambresh K <ambresh@ti.com>
-Subject: Re: [Patch 3/3] clk: Avoid re-parenting orphan clk's having invalid
- parent index.
-Date: Thu, 13 Jun 2013 12:36:43 +0530
-Message-ID: <51B96F83.10309@ti.com>
-References: <1367475929-32166-1-git-send-email-ambresh@ti.com> <1367475929-32166-4-git-send-email-ambresh@ti.com> <20130529071809.6058.24017@quantum> <51AD9450.5090107@ti.com> <20130611220744.8816.8856@quantum>
+From: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
+Subject: Re: [RFC v1] MFD: Change TWL6025 references to TWL6032
+Date: Thu, 13 Jun 2013 10:56:27 +0300
+Message-ID: <51B97B2B.6080400@ti.com>
+References: <1370602390-12306-1-git-send-email-oleksandr.kozaruk@ti.com> <20130607143649.GS31367@sirena.org.uk> <c73c260b90be6e1640a430e8cbba6cac@slimlogic.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130611220744.8816.8856@quantum>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Rajendra <rnayak@ti.com>, Nishanth Menon <nm@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38717 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932610Ab3FMH4p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Jun 2013 03:56:45 -0400
+In-Reply-To: <c73c260b90be6e1640a430e8cbba6cac@slimlogic.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: gg@slimlogic.co.uk
+Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, sameo@linux.intel.com, lgirdwood@gmail.com, balbi@ti.com, peter.ujfalusi@ti.com, t-kristo@ti.com, tony@atomide.com
 
-
-
-
->> Sorry for not being descriptive in commit message.  
+On 06/07/2013 05:44 PM, gg@slimlogic.co.uk wrote:
+> On 2013-06-07 15:36, Mark Brown wrote:
+>> On Fri, Jun 07, 2013 at 01:53:10PM +0300, Oleksandr Kozaruk wrote:
+>>> From: Graeme Gregory <gg@slimlogic.co.uk>
+>>>
+>>> The TWL6025 was never released beyond sample form and was replaced by
+>>> the PhoenixLite range of chips - TWL6032. Change the references to
+>>> reference the TWL6032 class and name the registers to twl6032 in 
+>>> line with
+>>> an actual released chip name to avoid confusion.
+>>>
+>>> Currently there is no users of TWL6025 in the code.
 >>
->> a) Avoids unnecessary re-parenting cycle for orphan clock's with invalid parent for every clock
->>
-> 
-> True, but this is a minor optimisation.  If this is a big optimization
-> for you then you really need to fix your bootloader.  We shouldn't be
-> optimizing slow error paths just because we refuse to fix the errors.
+>> Given that the chip exists even if not widely distributed it seems as
+>> well to keep the twl6025 references in there at least in the device ID
+>> table - it won't do any harm to people using the twl6032 name and might
+>> help someone who happens to pick up an old board for whatever reason.
+>
+> I do not think any "old boards" exist, it really was a limited run!
+>
+> Graeme
+>
+Hello Mark, Graeme
 
-Got it! Should be fixed in boot-loader. 
+So, what is your opinion? Could we move forward with this?
 
-> 
->> b) With patch [1/3], after a clk with invalid parent was encountered, for every clk registered thereafter seeing following logs. 
->> <Snippet>
->> [    0.000000] __clk_init: orphan clk(gpu_core_gclk_mux) invalid parent
->> [    0.000000] __clk_init: orphan clk(gpu_core_gclk_mux) invalid parent
->> [    0.000000] __clk_init: orphan clk(gpu_core_gclk_mux) invalid parent
->> [    0.000000] __clk_init: orphan clk(gpu_core_gclk_mux) invalid parent
->> [    0.000000] __clk_init: orphan clk(gpu_core_gclk_mux) invalid parent
->> [    0.000000] __clk_init: orphan clk(gpu_core_gclk_mux) invalid parent
->> [    0.000000] __clk_init: orphan clk(gpu_core_gclk_mux) invalid parent
->> [    0.000000] __clk_init: orphan clk(gpu_core_gclk_mux) invalid parent  
->>
->> Please advice, if can be handled better. 
->>
-> 
-> First off, I don't think we should create new structures to work around
-> bugs that should be fixed.  pr_err_once() will let us know something is
-> wrong and won't flood the log.  Even then I'm inclined to say that
-> flooding the log is OK and will motivate you to fix up your bootloader.
-> Error prints are there for a reason.
-> 
-> Secondly, I spent like 10 minutes looking at this code and I'm still
-> confused.  For a clock with invalid parent programming, are you adding
-> it to BOTH the orphan list and the has_invalid_parent list?  Why?  Is
-> this just avoid the spurious prints?  For everyone clock registered we
-> walk the list of orphans to see if that orphan can be reparented.  This
-> patch adds another nested list walk (likely a short list) for each of
-> those orphans in the first list walk, so it starts to look like O(n^2).
-> I don't like it.
-> 
-> I think the first two patches in the series look good, but unless I am
-> misunderstanding this patch I feel that it can be dropped entirely.
-> 
-
-Thanks for your time! 
-Will drop this patch and send V2 for first 2 patches. 
-
-
-Regards,
-Ambresh
+In addition, If twl6032 will be added on top of twl6025 there will be no 
+guarantee
+that twl6025 will work because:
+- there is no HW to verify
+- there is no documentation on twl6025 available, so, in case if current 
+implementation is
+   different from what is needed for twl6032 - it can't be handled properly
