@@ -1,70 +1,93 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 2/2] ARM: dts: omap3-beagle: Make USB host pin naming
- consistent
-Date: Thu, 13 Jun 2013 15:53:17 +0300
-Message-ID: <1371127997-8089-3-git-send-email-rogerq@ti.com>
-References: <1371127997-8089-1-git-send-email-rogerq@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [RFC PATCH 1/4] arm: omap: Add phy binding info for musb in plat
+ data
+Date: Thu, 13 Jun 2013 16:05:58 +0300
+Message-ID: <51B9C3B6.1080707@ti.com>
+References: <1368796954-3499-1-git-send-email-kishon@ti.com>
+ <51A43E0A.8090201@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1371127997-8089-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: b-cousson-l0cyMroinI0@public.gmane.org
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============5764837050227183952=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51A43E0A.8090201@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, tony@atomide.com
+Cc: linux@arm.linux.org.uk, eballetbo@gmail.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, javier@dowhile0.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Use a common naming scheme "mode0name.modename flags" for the
-USB host pins to be consistent.
+--===============5764837050227183952==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="----enig2OVELJTAMTAOLKXJQHTRA"
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/omap3-beagle.dts |   24 ++++++++++++------------
- 1 files changed, 12 insertions(+), 12 deletions(-)
+------enig2OVELJTAMTAOLKXJQHTRA
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index 6d47c4b..5d11eb1 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -81,18 +81,18 @@
- 
- 	hsusbb2_pins: pinmux_hsusbb2_pins {
- 		pinctrl-single,pins = <
--			0x5c0 (PIN_OUTPUT | MUX_MODE3)		/* usbb2_ulpitll_clk.usbb1_ulpiphy_clk */
--			0x5c2 (PIN_OUTPUT | MUX_MODE3)		/* usbb2_ulpitll_clk.usbb1_ulpiphy_stp */
--			0x5c4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dir */
--			0x5c6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_nxt */
--			0x5c8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat0 */
--			0x5cA (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat1 */
--			0x1a4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat2 */
--			0x1a6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat3 */
--			0x1a8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat4 */
--			0x1aa (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat5 */
--			0x1ac (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat6 */
--			0x1ae (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat7 */
-+			0x5c0 (PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
-+			0x5c2 (PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
-+			0x5c4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
-+			0x5c6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
-+			0x5c8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
-+			0x5cA (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
-+			0x1a4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
-+			0x1a6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
-+			0x1a8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
-+			0x1aa (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_somi.hsusb2_data5 */
-+			0x1ac (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs0.hsusb2_data6 */
-+			0x1ae (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs1.hsusb2_data3 */
- 		>;
- 	};
- };
--- 
-1.7.4.1
+Hi,
+
+On 28/05/13 08:18, Kishon Vijay Abraham I wrote:
+> Hi Tony,
+>=20
+> On Friday 17 May 2013 06:52 PM, Kishon Vijay Abraham I wrote:
+>> In order for controllers to get PHY in case of non dt boot, the phy
+>> binding information (phy label) should be added in the platform
+>> data of the controller.
+>=20
+> This series would be needed to get MUSB working in OMAP3 boards for
+> non-dt boot case. Do you think this is good enough to go in this rc cyc=
+le?
+
+Did this or some other solution go forward? I'm still unable to boot
+with usb-gadget-ethernet with v3.10-rc5.
+
+ Tomi
+
+
+
+------enig2OVELJTAMTAOLKXJQHTRA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRucO2AAoJEPo9qoy8lh71WVsP/jmjAagz6yP6Pcb/UJs6Zlf7
+EFSDgv3zc7YOPheEGruvwbiXO4EzkIFBmkOLXzPj3VNf0DtKEmyw5juInDzI2pYT
+slaeLMZsHTBgmfHvsHKJX3vlCMyhkEuD1QXeFUvebTKy/bzQpbQF7Hr+zdnZ3w4K
+UHKrNNJwynEhm95NuFfUB0HDNcaKV0X8oi3uMW5ilAzbrHxugsyBwg+HD9Y2m02W
+VeyCzM6c/xOGuevYMyCWIInxk2DvbXIiXG+OrD10LEPhwVVibfgWwHrpOwCysCJC
+00r5zL0FQliGuOPA08SlLYr46U+y1JvsoWy5/uVGJwMEstPSdbAs6A7mmhBbFekq
+BuMbA7SOvWSJxSk0XIUl+p5gzug1eX4yf+w1kkXO4J+nclM/sN4eDnPsCUKGLjlm
+ZhI+/8pIfJoNg+zz1s/jvLqzMOnLovitlfnm9zfMOf1OqrpwA6stMTH5wyJ7rltP
+mHcbxCWNDkHn2qU8BMaFV4gL+Op8V3bxVCfCxfB6JQf3HUhATIl4A5uPSnazA2PO
+1F6vI8bIFJJeyg5SP56thDIPffs6KKAWXQd9N5QhydnFkS9HEeVBuQ+u6t7UWeL+
+Fox19gOtPsBl5DWrLncvjNT0//ab7fxFFLpb//vogDRMfsUYZqtUjPo0xWXoJLeR
+ZY0/MWIVK4tXJ/ry7Mpt
+=NJQ9
+-----END PGP SIGNATURE-----
+
+------enig2OVELJTAMTAOLKXJQHTRA--
+
+
+--===============5764837050227183952==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============5764837050227183952==--
