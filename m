@@ -1,44 +1,44 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 3/3] ARM: OMAP: dma: Fix the kfree ordering
-Date: Thu, 13 Jun 2013 14:16:47 +0100
-Message-ID: <20130613131647.GS21614@n2100.arm.linux.org.uk>
-References: <1371128960-24822-1-git-send-email-rnayak@ti.com> <1371128960-24822-4-git-send-email-rnayak@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: N900 device tree conversion: how to do first step
+Date: Thu, 13 Jun 2013 15:26:24 +0200
+Message-ID: <20130613132624.GA3464@amd.pavel.ucw.cz>
+References: <20130609015944.GA23559@amd.pavel.ucw.cz>
+ <20130609201119.GA3190@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42631 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752134Ab3FMNQ6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 09:16:58 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1371128960-24822-4-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20130609201119.GA3190@blackmetal.musicnaut.iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Jun 13, 2013 at 06:39:20PM +0530, Rajendra Nayak wrote:
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index 8a71f75..8e16503 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -2111,8 +2111,8 @@ exit_dma_irq_fail:
->  	}
->  
->  exit_dma_lch_fail:
-> -	kfree(p);
->  	kfree(d);
-> +	kfree(p);
+Hi!
 
-Err.
+> > I'd like to convert Nokia N900 to device tree.
+> > 
+> > Unfortunately, serial port is not easily available (very special cable
+> > would be needed, does someone know where to get one?) and I don't have
+> > BDI (and very special cable would be needed, too).
+> > 
+> > So I tried doing very small first step, hoping that I get booting
+> > system... obviously I did not.
+> 
+> The following works for me, it's enough to boot and get the USB networking
+> working. After that I can connect to the device with ssh. I don't use
+> serial either, I just have initramfs with busybox+dropbear with hardcoded
+> interface setup.
 
-        p = pdev->dev.platform_data;
-        d                       = p->dma_attr;
+Nice.... thanks a lot.
 
-Why is it kfree'ing platform data in the first place?  This means that
-a failed bind can't be reattempted later.  It also means that an unbind
-plus rebind in userspace will free the platform data leaving stale
-pointers behind.
+Did you get video to work with the device tree? That's what I'd like
+to accomplish now.
 
-This is totally nonsense.  Don't kfree() data in your driver which you
-haven't allocated yourself!
+If I init spi manually (and some more hacks), it works in the
+qemu. But I have not tested on real hw for a while.
+
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
