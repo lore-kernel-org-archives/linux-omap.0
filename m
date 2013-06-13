@@ -1,464 +1,176 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: N900 device tree conversion: how to do first step
-Date: Thu, 13 Jun 2013 16:28:09 +0200
-Message-ID: <20130613142809.GA3775@amd.pavel.ucw.cz>
-References: <20130609015944.GA23559@amd.pavel.ucw.cz>
- <20130609201119.GA3190@blackmetal.musicnaut.iki.fi>
- <20130613132624.GA3464@amd.pavel.ucw.cz>
- <20130613141001.GF8164@atomide.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v2 06/10] mmc: omap_hsmmc: add support for pbias configuration
+ in dt
+Date: Thu, 13 Jun 2013 20:11:52 +0530
+Message-ID: <51B9DA30.1090308@ti.com>
+References: <20130523184045.GD13507@atomide.com> <1370546059-24181-1-git-send-email-balajitk@ti.com> <1370546059-24181-7-git-send-email-balajitk@ti.com> <CACRpkdZAzAJW0UxGCSj-PWXTSi2Q6T8fqL9SQ+Y-91sELQ3SRQ@mail.gmail.com> <20130613095353.GX8164@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130613141001.GF8164@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:41548 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755225Ab3FMOmU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 10:42:20 -0400
+In-Reply-To: <20130613095353.GX8164@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Lee Jones <lee.jones@linaro.org>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>
 
-On Thu 2013-06-13 07:10:01, Tony Lindgren wrote:
-> * Pavel Machek <pavel@ucw.cz> [130613 06:32]:
-> > Hi!
-> > 
-> > > > I'd like to convert Nokia N900 to device tree.
-> > > > 
-> > > > Unfortunately, serial port is not easily available (very special cable
-> > > > would be needed, does someone know where to get one?) and I don't have
-> > > > BDI (and very special cable would be needed, too).
-> > > > 
-> > > > So I tried doing very small first step, hoping that I get booting
-> > > > system... obviously I did not.
-> > > 
-> > > The following works for me, it's enough to boot and get the USB networking
-> > > working. After that I can connect to the device with ssh. I don't use
-> > > serial either, I just have initramfs with busybox+dropbear with hardcoded
-> > > interface setup.
-> > 
-> > Nice.... thanks a lot.
-> > 
-> > Did you get video to work with the device tree? That's what I'd like
-> > to accomplish now.
-> 
-> The DSS code is still using pdata, see mach-omap2/dss-common.[ch].
->  
-> > If I init spi manually (and some more hacks), it works in the
-> > qemu. But I have not tested on real hw for a while.
-> 
-> You should be able to initialize spi by adding the .dts entry,
-> or is there something missing in drivers/spi/spi-omap2-mcspi.c?
+On Thursday 13 June 2013 03:23 PM, Tony Lindgren wrote:
+> * Linus Walleij <linus.walleij@linaro.org> [130613 02:42]:
+>> On Thu, Jun 6, 2013 at 9:14 PM, Balaji T K <balajitk@ti.com> wrote:
+>>
+>>> PBIAS register configuration is based on the regulator voltage
+>>> which supplies these pbias cells, sd i/o pads.
+>>> With PBIAS register address and bit definitions different across
+>>> omap[3,4,5], Simplify PBIAS configuration under three different
+>>> regulator voltage levels - O V, 1.8 V, 3 V. Corresponding pinctrl states
+>>> are defined as pbias_off, pbias_1v8, pbias_3v.
+>>>
+>>> pinctrl state mmc_init is used for configuring speed mode, loopback clock
+>>> (in devconf0/devconf1/prog_io1 register for omap3) and pull strength
+>>> configuration (in control_mmc1 for omap4)
+>>>
+>>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>>
+>> You *need* Lee Jones and Mark Brown to review this.
+>> Maybe Laurent has something to add too.
+>>
+>> Ux500 had the very same thing, and there this was solved using
+>> a GPIO regulator for "vqmmc" a level-shifter. I vaguely remember
+>> Laurent doing something similar with the SH stuff.
+>>
+>>> +       /* 100ms delay required for PBIAS configuration */
+>>> +       msleep(100);
+>>> +       if (!vdd && host->pinctrl && host->pbias_off) {
+>>> +               ret = pinctrl_select_state(host->pinctrl, host->pbias_off);
+>>> +               if (ret < 0)
+>>> +                       dev_err(host->dev, "pinctrl pbias_off select error\n");
+>>> +       } else if (((1 << vdd) <= MMC_VDD_165_195) && host->pinctrl &&
+>>> +                       host->pbias_1v8) {
+>>> +               ret = pinctrl_select_state(host->pinctrl, host->pbias_1v8);
+>>> +               if (ret < 0)
+>>> +                       dev_err(host->dev, "pinctrl pbias_1v8 select error\n");
+>>> +       } else if (((1 << vdd) > MMC_VDD_165_195) && host->pinctrl &&
+>>> +                       host->pbias_3v) {
+>>> +               ret = pinctrl_select_state(host->pinctrl, host->pbias_3v);
+>>> +               if (ret < 0)
+>>> +                       dev_err(host->dev, "pinctrl pbias_3v select error\n");
+>>> +       }
+>>
+>> So why does the pin control API control bias voltage?
+>
+> I agree, it should be a regulator for the MMC driver and that's what I
+> already suggested earlier. Having it as a regulator allows us to get
+> rid of all the non-standard before and after calls in the omap_hsmmc.c.
+> This way the omap_hsmmc.c code can handle the internal and external
+> voltages the same way.
+>
+>> This seem so intuitively wrong as it can possibly get, clearly this
+>> is regulator territory.
+>
 
-Not sure, I guess I'll find out soon. Do you have example dts that
-uses drivers/spi/spi-omap2-mcspi.c? Grepping spi in dts/ was not too
-successful.
+It is not really a regulator, CONTROL_PBIAS_LITE is just a register
+in control module which configures pad/pin on SOC. In this case PBIAS cells
+are powered down before any voltage changes and after the external voltage
+supplied to VDDS_MMC of OMAP stabilizes pbias cells  is powered ON again
+with specific Voltage which is given to OMAP for MMC io pins
 
-This is what I'm doing currently...
+For OMAP2430, OMAP3430 It additionally has a bit for speed mode control
+which are set always (static config)
 
-Thanks,
-									Pavel
+I am quoting pbias register field description from TRM for reference
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index 9c62558..7b1a075 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -119,6 +119,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
- 	omap3-beagle-xm.dtb \
- 	omap3-evm.dtb \
- 	omap3-tobi.dtb \
-+	omap3-n900.dtb \
- 	omap4-panda.dtb \
- 	omap4-panda-a4.dtb \
- 	omap4-panda-es.dtb \
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-new file mode 100644
-index 0000000..10a880f
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -0,0 +1,75 @@
-+/*
-+ * Copyright (C) 2013 Pavel Machek <pavel@ucw.cz>
-+ * Copyright 2013 Aaro Koskinen <aaro.koskinen@iki.fi>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 (or later) as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/dts-v1/;
-+
-+/include/ "omap34xx.dtsi"
-+
-+/ {
-+	model = "Nokia N900";
-+	compatible = "nokia,omap3-n900", "ti,omap3";
-+
-+	cpus {
-+		cpu@0 {
-+//			cpu0-supply = <&vcc>;
-+		};
-+	};
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x10000000>; /* 256 MB */
-+	};
-+
-+};
-+
-+&i2c1 {
-+	clock-frequency = <2200000>;
-+
-+	twl: twl@48 {
-+		reg = <0x48>;
-+		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-+		interrupt-parent = <&intc>;
-+	};
-+};
-+
-+/include/ "twl4030.dtsi"
-+
-+&twl_gpio {
-+	ti,pullups	= <0x0>;
-+	ti,pulldowns	= <0x03ff3f>; /* BIT(0..5) | BIT(8..17) */
-+};
-+
-+&i2c2 {
-+	clock-frequency = <400000>;
-+};
-+
-+&i2c3 {
-+	clock-frequency = <100000>;
-+};
-+
-+&mmc1 {
-+	status = "disabled";
-+};
-+
-+&mmc2 {
-+	status = "disabled";
-+};
-+
-+&mmc3 {
-+	status = "disabled";
-+};
-+
-+/*
-+&usb_otg_hs {
-+	interface-type = <0>;
-+	usb-phy = <&usb2_phy>;
-+	mode = <2>;
-+	power = <50>;
-+};
-+*/
-diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
-new file mode 100644
-index 0000000..75ed4ae
---- /dev/null
-+++ b/arch/arm/boot/dts/omap34xx.dtsi
-@@ -0,0 +1,28 @@
-+/*
-+ * Device Tree Source for OMAP34xx/OMAP35xx SoC
-+ *
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2.  This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ */
-+
-+/include/ "omap3.dtsi"
-+
-+/ {
-+	cpus {
-+		cpu@0 {
-+			/* OMAP343x/OMAP35xx variants OPP1-5 */
-+			operating-points = <
-+				/* kHz    uV */
-+				125000   975000
-+				250000  1075000
-+				500000  1200000
-+				550000  1270000
-+				600000  1350000
-+			>;
-+			clock-latency = <300000>; /* From legacy driver */
-+		};
-+	};
-+};
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index e54a480..996ffc3 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -22,6 +22,12 @@
- #include "common-board-devices.h"
- #include "dss-common.h"
- 
-+#include "mux.h"
-+#include <linux/spi/spi.h>
-+#include <linux/platform_data/spi-omap2-mcspi.h>
-+#include <linux/platform_data/mtd-onenand-omap2.h>
-+#include <linux/regulator/machine.h>
-+
- #if !(defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3))
- #define intc_of_init	NULL
- #endif
-@@ -35,20 +41,105 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
- 	{ }
- };
- 
--static void __init omap_generic_init(void)
-+#if 1
-+
-+/* list all spi devices here */
-+enum {
-+	RX51_SPI_MIPID,		/* LCD panel */
-+	RX51_SPI_WL1251,
-+	RX51_SPI_TSC2005,	/* Touch Controller */
-+};
-+
-+static struct omap2_mcspi_device_config wl1251_mcspi_config = {
-+	.turbo_mode	= 0,
-+};
-+
-+static struct omap2_mcspi_device_config mipid_mcspi_config = {
-+	.turbo_mode	= 0,
-+};
-+
-+static struct omap2_mcspi_device_config tsc2005_mcspi_config = {
-+	.turbo_mode	= 0,
-+};
-+
-+#if 0
-+static struct wl12xx_platform_data wl1251_pdata;
-+static struct tsc2005_platform_data tsc2005_pdata;
-+#endif
-+
-+static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
-+#if 0
-+	/* Wireless */
-+	[RX51_SPI_WL1251] = {
-+		.modalias		= "wl1251",
-+		.bus_num		= 4,
-+		.chip_select		= 0,
-+		.max_speed_hz   	= 48000000,
-+		.mode                   = SPI_MODE_3,
-+		.controller_data	= &wl1251_mcspi_config,
-+		.platform_data		= &wl1251_pdata,
-+	},
-+#endif
-+	[RX51_SPI_MIPID] = {
-+		.modalias		= "acx565akm",
-+		.bus_num		= 1,
-+		.chip_select		= 2,
-+		.max_speed_hz		= 6000000,
-+		.controller_data	= &mipid_mcspi_config,
-+	},
-+#if 0
-+	/* Touchscreen */
-+	[RX51_SPI_TSC2005] = {
-+		.modalias		= "tsc2005",
-+		.bus_num		= 1,
-+		.chip_select		= 0,
-+		.max_speed_hz		= 6000000,
-+		.controller_data	= &tsc2005_mcspi_config,
-+		.platform_data		= &tsc2005_pdata,
-+	},
-+#endif
-+};
-+
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#endif
-+
-+extern int rx51_video_init(void);
-+
-+void __init omap_generic_init(void)
- {
- 	omap_sdrc_init(NULL, NULL);
--
- 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
- 
- 	/*
- 	 * HACK: call display setup code for selected boards to enable omapdss.
- 	 * This will be removed when omapdss supports DT.
- 	 */
--	if (of_machine_is_compatible("ti,omap4-panda"))
-+	if (of_machine_is_compatible("ti,omap4-panda")) {
- 		omap4_panda_display_init_of();
--	else if (of_machine_is_compatible("ti,omap4-sdp"))
-+		return;
-+	}
-+	if (of_machine_is_compatible("ti,omap4-sdp")) {
- 		omap_4430sdp_display_init_of();
-+		return;
-+	}
-+#ifdef CONFIG_MACH_NOKIA_RX51
-+	if (of_machine_is_compatible("nokia,omap3-n900")) {
-+#if 1
-+		regulator_use_dummy_regulator();
-+
-+		omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-+
-+		spi_register_board_info(rx51_peripherals_spi_board_info,
-+				ARRAY_SIZE(rx51_peripherals_spi_board_info));
-+#else
-+		rx51_video_init();
-+#endif
-+		return;
-+	}
-+	panic("really want to init video\n");
-+#endif
- }
- 
- #ifdef CONFIG_SOC_OMAP2420
-diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-omap2/board-rx51-video.c
-index eb66726..022bff0 100644
---- a/arch/arm/mach-omap2/board-rx51-video.c
-+++ b/arch/arm/mach-omap2/board-rx51-video.c
-@@ -68,7 +68,7 @@ static struct omap_dss_board_info rx51_dss_board_info = {
- 
- static int __init rx51_video_init(void)
- {
--	if (!machine_is_nokia_rx51())
-+	if (!of_machine_is_compatible("nokia,omap3-n900"))
- 		return 0;
- 
- 	if (omap_mux_init_gpio(RX51_LCD_RESET_GPIO, OMAP_PIN_OUTPUT)) {
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-index 74f83a5..ee001e2 100644
---- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -36,6 +36,8 @@
- 
- #define RX51_GPIO_SLEEP_IND 162
- 
-+/* This lights up left part of keyboard */
-+
- static struct gpio_led gpio_leds[] = {
- 	{
- 		.name	= "sleep_ind",
-@@ -91,49 +93,69 @@ static struct omap_musb_board_data musb_board_data = {
- 	.power			= 0,
- };
- 
--static void __init rx51_init(void)
-+void rx51_init_base(void)
- {
- 	struct omap_sdrc_params *sdrc_params;
--
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
--	omap_serial_init();
- 
-+#if 0
- 	sdrc_params = nokia_get_sdram_timings();
- 	omap_sdrc_init(sdrc_params, sdrc_params);
-+#endif
-+}
-+
-+void __init rx51_init(void)
-+{
-+	printk("rx_init: n900 starting\n");
-+
-+	rx51_init_base();
-+#if 0
-+	omap_serial_init();
- 
- 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(&musb_board_data);
-+#endif
- 	rx51_peripherals_init();
--	rx51_camera_init();
-+//	rx51_camera_init();
- 
-+#if 0
- #ifdef CONFIG_ARM_ERRATA_430973
- 	printk(KERN_INFO "RX-51: Enabling ARM errata 430973 workaround.\n");
- 	/* set IBE to 1 */
- 	rx51_secure_update_aux_cr(1 << 6, 0);
- #endif
-+#endif
- 
-+	/* FIXME: keep those? */
- 	/* Ensure SDRC pins are mux'd for self-refresh */
--	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
--	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
-+//	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
-+//	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
- 
--	platform_device_register(&leds_gpio);
-+//	platform_device_register(&leds_gpio);
- }
- 
--static void __init rx51_reserve(void)
--{
--	omap_reserve();
--}
-+static const char *omap3_boards_compat[] __initdata = {
-+	"nokia,omap3-n900",
-+        NULL,
-+};
-+
- 
--MACHINE_START(NOKIA_RX51, "Nokia RX-51 board")
--	/* Maintainer: Lauri Leukkunen <lauri.leukkunen@nokia.com> */
--	.atag_offset	= 0x100,
--	.reserve	= rx51_reserve,
-+extern void __init omap_generic_init(void);
-+
-+DT_MACHINE_START(NOKIA_RX51_DT, "Nokia N900 (Flattened Device Tree)")
-+	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
--	.init_early	= omap3430_init_early,
--	.init_irq	= omap3_init_irq,
--	.handle_irq	= omap3_intc_handle_irq,
--	.init_machine	= rx51_init,
--	.init_late	= omap3430_init_late,
--	.init_time	= omap3_sync32k_timer_init,
--	.restart	= omap3xxx_restart,
-+	.init_early     = omap3430_init_early,
-+	.init_irq       = omap_intc_of_init, 
-+	.handle_irq     = omap3_intc_handle_irq,
-+	.init_machine   = 
-+#if 0
-+			  rx51_init, 
-+#else
-+			  omap_generic_init,
-+#endif
-+	.init_late      = omap3_init_late,
-+	.init_time      = omap3_sync32k_timer_init,
-+	.dt_compat      = omap3_boards_compat,
-+	.restart        = omap3xxx_restart,
- MACHINE_END
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 0b6260a1..e300c18 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -764,7 +764,7 @@ static inline void omap_init_ocp2scp(void) { }
- static int __init omap2_init_devices(void)
- {
- 	/* Enable dummy states for those platforms without pinctrl support */
--	if (!of_have_populated_dt())
-+	if (1) /* FIXME */
- 		pinctrl_provide_dummies();
- 
- 	/*
-diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
-index e4842c3..026de91 100644
---- a/sound/soc/omap/rx51.c
-+++ b/sound/soc/omap/rx51.c
-@@ -396,8 +396,10 @@ static int rx51_soc_probe(struct platform_device *pdev)
- 	struct snd_soc_card *card = &rx51_sound_card;
- 	int err;
- 
--	if (!machine_is_nokia_rx51())
-+	if (!of_machine_is_compatible("nokia,omap3-n900")) {
-+		printk("FIXME: rx51_soc_probe on non-nokia\n");
- 		return -ENODEV;
-+	}
- 
- 	err = gpio_request_one(RX51_TVOUT_SEL_GPIO,
- 			       GPIOF_DIR_OUT | GPIOF_INIT_LOW, "tvout_sel");
+BIT2 PBIASSPEEDCTRL0 Speed Control for MMC I/O
+0b0 => 26 MHz I/O max speed
+0b1 => 52 MHz I/O max speed
+
+BIT26 MMC1_PWRDNZ PWRDNZ control to MMC1 IO
+This bit is used to protect the MMC1 I/O cell when
+SDMMC1_VDDS is not stable.
+0x0: Software must clear this bit when SDMMC1_VDDS
+changes.
+0x1: Software must set this bit only when
+SDMMC1_VDDS is stable.
+
+BIT25 MMC1_PBIASLITE_HIZ_MODE HIZ_MODE from MMC1 PBIASLITE
+0x0: PBIAS in normal operation mode
+0x1: PBIAS output is in high impedence state
+
+BIT24 MMC1_PBIASLITE_SUPPLY_HI SUPPLY_HI_OUT from MMC1 PBIASLITE
+_OUT Read 0x0: SDMMC1_VDDS = 1.8V
+Read 0x1: SDMMC1_VDDS = 3V
+
+BIT23 MMC1_PBIASLITE_VMODE_ER VMODE ERROR from MMC1 PBIASLITE
+ROR Read 0x0: VMODE level is same as SUPPLY_HI_OUT
+Read 0x1: VMODE level is not same as
+SUPPLY_HI_OUT
+
+BIT22 MMC1_PBIASLITE_PWRDNZ PWRDNZ control to MMC1 PBIASLITE
+This bit is used to protect the MMC1_PBIAS cell (MMC1
+I/O cell associated) when SDMMC1_VDDS is not stable.
+0x0: Software must clear this bit when SDMMC1_VDDS
+changes.
+0x1: Software must set this bit only when
+SDMMC1_VDDS is stable.
+
+BIT21 MMC1_PBIASLITE_VMODE VMODE control to MMC1 PBIASLITE
+0x0: SDMMC1_VDDS = 1.8V
+0x1: SDMMC1_VDDS = 3V
+
+> The PBIAS for MMC1 is a mux + comparator for the MMC pin, so it makes
+> sense for the regulator driver to access the register via pinctrl API.
+> I think the reason why we have registers like this and the USB comparators
+> in the omap SCM (System Control Module) as the all seem to relate to
+> pin states.
+>
+>> This also looks strange from an MMC point of view.
+>
+> Yes I agree, it should be a regulator for MMC. Doing it this way just
+> adds yet more code that's usable for only one of the omap MMC
+> controllers.
+>
+
+the only other user for pbias which I can find is USB pin configuration in
+arch/arm/mach-omap2/board-omap3logic.c where it is statically programmed for 3V
+which can be modeled as well as  default pinctrl state.
 
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+>> It just seems these bits in these registers should be poked at
+>> by the regulator world, not the pinctrl world.
+
+
+You mean regulator via pinctrl APIs, I think It will just move the code
+from omap_hsmmc to a new regulator file with it own init data for pinctrl.
+
+Not sure if Regulator maintainer will agree to it.
+
+Moreover what I needs is three different states 0V, 0 to 1.8V, 3 V to 3.3V
+not 0, 1.8V, 3V. plus pbias register fields got moved around between omap3, omap4
+and omap5, That was one of the reason for moving to pinctrl states.
+
+
+ >> That the bits are
+>> in the middle of pinctrl things does not really matter.
+
+It thought pinctrl-single,bits in pinctrl-single.c is introduced
+precisely for such misc control register which has bit configuration
+affecting different module i/o pads.
+
+>>
+>>> +       usleep_range(350, 400);
+>>
+>> And the regulator framework supports power-on delays.
+>
+> Yes. And it seems that the delays should not be needed, but instead
+> the comparator bits should be checked.
+
+But, Not all OMAP has such support to read comparator bits.
+
+>
+> Regards,
+>
+> Tony
+>
