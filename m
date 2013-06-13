@@ -1,97 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 06/10] mmc: omap_hsmmc: add support for pbias
- configuration in dt
-Date: Thu, 13 Jun 2013 02:53:54 -0700
-Message-ID: <20130613095353.GX8164@atomide.com>
-References: <20130523184045.GD13507@atomide.com>
- <1370546059-24181-1-git-send-email-balajitk@ti.com>
- <1370546059-24181-7-git-send-email-balajitk@ti.com>
- <CACRpkdZAzAJW0UxGCSj-PWXTSi2Q6T8fqL9SQ+Y-91sELQ3SRQ@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [net-next PATCH v4 1/5] net: cpsw: enhance pinctrl support
+Date: Thu, 13 Jun 2013 02:54:44 -0700 (PDT)
+Message-ID: <20130613.025444.626549509946164895.davem@davemloft.net>
+References: <20130607.004234.2007576325541054686.davem@davemloft.net>
+	<51B1F2EB.80109@ti.com>
+	<CACRpkdbKWRyBxUF1w82C8WUAvXM5hsUc6N-C+CcwXr8eCyviWQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkdZAzAJW0UxGCSj-PWXTSi2Q6T8fqL9SQ+Y-91sELQ3SRQ@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Balaji T K <balajitk@ti.com>, Lee Jones <lee.jones@linaro.org>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CACRpkdbKWRyBxUF1w82C8WUAvXM5hsUc6N-C+CcwXr8eCyviWQ@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: linus.walleij@linaro.org
+Cc: mugunthanvnm@ti.com, broonie@kernel.org, netdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, gururaja.hebbar@ti.com, benoit.cousson@linaro.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [130613 02:42]:
-> On Thu, Jun 6, 2013 at 9:14 PM, Balaji T K <balajitk@ti.com> wrote:
-> 
-> > PBIAS register configuration is based on the regulator voltage
-> > which supplies these pbias cells, sd i/o pads.
-> > With PBIAS register address and bit definitions different across
-> > omap[3,4,5], Simplify PBIAS configuration under three different
-> > regulator voltage levels - O V, 1.8 V, 3 V. Corresponding pinctrl states
-> > are defined as pbias_off, pbias_1v8, pbias_3v.
-> >
-> > pinctrl state mmc_init is used for configuring speed mode, loopback clock
-> > (in devconf0/devconf1/prog_io1 register for omap3) and pull strength
-> > configuration (in control_mmc1 for omap4)
-> >
-> > Signed-off-by: Balaji T K <balajitk@ti.com>
-> 
-> You *need* Lee Jones and Mark Brown to review this.
-> Maybe Laurent has something to add too.
-> 
-> Ux500 had the very same thing, and there this was solved using
-> a GPIO regulator for "vqmmc" a level-shifter. I vaguely remember
-> Laurent doing something similar with the SH stuff.
-> 
-> > +       /* 100ms delay required for PBIAS configuration */
-> > +       msleep(100);
-> > +       if (!vdd && host->pinctrl && host->pbias_off) {
-> > +               ret = pinctrl_select_state(host->pinctrl, host->pbias_off);
-> > +               if (ret < 0)
-> > +                       dev_err(host->dev, "pinctrl pbias_off select error\n");
-> > +       } else if (((1 << vdd) <= MMC_VDD_165_195) && host->pinctrl &&
-> > +                       host->pbias_1v8) {
-> > +               ret = pinctrl_select_state(host->pinctrl, host->pbias_1v8);
-> > +               if (ret < 0)
-> > +                       dev_err(host->dev, "pinctrl pbias_1v8 select error\n");
-> > +       } else if (((1 << vdd) > MMC_VDD_165_195) && host->pinctrl &&
-> > +                       host->pbias_3v) {
-> > +               ret = pinctrl_select_state(host->pinctrl, host->pbias_3v);
-> > +               if (ret < 0)
-> > +                       dev_err(host->dev, "pinctrl pbias_3v select error\n");
-> > +       }
-> 
-> So why does the pin control API control bias voltage?
+From: Linus Walleij <linus.walleij@linaro.org>
+Date: Mon, 10 Jun 2013 17:48:16 +0200
 
-I agree, it should be a regulator for the MMC driver and that's what I
-already suggested earlier. Having it as a regulator allows us to get
-rid of all the non-standard before and after calls in the omap_hsmmc.c.
-This way the omap_hsmmc.c code can handle the internal and external
-voltages the same way.
- 
-> This seem so intuitively wrong as it can possibly get, clearly this
-> is regulator territory.
-
-The PBIAS for MMC1 is a mux + comparator for the MMC pin, so it makes
-sense for the regulator driver to access the register via pinctrl API.
-I think the reason why we have registers like this and the USB comparators
-in the omap SCM (System Control Module) as the all seem to relate to
-pin states.
- 
-> This also looks strange from an MMC point of view.
-
-Yes I agree, it should be a regulator for MMC. Doing it this way just
-adds yet more code that's usable for only one of the omap MMC
-controllers.
- 
-> It just seems these bits in these registers should be poked at
-> by the regulator world, not the pinctrl world. That the bits are
-> in the middle of pinctrl things does not really matter.
+> On Fri, Jun 7, 2013 at 4:49 PM, Mugunthan V N <mugunthanvnm@ti.com> wrote:
 > 
-> > +       usleep_range(350, 400);
+>>> If you want to merge the direct networking parts of this series into
+>>> another tree, I'm fine with that:
+>>>
+>>> Acked-by: David S. Miller <davem@davemloft.net>
+>>
+>> David
+>>
+>> Can you the below patch series as i have adopted pinctrl PM api in another
+>> series,
+>> this patch has direct usage of pinctrl_select_state apis
+>> http://marc.info/?l=linux-netdev&m=137054250018667&w=2
+>>
+>> Linus Walleij
+>>
+>> Please drop this patch series and take my other [atch set mentioned above
+>> with David's Ack.
 > 
-> And the regulator framework supports power-on delays.
+> Sure I didn't see David ACK the new versions explicitly but
+> since they're even less intrusive I'll apply them assuming
+> his ACK on these versions too...
 
-Yes. And it seems that the delays should not be needed, but instead
-the comparator bits should be checked.
+Just in case it isn't clear:
 
-Regards,
-
-Tony
+Acked-by: David S. Miller <davem@davemloft.net>
