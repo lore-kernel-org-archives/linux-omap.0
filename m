@@ -1,50 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: N900 device tree conversion: how to do first step
-Date: Thu, 13 Jun 2013 07:10:01 -0700
-Message-ID: <20130613141001.GF8164@atomide.com>
-References: <20130609015944.GA23559@amd.pavel.ucw.cz>
- <20130609201119.GA3190@blackmetal.musicnaut.iki.fi>
- <20130613132624.GA3464@amd.pavel.ucw.cz>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH v2 1/3] ARM: OMAP: dma: Remove the wrong dev_id check
+Date: Thu, 13 Jun 2013 19:47:09 +0530
+Message-ID: <1371133031-29229-2-git-send-email-rnayak@ti.com>
+References: <1371133031-29229-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130613132624.GA3464@amd.pavel.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:42912 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751483Ab3FMORx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Jun 2013 10:17:53 -0400
+In-Reply-To: <1371133031-29229-1-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, R Sricharan <r.sricharan@ti.com>
 
-* Pavel Machek <pavel@ucw.cz> [130613 06:32]:
-> Hi!
-> 
-> > > I'd like to convert Nokia N900 to device tree.
-> > > 
-> > > Unfortunately, serial port is not easily available (very special cable
-> > > would be needed, does someone know where to get one?) and I don't have
-> > > BDI (and very special cable would be needed, too).
-> > > 
-> > > So I tried doing very small first step, hoping that I get booting
-> > > system... obviously I did not.
-> > 
-> > The following works for me, it's enough to boot and get the USB networking
-> > working. After that I can connect to the device with ssh. I don't use
-> > serial either, I just have initramfs with busybox+dropbear with hardcoded
-> > interface setup.
-> 
-> Nice.... thanks a lot.
-> 
-> Did you get video to work with the device tree? That's what I'd like
-> to accomplish now.
+From: R Sricharan <r.sricharan@ti.com>
 
-The DSS code is still using pdata, see mach-omap2/dss-common.[ch].
- 
-> If I init spi manually (and some more hacks), it works in the
-> qemu. But I have not tested on real hw for a while.
+Once a free channel is found, the check for dev_id == 0 does
+not make any sense. Get rid of it.
 
-You should be able to initialize spi by adding the .dts entry,
-or is there something missing in drivers/spi/spi-omap2-mcspi.c?
+Signed-off-by: R Sricharan <r.sricharan@ti.com>
+---
+ arch/arm/plat-omap/dma.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Regards,
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index e06c34b..2f99331 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -701,8 +701,8 @@ int omap_request_dma(int dev_id, const char *dev_name,
+ 	for (ch = 0; ch < dma_chan_count; ch++) {
+ 		if (free_ch == -1 && dma_chan[ch].dev_id == -1) {
+ 			free_ch = ch;
+-			if (dev_id == 0)
+-				break;
++			/* Exit after first free channel found */
++			break;
+ 		}
+ 	}
+ 	if (free_ch == -1) {
+-- 
+1.7.9.5
 
-Tony
