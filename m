@@ -1,60 +1,56 @@
-From: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
-Subject: Re: [RFC v1] MFD: Change TWL6025 references to TWL6032
-Date: Thu, 13 Jun 2013 14:20:56 +0300
-Message-ID: <51B9AB18.30801@ti.com>
-References: <1370602390-12306-1-git-send-email-oleksandr.kozaruk@ti.com> <20130607143649.GS31367@sirena.org.uk> <c73c260b90be6e1640a430e8cbba6cac@slimlogic.co.uk> <CAPb7_mtVg7Uz6jS5BwCCxo-dcju6Ophh4+QWG7N5zOHJQixw5A@mail.gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2 06/10] mmc: omap_hsmmc: add support for pbias
+ configuration in dt
+Date: Thu, 13 Jun 2013 14:39:53 +0200
+Message-ID: <CACRpkdbQPqbMdFo6kTEriY4DhLcyZBA7Umxjvdh9OGVHJJe4dw@mail.gmail.com>
+References: <20130523184045.GD13507@atomide.com>
+	<1370546059-24181-1-git-send-email-balajitk@ti.com>
+	<1370546059-24181-7-git-send-email-balajitk@ti.com>
+	<CACRpkdZAzAJW0UxGCSj-PWXTSi2Q6T8fqL9SQ+Y-91sELQ3SRQ@mail.gmail.com>
+	<20130613095353.GX8164@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48854 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751406Ab3FMLVZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Jun 2013 07:21:25 -0400
-In-Reply-To: <CAPb7_mtVg7Uz6jS5BwCCxo-dcju6Ophh4+QWG7N5zOHJQixw5A@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20130613095353.GX8164@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Balaji T K <balajitk@ti.com>, Lee Jones <lee.jones@linaro.org>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Oleksandr Kozaruk <oleksandr.kozaruk@globallogic.com>
-Cc: gg@slimlogic.co.uk, Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, sameo@linux.intel.com, lgirdwood@gmail.com, balbi@ti.com, peter.ujfalusi@ti.com, t-kristo@ti.com, tony@atomide.com
 
-On 06/13/2013 11:17 AM, Oleksandr Kozaruk wrote:
-> On Fri, Jun 7, 2013 at 5:44 PM, <gg@slimlogic.co.uk 
-> <mailto:gg@slimlogic.co.uk>> wrote:
-> >
-> > On 2013-06-07 15:36, Mark Brown wrote:
-> >>
-> >> On Fri, Jun 07, 2013 at 01:53:10PM +0300, Oleksandr Kozaruk wrote:
-> >>>
-> >>> From: Graeme Gregory <gg@slimlogic.co.uk <mailto:gg@slimlogic.co.uk>>
-> >>>
-> >>> The TWL6025 was never released beyond sample form and was replaced by
-> >>> the PhoenixLite range of chips - TWL6032. Change the references to
-> >>> reference the TWL6032 class and name the registers to twl6032 in 
-> line with
-> >>> an actual released chip name to avoid confusion.
-> >>>
-> >>> Currently there is no users of TWL6025 in the code.
-> >>
-> >>
-> >> Given that the chip exists even if not widely distributed it seems as
-> >> well to keep the twl6025 references in there at least in the device ID
-> >> table - it won't do any harm to people using the twl6032 name and might
-> >> help someone who happens to pick up an old board for whatever reason.
-> >
-> >
-> > I do not think any "old boards" exist, it really was a limited run!
-> >
-> > Graeme
+On Thu, Jun 13, 2013 at 11:53 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Linus Walleij <linus.walleij@linaro.org> [130613 02:42]:
+>> On Thu, Jun 6, 2013 at 9:14 PM, Balaji T K <balajitk@ti.com> wrote:
+>> > +       /* 100ms delay required for PBIAS configuration */
+>> > +       msleep(100);
+>> > +       if (!vdd && host->pinctrl && host->pbias_off) {
+>> > +               ret = pinctrl_select_state(host->pinctrl, host->pbias_off);
+>> > +               if (ret < 0)
+>> > +                       dev_err(host->dev, "pinctrl pbias_off select error\n");
+>> > +       } else if (((1 << vdd) <= MMC_VDD_165_195) && host->pinctrl &&
+>> > +                       host->pbias_1v8) {
+>> > +               ret = pinctrl_select_state(host->pinctrl, host->pbias_1v8);
+>> > +               if (ret < 0)
+>> > +                       dev_err(host->dev, "pinctrl pbias_1v8 select error\n");
+>> > +       } else if (((1 << vdd) > MMC_VDD_165_195) && host->pinctrl &&
+>> > +                       host->pbias_3v) {
+>> > +               ret = pinctrl_select_state(host->pinctrl, host->pbias_3v);
+>> > +               if (ret < 0)
+>> > +                       dev_err(host->dev, "pinctrl pbias_3v select error\n");
+>> > +       }
+>>
+>> So why does the pin control API control bias voltage?
 >
-> Hello Mark, Graeme,
->
-> Taking in account that:
-> - there is no hardware to test twl6025, testing is not possible;
-> - there is no documentation for twl6025, and if there are any changes 
-> to twl6032 is not known;
-> - twl6032 is available, and in production, twl6025 is not even found 
-> on ti.com <http://ti.com>
->
-> So, what do you think, can this change be accepted?
-> <http://www.globallogic.com/email_disclaimer.txt>
-Sorry for spamming - had problems with mail server.
+> I agree, it should be a regulator for the MMC driver and that's what I
+> already suggested earlier. Having it as a regulator allows us to get
+> rid of all the non-standard before and after calls in the omap_hsmmc.c.
+> This way the omap_hsmmc.c code can handle the internal and external
+> voltages the same way.
+
+So someone is not taking the OMAP maintainers word for it and
+instead trying to push this past the pinctrl maintainer?
+
+Grrr.... OK I'll assume good faith and I therefore conclude that
+this must have been just some kind of mistake in the act.
+
+Yours,
+Linus Walleij
