@@ -1,7 +1,8 @@
 From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v7 4/9] usb: phy: twl4030: twl4030 shouldn't be subsys_initcall
-Date: Thu, 13 Jun 2013 14:13:54 +0530
-Message-ID: <1371113039-5784-5-git-send-email-kishon@ti.com>
+Subject: [PATCH v7 8/9] usb: phy: omap-usb2: remove *set_suspend* callback
+ from omap-usb2
+Date: Thu, 13 Jun 2013 14:13:58 +0530
+Message-ID: <1371113039-5784-9-git-send-email-kishon@ti.com>
 References: <1371113039-5784-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,36 +23,55 @@ To: grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7
 Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Changed the inticall from subsys_initcall to module_init for
-twl4030-usb.
+Now that omap-usb2 is adapted to the new generic PHY framework,
+*set_suspend* ops can be removed from omap-usb2 driver.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/phy/phy-twl4030-usb.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ drivers/usb/phy/phy-omap-usb2.c |   24 ------------------------
+ 1 file changed, 24 deletions(-)
 
-diff --git a/drivers/usb/phy/phy-twl4030-usb.c b/drivers/usb/phy/phy-twl4030-usb.c
-index 65a5e43..fba9697 100644
---- a/drivers/usb/phy/phy-twl4030-usb.c
-+++ b/drivers/usb/phy/phy-twl4030-usb.c
-@@ -822,17 +822,7 @@ static struct platform_driver twl4030_usb_driver = {
- 	},
- };
+diff --git a/drivers/usb/phy/phy-omap-usb2.c b/drivers/usb/phy/phy-omap-usb2.c
+index 3c275e7..bd2e4ca 100644
+--- a/drivers/usb/phy/phy-omap-usb2.c
++++ b/drivers/usb/phy/phy-omap-usb2.c
+@@ -97,29 +97,6 @@ static int omap_usb_set_peripheral(struct usb_otg *otg,
+ 	return 0;
+ }
  
--static int __init twl4030_usb_init(void)
+-static int omap_usb2_suspend(struct usb_phy *x, int suspend)
 -{
--	return platform_driver_register(&twl4030_usb_driver);
--}
--subsys_initcall(twl4030_usb_init);
+-	u32 ret;
+-	struct omap_usb *phy = phy_to_omapusb(x);
 -
--static void __exit twl4030_usb_exit(void)
--{
--	platform_driver_unregister(&twl4030_usb_driver);
+-	if (suspend && !phy->is_suspended) {
+-		omap_control_usb_phy_power(phy->control_dev, 0);
+-		pm_runtime_put_sync(phy->dev);
+-		phy->is_suspended = 1;
+-	} else if (!suspend && phy->is_suspended) {
+-		ret = pm_runtime_get_sync(phy->dev);
+-		if (ret < 0) {
+-			dev_err(phy->dev, "get_sync failed with err %d\n",
+-									ret);
+-			return ret;
+-		}
+-		omap_control_usb_phy_power(phy->control_dev, 1);
+-		phy->is_suspended = 0;
+-	}
+-
+-	return 0;
 -}
--module_exit(twl4030_usb_exit);
-+module_platform_driver(twl4030_usb_driver);
+-
+ static int omap_usb_power_off(struct phy *x)
+ {
+ 	struct omap_usb *phy = dev_get_drvdata(&x->dev);
+@@ -167,7 +144,6 @@ static int omap_usb2_probe(struct platform_device *pdev)
  
- MODULE_ALIAS("platform:twl4030_usb");
- MODULE_AUTHOR("Texas Instruments, Inc, Nokia Corporation");
+ 	phy->phy.dev		= phy->dev;
+ 	phy->phy.label		= "omap-usb2";
+-	phy->phy.set_suspend	= omap_usb2_suspend;
+ 	phy->phy.otg		= otg;
+ 	phy->phy.type		= USB_PHY_TYPE_USB2;
+ 
 -- 
 1.7.10.4
