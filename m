@@ -1,47 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 02/14] ARM: OMAP2+: AM43x: Kconfig
-Date: Thu, 13 Jun 2013 03:17:17 -0700
-Message-ID: <20130613101716.GA8164@atomide.com>
-References: <cover.1369658705.git.afzal@ti.com>
- <7642e0c701680ea94a8cc84059ff19e500813bf1.1369658705.git.afzal@ti.com>
- <20130612171200.GL8164@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93EB1DEB2@DBDE04.ent.ti.com>
- <20130613095454.GY8164@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93EB1E196@DBDE04.ent.ti.com>
+From: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
+Subject: Re: [RFC v1] MFD: Change TWL6025 references to TWL6032
+Date: Thu, 13 Jun 2013 13:21:01 +0300
+Message-ID: <51B99D0D.4050603@ti.com>
+References: <1370602390-12306-1-git-send-email-oleksandr.kozaruk@ti.com> <20130607143649.GS31367@sirena.org.uk> <c73c260b90be6e1640a430e8cbba6cac@slimlogic.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42484 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756119Ab3FMKRV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 06:17:21 -0400
-Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EB1E196@DBDE04.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <c73c260b90be6e1640a430e8cbba6cac@slimlogic.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: gg@slimlogic.co.uk
+Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, sameo@linux.intel.com, lgirdwood@gmail.com, balbi@ti.com, peter.ujfalusi@ti.com, t-kristo@ti.com, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <benoit.cousson@linaro.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>
 
-* Mohammed, Afzal <afzal@ti.com> [130613 03:08]:
-> Hi Tony,
-> 
-> On Thu, Jun 13, 2013 at 15:24:54, Tony Lindgren wrote:
-> > * Mohammed, Afzal <afzal@ti.com> [130613 00:04]:
-> 
-> > > Patch 10 "ARM: OMAP2+: AM43x: basic dt support" is missing in
-> > > omap-for-v3.11/soc branch and omap soc pull request, can you
-> > > please help patch 10 also to go upstream.
-> > 
-> > Hmm if that's .dts changes, Benoit needs to queue that.
-> 
-> It is not dts change.
-> 
-> Patch 10 patches board-generic.c for DT boot (Benoit has already
-> picked up dts, that is patch 14).
+On 06/07/2013 05:44 PM, gg@slimlogic.co.uk wrote:
+> On 2013-06-07 15:36, Mark Brown wrote:
+>> On Fri, Jun 07, 2013 at 01:53:10PM +0300, Oleksandr Kozaruk wrote:
+>>> From: Graeme Gregory <gg@slimlogic.co.uk>
+>>>
+>>> The TWL6025 was never released beyond sample form and was replaced by
+>>> the PhoenixLite range of chips - TWL6032. Change the references to
+>>> reference the TWL6032 class and name the registers to twl6032 in 
+>>> line with
+>>> an actual released chip name to avoid confusion.
+>>>
+>>> Currently there is no users of TWL6025 in the code.
+>>
+>> Given that the chip exists even if not widely distributed it seems as
+>> well to keep the twl6025 references in there at least in the device ID
+>> table - it won't do any harm to people using the twl6032 name and might
+>> help someone who happens to pick up an old board for whatever reason.
+>
+> I do not think any "old boards" exist, it really was a limited run!
+>
+> Graeme
+>
+Hello Mark, Graeme,
 
-Oops OK sorry I must have miscounted the patches that looked
-ready to apply. Will apply.
+Taking in account that:
+- there is no hardware to test twl6025, testing is not possible;
+- there is no documentation for twl6025, and if there are any changes to 
+twl6032 is not known;
+- twl6032 is available, and in production, twl6025 is not even found on 
+ti.com <http://ti.com>
 
-Regards,
+So, what do you think, can this change be accepted?
 
-Tony
+// I apologize for sending personal e-mails, not to the mail list
