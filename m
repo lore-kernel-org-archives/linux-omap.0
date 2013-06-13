@@ -1,64 +1,62 @@
-From: Graeme Gregory <gg@slimlogic.co.uk>
-Subject: Re: [RFC v1] MFD: Change TWL6025 references to TWL6032
-Date: Thu, 13 Jun 2013 11:32:42 +0100
-Message-ID: <20130613103242.GA5456@mint>
-References: <1370602390-12306-1-git-send-email-oleksandr.kozaruk@ti.com>
- <20130607143649.GS31367@sirena.org.uk>
- <c73c260b90be6e1640a430e8cbba6cac@slimlogic.co.uk>
- <51B99D0D.4050603@ti.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: [PATCH] mmc: omap: remove unnecessary #if 0's
+Date: Thu, 13 Jun 2013 18:25:55 +0300
+Message-ID: <1371137155-15318-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.xora.org.uk ([80.68.91.202]:39626 "EHLO
-	xora.vm.bytemark.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751454Ab3FMPSC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 11:18:02 -0400
-Content-Disposition: inline
-In-Reply-To: <51B99D0D.4050603@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
-To: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
-Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, sameo@linux.intel.com, lgirdwood@gmail.com, balbi@ti.com, peter.ujfalusi@ti.com, t-kristo@ti.com, tony@atomide.com
 
-On Thu, Jun 13, 2013 at 01:21:01PM +0300, Oleksandr Kozaruk wrote:
-> On 06/07/2013 05:44 PM, gg@slimlogic.co.uk wrote:
-> >On 2013-06-07 15:36, Mark Brown wrote:
-> >>On Fri, Jun 07, 2013 at 01:53:10PM +0300, Oleksandr Kozaruk wrote:
-> >>>From: Graeme Gregory <gg@slimlogic.co.uk>
-> >>>
-> >>>The TWL6025 was never released beyond sample form and was replaced by
-> >>>the PhoenixLite range of chips - TWL6032. Change the references to
-> >>>reference the TWL6032 class and name the registers to twl6032
-> >>>in line with
-> >>>an actual released chip name to avoid confusion.
-> >>>
-> >>>Currently there is no users of TWL6025 in the code.
-> >>
-> >>Given that the chip exists even if not widely distributed it seems as
-> >>well to keep the twl6025 references in there at least in the device ID
-> >>table - it won't do any harm to people using the twl6032 name and might
-> >>help someone who happens to pick up an old board for whatever reason.
-> >
-> >I do not think any "old boards" exist, it really was a limited run!
-> >
-> >Graeme
-> >
-> Hello Mark, Graeme,
-> 
-> Taking in account that:
-> - there is no hardware to test twl6025, testing is not possible;
-> - there is no documentation for twl6025, and if there are any
-> changes to twl6032 is not known;
-> - twl6032 is available, and in production, twl6025 is not even found
-> on ti.com <http://ti.com>
-> 
-> So, what do you think, can this change be accepted?
-> 
-> // I apologize for sending personal e-mails, not to the mail list
+In commit 3451c067 (mmc: omap: add DMA engine support), some #if 0's
+were used to comment out parts of the code.  This has been in the code
+for over a year and are not needed anymore (and the commented-out code
+doesn't even compile).  Remove them.
 
-I have never seen a twl6025 board, it only ever existed AFAIK in lab samples
-which were used on a generic carrier board. twl6032 was the actual production
-device.
+Signed-off-by: Luciano Coelho <coelho@ti.com>
+---
+ drivers/mmc/host/omap.c |   16 ----------------
+ 1 file changed, 16 deletions(-)
 
-Graeme
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index 4b3e0eb..b94f38e 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -1413,33 +1413,17 @@ static int mmc_omap_probe(struct platform_device *pdev)
+ 	else
+ 		sig = host->id == 0 ? OMAP_DMA_MMC_TX : OMAP_DMA_MMC2_TX;
+ 	host->dma_tx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
+-#if 0
+-	if (!host->dma_tx) {
+-		dev_err(host->dev, "unable to obtain TX DMA engine channel %u\n",
+-			sig);
+-		goto err_dma;
+-	}
+-#else
+ 	if (!host->dma_tx)
+ 		dev_warn(host->dev, "unable to obtain TX DMA engine channel %u\n",
+ 			sig);
+-#endif
+ 	if (mmc_omap2())
+ 		sig = host->id == 0 ? OMAP24XX_DMA_MMC1_RX : OMAP24XX_DMA_MMC2_RX;
+ 	else
+ 		sig = host->id == 0 ? OMAP_DMA_MMC_RX : OMAP_DMA_MMC2_RX;
+ 	host->dma_rx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
+-#if 0
+-	if (!host->dma_rx) {
+-		dev_err(host->dev, "unable to obtain RX DMA engine channel %u\n",
+-			sig);
+-		goto err_dma;
+-	}
+-#else
+ 	if (!host->dma_rx)
+ 		dev_warn(host->dev, "unable to obtain RX DMA engine channel %u\n",
+ 			sig);
+-#endif
+ 
+ 	ret = request_irq(host->irq, mmc_omap_irq, 0, DRIVER_NAME, host);
+ 	if (ret)
+-- 
+1.7.10.4
 
