@@ -1,76 +1,64 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC PATCH 1/4] regulator: Introduce OMAP regulator to control
- PMIC over VC/VP
-Date: Thu, 13 Jun 2013 09:58:03 -0500
-Message-ID: <20130613145803.GA32324@kahuna>
-References: <1369246717-4167-1-git-send-email-nm@ti.com>
- <1369246717-4167-2-git-send-email-nm@ti.com>
- <20130610103131.GR31367@sirena.org.uk>
- <CAGo_u6qTiPpd0DDe3jnPh_UxTwox22azhcMGy=fftL8H+DGeyw@mail.gmail.com>
- <20130610164905.GJ1403@sirena.org.uk>
- <CAGo_u6ov=yaCwt8apbvW57ErAvhgUBHHw9gwADBC1fJUrfucUQ@mail.gmail.com>
- <20130610180150.GQ1403@sirena.org.uk>
- <20130613133950.GA32174@kahuna>
- <20130613144726.GY1403@sirena.org.uk>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v2 06/10] mmc: omap_hsmmc: add support for pbias configuration
+ in dt
+Date: Thu, 13 Jun 2013 20:31:52 +0530
+Message-ID: <51B9DEE0.1060305@ti.com>
+References: <20130523184045.GD13507@atomide.com> <1370546059-24181-1-git-send-email-balajitk@ti.com> <1370546059-24181-7-git-send-email-balajitk@ti.com> <CACRpkdZAzAJW0UxGCSj-PWXTSi2Q6T8fqL9SQ+Y-91sELQ3SRQ@mail.gmail.com> <20130613104715.GC16677@laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130613144726.GY1403@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Paul Walmsley <paul@pwsan.com>, Liam Girdwood <lgirdwood@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-doc@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:59472 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756363Ab3FMPCN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Jun 2013 11:02:13 -0400
+In-Reply-To: <20130613104715.GC16677@laptop>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, ext Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>
 
-On 15:47-20130613, Mark Brown wrote:
-> On Thu, Jun 13, 2013 at 08:39:50AM -0500, Nishanth Menon wrote:
-> 
-> > I am having a bit of a difficulty trying to understand your concern
-> > here.
-> 
-> Your device tree for this stuff appears to mostly consist of repeating
-> the description of the PMIC that we already have - this really doesn't
-> seem like a great result.
-> 
-> > Problem statement:
-> 
-> > OMAP has this weird custom h/w where one programs the voltage and that
-> > voltage is send over i2c - this is not same as Tegra's lookup table
-> > array which automatically sends out entries, in OMAP, software has to trigger
-> > the voltage transition
-> 
-> The basic idea that's important here is that you need to figure out how
-> to tell the hardware what to write - how those writes get triggered is a
-> separate problem.
-> 
-> > If your concern was describing PMIC parameters in dts, I can easily move
-> > them inside the omap_pmic driver and provide required compatible flags.
-> > If, on the other hand, the entire approach followed is flawed, I'd like to
-> > understand the rationale for the same.
-> 
-> That's the biggest problem I saw so far but to be honest I've not
-> drilled down too much into the specifics.  From my point of view the
-> main thing is how this fits into the frameworks and so on, having the
-> register information in the DT was an alarm flag that suggested the
-> overall approach was a concern.
-OK. would you be ok with an generic omap_pmic driver if the PMIC
-specific data set is moved into OF compatible data?
-I am proposing moving the following into OF match data.
-ti,i2c-slave-address
-ti,i2c-voltage-register
-ti,i2c-command-register
-ti,slew-rate-microvolt
-ti,step-size-micro-volts
-ti,voltage-selector-set-bits
-ti,voltage-selector-mask
-ti,voltage-selector-offset
-ti,non-zero-voltage-selector
+On Thursday 13 June 2013 04:17 PM, Lee Jones wrote:
+> On Thu, 13 Jun 2013, Linus Walleij wrote:
+>
+>> On Thu, Jun 6, 2013 at 9:14 PM, Balaji T K <balajitk@ti.com> wrote:
+>>
+>>> PBIAS register configuration is based on the regulator voltage
+>>> which supplies these pbias cells, sd i/o pads.
+>>> With PBIAS register address and bit definitions different across
+>>> omap[3,4,5], Simplify PBIAS configuration under three different
+>>> regulator voltage levels - O V, 1.8 V, 3 V. Corresponding pinctrl states
+>>> are defined as pbias_off, pbias_1v8, pbias_3v.
+>>>
+>>> pinctrl state mmc_init is used for configuring speed mode, loopback clock
+>>> (in devconf0/devconf1/prog_io1 register for omap3) and pull strength
+>>> configuration (in control_mmc1 for omap4)
+>>>
+>>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>>
+>> You *need* Lee Jones and Mark Brown to review this.
+>> Maybe Laurent has something to add too.
+>>
+>> Ux500 had the very same thing, and there this was solved using
+>> a GPIO regulator for "vqmmc" a level-shifter. I vaguely remember
+>> Laurent doing something similar with the SH stuff.
+>
+> I haven't seem much of this patch-set, but this certainly looks like
+> it should be handled by a GPIO regulator instead of pinctrl. States
+> are easily declared in a 'struct gpio_regulator_state', which the
+> framework then uses to set the correct pins for the required voltage.
+>
 
-The only thing I propose to retain is board specific variations - e.g.
-gpios, boot voltage and standard regulator min,max overrides if any.
+Thanks for the pointer, but wondering why is it named as gpio-regulator
+and how it is different from fixed-regulator.
+After going through git log description, I understand that voltage/current level
+for a particular regulator is controlled by a set of pad/pin on the POWER IC
+and pad/pin may be usually connected to gpio pins if it is needs to be
+configurable and ground/pulled for constant voltage.
 
-I can also do voltage selector based operations while at it.
+Collection of gpios logic level are modeled as state for particular voltage.
+But gpio is not used in my case.
 
--- 
-Regards,
-Nishanth Menon
+> And yes, 'vqmmc' is a good place to store the this regulator.
+>
+
