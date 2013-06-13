@@ -1,66 +1,224 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH v4] ARM: dts: OMAP5: Add palmas MFD node and regulator
- nodes
-Date: Thu, 13 Jun 2013 04:09:22 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229EB4B8@DBDE04.ent.ti.com>
-References: <1371025140-25376-1-git-send-email-j-keerthy@ti.com>
- <51B8990A.8030506@wwwdotorg.org>
+From: J Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v6] ARM: dts: OMAP5: Add Palmas MFD node and regulator nodes
+Date: Thu, 13 Jun 2013 10:00:11 +0530
+Message-ID: <1371097811-4618-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56767 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752054Ab3FMEJr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 00:09:47 -0400
-In-Reply-To: <51B8990A.8030506@wwwdotorg.org>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: b-cousson@ti.com, devicetree-discuss@lists.ozlabs.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ldewangan@nvidia.com, grant.likely@secretlab.ca, swarren@wwwdotorg.org, swarren@nvidia.com, sameo@linux.intel.com, gg@slimlogic.co.uk, lee.jones@linaro.org, J Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, "lee.jones@linaro.org" <lee.jones@linaro.org>
 
-Hi Stephen,
+This patch adds Palmas MFD node and the regulator nodes for OMAP5.
 
-> -----Original Message-----
-> From: Stephen Warren [mailto:swarren@wwwdotorg.org]
-> Sent: Wednesday, June 12, 2013 9:22 PM
-> To: J, KEERTHY
-> Cc: Cousson, Benoit; devicetree-discuss@lists.ozlabs.org; linux-
-> omap@vger.kernel.org; linux-kernel@vger.kernel.org;
-> ldewangan@nvidia.com; grant.likely@secretlab.ca; swarren@nvidia.com;
-> sameo@linux.intel.com; gg@slimlogic.co.uk; lee.jones@linaro.org
-> Subject: Re: [PATCH v4] ARM: dts: OMAP5: Add palmas MFD node and
-> regulator nodes
-> 
-> On 06/12/2013 02:19 AM, J Keerthy wrote:
-> > This patch adds Palmas MFD node and the regulator nodes for OMAP5.
-> >
-> > The node definitions are based on: https://lkml.org/lkml/2013/6/6/25
-> >
-> > Boot tested on omap5-uevm board.
-> 
-> Reviewed-by: Stephen Warren <swarren@nvidia.com>
+The node definitions are based on: https://lkml.org/lkml/2013/6/6/25
 
-Thanks..
+Boot tested on omap5-uevm board.
 
-> 
-> > diff --git a/arch/arm/boot/dts/omap5-uevm.dts
-> > b/arch/arm/boot/dts/omap5-uevm.dts
-> 
-> > +	palmas: palmas@48 {
-> > +		reg = <0x48>;
-> > +		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N
-> */
-> > +		interrupt-parent = <&gic>;
-> > +		compatible = "ti,palmas";
-> 
-> ... although personally I prefer the compatible property to be right at
-> the top of each node, since it's what implies the schema for the rest
-> of the node. That's a tiny nit though; feel free to ignore it if the
-> OMAP files don't follow that convention.
+Signed-off-by: Graeme Gregory <gg@slimlogic.co.uk>
+Signed-off-by: J Keerthy <j-keerthy@ti.com>
+Reviewed-by: Stephen Warren <swarren@nvidia.com>
+---
+V6:
+Changed the order of properties.
 
-Sure. I will send hopefully the last version incorporating this :-).
+V5:
+Corrected the IRQ_TYPE flag for OMAP5 board.
 
-Regards,
-Keerthy
+V4:
+Removed splitting Palmas node.
+
+V3:
+Moved the entire Palmas device tree node to board file.
+
+ arch/arm/boot/dts/omap5-uevm.dts |  167 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 167 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+index 927db1e..3d0b7b6 100644
+--- a/arch/arm/boot/dts/omap5-uevm.dts
++++ b/arch/arm/boot/dts/omap5-uevm.dts
+@@ -8,6 +8,8 @@
+ /dts-v1/;
+ 
+ #include "omap5.dtsi"
++#include <dt-bindings/interrupt-controller/irq.h>
++#include <dt-bindings/interrupt-controller/arm-gic.h>
+ 
+ / {
+ 	model = "TI OMAP5 uEVM board";
+@@ -254,6 +256,171 @@
+ 	pinctrl-0 = <&i2c1_pins>;
+ 
+ 	clock-frequency = <400000>;
++
++	palmas: palmas@48 {
++		compatible = "ti,palmas";
++		interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* IRQ_SYS_1N */
++		interrupt-parent = <&gic>;
++		reg = <0x48>;
++		interrupt-controller;
++		#interrupt-cells = <2>;
++
++		palmas_pmic {
++			compatible = "ti,palmas-pmic";
++			interrupt-parent = <&palmas>;
++			interrupts = <14 IRQ_TYPE_NONE>;
++			interrupt-name = "short-irq";
++
++			ti,ldo6-vibrator;
++
++			regulators {
++				smps123_reg: smps123 {
++					regulator-name = "smps123";
++					regulator-min-microvolt = < 600000>;
++					regulator-max-microvolt = <1500000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				smps45_reg: smps45 {
++					regulator-name = "smps45";
++					regulator-min-microvolt = < 600000>;
++					regulator-max-microvolt = <1310000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				smps6_reg: smps6 {
++					regulator-name = "smps6";
++					regulator-min-microvolt = <1200000>;
++					regulator-max-microvolt = <1200000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				smps7_reg: smps7 {
++					regulator-name = "smps7";
++					regulator-min-microvolt = <1800000>;
++					regulator-max-microvolt = <1800000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				smps8_reg: smps8 {
++					regulator-name = "smps8";
++					regulator-min-microvolt = < 600000>;
++					regulator-max-microvolt = <1310000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				smps9_reg: smps9 {
++					regulator-name = "smps9";
++					regulator-min-microvolt = <2100000>;
++					regulator-max-microvolt = <2100000>;
++					regulator-always-on;
++					regulator-boot-on;
++					ti,smps-range = <0x80>;
++				};
++
++				smps10_reg: smps10 {
++					regulator-name = "smps10";
++					regulator-min-microvolt = <5000000>;
++					regulator-max-microvolt = <5000000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldo1_reg: ldo1 {
++					regulator-name = "ldo1";
++					regulator-min-microvolt = <2800000>;
++					regulator-max-microvolt = <2800000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldo2_reg: ldo2 {
++					regulator-name = "ldo2";
++					regulator-min-microvolt = <2900000>;
++					regulator-max-microvolt = <2900000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldo3_reg: ldo3 {
++					regulator-name = "ldo3";
++					regulator-min-microvolt = <3000000>;
++					regulator-max-microvolt = <3000000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldo4_reg: ldo4 {
++					regulator-name = "ldo4";
++					regulator-min-microvolt = <2200000>;
++					regulator-max-microvolt = <2200000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldo5_reg: ldo5 {
++					regulator-name = "ldo5";
++					regulator-min-microvolt = <1800000>;
++					regulator-max-microvolt = <1800000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldo6_reg: ldo6 {
++					regulator-name = "ldo6";
++					regulator-min-microvolt = <1500000>;
++					regulator-max-microvolt = <1500000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldo7_reg: ldo7 {
++					regulator-name = "ldo7";
++					regulator-min-microvolt = <1500000>;
++					regulator-max-microvolt = <1500000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldo8_reg: ldo8 {
++					regulator-name = "ldo8";
++					regulator-min-microvolt = <1500000>;
++					regulator-max-microvolt = <1500000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldo9_reg: ldo9 {
++					regulator-name = "ldo9";
++					regulator-min-microvolt = <1800000>;
++					regulator-max-microvolt = <3300000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldoln_reg: ldoln {
++					regulator-name = "ldoln";
++					regulator-min-microvolt = <1800000>;
++					regulator-max-microvolt = <1800000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++
++				ldousb_reg: ldousb {
++					regulator-name = "ldousb";
++					regulator-min-microvolt = <3250000>;
++					regulator-max-microvolt = <3250000>;
++					regulator-always-on;
++					regulator-boot-on;
++				};
++			};
++		};
++	};
+ };
+ 
+ &i2c5 {
+-- 
+1.7.5.4
