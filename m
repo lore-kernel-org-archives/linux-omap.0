@@ -1,176 +1,109 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH v2 06/10] mmc: omap_hsmmc: add support for pbias configuration
- in dt
-Date: Thu, 13 Jun 2013 20:11:52 +0530
-Message-ID: <51B9DA30.1090308@ti.com>
-References: <20130523184045.GD13507@atomide.com> <1370546059-24181-1-git-send-email-balajitk@ti.com> <1370546059-24181-7-git-send-email-balajitk@ti.com> <CACRpkdZAzAJW0UxGCSj-PWXTSi2Q6T8fqL9SQ+Y-91sELQ3SRQ@mail.gmail.com> <20130613095353.GX8164@atomide.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC PATCH 1/4] regulator: Introduce OMAP regulator to control
+ PMIC over VC/VP
+Date: Thu, 13 Jun 2013 15:47:26 +0100
+Message-ID: <20130613144726.GY1403@sirena.org.uk>
+References: <1369246717-4167-1-git-send-email-nm@ti.com>
+ <1369246717-4167-2-git-send-email-nm@ti.com>
+ <20130610103131.GR31367@sirena.org.uk>
+ <CAGo_u6qTiPpd0DDe3jnPh_UxTwox22azhcMGy=fftL8H+DGeyw@mail.gmail.com>
+ <20130610164905.GJ1403@sirena.org.uk>
+ <CAGo_u6ov=yaCwt8apbvW57ErAvhgUBHHw9gwADBC1fJUrfucUQ@mail.gmail.com>
+ <20130610180150.GQ1403@sirena.org.uk>
+ <20130613133950.GA32174@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41548 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755225Ab3FMOmU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 10:42:20 -0400
-In-Reply-To: <20130613095353.GX8164@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============0330614150909490850=="
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20130613133950.GA32174@kahuna>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Lee Jones <lee.jones@linaro.org>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>
-
-On Thursday 13 June 2013 03:23 PM, Tony Lindgren wrote:
-> * Linus Walleij <linus.walleij@linaro.org> [130613 02:42]:
->> On Thu, Jun 6, 2013 at 9:14 PM, Balaji T K <balajitk@ti.com> wrote:
->>
->>> PBIAS register configuration is based on the regulator voltage
->>> which supplies these pbias cells, sd i/o pads.
->>> With PBIAS register address and bit definitions different across
->>> omap[3,4,5], Simplify PBIAS configuration under three different
->>> regulator voltage levels - O V, 1.8 V, 3 V. Corresponding pinctrl states
->>> are defined as pbias_off, pbias_1v8, pbias_3v.
->>>
->>> pinctrl state mmc_init is used for configuring speed mode, loopback clock
->>> (in devconf0/devconf1/prog_io1 register for omap3) and pull strength
->>> configuration (in control_mmc1 for omap4)
->>>
->>> Signed-off-by: Balaji T K <balajitk@ti.com>
->>
->> You *need* Lee Jones and Mark Brown to review this.
->> Maybe Laurent has something to add too.
->>
->> Ux500 had the very same thing, and there this was solved using
->> a GPIO regulator for "vqmmc" a level-shifter. I vaguely remember
->> Laurent doing something similar with the SH stuff.
->>
->>> +       /* 100ms delay required for PBIAS configuration */
->>> +       msleep(100);
->>> +       if (!vdd && host->pinctrl && host->pbias_off) {
->>> +               ret = pinctrl_select_state(host->pinctrl, host->pbias_off);
->>> +               if (ret < 0)
->>> +                       dev_err(host->dev, "pinctrl pbias_off select error\n");
->>> +       } else if (((1 << vdd) <= MMC_VDD_165_195) && host->pinctrl &&
->>> +                       host->pbias_1v8) {
->>> +               ret = pinctrl_select_state(host->pinctrl, host->pbias_1v8);
->>> +               if (ret < 0)
->>> +                       dev_err(host->dev, "pinctrl pbias_1v8 select error\n");
->>> +       } else if (((1 << vdd) > MMC_VDD_165_195) && host->pinctrl &&
->>> +                       host->pbias_3v) {
->>> +               ret = pinctrl_select_state(host->pinctrl, host->pbias_3v);
->>> +               if (ret < 0)
->>> +                       dev_err(host->dev, "pinctrl pbias_3v select error\n");
->>> +       }
->>
->> So why does the pin control API control bias voltage?
->
-> I agree, it should be a regulator for the MMC driver and that's what I
-> already suggested earlier. Having it as a regulator allows us to get
-> rid of all the non-standard before and after calls in the omap_hsmmc.c.
-> This way the omap_hsmmc.c code can handle the internal and external
-> voltages the same way.
->
->> This seem so intuitively wrong as it can possibly get, clearly this
->> is regulator territory.
->
-
-It is not really a regulator, CONTROL_PBIAS_LITE is just a register
-in control module which configures pad/pin on SOC. In this case PBIAS cells
-are powered down before any voltage changes and after the external voltage
-supplied to VDDS_MMC of OMAP stabilizes pbias cells  is powered ON again
-with specific Voltage which is given to OMAP for MMC io pins
-
-For OMAP2430, OMAP3430 It additionally has a bit for speed mode control
-which are set always (static config)
-
-I am quoting pbias register field description from TRM for reference
-
-BIT2 PBIASSPEEDCTRL0 Speed Control for MMC I/O
-0b0 => 26 MHz I/O max speed
-0b1 => 52 MHz I/O max speed
-
-BIT26 MMC1_PWRDNZ PWRDNZ control to MMC1 IO
-This bit is used to protect the MMC1 I/O cell when
-SDMMC1_VDDS is not stable.
-0x0: Software must clear this bit when SDMMC1_VDDS
-changes.
-0x1: Software must set this bit only when
-SDMMC1_VDDS is stable.
-
-BIT25 MMC1_PBIASLITE_HIZ_MODE HIZ_MODE from MMC1 PBIASLITE
-0x0: PBIAS in normal operation mode
-0x1: PBIAS output is in high impedence state
-
-BIT24 MMC1_PBIASLITE_SUPPLY_HI SUPPLY_HI_OUT from MMC1 PBIASLITE
-_OUT Read 0x0: SDMMC1_VDDS = 1.8V
-Read 0x1: SDMMC1_VDDS = 3V
-
-BIT23 MMC1_PBIASLITE_VMODE_ER VMODE ERROR from MMC1 PBIASLITE
-ROR Read 0x0: VMODE level is same as SUPPLY_HI_OUT
-Read 0x1: VMODE level is not same as
-SUPPLY_HI_OUT
-
-BIT22 MMC1_PBIASLITE_PWRDNZ PWRDNZ control to MMC1 PBIASLITE
-This bit is used to protect the MMC1_PBIAS cell (MMC1
-I/O cell associated) when SDMMC1_VDDS is not stable.
-0x0: Software must clear this bit when SDMMC1_VDDS
-changes.
-0x1: Software must set this bit only when
-SDMMC1_VDDS is stable.
-
-BIT21 MMC1_PBIASLITE_VMODE VMODE control to MMC1 PBIASLITE
-0x0: SDMMC1_VDDS = 1.8V
-0x1: SDMMC1_VDDS = 3V
-
-> The PBIAS for MMC1 is a mux + comparator for the MMC pin, so it makes
-> sense for the regulator driver to access the register via pinctrl API.
-> I think the reason why we have registers like this and the USB comparators
-> in the omap SCM (System Control Module) as the all seem to relate to
-> pin states.
->
->> This also looks strange from an MMC point of view.
->
-> Yes I agree, it should be a regulator for MMC. Doing it this way just
-> adds yet more code that's usable for only one of the omap MMC
-> controllers.
->
-
-the only other user for pbias which I can find is USB pin configuration in
-arch/arm/mach-omap2/board-omap3logic.c where it is statically programmed for 3V
-which can be modeled as well as  default pinctrl state.
 
 
->> It just seems these bits in these registers should be poked at
->> by the regulator world, not the pinctrl world.
+--===============0330614150909490850==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="5LZCLy8Sy7WgNZQM"
+Content-Disposition: inline
 
 
-You mean regulator via pinctrl APIs, I think It will just move the code
-from omap_hsmmc to a new regulator file with it own init data for pinctrl.
+--5LZCLy8Sy7WgNZQM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Not sure if Regulator maintainer will agree to it.
+On Thu, Jun 13, 2013 at 08:39:50AM -0500, Nishanth Menon wrote:
 
-Moreover what I needs is three different states 0V, 0 to 1.8V, 3 V to 3.3V
-not 0, 1.8V, 3V. plus pbias register fields got moved around between omap3, omap4
-and omap5, That was one of the reason for moving to pinctrl states.
+> I am having a bit of a difficulty trying to understand your concern
+> here.
 
+Your device tree for this stuff appears to mostly consist of repeating
+the description of the PMIC that we already have - this really doesn't
+seem like a great result.
 
- >> That the bits are
->> in the middle of pinctrl things does not really matter.
+> Problem statement:
 
-It thought pinctrl-single,bits in pinctrl-single.c is introduced
-precisely for such misc control register which has bit configuration
-affecting different module i/o pads.
+> OMAP has this weird custom h/w where one programs the voltage and that
+> voltage is send over i2c - this is not same as Tegra's lookup table
+> array which automatically sends out entries, in OMAP, software has to trigger
+> the voltage transition
 
->>
->>> +       usleep_range(350, 400);
->>
->> And the regulator framework supports power-on delays.
->
-> Yes. And it seems that the delays should not be needed, but instead
-> the comparator bits should be checked.
+The basic idea that's important here is that you need to figure out how
+to tell the hardware what to write - how those writes get triggered is a
+separate problem.
 
-But, Not all OMAP has such support to read comparator bits.
+> If your concern was describing PMIC parameters in dts, I can easily move
+> them inside the omap_pmic driver and provide required compatible flags.
+> If, on the other hand, the entire approach followed is flawed, I'd like to
+> understand the rationale for the same.
 
->
-> Regards,
->
-> Tony
->
+That's the biggest problem I saw so far but to be honest I've not
+drilled down too much into the specifics.  From my point of view the
+main thing is how this fits into the frameworks and so on, having the
+register information in the DT was an alarm flag that suggested the
+overall approach was a concern.
+
+--5LZCLy8Sy7WgNZQM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRudt7AAoJELSic+t+oim9cMgP/jISyaqjXOWlKr5a3glq/Z+n
+ryTsbnEsFKBqKwK2NyKkcypjbkWp5hzHwhZM+QHqpLyeunfRbJu+8Y7Zg+E99EAf
+jiIFhLJ8kZllQZJFlhHnvX54dS38p6/0O3vM4OcR4OsjmIHjPDYhgqFbmVTWogKP
+Am/JZOtYXg6yMtzZRW+TwV30FmlO6rm8YZ5aejtC6kH45EobKWeXI3wcRSvYeJYU
+lbSTid1x4gvNzHzTps6l/06lFl2RE3/w0abNCrF9YxvP99Mr7I5Q0X6ABFQHUj7G
+0St4X9QCmM9ySy26tLVh4lDqBwem/6P1m67xrg50+TVzxRn97ejEFnwXPPXwhoKT
+rHy/KfHYg+Cu/JPF2h+88yfSZoN722bP8e/2akGY/Kv4ZGAkUpbCX7Lj6bbMyu/R
+bFQW1d0bCn9WqbevBgG4VrDqzrCOx0gALgXSQnPIY9E7b79s+yZsTuS9rf4VS06U
+9ekPl8NXphKkF+vIiou60zifHB+5mfcMHxLgWGu6z4H0ssgTT2da5DL58NmP40gZ
+TN2HxNeBMaTDMLIlEOLgRV/WUUnT6GMXeDTY1LkeARs79+gMoHjF/do+4DuG1tDy
+hI33kNKyps0YK2hq/9Jfos3sX3kXYKMnGv5cbLUF0V+nTqQPdrcEEXEo5ie5sTYN
+4JoRvvUwmeORCCAqVkk8
+=L0BV
+-----END PGP SIGNATURE-----
+
+--5LZCLy8Sy7WgNZQM--
+
+--===============0330614150909490850==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--===============0330614150909490850==--
