@@ -1,251 +1,71 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH v6] ARM: dts: OMAP5: Add Palmas MFD node and regulator
- nodes
-Date: Thu, 13 Jun 2013 16:49:21 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229EB829@DBDE04.ent.ti.com>
-References: <1371097811-4618-1-git-send-email-j-keerthy@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v2 06/10] mmc: omap_hsmmc: add support for pbias
+ configuration in dt
+Date: Thu, 13 Jun 2013 18:45:54 +0100
+Message-ID: <20130613174554.GB1403@sirena.org.uk>
+References: <20130523184045.GD13507@atomide.com>
+ <1370546059-24181-1-git-send-email-balajitk@ti.com>
+ <1370546059-24181-7-git-send-email-balajitk@ti.com>
+ <CACRpkdZAzAJW0UxGCSj-PWXTSi2Q6T8fqL9SQ+Y-91sELQ3SRQ@mail.gmail.com>
+ <20130613095353.GX8164@atomide.com>
+ <51B9DA30.1090308@ti.com>
+ <CACRpkdY6cZ+bT-C9Go3sZVw6ErQqTm0m9__uKQrkg4eUU1thHA@mail.gmail.com>
+ <20130613162937.GK8164@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1371097811-4618-1-git-send-email-j-keerthy@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "swarren@nvidia.com" <swarren@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, "lee.jones@linaro.org" <lee.jones@linaro.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="dWDJ72qfEa57oDWE"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130613162937.GK8164@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Balaji T K <balajitk@ti.com>, Lee Jones <lee.jones@linaro.org>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Ulf Hansson <ulf.hansson@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Benoit,
 
+--dWDJ72qfEa57oDWE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> -----Original Message-----
-> From: J, KEERTHY
-> Sent: Thursday, June 13, 2013 10:00 AM
-> To: Cousson, Benoit; devicetree-discuss@lists.ozlabs.org
-> Cc: linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org;
-> ldewangan@nvidia.com; grant.likely@secretlab.ca; swarren@wwwdotorg.org;
-> swarren@nvidia.com; sameo@linux.intel.com; gg@slimlogic.co.uk;
-> lee.jones@linaro.org; J, KEERTHY
-> Subject: [PATCH v6] ARM: dts: OMAP5: Add Palmas MFD node and regulator
-> nodes
-> 
-> This patch adds Palmas MFD node and the regulator nodes for OMAP5.
-> 
-> The node definitions are based on: https://lkml.org/lkml/2013/6/6/25
-> 
-> Boot tested on omap5-uevm board.
+On Thu, Jun 13, 2013 at 09:29:38AM -0700, Tony Lindgren wrote:
+> * Linus Walleij <linus.walleij@linaro.org> [130613 08:35]:
 
-Could you please pull this patch?
+> > No. If we go down that road *anything* that is connected to a
+> > pad becomes part of the pinctrl subsystem, then pinctrl-single
+> > becomes some kind of hardware abstraction or BIOS, and that
+> > is *not* the intent. It is only supposed to deal with the bits
+> > there that are 100% related to what pinctrl does, nothing else.
 
-Regards,
-Keerthy
+> Sounds like the way to go is to do a standalone regulator driver that
+> optionally uses pinctrl-single,bits. But only for the bits in the PBIAS
+> register that are 100% related to pinctrl.
 
-> 
-> Signed-off-by: Graeme Gregory <gg@slimlogic.co.uk>
-> Signed-off-by: J Keerthy <j-keerthy@ti.com>
-> Reviewed-by: Stephen Warren <swarren@nvidia.com>
-> ---
-> V6:
-> Changed the order of properties.
-> 
-> V5:
-> Corrected the IRQ_TYPE flag for OMAP5 board.
-> 
-> V4:
-> Removed splitting Palmas node.
-> 
-> V3:
-> Moved the entire Palmas device tree node to board file.
-> 
->  arch/arm/boot/dts/omap5-uevm.dts |  167
-> ++++++++++++++++++++++++++++++++++++++
->  1 files changed, 167 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap5-uevm.dts
-> b/arch/arm/boot/dts/omap5-uevm.dts
-> index 927db1e..3d0b7b6 100644
-> --- a/arch/arm/boot/dts/omap5-uevm.dts
-> +++ b/arch/arm/boot/dts/omap5-uevm.dts
-> @@ -8,6 +8,8 @@
->  /dts-v1/;
-> 
->  #include "omap5.dtsi"
-> +#include <dt-bindings/interrupt-controller/irq.h>
-> +#include <dt-bindings/interrupt-controller/arm-gic.h>
-> 
->  / {
->  	model = "TI OMAP5 uEVM board";
-> @@ -254,6 +256,171 @@
->  	pinctrl-0 = <&i2c1_pins>;
-> 
->  	clock-frequency = <400000>;
-> +
-> +	palmas: palmas@48 {
-> +		compatible = "ti,palmas";
-> +		interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* IRQ_SYS_1N */
-> +		interrupt-parent = <&gic>;
-> +		reg = <0x48>;
-> +		interrupt-controller;
-> +		#interrupt-cells = <2>;
-> +
-> +		palmas_pmic {
-> +			compatible = "ti,palmas-pmic";
-> +			interrupt-parent = <&palmas>;
-> +			interrupts = <14 IRQ_TYPE_NONE>;
-> +			interrupt-name = "short-irq";
-> +
-> +			ti,ldo6-vibrator;
-> +
-> +			regulators {
-> +				smps123_reg: smps123 {
-> +					regulator-name = "smps123";
-> +					regulator-min-microvolt = < 600000>;
-> +					regulator-max-microvolt = <1500000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				smps45_reg: smps45 {
-> +					regulator-name = "smps45";
-> +					regulator-min-microvolt = < 600000>;
-> +					regulator-max-microvolt = <1310000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				smps6_reg: smps6 {
-> +					regulator-name = "smps6";
-> +					regulator-min-microvolt = <1200000>;
-> +					regulator-max-microvolt = <1200000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				smps7_reg: smps7 {
-> +					regulator-name = "smps7";
-> +					regulator-min-microvolt = <1800000>;
-> +					regulator-max-microvolt = <1800000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				smps8_reg: smps8 {
-> +					regulator-name = "smps8";
-> +					regulator-min-microvolt = < 600000>;
-> +					regulator-max-microvolt = <1310000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				smps9_reg: smps9 {
-> +					regulator-name = "smps9";
-> +					regulator-min-microvolt = <2100000>;
-> +					regulator-max-microvolt = <2100000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +					ti,smps-range = <0x80>;
-> +				};
-> +
-> +				smps10_reg: smps10 {
-> +					regulator-name = "smps10";
-> +					regulator-min-microvolt = <5000000>;
-> +					regulator-max-microvolt = <5000000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				ldo1_reg: ldo1 {
-> +					regulator-name = "ldo1";
-> +					regulator-min-microvolt = <2800000>;
-> +					regulator-max-microvolt = <2800000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				ldo2_reg: ldo2 {
-> +					regulator-name = "ldo2";
-> +					regulator-min-microvolt = <2900000>;
-> +					regulator-max-microvolt = <2900000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				ldo3_reg: ldo3 {
-> +					regulator-name = "ldo3";
-> +					regulator-min-microvolt = <3000000>;
-> +					regulator-max-microvolt = <3000000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				ldo4_reg: ldo4 {
-> +					regulator-name = "ldo4";
-> +					regulator-min-microvolt = <2200000>;
-> +					regulator-max-microvolt = <2200000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				ldo5_reg: ldo5 {
-> +					regulator-name = "ldo5";
-> +					regulator-min-microvolt = <1800000>;
-> +					regulator-max-microvolt = <1800000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				ldo6_reg: ldo6 {
-> +					regulator-name = "ldo6";
-> +					regulator-min-microvolt = <1500000>;
-> +					regulator-max-microvolt = <1500000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				ldo7_reg: ldo7 {
-> +					regulator-name = "ldo7";
-> +					regulator-min-microvolt = <1500000>;
-> +					regulator-max-microvolt = <1500000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				ldo8_reg: ldo8 {
-> +					regulator-name = "ldo8";
-> +					regulator-min-microvolt = <1500000>;
-> +					regulator-max-microvolt = <1500000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				ldo9_reg: ldo9 {
-> +					regulator-name = "ldo9";
-> +					regulator-min-microvolt = <1800000>;
-> +					regulator-max-microvolt = <3300000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				ldoln_reg: ldoln {
-> +					regulator-name = "ldoln";
-> +					regulator-min-microvolt = <1800000>;
-> +					regulator-max-microvolt = <1800000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				ldousb_reg: ldousb {
-> +					regulator-name = "ldousb";
-> +					regulator-min-microvolt = <3250000>;
-> +					regulator-max-microvolt = <3250000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +			};
-> +		};
-> +	};
->  };
-> 
->  &i2c5 {
-> --
-> 1.7.5.4
+> In any case the PBIAS regulator driver should be a separate driver
+> as it may need to be a child of the SCM driver for PM needs in the
+> future.
+
+This all seems sensible to me.
+
+--dWDJ72qfEa57oDWE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRugVOAAoJELSic+t+oim9Xh4P/i8yow/72dAO2CNeRUYvEOUZ
+gW8nWnKB8HXiujoJiPzl94fcMNL9RBV9t2xIJG6Gk2+P7Pelhm4WZ7fDa3Cd0tr7
+BX0t4VRLHT7KCSqQXuodvJSw38Xo0GDbZsucrxbXJeKo3VMXZGznxr07qwfYaS0E
+BxbcwW7hpvc4hGQ9Qv4+4+Uw3/5OyoJpapKtB1qW44Q8KHVGNexPXA8L7kYrlXZE
+ISbrvKN9C1xlnZ6suUOLMRywCMGjBX/rSBweX421BAn8XnYeIR+iK1G0X8l6kfet
+IaKkktM2f9kISuovBhxHpht8rtD0KtBQEGHJZZsR1rLkFcranyO87jlFCD54o2Bf
+Q3e7qpbDDelAQoGV2XjOSCKs6+Lpk5klxCo1TODSn0UU9X/Ekubq5G6VoMTnVKBS
+HjbLeyRvXllR5WJEAVxD9EZ9O2LiN5OefVhI6seqcO6cifdAoyc00DBQ6mo3bOBI
+j7GUPBax1Yov7RHlMdRJ7CwJH+/CWNKg80R16GARFFxgDG7hS7af1AaeTsn6EWVH
+3eI5vzmWm7aaeM92/NE2diygiVX6MfR/2toPQ/gEF0oRKzdV3wzcYP1IrO9BafGl
+KGx1Jo25ews6TK79m7kHdelM+JF9fXq5pOrXGvUVhnNGpcUh3gdRtBVX7yWfzr1K
+JX3a0kwDSJkVPlv+xL6i
+=A+R2
+-----END PGP SIGNATURE-----
+
+--dWDJ72qfEa57oDWE--
