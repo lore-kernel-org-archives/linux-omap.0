@@ -1,50 +1,70 @@
-From: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
-Subject: Re: [RFC v1] MFD: Change TWL6025 references to TWL6032
-Date: Thu, 13 Jun 2013 13:38:21 +0300
-Message-ID: <51B9A11D.5070504@ti.com>
-References: <1370602390-12306-1-git-send-email-oleksandr.kozaruk@ti.com> <20130607143649.GS31367@sirena.org.uk> <c73c260b90be6e1640a430e8cbba6cac@slimlogic.co.uk>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v2 06/10] mmc: omap_hsmmc: add support for pbias
+ configuration in dt
+Date: Thu, 13 Jun 2013 11:47:15 +0100
+Message-ID: <20130613104715.GC16677@laptop>
+References: <20130523184045.GD13507@atomide.com>
+ <1370546059-24181-1-git-send-email-balajitk@ti.com>
+ <1370546059-24181-7-git-send-email-balajitk@ti.com>
+ <CACRpkdZAzAJW0UxGCSj-PWXTSi2Q6T8fqL9SQ+Y-91sELQ3SRQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <c73c260b90be6e1640a430e8cbba6cac@slimlogic.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: gg@slimlogic.co.uk
-Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, sameo@linux.intel.com, lgirdwood@gmail.com, balbi@ti.com, peter.ujfalusi@ti.com, t-kristo@ti.com, tony@atomide.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f50.google.com ([209.85.214.50]:62486 "EHLO
+	mail-bk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754695Ab3FMKrW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 06:47:22 -0400
+Received: by mail-bk0-f50.google.com with SMTP id ik8so3226233bkc.37
+        for <linux-omap@vger.kernel.org>; Thu, 13 Jun 2013 03:47:20 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <CACRpkdZAzAJW0UxGCSj-PWXTSi2Q6T8fqL9SQ+Y-91sELQ3SRQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Balaji T K <balajitk@ti.com>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, ext Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>
 
-On 06/07/2013 05:44 PM, gg@slimlogic.co.uk wrote:
-> On 2013-06-07 15:36, Mark Brown wrote:
->> On Fri, Jun 07, 2013 at 01:53:10PM +0300, Oleksandr Kozaruk wrote:
->>> From: Graeme Gregory <gg@slimlogic.co.uk>
->>>
->>> The TWL6025 was never released beyond sample form and was replaced by
->>> the PhoenixLite range of chips - TWL6032. Change the references to
->>> reference the TWL6032 class and name the registers to twl6032 in 
->>> line with
->>> an actual released chip name to avoid confusion.
->>>
->>> Currently there is no users of TWL6025 in the code.
->>
->> Given that the chip exists even if not widely distributed it seems as
->> well to keep the twl6025 references in there at least in the device ID
->> table - it won't do any harm to people using the twl6032 name and might
->> help someone who happens to pick up an old board for whatever reason.
->
-> I do not think any "old boards" exist, it really was a limited run!
->
-> Graeme
->
-Hello Mark, Graeme,
+On Thu, 13 Jun 2013, Linus Walleij wrote:
 
-Taking in account that:
-- there is no hardware to test twl6025, testing is not possible;
-- there is no documentation for twl6025, and if there are any changes to 
-twl6032 is not known;
-- twl6032 is available, and in production, twl6025 is not even found on 
-ti.com 
-<https://emea.mail.ti.com/owa/redir.aspx?C=Lmz99OgekUScv9U89hUFHXTz_mebO9AIdxDOPBzqDKKuqB_Dr5dpU_Sl2criZoxOeMxW4IqmDOA.&URL=http%3a%2f%2fti.com>
+> On Thu, Jun 6, 2013 at 9:14 PM, Balaji T K <balajitk@ti.com> wrote:
+>=20
+> > PBIAS register configuration is based on the regulator voltage
+> > which supplies these pbias cells, sd i/o pads.
+> > With PBIAS register address and bit definitions different across
+> > omap[3,4,5], Simplify PBIAS configuration under three different
+> > regulator voltage levels - O V, 1.8 V, 3 V. Corresponding pinctrl s=
+tates
+> > are defined as pbias_off, pbias_1v8, pbias_3v.
+> >
+> > pinctrl state mmc_init is used for configuring speed mode, loopback=
+ clock
+> > (in devconf0/devconf1/prog_io1 register for omap3) and pull strengt=
+h
+> > configuration (in control_mmc1 for omap4)
+> >
+> > Signed-off-by: Balaji T K <balajitk@ti.com>
+>=20
+> You *need* Lee Jones and Mark Brown to review this.
+> Maybe Laurent has something to add too.
+>=20
+> Ux500 had the very same thing, and there this was solved using
+> a GPIO regulator for "vqmmc" a level-shifter. I vaguely remember
+> Laurent doing something similar with the SH stuff.
 
-So, what do you think, can this change be accepted?
+I haven't seem much of this patch-set, but this certainly looks like
+it should be handled by a GPIO regulator instead of pinctrl. States
+are easily declared in a 'struct gpio_regulator_state', which the
+framework then uses to set the correct pins for the required voltage.
 
-// I apologize for sending previous email as personal, not to mail list.
+And yes, 'vqmmc' is a good place to store the this regulator.
+
+--=20
+Lee Jones
+Linaro ST-Ericsson Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
