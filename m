@@ -1,85 +1,52 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH 2/6] ARM: OMAP2+: Remove board-omap4panda.c
-Date: Thu, 13 Jun 2013 14:51:34 +0530
-Message-ID: <51B98F1E.1000006@ti.com>
-References: <20130517191304.468.73487.stgit@localhost> <20130517191753.468.1734.stgit@localhost> <CACVXFVOp6n3RhZnWD_hRxqE8a8amPA5SRWfkVhz+yCGZTtGjvQ@mail.gmail.com> <20130612163124.GD8164@atomide.com> <20130612171407.GM8164@atomide.com>
+From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Subject: Re: am335x: TSC & ADC reworking including DT pieces, take 5
+Date: Thu, 13 Jun 2013 11:25:26 +0200
+Message-ID: <51B99006.2060103@linutronix.de>
+References: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de> <20130613090719.GB7998@zurbaran>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56693 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756164Ab3FMJWF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Jun 2013 05:22:05 -0400
-In-Reply-To: <20130612171407.GM8164@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130613090719.GB7998@zurbaran>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ming Lei <tom.leiming@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Tony,
-On Wednesday 12 June 2013 10:44 PM, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [130612 09:37]:
->> * Ming Lei <tom.leiming@gmail.com> [130603 08:34]:
->>> Hi,
->>>
->>> On Sat, May 18, 2013 at 3:17 AM, Tony Lindgren <tony@atomide.com> wrote:
->>>> We can now boot with device tree. If you don't want to update u-boot,
->>>> you can boot with appended DTB with the following instructions:
->>>>
->>>> 1. Make sure you have the appended DTB support in .config
->>>>
->>>>    CONFIG_ARM_APPENDED_DTB=y
->>>>    CONFIG_ARM_ATAG_DTB_COMPAT=y
->>>>    CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND=y
->>>>
->>>> 2. Build the zImage
->>>>
->>>>    $ ARCH=arm CROSS_COMPILE=... make zImage
->>>>
->>>> 3. Build the device tree blobs
->>>>
->>>>    $ ARCH=arm CROSS_COMPILE=... make dtbs
->>>>
->>>> 4. Append the correct panda dtb to zImage
->>>>
->>>>    Depending on your hardware it's omap4-panda.dtb, omap4-panda-a4.dtb
->>>>    or omap4-panda-es.dtb.
->>>>
->>>>    $ cat arch/arm/boot/zImage arch/arm/boot/dts/omap4-panda-es.dtb > /tmp/appended
->>>>
->>>> 5. Use mkimage to produce the appended device tree uImage
->>>>
->>>>    $ mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x80008000 \
->>>>      -n "Linux" -d /tmp/appended /tmp/uImage
->>> I followed the above steps and tried devicetree on Pandaboard against
->>> 3.10.0-rc3-next-20130528, and the board will hang during boot, but works
->>> well with legacy mode.
->>>
->>>          Hardware: Pandaboard A1
->>>          dtb: omap4-panda.dtb
->>>
->>> See 'dmesg' on below link:
->>>
->>>          http://kernel.ubuntu.com/~ming/up/panda-dts.dmesg
->>>
->> Hmm looks like it boots to init. Maybe add initcall_debug to the cmdline in
->> case there's some late_initcall that causes the issue. It's probably some
->> trivial issue causing it.
-> Sricharan, maybe give this a quick try if you have the original pandaboard?
-> I only have pandaboard es.
->
-> Regards,
->
-> Tony 
- 
-I tried your cleanup branch omap-for-v3.11/cleanup on panda board and it booted
- to prompt fine.
-            Hardware: Pandaboard A1   dtb: omap4-panda.dtb
+On 06/13/2013 11:07 AM, Samuel Ortiz wrote:
+> Hi Sebastian,
 
-  git pull on linux-next branch was not working though.
+Hi Samuel,
 
+> Pulled and pushed back to mfd-next, thanks.
 
-Regards,
- Sricharan
+Thank you.
 
+> I fixed a couple of unused variable warnings on top of it.
+
+I saw your patch at git.k.o and I am asking you not to taking it :)
+The code is:
+
+        of_property_for_each_u32(node, "ti,adc-channels", prop, cur, val) {
+                 adc_channels++;
+                 if (val > 7) {
+                         dev_err(&pdev->dev, " PIN numbers are 0..7 (not
+%d)\n",
+                                         val);
+                         return -EINVAL;
+                 }
+         }
+
+and without CONFIG_OF of_property_for_each_u32() becomes most likely
+empty. That is why I haven't seen it.
+So either the macro should be changed to tell the compiler that the
+variables are used (so the warning does not show up) or let the driver
+depend on CONFIG_OF. I will look at the former and can prepare a patch
+for the latter if you want.
+
+> 
+> Cheers,
+> Samuel.
+> 
+
+Sebastian
