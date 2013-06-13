@@ -1,95 +1,86 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: N900 device tree conversion: how to do first step
-Date: Thu, 13 Jun 2013 17:52:40 +0200
-Message-ID: <20130613155240.GB3775@amd.pavel.ucw.cz>
-References: <20130609015944.GA23559@amd.pavel.ucw.cz>
- <20130609201119.GA3190@blackmetal.musicnaut.iki.fi>
- <20130613132624.GA3464@amd.pavel.ucw.cz>
- <20130613141001.GF8164@atomide.com>
- <20130613142809.GA3775@amd.pavel.ucw.cz>
- <20130613145724.GH8164@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: Request for OMAPDSS testing
+Date: Thu, 13 Jun 2013 19:01:02 +0300
+Message-ID: <51B9ECBE.3010401@ti.com>
+References: <51AD99F5.7060506@ti.com> <51B9EA7B.8070906@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130613145724.GH8164@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="----enig2MVRUEPLFELWAMOIXWHVI"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:48961 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752088Ab3FMQBW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Jun 2013 12:01:22 -0400
+In-Reply-To: <51B9EA7B.8070906@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Thomas Weber <weber@corscience.de>, Mike Rapoport <mike@compulab.co.il>, Steve Sakoman <steve@sakoman.com>, =?windows-1252?Q?Gra=9Evydas_Ignotas?= <notasas@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi!
+------enig2MVRUEPLFELWAMOIXWHVI
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-> * Pavel Machek <pavel@ucw.cz> [130613 07:34]:
-> > On Thu 2013-06-13 07:10:01, Tony Lindgren wrote:
-> > > * Pavel Machek <pavel@ucw.cz> [130613 06:32]:
-> > >  
-> > > > If I init spi manually (and some more hacks), it works in the
-> > > > qemu. But I have not tested on real hw for a while.
-> > > 
-> > > You should be able to initialize spi by adding the .dts entry,
-> > > or is there something missing in drivers/spi/spi-omap2-mcspi.c?
-> > 
-> > Not sure, I guess I'll find out soon. Do you have example dts that
-> > uses drivers/spi/spi-omap2-mcspi.c? Grepping spi in dts/ was not too
-> > successful.
-> 
-> Hmm I think all we have is what's written in
-> Documentation/devicetree/bindings/spi/omap-spi.txt and
-> omap4-sdp.dts.
+On 13/06/13 18:51, Igor Grinberg wrote:
+> Hi Tomi,
+>=20
+> On 06/04/13 10:40, Tomi Valkeinen wrote:
+>> Hi guys,
+>=20
+>> I've made some big changes on the omapdss device model, which involves=
 
-Ok, this was easier than expected.
+>> converting all the panel drivers. I've got only a bunch of boards, so =
+I
+>> hope some of you can perhaps do some minimal tests on some other board=
+s.
+>=20
+>> I've got: Beagle (old one), Panda, 4430SDP, Overo with LCD43.
+>=20
+>> The code can be found from the below git branch. It's based on 3.10-rc=
+1.
+>=20
+>> git://gitorious.org/linux-omap-dss2/linux.git work/dss-dev-model
+>=20
+> Works on cm-t3730.
+> Tested with tdo24m LCD and DVI.
 
-Now, by chance, any idea what is DT equivalent of 
+Thanks!
 
-omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+> Although one thing is missing from the tfp410 driver is
+> the PD GPIO polarity. I had to adjust it locally to get the DVI working=
+=2E
+> The original polarity was high =3D disabled, low =3D enabled.
 
-?
+Hmm, but this is missing from the old driver also, isn't it? At least
+with a quick glance the old and new tfp410 drivers do the same thing
+with the PD gpio.
 
-(Plus I'll still have to figure out why it works on emulator but not
-on hw).
-
-Thanks,
-									Pavel
-
-
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 10a880f..3918ae1 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -65,6 +65,14 @@
- 	status = "disabled";
- };
- 
-+&mcspi1 {
-+	mipid@2 {
-+		compatible = "acx565akm";
-+		spi-max-frequency = <6000000>;
-+		reg = <2>;
-+	};
-+};
-+
- /*
- &usb_otg_hs {
- 	interface-type = <0>;
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 996ffc3..597ade9 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -130,9 +130,10 @@ void __init omap_generic_init(void)
- 		regulator_use_dummy_regulator();
- 
- 		omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
--
-+#if 0
- 		spi_register_board_info(rx51_peripherals_spi_board_info,
- 				ARRAY_SIZE(rx51_peripherals_spi_board_info));
-+#endif
- #else
- 		rx51_video_init();
- #endif
+ Tomi
 
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+------enig2MVRUEPLFELWAMOIXWHVI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRuey+AAoJEPo9qoy8lh71ArkQAKUtnZwU0GFiElFWEfZI2uFn
+pz8URet3WOfHOrogCvwaK7ILRj4BS3THsPYHtWiNx4k+XAk5qD1N81Xvi2o7Z8wB
+Yq0F7FPrj6BUiGj5Jgw66Nj8IJjF6UvvVl2Fx/BtLclpiUmkRYvfvtoJevuitnc+
+tS4zKwCLJVm6cWD3YoRfqlczMmI4X4fU2ASTw+9Q2y1yeoYdmURTqo9NtMIwMhBY
+qTKn0U7fpi4sVyMEFl3Xzkfc8I93tVsZKwDdQqBFhPgbduhdPsrFFpJHjR+Ch+Gx
+aY4j4GotofFrY2xNnrNgi9icc0zbRYhEXxUV/EGQq2GUDP8xEuVmlCGucuxTS00z
+1UC4zkvLo1J93HBKIeX24HMzPGUWP7C15Tr9Vnl7HI4RQf4RAZouen8JSHRX/eWa
+sx94Gf4L7JEI0wcBLhEox63nxytdT7z6MGHtwJcHk+MduIBfU3zMOsFK0HVXTilM
+wdhUPLZmmOu76eXPaqoVVPdrJmkD+QNLE4OyDofISPcDY5Q77c68jp/cDHwyVTqI
+gyL7WbN3OuFeny6StIFpDS5OGuz+9+JfzeWiXaeGzsp3FpIB+c9NQ3JH0Fu/3s2N
+sRToNcsnVvY+IFpTtuchJ11bGNvvbT2vZPYwAq76jqd+DLwhXABqXN8hcKpjkch2
+v7vZ0VFnKXl4zWvccahM
+=rPnU
+-----END PGP SIGNATURE-----
+
+------enig2MVRUEPLFELWAMOIXWHVI--
