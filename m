@@ -1,182 +1,98 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: N900 device tree conversion: how to do first step
-Date: Thu, 13 Jun 2013 09:14:20 -0700
-Message-ID: <20130613161418.GJ8164@atomide.com>
-References: <20130609015944.GA23559@amd.pavel.ucw.cz>
- <20130609201119.GA3190@blackmetal.musicnaut.iki.fi>
- <20130613132624.GA3464@amd.pavel.ucw.cz>
- <20130613141001.GF8164@atomide.com>
- <20130613142809.GA3775@amd.pavel.ucw.cz>
- <20130613145724.GH8164@atomide.com>
- <20130613155240.GB3775@amd.pavel.ucw.cz>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v2 06/10] mmc: omap_hsmmc: add support for pbias
+ configuration in dt
+Date: Thu, 13 Jun 2013 17:17:31 +0100
+Message-ID: <20130613161731.GA28134@laptop>
+References: <20130523184045.GD13507@atomide.com>
+ <1370546059-24181-1-git-send-email-balajitk@ti.com>
+ <1370546059-24181-7-git-send-email-balajitk@ti.com>
+ <CACRpkdZAzAJW0UxGCSj-PWXTSi2Q6T8fqL9SQ+Y-91sELQ3SRQ@mail.gmail.com>
+ <20130613104715.GC16677@laptop>
+ <51B9DEE0.1060305@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130613155240.GB3775@amd.pavel.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+In-Reply-To: <51B9DEE0.1060305@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, ext Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [130613 08:58]:
-> Hi!
-> 
-> > * Pavel Machek <pavel@ucw.cz> [130613 07:34]:
-> > > On Thu 2013-06-13 07:10:01, Tony Lindgren wrote:
-> > > > * Pavel Machek <pavel@ucw.cz> [130613 06:32]:
-> > > >  
-> > > > > If I init spi manually (and some more hacks), it works in the
-> > > > > qemu. But I have not tested on real hw for a while.
-> > > > 
-> > > > You should be able to initialize spi by adding the .dts entry,
-> > > > or is there something missing in drivers/spi/spi-omap2-mcspi.c?
-> > > 
-> > > Not sure, I guess I'll find out soon. Do you have example dts that
-> > > uses drivers/spi/spi-omap2-mcspi.c? Grepping spi in dts/ was not too
-> > > successful.
-> > 
-> > Hmm I think all we have is what's written in
-> > Documentation/devicetree/bindings/spi/omap-spi.txt and
-> > omap4-sdp.dts.
-> 
-> Ok, this was easier than expected.
+On Thu, 13 Jun 2013, Balaji T K wrote:
 
-Cool.
- 
-> Now, by chance, any idea what is DT equivalent of 
-> 
-> omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+> On Thursday 13 June 2013 04:17 PM, Lee Jones wrote:
+> >On Thu, 13 Jun 2013, Linus Walleij wrote:
+> >
+> >>On Thu, Jun 6, 2013 at 9:14 PM, Balaji T K <balajitk@ti.com> wrote:
+> >>
+> >>>PBIAS register configuration is based on the regulator voltage
+> >>>which supplies these pbias cells, sd i/o pads.
+> >>>With PBIAS register address and bit definitions different across
+> >>>omap[3,4,5], Simplify PBIAS configuration under three different
+> >>>regulator voltage levels - O V, 1.8 V, 3 V. Corresponding pinctrl =
+states
+> >>>are defined as pbias_off, pbias_1v8, pbias_3v.
+> >>>
+> >>>pinctrl state mmc_init is used for configuring speed mode, loopbac=
+k clock
+> >>>(in devconf0/devconf1/prog_io1 register for omap3) and pull streng=
+th
+> >>>configuration (in control_mmc1 for omap4)
+> >>>
+> >>>Signed-off-by: Balaji T K <balajitk@ti.com>
+> >>
+> >>You *need* Lee Jones and Mark Brown to review this.
+> >>Maybe Laurent has something to add too.
+> >>
+> >>Ux500 had the very same thing, and there this was solved using
+> >>a GPIO regulator for "vqmmc" a level-shifter. I vaguely remember
+> >>Laurent doing something similar with the SH stuff.
+> >
+> >I haven't seem much of this patch-set, but this certainly looks like
+> >it should be handled by a GPIO regulator instead of pinctrl. States
+> >are easily declared in a 'struct gpio_regulator_state', which the
+> >framework then uses to set the correct pins for the required voltage=
+=2E
+> >
+>=20
+> Thanks for the pointer, but wondering why is it named as gpio-regulat=
+or
+> and how it is different from fixed-regulator.
+> After going through git log description, I understand that voltage/cu=
+rrent level
+> for a particular regulator is controlled by a set of pad/pin on the P=
+OWER IC
+> and pad/pin may be usually connected to gpio pins if it is needs to b=
+e
+> configurable and ground/pulled for constant voltage.
+>=20
+> Collection of gpios logic level are modeled as state for particular v=
+oltage.
+> But gpio is not used in my case.
+>=20
+> >And yes, 'vqmmc' is a good place to store the this regulator.
 
-You can try the attached hack after calling the above to grep for
-pins in /sys/kernel/debug/omap_mux/board/core and you get the pins
-in DT suitable format. There's a bug where the the pins are not
-correctly split between core and wkup domains in the legacy mux fwk,
-but you probably won't need to mux many wkup domain pins.
+As I say, I didn't see much of the code, only parts which looked
+similar a voltage level-shifter.
 
-Then you just need to add the pinctr-single entries for each device,
-but AFAIK most of the pins are muxed correctly in the bootloader
-for the Nokia boards.
- 
-> (Plus I'll still have to figure out why it works on emulator but not
-> on hw).
+The difference between fixed and gpio regulators, is that the former
+is exactly that, 'fixed'. You can turn voltage on and off using a gpio
+pin, but you can't shift the voltage. Something which is required of
+your use-case. The latter switches between voltgages via a set of gpio
+pins, for instance, your use-case could look somelike like:
 
-Might be the muxing..
+static struct gpio_regulator_state sdi0_reg_states[] =3D {
+        { .value =3D 3300000, .gpios =3D (1 << 0) },
+        { .value =3D 1800000, .gpios =3D (0 << 0) },
+};
 
-Regards,
+But if there aren't any gpio pins involved, then this isn't what you
+want either.
 
-Tony
-
-
-From: Tony Lindgren <tony@atomide.com>
-Date: Fri, 7 Jun 2013 08:54:59 -0700
-Subject: [PATCH] Not for merging: Allows dumping out mux entries in .dts format using legacy mux
-
-For pinctrl-single.c we should eventually have a user space
-app to configure and display pin settings. Meanwhile, allow
-using the legacy mux interface to do that:
-
-# mount -t debugfs debugfs /sys/kernel/debug
-# cat /sys/kernel/debug/omap_mux/board/wkup | grep fref_clk0_out
-	0x14 0x2        /* fref_clk0_out.sys_drm_msecure gpio6 OUTPUT | MODE2 */
-
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 48094b58..6f5224a 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -35,11 +35,10 @@
- #include <linux/irq.h>
- #include <linux/interrupt.h>
- 
--
- #include "omap_hwmod.h"
--
- #include "soc.h"
- #include "control.h"
-+#include "id.h"
- #include "mux.h"
- #include "prm.h"
- #include "common.h"
-@@ -505,17 +504,17 @@ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
- #define OMAP_MUX_TEST_FLAG(val, mask)				\
- 	if (((val) & (mask)) == (mask)) {			\
- 		i++;						\
--		flags[i] =  #mask;				\
-+		flags[i] =  #mask + sizeof("OMAP_PIN_") - 1;	\
- 	}
- 
- /* REVISIT: Add checking for non-optimal mux settings */
- static inline void omap_mux_decode(struct seq_file *s, u16 val)
- {
- 	char *flags[OMAP_MUX_MAX_NR_FLAGS];
--	char mode[sizeof("OMAP_MUX_MODE") + 1];
-+	char mode[sizeof("MODE") + 1];
- 	int i = -1;
- 
--	sprintf(mode, "OMAP_MUX_MODE%d", val & 0x7);
-+	sprintf(mode, "MODE%d", val & 0x7);
- 	i++;
- 	flags[i] = mode;
- 
-@@ -553,7 +552,7 @@ static inline void omap_mux_decode(struct seq_file *s, u16 val)
- 		}
- 	} else {
- 		i++;
--		flags[i] = "OMAP_PIN_OUTPUT";
-+		flags[i] = "OUTPUT";
- 	}
- 
- 	do {
-@@ -568,15 +567,26 @@ static inline void omap_mux_decode(struct seq_file *s, u16 val)
- static int omap_mux_dbg_board_show(struct seq_file *s, void *unused)
- {
- 	struct omap_mux_partition *partition = s->private;
-+	int pbase = (int)partition->base;
- 	struct omap_mux_entry *e;
--	u8 omap_gen = omap_rev() >> 28;
-+
-+	if (!(pbase & 0xfff))
-+		pbase = 0x40;
-+	else
-+		pbase = 0;
-+
-+	seq_printf(s, "\t\tpinctrl-single,pins = <\n");
- 
- 	list_for_each_entry(e, &partition->muxmodes, node) {
- 		struct omap_mux *m = &e->mux;
- 		char m0_def[OMAP_MUX_DEFNAME_LEN];
- 		char *m0_name = m->muxnames[0];
- 		u16 val;
--		int i, mode;
-+		int padconf_offset, i, mode;
-+
-+		padconf_offset = m->reg_offset - pbase;
-+		if (cpu_is_omap3630() && padconf_offset > 0x5ca)
-+			continue;
- 
- 		if (!m0_name)
- 			continue;
-@@ -591,18 +601,14 @@ static int omap_mux_dbg_board_show(struct seq_file *s, void *unused)
- 		}
- 		val = omap_mux_read(partition, m->reg_offset);
- 		mode = val & OMAP_MUX_MODE7;
--		if (mode != 0)
--			seq_printf(s, "/* %s */\n", m->muxnames[mode]);
--
--		/*
--		 * XXX: Might be revisited to support differences across
--		 * same OMAP generation.
--		 */
--		seq_printf(s, "OMAP%d_MUX(%s, ", omap_gen, m0_def);
-+		seq_printf(s, "\t\t\t0x%x 0x%x\t/* %s.%s gpio%i ",
-+			   padconf_offset, val, m->muxnames[0], m->muxnames[mode], m->gpio);
- 		omap_mux_decode(s, val);
--		seq_printf(s, "),\n");
-+		seq_printf(s, " */\n");
- 	}
- 
-+	seq_printf(s, "\t\t>;\n");
-+
- 	return 0;
- }
- 
+--=20
+Lee Jones
+Linaro ST-Ericsson Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
