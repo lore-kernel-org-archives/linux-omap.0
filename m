@@ -1,70 +1,91 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v2 06/10] mmc: omap_hsmmc: add support for pbias
- configuration in dt
-Date: Thu, 13 Jun 2013 11:47:15 +0100
-Message-ID: <20130613104715.GC16677@laptop>
-References: <20130523184045.GD13507@atomide.com>
- <1370546059-24181-1-git-send-email-balajitk@ti.com>
- <1370546059-24181-7-git-send-email-balajitk@ti.com>
- <CACRpkdZAzAJW0UxGCSj-PWXTSi2Q6T8fqL9SQ+Y-91sELQ3SRQ@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap dss board clean-up for v3.10 merge window
+Date: Thu, 13 Jun 2013 03:54:35 -0700
+Message-ID: <20130613105434.GB8164@atomide.com>
+References: <20130418033936.GC10155@atomide.com>
+ <20130419184518.GA30836@quad.lixom.net>
+ <51AC89F6.1050308@ti.com>
+ <51B97B28.3060609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f50.google.com ([209.85.214.50]:62486 "EHLO
-	mail-bk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754695Ab3FMKrW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 06:47:22 -0400
-Received: by mail-bk0-f50.google.com with SMTP id ik8so3226233bkc.37
-        for <linux-omap@vger.kernel.org>; Thu, 13 Jun 2013 03:47:20 -0700 (PDT)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53197 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756492Ab3FMKym (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 06:54:42 -0400
 Content-Disposition: inline
-In-Reply-To: <CACRpkdZAzAJW0UxGCSj-PWXTSi2Q6T8fqL9SQ+Y-91sELQ3SRQ@mail.gmail.com>
+In-Reply-To: <51B97B28.3060609@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Balaji T K <balajitk@ti.com>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, ext Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Thu, 13 Jun 2013, Linus Walleij wrote:
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [130613 01:02]:
+> Hi Tony,
+> 
+> On 03/06/13 15:20, Tomi Valkeinen wrote:
+> 
+> Any feeback about the below? I'm currently aiming for the option 2, and
+> pushing only the driver changes for the next merge window, as that
+> allows me to go forward without any arch/arm changes.
 
-> On Thu, Jun 6, 2013 at 9:14 PM, Balaji T K <balajitk@ti.com> wrote:
->=20
-> > PBIAS register configuration is based on the regulator voltage
-> > which supplies these pbias cells, sd i/o pads.
-> > With PBIAS register address and bit definitions different across
-> > omap[3,4,5], Simplify PBIAS configuration under three different
-> > regulator voltage levels - O V, 1.8 V, 3 V. Corresponding pinctrl s=
-tates
-> > are defined as pbias_off, pbias_1v8, pbias_3v.
-> >
-> > pinctrl state mmc_init is used for configuring speed mode, loopback=
- clock
-> > (in devconf0/devconf1/prog_io1 register for omap3) and pull strengt=
-h
-> > configuration (in control_mmc1 for omap4)
-> >
-> > Signed-off-by: Balaji T K <balajitk@ti.com>
->=20
-> You *need* Lee Jones and Mark Brown to review this.
-> Maybe Laurent has something to add too.
->=20
-> Ux500 had the very same thing, and there this was solved using
-> a GPIO regulator for "vqmmc" a level-shifter. I vaguely remember
-> Laurent doing something similar with the SH stuff.
+Yes that sounds good to me. Then we may be able to do a small follow-up
+branch at the end of the merge window for the arch/arm changes. But
+up to you how you prefer to handle it, I'm sure you're well aware of
+the pains of cross tree dependencies by now :)
 
-I haven't seem much of this patch-set, but this certainly looks like
-it should be handled by a GPIO regulator instead of pinctrl. States
-are easily declared in a 'struct gpio_regulator_state', which the
-framework then uses to set the correct pins for the required voltage.
+Regards,
 
-And yes, 'vqmmc' is a good place to store the this regulator.
+Tony
+ 
+> > I have a somewhat similar situation again for 3.11 (or possibly for
+> > 3.12). I hope to hear from you what you think would be the best approach.
+> > 
+> > The background is that the omap display subsystem has a bunch of panel
+> > drivers, and these drivers have used an OMAP DSS specific bus and driver
+> > model. For various reasons I'm now converting the panel drivers to be
+> > based on the panel's control bus, i.e. a panel controlled via i2c would
+> > be an i2c device/driver, a panel not controlled at all would be a
+> > platform device/driver, etc.
+> > 
+> > The work involves changing the omapdss driver, converting the panel
+> > drivers to the new driver model, and changing the board files that use
+> > the panel.
+> > 
+> > I see two main approaches to this:
+> > 
+> > 1) Convert the panel drivers "in-place", i.e. have a commit which
+> > changes a panel driver to the new model. This would mean that the
+> > instant the commit is in, the boards using the panel do not work until
+> > the board file has been changed.
+> > 
+> > 2) Convert the panel to a new file, i.e. basically make a copy of the
+> > panel driver while converting it. This way the boards using the old
+> > panel drivers will continue working. (This is how I have my patches
+> > currently organized).
+> > 
+> > Option 1) feels more natural, but if the arch and driver changes go
+> > through separate trees, there's a piece of history during the merge
+> > window where the displays won't work on the OMAP boards.
+> > 
+> > Option 2) allows us to keep the boards always functional if the new
+> > panel drivers are merged in 3.11, and the board file changes are merged
+> > in 3.12.
+> > 
+> > The downside is that it takes two kernel versions to get this in, and a
+> > third kernel version to finally remove all the old code. 3.11 and 3.12
+> > would contain unused code, some of which will be in the kernel image
+> > (omapdss side changes) and some of which won't be compiled at all (the
+> > new panel drivers).
+> > 
+> > Do you think option 2 and splitting the work into three kernel versions
+> > is the way to go? Do you have some other ideas how to organize the merge
+> > of these kind of changes?
+> > 
+> >  Tomi
+> > 
+> > 
+> 
+> 
 
---=20
-Lee Jones
-Linaro ST-Ericsson Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
