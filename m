@@ -1,52 +1,74 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: am335x: TSC & ADC reworking including DT pieces, take 5
-Date: Thu, 13 Jun 2013 11:25:26 +0200
-Message-ID: <51B99006.2060103@linutronix.de>
-References: <1371056302-12714-1-git-send-email-bigeasy@linutronix.de> <20130613090719.GB7998@zurbaran>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2 06/10] mmc: omap_hsmmc: add support for pbias
+ configuration in dt
+Date: Thu, 13 Jun 2013 11:37:01 +0200
+Message-ID: <CACRpkdZAzAJW0UxGCSj-PWXTSi2Q6T8fqL9SQ+Y-91sELQ3SRQ@mail.gmail.com>
+References: <20130523184045.GD13507@atomide.com>
+	<1370546059-24181-1-git-send-email-balajitk@ti.com>
+	<1370546059-24181-7-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130613090719.GB7998@zurbaran>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1370546059-24181-7-git-send-email-balajitk@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>, Lee Jones <lee.jones@linaro.org>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, ext Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 06/13/2013 11:07 AM, Samuel Ortiz wrote:
-> Hi Sebastian,
+On Thu, Jun 6, 2013 at 9:14 PM, Balaji T K <balajitk@ti.com> wrote:
 
-Hi Samuel,
+> PBIAS register configuration is based on the regulator voltage
+> which supplies these pbias cells, sd i/o pads.
+> With PBIAS register address and bit definitions different across
+> omap[3,4,5], Simplify PBIAS configuration under three different
+> regulator voltage levels - O V, 1.8 V, 3 V. Corresponding pinctrl states
+> are defined as pbias_off, pbias_1v8, pbias_3v.
+>
+> pinctrl state mmc_init is used for configuring speed mode, loopback clock
+> (in devconf0/devconf1/prog_io1 register for omap3) and pull strength
+> configuration (in control_mmc1 for omap4)
+>
+> Signed-off-by: Balaji T K <balajitk@ti.com>
 
-> Pulled and pushed back to mfd-next, thanks.
+You *need* Lee Jones and Mark Brown to review this.
+Maybe Laurent has something to add too.
 
-Thank you.
+Ux500 had the very same thing, and there this was solved using
+a GPIO regulator for "vqmmc" a level-shifter. I vaguely remember
+Laurent doing something similar with the SH stuff.
 
-> I fixed a couple of unused variable warnings on top of it.
+> +       /* 100ms delay required for PBIAS configuration */
+> +       msleep(100);
+> +       if (!vdd && host->pinctrl && host->pbias_off) {
+> +               ret = pinctrl_select_state(host->pinctrl, host->pbias_off);
+> +               if (ret < 0)
+> +                       dev_err(host->dev, "pinctrl pbias_off select error\n");
+> +       } else if (((1 << vdd) <= MMC_VDD_165_195) && host->pinctrl &&
+> +                       host->pbias_1v8) {
+> +               ret = pinctrl_select_state(host->pinctrl, host->pbias_1v8);
+> +               if (ret < 0)
+> +                       dev_err(host->dev, "pinctrl pbias_1v8 select error\n");
+> +       } else if (((1 << vdd) > MMC_VDD_165_195) && host->pinctrl &&
+> +                       host->pbias_3v) {
+> +               ret = pinctrl_select_state(host->pinctrl, host->pbias_3v);
+> +               if (ret < 0)
+> +                       dev_err(host->dev, "pinctrl pbias_3v select error\n");
+> +       }
 
-I saw your patch at git.k.o and I am asking you not to taking it :)
-The code is:
+So why does the pin control API control bias voltage?
 
-        of_property_for_each_u32(node, "ti,adc-channels", prop, cur, val) {
-                 adc_channels++;
-                 if (val > 7) {
-                         dev_err(&pdev->dev, " PIN numbers are 0..7 (not
-%d)\n",
-                                         val);
-                         return -EINVAL;
-                 }
-         }
+This seem so intuitively wrong as it can possibly get, clearly this
+is regulator territory.
 
-and without CONFIG_OF of_property_for_each_u32() becomes most likely
-empty. That is why I haven't seen it.
-So either the macro should be changed to tell the compiler that the
-variables are used (so the warning does not show up) or let the driver
-depend on CONFIG_OF. I will look at the former and can prepare a patch
-for the latter if you want.
+This also looks strange from an MMC point of view.
 
-> 
-> Cheers,
-> Samuel.
-> 
+It just seems these bits in these registers should be poked at
+by the regulator world, not the pinctrl world. That the bits are
+in the middle of pinctrl things does not really matter.
 
-Sebastian
+> +       usleep_range(350, 400);
+
+And the regulator framework supports power-on delays.
+
+Yours,
+Linus Walleij
