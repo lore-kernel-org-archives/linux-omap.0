@@ -1,66 +1,95 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: Request for OMAPDSS testing
-Date: Thu, 13 Jun 2013 18:51:23 +0300
-Message-ID: <51B9EA7B.8070906@compulab.co.il>
-References: <51AD99F5.7060506@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: N900 device tree conversion: how to do first step
+Date: Thu, 13 Jun 2013 17:52:40 +0200
+Message-ID: <20130613155240.GB3775@amd.pavel.ucw.cz>
+References: <20130609015944.GA23559@amd.pavel.ucw.cz>
+ <20130609201119.GA3190@blackmetal.musicnaut.iki.fi>
+ <20130613132624.GA3464@amd.pavel.ucw.cz>
+ <20130613141001.GF8164@atomide.com>
+ <20130613142809.GA3775@amd.pavel.ucw.cz>
+ <20130613145724.GH8164@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:43134 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758295Ab3FMPvc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Jun 2013 11:51:32 -0400
-In-Reply-To: <51AD99F5.7060506@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130613145724.GH8164@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Thomas Weber <weber@corscience.de>, Mike Rapoport <mike@compulab.co.il>, Steve Sakoman <steve@sakoman.com>, =?windows-1252?Q?Gra=9Evydas_Ignotas?= <notasas@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi!
 
-Hi Tomi,
-
-On 06/04/13 10:40, Tomi Valkeinen wrote:
-> Hi guys,
+> * Pavel Machek <pavel@ucw.cz> [130613 07:34]:
+> > On Thu 2013-06-13 07:10:01, Tony Lindgren wrote:
+> > > * Pavel Machek <pavel@ucw.cz> [130613 06:32]:
+> > >  
+> > > > If I init spi manually (and some more hacks), it works in the
+> > > > qemu. But I have not tested on real hw for a while.
+> > > 
+> > > You should be able to initialize spi by adding the .dts entry,
+> > > or is there something missing in drivers/spi/spi-omap2-mcspi.c?
+> > 
+> > Not sure, I guess I'll find out soon. Do you have example dts that
+> > uses drivers/spi/spi-omap2-mcspi.c? Grepping spi in dts/ was not too
+> > successful.
 > 
-> I've made some big changes on the omapdss device model, which involves
-> converting all the panel drivers. I've got only a bunch of boards, so I
-> hope some of you can perhaps do some minimal tests on some other boards.
-> 
-> I've got: Beagle (old one), Panda, 4430SDP, Overo with LCD43.
-> 
-> The code can be found from the below git branch. It's based on 3.10-rc1.
-> 
-> git://gitorious.org/linux-omap-dss2/linux.git work/dss-dev-model
+> Hmm I think all we have is what's written in
+> Documentation/devicetree/bindings/spi/omap-spi.txt and
+> omap4-sdp.dts.
 
-Works on cm-t3730.
-Tested with tdo24m LCD and DVI.
+Ok, this was easier than expected.
 
-Although one thing is missing from the tfp410 driver is
-the PD GPIO polarity. I had to adjust it locally to get the DVI working.
-The original polarity was high = disabled, low = enabled.
+Now, by chance, any idea what is DT equivalent of 
+
+omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+
+?
+
+(Plus I'll still have to figure out why it works on emulator but not
+on hw).
+
+Thanks,
+									Pavel
 
 
-- -- 
-Regards,
-Igor.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.17 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index 10a880f..3918ae1 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -65,6 +65,14 @@
+ 	status = "disabled";
+ };
+ 
++&mcspi1 {
++	mipid@2 {
++		compatible = "acx565akm";
++		spi-max-frequency = <6000000>;
++		reg = <2>;
++	};
++};
++
+ /*
+ &usb_otg_hs {
+ 	interface-type = <0>;
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 996ffc3..597ade9 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -130,9 +130,10 @@ void __init omap_generic_init(void)
+ 		regulator_use_dummy_regulator();
+ 
+ 		omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+-
++#if 0
+ 		spi_register_board_info(rx51_peripherals_spi_board_info,
+ 				ARRAY_SIZE(rx51_peripherals_spi_board_info));
++#endif
+ #else
+ 		rx51_video_init();
+ #endif
 
-iQIcBAEBAgAGBQJRuep6AAoJEBDE8YO64EfaXsIP/19xfE9BlqtswMRgr3uOEaJf
-gnh9JcwMebMWiCFcyCw96EP7C/oW6GmVdyGDLnZmjJ9ZqA1al0I4Lia1LDJDNxtZ
-EDLIAaY1Wf4JN0wcVVAy1o4jHiYu6jpLLME3JNXGU6HwUgrSEcXOBd62veIjHcE3
-f1p3HvGvfXJxU0/7JCohpRteTIqXjmG9BxBcyAnes0lhBozOwIOO0uLtiH+XeSJe
-Sn907bkdFk6qG8m+FSQWyJZMKLGZuE0nNOQ2obMeXk6nvj8TnO9x4W51I5DnsfgT
-ZnCtcnuC3RGLo1YmUBFSBDLsd9VZgD3K2c/ysfpwM9Os2XvImGbUkX6ToJ4iMr0T
-Ika2ljsMCbObbqQGiSbEM7JiOOc5QL6AB4b+uwD8VEDd4JwzkaMugBSYn8B38y5u
-PxCFWMihZGlyWVHS+qwON+cS59Y1xj0b7pvQRlar+ufQDk/gQBPNbJFnzIaU8B3D
-6qx9TL7QmPJ172+dVIbcWLMMLLwa5ityajIaETgmQw6GMNLyUghf50I6k8rRHnzc
-JA3UFkeYGplYfVPHpWM2fNvSDin9yTELbGty0QzszlUWRHqpmXlyEYk/VMShWE8h
-LNKv+FZ1VwNFD3PmZINVB4IWflT9X/52hgrrACxBVAPG7xhahGA+XV6e10zc1cPd
-7dnQIlL7OugAAWC5ttaw
-=sLEz
------END PGP SIGNATURE-----
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
