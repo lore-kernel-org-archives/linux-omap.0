@@ -1,82 +1,96 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 1/2] ARM: OMAP2+: Powerdomain: Remove the need to always have a voltdm associated to a pwrdm
-Date: Thu, 13 Jun 2013 15:38:43 +0530
-Message-ID: <1371118124-15910-2-git-send-email-rnayak@ti.com>
-References: <1371118124-15910-1-git-send-email-rnayak@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH 2/6] ARM: OMAP2+: Remove board-omap4panda.c
+Date: Thu, 13 Jun 2013 15:42:23 +0530
+Message-ID: <51B99B07.1050806@ti.com>
+References: <20130517191304.468.73487.stgit@localhost> <20130517191753.468.1734.stgit@localhost> <CACVXFVOp6n3RhZnWD_hRxqE8a8amPA5SRWfkVhz+yCGZTtGjvQ@mail.gmail.com> <20130612163124.GD8164@atomide.com> <20130612171407.GM8164@atomide.com> <51B98F1E.1000006@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45740 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57622 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756060Ab3FMKJb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Jun 2013 06:09:31 -0400
-In-Reply-To: <1371118124-15910-1-git-send-email-rnayak@ti.com>
+	id S1756164Ab3FMKMv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Jun 2013 06:12:51 -0400
+In-Reply-To: <51B98F1E.1000006@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ming Lei <tom.leiming@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-The powerdomain framework expects all powerdomains to be associated with
-a corresponding voltagedomain. For some SoCs' (like the already existing AM33xx
-family, or for the upcoming AM437x and DRA7 SoCs') which
-do not have a Voltage controller/Voltage Processor (neither the SR I2C
-bus to communicate with the PMIC) there is no need for a Powerdomain to have
-a voltage domain association (since they are really non scaleable, even
-though the voltage domains exist in place).
+On Thursday 13 June 2013 02:51 PM, Sricharan R wrote:
+> Hi Tony,
+> On Wednesday 12 June 2013 10:44 PM, Tony Lindgren wrote:
+>> * Tony Lindgren <tony@atomide.com> [130612 09:37]:
+>>> * Ming Lei <tom.leiming@gmail.com> [130603 08:34]:
+>>>> Hi,
+>>>>
+>>>> On Sat, May 18, 2013 at 3:17 AM, Tony Lindgren <tony@atomide.com> wrote:
+>>>>> We can now boot with device tree. If you don't want to update u-boot,
+>>>>> you can boot with appended DTB with the following instructions:
+>>>>>
+>>>>> 1. Make sure you have the appended DTB support in .config
+>>>>>
+>>>>>    CONFIG_ARM_APPENDED_DTB=y
+>>>>>    CONFIG_ARM_ATAG_DTB_COMPAT=y
+>>>>>    CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND=y
+>>>>>
+>>>>> 2. Build the zImage
+>>>>>
+>>>>>    $ ARCH=arm CROSS_COMPILE=... make zImage
+>>>>>
+>>>>> 3. Build the device tree blobs
+>>>>>
+>>>>>    $ ARCH=arm CROSS_COMPILE=... make dtbs
+>>>>>
+>>>>> 4. Append the correct panda dtb to zImage
+>>>>>
+>>>>>    Depending on your hardware it's omap4-panda.dtb, omap4-panda-a4.dtb
+>>>>>    or omap4-panda-es.dtb.
+>>>>>
+>>>>>    $ cat arch/arm/boot/zImage arch/arm/boot/dts/omap4-panda-es.dtb > /tmp/appended
+>>>>>
+>>>>> 5. Use mkimage to produce the appended device tree uImage
+>>>>>
+>>>>>    $ mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x80008000 \
+>>>>>      -n "Linux" -d /tmp/appended /tmp/uImage
+>>>> I followed the above steps and tried devicetree on Pandaboard against
+>>>> 3.10.0-rc3-next-20130528, and the board will hang during boot, but works
+>>>> well with legacy mode.
+>>>>
+>>>>          Hardware: Pandaboard A1
+>>>>          dtb: omap4-panda.dtb
+>>>>
+>>>> See 'dmesg' on below link:
+>>>>
+>>>>          http://kernel.ubuntu.com/~ming/up/panda-dts.dmesg
+>>>>
+>>> Hmm looks like it boots to init. Maybe add initcall_debug to the cmdline in
+>>> case there's some late_initcall that causes the issue. It's probably some
+>>> trivial issue causing it.
+>> Sricharan, maybe give this a quick try if you have the original pandaboard?
+>> I only have pandaboard es.
+>>
+>> Regards,
+>>
+>> Tony 
+>  
+> I tried your cleanup branch omap-for-v3.11/cleanup on panda board and it booted
+>  to prompt fine.
+>             Hardware: Pandaboard A1   dtb: omap4-panda.dtb
+>
+>   git pull on linux-next branch was not working though.
+>
+    Ok, tested in linux-next as well and it booted fine with DTB.
+     HW: OMAP4430ES2.1 PANDA A1 version DTB: OMAP4-PANDA.DTB
+  
+    Booted with ramdisk and mmc FS
 
-Extend the arch operations to add an api which the powerdomain core can
-then use to identify if a voltdm lookup and association for a powerdomain
-is really needed.
+commit c04efed734409f5a44715b54a6ca1b54b0ccf215
+Author: Stephen Rothwell <sfr@canb.auug.org.au>
+Date:   Fri Jun 7 16:40:02 2013 +1000
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/powerdomain.c |    5 +++++
- arch/arm/mach-omap2/powerdomain.h |    2 ++
- 2 files changed, 7 insertions(+)
+    Add linux-next specific files for 20130607
+   
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 86babd7..e233dfc 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -102,6 +102,10 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
- 	if (_pwrdm_lookup(pwrdm->name))
- 		return -EEXIST;
- 
-+	if (arch_pwrdm && arch_pwrdm->pwrdm_has_voltdm)
-+		if (!arch_pwrdm->pwrdm_has_voltdm())
-+			goto skip_voltdm;
-+
- 	voltdm = voltdm_lookup(pwrdm->voltdm.name);
- 	if (!voltdm) {
- 		pr_err("powerdomain: %s: voltagedomain %s does not exist\n",
-@@ -111,6 +115,7 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
- 	pwrdm->voltdm.ptr = voltdm;
- 	INIT_LIST_HEAD(&pwrdm->voltdm_node);
- 	voltdm_add_pwrdm(voltdm, pwrdm);
-+skip_voltdm:
- 	spin_lock_init(&pwrdm->_lock);
- 
- 	list_add(&pwrdm->node, &pwrdm_list);
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index 140c360..8ed89de 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -166,6 +166,7 @@ struct powerdomain {
-  * @pwrdm_disable_hdwr_sar: Disable Hardware Save-Restore feature for a pd
-  * @pwrdm_set_lowpwrstchange: Enable pd transitions from a shallow to deep sleep
-  * @pwrdm_wait_transition: Wait for a pd state transition to complete
-+ * @pwrdm_has_voltdmi: Check if a voltdm association is needed
-  *
-  * Regarding @pwrdm_set_lowpwrstchange: On the OMAP2 and 3-family
-  * chips, a powerdomain's power state is not allowed to directly
-@@ -196,6 +197,7 @@ struct pwrdm_ops {
- 	int	(*pwrdm_disable_hdwr_sar)(struct powerdomain *pwrdm);
- 	int	(*pwrdm_set_lowpwrstchange)(struct powerdomain *pwrdm);
- 	int	(*pwrdm_wait_transition)(struct powerdomain *pwrdm);
-+	int	(*pwrdm_has_voltdm)(void);
- };
- 
- int pwrdm_register_platform_funcs(struct pwrdm_ops *custom_funcs);
--- 
-1.7.9.5
-
+Regards,
+ Sricharan
