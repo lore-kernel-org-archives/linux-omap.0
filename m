@@ -1,11 +1,12 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 1/2] ARM: dts: omap3-beagle-xm: Add USB Host support
-Date: Thu, 13 Jun 2013 15:53:16 +0300
-Message-ID: <1371127997-8089-2-git-send-email-rogerq@ti.com>
+Subject: [PATCH v4 2/2] ARM: dts: omap3-beagle: Make USB host pin naming
+ consistent
+Date: Thu, 13 Jun 2013 15:53:17 +0300
+Message-ID: <1371127997-8089-3-git-send-email-rogerq@ti.com>
 References: <1371127997-8089-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 In-Reply-To: <1371127997-8089-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
@@ -22,53 +23,48 @@ To: b-cousson-l0cyMroinI0@public.gmane.org
 Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-UHJvdmlkZSBSRVNFVCBhbmQgUG93ZXIgcmVndWxhdG9ycyBmb3IgdGhlIFVTQiBQSFksCnRoZSBV
-U0IgSG9zdCBwb3J0IG1vZGUgYW5kIHRoZSBQSFkgZGV2aWNlLgoKQWxzbyBwcm92aWRlIHBpbiBt
-dWx0aXBsZXhlciBpbmZvcm1hdGlvbiBmb3IgVVNCIGhvc3QKcGlucy4KCkNDOiBCZW5vw650IENv
-dXNzb24gPGItY291c3NvbkB0aS5jb20+ClNpZ25lZC1vZmYtYnk6IFJvZ2VyIFF1YWRyb3MgPHJv
-Z2VycUB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cyB8
-ICAgNjEgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiAxIGZpbGVzIGNoYW5nZWQs
-IDYxIGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0v
-Ym9vdC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWJl
-YWdsZS14bS5kdHMKaW5kZXggMWU1ODBkOS4uZDM4MDhlZCAxMDA2NDQKLS0tIGEvYXJjaC9hcm0v
-Ym9vdC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cworKysgYi9hcmNoL2FybS9ib290L2R0cy9vbWFw
-My1iZWFnbGUteG0uZHRzCkBAIC01Nyw2ICs1Nyw1OSBAQAogCQl0aSxtY2JzcCA9IDwmbWNic3Ay
-PjsKIAkJdGksY29kZWMgPSA8JnR3bF9hdWRpbz47CiAJfTsKKworCS8qIEhTIFVTQiBQb3J0IDIg
-UkVTRVQgKi8KKwloc3VzYjJfcmVzZXQ6IGhzdXNiMl9yZXNldF9yZWcgeworCQljb21wYXRpYmxl
-ID0gInJlZ3VsYXRvci1maXhlZCI7CisJCXJlZ3VsYXRvci1uYW1lID0gImhzdXNiMl9yZXNldCI7
-CisJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPDMzMDAwMDA+OworCQlyZWd1bGF0b3ItbWF4
-LW1pY3Jvdm9sdCA9IDwzMzAwMDAwPjsKKwkJZ3BpbyA9IDwmZ3BpbzUgMTkgMD47CS8qIGdwaW9f
-MTQ3ICovCisJCXN0YXJ0dXAtZGVsYXktdXMgPSA8NzAwMDA+OworCQllbmFibGUtYWN0aXZlLWhp
-Z2g7CisJfTsKKworCS8qIEhTIFVTQiBQb3J0IDIgUG93ZXIgKi8KKwloc3VzYjJfcG93ZXI6IGhz
-dXNiMl9wb3dlcl9yZWcgeworCQljb21wYXRpYmxlID0gInJlZ3VsYXRvci1maXhlZCI7CisJCXJl
-Z3VsYXRvci1uYW1lID0gImhzdXNiMl92YnVzIjsKKwkJcmVndWxhdG9yLW1pbi1taWNyb3ZvbHQg
-PSA8MzMwMDAwMD47CisJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDMzMDAwMDA+OworCQln
-cGlvID0gPCZ0d2xfZ3BpbyAxOCAwPjsJLyogR1BJTyBMRURBICovCisJCXN0YXJ0dXAtZGVsYXkt
-dXMgPSA8NzAwMDA+OworCX07CisKKwkvKiBIUyBVU0IgSG9zdCBQSFkgb24gUE9SVCAyICovCisJ
-aHN1c2IyX3BoeTogaHN1c2IyX3BoeSB7CisJCWNvbXBhdGlibGUgPSAidXNiLW5vcC14Y2VpdiI7
-CisJCXJlc2V0LXN1cHBseSA9IDwmaHN1c2IyX3Jlc2V0PjsKKwkJdmNjLXN1cHBseSA9IDwmaHN1
-c2IyX3Bvd2VyPjsKKwl9OworCit9OworCismb21hcDNfcG14X2NvcmUgeworCXBpbmN0cmwtbmFt
-ZXMgPSAiZGVmYXVsdCI7CisJcGluY3RybC0wID0gPAorCQkJJmhzdXNiYjJfcGlucworCT47CisK
-Kwloc3VzYmIyX3BpbnM6IHBpbm11eF9oc3VzYmIyX3BpbnMgeworCQlwaW5jdHJsLXNpbmdsZSxw
-aW5zID0gPAorCQkJMHg1YzAgKFBJTl9PVVRQVVQgfCBNVVhfTU9ERTMpCQkvKiBldGtfZDEwLmhz
-dXNiMl9jbGsgKi8KKwkJCTB4NWMyIChQSU5fT1VUUFVUIHwgTVVYX01PREUzKQkJLyogZXRrX2Qx
-MS5oc3VzYjJfc3RwICovCisJCQkweDVjNCAoUElOX0lOUFVUX1BVTExET1dOIHwgTVVYX01PREUz
-KQkvKiBldGtfZDEyLmhzdXNiMl9kaXIgKi8KKwkJCTB4NWM2IChQSU5fSU5QVVRfUFVMTERPV04g
-fCBNVVhfTU9ERTMpCS8qIGV0a19kMTMuaHN1c2IyX254dCAqLworCQkJMHg1YzggKFBJTl9JTlBV
-VF9QVUxMRE9XTiB8IE1VWF9NT0RFMykJLyogZXRrX2QxNC5oc3VzYjJfZGF0YTAgKi8KKwkJCTB4
-NWNBIChQSU5fSU5QVVRfUFVMTERPV04gfCBNVVhfTU9ERTMpCS8qIGV0a19kMTUuaHN1c2IyX2Rh
-dGExICovCisJCQkweDFhNCAoUElOX0lOUFVUX1BVTExET1dOIHwgTVVYX01PREUzKQkvKiBtY3Nw
-aTFfY3MzLmhzdXNiMl9kYXRhMiAqLworCQkJMHgxYTYgKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1V
-WF9NT0RFMykJLyogbWNzcGkyX2Nsay5oc3VzYjJfZGF0YTcgKi8KKwkJCTB4MWE4IChQSU5fSU5Q
-VVRfUFVMTERPV04gfCBNVVhfTU9ERTMpCS8qIG1jc3BpMl9zaW1vLmhzdXNiMl9kYXRhNCAqLwor
-CQkJMHgxYWEgKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFMykJLyogbWNzcGkyX3NvbWku
-aHN1c2IyX2RhdGE1ICovCisJCQkweDFhYyAoUElOX0lOUFVUX1BVTExET1dOIHwgTVVYX01PREUz
-KQkvKiBtY3NwaTJfY3MwLmhzdXNiMl9kYXRhNiAqLworCQkJMHgxYWUgKFBJTl9JTlBVVF9QVUxM
-RE9XTiB8IE1VWF9NT0RFMykJLyogbWNzcGkyX2NzMS5oc3VzYjJfZGF0YTMgKi8KKwkJPjsKKwl9
-OwogfTsKIAogJmkyYzEgewpAQCAtMTI2LDMgKzE3OSwxMSBAQAogCW1vZGUgPSA8Mz47CiAJcG93
-ZXIgPSA8NTA+OwogfTsKKworJnVzYmhzaG9zdCB7CisJcG9ydDItbW9kZSA9ICJlaGNpLXBoeSI7
-Cit9OworCismdXNiaHNlaGNpIHsKKwlwaHlzID0gPDAgJmhzdXNiMl9waHk+OworfTsKLS0gCjEu
-Ny40LjEKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRl
-dmljZXRyZWUtZGlzY3VzcyBtYWlsaW5nIGxpc3QKZGV2aWNldHJlZS1kaXNjdXNzQGxpc3RzLm96
-bGFicy5vcmcKaHR0cHM6Ly9saXN0cy5vemxhYnMub3JnL2xpc3RpbmZvL2RldmljZXRyZWUtZGlz
-Y3Vzcwo=
+Use a common naming scheme "mode0name.modename flags" for the
+USB host pins to be consistent.
+
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/omap3-beagle.dts |   24 ++++++++++++------------
+ 1 files changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+index 6d47c4b..5d11eb1 100644
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -81,18 +81,18 @@
+ 
+ 	hsusbb2_pins: pinmux_hsusbb2_pins {
+ 		pinctrl-single,pins = <
+-			0x5c0 (PIN_OUTPUT | MUX_MODE3)		/* usbb2_ulpitll_clk.usbb1_ulpiphy_clk */
+-			0x5c2 (PIN_OUTPUT | MUX_MODE3)		/* usbb2_ulpitll_clk.usbb1_ulpiphy_stp */
+-			0x5c4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dir */
+-			0x5c6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_nxt */
+-			0x5c8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat0 */
+-			0x5cA (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat1 */
+-			0x1a4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat2 */
+-			0x1a6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat3 */
+-			0x1a8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat4 */
+-			0x1aa (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat5 */
+-			0x1ac (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat6 */
+-			0x1ae (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat7 */
++			0x5c0 (PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
++			0x5c2 (PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
++			0x5c4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
++			0x5c6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
++			0x5c8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
++			0x5cA (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
++			0x1a4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
++			0x1a6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
++			0x1a8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
++			0x1aa (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_somi.hsusb2_data5 */
++			0x1ac (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs0.hsusb2_data6 */
++			0x1ae (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs1.hsusb2_data3 */
+ 		>;
+ 	};
+ };
+-- 
+1.7.4.1
