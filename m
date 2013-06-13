@@ -1,86 +1,69 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: Request for OMAPDSS testing
-Date: Thu, 13 Jun 2013 19:01:02 +0300
-Message-ID: <51B9ECBE.3010401@ti.com>
-References: <51AD99F5.7060506@ti.com> <51B9EA7B.8070906@compulab.co.il>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [GIT PULL] mailbox driver framework for v3.10 merge window
+Date: Thu, 13 Jun 2013 10:59:15 -0500
+Message-ID: <51B9EC53.8080108@ti.com>
+References: <CAFiDJ5_++vtnrExrRoAbn89GmuKycE_tuWGjPHXTw_E0SycLpg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="----enig2MVRUEPLFELWAMOIXWHVI"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48961 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752088Ab3FMQBW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Jun 2013 12:01:22 -0400
-In-Reply-To: <51B9EA7B.8070906@compulab.co.il>
+Received: from devils.ext.ti.com ([198.47.26.153]:46117 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756904Ab3FMQEv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 12:04:51 -0400
+In-Reply-To: <CAFiDJ5_++vtnrExrRoAbn89GmuKycE_tuWGjPHXTw_E0SycLpg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Thomas Weber <weber@corscience.de>, Mike Rapoport <mike@compulab.co.il>, Steve Sakoman <steve@sakoman.com>, =?windows-1252?Q?Gra=9Evydas_Ignotas?= <notasas@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
+To: "LF.Tan" <lftan.linux@gmail.com>
+Cc: arnd@arndb.de, linux@arm.linux.org.uk, loic.pallardy@st.com, tony@atomide.com, linus.walleij@linaro.org, omar.ramirez@copitl.com, olof@lixom.net, linux-omap@vger.kernel.org, jaswinder.singh@linaro.org
 
-------enig2MVRUEPLFELWAMOIXWHVI
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+Tan,
 
-On 13/06/13 18:51, Igor Grinberg wrote:
-> Hi Tomi,
->=20
-> On 06/04/13 10:40, Tomi Valkeinen wrote:
->> Hi guys,
->=20
->> I've made some big changes on the omapdss device model, which involves=
+On 06/13/2013 06:01 AM, LF.Tan wrote:
+> Hi
+> I would like to add a new mailbox driver with this mailbox framework. 
+> May I know this mailbox framework will available in kernel v3.10 or it
+> is pushed to v3.11?
+> 
+> Thanks.
 
->> converting all the panel drivers. I've got only a bunch of boards, so =
-I
->> hope some of you can perhaps do some minimal tests on some other board=
-s.
->=20
->> I've got: Beagle (old one), Panda, 4430SDP, Overo with LCD43.
->=20
->> The code can be found from the below git branch. It's based on 3.10-rc=
-1.
->=20
->> git://gitorious.org/linux-omap-dss2/linux.git work/dss-dev-model
->=20
-> Works on cm-t3730.
-> Tested with tdo24m LCD and DVI.
+This framework is dropped from v3.10 as this is being reworked and will
+be replaced with a different one that adds atomic context and tx
+callback support [1]. Jassi is working on a newer patchset currently for
+this, but you should be able to get started using [1].
 
-Thanks!
+regards
+Suman
 
-> Although one thing is missing from the tfp410 driver is
-> the PD GPIO polarity. I had to adjust it locally to get the DVI working=
-=2E
-> The original polarity was high =3D disabled, low =3D enabled.
+[1] http://marc.info/?l=linux-kernel&m=136782509309470&w=2
 
-Hmm, but this is missing from the old driver also, isn't it? At least
-with a quick glance the old and new tfp410 drivers do the same thing
-with the PD gpio.
+> 
+> On Friday 03 May 2013 15:39:42 Linus Walleij wrote:
+>> On Fri, May 3, 2013 at 3:25 PM, Arnd Bergmann <a...@arndb.de
+> <mailto:a...@arndb.de>> wrote:
+>> > On Thursday 02 May 2013 17:09:07 Suman Anna wrote:
+>> >>
+>> >> I do not know how much of an impact it is for the ST driver as the
+>> >> series adds the driver, and would have to wait until the RFC is sorted
+>> >> out otherwise.
+>> >
+>> > I think I'd prefer to drop the branch from the 3.10 queue then
+>> > and let you all work out a common approach for 3.11. Olof, any
+>> > other input?
+>> 
+>> This will block all refactoring of the PRCMU driver, which Loic
+>> is working on, and also Ulf Hansson's clock driver. It is basically
+>> the key to breaking that driver apart and distributing it out into
+>> the proper subsystems. Loic has a big patch series for that
+>> for next merge window which will then have to be postponed,
+>> or queued on top of the mailbox work when finished.
+>> 
+>> But maybe it's the right thing to do if the subsystem needs more
+>> work? I have no clear opinion on this, Loic, Ulf?
+> 
+>> I think we can queue them together. I'm certainly fine with the
+>> mailbox subsystem getting merged through both the mfd and arm-soc
+>> trees to avoid conflicts.
+> 
+>>     Arnd
 
- Tomi
-
-
-------enig2MVRUEPLFELWAMOIXWHVI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJRuey+AAoJEPo9qoy8lh71ArkQAKUtnZwU0GFiElFWEfZI2uFn
-pz8URet3WOfHOrogCvwaK7ILRj4BS3THsPYHtWiNx4k+XAk5qD1N81Xvi2o7Z8wB
-Yq0F7FPrj6BUiGj5Jgw66Nj8IJjF6UvvVl2Fx/BtLclpiUmkRYvfvtoJevuitnc+
-tS4zKwCLJVm6cWD3YoRfqlczMmI4X4fU2ASTw+9Q2y1yeoYdmURTqo9NtMIwMhBY
-qTKn0U7fpi4sVyMEFl3Xzkfc8I93tVsZKwDdQqBFhPgbduhdPsrFFpJHjR+Ch+Gx
-aY4j4GotofFrY2xNnrNgi9icc0zbRYhEXxUV/EGQq2GUDP8xEuVmlCGucuxTS00z
-1UC4zkvLo1J93HBKIeX24HMzPGUWP7C15Tr9Vnl7HI4RQf4RAZouen8JSHRX/eWa
-sx94Gf4L7JEI0wcBLhEox63nxytdT7z6MGHtwJcHk+MduIBfU3zMOsFK0HVXTilM
-wdhUPLZmmOu76eXPaqoVVPdrJmkD+QNLE4OyDofISPcDY5Q77c68jp/cDHwyVTqI
-gyL7WbN3OuFeny6StIFpDS5OGuz+9+JfzeWiXaeGzsp3FpIB+c9NQ3JH0Fu/3s2N
-sRToNcsnVvY+IFpTtuchJ11bGNvvbT2vZPYwAq76jqd+DLwhXABqXN8hcKpjkch2
-v7vZ0VFnKXl4zWvccahM
-=rPnU
------END PGP SIGNATURE-----
-
-------enig2MVRUEPLFELWAMOIXWHVI--
