@@ -1,54 +1,61 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [GIT PULL 6/6] omap5 data for v3.11 merge window
-Date: Thu, 13 Jun 2013 09:28:52 -0400
-Message-ID: <51B9C914.5070300@ti.com>
-References: <E1Umpk8-0005eT-9e@merlin.infradead.org> <51B8DA4A.3020106@ti.com>
- <20130613111538.GE8164@atomide.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH 2/6] ARM: OMAP2+: Remove board-omap4panda.c
+Date: Thu, 13 Jun 2013 21:36:59 +0800
+Message-ID: <CACVXFVPzf92Q4ZN_EpoKH7fgLWAg9M=ATUMKnWuKdpTvhU9C-w@mail.gmail.com>
+References: <20130517191304.468.73487.stgit@localhost>
+	<20130517191753.468.1734.stgit@localhost>
+	<CACVXFVOp6n3RhZnWD_hRxqE8a8amPA5SRWfkVhz+yCGZTtGjvQ@mail.gmail.com>
+	<20130612163124.GD8164@atomide.com>
+	<20130612171407.GM8164@atomide.com>
+	<51B98F1E.1000006@ti.com>
+	<51B99B07.1050806@ti.com>
+	<20130613110537.GC8164@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130613111538.GE8164@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vc0-f169.google.com ([209.85.220.169]:33573 "EHLO
+	mail-vc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758215Ab3FMNhB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jun 2013 09:37:01 -0400
+Received: by mail-vc0-f169.google.com with SMTP id ia10so7306703vcb.0
+        for <linux-omap@vger.kernel.org>; Thu, 13 Jun 2013 06:37:00 -0700 (PDT)
+In-Reply-To: <20130613110537.GC8164@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sricharan R <r.sricharan@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Thursday 13 June 2013 07:15 AM, Tony Lindgren wrote:
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130612 13:36]:
->> On Wednesday 12 June 2013 02:24 PM, Tony Lindgren wrote:
->>> The following changes since commit 317ddd256b9c24b0d78fa8018f80f1e495481a10:
->>>
->>>   Linux 3.10-rc5 (2013-06-08 17:41:04 -0700)
->>>
->>> are available in the git repository at:
->>>
->>>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/omap5-signed
->>>
->>> for you to fetch changes up to 6503a8e109a639760408f874c1251060d563942e:
->>>
->>>   ARM: OMAP5: Remove unused include for ocp2scp (2013-06-09 21:17:15 -0700)
->>>
->>> ----------------------------------------------------------------
->>
->> [..]
->>
->>> Basic test logs are available here, although not for OMAP5,
->>> since I don't have an OMAP5 board:
->> You happen to mention that you got one OMAP5 board form David A ?
-> 
-> Oh yes I got one from David thanks, but these are the comments from
-> Paul's signed tag though, not my comments.
+On Thu, Jun 13, 2013 at 7:05 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Sricharan R <r.sricharan@ti.com> [130613 03:18]:
+>> >
+>> > I tried your cleanup branch omap-for-v3.11/cleanup on panda board and it booted
+>> >  to prompt fine.
+>> >             Hardware: Pandaboard A1   dtb: omap4-panda.dtb
 >
-OK. I thought otherwise. Thanks and sorry for noise.
+> OK thanks for testing.
+>
+>> >   git pull on linux-next branch was not working though.
+>> >
+>>     Ok, tested in linux-next as well and it booted fine with DTB.
+>>      HW: OMAP4430ES2.1 PANDA A1 version DTB: OMAP4-PANDA.DTB
+>>
+>>     Booted with ramdisk and mmc FS
+>>
+>> commit c04efed734409f5a44715b54a6ca1b54b0ccf215
+>> Author: Stephen Rothwell <sfr@canb.auug.org.au>
+>> Date:   Fri Jun 7 16:40:02 2013 +1000
+>>
+>>     Add linux-next specific files for 20130607
+>
+> OK thanks for testing that too. I don't think these patches are
+> in linux-next yet. But still good to hear it works.
+>
+> Ming Lei, any further info on your board?
 
-Regards,
-Santosh
+OK, I will test the latest next tree to see if my board can work, and
+post the result.
+
+
+Thanks,
+-- 
+Ming Lei
