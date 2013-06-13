@@ -1,56 +1,34 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v2 06/10] mmc: omap_hsmmc: add support for pbias
- configuration in dt
-Date: Thu, 13 Jun 2013 14:39:53 +0200
-Message-ID: <CACRpkdbQPqbMdFo6kTEriY4DhLcyZBA7Umxjvdh9OGVHJJe4dw@mail.gmail.com>
-References: <20130523184045.GD13507@atomide.com>
-	<1370546059-24181-1-git-send-email-balajitk@ti.com>
-	<1370546059-24181-7-git-send-email-balajitk@ti.com>
-	<CACRpkdZAzAJW0UxGCSj-PWXTSi2Q6T8fqL9SQ+Y-91sELQ3SRQ@mail.gmail.com>
-	<20130613095353.GX8164@atomide.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v4 0/2] ARM: dts: Add USB host support for Beagle-xm
+Date: Thu, 13 Jun 2013 15:53:15 +0300
+Message-ID: <1371127997-8089-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20130613095353.GX8164@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Balaji T K <balajitk@ti.com>, Lee Jones <lee.jones@linaro.org>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: b-cousson-l0cyMroinI0@public.gmane.org
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 13, 2013 at 11:53 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Linus Walleij <linus.walleij@linaro.org> [130613 02:42]:
->> On Thu, Jun 6, 2013 at 9:14 PM, Balaji T K <balajitk@ti.com> wrote:
->> > +       /* 100ms delay required for PBIAS configuration */
->> > +       msleep(100);
->> > +       if (!vdd && host->pinctrl && host->pbias_off) {
->> > +               ret = pinctrl_select_state(host->pinctrl, host->pbias_off);
->> > +               if (ret < 0)
->> > +                       dev_err(host->dev, "pinctrl pbias_off select error\n");
->> > +       } else if (((1 << vdd) <= MMC_VDD_165_195) && host->pinctrl &&
->> > +                       host->pbias_1v8) {
->> > +               ret = pinctrl_select_state(host->pinctrl, host->pbias_1v8);
->> > +               if (ret < 0)
->> > +                       dev_err(host->dev, "pinctrl pbias_1v8 select error\n");
->> > +       } else if (((1 << vdd) > MMC_VDD_165_195) && host->pinctrl &&
->> > +                       host->pbias_3v) {
->> > +               ret = pinctrl_select_state(host->pinctrl, host->pbias_3v);
->> > +               if (ret < 0)
->> > +                       dev_err(host->dev, "pinctrl pbias_3v select error\n");
->> > +       }
->>
->> So why does the pin control API control bias voltage?
->
-> I agree, it should be a regulator for the MMC driver and that's what I
-> already suggested earlier. Having it as a regulator allows us to get
-> rid of all the non-standard before and after calls in the omap_hsmmc.c.
-> This way the omap_hsmmc.c code can handle the internal and external
-> voltages the same way.
+Adds USB host support for Beagle-xm.
 
-So someone is not taking the OMAP maintainers word for it and
-instead trying to push this past the pinctrl maintainer?
+Roger Quadros (2):
+  ARM: dts: omap3-beagle-xm: Add USB Host support
+  ARM: dts: omap3-beagle: Make USB host pin naming consistent
 
-Grrr.... OK I'll assume good faith and I therefore conclude that
-this must have been just some kind of mistake in the act.
+ arch/arm/boot/dts/omap3-beagle-xm.dts |   61 +++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-beagle.dts    |   24 ++++++------
+ 2 files changed, 73 insertions(+), 12 deletions(-)
 
-Yours,
-Linus Walleij
+-- 
+1.7.4.1
