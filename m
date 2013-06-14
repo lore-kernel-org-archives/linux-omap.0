@@ -1,50 +1,55 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH] ARM: OMAP5: Fix omap5 standalone build break
-Date: Fri, 14 Jun 2013 14:41:46 +0530
-Message-ID: <1371201107-20929-1-git-send-email-rnayak@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [RFC PATCH 1/4] arm: omap: Add phy binding info for musb in plat
+ data
+Date: Fri, 14 Jun 2013 14:51:27 +0530
+Message-ID: <51BAE097.2020609@ti.com>
+References: <1368796954-3499-1-git-send-email-kishon@ti.com> <51A43E0A.8090201@ti.com> <51B9C3B6.1080707@ti.com> <51BAABB0.5060107@ti.com> <20130614054720.GL8164@atomide.com> <51BAB9EA.5090805@ti.com> <20130614073314.GA20992@atomide.com> <51BAD181.3020902@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41005 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751024Ab3FNJMa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Jun 2013 05:12:30 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51BAD181.3020902@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, balbi@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Building omap5 standalone results in the below errors..
+Hi,
 
-arch/arm/mach-omap2/built-in.o: In function `scu_gp_set':
-arch/arm/mach-omap2/sleep44xx.S:132: undefined reference to `scu_power_mode'
-arch/arm/mach-omap2/built-in.o: In function `scu_gp_clear':
-arch/arm/mach-omap2/sleep44xx.S:229: undefined reference to `scu_power_mode'
-arch/arm/mach-omap2/built-in.o: In function `omap4_smp_prepare_cpus':
-arch/arm/mach-omap2/omap-smp.c:211: undefined reference to `scu_enable'
-arch/arm/mach-omap2/built-in.o: In function `omap4_smp_init_cpus':
-arch/arm/mach-omap2/omap-smp.c:185: undefined reference to `scu_get_core_count'
+On Friday 14 June 2013 01:47 PM, Tomi Valkeinen wrote:
+> On 14/06/13 10:33, Tony Lindgren wrote:
+>
+>> If we want to fix something this late in the merge window, the patches
+>> must have a clear description what caused the regression and what happens
+>> without the patches. These patches don't have that. And they are marked
+>> RFC also. So actually I'm not applying any of them before the regression
+>> descriptions are there and the patches have been reposted without RFC
+>> and have sufficient acks from people.
 
-Fix this by adding the missing select for HAVE_ARM_SCU for SOC_OMAP5
+I posted this as RFC since this series uses _label_ and initially Felipe 
+din't want to find PHYs by _label_.
+After the device names are created using PLATFORM_DEVID_AUTO, our 
+original method of binding by device names doesn't work reliable (since 
+the device name changes). And I couldn't think of any other way to find 
+the PHY other than using _label_. So I just wanted to know if it's ok to 
+use _label_ or if there is any other better way to find PHYs.
 
-Reported-by: Pekon Gupta <pekon@ti.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+>
+> No disagreement there.
+>
+> Kishon, I tested the patches on top of v3.10-rc5, booting with nfs root
+> via usb gadget eth:
+>
+> Overo: works
+> Beagle: works, but I need to reconnect the usb cable after kernel is up
+> Beagle-xm: doesn't work. The cable is detected correctly, though
+> Panda: works
+>
+> The problems with Beagles are there even without these patches, so they
+> do make things better (fix Overo).
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index f49cd51..81690a2 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -109,6 +109,7 @@ config SOC_OMAP5
- 	select ARM_CPU_SUSPEND if PM
- 	select ARM_GIC
- 	select CPU_V7
-+	select HAVE_ARM_SCU if SMP
- 	select HAVE_SMP
- 	select COMMON_CLK
- 	select HAVE_ARM_ARCH_TIMER
--- 
-1.7.9.5
+Thanks for testing this. I'll post a new version removing RFC after 
+Felipe ACKs it.
 
+Thanks
+Kishon
