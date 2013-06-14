@@ -1,36 +1,49 @@
-From: Illia Smyrnov <x0194613@ti.com>
-Subject: Re: [PATCH v2 2/2] spi: omap2-mcspi: Add FIFO buffer support
-Date: Fri, 14 Jun 2013 19:16:12 +0300
-Message-ID: <51BB41CC.9080403@ti.com>
-References: <1370970556-11713-1-git-send-email-illia.smyrnov@ti.com> <1370970556-11713-3-git-send-email-illia.smyrnov@ti.com> <20130612154755.GJ1403@sirena.org.uk>
+From: Joel A Fernandes <agnel.joel@gmail.com>
+Subject: Re: [PATCH v2 0/3] omap_hsmmc DT DMA Client support
+Date: Fri, 14 Jun 2013 13:10:11 -0500
+Message-ID: <CAD=GYpbmFyZxwpRwSVjasehhmR5UzMQaGCZf_5Gfo9biQyb0Ww@mail.gmail.com>
+References: <1362518004-7083-1-git-send-email-mporter@ti.com>
+	<201303052126.01572.arnd@arndb.de>
+	<20130306133717.GJ6209@beef>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130612154755.GJ1403@sirena.org.uk>
-Sender: linux-doc-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Illia Smyrnov <illia.smyrnov@ti.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Daniel Mack <zonque@gmail.com>, Matthias Brugger <matthias.bgg@gmail.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130306133717.GJ6209@beef>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matt Porter <mporter@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Linux OMAP List <linux-omap@vger.kernel.org>, Balaji T K <balajitk@ti.com>, Vinod Koul <vinod.koul@intel.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Dan Williams <djbw@fb.com>, Chris Ball <cjb@laptop.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
+On Wed, Mar 6, 2013 at 7:37 AM, Matt Porter <mporter@ti.com> wrote:
+> On Tue, Mar 05, 2013 at 09:26:01PM +0000, Arnd Bergmann wrote:
+>> On Tuesday 05 March 2013, Matt Porter wrote:
+>> > Changes since v1:
+>> >         - rebase to 3.9-rc1, previous dependencies upstream
+>> >
+>> > This series adds DT DMA Engine Client support to the omap_hsmmc.
+>> > It leverages the generic DMA OF helpers in -next and the
+>> > dma_request_slave_channel_compat() wrapper introduced in the
+>> > AM33XX DMA Engine series to support DMA in omap_hsmmc on platforms
+>> > booting via DT. These platforms include omap2/3/4/5 and am33xx.
+>> >
+>> > These patches were split out from the v5 version of the AM33XX DMA
+>> > series and split from the EDMA-specific omap_hsmmc changes.
+>> >
+>>
+>> The description seems stale, but the patches all look good to me.
+>>
+>> I guess they can now get merged in any order.
+>>
+>> Acked-by: Arnd Bergmann <arnd@arndb.de>
+>
+> Yes, missed updating that to indicating that those are now in
+> 3.9-rc1.
 
-On 06/12/2013 06:47 PM, Mark Brown wrote:
-> On Tue, Jun 11, 2013 at 08:09:15PM +0300, Illia Smyrnov wrote:
->> The MCSPI controller has a built-in FIFO buffer to unload the DMA or interrupt
->> handler and improve data throughput. This patch adds FIFO buffer support for SPI
->> transfers in DMA mode.
->
->> The FIFO could be enabled for SPI module by setting up the "ti,spi-fifo-enabled"
->> configuration parameter in DT.
->> If FIFO enabled, the largest possible FIFO buffer size will be calculated and
->> setup for each SPI transfer. Even if the FIFO is enabled in DT, it won't be used
->> for the SPI transfers when: calculated FIFO buffer size is less then 2 bytes or
->> the FIFO buffer size isn't multiple of the SPI word length.
->
-> Why is the default to disable the FIFO?
->
+If there are no more changes, could this patch please be merged in for
+3.10 or if not, could Matt please update the description as requested
+and repost?
 
-I have changed this and sent v3 patches of the MCSPI FIFO support 
-implementation. In this version driver set up the FIFO (if possible) for 
-all the SPI transfers in DMA mode.
+Thanks,
+Joel
