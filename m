@@ -1,170 +1,79 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] mmc: omap_hsmmc: Remux pins to support SDIO
- interrupt and PM runtime
-Date: Fri, 14 Jun 2013 00:40:09 -0700
-Message-ID: <20130614074009.GC20992@atomide.com>
-References: <20130607214557.18581.75288.stgit@localhost>
- <20130607214957.18581.90624.stgit@localhost>
- <CACRpkdZ5CUvULBFpdHZ_AMotqfUdBcAQ63+8cT+r6TZ77bUWOA@mail.gmail.com>
- <20130610162356.GL8164@atomide.com>
- <CACRpkdaEjLzXfA3HX5mra0Mjheia4e2O3kbvikeZQRsNczS7kg@mail.gmail.com>
- <20130612132144.GP8164@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC PATCH 1/4] arm: omap: Add phy binding info for musb in plat
+ data
+Date: Fri, 14 Jun 2013 11:17:05 +0300
+Message-ID: <51BAD181.3020902@ti.com>
+References: <1368796954-3499-1-git-send-email-kishon@ti.com> <51A43E0A.8090201@ti.com> <51B9C3B6.1080707@ti.com> <51BAABB0.5060107@ti.com> <20130614054720.GL8164@atomide.com> <51BAB9EA.5090805@ti.com> <20130614073314.GA20992@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:54341 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752155Ab3FNHkO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jun 2013 03:40:14 -0400
-Content-Disposition: inline
-In-Reply-To: <20130612132144.GP8164@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="----enig2HNHPTJIVANKBMVEBWGEE"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130614073314.GA20992-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Kevin Hilman <khilman@linaro.org>, Chris Ball <cjb@laptop.org>, Balaji T K <balajitk@ti.com>, Andreas Fenkart <afenkart@gmail.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Brown <broonie@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-* Tony Lindgren <tony@atomide.com> [130612 06:27]:
-> * Linus Walleij <linus.walleij@linaro.org> [130611 01:00]:
-> > If we can agree on this I will add the active state to the
-> > state table and add a container in the core for this as well
-> > as pinctrl_pm_select_active_state() so we can skip all the
-> > pointless boilerplate also in the OMAP drivers, plus increase
-> > the readability and portability quite a bit.
-> 
-> Sounds good to me as long as we don't always need to select
-> the default pins over and over in PM runtime_resume.
+------enig2HNHPTJIVANKBMVEBWGEE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Here's this patch updated for pinctrl next with the active state
-added. This patch should be merged separately towards the end
-of the merge window once pinctrl code has been merged. The other
-three patches can be merged independently.
+On 14/06/13 10:33, Tony Lindgren wrote:
 
-Regards,
+> If we want to fix something this late in the merge window, the patches
+> must have a clear description what caused the regression and what happe=
+ns
+> without the patches. These patches don't have that. And they are marked=
 
-Tony
+> RFC also. So actually I'm not applying any of them before the regressio=
+n
+> descriptions are there and the patches have been reposted without RFC
+> and have sufficient acks from people.
+
+No disagreement there.
+
+Kishon, I tested the patches on top of v3.10-rc5, booting with nfs root
+via usb gadget eth:
+
+Overo: works
+Beagle: works, but I need to reconnect the usb cable after kernel is up
+Beagle-xm: doesn't work. The cable is detected correctly, though
+Panda: works
+
+The problems with Beagles are there even without these patches, so they
+do make things better (fix Overo).
+
+ Tomi
 
 
-From: Tony Lindgren <tony@atomide.com>
-Date: Thu, 13 Jun 2013 23:19:09 -0700
-Subject: [PATCH] mmc: omap_hsmmc: Remux pins to support SDIO interrupt and PM runtime
 
-On some omaps we need to remux MMC pins for PM, and for some omaps
-we need to remux the SDIO IRQ pin.
+------enig2HNHPTJIVANKBMVEBWGEE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-Based on an earlier patch by Andreas Fenkart <afenkart@gmail.com>.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-Cc: Andreas Fenkart <afenkart@gmail.com>
-Cc: Balaji T K <balajitk@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+iQIcBAEBAgAGBQJRutGBAAoJEPo9qoy8lh710rIQAJH7MGB/33pOFZXA+xWhWZiI
+u2EBcMjobB6R5PSvuQVZtE39fPDf8Z+p0D2E+2/FKTS4uzrFFVmXw2NgVSfcO/Ny
+GFWTlgls8K9j/BZJ0AaM9YywDUthc/xrb946YHCORKkPH9AaqIJWlqHQIDWx20Cb
+dK6bKmqbuCtq+ci9IV8rBfOpbV3N7PzyajNyZxLhsc+6qVrWkjnLYB8skuP2KaGE
+71V3Tghvgtw+ZlENQXE1+/VO54XNNljuzQ7nOfhflHDBg0phwEd5DiHFlBa+9c6B
+wh9/8kC7iMiMCMTMWLEbHZFw8wroh57PckFjOvbRgH78BqNSaaKMFvAwppjoCFn8
+Ih6D1JfuT8h7tue7mMzEhirabXqmEj1XNGYjT8bMSqAHDkviE+VjrqG3mm06PBCk
+sdSvvZjw+ZJeVKEtx8JFXTDMDGuMZQ7T+gC4wg+Vzl1J5XQy0vU3EmqENRS3bDLK
+JzfUBPrCMfEqimrIc4DXnXcSRpPMsw4ajTPBHwuhGh29TXi+awDJl7yxi5gpUZDJ
+S55j5vixv+36E6U3PCHpeHlaYsFXbgKoaogrd/Z54xswejRe1e1RY0S7nucWK+6d
+NlQnbplCoNwG51G8lbsSbDJQhqypDkTCHP932vOV56TtXCYAbO9opaVgSDLqb3FA
+4wzlDDJNUsEOn8EFKUG/
+=sJcQ
+-----END PGP SIGNATURE-----
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 6377836..7029d34 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -475,6 +475,39 @@ static void omap_hsmmc_gpio_free(struct omap_mmc_platform_data *pdata)
- 		gpio_free(pdata->slots[0].gpio_cirq);
- }
- 
-+static int omap_hsmmc_pinctrl_init(struct omap_hsmmc_host *host)
-+{
-+	struct device *dev = mmc_dev(host->mmc);
-+	int res, found = 0;
-+
-+	if (!dev->pins)
-+		return 0;
-+
-+	/*
-+	 * The active and idle pins are optional, and used for
-+	 * SDIO interrupt, or eMMC pulls for off-idle.
-+	 */
-+	if (IS_ERR(dev->pins->active_state) ||
-+	    IS_ERR(dev->pins->idle_state)) {
-+		return 0;
-+	}
-+
-+	/* Let's make sure the idle and active states work */
-+	res = pinctrl_pm_select_idle_state(dev);
-+	if (res < 0)
-+		return -ENODEV;
-+	found++;
-+
-+	res = pinctrl_pm_select_active_state(dev);
-+	if (res < 0)
-+		return -ENODEV;
-+	found++;
-+
-+	dev_info(mmc_dev(dev), "pins configured for dynamic remuxing\n");
-+
-+	return found;
-+}
-+
- /*
-  * Start clock to the card
-  */
-@@ -1868,7 +1901,6 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 	const struct of_device_id *match;
- 	dma_cap_mask_t mask;
- 	unsigned tx_req, rx_req;
--	struct pinctrl *pinctrl;
- 
- 	match = of_match_device(of_match_ptr(omap_mmc_of_match), &pdev->dev);
- 	if (match) {
-@@ -2101,21 +2133,19 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 
- 	omap_hsmmc_disable_irq(host);
- 
--	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
--	if (IS_ERR(pinctrl))
--		dev_warn(&pdev->dev,
--			"pins are not configured from the driver\n");
--
- 	/*
--	 * For now, only support SDIO interrupt if we are doing
--	 * muxing of dat1 when booted with DT. This is because the
-+	 * For now, only support SDIO interrupt if we are doing dynamic
-+	 * remuxing of dat1 when booted with DT. This is because the
- 	 * supposedly the wake-up events for CTPL don't work from deeper
- 	 * idle states. And we don't want to add new legacy mux platform
- 	 * init code callbacks any longer as we are moving to DT based
- 	 * booting anyways.
- 	 */
- 	if (match) {
--		if (!IS_ERR(pinctrl) && mmc_slot(host).sdio_irq)
-+		ret = omap_hsmmc_pinctrl_init(host);
-+		if (ret < 0)
-+			goto err_pinctrl_state;
-+		else if (ret > 1 && mmc_slot(host).sdio_irq)
- 			mmc->caps |= MMC_CAP_SDIO_IRQ;
- 	}
- 
-@@ -2143,6 +2173,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 
- err_slot_name:
- 	mmc_remove_host(mmc);
-+err_pinctrl_state:
- 	if ((mmc_slot(host).sdio_irq))
- 		free_irq(mmc_slot(host).sdio_irq, host);
- err_irq_sdio:
-@@ -2337,6 +2368,10 @@ static int omap_hsmmc_runtime_suspend(struct device *dev)
- 		OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
- 		spin_unlock_irqrestore(&host->irq_lock, flags);
- 
-+		ret = pinctrl_pm_select_idle_state(dev);
-+		if (ret < 0)
-+			dev_err(dev, "Unable to select idle pinmux\n");
-+
- 		if (mmc_slot(host).sdio_irq)
- 			enable_irq(mmc_slot(host).sdio_irq);
- 	}
-@@ -2360,6 +2395,10 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
- 		if (mmc_slot(host).sdio_irq)
- 			disable_irq(mmc_slot(host).sdio_irq);
- 
-+		ret = pinctrl_pm_select_active_state(dev);
-+		if (ret < 0)
-+			dev_err(dev, "Unable to select active pinmux\n");
-+
- 		spin_lock_irqsave(&host->irq_lock, flags);
- 		host->active_pinmux = true;
- 
+------enig2HNHPTJIVANKBMVEBWGEE--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
