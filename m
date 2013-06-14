@@ -1,101 +1,88 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: N900 device tree conversion: how to do first step
-Date: Thu, 13 Jun 2013 22:56:29 -0700
-Message-ID: <20130614055629.GM8164@atomide.com>
-References: <20130609015944.GA23559@amd.pavel.ucw.cz>
- <20130609201119.GA3190@blackmetal.musicnaut.iki.fi>
- <20130613132624.GA3464@amd.pavel.ucw.cz>
- <20130613141001.GF8164@atomide.com>
- <20130613142809.GA3775@amd.pavel.ucw.cz>
- <20130613145724.GH8164@atomide.com>
- <20130613155240.GB3775@amd.pavel.ucw.cz>
- <20130613161418.GJ8164@atomide.com>
- <20130613230808.GA14876@amd.pavel.ucw.cz>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [RFC PATCH 1/4] arm: omap: Add phy binding info for musb in plat
+ data
+Date: Fri, 14 Jun 2013 09:36:26 +0300
+Message-ID: <51BAB9EA.5090805@ti.com>
+References: <1368796954-3499-1-git-send-email-kishon@ti.com> <51A43E0A.8090201@ti.com> <51B9C3B6.1080707@ti.com> <51BAABB0.5060107@ti.com> <20130614054720.GL8164@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130613230808.GA14876@amd.pavel.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="----enig2LWTHKMTPTSUPGLMFEARV"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:33532 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751622Ab3FNGhE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Jun 2013 02:37:04 -0400
+In-Reply-To: <20130614054720.GL8164@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, balbi@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org
 
-* Pavel Machek <pavel@ucw.cz> [130613 16:14]:
-> Hi!
-> 
-> > > Now, by chance, any idea what is DT equivalent of 
-> > > 
-> > > omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-> > 
-> > You can try the attached hack after calling the above to grep for
-> > pins in /sys/kernel/debug/omap_mux/board/core and you get the pins
-> > in DT suitable format. There's a bug where the the pins are not
-> > correctly split between core and wkup domains in the legacy mux fwk,
-> > but you probably won't need to mux many wkup domain pins.
-> > 
-> > Then you just need to add the pinctr-single entries for each device,
-> > but AFAIK most of the pins are muxed correctly in the bootloader
-> > for the Nokia boards.
-> 
-> Thanks a lot for the help. So far, I'm not playing with
-> suspend/resume, so wkup/core split should not be issue (right?).
+------enig2LWTHKMTPTSUPGLMFEARV
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Well if you have any wkup mux registers mapped for core mux,
-pinctrl-single will complain about offset being out of range
-and not set the values. You can see that in dmesg, or at least
-with CONFIG_DEBUG_PINCTRL set.
- 
-> How does it work with the devices? AFAICT omap4 groups it logically,
-> but that's just for easy reading, no?
+On 14/06/13 08:47, Tony Lindgren wrote:
+> * Kishon Vijay Abraham I <kishon@ti.com> [130613 22:41]:
+>> Hi,
+>>
+>> On Thursday 13 June 2013 06:35 PM, Tomi Valkeinen wrote:
+>>> Hi,
+>>>
+>>> On 28/05/13 08:18, Kishon Vijay Abraham I wrote:
+>>>> Hi Tony,
+>>>>
+>>>> On Friday 17 May 2013 06:52 PM, Kishon Vijay Abraham I wrote:
+>>>>> In order for controllers to get PHY in case of non dt boot, the phy=
 
-No, there really are two instances of mux registers even on omap3,
-but I missed that earlier while reading the docs, and with the legacy
-mux framework it does not matter which mux domain it is. But it
-matters for pinctrl-single as it ioremaps the ranges separately.
- 
-> I tried this, but no luck, mux is not initialized correctly, so code
-> in board-rx51-video fails, and later fbcon crashes.
-> 
-> Any ideas?
+>>>>> binding information (phy label) should be added in the platform
+>>>>> data of the controller.
+>>>>
+>>>> This series would be needed to get MUSB working in OMAP3 boards for
+>>>> non-dt boot case. Do you think this is good enough to go in this rc =
+cycle?
+>>>
+>>> Did this or some other solution go forward? I'm still unable to boot
+>>> with usb-gadget-ethernet with v3.10-rc5.
+>>
+>> No. I think Tony is ok to take this only during next merge window.
+>=20
+> Yes I'll apply them to omap-for-v3.11/fixes-non-critical. We really
+> should have basic functionaly tested and working always before the
+> merge window so we only need to do minimal fixes during the -rc cycle.
 
-You may have some wkup mux domain offsets in your .dts file, so
-pinctrl-single will abort the muxing.
+I'm mostly interested in the USB gadget ethernet for the boards I have,
+but if I'm not mistaken, all USB gadget support for many OMAP boards is
+broken in v3.10. Shouldn't that be fixed, no matter if it's a minimal
+fix or not? Or is there some other, more minimal, way to fix this?
 
-> --- a/arch/arm/boot/dts/omap3-n900.dts
-> +++ b/arch/arm/boot/dts/omap3-n900.dts
-> @@ -81,3 +81,218 @@
->  	power = <50>;
->  };
->  */
-> +
-> +
-> +
-> +&omap3_pmx_core {
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <
-> +			&all_pins
-> +		>;
-> +
-> +		all_pins: pinmux_all_pins {
-> +		    pinctrl-single,pins = <
-> +			0xe6 0x4104	/* cam_d0.gpio_99 gpio99 INPUT | OFF_WAKEUPENABLE | MODE4 */
-> +			0xe8 0x11c	/* cam_d1.gpio_100 gpio100 INPUT_PULLUP | MODE4 */
-> +			0xfa 0x7	/* cam_d10.safe_mode gpio109 OUTPUT | MODE7 */
-...
+ Tomi
 
-This is not a good way of doing muxing, hogging all the pins under
-omap3_pmx_core will make it impossible to unload pinctrl-single
-as a module, which is not nice for distros and developers.
 
-Further, if some pins need dynamic remuxing, we can't do it in
-the device driver for the device. For n900, dynamic remuxing needs
-to be done for eMMC at least, see rx51_mmc2_remux().
 
-Also, see the recent patches that Benoit has queued to use the
-preprocessor for the .dts files, we should modify the legacy mux
-dump hack to output the mux mode defines instead.
+------enig2LWTHKMTPTSUPGLMFEARV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-Regards,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-Tony
+iQIcBAEBAgAGBQJRurntAAoJEPo9qoy8lh71N4cP/R7ASm0PjLDbXvV7Di89b7EB
+h7ntvTdEHXgB/9Y8qWg3lEoX+rdYfBljvI+c8vwSd/Rlydof1Ij7Xt+8j6sRC15d
+FcWlvDN060vZGpoPp6d1Dy67HowoTm3QcRtJFFmkiLeM1+otpF/7QmjdtSot6M60
+KezKX1+TGrZhDKIjRanM9alMF5ruUquc8jlaQGqPPM7SZzjq4zCuN92ilqFJFDpv
+yywCCupBN+ylOGhdmQYVXPLRItpurY733EUi4/anJnCHCzo2DCL9SBQ+VRR44esg
+EQPUa7OFZqKI3JivcMbV+ScX9Frti7RweU6qnnBTFLi1SWROUCLTTxTmS5fRPaqb
+jiPkoGOMdR41srKMI5hCrvpsR5AXqDT4NmUsgb2PcwzHUJ9IzByOGLUhAuVbdQwU
+GQSfu3NduQv9p8EHDfI7H+dEFu7HIAYOcQKqN4maMJJwxKSp55DOP/2KfdcEinDZ
+Gs7Py3PAogP39ETeKzz5YEPSR/ACi1CJjJFzZCcTYT2sT6RmAK8iYL6zkKJkutM+
+TwBvOYF8d6Cw31caX882NRHT9l2Tv+CRWcwSdH/Jq/hlnCRQs2e3ABijoUtQXjfx
++fyz+JPZGl7uSA1GPGTI//7SQIojOjkiqp60WfStxd6OEtSUgHlF64pDQs/G8fx4
+qx3roYyXxPqVzxeJdu5k
+=POe6
+-----END PGP SIGNATURE-----
+
+------enig2LWTHKMTPTSUPGLMFEARV--
