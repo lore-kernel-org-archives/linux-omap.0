@@ -1,79 +1,187 @@
-From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH 1/4] arm: omap: Add phy binding info for musb in plat
- data
-Date: Fri, 14 Jun 2013 11:17:05 +0300
-Message-ID: <51BAD181.3020902@ti.com>
-References: <1368796954-3499-1-git-send-email-kishon@ti.com> <51A43E0A.8090201@ti.com> <51B9C3B6.1080707@ti.com> <51BAABB0.5060107@ti.com> <20130614054720.GL8164@atomide.com> <51BAB9EA.5090805@ti.com> <20130614073314.GA20992@atomide.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2] extcon: Add an API to get extcon device from dt node
+Date: Fri, 14 Jun 2013 14:06:33 +0530
+Message-ID: <51BAD611.1070306@ti.com>
+References: <1370276020-17446-2-git-send-email-kishon@ti.com>
+ <1371194146-17260-1-git-send-email-cw00.choi@samsung.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="----enig2HNHPTJIVANKBMVEBWGEE"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130614073314.GA20992-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1371194146-17260-1-git-send-email-cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Cc: pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, anish198519851985-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-------enig2HNHPTJIVANKBMVEBWGEE
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On 14/06/13 10:33, Tony Lindgren wrote:
+On Friday 14 June 2013 12:45 PM, Chanwoo Choi wrote:
+> From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>
+> Added an API of_extcon_get_extcon_dev() to be used by drivers to get
+> extcon device in the case of dt boot (this can be used instead of
+> extcon_get_extcon_dev()).
+>
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+> Signed-off-by: Myungjoo Ham <myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+> ---
+> Changes since v1:
+> - If edev->name is NULL, dev_name(dev) is used as edev->name.
+> - Change filename from of-extcon.* to of_extcon.*
+> - Fix build error when CONFIG_OF is not set
+> - Add header file(linux/err.h) to of_extcon.c
+>
+>   drivers/extcon/Makefile          |  2 ++
+>   drivers/extcon/extcon-class.c    |  3 +-
+>   drivers/extcon/of_extcon.c       | 64 ++++++++++++++++++++++++++++++++++++++++
+>   include/linux/extcon/of_extcon.h | 30 +++++++++++++++++++
+>   4 files changed, 98 insertions(+), 1 deletion(-)
+>   create mode 100644 drivers/extcon/of_extcon.c
+>   create mode 100644 include/linux/extcon/of_extcon.h
+>
+> diff --git a/drivers/extcon/Makefile b/drivers/extcon/Makefile
+> index 540e2c3..83468f7 100644
+> --- a/drivers/extcon/Makefile
+> +++ b/drivers/extcon/Makefile
+> @@ -2,6 +2,8 @@
+>   # Makefile for external connector class (extcon) devices
+>   #
+>
+> +obj-$(CONFIG_OF)		+= of_extcon.o
+> +
+>   obj-$(CONFIG_EXTCON)		+= extcon-class.o
+>   obj-$(CONFIG_EXTCON_GPIO)	+= extcon-gpio.o
+>   obj-$(CONFIG_EXTCON_ADC_JACK)	+= extcon-adc-jack.o
+> diff --git a/drivers/extcon/extcon-class.c b/drivers/extcon/extcon-class.c
+> index 23f11ea..08509ea 100644
+> --- a/drivers/extcon/extcon-class.c
+> +++ b/drivers/extcon/extcon-class.c
+> @@ -602,7 +602,8 @@ int extcon_dev_register(struct extcon_dev *edev, struct device *dev)
+>   	edev->dev->class = extcon_class;
+>   	edev->dev->release = extcon_dev_release;
+>
+> -	dev_set_name(edev->dev, edev->name ? edev->name : dev_name(dev));
+> +	edev->name = edev->name ? edev->name : dev_name(dev);
+> +	dev_set_name(edev->dev, edev->name);
+>
+>   	if (edev->max_supported) {
+>   		char buf[10];
+> diff --git a/drivers/extcon/of_extcon.c b/drivers/extcon/of_extcon.c
+> new file mode 100644
+> index 0000000..72173ec
+> --- /dev/null
+> +++ b/drivers/extcon/of_extcon.c
+> @@ -0,0 +1,64 @@
+> +/*
+> + * OF helpers for External connector (extcon) framework
+> + *
+> + * Copyright (C) 2013 Texas Instruments, Inc.
+> + * Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> + *
+> + * Copyright (C) 2013 Samsung Electronics
+> + * Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/slab.h>
+> +#include <linux/err.h>
+> +#include <linux/extcon.h>
+> +#include <linux/of.h>
+> +#include <linux/of_platform.h>
+> +#include <linux/extcon/of_extcon.h>
+> +
+> +/*
+> + * of_extcon_get_extcon_dev - Get the name of extcon device from devicetree
+> + * @dev - instance to the given device
+> + * @index - index into list of extcon_dev
+> + *
+> + * return the instance of extcon device
+> + */
+> +struct extcon_dev *of_extcon_get_extcon_dev(struct device *dev, int index)
+> +{
+> +	struct device_node *node;
+> +	struct extcon_dev *edev;
+> +	struct platform_device *extcon_parent_dev;
+> +
+> +	if (!dev->of_node) {
+> +		dev_dbg(dev, "device does not have a device node entry\n");
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +
+> +	node = of_parse_phandle(dev->of_node, "extcon", index);
+> +	if (!node) {
+> +		dev_dbg(dev, "failed to get phandle in %s node\n",
+> +			dev->of_node->full_name);
+> +		return ERR_PTR(-ENODEV);
+> +	}
+> +
+> +	extcon_parent_dev = of_find_device_by_node(node);
+> +	if (!extcon_parent_dev) {
+> +		dev_dbg(dev, "unable to find device by node\n");
+> +		return ERR_PTR(-EPROBE_DEFER);
+> +	}
+> +
+> +	edev = extcon_get_extcon_dev(dev_name(&extcon_parent_dev->dev));
+> +	if (!edev) {
+> +		dev_dbg(dev, "unable to get extcon device : %s\n",
+> +				dev_name(&extcon_parent_dev->dev));
+> +		return ERR_PTR(-ENODEV);
+> +	}
+> +
+> +	return edev;
+> +}
+> +EXPORT_SYMBOL_GPL(of_extcon_get_extcon_dev);
+> diff --git a/include/linux/extcon/of_extcon.h b/include/linux/extcon/of_extcon.h
+> new file mode 100644
+> index 0000000..462f071
+> --- /dev/null
+> +++ b/include/linux/extcon/of_extcon.h
+> @@ -0,0 +1,30 @@
+> +/*
+> + * OF helpers for External connector (extcon) framework
+> + *
+> + * Copyright (C) 2013 Texas Instruments, Inc.
+> + * Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> + *
+> + * Copyright (C) 2013 Samsung Electronics
+> + * Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + */
+> +
+> +#ifndef __LINUX_OF_EXTCON_H
+> +#define __LINUX_OF_EXTCON_H
+> +
+> +#if defined(CONFIG_OF) && defined(CONFIG_EXTCON)
+> +extern struct extcon_dev
+> +	*of_extcon_get_extcon_dev(struct device *dev, int index);
+> +#else
+> +static inline struct extcon_dev
+> +	*of_extcon_get_extcon_dev(struct device *dev, int index)
+> +{
+> +	return NULL;
 
-> If we want to fix something this late in the merge window, the patches
-> must have a clear description what caused the regression and what happe=
-ns
-> without the patches. These patches don't have that. And they are marked=
+Can we have some error value returned here instead of NULL?
+ERR_PTR(-ENOSYS)?
 
-> RFC also. So actually I'm not applying any of them before the regressio=
-n
-> descriptions are there and the patches have been reposted without RFC
-> and have sufficient acks from people.
-
-No disagreement there.
-
-Kishon, I tested the patches on top of v3.10-rc5, booting with nfs root
-via usb gadget eth:
-
-Overo: works
-Beagle: works, but I need to reconnect the usb cable after kernel is up
-Beagle-xm: doesn't work. The cable is detected correctly, though
-Panda: works
-
-The problems with Beagles are there even without these patches, so they
-do make things better (fix Overo).
-
- Tomi
-
-
-
-------enig2HNHPTJIVANKBMVEBWGEE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJRutGBAAoJEPo9qoy8lh710rIQAJH7MGB/33pOFZXA+xWhWZiI
-u2EBcMjobB6R5PSvuQVZtE39fPDf8Z+p0D2E+2/FKTS4uzrFFVmXw2NgVSfcO/Ny
-GFWTlgls8K9j/BZJ0AaM9YywDUthc/xrb946YHCORKkPH9AaqIJWlqHQIDWx20Cb
-dK6bKmqbuCtq+ci9IV8rBfOpbV3N7PzyajNyZxLhsc+6qVrWkjnLYB8skuP2KaGE
-71V3Tghvgtw+ZlENQXE1+/VO54XNNljuzQ7nOfhflHDBg0phwEd5DiHFlBa+9c6B
-wh9/8kC7iMiMCMTMWLEbHZFw8wroh57PckFjOvbRgH78BqNSaaKMFvAwppjoCFn8
-Ih6D1JfuT8h7tue7mMzEhirabXqmEj1XNGYjT8bMSqAHDkviE+VjrqG3mm06PBCk
-sdSvvZjw+ZJeVKEtx8JFXTDMDGuMZQ7T+gC4wg+Vzl1J5XQy0vU3EmqENRS3bDLK
-JzfUBPrCMfEqimrIc4DXnXcSRpPMsw4ajTPBHwuhGh29TXi+awDJl7yxi5gpUZDJ
-S55j5vixv+36E6U3PCHpeHlaYsFXbgKoaogrd/Z54xswejRe1e1RY0S7nucWK+6d
-NlQnbplCoNwG51G8lbsSbDJQhqypDkTCHP932vOV56TtXCYAbO9opaVgSDLqb3FA
-4wzlDDJNUsEOn8EFKUG/
-=sJcQ
------END PGP SIGNATURE-----
-
-------enig2HNHPTJIVANKBMVEBWGEE--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Kishon
