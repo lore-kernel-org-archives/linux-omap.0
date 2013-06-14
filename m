@@ -1,253 +1,42 @@
-From: J Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] mfd: Palmas: Introduce features to select the appropriate modules present in the palmas variant
-Date: Fri, 14 Jun 2013 14:51:58 +0530
-Message-ID: <1371201718-15101-1-git-send-email-j-keerthy@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v3 0/2] USB: PHY: Improve PHY selection logic
+Date: Fri, 14 Jun 2013 12:51:40 +0300
+Message-ID: <1371203502-29624-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42239 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751442Ab3FNJdh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Jun 2013 05:33:37 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: gregkh@linuxfoundation.org, stern@rowland.harvard.edu, arnd@arndb.de, adrienverge@gmail.com, kishon@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, j-keerthy@ti.com, ldewangan@nvidia.com, sameo@linux.intel.com, gg@slimlogic.co.uk
 
-Introduce features to select the appropriate sub-modules present in the palmas
-variants. This adds the major features present in palmas family of PMICs.
+Hi,
 
-Boot tested on OMAP5 uevm board.
-Signed-off-by: J Keerthy <j-keerthy@ti.com>
----
- drivers/mfd/palmas.c       |   83 ++++++++++++++++++++++++++++++++++----------
- include/linux/mfd/palmas.h |   55 +++++++++++++++++++++++++++++
- 2 files changed, 119 insertions(+), 19 deletions(-)
+Improve Kconfig so that the relevant PHY driver can be explicitely
+selected by the controller driver instead of relying on the user
+to do so.
 
-diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
-index 53e9fe6..0ca5854 100644
---- a/drivers/mfd/palmas.c
-+++ b/drivers/mfd/palmas.c
-@@ -302,6 +302,27 @@ static void palmas_dt_to_pdata(struct i2c_client *i2c,
- 		palmas_set_pdata_irq_flag(i2c, pdata);
- }
- 
-+static unsigned int palmas_features = PALMAS_PMIC_FEATURE_WATCHDOG |
-+					PALMAS_PMIC_FEATURE_REGULATORS |
-+					PALMAS_PMIC_FEATURE_BACKUP_BATTERY |
-+					PALMAS_PMIC_FEATURE_32K_CLK |
-+					PALMAS_PMIC_FEATURE_RTC |
-+					PALMAS_PMIC_FEATURE_GPADC |
-+					PALMAS_PMIC_FEATURE_USB_OTG |
-+					PALMAS_PMIC_FEATURE_CHARGER_DETECT |
-+					PALMAS_PMIC_FEATURE_GPIO |
-+					PALMAS_PMIC_FEATURE_PWM_LED |
-+					PALMAS_PMIC_FEATURE_INTERRUPT |
-+					PALMAS_PMIC_FEATURE_SMPS10_BOOST;
-+
-+static const struct of_device_id of_palmas_match_tbl[] = {
-+	{
-+		.compatible = "ti,palmas",
-+		.data = &palmas_features,
-+	},
-+	{ },
-+};
-+
- static int palmas_i2c_probe(struct i2c_client *i2c,
- 			    const struct i2c_device_id *id)
- {
-@@ -309,9 +330,10 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
- 	struct palmas_platform_data *pdata;
- 	struct device_node *node = i2c->dev.of_node;
- 	int ret = 0, i;
--	unsigned int reg, addr;
-+	unsigned int reg, addr, *features;
- 	int slave;
- 	struct mfd_cell *children;
-+	const struct of_device_id *match;
- 
- 	pdata = dev_get_platdata(&i2c->dev);
- 
-@@ -333,9 +355,17 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
- 
- 	i2c_set_clientdata(i2c, palmas);
- 	palmas->dev = &i2c->dev;
--	palmas->id = id->driver_data;
- 	palmas->irq = i2c->irq;
- 
-+	match = of_match_device(of_match_ptr(of_palmas_match_tbl), &i2c->dev);
-+
-+	if (match) {
-+		features = (unsigned int *)match->data;
-+		palmas->features = *features;
-+	} else {
-+		return -ENODATA;
-+	}
-+
- 	for (i = 0; i < PALMAS_NUM_CLIENTS; i++) {
- 		if (i == 0)
- 			palmas->i2c_clients[i] = i2c;
-@@ -362,6 +392,9 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
- 		}
- 	}
- 
-+	if (!PALMAS_PMIC_HAS(palmas, INTERRUPT))
-+		goto no_int;
-+
- 	/* Change interrupt line output polarity */
- 	if (pdata->irq_flags & IRQ_TYPE_LEVEL_HIGH)
- 		reg = PALMAS_POLARITY_CTRL_INT_POLARITY;
-@@ -388,6 +421,10 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
- 	if (ret < 0)
- 		goto err;
- 
-+no_int:
-+	if (!PALMAS_PMIC_HAS(palmas, GPIO))
-+		goto no_gpio;
-+
- 	slave = PALMAS_BASE_TO_SLAVE(PALMAS_PU_PD_OD_BASE);
- 	addr = PALMAS_BASE_TO_REG(PALMAS_PU_PD_OD_BASE,
- 			PALMAS_PRIMARY_SECONDARY_PAD1);
-@@ -459,7 +496,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
- 	ret = regmap_write(palmas->regmap[slave], addr, reg);
- 	if (ret)
- 		goto err_irq;
--
-+no_gpio:
- 	/*
- 	 * If we are probing with DT do this the DT way and return here
- 	 * otherwise continue and add devices using mfd helpers.
-@@ -479,21 +516,34 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
- 		goto err_irq;
- 	}
- 
--	children[PALMAS_PMIC_ID].platform_data = pdata->pmic_pdata;
--	children[PALMAS_PMIC_ID].pdata_size = sizeof(*pdata->pmic_pdata);
-+	if (PALMAS_PMIC_HAS(palmas, REGULATORS)) {
-+		children[PALMAS_PMIC_ID].platform_data = pdata->pmic_pdata;
-+		children[PALMAS_PMIC_ID].pdata_size =
-+				sizeof(*pdata->pmic_pdata);
-+	}
- 
--	children[PALMAS_GPADC_ID].platform_data = pdata->gpadc_pdata;
--	children[PALMAS_GPADC_ID].pdata_size = sizeof(*pdata->gpadc_pdata);
-+	if (PALMAS_PMIC_HAS(palmas, GPADC)) {
-+		children[PALMAS_GPADC_ID].platform_data = pdata->gpadc_pdata;
-+		children[PALMAS_GPADC_ID].pdata_size =
-+				sizeof(*pdata->gpadc_pdata);
-+	}
- 
--	children[PALMAS_RESOURCE_ID].platform_data = pdata->resource_pdata;
--	children[PALMAS_RESOURCE_ID].pdata_size =
--			sizeof(*pdata->resource_pdata);
-+	if (PALMAS_PMIC_HAS(palmas, RESOURCE)) {
-+		children[PALMAS_RESOURCE_ID].platform_data =
-+				pdata->resource_pdata;
-+		children[PALMAS_RESOURCE_ID].pdata_size =
-+				sizeof(*pdata->resource_pdata);
-+	}
- 
--	children[PALMAS_USB_ID].platform_data = pdata->usb_pdata;
--	children[PALMAS_USB_ID].pdata_size = sizeof(*pdata->usb_pdata);
-+	if (PALMAS_PMIC_HAS(palmas, USB_OTG)) {
-+		children[PALMAS_USB_ID].platform_data = pdata->usb_pdata;
-+		children[PALMAS_USB_ID].pdata_size = sizeof(*pdata->usb_pdata);
-+	}
- 
--	children[PALMAS_CLK_ID].platform_data = pdata->clk_pdata;
--	children[PALMAS_CLK_ID].pdata_size = sizeof(*pdata->clk_pdata);
-+	if (PALMAS_PMIC_HAS(palmas, 32K_CLK)) {
-+		children[PALMAS_CLK_ID].platform_data = pdata->clk_pdata;
-+		children[PALMAS_CLK_ID].pdata_size = sizeof(*pdata->clk_pdata);
-+	}
- 
- 	ret = mfd_add_devices(palmas->dev, -1,
- 			      children, ARRAY_SIZE(palmas_children),
-@@ -533,11 +583,6 @@ static const struct i2c_device_id palmas_i2c_id[] = {
- };
- MODULE_DEVICE_TABLE(i2c, palmas_i2c_id);
- 
--static struct of_device_id of_palmas_match_tbl[] = {
--	{ .compatible = "ti,palmas", },
--	{ /* end */ }
--};
--
- static struct i2c_driver palmas_i2c_driver = {
- 	.driver = {
- 		   .name = "palmas",
-diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
-index 8f21daf..cc437a0 100644
---- a/include/linux/mfd/palmas.h
-+++ b/include/linux/mfd/palmas.h
-@@ -32,6 +32,60 @@
- 			((a) == PALMAS_CHIP_ID))
- #define is_palmas_charger(a) ((a) == PALMAS_CHIP_CHARGER_ID)
- 
-+/**
-+ * DOC: Palmas PMIC feature types
-+ *
-+ * PALMAS_PMIC_FEATURE_WATCHDOG - used when the PMIC has a built-in
-+ *	Watchdog timer.
-+ *
-+ * PALMAS_PMIC_FEATURE_REGULATORS - used when PMIC has voltage
-+ *	regulators(SMPSs and LDOs).
-+ *
-+ * PALMAS_PMIC_FEATURE_BACKUP_BATTERY - used when the PMIC has back-up battery.
-+ *
-+ * PALMAS_PMIC_FEATURE_32K_CLK - used when PMIC provides a 32K clock.
-+ *
-+ * PALMAS_PMIC_FEATURE_RTC - used when the PMIC provides an RTC.
-+ *
-+ * PALMAS_PMIC_FEATURE_GPADC - used when the PMIC provides a general purpose
-+ *	ADC.
-+ *
-+ * PALMAS_PMIC_FEATURE_USB_OTG - used when the PMIC provides USB OTG.
-+ *
-+ * PALMAS_PMIC_FEATURE_CHARGER_DETECT - used when the PMIC has charger
-+ *	detection ability.
-+ *
-+ * PALMAS_PMIC_FEATURE_GPIO - used when the PMIC has GPIOs
-+ *
-+ * PALMAS_PMIC_FEATURE_PWM_LED - used when the PMIC has PWM and LED.
-+ *
-+ * PALMAS_PMIC_FEATURE_INTERRUPT - used when the PMIC has Interrupt line going
-+ *	to an application processor.
-+ *
-+ * PALMAS_PMIC_FEATURE_SMPS10_BOOST - used when the PMIC provides SMPS10 boost
-+ *	voltage supply.
-+ *
-+ * PALMAS_PMIC_FEATURE_RESOURCE - used when the PMIC has resources like REGEN1.
-+ *
-+ * PALMAS_PMIC_HAS(b, f) - macro to check if a bandgap device is capable of a
-+ *	specific feature (above) or not. Return non-zero, if yes.
-+ */
-+#define PALMAS_PMIC_FEATURE_WATCHDOG		BIT(0)
-+#define PALMAS_PMIC_FEATURE_REGULATORS		BIT(1)
-+#define PALMAS_PMIC_FEATURE_BACKUP_BATTERY		BIT(2)
-+#define PALMAS_PMIC_FEATURE_32K_CLK		BIT(3)
-+#define PALMAS_PMIC_FEATURE_RTC		BIT(4)
-+#define PALMAS_PMIC_FEATURE_GPADC		BIT(5)
-+#define PALMAS_PMIC_FEATURE_USB_OTG		BIT(6)
-+#define PALMAS_PMIC_FEATURE_CHARGER_DETECT		BIT(7)
-+#define PALMAS_PMIC_FEATURE_GPIO	BIT(8)
-+#define PALMAS_PMIC_FEATURE_PWM_LED	BIT(9)
-+#define PALMAS_PMIC_FEATURE_INTERRUPT	BIT(10)
-+#define PALMAS_PMIC_FEATURE_SMPS10_BOOST	BIT(11)
-+#define PALMAS_PMIC_FEATURE_RESOURCE        BIT(12)
-+#define PALMAS_PMIC_HAS(b, f)			\
-+			((b)->features & PALMAS_PMIC_FEATURE_ ## f)
-+
- struct palmas_pmic;
- struct palmas_gpadc;
- struct palmas_resource;
-@@ -46,6 +100,7 @@ struct palmas {
- 	/* Stored chip id */
- 	int id;
- 
-+	unsigned int features;
- 	/* IRQ Data */
- 	int irq;
- 	u32 irq_mask;
+Detailed description in patch 1.
+
+v3:
+- Fix linking problem when CONFIG_USB is m
+
+v2:
+- Merge patches 3-5 into the first patch to prevent circular dependency
+between the Kconfig options during bisection.
+
+cheers,
+-roger
+Roger Quadros (2):
+  USB: PHY: Make PHY driver selection possible by controller drivers
+  USB: ehci-omap: select NOP_USB_XCEIV PHY driver
+
+ drivers/usb/Makefile       |    2 +-
+ drivers/usb/gadget/Kconfig |    2 --
+ drivers/usb/host/Kconfig   |    5 +----
+ drivers/usb/phy/Kconfig    |   31 +++++++++++++++++++++----------
+ 4 files changed, 23 insertions(+), 17 deletions(-)
+
 -- 
-1.7.5.4
-
+1.7.4.1
