@@ -1,176 +1,110 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH RFC 1/3] clk: omap: introduce clock driver
-Date: Fri, 14 Jun 2013 23:12:27 +0100
-Message-ID: <20130614221227.A9EE03E0A56@localhost>
-References: <1370327958-19776-1-git-send-email-mturquette@linaro.org> <1370327958-19776-2-git-send-email-mturquette@linaro.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f169.google.com ([74.125.82.169]:34554 "EHLO
-	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752738Ab3FNWMc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jun 2013 18:12:32 -0400
-Received: by mail-we0-f169.google.com with SMTP id n57so931869wev.0
-        for <linux-omap@vger.kernel.org>; Fri, 14 Jun 2013 15:12:30 -0700 (PDT)
-In-Reply-To: <1370327958-19776-2-git-send-email-mturquette@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/2] ARM: dts: add AM33XX MMC support
+Date: Sat, 15 Jun 2013 01:26:31 +0300
+Message-ID: <20130614222537.GA25428@arwen.pp.htv.fi>
+References: <41fde401c8e646689123d7c6d3a2dffc@DLEE71.ent.ti.com>
+ <20130307141235.GQ6209@beef>
+ <79CD15C6BA57404B839C016229A409A83EC20C57@DBDE01.ent.ti.com>
+ <20130307144656.GR6209@beef>
+ <79CD15C6BA57404B839C016229A409A83EC20CCA@DBDE01.ent.ti.com>
+ <20130307150408.GU6209@beef>
+ <79CD15C6BA57404B839C016229A409A83EC20D27@DBDE01.ent.ti.com>
+ <20130307160236.GV6209@beef>
+ <79CD15C6BA57404B839C016229A409A83EC213C8@DBDE01.ent.ti.com>
+ <CAD=GYpb3+nvoz863+VKO7iJijRHnM5RzsVj-5VJfQ-OHoUy19Q@mail.gmail.com>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============0322827643757966550=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAD=GYpb3+nvoz863+VKO7iJijRHnM5RzsVj-5VJfQ-OHoUy19Q@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Joel A Fernandes <agnel.joel@gmail.com>
+Cc: Chris Ball <cjb@laptop.org>, Russell King <linux@arm.linux.org.uk>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Hiremath,
+ Vaibhav" <hvaibhav@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Nishanth Menon <nm@ti.com>, Joel A Fernandes <joelagnel@ti.com>, Mike Turquette <mturquette@linaro.org>, devicetree-discuss@lists.ozlabs.org, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org
 
-On Mon,  3 Jun 2013 23:39:16 -0700, Mike Turquette <mturquette@linaro.org> wrote:
-> Parses OMAP clock data from DT and registers those clocks with the clock
-> framework.  dt_omap_clk_init must be called early during boot for timer
-> initialization so it is exported and called from the existing clock code
-> instead of probing like a real driver.
-> 
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> Cc: Joel A Fernandes <joelagnel@ti.com>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Mike Turquette <mturquette@linaro.org>
+--===============0322827643757966550==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="dc+cDN39EJAMEtIO"
+Content-Disposition: inline
 
-Hi Mike,
+--dc+cDN39EJAMEtIO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Comments below...
+Hi,
 
-> ---
-> This driver simply matches the basic bindings (so far).  Eventually it
-> would match omap-specific bindings for DPLLs, CLKOUTX2 and strange leaf
-> clocks as well.  This doesn't scale well since non-OMAP related clock
-> data (e.g. a pmic or discrete audio codec) will get grouped into this
-> driver if it matches on a basic clock type.  Suggestions?
+On Fri, Jun 14, 2013 at 02:54:33PM -0500, Joel A Fernandes wrote:
+> Hi Tony, Vaibhav,
+>=20
+> >> I just doublechecked MMC rootfs on bone and evmsk as it's the standard
+> >> smoke test. My EVM is intermittent now so trying to coax it to power up
+> >> to reverify.
+> >>
+> >
+> > Matt,
+> >
+> > Your branch is working for me, I tested it on EVM. Not sure what is wro=
+ng with manual rebasing
+> > I did yesterday. I will try to nail-down root-cause here.
+> >
+> > And you can submit the next version fixing the comments I have given.
+>=20
+> The only comment I could find in the whole discussion was adding of
+> the interrupts property. I tested I don't have any problem booting
+> with Matt's patch, without having the interrupts property.
 
-Take a look at the definition of irqchip_init(). It would be possible to
-do the same think for clk chips so that merely configuring in the driver
-would add the support to a global list of clk chip initializers.
+might very well be, but we want to figure out why adding "intrrupts"
+causes issues. Why does it have to come through hwmod ? You might have
+uncovered a real problem which needs fixing. Besides, at the end of the
+day, we want to remove the redundant hwmod data if we already have DTS
+bindings covering the same requirements.
+--=20
+balbi
 
-drivers/irqchip/irqchip.c
+--dc+cDN39EJAMEtIO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> 
->  drivers/clk/Makefile      |  1 +
->  drivers/clk/omap/Makefile |  1 +
->  drivers/clk/omap/clk.c    | 55 +++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/clk/omap.h  | 24 +++++++++++++++++++++
->  4 files changed, 81 insertions(+)
->  create mode 100644 drivers/clk/omap/Makefile
->  create mode 100644 drivers/clk/omap/clk.c
->  create mode 100644 include/linux/clk/omap.h
-> 
-> diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
-> index f51b52b..efd4f2a 100644
-> --- a/drivers/clk/Makefile
-> +++ b/drivers/clk/Makefile
-> @@ -31,6 +31,7 @@ obj-$(CONFIG_ARCH_VT8500)	+= clk-vt8500.o
->  obj-$(CONFIG_ARCH_ZYNQ)		+= clk-zynq.o
->  obj-$(CONFIG_ARCH_TEGRA)	+= tegra/
->  obj-$(CONFIG_PLAT_SAMSUNG)	+= samsung/
-> +obj-$(CONFIG_ARCH_OMAP)		+= omap/
->  
->  obj-$(CONFIG_X86)		+= x86/
->  
-> diff --git a/drivers/clk/omap/Makefile b/drivers/clk/omap/Makefile
-> new file mode 100644
-> index 0000000..8195931
-> --- /dev/null
-> +++ b/drivers/clk/omap/Makefile
-> @@ -0,0 +1 @@
-> +obj-y					+= clk.o
-> diff --git a/drivers/clk/omap/clk.c b/drivers/clk/omap/clk.c
-> new file mode 100644
-> index 0000000..e9e5c95
-> --- /dev/null
-> +++ b/drivers/clk/omap/clk.c
-> @@ -0,0 +1,55 @@
-> +/*
-> + * OMAP PRCM clock driver
-> + *
-> + * Copyright (C) 2013 Linaro.org - http://www.linaro.org
-> + * 	Mike Turquette <mturquette@linaro.org>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-> + * kind, whether express or implied; without even the implied warranty
-> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/clk-provider.h>
-> +#include <linux/clk/omap.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/of_device.h>
-> +#include <linux/platform_device.h>
-> +
-> +/* FIXME - should the OMAP PRCM clock driver match generic types? */
-> +static const struct of_device_id clk_match[] = {
-> +	{.compatible = "fixed-clock", .data = of_fixed_clk_setup, },
-> +	{.compatible = "mux-clock", .data = of_mux_clk_setup, },
-> +	{.compatible = "fixed-factor-clock",
-> +		.data = of_fixed_factor_clk_setup, },
-> +	{},
-> +};
-> +
-> +static int omap_clk_probe(struct platform_device *pdev)
-> +{
-> +	of_clk_init(clk_match);
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver omap_clk_driver = {
-> +	.probe = omap_clk_probe,
-> +	.driver = {
-> +		   .name = "omap_clk",
-> +		   .of_match_table = of_match_ptr(clk_match),
-> +		   },
-> +};
-> +
-> +/* FIXME - need to initialize early; skip real driver registration & probe */
-> +int __init dt_omap_clk_init(void)
-> +{
-> +	return omap_clk_probe(NULL);
-> +}
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Since this isn't remotely a platform_driver, I would drop the pretense
-and cut out all the platform_drivers references. omap_clk_driver isn't
-even referenced anywhere!
+iQIcBAEBAgAGBQJRu5iXAAoJEIaOsuA1yqRE5l0P/iHsoyrL4UuOAcKCyFnB+Biw
+UrRREW9xlAd4IG7Uiqhy3C04JVv0KCPtF1ngUiiNU1Nb0BhPrLKpgUpuOM0DyIOx
+r3pLNqoq5PsMGp7XNzjSdOwCm6y+Yu3wDuDaaO9OGuuLBmKucNXqYgGfJM+g+24s
+110vwTGpPqxW1TndYfzhNlw5qN/5OIbTJVORuuMQLhO/mK5EaNtb+7TAv68VBuub
+Xo4cDWfzYwNujV0QTzUOJYP0L/qNHWi5hnLpGlI5tZZf9N+z/QJo52A4B5paWGmb
+HCsfgMM2FUy3EMkXzjz2FDI72mSAPVgc0N7QVq5f4e25lJFgd/l/Xu34AZdUdxeo
+GYBIYkK6G+xAPT9uRAuadXizprEn+3FlVxGzFvrgKrW5B1HS/+8W3SIB9GO3keYz
+DLhjbNFBiEl7wnMr7DA5SjJ3rtopLirkn6bFd+KJXft867AOZnPu+rh5GgwfdbuO
+0dbxVJ16BrxPrIgPxYbi1EqpsrjLF9dCOel56zs/KBBeB3MN4srLP115P3MNg2OX
+VduXg7JsqSUPBfkaSEV5g0Ng2LZpTdCTblBKg6slVRak41iejjslChV62I9ORIZu
+SjvM8tFel/231KWoVdAHlVe8qaegUpYR87UFXBBLV4QLwUvERM01tQrumdnfszJg
+h+mXiEgLTS5iw+LeiteZ
+=R0Oe
+-----END PGP SIGNATURE-----
 
-> +
-> +MODULE_DESCRIPTION("OMAP Clock driver");
-> +MODULE_AUTHOR("Texas Instruments Inc.");
-> +MODULE_LICENSE("GPL v2");
-> diff --git a/include/linux/clk/omap.h b/include/linux/clk/omap.h
-> new file mode 100644
-> index 0000000..504e838
-> --- /dev/null
-> +++ b/include/linux/clk/omap.h
-> @@ -0,0 +1,24 @@
-> +/*
-> + * Copyright (C) 2010 Broadcom
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-> + */
-> +
-> +#ifndef __LINUX_CLK_OMAP_H_
-> +#define __LINUX_CLK_OMAP_H_
-> +
-> +int __init dt_omap_clk_init(void);
+--dc+cDN39EJAMEtIO--
 
-__init annotations don't generally go in the header files.
 
-g.
+--===============0322827643757966550==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============0322827643757966550==--
