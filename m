@@ -1,95 +1,64 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: OMAP4 Panda DVI problem
-Date: Fri, 14 Jun 2013 16:52:28 +0300
-Message-ID: <51BB201C.3000605@ti.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 01/22] mfd/ti_am335x_tscadc: remove regmap
+Date: Fri, 14 Jun 2013 14:53:58 +0100
+Message-ID: <20130614135358.GR1403@sirena.org.uk>
+References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de>
+ <1370950268-7224-2-git-send-email-bigeasy@linutronix.de>
+ <20130611142336.GE29135@zurbaran>
+ <51B7358D.7000605@linutronix.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="----enig2LBJJOIJNJNRIEGDOWOOE"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52968 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753116Ab3FNNwb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jun 2013 09:52:31 -0400
-Sender: linux-omap-owner@vger.kernel.org
+	protocol="application/pgp-signature"; boundary="5mu1Tvth33Vj8K2q"
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <51B7358D.7000605-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-
-------enig2LBJJOIJNJNRIEGDOWOOE
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hi Tony, Roger,
-
-I recently raised the i2c issue with reading EDID from a DVI monitor on
-Panda, when booting with DT. I just couldn't get reading EDID work at
-all reliably.
-
-I now see problems with non-DT also. Booting with 3.10-rc5, with DSS
-compiled into the kernel, reading EDID fails during the boot. I can
-later read the EDID fine from userspace.
-
-With help from Roger, we found the issue.
-
-DVI cable has a +5V line, that the source (i.e. Panda) has to provide.
-This +5V is required to read EDID, but according to the documentation I
-think it's actually required to show video also (although I guess this
-could depend on the monitor).
-
-I think for OMAP3 boards the +5V is always-on (I haven't looked at OMAP3
-boards yet, though). For Panda, the +5V comes from DC_HST_5V, controlled
-with a GPIO, which is used for USB and currently managed by USB in
-arch/arm/mach-omap2/usb-host.c, which creates a fixed voltage hsusbX_vcc
-regulator.
-
-So, basically, if USB is disabled, DVI doesn't work. This is why I see
-problems with DT (no USB), and non-DT (USB enabled after DVI is enabled).=
 
 
-To fix this properly I need to add regulator handling to the DVI driver,
-and we need to share the same supply with USB and DVI.
+--5mu1Tvth33Vj8K2q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-However, while the above shouldn't be particularly difficult, it's still
-not simple. And additional complications come with DT boot, as DSS
-doesn't support DT yet. We have the hack that enables DSS for Panda and
-SDP board when booting with DT, but I don't think it's possible to
-manage the shared regulator easily in that setup (ie. USB and the
-regulator being described in DT, DSS and DVI added the old way in
-dss-common.c).
+On Tue, Jun 11, 2013 at 04:34:53PM +0200, Sebastian Andrzej Siewior wrote:
 
-So I think the simplest solution is to make DC_HST_5V always-on. This
-should be fixed for 3.10 also.
+> >> Therefore this patch removes regmap part of the driver.
 
-Any idea if DC_HST_5V is a big power sink if it's always enabled? If
-it's a big one, I could look at how to hack the DVI driver so that it
-would find the regulator. I'm quite sure I won't be neat, though.
+> > NAK. Using regmap is better than open coding your register accesses, and
+> > the children not using this API is not a reason for the MFD driver to do
+> > the same.
 
- Tomi
+> There is no advantage over using regmap in the first place. It goes
+> through a few layers, uses no caching because almost all registers are
+> volatile and this is a direct bus. In the end it complicates more than
+> it helps.
 
+It does give you tracepoints and debugfs.  If it's making things at all
+complicated we need to look at why that is and figure out how to fix
+that since it's probably an issue for other users.
 
-------enig2LBJJOIJNJNRIEGDOWOOE
+--5mu1Tvth33Vj8K2q
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+Version: GnuPG v2.0.20 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRuyAcAAoJEPo9qoy8lh71QkMP/jy6s/wq20DoZc8ARCU0W4cU
-3MYOy8rzggtqmXk7nxfZ8apD3S+9ebsoGlBBCBJOpx5W0Gev5G6Jj4s1IeEKcXSQ
-MBnQMnH1xs1aa2ukKqBwDRrwSk3KCts8L9ZcoBCz5zrFB3Gc5AVjHJxXl7YToL7R
-fAck5R4axurce2fupNWTULp5ft2Ycuq/ZfMKr1UGrw0Qq+M6ZnMeIXGo2XqmIM+d
-S81qDjDTFP2rp8JwkaTy7hWXegbZUqTyP4vbNZDYOMZGKlnj/azo+1pHDXalnpJo
-ejomarMzJHRATbAHjj4rMh0PqIrg9rMX39heByaspiZNWJQCfIE0LOa6qFR3eVII
-HDTJiBS/WLFwdIChkSvk0uJ0cc7J0n1peUhpfG6GSHdzbWd+gy0vgteAXCl1TvHV
-cudW2jjh2Z5cuduGauHhQIvg1oZG6P05m9OxkxkgjzXVo7xoUxQd6EpiOY0LvSEL
-+Lr1sBs3Tcvl0Ni22epdxU2j8Wpp8cpO+/vOzI9VjyYnMgHfhNXQX8NLWChgXkb5
-jvmi0wgOQKLKMnkjaAI3B4U9CUiuwadrqTbMvUghsRSCUIUhKIx5msLgBijJimEg
-1ipvskTmwmJm+yBBvRHiX8latbLNaVwa+15UGt/ZYHDYjF071a/Z0JedOmsw+4vq
-zgfw3kZpGl8cJ49n8TD6
-=sXyZ
+iQIcBAEBAgAGBQJRuyBtAAoJELSic+t+oim9BbYP/1+zKwt1iB3j76z88fQnyubj
+KOiwAO9mDpaTdX69TCrRyhSfL/soylTxHBvHpHv7WNhWGF/MAaz7ivhOJ7ENBojg
+fX8LAMSFhWRq5KpCOKKWQGcdiyaQhqBknfHMAIoahBC+1Y9v/k2sNnuHogOLzybp
+rb+bewLZIcoo6eSMeuxauwvXukkQNWJTL8NB92LME2toFntazY0uPshwDVbbZjCs
+bFAyv0RXkljqlfUGwYe6rubfaGYR+6GNCIWMl1A1aiWhKW4tspktsk0aI+uEVznk
+5YCtpfAm4dsQecaoQtsgIRmK0978Zrm0R5buj8pkbiv6kYBmpGQ8BMV+CXRqOXjp
+4CGKn2mHOnvHJdQ518xmnvxUhYP0j9bh+GzvMLM5Mbuou/P9vf3SSMFTO+FKvGJ7
+Ee51mW0d5u/NBUKtcTyjp4zytuvh0yHteX/L3f+XONT6izUCg9z/LnmuaTrv9x7A
+dQ8LLORyqGtgL/rUGZ6cb8fSRfPKa82noi8dXm5TSp5eQbDlPLsRg48XDPqCkOYl
+W8ns1GUVu0+xIEjHET8w+Ff/LttXYG9if8Y6S6tKziohfizX46X9PIabiFpeKO3u
+x66j6t9ui+HEtklLKgRYtbOzAIvExgmNMnx81fA3HpmduSoarhtOJzECkdFZt6od
+QdyKhuqOeBEmM4YA/3lK
+=mCoi
 -----END PGP SIGNATURE-----
 
-------enig2LBJJOIJNJNRIEGDOWOOE--
+--5mu1Tvth33Vj8K2q--
