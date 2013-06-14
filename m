@@ -1,521 +1,252 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 2/4] mmc: omap_hsmmc: Enable SDIO IRQ using a GPIO in idle mode
-Date: Fri, 14 Jun 2013 13:50:03 +0200
-Message-ID: <CAPDyKFq+==Bca+AaZwD=A5v6HzL8ShKatq+8U-S=atZUFh8=rQ@mail.gmail.com>
-References: <20130607214557.18581.75288.stgit@localhost>
-	<20130607214952.18581.90049.stgit@localhost>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: OMAP v3.10-rc regressions that no one's fixed
+Date: Fri, 14 Jun 2013 18:08:25 +0530
+Message-ID: <51BB0EC1.908@ti.com>
+References: <alpine.DEB.2.02.1306100716560.4604@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ve0-f169.google.com ([209.85.128.169]:63804 "EHLO
-	mail-ve0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752337Ab3FNLuE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jun 2013 07:50:04 -0400
-Received: by mail-ve0-f169.google.com with SMTP id m1so385598ves.28
-        for <linux-omap@vger.kernel.org>; Fri, 14 Jun 2013 04:50:03 -0700 (PDT)
-In-Reply-To: <20130607214952.18581.90049.stgit@localhost>
+Received: from comal.ext.ti.com ([198.47.26.152]:54697 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752471Ab3FNMi7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Jun 2013 08:38:59 -0400
+In-Reply-To: <alpine.DEB.2.02.1306100716560.4604@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Andreas Fenkart <afenkart@gmail.com>
-Cc: cjb@laptop.org, Balaji T K <balajitk@ti.com>, Andreas Fenkart <andreas.fenkart@streamunlimited.com>, linux-mmc@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 7 June 2013 23:49, Tony Lindgren <tony@atomide.com> wrote:
-> From: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+Hi Paul,
+On Monday 10 June 2013 12:52 PM, Paul Walmsley wrote:
 >
-> Without functional clock the omap_hsmmc module can't forward SDIO IRQs to
-> the system. This patch reconfigures dat1 line as a gpio while the fclk is
-> off. When the fclk is present it uses the standard SDIO IRQ detection of
-> the module.
+> Hi folks -- particularly TIers working on mainline,
 >
-> The gpio irq is managed via the 'disable_depth' ref counter of the irq
-> subsystem, this driver simply calls enable_irq/disable_irq when needed.
+> There are several regressions that started with v3.10-rc that no one's
+> fixed for over a month.  Some of them should be quite easy:
 >
->                       sdio irq    sdio irq
->                       unmasked     masked
->    -----------------------------------------
->     runtime default  |    1     |   2
->     runtime suspend  |    0     |   1
+> * 37xx EVM: boot fails
+>    - as of v3.10-rc1
+>    - Cause unknown
 >
->                   irq disable depth
+> * 2420N800, 2430sdp: failed to get counter_32k resource
+>    - "omap2_sync32k_clocksource_init: failed to get counter_32k resource"
+>    - Cause unknown
 >
+> * 2430SDP, 3730 Beagle XM, 3530 Beagle, 3517EVM, CM-T3517: {dmic,mcpdm} lookup failure
+>    - Cause unknown
+>    - These IP blocks don't exist on OMAP3xxx/AM35xx chips
 >
-> only when sdio irq is enabled AND the module is idle, the reference
-> count drops to zero and the gpio irq is effectively armed.
->
-> Patch was tested on AM335x/Stream800. Test setup was two modules
-> with sdio wifi cards. Modules where connected to a dual-band AP, each
-> module using a different band. One of module was running iperf as server
-> the other as client connecting to the server in a while true loop. Test
-> was running for 4+ weeks. There were about 60 Mio. suspend/resume
-> transitions. Test was shut down regularly.
->
-> Cc: Andreas Fenkart <afenkart@gmail.com>
-> Cc: Balaji T K <balajitk@ti.com>
-> Signed-off-by: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
-> Reviewed-by: Grant Likely <grant.likely@secretlab.ca>
-> [tony@atomide.com: updated and separated out pin muxing]
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   42 ++++
->  drivers/mmc/host/omap_hsmmc.c                      |  206 +++++++++++++++++++-
->  include/linux/platform_data/mmc-omap.h             |    4
->  3 files changed, 239 insertions(+), 13 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> index ed271fc..5a3df37 100644
-> --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> @@ -20,6 +20,29 @@ ti,dual-volt: boolean, supports dual voltage cards
->  ti,non-removable: non-removable slot (like eMMC)
->  ti,needs-special-reset: Requires a special softreset sequence
->  ti,needs-special-hs-handling: HSMMC IP needs special setting for handling High Speed
-> +ti,cirq-gpio: When omap_hsmmc module is suspended, its functional
-> +clock is turned off. Without fclk it can't forward SDIO IRQs to the
-> +system. For that to happen, it needs to tell the PRCM to restore
-> +its fclk, which is done through the swakeup line.
-> +
-> +                   ------
-> +                  | PRCM |
-> +                   ------
-> +                    | ^
-> +               fclk | | swakeup
-> +                    v |
-> +                  -------               ------
-> +      <-- IRQ -- | hsmmc | <-- CIRQ -- | card |
-> +                  -------               ------
-> +
-> +The problem is, that on the AM335x family the swakeup line is
-> +missing, it has not been routed from the module to the PRCM.
-> +The way to work around this, is to reconfigure the dat1 line as a
-> +GPIO upon suspend. Beyond this option you also need to set named
-> +states "default" and "idle "in the .dts file for the pins, using
-> +pinctrl-single.c. The MMC driver will then then toggle between
-> +default and idle during the runtime.
-> +
->
->  Example:
->         mmc1: mmc@0x4809c000 {
-> @@ -31,3 +54,22 @@ Example:
->                 vmmc-supply = <&vmmc>; /* phandle to regulator node */
->                 ti,non-removable;
->         };
-> +
-> +[am335x with with gpio for sdio irq]
-> +
-> +       mmc1_cirq_pin: pinmux_cirq_pin {
-> +               pinctrl-single,pins = <
-> +                       0x0f8 0x3f      /* MMC0_DAT1 as GPIO2_28 */
-> +               >;
-> +       };
-> +
-> +       mmc1: mmc@48060000 {
-> +               pinctrl-names = "default", "idle";
-> +               pinctrl-0 = <&mmc1_pins>;
-> +               pinctrl-1 = <&mmc1_cirq_pin>;
-> +               ti,cirq-gpio = <&gpio3 28 0>;
-> +               ti,non-removable;
-> +               bus-width = <4>;
-> +               vmmc-supply = <&ldo2_reg>;
-> +               vmmc_aux-supply = <&vmmc>;
-> +       };
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 478849b..7e28501 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -22,6 +22,7 @@
->  #include <linux/dmaengine.h>
->  #include <linux/seq_file.h>
->  #include <linux/interrupt.h>
-> +#include <linux/irq.h>
->  #include <linux/delay.h>
->  #include <linux/dma-mapping.h>
->  #include <linux/platform_device.h>
-> @@ -102,6 +103,7 @@
->  #define TC_EN                  (1 << 1)
->  #define BWR_EN                 (1 << 4)
->  #define BRR_EN                 (1 << 5)
-> +#define CIRQ_EN                        (1 << 8)
->  #define ERR_EN                 (1 << 15)
->  #define CTO_EN                 (1 << 16)
->  #define CCRC_EN                        (1 << 17)
-> @@ -182,9 +184,19 @@ struct omap_hsmmc_host {
->         int                     use_reg;
->         int                     req_in_progress;
->         struct omap_hsmmc_next  next_data;
-> +       bool                    sdio_irq_en;
-> +       bool                    active_pinmux;
->         struct  omap_mmc_platform_data  *pdata;
->  };
->
-> +static irqreturn_t omap_hsmmc_cirq(int irq, void *dev_id)
-> +{
-> +       struct omap_hsmmc_host *host = dev_id;
-> +
-> +       mmc_signal_sdio_irq(host->mmc);
-> +       return IRQ_HANDLED;
-> +}
-> +
->  static int omap_hsmmc_card_detect(struct device *dev, int slot)
->  {
->         struct omap_hsmmc_host *host = dev_get_drvdata(dev);
-> @@ -419,10 +431,31 @@ static int omap_hsmmc_gpio_init(struct omap_mmc_platform_data *pdata)
->         } else
->                 pdata->slots[0].gpio_wp = -EINVAL;
->
-> +       if (pdata->slots[0].gpio_cirq > 0 &&
-> +           gpio_is_valid(pdata->slots[0].gpio_cirq)) {
-> +               pdata->slots[0].sdio_irq =
-> +                               gpio_to_irq(pdata->slots[0].gpio_cirq);
-> +
-> +               ret = gpio_request(pdata->slots[0].gpio_cirq, "sdio_cirq");
-> +               if (ret)
-> +                       goto err_free_ro;
-> +               ret = gpio_direction_input(pdata->slots[0].gpio_cirq);
-> +               if (ret)
-> +                       goto err_free_cirq;
-> +
-> +       } else {
-> +               pdata->slots[0].gpio_cirq = -EINVAL;
-> +       }
-> +
-> +
->         return 0;
->
-> +err_free_cirq:
-> +       gpio_free(pdata->slots[0].gpio_cirq);
-> +err_free_ro:
-> +       if (gpio_is_valid(pdata->slots[0].gpio_wp))
->  err_free_wp:
-> -       gpio_free(pdata->slots[0].gpio_wp);
-> +               gpio_free(pdata->slots[0].gpio_wp);
->  err_free_cd:
->         if (gpio_is_valid(pdata->slots[0].switch_pin))
->  err_free_sp:
-> @@ -436,6 +469,8 @@ static void omap_hsmmc_gpio_free(struct omap_mmc_platform_data *pdata)
->                 gpio_free(pdata->slots[0].gpio_wp);
->         if (gpio_is_valid(pdata->slots[0].switch_pin))
->                 gpio_free(pdata->slots[0].switch_pin);
-> +       if (gpio_is_valid(pdata->slots[0].gpio_cirq))
-> +               gpio_free(pdata->slots[0].gpio_cirq);
->  }
->
->  /*
-> @@ -461,27 +496,46 @@ static void omap_hsmmc_stop_clock(struct omap_hsmmc_host *host)
->  static void omap_hsmmc_enable_irq(struct omap_hsmmc_host *host,
->                                   struct mmc_command *cmd)
->  {
-> -       unsigned int irq_mask;
-> +       u32 irq_mask = INT_EN_MASK;
-> +       unsigned long flags;
->
->         if (host->use_dma)
-> -               irq_mask = INT_EN_MASK & ~(BRR_EN | BWR_EN);
-> -       else
-> -               irq_mask = INT_EN_MASK;
-> +               irq_mask &= ~(BRR_EN | BWR_EN);
->
->         /* Disable timeout for erases */
->         if (cmd->opcode == MMC_ERASE)
->                 irq_mask &= ~DTO_EN;
->
-> +       spin_lock_irqsave(&host->irq_lock, flags);
-> +
->         OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
->         OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
-> +
-> +       /* latch pending CIRQ, but don't signal */
-> +       if (host->sdio_irq_en)
-> +               irq_mask |= CIRQ_EN;
-> +
->         OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
-> +
-> +       spin_unlock_irqrestore(&host->irq_lock, flags);
->  }
->
->  static void omap_hsmmc_disable_irq(struct omap_hsmmc_host *host)
->  {
-> -       OMAP_HSMMC_WRITE(host->base, ISE, 0);
-> -       OMAP_HSMMC_WRITE(host->base, IE, 0);
-> +       u32 irq_mask = 0;
-> +       unsigned long flags;
-> +
-> +       spin_lock_irqsave(&host->irq_lock, flags);
-> +
-> +       /* no transfer running, need to signal cirq if */
-> +       if (host->sdio_irq_en)
-> +               irq_mask |= CIRQ_EN;
-> +
-> +       OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
-> +       OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
->         OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
-> +
-> +       spin_unlock_irqrestore(&host->irq_lock, flags);
->  }
->
->  /* Calculate divisor for the given clock frequency */
-> @@ -1037,8 +1091,12 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
->         int status;
->
->         status = OMAP_HSMMC_READ(host->base, STAT);
-> -       while (status & INT_EN_MASK && host->req_in_progress) {
-> -               omap_hsmmc_do_irq(host, status);
-> +       while (status & (INT_EN_MASK | CIRQ_EN)) {
-> +               if (host->req_in_progress)
-> +                       omap_hsmmc_do_irq(host, status);
-> +
-> +               if (status & CIRQ_EN)
-> +                       mmc_signal_sdio_irq(host->mmc);
->
->                 /* Flush posted write */
->                 OMAP_HSMMC_WRITE(host->base, STAT, status);
-> @@ -1554,6 +1612,51 @@ static void omap_hsmmc_init_card(struct mmc_host *mmc, struct mmc_card *card)
->                 mmc_slot(host).init_card(card);
->  }
->
-> +static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
-> +{
-> +       struct omap_hsmmc_host *host = mmc_priv(mmc);
-> +       u32 irq_mask;
-> +       unsigned long flags;
-> +
-> +       spin_lock_irqsave(&host->irq_lock, flags);
-> +
-> +       if (host->sdio_irq_en == enable) {
-> +               dev_dbg(host->dev, "en/disable:%d already set", enable);
-> +               spin_unlock_irqrestore(&host->irq_lock, flags);
-> +               return;
-> +       }
-> +
+> * 3730 Beagle XM, am335xbone, CM-T3517: uart4_rx.uart4_rx mux failure
+>    - Cause unknown
+I am able to reproduce this issue on 37xx EVM using non-dt boot (dt boot 
+doesn't throw this error). But this is not started with v3.10-rc, it has 
+been present on older kernels also( I verified on 3.9 kernel).
+This is because that for all instances of uart, serial driver expects a 
+pad with default
+mode which is not the case for uart4 in 37xx EVM.
+Correct me if I am wrong.
 
-Hi Tony/Andreas,
-
-I belive a "pm_runtime_get_sync" would be needed here, outside the
-spinlock ofcourse. Before returning from this function, obviusly
-return the references by a pm_runtime_put* in some form.
-
-Then you will be able to remove the "active_pinmux" variable entirely,
-since you know the runtime callbacks is the only place were you need
-to handle the gpio irq enable|disable.
-
-Kind regards
-Ulf Hansson
-
-> +       host->sdio_irq_en = (enable != 0) ? true : false;
-> +
-> +       if (host->active_pinmux) { /* register access fails without fclk */
-> +               irq_mask = OMAP_HSMMC_READ(host->base, ISE);
-> +               if (enable)
-> +                       irq_mask |= CIRQ_EN;
-> +               else
-> +                       irq_mask &= ~CIRQ_EN;
-> +               OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
-> +
-> +               if (!host->req_in_progress)
-> +                       OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
-> +
-> +               /*
-> +                * evtl. need to flush posted write
-> +                * OMAP_HSMMC_READ(host->base, IE);
-> +                */
-> +       }
-> +
-> +       if ((mmc_slot(host).sdio_irq)) {
-> +               if (enable) {
-> +                       enable_irq(mmc_slot(host).sdio_irq);
-> +               } else {
-> +                       /* _nosync, see mmc_signal_sdio_irq */
-> +                       disable_irq_nosync(mmc_slot(host).sdio_irq);
-> +               }
-> +       }
-> +
-> +       spin_unlock_irqrestore(&host->irq_lock, flags);
-> +}
-> +
->  static void omap_hsmmc_conf_bus_power(struct omap_hsmmc_host *host)
->  {
->         u32 hctl, capa, value;
-> @@ -1606,7 +1709,7 @@ static const struct mmc_host_ops omap_hsmmc_ops = {
->         .get_cd = omap_hsmmc_get_cd,
->         .get_ro = omap_hsmmc_get_ro,
->         .init_card = omap_hsmmc_init_card,
-> -       /* NYET -- enable_sdio_irq */
-> +       .enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
->  };
+Thanks and regards,
+Lokesh
 >
->  #ifdef CONFIG_DEBUG_FS
-> @@ -1710,6 +1813,7 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
->         pdata->nr_slots = 1;
->         pdata->slots[0].switch_pin = cd_gpio;
->         pdata->slots[0].gpio_wp = wp_gpio;
-> +       pdata->slots[0].gpio_cirq = of_get_named_gpio(np, "ti,cirq-gpio", 0);
+> (For more details, see the logs at the link below.)
 >
->         if (of_find_property(np, "ti,non-removable", NULL)) {
->                 pdata->slots[0].nonremovable = true;
-> @@ -1802,6 +1906,8 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->         host->dma_ch    = -1;
->         host->irq       = irq;
->         host->slot_id   = 0;
-> +       host->sdio_irq_en = false;
-> +       host->active_pinmux = true;
->         host->mapbase   = res->start + pdata->reg_offset;
->         host->base      = ioremap(host->mapbase, SZ_4K);
->         host->power_mode = MMC_POWER_OFF;
-> @@ -1955,6 +2061,29 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->                 pdata->resume = omap_hsmmc_resume_cdirq;
->         }
+> It would be good if people could step up to fix these before v3.10 comes
+> out.
 >
-> +       if ((mmc_slot(host).sdio_irq)) {
-> +               /* prevent auto-enabling of IRQ */
-> +               irq_set_status_flags(mmc_slot(host).sdio_irq, IRQ_NOAUTOEN);
-> +               ret = request_irq(mmc_slot(host).sdio_irq, omap_hsmmc_cirq,
-> +                                 IRQF_TRIGGER_LOW | IRQF_ONESHOT,
-> +                                 mmc_hostname(mmc), host);
-> +               if (ret) {
-> +                       dev_dbg(mmc_dev(host->mmc),
-> +                               "Unable to grab MMC SDIO IRQ\n");
-> +                       goto err_irq_sdio;
-> +               }
-> +
-> +               /*
-> +                * sdio_irq is managed with ref count
-> +                * - omap_hsmmc_enable_sdio_irq will +1/-1
-> +                * - pm_suspend/pm_resume will +1/-1
-> +                * only when sdio irq is enabled AND module will go to runtime
-> +                * suspend the ref count will drop to zero and the irq is
-> +                * effectively enabled. starting with ref count equal 2
-> +                */
-> +               disable_irq(mmc_slot(host).sdio_irq);
-> +       }
-> +
->         omap_hsmmc_disable_irq(host);
 >
->         pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
-> @@ -1962,6 +2091,19 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->                 dev_warn(&pdev->dev,
->                         "pins are not configured from the driver\n");
+> - Paul
 >
-> +       /*
-> +        * For now, only support SDIO interrupt if we are doing
-> +        * muxing of dat1 when booted with DT. This is because the
-> +        * supposedly the wake-up events for CTPL don't work from deeper
-> +        * idle states. And we don't want to add new legacy mux platform
-> +        * init code callbacks any longer as we are moving to DT based
-> +        * booting anyways.
-> +        */
-> +       if (match) {
-> +               if (!IS_ERR(pinctrl) && mmc_slot(host).sdio_irq)
-> +                       mmc->caps |= MMC_CAP_SDIO_IRQ;
-> +       }
-> +
->         omap_hsmmc_protect_card(host);
+> ---------- Forwarded message ----------
+> Date: Mon, 10 Jun 2013 02:00:50 +0000 (UTC)
+> From: Paul Walmsley <paul@pwsan.com>
+> To: linux-omap@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Subject: OMAP baseline test results for v3.10-rc5
 >
->         mmc_add_host(mmc);
-> @@ -1986,6 +2128,9 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
 >
->  err_slot_name:
->         mmc_remove_host(mmc);
-> +       if ((mmc_slot(host).sdio_irq))
-> +               free_irq(mmc_slot(host).sdio_irq, host);
-> +err_irq_sdio:
->         free_irq(mmc_slot(host).card_detect_irq, host);
->  err_irq_cd:
->         if (host->use_reg)
-> @@ -2032,9 +2177,10 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
->         if (host->pdata->cleanup)
->                 host->pdata->cleanup(&pdev->dev);
->         free_irq(host->irq, host);
-> +       if ((mmc_slot(host).sdio_irq))
-> +               free_irq(mmc_slot(host).sdio_irq, host);
->         if (mmc_slot(host).card_detect_irq)
->                 free_irq(mmc_slot(host).card_detect_irq, host);
-> -
->         if (host->tx_chan)
->                 dma_release_channel(host->tx_chan);
->         if (host->rx_chan)
-> @@ -2157,23 +2303,57 @@ static int omap_hsmmc_resume(struct device *dev)
->  static int omap_hsmmc_runtime_suspend(struct device *dev)
->  {
->         struct omap_hsmmc_host *host;
-> +       struct mmc_host *mmc;
-> +       unsigned long flags;
-> +       int ret = 0;
+> Here are some basic OMAP test results for Linux v3.10-rc5.
+> Logs and other details at:
 >
->         host = platform_get_drvdata(to_platform_device(dev));
-> +       mmc = host->mmc;
->         omap_hsmmc_context_save(host);
->         dev_dbg(dev, "disabled\n");
+>      http://www.pwsan.com/omap/testlogs/test_v3.10-rc5/20130609031534/
 >
-> -       return 0;
-> +       if (mmc->caps & MMC_CAP_SDIO_IRQ) {
-> +               spin_lock_irqsave(&host->irq_lock, flags);
-> +               host->active_pinmux = false;
-> +               OMAP_HSMMC_WRITE(host->base, ISE, 0);
-> +               OMAP_HSMMC_WRITE(host->base, IE, 0);
-> +               OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
-> +               spin_unlock_irqrestore(&host->irq_lock, flags);
-> +
-> +               if (mmc_slot(host).sdio_irq)
-> +                       enable_irq(mmc_slot(host).sdio_irq);
-> +       }
-> +
-> +       return ret;
->  }
 >
->  static int omap_hsmmc_runtime_resume(struct device *dev)
->  {
->         struct omap_hsmmc_host *host;
-> +       struct mmc_host *mmc;
-> +       unsigned long flags;
-> +       int ret = 0;
+> Test summary
+> ------------
 >
->         host = platform_get_drvdata(to_platform_device(dev));
-> +       mmc = host->mmc;
->         omap_hsmmc_context_restore(host);
->         dev_dbg(dev, "enabled\n");
+> Build: uImage:
+>      Pass (16/16): am33xx_only, n800_multi_omap2xxx, n800_only_a,
+>                    omap1_defconfig, omap1_defconfig_1510innovator_only,
+>                    omap1_defconfig_5912osk_only, omap2plus_defconfig,
+>                    omap2plus_defconfig_2430sdp_only
+>                    omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+>                    omap2plus_defconfig_omap2_4_only,
+>                    omap2plus_defconfig_omap3_4_only,
+>                    rmk_omap3430_ldp_allnoconfig,
+>                    rmk_omap3430_ldp_oldconfig,
+>                    rmk_omap4430_sdp_allnoconfig,
+>                    rmk_omap4430_sdp_oldconfig
 >
-> -       return 0;
-> +       if (mmc->caps & MMC_CAP_SDIO_IRQ) {
-> +               if (mmc_slot(host).sdio_irq)
-> +                       disable_irq(mmc_slot(host).sdio_irq);
-> +
-> +               spin_lock_irqsave(&host->irq_lock, flags);
-> +               host->active_pinmux = true;
-> +
-> +               if (host->sdio_irq_en) {
-> +                       OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
-> +                       OMAP_HSMMC_WRITE(host->base, ISE, CIRQ_EN);
-> +                       OMAP_HSMMC_WRITE(host->base, IE, CIRQ_EN);
-> +               }
-> +               spin_unlock_irqrestore(&host->irq_lock, flags);
-> +       }
-> +       return ret;
->  }
+> Build: zImage:
+>      Pass ( 1/ 1): omap2plus_defconfig
 >
->  static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
-> diff --git a/include/linux/platform_data/mmc-omap.h b/include/linux/platform_data/mmc-omap.h
-> index 2bf1b30..fd5fff5 100644
-> --- a/include/linux/platform_data/mmc-omap.h
-> +++ b/include/linux/platform_data/mmc-omap.h
-> @@ -115,6 +115,7 @@ struct omap_mmc_platform_data {
+> Boot to userspace:
+>      FAIL ( 3/12): 37xxevm, am335xbone, am335xbonelt
+>      Pass ( 9/12): 2420n800, 2430sdp, 3517evm, 3530es3beagle,
+>                    3730beaglexm, 4430es2panda, 4460pandaes, 5912osk,
+>                    cmt3517
 >
->                 int switch_pin;                 /* gpio (card detect) */
->                 int gpio_wp;                    /* gpio (write protect) */
-> +               int gpio_cirq;                  /* gpio (card irq) */
+> PM: chip retention via suspend:
+>      FAIL ( 3/ 6): 2430sdp, 37xxevm, 4430es2panda
+>      Pass ( 3/ 6): 3530es3beagle, 3730beaglexm, 4460pandaes
 >
->                 int (*set_bus_mode)(struct device *dev, int slot, int bus_mode);
->                 int (*set_power)(struct device *dev, int slot,
-> @@ -145,6 +146,9 @@ struct omap_mmc_platform_data {
->                 int card_detect_irq;
->                 int (*card_detect)(struct device *dev, int slot);
+> PM: chip retention via dynamic idle:
+>      FAIL ( 4/ 6): 2430sdp, 37xxevm, 4430es2panda, 4460pandaes
+>      Pass ( 2/ 6): 3530es3beagle, 3730beaglexm
 >
-> +               /* SDIO IRQs */
-> +               int sdio_irq;
-> +
->                 unsigned int ban_openended:1;
+> PM: chip off except CORE via suspend:
+>      Pass ( 1/ 1): 3730beaglexm
 >
->         } slots[OMAP_MMC_MAX_SLOTS];
+> PM: chip off except CORE via dynamic idle:
+>      Pass ( 1/ 1): 3730beaglexm
+>
+> PM: chip off via suspend:
+>      FAIL ( 3/ 4): 37xxevm, 4430es2panda, 4460pandaes
+>      Pass ( 1/ 4): 3530es3beagle
+>
+> PM: chip off via dynamic idle:
+>      FAIL ( 3/ 4): 37xxevm, 4430es2panda, 4460pandaes
+>      Pass ( 1/ 4): 3530es3beagle
+>
+>
+> Failing tests: fixed by posted patches
+> --------------------------------------
+>
+> (none)
+>
+>
+> Failing tests: needing investigation
+> ------------------------------------
+>
+> Boot tests:
+>
+> * 3517EVM & CM-T3517: boot hangs with NFS root
+>    - Likely some Kconfig, board file, and PM issues with EMAC
+>    - Longstanding bug
+>    - Not currently part of the automated test suite
+>
+> * 37xx EVM: boot fails
+>    - as of v3.10-rc1
+>    - Cause unknown
+>
+> Boot warnings:
+>
+> * 2420N800, 2430sdp: failed to get counter_32k resource
+>    - "omap2_sync32k_clocksource_init: failed to get counter_32k resource"
+>    - Cause unknown
+>
+> * CM-T3517: L3 in-band error with IPSS during boot
+>    - Cause unknown but see http://marc.info/?l=linux-omap&m=134833869730129&w=2
+>    - Longstanding issue; does not occur on the 3517EVM
+>
+> * 2430SDP, 3730 Beagle XM, 3530 Beagle, 3517EVM, CM-T3517: {dmic,mcpdm} lookup failure
+>    - Cause unknown
+>    - These IP blocks don't exist on OMAP3xxx/AM35xx chips
+>
+> * 3730 Beagle XM, am335xbone, CM-T3517: uart4_rx.uart4_rx mux failure
+>    - Cause unknown
+>
+> PM tests:
+>
+> * 2430sdp: power domains not entering retention
+>    - Cause unknown
+>
+> * 3730 Beagle XM: does not serial wake from off-idle suspend when console
+>    UART doesn't clock-gate ("debug ignore_loglevel")
+>    - Cause unknown
+>    - Not yet part of the automated test suite
+>    - Re-tested at v3.7; still failing:
+>      http://www.pwsan.com/omap/transcripts/20121211-3730beaglexm-3.7-pm-offmode-fail-debug.txt
+>
+> * 4430es2panda: pwrdm state mismatch on CAM, DSS
+>
+> * 4430es2panda: CORE, TESLA, IVAHD, L3INIT didn't enter target state
+>    - Probably due to lack of reset code for M3, DSP, SL2IF, FSUSB
+>      per discussion with Tero Kristo
+>    - Likely dependent on the bootloader version
+>      - fails with 2012.07-00136-g755de79
+>    - http://marc.info/?l=linux-arm-kernel&m=136432340618226&w=2
+>
+> * 4430es2panda: MPU, ABE didn't enter target state
+>    - New for v3.10-rc
+>
+> * 4460pandaes: pwrdm state mismatch on DSS, ABE, IVAHD, TESLA
+>
+> * 4460pandaes: chip not entering retention in dynamic idle
+>    - Presumably 4430es2panda also fails this
+>    - Suspend-to-RAM enters full chip retention
+>
+> Other:
+>
+> * 4430es2panda: omap_hwmod: l3_instr: _wait_target_disable failed
+>    - Unknown cause; could be due to the lack of hierarchical enable/disable
+>      in hwmod code
+>    - Jon Hunter and Santosh Shilimkar report this does not appear with
+>      the same X-loader/bootloader on his 4430ES2.3 Panda, so could be
+>      ES-level dependent
+>
+>
+> Failing tests: reported by others
+> ---------------------------------
+>
+> - RTC wakeup from suspend broken on 3730beaglexm
+>    - as of v3.10-rc1
+>    - discussion here: http://marc.info/?l=linux-omap&m=136915841625434&w=2
+>
+>
+>
+> vmlinux object size
+> (delta in bytes from test_v3.10-rc4
+> (d683b96b072dc4680fc74964eca77e6a23d1fa6e)):
+>     text     data      bss    total  kernel
+>     +287       +8        0     +295  am33xx_only
+>     +786       +8        0     +794  n800_multi_omap2xxx
+>     +818       +8        0     +826  n800_only_a
+>    +1207      +16        0    +1223  omap1_defconfig
+>    +1207      +56        0    +1263  omap1_defconfig_1510innovator_only
+>    +1239      -16        0    +1223  omap1_defconfig_5912osk_only
+>    +4451       +8        0    +4459  omap2plus_defconfig
+>    +1123       +8        0    +1131  omap2plus_defconfig_2430sdp_only
+>     +355       +8        0     +363  omap2plus_defconfig_cpupm
+>     +423      +72        0     +495  omap2plus_defconfig_no_pm
+>     +355       +8        0     +363  omap2plus_defconfig_omap2_4_only
+>     +355       +8        0     +363  omap2plus_defconfig_omap3_4_only
+>     +192        0        0     +192  rmk_omap3430_ldp_allnoconfig
+>     +443      -24        0     +419  rmk_omap3430_ldp_oldconfig
+>     +192        0        0     +192  rmk_omap4430_sdp_allnoconfig
+>     +722      +16        0     +738  rmk_omap4430_sdp_oldconfig
+>
+>
+> Boot-time memory difference
+> (delta in bytes from test_v3.10-rc4
+> (d683b96b072dc4680fc74964eca77e6a23d1fa6e))
+>    avail  rsrvd   high  freed  board          kconfig
+>       8k    -8k      .      .  2420n800       n800_only_a
+>      -8k     8k      .      .  2430sdp        omap2plus_defconfig
+>      -8k     8k      .      .  3517evm        omap2plus_defconfig
+>      -8k     8k      .      .  3530es3beagle  omap2plus_defconfig
+>      -8k     8k      .      .  3730beaglexm   omap2plus_defconfig
+>      -8k     8k      .      .  4430es2panda   omap2plus_defconfig
+>      -8k     8k      .      .  4460pandaes    omap2plus_defconfig
 >
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
