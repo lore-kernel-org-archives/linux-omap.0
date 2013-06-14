@@ -1,93 +1,94 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH] ARM: dts: AM43x EPOS EVM support
-Date: Fri, 14 Jun 2013 19:33:34 +0530
-Message-ID: <1371218614-26311-1-git-send-email-afzal@ti.com>
+From: Illia Smyrnov <illia.smyrnov-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 1/2] spi: omap2-mcspi: Move bytes per word calculation to
+	the function
+Date: Fri, 14 Jun 2013 19:12:07 +0300
+Message-ID: <1371226328-24147-2-git-send-email-illia.smyrnov@ti.com>
+References: <1371226328-24147-1-git-send-email-illia.smyrnov@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49990 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752591Ab3FNOEZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Jun 2013 10:04:25 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1371226328-24147-1-git-send-email-illia.smyrnov-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Illia Smyrnov <illia.smyrnov-l0cyMroinI0@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Russell King <linux@arm.linux.org.uk>, Olof Johansson <olof@lixom.net>
 
-Add AM43x ePOS EVM minimal DT source - this is a minimal one to get
-it booting. Also include it in omap2plus dtbs and document bindings.
-The hardware is under development.
+Introduce mcspi_bytes_per_word function as replacement for the next code
+fragment:
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
+int c = (word_len <= 8)  ? 1 :
+	(word_len <= 16) ? 2 :
+	/* word_len <= 32 */ 4;
+
+This code used 2 times in current driver code and will be used 2 times in
+the next FIFO buffer support patch. Replace it with inline function with clear
+name to improve code legibility.
+
+Signed-off-by: Illia Smyrnov <illia.smyrnov-l0cyMroinI0@public.gmane.org>
 ---
+ drivers/spi/spi-omap2-mcspi.c |   19 +++++++++++++------
+ 1 files changed, 13 insertions(+), 6 deletions(-)
 
-Hi Benoit,
-
-This is based on your for_3.11/dts branch.
-
-Ideally I wanted to split this into 3 patches - first doc, second dts
-and last adding build support. As changes in total is trivial, it was
-made a single one.
-
-Regards
-Afzal
-
-
- Documentation/devicetree/bindings/arm/omap/omap.txt |  3 +++
- arch/arm/boot/dts/Makefile                          |  3 ++-
- arch/arm/boot/dts/am43x-epos-evm.dts                | 18 ++++++++++++++++++
- 3 files changed, 23 insertions(+), 1 deletion(-)
- create mode 100644 arch/arm/boot/dts/am43x-epos-evm.dts
-
-diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-index f8288ea..6d498c7 100644
---- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-@@ -56,3 +56,6 @@ Boards:
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index 86d2158..707f1db 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -187,6 +187,16 @@ static inline void mcspi_write_chconf0(const struct spi_device *spi, u32 val)
+ 	mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
+ }
  
- - OMAP5 EVM : Evaluation Module
-   compatible = "ti,omap5-evm", "ti,omap5"
++static inline int mcspi_bytes_per_word(int word_len)
++{
++	if (word_len <= 8)
++		return 1;
++	else if (word_len <= 16)
++		return 2;
++	else /* word_len <= 32 */
++		return 4;
++}
 +
-+- AM43x EPOS EVM
-+  compatible = "ti,am43x-epos-evm", "ti,am4372", "ti,am43"
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index 8e50761..05da469 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -155,7 +155,8 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
- 	am335x-evmsk.dtb \
- 	am335x-bone.dtb \
- 	am3517-evm.dtb \
--	am3517_mt_ventoux.dtb
-+	am3517_mt_ventoux.dtb \
-+	am43x-epos-evm.dtb
- dtb-$(CONFIG_ARCH_ORION5X) += orion5x-lacie-ethernet-disk-mini-v2.dtb
- dtb-$(CONFIG_ARCH_PRIMA2) += prima2-evb.dtb
- dtb-$(CONFIG_ARCH_U8500) += snowball.dtb \
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-new file mode 100644
-index 0000000..74174d4
---- /dev/null
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -0,0 +1,18 @@
-+/*
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/* AM43x EPOS EVM */
-+
-+/dts-v1/;
-+
-+#include "am4372.dtsi"
-+
-+/ {
-+	model = "TI AM43x EPOS EVM";
-+	compatible = "ti,am43x-epos-evm","ti,am4372","ti,am43";
-+};
+ static void omap2_mcspi_set_dma_req(const struct spi_device *spi,
+ 		int is_read, int enable)
+ {
+@@ -433,10 +443,9 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
+ 			else /* word_len <= 32 */
+ 				((u32 *)xfer->rx_buf)[elements++] = w;
+ 		} else {
++			int bytes_per_word = mcspi_bytes_per_word(word_len);
+ 			dev_err(&spi->dev, "DMA RX penultimate word empty");
+-			count -= (word_len <= 8)  ? 2 :
+-				(word_len <= 16) ? 4 :
+-				/* word_len <= 32 */ 8;
++			count -= (bytes_per_word << 1);
+ 			omap2_mcspi_set_enable(spi, 1);
+ 			return count;
+ 		}
+@@ -454,9 +463,7 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
+ 			((u32 *)xfer->rx_buf)[elements] = w;
+ 	} else {
+ 		dev_err(&spi->dev, "DMA RX last word empty");
+-		count -= (word_len <= 8)  ? 1 :
+-			 (word_len <= 16) ? 2 :
+-		       /* word_len <= 32 */ 4;
++		count -= mcspi_bytes_per_word(word_len);
+ 	}
+ 	omap2_mcspi_set_enable(spi, 1);
+ 	return count;
 -- 
-1.7.12
+1.7.0.4
 
+
+------------------------------------------------------------------------------
+This SF.net email is sponsored by Windows:
+
+Build for Windows Store.
+
+http://p.sf.net/sfu/windows-dev2dev
