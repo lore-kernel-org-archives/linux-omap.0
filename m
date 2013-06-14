@@ -1,14 +1,11 @@
 From: Illia Smyrnov <illia.smyrnov-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 1/2] spi: omap2-mcspi: Move bytes per word calculation to
-	the function
-Date: Fri, 14 Jun 2013 19:12:07 +0300
-Message-ID: <1371226328-24147-2-git-send-email-illia.smyrnov@ti.com>
-References: <1371226328-24147-1-git-send-email-illia.smyrnov@ti.com>
+Subject: [PATCH v3 0/2] spi: omap2-mcspi: add FIFO buffer support
+Date: Fri, 14 Jun 2013 19:12:06 +0300
+Message-ID: <1371226328-24147-1-git-send-email-illia.smyrnov@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1371226328-24147-1-git-send-email-illia.smyrnov-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
 	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
@@ -21,69 +18,44 @@ To: Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Her
 Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Illia Smyrnov <illia.smyrnov-l0cyMroinI0@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Introduce mcspi_bytes_per_word function as replacement for the next code
-fragment:
+These patches introduce FIFO support for TI OMAP4/OMAP5 MCSPI controller.
+Using FIFO unload the DMA and improve data throughput. On Blaze (OMAP 4460) 
+ethernet throughput with MTU 1500 was increased:
+* for TX from 6.9476 Mbps (FIFO disabled) to 8.1046 Mbps (FIFO enabled),
+* for RX from 6.5120 Mbps (FIFO disabled) to 7.6091 Mbps (FIFO enabled).
 
-int c = (word_len <= 8)  ? 1 :
-	(word_len <= 16) ? 2 :
-	/* word_len <= 32 */ 4;
+The FIFO sanity test on OMAP5 Panda board also has been done. 
 
-This code used 2 times in current driver code and will be used 2 times in
-the next FIFO buffer support patch. Replace it with inline function with clear
-name to improve code legibility.
+The FIFO is enabled for SPI transfers in DMA mode. The largest possible FIFO
+buffer size will be calculated and set up. The FIFO won't be used for the SPI
+transfers in DMA mode if: calculated FIFO buffer size is less then 2 bytes or
+the FIFO buffer size isn't multiple of the SPI word length.
 
-Signed-off-by: Illia Smyrnov <illia.smyrnov-l0cyMroinI0@public.gmane.org>
----
- drivers/spi/spi-omap2-mcspi.c |   19 +++++++++++++------
- 1 files changed, 13 insertions(+), 6 deletions(-)
+The MCSPI FIFO constraints are:
+* FIFO depth size defined as a multiple of the SPI word length;
+* transfer's data size is a multiple of FIFO depth;
+* transfer's words count less or equal 65535.
 
-diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index 86d2158..707f1db 100644
---- a/drivers/spi/spi-omap2-mcspi.c
-+++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -187,6 +187,16 @@ static inline void mcspi_write_chconf0(const struct spi_device *spi, u32 val)
- 	mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
- }
- 
-+static inline int mcspi_bytes_per_word(int word_len)
-+{
-+	if (word_len <= 8)
-+		return 1;
-+	else if (word_len <= 16)
-+		return 2;
-+	else /* word_len <= 32 */
-+		return 4;
-+}
-+
- static void omap2_mcspi_set_dma_req(const struct spi_device *spi,
- 		int is_read, int enable)
- {
-@@ -433,10 +443,9 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
- 			else /* word_len <= 32 */
- 				((u32 *)xfer->rx_buf)[elements++] = w;
- 		} else {
-+			int bytes_per_word = mcspi_bytes_per_word(word_len);
- 			dev_err(&spi->dev, "DMA RX penultimate word empty");
--			count -= (word_len <= 8)  ? 2 :
--				(word_len <= 16) ? 4 :
--				/* word_len <= 32 */ 8;
-+			count -= (bytes_per_word << 1);
- 			omap2_mcspi_set_enable(spi, 1);
- 			return count;
- 		}
-@@ -454,9 +463,7 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
- 			((u32 *)xfer->rx_buf)[elements] = w;
- 	} else {
- 		dev_err(&spi->dev, "DMA RX last word empty");
--		count -= (word_len <= 8)  ? 1 :
--			 (word_len <= 16) ? 2 :
--		       /* word_len <= 32 */ 4;
-+		count -= mcspi_bytes_per_word(word_len);
- 	}
- 	omap2_mcspi_set_enable(spi, 1);
- 	return count;
--- 
-1.7.0.4
+Also FIFO buffer with 1 byte size is insignificant, so driver will setup FIFO if
+calculated size is within the 2 to 64 bytes range.
+
+--------------------
+v3:
+* FIFO enadled for all SPI transfers in DMA mode.
+
+--------------------
+v2:
+* driver calculate and setup optimal FIFO size for each SPI transfer;
+* "ti,spi-fifo-enabled" parameter in MCSPI DT node to enable FIFO;
+* no FIFO settings in SPI slaves nodes in DT;
+* Matthias Brugger patch was excluded from patch set.
+
+Illia Smyrnov (2):
+  spi: omap2-mcspi: Move bytes per word calculation to the function
+  spi: omap2-mcspi: Add FIFO buffer support
+
+ drivers/spi/spi-omap2-mcspi.c |  166 +++++++++++++++++++++++++++++++++++------
+ 1 files changed, 143 insertions(+), 23 deletions(-)
 
 
 ------------------------------------------------------------------------------
