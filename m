@@ -1,93 +1,67 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 3/8] ARM: OMAP2+: hwmod: Remove remaining DMA channel
- definitions
-Date: Sat, 15 Jun 2013 18:06:50 +0300
-Message-ID: <20130615150650.GB27629@arwen.pp.htv.fi>
-References: <1371285069-6834-1-git-send-email-jarkko.nikula@bitmer.com>
- <1371285069-6834-4-git-send-email-jarkko.nikula@bitmer.com>
-Reply-To: <balbi@ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [GIT PULL] PM / AVS: SmartReflex: misc. cleanups for v3.11
+Date: Sun, 16 Jun 2013 01:42:57 +0200
+Message-ID: <4527471.8MLetdnxDa@vostro.rjw.lan>
+References: <87r4g5ac75.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vGgW1X5XWziG23Ko"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50203 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754011Ab3FOPIl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Jun 2013 11:08:41 -0400
-Content-Disposition: inline
-In-Reply-To: <1371285069-6834-4-git-send-email-jarkko.nikula@bitmer.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:38789 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751237Ab3FOXdl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 15 Jun 2013 19:33:41 -0400
+In-Reply-To: <87r4g5ac75.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+To: Kevin Hilman <khilman@linaro.org>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-omap <linux-omap@vger.kernel.org>, linux-pm@vger.kernel.org, nm@ti.com
 
---vGgW1X5XWziG23Ko
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thursday, June 13, 2013 03:16:30 PM Kevin Hilman wrote:
+> Hi Rafael,
+> 
+> Please pull the following cleanups to  AVS/SmartReflex for v3.11.
 
-On Sat, Jun 15, 2013 at 11:31:04AM +0300, Jarkko Nikula wrote:
-> Last remaining DMA channel definitions in arch/arm/mach-omap2/dma.h
-> are used only by omap_hwmod_2xxx_3xxx_ipblock_data.c and
-> omap_hwmod_3xxx_data.c. Remove them by using directly DMA channel number =
-in
-> hwmod data and drop definitions with a following script:
->=20
-> egrep '#define [OMAP|AM35XX].*DMA' arch/arm/mach-omap2/dma.h | cut -f 1,3=
- \
-> 	| while read i; do \
-> 		DEF=3D`echo $i |cut -d ' ' -f 2`; \
-> 		CH=3D`echo $i |cut -d ' ' -f 3`; \
-> 		echo "removing" $DEF; \
-> 		sed -i "s/${DEF}/${CH}/" arch/arm/mach-omap2/omap_hwmod_*.c; \
-> 		sed -i "/${DEF}/d" arch/arm/mach-omap2/dma.h; \
-> 	done
->=20
-> Signed-off-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> ---
->  arch/arm/mach-omap2/dma.h                          |   19 --------------=
------
->  .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |   20 ++++++++++----=
-------
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   18 +++++++++-----=
-----
->  3 files changed, 19 insertions(+), 38 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/dma.h b/arch/arm/mach-omap2/dma.h
-> index 8a71c7b..aa735a4 100644
-> --- a/arch/arm/mach-omap2/dma.h
-> +++ b/arch/arm/mach-omap2/dma.h
-> @@ -21,27 +21,8 @@
-> =20
-> =20
->  /* DMA channels for 24xx */
+Pulled, thanks Kevin!
 
-could remove the comments too.
+Rafael
 
---=20
-balbi
 
---vGgW1X5XWziG23Ko
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRvIMKAAoJEIaOsuA1yqREZBwP/34z4hM0tcaO3xj5mS3rLxG0
-L0DBQmy89OEKexwkg59+oi71GF/uxfRXzkT4DJS3QLAcvD4sdw20VvvuxH4pAnyJ
-zM1GX4RHVnXjGkk296V0VMsyZX4RjJEb8pdxhcBT3+EfECfsVozOUkVEFIdUIzOt
-Kl8Lj2n7STdGDYcgSpfJSqZxRmkTbCT5ZcAnLOdb8KGEY7CFcbagChjOpS/1nUdv
-N/RBn5u4/o0aGkb2CQc5GLq0ewLG42xoYHEhvedSWxDb67dvV0J1csB5R0h6xqyJ
-Ikk2xStWo07LUL8T3PjreDEE9pxgGwYFEodYcGtih+c/jtfCc90vCNIHir8XpE5n
-aw1GgtKy2bWpop04pzyTbThQw0wx/ghbJ8DqdN8lAP1Dr8ejf70rN6lyCwsXReb4
-nYOXeXAoy6dZUsqcz5cfv2jbshPb2Xh6SSNI2vob9qVS2qAvC4+gtYJMF6NSX9d4
-bXsBeAKjR4+rHJkVpY04cR89FsyIWXku9YBwh7lHaCwATe59jBXq+HLNl6P+Fc19
-ts/JTheBs4UXpfIV/oWtjkkOLw+doNcGRmv5VIduCbfOKARUDYJ34fHDCvOSCvFu
-0QCPIE3JyEw422Z/NSMZI2MriHScAurs5PhmevU2AqDLs9ihkkeWux9hoPmrMEbo
-ChSxeS/BP1ICHJnbMl4X
-=lJfd
------END PGP SIGNATURE-----
-
---vGgW1X5XWziG23Ko--
+> The following changes since commit 317ddd256b9c24b0d78fa8018f80f1e495481a10:
+> 
+>   Linux 3.10-rc5 (2013-06-08 17:41:04 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/omap-pm-v3.11/avs
+> 
+> for you to fetch changes up to efca406b940e93e6af38c597eecd5fb79b39b7ea:
+> 
+>   PM / AVS: SmartReflex: use devm_* API to initialize SmartReflex (2013-06-10 10:50:48 -0700)
+> 
+> ----------------------------------------------------------------
+> PM / AVS: SmartReflex: misc. cleanups for v3.11
+> 
+> ----------------------------------------------------------------
+> Andrii Tseglytskyi (6):
+>       PM / AVS: SmartReflex: disable runtime PM on driver remove
+>       PM / AVS: SmartReflex: fix driver name
+>       PM / AVS: SmartReflex: use omap_sr * for errgen interfaces
+>       PM / AVS: SmartReflex: use omap_sr * for minmax interfaces
+>       PM / AVS: SmartReflex: use omap_sr * for enable/disable interface
+>       PM / AVS: SmartReflex: use devm_* API to initialize SmartReflex
+> 
+> Nishanth Menon (1):
+>       PM / AVS: SmartReflex: disable errgen before vpbound disable
+> 
+>  arch/arm/mach-omap2/smartreflex-class3.c |   8 +-
+>  drivers/power/avs/smartreflex.c          | 154 +++++++++++++------------------
+>  include/linux/power/smartreflex.h        |  10 +-
+>  3 files changed, 72 insertions(+), 100 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
