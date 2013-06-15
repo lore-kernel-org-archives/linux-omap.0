@@ -1,131 +1,93 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/2] ARM: dts: add AM33XX MMC support
-Date: Sat, 15 Jun 2013 18:05:01 +0300
-Message-ID: <20130615150500.GA27629@arwen.pp.htv.fi>
-References: <79CD15C6BA57404B839C016229A409A83EC20C57@DBDE01.ent.ti.com>
- <20130307144656.GR6209@beef>
- <79CD15C6BA57404B839C016229A409A83EC20CCA@DBDE01.ent.ti.com>
- <20130307150408.GU6209@beef>
- <79CD15C6BA57404B839C016229A409A83EC20D27@DBDE01.ent.ti.com>
- <20130307160236.GV6209@beef>
- <79CD15C6BA57404B839C016229A409A83EC213C8@DBDE01.ent.ti.com>
- <CAD=GYpb3+nvoz863+VKO7iJijRHnM5RzsVj-5VJfQ-OHoUy19Q@mail.gmail.com>
- <20130614222537.GA25428@arwen.pp.htv.fi>
- <CAD=GYpYfMAZeV1RUC=DqhYGZaKiiukpTZg7bhO582eKwimS9aA@mail.gmail.com>
-Reply-To: balbi@ti.com
+Subject: Re: [PATCH 3/8] ARM: OMAP2+: hwmod: Remove remaining DMA channel
+ definitions
+Date: Sat, 15 Jun 2013 18:06:50 +0300
+Message-ID: <20130615150650.GB27629@arwen.pp.htv.fi>
+References: <1371285069-6834-1-git-send-email-jarkko.nikula@bitmer.com>
+ <1371285069-6834-4-git-send-email-jarkko.nikula@bitmer.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8441631458804934514=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAD=GYpYfMAZeV1RUC=DqhYGZaKiiukpTZg7bhO582eKwimS9aA@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Joel A Fernandes <agnel.joel@gmail.com>
-Cc: Chris Ball <cjb@laptop.org>, Russell King <linux@arm.linux.org.uk>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Hiremath,
- Vaibhav" <hvaibhav@ti.com>, "balbi@ti.com" <balbi@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
-List-Id: linux-omap@vger.kernel.org
-
---===============8441631458804934514==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5mCyUwZo2JvN/JJP"
+	protocol="application/pgp-signature"; boundary="vGgW1X5XWziG23Ko"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:50203 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754011Ab3FOPIl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Jun 2013 11:08:41 -0400
 Content-Disposition: inline
+In-Reply-To: <1371285069-6834-4-git-send-email-jarkko.nikula@bitmer.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
---5mCyUwZo2JvN/JJP
+--vGgW1X5XWziG23Ko
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Fri, Jun 14, 2013 at 06:43:51PM -0500, Joel A Fernandes wrote:
-> > > >> I just doublechecked MMC rootfs on bone and evmsk as it's the stan=
-dard
-> > > >> smoke test. My EVM is intermittent now so trying to coax it to pow=
-er
-> > up
-> > > >> to reverify.
-> > > >>
-> > > >
-> > > > Matt,
-> > > >
-> > > > Your branch is working for me, I tested it on EVM. Not sure what is
-> > wrong with manual rebasing
-> > > > I did yesterday. I will try to nail-down root-cause here.
-> > > >
-> > > > And you can submit the next version fixing the comments I have give=
-n.
-> > >
-> > > The only comment I could find in the whole discussion was adding of
-> > > the interrupts property. I tested I don't have any problem booting
-> > > with Matt's patch, without having the interrupts property.
-> >
-> > might very well be, but we want to figure out why adding "intrrupts"
-> > causes issues. Why does it have to come through hwmod ? You might have
-> > uncovered a real problem which needs fixing. Besides, at the end of the
+On Sat, Jun 15, 2013 at 11:31:04AM +0300, Jarkko Nikula wrote:
+> Last remaining DMA channel definitions in arch/arm/mach-omap2/dma.h
+> are used only by omap_hwmod_2xxx_3xxx_ipblock_data.c and
+> omap_hwmod_3xxx_data.c. Remove them by using directly DMA channel number =
+in
+> hwmod data and drop definitions with a following script:
 >=20
+> egrep '#define [OMAP|AM35XX].*DMA' arch/arm/mach-omap2/dma.h | cut -f 1,3=
+ \
+> 	| while read i; do \
+> 		DEF=3D`echo $i |cut -d ' ' -f 2`; \
+> 		CH=3D`echo $i |cut -d ' ' -f 3`; \
+> 		echo "removing" $DEF; \
+> 		sed -i "s/${DEF}/${CH}/" arch/arm/mach-omap2/omap_hwmod_*.c; \
+> 		sed -i "/${DEF}/d" arch/arm/mach-omap2/dma.h; \
+> 	done
 >=20
-> No actually I think I wasn't very descriptive in my post. There is no
-> problem here. Whether it comes from DT or not, it works in both cases . (I
-> haven't tried adding interrupt node to dts but what I gathered from
-> Vaibhav's post is that it works also when added to dts)
+> Signed-off-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> ---
+>  arch/arm/mach-omap2/dma.h                          |   19 --------------=
+-----
+>  .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |   20 ++++++++++----=
+------
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   18 +++++++++-----=
+----
+>  3 files changed, 19 insertions(+), 38 deletions(-)
 >=20
-> But I can revisit Vaibhav's suggestion of adding it to dts for completene=
-ss
-> sake. My tree currently works and picks up the interrupt info from hwmod.=
- I
-> just didn't see any activity on this thread for a while so I thought of
-> enquiring it was ok to pull it in for the 3.11 merge window or if the
-> consensus was that interrupt node be added to dts even though it works
-> without it.
+> diff --git a/arch/arm/mach-omap2/dma.h b/arch/arm/mach-omap2/dma.h
+> index 8a71c7b..aa735a4 100644
+> --- a/arch/arm/mach-omap2/dma.h
+> +++ b/arch/arm/mach-omap2/dma.h
+> @@ -21,27 +21,8 @@
+> =20
+> =20
+>  /* DMA channels for 24xx */
 
-fair enough, then let's just add those interrupts to hwmod which will,
-eventually, let us drop all of that data from hwmod.
-
-cheers
+could remove the comments too.
 
 --=20
 balbi
 
---5mCyUwZo2JvN/JJP
+--vGgW1X5XWziG23Ko
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRvIKcAAoJEIaOsuA1yqREoT4P/33N3NwRRLlQBRTySoCkdXQ1
-iGeud8gRTCDOaiRmJ6lLKjObERpLKh29cnzs4hcPOLavXeBfORRj9VMWyK0o2D0o
-XQaDCbk1n2S2kZ79+bkLrCnvd2FhHJWpLlaTTpWz+WFgU0lQ+zS2lIK5iNHEPQGX
-a+zsZ3DlCeL7Qjc5eR/9gjsBdLPGaCMb0PMjCsIUpNg1dZ3Iuq8WnHO5gs0Kf4hf
-MVcIQNcLM77GRKpkgwAX5FiCTfH08aIqnkwGhixp/GkKM9Qq2VnxSzLWc6GivW7i
-GZYCVXLII8i5IIcAbIaDScNdd8JzDfWP/AYc9MjothySomoR9Z05uJb18vTRbtPf
-70TtJpeztXQflUdN8GFUkcoHnpysyHIbkGGFuSy+9fgnoq9kIoPF53JC544qQn3Y
-KFAExhd9IDvTO/nzp28HSwOZUgYDCoLd1KedXMasAwRUa5a/s6RsxocvFDu0XiIw
-dClRT1sizLd39E8ELdgj1Arzs7doCZ1/g2NTJeW4xHgs8YDr6iIhZZxKMbFXl1vh
-I6PVLuQEkwO7268jY02qEyvVDFM+AIXrJqbL/O3Dn0w2VgycrDj0k9xvbshKBpYo
-jisgYm5osz2NpAHztdH1tHPku1los4lixEFTVyfccCHqS3e2NbFy/2T09TEweyCs
-bB2ZkwTWWyQfqBUOvquc
-=qdGk
+iQIcBAEBAgAGBQJRvIMKAAoJEIaOsuA1yqREZBwP/34z4hM0tcaO3xj5mS3rLxG0
+L0DBQmy89OEKexwkg59+oi71GF/uxfRXzkT4DJS3QLAcvD4sdw20VvvuxH4pAnyJ
+zM1GX4RHVnXjGkk296V0VMsyZX4RjJEb8pdxhcBT3+EfECfsVozOUkVEFIdUIzOt
+Kl8Lj2n7STdGDYcgSpfJSqZxRmkTbCT5ZcAnLOdb8KGEY7CFcbagChjOpS/1nUdv
+N/RBn5u4/o0aGkb2CQc5GLq0ewLG42xoYHEhvedSWxDb67dvV0J1csB5R0h6xqyJ
+Ikk2xStWo07LUL8T3PjreDEE9pxgGwYFEodYcGtih+c/jtfCc90vCNIHir8XpE5n
+aw1GgtKy2bWpop04pzyTbThQw0wx/ghbJ8DqdN8lAP1Dr8ejf70rN6lyCwsXReb4
+nYOXeXAoy6dZUsqcz5cfv2jbshPb2Xh6SSNI2vob9qVS2qAvC4+gtYJMF6NSX9d4
+bXsBeAKjR4+rHJkVpY04cR89FsyIWXku9YBwh7lHaCwATe59jBXq+HLNl6P+Fc19
+ts/JTheBs4UXpfIV/oWtjkkOLw+doNcGRmv5VIduCbfOKARUDYJ34fHDCvOSCvFu
+0QCPIE3JyEw422Z/NSMZI2MriHScAurs5PhmevU2AqDLs9ihkkeWux9hoPmrMEbo
+ChSxeS/BP1ICHJnbMl4X
+=lJfd
 -----END PGP SIGNATURE-----
 
---5mCyUwZo2JvN/JJP--
-
-
---===============8441631458804934514==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============8441631458804934514==--
+--vGgW1X5XWziG23Ko--
