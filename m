@@ -1,134 +1,48 @@
-From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Subject: [PATCH v2 1/5] ARM: OMAP1: USB: move omap_usb_config to platform data
-Date: Sun, 16 Jun 2013 16:35:08 +0300
-Message-ID: <1371389712-29516-2-git-send-email-aaro.koskinen@iki.fi>
-References: <1371389712-29516-1-git-send-email-aaro.koskinen@iki.fi>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1371389712-29516-1-git-send-email-aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH 3/8] ARM: OMAP2+: hwmod: Remove remaining DMA channel
+ definitions
+Date: Sun, 16 Jun 2013 18:35:13 +0300
+Message-ID: <51BDDB31.2000200@bitmer.com>
+References: <1371285069-6834-1-git-send-email-jarkko.nikula@bitmer.com> <1371285069-6834-4-git-send-email-jarkko.nikula@bitmer.com> <20130615150650.GB27629@arwen.pp.htv.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bitmer.com ([213.157.87.50]:33813 "EHLO bitmer.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755265Ab3FPPfb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 16 Jun 2013 11:35:31 -0400
+In-Reply-To: <20130615150650.GB27629@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-Move omap_usb_config to platform data, so that OTG driver can include it.
+Hi Felipe
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
----
- arch/arm/mach-omap1/include/mach/usb.h  | 38 +-----------------------
- include/linux/platform_data/usb-omap1.h | 51 +++++++++++++++++++++++++++++++++
- 2 files changed, 52 insertions(+), 37 deletions(-)
- create mode 100644 include/linux/platform_data/usb-omap1.h
+On 06/15/2013 06:06 PM, Felipe Balbi wrote:
+> On Sat, Jun 15, 2013 at 11:31:04AM +0300, Jarkko Nikula wrote:
+>> Last remaining DMA channel definitions in arch/arm/mach-omap2/dma.h
+>> are used only by omap_hwmod_2xxx_3xxx_ipblock_data.c and
+>> omap_hwmod_3xxx_data.c. Remove them by using directly DMA channel number in
+>> hwmod data and drop definitions with a following script:
+>>
+>> egrep '#define [OMAP|AM35XX].*DMA' arch/arm/mach-omap2/dma.h | cut -f 1,3 \
+>> 	| while read i; do \
+>> 		DEF=`echo $i |cut -d ' ' -f 2`; \
+>> 		CH=`echo $i |cut -d ' ' -f 3`; \
+>> 		echo "removing" $DEF; \
+>> 		sed -i "s/${DEF}/${CH}/" arch/arm/mach-omap2/omap_hwmod_*.c; \
+>> 		sed -i "/${DEF}/d" arch/arm/mach-omap2/dma.h; \
+>> 	done
+>>
+>>  /* DMA channels for 24xx */
+> 
+> could remove the comments too.
+> 
+You are right. Actually I was thinking that myself too with this and
+omap1 patches but decided to keep manual work and scripts bare minimum
+and let final git rm in 4/8 and 8/8 to handle these :-)
 
-diff --git a/arch/arm/mach-omap1/include/mach/usb.h b/arch/arm/mach-omap1/include/mach/usb.h
-index 45e5ac7..2c26305 100644
---- a/arch/arm/mach-omap1/include/mach/usb.h
-+++ b/arch/arm/mach-omap1/include/mach/usb.h
-@@ -8,43 +8,7 @@
- #define	is_usb0_device(config)	0
- #endif
- 
--struct omap_usb_config {
--	/* Configure drivers according to the connectors on your board:
--	 *  - "A" connector (rectagular)
--	 *	... for host/OHCI use, set "register_host".
--	 *  - "B" connector (squarish) or "Mini-B"
--	 *	... for device/gadget use, set "register_dev".
--	 *  - "Mini-AB" connector (very similar to Mini-B)
--	 *	... for OTG use as device OR host, initialize "otg"
--	 */
--	unsigned	register_host:1;
--	unsigned	register_dev:1;
--	u8		otg;	/* port number, 1-based:  usb1 == 2 */
--
--	u8		hmc_mode;
--
--	/* implicitly true if otg:  host supports remote wakeup? */
--	u8		rwc;
--
--	/* signaling pins used to talk to transceiver on usbN:
--	 *  0 == usbN unused
--	 *  2 == usb0-only, using internal transceiver
--	 *  3 == 3 wire bidirectional
--	 *  4 == 4 wire bidirectional
--	 *  6 == 6 wire unidirectional (or TLL)
--	 */
--	u8		pins[3];
--
--	struct platform_device *udc_device;
--	struct platform_device *ohci_device;
--	struct platform_device *otg_device;
--
--	u32 (*usb0_init)(unsigned nwires, unsigned is_device);
--	u32 (*usb1_init)(unsigned nwires);
--	u32 (*usb2_init)(unsigned nwires, unsigned alt_pingroup);
--
--	int (*ocpi_enable)(void);
--};
-+#include <linux/platform_data/usb-omap1.h>
- 
- void omap_otg_init(struct omap_usb_config *config);
- 
-diff --git a/include/linux/platform_data/usb-omap1.h b/include/linux/platform_data/usb-omap1.h
-new file mode 100644
-index 0000000..8c7764d
---- /dev/null
-+++ b/include/linux/platform_data/usb-omap1.h
-@@ -0,0 +1,51 @@
-+/*
-+ * Platform data for OMAP1 USB
-+ *
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License. See the file "COPYING" in the main directory of this archive for
-+ * more details.
-+ */
-+#ifndef __LINUX_USB_OMAP1_H
-+#define __LINUX_USB_OMAP1_H
-+
-+#include <linux/platform_device.h>
-+
-+struct omap_usb_config {
-+	/* Configure drivers according to the connectors on your board:
-+	 *  - "A" connector (rectagular)
-+	 *	... for host/OHCI use, set "register_host".
-+	 *  - "B" connector (squarish) or "Mini-B"
-+	 *	... for device/gadget use, set "register_dev".
-+	 *  - "Mini-AB" connector (very similar to Mini-B)
-+	 *	... for OTG use as device OR host, initialize "otg"
-+	 */
-+	unsigned	register_host:1;
-+	unsigned	register_dev:1;
-+	u8		otg;	/* port number, 1-based:  usb1 == 2 */
-+
-+	u8		hmc_mode;
-+
-+	/* implicitly true if otg:  host supports remote wakeup? */
-+	u8		rwc;
-+
-+	/* signaling pins used to talk to transceiver on usbN:
-+	 *  0 == usbN unused
-+	 *  2 == usb0-only, using internal transceiver
-+	 *  3 == 3 wire bidirectional
-+	 *  4 == 4 wire bidirectional
-+	 *  6 == 6 wire unidirectional (or TLL)
-+	 */
-+	u8		pins[3];
-+
-+	struct platform_device *udc_device;
-+	struct platform_device *ohci_device;
-+	struct platform_device *otg_device;
-+
-+	u32 (*usb0_init)(unsigned nwires, unsigned is_device);
-+	u32 (*usb1_init)(unsigned nwires);
-+	u32 (*usb2_init)(unsigned nwires, unsigned alt_pingroup);
-+
-+	int (*ocpi_enable)(void);
-+};
-+
-+#endif /* __LINUX_USB_OMAP1_H */
 -- 
-1.8.3.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jarkko
