@@ -1,39 +1,55 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH v2 2/5] USB: OMAP1: add extcon to platform data
-Date: Sun, 16 Jun 2013 16:35:09 +0300
-Message-ID: <1371389712-29516-3-git-send-email-aaro.koskinen@iki.fi>
-References: <1371389712-29516-1-git-send-email-aaro.koskinen@iki.fi>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri1.pp.htv.fi ([213.243.153.184]:39338 "EHLO
-	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755206Ab3FPNfu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Jun 2013 09:35:50 -0400
-In-Reply-To: <1371389712-29516-1-git-send-email-aaro.koskinen@iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Subject: [PATCH v2 0/5] USB: OMAP1: Tahvo USB support for 770
+Date: Sun, 16 Jun 2013 16:35:07 +0300
+Message-ID: <1371389712-29516-1-git-send-email-aaro.koskinen@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Add extcon field to platform data.
+Hi,
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- include/linux/platform_data/usb-omap1.h | 2 ++
- 1 file changed, 2 insertions(+)
+These patches add support for Tahvo USB transceiver and allow using both
+host and peripheral modes on Nokia 770.
 
-diff --git a/include/linux/platform_data/usb-omap1.h b/include/linux/platform_data/usb-omap1.h
-index 8c7764d..43b5ce1 100644
---- a/include/linux/platform_data/usb-omap1.h
-+++ b/include/linux/platform_data/usb-omap1.h
-@@ -23,6 +23,8 @@ struct omap_usb_config {
- 	unsigned	register_dev:1;
- 	u8		otg;	/* port number, 1-based:  usb1 == 2 */
- 
-+	const char	*extcon;	/* extcon device for OTG */
-+
- 	u8		hmc_mode;
- 
- 	/* implicitly true if otg:  host supports remote wakeup? */
+Tested (peripheral mode, host mode, vbus detection) with 3.10-rc6.
+
+History:
+	v2: Use extcon framework to trigger OTG driver mode changes.
+	v1: http://marc.info/?l=linux-omap&m=137081763029385&w=2
+
+Earlier RFC versions:
+	http://marc.info/?l=linux-omap&m=136553710000679&w=2
+	http://marc.info/?l=linux-omap&m=136266725827698&w=2
+
+Aaro Koskinen (5):
+  ARM: OMAP1: USB: move omap_usb_config to platform data
+  USB: OMAP1: add extcon to platform data
+  USB: OMAP1: OTG controller driver
+  USB: OMAP1: Tahvo USB transceiver driver
+  ARM: OMAP1: nokia770: enable Tahvo
+
+ arch/arm/mach-omap1/board-nokia770.c    |  11 +
+ arch/arm/mach-omap1/include/mach/usb.h  |  38 +--
+ drivers/usb/phy/Kconfig                 |  24 ++
+ drivers/usb/phy/Makefile                |   2 +
+ drivers/usb/phy/phy-omap-otg.c          | 171 ++++++++++++
+ drivers/usb/phy/phy-tahvo.c             | 448 ++++++++++++++++++++++++++++++++
+ include/linux/platform_data/usb-omap1.h |  53 ++++
+ 7 files changed, 710 insertions(+), 37 deletions(-)
+ create mode 100644 drivers/usb/phy/phy-omap-otg.c
+ create mode 100644 drivers/usb/phy/phy-tahvo.c
+ create mode 100644 include/linux/platform_data/usb-omap1.h
+
 -- 
 1.8.3.1
 
+A.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
