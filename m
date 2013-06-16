@@ -1,54 +1,239 @@
 From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Subject: [PATCH v2 0/5] USB: OMAP1: Tahvo USB support for 770
-Date: Sun, 16 Jun 2013 16:35:07 +0300
-Message-ID: <1371389712-29516-1-git-send-email-aaro.koskinen@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH v2 3/5] USB: OMAP1: OTG controller driver
+Date: Sun, 16 Jun 2013 16:35:10 +0300
+Message-ID: <1371389712-29516-4-git-send-email-aaro.koskinen@iki.fi>
+References: <1371389712-29516-1-git-send-email-aaro.koskinen@iki.fi>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1371389712-29516-1-git-send-email-aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Cc: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Transceivers need to manage OTG controller state on OMAP1 to enable
+switching between peripheral and host modes. Provide a driver for that.
 
-These patches add support for Tahvo USB transceiver and allow using both
-host and peripheral modes on Nokia 770.
-
-Tested (peripheral mode, host mode, vbus detection) with 3.10-rc6.
-
-History:
-	v2: Use extcon framework to trigger OTG driver mode changes.
-	v1: http://marc.info/?l=linux-omap&m=137081763029385&w=2
-
-Earlier RFC versions:
-	http://marc.info/?l=linux-omap&m=136553710000679&w=2
-	http://marc.info/?l=linux-omap&m=136266725827698&w=2
-
-Aaro Koskinen (5):
-  ARM: OMAP1: USB: move omap_usb_config to platform data
-  USB: OMAP1: add extcon to platform data
-  USB: OMAP1: OTG controller driver
-  USB: OMAP1: Tahvo USB transceiver driver
-  ARM: OMAP1: nokia770: enable Tahvo
-
- arch/arm/mach-omap1/board-nokia770.c    |  11 +
- arch/arm/mach-omap1/include/mach/usb.h  |  38 +--
- drivers/usb/phy/Kconfig                 |  24 ++
- drivers/usb/phy/Makefile                |   2 +
- drivers/usb/phy/phy-omap-otg.c          | 171 ++++++++++++
- drivers/usb/phy/phy-tahvo.c             | 448 ++++++++++++++++++++++++++++++++
- include/linux/platform_data/usb-omap1.h |  53 ++++
- 7 files changed, 710 insertions(+), 37 deletions(-)
+Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+---
+ drivers/usb/phy/Kconfig        |  10 +++
+ drivers/usb/phy/Makefile       |   1 +
+ drivers/usb/phy/phy-omap-otg.c | 171 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 182 insertions(+)
  create mode 100644 drivers/usb/phy/phy-omap-otg.c
- create mode 100644 drivers/usb/phy/phy-tahvo.c
- create mode 100644 include/linux/platform_data/usb-omap1.h
 
+diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
+index 7ef3eb8..14a50bd 100644
+--- a/drivers/usb/phy/Kconfig
++++ b/drivers/usb/phy/Kconfig
+@@ -135,6 +135,16 @@ config USB_GPIO_VBUS
+ 	  optionally control of a D+ pullup GPIO as well as a VBUS
+ 	  current limit regulator.
+ 
++config OMAP_OTG
++	tristate "OMAP USB OTG controller driver"
++	depends on ARCH_OMAP_OTG && EXTCON
++	help
++	  Enable this to support some transceivers on OMAP1 platforms. OTG
++	  controller is needed to switch between host and peripheral modes.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called omap-otg.
++
+ config USB_ISP1301
+ 	tristate "NXP ISP1301 USB transceiver support"
+ 	depends on USB || USB_GADGET
+diff --git a/drivers/usb/phy/Makefile b/drivers/usb/phy/Makefile
+index a9169cb..c7f391b 100644
+--- a/drivers/usb/phy/Makefile
++++ b/drivers/usb/phy/Makefile
+@@ -15,6 +15,7 @@ obj-$(CONFIG_ISP1301_OMAP)		+= phy-isp1301-omap.o
+ obj-$(CONFIG_MV_U3D_PHY)		+= phy-mv-u3d-usb.o
+ obj-$(CONFIG_NOP_USB_XCEIV)		+= phy-nop.o
+ obj-$(CONFIG_OMAP_CONTROL_USB)		+= phy-omap-control.o
++obj-$(CONFIG_OMAP_OTG)			+= phy-omap-otg.o
+ obj-$(CONFIG_OMAP_USB2)			+= phy-omap-usb2.o
+ obj-$(CONFIG_OMAP_USB3)			+= phy-omap-usb3.o
+ obj-$(CONFIG_SAMSUNG_USBPHY)		+= phy-samsung-usb.o
+diff --git a/drivers/usb/phy/phy-omap-otg.c b/drivers/usb/phy/phy-omap-otg.c
+new file mode 100644
+index 0000000..2a8c674
+--- /dev/null
++++ b/drivers/usb/phy/phy-omap-otg.c
+@@ -0,0 +1,171 @@
++/*
++ * OMAP OTG controller driver
++ *
++ * Based on code from tahvo-usb.c and isp1301_omap.c drivers.
++ *
++ * Copyright (C) 2005-2006 Nokia Corporation
++ * Copyright (C) 2004 Texas Instruments
++ * Copyright (C) 2004 David Brownell
++ *
++ * This file is subject to the terms and conditions of the GNU General
++ * Public License. See the file "COPYING" in the main directory of this
++ * archive for more details.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/io.h>
++#include <linux/err.h>
++#include <linux/extcon.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/interrupt.h>
++#include <linux/platform_device.h>
++#include <linux/platform_data/usb-omap1.h>
++
++#include <mach/usb.h>
++
++struct otg_device {
++	void __iomem			*base;
++	bool				id;
++	bool				vbus;
++	struct extcon_specific_cable_nb	vbus_dev;
++	struct extcon_specific_cable_nb	id_dev;
++	struct notifier_block		vbus_nb;
++	struct notifier_block		id_nb;
++};
++
++#define OMAP_OTG_CTRL		0x0c
++#define OMAP_OTG_ASESSVLD	(1 << 20)
++#define OMAP_OTG_BSESSEND	(1 << 19)
++#define OMAP_OTG_BSESSVLD	(1 << 18)
++#define OMAP_OTG_VBUSVLD	(1 << 17)
++#define OMAP_OTG_ID		(1 << 16)
++#define OMAP_OTG_XCEIV_OUTPUTS \
++	(OMAP_OTG_ASESSVLD | OMAP_OTG_BSESSEND | OMAP_OTG_BSESSVLD | \
++	 OMAP_OTG_VBUSVLD  | OMAP_OTG_ID)
++
++static void omap_otg_ctrl(struct otg_device *otg_dev, u32 outputs)
++{
++	u32 l;
++
++	l = readl(otg_dev->base + OMAP_OTG_CTRL);
++	l &= ~OMAP_OTG_XCEIV_OUTPUTS;
++	l |= outputs;
++	writel(l, otg_dev->base + OMAP_OTG_CTRL);
++}
++
++static void omap_otg_set_mode(struct otg_device *otg_dev)
++{
++	if (!otg_dev->id && otg_dev->vbus)
++		/* Set B-session valid. */
++		omap_otg_ctrl(otg_dev, OMAP_OTG_ID | OMAP_OTG_BSESSVLD);
++	else if (otg_dev->vbus)
++		/* Set A-session valid. */
++		omap_otg_ctrl(otg_dev, OMAP_OTG_ASESSVLD);
++	else if (!otg_dev->id)
++		/* Set B-session end to indicate no VBUS. */
++		omap_otg_ctrl(otg_dev, OMAP_OTG_ID | OMAP_OTG_BSESSEND);
++}
++
++static int omap_otg_id_notifier(struct notifier_block *nb,
++				unsigned long event, void *ptr)
++{
++	struct otg_device *otg_dev = container_of(nb, struct otg_device, id_nb);
++
++	otg_dev->id = event;
++	omap_otg_set_mode(otg_dev);
++
++	return NOTIFY_DONE;
++}
++
++static int omap_otg_vbus_notifier(struct notifier_block *nb,
++				  unsigned long event, void *ptr)
++{
++	struct otg_device *otg_dev = container_of(nb, struct otg_device,
++						  vbus_nb);
++
++	otg_dev->vbus = event;
++	omap_otg_set_mode(otg_dev);
++
++	return NOTIFY_DONE;
++}
++
++static int omap_otg_probe(struct platform_device *pdev)
++{
++	const struct omap_usb_config *config = pdev->dev.platform_data;
++	struct otg_device *otg_dev;
++	struct extcon_dev *extcon;
++	int ret;
++	u32 rev;
++
++	if (!config || !config->extcon)
++		return -ENODEV;
++
++	extcon = extcon_get_extcon_dev(config->extcon);
++	if (!extcon)
++		return -EPROBE_DEFER;
++
++	otg_dev = devm_kzalloc(&pdev->dev, sizeof(*otg_dev), GFP_KERNEL);
++	if (!otg_dev)
++		return -ENOMEM;
++
++	otg_dev->base = devm_ioremap_resource(&pdev->dev, &pdev->resource[0]);
++	if (IS_ERR(otg_dev->base))
++		return PTR_ERR(otg_dev->base);
++
++	otg_dev->id_nb.notifier_call = omap_otg_id_notifier;
++	otg_dev->vbus_nb.notifier_call = omap_otg_vbus_notifier;
++
++	ret = extcon_register_interest(&otg_dev->id_dev, config->extcon,
++				       "USB-HOST", &otg_dev->id_nb);
++	if (ret)
++		return ret;
++
++	ret = extcon_register_interest(&otg_dev->vbus_dev, config->extcon,
++				       "USB", &otg_dev->vbus_nb);
++	if (ret) {
++		extcon_unregister_interest(&otg_dev->id_dev);
++		return ret;
++	}
++
++	otg_dev->id = extcon_get_cable_state(extcon, "USB-HOST");
++	otg_dev->vbus = extcon_get_cable_state(extcon, "USB");
++	omap_otg_set_mode(otg_dev);
++
++	rev = readl(otg_dev->base);
++
++	dev_info(&pdev->dev,
++		 "OMAP USB OTG controller rev %d.%d (%s, id=%d, vbus=%d)\n",
++		 (rev >> 4) & 0xf, rev & 0xf, config->extcon, otg_dev->id,
++		 otg_dev->vbus);
++
++	return 0;
++}
++
++static int omap_otg_remove(struct platform_device *pdev)
++{
++	struct otg_device *otg_dev = platform_get_drvdata(pdev);
++
++	extcon_unregister_interest(&otg_dev->id_dev);
++	extcon_unregister_interest(&otg_dev->vbus_dev);
++
++	return 0;
++}
++
++static struct platform_driver omap_otg_driver = {
++	.probe		= omap_otg_probe,
++	.remove		= omap_otg_remove,
++	.driver		= {
++		.owner	= THIS_MODULE,
++		.name	= "omap_otg",
++	},
++};
++module_platform_driver(omap_otg_driver);
++
++MODULE_DESCRIPTION("OMAP USB OTG controller driver");
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>");
 -- 
 1.8.3.1
 
-A.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
