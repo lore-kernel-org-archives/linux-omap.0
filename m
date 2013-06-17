@@ -1,83 +1,52 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] gpio: Enable pcf857x GPIO expander for Device Tree
-Date: Mon, 17 Jun 2013 11:05:38 +0200
-Message-ID: <CACRpkdY-HZ4AGqKr-DA1pvfnaVYEGZoEDn_wfDr8=9Qr+6dpiw@mail.gmail.com>
-References: <1370527523-1030-1-git-send-email-archit@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v3 1/2] spi: omap2-mcspi: Move bytes per word calculation
+ to the function
+Date: Mon, 17 Jun 2013 10:14:05 +0100
+Message-ID: <20130617091405.GY1403@sirena.org.uk>
+References: <1371226328-24147-1-git-send-email-illia.smyrnov@ti.com>
+ <1371226328-24147-2-git-send-email-illia.smyrnov@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="xhBcNpeZh7WRSjC8"
 Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1370527523-1030-1-git-send-email-archit@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1371226328-24147-2-git-send-email-illia.smyrnov@ti.com>
 Sender: linux-doc-owner@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>
+To: Illia Smyrnov <illia.smyrnov@ti.com>
+Cc: Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Daniel Mack <zonque@gmail.com>, Matthias Brugger <matthias.bgg@gmail.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 6, 2013 at 4:05 PM, Archit Taneja <archit@ti.com> wrote:
 
-> Add code to parse the GPIO expander Device Tree node and extract platform data
-> out of it, and populate the struct 'pcf857x_platform_data' maintained by the
-> driver. This enables devices to reference the gpio expander from Device Tree.
->
-> Add DT binding info in Documentation.
->
-> CC: Grant Likely <grant.likely@secretlab.ca>
-> Signed-off-by: Archit Taneja <archit@ti.com>
+--xhBcNpeZh7WRSjC8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-(...)
-> +++ b/Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt
-> @@ -0,0 +1,44 @@
-> +PCF857x I2C based GPIO controller bindings
-> +
-> +Required properties:
-> +- compatible:
-> +  - "nxp,pca9670" for NXP PCA9670 8 bit I/O expander
-> +  - "nxp,pca9672" for NXP PCA9672 8 bit I/O expander with interrupt
-> +  - "nxp,pca9674" for NXP PCA9672 8 bit I/O expander with interrupt
-> +  - "nxp,pca8574" for NXP PCA8574 8 bit I/O expander with interrupt
-> +  - "nxp,pca8575" for NXP PCA8575 16 bit I/O expander with interrupt
-> +  - "nxp,pca9671" for NXP PCA9671 16 bit I/O expander
-> +  - "nxp,pca9673" for NXP PCA9673 16 bit I/O expander with interrupt
-> +  - "nxp,pca9675" for NXP PCA9675 16 bit I/O expander with interrupt
-> +  - "ti,pcf8574"  for TI PCF8574 8 bit I/O expander with interrupt
-> +  - "ti,pcf8574a" for TI PCF8574A 8 bit I/O expander with interrupt
-> +  - "ti,pcf8575"  for TI PCF8575 16 bit I/O expander with interrupt
-> +  - "ti,tca9554"  for TI TCA9554 8 bit I/O expander with interrupt
-> +  - "maxim,max7328" for MAXIM MAX7328 8 bit I/O expander with interrupt
-> +  - "maxim,max7329" for MAXIM MAX7329 8 bit I/O expander with interrupt
-> +- gpio-controller : Marks the device node as a GPIO controller.
-> +- #gpio-cells : Should be two.
-> +  - first cell is the pin number.
-> +  - second cell is unused.
+On Fri, Jun 14, 2013 at 07:12:07PM +0300, Illia Smyrnov wrote:
+> Introduce mcspi_bytes_per_word function as replacement for the next code
+> fragment:
 
-I guess you're adding this because the generic GPIO bindings use it and
-of_gpio_simple_xlate() depends on this two-cell layout.
+Applied, thanks.
 
-Make a reference to the generic GPIO bindings and note that the
-second cell is *NOT* unused, as it is used in the GPIOlib!
+--xhBcNpeZh7WRSjC8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> +- interrupt-controller: Mark the device node as an interrupt controller.
-> +- #interrupt-cells : Should be two.
-> +  - first cell is the GPIO number.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
 
-Surely it is the IRQ number and not the GPIO number.
-The fact that the IRQ originates in a GPIO controller does not
-matter.
+iQIcBAEBAgAGBQJRvtNaAAoJELSic+t+oim90a4P/1mmR60SXPgYM11YI4VslxnZ
+bFpfHSewePsgBHwXU7eByE6Jlu8Qj1wQR1dqb67SMGntPxvrBt5WVSoo/KEWmxq2
+t6TMsaG7vaECWRCkAR9tSkN6gXpDm380lxDI/FM3vubUfC5AV2ORRl+t/LFsknoW
+oDtlXz4hepv6n9ZE00MJyhwcYRulnYSDa24Tng0H+kFNaIGzy/1AP6sLJWJkBeH9
+t0EhrqB2O+OEJJTyTDMMd/XQSMz6r9PWcazNqbWNDl0FKgUcvHcwkN7ZNxyJC3ja
+hRS2VNPy+WSfdla3219JkieO4VXbhP7yBbCKGGu/5xHSCEwplOyPeZJ7fxopAwQn
+jdTSu1o83eunecfrY7Z3MSSABKfW0/TkrxfonIo0II7q2uJLm2MIYC2t3s4on4NB
+DqC1qC+Ju7iiUX/imjzrnSSjQiQjSe3eYHS/rrtW+tDCpMZ9fiFI/494yGqxko28
+vATJjLI7Ya09nOMT7UqnfzBh9/TqN/ipKzKViFXbzl0nnfvpZw8FqYU6oqZ+z/WQ
+GTvdvhC5Z/Xc+H7HBNyDkyQZZPnnUTI0zGlRCsJ/osseD3ZF47nrtANl1QgLdUiU
+6vBELkqBArrXCFi/VJn/5ZYeNuZK3ab5xzu7pFJc+mtLJoS+R/wcW4lV2IohEJ4u
+om4ZGZJakCEH2+kxY4E/
+=faST
+-----END PGP SIGNATURE-----
 
-> +  - second cell is unused.
-
-So why do you add it? Usually this is used for trigger flags.
-Are you planning to add this later, i.e. does the chip support this,
-and if it doesn't then get rid of this flag.
-
-> +- reg: I2C address of the chip.
-> +
-> +Device speific properties:
-> +- n_latch:             optional bit-inverse of initial register value; if
-> +                       you leave this initialized to zero the driver will act
-> +                       like the chip was just reset.
-
-Explain what happens if you do *not* leave it as zero and what the
-bits mean in that case.
-
-Yours,
-Linus Walleij
+--xhBcNpeZh7WRSjC8--
