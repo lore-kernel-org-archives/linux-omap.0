@@ -1,49 +1,55 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH v2 0/2] Remove unused voltagedomain data for AM33xx
-Date: Mon, 17 Jun 2013 07:32:49 -0700
-Message-ID: <87wqps959q.fsf@linaro.org>
-References: <1371474983-29296-1-git-send-email-rnayak@ti.com>
+From: "Fernandes, Joel A" <joelagnel@ti.com>
+Subject: RE: [PATCH v10 5/8] dmaengine: edma: Add TI EDMA device tree binding
+Date: Mon, 17 Jun 2013 15:05:55 +0000
+Message-ID: <083BC63EECB6FD41B8E81CF7FD87CC0F2E4E92DA@DLEE08.ent.ti.com>
+References: <1371263570-9323-1-git-send-email-joelagnel@ti.com>
+ <1371263570-9323-5-git-send-email-joelagnel@ti.com> <51BEEC84.1080102@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f47.google.com ([209.85.160.47]:57094 "EHLO
-	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751087Ab3FQOcx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jun 2013 10:32:53 -0400
-Received: by mail-pb0-f47.google.com with SMTP id rr13so2818272pbb.6
-        for <linux-omap@vger.kernel.org>; Mon, 17 Jun 2013 07:32:53 -0700 (PDT)
-In-Reply-To: <1371474983-29296-1-git-send-email-rnayak@ti.com> (Rajendra
-	Nayak's message of "Mon, 17 Jun 2013 18:46:21 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51BEEC84.1080102@ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Nori, Sekhar" <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Russell King <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Koen Kooi <koen@beagleboard.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Vinod Koul <vinod.koul@intel.com>, Jason Kridner <jkridner@beagleboard.org>, Rob Landley <rob@landley.net>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Andrew Morton <akpm@linux-foundation.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Matt Porter <matt@ohporter.com>
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Rajendra Nayak <rnayak@ti.com> writes:
+Hi Sekhar,
 
-> Hi,
->
-> The powerdomain framework currently expects to always have a voltagedomain
-> associated with a given powerdomain. We already have AM33xx which
-> has no Voltage Controller/Voltage Processor as part of PRCM.
-> There are more SoCs' to follow starting with AM437x and DRA7xx
-> which do not have VC/VP. All these SoCs', hence do not support any
-> form of auto-scaling of voltages, that was possible on earlier OMAPs'
-> using the VFSM to trigger an i2c communication to the PMIC automatically
-> on hitting a low power state.
->
-> Instead of adding dummy voltage domain data files, like was done for the
-> AM33xx case, make the powerdomain framework aware of the fact that some
-> SoCs' might not really have support for auto-scaling of voltages in hw.
->
-> Patches are based of 3.10-rc6 and are boot tested on am335x bone.
->
-> Rajendra Nayak (2):
->   ARM: OMAP2+: Powerdomain: Remove the need to always have a voltdm
->     associated to a pwrdm
->   ARM: AM33xx: Remove the unused voltagedomain data
+> -----Original Message-----
+> From: Nori, Sekhar
+> Sent: Monday, June 17, 2013 6:01 AM
+> To: Fernandes, Joel A; Grant Likely; Rob Herring
+> Cc: Tony Lindgren; Matt Porter; Vinod Koul; Mark Brown; Cousson, Benoit;
+> Russell King; Rob Landley; Andrew Morton; Jason Kridner; Koen Kooi;
+> Devicetree Discuss; Linux OMAP List; Linux ARM Kernel List; Linux DaVinci
+> Kernel List; Linux Kernel Mailing List; Linux Documentation List; Linux MMC
+> List; Linux SPI Devel List; Arnd Bergmann
+> Subject: Re: [PATCH v10 5/8] dmaengine: edma: Add TI EDMA device tree
+> binding
+> 
+> Grant, Rob,
+> 
+> Can one of you please take a look at this patch and see if you have any
+> comments on the binding definition?
+> 
+> Joel,
+> 
+> Ideally the bindings are described before they are used or along with its
+> usage. In that aspect, this patch is present too far back in the series. Can you
+> please fix this if you get to posting another version. I think I gave the same
+> comment on v9 as well.
+ 
+[Joel] Yes, sure, I will make a note to push this up the series during the next posting.
 
-Thanks, queuing up this series with ack from Santosh and tested-by from
-Afzal.  I'll try, but not sure if it can make it for v3.11.
-
-Kevin
+Thanks,
+Joel
