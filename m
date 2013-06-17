@@ -1,197 +1,43 @@
-From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v5 3/3] mtd: devices: elm: Low power transition support
-Date: Tue, 18 Jun 2013 00:16:39 +0530
-Message-ID: <1371494799-11876-4-git-send-email-pekon@ti.com>
-References: <1371494799-11876-1-git-send-email-pekon@ti.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] mailbox driver framework for v3.10 merge window
+Date: Mon, 17 Jun 2013 13:01:29 -0700
+Message-ID: <20130617200129.GG28497@quad.lixom.net>
+References: <CAFiDJ5_1w+M6TTroeQEjOcc5GNN2RCmLN4ZB5dxQNwoc+9R1YQ@mail.gmail.com>
+ <51BE1C89.5080800@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47403 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752059Ab3FQSr0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Jun 2013 14:47:26 -0400
-In-Reply-To: <1371494799-11876-1-git-send-email-pekon@ti.com>
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:50943 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751836Ab3FQUBX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jun 2013 16:01:23 -0400
+Received: by mail-pa0-f50.google.com with SMTP id fb1so3216098pad.37
+        for <linux-omap@vger.kernel.org>; Mon, 17 Jun 2013 13:01:23 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <51BE1C89.5080800@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@linaro.org, avinash philip <avinashphilip@ti.com>, Pekon Gupta <pekon@ti.com>
+To: Suman Anna <s-anna@ti.com>
+Cc: "LF.Tan" <lftan.linux@gmail.com>, Arnd Bergmann <arnd@arndb.de>, linux@arm.linux.org.uk, loic.pallardy@st.com, tony@atomide.com, Linus Walleij <linus.walleij@linaro.org>, omar.ramirez@copitl.com, linux-omap@vger.kernel.org, jaswinder.singh@linaro.org
 
-From: avinash philip <avinashphilip@ti.com>
+On Sun, Jun 16, 2013 at 03:14:01PM -0500, Suman Anna wrote:
+> Hi Tan,
+> 
+> On 06/14/2013 04:32 AM, LF.Tan wrote:
+> > 
+> > Hi Suman
+> > 
+> > Thanks for your reply.
+> > I have took a look the patches you've mentioned in [1]. It is totally
+> > new framework from what is located in linux-next git tree now.
+> 
+> Yes, that is correct. The framework is different, but functionality
+> wise, you should be able to achieve the same (and a bit more).
 
-ELM is used for locating bit-flip errors in when using BCH ECC scheme.
-This patch adds suspend/resume support for leaf level ELM driver,
-And also provides ELM register context save & restore support, so that
-configurations are preserved across hardware power-off/on transitions.
+I noticed that we had accidentally merged the previous version of the
+framework, since it was never intended to sit in linux-next given the
+redesign underway. I dropped it on Friday, so it wasn't included in the
+latest build of linux-next, and should not be part of it from here on out.
 
-Signed-off-by: Philip Avinash <avinashphilip@ti.com>
-Signed-off-by: Pekon Gupta <pekon@ti.com>
----
- drivers/mtd/devices/elm.c | 117 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 117 insertions(+)
 
-diff --git a/drivers/mtd/devices/elm.c b/drivers/mtd/devices/elm.c
-index dccef9f..e6a7b89 100644
---- a/drivers/mtd/devices/elm.c
-+++ b/drivers/mtd/devices/elm.c
-@@ -20,14 +20,21 @@
- #include <linux/interrupt.h>
- #include <linux/io.h>
- #include <linux/of.h>
-+#include <linux/sched.h>
- #include <linux/pm_runtime.h>
- #include <linux/platform_data/elm.h>
- 
-+#define ELM_SYSCONFIG			0x010
- #define ELM_IRQSTATUS			0x018
- #define ELM_IRQENABLE			0x01c
- #define ELM_LOCATION_CONFIG		0x020
- #define ELM_PAGE_CTRL			0x080
- #define ELM_SYNDROME_FRAGMENT_0		0x400
-+#define ELM_SYNDROME_FRAGMENT_1		0x404
-+#define ELM_SYNDROME_FRAGMENT_2		0x408
-+#define ELM_SYNDROME_FRAGMENT_3		0x40c
-+#define ELM_SYNDROME_FRAGMENT_4		0x410
-+#define ELM_SYNDROME_FRAGMENT_5		0x414
- #define ELM_SYNDROME_FRAGMENT_6		0x418
- #define ELM_LOCATION_STATUS		0x800
- #define ELM_ERROR_LOCATION_0		0x880
-@@ -56,12 +63,27 @@
- #define SYNDROME_FRAGMENT_REG_SIZE	0x40
- #define ERROR_LOCATION_SIZE		0x100
- 
-+struct elm_registers {
-+	u32 elm_irqenable;
-+	u32 elm_sysconfig;
-+	u32 elm_location_config;
-+	u32 elm_page_ctrl;
-+	u32 elm_syndrome_fragment_6[ERROR_VECTOR_MAX];
-+	u32 elm_syndrome_fragment_5[ERROR_VECTOR_MAX];
-+	u32 elm_syndrome_fragment_4[ERROR_VECTOR_MAX];
-+	u32 elm_syndrome_fragment_3[ERROR_VECTOR_MAX];
-+	u32 elm_syndrome_fragment_2[ERROR_VECTOR_MAX];
-+	u32 elm_syndrome_fragment_1[ERROR_VECTOR_MAX];
-+	u32 elm_syndrome_fragment_0[ERROR_VECTOR_MAX];
-+};
-+
- struct elm_info {
- 	struct device *dev;
- 	void __iomem *elm_base;
- 	struct completion elm_completion;
- 	struct list_head list;
- 	enum bch_ecc bch_type;
-+	struct elm_registers elm_regs;
- };
- 
- static LIST_HEAD(elm_devices);
-@@ -385,6 +407,100 @@ static int elm_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+/**
-+ * elm_context_save
-+ * saves ELM configurations to preserve them across Hardware powered-down
-+ */
-+static int elm_context_save(struct elm_info *info)
-+{
-+	struct elm_registers *regs = &info->elm_regs;
-+	enum bch_ecc bch_type = info->bch_type;
-+	u32 offset = 0, i;
-+
-+	regs->elm_irqenable       = elm_read_reg(info, ELM_IRQENABLE);
-+	regs->elm_sysconfig       = elm_read_reg(info, ELM_SYSCONFIG);
-+	regs->elm_location_config = elm_read_reg(info, ELM_LOCATION_CONFIG);
-+	regs->elm_page_ctrl       = elm_read_reg(info, ELM_PAGE_CTRL);
-+	for (i = 0; i < ERROR_VECTOR_MAX; i++) {
-+		offset = i * SYNDROME_FRAGMENT_REG_SIZE;
-+		switch (bch_type) {
-+		case BCH8_ECC:
-+			regs->elm_syndrome_fragment_3[i] = elm_read_reg(info,
-+					ELM_SYNDROME_FRAGMENT_3 + offset);
-+			regs->elm_syndrome_fragment_2[i] = elm_read_reg(info,
-+					ELM_SYNDROME_FRAGMENT_2 + offset);
-+		case BCH4_ECC:
-+			regs->elm_syndrome_fragment_1[i] = elm_read_reg(info,
-+					ELM_SYNDROME_FRAGMENT_1 + offset);
-+			regs->elm_syndrome_fragment_0[i] = elm_read_reg(info,
-+					ELM_SYNDROME_FRAGMENT_0 + offset);
-+		default:
-+			return -EINVAL;
-+		}
-+		/* ELM SYNDROME_VALID bit in SYNDROME_FRAGMENT_6[] needs
-+		 * to be saved for all BCH schemes*/
-+		regs->elm_syndrome_fragment_6[i] = elm_read_reg(info,
-+					ELM_SYNDROME_FRAGMENT_6 + offset);
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * elm_context_restore
-+ * writes configurations saved duing power-down back into ELM registers
-+ */
-+static int elm_context_restore(struct elm_info *info)
-+{
-+	struct elm_registers *regs = &info->elm_regs;
-+	enum bch_ecc bch_type = info->bch_type;
-+	u32 offset = 0, i;
-+
-+	elm_write_reg(info, ELM_IRQENABLE,	 regs->elm_irqenable);
-+	elm_write_reg(info, ELM_SYSCONFIG,	 regs->elm_sysconfig);
-+	elm_write_reg(info, ELM_LOCATION_CONFIG, regs->elm_location_config);
-+	elm_write_reg(info, ELM_PAGE_CTRL,	 regs->elm_page_ctrl);
-+	for (i = 0; i < ERROR_VECTOR_MAX; i++) {
-+		offset = i * SYNDROME_FRAGMENT_REG_SIZE;
-+		switch (bch_type) {
-+		case BCH8_ECC:
-+			elm_write_reg(info, ELM_SYNDROME_FRAGMENT_3 + offset,
-+					regs->elm_syndrome_fragment_3[i]);
-+			elm_write_reg(info, ELM_SYNDROME_FRAGMENT_2 + offset,
-+					regs->elm_syndrome_fragment_2[i]);
-+		case BCH4_ECC:
-+			elm_write_reg(info, ELM_SYNDROME_FRAGMENT_1 + offset,
-+					regs->elm_syndrome_fragment_1[i]);
-+			elm_write_reg(info, ELM_SYNDROME_FRAGMENT_0 + offset,
-+					regs->elm_syndrome_fragment_0[i]);
-+		default:
-+			return -EINVAL;
-+		}
-+		/* ELM_SYNDROME_VALID bit to be set in last to trigger FSM */
-+		elm_write_reg(info, ELM_SYNDROME_FRAGMENT_6 + offset,
-+					regs->elm_syndrome_fragment_6[i] &
-+							 ELM_SYNDROME_VALID);
-+	}
-+	return 0;
-+}
-+
-+static int elm_suspend(struct device *dev)
-+{
-+	struct elm_info *info = dev_get_drvdata(dev);
-+	elm_context_save(info);
-+	pm_runtime_put_sync(dev);
-+	return 0;
-+}
-+
-+static int elm_resume(struct device *dev)
-+{
-+	struct elm_info *info = dev_get_drvdata(dev);
-+	pm_runtime_get_sync(dev);
-+	elm_context_restore(info);
-+	return 0;
-+}
-+
-+static SIMPLE_DEV_PM_OPS(elm_pm_ops, elm_suspend, elm_resume);
-+
- #ifdef CONFIG_OF
- static const struct of_device_id elm_of_match[] = {
- 	{ .compatible = "ti,am3352-elm" },
-@@ -398,6 +514,7 @@ static struct platform_driver elm_driver = {
- 		.name	= "elm",
- 		.owner	= THIS_MODULE,
- 		.of_match_table = of_match_ptr(elm_of_match),
-+		.pm	= &elm_pm_ops,
- 	},
- 	.probe	= elm_probe,
- 	.remove	= elm_remove,
--- 
-1.8.1
-
+-Olof
