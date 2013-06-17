@@ -1,135 +1,94 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 2/2] musb: musb: dsps: determine the number of instances at runtime
-Date: Mon, 17 Jun 2013 17:13:34 +0200
-Message-ID: <1371482014-5244-3-git-send-email-bigeasy@linutronix.de>
-References: <1371482014-5244-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:39763 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751062Ab3FQPNr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jun 2013 11:13:47 -0400
-In-Reply-To: <1371482014-5244-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Fernandes, Joel A" <joelagnel-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v10 5/8] dmaengine: edma: Add TI EDMA device tree binding
+Date: Mon, 17 Jun 2013 15:40:29 +0000
+Message-ID: <083BC63EECB6FD41B8E81CF7FD87CC0F2E4E9395@DLEE08.ent.ti.com>
+References: <1371263570-9323-1-git-send-email-joelagnel@ti.com>
+	<1371263570-9323-5-git-send-email-joelagnel@ti.com>
+	<3940138.jZFEtfGGLz@wuerfel>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <3940138.jZFEtfGGLz@wuerfel>
+Content-Language: en-US
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "Cousson,  Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-There is no need to hardcode the number of instances here. It is better to
-determine them at runtime. Even if the device provides two instances one
-might only want to use one of them.
+Hi Arnd,
 
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- drivers/usb/musb/musb_dsps.c | 33 +++++++++++++++++++++++----------
- 1 file changed, 23 insertions(+), 10 deletions(-)
+> -----Original Message-----
+> From: Arnd Bergmann [mailto:arnd-r2nGTMty4D4@public.gmane.org]
+> Sent: Monday, June 17, 2013 6:13 AM
+> To: Fernandes, Joel A
+> Cc: Tony Lindgren; Nori, Sekhar; Matt Porter; Grant Likely; Rob Herring; Vinod
+> Koul; Mark Brown; Cousson, Benoit; Russell King; Rob Landley; Andrew
+> Morton; Jason Kridner; Koen Kooi; Devicetree Discuss; Linux OMAP List; Linux
+> ARM Kernel List; Linux DaVinci Kernel List; Linux Kernel Mailing List; Linux
+> Documentation List; Linux MMC List; Linux SPI Devel List
+> Subject: Re: [PATCH v10 5/8] dmaengine: edma: Add TI EDMA device tree
+> binding
+> 
+> On Friday 14 June 2013 21:32:47 Joel A Fernandes wrote:
+> >
+> > diff --git a/Documentation/devicetree/bindings/dma/ti-edma.txt
+> > b/Documentation/devicetree/bindings/dma/ti-edma.txt
+> > new file mode 100644
+> > index 0000000..ada0018
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/dma/ti-edma.txt
+> > @@ -0,0 +1,26 @@
+> > +TI EDMA
+> > +
+> > +Required properties:
+> > +- compatible : "ti,edma3"
+> > +- ti,hwmods: Name of the hwmods associated to the EDMA
+> > +- ti,edma-regions: Number of regions
+> > +- ti,edma-slots: Number of slots
+> > +
+> > +Optional properties:
+> > +- ti,edma-xbar-event-map: Crossbar event to channel map
+> 
+> You need to list #dma-cells as required here, and which values are accepted
+> by the driver (I suppose only <1>). You should also explain the format of the
+> dma-specifier for a slave here for each possible value of #dma-cells.
+> 
+> For each of the standard properties (reg, interrupts, dma-channels), list
+> whether they are optional or required. Since the example has three
+> interrupts, you should probably list how many interrupts need to be specified
+> (minimum and maximum if the number is variable) and in what order to
+> expect them.
+ 
+[Joel] Thanks for the suggestion, I updated it and it looks like this now:
+                                                                                                             
+Required properties:                                                                                                                   
+- compatible : "ti,edma3"                                                                                                              
+- ti,hwmods: Name of the hwmods associated to the EDMA                                                                                 
+- ti,edma-regions: Number of regions                                                                                                   
+- ti,edma-slots: Number of slots
+- #dma-cells: Should be set to <1> 
+              Clients should use a single number per DMA channel request.
+- dma-channels: Specify total DMA channels per CC                                                                                      
+- reg: Memory map for accessing module                                                                                                 
+- interrupt-parent: Interrupt controller the interrupt is routed through                                                               
+- interrupts: Exactly 3 interrupts need to be specified in the order:                                                                  
+              1. Transfer completion interrupt.                                                                                        
+              2. Memory protection interrupt.                                                                                          
+              3. Error interrupt.                                                                                                      
+Optional properties: 
+- ti,edma-xbar-event-map: Crossbar event to channel map
 
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index d9ff390..0ac9934 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -110,8 +110,6 @@ struct dsps_musb_wrapper {
- 	/* miscellaneous stuff */
- 	u32		musb_core_offset;
- 	u8		poll_seconds;
--	/* number of musb instances */
--	u8		instances;
- };
- 
- /**
-@@ -124,6 +122,7 @@ struct dsps_glue {
- 	struct timer_list timer[2];	/* otg_workaround timer */
- 	unsigned long last_timer[2];    /* last timer data for each instance */
- 	u32 __iomem *usb_ctrl[2];
-+	u8 instances;
- };
- 
- #define	DSPS_AM33XX_CONTROL_MODULE_PHYS_0	0x44e10620
-@@ -646,6 +645,23 @@ static int dsps_probe(struct platform_device *pdev)
- 	}
- 	platform_set_drvdata(pdev, glue);
- 
-+	i = 1;
-+	do {
-+		iomem = platform_get_resource(pdev, IORESOURCE_MEM, i);
-+		if (!iomem) {
-+			i--;
-+			break;
-+		}
-+		i++;
-+	} while (1);
-+
-+	glue->instances = i;
-+	if (glue->instances < 1) {
-+		dev_err(&pdev->dev, "Need atleast iomem for one port.\n");
-+		ret = -EINVAL;
-+		goto err1_5;
-+	}
-+
- 	/* enable the usbss clocks */
- 	pm_runtime_enable(&pdev->dev);
- 
-@@ -656,7 +672,7 @@ static int dsps_probe(struct platform_device *pdev)
- 	}
- 
- 	/* create the child platform device for all instances of musb */
--	for (i = 0; i < wrp->instances ; i++) {
-+	for (i = 0; i < glue->instances; i++) {
- 		ret = dsps_create_musb_pdev(glue, i);
- 		if (ret != 0) {
- 			dev_err(&pdev->dev, "failed to create child pdev\n");
-@@ -673,6 +689,7 @@ static int dsps_probe(struct platform_device *pdev)
- 	pm_runtime_put(&pdev->dev);
- err2:
- 	pm_runtime_disable(&pdev->dev);
-+err1_5:
- 	kfree(glue->wrp);
- err1:
- 	kfree(glue);
-@@ -682,11 +699,10 @@ static int dsps_probe(struct platform_device *pdev)
- static int dsps_remove(struct platform_device *pdev)
- {
- 	struct dsps_glue *glue = platform_get_drvdata(pdev);
--	const struct dsps_musb_wrapper *wrp = glue->wrp;
- 	int i;
- 
- 	/* delete the child platform device */
--	for (i = 0; i < wrp->instances ; i++)
-+	for (i = 0; i < glue->instances; i++)
- 		platform_device_unregister(glue->musb[i]);
- 
- 	/* disable usbss clocks */
-@@ -702,10 +718,9 @@ static int dsps_suspend(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev->parent);
- 	struct dsps_glue *glue = platform_get_drvdata(pdev);
--	const struct dsps_musb_wrapper *wrp = glue->wrp;
- 	int i;
- 
--	for (i = 0; i < wrp->instances; i++)
-+	for (i = 0; i < glue->instances; i++)
- 		musb_dsps_phy_control(glue, i, 0);
- 
- 	return 0;
-@@ -715,10 +730,9 @@ static int dsps_resume(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev->parent);
- 	struct dsps_glue *glue = platform_get_drvdata(pdev);
--	const struct dsps_musb_wrapper *wrp = glue->wrp;
- 	int i;
- 
--	for (i = 0; i < wrp->instances; i++)
-+	for (i = 0; i < glue->instances; i++)
- 		musb_dsps_phy_control(glue, i, 1);
- 
- 	return 0;
-@@ -755,7 +769,6 @@ static const struct dsps_musb_wrapper ti81xx_driver_data = {
- 	.rxep_bitmap		= (0xfffe << 16),
- 	.musb_core_offset	= 0x400,
- 	.poll_seconds		= 2,
--	.instances		= 1,
- };
- 
- static const struct platform_device_id musb_dsps_id_table[] = {
--- 
-1.8.3.1
 
+Hope this looks ok. I will respin this patch and repost it in the next series spin.
+
+Thanks,
+Joel
