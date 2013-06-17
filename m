@@ -1,183 +1,79 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH] gpio: Enable pcf857x GPIO expander for Device Tree
-Date: Mon, 17 Jun 2013 12:33:34 +0530
-Message-ID: <51BEB4C6.90508@ti.com>
-References: <1370527523-1030-1-git-send-email-archit@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: Request for OMAPDSS testing
+Date: Mon, 17 Jun 2013 10:08:13 +0300
+Message-ID: <51BEB5DD.4000605@ti.com>
+References: <51AD99F5.7060506@ti.com> <51B9EA7B.8070906@compulab.co.il> <51B9ECBE.3010401@ti.com> <51BDAF6A.1020102@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1370527523-1030-1-git-send-email-archit@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: linus.walleij@linaro.org
-Cc: linux-omap@vger.kernel.org, linux-doc@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, devicetree-discuss@lists.ozlabs.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="----enig2ROQPMUTUOWNHNFSUNSXE"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:58617 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752833Ab3FQHIh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Jun 2013 03:08:37 -0400
+In-Reply-To: <51BDAF6A.1020102@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Thomas Weber <weber@corscience.de>, Mike Rapoport <mike@compulab.co.il>, Steve Sakoman <steve@sakoman.com>, =?windows-1252?Q?Gra=9Evydas_Ignotas?= <notasas@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi Linus,
+------enig2ROQPMUTUOWNHNFSUNSXE
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-On Thursday 06 June 2013 07:35 PM, Archit Taneja wrote:
-> Add code to parse the GPIO expander Device Tree node and extract platform data
-> out of it, and populate the struct 'pcf857x_platform_data' maintained by the
-> driver. This enables devices to reference the gpio expander from Device Tree.
->
-> Add DT binding info in Documentation.
+On 16/06/13 15:28, Igor Grinberg wrote:
 
-Any comments on this patch?
+>>> Although one thing is missing from the tfp410 driver is
+>>> the PD GPIO polarity. I had to adjust it locally to get the DVI worki=
+ng.
+>>> The original polarity was high =3D disabled, low =3D enabled.
+>=20
+>> Hmm, but this is missing from the old driver also, isn't it? At least
+>> with a quick glance the old and new tfp410 drivers do the same thing
+>> with the PD gpio.
+>=20
+> Well, we were driving the PD GPIO from the board file...
 
-Thanks,
-Archit
+Ah, I see. That was inverted PD handling was removed in 3.5, by accident
+as far as I see. So DVI on cm-t35 has been broken since?
 
->
-> CC: Grant Likely <grant.likely@secretlab.ca>
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->   .../devicetree/bindings/gpio/gpio-pcf857x.txt      | 44 +++++++++++++++++
->   drivers/gpio/gpio-pcf857x.c                        | 57 ++++++++++++++++++++--
->   2 files changed, 97 insertions(+), 4 deletions(-)
->   create mode 100644 Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt
->
-> diff --git a/Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt b/Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt
-> new file mode 100644
-> index 0000000..0556512
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt
-> @@ -0,0 +1,44 @@
-> +PCF857x I2C based GPIO controller bindings
-> +
-> +Required properties:
-> +- compatible:
-> +  - "nxp,pca9670" for NXP PCA9670 8 bit I/O expander
-> +  - "nxp,pca9672" for NXP PCA9672 8 bit I/O expander with interrupt
-> +  - "nxp,pca9674" for NXP PCA9672 8 bit I/O expander with interrupt
-> +  - "nxp,pca8574" for NXP PCA8574 8 bit I/O expander with interrupt
-> +  - "nxp,pca8575" for NXP PCA8575 16 bit I/O expander with interrupt
-> +  - "nxp,pca9671" for NXP PCA9671 16 bit I/O expander
-> +  - "nxp,pca9673" for NXP PCA9673 16 bit I/O expander with interrupt
-> +  - "nxp,pca9675" for NXP PCA9675 16 bit I/O expander with interrupt
-> +  - "ti,pcf8574"  for TI PCF8574 8 bit I/O expander with interrupt
-> +  - "ti,pcf8574a" for TI PCF8574A 8 bit I/O expander with interrupt
-> +  - "ti,pcf8575"  for TI PCF8575 16 bit I/O expander with interrupt
-> +  - "ti,tca9554"  for TI TCA9554 8 bit I/O expander with interrupt
-> +  - "maxim,max7328" for MAXIM MAX7328 8 bit I/O expander with interrupt
-> +  - "maxim,max7329" for MAXIM MAX7329 8 bit I/O expander with interrupt
-> +- gpio-controller : Marks the device node as a GPIO controller.
-> +- #gpio-cells : Should be two.
-> +  - first cell is the pin number.
-> +  - second cell is unused.
-> +- interrupt-controller: Mark the device node as an interrupt controller.
-> +- #interrupt-cells : Should be two.
-> +  - first cell is the GPIO number.
-> +  - second cell is unused.
-> +- reg: I2C address of the chip.
-> +
-> +Device speific properties:
-> +- n_latch:		optional bit-inverse of initial register value; if
-> +			you leave this initialized to zero the driver will act
-> +			like the chip was just reset.
-> +
-> +Example:
-> +
-> +pcf8575: pcf8575 {
-> +	compatible = "ti,pcf8575";
-> +	gpio-controller;
-> +	#gpio-cells = <2>;
-> +	interrupt-controller;
-> +	#interrupt-cells = <2>;
-> +	reg = <0x20>;
-> +	n_latch = <0x0>;
-> +};
-> diff --git a/drivers/gpio/gpio-pcf857x.c b/drivers/gpio/gpio-pcf857x.c
-> index e8faf53..3435790 100644
-> --- a/drivers/gpio/gpio-pcf857x.c
-> +++ b/drivers/gpio/gpio-pcf857x.c
-> @@ -21,6 +21,7 @@
->   #include <linux/kernel.h>
->   #include <linux/slab.h>
->   #include <linux/gpio.h>
-> +#include <linux/of.h>
->   #include <linux/i2c.h>
->   #include <linux/i2c/pcf857x.h>
->   #include <linux/interrupt.h>
-> @@ -255,17 +256,42 @@ fail:
->
->   /*-------------------------------------------------------------------------*/
->
-> +static struct pcf857x_platform_data *of_gpio_pcf857x(struct device *dev)
-> +{
-> +	struct pcf857x_platform_data *pdata;
-> +	int r;
-> +
-> +	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-> +	if (!pdata)
-> +		return NULL;
-> +
-> +	pdata->gpio_base = -1;
-> +
-> +	r = of_property_read_u32(dev->of_node, "n_latch", &pdata->n_latch);
-> +	if (r) {
-> +		dev_dbg(dev, "couldn't find n-latch, use default\n");
-> +		pdata->n_latch = 0;
-> +	}
-> +
-> +	return pdata;
-> +}
-> +
->   static int pcf857x_probe(struct i2c_client *client,
->   			 const struct i2c_device_id *id)
->   {
->   	struct pcf857x_platform_data	*pdata;
-> +	struct device_node		*node;
->   	struct pcf857x			*gpio;
->   	int				status;
->
->   	pdata = client->dev.platform_data;
-> -	if (!pdata) {
-> +	node = client->dev.of_node;
-> +
-> +	if (!pdata && node)
-> +		pdata = of_gpio_pcf857x(&client->dev);
-> +
-> +	if (!pdata)
->   		dev_dbg(&client->dev, "no platform data\n");
-> -	}
->
->   	/* Allocate, initialize, and register this gpio_chip. */
->   	gpio = devm_kzalloc(&client->dev, sizeof(*gpio), GFP_KERNEL);
-> @@ -420,10 +446,33 @@ static int pcf857x_remove(struct i2c_client *client)
->   	return status;
->   }
->
-> +static const struct of_device_id pcf857x_dt_ids[] = {
-> +	{ .compatible = "nxp,pca9670", },
-> +	{ .compatible = "nxp,pca9672", },
-> +	{ .compatible = "nxp,pca9674", },
-> +	{ .compatible = "nxp,pca8574", },
-> +	{ .compatible = "nxp,pca8575", },
-> +	{ .compatible = "nxp,pca9671", },
-> +	{ .compatible = "nxp,pca9673", },
-> +	{ .compatible = "nxp,pca9675", },
-> +
-> +	{ .compatible = "ti,pcf8574", },
-> +	{ .compatible = "ti,pcf8574a", },
-> +	{ .compatible = "ti,pcf8575", },
-> +	{ .compatible = "ti,tca9554", },
-> +
-> +	{ .compatible = "maxim,max7328", },
-> +	{ .compatible = "maxim,max7329", },
-> +	{ }
-> +};
-> +
-> +MODULE_DEVICE_TABLE(of, pcf857x_dt_ids);
-> +
->   static struct i2c_driver pcf857x_driver = {
->   	.driver = {
-> -		.name	= "pcf857x",
-> -		.owner	= THIS_MODULE,
-> +		.name		= "pcf857x",
-> +		.owner		= THIS_MODULE,
-> +		.of_match_table	= pcf857x_dt_ids,
->   	},
->   	.probe	= pcf857x_probe,
->   	.remove	= pcf857x_remove,
->
+I wonder how that should be fixed... The tfp410 driver handles it
+correctly, as the PD gpio is active low (i.e. high =3D=3D tfp410 enabled)=
+,
+so having it inverted is a board specific thing. Do you know what is the
+reason to have it inverted?
 
+There seems to be OF_GPIO_ACTIVE_LOW, but I'm not sure how it should be
+used, as I don't see anyone setting that flag... And supporting that
+would mean, in principle, that every driver should support inverting the
+gpio with every gpio they have.
+
+ Tomi
+
+
+------enig2ROQPMUTUOWNHNFSUNSXE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRvrXhAAoJEPo9qoy8lh712M4P/iPLOdNI4E6M0BAuAnzkIIj4
+FGVmZUMkCP0srHFiRe0okyvoIdk+o8dJi2SYc/beghO5CzNbgSO4WVj29DRznJdr
+5Fu2XMI3deMK46Y5myhWHfloudAD/LgTp+GOerqZaVx+IzL7NHVivwYyNZwLjFEq
+/DzOTbzWYq07FDmlVRw+TU+K+evleJrz1Kbp+jUAuPmDzXsoFZ3xKLG4fdkQeYp2
+xkrcfQBnG2HWf+BXbzkqsU6U5Qza3NUdH0RePZG7PKgL7RObdCJ7MZO8NUiVZTzw
+GHT4EyARfyxgxVNo6py6aJW6d0+7xT0G7wfpVOTZyl9wmerCR3ZKPMVuFOiYEFw9
+lArfMPFsubSwVKVDWAn6piXoaxgKhuN5/Y0Dx6ije/fS0bYJlY9Q7ZaNNRmWEhmc
+V0xvhSpSYAyqvqaEUDGtIYUZldVSEcjpcOCrSnB2qi6D2Wx0eMfBukSxf/hKBfrF
+HfplOD4rFIIfQoSLdwWd4ApS5HUHe6iaWdPuXdEH8xSCFzs2WIgLy2/wRA/AocxU
+3t5f7vn6nany4az+c+wIR9RrN18ch5k7207l+K1d7+EUNQUwQnD4YdQJAGwd6LUD
+vUH22AzFqZKGE4J2VkIPItZQiAnzRuvIALvc014TBeSY0ZrSJoUB9T9Vv2yyuWTx
+HZPyC2FClYfAZ2SFj4iv
+=onip
+-----END PGP SIGNATURE-----
+
+------enig2ROQPMUTUOWNHNFSUNSXE--
