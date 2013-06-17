@@ -1,79 +1,54 @@
-From: J Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 3/4] MFD: Palmas: Add SMPS10_BOOST feature
-Date: Mon, 17 Jun 2013 17:39:13 +0530
-Message-ID: <1371470954-9124-4-git-send-email-j-keerthy@ti.com>
-References: <1371470954-9124-1-git-send-email-j-keerthy@ti.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH v10 5/8] dmaengine: edma: Add TI EDMA device tree binding
+Date: Mon, 17 Jun 2013 13:12:32 +0200
+Message-ID: <3940138.jZFEtfGGLz@wuerfel>
+References: <1371263570-9323-1-git-send-email-joelagnel@ti.com>
+ <1371263570-9323-5-git-send-email-joelagnel@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48037 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932825Ab3FQMQ7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Jun 2013 08:16:59 -0400
-In-Reply-To: <1371470954-9124-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1371263570-9323-5-git-send-email-joelagnel-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Joel A Fernandes <joelagnel-l0cyMroinI0@public.gmane.org>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: broonie@kernel.org, j-keerthy@ti.com, ldewangan@nvidia.com, sameo@linux.intel.com, grant.likely@secretlab.ca, swarren@nvidia.com, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, gg@slimlogic.co.uk
 
-The SMPS10 regulator is not presesnt in all the variants
-of the PALMAS PMIC family. Hence adding a feature to distingush
-between them.
+On Friday 14 June 2013 21:32:47 Joel A Fernandes wrote:
+> 
+> diff --git a/Documentation/devicetree/bindings/dma/ti-edma.txt b/Documentation/devicetree/bindings/dma/ti-edma.txt
+> new file mode 100644
+> index 0000000..ada0018
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/dma/ti-edma.txt
+> @@ -0,0 +1,26 @@
+> +TI EDMA
+> +
+> +Required properties:
+> +- compatible : "ti,edma3"
+> +- ti,hwmods: Name of the hwmods associated to the EDMA
+> +- ti,edma-regions: Number of regions
+> +- ti,edma-slots: Number of slots
+> +
+> +Optional properties:
+> +- ti,edma-xbar-event-map: Crossbar event to channel map
 
-Signed-off-by: J Keerthy <j-keerthy@ti.com>
----
- drivers/mfd/palmas.c                 |    3 ++-
- drivers/regulator/palmas-regulator.c |    3 +++
- include/linux/mfd/palmas.h           |    4 ++++
- 3 files changed, 9 insertions(+), 1 deletions(-)
+You need to list #dma-cells as required here, and which values are accepted by
+the driver (I suppose only <1>). You should also explain the format of the
+dma-specifier for a slave here for each possible value of #dma-cells.
 
-diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
-index 261beb5..ad00c18 100644
---- a/drivers/mfd/palmas.c
-+++ b/drivers/mfd/palmas.c
-@@ -231,7 +231,8 @@ static void palmas_dt_to_pdata(struct i2c_client *i2c,
- 		palmas_set_pdata_irq_flag(i2c, pdata);
- }
- 
--static unsigned int palmas_features = PALMAS_PMIC_FEATURE_INTERRUPT;
-+static unsigned int palmas_features = PALMAS_PMIC_FEATURE_INTERRUPT |
-+					PALMAS_PMIC_FEATURE_SMPS10_BOOST;
- 
- static unsigned int tps659038_features;
- 
-diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-index 3ae44ac..1ae1e83 100644
---- a/drivers/regulator/palmas-regulator.c
-+++ b/drivers/regulator/palmas-regulator.c
-@@ -838,6 +838,9 @@ static int palmas_regulators_probe(struct platform_device *pdev)
- 				continue;
- 			ramp_delay_support = true;
- 			break;
-+		case PALMAS_REG_SMPS10:
-+			if (!PALMAS_PMIC_HAS(palmas, SMPS10_BOOST))
-+				continue;
- 		}
- 
- 		if ((id == PALMAS_REG_SMPS6) || (id == PALMAS_REG_SMPS8))
-diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
-index 1b5b5f3..2a9f4d6 100644
---- a/include/linux/mfd/palmas.h
-+++ b/include/linux/mfd/palmas.h
-@@ -38,10 +38,14 @@
-  * PALMAS_PMIC_FEATURE_INTERRUPT - used when the PMIC has Interrupt line going
-  *	to an application processor.
-  *
-+ * PALMAS_PMIC_FEATURE_SMPS10_BOOST - used when the PMIC provides SMPS10 boost
-+ *	voltage supply.
-+ *
-  * PALMAS_PMIC_HAS(b, f) - macro to check if a bandgap device is capable of a
-  *	specific feature (above) or not. Return non-zero, if yes.
-  */
- #define PALMAS_PMIC_FEATURE_INTERRUPT	BIT(0)
-+#define PALMAS_PMIC_FEATURE_SMPS10_BOOST	BIT(1)
- #define PALMAS_PMIC_HAS(b, f)			\
- 			((b)->features & PALMAS_PMIC_FEATURE_ ## f)
- 
--- 
-1.7.5.4
+For each of the standard properties (reg, interrupts, dma-channels), list
+whether they are optional or required. Since the example has three interrupts,
+you should probably list how many interrupts need to be specified (minimum
+and maximum if the number is variable) and in what order to expect them.
 
+	Arnd
