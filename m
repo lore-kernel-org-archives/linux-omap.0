@@ -1,139 +1,163 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH] gpio: Enable pcf857x GPIO expander for Device Tree
-Date: Mon, 17 Jun 2013 17:16:05 +0530
-Message-ID: <51BEF6FD.3070108@ti.com>
-References: <1370527523-1030-1-git-send-email-archit@ti.com> <CACRpkdY-HZ4AGqKr-DA1pvfnaVYEGZoEDn_wfDr8=9Qr+6dpiw@mail.gmail.com>
+From: J Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v2] mfd: Palmas: Remove code which is not necessary for a device tree boot
+Date: Mon, 17 Jun 2013 17:17:58 +0530
+Message-ID: <1371469678-8464-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdY-HZ4AGqKr-DA1pvfnaVYEGZoEDn_wfDr8=9Qr+6dpiw@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:46693 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932295Ab3FQLwT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Jun 2013 07:52:19 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, sameo@linux.intel.com
+Cc: j-keerthy@ti.com, ldewangan@nvidia.com, gg@slimlogic.co.uk
 
-Hi,
+Remove code which is not necessary for a device tree boot.
 
-On Monday 17 June 2013 02:35 PM, Linus Walleij wrote:
-> On Thu, Jun 6, 2013 at 4:05 PM, Archit Taneja <archit@ti.com> wrote:
->
->> Add code to parse the GPIO expander Device Tree node and extract platform data
->> out of it, and populate the struct 'pcf857x_platform_data' maintained by the
->> driver. This enables devices to reference the gpio expander from Device Tree.
->>
->> Add DT binding info in Documentation.
->>
->> CC: Grant Likely <grant.likely@secretlab.ca>
->> Signed-off-by: Archit Taneja <archit@ti.com>
->
-> (...)
->> +++ b/Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt
->> @@ -0,0 +1,44 @@
->> +PCF857x I2C based GPIO controller bindings
->> +
->> +Required properties:
->> +- compatible:
->> +  - "nxp,pca9670" for NXP PCA9670 8 bit I/O expander
->> +  - "nxp,pca9672" for NXP PCA9672 8 bit I/O expander with interrupt
->> +  - "nxp,pca9674" for NXP PCA9672 8 bit I/O expander with interrupt
->> +  - "nxp,pca8574" for NXP PCA8574 8 bit I/O expander with interrupt
->> +  - "nxp,pca8575" for NXP PCA8575 16 bit I/O expander with interrupt
->> +  - "nxp,pca9671" for NXP PCA9671 16 bit I/O expander
->> +  - "nxp,pca9673" for NXP PCA9673 16 bit I/O expander with interrupt
->> +  - "nxp,pca9675" for NXP PCA9675 16 bit I/O expander with interrupt
->> +  - "ti,pcf8574"  for TI PCF8574 8 bit I/O expander with interrupt
->> +  - "ti,pcf8574a" for TI PCF8574A 8 bit I/O expander with interrupt
->> +  - "ti,pcf8575"  for TI PCF8575 16 bit I/O expander with interrupt
->> +  - "ti,tca9554"  for TI TCA9554 8 bit I/O expander with interrupt
->> +  - "maxim,max7328" for MAXIM MAX7328 8 bit I/O expander with interrupt
->> +  - "maxim,max7329" for MAXIM MAX7329 8 bit I/O expander with interrupt
->> +- gpio-controller : Marks the device node as a GPIO controller.
->> +- #gpio-cells : Should be two.
->> +  - first cell is the pin number.
->> +  - second cell is unused.
->
-> I guess you're adding this because the generic GPIO bindings use it and
-> of_gpio_simple_xlate() depends on this two-cell layout.
+Boot tested on OMAP5-UEVM board.
 
-Thanks for the review. I'm new to this and clearly lacking some 
-knowledge here.
+Signed-off-by: J Keerthy <j-keerthy@ti.com>
+Acked-by: Laxman Dewangan  <ldewangan@nvidia.com>
+Acked-by: Graeme Gregory <gg@slimlogic.co.uk>
+---
+ drivers/mfd/palmas.c |  106 --------------------------------------------------
+ 1 files changed, 0 insertions(+), 106 deletions(-)
 
->
-> Make a reference to the generic GPIO bindings and note that the
-> second cell is *NOT* unused, as it is used in the GPIOlib!
-
-Right, my mistake. Just a query, there is an example in gpio.txt in the 
-gpio bindings documentation which sets #gpio-cells as 1. Is this is a 
-wrong example, or are 1 cell gpio controllers valid?
-
->
->> +- interrupt-controller: Mark the device node as an interrupt controller.
->> +- #interrupt-cells : Should be two.
->> +  - first cell is the GPIO number.
->
-> Surely it is the IRQ number and not the GPIO number.
-> The fact that the IRQ originates in a GPIO controller does not
-> matter.
-
-Okay, I took gpio-omap.txt as reference(in other words, copy-pasted from 
-there), I guess 'first cell is the GPIO number' means that a slave 
-having it's interrupt line connected to an omap gpio bank has to mention 
-the gpio number in the first cell.
-
-About this chip, a change in any of it's GPIOs configured as inputs will 
-generate an interrupt, then it's up to the driver to figure out which 
-GPIOs changed and handle their corresponding irqs. So shouldn't a device 
-connected to the chip describe the gpio number within the pcf857x chip 
-as it's first cell?
-
-I've made a hypothetical example of a pcf8575 chip, which has it's 
-interrupt line connected to an omap gpio, and pcf8575's 7th gpio is 
-connected to 'pcf_slave'. The pcf_slave's driver requests for an 
-interrupt. Is this the correct way to describe this? :
-
-pcf: pcf8575@23 {
-	compatible = "ti,pcf8575";
-	reg = <0x23>;
-	gpio-controller;
-	#gpio-cells = <2>;
-	#interrupt-controller;
-	#interrupt-cells = <1>;
-	interrupt-parent = <&gpio2>;	/* an omap gpio bank */
-	interrupts = <2 8>;		/* gpio line 34, low triggered*/
-};
-
-pcf_slave: slave {
-	...
-	...
-	#interrupt-parent = <&pcf>;
-	interrupts = <7>;	/* connected to 7th IO pin of pcf857x*/	
-};
-
->
->> +  - second cell is unused.
->
-> So why do you add it? Usually this is used for trigger flags.
-> Are you planning to add this later, i.e. does the chip support this,
-> and if it doesn't then get rid of this flag.
-
-I haven't used the chip for interrupts, but going through the driver and 
-it's platform_data struct for board files, I don't see any trigger 
-information needed. I'll remove it.
-
->
->> +- reg: I2C address of the chip.
->> +
->> +Device speific properties:
->> +- n_latch:             optional bit-inverse of initial register value; if
->> +                       you leave this initialized to zero the driver will act
->> +                       like the chip was just reset.
->
-> Explain what happens if you do *not* leave it as zero and what the
-> bits mean in that case.
-
-I'll do that. Apologies for the trivial issues.
-
-Thanks,
-Archit
+diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+index 53e9fe6..62fa728 100644
+--- a/drivers/mfd/palmas.c
++++ b/drivers/mfd/palmas.c
+@@ -25,77 +25,6 @@
+ #include <linux/mfd/palmas.h>
+ #include <linux/of_platform.h>
+ 
+-enum palmas_ids {
+-	PALMAS_PMIC_ID,
+-	PALMAS_GPIO_ID,
+-	PALMAS_LEDS_ID,
+-	PALMAS_WDT_ID,
+-	PALMAS_RTC_ID,
+-	PALMAS_PWRBUTTON_ID,
+-	PALMAS_GPADC_ID,
+-	PALMAS_RESOURCE_ID,
+-	PALMAS_CLK_ID,
+-	PALMAS_PWM_ID,
+-	PALMAS_USB_ID,
+-};
+-
+-static struct resource palmas_rtc_resources[] = {
+-	{
+-		.start  = PALMAS_RTC_ALARM_IRQ,
+-		.end    = PALMAS_RTC_ALARM_IRQ,
+-		.flags  = IORESOURCE_IRQ,
+-	},
+-};
+-
+-static const struct mfd_cell palmas_children[] = {
+-	{
+-		.name = "palmas-pmic",
+-		.id = PALMAS_PMIC_ID,
+-	},
+-	{
+-		.name = "palmas-gpio",
+-		.id = PALMAS_GPIO_ID,
+-	},
+-	{
+-		.name = "palmas-leds",
+-		.id = PALMAS_LEDS_ID,
+-	},
+-	{
+-		.name = "palmas-wdt",
+-		.id = PALMAS_WDT_ID,
+-	},
+-	{
+-		.name = "palmas-rtc",
+-		.id = PALMAS_RTC_ID,
+-		.resources = &palmas_rtc_resources[0],
+-		.num_resources = ARRAY_SIZE(palmas_rtc_resources),
+-	},
+-	{
+-		.name = "palmas-pwrbutton",
+-		.id = PALMAS_PWRBUTTON_ID,
+-	},
+-	{
+-		.name = "palmas-gpadc",
+-		.id = PALMAS_GPADC_ID,
+-	},
+-	{
+-		.name = "palmas-resource",
+-		.id = PALMAS_RESOURCE_ID,
+-	},
+-	{
+-		.name = "palmas-clk",
+-		.id = PALMAS_CLK_ID,
+-	},
+-	{
+-		.name = "palmas-pwm",
+-		.id = PALMAS_PWM_ID,
+-	},
+-	{
+-		.name = "palmas-usb",
+-		.id = PALMAS_USB_ID,
+-	}
+-};
+-
+ static const struct regmap_config palmas_regmap_config[PALMAS_NUM_CLIENTS] = {
+ 	{
+ 		.reg_bits = 8,
+@@ -311,7 +240,6 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
+ 	int ret = 0, i;
+ 	unsigned int reg, addr;
+ 	int slave;
+-	struct mfd_cell *children;
+ 
+ 	pdata = dev_get_platdata(&i2c->dev);
+ 
+@@ -472,42 +400,8 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
+ 			return ret;
+ 	}
+ 
+-	children = kmemdup(palmas_children, sizeof(palmas_children),
+-			   GFP_KERNEL);
+-	if (!children) {
+-		ret = -ENOMEM;
+-		goto err_irq;
+-	}
+-
+-	children[PALMAS_PMIC_ID].platform_data = pdata->pmic_pdata;
+-	children[PALMAS_PMIC_ID].pdata_size = sizeof(*pdata->pmic_pdata);
+-
+-	children[PALMAS_GPADC_ID].platform_data = pdata->gpadc_pdata;
+-	children[PALMAS_GPADC_ID].pdata_size = sizeof(*pdata->gpadc_pdata);
+-
+-	children[PALMAS_RESOURCE_ID].platform_data = pdata->resource_pdata;
+-	children[PALMAS_RESOURCE_ID].pdata_size =
+-			sizeof(*pdata->resource_pdata);
+-
+-	children[PALMAS_USB_ID].platform_data = pdata->usb_pdata;
+-	children[PALMAS_USB_ID].pdata_size = sizeof(*pdata->usb_pdata);
+-
+-	children[PALMAS_CLK_ID].platform_data = pdata->clk_pdata;
+-	children[PALMAS_CLK_ID].pdata_size = sizeof(*pdata->clk_pdata);
+-
+-	ret = mfd_add_devices(palmas->dev, -1,
+-			      children, ARRAY_SIZE(palmas_children),
+-			      NULL, 0,
+-			      regmap_irq_get_domain(palmas->irq_data));
+-	kfree(children);
+-
+-	if (ret < 0)
+-		goto err_devices;
+-
+ 	return ret;
+ 
+-err_devices:
+-	mfd_remove_devices(palmas->dev);
+ err_irq:
+ 	regmap_del_irq_chip(palmas->irq, palmas->irq_data);
+ err:
+-- 
+1.7.5.4
 
