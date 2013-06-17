@@ -1,47 +1,86 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: [GIT PULL] OMAP: PM: voltagedomain cleanup for v3.11
-Date: Mon, 17 Jun 2013 11:14:06 -0700
-Message-ID: <87r4g08v0x.fsf@linaro.org>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH v5 2/3] arm: gpmc: Low power transition support
+Date: Tue, 18 Jun 2013 00:16:38 +0530
+Message-ID: <1371494799-11876-3-git-send-email-pekon@ti.com>
+References: <1371494799-11876-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:37646 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750863Ab3FQSOK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jun 2013 14:14:10 -0400
-Received: by mail-pa0-f48.google.com with SMTP id kp12so3111681pab.35
-        for <linux-omap@vger.kernel.org>; Mon, 17 Jun 2013 11:14:09 -0700 (PDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:51830 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751603Ab3FQSrT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Jun 2013 14:47:19 -0400
+In-Reply-To: <1371494799-11876-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: tony@atomide.com, khilman@linaro.org, avinash philip <avinashphilip@ti.com>, Pekon Gupta <pekon@ti.com>
 
-The following changes since commit 7d132055814ef17a6c7b69f342244c410a5e000f:
+From: avinash philip <avinashphilip@ti.com>
 
-  Linux 3.10-rc6 (2013-06-15 11:51:07 -1000)
+GPMC is hardware controller for external memory interfaces.
+This patch adds suspend/resume support for GPMC driver.
+It also preserves GPMC register configurations across device low-power states
+in which GPMC hardware can be powered-off.
+gpmc_suspend()/gpmc_resume() are called by default by core PM framework as part
+of driver's runtime PM callbacks.
 
-are available in the git repository at:
+Signed-off-by: Philip Avinash <avinashphilip@ti.com>
+Signed-off-by: Pekon Gupta <pekon@ti.com>
+---
+ arch/arm/mach-omap2/gpmc.c | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/omap-pm-v3.11/voltdm
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 1380cee..9b579d0 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1655,6 +1655,24 @@ static int gpmc_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PM_SLEEP
++static int gpmc_suspend(struct device *dev)
++{
++	omap3_gpmc_save_context();
++	pm_runtime_put_sync(dev);
++	return 0;
++}
++
++static int gpmc_resume(struct device *dev)
++{
++	pm_runtime_get_sync(dev);
++	omap3_gpmc_restore_context();
++	return 0;
++}
++#endif
++
++static SIMPLE_DEV_PM_OPS(gpmc_pm_ops, gpmc_suspend, gpmc_resume);
++
+ static struct platform_driver gpmc_driver = {
+ 	.probe		= gpmc_probe,
+ 	.remove		= gpmc_remove,
+@@ -1662,6 +1680,7 @@ static struct platform_driver gpmc_driver = {
+ 		.name	= DEVICE_NAME,
+ 		.owner	= THIS_MODULE,
+ 		.of_match_table = of_match_ptr(gpmc_dt_ids),
++		.pm	= &gpmc_pm_ops,
+ 	},
+ };
+ 
+@@ -1724,7 +1743,6 @@ static irqreturn_t gpmc_handle_irq(int irq, void *dev)
+ 	return IRQ_HANDLED;
+ }
+ 
+-#ifdef CONFIG_ARCH_OMAP3
+ static struct omap3_gpmc_regs gpmc_context;
+ 
+ void omap3_gpmc_save_context(void)
+@@ -1789,4 +1807,3 @@ void omap3_gpmc_restore_context(void)
+ 		}
+ 	}
+ }
+-#endif /* CONFIG_ARCH_OMAP3 */
+-- 
+1.8.1
 
-for you to fetch changes up to 63b0420c85096d4bb1a3ba365dbf6b970a58b8f7:
-
-  ARM: AM33xx: Remove the unused voltagedomain data (2013-06-17 07:26:44 -0700)
-
-----------------------------------------------------------------
-OMAP: PM: remove requirement for voltage domain data; remove dummy data
-
-----------------------------------------------------------------
-Rajendra Nayak (2):
-      ARM: OMAP2+: Powerdomain: Remove the need to always have a voltdm associated to a pwrdm
-      ARM: AM33xx: Remove the unused voltagedomain data
-
- arch/arm/mach-omap2/Makefile                  |  1 -
- arch/arm/mach-omap2/io.c                      |  1 -
- arch/arm/mach-omap2/powerdomain.c             |  5 ++++
- arch/arm/mach-omap2/powerdomain.h             |  2 ++
- arch/arm/mach-omap2/prm33xx.c                 |  7 +++++
- arch/arm/mach-omap2/voltage.h                 |  1 -
- arch/arm/mach-omap2/voltagedomains33xx_data.c | 43 ---------------------------
- 7 files changed, 14 insertions(+), 46 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/voltagedomains33xx_data.c
