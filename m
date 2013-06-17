@@ -1,163 +1,142 @@
 From: J Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2] mfd: Palmas: Remove code which is not necessary for a device tree boot
-Date: Mon, 17 Jun 2013 17:17:58 +0530
-Message-ID: <1371469678-8464-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 1/4] MFD: Palmas: Add Interrupt feature
+Date: Mon, 17 Jun 2013 17:39:11 +0530
+Message-ID: <1371470954-9124-2-git-send-email-j-keerthy@ti.com>
+References: <1371470954-9124-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46693 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932295Ab3FQLwT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Jun 2013 07:52:19 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1371470954-9124-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: broonie@kernel.org, j-keerthy@ti.com, ldewangan@nvidia.com, sameo@linux.intel.com, grant.likely@secretlab.ca, swarren@nvidia.com, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, gg@slimlogic.co.uk
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, sameo@linux.intel.com
-Cc: j-keerthy@ti.com, ldewangan@nvidia.com, gg@slimlogic.co.uk
 
-Remove code which is not necessary for a device tree boot.
-
-Boot tested on OMAP5-UEVM board.
+Palmas PMICs have an INT line. This line is one single
+Interrupt line to the application processor. The interrupt
+feature enables to selectively request irq for only those
+specific chips which have INT line connected to a valid
+IRQ line of the application processor.
 
 Signed-off-by: J Keerthy <j-keerthy@ti.com>
-Acked-by: Laxman Dewangan  <ldewangan@nvidia.com>
-Acked-by: Graeme Gregory <gg@slimlogic.co.uk>
 ---
- drivers/mfd/palmas.c |  106 --------------------------------------------------
- 1 files changed, 0 insertions(+), 106 deletions(-)
+ drivers/mfd/palmas.c       |   32 +++++++++++++++++++++++++-------
+ include/linux/mfd/palmas.h |   14 ++++++++++++++
+ 2 files changed, 39 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
-index 53e9fe6..62fa728 100644
+index 62fa728..d06ce62 100644
 --- a/drivers/mfd/palmas.c
 +++ b/drivers/mfd/palmas.c
-@@ -25,77 +25,6 @@
- #include <linux/mfd/palmas.h>
- #include <linux/of_platform.h>
+@@ -231,6 +231,16 @@ static void palmas_dt_to_pdata(struct i2c_client *i2c,
+ 		palmas_set_pdata_irq_flag(i2c, pdata);
+ }
  
--enum palmas_ids {
--	PALMAS_PMIC_ID,
--	PALMAS_GPIO_ID,
--	PALMAS_LEDS_ID,
--	PALMAS_WDT_ID,
--	PALMAS_RTC_ID,
--	PALMAS_PWRBUTTON_ID,
--	PALMAS_GPADC_ID,
--	PALMAS_RESOURCE_ID,
--	PALMAS_CLK_ID,
--	PALMAS_PWM_ID,
--	PALMAS_USB_ID,
--};
--
--static struct resource palmas_rtc_resources[] = {
--	{
--		.start  = PALMAS_RTC_ALARM_IRQ,
--		.end    = PALMAS_RTC_ALARM_IRQ,
--		.flags  = IORESOURCE_IRQ,
--	},
--};
--
--static const struct mfd_cell palmas_children[] = {
--	{
--		.name = "palmas-pmic",
--		.id = PALMAS_PMIC_ID,
--	},
--	{
--		.name = "palmas-gpio",
--		.id = PALMAS_GPIO_ID,
--	},
--	{
--		.name = "palmas-leds",
--		.id = PALMAS_LEDS_ID,
--	},
--	{
--		.name = "palmas-wdt",
--		.id = PALMAS_WDT_ID,
--	},
--	{
--		.name = "palmas-rtc",
--		.id = PALMAS_RTC_ID,
--		.resources = &palmas_rtc_resources[0],
--		.num_resources = ARRAY_SIZE(palmas_rtc_resources),
--	},
--	{
--		.name = "palmas-pwrbutton",
--		.id = PALMAS_PWRBUTTON_ID,
--	},
--	{
--		.name = "palmas-gpadc",
--		.id = PALMAS_GPADC_ID,
--	},
--	{
--		.name = "palmas-resource",
--		.id = PALMAS_RESOURCE_ID,
--	},
--	{
--		.name = "palmas-clk",
--		.id = PALMAS_CLK_ID,
--	},
--	{
--		.name = "palmas-pwm",
--		.id = PALMAS_PWM_ID,
--	},
--	{
--		.name = "palmas-usb",
--		.id = PALMAS_USB_ID,
--	}
--};
--
- static const struct regmap_config palmas_regmap_config[PALMAS_NUM_CLIENTS] = {
- 	{
- 		.reg_bits = 8,
-@@ -311,7 +240,6 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
++static unsigned int palmas_features = PALMAS_PMIC_FEATURE_INTERRUPT;
++
++static const struct of_device_id of_palmas_match_tbl[] = {
++	{
++		.compatible = "ti,palmas",
++		.data = &palmas_features,
++	},
++	{ },
++};
++
+ static int palmas_i2c_probe(struct i2c_client *i2c,
+ 			    const struct i2c_device_id *id)
+ {
+@@ -238,8 +248,9 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
+ 	struct palmas_platform_data *pdata;
+ 	struct device_node *node = i2c->dev.of_node;
  	int ret = 0, i;
- 	unsigned int reg, addr;
+-	unsigned int reg, addr;
++	unsigned int reg, addr, *features;
  	int slave;
--	struct mfd_cell *children;
++	const struct of_device_id *match;
  
  	pdata = dev_get_platdata(&i2c->dev);
  
-@@ -472,42 +400,8 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
- 			return ret;
+@@ -261,9 +272,17 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
+ 
+ 	i2c_set_clientdata(i2c, palmas);
+ 	palmas->dev = &i2c->dev;
+-	palmas->id = id->driver_data;
+ 	palmas->irq = i2c->irq;
+ 
++	match = of_match_device(of_match_ptr(of_palmas_match_tbl), &i2c->dev);
++
++	if (match) {
++		features = (unsigned int *)match->data;
++		palmas->features = *features;
++	} else {
++		return -ENODATA;
++	}
++
+ 	for (i = 0; i < PALMAS_NUM_CLIENTS; i++) {
+ 		if (i == 0)
+ 			palmas->i2c_clients[i] = i2c;
+@@ -290,6 +309,9 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
+ 		}
  	}
  
--	children = kmemdup(palmas_children, sizeof(palmas_children),
--			   GFP_KERNEL);
--	if (!children) {
--		ret = -ENOMEM;
--		goto err_irq;
--	}
--
--	children[PALMAS_PMIC_ID].platform_data = pdata->pmic_pdata;
--	children[PALMAS_PMIC_ID].pdata_size = sizeof(*pdata->pmic_pdata);
--
--	children[PALMAS_GPADC_ID].platform_data = pdata->gpadc_pdata;
--	children[PALMAS_GPADC_ID].pdata_size = sizeof(*pdata->gpadc_pdata);
--
--	children[PALMAS_RESOURCE_ID].platform_data = pdata->resource_pdata;
--	children[PALMAS_RESOURCE_ID].pdata_size =
--			sizeof(*pdata->resource_pdata);
--
--	children[PALMAS_USB_ID].platform_data = pdata->usb_pdata;
--	children[PALMAS_USB_ID].pdata_size = sizeof(*pdata->usb_pdata);
--
--	children[PALMAS_CLK_ID].platform_data = pdata->clk_pdata;
--	children[PALMAS_CLK_ID].pdata_size = sizeof(*pdata->clk_pdata);
--
--	ret = mfd_add_devices(palmas->dev, -1,
--			      children, ARRAY_SIZE(palmas_children),
--			      NULL, 0,
--			      regmap_irq_get_domain(palmas->irq_data));
--	kfree(children);
--
--	if (ret < 0)
--		goto err_devices;
--
- 	return ret;
++	if (!PALMAS_PMIC_HAS(palmas, INTERRUPT))
++		goto no_int;
++
+ 	/* Change interrupt line output polarity */
+ 	if (pdata->irq_flags & IRQ_TYPE_LEVEL_HIGH)
+ 		reg = PALMAS_POLARITY_CTRL_INT_POLARITY;
+@@ -316,6 +338,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
+ 	if (ret < 0)
+ 		goto err;
  
--err_devices:
--	mfd_remove_devices(palmas->dev);
- err_irq:
- 	regmap_del_irq_chip(palmas->irq, palmas->irq_data);
- err:
++no_int:
+ 	slave = PALMAS_BASE_TO_SLAVE(PALMAS_PU_PD_OD_BASE);
+ 	addr = PALMAS_BASE_TO_REG(PALMAS_PU_PD_OD_BASE,
+ 			PALMAS_PRIMARY_SECONDARY_PAD1);
+@@ -427,11 +450,6 @@ static const struct i2c_device_id palmas_i2c_id[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, palmas_i2c_id);
+ 
+-static struct of_device_id of_palmas_match_tbl[] = {
+-	{ .compatible = "ti,palmas", },
+-	{ /* end */ }
+-};
+-
+ static struct i2c_driver palmas_i2c_driver = {
+ 	.driver = {
+ 		   .name = "palmas",
+diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
+index 8f21daf..1b5b5f3 100644
+--- a/include/linux/mfd/palmas.h
++++ b/include/linux/mfd/palmas.h
+@@ -32,6 +32,19 @@
+ 			((a) == PALMAS_CHIP_ID))
+ #define is_palmas_charger(a) ((a) == PALMAS_CHIP_CHARGER_ID)
+ 
++/**
++ * DOC: Palmas PMIC feature types
++ *
++ * PALMAS_PMIC_FEATURE_INTERRUPT - used when the PMIC has Interrupt line going
++ *	to an application processor.
++ *
++ * PALMAS_PMIC_HAS(b, f) - macro to check if a bandgap device is capable of a
++ *	specific feature (above) or not. Return non-zero, if yes.
++ */
++#define PALMAS_PMIC_FEATURE_INTERRUPT	BIT(0)
++#define PALMAS_PMIC_HAS(b, f)			\
++			((b)->features & PALMAS_PMIC_FEATURE_ ## f)
++
+ struct palmas_pmic;
+ struct palmas_gpadc;
+ struct palmas_resource;
+@@ -46,6 +59,7 @@ struct palmas {
+ 	/* Stored chip id */
+ 	int id;
+ 
++	unsigned int features;
+ 	/* IRQ Data */
+ 	int irq;
+ 	u32 irq_mask;
 -- 
 1.7.5.4
 
