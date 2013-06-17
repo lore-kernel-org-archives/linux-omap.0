@@ -1,61 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/6] ARM: OMAP2+: Remove board-omap4panda.c
-Date: Mon, 17 Jun 2013 01:27:24 -0700
-Message-ID: <20130617082724.GI20992@atomide.com>
-References: <CACVXFVOp6n3RhZnWD_hRxqE8a8amPA5SRWfkVhz+yCGZTtGjvQ@mail.gmail.com>
- <20130612163124.GD8164@atomide.com>
- <20130612171407.GM8164@atomide.com>
- <51B98F1E.1000006@ti.com>
- <51B99B07.1050806@ti.com>
- <CACVXFVN3=hzWJEwHN5TXRoJ4mvVRVR+3=Tasw+gvLH3vsNHwUg@mail.gmail.com>
- <CACVXFVNzAMrkhrAMAmQ7ZdJdby2O4VdoD8BVHRF-O=rPKQMqbw@mail.gmail.com>
- <51BEBDCD.3060104@ti.com>
- <87ppvlqhyy.fsf@lebrac.rtp-net.org>
- <CACVXFVMthQNgAe3QhMo8HUxuEYcFSOwsdb7RfAsFqwGFKL+dXA@mail.gmail.com>
+From: Ambresh K <ambresh@ti.com>
+Subject: [PATCH V2 0/3] Fix to clk framework while handling orphan clks
+Date: Mon, 17 Jun 2013 14:09:41 +0530
+Message-ID: <1371458384-23936-1-git-send-email-ambresh@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:57543 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932214Ab3FQI1b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jun 2013 04:27:31 -0400
-Content-Disposition: inline
-In-Reply-To: <CACVXFVMthQNgAe3QhMo8HUxuEYcFSOwsdb7RfAsFqwGFKL+dXA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Rajendra <rnayak@ti.com>, Ambresh K <ambresh@ti.com>, Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: Arnaud Patard <arnaud.patard@rtp-net.org>, Sricharan R <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Ming Lei <tom.leiming@gmail.com> [130617 01:22]:
-> On Mon, Jun 17, 2013 at 4:06 PM, Arnaud Patard
-> <arnaud.patard@rtp-net.org> wrote:
-> > Sricharan R <r.sricharan@ti.com> writes:
-> >
-> > I hoped to have missed some mails and that people were testing pandabard
-> > support with full support but given what I see, the ethernet support is
-> > not there yet. This thread is about removing the non-DT boot. I see some
-> > contradiction here. Please, look again at what Thomas said in the IGEP thread:
-> > breaking existing support is bad and removing non-DT boot for panda with
-> > not-working ethernet would exactly to that.
-> 
-> +1
-> 
-> Even no any USB support on Sricharan's setting.
+From: Ambresh K <ambresh@ti.com>
 
-That's also related to the auxclk. Let's see what Mike says before
-we start adding back any legacy hacks for it. 
+On a possible HW bug or in-correct configuration of MUX register's in
+bootloader; might return a value greater than available parent clocks
+for a MUX clk.     
+Sensing invalid parent index, clk_mux_get_parent returns -EINVALID. 
+Due to function's "u8" return type it will get converted into signed value,
+thus causing following pointer dereference on test platform.
 
-> > Yeah, I'm aware that some extra patches are being developped like the
-> > omap clocks one: https://patchwork.kernel.org/patch/2541331/ but they
-> > don't seem to be in -next. So, again, please, wait that all needed bits
-> > are merged mainline before killing non-DT support (or provide 'mixed'
-> > support like what is/was done on kirkwood)
-> 
-> Agree, please don't be too quick, :-)
+M[    0.000000] dra7xx_clk_init: clk init (gpu_core_gclk_mux)^M
+^M[    0.000000] Unable to handle kernel NULL pointer dereference at virtual
+address 00000000^M
+^M[    0.000000] pgd = c0004000^M
+^M[    0.000000] [00000000] *pgd=00000000^M
+^M[    0.000000] Internal error: Oops: 5 [#1] SMP ARM^M
+^M[    0.000000] Modules linked in:^M
+^M[    0.000000] CPU: 0    Not tainted  (3.8.4-gb746a7c-dirty #59)^M
+^M[    0.000000] PC is at strcmp+0x8/0x34^M
 
-Too quick? The basic DT based booting has been working for a few years
-now to some extent on omaps :)
 
-Regards,
+Changes since v1:
+- Fixed review comments.
+- Fixed return type of .get_parent callback function.
 
-Tony
+Ambresh K (3):
+  clk: fix clk_mux_get_parent return's signed value
+  clk: skip re-parenting orphan clk
+  ARM: OMAP2+: clk: Fix return type of callbacks
+
+ arch/arm/mach-omap2/clkt_clksel.c |    2 +-
+ arch/arm/mach-omap2/clkt_dpll.c   |    2 +-
+ arch/arm/mach-omap2/clock.h       |    4 ++--
+ drivers/clk/clk-mux.c             |    2 +-
+ drivers/clk/clk.c                 |   16 +++++++++++++++-
+ include/linux/clk-provider.h      |    6 +++---
+ 6 files changed, 23 insertions(+), 9 deletions(-)
+
+-- 
+1.7.4.1
