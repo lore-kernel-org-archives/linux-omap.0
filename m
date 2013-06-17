@@ -1,66 +1,77 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 1/4] MFD: Palmas: Add Interrupt feature
-Date: Mon, 17 Jun 2013 17:16:15 +0100
-Message-ID: <20130617161615.GH1403@sirena.org.uk>
-References: <1371470954-9124-1-git-send-email-j-keerthy@ti.com>
- <1371470954-9124-2-git-send-email-j-keerthy@ti.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v4] spi: omap2-mcspi: Add FIFO buffer support
+Date: Mon, 17 Jun 2013 17:17:52 +0100
+Message-ID: <20130617161752.GI1403@sirena.org.uk>
+References: <1371475866-9647-1-git-send-email-illia.smyrnov@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="e400VJpV0WKd7yPD"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1371470954-9124-2-git-send-email-j-keerthy@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: J Keerthy <j-keerthy@ti.com>
-Cc: linux-omap@vger.kernel.org, ldewangan@nvidia.com, sameo@linux.intel.com, grant.likely@secretlab.ca, swarren@nvidia.com, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, gg@slimlogic.co.uk
+Content-Type: multipart/mixed; boundary="===============0682759445681606976=="
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1371475866-9647-1-git-send-email-illia.smyrnov-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Illia Smyrnov <illia.smyrnov-l0cyMroinI0@public.gmane.org>
+Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
---e400VJpV0WKd7yPD
+--===============0682759445681606976==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tNAYc2YbOB0rJD4X"
+Content-Disposition: inline
+
+
+--tNAYc2YbOB0rJD4X
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Jun 17, 2013 at 05:39:11PM +0530, J Keerthy wrote:
+On Mon, Jun 17, 2013 at 04:31:06PM +0300, Illia Smyrnov wrote:
+> The MCSPI controller has a built-in FIFO buffer to unload the DMA or interrupt
+> handler and improve data throughput. This patch adds FIFO buffer support for SPI
+> transfers in DMA mode.
 
-> Palmas PMICs have an INT line. This line is one single
-> Interrupt line to the application processor. The interrupt
-> feature enables to selectively request irq for only those
-> specific chips which have INT line connected to a valid
-> IRQ line of the application processor.
+Applied, thanks.
 
-Does the support for the interrupt line need to be explicitly flagged
-like this or can the driver not simply support an interrupt line not
-being configured?  That would also support cases where the hardware has
-an interrupt line but the system integrator has opeted not to connect it
-for some reason which seems generally more flexible than doing things on
-a chip ID basis.
-
-> +/**
-> + * DOC: Palmas PMIC feature types
-> + *
-
-Is "DOC: " normal kerneldoc?
-
---e400VJpV0WKd7yPD
+--tNAYc2YbOB0rJD4X
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.20 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRvzZMAAoJELSic+t+oim9XLIP/icg6KMcilsysuuLYKlrwyfd
-J5e2y1QtL+wkiQF8jqXQFVxRzYOaBrjSITYGC+OQN0lvTXXKhCtuZ+4ptCjRPb6H
-hc8/IJDdX9vTVyr72bcwcZ7BqCPCcRiYW7KGjspveApcX9w6ex3pJQelC5wMoXcx
-XKds3Nk0uKj1nZrV/g1H//GoO15w4THw3SDoX8tmUsGwyCKkFp9YnO1Wzy0pcm0y
-iTqrhH1hq0VqX6xAWGPHpE4cIm+Sy8YPRYcOAIoHaU8/6XAuKAVduTJmLMf42KM7
-WJn5m7I1U5Q1si8/V2AM8s5JSqA8/QvU3C6epGNVSIXBHwmx394an2PUvSmCZIEr
-RqyHSGCzE+OppHp07cLmerbxflQCp4BtKYf6NkrRbp4vPmpVQhq+G76J2/a11NO0
-HMFty1mZ4t4To3nm3qz2u15wWj2O1oS8+BacNI2DmwRTn0Dz/Q4oVZ17yyle0a1z
-gsKjPBdUCErqhw4Am4UjXb+kU5M383BaUKEz1p3cl+jS3qoaWMmhtthttnqwQvTg
-eAeim6ZV+yHDYUTm73+7y2R9vKeEjRsmFQHF5sf7+E/jcoBAjJK74BCuJMyvUoLi
-/eWzwnkTNDLE7dQ9OJntPJ3H7CMe/apZs8esmYj1dOumHT+GQAUfbN/oNufwJQdQ
-JZUuFH8OoNmU9KuLOKiB
-=DKcL
+iQIcBAEBAgAGBQJRvzatAAoJELSic+t+oim9b/MP/3IQ+uSE3C14YNAac/ZZbrk4
++y+Bw/CuDouuzQIBB1RgOzvY3Frv9Et4Mn+DdS5eXhPgDzGJRRujNA9OA/3gAJVx
+ygKiUmlFo0i+sudW3Oa0hgTbu8vgV6LVvNUvrrHbNMW8Z+Jk0l+yasbfXHtlFvlz
+hpL6spaIBAkCy4u0VYvcP8WPgJwl6nr9lulaHjFq6gvKFRpSM97+EzU2m6eoQnEr
+zOp6tNvflGolmZn1aWOoIh17eTA0qBZaO+DONMBgZqTb2zYYEO+tZrf6VbpgDdZR
+bdt6rCs39xN0iCNuf1t/eCgE0DzcpKI4FhzCSbQc8Nhms1VIS5C4ycWR9o5p4nj4
+vAa+ERWpR7FqiLhVObFDur15LO1jw8GLdor/s3E5a11Uh172y+4feJsMuicvg/+x
+1MejAu8Ow9WCeOUpTx91juDolqEExjtM+mPRL97gWp4cRpEBg9MBCaf3DTp9E+Lh
+Mvkh3bRhksPEdeTlTSsjRht+KuHjRbu8rJxAycTR7pxUDmASQq0Thw5oQVq4+nfX
+y3gUqY+A6pmEQVL90dkTgBuveHqFmq2zQ7SOp3Rk1A+aFO1jsC66JxA0id+sxABE
+qmqC02wdq6WWwEYNG49qlEXv1p31SguN21yA1m3hCDQchU+56e481YO0pEudfVde
+PsJ4XBAbvyI03mWIcjUj
+=vHgD
 -----END PGP SIGNATURE-----
 
---e400VJpV0WKd7yPD--
+--tNAYc2YbOB0rJD4X--
+
+--===============0682759445681606976==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--===============0682759445681606976==--
