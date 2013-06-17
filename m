@@ -1,108 +1,67 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 3.9-stable] ARM: omap3: clock: fix wrong container_of in
- clock36xx.c
-Date: Mon, 17 Jun 2013 04:56:21 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1306170454330.4477@utopia.booyaka.com>
-References: <008d01ce6aea$96291790$c27b46b0$%choi@samsung.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 0/2] Remove unused voltagedomain data for AM33xx
+Date: Mon, 17 Jun 2013 05:08:20 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83ECB9CD9@DBDE04.ent.ti.com>
+References: <1371118124-15910-1-git-send-email-rnayak@ti.com>
+	<alpine.DEB.2.02.1306140243380.5514@utopia.booyaka.com>
+ <8738skaj16.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <008d01ce6aea$96291790$c27b46b0$%choi@samsung.com>
-Sender: stable-owner@vger.kernel.org
-To: Jonghwan Choi <jhbird.choi@samsung.com>
-Cc: linux-kernel@vger.kernel.org, neilb@suse.de, linux-omap@vger.kernel.org, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, stable@vger.kernel.org, 'Jean-Philippe Francois' <jp.francois@cynove.com>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:41054 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751156Ab3FQFIw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jun 2013 01:08:52 -0400
+In-Reply-To: <8738skaj16.fsf@linaro.org>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-On Mon, 17 Jun 2013, Jonghwan Choi wrote:
-
-> This patch looks like it should be in the 3.9-stable tree, should we apply
-> it?
-
-Please do.
+To: Kevin Hilman <khilman@linaro.org>, Paul Walmsley <paul@pwsan.com>
+Cc: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
 
-- Paul
-
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Kevin Hilman
+> Sent: Friday, June 14, 2013 7:31 PM
+> To: Paul Walmsley
+> Cc: Nayak, Rajendra; Hiremath, Vaibhav; linux-omap@vger.kernel.org;
+> linux-arm-kernel@lists.infradead.org
+> Subject: Re: [PATCH 0/2] Remove unused voltagedomain data for AM33xx
 > 
-> ------------------
+> Paul Walmsley <paul@pwsan.com> writes:
 > 
-> From: "Jean-Philippe Francois <jp.francois@cynove.com>"
+> > cc Kevin, Vaibhav
+> >
+> > On Thu, 13 Jun 2013, Rajendra Nayak wrote:
+> >
+> >> The powerdomain framework today expects to always have a
+> voltagedomain
+> >> associated with a given powerdomain. We already have AM33xx which
+> >> has no Voltage Controller/Voltage Processor as part of PRCM.
+> >> There are more SoCs' to follow starting with AM437x and DRA7xx
+> >> which do not have VC/VP.
+> >>
+> >> Instead of adding dummy voltage domain data files, make the
+> powerdomain
+> >> framework aware of the fact that some SoCs' might not really have
+> >> scalable voltage domains.
+> >
+> > Fine with me in principle if AM335x doesn't support voltage scaling.
+> > Vaibhav, if this is okay for you, please ack it.
+> >
+> > Then, in terms of merging, probably Kevin would be the right person
+> for
+> > this since he's done much of the voltagedomain work.
 > 
-> commit a93d8a1cea0899982993e9a93404c6f78b123697 upstream
-> 
-> omap36xx_pwrdn_clk_enable_with_hsdiv_restore expects the parent hw of
-> the clock to be a clk_hw_omap. However, looking at cclock3xxx_data.c,
-> all concerned clock have parent defined as clk_divider.  Fix the
-> function to use clk_divider.  Tested with 3.9 on dm3730.
-> 
-> Signed-off-by: Jean-Philippe Francois <jp.francois@cynove.com>
-> Cc: NeilBrown <neilb@suse.de>
-> Cc: Mike Turquette <mturquette@linaro.org>
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Jonghwan Choi <jhbird.choi@samsung.com>
-> ---
->  arch/arm/mach-omap2/clock36xx.c |   18 +++++++++---------
->  1 file changed, 9 insertions(+), 9 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/clock36xx.c
-> b/arch/arm/mach-omap2/clock36xx.c
-> index 8f3bf4e..bbd6a3f 100644
-> --- a/arch/arm/mach-omap2/clock36xx.c
-> +++ b/arch/arm/mach-omap2/clock36xx.c
-> @@ -20,11 +20,12 @@
->  
->  #include <linux/kernel.h>
->  #include <linux/clk.h>
-> +#include <linux/clk-provider.h>
->  #include <linux/io.h>
->  
->  #include "clock.h"
->  #include "clock36xx.h"
-> -
-> +#define to_clk_divider(_hw) container_of(_hw, struct clk_divider, hw)
->  
->  /**
->   * omap36xx_pwrdn_clk_enable_with_hsdiv_restore - enable clocks suffering
-> @@ -39,29 +40,28 @@
->   */
->  int omap36xx_pwrdn_clk_enable_with_hsdiv_restore(struct clk_hw *clk)
->  {
-> -	struct clk_hw_omap *parent;
-> +	struct clk_divider *parent;
->  	struct clk_hw *parent_hw;
-> -	u32 dummy_v, orig_v, clksel_shift;
-> +	u32 dummy_v, orig_v;
->  	int ret;
->  
->  	/* Clear PWRDN bit of HSDIVIDER */
->  	ret = omap2_dflt_clk_enable(clk);
->  
->  	parent_hw = __clk_get_hw(__clk_get_parent(clk->clk));
-> -	parent = to_clk_hw_omap(parent_hw);
-> +	parent = to_clk_divider(parent_hw);
->  
->  	/* Restore the dividers */
->  	if (!ret) {
-> -		clksel_shift = __ffs(parent->clksel_mask);
-> -		orig_v = __raw_readl(parent->clksel_reg);
-> +		orig_v = __raw_readl(parent->reg);
->  		dummy_v = orig_v;
->  
->  		/* Write any other value different from the Read value */
-> -		dummy_v ^= (1 << clksel_shift);
-> -		__raw_writel(dummy_v, parent->clksel_reg);
-> +		dummy_v ^= (1 << parent->shift);
-> +		__raw_writel(dummy_v, parent->reg);
->  
->  		/* Write the original divider */
-> -		__raw_writel(orig_v, parent->clksel_reg);
-> +		__raw_writel(orig_v, parent->reg);
->  	}
->  
->  	return ret;
-> -- 
-> 1.7.9.5
+> Yeah, I'll take this series after the minor issues I commented on are
+> fixed, and Vaivhav ack's the AM33xx parts.
 > 
 
+Yeup, Feel free to add my Ack here.
 
-- Paul
+
+Thanks,
+Vaibhav 
+
