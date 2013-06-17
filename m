@@ -1,76 +1,41 @@
-From: J Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 2/4] mfd: Palmas: Add TPS659038 PMIC support
-Date: Mon, 17 Jun 2013 17:39:12 +0530
-Message-ID: <1371470954-9124-3-git-send-email-j-keerthy@ti.com>
-References: <1371470954-9124-1-git-send-email-j-keerthy@ti.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH v2] mfd: Palmas: Remove code which is not necessary for a
+ device tree boot
+Date: Mon, 17 Jun 2013 15:10:35 +0200
+Message-ID: <20130617131035.GM7998@zurbaran>
+References: <1371469678-8464-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1371470954-9124-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: broonie@kernel.org, j-keerthy@ti.com, ldewangan@nvidia.com, sameo@linux.intel.com, grant.likely@secretlab.ca, swarren@nvidia.com, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, gg@slimlogic.co.uk
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:34460 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756209Ab3FQNKj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Jun 2013 09:10:39 -0400
+Content-Disposition: inline
+In-Reply-To: <1371469678-8464-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: J Keerthy <j-keerthy@ti.com>
+Cc: linux-omap@vger.kernel.org, ldewangan@nvidia.com, gg@slimlogic.co.uk
 
-The Patch adds TPS659038 PMIC support in the palmas mfd driver.
-The TPS659038 has almost the same registers as of the earlier
-supported variants of PALMAS family such as the TWL6035.
+Hi,
 
-The critical differences between TPS659038 and TWL6035 being:
+On Mon, Jun 17, 2013 at 05:17:58PM +0530, J Keerthy wrote:
+> Remove code which is not necessary for a device tree boot.
+> 
+> Boot tested on OMAP5-UEVM board.
+> 
+> Signed-off-by: J Keerthy <j-keerthy@ti.com>
+> Acked-by: Laxman Dewangan  <ldewangan@nvidia.com>
+> Acked-by: Graeme Gregory <gg@slimlogic.co.uk>
+> ---
+>  drivers/mfd/palmas.c |  106 --------------------------------------------------
+>  1 files changed, 0 insertions(+), 106 deletions(-)
+Applied to mfd-next, thanks.
 
-1) TPS659038 has nothing related to battery charging and back up battery stuff.
-2) TPS659038 does not have does not have SMPS10(Boost) step up convertor.
-3) TPS659038 does not have Battery detection and anything related to battery.
-4) SD card detection, Battery presence detection, Vibrator, USB OTG are missing
-   when compared to TWL6035.
+Cheers,
+Samuel.
 
-Signed-off-by: J Keerthy <j-keerthy@ti.com>
----
- Documentation/devicetree/bindings/mfd/palmas.txt |    2 ++
- drivers/mfd/palmas.c                             |    6 ++++++
- 2 files changed, 8 insertions(+), 0 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/mfd/palmas.txt b/Documentation/devicetree/bindings/mfd/palmas.txt
-index 7bcd59c..89cb773 100644
---- a/Documentation/devicetree/bindings/mfd/palmas.txt
-+++ b/Documentation/devicetree/bindings/mfd/palmas.txt
-@@ -5,6 +5,7 @@ twl6035 (palmas)
- twl6037 (palmas)
- tps65913 (palmas)
- tps65914 (palmas)
-+tps659038
- 
- Required properties:
- - compatible : Should be from the list
-@@ -14,6 +15,7 @@ Required properties:
-   ti,tps65913
-   ti,tps65914
-   ti,tps80036
-+  ti,tps659038
- and also the generic series names
-   ti,palmas
- - interrupt-controller : palmas has its own internal IRQs
-diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
-index d06ce62..261beb5 100644
---- a/drivers/mfd/palmas.c
-+++ b/drivers/mfd/palmas.c
-@@ -233,11 +233,17 @@ static void palmas_dt_to_pdata(struct i2c_client *i2c,
- 
- static unsigned int palmas_features = PALMAS_PMIC_FEATURE_INTERRUPT;
- 
-+static unsigned int tps659038_features;
-+
- static const struct of_device_id of_palmas_match_tbl[] = {
- 	{
- 		.compatible = "ti,palmas",
- 		.data = &palmas_features,
- 	},
-+	{
-+		.compatible = "ti,tps659038",
-+		.data = &tps659038_features,
-+	},
- 	{ },
- };
- 
 -- 
-1.7.5.4
+Intel Open Source Technology Centre
+http://oss.intel.com/
