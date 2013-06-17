@@ -1,70 +1,139 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: [PATCH 01/22] mfd/ti_am335x_tscadc: remove regmap
-Date: Mon, 17 Jun 2013 13:41:40 +0200
-Message-ID: <51BEF5F4.4090600@linutronix.de>
-References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de> <1370950268-7224-2-git-send-email-bigeasy@linutronix.de> <20130611142336.GE29135@zurbaran> <51B7358D.7000605@linutronix.de> <20130614135358.GR1403@sirena.org.uk>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH] gpio: Enable pcf857x GPIO expander for Device Tree
+Date: Mon, 17 Jun 2013 17:16:05 +0530
+Message-ID: <51BEF6FD.3070108@ti.com>
+References: <1370527523-1030-1-git-send-email-archit@ti.com> <CACRpkdY-HZ4AGqKr-DA1pvfnaVYEGZoEDn_wfDr8=9Qr+6dpiw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130614135358.GR1403-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <CACRpkdY-HZ4AGqKr-DA1pvfnaVYEGZoEDn_wfDr8=9Qr+6dpiw@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
 
-On 06/14/2013 03:53 PM, Mark Brown wrote:
-> On Tue, Jun 11, 2013 at 04:34:53PM +0200, Sebastian Andrzej Siewior
-> wrote:
-> 
-> It does give you tracepoints and debugfs.  If it's making things at
-> all complicated we need to look at why that is and figure out how
-> to fix that since it's probably an issue for other users.
+Hi,
 
-debugfs are tracepoints is our offer? Let me check the price one more
-time.
+On Monday 17 June 2013 02:35 PM, Linus Walleij wrote:
+> On Thu, Jun 6, 2013 at 4:05 PM, Archit Taneja <archit@ti.com> wrote:
+>
+>> Add code to parse the GPIO expander Device Tree node and extract platform data
+>> out of it, and populate the struct 'pcf857x_platform_data' maintained by the
+>> driver. This enables devices to reference the gpio expander from Device Tree.
+>>
+>> Add DT binding info in Documentation.
+>>
+>> CC: Grant Likely <grant.likely@secretlab.ca>
+>> Signed-off-by: Archit Taneja <archit@ti.com>
+>
+> (...)
+>> +++ b/Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt
+>> @@ -0,0 +1,44 @@
+>> +PCF857x I2C based GPIO controller bindings
+>> +
+>> +Required properties:
+>> +- compatible:
+>> +  - "nxp,pca9670" for NXP PCA9670 8 bit I/O expander
+>> +  - "nxp,pca9672" for NXP PCA9672 8 bit I/O expander with interrupt
+>> +  - "nxp,pca9674" for NXP PCA9672 8 bit I/O expander with interrupt
+>> +  - "nxp,pca8574" for NXP PCA8574 8 bit I/O expander with interrupt
+>> +  - "nxp,pca8575" for NXP PCA8575 16 bit I/O expander with interrupt
+>> +  - "nxp,pca9671" for NXP PCA9671 16 bit I/O expander
+>> +  - "nxp,pca9673" for NXP PCA9673 16 bit I/O expander with interrupt
+>> +  - "nxp,pca9675" for NXP PCA9675 16 bit I/O expander with interrupt
+>> +  - "ti,pcf8574"  for TI PCF8574 8 bit I/O expander with interrupt
+>> +  - "ti,pcf8574a" for TI PCF8574A 8 bit I/O expander with interrupt
+>> +  - "ti,pcf8575"  for TI PCF8575 16 bit I/O expander with interrupt
+>> +  - "ti,tca9554"  for TI TCA9554 8 bit I/O expander with interrupt
+>> +  - "maxim,max7328" for MAXIM MAX7328 8 bit I/O expander with interrupt
+>> +  - "maxim,max7329" for MAXIM MAX7329 8 bit I/O expander with interrupt
+>> +- gpio-controller : Marks the device node as a GPIO controller.
+>> +- #gpio-cells : Should be two.
+>> +  - first cell is the pin number.
+>> +  - second cell is unused.
+>
+> I guess you're adding this because the generic GPIO bindings use it and
+> of_gpio_simple_xlate() depends on this two-cell layout.
 
-A simply mmio read does right now:
-- lock + unlock.
-  each time you chase another pointer plus enable/disable interrupts
-  plus you have to save flags in another structure.
+Thanks for the review. I'm new to this and clearly lacking some 
+knowledge here.
 
-- _regmap_read()
-  We check a few variables and then we go after reg_read and we end up
-  in _regmap_raw_read().
-  Here we call _regmap_range_lookup() which should return NULL. Next
-  thing we invoke map->format.format_reg(). Finally we can call
-  map->bus->read() which brings us to regmap_mmio_read().
-  At the end we invoke map->format.parse_val().
+>
+> Make a reference to the generic GPIO bindings and note that the
+> second cell is *NOT* unused, as it is used in the GPIOlib!
 
-write looks most likely the same.
+Right, my mistake. Just a query, there is an example in gpio.txt in the 
+gpio bindings documentation which sets #gpio-cells as 1. Is this is a 
+wrong example, or are 1 cell gpio controllers valid?
 
-A simple register read invokes 5 functions pointers. I am not counting
-the function arguments in between and I am also not counting the number
-of arguments which are involved and take pointer as well. This is a lot
-of stuff that is done for a simple read of an mmio.
+>
+>> +- interrupt-controller: Mark the device node as an interrupt controller.
+>> +- #interrupt-cells : Should be two.
+>> +  - first cell is the GPIO number.
+>
+> Surely it is the IRQ number and not the GPIO number.
+> The fact that the IRQ originates in a GPIO controller does not
+> matter.
 
-I understand that most of this may not be expensive in total if it
-comes to SPI or I2C and all the goodies like reg caching and one
-interface which deals with SPI and I2C. I also understand that some
-chips have a non standard interface and are either BE or LE. We have
-similar things on USB where people wired the BUS wrongly either at the
-BUS level or at the SoC level so some PowerPC have an in-core ehci
-controller but its registers are BE and not LE like it should be. The
-solution here was variable check a simple swap() in that case.
-I like abstractions but this gone a little too far I think.
+Okay, I took gpio-omap.txt as reference(in other words, copy-pasted from 
+there), I guess 'first cell is the GPIO number' means that a slave 
+having it's interrupt line connected to an omap gpio bank has to mention 
+the gpio number in the first cell.
 
-This is a lot of for a simple mmio access. In terms of performance: If
-I add a trace point to my read and write I have still less code which
-is called and it can be disabled. This regmap overhead is always there
-chasing pointers.
+About this chip, a change in any of it's GPIOs configured as inputs will 
+generate an interrupt, then it's up to the driver to figure out which 
+GPIOs changed and handle their corresponding irqs. So shouldn't a device 
+connected to the chip describe the gpio number within the pcf857x chip 
+as it's first cell?
 
-As I said before: I doubt that you get this regmap access in an one GiB
-network driver and in turn remove their trace points to register access.
+I've made a hypothetical example of a pcf8575 chip, which has it's 
+interrupt line connected to an omap gpio, and pcf8575's 7th gpio is 
+connected to 'pcf_slave'. The pcf_slave's driver requests for an 
+interrupt. Is this the correct way to describe this? :
 
-Please don't get me wrong: It is still nice for slow buses and this ADC
-driver isn't anything close to high performance like a 1GiB network
-driver but it adds a lot of unwanted overhead which I prefer not to
-have.
+pcf: pcf8575@23 {
+	compatible = "ti,pcf8575";
+	reg = <0x23>;
+	gpio-controller;
+	#gpio-cells = <2>;
+	#interrupt-controller;
+	#interrupt-cells = <1>;
+	interrupt-parent = <&gpio2>;	/* an omap gpio bank */
+	interrupts = <2 8>;		/* gpio line 34, low triggered*/
+};
 
-Sebastian
+pcf_slave: slave {
+	...
+	...
+	#interrupt-parent = <&pcf>;
+	interrupts = <7>;	/* connected to 7th IO pin of pcf857x*/	
+};
+
+>
+>> +  - second cell is unused.
+>
+> So why do you add it? Usually this is used for trigger flags.
+> Are you planning to add this later, i.e. does the chip support this,
+> and if it doesn't then get rid of this flag.
+
+I haven't used the chip for interrupts, but going through the driver and 
+it's platform_data struct for board files, I don't see any trigger 
+information needed. I'll remove it.
+
+>
+>> +- reg: I2C address of the chip.
+>> +
+>> +Device speific properties:
+>> +- n_latch:             optional bit-inverse of initial register value; if
+>> +                       you leave this initialized to zero the driver will act
+>> +                       like the chip was just reset.
+>
+> Explain what happens if you do *not* leave it as zero and what the
+> bits mean in that case.
+
+I'll do that. Apologies for the trivial issues.
+
+Thanks,
+Archit
+
