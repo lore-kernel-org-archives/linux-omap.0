@@ -1,63 +1,51 @@
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v7 0/9] Generic PHY Framework
-Date: Mon, 17 Jun 2013 12:16:35 +0200
-Message-ID: <51BEE203.6090103@samsung.com>
-References: <1371113039-5784-1-git-send-email-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/6] ARM: OMAP2+: Remove board-omap4panda.c
+Date: Mon, 17 Jun 2013 03:26:50 -0700
+Message-ID: <20130617102650.GK20992@atomide.com>
+References: <20130612163124.GD8164@atomide.com>
+ <20130612171407.GM8164@atomide.com>
+ <51B98F1E.1000006@ti.com>
+ <51B99B07.1050806@ti.com>
+ <CACVXFVN3=hzWJEwHN5TXRoJ4mvVRVR+3=Tasw+gvLH3vsNHwUg@mail.gmail.com>
+ <CACVXFVNzAMrkhrAMAmQ7ZdJdby2O4VdoD8BVHRF-O=rPKQMqbw@mail.gmail.com>
+ <51BEBDCD.3060104@ti.com>
+ <87ppvlqhyy.fsf@lebrac.rtp-net.org>
+ <20130617082458.GH20992@atomide.com>
+ <87li69qdcs.fsf@lebrac.rtp-net.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-reply-to: <1371113039-5784-1-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: grant.likely@linaro.org, tony@atomide.com, balbi@ti.com, arnd@arndb.de, swarren@nvidia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, linux@arm.linux.org.uk, benoit.cousson@linaro.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, rnayak@ti.com, shawn.guo@linaro.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, nsekhar@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33523 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932409Ab3FQK0z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jun 2013 06:26:55 -0400
+Content-Disposition: inline
+In-Reply-To: <87li69qdcs.fsf@lebrac.rtp-net.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnaud Patard <arnaud.patard@rtp-net.org>
+Cc: Sricharan R <r.sricharan@ti.com>, Ming Lei <tom.leiming@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>
 
-Hi,
-
-On 06/13/2013 10:43 AM, Kishon Vijay Abraham I wrote:
-> Added a generic PHY framework that provides a set of APIs for the PHY drivers
-> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
-> the PHY with or without using phandle.
+* Arnaud Patard <arnaud.patard@rtp-net.org> [130617 02:52]:
+> Tony Lindgren <tony@atomide.com> writes:
 > 
-> This framework will be of use only to devices that uses external PHY (PHY
-> functionality is not embedded within the controller).
-> 
-> The intention of creating this framework is to bring the phy drivers spread
-> all over the Linux kernel to drivers/phy to increase code re-use and to
-> increase code maintainability.
-> 
-> Comments to make PHY as bus wasn't done because PHY devices can be part of
-> other bus and making a same device attached to multiple bus leads to bad
-> design.
-> 
-> If the PHY driver has to send notification on connect/disconnect, the PHY
-> driver should make use of the extcon framework. Using this susbsystem 
-> to use extcon framwork will have to be analysed.
-> 
-> Making omap-usb2 and twl4030 to use this framework is provided as a sample.
-> 
-> This patch series is developed on linux mainline tree.
-> 
-> Changes from v6
-> * corrected few typos in Documentation
-> * Changed PHY Subsystem to *bool* in Kconfig (to avoid compilation errors when
->   PHY Subsystem is kept as module and the dependent modules are built-in)
-> * Added if pm_runtime_enabled check before runtime pm calls.
+> I understand your concerns but, please, cope with reality: the clock
+> work is not in -next so this tends to make me think it won't reach
+> 3.11. We're at -rc6 after all. Telling users that their system doesn't
+> have any network because it was easier to maintain, is not something
+> they will understand imho.
 
-Looks good, feel free to add:
+Right, like I said: the idea is to have it usable with DT. And USB and
+Ethernet certainly are part of what I call usable. So is MMC, WLAN and
+DSS. I've certainly spent quite a bit of time on making sure panda works
+with DT, and I can assure you that fixing the USB extclock is easier than
+supporting the legacy boot with DT :)
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com> for patches
-1...3/9, 5...7/9
+This issue can also be fixed with a clock alias if we don't have DT
+defined clocks ready for v3.11. It may take a few days for us to have
+the solution. But get getting a clock to a driver certainly is not a
+showstopper here. After all, that's what all drivers already do.
 
-and Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com> for patch 1/9
+Regards,
 
-Hopefully we can gather more Acks and merge it for 3.11.
-
-I have already used this API for our MIPI CSI-2/DSIM DPHYs driver,
-the RFC patch series can be found at [1].
-
-Thanks,
-Sylwester
-
-[1] http://www.spinics.net/lists/arm-kernel/msg251666.html
+Tony
