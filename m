@@ -1,58 +1,74 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v3 2/2] spi: omap2-mcspi: Add FIFO buffer support
-Date: Mon, 17 Jun 2013 10:16:30 +0100
-Message-ID: <20130617091630.GZ1403@sirena.org.uk>
-References: <1371226328-24147-1-git-send-email-illia.smyrnov@ti.com>
- <1371226328-24147-3-git-send-email-illia.smyrnov@ti.com>
+From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
+Subject: Re: [PATCH 2/6] ARM: OMAP2+: Remove board-omap4panda.c
+Date: Mon, 17 Jun 2013 11:46:11 +0200
+Message-ID: <87li69qdcs.fsf@lebrac.rtp-net.org>
+References: <20130517191753.468.1734.stgit@localhost>
+	<CACVXFVOp6n3RhZnWD_hRxqE8a8amPA5SRWfkVhz+yCGZTtGjvQ@mail.gmail.com>
+	<20130612163124.GD8164@atomide.com>
+	<20130612171407.GM8164@atomide.com> <51B98F1E.1000006@ti.com>
+	<51B99B07.1050806@ti.com>
+	<CACVXFVN3=hzWJEwHN5TXRoJ4mvVRVR+3=Tasw+gvLH3vsNHwUg@mail.gmail.com>
+	<CACVXFVNzAMrkhrAMAmQ7ZdJdby2O4VdoD8BVHRF-O=rPKQMqbw@mail.gmail.com>
+	<51BEBDCD.3060104@ti.com> <87ppvlqhyy.fsf@lebrac.rtp-net.org>
+	<20130617082458.GH20992@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="i/mq3IMNEv8uWibA"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:58157 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755757Ab3FQJQk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jun 2013 05:16:40 -0400
-Content-Disposition: inline
-In-Reply-To: <1371226328-24147-3-git-send-email-illia.smyrnov@ti.com>
+Received: from lebrac.rtp-net.org ([88.191.135.105]:42071 "EHLO
+	lebrac.rtp-net.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932201Ab3FQJrC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jun 2013 05:47:02 -0400
+In-Reply-To: <20130617082458.GH20992@atomide.com> (Tony Lindgren's message of
+	"Mon, 17 Jun 2013 01:24:59 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Illia Smyrnov <illia.smyrnov@ti.com>
-Cc: Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Daniel Mack <zonque@gmail.com>, Matthias Brugger <matthias.bgg@gmail.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sricharan R <r.sricharan@ti.com>, Ming Lei <tom.leiming@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>
 
+Tony Lindgren <tony@atomide.com> writes:
 
---i/mq3IMNEv8uWibA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hi,
 
-On Fri, Jun 14, 2013 at 07:12:08PM +0300, Illia Smyrnov wrote:
-> The MCSPI controller has a built-in FIFO buffer to unload the DMA or interrupt
-> handler and improve data throughput. This patch adds FIFO buffer support for SPI
-> transfers in DMA mode.
+> * Arnaud Patard <arnaud.patard@rtp-net.org> [130617 01:13]:
+>> 
+>> I hoped to have missed some mails and that people were testing pandabard
+>> support with full support but given what I see, the ethernet support is
+>> not there yet. This thread is about removing the non-DT boot. I see some
+>> contradiction here. Please, look again at what Thomas said in the IGEP thread:
+>> breaking existing support is bad and removing non-DT boot for panda with
+>> not-working ethernet would exactly to that.
+>
+> Hmm yes I guess the panda needs the aux clock and there are various
+> patches posted for that for quite a while but have not gotten merged.
 
-This looks good but doesn't apply against my topic/omap branch - can you
-please check and resend?  Probably something that applies against -next
-will be fine.
+yes, it needs aux clock, see: https://lkml.org/lkml/2013/4/19/124
 
---i/mq3IMNEv8uWibA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+>
+> When I did my patches it seemed that Nishant's and my solution for
+> getting the auxclk via DT was acceptable. Then Mike started doing
+> all the clocks in DT and things changed.
+>
+> Mike, got any solution for us for v3.11 for the DT defined auxclk?
+>  
+>> Yeah, I'm aware that some extra patches are being developped like the
+>> omap clocks one: https://patchwork.kernel.org/patch/2541331/ but they
+>> don't seem to be in -next. So, again, please, wait that all needed bits
+>> are merged mainline before killing non-DT support (or provide 'mixed'
+>> support like what is/was done on kirkwood)
+>
+> The ethernet issue can be fixed with the legacy mode support in the
+> worst case, but probably just adding a clock alias for it does the
+> trick.
+>
+> I'd rather not postpone making omap4 DT only because I think at this
+> point fixing the any DT related issues is way less work compared to
+> maintaining and testing both legacy boot and DT boot.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
+I understand your concerns but, please, cope with reality: the clock
+work is not in -next so this tends to make me think it won't reach
+3.11. We're at -rc6 after all. Telling users that their system doesn't
+have any network because it was easier to maintain, is not something
+they will understand imho.
 
-iQIcBAEBAgAGBQJRvtPqAAoJELSic+t+oim98jgP/RVFzo1lUH8F7aEumfJrjMAn
-M6C8sli0qJLqDlPsAqctewNnu2E7FDKBUGvTLT+R6z91q7u8QVV0B2ZFwzAWl4wW
-TYmTYpumFyMn1PhKxeBcoR09QdxWsBxybt0URJPw5+sLzyRmg1o8FckIqanzjnXb
-yOC0gePj7s6WAymNwRahOnBY+kvUoYhzdbxswsl4HTPJicdjSBIJh2f1YiJkuNnX
-IAxPtnVsHX9OdJaUZlRGkmnPVa5g0XusXXj+YHJz1VnRYE3/Wm3hWIbbnRlMeEJt
-//GV3luxJexZbNwen4ihUtv5iXaKSrxP+VtfQjJFPakcSoPyYPkCU4B19ik9qUn4
-EzLGqaHAti7+lN5r56Dt9Di/oNJyyyR8nJzfaUcUOYmP0FemHBB2AGo3jJg6IQD3
-7AQUCye/28vE6+LMagU3eGJCNSlyQVsIRCqF/k2kTc+kPeuYPTaAtIlB+408qifH
-OWo681oTHmwj2ok/4Migze+D0d1+3fLC2b9/dNAjxRfCQHSGQEwd52o67wLqsZfn
-X+Sykutpl+ExQMxbsq0Czj8Tu5apqvvhhF+IMge2Q5QQCdLEhGT9VxWnak82qvNf
-SChOM+oiux9ilbRtjONlEC1eS+1z25UbmvPhqTEGD6C9R+Vi4NwV6Lj/mNRtET1W
-hKg0RnDZRlvnegfIGdSo
-=S+oO
------END PGP SIGNATURE-----
-
---i/mq3IMNEv8uWibA--
+Regards,
+Arnaud
