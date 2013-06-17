@@ -1,44 +1,83 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/6] ARM: OMAP2+: Remove board-omap4panda.c
-Date: Mon, 17 Jun 2013 01:49:42 -0700
-Message-ID: <20130617084942.GJ20992@atomide.com>
-References: <20130612171407.GM8164@atomide.com>
- <51B98F1E.1000006@ti.com>
- <51B99B07.1050806@ti.com>
- <CACVXFVN3=hzWJEwHN5TXRoJ4mvVRVR+3=Tasw+gvLH3vsNHwUg@mail.gmail.com>
- <CACVXFVNzAMrkhrAMAmQ7ZdJdby2O4VdoD8BVHRF-O=rPKQMqbw@mail.gmail.com>
- <51BEBDCD.3060104@ti.com>
- <87ppvlqhyy.fsf@lebrac.rtp-net.org>
- <CACVXFVMthQNgAe3QhMo8HUxuEYcFSOwsdb7RfAsFqwGFKL+dXA@mail.gmail.com>
- <20130617082724.GI20992@atomide.com>
- <CACVXFVP+-Qm-HrjF1vFxS5JCmf8rR7MdU44mw5-yo0UACYdfrw@mail.gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] gpio: Enable pcf857x GPIO expander for Device Tree
+Date: Mon, 17 Jun 2013 11:05:38 +0200
+Message-ID: <CACRpkdY-HZ4AGqKr-DA1pvfnaVYEGZoEDn_wfDr8=9Qr+6dpiw@mail.gmail.com>
+References: <1370527523-1030-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:21546 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756074Ab3FQItq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jun 2013 04:49:46 -0400
-Content-Disposition: inline
-In-Reply-To: <CACVXFVP+-Qm-HrjF1vFxS5JCmf8rR7MdU44mw5-yo0UACYdfrw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1370527523-1030-1-git-send-email-archit@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: Arnaud Patard <arnaud.patard@rtp-net.org>, Sricharan R <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Ming Lei <tom.leiming@gmail.com> [130617 01:47]:
-> On Mon, Jun 17, 2013 at 4:27 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > Too quick? The basic DT based booting has been working for a few years
-> > now to some extent on omaps :)
-> 
-> I mean it is OK to drop legacy mode now if it won't break old system.
-> Otherwise, it is better to slow down the dropping legacy patch so that
-> the board won't be one brick for us old board users, :-)
+On Thu, Jun 6, 2013 at 4:05 PM, Archit Taneja <archit@ti.com> wrote:
 
-Right, the plan is be able to use it naturally. The USB auxclk issue
-is fixable for DT boot, we just need to decide what's the best way
-to fix it.
+> Add code to parse the GPIO expander Device Tree node and extract platform data
+> out of it, and populate the struct 'pcf857x_platform_data' maintained by the
+> driver. This enables devices to reference the gpio expander from Device Tree.
+>
+> Add DT binding info in Documentation.
+>
+> CC: Grant Likely <grant.likely@secretlab.ca>
+> Signed-off-by: Archit Taneja <archit@ti.com>
 
-Regards,
+(...)
+> +++ b/Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt
+> @@ -0,0 +1,44 @@
+> +PCF857x I2C based GPIO controller bindings
+> +
+> +Required properties:
+> +- compatible:
+> +  - "nxp,pca9670" for NXP PCA9670 8 bit I/O expander
+> +  - "nxp,pca9672" for NXP PCA9672 8 bit I/O expander with interrupt
+> +  - "nxp,pca9674" for NXP PCA9672 8 bit I/O expander with interrupt
+> +  - "nxp,pca8574" for NXP PCA8574 8 bit I/O expander with interrupt
+> +  - "nxp,pca8575" for NXP PCA8575 16 bit I/O expander with interrupt
+> +  - "nxp,pca9671" for NXP PCA9671 16 bit I/O expander
+> +  - "nxp,pca9673" for NXP PCA9673 16 bit I/O expander with interrupt
+> +  - "nxp,pca9675" for NXP PCA9675 16 bit I/O expander with interrupt
+> +  - "ti,pcf8574"  for TI PCF8574 8 bit I/O expander with interrupt
+> +  - "ti,pcf8574a" for TI PCF8574A 8 bit I/O expander with interrupt
+> +  - "ti,pcf8575"  for TI PCF8575 16 bit I/O expander with interrupt
+> +  - "ti,tca9554"  for TI TCA9554 8 bit I/O expander with interrupt
+> +  - "maxim,max7328" for MAXIM MAX7328 8 bit I/O expander with interrupt
+> +  - "maxim,max7329" for MAXIM MAX7329 8 bit I/O expander with interrupt
+> +- gpio-controller : Marks the device node as a GPIO controller.
+> +- #gpio-cells : Should be two.
+> +  - first cell is the pin number.
+> +  - second cell is unused.
 
-Tony
+I guess you're adding this because the generic GPIO bindings use it and
+of_gpio_simple_xlate() depends on this two-cell layout.
+
+Make a reference to the generic GPIO bindings and note that the
+second cell is *NOT* unused, as it is used in the GPIOlib!
+
+> +- interrupt-controller: Mark the device node as an interrupt controller.
+> +- #interrupt-cells : Should be two.
+> +  - first cell is the GPIO number.
+
+Surely it is the IRQ number and not the GPIO number.
+The fact that the IRQ originates in a GPIO controller does not
+matter.
+
+> +  - second cell is unused.
+
+So why do you add it? Usually this is used for trigger flags.
+Are you planning to add this later, i.e. does the chip support this,
+and if it doesn't then get rid of this flag.
+
+> +- reg: I2C address of the chip.
+> +
+> +Device speific properties:
+> +- n_latch:             optional bit-inverse of initial register value; if
+> +                       you leave this initialized to zero the driver will act
+> +                       like the chip was just reset.
+
+Explain what happens if you do *not* leave it as zero and what the
+bits mean in that case.
+
+Yours,
+Linus Walleij
