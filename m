@@ -1,51 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] OMAP: PM: remove OMAP-specific no_console_suspend
- handling
-Date: Mon, 17 Jun 2013 04:03:45 -0700
-Message-ID: <20130617110344.GP20992@atomide.com>
-References: <87zjutacec.fsf@linaro.org>
+Subject: Re: N900 device tree conversion: how to do first step
+Date: Mon, 17 Jun 2013 04:10:32 -0700
+Message-ID: <20130617111031.GQ20992@atomide.com>
+References: <20130609201119.GA3190@blackmetal.musicnaut.iki.fi>
+ <20130613132624.GA3464@amd.pavel.ucw.cz>
+ <20130613141001.GF8164@atomide.com>
+ <20130613142809.GA3775@amd.pavel.ucw.cz>
+ <20130613145724.GH8164@atomide.com>
+ <20130613155240.GB3775@amd.pavel.ucw.cz>
+ <20130613161418.GJ8164@atomide.com>
+ <20130613230808.GA14876@amd.pavel.ucw.cz>
+ <20130614055629.GM8164@atomide.com>
+ <20130614212816.GA31768@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62358 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756144Ab3FQLDr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jun 2013 07:03:47 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <87zjutacec.fsf@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20130614212816.GA31768@atrey.karlin.mff.cuni.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-* Kevin Hilman <khilman@linaro.org> [130613 15:18]:
-> Tony,
+* Pavel Machek <pavel@ucw.cz> [130614 14:34]:
+> > * Pavel Machek <pavel@ucw.cz> [130613 16:14]:
+> > 
+> > No, there really are two instances of mux registers even on omap3,
+> > but I missed that earlier while reading the docs, and with the legacy
+> > mux framework it does not matter which mux domain it is. But it
+> > matters for pinctrl-single as it ioremaps the ranges separately.
 > 
-> Please pull this OMAP PM cleanup for v3.11.
-> 
-> Thanks,
-> 
-> Kevin
-> 
-> The following changes since commit f722406faae2d073cc1d01063d1123c35425939e:
-> 
->   Linux 3.10-rc1 (2013-05-11 17:14:08 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/omap-pm-v3.11/cleanup/pm
-> 
-> for you to fetch changes up to 4b7ec5accecdb136c7afaf8739a06d5335cc05aa:
-> 
->   arm: omap2+: omap_device: remove no_idle_on_suspend (2013-05-16 07:09:09 -0700)
-> 
-> ----------------------------------------------------------------
-> OMAP: PM: the serial core + driver can no handle no_console_suspend support
-> without any SoC specific handlding or SoC-specific DT bindings.  Remove
-> the now unused SoC specifics for OMAP.
+> Yes, you are right, with debugging prints it was easy to fix.
 
-Thanks pulling into omap-for-v3.11/pm-serial.
+OK cool.
+ 
+> > This is not a good way of doing muxing, hogging all the pins under
+> > omap3_pmx_core will make it impossible to unload pinctrl-single
+> > as a module, which is not nice for distros and developers.
+> 
+> Does omap4 do it correctly? I don't see how that works :-(.
+
+Just group the pins for each device using them. You can do:
+
+$ grep hsmmc1 /sys/kernel/debug/omap_mux/board/core
+
+And then you get the mmc1 pin settings that you can place under
+&mmc1 entry in your board specific .dts file.
+ 
+> Anyway... here's my current version, and thanks for all the help. I
+> guess I'll need to figure out clocks next, because I'd really like to
+> have video going on device.
+
+Well DSS is still using pdata based init because of the DT bindings
+are not ready yet.
 
 Regards,
 
-Tony
+Tony 
