@@ -1,86 +1,58 @@
 From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v5 2/3] arm: gpmc: Low power transition support
-Date: Tue, 18 Jun 2013 00:16:38 +0530
-Message-ID: <1371494799-11876-3-git-send-email-pekon@ti.com>
-References: <1371494799-11876-1-git-send-email-pekon@ti.com>
+Subject: [PATCH v5 0/3] suspend/resume support for OMAP nand driver
+Date: Tue, 18 Jun 2013 00:16:36 +0530
+Message-ID: <1371494799-11876-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51830 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51831 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751603Ab3FQSrT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1751696Ab3FQSrT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Mon, 17 Jun 2013 14:47:19 -0400
-In-Reply-To: <1371494799-11876-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@linaro.org, avinash philip <avinashphilip@ti.com>, Pekon Gupta <pekon@ti.com>
+Cc: tony@atomide.com, khilman@linaro.org, Pekon Gupta <pekon@ti.com>
 
-From: avinash philip <avinashphilip@ti.com>
+This patch series adds runtime PM support (specifically suspend/resume) 
+for GPMC and ELM drivers.
+[Patch 1/3]: Adds pm_runtime calls to handle GPMC module probe and remove
+[Patch 2/3]: Adds GPMC suspend/resume support.
+[Patch 3/3]: Adds ELM suspend/resume support.
 
-GPMC is hardware controller for external memory interfaces.
-This patch adds suspend/resume support for GPMC driver.
-It also preserves GPMC register configurations across device low-power states
-in which GPMC hardware can be powered-off.
-gpmc_suspend()/gpmc_resume() are called by default by core PM framework as part
-of driver's runtime PM callbacks.
+Tested on am335x-evm with NAND flash support, using following:
+	echo devices 	> /sys/power/pm_test
+	echo mem	> /sys/power/state
 
-Signed-off-by: Philip Avinash <avinashphilip@ti.com>
-Signed-off-by: Pekon Gupta <pekon@ti.com>
----
- arch/arm/mach-omap2/gpmc.c | 21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
+	echo core	> /sys/power/pm_test
+	echo mem	> /sys/power/state
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 1380cee..9b579d0 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -1655,6 +1655,24 @@ static int gpmc_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+#ifdef CONFIG_PM_SLEEP
-+static int gpmc_suspend(struct device *dev)
-+{
-+	omap3_gpmc_save_context();
-+	pm_runtime_put_sync(dev);
-+	return 0;
-+}
-+
-+static int gpmc_resume(struct device *dev)
-+{
-+	pm_runtime_get_sync(dev);
-+	omap3_gpmc_restore_context();
-+	return 0;
-+}
-+#endif
-+
-+static SIMPLE_DEV_PM_OPS(gpmc_pm_ops, gpmc_suspend, gpmc_resume);
-+
- static struct platform_driver gpmc_driver = {
- 	.probe		= gpmc_probe,
- 	.remove		= gpmc_remove,
-@@ -1662,6 +1680,7 @@ static struct platform_driver gpmc_driver = {
- 		.name	= DEVICE_NAME,
- 		.owner	= THIS_MODULE,
- 		.of_match_table = of_match_ptr(gpmc_dt_ids),
-+		.pm	= &gpmc_pm_ops,
- 	},
- };
- 
-@@ -1724,7 +1743,6 @@ static irqreturn_t gpmc_handle_irq(int irq, void *dev)
- 	return IRQ_HANDLED;
- }
- 
--#ifdef CONFIG_ARCH_OMAP3
- static struct omap3_gpmc_regs gpmc_context;
- 
- void omap3_gpmc_save_context(void)
-@@ -1789,4 +1807,3 @@ void omap3_gpmc_restore_context(void)
- 		}
- 	}
- }
--#endif /* CONFIG_ARCH_OMAP3 */
+Changes since v4:
+- added save/restore to ELM suspend/resume
+- removed #ifdef CONFIG_ARCH_OMAP3
+- updated changelog to be more descriptive
+
+Changes Since v3:
+- CONFIG_PM -> CONFIG_PM_SLEEP
+- using struct dev_pm_ops via driver->pm, instead of struct platform_driver
+- rebased to 3.10-rc5
+
+Changes Since v2:
+- Remove calll back of nand_suspend from omap2 nand driver, as the same call
+  already done from suspend activity mtd class driver.
+
+[1] http://comments.gmane.org/gmane.linux.ports.arm.omap/91405
+
+
+avinash philip (3):
+  ARM: OMAP2+: gpmc: Converts GPMC driver to pm_runtime capable
+  arm: gpmc: Low power transition support
+  mtd: devices: elm: Low power transition support
+
+ arch/arm/mach-omap2/gpmc.c |  29 +++++++++--
+ drivers/mtd/devices/elm.c  | 117 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 142 insertions(+), 4 deletions(-)
+
 -- 
 1.8.1
 
