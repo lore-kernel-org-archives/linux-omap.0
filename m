@@ -1,75 +1,42 @@
-From: Ambresh K <ambresh@ti.com>
-Subject: [PATCH V2 3/3] ARM: OMAP2+: clk: Fix return type of callbacks
-Date: Mon, 17 Jun 2013 14:09:44 +0530
-Message-ID: <1371458384-23936-4-git-send-email-ambresh@ti.com>
-References: <1371458384-23936-1-git-send-email-ambresh@ti.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH 2/6] ARM: OMAP2+: Remove board-omap4panda.c
+Date: Mon, 17 Jun 2013 16:41:50 +0800
+Message-ID: <CACVXFVP+-Qm-HrjF1vFxS5JCmf8rR7MdU44mw5-yo0UACYdfrw@mail.gmail.com>
+References: <CACVXFVOp6n3RhZnWD_hRxqE8a8amPA5SRWfkVhz+yCGZTtGjvQ@mail.gmail.com>
+	<20130612163124.GD8164@atomide.com>
+	<20130612171407.GM8164@atomide.com>
+	<51B98F1E.1000006@ti.com>
+	<51B99B07.1050806@ti.com>
+	<CACVXFVN3=hzWJEwHN5TXRoJ4mvVRVR+3=Tasw+gvLH3vsNHwUg@mail.gmail.com>
+	<CACVXFVNzAMrkhrAMAmQ7ZdJdby2O4VdoD8BVHRF-O=rPKQMqbw@mail.gmail.com>
+	<51BEBDCD.3060104@ti.com>
+	<87ppvlqhyy.fsf@lebrac.rtp-net.org>
+	<CACVXFVMthQNgAe3QhMo8HUxuEYcFSOwsdb7RfAsFqwGFKL+dXA@mail.gmail.com>
+	<20130617082724.GI20992@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1371458384-23936-1-git-send-email-ambresh@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Rajendra <rnayak@ti.com>, Ambresh K <ambresh@ti.com>, Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ve0-f180.google.com ([209.85.128.180]:46083 "EHLO
+	mail-ve0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932217Ab3FQIlu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jun 2013 04:41:50 -0400
+Received: by mail-ve0-f180.google.com with SMTP id pa12so1872020veb.39
+        for <linux-omap@vger.kernel.org>; Mon, 17 Jun 2013 01:41:50 -0700 (PDT)
+In-Reply-To: <20130617082724.GI20992@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnaud Patard <arnaud.patard@rtp-net.org>, Sricharan R <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Ambresh K <ambresh@ti.com>
+On Mon, Jun 17, 2013 at 4:27 PM, Tony Lindgren <tony@atomide.com> wrote:
+> Too quick? The basic DT based booting has been working for a few years
+> now to some extent on omaps :)
 
-clk_ops's .get_parent member data return's signed value.
+I mean it is OK to drop legacy mode now if it won't break old system.
+Otherwise, it is better to slow down the dropping legacy patch so that
+the board won't be one brick for us old board users, :-)
 
-Signed-off-by: Ambresh K <ambresh@ti.com>
----
- arch/arm/mach-omap2/clkt_clksel.c |    2 +-
- arch/arm/mach-omap2/clkt_dpll.c   |    2 +-
- arch/arm/mach-omap2/clock.h       |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clkt_clksel.c b/arch/arm/mach-omap2/clkt_clksel.c
-index 0ec9f6f..2773657 100644
---- a/arch/arm/mach-omap2/clkt_clksel.c
-+++ b/arch/arm/mach-omap2/clkt_clksel.c
-@@ -303,7 +303,7 @@ u32 omap2_clksel_round_rate_div(struct clk_hw_omap *clk,
-  * way to return an error, so if we encounter an error, just WARN()
-  * and pretend that we know that we're doing.
-  */
--u8 omap2_clksel_find_parent_index(struct clk_hw *hw)
-+int omap2_clksel_find_parent_index(struct clk_hw *hw)
- {
- 	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
- 	const struct clksel *clks;
-diff --git a/arch/arm/mach-omap2/clkt_dpll.c b/arch/arm/mach-omap2/clkt_dpll.c
-index 924c230..54b8c49 100644
---- a/arch/arm/mach-omap2/clkt_dpll.c
-+++ b/arch/arm/mach-omap2/clkt_dpll.c
-@@ -186,7 +186,7 @@ static int _dpll_test_mult(int *m, int n, unsigned long *new_rate,
- }
- 
- /* Public functions */
--u8 omap2_init_dpll_parent(struct clk_hw *hw)
-+int omap2_init_dpll_parent(struct clk_hw *hw)
- {
- 	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
- 	u32 v;
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 7aa32cd..2784087 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -384,7 +384,7 @@ void __init omap2_clk_disable_clkdm_control(void);
- u32 omap2_clksel_round_rate_div(struct clk_hw_omap *clk,
- 				unsigned long target_rate,
- 				u32 *new_div);
--u8 omap2_clksel_find_parent_index(struct clk_hw *hw);
-+int omap2_clksel_find_parent_index(struct clk_hw *hw);
- unsigned long omap2_clksel_recalc(struct clk_hw *hw, unsigned long parent_rate);
- long omap2_clksel_round_rate(struct clk_hw *hw, unsigned long target_rate,
- 				unsigned long *parent_rate);
-@@ -396,7 +396,7 @@ int omap2_clksel_set_parent(struct clk_hw *hw, u8 field_val);
- extern void omap2_clkt_iclk_allow_idle(struct clk_hw_omap *clk);
- extern void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk);
- 
--u8 omap2_init_dpll_parent(struct clk_hw *hw);
-+int omap2_init_dpll_parent(struct clk_hw *hw);
- unsigned long omap2_get_dpll_rate(struct clk_hw_omap *clk);
- 
- int omap2_dflt_clk_enable(struct clk_hw *hw);
+Thanks,
 -- 
-1.7.4.1
+Ming Lei
