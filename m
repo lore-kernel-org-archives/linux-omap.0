@@ -1,58 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/6] ARM: OMAP2+: Remove board-omap4panda.c
-Date: Tue, 18 Jun 2013 04:27:01 -0700
-Message-ID: <20130618112701.GO5523@atomide.com>
-References: <20130612171407.GM8164@atomide.com>
- <51B98F1E.1000006@ti.com>
- <51B99B07.1050806@ti.com>
- <CACVXFVN3=hzWJEwHN5TXRoJ4mvVRVR+3=Tasw+gvLH3vsNHwUg@mail.gmail.com>
- <CACVXFVNzAMrkhrAMAmQ7ZdJdby2O4VdoD8BVHRF-O=rPKQMqbw@mail.gmail.com>
- <51BEBDCD.3060104@ti.com>
- <87ppvlqhyy.fsf@lebrac.rtp-net.org>
- <20130617082458.GH20992@atomide.com>
- <87li69qdcs.fsf@lebrac.rtp-net.org>
- <20130617102650.GK20992@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 4/4] ARM: OMAP2+: dts: HACK: Provide alias to USB PHY
+ clock
+Date: Tue, 18 Jun 2013 15:33:06 +0300
+Message-ID: <51C05382.8090805@ti.com>
+References: <1371553891-29364-1-git-send-email-rogerq@ti.com> <1371553891-29364-5-git-send-email-rogerq@ti.com> <20130618112342.GN5523@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:11421 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752479Ab3FRL1F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jun 2013 07:27:05 -0400
-Content-Disposition: inline
-In-Reply-To: <20130617102650.GK20992@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36873 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932160Ab3FRMde (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Jun 2013 08:33:34 -0400
+In-Reply-To: <20130618112342.GN5523@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnaud Patard <arnaud.patard@rtp-net.org>
-Cc: Sricharan R <r.sricharan@ti.com>, Ming Lei <tom.leiming@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: b-cousson@ti.com, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [130617 03:32]:
-> * Arnaud Patard <arnaud.patard@rtp-net.org> [130617 02:52]:
-> > Tony Lindgren <tony@atomide.com> writes:
-> > 
-> > I understand your concerns but, please, cope with reality: the clock
-> > work is not in -next so this tends to make me think it won't reach
-> > 3.11. We're at -rc6 after all. Telling users that their system doesn't
-> > have any network because it was easier to maintain, is not something
-> > they will understand imho.
+On 06/18/2013 02:23 PM, Tony Lindgren wrote:
+> * Roger Quadros <rogerq@ti.com> [130618 04:17]:
+>> Till the OMAP clocks are correctly defined in device tree, use
+>> this temporary hack to provide clock alias to the USB PHY clocks.
+>>
+>> Without this, USB Host & Ethernet will not be functional with
+>> device tree boots on Panda and uEVM.
 > 
-> Right, like I said: the idea is to have it usable with DT. And USB and
-> Ethernet certainly are part of what I call usable. So is MMC, WLAN and
-> DSS. I've certainly spent quite a bit of time on making sure panda works
-> with DT, and I can assure you that fixing the USB extclock is easier than
-> supporting the legacy boot with DT :)
+> Thanks, this looks OK to me to have USB working until we have the
+> DT defined clock patches ready.
 > 
-> This issue can also be fixed with a clock alias if we don't have DT
-> defined clocks ready for v3.11. It may take a few days for us to have
-> the solution. But get getting a clock to a driver certainly is not a
-> showstopper here. After all, that's what all drivers already do.
+> The $Subject needs updating though, just make it ARM: OMAP2+: and
+> leave out the dts and hack from there.
+> 
 
-Care to test the last patch just posted by Roger in thread
-" [PATCH 0/4] ARM: OMAP4: Panda USB Host support and DVI EDID fix"?
+OK. will send v2 as i need to make another minor change in the panda dts file.
 
-That adds a clock alias for the EHCI auxclk so it should continue
-working until we have the DT clock patches available.
-
-Regards,
-
-Tony
+cheers,
+-roger
