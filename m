@@ -1,48 +1,61 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v7 5/9] ARM: OMAP: USB: Add phy binding information
-Date: Tue, 18 Jun 2013 15:34:36 +0530
-Message-ID: <51C030B4.5070707@ti.com>
-References: <1371113039-5784-1-git-send-email-kishon@ti.com>
- <1371113039-5784-6-git-send-email-kishon@ti.com>
- <20130618094438.GT5461@arwen.pp.htv.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm: omap: board-overo: reset GPIO for SMSC911x
+Date: Tue, 18 Jun 2013 03:09:46 -0700
+Message-ID: <20130618100945.GI5523@atomide.com>
+References: <1369144071-10673-1-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20130618094438.GT5461-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: balbi-l0cyMroinI0@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:41754 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754164Ab3FRKJu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jun 2013 06:09:50 -0400
+Content-Disposition: inline
+In-Reply-To: <1369144071-10673-1-git-send-email-florian.vaussard@epfl.ch>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Florian Vaussard <florian.vaussard@epfl.ch>
+Cc: Steve Sakoman <sakoman@gmail.com>, Mike Rapoport <mike@compulab.co.il>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+* Florian Vaussard <florian.vaussard@epfl.ch> [130521 07:01]:
+> The reset GPIO should be set for the SMSC911x, otherwise the controller
+> will not work and probing will fail. In the case of the tobi-duo
+> expansion board, the second controller shares the same GPIO, thus no
+> more changes are required (not tested).
+> 
+> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
 
-On Tuesday 18 June 2013 03:14 PM, Felipe Balbi wrote:
-> On Thu, Jun 13, 2013 at 02:13:55PM +0530, Kishon Vijay Abraham I wrote:
->> In order for controllers to get PHY in case of non dt boot, the phy
->> binding information (phy device name) should be added in the platform
->> data of the controller.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
->
-> I would rather not pass strings around, any other way to handle this ?
-> Why do you need to pass this string ?
+Thanks applying into omap-for-v3.11/board.
 
-Our old way of binding the controller and the phy using device name 
-started creating problems after the devices are created using 
-PLATFORM_DEVID_AUTO. Infact non-dt boot is broken in mainline for OMAP3 
-platforms for which I have posted a RFC series 
-http://www.serverphorums.com/read.php?12,708632 which also uses strings.
-I'm not sure of any other way to deal with this.
+Regards,
 
-Thanks
-Kishon
+Tony
+
+> ---
+>  arch/arm/mach-omap2/board-overo.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+> index 4ca6b68..5748b5d 100644
+> --- a/arch/arm/mach-omap2/board-overo.c
+> +++ b/arch/arm/mach-omap2/board-overo.c
+> @@ -68,6 +68,7 @@
+>  
+>  #define OVERO_SMSC911X_CS      5
+>  #define OVERO_SMSC911X_GPIO    176
+> +#define OVERO_SMSC911X_NRESET  64
+>  #define OVERO_SMSC911X2_CS     4
+>  #define OVERO_SMSC911X2_GPIO   65
+>  
+> @@ -122,7 +123,7 @@ static struct omap_smsc911x_platform_data smsc911x_cfg = {
+>  	.id		= 0,
+>  	.cs             = OVERO_SMSC911X_CS,
+>  	.gpio_irq       = OVERO_SMSC911X_GPIO,
+> -	.gpio_reset     = -EINVAL,
+> +	.gpio_reset     = OVERO_SMSC911X_NRESET,
+>  	.flags		= SMSC911X_USE_32BIT,
+>  };
+>  
+> -- 
+> 1.7.5.4
+> 
