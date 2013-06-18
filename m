@@ -1,140 +1,58 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH v2 1/4] MFD: Palmas: Check if interrupts property exists
- and then only request irq
-Date: Tue, 18 Jun 2013 17:33:49 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229EC5DB@DBDE04.ent.ti.com>
-References: <1371549692-7361-1-git-send-email-j-keerthy@ti.com>
- <1371549692-7361-2-git-send-email-j-keerthy@ti.com>
- <51C0820B.4020404@wwwdotorg.org>
- <DC88CAD03C0052499C1907B327FC63229EC563@DBDE04.ent.ti.com>
- <51C093FF.6000204@wwwdotorg.org>
- <DC88CAD03C0052499C1907B327FC63229EC5B4@DBDE04.ent.ti.com>
- <51C09761.1020704@wwwdotorg.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/7] omap soc fixes for v3.11 merge window
+Date: Tue, 18 Jun 2013 11:07:24 -0700
+Message-ID: <7368.27166188068$1371578862@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51C09761.1020704@wwwdotorg.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46211 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932812Ab3FRSHd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jun 2013 14:07:33 -0400
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
+The following changes since commit 4f288f081bb67813d35c10d1b2fa68e863c4b188:
 
+  ARM: OMAP2+: AM43x: SRAM base and size (2013-06-12 08:07:23 -0700)
 
-> -----Original Message-----
-> From: Stephen Warren [mailto:swarren@wwwdotorg.org]
-> Sent: Tuesday, June 18, 2013 10:53 PM
-> To: J, KEERTHY
-> Cc: linux-omap@vger.kernel.org; broonie@kernel.org;
-> ldewangan@nvidia.com; sameo@linux.intel.com; grant.likely@secretlab.ca;
-> swarren@nvidia.com; linux-kernel@vger.kernel.org; linux-
-> doc@vger.kernel.org; gg@slimlogic.co.uk
-> Subject: Re: [PATCH v2 1/4] MFD: Palmas: Check if interrupts property
-> exists and then only request irq
-> 
-> On 06/18/2013 11:19 AM, J, KEERTHY wrote:
-> >
-> >
-> >> -----Original Message-----
-> >> From: Stephen Warren [mailto:swarren@wwwdotorg.org]
-> >> Sent: Tuesday, June 18, 2013 10:38 PM
-> >> To: J, KEERTHY
-> >> Cc: linux-omap@vger.kernel.org; broonie@kernel.org;
-> >> ldewangan@nvidia.com; sameo@linux.intel.com;
-> >> grant.likely@secretlab.ca; swarren@nvidia.com;
-> >> linux-kernel@vger.kernel.org; linux- doc@vger.kernel.org;
-> >> gg@slimlogic.co.uk
-> >> Subject: Re: [PATCH v2 1/4] MFD: Palmas: Check if interrupts
-> property
-> >> exists and then only request irq
-> >>
-> >> On 06/18/2013 10:54 AM, J, KEERTHY wrote:
-> >>> Hi Stephen,
-> >>>
-> >>>> -----Original Message-----
-> >>>> From: Stephen Warren [mailto:swarren@wwwdotorg.org]
-> >>>> Sent: Tuesday, June 18, 2013 9:22 PM
-> >>>> To: J, KEERTHY
-> >>>> Cc: linux-omap@vger.kernel.org; broonie@kernel.org;
-> >>>> ldewangan@nvidia.com; sameo@linux.intel.com;
-> >>>> grant.likely@secretlab.ca; swarren@nvidia.com;
-> >>>> linux-kernel@vger.kernel.org; linux- doc@vger.kernel.org;
-> >>>> gg@slimlogic.co.uk
-> >>>> Subject: Re: [PATCH v2 1/4] MFD: Palmas: Check if interrupts
-> >> property
-> >>>> exists and then only request irq
-> >>>>
-> >>>> On 06/18/2013 04:01 AM, J Keerthy wrote:
-> >>>>> Check if interrupts property exists and then only request irq.
-> >>>>> On some boards INT line might not be connected to a valid irq
-> line
-> >>>>> on the application processor. Hence keeping a check before
-> >>>>> requesting irq.
-> >>>>
-> >>>> When there is no interrupts property, surely i2c->irq == 0, which
-> >>>> is an invalid IRQ, and hence there's no need to check this before
-> >>>> copying the value?
-> >>>
-> >>> The intent here is NOT to request irq with 0 or Invalid IRQ.
-> >>
-> >> Sure.
-> >>
-> >>> The board File will not populate the interrupts entry if the INT
-> >>> line is not Connected.
-> >>
-> >> Do you mean the interrupts DT property won't be present if there is
-> >> no interrupt. If so, sure.
-> >
-> > Yes.
-> >
-> >>
-> >>> Hence the patch checks for the 'interrupts' property.
-> >>
-> >> That shouldn't be necessary; IIRC, the I2C core has already parsed
-> >> the interrupts property if there was one, and if there wasn't, it
-> has
-> >> set
-> >> i2c->irq to some invalid value already.
-> >>
-> >> So, you simply need to check the value in i2c->irq, and don't need
-> to
-> >> look at the DT at all.
-> >
-> > Instead of checking the Invalid irq value which most likely can be 0.
-> > I am not sure.
-> > I am explicitly checking if the interrupts property exists or not.
-> >
-> > If not present then It throws out a warning. Either there is no Valid
-> > INT line connection or the DeviceTree was not populated fully.
-> >
-> > This additional piece of information is good to have in the driver
-> > IMHO. Let me know if this is rational enough to have in the driver.
-> 
-> No, you should just check the IRQ number.
+are available in the git repository at:
 
-Hmmm...so something like (!i2c->irq)
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/soc-part2-signed
 
-> 
-> Consider this:
-> 
-> If the device was instantiated from a board file *or* a device tree,
-> i2c->irq is correctly set. Hence, checking that value works in both
-> cases.
-> 
-> If you check the interrupts DT property, that will only work if the
-> device was instantiated from device tree, and not if it was
-> instantiated from a board file; the property will never exist in the
-> board file case, and hence you'll never be able to have a board file
-> provide an interrupt.
+for you to fetch changes up to 7bcad170154f1302aeeced4f236588091a261fbf:
 
-The board file approach is getting deprecated for this. I
-Myself removed board file related pdata stuff in one of the patches.
+  ARM: OMAP3+: am33xx id: Add new am33xx specific function to check dev_feature (2013-06-18 03:04:07 -0700)
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg90598.html
+----------------------------------------------------------------
+Fix am43x minimal booting as I accidentally left out one
+patch from the already merged omap-for-v3.11/soc-signed branch.
+Also fixes for ti81x booting and  revision check updates.
 
-So going the DeviceTree way.
+These are based on omap-for-v3.11/soc-signed because of the
+am43x dependency to earlier patches.
 
-Regards,
-Keerthy
+----------------------------------------------------------------
+Afzal Mohammed (1):
+      ARM: OMAP2+: AM43x: basic dt support
+
+Aida Mynzhasova (2):
+      ARM: OMAP2: TI81XX: id: Add cpu id for TI816x ES2.0 and ES2.1
+      ARM: OMAP: TI816X: add powerdomains for TI816x
+
+Vaibhav Hiremath (1):
+      ARM: OMAP3+: am33xx id: Add new am33xx specific function to check dev_feature
+
+ arch/arm/mach-omap2/board-generic.c         | 16 ++++++++
+ arch/arm/mach-omap2/control.h               |  4 ++
+ arch/arm/mach-omap2/id.c                    | 24 ++++++++++-
+ arch/arm/mach-omap2/io.c                    |  2 +-
+ arch/arm/mach-omap2/powerdomains3xxx_data.c | 62 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prcm-common.h           | 11 +++++
+ arch/arm/mach-omap2/soc.h                   |  3 ++
+ arch/arm/mach-omap2/timer.c                 |  2 +-
+ 8 files changed, 120 insertions(+), 4 deletions(-)
