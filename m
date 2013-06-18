@@ -1,38 +1,63 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 0/2] ARM: AM33XX: clock: Add debugSS data to clk and hwmod
- database
-Date: Tue, 18 Jun 2013 11:42:17 +0200
-Message-ID: <51C02B79.9010306@ti.com>
-References: <1371532080-27714-1-git-send-email-hvaibhav@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v7 2/9] usb: phy: omap-usb2: use the new generic PHY
+ framework
+Date: Tue, 18 Jun 2013 12:40:58 +0300
+Message-ID: <20130618094058.GQ5461@arwen.pp.htv.fi>
+References: <1371113039-5784-1-git-send-email-kishon@ti.com>
+ <1371113039-5784-3-git-send-email-kishon@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54240 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753979Ab3FRJml (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jun 2013 05:42:41 -0400
-In-Reply-To: <1371532080-27714-1-git-send-email-hvaibhav@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="L0TNCHh3fkwjpuuE"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1371113039-5784-3-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: grant.likely@linaro.org, tony@atomide.com, balbi@ti.com, arnd@arndb.de, swarren@nvidia.com, sylvester.nawrocki@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, linux@arm.linux.org.uk, benoit.cousson@linaro.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, rnayak@ti.com, shawn.guo@linaro.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-Hi Vaihbav,
+--L0TNCHh3fkwjpuuE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 6/18/2013 7:07 AM, Vaibhav Hiremath wrote:
-> This patch adds DebugSS data to clock-tree and hwmod data files.
->
-> Changes from RFC/V1 (No code change):
-> 	- Based on comments, we have to follow DT and loadable module
-> 	  approach for debugSS module as well, so separated out 2 patches
-> 	  of clock-tree and hwmod data addition from the RFC patch-series.
-> 	- Added Paul's Ack on clock-tree patch.
-> 	- Rebased on top of Benoit's for-3.11/dts branch.
+Hi,
 
-Thanks for the update. I'll apply the series in my branch before sending 
-the pull request to Tony.
+On Thu, Jun 13, 2013 at 02:13:52PM +0530, Kishon Vijay Abraham I wrote:
+> @@ -159,6 +191,12 @@ static int omap_usb2_probe(struct platform_device *p=
+dev)
+>  	otg->start_srp		=3D omap_usb_start_srp;
+>  	otg->phy		=3D &phy->phy;
+> =20
+> +	pm_runtime_enable(phy->dev);
 
-Regards,
-Benoit
+enabling pm_runtime here has the potential to cause a real big problem.
+How have you tested this patch ?
 
+--=20
+balbi
+
+--L0TNCHh3fkwjpuuE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRwCsqAAoJEIaOsuA1yqRExjEQALZFJUlSmmJ9rF9hBy0KZK2z
+hECyUPBrYgR4qtdfH+rmCRpR0gwX7/HwdFeZdvaDOEEjuUdK2MFbvjrb9ldnq3YN
+ja6HLcSM/Bhab+AWwjvcsYD5GICN6uW3J7GINIqh9J6ZGbcaIPnhHmfUSq3QILfk
+7tqYEdIrdxoGJ3cTgzPiXkSHzQw5payVVcsu9usOWv/bRbEqyQVtogKGbZ5AjSrO
+D178HBEq94m1NWwaFRY2GAR7MVxLwco5/Sq+5EQd+mcno6Zcrn/W33FfDPLycaFe
+1j8YG8SFRiJ1E8ZjqkJ794HOBvu4N6/2W0afsSBeyrLBdHeasgBeMB9frfibW7hP
+KYrELNpnqDQfl0Nf2lx1rvJNYOnNnfuzKPlRkpRv99gqDVQMWQrLHvuAgtiNfno5
+SyMD2VPJlP7ec82Lto6yDeGxTTwvBitUbL05dsusC1Fv1+AyudSw3Ll/tWs8OXCJ
+EzbLigC3XOUSla1K8EgjKMIDAgr6hukxd0S3j/ZZdwBXTi5aRsxx7bOQ4Hu97i+t
+grqXH3cspmCBzfqeTU98o1jnW6qWbtsDeN9nbeekglAfRZyL4mrA35Vweop23oYw
+aEysURk4W0gFl2GlSLz1ePHAgg010wlpomxlkmzUXY4udNFSxLEu1Ee/V2iip2Qn
+0v+y5zaSmjkfc80sUcKb
+=EHFT
+-----END PGP SIGNATURE-----
+
+--L0TNCHh3fkwjpuuE--
