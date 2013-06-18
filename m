@@ -1,39 +1,58 @@
-From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Subject: [PATCH v3 2/4] USB: OMAP1: add extcon to platform data
-Date: Tue, 18 Jun 2013 20:06:59 +0300
-Message-ID: <1371575221-360-3-git-send-email-aaro.koskinen@iki.fi>
-References: <1371575221-360-1-git-send-email-aaro.koskinen@iki.fi>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1371575221-360-1-git-send-email-aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH v2 1/4] MFD: Palmas: Check if interrupts property exists
+ and then only request irq
+Date: Tue, 18 Jun 2013 11:08:15 -0600
+Message-ID: <51C093FF.6000204@wwwdotorg.org>
+References: <1371549692-7361-1-git-send-email-j-keerthy@ti.com> <1371549692-7361-2-git-send-email-j-keerthy@ti.com> <51C0820B.4020404@wwwdotorg.org> <DC88CAD03C0052499C1907B327FC63229EC563@DBDE04.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <DC88CAD03C0052499C1907B327FC63229EC563@DBDE04.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "J, KEERTHY" <j-keerthy@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Add extcon field to platform data.
+On 06/18/2013 10:54 AM, J, KEERTHY wrote:
+> Hi Stephen,
+> 
+>> -----Original Message-----
+>> From: Stephen Warren [mailto:swarren@wwwdotorg.org]
+>> Sent: Tuesday, June 18, 2013 9:22 PM
+>> To: J, KEERTHY
+>> Cc: linux-omap@vger.kernel.org; broonie@kernel.org;
+>> ldewangan@nvidia.com; sameo@linux.intel.com; grant.likely@secretlab.ca;
+>> swarren@nvidia.com; linux-kernel@vger.kernel.org; linux-
+>> doc@vger.kernel.org; gg@slimlogic.co.uk
+>> Subject: Re: [PATCH v2 1/4] MFD: Palmas: Check if interrupts property
+>> exists and then only request irq
+>>
+>> On 06/18/2013 04:01 AM, J Keerthy wrote:
+>>> Check if interrupts property exists and then only request irq.
+>>> On some boards INT line might not be connected to a valid irq line on
+>>> the application processor. Hence keeping a check before requesting
+>>> irq.
+>>
+>> When there is no interrupts property, surely i2c->irq == 0, which is an
+>> invalid IRQ, and hence there's no need to check this before copying the
+>> value?
+> 
+> The intent here is NOT to request irq with 0 or Invalid IRQ.
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
----
- include/linux/platform_data/usb-omap1.h | 2 ++
- 1 file changed, 2 insertions(+)
+Sure.
 
-diff --git a/include/linux/platform_data/usb-omap1.h b/include/linux/platform_data/usb-omap1.h
-index 8c7764d..43b5ce1 100644
---- a/include/linux/platform_data/usb-omap1.h
-+++ b/include/linux/platform_data/usb-omap1.h
-@@ -23,6 +23,8 @@ struct omap_usb_config {
- 	unsigned	register_dev:1;
- 	u8		otg;	/* port number, 1-based:  usb1 == 2 */
- 
-+	const char	*extcon;	/* extcon device for OTG */
-+
- 	u8		hmc_mode;
- 
- 	/* implicitly true if otg:  host supports remote wakeup? */
--- 
-1.8.3.1
+> The board File will not populate the interrupts entry if the INT line is not
+> Connected.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Do you mean the interrupts DT property won't be present if there is no
+interrupt. If so, sure.
+
+> Hence the patch checks for the 'interrupts' property.
+
+That shouldn't be necessary; IIRC, the I2C core has already parsed the
+interrupts property if there was one, and if there wasn't, it has set
+i2c->irq to some invalid value already.
+
+So, you simply need to check the value in i2c->irq, and don't need to
+look at the DT at all.
