@@ -1,58 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/7] omap soc fixes for v3.11 merge window
-Date: Tue, 18 Jun 2013 11:07:24 -0700
-Message-ID: <7368.27166188068$1371578862@news.gmane.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v2 1/4] MFD: Palmas: Check if interrupts property exists
+ and then only request irq
+Date: Tue, 18 Jun 2013 19:07:07 +0100
+Message-ID: <20130618180707.GO1403@sirena.org.uk>
+References: <1371549692-7361-1-git-send-email-j-keerthy@ti.com>
+ <1371549692-7361-2-git-send-email-j-keerthy@ti.com>
+ <51C0820B.4020404@wwwdotorg.org>
+ <DC88CAD03C0052499C1907B327FC63229EC563@DBDE04.ent.ti.com>
+ <51C093FF.6000204@wwwdotorg.org>
+ <DC88CAD03C0052499C1907B327FC63229EC5B4@DBDE04.ent.ti.com>
+ <51C09761.1020704@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46211 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932812Ab3FRSHd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jun 2013 14:07:33 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="bRSz5O7DOzi+nSIn"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <51C09761.1020704@wwwdotorg.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: "J, KEERTHY" <j-keerthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-The following changes since commit 4f288f081bb67813d35c10d1b2fa68e863c4b188:
 
-  ARM: OMAP2+: AM43x: SRAM base and size (2013-06-12 08:07:23 -0700)
+--bRSz5O7DOzi+nSIn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-are available in the git repository at:
+On Tue, Jun 18, 2013 at 11:22:41AM -0600, Stephen Warren wrote:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/soc-part2-signed
+> If the device was instantiated from a board file *or* a device tree,
+> i2c->irq is correctly set. Hence, checking that value works in both cases.
 
-for you to fetch changes up to 7bcad170154f1302aeeced4f236588091a261fbf:
+The same thing will happen with any other firmware interface that gets
+introduced in the future - one of the goals with factoring all this out
+into the bus code is that it means the driver doesn't need to have any
+special handling.
 
-  ARM: OMAP3+: am33xx id: Add new am33xx specific function to check dev_feature (2013-06-18 03:04:07 -0700)
+> If you check the interrupts DT property, that will only work if the
+> device was instantiated from device tree, and not if it was instantiated
+> from a board file; the property will never exist in the board file case,
+> and hence you'll never be able to have a board file provide an interrupt.
 
-----------------------------------------------------------------
-Fix am43x minimal booting as I accidentally left out one
-patch from the already merged omap-for-v3.11/soc-signed branch.
-Also fixes for ti81x booting and  revision check updates.
+Exactly.
 
-These are based on omap-for-v3.11/soc-signed because of the
-am43x dependency to earlier patches.
+--bRSz5O7DOzi+nSIn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-----------------------------------------------------------------
-Afzal Mohammed (1):
-      ARM: OMAP2+: AM43x: basic dt support
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
 
-Aida Mynzhasova (2):
-      ARM: OMAP2: TI81XX: id: Add cpu id for TI816x ES2.0 and ES2.1
-      ARM: OMAP: TI816X: add powerdomains for TI816x
+iQIcBAEBAgAGBQJRwKHIAAoJELSic+t+oim9ylUP/1AUr53DWEVwamFjR7TwDjQN
+eDvX4o2DHOh6xrqtwzjAj1oeTeWkqSA4J4nXc27cgf6ex94jporIagll1gzZzyhk
+s9ZlUjMFSVpNobZxY/SJRpFq8wtlxLbhJhPtJXaeRVgNN17963VddkLW4BOvpm3B
+XdHQXOWqr+ToBG3t5QILrFy5jcptVjXdzg3JtYyLXu5PWaed6mu3MkhwSjujZIp6
+ickmMYv1+SJN3VsvR4WIaSlDhIrUbtE/RaIp6khAcDhLRHSj8R5snSvHC9OR/v9D
+j3rPwiPhIMXRNkyVDIbvAmcJoSKgJRi5CaitKVWHW5Yt8qy7xEEAjbjZ3LJVi2tH
+H/yqlnn+Sy07bo1YHA2MVoezJtnu2OUIQHkuJ5dc5clbzxOy35ooLqHs4iD8Gne5
+YgZmV/FBhAIawxWZAcfujiuKCe6wjjcmFoTluIaZ4eqIgHBvHDJ+I82APCu5/CqV
++ONsZf7vFR0joBp353pedcWe6lvnZBVC3TWuG5XJWa4sCDnXNBmu372QCftbYPhe
+xtl0Ljhf+fmgdU3CyrduAxbh5poDdlErFGKs0Ybi1cr7Xa2weMO0q+fgrgvNz0nc
+JJ+IKsnUxp+snyROY5LqmqN+V5WB6xiyov9h4Lgs9Nxr9qZ8YkBOZhuYXgfT0TTS
+W1woJK7uiE51cRfXe0re
+=xRKR
+-----END PGP SIGNATURE-----
 
-Vaibhav Hiremath (1):
-      ARM: OMAP3+: am33xx id: Add new am33xx specific function to check dev_feature
-
- arch/arm/mach-omap2/board-generic.c         | 16 ++++++++
- arch/arm/mach-omap2/control.h               |  4 ++
- arch/arm/mach-omap2/id.c                    | 24 ++++++++++-
- arch/arm/mach-omap2/io.c                    |  2 +-
- arch/arm/mach-omap2/powerdomains3xxx_data.c | 62 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prcm-common.h           | 11 +++++
- arch/arm/mach-omap2/soc.h                   |  3 ++
- arch/arm/mach-omap2/timer.c                 |  2 +-
- 8 files changed, 120 insertions(+), 4 deletions(-)
+--bRSz5O7DOzi+nSIn--
