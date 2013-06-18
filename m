@@ -1,32 +1,32 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 2/4] ARM: dts: AM33XX: Add PWMSS device tree nodes
-Date: Tue, 18 Jun 2013 15:36:21 +0200
-Message-ID: <51C06255.2080208@linutronix.de>
-References: <1370526759-31163-1-git-send-email-bigeasy@linutronix.de> <1370526759-31163-3-git-send-email-bigeasy@linutronix.de> <51B89D78.6010906@linutronix.de> <20130612164026.GC22120@arwen.pp.htv.fi>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: multi_v7: Add OMAP with ramdisk config bits
+Date: Tue, 18 Jun 2013 10:44:35 -0400
+Message-ID: <51C07253.3040909@ti.com>
+References: <1371071282-14750-1-git-send-email-santosh.shilimkar@ti.com> <20130618082422.GE5523@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130612164026.GC22120@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>, Benoit Cousson <benoit.cousson@linaro.org>
-Cc: balbi@ti.com, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Philip Avinash <avinashphilip@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43912 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752064Ab3FROpE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Jun 2013 10:45:04 -0400
+In-Reply-To: <20130618082422.GE5523@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Sricharan R <r.sricharan@ti.com>
 
-On 06/12/2013 06:40 PM, Felipe Balbi wrote:
-> On Wed, Jun 12, 2013 at 06:10:32PM +0200, Sebastian Andrzej Siewior wrote:
->> On 06/06/2013 03:52 PM, Sebastian Andrzej Siewior wrote:
->>> From: Philip Avinash <avinashphilip@ti.com>
->>>
->>> Add PWMSS device tree nodes in relation with ECAP & EHRPWM DT nodes to
->>> AM33XX SoC family. Also populates device tree nodes for ECAP & EHRPWM by
->>> adding necessary properties like pwm-cells, base reg & set disabled as
->>> status.
->> Can someone please grab #2 till #4? Paul took just #1 as far as I can
->> tell.
+On Tuesday 18 June 2013 04:24 AM, Tony Lindgren wrote:
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130612 14:14]:
+>> Add ramdisk fileystem related options which lets OMAP5 and Keystone
+>> SOCs to boot till shell with multi_v7_config.
 > 
-> DTS should be Benoit Cousson
+> Please add also other v7 omaps.
+> 
+Should have done first place. Sorry.
+Will update other machines and after testing, repost it.
 
-So, Benoit. Would you please be so kind and pick up the dts pieces?
+Regards,
+Santosh
 
-Sebastian
