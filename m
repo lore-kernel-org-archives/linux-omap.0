@@ -1,46 +1,146 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v7 2/9] usb: phy: omap-usb2: use the new generic PHY framework
-Date: Tue, 18 Jun 2013 15:26:23 +0530
-Message-ID: <51C02EC7.7060908@ti.com>
-References: <1371113039-5784-1-git-send-email-kishon@ti.com> <1371113039-5784-3-git-send-email-kishon@ti.com> <20130618094058.GQ5461@arwen.pp.htv.fi> <51C02D0F.6010302@ti.com> <20130618095040.GZ5461@arwen.pp.htv.fi>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 1/5] ARM: OMAP1: USB: move omap_usb_config to
+ platform data
+Date: Tue, 18 Jun 2013 03:01:13 -0700
+Message-ID: <20130618100113.GG5523@atomide.com>
+References: <1371389712-29516-1-git-send-email-aaro.koskinen@iki.fi>
+ <1371389712-29516-2-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130618095040.GZ5461@arwen.pp.htv.fi>
-Sender: linux-doc-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, sylvester.nawrocki@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, linux@arm.linux.org.uk, benoit.cousson@linaro.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, rnayak@ti.com, shawn.guo@linaro.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, nsekhar@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1371389712-29516-2-git-send-email-aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org> [130616 06:41]:
+> Move omap_usb_config to platform data, so that OTG driver can include it.
+> 
+> Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 
-On Tuesday 18 June 2013 03:20 PM, Felipe Balbi wrote:
-> Hi,
->
-> On Tue, Jun 18, 2013 at 03:19:03PM +0530, Kishon Vijay Abraham I wrote:
->> Hi,
->>
->> On Tuesday 18 June 2013 03:10 PM, Felipe Balbi wrote:
->>> Hi,
->>>
->>> On Thu, Jun 13, 2013 at 02:13:52PM +0530, Kishon Vijay Abraham I wrote:
->>>> @@ -159,6 +191,12 @@ static int omap_usb2_probe(struct platform_device *pdev)
->>>>   	otg->start_srp		= omap_usb_start_srp;
->>>>   	otg->phy		= &phy->phy;
->>>>
->>>> +	pm_runtime_enable(phy->dev);
->>>
->>> enabling pm_runtime here has the potential to cause a real big problem.
->>> How have you tested this patch ?
->>
->> performed boot and enumeration testing. What issue do you expect here?
->
-> hint: look at drvdata usage around the driver. Where is it initialized ?
-> Where is it used ?
+This is probably best queued with the USB transceiver:
 
-hmm.. since runtime_get calls weren't made very early, I think I dint 
-see any issues. Thanks for pointing this.
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-Thanks
-Kishon
+
+> ---
+>  arch/arm/mach-omap1/include/mach/usb.h  | 38 +-----------------------
+>  include/linux/platform_data/usb-omap1.h | 51 +++++++++++++++++++++++++++++++++
+>  2 files changed, 52 insertions(+), 37 deletions(-)
+>  create mode 100644 include/linux/platform_data/usb-omap1.h
+> 
+> diff --git a/arch/arm/mach-omap1/include/mach/usb.h b/arch/arm/mach-omap1/include/mach/usb.h
+> index 45e5ac7..2c26305 100644
+> --- a/arch/arm/mach-omap1/include/mach/usb.h
+> +++ b/arch/arm/mach-omap1/include/mach/usb.h
+> @@ -8,43 +8,7 @@
+>  #define	is_usb0_device(config)	0
+>  #endif
+>  
+> -struct omap_usb_config {
+> -	/* Configure drivers according to the connectors on your board:
+> -	 *  - "A" connector (rectagular)
+> -	 *	... for host/OHCI use, set "register_host".
+> -	 *  - "B" connector (squarish) or "Mini-B"
+> -	 *	... for device/gadget use, set "register_dev".
+> -	 *  - "Mini-AB" connector (very similar to Mini-B)
+> -	 *	... for OTG use as device OR host, initialize "otg"
+> -	 */
+> -	unsigned	register_host:1;
+> -	unsigned	register_dev:1;
+> -	u8		otg;	/* port number, 1-based:  usb1 == 2 */
+> -
+> -	u8		hmc_mode;
+> -
+> -	/* implicitly true if otg:  host supports remote wakeup? */
+> -	u8		rwc;
+> -
+> -	/* signaling pins used to talk to transceiver on usbN:
+> -	 *  0 == usbN unused
+> -	 *  2 == usb0-only, using internal transceiver
+> -	 *  3 == 3 wire bidirectional
+> -	 *  4 == 4 wire bidirectional
+> -	 *  6 == 6 wire unidirectional (or TLL)
+> -	 */
+> -	u8		pins[3];
+> -
+> -	struct platform_device *udc_device;
+> -	struct platform_device *ohci_device;
+> -	struct platform_device *otg_device;
+> -
+> -	u32 (*usb0_init)(unsigned nwires, unsigned is_device);
+> -	u32 (*usb1_init)(unsigned nwires);
+> -	u32 (*usb2_init)(unsigned nwires, unsigned alt_pingroup);
+> -
+> -	int (*ocpi_enable)(void);
+> -};
+> +#include <linux/platform_data/usb-omap1.h>
+>  
+>  void omap_otg_init(struct omap_usb_config *config);
+>  
+> diff --git a/include/linux/platform_data/usb-omap1.h b/include/linux/platform_data/usb-omap1.h
+> new file mode 100644
+> index 0000000..8c7764d
+> --- /dev/null
+> +++ b/include/linux/platform_data/usb-omap1.h
+> @@ -0,0 +1,51 @@
+> +/*
+> + * Platform data for OMAP1 USB
+> + *
+> + * This file is subject to the terms and conditions of the GNU General Public
+> + * License. See the file "COPYING" in the main directory of this archive for
+> + * more details.
+> + */
+> +#ifndef __LINUX_USB_OMAP1_H
+> +#define __LINUX_USB_OMAP1_H
+> +
+> +#include <linux/platform_device.h>
+> +
+> +struct omap_usb_config {
+> +	/* Configure drivers according to the connectors on your board:
+> +	 *  - "A" connector (rectagular)
+> +	 *	... for host/OHCI use, set "register_host".
+> +	 *  - "B" connector (squarish) or "Mini-B"
+> +	 *	... for device/gadget use, set "register_dev".
+> +	 *  - "Mini-AB" connector (very similar to Mini-B)
+> +	 *	... for OTG use as device OR host, initialize "otg"
+> +	 */
+> +	unsigned	register_host:1;
+> +	unsigned	register_dev:1;
+> +	u8		otg;	/* port number, 1-based:  usb1 == 2 */
+> +
+> +	u8		hmc_mode;
+> +
+> +	/* implicitly true if otg:  host supports remote wakeup? */
+> +	u8		rwc;
+> +
+> +	/* signaling pins used to talk to transceiver on usbN:
+> +	 *  0 == usbN unused
+> +	 *  2 == usb0-only, using internal transceiver
+> +	 *  3 == 3 wire bidirectional
+> +	 *  4 == 4 wire bidirectional
+> +	 *  6 == 6 wire unidirectional (or TLL)
+> +	 */
+> +	u8		pins[3];
+> +
+> +	struct platform_device *udc_device;
+> +	struct platform_device *ohci_device;
+> +	struct platform_device *otg_device;
+> +
+> +	u32 (*usb0_init)(unsigned nwires, unsigned is_device);
+> +	u32 (*usb1_init)(unsigned nwires);
+> +	u32 (*usb2_init)(unsigned nwires, unsigned alt_pingroup);
+> +
+> +	int (*ocpi_enable)(void);
+> +};
+> +
+> +#endif /* __LINUX_USB_OMAP1_H */
+> -- 
+> 1.8.3.1
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
