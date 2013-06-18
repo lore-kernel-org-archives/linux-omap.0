@@ -1,12 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/7] omap soc fixes for v3.11 merge window
-Date: Tue, 18 Jun 2013 11:07:24 -0700
-Message-ID: <36987.5872893774$1371578991@news.gmane.org>
+Subject: [GIT PULL 5/7] omap board changes for v3.11 merge window
+Date: Tue, 18 Jun 2013 11:07:26 -0700
+Message-ID: <E1Up0KN-0007sQ-Ny@merlin.infradead.org>
+References: <pull-1371578847-800598>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
+In-Reply-To: <pull-1371578847-800598>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,43 +22,38 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 4f288f081bb67813d35c10d1b2fa68e863c4b188:
+The following changes since commit 7d132055814ef17a6c7b69f342244c410a5e000f:
 
-  ARM: OMAP2+: AM43x: SRAM base and size (2013-06-12 08:07:23 -0700)
+  Linux 3.10-rc6 (2013-06-15 11:51:07 -1000)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/soc-part2-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/board-signed
 
-for you to fetch changes up to 7bcad170154f1302aeeced4f236588091a261fbf:
+for you to fetch changes up to 45853507c9362b0bd606b37e8c7c7e7551caa78b:
 
-  ARM: OMAP3+: am33xx id: Add new am33xx specific function to check dev_feature (2013-06-18 03:04:07 -0700)
-
-----------------------------------------------------------------
-Fix am43x minimal booting as I accidentally left out one
-patch from the already merged omap-for-v3.11/soc-signed branch.
-Also fixes for ti81x booting and  revision check updates.
-
-These are based on omap-for-v3.11/soc-signed because of the
-am43x dependency to earlier patches.
+  ARM: omap2plus_defconfig: enable USB_PHY and NOP_USB_XCEIV (2013-06-18 03:19:07 -0700)
 
 ----------------------------------------------------------------
-Afzal Mohammed (1):
-      ARM: OMAP2+: AM43x: basic dt support
+Minor board changes for v3.11 merge window. These are
+tapering down finally as we're getting closer to making
+omap2+ DT only.
 
-Aida Mynzhasova (2):
-      ARM: OMAP2: TI81XX: id: Add cpu id for TI816x ES2.0 and ES2.1
-      ARM: OMAP: TI816X: add powerdomains for TI816x
+----------------------------------------------------------------
+Aaro Koskinen (1):
+      ARM: OMAP1: nokia770: enable Tahvo
 
-Vaibhav Hiremath (1):
-      ARM: OMAP3+: am33xx id: Add new am33xx specific function to check dev_feature
+Adrien Verg (1):
+      ARM: omap2plus_defconfig: enable USB_PHY and NOP_USB_XCEIV
 
- arch/arm/mach-omap2/board-generic.c         | 16 ++++++++
- arch/arm/mach-omap2/control.h               |  4 ++
- arch/arm/mach-omap2/id.c                    | 24 ++++++++++-
- arch/arm/mach-omap2/io.c                    |  2 +-
- arch/arm/mach-omap2/powerdomains3xxx_data.c | 62 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prcm-common.h           | 11 +++++
- arch/arm/mach-omap2/soc.h                   |  3 ++
- arch/arm/mach-omap2/timer.c                 |  2 +-
- 8 files changed, 120 insertions(+), 4 deletions(-)
+Florian Vaussard (1):
+      arm: omap: board-overo: reset GPIO for SMSC911x
+
+Lokesh Vutla (1):
+      ARM: OMAP3EVM: Marking omap3_evm_display_init() with CONFIG_BROKEN
+
+ arch/arm/configs/omap2plus_defconfig |  2 ++
+ arch/arm/mach-omap1/board-nokia770.c | 10 ++++++++++
+ arch/arm/mach-omap2/board-omap3evm.c |  4 ++++
+ arch/arm/mach-omap2/board-overo.c    |  3 ++-
+ 4 files changed, 18 insertions(+), 1 deletion(-)
