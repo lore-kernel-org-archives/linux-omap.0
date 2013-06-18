@@ -1,50 +1,35 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/3] minor omap dma fixes
-Date: Tue, 18 Jun 2013 00:10:47 -0700
-Message-ID: <20130618071047.GA5523@atomide.com>
-References: <1371133031-29229-1-git-send-email-rnayak@ti.com>
+Subject: Re: [PATCH 0/8] ARM: OMAP: dma.h and legacy code removal
+Date: Tue, 18 Jun 2013 00:13:18 -0700
+Message-ID: <20130618071318.GB5523@atomide.com>
+References: <1371285069-6834-1-git-send-email-jarkko.nikula@bitmer.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61289 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750873Ab3FRHKu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jun 2013 03:10:50 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:11557 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751031Ab3FRHNV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jun 2013 03:13:21 -0400
 Content-Disposition: inline
-In-Reply-To: <1371133031-29229-1-git-send-email-rnayak@ti.com>
+In-Reply-To: <1371285069-6834-1-git-send-email-jarkko.nikula@bitmer.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Rajendra Nayak <rnayak@ti.com> [130613 07:23]:
-> Hi,
+* Jarkko Nikula <jarkko.nikula@bitmer.com> [130615 01:37]:
+> Hi
 > 
-> Here are some minor omap dma fixes.
+> This set gets rid off arch/arm/mach-omap1/dma.h and
+> arch/arm/mach-omap2/dma.h by removing duplicated definitions,
+> by using numeric values when setting hwmod and platform data and
+> by removing legacy stuff.
 > 
-> v2:
-> Patch 3/3 was wrongly fixed by just changing the
-> kfree() order. As Russell suggested the kfree()
-> was that for platform_data and wrong to begin with.
-> So Patch 3/3 now removes all instances of kfree() of
-> platform_data.
+> Most cleanup is done by the scripts in commit logs and
+> set has been build tested with omap1_defconfig and omap2plus_defconfig.
 
-Thanks applying into omap-for-v3.11/dma.
+Thanks applying these into omap-for-v3.11/dma.
 
 Regards,
 
 Tony
- 
-> R Sricharan (2):
->   ARM: OMAP: dma: Remove the wrong dev_id check
->   ARM: OMAP: dma: Fix the dma_chan_link_map init order
-> 
-> Rajendra Nayak (1):
->   ARM: OMAP: dma: Remove the erroneous freeing of platform data
-> 
->  arch/arm/plat-omap/dma.c |   11 ++++-------
->  1 file changed, 4 insertions(+), 7 deletions(-)
-> 
-> -- 
-> 1.7.9.5
-> 
