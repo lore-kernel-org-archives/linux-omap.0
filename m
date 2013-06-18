@@ -1,70 +1,32 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH 1/4] MFD: Palmas: Add Interrupt feature
-Date: Tue, 18 Jun 2013 05:15:03 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229EC277@DBDE04.ent.ti.com>
-References: <1371470954-9124-1-git-send-email-j-keerthy@ti.com>
- <1371470954-9124-2-git-send-email-j-keerthy@ti.com>
- <20130617161615.GH1403@sirena.org.uk>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v10 0/8] DMA Engine support for AM33XX
+Date: Tue, 18 Jun 2013 11:18:18 +0530
+Message-ID: <51BFF4A2.6020006@ti.com>
+References: <1371263352-9229-1-git-send-email-joelagnel@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38260 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753874Ab3FRFPZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jun 2013 01:15:25 -0400
-In-Reply-To: <20130617161615.GH1403@sirena.org.uk>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1371263352-9229-1-git-send-email-joelagnel-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Joel A Fernandes <joelagnel-l0cyMroinI0@public.gmane.org>
+Cc: Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TasMV2rI37PzA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
 
-Hi Mark,
+Joel,
 
-Thanks for the review.
+When you respin this, please base on top of Prabhakar's clean-up titled:
+"ARM: edma: Convert to devm_* api".
 
-> -----Original Message-----
-> From: Mark Brown [mailto:broonie@kernel.org]
-> Sent: Monday, June 17, 2013 9:46 PM
-> To: J, KEERTHY
-> Cc: linux-omap@vger.kernel.org; ldewangan@nvidia.com;
-> sameo@linux.intel.com; grant.likely@secretlab.ca; swarren@nvidia.com;
-> linux-kernel@vger.kernel.org; linux-doc@vger.kernel.org;
-> gg@slimlogic.co.uk
-> Subject: Re: [PATCH 1/4] MFD: Palmas: Add Interrupt feature
-> 
-> On Mon, Jun 17, 2013 at 05:39:11PM +0530, J Keerthy wrote:
-> 
-> > Palmas PMICs have an INT line. This line is one single Interrupt line
-> > to the application processor. The interrupt feature enables to
-> > selectively request irq for only those specific chips which have INT
-> > line connected to a valid IRQ line of the application processor.
-> 
-> Does the support for the interrupt line need to be explicitly flagged
-> like this or can the driver not simply support an interrupt line not
-> being configured?  That would also support cases where the hardware has
-> an interrupt line but the system integrator has opeted not to connect
-> it for some reason which seems generally more flexible than doing
-> things on a chip ID basis.
-> 
+Or better still, include his patch in your series.
 
-I understand your point. The IRQ is passed from device tree node.
-Say if the chip for some reason is not connected to any valid
-IRQ line the driver might end up requesting for a wrong IRQ line.
-
-So should I be validating the irq entry populated from  device tree?
-
-Explicitly checking on chip ID helps to avoid wrongly populated
-Device tree data. 
-
-> > +/**
-> > + * DOC: Palmas PMIC feature types
-> > + *
-> 
-> Is "DOC: " normal kerneldoc?
-
-Normal kerneldoc I shall remove "DOC:"
-
-Regards,
-Keerthy
+Thanks,
+Sekhar
