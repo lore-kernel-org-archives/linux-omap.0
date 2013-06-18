@@ -1,91 +1,76 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [PATCHv3 2/6] arm: introduce config HAS_BANDGAP
-Date: Tue, 18 Jun 2013 16:23:58 -0400
-Message-ID: <51C0C1DE.70602@ti.com>
-References: <1370637968-23299-1-git-send-email-eduardo.valentin@ti.com> <1370637968-23299-3-git-send-email-eduardo.valentin@ti.com> <20130612170733.GK8164@atomide.com>
+Subject: Re: [PATCHv3 5/6] arm: omap2plus_defconfig: enable TI bandgap driver
+Date: Tue, 18 Jun 2013 16:27:20 -0400
+Message-ID: <51C0C2A8.4020707@ti.com>
+References: <1370637968-23299-1-git-send-email-eduardo.valentin@ti.com> <1370637968-23299-6-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
 	protocol="application/pgp-signature";
-	boundary="----enig2NVWHIOWHBHRMRVILIALX"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130612170733.GK8164@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, grant.likely@linaro.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Fabio Stevam <festevam@gmail.com>
+	boundary="----enig2JDWEHRDWOWSIBGCLRKPE"
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1370637968-23299-6-git-send-email-eduardo.valentin@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>, tony@atomide.com
+Cc: grant.likely@linaro.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-------enig2NVWHIOWHBHRMRVILIALX
+------enig2JDWEHRDWOWSIBGCLRKPE
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 12-06-2013 13:07, Tony Lindgren wrote:
-> * Eduardo Valentin <eduardo.valentin@ti.com> [130607 13:53]:
->> Bandgap is a device used to measure temperature on
->> electronic equipments. It is widely used in digital
->> integrated circuits. It is based on the dependency
->> between silicon voltage and temperature.
->>
->> This patch introduce HAS_BANDGAP config entry.
->> This config is a boolean value so that arch
->> code can flag if they feature a bandgap device.
->>
->> This config entry follows the same idea behind
->> ARCH_HAS_CPUFREQ.
+Tony,
+
+On 07-06-2013 16:46, Eduardo Valentin wrote:
+> Enable the bandgap driver for TI SoCs thermal support.
 >=20
-> I suggest you add this to Russell's patch system:
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> Cc: AnilKumar Ch <anilkumar@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-kernel@vger.kernel.org
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+
+Is it possible for you to queue this one and patch 6 for 3.11?
+
+Cheers,
+
+> ---
+>  arch/arm/configs/omap2plus_defconfig | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
 >=20
-> Acked-by: Tony Lindgren <tony@atomide.com>
-
-Thanks!
-
-I have add it to Russell's patch system and it has been accepted and
-applied.
-
-> =20
->> Cc: Russell King <linux@arm.linux.org.uk>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: linux-arm-kernel@lists.infradead.org
->> Cc: linux-omap@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org
->> Cc: Fabio Stevam <festevam@gmail.com>
->> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
->> ---
->>  arch/arm/Kconfig            | 3 +++
->>  arch/arm/mach-omap2/Kconfig | 1 +
->>  2 files changed, 4 insertions(+)
->>
->> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
->> index d423d58..bcbdec9 100644
->> --- a/arch/arm/Kconfig
->> +++ b/arch/arm/Kconfig
->> @@ -174,6 +174,9 @@ config ARCH_HAS_CPUFREQ
->>  	  and that the relevant menu configurations are displayed for
->>  	  it.
->> =20
->> +config ARCH_HAS_BANDGAP
->> +	bool
->> +
->>  config GENERIC_HWEIGHT
->>  	bool
->>  	default y
->> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig=
-
->> index f49cd51..8620ab5 100644
->> --- a/arch/arm/mach-omap2/Kconfig
->> +++ b/arch/arm/mach-omap2/Kconfig
->> @@ -4,6 +4,7 @@ config ARCH_OMAP
->>  config ARCH_OMAP2PLUS
->>  	bool "TI OMAP2/3/4/5 SoCs with device tree support" if (ARCH_MULTI_V=
-6 || ARCH_MULTI_V7)
->>  	select ARCH_HAS_CPUFREQ
->> +	select ARCH_HAS_BANDGAP
->>  	select ARCH_HAS_HOLES_MEMORYMODEL
->>  	select ARCH_OMAP
->>  	select ARCH_REQUIRE_GPIOLIB
->> --=20
->> 1.8.2.1.342.gfa7285d
->>
->=20
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/om=
+ap2plus_defconfig
+> index c1ef64b..6e6c494 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -151,6 +151,13 @@ CONFIG_W1=3Dy
+>  CONFIG_POWER_SUPPLY=3Dy
+>  CONFIG_SENSORS_LM75=3Dm
+>  CONFIG_WATCHDOG=3Dy
+> +CONFIG_THERMAL=3Dy
+> +CONFIG_THERMAL_HWMON=3Dy
+> +CONFIG_THERMAL_DEFAULT_GOV_STEP_WISE=3Dy
+> +CONFIG_THERMAL_GOV_FAIR_SHARE=3Dy
+> +CONFIG_THERMAL_GOV_STEP_WISE=3Dy
+> +CONFIG_THERMAL_GOV_USER_SPACE=3Dy
+> +CONFIG_CPU_THERMAL=3Dy
+>  CONFIG_OMAP_WATCHDOG=3Dy
+>  CONFIG_TWL4030_WATCHDOG=3Dy
+>  CONFIG_MFD_TPS65217=3Dy
+> @@ -237,6 +244,10 @@ CONFIG_RTC_DRV_TWL4030=3Dy
+>  CONFIG_RTC_DRV_OMAP=3Dy
+>  CONFIG_DMADEVICES=3Dy
+>  CONFIG_DMA_OMAP=3Dy
+> +CONFIG_TI_SOC_THERMAL=3Dy
+> +CONFIG_TI_THERMAL=3Dy
+> +CONFIG_OMAP4_THERMAL=3Dy
+> +CONFIG_OMAP5_THERMAL=3Dy
+>  CONFIG_EXT2_FS=3Dy
+>  CONFIG_EXT3_FS=3Dy
+>  # CONFIG_EXT3_FS_XATTR is not set
 >=20
 
 
@@ -95,7 +80,7 @@ You have got to be excited about what you are doing. (L. Lamport)
 Eduardo Valentin
 
 
-------enig2NVWHIOWHBHRMRVILIALX
+------enig2JDWEHRDWOWSIBGCLRKPE
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -104,9 +89,9 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.12 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iF4EAREIAAYFAlHAwd4ACgkQCXcVR3XQvP3+wQD+IrY2Sr3db+gxWUFqptvI87XB
-grty0MVBcVzm4o4R924A/jB+m6CxCXfrfTqaRaEBZdLFNZTGdd/gAAxHOiIfTqiX
-=sySP
+iF4EAREIAAYFAlHAwqgACgkQCXcVR3XQvP1prgD9GqsZJ9CVhGHgsx+niT+6bd+1
+Elxfawr0Ow1oJTUroJ8A/2FIirb7G99qOruls6w8FIY6rsDuXB3Pso/jN6rdptlm
+=HGZt
 -----END PGP SIGNATURE-----
 
-------enig2NVWHIOWHBHRMRVILIALX--
+------enig2JDWEHRDWOWSIBGCLRKPE--
