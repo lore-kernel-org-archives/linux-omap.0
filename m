@@ -1,46 +1,98 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH 2/2] ARM: OMAP2+: gpmc: removed 'gpmc,device-nand'. type
- determined from node-name
-Date: Tue, 18 Jun 2013 10:42:08 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73E9DE4E4@DBDE04.ent.ti.com>
-References: <1370001691-29320-1-git-send-email-pekon@ti.com>
- <1370001691-29320-2-git-send-email-pekon@ti.com>
- <20130612165906.GH8164@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 2/3] arm: gpmc: Low power transition support
+Date: Tue, 18 Jun 2013 03:50:51 -0700
+Message-ID: <20130618105051.GM5523@atomide.com>
+References: <1371494799-11876-1-git-send-email-pekon@ti.com>
+ <1371494799-11876-3-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45902 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754050Ab3FRKmQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jun 2013 06:42:16 -0400
-In-Reply-To: <20130612165906.GH8164@atomide.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53744 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751285Ab3FRKuz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jun 2013 06:50:55 -0400
+Content-Disposition: inline
+In-Reply-To: <1371494799-11876-3-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, Jon Hunter <jgchunter@gmail.com>
+To: Pekon Gupta <pekon@ti.com>
+Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, khilman@linaro.org, avinash philip <avinashphilip@ti.com>
 
-> > From: "Gupta, Pekon" <pekon@ti.com>
-> >
-> > GPMC supports multiple types of child devices like NAND, NOR, OneNand,
-> Ethernet
-> > This patch removes 'gpmc,device-nand', used explicitely to specify NAND
-> type
-> > gpmc-child. Instead gpmc-child type can be inferred from gpmc->child-
-> >name.
+* Pekon Gupta <pekon@ti.com> [130617 11:52]:
+> From: avinash philip <avinashphilip@ti.com>
 > 
-> This does not seem to apply. Also please break into a gpmc.c patch and
-> then the .dts patch for Benoit. And make sure you consider if removing
-> this binding might break something. If it does, we need to maintain the
-> support for the old binding.
+> GPMC is hardware controller for external memory interfaces.
+> This patch adds suspend/resume support for GPMC driver.
+> It also preserves GPMC register configurations across device low-power states
+> in which GPMC hardware can be powered-off.
+> gpmc_suspend()/gpmc_resume() are called by default by core PM framework as part
+> of driver's runtime PM callbacks.
 > 
-[Pekon]: you map please ignore this one, as there is already a commit in 
-your tree (omap-for-v3.11/gpmc) which does similar, therefore conflicting.
-	Commit  f40739faba8e804cf46505869ab98ad7c4a88833 
-	ARM: dts: OMAP2+: Simplify NAND support
+> Signed-off-by: Philip Avinash <avinashphilip@ti.com>
+> Signed-off-by: Pekon Gupta <pekon@ti.com>
 
-I'll post separate patch for AM33xx DTB update for Benoit's tree.
+Thanks applying this into omap-for-v3.11/gpmc, patch 1/3 I already
+have applied and the MTD change should get merged along with other
+MTD patches.
 
-Thanks..
-with regards, pekon
+Regards,
+
+Tony
+
+> ---
+>  arch/arm/mach-omap2/gpmc.c | 21 +++++++++++++++++++--
+>  1 file changed, 19 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 1380cee..9b579d0 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -1655,6 +1655,24 @@ static int gpmc_remove(struct platform_device *pdev)
+>  	return 0;
+>  }
+>  
+> +#ifdef CONFIG_PM_SLEEP
+> +static int gpmc_suspend(struct device *dev)
+> +{
+> +	omap3_gpmc_save_context();
+> +	pm_runtime_put_sync(dev);
+> +	return 0;
+> +}
+> +
+> +static int gpmc_resume(struct device *dev)
+> +{
+> +	pm_runtime_get_sync(dev);
+> +	omap3_gpmc_restore_context();
+> +	return 0;
+> +}
+> +#endif
+> +
+> +static SIMPLE_DEV_PM_OPS(gpmc_pm_ops, gpmc_suspend, gpmc_resume);
+> +
+>  static struct platform_driver gpmc_driver = {
+>  	.probe		= gpmc_probe,
+>  	.remove		= gpmc_remove,
+> @@ -1662,6 +1680,7 @@ static struct platform_driver gpmc_driver = {
+>  		.name	= DEVICE_NAME,
+>  		.owner	= THIS_MODULE,
+>  		.of_match_table = of_match_ptr(gpmc_dt_ids),
+> +		.pm	= &gpmc_pm_ops,
+>  	},
+>  };
+>  
+> @@ -1724,7 +1743,6 @@ static irqreturn_t gpmc_handle_irq(int irq, void *dev)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> -#ifdef CONFIG_ARCH_OMAP3
+>  static struct omap3_gpmc_regs gpmc_context;
+>  
+>  void omap3_gpmc_save_context(void)
+> @@ -1789,4 +1807,3 @@ void omap3_gpmc_restore_context(void)
+>  		}
+>  	}
+>  }
+> -#endif /* CONFIG_ARCH_OMAP3 */
+> -- 
+> 1.8.1
+> 
