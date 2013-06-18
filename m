@@ -1,58 +1,46 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v7 9/9] usb: phy: twl4030-usb: remove *set_suspend* and
- *phy_init* ops
-Date: Tue, 18 Jun 2013 12:47:36 +0300
-Message-ID: <20130618094736.GX5461@arwen.pp.htv.fi>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 2/9] usb: phy: omap-usb2: use the new generic PHY
+ framework
+Date: Tue, 18 Jun 2013 15:19:03 +0530
+Message-ID: <51C02D0F.6010302@ti.com>
 References: <1371113039-5784-1-git-send-email-kishon@ti.com>
- <1371113039-5784-10-git-send-email-kishon@ti.com>
-Reply-To: <balbi@ti.com>
+ <1371113039-5784-3-git-send-email-kishon@ti.com>
+ <20130618094058.GQ5461@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="R9dSeJxMIUBTi9Do"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1371113039-5784-10-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: grant.likely@linaro.org, tony@atomide.com, balbi@ti.com, arnd@arndb.de, swarren@nvidia.com, sylvester.nawrocki@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, linux@arm.linux.org.uk, benoit.cousson@linaro.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, rnayak@ti.com, shawn.guo@linaro.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, nsekhar@ti.com
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20130618094058.GQ5461-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---R9dSeJxMIUBTi9Do
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Thu, Jun 13, 2013 at 02:13:59PM +0530, Kishon Vijay Abraham I wrote:
-> Now that twl4030-usb is adapted to the new generic PHY framework,
-> *set_suspend* and *phy_init* ops can be removed from twl4030-usb driver.
->=20
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+On Tuesday 18 June 2013 03:10 PM, Felipe Balbi wrote:
+> Hi,
+>
+> On Thu, Jun 13, 2013 at 02:13:52PM +0530, Kishon Vijay Abraham I wrote:
+>> @@ -159,6 +191,12 @@ static int omap_usb2_probe(struct platform_device *pdev)
+>>   	otg->start_srp		= omap_usb_start_srp;
+>>   	otg->phy		= &phy->phy;
+>>
+>> +	pm_runtime_enable(phy->dev);
+>
+> enabling pm_runtime here has the potential to cause a real big problem.
+> How have you tested this patch ?
 
-Reviewed-by: Felipe Balbi <balbi@ti.com>
+performed boot and enumeration testing. What issue do you expect here?
 
---=20
-balbi
-
---R9dSeJxMIUBTi9Do
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRwCy4AAoJEIaOsuA1yqREHocP/i2OqyGLQ7KK4AWerNk5ViBX
-HIZcxRs+sQCTWBUcP2I3MS/V+EhTTgeRo72ij3UXJ3LFKWrGndRvc42DF144twCl
-xElvVMC4w4ETiEbrb/JQqPp3M8e0fvS73Tvz3nx/PGs3kgAsvV/DK/jdJ7iyTEiG
-zejLhTm8XBigEOqJ1SDKGk94FxYJ7EP6zKi7fEEjxPkqo80sH1vQceH/WZ/u9LIn
-l2mfqRVK9l4IoSAfm7QIg6YzXiHhnvuRlLV1vpWXXO891WpQOb+2vKMVxVxPybER
-v++uCAYSentfZ8Fh3/5zY21GmTMX9/JeorD7GweyHcLlFRd2Nqarr1O1EMuaDZ1I
-JnGrG0MHasUVCNqX1Yy+ewscEWcd9YoZpnt7ZGc0p5dz7dNrNKJ34hv543xg6VUQ
-LxGtvG94RPxhbZZtJBNR6YF2vrzmMgNDdo+9qrNF8c8HHjF9loOh5JTprJl4Nswj
-rJh1afEWyPtzBLXRTJo7KRxx1fLngdu49IiqroU7fB6HzjnG0QIt6QZvisDoA8mR
-JrrYidNMUSDC0VAwv9gDX+TsaL9HgDn6na6rcOmsQFuO6GqAOKD3OWiyGccXkyLg
-AN/H8BFstc8KwlO1TaBARG2te4NQ2RTBJnTS6VYZNBvWFZp/6ApPj0FQafZKWw5U
-ZSn3NVCS0TLYbZpjshDS
-=wIeZ
------END PGP SIGNATURE-----
-
---R9dSeJxMIUBTi9Do--
+Thanks
+Kishon
