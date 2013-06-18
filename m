@@ -1,97 +1,104 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [PATCHv3 5/6] arm: omap2plus_defconfig: enable TI bandgap driver
-Date: Tue, 18 Jun 2013 16:27:20 -0400
-Message-ID: <51C0C2A8.4020707@ti.com>
-References: <1370637968-23299-1-git-send-email-eduardo.valentin@ti.com> <1370637968-23299-6-git-send-email-eduardo.valentin@ti.com>
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [PATCH v7 1/9] drivers: phy: add generic PHY framework
+Date: Tue, 18 Jun 2013 23:22:52 +0200
+Message-ID: <51C0CFAC.9080606@gmail.com>
+References: <1371113039-5784-1-git-send-email-kishon@ti.com> <1371113039-5784-2-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="----enig2JDWEHRDWOWSIBGCLRKPE"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1370637968-23299-6-git-send-email-eduardo.valentin@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>, tony@atomide.com
-Cc: grant.likely@linaro.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1371113039-5784-2-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: grant.likely@linaro.org, tony@atomide.com, balbi@ti.com, arnd@arndb.de, swarren@nvidia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, linux@arm.linux.org.uk, benoit.cousson@linaro.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, rnayak@ti.com, shawn.guo@linaro.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-------enig2JDWEHRDWOWSIBGCLRKPE
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Kishon,
 
-Tony,
+I've noticed there is a little inconsistency between the code and 
+documentation.
 
-On 07-06-2013 16:46, Eduardo Valentin wrote:
-> Enable the bandgap driver for TI SoCs thermal support.
->=20
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> Cc: AnilKumar Ch <anilkumar@ti.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-kernel@vger.kernel.org
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+On 06/13/2013 10:43 AM, Kishon Vijay Abraham I wrote:
+> +3. Creating the PHY
+> +
+> +The PHY driver should create the PHY in order for other peripheral controllers
+> +to make use of it. The PHY framework provides 2 APIs to create the PHY.
+> +
+> +struct phy *phy_create(struct device *dev, int id, const struct phy_ops *ops,
+> +	void *priv);
+> +struct phy *devm_phy_create(struct device *dev, int id,
+> +	const struct phy_ops *ops, void *priv);
 
-Is it possible for you to queue this one and patch 6 for 3.11?
+The 'label' argument is missing in those function prototypes. It seems the
+labels must be unique, I guess this needs to be documented. And do we allow
+NULL labels ? If so, then there is probably a check for NULL label needed
+in phy_lookup() and if not, then phy_create() should fail when NULL label
+is passed ?
 
-Cheers,
+> +The PHY drivers can use one of the above 2 APIs to create the PHY by passing
+> +the device pointer, id, phy ops and a driver data.
+> +phy_ops is a set of function pointers for performing PHY operations such as
+> +init, exit, power_on and power_off.
 
-> ---
->  arch/arm/configs/omap2plus_defconfig | 11 +++++++++++
->  1 file changed, 11 insertions(+)
->=20
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/om=
-ap2plus_defconfig
-> index c1ef64b..6e6c494 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -151,6 +151,13 @@ CONFIG_W1=3Dy
->  CONFIG_POWER_SUPPLY=3Dy
->  CONFIG_SENSORS_LM75=3Dm
->  CONFIG_WATCHDOG=3Dy
-> +CONFIG_THERMAL=3Dy
-> +CONFIG_THERMAL_HWMON=3Dy
-> +CONFIG_THERMAL_DEFAULT_GOV_STEP_WISE=3Dy
-> +CONFIG_THERMAL_GOV_FAIR_SHARE=3Dy
-> +CONFIG_THERMAL_GOV_STEP_WISE=3Dy
-> +CONFIG_THERMAL_GOV_USER_SPACE=3Dy
-> +CONFIG_CPU_THERMAL=3Dy
->  CONFIG_OMAP_WATCHDOG=3Dy
->  CONFIG_TWL4030_WATCHDOG=3Dy
->  CONFIG_MFD_TPS65217=3Dy
-> @@ -237,6 +244,10 @@ CONFIG_RTC_DRV_TWL4030=3Dy
->  CONFIG_RTC_DRV_OMAP=3Dy
->  CONFIG_DMADEVICES=3Dy
->  CONFIG_DMA_OMAP=3Dy
-> +CONFIG_TI_SOC_THERMAL=3Dy
-> +CONFIG_TI_THERMAL=3Dy
-> +CONFIG_OMAP4_THERMAL=3Dy
-> +CONFIG_OMAP5_THERMAL=3Dy
->  CONFIG_EXT2_FS=3Dy
->  CONFIG_EXT3_FS=3Dy
->  # CONFIG_EXT3_FS_XATTR is not set
->=20
+> +/**
+> + * phy_create() - create a new phy
+> + * @dev: device that is creating the new phy
+> + * @id: id of the phy
+> + * @ops: function pointers for performing phy operations
+> + * @label: label given to the phy
+> + * @priv: private data from phy driver
+> + *
+> + * Called to create a phy using phy framework.
+> + */
+> +struct phy *phy_create(struct device *dev, u8 id, const struct phy_ops *ops,
+> +	const char *label, void *priv)
+> +{
+> +	int ret;
+> +	struct phy *phy;
+> +
+> +	if (!dev) {
+> +		dev_WARN(dev, "no device provided for PHY\n");
+> +		ret = -EINVAL;
+> +		goto err0;
+> +	}
+> +
+> +	phy = kzalloc(sizeof(*phy), GFP_KERNEL);
+> +	if (!phy) {
+> +		ret = -ENOMEM;
+> +		goto err0;
+> +	}
+> +
+> +	device_initialize(&phy->dev);
+> +
+> +	phy->dev.class = phy_class;
+> +	phy->dev.parent = dev;
+> +	phy->dev.of_node = dev->of_node;
+> +	phy->id = id;
+> +	phy->ops = ops;
+> +	phy->label = label;
+> +
+> +	dev_set_drvdata(&phy->dev, priv);
+> +
+> +	ret = dev_set_name(&phy->dev, "%s.%d", dev_name(dev), id);
+> +	if (ret)
+> +		goto err1;
+> +
+> +	ret = device_add(&phy->dev);
+> +	if (ret)
+> +		goto err1;
+> +
+> +	if (pm_runtime_enabled(dev))
+> +		pm_runtime_enable(&phy->dev);
+> +
+> +	return phy;
+> +
+> +err1:
+> +	put_device(&phy->dev);
+> +	kfree(phy);
+> +
+> +err0:
+> +	return ERR_PTR(ret);
+> +}
 
-
---=20
-You have got to be excited about what you are doing. (L. Lamport)
-
-Eduardo Valentin
-
-
-------enig2JDWEHRDWOWSIBGCLRKPE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iF4EAREIAAYFAlHAwqgACgkQCXcVR3XQvP1prgD9GqsZJ9CVhGHgsx+niT+6bd+1
-Elxfawr0Ow1oJTUroJ8A/2FIirb7G99qOruls6w8FIY6rsDuXB3Pso/jN6rdptlm
-=HGZt
------END PGP SIGNATURE-----
-
-------enig2JDWEHRDWOWSIBGCLRKPE--
+Thanks,
+Sylwester
