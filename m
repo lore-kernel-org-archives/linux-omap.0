@@ -1,41 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP3EVM: Marking omap3_evm_display_init() with
- CONFIG_BROKEN
-Date: Tue, 18 Jun 2013 03:11:39 -0700
-Message-ID: <20130618101139.GJ5523@atomide.com>
-References: <1371120838-29599-1-git-send-email-lokeshvutla@ti.com>
- <alpine.DEB.2.02.1306140238270.5514@utopia.booyaka.com>
+From: J Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v2 0/4] MFD: Palmas: Add TPS659038 PMIC support on Palmas
+Date: Tue, 18 Jun 2013 15:31:28 +0530
+Message-ID: <1371549692-7361-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:44844 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754001Ab3FRKLm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jun 2013 06:11:42 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1306140238270.5514@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: broonie@kernel.org, j-keerthy@ti.com, ldewangan@nvidia.com, sameo@linux.intel.com, grant.likely@secretlab.ca, swarren@nvidia.com, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, gg@slimlogic.co.uk
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
 
-* Paul Walmsley <paul@pwsan.com> [130613 19:44]:
-> On Thu, 13 Jun 2013, Lokesh Vutla wrote:
-> 
-> > On 37xx EVM non-dt boot fails with current mainline,
-> > because of broken GPIO numbering in the board file
-> > that uses hardcoded GPIOs.
-> > 
-> > So marking omap3_evm_display_init() with CONFIG_BROKEN
-> > for now as suggested by Tony as per the below link:
-> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg90399.html
-> > 
-> > Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com> ---
-> 
-> Tested-by: Paul Walmsley <paul@pwsan.com>
+The Patch series adds TPS659038 PMIC support in the palmas MFD and Regulator
+drivers. The TPS659038 has almost the same registers as of the earlier
+supported variants of PALMAS family such as the TWL6035.
 
-Thanks applying into omap-for-v3.11/board.
+The critical differences between TPS659038 and TWL6035 being:
 
-Regards,
+1) TPS659038 has nothing related to battery charging and back up battery stuff.
+2) TPS659038 does not have does not have SMPS10(Boost) step up convertor.
+3) TPS659038 does not have Battery detection and anything related to battery.
+4) SD card detection, Battery presence detection, Vibrator, USB OTG are missing
+   when compared to TWL6035.
 
-Tony
+The patch series is based on the patch:
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg90598.html
+
+V2:
+
+Implemented Interrupts checking via DT instead of creating flags
+and checking based on chip ID.
+ 
+J Keerthy (4):
+  MFD: Palmas: Check if interrupts property exists and then only
+    request irq
+  MFD: Palmas: Add SMPS10_BOOST feature
+  mfd: Palmas: Add TPS659038 PMIC support
+  regulator: Palmas: Add TPS659038 support
+
+ Documentation/devicetree/bindings/mfd/palmas.txt   |    2 +
+ .../devicetree/bindings/regulator/palmas-pmic.txt  |    1 +
+ drivers/mfd/palmas.c                               |   45 ++++++++++++++++----
+ drivers/regulator/palmas-regulator.c               |    4 ++
+ include/linux/mfd/palmas.h                         |   14 ++++++
+ 5 files changed, 58 insertions(+), 8 deletions(-)
+
+-- 
+1.7.5.4
+
