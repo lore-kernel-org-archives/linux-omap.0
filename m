@@ -1,33 +1,63 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH v2 3/5] USB: OMAP1: OTG controller driver
-Date: Tue, 18 Jun 2013 19:55:56 +0300
-Message-ID: <20130618165556.GD3073@blackmetal.musicnaut.iki.fi>
-References: <1371389712-29516-1-git-send-email-aaro.koskinen@iki.fi>
- <1371389712-29516-4-git-send-email-aaro.koskinen@iki.fi>
- <20130618082143.GE5461@arwen.pp.htv.fi>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: RE: [PATCH v2 2/4] MFD: Palmas: Add SMPS10_BOOST feature
+Date: Tue, 18 Jun 2013 16:56:13 +0000
+Message-ID: <DC88CAD03C0052499C1907B327FC63229EC576@DBDE04.ent.ti.com>
+References: <1371549794-7406-1-git-send-email-j-keerthy@ti.com>
+ <51C0826B.4060101@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri6.pp.htv.fi ([213.243.153.189]:54333 "EHLO
-	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933016Ab3FRQ4F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jun 2013 12:56:05 -0400
-Content-Disposition: inline
-In-Reply-To: <20130618082143.GE5461@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <51C0826B.4060101@wwwdotorg.org>
+Content-Language: en-US
+Sender: linux-doc-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-Hi,
+Hi Stephen,
 
-On Tue, Jun 18, 2013 at 11:21:43AM +0300, Felipe Balbi wrote:
-> On Sun, Jun 16, 2013 at 04:35:10PM +0300, Aaro Koskinen wrote:
-> > +#include <mach/usb.h>
+
+> -----Original Message-----
+> From: Stephen Warren [mailto:swarren@wwwdotorg.org]
+> Sent: Tuesday, June 18, 2013 9:23 PM
+> To: J, KEERTHY
+> Cc: linux-omap@vger.kernel.org; broonie@kernel.org;
+> ldewangan@nvidia.com; sameo@linux.intel.com; grant.likely@secretlab.ca;
+> swarren@nvidia.com; linux-kernel@vger.kernel.org; linux-
+> doc@vger.kernel.org; gg@slimlogic.co.uk
+> Subject: Re: [PATCH v2 2/4] MFD: Palmas: Add SMPS10_BOOST feature
 > 
-> no mach/* includes under drivers/usb, sorry. It's a pain to fix those up
-> later.
+> On 06/18/2013 04:03 AM, J Keerthy wrote:
+> > The SMPS10 regulator is not presesnt in all the variants of the
+> PALMAS
+> > PMIC family. Hence adding a feature to distingush between them.
+> 
+> > diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+> 
+> > +	match = of_match_device(of_match_ptr(of_palmas_match_tbl),
+> > +&i2c->dev);
+> > +
+> > +	if (match) {
+> > +		features = (unsigned int *)match->data;
+> > +		palmas->features = *features;
+> > +	} else {
+> > +		return -ENODATA;
+> > +	}
+> 
+> 
+> I think it's more common to do the error-checking first. That way, the
+> success-case code doesn't need an indent:
+> 
+> match = of_match...(...);
+> if (!match)
+>     return -ENODATA;
+> 
+> features = ...;
+> palmas->features = *features;
 
-Sorry, that was left there by a mistake. I will fix.
+Sure. I will fix this.
 
-A.
+Regards,
+Keerthy
+
