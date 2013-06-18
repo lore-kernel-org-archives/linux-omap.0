@@ -1,145 +1,101 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v11 3/8] ARM: edma: Add EDMA crossbar event mux support
-Date: Tue, 18 Jun 2013 15:49:59 +0530
-Message-ID: <51C0344F.6010709@ti.com>
-References: <1371537499-12970-1-git-send-email-joelagnel@ti.com>
-	<1371537499-12970-4-git-send-email-joelagnel@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v7 5/9] ARM: OMAP: USB: Add phy binding information
+Date: Tue, 18 Jun 2013 13:27:25 +0300
+Message-ID: <20130618102725.GB7843@arwen.pp.htv.fi>
+References: <1371113039-5784-1-git-send-email-kishon@ti.com>
+ <1371113039-5784-6-git-send-email-kishon@ti.com>
+ <20130618094438.GT5461@arwen.pp.htv.fi> <51C030B4.5070707@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1371537499-12970-4-git-send-email-joelagnel-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Joel A Fernandes <joelagnel-l0cyMroinI0@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============8081120397044998597=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51C030B4.5070707@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: mchehab@redhat.com, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, swarren@nvidia.com, grant.likely@linaro.org, cesarb@cesarb.net, arnd@arndb.de, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, rob.herring@calxeda.com, linux@arm.linux.org.uk, sylvester.nawrocki@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, santosh.shilimkar@ti.com, rob@landley.net, benoit.cousson@linaro.org, akpm@linux-foundation.org, shawn.guo@linaro.org, davem@davemloft.net
 List-Id: linux-omap@vger.kernel.org
 
-On 6/18/2013 12:08 PM, Joel A Fernandes wrote:
-> From: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-> 
-> Changes by Joel:
-> * Split EDMA xbar support out of original EDMA DT parsing patch
-> to keep it easier for review.
-> * Rewrite shift and offset calculation.
-> 
-> Suggested-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-> Suggested by: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Joel A Fernandes <joelagnel-l0cyMroinI0@public.gmane.org>
-> 
-> Reference:
-> [1] https://patchwork.kernel.org/patch/2226991/
-> ---
->  arch/arm/common/edma.c             |   59 ++++++++++++++++++++++++++++++++++++
->  include/linux/platform_data/edma.h |    1 +
->  2 files changed, 60 insertions(+)
-> 
-> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-> index 9823b79..1c2fb15 100644
-> --- a/arch/arm/common/edma.c
-> +++ b/arch/arm/common/edma.c
-> @@ -1410,6 +1410,52 @@ static int edma_of_read_u32_to_s16_array(const struct device_node *np,
->  	return 0;
->  }
->  
-> +static int edma_xbar_event_map(struct device *dev,
-> +			       struct device_node *node,
-> +			       struct edma_soc_info *pdata, int len)
-> +{
-> +	int ret = 0;
-> +	int i;
-> +	struct resource res;
-> +	void *xbar;
+--===============8081120397044998597==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="v9Ux+11Zm5mwPlX6"
+Content-Disposition: inline
 
-void __iomem *xbar;
+--v9Ux+11Zm5mwPlX6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> +	const s16 (*xbar_chans)[2];
-> +	u32 shift, offset, mux;
-> +
-> +	xbar_chans = devm_kzalloc(dev,
-> +				  len/sizeof(s16) + 2*sizeof(s16),
-> +				  GFP_KERNEL);
-> +	if (!xbar_chans)
-> +		return -ENOMEM;
-> +
-> +	ret = of_address_to_resource(node, 1, &res);
-> +	if (ret)
-> +		return -EIO;
-> +
-> +	xbar = devm_ioremap(dev, res.start, resource_size(&res));
-> +	if (!xbar)
-> +		return -ENOMEM;
-> +
-> +	ret = edma_of_read_u32_to_s16_array(node,
-> +					    "ti,edma-xbar-event-map",
-> +					    (s16 *)xbar_chans,
-> +					    len/sizeof(u32));
-> +	if (ret)
-> +		return -EIO;
-> +
-> +	for (i = 0; xbar_chans[i][0] != -1; i++) {
-> +		shift = (xbar_chans[i][1] & 0x03) << 3;
-> +		offset = xbar_chans[i][1] & 0xfffffffc;
-> +		mux = readl((void *)((u32)xbar + offset));
+Hi,
 
-Please drop unnecessary casting. Simply:
+On Tue, Jun 18, 2013 at 03:34:36PM +0530, Kishon Vijay Abraham I wrote:
+> On Tuesday 18 June 2013 03:14 PM, Felipe Balbi wrote:
+> >On Thu, Jun 13, 2013 at 02:13:55PM +0530, Kishon Vijay Abraham I wrote:
+> >>In order for controllers to get PHY in case of non dt boot, the phy
+> >>binding information (phy device name) should be added in the platform
+> >>data of the controller.
+> >>
+> >>Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> >
+> >I would rather not pass strings around, any other way to handle this ?
+> >Why do you need to pass this string ?
+>=20
+> Our old way of binding the controller and the phy using device name
+> started creating problems after the devices are created using
+> PLATFORM_DEVID_AUTO. Infact non-dt boot is broken in mainline for
+> OMAP3 platforms for which I have posted a RFC series
+> http://www.serverphorums.com/read.php?12,708632 which also uses
+> strings.
+> I'm not sure of any other way to deal with this.
 
-	mux = readl(xbar + offset);
+have you checked how other frameworks handle it ? Regulator has some
+sort of binding in board-files, but I guess it passes the regulator
+name?
 
-> +		mux &= ~(0xff << shift);
-> +		mux |= xbar_chans[i][0] << shift;
-> +		writel(mux, (void *)((u32)xbar + offset));
+--=20
+balbi
 
-Fix the writel likewise.
+--v9Ux+11Zm5mwPlX6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> +	}
-> +
-> +	pdata->xbar_chans = xbar_chans;
-> +
-> +	return 0;
-> +}
-> +
->  static int edma_of_parse_dt(struct device *dev,
->  			    struct device_node *node,
->  			    struct edma_soc_info *pdata)
-> @@ -1470,6 +1516,9 @@ static int edma_of_parse_dt(struct device *dev,
->  
->  	pdata->default_queue = 0;
->  
-> +	prop = of_find_property(node, "ti,edma-xbar-event-map", &sz);
-> +	if (prop)
-> +		ret = edma_xbar_event_map(dev, node, pdata, sz);
->  
->  	return ret;
->  }
-> @@ -1489,6 +1538,7 @@ static int edma_probe(struct platform_device *pdev)
->  	int			status = -1;
->  	const s16		(*rsv_chans)[2];
->  	const s16		(*rsv_slots)[2];
-> +	const s16		(*xbar_chans)[2];
->  	int			irq[EDMA_MAX_CC] = {0, 0};
->  	int			err_irq[EDMA_MAX_CC] = {0, 0};
->  	struct resource		*r[EDMA_MAX_CC] = {NULL, NULL};
-> @@ -1617,6 +1667,15 @@ static int edma_probe(struct platform_device *pdev)
->  			}
->  		}
->  
-> +		/* Clear the xbar mapped channels in unused list */
-> +		xbar_chans = info[j]->xbar_chans;
-> +		if (xbar_chans) {
-> +			for (i = 0; xbar_chans[i][1] != -1; i++) {
-> +				off = xbar_chans[i][1];
-> +				clear_bits(off, 1,
-> +					edma_cc[j]->edma_unused);
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Please fix the alignment here.
+iQIcBAEBAgAGBQJRwDYMAAoJEIaOsuA1yqREUX4P/3OuItDq1QeDBeuFjqAIQR+8
+O5h8zEMhbPGeHFY/ieRkQ66RbD60nEJNqn46EpBP/KI0bIwS8tK0T38nAhS//Dl4
+/wXfCfVbDCnglIQCpdrnxnZEN0854rqDA7Gsc3CI8oEro9dBnWh1oOYjWZiBJrKX
+SizirgLGvFmn1SMMTZGe+qJT/DyGWmGcd86fSsiu1amRFGXjP82Ov1HNxa4F4VvE
+umzn8VDn4J08wER0F2LyIlUfXkEKxAY/DK72RewiyY8EJUXAnV0GUliGqK7hfuto
+KAUi/17ZSKp80ec9LEqiredvwwQyoWvvg8TjcpMJz1UYN4Yzbl6ehiwYE4Tr423k
+3fDWaH1gagwa+0Vd0HQeLCaHByR/W3utBWcc6AYe5sWsQmzYNqiB1Z1DodrldGks
+m2vJn2mY13PH7emSN1AiIpy1IH9B9wZbeYfJeD3v9T8GCGhPO+N5SREkdNSqEAXB
+LIPu3etHFqnIMtlhWHbhKCNfX314mP6g45rGMJSWsSyr+cokI7Sk06xp1WWJaYt7
+qW3zszUTeQfuODKbxnVQjmHlDutkaMGyI3nS2wud+j1LamHnaZhCBDfJePKfGWdE
+e15xd4i9PTVbSSNZy3+S06I3SS0FdXOBlx/W/5cx+cu6XOEDD+702CRCXCXVQksg
+3+Ug6SAoVp+U69YFJ58q
+=AoQU
+-----END PGP SIGNATURE-----
 
-Thanks,
-Sekhar
+--v9Ux+11Zm5mwPlX6--
+
+
+--===============8081120397044998597==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============8081120397044998597==--
