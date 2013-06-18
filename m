@@ -1,98 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 2/3] arm: gpmc: Low power transition support
-Date: Tue, 18 Jun 2013 03:50:51 -0700
-Message-ID: <20130618105051.GM5523@atomide.com>
-References: <1371494799-11876-1-git-send-email-pekon@ti.com>
- <1371494799-11876-3-git-send-email-pekon@ti.com>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH] ARM: dts: AM33xx: cleaned GPMC DT for AM33xx series
+Date: Tue, 18 Jun 2013 16:25:01 +0530
+Message-ID: <1371552901-19145-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53744 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751285Ab3FRKuz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jun 2013 06:50:55 -0400
-Content-Disposition: inline
-In-Reply-To: <1371494799-11876-3-git-send-email-pekon@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:41988 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751907Ab3FRKzH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Jun 2013 06:55:07 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, khilman@linaro.org, avinash philip <avinashphilip@ti.com>
+To: b-cousson@ti.com, linux-omap@vger.kernel.org
+Cc: tony@atomide.com, Pekon Gupta <pekon@ti.com>
 
-* Pekon Gupta <pekon@ti.com> [130617 11:52]:
-> From: avinash philip <avinashphilip@ti.com>
-> 
-> GPMC is hardware controller for external memory interfaces.
-> This patch adds suspend/resume support for GPMC driver.
-> It also preserves GPMC register configurations across device low-power states
-> in which GPMC hardware can be powered-off.
-> gpmc_suspend()/gpmc_resume() are called by default by core PM framework as part
-> of driver's runtime PM callbacks.
-> 
-> Signed-off-by: Philip Avinash <avinashphilip@ti.com>
-> Signed-off-by: Pekon Gupta <pekon@ti.com>
+This patch contains following updates
+- Removed 'gpmc,device-nand'.
+	Reference commit f40739faba8e804cf46505869ab98ad7c4a88833 
+	ARM: dts: OMAP2+: Simplify NAND support (jon-hunter@ti.com)
+- updated 'num-cs' -> 'gpmc,num-cs'
+	Reference commit f34f37160c2960a763ed05d1e13b2ea75a48d0fb 
+	ARM: OMAP2+: gpmc: get number of useable GPMC chip-select(pekon@ti.com)
 
-Thanks applying this into omap-for-v3.11/gpmc, patch 1/3 I already
-have applied and the MTD change should get merged along with other
-MTD patches.
+Signed-off-by: Pekon Gupta <pekon@ti.com>
+---
+ arch/arm/boot/dts/am335x-evm.dts | 1 -
+ arch/arm/boot/dts/am33xx.dtsi    | 2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-Regards,
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index 7d2be9c..c71bb77 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -136,7 +136,6 @@
+ 				reg = <0 0 0>; /* CS0, offset 0 */
+ 				nand-bus-width = <8>;
+ 				ti,nand-ecc-opt = "bch8";
+-				gpmc,device-nand = "true";
+ 				gpmc,device-width = <1>;
+ 				gpmc,sync-clk-ps = <0>;
+ 				gpmc,cs-on-ns = <0>;
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 095f696..5f80f84 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -417,7 +417,7 @@
+ 			ti,hwmods = "gpmc";
+ 			reg = <0x50000000 0x2000>;
+ 			interrupts = <100>;
+-			num-cs = <7>;
++			gpmc,num-cs = <7>;
+ 			gpmc,num-waitpins = <2>;
+ 			#address-cells = <2>;
+ 			#size-cells = <1>;
+-- 
+1.8.1
 
-Tony
-
-> ---
->  arch/arm/mach-omap2/gpmc.c | 21 +++++++++++++++++++--
->  1 file changed, 19 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 1380cee..9b579d0 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -1655,6 +1655,24 @@ static int gpmc_remove(struct platform_device *pdev)
->  	return 0;
->  }
->  
-> +#ifdef CONFIG_PM_SLEEP
-> +static int gpmc_suspend(struct device *dev)
-> +{
-> +	omap3_gpmc_save_context();
-> +	pm_runtime_put_sync(dev);
-> +	return 0;
-> +}
-> +
-> +static int gpmc_resume(struct device *dev)
-> +{
-> +	pm_runtime_get_sync(dev);
-> +	omap3_gpmc_restore_context();
-> +	return 0;
-> +}
-> +#endif
-> +
-> +static SIMPLE_DEV_PM_OPS(gpmc_pm_ops, gpmc_suspend, gpmc_resume);
-> +
->  static struct platform_driver gpmc_driver = {
->  	.probe		= gpmc_probe,
->  	.remove		= gpmc_remove,
-> @@ -1662,6 +1680,7 @@ static struct platform_driver gpmc_driver = {
->  		.name	= DEVICE_NAME,
->  		.owner	= THIS_MODULE,
->  		.of_match_table = of_match_ptr(gpmc_dt_ids),
-> +		.pm	= &gpmc_pm_ops,
->  	},
->  };
->  
-> @@ -1724,7 +1743,6 @@ static irqreturn_t gpmc_handle_irq(int irq, void *dev)
->  	return IRQ_HANDLED;
->  }
->  
-> -#ifdef CONFIG_ARCH_OMAP3
->  static struct omap3_gpmc_regs gpmc_context;
->  
->  void omap3_gpmc_save_context(void)
-> @@ -1789,4 +1807,3 @@ void omap3_gpmc_restore_context(void)
->  		}
->  	}
->  }
-> -#endif /* CONFIG_ARCH_OMAP3 */
-> -- 
-> 1.8.1
-> 
