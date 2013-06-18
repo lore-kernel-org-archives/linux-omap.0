@@ -1,68 +1,59 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v2 1/4] MFD: Palmas: Check if interrupts property exists
- and then only request irq
-Date: Tue, 18 Jun 2013 19:07:07 +0100
-Message-ID: <20130618180707.GO1403@sirena.org.uk>
-References: <1371549692-7361-1-git-send-email-j-keerthy@ti.com>
- <1371549692-7361-2-git-send-email-j-keerthy@ti.com>
- <51C0820B.4020404@wwwdotorg.org>
- <DC88CAD03C0052499C1907B327FC63229EC563@DBDE04.ent.ti.com>
- <51C093FF.6000204@wwwdotorg.org>
- <DC88CAD03C0052499C1907B327FC63229EC5B4@DBDE04.ent.ti.com>
- <51C09761.1020704@wwwdotorg.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 3/7] omap voltdomain clean-up for v3.11 merge window
+Date: Tue, 18 Jun 2013 11:07:25 -0700
+Message-ID: <E1Up0Jv-0007pf-QB@merlin.infradead.org>
+References: <pull-1371578847-800598>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bRSz5O7DOzi+nSIn"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <51C09761.1020704@wwwdotorg.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: "J, KEERTHY" <j-keerthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
+In-Reply-To: <pull-1371578847-800598>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+The following changes since commit 7d132055814ef17a6c7b69f342244c410a5e000f:
 
---bRSz5O7DOzi+nSIn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+  Linux 3.10-rc6 (2013-06-15 11:51:07 -1000)
 
-On Tue, Jun 18, 2013 at 11:22:41AM -0600, Stephen Warren wrote:
+are available in the git repository at:
 
-> If the device was instantiated from a board file *or* a device tree,
-> i2c->irq is correctly set. Hence, checking that value works in both cases.
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/pm-voltdomain-signed
 
-The same thing will happen with any other firmware interface that gets
-introduced in the future - one of the goals with factoring all this out
-into the bus code is that it means the driver doesn't need to have any
-special handling.
+for you to fetch changes up to 8bfdfc87dc3d00eb2f33e972b4177c36ca0e3d54:
 
-> If you check the interrupts DT property, that will only work if the
-> device was instantiated from device tree, and not if it was instantiated
-> from a board file; the property will never exist in the board file case,
-> and hence you'll never be able to have a board file provide an interrupt.
+  Merge tag 'omap-pm-v3.11/voltdm' of git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm into omap-for-v3.11/pm-voltdomain (2013-06-18 01:08:39 -0700)
 
-Exactly.
+----------------------------------------------------------------
 
---bRSz5O7DOzi+nSIn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+PM voltage domain clean-up via Kevin Hilman <khilman@linaro.org>:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
+OMAP: PM: remove requirement for voltage domain data; remove dummy data
 
-iQIcBAEBAgAGBQJRwKHIAAoJELSic+t+oim9ylUP/1AUr53DWEVwamFjR7TwDjQN
-eDvX4o2DHOh6xrqtwzjAj1oeTeWkqSA4J4nXc27cgf6ex94jporIagll1gzZzyhk
-s9ZlUjMFSVpNobZxY/SJRpFq8wtlxLbhJhPtJXaeRVgNN17963VddkLW4BOvpm3B
-XdHQXOWqr+ToBG3t5QILrFy5jcptVjXdzg3JtYyLXu5PWaed6mu3MkhwSjujZIp6
-ickmMYv1+SJN3VsvR4WIaSlDhIrUbtE/RaIp6khAcDhLRHSj8R5snSvHC9OR/v9D
-j3rPwiPhIMXRNkyVDIbvAmcJoSKgJRi5CaitKVWHW5Yt8qy7xEEAjbjZ3LJVi2tH
-H/yqlnn+Sy07bo1YHA2MVoezJtnu2OUIQHkuJ5dc5clbzxOy35ooLqHs4iD8Gne5
-YgZmV/FBhAIawxWZAcfujiuKCe6wjjcmFoTluIaZ4eqIgHBvHDJ+I82APCu5/CqV
-+ONsZf7vFR0joBp353pedcWe6lvnZBVC3TWuG5XJWa4sCDnXNBmu372QCftbYPhe
-xtl0Ljhf+fmgdU3CyrduAxbh5poDdlErFGKs0Ybi1cr7Xa2weMO0q+fgrgvNz0nc
-JJ+IKsnUxp+snyROY5LqmqN+V5WB6xiyov9h4Lgs9Nxr9qZ8YkBOZhuYXgfT0TTS
-W1woJK7uiE51cRfXe0re
-=xRKR
------END PGP SIGNATURE-----
+----------------------------------------------------------------
+Rajendra Nayak (2):
+      ARM: OMAP2+: Powerdomain: Remove the need to always have a voltdm associated to a pwrdm
+      ARM: AM33xx: Remove the unused voltagedomain data
 
---bRSz5O7DOzi+nSIn--
+Tony Lindgren (1):
+      Merge tag 'omap-pm-v3.11/voltdm' of git://git.kernel.org/.../khilman/linux-omap-pm into omap-for-v3.11/pm-voltdomain
+
+ arch/arm/mach-omap2/Makefile                  |  1 -
+ arch/arm/mach-omap2/io.c                      |  1 -
+ arch/arm/mach-omap2/powerdomain.c             |  5 ++++
+ arch/arm/mach-omap2/powerdomain.h             |  2 ++
+ arch/arm/mach-omap2/prm33xx.c                 |  7 +++++
+ arch/arm/mach-omap2/voltage.h                 |  1 -
+ arch/arm/mach-omap2/voltagedomains33xx_data.c | 43 ---------------------------
+ 7 files changed, 14 insertions(+), 46 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/voltagedomains33xx_data.c
