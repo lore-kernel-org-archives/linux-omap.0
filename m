@@ -1,104 +1,60 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v2 1/4] ARM: dts: omap4-panda: Add USB Host support
-Date: Wed, 19 Jun 2013 05:10:52 -0500
-Message-ID: <51C183AC.8040801@ti.com>
-References: <1371571487-14389-1-git-send-email-rogerq@ti.com> <1371571487-14389-2-git-send-email-rogerq@ti.com> <51C106A1.9030001@ti.com> <51C15F7E.5020305@ti.com> <20130619074605.GW5523@atomide.com>
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [RFC] i2c: add deprecation warning for class based instantiation
+Date: Wed, 19 Jun 2013 12:15:27 +0200
+Message-ID: <20130619101526.GF2950@katana>
+References: <20130607090623.GC3428@katana>
+ <1370596166-12404-1-git-send-email-wsa@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130619074605.GW5523@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="juZjCTNxrMaZdGZC"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1370596166-12404-1-git-send-email-wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 06/19/2013 02:46 AM, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [130619 00:42]:
->> Hi Benoit,
->>
->> On 06/19/2013 04:17 AM, Benoit Cousson wrote:
->>> Hi Roger,
->>>
->>> On 06/18/2013 11:04 AM, Roger Quadros wrote:
->>>> Provide the RESET and Power regulators for the USB PHY,
->>>> the USB Host port mode and the PHY device.
->>>>
->>>> Also provide pin multiplexer information for the USB host
->>>> pins.
->>>>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>> ---
->>>>    arch/arm/boot/dts/omap4-panda-common.dtsi |   62 +++++++++++++++++++++++++++++
->>>>    1 files changed, 62 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
->>>> index 00cbaa5..7a21e8e 100644
->>>> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
->>>> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
->>>> @@ -59,6 +59,42 @@
->>>>                "AFML", "Line In",
->>>>                "AFMR", "Line In";
->>>>        };
->>>> +
->>>> +    /* HS USB Port 1 RESET */
->>>> +    hsusb1_reset: hsusb1_reset_reg {
->>>> +        compatible = "regulator-fixed";
->>>> +        regulator-name = "hsusb1_reset";
->>>> +        regulator-min-microvolt = <3300000>;
->>>> +        regulator-max-microvolt = <3300000>;
->>>> +        gpio = <&gpio2 30 0>;    /* gpio_62 */
->>>> +        startup-delay-us = <70000>;
->>>> +        enable-active-high;
->>>> +    };
->>>
->>> Is this really a regulator? Or just a GPIO line used to reset the USB PHY?
->>
->> It is in fact a GPIO line used as reset.
->>>
->>> If this is the case, I don't think it should be represented as a regulator.
->>
->> Why not? I think it fits very well in the regulator device model.
 
-I'm not sure fitting very well is the correct term.
-It works, for sure, but it is no different than when we were trying to 
-abuse the regulator fmwk to enable the 32k clock in phoenix.
-It is just a hack.
+--juZjCTNxrMaZdGZC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->>I couldn't find a better
->> way to represent this. It gives us a way to specify not only the GPIO line but also
->> the polarity. I know mostly reset is active low but still there is flexibility as you never
->> know for sure.
+On Fri, Jun 07, 2013 at 11:09:26AM +0200, Wolfram Sang wrote:
+> Class based instantiation can cause huge delays when booting. This
+> mechanism was used when it was not possible to describe slaves on I2C
+> busses. We now have other mechanisms, so most embedded I2C will not need
+> classes and it was explicitly not recommended to use them. Add a
+> deprecation warning for drivers who want to disable class based in the
+> near future to gain boot-up time, so users relying on this technique can
+> switch to something better. They really should.
+>=20
+> Signed-off-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
 
-Mmm, and what about just controlling the gpio from the driver?
+No reactions on this, pity. Deferring.
 
-> I think it's really a mux + a comparator. But from Linux driver point of view
-> a regulator fits well as we don't have anything better. After all, the pin
-> voltage changes, and then something can be done based on the comparator
-> value.
->
->> Do you have any better ideas?
->
-> We have a similar issue with the MMC1 PBIAS. I think in the long run we
-> should expand regulator (and possibly pinctrl) framework(s) to handle
-> comparators. We could just assume that a comparatator is a regulator,
-> and have a comparator binding that just uses the regulator code.
 
-In the case of pbias, the pinctrl seems to be a much better fit for my 
-point of view. pinctrl can handle pin configuration and this is what the 
-pbias is in the case of MMC pins.
+--juZjCTNxrMaZdGZC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
->> FYI. The USB PHY driver is already treating reset as a regulator and is into 3.10. Reworking that
->> will take some time. Not getting these in will prevent USB host/ethernet support on panda.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-That's not because we did some mistake in the past that we have to keep 
-doing that :-)
+iQIcBAEBAgAGBQJRwYS+AAoJEBQN5MwUoCm2NIIP/2LbtKw7sFmJ99GyBNDXTjg9
+xnN0LJIZkCjxgTXBYoR2/JbHbcxXDbv1NDm4WpL7Ic0bUN7VSaKZjVnLEII/bsla
+M0ZgGn74vgtSOFyuEvhYw/OUhTmvx/ICGDY0YC7y5A1jEaZNdYIxF6cNiGmQgZBg
+Vhd+m+lDJPhwB9wcBIly8qLBxNzBE57UZqOPsSLRRbPiJIfqHjKGztBYb69B57tS
+tVcHsdyL6bal2/nfCWcxUPQBgvYyQhUWPeyffKq2eQHEkjfDu51AIEpyjdpLDnTW
+5kx8Vf46am9CyyqVecvhKqgUF2nE38qMcafJ7bK7oKebUwhWS37qTyAdsfGMe+kG
+YkNyDjSCPoiF1z7wBHgWu/0KaddNCyN65wS1xyso385jt5EInsFS8G9XQSBiKSJs
+jDYDF8UGlHIrcsaPD+S5bR31DBJJuyUrOs3Fzk6SGvSaQ3yqXBHmE/F2MfjTbgmH
+1nkJuU91XdS3raOOEQEQRfAY1Gzy6kbCFs5MLXtY6gatKwJRv5cvC9psIpU/MKim
+GAOi5Jp8JHBgfIxYDO6clHb2hjhWXWNrWb6NS9vdyynLjQLkF/23PnPiHtfriMZ4
+773s6xDWfWJziGCqzxGQ13yKlyE5EJq/GsXkKn6929/P9OSg//dzV0Gcm85/mY76
+drK/OVXDyNHKk3Gk+RV0
+=R/JS
+-----END PGP SIGNATURE-----
 
-> Yes and we need to have some solution for v3.11 as we've dropped the
-> legacy data for omap4. Otherwise things won't work properly.
-
-I'm fine taking it as soon as big disclaimer is added to avoid mis-using 
-the regulator in the future for controlling a gpio line.
-
-Regards,
-Benoit
+--juZjCTNxrMaZdGZC--
