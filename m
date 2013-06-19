@@ -1,138 +1,82 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v2 1/4] ARM: dts: omap4-panda: Add USB Host support
-Date: Tue, 18 Jun 2013 20:17:21 -0500
-Message-ID: <51C106A1.9030001@ti.com>
-References: <1371571487-14389-1-git-send-email-rogerq@ti.com>
- <1371571487-14389-2-git-send-email-rogerq@ti.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: RE: [PATCH v2 1/4] MFD: Palmas: Check if interrupts property exists
+ and then only request irq
+Date: Wed, 19 Jun 2013 01:28:31 +0000
+Message-ID: <DC88CAD03C0052499C1907B327FC63229EC65B@DBDE04.ent.ti.com>
+References: <1371549692-7361-1-git-send-email-j-keerthy@ti.com>
+ <1371549692-7361-2-git-send-email-j-keerthy@ti.com>
+ <51C0820B.4020404@wwwdotorg.org>
+ <DC88CAD03C0052499C1907B327FC63229EC563@DBDE04.ent.ti.com>
+ <51C093FF.6000204@wwwdotorg.org>
+ <DC88CAD03C0052499C1907B327FC63229EC5B4@DBDE04.ent.ti.com>
+ <51C09761.1020704@wwwdotorg.org>
+ <DC88CAD03C0052499C1907B327FC63229EC5DB@DBDE04.ent.ti.com>
+ <51C0B0FC.2090908@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1371571487-14389-2-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:38125 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932860Ab3FSB2w convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jun 2013 21:28:52 -0400
+In-Reply-To: <51C0B0FC.2090908@wwwdotorg.org>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
 
-Hi Roger,
+Hi Stephen,
 
-On 06/18/2013 11:04 AM, Roger Quadros wrote:
-> Provide the RESET and Power regulators for the USB PHY,
-> the USB Host port mode and the PHY device.
->
-> Also provide pin multiplexer information for the USB host
-> pins.
->
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->   arch/arm/boot/dts/omap4-panda-common.dtsi |   62 +++++++++++++++++++++++++++++
->   1 files changed, 62 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-> index 00cbaa5..7a21e8e 100644
-> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-> @@ -59,6 +59,42 @@
->   			"AFML", "Line In",
->   			"AFMR", "Line In";
->   	};
-> +
-> +	/* HS USB Port 1 RESET */
-> +	hsusb1_reset: hsusb1_reset_reg {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "hsusb1_reset";
-> +		regulator-min-microvolt = <3300000>;
-> +		regulator-max-microvolt = <3300000>;
-> +		gpio = <&gpio2 30 0>;	/* gpio_62 */
-> +		startup-delay-us = <70000>;
-> +		enable-active-high;
-> +	};
+> -----Original Message-----
+> From: Stephen Warren [mailto:swarren@wwwdotorg.org]
+> Sent: Wednesday, June 19, 2013 12:42 AM
+> To: J, KEERTHY
+> Cc: linux-omap@vger.kernel.org; broonie@kernel.org;
+> ldewangan@nvidia.com; sameo@linux.intel.com; grant.likely@secretlab.ca;
+> swarren@nvidia.com; linux-kernel@vger.kernel.org; linux-
+> doc@vger.kernel.org; gg@slimlogic.co.uk
+> Subject: Re: [PATCH v2 1/4] MFD: Palmas: Check if interrupts property
+> exists and then only request irq
+> 
+> On 06/18/2013 11:33 AM, J, KEERTHY wrote:
+> > Stephen Warren wrote at Tuesday, June 18, 2013 10:53 PM:
+> ...>> No, you should just check the IRQ number.
+> >
+> > Hmmm...so something like (!i2c->irq)
+> 
+> Yes.
 
-Is this really a regulator? Or just a GPIO line used to reset the USB PHY?
+Ok.
 
-If this is the case, I don't think it should be represented as a regulator.
+> 
+> >> Consider this:
+> >>
+> >> If the device was instantiated from a board file *or* a device tree,
+> >> i2c->irq is correctly set. Hence, checking that value works in both
+> >> cases.
+> >>
+> >> If you check the interrupts DT property, that will only work if the
+> >> device was instantiated from device tree, and not if it was
+> >> instantiated from a board file; the property will never exist in the
+> >> board file case, and hence you'll never be able to have a board file
+> >> provide an interrupt.
+> >
+> > The board file approach is getting deprecated for this. I Myself
+> > removed board file related pdata stuff in one of the patches.
+> >
+> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg90598.html
+> >
+> > So going the DeviceTree way.
+> 
+> Even if you're 100% sure this driver will only ever work with DT (which
+> seems like a bad assumption to make no matter what the circumstance),
+> it'd still be best to detect whether an IRQ was specified in a generic
+> way. That way, nobody will read this driver, assume the code is
+> generic, and just copy/paste it without thinking.
 
-Regards,
-Benoit
+Ok. I understand. I will incorporate this.
 
-> +
-> +	/* HS USB Port 1 Power */
-> +	hsusb1_power: hsusb1_power_reg {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "hsusb1_vbus";
-> +		regulator-min-microvolt = <3300000>;
-> +		regulator-max-microvolt = <3300000>;
-> +		gpio = <&gpio1 1 0>;	/* gpio_1 */
-> +		startup-delay-us = <70000>;
-> +		enable-active-high;
-> +	};
-> +
-> +	/* HS USB Host PHY on PORT 1 */
-> +	hsusb1_phy: hsusb1_phy {
-> +		compatible = "usb-nop-xceiv";
-> +		reset-supply = <&hsusb1_reset>;
-> +		vcc-supply = <&hsusb1_power>;
-> +	/**
-> +	 * FIXME:
-> +	 * put the right clock phandle here when available
-> +	 *	clocks = <&auxclk3>;
-> +	 *	clock-names = "main_clk";
-> +	 */
-> +		clock-frequency = <19200000>;
-> +	};
->   };
->
->   &omap4_pmx_wkup {
-> @@ -83,6 +119,7 @@
->   			&mcbsp1_pins
->   			&dss_hdmi_pins
->   			&tpd12s015_pins
-> +			&hsusbb1_pins
->   	>;
->
->   	twl6030_pins: pinmux_twl6030_pins {
-> @@ -133,6 +170,23 @@
->   		>;
->   	};
->
-> +	hsusbb1_pins: pinmux_hsusbb1_pins {
-> +		pinctrl-single,pins = <
-> +			0x82 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_clk.usbb1_ulpiphy_clk */
-> +			0x84 (PIN_OUTPUT | MUX_MODE4)		/* usbb1_ulpitll_stp.usbb1_ulpiphy_stp */
-> +			0x86 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dir.usbb1_ulpiphy_dir */
-> +			0x88 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_nxt.usbb1_ulpiphy_nxt */
-> +			0x8a (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat0.usbb1_ulpiphy_dat0 */
-> +			0x8c (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat1.usbb1_ulpiphy_dat1 */
-> +			0x8e (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat2.usbb1_ulpiphy_dat2 */
-> +			0x90 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat3.usbb1_ulpiphy_dat3 */
-> +			0x92 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat4.usbb1_ulpiphy_dat4 */
-> +			0x94 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat5.usbb1_ulpiphy_dat5 */
-> +			0x96 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat6.usbb1_ulpiphy_dat6 */
-> +			0x98 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat7.usbb1_ulpiphy_dat7 */
-> +		>;
-> +	};
-> +
->   	i2c1_pins: pinmux_i2c1_pins {
->   		pinctrl-single,pins = <
->   			0xe2 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_scl */
-> @@ -283,3 +337,11 @@
->   	mode = <3>;
->   	power = <50>;
->   };
-> +
-> +&usbhshost {
-> +	port1-mode = "ehci-phy";
-> +};
-> +
-> +&usbhsehci {
-> +	phys = <&hsusb1_phy>;
-> +};
->
+Thanks,
+Keerthy
