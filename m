@@ -1,77 +1,45 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v3] ARM: DTS: TWL4030: fix mux and wakeup for SYS_NIRQ
- line
-Date: Tue, 18 Jun 2013 20:25:36 -0500
-Message-ID: <51C10890.20802@ti.com>
-References: <1370040357-25794-1-git-send-email-khilman@linaro.org> <1370629886-14170-1-git-send-email-khilman@linaro.org> <20130607193130.GA13205@kahuna> <51B59AC3.2080900@ti.com> <87fvwpex6k.fsf@linaro.org> <51B70B08.9030208@ti.com> <51B70D57.4010208@ti.com> <874nd4d8j8.fsf@linaro.org>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: [PATCH 1/1] arm: add bandgap DT entry for OMAP5
+Date: Tue, 18 Jun 2013 22:36:38 -0400
+Message-ID: <1371609398-26454-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47116 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932644Ab3FSBbc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jun 2013 21:31:32 -0400
-In-Reply-To: <874nd4d8j8.fsf@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: benoit.cousson@linaro.org
+Cc: Russell King <linux@arm.linux.org.uk>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, J Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-On 06/11/2013 09:30 AM, Kevin Hilman wrote:
-> Benoit Cousson <b-cousson@ti.com> writes:
->
->> On 06/11/2013 01:33 PM, Cousson, Benoit wrote:
->>> On 6/10/2013 6:40 PM, Kevin Hilman wrote:
->>>> Benoit Cousson <b-cousson@ti.com> writes:
->>>>
->>>>> Hi Kevin,
->>>>>
->>>>> On 06/07/2013 09:31 PM, Nishanth Menon wrote:
->>>>>> On 11:31-20130607, Kevin Hilman wrote:
->>>>>>> On most OMAP3 platforms, the twl4030 IRQ line is connected to the
->>>>>>> SYS_NIRQ line on OMAP.  Add another DTS include file
->>>>>>> (twl4030_omap3.dtsi) for boards that hook up the twl4030 this way
->>>>>>> to include.
->>>>>>>
->>>>>>> This allows RTC wake from off-mode to work again on OMAP3-based
->>>>>>> platforms with twl4030.  Tested on 3530/Beagle, 3730/Beagle-xM,
->>>>>>> 3530/Overo, 3730/Overo-STORM.
->>>>>>>
->>>>>>> Special thanks to Florian Vaussard for suggesting use of preprocessor
->>>>>>> feature.
->>>>>>>
->>>>>>> Cc: Florian Vaussard <florian.vaussard@epfl.ch>
->>>>>>> Cc: Benoit Cousson <b-cousson@ti.com>
->>>>>>> Cc: Nishanth Menon <nm@ti.com>
->>>>>>> Signed-off-by: Kevin Hilman <khilman@linaro.org>
->>>>>> Thanks,
->>>>>> Reviewed-by: Nishanth Menon <nm@ti.com>
->>>>>
->>>>> Thanks, I've just applied it in for_3.11/dts.
->>>>
->>>> Thanks,
->>>>
->>>> Will you apply the first 2 from the series too?
->>>>
->>>>     ARM: DTS: OMAP3: beagle/overo: mux console UART, enable wakeup
->>>>     ARM: DTS: OMAP3: beagle: enable user button via gpio_keys, enable
->>>> wakeup
->>>
->>> Thanks for the reminder, I kind of forgot these ones :-)
->>
->> BTW, do you have any v2 for these ones? This version does not use the
->> macros.
->> Moreover I cannot apply them on top of Florian's series :-(
->
-> Oops,  I thought I reposted those too.   All three are here:
->
->    git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git  for_3.11/dt
->
-> which is based on top of your for_3.11/dts branch.
-
-Thanks, I've just applied it.
-
-Regards,
-Benoit
-
+QWRkIGJhbmRnYXAgZGV2aWNlIERUIGVudHJ5IGZvciBPTUFQNSBkdHNpLgoKQ2M6ICJCZW5vw650
+IENvdXNzb24iIDxiLWNvdXNzb25AdGkuY29tPgpDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9t
+aWRlLmNvbT4KQ2M6IFJ1c3NlbGwgS2luZyA8bGludXhAYXJtLmxpbnV4Lm9yZy51az4KQ2M6IGxp
+bnV4LW9tYXBAdmdlci5rZXJuZWwub3JnCkNjOiBkZXZpY2V0cmVlLWRpc2N1c3NAbGlzdHMub3ps
+YWJzLm9yZwpDYzogbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCkNjOiBsaW51
+eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnClNpZ25lZC1vZmYtYnk6IEVkdWFyZG8gVmFsZW50aW4g
+PGVkdWFyZG8udmFsZW50aW5AdGkuY29tPgpTaWduZWQtb2ZmLWJ5OiBKIEtlZXJ0aHkgPGota2Vl
+cnRoeUB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRzaSB8IDggKysrKysr
+KysKIDEgZmlsZSBjaGFuZ2VkLCA4IGluc2VydGlvbnMoKykKLS0tCgpCZW5vaXQsCgpTb3JyeSBm
+b3IgdGhpcyB2ZXJ5IGxhdGUgcmVxdWVzdCwgYnV0IGNhbiB5b3UgcGxlYXNlIGNvbnNpZGVyCnRo
+ZXNlIHBhdGNoZXMgZm9yIDMuMTEgc3RpbGw/CgpJIGNvbXBsZXRlbHkgZm9yZ290IHRvIHNlbmQg
+dGhlc2Ugb24gbXkgIkVuYWJsZSBUSSBTb0MgdGhlcm1hbCBkcml2ZXIiIHNlcmllcy4KCkFsbCBi
+ZXN0LAoKRWR1YXJkbwoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LmR0c2kg
+Yi9hcmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNpCmluZGV4IDJhZDYzYzQuLjVlZGU2ZTEgMTAw
+NjQ0Ci0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LmR0c2kKKysrIGIvYXJjaC9hcm0vYm9v
+dC9kdHMvb21hcDUuZHRzaQpAQCAtNjE1LDUgKzYxNSwxMyBAQAogCQkJaW50ZXJydXB0cyA9IDww
+IDgwIDB4ND47CiAJCQl0aSxod21vZHMgPSAid2RfdGltZXIyIjsKIAkJfTsKKwkJYmFuZGdhcCB7
+CisJCQlyZWcgPSA8MHg0YTAwMjFlMCAweGMKKwkJCQkweDRhMDAyMzJjIDB4YworCQkJCTB4NGEw
+MDIzODAgMHgyYworCQkJCTB4NGEwMDIzQzAgMHgzYz47CisJCQkJaW50ZXJydXB0cyA9IDwwIDEy
+NiA0PjsgLyogdGFsZXJ0ICovCisJCQljb21wYXRpYmxlID0gInRpLG9tYXA1NDMwLWJhbmRnYXAi
+OworCQl9OwogCX07CiB9OwotLSAKMS44LjIuMS4zNDIuZ2ZhNzI4NWQKCgpfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxp
+bmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3Rz
+LmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
