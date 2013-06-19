@@ -1,45 +1,56 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during bus suspend
-Date: Wed, 19 Jun 2013 10:39:09 -0700
-Message-ID: <87r4fy6lvm.fsf@linaro.org>
-References: <1371650753-11452-1-git-send-email-rogerq@ti.com>
-	<1371650753-11452-5-git-send-email-rogerq@ti.com>
+From: Axel Lin <axel.lin@ingics.com>
+Subject: [PATCH] ARM: OMAP2: reboot: Include common.h to fix build error
+Date: Thu, 20 Jun 2013 01:46:41 +0800
+Message-ID: <1371664001.9848.1.camel@phoenix>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1371650753-11452-5-git-send-email-rogerq@ti.com> (Roger
-	Quadros's message of "Wed, 19 Jun 2013 17:05:51 +0300")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: stern@rowland.harvard.edu, tony@atomide.com, balbi@ti.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:54882 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756708Ab3FSRqt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 13:46:49 -0400
+Received: by mail-pa0-f52.google.com with SMTP id kq13so5410720pab.11
+        for <linux-omap@vger.kernel.org>; Wed, 19 Jun 2013 10:46:49 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Robin Holt <holt@sgi.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Roger,
+Include common.h which will include linux/reboot.h to fix below build error.
 
-Roger Quadros <rogerq@ti.com> writes:
+  CC      arch/arm/mach-omap2/omap4-restart.o
+arch/arm/mach-omap2/omap4-restart.c:21:28: warning: 'enum reboot_mode' declared inside parameter list [enabled by default]
+arch/arm/mach-omap2/omap4-restart.c:21:28: warning: its scope is only this definition or declaration, which is probably not what you want [enabled by default]
+arch/arm/mach-omap2/omap4-restart.c:21:40: error: parameter 1 ('mode') has incomplete type
+arch/arm/mach-omap2/omap4-restart.c:21:6: warning: function declaration isn't a prototype [-Wstrict-prototypes]
+make[1]: *** [arch/arm/mach-omap2/omap4-restart.o] Error 1
+make: *** [arch/arm/mach-omap2] Error 2
 
-> Runtime suspend the controller during bus suspend and resume it
-> during bus resume. This will ensure that the USB Host power domain
-> enters lower power state and does not prevent the SoC from
-> endering deeper sleep states.
->
-> Remote wakeup will come up as an interrupt while the controller
-> is suspended, so tackle it carefully using a workqueue.
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+Seems this build error is introduced by commit 7507d035f3cf40c
+"reboot: arm: change reboot_mode to use enum reboot_mode"
 
-I don't think you need a special workqueue here.  The workqueue of the PM
-core (pm_wq) will be used if you just use an asynchronous 'get' in the
-ISR.  Then, the driver's own runtime PM callbacks can be used instead of
-an additional workqueue.
+This patch is against linux-next 20130619.
 
-Another thing to worry about here when using runtime PM to implement
-suspend/resume is that runtime PM can be disabled from userspace (e.g.
-echo disabled > /sys/devices/.../power/control.)  If that's the case,
-all the pm_runtime_suspended() checks will always fail becuase that
-call also checks if runtime PM is disabled.  You'll likely want to use
-the pm_runtime_status_suspended() check instead, which checks only the
-status, and doesn't matter if runtime PM is currently disabled.
+ arch/arm/mach-omap2/omap4-restart.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Because of the corner issues here, please test system suspend/resume
-when runtime PM has been disabled.
+diff --git a/arch/arm/mach-omap2/omap4-restart.c b/arch/arm/mach-omap2/omap4-restart.c
+index 652adde..7306d9b 100644
+--- a/arch/arm/mach-omap2/omap4-restart.c
++++ b/arch/arm/mach-omap2/omap4-restart.c
+@@ -9,6 +9,7 @@
+ 
+ #include <linux/types.h>
+ #include "prminst44xx.h"
++#include "common.h"
+ 
+ /**
+  * omap44xx_restart - trigger a software restart of the SoC
+-- 
+1.8.1.2
 
-Kevin
+
+
