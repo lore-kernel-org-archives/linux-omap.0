@@ -1,31 +1,34 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [RFC PATCH 2/6] mfd: omap-usb-host: Put pins in IDLE state on suspend
-Date: Wed, 19 Jun 2013 10:23:55 -0700
-Message-ID: <878v26815g.fsf@linaro.org>
-References: <1371650753-11452-1-git-send-email-rogerq@ti.com>
-	<1371650753-11452-3-git-send-email-rogerq@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 1/2] musb: musb: dsps: support multiple instances
+Date: Wed, 19 Jun 2013 19:27:22 +0200
+Message-ID: <51C1E9FA.2010002@linutronix.de>
+References: <1371482014-5244-1-git-send-email-bigeasy@linutronix.de> <1371482014-5244-2-git-send-email-bigeasy@linutronix.de> <20130618082725.GG5461@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1371650753-11452-3-git-send-email-rogerq@ti.com> (Roger
-	Quadros's message of "Wed, 19 Jun 2013 17:05:49 +0300")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: stern@rowland.harvard.edu, tony@atomide.com, balbi@ti.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:56434 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934756Ab3FSR1Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 13:27:25 -0400
+In-Reply-To: <20130618082725.GG5461@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
-Hi Roger,
+On 06/18/2013 10:27 AM, Felipe Balbi wrote:
+>> --- a/arch/arm/boot/dts/am33xx.dtsi +++
+>> b/arch/arm/boot/dts/am33xx.dtsi @@ -341,6 +341,14 @@ port1-mode =
+>> <3>; power = <250>; ti,hwmods = "usb_otg_hs"; +			phys =
+>> <&nopphy0 &nopphy1>; +		}; + +		nopphy0: usbphy@0 { +
+>> compatible = "usb-nop-xceiv"; +		}; +		nopphy1: usbphy@1 { +
+>> compatible = "usb-nop-xceiv"; };
+>> 
+>> mac: ethernet@4a100000 {
 
-Roger Quadros <rogerq@ti.com> writes:
+Any opinion on those phy nodes? Is it likely that we need a real phy
+driver here and also expose a little more information like the memory
+register or reset / vcc supply?
 
-> In order to support wake up from suspend use the pinctrl
-> framework to put the USB host pins in IDLE state during suspend.
->
-> CC: Samuel Ortiz <sameo@linux.intel.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-
-You should use helpers for this now in the pinctrl core:
-
-    http://lists.infradead.org/pipermail/linux-arm-kernel/2013-June/173514.html
-
-Kevin
+Sebastian
