@@ -1,194 +1,119 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/5] i2c: omap: add runtime check in isr to be sure that
- i2c is enabled
-Date: Wed, 19 Jun 2013 22:39:16 +0300
-Message-ID: <20130619193916.GE4779@arwen.pp.htv.fi>
+Subject: Re: [PATCH 3/5] i2c: omap: handle all irqs befor unblocking
+ omap_i2c_xfer_msg()
+Date: Wed, 19 Jun 2013 22:44:14 +0300
+Message-ID: <20130619194414.GF4779@arwen.pp.htv.fi>
 References: <1370630768-4077-1-git-send-email-grygorii.strashko@ti.com>
- <1370630768-4077-3-git-send-email-grygorii.strashko@ti.com>
- <20130607190206.GC15295@arwen.pp.htv.fi>
- <51C1FB91.1000006@ti.com>
+ <1370630768-4077-4-git-send-email-grygorii.strashko@ti.com>
+ <20130607190543.GD15295@arwen.pp.htv.fi>
+ <51C1FBB8.4090600@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="idY8LE8SD6/8DnRI"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50725 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935094Ab3FSTjW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 15:39:22 -0400
+	protocol="application/pgp-signature"; boundary="GV0iVqYguTV4Q9ER"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <51C1FB91.1000006@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <51C1FBB8.4090600@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Grygorii Strashko <grygorii.strashko@ti.com>
 Cc: balbi@ti.com, Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, Kevin Hilman <khilman@linaro.org>
+List-Id: linux-omap@vger.kernel.org
 
---idY8LE8SD6/8DnRI
+--GV0iVqYguTV4Q9ER
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jun 19, 2013 at 09:42:25PM +0300, Grygorii Strashko wrote:
+On Wed, Jun 19, 2013 at 09:43:04PM +0300, Grygorii Strashko wrote:
 > Hi Felipe,
-> On 06/07/2013 10:02 PM, Felipe Balbi wrote:
+> On 06/07/2013 10:05 PM, Felipe Balbi wrote:
 > >Hi,
 > >
-> >On Fri, Jun 07, 2013 at 09:46:05PM +0300, Grygorii Strashko wrote:
-> >>Add runtime check at the beginning of omap_i2c_isr/omap_i2c_isr_thread
-> >>to be sure that i2c is enabled, before performing IRQ handling and acce=
-ssing
-> >>I2C IP registers:
-> >>	if (pm_runtime_suspended(dev->dev)) {
-> >>		WARN_ONCE(true, "We should never be here!\n");
-> >>		return IRQ_NONE;
-> >>	}
-> >>
-> >>Produce warning in case if ISR called when i2c is disabled
-> >>
-> >>CC: Kevin Hilman <khilman@linaro.org>
-> >>Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> >>---
-> >>  drivers/i2c/busses/i2c-omap.c |   10 ++++++++++
-> >>  1 file changed, 10 insertions(+)
-> >>
-> >>diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-oma=
-p.c
-> >>index 97844ff..2dac598 100644
-> >>--- a/drivers/i2c/busses/i2c-omap.c
-> >>+++ b/drivers/i2c/busses/i2c-omap.c
-> >>@@ -885,6 +885,11 @@ omap_i2c_isr(int irq, void *dev_id)
-> >>  	u16 stat;
-> >>  	spin_lock(&dev->lock);
-> >>+	if (pm_runtime_suspended(dev->dev)) {
-> >>+		WARN_ONCE(true, "We should never be here!\n");
-> >>+		return IRQ_NONE;
-> >>+	}
-> >returning IRQ_NONE is not what you want to do in this case. You want to
-> >setup a flag so that your runtime_resume() knows that there are pending
-> >events to be handled and you handle those in runtime_resume time.
-> I don't want to handle this IRQ - we should never be here.
-> Will be changed to  IRQ_HANDLED.
-
-blindly returning IRQ_HANDLED won't do you any good either. Your line
-will be re-enabled anyway and you'll get another IRQ even being fired.
-
-If you have found a bug in the driver, fix it, don't try to mask it.
-
-> >But to be frank, I don't see how this can trigger since we're calling
-> >pm_runtime_get_sync() from omap_i2c_xfer() which means by the time
-> >pm_runtime_get_sync() returns, assuming no errors, i2c module should be
-> >fully resumed and ready to go. Perhaps you have found a bug somewhere
-> >else ?
-> May be it's better to revert this patch:
-> e3a36b207f76364c281aeecaf14c1b22a7247278
-> i2c: omap: remove unnecessary pm_runtime_suspended check
+> >On Fri, Jun 07, 2013 at 09:46:06PM +0300, Grygorii Strashko wrote:
+> >>ARDY|NACK and ARDY|AL are set together in OMAP_I2C_STAT_REG, which will=
+ be
+> >Have you seen that happen ever ? AL is Arbitration Lost, we never put
+> >OMAP in a multi-master environment before.
+> This is an example from real life:
+> [    0.271942] omap_i2c omap_i2c.1: bus 1 rev2.4.0 at 400 kHz
+> [    1.283416] omap_i2c omap_i2c.1: timeout waiting for bus ready
+> [    1.300109] OMAP_I2C DEBUG: stat=3D1001
+> [    1.300140] omap_i2c omap_i2c.1: Arbitration lost
+> [    1.300140] OMAP_I2C DEBUG: IE=3D601F
+> [    1.300140] OMAP_I2C DEBUG: STAT=3D1000
+> [    1.300170] OMAP_I2C DEBUG: IV=3D636F
+> [    1.300170] OMAP_I2C DEBUG: WE=3D636F
+> [    1.300170] OMAP_I2C DEBUG: SYSS=3D1
+> [    1.300170] OMAP_I2C DEBUG: BUF=3D707
+> [    1.300201] OMAP_I2C DEBUG: CNT=3D1
+> [    1.300201] OMAP_I2C DEBUG: DATA=3D1
+> [    1.300201] OMAP_I2C DEBUG: SYSC=3D215
+> [    1.300201] OMAP_I2C DEBUG: CON=3D8200
+> [    1.300231] OMAP_I2C DEBUG: OA=3D0
+> [    1.300231] OMAP_I2C DEBUG: SA=3D49
+> [    1.300231] OMAP_I2C DEBUG: PSC=3D9
+> [    1.300262] OMAP_I2C DEBUG: SCLL=3D9
+> [    1.300262] OMAP_I2C DEBUG: SCLH=3D3
+> [    1.300262] OMAP_I2C DEBUG: SYSTEST=3D1E0
+> [    1.300262] OMAP_I2C DEBUG: BUFSTAT=3D4000
 >=20
-> which doesn't cover case when transfer is *finished*.
+> and my headache now :..(
 
-what happens when transfer is finished ? After we come out of the loop
-in omap_i2c_xfer() we will mark last busy and
-pm_runtime_put_autosuspend()
+have you looked for erratas around that ? Maybe you just found a silicon
+issue. Why is AL bit being set ? Have you tried to reach the IP owner ?
 
- 633 static int
- 634 omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
- 635 {
- 636         struct omap_i2c_dev *dev =3D i2c_get_adapdata(adap);
- 637         int i;
- 638         int r;
- 639=20
- 640         r =3D pm_runtime_get_sync(dev->dev);
- 641         if (IS_ERR_VALUE(r))
- 642                 goto out;
- 643=20
- 644         r =3D omap_i2c_wait_for_bb(dev);
- 645         if (r < 0)
- 646                 goto out;
- 647=20
- 648         if (dev->set_mpu_wkup_lat !=3D NULL)
- 649                 dev->set_mpu_wkup_lat(dev->dev, dev->latency);
- 650=20
- 651         for (i =3D 0; i < num; i++) {
- 652                 r =3D omap_i2c_xfer_msg(adap, &msgs[i], (i =3D=3D (num=
- - 1)));
- 653                 if (r !=3D 0)
- 654                         break;
- 655         }
- 656=20
- 657         if (r =3D=3D 0)
- 658                 r =3D num;
- 659=20
- 660         omap_i2c_wait_for_bb(dev);
- 661=20
- 662         if (dev->set_mpu_wkup_lat !=3D NULL)
- 663                 dev->set_mpu_wkup_lat(dev->dev, -1);
- 664=20
- 665 out:
- 666         pm_runtime_mark_last_busy(dev->dev);
- 667         pm_runtime_put_autosuspend(dev->dev);
- 668         return r;
- 669 }
+If there are no other I2C masters in the system, there will be no
+arbitration, hence we would never loose the arbitration.
 
-When that timer expires, we will mask the controller's IRQs on our
-->runtime_suspend().
+> >ARDY | NACK I also find it a bit hard for those two to happen together
+> >since ARDY will be set when you can change controller's register
+> >*again*, mening that a transfer has completed.
+> There are examples:
+> [    3.544952] omap_i2c 48060000.i2c: IRQ (ISR =3D 0x0006)
+>=20
+> [   25.574523] omap_i2c 48350000.i2c: IRQ (ISR =3D 0x0014)
+> [   25.579925] omap_i2c 48350000.i2c: IRQ (ISR =3D 0x0012)
+>=20
+> to see it - enable debug output in omap_i2c_isr_thread:
+>         dev_dbg(dev->dev, "IRQ (ISR =3D 0x%04x)\n", stat);
 
-Now, if another IRQ comes before we ->runtime_suspend(), then we need to
-figure out what's generating that event, we don't want to be "fixing"
-what's not broken in this driver.
+then you need to figure out why that's happening, right ? What do you do
+to trigger that particular condition, have you looked in the wire to see
+if you find a real NACK or is the OMAP I2C controller misbehaving ?
 
-> Please, see https://patchwork.kernel.org/patch/2689211/ and
-> cover-latter.
-
-that patch is fine, but doesn't seem like has nothing to do with what
-you're talking about here.
-
-> >Also, your 'We should never be here' message isn't helpfull at all.
-
-nor is your explanation of the problem. It's not sufficient.
-
-I'm telling you that we should never reach this case because that's the
-assumption that the driver makes. It assumes that no IRQs will be fired
-unless a transfer is started and by the time that for loop ends, no
-transfer will be started.
-
-> >>@@ -905,6 +910,11 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
-> >>  	u16 stat;
-> >>  	int err =3D 0, count =3D 0;
-> >>+	if (pm_runtime_suspended(dev->dev)) {
-> >>+		WARN_ONCE(true, "We should never be here!\n");
-> >>+		return IRQ_NONE;
-> >>+	}
-> >because of IRQF_ONESHOT I can't see how this would *ever* be a valid
-> >check.
+> >Also, we need to follow what the programming model says. And, I don't
+> >have docs with me right now, but IIRC it tells us to bail out if any of
+> >the error conditions are met.
 > >
-> Please, see https://patchwork.kernel.org/patch/2689211/ and
-> cover-latter.
+> yep, but first of all - all IRQs need to be acked before exit.
 
-explain to me how would we get to this point, meaning the IRQ thread
-handler, with the device disabled.
+that's alright, then fix only that... OTOH, you don't want to ack a
+read while data is still sitting in the FIFO, data you haven't read out
+of the FIFO, I mean. Not sure if that could happen though.
 
 --=20
 balbi
 
---idY8LE8SD6/8DnRI
+--GV0iVqYguTV4Q9ER
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRwgjkAAoJEIaOsuA1yqREh4IP/0UsXFMEWqaKt8g7OEV92aC4
-MC0evJTGX7PC9Goxz7zNrb+pMS3gDaLIsDeKGqEuCbnrJ0G9CGapX67Zd00m9YnN
-ylNgwUa6Sb7z6GFcJw6c26ERMyHOPNWnXeCu2pibjaWapefneYi4YN5H5KEbg3/Z
-legcBZpwQmktQ9svv2so40+JxxiX0ar+0AImzNZgyXuCYqwS/2b5fGIwDPi2ebm4
-bUq545dazPLQ/T28AV+W8iTfV0WnJ0/anl9MzyI32pnGWKu3rKgYgs5lbn+g4a2Q
-R3EAIxXf0XX0MAEIXRPnREFFWv3sJF7Hm5G/e90QTcKaOk0cnrrihdAfnf+0kExT
-ndOuu8OYULaB4VRFag6XH7oXf4xzv2AvKIugAB4ArZv3yOXv7CJIbA799888BVu0
-lNjGceTcq6EWL2y8fV2Tg1/H9hgqrMSJ32oVqhu9FyiIl84Ur1cNYw62v5FDeqqG
-NdBrACVt55h4s+yg2TJqqYvKKaXihCt2o4NLAz8ZvVyUQafz8xBLCQkASvTC9Npx
-1xP6BT7hE+pFozVtWcIAvQMmYB574BPJqAAlmrgLgxxfNUwpMUgsB+Yd0SMCD+4D
-6PoYvEPHp0EMuHzkiJxrA4gibpbtWuguxYVKf9NR+hxMd2B3TAicPf26K6a0Tasw
-9Pu34fsg6sxycRJn8l6P
-=Y3h1
+iQIcBAEBAgAGBQJRwgoOAAoJEIaOsuA1yqREHy0P/3p6Rau2fPlfSbINn3EBc9hr
+OY4e7n10+BBSkHyxbMR+/HktmXAB9pyaNZsnOvq4c/G+CFYOH3h0iNOMiyyZBpJt
+AmKfbDCHoZM36vT5RdJNd5+8TnW7iktSQPCH0YbGXC8eP6MFic9alBWktpGuefw+
+NgX0n55nE8NLBui2amn+DLw/LLoyLLpi+yMrMZWyszwzCifMQIoc8darJWd+GpSd
+ZL0jDQeZX4b/hi3kM1zGGRdh+3Nn2zomvfcMk1Z2YgwQK3cs0OL7dQiDllCR2iJG
+v65mIrpvkZ+i7NpWBMoo2RKlfimLErClfSdQaU1TI0fQ0d2hSvhlKEZ33IuK5KVE
+QCe0hXvgZ4hPD4Bg71Sg0kiMSpIjNrhPXBBYyd0ai5GyDnnyFFIOzG9mtQbGPY8N
+N3MLTTGNMHW5FUMNq0zpmeql1dJ+oMe7eyCArWOpsvqekLDuOMjJkf4P5guVIKrO
+GV8VC5lpPvWF+mhlkrVgyI0isOV1ToxDjAShj+Fs6HQq4OCfZ3XHvAafrLTyfkVJ
+hPWDzkqFy8Z4A3kLiFGkw+GHUQlfJAEXgoWpdz5SrEM3uoVHHcM9ZPAVSfbMM6qN
+N1ARmNyAO53b0jButudBzSJuRz1CJmuQrFoW3yiQf40NdW0z+1pu8qhaEuJDd+UJ
+dgraehmw2829flCJNZEM
+=1MXA
 -----END PGP SIGNATURE-----
 
---idY8LE8SD6/8DnRI--
+--GV0iVqYguTV4Q9ER--
