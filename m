@@ -1,34 +1,55 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 1/2] musb: musb: dsps: support multiple instances
-Date: Wed, 19 Jun 2013 19:27:22 +0200
-Message-ID: <51C1E9FA.2010002@linutronix.de>
-References: <1371482014-5244-1-git-send-email-bigeasy@linutronix.de> <1371482014-5244-2-git-send-email-bigeasy@linutronix.de> <20130618082725.GG5461@arwen.pp.htv.fi>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [RFC PATCH 6/6] ARM: OMAP3: Enable Hardware Save and Restore
+ for USB Host
+Date: Wed, 19 Jun 2013 21:30:01 +0400
+Message-ID: <51C1EA99.2020401@cogentembedded.com>
+References: <1371650753-11452-1-git-send-email-rogerq@ti.com> <1371650753-11452-7-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:56434 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934756Ab3FSR1Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 13:27:25 -0400
-In-Reply-To: <20130618082725.GG5461@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1371650753-11452-7-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: stern@rowland.harvard.edu, tony@atomide.com, balbi@ti.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
-On 06/18/2013 10:27 AM, Felipe Balbi wrote:
->> --- a/arch/arm/boot/dts/am33xx.dtsi +++
->> b/arch/arm/boot/dts/am33xx.dtsi @@ -341,6 +341,14 @@ port1-mode =
->> <3>; power = <250>; ti,hwmods = "usb_otg_hs"; +			phys =
->> <&nopphy0 &nopphy1>; +		}; + +		nopphy0: usbphy@0 { +
->> compatible = "usb-nop-xceiv"; +		}; +		nopphy1: usbphy@1 { +
->> compatible = "usb-nop-xceiv"; };
->> 
->> mac: ethernet@4a100000 {
+Hello.
 
-Any opinion on those phy nodes? Is it likely that we need a real phy
-driver here and also expose a little more information like the memory
-register or reset / vcc supply?
+On 06/19/2013 06:05 PM, Roger Quadros wrote:
 
-Sebastian
+> To ensure hardware context is restored while resuming from
+> OFF mode we need to enable the Hardware SAR bit for the
+> USB Host power domain.
+
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>   arch/arm/mach-omap2/powerdomains3xxx_data.c |    8 +-------
+>   1 files changed, 1 insertions(+), 7 deletions(-)
+
+> diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+> index f0e14e9..9554d2b 100644
+> --- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
+> +++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+> @@ -289,13 +289,7 @@ static struct powerdomain usbhost_pwrdm = {
+>   	.prcm_offs	  = OMAP3430ES2_USBHOST_MOD,
+>   	.pwrsts		  = PWRSTS_OFF_RET_ON,
+>   	.pwrsts_logic_ret = PWRSTS_RET,
+> -	/*
+> -	 * REVISIT: Enabling usb host save and restore mechanism seems to
+> -	 * leave the usb host domain permanently in ACTIVE mode after
+> -	 * changing the usb host power domain state from OFF to active once.
+> -	 * Disabling for now.
+> -	 */
+> -	/*.flags	  = PWRDM_HAS_HDWR_SAR,*/ /* for USBHOST ctrlr only */
+> +	.flags	  = PWRDM_HAS_HDWR_SAR, /* for USBHOST ctrlr only */
+
+    Looks like you're not indenting = right, in accordance to the other 
+fields...
+
+>   	.banks		  = 1,
+>   	.pwrsts_mem_ret	  = {
+>   		[0] = PWRSTS_RET, /* MEMRETSTATE */
+>
+
+WBR, Sergei
