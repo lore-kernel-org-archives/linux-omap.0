@@ -1,83 +1,41 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [RFC] i2c: add deprecation warning for class based instantiation
-Date: Wed, 19 Jun 2013 21:22:00 +0300
-Message-ID: <51C1F6C8.30302@ti.com>
-References: <20130607090623.GC3428@katana> <1370596166-12404-1-git-send-email-wsa@the-dreams.de>
+Subject: [RFC 1/2] i2c: omap: drop class based instantiation of slaves
+Date: Wed, 19 Jun 2013 21:22:11 +0300
+Message-ID: <1371666132-29655-1-git-send-email-grygorii.strashko@ti.com>
+References: <1370596166-12404-1-git-send-email-wsa@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1370596166-12404-1-git-send-email-wsa@the-dreams.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 06/07/2013 12:09 PM, Wolfram Sang wrote:
-> Class based instantiation can cause huge delays when booting. This
-> mechanism was used when it was not possible to describe slaves on I2C
-> busses. We now have other mechanisms, so most embedded I2C will not need
-> classes and it was explicitly not recommended to use them. Add a
-> deprecation warning for drivers who want to disable class based in the
-> near future to gain boot-up time, so users relying on this technique can
-> switch to something better. They really should.
->
-> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
-> ---
->   drivers/i2c/busses/i2c-omap.c |    2 +-
->   drivers/i2c/i2c-core.c        |    6 ++++++
->   include/linux/i2c.h           |    1 +
->   3 files changed, 8 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index e02f9e3..f06109f 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -1231,7 +1231,7 @@ omap_i2c_probe(struct platform_device *pdev)
->   	adap = &dev->adapter;
->   	i2c_set_adapdata(adap, dev);
->   	adap->owner = THIS_MODULE;
-> -	adap->class = I2C_CLASS_HWMON;
-> +	adap->class = I2C_CLASS_HWMON | I2C_CLASS_DEPRECATED;
->   	strlcpy(adap->name, "OMAP I2C adapter", sizeof(adap->name));
->   	adap->algo = &omap_i2c_algo;
->   	adap->dev.parent = &pdev->dev;
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> index 48e31ed..47ea1f0 100644
-> --- a/drivers/i2c/i2c-core.c
-> +++ b/drivers/i2c/i2c-core.c
-> @@ -999,6 +999,12 @@ static int i2c_register_adapter(struct i2c_adapter *adap)
->   		return -EINVAL;
->   	}
->   
-> +	if (adap->class & I2C_CLASS_DEPRECATED)
-> +		dev_warn(&adap->dev, "This adapter will soon drop class based "
-> +			"instantiation of slaves\nPlease make sure all its I2C "
-> +			"devices are instantiated by other means.\nCheck "
-> +			"'Documentation/i2c/instantiating-devices' for details\n");
-> +
-Seems, this need to be moved down - after     res = 
-device_register(&adap->dev);
-- or - right before:     bus_for_each_drv(&i2c_bus_type, NULL, adap, 
-__process_new_adapter);
+Class based instantiation mechanism can cause huge delays when booting.
+For example: when CONFIG_SENSORS_LM75 option is enabled for omap4-sdp board -
+it introduces 5-6 ms boot delay.
+It's not recommended to use this mechanism with embedded I2C, so disable
+it by leaving I2C adapter "class" field undefined (remove I2C_CLASS_HWMON).
 
+CC: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ drivers/i2c/busses/i2c-omap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
->   	rt_mutex_init(&adap->bus_lock);
->   	mutex_init(&adap->userspace_clients_lock);
->   	INIT_LIST_HEAD(&adap->userspace_clients);
-> diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-> index e988fa9..ffab838 100644
-> --- a/include/linux/i2c.h
-> +++ b/include/linux/i2c.h
-> @@ -473,6 +473,7 @@ void i2c_unlock_adapter(struct i2c_adapter *);
->   #define I2C_CLASS_HWMON		(1<<0)	/* lm_sensors, ... */
->   #define I2C_CLASS_DDC		(1<<3)	/* DDC bus on graphics adapters */
->   #define I2C_CLASS_SPD		(1<<7)	/* Memory modules */
-> +#define I2C_CLASS_DEPRECATED	(1<<8)	/* Warn users that adapter will stop using classes */
->   
->   /* Internal numbers to terminate lists */
->   #define I2C_CLIENT_END		0xfffeU
-
-
-
-- grygorii
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index f06109f..ae2b27f 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1231,7 +1231,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	adap = &dev->adapter;
+ 	i2c_set_adapdata(adap, dev);
+ 	adap->owner = THIS_MODULE;
+-	adap->class = I2C_CLASS_HWMON | I2C_CLASS_DEPRECATED;
++	adap->class = I2C_CLASS_DEPRECATED;
+ 	strlcpy(adap->name, "OMAP I2C adapter", sizeof(adap->name));
+ 	adap->algo = &omap_i2c_algo;
+ 	adap->dev.parent = &pdev->dev;
+-- 
+1.7.9.5
