@@ -1,56 +1,124 @@
-From: Axel Lin <axel.lin@ingics.com>
-Subject: [PATCH] ARM: OMAP2: reboot: Include common.h to fix build error
-Date: Thu, 20 Jun 2013 01:46:41 +0800
-Message-ID: <1371664001.9848.1.camel@phoenix>
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 1/4] ARM: dts: omap4-panda: Add USB Host support
+Date: Wed, 19 Jun 2013 13:17:58 -0500
+Message-ID: <51C1F5D6.3040304@ti.com>
+References: <1371571487-14389-1-git-send-email-rogerq@ti.com>
+ <1371571487-14389-2-git-send-email-rogerq@ti.com> <51C106A1.9030001@ti.com>
+ <51C15F7E.5020305@ti.com> <20130619074605.GW5523@atomide.com>
+ <51C183AC.8040801@ti.com> <51C19011.5050107@ti.com>
+ <51C19E6C.4040802@epfl.ch> <51C1A2AE.2020506@ti.com>
+ <51C1BA8C.6000703@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:54882 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756708Ab3FSRqt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 13:46:49 -0400
-Received: by mail-pa0-f52.google.com with SMTP id kq13so5410720pab.11
-        for <linux-omap@vger.kernel.org>; Wed, 19 Jun 2013 10:46:49 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <51C1BA8C.6000703-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Robin Holt <holt@sgi.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Include common.h which will include linux/reboot.h to fix below build error.
+On 06/19/2013 09:05 AM, Roger Quadros wrote:
+> On 06/19/2013 03:23 PM, Benoit Cousson wrote:
+>> On 06/19/2013 07:05 AM, Florian Vaussard wrote:
+>>> Hello,
+>>>
+>>> On 06/19/2013 01:03 PM, Roger Quadros wrote:
+>>>> On 06/19/2013 01:10 PM, Benoit Cousson wrote:
+>>>>> On 06/19/2013 02:46 AM, Tony Lindgren wrote:
+>>>>>> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [130619 00:42]:
+>>>>>>> Hi Benoit,
+>>>>>>>
+>>>>>>> On 06/19/2013 04:17 AM, Benoit Cousson wrote:
+>>>>>>>> Hi Roger,
+>>>>>>>>
+>>>>>>>> On 06/18/2013 11:04 AM, Roger Quadros wrote:
+>>>>>>>>> Provide the RESET and Power regulators for the USB PHY,
+>>>>>>>>> the USB Host port mode and the PHY device.
+>>>>>>>>>
+>>>>>>>>> Also provide pin multiplexer information for the USB host
+>>>>>>>>> pins.
+>>>>>>>>>
+>>>>>>>>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>>>>>>>>> ---
+>>>>>>>>>      arch/arm/boot/dts/omap4-panda-common.dtsi |   62
+>>>>>>>>> +++++++++++++++++++++++++++++
+>>>>>>>>>      1 files changed, 62 insertions(+), 0 deletions(-)
+>>>>>>>>>
+>>>>>>>>> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi
+>>>>>>>>> b/arch/arm/boot/dts/omap4-panda-common.dtsi
+>>>>>>>>> index 00cbaa5..7a21e8e 100644
+>>>>>>>>> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
+>>>>>>>>> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+>>>>>>>>> @@ -59,6 +59,42 @@
+>>>>>>>>>                  "AFML", "Line In",
+>>>>>>>>>                  "AFMR", "Line In";
+>>>>>>>>>          };
+>>>>>>>>> +
+>>>>>>>>> +    /* HS USB Port 1 RESET */
+>>>>>>>>> +    hsusb1_reset: hsusb1_reset_reg {
+>>>>>>>>> +        compatible = "regulator-fixed";
+>>>>>>>>> +        regulator-name = "hsusb1_reset";
+>>>>>>>>> +        regulator-min-microvolt = <3300000>;
+>>>>>>>>> +        regulator-max-microvolt = <3300000>;
+>>>>>>>>> +        gpio = <&gpio2 30 0>;    /* gpio_62 */
+>>>>>>>>> +        startup-delay-us = <70000>;
+>>>>>>>>> +        enable-active-high;
+>>>>>>>>> +    };
+>>>>>>>>
+>>>>>>>> Is this really a regulator? Or just a GPIO line used to reset the
+>>>>>>>> USB PHY?
+>>>>>>>
+>>>>>>> It is in fact a GPIO line used as reset.
+>>>>>>>>
+>>>>>>>> If this is the case, I don't think it should be represented as a
+>>>>>>>> regulator.
+>>>>>>>
+>>>>>>> Why not? I think it fits very well in the regulator device model.
+>>>>>
+>>>>> I'm not sure fitting very well is the correct term.
+>>>>> It works, for sure, but it is no different than when we were trying
+>>>>> to abuse the regulator fmwk to enable the 32k clock in phoenix.
+>>>>> It is just a hack.
+>>>>>
+>>>>
+>>>> The only difference is there is a dedicated framework for clocks.
+>>>> Since there is nothing specific to
+>>>> handle reset lines it is left to the driver writer how he wants to
+>>>> manage it.
+>>>>
+>>>
+>>> There is a proposed binding for gpio-controlled reset lines, but it is
+>>> not yet merged [1].
+>>> I guess it can fit most usage patterns, and it can be an interesting
+>>> move in the future.
+>>
+>> I'm glad to see that I was not the only one thinking that the regulator was not the right fmwk to do that :-)
+>>
+>> Thanks for the pointer Florian.
+>
+> Thanks again Florian.
+>>
+>> I guess that series should be merged for 3.11? Based on the thread, it should to through arm-soc.
+>>
+>> Roger,
+>>
+>> It might be tricky to have dependency on that series, but if this is possible, you should try. Otherwise, just keep the existing one, adding that a new solution will be available soon as a disclaimer.
+>>
+>
+> I will rework the PHY driver to use the new gpio-reset driver. But for 3.11 let's proceed the way it is.
+> I'll resend this one with a disclaimer.
 
-  CC      arch/arm/mach-omap2/omap4-restart.o
-arch/arm/mach-omap2/omap4-restart.c:21:28: warning: 'enum reboot_mode' declared inside parameter list [enabled by default]
-arch/arm/mach-omap2/omap4-restart.c:21:28: warning: its scope is only this definition or declaration, which is probably not what you want [enabled by default]
-arch/arm/mach-omap2/omap4-restart.c:21:40: error: parameter 1 ('mode') has incomplete type
-arch/arm/mach-omap2/omap4-restart.c:21:6: warning: function declaration isn't a prototype [-Wstrict-prototypes]
-make[1]: *** [arch/arm/mach-omap2/omap4-restart.o] Error 1
-make: *** [arch/arm/mach-omap2] Error 2
+OK, sounds good.
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
-Seems this build error is introduced by commit 7507d035f3cf40c
-"reboot: arm: change reboot_mode to use enum reboot_mode"
-
-This patch is against linux-next 20130619.
-
- arch/arm/mach-omap2/omap4-restart.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/arch/arm/mach-omap2/omap4-restart.c b/arch/arm/mach-omap2/omap4-restart.c
-index 652adde..7306d9b 100644
---- a/arch/arm/mach-omap2/omap4-restart.c
-+++ b/arch/arm/mach-omap2/omap4-restart.c
-@@ -9,6 +9,7 @@
- 
- #include <linux/types.h>
- #include "prminst44xx.h"
-+#include "common.h"
- 
- /**
-  * omap44xx_restart - trigger a software restart of the SoC
--- 
-1.8.1.2
-
-
-
+Thanks,
+Benoit
