@@ -1,76 +1,314 @@
 From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
-Subject: [PATCH 2/2] ARM: dts: AM33XX: Add support for IGEP AQUILA EXPANSION board.
-Date: Wed, 19 Jun 2013 10:27:03 +0200
-Message-ID: <1371630423-2481-3-git-send-email-eballetbo@iseebcn.com>
+Subject: [PATCH 1/2] ARM: dts: AM33XX: Add support for IGEP COM AQUILA
+Date: Wed, 19 Jun 2013 10:27:02 +0200
+Message-ID: <1371630423-2481-2-git-send-email-eballetbo@iseebcn.com>
 References: <1371630423-2481-1-git-send-email-eballetbo@iseebcn.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:60134 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934052Ab3FSI1P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 04:27:15 -0400
-Received: by mail-wg0-f44.google.com with SMTP id m15so4202207wgh.11
-        for <linux-omap@vger.kernel.org>; Wed, 19 Jun 2013 01:27:14 -0700 (PDT)
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:45478 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933755Ab3FSI1O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 04:27:14 -0400
+Received: by mail-wi0-f169.google.com with SMTP id c10so420801wiw.0
+        for <linux-omap@vger.kernel.org>; Wed, 19 Jun 2013 01:27:13 -0700 (PDT)
 In-Reply-To: <1371630423-2481-1-git-send-email-eballetbo@iseebcn.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <martinez.javier@gmail.com>
 Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-The IGEP AQUILA EXPANSION board is a development platform for the IGEP COM
-AQUILA AM335x boards.
+The IGEP COM AQUILA is industrial processors SODIMM module with
+following highlights:
 
-The board adds the following connectivity:
-
-    o USB OTG
-    o USB HOST
-    o HDMI
-    o Ethernet
-    o Serial Debug (3.3V)
-    o 2x46 pin headers
-    o EEPROM
+   o AM3352/AM3354/AM3358/AM3359 Texas Instruments processor
+   o Cortex-A8 ARM CPU
+   o 3.3 volts Inputs / Outputs use industrial
+   o 256 MB DDR3 SDRAM / 128 Megabytes FLASH
+   o MicroSD card reader on-board
+   o Ethernet controller on-board
+   o JTAG debug connector available
+   o Designed for industrial range purposes
 
 Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 ---
- arch/arm/boot/dts/Makefile            |  1 +
- arch/arm/boot/dts/am335x-base0033.dts | 17 +++++++++++++++++
- 2 files changed, 18 insertions(+)
- create mode 100644 arch/arm/boot/dts/am335x-base0033.dts
+ arch/arm/boot/dts/am335x-igep0033.dtsi | 269 +++++++++++++++++++++++++++++++++
+ 1 file changed, 269 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-igep0033.dtsi
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index 8e50761..cb675d2 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -154,6 +154,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
- 	am335x-evm.dtb \
- 	am335x-evmsk.dtb \
- 	am335x-bone.dtb \
-+	am335x-base0033.dtb \
- 	am3517-evm.dtb \
- 	am3517_mt_ventoux.dtb
- dtb-$(CONFIG_ARCH_ORION5X) += orion5x-lacie-ethernet-disk-mini-v2.dtb
-diff --git a/arch/arm/boot/dts/am335x-base0033.dts b/arch/arm/boot/dts/am335x-base0033.dts
+diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/dts/am335x-igep0033.dtsi
 new file mode 100644
-index 0000000..a365f11
+index 0000000..1d70141
 --- /dev/null
-+++ b/arch/arm/boot/dts/am335x-base0033.dts
-@@ -0,0 +1,17 @@
++++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
+@@ -0,0 +1,269 @@
 +/*
 + * Copyright (C) 2013 ISEE 2007 SL - http://www.isee.biz/
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
-+ *
-+ * IGEP AQUILA Expansion Board.
-+ * 
 + */
 +
-+#include "am335x-igep0033.dtsi"
++/dts-v1/;
++
++#include "am33xx.dtsi"
 +
 +/ {
-+	model = "IGEP COM AM335x on AQUILA Expansion";
-+	compatible = "ti,am335x-base0033", "ti,am335x-igep0033", "ti,am33xx";
++	cpus {
++		cpu@0 {
++			cpu0-supply = <&vdd1_reg>;
++		};
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x10000000>; /* 256 MB */
++	};
++
++	am33xx_pinmux: pinmux@44e10800 {
++		pinctrl-names = "default";
++
++		i2c0_pins: pinmux_i2c0_pins {
++			pinctrl-single,pins = <
++				0x188 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
++				0x18c (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
++			>;
++		};
++
++		nandflash_pins: pinmux_nandflash_pins {
++			pinctrl-single,pins = <
++				0x0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */
++				0x4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad1.gpmc_ad1 */
++				0x8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad2.gpmc_ad2 */
++				0xc (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad3.gpmc_ad3 */
++				0x10 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad4.gpmc_ad4 */
++				0x14 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad5.gpmc_ad5 */
++				0x18 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad6.gpmc_ad6 */
++				0x1c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad7.gpmc_ad7 */
++				0x70 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_wait0.gpmc_wait0 */
++				0x74 (PIN_INPUT_PULLUP | MUX_MODE7)	/* gpmc_wpn.gpio0_30 */
++				0x7c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn0.gpmc_csn0  */
++				0x90 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_advn_ale.gpmc_advn_ale */
++				0x94 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_oen_ren.gpmc_oen_ren */
++				0x98 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_wen.gpmc_wen */
++				0x9c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_be0n_cle.gpmc_be0n_cle */
++			>;
++		};
++
++		uart0_pins: pinmux_uart0_pins {
++			pinctrl-single,pins = <
++				0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
++				0x174 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart0_txd.uart0_txd */
++			>;
++		};
++
++		user_leds: pinmux_user_leds_pins {
++			pinctrl-single,pins = <
++				0x5c (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a7.gpio1_23 */
++			>;
++		};
++ 
++	};
++
++	ocp {
++		uart0: serial@44e09000 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&uart0_pins>;
++			status = "okay";
++		};
++
++		i2c0: i2c@44e0b000 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&i2c0_pins>;
++
++			status = "okay";
++			clock-frequency = <400000>;
++
++			tps: tps@2d {
++				reg = <0x2d>;
++			};
++		};
++
++		elm: elm@48080000 {
++			status = "okay";
++		};
++
++		gpmc: gpmc@50000000 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&nandflash_pins>;
++
++			status = "okay";
++			ranges = <0 0 0x08000000 0x10000000>;	/* CS0: NAND */
++
++			nand@0,0 {
++				reg = <0 0 0>; /* CS0, offset 0 */
++				nand-bus-width = <8>;
++				ti,nand-ecc-opt = "bch8";
++				gpmc,device-nand = "true";
++				gpmc,device-width = <1>;
++				gpmc,sync-clk-ps = <0>;
++				gpmc,cs-on-ns = <0>;
++				gpmc,cs-rd-off-ns = <44>;
++				gpmc,cs-wr-off-ns = <44>;
++				gpmc,adv-on-ns = <6>;
++				gpmc,adv-rd-off-ns = <34>;
++				gpmc,adv-wr-off-ns = <44>;
++				gpmc,we-on-ns = <0>;
++				gpmc,we-off-ns = <40>;
++				gpmc,oe-on-ns = <0>;
++				gpmc,oe-off-ns = <54>;
++				gpmc,access-ns = <64>;
++				gpmc,rd-cycle-ns = <82>;
++				gpmc,wr-cycle-ns = <82>;
++				gpmc,wait-on-read = "true";
++				gpmc,wait-on-write = "true";
++				gpmc,bus-turnaround-ns = <0>;
++				gpmc,cycle2cycle-delay-ns = <0>;
++				gpmc,clk-activation-ns = <0>;
++				gpmc,wait-monitoring-ns = <0>;
++				gpmc,wr-access-ns = <40>;
++				gpmc,wr-data-mux-bus-ns = <0>;
++
++				#address-cells = <1>;
++				#size-cells = <1>;
++				elm_id = <&elm>;
++
++				/* MTD partition table */
++				partition@0 {
++					label = "SPL";
++					reg = <0x00000000 0x000080000>;
++				};
++
++				partition@1 {
++					label = "U-boot";
++					reg = <0x00080000 0x001e0000>;
++				};
++
++				partition@2 {
++					label = "U-Boot Env";
++					reg = <0x00260000 0x00020000>;
++				};
++
++				partition@3 {
++					label = "Kernel";
++					reg = <0x00280000 0x00500000>;
++				};
++
++				partition@4 {
++					label = "File System";
++					reg = <0x00780000 0x0F880000>;
++				};
++			};
++		};
++	};
++
++	leds {
++		pinctrl-names = "default";
++		pinctrl-0 = <&user_leds>;
++
++		compatible = "gpio-leds";
++
++		led@0 {
++			label = "com:green:user";
++			gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;
++			default-state = "on";
++		};
++	};
++
++
++	vbat: fixedregulator@0 {
++		compatible = "regulator-fixed";
++		regulator-name = "vbat";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		regulator-boot-on;
++	};
 +};
++
++#include "tps65910.dtsi"
++
++&tps {
++	vcc1-supply = <&vbat>;
++	vcc2-supply = <&vbat>;
++	vcc3-supply = <&vbat>;
++	vcc4-supply = <&vbat>;
++	vcc5-supply = <&vbat>;
++	vcc6-supply = <&vbat>;
++	vcc7-supply = <&vbat>;
++	vccio-supply = <&vbat>;
++
++	regulators {
++		vrtc_reg: regulator@0 {
++			regulator-always-on;
++		};
++
++		vio_reg: regulator@1 {
++			regulator-always-on;
++		};
++
++		vdd1_reg: regulator@2 {
++			/* VDD_MPU voltage limits 0.95V - 1.26V with +/-4% tolerance */
++			regulator-name = "vdd_mpu";
++			regulator-min-microvolt = <912500>;
++			regulator-max-microvolt = <1312500>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		vdd2_reg: regulator@3 {
++			/* VDD_CORE voltage limits 0.95V - 1.1V with +/-4% tolerance */
++			regulator-name = "vdd_core";
++			regulator-min-microvolt = <912500>;
++			regulator-max-microvolt = <1150000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		vdd3_reg: regulator@4 {
++			regulator-always-on;
++		};
++
++		vdig1_reg: regulator@5 {
++			regulator-always-on;
++		};
++
++		vdig2_reg: regulator@6 {
++			regulator-always-on;
++		};
++
++		vpll_reg: regulator@7 {
++			regulator-always-on;
++		};
++
++		vdac_reg: regulator@8 {
++			regulator-always-on;
++		};
++
++		vaux1_reg: regulator@9 {
++			regulator-always-on;
++		};
++
++		vaux2_reg: regulator@10 {
++			regulator-always-on;
++		};
++
++		vaux33_reg: regulator@11 {
++			regulator-always-on;
++		};
++
++		vmmc_reg: regulator@12 {
++			regulator-always-on;
++		};
++	};
++};
++
++&cpsw_emac0 {
++	phy_id = <&davinci_mdio>, <0>;
++};
++
++&cpsw_emac1 {
++	phy_id = <&davinci_mdio>, <1>;
++};
++
 -- 
 1.8.1.2
 
