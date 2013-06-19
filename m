@@ -1,327 +1,126 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 1/2] ARM: dts: AM33XX: Add support for IGEP COM AQUILA
-Date: Wed, 19 Jun 2013 05:46:06 -0500
-Message-ID: <51C18BEE.4020405@ti.com>
-References: <1371630423-2481-1-git-send-email-eballetbo@iseebcn.com> <1371630423-2481-2-git-send-email-eballetbo@iseebcn.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 1/4] ARM: dts: omap4-panda: Add USB Host support
+Date: Wed, 19 Jun 2013 14:03:45 +0300
+Message-ID: <51C19011.5050107@ti.com>
+References: <1371571487-14389-1-git-send-email-rogerq@ti.com>
+ <1371571487-14389-2-git-send-email-rogerq@ti.com> <51C106A1.9030001@ti.com>
+ <51C15F7E.5020305@ti.com> <20130619074605.GW5523@atomide.com>
+ <51C183AC.8040801@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46379 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933830Ab3FSKqh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Jun 2013 06:46:37 -0400
-In-Reply-To: <1371630423-2481-2-git-send-email-eballetbo@iseebcn.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51C183AC.8040801@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletbo i Serra <eballetbo@iseebcn.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <martinez.javier@gmail.com>
 
-Hi Enric,
+On 06/19/2013 01:10 PM, Benoit Cousson wrote:
+> On 06/19/2013 02:46 AM, Tony Lindgren wrote:
+>> * Roger Quadros <rogerq@ti.com> [130619 00:42]:
+>>> Hi Benoit,
+>>>
+>>> On 06/19/2013 04:17 AM, Benoit Cousson wrote:
+>>>> Hi Roger,
+>>>>
+>>>> On 06/18/2013 11:04 AM, Roger Quadros wrote:
+>>>>> Provide the RESET and Power regulators for the USB PHY,
+>>>>> the USB Host port mode and the PHY device.
+>>>>>
+>>>>> Also provide pin multiplexer information for the USB host
+>>>>> pins.
+>>>>>
+>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>>> ---
+>>>>>    arch/arm/boot/dts/omap4-panda-common.dtsi |   62 +++++++++++++++++++++++++++++
+>>>>>    1 files changed, 62 insertions(+), 0 deletions(-)
+>>>>>
+>>>>> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+>>>>> index 00cbaa5..7a21e8e 100644
+>>>>> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
+>>>>> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+>>>>> @@ -59,6 +59,42 @@
+>>>>>                "AFML", "Line In",
+>>>>>                "AFMR", "Line In";
+>>>>>        };
+>>>>> +
+>>>>> +    /* HS USB Port 1 RESET */
+>>>>> +    hsusb1_reset: hsusb1_reset_reg {
+>>>>> +        compatible = "regulator-fixed";
+>>>>> +        regulator-name = "hsusb1_reset";
+>>>>> +        regulator-min-microvolt = <3300000>;
+>>>>> +        regulator-max-microvolt = <3300000>;
+>>>>> +        gpio = <&gpio2 30 0>;    /* gpio_62 */
+>>>>> +        startup-delay-us = <70000>;
+>>>>> +        enable-active-high;
+>>>>> +    };
+>>>>
+>>>> Is this really a regulator? Or just a GPIO line used to reset the USB PHY?
+>>>
+>>> It is in fact a GPIO line used as reset.
+>>>>
+>>>> If this is the case, I don't think it should be represented as a regulator.
+>>>
+>>> Why not? I think it fits very well in the regulator device model.
+> 
+> I'm not sure fitting very well is the correct term.
+> It works, for sure, but it is no different than when we were trying to abuse the regulator fmwk to enable the 32k clock in phoenix.
+> It is just a hack.
+> 
 
-On 06/19/2013 03:27 AM, Enric Balletbo i Serra wrote:
-> The IGEP COM AQUILA is industrial processors SODIMM module with
-> following highlights:
->
->     o AM3352/AM3354/AM3358/AM3359 Texas Instruments processor
->     o Cortex-A8 ARM CPU
->     o 3.3 volts Inputs / Outputs use industrial
->     o 256 MB DDR3 SDRAM / 128 Megabytes FLASH
->     o MicroSD card reader on-board
->     o Ethernet controller on-board
->     o JTAG debug connector available
->     o Designed for industrial range purposes
->
-> Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
-> ---
->   arch/arm/boot/dts/am335x-igep0033.dtsi | 269 +++++++++++++++++++++++++++++++++
->   1 file changed, 269 insertions(+)
->   create mode 100644 arch/arm/boot/dts/am335x-igep0033.dtsi
->
-> diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/dts/am335x-igep0033.dtsi
-> new file mode 100644
-> index 0000000..1d70141
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
-> @@ -0,0 +1,269 @@
-> +/*
-> + * Copyright (C) 2013 ISEE 2007 SL - http://www.isee.biz/
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +/dts-v1/;
-> +
-> +#include "am33xx.dtsi"
-> +
-> +/ {
-> +	cpus {
-> +		cpu@0 {
-> +			cpu0-supply = <&vdd1_reg>;
-> +		};
-> +	};
-> +
-> +	memory {
-> +		device_type = "memory";
-> +		reg = <0x80000000 0x10000000>; /* 256 MB */
-> +	};
-> +
-> +	am33xx_pinmux: pinmux@44e10800 {
+The only difference is there is a dedicated framework for clocks. Since there is nothing specific to
+handle reset lines it is left to the driver writer how he wants to manage it.
 
-That node should be inside the ocp one since the control module is a 
-regular IP connected to the OCP interconnect.
+>>> I couldn't find a better
+>>> way to represent this. It gives us a way to specify not only the GPIO line but also
+>>> the polarity. I know mostly reset is active low but still there is flexibility as you never
+>>> know for sure.
+> 
+> Mmm, and what about just controlling the gpio from the driver?
 
+Yes gpio is possible. But then you need to add additional code in the driver to parse GPIO number and polarity.
+Using regulator_get() was plain simple for me.
 
-> +		pinctrl-names = "default";
-> +
-> +		i2c0_pins: pinmux_i2c0_pins {
-> +			pinctrl-single,pins = <
-> +				0x188 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
-> +				0x18c (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
-> +			>;
-> +		};
-> +
-> +		nandflash_pins: pinmux_nandflash_pins {
-> +			pinctrl-single,pins = <
-> +				0x0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */
-> +				0x4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad1.gpmc_ad1 */
-> +				0x8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad2.gpmc_ad2 */
-> +				0xc (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad3.gpmc_ad3 */
-> +				0x10 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad4.gpmc_ad4 */
-> +				0x14 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad5.gpmc_ad5 */
-> +				0x18 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad6.gpmc_ad6 */
-> +				0x1c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad7.gpmc_ad7 */
-> +				0x70 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_wait0.gpmc_wait0 */
-> +				0x74 (PIN_INPUT_PULLUP | MUX_MODE7)	/* gpmc_wpn.gpio0_30 */
-> +				0x7c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn0.gpmc_csn0  */
-> +				0x90 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_advn_ale.gpmc_advn_ale */
-> +				0x94 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_oen_ren.gpmc_oen_ren */
-> +				0x98 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_wen.gpmc_wen */
-> +				0x9c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_be0n_cle.gpmc_be0n_cle */
-> +			>;
-> +		};
-> +
-> +		uart0_pins: pinmux_uart0_pins {
-> +			pinctrl-single,pins = <
-> +				0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
-> +				0x174 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart0_txd.uart0_txd */
-> +			>;
-> +		};
-> +
-> +		user_leds: pinmux_user_leds_pins {
-> +			pinctrl-single,pins = <
-> +				0x5c (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a7.gpio1_23 */
-> +			>;
-> +		};
-> +
-> +	};
-> +
-> +	ocp {
-> +		uart0: serial@44e09000 {
-> +			pinctrl-names = "default";
-> +			pinctrl-0 = <&uart0_pins>;
-> +			status = "okay";
-> +		};
-> +
-> +		i2c0: i2c@44e0b000 {
-> +			pinctrl-names = "default";
-> +			pinctrl-0 = <&i2c0_pins>;
-> +
-> +			status = "okay";
-> +			clock-frequency = <400000>;
-> +
-> +			tps: tps@2d {
-> +				reg = <0x2d>;
-> +			};
-> +		};
-> +
-> +		elm: elm@48080000 {
-> +			status = "okay";
-> +		};
-> +
-> +		gpmc: gpmc@50000000 {
-> +			pinctrl-names = "default";
-> +			pinctrl-0 = <&nandflash_pins>;
-> +
-> +			status = "okay";
-> +			ranges = <0 0 0x08000000 0x10000000>;	/* CS0: NAND */
-> +
-> +			nand@0,0 {
-> +				reg = <0 0 0>; /* CS0, offset 0 */
-> +				nand-bus-width = <8>;
-> +				ti,nand-ecc-opt = "bch8";
-> +				gpmc,device-nand = "true";
-> +				gpmc,device-width = <1>;
-> +				gpmc,sync-clk-ps = <0>;
-> +				gpmc,cs-on-ns = <0>;
-> +				gpmc,cs-rd-off-ns = <44>;
-> +				gpmc,cs-wr-off-ns = <44>;
-> +				gpmc,adv-on-ns = <6>;
-> +				gpmc,adv-rd-off-ns = <34>;
-> +				gpmc,adv-wr-off-ns = <44>;
-> +				gpmc,we-on-ns = <0>;
-> +				gpmc,we-off-ns = <40>;
-> +				gpmc,oe-on-ns = <0>;
-> +				gpmc,oe-off-ns = <54>;
-> +				gpmc,access-ns = <64>;
-> +				gpmc,rd-cycle-ns = <82>;
-> +				gpmc,wr-cycle-ns = <82>;
-> +				gpmc,wait-on-read = "true";
-> +				gpmc,wait-on-write = "true";
-> +				gpmc,bus-turnaround-ns = <0>;
-> +				gpmc,cycle2cycle-delay-ns = <0>;
-> +				gpmc,clk-activation-ns = <0>;
-> +				gpmc,wait-monitoring-ns = <0>;
-> +				gpmc,wr-access-ns = <40>;
-> +				gpmc,wr-data-mux-bus-ns = <0>;
-> +
-> +				#address-cells = <1>;
-> +				#size-cells = <1>;
-> +				elm_id = <&elm>;
-> +
-> +				/* MTD partition table */
-> +				partition@0 {
-> +					label = "SPL";
-> +					reg = <0x00000000 0x000080000>;
-> +				};
-> +
-> +				partition@1 {
-> +					label = "U-boot";
-> +					reg = <0x00080000 0x001e0000>;
-> +				};
-> +
-> +				partition@2 {
-> +					label = "U-Boot Env";
-> +					reg = <0x00260000 0x00020000>;
-> +				};
-> +
-> +				partition@3 {
-> +					label = "Kernel";
-> +					reg = <0x00280000 0x00500000>;
-> +				};
-> +
-> +				partition@4 {
-> +					label = "File System";
-> +					reg = <0x00780000 0x0F880000>;
-> +				};
-> +			};
-> +		};
-> +	};
-> +
-> +	leds {
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&user_leds>;
-> +
-> +		compatible = "gpio-leds";
-> +
-> +		led@0 {
-> +			label = "com:green:user";
-> +			gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;
-> +			default-state = "on";
-> +		};
-> +	};
-> +
-> +
-> +	vbat: fixedregulator@0 {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "vbat";
-> +		regulator-min-microvolt = <5000000>;
-> +		regulator-max-microvolt = <5000000>;
-> +		regulator-boot-on;
-> +	};
-> +};
-> +
-> +#include "tps65910.dtsi"
-> +
-> +&tps {
-> +	vcc1-supply = <&vbat>;
-> +	vcc2-supply = <&vbat>;
-> +	vcc3-supply = <&vbat>;
-> +	vcc4-supply = <&vbat>;
-> +	vcc5-supply = <&vbat>;
-> +	vcc6-supply = <&vbat>;
-> +	vcc7-supply = <&vbat>;
-> +	vccio-supply = <&vbat>;
-> +
-> +	regulators {
-> +		vrtc_reg: regulator@0 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vio_reg: regulator@1 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vdd1_reg: regulator@2 {
-> +			/* VDD_MPU voltage limits 0.95V - 1.26V with +/-4% tolerance */
-> +			regulator-name = "vdd_mpu";
-> +			regulator-min-microvolt = <912500>;
-> +			regulator-max-microvolt = <1312500>;
-> +			regulator-boot-on;
-> +			regulator-always-on;
-> +		};
-> +
-> +		vdd2_reg: regulator@3 {
-> +			/* VDD_CORE voltage limits 0.95V - 1.1V with +/-4% tolerance */
-> +			regulator-name = "vdd_core";
-> +			regulator-min-microvolt = <912500>;
-> +			regulator-max-microvolt = <1150000>;
-> +			regulator-boot-on;
-> +			regulator-always-on;
-> +		};
-> +
-> +		vdd3_reg: regulator@4 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vdig1_reg: regulator@5 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vdig2_reg: regulator@6 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vpll_reg: regulator@7 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vdac_reg: regulator@8 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vaux1_reg: regulator@9 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vaux2_reg: regulator@10 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vaux33_reg: regulator@11 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vmmc_reg: regulator@12 {
-> +			regulator-always-on;
-> +		};
-> +	};
-> +};
-> +
-> +&cpsw_emac0 {
-> +	phy_id = <&davinci_mdio>, <0>;
-> +};
-> +
-> +&cpsw_emac1 {
-> +	phy_id = <&davinci_mdio>, <1>;
-> +};
-> +
->
+> 
+>> I think it's really a mux + a comparator. But from Linux driver point of view
+>> a regulator fits well as we don't have anything better. After all, the pin
+>> voltage changes, and then something can be done based on the comparator
+>> value.
+>>
+>>> Do you have any better ideas?
+>>
+>> We have a similar issue with the MMC1 PBIAS. I think in the long run we
+>> should expand regulator (and possibly pinctrl) framework(s) to handle
+>> comparators. We could just assume that a comparatator is a regulator,
+>> and have a comparator binding that just uses the regulator code.
+> 
+> In the case of pbias, the pinctrl seems to be a much better fit for my point of view. pinctrl can handle pin configuration and this is what the pbias is in the case of MMC pins.
+> 
+>>> FYI. The USB PHY driver is already treating reset as a regulator and is into 3.10. Reworking that
+>>> will take some time. Not getting these in will prevent USB host/ethernet support on panda.
+> 
+> That's not because we did some mistake in the past that we have to keep doing that :-)
+> 
 
+I had actually thought it well and don't consider it as a mistake. It is just a difference in opinion.
 
-Otherwise, it looks good.
+>> Yes and we need to have some solution for v3.11 as we've dropped the
+>> legacy data for omap4. Otherwise things won't work properly.
+> 
+> I'm fine taking it as soon as big disclaimer is added to avoid mis-using the regulator in the future for controlling a gpio line.
+> 
 
-Thanks,
-Benoit
+I can re-work the phy driver. No problem. But I'm still not convinced
+what it will improve. IMHO it just adds more code in the phy driver without any benefits.
+
+cheers,
+-roger
