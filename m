@@ -1,83 +1,85 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/6] ARM: OMAP2+: Remove board-omap4panda.c
-Date: Wed, 19 Jun 2013 02:58:37 -0700
-Message-ID: <20130619095837.GY5523@atomide.com>
-References: <51B99B07.1050806@ti.com>
- <CACVXFVN3=hzWJEwHN5TXRoJ4mvVRVR+3=Tasw+gvLH3vsNHwUg@mail.gmail.com>
- <CACVXFVNzAMrkhrAMAmQ7ZdJdby2O4VdoD8BVHRF-O=rPKQMqbw@mail.gmail.com>
- <51BEBDCD.3060104@ti.com>
- <87ppvlqhyy.fsf@lebrac.rtp-net.org>
- <20130617082458.GH20992@atomide.com>
- <87li69qdcs.fsf@lebrac.rtp-net.org>
- <20130617102650.GK20992@atomide.com>
- <20130618112701.GO5523@atomide.com>
- <8761xaqvrn.fsf@lebrac.rtp-net.org>
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [PATCH v5] i2c: omap: correct usage of the interrupt enable
+ register
+Date: Wed, 19 Jun 2013 12:05:09 +0200
+Message-ID: <20130619100509.GD2950@katana>
+References: <1370245040-14753-1-git-send-email-oleksandr.dmytryshyn@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:29043 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933873Ab3FSJ6m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 05:58:42 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="wLAMOaPNJ0fu1fTG"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <8761xaqvrn.fsf@lebrac.rtp-net.org>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1370245040-14753-1-git-send-email-oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnaud Patard <arnaud.patard@rtp-net.org>
-Cc: Sricharan R <r.sricharan@ti.com>, Ming Lei <tom.leiming@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>
 
-* Arnaud Patard <arnaud.patard@rtp-net.org> [130619 02:52]:
-> Tony Lindgren <tony@atomide.com> writes:
-> 
-> Hi,
-> 
-> > * Tony Lindgren <tony@atomide.com> [130617 03:32]:
-> >> * Arnaud Patard <arnaud.patard@rtp-net.org> [130617 02:52]:
-> >> > Tony Lindgren <tony@atomide.com> writes:
-> >> > 
-> >> > I understand your concerns but, please, cope with reality: the clock
-> >> > work is not in -next so this tends to make me think it won't reach
-> >> > 3.11. We're at -rc6 after all. Telling users that their system doesn't
-> >> > have any network because it was easier to maintain, is not something
-> >> > they will understand imho.
-> >> 
-> >> Right, like I said: the idea is to have it usable with DT. And USB and
-> >> Ethernet certainly are part of what I call usable. So is MMC, WLAN and
-> >> DSS. I've certainly spent quite a bit of time on making sure panda works
-> >> with DT, and I can assure you that fixing the USB extclock is easier than
-> >> supporting the legacy boot with DT :)
-> >> 
-> >> This issue can also be fixed with a clock alias if we don't have DT
-> >> defined clocks ready for v3.11. It may take a few days for us to have
-> >> the solution. But get getting a clock to a driver certainly is not a
-> >> showstopper here. After all, that's what all drivers already do.
-> >
-> > Care to test the last patch just posted by Roger in thread
-> > " [PATCH 0/4] ARM: OMAP4: Panda USB Host support and DVI EDID fix"?
-> 
-> I tried to test them but they don't apply on linux-next due to some
-> pinctrl changes probably missing:
-> Error: arch/arm/boot/dts/omap4-panda-common.dtsi:177.14-15 syntax error
-> 
-> which corresponds to :
-> 0x82 (PIN_INPUT_PULLDOWN | MUX_MODE4)
 
-Oops, right, that's in Benoit's branch too for the .dts preprocessing.
-Until it is merged, maybe try with Roger's earlier version of that patch
-that did not yet use the macros?
- 
-> Also, the patch 3 (ARM: dts: omap5-uevm: Provide USB Host PHY clock)
-> doesn't apply as the omap5-uevm.dts doesn't exist.
+--wLAMOaPNJ0fu1fTG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-OK that's in Benoit's branch. But you won't need that one.
- 
-> Which tree should I use to test the patches if it's not linux-next ?
-> 
-> Also, you might want to know that drivers/usb/musb/omap2430.c doesn't
-> build due to some typos (musb_resources vs musb_resouces).
+On Mon, Jun 03, 2013 at 10:37:20AM +0300, Oleksandr Dmytryshyn wrote:
+> We've been lucky not to have any interrupts fire during the suspend
+> path, otherwise we would have unpredictable behaviour in the kernel.
+>=20
+> Based on the logic of the kernel code interrupts from i2c should be
+> prohibited during suspend. Kernel writes 0 to the I2C_IE register in
+> the omap_i2c_runtime_suspend() function. In the other side kernel
+> writes saved interrupt flags to the I2C_IE register in
+> omap_i2c_runtime_resume() function. I.e. interrupts should be disabled
+> during suspend.
+>=20
+> This works for chips with version1 registers scheme. Interrupts are
+> disabled during suspend. For chips with version2 scheme registers
+> writting 0 to the I2C_IE register does nothing (because now the
+> I2C_IRQENABLE_SET register is located at this address). This register
+> is used to enable interrupts. For disabling interrupts
+> I2C_IRQENABLE_CLR register should be used.
+>=20
+> Because the registers I2C_IRQENABLE_SET and I2C_IE have the same
+> addresses, the interrupt enabling procedure is unchanged.
+>=20
+> I've checked that interrupts in the i2c controller are still enabled
+> after writting 0 to the I2C_IRQENABLE_SET register. With this patch
+> interrupts are disabled in the omap_i2c_runtime_suspend() function.
+>=20
+> Patch is based on:
+> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+> tag: v3.10-rc2
 
-Thanks, I think Felipe is already aware of that. 
+Last paragraph should be below "---".
 
-Regards,
+>=20
+> Verified on OMAP4430.
+>=20
+> Signed-off-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn-l0cyMroinI0@public.gmane.org>
 
-Tony
+Applied to for-next, thanks!
+
+
+--wLAMOaPNJ0fu1fTG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRwYJUAAoJEBQN5MwUoCm2j4AP/1F5wnUamC3jUqG125RbwgIh
+zT2GN9bn/zV1QfLjLfECgfbhTXxtyjg9QQk+4Cl+EzaEAgRO6zYh/HmCHLNdCl7k
+7pcF6XLJQ4GSyCRlPUn8nvdk1/hRZnQRXSUbBMx8bhEaSgqSmARJxwlVAmn/HVJv
+1cPaT+WAIw/zYBWx4LtTvcimDO5K24gQMpn7GD7Ptjf3YqHzKhA/2QDVmmK6e6aC
+BI7QIj69FqfljcAPvxT3Gis/2Ph/wyamrN1SSdlmZ3U6A0Ag8A0A37pizYHETg14
+XHIJjiK5O/IIzuKlxZ/FD5Bg+hRY65NXjL08QmTbM3TYJH/WLzZ6zh7WMh4J5rtv
+KXqM1nM0r/BKpUF16jPu2Q14gU6nhnq8Ad3NupTX2o1RPPmF+mwaKKVYfOCXJSqj
+XsaJFuRvtBV10Oa2ta1ID1PZHL3yepfUbRxdDHw8ZcxMVlsQLzHEsFImo0Mkghc0
+EZNs2JIYy4tk+eIFtadntCYj43mufA9FSN/b8pWrcxWJQJl80tHIy4wdhfykUpPW
+CfjZCwsFCYb/FXaDvw0ddodjJUTDhLVEEGfO4i/KdwAJzdM1tpC17Y5aGoLn7Sjd
+zzaAQpaHkJQXaA596oEEAl98mPhsmWB/m5ohZ9rEEubOv6CE9b7xci7IpGSt/u2C
+0V7X0DGAqSpp7eF+2OqX
+=Y/pC
+-----END PGP SIGNATURE-----
+
+--wLAMOaPNJ0fu1fTG--
