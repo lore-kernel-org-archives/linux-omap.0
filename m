@@ -1,35 +1,109 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC PATCH 0/6] Suspend USB Host controller on bus suspend
-Date: Wed, 19 Jun 2013 11:23:39 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1306191121280.2026-100000@iolanthe.rowland.org>
-References: <1371650753-11452-1-git-send-email-rogerq@ti.com>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v7 1/9] drivers: phy: add generic PHY framework
+Date: Wed, 19 Jun 2013 17:49:33 +0200
+Message-ID: <51C1D30D.1050907@samsung.com>
+References: <1371113039-5784-1-git-send-email-kishon@ti.com>
+ <1371113039-5784-2-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1371650753-11452-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, balbi@ti.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-reply-to: <1371113039-5784-2-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: grant.likely@linaro.org, tony@atomide.com, balbi@ti.com, arnd@arndb.de, swarren@nvidia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, linux@arm.linux.org.uk, benoit.cousson@linaro.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, rnayak@ti.com, shawn.guo@linaro.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 19 Jun 2013, Roger Quadros wrote:
+Hi,
 
-> Hi,
-> 
-> This series attempts to suspend the OMAP EHCI host controller on USB
-> Bus suspend.
+On 06/13/2013 10:43 AM, Kishon Vijay Abraham I wrote:
+> +/**
+> + * phy_create() - create a new phy
+> + * @dev: device that is creating the new phy
+> + * @id: id of the phy
+> + * @ops: function pointers for performing phy operations
+> + * @label: label given to the phy
+> + * @priv: private data from phy driver
+> + *
+> + * Called to create a phy using phy framework.
+> + */
+> +struct phy *phy_create(struct device *dev, u8 id, const struct phy_ops *ops,
+> +	const char *label, void *priv)
+> +{
+> +	int ret;
+> +	struct phy *phy;
+> +
+> +	if (!dev) {
+> +		dev_WARN(dev, "no device provided for PHY\n");
+> +		ret = -EINVAL;
+> +		goto err0;
+> +	}
+> +
+> +	phy = kzalloc(sizeof(*phy), GFP_KERNEL);
+> +	if (!phy) {
+> +		ret = -ENOMEM;
+> +		goto err0;
+> +	}
+> +
+> +	device_initialize(&phy->dev);
+> +
+> +	phy->dev.class = phy_class;
+> +	phy->dev.parent = dev;
+> +	phy->dev.of_node = dev->of_node;
+> +	phy->id = id;
+> +	phy->ops = ops;
+> +	phy->label = label;
 
-Why do you want to suspend the host controller during bus suspend?  
-They are two different operations and should be carried out at two 
-different times.  The controller should be suspended during controller 
-suspend, not during bus suspend.
+Perhaps we could make it:
 
-> As the omap-ehci controller driver needs to do some additional work to put
-> itself into suspend/resume and make sure it is resumed to process an interrupt,
-> we need to be able to override irq, bus_suspend, and bus_resume handlers. This
-> provision is done in patch 3.
+	phy->label = kstrdup(label, GFP_KERNEL);
 
-Do you still need to override these things if you do the controller
-suspend at the right time?
+and free the label in phy_destroy() ?
 
-Alan Stern
+That way the users would't need to keep the label around. It might
+be useful when PHY provider generates the labels dynamically. I guess
+it is OK for PHY providers to hard code the labels and having the PHY
+user drivers passed labels in platform data ?
+
+> +	dev_set_drvdata(&phy->dev, priv);
+> +
+> +	ret = dev_set_name(&phy->dev, "%s.%d", dev_name(dev), id);
+> +	if (ret)
+> +		goto err1;
+> +
+> +	ret = device_add(&phy->dev);
+> +	if (ret)
+> +		goto err1;
+> +
+> +	if (pm_runtime_enabled(dev))
+> +		pm_runtime_enable(&phy->dev);
+> +
+> +	return phy;
+> +
+> +err1:
+> +	put_device(&phy->dev);
+> +	kfree(phy);
+> +
+> +err0:
+> +	return ERR_PTR(ret);
+> +}
+> +EXPORT_SYMBOL_GPL(phy_create);
+
+> +/**
+> + * phy_destroy() - destroy the phy
+> + * @phy: the phy to be destroyed
+> + *
+> + * Called to destroy the phy.
+> + */
+> +void phy_destroy(struct phy *phy)
+> +{
+> +	pm_runtime_disable(&phy->dev);
+> +	device_unregister(&phy->dev);
+
+Isn't kfree(phy); missing here ?
+
+> +}
+> +EXPORT_SYMBOL_GPL(phy_destroy);
+
+Thanks,
+Sylwester
