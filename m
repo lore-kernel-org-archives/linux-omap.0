@@ -1,55 +1,45 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [RFC PATCH 6/6] ARM: OMAP3: Enable Hardware Save and Restore
- for USB Host
-Date: Wed, 19 Jun 2013 21:30:01 +0400
-Message-ID: <51C1EA99.2020401@cogentembedded.com>
-References: <1371650753-11452-1-git-send-email-rogerq@ti.com> <1371650753-11452-7-git-send-email-rogerq@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during bus suspend
+Date: Wed, 19 Jun 2013 10:39:09 -0700
+Message-ID: <87r4fy6lvm.fsf@linaro.org>
+References: <1371650753-11452-1-git-send-email-rogerq@ti.com>
+	<1371650753-11452-5-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1371650753-11452-7-git-send-email-rogerq@ti.com>
+In-Reply-To: <1371650753-11452-5-git-send-email-rogerq@ti.com> (Roger
+	Quadros's message of "Wed, 19 Jun 2013 17:05:51 +0300")
 Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
 Cc: stern@rowland.harvard.edu, tony@atomide.com, balbi@ti.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+Hi Roger,
 
-On 06/19/2013 06:05 PM, Roger Quadros wrote:
+Roger Quadros <rogerq@ti.com> writes:
 
-> To ensure hardware context is restored while resuming from
-> OFF mode we need to enable the Hardware SAR bit for the
-> USB Host power domain.
-
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->   arch/arm/mach-omap2/powerdomains3xxx_data.c |    8 +-------
->   1 files changed, 1 insertions(+), 7 deletions(-)
-
-> diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-> index f0e14e9..9554d2b 100644
-> --- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
-> +++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-> @@ -289,13 +289,7 @@ static struct powerdomain usbhost_pwrdm = {
->   	.prcm_offs	  = OMAP3430ES2_USBHOST_MOD,
->   	.pwrsts		  = PWRSTS_OFF_RET_ON,
->   	.pwrsts_logic_ret = PWRSTS_RET,
-> -	/*
-> -	 * REVISIT: Enabling usb host save and restore mechanism seems to
-> -	 * leave the usb host domain permanently in ACTIVE mode after
-> -	 * changing the usb host power domain state from OFF to active once.
-> -	 * Disabling for now.
-> -	 */
-> -	/*.flags	  = PWRDM_HAS_HDWR_SAR,*/ /* for USBHOST ctrlr only */
-> +	.flags	  = PWRDM_HAS_HDWR_SAR, /* for USBHOST ctrlr only */
-
-    Looks like you're not indenting = right, in accordance to the other 
-fields...
-
->   	.banks		  = 1,
->   	.pwrsts_mem_ret	  = {
->   		[0] = PWRSTS_RET, /* MEMRETSTATE */
+> Runtime suspend the controller during bus suspend and resume it
+> during bus resume. This will ensure that the USB Host power domain
+> enters lower power state and does not prevent the SoC from
+> endering deeper sleep states.
 >
+> Remote wakeup will come up as an interrupt while the controller
+> is suspended, so tackle it carefully using a workqueue.
 
-WBR, Sergei
+I don't think you need a special workqueue here.  The workqueue of the PM
+core (pm_wq) will be used if you just use an asynchronous 'get' in the
+ISR.  Then, the driver's own runtime PM callbacks can be used instead of
+an additional workqueue.
+
+Another thing to worry about here when using runtime PM to implement
+suspend/resume is that runtime PM can be disabled from userspace (e.g.
+echo disabled > /sys/devices/.../power/control.)  If that's the case,
+all the pm_runtime_suspended() checks will always fail becuase that
+call also checks if runtime PM is disabled.  You'll likely want to use
+the pm_runtime_status_suspended() check instead, which checks only the
+status, and doesn't matter if runtime PM is currently disabled.
+
+Because of the corner issues here, please test system suspend/resume
+when runtime PM has been disabled.
+
+Kevin
