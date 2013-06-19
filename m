@@ -1,72 +1,59 @@
-From: Arnaud Patard (Rtp) <arnaud.patard@rtp-net.org>
-Subject: Re: [PATCH 2/6] ARM: OMAP2+: Remove board-omap4panda.c
-Date: Wed, 19 Jun 2013 11:45:16 +0200
-Message-ID: <8761xaqvrn.fsf@lebrac.rtp-net.org>
-References: <20130612171407.GM8164@atomide.com> <51B98F1E.1000006@ti.com>
-	<51B99B07.1050806@ti.com>
-	<CACVXFVN3=hzWJEwHN5TXRoJ4mvVRVR+3=Tasw+gvLH3vsNHwUg@mail.gmail.com>
-	<CACVXFVNzAMrkhrAMAmQ7ZdJdby2O4VdoD8BVHRF-O=rPKQMqbw@mail.gmail.com>
-	<51BEBDCD.3060104@ti.com> <87ppvlqhyy.fsf@lebrac.rtp-net.org>
-	<20130617082458.GH20992@atomide.com>
-	<87li69qdcs.fsf@lebrac.rtp-net.org>
-	<20130617102650.GK20992@atomide.com>
-	<20130618112701.GO5523@atomide.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH] mfd: Palmas: Remove code which is not necessary for a
+ device tree boot
+Date: Wed, 19 Jun 2013 10:48:26 +0100
+Message-ID: <20130619094826.GE22998@laptop>
+References: <1371447962-9092-1-git-send-email-j-keerthy@ti.com>
+ <20130619082633.GB22998@laptop>
+ <20130619083022.GU7161@zurbaran>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lebrac.rtp-net.org ([88.191.135.105]:50195 "EHLO
-	lebrac.rtp-net.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933755Ab3FSJqR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 05:46:17 -0400
-In-Reply-To: <20130618112701.GO5523@atomide.com> (Tony Lindgren's message of
-	"Tue, 18 Jun 2013 04:27:01 -0700")
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:33334 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934059Ab3FSJsc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 05:48:32 -0400
+Received: by mail-ee0-f54.google.com with SMTP id t10so3108340eei.41
+        for <linux-omap@vger.kernel.org>; Wed, 19 Jun 2013 02:48:31 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20130619083022.GU7161@zurbaran>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sricharan R <r.sricharan@ti.com>, Ming Lei <tom.leiming@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: J Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, ldewangan@nvidia.com, gg@slimlogic.co.uk
 
-Tony Lindgren <tony@atomide.com> writes:
+On Wed, 19 Jun 2013, Samuel Ortiz wrote:
 
-Hi,
+> Hi Lee,
+>=20
+> On Wed, Jun 19, 2013 at 09:26:33AM +0100, Lee Jones wrote:
+> > On Mon, 17 Jun 2013, J Keerthy wrote:
+> >=20
+> > > Remove code which is not necessary for a device tree boot.
+> >=20
+> > So we're exclusively DT now right?
+> >=20
+> > > Boot tested on OMAP5-UEVM board.
+> > >=20
+> > > Signed-off-by: J Keerthy <j-keerthy@ti.com>
+> > > ---
+> > >  drivers/mfd/palmas.c |  106 ------------------------------------=
+--------------
+> > >  1 files changed, 0 insertions(+), 106 deletions(-)
+> >=20
+> > If that's the case, applied with all Acks, thanks.
+> It's already in mfd-next.
 
-> * Tony Lindgren <tony@atomide.com> [130617 03:32]:
->> * Arnaud Patard <arnaud.patard@rtp-net.org> [130617 02:52]:
->> > Tony Lindgren <tony@atomide.com> writes:
->> > 
->> > I understand your concerns but, please, cope with reality: the clock
->> > work is not in -next so this tends to make me think it won't reach
->> > 3.11. We're at -rc6 after all. Telling users that their system doesn't
->> > have any network because it was easier to maintain, is not something
->> > they will understand imho.
->> 
->> Right, like I said: the idea is to have it usable with DT. And USB and
->> Ethernet certainly are part of what I call usable. So is MMC, WLAN and
->> DSS. I've certainly spent quite a bit of time on making sure panda works
->> with DT, and I can assure you that fixing the USB extclock is easier than
->> supporting the legacy boot with DT :)
->> 
->> This issue can also be fixed with a clock alias if we don't have DT
->> defined clocks ready for v3.11. It may take a few days for us to have
->> the solution. But get getting a clock to a driver certainly is not a
->> showstopper here. After all, that's what all drivers already do.
->
-> Care to test the last patch just posted by Roger in thread
-> " [PATCH 0/4] ARM: OMAP4: Panda USB Host support and DVI EDID fix"?
+I noticed. Odd that I didn't receive you applied message.
 
-I tried to test them but they don't apply on linux-next due to some
-pinctrl changes probably missing:
-Error: arch/arm/boot/dts/omap4-panda-common.dtsi:177.14-15 syntax error
-
-which corresponds to :
-0x82 (PIN_INPUT_PULLDOWN | MUX_MODE4)
-
-Also, the patch 3 (ARM: dts: omap5-uevm: Provide USB Host PHY clock)
-doesn't apply as the omap5-uevm.dts doesn't exist.
-
-Which tree should I use to test the patches if it's not linux-next ?
-
-Also, you might want to know that drivers/usb/musb/omap2430.c doesn't
-build due to some typos (musb_resources vs musb_resouces).
-
-Arnaud
-
+--=20
+Lee Jones
+Linaro ST-Ericsson Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
