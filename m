@@ -1,82 +1,40 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH v2 1/4] MFD: Palmas: Check if interrupts property exists
- and then only request irq
-Date: Wed, 19 Jun 2013 01:28:31 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229EC65B@DBDE04.ent.ti.com>
-References: <1371549692-7361-1-git-send-email-j-keerthy@ti.com>
- <1371549692-7361-2-git-send-email-j-keerthy@ti.com>
- <51C0820B.4020404@wwwdotorg.org>
- <DC88CAD03C0052499C1907B327FC63229EC563@DBDE04.ent.ti.com>
- <51C093FF.6000204@wwwdotorg.org>
- <DC88CAD03C0052499C1907B327FC63229EC5B4@DBDE04.ent.ti.com>
- <51C09761.1020704@wwwdotorg.org>
- <DC88CAD03C0052499C1907B327FC63229EC5DB@DBDE04.ent.ti.com>
- <51C0B0FC.2090908@wwwdotorg.org>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 2/4] ARM: dts: AM33XX: Add PWMSS device tree nodes
+Date: Tue, 18 Jun 2013 20:24:19 -0500
+Message-ID: <51C10843.7070909@ti.com>
+References: <1370526759-31163-1-git-send-email-bigeasy@linutronix.de> <1370526759-31163-3-git-send-email-bigeasy@linutronix.de> <51B89D78.6010906@linutronix.de> <20130612164026.GC22120@arwen.pp.htv.fi> <51C06255.2080208@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38125 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932860Ab3FSB2w convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jun 2013 21:28:52 -0400
-In-Reply-To: <51C0B0FC.2090908@wwwdotorg.org>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51C06255.2080208@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Benoit Cousson <benoit.cousson@linaro.org>, balbi@ti.com, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Philip Avinash <avinashphilip@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
 
-Hi Stephen,
+Hi Sebastian,
 
-> -----Original Message-----
-> From: Stephen Warren [mailto:swarren@wwwdotorg.org]
-> Sent: Wednesday, June 19, 2013 12:42 AM
-> To: J, KEERTHY
-> Cc: linux-omap@vger.kernel.org; broonie@kernel.org;
-> ldewangan@nvidia.com; sameo@linux.intel.com; grant.likely@secretlab.ca;
-> swarren@nvidia.com; linux-kernel@vger.kernel.org; linux-
-> doc@vger.kernel.org; gg@slimlogic.co.uk
-> Subject: Re: [PATCH v2 1/4] MFD: Palmas: Check if interrupts property
-> exists and then only request irq
-> 
-> On 06/18/2013 11:33 AM, J, KEERTHY wrote:
-> > Stephen Warren wrote at Tuesday, June 18, 2013 10:53 PM:
-> ...>> No, you should just check the IRQ number.
-> >
-> > Hmmm...so something like (!i2c->irq)
-> 
-> Yes.
+On 06/18/2013 08:36 AM, Sebastian Andrzej Siewior wrote:
+> On 06/12/2013 06:40 PM, Felipe Balbi wrote:
+>> On Wed, Jun 12, 2013 at 06:10:32PM +0200, Sebastian Andrzej Siewior wrote:
+>>> On 06/06/2013 03:52 PM, Sebastian Andrzej Siewior wrote:
+>>>> From: Philip Avinash <avinashphilip@ti.com>
+>>>>
+>>>> Add PWMSS device tree nodes in relation with ECAP & EHRPWM DT nodes to
+>>>> AM33XX SoC family. Also populates device tree nodes for ECAP & EHRPWM by
+>>>> adding necessary properties like pwm-cells, base reg & set disabled as
+>>>> status.
+>>> Can someone please grab #2 till #4? Paul took just #1 as far as I can
+>>> tell.
+>>
+>> DTS should be Benoit Cousson
+>
+> So, Benoit. Would you please be so kind and pick up the dts pieces?
 
-Ok.
-
-> 
-> >> Consider this:
-> >>
-> >> If the device was instantiated from a board file *or* a device tree,
-> >> i2c->irq is correctly set. Hence, checking that value works in both
-> >> cases.
-> >>
-> >> If you check the interrupts DT property, that will only work if the
-> >> device was instantiated from device tree, and not if it was
-> >> instantiated from a board file; the property will never exist in the
-> >> board file case, and hence you'll never be able to have a board file
-> >> provide an interrupt.
-> >
-> > The board file approach is getting deprecated for this. I Myself
-> > removed board file related pdata stuff in one of the patches.
-> >
-> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg90598.html
-> >
-> > So going the DeviceTree way.
-> 
-> Even if you're 100% sure this driver will only ever work with DT (which
-> seems like a bad assumption to make no matter what the circumstance),
-> it'd still be best to detect whether an IRQ was specified in a generic
-> way. That way, nobody will read this driver, assume the code is
-> generic, and just copy/paste it without thinking.
-
-Ok. I understand. I will incorporate this.
+That's done. Patches are available in 
+git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git 
+for_3.11/dts
 
 Thanks,
-Keerthy
+Benoit
