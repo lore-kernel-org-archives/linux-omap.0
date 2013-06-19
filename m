@@ -1,15 +1,14 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCHv3 4/6] arm: dts: add bandgap entry for OMAP4460 devices
-Date: Tue, 18 Jun 2013 20:11:27 -0500
-Message-ID: <51C1053F.7030607@ti.com>
-References: <1370637968-23299-1-git-send-email-eduardo.valentin@ti.com>
- <1370637968-23299-5-git-send-email-eduardo.valentin@ti.com>
- <51C0C014.2000402@ti.com>
+Subject: Re: [PATCH v2 1/4] ARM: dts: omap4-panda: Add USB Host support
+Date: Tue, 18 Jun 2013 20:17:21 -0500
+Message-ID: <51C106A1.9030001@ti.com>
+References: <1371571487-14389-1-git-send-email-rogerq@ti.com>
+ <1371571487-14389-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51C0C014.2000402@ti.com>
+In-Reply-To: <1371571487-14389-2-git-send-email-rogerq@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,38 +18,121 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: linux@arm.linux.org.uk, linux-pm@vger.kernel.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, grant.likely@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgRWR1YXJkbywKCk9uIDA2LzE4LzIwMTMgMDM6MTYgUE0sIEVkdWFyZG8gVmFsZW50aW4gd3Jv
-dGU6Cj4gQmVub2l0Cj4KPiBPbiAwNy0wNi0yMDEzIDE2OjQ2LCBFZHVhcmRvIFZhbGVudGluIHdy
-b3RlOgo+PiBJbmNsdWRlIGJhbmRnYXAgZGV2aWNlcyBmb3IgT01BUDQ0NjAgZGV2aWNlcy4KPj4K
-Pj4gQ2M6ICJCZW5vw650IENvdXNzb24iIDxiLWNvdXNzb25AdGkuY29tPgo+PiBDYzogVG9ueSBM
-aW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KPj4gQ2M6IFJ1c3NlbGwgS2luZyA8bGludXhAYXJt
-LmxpbnV4Lm9yZy51az4KPj4gQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnCj4+IENjOiBk
-ZXZpY2V0cmVlLWRpc2N1c3NAbGlzdHMub3psYWJzLm9yZwo+PiBDYzogbGludXgtYXJtLWtlcm5l
-bEBsaXN0cy5pbmZyYWRlYWQub3JnCj4+IENjOiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3Jn
-Cj4+IFNpZ25lZC1vZmYtYnk6IEVkdWFyZG8gVmFsZW50aW4gPGVkdWFyZG8udmFsZW50aW5AdGku
-Y29tPgo+PiAtLS0KPgo+IENvdWxkIHlvdSBwbGVhc2UgaGF2ZSBhIGxvb2sgb24gcGF0Y2ggMyBh
-bmQgNCBvZiB0aGlzIHNlcmllcz8gSSBoYXZlCj4gY2hhbmdlZCB0aGlzIG9uZSBhY2NvcmRpbmds
-eSB0byB5b3VyIHJlY29tbWVuZGF0aW9uIG9uIHYyLiBJZiBub3RoaW5nCj4gZWxzZSwgcGxlYXNl
-IGxldCBtZSBrbm93IGlmIHRoZXkgY2FuIHN0aWxsIGJlIHF1ZXVlZCBmb3IgMy4xMS4KCkkndmUg
-anVzdCBhcHBsaWVkIGJvdGggb2YgdGhlbSBpbiBteSB0cmVlIGZvciAzLjExLiBJJ2xsIHNlbmQg
-dGhlIHB1bGwgCnJlcXVlc3QgdG8gVG9ueSB0b21vcnJvdy4KClJlZ2FyZHMsCkJlbm9pdAoKPgo+
-IEkgd291bGQgbmVlZCB0byByZWJhc2UgcGF0Y2ggMDEgdG8gcmVmcmVzaCBvbiB0b3Agb2YgdGhl
-IHRoZXJtYWwgdHJlZS4KPgo+IFRoYW5rcy4KPgo+PiAgIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA0
-NDYwLmR0c2kgfCA5ICsrKysrKysrKwo+PiAgIDEgZmlsZSBjaGFuZ2VkLCA5IGluc2VydGlvbnMo
-KykKPj4KPj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDYwLmR0c2kgYi9h
-cmNoL2FybS9ib290L2R0cy9vbWFwNDQ2MC5kdHNpCj4+IGluZGV4IDJjZjIyN2MuLmVhOTcyMDEg
-MTAwNjQ0Cj4+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDYwLmR0c2kKPj4gKysrIGIv
-YXJjaC9hcm0vYm9vdC9kdHMvb21hcDQ0NjAuZHRzaQo+PiBAQCAtMjksNCArMjksMTMgQEAKPj4g
-ICAJCQkgICAgIDwwIDU1IDB4ND47Cj4+ICAgCQl0aSxod21vZHMgPSAiZGVidWdzcyI7Cj4+ICAg
-CX07Cj4+ICsKPj4gKwliYW5kZ2FwIHsKPj4gKwkJcmVnID0gPDB4NGEwMDIyNjAgMHg0Cj4+ICsJ
-CQkweDRhMDAyMzJDIDB4NAo+PiArCQkJMHg0YTAwMjM3OCAweDE4PjsKPj4gKwkJY29tcGF0aWJs
-ZSA9ICJ0aSxvbWFwNDQ2MC1iYW5kZ2FwIjsKPj4gKwkJaW50ZXJydXB0cyA9IDwwIDEyNiA0Pjsg
-LyogdGFsZXJ0ICovCj4+ICsJCWdwaW9zID0gPCZncGlvMyAyMiAwPjsgLyogdHNodXQgKi8KPj4g
-Kwl9Owo+PiAgIH07Cj4+Cj4KPgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJu
-ZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFu
-L2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+Hi Roger,
+
+On 06/18/2013 11:04 AM, Roger Quadros wrote:
+> Provide the RESET and Power regulators for the USB PHY,
+> the USB Host port mode and the PHY device.
+>
+> Also provide pin multiplexer information for the USB host
+> pins.
+>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>   arch/arm/boot/dts/omap4-panda-common.dtsi |   62 +++++++++++++++++++++++++++++
+>   1 files changed, 62 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+> index 00cbaa5..7a21e8e 100644
+> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
+> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+> @@ -59,6 +59,42 @@
+>   			"AFML", "Line In",
+>   			"AFMR", "Line In";
+>   	};
+> +
+> +	/* HS USB Port 1 RESET */
+> +	hsusb1_reset: hsusb1_reset_reg {
+> +		compatible = "regulator-fixed";
+> +		regulator-name = "hsusb1_reset";
+> +		regulator-min-microvolt = <3300000>;
+> +		regulator-max-microvolt = <3300000>;
+> +		gpio = <&gpio2 30 0>;	/* gpio_62 */
+> +		startup-delay-us = <70000>;
+> +		enable-active-high;
+> +	};
+
+Is this really a regulator? Or just a GPIO line used to reset the USB PHY?
+
+If this is the case, I don't think it should be represented as a regulator.
+
+Regards,
+Benoit
+
+> +
+> +	/* HS USB Port 1 Power */
+> +	hsusb1_power: hsusb1_power_reg {
+> +		compatible = "regulator-fixed";
+> +		regulator-name = "hsusb1_vbus";
+> +		regulator-min-microvolt = <3300000>;
+> +		regulator-max-microvolt = <3300000>;
+> +		gpio = <&gpio1 1 0>;	/* gpio_1 */
+> +		startup-delay-us = <70000>;
+> +		enable-active-high;
+> +	};
+> +
+> +	/* HS USB Host PHY on PORT 1 */
+> +	hsusb1_phy: hsusb1_phy {
+> +		compatible = "usb-nop-xceiv";
+> +		reset-supply = <&hsusb1_reset>;
+> +		vcc-supply = <&hsusb1_power>;
+> +	/**
+> +	 * FIXME:
+> +	 * put the right clock phandle here when available
+> +	 *	clocks = <&auxclk3>;
+> +	 *	clock-names = "main_clk";
+> +	 */
+> +		clock-frequency = <19200000>;
+> +	};
+>   };
+>
+>   &omap4_pmx_wkup {
+> @@ -83,6 +119,7 @@
+>   			&mcbsp1_pins
+>   			&dss_hdmi_pins
+>   			&tpd12s015_pins
+> +			&hsusbb1_pins
+>   	>;
+>
+>   	twl6030_pins: pinmux_twl6030_pins {
+> @@ -133,6 +170,23 @@
+>   		>;
+>   	};
+>
+> +	hsusbb1_pins: pinmux_hsusbb1_pins {
+> +		pinctrl-single,pins = <
+> +			0x82 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_clk.usbb1_ulpiphy_clk */
+> +			0x84 (PIN_OUTPUT | MUX_MODE4)		/* usbb1_ulpitll_stp.usbb1_ulpiphy_stp */
+> +			0x86 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dir.usbb1_ulpiphy_dir */
+> +			0x88 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_nxt.usbb1_ulpiphy_nxt */
+> +			0x8a (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat0.usbb1_ulpiphy_dat0 */
+> +			0x8c (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat1.usbb1_ulpiphy_dat1 */
+> +			0x8e (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat2.usbb1_ulpiphy_dat2 */
+> +			0x90 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat3.usbb1_ulpiphy_dat3 */
+> +			0x92 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat4.usbb1_ulpiphy_dat4 */
+> +			0x94 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat5.usbb1_ulpiphy_dat5 */
+> +			0x96 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat6.usbb1_ulpiphy_dat6 */
+> +			0x98 (PIN_INPUT_PULLDOWN | MUX_MODE4)	/* usbb1_ulpitll_dat7.usbb1_ulpiphy_dat7 */
+> +		>;
+> +	};
+> +
+>   	i2c1_pins: pinmux_i2c1_pins {
+>   		pinctrl-single,pins = <
+>   			0xe2 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_scl */
+> @@ -283,3 +337,11 @@
+>   	mode = <3>;
+>   	power = <50>;
+>   };
+> +
+> +&usbhshost {
+> +	port1-mode = "ehci-phy";
+> +};
+> +
+> +&usbhsehci {
+> +	phys = <&hsusb1_phy>;
+> +};
+>
