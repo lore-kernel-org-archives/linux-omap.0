@@ -1,49 +1,83 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 0/3] Add pinmux DT nodes to CPSW for AM335x
-Date: Wed, 19 Jun 2013 04:52:00 -0500
-Message-ID: <51C17F40.8090607@ti.com>
-References: <1370604775-21264-1-git-send-email-mugunthanvnm@ti.com> <51C14772.4090701@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/6] ARM: OMAP2+: Remove board-omap4panda.c
+Date: Wed, 19 Jun 2013 02:58:37 -0700
+Message-ID: <20130619095837.GY5523@atomide.com>
+References: <51B99B07.1050806@ti.com>
+ <CACVXFVN3=hzWJEwHN5TXRoJ4mvVRVR+3=Tasw+gvLH3vsNHwUg@mail.gmail.com>
+ <CACVXFVNzAMrkhrAMAmQ7ZdJdby2O4VdoD8BVHRF-O=rPKQMqbw@mail.gmail.com>
+ <51BEBDCD.3060104@ti.com>
+ <87ppvlqhyy.fsf@lebrac.rtp-net.org>
+ <20130617082458.GH20992@atomide.com>
+ <87li69qdcs.fsf@lebrac.rtp-net.org>
+ <20130617102650.GK20992@atomide.com>
+ <20130618112701.GO5523@atomide.com>
+ <8761xaqvrn.fsf@lebrac.rtp-net.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36055 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934026Ab3FSJw4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Jun 2013 05:52:56 -0400
-In-Reply-To: <51C14772.4090701@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:29043 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933873Ab3FSJ6m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 05:58:42 -0400
+Content-Disposition: inline
+In-Reply-To: <8761xaqvrn.fsf@lebrac.rtp-net.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: benoit.cousson@linaro.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+To: Arnaud Patard <arnaud.patard@rtp-net.org>
+Cc: Sricharan R <r.sricharan@ti.com>, Ming Lei <tom.leiming@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>
 
-On 06/19/2013 12:53 AM, Mugunthan V N wrote:
-> On 6/7/2013 5:02 PM, Mugunthan V N wrote:
->> Add pinmux DT nodes to CPSW for the following AM335x boards
->> * AM335x Beaglebone
->> * AM335x EVM
->> * AM335x EVMsk
->> default state contains the pinmux required for active mode and
->> sleep mode contains pinmux reset values for energy saving.
->>
->> Mugunthan V N (3):
->>    ARM: dts: AM33XX: Add pinmux configuration for CPSW to beaglebone
->>    ARM: dts: AM33XX: Add pinmux configuration for CPSW to EVMsk
->>    ARM: dts: AM33XX: Add pinmux configuration for CPSW to am335x EVM
->>
->>   arch/arm/boot/dts/am335x-bone.dts  |   67 ++++++++++++++++++++++++++
->>   arch/arm/boot/dts/am335x-evm.dts   |   64 +++++++++++++++++++++++++
->>   arch/arm/boot/dts/am335x-evmsk.dts |   92
->> ++++++++++++++++++++++++++++++++++++
->>   3 files changed, 223 insertions(+)
->>
-> Benoit
->
-> Do you have any comments on this patch series,
-> if not can you queue it for v3.11
+* Arnaud Patard <arnaud.patard@rtp-net.org> [130619 02:52]:
+> Tony Lindgren <tony@atomide.com> writes:
+> 
+> Hi,
+> 
+> > * Tony Lindgren <tony@atomide.com> [130617 03:32]:
+> >> * Arnaud Patard <arnaud.patard@rtp-net.org> [130617 02:52]:
+> >> > Tony Lindgren <tony@atomide.com> writes:
+> >> > 
+> >> > I understand your concerns but, please, cope with reality: the clock
+> >> > work is not in -next so this tends to make me think it won't reach
+> >> > 3.11. We're at -rc6 after all. Telling users that their system doesn't
+> >> > have any network because it was easier to maintain, is not something
+> >> > they will understand imho.
+> >> 
+> >> Right, like I said: the idea is to have it usable with DT. And USB and
+> >> Ethernet certainly are part of what I call usable. So is MMC, WLAN and
+> >> DSS. I've certainly spent quite a bit of time on making sure panda works
+> >> with DT, and I can assure you that fixing the USB extclock is easier than
+> >> supporting the legacy boot with DT :)
+> >> 
+> >> This issue can also be fixed with a clock alias if we don't have DT
+> >> defined clocks ready for v3.11. It may take a few days for us to have
+> >> the solution. But get getting a clock to a driver certainly is not a
+> >> showstopper here. After all, that's what all drivers already do.
+> >
+> > Care to test the last patch just posted by Roger in thread
+> > " [PATCH 0/4] ARM: OMAP4: Panda USB Host support and DVI EDID fix"?
+> 
+> I tried to test them but they don't apply on linux-next due to some
+> pinctrl changes probably missing:
+> Error: arch/arm/boot/dts/omap4-panda-common.dtsi:177.14-15 syntax error
+> 
+> which corresponds to :
+> 0x82 (PIN_INPUT_PULLDOWN | MUX_MODE4)
 
-The series looks good to me. I've just applied it.
+Oops, right, that's in Benoit's branch too for the .dts preprocessing.
+Until it is merged, maybe try with Roger's earlier version of that patch
+that did not yet use the macros?
+ 
+> Also, the patch 3 (ARM: dts: omap5-uevm: Provide USB Host PHY clock)
+> doesn't apply as the omap5-uevm.dts doesn't exist.
 
-Thanks,
-Benoit
+OK that's in Benoit's branch. But you won't need that one.
+ 
+> Which tree should I use to test the patches if it's not linux-next ?
+> 
+> Also, you might want to know that drivers/usb/musb/omap2430.c doesn't
+> build due to some typos (musb_resources vs musb_resouces).
 
+Thanks, I think Felipe is already aware of that. 
+
+Regards,
+
+Tony
