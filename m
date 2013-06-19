@@ -1,59 +1,49 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: Palmas: Remove code which is not necessary for a
- device tree boot
-Date: Wed, 19 Jun 2013 10:48:26 +0100
-Message-ID: <20130619094826.GE22998@laptop>
-References: <1371447962-9092-1-git-send-email-j-keerthy@ti.com>
- <20130619082633.GB22998@laptop>
- <20130619083022.GU7161@zurbaran>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 0/3] Add pinmux DT nodes to CPSW for AM335x
+Date: Wed, 19 Jun 2013 04:52:00 -0500
+Message-ID: <51C17F40.8090607@ti.com>
+References: <1370604775-21264-1-git-send-email-mugunthanvnm@ti.com> <51C14772.4090701@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f54.google.com ([74.125.83.54]:33334 "EHLO
-	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934059Ab3FSJsc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 05:48:32 -0400
-Received: by mail-ee0-f54.google.com with SMTP id t10so3108340eei.41
-        for <linux-omap@vger.kernel.org>; Wed, 19 Jun 2013 02:48:31 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20130619083022.GU7161@zurbaran>
+Received: from comal.ext.ti.com ([198.47.26.152]:36055 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934026Ab3FSJw4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Jun 2013 05:52:56 -0400
+In-Reply-To: <51C14772.4090701@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: J Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, ldewangan@nvidia.com, gg@slimlogic.co.uk
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: benoit.cousson@linaro.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-On Wed, 19 Jun 2013, Samuel Ortiz wrote:
+On 06/19/2013 12:53 AM, Mugunthan V N wrote:
+> On 6/7/2013 5:02 PM, Mugunthan V N wrote:
+>> Add pinmux DT nodes to CPSW for the following AM335x boards
+>> * AM335x Beaglebone
+>> * AM335x EVM
+>> * AM335x EVMsk
+>> default state contains the pinmux required for active mode and
+>> sleep mode contains pinmux reset values for energy saving.
+>>
+>> Mugunthan V N (3):
+>>    ARM: dts: AM33XX: Add pinmux configuration for CPSW to beaglebone
+>>    ARM: dts: AM33XX: Add pinmux configuration for CPSW to EVMsk
+>>    ARM: dts: AM33XX: Add pinmux configuration for CPSW to am335x EVM
+>>
+>>   arch/arm/boot/dts/am335x-bone.dts  |   67 ++++++++++++++++++++++++++
+>>   arch/arm/boot/dts/am335x-evm.dts   |   64 +++++++++++++++++++++++++
+>>   arch/arm/boot/dts/am335x-evmsk.dts |   92
+>> ++++++++++++++++++++++++++++++++++++
+>>   3 files changed, 223 insertions(+)
+>>
+> Benoit
+>
+> Do you have any comments on this patch series,
+> if not can you queue it for v3.11
 
-> Hi Lee,
->=20
-> On Wed, Jun 19, 2013 at 09:26:33AM +0100, Lee Jones wrote:
-> > On Mon, 17 Jun 2013, J Keerthy wrote:
-> >=20
-> > > Remove code which is not necessary for a device tree boot.
-> >=20
-> > So we're exclusively DT now right?
-> >=20
-> > > Boot tested on OMAP5-UEVM board.
-> > >=20
-> > > Signed-off-by: J Keerthy <j-keerthy@ti.com>
-> > > ---
-> > >  drivers/mfd/palmas.c |  106 ------------------------------------=
---------------
-> > >  1 files changed, 0 insertions(+), 106 deletions(-)
-> >=20
-> > If that's the case, applied with all Acks, thanks.
-> It's already in mfd-next.
+The series looks good to me. I've just applied it.
 
-I noticed. Odd that I didn't receive you applied message.
+Thanks,
+Benoit
 
---=20
-Lee Jones
-Linaro ST-Ericsson Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
