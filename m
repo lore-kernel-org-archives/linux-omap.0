@@ -1,72 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/4] ARM: dts: omap4-panda: Add USB Host support
-Date: Wed, 19 Jun 2013 05:44:13 -0700
-Message-ID: <20130619124412.GC5523@atomide.com>
-References: <1371571487-14389-1-git-send-email-rogerq@ti.com>
- <1371571487-14389-2-git-send-email-rogerq@ti.com>
- <51C106A1.9030001@ti.com>
- <51C15F7E.5020305@ti.com>
- <20130619074605.GW5523@atomide.com>
- <51C183AC.8040801@ti.com>
- <20130619122715.GA5523@atomide.com>
- <51C1A55E.9040500@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv2 00/11] ARM: OMAP4 clock data conversion to DT
+Date: Wed, 19 Jun 2013 16:18:51 +0300
+Message-ID: <1371647942-4811-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <51C1A55E.9040500@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:39500 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756726Ab3FSNTi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Jun 2013 09:19:38 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, mturquette@linaro.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com
+Cc: linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-* Benoit Cousson <b-cousson@ti.com> [130619 05:41]:
-> Hi Tony,
-> 
-> On 06/19/2013 07:27 AM, Tony Lindgren wrote:
-> >* Benoit Cousson <b-cousson@ti.com> [130619 03:17]:
-> >>On 06/19/2013 02:46 AM, Tony Lindgren wrote:
-> >>>
-> >>>We have a similar issue with the MMC1 PBIAS. I think in the long run we
-> >>>should expand regulator (and possibly pinctrl) framework(s) to handle
-> >>>comparators. We could just assume that a comparatator is a regulator,
-> >>>and have a comparator binding that just uses the regulator code.
-> >>
-> >>In the case of pbias, the pinctrl seems to be a much better fit for
-> >>my point of view. pinctrl can handle pin configuration and this is
-> >>what the pbias is in the case of MMC pins.
-> >
-> >Well just recently Linus W specifically wanted us to use regulator
-> >framework for the MMC1 PBIAS rather than pinctrl. That's because
-> >from consumer driver point of view, it changes voltage and there's
-> >a delay involved. So I guess no conclusion yet, and it's best to
-> >do stand alone drivers to deal with those that use pinctrl for the
-> >pinctrl specific parts and export it as a regulator for the consumer
-> >devices.
-> 
-> In the case of pbias, the boundary is not that clear, and it is true
-> that writing a complete pinctrl driver is really overkill.
-> I've tried in the past, and gave up due to the complexity of fmwk
-> and the lack of time. I still think, it is a much better fmwk to
-> handle pin configuration than the regulator fmwk.
+Hi,
 
-For omaps, these kind of registers can already be handled by
-pinctrl-single,bits. What's missing is the capability to create
-a regulator out of the voltage mux + comparator bits.
- 
-> >That's pretty much along the lines what Roger has done,
-> >except the transceiver could use the pinctrl-single,bits for the
-> >muxing and pinconf.
-> 
-> Well, in that case, this is a reset line, so it does not have
-> anything to do with voltage :-)
-> 
-> Anyway, thanks to Florian, we know that there is a real solution to
-> that problem. It is just not merged now :-(
+This set converts the OMAP4 clock data to device tree format.
+This set also fixes a couple of problems detected in the basic clock
+devicetree code (patches 2 & 3), and adds some generic support functions
+for the transition phase when all the drivers are not fully devicetree
+compliant (see patches 1 & 7.) OMAP4 clock data was converted from
+cclock44xx_data.c file with a custom perl script, which can probably
+be applied for other SoCs with some modifications also.
 
-Right. Meanwhile, sounds like the transceiver driver needs to
-deal with the GPIO directly.
+Version one for this work was done by Mike Turquette:
+   http://comments.gmane.org/gmane.linux.ports.arm.omap/98741
 
-Regards,
+This set needs the basic devicetree support code from Mike:
+   http://comments.gmane.org/gmane.linux.kernel/1509300
 
-Tony
+Testing done with omap4-panda board, booted up to console and tested
+that suspend / resume works with 3.10-rc6.
+
+I have also provided a working branch here:
+   git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
+   branch:  mainline-3.10-rc6-omap4-dt-clks-v2
+
+This branch contains the pre-req set from Mike, and a couple of additional
+hacks you can ignore.
+
+Any comments / testing feedback welcome.
+
+-Tero
+
+
