@@ -1,44 +1,57 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH 0/3] Add pinmux DT nodes to CPSW for AM335x
-Date: Wed, 19 Jun 2013 11:23:54 +0530
-Message-ID: <51C14772.4090701@ti.com>
-References: <1370604775-21264-1-git-send-email-mugunthanvnm@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v3 0/4] MFD: Palmas: Add TPS659038 PMIC support on Palmas
+Date: Wed, 19 Jun 2013 11:27:46 +0530
+Message-ID: <1371621470-22279-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43069 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751089Ab3FSFz2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Jun 2013 01:55:28 -0400
-In-Reply-To: <1370604775-21264-1-git-send-email-mugunthanvnm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: broonie@kernel.org, j-keerthy@ti.com, ldewangan@nvidia.com, sameo@linux.intel.com, grant.likely@secretlab.ca, swarren@nvidia.com, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, gg@slimlogic.co.uk
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>, benoit.cousson@linaro.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-On 6/7/2013 5:02 PM, Mugunthan V N wrote:
-> Add pinmux DT nodes to CPSW for the following AM335x boards
-> * AM335x Beaglebone
-> * AM335x EVM
-> * AM335x EVMsk
-> default state contains the pinmux required for active mode and
-> sleep mode contains pinmux reset values for energy saving.
->
-> Mugunthan V N (3):
->    ARM: dts: AM33XX: Add pinmux configuration for CPSW to beaglebone
->    ARM: dts: AM33XX: Add pinmux configuration for CPSW to EVMsk
->    ARM: dts: AM33XX: Add pinmux configuration for CPSW to am335x EVM
->
->   arch/arm/boot/dts/am335x-bone.dts  |   67 ++++++++++++++++++++++++++
->   arch/arm/boot/dts/am335x-evm.dts   |   64 +++++++++++++++++++++++++
->   arch/arm/boot/dts/am335x-evmsk.dts |   92 ++++++++++++++++++++++++++++++++++++
->   3 files changed, 223 insertions(+)
->
-Benoit
+From: J Keerthy <j-keerthy@ti.com>
 
-Do you have any comments on this patch series,
-if not can you queue it for v3.11
+The Patch series adds TPS659038 PMIC support in the palmas MFD and Regulator
+drivers. The TPS659038 has almost the same registers as of the earlier
+supported variants of PALMAS family such as the TWL6035.
 
-Regards
-Mugunthan V N
+The critical differences between TPS659038 and TWL6035 being:
+
+1) TPS659038 has nothing related to battery charging and back up battery stuff.
+2) TPS659038 does not have does not have SMPS10(Boost) step up convertor.
+3) TPS659038 does not have Battery detection and anything related to battery.
+4) SD card detection, Battery presence detection, Vibrator, USB OTG are missing
+   when compared to TWL6035.
+
+The patch series is based on the patch:
+        http://www.mail-archive.com/linux-omap@vger.kernel.org/msg90598.html
+
+V3:
+
+Implements Interrupts check using i2c->irq variable instead of DT
+"interrupts" property.
+
+Cleans ups in assiging the features variable in patch 2.
+
+V2:
+
+Implements Interrupts checking via DT instead of creating flags
+and checking based on chip ID.
+
+J Keerthy (4):
+  MFD: Palmas: Check if irq is valid
+  MFD: Palmas: Add SMPS10_BOOST feature
+  mfd: Palmas: Add TPS659038 PMIC support
+  regulator: Palmas: Add TPS659038 support
+
+ Documentation/devicetree/bindings/mfd/palmas.txt   |    2 +
+ .../devicetree/bindings/regulator/palmas-pmic.txt  |    1 +
+ drivers/mfd/palmas.c                               |   38 ++++++++++++++++----
+ drivers/regulator/palmas-regulator.c               |    4 ++
+ include/linux/mfd/palmas.h                         |   14 +++++++
+ 5 files changed, 52 insertions(+), 7 deletions(-)
+
+-- 
+1.7.5.4
+
