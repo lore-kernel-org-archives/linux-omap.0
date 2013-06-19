@@ -1,48 +1,31 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] ARM: OMAP5: Enable Cortex A15 errata 798181
-Date: Wed, 19 Jun 2013 15:52:12 -0400
-Message-ID: <1371671532-27071-1-git-send-email-santosh.shilimkar@ti.com>
+From: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/5] i2c: omap: fix spurious IRQs: disable/enable IRQ at INTC when idle
+Date: Wed, 19 Jun 2013 13:01:28 -0700
+Message-ID: <878v257tuv.fsf@linaro.org>
+References: <1370630768-4077-1-git-send-email-grygorii.strashko@ti.com>
+	<1370630768-4077-2-git-send-email-grygorii.strashko@ti.com>
+	<87li6llk4w.fsf@linaro.org> <51C1F9FA.9000502@ti.com>
+	<20130619193111.GD4779@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47921 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935105Ab3FSTwi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Jun 2013 15:52:38 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130619193111.GD4779-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org> (Felipe Balbi's message
+	of "Wed, 19 Jun 2013 22:31:11 +0300")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
 
-ARM errata 798181 is applicable for OMAP5 based devices. So enable
-the same in the build. Errata extract and workaround information
-is as below.
+Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> writes:
 
-On Cortex-A15 (r0p0..r3p2) the TLBI*IS/DSB operations are not
-adequately shooting down all use of the old entries. The
-ARM_ERRATA_798181 option enables the Linux kernel workaround
-for this erratum which sends an IPI to the CPUs that are running
-the same ASID as the one being invalidated.
+[...]
 
-Cc: Tony Lindgren <tony@atomide.com>
+> If you have 200 pm_runtime_get() followed by 200 pm_runtime_put() (put
+> is called only after 200 gets, no put-get ping-pong), your
+> ->runtime_resume() gets called once, your ->runtime_suspend() gets
+> called once but your ->runtime_idle() will get called 200 times.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+No. The driver's ->runtime_idle() will only be called when the usecount
+goes to zero.
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index f49cd51..fbd2b9f 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -112,6 +112,7 @@ config SOC_OMAP5
- 	select HAVE_SMP
- 	select COMMON_CLK
- 	select HAVE_ARM_ARCH_TIMER
-+	select ARM_ERRATA_798181
- 
- comment "OMAP Core Type"
- 	depends on ARCH_OMAP2
--- 
-1.7.9.5
-
+Kevin
