@@ -1,77 +1,103 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 3/4] usb: musb: omap: use the new API to get PHY reference by
- label
-Date: Wed, 19 Jun 2013 14:22:30 +0530
-Message-ID: <1371631951-369-4-git-send-email-kishon@ti.com>
-References: <1371631951-369-1-git-send-email-kishon@ti.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH 1/3] ARM: dts: Add headers with constants for MTD partitions
+Date: Wed, 19 Jun 2013 11:19:45 +0200
+Message-ID: <51C177B1.7010609@epfl.ch>
+References: <1370962138-9631-1-git-send-email-florian.vaussard@epfl.ch> <1370962138-9631-2-git-send-email-florian.vaussard@epfl.ch> <20130612130511.CE3D93E0A56@localhost>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1371631951-369-1-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: linux@arm.linux.org.uk, eballetbo@gmail.com, gregkh@linuxfoundation.org, balbi@ti.com, kishon@ti.com, javier@dowhile0.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp5.epfl.ch ([128.178.224.8]:36485 "HELO smtp5.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S933820Ab3FSJTz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Jun 2013 05:19:55 -0400
+In-Reply-To: <20130612130511.CE3D93E0A56@localhost>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, linux-arm-kernel@lists.infradead.org, Stephen Warren <swarren@wwwdotorg.org>
 
-After the devices are created using PLATFORM_DEVID_AUTO,
-devm_usb_get_phy_dev and usb_get_phy_dev can't be used reliably
-as it relies on the device_names passed in usb_bind_phy. So used the
-new API devm_usb_get_phy_by_name to get the PHY reference.
+Hello,
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
-Tested-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/usb/musb/musb_core.c |    1 +
- drivers/usb/musb/musb_core.h |    1 +
- drivers/usb/musb/omap2430.c  |    2 +-
- 3 files changed, 3 insertions(+), 1 deletion(-)
+Thank you for the review.
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 37a261a..00fbaf4 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -1864,6 +1864,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
- 	musb->board_set_power = plat->set_power;
- 	musb->min_power = plat->min_power;
- 	musb->ops = plat->platform_ops;
-+	musb->phy_name = plat->phy_name;
- 
- 	/* The musb_platform_init() call:
- 	 *   - adjusts musb->mregs
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index 7fb4819..e9a9339 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -434,6 +434,7 @@ struct musb {
- 	unsigned                double_buffer_not_ok:1;
- 
- 	struct musb_hdrc_config	*config;
-+	const char		*phy_name;
- 
- #ifdef MUSB_CONFIG_PROC_FS
- 	struct proc_dir_entry *proc_entry;
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 628b93f..f872ebc 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -352,7 +352,7 @@ static int omap2430_musb_init(struct musb *musb)
- 		musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent,
- 		    "usb-phy", 0);
- 	else
--		musb->xceiv = devm_usb_get_phy_dev(dev, 0);
-+		musb->xceiv = devm_usb_get_phy_by_name(dev, musb->phy_name);
- 
- 	if (IS_ERR(musb->xceiv)) {
- 		status = PTR_ERR(musb->xceiv);
--- 
-1.7.10.4
+On 06/12/2013 03:05 PM, Grant Likely wrote:
+> On Tue, 11 Jun 2013 16:48:56 +0200, Florian Vaussard <florian.vaussard@epfl.ch> wrote:
+>> These constants can be used to easily declare MTD partitions inside
+>> DTS.
+>>
+>> The constants MTDPART_OFS_* are purposely not included. Indeed,
+>> parse_ofpart_partitions() is expecting u64, but a DT cell is u32.
+>> Negative constants, as defined by MTDPART_OFS_*, would be wrongly
+>
+> The DT binding uses the number of cells defined by #address-cells. It is
+> not fixed to a u32 or a u64
+>
+
+The message was ill-formatted, sorry. As an address cell is u32, and as
+parse_ofpart_partitions() is storing the value inside u64 without checking
+for sign extension (as one assumes to have only positive offsets),
+passing a negative value would require 2 address cells, making it more 
+difficult
+for the DT user. But as Stephen Warren noticed, it is probably desirable
+to specify sizes >= 4GB, thus I will think about a way to easily handle 
+such case.
+
+Anyway, MTDPART_OFS_* would probably face the same objection raised by 
+you for
+MTDPART_SIZ_FULL.
+
+>> interpreted by parse_ofpart_partitions(). Two cells should be
+>> used to correctly encode the negative constants, but this breaks
+>> current usage.
+>
+> The binding doesn't even allow for shortcuts like MTDPART_SIZ_FULL. If a
+> partition fills the whole device, then the reg property should include
+> the actual size. If the code is allowing '0' to be used to mean
+> MTDPART_SIZ_FULL, then that is a bug that needs to be fixed.
+>
+
+The root problem is that many System on Module, like the Gumstix Overo, are
+shipped with various NAND sizes depending on the version or even the 
+manufacturing
+period. Supporting such a diversity would painfully duplicates lots of DT
+code and clutter the arch/arm/boot/dts/ directory with dozens of slightly-
+different versions. I believe that determining the NAND size is better done
+at probe time, and this is what is currently done in legacy board files:
+
+static struct mtd_partition overo_nand_partitions[] = {
+         {
+                 .name           = "xloader",
+                 .offset         = 0,                    /* Offset = 
+0x00000 */
+                 .size           = 4 * NAND_BLOCK_SIZE,
+                 .mask_flags     = MTD_WRITEABLE
+         },
+
+<snip...>
+
+         {
+                 .name           = "rootfs",
+                 .offset         = MTDPART_OFS_APPEND,   /* Offset = 
+0x680000 */
+                 .size           = MTDPART_SIZ_FULL,
+         },
+};
+
+Moreover, I do not see such strict restriction in the OF norm. If I 
+refer to IEEE
+1275-1994 page 174, for the definition of the "reg" property, it is written:
+
+"The interpretation of the size entries is dependent on the parent bus."
+
+Nevertheless, if such an approach is not acceptable, could we think about an
+alternative solution? Like a boolean property "mtd,append-and-fill" that 
+would
+replace the "reg" property and tell the MTD core to compute the 
+partition size
+at probe time, like what is currently done with board files?
+
+Best regards,
+
+Florian
