@@ -1,40 +1,77 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 2/4] ARM: dts: AM33XX: Add PWMSS device tree nodes
-Date: Tue, 18 Jun 2013 20:24:19 -0500
-Message-ID: <51C10843.7070909@ti.com>
-References: <1370526759-31163-1-git-send-email-bigeasy@linutronix.de> <1370526759-31163-3-git-send-email-bigeasy@linutronix.de> <51B89D78.6010906@linutronix.de> <20130612164026.GC22120@arwen.pp.htv.fi> <51C06255.2080208@linutronix.de>
+Subject: Re: [PATCH v3] ARM: DTS: TWL4030: fix mux and wakeup for SYS_NIRQ
+ line
+Date: Tue, 18 Jun 2013 20:25:36 -0500
+Message-ID: <51C10890.20802@ti.com>
+References: <1370040357-25794-1-git-send-email-khilman@linaro.org> <1370629886-14170-1-git-send-email-khilman@linaro.org> <20130607193130.GA13205@kahuna> <51B59AC3.2080900@ti.com> <87fvwpex6k.fsf@linaro.org> <51B70B08.9030208@ti.com> <51B70D57.4010208@ti.com> <874nd4d8j8.fsf@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51C06255.2080208@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Benoit Cousson <benoit.cousson@linaro.org>, balbi@ti.com, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Philip Avinash <avinashphilip@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47116 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932644Ab3FSBbc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Jun 2013 21:31:32 -0400
+In-Reply-To: <874nd4d8j8.fsf@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-Hi Sebastian,
-
-On 06/18/2013 08:36 AM, Sebastian Andrzej Siewior wrote:
-> On 06/12/2013 06:40 PM, Felipe Balbi wrote:
->> On Wed, Jun 12, 2013 at 06:10:32PM +0200, Sebastian Andrzej Siewior wrote:
->>> On 06/06/2013 03:52 PM, Sebastian Andrzej Siewior wrote:
->>>> From: Philip Avinash <avinashphilip@ti.com>
->>>>
->>>> Add PWMSS device tree nodes in relation with ECAP & EHRPWM DT nodes to
->>>> AM33XX SoC family. Also populates device tree nodes for ECAP & EHRPWM by
->>>> adding necessary properties like pwm-cells, base reg & set disabled as
->>>> status.
->>> Can someone please grab #2 till #4? Paul took just #1 as far as I can
->>> tell.
->>
->> DTS should be Benoit Cousson
+On 06/11/2013 09:30 AM, Kevin Hilman wrote:
+> Benoit Cousson <b-cousson@ti.com> writes:
 >
-> So, Benoit. Would you please be so kind and pick up the dts pieces?
+>> On 06/11/2013 01:33 PM, Cousson, Benoit wrote:
+>>> On 6/10/2013 6:40 PM, Kevin Hilman wrote:
+>>>> Benoit Cousson <b-cousson@ti.com> writes:
+>>>>
+>>>>> Hi Kevin,
+>>>>>
+>>>>> On 06/07/2013 09:31 PM, Nishanth Menon wrote:
+>>>>>> On 11:31-20130607, Kevin Hilman wrote:
+>>>>>>> On most OMAP3 platforms, the twl4030 IRQ line is connected to the
+>>>>>>> SYS_NIRQ line on OMAP.  Add another DTS include file
+>>>>>>> (twl4030_omap3.dtsi) for boards that hook up the twl4030 this way
+>>>>>>> to include.
+>>>>>>>
+>>>>>>> This allows RTC wake from off-mode to work again on OMAP3-based
+>>>>>>> platforms with twl4030.  Tested on 3530/Beagle, 3730/Beagle-xM,
+>>>>>>> 3530/Overo, 3730/Overo-STORM.
+>>>>>>>
+>>>>>>> Special thanks to Florian Vaussard for suggesting use of preprocessor
+>>>>>>> feature.
+>>>>>>>
+>>>>>>> Cc: Florian Vaussard <florian.vaussard@epfl.ch>
+>>>>>>> Cc: Benoit Cousson <b-cousson@ti.com>
+>>>>>>> Cc: Nishanth Menon <nm@ti.com>
+>>>>>>> Signed-off-by: Kevin Hilman <khilman@linaro.org>
+>>>>>> Thanks,
+>>>>>> Reviewed-by: Nishanth Menon <nm@ti.com>
+>>>>>
+>>>>> Thanks, I've just applied it in for_3.11/dts.
+>>>>
+>>>> Thanks,
+>>>>
+>>>> Will you apply the first 2 from the series too?
+>>>>
+>>>>     ARM: DTS: OMAP3: beagle/overo: mux console UART, enable wakeup
+>>>>     ARM: DTS: OMAP3: beagle: enable user button via gpio_keys, enable
+>>>> wakeup
+>>>
+>>> Thanks for the reminder, I kind of forgot these ones :-)
+>>
+>> BTW, do you have any v2 for these ones? This version does not use the
+>> macros.
+>> Moreover I cannot apply them on top of Florian's series :-(
+>
+> Oops,  I thought I reposted those too.   All three are here:
+>
+>    git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git  for_3.11/dt
+>
+> which is based on top of your for_3.11/dts branch.
 
-That's done. Patches are available in 
-git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git 
-for_3.11/dts
+Thanks, I've just applied it.
 
-Thanks,
+Regards,
 Benoit
+
