@@ -1,88 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/4] ARM: dts: omap4-panda: Add USB Host support
-Date: Wed, 19 Jun 2013 00:46:06 -0700
-Message-ID: <20130619074605.GW5523@atomide.com>
-References: <1371571487-14389-1-git-send-email-rogerq@ti.com>
- <1371571487-14389-2-git-send-email-rogerq@ti.com>
- <51C106A1.9030001@ti.com>
- <51C15F7E.5020305@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH] mfd: Palmas: Remove code which is not necessary for a
+ device tree boot
+Date: Wed, 19 Jun 2013 09:26:33 +0100
+Message-ID: <20130619082633.GB22998@laptop>
+References: <1371447962-9092-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ea0-f177.google.com ([209.85.215.177]:38291 "EHLO
+	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756549Ab3FSI0j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 04:26:39 -0400
+Received: by mail-ea0-f177.google.com with SMTP id j14so3015634eak.8
+        for <linux-omap@vger.kernel.org>; Wed, 19 Jun 2013 01:26:38 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <51C15F7E.5020305@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1371447962-9092-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: J Keerthy <j-keerthy@ti.com>
+Cc: linux-omap@vger.kernel.org, ldewangan@nvidia.com, sameo@linux.intel.com, gg@slimlogic.co.uk
 
-* Roger Quadros <rogerq@ti.com> [130619 00:42]:
-> Hi Benoit,
-> 
-> On 06/19/2013 04:17 AM, Benoit Cousson wrote:
-> > Hi Roger,
-> > 
-> > On 06/18/2013 11:04 AM, Roger Quadros wrote:
-> >> Provide the RESET and Power regulators for the USB PHY,
-> >> the USB Host port mode and the PHY device.
-> >>
-> >> Also provide pin multiplexer information for the USB host
-> >> pins.
-> >>
-> >> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> >> ---
-> >>   arch/arm/boot/dts/omap4-panda-common.dtsi |   62 +++++++++++++++++++++++++++++
-> >>   1 files changed, 62 insertions(+), 0 deletions(-)
-> >>
-> >> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-> >> index 00cbaa5..7a21e8e 100644
-> >> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-> >> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-> >> @@ -59,6 +59,42 @@
-> >>               "AFML", "Line In",
-> >>               "AFMR", "Line In";
-> >>       };
-> >> +
-> >> +    /* HS USB Port 1 RESET */
-> >> +    hsusb1_reset: hsusb1_reset_reg {
-> >> +        compatible = "regulator-fixed";
-> >> +        regulator-name = "hsusb1_reset";
-> >> +        regulator-min-microvolt = <3300000>;
-> >> +        regulator-max-microvolt = <3300000>;
-> >> +        gpio = <&gpio2 30 0>;    /* gpio_62 */
-> >> +        startup-delay-us = <70000>;
-> >> +        enable-active-high;
-> >> +    };
-> > 
-> > Is this really a regulator? Or just a GPIO line used to reset the USB PHY?
-> 
-> It is in fact a GPIO line used as reset.
-> > 
-> > If this is the case, I don't think it should be represented as a regulator.
-> 
-> Why not? I think it fits very well in the regulator device model. I couldn't find a better
-> way to represent this. It gives us a way to specify not only the GPIO line but also
-> the polarity. I know mostly reset is active low but still there is flexibility as you never
-> know for sure.
+On Mon, 17 Jun 2013, J Keerthy wrote:
 
-I think it's really a mux + a comparator. But from Linux driver point of view
-a regulator fits well as we don't have anything better. After all, the pin
-voltage changes, and then something can be done based on the comparator
-value.
- 
-> Do you have any better ideas?
+> Remove code which is not necessary for a device tree boot.
 
-We have a similar issue with the MMC1 PBIAS. I think in the long run we
-should expand regulator (and possibly pinctrl) framework(s) to handle
-comparators. We could just assume that a comparatator is a regulator,
-and have a comparator binding that just uses the regulator code.
- 
-> FYI. The USB PHY driver is already treating reset as a regulator and is into 3.10. Reworking that
-> will take some time. Not getting these in will prevent USB host/ethernet support on panda.
+So we're exclusively DT now right?
 
-Yes and we need to have some solution for v3.11 as we've dropped the
-legacy data for omap4. Otherwise things won't work properly.
+> Boot tested on OMAP5-UEVM board.
+>=20
+> Signed-off-by: J Keerthy <j-keerthy@ti.com>
+> ---
+>  drivers/mfd/palmas.c |  106 ----------------------------------------=
+----------
+>  1 files changed, 0 insertions(+), 106 deletions(-)
 
-Regards,
+If that's the case, applied with all Acks, thanks.
 
-Tony
+--=20
+Lee Jones
+Linaro ST-Ericsson Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
