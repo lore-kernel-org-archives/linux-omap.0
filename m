@@ -1,54 +1,62 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: Palmas: Remove code which is not necessary for a
- device tree boot
-Date: Wed, 19 Jun 2013 09:51:50 +0100
-Message-ID: <20130619085150.GD22998@laptop>
-References: <1371447962-9092-1-git-send-email-j-keerthy@ti.com>
- <20130619082633.GB22998@laptop>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 0/4] usb: musb: fix USB enumeration issue in OMAP3 platform
+Date: Wed, 19 Jun 2013 14:22:27 +0530
+Message-ID: <1371631951-369-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f181.google.com ([74.125.82.181]:54355 "EHLO
-	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933820Ab3FSIv4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 04:51:56 -0400
-Received: by mail-we0-f181.google.com with SMTP id p58so4266721wes.12
-        for <linux-omap@vger.kernel.org>; Wed, 19 Jun 2013 01:51:54 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20130619082633.GB22998@laptop>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, balbi@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: J Keerthy <j-keerthy@ti.com>
-Cc: linux-omap@vger.kernel.org, ldewangan@nvidia.com, sameo@linux.intel.com, gg@slimlogic.co.uk
 
-On Wed, 19 Jun 2013, Lee Jones wrote:
+In the case of non-dt boot, the platform specific initialization file
+(board file) will do usb_bind_phy that binds the usb controller with the
+PHY using device names. After the device names are created using 
+PLATFORM_DEVID_AUTO, our original method of binding by device names doesn't
+work reliably (since the device name changes). Hence the usb controller
+is made to use labels for getting the PHY.
 
-> On Mon, 17 Jun 2013, J Keerthy wrote:
->=20
-> > Remove code which is not necessary for a device tree boot.
->=20
-> So we're exclusively DT now right?
->=20
-> > Boot tested on OMAP5-UEVM board.
-> >=20
-> > Signed-off-by: J Keerthy <j-keerthy@ti.com>
-> > ---
-> >  drivers/mfd/palmas.c |  106 --------------------------------------=
-------------
-> >  1 files changed, 0 insertions(+), 106 deletions(-)
->=20
-> If that's the case, applied with all Acks, thanks.
+Here the PHY name is added in the plat data of USB controller device which
+should be used by the controller driver to get the PHY.
+Two new APIs usb_get_phy_by_name and devm_usb_get_phy_by_name are added to
+be used by the controller to get the PHY by name.
 
-Ah, it looks like Sam must have already applied this.
+Changes from RFC
+*) Changed the signature of usb_get_phy_by_name() not to use struct device *
 
---=20
-Lee Jones
-Linaro ST-Ericsson Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kishon Vijay Abraham I (4):
+  arm: omap: Add phy binding info for musb in plat data
+  usb: phy: add a new API to get PHY ref by label
+  usb: musb: omap: use the new API to get PHY reference by label
+  arm: omap: remove using usb_bind_phy for binding musb and phy
+
+ arch/arm/mach-omap2/board-2430sdp.c          |    1 -
+ arch/arm/mach-omap2/board-3430sdp.c          |    1 -
+ arch/arm/mach-omap2/board-4430sdp.c          |    1 -
+ arch/arm/mach-omap2/board-cm-t35.c           |    1 -
+ arch/arm/mach-omap2/board-devkit8000.c       |    1 -
+ arch/arm/mach-omap2/board-igep0020.c         |    1 -
+ arch/arm/mach-omap2/board-ldp.c              |    1 -
+ arch/arm/mach-omap2/board-omap3beagle.c      |    1 -
+ arch/arm/mach-omap2/board-omap3evm.c         |    1 -
+ arch/arm/mach-omap2/board-omap3logic.c       |    1 -
+ arch/arm/mach-omap2/board-omap3pandora.c     |    1 -
+ arch/arm/mach-omap2/board-omap3stalker.c     |    1 -
+ arch/arm/mach-omap2/board-omap3touchbook.c   |    1 -
+ arch/arm/mach-omap2/board-omap4panda.c       |    1 -
+ arch/arm/mach-omap2/board-overo.c            |    1 -
+ arch/arm/mach-omap2/board-rm680.c            |    1 -
+ arch/arm/mach-omap2/board-rx51.c             |    1 -
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    1 -
+ arch/arm/mach-omap2/usb-musb.c               |    6 +-
+ drivers/usb/musb/musb_core.c                 |    1 +
+ drivers/usb/musb/musb_core.h                 |    1 +
+ drivers/usb/musb/omap2430.c                  |    2 +-
+ drivers/usb/phy/phy.c                        |   77 ++++++++++++++++++++++++++
+ include/linux/usb/musb.h                     |    3 +
+ include/linux/usb/phy.h                      |   14 +++++
+ 25 files changed, 102 insertions(+), 20 deletions(-)
+
+-- 
+1.7.10.4
