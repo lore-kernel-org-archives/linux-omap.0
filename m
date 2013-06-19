@@ -1,55 +1,79 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v3 4/4] regulator: Palmas: Add TPS659038 support
-Date: Wed, 19 Jun 2013 11:27:50 +0530
-Message-ID: <1371621470-22279-5-git-send-email-j-keerthy@ti.com>
-References: <1371621470-22279-1-git-send-email-j-keerthy@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 1/4] ARM: dts: omap4-panda: Add USB Host support
+Date: Wed, 19 Jun 2013 10:36:30 +0300
+Message-ID: <51C15F7E.5020305@ti.com>
+References: <1371571487-14389-1-git-send-email-rogerq@ti.com>
+ <1371571487-14389-2-git-send-email-rogerq@ti.com> <51C106A1.9030001@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50755 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756444Ab3FSF7H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Jun 2013 01:59:07 -0400
-In-Reply-To: <1371621470-22279-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51C106A1.9030001@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: broonie@kernel.org, j-keerthy@ti.com, ldewangan@nvidia.com, sameo@linux.intel.com, grant.likely@secretlab.ca, swarren@nvidia.com, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, gg@slimlogic.co.uk
 
-From: J Keerthy <j-keerthy@ti.com>
+Hi Benoit,
 
-Add TPS659038 support.
+On 06/19/2013 04:17 AM, Benoit Cousson wrote:
+> Hi Roger,
+> 
+> On 06/18/2013 11:04 AM, Roger Quadros wrote:
+>> Provide the RESET and Power regulators for the USB PHY,
+>> the USB Host port mode and the PHY device.
+>>
+>> Also provide pin multiplexer information for the USB host
+>> pins.
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>   arch/arm/boot/dts/omap4-panda-common.dtsi |   62 +++++++++++++++++++++++++++++
+>>   1 files changed, 62 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+>> index 00cbaa5..7a21e8e 100644
+>> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
+>> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+>> @@ -59,6 +59,42 @@
+>>               "AFML", "Line In",
+>>               "AFMR", "Line In";
+>>       };
+>> +
+>> +    /* HS USB Port 1 RESET */
+>> +    hsusb1_reset: hsusb1_reset_reg {
+>> +        compatible = "regulator-fixed";
+>> +        regulator-name = "hsusb1_reset";
+>> +        regulator-min-microvolt = <3300000>;
+>> +        regulator-max-microvolt = <3300000>;
+>> +        gpio = <&gpio2 30 0>;    /* gpio_62 */
+>> +        startup-delay-us = <70000>;
+>> +        enable-active-high;
+>> +    };
+> 
+> Is this really a regulator? Or just a GPIO line used to reset the USB PHY?
 
-Signed-off-by: J Keerthy <j-keerthy@ti.com>
----
- .../devicetree/bindings/regulator/palmas-pmic.txt  |    1 +
- drivers/regulator/palmas-regulator.c               |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+It is in fact a GPIO line used as reset.
+> 
+> If this is the case, I don't think it should be represented as a regulator.
 
-diff --git a/Documentation/devicetree/bindings/regulator/palmas-pmic.txt b/Documentation/devicetree/bindings/regulator/palmas-pmic.txt
-index d5a3086..5115cd7 100644
---- a/Documentation/devicetree/bindings/regulator/palmas-pmic.txt
-+++ b/Documentation/devicetree/bindings/regulator/palmas-pmic.txt
-@@ -7,6 +7,7 @@ Required properties:
-   ti,twl6037-pmic
-   ti,tps65913-pmic
-   ti,tps65914-pmic
-+  ti,tps659038-pmic
- and also the generic series names
-   ti,palmas-pmic
- - interrupt-parent : The parent interrupt controller which is palmas.
-diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-index 1ae1e83..d0c8785 100644
---- a/drivers/regulator/palmas-regulator.c
-+++ b/drivers/regulator/palmas-regulator.c
-@@ -1054,6 +1054,7 @@ static struct of_device_id of_palmas_match_tbl[] = {
- 	{ .compatible = "ti,tps65913-pmic", },
- 	{ .compatible = "ti,tps65914-pmic", },
- 	{ .compatible = "ti,tps80036-pmic", },
-+	{ .compatible = "ti,tps659038-pmic", },
- 	{ /* end */ }
- };
- 
--- 
-1.7.5.4
+Why not? I think it fits very well in the regulator device model. I couldn't find a better
+way to represent this. It gives us a way to specify not only the GPIO line but also
+the polarity. I know mostly reset is active low but still there is flexibility as you never
+know for sure.
 
+Do you have any better ideas?
+
+FYI. The USB PHY driver is already treating reset as a regulator and is into 3.10. Reworking that
+will take some time. Not getting these in will prevent USB host/ethernet support on panda.
+
+cheers,
+-roger
