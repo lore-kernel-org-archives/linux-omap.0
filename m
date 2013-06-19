@@ -1,59 +1,54 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [RFC v1] MFD: Change TWL6025 references to TWL6032
-Date: Wed, 19 Jun 2013 09:35:15 +0100
-Message-ID: <20130619083515.GC22998@laptop>
-References: <1370602390-12306-1-git-send-email-oleksandr.kozaruk@ti.com>
+Subject: Re: [PATCH] mfd: Palmas: Remove code which is not necessary for a
+ device tree boot
+Date: Wed, 19 Jun 2013 09:51:50 +0100
+Message-ID: <20130619085150.GD22998@laptop>
+References: <1371447962-9092-1-git-send-email-j-keerthy@ti.com>
+ <20130619082633.GB22998@laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f181.google.com ([74.125.82.181]:54355 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933820Ab3FSIv4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 04:51:56 -0400
+Received: by mail-we0-f181.google.com with SMTP id p58so4266721wes.12
+        for <linux-omap@vger.kernel.org>; Wed, 19 Jun 2013 01:51:54 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1370602390-12306-1-git-send-email-oleksandr.kozaruk@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, sameo@linux.intel.com, lgirdwood@gmail.com, broonie@kernel.org, balbi@ti.com, peter.ujfalusi@ti.com, t-kristo@ti.com, tony@atomide.com, Graeme Gregory <gg@slimlogic.co.uk>
+In-Reply-To: <20130619082633.GB22998@laptop>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: J Keerthy <j-keerthy@ti.com>
+Cc: linux-omap@vger.kernel.org, ldewangan@nvidia.com, sameo@linux.intel.com, gg@slimlogic.co.uk
 
-On Fri, 07 Jun 2013, Oleksandr Kozaruk wrote:
+On Wed, 19 Jun 2013, Lee Jones wrote:
 
-> From: Graeme Gregory <gg@slimlogic.co.uk>
+> On Mon, 17 Jun 2013, J Keerthy wrote:
 >=20
-> The TWL6025 was never released beyond sample form and was replaced by
-> the PhoenixLite range of chips - TWL6032. Change the references to
-> reference the TWL6032 class and name the registers to twl6032 in line=
- with
-> an actual released chip name to avoid confusion.
+> > Remove code which is not necessary for a device tree boot.
 >=20
-> Currently there is no users of TWL6025 in the code.=20
+> So we're exclusively DT now right?
 >=20
-> Signed-off-by: Graeme Gregory <gg@slimlogic.co.uk>
-> Signed-off-by: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
-> ---
+> > Boot tested on OMAP5-UEVM board.
+> >=20
+> > Signed-off-by: J Keerthy <j-keerthy@ti.com>
+> > ---
+> >  drivers/mfd/palmas.c |  106 --------------------------------------=
+------------
+> >  1 files changed, 0 insertions(+), 106 deletions(-)
 >=20
-> There are non-mainline branches that use twl6032 by its name (for exa=
-mple
-> git://git.omapzoom.org/kernel/omap.git). There is intention to add su=
-pport
-> of twl6032 device in mainline, but we'd like to know if we can use tw=
-l6032
-> instead of twl6025 in our new patches, that we are going to provide.
->=20
->  drivers/mfd/twl-core.c            |   46 +++++++++++-----------
->  drivers/regulator/twl-regulator.c |   76 ++++++++++++++++++---------=
-----------
->  drivers/usb/phy/phy-twl6030-usb.c |    2 +-
->  include/linux/i2c/twl.h           |   30 +++++++--------
->  4 files changed, 77 insertions(+), 77 deletions(-)
+> If that's the case, applied with all Acks, thanks.
 
-If the TWL6025 truly didn't enter production then I'm okay with this
-as long as Mark and the other maintainers are.
-
-=46or the MFD parts:
-
-Acked-by: Lee Jones <lee.jones@linaro.org>
+Ah, it looks like Sam must have already applied this.
 
 --=20
 Lee Jones
 Linaro ST-Ericsson Landing Team Lead
 Linaro.org =E2=94=82 Open source software for ARM SoCs
 =46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
