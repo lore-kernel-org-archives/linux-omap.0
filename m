@@ -1,30 +1,22 @@
-From: Benoit Cousson <b-cousson@ti.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
 Subject: Re: [PATCH v2 1/4] ARM: dts: omap4-panda: Add USB Host support
-Date: Wed, 19 Jun 2013 06:30:03 -0500
-Message-ID: <51C1963B.2070501@ti.com>
-References: <1371571487-14389-1-git-send-email-rogerq@ti.com>
- <1371571487-14389-2-git-send-email-rogerq@ti.com> <51C106A1.9030001@ti.com>
- <51C15F7E.5020305@ti.com> <20130619074605.GW5523@atomide.com>
- <51C183AC.8040801@ti.com> <51C19011.5050107@ti.com>
+Date: Wed, 19 Jun 2013 14:05:00 +0200
+Message-ID: <51C19E6C.4040802@epfl.ch>
+References: <1371571487-14389-1-git-send-email-rogerq@ti.com> <1371571487-14389-2-git-send-email-rogerq@ti.com> <51C106A1.9030001@ti.com> <51C15F7E.5020305@ti.com> <20130619074605.GW5523@atomide.com> <51C183AC.8040801@ti.com> <51C19011.5050107@ti.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <51C19011.5050107@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 06/19/2013 06:03 AM, Roger Quadros wrote:
+Hello,
+
+On 06/19/2013 01:03 PM, Roger Quadros wrote:
 > On 06/19/2013 01:10 PM, Benoit Cousson wrote:
 >> On 06/19/2013 02:46 AM, Tony Lindgren wrote:
 >>> * Roger Quadros <rogerq@ti.com> [130619 00:42]:
@@ -80,62 +72,15 @@ On 06/19/2013 06:03 AM, Roger Quadros wrote:
 >
 > The only difference is there is a dedicated framework for clocks. Since there is nothing specific to
 > handle reset lines it is left to the driver writer how he wants to manage it.
-
-Well, at that time, it was not available either. The point is still that 
-using a existing fmwk that has nothing to do with the signal you need to 
-handle just because it works is not a very good justification.
-
->>>> I couldn't find a better
->>>> way to represent this. It gives us a way to specify not only the GPIO line but also
->>>> the polarity. I know mostly reset is active low but still there is flexibility as you never
->>>> know for sure.
->>
->> Mmm, and what about just controlling the gpio from the driver?
 >
-> Yes gpio is possible. But then you need to add additional code in the driver to parse GPIO number and polarity.
-> Using regulator_get() was plain simple for me.
 
-Maybe, but it is not the right thing to do.
-Can you explain me the commonality between a reset line and a regulator???
-
->>> I think it's really a mux + a comparator. But from Linux driver point of view
->>> a regulator fits well as we don't have anything better. After all, the pin
->>> voltage changes, and then something can be done based on the comparator
->>> value.
->>>
->>>> Do you have any better ideas?
->>>
->>> We have a similar issue with the MMC1 PBIAS. I think in the long run we
->>> should expand regulator (and possibly pinctrl) framework(s) to handle
->>> comparators. We could just assume that a comparatator is a regulator,
->>> and have a comparator binding that just uses the regulator code.
->>
->> In the case of pbias, the pinctrl seems to be a much better fit for my point of view. pinctrl can handle pin configuration and this is what the pbias is in the case of MMC pins.
->>
->>>> FYI. The USB PHY driver is already treating reset as a regulator and is into 3.10. Reworking that
->>>> will take some time. Not getting these in will prevent USB host/ethernet support on panda.
->>
->> That's not because we did some mistake in the past that we have to keep doing that :-)
->
-> I had actually thought it well and don't consider it as a mistake. It is just a difference in opinion.
-
-Well, I don't think so. Again, you are abusing the regulator fmwk to 
-enable at boot time a GPIO line that should reset the IP. I doubt the 
-regulator fmwk was done for that. Otherwise Mark would have named it 
-"miscellaneous fmwk" or "regulator & reset" fmwk.
-
->>> Yes and we need to have some solution for v3.11 as we've dropped the
->>> legacy data for omap4. Otherwise things won't work properly.
->>
->> I'm fine taking it as soon as big disclaimer is added to avoid mis-using the regulator in the future for controlling a gpio line.
->>
->
-> I can re-work the phy driver. No problem. But I'm still not convinced
-> what it will improve. IMHO it just adds more code in the phy driver without any benefits.
-
-Yes, it will. It will give explicitly the reset control to the driver 
-that knows and needs it. Moreover, it will avoid abusing a fmwk that was 
-not done for that purpose.
+There is a proposed binding for gpio-controlled reset lines, but it is 
+not yet merged [1].
+I guess it can fit most usage patterns, and it can be an interesting 
+move in the future.
 
 Regards,
-Benoit
+
+Florian
+
+[1] http://thread.gmane.org/gmane.linux.drivers.devicetree/36830
