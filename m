@@ -1,110 +1,176 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v2 1/4] ARM: dts: omap4-panda: Add USB Host support
-Date: Wed, 19 Jun 2013 17:40:44 -0500
-Message-ID: <51C2336C.7020504@ti.com>
-References: <1371571487-14389-1-git-send-email-rogerq@ti.com> <1371571487-14389-2-git-send-email-rogerq@ti.com> <51C106A1.9030001@ti.com> <51C15F7E.5020305@ti.com> <20130619074605.GW5523@atomide.com> <51C183AC.8040801@ti.com> <51C19011.5050107@ti.com> <51C19E6C.4040802@epfl.ch> <51C1A2AE.2020506@ti.com> <51C1BA8C.6000703@ti.com>
+Subject: [GIT PULL] ARM: OMAP: Device Tree for 3.11
+Date: Wed, 19 Jun 2013 18:04:34 -0500
+Message-ID: <51C23902.1080301@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51C1BA8C.6000703@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: florian.vaussard@epfl.ch, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:44879 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934447Ab3FSXFB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Jun 2013 19:05:01 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>, Vaibhav Hiremath <hvaibhav@ti.com>, Eduardo Valentin <eduardo.valentin@ti.com>, Mohammed Afzal <afzal@ti.com>, Paul Walmsley <paul@pwsan.com>, Roger Quadros <rogerq@ti.com>
 
-On 06/19/2013 09:05 AM, Roger Quadros wrote:
-> On 06/19/2013 03:23 PM, Benoit Cousson wrote:
->> On 06/19/2013 07:05 AM, Florian Vaussard wrote:
->>> Hello,
->>>
->>> On 06/19/2013 01:03 PM, Roger Quadros wrote:
->>>> On 06/19/2013 01:10 PM, Benoit Cousson wrote:
->>>>> On 06/19/2013 02:46 AM, Tony Lindgren wrote:
->>>>>> * Roger Quadros <rogerq@ti.com> [130619 00:42]:
->>>>>>> Hi Benoit,
->>>>>>>
->>>>>>> On 06/19/2013 04:17 AM, Benoit Cousson wrote:
->>>>>>>> Hi Roger,
->>>>>>>>
->>>>>>>> On 06/18/2013 11:04 AM, Roger Quadros wrote:
->>>>>>>>> Provide the RESET and Power regulators for the USB PHY,
->>>>>>>>> the USB Host port mode and the PHY device.
->>>>>>>>>
->>>>>>>>> Also provide pin multiplexer information for the USB host
->>>>>>>>> pins.
->>>>>>>>>
->>>>>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>>>>>>> ---
->>>>>>>>>      arch/arm/boot/dts/omap4-panda-common.dtsi |   62
->>>>>>>>> +++++++++++++++++++++++++++++
->>>>>>>>>      1 files changed, 62 insertions(+), 0 deletions(-)
->>>>>>>>>
->>>>>>>>> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi
->>>>>>>>> b/arch/arm/boot/dts/omap4-panda-common.dtsi
->>>>>>>>> index 00cbaa5..7a21e8e 100644
->>>>>>>>> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
->>>>>>>>> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
->>>>>>>>> @@ -59,6 +59,42 @@
->>>>>>>>>                  "AFML", "Line In",
->>>>>>>>>                  "AFMR", "Line In";
->>>>>>>>>          };
->>>>>>>>> +
->>>>>>>>> +    /* HS USB Port 1 RESET */
->>>>>>>>> +    hsusb1_reset: hsusb1_reset_reg {
->>>>>>>>> +        compatible = "regulator-fixed";
->>>>>>>>> +        regulator-name = "hsusb1_reset";
->>>>>>>>> +        regulator-min-microvolt = <3300000>;
->>>>>>>>> +        regulator-max-microvolt = <3300000>;
->>>>>>>>> +        gpio = <&gpio2 30 0>;    /* gpio_62 */
->>>>>>>>> +        startup-delay-us = <70000>;
->>>>>>>>> +        enable-active-high;
->>>>>>>>> +    };
->>>>>>>>
->>>>>>>> Is this really a regulator? Or just a GPIO line used to reset the
->>>>>>>> USB PHY?
->>>>>>>
->>>>>>> It is in fact a GPIO line used as reset.
->>>>>>>>
->>>>>>>> If this is the case, I don't think it should be represented as a
->>>>>>>> regulator.
->>>>>>>
->>>>>>> Why not? I think it fits very well in the regulator device model.
->>>>>
->>>>> I'm not sure fitting very well is the correct term.
->>>>> It works, for sure, but it is no different than when we were trying
->>>>> to abuse the regulator fmwk to enable the 32k clock in phoenix.
->>>>> It is just a hack.
->>>>>
->>>>
->>>> The only difference is there is a dedicated framework for clocks.
->>>> Since there is nothing specific to
->>>> handle reset lines it is left to the driver writer how he wants to
->>>> manage it.
->>>>
->>>
->>> There is a proposed binding for gpio-controlled reset lines, but it is
->>> not yet merged [1].
->>> I guess it can fit most usage patterns, and it can be an interesting
->>> move in the future.
->>
->> I'm glad to see that I was not the only one thinking that the regulator was not the right fmwk to do that :-)
->>
->> Thanks for the pointer Florian.
->
-> Thanks again Florian.
->>
->> I guess that series should be merged for 3.11? Based on the thread, it should to through arm-soc.
->>
->> Roger,
->>
->> It might be tricky to have dependency on that series, but if this is possible, you should try. Otherwise, just keep the existing one, adding that a new solution will be available soon as a disclaimer.
->>
->
-> I will rework the PHY driver to use the new gpio-reset driver. But for 3.11 let's proceed the way it is.
-> I'll resend this one with a disclaimer.
+Hi Tony,
 
-OK, I've just done it myself while applying your series.
+Please pull the following commits for OMAP Device Tree for v3.11.
 
-Regards,
+It does contains as well 2 clock data patches, I hope it will not generate any conflict with Paul's tree. 
+
+Special thanks to Florian for his nice cleanup using the C preprocessor.
+
+Thanks,
 Benoit
+
+
+The following changes since commit 7d132055814ef17a6c7b69f342244c410a5e000f:
+
+  Linux 3.10-rc6 (2013-06-15 11:51:07 -1000)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.11/dts
+
+for you to fetch changes up to 153030c22defea2f96546d0f1a74fe954551c4cd:
+
+  ARM: dts: omap5-uevm: Provide USB Host PHY clock frequency (2013-06-19 16:59:28 -0500)
+
+----------------------------------------------------------------
+Afzal Mohammed (2):
+      ARM: dts: AM43x: Initial support
+      ARM: dts: AM43x EPOS EVM support
+
+Dan Murphy (3):
+      ARM: dts: omap4-panda: Update the LED support for the panda
+      ARM: dts: omap4-panda: Update the twl6040 gpio to macro definition
+      ARM: dts: omap5-uevm: Add LED support for uEVM blue LED
+
+Eduardo Valentin (3):
+      ARM: dts: OMAP443x: Add bandgap entry for OMAP443x devices
+      ARM: dts: OMAP4460: Add bandgap entry for OMAP4460 devices
+      ARM: dts: OMAP5: Add bandgap DT entry
+
+Florian Vaussard (15):
+      ARM: dts: OMAP2+: Use #include for all device trees
+      ARM: dts: OMAP2+: Use existing constants for GPIOs
+      ARM: dts: OMAP4/5: Use existing constants for IRQs
+      ARM: dts: OMAP2+: Header file for pinctrl constants
+      ARM: dts: OMAP2+: Use pinctrl constants
+      ARM: dts: AM3XXX: Use #include for all device trees
+      ARM: dts: AM33XX: Use existing constants for GPIOs
+      ARM: dts: AM33XX: Specific pinctrl header
+      ARM: dts: AM33XX: Use pinctrl constants
+      ARM: dts: OMAP4/AM35xx: Add missing dtb in the dtbs target
+      ARM: dts: Protect pinctrl headers against multiple inclusions
+      ARM: dts: OMAP3: Include IRQ header
+      ARM: dts: omap3-tobi: Add SMSC911X node
+      ARM: dts: omap3-tobi: Correct polarity for GPIO LED
+      ARM: dts: omap3-overo: Add default trigger for TWL4030 LED
+
+J Keerthy (1):
+      ARM: dts: OMAP5: Add Palmas MFD node and regulator nodes
+
+Javier Martinez Canillas (3):
+      ARM: dts: omap3-igep0020: Add SMSC911x LAN chip support
+      ARM: dts: omap3-igep0020: Add NAND flash support
+      ARM: dts: omap3-igep0030: Add NAND flash support
+
+Kevin Hilman (3):
+      ARM: dts: OMAP3: beagle/overo: mux console UART, enable wakeup
+      ARM: dts: OMAP3: beagle: enable user button via gpio_keys, enable wakeup
+      ARM: dts: TWL4030: fix mux and wakeup for SYS_NIRQ line
+
+Mugunthan V N (3):
+      ARM: dts: AM33XX: Add pinmux configuration for CPSW to beaglebone
+      ARM: dts: AM33XX: Add pinmux configuration for CPSW to EVMsk
+      ARM: dts: AM33XX: Add pinmux configuration for CPSW to am335x EVM
+
+Philip Avinash (4):
+      ARM: dts: AM33XX: Add NAND flash device tree data to am335x-evm
+      ARM: dts: AM33XX: Add PWMSS device tree nodes
+      ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evm
+      ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evmsk
+
+Philip, Avinash (1):
+      ARM: dts: AM33XX: Add ELM node
+
+Roger Quadros (4):
+      ARM: dts: omap5-uevm: Add USB Host support
+      ARM: dts: omap4-panda: Add USB Host support
+      ARM: dts: omap4-panda: Fix DVI EDID reads
+      ARM: dts: omap5-uevm: Provide USB Host PHY clock frequency
+
+Sourav Poddar (1):
+      ARM: dts: omap5-uevm: Add uart pinctrl data
+
+Sricharan R (1):
+      ARM: dts: omap5: Make uevm as the official board and deprecate sevm support
+
+Suman Anna (1):
+      ARM: dts: OMAP4+: Remove multimedia carveouts
+
+Vaibhav Hiremath (7):
+      ARM: dts: AM33XX: Add default pinctrl binding for I2C device
+      ARM: dts: AM33XX: Add pinctrl binding to gpio-leds node
+      ARM: dts: AM33XX: Fix uart numbering to match hardware/TRM
+      ARM: dts: AM33XX: Add default pinctrl binding for UART0 device
+      ARM: dts: AM33XX: Set pinmux for clkout2 pad used for clock output
+      ARM: AM33XX: clock: Add debugSS clock nodes
+      ARM: AM33XX: clock data: Enable clkout2 as part of init
+
+ .../devicetree/bindings/arm/omap/omap.txt          |    3 +
+ arch/arm/boot/dts/Makefile                         |    8 +-
+ arch/arm/boot/dts/am335x-bone.dts                  |  118 ++++-
+ arch/arm/boot/dts/am335x-evm.dts                   |  264 ++++++++++-
+ arch/arm/boot/dts/am335x-evmsk.dts                 |  184 +++++++-
+ arch/arm/boot/dts/am33xx.dtsi                      |  121 ++++-
+ arch/arm/boot/dts/am3517-evm.dts                   |    2 +-
+ arch/arm/boot/dts/am3517_mt_ventoux.dts            |    2 +-
+ arch/arm/boot/dts/am4372.dtsi                      |   68 +++
+ arch/arm/boot/dts/am43x-epos-evm.dts               |   18 +
+ arch/arm/boot/dts/omap2.dtsi                       |    5 +-
+ arch/arm/boot/dts/omap2420-h4.dts                  |    2 +-
+ arch/arm/boot/dts/omap2420.dtsi                    |    2 +-
+ arch/arm/boot/dts/omap2430.dtsi                    |    2 +-
+ arch/arm/boot/dts/omap3-beagle-xm.dts              |   48 +-
+ arch/arm/boot/dts/omap3-beagle.dts                 |   72 ++-
+ arch/arm/boot/dts/omap3-devkit8000.dts             |   11 +-
+ arch/arm/boot/dts/omap3-evm.dts                    |    7 +-
+ arch/arm/boot/dts/omap3-igep.dtsi                  |   43 +-
+ arch/arm/boot/dts/omap3-igep0020.dts               |  111 ++++-
+ arch/arm/boot/dts/omap3-igep0030.dts               |   60 ++-
+ arch/arm/boot/dts/omap3-overo.dtsi                 |   20 +-
+ arch/arm/boot/dts/omap3-tobi.dts                   |   52 ++-
+ arch/arm/boot/dts/omap3.dtsi                       |    6 +-
+ arch/arm/boot/dts/omap3430-sdp.dts                 |    5 +-
+ arch/arm/boot/dts/omap34xx.dtsi                    |    2 +-
+ arch/arm/boot/dts/omap36xx.dtsi                    |    2 +-
+ arch/arm/boot/dts/omap4-panda-a4.dts               |   10 +-
+ arch/arm/boot/dts/omap4-panda-common.dtsi          |  162 +++++--
+ arch/arm/boot/dts/omap4-panda-es.dts               |   38 +-
+ arch/arm/boot/dts/omap4-panda.dts                  |    4 +-
+ arch/arm/boot/dts/omap4-sdp-es23plus.dts           |    8 +-
+ arch/arm/boot/dts/omap4-sdp.dts                    |  126 ++---
+ arch/arm/boot/dts/omap4-var-som.dts                |    8 +-
+ arch/arm/boot/dts/omap4.dtsi                       |  124 +++--
+ arch/arm/boot/dts/omap443x.dtsi                    |    8 +-
+ arch/arm/boot/dts/omap4460.dtsi                    |   15 +-
+ arch/arm/boot/dts/omap5-evm.dts                    |  261 -----------
+ arch/arm/boot/dts/omap5-uevm.dts                   |  485 ++++++++++++++++++++
+ arch/arm/boot/dts/omap5.dtsi                       |  173 ++++---
+ arch/arm/boot/dts/twl4030_omap3.dtsi               |   25 +
+ arch/arm/mach-omap2/cclock33xx_data.c              |   49 +-
+ include/dt-bindings/pinctrl/am33xx.h               |   42 ++
+ include/dt-bindings/pinctrl/omap.h                 |   55 +++
+ 44 files changed, 2172 insertions(+), 659 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am4372.dtsi
+ create mode 100644 arch/arm/boot/dts/am43x-epos-evm.dts
+ delete mode 100644 arch/arm/boot/dts/omap5-evm.dts
+ create mode 100644 arch/arm/boot/dts/omap5-uevm.dts
+ create mode 100644 arch/arm/boot/dts/twl4030_omap3.dtsi
+ create mode 100644 include/dt-bindings/pinctrl/am33xx.h
+ create mode 100644 include/dt-bindings/pinctrl/omap.h
