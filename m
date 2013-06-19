@@ -1,109 +1,84 @@
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v7 1/9] drivers: phy: add generic PHY framework
-Date: Wed, 19 Jun 2013 17:49:33 +0200
-Message-ID: <51C1D30D.1050907@samsung.com>
-References: <1371113039-5784-1-git-send-email-kishon@ti.com>
- <1371113039-5784-2-git-send-email-kishon@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-reply-to: <1371113039-5784-2-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: grant.likely@linaro.org, tony@atomide.com, balbi@ti.com, arnd@arndb.de, swarren@nvidia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, linux@arm.linux.org.uk, benoit.cousson@linaro.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, rnayak@ti.com, shawn.guo@linaro.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, nsekhar@ti.com
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH 1/1] ARM: OMAP3: igep0020: Set DSS pins in correct mux mode.
+Date: Wed, 19 Jun 2013 18:24:43 +0200
+Message-ID: <1371659083-14536-1-git-send-email-javier.martinez@collabora.co.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:60122 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757175Ab3FSQZO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 12:25:14 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, linux-omap@vger.kernel.org, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-Hi,
+From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-On 06/13/2013 10:43 AM, Kishon Vijay Abraham I wrote:
-> +/**
-> + * phy_create() - create a new phy
-> + * @dev: device that is creating the new phy
-> + * @id: id of the phy
-> + * @ops: function pointers for performing phy operations
-> + * @label: label given to the phy
-> + * @priv: private data from phy driver
-> + *
-> + * Called to create a phy using phy framework.
-> + */
-> +struct phy *phy_create(struct device *dev, u8 id, const struct phy_ops *ops,
-> +	const char *label, void *priv)
-> +{
-> +	int ret;
-> +	struct phy *phy;
-> +
-> +	if (!dev) {
-> +		dev_WARN(dev, "no device provided for PHY\n");
-> +		ret = -EINVAL;
-> +		goto err0;
-> +	}
-> +
-> +	phy = kzalloc(sizeof(*phy), GFP_KERNEL);
-> +	if (!phy) {
-> +		ret = -ENOMEM;
-> +		goto err0;
-> +	}
-> +
-> +	device_initialize(&phy->dev);
-> +
-> +	phy->dev.class = phy_class;
-> +	phy->dev.parent = dev;
-> +	phy->dev.of_node = dev->of_node;
-> +	phy->id = id;
-> +	phy->ops = ops;
-> +	phy->label = label;
+Platform code used to depend on bootloadres for correctly setting the mux
+pin modes. But bootloaders should only set the minimum required mux pins.
+So, DSS mux pins are not set in U-Boot anymore and video display is broken
+on IGEPv2 when booting with newer U-Boot versions.
 
-Perhaps we could make it:
+Setup the DSS pin muxes to enable display functionality.
 
-	phy->label = kstrdup(label, GFP_KERNEL);
+Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+Reviewed-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+---
 
-and free the label in phy_destroy() ?
+Tony,
 
-That way the users would't need to keep the label around. It might
-be useful when PHY provider generates the labels dynamically. I guess
-it is OK for PHY providers to hard code the labels and having the PHY
-user drivers passed labels in platform data ?
+Can you please take this until we have finished the OMAP3 migration to DT?
 
-> +	dev_set_drvdata(&phy->dev, priv);
-> +
-> +	ret = dev_set_name(&phy->dev, "%s.%d", dev_name(dev), id);
-> +	if (ret)
-> +		goto err1;
-> +
-> +	ret = device_add(&phy->dev);
-> +	if (ret)
-> +		goto err1;
-> +
-> +	if (pm_runtime_enabled(dev))
-> +		pm_runtime_enable(&phy->dev);
-> +
-> +	return phy;
-> +
-> +err1:
-> +	put_device(&phy->dev);
-> +	kfree(phy);
-> +
-> +err0:
-> +	return ERR_PTR(ret);
-> +}
-> +EXPORT_SYMBOL_GPL(phy_create);
+I think it falls under the critical fix category that you were talking about.
 
-> +/**
-> + * phy_destroy() - destroy the phy
-> + * @phy: the phy to be destroyed
-> + *
-> + * Called to destroy the phy.
-> + */
-> +void phy_destroy(struct phy *phy)
-> +{
-> +	pm_runtime_disable(&phy->dev);
-> +	device_unregister(&phy->dev);
+Thanks a lot and best regards,
+Javier
 
-Isn't kfree(phy); missing here ?
+ arch/arm/mach-omap2/board-igep0020.c |   31 +++++++++++++++++++++++++++++++
+ 1 files changed, 31 insertions(+), 0 deletions(-)
 
-> +}
-> +EXPORT_SYMBOL_GPL(phy_destroy);
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index b54562d..87e65dd 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -553,6 +553,37 @@ static struct usbhs_omap_platform_data igep3_usbhs_bdata __initdata = {
+ 
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
++	/* Display Sub System */
++	OMAP3_MUX(DSS_PCLK, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_HSYNC, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_VSYNC, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_ACBIAS, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA0, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA1, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA2, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA3, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA4, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA5, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA6, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA7, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA8, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA9, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA10, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA11, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA12, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA13, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA14, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA15, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA16, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA17, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA18, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA19, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA20, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA21, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA22, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(DSS_DATA23, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	/* TFP410 PanelBus DVI Transmitte (GPIO_170) */
++	OMAP3_MUX(HDQ_SIO, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
+ 	/* SMSC9221 LAN Controller ETH IRQ (GPIO_176) */
+ 	OMAP3_MUX(MCSPI1_CS2, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+-- 
+1.7.7.6
 
-Thanks,
-Sylwester
