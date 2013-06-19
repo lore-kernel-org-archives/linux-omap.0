@@ -1,84 +1,86 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 1/1] ARM: OMAP3: igep0020: Set DSS pins in correct mux mode.
-Date: Wed, 19 Jun 2013 18:24:43 +0200
-Message-ID: <1371659083-14536-1-git-send-email-javier.martinez@collabora.co.uk>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:60122 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757175Ab3FSQZO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 12:25:14 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 4/4] regulator: Palmas: Add TPS659038 support
+Date: Wed, 19 Jun 2013 17:42:24 +0100
+Message-ID: <20130619164224.GZ1403@sirena.org.uk>
+References: <1371621470-22279-1-git-send-email-j-keerthy@ti.com>
+ <1371621470-22279-5-git-send-email-j-keerthy@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============3483100587476789950=="
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1371621470-22279-5-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, linux-omap@vger.kernel.org, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-Platform code used to depend on bootloadres for correctly setting the mux
-pin modes. But bootloaders should only set the minimum required mux pins.
-So, DSS mux pins are not set in U-Boot anymore and video display is broken
-on IGEPv2 when booting with newer U-Boot versions.
+--===============3483100587476789950==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="puacTriGDskFP02p"
+Content-Disposition: inline
 
-Setup the DSS pin muxes to enable display functionality.
 
-Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
-Reviewed-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
+--puacTriGDskFP02p
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Tony,
+On Wed, Jun 19, 2013 at 11:27:50AM +0530, Keerthy wrote:
+> From: J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+>=20
+> Add TPS659038 support.
+>=20
+> Signed-off-by: J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 
-Can you please take this until we have finished the OMAP3 migration to DT?
+This doesn't apply against my current tree as the PMIC bindings document
+isn't in mainline yet.
 
-I think it falls under the critical fix category that you were talking about.
+Acked-by: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-Thanks a lot and best regards,
-Javier
+assuming there's a tree where that does exist.
 
- arch/arm/mach-omap2/board-igep0020.c |   31 +++++++++++++++++++++++++++++++
- 1 files changed, 31 insertions(+), 0 deletions(-)
+--puacTriGDskFP02p
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index b54562d..87e65dd 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -553,6 +553,37 @@ static struct usbhs_omap_platform_data igep3_usbhs_bdata __initdata = {
- 
- #ifdef CONFIG_OMAP_MUX
- static struct omap_board_mux board_mux[] __initdata = {
-+	/* Display Sub System */
-+	OMAP3_MUX(DSS_PCLK, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_HSYNC, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_VSYNC, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_ACBIAS, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA0, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA1, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA2, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA3, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA4, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA5, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA6, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA7, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA8, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA9, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA10, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA11, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA12, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA13, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA14, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA15, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA16, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA17, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA18, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA19, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA20, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA21, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA22, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	OMAP3_MUX(DSS_DATA23, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-+	/* TFP410 PanelBus DVI Transmitte (GPIO_170) */
-+	OMAP3_MUX(HDQ_SIO, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
- 	/* SMSC9221 LAN Controller ETH IRQ (GPIO_176) */
- 	OMAP3_MUX(MCSPI1_CS2, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
--- 
-1.7.7.6
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
 
+iQIcBAEBAgAGBQJRwd9tAAoJELSic+t+oim97boP/13KOIGcQ/KOAq97/yNqWjNg
+Qyed+YxGGzlTRS8zenpmrsrBhOh3bSWFIJ14bjqN0NzgdcwZJMqiBM1mXB90Rpcd
+otJHjq9hJB8KBM5/40e65iRzdnmZQjs6DJM4vkwRCIMBhYNAYZyUMYZpApusGb0f
+HDc7q7SeTHZaeUJ1bCXG8JfizUmY/CWUxHa3q3O6nlhV0WjYKRIXJy4QnEc9umgB
+BDbi/z02U6FMMQ6SU7ZnqWQMyIOHy8Aq9MFKbho9q9EfDs7cNmbO4NcbNZtvDDUA
+ZIyt9p/9l+FRAZK5DQ6+Zk38EhBybrDnRrhNXC9gwOg9qMLSAM/ke0wZ7YR5UZxU
+02l9SKAqETHKYOHmSUcDHKBAadG6hl9NXdQzjkl8S9fEdx0XAhwAP+Q8wRpbRZHr
+gG1czpVeqBDzXkzfKZvlFjSSkABjjrJFptUZchLNIcNV27sVtlny+ArusA08CB3T
+9I8BZGkI1OYSu7mHaraGY27PfK1HWZ+4dKQb1L4zA/clH1sb8JMxFOzvScKsB/Ki
+QJtOCkCaapWaHeJdeZpJdU670wIVknJUgq7y8YlVqJVjBG7S0a8d4363j8uHF4vq
+q3aS+EBLnXMGmHcaGCICcfFGCb+eS+2wJa+K/AE6w4SuapADhcdwVl3oERrFpjU2
+uNexqo/6tEraYCq3mfIN
+=kjBq
+-----END PGP SIGNATURE-----
+
+--puacTriGDskFP02p--
+
+--===============3483100587476789950==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--===============3483100587476789950==--
