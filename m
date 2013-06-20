@@ -1,61 +1,55 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL 5/7] omap board changes for v3.11 merge window
-Date: Thu, 20 Jun 2013 21:43:10 +0200
-Message-ID: <201306202143.10985.arnd@arndb.de>
-References: <0LvkNM-1UEdHD0O6e-0186su@mx.kundenserver.de>
+Subject: Re: [GIT PULL 7/7] omap mailbox move to drivers for v3.11 merge window
+Date: Thu, 20 Jun 2013 21:46:26 +0200
+Message-ID: <201306202146.27093.arnd@arndb.de>
+References: <0MFrZm-1V3qHW1bmA-00EJsa@mx.kundenserver.de>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:57622 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.8]:59213 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422752Ab3FTTnn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jun 2013 15:43:43 -0400
-In-Reply-To: <0LvkNM-1UEdHD0O6e-0186su@mx.kundenserver.de>
+	with ESMTP id S965319Ab3FTTqc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jun 2013 15:46:32 -0400
+In-Reply-To: <0MFrZm-1V3qHW1bmA-00EJsa@mx.kundenserver.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
 On Tuesday 18 June 2013, Tony Lindgren wrote:
-> The following changes since commit 7d132055814ef17a6c7b69f342244c410a5e000f:
+> The following changes since commit 317ddd256b9c24b0d78fa8018f80f1e495481a10:
 > 
->   Linux 3.10-rc6 (2013-06-15 11:51:07 -1000)
+>   Linux 3.10-rc5 (2013-06-08 17:41:04 -0700)
 > 
 > are available in the git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/board-signed
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/mailbox-signed
 > 
-> for you to fetch changes up to 45853507c9362b0bd606b37e8c7c7e7551caa78b:
+> for you to fetch changes up to d2e993289cc5f1780ce74188e3a8d2b404748397:
 > 
->   ARM: omap2plus_defconfig: enable USB_PHY and NOP_USB_XCEIV (2013-06-18 03:19:07 -0700)
-> 
-> ----------------------------------------------------------------
-> Minor board changes for v3.11 merge window. These are
-> tapering down finally as we're getting closer to making
-> omap2+ DT only.
+>   Merge tag 'omap-mailbox-for-v3.11' of git://github.com/sumananna/mailbox into omap-for-v3.11/mailbox (2013-06-17 03:51:54 -0700)
 > 
 > ----------------------------------------------------------------
-> Aaro Koskinen (1):
->       ARM: OMAP1: nokia770: enable Tahvo
 > 
-> Adrien Verg (1):
->       ARM: omap2plus_defconfig: enable USB_PHY and NOP_USB_XCEIV
+> Move OMAP Mailbox framework to drivers via Suman Anna <s-anna@ti.com>
 > 
-> Florian Vaussard (1):
->       arm: omap: board-overo: reset GPIO for SMSC911x
-> 
-> Lokesh Vutla (1):
->       ARM: OMAP3EVM: Marking omap3_evm_display_init() with CONFIG_BROKEN
-> 
->  arch/arm/configs/omap2plus_defconfig |  2 ++
->  arch/arm/mach-omap1/board-nokia770.c | 10 ++++++++++
->  arch/arm/mach-omap2/board-omap3evm.c |  4 ++++
->  arch/arm/mach-omap2/board-overo.c    |  3 ++-
->  4 files changed, 18 insertions(+), 1 deletion(-)
+> The OMAP Mailbox driver framework is moved out of arch/arm folder
+> into drivers/mailbox folder, to re-enable building it and also serve
+> as a baseline for adapting to the new mailbox driver framework. The
+> changes mainly contain:
+>   - a minor bug fix and cleanup of mach-specific mailbox code
+>   - remove any header dependencies from plat-omap for multi-platform
+>     support
+>   - represent mailbox device data through platform data/hwmod attrs
+>   - move the omap mailbox code out of plat-omap/mach-omapX to
+>     drivers/mailbox folder
 > 
 
-Pulled into next/boards, thanks!
+I've pulled this into next/drivers as well, rather than a separate
+branch that we had for 3.10 (and dropped). I am a bit puzzled about
+this series though. Is it right that for 3.10 we had plans for a
+generic subsystem, and now it's just the omap drivers?
 
 	Arnd
