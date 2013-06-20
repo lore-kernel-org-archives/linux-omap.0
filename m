@@ -1,111 +1,110 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC PATCH 5/6] ARM: dts: omap3beagle-xm: Add idle state pins
- for USB host
-Date: Thu, 20 Jun 2013 16:02:19 +0300
-Message-ID: <51C2FD5B.1090508@ti.com>
-References: <1371650753-11452-1-git-send-email-rogerq@ti.com>
- <1371650753-11452-6-git-send-email-rogerq@ti.com> <87obb26ixm.fsf@linaro.org>
- <51C2EDB1.3080801@ti.com> <51C2EF50.3070707@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: RE: [PATCH v5, 0/3] DT support for NAND on OMAP2
+Date: Thu, 20 Jun 2013 14:08:59 +0000
+Message-ID: <B7CE1C39EBFBA0428A012975D4B2FC830B72CE9C@DNCE05.ent.ti.com>
+References: <1369986545-29204-1-git-send-email-pekon@ti.com>
+ <20980858CB6D3A4BAE95CA194937D5E73E9DECE7@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51C2EF50.3070707@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: linux-usb@vger.kernel.org, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson@ti.com>, tony@atomide.com, ruslan.bilovol@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, stern@rowland.harvard.edu, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44192 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935370Ab3FTOJM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jun 2013 10:09:12 -0400
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73E9DECE7@DBDE04.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gupta, Pekon" <pekon@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: "Philip, Avinash" <avinashphilip@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "jacmet@sunsite.dk" <jacmet@sunsite.dk>, "zonque@gmail.com" <zonque@gmail.com>, Jon Hunter <jgchunter@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-T24gMDYvMjAvMjAxMyAwMzowMiBQTSwgUm9nZXIgUXVhZHJvcyB3cm90ZToKPiBPbiAwNi8yMC8y
-MDEzIDAyOjU1IFBNLCBSb2dlciBRdWFkcm9zIHdyb3RlOgo+PiBPbiAwNi8xOS8yMDEzIDA5OjQy
-IFBNLCBLZXZpbiBIaWxtYW4gd3JvdGU6Cj4+PiBSb2dlciBRdWFkcm9zIDxyb2dlcnFAdGkuY29t
-PiB3cml0ZXM6Cj4+Pgo+Pj4+IEFkZCB0aGUgSWRsZSBzdGF0ZSBwaW5zIGZvciBVU0IgaG9zdCBh
-bmQgZW5hYmxlIFdBS0VVUCBvbgo+Pj4+IERJUiwgREFUMC0zLCBzbyB0aGF0IHRoZSBQSFkgY2Fu
-IHdha2V1cCB0aGUgT01BUCBTb0MgZnJvbQo+Pj4+IHNsZWVwIG9uIGFueSBVU0IgYWN0aXZpdHkg
-KGUuZy4gcmVtb3RlIHdha2V1cCBvciBjb25uZWN0L2Rpc2Nvbm5lY3QpLgo+Pj4+Cj4+Pj4gQ0M6
-IEJlbm/DrnQgQ291c3NvbiA8Yi1jb3Vzc29uQHRpLmNvbT4KPj4+PiBTaWduZWQtb2ZmLWJ5OiBS
-b2dlciBRdWFkcm9zIDxyb2dlcnFAdGkuY29tPgo+Pj4KPj4+IFRoaXMgb25lIGRvZXNuJ3QgYXBw
-bHkuLi4KPj4+Cj4+Pj4gLS0tCj4+Pj4gIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWJlYWdsZS14
-bS5kdHMgfCAgIDI5ICsrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tCj4+Pj4gIDEgZmlsZXMg
-Y2hhbmdlZCwgMjMgaW5zZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkKPj4+Pgo+Pj4+IGRpZmYg
-LS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwMy1iZWFnbGUteG0uZHRzIGIvYXJjaC9hcm0v
-Ym9vdC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cwo+Pj4+IGluZGV4IGQzODA4ZWQuLmYxZDU2YzIg
-MTAwNjQ0Cj4+Pj4gLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cwo+
-Pj4+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWJlYWdsZS14bS5kdHMKPj4+PiBAQCAt
-ODksMTIgKzg5LDcgQEAKPj4+PiAgfTsKPj4+PiAgCj4+Pj4gICZvbWFwM19wbXhfY29yZSB7Cj4+
-Pj4gLQlwaW5jdHJsLW5hbWVzID0gImRlZmF1bHQiOwo+Pj4+IC0JcGluY3RybC0wID0gPAo+Pj4+
-IC0JCQkmaHN1c2JiMl9waW5zCj4+Pj4gLQk+Owo+Pj4+IC0KPj4+PiAtCWhzdXNiYjJfcGluczog
-cGlubXV4X2hzdXNiYjJfcGlucyB7Cj4+Pgo+Pj4gVGhpcyBvbWFwM19wbXhfY29yZSBzZWN0aW9u
-IGRvZXNuJ3QgZXhpc3QgdXBzdHJlYW0gaW4gdGhlIHhNIERUUyBmaWxlCj4+PiAoYnV0IGRvZXMg
-aW4gb21hcDMtYmVhZ2xlLmR0cy4pICAKPj4+Cj4+PiBJcyB0aGVyZSBhIGRlcGVuZGVuY3kgcGF0
-Y2ggbWlzc2luZz8KPj4+Cj4+Cj4+IFNvcnJ5IGZvciBub3QgbWVudGlvbmluZyBpdCBlYXJsaWVy
-LiBUaGlzIGlzIGJhc2VkIG9uIEJlbm9pdCdzIHRyZWUgWzFdCj4+IGFuZCB5b3UgbmVlZCB0aGVz
-ZSBwYXRjaGVzCj4+Cj4+IGh0dHA6Ly90aHJlYWQuZ21hbmUub3JnL2dtYW5lLmxpbnV4LmRyaXZl
-cnMuZGV2aWNldHJlZS8zODM4Mwo+IAo+IEp1c3Qgbm90aWNlZCB0aGF0IHRoaXMgbm8gbG9uZ2Vy
-IGFwcGxpZXMgdG9kYXkuIEknbGwgc2VuZCBhIHJldmlzaW9uIHNvb24uCj4gCgpPSy4gSW4gY2Fz
-ZSB5b3UgYXJlIGVhZ2VyIHRvIHRlc3QsIHBsZWFzZSB1c2UgdGhlIHNlcmllcyBbMV0gb24gbC1v
-IG9uIHRvcCBvZiBCZW5vaXQncwpmb3JfMy4xMS9fZHRzIGJyYW5jaCBhbmQgdGhlbiB0aGUgJHN1
-YmplY3Qgc2VyaWVzIHdpdGggdGhlIHVwZGF0ZWQgcGF0Y2ggNSBiZWxvdyBbMl0uCgpbMV0gLSBb
-UEFUQ0ggdjUgMC8yXSBBUk06IGR0czogQWRkIFVTQiBob3N0IHN1cHBvcnQgZm9yIEJlYWdsZS14
-bQoKWzJdIC0gVXBkYXRlZCBQYXRjaCA1CgpGcm9tIGI3MTJhMWZiOTM2ZjY1ZmEwNWYyMWZjZDJj
-NjJmZmY1NjI4ZDA2MjggTW9uIFNlcCAxNyAwMDowMDowMCAyMDAxCkZyb206IFJvZ2VyIFF1YWRy
-b3MgPHJvZ2VycUB0aS5jb20+CkRhdGU6IFdlZCwgMTkgSnVuIDIwMTMgMTE6MTQ6MzUgKzAzMDAK
-U3ViamVjdDogW1BBVENIXSBBUk06IGR0czogb21hcDNiZWFnbGUteG06IEFkZCBpZGxlIHN0YXRl
-IHBpbnMgZm9yIFVTQiBob3N0Ck1JTUUtVmVyc2lvbjogMS4wCkNvbnRlbnQtVHlwZTogdGV4dC9w
-bGFpbjsgY2hhcnNldD1VVEYtOApDb250ZW50LVRyYW5zZmVyLUVuY29kaW5nOiA4Yml0CgpBZGQg
-dGhlIElkbGUgc3RhdGUgcGlucyBmb3IgVVNCIGhvc3QgYW5kIGVuYWJsZSBXQUtFVVAgb24KRElS
-LCBEQVQwLTMsIHNvIHRoYXQgdGhlIFBIWSBjYW4gd2FrZXVwIHRoZSBPTUFQIFNvQyBmcm9tCnNs
-ZWVwIG9uIGFueSBVU0IgYWN0aXZpdHkgKGUuZy4gcmVtb3RlIHdha2V1cCBvciBjb25uZWN0L2Rp
-c2Nvbm5lY3QpLgoKQ0M6IEJlbm/DrnQgQ291c3NvbiA8Yi1jb3Vzc29uQHRpLmNvbT4KU2lnbmVk
-LW9mZi1ieTogUm9nZXIgUXVhZHJvcyA8cm9nZXJxQHRpLmNvbT4KLS0tCiBhcmNoL2FybS9ib290
-L2R0cy9vbWFwMy1iZWFnbGUteG0uZHRzIHwgICAyOSArKysrKysrKysrKysrKysrKysrKysrKy0t
-LS0tLQogMSBmaWxlcyBjaGFuZ2VkLCAyMyBpbnNlcnRpb25zKCspLCA2IGRlbGV0aW9ucygtKQoK
-ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWJlYWdsZS14bS5kdHMgYi9hcmNo
-L2FybS9ib290L2R0cy9vbWFwMy1iZWFnbGUteG0uZHRzCmluZGV4IDM3MWIxZTIuLjkxZDE5ZmEg
-MTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWJlYWdsZS14bS5kdHMKKysrIGIv
-YXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cwpAQCAtMTEzLDExICsxMTMsNiBA
-QAogfTsKIAogJm9tYXAzX3BteF9jb3JlIHsKLQlwaW5jdHJsLW5hbWVzID0gImRlZmF1bHQiOwot
-CXBpbmN0cmwtMCA9IDwKLQkJCSZoc3VzYmIyX3BpbnMKLQk+OwotCiAJdWFydDNfcGluczogcGlu
-bXV4X3VhcnQzX3BpbnMgewogCQlwaW5jdHJsLXNpbmdsZSxwaW5zID0gPAogCQkJMHgxNmUgKFBJ
-Tl9JTlBVVCB8IFBJTl9PRkZfV0FLRVVQRU5BQkxFIHwgTVVYX01PREUwKSAvKiB1YXJ0M19yeF9p
-cnJ4LnVhcnQzX3J4X2lycnggKi8KQEAgLTEyNSw3ICsxMjAsNyBAQAogCQk+OwogCX07CiAKLQlo
-c3VzYmIyX3BpbnM6IHBpbm11eF9oc3VzYmIyX3BpbnMgeworCWhzdXNiMl9waW5zOiBwaW5tdXhf
-aHN1c2IyX3BpbnMgewogCQlwaW5jdHJsLXNpbmdsZSxwaW5zID0gPAogCQkJMHg1YzAgKFBJTl9P
-VVRQVVQgfCBNVVhfTU9ERTMpCQkvKiBldGtfZDEwLmhzdXNiMl9jbGsgKi8KIAkJCTB4NWMyIChQ
-SU5fT1VUUFVUIHwgTVVYX01PREUzKQkJLyogZXRrX2QxMS5oc3VzYjJfc3RwICovCkBAIC0xNDEs
-NiArMTM2LDI1IEBACiAJCQkweDFhZSAoUElOX0lOUFVUX1BVTExET1dOIHwgTVVYX01PREUzKQkv
-KiBtY3NwaTJfY3MxLmhzdXNiMl9kYXRhMyAqLwogCQk+OwogCX07CisKKwkvKiBXQUtFVVAgZW5h
-YmxlZCBvbiBESVIsIERBVDAtMyAqLworCWhzdXNiMl9pZGxlX3BpbnM6IHBpbm11eF9oc3VzYjJf
-aWRsZV9waW5zIHsKKwkJcGluY3RybC1zaW5nbGUscGlucyA9IDwKKwkJCTB4NWMwIChQSU5fT1VU
-UFVUIHwgTVVYX01PREUzKQkJLyogZXRrX2QxMC5oc3VzYjJfY2xrICovCisJCQkweDVjMiAoUElO
-X09VVFBVVCB8IE1VWF9NT0RFMykJCS8qIGV0a19kMTEuaHN1c2IyX3N0cCAqLworCQkJMHg1YzQg
-KFBJTl9JTlBVVF9QVUxMRE9XTiB8IFdBS0VVUF9FTiB8IE1VWF9NT0RFMykJLyogZXRrX2QxMi5o
-c3VzYjJfZGlyICovCisJCQkweDVjNiAoUElOX0lOUFVUX1BVTExET1dOIHwgTVVYX01PREUzKQkJ
-CS8qIGV0a19kMTMuaHN1c2IyX254dCAqLworCQkJMHg1YzggKFBJTl9JTlBVVF9QVUxMRE9XTiB8
-IFdBS0VVUF9FTiB8IE1VWF9NT0RFMykJLyogZXRrX2QxNC5oc3VzYjJfZGF0YTAgKi8KKwkJCTB4
-NWNBIChQSU5fSU5QVVRfUFVMTERPV04gfCBXQUtFVVBfRU4gfCBNVVhfTU9ERTMpCS8qIGV0a19k
-MTUuaHN1c2IyX2RhdGExICovCisJCQkweDFhNCAoUElOX0lOUFVUX1BVTExET1dOIHwgTVVYX01P
-REUzKQkvKiBtY3NwaTFfY3MzLmhzdXNiMl9kYXRhMiAqLworCQkJMHgxYTYgKFBJTl9JTlBVVF9Q
-VUxMRE9XTiB8IE1VWF9NT0RFMykJLyogbWNzcGkyX2Nsay5oc3VzYjJfZGF0YTcgKi8KKwkJCTB4
-MWE4IChQSU5fSU5QVVRfUFVMTERPV04gfCBNVVhfTU9ERTMpCS8qIG1jc3BpMl9zaW1vLmhzdXNi
-Ml9kYXRhNCAqLworCQkJMHgxYWEgKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFMykJLyog
-bWNzcGkyX3NvbWkuaHN1c2IyX2RhdGE1ICovCisJCQkweDFhYyAoUElOX0lOUFVUX1BVTExET1dO
-IHwgTVVYX01PREUzKQkvKiBtY3NwaTJfY3MwLmhzdXNiMl9kYXRhNiAqLworCQkJMHgxYWUgKFBJ
-Tl9JTlBVVF9QVUxMRE9XTiB8IFdBS0VVUF9FTiB8IE1VWF9NT0RFMykJLyogbWNzcGkyX2NzMS5o
-c3VzYjJfZGF0YTMgKi8KKwkJPjsKKwkJaW50ZXJydXB0cyA9IDw3Nz47IC8qIHJvdXRlIHBhZGNv
-bmYgd2FrZXVwIHRvIEVIQ0kgSVJRICovCisJfTsKIH07CiAKICZpMmMxIHsKQEAgLTIyMyw2ICsy
-MzcsOSBAQAogfTsKIAogJnVzYmhzaG9zdCB7CisJcGluY3RybC1uYW1lcyA9ICJkZWZhdWx0Iiwg
-ImlkbGUiOworCXBpbmN0cmwtMCA9IDwmaHN1c2IyX3BpbnM+OworCXBpbmN0cmwtMSA9IDwmaHN1
-c2IyX2lkbGVfcGlucz47CiAJcG9ydDItbW9kZSA9ICJlaGNpLXBoeSI7CiB9OwogCi0tIAoxLjcu
-NC4xCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxp
-bnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFk
-ZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
-LWFybS1rZXJuZWwK
+Hi Pekon,
+
+>
+Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 12.654.784
+
+-----Original Message-----
+>From: Gupta, Pekon
+>Sent: Thursday, June 20, 2013 1:34 AM
+>To: Tony Lindgren; Cousson, Benoit
+>Cc: Philip, Avinash; Nori, Sekhar; Balbi, Felipe; Hiremath, Vaibhav;
+>jacmet@sunsite.dk; zonque@gmail.com; Jon Hunter; linux-
+>omap@vger.kernel.org
+>Subject: RE: [PATCH v5, 0/3] DT support for NAND on OMAP2
+>
+>Hi,
+>
+>In the following series, 1 got merged, while other 2 are awaiting.
+>Request you to please look into these.
+>
+>[PATCH 1/3] ARM: dts: AM33XX: Add ELM node -- awaiting --
+>[PATCH 2/3a] ARM: dts: AM33XX: Add GPMC node -- accepted by Tony
+>[PATCH 2/3b] ARM: dts: AM33xx: Fix properties on gpmc node -- accepted
+>by Benoit (follow-up)
+>[PATCH 3/3] ARM: dts: AM33XX: Add NAND flash device tree data to am335x-
+>evm --awaiting --
+
+I think that all of them are in the branch I've just asked Tony to pull.
+Could you check in my for_3.11/dts branch?
+
+Thanks,
+Benoit
+
+>
+>with regards, pekon
+>
+>> -----Original Message-----
+>> From: Gupta, Pekon
+>> Sent: Friday, May 31, 2013 1:19 PM
+>> To: Tony Lindgren; linux-omap@vger.kernel.org
+>> Cc: Gupta, Pekon; Philip, Avinash; Nori, Sekhar; Balbi, Felipe;
+>Hiremath,
+>> Vaibhav; Cousson, Benoit; jacmet@sunsite.dk; zonque@gmail.com; Jon
+>> Hunter
+>> Subject: [PATCH v5, 0/3] DT support for NAND on OMAP2
+>>
+>> From: "Gupta, Pekon" <pekon@ti.com>
+>>
+>> Changes v4->v5
+>>      - updated commit descriptions.
+>>      - included patch by "Lars Poeschel" instead of [Patch 2/3]
+>>
+>> Changes v3->v4
+>>      - rebased to linux-3.10-rc3
+>>      - updated newly supported DT properties based on following
+>> commits
+>>      [d36b4cd] jon-hunter@ti.com ARM: OMAP2+: Add additional GPMC
+>> timing ...
+>>      [8c8a777] jon-hunter@ti.com ARM: OMAP2+: Add function to read
+>> GPMC ...
+>>      [9f83315] jon-hunter@ti.com ARM: OMAP2+: Add variable to store
+>> number
+>>
+>> Changes v2->v3
+>>      - rebased to linux-3.9-rc8
+>>      - AM335x-evm.dts: moved GPMC pin-mux config to nand node
+>>
+>> Changes v1->v2
+>>      - Change number of chip select to 7
+>>      - Replace <xx> literals to 52
+>>      - remove tab
+>>
+>> Lars Poeschel (1):
+>>   dts: am33xx: Correct properties on gpmc node
+>>
+>> Philip Avinash (1):
+>>   ARM: dts: AM33XX: Add NAND flash device tree data to am335x-evm
+>>
+>> Philip, Avinash (1):
+>>   ARM: dts: AM33XX: Add ELM node
+>>
+>>  arch/arm/boot/dts/am335x-evm.dts | 105
+>> +++++++++++++++++++++++++++++++++++++++
+>>  arch/arm/boot/dts/am33xx.dtsi    |  12 ++++-
+>>  2 files changed, 115 insertions(+), 2 deletions(-)
+>>
+>> --
+>> 1.8.1
+
+
