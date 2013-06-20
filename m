@@ -1,142 +1,111 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v5 1/2] ARM: dts: omap3-beagle-xm: Add USB Host support
-Date: Thu, 20 Jun 2013 15:46:13 +0300
-Message-ID: <1371732374-27191-2-git-send-email-rogerq@ti.com>
-References: <1371732374-27191-1-git-send-email-rogerq@ti.com>
+Subject: Re: [RFC PATCH 5/6] ARM: dts: omap3beagle-xm: Add idle state pins
+ for USB host
+Date: Thu, 20 Jun 2013 16:02:19 +0300
+Message-ID: <51C2FD5B.1090508@ti.com>
+References: <1371650753-11452-1-git-send-email-rogerq@ti.com>
+ <1371650753-11452-6-git-send-email-rogerq@ti.com> <87obb26ixm.fsf@linaro.org>
+ <51C2EDB1.3080801@ti.com> <51C2EF50.3070707@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1371732374-27191-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: b-cousson@ti.com
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51C2EF50.3070707@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: linux-usb@vger.kernel.org, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson@ti.com>, tony@atomide.com, ruslan.bilovol@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, stern@rowland.harvard.edu, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Provide RESET and Power regulators for the USB PHY,
-the USB Host port mode and the PHY device. Provide
-pin multiplexer information for USB host pins.
-
-We also relocate omap3_pmx_core pin definations so that they
-are close to omap3_pmx_wkup pin definations.
-
-NOTE: The reset control will be replaced with the proper
-gpio-controlled reset driver as soon it will be merged [1].
-[1] http://thread.gmane.org/gmane.linux.drivers.devicetree/36830
-
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/omap3-beagle-xm.dts |   81 +++++++++++++++++++++++++++++----
- 1 files changed, 72 insertions(+), 9 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index afdb164..371b1e2 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -69,6 +69,39 @@
- 		};
- 
- 	};
-+
-+	/*
-+	 * Temp hack: Need to be replaced with the proper gpio-controlled
-+	 * reset driver as soon it will be merged.
-+	 * http://thread.gmane.org/gmane.linux.drivers.devicetree/36830
-+	 */
-+	/* HS USB Port 2 RESET */
-+	hsusb2_reset: hsusb2_reset_reg {
-+		compatible = "regulator-fixed";
-+		regulator-name = "hsusb2_reset";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		gpio = <&gpio5 19 0>;	/* gpio_147 */
-+		startup-delay-us = <70000>;
-+		enable-active-high;
-+	};
-+
-+	/* HS USB Port 2 Power */
-+	hsusb2_power: hsusb2_power_reg {
-+		compatible = "regulator-fixed";
-+		regulator-name = "hsusb2_vbus";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		gpio = <&twl_gpio 18 0>;	/* GPIO LEDA */
-+		startup-delay-us = <70000>;
-+	};
-+
-+	/* HS USB Host PHY on PORT 2 */
-+	hsusb2_phy: hsusb2_phy {
-+		compatible = "usb-nop-xceiv";
-+		reset-supply = <&hsusb2_reset>;
-+		vcc-supply = <&hsusb2_power>;
-+	};
- };
- 
- &omap3_pmx_wkup {
-@@ -79,6 +112,37 @@
- 	};
- };
- 
-+&omap3_pmx_core {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+			&hsusbb2_pins
-+	>;
-+
-+	uart3_pins: pinmux_uart3_pins {
-+		pinctrl-single,pins = <
-+			0x16e (PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0) /* uart3_rx_irrx.uart3_rx_irrx */
-+			0x170 (PIN_OUTPUT | MUX_MODE0) /* uart3_tx_irtx.uart3_tx_irtx OUTPUT | MODE0 */
-+		>;
-+	};
-+
-+	hsusbb2_pins: pinmux_hsusbb2_pins {
-+		pinctrl-single,pins = <
-+			0x5c0 (PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
-+			0x5c2 (PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
-+			0x5c4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
-+			0x5c6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
-+			0x5c8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
-+			0x5cA (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
-+			0x1a4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
-+			0x1a6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
-+			0x1a8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
-+			0x1aa (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_somi.hsusb2_data5 */
-+			0x1ac (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs0.hsusb2_data6 */
-+			0x1ae (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs1.hsusb2_data3 */
-+		>;
-+	};
-+};
-+
- &i2c1 {
- 	clock-frequency = <2600000>;
- 
-@@ -148,15 +212,6 @@
- 	power = <50>;
- };
- 
--&omap3_pmx_core {
--	uart3_pins: pinmux_uart3_pins {
--		pinctrl-single,pins = <
--			0x16e (PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0) /* uart3_rx_irrx.uart3_rx_irrx */
--			0x170 (PIN_OUTPUT | MUX_MODE0) /* uart3_tx_irtx.uart3_tx_irtx OUTPUT | MODE0 */
--		>;
--	};
--};
--
- &uart3 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&uart3_pins>;
-@@ -166,3 +221,11 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&gpio1_pins>;
- };
-+
-+&usbhshost {
-+	port2-mode = "ehci-phy";
-+};
-+
-+&usbhsehci {
-+	phys = <0 &hsusb2_phy>;
-+};
--- 
-1.7.4.1
+T24gMDYvMjAvMjAxMyAwMzowMiBQTSwgUm9nZXIgUXVhZHJvcyB3cm90ZToKPiBPbiAwNi8yMC8y
+MDEzIDAyOjU1IFBNLCBSb2dlciBRdWFkcm9zIHdyb3RlOgo+PiBPbiAwNi8xOS8yMDEzIDA5OjQy
+IFBNLCBLZXZpbiBIaWxtYW4gd3JvdGU6Cj4+PiBSb2dlciBRdWFkcm9zIDxyb2dlcnFAdGkuY29t
+PiB3cml0ZXM6Cj4+Pgo+Pj4+IEFkZCB0aGUgSWRsZSBzdGF0ZSBwaW5zIGZvciBVU0IgaG9zdCBh
+bmQgZW5hYmxlIFdBS0VVUCBvbgo+Pj4+IERJUiwgREFUMC0zLCBzbyB0aGF0IHRoZSBQSFkgY2Fu
+IHdha2V1cCB0aGUgT01BUCBTb0MgZnJvbQo+Pj4+IHNsZWVwIG9uIGFueSBVU0IgYWN0aXZpdHkg
+KGUuZy4gcmVtb3RlIHdha2V1cCBvciBjb25uZWN0L2Rpc2Nvbm5lY3QpLgo+Pj4+Cj4+Pj4gQ0M6
+IEJlbm/DrnQgQ291c3NvbiA8Yi1jb3Vzc29uQHRpLmNvbT4KPj4+PiBTaWduZWQtb2ZmLWJ5OiBS
+b2dlciBRdWFkcm9zIDxyb2dlcnFAdGkuY29tPgo+Pj4KPj4+IFRoaXMgb25lIGRvZXNuJ3QgYXBw
+bHkuLi4KPj4+Cj4+Pj4gLS0tCj4+Pj4gIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWJlYWdsZS14
+bS5kdHMgfCAgIDI5ICsrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tCj4+Pj4gIDEgZmlsZXMg
+Y2hhbmdlZCwgMjMgaW5zZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkKPj4+Pgo+Pj4+IGRpZmYg
+LS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwMy1iZWFnbGUteG0uZHRzIGIvYXJjaC9hcm0v
+Ym9vdC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cwo+Pj4+IGluZGV4IGQzODA4ZWQuLmYxZDU2YzIg
+MTAwNjQ0Cj4+Pj4gLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cwo+
+Pj4+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWJlYWdsZS14bS5kdHMKPj4+PiBAQCAt
+ODksMTIgKzg5LDcgQEAKPj4+PiAgfTsKPj4+PiAgCj4+Pj4gICZvbWFwM19wbXhfY29yZSB7Cj4+
+Pj4gLQlwaW5jdHJsLW5hbWVzID0gImRlZmF1bHQiOwo+Pj4+IC0JcGluY3RybC0wID0gPAo+Pj4+
+IC0JCQkmaHN1c2JiMl9waW5zCj4+Pj4gLQk+Owo+Pj4+IC0KPj4+PiAtCWhzdXNiYjJfcGluczog
+cGlubXV4X2hzdXNiYjJfcGlucyB7Cj4+Pgo+Pj4gVGhpcyBvbWFwM19wbXhfY29yZSBzZWN0aW9u
+IGRvZXNuJ3QgZXhpc3QgdXBzdHJlYW0gaW4gdGhlIHhNIERUUyBmaWxlCj4+PiAoYnV0IGRvZXMg
+aW4gb21hcDMtYmVhZ2xlLmR0cy4pICAKPj4+Cj4+PiBJcyB0aGVyZSBhIGRlcGVuZGVuY3kgcGF0
+Y2ggbWlzc2luZz8KPj4+Cj4+Cj4+IFNvcnJ5IGZvciBub3QgbWVudGlvbmluZyBpdCBlYXJsaWVy
+LiBUaGlzIGlzIGJhc2VkIG9uIEJlbm9pdCdzIHRyZWUgWzFdCj4+IGFuZCB5b3UgbmVlZCB0aGVz
+ZSBwYXRjaGVzCj4+Cj4+IGh0dHA6Ly90aHJlYWQuZ21hbmUub3JnL2dtYW5lLmxpbnV4LmRyaXZl
+cnMuZGV2aWNldHJlZS8zODM4Mwo+IAo+IEp1c3Qgbm90aWNlZCB0aGF0IHRoaXMgbm8gbG9uZ2Vy
+IGFwcGxpZXMgdG9kYXkuIEknbGwgc2VuZCBhIHJldmlzaW9uIHNvb24uCj4gCgpPSy4gSW4gY2Fz
+ZSB5b3UgYXJlIGVhZ2VyIHRvIHRlc3QsIHBsZWFzZSB1c2UgdGhlIHNlcmllcyBbMV0gb24gbC1v
+IG9uIHRvcCBvZiBCZW5vaXQncwpmb3JfMy4xMS9fZHRzIGJyYW5jaCBhbmQgdGhlbiB0aGUgJHN1
+YmplY3Qgc2VyaWVzIHdpdGggdGhlIHVwZGF0ZWQgcGF0Y2ggNSBiZWxvdyBbMl0uCgpbMV0gLSBb
+UEFUQ0ggdjUgMC8yXSBBUk06IGR0czogQWRkIFVTQiBob3N0IHN1cHBvcnQgZm9yIEJlYWdsZS14
+bQoKWzJdIC0gVXBkYXRlZCBQYXRjaCA1CgpGcm9tIGI3MTJhMWZiOTM2ZjY1ZmEwNWYyMWZjZDJj
+NjJmZmY1NjI4ZDA2MjggTW9uIFNlcCAxNyAwMDowMDowMCAyMDAxCkZyb206IFJvZ2VyIFF1YWRy
+b3MgPHJvZ2VycUB0aS5jb20+CkRhdGU6IFdlZCwgMTkgSnVuIDIwMTMgMTE6MTQ6MzUgKzAzMDAK
+U3ViamVjdDogW1BBVENIXSBBUk06IGR0czogb21hcDNiZWFnbGUteG06IEFkZCBpZGxlIHN0YXRl
+IHBpbnMgZm9yIFVTQiBob3N0Ck1JTUUtVmVyc2lvbjogMS4wCkNvbnRlbnQtVHlwZTogdGV4dC9w
+bGFpbjsgY2hhcnNldD1VVEYtOApDb250ZW50LVRyYW5zZmVyLUVuY29kaW5nOiA4Yml0CgpBZGQg
+dGhlIElkbGUgc3RhdGUgcGlucyBmb3IgVVNCIGhvc3QgYW5kIGVuYWJsZSBXQUtFVVAgb24KRElS
+LCBEQVQwLTMsIHNvIHRoYXQgdGhlIFBIWSBjYW4gd2FrZXVwIHRoZSBPTUFQIFNvQyBmcm9tCnNs
+ZWVwIG9uIGFueSBVU0IgYWN0aXZpdHkgKGUuZy4gcmVtb3RlIHdha2V1cCBvciBjb25uZWN0L2Rp
+c2Nvbm5lY3QpLgoKQ0M6IEJlbm/DrnQgQ291c3NvbiA8Yi1jb3Vzc29uQHRpLmNvbT4KU2lnbmVk
+LW9mZi1ieTogUm9nZXIgUXVhZHJvcyA8cm9nZXJxQHRpLmNvbT4KLS0tCiBhcmNoL2FybS9ib290
+L2R0cy9vbWFwMy1iZWFnbGUteG0uZHRzIHwgICAyOSArKysrKysrKysrKysrKysrKysrKysrKy0t
+LS0tLQogMSBmaWxlcyBjaGFuZ2VkLCAyMyBpbnNlcnRpb25zKCspLCA2IGRlbGV0aW9ucygtKQoK
+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWJlYWdsZS14bS5kdHMgYi9hcmNo
+L2FybS9ib290L2R0cy9vbWFwMy1iZWFnbGUteG0uZHRzCmluZGV4IDM3MWIxZTIuLjkxZDE5ZmEg
+MTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWJlYWdsZS14bS5kdHMKKysrIGIv
+YXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cwpAQCAtMTEzLDExICsxMTMsNiBA
+QAogfTsKIAogJm9tYXAzX3BteF9jb3JlIHsKLQlwaW5jdHJsLW5hbWVzID0gImRlZmF1bHQiOwot
+CXBpbmN0cmwtMCA9IDwKLQkJCSZoc3VzYmIyX3BpbnMKLQk+OwotCiAJdWFydDNfcGluczogcGlu
+bXV4X3VhcnQzX3BpbnMgewogCQlwaW5jdHJsLXNpbmdsZSxwaW5zID0gPAogCQkJMHgxNmUgKFBJ
+Tl9JTlBVVCB8IFBJTl9PRkZfV0FLRVVQRU5BQkxFIHwgTVVYX01PREUwKSAvKiB1YXJ0M19yeF9p
+cnJ4LnVhcnQzX3J4X2lycnggKi8KQEAgLTEyNSw3ICsxMjAsNyBAQAogCQk+OwogCX07CiAKLQlo
+c3VzYmIyX3BpbnM6IHBpbm11eF9oc3VzYmIyX3BpbnMgeworCWhzdXNiMl9waW5zOiBwaW5tdXhf
+aHN1c2IyX3BpbnMgewogCQlwaW5jdHJsLXNpbmdsZSxwaW5zID0gPAogCQkJMHg1YzAgKFBJTl9P
+VVRQVVQgfCBNVVhfTU9ERTMpCQkvKiBldGtfZDEwLmhzdXNiMl9jbGsgKi8KIAkJCTB4NWMyIChQ
+SU5fT1VUUFVUIHwgTVVYX01PREUzKQkJLyogZXRrX2QxMS5oc3VzYjJfc3RwICovCkBAIC0xNDEs
+NiArMTM2LDI1IEBACiAJCQkweDFhZSAoUElOX0lOUFVUX1BVTExET1dOIHwgTVVYX01PREUzKQkv
+KiBtY3NwaTJfY3MxLmhzdXNiMl9kYXRhMyAqLwogCQk+OwogCX07CisKKwkvKiBXQUtFVVAgZW5h
+YmxlZCBvbiBESVIsIERBVDAtMyAqLworCWhzdXNiMl9pZGxlX3BpbnM6IHBpbm11eF9oc3VzYjJf
+aWRsZV9waW5zIHsKKwkJcGluY3RybC1zaW5nbGUscGlucyA9IDwKKwkJCTB4NWMwIChQSU5fT1VU
+UFVUIHwgTVVYX01PREUzKQkJLyogZXRrX2QxMC5oc3VzYjJfY2xrICovCisJCQkweDVjMiAoUElO
+X09VVFBVVCB8IE1VWF9NT0RFMykJCS8qIGV0a19kMTEuaHN1c2IyX3N0cCAqLworCQkJMHg1YzQg
+KFBJTl9JTlBVVF9QVUxMRE9XTiB8IFdBS0VVUF9FTiB8IE1VWF9NT0RFMykJLyogZXRrX2QxMi5o
+c3VzYjJfZGlyICovCisJCQkweDVjNiAoUElOX0lOUFVUX1BVTExET1dOIHwgTVVYX01PREUzKQkJ
+CS8qIGV0a19kMTMuaHN1c2IyX254dCAqLworCQkJMHg1YzggKFBJTl9JTlBVVF9QVUxMRE9XTiB8
+IFdBS0VVUF9FTiB8IE1VWF9NT0RFMykJLyogZXRrX2QxNC5oc3VzYjJfZGF0YTAgKi8KKwkJCTB4
+NWNBIChQSU5fSU5QVVRfUFVMTERPV04gfCBXQUtFVVBfRU4gfCBNVVhfTU9ERTMpCS8qIGV0a19k
+MTUuaHN1c2IyX2RhdGExICovCisJCQkweDFhNCAoUElOX0lOUFVUX1BVTExET1dOIHwgTVVYX01P
+REUzKQkvKiBtY3NwaTFfY3MzLmhzdXNiMl9kYXRhMiAqLworCQkJMHgxYTYgKFBJTl9JTlBVVF9Q
+VUxMRE9XTiB8IE1VWF9NT0RFMykJLyogbWNzcGkyX2Nsay5oc3VzYjJfZGF0YTcgKi8KKwkJCTB4
+MWE4IChQSU5fSU5QVVRfUFVMTERPV04gfCBNVVhfTU9ERTMpCS8qIG1jc3BpMl9zaW1vLmhzdXNi
+Ml9kYXRhNCAqLworCQkJMHgxYWEgKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFMykJLyog
+bWNzcGkyX3NvbWkuaHN1c2IyX2RhdGE1ICovCisJCQkweDFhYyAoUElOX0lOUFVUX1BVTExET1dO
+IHwgTVVYX01PREUzKQkvKiBtY3NwaTJfY3MwLmhzdXNiMl9kYXRhNiAqLworCQkJMHgxYWUgKFBJ
+Tl9JTlBVVF9QVUxMRE9XTiB8IFdBS0VVUF9FTiB8IE1VWF9NT0RFMykJLyogbWNzcGkyX2NzMS5o
+c3VzYjJfZGF0YTMgKi8KKwkJPjsKKwkJaW50ZXJydXB0cyA9IDw3Nz47IC8qIHJvdXRlIHBhZGNv
+bmYgd2FrZXVwIHRvIEVIQ0kgSVJRICovCisJfTsKIH07CiAKICZpMmMxIHsKQEAgLTIyMyw2ICsy
+MzcsOSBAQAogfTsKIAogJnVzYmhzaG9zdCB7CisJcGluY3RybC1uYW1lcyA9ICJkZWZhdWx0Iiwg
+ImlkbGUiOworCXBpbmN0cmwtMCA9IDwmaHN1c2IyX3BpbnM+OworCXBpbmN0cmwtMSA9IDwmaHN1
+c2IyX2lkbGVfcGlucz47CiAJcG9ydDItbW9kZSA9ICJlaGNpLXBoeSI7CiB9OwogCi0tIAoxLjcu
+NC4xCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxp
+bnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFk
+ZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
+LWFybS1rZXJuZWwK
