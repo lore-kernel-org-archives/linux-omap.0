@@ -1,36 +1,54 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC PATCH 2/6] mfd: omap-usb-host: Put pins in IDLE state on
- suspend
-Date: Thu, 20 Jun 2013 15:30:18 +0300
-Message-ID: <51C2F5DA.1010904@ti.com>
-References: <1371650753-11452-1-git-send-email-rogerq@ti.com> <1371650753-11452-3-git-send-email-rogerq@ti.com> <878v26815g.fsf@linaro.org>
+Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during
+ bus suspend
+Date: Thu, 20 Jun 2013 15:32:01 +0300
+Message-ID: <51C2F641.9000803@ti.com>
+References: <1371650753-11452-1-git-send-email-rogerq@ti.com> <1371650753-11452-5-git-send-email-rogerq@ti.com> <87r4fy6lvm.fsf@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <878v26815g.fsf@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: stern@rowland.harvard.edu, tony@atomide.com, balbi@ti.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:44105 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965031Ab3FTMc1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jun 2013 08:32:27 -0400
+In-Reply-To: <87r4fy6lvm.fsf@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: stern@rowland.harvard.edu, tony@atomide.com, balbi@ti.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 06/19/2013 08:23 PM, Kevin Hilman wrote:
+On 06/19/2013 08:39 PM, Kevin Hilman wrote:
 > Hi Roger,
 > 
 > Roger Quadros <rogerq@ti.com> writes:
 > 
->> In order to support wake up from suspend use the pinctrl
->> framework to put the USB host pins in IDLE state during suspend.
+>> Runtime suspend the controller during bus suspend and resume it
+>> during bus resume. This will ensure that the USB Host power domain
+>> enters lower power state and does not prevent the SoC from
+>> endering deeper sleep states.
 >>
->> CC: Samuel Ortiz <sameo@linux.intel.com>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> Remote wakeup will come up as an interrupt while the controller
+>> is suspended, so tackle it carefully using a workqueue.
 > 
-> You should use helpers for this now in the pinctrl core:
+> I don't think you need a special workqueue here.  The workqueue of the PM
+> core (pm_wq) will be used if you just use an asynchronous 'get' in the
+> ISR.  Then, the driver's own runtime PM callbacks can be used instead of
+> an additional workqueue.
 > 
->     http://lists.infradead.org/pipermail/linux-arm-kernel/2013-June/173514.html
->
+> Another thing to worry about here when using runtime PM to implement
+> suspend/resume is that runtime PM can be disabled from userspace (e.g.
+> echo disabled > /sys/devices/.../power/control.)  If that's the case,
+> all the pm_runtime_suspended() checks will always fail becuase that
+> call also checks if runtime PM is disabled.  You'll likely want to use
+> the pm_runtime_status_suspended() check instead, which checks only the
+> status, and doesn't matter if runtime PM is currently disabled.
+> 
+> Because of the corner issues here, please test system suspend/resume
+> when runtime PM has been disabled.
+> 
 
-Right. thanks.
+Good points. Thanks. I'll need to think about it some more.
 
 cheers,
 -roger
