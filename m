@@ -1,35 +1,42 @@
 From: J Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 4/4] regulator: Palmas: Add TPS659038 support
-Date: Thu, 20 Jun 2013 16:32:15 +0530
-Message-ID: <1371726135-9891-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 0/4]  MFD: Palmas: Add TPS659038 PMIC support on Palmas
+Date: Thu, 20 Jun 2013 16:34:23 +0530
+Message-ID: <1371726263-9993-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-doc-owner@vger.kernel.org>
 Sender: linux-doc-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, sameo@linux.intel.com
-Cc: broonie@kernel.org, j-keerthy@ti.com, ldewangan@nvidia.com, grant.likely@secretlab.ca, swarren@nvidia.com, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, gg@slimlogic.co.uk
+To: linux-omap@vger.kernel.org
+Cc: broonie@kernel.org, j-keerthy@ti.com, ldewangan@nvidia.com, sameo@linux.intel.com, grant.likely@secretlab.ca, swarren@nvidia.com, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, gg@slimlogic.co.uk
 List-Id: linux-omap@vger.kernel.org
 
-Add TPS659038 support.
+The Patch series adds TPS659038 PMIC support in the palmas MFD and Regulator
+drivers. The TPS659038 has almost the same registers as of the earlier
+supported variants of PALMAS family such as the TWL6035.
 
-Signed-off-by: J Keerthy <j-keerthy@ti.com>
-Acked-by: Mark Brown <broonie@linaro.org>
----
- drivers/regulator/palmas-regulator.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+The critical differences between TPS659038 and TWL6035 being:
 
-diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-index 1ae1e83..d0c8785 100644
---- a/drivers/regulator/palmas-regulator.c
-+++ b/drivers/regulator/palmas-regulator.c
-@@ -1054,6 +1054,7 @@ static struct of_device_id of_palmas_match_tbl[] = {
- 	{ .compatible = "ti,tps65913-pmic", },
- 	{ .compatible = "ti,tps65914-pmic", },
- 	{ .compatible = "ti,tps80036-pmic", },
-+	{ .compatible = "ti,tps659038-pmic", },
- 	{ /* end */ }
- };
- 
+1) TPS659038 has nothing related to battery charging and back up battery stuff.
+2) TPS659038 does not have does not have SMPS10(Boost) step up convertor.
+3) TPS659038 does not have Battery detection and anything related to battery.
+4) SD card detection, Battery presence detection, Vibrator, USB OTG are missing
+   when compared to TWL6035.
+
+The patch series is based on the patch:
+	https://lkml.org/lkml/2013/6/20/156
+
+J Keerthy (4):
+  MFD: Add TPS659038 documentation under Palmas
+  MFD: Palmas: Add TPS659038 PMIC support
+  regulators: Add TPS659038 documentation under Palmas
+  regulator: Palmas: Add TPS659038 support
+
+ Documentation/devicetree/bindings/mfd/palmas.txt   |    2 ++
+ .../devicetree/bindings/regulator/palmas-pmic.txt  |    1 +
+ drivers/mfd/palmas.c                               |    5 +++++
+ drivers/regulator/palmas-regulator.c               |    1 +
+ 4 files changed, 9 insertions(+), 0 deletions(-)
+
 -- 
 1.7.5.4
 
