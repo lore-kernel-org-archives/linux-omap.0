@@ -1,22 +1,22 @@
 From: "J, KEERTHY" <j-keerthy@ti.com>
 Subject: RE: [PATCH v3 1/4] MFD: Palmas: Check if irq is valid
-Date: Thu, 20 Jun 2013 04:19:59 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229ECBD7@DBDE04.ent.ti.com>
+Date: Thu, 20 Jun 2013 04:25:30 +0000
+Message-ID: <DC88CAD03C0052499C1907B327FC63229ECBF0@DBDE04.ent.ti.com>
 References: <1371621470-22279-1-git-send-email-j-keerthy@ti.com>
  <1371621470-22279-2-git-send-email-j-keerthy@ti.com>
  <51C1E5A5.9090105@wwwdotorg.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
 In-Reply-To: <51C1E5A5.9090105@wwwdotorg.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
+Sender: linux-doc-owner@vger.kernel.org
+To: "sameo@linux.intel.com" <sameo@linux.intel.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, Stephen Warren <swarren@wwwdotorg.org>
 List-Id: linux-omap@vger.kernel.org
 
-
+Hi Samuel,
 
 > -----Original Message-----
 > From: Stephen Warren [mailto:swarren@wwwdotorg.org]
@@ -38,4 +38,7 @@ List-Id: linux-omap@vger.kernel.org
 > 
 > Reviewed-by: Stephen Warren <swarren@nvidia.com>
 
-Thanks Stephen.
+Could you please pull this?
+
+Kind Regards,
+Keerthy
