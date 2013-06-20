@@ -1,37 +1,43 @@
 From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC PATCH 0/6] Suspend USB Host controller on bus suspend
-Date: Thu, 20 Jun 2013 13:19:31 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1306201314160.2063-100000@iolanthe.rowland.org>
-References: <51C2F807.1000301@ti.com>
+Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during
+ bus suspend
+Date: Thu, 20 Jun 2013 13:33:05 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1306201326100.2063-100000@iolanthe.rowland.org>
+References: <51C2F70A.3040708@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51C2F807.1000301@ti.com>
+In-Reply-To: <51C2F70A.3040708@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, balbi@ti.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: balbi@ti.com, tony@atomide.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 On Thu, 20 Jun 2013, Roger Quadros wrote:
 
-> >> As the omap-ehci controller driver needs to do some additional work to put
-> >> itself into suspend/resume and make sure it is resumed to process an interrupt,
-> >> we need to be able to override irq, bus_suspend, and bus_resume handlers. This
-> >> provision is done in patch 3.
+> > runtime_resume(dev)
+> > {
+> > 	...
 > > 
-> > Do you still need to override these things if you do the controller
-> > suspend at the right time?
-> > 
+> > 	if (omap->flags & OMAP_EHCI_IRQ_PENDING) {
+> > 		process_pending_irqs(omap);
 > 
-> At least not for bus_suspend and bus_resume. We will still need to override the irq
-> handler though. But, if we can take care of this generically in the ehci_irq handler (i.e. make
-> sure controller is not suspended while accessing it) then we don't need such override
-> for irq.
+> OK, thanks. 
+> 
+> But I'm not sure if the generic ehci_irq handler is able to
+> run in a process context. Maybe if we replace spin_lock(&ehci->lock);
+> with spin_lock_irqsave() there, it will work.
+> 
+> Alan is this a doable option?
 
-I don't think you need to override anything.  The high-level interrupt
-handler usb_hcd_irq() will avoid calling ehci_irq() when the
-HCD_HW_ACCESSIBLE flag isn't set.  All you will need to do in
-ehci-omap.c is call synchronize_irq() after ehci_suspend() returns and
-before turning off the clocks.
+ehci_irq() will work okay in process context, provided the caller 
+disables interrupts.
+
+But maybe none of this will be needed after Roger redesigns the
+controller suspend to work at the right time.  Or if it is, we could
+adopt a simpler alternative: the controller's resume routine could
+always call usb_hcd_resume_root_hub().  After all, about the only
+reason for doing a runtime resume of the controller is because the root
+hub needs to do something.
 
 Alan Stern
