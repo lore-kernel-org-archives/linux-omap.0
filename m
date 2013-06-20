@@ -1,176 +1,63 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 3/3] ARM: dts: OMAP2+: Add mailbox nodes
-Date: Thu, 20 Jun 2013 17:28:30 -0500
-Message-ID: <51C3820E.3020108@ti.com>
-References: <1371594900-37640-1-git-send-email-s-anna@ti.com> <51C37AD7.1020309@ti.com>
+From: "Anna, Suman" <s-anna@ti.com>
+Subject: RE: [GIT PULL 7/7] omap mailbox move to drivers for v3.11 merge
+ window
+Date: Thu, 20 Jun 2013 22:56:49 +0000
+Message-ID: <37C860A02101E749A747FA2D3C1E3C504CD3DD@DLEE11.ent.ti.com>
+References: <0MFrZm-1V3qHW1bmA-00EJsa@mx.kundenserver.de>
+ <201306202146.27093.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43767 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44753 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965396Ab3FTWeR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Jun 2013 18:34:17 -0400
-In-Reply-To: <51C37AD7.1020309@ti.com>
+	id S965356Ab3FTW5U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Jun 2013 18:57:20 -0400
+In-Reply-To: <201306202146.27093.arnd@arndb.de>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Jassi Brar <jaswinder.singh@linaro.org>, Loic Pallardy <loic.pallardy@st.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+To: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>
+Cc: Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Benoit,
-
-On 06/20/2013 04:57 PM, Cousson, Benoit wrote:
-> On 6/18/2013 5:35 PM, Suman Anna wrote:
->> The mailbox DT node data has been added for OMAP2420,
->> OMAP2430, OMAP3430/OMAP3630, OMAP44xx devices. Data for
->> OMAP5 is skipped for now since the corresponding hwmod
->> entry is not present.
->>
->> The mailbox static device initialization logic is also
->> adjusted for a DT boot.
->>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> ---
->>   arch/arm/boot/dts/omap2420.dtsi | 13 +++++++++++++
->>   arch/arm/boot/dts/omap2430.dtsi | 12 ++++++++++++
->>   arch/arm/boot/dts/omap3.dtsi    | 12 ++++++++++++
->>   arch/arm/boot/dts/omap4.dtsi    | 12 ++++++++++++
->>   arch/arm/mach-omap2/devices.c   |  2 +-
->>   5 files changed, 50 insertions(+), 1 deletion(-)
->>
->> diff --git a/arch/arm/boot/dts/omap2420.dtsi
->> b/arch/arm/boot/dts/omap2420.dtsi
->> index c8f9c55..e0f4e47 100644
->> --- a/arch/arm/boot/dts/omap2420.dtsi
->> +++ b/arch/arm/boot/dts/omap2420.dtsi
->> @@ -114,6 +114,19 @@
->>               dma-names = "tx", "rx";
->>           };
->>
->> +        mailbox: mailbox@48094000 {
->> +            compatible = "ti,omap2-mailbox";
->> +            reg = <0x48094000 0x200>;
->> +            interrupts = <26>, /* DSP Interrupt */
->> +                     <34>; /* IVA Interrupt */
->> +            ti,hwmods = "mailbox";
->> +            ti,mbox-num-users = <4>;
->> +            ti,mbox-num-fifos = <6>;
->> +            #ti,mbox-data-cells = <4>;
-> 
-> If this is always 4, why do you want to expose that?
-
-I have followed the example of interrupt-cells here, as it indicates the
-length that each mbox-data should have. If you do think that it doesn't
-belong here, I can remove this and do the check directly in the driver,
-and update the DT binding accordingly.
-
-> BTW, I guess that most of these attribute are generic enough to avoid
-> the "ti," prefix.
-
-Since these are specific attributes needed for describing the data for
-TI mailboxes, I used the "ti,' prefix so that it won't clash with other
-SoCs.
-
-regards
-Suman
-> 
-> Benoit
-> 
->> +            ti,mbox-names = "dsp", "iva";
->> +            ti,mbox-data = <0 1 0 0>, <2 3 1 3>;
->> +        };
->> +
->>           timer1: timer@48028000 {
->>               compatible = "ti,omap2420-timer";
->>               reg = <0x48028000 0x400>;
->> diff --git a/arch/arm/boot/dts/omap2430.dtsi
->> b/arch/arm/boot/dts/omap2430.dtsi
->> index c535a5a..b413423 100644
->> --- a/arch/arm/boot/dts/omap2430.dtsi
->> +++ b/arch/arm/boot/dts/omap2430.dtsi
->> @@ -175,6 +175,18 @@
->>               dma-names = "tx", "rx";
->>           };
->>
->> +        mailbox: mailbox@48094000 {
->> +            compatible = "ti,omap2-mailbox";
->> +            reg = <0x48094000 0x200>;
->> +            interrupts = <26>;
->> +            ti,hwmods = "mailbox";
->> +            ti,mbox-num-users = <4>;
->> +            ti,mbox-num-fifos = <6>;
->> +            #ti,mbox-data-cells = <4>;
->> +            ti,mbox-names = "dsp";
->> +            ti,mbox-data = <0 1 0 0>;
->> +        };
->> +
->>           timer1: timer@49018000 {
->>               compatible = "ti,omap2420-timer";
->>               reg = <0x49018000 0x400>;
->> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
->> index 6d05ee0..3cc7c28 100644
->> --- a/arch/arm/boot/dts/omap3.dtsi
->> +++ b/arch/arm/boot/dts/omap3.dtsi
->> @@ -380,6 +380,18 @@
->>               dma-names = "tx", "rx";
->>           };
->>
->> +        mailbox: mailbox@48094000 {
->> +            compatible = "ti,omap2-mailbox";
->> +            reg = <0x48094000 0x200>;
->> +            interrupts = <26>;
->> +            ti,hwmods = "mailbox";
->> +            ti,mbox-num-users = <2>;
->> +            ti,mbox-num-fifos = <2>;
->> +            #ti,mbox-data-cells = <4>;
->> +            ti,mbox-names = "dsp";
->> +            ti,mbox-data = <0 1 0 0>;
->> +        };
->> +
->>           timer1: timer@48318000 {
->>               compatible = "ti,omap3430-timer";
->>               reg = <0x48318000 0x400>;
->> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
->> index 463b97d..0155182 100644
->> --- a/arch/arm/boot/dts/omap4.dtsi
->> +++ b/arch/arm/boot/dts/omap4.dtsi
->> @@ -516,6 +516,18 @@
->>               };
->>           };
->>
->> +        mailbox: mailbox@4a0f4000 {
->> +            compatible = "ti,omap4-mailbox";
->> +            reg = <0x4a0f4000 0x200>;
->> +            interrupts = <GIC_SPI 26 IRQ_TYPE_LEVEL_HIGH>;
->> +            ti,hwmods = "mailbox";
->> +            ti,mbox-num-users = <3>;
->> +            ti,mbox-num-fifos = <8>;
->> +            #ti,mbox-data-cells = <4>;
->> +            ti,mbox-names = "mbox-ipu", "mbox-dsp";
->> +            ti,mbox-data = <0 1 0 0>, <3 2 0 0>;
->> +        };
->> +
->>           timer1: timer@4a318000 {
->>               compatible = "ti,omap3430-timer";
->>               reg = <0x4a318000 0x80>;
->> diff --git a/arch/arm/mach-omap2/devices.c
->> b/arch/arm/mach-omap2/devices.c
->> index 73762ac..2058f24 100644
->> --- a/arch/arm/mach-omap2/devices.c
->> +++ b/arch/arm/mach-omap2/devices.c
->> @@ -655,11 +655,11 @@ static int __init omap2_init_devices(void)
->>       omap_init_audio();
->>       omap_init_camera();
->>       omap_init_hdmi_audio();
->> -    omap_init_mbox();
->>       /* If dtb is there, the devices will be created dynamically */
->>       if (!of_have_populated_dt()) {
->>           omap_init_control_usb();
->>           omap_init_dmic();
->> +        omap_init_mbox();
->>           omap_init_mcpdm();
->>           omap_init_mcspi();
->>           omap_init_sham();
->>
-> 
-
+QXJuZCwNCg0KPiBPbiBUdWVzZGF5IDE4IEp1bmUgMjAxMywgVG9ueSBMaW5kZ3JlbiB3cm90ZToN
+Cj4gPiBUaGUgZm9sbG93aW5nIGNoYW5nZXMgc2luY2UgY29tbWl0DQo+IDMxN2RkZDI1NmI5YzI0
+YjBkNzhmYTgwMThmODBmMWU0OTU0ODFhMTA6DQo+ID4NCj4gPiAgIExpbnV4IDMuMTAtcmM1ICgy
+MDEzLTA2LTA4IDE3OjQxOjA0IC0wNzAwKQ0KPiA+DQo+ID4gYXJlIGF2YWlsYWJsZSBpbiB0aGUg
+Z2l0IHJlcG9zaXRvcnkgYXQ6DQo+ID4NCj4gPiAgIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9z
+Y20vbGludXgva2VybmVsL2dpdC90bWxpbmQvbGludXgtb21hcCB0YWdzL29tYXAtDQo+IGZvci12
+My4xMS9tYWlsYm94LXNpZ25lZA0KPiA+DQo+ID4gZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVw
+IHRvIGQyZTk5MzI4OWNjNWYxNzgwY2U3NDE4OGUzYThkMmI0MDQ3NDgzOTc6DQo+ID4NCj4gPiAg
+IE1lcmdlIHRhZyAnb21hcC1tYWlsYm94LWZvci12My4xMScgb2YgZ2l0Oi8vZ2l0aHViLmNvbS9z
+dW1hbmFubmEvbWFpbGJveA0KPiBpbnRvIG9tYXAtZm9yLXYzLjExL21haWxib3ggKDIwMTMtMDYt
+MTcgMDM6NTE6NTQgLTA3MDApDQo+ID4NCj4gPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+ID4NCj4gPiBNb3ZlIE9NQVAg
+TWFpbGJveCBmcmFtZXdvcmsgdG8gZHJpdmVycyB2aWEgU3VtYW4gQW5uYSA8cy1hbm5hQHRpLmNv
+bT4NCj4gPg0KPiA+IFRoZSBPTUFQIE1haWxib3ggZHJpdmVyIGZyYW1ld29yayBpcyBtb3ZlZCBv
+dXQgb2YgYXJjaC9hcm0gZm9sZGVyDQo+ID4gaW50byBkcml2ZXJzL21haWxib3ggZm9sZGVyLCB0
+byByZS1lbmFibGUgYnVpbGRpbmcgaXQgYW5kIGFsc28gc2VydmUNCj4gPiBhcyBhIGJhc2VsaW5l
+IGZvciBhZGFwdGluZyB0byB0aGUgbmV3IG1haWxib3ggZHJpdmVyIGZyYW1ld29yay4gVGhlDQo+
+ID4gY2hhbmdlcyBtYWlubHkgY29udGFpbjoNCj4gPiAgIC0gYSBtaW5vciBidWcgZml4IGFuZCBj
+bGVhbnVwIG9mIG1hY2gtc3BlY2lmaWMgbWFpbGJveCBjb2RlDQo+ID4gICAtIHJlbW92ZSBhbnkg
+aGVhZGVyIGRlcGVuZGVuY2llcyBmcm9tIHBsYXQtb21hcCBmb3IgbXVsdGktcGxhdGZvcm0NCj4g
+PiAgICAgc3VwcG9ydA0KPiA+ICAgLSByZXByZXNlbnQgbWFpbGJveCBkZXZpY2UgZGF0YSB0aHJv
+dWdoIHBsYXRmb3JtIGRhdGEvaHdtb2QgYXR0cnMNCj4gPiAgIC0gbW92ZSB0aGUgb21hcCBtYWls
+Ym94IGNvZGUgb3V0IG9mIHBsYXQtb21hcC9tYWNoLW9tYXBYIHRvDQo+ID4gICAgIGRyaXZlcnMv
+bWFpbGJveCBmb2xkZXINCj4gPg0KPiANCj4gSSd2ZSBwdWxsZWQgdGhpcyBpbnRvIG5leHQvZHJp
+dmVycyBhcyB3ZWxsLCByYXRoZXIgdGhhbiBhIHNlcGFyYXRlDQo+IGJyYW5jaCB0aGF0IHdlIGhh
+ZCBmb3IgMy4xMCAoYW5kIGRyb3BwZWQpLiBJIGFtIGEgYml0IHB1enpsZWQgYWJvdXQNCj4gdGhp
+cyBzZXJpZXMgdGhvdWdoLiBJcyBpdCByaWdodCB0aGF0IGZvciAzLjEwIHdlIGhhZCBwbGFucyBm
+b3IgYQ0KPiBnZW5lcmljIHN1YnN5c3RlbSwgYW5kIG5vdyBpdCdzIGp1c3QgdGhlIG9tYXAgZHJp
+dmVycz8NCg0KWWVzLCB3ZSBzdGlsbCBoYXZlIGEgcGxhbiBmb3IgYSBnZW5lcmljIHN1YnN5c3Rl
+bSwgYW5kIHRoZXNlIHdvdWxkIGZvcm0gdGhlDQp0aGUgYmFzZSBwYXRjaGVzIG9mIE9NQVAgYWRh
+cHRhdGlvbiB0b3dhcmRzIHRoYXQuIE9NQVAgbWFpbGJveCB3YXMgZGlzYWJsZWQNCnNpbmNlIGNv
+dXBsZSBvZiByZWxlYXNlcyBub3cgYmVjYXVzZSBvZiB0aGUgbXVsdGktcGxhdGZvcm0gZW5hYmxl
+bWVudC4gVGhlcmUgd2VyZQ0KY291cGxlIG9mIGRpZmZlcmVudCB3b3JrLWl0ZW1zIG5lZWRlZCBv
+biBPTUFQIG1haWxib3ggbGlrZSBmaXhpbmcgdGhlIG11bHRpLXBsYXRmb3JtLA0KY29udmVydGlu
+ZyB0byBEVCBhbmQgYWRhcHRpbmcgdG8gdGhlIG5ldyBmcmFtZXdvcmsuIFRoZSBwcmV2aW91cyBz
+dWJzeXN0ZW0gd2FzDQpkZXJpdmVkIG9mIHRoZSBPTUFQIG1haWxib3gsIHNvIHRoZSBmaXJzdCBh
+bmQgbGFzdCBpdGVtcyB3ZXJlIGtpbmRhIGF1dG9tYXRpYy4gVGhlDQpuZXdlc3Qgb25lIGJhc2Vk
+IG9uIEphc3NpJ3Mgd29yayBpcyBub3QgZ29ubmEgcmV1c2UgYW55IE9NQVAgc3R1ZmYsIHNvIHRo
+aXMgc2VyaWVzDQpoYW5kbGVzIHRoZSBmaXJzdCBvbmUgdG8gYXZvaWQgYSBodWdlIHBlbmRpbmcg
+cGF0Y2hzZXQgZm9yIE9NQVAgb24gdGhlIGdlbmVyaWMNCmZyYW1ld29yayBmaW5hbGl6YXRpb24u
+DQoNClJlZ2FyZHMNClN1bWFuDQo=
