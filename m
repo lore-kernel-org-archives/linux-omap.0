@@ -1,62 +1,84 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH] ARM: OMAP2: reboot: Include common.h to fix build error
-Date: Thu, 20 Jun 2013 05:59:02 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EB22C4C@DBDE04.ent.ti.com>
-References: <1371664001.9848.1.camel@phoenix>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v5, 0/3] DT support for NAND on OMAP2
+Date: Thu, 20 Jun 2013 06:34:08 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73E9DECE7@DBDE04.ent.ti.com>
+References: <1369986545-29204-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1371664001.9848.1.camel@phoenix>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:53901 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751695Ab3FTGeV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jun 2013 02:34:21 -0400
+In-Reply-To: <1369986545-29204-1-git-send-email-pekon@ti.com>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Axel Lin <axel.lin@ingics.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Robin Holt <holt@sgi.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Philip, Avinash" <avinashphilip@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "jacmet@sunsite.dk" <jacmet@sunsite.dk>, "zonque@gmail.com" <zonque@gmail.com>, Jon Hunter <jgchunter@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Hi, 
 
-On Wed, Jun 19, 2013 at 23:16:41, Axel Lin wrote:
+In the following series, 1 got merged, while other 2 are awaiting.
+Request you to please look into these.
 
-> Include common.h which will include linux/reboot.h to fix below build error.
+[PATCH 1/3] ARM: dts: AM33XX: Add ELM node -- awaiting --
+[PATCH 2/3a] ARM: dts: AM33XX: Add GPMC node -- accepted by Tony
+[PATCH 2/3b] ARM: dts: AM33xx: Fix properties on gpmc node -- accepted by Benoit (follow-up)
+[PATCH 3/3] ARM: dts: AM33XX: Add NAND flash device tree data to am335x-evm --awaiting --
+
+with regards, pekon
+
+> -----Original Message-----
+> From: Gupta, Pekon
+> Sent: Friday, May 31, 2013 1:19 PM
+> To: Tony Lindgren; linux-omap@vger.kernel.org
+> Cc: Gupta, Pekon; Philip, Avinash; Nori, Sekhar; Balbi, Felipe; Hiremath,
+> Vaibhav; Cousson, Benoit; jacmet@sunsite.dk; zonque@gmail.com; Jon
+> Hunter
+> Subject: [PATCH v5, 0/3] DT support for NAND on OMAP2
 > 
->   CC      arch/arm/mach-omap2/omap4-restart.o
-> arch/arm/mach-omap2/omap4-restart.c:21:28: warning: 'enum reboot_mode' declared inside parameter list [enabled by default]
-> arch/arm/mach-omap2/omap4-restart.c:21:28: warning: its scope is only this definition or declaration, which is probably not what you want [enabled by default]
-> arch/arm/mach-omap2/omap4-restart.c:21:40: error: parameter 1 ('mode') has incomplete type
-> arch/arm/mach-omap2/omap4-restart.c:21:6: warning: function declaration isn't a prototype [-Wstrict-prototypes]
-> make[1]: *** [arch/arm/mach-omap2/omap4-restart.o] Error 1
-> make: *** [arch/arm/mach-omap2] Error 2
+> From: "Gupta, Pekon" <pekon@ti.com>
 > 
-> Signed-off-by: Axel Lin <axel.lin@ingics.com>
-> ---
-> Seems this build error is introduced by commit 7507d035f3cf40c
-> "reboot: arm: change reboot_mode to use enum reboot_mode"
+> Changes v4->v5
+> 	- updated commit descriptions.
+> 	- included patch by "Lars Poeschel" instead of [Patch 2/3]
 > 
-> This patch is against linux-next 20130619.
+> Changes v3->v4
+> 	- rebased to linux-3.10-rc3
+> 	- updated newly supported DT properties based on following
+> commits
+> 	[d36b4cd] jon-hunter@ti.com ARM: OMAP2+: Add additional GPMC
+> timing ...
+> 	[8c8a777] jon-hunter@ti.com ARM: OMAP2+: Add function to read
+> GPMC ...
+> 	[9f83315] jon-hunter@ti.com ARM: OMAP2+: Add variable to store
+> number
+> 
+> Changes v2->v3
+> 	- rebased to linux-3.9-rc8
+> 	- AM335x-evm.dts: moved GPMC pin-mux config to nand node
+> 
+> Changes v1->v2
+> 	- Change number of chip select to 7
+> 	- Replace <xx> literals to 52
+> 	- remove tab
+> 
+> Lars Poeschel (1):
+>   dts: am33xx: Correct properties on gpmc node
+> 
+> Philip Avinash (1):
+>   ARM: dts: AM33XX: Add NAND flash device tree data to am335x-evm
+> 
+> Philip, Avinash (1):
+>   ARM: dts: AM33XX: Add ELM node
+> 
+>  arch/arm/boot/dts/am335x-evm.dts | 105
+> +++++++++++++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/am33xx.dtsi    |  12 ++++-
+>  2 files changed, 115 insertions(+), 2 deletions(-)
+> 
+> --
+> 1.8.1
 
-> diff --git a/arch/arm/mach-omap2/omap4-restart.c b/arch/arm/mach-omap2/omap4-restart.c
-> index 652adde..7306d9b 100644
-> --- a/arch/arm/mach-omap2/omap4-restart.c
-> +++ b/arch/arm/mach-omap2/omap4-restart.c
-> @@ -9,6 +9,7 @@
->  
->  #include <linux/types.h>
->  #include "prminst44xx.h"
-> +#include "common.h"
-
-Arnd has posted a patch [1] that includes reboot.h directly for
-multiple platforms including this one.
-
-Regards
-Afzal
-
-[1] https://lkml.org/lkml/2013/6/19/498
