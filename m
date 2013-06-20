@@ -1,55 +1,103 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC PATCH 5/6] ARM: dts: omap3beagle-xm: Add idle state pins
- for USB host
-Date: Thu, 20 Jun 2013 15:02:24 +0300
-Message-ID: <51C2EF50.3070707@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC PATCH 1/6] mfd: omap-usb-host: move initialization to
+ module_init()
+Date: Thu, 20 Jun 2013 15:07:46 +0300
+Message-ID: <20130620120746.GC9817@arwen.pp.htv.fi>
 References: <1371650753-11452-1-git-send-email-rogerq@ti.com>
- <1371650753-11452-6-git-send-email-rogerq@ti.com> <87obb26ixm.fsf@linaro.org>
- <51C2EDB1.3080801@ti.com>
+ <1371650753-11452-2-git-send-email-rogerq@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51C2EDB1.3080801@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: linux-usb@vger.kernel.org, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson@ti.com>, tony@atomide.com, ruslan.bilovol@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, stern@rowland.harvard.edu, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="PHCdUe6m4AxPMzOu"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1371650753-11452-2-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: stern@rowland.harvard.edu, tony@atomide.com, balbi@ti.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDYvMjAvMjAxMyAwMjo1NSBQTSwgUm9nZXIgUXVhZHJvcyB3cm90ZToKPiBPbiAwNi8xOS8y
-MDEzIDA5OjQyIFBNLCBLZXZpbiBIaWxtYW4gd3JvdGU6Cj4+IFJvZ2VyIFF1YWRyb3MgPHJvZ2Vy
-cUB0aS5jb20+IHdyaXRlczoKPj4KPj4+IEFkZCB0aGUgSWRsZSBzdGF0ZSBwaW5zIGZvciBVU0Ig
-aG9zdCBhbmQgZW5hYmxlIFdBS0VVUCBvbgo+Pj4gRElSLCBEQVQwLTMsIHNvIHRoYXQgdGhlIFBI
-WSBjYW4gd2FrZXVwIHRoZSBPTUFQIFNvQyBmcm9tCj4+PiBzbGVlcCBvbiBhbnkgVVNCIGFjdGl2
-aXR5IChlLmcuIHJlbW90ZSB3YWtldXAgb3IgY29ubmVjdC9kaXNjb25uZWN0KS4KPj4+Cj4+PiBD
-QzogQmVub8OudCBDb3Vzc29uIDxiLWNvdXNzb25AdGkuY29tPgo+Pj4gU2lnbmVkLW9mZi1ieTog
-Um9nZXIgUXVhZHJvcyA8cm9nZXJxQHRpLmNvbT4KPj4KPj4gVGhpcyBvbmUgZG9lc24ndCBhcHBs
-eS4uLgo+Pgo+Pj4gLS0tCj4+PiAgYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0
-cyB8ICAgMjkgKysrKysrKysrKysrKysrKysrKysrKystLS0tLS0KPj4+ICAxIGZpbGVzIGNoYW5n
-ZWQsIDIzIGluc2VydGlvbnMoKyksIDYgZGVsZXRpb25zKC0pCj4+Pgo+Pj4gZGlmZiAtLWdpdCBh
-L2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWJlYWdsZS14bS5kdHMgYi9hcmNoL2FybS9ib290L2R0
-cy9vbWFwMy1iZWFnbGUteG0uZHRzCj4+PiBpbmRleCBkMzgwOGVkLi5mMWQ1NmMyIDEwMDY0NAo+
-Pj4gLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cwo+Pj4gKysrIGIv
-YXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cwo+Pj4gQEAgLTg5LDEyICs4OSw3
-IEBACj4+PiAgfTsKPj4+ICAKPj4+ICAmb21hcDNfcG14X2NvcmUgewo+Pj4gLQlwaW5jdHJsLW5h
-bWVzID0gImRlZmF1bHQiOwo+Pj4gLQlwaW5jdHJsLTAgPSA8Cj4+PiAtCQkJJmhzdXNiYjJfcGlu
-cwo+Pj4gLQk+Owo+Pj4gLQo+Pj4gLQloc3VzYmIyX3BpbnM6IHBpbm11eF9oc3VzYmIyX3BpbnMg
-ewo+Pgo+PiBUaGlzIG9tYXAzX3BteF9jb3JlIHNlY3Rpb24gZG9lc24ndCBleGlzdCB1cHN0cmVh
-bSBpbiB0aGUgeE0gRFRTIGZpbGUKPj4gKGJ1dCBkb2VzIGluIG9tYXAzLWJlYWdsZS5kdHMuKSAg
-Cj4+Cj4+IElzIHRoZXJlIGEgZGVwZW5kZW5jeSBwYXRjaCBtaXNzaW5nPwo+Pgo+IAo+IFNvcnJ5
-IGZvciBub3QgbWVudGlvbmluZyBpdCBlYXJsaWVyLiBUaGlzIGlzIGJhc2VkIG9uIEJlbm9pdCdz
-IHRyZWUgWzFdCj4gYW5kIHlvdSBuZWVkIHRoZXNlIHBhdGNoZXMKPiAKPiBodHRwOi8vdGhyZWFk
-LmdtYW5lLm9yZy9nbWFuZS5saW51eC5kcml2ZXJzLmRldmljZXRyZWUvMzgzODMKCkp1c3Qgbm90
-aWNlZCB0aGF0IHRoaXMgbm8gbG9uZ2VyIGFwcGxpZXMgdG9kYXkuIEknbGwgc2VuZCBhIHJldmlz
-aW9uIHNvb24uCgpjaGVlcnMsCi1yb2dlcgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJt
-LWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21h
-aWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+--PHCdUe6m4AxPMzOu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Wed, Jun 19, 2013 at 05:05:48PM +0300, Roger Quadros wrote:
+> We no longer need to be initialized in any particular order
+> so move driver initialization to the standard place i.e. module_init()
+>=20
+> CC: Samuel Ortiz <sameo@linux.intel.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  drivers/mfd/omap-usb-host.c |   10 +---------
+>  drivers/mfd/omap-usb-tll.c  |    8 +-------
+>  2 files changed, 2 insertions(+), 16 deletions(-)
+>=20
+> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+> index 759fae3..6601a49 100644
+> --- a/drivers/mfd/omap-usb-host.c
+> +++ b/drivers/mfd/omap-usb-host.c
+> @@ -908,15 +908,7 @@ static int __init omap_usbhs_drvinit(void)
+>  {
+>  	return platform_driver_probe(&usbhs_omap_driver, usbhs_omap_probe);
+>  }
+> -
+> -/*
+> - * init before ehci and ohci drivers;
+> - * The usbhs core driver should be initialized much before
+> - * the omap ehci and ohci probe functions are called.
+> - * This usbhs core driver should be initialized after
+> - * usb tll driver
+> - */
+> -fs_initcall_sync(omap_usbhs_drvinit);
+> +module_init(omap_usbhs_drvinit);
+> =20
+>  static void __exit omap_usbhs_drvexit(void)
+>  {
+> diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
+> index e59ac4c..fb7c73e 100644
+> --- a/drivers/mfd/omap-usb-tll.c
+> +++ b/drivers/mfd/omap-usb-tll.c
+> @@ -482,13 +482,7 @@ static int __init omap_usbtll_drvinit(void)
+>  {
+>  	return platform_driver_register(&usbtll_omap_driver);
+>  }
+> -
+> -/*
+> - * init before usbhs core driver;
+> - * The usbtll driver should be initialized before
+> - * the usbhs core driver probe function is called.
+> - */
+> -fs_initcall(omap_usbtll_drvinit);
+> +module_init(omap_usbtll_drvinit);
+
+since you're doing that, could just move to module_platform_driver.
+
+--=20
+balbi
+
+--PHCdUe6m4AxPMzOu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRwvCSAAoJEIaOsuA1yqREy64P/1nUFzmSnbInb/pLRyfBYJHc
+WbhjdFwIdWgsjM09JCtdKWHPIQe127V4XuEH2VqtENPv8oD9WSPX6OGr0lakjGVo
+irRnEp45SWNGy+i1CbTdMSRpREAJ00rnbPFnr1NnIHz8Mlc020jrAcsBgkCId2z+
+x20+NgG4++Q/urWCy8/iVdVyE151L3sKkJyYvH+eMRi0oAVTT+9ZjXSvDQUfIQYC
+s5JSdOk3sqJHpFuLXhxACBZ1w9XMzgV50Ck57YHVHftI9yYDd5hPeOlt3J4yI51P
+6MxFQncXupd5s7oOeRbKtTZwgTqmbflpp0nx90PhSt8bWl0YpFMgFF4Biz7yh34N
+qjIy1zY1t4kH8ZHZWHaCceHnFNV5f5S+B3SYw5NaMyh5KjcU9oz+dCcHy9NXcr+9
+SrCGaSh3+aDUbiRbGccqAuAp3OpZgCUbmSzS/IMVPy3ytE+aWg4XmmJryxp/T6sP
+T+RmdXp8D29RMrdqhamvX6svfzNevW7f+ePBDHjHmsmriUDjtNDykK1I+UdagROl
+5bt9TIvjxIIBlsoCLpk7+FfOevBZdKDMhvBpfUgpuiBf2alhB425Us/pnt3R6vep
+FEJPmIgPwTh4yLmxI7u/IaNbGeinGBXNQZFY7aB2OlprtghlVydL93BtmrcV1iLm
+sUBZBDLlCS0O0z3lsrWo
+=nFoz
+-----END PGP SIGNATURE-----
+
+--PHCdUe6m4AxPMzOu--
