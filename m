@@ -1,327 +1,42 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: Re: [PATCH 2/3] mailbox/omap: add support for parsing dt devices
-Date: Wed, 19 Jun 2013 19:11:28 -0700
-Message-ID: <CA+Bv8XZtSyED3RdxTPPaZ1Y4_vx2JVyJ_-UVY06q2JhzAk5rpQ@mail.gmail.com>
-References: <1371594892-37603-1-git-send-email-s-anna@ti.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: RE: [PATCH v3 1/4] MFD: Palmas: Check if irq is valid
+Date: Thu, 20 Jun 2013 04:16:32 +0000
+Message-ID: <DC88CAD03C0052499C1907B327FC63229ECBBF@DBDE04.ent.ti.com>
+References: <1371621470-22279-1-git-send-email-j-keerthy@ti.com>
+ <1371621470-22279-2-git-send-email-j-keerthy@ti.com>
+ <20130619164254.GA1403@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qa0-f41.google.com ([209.85.216.41]:40377 "EHLO
-	mail-qa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935536Ab3FTCL3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Jun 2013 22:11:29 -0400
-Received: by mail-qa0-f41.google.com with SMTP id f14so859103qak.0
-        for <linux-omap@vger.kernel.org>; Wed, 19 Jun 2013 19:11:28 -0700 (PDT)
-In-Reply-To: <1371594892-37603-1-git-send-email-s-anna@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20130619164254.GA1403@sirena.org.uk>
+Content-Language: en-US
+Sender: linux-doc-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Jassi Brar <jaswinder.singh@linaro.org>, Loic Pallardy <loic.pallardy@st.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-On Tue, Jun 18, 2013 at 3:34 PM, Suman Anna <s-anna@ti.com> wrote:
-> Logic has been added to the OMAP2+ mailbox code to
-> parse the mailbox dt nodes and construct the different
-> mailboxes associated with the instance. The design is
-> based on gathering the same information that was being
-> passed previously through the platform data, except for
-> the interrupt type configuration information.
->
-> Signed-off-by: Suman Anna <s-anna@ti.com>
 
-Reviewed-by: Russ Dill <russ.dill@ti.com>
 
-> ---
->  .../devicetree/bindings/mailbox/omap-mailbox.txt   |  46 +++++++
->  drivers/mailbox/mailbox-omap2.c                    | 141 ++++++++++++++++++---
->  2 files changed, 172 insertions(+), 15 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
->
-> diff --git a/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt b/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
-> new file mode 100644
-> index 0000000..913bc13
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
-> @@ -0,0 +1,46 @@
-> +OMAP2+ Mailbox Driver
-> +
-> +Required properties:
-> +- compatible:          Should be one of the following,
-> +                           "ti,omap2-mailbox" for
-> +                               OMAP2420, OMAP2430, OMAP3430, OMAP3630 SoCs
-> +                           "ti,omap4-mailbox" for
-> +                               OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
-> +- reg:                 Contains the mailbox register address range (base address
-> +                       and length)
-> +- interrupts:          Contains the interrupt information for the mailbox
-> +                       device. The format is dependent on which interrupt
-> +                       controller the OMAP device uses
-> +- ti,hwmods:           Name of the hwmod associated with the mailbox
-> +- ti,mbox-num-users:   Number of targets (processor devices) that the mailbox device
-> +                       can interrupt
-> +- ti,mbox-num-fifos:   Number of h/w fifos within the mailbox device
-> +- #ti,mbox-data-cells: Cell size for describing a mailbox
-> +                       (currently should be 4)
-> +- ti,mbox-names:       Array of the names of the mailboxes
-> +- ti,mbox-data:                Mailbox descriptor data private to each mailbox. The 4
-> +                       cells represent the following data,
-> +                         Cell #1 (tx_id) - mailbox fifo id used for
-> +                                               transmitting messages
-> +                         Cell #2 (rx_id) - mailbox fifo id on which messages
-> +                                               are received
-> +                         Cell #3 (irq_id) - irq identifier index number to use
-> +                                               from the interrupts data
-> +                         Cell #4 (usr_id) - mailbox user id for identifying the
-> +                                               interrupt into the MPU interrupt
-> +                                               controller.
-> +
-> +Example:
-> +
-> +/* OMAP4 */
-> +mailbox: mailbox@4a0f4000 {
-> +       compatible = "ti,omap4-mailbox";
-> +       reg = <0x4a0f4000 0x200>;
-> +       interrupts = <GIC_SPI 47 IRQ_TYPE_LEVEL_HIGH>;
-> +       ti,hwmods = "mailbox";
-> +       ti,mbox-num-users = <3>;
-> +       ti,mbox-num-fifos = <8>;
-> +       #ti,mbox-data-cells = <4>
-> +       ti,mbox-names = "mbox-ipu", "mbox-dsp";
-> +       ti,mbox-data = <0 1 0 0>, <3 2 0 0>;
-> +};
-> diff --git a/drivers/mailbox/mailbox-omap2.c b/drivers/mailbox/mailbox-omap2.c
-> index 6c0687c..3fe08de 100644
-> --- a/drivers/mailbox/mailbox-omap2.c
-> +++ b/drivers/mailbox/mailbox-omap2.c
-> @@ -14,6 +14,7 @@
->  #include <linux/slab.h>
->  #include <linux/clk.h>
->  #include <linux/err.h>
-> +#include <linux/of_device.h>
->  #include <linux/platform_device.h>
->  #include <linux/io.h>
->  #include <linux/pm_runtime.h>
-> @@ -222,6 +223,21 @@ static struct omap_mbox_ops omap2_mbox_ops = {
->         .restore_ctx    = omap2_mbox_restore_ctx,
->  };
->
-> +static const struct of_device_id omap_mailbox_of_match[] = {
-> +       {
-> +               .compatible     = "ti,omap2-mailbox",
-> +               .data           = (void *) MBOX_INTR_CFG_TYPE1,
-> +       },
-> +       {
-> +               .compatible     = "ti,omap4-mailbox",
-> +               .data           = (void *) MBOX_INTR_CFG_TYPE2,
-> +       },
-> +       {
-> +               /* end */
-> +       },
-> +};
-> +MODULE_DEVICE_TABLE(of, omap_mailbox_of_match);
-> +
->  static int omap2_mbox_probe(struct platform_device *pdev)
->  {
->         struct resource *mem;
-> @@ -229,47 +245,138 @@ static int omap2_mbox_probe(struct platform_device *pdev)
->         struct omap_mbox **list, *mbox, *mboxblk;
->         struct omap_mbox2_priv *priv, *privblk;
->         struct omap_mbox_pdata *pdata = pdev->dev.platform_data;
-> -       struct omap_mbox_dev_info *info;
->         struct omap_mbox_device *mdev;
-> -       int i;
-> -
-> -       if (!pdata || !pdata->info_cnt || !pdata->info) {
-> +       struct omap_mbox_dev_info *info, *of_info = NULL;
-> +       struct device_node *node = pdev->dev.of_node;
-> +       int i, j;
-> +       u32 info_count = 0, intr_type = 0;
-> +       u32 num_users = 0, num_fifos = 0;
-> +       u32 dlen, dsize;
-> +       u32 *tmp;
-> +       const __be32 *mbox_data;
-> +
-> +       if (!node && (!pdata || !pdata->info_cnt || !pdata->info)) {
->                 pr_err("%s: platform not supported\n", __func__);
->                 return -ENODEV;
->         }
->
-> +       if (node) {
-> +               intr_type = (u32)of_match_device(omap_mailbox_of_match,
-> +                                                       &pdev->dev)->data;
-> +               if (intr_type != 0 && intr_type != 1) {
-> +                       dev_err(&pdev->dev, "invalid match data value\n");
-> +                       return -EINVAL;
-> +               }
-> +
-> +               if (of_property_read_u32(node, "ti,mbox-num-users",
-> +                                                               &num_users)) {
-> +                       dev_err(&pdev->dev,
-> +                               "no ti,mbox-num-users configuration found\n");
-> +                       return -ENODEV;
-> +               }
-> +
-> +               if (of_property_read_u32(node, "ti,mbox-num-fifos",
-> +                                                               &num_fifos)) {
-> +                       dev_err(&pdev->dev,
-> +                               "no ti,mbox-num-fifos configuration found\n");
-> +                       return -ENODEV;
-> +               }
-> +
-> +               if (of_property_read_u32(node, "#ti,mbox-data-cells", &dsize)) {
-> +                       dev_err(&pdev->dev,
-> +                               "no #ti,mbox-data-cells configuration found\n");
-> +                       return -ENODEV;
-> +               }
-> +               if (dsize != 4) {
-> +                       dev_err(&pdev->dev,
-> +                               "invalid size for #ti,mbox-data-cells\n");
-> +                       return -EINVAL;
-> +               }
-> +
-> +               info_count = of_property_count_strings(node, "ti,mbox-names");
-> +               if (!info_count) {
-> +                       dev_err(&pdev->dev, "no mbox devices found\n");
-> +                       return -ENODEV;
-> +               }
-> +
-> +               mbox_data = of_get_property(node, "ti,mbox-data", &dlen);
-> +               if (!mbox_data) {
-> +                       dev_err(&pdev->dev, "no mbox device data found\n");
-> +                       return -ENODEV;
-> +               }
-> +               dlen /= sizeof(dsize);
-> +               if (dlen != dsize * info_count) {
-> +                       dev_err(&pdev->dev, "mbox device data is truncated\n");
-> +                       return -ENODEV;
-> +               }
-> +
-> +               of_info = kzalloc(info_count * sizeof(*of_info), GFP_KERNEL);
-> +               if (!of_info)
-> +                       return -ENOMEM;
-> +
-> +               i = 0;
-> +               while (i < info_count) {
-> +                       info = of_info + i;
-> +                       if (of_property_read_string_index(node,
-> +                                       "ti,mbox-names", i,  &info->name)) {
-> +                               dev_err(&pdev->dev,
-> +                                       "mbox_name [%d] read failed\n", i);
-> +                               ret = -ENODEV;
-> +                               goto free_of;
-> +                       }
-> +
-> +                       tmp = &info->tx_id;
-> +                       for (j = 0; j < dsize; j++) {
-> +                               tmp[j] = of_read_number(
-> +                                               mbox_data + j + (i * dsize), 1);
-> +                       }
-> +                       i++;
-> +               }
-> +       }
-> +
-> +       if (!node) { /* non-DT device creation */
-> +               info_count = pdata->info_cnt;
-> +               info = pdata->info;
-> +               intr_type = pdata->intr_type;
-> +               num_users = pdata->num_users;
-> +               num_fifos = pdata->num_fifos;
-> +       } else {
-> +               info = of_info;
-> +       }
-> +
->         mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
-> -       if (!mdev)
-> -               return -ENOMEM;
-> +       if (!mdev) {
-> +               ret = -ENOMEM;
-> +               goto free_of;
-> +       }
->
->         /* allocate one extra for marking end of list */
-> -       list = kzalloc((pdata->info_cnt + 1) * sizeof(*list), GFP_KERNEL);
-> +       list = kzalloc((info_count + 1) * sizeof(*list), GFP_KERNEL);
->         if (!list) {
->                 ret = -ENOMEM;
->                 goto free_mdev;
->         }
->
-> -       mboxblk = mbox = kzalloc(pdata->info_cnt * sizeof(*mbox), GFP_KERNEL);
-> +       mboxblk = mbox = kzalloc(info_count * sizeof(*mbox), GFP_KERNEL);
->         if (!mboxblk) {
->                 ret = -ENOMEM;
->                 goto free_list;
->         }
->
-> -       privblk = priv = kzalloc(pdata->info_cnt * sizeof(*priv), GFP_KERNEL);
-> +       privblk = priv = kzalloc(info_count * sizeof(*priv), GFP_KERNEL);
->         if (!privblk) {
->                 ret = -ENOMEM;
->                 goto free_mboxblk;
->         }
->
-> -       info = pdata->info;
-> -       for (i = 0; i < pdata->info_cnt; i++, info++, priv++) {
-> +       for (i = 0; i < info_count; i++, info++, priv++) {
->                 priv->tx_fifo.msg = MAILBOX_MESSAGE(info->tx_id);
->                 priv->tx_fifo.fifo_stat = MAILBOX_FIFOSTATUS(info->tx_id);
->                 priv->rx_fifo.msg =  MAILBOX_MESSAGE(info->rx_id);
->                 priv->rx_fifo.msg_stat =  MAILBOX_MSGSTATUS(info->rx_id);
->                 priv->notfull_bit = MAILBOX_IRQ_NOTFULL(info->tx_id);
->                 priv->newmsg_bit = MAILBOX_IRQ_NEWMSG(info->rx_id);
-> -               if (pdata->intr_type) {
-> +               if (intr_type) {
->                         priv->irqenable = OMAP4_MAILBOX_IRQENABLE(info->usr_id);
->                         priv->irqstatus = OMAP4_MAILBOX_IRQSTATUS(info->usr_id);
->                         priv->irqdisable =
-> @@ -279,7 +386,7 @@ static int omap2_mbox_probe(struct platform_device *pdev)
->                         priv->irqstatus = MAILBOX_IRQSTATUS(info->usr_id);
->                         priv->irqdisable = MAILBOX_IRQENABLE(info->usr_id);
->                 }
-> -               priv->intr_type = pdata->intr_type;
-> +               priv->intr_type = intr_type;
->
->                 mbox->priv = priv;
->                 mbox->parent = mdev;
-> @@ -307,8 +414,8 @@ static int omap2_mbox_probe(struct platform_device *pdev)
->
->         mutex_init(&mdev->cfg_lock);
->         mdev->dev = &pdev->dev;
-> -       mdev->num_users = pdata->num_users;
-> -       mdev->num_fifos = pdata->num_fifos;
-> +       mdev->num_users = num_users;
-> +       mdev->num_fifos = num_fifos;
->         mdev->mboxes = list;
->         ret = omap_mbox_register(&pdev->dev, list);
->         if (ret)
-> @@ -317,6 +424,7 @@ static int omap2_mbox_probe(struct platform_device *pdev)
->
->         pm_runtime_enable(mdev->dev);
->
-> +       kfree(of_info);
->         return 0;
->
->  unmap_mbox:
-> @@ -329,6 +437,8 @@ free_list:
->         kfree(list);
->  free_mdev:
->         kfree(mdev);
-> +free_of:
-> +       kfree(of_info);
->         return ret;
->  }
->
-> @@ -358,6 +468,7 @@ static struct platform_driver omap2_mbox_driver = {
->         .remove = omap2_mbox_remove,
->         .driver = {
->                 .name = "omap-mailbox",
-> +               .of_match_table = omap_mailbox_of_match,
->         },
->  };
->
-> --
-> 1.8.3.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: Mark Brown [mailto:broonie@kernel.org]
+> Sent: Wednesday, June 19, 2013 10:13 PM
+> To: J, KEERTHY
+> Cc: linux-omap@vger.kernel.org; ldewangan@nvidia.com;
+> sameo@linux.intel.com; grant.likely@secretlab.ca; swarren@nvidia.com;
+> linux-kernel@vger.kernel.org; linux-doc@vger.kernel.org; devicetree-
+> discuss@lists.ozlabs.org; gg@slimlogic.co.uk
+> Subject: Re: [PATCH v3 1/4] MFD: Palmas: Check if irq is valid
+> 
+> On Wed, Jun 19, 2013 at 11:27:47AM +0530, Keerthy wrote:
+> > From: J Keerthy <j-keerthy@ti.com>
+> >
+> > Check if irq value obtained is valid. If it is not valid then skip
+> the
+> > irq request step and go ahead with the probe.
+> >
+> > Signed-off-by: J Keerthy <j-keerthy@ti.com>
+> 
+> Reviewed-by: Mark Brown <broonie@linaro.org>
+
+Thanks Mark.
