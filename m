@@ -1,34 +1,27 @@
-From: J Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 3/4] regulators: Add TPS659038 documentation under Palmas
-Date: Thu, 20 Jun 2013 16:35:44 +0530
-Message-ID: <1371726344-10115-1-git-send-email-j-keerthy@ti.com>
+From: Mark Jackson <mpfj-list@newflow.co.uk>
+Subject: Re: Unable to find JFFS2 partition ... but I know it's there !!
+Date: Thu, 20 Jun 2013 12:09:05 +0100
+Message-ID: <51C2E2D1.3040707@newflow.co.uk>
+References: <51C2CBF1.5060900@newflow.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51C2CBF1.5060900@newflow.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, grant.likely@secretlab.ca
-Cc: broonie@kernel.org, j-keerthy@ti.com, ldewangan@nvidia.com, sameo@linux.intel.com, swarren@nvidia.com, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, gg@slimlogic.co.uk
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add TPS659038 documentation under Palmas.
+On 20/06/13 10:31, Mark Jackson wrote:
+> I'm struggling to debug an issue where the kernel is unable to
+> find a JFFS2 partition held in NOR flash (on CS0)
 
-Signed-off-by: J Keerthy <j-keerthy@ti.com>
-Acked-by: Mark Brown <broonie@linaro.org>
----
- .../devicetree/bindings/regulator/palmas-pmic.txt  |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Fixed ... I finally worked out I needed to add:-
 
-diff --git a/Documentation/devicetree/bindings/regulator/palmas-pmic.txt b/Documentation/devicetree/bindings/regulator/palmas-pmic.txt
-index d5a3086..5115cd7 100644
---- a/Documentation/devicetree/bindings/regulator/palmas-pmic.txt
-+++ b/Documentation/devicetree/bindings/regulator/palmas-pmic.txt
-@@ -7,6 +7,7 @@ Required properties:
-   ti,twl6037-pmic
-   ti,tps65913-pmic
-   ti,tps65914-pmic
-+  ti,tps659038-pmic
- and also the generic series names
-   ti,palmas-pmic
- - interrupt-parent : The parent interrupt controller which is palmas.
--- 
-1.7.5.4
+CONFIG_MTD_BLOCK
+CONFIG_MTD_BLOCK2MTD
+
+Sorry for the noise.
+
+Mark J.
