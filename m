@@ -1,69 +1,44 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH v3 2/4] MFD: Palmas: Add SMPS10_BOOST feature
-Date: Thu, 20 Jun 2013 09:13:06 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229ECDCE@DBDE04.ent.ti.com>
+From: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v3 2/4] MFD: Palmas: Add SMPS10_BOOST feature
+Date: Thu, 20 Jun 2013 11:27:12 +0200
+Message-ID: <20130620092712.GG15667@zurbaran>
 References: <1371621470-22279-1-git-send-email-j-keerthy@ti.com>
  <1371621470-22279-3-git-send-email-j-keerthy@ti.com>
  <DC88CAD03C0052499C1907B327FC63229ECC05@DBDE04.ent.ti.com>
  <20130620090737.GF15667@zurbaran>
+ <DC88CAD03C0052499C1907B327FC63229ECDCE@DBDE04.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130620090737.GF15667@zurbaran>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: "broonie@kernel.org" <broonie@kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <DC88CAD03C0052499C1907B327FC63229ECDCE-yXqyApvAXouIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "J, KEERTHY" <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: "swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org" <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org" <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org" <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Samuel,
-
-> -----Original Message-----
-> From: Samuel Ortiz [mailto:sameo@linux.intel.com]
-> Sent: Thursday, June 20, 2013 2:38 PM
-> To: J, KEERTHY
-> Cc: broonie@kernel.org; ldewangan@nvidia.com;
-> grant.likely@secretlab.ca; swarren@nvidia.com; linux-
-> kernel@vger.kernel.org; linux-doc@vger.kernel.org; devicetree-
-> discuss@lists.ozlabs.org; gg@slimlogic.co.uk; linux-
-> omap@vger.kernel.org
-> Subject: Re: [PATCH v3 2/4] MFD: Palmas: Add SMPS10_BOOST feature
+On Thu, Jun 20, 2013 at 09:13:06AM +0000, J, KEERTHY wrote:
+> > > Could you please pull this patch?
+> > I'm reverting this one for now as of_match_device is not define for
+> > !CONFIG_OF.
 > 
-> Hi,
-> 
-> On Thu, Jun 20, 2013 at 04:34:42AM +0000, J, KEERTHY wrote:
-> > > -----Original Message-----
-> > > From: J, KEERTHY
-> > > Sent: Wednesday, June 19, 2013 11:28 AM
-> > > To: linux-omap@vger.kernel.org
-> > > Cc: broonie@kernel.org; J, KEERTHY; ldewangan@nvidia.com;
-> > > sameo@linux.intel.com; grant.likely@secretlab.ca;
-> > > swarren@nvidia.com; linux-kernel@vger.kernel.org;
-> > > linux-doc@vger.kernel.org; devicetree- discuss@lists.ozlabs.org;
-> > > gg@slimlogic.co.uk
-> > > Subject: [PATCH v3 2/4] MFD: Palmas: Add SMPS10_BOOST feature
-> > >
-> > > From: J Keerthy <j-keerthy@ti.com>
-> > >
-> > > The SMPS10 regulator is not presesnt in all the variants of the
-> > > PALMAS PMIC family. Hence adding a feature to distingush between
-> them.
-> > >
-> >
-> > Could you please pull this patch?
-> I'm reverting this one for now as of_match_device is not define for
-> !CONFIG_OF.
+> So the of_match_device parts can come under #ifdef CONFIG_OF?
+Nevermind, you were "just" missing an of_device.h inclusion. I fixed
+that up and applied your patch.
 
-So the of_match_device parts can come under #ifdef CONFIG_OF?
+Cheers,
+Samuel.
 
-> 
-> Cheers,
-> Samuel.
-> 
-> --
-> Intel Open Source Technology Centre
-> http://oss.intel.com/
-
-Regards,
-Keerthy
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
