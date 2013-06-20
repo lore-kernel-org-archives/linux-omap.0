@@ -1,40 +1,46 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] ARM: OMAP: Device Tree for 3.11
-Date: Thu, 20 Jun 2013 11:05:14 +0200
-Message-ID: <201306201105.14675.arnd@arndb.de>
-References: <51C23902.1080301@ti.com> <20130620064541.GE5523@atomide.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH v3 2/4] MFD: Palmas: Add SMPS10_BOOST feature
+Date: Thu, 20 Jun 2013 11:07:37 +0200
+Message-ID: <20130620090737.GF15667@zurbaran>
+References: <1371621470-22279-1-git-send-email-j-keerthy@ti.com>
+ <1371621470-22279-3-git-send-email-j-keerthy@ti.com>
+ <DC88CAD03C0052499C1907B327FC63229ECC05@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:55535 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755398Ab3FTJFs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jun 2013 05:05:48 -0400
-In-Reply-To: <20130620064541.GE5523@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <DC88CAD03C0052499C1907B327FC63229ECC05@DBDE04.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "J, KEERTHY" <j-keerthy@ti.com>
+Cc: "broonie@kernel.org" <broonie@kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>, Vaibhav Hiremath <hvaibhav@ti.com>, Eduardo Valentin <eduardo.valentin@ti.com>, Mohammed Afzal <afzal@ti.com>, Paul Walmsley <paul@pwsan.com>, Roger Quadros <rogerq@ti.com>
 
-On Thursday 20 June 2013, Tony Lindgren wrote:
-> * Benoit Cousson <b-cousson@ti.com> [130619 16:10]:
-> > Hi Tony,
+Hi,
+
+On Thu, Jun 20, 2013 at 04:34:42AM +0000, J, KEERTHY wrote:
+> > -----Original Message-----
+> > From: J, KEERTHY
+> > Sent: Wednesday, June 19, 2013 11:28 AM
+> > To: linux-omap@vger.kernel.org
+> > Cc: broonie@kernel.org; J, KEERTHY; ldewangan@nvidia.com;
+> > sameo@linux.intel.com; grant.likely@secretlab.ca; swarren@nvidia.com;
+> > linux-kernel@vger.kernel.org; linux-doc@vger.kernel.org; devicetree-
+> > discuss@lists.ozlabs.org; gg@slimlogic.co.uk
+> > Subject: [PATCH v3 2/4] MFD: Palmas: Add SMPS10_BOOST feature
 > > 
-> > Please pull the following commits for OMAP Device Tree for v3.11.
+> > From: J Keerthy <j-keerthy@ti.com>
 > > 
-> > It does contains as well 2 clock data patches, I hope it will not generate any conflict with Paul's tree. 
+> > The SMPS10 regulator is not presesnt in all the variants of the PALMAS
+> > PMIC family. Hence adding a feature to distingush between them.
 > > 
-> > Special thanks to Florian for his nice cleanup using the C preprocessor.
 > 
-> It's best that Arnd and Olof take this pull request directly as we're
-> getting so close to the merge window. These patches should be pretty
-> much independent of the other branches I've sent, and are needed to
-> keep omap4 booting now that we've flipped the switch for omap4 to be  
-> DT only.
+> Could you please pull this patch?
+I'm reverting this one for now as of_match_device is not define for
+!CONFIG_OF.
 
-Ok, I've put it in my queue. About 60 pull requests to take care of
-at the moment, so it might take a few days.
+Cheers,
+Samuel.
 
-	Arnd
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
