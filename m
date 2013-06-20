@@ -1,188 +1,338 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC PATCH] regulator: core: allow consumers to request to
- closes step voltage
-Date: Thu, 20 Jun 2013 16:43:45 -0500
-Message-ID: <20130620214344.GA10756@kahuna>
-References: <1371669474-24473-1-git-send-email-nm@ti.com>
- <20130619223828.GK1403@sirena.org.uk>
- <20130620124542.GA28320@kahuna>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 2/3] mailbox/omap: add support for parsing dt devices
+Date: Thu, 20 Jun 2013 16:45:38 -0500
+Message-ID: <51C37802.2010908@ti.com>
+References: <1371594892-37603-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60455 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:41206 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757555Ab3FTVnt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Jun 2013 17:43:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20130620124542.GA28320@kahuna>
+	id S1757417Ab3FTVqK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Jun 2013 17:46:10 -0400
+In-Reply-To: <1371594892-37603-1-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, viresh.kumar@linaro.org, cpufreq@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Jassi Brar <jaswinder.singh@linaro.org>, Loic Pallardy <loic.pallardy@st.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-On 07:45-20130620, Nishanth Menon wrote:
-> On 23:38-20130619, Mark Brown wrote:
-> > On Wed, Jun 19, 2013 at 02:17:54PM -0500, Nishanth Menon wrote:
-> > 
-> > > Account for step size accuracy when exact voltage requests are send for
-> > > step based regulators.
-> > 
-> > If the consumer can tolerate a different voltage why not just request
-> > the range that can be tolerated?  Your problem here is specifying an
-> > exact voltage.
-> I think you mean using regulator_get_linear_step
-> 
-> > 
-> > > The specific example I faced was using cpufreq-cpu0 driver with voltages
-> > > for OPPs for MPU rail and attempting the common definitions against voltages
-> > > that are non-exact multiples of stepsize of PMIC.
-> > 
-> > > The alternative would be implement custom set_voltage (as againsta simpler
-> > > set_voltage_sel and using linear map/list functions) for the regulator which
-> > > will account for the same.
-> > 
-> > > Yet another alternative might be to introduce yet another custom function similar
-> > > to regulator_set_voltage_tol which accounts for this. something like:
-> > > regulator_set_voltage_floor(regulator, voltage, tol) or something to that effect.
-> > 
-> > Or as I keep telling you guys the consumer can just do that directly
-> > using the existing API; the whole point in specifying the voltage as a
-> > range is to allow the consumer to cope with arbatrary regulators by
-> > giving a range of voltages that it can accept.
-> > 
-> > The API is deliberately very conservative in these matters since there
-> > is a danger of physical damage if things really go wrong in some
-> > applications, it makes sure that both the drivers and the system
-> > integration are involved.
-> I agree. The intent of this series was to start a conversation to see if
-> we can make it simpler.
-> 
-> Searching for the users of regulator_get_linear_step in 3.10-rc6
-> shows none.
-> 
-> For a generic driver which needs to handle platforms which
-> have tolerance, they'd use regulator_set_voltage_tol. But the
-> implementation would allow for uV - tol to uV + tol as range, which in
-> the case I mentioned(min voltage =uV) wont work.
-> 
-> If the consumer wants to be aware of linear step regulator, they'd have to do:
-> step_uV = regulator_get_linear_step(...);
-> regulator_set_voltage(uV, uV + step_uV);
-> 
-> Then this wont handle tolerance. So the solution seems to be (for the
-> consumer):
-> step_uV = regulator_get_linear_step(...);
-> ..
-> if (tol)
-> 	regulator_set_voltage_tol(uV, tol);
-> else
-> 	regulator_set_voltage(uV, uV + step_uV);
-> (with the required error checks for regulator being a linear regulator
->  etc..).
-> 
-> At least to me, there is no sane manner to handle "tolerance" and linear step
-> accuracy for a defined voltage (Should tolerance be rounded off to
-> step_uV? what about the border cases etc.)
-> 
-> Would you agree?
+Hi Suman,
 
-Here is an RFC for the same. My hope was to see if something simpler
-could be done.
->From cb9830191cb9b8021e50bcda25d110b4b9a7dbd3 Mon Sep 17 00:00:00 2001
-From: Nishanth Menon <nm@ti.com>
-Date: Thu, 20 Jun 2013 16:37:30 -0500
-Subject: [RFC PATCH] cpufreq: cpufreq-cpu0: account for regulator step size
- accuracy
+On 6/18/2013 5:34 PM, Suman Anna wrote:
+> Logic has been added to the OMAP2+ mailbox code to
+> parse the mailbox dt nodes and construct the different
+> mailboxes associated with the instance. The design is
+> based on gathering the same information that was being
+> passed previously through the platform data, except for
+> the interrupt type configuration information.
+>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> ---
+>   .../devicetree/bindings/mailbox/omap-mailbox.txt   |  46 +++++++
+>   drivers/mailbox/mailbox-omap2.c                    | 141 ++++++++++++++++++---
+>   2 files changed, 172 insertions(+), 15 deletions(-)
+>   create mode 100644 Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
+>
+> diff --git a/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt b/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
+> new file mode 100644
+> index 0000000..913bc13
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
+> @@ -0,0 +1,46 @@
+> +OMAP2+ Mailbox Driver
+> +
+> +Required properties:
+> +- compatible:		Should be one of the following,
+> +			    "ti,omap2-mailbox" for
+> +				OMAP2420, OMAP2430, OMAP3430, OMAP3630 SoCs
+> +			    "ti,omap4-mailbox" for
+> +				OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
+> +- reg:			Contains the mailbox register address range (base address
+> +			and length)
+> +- interrupts: 		Contains the interrupt information for the mailbox
+> +			device. The format is dependent on which interrupt
+> +			controller the OMAP device uses
+> +- ti,hwmods:		Name of the hwmod associated with the mailbox
+> +- ti,mbox-num-users:	Number of targets (processor devices) that the mailbox device
+> +			can interrupt
+> +- ti,mbox-num-fifos:	Number of h/w fifos within the mailbox device
+> +- #ti,mbox-data-cells:	Cell size for describing a mailbox
+> +			(currently should be 4)
+> +- ti,mbox-names:	Array of the names of the mailboxes
+> +- ti,mbox-data:		Mailbox descriptor data private to each mailbox. The 4
+> +			cells represent the following data,
+> +			  Cell #1 (tx_id) - mailbox fifo id used for
+> +						transmitting messages
+> +			  Cell #2 (rx_id) - mailbox fifo id on which messages
+> +						are received
+> +			  Cell #3 (irq_id) - irq identifier index number to use
+> +						from the interrupts data
+> +			  Cell #4 (usr_id) - mailbox user id for identifying the
+> +						interrupt into the MPU interrupt
+> +						controller.
+> +
+> +Example:
+> +
+> +/* OMAP4 */
+> +mailbox: mailbox@4a0f4000 {
+> +	compatible = "ti,omap4-mailbox";
+> +	reg = <0x4a0f4000 0x200>;
+> +	interrupts = <GIC_SPI 47 IRQ_TYPE_LEVEL_HIGH>;
+> +	ti,hwmods = "mailbox";
+> +	ti,mbox-num-users = <3>;
+> +	ti,mbox-num-fifos = <8>;
+> +	#ti,mbox-data-cells = <4>
+> +	ti,mbox-names = "mbox-ipu", "mbox-dsp";
+> +	ti,mbox-data = <0 1 0 0>, <3 2 0 0>;
 
-Generic regulator consumers such as cpufreq-cpu0 are not aware
-of the characteristics of regulator used to supply. For example:
-consumerX requests for voltage min_uV = 500mV, max_uV = 500mV
-On a regulator which has a step size of 10mV, this can be exactly
-achieved.
+That seems to contain a bunch of low level IP internal information. 
+Cannot you figure out that from the MAILBOX_REVISION information?
 
-However, on a regulator which is non-exact divider step size (example
-12.66mV step size), the closest achievable would be 506.4.
-regulator_set_voltage_tol does not work out either as <500mV is not an
-acceptable operational voltage.
+mbox-names belong here because it does describe the connection outside 
+the IP, but I'm not sure all the other data should be there.
 
-Account for step size accuracy when exact voltage requests are send for
-step based regulators.
+You should put in DT the minimal amount of data that are needed be the 
+driver to figure out the rest.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- drivers/cpufreq/cpufreq-cpu0.c |   28 ++++++++++++++++++++++++----
- 1 file changed, 24 insertions(+), 4 deletions(-)
+Please note that I did not check carefully every OMAP specs to see if 
+this is possible or not, but most of the time we can reduce the amount 
+of information thanks to some HW info already there.
 
-diff --git a/drivers/cpufreq/cpufreq-cpu0.c b/drivers/cpufreq/cpufreq-cpu0.c
-index ad1fde2..707565c 100644
---- a/drivers/cpufreq/cpufreq-cpu0.c
-+++ b/drivers/cpufreq/cpufreq-cpu0.c
-@@ -28,6 +28,7 @@ static struct device *cpu_dev;
- static struct clk *cpu_clk;
- static struct regulator *cpu_reg;
- static struct cpufreq_frequency_table *freq_table;
-+static int cpu_reg_step_size;
- 
- static int cpu0_verify_speed(struct cpufreq_policy *policy)
- {
-@@ -91,7 +92,12 @@ static int cpu0_set_target(struct cpufreq_policy *policy,
- 
- 	/* scaling up?  scale voltage before frequency */
- 	if (cpu_reg && freqs.new > freqs.old) {
--		ret = regulator_set_voltage_tol(cpu_reg, volt, tol);
-+		if (tol)
-+			ret = regulator_set_voltage_tol(cpu_reg, volt, tol);
-+		else
-+			ret = regulator_set_voltage(cpu_reg, volt,
-+						    volt + cpu_reg_step_size);
-+
- 		if (ret) {
- 			pr_err("failed to scale voltage up: %d\n", ret);
- 			freqs.new = freqs.old;
-@@ -102,15 +108,28 @@ static int cpu0_set_target(struct cpufreq_policy *policy,
- 	ret = clk_set_rate(cpu_clk, freq_exact);
- 	if (ret) {
- 		pr_err("failed to set clock rate: %d\n", ret);
--		if (cpu_reg)
--			regulator_set_voltage_tol(cpu_reg, volt_old, tol);
-+		if (cpu_reg) {
-+			if (tol)
-+				ret = regulator_set_voltage_tol(cpu_reg,
-+								volt_old,
-+								tol);
-+			else
-+				ret = regulator_set_voltage(cpu_reg,
-+							    volt_old,
-+							    volt_old +
-+							    cpu_reg_step_size);
-+		}
- 		freqs.new = freqs.old;
- 		goto post_notify;
- 	}
- 
- 	/* scaling down?  scale voltage after frequency */
- 	if (cpu_reg && freqs.new < freqs.old) {
--		ret = regulator_set_voltage_tol(cpu_reg, volt, tol);
-+		if (tol)
-+			ret = regulator_set_voltage_tol(cpu_reg, volt, tol);
-+		else
-+			ret = regulator_set_voltage(cpu_reg, volt,
-+						    volt + cpu_reg_step_size);
- 		if (ret) {
- 			pr_err("failed to scale voltage down: %d\n", ret);
- 			clk_set_rate(cpu_clk, freqs.old * 1000);
-@@ -260,6 +279,7 @@ static int cpu0_cpufreq_probe(struct platform_device *pdev)
- 		ret = regulator_set_voltage_time(cpu_reg, min_uV, max_uV);
- 		if (ret > 0)
- 			transition_latency += ret * 1000;
-+		cpu_reg_step_size = regulator_get_linear_step(cpu_reg);
- 	}
- 
- 	ret = cpufreq_register_driver(&cpu0_cpufreq_driver);
--- 
-1.7.9.5
-
-
--- 
 Regards,
-Nishanth Menon
+Benoit
+
+
+> +};
+> diff --git a/drivers/mailbox/mailbox-omap2.c b/drivers/mailbox/mailbox-omap2.c
+> index 6c0687c..3fe08de 100644
+> --- a/drivers/mailbox/mailbox-omap2.c
+> +++ b/drivers/mailbox/mailbox-omap2.c
+> @@ -14,6 +14,7 @@
+>   #include <linux/slab.h>
+>   #include <linux/clk.h>
+>   #include <linux/err.h>
+> +#include <linux/of_device.h>
+>   #include <linux/platform_device.h>
+>   #include <linux/io.h>
+>   #include <linux/pm_runtime.h>
+> @@ -222,6 +223,21 @@ static struct omap_mbox_ops omap2_mbox_ops = {
+>   	.restore_ctx	= omap2_mbox_restore_ctx,
+>   };
+>
+> +static const struct of_device_id omap_mailbox_of_match[] = {
+> +	{
+> +		.compatible	= "ti,omap2-mailbox",
+> +		.data		= (void *) MBOX_INTR_CFG_TYPE1,
+> +	},
+> +	{
+> +		.compatible	= "ti,omap4-mailbox",
+> +		.data		= (void *) MBOX_INTR_CFG_TYPE2,
+> +	},
+> +	{
+> +		/* end */
+> +	},
+> +};
+> +MODULE_DEVICE_TABLE(of, omap_mailbox_of_match);
+> +
+>   static int omap2_mbox_probe(struct platform_device *pdev)
+>   {
+>   	struct resource *mem;
+> @@ -229,47 +245,138 @@ static int omap2_mbox_probe(struct platform_device *pdev)
+>   	struct omap_mbox **list, *mbox, *mboxblk;
+>   	struct omap_mbox2_priv *priv, *privblk;
+>   	struct omap_mbox_pdata *pdata = pdev->dev.platform_data;
+> -	struct omap_mbox_dev_info *info;
+>   	struct omap_mbox_device *mdev;
+> -	int i;
+> -
+> -	if (!pdata || !pdata->info_cnt || !pdata->info) {
+> +	struct omap_mbox_dev_info *info, *of_info = NULL;
+> +	struct device_node *node = pdev->dev.of_node;
+> +	int i, j;
+> +	u32 info_count = 0, intr_type = 0;
+> +	u32 num_users = 0, num_fifos = 0;
+> +	u32 dlen, dsize;
+> +	u32 *tmp;
+> +	const __be32 *mbox_data;
+> +
+> +	if (!node && (!pdata || !pdata->info_cnt || !pdata->info)) {
+>   		pr_err("%s: platform not supported\n", __func__);
+>   		return -ENODEV;
+>   	}
+>
+> +	if (node) {
+> +		intr_type = (u32)of_match_device(omap_mailbox_of_match,
+> +							&pdev->dev)->data;
+> +		if (intr_type != 0 && intr_type != 1) {
+> +			dev_err(&pdev->dev, "invalid match data value\n");
+> +			return -EINVAL;
+> +		}
+> +
+> +		if (of_property_read_u32(node, "ti,mbox-num-users",
+> +								&num_users)) {
+> +			dev_err(&pdev->dev,
+> +				"no ti,mbox-num-users configuration found\n");
+> +			return -ENODEV;
+> +		}
+> +
+> +		if (of_property_read_u32(node, "ti,mbox-num-fifos",
+> +								&num_fifos)) {
+> +			dev_err(&pdev->dev,
+> +				"no ti,mbox-num-fifos configuration found\n");
+> +			return -ENODEV;
+> +		}
+> +
+> +		if (of_property_read_u32(node, "#ti,mbox-data-cells", &dsize)) {
+> +			dev_err(&pdev->dev,
+> +				"no #ti,mbox-data-cells configuration found\n");
+> +			return -ENODEV;
+> +		}
+> +		if (dsize != 4) {
+> +			dev_err(&pdev->dev,
+> +				"invalid size for #ti,mbox-data-cells\n");
+> +			return -EINVAL;
+> +		}
+> +
+> +		info_count = of_property_count_strings(node, "ti,mbox-names");
+> +		if (!info_count) {
+> +			dev_err(&pdev->dev, "no mbox devices found\n");
+> +			return -ENODEV;
+> +		}
+> +
+> +		mbox_data = of_get_property(node, "ti,mbox-data", &dlen);
+> +		if (!mbox_data) {
+> +			dev_err(&pdev->dev, "no mbox device data found\n");
+> +			return -ENODEV;
+> +		}
+> +		dlen /= sizeof(dsize);
+> +		if (dlen != dsize * info_count) {
+> +			dev_err(&pdev->dev, "mbox device data is truncated\n");
+> +			return -ENODEV;
+> +		}
+> +
+> +		of_info = kzalloc(info_count * sizeof(*of_info), GFP_KERNEL);
+> +		if (!of_info)
+> +			return -ENOMEM;
+> +
+> +		i = 0;
+> +		while (i < info_count) {
+> +			info = of_info + i;
+> +			if (of_property_read_string_index(node,
+> +					"ti,mbox-names", i,  &info->name)) {
+> +				dev_err(&pdev->dev,
+> +					"mbox_name [%d] read failed\n", i);
+> +				ret = -ENODEV;
+> +				goto free_of;
+> +			}
+> +
+> +			tmp = &info->tx_id;
+> +			for (j = 0; j < dsize; j++) {
+> +				tmp[j] = of_read_number(
+> +						mbox_data + j + (i * dsize), 1);
+> +			}
+> +			i++;
+> +		}
+> +	}
+> +
+> +	if (!node) { /* non-DT device creation */
+> +		info_count = pdata->info_cnt;
+> +		info = pdata->info;
+> +		intr_type = pdata->intr_type;
+> +		num_users = pdata->num_users;
+> +		num_fifos = pdata->num_fifos;
+> +	} else {
+> +		info = of_info;
+> +	}
+> +
+>   	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
+> -	if (!mdev)
+> -		return -ENOMEM;
+> +	if (!mdev) {
+> +		ret = -ENOMEM;
+> +		goto free_of;
+> +	}
+>
+>   	/* allocate one extra for marking end of list */
+> -	list = kzalloc((pdata->info_cnt + 1) * sizeof(*list), GFP_KERNEL);
+> +	list = kzalloc((info_count + 1) * sizeof(*list), GFP_KERNEL);
+>   	if (!list) {
+>   		ret = -ENOMEM;
+>   		goto free_mdev;
+>   	}
+>
+> -	mboxblk = mbox = kzalloc(pdata->info_cnt * sizeof(*mbox), GFP_KERNEL);
+> +	mboxblk = mbox = kzalloc(info_count * sizeof(*mbox), GFP_KERNEL);
+>   	if (!mboxblk) {
+>   		ret = -ENOMEM;
+>   		goto free_list;
+>   	}
+>
+> -	privblk = priv = kzalloc(pdata->info_cnt * sizeof(*priv), GFP_KERNEL);
+> +	privblk = priv = kzalloc(info_count * sizeof(*priv), GFP_KERNEL);
+>   	if (!privblk) {
+>   		ret = -ENOMEM;
+>   		goto free_mboxblk;
+>   	}
+>
+> -	info = pdata->info;
+> -	for (i = 0; i < pdata->info_cnt; i++, info++, priv++) {
+> +	for (i = 0; i < info_count; i++, info++, priv++) {
+>   		priv->tx_fifo.msg = MAILBOX_MESSAGE(info->tx_id);
+>   		priv->tx_fifo.fifo_stat = MAILBOX_FIFOSTATUS(info->tx_id);
+>   		priv->rx_fifo.msg =  MAILBOX_MESSAGE(info->rx_id);
+>   		priv->rx_fifo.msg_stat =  MAILBOX_MSGSTATUS(info->rx_id);
+>   		priv->notfull_bit = MAILBOX_IRQ_NOTFULL(info->tx_id);
+>   		priv->newmsg_bit = MAILBOX_IRQ_NEWMSG(info->rx_id);
+> -		if (pdata->intr_type) {
+> +		if (intr_type) {
+>   			priv->irqenable = OMAP4_MAILBOX_IRQENABLE(info->usr_id);
+>   			priv->irqstatus = OMAP4_MAILBOX_IRQSTATUS(info->usr_id);
+>   			priv->irqdisable =
+> @@ -279,7 +386,7 @@ static int omap2_mbox_probe(struct platform_device *pdev)
+>   			priv->irqstatus = MAILBOX_IRQSTATUS(info->usr_id);
+>   			priv->irqdisable = MAILBOX_IRQENABLE(info->usr_id);
+>   		}
+> -		priv->intr_type = pdata->intr_type;
+> +		priv->intr_type = intr_type;
+>
+>   		mbox->priv = priv;
+>   		mbox->parent = mdev;
+> @@ -307,8 +414,8 @@ static int omap2_mbox_probe(struct platform_device *pdev)
+>
+>   	mutex_init(&mdev->cfg_lock);
+>   	mdev->dev = &pdev->dev;
+> -	mdev->num_users = pdata->num_users;
+> -	mdev->num_fifos = pdata->num_fifos;
+> +	mdev->num_users = num_users;
+> +	mdev->num_fifos = num_fifos;
+>   	mdev->mboxes = list;
+>   	ret = omap_mbox_register(&pdev->dev, list);
+>   	if (ret)
+> @@ -317,6 +424,7 @@ static int omap2_mbox_probe(struct platform_device *pdev)
+>
+>   	pm_runtime_enable(mdev->dev);
+>
+> +	kfree(of_info);
+>   	return 0;
+>
+>   unmap_mbox:
+> @@ -329,6 +437,8 @@ free_list:
+>   	kfree(list);
+>   free_mdev:
+>   	kfree(mdev);
+> +free_of:
+> +	kfree(of_info);
+>   	return ret;
+>   }
+>
+> @@ -358,6 +468,7 @@ static struct platform_driver omap2_mbox_driver = {
+>   	.remove	= omap2_mbox_remove,
+>   	.driver	= {
+>   		.name = "omap-mailbox",
+> +		.of_match_table = omap_mailbox_of_match,
+>   	},
+>   };
+>
+>
+
