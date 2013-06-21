@@ -1,73 +1,34 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: Re: [PATCH] jacinto6 : usb3_phy: Updated dpll M,N values.
-Date: Fri, 21 Jun 2013 13:12:17 +0530
-Message-ID: <51C403D9.3060101@ti.com>
-References: <1369943649-982-1-git-send-email-ruchika@ti.com>
+Subject: [PATCH] usb: host: xhci-plat: release mem region while removing module
+Date: Fri, 21 Jun 2013 13:59:08 +0530
+Message-ID: <1371803348-9807-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41769 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965317Ab3FUHmX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Jun 2013 03:42:23 -0400
-In-Reply-To: <1369943649-982-1-git-send-email-ruchika@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Ruchika Kharwar <ruchika@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-On 5/31/2013 1:24 AM, Ruchika Kharwar wrote:
-> Addition of the M and N recommended values for the USB3 PHY DPLL.
-> Sysclk for DRA7xx is 20MHz.
-> This yields:
-> Clk = 20MHz * M/(N+1) = 20MHz * 1000 /(7+1) = 2.5 Ghz
->
-> Signed-off-by: Ruchika Kharwar <ruchika@ti.com>
-> ---
->   drivers/usb/phy/phy-omap-usb3.c |    7 ++++++-
->   1 files changed, 6 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/usb/phy/phy-omap-usb3.c b/drivers/usb/phy/phy-omap-usb3.c
-> index a6e60b1..efe6e14 100644
-> --- a/drivers/usb/phy/phy-omap-usb3.c
-> +++ b/drivers/usb/phy/phy-omap-usb3.c
-> @@ -27,7 +27,7 @@
->   #include <linux/delay.h>
->   #include <linux/usb/omap_control_usb.h>
->   
-> -#define	NUM_SYS_CLKS		5
-> +#define	NUM_SYS_CLKS		6
->   #define	PLL_STATUS		0x00000004
->   #define	PLL_GO			0x00000008
->   #define	PLL_CONFIGURATION1	0x0000000C
-> @@ -62,6 +62,7 @@ enum sys_clk_rate {
->   	CLK_RATE_12MHZ,
->   	CLK_RATE_16MHZ,
->   	CLK_RATE_19MHZ,
-> +	CLK_RATE_20MHZ,
->   	CLK_RATE_26MHZ,
->   	CLK_RATE_38MHZ
->   };
-> @@ -72,6 +73,8 @@ static struct usb_dpll_params omap_usb3_dpll_params[NUM_SYS_CLKS] = {
->   	{1172, 8, 4, 20, 65537},	/* 19.2 MHz */
->   	{1250, 12, 4, 20, 0},		/* 26 MHz */
->   	{3125, 47, 4, 20, 92843},	/* 38.4 MHz */
-> +	{1000, 7, 4, 10, 0},            /* 20 MHz */
-> +
->   };
->   
+Do a release_mem_region of the hcd resource. Without this the
+subsequent insertion of module fails in request_mem_region.
 
-CLK_RATE_20MHZ is 3 but 20MHz value added in array at offset 5???
+Signed-off-by: George Cherian <george.cherian@ti.com>
+---
+ drivers/usb/host/xhci-plat.c | 1 +
+ 1 file changed, 1 insertion(+)
 
->   static int omap_usb3_suspend(struct usb_phy *x, int suspend)
-> @@ -122,6 +125,8 @@ static inline enum sys_clk_rate __get_sys_clk_index(unsigned long rate)
->   		return CLK_RATE_16MHZ;
->   	case 19200000:
->   		return CLK_RATE_19MHZ;
-> +	case 20000000:
-> +		return CLK_RATE_20MHZ;
->   	case 26000000:
->   		return CLK_RATE_26MHZ;
->   	case 38400000:
-
+diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
+index df90fe5..93ad67e 100644
+--- a/drivers/usb/host/xhci-plat.c
++++ b/drivers/usb/host/xhci-plat.c
+@@ -179,6 +179,7 @@ static int xhci_plat_remove(struct platform_device *dev)
+ 
+ 	usb_remove_hcd(hcd);
+ 	iounmap(hcd->regs);
++	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
+ 	usb_put_hcd(hcd);
+ 	kfree(xhci);
+ 
+-- 
+1.8.1.4
