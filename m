@@ -1,35 +1,45 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v12 05/11] edma: config: Enable config options for EDMA
-Date: Fri, 21 Jun 2013 20:44:26 +0200
-Message-ID: <201306212044.26677.arnd@arndb.de>
-References: <1371762407-24544-1-git-send-email-joelagnel@ti.com> <201306211632.12577.arnd@arndb.de> <CAD=GYpbhBAaSkMtcJaPtVpWar7AcW37QpAk3A0qgwX6G5PDoZg@mail.gmail.com>
+Subject: [PATCH] ARM: omap5: build opp4xxx_data.c
+Date: Fri, 21 Jun 2013 22:29:53 +0200
+Message-ID: <201306212229.54238.arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CAD=GYpbhBAaSkMtcJaPtVpWar7AcW37QpAk3A0qgwX6G5PDoZg@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Joel A Fernandes <agnel.joel@gmail.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Joel A Fernandes <joelagnel@ti.com>, Tony Lindgren <tony@atomide.com>, Matt Porter <matt@ohporter.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Rob Landley <rob@landley.net>, Andrew Morton <akpm@linux-foundation.org>, Jason Kridner <jkridner@beagleboard.org>, Koen Kooi <koen@beagleboard.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.187]:49979 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1945951Ab3FUUaG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jun 2013 16:30:06 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Friday 21 June 2013, Joel A Fernandes wrote:
-> I think we are talking about different things, I agree the 'select
-> DMADEVICES' can be dropped but lets please keep the default y option
-> (not adding new select statements, just saying that if someone select
-> DMADEVICES in menuconfig and if they're ARCH_OMAP=1 , then default to
-> EDMA). This will simply allow people to have a default. Thanks.
+Building OMAP5 support without this file currently results in this link error:
 
-Yes, that's ok.
+arch/arm/mach-omap2/built-in.o: In function `omap54xx_voltagedomains_init':
+:(.init.text+0x6b80): undefined reference to `omap446x_vdd_core_volt_data'
+:(.init.text+0x6b84): undefined reference to `omap446x_vdd_mpu_volt_data'
+:(.init.text+0x6b88): undefined reference to `omap446x_vdd_iva_volt_data'
 
-Also, if the driver doesn't strictly depend on these platforms but
-can build on anything, I would write it as
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-config TI_EDMA
-        tristate "TI EDMA support"
-        default m if 'ARCH_DAVINCI || ARCH_OMAP1 || ARCH_OMAP2
-        select DMA_ENGINE
-        select DMA_VIRTUAL_CHANNELS
-
-	Arnd
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 0520dc4..f5038f5 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -77,6 +77,7 @@ ifeq ($(CONFIG_PM_OPP),y)
+ obj-y					+= opp.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= opp3xxx_data.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= opp4xxx_data.o
++obj-$(CONFIG_SOC_OMAP5)			+= opp4xxx_data.o
+ endif
+ 
+ # Power Management
