@@ -1,138 +1,43 @@
-From: Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv2 02/11] CLK: use of_property_read_u32 instead of read_u8
-Date: Thu, 20 Jun 2013 17:57:55 -0700
-Message-ID: <CAPtuhThmsucSZ8XxL9kcqdssi2N2JHwRzDnbkbaVy6okW_LSRA@mail.gmail.com>
-References: <1371647942-4811-1-git-send-email-t-kristo@ti.com>
- <1371647942-4811-3-git-send-email-t-kristo@ti.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCHv2 10/11] ARM: dts: omap4 clock data
+Date: Thu, 20 Jun 2013 18:24:22 -0700
+Message-ID: <51C3AB46.4040609@codeaurora.org>
+References: <1371647942-4811-1-git-send-email-t-kristo@ti.com> <1371647942-4811-11-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1371647942-4811-3-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.11.231]:55139 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965258Ab3FUBYY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Jun 2013 21:24:24 -0400
+In-Reply-To: <1371647942-4811-11-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, mturquette@linaro.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Jun 19, 2013 at 6:18 AM, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org> wrote:
-> of_property_read_u8 does not work properly because of endianess problem
-> with its current implementation, and this causes it to always return
-> 0 with little endian architectures. Instead, use property_read_u32
-> until this is fixed.
+On 06/19/13 06:19, Tero Kristo wrote:
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index 2a56428..70608db 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -106,6 +106,8 @@
+>  			ti,hwmods = "counter_32k";
+>  		};
+>  
+> +		/include/ "omap4-clocks.dtsi"
+> +
 
-Tero,
+Doesn't this cause one platform device to be allocated for each clock
+node defined in omap4-clocks.dtsi? Are you concerned about wasting
+memory on things that aren't really devices and that will never be probed?
 
-Thanks for the fix. Heiko Stubner pointed out to me that in order to
-read a u8 value the DT node needs to specify "/bits/ 8" before the
-values. From the of_property_read_u8_array kerneldoc:
+>  		omap4_pmx_core: pinmux@4a100040 {
+>  			compatible = "ti,omap4-padconf", "pinctrl-single";
+>  			reg = <0x4a100040 0x0196>;
 
-"
-/**
-...
- * dts entry of array should be like:
- *      property = /bits/ 8 <0x50 0x60 0x70>;
- *
- * The out_value is modified only if a valid u8 value can be decoded.
- */
-"
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+hosted by The Linux Foundation
 
-Still I think it is a bit silly to have to do this in all of the
-bindings, so I'm going to roll this patch into my next version of the
-series if only for the sake of readability. Not only that but it is
-slightly more future proof for the binding to use a u32 value. The
-fact that the implementation in Linux uses a u8 is of little
-consequence to the binding.  I'll also add a cast like the following
-to your patch:
-
-clk = clk_register_gate(NULL, clk_name, parent_name, 0, reg, (u8) bit_idx,
-                clk_gate_flags, NULL);
-
-Thanks,
-Mike
-
->
-> Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/clk/clk-divider.c |    4 ++--
->  drivers/clk/clk-gate.c    |    4 ++--
->  drivers/clk/clk-mux.c     |    4 ++--
->  3 files changed, 6 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
-> index 17ea475..3413602 100644
-> --- a/drivers/clk/clk-divider.c
-> +++ b/drivers/clk/clk-divider.c
-> @@ -361,7 +361,7 @@ void of_divider_clk_setup(struct device_node *node)
->         const char *parent_name;
->         u8 clk_divider_flags = 0;
->         u32 mask = 0;
-> -       u8 shift = 0;
-> +       u32 shift = 0;
->         struct clk_div_table *table;
->
->         of_property_read_string(node, "clock-output-names", &clk_name);
-> @@ -375,7 +375,7 @@ void of_divider_clk_setup(struct device_node *node)
->                 return;
->         }
->
-> -       if (of_property_read_u8(node, "bit-shift", &shift)) {
-> +       if (of_property_read_u32(node, "bit-shift", &shift)) {
->                 shift = __ffs(mask);
->                 pr_debug("%s: bit-shift property defaults to 0x%x for %s\n",
->                                 __func__, shift, node->name);
-> diff --git a/drivers/clk/clk-gate.c b/drivers/clk/clk-gate.c
-> index 72cf99d..61b4dc1 100644
-> --- a/drivers/clk/clk-gate.c
-> +++ b/drivers/clk/clk-gate.c
-> @@ -162,7 +162,7 @@ void of_gate_clk_setup(struct device_node *node)
->         void __iomem *reg;
->         const char *parent_name;
->         u8 clk_gate_flags = 0;
-> -       u8 bit_idx = 0;
-> +       u32 bit_idx = 0;
->
->         of_property_read_string(node, "clock-output-names", &clk_name);
->
-> @@ -170,7 +170,7 @@ void of_gate_clk_setup(struct device_node *node)
->
->         reg = of_iomap(node, 0);
->
-> -       if (of_property_read_u8(node, "bit-shift", &bit_idx)) {
-> +       if (of_property_read_u32(node, "bit-shift", &bit_idx)) {
->                 pr_err("%s: missing bit-shift property for %s\n",
->                                 __func__, node->name);
->                 return;
-> diff --git a/drivers/clk/clk-mux.c b/drivers/clk/clk-mux.c
-> index c9f9f32..e63dd1b 100644
-> --- a/drivers/clk/clk-mux.c
-> +++ b/drivers/clk/clk-mux.c
-> @@ -170,7 +170,7 @@ void of_mux_clk_setup(struct device_node *node)
->         int i;
->         u8 clk_mux_flags = 0;
->         u32 mask = 0;
-> -       u8 shift = 0;
-> +       u32 shift = 0;
->
->         of_property_read_string(node, "clock-output-names", &clk_name);
->
-> @@ -194,7 +194,7 @@ void of_mux_clk_setup(struct device_node *node)
->                 return;
->         }
->
-> -       if (of_property_read_u8(node, "bit-shift", &shift)) {
-> +       if (of_property_read_u32(node, "bit-shift", &shift)) {
->                 shift = __ffs(mask);
->                 pr_debug("%s: bit-shift property defaults to 0x%x for %s\n",
->                                 __func__, shift, node->name);
-> --
-> 1.7.9.5
->
