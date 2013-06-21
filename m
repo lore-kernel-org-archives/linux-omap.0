@@ -1,142 +1,142 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [RFC PATCH V2 0/8] regulator/OMAP: support VC/VP support in dts
-Date: Fri, 21 Jun 2013 16:25:41 -0500
-Message-ID: <1371849949-12649-1-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [RFC PATCH V2 6/8] ARM: dts: TWL6030/OMAP4: Add OMAP voltage path
+ linkage
+Date: Fri, 21 Jun 2013 16:25:47 -0500
+Message-ID: <1371849949-12649-7-git-send-email-nm@ti.com>
+References: <1371849949-12649-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1371849949-12649-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+OMAP4430 and 4460 platforms use TWL6030 to power voltage rails.
+However, on 4460, we use twl6030 only for iva and core voltage rails.
 
-Texas Instrument's OMAP Processor have a dedicated hardware module
-which is customised to operate with Power Management IC(PMIC) over an dedicated
-I2C. The communication involves a few SoC internal modules as follows:
-PMIC - The power management chip on the dedicated I2C (sometimes called I2C_SR)
-Voltage controller - consists of an hardware i2c controller and interface
-customized for PMICs. VC consists of multiple VC Channels, each channel
-representing a variable voltage rail supply to the SoC.
-Voltage Processor(VP) - controls the voltage requests to VC channel
-SmartReflex(Adaptive Voltage control) - (SR/AVS)- specialized hardware block
-which can dynamically control device voltage without software intervention. This
-module communicates with VP.
+Introduce an twl6030_omap4.dtsi to be able to reuse the base definition
+for all OMAP4 platforms and the delta change only for panda-es platform
+which is based on 4460.
 
-In the simplest view, a simple voltage set operation is as follows:
-Vp->VC Channel -> VC -> PMIC
-
-Note, there may be dedicated PMIC per variable voltage rail OR PMICs which
-provide control for multiple SMPS supplying variable rails etc.
-
-In addition, there is an Adaptive Voltage Control (AVS) technique called
-SmartReflex which can operate (in a configuration called continous monitoring
-hardware loop or class 3 mode of operation), in which the SmartReflex block
-communicates with Voltage Processor.
-
-We have an OMAP specific implementation in arch/arm/mach-omap2 which does not
-tree VC/VP or PMIC as Linux devices, but as data which is configured as needed.
-
-In this series, we introduce replacement approach which has support for only
-Device Tree as OMAP is transitioning completely away from non-DT approach.
-
-As an overview, the following approach is taken.
-
-PMIC is now the regulator driver - generic omap-pmic-regulator (patch #1)
-Voltage controller and voltage controller channel is handled by
-driver/power/avs/omap_vc.c
-
-Voltage processor is handled by driver/power/avs/omap_vp.c
-
-Benefit of using drivers/power/avs is also to set the foundation to convert
-SmartReflex AVS into device tree based solution. (next stage).
-
-S/w dependency is as follows:
-Voltage controller <- Voltage Processor
-Voltage Processor registers with OMAP_PMIC it's controller operations
-OMAP_PMIC uses the controller operations to call vp which in turn calls VC to
-setup the communication chain.
-
-This allows us to maintain this as a module if needed as well (something our
-existing implementation was not capable  of doing).
-
-The series is also available here:
-https://github.com/nmenon/linux-2.6-playground/commits/devel/vc-vp-regulator-rfc
-git://github.com/nmenon/linux-2.6-playground.git
-branch: devel/vc-vp-regulator-setv-v1-rfc-2
-
-This depends on a few patches for cpufreq/clock node I added in, merged with
-3.10-rc6 master + the following for-next branches
-benoit/for_3.11/dts
-mturquette/clk-next
-broonie/for-next
-rafael/linux-next
-Available as branch: devel/vc-vp-base
-
-Note: 
-1. AVS device tree conversion will have to depend on this due to dependency on VP
-2. Clock node strategy used here is based on implementation I had posted here:
-	http://marc.info/?t=136804008400001&r=1&w=2
-3. I chose OMAP4460 based PandaBoard ES platform as my development platform
-   and patch #4 in this series is an attempt to showcase how it will look like.
-   Rationale: weird PMIC configuration was used in PandaBoard ES. Ability to
-   handle that platform makes introduction to other platforms/SoCs trivial.
-4. Once this approach is agreed upon, I can do the dts changes for all SoCs
-   OMAP3-5 and will post a formal series.
-
-Related defects:
-  https://bugzilla.kernel.org/show_bug.cgi?id=58541
-  https://bugzilla.kernel.org/show_bug.cgi?id=58611
-
-Related discussion:
-v1 of RFC: http://marc.info/?t=136924689600005&r=1&w=2
-    related discussion: http://marc.info/?t=137166954900005&r=1&w=2
-
-Nishanth Menon (8):
-  regulator: Introduce OMAP regulator to control PMIC over VC/VP
-  PM / AVS: Introduce support for OMAP Voltage Controller(VC) with
-    device tree nodes
-  PM / AVS: Introduce support for OMAP Voltage Processor(VP) with
-    device tree nodes
-  ARM: dts: OMAP4: add voltage controller nodes
-  ARM: dts: OMAP4: add voltage processor nodes
-  ARM: dts: TWL6030/OMAP4: Add OMAP voltage path linkage
-  ARM: dts: omap4-panda-es: add TPS62361 supply for vdd_mpu
-  ARM: dts: OMAP4-panda-es: use tps regulator as cpu0 supply
-
- .../devicetree/bindings/power/omap-vc.txt          |   99 ++
- .../devicetree/bindings/power/omap-vp.txt          |   39 +
- .../bindings/regulator/omap-pmic-regulator.txt     |   41 +
- arch/arm/boot/dts/omap4-panda-common.dtsi          |    1 +
- arch/arm/boot/dts/omap4-panda-es.dts               |   35 +
- arch/arm/boot/dts/omap4-sdp.dts                    |    1 +
- arch/arm/boot/dts/omap4-var-som.dts                |    1 +
- arch/arm/boot/dts/omap4.dtsi                       |   73 +-
- arch/arm/boot/dts/omap443x.dtsi                    |   32 +-
- arch/arm/boot/dts/omap4460.dtsi                    |   33 +-
- arch/arm/boot/dts/tps62361_omap.dtsi               |   18 +
- arch/arm/boot/dts/twl6030_omap4.dtsi               |   35 +
- drivers/power/avs/Kconfig                          |   15 +
- drivers/power/avs/Makefile                         |   20 +
- drivers/power/avs/omap_vc.c                        | 1513 ++++++++++++++++++++
- drivers/power/avs/omap_vc.h                        |   67 +
- drivers/power/avs/omap_vp.c                        |  892 ++++++++++++
- drivers/regulator/Kconfig                          |   12 +
- drivers/regulator/Makefile                         |    1 +
- drivers/regulator/omap-pmic-regulator.c            |  638 +++++++++
- include/linux/regulator/omap-pmic-regulator.h      |  162 +++
- 21 files changed, 3724 insertions(+), 4 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/power/omap-vc.txt
- create mode 100644 Documentation/devicetree/bindings/power/omap-vp.txt
- create mode 100644 Documentation/devicetree/bindings/regulator/omap-pmic-regulator.txt
- create mode 100644 arch/arm/boot/dts/tps62361_omap.dtsi
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/omap4-panda-common.dtsi |    1 +
+ arch/arm/boot/dts/omap4-panda-es.dts      |   13 +++++++++++
+ arch/arm/boot/dts/omap4-sdp.dts           |    1 +
+ arch/arm/boot/dts/omap4-var-som.dts       |    1 +
+ arch/arm/boot/dts/twl6030_omap4.dtsi      |   35 +++++++++++++++++++++++++++++
+ 5 files changed, 51 insertions(+)
  create mode 100644 arch/arm/boot/dts/twl6030_omap4.dtsi
- create mode 100644 drivers/power/avs/omap_vc.c
- create mode 100644 drivers/power/avs/omap_vc.h
- create mode 100644 drivers/power/avs/omap_vp.c
- create mode 100644 drivers/regulator/omap-pmic-regulator.c
- create mode 100644 include/linux/regulator/omap-pmic-regulator.h
 
+diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+index 00cbaa5..2b15c2b 100644
+--- a/arch/arm/boot/dts/omap4-panda-common.dtsi
++++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+@@ -199,6 +199,7 @@
+ };
+ 
+ #include "twl6030.dtsi"
++#include "twl6030_omap4.dtsi"
+ 
+ &i2c2 {
+ 	pinctrl-names = "default";
+diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
+index 56c4354..49017c5 100644
+--- a/arch/arm/boot/dts/omap4-panda-es.dts
++++ b/arch/arm/boot/dts/omap4-panda-es.dts
+@@ -62,3 +62,16 @@
+ 		gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+ 	};
+ };
++
++&omap_twl6030_vcore1 {
++	ti,vp = <&vp_core>;
++};
++
++&omap_twl6030_vcore2 {
++	ti,vp = <&vp_iva>;
++};
++
++&omap_twl6030_vcore3 {
++	/* We use TPS62361 on this platform instead */
++	status = "disabled";
++};
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+index 7951b4e..2f81b4d5 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -337,6 +337,7 @@
+ };
+ 
+ #include "twl6030.dtsi"
++#include "twl6030_omap4.dtsi"
+ 
+ &i2c2 {
+ 	pinctrl-names = "default";
+diff --git a/arch/arm/boot/dts/omap4-var-som.dts b/arch/arm/boot/dts/omap4-var-som.dts
+index b41269e..6f0b763 100644
+--- a/arch/arm/boot/dts/omap4-var-som.dts
++++ b/arch/arm/boot/dts/omap4-var-som.dts
+@@ -40,6 +40,7 @@
+ };
+ 
+ #include "twl6030.dtsi"
++#include "twl6030_omap4.dtsi"
+ 
+ &i2c2 {
+ 	clock-frequency = <400000>;
+diff --git a/arch/arm/boot/dts/twl6030_omap4.dtsi b/arch/arm/boot/dts/twl6030_omap4.dtsi
+new file mode 100644
+index 0000000..7724039
+--- /dev/null
++++ b/arch/arm/boot/dts/twl6030_omap4.dtsi
+@@ -0,0 +1,35 @@
++/*
++ * TWL6030 entries specific for OMAP
++ *
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
++ *	Nishanth Menon
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++&twl {
++	omap_twl6030_vcore1: vcore1 {
++		compatible = "ti,omap-twl6030-vcore1";
++		ti,boot-voltage-micro-volts = <1200000>;
++		ti,vp = <&vp_mpu>;
++	};
++
++	omap_twl6030_vcore2: vcore2 {
++		compatible = "ti,omap-twl6030-vcore2";
++		ti,boot-voltage-micro-volts = <1200000>;
++		ti,vp = <&vp_iva>;
++	};
++
++	omap_twl6030_vcore3: vcore3 {
++		compatible = "ti,omap-twl6030-vcore3";
++		ti,boot-voltage-micro-volts = <1200000>;
++		ti,vp = <&vp_core>;
++	};
++};
++
++&vc {
++	ti,i2c-high-speed;
++	ti,i2c-pad-load = <3>;
++};
 -- 
 1.7.9.5
