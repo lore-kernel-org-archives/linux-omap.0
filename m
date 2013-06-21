@@ -1,70 +1,78 @@
-From: Joel A Fernandes <agnel.joel@gmail.com>
-Subject: Re: [PATCH v12 05/11] edma: config: Enable config options for EDMA
-Date: Fri, 21 Jun 2013 09:20:01 -0500
-Message-ID: <CAD=GYpZ_5Lp1La=f+2BQfmuj+sc3FgygZRD4gfj4JGGZ0Do=_Q@mail.gmail.com>
-References: <1371762407-24544-1-git-send-email-joelagnel@ti.com>
-	<51C427E1.2000800@ti.com>
-	<CAD=GYpb54bitcg0gnfhzxbvig3etRPY6fs=FOQu5nYkio5NRZw@mail.gmail.com>
-	<201306211600.04986.arnd@arndb.de>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC PATCH] regulator: core: allow consumers to request to
+ closes step voltage
+Date: Fri, 21 Jun 2013 15:30:18 +0100
+Message-ID: <20130621143018.GT27646@sirena.org.uk>
+References: <1371669474-24473-1-git-send-email-nm@ti.com>
+ <20130619223828.GK1403@sirena.org.uk>
+ <20130620124542.GA28320@kahuna>
+ <20130621095157.GK27646@sirena.org.uk>
+ <20130621124355.GA16513@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f42.google.com ([209.85.219.42]:34357 "EHLO
-	mail-oa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422901Ab3FUOUC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jun 2013 10:20:02 -0400
-In-Reply-To: <201306211600.04986.arnd@arndb.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FT/vNgDLxVq4t/AU"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130621124355.GA16513@kahuna>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, viresh.kumar@linaro.org, cpufreq@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Sekhar Nori <nsekhar@ti.com>, Joel A Fernandes <joelagnel@ti.com>, Tony Lindgren <tony@atomide.com>, Matt Porter <matt@ohporter.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Rob Landley <rob@landley.net>, Andrew Morton <akpm@linux-foundation.org>, Jason Kridner <jkridner@beagleboard.org>, Koen Kooi <koen@beagleboard.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>
 
-On Fri, Jun 21, 2013 at 9:00 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Friday 21 June 2013, Joel A Fernandes wrote:
->> >> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
->> >> index b1c66a4..7d58cd9 100644
->> >> --- a/arch/arm/Kconfig
->> >> +++ b/arch/arm/Kconfig
->> >> @@ -841,6 +841,7 @@ config ARCH_DAVINCI
->> >>       select HAVE_IDE
->> >>       select NEED_MACH_GPIO_H
->> >>       select TI_PRIV_EDMA
->> >> +     select DMADEVICES
->> >
->> > It is generally a bad idea to force select on something that can be
->> > enabled using menuconfig. Unless used carefully, select causes "unmet
->> > direct dependency" warnings which folks are already fighting hard to
->> > fix. This leads to what Russell referred in the past as "select madness" [1]
->>
->> Are you concerned with bloat issues? I know your point of view but the idea
->> was to build these options by default for these platforms even though
->> in some cases
->> it might not be used. I have seen folks including myself select the wrong
->> option. Having the build system automatically select the correct option for the
->> most common cases can be very useful I feel and not require manual
->> configuration.
->
-> For defaults, you should use the defconfig, not 'select' in Kconfig.
->
-> A lot of the 'select' statements are actually wrong because they
-> do not take dependencies into account where A selects B but not C,
-> and B depends on C, which leads to broken builds when C is disabled
-> by a user (or randconfig).
 
-I haven't come across this problem but- are you saying there is a
-shortcoming in Kbuild/Kconfig that selects an option even if its
-dependency is not met?
+--FT/vNgDLxVq4t/AU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The problem with defconfig is also too many options I feel for a common case.
-CONFIG_DMADEVICES=y
-CONFIG_TI_EDMA=y
+On Fri, Jun 21, 2013 at 07:43:55AM -0500, Nishanth Menon wrote:
+> On 10:51-20130621, Mark Brown wrote:
 
-Most if not all future OMAPs from will use EDMA. Why not we can be
-explicit about it and just built it in anyway. If ARCH_OMAP and
-DMADEVICES are selected, then we can just build EDMA in by default.
+> > No, the consumer really doesn't want to be aware of linear step
+> > regulators.  Why would it care that there even are linear steps?  If
+> > the consumer is doing this based on the properties of the regulator
+> > rather than on the properties of the consumer this indicates that the
+> > consumer has a problem  If the consumer is doing this based on the
+> > properties of the regulator rather than on the properties of the
+> > consumer this indicates that the consumer has a problem
 
-I agree maybe the option can be dropped from Davinci but I suggest
-let's keep it for OMAP. Is that ok?
+> The specific case that I am trying to tackle is as follows:
+> cpufreq-cpu0 uses definitions of voltages that are SoC specific. For a
+> given frequency, the optimal voltage is X, max voltage(Y) is already
+> expected to be in constraints for device functionality. We however want
+> to find the closest voltage for a regulator in range X to Y best
+> achievable by regulator. I think the area where I am getting confused is
+> this: I am thinking the job belongs to the consumer/regulator core to
+> find the best match. However, looking at implementations in existing
+> regulators and based on your explanation, it seems to be the job of
+> the regulator driver rather than the consumer/ regulator core to provide
+> the best match.
 
-Thanks,
-Joel
+Right, though the consumer does have to provide a voltage range to the
+regulator to allow this to happen - if the consumer doesn't provide a
+range then there's only one option available.  The consumer provides a
+range and then the driver satistifes that as best it can (after it's
+been filtered through the constraints).
+
+--FT/vNgDLxVq4t/AU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRxGN3AAoJELSic+t+oim9ZQAP+wcN8g9WOJc6pMq3Sadxu08R
+hZM51wOKYIM4KSx9Rn5yL5KrsRoBtYxWZeYiNuLzezVMOheDQ5wC1k0Caa6OoYyl
+Xdwljq5iMr7bjhRGTnJgbwoeeUmcTTFkUXRw297GpRnkkl4/MAstRZo5Q8t1/lqv
+mwQe6pvW75dwxbOWmiSOVrbhx0cdWa3jS3/a4LL/VNJVmqr3NFZwRxtrs6/ZevVz
+FO2jql4/H5/LR1x0Dn3iZFSVHOCpYs8DDZdsbcBoS79DS/2+ME6QmlNKPcnsdSPQ
+pGw3+MaVtXd69kyFZTDZU2BG7bHleqQrSXGxzgwlyR/Uw/nzo+2G0g+3xdimdlRS
+Ek5yKv0e7tAvy31qdohBOTuPJILVavyAzAp2QuCEu4RanFXwLKix+T38ZTdKE1oU
+L21Xw/EKL7FotdK8/DcUjognQqsrCWMgHtvhl7XFLYrPqhJ+DrhsfDHIOlVd3Owg
+2G8CXGvClwUoQoRyIegAkUXCwL0M/korA/823XqNRfRPYVxhIO84vF2TtEEmNMFX
+nvgRP4JLQ279trvQLMEMfTWMTgqZcEfhy8LO8Nyl6nqpJdMS79bDzbrnHoMQ1Uaz
+N9A73vjmk4zJ9xjGENRXkmwj+amEj87azfVu4JcIPmfMlhQDzS/RHmyMlZO5UWP7
+NtVCGUdHGZGvPoydJZTc
+=K6xo
+-----END PGP SIGNATURE-----
+
+--FT/vNgDLxVq4t/AU--
