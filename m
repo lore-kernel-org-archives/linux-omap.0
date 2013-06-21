@@ -1,155 +1,81 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: Re: [PATCH 1/1] gpio/omap: auto request GPIO as input if used as
- IRQ via DT
-Date: Fri, 21 Jun 2013 10:32:18 +0200
-Message-ID: <51C40F92.5030309@collabora.co.uk>
-References: <1371778971-17561-1-git-send-email-javier.martinez@collabora.co.uk>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: RE: [PATCH 2/4] MFD: Palmas: Add TPS659038 PMIC support
+Date: Fri, 21 Jun 2013 09:06:49 +0000
+Message-ID: <DC88CAD03C0052499C1907B327FC63229EDC73@DBDE04.ent.ti.com>
+References: <1371726316-10078-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:33582 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423228Ab3FUIcd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jun 2013 04:32:33 -0400
-In-Reply-To: <1371778971-17561-1-git-send-email-javier.martinez@collabora.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1371726316-10078-1-git-send-email-j-keerthy@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "sameo@linux.intel.com" <sameo@linux.intel.com>
+Cc: "broonie@kernel.org" <broonie@kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Grant Likely <grant.likely@linaro.org>, jgchunter@gmail.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, eballetbo@gmail.com, thomas.petazzoni@free-electrons.com, linux-omap@vger.kernel.org
 
-On 06/21/2013 03:42 AM, Javier Martinez Canillas wrote:
-> When an OMAP GPIO is used as an IRQ line, a call to gpio_request()
-> has to be made to initialize the OMAP GPIO bank before a driver
-> request the IRQ. Otherwise the call to request_irq() fails.
+Hello Samuel,
+
+> -----Original Message-----
+> From: J, KEERTHY
+> Sent: Thursday, June 20, 2013 4:35 PM
+> To: linux-omap@vger.kernel.org; sameo@linux.intel.com
+> Cc: broonie@kernel.org; J, KEERTHY; ldewangan@nvidia.com;
+> grant.likely@secretlab.ca; swarren@nvidia.com; linux-
+> kernel@vger.kernel.org; linux-doc@vger.kernel.org; devicetree-
+> discuss@lists.ozlabs.org; gg@slimlogic.co.uk
+> Subject: [PATCH 2/4] MFD: Palmas: Add TPS659038 PMIC support
 > 
-> Drives should not be aware of this neither care whether an IRQ line
-> is a GPIO or not. They should just request the IRQ and this has to
-> be handled by the irq_chip driver.
+> The Patch adds TPS659038 PMIC support in the palmas mfd driver.
+> The TPS659038 has almost the same registers as of the earlier supported
+> variants of PALMAS family such as the TWL6035.
 > 
-> With the current OMAP GPIO DT binding, if we define:
+> The critical differences between TPS659038 and TWL6035 being:
 > 
->                 gpio6: gpio@49058000 {
->                         compatible = "ti,omap3-gpio";
->                         reg = <0x49058000 0x200>;
->                         interrupts = <34>;
->                         ti,hwmods = "gpio6";
->                         gpio-controller;
->                         #gpio-cells = <2>;
->                         interrupt-controller;
->                         #interrupt-cells = <2>;
->                 };
+> 1) TPS659038 has nothing related to battery charging and back up
+> battery stuff.
+> 2) TPS659038 does not have does not have SMPS10(Boost) step up
+> convertor.
+> 3) TPS659038 does not have Battery detection and anything related to
+> battery.
+> 4) SD card detection, Battery presence detection, Vibrator, USB OTG are
+> missing
+>    when compared to TWL6035.
 > 
->                 interrupt-parent = <&gpio6>;
->                 interrupts = <16 8>;
-> 
-> The GPIO is correctly mapped as an IRQ but a call to gpio_request()
-> is never made. So, let's add a custom .map function handler that
-> setups and configures the GPIO as input automatically.
-> 
-> Many thanks to Jon Hunter and Grant Likely for their feedback and
-> suggestions on how to solve this.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+
+Could you please pull this patch?
+
+> Signed-off-by: J Keerthy <j-keerthy@ti.com>
+> Acked-by: Samuel Ortiz <sameo@linux.intel.com>
 > ---
+>  drivers/mfd/palmas.c |    5 +++++
+>  1 files changed, 5 insertions(+), 0 deletions(-)
 > 
-> NOTE: Ideally this has to be handled by the IRQ core instead
-> each irq_chip driver implementing a custom .map or .xlate
-> function handler. There are some work-in-progress to add this
-> logic to the core but until this general solution gets into
-> mainline let's add this temporary solution that can be later
-> reverted when is not needed anymore.
+> diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c index
+> ad2edd6..8b20055 100644
+> --- a/drivers/mfd/palmas.c
+> +++ b/drivers/mfd/palmas.c
+> @@ -233,12 +233,17 @@ static void palmas_dt_to_pdata(struct i2c_client
+> *i2c,  }
 > 
-> Tested on a OMAP3 DM3735 board (IGEPv2) to make its smsc911x
-> LAN chip to work with DeviceTree booting.
+>  static unsigned int palmas_features =
+> PALMAS_PMIC_FEATURE_SMPS10_BOOST;
+> +static unsigned int tps659038_features;
 > 
->  drivers/gpio/gpio-omap.c |   29 ++++++++++++++++++++++++++++-
->  1 files changed, 28 insertions(+), 1 deletions(-)
+>  static const struct of_device_id of_palmas_match_tbl[] = {
+>  	{
+>  		.compatible = "ti,palmas",
+>  		.data = &palmas_features,
+>  	},
+> +	{
+> +		.compatible = "ti,tps659038",
+> +		.data = &tps659038_features,
+> +	},
+>  	{ },
+>  };
 > 
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index d3f7d2d..b3e5f75 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -1086,6 +1086,33 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
->  
->  static const struct of_device_id omap_gpio_match[];
->  
-> +static int omap_gpio_irq_map(struct irq_domain *d, unsigned int virq,
-> +			     irq_hw_number_t hwirq)
-> +{
-> +	struct gpio_bank *bank = d->host_data;
-> +	int gpio;
-> +	int ret;
-> +
-> +	if (!bank)
-> +		return -EINVAL;
-> +
-> +	gpio = irq_to_gpio(bank, hwirq);
-> +
-> +	ret = gpio_request_one(gpio, GPIOF_IN, NULL);
-> +
-> +	if (ret) {
-> +		dev_err(bank->dev, "Could not request GPIO%d\n", gpio);
-> +		return ret;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static struct irq_domain_ops omap_gpio_irq_ops = {
-> +	.xlate  = irq_domain_xlate_onetwocell,
-> +	.map    = omap_gpio_irq_map,
-> +};
-> +
->  static int omap_gpio_probe(struct platform_device *pdev)
->  {
->  	struct device *dev = &pdev->dev;
-> @@ -1137,7 +1164,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
->  
->  
->  	bank->domain = irq_domain_add_linear(node, bank->width,
-> -					     &irq_domain_simple_ops, NULL);
-> +					     &omap_gpio_irq_ops, bank);
->  	if (!bank->domain)
->  		return -ENODEV;
->  
-> 
+> --
+> 1.7.5.4
 
-Actually, I've been doing more testing and I found that this solution is wrong.
-
-Grant suggested to add this logic in a custom .map function handler instead of a
-.xlate since .map will be called just once on irq_create_mapping() and .xlate
-will be called many times.
-
-Now, this works if irq_create_mapping() is only called from
-irq_create_of_mapping() when defining a GPIO-IRQ using DT but the gpio-omap
-driver calls irq_create_mapping() for all GPIO in a bank on omap_gpio_chip_init()
-
-static void omap_gpio_chip_init(struct gpio_bank *bank)
-{
-...
-	for (j = 0; j < bank->width; j++) {
-		int irq = irq_create_mapping(bank->domain, j);
-		irq_set_lockdep_class(irq, &gpio_lock_class);
-		irq_set_chip_data(irq, bank);
-		if (bank->is_mpuio) {
-			omap_mpuio_alloc_gc(bank, irq, bank->width);
-		} else {
-			irq_set_chip_and_handler(irq, &gpio_irq_chip,
-						 handle_simple_irq);
-			set_irq_flags(irq, IRQF_VALID);
-		}
-	}
-..
-}
-
-So, this not only configures all GPIO as input but avoids outside code such as
-drivers or board code to setup and configure a GPIO, since calling
-gpio_request() will return -EBUSY.
-
-There is no need to create this mapping for all GPIO on probe() and this logic
-can be moved to the custom .map handler function. I'll send a v2 of this patch
-that does this.
-
-Thanks a lot and best regards,
-Javier
+Regards,
+Keerthy
