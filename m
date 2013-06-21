@@ -1,67 +1,72 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v12 05/11] edma: config: Enable config options for EDMA
-Date: Sat, 22 Jun 2013 00:14:16 +0200
-Message-ID: <201306220014.16427.arnd@arndb.de>
-References: <1371762407-24544-1-git-send-email-joelagnel@ti.com> <201306212044.26677.arnd@arndb.de> <CAD=GYpY4koXd9f6_ijQfDHsiULD4d53cdu=9X421WXSAit_YQg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CAD=GYpY4koXd9f6_ijQfDHsiULD4d53cdu=9X421WXSAit_YQg@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Joel A Fernandes <agnel.joel@gmail.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Joel A Fernandes <joelagnel@ti.com>, Tony Lindgren <tony@atomide.com>, Matt Porter <matt@ohporter.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Rob Landley <rob@landley.net>, Andrew Morton <akpm@linux-foundation.org>, Jason Kridner <jkridner@beagleboard.org>, Koen Kooi <koen@beagleboard.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: (unknown)
+Date: Sat, 22 Jun 2013 00:50:52 +0200
+Message-ID: <1371855054-27958-1-git-send-email-javier.martinez@collabora.co.uk>
+References: <[PATCH v2 0/2]: auto request GPIO as input if used as IRQ via DT>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:34160 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946172Ab3FUWvG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jun 2013 18:51:06 -0400
+Subject: 
+In-Reply-To: <[PATCH v2 0/2]: auto request GPIO as input if used as IRQ via DT>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@linaro.org>
+Cc: jgchunter@gmail.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, eballetbo@gmail.com, thomas.petazzoni@free-electrons.com, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-On Friday 21 June 2013, Joel A Fernandes wrote:
-> Hi Arnd,
-> 
-> On Fri, Jun 21, 2013 at 1:44 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > On Friday 21 June 2013, Joel A Fernandes wrote:
-> >> I think we are talking about different things, I agree the 'select
-> >> DMADEVICES' can be dropped but lets please keep the default y option
-> >> (not adding new select statements, just saying that if someone select
-> >> DMADEVICES in menuconfig and if they're ARCH_OMAP=1 , then default to
-> >> EDMA). This will simply allow people to have a default. Thanks.
-> >
-> > Yes, that's ok.
-> 
-> Ok, thanks. I will follow up with a patch in my next submissions that builds it.
-> 
-> Perhaps a:
-> default y if 'ARCH_OMAP2PLUS'
-> 
-> and leave the existing as it is...
-> default n if  'ARCH_DAVINCI || ARCH_OMAP1 || ARCH_OMAP2'
-> 
-> would make most sense to me. Basically EDMA is seen on current and all
-> new OMAP2PLUS.
+When an OMAP GPIO is used as an IRQ line, a call to gpio_request()
+has to be made to initialize the OMAP GPIO bank before a driver
+request the IRQ. Otherwise the call to request_irq() fails.
 
-Ok
+Drivers should not be aware of this neither care wether an IRQ line
+is a GPIO or not. They should just request the IRQ and this has to
+be handled by the irq_chip driver.
 
-> > config TI_EDMA
-> >         tristate "TI EDMA support"
-> >         default m if 'ARCH_DAVINCI || ARCH_OMAP1 || ARCH_OMAP2
-> >         select DMA_ENGINE
-> >         select DMA_VIRTUAL_CHANNELS
-> 
-> 
-> MMC depends on EDMA specially on AM33xx there's no PIO mode AFAIK. The
-> 'm' option will require some initramfs to load the module when needing
-> to MMC boot, I suggest lets leave it as y.
-> 
+With the current OMAP GPIO DT binding, if we define:
 
-Ah, right: you still export a filter function from the edma driver
-and use it in slave drivers:
+                gpio6: gpio@49058000 {
+                        compatible = "ti,omap3-gpio";
+                        reg = <0x49058000 0x200>;
+                        interrupts = <34>;
+                        ti,hwmods = "gpio6";
+                        gpio-controller;
+                        #gpio-cells = <2>;
+                        interrupt-controller;
+                        #interrupt-cells = <2>;
+                };
 
-drivers/mmc/host/davinci_mmc.c:         dma_request_slave_channel_compat(mask, edma_filter_fn,
-drivers/mmc/host/davinci_mmc.c:         dma_request_slave_channel_compat(mask, edma_filter_fn,
-drivers/spi/spi-davinci.c:      dspi->dma_rx = dma_request_channel(mask, edma_filter_fn,
-drivers/spi/spi-davinci.c:      dspi->dma_tx = dma_request_channel(mask, edma_filter_fn,
+                interrupt-parent = <&gpio6>;
+                interrupts = <16 8>;
 
-As long as this is the case, you have to be careful with the dependencies
-to make sure that davinci_mmc and spi-davinci either depend on TI_EDMA, or
-edma_filter_fn gets defined to NULL when you are building for a DT-only platform.
+The GPIO is correctly mapped as an IRQ but a call to gpio_request()
+is never made. Ideally this has to be handled by the IRQ core and
+there are some work-in-progress to add this logic to the core but
+until this general solution gets into mainline we need to solve this
+on a per irq_chip driver basis.
 
-	Arnd
+Some drivers solve this by calling gpio_request() using a custom
+.xlate function handler. But .xlate could get called many times
+while the irq domain .map function handler is called just once
+when a IRQ mapping is created with a call to irq_create_mapping().
+
+This patch-set adds a custom .map function handler for the gpio-omap
+irq_chip driver that automatically call gpio_request() when a IRQ
+mapping is created for the GPIO line used as interrupt. This is
+just a temporary solution (a.k.a a hack) until a kernel wide approach
+is implemented and added to mainline.
+
+The patch-set is composed of the following patches:
+
+[PATCH v2 1/2] gpio/omap: don't create an IRQ mapping for every GPIO on DT
+[PATCH v2 2/2] gpio/omap: auto request GPIO as input if used as IRQ via DT
+
+This was tested on an OMAP3 DM3735 board (IGEPv2) and all the supported
+peripherals are working correctly with both legacy and DT booting. Further
+testing will be highly appreciated.
+
+Many thanks to Jon Hunter and Grant Likely for their feedback and
+suggestions on how to solve this.
+
+Best regards,
+Javier
