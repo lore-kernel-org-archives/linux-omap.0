@@ -1,39 +1,81 @@
-From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v12 09/11] spi: omap2-mcspi: convert to
-	dma_request_slave_channel_compat()
-Date: Fri, 21 Jun 2013 17:52:37 +0530
-Message-ID: <51C4458D.4060202@ti.com>
-References: <1371762407-24544-1-git-send-email-joelagnel@ti.com>
-	<1371762407-24544-10-git-send-email-joelagnel@ti.com>
-	<51C42A71.1090403@ti.com> <51C42CFF.10002@ti.com>
-	<20130621112832.GS27646@sirena.org.uk>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [RFC PATCH] regulator: core: allow consumers to request to
+ closes step voltage
+Date: Fri, 21 Jun 2013 07:43:55 -0500
+Message-ID: <20130621124355.GA16513@kahuna>
+References: <1371669474-24473-1-git-send-email-nm@ti.com>
+ <20130619223828.GK1403@sirena.org.uk>
+ <20130620124542.GA28320@kahuna>
+ <20130621095157.GK27646@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <20130621112832.GS27646-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Joel A Fernandes <joelagnel-l0cyMroinI0@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>R
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <cpufreq-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130621095157.GK27646@sirena.org.uk>
+Sender: cpufreq-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, viresh.kumar@linaro.org, cpufreq@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mark,
-On Friday 21 June 2013 04:58 PM, Mark Brown wrote:
-> On Fri, Jun 21, 2013 at 04:07:51PM +0530, Sekhar Nori wrote:
->
->> We can resend the patch if you don't have it from the mailing list.
-> I'll probably have it assuming it's been sent to some mailing list I
-> read (the CC list here looks absurldy large...) but if you don't send me
-> the patch and/or ignore bounces then it's going to take longer.
-I have send you this patch seperately.
+On 10:51-20130621, Mark Brown wrote:
+> On Thu, Jun 20, 2013 at 07:45:42AM -0500, Nishanth Menon wrote:
+> > On 23:38-20130619, Mark Brown wrote:
+> 
+> > > If the consumer can tolerate a different voltage why not just request
+> > > the range that can be tolerated?  Your problem here is specifying an
+> > > exact voltage.
+> 
+> > I think you mean using regulator_get_linear_step
+> 
+> No, I don't.  Why would that make sense?  It limits the regulators that
+> can be used and the properties of the regulator have no impact on what
+> the SoC can support.
+> 
+> > > Or as I keep telling you guys the consumer can just do that directly
+> > > using the existing API; the whole point in specifying the voltage as a
+> > > range is to allow the consumer to cope with arbatrary regulators by
+> > > giving a range of voltages that it can accept.
+> 
+> > I agree. The intent of this series was to start a conversation to see if
+> > we can make it simpler.
+> 
+> It's already very simple.  The consumer driver just needs to supply the
+> list of voltages which it can accept, that's all.
+> 
+> > For a generic driver which needs to handle platforms which
+> > have tolerance, they'd use regulator_set_voltage_tol. But the
+> > implementation would allow for uV - tol to uV + tol as range, which in
+> > the case I mentioned(min voltage =uV) wont work.
+> 
+> So just write it as an explicit voltage range then.  For example many
+> devices can tolerate any supply up to the maximum rated supply at any
+> frequency so just specify that as the upper limit.
+> 
+> > If the consumer wants to be aware of linear step regulator, they'd have to do:
+> > step_uV = regulator_get_linear_step(...);
+> > regulator_set_voltage(uV, uV + step_uV);
+> 
+> No, the consumer really doesn't want to be aware of linear step
+> regulators.  Why would it care that there even are linear steps?  If
+> the consumer is doing this based on the properties of the regulator
+> rather than on the properties of the consumer this indicates that the
+> consumer has a problem  If the consumer is doing this based on the
+> properties of the regulator rather than on the properties of the
+> consumer this indicates that the consumer has a problem
+The specific case that I am trying to tackle is as follows:
+cpufreq-cpu0 uses definitions of voltages that are SoC specific. For a
+given frequency, the optimal voltage is X, max voltage(Y) is already
+expected to be in constraints for device functionality. We however want
+to find the closest voltage for a regulator in range X to Y best
+achievable by regulator. I think the area where I am getting confused is
+this: I am thinking the job belongs to the consumer/regulator core to
+find the best match. However, looking at implementations in existing
+regulators and based on your explanation, it seems to be the job of
+the regulator driver rather than the consumer/ regulator core to provide
+the best match.
 
-Thanks ,
-Sourav
+Thanks for the discussion and explanation.
+
+-- 
+Regards,
+Nishanth Menon
