@@ -1,106 +1,56 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH V2 3/3] ARM: OMAP2+: clk: Fix return type of callbacks
-Date: Fri, 21 Jun 2013 11:13:33 -0700
-Message-ID: <20130621181333.20448.23218@quantum>
-References: <1371458384-23936-1-git-send-email-ambresh@ti.com>
- <1371458384-23936-4-git-send-email-ambresh@ti.com>
+From: Joel A Fernandes <agnel.joel@gmail.com>
+Subject: Re: [PATCH v12 05/11] edma: config: Enable config options for EDMA
+Date: Fri, 21 Jun 2013 13:40:48 -0500
+Message-ID: <CAD=GYpbhBAaSkMtcJaPtVpWar7AcW37QpAk3A0qgwX6G5PDoZg@mail.gmail.com>
+References: <1371762407-24544-1-git-send-email-joelagnel@ti.com>
+	<201306211600.04986.arnd@arndb.de>
+	<CAD=GYpZ_5Lp1La=f+2BQfmuj+sc3FgygZRD4gfj4JGGZ0Do=_Q@mail.gmail.com>
+	<201306211632.12577.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1371458384-23936-4-git-send-email-ambresh@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Rajendra <rnayak@ti.com>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Ambresh K <ambresh@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <201306211632.12577.arnd@arndb.de>
+Sender: linux-doc-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Sekhar Nori <nsekhar@ti.com>, Joel A Fernandes <joelagnel@ti.com>, Tony Lindgren <tony@atomide.com>, Matt Porter <matt@ohporter.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Rob Landley <rob@landley.net>, Andrew Morton <akpm@linux-foundation.org>, Jason Kridner <jkridner@beagleboard.org>, Koen Kooi <koen@beagleboard.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-UXVvdGluZyBBbWJyZXNoIEsgKDIwMTMtMDYtMTcgMDE6Mzk6NDQpCj4gRnJvbTogQW1icmVzaCBL
-IDxhbWJyZXNoQHRpLmNvbT4KPiAKPiBjbGtfb3BzJ3MgLmdldF9wYXJlbnQgbWVtYmVyIGRhdGEg
-cmV0dXJuJ3Mgc2lnbmVkIHZhbHVlLgo+IAo+IFNpZ25lZC1vZmYtYnk6IEFtYnJlc2ggSyA8YW1i
-cmVzaEB0aS5jb20+CgpVbnN1cnByaXNpbmdseSBJIGdldCB0aGUgZm9sbG93aW5nIGVycm9ycyB3
-aGVuIGJ1aWxkaW5nCm11bHRpX3Y3X2RlZmNvbmZpZzoKCmRyaXZlcnMvY2xrL2Nsay1jb21wb3Np
-dGUuYzogSW4gZnVuY3Rpb24g4oCYY2xrX3JlZ2lzdGVyX2NvbXBvc2l0ZeKAmToKZHJpdmVycy9j
-bGsvY2xrLWNvbXBvc2l0ZS5jOjE0ODozMzogd2FybmluZzogYXNzaWdubWVudCBmcm9tIGluY29t
-cGF0aWJsZSBwb2ludGVyIHR5cGUgW2VuYWJsZWQgYnkgZGVmYXVsdF0KZHJpdmVycy9jbGsvY2xr
-LXByaW1hMi5jOjQxMToyOiB3YXJuaW5nOiBpbml0aWFsaXphdGlvbiBmcm9tIGluY29tcGF0aWJs
-ZSBwb2ludGVyIHR5cGUgW2VuYWJsZWQgYnkgZGVmYXVsdF0KZHJpdmVycy9jbGsvY2xrLXByaW1h
-Mi5jOjQxMToyOiB3YXJuaW5nOiAobmVhciBpbml0aWFsaXphdGlvbiBmb3Ig4oCYbXNpX29wcy5n
-ZXRfcGFyZW504oCZKSBbZW5hYmxlZCBieSBkZWZhdWx0XQpkcml2ZXJzL2Nsay9jbGstcHJpbWEy
-LmM6NDU5OjI6IHdhcm5pbmc6IGluaXRpYWxpemF0aW9uIGZyb20gaW5jb21wYXRpYmxlIHBvaW50
-ZXIgdHlwZSBbZW5hYmxlZCBieSBkZWZhdWx0XQpkcml2ZXJzL2Nsay9jbGstcHJpbWEyLmM6NDU5
-OjI6IHdhcm5pbmc6IChuZWFyIGluaXRpYWxpemF0aW9uIGZvciDigJhjcHVfb3BzLmdldF9wYXJl
-bnTigJkpIFtlbmFibGVkIGJ5IGRlZmF1bHRdCmRyaXZlcnMvY2xrL2Nsay1wcmltYTIuYzo0ODU6
-Mjogd2FybmluZzogaW5pdGlhbGl6YXRpb24gZnJvbSBpbmNvbXBhdGlibGUgcG9pbnRlciB0eXBl
-IFtlbmFibGVkIGJ5IGRlZmF1bHRdCmRyaXZlcnMvY2xrL2Nsay1wcmltYTIuYzo0ODU6Mjogd2Fy
-bmluZzogKG5lYXIgaW5pdGlhbGl6YXRpb24gZm9yIOKAmGRtbl9vcHMuZ2V0X3BhcmVudOKAmSkg
-W2VuYWJsZWQgYnkgZGVmYXVsdF0KZHJpdmVycy9jbGsvY2xrLXp5bnEuYzoxMTg6Mjogd2Fybmlu
-ZzogaW5pdGlhbGl6YXRpb24gZnJvbSBpbmNvbXBhdGlibGUgcG9pbnRlciB0eXBlIFtlbmFibGVk
-IGJ5IGRlZmF1bHRdCmRyaXZlcnMvY2xrL2Nsay16eW5xLmM6MTE4OjI6IHdhcm5pbmc6IChuZWFy
-IGluaXRpYWxpemF0aW9uIGZvciDigJh6eW5xX3BlcmlwaF9jbGtfb3BzLmdldF9wYXJlbnTigJkp
-IFtlbmFibGVkIGJ5IGRlZmF1bHRdCmRyaXZlcnMvY2xrL2Nsay16eW5xLmM6MjI4OjI6IHdhcm5p
-bmc6IGluaXRpYWxpemF0aW9uIGZyb20gaW5jb21wYXRpYmxlIHBvaW50ZXIgdHlwZSBbZW5hYmxl
-ZCBieSBkZWZhdWx0XQpkcml2ZXJzL2Nsay9jbGstenlucS5jOjIyODoyOiB3YXJuaW5nOiAobmVh
-ciBpbml0aWFsaXphdGlvbiBmb3Ig4oCYenlucV9jcHVfY2xrX29wcy5nZXRfcGFyZW504oCZKSBb
-ZW5hYmxlZCBieSBkZWZhdWx0XQoKQWxsIGRlZmluaXRpb25zIG9mIC5nZXRfcGFyZW50IGNhbGxi
-YWNrcyBuZWVkIHRvIGJlIHVwZGF0ZWQsIG5vdCBqdXN0CnlvdXIgcGxhdGZvcm0gb2YgY2hvaWNl
-LiBBbmQgdGhlcmUgbWF5IHdlbGwgYmUgbW9yZSB0aGFuIHRoZSBvbmVzIGFib3ZlLgoKSSdtIG5v
-dCB0YWtpbmcgdGhpcyBzZXJpZXMgZm9yIDMuMTEuIEFmdGVyIHRoZSBtZXJnZSB3aW5kb3cgY2Fu
-IHlvdQpyZXN1Ym1pdCB0aGlzIHNlcmllcyB3aXRoIGZpeGVzIGZvciBhbGwgb2YgdGhlIC5nZXRf
-cGFyZW50IGRlZmluaXRpb25zPwpOb3QganVzdCBmb3IgT01BUC4KCk90aGVyd2lzZSB0aGUgcmVz
-dCBvZiB0aGUgc2VyaWVzIGxvb2tzIGdvb2QgYW5kIEknbGwgYmUgaGFwcHkgdG8gdGFrZQp0aGlz
-IGluIHRvd2FyZHMgMy4xMi4KClRoYW5rcywKTWlrZQoKPiAtLS0KPiAgYXJjaC9hcm0vbWFjaC1v
-bWFwMi9jbGt0X2Nsa3NlbC5jIHwgICAgMiArLQo+ICBhcmNoL2FybS9tYWNoLW9tYXAyL2Nsa3Rf
-ZHBsbC5jICAgfCAgICAyICstCj4gIGFyY2gvYXJtL21hY2gtb21hcDIvY2xvY2suaCAgICAgICB8
-ICAgIDQgKystLQo+ICAzIGZpbGVzIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwgNCBkZWxldGlv
-bnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9jbGt0X2Nsa3NlbC5j
-IGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9jbGt0X2Nsa3NlbC5jCj4gaW5kZXggMGVjOWY2Zi4uMjc3
-MzY1NyAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2Nsa3RfY2xrc2VsLmMKPiAr
-KysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2Nsa3RfY2xrc2VsLmMKPiBAQCAtMzAzLDcgKzMwMyw3
-IEBAIHUzMiBvbWFwMl9jbGtzZWxfcm91bmRfcmF0ZV9kaXYoc3RydWN0IGNsa19od19vbWFwICpj
-bGssCj4gICAqIHdheSB0byByZXR1cm4gYW4gZXJyb3IsIHNvIGlmIHdlIGVuY291bnRlciBhbiBl
-cnJvciwganVzdCBXQVJOKCkKPiAgICogYW5kIHByZXRlbmQgdGhhdCB3ZSBrbm93IHRoYXQgd2Un
-cmUgZG9pbmcuCj4gICAqLwo+IC11OCBvbWFwMl9jbGtzZWxfZmluZF9wYXJlbnRfaW5kZXgoc3Ry
-dWN0IGNsa19odyAqaHcpCj4gK2ludCBvbWFwMl9jbGtzZWxfZmluZF9wYXJlbnRfaW5kZXgoc3Ry
-dWN0IGNsa19odyAqaHcpCj4gIHsKPiAgICAgICAgIHN0cnVjdCBjbGtfaHdfb21hcCAqY2xrID0g
-dG9fY2xrX2h3X29tYXAoaHcpOwo+ICAgICAgICAgY29uc3Qgc3RydWN0IGNsa3NlbCAqY2xrczsK
-PiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9jbGt0X2RwbGwuYyBiL2FyY2gvYXJt
-L21hY2gtb21hcDIvY2xrdF9kcGxsLmMKPiBpbmRleCA5MjRjMjMwLi41NGI4YzQ5IDEwMDY0NAo+
-IC0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvY2xrdF9kcGxsLmMKPiArKysgYi9hcmNoL2FybS9t
-YWNoLW9tYXAyL2Nsa3RfZHBsbC5jCj4gQEAgLTE4Niw3ICsxODYsNyBAQCBzdGF0aWMgaW50IF9k
-cGxsX3Rlc3RfbXVsdChpbnQgKm0sIGludCBuLCB1bnNpZ25lZCBsb25nICpuZXdfcmF0ZSwKPiAg
-fQo+ICAKPiAgLyogUHVibGljIGZ1bmN0aW9ucyAqLwo+IC11OCBvbWFwMl9pbml0X2RwbGxfcGFy
-ZW50KHN0cnVjdCBjbGtfaHcgKmh3KQo+ICtpbnQgb21hcDJfaW5pdF9kcGxsX3BhcmVudChzdHJ1
-Y3QgY2xrX2h3ICpodykKPiAgewo+ICAgICAgICAgc3RydWN0IGNsa19od19vbWFwICpjbGsgPSB0
-b19jbGtfaHdfb21hcChodyk7Cj4gICAgICAgICB1MzIgdjsKPiBkaWZmIC0tZ2l0IGEvYXJjaC9h
-cm0vbWFjaC1vbWFwMi9jbG9jay5oIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9jbG9jay5oCj4gaW5k
-ZXggN2FhMzJjZC4uMjc4NDA4NyAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2Ns
-b2NrLmgKPiArKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2Nsb2NrLmgKPiBAQCAtMzg0LDcgKzM4
-NCw3IEBAIHZvaWQgX19pbml0IG9tYXAyX2Nsa19kaXNhYmxlX2Nsa2RtX2NvbnRyb2wodm9pZCk7
-Cj4gIHUzMiBvbWFwMl9jbGtzZWxfcm91bmRfcmF0ZV9kaXYoc3RydWN0IGNsa19od19vbWFwICpj
-bGssCj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB1bnNpZ25lZCBsb25nIHRhcmdl
-dF9yYXRlLAo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdTMyICpuZXdfZGl2KTsK
-PiAtdTggb21hcDJfY2xrc2VsX2ZpbmRfcGFyZW50X2luZGV4KHN0cnVjdCBjbGtfaHcgKmh3KTsK
-PiAraW50IG9tYXAyX2Nsa3NlbF9maW5kX3BhcmVudF9pbmRleChzdHJ1Y3QgY2xrX2h3ICpodyk7
-Cj4gIHVuc2lnbmVkIGxvbmcgb21hcDJfY2xrc2VsX3JlY2FsYyhzdHJ1Y3QgY2xrX2h3ICpodywg
-dW5zaWduZWQgbG9uZyBwYXJlbnRfcmF0ZSk7Cj4gIGxvbmcgb21hcDJfY2xrc2VsX3JvdW5kX3Jh
-dGUoc3RydWN0IGNsa19odyAqaHcsIHVuc2lnbmVkIGxvbmcgdGFyZ2V0X3JhdGUsCj4gICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICB1bnNpZ25lZCBsb25nICpwYXJlbnRfcmF0ZSk7Cj4g
-QEAgLTM5Niw3ICszOTYsNyBAQCBpbnQgb21hcDJfY2xrc2VsX3NldF9wYXJlbnQoc3RydWN0IGNs
-a19odyAqaHcsIHU4IGZpZWxkX3ZhbCk7Cj4gIGV4dGVybiB2b2lkIG9tYXAyX2Nsa3RfaWNsa19h
-bGxvd19pZGxlKHN0cnVjdCBjbGtfaHdfb21hcCAqY2xrKTsKPiAgZXh0ZXJuIHZvaWQgb21hcDJf
-Y2xrdF9pY2xrX2RlbnlfaWRsZShzdHJ1Y3QgY2xrX2h3X29tYXAgKmNsayk7Cj4gIAo+IC11OCBv
-bWFwMl9pbml0X2RwbGxfcGFyZW50KHN0cnVjdCBjbGtfaHcgKmh3KTsKPiAraW50IG9tYXAyX2lu
-aXRfZHBsbF9wYXJlbnQoc3RydWN0IGNsa19odyAqaHcpOwo+ICB1bnNpZ25lZCBsb25nIG9tYXAy
-X2dldF9kcGxsX3JhdGUoc3RydWN0IGNsa19od19vbWFwICpjbGspOwo+ICAKPiAgaW50IG9tYXAy
-X2RmbHRfY2xrX2VuYWJsZShzdHJ1Y3QgY2xrX2h3ICpodyk7Cj4gLS0gCj4gMS43LjQuMQoKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtl
-cm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0
-dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5l
-bAo=
+On Fri, Jun 21, 2013 at 9:32 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Friday 21 June 2013, Joel A Fernandes wrote:
+>> I haven't come across this problem but- are you saying there is a
+>> shortcoming in Kbuild/Kconfig that selects an option even if its
+>> dependency is not met?
+>
+> Well, the shortcoming is that it lets you specify impossible
+> contraints. You get a warning from Kconfig when building
+> such a configuration, but then it continues.
+>
+>> The problem with defconfig is also too many options I feel for a common case.
+>> CONFIG_DMADEVICES=y
+>> CONFIG_TI_EDMA=y
+>>
+>> Most if not all future OMAPs from will use EDMA. Why not we can be
+>> explicit about it and just built it in anyway. If ARCH_OMAP and
+>> DMADEVICES are selected, then we can just build EDMA in by default.
+>
+> It's just not how we do things. Kconfig is a mess because we are
+> not consistent in the way this is done.
+>
+>> I agree maybe the option can be dropped from Davinci but I suggest
+>> let's keep it for OMAP. Is that ok?
+>
+> No, I would still like you to not add it to either one. I'm spending
+> a lot of my time tracking down incorrect 'select' statements and I'd
+> rather spend it in a different way. I've had to a number of 'select'
+> statements from OMAP in the past, please don't add any new ones
+> unless there is a strict build dependency (which normally should not
+> exist).
+
+I think we are talking about different things, I agree the 'select
+DMADEVICES' can be dropped but lets please keep the default y option
+(not adding new select statements, just saying that if someone select
+DMADEVICES in menuconfig and if they're ARCH_OMAP=1 , then default to
+EDMA). This will simply allow people to have a default. Thanks.
+
+Thanks
+Joel
