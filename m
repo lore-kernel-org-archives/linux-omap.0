@@ -1,86 +1,58 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH v2 2/2] gpio/omap: auto request GPIO as input if used as IRQ via DT
-Date: Sat, 22 Jun 2013 00:50:54 +0200
-Message-ID: <1371855054-27958-3-git-send-email-javier.martinez@collabora.co.uk>
-References: <[PATCH v2 0/2]: auto request GPIO as input if used as IRQ via DT>
- <1371855054-27958-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] ARM: omap: make am43xx build with SMP enabled
+Date: Sat, 22 Jun 2013 01:22:47 +0200
+Message-ID: <201306220122.47786.arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:34174 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946200Ab3FUWvH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jun 2013 18:51:07 -0400
-In-Reply-To: <1371855054-27958-1-git-send-email-javier.martinez@collabora.co.uk>
+Received: from moutng.kundenserver.de ([212.227.17.9]:55137 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946207Ab3FUXWx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jun 2013 19:22:53 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>
-Cc: jgchunter@gmail.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, eballetbo@gmail.com, thomas.petazzoni@free-electrons.com, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ankur Kishore <a-kishore@ti.com>, Afzal Mohammed <afzal@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-When an OMAP GPIO is used as an IRQ line, a call to gpio_request()
-has to be made to initialize the OMAP GPIO bank before a driver
-request the IRQ. Otherwise the call to request_irq() fails.
+With am43xx enabled, omap4 and omap5 disabled and SMP on, I get these
+build errors:
 
-Drives should not be aware of this neither care wether an IRQ line
-is a GPIO or not. They should just request the IRQ and this has to
-be handled by the irq_chip driver.
+arch/arm/mach-omap2/built-in.o: In function `scu_gp_set':
+:(.text+0x7858): undefined reference to `omap4_get_scu_base'
+arch/arm/mach-omap2/built-in.o: In function `scu_gp_clear':
+:(.text+0x793c): undefined reference to `omap4_get_scu_base'
+arch/arm/mach-omap2/built-in.o: In function `omap4_cpu_die':
+:(.ref.text+0x44): undefined reference to `omap4_hotplug_cpu'
 
-With the current OMAP GPIO DT binding, if we define:
+The easiest way to work around that is to turn on the missing
+functions, even though we know they won't be used on am43xx,
+which is single-CPU.
 
-                gpio6: gpio@49058000 {
-                        compatible = "ti,omap3-gpio";
-                        reg = <0x49058000 0x200>;
-                        interrupts = <34>;
-                        ti,hwmods = "gpio6";
-                        gpio-controller;
-                        #gpio-cells = <2>;
-                        interrupt-controller;
-                        #interrupt-cells = <2>;
-                };
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Ankur Kishore <a-kishore@ti.com>
+Cc: Afzal Mohammed <afzal@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
 
-                interrupt-parent = <&gpio6>;
-                interrupts = <16 8>;
-
-The GPIO is correctly mapped as an IRQ but a call to gpio_request()
-is never made. Since a call to the custom IRQ domain .map function
-handler is made for each GPIO used as an IRQ, the GPIO can be setup
-and configured as input there automatically.
-
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
-
-Changes since v1:
-  - Split the irq domain mapping function handler and the GPIO
-    request in two different patches.
-
- drivers/gpio/gpio-omap.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 31cbe65..5ec6a00 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1092,6 +1092,8 @@ static int omap_gpio_irq_map(struct irq_domain *d, unsigned int virq,
- 			     irq_hw_number_t hwirq)
- {
- 	struct gpio_bank *bank = d->host_data;
-+	int gpio;
-+	int ret;
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index f5038f5..46d7c5f 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -39,7 +39,7 @@ omap-4-5-common				=  omap4-common.o omap-wakeupgen.o \
+ 					   sleep44xx.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-4-5-common) $(smp-y)
+ obj-$(CONFIG_SOC_OMAP5)			+= $(omap-4-5-common) $(smp-y)
+-obj-$(CONFIG_SOC_AM43XX)		+= $(omap-4-5-common)
++obj-$(CONFIG_SOC_AM43XX)		+= $(omap-4-5-common) $(smp-y)
  
- 	if (!bank)
- 		return -EINVAL;
-@@ -1106,6 +1108,13 @@ static int omap_gpio_irq_map(struct irq_domain *d, unsigned int virq,
- 						 handle_simple_irq);
- 			set_irq_flags(virq, IRQF_VALID);
- 		}
-+
-+		gpio = irq_to_gpio(bank, hwirq);
-+		ret = gpio_request_one(gpio, GPIOF_IN, NULL);
-+		if (ret) {
-+			dev_err(bank->dev, "Could not request GPIO%d\n", gpio);
-+			return ret;
-+		}
- 	}
+ plus_sec := $(call as-instr,.arch_extension sec,+sec)
+ AFLAGS_omap-headsmp.o			:=-Wa,-march=armv7-a$(plus_sec)
+@@ -89,6 +89,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o omap-mpuss-lowpower.o
+ obj-$(CONFIG_SOC_OMAP5)			+= omap-mpuss-lowpower.o
++obj-$(CONFIG_SOC_AM43XX)		+= omap-mpuss-lowpower.o
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
  
- 	return 0;
--- 
-1.7.7.6
-
+ obj-$(CONFIG_POWER_AVS_OMAP)		+= sr_device.o
