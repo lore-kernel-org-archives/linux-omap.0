@@ -1,63 +1,138 @@
-From: "Anna, Suman" <s-anna@ti.com>
-Subject: RE: [GIT PULL 7/7] omap mailbox move to drivers for v3.11 merge
- window
-Date: Thu, 20 Jun 2013 22:56:49 +0000
-Message-ID: <37C860A02101E749A747FA2D3C1E3C504CD3DD@DLEE11.ent.ti.com>
-References: <0MFrZm-1V3qHW1bmA-00EJsa@mx.kundenserver.de>
- <201306202146.27093.arnd@arndb.de>
+From: Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCHv2 02/11] CLK: use of_property_read_u32 instead of read_u8
+Date: Thu, 20 Jun 2013 17:57:55 -0700
+Message-ID: <CAPtuhThmsucSZ8XxL9kcqdssi2N2JHwRzDnbkbaVy6okW_LSRA@mail.gmail.com>
+References: <1371647942-4811-1-git-send-email-t-kristo@ti.com>
+ <1371647942-4811-3-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44753 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965356Ab3FTW5U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Jun 2013 18:57:20 -0400
-In-Reply-To: <201306202146.27093.arnd@arndb.de>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1371647942-4811-3-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-QXJuZCwNCg0KPiBPbiBUdWVzZGF5IDE4IEp1bmUgMjAxMywgVG9ueSBMaW5kZ3JlbiB3cm90ZToN
-Cj4gPiBUaGUgZm9sbG93aW5nIGNoYW5nZXMgc2luY2UgY29tbWl0DQo+IDMxN2RkZDI1NmI5YzI0
-YjBkNzhmYTgwMThmODBmMWU0OTU0ODFhMTA6DQo+ID4NCj4gPiAgIExpbnV4IDMuMTAtcmM1ICgy
-MDEzLTA2LTA4IDE3OjQxOjA0IC0wNzAwKQ0KPiA+DQo+ID4gYXJlIGF2YWlsYWJsZSBpbiB0aGUg
-Z2l0IHJlcG9zaXRvcnkgYXQ6DQo+ID4NCj4gPiAgIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9z
-Y20vbGludXgva2VybmVsL2dpdC90bWxpbmQvbGludXgtb21hcCB0YWdzL29tYXAtDQo+IGZvci12
-My4xMS9tYWlsYm94LXNpZ25lZA0KPiA+DQo+ID4gZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVw
-IHRvIGQyZTk5MzI4OWNjNWYxNzgwY2U3NDE4OGUzYThkMmI0MDQ3NDgzOTc6DQo+ID4NCj4gPiAg
-IE1lcmdlIHRhZyAnb21hcC1tYWlsYm94LWZvci12My4xMScgb2YgZ2l0Oi8vZ2l0aHViLmNvbS9z
-dW1hbmFubmEvbWFpbGJveA0KPiBpbnRvIG9tYXAtZm9yLXYzLjExL21haWxib3ggKDIwMTMtMDYt
-MTcgMDM6NTE6NTQgLTA3MDApDQo+ID4NCj4gPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+ID4NCj4gPiBNb3ZlIE9NQVAg
-TWFpbGJveCBmcmFtZXdvcmsgdG8gZHJpdmVycyB2aWEgU3VtYW4gQW5uYSA8cy1hbm5hQHRpLmNv
-bT4NCj4gPg0KPiA+IFRoZSBPTUFQIE1haWxib3ggZHJpdmVyIGZyYW1ld29yayBpcyBtb3ZlZCBv
-dXQgb2YgYXJjaC9hcm0gZm9sZGVyDQo+ID4gaW50byBkcml2ZXJzL21haWxib3ggZm9sZGVyLCB0
-byByZS1lbmFibGUgYnVpbGRpbmcgaXQgYW5kIGFsc28gc2VydmUNCj4gPiBhcyBhIGJhc2VsaW5l
-IGZvciBhZGFwdGluZyB0byB0aGUgbmV3IG1haWxib3ggZHJpdmVyIGZyYW1ld29yay4gVGhlDQo+
-ID4gY2hhbmdlcyBtYWlubHkgY29udGFpbjoNCj4gPiAgIC0gYSBtaW5vciBidWcgZml4IGFuZCBj
-bGVhbnVwIG9mIG1hY2gtc3BlY2lmaWMgbWFpbGJveCBjb2RlDQo+ID4gICAtIHJlbW92ZSBhbnkg
-aGVhZGVyIGRlcGVuZGVuY2llcyBmcm9tIHBsYXQtb21hcCBmb3IgbXVsdGktcGxhdGZvcm0NCj4g
-PiAgICAgc3VwcG9ydA0KPiA+ICAgLSByZXByZXNlbnQgbWFpbGJveCBkZXZpY2UgZGF0YSB0aHJv
-dWdoIHBsYXRmb3JtIGRhdGEvaHdtb2QgYXR0cnMNCj4gPiAgIC0gbW92ZSB0aGUgb21hcCBtYWls
-Ym94IGNvZGUgb3V0IG9mIHBsYXQtb21hcC9tYWNoLW9tYXBYIHRvDQo+ID4gICAgIGRyaXZlcnMv
-bWFpbGJveCBmb2xkZXINCj4gPg0KPiANCj4gSSd2ZSBwdWxsZWQgdGhpcyBpbnRvIG5leHQvZHJp
-dmVycyBhcyB3ZWxsLCByYXRoZXIgdGhhbiBhIHNlcGFyYXRlDQo+IGJyYW5jaCB0aGF0IHdlIGhh
-ZCBmb3IgMy4xMCAoYW5kIGRyb3BwZWQpLiBJIGFtIGEgYml0IHB1enpsZWQgYWJvdXQNCj4gdGhp
-cyBzZXJpZXMgdGhvdWdoLiBJcyBpdCByaWdodCB0aGF0IGZvciAzLjEwIHdlIGhhZCBwbGFucyBm
-b3IgYQ0KPiBnZW5lcmljIHN1YnN5c3RlbSwgYW5kIG5vdyBpdCdzIGp1c3QgdGhlIG9tYXAgZHJp
-dmVycz8NCg0KWWVzLCB3ZSBzdGlsbCBoYXZlIGEgcGxhbiBmb3IgYSBnZW5lcmljIHN1YnN5c3Rl
-bSwgYW5kIHRoZXNlIHdvdWxkIGZvcm0gdGhlDQp0aGUgYmFzZSBwYXRjaGVzIG9mIE9NQVAgYWRh
-cHRhdGlvbiB0b3dhcmRzIHRoYXQuIE9NQVAgbWFpbGJveCB3YXMgZGlzYWJsZWQNCnNpbmNlIGNv
-dXBsZSBvZiByZWxlYXNlcyBub3cgYmVjYXVzZSBvZiB0aGUgbXVsdGktcGxhdGZvcm0gZW5hYmxl
-bWVudC4gVGhlcmUgd2VyZQ0KY291cGxlIG9mIGRpZmZlcmVudCB3b3JrLWl0ZW1zIG5lZWRlZCBv
-biBPTUFQIG1haWxib3ggbGlrZSBmaXhpbmcgdGhlIG11bHRpLXBsYXRmb3JtLA0KY29udmVydGlu
-ZyB0byBEVCBhbmQgYWRhcHRpbmcgdG8gdGhlIG5ldyBmcmFtZXdvcmsuIFRoZSBwcmV2aW91cyBz
-dWJzeXN0ZW0gd2FzDQpkZXJpdmVkIG9mIHRoZSBPTUFQIG1haWxib3gsIHNvIHRoZSBmaXJzdCBh
-bmQgbGFzdCBpdGVtcyB3ZXJlIGtpbmRhIGF1dG9tYXRpYy4gVGhlDQpuZXdlc3Qgb25lIGJhc2Vk
-IG9uIEphc3NpJ3Mgd29yayBpcyBub3QgZ29ubmEgcmV1c2UgYW55IE9NQVAgc3R1ZmYsIHNvIHRo
-aXMgc2VyaWVzDQpoYW5kbGVzIHRoZSBmaXJzdCBvbmUgdG8gYXZvaWQgYSBodWdlIHBlbmRpbmcg
-cGF0Y2hzZXQgZm9yIE9NQVAgb24gdGhlIGdlbmVyaWMNCmZyYW1ld29yayBmaW5hbGl6YXRpb24u
-DQoNClJlZ2FyZHMNClN1bWFuDQo=
+On Wed, Jun 19, 2013 at 6:18 AM, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org> wrote:
+> of_property_read_u8 does not work properly because of endianess problem
+> with its current implementation, and this causes it to always return
+> 0 with little endian architectures. Instead, use property_read_u32
+> until this is fixed.
+
+Tero,
+
+Thanks for the fix. Heiko Stubner pointed out to me that in order to
+read a u8 value the DT node needs to specify "/bits/ 8" before the
+values. From the of_property_read_u8_array kerneldoc:
+
+"
+/**
+...
+ * dts entry of array should be like:
+ *      property = /bits/ 8 <0x50 0x60 0x70>;
+ *
+ * The out_value is modified only if a valid u8 value can be decoded.
+ */
+"
+
+Still I think it is a bit silly to have to do this in all of the
+bindings, so I'm going to roll this patch into my next version of the
+series if only for the sake of readability. Not only that but it is
+slightly more future proof for the binding to use a u32 value. The
+fact that the implementation in Linux uses a u8 is of little
+consequence to the binding.  I'll also add a cast like the following
+to your patch:
+
+clk = clk_register_gate(NULL, clk_name, parent_name, 0, reg, (u8) bit_idx,
+                clk_gate_flags, NULL);
+
+Thanks,
+Mike
+
+>
+> Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/clk/clk-divider.c |    4 ++--
+>  drivers/clk/clk-gate.c    |    4 ++--
+>  drivers/clk/clk-mux.c     |    4 ++--
+>  3 files changed, 6 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
+> index 17ea475..3413602 100644
+> --- a/drivers/clk/clk-divider.c
+> +++ b/drivers/clk/clk-divider.c
+> @@ -361,7 +361,7 @@ void of_divider_clk_setup(struct device_node *node)
+>         const char *parent_name;
+>         u8 clk_divider_flags = 0;
+>         u32 mask = 0;
+> -       u8 shift = 0;
+> +       u32 shift = 0;
+>         struct clk_div_table *table;
+>
+>         of_property_read_string(node, "clock-output-names", &clk_name);
+> @@ -375,7 +375,7 @@ void of_divider_clk_setup(struct device_node *node)
+>                 return;
+>         }
+>
+> -       if (of_property_read_u8(node, "bit-shift", &shift)) {
+> +       if (of_property_read_u32(node, "bit-shift", &shift)) {
+>                 shift = __ffs(mask);
+>                 pr_debug("%s: bit-shift property defaults to 0x%x for %s\n",
+>                                 __func__, shift, node->name);
+> diff --git a/drivers/clk/clk-gate.c b/drivers/clk/clk-gate.c
+> index 72cf99d..61b4dc1 100644
+> --- a/drivers/clk/clk-gate.c
+> +++ b/drivers/clk/clk-gate.c
+> @@ -162,7 +162,7 @@ void of_gate_clk_setup(struct device_node *node)
+>         void __iomem *reg;
+>         const char *parent_name;
+>         u8 clk_gate_flags = 0;
+> -       u8 bit_idx = 0;
+> +       u32 bit_idx = 0;
+>
+>         of_property_read_string(node, "clock-output-names", &clk_name);
+>
+> @@ -170,7 +170,7 @@ void of_gate_clk_setup(struct device_node *node)
+>
+>         reg = of_iomap(node, 0);
+>
+> -       if (of_property_read_u8(node, "bit-shift", &bit_idx)) {
+> +       if (of_property_read_u32(node, "bit-shift", &bit_idx)) {
+>                 pr_err("%s: missing bit-shift property for %s\n",
+>                                 __func__, node->name);
+>                 return;
+> diff --git a/drivers/clk/clk-mux.c b/drivers/clk/clk-mux.c
+> index c9f9f32..e63dd1b 100644
+> --- a/drivers/clk/clk-mux.c
+> +++ b/drivers/clk/clk-mux.c
+> @@ -170,7 +170,7 @@ void of_mux_clk_setup(struct device_node *node)
+>         int i;
+>         u8 clk_mux_flags = 0;
+>         u32 mask = 0;
+> -       u8 shift = 0;
+> +       u32 shift = 0;
+>
+>         of_property_read_string(node, "clock-output-names", &clk_name);
+>
+> @@ -194,7 +194,7 @@ void of_mux_clk_setup(struct device_node *node)
+>                 return;
+>         }
+>
+> -       if (of_property_read_u8(node, "bit-shift", &shift)) {
+> +       if (of_property_read_u32(node, "bit-shift", &shift)) {
+>                 shift = __ffs(mask);
+>                 pr_debug("%s: bit-shift property defaults to 0x%x for %s\n",
+>                                 __func__, shift, node->name);
+> --
+> 1.7.9.5
+>
