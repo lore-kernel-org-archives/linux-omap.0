@@ -1,78 +1,57 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC PATCH] regulator: core: allow consumers to request to
- closes step voltage
-Date: Fri, 21 Jun 2013 15:30:18 +0100
-Message-ID: <20130621143018.GT27646@sirena.org.uk>
-References: <1371669474-24473-1-git-send-email-nm@ti.com>
- <20130619223828.GK1403@sirena.org.uk>
- <20130620124542.GA28320@kahuna>
- <20130621095157.GK27646@sirena.org.uk>
- <20130621124355.GA16513@kahuna>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH v12 05/11] edma: config: Enable config options for EDMA
+Date: Fri, 21 Jun 2013 16:32:12 +0200
+Message-ID: <201306211632.12577.arnd@arndb.de>
+References: <1371762407-24544-1-git-send-email-joelagnel@ti.com>
+ <201306211600.04986.arnd@arndb.de>
+ <CAD=GYpZ_5Lp1La=f+2BQfmuj+sc3FgygZRD4gfj4JGGZ0Do=_Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FT/vNgDLxVq4t/AU"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130621124355.GA16513@kahuna>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, viresh.kumar@linaro.org, cpufreq@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <CAD=GYpZ_5Lp1La=f+2BQfmuj+sc3FgygZRD4gfj4JGGZ0Do=_Q@mail.gmail.com>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Joel A Fernandes <joelagnel-l0cyMroinI0@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Friday 21 June 2013, Joel A Fernandes wrote:
+> I haven't come across this problem but- are you saying there is a
+> shortcoming in Kbuild/Kconfig that selects an option even if its
+> dependency is not met?
 
---FT/vNgDLxVq4t/AU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Well, the shortcoming is that it lets you specify impossible
+contraints. You get a warning from Kconfig when building
+such a configuration, but then it continues.
 
-On Fri, Jun 21, 2013 at 07:43:55AM -0500, Nishanth Menon wrote:
-> On 10:51-20130621, Mark Brown wrote:
+> The problem with defconfig is also too many options I feel for a common case.
+> CONFIG_DMADEVICES=y
+> CONFIG_TI_EDMA=y
+> 
+> Most if not all future OMAPs from will use EDMA. Why not we can be
+> explicit about it and just built it in anyway. If ARCH_OMAP and
+> DMADEVICES are selected, then we can just build EDMA in by default.
 
-> > No, the consumer really doesn't want to be aware of linear step
-> > regulators.  Why would it care that there even are linear steps?  If
-> > the consumer is doing this based on the properties of the regulator
-> > rather than on the properties of the consumer this indicates that the
-> > consumer has a problem  If the consumer is doing this based on the
-> > properties of the regulator rather than on the properties of the
-> > consumer this indicates that the consumer has a problem
+It's just not how we do things. Kconfig is a mess because we are
+not consistent in the way this is done.
 
-> The specific case that I am trying to tackle is as follows:
-> cpufreq-cpu0 uses definitions of voltages that are SoC specific. For a
-> given frequency, the optimal voltage is X, max voltage(Y) is already
-> expected to be in constraints for device functionality. We however want
-> to find the closest voltage for a regulator in range X to Y best
-> achievable by regulator. I think the area where I am getting confused is
-> this: I am thinking the job belongs to the consumer/regulator core to
-> find the best match. However, looking at implementations in existing
-> regulators and based on your explanation, it seems to be the job of
-> the regulator driver rather than the consumer/ regulator core to provide
-> the best match.
+> I agree maybe the option can be dropped from Davinci but I suggest
+> let's keep it for OMAP. Is that ok?
 
-Right, though the consumer does have to provide a voltage range to the
-regulator to allow this to happen - if the consumer doesn't provide a
-range then there's only one option available.  The consumer provides a
-range and then the driver satistifes that as best it can (after it's
-been filtered through the constraints).
+No, I would still like you to not add it to either one. I'm spending
+a lot of my time tracking down incorrect 'select' statements and I'd
+rather spend it in a different way. I've had to a number of 'select'
+statements from OMAP in the past, please don't add any new ones
+unless there is a strict build dependency (which normally should not
+exist).
 
---FT/vNgDLxVq4t/AU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRxGN3AAoJELSic+t+oim9ZQAP+wcN8g9WOJc6pMq3Sadxu08R
-hZM51wOKYIM4KSx9Rn5yL5KrsRoBtYxWZeYiNuLzezVMOheDQ5wC1k0Caa6OoYyl
-Xdwljq5iMr7bjhRGTnJgbwoeeUmcTTFkUXRw297GpRnkkl4/MAstRZo5Q8t1/lqv
-mwQe6pvW75dwxbOWmiSOVrbhx0cdWa3jS3/a4LL/VNJVmqr3NFZwRxtrs6/ZevVz
-FO2jql4/H5/LR1x0Dn3iZFSVHOCpYs8DDZdsbcBoS79DS/2+ME6QmlNKPcnsdSPQ
-pGw3+MaVtXd69kyFZTDZU2BG7bHleqQrSXGxzgwlyR/Uw/nzo+2G0g+3xdimdlRS
-Ek5yKv0e7tAvy31qdohBOTuPJILVavyAzAp2QuCEu4RanFXwLKix+T38ZTdKE1oU
-L21Xw/EKL7FotdK8/DcUjognQqsrCWMgHtvhl7XFLYrPqhJ+DrhsfDHIOlVd3Owg
-2G8CXGvClwUoQoRyIegAkUXCwL0M/korA/823XqNRfRPYVxhIO84vF2TtEEmNMFX
-nvgRP4JLQ279trvQLMEMfTWMTgqZcEfhy8LO8Nyl6nqpJdMS79bDzbrnHoMQ1Uaz
-N9A73vjmk4zJ9xjGENRXkmwj+amEj87azfVu4JcIPmfMlhQDzS/RHmyMlZO5UWP7
-NtVCGUdHGZGvPoydJZTc
-=K6xo
------END PGP SIGNATURE-----
-
---FT/vNgDLxVq4t/AU--
+	Arnd
