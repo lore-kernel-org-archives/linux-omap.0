@@ -1,80 +1,139 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC PATCH] regulator: core: allow consumers to request to
- closes step voltage
-Date: Fri, 21 Jun 2013 07:43:55 -0500
-Message-ID: <20130621124355.GA16513@kahuna>
-References: <1371669474-24473-1-git-send-email-nm@ti.com>
- <20130619223828.GK1403@sirena.org.uk>
- <20130620124542.GA28320@kahuna>
- <20130621095157.GK27646@sirena.org.uk>
+Subject: Re: [PATCHv2 02/11] CLK: use of_property_read_u32 instead of read_u8
+Date: Fri, 21 Jun 2013 07:45:58 -0500
+Message-ID: <20130621124558.GB16513@kahuna>
+References: <1371647942-4811-1-git-send-email-t-kristo@ti.com>
+ <1371647942-4811-3-git-send-email-t-kristo@ti.com>
+ <CAPtuhThmsucSZ8XxL9kcqdssi2N2JHwRzDnbkbaVy6okW_LSRA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <cpufreq-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60322 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933901Ab3FUMq1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Jun 2013 08:46:27 -0400
 Content-Disposition: inline
-In-Reply-To: <20130621095157.GK27646@sirena.org.uk>
-Sender: cpufreq-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, viresh.kumar@linaro.org, cpufreq@vger.kernel.org
+In-Reply-To: <CAPtuhThmsucSZ8XxL9kcqdssi2N2JHwRzDnbkbaVy6okW_LSRA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, tony@atomide.com, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, devicetree-discuss@lists.ozlabs.org
 
-On 10:51-20130621, Mark Brown wrote:
-> On Thu, Jun 20, 2013 at 07:45:42AM -0500, Nishanth Menon wrote:
-> > On 23:38-20130619, Mark Brown wrote:
+On 17:57-20130620, Mike Turquette wrote:
+> On Wed, Jun 19, 2013 at 6:18 AM, Tero Kristo <t-kristo@ti.com> wrote:
+> > of_property_read_u8 does not work properly because of endianess problem
+> > with its current implementation, and this causes it to always return
+> > 0 with little endian architectures. Instead, use property_read_u32
+> > until this is fixed.
 > 
-> > > If the consumer can tolerate a different voltage why not just request
-> > > the range that can be tolerated?  Your problem here is specifying an
-> > > exact voltage.
+> Tero,
 > 
-> > I think you mean using regulator_get_linear_step
+> Thanks for the fix. Heiko Stubner pointed out to me that in order to
+> read a u8 value the DT node needs to specify "/bits/ 8" before the
+> values. From the of_property_read_u8_array kerneldoc:
 > 
-> No, I don't.  Why would that make sense?  It limits the regulators that
-> can be used and the properties of the regulator have no impact on what
-> the SoC can support.
+> "
+> /**
+> ...
+>  * dts entry of array should be like:
+>  *      property = /bits/ 8 <0x50 0x60 0x70>;
+>  *
+>  * The out_value is modified only if a valid u8 value can be decoded.
+>  */
+> "
 > 
-> > > Or as I keep telling you guys the consumer can just do that directly
-> > > using the existing API; the whole point in specifying the voltage as a
-> > > range is to allow the consumer to cope with arbatrary regulators by
-> > > giving a range of voltages that it can accept.
+> Still I think it is a bit silly to have to do this in all of the
+> bindings, so I'm going to roll this patch into my next version of the
+> series if only for the sake of readability. Not only that but it is
+> slightly more future proof for the binding to use a u32 value. The
+> fact that the implementation in Linux uses a u8 is of little
+> consequence to the binding.  I'll also add a cast like the following
+> to your patch:
 > 
-> > I agree. The intent of this series was to start a conversation to see if
-> > we can make it simpler.
+> clk = clk_register_gate(NULL, clk_name, parent_name, 0, reg, (u8) bit_idx,
+>                 clk_gate_flags, NULL);
 > 
-> It's already very simple.  The consumer driver just needs to supply the
-> list of voltages which it can accept, that's all.
+Given that dtb size could be directly impacted, could we consider
+something like a preprocessor macro to make it readable, yet not too
+huge dts size?
 > 
-> > For a generic driver which needs to handle platforms which
-> > have tolerance, they'd use regulator_set_voltage_tol. But the
-> > implementation would allow for uV - tol to uV + tol as range, which in
-> > the case I mentioned(min voltage =uV) wont work.
-> 
-> So just write it as an explicit voltage range then.  For example many
-> devices can tolerate any supply up to the maximum rated supply at any
-> frequency so just specify that as the upper limit.
-> 
-> > If the consumer wants to be aware of linear step regulator, they'd have to do:
-> > step_uV = regulator_get_linear_step(...);
-> > regulator_set_voltage(uV, uV + step_uV);
-> 
-> No, the consumer really doesn't want to be aware of linear step
-> regulators.  Why would it care that there even are linear steps?  If
-> the consumer is doing this based on the properties of the regulator
-> rather than on the properties of the consumer this indicates that the
-> consumer has a problem  If the consumer is doing this based on the
-> properties of the regulator rather than on the properties of the
-> consumer this indicates that the consumer has a problem
-The specific case that I am trying to tackle is as follows:
-cpufreq-cpu0 uses definitions of voltages that are SoC specific. For a
-given frequency, the optimal voltage is X, max voltage(Y) is already
-expected to be in constraints for device functionality. We however want
-to find the closest voltage for a regulator in range X to Y best
-achievable by regulator. I think the area where I am getting confused is
-this: I am thinking the job belongs to the consumer/regulator core to
-find the best match. However, looking at implementations in existing
-regulators and based on your explanation, it seems to be the job of
-the regulator driver rather than the consumer/ regulator core to provide
-the best match.
-
-Thanks for the discussion and explanation.
+> >
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > ---
+> >  drivers/clk/clk-divider.c |    4 ++--
+> >  drivers/clk/clk-gate.c    |    4 ++--
+> >  drivers/clk/clk-mux.c     |    4 ++--
+> >  3 files changed, 6 insertions(+), 6 deletions(-)
+> >
+> > diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
+> > index 17ea475..3413602 100644
+> > --- a/drivers/clk/clk-divider.c
+> > +++ b/drivers/clk/clk-divider.c
+> > @@ -361,7 +361,7 @@ void of_divider_clk_setup(struct device_node *node)
+> >         const char *parent_name;
+> >         u8 clk_divider_flags = 0;
+> >         u32 mask = 0;
+> > -       u8 shift = 0;
+> > +       u32 shift = 0;
+> >         struct clk_div_table *table;
+> >
+> >         of_property_read_string(node, "clock-output-names", &clk_name);
+> > @@ -375,7 +375,7 @@ void of_divider_clk_setup(struct device_node *node)
+> >                 return;
+> >         }
+> >
+> > -       if (of_property_read_u8(node, "bit-shift", &shift)) {
+> > +       if (of_property_read_u32(node, "bit-shift", &shift)) {
+> >                 shift = __ffs(mask);
+> >                 pr_debug("%s: bit-shift property defaults to 0x%x for %s\n",
+> >                                 __func__, shift, node->name);
+> > diff --git a/drivers/clk/clk-gate.c b/drivers/clk/clk-gate.c
+> > index 72cf99d..61b4dc1 100644
+> > --- a/drivers/clk/clk-gate.c
+> > +++ b/drivers/clk/clk-gate.c
+> > @@ -162,7 +162,7 @@ void of_gate_clk_setup(struct device_node *node)
+> >         void __iomem *reg;
+> >         const char *parent_name;
+> >         u8 clk_gate_flags = 0;
+> > -       u8 bit_idx = 0;
+> > +       u32 bit_idx = 0;
+> >
+> >         of_property_read_string(node, "clock-output-names", &clk_name);
+> >
+> > @@ -170,7 +170,7 @@ void of_gate_clk_setup(struct device_node *node)
+> >
+> >         reg = of_iomap(node, 0);
+> >
+> > -       if (of_property_read_u8(node, "bit-shift", &bit_idx)) {
+> > +       if (of_property_read_u32(node, "bit-shift", &bit_idx)) {
+> >                 pr_err("%s: missing bit-shift property for %s\n",
+> >                                 __func__, node->name);
+> >                 return;
+> > diff --git a/drivers/clk/clk-mux.c b/drivers/clk/clk-mux.c
+> > index c9f9f32..e63dd1b 100644
+> > --- a/drivers/clk/clk-mux.c
+> > +++ b/drivers/clk/clk-mux.c
+> > @@ -170,7 +170,7 @@ void of_mux_clk_setup(struct device_node *node)
+> >         int i;
+> >         u8 clk_mux_flags = 0;
+> >         u32 mask = 0;
+> > -       u8 shift = 0;
+> > +       u32 shift = 0;
+> >
+> >         of_property_read_string(node, "clock-output-names", &clk_name);
+> >
+> > @@ -194,7 +194,7 @@ void of_mux_clk_setup(struct device_node *node)
+> >                 return;
+> >         }
+> >
+> > -       if (of_property_read_u8(node, "bit-shift", &shift)) {
+> > +       if (of_property_read_u32(node, "bit-shift", &shift)) {
+> >                 shift = __ffs(mask);
+> >                 pr_debug("%s: bit-shift property defaults to 0x%x for %s\n",
+> >                                 __func__, shift, node->name);
+> > --
+> > 1.7.9.5
+> >
 
 -- 
 Regards,
