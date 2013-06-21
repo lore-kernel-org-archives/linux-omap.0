@@ -1,159 +1,106 @@
-From: Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv2 02/11] CLK: use of_property_read_u32 instead of read_u8
-Date: Fri, 21 Jun 2013 09:21:00 -0700
-Message-ID: <20130621162100.9136.5273@quantum>
-References: <1371647942-4811-1-git-send-email-t-kristo@ti.com>
- <1371647942-4811-3-git-send-email-t-kristo@ti.com>
- <CAPtuhThmsucSZ8XxL9kcqdssi2N2JHwRzDnbkbaVy6okW_LSRA@mail.gmail.com>
- <20130621124558.GB16513@kahuna>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH V2 3/3] ARM: OMAP2+: clk: Fix return type of callbacks
+Date: Fri, 21 Jun 2013 11:13:33 -0700
+Message-ID: <20130621181333.20448.23218@quantum>
+References: <1371458384-23936-1-git-send-email-ambresh@ti.com>
+ <1371458384-23936-4-git-send-email-ambresh@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20130621124558.GB16513@kahuna>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1371458384-23936-4-git-send-email-ambresh@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Rajendra <rnayak@ti.com>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Ambresh K <ambresh@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Quoting Nishanth Menon (2013-06-21 05:45:58)
-> On 17:57-20130620, Mike Turquette wrote:
-> > On Wed, Jun 19, 2013 at 6:18 AM, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org> wrote:
-> > > of_property_read_u8 does not work properly because of endianess problem
-> > > with its current implementation, and this causes it to always return
-> > > 0 with little endian architectures. Instead, use property_read_u32
-> > > until this is fixed.
-> > 
-> > Tero,
-> > 
-> > Thanks for the fix. Heiko Stubner pointed out to me that in order to
-> > read a u8 value the DT node needs to specify "/bits/ 8" before the
-> > values. From the of_property_read_u8_array kerneldoc:
-> > 
-> > "
-> > /**
-> > ...
-> >  * dts entry of array should be like:
-> >  *      property = /bits/ 8 <0x50 0x60 0x70>;
-> >  *
-> >  * The out_value is modified only if a valid u8 value can be decoded.
-> >  */
-> > "
-> > 
-> > Still I think it is a bit silly to have to do this in all of the
-> > bindings, so I'm going to roll this patch into my next version of the
-> > series if only for the sake of readability. Not only that but it is
-> > slightly more future proof for the binding to use a u32 value. The
-> > fact that the implementation in Linux uses a u8 is of little
-> > consequence to the binding.  I'll also add a cast like the following
-> > to your patch:
-> > 
-> > clk = clk_register_gate(NULL, clk_name, parent_name, 0, reg, (u8) bit_idx,
-> >                 clk_gate_flags, NULL);
-> > 
-> Given that dtb size could be directly impacted, could we consider
-> something like a preprocessor macro to make it readable, yet not too
-> huge dts size?
-
-bit-shift is an optional property and you don't need it at all. It is
-mostly there for legacy reasons and also it is useful to the Rockchip
-and Hisilicon drivers.
-
-The OMAP DT clock data could simply use a 32-bit mask that covers the
-whole register and not provide bit-shift at all, if you're worried about
-the extra 24 bits.
-
-Regards,
-Mike
-
-> > 
-> > >
-> > > Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-> > > ---
-> > >  drivers/clk/clk-divider.c |    4 ++--
-> > >  drivers/clk/clk-gate.c    |    4 ++--
-> > >  drivers/clk/clk-mux.c     |    4 ++--
-> > >  3 files changed, 6 insertions(+), 6 deletions(-)
-> > >
-> > > diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
-> > > index 17ea475..3413602 100644
-> > > --- a/drivers/clk/clk-divider.c
-> > > +++ b/drivers/clk/clk-divider.c
-> > > @@ -361,7 +361,7 @@ void of_divider_clk_setup(struct device_node *node)
-> > >         const char *parent_name;
-> > >         u8 clk_divider_flags = 0;
-> > >         u32 mask = 0;
-> > > -       u8 shift = 0;
-> > > +       u32 shift = 0;
-> > >         struct clk_div_table *table;
-> > >
-> > >         of_property_read_string(node, "clock-output-names", &clk_name);
-> > > @@ -375,7 +375,7 @@ void of_divider_clk_setup(struct device_node *node)
-> > >                 return;
-> > >         }
-> > >
-> > > -       if (of_property_read_u8(node, "bit-shift", &shift)) {
-> > > +       if (of_property_read_u32(node, "bit-shift", &shift)) {
-> > >                 shift = __ffs(mask);
-> > >                 pr_debug("%s: bit-shift property defaults to 0x%x for %s\n",
-> > >                                 __func__, shift, node->name);
-> > > diff --git a/drivers/clk/clk-gate.c b/drivers/clk/clk-gate.c
-> > > index 72cf99d..61b4dc1 100644
-> > > --- a/drivers/clk/clk-gate.c
-> > > +++ b/drivers/clk/clk-gate.c
-> > > @@ -162,7 +162,7 @@ void of_gate_clk_setup(struct device_node *node)
-> > >         void __iomem *reg;
-> > >         const char *parent_name;
-> > >         u8 clk_gate_flags = 0;
-> > > -       u8 bit_idx = 0;
-> > > +       u32 bit_idx = 0;
-> > >
-> > >         of_property_read_string(node, "clock-output-names", &clk_name);
-> > >
-> > > @@ -170,7 +170,7 @@ void of_gate_clk_setup(struct device_node *node)
-> > >
-> > >         reg = of_iomap(node, 0);
-> > >
-> > > -       if (of_property_read_u8(node, "bit-shift", &bit_idx)) {
-> > > +       if (of_property_read_u32(node, "bit-shift", &bit_idx)) {
-> > >                 pr_err("%s: missing bit-shift property for %s\n",
-> > >                                 __func__, node->name);
-> > >                 return;
-> > > diff --git a/drivers/clk/clk-mux.c b/drivers/clk/clk-mux.c
-> > > index c9f9f32..e63dd1b 100644
-> > > --- a/drivers/clk/clk-mux.c
-> > > +++ b/drivers/clk/clk-mux.c
-> > > @@ -170,7 +170,7 @@ void of_mux_clk_setup(struct device_node *node)
-> > >         int i;
-> > >         u8 clk_mux_flags = 0;
-> > >         u32 mask = 0;
-> > > -       u8 shift = 0;
-> > > +       u32 shift = 0;
-> > >
-> > >         of_property_read_string(node, "clock-output-names", &clk_name);
-> > >
-> > > @@ -194,7 +194,7 @@ void of_mux_clk_setup(struct device_node *node)
-> > >                 return;
-> > >         }
-> > >
-> > > -       if (of_property_read_u8(node, "bit-shift", &shift)) {
-> > > +       if (of_property_read_u32(node, "bit-shift", &shift)) {
-> > >                 shift = __ffs(mask);
-> > >                 pr_debug("%s: bit-shift property defaults to 0x%x for %s\n",
-> > >                                 __func__, shift, node->name);
-> > > --
-> > > 1.7.9.5
-> > >
-> 
-> -- 
-> Regards,
-> Nishanth Menon
+UXVvdGluZyBBbWJyZXNoIEsgKDIwMTMtMDYtMTcgMDE6Mzk6NDQpCj4gRnJvbTogQW1icmVzaCBL
+IDxhbWJyZXNoQHRpLmNvbT4KPiAKPiBjbGtfb3BzJ3MgLmdldF9wYXJlbnQgbWVtYmVyIGRhdGEg
+cmV0dXJuJ3Mgc2lnbmVkIHZhbHVlLgo+IAo+IFNpZ25lZC1vZmYtYnk6IEFtYnJlc2ggSyA8YW1i
+cmVzaEB0aS5jb20+CgpVbnN1cnByaXNpbmdseSBJIGdldCB0aGUgZm9sbG93aW5nIGVycm9ycyB3
+aGVuIGJ1aWxkaW5nCm11bHRpX3Y3X2RlZmNvbmZpZzoKCmRyaXZlcnMvY2xrL2Nsay1jb21wb3Np
+dGUuYzogSW4gZnVuY3Rpb24g4oCYY2xrX3JlZ2lzdGVyX2NvbXBvc2l0ZeKAmToKZHJpdmVycy9j
+bGsvY2xrLWNvbXBvc2l0ZS5jOjE0ODozMzogd2FybmluZzogYXNzaWdubWVudCBmcm9tIGluY29t
+cGF0aWJsZSBwb2ludGVyIHR5cGUgW2VuYWJsZWQgYnkgZGVmYXVsdF0KZHJpdmVycy9jbGsvY2xr
+LXByaW1hMi5jOjQxMToyOiB3YXJuaW5nOiBpbml0aWFsaXphdGlvbiBmcm9tIGluY29tcGF0aWJs
+ZSBwb2ludGVyIHR5cGUgW2VuYWJsZWQgYnkgZGVmYXVsdF0KZHJpdmVycy9jbGsvY2xrLXByaW1h
+Mi5jOjQxMToyOiB3YXJuaW5nOiAobmVhciBpbml0aWFsaXphdGlvbiBmb3Ig4oCYbXNpX29wcy5n
+ZXRfcGFyZW504oCZKSBbZW5hYmxlZCBieSBkZWZhdWx0XQpkcml2ZXJzL2Nsay9jbGstcHJpbWEy
+LmM6NDU5OjI6IHdhcm5pbmc6IGluaXRpYWxpemF0aW9uIGZyb20gaW5jb21wYXRpYmxlIHBvaW50
+ZXIgdHlwZSBbZW5hYmxlZCBieSBkZWZhdWx0XQpkcml2ZXJzL2Nsay9jbGstcHJpbWEyLmM6NDU5
+OjI6IHdhcm5pbmc6IChuZWFyIGluaXRpYWxpemF0aW9uIGZvciDigJhjcHVfb3BzLmdldF9wYXJl
+bnTigJkpIFtlbmFibGVkIGJ5IGRlZmF1bHRdCmRyaXZlcnMvY2xrL2Nsay1wcmltYTIuYzo0ODU6
+Mjogd2FybmluZzogaW5pdGlhbGl6YXRpb24gZnJvbSBpbmNvbXBhdGlibGUgcG9pbnRlciB0eXBl
+IFtlbmFibGVkIGJ5IGRlZmF1bHRdCmRyaXZlcnMvY2xrL2Nsay1wcmltYTIuYzo0ODU6Mjogd2Fy
+bmluZzogKG5lYXIgaW5pdGlhbGl6YXRpb24gZm9yIOKAmGRtbl9vcHMuZ2V0X3BhcmVudOKAmSkg
+W2VuYWJsZWQgYnkgZGVmYXVsdF0KZHJpdmVycy9jbGsvY2xrLXp5bnEuYzoxMTg6Mjogd2Fybmlu
+ZzogaW5pdGlhbGl6YXRpb24gZnJvbSBpbmNvbXBhdGlibGUgcG9pbnRlciB0eXBlIFtlbmFibGVk
+IGJ5IGRlZmF1bHRdCmRyaXZlcnMvY2xrL2Nsay16eW5xLmM6MTE4OjI6IHdhcm5pbmc6IChuZWFy
+IGluaXRpYWxpemF0aW9uIGZvciDigJh6eW5xX3BlcmlwaF9jbGtfb3BzLmdldF9wYXJlbnTigJkp
+IFtlbmFibGVkIGJ5IGRlZmF1bHRdCmRyaXZlcnMvY2xrL2Nsay16eW5xLmM6MjI4OjI6IHdhcm5p
+bmc6IGluaXRpYWxpemF0aW9uIGZyb20gaW5jb21wYXRpYmxlIHBvaW50ZXIgdHlwZSBbZW5hYmxl
+ZCBieSBkZWZhdWx0XQpkcml2ZXJzL2Nsay9jbGstenlucS5jOjIyODoyOiB3YXJuaW5nOiAobmVh
+ciBpbml0aWFsaXphdGlvbiBmb3Ig4oCYenlucV9jcHVfY2xrX29wcy5nZXRfcGFyZW504oCZKSBb
+ZW5hYmxlZCBieSBkZWZhdWx0XQoKQWxsIGRlZmluaXRpb25zIG9mIC5nZXRfcGFyZW50IGNhbGxi
+YWNrcyBuZWVkIHRvIGJlIHVwZGF0ZWQsIG5vdCBqdXN0CnlvdXIgcGxhdGZvcm0gb2YgY2hvaWNl
+LiBBbmQgdGhlcmUgbWF5IHdlbGwgYmUgbW9yZSB0aGFuIHRoZSBvbmVzIGFib3ZlLgoKSSdtIG5v
+dCB0YWtpbmcgdGhpcyBzZXJpZXMgZm9yIDMuMTEuIEFmdGVyIHRoZSBtZXJnZSB3aW5kb3cgY2Fu
+IHlvdQpyZXN1Ym1pdCB0aGlzIHNlcmllcyB3aXRoIGZpeGVzIGZvciBhbGwgb2YgdGhlIC5nZXRf
+cGFyZW50IGRlZmluaXRpb25zPwpOb3QganVzdCBmb3IgT01BUC4KCk90aGVyd2lzZSB0aGUgcmVz
+dCBvZiB0aGUgc2VyaWVzIGxvb2tzIGdvb2QgYW5kIEknbGwgYmUgaGFwcHkgdG8gdGFrZQp0aGlz
+IGluIHRvd2FyZHMgMy4xMi4KClRoYW5rcywKTWlrZQoKPiAtLS0KPiAgYXJjaC9hcm0vbWFjaC1v
+bWFwMi9jbGt0X2Nsa3NlbC5jIHwgICAgMiArLQo+ICBhcmNoL2FybS9tYWNoLW9tYXAyL2Nsa3Rf
+ZHBsbC5jICAgfCAgICAyICstCj4gIGFyY2gvYXJtL21hY2gtb21hcDIvY2xvY2suaCAgICAgICB8
+ICAgIDQgKystLQo+ICAzIGZpbGVzIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwgNCBkZWxldGlv
+bnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9jbGt0X2Nsa3NlbC5j
+IGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9jbGt0X2Nsa3NlbC5jCj4gaW5kZXggMGVjOWY2Zi4uMjc3
+MzY1NyAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2Nsa3RfY2xrc2VsLmMKPiAr
+KysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2Nsa3RfY2xrc2VsLmMKPiBAQCAtMzAzLDcgKzMwMyw3
+IEBAIHUzMiBvbWFwMl9jbGtzZWxfcm91bmRfcmF0ZV9kaXYoc3RydWN0IGNsa19od19vbWFwICpj
+bGssCj4gICAqIHdheSB0byByZXR1cm4gYW4gZXJyb3IsIHNvIGlmIHdlIGVuY291bnRlciBhbiBl
+cnJvciwganVzdCBXQVJOKCkKPiAgICogYW5kIHByZXRlbmQgdGhhdCB3ZSBrbm93IHRoYXQgd2Un
+cmUgZG9pbmcuCj4gICAqLwo+IC11OCBvbWFwMl9jbGtzZWxfZmluZF9wYXJlbnRfaW5kZXgoc3Ry
+dWN0IGNsa19odyAqaHcpCj4gK2ludCBvbWFwMl9jbGtzZWxfZmluZF9wYXJlbnRfaW5kZXgoc3Ry
+dWN0IGNsa19odyAqaHcpCj4gIHsKPiAgICAgICAgIHN0cnVjdCBjbGtfaHdfb21hcCAqY2xrID0g
+dG9fY2xrX2h3X29tYXAoaHcpOwo+ICAgICAgICAgY29uc3Qgc3RydWN0IGNsa3NlbCAqY2xrczsK
+PiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9jbGt0X2RwbGwuYyBiL2FyY2gvYXJt
+L21hY2gtb21hcDIvY2xrdF9kcGxsLmMKPiBpbmRleCA5MjRjMjMwLi41NGI4YzQ5IDEwMDY0NAo+
+IC0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvY2xrdF9kcGxsLmMKPiArKysgYi9hcmNoL2FybS9t
+YWNoLW9tYXAyL2Nsa3RfZHBsbC5jCj4gQEAgLTE4Niw3ICsxODYsNyBAQCBzdGF0aWMgaW50IF9k
+cGxsX3Rlc3RfbXVsdChpbnQgKm0sIGludCBuLCB1bnNpZ25lZCBsb25nICpuZXdfcmF0ZSwKPiAg
+fQo+ICAKPiAgLyogUHVibGljIGZ1bmN0aW9ucyAqLwo+IC11OCBvbWFwMl9pbml0X2RwbGxfcGFy
+ZW50KHN0cnVjdCBjbGtfaHcgKmh3KQo+ICtpbnQgb21hcDJfaW5pdF9kcGxsX3BhcmVudChzdHJ1
+Y3QgY2xrX2h3ICpodykKPiAgewo+ICAgICAgICAgc3RydWN0IGNsa19od19vbWFwICpjbGsgPSB0
+b19jbGtfaHdfb21hcChodyk7Cj4gICAgICAgICB1MzIgdjsKPiBkaWZmIC0tZ2l0IGEvYXJjaC9h
+cm0vbWFjaC1vbWFwMi9jbG9jay5oIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9jbG9jay5oCj4gaW5k
+ZXggN2FhMzJjZC4uMjc4NDA4NyAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2Ns
+b2NrLmgKPiArKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2Nsb2NrLmgKPiBAQCAtMzg0LDcgKzM4
+NCw3IEBAIHZvaWQgX19pbml0IG9tYXAyX2Nsa19kaXNhYmxlX2Nsa2RtX2NvbnRyb2wodm9pZCk7
+Cj4gIHUzMiBvbWFwMl9jbGtzZWxfcm91bmRfcmF0ZV9kaXYoc3RydWN0IGNsa19od19vbWFwICpj
+bGssCj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB1bnNpZ25lZCBsb25nIHRhcmdl
+dF9yYXRlLAo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdTMyICpuZXdfZGl2KTsK
+PiAtdTggb21hcDJfY2xrc2VsX2ZpbmRfcGFyZW50X2luZGV4KHN0cnVjdCBjbGtfaHcgKmh3KTsK
+PiAraW50IG9tYXAyX2Nsa3NlbF9maW5kX3BhcmVudF9pbmRleChzdHJ1Y3QgY2xrX2h3ICpodyk7
+Cj4gIHVuc2lnbmVkIGxvbmcgb21hcDJfY2xrc2VsX3JlY2FsYyhzdHJ1Y3QgY2xrX2h3ICpodywg
+dW5zaWduZWQgbG9uZyBwYXJlbnRfcmF0ZSk7Cj4gIGxvbmcgb21hcDJfY2xrc2VsX3JvdW5kX3Jh
+dGUoc3RydWN0IGNsa19odyAqaHcsIHVuc2lnbmVkIGxvbmcgdGFyZ2V0X3JhdGUsCj4gICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICB1bnNpZ25lZCBsb25nICpwYXJlbnRfcmF0ZSk7Cj4g
+QEAgLTM5Niw3ICszOTYsNyBAQCBpbnQgb21hcDJfY2xrc2VsX3NldF9wYXJlbnQoc3RydWN0IGNs
+a19odyAqaHcsIHU4IGZpZWxkX3ZhbCk7Cj4gIGV4dGVybiB2b2lkIG9tYXAyX2Nsa3RfaWNsa19h
+bGxvd19pZGxlKHN0cnVjdCBjbGtfaHdfb21hcCAqY2xrKTsKPiAgZXh0ZXJuIHZvaWQgb21hcDJf
+Y2xrdF9pY2xrX2RlbnlfaWRsZShzdHJ1Y3QgY2xrX2h3X29tYXAgKmNsayk7Cj4gIAo+IC11OCBv
+bWFwMl9pbml0X2RwbGxfcGFyZW50KHN0cnVjdCBjbGtfaHcgKmh3KTsKPiAraW50IG9tYXAyX2lu
+aXRfZHBsbF9wYXJlbnQoc3RydWN0IGNsa19odyAqaHcpOwo+ICB1bnNpZ25lZCBsb25nIG9tYXAy
+X2dldF9kcGxsX3JhdGUoc3RydWN0IGNsa19od19vbWFwICpjbGspOwo+ICAKPiAgaW50IG9tYXAy
+X2RmbHRfY2xrX2VuYWJsZShzdHJ1Y3QgY2xrX2h3ICpodyk7Cj4gLS0gCj4gMS43LjQuMQoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtl
+cm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0
+dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5l
+bAo=
