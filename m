@@ -1,336 +1,177 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: Re: [PATCHv2 1/2] ARM: dts: AM33XX: Add support for IGEP COM AQUILA
-Date: Sat, 22 Jun 2013 16:50:31 +0200
-Message-ID: <51C5B9B7.3020702@collabora.co.uk>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH v3 2/4] ARM: OMAP2+: cleaned-up DT support of various ECC schemes
+Date: Sun, 23 Jun 2013 02:33:48 +0530
+Message-ID: <1371935030-20773-3-git-send-email-pekon@ti.com>
+References: <1371935030-20773-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:34839 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751479Ab3FVOue (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 Jun 2013 10:50:34 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43665 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751342Ab3FVVEv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 22 Jun 2013 17:04:51 -0400
+In-Reply-To: <1371935030-20773-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletbo i Serra <eballetbo@iseebcn.com>
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>
+To: tony@atomide.com, artem.bityutskiy@linux.intel.com, b-cousson@ti.com
+Cc: arnd@arndb.de, avinashphilip@ti.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, jp.francois@cynove.com, "Gupta, Pekon" <pekon@ti.com>
 
-On Thu, Jun 20, 2013 at 10:16 AM, Enric Balletbo i Serra <eballetbo@iseebcn.com>
-wrote:
-> The IGEP COM AQUILA is industrial processors SODIMM module with
-> following highlights:
->
->    o AM3352/AM3354/AM3358/AM3359 Texas Instruments processor
->    o Cortex-A8 ARM CPU
->    o 3.3 volts Inputs / Outputs use industrial
->    o 256 MB DDR3 SDRAM / 128 Megabytes FLASH
->    o MicroSD card reader on-board
->    o Ethernet controller on-board
->    o JTAG debug connector available
->    o Designed for industrial range purposes
->
-> Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
-> ---
->  arch/arm/boot/dts/am335x-igep0033.dtsi | 265 +++++++++++++++++++++++++++++++++
->  1 file changed, 265 insertions(+)
->  create mode 100644 arch/arm/boot/dts/am335x-igep0033.dtsi
->
-> diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi
-b/arch/arm/boot/dts/am335x-igep0033.dtsi
-> new file mode 100644
-> index 0000000..06eba07
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
-> @@ -0,0 +1,265 @@
-> +/*
-> + * am335x-igep0033.dtsi - Device Tree file for IGEP COM AQUILA AM335x
-> + *
-> + * Copyright (C) 2013 ISEE 2007 SL - http://www.isee.biz
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +/dts-v1/;
-> +
-> +#include "am33xx.dtsi"
-> +
-> +/ {
-> +       cpus {
-> +               cpu@0 {
-> +                       cpu0-supply = <&vdd1_reg>;
-> +               };
-> +       };
-> +
-> +       memory {
-> +               device_type = "memory";
-> +               reg = <0x80000000 0x10000000>; /* 256 MB */
-> +       };
-> +
-> +       leds {
-> +               pinctrl-names = "default";
-> +               pinctrl-0 = <&leds_pins>;
-> +
-> +               compatible = "gpio-leds";
-> +
-> +               led@0 {
-> +                       label = "com:green:user";
-> +                       gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;
-> +                       default-state = "on";
-> +               };
-> +       };
-> +
-> +       vbat: fixedregulator@0 {
-> +               compatible = "regulator-fixed";
-> +               regulator-name = "vbat";
-> +               regulator-min-microvolt = <5000000>;
-> +               regulator-max-microvolt = <5000000>;
-> +               regulator-boot-on;
-> +       };
-> +};
-> +
-> +&am33xx_pinmux {
-> +       i2c0_pins: pinmux_i2c0_pins {
-> +               pinctrl-single,pins = <
-> +                       0x188 (PIN_INPUT_PULLUP | MUX_MODE0)    /*
-i2c0_sda.i2c0_sda */
-> +                       0x18c (PIN_INPUT_PULLUP | MUX_MODE0)    /*
-i2c0_scl.i2c0_scl */
-> +               >;
-> +       };
-> +
-> +       nandflash_pins: pinmux_nandflash_pins {
-> +               pinctrl-single,pins = <
-> +                       0x0 (PIN_INPUT_PULLUP | MUX_MODE0)      /*
-gpmc_ad0.gpmc_ad0 */
-> +                       0x4 (PIN_INPUT_PULLUP | MUX_MODE0)      /*
-gpmc_ad1.gpmc_ad1 */
-> +                       0x8 (PIN_INPUT_PULLUP | MUX_MODE0)      /*
-gpmc_ad2.gpmc_ad2 */
-> +                       0xc (PIN_INPUT_PULLUP | MUX_MODE0)      /*
-gpmc_ad3.gpmc_ad3 */
-> +                       0x10 (PIN_INPUT_PULLUP | MUX_MODE0)     /*
-gpmc_ad4.gpmc_ad4 */
-> +                       0x14 (PIN_INPUT_PULLUP | MUX_MODE0)     /*
-gpmc_ad5.gpmc_ad5 */
-> +                       0x18 (PIN_INPUT_PULLUP | MUX_MODE0)     /*
-gpmc_ad6.gpmc_ad6 */
-> +                       0x1c (PIN_INPUT_PULLUP | MUX_MODE0)     /*
-gpmc_ad7.gpmc_ad7 */
-> +                       0x70 (PIN_INPUT_PULLUP | MUX_MODE0)     /*
-gpmc_wait0.gpmc_wait0 */
-> +                       0x74 (PIN_INPUT_PULLUP | MUX_MODE7)     /*
-gpmc_wpn.gpio0_30 */
-> +                       0x7c (PIN_OUTPUT | MUX_MODE0)           /*
-gpmc_csn0.gpmc_csn0 */
-> +                       0x90 (PIN_OUTPUT | MUX_MODE0)           /*
-gpmc_advn_ale.gpmc_advn_ale */
-> +                       0x94 (PIN_OUTPUT | MUX_MODE0)           /*
-gpmc_oen_ren.gpmc_oen_ren */
-> +                       0x98 (PIN_OUTPUT | MUX_MODE0)           /*
-gpmc_wen.gpmc_wen */
-> +                       0x9c (PIN_OUTPUT | MUX_MODE0)           /*
-gpmc_be0n_cle.gpmc_be0n_cle */
-> +               >;
-> +       };
-> +
-> +       uart0_pins: pinmux_uart0_pins {
-> +               pinctrl-single,pins = <
-> +                       0x170 (PIN_INPUT_PULLUP | MUX_MODE0)    /*
-uart0_rxd.uart0_rxd */
-> +                       0x174 (PIN_OUTPUT_PULLDOWN | MUX_MODE0) /*
-uart0_txd.uart0_txd */
-> +               >;
-> +       };
-> +
-> +       leds_pins: pinmux_leds_pins {
-> +               pinctrl-single,pins = <
-> +                       0x5c (PIN_OUTPUT_PULLDOWN | MUX_MODE7)  /*
-gpmc_a7.gpio1_23 */
-> +               >;
-> +       };
-> +};
-> +
-> +&cpsw_emac0 {
-> +       phy_id = <&davinci_mdio>, <0>;
-> +};
-> +
-> +&cpsw_emac1 {
-> +       phy_id = <&davinci_mdio>, <1>;
-> +};
-> +
-> +&elm {
-> +       status = "okay";
-> +};
-> +
-> +&gpmc {
-> +       status = "okay";
-> +       pinctrl-names = "default";
-> +       pinctrl-0 = <&nandflash_pins>;
-> +
-> +       ranges = <0 0 0x08000000 0x10000000>;   /* CS0: NAND */
-> +
-> +       nand@0,0 {
-> +               reg = <0 0 0>; /* CS0, offset 0 */
-> +               nand-bus-width = <8>;
-> +               ti,nand-ecc-opt = "bch8";
-> +               gpmc,device-nand = "true";
-> +               gpmc,device-width = <1>;
-> +               gpmc,sync-clk-ps = <0>;
-> +               gpmc,cs-on-ns = <0>;
-> +               gpmc,cs-rd-off-ns = <44>;
-> +               gpmc,cs-wr-off-ns = <44>;
-> +               gpmc,adv-on-ns = <6>;
-> +               gpmc,adv-rd-off-ns = <34>;
-> +               gpmc,adv-wr-off-ns = <44>;
-> +               gpmc,we-on-ns = <0>;
-> +               gpmc,we-off-ns = <40>;
-> +               gpmc,oe-on-ns = <0>;
-> +               gpmc,oe-off-ns = <54>;
-> +               gpmc,access-ns = <64>;
-> +               gpmc,rd-cycle-ns = <82>;
-> +               gpmc,wr-cycle-ns = <82>;
-> +               gpmc,wait-on-read = "true";
-> +               gpmc,wait-on-write = "true";
-> +               gpmc,bus-turnaround-ns = <0>;
-> +               gpmc,cycle2cycle-delay-ns = <0>;
-> +               gpmc,clk-activation-ns = <0>;
-> +               gpmc,wait-monitoring-ns = <0>;
-> +               gpmc,wr-access-ns = <40>;
-> +               gpmc,wr-data-mux-bus-ns = <0>;
-> +
-> +               #address-cells = <1>;
-> +               #size-cells = <1>;
-> +               elm_id = <&elm>;
-> +
-> +               /* MTD partition table */
-> +               partition@0 {
-> +                       label = "SPL";
-> +                       reg = <0x00000000 0x000080000>;
-> +               };
-> +
-> +               partition@1 {
-> +                       label = "U-boot";
-> +                       reg = <0x00080000 0x001e0000>;
-> +               };
-> +
-> +               partition@2 {
-> +                       label = "U-Boot Env";
-> +                       reg = <0x00260000 0x00020000>;
-> +               };
-> +
-> +               partition@3 {
-> +                       label = "Kernel";
-> +                       reg = <0x00280000 0x00500000>;
-> +               };
-> +
-> +               partition@4 {
-> +                       label = "File System";
-> +                       reg = <0x00780000 0x007880000>;
-> +               };
-> +       };
-> +};
-> +
-> +&i2c0 {
-> +       status = "okay";
-> +       pinctrl-names = "default";
-> +       pinctrl-0 = <&i2c0_pins>;
-> +
-> +       clock-frequency = <400000>;
-> +
-> +       tps: tps@2d {
-> +               reg = <0x2d>;
-> +       };
-> +};
-> +
-> +&uart0 {
-> +       status = "okay";
-> +       pinctrl-names = "default";
-> +       pinctrl-0 = <&uart0_pins>;
-> +};
-> +
-> +#include "tps65910.dtsi"
-> +
-> +&tps {
-> +       vcc1-supply = <&vbat>;
-> +       vcc2-supply = <&vbat>;
-> +       vcc3-supply = <&vbat>;
-> +       vcc4-supply = <&vbat>;
-> +       vcc5-supply = <&vbat>;
-> +       vcc6-supply = <&vbat>;
-> +       vcc7-supply = <&vbat>;
-> +       vccio-supply = <&vbat>;
-> +
-> +       regulators {
-> +               vrtc_reg: regulator@0 {
-> +                       regulator-always-on;
-> +               };
-> +
-> +               vio_reg: regulator@1 {
-> +                       regulator-always-on;
-> +               };
-> +
-> +               vdd1_reg: regulator@2 {
-> +                       /* VDD_MPU voltage limits 0.95V - 1.26V with +/-4%
-tolerance */
-> +                       regulator-name = "vdd_mpu";
-> +                       regulator-min-microvolt = <912500>;
-> +                       regulator-max-microvolt = <1312500>;
-> +                       regulator-boot-on;
-> +                       regulator-always-on;
-> +               };
-> +
-> +               vdd2_reg: regulator@3 {
-> +                       /* VDD_CORE voltage limits 0.95V - 1.1V with +/-4%
-tolerance */
-> +                       regulator-name = "vdd_core";
-> +                       regulator-min-microvolt = <912500>;
-> +                       regulator-max-microvolt = <1150000>;
-> +                       regulator-boot-on;
-> +                       regulator-always-on;
-> +               };
-> +
-> +               vdd3_reg: regulator@4 {
-> +                       regulator-always-on;
-> +               };
-> +
-> +               vdig1_reg: regulator@5 {
-> +                       regulator-always-on;
-> +               };
-> +
-> +               vdig2_reg: regulator@6 {
-> +                       regulator-always-on;
-> +               };
-> +
-> +               vpll_reg: regulator@7 {
-> +                       regulator-always-on;
-> +               };
-> +
-> +               vdac_reg: regulator@8 {
-> +                       regulator-always-on;
-> +               };
-> +
-> +               vaux1_reg: regulator@9 {
-> +                       regulator-always-on;
-> +               };
-> +
-> +               vaux2_reg: regulator@10 {
-> +                       regulator-always-on;
-> +               };
-> +
-> +               vaux33_reg: regulator@11 {
-> +                       regulator-always-on;
-> +               };
-> +
-> +               vmmc_reg: regulator@12 {
-> +                       regulator-always-on;
-> +               };
-> +       };
-> +};
-> +
-> --
-> 1.8.1.2
->
+From: "Gupta, Pekon" <pekon@ti.com>
 
-Reviewed-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+ECC scheme on NAND devices can be implemented in multiple ways.Some using
+Software algorithm, while others using in-build Hardware engines.
+omap2-nand driver currently supports following flavours of ECC schemes,
+selectable via DTB.
+
++---------------------------------------+---------------+---------------+
+| ECC scheme				|ECC calculation|Error detection|
++---------------------------------------+---------------+---------------+
+|OMAP_ECC_HAMMING_CODE_DEFAULT		|S/W		|S/W		|
+|OMAP_ECC_HAMMING_CODE_HW		|H/W (GPMC)	|S/W		|
+|OMAP_ECC_HAMMING_CODE_HW_ROMCODE	|H/W (GPMC)	|S/W		|
++---------------------------------------+---------------+---------------+
+|(requires CONFIG_MTD_NAND_ECC_BCH)	|		|		|
+|OMAP_ECC_BCH8_CODE_HW_DETECTION_SW	|H/W (GPMC)	|S/W		|
++---------------------------------------+---------------+---------------+
+|(requires CONFIG_MTD_NAND_OMAP_BCH)	|		|		|
+|OMAP_ECC_BCH8_CODE_HW			|H/W (GPMC)	|H/W (ELM)	|
++---------------------------------------+---------------+---------------+
+
+Selection of some ECC schemes also require enabling following Kconfig options.
+This was done to optimize footprint of omap2-nand driver.
+-Kconfig:CONFIG_MTD_NAND_ECC_BCH	enables S/W based BCH ECC algorithm
+-Kconfig:CONFIG_MTD_NAND_OMAP_BCH	enables H/W based BCH ECC algorithm
+
+Signed-off-by: Pekon Gupta <pekon@ti.com>
+---
+ .../devicetree/bindings/mtd/gpmc-nand.txt          | 44 ++++++++++++++++------
+ arch/arm/mach-omap2/gpmc.c                         | 14 ++++---
+ include/linux/platform_data/mtd-nand-omap2.h       | 22 +++++++----
+ 3 files changed, 56 insertions(+), 24 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+index 6a983c1..690070e 100644
+--- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
++++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+@@ -17,20 +17,42 @@ Required properties:
+ 
+ Optional properties:
+ 
+- - nand-bus-width: 		Set this numeric value to 16 if the hardware
+-				is wired that way. If not specified, a bus
+-				width of 8 is assumed.
++ - nand-bus-width: 		Determines data-width of the connected device
++				x16 = "16"
++				x8  = "8" (default)
+ 
+- - ti,nand-ecc-opt:		A string setting the ECC layout to use. One of:
+ 
+-		"sw"		Software method (default)
+-		"hw"		Hardware method
+-		"hw-romcode"	gpmc hamming mode method & romcode layout
+-		"bch4"		4-bit BCH ecc code
+-		"bch8"		8-bit BCH ecc code
++ - ti,nand-ecc-opt:		Determines the ECC scheme used by driver.
++				It can be any of the following strings:
++
++	"hamming_code_sw"		1-bit Hamming ECC
++					- ECC calculation in software
++					- Error detection in software
++
++	"hamming_code_hw"		1-bit Hamming ECC
++					- ECC calculation in hardware
++					- Error detection in software
++
++	"hamming_code_hw_romcode"	1-bit Hamming ECC
++					- ECC calculation in hardware
++					- Error detection in software
++					- ECC layout compatible to ROM code
++
++	"bch8_hw_code_detection_sw"	8-bit BCH ECC
++					- ECC calculation in hardware
++					- Error detection in software
++					- depends on CONFIG_MTD_NAND_ECC_BCH
++
++	"bch8_code_hw"             	8-bit BCH ECC
++					- ECC calculation in hardware
++					- Error detection in hardware
++					- depends on CONFIG_MTD_NAND_OMAP_BCH
++					- requires <elm_id> to be specified
++
++
++ - elm_id:			Specifies elm device node. This is required to
++				support some BCH ECC schemes mentioned above.
+ 
+- - elm_id:	Specifies elm device node. This is required to support BCH
+- 		error correction using ELM module.
+ 
+ For inline partiton table parsing (optional):
+ 
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 6c4da12..ae8bb70 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1338,11 +1338,13 @@ static void __maybe_unused gpmc_read_timings_dt(struct device_node *np,
+ #ifdef CONFIG_MTD_NAND
+ 
+ static const char * const nand_ecc_opts[] = {
+-	[OMAP_ECC_HAMMING_CODE_DEFAULT]		= "sw",
+-	[OMAP_ECC_HAMMING_CODE_HW]		= "hw",
+-	[OMAP_ECC_HAMMING_CODE_HW_ROMCODE]	= "hw-romcode",
+-	[OMAP_ECC_BCH4_CODE_HW]			= "bch4",
+-	[OMAP_ECC_BCH8_CODE_HW]			= "bch8",
++	[OMAP_ECC_HAMMING_CODE_DEFAULT]		= "hamming_code_sw",
++	[OMAP_ECC_HAMMING_CODE_HW]		= "hamming_code_hw",
++	[OMAP_ECC_HAMMING_CODE_HW_ROMCODE]	= "hamming_code_hw_romcode",
++	[OMAP_ECC_BCH4_CODE_HW]			= "bch4_code_hw",
++	[OMAP_ECC_BCH4_CODE_HW_DETECTION_SW]	= "bch4_code_hw_detection_sw",
++	[OMAP_ECC_BCH8_CODE_HW]			= "bch8_code_hw",
++	[OMAP_ECC_BCH8_CODE_HW_DETECTION_SW]	= "bch8_code_hw_detection_sw"
+ };
+ 
+ static int gpmc_probe_nand_child(struct platform_device *pdev,
+@@ -1369,7 +1371,7 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
+ 
+ 	if (!of_property_read_string(child, "ti,nand-ecc-opt", &s))
+ 		for (val = 0; val < ARRAY_SIZE(nand_ecc_opts); val++)
+-			if (!strcasecmp(s, nand_ecc_opts[val])) {
++			if (!strcmp(s, nand_ecc_opts[val])) {
+ 				gpmc_nand_data->ecc_opt = val;
+ 				break;
+ 			}
+diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
+index 6bf9ef4..ce74576 100644
+--- a/include/linux/platform_data/mtd-nand-omap2.h
++++ b/include/linux/platform_data/mtd-nand-omap2.h
+@@ -23,13 +23,21 @@ enum nand_io {
+ };
+ 
+ enum omap_ecc {
+-		/* 1-bit ecc: stored at end of spare area */
+-	OMAP_ECC_HAMMING_CODE_DEFAULT = 0, /* Default, s/w method */
+-	OMAP_ECC_HAMMING_CODE_HW, /* gpmc to detect the error */
+-		/* 1-bit ecc: stored at beginning of spare area as romcode */
+-	OMAP_ECC_HAMMING_CODE_HW_ROMCODE, /* gpmc method & romcode layout */
+-	OMAP_ECC_BCH4_CODE_HW, /* 4-bit BCH ecc code */
+-	OMAP_ECC_BCH8_CODE_HW, /* 8-bit BCH ecc code */
++	/* 1-bit  ECC calculation by Software, Error detection by Software */
++	OMAP_ECC_HAMMING_CODE_DEFAULT = 0,
++	/* 1-bit  ECC calculation by GPMC, Error detection by Software */
++	OMAP_ECC_HAMMING_CODE_HW,
++	/* 1-bit  ECC calculation by GPMC, Error detection by Software */
++	/* ECC layout compatible to legacy ROMCODE. */
++	OMAP_ECC_HAMMING_CODE_HW_ROMCODE,
++	/* 4-bit  ECC calculation by GPMC, Error detection by ELM */
++	OMAP_ECC_BCH4_CODE_HW,
++	/* 4-bit  ECC calculation by GPMC, Error detection by Software */
++	OMAP_ECC_BCH4_CODE_HW_DETECTION_SW,
++	/* 8-bit  ECC calculation by GPMC, Error detection by ELM */
++	OMAP_ECC_BCH8_CODE_HW,
++	/* 8-bit  ECC calculation by GPMC, Error detection by Software */
++	OMAP_ECC_BCH8_CODE_HW_DETECTION_SW
+ };
+ 
+ struct gpmc_nand_regs {
+-- 
+1.8.1
+
