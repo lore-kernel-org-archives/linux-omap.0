@@ -1,89 +1,75 @@
-From: Naresh Kamboju <naresh.kamboju@linaro.org>
-Subject: linux-next: panda build failed at arch/arm/mach-omap2/omap4-restart.c
-Date: Sun, 23 Jun 2013 13:53:10 +0530
-Message-ID: <CA+G9fYv_9EQUmpRNPUwioSwJVXnXJC5odEKiMd=vKHNWYRT8xw@mail.gmail.com>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH v3 0/4] mtd:nand:omap2: clean-up of supported ECC schemes
+Date: Sun, 23 Jun 2013 23:28:15 +0530
+Message-ID: <1372010299-30141-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Robin Holt <holt@sgi.com>, Linus Walleij <linus.walleij@linaro.org>, Andrey Konovalov <andrey.konovalov@linaro.org>, Russ Anderson <rja@sgi.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Milosz Wasilewski <milosz.wasilewski@linaro.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38425 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751737Ab3FWR7k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 23 Jun 2013 13:59:40 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, artem.bityutskiy@linux.intel.com, b-cousson@ti.com
+Cc: arnd@arndb.de, avinashphilip@ti.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, jp.francois@cynove.com, Pekon Gupta <pekon@ti.com>
 
-Hi,
+(with Author Name fixed)
+Changes v2 -> v3
+- PATCH-1: re-arranged code to remove redundancy, added NAND_BUSWIDTH_AUTO
+- PATCH-2: updated nand-ecc-opt DT mapping and Documentation
+- PATCH-3: code-cleaning + changes to match PATCH-1
+- PATCH-4 <DROPPED> update DT attribute for ti,nand-ecc-opt 
+	- received feedback to keep DT mapping independent of linuxism
+- PATCH-4:<NEW> : ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-opt
+	- independent patch for AM335x-evm.dts update based on PATCH-2
 
-panda build broken on linux-next branch
+Changes v1 -> v2
+	added 	[PATCH 3/4] and [PATCH 4/4]
 
-kernel_config=3Domap2plus_defconfig
-KERNEL_VERSION=3D3.10.0-rc6
-KERNEL_GIT=3Dgit://git.kernel.org/pub/scm/linux/kernel/git/next/linux-n=
-ext.git
-KERNEL_COMMIT=3De1a86578747376f08985627c84df088a5d0d1e92
+Patches in this series:
+[PATCH 1/4]: clean-up and optimization for supported ECC schemes.
+[PATCH 2/4]: add separate DT options each supported ECC scheme.
+[PATCH 3/4]: update BCH4 ECC implementation (using ELM or using lib/bch.h)
+[PATCH 4/4]: ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-opt
 
-Build error log :
--------------------
-04:43:18   CC      arch/arm/mach-omap2/omap4-restart.o
-04:43:18 /mnt/ci_build/workspace/linux-next/hwpack/panda/label/kernel_c=
-loud/arch/arm/mach-omap2/omap4-restart.c:21:28:
-warning: =91enum reboot_mode=92 declared inside parameter list [enabled=
- by
-default]
-04:43:18  void omap44xx_restart(enum reboot_mode mode, const char *cmd)
-04:43:18                             ^
-04:43:18 /mnt/ci_build/workspace/linux-next/hwpack/panda/label/kernel_c=
-loud/arch/arm/mach-omap2/omap4-restart.c:21:28:
-warning: its scope is only this definition or declaration, which is
-probably not what you want [enabled by default]
-04:43:18 /mnt/ci_build/workspace/linux-next/hwpack/panda/label/kernel_c=
-loud/arch/arm/mach-omap2/omap4-restart.c:21:40:
-error: parameter 1 (=91mode=92) has incomplete type
-04:43:18  void omap44xx_restart(enum reboot_mode mode, const char *cmd)
-04:43:18                                         ^
-04:43:18 /mnt/ci_build/workspace/linux-next/hwpack/panda/label/kernel_c=
-loud/arch/arm/mach-omap2/omap4-restart.c:21:6:
-warning: function declaration isn=92t a prototype [-Wstrict-prototypes]
-04:43:18  void omap44xx_restart(enum reboot_mode mode, const char *cmd)
-04:43:18       ^
-04:43:18 make[2]: *** [arch/arm/mach-omap2/omap4-restart.o] Error 1
-04:43:18 make[1]: *** [arch/arm/mach-omap2] Error 2
+After this patch series, omap2-nand driver will supports following ECC schemes:
++---------------------------------------+---------------+---------------+
+| ECC scheme				|ECC calculation|Error detection|
++---------------------------------------+---------------+---------------+
+|OMAP_ECC_HAMMING_CODE_DEFAULT		|S/W		|S/W		|
+|OMAP_ECC_HAMMING_CODE_HW		|H/W (GPMC)	|S/W		|
+|OMAP_ECC_HAMMING_CODE_HW_ROMCODE	|H/W (GPMC)	|S/W		|
++---------------------------------------+---------------+---------------+
+|OMAP_ECC_BCH4_CODE_HW_DETECTION_SW	|H/W (GPMC)	|S/W (lib/bch.h)|
+|OMAP_ECC_BCH4_CODE_HW			|H/W (GPMC)	|H/W (ELM)	|
++---------------------------------------+---------------+---------------+
+|OMAP_ECC_BCH8_CODE_HW_DETECTION_SW	|H/W (GPMC)	|S/W (lib/bch.h)|
+|OMAP_ECC_BCH8_CODE_HW			|H/W (GPMC)	|H/W (ELM)	|
++---------------------------------------+---------------+---------------+
+- Selection of OMAP_ECC_BCHx_CODE_HW_DETECTION_SW requires,
+	Kconfig: CONFIG_MTD_NAND_ECC_BCH: enables S/W based BCH ECC algorithm.
 
-=46ull build log:
-------------------
-https://ci.linaro.org/jenkins/job/linux-next/hwpack=3Dpanda,label=3Dker=
-nel_cloud/lastBuild/console
+- Selection of OMAP_ECC_BCHx_CODE_HW requires,
+	Kconfig: CONFIG_MTD_NAND_OMAP_BCH: enables ELM H/W module.
 
-Suspecting patch which caused build failed:
---------------------------------------------------------
-commit b61cdf2aebc5cd2f4efc4e0cbebeb8a91884a43e
-Author: Robin Holt <holt@sgi.com>
-Date:   Wed Jun 19 10:08:43 2013 +1000
 
-reboot: arm: change reboot_mode to use enum reboot_mode
+Pekon Gupta (4):
+  mtd:nand:omap2: clean-up BCHx_HW and BCHx_SW ECC configurations in
+    device_probe
+  ARM: OMAP2+: cleaned-up DT support of various ECC schemes
+  mtd:nand:omap2: updated support for BCH4 ECC scheme
+  ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-opt
 
-Preparing to move the parsing of reboot=3D to generic kernel code force=
-s the
-change in reboot_mode handling to use the enum.
+ .../devicetree/bindings/mtd/gpmc-nand.txt          |  65 ++-
+ arch/arm/boot/dts/am335x-evm.dts                   |   2 +-
+ arch/arm/mach-omap2/gpmc.c                         |  14 +-
+ drivers/mtd/nand/Kconfig                           |   7 +-
+ drivers/mtd/nand/omap2.c                           | 482 ++++++++++-----------
+ include/linux/platform_data/elm.h                  |   4 +
+ include/linux/platform_data/mtd-nand-omap2.h       |  22 +-
+ 7 files changed, 307 insertions(+), 289 deletions(-)
 
-Signed-off-by: Robin Holt <holt@sgi.com>
+-- 
+1.8.1
 
-=2E..
-diff --git a/arch/arm/mach-omap2/omap4-restart.c
-b/arch/arm/mach-omap2/omap4-restart.c
-index f90e02e..652adde 100644
---- a/arch/arm/mach-omap2/omap4-restart.c
-+++ b/arch/arm/mach-omap2/omap4-restart.c
-@@ -18,7 +18,7 @@
-  * Resets the SoC.  For @cmd, see the 'reboot' syscall in
-  * kernel/sys.c.  No return value.
-  */
--void omap44xx_restart(char mode, const char *cmd)
-+void omap44xx_restart(enum reboot_mode mode, const char *cmd)
- {
-        /* XXX Should save 'cmd' into scratchpad for use after reboot *=
-/
-        omap4_prminst_global_warm_sw_reset(); /* never returns */
-=2E..
-
-Best regards
-Naresh Kamboju
