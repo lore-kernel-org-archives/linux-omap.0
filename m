@@ -1,67 +1,89 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 1/4] mtd:nand:omap2: clean-up BCHx_HW and BCHx_SW ECC
- configurations in device_probe
-Date: Sun, 23 Jun 2013 00:47:17 +0300
-Message-ID: <20130622214717.GA1569@arwen.pp.htv.fi>
-References: <1371935030-20773-1-git-send-email-pekon@ti.com>
- <1371935030-20773-2-git-send-email-pekon@ti.com>
-Reply-To: <balbi@ti.com>
+From: Naresh Kamboju <naresh.kamboju@linaro.org>
+Subject: linux-next: panda build failed at arch/arm/mach-omap2/omap4-restart.c
+Date: Sun, 23 Jun 2013 13:53:10 +0530
+Message-ID: <CA+G9fYv_9EQUmpRNPUwioSwJVXnXJC5odEKiMd=vKHNWYRT8xw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qMm9M+Fa2AknHoGS"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51352 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751032Ab3FVVr5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 22 Jun 2013 17:47:57 -0400
-Content-Disposition: inline
-In-Reply-To: <1371935030-20773-2-git-send-email-pekon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Robin Holt <holt@sgi.com>, Linus Walleij <linus.walleij@linaro.org>, Andrey Konovalov <andrey.konovalov@linaro.org>, Russ Anderson <rja@sgi.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Milosz Wasilewski <milosz.wasilewski@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: tony@atomide.com, artem.bityutskiy@linux.intel.com, b-cousson@ti.com, arnd@arndb.de, avinashphilip@ti.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, jp.francois@cynove.com
 
---qMm9M+Fa2AknHoGS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Sun, Jun 23, 2013 at 02:33:47AM +0530, Pekon Gupta wrote:
-> From: "Gupta, Pekon" <pekon@ti.com>
+panda build broken on linux-next branch
 
-Can you fix your From address ? I guess:
+kernel_config=3Domap2plus_defconfig
+KERNEL_VERSION=3D3.10.0-rc6
+KERNEL_GIT=3Dgit://git.kernel.org/pub/scm/linux/kernel/git/next/linux-n=
+ext.git
+KERNEL_COMMIT=3De1a86578747376f08985627c84df088a5d0d1e92
 
-git config --global user.name "Pekon Gupta"
+Build error log :
+-------------------
+04:43:18   CC      arch/arm/mach-omap2/omap4-restart.o
+04:43:18 /mnt/ci_build/workspace/linux-next/hwpack/panda/label/kernel_c=
+loud/arch/arm/mach-omap2/omap4-restart.c:21:28:
+warning: =91enum reboot_mode=92 declared inside parameter list [enabled=
+ by
+default]
+04:43:18  void omap44xx_restart(enum reboot_mode mode, const char *cmd)
+04:43:18                             ^
+04:43:18 /mnt/ci_build/workspace/linux-next/hwpack/panda/label/kernel_c=
+loud/arch/arm/mach-omap2/omap4-restart.c:21:28:
+warning: its scope is only this definition or declaration, which is
+probably not what you want [enabled by default]
+04:43:18 /mnt/ci_build/workspace/linux-next/hwpack/panda/label/kernel_c=
+loud/arch/arm/mach-omap2/omap4-restart.c:21:40:
+error: parameter 1 (=91mode=92) has incomplete type
+04:43:18  void omap44xx_restart(enum reboot_mode mode, const char *cmd)
+04:43:18                                         ^
+04:43:18 /mnt/ci_build/workspace/linux-next/hwpack/panda/label/kernel_c=
+loud/arch/arm/mach-omap2/omap4-restart.c:21:6:
+warning: function declaration isn=92t a prototype [-Wstrict-prototypes]
+04:43:18  void omap44xx_restart(enum reboot_mode mode, const char *cmd)
+04:43:18       ^
+04:43:18 make[2]: *** [arch/arm/mach-omap2/omap4-restart.o] Error 1
+04:43:18 make[1]: *** [arch/arm/mach-omap2] Error 2
 
-should do it, but you'll have to recommit those commits with:
+=46ull build log:
+------------------
+https://ci.linaro.org/jenkins/job/linux-next/hwpack=3Dpanda,label=3Dker=
+nel_cloud/lastBuild/console
 
-git commit --amend --reset-author
+Suspecting patch which caused build failed:
+--------------------------------------------------------
+commit b61cdf2aebc5cd2f4efc4e0cbebeb8a91884a43e
+Author: Robin Holt <holt@sgi.com>
+Date:   Wed Jun 19 10:08:43 2013 +1000
 
-cheers
+reboot: arm: change reboot_mode to use enum reboot_mode
 
---=20
-balbi
+Preparing to move the parsing of reboot=3D to generic kernel code force=
+s the
+change in reboot_mode handling to use the enum.
 
---qMm9M+Fa2AknHoGS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Signed-off-by: Robin Holt <holt@sgi.com>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+=2E..
+diff --git a/arch/arm/mach-omap2/omap4-restart.c
+b/arch/arm/mach-omap2/omap4-restart.c
+index f90e02e..652adde 100644
+--- a/arch/arm/mach-omap2/omap4-restart.c
++++ b/arch/arm/mach-omap2/omap4-restart.c
+@@ -18,7 +18,7 @@
+  * Resets the SoC.  For @cmd, see the 'reboot' syscall in
+  * kernel/sys.c.  No return value.
+  */
+-void omap44xx_restart(char mode, const char *cmd)
++void omap44xx_restart(enum reboot_mode mode, const char *cmd)
+ {
+        /* XXX Should save 'cmd' into scratchpad for use after reboot *=
+/
+        omap4_prminst_global_warm_sw_reset(); /* never returns */
+=2E..
 
-iQIcBAEBAgAGBQJRxhtkAAoJEIaOsuA1yqRE02gP/2TjYSUDrUxnZXm2USBTI8UM
-eiuOgbadEevAkKlhvsNn50WGdwbmzZr2NRhzjh0GN+xsF4KBMUIITkNxj52IIdQI
-40nazy4sV93bu+tLKBWhVdBldWayhKD2IEuM5725f0zK+58LGJDi9Iz+UPWjK/82
-gNrafBlNqZOBCk/74mB/jc//wupFuat9gRShzPGTum0PFKiWFRX6FCaNEvth/HWF
-BLq1whb2lOVEXmoxBPB1K1qmDxnjYdisrapzzCkwjL3tqzzj5wRJrbkRuzjgRm+b
-kFLij1Fo446KQ32MaEabBFKikhzPiO9D8ushcbxchdzPxU0WCWnAzTtEVW+KdWXt
-bO7YQhZxNoB18xpAA0XbJWUDPv4RkywI0804IA6Sh5H+z09mEUoikzS9vaLfYs+0
-AgDkC8pgcksbI/uOLXGAk+3VG0jERqkFe2j9ZYTZGs0N4H2eV94aLSQ6tXWL9LI/
-iUg1FQeYk5F+X9h2Ij5YdXwvLWwu2UOJGQ+sdjc3mh41nsSpJwToYftXx/mXF10S
-QeWukT20yA/iylmeGgQN9iXvWp6ZBC3SA06jONC6d9erfHfnNpO4sb2qImDCadcI
-ViCGpZ60Kz76eC7b+sKy3KMesD8/xXT/1x5Wp5ck+MogByutcG9ZPsOg8GpX4T7d
-ncaDDmpOdVQeszE/lFbp
-=Ue2M
------END PGP SIGNATURE-----
-
---qMm9M+Fa2AknHoGS--
+Best regards
+Naresh Kamboju
