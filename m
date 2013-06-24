@@ -1,70 +1,137 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [BISECTED] 3.10-rc1 OMAP1 GPIO IRQ regression
-Date: Mon, 24 Jun 2013 03:01:41 +0200
-Message-ID: <CAAwP0s00RwP7jCMF1O8j8Ndhu=VfD2dMA5fzr6jWvQ7PziXBCw@mail.gmail.com>
-References: <20130513205302.GA3157@blackmetal.musicnaut.iki.fi>
- <20130516180933.GG5600@atomide.com> <20130516210006.GA31836@blackmetal.musicnaut.iki.fi>
- <20130516214430.GN5600@atomide.com> <20130520174621.GI10378@atomide.com>
- <20130605223355.EDC113E10E4@localhost> <20130606155341.GL3331@atomide.com>
- <20130623221605.GA3150@blackmetal.musicnaut.iki.fi> <CAAwP0s1DkMu8Vfka43hS4Wj-927q=O5u-coyFsPBgy3qtA_vjw@mail.gmail.com>
- <20130623234326.GA20703@blackmetal.musicnaut.iki.fi>
+From: Ambresh K <ambresh@ti.com>
+Subject: Re: [PATCH V2 3/3] ARM: OMAP2+: clk: Fix return type of callbacks
+Date: Mon, 24 Jun 2013 10:21:58 +0530
+Message-ID: <51C7D06E.30407@ti.com>
+References: <1371458384-23936-1-git-send-email-ambresh@ti.com> <1371458384-23936-4-git-send-email-ambresh@ti.com> <20130621181333.20448.23218@quantum>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f180.google.com ([209.85.223.180]:62132 "EHLO
-	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750872Ab3FXBCB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Jun 2013 21:02:01 -0400
-Received: by mail-ie0-f180.google.com with SMTP id f4so23613598iea.11
-        for <linux-omap@vger.kernel.org>; Sun, 23 Jun 2013 18:02:01 -0700 (PDT)
-In-Reply-To: <20130623234326.GA20703@blackmetal.musicnaut.iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130621181333.20448.23218@quantum>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Rajendra <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jon Hunter <jgchunter@gmail.com>
 
-On Mon, Jun 24, 2013 at 1:43 AM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> Hi,
->
-> On Mon, Jun 24, 2013 at 01:06:37AM +0200, Javier Martinez Canillas wrote:
->> On Mon, Jun 24, 2013 at 12:16 AM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
->> > What is the status of this patch? We're already at 3.10-rc7 and GPIO
->> > IRQs are still broken on OMAP1.
->
-> [...]
->
->> There is a problem with this patch.
->
-> [...]
->
->> So I think that the correct solution is to add SPARSE_IRQ support to
->> omap1 and not reverting Jon's patch. Of course this may not be
->> possible since we are so close to 3.10 and most OMAP patches already
->> merged for 3.11 but we should definitely try to have this at least for
->> 3.12. Otherwise we won't be able to move to DT-only booting for
->> OMAP2+.
->
-> OMAP1 does not use DT. So we could put this code under #ifdef
-> CONFIG_ARCH_OMAP1 or similar. It's just a few lines of code. OMAP2+
-> work should not regress OMAP1.
->
-> Demanding SPARSE_IRQ support for OMAP1 should have been discussed before
-> these changes were made. It's not reasonable to assume such things can
-> be made during rc-cycle. Also, now, I don't think it's reasonable to
-> wait for that to be done, as it would take until 3.12 or even later to
-> get OMAP1 functional again.
->
-> A.
 
-Hi,
 
-Yes, since we are so late in the -rc cycle and OMAP1 is currently
-broken I agree that the only sensible solution is to revert the patch
-for now.
+On Friday 21 June 2013 11:43 PM, Mike Turquette wrote:
+> Quoting Ambresh K (2013-06-17 01:39:44)
+>> From: Ambresh K <ambresh@ti.com>
+>>
+>> clk_ops's .get_parent member data return's signed value.
+>>
+>> Signed-off-by: Ambresh K <ambresh@ti.com>
+>=20
+> Unsurprisingly I get the following errors when building
+> multi_v7_defconfig:
+>=20
+> drivers/clk/clk-composite.c: In function =E2=80=98clk_register_compos=
+ite=E2=80=99:
+> drivers/clk/clk-composite.c:148:33: warning: assignment from incompat=
+ible pointer type [enabled by default]
+> drivers/clk/clk-prima2.c:411:2: warning: initialization from incompat=
+ible pointer type [enabled by default]
+> drivers/clk/clk-prima2.c:411:2: warning: (near initialization for =E2=
+=80=98msi_ops.get_parent=E2=80=99) [enabled by default]
+> drivers/clk/clk-prima2.c:459:2: warning: initialization from incompat=
+ible pointer type [enabled by default]
+> drivers/clk/clk-prima2.c:459:2: warning: (near initialization for =E2=
+=80=98cpu_ops.get_parent=E2=80=99) [enabled by default]
+> drivers/clk/clk-prima2.c:485:2: warning: initialization from incompat=
+ible pointer type [enabled by default]
+> drivers/clk/clk-prima2.c:485:2: warning: (near initialization for =E2=
+=80=98dmn_ops.get_parent=E2=80=99) [enabled by default]
+> drivers/clk/clk-zynq.c:118:2: warning: initialization from incompatib=
+le pointer type [enabled by default]
+> drivers/clk/clk-zynq.c:118:2: warning: (near initialization for =E2=80=
+=98zynq_periph_clk_ops.get_parent=E2=80=99) [enabled by default]
+> drivers/clk/clk-zynq.c:228:2: warning: initialization from incompatib=
+le pointer type [enabled by default]
+> drivers/clk/clk-zynq.c:228:2: warning: (near initialization for =E2=80=
+=98zynq_cpu_clk_ops.get_parent=E2=80=99) [enabled by default]
+>=20
+> All definitions of .get_parent callbacks need to be updated, not just
+> your platform of choice. And there may well be more than the ones abo=
+ve.
+>=20
+> I'm not taking this series for 3.11. After the merge window can you
+> resubmit this series with fixes for all of the .get_parent definition=
+s?
+> Not just for OMAP.
+>=20
+> Otherwise the rest of the series looks good and I'll be happy to take
+> this in towards 3.12.
 
-I just wanted to point out the issue that keeping the OMAP GPIO driver
-using legacy mapping domain represents a blocker to have GPIO-IRQ
-working with Device Tree for OMAP2+
+Thanks Mike! Will fix for other platforms too and resend v3.
 
-Thanks a lot and best regards,
-Javier
+>=20
+> Thanks,
+> Mike
+>=20
+>> ---
+>>  arch/arm/mach-omap2/clkt_clksel.c |    2 +-
+>>  arch/arm/mach-omap2/clkt_dpll.c   |    2 +-
+>>  arch/arm/mach-omap2/clock.h       |    4 ++--
+>>  3 files changed, 4 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/clkt_clksel.c b/arch/arm/mach-omap2=
+/clkt_clksel.c
+>> index 0ec9f6f..2773657 100644
+>> --- a/arch/arm/mach-omap2/clkt_clksel.c
+>> +++ b/arch/arm/mach-omap2/clkt_clksel.c
+>> @@ -303,7 +303,7 @@ u32 omap2_clksel_round_rate_div(struct clk_hw_om=
+ap *clk,
+>>   * way to return an error, so if we encounter an error, just WARN()
+>>   * and pretend that we know that we're doing.
+>>   */
+>> -u8 omap2_clksel_find_parent_index(struct clk_hw *hw)
+>> +int omap2_clksel_find_parent_index(struct clk_hw *hw)
+>>  {
+>>         struct clk_hw_omap *clk =3D to_clk_hw_omap(hw);
+>>         const struct clksel *clks;
+>> diff --git a/arch/arm/mach-omap2/clkt_dpll.c b/arch/arm/mach-omap2/c=
+lkt_dpll.c
+>> index 924c230..54b8c49 100644
+>> --- a/arch/arm/mach-omap2/clkt_dpll.c
+>> +++ b/arch/arm/mach-omap2/clkt_dpll.c
+>> @@ -186,7 +186,7 @@ static int _dpll_test_mult(int *m, int n, unsign=
+ed long *new_rate,
+>>  }
+>> =20
+>>  /* Public functions */
+>> -u8 omap2_init_dpll_parent(struct clk_hw *hw)
+>> +int omap2_init_dpll_parent(struct clk_hw *hw)
+>>  {
+>>         struct clk_hw_omap *clk =3D to_clk_hw_omap(hw);
+>>         u32 v;
+>> diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock=
+=2Eh
+>> index 7aa32cd..2784087 100644
+>> --- a/arch/arm/mach-omap2/clock.h
+>> +++ b/arch/arm/mach-omap2/clock.h
+>> @@ -384,7 +384,7 @@ void __init omap2_clk_disable_clkdm_control(void=
+);
+>>  u32 omap2_clksel_round_rate_div(struct clk_hw_omap *clk,
+>>                                 unsigned long target_rate,
+>>                                 u32 *new_div);
+>> -u8 omap2_clksel_find_parent_index(struct clk_hw *hw);
+>> +int omap2_clksel_find_parent_index(struct clk_hw *hw);
+>>  unsigned long omap2_clksel_recalc(struct clk_hw *hw, unsigned long =
+parent_rate);
+>>  long omap2_clksel_round_rate(struct clk_hw *hw, unsigned long targe=
+t_rate,
+>>                                 unsigned long *parent_rate);
+>> @@ -396,7 +396,7 @@ int omap2_clksel_set_parent(struct clk_hw *hw, u=
+8 field_val);
+>>  extern void omap2_clkt_iclk_allow_idle(struct clk_hw_omap *clk);
+>>  extern void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk);
+>> =20
+>> -u8 omap2_init_dpll_parent(struct clk_hw *hw);
+>> +int omap2_init_dpll_parent(struct clk_hw *hw);
+>>  unsigned long omap2_get_dpll_rate(struct clk_hw_omap *clk);
+>> =20
+>>  int omap2_dflt_clk_enable(struct clk_hw *hw);
+>> --=20
+>> 1.7.4.1
+>=20
