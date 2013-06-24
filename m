@@ -1,94 +1,127 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH] ARM: omap: make am43xx build with SMP enabled
-Date: Mon, 24 Jun 2013 08:13:45 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EB2495F@DBDE04.ent.ti.com>
-References: <201306220122.47786.arnd@arndb.de>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCHv2 2/2] ARM: dts: AM33XX: Add support for IGEP AQUILA EXPANSION
+ board.
+Date: Mon, 24 Jun 2013 10:58:28 +0200
+Message-ID: <51C80A34.6090904@epfl.ch>
+References: <51C5B94D.7080008@collabora.co.uk>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59649 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753064Ab3FXIOQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Jun 2013 04:14:16 -0400
-In-Reply-To: <201306220122.47786.arnd@arndb.de>
-Content-Language: en-US
+Received: from smtp0.epfl.ch ([128.178.224.218]:47645 "HELO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751528Ab3FXI6e (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Jun 2013 04:58:34 -0400
+In-Reply-To: <51C5B94D.7080008@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>
-Cc: "Kishore, Ankur" <a-kishore@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hi Arnd, Tony,
+Hello Javier,
 
-On Sat, Jun 22, 2013 at 04:52:47, Arnd Bergmann wrote:
-> With am43xx enabled, omap4 and omap5 disabled and SMP on, I get these
-> build errors:
+On 06/22/2013 04:48 PM, Javier Martinez Canillas wrote:
+> On Thu, Jun 20, 2013 at 10:16 AM, Enric Balletbo i Serra <eballetbo@iseebcn.com>
+> wrote:
+>> The IGEP AQUILA EXPANSION board is a development platform for the IGEP COM
+>> AQUILA AM335x boards.
+>>
+>> The board adds the following connectivity:
+>>
+>>      o USB OTG
+>>      o USB HOST
+>>      o HDMI
+>>      o Ethernet
+>>      o Serial Debug (3.3V)
+>>      o 2x46 pin headers
+>>      o EEPROM
+>>
+>> Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+>> ---
+>>   arch/arm/boot/dts/Makefile            |  1 +
+>>   arch/arm/boot/dts/am335x-base0033.dts | 16 ++++++++++++++++
+>>   2 files changed, 17 insertions(+)
+>>   create mode 100644 arch/arm/boot/dts/am335x-base0033.dts
+>>
+>> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+>> index 8e50761..cb675d2 100644
+>> --- a/arch/arm/boot/dts/Makefile
+>> +++ b/arch/arm/boot/dts/Makefile
+>> @@ -154,6 +154,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+>>          am335x-evm.dtb \
+>>          am335x-evmsk.dtb \
+>>          am335x-bone.dtb \
+>> +       am335x-base0033.dtb \
+>>          am3517-evm.dtb \
+>>          am3517_mt_ventoux.dtb
+>>   dtb-$(CONFIG_ARCH_ORION5X) += orion5x-lacie-ethernet-disk-mini-v2.dtb
+>> diff --git a/arch/arm/boot/dts/am335x-base0033.dts
+> b/arch/arm/boot/dts/am335x-base0033.dts
+>> new file mode 100644
+>> index 0000000..d6bb791
+>> --- /dev/null
+>> +++ b/arch/arm/boot/dts/am335x-base0033.dts
+>> @@ -0,0 +1,16 @@
+>> +/*
+>> + * am335x-base0033.dtsi - Device Tree file for IGEP AQUILA EXPANSION
+>> + *
+>> + * Copyright (C) 2013 ISEE 2007 SL - http://www.isee.biz
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +
+>> +#include "am335x-igep0033.dtsi"
+>> +
+>> +/ {
+>> +       model = "IGEP COM AM335x on AQUILA Expansion";
+>> +       compatible = "ti,am335x-base0033", "ti,am335x-igep0033", "ti,am33xx";
+>> +};
+>> --
+>> 1.8.1.2
+>>
+>
+> Hi Enric
+>
+> Just small comment. I think it's better to make it compatible with
+> "isee,am335x-base0033", "isee,am335x-igep0033", "ti,am33xx" since these boards
+> are manufactured by ISEE and not by Texas Instrument.
+>
+> I see that other boards such as the omap3-tobi.dts use the same convention that
+> you are using here and make it compatible with "ti,omap3-tobi",
+> "ti,omap3-overo", "ti,omap3" instead of something like "gumstix,omap3-tobi",
+> "gumstix,omap3-overo", "ti,omap3" that I think it would be better.
+>
 
-Getting AM43x only build with OMAP4/5 disabled was really difficult
-with original series itself, I thought finally had got a right
-Makefile change handling SMP combinations too, but still :(, my brain
-was not big enough to think of multiplatform case :)
+Your approach makes sense to me, as the board manufacturer is the one of 
+importance
+here.
 
-Thanks Arnd for the patch.
+I rapidly looked at the OF norm (IEEE 1275), all I could find is that 
+"compatible"
+should follow the same convention that the "name" property:
 
-> arch/arm/mach-omap2/built-in.o: In function `scu_gp_set':
-> :(.text+0x7858): undefined reference to `omap4_get_scu_base'
-> arch/arm/mach-omap2/built-in.o: In function `scu_gp_clear':
-> :(.text+0x793c): undefined reference to `omap4_get_scu_base'
-> arch/arm/mach-omap2/built-in.o: In function `omap4_cpu_die':
-> :(.ref.text+0x44): undefined reference to `omap4_hotplug_cpu'
-> 
-> The easiest way to work around that is to turn on the missing
-> functions, even though we know they won't be used on am43xx,
-> which is single-CPU.
+"For plug-in devices, the value string shall begin with a company name 
+string in
+one of the following forms, followed by a comma (',')."
 
-This change was giving errors mainly due to unavailable omap4 prcm
-functions required by "omap-mpuss-lowpower.c"
+As for the form of the company name, it can be:
 
-How about the below patch - we don't need to include additional
-files with it, or something wrong with it ?
+- an Organizationally Unique Identifier (OUI) assigned by IEEE
+- "one to five uppercase letters representing the stock symbol of the 
+company on
+any stock exchange"
+- any other string, as long as it cannot be confused with one of the two 
+above-
+mentioned form
 
-Regards
-Afzal
+> But maybe I'm just wrong and misunderstanding the convention on how to define
+> the compatible string for boards.
+>
 
----8<------
+I do not know either, but I agree with you.
 
-From: Afzal Mohammed <afzal@ti.com>
-Date: Mon, 24 Jun 2013 12:41:05 +0530
-Subject: [PATCH] ARM: OMAP2+: AM43x: resolve SMP related build error
-
-If AM43x and SMP is selected, OMAP4 & OMAP5 deselected, build error as
-follows,
-
-arch/arm/mach-omap2/built-in.o: In function `scu_gp_set':
-arch/arm/mach-omap2/sleep44xx.S:131: undefined reference to `omap4_get_scu_base'
-arch/arm/mach-omap2/sleep44xx.S:132: undefined reference to `scu_power_mode'
-arch/arm/mach-omap2/built-in.o: In function `scu_gp_clear':
-arch/arm/mach-omap2/sleep44xx.S:227: undefined reference to `omap4_get_scu_base'
-arch/arm/mach-omap2/sleep44xx.S:229: undefined reference to `scu_power_mode'
-
-Resolve it by building sleep44xx.S only for OMAP4 & OMAP5.
-
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
----
- arch/arm/mach-omap2/Makefile | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 0520dc4..a6c4187 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -35,8 +35,9 @@ obj-$(CONFIG_SOC_HAS_OMAP2_SDRC)      += sdrc.o
-
- smp-$(CONFIG_SMP)                      += omap-smp.o omap-headsmp.o
- smp-$(CONFIG_HOTPLUG_CPU)              += omap-hotplug.o
--omap-4-5-common                                =  omap4-common.o omap-wakeupgen.o \
--                                          sleep44xx.o
-+omap-4-5-common                                =  omap4-common.o omap-wakeupgen.o
-+obj-$(CONFIG_ARCH_OMAP4)               += sleep44xx.o
-+obj-$(CONFIG_SOC_OMAP5)                        += sleep44xx.o
- obj-$(CONFIG_ARCH_OMAP4)               += $(omap-4-5-common) $(smp-y)
- obj-$(CONFIG_SOC_OMAP5)                        += $(omap-4-5-common) $(smp-y)
- obj-$(CONFIG_SOC_AM43XX)               += $(omap-4-5-common)
---
-
+Regards,
+Florian
