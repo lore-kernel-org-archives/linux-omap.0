@@ -1,68 +1,52 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCHv12] spi: omap2-mcspi: add generic DMA request support to the DT binding
-Date: Mon, 24 Jun 2013 17:31:59 +0530
-Message-ID: <1372075319-21680-1-git-send-email-sourav.poddar@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC] ARM: OMAP2+: omap_device: add pinctrl handling
+Date: Mon, 24 Jun 2013 14:06:52 +0200
+Message-ID: <CACRpkdY=m1b9Lh27+wHP8FQ4SbVZKmAOCGhxe59aP+TcuR9QaA@mail.gmail.com>
+References: <1371826990-25820-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: broonie@kernel.org, tony@atomide.com
-Cc: balbi@rocket1.ti.cm, joelagnel@ti.com, nsekhar@ti.com, devicetree-discuss@lists.ozlabs.org, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, linux-doc@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1371826990-25820-1-git-send-email-grygorii.strashko@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, Stephen Warren <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Hebbar Gururaja <gururaja.hebbar@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Matt Porter <mporter@ti.com>
+On Fri, Jun 21, 2013 at 5:03 PM, Grygorii Strashko
+<grygorii.strashko@ti.com> wrote:
 
-The binding definition is based on the generic DMA request binding
+> Hence, add pinctrl handling in omap_device core:
+> 1) on PM runtime resume
+> - switch pinctrl state to "default" (todo: "active")
+> 2) on PM runtime suspend
+> - switch pinctrl state to "idle"
+> 3) during system wide suspend
+> - switch pinctrl state to "sleep" or "idle" if omap_device core disables device
+> - switch pinctrl state to "sleep" if device is disabled already
+> 4) during system wide resume
+> - switch pinctrl state to "default" (todo: "active") if omap_device core has
+>   disabled  device during suspend
+> - switch pinctrl state to "idle" if device was already disabled before suspend
 
-Signed-off-by: Matt Porter <mporter@ti.com>
-Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
----
- Documentation/devicetree/bindings/spi/omap-spi.txt |   27 +++++++++++++++++++-
- 1 files changed, 26 insertions(+), 1 deletions(-)
+I don't understand step 4.
 
-diff --git a/Documentation/devicetree/bindings/spi/omap-spi.txt b/Documentation/devicetree/bindings/spi/omap-spi.txt
-index 938809c..4c85c4c 100644
---- a/Documentation/devicetree/bindings/spi/omap-spi.txt
-+++ b/Documentation/devicetree/bindings/spi/omap-spi.txt
-@@ -10,7 +10,18 @@ Required properties:
- 			  input. The default is D0 as input and
- 			  D1 as output.
- 
--Example:
-+Optional properties:
-+- dmas: List of DMA specifiers with the controller specific format
-+	as described in the generic DMA client binding. A tx and rx
-+	specifier is required for each chip select.
-+- dma-names: List of DMA request names. These strings correspond
-+	1:1 with the DMA specifiers listed in dmas. The string naming
-+	is to be "rxN" and "txN" for RX and TX requests,
-+	respectively, where N equals the chip select number.
-+
-+Examples:
-+
-+[hwmod populated DMA resources]
- 
- mcspi1: mcspi@1 {
-     #address-cells = <1>;
-@@ -20,3 +31,17 @@ mcspi1: mcspi@1 {
-     ti,spi-num-cs = <4>;
- };
- 
-+[generic DMA request binding]
-+
-+mcspi1: mcspi@1 {
-+    #address-cells = <1>;
-+    #size-cells = <0>;
-+    compatible = "ti,omap4-mcspi";
-+    ti,hwmods = "mcspi1";
-+    ti,spi-num-cs = <2>;
-+    dmas = <&edma 42
-+	    &edma 43
-+	    &edma 44
-+	    &edma 45>;
-+    dma-names = "tx0", "rx0", "tx1", "rx1";
-+};
--- 
-1.7.1
+I get the creeps about whether the system is runtime suspended
+or runtime resumed when we come to resume proper, so I need
+Kevin to have a look at this.
 
+Apart from that it looks good.
+
+Stephen and Tony are trying to figure out the details of whether "active"
+is necessary or not in a related thread I think.
+
+Yours,
+Linus Walleij
