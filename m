@@ -1,64 +1,114 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH 2/4] MFD: Palmas: Add TPS659038 PMIC support
-Date: Mon, 24 Jun 2013 16:21:34 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229EF57C@DBDE04.ent.ti.com>
-References: <1371726316-10078-1-git-send-email-j-keerthy@ti.com>
- <20130624114322.GB30838@zurbaran>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [RFC] ARM: OMAP2+: omap_device: add pinctrl handling
+Date: Mon, 24 Jun 2013 10:55:43 -0700
+Message-ID: <87zjuftmu8.fsf@linaro.org>
+References: <1371826990-25820-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130624114322.GB30838@zurbaran>
-Content-Language: en-US
-Sender: linux-doc-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1371826990-25820-1-git-send-email-grygorii.strashko@ti.com>
+	(Grygorii Strashko's message of "Fri, 21 Jun 2013 18:03:10 +0300")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Hebbar Gururaja <gururaja.hebbar@ti.com>, Linus Walleij <linus.walleij@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Grygorii,
 
+Grygorii Strashko <grygorii.strashko@ti.com> writes:
 
-> -----Original Message-----
-> From: Samuel Ortiz [mailto:sameo@linux.intel.com]
-> Sent: Monday, June 24, 2013 5:13 PM
-> To: J, KEERTHY
-> Cc: linux-omap@vger.kernel.org; broonie@kernel.org;
-> ldewangan@nvidia.com; grant.likely@secretlab.ca; swarren@nvidia.com;
-> linux-kernel@vger.kernel.org; linux-doc@vger.kernel.org; devicetree-
-> discuss@lists.ozlabs.org; gg@slimlogic.co.uk
-> Subject: Re: [PATCH 2/4] MFD: Palmas: Add TPS659038 PMIC support
-> 
-> Hi,
-> 
-> On Thu, Jun 20, 2013 at 04:35:16PM +0530, J Keerthy wrote:
-> > The Patch adds TPS659038 PMIC support in the palmas mfd driver.
-> > The TPS659038 has almost the same registers as of the earlier
-> > supported variants of PALMAS family such as the TWL6035.
-> >
-> > The critical differences between TPS659038 and TWL6035 being:
-> >
-> > 1) TPS659038 has nothing related to battery charging and back up
-> battery stuff.
-> > 2) TPS659038 does not have does not have SMPS10(Boost) step up
-> convertor.
-> > 3) TPS659038 does not have Battery detection and anything related to
-> battery.
-> > 4) SD card detection, Battery presence detection, Vibrator, USB OTG
-> are missing
-> >    when compared to TWL6035.
-> >
-> > Signed-off-by: J Keerthy <j-keerthy@ti.com>
-> > Acked-by: Samuel Ortiz <sameo@linux.intel.com>
-> > ---
-> >  drivers/mfd/palmas.c |    5 +++++
-> >  1 files changed, 5 insertions(+), 0 deletions(-)
-> Applied, thanks.
+> Before switching to DT pinctrl states of OMAP IPs have been handled by hwmod
+> framework. After switching to DT-boot the pinctrl handling was dropped from
+> hwmod framework and, as it was recommended, OMAP IP's drivers have to be updated
+> to handle pinctrl states by itself using pinctrl_pm_select_xx() helpers
+> (see http://lists.infradead.org/pipermail/linux-arm-kernel/2013-June/173514.html)
+>
+> But this is not right for OMAP2+ SoC where real IPs state is controlled
+> by omap_device core which enables/disables modules & clocks actually.
+>
+> For example, if OMAP I2C driver will handle pinctrl state during system wide
+> suspend the following issue may occure:
+> - suspend_noirq - I2C device can be still active because of PM auto-suspend
+>   |-_od_suspend_noirq
+>      |- omap_i2c_suspend_noirq
+>         |- PINs state set to SLEEP
+>   |- pm_generic_runtime_suspend
+>      |- omap_i2c_runtime_suspend()
+>         |- PINs state set to IDLE  <--- *oops* PINs state is IDLE and not SLEEP
+>   |- omap_device_idle()
+>      |- omap_hwmod_idle()
+>         |- _idle()
+>            |- disbale module (sysc&clocks)
+>
+> - resume_noirq - I2C was active before suspend
+>   |-_od_resume_noirq
+>      |- omap_hwmod_enable()
+>         |- _enable()
+>            |- enable module (sysc&clocks)
+>      |- pm_generic_runtime_resume
+>         |- omap_i2c_runtime_resume()
+>            |- PINs state set to DEFAULT  <--- !!!!
+>      |- omap_i2c_resume_noirq
+>         |- PINs state set to DEFAULT
+>         |- PINs state set to IDLE  <--- *big oops* we have active module and its
+>                                          PINs state is IDLE
+> (see https://patchwork.kernel.org/patch/2642101/)
+>
+> Of course, everything can be handled by adding a tons of code in ecah driver to
+> check PM state of device and override default behavior of omap_device core, but
+> this not good.
+>
+> Hence, add pinctrl handling in omap_device core:
+> 1) on PM runtime resume
+> - switch pinctrl state to "default" (todo: "active")
+> 2) on PM runtime suspend
+> - switch pinctrl state to "idle"
+> 3) during system wide suspend
+> - switch pinctrl state to "sleep" or "idle" if omap_device core disables device
+> - switch pinctrl state to "sleep" if device is disabled already
+> 4) during system wide resume
+> - switch pinctrl state to "default" (todo: "active") if omap_device core has
+>   disabled  device during suspend
+> - switch pinctrl state to "idle" if device was already disabled before suspend
+>
+> This will enable pinctrl for all OMAP2+ IP's drivers by default -
+> no changes in code is needed and only DT data will need to be updated
+> (add "default", "active", "idle", "sleep" states).
+>
+> This will enable pinctrl handling for all OMAP2+ drivers by default -
+> no changes in code is needed and only DT data will need to be updated
+> (add "default", "active", "idle", "sleep" states).
+>
+> Related discussions:
+> - [3/3] i2c: nomadik: use pinctrl PM helpers 
+>  https://patchwork.kernel.org/patch/2670291/
+> - mmc: omap_hsmmc: Remux pins to support SDIO interrupt and PM runtime
+>  https://patchwork.kernel.org/patch/2690191/
+> - [PATCH 00/11] drivers: Add Pinctrl PM support
+>  https://lkml.org/lkml/2013/5/31/210
+>
+> CC: Hebbar Gururaja <gururaja.hebbar@ti.com>
+> CC: Linus Walleij  <linus.walleij@linaro.org>
+> CC: linux-arm-kernel@lists.infradead.org
+> CC: linux-omap@vger.kernel.org
+> CC: linux-kernel@vger.kernel.org 
+>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> ---
+> Hi Kevin, Tony,
+>
+> I've verified this patch on OMAP4 SDP board:
+> - PM runtime for I2C4, UART2, UART3
+> - suspend/resume with I2C4, UART2, UART3
+>
+> seems it works and pinctrl states have been updated as expected.
 
-Thanks Samuel.
+Thanks for working on this.
 
-> 
-> Cheers,
-> Samuel.
-> 
-> --
-> Intel Open Source Technology Centre
-> http://oss.intel.com/
+I agree with the approach, and much prefer this to boiler plate code
+throughout the drivers.
+
+I suggest we wait until the dust settles on the active/default thread
+before taking this further, but have no objections to the approach.
+
+Kevin
