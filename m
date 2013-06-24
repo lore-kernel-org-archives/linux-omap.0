@@ -1,137 +1,131 @@
-From: Ambresh K <ambresh@ti.com>
-Subject: Re: [PATCH V2 3/3] ARM: OMAP2+: clk: Fix return type of callbacks
-Date: Mon, 24 Jun 2013 10:21:58 +0530
-Message-ID: <51C7D06E.30407@ti.com>
-References: <1371458384-23936-1-git-send-email-ambresh@ti.com> <1371458384-23936-4-git-send-email-ambresh@ti.com> <20130621181333.20448.23218@quantum>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v7 7/9] usb: musb: omap2430: use the new generic PHY framework
+Date: Mon, 24 Jun 2013 11:01:56 +0530
+Message-ID: <51C7D9CC.8090901@ti.com>
+References: <1371113039-5784-1-git-send-email-kishon@ti.com> <1371113039-5784-8-git-send-email-kishon@ti.com> <20130618094703.GV5461@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130621181333.20448.23218@quantum>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Rajendra <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20130618094703.GV5461@arwen.pp.htv.fi>
+Sender: linux-doc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, sylvester.nawrocki@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, linux@arm.linux.org.uk, benoit.cousson@linaro.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, rnayak@ti.com, shawn.guo@linaro.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
-
-On Friday 21 June 2013 11:43 PM, Mike Turquette wrote:
-> Quoting Ambresh K (2013-06-17 01:39:44)
->> From: Ambresh K <ambresh@ti.com>
+On Tuesday 18 June 2013 03:17 PM, Felipe Balbi wrote:
+> Hi,
+>
+> On Thu, Jun 13, 2013 at 02:13:57PM +0530, Kishon Vijay Abraham I wrote:
+>> Use the generic PHY framework API to get the PHY. The usb_phy_set_resume
+>> and usb_phy_set_suspend is replaced with power_on/get_sync and
+>> power_off/put_sync to align with the new PHY framework.
 >>
->> clk_ops's .get_parent member data return's signed value.
+>> musb->xceiv can't be removed as of now because musb core uses xceiv.state and
+>> xceiv.otg. Once there is a separate state machine to handle otg, these can be
+>> moved out of xceiv and then we can start using the generic PHY framework.
 >>
->> Signed-off-by: Ambresh K <ambresh@ti.com>
->=20
-> Unsurprisingly I get the following errors when building
-> multi_v7_defconfig:
->=20
-> drivers/clk/clk-composite.c: In function =E2=80=98clk_register_compos=
-ite=E2=80=99:
-> drivers/clk/clk-composite.c:148:33: warning: assignment from incompat=
-ible pointer type [enabled by default]
-> drivers/clk/clk-prima2.c:411:2: warning: initialization from incompat=
-ible pointer type [enabled by default]
-> drivers/clk/clk-prima2.c:411:2: warning: (near initialization for =E2=
-=80=98msi_ops.get_parent=E2=80=99) [enabled by default]
-> drivers/clk/clk-prima2.c:459:2: warning: initialization from incompat=
-ible pointer type [enabled by default]
-> drivers/clk/clk-prima2.c:459:2: warning: (near initialization for =E2=
-=80=98cpu_ops.get_parent=E2=80=99) [enabled by default]
-> drivers/clk/clk-prima2.c:485:2: warning: initialization from incompat=
-ible pointer type [enabled by default]
-> drivers/clk/clk-prima2.c:485:2: warning: (near initialization for =E2=
-=80=98dmn_ops.get_parent=E2=80=99) [enabled by default]
-> drivers/clk/clk-zynq.c:118:2: warning: initialization from incompatib=
-le pointer type [enabled by default]
-> drivers/clk/clk-zynq.c:118:2: warning: (near initialization for =E2=80=
-=98zynq_periph_clk_ops.get_parent=E2=80=99) [enabled by default]
-> drivers/clk/clk-zynq.c:228:2: warning: initialization from incompatib=
-le pointer type [enabled by default]
-> drivers/clk/clk-zynq.c:228:2: warning: (near initialization for =E2=80=
-=98zynq_cpu_clk_ops.get_parent=E2=80=99) [enabled by default]
->=20
-> All definitions of .get_parent callbacks need to be updated, not just
-> your platform of choice. And there may well be more than the ones abo=
-ve.
->=20
-> I'm not taking this series for 3.11. After the merge window can you
-> resubmit this series with fixes for all of the .get_parent definition=
-s?
-> Not just for OMAP.
->=20
-> Otherwise the rest of the series looks good and I'll be happy to take
-> this in towards 3.12.
-
-Thanks Mike! Will fix for other platforms too and resend v3.
-
->=20
-> Thanks,
-> Mike
->=20
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 >> ---
->>  arch/arm/mach-omap2/clkt_clksel.c |    2 +-
->>  arch/arm/mach-omap2/clkt_dpll.c   |    2 +-
->>  arch/arm/mach-omap2/clock.h       |    4 ++--
->>  3 files changed, 4 insertions(+), 4 deletions(-)
+>>   drivers/usb/musb/musb_core.c |    1 +
+>>   drivers/usb/musb/musb_core.h |    3 +++
+>>   drivers/usb/musb/omap2430.c  |   29 +++++++++++++++++++++--------
+>>   3 files changed, 25 insertions(+), 8 deletions(-)
 >>
->> diff --git a/arch/arm/mach-omap2/clkt_clksel.c b/arch/arm/mach-omap2=
-/clkt_clksel.c
->> index 0ec9f6f..2773657 100644
->> --- a/arch/arm/mach-omap2/clkt_clksel.c
->> +++ b/arch/arm/mach-omap2/clkt_clksel.c
->> @@ -303,7 +303,7 @@ u32 omap2_clksel_round_rate_div(struct clk_hw_om=
-ap *clk,
->>   * way to return an error, so if we encounter an error, just WARN()
->>   * and pretend that we know that we're doing.
->>   */
->> -u8 omap2_clksel_find_parent_index(struct clk_hw *hw)
->> +int omap2_clksel_find_parent_index(struct clk_hw *hw)
->>  {
->>         struct clk_hw_omap *clk =3D to_clk_hw_omap(hw);
->>         const struct clksel *clks;
->> diff --git a/arch/arm/mach-omap2/clkt_dpll.c b/arch/arm/mach-omap2/c=
-lkt_dpll.c
->> index 924c230..54b8c49 100644
->> --- a/arch/arm/mach-omap2/clkt_dpll.c
->> +++ b/arch/arm/mach-omap2/clkt_dpll.c
->> @@ -186,7 +186,7 @@ static int _dpll_test_mult(int *m, int n, unsign=
-ed long *new_rate,
->>  }
->> =20
->>  /* Public functions */
->> -u8 omap2_init_dpll_parent(struct clk_hw *hw)
->> +int omap2_init_dpll_parent(struct clk_hw *hw)
->>  {
->>         struct clk_hw_omap *clk =3D to_clk_hw_omap(hw);
->>         u32 v;
->> diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock=
-=2Eh
->> index 7aa32cd..2784087 100644
->> --- a/arch/arm/mach-omap2/clock.h
->> +++ b/arch/arm/mach-omap2/clock.h
->> @@ -384,7 +384,7 @@ void __init omap2_clk_disable_clkdm_control(void=
-);
->>  u32 omap2_clksel_round_rate_div(struct clk_hw_omap *clk,
->>                                 unsigned long target_rate,
->>                                 u32 *new_div);
->> -u8 omap2_clksel_find_parent_index(struct clk_hw *hw);
->> +int omap2_clksel_find_parent_index(struct clk_hw *hw);
->>  unsigned long omap2_clksel_recalc(struct clk_hw *hw, unsigned long =
-parent_rate);
->>  long omap2_clksel_round_rate(struct clk_hw *hw, unsigned long targe=
-t_rate,
->>                                 unsigned long *parent_rate);
->> @@ -396,7 +396,7 @@ int omap2_clksel_set_parent(struct clk_hw *hw, u=
-8 field_val);
->>  extern void omap2_clkt_iclk_allow_idle(struct clk_hw_omap *clk);
->>  extern void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk);
->> =20
->> -u8 omap2_init_dpll_parent(struct clk_hw *hw);
->> +int omap2_init_dpll_parent(struct clk_hw *hw);
->>  unsigned long omap2_get_dpll_rate(struct clk_hw_omap *clk);
->> =20
->>  int omap2_dflt_clk_enable(struct clk_hw *hw);
->> --=20
->> 1.7.4.1
->=20
+>> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+>> index 37a261a..f732bcc 100644
+>> --- a/drivers/usb/musb/musb_core.c
+>> +++ b/drivers/usb/musb/musb_core.c
+>> @@ -1864,6 +1864,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+>>   	musb->board_set_power = plat->set_power;
+>>   	musb->min_power = plat->min_power;
+>>   	musb->ops = plat->platform_ops;
+>> +	musb->phy_label = plat->phy_label;
+>>
+>>   	/* The musb_platform_init() call:
+>>   	 *   - adjusts musb->mregs
+>> diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+>> index 7fb4819..498ae21 100644
+>> --- a/drivers/usb/musb/musb_core.h
+>> +++ b/drivers/usb/musb/musb_core.h
+>> @@ -46,6 +46,7 @@
+>>   #include <linux/usb.h>
+>>   #include <linux/usb/otg.h>
+>>   #include <linux/usb/musb.h>
+>> +#include <linux/phy/phy.h>
+>>
+>>   struct musb;
+>>   struct musb_hw_ep;
+>> @@ -357,6 +358,7 @@ struct musb {
+>>   	u16			int_tx;
+>>
+>>   	struct usb_phy		*xceiv;
+>> +	struct phy		*phy;
+>>
+>>   	int nIrq;
+>>   	unsigned		irq_wake:1;
+>> @@ -434,6 +436,7 @@ struct musb {
+>>   	unsigned                double_buffer_not_ok:1;
+>>
+>>   	struct musb_hdrc_config	*config;
+>> +	const char		*phy_label;
+>>
+>>   #ifdef MUSB_CONFIG_PROC_FS
+>>   	struct proc_dir_entry *proc_entry;
+>> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+>> index 628b93f..c62a004 100644
+>> --- a/drivers/usb/musb/omap2430.c
+>> +++ b/drivers/usb/musb/omap2430.c
+>> @@ -348,14 +348,24 @@ static int omap2430_musb_init(struct musb *musb)
+>>   	 * up through ULPI.  TWL4030-family PMICs include one,
+>>   	 * which needs a driver, drivers aren't always needed.
+>>   	 */
+>> -	if (dev->parent->of_node)
+>> +	if (dev->parent->of_node) {
+>> +		musb->phy = devm_phy_get(dev->parent, "usb2-phy");
+>> +
+>> +		/* We can't totally remove musb->xceiv as of now because
+>> +		 * musb core uses xceiv.state and xceiv.otg. Once we have
+>> +		 * a separate state machine to handle otg, these can be moved
+>> +		 * out of xceiv and then we can start using the generic PHY
+>> +		 * framework
+>> +		 */
+>>   		musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent,
+>>   		    "usb-phy", 0);
+>> -	else
+>> +	} else {
+>>   		musb->xceiv = devm_usb_get_phy_dev(dev, 0);
+>> +		musb->phy = devm_phy_get(dev, musb->phy_label);
+>> +	}
+>>
+>> -	if (IS_ERR(musb->xceiv)) {
+>> -		status = PTR_ERR(musb->xceiv);
+>> +	if (IS_ERR(musb->xceiv) || IS_ERR(musb->phy)) {
+>> +		status = PTR_ERR(musb->xceiv) | PTR_ERR(musb->phy);
+>>
+>>   		if (status == -ENXIO)
+>>   			return status;
+>> @@ -397,9 +407,10 @@ static int omap2430_musb_init(struct musb *musb)
+>>   	if (glue->status != OMAP_MUSB_UNKNOWN)
+>>   		omap_musb_set_mailbox(glue);
+>>
+>> -	usb_phy_init(musb->xceiv);
+>> +	phy_init(musb->phy);
+>>
+>>   	pm_runtime_put_noidle(musb->controller);
+>> +	phy_pm_runtime_put(musb->phy);
+>
+> see, weird unbalanced calls :-)
+>
+> Make it all explicit:
+>
+> phy_pm_runtime_get_sync(phy);
+> phy_init(phy);
+> phy_pm_runtime_put(phy);
+
+I think then it makes sense to drop get_sync from phy_init()?
+
+Thanks
+Kishon
