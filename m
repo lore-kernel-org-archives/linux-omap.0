@@ -1,65 +1,108 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH 1/4] MFD: Add TPS659038 documentation under Palmas
-Date: Mon, 24 Jun 2013 12:55:43 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229EF495@DBDE04.ent.ti.com>
-References: <1371726289-10042-1-git-send-email-j-keerthy@ti.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH v2 2/2] gpio/omap: auto request GPIO as input if used as
+ IRQ via DT
+Date: Mon, 24 Jun 2013 15:58:20 +0200
+Message-ID: <CAAwP0s3nBUrUfdB9HLKjhyH9u6YnOOV3tFtwDTQRf3tJ74fZ_g@mail.gmail.com>
+References: <1371855054-27958-1-git-send-email-javier.martinez@collabora.co.uk>
+ <1371855054-27958-3-git-send-email-javier.martinez@collabora.co.uk> <20130624125512.0C5283E0A89@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1371726289-10042-1-git-send-email-j-keerthy@ti.com>
-Content-Language: en-US
-Sender: linux-doc-owner@vger.kernel.org
-To: "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
-Cc: "broonie@kernel.org" <broonie@kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, "J, KEERTHY" <j-keerthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:62622 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751127Ab3FXN6l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Jun 2013 09:58:41 -0400
+Received: by mail-ie0-f174.google.com with SMTP id 9so24914047iec.33
+        for <linux-omap@vger.kernel.org>; Mon, 24 Jun 2013 06:58:40 -0700 (PDT)
+In-Reply-To: <20130624125512.0C5283E0A89@localhost>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@linaro.org>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, jgchunter@gmail.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, eballetbo@gmail.com, thomas.petazzoni@free-electrons.com, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>
+
+On Mon, Jun 24, 2013 at 2:55 PM, Grant Likely <grant.likely@linaro.org> wrote:
+> On Sat, 22 Jun 2013 00:50:54 +0200, Javier Martinez Canillas <javier.martinez@collabora.co.uk> wrote:
+>> When an OMAP GPIO is used as an IRQ line, a call to gpio_request()
+>> has to be made to initialize the OMAP GPIO bank before a driver
+>> request the IRQ. Otherwise the call to request_irq() fails.
+>>
+>> Drives should not be aware of this neither care wether an IRQ line
+>> is a GPIO or not. They should just request the IRQ and this has to
+>> be handled by the irq_chip driver.
+>>
+>> With the current OMAP GPIO DT binding, if we define:
+>>
+>>                 gpio6: gpio@49058000 {
+>>                         compatible = "ti,omap3-gpio";
+>>                         reg = <0x49058000 0x200>;
+>>                         interrupts = <34>;
+>>                         ti,hwmods = "gpio6";
+>>                         gpio-controller;
+>>                         #gpio-cells = <2>;
+>>                         interrupt-controller;
+>>                         #interrupt-cells = <2>;
+>>                 };
+>>
+>>                 interrupt-parent = <&gpio6>;
+>>                 interrupts = <16 8>;
+>>
+>> The GPIO is correctly mapped as an IRQ but a call to gpio_request()
+>> is never made. Since a call to the custom IRQ domain .map function
+>> handler is made for each GPIO used as an IRQ, the GPIO can be setup
+>> and configured as input there automatically.
+>>
+>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+>> ---
+>>
+>> Changes since v1:
+>>   - Split the irq domain mapping function handler and the GPIO
+>>     request in two different patches.
+>>
+>>  drivers/gpio/gpio-omap.c |    9 +++++++++
+>>  1 files changed, 9 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>> index 31cbe65..5ec6a00 100644
+>> --- a/drivers/gpio/gpio-omap.c
+>> +++ b/drivers/gpio/gpio-omap.c
+>> @@ -1092,6 +1092,8 @@ static int omap_gpio_irq_map(struct irq_domain *d, unsigned int virq,
+>>                            irq_hw_number_t hwirq)
+>>  {
+>>       struct gpio_bank *bank = d->host_data;
+>> +     int gpio;
+>> +     int ret;
+>>
+>>       if (!bank)
+>>               return -EINVAL;
+>> @@ -1106,6 +1108,13 @@ static int omap_gpio_irq_map(struct irq_domain *d, unsigned int virq,
+>>                                                handle_simple_irq);
+>>                       set_irq_flags(virq, IRQF_VALID);
+>>               }
+>> +
+>> +             gpio = irq_to_gpio(bank, hwirq);
+>> +             ret = gpio_request_one(gpio, GPIOF_IN, NULL);
+>> +             if (ret) {
+>> +                     dev_err(bank->dev, "Could not request GPIO%d\n", gpio);
+>> +                     return ret;
+>> +             }
+>
+> Following from my comment on patch 1, this is the only bit that you'd
+> want to be conditional on the presence of a DT, not the whole block.
+>
+> g.
+>
 
 Hello Grant,
 
-> -----Original Message-----
-> From: J, KEERTHY
-> Sent: Thursday, June 20, 2013 4:35 PM
-> To: linux-omap@vger.kernel.org; grant.likely@secretlab.ca
-> Cc: broonie@kernel.org; J, KEERTHY; ldewangan@nvidia.com;
-> sameo@linux.intel.com; swarren@nvidia.com; linux-
-> kernel@vger.kernel.org; linux-doc@vger.kernel.org; devicetree-
-> discuss@lists.ozlabs.org; gg@slimlogic.co.uk
-> Subject: [PATCH 1/4] MFD: Add TPS659038 documentation under Palmas
-> 
-> Add TPS659038 documentation under Palmas.
-> 
+Thanks a lot for your feedback. You are absolutely right, sorry for
+not realizing that before.
 
-Could you pull this Please?
+I'll prepare a v3 of the patch-set addressing your comments and I will
+also include a patch that only converts gpio irq domain to linear
+mapping for OMAP2+ since Jon's patch was reverted due a regression on
+OMAP1 when using linear domain mapping [1].
 
-> Signed-off-by: J Keerthy <j-keerthy@ti.com>
-> Acked-by: Samuel Ortiz <sameo@linux.intel.com>
-> ---
->  Documentation/devicetree/bindings/mfd/palmas.txt |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/mfd/palmas.txt
-> b/Documentation/devicetree/bindings/mfd/palmas.txt
-> index 7bcd59c..89cb773 100644
-> --- a/Documentation/devicetree/bindings/mfd/palmas.txt
-> +++ b/Documentation/devicetree/bindings/mfd/palmas.txt
-> @@ -5,6 +5,7 @@ twl6035 (palmas)
->  twl6037 (palmas)
->  tps65913 (palmas)
->  tps65914 (palmas)
-> +tps659038
-> 
->  Required properties:
->  - compatible : Should be from the list
-> @@ -14,6 +15,7 @@ Required properties:
->    ti,tps65913
->    ti,tps65914
->    ti,tps80036
-> +  ti,tps659038
->  and also the generic series names
->    ti,palmas
->  - interrupt-controller : palmas has its own internal IRQs
-> --
-> 1.7.5.4
+Thanks a lot and best regards,
+Javier
 
-Regards,
-Keerthy
+[1]: https://patchwork.kernel.org/patch/2594491/
