@@ -1,42 +1,117 @@
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v7 0/9] Generic PHY Framework
-Date: Mon, 24 Jun 2013 21:27:20 +0200
-Message-ID: <51C89D98.1070806@samsung.com>
-References: <1371113039-5784-1-git-send-email-kishon@ti.com>
- <51BEE203.6090103@samsung.com> <20130618094942.GY5461@arwen.pp.htv.fi>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during
+ bus suspend
+Date: Mon, 24 Jun 2013 15:34:18 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1306241133500.1406-100000@iolanthe.rowland.org>
+References: <51C86113.1090902@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20130618094942.GY5461@arwen.pp.htv.fi>
+In-Reply-To: <51C86113.1090902@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, linux@arm.linux.org.uk, benoit.cousson@linaro.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, rnayak@ti.com, shawn.guo@linaro.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, nsekhar@ti.com
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, tony@atomide.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Mon, 24 Jun 2013, Roger Quadros wrote:
 
-On 06/18/2013 11:49 AM, Felipe Balbi wrote:
-> On Mon, Jun 17, 2013 at 12:16:35PM +0200, Sylwester Nawrocki wrote:
->> I have already used this API for our MIPI CSI-2/DSIM DPHYs driver,
->> the RFC patch series can be found at [1].
->>
->> Thanks,
->> Sylwester
->>
->> [1] http://www.spinics.net/lists/arm-kernel/msg251666.html
+> OK I've tried to handle all this in an alternate way. Now the controller suspend/resume
+> and runtime suspend/resume is independent of bus suspend.
 > 
-> one comment to that series:
+> The controller now runtime suspends when all devices on the bus have suspended and
+> the hub auto suspends. NOTE: HW_ACCESSIBLE is still set on runtime_suspend.
+> The challenge here is to process the interrupt in this state.
+
+The situation is a little peculiar.  Does the hardware really use the
+same IRQ for reporting wakeup events when the controller is suspended
+and for reporting normal I/O events?
+
+In principle, HW_ACCESSIBLE should not be set when the controller is
+suspended, because you can't access the hardware then (since the clocks
+are off, right?).  But I can see how this would cause a problem if it
+leads to wakeup interrupts being ignored.
+
+Also, note that one of the things ehci_suspend() does is turn off the 
+Interrupt-Enable register, which means the wakeup interrupt would never 
+be issued in the first place.  I guess ehci_hcd_omap_suspend() will 
+have to turn on the proper enable bit before stopping the clocks.
+
+> I've tried to handle this state. (i.e. interrupt while controller is runtime suspended),
+> by disabling the interrupt till we are ready and calling usb_hcd_resume_root_hub().
+> We mark a flag (HW_IRQ_DISABLED) stating that the interrupt was disabled and based on
+> that enable the IRQ and clear the flag in hcd_resume_work().
 > 
-> let's make the phy names standardized, how about phy-exynos-video-mipi.c
-> or phy-mipi-csi-dsim.c ?
+> Do let me know what you think of this approach.
 
-Yes, I have been thinking about that, wasn't sure exactly what pattern to
-chose. I would make it phy-exynos-mipi-video.c, phy-exynos-dsim-csis.c feels
-a bit odd. phy-mipi-csis-dsim.c might be to generic as MIPI CSIS stands for
-MIPI CSI Slave and MIPI DSIM - MIPI DSI Master. And there might be (actually
-are) IP blocks in an SoC that use the other MIPI Aliance standards.
-For the HDMI PHY I guess just phy-exynos-hdmi.c could be used.
+This is a very tricky problem.  Right now, usbcore assumes that when 
+HW_ACCESSIBLE is clear, the hardware can't generate interrupt requests 
+and therefore any interrupt must come from some other device sharing 
+the same IRQ line.  For the systems you're working on, this is wrong in 
+both respects (the hardware _can_ generate interrupt requests and IRQ 
+lines aren't shared).
 
-Thanks,
-Sylwester
+I think we will have to add a new flag to describe your situation.  
+Let's call it hcd->has_wakeup_interrupts.  Presumably there will never
+be a system that uses interrupts for wakeup signals _and_ has shared
+IRQ lines?  That would be a bad combination...
+
+> diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
+> index d53547d..8879cd2 100644
+> --- a/drivers/usb/core/hcd.c
+> +++ b/drivers/usb/core/hcd.c
+> @@ -2136,6 +2136,11 @@ static void hcd_resume_work(struct work_struct *work)
+>  	usb_lock_device(udev);
+>  	usb_remote_wakeup(udev);
+>  	usb_unlock_device(udev);
+> +	if (HCD_IRQ_DISABLED(hcd)) {
+> +		/* Interrupt was disabled */
+> +		clear_bit(HCD_FLAG_IRQ_DISABLED, &hcd->flags);
+> +		enable_irq(hcd->irq);
+> +	}
+>  }
+
+This part is okay.
+
+> @@ -2225,6 +2230,16 @@ irqreturn_t usb_hcd_irq (int irq, void *__hcd)
+>  
+>  	if (unlikely(HCD_DEAD(hcd) || !HCD_HW_ACCESSIBLE(hcd)))
+>  		rc = IRQ_NONE;
+> +	else if (pm_runtime_status_suspended(hcd->self.controller)) {
+> +		/*
+> +		 * We can't handle it yet so disable IRQ, make note of it
+> +		 * and resume root hub (i.e. controller as well)
+> +		 */
+> +		disable_irq_nosync(hcd->irq);
+> +		set_bit(HCD_FLAG_IRQ_DISABLED, &hcd->flags);
+> +		usb_hcd_resume_root_hub(hcd);
+> +		rc = IRQ_HANDLED;
+> +	}
+
+This part will have to be different.
+
+Certainly if HCD_DEAD(hcd) then we want to return IRQ_NONE.  Likewise
+if (!HCD_HW_ACCESSIBLE(hcd) && !hcd->has_wakeup_interrupts).  In all
+other cases we have to call the HCD's interrupt handler.
+
+The rest of the work will have to be done in the HCD, while holding the 
+private lock.  In ehci_irq(), after the spin_lock() call, you'll have 
+to add something like this:
+
+	if (unlikely(!HCD_HW_ACCESSIBLE(hcd))) {
+		/*
+		 * We got a wakeup interrupt while the controller was
+		 * suspending or suspended.  We can't handle it now, so
+		 * disable the IRQ and resume the root hub (and hence
+		 * the controller too).
+		 */
+		disable_irq_nosync(hcd->irq);
+		set_bit(HCD_FLAG_IRQ_DISABLED, &hcd->flags);
+		spin_unlock(&ehci->lock);
+
+		usb_hcd_resume_root_hub(hcd);
+		return IRQ_HANDLED;
+	}
+
+I think this will work.  How does it look to you?
+
+Alan Stern
