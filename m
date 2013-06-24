@@ -1,53 +1,50 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH] ARM: omap: make am43xx build with SMP enabled
-Date: Mon, 24 Jun 2013 07:25:50 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EB248E5@DBDE04.ent.ti.com>
-References: <201306220122.47786.arnd@arndb.de>
- <20130624071742.GP5523@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv2 10/11] ARM: dts: omap4 clock data
+Date: Mon, 24 Jun 2013 10:39:49 +0300
+Message-ID: <51C7F7C5.70201@ti.com>
+References: <1371647942-4811-1-git-send-email-t-kristo@ti.com> <1371647942-4811-11-git-send-email-t-kristo@ti.com> <51C3AB46.4040609@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51377 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752693Ab3FXH0Y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Jun 2013 03:26:24 -0400
-In-Reply-To: <20130624071742.GP5523@atomide.com>
-Content-Language: en-US
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58016 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752585Ab3FXHkW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Jun 2013 03:40:22 -0400
+In-Reply-To: <51C3AB46.4040609@codeaurora.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: "Kishore, Ankur" <a-kishore@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-omap@vger.kernel.org, mturquette@linaro.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+On 06/21/2013 04:24 AM, Stephen Boyd wrote:
+> On 06/19/13 06:19, Tero Kristo wrote:
+>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+>> index 2a56428..70608db 100644
+>> --- a/arch/arm/boot/dts/omap4.dtsi
+>> +++ b/arch/arm/boot/dts/omap4.dtsi
+>> @@ -106,6 +106,8 @@
+>>   			ti,hwmods = "counter_32k";
+>>   		};
+>>
+>> +		/include/ "omap4-clocks.dtsi"
+>> +
+>
+> Doesn't this cause one platform device to be allocated for each clock
+> node defined in omap4-clocks.dtsi? Are you concerned about wasting
+> memory on things that aren't really devices and that will never be probed?
 
-On Mon, Jun 24, 2013 at 12:47:42, Tony Lindgren wrote:
-> * Arnd Bergmann <arnd@arndb.de> [130621 16:28]:
-> > With am43xx enabled, omap4 and omap5 disabled and SMP on, I get these
-> > build errors:
-> > 
-> > arch/arm/mach-omap2/built-in.o: In function `scu_gp_set':
-> > :(.text+0x7858): undefined reference to `omap4_get_scu_base'
-> > arch/arm/mach-omap2/built-in.o: In function `scu_gp_clear':
-> > :(.text+0x793c): undefined reference to `omap4_get_scu_base'
-> > arch/arm/mach-omap2/built-in.o: In function `omap4_cpu_die':
-> > :(.ref.text+0x44): undefined reference to `omap4_hotplug_cpu'
-> > 
-> > The easiest way to work around that is to turn on the missing
-> > functions, even though we know they won't be used on am43xx,
-> > which is single-CPU.
-> > 
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > Cc: Ankur Kishore <a-kishore@ti.com>
-> > Cc: Afzal Mohammed <afzal@ti.com>
-> > Cc: Tony Lindgren <tony@atomide.com>
-> 
-> Looks OK to me:
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
+Hi Stephen,
 
-Wait, seeing another build error after applying this patch,
-I will respond back soon.
+Sounds like a valid point to me, so should this include just go under 
+the root in omap4.dtsi? I am not quite familiar with DT specifics myself 
+as of yet.
 
-Regards
-Afzal
+-Tero
+
+>
+>>   		omap4_pmx_core: pinmux@4a100040 {
+>>   			compatible = "ti,omap4-padconf", "pinctrl-single";
+>>   			reg = <0x4a100040 0x0196>;
+>
+
