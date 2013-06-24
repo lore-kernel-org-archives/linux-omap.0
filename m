@@ -1,65 +1,41 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: host: xhci-plat: release mem region while removing
- module
-Date: Mon, 24 Jun 2013 17:22:24 +0300
-Message-ID: <20130624142224.GI21889@arwen.pp.htv.fi>
-References: <1371803348-9807-1-git-send-email-george.cherian@ti.com>
-Reply-To: <balbi@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH] ARM: multi_v7: Add OMAP with ramdisk config bits
+Date: Mon, 24 Jun 2013 20:03:24 +0530
+Message-ID: <51C858B4.2020106@ti.com>
+References: <1371071282-14750-1-git-send-email-santosh.shilimkar@ti.com> <20130618082422.GE5523@atomide.com> <51C07253.3040909@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wZdghQXYJzyo6AGC"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1371803348-9807-1-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46846 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751848Ab3FXOeE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Jun 2013 10:34:04 -0400
+In-Reply-To: <51C07253.3040909@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>
 
---wZdghQXYJzyo6AGC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi,
+On Tuesday 18 June 2013 08:14 PM, Santosh Shilimkar wrote:
+> On Tuesday 18 June 2013 04:24 AM, Tony Lindgren wrote:
+>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130612 14:14]:
+>>> Add ramdisk fileystem related options which lets OMAP5 and Keystone
+>>> SOCs to boot till shell with multi_v7_config.
+>> Please add also other v7 omaps.
+>>
+> Should have done first place. Sorry.
+> Will update other machines and after testing, repost it.
+>
+> Regards,
+> Santosh
+>
+ Since CONFIG_ARCH_OMAP2PLUS=y is set in the patch,
+ OMAP3, OMAP4 are getting enabled by default.
 
-On Fri, Jun 21, 2013 at 01:59:08PM +0530, George Cherian wrote:
-> Do a release_mem_region of the hcd resource. Without this the
-> subsequent insertion of module fails in request_mem_region.
->=20
-> Signed-off-by: George Cherian <george.cherian@ti.com>
+ I tested OMAP4 PANDA on mainline + multi_v7_config + above patch
+ and it booted up fine.
 
-very nice catch.
-
-Acked-by: Felipe Balbi <balbi@ti.com>
-
-You need to resend with:
-
-	Cc: <stable@vger.kernel.org> # v3.4+
-
-Not sure if Sarah wants to take care of the stable tagging, though.
-
---=20
-balbi
-
---wZdghQXYJzyo6AGC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRyFYgAAoJEIaOsuA1yqRECc0QAKVZ4LpZVhJQ3zo8QFDLEHSQ
-RX2Cg+yYsZu14qZthxWAtesZEhMoa0UahmK2BTx+YpkY++vW3vkdm/Np+FFnXyWL
-m6ft6zRF6/Q68EzCj9i5gWAMk7JS3YtVuEKlJ2ioWnYHuAkqRrRpGHUsYDeR++gm
-/j+SOdYYu0qPJZPUDoBVGWLoL+LFKMq2SctSyOHT+UIX45AHE8llaZRs2AuGrgiZ
-vjFeIifbUA5XvarAuowjy+DyhEdqf32NoBkrbjyUobCep1nKD3MD+K2e+aLq0Xad
-TRANu2PeqPvM0082P8PJGY9iDwfVrRroS5j9g5OqGsxZa1P8TgAFHie6FmRRVyvk
-hVxLTfMk+Zl1ZjtHVaFsUCdEucoCBcGGqL0aZ0pFuQwWLU2KjrpskUlykNPskbGM
-ZgdkITRSgGFzObg91oYHCwp1oFq1xJyeV4k1evWj69Nt6lAvQCxfmiv58sqjC35V
-X4V5o9UjQY3fPweyhY+0HpnZ61BsNP3Lvy55IgVCFevULIWwroLWAkqrjpc87/Qp
-6XvdjvYNO+v/1pRM0JWEEYGpGncUb3kFZFySYPfnq0ziOCbOh1mPduvaKI0Q7nIa
-UNNev054I3Kv1T8LvEKiarP30StAXyx9xc1nBCDxz9ZnOYJcAFSzp6N1AiOgy93R
-FaNERbA1kpn5Y7ceDrO5
-=SyKn
------END PGP SIGNATURE-----
-
---wZdghQXYJzyo6AGC--
+Regards,
+ Sricharan
