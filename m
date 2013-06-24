@@ -1,44 +1,43 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v12 00/11] DMA Engine support for AM33XX
-Date: Mon, 24 Jun 2013 17:09:41 +0530
-Message-ID: <51C82FFD.1070100@ti.com>
-References: <1371762407-24544-1-git-send-email-joelagnel@ti.com>
- <20130624101903.GV5523@atomide.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH 2/4] MFD: Palmas: Add TPS659038 PMIC support
+Date: Mon, 24 Jun 2013 13:43:22 +0200
+Message-ID: <20130624114322.GB30838@zurbaran>
+References: <1371726316-10078-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130624101903.GV5523@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Sourav Poddar <sourav.poddar@ti.com>
-Cc: Joel A Fernandes <joelagnel@ti.com>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Jason Kridner <jkridner@beagleboard.org>, Vinod Koul <vinod.koul@intel.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Koen Kooi <koen@beagleboard.org>, Rob Herring <rob.herring@calxeda.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@kernel.org>, Rob Landley <rob@landley.net>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Andrew Morton <akpm@linux-foundation.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1371726316-10078-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: J Keerthy <j-keerthy@ti.com>
+Cc: linux-omap@vger.kernel.org, broonie@kernel.org, ldewangan@nvidia.com, grant.likely@secretlab.ca, swarren@nvidia.com, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, gg@slimlogic.co.uk
 List-Id: linux-omap@vger.kernel.org
 
-Sourav,
+Hi,
 
-On 6/24/2013 3:49 PM, Tony Lindgren wrote:
-> Hi,
+On Thu, Jun 20, 2013 at 04:35:16PM +0530, J Keerthy wrote:
+> The Patch adds TPS659038 PMIC support in the palmas mfd driver.
+> The TPS659038 has almost the same registers as of the earlier
+> supported variants of PALMAS family such as the TWL6035.
 > 
-> For merging this series, I suggest the following sets:
+> The critical differences between TPS659038 and TWL6035 being:
 > 
-> * Joel A Fernandes <joelagnel@ti.com> [130620 14:13]:
+> 1) TPS659038 has nothing related to battery charging and back up battery stuff.
+> 2) TPS659038 does not have does not have SMPS10(Boost) step up convertor.
+> 3) TPS659038 does not have Battery detection and anything related to battery.
+> 4) SD card detection, Battery presence detection, Vibrator, USB OTG are missing
+>    when compared to TWL6035.
+> 
+> Signed-off-by: J Keerthy <j-keerthy@ti.com>
+> Acked-by: Samuel Ortiz <sameo@linux.intel.com>
+> ---
+>  drivers/mfd/palmas.c |    5 +++++
+>  1 files changed, 5 insertions(+), 0 deletions(-)
+Applied, thanks.
 
->>   spi: omap2-mcspi: add generic DMA request support to the DT binding
->>   spi: omap2-mcspi: convert to dma_request_slave_channel_compat()
-> 
-> 
-> The spi changes should get merged via the driver list.
+Cheers,
+Samuel.
 
-Can you please send just the DT binding patch above to Mark's correct
-address with the relevant lists copied.
-
-Thanks,
-Sekhar
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
