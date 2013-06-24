@@ -1,105 +1,48 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [PATCHv3 5/6] arm: omap2plus_defconfig: enable TI bandgap driver
-Date: Mon, 24 Jun 2013 17:39:29 -0400
-Message-ID: <51C8BC91.6020707@ti.com>
-References: <1370637968-23299-1-git-send-email-eduardo.valentin@ti.com> <1370637968-23299-6-git-send-email-eduardo.valentin@ti.com> <51C0C2A8.4020707@ti.com>
+From: Joel A Fernandes <agnel.joel@gmail.com>
+Subject: MMC breakage on 3.11/cleanup
+Date: Mon, 24 Jun 2013 17:27:43 -0500
+Message-ID: <CAD=GYpZGdLem1igUsLq7DzMu-Z=9d6apS-aT=MJ59_-ytZan7w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="----enig2CKBKKUITQKDBTQMRNPIV"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <51C0C2A8.4020707@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: tony@atomide.com, grant.likely@linaro.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-
-------enig2CKBKKUITQKDBTQMRNPIV
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f179.google.com ([209.85.214.179]:44239 "EHLO
+	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750858Ab3FXW1n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Jun 2013 18:27:43 -0400
+Received: by mail-ob0-f179.google.com with SMTP id xk17so11245946obc.24
+        for <linux-omap@vger.kernel.org>; Mon, 24 Jun 2013 15:27:43 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: "tony@atomide.com" <tony@atomide.com>
+Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-Tony,
+Hi Tony,
 
-On 18-06-2013 16:27, Eduardo Valentin wrote:
-> Tony,
->=20
-> On 07-06-2013 16:46, Eduardo Valentin wrote:
->> Enable the bandgap driver for TI SoCs thermal support.
->>
->> Cc: Russell King <linux@arm.linux.org.uk>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
->> Cc: AnilKumar Ch <anilkumar@ti.com>
->> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
->> Cc: linux-arm-kernel@lists.infradead.org
->> Cc: linux-kernel@vger.kernel.org
->> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
->=20
-> Is it possible for you to queue this one and patch 6 for 3.11?
+Following branch breaks MMC for me on am33xx (beaglebone):
+http://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/log/?h=omap-for-v3.11/cleanup
 
-Gentle reminder.
+I tried to work around it by specifying interrupt and reg property in DT:
+      mmc1: mmc@48060000 {
+         compatible = "ti,omap3-hsmmc";
+         ti,hwmods = "mmc1";
+         ti,dual-volt;
+         ti,needs-special-reset;
+         dmas = <&edma 24
+            &edma 25>;
+         dma-names = "tx", "rx";
+         interrupts = <64>;
+         interrupt-parent = <&intc>;
+         reg = <0x48060000 0x1000>;
+         status = "disabled";
+      };
 
->=20
-> Cheers,
->=20
->> ---
->>  arch/arm/configs/omap2plus_defconfig | 11 +++++++++++
->>  1 file changed, 11 insertions(+)
->>
->> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/o=
-map2plus_defconfig
->> index c1ef64b..6e6c494 100644
->> --- a/arch/arm/configs/omap2plus_defconfig
->> +++ b/arch/arm/configs/omap2plus_defconfig
->> @@ -151,6 +151,13 @@ CONFIG_W1=3Dy
->>  CONFIG_POWER_SUPPLY=3Dy
->>  CONFIG_SENSORS_LM75=3Dm
->>  CONFIG_WATCHDOG=3Dy
->> +CONFIG_THERMAL=3Dy
->> +CONFIG_THERMAL_HWMON=3Dy
->> +CONFIG_THERMAL_DEFAULT_GOV_STEP_WISE=3Dy
->> +CONFIG_THERMAL_GOV_FAIR_SHARE=3Dy
->> +CONFIG_THERMAL_GOV_STEP_WISE=3Dy
->> +CONFIG_THERMAL_GOV_USER_SPACE=3Dy
->> +CONFIG_CPU_THERMAL=3Dy
->>  CONFIG_OMAP_WATCHDOG=3Dy
->>  CONFIG_TWL4030_WATCHDOG=3Dy
->>  CONFIG_MFD_TPS65217=3Dy
->> @@ -237,6 +244,10 @@ CONFIG_RTC_DRV_TWL4030=3Dy
->>  CONFIG_RTC_DRV_OMAP=3Dy
->>  CONFIG_DMADEVICES=3Dy
->>  CONFIG_DMA_OMAP=3Dy
->> +CONFIG_TI_SOC_THERMAL=3Dy
->> +CONFIG_TI_THERMAL=3Dy
->> +CONFIG_OMAP4_THERMAL=3Dy
->> +CONFIG_OMAP5_THERMAL=3Dy
->>  CONFIG_EXT2_FS=3Dy
->>  CONFIG_EXT3_FS=3Dy
->>  # CONFIG_EXT3_FS_XATTR is not set
->>
->=20
->=20
+The probe succeeds but I still get a "Waiting for root device
+/dev/mmcblk0p2" when booting over MMC.
 
+If you're planning to push the cleanup branch, can we temporarily add
+the hwmod data back while we work on this issue so that upstream MMC
+is kept working.
 
---=20
-You have got to be excited about what you are doing. (L. Lamport)
+Thanks,
 
-Eduardo Valentin
-
-
-------enig2CKBKKUITQKDBTQMRNPIV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iF4EAREIAAYFAlHIvJEACgkQCXcVR3XQvP17CAEAsQRxaLXGKVlKxhjqWLaYqDB/
-0tBkz790uTd295hV5c0BAM7ye45PYJYOSEIKlMpLVJCgmFgV3npI9WdMdMk8GVnH
-=c1qE
------END PGP SIGNATURE-----
-
-------enig2CKBKKUITQKDBTQMRNPIV--
+-Joel
