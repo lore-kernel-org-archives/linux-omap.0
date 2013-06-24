@@ -1,51 +1,137 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCHv12] spi: omap2-mcspi: add generic DMA request support to
- the DT binding
-Date: Mon, 24 Jun 2013 16:08:50 +0100
-Message-ID: <20130624150850.GS27646@sirena.org.uk>
-References: <1372075319-21680-1-git-send-email-sourav.poddar@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during
+ bus suspend
+Date: Mon, 24 Jun 2013 18:09:07 +0300
+Message-ID: <51C86113.1090902@ti.com>
+References: <Pine.LNX.4.44L0.1306201326100.2063-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7lT8fFUc+KaZWT5W"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1372075319-21680-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: tony@atomide.com, balbi@rocket1.ti.cm, joelagnel@ti.com, nsekhar@ti.com, devicetree-discuss@lists.ozlabs.org, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, linux-doc@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <Pine.LNX.4.44L0.1306201326100.2063-100000@iolanthe.rowland.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-usb@vger.kernel.org, tony@atomide.com, ruslan.bilovol@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Alan,
 
---7lT8fFUc+KaZWT5W
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 06/20/2013 08:33 PM, Alan Stern wrote:
+> On Thu, 20 Jun 2013, Roger Quadros wrote:
+> 
+>>> runtime_resume(dev)
+>>> {
+>>> 	...
+>>>
+>>> 	if (omap->flags & OMAP_EHCI_IRQ_PENDING) {
+>>> 		process_pending_irqs(omap);
+>>
+>> OK, thanks. 
+>>
+>> But I'm not sure if the generic ehci_irq handler is able to
+>> run in a process context. Maybe if we replace spin_lock(&ehci->lock);
+>> with spin_lock_irqsave() there, it will work.
+>>
+>> Alan is this a doable option?
+> 
+> ehci_irq() will work okay in process context, provided the caller 
+> disables interrupts.
+> 
+> But maybe none of this will be needed after Roger redesigns the
+> controller suspend to work at the right time.  Or if it is, we could
+> adopt a simpler alternative: the controller's resume routine could
+> always call usb_hcd_resume_root_hub().  After all, about the only
+> reason for doing a runtime resume of the controller is because the root
+> hub needs to do something.
+> 
 
-On Mon, Jun 24, 2013 at 05:31:59PM +0530, Sourav Poddar wrote:
+OK I've tried to handle all this in an alternate way. Now the controller suspend/resume
+and runtime suspend/resume is independent of bus suspend.
 
-> The binding definition is based on the generic DMA request binding
+The controller now runtime suspends when all devices on the bus have suspended and
+the hub auto suspends. NOTE: HW_ACCESSIBLE is still set on runtime_suspend.
+The challenge here is to process the interrupt in this state.
 
-Applied, thanks.
+I've tried to handle this state. (i.e. interrupt while controller is runtime suspended),
+by disabling the interrupt till we are ready and calling usb_hcd_resume_root_hub().
+We mark a flag (HW_IRQ_DISABLED) stating that the interrupt was disabled and based on
+that enable the IRQ and clear the flag in hcd_resume_work().
 
---7lT8fFUc+KaZWT5W
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Do let me know what you think of this approach.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
+diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
+index d53547d..8879cd2 100644
+--- a/drivers/usb/core/hcd.c
++++ b/drivers/usb/core/hcd.c
+@@ -2136,6 +2136,11 @@ static void hcd_resume_work(struct work_struct *work)
+ 	usb_lock_device(udev);
+ 	usb_remote_wakeup(udev);
+ 	usb_unlock_device(udev);
++	if (HCD_IRQ_DISABLED(hcd)) {
++		/* Interrupt was disabled */
++		clear_bit(HCD_FLAG_IRQ_DISABLED, &hcd->flags);
++		enable_irq(hcd->irq);
++	}
+ }
+ 
+ /**
+@@ -2225,6 +2230,16 @@ irqreturn_t usb_hcd_irq (int irq, void *__hcd)
+ 
+ 	if (unlikely(HCD_DEAD(hcd) || !HCD_HW_ACCESSIBLE(hcd)))
+ 		rc = IRQ_NONE;
++	else if (pm_runtime_status_suspended(hcd->self.controller)) {
++		/*
++		 * We can't handle it yet so disable IRQ, make note of it
++		 * and resume root hub (i.e. controller as well)
++		 */
++		disable_irq_nosync(hcd->irq);
++		set_bit(HCD_FLAG_IRQ_DISABLED, &hcd->flags);
++		usb_hcd_resume_root_hub(hcd);
++		rc = IRQ_HANDLED;
++	}
+ 	else if (hcd->driver->irq(hcd) == IRQ_NONE)
+ 		rc = IRQ_NONE;
+ 	else
 
-iQIcBAEBAgAGBQJRyGD/AAoJELSic+t+oim9ku0P/1kgTselx9gdg+ZqaZlPtTll
-/vHCtgvm2nkPwI4yNhqReN+8eQ0+9bYqXV636Qh5tYJgrfOdYN3DOdh+X83nzcXN
-oX+pJOOIPpI1aGJgSbmvJl2pTDiWOoUfA4C7HUCRKIDpd6SRhnVK2aqGPbMARYaG
-qpJELJgiRLiFYWgYLf7a+yaSFnwZ+hLa7ZbFd2qMJs0MEhelPy4KttX01hELjTe0
-beyS0QYcoqRTVXBBPAgnz0HX/5SlnuqeJT5eppV1KnUBMviPJ0s8Rm1FJbSJZbE6
-A8r4N38qF/J9weOpW9tmHzWD3DeDR/e7Y4lHFQEjlKyHItXeGTjJMo/AkwUGlM0E
-EnfoHAGj24YsuQzOwbvlO9YJYs+vAv4Po6LWUBIhrPxtyR1W5+2hPQI/5vj7lLwe
-nIdWh582nRYiwVlgmDc9mD0WfCVUj2aUK8/Umn10PhNV+yIbAd1sE39CYfvTeaBw
-xlpC61gs5PsfnB4cnIyGeoSWsVVOvH2MzzpznoCJxFbenDE8I+Mp1O556pzaqQa8
-nyTyTBt2gWkvCJ4ujqFu8el+/Nmns9FEhDKqq1O4b+4NZp7EyvFn9mnl40eUCXtE
-guo0CamdZCCmhjluu9sywtbroCa1LNp73tu9QRDFVxihN1GlVa9TlBlX0abFfse6
-9swHjB8jJbhob/SSsXBJ
-=Xr6C
------END PGP SIGNATURE-----
+diff --git a/include/linux/usb/hcd.h b/include/linux/usb/hcd.h
+index f5f5c7d..6c6287e 100644
+--- a/include/linux/usb/hcd.h
++++ b/include/linux/usb/hcd.h
+@@ -110,6 +110,7 @@ struct usb_hcd {
+ #define HCD_FLAG_WAKEUP_PENDING		4	/* root hub is resuming? */
+ #define HCD_FLAG_RH_RUNNING		5	/* root hub is running? */
+ #define HCD_FLAG_DEAD			6	/* controller has died? */
++#define HCD_FLAG_IRQ_DISABLED		7	/* Interrupt was disabled */
+ 
+ 	/* The flags can be tested using these macros; they are likely to
+ 	 * be slightly faster than test_bit().
+@@ -120,6 +121,7 @@ struct usb_hcd {
+ #define HCD_WAKEUP_PENDING(hcd)	((hcd)->flags & (1U << HCD_FLAG_WAKEUP_PENDING))
+ #define HCD_RH_RUNNING(hcd)	((hcd)->flags & (1U << HCD_FLAG_RH_RUNNING))
+ #define HCD_DEAD(hcd)		((hcd)->flags & (1U << HCD_FLAG_DEAD))
++#define HCD_IRQ_DISABLED(hcd)	((hcd)->flags & (1U << HCD_FLAG_IRQ_DISABLED))
+ 
+ 	/* Flags that get set only during HCD registration or removal. */
+ 	unsigned		rh_registered:1;/* is root hub registered? */
 
---7lT8fFUc+KaZWT5W--
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index 16d7150..c5320c7 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -225,6 +225,8 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 		usb_phy_set_suspend(omap->phy[i], 0);
+ 	}
+ 
++	pm_runtime_put_sync(dev);
++
+ 	return 0;
+ 
+ err_pm_runtime:
