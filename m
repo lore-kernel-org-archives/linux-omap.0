@@ -1,50 +1,49 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv2 10/11] ARM: dts: omap4 clock data
-Date: Mon, 24 Jun 2013 10:39:49 +0300
-Message-ID: <51C7F7C5.70201@ti.com>
-References: <1371647942-4811-1-git-send-email-t-kristo@ti.com> <1371647942-4811-11-git-send-email-t-kristo@ti.com> <51C3AB46.4040609@codeaurora.org>
+Subject: Re: [PATCHv2 06/11] CLK: omap: move part of the machine specific
+ clock header contents to driver
+Date: Mon, 24 Jun 2013 10:42:04 +0300
+Message-ID: <51C7F84C.5080607@ti.com>
+References: <1371647942-4811-1-git-send-email-t-kristo@ti.com>
+ <1371647942-4811-7-git-send-email-t-kristo@ti.com>
+ <20130621073250.GO5523@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58016 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752585Ab3FXHkW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Jun 2013 03:40:22 -0400
-In-Reply-To: <51C3AB46.4040609@codeaurora.org>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130621073250.GO5523@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: nm@ti.com, paul@pwsan.com, mturquette@linaro.org, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-omap@vger.kernel.org, mturquette@linaro.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-On 06/21/2013 04:24 AM, Stephen Boyd wrote:
-> On 06/19/13 06:19, Tero Kristo wrote:
->> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
->> index 2a56428..70608db 100644
->> --- a/arch/arm/boot/dts/omap4.dtsi
->> +++ b/arch/arm/boot/dts/omap4.dtsi
->> @@ -106,6 +106,8 @@
->>   			ti,hwmods = "counter_32k";
->>   		};
->>
->> +		/include/ "omap4-clocks.dtsi"
->> +
+On 06/21/2013 10:32 AM, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [130619 06:25]:
+>> Some of the clock.h contents are needed by the new OMAP clock driver,
+>> including dpll_data and clk_hw_omap. Thus, move these to the generic
+>> omap header file which can be accessed by the driver.
 >
-> Doesn't this cause one platform device to be allocated for each clock
-> node defined in omap4-clocks.dtsi? Are you concerned about wasting
-> memory on things that aren't really devices and that will never be probed?
+> Do you mean "are only needed by the new OMAP clock driver"?
 
-Hi Stephen,
+Not only, it is needed by both driver and mach-omap2.
 
-Sounds like a valid point to me, so should this include just go under 
-the root in omap4.dtsi? I am not quite familiar with DT specifics myself 
-as of yet.
+> Otherwise it sounds like this will break things for other
+> omaps that don't yet have clocks configured in DT..
+
+No it doesn't, as you can probably see, the new include/linux/clk/omap.h 
+is included from clock.h also.
 
 -Tero
 
 >
->>   		omap4_pmx_core: pinmux@4a100040 {
->>   			compatible = "ti,omap4-padconf", "pinctrl-single";
->>   			reg = <0x4a100040 0x0196>;
+> Regards,
 >
-
+> Tony
+>
