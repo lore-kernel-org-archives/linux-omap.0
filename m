@@ -1,30 +1,30 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v8 7/8] usb: phy: omap-usb2: remove *set_suspend*
- callback from omap-usb2
-Date: Tue, 25 Jun 2013 18:20:44 +0300
-Message-ID: <20130625152044.GL21334@arwen.pp.htv.fi>
+Subject: Re: [PATCH v8 8/8] usb: phy: twl4030-usb: remove *set_suspend* and
+ *phy_init* ops
+Date: Tue, 25 Jun 2013 18:21:05 +0300
+Message-ID: <20130625152105.GM21334@arwen.pp.htv.fi>
 References: <1372139926-3719-1-git-send-email-kishon@ti.com>
- <1372139926-3719-8-git-send-email-kishon@ti.com>
+ <1372139926-3719-9-git-send-email-kishon@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qo7zVO9a9OQ5oQtr"
-Return-path: <linux-doc-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="5V5c01chtBAiSHoy"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1372139926-3719-8-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
+In-Reply-To: <1372139926-3719-9-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: grant.likely@linaro.org, tony@atomide.com, balbi@ti.com, arnd@arndb.de, swarren@nvidia.com, sylvester.nawrocki@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, benoit.cousson@linaro.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, rnayak@ti.com, shawn.guo@linaro.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, nsekhar@ti.com, balajitk@ti.com, george.cherian@ti.com
 List-Id: linux-omap@vger.kernel.org
 
---qo7zVO9a9OQ5oQtr
+--5V5c01chtBAiSHoy
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jun 25, 2013 at 11:28:45AM +0530, Kishon Vijay Abraham I wrote:
-> Now that omap-usb2 is adapted to the new generic PHY framework,
-> *set_suspend* ops can be removed from omap-usb2 driver.
+On Tue, Jun 25, 2013 at 11:28:46AM +0530, Kishon Vijay Abraham I wrote:
+> Now that twl4030-usb is adapted to the new generic PHY framework,
+> *set_suspend* and *phy_init* ops can be removed from twl4030-usb driver.
 >=20
 > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 > Reviewed-by: Felipe Balbi <balbi@ti.com>
@@ -34,26 +34,26 @@ Acked-by: Felipe Balbi <balbi@ti.com>
 --=20
 balbi
 
---qo7zVO9a9OQ5oQtr
+--5V5c01chtBAiSHoy
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRybVMAAoJEIaOsuA1yqREH6AQAJJX/sIADvIF9X+jt20tCw3V
-2Jan7WMJSQb2ZvV85w438A82HeJEufC5vf2CxpqMNJ+cdFHj3S3J/pp6pAd/GCdr
-rL52849y2rGEZDh20vHbul06/3h7UsVg6KFzHGMRiltO+BkclRXsTwcjX8iwoYCD
-F04FSpEnaXELxy4I3KKcObewLL5TihXuNrJMLHB4p49zRDE+SwiVmo7xMIX8iWlI
-UGapJ+dOkA1Zp1pLS4uJVboCmksxJ7b9nSxMwrfm5y/k9AZ7kUpqx2ynAo/M1bJm
-UOz2H2qOisSH5AT/ulG8guApg2iRw/MpvO6LJJHVE3ibmH66jOfom3Y1vxWRiR10
-yAguxp75HZKJqCnlWvWcCpHDkGTuZfXEZDCDIbpr0r5bz45HBRyeowysirlK4IcL
-BPj8HknHfheLYZYqfGA3kJY80K6xAXom3GTnTIl/ezvsQohi/R+ZvJvjne7vfntH
-zO7vFbtGn7nKF63lQPUyi4JQNICNqbsD0mkMEqaCdZP+sfOleUHoG15Uu3ZY7ll0
-iCMg/hE3Z9An2J4Z/P+mGfW7op2vankcZSgxpXAuzZnySIXQBCQkK+YBjOq5Nvvq
-vMhwE4bZ3FiyZTgJwMVSbrR3tt5H+plj34ag4ukrs21Cy72L8EGxAH7oyLW93eYA
-VA0gwq2FAlNHTeGx5LBW
-=OGPh
+iQIcBAEBAgAGBQJRybVhAAoJEIaOsuA1yqREAxIQAJYWoDFBZnbz+ZyQAFyskF64
+j4wMKOZo/xDbRGl8UFvzHvesGvccUfEXKtGcdxCu0boL3H/KOwUmjJgWP2LZ0KKB
+4P34Kh7XFDh1on6xhfDvkO10ca2XU6vcAauJfWUKgon7fi/h/61u/4SeJn4fWaEJ
+qX0sBYFQkpLLoeqr3S9Gl1+hGZxJ40CwdE2BpOQiD2mUuT4QZ6xI0ilssJYkc8mJ
+XCTfiEgy6J1kZGd1il/Vng/nfSl8VRpAKP9I/BciOjtBR01K6GgpJP7ygG0+GW+q
+7PZry9RwyjVSa/gMqoaLBcFDFU4SHXLgdIRj2DZu1oDxSFZHDtdQc5cpSBxbh1Qy
+z8cf2vbyx0sJyfLnFw/dnLzBNqBX/4tjk7Dd990RmDOvcIlalie85KCx1JFIo32W
+bgbTOn9W+3/TG1/cvPVXmOeNsIHwRpXFYKNDcyknksUZhPfvzYQ7lYnN93GK/Eyj
+uRDw+1smwFVRZT4Sfpr4OU8z2s2kJrd8ax8igMNCl2weg2soeSoXB2/Mb0eKiWq8
+bIgDJT5q+m2winHOD34eS63g0981aojHeAtKdzfRvm7sh7lZ25Jn5krs+NWZK73N
+jaAOgA+Y43ZSMgbtz/aiet3RqXHGUR/AATDTS8IPpRqF8iyP4Azy/BU68wFPiI/z
+Zrh0V4bgnUxeHSTgYk04
+=JY2j
 -----END PGP SIGNATURE-----
 
---qo7zVO9a9OQ5oQtr--
+--5V5c01chtBAiSHoy--
