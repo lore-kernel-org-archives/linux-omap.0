@@ -1,50 +1,95 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: omap5: build opp4xxx_data.c
-Date: Tue, 25 Jun 2013 16:24:55 -0400
-Message-ID: <51C9FC97.1020502@ti.com>
-References: <201306212229.54238.arnd@arndb.de> <20130621204250.GA16139@kahuna> <alpine.DEB.2.02.1306251918590.14373@utopia.booyaka.com> <51C9F595.3060609@ti.com> <20130625195751.GA6529@kahuna> <51C9F993.6050109@ti.com> <CAGo_u6rQG7h2aPSErwKR1H7PYE5QdxXU3Dd5z13-rPkbVtkcUw@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: OMAP baseline test results for v3.10-rc6
+Date: Tue, 25 Jun 2013 23:39:01 +0300
+Message-ID: <20130625203840.GA9748@arwen.pp.htv.fi>
+References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com>
+ <20130625160243.GE22312@arwen.pp.htv.fi>
+ <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33996 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751005Ab3FYUZW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jun 2013 16:25:22 -0400
-In-Reply-To: <CAGo_u6rQG7h2aPSErwKR1H7PYE5QdxXU3Dd5z13-rPkbVtkcUw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============6973892463288365932=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: khilman@linaro.org, hvaibhav@ti.com, Felipe Balbi <balbi@ti.com>, Tom Rini <trini@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Arnd Bergmann <arnd@arndb.de>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "J, KEERTHY" <j-keerthy@ti.com>
 
-On Tuesday 25 June 2013 04:17 PM, Nishanth Menon wrote:
-> On Tue, Jun 25, 2013 at 3:12 PM, Santosh Shilimkar
-> <santosh.shilimkar@ti.com> wrote:
->>
->> Well having voltage data in voltage domain was not my decision ;-)
->> Instead of creating another set of dummy data, I just used what
->> is out there(OMAP4) with clear comment that data needs to be updated.
->> I don't see any problem in this considering we have devices booting
->> and working nicely for OMAP5
-> I really wish the OMAP5 devices(the latest ones from Fab) I have would
-> like to function at OMAP4 configurations! Unfortunately the devices
-> tend to follow the data manual for OMAP5.
-> *if* there is no need for it to boot, I suggest removing it.
-> 
-I don't understand you. For OMAP5, that data without voltage
-controller support doesn't do anything bad. Since there was some
-dependency of voltage domain association whit PD's, I have to keep
-that. I never claimed that OMAP4 settings would work for OMAP5
-in absolute terms.
+--===============6973892463288365932==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="LyciRD1jyfeSSjG0"
+Content-Disposition: inline
 
-Feel free to post a patch with right data which you seems to have.
-I don't mind you removing that data as long as the device
-continues to boot. Patch welcome.
+--LyciRD1jyfeSSjG0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks !!
+Hi,
 
-Regards,
-Santosh
+On Tue, Jun 25, 2013 at 06:20:51PM +0000, Paul Walmsley wrote:
+> Am certainly open to the idea that there's something wrong with the way=
+=20
+> that I'm booting either of these.  But AFAIK no one's been able to=20
+> identify exactly what it could be.  I haven't had the time recently to=20
+> spend hours going through the various permutations, given all the other=
+=20
+> breakage :-(  BeagleBone-white has the additional complication that it is=
+=20
+> not easy to automate, due to the way that power is delivered to the board=
+,=20
+> so there is an extra dimension of difficulty there.
+
+oh yeah, you can use something like [1] for that
+
+[1] http://www.cleware-shop.de/epages/63698188.sf/en_US/?ObjectPath=3D/Shop=
+s/63698188/Products/01
+
+--=20
+balbi
+
+--LyciRD1jyfeSSjG0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRyf/lAAoJEIaOsuA1yqRElIsQAI3QdrzhMxN4OOZO4rSO1THg
+H2htXkomVZ58oIKUJYvGnPgaIgd2RoJeUni2pSt58dShPUVPxp1wCYfI/0MwCGSf
+SM82CaLqknel7utMKVjn4puYBYaKMXNKENtvwkhInsCwGX/xXPF+7Ay9KKWYBQ/j
+apKk3iJGH5jC+jvapIyKY2nUQW/kZicAa8sIiHQcBLAw0uAfcT/O3QxCQ9Wh3OOL
+bm4L/vZJZE3sW+WjHm8CRoApdL0+rpm5oDWo8gPyHrozejX71CNIi3NZVx07Qx1S
+LhHYpVLWPLx+DLgu8iGOwFEZLbWgOye80jrlmJleFhm3EIjo2fCOqoAyR2/lgqwP
+AVyGlEC+gJyBDKiN6w5sSUt9SqebHjqPMZ5FwI0aOjK+epzsxepmz1hJHfmWt8Xy
+eMeQQwJssOZS+iDXbSdfkVda5Kb5ljNisTIQt9okqTD58WIcEKRo+LiA+hc4fYhs
+VSNcgmsKJtD3FZaXOEj0sgZqkaDrBjin4ocJ+aDzdgL6nULo/YczP8En/nnFn/lS
+ll2TVx/09nZ1CtMn/kFvHO+jI/zvTz0mpfTE4E+68b+KMU69NrLid2gk4BioidjW
+OuygNcUe9ZjUbEaIKSnpNhQMfRQUYuoel2wyZSbN1fEGYPxHu3dU/TqvQJIjst3q
+FnqFavO7FT5xdLrd8jjP
+=Ftvv
+-----END PGP SIGNATURE-----
+
+--LyciRD1jyfeSSjG0--
 
 
+--===============6973892463288365932==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============6973892463288365932==--
