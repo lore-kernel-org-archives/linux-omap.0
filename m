@@ -1,88 +1,110 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: OMAP baseline test results for v3.10-rc6
-Date: Tue, 25 Jun 2013 19:02:43 +0300
-Message-ID: <20130625160243.GE22312@arwen.pp.htv.fi>
-References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com>
-Reply-To: balbi@ti.com
+From: Naresh Kamboju <naresh.kamboju@linaro.org>
+Subject: Re: linux-next: panda build failed at arch/arm/mach-omap2/omap4-restart.c
+Date: Tue, 25 Jun 2013 22:46:02 +0530
+Message-ID: <CA+G9fYupw8Gi=5p2nKVJ9GqfhwBcTw7hyzGA8+K+gHmdL96mJg@mail.gmail.com>
+References: <CA+G9fYv_9EQUmpRNPUwioSwJVXnXJC5odEKiMd=vKHNWYRT8xw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0604529552677696958=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tom Rini <trini@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oa0-f54.google.com ([209.85.219.54]:58262 "EHLO
+	mail-oa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751645Ab3FYRQD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jun 2013 13:16:03 -0400
+Received: by mail-oa0-f54.google.com with SMTP id o6so13812294oag.13
+        for <linux-omap@vger.kernel.org>; Tue, 25 Jun 2013 10:16:02 -0700 (PDT)
+In-Reply-To: <CA+G9fYv_9EQUmpRNPUwioSwJVXnXJC5odEKiMd=vKHNWYRT8xw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Robin Holt <holt@sgi.com>, Linus Walleij <linus.walleij@linaro.org>, Andrey Konovalov <andrey.konovalov@linaro.org>, Russ Anderson <rja@sgi.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Milosz Wasilewski <milosz.wasilewski@linaro.org>
 
---===============0604529552677696958==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dWYAkE0V1FpFQHQ3"
-Content-Disposition: inline
+ping
 
---dWYAkE0V1FpFQHQ3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Mon, Jun 17, 2013 at 05:23:17AM +0000, Paul Walmsley wrote:
-> Boot to userspace:
->     FAIL ( 3/12): 37xxevm, am335xbone, am335xbonelt
-
-Paul, we have at least 2 different folks who can't reproduce your bone
-and bone black boot to userspace failures. I wonder how you're trying to
-boot them.
-
-Care to share your test scripts ?
-
-Also, if you could share the entire thing, we will add your scripts to
-our nightly tests as to try and avoid future regressions.
-
---=20
-balbi
-
---dWYAkE0V1FpFQHQ3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRyb8jAAoJEIaOsuA1yqRE67sP/3Ymw/bJensgenbTx2Oo+ZIx
-gm+8MdBF/M2XvYRvN2lAzF5L/PbW1AfMPrBlgAkuZFy574isEmGFNh5f/8V29ccO
-fvi/RigZz/DMxYJiQDWSpuP7rWE2yIKpTEpfmkkNf5HG2JZDL5uilozMOjSUt+Af
-ph30JSYeCga4sSUqWOmlF8hCV+lTR3A0485ufwB+MBPXx/XQo3c0oTuhiIb1Vsa+
-6Wou8vu5Kbc5w3gVY5jffuhMy5tIlXg30FLv6iaE8meaI+yx2Iytpz/Zfod72b9u
-rGeNvydJgwHxLz5OTmvImep0ODOMBzO4sQq1LCUQ4UJG9WOWsarHgTPSQWGqZzWH
-c8AZ+McY6gf8c+A3YGwFky3LioHJE5wjOHRQxNoMEJWLyXfbRV4db8dV4OhN/0fV
-pGsx1G5vhY9qh6v3x+48/uToMd1C5+XkkbmyFb9XfTyGJ1ZSZGRtw8YpK/32DZu9
-viliG6EtUNvm6xoTv57GyP8s3HN4nnMO/PPnXnD8j9lIzE003qBGVimVrx4oF1XO
-kcBnR/NOF6UavcDWOr9HyXAbLbbxcsSO7MrbLMHsmHiXNCpPWjrIqLZN/zc0mQJJ
-N1xrz/m9L5j7Ffmi9/76xg/Q1t3hc+55nKph7bcoC4w6pUp6jMFT33C1NcIR5d9G
-6KJCcZd+8Cviyfsjyux/
-=0iMI
------END PGP SIGNATURE-----
-
---dWYAkE0V1FpFQHQ3--
-
-
---===============0604529552677696958==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============0604529552677696958==--
+On 23 June 2013 13:53, Naresh Kamboju <naresh.kamboju@linaro.org> wrote=
+:
+> Hi,
+>
+> panda build broken on linux-next branch
+>
+> kernel_config=3Domap2plus_defconfig
+> KERNEL_VERSION=3D3.10.0-rc6
+> KERNEL_GIT=3Dgit://git.kernel.org/pub/scm/linux/kernel/git/next/linux=
+-next.git
+> KERNEL_COMMIT=3De1a86578747376f08985627c84df088a5d0d1e92
+>
+> Build error log :
+> -------------------
+> 04:43:18   CC      arch/arm/mach-omap2/omap4-restart.o
+> 04:43:18 /mnt/ci_build/workspace/linux-next/hwpack/panda/label/kernel=
+_cloud/arch/arm/mach-omap2/omap4-restart.c:21:28:
+> warning: =91enum reboot_mode=92 declared inside parameter list [enabl=
+ed by
+> default]
+> 04:43:18  void omap44xx_restart(enum reboot_mode mode, const char *cm=
+d)
+> 04:43:18                             ^
+> 04:43:18 /mnt/ci_build/workspace/linux-next/hwpack/panda/label/kernel=
+_cloud/arch/arm/mach-omap2/omap4-restart.c:21:28:
+> warning: its scope is only this definition or declaration, which is
+> probably not what you want [enabled by default]
+> 04:43:18 /mnt/ci_build/workspace/linux-next/hwpack/panda/label/kernel=
+_cloud/arch/arm/mach-omap2/omap4-restart.c:21:40:
+> error: parameter 1 (=91mode=92) has incomplete type
+> 04:43:18  void omap44xx_restart(enum reboot_mode mode, const char *cm=
+d)
+> 04:43:18                                         ^
+> 04:43:18 /mnt/ci_build/workspace/linux-next/hwpack/panda/label/kernel=
+_cloud/arch/arm/mach-omap2/omap4-restart.c:21:6:
+> warning: function declaration isn=92t a prototype [-Wstrict-prototype=
+s]
+> 04:43:18  void omap44xx_restart(enum reboot_mode mode, const char *cm=
+d)
+> 04:43:18       ^
+> 04:43:18 make[2]: *** [arch/arm/mach-omap2/omap4-restart.o] Error 1
+> 04:43:18 make[1]: *** [arch/arm/mach-omap2] Error 2
+>
+> Full build log:
+> ------------------
+> https://ci.linaro.org/jenkins/job/linux-next/hwpack=3Dpanda,label=3Dk=
+ernel_cloud/lastBuild/console
+>
+> Suspecting patch which caused build failed:
+> --------------------------------------------------------
+> commit b61cdf2aebc5cd2f4efc4e0cbebeb8a91884a43e
+> Author: Robin Holt <holt@sgi.com>
+> Date:   Wed Jun 19 10:08:43 2013 +1000
+>
+> reboot: arm: change reboot_mode to use enum reboot_mode
+>
+> Preparing to move the parsing of reboot=3D to generic kernel code for=
+ces the
+> change in reboot_mode handling to use the enum.
+>
+> Signed-off-by: Robin Holt <holt@sgi.com>
+>
+> ...
+> diff --git a/arch/arm/mach-omap2/omap4-restart.c
+> b/arch/arm/mach-omap2/omap4-restart.c
+> index f90e02e..652adde 100644
+> --- a/arch/arm/mach-omap2/omap4-restart.c
+> +++ b/arch/arm/mach-omap2/omap4-restart.c
+> @@ -18,7 +18,7 @@
+>   * Resets the SoC.  For @cmd, see the 'reboot' syscall in
+>   * kernel/sys.c.  No return value.
+>   */
+> -void omap44xx_restart(char mode, const char *cmd)
+> +void omap44xx_restart(enum reboot_mode mode, const char *cmd)
+>  {
+>         /* XXX Should save 'cmd' into scratchpad for use after reboot=
+ */
+>         omap4_prminst_global_warm_sw_reset(); /* never returns */
+> ...
+>
+> Best regards
+> Naresh Kamboju
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
