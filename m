@@ -1,68 +1,92 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2] ARM: DTS: OMAP4: Add OMAP4 Blaze Tablet support
-Date: Tue, 25 Jun 2013 07:43:02 -0500
-Message-ID: <51C99056.5090104@ti.com>
-References: <1372159970-6361-1-git-send-email-ruslan.bilovol@ti.com> <51C9867C.80206@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] Documentation: dt: bindings: TI WiLink modules
+Date: Tue, 25 Jun 2013 16:07:49 +0300
+Message-ID: <20130625130749.GD20439@arwen.pp.htv.fi>
+References: <1372149330-24335-1-git-send-email-coelho@ti.com>
+ <20130625111234.GJ15407@arwen.pp.htv.fi>
+ <1372161370.18889.13.camel@cumari.coelho.fi>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51C9867C.80206@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Cc: b-cousson@ti.com, tony@atomide.com, benoit.cousson@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="zbGR4y+acU1DwHSi"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:34957 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751082Ab3FYNH7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Jun 2013 09:07:59 -0400
+Content-Disposition: inline
+In-Reply-To: <1372161370.18889.13.camel@cumari.coelho.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Luciano Coelho <coelho@ti.com>
+Cc: balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-wireless@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm@vger.kernel.org
 
-On 06/25/2013 07:01 AM, Nishanth Menon wrote:
-> On 06/25/2013 06:32 AM, Ruslan Bilovol wrote:
->> The OMAP4 Blaze Tablet is TI OMAP4 processor-based
->> development platform in a tablet formfactor.
->> The platform contains many of the features found in
->> present-day handsets (such as audio, video, wireless
->> functions and user interfaces) and in addition
->> contains features for software development and test.
->>
->> This patch adds initial support for the OMAP4 Blaze
->> Tablet development platform. Additional functionality
->> depends on different drivers and code modifications that
->> are not upstreamed yet or do not support DT yet, so will
->> be added later.
->
-> http://svtronics.com/omap/sevm4460,blaze,omap might help too :)
-> [...]
->> +
->> +#include "twl6030.dtsi"
->> +
-> Might be good to see the TWL interrupt pin information made available as
-> well?
-Allow me to rephrase a comment a little bit more :)
-Similar to twl4030_omap3.dtsi, we could introduce twl6030_omap4.dtsi. 
-this could contain the common pins used for 6030.
-  &omap4_pmx_wkup {
-          pinctrl-names = "default";
-          pinctrl-0 = <
-                          &twl6030_wkup_pins
-          >;
+--zbGR4y+acU1DwHSi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-          twl6030_wkup_pins: pinmux_twl6030_wkup_pins { 
+On Tue, Jun 25, 2013 at 02:56:10PM +0300, Luciano Coelho wrote:
+> On Tue, 2013-06-25 at 14:12 +0300, Felipe Balbi wrote:
+> > On Tue, Jun 25, 2013 at 11:35:30AM +0300, Luciano Coelho wrote:
+> > > +- tcxoclock: the internal WLAN TCXO clock frequency (required for
+> > > +  WiLink7 not used for WiLink6 and WiLink8).  Must be one of the
+> > > +  following:
+> > > +	0 =3D 19.200 MHz
+> > > +	1 =3D 26.000 MHz
+> > > +	2 =3D 38.400 MHz
+> > > +	3 =3D 52.000 MHz
+> > > +	4 =3D 16.368 MHz
+> > > +	5 =3D 32.736 MHz
+> > > +	6 =3D 16.800 MHz
+> > > +	7 =3D 33.600 MHz
+> >=20
+> > DTS files are pre-processed, so you could add defines in a header and
+> > share the header between DTS and driver. Could help you having:
+> >=20
+> > tcxoclock =3D WILINK_19_200MHz;
+> >=20
+> > instead of
+> >=20
+> > tcxoclock =3D 0;
+>=20
+> I don't see any .dts file really doing this.  There are some imx*.dtsi
+> files that include imx*.h files, but I don't see these headers being
+> included in any source code file.
+>=20
+> In fact, we already have all these values defined in
+> include/linux/wl12xx.h, so it could be nice to reuse.  But the
+> cross-directory includes would look "funny".  And I think it's a bit
+> overkill.
+>=20
+> These values are actually used by the firmware itself, not only the
+> driver, so they are also platform independent and not related to the OS.
 
-                  pinctrl-single,pins = <
-                          0x14 (PIN_OUTPUT | MUX_MODE2)
-                  >;
-          };
-  };
+fair enough, then there's no chance they'll change all of a sudden.
 
-	twl6030_pins: pinmux_twl6030_pins {
-		pinctrl-single,pins = <
-			0x15e (WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0)	/* 
-sys_nirq1.sys_nirq1 */
-		>;
-	};
+--=20
+balbi
 
-which is now already duplicated in 2 places (SDP and Panda), and in this 
-patch duplicated again.
+--zbGR4y+acU1DwHSi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-just my 2 cents :(
----
-Regards,
-Nishanth Menon
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRyZYlAAoJEIaOsuA1yqREXv4QAJQRZgQEp8AuANEzstQimGI/
+ck4ADV8V68nQMGI54PZJU31+rahn7sqp28rHGpQyp7K1AS3cZcDSsF45JgMb/7fx
+qWwIh4wUiw+Tfv0VwrSmRAMaDMcyrtA8lo80YFn4N2j2BL4OCfy+cF9H88cp87ow
+m/2WUrH9THWX1l3dhwzIZKY/IFo1wfaaxis8oQNCmESrTrVPCzT3Og0qsd5EqcI+
+nGSuidU7tOVDEZCLZVWtQKTUOeaxUxWNYAG6J8OfYz/RUtkzl1sNPsvLbM0mCkad
+DLasnzyJuC9LMhwnQpXxge6nkUvxmdFiTo4kdPqJ+U6PBtzsMC3XKmkvl7tVRx6D
+OdbCMcQK0jzjZB2K5sTsMGUQLDyp3UdqLcuQZFpDu4RV0Px4vAnKFEfr+M+i28NF
+DTPrzljtRuBUCJ7eHdyQZf4H3r2m0ai5mpbJW3ZG81is78QNwxG+GDItmltFmCnt
+yBppoNV7f7Uy8VbknMMHXvMRk9WHfce6S9hlnuEebU3YhP0du3iGtrVFOWdM8MtQ
+OszkpMQ1ue7LzKa/G31gQc+9Zq5tE40HkSboz5LVlfa9c2mKoI+yF9tXflrS8Yy+
+9OT5uiHiKZ86u7rQmat8yAWrb5+pXAxO6jWyXNW0EGExdCBT+v+EpL4L+URX2Qgi
+elgfMVdYh1R1K5aAvjMN
+=9n0b
+-----END PGP SIGNATURE-----
+
+--zbGR4y+acU1DwHSi--
