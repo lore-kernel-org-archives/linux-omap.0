@@ -1,110 +1,188 @@
-From: Naresh Kamboju <naresh.kamboju@linaro.org>
-Subject: Re: linux-next: panda build failed at arch/arm/mach-omap2/omap4-restart.c
-Date: Tue, 25 Jun 2013 22:46:02 +0530
-Message-ID: <CA+G9fYupw8Gi=5p2nKVJ9GqfhwBcTw7hyzGA8+K+gHmdL96mJg@mail.gmail.com>
-References: <CA+G9fYv_9EQUmpRNPUwioSwJVXnXJC5odEKiMd=vKHNWYRT8xw@mail.gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during
+ bus suspend
+Date: Tue, 25 Jun 2013 13:38:32 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1306251251550.1340-100000@iolanthe.rowland.org>
+References: <51C9A23F.80305@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f54.google.com ([209.85.219.54]:58262 "EHLO
-	mail-oa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751645Ab3FYRQD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jun 2013 13:16:03 -0400
-Received: by mail-oa0-f54.google.com with SMTP id o6so13812294oag.13
-        for <linux-omap@vger.kernel.org>; Tue, 25 Jun 2013 10:16:02 -0700 (PDT)
-In-Reply-To: <CA+G9fYv_9EQUmpRNPUwioSwJVXnXJC5odEKiMd=vKHNWYRT8xw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51C9A23F.80305@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, tony@atomide.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Robin Holt <holt@sgi.com>, Linus Walleij <linus.walleij@linaro.org>, Andrey Konovalov <andrey.konovalov@linaro.org>, Russ Anderson <rja@sgi.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Milosz Wasilewski <milosz.wasilewski@linaro.org>
 
-ping
+On Tue, 25 Jun 2013, Roger Quadros wrote:
 
-On 23 June 2013 13:53, Naresh Kamboju <naresh.kamboju@linaro.org> wrote=
-:
-> Hi,
->
-> panda build broken on linux-next branch
->
-> kernel_config=3Domap2plus_defconfig
-> KERNEL_VERSION=3D3.10.0-rc6
-> KERNEL_GIT=3Dgit://git.kernel.org/pub/scm/linux/kernel/git/next/linux=
--next.git
-> KERNEL_COMMIT=3De1a86578747376f08985627c84df088a5d0d1e92
->
-> Build error log :
-> -------------------
-> 04:43:18   CC      arch/arm/mach-omap2/omap4-restart.o
-> 04:43:18 /mnt/ci_build/workspace/linux-next/hwpack/panda/label/kernel=
-_cloud/arch/arm/mach-omap2/omap4-restart.c:21:28:
-> warning: =91enum reboot_mode=92 declared inside parameter list [enabl=
-ed by
-> default]
-> 04:43:18  void omap44xx_restart(enum reboot_mode mode, const char *cm=
-d)
-> 04:43:18                             ^
-> 04:43:18 /mnt/ci_build/workspace/linux-next/hwpack/panda/label/kernel=
-_cloud/arch/arm/mach-omap2/omap4-restart.c:21:28:
-> warning: its scope is only this definition or declaration, which is
-> probably not what you want [enabled by default]
-> 04:43:18 /mnt/ci_build/workspace/linux-next/hwpack/panda/label/kernel=
-_cloud/arch/arm/mach-omap2/omap4-restart.c:21:40:
-> error: parameter 1 (=91mode=92) has incomplete type
-> 04:43:18  void omap44xx_restart(enum reboot_mode mode, const char *cm=
-d)
-> 04:43:18                                         ^
-> 04:43:18 /mnt/ci_build/workspace/linux-next/hwpack/panda/label/kernel=
-_cloud/arch/arm/mach-omap2/omap4-restart.c:21:6:
-> warning: function declaration isn=92t a prototype [-Wstrict-prototype=
-s]
-> 04:43:18  void omap44xx_restart(enum reboot_mode mode, const char *cm=
-d)
-> 04:43:18       ^
-> 04:43:18 make[2]: *** [arch/arm/mach-omap2/omap4-restart.o] Error 1
-> 04:43:18 make[1]: *** [arch/arm/mach-omap2] Error 2
->
-> Full build log:
-> ------------------
-> https://ci.linaro.org/jenkins/job/linux-next/hwpack=3Dpanda,label=3Dk=
-ernel_cloud/lastBuild/console
->
-> Suspecting patch which caused build failed:
-> --------------------------------------------------------
-> commit b61cdf2aebc5cd2f4efc4e0cbebeb8a91884a43e
-> Author: Robin Holt <holt@sgi.com>
-> Date:   Wed Jun 19 10:08:43 2013 +1000
->
-> reboot: arm: change reboot_mode to use enum reboot_mode
->
-> Preparing to move the parsing of reboot=3D to generic kernel code for=
-ces the
-> change in reboot_mode handling to use the enum.
->
-> Signed-off-by: Robin Holt <holt@sgi.com>
->
-> ...
-> diff --git a/arch/arm/mach-omap2/omap4-restart.c
-> b/arch/arm/mach-omap2/omap4-restart.c
-> index f90e02e..652adde 100644
-> --- a/arch/arm/mach-omap2/omap4-restart.c
-> +++ b/arch/arm/mach-omap2/omap4-restart.c
-> @@ -18,7 +18,7 @@
->   * Resets the SoC.  For @cmd, see the 'reboot' syscall in
->   * kernel/sys.c.  No return value.
->   */
-> -void omap44xx_restart(char mode, const char *cmd)
-> +void omap44xx_restart(enum reboot_mode mode, const char *cmd)
->  {
->         /* XXX Should save 'cmd' into scratchpad for use after reboot=
- */
->         omap4_prminst_global_warm_sw_reset(); /* never returns */
-> ...
->
-> Best regards
-> Naresh Kamboju
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> On 06/24/2013 10:34 PM, Alan Stern wrote:
+> > On Mon, 24 Jun 2013, Roger Quadros wrote:
+> > 
+> >> OK I've tried to handle all this in an alternate way. Now the controller suspend/resume
+> >> and runtime suspend/resume is independent of bus suspend.
+> >>
+> >> The controller now runtime suspends when all devices on the bus have suspended and
+> >> the hub auto suspends. NOTE: HW_ACCESSIBLE is still set on runtime_suspend.
+> >> The challenge here is to process the interrupt in this state.
+> > 
+> > The situation is a little peculiar.  Does the hardware really use the
+> > same IRQ for reporting wakeup events when the controller is suspended
+> > and for reporting normal I/O events?
+> 
+> No and yes :). Actually the Pad wakeup comes as a separate IRQ from hardware.
+> The omap pinctrl driver captures that, determines which pad caused the wakeup and
+> routes it to the appropriate interrupt based on the mapping provided in the device tree.
+> In the ehci-omap case we provide the EHCI IRQ number in the mapping for the USB host pads.
+
+Could the mapping be changed so that a different interrupt vector was 
+used for wakeups and normal I/O?  That would make this a little easier, 
+although it wouldn't solve the general problem.
+
+> >>  	if (unlikely(HCD_DEAD(hcd) || !HCD_HW_ACCESSIBLE(hcd)))
+> >>  		rc = IRQ_NONE;
+> >> +	else if (pm_runtime_status_suspended(hcd->self.controller)) {
+> >> +		/*
+> >> +		 * We can't handle it yet so disable IRQ, make note of it
+> >> +		 * and resume root hub (i.e. controller as well)
+> >> +		 */
+> >> +		disable_irq_nosync(hcd->irq);
+> >> +		set_bit(HCD_FLAG_IRQ_DISABLED, &hcd->flags);
+> >> +		usb_hcd_resume_root_hub(hcd);
+> >> +		rc = IRQ_HANDLED;
+> >> +	}
+> > 
+> > This part will have to be different.
+> > 
+> > Certainly if HCD_DEAD(hcd) then we want to return IRQ_NONE.  Likewise
+> > if (!HCD_HW_ACCESSIBLE(hcd) && !hcd->has_wakeup_interrupts).  In all
+> > other cases we have to call the HCD's interrupt handler.
+
+There's still a race problem.  Suppose a normal wakeup interrupt occurs
+just before or as the controller gets suspended.  By the time the code
+here runs, HCD_HW_ACCESSIBLE may have been cleared by the suspend
+routine.  The interrupt would be lost.  Depending on the design of the
+controller, the entire wakeup signal could end up getting lost as well.
+
+Do you know how the OMAP EHCI controller behaves?  Under what 
+conditions does it send the wakeup IRQ?  How do you tell it to turn off 
+the wakeup IRQ?
+
+> Looks good to me. Below is the implementation on these lines.
+> I've added a flag "has_wakeup_irq:1" in struct hcd to indicate the special
+> case where the interrupt can come even if controller is suspended.
+> 
+> I've modified the ehci-omap driver to call ehci_suspend/resume() on system
+> suspend/resume. For runtime suspend/resume I just toggle the HCD_HW_ACCESSIBLE
+> flag to indicate that controller cannot be accessed when runtime suspended.
+
+You're going to change that, right?  ehci_suspend/resume should be
+called whenever the controller's power state changes, regardless of
+whether it is for runtime PM or system PM.
+
+> The cutting of clocks is done in the parent driver (i.e. drivers/mfd/omap-usb-host.c)
+> 
+> Patch is below. If it looks OK. I'll re-post the entire series. Thanks.
+> 
+> diff --git a/include/linux/usb/hcd.h b/include/linux/usb/hcd.h
+> index f5f5c7d..51c2d59 100644
+> --- a/include/linux/usb/hcd.h
+> +++ b/include/linux/usb/hcd.h
+> @@ -110,6 +110,7 @@ struct usb_hcd {
+>  #define HCD_FLAG_WAKEUP_PENDING		4	/* root hub is resuming? */
+>  #define HCD_FLAG_RH_RUNNING		5	/* root hub is running? */
+>  #define HCD_FLAG_DEAD			6	/* controller has died? */
+> +#define HCD_FLAG_IRQ_DISABLED		7	/* Interrupt was disabled */
+>  
+>  	/* The flags can be tested using these macros; they are likely to
+>  	 * be slightly faster than test_bit().
+> @@ -120,6 +121,7 @@ struct usb_hcd {
+>  #define HCD_WAKEUP_PENDING(hcd)	((hcd)->flags & (1U << HCD_FLAG_WAKEUP_PENDING))
+>  #define HCD_RH_RUNNING(hcd)	((hcd)->flags & (1U << HCD_FLAG_RH_RUNNING))
+>  #define HCD_DEAD(hcd)		((hcd)->flags & (1U << HCD_FLAG_DEAD))
+> +#define HCD_IRQ_DISABLED(hcd)	((hcd)->flags & (1U << HCD_FLAG_IRQ_DISABLED))
+>  
+>  	/* Flags that get set only during HCD registration or removal. */
+>  	unsigned		rh_registered:1;/* is root hub registered? */
+> @@ -132,6 +134,7 @@ struct usb_hcd {
+>  	unsigned		wireless:1;	/* Wireless USB HCD */
+>  	unsigned		authorized_default:1;
+>  	unsigned		has_tt:1;	/* Integrated TT in root hub */
+> +	unsigned		has_wakeup_irq:1; /* Can generate IRQ when suspended */
+>  
+>  	unsigned int		irq;		/* irq allocated */
+>  	void __iomem		*regs;		/* device memory/io */
+> 
+> diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
+> index d53547d..24e21a2 100644
+> --- a/drivers/usb/core/hcd.c
+> +++ b/drivers/usb/core/hcd.c
+> @@ -2136,6 +2136,11 @@ static void hcd_resume_work(struct work_struct *work)
+>  	usb_lock_device(udev);
+>  	usb_remote_wakeup(udev);
+>  	usb_unlock_device(udev);
+> +	if (HCD_IRQ_DISABLED(hcd)) {
+> +		/* Interrupt was disabled */
+> +		clear_bit(HCD_FLAG_IRQ_DISABLED, &hcd->flags);
+> +		enable_irq(hcd->irq);
+> +	}
+>  }
+>  
+>  /**
+> @@ -2223,7 +2228,9 @@ irqreturn_t usb_hcd_irq (int irq, void *__hcd)
+>  	 */
+>  	local_irq_save(flags);
+>  
+> -	if (unlikely(HCD_DEAD(hcd) || !HCD_HW_ACCESSIBLE(hcd)))
+> +	if (unlikely(HCD_DEAD(hcd)))
+> +		rc = IRQ_NONE;
+> +	else if (!HCD_HW_ACCESSIBLE(hcd) && !hcd->has_wakeup_irq)
+>  		rc = IRQ_NONE;
+
+Add an unlikely() here too.
+
+>  	else if (hcd->driver->irq(hcd) == IRQ_NONE)
+>  		rc = IRQ_NONE;
+> diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
+> index 246e124..1844e31 100644
+> --- a/drivers/usb/host/ehci-hcd.c
+> +++ b/drivers/usb/host/ehci-hcd.c
+> @@ -689,6 +689,21 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
+>  
+>  	spin_lock (&ehci->lock);
+>  
+> +	if (unlikely(!HCD_HW_ACCESSIBLE(hcd))) {
+> +		/*
+> +		 * We got a wakeup interrupt while the controller was
+> +		 * suspending or suspended.  We can't handle it now, so
+> +		 * disable the IRQ and resume the root hub (and hence
+> +		 * the controller too).
+> +		 */
+> +		disable_irq_nosync(hcd->irq);
+> +		set_bit(HCD_FLAG_IRQ_DISABLED, &hcd->flags);
+
+To be safe, let's put these two statements inside
+
+		if (hcd->has_wakeup_irq) { ... }
+
+I think if the right sort of race occurs, we could end up here even 
+when hcd->has_wakeup_irq is clear.  So this test is needed.  We don't 
+want to disable a shared IRQ line.
+
+> +		spin_unlock(&ehci->lock);
+> +
+> +		usb_hcd_resume_root_hub(hcd);
+> +		return IRQ_HANDLED;
+> +	}
+> +
+>  	status = ehci_readl(ehci, &ehci->regs->status);
+>  
+>  	/* e.g. cardbus physical eject */
+> 
+> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+> index 16d7150..ead7d12 100644
+> --- a/drivers/usb/host/ehci-omap.c
+> +++ b/drivers/usb/host/ehci-omap.c
+
+This part seems reasonable, once the runtime PM routines are fixed.
+
+Alan Stern
