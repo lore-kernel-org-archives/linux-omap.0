@@ -1,46 +1,75 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: omap5: build opp4xxx_data.c
-Date: Tue, 25 Jun 2013 15:55:01 -0400
-Message-ID: <51C9F595.3060609@ti.com>
-References: <201306212229.54238.arnd@arndb.de> <20130621204250.GA16139@kahuna> <alpine.DEB.2.02.1306251918590.14373@utopia.booyaka.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: OMAP baseline test results for v3.10-rc6
+Date: Tue, 25 Jun 2013 12:57:49 -0700
+Message-ID: <87fvw6t136.fsf@linaro.org>
+References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com>
+	<20130625160243.GE22312@arwen.pp.htv.fi>
+	<alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com>
+	<51C9F0A8.1050607@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58547 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751314Ab3FYTza (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Jun 2013 15:55:30 -0400
-In-Reply-To: <alpine.DEB.2.02.1306251918590.14373@utopia.booyaka.com>
+Received: from mail-pb0-f44.google.com ([209.85.160.44]:40186 "EHLO
+	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751314Ab3FYT5x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jun 2013 15:57:53 -0400
+Received: by mail-pb0-f44.google.com with SMTP id uo1so13118275pbc.31
+        for <linux-omap@vger.kernel.org>; Tue, 25 Jun 2013 12:57:53 -0700 (PDT)
+In-Reply-To: <51C9F0A8.1050607@ti.com> (Tom Rini's message of "Tue, 25 Jun
+	2013 15:34:00 -0400")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Nishanth Menon <nm@ti.com>, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "J, KEERTHY" <j-keerthy@ti.com>
+To: Tom Rini <trini@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, hvaibhav@ti.com
 
-On Tuesday 25 June 2013 03:20 PM, Paul Walmsley wrote:
-> Santosh,
-> 
-> On Fri, 21 Jun 2013, Nishanth Menon wrote:
-> 
->> 	/*
->> 	 * XXX Will depend on the process, validation, and binning
->> 	 * for the currently-running IC. Use OMAP4 data for time being.
->> 	 */
->> #ifdef CONFIG_PM_OPP
->> 	omap5_voltdm_mpu.volt_data = omap446x_vdd_mpu_volt_data;
->> 	omap5_voltdm_mm.volt_data = omap446x_vdd_iva_volt_data;
->> 	omap5_voltdm_core.volt_data = omap446x_vdd_core_volt_data;
->> #endif
->>
->> Should we just remove this instead? these are obviously wrong.
-> 
-> Are the OMAP4460 values expected to work and be safe for OMAP5, or not?  
-> If the latter, please send a patch to remove them.
-> 
-The plan was to update the data along with and VC OPP update
-for OMAP5 which Keerthy is working on. As such without VC code,
-this data is not doing anything so it is safe.
+Tom Rini <trini@ti.com> writes:
 
-Regards,
-Santosh
+> On 06/25/2013 02:20 PM, Paul Walmsley wrote:
+>> + Vaibhav and Kevin
+>> 
+>> Hi,
+>> 
+>> On Tue, 25 Jun 2013, Felipe Balbi wrote:
+>> 
+>>> On Mon, Jun 17, 2013 at 05:23:17AM +0000, Paul Walmsley wrote:
+>>>> Boot to userspace:
+>>>>     FAIL ( 3/12): 37xxevm, am335xbone, am335xbonelt
+>>>
+>>> Paul, we have at least 2 different folks who can't reproduce your bone
+>>> and bone black boot to userspace failures. I wonder how you're trying to
+>>> boot them.
+>>>
+>>> Care to share your test scripts ?
+>> 
+>> Sure... the methodology is completely open and has been posted in the 
+>> online logs since the first test cycle.  (For some reason, almost no one 
+>> clicks through the test directory trees that I post online.  Is this a 
+>> documentation issue?  What can we do to make it easier for people to 
+>> explore this?)
+>
+> Well, another link never hurts the search results :)
+>
+> [snip]
+>> Am certainly open to the idea that there's something wrong with the way 
+>> that I'm booting either of these.  But AFAIK no one's been able to 
+>> identify exactly what it could be.  I haven't had the time recently to 
+>> spend hours going through the various permutations, given all the other 
+>> breakage :-(  BeagleBone-white has the additional complication that it is 
+>> not easy to automate, due to the way that power is delivered to the board, 
+>> so there is an extra dimension of difficulty there.
+>
+> Ah-ha, I reproduced your failure.  If I make up a concat uImage + DTB,
+> rather than pass them separately, it fails to boot.  If you switch to
+> mainline U-Boot (v2012.10 or later) you get support for separate image +
+> dtb (v2013.04 gives you bootz and zImage support).  v2013.04 will also
+> work out of the box for BeagleBone-Black.
 
+Just to confirm, my problems with mainline were with appended DTB also.
+Separate DTB and zImage work fine (at least using u-boot v2013.04.)
+
+That being said, appended DTB should still work, so there's a bug hiding
+someplace that needs to be found fixed.
+
+Can you guys update your tests to test appended DTB also?
+
+Kevin
