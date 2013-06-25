@@ -1,72 +1,54 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v12 00/11] DMA Engine support for AM33XX
-Date: Mon, 24 Jun 2013 23:54:50 -0700
-Message-ID: <20130625065450.GY5523@atomide.com>
-References: <1371762407-24544-1-git-send-email-joelagnel@ti.com>
-	<20130624101903.GV5523@atomide.com> <51C85958.9030502@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC] ARM: OMAP2+: omap_device: add pinctrl handling
+Date: Mon, 24 Jun 2013 23:58:11 -0700
+Message-ID: <20130625065811.GZ5523@atomide.com>
+References: <1371826990-25820-1-git-send-email-grygorii.strashko@ti.com>
+ <CACRpkdY=m1b9Lh27+wHP8FQ4SbVZKmAOCGhxe59aP+TcuR9QaA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <51C85958.9030502-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Joel A Fernandes <joelagnel-l0cyMroinI0@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm@linux-foundat>
+In-Reply-To: <CACRpkdY=m1b9Lh27+wHP8FQ4SbVZKmAOCGhxe59aP+TcuR9QaA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Kevin Hilman <khilman@linaro.org>, Hebbar Gururaja <gururaja.hebbar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org> [130624 07:42]:
-> Hi Tony,
+* Linus Walleij <linus.walleij@linaro.org> [130624 05:13]:
+> On Fri, Jun 21, 2013 at 5:03 PM, Grygorii Strashko
+> <grygorii.strashko@ti.com> wrote:
 > 
-> On 06/24/2013 12:19 PM, Tony Lindgren wrote:
-> > Hi,
-> > 
-> > For merging this series, I suggest the following sets:
-> > 
-> > * Joel A Fernandes <joelagnel-l0cyMroinI0@public.gmane.org> [130620 14:13]:
-> >>
-> >> Joel A Fernandes (3):
-> >>   edma: config: Enable config options for EDMA
-> >>   da8xx: config: Enable MMC and FS options
-> >>   ARM: davinci: Fix compiler warnings in devices-da8xx
-> >>
-> >> Matt Porter (8):
-> >>   dmaengine: edma: Add TI EDMA device tree binding
-> >>   ARM: edma: Add DT and runtime PM support to the private EDMA API
-> >>   ARM: edma: Add EDMA crossbar event mux support
-> >>   dmaengine: edma: enable build for AM33XX
-> > 
-> > Sekhar should queue the above patches, I've acked the
-> > mach-omap2/Kconfig change.
-> > 
-> >>   spi: omap2-mcspi: add generic DMA request support to the DT binding
-> >>   spi: omap2-mcspi: convert to dma_request_slave_channel_compat()
-> > 
-> > 
-> > The spi changes should get merged via the driver list.
-> > 
-> >>   ARM: dts: add AM33XX EDMA support
-> >>   ARM: dts: add AM33XX SPI DMA support
-> > 
-> > Benoit should queue the .dts changes.
+> > Hence, add pinctrl handling in omap_device core:
+> > 1) on PM runtime resume
+> > - switch pinctrl state to "default" (todo: "active")
+> > 2) on PM runtime suspend
+> > - switch pinctrl state to "idle"
+> > 3) during system wide suspend
+> > - switch pinctrl state to "sleep" or "idle" if omap_device core disables device
+> > - switch pinctrl state to "sleep" if device is disabled already
+
+Do you need a separate setting for "idle" and "sleep", or are
+they the same?
+
+> > 4) during system wide resume
+> > - switch pinctrl state to "default" (todo: "active") if omap_device core has
+> >   disabled  device during suspend
+> > - switch pinctrl state to "idle" if device was already disabled before suspend
 > 
-> I'll do that, but do you consider them for 3.11?
+> I don't understand step 4.
+> 
+> I get the creeps about whether the system is runtime suspended
+> or runtime resumed when we come to resume proper, so I need
+> Kevin to have a look at this.
+> 
+> Apart from that it looks good.
+> 
+> Stephen and Tony are trying to figure out the details of whether "active"
+> is necessary or not in a related thread I think.
 
-Yes right after -rc1 if it makes the DMA work. We almost
-certainly need to send few branches of fixes after -rc1 once
-we find out what might have broken by the removal of the
-hwmod data..
-
-But let's stick to minimal changes for the -rc series
-naturally.
+Yes we should have that sorted out over next few weeks, so let's
+just wait a little while on all these dynamic remuxing patches
+to avoid churn.
 
 Regards,
 
