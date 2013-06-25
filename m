@@ -1,44 +1,88 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2] ARM: DTS: OMAP4: Add OMAP4 Blaze Tablet support
-Date: Tue, 25 Jun 2013 07:01:00 -0500
-Message-ID: <51C9867C.80206@ti.com>
-References: <1372159970-6361-1-git-send-email-ruslan.bilovol@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv3 1/9] CLK: clkdev: add support for looking up clocks from DT
+Date: Tue, 25 Jun 2013 15:38:25 +0300
+Message-ID: <1372163913-16566-2-git-send-email-t-kristo@ti.com>
+References: <1372163913-16566-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60114 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51251 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751113Ab3FYMBO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Jun 2013 08:01:14 -0400
-In-Reply-To: <1372159970-6361-1-git-send-email-ruslan.bilovol@ti.com>
+	id S1751211Ab3FYMjS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Jun 2013 08:39:18 -0400
+In-Reply-To: <1372163913-16566-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Cc: b-cousson@ti.com, tony@atomide.com, benoit.cousson@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Russell King <linux@arm.linux.org.uk>
 
-On 06/25/2013 06:32 AM, Ruslan Bilovol wrote:
-> The OMAP4 Blaze Tablet is TI OMAP4 processor-based
-> development platform in a tablet formfactor.
-> The platform contains many of the features found in
-> present-day handsets (such as audio, video, wireless
-> functions and user interfaces) and in addition
-> contains features for software development and test.
->
-> This patch adds initial support for the OMAP4 Blaze
-> Tablet development platform. Additional functionality
-> depends on different drivers and code modifications that
-> are not upstreamed yet or do not support DT yet, so will
-> be added later.
+clk_get_sys / clk_get can now find clocks from device-tree. If a DT clock
+is found, an entry is added to the clk_lookup list also for subsequent
+searches.
 
-http://svtronics.com/omap/sevm4460,blaze,omap might help too :)
-[...]
-> +
-> +#include "twl6030.dtsi"
-> +
-Might be good to see the TWL interrupt pin information made available as 
-well?
-[...]
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+---
+ drivers/clk/clkdev.c |   32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-Regards,
-Nishanth Menon
+diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
+index 442a313..e39f082 100644
+--- a/drivers/clk/clkdev.c
++++ b/drivers/clk/clkdev.c
+@@ -93,6 +93,18 @@ struct clk *of_clk_get_by_name(struct device_node *np, const char *name)
+ EXPORT_SYMBOL(of_clk_get_by_name);
+ #endif
+ 
++/**
++ * clkdev_add_nolock - add lookup entry for a clock
++ * @cl: pointer to new clock lookup entry
++ *
++ * Non-locking version, used internally by clk_find() to add DT based
++ * clock lookup entries.
++ */
++static void clkdev_add_nolock(struct clk_lookup *cl)
++{
++	list_add_tail(&cl->node, &clocks);
++}
++
+ /*
+  * Find the correct struct clk for the device and connection ID.
+  * We do slightly fuzzy matching here:
+@@ -106,6 +118,9 @@ static struct clk_lookup *clk_find(const char *dev_id, const char *con_id)
+ {
+ 	struct clk_lookup *p, *cl = NULL;
+ 	int match, best_found = 0, best_possible = 0;
++	struct device_node *node;
++	struct clk *clk;
++	struct of_phandle_args clkspec;
+ 
+ 	if (dev_id)
+ 		best_possible += 2;
+@@ -133,6 +148,23 @@ static struct clk_lookup *clk_find(const char *dev_id, const char *con_id)
+ 				break;
+ 		}
+ 	}
++
++	if (cl)
++		return cl;
++
++	/* If clock was not found, attempt to look-up from DT */
++	node = of_find_node_by_name(NULL, con_id);
++
++	clkspec.np = node;
++
++	clk = of_clk_get_from_provider(&clkspec);
++
++	if (!IS_ERR(clk)) {
++		/* We found a clock, add node to clkdev */
++		cl = clkdev_alloc(clk, con_id, dev_id);
++		clkdev_add_nolock(cl);
++	}
++
+ 	return cl;
+ }
+ 
+-- 
+1.7.9.5
+
