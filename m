@@ -1,7 +1,7 @@
 From: Luciano Coelho <coelho@ti.com>
 Subject: Re: [PATCH] Documentation: dt: bindings: TI WiLink modules
-Date: Tue, 25 Jun 2013 22:35:00 +0300
-Message-ID: <1372188900.18889.18.camel@cumari.coelho.fi>
+Date: Tue, 25 Jun 2013 22:37:04 +0300
+Message-ID: <1372189024.18889.19.camel@cumari.coelho.fi>
 References: <1372149330-24335-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
@@ -10,10 +10,10 @@ Return-path: <linux-doc-owner@vger.kernel.org>
 In-Reply-To: <1372149330-24335-1-git-send-email-coelho@ti.com>
 Sender: linux-doc-owner@vger.kernel.org
 To: grant.likely@linaro.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-wireless@vger.kernel.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org
-Cc: tony@atomide.comtony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@vger.kernel.org
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-(fixed the ARM mailing list address)
+(oh crap, now *really* fixed the ARM mailing list address)
 
 On Tue, 2013-06-25 at 11:35 +0300, Luciano Coelho wrote:
 > Add device tree bindings documentation for the TI WiLink modules.
@@ -91,4 +91,5 @@ node parsing in the driver.
 
 --
 Luca.
+
 
