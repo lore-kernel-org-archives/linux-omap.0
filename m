@@ -1,92 +1,80 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [BISECTED] 3.10-rc1 OMAP1 GPIO IRQ regression
-Date: Tue, 25 Jun 2013 00:04:32 -0700
-Message-ID: <20130625070432.GB5523@atomide.com>
-References: <20130516214430.GN5600@atomide.com>
- <20130520174621.GI10378@atomide.com>
- <20130605223355.EDC113E10E4@localhost>
- <20130606155341.GL3331@atomide.com>
- <20130623221605.GA3150@blackmetal.musicnaut.iki.fi>
- <CAAwP0s1DkMu8Vfka43hS4Wj-927q=O5u-coyFsPBgy3qtA_vjw@mail.gmail.com>
- <20130623234326.GA20703@blackmetal.musicnaut.iki.fi>
- <CAAwP0s00RwP7jCMF1O8j8Ndhu=VfD2dMA5fzr6jWvQ7PziXBCw@mail.gmail.com>
- <20130624072112.GQ5523@atomide.com>
- <CACxGe6vRCjyJgX+dgKuJREvFf_btjhSkfqDnYekuDfkVW7pRQg@mail.gmail.com>
+Subject: Re: [RFC 0/4] Cleanup PRM and CM regbit headers
+Date: Tue, 25 Jun 2013 00:14:28 -0700
+Message-ID: <20130625071428.GC5523@atomide.com>
+References: <1372076143-12955-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:41356 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751256Ab3FYHEn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jun 2013 03:04:43 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:30360 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750936Ab3FYHOe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Jun 2013 03:14:34 -0400
 Content-Disposition: inline
-In-Reply-To: <CACxGe6vRCjyJgX+dgKuJREvFf_btjhSkfqDnYekuDfkVW7pRQg@mail.gmail.com>
+In-Reply-To: <1372076143-12955-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jon Hunter <jgchunter@gmail.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Grant Likely <grant.likely@secretlab.ca> [130624 09:00]:
-> On Mon, Jun 24, 2013 at 8:21 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Javier Martinez Canillas <martinez.javier@gmail.com> [130623 18:08]:
-> >> On Mon, Jun 24, 2013 at 1:43 AM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> >> > Hi,
-> >> >
-> >> > On Mon, Jun 24, 2013 at 01:06:37AM +0200, Javier Martinez Canillas wrote:
-> >> >> On Mon, Jun 24, 2013 at 12:16 AM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> >> >> > What is the status of this patch? We're already at 3.10-rc7 and GPIO
-> >> >> > IRQs are still broken on OMAP1.
-> >> >
-> >> > [...]
-> >> >
-> >> >> There is a problem with this patch.
-> >> >
-> >> > [...]
-> >> >
-> >> >> So I think that the correct solution is to add SPARSE_IRQ support to
-> >> >> omap1 and not reverting Jon's patch. Of course this may not be
-> >> >> possible since we are so close to 3.10 and most OMAP patches already
-> >> >> merged for 3.11 but we should definitely try to have this at least for
-> >> >> 3.12. Otherwise we won't be able to move to DT-only booting for
-> >> >> OMAP2+.
-> >> >
-> >> > OMAP1 does not use DT. So we could put this code under #ifdef
-> >> > CONFIG_ARCH_OMAP1 or similar. It's just a few lines of code. OMAP2+
-> >> > work should not regress OMAP1.
-> >> >
-> >> > Demanding SPARSE_IRQ support for OMAP1 should have been discussed before
-> >> > these changes were made. It's not reasonable to assume such things can
-> >> > be made during rc-cycle. Also, now, I don't think it's reasonable to
-> >> > wait for that to be done, as it would take until 3.12 or even later to
-> >> > get OMAP1 functional again.
-> >> >
-> >> > A.
-> >>
-> >> Hi,
-> >>
-> >> Yes, since we are so late in the -rc cycle and OMAP1 is currently
-> >> broken I agree that the only sensible solution is to revert the patch
-> >> for now.
-> >
-> > Agreed.
-> >
-> >> I just wanted to point out the issue that keeping the OMAP GPIO driver
-> >> using legacy mapping domain represents a blocker to have GPIO-IRQ
-> >> working with Device Tree for OMAP2+
-> >
-> > Yes. We can do the ifdef Aaro suggested, and let's also plan on
-> > converting omap1 to use SPARSE_IRQ. But with the ifdef we can cut
-> > away the dependency between these two.
+* Rajendra Nayak <rnayak@ti.com> [130624 05:24]:
+> Hi,
 > 
-> Alright. Sorry I dropped the ball on this one. I've lost track of
-> which patch needs to get applied, but given that it is so late in the
-> cycle, it would be better for someone else to apply the change, test
-> and send a pull request to Linus. I'm okay with it going through the
-> OMAP tree if that is the most expedient. Alternately, send me the pull
-> request and I'll pass it on to Linus.
+> Over the years the PRM and CM headers for OMAP have been growing largely
+> due to autogeneration which creates headers for complete PRM and
+> CM register space, regardless of the actual usage of these registers in
+> software.
 
-OK, I'll wait for Aaro's ack on Javier's patch and then put it into a
-branch for you.
+Thanks for working on this. Yes most of this should no longer be needed.
+ 
+> The latest master on linux-omap (which also happens to have the OMAP5 data)
+> show these stats for the prm-regbits-*.h and cm-regbits-*.h alone. Not to mention
+> there are other PRM/CM related headers which I am yet to look at.
+> 
+> a0131687@ula0131687:~/oldhome/repos/github/linux$ cat arch/arm/mach-omap2/prm-regbits-*.h | wc -l 
+> 6285
+> a0131687@ula0131687:~/oldhome/repos/github/linux$ cat arch/arm/mach-omap2/cm-regbits-*.h | wc -l 
+> 5556
+> 
+> Using some simple awk/grep scripting I cleaned these headers to retain only the defines that
+> are currently used and that changes the stats to this below.
+> 
+> a0131687@ula0131687:~/oldhome/repos/github/linux$ cat arch/arm/mach-omap2/prm-regbits-*.h | wc -l
+> 352
+> a0131687@ula0131687:~/oldhome/repos/github/linux$ cat arch/arm/mach-omap2/cm-regbits-*.h | wc -l
+> 661
+> 
+> I am sharing this RFC just to take the discussion forward on how to handle these files, and many
+> others which are also autogenerated, given we have newer SoCs coming up for which the autogen output
+> ends up creating even larger files.
+
+Yes we should get to the point where adding new SoCs is just few
+hundred lines of code plus the new device drivers.
+ 
+> Rajendra Nayak (4):
+>   ARM: OMAP2: PRM/CM: Cleanup unused header contents
+>   ARM: OMAP3: PRM/CM: Cleanup unused header contents
+>   ARM: OMAP4: PRM/CM: Cleanup unused header contents
+>   ARM: OMAP5: PRM/CM: Cleanup unused header contents
+> 
+>  arch/arm/mach-omap2/cm-regbits-24xx.h  |  317 ----
+>  arch/arm/mach-omap2/cm-regbits-33xx.h  |  758 ---------
+>  arch/arm/mach-omap2/cm-regbits-34xx.h  |  631 --------
+>  arch/arm/mach-omap2/cm-regbits-44xx.h  | 1557 -------------------
+>  arch/arm/mach-omap2/cm-regbits-54xx.h  | 1632 -------------------
+>  arch/arm/mach-omap2/prm-regbits-24xx.h |  246 ---
+>  arch/arm/mach-omap2/prm-regbits-33xx.h |  305 ----
+>  arch/arm/mach-omap2/prm-regbits-34xx.h |  480 ------
+>  arch/arm/mach-omap2/prm-regbits-44xx.h | 2225 --------------------------
+>  arch/arm/mach-omap2/prm-regbits-54xx.h | 2677 --------------------------------
+>  10 files changed, 10828 deletions(-)
+
+If things build and work after applying this, I suggest we send them
+as a clean-up branch right after -rc1.
+
+It seems that build testing and then randconfig testing
+should be enough for these if they are unused and only
+removal.
 
 Regards,
 
