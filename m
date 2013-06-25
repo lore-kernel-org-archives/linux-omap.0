@@ -1,75 +1,93 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: RE: [PATCH 4/4] regulator: Palmas: Add TPS659038 support
-Date: Tue, 25 Jun 2013 10:21:26 +0000
-Message-ID: <DC88CAD03C0052499C1907B327FC63229EF8A7@DBDE04.ent.ti.com>
-References: <1371726135-9891-1-git-send-email-j-keerthy@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: MMC breakage on 3.11/cleanup
+Date: Tue, 25 Jun 2013 13:40:11 +0300
+Message-ID: <20130625104011.GH15407@arwen.pp.htv.fi>
+References: <CAD=GYpZGdLem1igUsLq7DzMu-Z=9d6apS-aT=MJ59_-ytZan7w@mail.gmail.com>
+ <20130625064944.GX5523@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-doc-owner@vger.kernel.org
-To: "sameo@linux.intel.com" <sameo@linux.intel.com>
-Cc: "broonie@kernel.org" <broonie@kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0XhtP95kHFp3KGBe"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57582 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751161Ab3FYKkQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Jun 2013 06:40:16 -0400
+Content-Disposition: inline
+In-Reply-To: <20130625064944.GX5523@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Joel A Fernandes <agnel.joel@gmail.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-Hi Samuel,
+--0XhtP95kHFp3KGBe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> -----Original Message-----
-> From: J, KEERTHY
-> Sent: Friday, June 21, 2013 2:38 PM
-> To: sameo@linux.intel.com
-> Cc: broonie@kernel.org; ldewangan@nvidia.com;
-> grant.likely@secretlab.ca; swarren@nvidia.com; linux-
-> kernel@vger.kernel.org; linux-doc@vger.kernel.org; gg@slimlogic.co.uk;
-> linux-omap@vger.kernel.org
-> Subject: RE: [PATCH 4/4] regulator: Palmas: Add TPS659038 support
-> 
-> Hi Samuel,
-> 
-> > -----Original Message-----
-> > From: J, KEERTHY
-> > Sent: Thursday, June 20, 2013 4:32 PM
-> > To: linux-omap@vger.kernel.org; sameo@linux.intel.com
-> > Cc: broonie@kernel.org; J, KEERTHY; ldewangan@nvidia.com;
-> > grant.likely@secretlab.ca; swarren@nvidia.com; linux-
-> > kernel@vger.kernel.org; linux-doc@vger.kernel.org; gg@slimlogic.co.uk
-> > Subject: [PATCH 4/4] regulator: Palmas: Add TPS659038 support
-> >
-> > Add TPS659038 support.
-> >
-> 
-> Could you pull this one too?
+On Mon, Jun 24, 2013 at 11:49:44PM -0700, Tony Lindgren wrote:
+> * Joel A Fernandes <agnel.joel@gmail.com> [130624 15:33]:
+> > Hi Tony,
+> >=20
+> > Following branch breaks MMC for me on am33xx (beaglebone):
+> > http://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/log/?=
+h=3Domap-for-v3.11/cleanup
+> >=20
+> > I tried to work around it by specifying interrupt and reg property in D=
+T:
+> >       mmc1: mmc@48060000 {
+> >          compatible =3D "ti,omap3-hsmmc";
+> >          ti,hwmods =3D "mmc1";
+> >          ti,dual-volt;
+> >          ti,needs-special-reset;
+> >          dmas =3D <&edma 24
+> >             &edma 25>;
+> >          dma-names =3D "tx", "rx";
+> >          interrupts =3D <64>;
+> >          interrupt-parent =3D <&intc>;
+> >          reg =3D <0x48060000 0x1000>;
+> >          status =3D "disabled";
+> >       };
+> >=20
+> > The probe succeeds but I still get a "Waiting for root device
+> > /dev/mmcblk0p2" when booting over MMC.
+> >=20
+> > If you're planning to push the cleanup branch, can we temporarily add
+> > the hwmod data back while we work on this issue so that upstream MMC
+> > is kept working.
+>=20
+> Yes the cleanup branch is queued up. Can you please send a patch
+> reverting the MMC parts of the hwmod change for am33xx for now,
+> then try to find the real cause for the breakage?
 
-A gentle ping on this.
+I had mentioned that Joel should *not* depend on hwmod data and if
+adding interrupts to DTS caused issues, that issue should be resolved.
 
-> 
-> > Signed-off-by: J Keerthy <j-keerthy@ti.com>
-> > Acked-by: Mark Brown <broonie@linaro.org>
-> > ---
-> >  drivers/regulator/palmas-regulator.c |    1 +
-> >  1 files changed, 1 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/drivers/regulator/palmas-regulator.c
-> > b/drivers/regulator/palmas-regulator.c
-> > index 1ae1e83..d0c8785 100644
-> > --- a/drivers/regulator/palmas-regulator.c
-> > +++ b/drivers/regulator/palmas-regulator.c
-> > @@ -1054,6 +1054,7 @@ static struct of_device_id
-> of_palmas_match_tbl[]
-> > = {
-> >  	{ .compatible = "ti,tps65913-pmic", },
-> >  	{ .compatible = "ti,tps65914-pmic", },
-> >  	{ .compatible = "ti,tps80036-pmic", },
-> > +	{ .compatible = "ti,tps659038-pmic", },
-> >  	{ /* end */ }
-> >  };
-> >
-> > --
-> > 1.7.5.4
-> 
-> Regards,
-> Keerthy
+http://marc.info/?l=3Dlinux-omap&m=3D137124891908957&w=3D2
 
-Regards,
-Keerthy
+--=20
+balbi
+
+--0XhtP95kHFp3KGBe
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRyXOKAAoJEIaOsuA1yqREcWQQAJRBwkawbIwPxbhE2E5S2xuF
+r7BUSd5Y0nu+AWUuVxzmKcDP8rwfLTCCnjz9UbXRsNfaHy+TWb24S5s/DShIMKP2
+wnAha81AtPlH3G+r+umxj8OD0p+OpL2gKALb/lvnIAjnp8EiNLKv0Boe3pMsyAyZ
+G97uvSfTNyUYk8uDqjOuB0XYJWBuFHOVYplT/Jjsx3T1lAhmCYxxPTtiS/eTrWmo
+aNzXQ0dgjyJcVutaQtNzgyYkyH153KfWW7hY7GOhzxLeAl4k6vJvpoaOZMxHd4um
+zFJxucrCKl1/1efWtlnKQYvXr+B3n8i/IeFjSxZmce7WYa5KljpIgOX8kqsTZlT+
+FUZgn1jPGNsqIw7Pn5xS1UDmEjNl/Gj7b4EsI+JScTg7lVfA+a50TcbVArZmgeBE
+YDZ3KIbOKJoeYLndH2Or9Sehj245RizIeCI6f4D8q4rEPRLHkoX3O1kJtrf+bYiJ
+AJCTepSqJNdDDvOr/hgUeksODyt8j5EalBPedBsODpD6+qty57+u+P9BeJ0/NPlP
+cZie0IuMx+X2vd4BayfRKtDExKlGDZYDKy2Y4slOtbC3VUFWAKtu6h+Xe9vBOmxL
+pXXENMxf0FMcJkt2KulqYCwcUQredHWipByj1CLRUY9hLuJd75TUcbkheXs2gNuh
+VB8kkwaoWrSHSPjEcJZz
+=zZbQ
+-----END PGP SIGNATURE-----
+
+--0XhtP95kHFp3KGBe--
