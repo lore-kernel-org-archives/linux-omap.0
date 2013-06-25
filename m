@@ -1,59 +1,88 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v8 8/8] usb: phy: twl4030-usb: remove *set_suspend* and
- *phy_init* ops
-Date: Tue, 25 Jun 2013 18:21:05 +0300
-Message-ID: <20130625152105.GM21334@arwen.pp.htv.fi>
-References: <1372139926-3719-1-git-send-email-kishon@ti.com>
- <1372139926-3719-9-git-send-email-kishon@ti.com>
-Reply-To: <balbi@ti.com>
+Subject: Re: OMAP baseline test results for v3.10-rc6
+Date: Tue, 25 Jun 2013 19:02:43 +0300
+Message-ID: <20130625160243.GE22312@arwen.pp.htv.fi>
+References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5V5c01chtBAiSHoy"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1372139926-3719-9-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: grant.likely@linaro.org, tony@atomide.com, balbi@ti.com, arnd@arndb.de, swarren@nvidia.com, sylvester.nawrocki@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, benoit.cousson@linaro.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, rnayak@ti.com, shawn.guo@linaro.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, nsekhar@ti.com, balajitk@ti.com, george.cherian@ti.com
+Content-Type: multipart/mixed; boundary="===============0604529552677696958=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tom Rini <trini@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---5V5c01chtBAiSHoy
+--===============0604529552677696958==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="dWYAkE0V1FpFQHQ3"
+Content-Disposition: inline
+
+--dWYAkE0V1FpFQHQ3
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jun 25, 2013 at 11:28:46AM +0530, Kishon Vijay Abraham I wrote:
-> Now that twl4030-usb is adapted to the new generic PHY framework,
-> *set_suspend* and *phy_init* ops can be removed from twl4030-usb driver.
->=20
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
+Hi,
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+On Mon, Jun 17, 2013 at 05:23:17AM +0000, Paul Walmsley wrote:
+> Boot to userspace:
+>     FAIL ( 3/12): 37xxevm, am335xbone, am335xbonelt
+
+Paul, we have at least 2 different folks who can't reproduce your bone
+and bone black boot to userspace failures. I wonder how you're trying to
+boot them.
+
+Care to share your test scripts ?
+
+Also, if you could share the entire thing, we will add your scripts to
+our nightly tests as to try and avoid future regressions.
 
 --=20
 balbi
 
---5V5c01chtBAiSHoy
+--dWYAkE0V1FpFQHQ3
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRybVhAAoJEIaOsuA1yqREAxIQAJYWoDFBZnbz+ZyQAFyskF64
-j4wMKOZo/xDbRGl8UFvzHvesGvccUfEXKtGcdxCu0boL3H/KOwUmjJgWP2LZ0KKB
-4P34Kh7XFDh1on6xhfDvkO10ca2XU6vcAauJfWUKgon7fi/h/61u/4SeJn4fWaEJ
-qX0sBYFQkpLLoeqr3S9Gl1+hGZxJ40CwdE2BpOQiD2mUuT4QZ6xI0ilssJYkc8mJ
-XCTfiEgy6J1kZGd1il/Vng/nfSl8VRpAKP9I/BciOjtBR01K6GgpJP7ygG0+GW+q
-7PZry9RwyjVSa/gMqoaLBcFDFU4SHXLgdIRj2DZu1oDxSFZHDtdQc5cpSBxbh1Qy
-z8cf2vbyx0sJyfLnFw/dnLzBNqBX/4tjk7Dd990RmDOvcIlalie85KCx1JFIo32W
-bgbTOn9W+3/TG1/cvPVXmOeNsIHwRpXFYKNDcyknksUZhPfvzYQ7lYnN93GK/Eyj
-uRDw+1smwFVRZT4Sfpr4OU8z2s2kJrd8ax8igMNCl2weg2soeSoXB2/Mb0eKiWq8
-bIgDJT5q+m2winHOD34eS63g0981aojHeAtKdzfRvm7sh7lZ25Jn5krs+NWZK73N
-jaAOgA+Y43ZSMgbtz/aiet3RqXHGUR/AATDTS8IPpRqF8iyP4Azy/BU68wFPiI/z
-Zrh0V4bgnUxeHSTgYk04
-=JY2j
+iQIcBAEBAgAGBQJRyb8jAAoJEIaOsuA1yqRE67sP/3Ymw/bJensgenbTx2Oo+ZIx
+gm+8MdBF/M2XvYRvN2lAzF5L/PbW1AfMPrBlgAkuZFy574isEmGFNh5f/8V29ccO
+fvi/RigZz/DMxYJiQDWSpuP7rWE2yIKpTEpfmkkNf5HG2JZDL5uilozMOjSUt+Af
+ph30JSYeCga4sSUqWOmlF8hCV+lTR3A0485ufwB+MBPXx/XQo3c0oTuhiIb1Vsa+
+6Wou8vu5Kbc5w3gVY5jffuhMy5tIlXg30FLv6iaE8meaI+yx2Iytpz/Zfod72b9u
+rGeNvydJgwHxLz5OTmvImep0ODOMBzO4sQq1LCUQ4UJG9WOWsarHgTPSQWGqZzWH
+c8AZ+McY6gf8c+A3YGwFky3LioHJE5wjOHRQxNoMEJWLyXfbRV4db8dV4OhN/0fV
+pGsx1G5vhY9qh6v3x+48/uToMd1C5+XkkbmyFb9XfTyGJ1ZSZGRtw8YpK/32DZu9
+viliG6EtUNvm6xoTv57GyP8s3HN4nnMO/PPnXnD8j9lIzE003qBGVimVrx4oF1XO
+kcBnR/NOF6UavcDWOr9HyXAbLbbxcsSO7MrbLMHsmHiXNCpPWjrIqLZN/zc0mQJJ
+N1xrz/m9L5j7Ffmi9/76xg/Q1t3hc+55nKph7bcoC4w6pUp6jMFT33C1NcIR5d9G
+6KJCcZd+8Cviyfsjyux/
+=0iMI
 -----END PGP SIGNATURE-----
 
---5V5c01chtBAiSHoy--
+--dWYAkE0V1FpFQHQ3--
+
+
+--===============0604529552677696958==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============0604529552677696958==--
