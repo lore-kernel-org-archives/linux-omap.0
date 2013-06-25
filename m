@@ -1,54 +1,44 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [PATCH] Documentation: dt: bindings: TI WiLink modules
-Date: Tue, 25 Jun 2013 14:56:10 +0300
-Message-ID: <1372161370.18889.13.camel@cumari.coelho.fi>
-References: <1372149330-24335-1-git-send-email-coelho@ti.com>
-	 <20130625111234.GJ15407@arwen.pp.htv.fi>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v2] ARM: DTS: OMAP4: Add OMAP4 Blaze Tablet support
+Date: Tue, 25 Jun 2013 07:01:00 -0500
+Message-ID: <51C9867C.80206@ti.com>
+References: <1372159970-6361-1-git-send-email-ruslan.bilovol@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130625111234.GJ15407@arwen.pp.htv.fi>
-Sender: linux-doc-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-wireless@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60114 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751113Ab3FYMBO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Jun 2013 08:01:14 -0400
+In-Reply-To: <1372159970-6361-1-git-send-email-ruslan.bilovol@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Cc: b-cousson@ti.com, tony@atomide.com, benoit.cousson@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-On Tue, 2013-06-25 at 14:12 +0300, Felipe Balbi wrote:
-> On Tue, Jun 25, 2013 at 11:35:30AM +0300, Luciano Coelho wrote:
-> > +- tcxoclock: the internal WLAN TCXO clock frequency (required for
-> > +  WiLink7 not used for WiLink6 and WiLink8).  Must be one of the
-> > +  following:
-> > +	0 = 19.200 MHz
-> > +	1 = 26.000 MHz
-> > +	2 = 38.400 MHz
-> > +	3 = 52.000 MHz
-> > +	4 = 16.368 MHz
-> > +	5 = 32.736 MHz
-> > +	6 = 16.800 MHz
-> > +	7 = 33.600 MHz
-> 
-> DTS files are pre-processed, so you could add defines in a header and
-> share the header between DTS and driver. Could help you having:
-> 
-> tcxoclock = WILINK_19_200MHz;
-> 
-> instead of
-> 
-> tcxoclock = 0;
+On 06/25/2013 06:32 AM, Ruslan Bilovol wrote:
+> The OMAP4 Blaze Tablet is TI OMAP4 processor-based
+> development platform in a tablet formfactor.
+> The platform contains many of the features found in
+> present-day handsets (such as audio, video, wireless
+> functions and user interfaces) and in addition
+> contains features for software development and test.
+>
+> This patch adds initial support for the OMAP4 Blaze
+> Tablet development platform. Additional functionality
+> depends on different drivers and code modifications that
+> are not upstreamed yet or do not support DT yet, so will
+> be added later.
 
-I don't see any .dts file really doing this.  There are some imx*.dtsi
-files that include imx*.h files, but I don't see these headers being
-included in any source code file.
+http://svtronics.com/omap/sevm4460,blaze,omap might help too :)
+[...]
+> +
+> +#include "twl6030.dtsi"
+> +
+Might be good to see the TWL interrupt pin information made available as 
+well?
+[...]
 
-In fact, we already have all these values defined in
-include/linux/wl12xx.h, so it could be nice to reuse.  But the
-cross-directory includes would look "funny".  And I think it's a bit
-overkill.
-
-These values are actually used by the firmware itself, not only the
-driver, so they are also platform independent and not related to the OS.
-
---
-Luca.
-
+Regards,
+Nishanth Menon
