@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v8 8/8] usb: phy: twl4030-usb: remove *set_suspend* and *phy_init* ops
-Date: Tue, 25 Jun 2013 11:28:46 +0530
-Message-ID: <1372139926-3719-9-git-send-email-kishon@ti.com>
+Subject: [PATCH v8 4/8] ARM: OMAP: USB: Add phy binding information
+Date: Tue, 25 Jun 2013 11:28:42 +0530
+Message-ID: <1372139926-3719-5-git-send-email-kishon@ti.com>
 References: <1372139926-3719-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,136 +12,48 @@ To: grant.likely@linaro.org, tony@atomide.com, balbi@ti.com, kishon@ti.com, arnd
 Cc: rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, benoit.cousson@linaro.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, rnayak@ti.com, shawn.guo@linaro.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, nsekhar@ti.com, balajitk@ti.com, george.cherian@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Now that twl4030-usb is adapted to the new generic PHY framework,
-*set_suspend* and *phy_init* ops can be removed from twl4030-usb driver.
+In order for controllers to get PHY in case of non dt boot, the phy
+binding information (phy device name) should be added in the platform
+data of the controller.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
 Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/usb/phy/phy-twl4030-usb.c |   57 +++++++++----------------------------
- 1 file changed, 13 insertions(+), 44 deletions(-)
+ arch/arm/mach-omap2/usb-musb.c |    6 +++++-
+ include/linux/usb/musb.h       |    3 +++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/usb/phy/phy-twl4030-usb.c b/drivers/usb/phy/phy-twl4030-usb.c
-index 3f09b7b..f32e503 100644
---- a/drivers/usb/phy/phy-twl4030-usb.c
-+++ b/drivers/usb/phy/phy-twl4030-usb.c
-@@ -422,25 +422,20 @@ static void twl4030_phy_power(struct twl4030_usb *twl, int on)
- 	}
- }
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index 3242a55..284ba51 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -85,8 +85,12 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
+ 	musb_plat.mode = board_data->mode;
+ 	musb_plat.extvbus = board_data->extvbus;
  
--static void twl4030_phy_suspend(struct twl4030_usb *twl, int controller_off)
-+static int twl4030_phy_power_off(struct phy *phy)
- {
-+	struct twl4030_usb *twl = dev_get_drvdata(&phy->dev);
+-	if (cpu_is_omap44xx())
++	if (cpu_is_omap44xx()) {
+ 		musb_plat.has_mailbox = true;
++		musb_plat.phy_label = "omap-usb2";
++	} else if (cpu_is_omap34xx()) {
++		musb_plat.phy_label = "twl4030";
++	}
+ 
+ 	if (soc_is_am35xx()) {
+ 		oh_name = "am35x_otg_hs";
+diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
+index 053c268..596f8c8 100644
+--- a/include/linux/usb/musb.h
++++ b/include/linux/usb/musb.h
+@@ -104,6 +104,9 @@ struct musb_hdrc_platform_data {
+ 	/* for clk_get() */
+ 	const char	*clock;
+ 
++	/* phy label */
++	const char	*phy_label;
 +
- 	if (twl->asleep)
--		return;
-+		return 0;
+ 	/* (HOST or OTG) switch VBUS on/off */
+ 	int		(*set_vbus)(struct device *dev, int is_on);
  
- 	twl4030_phy_power(twl, 0);
- 	twl->asleep = 1;
- 	dev_dbg(twl->dev, "%s\n", __func__);
--}
--
--static int twl4030_phy_power_off(struct phy *phy)
--{
--	struct twl4030_usb *twl = dev_get_drvdata(&phy->dev);
--
--	twl4030_phy_suspend(twl, 0);
- 	return 0;
- }
- 
--static void __twl4030_phy_resume(struct twl4030_usb *twl)
-+static void __twl4030_phy_power_on(struct twl4030_usb *twl)
- {
- 	twl4030_phy_power(twl, 1);
- 	twl4030_i2c_access(twl, 1);
-@@ -449,11 +444,13 @@ static void __twl4030_phy_resume(struct twl4030_usb *twl)
- 		twl4030_i2c_access(twl, 0);
- }
- 
--static void twl4030_phy_resume(struct twl4030_usb *twl)
-+static int twl4030_phy_power_on(struct phy *phy)
- {
-+	struct twl4030_usb *twl = dev_get_drvdata(&phy->dev);
-+
- 	if (!twl->asleep)
--		return;
--	__twl4030_phy_resume(twl);
-+		return 0;
-+	__twl4030_phy_power_on(twl);
- 	twl->asleep = 0;
- 	dev_dbg(twl->dev, "%s\n", __func__);
- 
-@@ -466,13 +463,6 @@ static void twl4030_phy_resume(struct twl4030_usb *twl)
- 		cancel_delayed_work(&twl->id_workaround_work);
- 		schedule_delayed_work(&twl->id_workaround_work, HZ);
- 	}
--}
--
--static int twl4030_phy_power_on(struct phy *phy)
--{
--	struct twl4030_usb *twl = dev_get_drvdata(&phy->dev);
--
--	twl4030_phy_resume(twl);
- 	return 0;
- }
- 
-@@ -604,9 +594,9 @@ static void twl4030_id_workaround_work(struct work_struct *work)
- 	}
- }
- 
--static int twl4030_usb_phy_init(struct usb_phy *phy)
-+static int twl4030_phy_init(struct phy *phy)
- {
--	struct twl4030_usb *twl = phy_to_twl(phy);
-+	struct twl4030_usb *twl = dev_get_drvdata(&phy->dev);
- 	enum omap_musb_vbus_id_status status;
- 
- 	/*
-@@ -621,32 +611,13 @@ static int twl4030_usb_phy_init(struct usb_phy *phy)
- 
- 	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID) {
- 		omap_musb_mailbox(twl->linkstat);
--		twl4030_phy_resume(twl);
-+		twl4030_phy_power_on(phy);
- 	}
- 
- 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
- 	return 0;
- }
- 
--static int twl4030_phy_init(struct phy *phy)
--{
--	struct twl4030_usb *twl = dev_get_drvdata(&phy->dev);
--
--	return twl4030_usb_phy_init(&twl->phy);
--}
--
--static int twl4030_set_suspend(struct usb_phy *x, int suspend)
--{
--	struct twl4030_usb *twl = phy_to_twl(x);
--
--	if (suspend)
--		twl4030_phy_suspend(twl, 1);
--	else
--		twl4030_phy_resume(twl);
--
--	return 0;
--}
--
- static int twl4030_set_peripheral(struct usb_otg *otg,
- 					struct usb_gadget *gadget)
- {
-@@ -717,8 +688,6 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 	twl->phy.label		= "twl4030";
- 	twl->phy.otg		= otg;
- 	twl->phy.type		= USB_PHY_TYPE_USB2;
--	twl->phy.set_suspend	= twl4030_set_suspend;
--	twl->phy.init		= twl4030_usb_phy_init;
- 
- 	otg->phy		= &twl->phy;
- 	otg->set_host		= twl4030_set_host;
 -- 
 1.7.10.4
