@@ -1,123 +1,109 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: OMAP baseline test results for v3.10-rc6
-Date: Wed, 26 Jun 2013 14:51:09 +0530
-Message-ID: <51CAB285.7060201@ti.com>
-References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com> <20130625160243.GE22312@arwen.pp.htv.fi> <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: [PATCH] usb: dwc3: core: continue probe even if usb3 phy is not available
+Date: Wed, 26 Jun 2013 14:59:14 +0530
+Message-ID: <1372238954-29047-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46667 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47230 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751643Ab3FZJVz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 26 Jun 2013 05:21:55 -0400
-In-Reply-To: <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com>
+	id S1751566Ab3FZJ3V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Jun 2013 05:29:21 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Felipe Balbi <balbi@ti.com>, Tom Rini <trini@ti.com>, linux-omap@vger.kernel.org, hvaibhav@ti.com, linux-arm-kernel@lists.infradead.org
+To: linux-usb@vger.kernel.org
+Cc: balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, George Cherian <george.cherian@ti.com>
 
-Hi Paul,
-On Tuesday 25 June 2013 11:50 PM, Paul Walmsley wrote:
-> + Vaibhav and Kevin
->
-> Hi,
->
-> On Tue, 25 Jun 2013, Felipe Balbi wrote:
->
->> On Mon, Jun 17, 2013 at 05:23:17AM +0000, Paul Walmsley wrote:
->>> Boot to userspace:
->>>      FAIL ( 3/12): 37xxevm, am335xbone, am335xbonelt
->>
->> Paul, we have at least 2 different folks who can't reproduce your bone
->> and bone black boot to userspace failures. I wonder how you're trying to
->> boot them.
->>
->> Care to share your test scripts ?
->
-> Sure... the methodology is completely open and has been posted in the
-> online logs since the first test cycle.  (For some reason, almost no one
-> clicks through the test directory trees that I post online.  Is this a
-> documentation issue?  What can we do to make it easier for people to
-> explore this?)
->
-> Anyway, for BeagleBone white, here's the last working test log, from 3.7:
->
-> http://www.pwsan.com/omap/testlogs/test_v3.7/20121211094536/boot/am335xbone/am335xbone_log.txt
->
-> The concatenated kernel and DTB, along with the Kconfig used to build, are
-> here:
->
-> http://www.pwsan.com/omap/testlogs/test_v3.7/20121211094536/build/am33xx_only/
->
-> The boot broke immediately afterwards with v3.8-rc1 and has never worked
-> since:
->
-> http://www.pwsan.com/omap/testlogs/test_v3.8-rc1/20121228031713/boot/am335xbone/
->
-> You can find all of the archived testlogs here:
->
-> http://www.pwsan.com/omap/testlogs/
->
-> You'll probably only be interested in the ones that start with "test_v3.".
->
-> ...
->
-> As for BeagleBone Black, here's the latest non-booting log:
->
-> http://www.pwsan.com/omap/testlogs/test_v3.10-rc6/20130616211951/boot/am335xbonelt/am335x-bone/am335xbonelt_log.txt
-I checked your am33xx-only build config for v3.10-rc6 here:
-http://www.pwsan.com/omap/testlogs/test_v3.10-rc6/20130616211951/build/am33xx_only/am33xx_only
-I can see that you are disabling config MACH_OMAP_GENERIC
-"# CONFIG_MACH_OMAP_GENERIC is not set"
-If this is not selected you cannot boot with dt.
-I copied your config and selected "CONFIG_MACH_OMAP_GENERIC"
-then it boots fine.
+There can be configurations in which DWC3 is hoooked up only to USB2 PHY.
+In such cases we should not return -EPROBE_DEFER, rather continue probe
+even if there is no USB3 PHY.
 
-Thanks and regards,
-Lokesh
->
-> This has never booted on mainline for me.  The closest I got was with the
-> ti-linux-3.8.y tree on Vaibhav's github account, which booted with
-> the 'am335x-boneblack.dtb' built from the same tree.  Mainline didn't boot
-> with either the am335x-bone.dtb or Vaibhav's am335x-boneblack.dtb, but
-> since it booted on 3.8.y with am335x-boneblack.dtb, I've kept that
-> around for the mainline boot tests (as you can see from the logs).
->
-> There's nothing exotic about the kernel used here, it's a pure
-> omap2plus_defconfig zImage.
->
-> The bootloader and DTB used are here (booted via serial from the boot
-> ROM):
->
-> http://www.pwsan.com/tmp/boneblack-20130625/
->
-> Please let me know if you need more binaries shared from the test runs!
->
-> ...
->
-> Am certainly open to the idea that there's something wrong with the way
-> that I'm booting either of these.  But AFAIK no one's been able to
-> identify exactly what it could be.  I haven't had the time recently to
-> spend hours going through the various permutations, given all the other
-> breakage :-(  BeagleBone-white has the additional complication that it is
-> not easy to automate, due to the way that power is delivered to the board,
-> so there is an extra dimension of difficulty there.
->
->> Also, if you could share the entire thing, we will add your scripts to
->> our nightly tests as to try and avoid future regressions.
->
-> It would be great to have TI folks running those tests, or something
-> similar to them!  An early version of the test system has been shared with
-> a handful of folks, but it needs to be cleaned up further before broader
-> release.
->
->
-> - Paul
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->
+Signed-off-by: George Cherian <george.cherian@ti.com>
+---
+ drivers/usb/dwc3/core.c | 31 ++++++++++++++++++++++++-------
+ 1 file changed, 24 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index c35d49d..d5e6f3e 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -100,7 +100,9 @@ static void dwc3_core_soft_reset(struct dwc3 *dwc)
+ 	dwc3_writel(dwc->regs, DWC3_GUSB2PHYCFG(0), reg);
+ 
+ 	usb_phy_init(dwc->usb2_phy);
+-	usb_phy_init(dwc->usb3_phy);
++
++	if (dwc->usb3_phy)
++		usb_phy_init(dwc->usb3_phy);
+ 	mdelay(100);
+ 
+ 	/* Clear USB3 PHY reset */
+@@ -360,7 +362,9 @@ err0:
+ static void dwc3_core_exit(struct dwc3 *dwc)
+ {
+ 	usb_phy_shutdown(dwc->usb2_phy);
+-	usb_phy_shutdown(dwc->usb3_phy);
++
++	if (dwc->usb3_phy)
++		usb_phy_shutdown(dwc->usb3_phy);
+ }
+ 
+ #define DWC3_ALIGN_MASK		(16 - 1)
+@@ -460,12 +464,19 @@ static int dwc3_probe(struct platform_device *pdev)
+ 		if (ret == -ENXIO)
+ 			return ret;
+ 
++		/*
++		 * In  some cases we wont have a USB3 PHY, in such cases
++		 * if we return EPROBE_DEFER we would never complete the
++		 * probe. Just print error and continue.
++		 */
+ 		dev_err(dev, "no usb3 phy configured\n");
+-		return -EPROBE_DEFER;
++		dwc->usb3_phy = NULL;
+ 	}
+ 
+ 	usb_phy_set_suspend(dwc->usb2_phy, 0);
+-	usb_phy_set_suspend(dwc->usb3_phy, 0);
++
++	if (dwc->usb3_phy)
++		usb_phy_set_suspend(dwc->usb3_phy, 0);
+ 
+ 	spin_lock_init(&dwc->lock);
+ 	platform_set_drvdata(pdev, dwc);
+@@ -604,7 +615,9 @@ static int dwc3_remove(struct platform_device *pdev)
+ 	struct dwc3	*dwc = platform_get_drvdata(pdev);
+ 
+ 	usb_phy_set_suspend(dwc->usb2_phy, 1);
+-	usb_phy_set_suspend(dwc->usb3_phy, 1);
++
++	if (dwc->usb3_phy)
++		usb_phy_set_suspend(dwc->usb3_phy, 1);
+ 
+ 	pm_runtime_put(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+@@ -700,7 +713,9 @@ static int dwc3_suspend(struct device *dev)
+ 	dwc->gctl = dwc3_readl(dwc->regs, DWC3_GCTL);
+ 	spin_unlock_irqrestore(&dwc->lock, flags);
+ 
+-	usb_phy_shutdown(dwc->usb3_phy);
++	if (dwc->usb3_phy)
++		usb_phy_shutdown(dwc->usb3_phy);
++
+ 	usb_phy_shutdown(dwc->usb2_phy);
+ 
+ 	return 0;
+@@ -711,7 +726,9 @@ static int dwc3_resume(struct device *dev)
+ 	struct dwc3	*dwc = dev_get_drvdata(dev);
+ 	unsigned long	flags;
+ 
+-	usb_phy_init(dwc->usb3_phy);
++	if (dwc->usb3_phy)
++		usb_phy_init(dwc->usb3_phy);
++
+ 	usb_phy_init(dwc->usb2_phy);
+ 	msleep(100);
+ 
+-- 
+1.8.1.4
 
