@@ -1,31 +1,55 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] OMAP5: fix voltage domains, remove wrong data
-Date: Wed, 26 Jun 2013 20:09:11 +0200
-Message-ID: <201306262009.11317.arnd@arndb.de>
-References: <87fvw4sya2.fsf@linaro.org>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC] ARM: OMAP2+: omap_device: add pinctrl handling
+Date: Wed, 26 Jun 2013 21:31:22 +0200
+Message-ID: <CACRpkdbKgEcfF67oO9HrczvDp4Po3Xt1hFajJ1vO8kEvsZH4jA@mail.gmail.com>
+References: <1371826990-25820-1-git-send-email-grygorii.strashko@ti.com>
+	<CACRpkdY=m1b9Lh27+wHP8FQ4SbVZKmAOCGhxe59aP+TcuR9QaA@mail.gmail.com>
+	<20130625065811.GZ5523@atomide.com>
+	<51CAEA90.90200@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:49217 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751813Ab3FZSJp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jun 2013 14:09:45 -0400
-In-Reply-To: <87fvw4sya2.fsf@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51CAEA90.90200@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@linaro.org>, Hebbar Gururaja <gururaja.hebbar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Olof Johansson <olof@lixom.net>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Wednesday 26 June 2013, Kevin Hilman wrote:
-> Arnd,
-> 
-> Below is a pull request with a patch that fixes the build breakage you reported
-> related to voltage domains on OMAP5-only builds: https://patchwork.kernel.org/patch/2764191/
-> 
-> This applies on top of arm-soc/omap/omap5
+On Wed, Jun 26, 2013 at 3:20 PM, Grygorii Strashko
+<grygorii.strashko@ti.com> wrote:
 
-Ok, pulled into next/soc (as already mentioned in the other thread, just for completeness here).
+> The "Sleep" pinctrl state is optional - if "sleep" state isn't defined
+> then "Idle" pinctrl state will be used during suspend.
 
-	Arnd
+Why? If we have a clear cut semantic that "idle" is for runtime
+suspend, why should it be a fallback for suspend?
+
+You do realize that can just be turned around (as common suspend
+is more widely implemented than runtime suspend) so that we
+could say that if "idle" does not exist, we go to "sleep" in
+runtime suspend.
+
+> So, final list of default pnctrl states may be defined as "default",
+> "active", "idle", "sleep", "off":
+> - "active", "idle", "sleep": will be handled by omap_device core
+> - "default", "off": will be handled by driver itself (or Device core).
+
+Currently the pinctrl system combines what is called "default"
+and "active" into one, assuming that all devices shall come up
+in the active state.
+
+Also we haven't seen a device that need some "off" state that
+is different from "sleep".
+
+If you want to drive this state list home you have to give a
+*real world example*.
+
+I want to see a *real* example, for a device and it's pins,
+that define totally different things for these states, as a
+rationale.
+
+Else we are just defining states to make nice figures or mental
+maps and that is not helpful for drivers writers.
+
+Yours,
+Linus Walleij
