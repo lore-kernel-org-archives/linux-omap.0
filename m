@@ -1,85 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP5: voltagedomain data: remove temporary OMAP4
- voltage data
-Date: Wed, 26 Jun 2013 00:30:57 -0700
-Message-ID: <20130626073056.GS5523@atomide.com>
-References: <1372204560-1304-1-git-send-email-nm@ti.com>
- <87sj05sp0p.fsf@linaro.org>
+From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/3] spi/mtd generic framework,
+	ti qspi controller and spansion driver
+Date: Wed, 26 Jun 2013 13:11:09 +0530
+Message-ID: <1372232472-2641-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:14271 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750843Ab3FZHbC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jun 2013 03:31:02 -0400
-Content-Disposition: inline
-In-Reply-To: <87sj05sp0p.fsf@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, manonuevo-AL4WhLSQfzjQT0dZR+AlfA@public.gmane.org, tqnguyen-AL4WhLSQfzjQT0dZR+AlfA@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Nishanth Menon <nm@ti.com>, Arnd Bergmann <arnd@arndb.de>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@linaro.org> [130625 17:24]:
-> Nishanth Menon <nm@ti.com> writes:
-> 
-> > commit 20d49e9ccfece526db755940721aa13e331936d4
-> > (ARM: OMAP5: voltagedomain data: Add OMAP5 voltage domain data)
-> >
-> > Introduced dummy volt data for OMAP5 with OMAP4460 voltage information.
-> >
-> > However with the fixes introduced in later patches
-> >
-> > commit cd8abed1da91a3250aa4b3857479613a2b446f84
-> > (ARM: OMAP2+: Powerdomain: Remove the need to always have a voltdm
-> >  associated to a pwrdm)
-> >
-> > We are no longer restricted in that respect. Further, OPP voltage
-> > information is supposed to be provided by dts information. This needs
-> > to be added in future patches as various voltage modules are converted
-> > to dts.
-> >
-> > This also fixes the build breakage for voltagedomains54xx_data.c when just
-> > OMAP5 SoC is enabled: https://patchwork.kernel.org/patch/2764191/
-> >
-> > Reported-by: Arnd Bergmann <arnd@arndb.de>
-> > Signed-off-by: Nishanth Menon <nm@ti.com>
-> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> > Cc: Benoit Cousson <b-cousson@ti.com>
-> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
-> > Cc: Tony Lindgren <tony@atomide.com>
-> > Cc: linux-omap@vger.kernel.org
-> 
-> Acked-by: Kevin Hilman <khilman@linaro.org>
-> 
-> Arnd, to make it easy, below is a pull request for this fix on top of
-> arm-soc/omap/omap5.
+This patch series add support for the generic spi based flash
+framework(spinand_mtd), which can be used used by any spi based flash device to
+attach itself to mtd framework. 
 
-This can get easily lost, might be best to send a new email with
-[GIT PULL] in the subject.
+The first patch of this series includes both the generic framework and the
+the micron device(spinand_lld) making use of the framework.
+I picked the first patch as a standalone patch. Can split the generic and
+the lld part based on community suggestions.
 
-Regards,
+The second patch is the ti qspi controller driver.
+The third patch is the spansion s25fl256s driver, making use of the the
+generic spinand_mtd frameowrk.
 
-Tony
- 
-> The following changes since commit 6503a8e109a639760408f874c1251060d563942e:
-> 
->   ARM: OMAP5: Remove unused include for ocp2scp (2013-06-09 21:17:15 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/omap-pm-v3.11/fixes/omap5-voltdm
-> 
-> for you to fetch changes up to 2ac524f151dbecb862c95b8f433267772caa800e:
-> 
->   ARM: OMAP5: voltagedomain data: remove temporary OMAP4 voltage data (2013-06-25 17:11:06 -0700)
-> 
-> ----------------------------------------------------------------
-> OMAP5: PM: fix boot by removing unneeded dummy voltage domain data
-> 
-> ----------------------------------------------------------------
-> Nishanth Menon (1):
->       ARM: OMAP5: voltagedomain data: remove temporary OMAP4 voltage data
-> 
->  arch/arm/mach-omap2/voltagedomains54xx_data.c | 10 ----------
->  1 file changed, 10 deletions(-)
+Test info:
+Tested the generic framework(spinand_mtd.c) along with patch(2&3) on my dra7xx board 
+for write/erase/read using nand utils.
+
+Compile tested(spinand_lld.c).
+
+Mona Anonuevo (1):
+  drivers: mtd: spinand: Add generic spinand frameowrk and micron
+    driver.
+
+Sourav Poddar (2):
+  drivers: spi: Add qspi flash controller
+  drivers: mtd: spinand: Add qspi spansion flash controller
+
+ drivers/mtd/Kconfig                 |    2 +
+ drivers/mtd/Makefile                |    2 +
+ drivers/mtd/spinand/Kconfig         |   31 ++
+ drivers/mtd/spinand/Makefile        |   10 +
+ drivers/mtd/spinand/spinand_lld.c   |  776 +++++++++++++++++++++++++++++++++++
+ drivers/mtd/spinand/spinand_mtd.c   |  690 +++++++++++++++++++++++++++++++
+ drivers/mtd/spinand/ti-qspi-flash.c |  373 +++++++++++++++++
+ drivers/spi/Kconfig                 |    6 +
+ drivers/spi/Makefile                |    1 +
+ drivers/spi/ti-qspi.c               |  352 ++++++++++++++++
+ include/linux/mtd/spinand.h         |  155 +++++++
+ 11 files changed, 2398 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/mtd/spinand/Kconfig
+ create mode 100644 drivers/mtd/spinand/Makefile
+ create mode 100644 drivers/mtd/spinand/spinand_lld.c
+ create mode 100644 drivers/mtd/spinand/spinand_mtd.c
+ create mode 100644 drivers/mtd/spinand/ti-qspi-flash.c
+ create mode 100644 drivers/spi/ti-qspi.c
+ create mode 100644 include/linux/mtd/spinand.h
+
+
+------------------------------------------------------------------------------
+This SF.net email is sponsored by Windows:
+
+Build for Windows Store.
+
+http://p.sf.net/sfu/windows-dev2dev
