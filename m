@@ -1,44 +1,31 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.10-rc6
-Date: Wed, 26 Jun 2013 17:58:01 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1306261750210.6135@utopia.booyaka.com>
-References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com> <20130625160243.GE22312@arwen.pp.htv.fi> <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com> <51C9F0A8.1050607@ti.com> <87fvw6t136.fsf@linaro.org> <79CD15C6BA57404B839C016229A409A83ECC952D@DBDE04.ent.ti.com>
- <51CAEB33.5010101@ti.com> <51CAEBF3.1010507@ti.com> <alpine.DEB.2.02.1306261726280.6135@utopia.booyaka.com> <51CB28BD.2020105@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] OMAP5: fix voltage domains, remove wrong data
+Date: Wed, 26 Jun 2013 20:09:11 +0200
+Message-ID: <201306262009.11317.arnd@arndb.de>
+References: <87fvw4sya2.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:53807 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752759Ab3FZR6C (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jun 2013 13:58:02 -0400
-In-Reply-To: <51CB28BD.2020105@ti.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:49217 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751813Ab3FZSJp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jun 2013 14:09:45 -0400
+In-Reply-To: <87fvw4sya2.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tom Rini <trini@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Kevin Hilman <khilman@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Olof Johansson <olof@lixom.net>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Wed, 26 Jun 2013, Tom Rini wrote:
+On Wednesday 26 June 2013, Kevin Hilman wrote:
+> Arnd,
+> 
+> Below is a pull request with a patch that fixes the build breakage you reported
+> related to voltage domains on OMAP5-only builds: https://patchwork.kernel.org/patch/2764191/
+> 
+> This applies on top of arm-soc/omap/omap5
 
-> OK, is there a reason to not be using omap2plus_defconfig?  My pass/fail
-> here is based on that config and enabling, or not, dtb append.  Seems
-> like it would be one less thing to maintain on your end and it would be
-> on TIs end (roughly speaking) to make sure our platforms that ought to
-> be working upstream have what they need enabled in the defconfig(s) in
-> question.
+Ok, pulled into next/soc (as already mentioned in the other thread, just for completeness here).
 
-That would be convenient for me, but part of the goal is to verify that a 
-Kconfig that deselects all OMAPs other than AM33xx continues to work.
-
-So the build process for am33xx_only here goes something like:
-
-1. Start with omap2plus_defconfig
-
-2. Turn off support for everything other than AM33xx in the SoC target 
-selection menus
-
-3. Turn on the appended DTB and compat ATAGs options
-
-You might consider adding something like this to your pass/fail tests.
-
-
-- Paul
+	Arnd
