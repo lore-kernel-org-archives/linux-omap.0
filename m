@@ -1,314 +1,497 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during
- bus suspend
-Date: Wed, 26 Jun 2013 16:38:12 +0300
-Message-ID: <51CAEEC4.4030304@ti.com>
-References: <Pine.LNX.4.44L0.1306251251550.1340-100000@iolanthe.rowland.org>
+From: Florian Fainelli <florian@openwrt.org>
+Subject: Re: [PATCH 1/3] drivers: mtd: spinand: Add generic spinand frameowrk
+ and micron driver.
+Date: Wed, 26 Jun 2013 15:15:56 +0100
+Message-ID: <CAGVrzcY6Writ9Ehs=tiumjfDinETgS_kL5C02eZtKG5ENaWGfQ@mail.gmail.com>
+References: <1372232472-2641-1-git-send-email-sourav.poddar@ti.com> <1372232472-2641-2-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1306251251550.1340-100000@iolanthe.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: balbi@ti.com, tony@atomide.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:40502 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751374Ab3FZOQh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jun 2013 10:16:37 -0400
+In-Reply-To: <1372232472-2641-2-git-send-email-sourav.poddar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: linux-mtd@lists.infradead.org, spi-devel-general@lists.sourceforge.net, broonie@kernel.org, dwmw2@infradead.org, manonuevo@micron.com, tqnguyen@micron.com, Grant Likely <grant.likely@linaro.org>, linux-omap@vger.kernel.org, rnayak@ti.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, balbi@ti.com
 
-On 06/25/2013 08:38 PM, Alan Stern wrote:
-> On Tue, 25 Jun 2013, Roger Quadros wrote:
-> 
->> On 06/24/2013 10:34 PM, Alan Stern wrote:
->>> On Mon, 24 Jun 2013, Roger Quadros wrote:
->>>
->>>> OK I've tried to handle all this in an alternate way. Now the controller suspend/resume
->>>> and runtime suspend/resume is independent of bus suspend.
->>>>
->>>> The controller now runtime suspends when all devices on the bus have suspended and
->>>> the hub auto suspends. NOTE: HW_ACCESSIBLE is still set on runtime_suspend.
->>>> The challenge here is to process the interrupt in this state.
->>>
->>> The situation is a little peculiar.  Does the hardware really use the
->>> same IRQ for reporting wakeup events when the controller is suspended
->>> and for reporting normal I/O events?
->>
->> No and yes :). Actually the Pad wakeup comes as a separate IRQ from hardware.
->> The omap pinctrl driver captures that, determines which pad caused the wakeup and
->> routes it to the appropriate interrupt based on the mapping provided in the device tree.
->> In the ehci-omap case we provide the EHCI IRQ number in the mapping for the USB host pads.
-> 
-> Could the mapping be changed so that a different interrupt vector was 
-> used for wakeups and normal I/O?  That would make this a little easier, 
-> although it wouldn't solve the general problem.
+Hello,
 
-I'm not sure which IRQ we can map it to, but it could be mapped to some
-free IRQ number. Since it doesn't make things easier, I think we can leave
-it as it is for now.
+2013/6/26 Sourav Poddar <sourav.poddar@ti.com>:
+> From: Mona Anonuevo <manonuevo@micron.com>
+>
+> This patch adds support for a generic spinand framework(spinand_mtd.c).
+> This frameowrk can be used for other spi based flash devices also. The idea
+> is to have a common model under drivers/mtd, as also present for other no spi
+> devices(there is a generic framework and device part simply attaches itself to it.)
+>
+> The generic frework will be used later by me for a SPI based spansion S25FL256 device.
+> The patch also contains a micron driver attaching itself to generic framework.
 
-> 
->>>>  	if (unlikely(HCD_DEAD(hcd) || !HCD_HW_ACCESSIBLE(hcd)))
->>>>  		rc = IRQ_NONE;
->>>> +	else if (pm_runtime_status_suspended(hcd->self.controller)) {
->>>> +		/*
->>>> +		 * We can't handle it yet so disable IRQ, make note of it
->>>> +		 * and resume root hub (i.e. controller as well)
->>>> +		 */
->>>> +		disable_irq_nosync(hcd->irq);
->>>> +		set_bit(HCD_FLAG_IRQ_DISABLED, &hcd->flags);
->>>> +		usb_hcd_resume_root_hub(hcd);
->>>> +		rc = IRQ_HANDLED;
->>>> +	}
->>>
->>> This part will have to be different.
->>>
->>> Certainly if HCD_DEAD(hcd) then we want to return IRQ_NONE.  Likewise
->>> if (!HCD_HW_ACCESSIBLE(hcd) && !hcd->has_wakeup_interrupts).  In all
->>> other cases we have to call the HCD's interrupt handler.
-> 
-> There's still a race problem.  Suppose a normal wakeup interrupt occurs
-> just before or as the controller gets suspended.  By the time the code
-> here runs, HCD_HW_ACCESSIBLE may have been cleared by the suspend
-> routine.  The interrupt would be lost.  Depending on the design of the
-> controller, the entire wakeup signal could end up getting lost as well.
+Some general comments below, I do not have any SPI NAND devices, just
+reading through the code.
 
-But if I call ehci_suspend() in the runtime_suspend handler, this race
-won't happen right?
+> +
+> +config MTD_SPINAND_ONDIEECC
+> +       bool "Use SPINAND internal ECC"
+> +       help
+> +        Internel ECC
+> +
+> +config MTD_SPINAND_SWECC
+> +       bool "Use software ECC"
+> +       depends on MTD_NAND
+> +       help
+> +        software ECC
 
-> 
-> Do you know how the OMAP EHCI controller behaves?  Under what 
-> conditions does it send the wakeup IRQ?  How do you tell it to turn off 
-> the wakeup IRQ?
+Cannot both of these be somehow detected by the identification bytes?
+Or maybe explicitely specified in an identification table?
 
-Once the controller is suspended, the wakeup IRQ comes out-of-band. i.e. through
-pad wakeup and pinctrl subsystem.
-The only way to turn that wakeup off is to disable the wakeup enable bit on the pad.
-This could be done by not putting the pins in the IDLE_WAKEUP state during
-suspend.
+> +#define mu_spi_nand_driver_version "Beagle-MTD_01.00_Linux2.6.33_20100507"
 
-ff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
->> index d53547d..24e21a2 100644
->> --- a/drivers/usb/core/hcd.c
->> +++ b/drivers/usb/core/hcd.c
->> @@ -2136,6 +2136,11 @@ static void hcd_resume_work(struct work_struct *work)
->>  	usb_lock_device(udev);
->>  	usb_remote_wakeup(udev);
->>  	usb_unlock_device(udev);
->> +	if (HCD_IRQ_DISABLED(hcd)) {
->> +		/* Interrupt was disabled */
->> +		clear_bit(HCD_FLAG_IRQ_DISABLED, &hcd->flags);
->> +		enable_irq(hcd->irq);
->> +	}
->>  }
->>  
->>  /**
->> @@ -2223,7 +2228,9 @@ irqreturn_t usb_hcd_irq (int irq, void *__hcd)
->>  	 */
->>  	local_irq_save(flags);
->>  
->> -	if (unlikely(HCD_DEAD(hcd) || !HCD_HW_ACCESSIBLE(hcd)))
->> +	if (unlikely(HCD_DEAD(hcd)))
->> +		rc = IRQ_NONE;
->> +	else if (!HCD_HW_ACCESSIBLE(hcd) && !hcd->has_wakeup_irq)
->>  		rc = IRQ_NONE;
-> 
-> Add an unlikely() here too.
-> 
-OK.
+You probably want to remove this.
 
->>  	else if (hcd->driver->irq(hcd) == IRQ_NONE)
->>  		rc = IRQ_NONE;
->> diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
->> index 246e124..1844e31 100644
->> --- a/drivers/usb/host/ehci-hcd.c
->> +++ b/drivers/usb/host/ehci-hcd.c
->> @@ -689,6 +689,21 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
->>  
->>  	spin_lock (&ehci->lock);
->>  
->> +	if (unlikely(!HCD_HW_ACCESSIBLE(hcd))) {
->> +		/*
->> +		 * We got a wakeup interrupt while the controller was
->> +		 * suspending or suspended.  We can't handle it now, so
->> +		 * disable the IRQ and resume the root hub (and hence
->> +		 * the controller too).
->> +		 */
->> +		disable_irq_nosync(hcd->irq);
->> +		set_bit(HCD_FLAG_IRQ_DISABLED, &hcd->flags);
-> 
-> To be safe, let's put these two statements inside
-> 
-> 		if (hcd->has_wakeup_irq) { ... }
-> 
-> I think if the right sort of race occurs, we could end up here even 
-> when hcd->has_wakeup_irq is clear.  So this test is needed.  We don't 
-> want to disable a shared IRQ line.
-> 
+> +#define SPI_NAND_MICRON_DRIVER_KEY 0x1233567
 
-OK.
+Ditto.
 
->> +		spin_unlock(&ehci->lock);
->> +
->> +		usb_hcd_resume_root_hub(hcd);
->> +		return IRQ_HANDLED;
->> +	}
->> +
->>  	status = ehci_readl(ehci, &ehci->regs->status);
->>  
->>  	/* e.g. cardbus physical eject */
->>
->> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
->> index 16d7150..ead7d12 100644
->> --- a/drivers/usb/host/ehci-omap.c
->> +++ b/drivers/usb/host/ehci-omap.c
-> 
-> This part seems reasonable, once the runtime PM routines are fixed.
-> 
+> +
+> +/****************************************************************************/
+> +
+> +/**
+> +   OOB area specification layout:  Total 32 available free bytes.
+> +*/
+> +static struct nand_ecclayout spinand_oob_64 = {
+> +       .eccbytes = 24,
+> +       .eccpos = {
+> +                  1, 2, 3, 4, 5, 6,
+> +                  17, 18, 19, 20, 21, 22,
+> +                  33, 34, 35, 36, 37, 38,
+> +                  49, 50, 51, 52, 53, 54, },
+> +       .oobavail = 32,
+> +       .oobfree = {
+> +               {.offset = 8,
+> +                .length = 8},
+> +               {.offset = 24,
+> +                .length = 8},
+> +               {.offset = 40,
+> +                .length = 8},
+> +               {.offset = 56,
+> +                .length = 8}, }
+> +};
 
-Thanks for the review.
+This should probably be per-device, or at best supplied by platform data?
 
-I updated the ehci-omap.c driver to call ehci_suspend/resume during runtime_suspend/resume.
-After that, it stopped detecting the port status change event when a device was plugged
-to an external HUB. The wakeup irq was coming and the root hub/controller were being resumed,
-but after that, no hub_irq.
+> +/**
+> + * spinand_cmd - to process a command to send to the SPI Nand
+> + *
+> + * Description:
+> + *    Set up the command buffer to send to the SPI controller.
+> + *    The command buffer has to initized to 0
+> + */
+> +int spinand_cmd(struct spi_device *spi, struct spinand_cmd *cmd)
+> +{
+> +       int                                     ret;
+> +       struct spi_message      message;
+> +       struct spi_transfer             x[4];
+> +       u8 dummy = 0xff;
+> +
+> +       spi_message_init(&message);
+> +       memset(x, 0, sizeof(x));
+> +
+> +       x[0].len = 1;
+> +       x[0].tx_buf = &cmd->cmd;
+> +       spi_message_add_tail(&x[0], &message);
+> +
+> +       if (cmd->n_addr) {
+> +               x[1].len = cmd->n_addr;
+> +               x[1].tx_buf = cmd->addr;
+> +               spi_message_add_tail(&x[1], &message);
+> +       }
+> +
+> +       if (cmd->n_dummy) {
+> +               x[2].len = cmd->n_dummy;
+> +               x[2].tx_buf = &dummy;
+> +               spi_message_add_tail(&x[2], &message);
+> +       }
+> +
+> +       if (cmd->n_tx) {
+> +               x[3].len = cmd->n_tx;
+> +               x[3].tx_buf = cmd->tx_buf;
+> +               spi_message_add_tail(&x[3], &message);
+> +       }
+> +
+> +       if (cmd->n_rx) {
+> +               x[3].len = cmd->n_rx;
+> +               x[3].rx_buf = cmd->rx_buf;
+> +               spi_message_add_tail(&x[3], &message);
+> +       }
+> +
+> +       ret = spi_sync(spi, &message);
 
-Adding some delay (or printk) somewhere in the resume path fixes the issue. I'm not sure what
-is going on and why the delay is needed. Below is the ehci-omap patch. I've put the delay
-in the runtime_resume handler.
+If any kind of locking is implicitely done by the SPI layer, you might
+want to add a comment to specify it.
 
-e.g. log
+[snip]
 
-[    8.674377] usb usb1: usb wakeup-resume
-[    8.678833] ehci-omap 48064800.ehci: omap_ehci_runtime_resume
-[    8.695190] usb usb1: usb auto-resume
-[    8.699066] ehci-omap 48064800.ehci: resume root hub
-[    8.704437] hub 1-0:1.0: hub_resume
-[    8.708312] hub 1-0:1.0: port 2: status 0507 change 0000
-[    8.714630] hub 1-0:1.0: state 7 ports 3 chg 0000 evt 0000
+> +       retval = spinand_cmd(spi_nand, &cmd);
+> +
+> +       if (retval != 0) {
+> +               dev_err(&spi_nand->dev, "error %d reading id\n",
+> +                               (int) retval);
+> +               return retval;
+> +       }
 
-<---- gets stuck here in the failing case---->
+Just:
 
-[    8.723541] hub 1-0:1.0: state 7 ports 3 chg 0000 evt 0004
-[    8.729400] ehci-omap 48064800.ehci: GetStatus port:2 status 001005 0  ACK POWER sig=se0 PE CONNECT
-[    8.753204] usb 1-2: usb wakeup-resume
-[    8.757293] usb 1-2: finish resume
-[    8.761627] hub 1-2:1.0: hub_resume
+if (retval)
+          dev_err(&spi_nand->dev, "...
 
+return retval
 
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index 16d7150..c687610 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -69,6 +69,7 @@ static const char hcd_name[] = "ehci-omap";
- struct omap_hcd {
- 	struct usb_phy *phy[OMAP3_HS_USB_PORTS]; /* one PHY for each port */
- 	int nports;
-+	bool initialized;
- };
- 
- static inline void ehci_write(void __iomem *base, u32 reg, u32 val)
-@@ -159,6 +160,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 	hcd->rsrc_start = res->start;
- 	hcd->rsrc_len = resource_size(res);
- 	hcd->regs = regs;
-+	hcd->has_wakeup_irq = true;
- 	hcd_to_ehci(hcd)->caps = regs;
- 
- 	omap = (struct omap_hcd *)hcd_to_ehci(hcd)->priv;
-@@ -210,6 +212,8 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 		goto err_pm_runtime;
- 	}
- 
-+	omap->initialized = true;
-+
- 	/*
- 	 * Bring PHYs out of reset.
- 	 * Even though HSIC mode is a PHY-less mode, the reset
-@@ -225,6 +229,8 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 		usb_phy_set_suspend(omap->phy[i], 0);
- 	}
- 
-+	pm_runtime_put_sync(dev);
-+
- 	return 0;
- 
- err_pm_runtime:
-@@ -257,6 +263,7 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
- 	struct omap_hcd *omap = (struct omap_hcd *)hcd_to_ehci(hcd)->priv;
- 	int i;
- 
-+	pm_runtime_get_sync(dev);
- 	usb_remove_hcd(hcd);
- 
- 	for (i = 0; i < omap->nports; i++) {
-@@ -286,15 +293,70 @@ static const struct of_device_id omap_ehci_dt_ids[] = {
- 
- MODULE_DEVICE_TABLE(of, omap_ehci_dt_ids);
- 
-+static int omap_ehci_suspend(struct device *dev)
-+{
-+	struct usb_hcd *hcd = dev_get_drvdata(dev);
-+	bool do_wakeup = device_may_wakeup(dev);
-+
-+	dev_dbg(dev, "%s: do_wakeup: %d\n", __func__, do_wakeup);
-+
-+	return ehci_suspend(hcd, do_wakeup);
-+}
-+
-+static int omap_ehci_resume(struct device *dev)
-+{
-+	struct usb_hcd *hcd = dev_get_drvdata(dev);
-+
-+	dev_dbg(dev, "%s\n", __func__);
-+
-+	return ehci_resume(hcd, false);
-+}
-+
-+static int omap_ehci_runtime_suspend(struct device *dev)
-+{
-+	struct usb_hcd *hcd = dev_get_drvdata(dev);
-+	struct omap_hcd *omap = (struct omap_hcd *)hcd_to_ehci(hcd)->priv;
-+	bool do_wakeup = device_may_wakeup(dev);
-+
-+	dev_dbg(dev, "%s\n", __func__);
-+
-+	if (omap->initialized)
-+		ehci_suspend(hcd, do_wakeup);
-+
-+	return 0;
-+}
-+
-+static int omap_ehci_runtime_resume(struct device *dev)
-+{
-+	struct usb_hcd *hcd = dev_get_drvdata(dev);
-+	struct omap_hcd *omap = (struct omap_hcd *)hcd_to_ehci(hcd)->priv;
-+
-+	dev_dbg(dev, "%s\n", __func__);
-+
-+	if (omap->initialized) {
-+		ehci_resume(hcd, false);
-+		mdelay(10);
-+	}
-+
-+	return 0;
-+}
-+
-+
-+static const struct dev_pm_ops omap_ehci_pm_ops = {
-+        .suspend = omap_ehci_suspend,
-+        .resume = omap_ehci_resume,
-+        .runtime_suspend = omap_ehci_runtime_suspend,
-+        .runtime_resume = omap_ehci_runtime_resume,
-+};
-+
- static struct platform_driver ehci_hcd_omap_driver = {
- 	.probe			= ehci_hcd_omap_probe,
- 	.remove			= ehci_hcd_omap_remove,
- 	.shutdown		= ehci_hcd_omap_shutdown,
--	/*.suspend		= ehci_hcd_omap_suspend, */
--	/*.resume		= ehci_hcd_omap_resume, */
- 	.driver = {
- 		.name		= hcd_name,
- 		.of_match_table = of_match_ptr(omap_ehci_dt_ids),
-+		.pm		= &omap_ehci_pm_ops,
- 	}
- };
- 
+[snip]
+
+> +       retval = spinand_cmd(spi_nand, &cmd);
+> +
+> +       if (retval != 0) {
+> +               dev_err(&spi_nand->dev, "error %d lock block\n",
+> +                               (int) retval);
+> +               return retval;
+> +       }
+
+Same here
+
+[snip]
+
+> +       if (retval != 0) {
+> +               dev_err(&spi_nand->dev, "error %d reading status register\n",
+> +                               (int) retval);
+> +               return retval;
+> +       }
+
+And here
+
+[snip]
+
+> +       if (retval != 0) {
+> +               dev_err(&spi_nand->dev, "error %d get otp\n",
+> +                               (int) retval);
+> +               return retval;
+> +       }
+
+And here
+
+[snip]
+
+> +       if (retval != 0) {
+> +               dev_err(&spi_nand->dev, "error %d set otp\n",
+> +                       (int) retval);
+> +               return retval;
+
+And here
+
+[snip]
+
+> +*/
+> +#ifdef CONFIG_MTD_SPINAND_ONDIEECC
+
+Same comment as above, you could probably do not make this enclosed
+within an ifdef, but always compile it and test for a device flag for
+instance.
+
+> +static int spinand_enable_ecc(struct spi_device *spi_nand,
+> +                       struct spinand_info *info)
+> +{
+> +       ssize_t retval;
+> +       u8 otp = 0;
+> +
+> +       retval = spinand_get_otp(spi_nand, info, &otp);
+> +
+> +       if ((otp & OTP_ECC_MASK) == OTP_ECC_MASK) {
+> +               return 0;
+> +       } else {
+> +               otp |= OTP_ECC_MASK;
+> +               retval = spinand_set_otp(spi_nand, info, &otp);
+> +               retval = spinand_get_otp(spi_nand, info, &otp);
+> +               return retval;
+> +       }
+
+You probably do not need the if() else() because the if branch returns
+immediately.
+
+[snip]
+
+> +       if ((otp & OTP_ECC_MASK) == OTP_ECC_MASK) {
+> +               otp &= ~OTP_ECC_MASK;
+> +               retval = spinand_set_otp(spi_nand, info, &otp);
+> +               retval = spinand_get_otp(spi_nand, info, &otp);
+> +               return retval;
+> +       } else {
+> +               return 0;
+
+Same here
+
+[snip]
+
+> +static int spinand_read_page(struct spi_device *spi_nand,
+> +               struct spinand_info *info, u16 page_id, u16 offset,
+> +                       u16 len, u8 *rbuf)
+> +{
+> +       ssize_t retval;
+> +       u8 status = 0;
+> +
+> +       retval = spinand_read_page_to_cache(spi_nand, info, page_id);
+
+Either you check the value and return or you do not.
+
+> +
+> +       while (1) {
+> +               retval = spinand_read_status(spi_nand, info, &status);
+> +               if (retval < 0) {
+> +                       dev_err(&spi_nand->dev, "error %d reading status register\n",
+> +                                       (int) retval);
+> +                       return retval;
+> +               }
+> +
+> +               if ((status & STATUS_OIP_MASK) == STATUS_READY) {
+> +                       if ((status & STATUS_ECC_MASK) == STATUS_ECC_ERROR) {
+> +                               dev_err(&spi_nand->dev,
+> +                                       "ecc error, page=%d\n", page_id);
+> +                       }
+> +                       break;
+> +               }
+
+Should not we somehow call cpu_relax() or wait for some delay here
+before issuing multiple READ_STATUS commands?
+
+[snip]
+
+> +       retval = spinand_write_enable(spi_nand, info);
+> +
+> +       retval = spinand_program_data_to_cache(spi_nand, info, offset,
+> +                       len, wbuf);
+> +
+> +       retval = spinand_program_execute(spi_nand, info, page_id);
+
+Same here either check return value and return or do not check the
+return value at all.
+
+[snip]
+
+> +static int spinand_get_info(struct spi_device *spi_nand,
+> +               struct spinand_info *info, u8 *id)
+> +{
+> +       if (id[0] == 0x2C && (id[1] == 0x11 ||
+> +               id[1] == 0x12 || id[1] == 0x13)) {
+> +               info->mid = id[0];
+> +               info->did = id[1];
+> +               info->name = "MT29F1G01ZAC";
+> +               info->nand_size = (1024 * 64 * 2112);
+> +               info->usable_size = (1024 * 64 * 2048);
+> +               info->block_size = (2112*64);
+> +               info->block_main_size = (2048*64);
+> +               info->block_num_per_chip = 1024;
+> +               info->page_size = 2112;
+> +               info->page_main_size = 2048;
+> +               info->page_spare_size = 64;
+> +               info->page_num_per_block = 64;
+> +
+> +               info->block_shift = 17;
+> +               info->block_mask = 0x1ffff;
+> +
+> +               info->page_shift = 11;
+> +               info->page_mask = 0x7ff;
+> +
+> +               info->ecclayout = &spinand_oob_64;
+> +       }
+
+Even if there is just one device supported by this driver, you
+definitively want to use an identification table so that people can
+easily add new chips without much pain.
+
+> +       return 0;
+> +}
+> +
+> +/**
+> + * spinand_probe - [spinand Interface]
+> + * @spi_nand: registered device driver.
+> + *
+> + * Description:
+> + *   To set up the device driver parameters to make the device available.
+> +*/
+> +static int spinand_probe(struct spi_device *spi_nand)
+> +{
+> +       ssize_t retval;
+> +       struct mtd_info *mtd;
+> +       struct spinand_chip *chip;
+> +       struct spinand_info *info;
+> +       struct flash_platform_data      *data;
+> +       struct mtd_part_parser_data     ppdata;
+> +       u8 id[2] = {0};
+> +
+> +       retval = spinand_reset(spi_nand);
+> +       retval = spinand_reset(spi_nand);
+> +       retval = spinand_read_id(spi_nand, (u8 *)&id);
+> +       if (id[0] == 0 && id[1] == 0) {
+> +               pr_info(KERN_INFO "SPINAND: read id error! 0x%02x, 0x%02x!\n",
+> +                       id[0], id[1]);
+> +               return 0;
+> +       }
+> +
+> +       data = spi_nand->dev.platform_data;
+> +       info  = kzalloc(sizeof(struct spinand_info), GFP_KERNEL);
+> +       if (!info)
+> +               return -ENOMEM;
+
+You can use devm_kzalloc() to get your chunks of memory freed upon
+driver removal.
+
+> +
+> +       retval = spinand_get_info(spi_nand, info, (u8 *)&id);
+> +       pr_info(KERN_INFO "SPINAND: 0x%02x, 0x%02x, %s\n",
+> +               id[0], id[1], info->name);
+> +       pr_info(KERN_INFO "%s\n", mu_spi_nand_driver_version);
+> +       retval = spinand_lock_block(spi_nand, info, BL_ALL_UNLOCKED);
+> +
+> +#ifdef CONFIG_MTD_SPINAND_ONDIEECC
+> +       retval = spinand_enable_ecc(spi_nand, info);
+> +#else
+> +       retval = spinand_disable_ecc(spi_nand, info);
+> +#endif
+> +
+> +       ppdata.of_node = spi_nand->dev.of_node;
+
+You could probably go along and define Device Tree bindings for this
+driver at the same time, such that they are directly usable once the
+driver is merged.
+
+> diff --git a/include/linux/mtd/spinand.h b/include/linux/mtd/spinand.h
+> new file mode 100644
+> index 0000000..3b8802a
+> --- /dev/null
+> +++ b/include/linux/mtd/spinand.h
+> @@ -0,0 +1,155 @@
+> +/*
+> + *  linux/include/linux/mtd/spinand.h
+> + *  Copyright (c) 2009-2010 Micron Technology, Inc.
+> + *  This software is licensed under the terms of the GNU General Public
+> + *  License version 2, as published by the Free Software Foundation, and
+> + *  may be copied, distributed, and modified under those terms.
+> +
+> + *  This program is distributed in the hope that it will be useful,
+> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *  GNU General Public License for more details.
+> +/bin/bash: 4: command not found
+
+?
+
+> + *
+> + *  based on nand.h
+> + */
+> +#ifndef __LINUX_MTD_SPI_NAND_H
+> +#define __LINUX_MTD_SPI_NAND_H
+> +
+> +#include <linux/wait.h>
+> +#include <linux/spinlock.h>
+> +#include <linux/mtd/mtd.h>
+> +
+> +/* cmd */
+> +#define CMD_READ                               0x13
+> +#define CMD_READ_RDM                   0x03
+> +#define CMD_PROG_PAGE_CLRCACHE 0x02
+> +#define CMD_PROG_PAGE                  0x84
+> +#define CMD_PROG_PAGE_EXC              0x10
+> +#define CMD_ERASE_BLK                  0xd8
+> +#define CMD_WR_ENABLE                  0x06
+> +#define CMD_WR_DISABLE                 0x04
+> +#define CMD_READ_ID                    0x9f
+> +#define CMD_RESET                              0xff
+> +#define CMD_READ_REG                   0x0f
+> +#define CMD_WRITE_REG                  0x1f
+
+Please prefix all of them with SPI_NAND_CMD just to be consistent with
+what is defined in include/linux/mtd/nand.h?
+
+> +
+> +/* feature/ status reg */
+> +#define REG_BLOCK_LOCK         0xa0
+> +#define REG_OTP                                0xb0
+> +#define REG_STATUS                     0xc0/* timing */
+> +
+> +/* status */
+> +#define STATUS_OIP_MASK                0x01
+> +#define STATUS_READY           (0 << 0)
+> +#define STATUS_BUSY                    (1 << 0)
+> +
+> +#define STATUS_E_FAIL_MASK     0x04
+> +#define STATUS_E_FAIL          (1 << 2)
+> +
+> +#define STATUS_P_FAIL_MASK     0x08
+> +#define STATUS_P_FAIL          (1 << 3)
+> +
+> +#define STATUS_ECC_MASK                0x30
+> +#define STATUS_ECC_1BIT_CORRECTED      (1 << 4)
+> +#define STATUS_ECC_ERROR                       (2 << 4)
+> +#define STATUS_ECC_RESERVED                    (3 << 4)
+> +
+> +
+> +/*ECC enable defines*/
+> +#define OTP_ECC_MASK           0x10
+> +#define OTP_ECC_OFF                    0
+> +#define OTP_ECC_ON                     1
+> +
+> +#define ECC_DISABLED
+> +#define ECC_IN_NAND
+> +#define ECC_SOFT
+> +
+> +/* block lock */
+> +#define BL_ALL_LOCKED      0x38
+> +#define BL_1_2_LOCKED      0x30
+> +#define BL_1_4_LOCKED      0x28
+> +#define BL_1_8_LOCKED      0x20
+> +#define BL_1_16_LOCKED     0x18
+> +#define BL_1_32_LOCKED     0x10
+> +#define BL_1_64_LOCKED     0x08
+> +#define BL_ALL_UNLOCKED    0
+> +
+> +struct spinand_info {
+> +       u8              mid;
+> +       u8              did;
+> +       char            *name;
+> +       u64             nand_size;
+> +       u64             usable_size;
+> +
+> +       u32             block_size;
+> +       u32             block_main_size;
+> +       /*u32           block_spare_size; */
+> +       u16             block_num_per_chip;
+> +       u16             page_size;
+> +       u16             page_main_size;
+> +       u16             page_spare_size;
+> +       u16             page_num_per_block;
+> +       u8              block_shift;
+> +       u32             block_mask;
+> +       u8              page_shift;
+> +       u16             page_mask;
+> +
+> +       struct nand_ecclayout *ecclayout;
+> +};
+> +
+> +typedef enum {
+> +       FL_READY,
+> +       FL_READING,
+> +       FL_WRITING,
+> +       FL_ERASING,
+> +       FL_SYNCING,
+> +       FL_LOCKING,
+> +       FL_RESETING,
+> +       FL_OTPING,
+> +       FL_PM_SUSPENDED,
+> +} spinand_state_t;
+
+Maybe flstate_t from include/linux/mtd/flashchip.h should be made
+move/made nore generic such that you can use these defines too?
+--
+Florian
