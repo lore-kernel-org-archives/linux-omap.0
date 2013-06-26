@@ -1,55 +1,73 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [RFC] ARM: OMAP2+: omap_device: add pinctrl handling
-Date: Wed, 26 Jun 2013 21:31:22 +0200
-Message-ID: <CACRpkdbKgEcfF67oO9HrczvDp4Po3Xt1hFajJ1vO8kEvsZH4jA@mail.gmail.com>
-References: <1371826990-25820-1-git-send-email-grygorii.strashko@ti.com>
-	<CACRpkdY=m1b9Lh27+wHP8FQ4SbVZKmAOCGhxe59aP+TcuR9QaA@mail.gmail.com>
-	<20130625065811.GZ5523@atomide.com>
-	<51CAEA90.90200@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51CAEA90.90200@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@linaro.org>, Hebbar Gururaja <gururaja.hebbar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH v3 0/2]: auto request GPIO as input if used as IRQ via DT
+Date: Wed, 26 Jun 2013 21:50:01 +0200
+Message-ID: <1372276203-21755-1-git-send-email-javier.martinez@collabora.co.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:38898 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752563Ab3FZTuR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jun 2013 15:50:17 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@linaro.org>
+Cc: jgchunter@gmail.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, eballetbo@gmail.com, thomas.petazzoni@free-electrons.com, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>, aaro.koskinen@iki.fi
 
-On Wed, Jun 26, 2013 at 3:20 PM, Grygorii Strashko
-<grygorii.strashko@ti.com> wrote:
+When an OMAP GPIO is used as an IRQ line, a call to gpio_request()
+has to be made to initialize the OMAP GPIO bank before a driver
+request the IRQ. Otherwise the call to request_irq() fails.
 
-> The "Sleep" pinctrl state is optional - if "sleep" state isn't defined
-> then "Idle" pinctrl state will be used during suspend.
+Drivers should not be aware of this neither care wether an IRQ line
+is a GPIO or not. They should just request the IRQ and this has to
+be handled by the irq_chip driver.
 
-Why? If we have a clear cut semantic that "idle" is for runtime
-suspend, why should it be a fallback for suspend?
+With the current OMAP GPIO DT binding, if we define:
 
-You do realize that can just be turned around (as common suspend
-is more widely implemented than runtime suspend) so that we
-could say that if "idle" does not exist, we go to "sleep" in
-runtime suspend.
+                gpio6: gpio@49058000 {
+                        compatible = "ti,omap3-gpio";
+                        reg = <0x49058000 0x200>;
+                        interrupts = <34>;
+                        ti,hwmods = "gpio6";
+                        gpio-controller;
+                        #gpio-cells = <2>;
+                        interrupt-controller;
+                        #interrupt-cells = <2>;
+                };
 
-> So, final list of default pnctrl states may be defined as "default",
-> "active", "idle", "sleep", "off":
-> - "active", "idle", "sleep": will be handled by omap_device core
-> - "default", "off": will be handled by driver itself (or Device core).
+                interrupt-parent = <&gpio6>;
+                interrupts = <16 8>;
 
-Currently the pinctrl system combines what is called "default"
-and "active" into one, assuming that all devices shall come up
-in the active state.
+The GPIO is correctly mapped as an IRQ but a call to gpio_request()
+is never made. Ideally this has to be handled by the IRQ core and
+there are some work-in-progress to add this logic to the core but
+until this general solution gets into mainline we need to solve this
+on a per irq_chip driver basis.
 
-Also we haven't seen a device that need some "off" state that
-is different from "sleep".
+Some drivers solve this by calling gpio_request() using a custom
+.xlate function handler. But .xlate could get called many times
+while the irq domain .map function handler is called just once
+when a IRQ mapping is created with a call to irq_create_mapping().
 
-If you want to drive this state list home you have to give a
-*real world example*.
+This patch-set adds a custom .map function handler for the gpio-omap
+irq_chip driver that automatically call gpio_request() when a IRQ
+mapping is created for the GPIO line used as interrupt when using DT.
+This is just a temporary solution (a.k.a a hack) until a kernel wide
+approach is implemented and added to mainline.
 
-I want to see a *real* example, for a device and it's pins,
-that define totally different things for these states, as a
-rationale.
+This is a third version of a patch-set that addresses some issues pointed
+out by Grant Like, it is composed of the following patches:
 
-Else we are just defining states to make nice figures or mental
-maps and that is not helpful for drivers writers.
+[PATCH v3 1/2] gpio/omap: don't create an IRQ mapping for every GPIO on DT
+[PATCH v3 2/2] gpio/omap: auto request GPIO as input if used as IRQ via DT
 
-Yours,
-Linus Walleij
+This was tested on an OMAP3 DM3735 board (IGEPv2) and all the supported
+peripherals are working correctly with both legacy and DT booting. Further
+testing will be highly appreciated.
+
+Aaro, could you please test if these changes break any of your OMAP1 boards?
+Although it shouldn't do it as far as I can tell.
+
+Many thanks to Jon Hunter and Grant Likely for their feedback and
+suggestions on how to solve this.
+
+Best regards,
+Javier
