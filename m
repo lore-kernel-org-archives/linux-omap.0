@@ -1,49 +1,99 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH -next] PM / AVS: SmartReflex: remove redundant dev_err
- call in omap_sr_probe()
-Date: Wed, 26 Jun 2013 08:06:41 -0500
-Message-ID: <20130626130641.GA26920@kahuna>
-References: <CAPgLHd_K37Uf420FRiEkiCZQiL9bAdiE2_qG4dp7WmQRaCnDqQ@mail.gmail.com>
+Subject: Re: [PATCH v2] ARM: DTS: OMAP4: Add OMAP4 Blaze Tablet support
+Date: Wed, 26 Jun 2013 08:13:17 -0500
+Message-ID: <CAGo_u6ohf86j3VouQZKkkf6Gv3x-wJKfNN=TALSRCgvh0NBEtg@mail.gmail.com>
+References: <1372159970-6361-1-git-send-email-ruslan.bilovol@ti.com>
+	<51C9867C.80206@ti.com>
+	<51C99056.5090104@ti.com>
+	<CAB=otbQ71TXn=-f3WddNoyvP6NmTHCtSPqwDwkYr2Y7micqRTQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPgLHd_K37Uf420FRiEkiCZQiL9bAdiE2_qG4dp7WmQRaCnDqQ@mail.gmail.com>
+In-Reply-To: <CAB=otbQ71TXn=-f3WddNoyvP6NmTHCtSPqwDwkYr2Y7micqRTQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Wei Yongjun <weiyj.lk@gmail.com>
-Cc: anton@enomsg.org, dwmw2@infradead.org, khilman@linaro.org, andrii.tseglytskyi@ti.com, jean.pihet@newoldbits.com, tony@atomide.com, yongjun_wei@trendmicro.com.cn, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Cc: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, benoit.cousson@linaro.org, lkml <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09:57-20130626, Wei Yongjun wrote:
-> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> 
-> There is a error message within devm_ioremap_resource
-> already, so remove the dev_err call to avoid redundant
-> error message.
-> 
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> ---
->  drivers/power/avs/smartreflex.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
-> 
-> diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
-> index db9973b..c26acfc 100644
-> --- a/drivers/power/avs/smartreflex.c
-> +++ b/drivers/power/avs/smartreflex.c
-> @@ -871,10 +871,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
->  
->  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  	sr_info->base = devm_ioremap_resource(&pdev->dev, mem);
-> -	if (IS_ERR(sr_info->base)) {
-> -		dev_err(&pdev->dev, "%s: ioremap fail\n", __func__);
-> +	if (IS_ERR(sr_info->base))
->  		return PTR_ERR(sr_info->base);
-> -	}
->  
->  	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
->  
-> 
-Acked-by: Nishanth Menon <nm@ti.com>
--- 
+On Wed, Jun 26, 2013 at 3:03 AM, Ruslan Bilovol <ruslan.bilovol@ti.com> wrote:
+> Hi Nishanth,
+>
+> On Tue, Jun 25, 2013 at 3:43 PM, Nishanth Menon <nm@ti.com> wrote:
+>> On 06/25/2013 07:01 AM, Nishanth Menon wrote:
+>>>
+>>> On 06/25/2013 06:32 AM, Ruslan Bilovol wrote:
+>>>>
+>>>> The OMAP4 Blaze Tablet is TI OMAP4 processor-based
+>>>> development platform in a tablet formfactor.
+>>>> The platform contains many of the features found in
+>>>> present-day handsets (such as audio, video, wireless
+>>>> functions and user interfaces) and in addition
+>>>> contains features for software development and test.
+>>>>
+>>>> This patch adds initial support for the OMAP4 Blaze
+>>>> Tablet development platform. Additional functionality
+>>>> depends on different drivers and code modifications that
+>>>> are not upstreamed yet or do not support DT yet, so will
+>>>> be added later.--
+>>>
+>>>
+>>> http://svtronics.com/omap/sevm4460,blaze,omap might help too :)
+>
+> Yes, forgot to add this information from cover-letter from previous
+> version of patch :)
+
+;) - link was wrong!
+http://svtronics.com/omap?product_id=15 is more like it -> Blaze
+tablet by default comes in 4460/4470 variants. I suggest introducing
+4470 variant here.
+I am aware of the SOM compatibility and ability to support 4430 SOM on
+tablet as well, but to keep tablet alive and reduce scope of testing,
+keeping just 4470 in place might be a good choice.
+
+just my 2 cents, no strong feelings towards either. :)
+
+>
+>>> [...]
+>>>>
+>>>> +
+>>>> +#include "twl6030.dtsi"
+>>>> +
+>>>
+>>> Might be good to see the TWL interrupt pin information made available as
+>>> well?
+>>
+>> Allow me to rephrase a comment a little bit more :)
+>> Similar to twl4030_omap3.dtsi, we could introduce twl6030_omap4.dtsi. this
+>> could contain the common pins used for 6030.
+>>  &omap4_pmx_wkup {
+>>          pinctrl-names = "default";
+>>          pinctrl-0 = <
+>>                          &twl6030_wkup_pins
+>>          >;
+>>
+>>          twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
+>>                  pinctrl-single,pins = <
+>>                          0x14 (PIN_OUTPUT | MUX_MODE2)
+>>                  >;
+>>          };
+>>  };
+>>
+>>         twl6030_pins: pinmux_twl6030_pins {
+>>                 pinctrl-single,pins = <
+>>                         0x15e (WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0)
+>> /* sys_nirq1.sys_nirq1 */
+>>                 >;
+>>         };
+>>
+>> which is now already duplicated in 2 places (SDP and Panda), and in this
+>> patch duplicated again.
+>
+> Agree, I'm planning to do this later as part of moving common things into
+> some System-On-Module(SOM)-specific files, as discussed previously
+> here https://patchwork.kernel.org/patch/2118371/
+>
+I dont think I was mentioning about that - I just would really like to
+avoid duplication of 6030 information all over the place. if we can
+avoid it, lets start consolidating.
 Regards,
 Nishanth Menon
