@@ -1,41 +1,85 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [BISECTED] 3.10-rc1 OMAP1 GPIO IRQ regression
-Date: Wed, 26 Jun 2013 00:06:00 -0700
-Message-ID: <20130626070600.GQ5523@atomide.com>
-References: <20130605223355.EDC113E10E4@localhost>
- <20130606155341.GL3331@atomide.com>
- <20130623221605.GA3150@blackmetal.musicnaut.iki.fi>
- <CAAwP0s1DkMu8Vfka43hS4Wj-927q=O5u-coyFsPBgy3qtA_vjw@mail.gmail.com>
- <20130623234326.GA20703@blackmetal.musicnaut.iki.fi>
- <CAAwP0s00RwP7jCMF1O8j8Ndhu=VfD2dMA5fzr6jWvQ7PziXBCw@mail.gmail.com>
- <20130624072112.GQ5523@atomide.com>
- <CACxGe6vRCjyJgX+dgKuJREvFf_btjhSkfqDnYekuDfkVW7pRQg@mail.gmail.com>
- <20130625070432.GB5523@atomide.com>
- <CACxGe6sQfosyUPTxFCORugJuLSKz4ZToLW2_ZVTftDrL+xwX3w@mail.gmail.com>
+Subject: Re: [PATCH] ARM: OMAP5: voltagedomain data: remove temporary OMAP4
+ voltage data
+Date: Wed, 26 Jun 2013 00:30:57 -0700
+Message-ID: <20130626073056.GS5523@atomide.com>
+References: <1372204560-1304-1-git-send-email-nm@ti.com>
+ <87sj05sp0p.fsf@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51774 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751595Ab3FZHGK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jun 2013 03:06:10 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:14271 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750843Ab3FZHbC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jun 2013 03:31:02 -0400
 Content-Disposition: inline
-In-Reply-To: <CACxGe6sQfosyUPTxFCORugJuLSKz4ZToLW2_ZVTftDrL+xwX3w@mail.gmail.com>
+In-Reply-To: <87sj05sp0p.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jon Hunter <jgchunter@gmail.com>
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, Arnd Bergmann <arnd@arndb.de>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org
 
-* Grant Likely <grant.likely@secretlab.ca> [130625 04:56]:
-> On Tue, Jun 25, 2013 at 8:04 AM, Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > OK, I'll wait for Aaro's ack on Javier's patch and then put it into a
-> > branch for you.
+* Kevin Hilman <khilman@linaro.org> [130625 17:24]:
+> Nishanth Menon <nm@ti.com> writes:
 > 
-> Thanks Tony.
+> > commit 20d49e9ccfece526db755940721aa13e331936d4
+> > (ARM: OMAP5: voltagedomain data: Add OMAP5 voltage domain data)
+> >
+> > Introduced dummy volt data for OMAP5 with OMAP4460 voltage information.
+> >
+> > However with the fixes introduced in later patches
+> >
+> > commit cd8abed1da91a3250aa4b3857479613a2b446f84
+> > (ARM: OMAP2+: Powerdomain: Remove the need to always have a voltdm
+> >  associated to a pwrdm)
+> >
+> > We are no longer restricted in that respect. Further, OPP voltage
+> > information is supposed to be provided by dts information. This needs
+> > to be added in future patches as various voltage modules are converted
+> > to dts.
+> >
+> > This also fixes the build breakage for voltagedomains54xx_data.c when just
+> > OMAP5 SoC is enabled: https://patchwork.kernel.org/patch/2764191/
+> >
+> > Reported-by: Arnd Bergmann <arnd@arndb.de>
+> > Signed-off-by: Nishanth Menon <nm@ti.com>
+> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> > Cc: Benoit Cousson <b-cousson@ti.com>
+> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: linux-omap@vger.kernel.org
+> 
+> Acked-by: Kevin Hilman <khilman@linaro.org>
+> 
+> Arnd, to make it easy, below is a pull request for this fix on top of
+> arm-soc/omap/omap5.
 
-Pull request sent as "[GIT PULL] GPIO regression fix for omap1 for v3.10-rc".
+This can get easily lost, might be best to send a new email with
+[GIT PULL] in the subject.
 
 Regards,
 
 Tony
+ 
+> The following changes since commit 6503a8e109a639760408f874c1251060d563942e:
+> 
+>   ARM: OMAP5: Remove unused include for ocp2scp (2013-06-09 21:17:15 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/omap-pm-v3.11/fixes/omap5-voltdm
+> 
+> for you to fetch changes up to 2ac524f151dbecb862c95b8f433267772caa800e:
+> 
+>   ARM: OMAP5: voltagedomain data: remove temporary OMAP4 voltage data (2013-06-25 17:11:06 -0700)
+> 
+> ----------------------------------------------------------------
+> OMAP5: PM: fix boot by removing unneeded dummy voltage domain data
+> 
+> ----------------------------------------------------------------
+> Nishanth Menon (1):
+>       ARM: OMAP5: voltagedomain data: remove temporary OMAP4 voltage data
+> 
+>  arch/arm/mach-omap2/voltagedomains54xx_data.c | 10 ----------
+>  1 file changed, 10 deletions(-)
