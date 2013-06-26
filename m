@@ -1,65 +1,49 @@
-From: Grant Likely <grant.likely@linaro.org>
-Subject: [GIT PULL] GPIO regression fix for omap1 for v3.10-rc
-Date: Wed, 26 Jun 2013 14:05:04 +0100
-Message-ID: <CACxGe6t8KvnUfm7bt3-8+9d9KXwz1W4dQB+y+m0D75DRkMCGGA@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH -next] PM / AVS: SmartReflex: remove redundant dev_err
+ call in omap_sr_probe()
+Date: Wed, 26 Jun 2013 08:06:41 -0500
+Message-ID: <20130626130641.GA26920@kahuna>
+References: <CAPgLHd_K37Uf420FRiEkiCZQiL9bAdiE2_qG4dp7WmQRaCnDqQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAPgLHd_K37Uf420FRiEkiCZQiL9bAdiE2_qG4dp7WmQRaCnDqQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: anton@enomsg.org, dwmw2@infradead.org, khilman@linaro.org, andrii.tseglytskyi@ti.com, jean.pihet@newoldbits.com, tony@atomide.com, yongjun_wei@trendmicro.com.cn, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Linus,
-
-It took a while to work out the correct solution to this regression.
-It is sorted now. This branch was constructed and tested by Tony. I've
-verified that it builds and signed the tag. Please pull into v3.10.
-
-g.
-
-The following changes since commit 9e895ace5d82df8929b16f58e9f515f6d54ab82d:
-
-  Linux 3.10-rc7 (2013-06-22 09:47:31 -1000)
-
-are available in the git repository at:
-
-  git://git.secretlab.ca/git/linux tags/gpio-for-linus
-
-for you to fetch changes up to 397eada946712b90e0620c378b366bcc6c98c9f6:
-
-  gpio/omap: don't use linear domain mapping for OMAP1 (2013-06-25
-23:13:40 -0700)
-
-----------------------------------------------------------------
-Fix for omap1 GPIO breaking regression
-
-----------------------------------------------------------------
-Javier Martinez Canillas (1):
-      gpio/omap: don't use linear domain mapping for OMAP1
-
- drivers/gpio/gpio-omap.c | 22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
-
-On Wed, Jun 26, 2013 at 8:05 AM, Tony Lindgren <tony@atomide.com> wrote:
-> The following changes since commit 9e895ace5d82df8929b16f58e9f515f6d54ab82d:
->
->   Linux 3.10-rc7 (2013-06-22 09:47:31 -1000)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/gpio-signed
->
-> for you to fetch changes up to 397eada946712b90e0620c378b366bcc6c98c9f6:
->
->   gpio/omap: don't use linear domain mapping for OMAP1 (2013-06-25 23:13:40 -0700)
->
-> ----------------------------------------------------------------
-> Fix for omap1 GPIO breaking regression.
->
-> ----------------------------------------------------------------
-> Javier Martinez Canillas (1):
->       gpio/omap: don't use linear domain mapping for OMAP1
->
->  drivers/gpio/gpio-omap.c | 22 +++++++++++++++++++++-
->  1 file changed, 21 insertions(+), 1 deletion(-)
+On 09:57-20130626, Wei Yongjun wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> 
+> There is a error message within devm_ioremap_resource
+> already, so remove the dev_err call to avoid redundant
+> error message.
+> 
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> ---
+>  drivers/power/avs/smartreflex.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+> 
+> diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
+> index db9973b..c26acfc 100644
+> --- a/drivers/power/avs/smartreflex.c
+> +++ b/drivers/power/avs/smartreflex.c
+> @@ -871,10 +871,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+>  
+>  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	sr_info->base = devm_ioremap_resource(&pdev->dev, mem);
+> -	if (IS_ERR(sr_info->base)) {
+> -		dev_err(&pdev->dev, "%s: ioremap fail\n", __func__);
+> +	if (IS_ERR(sr_info->base))
+>  		return PTR_ERR(sr_info->base);
+> -	}
+>  
+>  	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+>  
+> 
+Acked-by: Nishanth Menon <nm@ti.com>
+-- 
+Regards,
+Nishanth Menon
