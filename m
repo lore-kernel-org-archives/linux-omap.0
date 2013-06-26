@@ -1,65 +1,131 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [-next PATCH 1/2] ARM: OMAP4: sleep: build OMAP4 specific functions only for OMAP4
-Date: Wed, 26 Jun 2013 09:39:46 -0500
-Message-ID: <1372257587-21720-2-git-send-email-nm@ti.com>
-References: <1372257587-21720-1-git-send-email-nm@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [RFC] ARM: OMAP2+: omap_device: add pinctrl handling
+Date: Wed, 26 Jun 2013 17:36:44 +0300
+Message-ID: <51CAFC7C.2020504@ti.com>
+References: <1371826990-25820-1-git-send-email-grygorii.strashko@ti.com> <CACRpkdY=m1b9Lh27+wHP8FQ4SbVZKmAOCGhxe59aP+TcuR9QaA@mail.gmail.com> <20130625065811.GZ5523@atomide.com> <51CAEA90.90200@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1372257587-21720-1-git-send-email-nm@ti.com>
+In-Reply-To: <51CAEA90.90200@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@nvidia.com>, Rob Herring <rob.herring@calxeda.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Nishanth Menon <nm@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Kevin Hilman <khilman@linaro.org>, Hebbar Gururaja <gururaja.hebbar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>
 List-Id: linux-omap@vger.kernel.org
 
-CPU sleep and resume functions for Cortex-A9 based OMAP4 and
-Cortex-A15 based OMAP5 are different. Hence, even though we reuse
-most of the remaining file as part of OMAP4/5 consolidation, build
-OMAP4 specific sleep/resume operations only for OMAP4. SCU is not used
-OMAP5.
+Picture format fixed. Sorry for that.
 
-This fixes the following build failure with OMAP5 only build:
-arch/arm/mach-omap2/built-in.o: In function `scu_gp_set':
-arch/arm/mach-omap2/sleep44xx.S:132: undefined reference to `scu_power_=
-mode'
-arch/arm/mach-omap2/built-in.o: In function `scu_gp_clear':
-arch/arm/mach-omap2/sleep44xx.S:229: undefined reference to `scu_power_=
-mode'
-
-Reported-by: Pekon Gupta <pekon@ti.com>
-Reported-by: Vincent Stehl=C3=A9 <v-stehle@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/sleep44xx.S |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/slee=
-p44xx.S
-index 88ff83a..9086ce0 100644
---- a/arch/arm/mach-omap2/sleep44xx.S
-+++ b/arch/arm/mach-omap2/sleep44xx.S
-@@ -34,6 +34,8 @@ ppa_zero_params:
- ppa_por_params:
- 	.word		1, 0
-=20
-+#ifdef CONFIG_ARCH_OMAP4
-+
- /*
-  * =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D
-  * =3D=3D CPU suspend finisher =3D=3D
-@@ -326,7 +328,9 @@ skip_l2en:
-=20
- 	b	cpu_resume			@ Jump to generic resume
- ENDPROC(omap4_cpu_resume)
--#endif
-+#endif	/* CONFIG_ARCH_OMAP4 */
-+
-+#endif	/* defined(CONFIG_SMP) && defined(CONFIG_PM) */
-=20
- #ifndef CONFIG_OMAP4_ERRATA_I688
- ENTRY(omap_bus_sync)
---=20
-1.7.9.5
+On 06/26/2013 04:20 PM, Grygorii Strashko wrote:
+> Hi All,
+>
+> On 06/25/2013 09:58 AM, Tony Lindgren wrote:
+>> * Linus Walleij <linus.walleij@linaro.org> [130624 05:13]:
+>>> On Fri, Jun 21, 2013 at 5:03 PM, Grygorii Strashko
+>>> <grygorii.strashko@ti.com> wrote:
+>>>
+>>>> Hence, add pinctrl handling in omap_device core:
+>>>> 1) on PM runtime resume
+>>>> - switch pinctrl state to "default" (todo: "active")
+>>>> 2) on PM runtime suspend
+>>>> - switch pinctrl state to "idle"
+>>>> 3) during system wide suspend
+>>>> - switch pinctrl state to "sleep" or "idle" if omap_device core
+>>>> disables device
+>>>> - switch pinctrl state to "sleep" if device is disabled already
+>> Do you need a separate setting for "idle" and "sleep", or are
+>> they the same?
+>>
+>>>> 4) during system wide resume
+>>>> - switch pinctrl state to "default" (todo: "active") if omap_device
+>>>> core has
+>>>>    disabled  device during suspend
+>>>> - switch pinctrl state to "idle" if device was already disabled
+>>>> before suspend
+>>> I don't understand step 4.
+>>>
+>>> I get the creeps about whether the system is runtime suspended
+>>> or runtime resumed when we come to resume proper, so I need
+>>> Kevin to have a look at this.
+>>>
+>>> Apart from that it looks good.
+>>>
+>>> Stephen and Tony are trying to figure out the details of whether
+>>> "active"
+>>> is necessary or not in a related thread I think.
+> Thanks for your comments.
+>
+> I've prepared diagram to illustrate how does this work:
+>                                          +
+>                                          |
+>                                          |  .probe()
+>                                          |
+>                                    +-----v--------+
+>                                    |              |
+>                                    |  default     |
+>                                    |              |
+>                                    +----+--+------+
+>                                         |  |
+>                         pm_runtime_get()|  | pm_runtime_put()
+>                        +----------------+  +------------+
+>                        |                                |
+>                 +------v------+ pm_runtime_put()+-------v-----+
+>                 |             +----------------->             |
+>     +----------->  Active     |pm_runtime_get() |   Idle      <----------+
+>     |           |             <-----------------+             |          |
+>     |           +-------+-----+                 +-------+-----+          |
+>     |                   |.suspend_noirq()               |.suspend_noirq()|
+>     |                   |                               |                |
+>     |                   |                               |                |
+>     |                   |                               |                |
+>     |                   |                               |                |
+>     |           +-------v-----+                 +-------v-----+          |
+>     |           |             |                 |             |          |
+>     +-----------+  Sleep      ------+           |  Sleep      +----------+
+> .resume_noirq() |             |     |           |             |.resume_noirq()
+>                 +-------|-----+     |           +-------------+
+>                         |  Idle     |
+>                         +-----------+
+>
+> The "Sleep" pinctrl state is optional - if "sleep" state isn't defined
+> then "Idle" pinctrl state will be used during suspend.
+>
+> As per above pinctrl state transition diagram - I think, that:
+> - if "idle" or "sleep" states are defined then "active" state have to be
+> defined too.
+> So, pinctrl core should detect such situation and generate a warning.
+>
+>  From my point of view, we should have "active" state - it would allow
+> to avoid additional
+> runtime overhead and handle properly the case when drivers are used as
+> loadable modules.
+> In this case, after boot, device's pinctrl registers can have HW default
+> values (after reset) or
+> can be configured to some safe (off) state from board file (board's
+> "default" configuration).
+> Driver module will activate its PINs when loaded and need to restore
+> safe (off) PINs state when
+> unloaded.
+> As result, it seems, we should have "off" state which can be used when
+> driver's module is removed.
+>
+> So, final list of default pnctrl states may be defined as "default",
+> "active", "idle", "sleep", "off":
+> - "active", "idle", "sleep": will be handled by omap_device core
+> - "default", "off": will be handled by driver itself (or Device core).
+>
+>
+>
+>> Yes we should have that sorted out over next few weeks, so let's
+>> just wait a little while on all these dynamic remuxing patches
+>> to avoid churn.
+>>
+>> Regards,
+>>
+>> Tony
+>
+> Regards,
+> - grygorii
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
