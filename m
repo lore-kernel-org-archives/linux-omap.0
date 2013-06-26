@@ -1,128 +1,49 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH v3 1/2] gpio/omap: don't create an IRQ mapping for every GPIO on DT
-Date: Wed, 26 Jun 2013 21:50:02 +0200
-Message-ID: <1372276203-21755-2-git-send-email-javier.martinez@collabora.co.uk>
-References: <1372276203-21755-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Tom Rini <trini@ti.com>
+Subject: Re: OMAP baseline test results for v3.10-rc6
+Date: Wed, 26 Jun 2013 16:02:02 -0400
+Message-ID: <51CB48BA.7020401@ti.com>
+References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com> <20130625160243.GE22312@arwen.pp.htv.fi> <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com> <51C9F0A8.1050607@ti.com> <87fvw6t136.fsf@linaro.org> <79CD15C6BA57404B839C016229A409A83ECC952D@DBDE04.ent.ti.com> <51CAEB33.5010101@ti.com> <51CAEBF3.1010507@ti.com> <alpine.DEB.2.02.1306261726280.6135@utopia.booyaka.com> <51CB28BD.2020105@ti.com> <alpine.DEB.2.02.1306261750210.6135@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:38908 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752717Ab3FZTuR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jun 2013 15:50:17 -0400
-In-Reply-To: <1372276203-21755-1-git-send-email-javier.martinez@collabora.co.uk>
+Received: from bear.ext.ti.com ([192.94.94.41]:39508 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752112Ab3FZUHv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Jun 2013 16:07:51 -0400
+In-Reply-To: <alpine.DEB.2.02.1306261750210.6135@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>
-Cc: jgchunter@gmail.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, eballetbo@gmail.com, thomas.petazzoni@free-electrons.com, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>, aaro.koskinen@iki.fi, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Kevin Hilman <khilman@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-When a GPIO is defined as an interrupt line using Device
-Tree, a call to irq_create_of_mapping() is made that calls
-irq_create_mapping(). So, is not necessary to do the mapping
-for all OMAP GPIO lines and explicitly call irq_create_mapping()
-on the driver probe() when booting with Device Tree.
+On 06/26/2013 01:58 PM, Paul Walmsley wrote:
+> On Wed, 26 Jun 2013, Tom Rini wrote:
+> 
+>> OK, is there a reason to not be using omap2plus_defconfig?  My pass/fail
+>> here is based on that config and enabling, or not, dtb append.  Seems
+>> like it would be one less thing to maintain on your end and it would be
+>> on TIs end (roughly speaking) to make sure our platforms that ought to
+>> be working upstream have what they need enabled in the defconfig(s) in
+>> question.
+> 
+> That would be convenient for me, but part of the goal is to verify that a 
+> Kconfig that deselects all OMAPs other than AM33xx continues to work.
+> 
+> So the build process for am33xx_only here goes something like:
+> 
+> 1. Start with omap2plus_defconfig
+> 
+> 2. Turn off support for everything other than AM33xx in the SoC target 
+> selection menus
+> 
+> 3. Turn on the appended DTB and compat ATAGs options
+> 
+> You might consider adding something like this to your pass/fail tests.
 
-Add a custom IRQ domain .map function handler that will be
-called by irq_create_mapping() to map the GPIO lines used as IRQ.
-This also allows to execute needed setup code such as configuring
-a GPIO as input and enabling the GPIO bank.
+Adding more and different build+boot tests is on the list.  I guess you
+could automate this with a fraagment of everything am33xx must have to
+boot+root and alldefconfig for the rest?
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
-
-Changes since v2:
-  - Unconditionally do the IRQ setup in the .map() function and
-    only call irq_create_mapping() in the gpio chip init to avoid
-    code duplication as suggested by Grant Likely.
-
-Changes since v1:
-  - Split the addition of the .map function handler and the
-    automatic gpio request in two different patches.
-  - Add GPIO IRQ setup logic to the irq domain mapping function.
-  - Only call irq_create_mapping for every GPIO on legacy boot.
-  - Only setup a GPIO IRQ on the .map function for DeviceTree boot.
-
- drivers/gpio/gpio-omap.c |   54 ++++++++++++++++++++++++++++++++++------------
- 1 files changed, 40 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 4a43036..42f04ff 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1068,24 +1068,50 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
- 
- 	gpiochip_add(&bank->chip);
- 
--	for (j = 0; j < bank->width; j++) {
--		int irq = irq_create_mapping(bank->domain, j);
--		irq_set_lockdep_class(irq, &gpio_lock_class);
--		irq_set_chip_data(irq, bank);
--		if (bank->is_mpuio) {
--			omap_mpuio_alloc_gc(bank, irq, bank->width);
--		} else {
--			irq_set_chip_and_handler(irq, &gpio_irq_chip,
--						 handle_simple_irq);
--			set_irq_flags(irq, IRQF_VALID);
--		}
--	}
-+	/*
-+	 * REVISIT these explicit calls to irq_create_mapping()
-+	 * to do the GPIO to IRQ domain mapping for each GPIO in
-+	 * the bank can be removed once all OMAP platforms have
-+	 * been migrated to Device Tree boot only.
-+	 * Since in DT boot irq_create_mapping() is called from
-+	 * irq_create_of_mapping() only for the GPIO lines that
-+	 * are used as interrupts.
-+	 */
-+	if (!of_have_populated_dt())
-+		for (j = 0; j < bank->width; j++)
-+			irq_create_mapping(bank->domain, j);
- 	irq_set_chained_handler(bank->irq, gpio_irq_handler);
- 	irq_set_handler_data(bank->irq, bank);
- }
- 
- static const struct of_device_id omap_gpio_match[];
- 
-+static int omap_gpio_irq_map(struct irq_domain *d, unsigned int virq,
-+			     irq_hw_number_t hwirq)
-+{
-+	struct gpio_bank *bank = d->host_data;
-+
-+	if (!bank)
-+		return -EINVAL;
-+
-+	irq_set_lockdep_class(virq, &gpio_lock_class);
-+	irq_set_chip_data(virq, bank);
-+	if (bank->is_mpuio) {
-+		omap_mpuio_alloc_gc(bank, virq, bank->width);
-+	} else {
-+		irq_set_chip_and_handler(virq, &gpio_irq_chip,
-+					 handle_simple_irq);
-+		set_irq_flags(virq, IRQF_VALID);
-+	}
-+
-+	return 0;
-+}
-+
-+static struct irq_domain_ops omap_gpio_irq_ops = {
-+	.xlate  = irq_domain_xlate_onetwocell,
-+	.map    = omap_gpio_irq_map,
-+};
-+
- static int omap_gpio_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
-@@ -1151,10 +1177,10 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 	}
- 
- 	bank->domain = irq_domain_add_legacy(node, bank->width, irq_base,
--					     0, &irq_domain_simple_ops, NULL);
-+					     0, &omap_gpio_irq_ops, bank);
- #else
- 	bank->domain = irq_domain_add_linear(node, bank->width,
--					     &irq_domain_simple_ops, NULL);
-+					     &omap_gpio_irq_ops, bank);
- #endif
- 	if (!bank->domain) {
- 		dev_err(dev, "Couldn't register an IRQ domain\n");
 -- 
-1.7.7.6
-
+Tom
