@@ -1,54 +1,69 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [-next PATCH 0/2] ARM: OMAP5: fix build breakage due to SCU usage
-Date: Wed, 26 Jun 2013 09:39:45 -0500
-Message-ID: <1372257587-21720-1-git-send-email-nm@ti.com>
+Subject: [-next PATCH 2/2] ARM: scu: provide inline dummy functions when SCU is not present
+Date: Wed, 26 Jun 2013 09:39:47 -0500
+Message-ID: <1372257587-21720-3-git-send-email-nm@ti.com>
+References: <1372257587-21720-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1372257587-21720-1-git-send-email-nm@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@nvidia.com>, Rob Herring <rob.herring@calxeda.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On platforms such as Cortex-A15 based OMAP5, SCU is not used, however
+since much code is shared between Cortex-A9 based OMAP4 (which uses
+SCU) and OMAP5, It does help to have inline functions returning error
+values when SCU is not present on the platform.
 
-Cortex-A15 based OMAP5 does not use Snoop Control Unit(SCU)[1].
-However, there is lot of code that is shared between Cortex-A9 based
-OMAP4 and OMAP5, hence functionality code is shared with runtime usage
-of SCU based on SoC worked on. However on building with OMAP5 only
-generates the following errors:
-arch/arm/mach-omap2/built-in.o: In function `scu_gp_set':
-arch/arm/mach-omap2/sleep44xx.S:132: undefined reference to `scu_power_mode'
-arch/arm/mach-omap2/built-in.o: In function `scu_gp_clear':
-arch/arm/mach-omap2/sleep44xx.S:229: undefined reference to `scu_power_mode'
+arch/arm/mach-omap2/omap-smp.c which is common between OMAP4 and 5
+handles the SCU usage only for OMAP4.
+
+This fixes the following build failure with OMAP5 only build:
 arch/arm/mach-omap2/built-in.o: In function `omap4_smp_init_cpus':
-arch/arm/mach-omap2/omap-smp.c:185: undefined reference to `scu_get_core_count'
+arch/arm/mach-omap2/omap-smp.c:185: undefined reference to `scu_get_cor=
+e_count'
 arch/arm/mach-omap2/built-in.o: In function `omap4_smp_prepare_cpus':
 arch/arm/mach-omap2/omap-smp.c:211: undefined reference to `scu_enable'
 
-This was attempted to be "fixed" in various attempts in the past [2] [3].
+Reported-by: Pekon Gupta <pekon@ti.com>
+Reported-by: Vincent Stehl=C3=A9 <v-stehle@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/include/asm/smp_scu.h |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-This series applies on top of the other fixes in discussion for linux-next [4] [5].
-
-Based on:
-git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git  next-20130626
-
-Nishanth Menon (2):
-  ARM: OMAP4: sleep: build OMAP4 specific functions only for OMAP4
-  ARM: scu: provide inline dummy functions when SCU is not present
-
- arch/arm/include/asm/smp_scu.h  |   13 ++++++++++++-
- arch/arm/mach-omap2/sleep44xx.S |    6 +++++-
- 2 files changed, 17 insertions(+), 2 deletions(-)
-
-[1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0407e/CHDFJICC.html
-[2] https://patchwork.kernel.org/patch/2568091/
-[3] http://marc.info/?t=137120115400001&r=1&w=2
-[4] http://lists.infradead.org/pipermail/linux-arm-kernel/2013-June/178209.html
-[5] https://patchwork.kernel.org/patch/2781471/
-
-Regards,
-Nishanth Menon
--- 
+diff --git a/arch/arm/include/asm/smp_scu.h b/arch/arm/include/asm/smp_=
+scu.h
+index 18d1693..433f9d9 100644
+--- a/arch/arm/include/asm/smp_scu.h
++++ b/arch/arm/include/asm/smp_scu.h
+@@ -23,10 +23,21 @@ static inline unsigned long scu_a9_get_base(void)
+ 	return pa;
+ }
+=20
++#ifdef CONFIG_HAVE_ARM_SCU
+ unsigned int scu_get_core_count(void __iomem *);
+ int scu_power_mode(void __iomem *, unsigned int);
++#else
++static inline unsigned int scu_get_core_count(void __iomem *scu_base)
++{
++	return 0;
++}
++static inline int scu_power_mode(void __iomem *scu_base, unsigned int =
+mode)
++{
++	return -EINVAL;
++}
++#endif
+=20
+-#ifdef CONFIG_SMP
++#if defined(CONFIG_SMP) && defined(CONFIG_HAVE_ARM_SCU)
+ void scu_enable(void __iomem *scu_base);
+ #else
+ static inline void scu_enable(void __iomem *scu_base) {}
+--=20
 1.7.9.5
