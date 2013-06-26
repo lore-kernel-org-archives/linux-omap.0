@@ -1,105 +1,89 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: [RFC] am33xx: create child nodes for the two musb controllers
-Date: Wed, 26 Jun 2013 17:33:26 +0200
-Message-ID: <20130626153325.GA24075@linutronix.de>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH 3/5] ARM: dts: am33xx: Add interrupts and memory resources
+ for MMC
+Date: Wed, 26 Jun 2013 22:03:54 +0530
+Message-ID: <51CB17F2.5060504@ti.com>
+References: <1372209888-6649-1-git-send-email-joelagnel@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1372209888-6649-1-git-send-email-joelagnel@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Joel A Fernandes <agnel.joel@gmail.com>
+Cc: Mark Brown <broonie@linaro.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Koen Kooi <koen@beagleboard.org>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Linux Documentation List <linux-doc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, Arnd Bergmann <arnd@arndb.de>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Jason Kridner <jkridner@beagleboard.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Benoit Cousson <b-cousson@ti.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Landley <rob@landley.net>, Linux SPI Devel List <spi-dev>
 List-Id: linux-omap@vger.kernel.org
 
-I've been thinkig about creating two child nodes for the independent musb
-controllers on the am33. I've been thinking about the following:
+Hi Joel,
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 8e1248f..6aa9506 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -326,21 +326,78 @@
- 			status = "disabled";
- 		};
- 
- 		usb@47400000 {
- 			compatible = "ti,musb-am33xx";
--			reg = <0x47400000 0x1000	/* usbss */
--			       0x47401000 0x800		/* musb instance 0 */
--			       0x47401800 0x800>;	/* musb instance 1 */
--			interrupts = <17		/* usbss */
--				      18		/* musb instance 0 */
--				      19>;		/* musb instance 1 */
--			multipoint = <1>;
--			num-eps = <16>;
--			ram-bits = <12>;
--			port0-mode = <3>;
--			port1-mode = <3>;
--			power = <250>;
-+			reg = <0x47400000 0x1000>;	/* usbss */
-+			interrupts = <17>;		/* usbss */
- 			ti,hwmods = "usb_otg_hs";
-+
-+			usb0@0x47401000 {
-+				reg = <0x47401000 0x800>;	/* musb instance 0 */
-+				interrupts = <18>;		/* musb instance 0 */
-+				multipoint = <1>;
-+				num-eps = <16>;
-+				ram-bits = <12>;
-+				port-mode = <3>;
-+				power = <250>;
-+
-+				phys = <&nopphy0>;
-+				dmas = <&cppi41dma 0
-+					&cppi41dma 1
-+					&cppi41dma 2
-+					&cppi41dma 3
-+					&cppi41dma 4
-+					&cppi41dma 32
-+					&cppi41dma 34
-+					&cppi41dma 36
-+					&cppi41dma 38
-+					&cppi41dma 40>;
-+				dma-names = "rx1", "rx2", "rx3", "rx4", "rx5",
-+					    "tx1", "tx2", "tx3", "tx4", "tx5";
-+			};
-+
-+			usb0@0x47401800 {
-+				reg = <0x47401800 0x800>;	/* musb instance 1 */
-+				interrupts = <19>;		/* musb instance 1 */
-+				multipoint = <1>;
-+				num-eps = <16>;
-+				ram-bits = <12>;
-+				port-mode = <3>;
-+				power = <250>;
-+
-+				phys = <&nopphy1>;
-+				dmas = <&cppi41dma 0
-+					&cppi41dma 1
-+					&cppi41dma 2
-+					&cppi41dma 3
-+					&cppi41dma 4
-+					&cppi41dma 62
-+					&cppi41dma 64
-+					&cppi41dma 66
-+					&cppi41dma 68
-+					&cppi41dma 70>;
-+				dma-names = "rx1", "rx2", "rx3", "rx4", "rx5",
-+					    "tx1", "tx2", "tx3", "tx4", "tx5";
-+			};
-+		};
+On Wednesday 26 June 2013 06:54 AM, Joel A Fernandes wrote:
+> From: Joel A Fernandes <agnel.joel@gmail.com>
+>
+> HWMOD irq entries for MMC were removed. We provide the same from DT for MMC.
+>
+> This fixes issue where memory resource could not be found during probe.
+> Also, added the reg-offset property to account for the offset from start.
+>
+> Signed-off-by: Joel A Fernandes <agnel.joel@gmail.com>
+> ---
+>   arch/arm/boot/dts/am33xx.dtsi |   12 ++++++++++++
+>   1 file changed, 12 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 119f8a9..e0a5741 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -237,6 +237,10 @@
+>   			dmas = <&edma 24
+>   				&edma 25>;
+>   			dma-names = "tx", "rx";
+> +			interrupts = <64>;
+> +			interrupt-parent = <&intc>;
+> +			reg = <0x48060000 0x1000>;
+> +			reg-offset = <0x100>;
+>   			status = "disabled";
+>   		};
+>
+> @@ -247,6 +251,10 @@
+>   			dmas = <&edma 2
+>   				&edma 3>;
+>   			dma-names = "tx", "rx";
+> +			interrupts = <24>;
 
-Please keep in mind that his is not a proper patch it should point out
-what I have in mind.
-This would easy the for instance the dma channel assignment. Also, it will
-move back to the port-mode property instead of portX-mode one which it has
-now. This is kind of confusing since it is not a root hub or anything like
-that it is a complete musb controller. Plus for the phys property could
-easily take the one avaible and would not require which instance it
-really it is.
+s/24/28
 
-Sebastian
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +			interrupt-parent = <&intc>;
+> +			reg = <0x481d8000 0x1000>;
+> +			reg-offset = <0x100>;
+>   			status = "disabled";
+>   		};
+>
+> @@ -254,6 +262,10 @@
+>   			compatible = "ti,omap3-hsmmc";
+
+compatible should be ti,omap4-hsmmc since omap4 hsmmc IP is re-used in am33xx
+and reg-offset property is not needed.
+combine this patch with 2/5 ARM: dts: add AM33XX MMC support and please add
+your signed-off to that patch.
+
+>   			ti,hwmods = "mmc3";
+>   			ti,needs-special-reset;
+> +			interrupts = <25>;
+
+s/25/29
+
+> +			interrupt-parent = <&intc>;
+> +			reg = <0x47810000 0x1000>;
+> +			reg-offset = <0x100>;
+>   			status = "disabled";
+>   		};
+>
+>
