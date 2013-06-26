@@ -1,129 +1,56 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [RFC] ARM: OMAP2+: omap_device: add pinctrl handling
-Date: Wed, 26 Jun 2013 16:20:16 +0300
-Message-ID: <51CAEA90.90200@ti.com>
-References: <1371826990-25820-1-git-send-email-grygorii.strashko@ti.com> <CACRpkdY=m1b9Lh27+wHP8FQ4SbVZKmAOCGhxe59aP+TcuR9QaA@mail.gmail.com> <20130625065811.GZ5523@atomide.com>
+From: Tom Rini <trini@ti.com>
+Subject: Re: OMAP baseline test results for v3.10-rc6
+Date: Wed, 26 Jun 2013 09:26:11 -0400
+Message-ID: <51CAEBF3.1010507@ti.com>
+References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com> <20130625160243.GE22312@arwen.pp.htv.fi> <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com> <51C9F0A8.1050607@ti.com> <87fvw6t136.fsf@linaro.org> <79CD15C6BA57404B839C016229A409A83ECC952D@DBDE04.ent.ti.com> <51CAEB33.5010101@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130625065811.GZ5523@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Kevin Hilman <khilman@linaro.org>, Hebbar Gururaja <gururaja.hebbar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:58908 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751368Ab3FZN0Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Jun 2013 09:26:16 -0400
+In-Reply-To: <51CAEB33.5010101@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Kevin Hilman <khilman@linaro.org>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi All,
-
-On 06/25/2013 09:58 AM, Tony Lindgren wrote:
-> * Linus Walleij <linus.walleij@linaro.org> [130624 05:13]:
->> On Fri, Jun 21, 2013 at 5:03 PM, Grygorii Strashko
->> <grygorii.strashko@ti.com> wrote:
+On 06/26/2013 09:22 AM, Rajendra Nayak wrote:
+>>>
+>>> Just to confirm, my problems with mainline were with appended DTB also.
+>>> Separate DTB and zImage work fine (at least using u-boot v2013.04.)
+>>>
+>>> That being said, appended DTB should still work, so there's a bug
+>>> hiding
+>>> someplace that needs to be found fixed.
+>>>
+>>> Can you guys update your tests to test appended DTB also?
+>>>
 >>
->>> Hence, add pinctrl handling in omap_device core:
->>> 1) on PM runtime resume
->>> - switch pinctrl state to "default" (todo: "active")
->>> 2) on PM runtime suspend
->>> - switch pinctrl state to "idle"
->>> 3) during system wide suspend
->>> - switch pinctrl state to "sleep" or "idle" if omap_device core disables device
->>> - switch pinctrl state to "sleep" if device is disabled already
-> Do you need a separate setting for "idle" and "sleep", or are
-> they the same?
->
->>> 4) during system wide resume
->>> - switch pinctrl state to "default" (todo: "active") if omap_device core has
->>>    disabled  device during suspend
->>> - switch pinctrl state to "idle" if device was already disabled before suspend
->> I don't understand step 4.
+>> What is missing here is, 
 >>
->> I get the creeps about whether the system is runtime suspended
->> or runtime resumed when we come to resume proper, so I need
->> Kevin to have a look at this.
+>> CONFIG_ARM_APPENDED_DTB = y
+>> CONFIG_ARM_ATAG_DTB_COMPAT = y
 >>
->> Apart from that it looks good.
 >>
->> Stephen and Tony are trying to figure out the details of whether "active"
->> is necessary or not in a related thread I think.
-Thanks for your comments.
+>> And for the code which is required in case of appended DTB, please refer to the code
+>> "arch/arm/boot/compressed/head.S"
+>>
+>>
+>> Please __NOTE__ that these options are not enabled in default omap2plus_defconfig.
+> 
+> Paul/Kevin,
+> 
+> Apart from confirming if you are manually enabling these options, can you also give some
+> details on how you append the dtb to the kernel image?
 
-I've prepared diagram to illustrate how does this work:
-                                                  +
-                                                  |
-                                                  |  .probe()
-                                                  |
-                                            +-----v--------+
-                                            |              |
-                                            |  default     |
-                                            |              |
-                                            +----+--+------+
-                                                 |  |
-                               pm_runtime_get()  |  | pm_runtime_put()
-                              +------------------+ +------------------+
-|                                        |
-                       +------v--------+ pm_runtime_put() +-------v-------+
-                       | +----------------------->               |
-           +----------->  Active       |      pm_runtime_get() | 
-Idle        <--------------+
-           |           | <-----------------------+               
-|              |
-           |           +-------+-------+ +-------+-------+              |
-           | |.suspend_noirq()                       
-|.suspend_noirq()      |
-           | |                                       
-|                      |
-           | |                                       
-|                      |
-           | |                                       
-|                      |
-           | |                                       
-|                      |
-           |           +-------v-------+ +-------v--------+             |
-           |           |               | |                |             |
-           +-----------+  Sleep        ------+                 | 
-Sleep         +-------------+
-       .resume_noirq() |               |     | |                
-|.resume_noirq()
-                       +-------|-------+     | +----------------+
-                               |   Idle      |
-                               +-------------+
+Yes, please confirm that they're being set.  I've managed to reproduce
+the failure, with them off, and enabling them brings things back to life.
 
-The "Sleep" pinctrl state is optional - if "sleep" state isn't defined
-then "Idle" pinctrl state will be used during suspend.
+Pending rmk's reply in another part of the thread, I'll submit a patch
+to enable the above in omap2plus_defconfig.
 
-As per above pinctrl state transition diagram - I think, that:
-- if "idle" or "sleep" states are defined then "active" state have to be 
-defined too.
-So, pinctrl core should detect such situation and generate a warning.
-
- From my point of view, we should have "active" state - it would allow 
-to avoid additional
-runtime overhead and handle properly the case when drivers are used as 
-loadable modules.
-In this case, after boot, device's pinctrl registers can have HW default 
-values (after reset) or
-can be configured to some safe (off) state from board file (board's 
-"default" configuration).
-Driver module will activate its PINs when loaded and need to restore 
-safe (off) PINs state when
-unloaded.
-As result, it seems, we should have "off" state which can be used when 
-driver's module is removed.
-
-So, final list of default pnctrl states may be defined as "default", 
-"active", "idle", "sleep", "off":
-- "active", "idle", "sleep": will be handled by omap_device core
-- "default", "off": will be handled by driver itself (or Device core).
-
-
-
-> Yes we should have that sorted out over next few weeks, so let's
-> just wait a little while on all these dynamic remuxing patches
-> to avoid churn.
->
-> Regards,
->
-> Tony
-
-Regards,
-- grygorii
+-- 
+Tom
