@@ -1,112 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Documentation: dt: bindings: TI WiLink modules
-Date: Wed, 26 Jun 2013 01:22:57 -0700
-Message-ID: <20130626082257.GT5523@atomide.com>
-References: <1372149330-24335-1-git-send-email-coelho@ti.com>
- <1372189024.18889.19.camel@cumari.coelho.fi>
- <20130626062409.GK5523@atomide.com>
- <1372234384.18889.37.camel@cumari.coelho.fi>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP baseline test results for v3.10-rc6
+Date: Wed, 26 Jun 2013 10:15:22 +0100
+Message-ID: <20130626091522.GT21614@n2100.arm.linux.org.uk>
+References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com> <20130625160243.GE22312@arwen.pp.htv.fi> <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com> <51C9F0A8.1050607@ti.com> <87fvw6t136.fsf@linaro.org> <51C9FC05.4070700@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46552 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751347Ab3FZJPf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jun 2013 05:15:35 -0400
 Content-Disposition: inline
-In-Reply-To: <1372234384.18889.37.camel@cumari.coelho.fi>
-Sender: linux-doc-owner@vger.kernel.org
-To: Luciano Coelho <coelho@ti.com>
-Cc: grant.likely@linaro.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-wireless@vger.kernel.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com
+In-Reply-To: <51C9FC05.4070700@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tom Rini <trini@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, hvaibhav@ti.com
 
-* Luciano Coelho <coelho@ti.com> [130626 01:19]:
-> Hi Tony,
-> 
-> On Tue, 2013-06-25 at 23:24 -0700, Tony Lindgren wrote:
-> > * Luciano Coelho <coelho@ti.com> [130625 12:43]:
-> > > On Tue, 2013-06-25 at 11:35 +0300, Luciano Coelho wrote:
-> > > > Add device tree bindings documentation for the TI WiLink modules.
-> > > > Currently only the WLAN part of the WiLink6, WiLink7 and WiLink8
-> > > > modules is supported.
-> > > > 
-> > > > Signed-off-by: Luciano Coelho <coelho@ti.com>
-> > > > ---
-> 
-> [...]
-> 
-> > > > +Optional properties:
-> > > > +--------------------
-> > > > +
-> > > > +- refclock: the internal WLAN reference clock frequency (required for
-> > > > +  WiLink6 and WiLink7; not used for WiLink8).  Must be one of the
-> > > > +  following:
-> > > > +	0 = 19.2 MHz
-> > > > +	1 = 26.0 MHz
-> > > > +	2 = 38.4 MHz
-> > > > +	3 = 52.0 MHz
-> > > > +	4 = 38.4 MHz, XTAL
-> > > > +	5 = 26.0 MHz, XTAL
+On Tue, Jun 25, 2013 at 04:22:29PM -0400, Tom Rini wrote:
+> On 06/25/2013 03:57 PM, Kevin Hilman wrote:
+> > Just to confirm, my problems with mainline were with appended DTB also.
+> > Separate DTB and zImage work fine (at least using u-boot v2013.04.)
 > > 
-> > This is just the omap refclock, right? If so, you can just pass the
-> > standard clock phandle. I know we don't yet have the DT clocks merged,
-> > but Tero just posted another revision of those.
+> > That being said, appended DTB should still work, so there's a bug hiding
+> > someplace that needs to be found fixed.
 > 
-> This is an internal clock.  This clock is part of the module that
-> contains the WiLink chip.  It is not associated with the clocks in the
-> main board (OMAP).
+> Since we've narrowed down what the problem is, someone can bisect it
+> now, yeah.
 > 
+> > Can you guys update your tests to test appended DTB also?
 > 
-> > > > +- tcxoclock: the internal WLAN TCXO clock frequency (required for
-> > > > +  WiLink7 not used for WiLink6 and WiLink8).  Must be one of the
-> > > > +  following:
-> > > > +	0 = 19.200 MHz
-> > > > +	1 = 26.000 MHz
-> > > > +	2 = 38.400 MHz
-> > > > +	3 = 52.000 MHz
-> > > > +	4 = 16.368 MHz
-> > > > +	5 = 32.736 MHz
-> > > > +	6 = 16.800 MHz
-> > > > +	7 = 33.600 MHz
-> > 
-> > Where does this clock come from? Maybe this can be set based on the
-> > compatible value if it's completely internal?
-> 
-> This is also a completely internal clock.  My "compatible" values are
-> based on the WiLink chip itself, not in the module that contains the
-> chip.  There are several modules and they are the ones that specify the
-> clock frequencies.  This data I'm passing here is just to tell the
-> WiLink chip which frequencies the module uses.
-> 
-> My driver is for the WiLink chip itself, not to the module (in theory).
-> So I think having the WiLink values as bindings would be more generic
-> than having to specify values for each available module (eg.
-> "lsr-research,tiwi-ble") and mapping those values to specific
-> frequencies in the driver.
-> 
->  
-> > > If this is okay for everyone, can I push this via my tree (which goes to
-> > > linux-wireless->net->linus)? I think it makes more sense to send the
-> > > documentation together with the patch that actually implements the DT
-> > > node parsing in the driver.
-> > 
-> > If we can use the standard bindings, it might be worth waiting until
-> > we have the DT clocks available as we have the pdata workaround merged
-> > anyways. That's because then we don't need to support the custom
-> > binding later on ;)
-> 
-> I looked into Tero's patches and I considered using the generic clock
-> bindings, but I think it doesn't make sense in this case.  The thing is
-> that the module is not providing the clocks to the main board.  Neither
-> is the WiLink chip consuming clocks from the main board.
-> 
-> I thought about specifying clock providers and consumers to be used only
-> by the module and WiLink chip, but I think it's overkill.  And we would
-> also have to find a way to prevent the main clock framework from trying
-> to handle them.
-> 
-> So, my conclusion was that, even though these *are* clocks, from the
-> main board's perspective they're just specifications of what the module
-> looks like.
-> 
-> Does this make sense?
+> What is the official position on appending DTBs?
 
-OK yes, in that case looks fine to me:
+If a platform goes from being able to boot without a DTB to requiring
+a DTB, we must continue to support booting on that platform in some
+manner otherwise it is a regression.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+And no, I don't term upgrading uboot as an acceptable regression fix.
+So if appended DTB doesn't work, that needs fixing before the non-DTB
+support for a platform is removed, otherwise we _will_ have a regression.
