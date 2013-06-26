@@ -1,63 +1,112 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 1/2] ARM: configs: Enable TI_EDMA in omap2plus_defconfig
-Date: Wed, 26 Jun 2013 04:10:57 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EC43DE5@DBDE04.ent.ti.com>
-References: <1372210320-7148-1-git-send-email-joelagnel@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: OMAP baseline test results for v3.10-rc6
+Date: Wed, 26 Jun 2013 04:53:14 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83ECC952D@DBDE04.ent.ti.com>
+References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com>
+ <20130625160243.GE22312@arwen.pp.htv.fi>
+ <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com>
+ <51C9F0A8.1050607@ti.com> <87fvw6t136.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1372210320-7148-1-git-send-email-joelagnel-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60939 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750766Ab3FZExo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jun 2013 00:53:44 -0400
+In-Reply-To: <87fvw6t136.fsf@linaro.org>
 Content-Language: en-US
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: "Fernandes, Joel" <joelagnel-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, Matt Porter <matt-agtwNxEcTQJWk0Htik3J/w@public.gmane.org>, Grant
-  Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>, "Rini, Tom" <trini@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>
 
-On Wed, Jun 26, 2013 at 07:02:00, Fernandes, Joel wrote:
-> From: Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> -----Original Message-----
+> From: linux-arm-kernel [mailto:linux-arm-kernel-
+> bounces@lists.infradead.org] On Behalf Of Kevin Hilman
+> Sent: Wednesday, June 26, 2013 1:28 AM
+> To: Rini, Tom
+> Cc: Paul Walmsley; linux-omap@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org; Balbi, Felipe; Hiremath, Vaibhav
+> Subject: Re: OMAP baseline test results for v3.10-rc6
 > 
-> Build EDMA in my default to avoid fewer people stepping on their toes
+> Tom Rini <trini@ti.com> writes:
+> 
+> > On 06/25/2013 02:20 PM, Paul Walmsley wrote:
+> >> + Vaibhav and Kevin
+> >>
+> >> Hi,
+> >>
+> >> On Tue, 25 Jun 2013, Felipe Balbi wrote:
+> >>
+> >>> On Mon, Jun 17, 2013 at 05:23:17AM +0000, Paul Walmsley wrote:
+> >>>> Boot to userspace:
+> >>>>     FAIL ( 3/12): 37xxevm, am335xbone, am335xbonelt
+> >>>
+> >>> Paul, we have at least 2 different folks who can't reproduce your
+> bone
+> >>> and bone black boot to userspace failures. I wonder how you're
+> trying to
+> >>> boot them.
+> >>>
+> >>> Care to share your test scripts ?
+> >>
+> >> Sure... the methodology is completely open and has been posted in
+> the
+> >> online logs since the first test cycle.  (For some reason, almost no
+> one
+> >> clicks through the test directory trees that I post online.  Is this
+> a
+> >> documentation issue?  What can we do to make it easier for people to
+> >> explore this?)
+> >
+> > Well, another link never hurts the search results :)
+> >
+> > [snip]
+> >> Am certainly open to the idea that there's something wrong with the
+> way
+> >> that I'm booting either of these.  But AFAIK no one's been able to
+> >> identify exactly what it could be.  I haven't had the time recently
+> to
+> >> spend hours going through the various permutations, given all the
+> other
+> >> breakage :-(  BeagleBone-white has the additional complication that
+> it is
+> >> not easy to automate, due to the way that power is delivered to the
+> board,
+> >> so there is an extra dimension of difficulty there.
+> >
+> > Ah-ha, I reproduced your failure.  If I make up a concat uImage +
+> DTB,
+> > rather than pass them separately, it fails to boot.  If you switch to
+> > mainline U-Boot (v2012.10 or later) you get support for separate
+> image +
+> > dtb (v2013.04 gives you bootz and zImage support).  v2013.04 will
+> also
+> > work out of the box for BeagleBone-Black.
+> 
+> Just to confirm, my problems with mainline were with appended DTB also.
+> Separate DTB and zImage work fine (at least using u-boot v2013.04.)
+> 
+> That being said, appended DTB should still work, so there's a bug
+> hiding
+> someplace that needs to be found fixed.
+> 
+> Can you guys update your tests to test appended DTB also?
+> 
 
-"my default" --> which default. I believe it should be omap2plus defconfig
+What is missing here is, 
 
-> with broken DMA on drivers needing EDMA.
-> 
-> Signed-off-by: Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->  arch/arm/configs/omap2plus_defconfig |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> index abbe319..7e00deb 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -236,6 +236,7 @@ CONFIG_RTC_DRV_TWL92330=y
->  CONFIG_RTC_DRV_TWL4030=y
->  CONFIG_RTC_DRV_OMAP=y
->  CONFIG_DMADEVICES=y
-> +CONFIG_TI_EDMA=y
->  CONFIG_DMA_OMAP=y
->  CONFIG_EXT2_FS=y
->  CONFIG_EXT3_FS=y
-> -- 
-> 1.7.9.5
-> 
-> _______________________________________________
-> Davinci-linux-open-source mailing list
-> Davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
-> 
+CONFIG_ARM_APPENDED_DTB = y
+CONFIG_ARM_ATAG_DTB_COMPAT = y
 
 
-Regards, 
-Gururaja
+And for the code which is required in case of appended DTB, please refer to the code
+"arch/arm/boot/compressed/head.S"
+
+
+Please __NOTE__ that these options are not enabled in default omap2plus_defconfig.
+
+
+Thanks,
+Vaibhav
