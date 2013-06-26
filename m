@@ -1,37 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ARM: DTS: OMAP4: Add OMAP4 Blaze Tablet support
-Date: Tue, 25 Jun 2013 23:27:26 -0700
-Message-ID: <20130626062725.GL5523@atomide.com>
-References: <1372159970-6361-1-git-send-email-ruslan.bilovol@ti.com>
- <51C9A412.1050802@ti.com>
+Subject: [GIT PULL] GPIO regression fix for omap1 for v3.10-rc
+Date: Wed, 26 Jun 2013 00:05:44 -0700
+Message-ID: <20130626070543.GP5523@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51057 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751195Ab3FZHFr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Jun 2013 03:05:47 -0400
 Content-Disposition: inline
-In-Reply-To: <51C9A412.1050802@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Murphy <dmurphy@ti.com>
-Cc: Ruslan Bilovol <ruslan.bilovol@ti.com>, b-cousson@ti.com, benoit.cousson@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Dan Murphy <dmurphy@ti.com> [130625 07:13]:
-> On 06/25/2013 06:32 AM, Ruslan Bilovol wrote:
-> >The OMAP4 Blaze Tablet is TI OMAP4 processor-based
-> >development platform in a tablet formfactor.
-> >The platform contains many of the features found in
-> >present-day handsets (such as audio, video, wireless
-> >functions and user interfaces) and in addition
-> >contains features for software development and test.
-> Why do we want to send this upstream?
-> What is the advantage to having this supported?
-> 
-> I don't believe we need to add another community board.  We have a
-> SDP and Panda.
+The following changes since commit 9e895ace5d82df8929b16f58e9f515f6d54ab82d:
 
-Why not? Just the .dts file is needed nowadays and it
-may make it easier to support various other omap4 based
-tablets that have similar features.
+  Linux 3.10-rc7 (2013-06-22 09:47:31 -1000)
 
-Regards,
+are available in the git repository at:
 
-Tony
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.10/gpio-signed
+
+for you to fetch changes up to 397eada946712b90e0620c378b366bcc6c98c9f6:
+
+  gpio/omap: don't use linear domain mapping for OMAP1 (2013-06-25 23:13:40 -0700)
+
+----------------------------------------------------------------
+Fix for omap1 GPIO breaking regression.
+
+----------------------------------------------------------------
+Javier Martinez Canillas (1):
+      gpio/omap: don't use linear domain mapping for OMAP1
+
+ drivers/gpio/gpio-omap.c | 22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
