@@ -1,99 +1,111 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2] ARM: DTS: OMAP4: Add OMAP4 Blaze Tablet support
-Date: Wed, 26 Jun 2013 08:13:17 -0500
-Message-ID: <CAGo_u6ohf86j3VouQZKkkf6Gv3x-wJKfNN=TALSRCgvh0NBEtg@mail.gmail.com>
-References: <1372159970-6361-1-git-send-email-ruslan.bilovol@ti.com>
-	<51C9867C.80206@ti.com>
-	<51C99056.5090104@ti.com>
-	<CAB=otbQ71TXn=-f3WddNoyvP6NmTHCtSPqwDwkYr2Y7micqRTQ@mail.gmail.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: OMAP baseline test results for v3.10-rc6
+Date: Wed, 26 Jun 2013 18:52:59 +0530
+Message-ID: <51CAEB33.5010101@ti.com>
+References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com> <20130625160243.GE22312@arwen.pp.htv.fi> <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com> <51C9F0A8.1050607@ti.com> <87fvw6t136.fsf@linaro.org> <79CD15C6BA57404B839C016229A409A83ECC952D@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAB=otbQ71TXn=-f3WddNoyvP6NmTHCtSPqwDwkYr2Y7micqRTQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Cc: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, benoit.cousson@linaro.org, lkml <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:58770 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751276Ab3FZNXm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Jun 2013 09:23:42 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83ECC952D@DBDE04.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, "Rini, Tom" <trini@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Jun 26, 2013 at 3:03 AM, Ruslan Bilovol <ruslan.bilovol@ti.com> wrote:
-> Hi Nishanth,
->
-> On Tue, Jun 25, 2013 at 3:43 PM, Nishanth Menon <nm@ti.com> wrote:
->> On 06/25/2013 07:01 AM, Nishanth Menon wrote:
->>>
->>> On 06/25/2013 06:32 AM, Ruslan Bilovol wrote:
->>>>
->>>> The OMAP4 Blaze Tablet is TI OMAP4 processor-based
->>>> development platform in a tablet formfactor.
->>>> The platform contains many of the features found in
->>>> present-day handsets (such as audio, video, wireless
->>>> functions and user interfaces) and in addition
->>>> contains features for software development and test.
->>>>
->>>> This patch adds initial support for the OMAP4 Blaze
->>>> Tablet development platform. Additional functionality
->>>> depends on different drivers and code modifications that
->>>> are not upstreamed yet or do not support DT yet, so will
->>>> be added later.--
->>>
->>>
->>> http://svtronics.com/omap/sevm4460,blaze,omap might help too :)
->
-> Yes, forgot to add this information from cover-letter from previous
-> version of patch :)
+>>
+>> Just to confirm, my problems with mainline were with appended DTB also.
+>> Separate DTB and zImage work fine (at least using u-boot v2013.04.)
+>>
+>> That being said, appended DTB should still work, so there's a bug
+>> hiding
+>> someplace that needs to be found fixed.
+>>
+>> Can you guys update your tests to test appended DTB also?
+>>
+> 
+> What is missing here is, 
+> 
+> CONFIG_ARM_APPENDED_DTB = y
+> CONFIG_ARM_ATAG_DTB_COMPAT = y
+> 
+> 
+> And for the code which is required in case of appended DTB, please refer to the code
+> "arch/arm/boot/compressed/head.S"
+> 
+> 
+> Please __NOTE__ that these options are not enabled in default omap2plus_defconfig.
 
-;) - link was wrong!
-http://svtronics.com/omap?product_id=15 is more like it -> Blaze
-tablet by default comes in 4460/4470 variants. I suggest introducing
-4470 variant here.
-I am aware of the SOM compatibility and ability to support 4430 SOM on
-tablet as well, but to keep tablet alive and reduce scope of testing,
-keeping just 4470 in place might be a good choice.
+Paul/Kevin,
 
-just my 2 cents, no strong feelings towards either. :)
+Apart from confirming if you are manually enabling these options, can you also give some
+details on how you append the dtb to the kernel image?
 
->
->>> [...]
->>>>
->>>> +
->>>> +#include "twl6030.dtsi"
->>>> +
->>>
->>> Might be good to see the TWL interrupt pin information made available as
->>> well?
->>
->> Allow me to rephrase a comment a little bit more :)
->> Similar to twl4030_omap3.dtsi, we could introduce twl6030_omap4.dtsi. this
->> could contain the common pins used for 6030.
->>  &omap4_pmx_wkup {
->>          pinctrl-names = "default";
->>          pinctrl-0 = <
->>                          &twl6030_wkup_pins
->>          >;
->>
->>          twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
->>                  pinctrl-single,pins = <
->>                          0x14 (PIN_OUTPUT | MUX_MODE2)
->>                  >;
->>          };
->>  };
->>
->>         twl6030_pins: pinmux_twl6030_pins {
->>                 pinctrl-single,pins = <
->>                         0x15e (WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0)
->> /* sys_nirq1.sys_nirq1 */
->>                 >;
->>         };
->>
->> which is now already duplicated in 2 places (SDP and Panda), and in this
->> patch duplicated again.
->
-> Agree, I'm planning to do this later as part of moving common things into
-> some System-On-Module(SOM)-specific files, as discussed previously
-> here https://patchwork.kernel.org/patch/2118371/
->
-I dont think I was mentioning about that - I just would really like to
-avoid duplication of 6030 information all over the place. if we can
-avoid it, lets start consolidating.
-Regards,
-Nishanth Menon
+Most of us use an out-of-tree patch from Grant to do this, which I have shared below [2]
+
+Even without the patch with the below commands [1] to append the dtb, it still works, so it
+would be good to know what steps you follow to append the dtb to the kernel image.
+
+regards,
+Rajendra
+
+[1]
+cat arch/arm/boot/zImage arch/arm/boot/dts/am335x-bone.dtb > zImage
+mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x80008000 -n "Linux" -d zImage uImage 
+
+[2]
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Tue, 24 Apr 2012 16:19:29 +0530
+Subject: Makefile: Build a uImage with dtb already appended
+
+Do not commit to mainline; this is a useful hack only for now.
+
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+---
+ arch/arm/Makefile      |    2 ++
+ arch/arm/boot/Makefile |    7 +++++++
+ 2 files changed, 9 insertions(+)
+
+Index: linux-2.6/arch/arm/Makefile
+===================================================================
+--- linux-2.6.orig/arch/arm/Makefile    2013-04-24 12:25:22.547990009 +0530
++++ linux-2.6/arch/arm/Makefile 2013-04-26 14:30:57.143150733 +0530
+@@ -295,6 +295,8 @@
+
+ %.dtb: scripts
+        $(Q)$(MAKE) $(build)=$(boot)/dts MACHINE=$(MACHINE) $(boot)/dts/$@
++uImage.%: uImage
++       $(Q)$(MAKE) $(build)=$(boot) MACHINE=$(MACHINE) $(boot)/$@
+
+ dtbs: scripts
+        $(Q)$(MAKE) $(build)=$(boot)/dts MACHINE=$(MACHINE) dtbs
+Index: linux-2.6/arch/arm/boot/Makefile
+===================================================================
+--- linux-2.6.orig/arch/arm/boot/Makefile       2013-04-24 12:25:22.547990009 +0530
++++ linux-2.6/arch/arm/boot/Makefile    2013-04-26 14:30:57.151150508 +0530
+@@ -55,6 +55,9 @@
+        $(call if_changed,objcopy)
+        @$(kecho) '  Kernel: $@ is ready'
+
++$(obj)/zImage-dtb.%:   $(obj)/dts/%.dtb $(obj)/zImage
++       cat $(obj)/zImage $< > $@
++
+ endif
+
+ ifneq ($(LOADADDR),)
+@@ -80,6 +83,10 @@
+        $(call if_changed,uimage)
+        @$(kecho) '  Image $@ is ready'
+
++$(obj)/uImage.%:       $(obj)/zImage-dtb.% FORCE
++       $(call if_changed,uimage)
++       @echo '  Image $@ is ready'
++
+ $(obj)/bootp/bootp: $(obj)/zImage initrd FORCE
+        $(Q)$(MAKE) $(build)=$(obj)/bootp $@
+        @:
+
