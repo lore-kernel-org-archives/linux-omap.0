@@ -1,74 +1,113 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v9 1/8] drivers: phy: add generic PHY framework
-Date: Wed, 26 Jun 2013 15:10:00 +0300
-Message-ID: <20130626121000.GZ12640@arwen.pp.htv.fi>
-References: <1372247257-30186-1-git-send-email-kishon@ti.com>
- <1372247257-30186-2-git-send-email-kishon@ti.com>
+Subject: Re: [PATCH] usb: dwc3: core: continue probe even if usb3 phy is not
+ available
+Date: Wed, 26 Jun 2013 15:12:11 +0300
+Message-ID: <20130626121210.GA12640@arwen.pp.htv.fi>
+References: <1372238954-29047-1-git-send-email-george.cherian@ti.com>
+ <20130626101647.GT12640@arwen.pp.htv.fi>
+ <51CAD977.6040309@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3cI6DWK3Xt33P8nt"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54934 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751817Ab3FZMLH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 26 Jun 2013 08:11:07 -0400
+	protocol="application/pgp-signature"; boundary="vDpvzslK0qRw06MN"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1372247257-30186-2-git-send-email-kishon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <51CAD977.6040309@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Alan Stern <stern@rowland.harvard.edu>
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: grant.likely@linaro.org, tony@atomide.com, balbi@ti.com, arnd@arndb.de, swarren@nvidia.com, sylvester.nawrocki@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, benoit.cousson@linaro.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, rnayak@ti.com, shawn.guo@linaro.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, nsekhar@ti.com, balajitk@ti.com, george.cherian@ti.com
 
---3cI6DWK3Xt33P8nt
+--vDpvzslK0qRw06MN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jun 26, 2013 at 05:17:29PM +0530, Kishon Vijay Abraham I wrote:
-> The PHY framework provides a set of APIs for the PHY drivers to
-> create/destroy a PHY and APIs for the PHY users to obtain a reference to =
-the
-> PHY with or without using phandle. For dt-boot, the PHY drivers should
-> also register *PHY provider* with the framework.
->=20
-> PHY drivers should create the PHY by passing id and ops like init, exit,
-> power_on and power_off. This framework is also pm runtime enabled.
->=20
-> The documentation for the generic PHY framework is added in
-> Documentation/phy.txt and the documentation for dt binding can be found at
-> Documentation/devicetree/bindings/phy/phy-bindings.txt
->=20
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+On Wed, Jun 26, 2013 at 05:37:19PM +0530, George Cherian wrote:
+> On 6/26/2013 3:46 PM, Felipe Balbi wrote:
+> >Hi,
+> >
+> >On Wed, Jun 26, 2013 at 02:59:14PM +0530, George Cherian wrote:
+> >>There can be configurations in which DWC3 is hoooked up only to USB2 PH=
+Y.
+> >>In such cases we should not return -EPROBE_DEFER, rather continue probe
+> >>even if there is no USB3 PHY.
+> >>
+> >>Signed-off-by: George Cherian <george.cherian@ti.com>
+> >>---
+> >>  drivers/usb/dwc3/core.c | 31 ++++++++++++++++++++++++-------
+> >>  1 file changed, 24 insertions(+), 7 deletions(-)
+> >>
+> >>diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> >>index c35d49d..d5e6f3e 100644
+> >>--- a/drivers/usb/dwc3/core.c
+> >>+++ b/drivers/usb/dwc3/core.c
+> >>@@ -100,7 +100,9 @@ static void dwc3_core_soft_reset(struct dwc3 *dwc)
+> >>  	dwc3_writel(dwc->regs, DWC3_GUSB2PHYCFG(0), reg);
+> >>  	usb_phy_init(dwc->usb2_phy);
+> >>-	usb_phy_init(dwc->usb3_phy);
+> >>+
+> >>+	if (dwc->usb3_phy)
+> >>+		usb_phy_init(dwc->usb3_phy);
+> >I would feel more comfortable if you would move our maximum_speed module
+> >parameter to DT with a property such as:
+> >
+> >snps,maximum_speed =3D "highspeed";
+> >
+> >then on driver you could:
+> okay
+> >ret =3D of_property_read_string(np, "snps,maximum_speed", &maximum_speed=
+);
+> >if (ret < 0)
+> >	bailout();
+> >
+> >if (strncmp(maximum_speed, "superspeed", 10) =3D=3D 0) {
+> >	/* grab USB3 PHY, return EPROBE_DEFER if not found */
+> >	grab_usb3_phy();
+> >}
+> >
+> >if ((strncmp(maximum_speed, "highspeed", 9) =3D=3D 0) ||
+> >	(strncmp(maximum_speed, "fullspeed", 9) =3D=3D 0) ||
+> >	(strncmp(maximum_speed, "lowspeed", 8) =3D=3D 0)) {
+> >	/* grab USB2 PHY, return EPROBE_DEFER if not found */
+> >	grab_usb2_phy();
+> >}
+> >
+> >this way, we depend solely on setting maximum_speed to highspeed for
+> >AM437x :-)
+> In dra7xx one instance is superspeed and one instance highspeed.
 
-looks great to my eyes
+right, but in DT you will define both instances and each instance will
+have a seaparate snps,maximum_speed attribute :-)
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+I'm now considering if we should make maximum_speed a generic attribute,
+Kishon ? Alex ? Alan ?
+
+anyone else needs such thing ?
 
 --=20
 balbi
 
---3cI6DWK3Xt33P8nt
+--vDpvzslK0qRw06MN
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJRytoYAAoJEIaOsuA1yqREJxQP/iPE0WrYsa7JnctOcRP4XVnW
-GlMDbFMhAu7pQ0pFYbb7u4vHFs4RZdOqPsA5QHgbVzYxwZ5pcEOMtiwBtoh2GedK
-XM8l7Z5oO1LIeaUOvR4VG7ivo8jsyh3/i/7Y1v8Lj/298BdEudsLJYQHr/lZP0wt
-WRgwbDPBEVQjE5Z/9XoMkAWOnKhOmHcdgkd+69ORwudHleeNVmr+VsEgxHfS+XEK
-GSLopAFIgLm92PSP4XXxoTFzVd2bZ8PpGu2rQv2BoMdWNTgoet13Stok28hlNq+8
-kkINa7NyujVZrH2IgVaQbGDhS586xunUugUFxargrbZ3ySAiJILbm4vQ9xQ8Y/op
-2Hl41MDhjcKfQnKEVXWndsUIWhhvAjeggAFCpJ3/PyyScNGDug222xxFKZYCdUZv
-BXbrXgkq5r87MdMEVGk3TrVVcGJWGb1mfew4jzpT311MqPlWakKWbT48ezuKyIYt
-rrcIO1GEctDVQofkkG21c20RCpsfFC3ZEYiWhXZZz1m2mnx6rZYS5ZKT8xXx8vZb
-NTHwTCDD46P1+acZoVa29jY+5kza7/lUUsUqPehEyE4mtbvhsp1QXg7KptNa476V
-UmtgFF08tmQEmJi/xDM7DwQEKv4jI1JDw6IPXkN1Jihe3dPEzvtD5TRToyeEBuI8
-lgdkW9uGDLfNydx+5W8w
-=5RxU
+iQIcBAEBAgAGBQJRytqaAAoJEIaOsuA1yqREFFgP/jVlUkSuc3I9GaHkmBwbOXM6
+pnHEGTsd0eJMwucS/qmzXzJrDNOoaUnPfM17Z0LNmLaMNfpRmQoJ48MKnyaLmPUV
+oRryTMqwjEMtPu2fNGSvDuTsLsK15C4cTI8uh49Z1w8CQLu/KafvyVP+ci2qlY55
+NZdm7mj5Qja4dSR9d5j+Omv0T07ZO75MqA7UStyc2LU+0gBg1ySylXBSsSD2/Mcs
+1jU9Mu8KOoSlrsUW1ARr61lYrr1PHmnbcN5uJ14N8DwCP7RsQBIa5KVdpJDUdl6+
+CHZu0PKOCF7EVW7cV1WUXgaK1li5ZopNYpYe6LC4DjU7vkrM28f73EB3RRp2xpQZ
+Zqr3QXFRiC3XoekIyB7TRIpvo7RG9I64w9vXwMI8Ob2Jb/YSfKK1aZfjRVylzyE6
+zICohp85ZJSY5Uzq0JVM452J7AW+0+KgR8LNSPXtSyUMKK+hK37Av6Dxj7uWSTDh
+9zUIZpmmyJ3dXCi4cMpQ5/4YGWuYqp4bIFls8Z06OKoSb/r5xNReXufKlU1Kuyax
+OjM++QH4UekY19fV2rfSTkap9MXe6quUDVzUb92TN2K4aZ0f2ryUZ7lJgHCSpDGJ
+9chQAzGqqfs1vgAIX6Fq1yTvZ3CvDteV4xejKOkVp2isKVe5Y+qUElO1W8xPVDNN
+FkZgFA9g6ZNlJLzbPu/5
+=bNYL
 -----END PGP SIGNATURE-----
 
---3cI6DWK3Xt33P8nt--
+--vDpvzslK0qRw06MN--
