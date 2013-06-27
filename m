@@ -1,54 +1,200 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] Documentation: dt: bindings: TI WiLink modules
-Date: Thu, 27 Jun 2013 14:56:22 -0500
-Message-ID: <51CC98E6.1020104@ti.com>
-References: <1372149330-24335-1-git-send-email-coelho@ti.com>
- <51CBC1C8.1040301@gmail.com> <1372322851.18889.53.camel@cumari.coelho.fi>
- <20130627125131.GA27285@kahuna> <1372337887.8383.12.camel@cumari.coelho.fi>
- <CAGo_u6qbt9dANgKq49xR=1qsCpUBhmVaPL4EK04XvTw+=4Z23g@mail.gmail.com>
- <1372339148.8383.17.camel@cumari.coelho.fi> <51CC3CEE.3050004@ti.com>
- <1372339810.8383.20.camel@cumari.coelho.fi>
- <CAGo_u6pWZX9gbHgBae=gcWk8i6-TnhxH1TdM9QdEDLTow6Pn5A@mail.gmail.com>
- <1372359090.21065.12.camel@cumari.coelho.fi> <51CC8E80.5030206@ti.com>
- <1372362418.21065.25.camel@cumari.coelho.fi>
+From: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Subject: Re: omap4 ehci sporadic resume issue
+Date: Thu, 27 Jun 2013 23:07:11 +0300
+Message-ID: <CAB=otbT-BcJg5tNZ=7jd1jvoK8N1Hd_skScuxczaeP=tagdcSw@mail.gmail.com>
+References: <51CC2755.2030505@amarulasolutions.com>
+	<51CC454A.1040104@ti.com>
+	<20130627141704.GF12956@panicking>
+	<51CC5105.4070301@ti.com>
+	<20130627175623.GB21364@panicking>
+	<CAB=otbQXVqFKOTtgvif=FZnWgDpbovAB6naPKTrsEHUJb21xTw@mail.gmail.com>
+	<20130627192413.GA14115@panicking>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1372362418.21065.25.camel@cumari.coelho.fi>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Luciano Coelho <coelho@ti.com>
-Cc: linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-wireless@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, rob.herring@calxeda.com, grant.likely@linaro.org, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f177.google.com ([209.85.214.177]:45895 "EHLO
+	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755273Ab3F0UHM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jun 2013 16:07:12 -0400
+In-Reply-To: <20130627192413.GA14115@panicking>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Michael Trimarchi <michael@amarulasolutions.com>
+Cc: Roger Quadros <rogerq@ti.com>, USB list <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>
 
-On 06/27/2013 02:46 PM, Luciano Coelho wrote:
-> On Thu, 2013-06-27 at 14:12 -0500, Nishanth Menon wrote:
-[...]
->> Indexes to another entity is always a maintenance burden in the longer
->> run and needs judicious control. If it is possible to avoid it by
->> selecting the right parameters, I am a hard advocate for the same.
+On Thu, Jun 27, 2013 at 10:24 PM, Michael Trimarchi
+<michael@amarulasolutions.com> wrote:
+> Hi
 >
-> I tend to agree.  But you need a balance.  In theory you're right.  But
-> I think if you take the real world example, it is over-engineering.
+> On Thu, Jun 27, 2013 at 09:59:35PM +0300, Ruslan Bilovol wrote:
+>> Hello guys,
+>>
+>> On Thu, Jun 27, 2013 at 8:56 PM, Michael Trimarchi
+>> <michael@amarulasolutions.com> wrote:
+>> > Hi Roger
+>> >
+>> > On Thu, Jun 27, 2013 at 05:49:41PM +0300, Roger Quadros wrote:
+>> >> +Ruslan
+>> >>
+>> >> On 06/27/2013 05:17 PM, Michael Trimarchi wrote:
+>> >> > Hi Roger
+>> >> >
+>> >> > On Thu, Jun 27, 2013 at 04:59:38PM +0300, Roger Quadros wrote:
+>> >> >> Hi Michael,
+>> >> >>
+>> >> >> On 06/27/2013 02:51 PM, Michael Trimarchi wrote:
+>> >> >>> Hi
+>> >> >>>
+>> >> >>> I'm working on omap4460 with two ulpi connected to (SMSC3320 -> HUB SMSC2514) or (TUSB1210 -> HUB SMSC2514).
+>> >> >>> The problem only happen when both port are used and after few suspend resume are triggered.
+>> >> >>> If I use just one port there is no issue on suspend resume. I already covered all TI
+>> >> >>> errata that I know and I'm working on TI kernel.
+>> >> >>>
+>> >> >>> The problem is here
+>> >> >>>
+>> >> >>> [   77.701934] ehci-omap ehci-omap.0: irq status a004 Async Recl PCD
+>> >> >>>
+>> >> >>> Both ports change status from 001005 to 001009 (you have a log just after).
+>> >> >>> So from host point of view both hub connected are not working in HS mode.
+>> >> >>> After that the omap ehci has gone because the bus can not work in FS and LS and I can not recover from here.
+>> >> >>> Status of transceivers are dumped and they are ok after resume.
+>> >> >>>
+>> >> >>> Do you have any suggestion?
+>> >> >>
+>> >> >> I'm not very sure but both ports suddenly changing state like that look like
+>> >> >> a hardware issue. Also, it is strange that you can reproduce it only when two
+>> >> >> ports are simultaneously in use. Unfortunately, I can't match your setup with 2 ULPI
+>> >> >
+>> >> > Yes I know that TI doesn't have any setup like that.
+>> >> >
+>> >> >> ports.
+>> >> >>
+>> >> >> I have a OMAP5 uEVM that uses 2 ports but it won't be identical to your setup as
+>> >> >> they are on HSIC and not ULPI.
+>> >> >>
+>> >> >> Did you try errata i693?
+>> >> >
+>> >> > Yes I have it. It's not clear if I need to wait after
+>> >> > ehci_writel(ehci, temp | PORT_SUSPEND, status_reg);
+>> >> > polling the suspendM of the SMSC or the suspend status of the PORT or I can
+>> >> > switch just after this instruction. Because TI kernel use an msleep of 4 mseconds and then switch. It could be a timing issue on how errata is implemented when I have two ports? How this internal count works?
+>> >>
+>> >>
+>> >> The OMAP EHCI controller transparently sets the suspendM bit of the PHY when you
+>> >> set the PORT_SUSPEND feature on the EHCI port. So you don't need to poll for anything.
+>> >>
+>> >
+>> > A delay is necessary. If we apply the errata to the port before a delay the errata
+>> > doesn't work.
+>> >
+>> > /* Use internal 60Mhz clock ULPIBx */
+>> > temp_reg = omap_readl(L3INIT_HSUSBHOST_CLKCTRL);
+>> > temp_reg |= 1 << (8 + port);
+>> > temp_reg &= ~(1 << (24 + port));
+>> > omap_writel(temp_reg, L3INIT_HSUSBHOST_CLKCTRL);
+>> >
+>> > /* Wait 2ms to have transceiver transaction */
+>> > mdelay(2);
+>> >
+>> > /* Use external clock ULPIBx */
+>> > temp_reg &= ~(1 << (8 + port));
+>> > temp_reg |= 1 << (24 + port);
+>> > omap_writel(temp_reg, L3INIT_HSUSBHOST_CLKCTRL);
+>> >
+>> > Now it's not clear to me what happen if I apply this clock too early (transeceiver still
+>> > driver the clock) or too late. Any clue?
+>>
+>> We need to wait 3ms for entire USB bus to go into suspend after
+>> setting the PORT_SUSPEND bit. During this time, internal OMAP EHCI logic
+>> will communicate with PHY so it is not safe to switch the clocks to
+>> internal source.
+>> That's why with 2ms delay it fails. 4ms delay (3ms + 1ms for safety)
+>> is enough here
+>> and is successfully used last few years for production devices.
 >
-> Anyway, if you *really* think this needs to be changed, I think we're in
-> a deadlock here and I'd like to hear other people's opinions.  I don't
-> mind making the change, but I'm still not convinced it is worth it,
-> since it just adds complexity.
->
-> And hey, this is too much bikeshedding for such a small detail.
-Lol :)
+> Well this mdelay is the switch of the clock and not the delay after
+> PORT_SUSPEND. So after writing PORT_SUSPEND I need to wait
+> 4ms and then in 2ms you have a lot of clock to reach the 18 count. Correct?
 
-Alrite, if no one else is complaining, I am not going to block it either.
+Yes, sorry for confusing :)
+Moreover, 2ms is more than enough, errata document says about 1ms delay
+(and probably may be decreased up to few useconds)
 
--- 
-Regards,
-Nishanth Menon
+>
+> Anyway I understand, but why both hub connected to the smsc3320 move from
+> HS to FS? So it's not important if there is a drift of delay but it must
+> be >= 4ms. Correct?
+>
+> The code works if I just use one port or remove one hub ;)
+>
+> Now the code is like this:
+>
+> temp &= ~(PORT_WKCONN_E | PORT_RWC_BITS);
+> temp |= PORT_WKDISC_E | PORT_WKOC_E;
+> ehci_writel(ehci, temp | PORT_SUSPEND, status_reg);
+>
+> mdelay(4);
+> omap_ehci_erratum_i693(ehci, ((wIndex & 0xff) - 1));
+>
+> The code of the function is up on this email.
+
+Do you have locks around this software workaround?
+The patch I did against 3.4 linux kernel may be helpful for
+you in such case: http://review.omapzoom.org/28515
+Another patch extends this WA for all OMAP4 SoCs:
+http://review.omapzoom.org/31108
+
+Regards
+Ruslan
+
+>
+> Michael
+>
+>>
+>> --
+>> Best regards,
+>> Ruslan Bilvol
+>>
+>> >
+>> >
+>> >> What the errata says is that once software sets the PORT_SUSPEND feature, the PHY will
+>> >> got into suspend and cut the PHY clock sooner than required for the EHCI controller to
+>> >> complete its suspend operations. (NOTE: this is only applicable when the PHY is providing the
+>> >> ulpi_clk).
+>> >>
+>> >
+>> > Yes this is the case
+>> >
+>> >> What the workaround does is to just wait for a while (don't know why 4ms), and remux the
+>> >> ulpi_clock to an internal 60MHz clock for a while so that it can complete its suspend operations.
+>> >
+>> > What happen if I apply a big delay after PORT_SUSPEND. Will the internal state machine of the omap
+>> > continue to wait the clock?
+>> >
+>> > Michael
+>> >
+>> >>
+>> >> >
+>> >> > First time is 18, and then?
+>> >> >
+>> >> I think it is 18 for every port suspend.
+>> >>
+>> >> >>
+>> >> >> Also, are you suspending and resuming only the USB or the entire system?
+>> >> >>
+>> >> >
+>> >> > Whole system. Right the only susbsytem that doens't go to suspend is the FSUSB
+>> >> > but this depends on the bootloader.
+>> >>
+>> >> OK.
+>> >>
+>> >> cheers,
+>> >> -roger
+>> > --
+>> > To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+>> > the body of a message to majordomo@vger.kernel.org
+>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
