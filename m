@@ -1,63 +1,64 @@
-From: Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/5] AM33xx: MMC resources from DT without HWMOD data
-Date: Thu, 27 Jun 2013 09:26:04 -0500
-Message-ID: <CAD=GYpa9LQ1fV6=O9B65sJURVAigsgXCPLWav8cHXTuGQXPc9A@mail.gmail.com>
-References: <1372209808-6532-1-git-send-email-joelagnel@ti.com>
-	<CAD=GYpbdVVrh-tiqOcbHi3mkWRJUBdx0EsEZEFVVbgFgcCWgsw@mail.gmail.com>
-	<51CC2A1E.2040003@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC] ARM: OMAP2+: omap_device: add pinctrl handling
+Date: Thu, 27 Jun 2013 07:45:35 -0700
+Message-ID: <20130627144535.GK5523@atomide.com>
+References: <1371826990-25820-1-git-send-email-grygorii.strashko@ti.com>
+ <CACRpkdY=m1b9Lh27+wHP8FQ4SbVZKmAOCGhxe59aP+TcuR9QaA@mail.gmail.com>
+ <20130625065811.GZ5523@atomide.com>
+ <51CAEA90.90200@ti.com>
+ <CACRpkdbKgEcfF67oO9HrczvDp4Po3Xt1hFajJ1vO8kEvsZH4jA@mail.gmail.com>
+ <51CC45D3.2000305@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <51CC2A1E.2040003-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Balaji TK <balajitk-l0cyMroinI0@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, joelf-l0cyMroinI0@public.gmane.org, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <51CC45D3.2000305@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Kevin Hilman <khilman@linaro.org>, Hebbar Gururaja <gururaja.hebbar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Benoit,
+* Grygorii Strashko <grygorii.strashko@ti.com> [130627 07:12]:
+> 
+> As you can see, from 12 pins only 3 pins need to be reconfigured
+> while switching from "active"->"idle" states and back (and as I
+> mentioned above for OMAP "idle" == "sleep" now).
+> 
+> Regarding "OFF" state:
+> OMAP mux HW defines special state for unused pins which is selected
+> by default after reset and need to be selected when device isn't
+> used, for example:
+> _MUXMODE - Functional multiplexing selection for pad
+> 0x0: Select usbb1_hsic_data
+> 0x3: Select gpio_96
+> 0x7: Select safe_mode <<--- pin unused
 
-On Thu, Jun 27, 2013 at 7:03 AM, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org> wrote:
-> Hi Joel,
->
-> On 06/26/2013 05:28 AM, Joel A Fernandes wrote:
->> On Tue, Jun 25, 2013 at 8:23 PM, Joel A Fernandes <joelagnel-l0cyMroinI0@public.gmane.org> wrote:
->>> From: Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->>>
->>> This series is fixes to get MMC working on AM33XX without HWMOD data.
->>> On removal of HWMOD data, interrupt and register properties need to be provided
->>> for the driver to function correctly.
->>
->> Please don't pull patches authored by me in this series. I have posted
->> them with my wrong email address by mistake. I will correct my email
->> during the next repost, after a round of review. Matt's patches in the
->> series are still good though.
->
-> In that case, please repost these in two series to avoid pulling the DTS
-> files in the MMC tree.
+The off mode bits can be enabled continuously, the mux hardware
+automatically sets them. So sounds like you don't need any
+separate "idle" "sleep" and "off" states, the following should
+do:
 
-The series has been replaced with the single patch:
-"[PATCH v2] ARM: dts: add AM33XX MMC support"
-http://marc.info/?l=linux-omap&m=137230403815943&w=2
+"default" (or "static")	static pins that don't need to be touched
+			after consumer driver probe
 
-Some patches were squashed and others dropped in the series resulting
-in the single
-patch above. This patch should be good to apply
+"active"		dynamic pins that are not a subset of
+			"default" needed for runtime; these pins
+			are the same as "idle" below, but with
+			different muxing or pinconf device
+			runtime
 
-Thanks,
+"idle"			dynamic pins that are not a subset of
+			"default" needed for various idle modes;
+			these pins are the same as "active" above,
+			but with different muxing or pinconf for
+			various idle states
 
--Joel
+Can you please confirm that these named modes are enough for
+your needs?
 
-------------------------------------------------------------------------------
-This SF.net email is sponsored by Windows:
+If your hardware does not have specific off mode bits, then
+I can understand that you may need one mor state "off".
 
-Build for Windows Store.
+Regards,
 
-http://p.sf.net/sfu/windows-dev2dev
+Tony
