@@ -1,72 +1,74 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] Documentation: dt: bindings: TI WiLink modules
-Date: Thu, 27 Jun 2013 08:15:49 -0500
-Message-ID: <CAGo_u6qbt9dANgKq49xR=1qsCpUBhmVaPL4EK04XvTw+=4Z23g@mail.gmail.com>
-References: <1372149330-24335-1-git-send-email-coelho@ti.com>
-	<51CBC1C8.1040301@gmail.com>
-	<1372322851.18889.53.camel@cumari.coelho.fi>
-	<20130627125131.GA27285@kahuna>
-	<1372337887.8383.12.camel@cumari.coelho.fi>
+Subject: Re: [PATCH linux-next] ARM: OMAP2+: fix omap4-restart compilation
+Date: Thu, 27 Jun 2013 08:18:06 -0500
+Message-ID: <51CC3B8E.8070702@ti.com>
+References: <1372335961-31401-1-git-send-email-vincent.stehle@freescale.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1372337887.8383.12.camel@cumari.coelho.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Luciano Coelho <coelho@ti.com>
-Cc: grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, linux-wireless@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <1372335961-31401-1-git-send-email-vincent.stehle@freescale.com>
+Sender: linux-next-owner@vger.kernel.org
+To: =?UTF-8?B?VmluY2VudCBTdGVobMOp?= <vincent.stehle@freescale.com>
+Cc: linux-next@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Robin Holt <holt@sgi.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, trivial@kernel.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 27, 2013 at 7:58 AM, Luciano Coelho <coelho@ti.com> wrote:
-> On Thu, 2013-06-27 at 07:51 -0500, Nishanth Menon wrote:
->> On 11:47-20130627, Luciano Coelho wrote:
->> > (added mailing lists and everyone back to the thread)
->> >
->> > On Wed, 2013-06-26 at 23:38 -0500, Nishanth Menon wrote:
->> > > On 06/25/2013 03:35 AM, Luciano Coelho wrote:
->> > > > +Optional properties:
->> > > > +--------------------
->> > > > +
->> > > > +- refclock: the internal WLAN reference clock frequency (required for
->> > > > +  WiLink6 and WiLink7; not used for WiLink8).  Must be one of the
->> > > > +  following:
->> > > > +       0 = 19.2 MHz
->> > > > +       1 = 26.0 MHz
->> > > > +       2 = 38.4 MHz
->> > > > +       3 = 52.0 MHz
->> > > > +       4 = 38.4 MHz, XTAL
->> > > > +       5 = 26.0 MHz, XTAL
->> > > > +
->> > > > +- tcxoclock: the internal WLAN TCXO clock frequency (required for
->> > > > +  WiLink7 not used for WiLink6 and WiLink8).  Must be one of the
->> > > > +  following:
->> > > > +       0 = 19.200 MHz
->> > > > +       1 = 26.000 MHz
->> > > > +       2 = 38.400 MHz
->> > > > +       3 = 52.000 MHz
->> > > > +       4 = 16.368 MHz
->> > > > +       5 = 32.736 MHz
->> > > > +       6 = 16.800 MHz
->> > > > +       7 = 33.600 MHz
->> > > >
->> > > just a gentle query - why not use frequency itself here in Hz for
->> > > refclock and txoclk?
->> >
->> > I thought about using the actual frequencies, but I decided not to do
->> > so, because I'd have to convert them to these values anyway.  These
->> > values are used to configure the firmware and it uses these
->> > "enumerations".
->> Could we not hide this under preprocessor macros instead? just wondering
->> of txoclock = <6>; kind of usage.. easy to make mistakes and easier to
->> confuse a new reader :).
+On 06/27/2013 07:26 AM, Vincent Stehl=C3=A9 wrote:
+> Fix following compilation error due to missing include file:
 >
-> Yes, I guess we could create some preprocessor macros for this.  But the
-> documentation would remain the same.  I can't add preprocessor macros to
-> the bindings documentation. ;)
+>    arch/arm/mach-omap2/omap4-restart.c:21:28: warning: =E2=80=98enum =
+reboot_mode=E2=80=99 declared inside parameter list [enabled by default=
+]
+>    arch/arm/mach-omap2/omap4-restart.c:21:28: warning: its scope is o=
+nly this definition or declaration, which is probably not what you want=
+ [enabled by default]
+>    arch/arm/mach-omap2/omap4-restart.c:21:40: error: parameter 1 (=E2=
+=80=98mode=E2=80=99) has incomplete type
+>    arch/arm/mach-omap2/omap4-restart.c:21:6: warning: function declar=
+ation isn=E2=80=99t a prototype [-Wstrict-prototypes]
+>    make[1]: *** [arch/arm/mach-omap2/omap4-restart.o] Error 1
 >
-> For the actual DTS files, I could add a wilink.dtsi with enumerations
-> for these values so they could be used in the node definitions.  But I'm
-> not sure it's going to be that valuable in the end.
-The  way GPIO HIGH was defined might help to provide guidance I think :)
+> Signed-off-by: Vincent Stehl=C3=A9 <vincent.stehle@freescale.com>
+> Cc: Robin Holt <holt@sgi.com>
+> Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: trivial@kernel.org
+> ---
+>
+>
+> Hi,
+>
+> This fixes the build of linux-next for arch ARM, config multi_v7_defc=
+onfig, tag
+> next-20130627.
+>
+> Best regards,
+>
+> V.
+>
+>
+>   arch/arm/mach-omap2/omap4-restart.c |    1 +
+>   1 file changed, 1 insertion(+)
+>
+> diff --git a/arch/arm/mach-omap2/omap4-restart.c b/arch/arm/mach-omap=
+2/omap4-restart.c
+> index 652adde..41dfd7d 100644
+> --- a/arch/arm/mach-omap2/omap4-restart.c
+> +++ b/arch/arm/mach-omap2/omap4-restart.c
+> @@ -8,6 +8,7 @@
+>    */
+>
+>   #include <linux/types.h>
+> +#include <linux/reboot.h>
+>   #include "prminst44xx.h"
+>
+>   /**
+>
+Same was covered already?
+http://lists.infradead.org/pipermail/linux-arm-kernel/2013-June/178209.=
+html
 
+--=20
 Regards,
-NM
+Nishanth Menon
