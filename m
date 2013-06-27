@@ -1,66 +1,89 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: regression caused by commit
- 8357b48549e17b3e4e402c7f977b65708922e60f
-Date: Thu, 27 Jun 2013 16:36:55 +1000
-Message-ID: <20130627163655.239cea102ba0eb968a434593@canb.auug.org.au>
-References: <20130627061419.GE15455@arwen.pp.htv.fi>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: Request for OMAPDSS testing
+Date: Thu, 27 Jun 2013 09:41:48 +0300
+Message-ID: <51CBDEAC.1050408@ti.com>
+References: <51AD99F5.7060506@ti.com> <51B9EA7B.8070906@compulab.co.il> <51B9ECBE.3010401@ti.com> <51BDAF6A.1020102@compulab.co.il> <51BEB5DD.4000605@ti.com> <51BECB6B.7010409@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Thu__27_Jun_2013_16_36_55_+1000_QZGLmCS5rz9frsBx"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="----enig2MXCLBBXHMIXEOXEQQNSF"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from haggis.pcug.org.au ([203.10.76.10]:59206 "EHLO
-	members.tip.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752189Ab3F0GhJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jun 2013 02:37:09 -0400
-In-Reply-To: <20130627061419.GE15455@arwen.pp.htv.fi>
+Received: from comal.ext.ti.com ([198.47.26.152]:57333 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750810Ab3F0GmJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Jun 2013 02:42:09 -0400
+In-Reply-To: <51BECB6B.7010409@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: "Yann E. MORIN" <yann.morin.1998@free.fr>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Arnd Bergmann <arnd@arndb.de>, Sam Ravnborg <sam@ravnborg.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Thomas Weber <weber@corscience.de>, Mike Rapoport <mike@compulab.co.il>, Steve Sakoman <steve@sakoman.com>, =?windows-1252?Q?Gra=9Evydas_Ignotas?= <notasas@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
---Signature=_Thu__27_Jun_2013_16_36_55_+1000_QZGLmCS5rz9frsBx
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
+------enig2MXCLBBXHMIXEOXEQQNSF
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On 17/06/13 11:40, Igor Grinberg wrote:
 
-On Thu, 27 Jun 2013 09:14:19 +0300 Felipe Balbi <balbi@ti.com> wrote:
->
-> after commit 8357b48549e17b3e4e402c7f977b65708922e60f,
-> omap2plus_defconfig doesn't 'hold' the answer to USB Gadget Drivers
-> anymore. Everytime I run oldconfig, it asks me again and again what USB
-> Gadget Drivers should be (M/y/?).
+> Yes, the reason for this is the sb-t35 (the baseboard) which has the TF=
+P410
+> in 3.3V domain, but the cm-t3530/3730 are in 1.8V domain.
+> This means that the line must be shifted.
+> Now for some reason hardware guys used an inverter as the level shifter=
+
+> instead of a simple buffer. So now it is shifted and inverted...
+
+Sigh =3D).
+
+>> There seems to be OF_GPIO_ACTIVE_LOW, but I'm not sure how it should b=
+e
+>> used, as I don't see anyone setting that flag... And supporting that
+>> would mean, in principle, that every driver should support inverting t=
+he
+>> gpio with every gpio they have.
 >=20
-> That's certainly not expected considering it wasn't like that before.
+> Might be worth to consider adding this functionality to the GPIOLIB?
+> Meanwhile, I think the simplest way would be to add a boolean
+> like OF_GPIO_ACTIVE_LOW, as we have hardware that needs it.
+>=20
+> If you think the patches are conceptually fine,
+> I can rebase them on top of your tree with the new drivers and
+> submit properly.
 
-That commit has been reverted in today's kbuild tree and thus in today's
-linux-next.
+Yes, the patches look conceptually fine. I don't like it that the TFP410
+driver has to have extra functionality to handle board oddities, but
+then again, it's just a few lines of code and I don't have any better
+idea how to solve it. A gpiochip driver that handles the inversion
+sounds a bit overkill...
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+The 3.11 kernel will have two versions of tfp410 driver, the old one and
+the one using the new dss device model. If possible, I'd like to have
+the modifications only for the new one.
 
---Signature=_Thu__27_Jun_2013_16_36_55_+1000_QZGLmCS5rz9frsBx
-Content-Type: application/pgp-signature
+ Tomi
+
+
+------enig2MXCLBBXHMIXEOXEQQNSF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJRy92LAAoJEECxmPOUX5FEqzkP/3vkmnp780Y09d8gLRpCweKL
-CFR0tt4qRvMTDGxpjHwF889VFQ57n5qqJSHXNowig7XP9AP8x+9lwu9a32eJVLGr
-aPvzo0bKf8Iowyw58r+arUEdfNyCBH7Ld2SLWZ0qC5OhJXpnQTwI1W73gPqRkRw7
-klmFE+f0k8T3Lg0QjqjmwZXrVahoc/LwMU4JipLYV9VtDJH7ONwTP0ls25dnZHL9
-Unto/68Cl1Kc2nzOqW0EIgoNdDubZI9Fcgh95flIslTRNU8CVPAiWHjEvy6HBh8q
-bIC5gePSlSu6V/lE+1X/hbQnN6pJ6vO+FGBSJS7sf9OKYDJqU4E20qQfwqalVqJr
-uDGqeYkcFoBzuShhTFlLhf6Q4LNmhBeLdSgbKw/Oxo1Z/88anfsi8kdrGITicKfl
-l2KnAATBxUXy2ff6/pr2Rkq5SvIbJgGMjaA0tbKdVU3NRey7KUD42S+VPDN13KlC
-Rf3lsnICmgzn4+cgBld8W4s1MoUPO0ormQJbNssa+pJCM9qozdsWVwCjQZdJV0YC
-knuab+wVWzq84T7kpodWffch8J+YRt1U4pdJAkbL5uchR0RE1BhV97blBed3iaVz
-KaONJ80uG3xFTB5uU8URbbqiHb66FZiiY2+7mQ5uvUxImyrm5wC/4vVVeb0VhICn
-MDuQDj6g7wgFMEli9eyA
-=mx26
+iQIcBAEBAgAGBQJRy96sAAoJEPo9qoy8lh713wsP/R073+YH0Za6KTEA1R2UKqG/
+Wv0DnCtZwGkRKJBE3FJYvru1EI1xIChUzYhzGUQxF3V3LwCHl8hRJpA3mpCKTCqw
+bC8uiDfsaTmBdHzyCkgCdhRuJHPNoZM3LmLEcPoZ2M/GPMmleYI76mB58QTWusfd
+R4ewsbqBrg8NYD/1V+VDrRu1/kxtRI3yZ0zFjog8S9AUeECvWgMj28QfDn31Dbty
+Wx5SL2qEntZojcnTcJOmo/J9BAqKVFC9q3hmGMs0rwtG1uOADHTTp2e2+h6J6l9p
+PTSleD+9PXaBs51loEKChcjFKde4fX5rKCW4gT6fCD90dmWndtnsRkIxtkO5kmCv
+tuNwYRz0AMn1txReMFh8ZB/jX6oFpqRkvH0OimxobeWOOCAxbR7sETOoopkG41nT
+HE6RKT4NnuUlwVy/cz7kfGPY8YN/p/H0GQworCrDIHHDtgoG1fHq7XJHfFh7wUNv
+m99foJahFQqW3vkcIeMBeRCLSSRhWMwBYPEegsrodIBTSLB4nAZmWWgYPGIer5LR
+qsDT5wtBLuFW/HDb8FKxa+Wmi3v0YUnS5Cc33EpKwuMAizSbm7WgEm3naAVdDLCG
+hxJlYa1NT9rTZnL+jiVOSF4z4SkVyG3YB0IDsbLuQssjTL6KGYWMqj2wcN06HEHu
+RT2Dk0M6NqQ6CGIOPDbv
+=j4bb
 -----END PGP SIGNATURE-----
 
---Signature=_Thu__27_Jun_2013_16_36_55_+1000_QZGLmCS5rz9frsBx--
+------enig2MXCLBBXHMIXEOXEQQNSF--
