@@ -1,74 +1,30 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH linux-next] ARM: OMAP2+: fix omap4-restart compilation
-Date: Thu, 27 Jun 2013 08:18:06 -0500
-Message-ID: <51CC3B8E.8070702@ti.com>
-References: <1372335961-31401-1-git-send-email-vincent.stehle@freescale.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: Re: [PATCH] Documentation: dt: bindings: TI WiLink modules
+Date: Thu, 27 Jun 2013 16:19:08 +0300
+Message-ID: <1372339148.8383.17.camel@cumari.coelho.fi>
+References: <1372149330-24335-1-git-send-email-coelho@ti.com>
+	 <51CBC1C8.1040301@gmail.com> <1372322851.18889.53.camel@cumari.coelho.fi>
+	 <20130627125131.GA27285@kahuna> <1372337887.8383.12.camel@cumari.coelho.fi>
+	 <CAGo_u6qbt9dANgKq49xR=1qsCpUBhmVaPL4EK04XvTw+=4Z23g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <1372335961-31401-1-git-send-email-vincent.stehle@freescale.com>
-Sender: linux-next-owner@vger.kernel.org
-To: =?UTF-8?B?VmluY2VudCBTdGVobMOp?= <vincent.stehle@freescale.com>
-Cc: linux-next@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Robin Holt <holt@sgi.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, trivial@kernel.org, Arnd Bergmann <arnd@arndb.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <CAGo_u6qbt9dANgKq49xR=1qsCpUBhmVaPL4EK04XvTw+=4Z23g@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, linux-wireless@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 06/27/2013 07:26 AM, Vincent Stehl=C3=A9 wrote:
-> Fix following compilation error due to missing include file:
->
->    arch/arm/mach-omap2/omap4-restart.c:21:28: warning: =E2=80=98enum =
-reboot_mode=E2=80=99 declared inside parameter list [enabled by default=
-]
->    arch/arm/mach-omap2/omap4-restart.c:21:28: warning: its scope is o=
-nly this definition or declaration, which is probably not what you want=
- [enabled by default]
->    arch/arm/mach-omap2/omap4-restart.c:21:40: error: parameter 1 (=E2=
-=80=98mode=E2=80=99) has incomplete type
->    arch/arm/mach-omap2/omap4-restart.c:21:6: warning: function declar=
-ation isn=E2=80=99t a prototype [-Wstrict-prototypes]
->    make[1]: *** [arch/arm/mach-omap2/omap4-restart.o] Error 1
->
-> Signed-off-by: Vincent Stehl=C3=A9 <vincent.stehle@freescale.com>
-> Cc: Robin Holt <holt@sgi.com>
-> Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: trivial@kernel.org
-> ---
->
->
-> Hi,
->
-> This fixes the build of linux-next for arch ARM, config multi_v7_defc=
-onfig, tag
-> next-20130627.
->
-> Best regards,
->
-> V.
->
->
->   arch/arm/mach-omap2/omap4-restart.c |    1 +
->   1 file changed, 1 insertion(+)
->
-> diff --git a/arch/arm/mach-omap2/omap4-restart.c b/arch/arm/mach-omap=
-2/omap4-restart.c
-> index 652adde..41dfd7d 100644
-> --- a/arch/arm/mach-omap2/omap4-restart.c
-> +++ b/arch/arm/mach-omap2/omap4-restart.c
-> @@ -8,6 +8,7 @@
->    */
->
->   #include <linux/types.h>
-> +#include <linux/reboot.h>
->   #include "prminst44xx.h"
->
->   /**
->
-Same was covered already?
-http://lists.infradead.org/pipermail/linux-arm-kernel/2013-June/178209.=
-html
+On Thu, 2013-06-27 at 08:15 -0500, Nishanth Menon wrote:
+> On Thu, Jun 27, 2013 at 7:58 AM, Luciano Coelho <coelho@ti.com> wrote:
+> > For the actual DTS files, I could add a wilink.dtsi with enumerations
+> > for these values so they could be used in the node definitions.  But I'm
+> > not sure it's going to be that valuable in the end.
+> The  way GPIO HIGH was defined might help to provide guidance I think :)
 
---=20
-Regards,
-Nishanth Menon
+Where? As far as I can see, the GPIO flags are defined in a bitmap.
+
+--
+Luca.
+
