@@ -1,69 +1,72 @@
-From: Luciano Coelho <coelho@ti.com>
+From: Nishanth Menon <nm@ti.com>
 Subject: Re: [PATCH] Documentation: dt: bindings: TI WiLink modules
-Date: Thu, 27 Jun 2013 15:58:07 +0300
-Message-ID: <1372337887.8383.12.camel@cumari.coelho.fi>
+Date: Thu, 27 Jun 2013 08:15:49 -0500
+Message-ID: <CAGo_u6qbt9dANgKq49xR=1qsCpUBhmVaPL4EK04XvTw+=4Z23g@mail.gmail.com>
 References: <1372149330-24335-1-git-send-email-coelho@ti.com>
-	 <51CBC1C8.1040301@gmail.com> <1372322851.18889.53.camel@cumari.coelho.fi>
-	 <20130627125131.GA27285@kahuna>
+	<51CBC1C8.1040301@gmail.com>
+	<1372322851.18889.53.camel@cumari.coelho.fi>
+	<20130627125131.GA27285@kahuna>
+	<1372337887.8383.12.camel@cumari.coelho.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130627125131.GA27285@kahuna>
+In-Reply-To: <1372337887.8383.12.camel@cumari.coelho.fi>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Nishanth Menon <menon.nishanth@gmail.com>, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-wireless@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm@vger.kernel.org
+To: Luciano Coelho <coelho@ti.com>
+Cc: grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, linux-wireless@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 2013-06-27 at 07:51 -0500, Nishanth Menon wrote:
-> On 11:47-20130627, Luciano Coelho wrote:
-> > (added mailing lists and everyone back to the thread)
-> > 
-> > On Wed, 2013-06-26 at 23:38 -0500, Nishanth Menon wrote:
-> > > On 06/25/2013 03:35 AM, Luciano Coelho wrote:
-> > > > +Optional properties:
-> > > > +--------------------
-> > > > +
-> > > > +- refclock: the internal WLAN reference clock frequency (required for
-> > > > +  WiLink6 and WiLink7; not used for WiLink8).  Must be one of the
-> > > > +  following:
-> > > > +	0 = 19.2 MHz
-> > > > +	1 = 26.0 MHz
-> > > > +	2 = 38.4 MHz
-> > > > +	3 = 52.0 MHz
-> > > > +	4 = 38.4 MHz, XTAL
-> > > > +	5 = 26.0 MHz, XTAL
-> > > > +
-> > > > +- tcxoclock: the internal WLAN TCXO clock frequency (required for
-> > > > +  WiLink7 not used for WiLink6 and WiLink8).  Must be one of the
-> > > > +  following:
-> > > > +	0 = 19.200 MHz
-> > > > +	1 = 26.000 MHz
-> > > > +	2 = 38.400 MHz
-> > > > +	3 = 52.000 MHz
-> > > > +	4 = 16.368 MHz
-> > > > +	5 = 32.736 MHz
-> > > > +	6 = 16.800 MHz
-> > > > +	7 = 33.600 MHz
-> > > >
-> > > just a gentle query - why not use frequency itself here in Hz for 
-> > > refclock and txoclk?
-> > 
-> > I thought about using the actual frequencies, but I decided not to do
-> > so, because I'd have to convert them to these values anyway.  These
-> > values are used to configure the firmware and it uses these
-> > "enumerations".
-> Could we not hide this under preprocessor macros instead? just wondering
-> of txoclock = <6>; kind of usage.. easy to make mistakes and easier to
-> confuse a new reader :).
+On Thu, Jun 27, 2013 at 7:58 AM, Luciano Coelho <coelho@ti.com> wrote:
+> On Thu, 2013-06-27 at 07:51 -0500, Nishanth Menon wrote:
+>> On 11:47-20130627, Luciano Coelho wrote:
+>> > (added mailing lists and everyone back to the thread)
+>> >
+>> > On Wed, 2013-06-26 at 23:38 -0500, Nishanth Menon wrote:
+>> > > On 06/25/2013 03:35 AM, Luciano Coelho wrote:
+>> > > > +Optional properties:
+>> > > > +--------------------
+>> > > > +
+>> > > > +- refclock: the internal WLAN reference clock frequency (required for
+>> > > > +  WiLink6 and WiLink7; not used for WiLink8).  Must be one of the
+>> > > > +  following:
+>> > > > +       0 = 19.2 MHz
+>> > > > +       1 = 26.0 MHz
+>> > > > +       2 = 38.4 MHz
+>> > > > +       3 = 52.0 MHz
+>> > > > +       4 = 38.4 MHz, XTAL
+>> > > > +       5 = 26.0 MHz, XTAL
+>> > > > +
+>> > > > +- tcxoclock: the internal WLAN TCXO clock frequency (required for
+>> > > > +  WiLink7 not used for WiLink6 and WiLink8).  Must be one of the
+>> > > > +  following:
+>> > > > +       0 = 19.200 MHz
+>> > > > +       1 = 26.000 MHz
+>> > > > +       2 = 38.400 MHz
+>> > > > +       3 = 52.000 MHz
+>> > > > +       4 = 16.368 MHz
+>> > > > +       5 = 32.736 MHz
+>> > > > +       6 = 16.800 MHz
+>> > > > +       7 = 33.600 MHz
+>> > > >
+>> > > just a gentle query - why not use frequency itself here in Hz for
+>> > > refclock and txoclk?
+>> >
+>> > I thought about using the actual frequencies, but I decided not to do
+>> > so, because I'd have to convert them to these values anyway.  These
+>> > values are used to configure the firmware and it uses these
+>> > "enumerations".
+>> Could we not hide this under preprocessor macros instead? just wondering
+>> of txoclock = <6>; kind of usage.. easy to make mistakes and easier to
+>> confuse a new reader :).
+>
+> Yes, I guess we could create some preprocessor macros for this.  But the
+> documentation would remain the same.  I can't add preprocessor macros to
+> the bindings documentation. ;)
+>
+> For the actual DTS files, I could add a wilink.dtsi with enumerations
+> for these values so they could be used in the node definitions.  But I'm
+> not sure it's going to be that valuable in the end.
+The  way GPIO HIGH was defined might help to provide guidance I think :)
 
-Yes, I guess we could create some preprocessor macros for this.  But the
-documentation would remain the same.  I can't add preprocessor macros to
-the bindings documentation. ;)
-
-For the actual DTS files, I could add a wilink.dtsi with enumerations
-for these values so they could be used in the node definitions.  But I'm
-not sure it's going to be that valuable in the end.
-
---
-Luca.
+Regards,
+NM
