@@ -1,124 +1,122 @@
-From: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Subject: Re: [PATCH v2] ARM: DTS: OMAP4: Add OMAP4 Blaze Tablet support
-Date: Thu, 27 Jun 2013 21:45:45 +0300
-Message-ID: <CAB=otbT3Svu-H+TxFUwE-Y9-cm8H3q3wEqwbBLDgLGuXkC6QVA@mail.gmail.com>
-References: <1372159970-6361-1-git-send-email-ruslan.bilovol@ti.com>
-	<51C9867C.80206@ti.com>
-	<51C99056.5090104@ti.com>
-	<CAB=otbQ71TXn=-f3WddNoyvP6NmTHCtSPqwDwkYr2Y7micqRTQ@mail.gmail.com>
-	<CAGo_u6ohf86j3VouQZKkkf6Gv3x-wJKfNN=TALSRCgvh0NBEtg@mail.gmail.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: Re: [PATCH] Documentation: dt: bindings: TI WiLink modules
+Date: Thu, 27 Jun 2013 21:51:30 +0300
+Message-ID: <1372359090.21065.12.camel@cumari.coelho.fi>
+References: <1372149330-24335-1-git-send-email-coelho@ti.com>
+	 <51CBC1C8.1040301@gmail.com> <1372322851.18889.53.camel@cumari.coelho.fi>
+	 <20130627125131.GA27285@kahuna> <1372337887.8383.12.camel@cumari.coelho.fi>
+	 <CAGo_u6qbt9dANgKq49xR=1qsCpUBhmVaPL4EK04XvTw+=4Z23g@mail.gmail.com>
+	 <1372339148.8383.17.camel@cumari.coelho.fi> <51CC3CEE.3050004@ti.com>
+	 <1372339810.8383.20.camel@cumari.coelho.fi>
+	 <CAGo_u6pWZX9gbHgBae=gcWk8i6-TnhxH1TdM9QdEDLTow6Pn5A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAGo_u6ohf86j3VouQZKkkf6Gv3x-wJKfNN=TALSRCgvh0NBEtg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <CAGo_u6pWZX9gbHgBae=gcWk8i6-TnhxH1TdM9QdEDLTow6Pn5A@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>
-Cc: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, benoit.cousson@linaro.org, lkml <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, devicetree-discuss@lists.ozlabs.org
+Cc: grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, linux-wireless@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Nishanth,
+On Thu, 2013-06-27 at 08:39 -0500, Nishanth Menon wrote:
+> On Thu, Jun 27, 2013 at 8:30 AM, Luciano Coelho <coelho@ti.com> wrote:
+> > On Thu, 2013-06-27 at 08:23 -0500, Nishanth Menon wrote:
+> >> On 06/27/2013 08:19 AM, Luciano Coelho wrote:
+> >> > On Thu, 2013-06-27 at 08:15 -0500, Nishanth Menon wrote:
+> >> >> On Thu, Jun 27, 2013 at 7:58 AM, Luciano Coelho <coelho@ti.com> wrote:
+> >> >>> For the actual DTS files, I could add a wilink.dtsi with enumerations
+> >> >>> for these values so they could be used in the node definitions.  But I'm
+> >> >>> not sure it's going to be that valuable in the end.
+> >> >> The  way GPIO HIGH was defined might help to provide guidance I think :)
+> >> >
+> >> > Where? As far as I can see, the GPIO flags are defined in a bitmap.
+> >>
+> >> include/dt-bindings/gpio/gpio.h
+> >
+> > Thanks! I don't see these macros used anywhere, though.
+> umm... I'd think you have'nt looked deep enough / lists :)
 
-On Wed, Jun 26, 2013 at 4:13 PM, Nishanth Menon <nm@ti.com> wrote:
-> On Wed, Jun 26, 2013 at 3:03 AM, Ruslan Bilovol <ruslan.bilovol@ti.com> wrote:
->> Hi Nishanth,
->>
->> On Tue, Jun 25, 2013 at 3:43 PM, Nishanth Menon <nm@ti.com> wrote:
->>> On 06/25/2013 07:01 AM, Nishanth Menon wrote:
->>>>
->>>> On 06/25/2013 06:32 AM, Ruslan Bilovol wrote:
->>>>>
->>>>> The OMAP4 Blaze Tablet is TI OMAP4 processor-based
->>>>> development platform in a tablet formfactor.
->>>>> The platform contains many of the features found in
->>>>> present-day handsets (such as audio, video, wireless
->>>>> functions and user interfaces) and in addition
->>>>> contains features for software development and test.
->>>>>
->>>>> This patch adds initial support for the OMAP4 Blaze
->>>>> Tablet development platform. Additional functionality
->>>>> depends on different drivers and code modifications that
->>>>> are not upstreamed yet or do not support DT yet, so will
->>>>> be added later.--
->>>>
->>>>
->>>> http://svtronics.com/omap/sevm4460,blaze,omap might help too :)
->>
->> Yes, forgot to add this information from cover-letter from previous
->> version of patch :)
->
-> ;) - link was wrong!
-
-I know, but don't worry about it - I will put correct one in v3 :)
-
-> http://svtronics.com/omap?product_id=15 is more like it -> Blaze
-> tablet by default comes in 4460/4470 variants. I suggest introducing
-> 4470 variant here.
-> I am aware of the SOM compatibility and ability to support 4430 SOM on
-> tablet as well, but to keep tablet alive and reduce scope of testing,
-> keeping just 4470 in place might be a good choice.
-
-Yes, this makes sense. I think as soon as OMAP4470 reach upstream, we can easily
-switch the BlazeTablet's  .dts to 4470
-
->
-> just my 2 cents, no strong feelings towards either. :)
->
->>
->>>> [...]
->>>>>
->>>>> +
->>>>> +#include "twl6030.dtsi"
->>>>> +
->>>>
->>>> Might be good to see the TWL interrupt pin information made available as
->>>> well?
->>>
->>> Allow me to rephrase a comment a little bit more :)
->>> Similar to twl4030_omap3.dtsi, we could introduce twl6030_omap4.dtsi. this
->>> could contain the common pins used for 6030.
->>>  &omap4_pmx_wkup {
->>>          pinctrl-names = "default";
->>>          pinctrl-0 = <
->>>                          &twl6030_wkup_pins
->>>          >;
->>>
->>>          twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
->>>                  pinctrl-single,pins = <
->>>                          0x14 (PIN_OUTPUT | MUX_MODE2)
->>>                  >;
->>>          };
->>>  };
->>>
->>>         twl6030_pins: pinmux_twl6030_pins {
->>>                 pinctrl-single,pins = <
->>>                         0x15e (WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0)
->>> /* sys_nirq1.sys_nirq1 */
->>>                 >;
->>>         };
->>>
->>> which is now already duplicated in 2 places (SDP and Panda), and in this
->>> patch duplicated again.
->>
->> Agree, I'm planning to do this later as part of moving common things into
->> some System-On-Module(SOM)-specific files, as discussed previously
->> here https://patchwork.kernel.org/patch/2118371/
->>
-> I dont think I was mentioning about that - I just would really like to
-> avoid duplication of 6030 information all over the place. if we can
-> avoid it, lets start consolidating.
-
-Okay, I got your point. Will prepare the patch in v3..
-
-> Regards,
-> Nishanth Menon
+If you mean mailing lists, you're right, I didn't.  I just did a git
+grep for the macros and didn't find any users.
 
 
--- 
-Best regards,
-Ruslan Bilvol
+> >> And corresponding kernel header:
+> >> include/linux/of_gpio.h
+> >
+> > This seems to be a completely different thing.  This is the header that
+> > contains the helper functions to get GPIO-related device tree nodes,
+> > isn't it?
+> That is true, but it also contains the flag for level which needs to
+> be in sync with the gpio.h dts header.
+> >> just a hint. not saying frequencies were defined in header. for systems
+> >> that define frequencies - example cpufreq OPPs, clock node usage, we do
+> >> not use indexing to frequency, instead, that is the responsibility of
+> >> driver to convert frequency back to required index.
+> >> git grep frequency Documentation/devicetree/bindings gives you how the
+> >> precedence looks like.
+> >>
+> >> Personally, if given a choice, I'd go with actual frequencies rather
+> >> than indexes.
+> >
+> > If I do that, I need to add also a separate flag to define whether the
+> > XTAL clock is used or not.  For instance, we have 26MHz and 26MHz
+> > crystal; and 38.4MHz and 38.4MHz crystal...
+> Yes, you would have to. at the same time, it is easy for module maker
+> to provide dtsi corresponding to exact h/w representation on his
+> module using wilink chip without being worried about weird index value
+> whose meaning is hidden in binding
+
+The module makers need to know about the bindings and read the document
+before they specify the node in DTS.  I think for clarity, a comment in
+the DTS file stating the actual frequency is good enough.  Simpler and
+more efficient (in terms of DT binary size and module code size) than
+adding the actual frequencies.
 
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> On the flip side, It also allows driver to reject frequencies /
+> configurations that are not supported by the corresponding chip.
+
+It's actually much easier to reject frequencies that are not valid with
+the enumeration.  "if (refclock > 5) { bail_out(); }".  If I need to
+check every frequency, I need to add an array of valid frequencies and
+so on.  Waste of code, IMHO.
+
+
+> As I said, just my 2 cents. Personally, I'd like dts files to be as
+> readable as c files without having to dig through bindings document.
+
+As I said before, for readability, adding a comment with the frequency
+is good enough.  This is what I did for PandaES's DTS (not sent out
+yet):
+
+	wlan {
+	     compatible = "ti,wilink6";
+	     interrupt-parent = <&gpio2>;
+	     interrupts = <21 0x4>;	/* gpio line 53, high level triggered */
+	     refclock = <2>;		/* 38.4 MHz */
+	 };
+
+Looks more readable to me than:
+
+	wlan {
+	     compatible = "ti,wilink6";
+	     interrupt-parent = <&gpio2>;
+	     interrupts = <21 0x4>;	/* gpio line 53, high level triggered */
+	     refclock = <38400>;
+	     refclock_xtal = <0>;
+	 };
+
+The macro idea sounds better to me, but in this case this code is so
+simple that I don't think it's really worth it.
+
+And, from another point of view, I see this as only a specification of
+the module's details.  The frequency value is not really used anywhere
+outside the module, so we don't see it.  I don't think there's a good
+reason to expose the actual frequency to the kernel (and parse it back
+to the values the firmware needs), since nothing else inside the kernel
+will care about it.
+
+--
+Luca.
+
