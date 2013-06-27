@@ -1,81 +1,63 @@
-From: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
-Subject: Re: omap4 ehci sporadic resume issue
-Date: Thu, 27 Jun 2013 16:17:04 +0200
-Message-ID: <20130627141704.GF12956@panicking>
-References: <51CC2755.2030505@amarulasolutions.com>
- <51CC454A.1040104@ti.com>
+From: Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 0/5] AM33xx: MMC resources from DT without HWMOD data
+Date: Thu, 27 Jun 2013 09:26:04 -0500
+Message-ID: <CAD=GYpa9LQ1fV6=O9B65sJURVAigsgXCPLWav8cHXTuGQXPc9A@mail.gmail.com>
+References: <1372209808-6532-1-git-send-email-joelagnel@ti.com>
+	<CAD=GYpbdVVrh-tiqOcbHi3mkWRJUBdx0EsEZEFVVbgFgcCWgsw@mail.gmail.com>
+	<51CC2A1E.2040003@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <51CC454A.1040104-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <51CC2A1E.2040003-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Balaji TK <balajitk-l0cyMroinI0@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, joelf-l0cyMroinI0@public.gmane.org, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Roger
+Hi Benoit,
 
-On Thu, Jun 27, 2013 at 04:59:38PM +0300, Roger Quadros wrote:
-> Hi Michael,
-> 
-> On 06/27/2013 02:51 PM, Michael Trimarchi wrote:
-> > Hi
-> > 
-> > I'm working on omap4460 with two ulpi connected to (SMSC3320 -> HUB SMSC2514) or (TUSB1210 -> HUB SMSC2514). 
-> > The problem only happen when both port are used and after few suspend resume are triggered.
-> > If I use just one port there is no issue on suspend resume. I already covered all TI
-> > errata that I know and I'm working on TI kernel.
-> > 
-> > The problem is here
-> > 
-> > [   77.701934] ehci-omap ehci-omap.0: irq status a004 Async Recl PCD
-> > 
-> > Both ports change status from 001005 to 001009 (you have a log just after). 
-> > So from host point of view both hub connected are not working in HS mode. 
-> > After that the omap ehci has gone because the bus can not work in FS and LS and I can not recover from here.
-> > Status of transceivers are dumped and they are ok after resume.
-> > 
-> > Do you have any suggestion?
-> 
-> I'm not very sure but both ports suddenly changing state like that look like
-> a hardware issue. Also, it is strange that you can reproduce it only when two
-> ports are simultaneously in use. Unfortunately, I can't match your setup with 2 ULPI
+On Thu, Jun 27, 2013 at 7:03 AM, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org> wrote:
+> Hi Joel,
+>
+> On 06/26/2013 05:28 AM, Joel A Fernandes wrote:
+>> On Tue, Jun 25, 2013 at 8:23 PM, Joel A Fernandes <joelagnel-l0cyMroinI0@public.gmane.org> wrote:
+>>> From: Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>>>
+>>> This series is fixes to get MMC working on AM33XX without HWMOD data.
+>>> On removal of HWMOD data, interrupt and register properties need to be provided
+>>> for the driver to function correctly.
+>>
+>> Please don't pull patches authored by me in this series. I have posted
+>> them with my wrong email address by mistake. I will correct my email
+>> during the next repost, after a round of review. Matt's patches in the
+>> series are still good though.
+>
+> In that case, please repost these in two series to avoid pulling the DTS
+> files in the MMC tree.
 
-Yes I know that TI doesn't have any setup like that.
+The series has been replaced with the single patch:
+"[PATCH v2] ARM: dts: add AM33XX MMC support"
+http://marc.info/?l=linux-omap&m=137230403815943&w=2
 
-> ports.
-> 
-> I have a OMAP5 uEVM that uses 2 ports but it won't be identical to your setup as
-> they are on HSIC and not ULPI.
-> 
-> Did you try errata i693?
+Some patches were squashed and others dropped in the series resulting
+in the single
+patch above. This patch should be good to apply
 
-Yes I have it. It's not clear if I need to wait after
-ehci_writel(ehci, temp | PORT_SUSPEND, status_reg);
-polling the suspendM of the SMSC or the suspend status of the PORT or I can
-switch just after this instruction. Because TI kernel use an msleep of 4 mseconds and then switch. It could be a timing issue on how errata is implemented when I have two ports? How this internal count works?
+Thanks,
 
-First time is 18, and then?
+-Joel
 
-> 
-> Also, are you suspending and resuming only the USB or the entire system?
-> 
+------------------------------------------------------------------------------
+This SF.net email is sponsored by Windows:
 
-Whole system. Right the only susbsytem that doens't go to suspend is the FSUSB
-but this depends on the bootloader.
+Build for Windows Store.
 
-Michael
-
-
-> cheers,
-> -roger
-
--- 
-| Michael Nazzareno Trimarchi                     Amarula Solutions BV |
-| COO  -  Founder                                      Cruquiuskade 47 |
-| +31(0)851119172                                 Amsterdam 1018 AM NL |
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://p.sf.net/sfu/windows-dev2dev
