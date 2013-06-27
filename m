@@ -1,120 +1,47 @@
-From: Benoit Cousson <b-cousson@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Subject: Re: [RFC] am33xx: create child nodes for the two musb controllers
-Date: Thu, 27 Jun 2013 13:23:59 +0200
-Message-ID: <51CC20CF.2080103@ti.com>
-References: <20130626153325.GA24075@linutronix.de>
+Date: Thu, 27 Jun 2013 13:44:34 +0200
+Message-ID: <51CC25A2.3080808@linutronix.de>
+References: <20130626153325.GA24075@linutronix.de> <51CC20CF.2080103@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33112 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752176Ab3F0LYR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Jun 2013 07:24:17 -0400
-In-Reply-To: <20130626153325.GA24075@linutronix.de>
+Received: from www.linutronix.de ([62.245.132.108]:40413 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752377Ab3F0Log (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jun 2013 07:44:36 -0400
+In-Reply-To: <51CC20CF.2080103@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+To: Benoit Cousson <b-cousson@ti.com>
 Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Sebastian,
+On 06/27/2013 01:23 PM, Benoit Cousson wrote:
+> Hi Sebastian,
 
-On 06/26/2013 05:33 PM, Sebastian Andrzej Siewior wrote:
-> I've been thinkig about creating two child nodes for the independent musb
-> controllers on the am33. I've been thinking about the following:
+Hi Benoit,
+
+> BTW, why do have so many DMA compared to the previous version?
+I added them, the previous had none and is PIO only.
+I currently use three cells per dma channel (the posted example had
+two).
+In general I think I have to request 2 * 15 dma channels for the 15 TX
+and RX endpoints. So we end up with 30 channels per device (and we have
+two of them).
+The DMA engine has specific queues which depend on the USB endpoint
+that is used. Instead of hacking this information in some kind of
+platform data I decided to push this detail into device tree.
+
+> I don't know the HW in detail, but that looks indeed much better and
+> seems to reflect the partitioning with multiple instances accurately.
 > 
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 8e1248f..6aa9506 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -326,21 +326,78 @@
->  			status = "disabled";
->  		};
->  
->  		usb@47400000 {
->  			compatible = "ti,musb-am33xx";
-> -			reg = <0x47400000 0x1000	/* usbss */
-> -			       0x47401000 0x800		/* musb instance 0 */
-> -			       0x47401800 0x800>;	/* musb instance 1 */
-> -			interrupts = <17		/* usbss */
-> -				      18		/* musb instance 0 */
-> -				      19>;		/* musb instance 1 */
-> -			multipoint = <1>;
-> -			num-eps = <16>;
-> -			ram-bits = <12>;
-> -			port0-mode = <3>;
-> -			port1-mode = <3>;
-> -			power = <250>;
-> +			reg = <0x47400000 0x1000>;	/* usbss */
-> +			interrupts = <17>;		
-BTW, why do have so many DMA compared to the previous version?
-/* usbss */
->  			ti,hwmods = "usb_otg_hs";
-> +
-> +			usb0@0x47401000 {
-> +				reg = <0x47401000 0x800>;	/* musb instance 0 */
-> +				interrupts = <18>;		/* musb instance 0 */
-> +				multipoint = <1>;
-> +				num-eps = <16>;
-> +				ram-bits = <12>;
-> +				port-mode = <3>;
-> +				power = <250>;
-> +
-> +				phys = <&nopphy0>;
-> +				dmas = <&cppi41dma 0
-> +					&cppi41dma 1
-> +					&cppi41dma 2
-> +					&cppi41dma 3
-> +					&cppi41dma 4
-> +					&cppi41dma 32
-> +					&cppi41dma 34
-> +					&cppi41dma 36
-> +					&cppi41dma 38
-> +					&cppi41dma 40>;
-> +				dma-names = "rx1", "rx2", "rx3", "rx4", "rx5",
-> +					    "tx1", "tx2", "tx3", "tx4", "tx5";
-> +			};
-> +
-> +			usb0@0x47401800 {
-> +				reg = <0x47401800 0x800>;	/* musb instance 1 */
-> +				interrupts = <19>;		/* musb instance 1 */
-> +				multipoint = <1>;
-> +				num-eps = <16>;
-> +				ram-bits = <12>;
-> +				port-mode = <3>;
-> +				power = <250>;
-> +
-> +				phys = <&nopphy1>;
-> +				dmas = <&cppi41dma 0
-> +					&cppi41dma 1
-> +					&cppi41dma 2
-> +					&cppi41dma 3
-> +					&cppi41dma 4
-> +					&cppi41dma 62
-> +					&cppi41dma 64
-> +					&cppi41dma 66
-> +					&cppi41dma 68
-> +					&cppi41dma 70>;
-> +				dma-names = "rx1", "rx2", "rx3", "rx4", "rx5",
-> +					    "tx1", "tx2", "tx3", "tx4", "tx5";
-> +			};
-> +		};
+> If Felipe is OK with that partitioning, I'll take it.
+
+Okay, thanks.
+
 > 
-> Please keep in mind that his is not a proper patch it should point out
-> what I have in mind.
-> This would easy the for instance the dma channel assignment. Also, it will
-> move back to the port-mode property instead of portX-mode one which it has
-> now. This is kind of confusing since it is not a root hub or anything like
-> that it is a complete musb controller. Plus for the phys property could
-> easily take the one avaible and would not require which instance it
-> really it is.
+> Thanks,
+> Benoit
 
-I don't know the HW in detail, but that looks indeed much better and
-seems to reflect the partitioning with multiple instances accurately.
-
-If Felipe is OK with that partitioning, I'll take it.
-
-Thanks,
-Benoit
-
-
+Sebastian
