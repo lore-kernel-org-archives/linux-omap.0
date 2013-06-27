@@ -1,90 +1,179 @@
-From: Graeme Gregory <gg@slimlogic.co.uk>
-Subject: Re: [PATCH v1 0/2] TWL6030, TWL6032 GPADC driver
-Date: Thu, 27 Jun 2013 11:53:21 +0100
-Message-ID: <51CC19A1.90706@slimlogic.co.uk>
-References: <1372329818-12384-1-git-send-email-oleksandr.kozaruk@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: AM35xx i2c3 issues
+Date: Thu, 27 Jun 2013 14:13:19 +0300
+Message-ID: <51CC1E4F.8000007@ti.com>
+References: <F690310232FDDF4AB457E8B3EF90DDE08D2E797B@MARCM-SBS2011.marcmltd.local> <F690310232FDDF4AB457E8B3EF90DDE08D2E7A08@MARCM-SBS2011.marcmltd.local>,<20130627084643.GA12956@panicking> <F690310232FDDF4AB457E8B3EF90DDE08D2E7AD5@MARCM-SBS2011.marcmltd.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1372329818-12384-1-git-send-email-oleksandr.kozaruk@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
-Cc: rob@landley.net, sameo@linux.intel.com, grant.likely@linaro.org, rob.herring@calxeda.com, balajitk@ti.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:32774 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751530Ab3F0LSF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Jun 2013 07:18:05 -0400
+In-Reply-To: <F690310232FDDF4AB457E8B3EF90DDE08D2E7AD5@MARCM-SBS2011.marcmltd.local>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Marc Murphy <marcmltd@marcm.co.uk>
+Cc: Michael Trimarchi <michael@amarulasolutions.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-I suspect this will find a better home in drivers/iio that subsystem did
-not exist when driver was originally written.
+Hi Marc,
 
-It would need converted to new API.
+Could you try these patches first:
+https://patchwork.kernel.org/patch/2685541/
+http://patchwork.ozlabs.org/patch/252639/
 
-Graeme
+Then try this patch alone:
+https://patchwork.kernel.org/patch/2689171/
 
-On 27/06/13 11:43, Oleksandr Kozaruk wrote:
-> Hello
+Also could you provide your .config?  Do you have lm75 (or any other=20
+hwmon devices) enabled?
+
+-grygorii
+
+On 06/27/2013 12:15 PM, Marc Murphy wrote:
+> Hi Michael,
+> The bus is correctly terminated with 2.2k pullups on SCL and SDA line=
+s.
 >
-> TWL603[02] GPADC is used to measure battery voltage,
-> battery temperature, battery presence ID, and could
-> be used to measure twl603[02] die temperature.
-> This is used on TI blaze, blaze tablet platforms.
+> Kind Regards
+> Marc
 >
-> The TWL6030 and TWL6032 have GPADC with 17 and 19
-> channels respectively. Some channels have current
-> source and are used for measuring voltage drop
-> on resistive load for detecting battery ID resistance,
-> or measuring voltage drop on NTC resistors for external
-> temperature measurements. Some channels measure voltage,
-> (i.e. battery voltage), and have inbuilt voltage dividers,
-> thus, capable to scale voltage. Some channels are dedicated
-> for measuring die temperature.
+> ________________________________________
+> From: Michael Trimarchi [michael@amarulasolutions.com]
+> Sent: 27 June 2013 09:46
+> To: Marc Murphy
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: AM35xx i2c3 issues
 >
-> Some channels could be calibrated in 2 points, having
-> offsets from ideal values in trim registers.
+> Hi
 >
-> The difference between GPADC in TWL6030 and TWL6032:
-> - 10 bit vs 12 bit ADC;
-> - 17 vs 19 channels;
-> - channels have different purpose(i. e. battery voltage
->   channel 8 vs channel 18);
-> - trim values are interpreted differently.
+> On Thu, Jun 27, 2013 at 08:29:05AM +0000, Marc Murphy wrote:
+>> Hello Grygorii/All,
+>>
+>> I have been trying to address an issue I am having with 3.6rc6 kerne=
+l and even with the latest 3.9 and trying to use i2c3 channel on an AM3=
+517.
+>>
+>> I see that there has been some work done on the OMAP4 and issues wit=
+h i2c which looks like the controller being suspended during boot.
+>>
+>> I would like to know how I can enable the debug so I can see the mes=
+sages for warning and debug and whether anyone has tested i2c3 channel =
+on an AM3517 ?
+>>
+>> I find the problem a little confusing as the system initializes the =
+interfaces 1-3
+>>
+>> [    0.168182] omap_i2c omap_i2c.1: bus 1 rev1.3.12 at 400 kHz
+>> [    0.169830] VDCDC1: 1200 <--> 1600 mV at 1200 mV normal
+>> [    0.169830] VDCDC1: Voltage range but no REGULATOR_CHANGE_VOLTAGE
+>> [    0.170684] VDCDC2: 3300 mV normal
+>> [    0.171264] VDCDC3: 1800 mV normal
+>> [    0.171905] LDO1: 1800 mV normal
+>> [    0.172729] LDO2: 3300 mV normal
+>> [    0.174102] omap_i2c omap_i2c.2: bus 2 rev1.3.12 at 400 kHz
+>> [    0.187530] omap_i2c omap_i2c.3: bus 3 rev1.3.12 at 400 kHz
+>>
+>> But when it comes to probe the i2c3 interface for the mpu6050 that i=
+s connected it fails
+>>
+>> [    3.896606] omap_i2c omap_i2c.3: timeout waiting for bus ready
+>> [    3.902832] inv-mpu6050: probe of 3-0068 failed with error -110
+>>
 >
-> The driver exports function returning converted value for
-> requested channels: raw code, corrected code, and converted
-> to mV result.
+> Can you check if your bus is correctly pull up on the line?
 >
-> Sysfs entries are added to start and read conversion result
-> in millivolts for channel if it has calibration data, or
-> ADC code(for temperature and test network channels).
+> Michael
 >
-> The driver is derived from git://git.omapzoom.org/kernel/omap.git
-> The original driver's authors and contributors are Balaji T K,
-> Graeme Gregory, Ambresh K, Girish S Ghongdemath.
+>> If I move the mpu6050 onto the i2c2 channel it=92s OK so its not an =
+issue with the core omap_i2c.
+>>
+>> I also have a scope connected to the scl line and see no activity.  =
+I have proved to myself that the pin is connected and working by config=
+uring as a GPIO output and toggling 0/1/0 and I can see the output chan=
+ging on the scope.
+>>
+>> The mux is configured correctly from what I can see using debugfs
+>> #  cat /sys/kernel/debug/omap_mux/i2c3_scl
+>> name: i2c3_scl.i2c3_scl (0x480021c2/0x192 =3D 0x0100), b af14, t NA
+>> mode: OMAP_PIN_INPUT | OMAP_MUX_MODE0
+>> signals: i2c3_scl | NA | NA | NA | gpio_184 | NA | NA | safe_mode
+>>
+>> #  cat /sys/kernel/debug/omap_mux/i2c3_sda
+>> name: i2c3_sda.i2c3_sda (0x480021c4/0x194 =3D 0x0100), b ag14, t NA
+>> mode: OMAP_PIN_INPUT | OMAP_MUX_MODE0
+>> signals: i2c3_sda | NA | NA | NA | gpio_185 | NA | NA | safe_mode
+>>
+>>
+>> If I probe with i2cdetect for all 3 buses there is only an issue wit=
+h i2c3
+>> # i2cdetect -r 1
+>> WARNING! This program can confuse your I2C bus, cause data loss and =
+worse!
+>> I will probe file /dev/i2c-1 using read byte commands.
+>> I will probe address range 0x03-0x77.
+>> Continue? [Y/n]
+>>       0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+>> 00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 40: -- -- -- -- -- -- -- -- UU -- -- -- -- -- -- --
+>> 50: 50 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 70: -- -- -- -- -- -- -- --
+>>
+>> # i2cdetect -r 2
+>> WARNING! This program can confuse your I2C bus, cause data loss and =
+worse!
+>> I will probe file /dev/i2c-2 using read byte commands.
+>> I will probe address range 0x03-0x77.
+>> Continue? [Y/n]
+>>       0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+>> 00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 70: -- -- -- -- -- -- -- --
+>>
+>> # i2cdetect -r 3
+>> WARNING! This program can confuse your I2C bus, cause data loss and =
+worse!
+>> I will probe file /dev/i2c-3 using read byte commands.
+>> I will probe address range 0x03-0x77.
+>> Continue? [Y/n]
+>>       0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+>> 00:          [  837.943481] omap_i2c omap_i2c.3: timeout waiting for=
+ bus ready
+>> -- [  838.958984] omap_i2c omap_i2c.3: timeout waiting for bus ready
+>> -- [  839.974731] omap_i2c omap_i2c.3: timeout waiting for bus ready
+>>
+>>
+>> Any pointers/help appreciated as I have the accelerometer and RTC ch=
+ip connected on i2c3 but cannot get anything working.
+>>
+>> Kind Regards
+>>
+>> Marc
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
-> The changes to the original driver:
-> - device tree adaptation;
-> - drop ioctl support - never been used;
-> - unified measurement method for both devices;
-> - get rid of "if (device == X)" code style to data driven;
-> - drop polling end of conversion and use interrupt instead;
-> - simplified (hopefully) exported external function interface to the driver.
->
-> Tested with on blaze tablet 2 with OMAP4430(twl6030), and
-> OMAP4470(twl6032) SOMs.
->
-> The patches were tested against 3.10-rc7
->
-> Oleksandr Kozaruk (2):
->   ARM: dts: twl: Add GPADC data to device tree
->   mfd: twl6030-gpadc: TWL6030, TWL6032 GPADC driver
->
->  .../testing/sysfs-devices-platform-twl6030_gpadc   |    5 +
->  arch/arm/boot/dts/twl6030.dtsi                     |    5 +
->  drivers/mfd/Kconfig                                |    8 +
->  drivers/mfd/Makefile                               |    1 +
->  drivers/mfd/twl6030-gpadc.c                        | 1053 ++++++++++++++++++++
->  include/linux/i2c/twl6030-gpadc.h                  |   51 +
->  6 files changed, 1123 insertions(+)
->  create mode 100644 Documentation/ABI/testing/sysfs-devices-platform-twl6030_gpadc
->  create mode 100644 drivers/mfd/twl6030-gpadc.c
->  create mode 100644 include/linux/i2c/twl6030-gpadc.h
->
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
