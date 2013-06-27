@@ -1,181 +1,178 @@
-From: Michael Trimarchi <michael@amarulasolutions.com>
-Subject: Re: omap4 ehci sporadic resume issue
-Date: Thu, 27 Jun 2013 21:24:13 +0200
-Message-ID: <20130627192413.GA14115@panicking>
-References: <51CC2755.2030505@amarulasolutions.com>
- <51CC454A.1040104@ti.com>
- <20130627141704.GF12956@panicking>
- <51CC5105.4070301@ti.com>
- <20130627175623.GB21364@panicking>
- <CAB=otbQXVqFKOTtgvif=FZnWgDpbovAB6naPKTrsEHUJb21xTw@mail.gmail.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: Re: [PATCH] Documentation: dt: bindings: TI WiLink modules
+Date: Thu, 27 Jun 2013 22:46:58 +0300
+Message-ID: <1372362418.21065.25.camel@cumari.coelho.fi>
+References: <1372149330-24335-1-git-send-email-coelho@ti.com>
+	  <51CBC1C8.1040301@gmail.com> <1372322851.18889.53.camel@cumari.coelho.fi>
+	  <20130627125131.GA27285@kahuna>
+	 <1372337887.8383.12.camel@cumari.coelho.fi>
+	  <CAGo_u6qbt9dANgKq49xR=1qsCpUBhmVaPL4EK04XvTw+=4Z23g@mail.gmail.com>
+	  <1372339148.8383.17.camel@cumari.coelho.fi> <51CC3CEE.3050004@ti.com>
+	  <1372339810.8383.20.camel@cumari.coelho.fi>
+	  <CAGo_u6pWZX9gbHgBae=gcWk8i6-TnhxH1TdM9QdEDLTow6Pn5A@mail.gmail.com>
+	 <1372359090.21065.12.camel@cumari.coelho.fi> <51CC8E80.5030206@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:57935 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753654Ab3F0TYU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jun 2013 15:24:20 -0400
-Received: by mail-ee0-f51.google.com with SMTP id e52so598573eek.24
-        for <linux-omap@vger.kernel.org>; Thu, 27 Jun 2013 12:24:19 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CAB=otbQXVqFKOTtgvif=FZnWgDpbovAB6naPKTrsEHUJb21xTw@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:54640 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753288Ab3F0Trd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Jun 2013 15:47:33 -0400
+In-Reply-To: <51CC8E80.5030206@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, USB list <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>
+To: Nishanth Menon <nm@ti.com>
+Cc: grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, linux-wireless@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi
-
-On Thu, Jun 27, 2013 at 09:59:35PM +0300, Ruslan Bilovol wrote:
-> Hello guys,
+On Thu, 2013-06-27 at 14:12 -0500, Nishanth Menon wrote:
+> On 06/27/2013 01:51 PM, Luciano Coelho wrote:
+> > On Thu, 2013-06-27 at 08:39 -0500, Nishanth Menon wrote:
+> >> On Thu, Jun 27, 2013 at 8:30 AM, Luciano Coelho <coelho@ti.com> wrote:
+> >>> On Thu, 2013-06-27 at 08:23 -0500, Nishanth Menon wrote:
+> >>>> On 06/27/2013 08:19 AM, Luciano Coelho wrote:
+> >>>>> On Thu, 2013-06-27 at 08:15 -0500, Nishanth Menon wrote:
+> >>>>>> On Thu, Jun 27, 2013 at 7:58 AM, Luciano Coelho <coelho@ti.com> wrote:
+> >>>>>>> For the actual DTS files, I could add a wilink.dtsi with enumerations
+> >>>>>>> for these values so they could be used in the node definitions.  But I'm
+> >>>>>>> not sure it's going to be that valuable in the end.
+> >>>>>> The  way GPIO HIGH was defined might help to provide guidance I think :)
+> >>>>>
+> >>>>> Where? As far as I can see, the GPIO flags are defined in a bitmap.
+> >>>>
+> >>>> include/dt-bindings/gpio/gpio.h
+> >>>
+> >>> Thanks! I don't see these macros used anywhere, though.
+> >> umm... I'd think you have'nt looked deep enough / lists :)
+> >
+> > If you mean mailing lists, you're right, I didn't.  I just did a git
+> > grep for the macros and didn't find any users.
+> git grep "GPIO_ACTIVE_[HIGH|LOW]" arch/arm/boot/dts/|wc -l
+> 344
+> on next-20130626. anyways, besides the point.
 > 
-> On Thu, Jun 27, 2013 at 8:56 PM, Michael Trimarchi
-> <michael@amarulasolutions.com> wrote:
-> > Hi Roger
-> >
-> > On Thu, Jun 27, 2013 at 05:49:41PM +0300, Roger Quadros wrote:
-> >> +Ruslan
-> >>
-> >> On 06/27/2013 05:17 PM, Michael Trimarchi wrote:
-> >> > Hi Roger
-> >> >
-> >> > On Thu, Jun 27, 2013 at 04:59:38PM +0300, Roger Quadros wrote:
-> >> >> Hi Michael,
-> >> >>
-> >> >> On 06/27/2013 02:51 PM, Michael Trimarchi wrote:
-> >> >>> Hi
-> >> >>>
-> >> >>> I'm working on omap4460 with two ulpi connected to (SMSC3320 -> HUB SMSC2514) or (TUSB1210 -> HUB SMSC2514).
-> >> >>> The problem only happen when both port are used and after few suspend resume are triggered.
-> >> >>> If I use just one port there is no issue on suspend resume. I already covered all TI
-> >> >>> errata that I know and I'm working on TI kernel.
-> >> >>>
-> >> >>> The problem is here
-> >> >>>
-> >> >>> [   77.701934] ehci-omap ehci-omap.0: irq status a004 Async Recl PCD
-> >> >>>
-> >> >>> Both ports change status from 001005 to 001009 (you have a log just after).
-> >> >>> So from host point of view both hub connected are not working in HS mode.
-> >> >>> After that the omap ehci has gone because the bus can not work in FS and LS and I can not recover from here.
-> >> >>> Status of transceivers are dumped and they are ok after resume.
-> >> >>>
-> >> >>> Do you have any suggestion?
-> >> >>
-> >> >> I'm not very sure but both ports suddenly changing state like that look like
-> >> >> a hardware issue. Also, it is strange that you can reproduce it only when two
-> >> >> ports are simultaneously in use. Unfortunately, I can't match your setup with 2 ULPI
-> >> >
-> >> > Yes I know that TI doesn't have any setup like that.
-> >> >
-> >> >> ports.
-> >> >>
-> >> >> I have a OMAP5 uEVM that uses 2 ports but it won't be identical to your setup as
-> >> >> they are on HSIC and not ULPI.
-> >> >>
-> >> >> Did you try errata i693?
-> >> >
-> >> > Yes I have it. It's not clear if I need to wait after
-> >> > ehci_writel(ehci, temp | PORT_SUSPEND, status_reg);
-> >> > polling the suspendM of the SMSC or the suspend status of the PORT or I can
-> >> > switch just after this instruction. Because TI kernel use an msleep of 4 mseconds and then switch. It could be a timing issue on how errata is implemented when I have two ports? How this internal count works?
-> >>
-> >>
-> >> The OMAP EHCI controller transparently sets the suspendM bit of the PHY when you
-> >> set the PORT_SUSPEND feature on the EHCI port. So you don't need to poll for anything.
-> >>
-> >
-> > A delay is necessary. If we apply the errata to the port before a delay the errata
-> > doesn't work.
-> >
-> > /* Use internal 60Mhz clock ULPIBx */
-> > temp_reg = omap_readl(L3INIT_HSUSBHOST_CLKCTRL);
-> > temp_reg |= 1 << (8 + port);
-> > temp_reg &= ~(1 << (24 + port));
-> > omap_writel(temp_reg, L3INIT_HSUSBHOST_CLKCTRL);
-> >
-> > /* Wait 2ms to have transceiver transaction */
-> > mdelay(2);
-> >
-> > /* Use external clock ULPIBx */
-> > temp_reg &= ~(1 << (8 + port));
-> > temp_reg |= 1 << (24 + port);
-> > omap_writel(temp_reg, L3INIT_HSUSBHOST_CLKCTRL);
-> >
-> > Now it's not clear to me what happen if I apply this clock too early (transeceiver still
-> > driver the clock) or too late. Any clue?
 > 
-> We need to wait 3ms for entire USB bus to go into suspend after
-> setting the PORT_SUSPEND bit. During this time, internal OMAP EHCI logic
-> will communicate with PHY so it is not safe to switch the clocks to
-> internal source.
-> That's why with 2ms delay it fails. 4ms delay (3ms + 1ms for safety)
-> is enough here
-> and is successfully used last few years for production devices.
-
-Well this mdelay is the switch of the clock and not the delay after
-PORT_SUSPEND. So after writing PORT_SUSPEND I need to wait
-4ms and then in 2ms you have a lot of clock to reach the 18 count. Correct?
-
-Anyway I understand, but why both hub connected to the smsc3320 move from
-HS to FS? So it's not important if there is a drift of delay but it must
-be >= 4ms. Correct?
-
-The code works if I just use one port or remove one hub ;)
-
-Now the code is like this:
-
-temp &= ~(PORT_WKCONN_E | PORT_RWC_BITS);
-temp |= PORT_WKDISC_E | PORT_WKOC_E;
-ehci_writel(ehci, temp | PORT_SUSPEND, status_reg);
-
-mdelay(4);
-omap_ehci_erratum_i693(ehci, ((wIndex & 0xff) - 1));
-
-The code of the function is up on this email.
-
-Michael
-
+> >>> This seems to be a completely different thing.  This is the header that
+> >>> contains the helper functions to get GPIO-related device tree nodes,
+> >>> isn't it?
+> >> That is true, but it also contains the flag for level which needs to
+> >> be in sync with the gpio.h dts header.
+> >>>> just a hint. not saying frequencies were defined in header. for systems
+> >>>> that define frequencies - example cpufreq OPPs, clock node usage, we do
+> >>>> not use indexing to frequency, instead, that is the responsibility of
+> >>>> driver to convert frequency back to required index.
+> >>>> git grep frequency Documentation/devicetree/bindings gives you how the
+> >>>> precedence looks like.
+> >>>>
+> >>>> Personally, if given a choice, I'd go with actual frequencies rather
+> >>>> than indexes.
+> >>>
+> >>> If I do that, I need to add also a separate flag to define whether the
+> >>> XTAL clock is used or not.  For instance, we have 26MHz and 26MHz
+> >>> crystal; and 38.4MHz and 38.4MHz crystal...
+> >> Yes, you would have to. at the same time, it is easy for module maker
+> >> to provide dtsi corresponding to exact h/w representation on his
+> >> module using wilink chip without being worried about weird index value
+> >> whose meaning is hidden in binding
+> >
+> > The module makers need to know about the bindings and read the document
+> > before they specify the node in DTS.  I think for clarity, a comment in
+> > the DTS file stating the actual frequency is good enough.  Simpler and
+> > more efficient (in terms of DT binary size and module code size) than
+> > adding the actual frequencies.
+> >
+> >
+> >> On the flip side, It also allows driver to reject frequencies /
+> >> configurations that are not supported by the corresponding chip.
+> >
+> > It's actually much easier to reject frequencies that are not valid with
+> > the enumeration.  "if (refclock > 5) { bail_out(); }".  If I need to
+> > check every frequency, I need to add an array of valid frequencies and
+> > so on.  Waste of code, IMHO.
+> >
+> >
+> >> As I said, just my 2 cents. Personally, I'd like dts files to be as
+> >> readable as c files without having to dig through bindings document.
+> >
+> > As I said before, for readability, adding a comment with the frequency
+> > is good enough.  This is what I did for PandaES's DTS (not sent out
+> > yet):
+> >
+> > 	wlan {
+> > 	     compatible = "ti,wilink6";
+> > 	     interrupt-parent = <&gpio2>;
+> > 	     interrupts = <21 0x4>;	/* gpio line 53, high level triggered */
+> > 	     refclock = <2>;		/* 38.4 MHz */
+> > 	 };
+> >
+> > Looks more readable to me than:
+> >
+> > 	wlan {
+> > 	     compatible = "ti,wilink6";
+> > 	     interrupt-parent = <&gpio2>;
+> > 	     interrupts = <21 0x4>;	/* gpio line 53, high level triggered */
+> > 	     refclock = <38400>;
+> > 	     refclock_xtal = <0>;
+> > 	 };
+> >
+> > The macro idea sounds better to me, but in this case this code is so
+> > simple that I don't think it's really worth it.
+> >
+> > And, from another point of view, I see this as only a specification of
+> > the module's details.  The frequency value is not really used anywhere
+> > outside the module, so we don't see it.  I don't think there's a good
+> > reason to expose the actual frequency to the kernel (and parse it back
+> > to the values the firmware needs), since nothing else inside the kernel
+> > will care about it.
+> Overview: we are adding bindings for 
+> Documentation/devicetree/bindings/net/wireless/ti-wilink.txt Which I 
+> believe is intended to be generic.
 > 
-> -- 
-> Best regards,
-> Ruslan Bilvol
-> 
-> >
-> >
-> >> What the errata says is that once software sets the PORT_SUSPEND feature, the PHY will
-> >> got into suspend and cut the PHY clock sooner than required for the EHCI controller to
-> >> complete its suspend operations. (NOTE: this is only applicable when the PHY is providing the
-> >> ulpi_clk).
-> >>
-> >
-> > Yes this is the case
-> >
-> >> What the workaround does is to just wait for a while (don't know why 4ms), and remux the
-> >> ulpi_clock to an internal 60MHz clock for a while so that it can complete its suspend operations.
-> >
-> > What happen if I apply a big delay after PORT_SUSPEND. Will the internal state machine of the omap
-> > continue to wait the clock?
-> >
-> > Michael
-> >
-> >>
-> >> >
-> >> > First time is 18, and then?
-> >> >
-> >> I think it is 18 for every port suspend.
-> >>
-> >> >>
-> >> >> Also, are you suspending and resuming only the USB or the entire system?
-> >> >>
-> >> >
-> >> > Whole system. Right the only susbsytem that doens't go to suspend is the FSUSB
-> >> > but this depends on the bootloader.
-> >>
-> >> OK.
-> >>
-> >> cheers,
-> >> -roger
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Current frequencies supported for tcxoclock is the following for WiLink7
+> +	0 = 19.200 MHz
+> +	1 = 26.000 MHz
+> +	2 = 38.400 MHz
+> +	3 = 52.000 MHz
+> +	4 = 16.368 MHz
+> +	5 = 32.736 MHz
+> +	6 = 16.800 MHz
+> +	7 = 33.600 MHz
+> Say wilink9 comes along and redefines this map OR introduces support for 
+> 20MHz support making the map 0-8, you'd no longer be able to support 
+> this map. or say a new update of firmware magically changes this mapping 
+> or something unexpected.
+
+No problem with adding 20MHz support.  Look at 6 = 16.800 MHz.  That's
+already out of order, so why would 20MHz have to change the mapping?
+
+It is true that stupid changes happen in the firmware from time to time.
+But if it happens, the translation could still be done in the driver.
+
+> If the translation and validation is done in the driver, it is trivial 
+> to handle without redefining the binding and breaking older dtbs (if 
+> relevant)
+
+The validation can still be done in the driver.  I don't think anything
+has to break here.  The bindings document is the de-facto specifications
+of this stuff.  If something in the lower layers (ie. firmware) breaks,
+the driver can do the translation without having to change anything in
+the DTS.
+
+
+> Indexes to another entity is always a maintenance burden in the longer 
+> run and needs judicious control. If it is possible to avoid it by 
+> selecting the right parameters, I am a hard advocate for the same.
+
+I tend to agree.  But you need a balance.  In theory you're right.  But
+I think if you take the real world example, it is over-engineering.
+
+Anyway, if you *really* think this needs to be changed, I think we're in
+a deadlock here and I'd like to hear other people's opinions.  I don't
+mind making the change, but I'm still not convinced it is worth it,
+since it just adds complexity.
+
+And hey, this is too much bikeshedding for such a small detail.
+
+--
+Luca.
+
