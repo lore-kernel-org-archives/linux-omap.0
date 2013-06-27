@@ -1,131 +1,95 @@
-From: Michael Trimarchi <michael@amarulasolutions.com>
-Subject: Re: omap4 ehci sporadic resume issue
-Date: Thu, 27 Jun 2013 19:56:23 +0200
-Message-ID: <20130627175623.GB21364@panicking>
-References: <51CC2755.2030505@amarulasolutions.com>
- <51CC454A.1040104@ti.com>
- <20130627141704.GF12956@panicking>
- <51CC5105.4070301@ti.com>
+From: "Fernandes, Joel" <joelf-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 0/5] AM33xx: MMC resources from DT without HWMOD data
+Date: Thu, 27 Jun 2013 18:08:55 +0000
+Message-ID: <083BC63EECB6FD41B8E81CF7FD87CC0F2E4F0F95@DLEE08.ent.ti.com>
+References: <1372209808-6532-1-git-send-email-joelagnel@ti.com>
+	<CAD=GYpbdVVrh-tiqOcbHi3mkWRJUBdx0EsEZEFVVbgFgcCWgsw@mail.gmail.com>
+	<51CC2A1E.2040003@ti.com>
+	<CAD=GYpa9LQ1fV6=O9B65sJURVAigsgXCPLWav8cHXTuGQXPc9A@mail.gmail.com>
+	<51CC67CA.2070805@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:60370 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752723Ab3F0R4a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jun 2013 13:56:30 -0400
-Received: by mail-ee0-f48.google.com with SMTP id b47so557077eek.35
-        for <linux-omap@vger.kernel.org>; Thu, 27 Jun 2013 10:56:29 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <51CC5105.4070301@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <51CC67CA.2070805-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org" <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>Linux
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: USB list <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, "Bilovol, Ruslan" <ruslan.bilovol@ti.com>
 
-Hi Roger
+Hi Balaji,
 
-On Thu, Jun 27, 2013 at 05:49:41PM +0300, Roger Quadros wrote:
-> +Ruslan
+> -----Original Message-----
+> From: Krishnamoorthy, Balaji T
+> Sent: Thursday, June 27, 2013 11:27 AM
+> To: Cousson, Benoit; Fernandes, Joel
+> Cc: lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org; Tony Lindgren; Nori, Sekhar; Matt Porter; Grant Likely;
+> Rob Herring; Vinod Koul; Mark Brown; Russell King; Rob Landley; Andrew
+> Morton; Jason Kridner; Koen Kooi; Chris Ball; Devicetree Discuss; Linux OMAP
+> List; Linux ARM Kernel List; Linux DaVinci Kernel List; Linux Kernel Mailing List;
+> Linux MMC List; Arnd Bergmann
+> Subject: Re: [PATCH 0/5] AM33xx: MMC resources from DT without HWMOD
+> data
 > 
-> On 06/27/2013 05:17 PM, Michael Trimarchi wrote:
-> > Hi Roger
-> > 
-> > On Thu, Jun 27, 2013 at 04:59:38PM +0300, Roger Quadros wrote:
-> >> Hi Michael,
-> >>
-> >> On 06/27/2013 02:51 PM, Michael Trimarchi wrote:
-> >>> Hi
-> >>>
-> >>> I'm working on omap4460 with two ulpi connected to (SMSC3320 -> HUB SMSC2514) or (TUSB1210 -> HUB SMSC2514). 
-> >>> The problem only happen when both port are used and after few suspend resume are triggered.
-> >>> If I use just one port there is no issue on suspend resume. I already covered all TI
-> >>> errata that I know and I'm working on TI kernel.
-> >>>
-> >>> The problem is here
-> >>>
-> >>> [   77.701934] ehci-omap ehci-omap.0: irq status a004 Async Recl PCD
-> >>>
-> >>> Both ports change status from 001005 to 001009 (you have a log just after). 
-> >>> So from host point of view both hub connected are not working in HS mode. 
-> >>> After that the omap ehci has gone because the bus can not work in FS and LS and I can not recover from here.
-> >>> Status of transceivers are dumped and they are ok after resume.
-> >>>
-> >>> Do you have any suggestion?
-> >>
-> >> I'm not very sure but both ports suddenly changing state like that look like
-> >> a hardware issue. Also, it is strange that you can reproduce it only when two
-> >> ports are simultaneously in use. Unfortunately, I can't match your setup with 2 ULPI
-> > 
-> > Yes I know that TI doesn't have any setup like that.
-> > 
-> >> ports.
-> >>
-> >> I have a OMAP5 uEVM that uses 2 ports but it won't be identical to your setup as
-> >> they are on HSIC and not ULPI.
-> >>
-> >> Did you try errata i693?
-> > 
-> > Yes I have it. It's not clear if I need to wait after
-> > ehci_writel(ehci, temp | PORT_SUSPEND, status_reg);
-> > polling the suspendM of the SMSC or the suspend status of the PORT or I can
-> > switch just after this instruction. Because TI kernel use an msleep of 4 mseconds and then switch. It could be a timing issue on how errata is implemented when I have two ports? How this internal count works?
-> 
-> 
-> The OMAP EHCI controller transparently sets the suspendM bit of the PHY when you
-> set the PORT_SUSPEND feature on the EHCI port. So you don't need to poll for anything.
-> 
-
-A delay is necessary. If we apply the errata to the port before a delay the errata
-doesn't work. 
-
-/* Use internal 60Mhz clock ULPIBx */
-temp_reg = omap_readl(L3INIT_HSUSBHOST_CLKCTRL);
-temp_reg |= 1 << (8 + port);
-temp_reg &= ~(1 << (24 + port));
-omap_writel(temp_reg, L3INIT_HSUSBHOST_CLKCTRL);
-
-/* Wait 2ms to have transceiver transaction */
-mdelay(2);
-
-/* Use external clock ULPIBx */
-temp_reg &= ~(1 << (8 + port));
-temp_reg |= 1 << (24 + port);
-omap_writel(temp_reg, L3INIT_HSUSBHOST_CLKCTRL);
-
-Now it's not clear to me what happen if I apply this clock too early (transeceiver still
-driver the clock) or too late. Any clue?
-
-
-> What the errata says is that once software sets the PORT_SUSPEND feature, the PHY will
-> got into suspend and cut the PHY clock sooner than required for the EHCI controller to
-> complete its suspend operations. (NOTE: this is only applicable when the PHY is providing the
-> ulpi_clk).
-> 
-
-Yes this is the case
-
-> What the workaround does is to just wait for a while (don't know why 4ms), and remux the
-> ulpi_clock to an internal 60MHz clock for a while so that it can complete its suspend operations.
-
-What happen if I apply a big delay after PORT_SUSPEND. Will the internal state machine of the omap
-continue to wait the clock?
-
-Michael
-
-> 
-> > 
-> > First time is 18, and then?
+> On Thursday 27 June 2013 07:56 PM, Joel A Fernandes wrote:
+> > Hi Benoit,
 > >
-> I think it is 18 for every port suspend.
->  
+> > On Thu, Jun 27, 2013 at 7:03 AM, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org> wrote:
+> >> Hi Joel,
 > >>
-> >> Also, are you suspending and resuming only the USB or the entire system?
+> >> On 06/26/2013 05:28 AM, Joel A Fernandes wrote:
+> >>> On Tue, Jun 25, 2013 at 8:23 PM, Joel A Fernandes <joelagnel-l0cyMroinI0@public.gmane.org>
+> wrote:
+> >>>> From: Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> >>>>
+> >>>> This series is fixes to get MMC working on AM33XX without HWMOD
+> data.
+> >>>> On removal of HWMOD data, interrupt and register properties need to
+> >>>> be provided for the driver to function correctly.
+> >>>
+> >>> Please don't pull patches authored by me in this series. I have
+> >>> posted them with my wrong email address by mistake. I will correct
+> >>> my email during the next repost, after a round of review. Matt's
+> >>> patches in the series are still good though.
 > >>
-> > 
-> > Whole system. Right the only susbsytem that doens't go to suspend is the FSUSB
-> > but this depends on the bootloader.
+> >> In that case, please repost these in two series to avoid pulling the
+> >> DTS files in the MMC tree.
+> >
+> > The series has been replaced with the single patch:
+> > "[PATCH v2] ARM: dts: add AM33XX MMC support"
+> > http://marc.info/?l=linux-omap&m=137230403815943&w=2
+> >
+> > Some patches were squashed and others dropped in the series resulting
+> > in the single patch above. This patch should be good to apply
+> Hi Joel,
 > 
-> OK. 
+> Before pushing mmc dts support for am335x, Can you please let me
+> know if below 2 patches [1] are merged/accepted,
+> IIRC these patches are needed for MMC to work properly.
 > 
-> cheers,
-> -roger
+> I suggest to hold the dts patch until slave_sg_limit gets merged
+> otherwise it will cause regression in am335x mmc.
+> 
+> [PATCH v4 1/3] dmaengine: add dma_get_slave_sg_limits()
+> [PATCH v4 2/3] dma: edma: add device_slave_sg_limits() support
+
+Actually this is an independent regression and is currently worked on by Lars-Peter Clausen [1].
+
+Currently not having the MMC DTS merged is also a regression, so I suggest lets take it one
+step at a time and get the DTS merged in first. Also there will be overhead of reposting this
+DTS patch later again which will not change. What do you say?
+
+Thanks,
+
+-Joel
+
+[1] https://patchwork.kernel.org/patch/2228041/
