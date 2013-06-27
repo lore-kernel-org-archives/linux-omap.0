@@ -1,73 +1,31 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] ARM: OMAP2+: omap_device: add pinctrl handling
-Date: Thu, 27 Jun 2013 00:30:58 -0700
-Message-ID: <20130627073058.GF5523@atomide.com>
-References: <1371826990-25820-1-git-send-email-grygorii.strashko@ti.com>
- <CACRpkdY=m1b9Lh27+wHP8FQ4SbVZKmAOCGhxe59aP+TcuR9QaA@mail.gmail.com>
- <20130625065811.GZ5523@atomide.com>
- <51CAEA90.90200@ti.com>
- <CACRpkdbKgEcfF67oO9HrczvDp4Po3Xt1hFajJ1vO8kEvsZH4jA@mail.gmail.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [RFC] am33xx: create child nodes for the two musb controllers
+Date: Thu, 27 Jun 2013 09:31:34 +0200
+Message-ID: <51CBEA56.4010806@linutronix.de>
+References: <20130626153325.GA24075@linutronix.de> <20130627065150.GK15455@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62007 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752488Ab3F0HbD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jun 2013 03:31:03 -0400
-Content-Disposition: inline
-In-Reply-To: <CACRpkdbKgEcfF67oO9HrczvDp4Po3Xt1hFajJ1vO8kEvsZH4jA@mail.gmail.com>
+Received: from www.linutronix.de ([62.245.132.108]:39265 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752488Ab3F0Hbg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jun 2013 03:31:36 -0400
+In-Reply-To: <20130627065150.GK15455@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Kevin Hilman <khilman@linaro.org>, Hebbar Gururaja <gururaja.hebbar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>
+To: balbi@ti.com
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [130626 12:37]:
-> On Wed, Jun 26, 2013 at 3:20 PM, Grygorii Strashko
-> <grygorii.strashko@ti.com> wrote:
-> 
-> > The "Sleep" pinctrl state is optional - if "sleep" state isn't defined
-> > then "Idle" pinctrl state will be used during suspend.
-> 
-> Why? If we have a clear cut semantic that "idle" is for runtime
-> suspend, why should it be a fallback for suspend?
-> 
-> You do realize that can just be turned around (as common suspend
-> is more widely implemented than runtime suspend) so that we
-> could say that if "idle" does not exist, we go to "sleep" in
-> runtime suspend.
-> 
-> > So, final list of default pnctrl states may be defined as "default",
-> > "active", "idle", "sleep", "off":
-> > - "active", "idle", "sleep": will be handled by omap_device core
-> > - "default", "off": will be handled by driver itself (or Device core).
-> 
-> Currently the pinctrl system combines what is called "default"
-> and "active" into one, assuming that all devices shall come up
-> in the active state.
-> 
-> Also we haven't seen a device that need some "off" state that
-> is different from "sleep".
+On 06/27/2013 08:51 AM, Felipe Balbi wrote:
+> Hi,
 
-Right, this is what I've been wondering too.
+Hi Felipe,
 
-Do we really need "idle", "sleep", "off"? Or is "idle" enough?
-Or "idle" and "sleep"?
+> the patch is alright, but what about the giant amoutn of function 
+> pointers we have ? Are you planning to use of_dev_auxdata ??
 
-Only one of the should be set at a time, but it would be nice
-to handle most cases in a generic way in drivers/base/pinctrl.c.
- 
-> If you want to drive this state list home you have to give a
-> *real world example*.
-> 
-> I want to see a *real* example, for a device and it's pins,
-> that define totally different things for these states, as a
-> rationale.
+I didn't plan to use of_dev_auxdata. What do you mean by "giant amount
+of function pointers"?
 
-Yeah me too :)
- 
-> Else we are just defining states to make nice figures or mental
-> maps and that is not helpful for drivers writers.
-
-Regards,
-
-Tony
+Sebastian
