@@ -1,76 +1,88 @@
-From: =?UTF-8?q?Vincent=20Stehl=C3=A9?= <vincent.stehle@freescale.com>
-Subject: [PATCH linux-next] ARM: OMAP2+: fix omap4-restart compilation
-Date: Thu, 27 Jun 2013 14:26:00 +0200
-Message-ID: <1372335961-31401-1-git-send-email-vincent.stehle@freescale.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] Documentation: dt: bindings: TI WiLink modules
+Date: Thu, 27 Jun 2013 07:51:32 -0500
+Message-ID: <20130627125131.GA27285@kahuna>
+References: <1372149330-24335-1-git-send-email-coelho@ti.com>
+ <51CBC1C8.1040301@gmail.com>
+ <1372322851.18889.53.camel@cumari.coelho.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from va3ehsobe002.messaging.microsoft.com ([216.32.180.12]:17014
-	"EHLO va3outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751566Ab3F0M0X convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Jun 2013 08:26:23 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1372322851.18889.53.camel@cumari.coelho.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Luciano Coelho <coelho@ti.com>
+Cc: Nishanth Menon <menon.nishanth@gmail.com>, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-wireless@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-next@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?q?Vincent=20Stehl=C3=A9?= <vincent.stehle@freescale.com>, Robin Holt <holt@sgi.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, trivial@kernel.org
 
-=46ix following compilation error due to missing include file:
+On 11:47-20130627, Luciano Coelho wrote:
+> (added mailing lists and everyone back to the thread)
+> 
+> On Wed, 2013-06-26 at 23:38 -0500, Nishanth Menon wrote:
+> > On 06/25/2013 03:35 AM, Luciano Coelho wrote:
+> > > +Optional properties:
+> > > +--------------------
+> > > +
+> > > +- refclock: the internal WLAN reference clock frequency (required for
+> > > +  WiLink6 and WiLink7; not used for WiLink8).  Must be one of the
+> > > +  following:
+> > > +	0 = 19.2 MHz
+> > > +	1 = 26.0 MHz
+> > > +	2 = 38.4 MHz
+> > > +	3 = 52.0 MHz
+> > > +	4 = 38.4 MHz, XTAL
+> > > +	5 = 26.0 MHz, XTAL
+> > > +
+> > > +- tcxoclock: the internal WLAN TCXO clock frequency (required for
+> > > +  WiLink7 not used for WiLink6 and WiLink8).  Must be one of the
+> > > +  following:
+> > > +	0 = 19.200 MHz
+> > > +	1 = 26.000 MHz
+> > > +	2 = 38.400 MHz
+> > > +	3 = 52.000 MHz
+> > > +	4 = 16.368 MHz
+> > > +	5 = 32.736 MHz
+> > > +	6 = 16.800 MHz
+> > > +	7 = 33.600 MHz
+> > >
+> > just a gentle query - why not use frequency itself here in Hz for 
+> > refclock and txoclk?
+> 
+> I thought about using the actual frequencies, but I decided not to do
+> so, because I'd have to convert them to these values anyway.  These
+> values are used to configure the firmware and it uses these
+> "enumerations".
+Could we not hide this under preprocessor macros instead? just wondering
+of txoclock = <6>; kind of usage.. easy to make mistakes and easier to
+confuse a new reader :).
 
-  arch/arm/mach-omap2/omap4-restart.c:21:28: warning: =E2=80=98enum reb=
-oot_mode=E2=80=99 declared inside parameter list [enabled by default]
-  arch/arm/mach-omap2/omap4-restart.c:21:28: warning: its scope is only=
- this definition or declaration, which is probably not what you want [e=
-nabled by default]
-  arch/arm/mach-omap2/omap4-restart.c:21:40: error: parameter 1 (=E2=80=
-=98mode=E2=80=99) has incomplete type
-  arch/arm/mach-omap2/omap4-restart.c:21:6: warning: function declarati=
-on isn=E2=80=99t a prototype [-Wstrict-prototypes]
-  make[1]: *** [arch/arm/mach-omap2/omap4-restart.o] Error 1
+just my 2 cents.
+> 
+> 
+> > might not another option of using
+> > node {
+> > clocks=<&clk>;
+> > }
+> > 
+> > Usually refclock is an external clock source, no?
+> 
+> No.  In the WiLink case, both refclock and tcxoclock are internal
+> clocks.  They are in the module itself and what we need to do is tell
+> the WiLink chip what the module's clocks look like.
+> 
+> 
+> > the above allows you to do an devm_clk_get and clk_get_rate() to figure 
+> > out the exact clock frequency.
+> 
+> No, we can't use these calls, because they are internal clocks.
+> 
+> Please see my more complete explanation as an answer to Tony's email.
+K thanks.
+> 
+> Thanks for your review!
 
-Signed-off-by: Vincent Stehl=C3=A9 <vincent.stehle@freescale.com>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: trivial@kernel.org
----
+Glad to be of help.
 
-
-Hi,
-
-This fixes the build of linux-next for arch ARM, config multi_v7_defcon=
-fig, tag
-next-20130627.
-
-Best regards,
-
-V.
-
-
- arch/arm/mach-omap2/omap4-restart.c |    1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/arch/arm/mach-omap2/omap4-restart.c b/arch/arm/mach-omap2/=
-omap4-restart.c
-index 652adde..41dfd7d 100644
---- a/arch/arm/mach-omap2/omap4-restart.c
-+++ b/arch/arm/mach-omap2/omap4-restart.c
-@@ -8,6 +8,7 @@
-  */
-=20
- #include <linux/types.h>
-+#include <linux/reboot.h>
- #include "prminst44xx.h"
-=20
- /**
---=20
-1.7.10.4
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Nishanth Menon
