@@ -1,63 +1,66 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: regression caused by commit
- 8357b48549e17b3e4e402c7f977b65708922e60f
-Date: Thu, 27 Jun 2013 17:52:13 +1000
-Message-ID: <20130627175213.9abb1e6109abe9a7e0aabb0b@canb.auug.org.au>
-References: <20130627061419.GE15455@arwen.pp.htv.fi>
-	<20130627163655.239cea102ba0eb968a434593@canb.auug.org.au>
-	<20130627070424.GM15455@arwen.pp.htv.fi>
+From: Enric Balletbo Serra <eballetbo@gmail.com>
+Subject: Re: [PATCH 2/3] ARM: dts: omap3-igep0020: add mux conf for GPIO LEDs
+Date: Thu, 27 Jun 2013 10:09:21 +0200
+Message-ID: <CAFqH_53ceOcGsU8Aq+D1-CXnFX5aanOpOd0_Bh+j+qX9UTj82w@mail.gmail.com>
+References: <1371739352-19670-1-git-send-email-javier.martinez@collabora.co.uk>
+	<1371739352-19670-2-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Thu__27_Jun_2013_17_52_13_+1000_lHW.OblYF2LSlaEq"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130627070424.GM15455@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: "Yann E. MORIN" <yann.morin.1998@free.fr>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Arnd Bergmann <arnd@arndb.de>, Sam Ravnborg <sam@ravnborg.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f53.google.com ([74.125.82.53]:62731 "EHLO
+	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752670Ab3F0IJW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jun 2013 04:09:22 -0400
+Received: by mail-wg0-f53.google.com with SMTP id y10so306791wgg.20
+        for <linux-omap@vger.kernel.org>; Thu, 27 Jun 2013 01:09:21 -0700 (PDT)
+In-Reply-To: <1371739352-19670-2-git-send-email-javier.martinez@collabora.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: =?UTF-8?Q?Beno=C3=AEt_Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
---Signature=_Thu__27_Jun_2013_17_52_13_+1000_lHW.OblYF2LSlaEq
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi balbi,
-
-On Thu, 27 Jun 2013 10:04:24 +0300 Felipe Balbi <balbi@ti.com> wrote:
+2013/6/20 Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 >
-> On Thu, Jun 27, 2013 at 04:36:55PM +1000, Stephen Rothwell wrote:
-> >=20
-> > That commit has been reverted in today's kbuild tree and thus in today's
-> > linux-next.
->=20
-> thanks, I should fetch again :-)
-
-Let me finish first :-)  (an hour or so ...)
-
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-
---Signature=_Thu__27_Jun_2013_17_52_13_+1000_lHW.OblYF2LSlaEq
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
-
-iQIcBAEBCAAGBQJRy+8tAAoJEECxmPOUX5FExp0QAIzvzChF/dBvuq1O11Sgfiiv
-hbMGtiSz23uwRkbsrZx7JzztPDIkec0NkWA9CEB3BLrGpmTVIVswUqN3Lfj6NkQS
-cbnxu7xFk1SYLWAnuOzUjVCdPKBLf/S2Xp3jEZ84dAhX9dea4ZuYYpGwYj8zzBj2
-cp3mXICTUAnwI5deM12u77jPc1DMoP1XeNqaLpUoI/MJfQBgwXkJlKrA+nJXtOoH
-er2vsweMZ5pdLvU2TVTm1OxaWMp+UsSuPRCHVwYxRm0guXWisGRuha9Wjxb0GtSV
-FlR7lt1aq930f+LMefv96GS/gNAzYARcHpFdhvvcMOpd/em5L/1Qa6M+vQhOC1di
-sJWpkDiRHVyR+Cyw58HW83QNH9HHk0XVz3ig1E2ZF7Ag75/E9enx1wRdgraMN+2Q
-Vbvoih+4nFFyE+D4QxN7L+sf/m2ICp3kQp8Q46z6rpr9P8zH5FYeFf6GOnnojctS
-8TfKHn5wlJsYSpD6CsM90A1gFKq3MHsW1bCDqIN4yvwkl1DKJ1fY2sqqo0C09s4v
-yAzQ9H8vGS0hBaIdN+hxKDGKGqrIZSF15irlJWXMluIsacjll5FMmhsHNv9u/2lR
-k/KVyo13DiBq/72KUkyM94hHNKf2o0oRys1gfP0UvQ2sXtNOUqW7JJDQrCMG6LGO
-1o7dzwiHMPgC5440r71n
-=gWhp
------END PGP SIGNATURE-----
-
---Signature=_Thu__27_Jun_2013_17_52_13_+1000_lHW.OblYF2LSlaEq--
+> The IGEPv2 has a number of GPIO LED connected to OMAP
+> pins. Configure these pins as output GPIO.
+>
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> ---
+>  arch/arm/boot/dts/omap3-igep0020.dts |   11 +++++++++++
+>  1 files changed, 11 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/omap3-igep0020.dts
+> b/arch/arm/boot/dts/omap3-igep0020.dts
+> index e8c4828..51c084e 100644
+> --- a/arch/arm/boot/dts/omap3-igep0020.dts
+> +++ b/arch/arm/boot/dts/omap3-igep0020.dts
+> @@ -16,7 +16,10 @@
+>         compatible = "isee,omap3-igep0020", "ti,omap3";
+>
+>         leds {
+> +               pinctrl-names = "default";
+> +               pinctrl-0 = <&leds_pins>;
+>                 compatible = "gpio-leds";
+> +
+>                 boot {
+>                          label = "omap3:green:boot";
+>                          gpios = <&gpio1 26 GPIO_ACTIVE_HIGH>;
+> @@ -54,6 +57,14 @@
+>         };
+>  };
+>
+> +&leds_pins {
+> +       pinctrl-single,pins = <
+> +               0x5c4 (PIN_OUTPUT | MUX_MODE4) /* etk_d12.gpio_26 */
+> +               0x5c6 (PIN_OUTPUT | MUX_MODE4) /* etk_d13.gpio_27 */
+> +               0x5c8 (PIN_OUTPUT | MUX_MODE4) /* etk_d14.gpio_28 */
+> +       >;
+> +};
+> +
+>  &i2c3 {
+>         clock-frequency = <100000>;
+>
+> --
+> 1.7.7.6
+>
+Tested-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
