@@ -1,75 +1,115 @@
-From: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/5] AM33xx: MMC resources from DT without HWMOD data
-Date: Thu, 27 Jun 2013 21:56:50 +0530
-Message-ID: <51CC67CA.2070805@ti.com>
-References: <1372209808-6532-1-git-send-email-joelagnel@ti.com>
-	<CAD=GYpbdVVrh-tiqOcbHi3mkWRJUBdx0EsEZEFVVbgFgcCWgsw@mail.gmail.com>
-	<51CC2A1E.2040003@ti.com>
-	<CAD=GYpa9LQ1fV6=O9B65sJURVAigsgXCPLWav8cHXTuGQXPc9A@mail.gmail.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v3 0/4] mtd:nand:omap2: clean-up of supported ECC schemes
+Date: Thu, 27 Jun 2013 17:50:33 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73E9E0763@DBDE04.ent.ti.com>
+References: <1372010299-30141-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <CAD=GYpa9LQ1fV6=O9B65sJURVAigsgXCPLWav8cHXTuGQXPc9A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, joelf-l0cyMroinI0@public.gmane.org
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>Linux ARM Kernel List <l>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53704 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752018Ab3F0RvY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jun 2013 13:51:24 -0400
+In-Reply-To: <1372010299-30141-1-git-send-email-pekon@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "arnd@arndb.de" <arnd@arndb.de>, "Philip, Avinash" <avinashphilip@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "jp.francois@cynove.com" <jp.francois@cynove.com>, "Benoit Cousson (benoit.cousson@linaro.org)" <benoit.cousson@linaro.org>, "tony@atomide.com" <tony@atomide.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>
 
-On Thursday 27 June 2013 07:56 PM, Joel A Fernandes wrote:
-> Hi Benoit,
->
-> On Thu, Jun 27, 2013 at 7:03 AM, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org> wrote:
->> Hi Joel,
->>
->> On 06/26/2013 05:28 AM, Joel A Fernandes wrote:
->>> On Tue, Jun 25, 2013 at 8:23 PM, Joel A Fernandes <joelagnel-l0cyMroinI0@public.gmane.org> wrote:
->>>> From: Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->>>>
->>>> This series is fixes to get MMC working on AM33XX without HWMOD data.
->>>> On removal of HWMOD data, interrupt and register properties need to be provided
->>>> for the driver to function correctly.
->>>
->>> Please don't pull patches authored by me in this series. I have posted
->>> them with my wrong email address by mistake. I will correct my email
->>> during the next repost, after a round of review. Matt's patches in the
->>> series are still good though.
->>
->> In that case, please repost these in two series to avoid pulling the DTS
->> files in the MMC tree.
->
-> The series has been replaced with the single patch:
-> "[PATCH v2] ARM: dts: add AM33XX MMC support"
-> http://marc.info/?l=linux-omap&m=137230403815943&w=2
->
-> Some patches were squashed and others dropped in the series resulting
-> in the single
-> patch above. This patch should be good to apply
-Hi Joel,
+To OMAP3/4/5 and AM335x users,
 
-Before pushing mmc dts support for am335x, Can you please let me
-know if below 2 patches [1] are merged/accepted,
-IIRC these patches are needed for MMC to work properly.
+Though I have tested the following series on AM335x-EVM, 
+but it would be good if it can also be tested on other platforms like
+OMAP3/4/5 custom boards which use NAND.
 
-I suggest to hold the dts patch until slave_sg_limit gets merged
-otherwise it will cause regression in am335x mmc.
+This would be helpful, as this patch series provides base for further 
+enhancement and cleanup of omap2-nand driver.
 
-[PATCH v4 1/3] dmaengine: add dma_get_slave_sg_limits()
-[PATCH v4 2/3] dma: edma: add device_slave_sg_limits() support
 
-[1]
-https://groups.google.com/forum/#!topic/linux.kernel/khTTcPtQpag
+with regards, pekon
 
->
-> Thanks,
->
-> -Joel
->
+
+> -----Original Message-----
+> From: Gupta, Pekon
+> Sent: Sunday, June 23, 2013 11:28 PM
+> To: tony@atomide.com; artem.bityutskiy@linux.intel.com; Cousson, Benoit
+> Cc: arnd@arndb.de; Philip, Avinash; Balbi, Felipe; linux-
+> mtd@lists.infradead.org; linux-omap@vger.kernel.org;
+> jp.francois@cynove.com; Gupta, Pekon
+> Subject: [PATCH v3 0/4] mtd:nand:omap2: clean-up of supported ECC
+> schemes
+> 
+> (with Author Name fixed)
+> Changes v2 -> v3
+> - PATCH-1: re-arranged code to remove redundancy, added
+> NAND_BUSWIDTH_AUTO
+> - PATCH-2: updated nand-ecc-opt DT mapping and Documentation
+> - PATCH-3: code-cleaning + changes to match PATCH-1
+> - PATCH-4 <DROPPED> update DT attribute for ti,nand-ecc-opt
+> 	- received feedback to keep DT mapping independent of linuxism
+> - PATCH-4:<NEW> : ARM: dts: AM33xx: updated default ECC scheme in nand-
+> ecc-opt
+> 	- independent patch for AM335x-evm.dts update based on PATCH-2
+> 
+> Changes v1 -> v2
+> 	added 	[PATCH 3/4] and [PATCH 4/4]
+> 
+> Patches in this series:
+> [PATCH 1/4]: clean-up and optimization for supported ECC schemes.
+> [PATCH 2/4]: add separate DT options each supported ECC scheme.
+> [PATCH 3/4]: update BCH4 ECC implementation (using ELM or using lib/bch.h)
+> [PATCH 4/4]: ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-
+> opt
+> 
+> After this patch series, omap2-nand driver will supports following ECC
+> schemes:
+> +---------------------------------------+---------------+---------------+
+> | ECC scheme				|ECC calculation|Error detection|
+> +---------------------------------------+---------------+---------------+
+> |OMAP_ECC_HAMMING_CODE_DEFAULT		|S/W		|S/W
+> 		|
+> |OMAP_ECC_HAMMING_CODE_HW		|H/W (GPMC)	|S/W
+> 	|
+> |OMAP_ECC_HAMMING_CODE_HW_ROMCODE	|H/W (GPMC)	|S/W
+> 		|
+> +---------------------------------------+---------------+---------------+
+> |OMAP_ECC_BCH4_CODE_HW_DETECTION_SW	|H/W (GPMC)	|S/W
+> (lib/bch.h)|
+> |OMAP_ECC_BCH4_CODE_HW			|H/W (GPMC)	|H/W (ELM)
+> 	|
+> +---------------------------------------+---------------+---------------+
+> |OMAP_ECC_BCH8_CODE_HW_DETECTION_SW	|H/W (GPMC)	|S/W
+> (lib/bch.h)|
+> |OMAP_ECC_BCH8_CODE_HW			|H/W (GPMC)	|H/W (ELM)
+> 	|
+> +---------------------------------------+---------------+---------------+
+> - Selection of OMAP_ECC_BCHx_CODE_HW_DETECTION_SW requires,
+> 	Kconfig: CONFIG_MTD_NAND_ECC_BCH: enables S/W based BCH
+> ECC algorithm.
+> 
+> - Selection of OMAP_ECC_BCHx_CODE_HW requires,
+> 	Kconfig: CONFIG_MTD_NAND_OMAP_BCH: enables ELM H/W
+> module.
+> 
+> 
+> Pekon Gupta (4):
+>   mtd:nand:omap2: clean-up BCHx_HW and BCHx_SW ECC configurations in
+>     device_probe
+>   ARM: OMAP2+: cleaned-up DT support of various ECC schemes
+>   mtd:nand:omap2: updated support for BCH4 ECC scheme
+>   ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-opt
+> 
+>  .../devicetree/bindings/mtd/gpmc-nand.txt          |  65 ++-
+>  arch/arm/boot/dts/am335x-evm.dts                   |   2 +-
+>  arch/arm/mach-omap2/gpmc.c                         |  14 +-
+>  drivers/mtd/nand/Kconfig                           |   7 +-
+>  drivers/mtd/nand/omap2.c                           | 482 ++++++++++-----------
+>  include/linux/platform_data/elm.h                  |   4 +
+>  include/linux/platform_data/mtd-nand-omap2.h       |  22 +-
+>  7 files changed, 307 insertions(+), 289 deletions(-)
+> 
+> --
+> 1.8.1
+
