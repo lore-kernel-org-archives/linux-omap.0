@@ -1,69 +1,106 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: OMAP baseline test results for v3.10-rc6
-Date: Thu, 27 Jun 2013 09:47:28 +0530
-Message-ID: <51CBBCD8.5030600@ti.com>
-References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com>
- <20130625160243.GE22312@arwen.pp.htv.fi>
- <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com>
- <51C9F0A8.1050607@ti.com> <87fvw6t136.fsf@linaro.org>
- <79CD15C6BA57404B839C016229A409A83ECC952D@DBDE04.ent.ti.com>
- <51CAEB33.5010101@ti.com>
- <alpine.DEB.2.02.1306261722520.6135@utopia.booyaka.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Subject: RE: [PATCH 4/4] regulator: Palmas: Add TPS659038 support
+Date: Thu, 27 Jun 2013 04:31:32 +0000
+Message-ID: <DC88CAD03C0052499C1907B327FC63229F01E5@DBDE04.ent.ti.com>
+References: <1371726135-9891-1-git-send-email-j-keerthy@ti.com>
+  <DC88CAD03C0052499C1907B327FC63229EF8A7@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.02.1306261722520.6135@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@linaro.org>, Rajendra Nayak <rnayak@ti.com>, "Balbi,
- Felipe" <balbi@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Rini,
- Tom" <trini@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <DC88CAD03C0052499C1907B327FC63229EF8A7@DBDE04.ent.ti.com>
+Content-Language: en-US
+Sender: linux-doc-owner@vger.kernel.org
+To: "sameo@linux.intel.com" <sameo@linux.intel.com>
+Cc: "broonie@kernel.org" <broonie@kernel.org>, "ldewangan@nvidia.com" <ldewangan@nvidia.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "swarren@nvidia.com" <swarren@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Paul,
-On Wednesday 26 June 2013 10:56 PM, Paul Walmsley wrote:
-> On Wed, 26 Jun 2013, Rajendra Nayak wrote:
->
->> Apart from confirming if you are manually enabling these options, can you also give some
->> details on how you append the dtb to the kernel image?
->>
->> Most of us use an out-of-tree patch from Grant to do this, which I have shared below [2]
->>
->> Even without the patch with the below commands [1] to append the dtb, it still works, so it
->> would be good to know what steps you follow to append the dtb to the kernel image.
->
-> Here's how I do it:
->
-> ARCH=arm CROSS_COMPILE=${TOOLCHAIN_PATH}/bin/${TOOLCHAIN_PREFIX} nice make -j$CORES zImage am335x-bone.dtb
->
-> cat arch/arm/boot/zImage arch/arm/boot/am335x-bone.dtb > arch/arm/boot/zImage-dtb.am335x-bone
-Here is the catch..
-Your dtb is generated in arch/arm/boot/dts/ folder(before V3.8 dtb was 
-generated in arch/arm/boot).
-You are using very old dtb file. Please delete all your dtb files in 
-arch/arm/boot/ folder and check once.
-Here is the patch from Grant Likely which does that.
-https://patchwork.kernel.org/patch/1813321/
-Can you please give a try updating this ..:)
+Hi Samuel,
 
-Thanks and regards,
-Lokesh
->
-> scripts/mkuboot.sh -A arm -O linux -C none  -T kernel -a 0x80008000 -e 0x80008000 -n 'Linux-' -d arch/arm/boot/zImage-dtb.am335x-bone arch/arm/boot/uImage-dtb.am335x-bone
->
->
-> - Paul
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of J, KEERTHY
+> Sent: Tuesday, June 25, 2013 3:51 PM
+> To: sameo@linux.intel.com
+> Cc: broonie@kernel.org; ldewangan@nvidia.com;
+> grant.likely@secretlab.ca; swarren@nvidia.com; linux-
+> kernel@vger.kernel.org; linux-doc@vger.kernel.org; gg@slimlogic.co.uk;
+> linux-omap@vger.kernel.org
+> Subject: RE: [PATCH 4/4] regulator: Palmas: Add TPS659038 support
+> 
+> Hi Samuel,
+> 
+> > -----Original Message-----
+> > From: J, KEERTHY
+> > Sent: Friday, June 21, 2013 2:38 PM
+> > To: sameo@linux.intel.com
+> > Cc: broonie@kernel.org; ldewangan@nvidia.com;
+> > grant.likely@secretlab.ca; swarren@nvidia.com; linux-
+> > kernel@vger.kernel.org; linux-doc@vger.kernel.org;
+> gg@slimlogic.co.uk;
+> > linux-omap@vger.kernel.org
+> > Subject: RE: [PATCH 4/4] regulator: Palmas: Add TPS659038 support
+> >
+> > Hi Samuel,
+> >
+> > > -----Original Message-----
+> > > From: J, KEERTHY
+> > > Sent: Thursday, June 20, 2013 4:32 PM
+> > > To: linux-omap@vger.kernel.org; sameo@linux.intel.com
+> > > Cc: broonie@kernel.org; J, KEERTHY; ldewangan@nvidia.com;
+> > > grant.likely@secretlab.ca; swarren@nvidia.com; linux-
+> > > kernel@vger.kernel.org; linux-doc@vger.kernel.org;
+> > > gg@slimlogic.co.uk
+> > > Subject: [PATCH 4/4] regulator: Palmas: Add TPS659038 support
+> > >
+> > > Add TPS659038 support.
+> > >
+> >
+> > Could you pull this one too?
+> 
+> A gentle ping on this.
+
+Since the previous patch was applied by you
+Even this patch needs to be taken by you.
+
+Could you please pull this?
+
+> 
+> >
+> > > Signed-off-by: J Keerthy <j-keerthy@ti.com>
+> > > Acked-by: Mark Brown <broonie@linaro.org>
+> > > ---
+> > >  drivers/regulator/palmas-regulator.c |    1 +
+> > >  1 files changed, 1 insertions(+), 0 deletions(-)
+> > >
+> > > diff --git a/drivers/regulator/palmas-regulator.c
+> > > b/drivers/regulator/palmas-regulator.c
+> > > index 1ae1e83..d0c8785 100644
+> > > --- a/drivers/regulator/palmas-regulator.c
+> > > +++ b/drivers/regulator/palmas-regulator.c
+> > > @@ -1054,6 +1054,7 @@ static struct of_device_id
+> > of_palmas_match_tbl[]
+> > > = {
+> > >  	{ .compatible = "ti,tps65913-pmic", },
+> > >  	{ .compatible = "ti,tps65914-pmic", },
+> > >  	{ .compatible = "ti,tps80036-pmic", },
+> > > +	{ .compatible = "ti,tps659038-pmic", },
+> > >  	{ /* end */ }
+> > >  };
+> > >
+> > > --
+> > > 1.7.5.4
+> >
+> > Regards,
+> > Keerthy
+> 
+> Regards,
+> Keerthy
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"
+> in the body of a message to majordomo@vger.kernel.org More majordomo
+> info at  http://vger.kernel.org/majordomo-info.html
+
+Regards,
+Keerthy
