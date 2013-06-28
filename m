@@ -1,72 +1,64 @@
-From: Tomi Valkeinen <tomi.valkeinen@iki.fi>
-Subject: Re: [PATCH v2] ARM: DTS: OMAP4: Add OMAP4 Blaze Tablet support
-Date: Fri, 28 Jun 2013 10:58:43 +0300
-Message-ID: <51CD4233.3040209@iki.fi>
-References: <1372159970-6361-1-git-send-email-ruslan.bilovol@ti.com>
+From: Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/4] rtc: omap: handle rtc wakeup support in driver
+Date: Fri, 28 Jun 2013 15:05:05 +0530
+Message-ID: <1372412109-986-1-git-send-email-gururaja.hebbar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="----enig2KCGSAMPDOGDKJLXTPATW"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1372159970-6361-1-git-send-email-ruslan.bilovol@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Cc: b-cousson@ti.com, tony@atomide.com, benoit.cousson@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
-------enig2KCGSAMPDOGDKJLXTPATW
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+rtc-omap driver modules is used both by OMAP1/2, Davinci SoC platforms.
 
-On 25/06/13 14:32, Ruslan Bilovol wrote:
-> The OMAP4 Blaze Tablet is TI OMAP4 processor-based
-> development platform in a tablet formfactor.
-> The platform contains many of the features found in
-> present-day handsets (such as audio, video, wireless
-> functions and user interfaces) and in addition
-> contains features for software development and test.
->=20
-> This patch adds initial support for the OMAP4 Blaze
-> Tablet development platform. Additional functionality
-> depends on different drivers and code modifications that
-> are not upstreamed yet or do not support DT yet, so will
-> be added later.
+However, rtc wake support on OMAP1 is broken. Hence the
+device_init_wakeup() was removed from rtc-omap driver and moved to
+platform board files that supported it (DA850/OMAP-L138). [1]
 
-I think there are (at least) two revisions of the blaze tablet, the
-newer one has a higher resolution LCD. I don't know what the other
-differences are.
+However, recently [2] it was suggested that driver should always do a
+device_init_wakeup(dev, true). Platforms that don't want/need
+wakeup support can disable it from userspace via:
 
-I think you have the newer revision. I have the older. Do you know about
-the diff of those revisions, or more importantly, will the same blaze
-tablet support work for the older revision also?
+    echo disabled > /sys/devices/.../power/wakeup
 
- Tomi
+Also, with the new DT boot-up, board file doesn't exist and hence there
+is no way to have device wakeup support rtc.
+
+The fix for above issues, is to hard code device_init_wakeup() inside
+driver and let platforms that don't need this, handle it through the
+sysfs power entry.
 
 
+Also, update Davinci & AM335x files to above changes.
 
-------enig2KCGSAMPDOGDKJLXTPATW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+[1]
+https://patchwork.kernel.org/patch/136731/
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+[2]
+http://www.mail-archive.com/davinci-linux-open-source@linux.
+davincidsp.com/msg26077.html
 
-iQIcBAEBAgAGBQJRzUI3AAoJEPo9qoy8lh71X10QAI0GTRyNcaK2aEWzd4Wd7oHh
-Q2f88YpyYttnEVYEwJqRaLCgqN9OMQ4zzwxcxFH6sGYoAhIhALKZRP88YZr9vhUy
-WkaHU8xgOb3oDs7Mz5xPEMGgXXRmBEzuaNxU1o8VPNfgW2nINsQU6Qq4bnQDdKgV
-0nperAnILmaVD09zn4bhLhmBOWTGRRHs07Hs5J2auCh0+h7kyEVu9ppPcqeph9VH
-NlnEkMHuueaXT1qq84uvMRS9weQefLhEmk66hJRM5AZP47tc5xYWs5ZN++NxZqMO
-FvBuRmzqkiAwDKuwyGpNoE0YOZoliQnQP+LfglpTfC3lxVAYS8dxC8iAGOpfGwRx
-ivAjdDRrRPi1PnRTri8MnAcc9OR5FfrY4wP56+ZvrffKoXqfsWy309Fj4gYhwFzL
-/WEmLldKMFciKUiEtmqbvv50uqm6Tcd6wm8WKV2qilF125h3Aa62LgBEBBDuB9rm
-pQpKFER8BL6JyCLUaZDjGwIhishvQnJGvivztieCRRJhJ0kqFGFCItsnNAiTFd2i
-bSsjfcXQRSk6ypTli4whYgjmsuNsm0l8mWM6ciRpT+fvzNvKVx+njL0V7mXCbLTp
-kFjOE1SNPmpKJ/Yh0/0+FCC2hqyaTMQTQ2X+qVMQBKrmZ375ZYpojFvbDx+8tmXJ
-JcPKMqrpG9RXJJz3K+K0
-=xf48
------END PGP SIGNATURE-----
+Hebbar Gururaja (4):
+  rtc: omap: restore back (hard-code) wakeup support
+  davinci: da8xx/omap-l1: Remove hard coding of rtc device wakeup
+  rtc: omap: add rtc wakeup support to alarm events
+  ARM: dts: AM33XX: update rtc node compatibility
 
-------enig2KCGSAMPDOGDKJLXTPATW--
+ Documentation/devicetree/bindings/rtc/rtc-omap.txt |    6 +-
+ arch/arm/boot/dts/am33xx.dtsi                      |    2 +-
+ arch/arm/mach-davinci/devices-da8xx.c              |    9 +--
+ drivers/rtc/rtc-omap.c                             |   58 +++++++++++++++++---
+ 4 files changed, 58 insertions(+), 17 deletions(-)
+
+-- 
+1.7.9.5
