@@ -1,62 +1,115 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH] arm: dts: AM43x: Add usb_otg_hs node
-Date: Fri, 28 Jun 2013 12:14:47 +0530
-Message-ID: <1372401887-19422-1-git-send-email-george.cherian@ti.com>
+From: Abhishek Karan <a.k.living.on.instinct@gmail.com>
+Subject: Remounting of system partition
+Date: Fri, 28 Jun 2013 07:13:26 +0000 (UTC)
+Message-ID: <loom.20130628T090949-560@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: afzal@ti.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, balbi@ti.com, a-kishore@ti.com, benoit.cousson@linaro.org, George Cherian <george.cherian@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from plane.gmane.org ([80.91.229.3]:60172 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752072Ab3F1HPG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Jun 2013 03:15:06 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1UsSta-0007G3-QS
+	for linux-omap@vger.kernel.org; Fri, 28 Jun 2013 09:15:03 +0200
+Received: from 59.145.174.34 ([59.145.174.34])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Fri, 28 Jun 2013 09:15:02 +0200
+Received: from a.k.living.on.instinct by 59.145.174.34 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Fri, 28 Jun 2013 09:15:02 +0200
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Adds device node for HS USB Host module for AM437x
+I am facing one problem in one of the OMAP4430 based tab that I am using.
+I try to remount the system partition as rw but it is not doing so .
+as some other service is continuously remouting it to ro.
+I am getting the following logs a lot of time
 
-Signed-off-by: George Cherian <george.cherian@ti.com>
----
- This patch is on top of 
- git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.11/dts
+<6>[  645.504150] C1 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
 
- arch/arm/boot/dts/am4372.dtsi | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+<6>[  645.534545] C1 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index ddc1df7..e4f5eb8 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -64,5 +64,24 @@
- 			compatible = "ti,am4372-counter32k","ti,omap-counter32k";
- 			reg = <0x44e86000 0x40>;
- 		};
-+
-+		usb_otg_hs1: am4372_dwc3@48380000 {
-+			compatible = "ti,am437x-dwc3";
-+			reg = <0x48380000 0x1ff>;
-+			interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			utmi-mode = <1>;
-+			ranges;
-+
-+			dwc3@48390000 {
-+				compatible = "synopsys,dwc3";
-+				reg = <0x48390000 0xcfff>;
-+				interrupts = <GIC_SPI  168 IRQ_TYPE_LEVEL_HIGH>;
-+				tx-fifo-resize;
-+			};
-+
-+		};
-+
- 	};
- };
--- 
-1.8.1.4
+<6>[  650.121795] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
+
+<6>[  650.147888] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
+
+<6>[  654.732482] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
+
+<6>[  654.758270] C1 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
+
+<6>[  660.346282] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
+
+<6>[  660.370635] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
+
+<6>[  662.031921] C1 [       watchdog] !@Sync 13
+
+<6>[  664.957794] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
+
+<6>[  664.983764] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
+
+<6>[  670.567962] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
+
+<6>[  670.594787] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
+
+<6>[  674.640686] C0 [    kworker/0:1] max17042 7-0036: VCELL : 3784, 
+data : 0xbd38
+
+<6>[  674.641479] C0 [    kworker/0:1] max17042 7-0036: AVG Current : 449, 
+data :0xb3a
+
+<6>[  674.642242] C0 [    kworker/0:1] max17042 7-0036: Current : 456, 
+data :0xb68
+
+<6>[  674.642974] C0 [    kworker/0:1] max17042 7-0036: SOC : 18, data : 
+0x1252
+
+<6>[  674.645233] C0 [    kworker/0:1] max17042 7-0036: TEMPERATURE : 278, 
+data :0x1bdf
+
+<6>[  674.705383] C0 [    kworker/0:1] battery_manager battery_manager: 
+vcell = 3784000 soc = 18  current = 456 avg_current = 449 status = 2 
+health = 1 temp = 278 discharge status = 0, limit time : 0, bootmode : 0
+
+<6>[  675.183227] C1 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
+
+<6>[  675.210021] C1 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
+
+<6>[  679.795349] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
+
+<6>[  679.821105] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
+
+<6>[  685.408721] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
+
+<6>[  685.436767] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
+
+<6>[  690.026428] C1 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
+Opts: (null)
+
+Can you help me with it that whether it is a bug or is it normal 
+for the partition to be remounted so many times
+
+thanks and Regards
+
