@@ -1,73 +1,86 @@
-From: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
-Subject: Re: omap4 ehci sporadic resume issue
-Date: Fri, 28 Jun 2013 18:47:51 +0200
-Message-ID: <20130628164751.GA1281@panicking>
-References: <51CC2755.2030505@amarulasolutions.com>
- <51CC454A.1040104@ti.com>
- <20130627141704.GF12956@panicking>
- <51CC5105.4070301@ti.com>
- <20130627175623.GB21364@panicking>
- <CAB=otbQXVqFKOTtgvif=FZnWgDpbovAB6naPKTrsEHUJb21xTw@mail.gmail.com>
- <20130627192413.GA14115@panicking>
- <CAB=otbT-BcJg5tNZ=7jd1jvoK8N1Hd_skScuxczaeP=tagdcSw@mail.gmail.com>
- <20130628113314.GA25536@panicking>
- <51CD7783.8030907@ti.com>
+From: "Fernandes, Joel" <joelf-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 0/5] AM33xx: MMC resources from DT without HWMOD data
+Date: Fri, 28 Jun 2013 16:56:04 +0000
+Message-ID: <083BC63EECB6FD41B8E81CF7FD87CC0F2E4F186C@DLEE08.ent.ti.com>
+References: <1372209808-6532-1-git-send-email-joelagnel@ti.com>
+	<CAD=GYpbdVVrh-tiqOcbHi3mkWRJUBdx0EsEZEFVVbgFgcCWgsw@mail.gmail.com>
+	<51CC2A1E.2040003@ti.com>
+	<CAD=GYpa9LQ1fV6=O9B65sJURVAigsgXCPLWav8cHXTuGQXPc9A@mail.gmail.com>
+	<51CC67CA.2070805@ti.com>
+	<083BC63EECB6FD41B8E81CF7FD87CC0F2E4F0F95@DLEE08.ent.ti.com>
+	<51CDB06B.9010604@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <51CD7783.8030907-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <51CDB06B.9010604-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>
+Cc: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "benoit.cousson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <benoit.cousson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, "lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org" <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-k>
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+> -----Original Message-----
+> From: Krishnamoorthy, Balaji T
+> Sent: Friday, June 28, 2013 10:49 AM
+> To: Fernandes, Joel
+> Cc: benoit.cousson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org; Tony Lindgren; Nori, Sekhar;
+> Matt Porter; Grant Likely; Rob Herring; Vinod Koul; Mark Brown; Russell King;
+> Rob Landley; Andrew Morton; Jason Kridner; Koen Kooi; Chris Ball; Devicetree
+> Discuss; Linux OMAP List; Linux ARM Kernel List; Linux DaVinci Kernel List;
+> Linux Kernel Mailing List; Linux MMC List; Arnd Bergmann
+> Subject: Re: [PATCH 0/5] AM33xx: MMC resources from DT without HWMOD
+> data
+> 
+> On Thursday 27 June 2013 11:38 PM, Fernandes, Joel wrote:
+> > Hi Balaji,
+> >
+> 
+> <snip>
+> 
+> >>> Some patches were squashed and others dropped in the series
+> >>> resulting in the single patch above. This patch should be good to
+> >>> apply
+> >> Hi Joel,
+> >>
+> >> Before pushing mmc dts support for am335x, Can you please let me know
+> >> if below 2 patches [1] are merged/accepted, IIRC these patches are
+> >> needed for MMC to work properly.
+> >>
+> >> I suggest to hold the dts patch until slave_sg_limit gets merged
+> >> otherwise it will cause regression in am335x mmc.
+> >>
+> >> [PATCH v4 1/3] dmaengine: add dma_get_slave_sg_limits() [PATCH v4
+> >> 2/3] dma: edma: add device_slave_sg_limits() support
+> >
+> > Actually this is an independent regression and is currently worked on by Lars-
+> Peter Clausen [1].
+> >
+> > Currently not having the MMC DTS merged is also a regression,
+> 
+> No, Right now mmc support is not added to am335x, so it is not really a
+> regression.
+> 
+>  > so I suggest lets take it one
+> > step at a time and get the DTS merged in first. Also there will be
+> > overhead of reposting this DTS patch later again which will not change. What
+> do you say?
+> >
+> 
+> If it gets enabled via dts, without slave sg limit support, file read/write will fail,
+> possibly corrupting file system.
 
-On Fri, Jun 28, 2013 at 02:46:11PM +0300, Roger Quadros wrote:
-> On 06/28/2013 02:33 PM, Michael Trimarchi wrote:
-> > Hi Roger
-> > 
-> > On Thu, Jun 27, 2013 at 11:07:11PM +0300, Ruslan Bilovol wrote:
-> >> On Thu, Jun 27, 2013 at 10:24 PM, Michael Trimarchi
-> >> <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org> wrote:
-> 
-> >> Do you have locks around this software workaround?
-> >> The patch I did against 3.4 linux kernel may be helpful for
-> >> you in such case: http://review.omapzoom.org/28515
-> >> Another patch extends this WA for all OMAP4 SoCs:
-> >> http://review.omapzoom.org/31108
-> > 
-> > I'm testing using pm_test and stop to core (5ms and not 5 seconds) (usb suspend cycle are done correctly) so
-> > the problem could be:
-> > 
-> > 1) SAR usb context restore. I have applied the SAR workaround but the core doesn't go in full retantion
-> > could be it a problem?
-> 
-> If core doesn't go in to OFF then SAR will not come into play. Are you still affected by the
-> issue if OFF mode is disabled? If yes then it probably is not related to SAR.
-> 
-> > 
-> > 2) idle status of ulpis pins?
-> 
-> Yes this can be possible.
-> 
-> When you said earlier that the problem doesn't happen when one of the ULPIs is used
-> did you try both of them individually. e.g. case 1: port 1 only enabled,
-> case 2: port 2 only enabled.
-> 
-> Did it work in both the cases?
+I agree with this. Thank you.
 
-Yes, so I don't think could be a problem of ulpi pins and why this happen
-on both at the same time? Seems more connected to somenthing else.
+Tony, Benoit, I guess let's just not apply the DTS yet till the slave-sg limits support
+is merged as well. Sorry for the noise. Thanks.
 
-Michael
-
-> 
-> cheers,
-> -roger
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Joel
