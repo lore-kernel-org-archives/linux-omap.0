@@ -1,69 +1,71 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during
- bus suspend
-Date: Fri, 28 Jun 2013 15:18:27 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1306281507020.1047-100000@iolanthe.rowland.org>
-References: <51CD9663.6060806@ti.com>
+From: Michael Trimarchi <michael@amarulasolutions.com>
+Subject: Re: omap4 ehci sporadic resume issue
+Date: Fri, 28 Jun 2013 21:42:40 +0200
+Message-ID: <51CDE730.7070608@amarulasolutions.com>
+References: <51CC2755.2030505@amarulasolutions.com> <51CC454A.1040104@ti.com> <20130627141704.GF12956@panicking> <51CC5105.4070301@ti.com> <20130627175623.GB21364@panicking> <CAB=otbQXVqFKOTtgvif=FZnWgDpbovAB6naPKTrsEHUJb21xTw@mail.gmail.com> <20130627192413.GA14115@panicking> <CAB=otbT-BcJg5tNZ=7jd1jvoK8N1Hd_skScuxczaeP=tagdcSw@mail.gmail.com> <20130628113314.GA25536@panicking> <51CD7783.8030907@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51CD9663.6060806@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: balbi@ti.com, tony@atomide.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ea0-f173.google.com ([209.85.215.173]:49936 "EHLO
+	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751568Ab3F1Tmp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jun 2013 15:42:45 -0400
+Received: by mail-ea0-f173.google.com with SMTP id g15so1239083eak.4
+        for <linux-omap@vger.kernel.org>; Fri, 28 Jun 2013 12:42:44 -0700 (PDT)
+In-Reply-To: <51CD7783.8030907@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Ruslan Bilovol <ruslan.bilovol@ti.com>, USB list <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>
 
-On Fri, 28 Jun 2013, Roger Quadros wrote:
+Hi
 
-> Just found the problem. It seems that enabling the ehci_irq _after_ the root hub is resumed
-> is the root cause of the problem. Doing so will miss events from the root hub.
-
-This sounds like a bug in the IRQ setup.  It's the sort of thing you 
-see when a level-triggered IRQ is treated as though it were 
-edge-triggered.
-
-In any case, the wakeup should have worked whether the IRQ was issued 
-or not.
-
-> The following modification worked for me without any delays.
+On 06/28/2013 01:46 PM, Roger Quadros wrote:
+> On 06/28/2013 02:33 PM, Michael Trimarchi wrote:
+>> Hi Roger
+>>
+>> On Thu, Jun 27, 2013 at 11:07:11PM +0300, Ruslan Bilovol wrote:
+>>> On Thu, Jun 27, 2013 at 10:24 PM, Michael Trimarchi
+>>> <michael@amarulasolutions.com> wrote:
 > 
-> diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
-> index 72df4eb..b3af1aa 100644
-> --- a/drivers/usb/core/hcd.c
-> +++ b/drivers/usb/core/hcd.c
-> @@ -2136,11 +2136,6 @@ static void hcd_resume_work(struct work_struct *work)
->  	usb_lock_device(udev);
->  	usb_remote_wakeup(udev);
->  	usb_unlock_device(udev);
-> -	if (HCD_IRQ_DISABLED(hcd)) {
-> -		/* Interrupt was disabled */
-> -		clear_bit(HCD_FLAG_IRQ_DISABLED, &hcd->flags);
-> -		enable_irq(hcd->irq);
-> -	}
->  }
->  
->  /**
-> diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
-> index 593d28d..f2a1a46 100644
-> --- a/drivers/usb/host/ehci-hcd.c
-> +++ b/drivers/usb/host/ehci-hcd.c
-> @@ -1110,6 +1110,12 @@ int ehci_resume(struct usb_hcd *hcd, bool hibernated)
->  {
->  	struct ehci_hcd		*ehci = hcd_to_ehci(hcd);
->  
-> +	if (HCD_IRQ_DISABLED(hcd)) {
-> +		/* Interrupt was disabled */
-> +		clear_bit(HCD_FLAG_IRQ_DISABLED, &hcd->flags);
-> +		enable_irq(hcd->irq);
-> +	}
-> +
->  	if (time_before(jiffies, ehci->next_statechange))
->  		msleep(100);
+>>> Do you have locks around this software workaround?
+>>> The patch I did against 3.4 linux kernel may be helpful for
+>>> you in such case: http://review.omapzoom.org/28515
+>>> Another patch extends this WA for all OMAP4 SoCs:
+>>> http://review.omapzoom.org/31108
+>>
+>> I'm testing using pm_test and stop to core (5ms and not 5 seconds) (usb suspend cycle are done correctly) so
+>> the problem could be:
+>>
+>> 1) SAR usb context restore. I have applied the SAR workaround but the core doesn't go in full retantion
+>> could be it a problem?
+> 
+> If core doesn't go in to OFF then SAR will not come into play. Are you still affected by the
+> issue if OFF mode is disabled? If yes then it probably is not related to SAR.
+> 
+>>
+>> 2) idle status of ulpis pins?
+> 
+> Yes this can be possible.
+> 
+> When you said earlier that the problem doesn't happen when one of the ULPIs is used
+> did you try both of them individually. e.g. case 1: port 1 only enabled,
+> case 2: port 2 only enabled.
+> 
+> Did it work in both the cases?
 
-I appreciate the symmetry of putting the enable_irq call in ehci-hcd, 
-seeing as how the disable_irq is there too.  On the other hand, every 
-HCD using this mechanism is going to have to do the same thing, which 
-argues for putting the enable call in the core.  Perhaps at the start 
-of hcd_resume_work() instead of the end.
+off state of the line can make the situation worst ;). What are the idle/off state of the lines
+on your platforms?
 
-Alan Stern
+I can use PAD_REMUX flag to change the datax and signal of each port. I think that when the core
+is in RET_OFF the signal lines are remuxed in off mode. Correct?
+
+Michael
+
+
+> 
+> cheers,
+> -roger
+> 
+
