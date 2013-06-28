@@ -1,45 +1,48 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH] ARM: dts: remove previously generated .dtb files on clean
-Date: Fri, 28 Jun 2013 09:41:02 +0530
-Message-ID: <1372392662-6833-1-git-send-email-lokeshvutla@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v9 1/8] drivers: phy: add generic PHY framework
+Date: Fri, 28 Jun 2013 10:45:58 +0530
+Message-ID: <51CD1C0E.5030000@ti.com>
+References: <000d01ce73af$62a95a60$27fc0f20$@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: nm@ti.com, paul@pwsan.com, shawn.guo@linaro.org, linux@arm.linux.org.uk, arnd@arndb.de, lokeshvutla@ti.com, gregkh@linuxfoundation.org, rnayak@ti.com, linux-kernel@vger.kernel.org, tony@atomide.com, khilman@linaro.org, olof@lixom.net, benoit.cousson@linaro.org, linux-omap@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <000d01ce73af$62a95a60$27fc0f20$@samsung.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Jingoo Han <jg1.han@samsung.com>
+Cc: linux-usb@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Arnd Bergmann <arnd@arndb.de>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, 'Rob Landley' <rob@landley.net>, Russell King <linux@arm.linux.org.uk>, 'Benoit Cousson' <benoit.cousson@linaro.org>, Mauro Carvalho Chehab <mchehab@redhat.com>, 'Cesar Eduardo Barros' <cesarb@cesarb.net>, "David S. Miller" <davem@davemloft.net>, 'Rajendra Nayak' <rnayak@ti.com>, Shawn Guo <shawn.guo@linaro.org>, 'Santosh Shilimkar' <santosh.shilimkar@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, Balaji T K <balajitk@ti.com>, 'George Cherian'
 List-Id: linux-omap@vger.kernel.org
 
-*.dtb used to be generated in the *arch/arm/boot* directory
-which is different from where it is generated now.
-Current rules delete the previously generated files only for
-*make dtbs*.
-Let distclean delete all the generated dtb files.
+On Friday 28 June 2013 08:57 AM, Jingoo Han wrote:
+> On Wed, 26 Jun 2013 17:17:29 +0530, Kishon Vijay Abraham Iwrote:
+>> The PHY framework provides a set of APIs for the PHY drivers to
+>> create/destroy a PHY and APIs for the PHY users to obtain a reference to the
+>> PHY with or without using phandle. For dt-boot, the PHY drivers should
+>> also register *PHY provider* with the framework.
+>>
+>> PHY drivers should create the PHY by passing id and ops like init, exit,
+>> power_on and power_off. This framework is also pm runtime enabled.
+>>
+>> The documentation for the generic PHY framework is added in
+>> Documentation/phy.txt and the documentation for dt binding can be found at
+>> Documentation/devicetree/bindings/phy/phy-bindings.txt
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>
+> Tested-by: Jingoo Han <jg1.han@samsung.com>
+>
+> It looks great to me!
+>
+> I tested this General PHY framework with Exynos5250 eDP.
+> It works properly.
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/boot/dts/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks for testing this :-)
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index f0895c5..d293167 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -219,4 +219,4 @@ endif
- dtbs: $(addprefix $(obj)/, $(dtb-y))
- 	$(Q)rm -f $(obj)/../*.dtb
- 
--clean-files := *.dtb
-+clean-files := *.dtb ../*.dtb
--- 
-1.7.9.5
+> I will share the patch 'Generic PHY driver for the Exynos SoC DP PHY', soon.
+> Thanks.
+
+Cool.
+
+Thanks
+Kishon
