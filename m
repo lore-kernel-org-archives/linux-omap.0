@@ -1,126 +1,133 @@
-From: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
-Subject: Re: omap4 ehci sporadic resume issue
-Date: Fri, 28 Jun 2013 16:52:18 +0200
-Message-ID: <20130628145218.GA14199@panicking>
-References: <20130627141704.GF12956@panicking>
- <51CC5105.4070301@ti.com>
- <20130627175623.GB21364@panicking>
- <CAB=otbQXVqFKOTtgvif=FZnWgDpbovAB6naPKTrsEHUJb21xTw@mail.gmail.com>
- <20130627192413.GA14115@panicking>
- <CAB=otbT-BcJg5tNZ=7jd1jvoK8N1Hd_skScuxczaeP=tagdcSw@mail.gmail.com>
- <20130628113314.GA25536@panicking>
- <51CD7783.8030907@ti.com>
- <20130628122604.GB25536@panicking>
- <51CD87AC.6060107@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <51CD87AC.6060107-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH v4 1/2] gpio/omap: don't create an IRQ mapping for every GPIO on DT
+Date: Fri, 28 Jun 2013 17:27:02 +0200
+Message-ID: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:40768 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750838Ab3F1P1Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jun 2013 11:27:24 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Grant Likely <grant.likely@linaro.org>, jgchunter@gmail.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, eballetbo@gmail.com, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>, aaro.koskinen@iki.fi, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-Hi
+When a GPIO is defined as an interrupt line using Device
+Tree, a call to irq_create_of_mapping() is made that calls
+irq_create_mapping(). So, is not necessary to do the mapping
+for all OMAP GPIO lines and explicitly call irq_create_mapping()
+on the driver probe() when booting with Device Tree.
 
-On Fri, Jun 28, 2013 at 03:55:08PM +0300, Roger Quadros wrote:
-> On 06/28/2013 03:26 PM, Michael Trimarchi wrote:
-> > Hi
-> > 
-> > On Fri, Jun 28, 2013 at 02:46:11PM +0300, Roger Quadros wrote:
-> >> On 06/28/2013 02:33 PM, Michael Trimarchi wrote:
-> >>> Hi Roger
-> >>>
-> >>> On Thu, Jun 27, 2013 at 11:07:11PM +0300, Ruslan Bilovol wrote:
-> >>>> On Thu, Jun 27, 2013 at 10:24 PM, Michael Trimarchi
-> >>>> <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org> wrote:
-> >>
-> >>>> Do you have locks around this software workaround?
-> >>>> The patch I did against 3.4 linux kernel may be helpful for
-> >>>> you in such case: http://review.omapzoom.org/28515
-> >>>> Another patch extends this WA for all OMAP4 SoCs:
-> >>>> http://review.omapzoom.org/31108
-> >>>
-> >>> I'm testing using pm_test and stop to core (5ms and not 5 seconds) (usb suspend cycle are done correctly) so
-> >>> the problem could be:
-> >>>
-> >>> 1) SAR usb context restore. I have applied the SAR workaround but the core doesn't go in full retantion
-> >>> could be it a problem?
-> >>
-> >> If core doesn't go in to OFF then SAR will not come into play. Are you still affected by the
-> >> issue if OFF mode is disabled? If yes then it probably is not related to SAR.
-> >>
-> > 
-> > I don't go in full retantion for FSUSB now
-> > 
-> > [   36.317413]    PD_CORE curr=ON prev=ON logic=ON
-> > [   36.317413]    PD_L3_INIT curr=ON prev=ON logic=ON
-> > [   36.317413]       CD_L3_INIT mode=SW_SLEEP activity=0x2100
-> > [   36.317413]          FSUSB mode=DISABLED stbyst=STBY idlest=TRANSITION
-> > [   36.317413] Powerdomain (core_pwrdm) didn't enter target state 1 Vs achieved state 3. current state 3
-> > [   36.317413] Powerdomain (l3init_pwrdm) didn't enter target state 1 Vs achieved state 3. current state 3
-> > 
-> > This with enable_off_mode equal to 1 and usb stuck
-> > 
-> > but if I switch to enable_off_mode 0 (debug file), it works. So the problem seems somewhere there.
-> 
-> OK. Looks like the FSUSB module is stuck in transition. This can happen if the bootloader
-> hasn't improperly managed the FSUSB clock.
-> 
-> Can you apply the below patch to your bootloader and make sure FSUSB module is OFF at boot.
-> 
-> Let's see how it behaves with FSUSB out of the picture.
+Add a custom IRQ domain .map function handler that will be
+called by irq_create_mapping() to map the GPIO lines used as IRQ.
+This also allows to execute needed setup code such as configuring
+a GPIO as input and enabling the GPIO bank.
 
-I was having already in the queue. Not was testing because the system is very complicated with boot security. BTW now I have fixed the retantion and change suspend
-state of REGEN1 for a shutdown problem. So now the system
-can suspend perfectly but the problem is still there. I have done a very
-good step forward ;) anyway (was planned to test the new version of bootloader)
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Tested-by: Enric Balletbo i Serra <eballetbo@gmail.com>
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
+Acked-by: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+---
 
-Michael
+Changes since v3:
+  - Use bank->chip.of_node instead of_have_populated_dt() to check
+    DT or legacy boot as suggested by Jean-Christophe PLAGNIOL-VILLARD
 
+Changes since v2:
+  - Unconditionally do the IRQ setup in the .map() function and
+    only call irq_create_mapping() in the gpio chip init to avoid
+    code duplication as suggested by Grant Likely.
 
-> 
-> cheers,
-> -roger
-> 
-> From 0e42d3643d531daabd086f7ee451fdda8f22e72a Mon Sep 17 00:00:00 2001
-> From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-> Date: Wed, 25 Apr 2012 06:05:20 +0000
-> Subject: [PATCH] omap4: do not enable fs-usb module
-> 
-> If this is done in the bootloader, the FS-USB will later be stuck into
-> intransition state, which will prevent the device from entering idle.
-> 
-> Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-> ---
->  arch/arm/cpu/armv7/omap4/clocks.c |    2 --
->  1 files changed, 0 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/cpu/armv7/omap4/clocks.c b/arch/arm/cpu/armv7/omap4/clocks.c
-> index e2189f7..2802559 100644
-> --- a/arch/arm/cpu/armv7/omap4/clocks.c
-> +++ b/arch/arm/cpu/armv7/omap4/clocks.c
-> @@ -355,7 +355,6 @@ void enable_basic_clocks(void)
->  		&prcm->cm_l4per_gptimer2_clkctrl,
->  		&prcm->cm_wkup_wdtimer2_clkctrl,
->  		&prcm->cm_l4per_uart3_clkctrl,
-> -		&prcm->cm_l3init_fsusb_clkctrl,
->  		&prcm->cm_l3init_hsusbhost_clkctrl,
->  		0
->  	};
-> @@ -482,7 +481,6 @@ void enable_non_essential_clocks(void)
->  		&prcm->cm_dss_dss_clkctrl,
->  		&prcm->cm_sgx_sgx_clkctrl,
->  		&prcm->cm_l3init_hsusbhost_clkctrl,
-> -		&prcm->cm_l3init_fsusb_clkctrl,
->  		0
->  	};
->  
-> -- 
-> 1.7.4.1
+Changes since v1:
+  - Split the addition of the .map function handler and the
+    automatic gpio request in two different patches.
+  - Add GPIO IRQ setup logic to the irq domain mapping function.
+  - Only call irq_create_mapping for every GPIO on legacy boot.
+  - Only setup a GPIO IRQ on the .map function for DeviceTree boot.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/gpio/gpio-omap.c |   54 ++++++++++++++++++++++++++++++++++------------
+ 1 files changed, 40 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 4a43036..e260590 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1068,24 +1068,50 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
+ 
+ 	gpiochip_add(&bank->chip);
+ 
+-	for (j = 0; j < bank->width; j++) {
+-		int irq = irq_create_mapping(bank->domain, j);
+-		irq_set_lockdep_class(irq, &gpio_lock_class);
+-		irq_set_chip_data(irq, bank);
+-		if (bank->is_mpuio) {
+-			omap_mpuio_alloc_gc(bank, irq, bank->width);
+-		} else {
+-			irq_set_chip_and_handler(irq, &gpio_irq_chip,
+-						 handle_simple_irq);
+-			set_irq_flags(irq, IRQF_VALID);
+-		}
+-	}
++	/*
++	 * REVISIT these explicit calls to irq_create_mapping()
++	 * to do the GPIO to IRQ domain mapping for each GPIO in
++	 * the bank can be removed once all OMAP platforms have
++	 * been migrated to Device Tree boot only.
++	 * Since in DT boot irq_create_mapping() is called from
++	 * irq_create_of_mapping() only for the GPIO lines that
++	 * are used as interrupts.
++	 */
++	if (!bank->chip.of_node)
++		for (j = 0; j < bank->width; j++)
++			irq_create_mapping(bank->domain, j);
+ 	irq_set_chained_handler(bank->irq, gpio_irq_handler);
+ 	irq_set_handler_data(bank->irq, bank);
+ }
+ 
+ static const struct of_device_id omap_gpio_match[];
+ 
++static int omap_gpio_irq_map(struct irq_domain *d, unsigned int virq,
++			     irq_hw_number_t hwirq)
++{
++	struct gpio_bank *bank = d->host_data;
++
++	if (!bank)
++		return -EINVAL;
++
++	irq_set_lockdep_class(virq, &gpio_lock_class);
++	irq_set_chip_data(virq, bank);
++	if (bank->is_mpuio) {
++		omap_mpuio_alloc_gc(bank, virq, bank->width);
++	} else {
++		irq_set_chip_and_handler(virq, &gpio_irq_chip,
++					 handle_simple_irq);
++		set_irq_flags(virq, IRQF_VALID);
++	}
++
++	return 0;
++}
++
++static struct irq_domain_ops omap_gpio_irq_ops = {
++	.xlate  = irq_domain_xlate_onetwocell,
++	.map    = omap_gpio_irq_map,
++};
++
+ static int omap_gpio_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -1151,10 +1177,10 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	bank->domain = irq_domain_add_legacy(node, bank->width, irq_base,
+-					     0, &irq_domain_simple_ops, NULL);
++					     0, &omap_gpio_irq_ops, bank);
+ #else
+ 	bank->domain = irq_domain_add_linear(node, bank->width,
+-					     &irq_domain_simple_ops, NULL);
++					     &omap_gpio_irq_ops, bank);
+ #endif
+ 	if (!bank->domain) {
+ 		dev_err(dev, "Couldn't register an IRQ domain\n");
+-- 
+1.7.7.6
+
