@@ -1,73 +1,122 @@
-From: Michael Grzeschik <mgr-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: Re: [PATCH] usb: dwc3: core: continue probe even if usb3 phy is
- not available
-Date: Fri, 28 Jun 2013 22:06:01 +0200
-Message-ID: <20130628200601.GK3523@pengutronix.de>
-References: <1372238954-29047-1-git-send-email-george.cherian@ti.com>
- <20130626101647.GT12640@arwen.pp.htv.fi>
- <51CAD977.6040309@ti.com>
- <20130626121210.GA12640@arwen.pp.htv.fi>
- <874nclghu2.fsf@ashishki-desk.ger.corp.intel.com>
- <20130627061416.GI3523@pengutronix.de>
- <20130627063526.GG15455@arwen.pp.htv.fi>
- <20130627072408.GJ3523@pengutronix.de>
- <20130627073033.GN15455@arwen.pp.htv.fi>
- <20130628180000.GF25498@arwen.pp.htv.fi>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH 2/4] ARM: OMAP5: clockdomain data: add init file for omap54xx
+Date: Fri, 28 Jun 2013 14:03:51 -0700
+Message-ID: <20130628210351.14831.19618@quantum>
+References: <1372322299-25046-1-git-send-email-t-kristo@ti.com>
+ <1372322299-25046-3-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20130628180000.GF25498-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:63414 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752383Ab3F1VD4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jun 2013 17:03:56 -0400
+Received: by mail-pd0-f173.google.com with SMTP id v14so1249033pde.4
+        for <linux-omap@vger.kernel.org>; Fri, 28 Jun 2013 14:03:55 -0700 (PDT)
+In-Reply-To: <1372322299-25046-3-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com
+Cc: linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-On Fri, Jun 28, 2013 at 09:00:00PM +0300, Felipe Balbi wrote:
-> Hi,
+Quoting Tero Kristo (2013-06-27 01:38:17)
+> cclock54xx_data.c now contains only init function and the clkdev mapping
+> that is still needed by some drivers. Eventually most of this file can
+> be removed, once a common location for the clk init can be found, and
+> the clkdev mapping is no longer needed.
 > 
-> On Thu, Jun 27, 2013 at 10:30:33AM +0300, Felipe Balbi wrote:
-> > Hi,
-> > 
-> > On Thu, Jun 27, 2013 at 09:24:08AM +0200, Michael Grzeschik wrote:
-> > > > > > > right, but in DT you will define both instances and each instance will
-> > > > > > > have a seaparate snps,maximum_speed attribute :-)
-> > > > > > >
-> > > > > > > I'm now considering if we should make maximum_speed a generic attribute,
-> > > > > > > Kishon ? Alex ? Alan ?
-> > > > > > >
-> > > > > > > anyone else needs such thing ?
-> > > > > > 
-> > > > > > We have a force-full-speed attibute for chipidea on the way. This
-> > > > > > maximum_speed looks like a more generic alternative. Michael, what say
-> > > > > > you?
-> > > > > 
-> > > > > The maximum_speed attribute sounds more reasonable. I will change my
-> > > > > patch to it.
-> > > > 
-> > > > thanks, perhaps we can add a generic helper in udc-core or usb-common ?
-> > > 
-> > > As this function is not only udc specific, this should go into usb-common.
-> > > But right, we should go with a helper here. I will write one in addition
-> > > to my full-speed patch as first user of it.
-> > 
-> > alright, thanks :-)
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  arch/arm/mach-omap2/cclock54xx_data.c |   80 +++++++++++++++++++++++++++++++++
+>  1 file changed, 80 insertions(+)
+>  create mode 100644 arch/arm/mach-omap2/cclock54xx_data.c
 > 
-> Michael, if you need any help with patching in maximum_speed attribute,
-> let me know as I have some time to work on that part.
+> diff --git a/arch/arm/mach-omap2/cclock54xx_data.c b/arch/arm/mach-omap2/cclock54xx_data.c
+> new file mode 100644
 
-Feel free to begin with anything. I am currently short on time.
-Do you need some pointers?
+Why not drivers/clk/omap/clk-omap54xx.c?
 
-Thanks,
-Michael
+Regards,
+Mike
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> index 0000000..f23f44e
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/cclock54xx_data.c
+> @@ -0,0 +1,74 @@
+> +/*
+> + * OMAP54xx Clock data
+> + *
+> + * Copyright (C) 2013 Texas Instruments, Inc.
+> + *
+> + * Paul Walmsley (paul@pwsan.com)
+> + * Rajendra Nayak (rnayak@ti.com)
+> + * Benoit Cousson (b-cousson@ti.com)
+> + * Mike Turquette (mturquette@linaro.org)
+> + * Tero Kristo (t-kristo@ti.com)
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/list.h>
+> +#include <linux/clkdev.h>
+> +#include <linux/io.h>
+> +#include <linux/clk-provider.h>
+> +#include <linux/clk/omap.h>
+> +
+> +#include "soc.h"
+> +#include "clock.h"
+> +
+> +#define OMAP5_DPLL_ABE_DEFFREQ                         98304000
+> +
+> +/*
+> + * clkdev
+> + */
+> +static struct omap_dt_clk omap54xx_clks[] = {
+> +       DT_CLK(NULL,    "timer_32k_ck", "sys_32k_ck"),
+> +       DT_CLK("omap_timer.1",  "sys_ck",               "sys_clkin"),
+> +       DT_CLK("omap_timer.2",  "sys_ck",               "sys_clkin"),
+> +       DT_CLK("omap_timer.3",  "sys_ck",               "sys_clkin"),
+> +       DT_CLK("omap_timer.4",  "sys_ck",               "sys_clkin"),
+> +       DT_CLK("omap_timer.9",  "sys_ck",               "sys_clkin"),
+> +       DT_CLK("omap_timer.10", "sys_ck",               "sys_clkin"),
+> +       DT_CLK("omap_timer.11", "sys_ck",               "sys_clkin"),
+> +       DT_CLK("omap_timer.5",  "sys_ck",               "dss_syc_gfclk_div"),
+> +       DT_CLK("omap_timer.6",  "sys_ck",               "dss_syc_gfclk_div"),
+> +       DT_CLK("omap_timer.7",  "sys_ck",               "dss_syc_gfclk_div"),
+> +       DT_CLK("omap_timer.8",  "sys_ck",               "dss_syc_gfclk_div"),
+> +};
+> +
+> +int __init omap5xxx_clk_init(void)
+> +{
+> +       struct clk *abe_dpll_ref, *sys_32k_ck, *abe_dpll;
+> +       int rc;
+> +
+> +       /*
+> +        * Must stay commented until all OMAP SoC drivers are
+> +        * converted to runtime PM, or drivers may start crashing
+> +        *
+> +        * omap2_clk_disable_clkdm_control();
+> +        */
+> +       dt_omap_clk_init();
+> +
+> +       omap_dt_clocks_register(omap54xx_clks, ARRAY_SIZE(omap54xx_clks));
+> +
+> +       omap2_clk_disable_autoidle_all();
+> +
+> +       abe_dpll_ref = clk_get_sys(NULL, "abe_dpll_clk_mux");
+> +       sys_32k_ck = clk_get_sys(NULL, "sys_32k_ck");
+> +       rc = clk_set_parent(abe_dpll_ref, sys_32k_ck);
+> +       abe_dpll = clk_get_sys(NULL, "dpll_abe_ck");
+> +       if (!rc)
+> +               rc = clk_set_rate(abe_dpll, OMAP5_DPLL_ABE_DEFFREQ);
+> +       if (rc)
+> +               pr_err("%s: failed to configure ABE DPLL!\n", __func__);
+> +
+> +       return 0;
+> +}
+> -- 
+> 1.7.9.5
