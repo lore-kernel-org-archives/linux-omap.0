@@ -1,52 +1,101 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.10-rc6
-Date: Fri, 28 Jun 2013 18:45:38 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1306281844090.8767@utopia.booyaka.com>
-References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com> <20130625160243.GE22312@arwen.pp.htv.fi> <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com> <51C9F0A8.1050607@ti.com> <87fvw6t136.fsf@linaro.org> <79CD15C6BA57404B839C016229A409A83ECC952D@DBDE04.ent.ti.com>
- <51CAEB33.5010101@ti.com> <alpine.DEB.2.02.1306261722520.6135@utopia.booyaka.com> <51CBBCD8.5030600@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during
+ bus suspend
+Date: Fri, 28 Jun 2013 15:06:57 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1306281346430.1047-100000@iolanthe.rowland.org>
+References: <51CD7FA1.3020005@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:53379 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751518Ab3F1Spj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jun 2013 14:45:39 -0400
-In-Reply-To: <51CBBCD8.5030600@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51CD7FA1.3020005@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, tony@atomide.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Kevin Hilman <khilman@linaro.org>, "Rini, Tom" <trini@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Lokesh
+On Fri, 28 Jun 2013, Roger Quadros wrote:
 
-On Thu, 27 Jun 2013, Lokesh Vutla wrote:
+> > That's not what I meant.  Never mind the pinctrl; I was asking about
+> > the EHCI controller itself.  Under what circumstances does the
+> > controller assert its wakeup signal?  And how do you tell it to stop
+> > asserting that signal?
+> 
+> I believe this would be through the EHCI Interrupt enable register (USBINTR).
+> I'm not aware of any other mechanism.
 
-> On Wednesday 26 June 2013 10:56 PM, Paul Walmsley wrote:
+That's strange, because ehci_suspend() sets the intr_enable register to 
+0.  So how do you ever get any wakeup interrupts at all?
+
+> Right. It seems the external hub has signaled remote wakeup but the kernel doesn't
+> resume the root hub's port it is connected to.
+> 
+> By observing the detailed logs below you can see that the root hub does not generate
+> an INTerrupt transaction to notify the port status change event. I've captured the pstatus
+> and GetPortStatus info as well.
+
+We don't need an interrupt.  The driver is supposed to detect the
+remote wakeup sent by the external hub all by itself.
+
+> Failing case
+> ------------
+> 
+> [   16.108032] usb usb1: usb auto-resume
+> [   16.108062] ehci-omap 48064800.ehci: resume root hub
+> [   16.108154] hub 1-0:1.0: hub_resume
+> [   16.108398] ehci_hub_control GetPortStatus, port 1 temp = 0x1000
+> [   16.108459] ehci_hub_control GetPortStatus, port 2 temp = 0x14c5
+
+Here's where we should detect it.  Look at the GetPortStatus case in
+ehci_hub_control(); the PORT_RESUME bit (0x0040) is set in temp, so the
+"Remote Wakeup received?" code should run.  In particular, these lines
+should run:
+
+			/* resume signaling for 20 msec */
+			ehci->reset_done[wIndex] = jiffies
+					+ msecs_to_jiffies(20);
+			usb_hcd_start_port_resume(&hcd->self, wIndex);
+			/* check the port again */
+			mod_timer(&ehci_to_hcd(ehci)->rh_timer,
+					ehci->reset_done[wIndex]);
+
+Therefore 20 ms later, around timestamp 16.128459,
+ehci_hub_status_data() should have been called.  At that time, the
+root-hub port should have been fully resumed.
+
+> [   16.108551] hub 1-0:1.0: port 2: status 0507 change 0000
+> [   16.108612] ehci_hub_control GetPortStatus, port 3 temp = 0x1000
+> [   16.108642] hub 1-0:1.0: hub_activate submitting urb
+> [   16.109222] ehci_irq port 3 pstatus 0x1000
+> [   16.109222] ehci_irq port 2 pstatus 0x14c5
+> [   16.109252] ehci_irq port 1 pstatus 0x1000
+> [   16.109374] hub 1-0:1.0: state 7 ports 3 chg 0000 evt 0000
+
+But apparently nothing happened.  Why not?  Did the rh_timer get reset?  
+Maybe you can find out what went wrong.
+
+(Hmmm, we seem to be missing a
+
+			set_bit(wIndex, &ehci->resuming_ports);
+
+line in there...)
+
+> > Also, why do you need omap->initialized?  Do you think you might get a 
+> > wakeup interrupt before the controller has been fully set up?  I don't 
+> > see how you could, given the pm_runtime_get_sync() call in the probe 
+> > routine.
 > > 
-> > Here's how I do it:
-> > 
-> > ARCH=arm CROSS_COMPILE=${TOOLCHAIN_PATH}/bin/${TOOLCHAIN_PREFIX} nice make
-> > -j$CORES zImage am335x-bone.dtb
-> > 
-> > cat arch/arm/boot/zImage arch/arm/boot/am335x-bone.dtb >
-> > arch/arm/boot/zImage-dtb.am335x-bone
-> Here is the catch..
-> Your dtb is generated in arch/arm/boot/dts/ folder(before V3.8 dtb was
-> generated in arch/arm/boot).
+> 
+> During probe we need to runtime_resume the device before usb_add_hcd() since the
+> controller clocks must be enabled before any registers are accessed.
+> However, we cannot call ehci_resume() before usb_add_hcd(). So to prevent this
+> chicken & egg situation, I've used the omap->initialized flag. It only indicates that
+> the ehci structures are initialized and we can call ehci_resume/suspend().
 
-Ugh... that's probably it :-(
+Ah, yes.  Other subsystems, such as PCI, face exactly the same problem.
 
-> You are using very old dtb file. Please delete all your dtb files in
-> arch/arm/boot/ folder and check once.
+You probably shouldn't call it "initialized", though, because the same
+issue arises in ehci_hcd_omap_remove() -- the pm_runtime_put_sync()  
+there would end up calling ehci_suspend() after usb_remove_hcd().  
+"bound" or "started" would be better names.
 
-The tree is freshly recreated for each build, so the most likely scenario 
-is that there's no DTB file at all appended to the image.
-
-> Here is the patch from Grant Likely which does that.
-> https://patchwork.kernel.org/patch/1813321/
-> Can you please give a try updating this ..:)
-
-Yeah will try that, probably either today or tomorrow.
-
-
-- Paul
+Alan Stern
