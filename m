@@ -1,34 +1,52 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v4 1/2] gpio/omap: don't create an IRQ mapping for every
- GPIO on DT
-Date: Fri, 28 Jun 2013 11:28:53 -0400
-Message-ID: <51CDABB5.4080102@ti.com>
-References: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk>
+Subject: Re: [PATCH v4 2/2] gpio/omap: auto request GPIO as input if used
+ as IRQ via DT
+Date: Fri, 28 Jun 2013 11:32:15 -0400
+Message-ID: <51CDAC7F.5040807@ti.com>
+References: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk> <1372433223-9053-2-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49209 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54672 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755338Ab3F1P3Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Jun 2013 11:29:16 -0400
-In-Reply-To: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk>
+	id S1750818Ab3F1Pci (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Jun 2013 11:32:38 -0400
+In-Reply-To: <1372433223-9053-2-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 Cc: Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@linaro.org>, jgchunter@gmail.com, Tony Lindgren <tony@atomide.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, eballetbo@gmail.com, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>, aaro.koskinen@iki.fi
 
 On Friday 28 June 2013 11:27 AM, Javier Martinez Canillas wrote:
-> When a GPIO is defined as an interrupt line using Device
-> Tree, a call to irq_create_of_mapping() is made that calls
-> irq_create_mapping(). So, is not necessary to do the mapping
-> for all OMAP GPIO lines and explicitly call irq_create_mapping()
-> on the driver probe() when booting with Device Tree.
+> When an OMAP GPIO is used as an IRQ line, a call to gpio_request()
+> has to be made to initialize the OMAP GPIO bank before a driver
+> request the IRQ. Otherwise the call to request_irq() fails.
 > 
-> Add a custom IRQ domain .map function handler that will be
-> called by irq_create_mapping() to map the GPIO lines used as IRQ.
-> This also allows to execute needed setup code such as configuring
-> a GPIO as input and enabling the GPIO bank.
+> Drives should not be aware of this neither care wether an IRQ line
+> is a GPIO or not. They should just request the IRQ and this has to
+> be handled by the irq_chip driver.
+> 
+> With the current OMAP GPIO DT binding, if we define:
+> 
+>     gpio6: gpio@49058000 {
+>     	   compatible = "ti,omap3-gpio";
+> 	   reg = <0x49058000 0x200>;
+> 	   interrupts = <34>;
+> 	   ti,hwmods = "gpio6";
+> 	   gpio-controller;
+> 	   #gpio-cells = <2>;
+> 	   interrupt-controller;
+> 	   #interrupt-cells = <2>;
+>     };
+> 
+> 	   interrupt-parent = <&gpio6>;
+>            interrupts = <16 8>;
+> 
+> The GPIO is correctly mapped as an IRQ but a call to gpio_request()
+> is never made. Since a call to the custom IRQ domain .map function
+> handler is made for each GPIO used as an IRQ, the GPIO can be setup
+> and configured as input there automatically.
 > 
 > Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 > Tested-by: Enric Balletbo i Serra <eballetbo@gmail.com>
@@ -36,6 +54,5 @@ On Friday 28 June 2013 11:27 AM, Javier Martinez Canillas wrote:
 > Acked-by: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
 > ---
 > 
-Thanks for the patches.
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
