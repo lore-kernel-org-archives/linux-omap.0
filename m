@@ -1,104 +1,150 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: omap4 ehci sporadic resume issue
-Date: Fri, 28 Jun 2013 15:55:08 +0300
-Message-ID: <51CD87AC.6060107@ti.com>
-References: <51CC2755.2030505@amarulasolutions.com> <51CC454A.1040104@ti.com> <20130627141704.GF12956@panicking> <51CC5105.4070301@ti.com> <20130627175623.GB21364@panicking> <CAB=otbQXVqFKOTtgvif=FZnWgDpbovAB6naPKTrsEHUJb21xTw@mail.gmail.com> <20130627192413.GA14115@panicking> <CAB=otbT-BcJg5tNZ=7jd1jvoK8N1Hd_skScuxczaeP=tagdcSw@mail.gmail.com> <20130628113314.GA25536@panicking> <51CD7783.8030907@ti.com> <20130628122604.GB25536@panicking>
+From: Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] Documentation: dt: bindings: TI WiLink modules
+Date: Fri, 28 Jun 2013 16:21:10 +0300
+Message-ID: <1372425670.21065.61.camel@cumari.coelho.fi>
+References: <1372149330-24335-1-git-send-email-coelho@ti.com>
+	 <20130628093848.GA2139@e106331-lin.cambridge.arm.com>
+	 <1372413215.21065.41.camel@cumari.coelho.fi>
+	 <20130628102145.GB2139@e106331-lin.cambridge.arm.com>
+	 <1372415514.21065.50.camel@cumari.coelho.fi>
+	 <1372418531.21065.53.camel@cumari.coelho.fi>
+	 <20130628114129.GO11297@arwen.pp.htv.fi>
+	 <1372421632.21065.60.camel@cumari.coelho.fi>
+	 <20130628121859.GP11297@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51070 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751228Ab3F1MzM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Jun 2013 08:55:12 -0400
-In-Reply-To: <20130628122604.GB25536@panicking>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130628121859.GP11297-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: balbi-l0cyMroinI0@public.gmane.org, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Michael Trimarchi <michael@amarulasolutions.com>
-Cc: Ruslan Bilovol <ruslan.bilovol@ti.com>, USB list <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>
 
-On 06/28/2013 03:26 PM, Michael Trimarchi wrote:
-> Hi
+On Fri, 2013-06-28 at 15:18 +0300, Felipe Balbi wrote:
+> On Fri, Jun 28, 2013 at 03:13:52PM +0300, Luciano Coelho wrote:
+> > On Fri, 2013-06-28 at 14:41 +0300, Felipe Balbi wrote:
+> > > On Fri, Jun 28, 2013 at 02:22:11PM +0300, Luciano Coelho wrote:
+> > > > On Fri, 2013-06-28 at 13:31 +0300, Luciano Coelho wrote:
+> > > > > (fixed Mike's address)
+> > > > > 
+> > > > > On Fri, 2013-06-28 at 11:21 +0100, Mark Rutland wrote:
+> > > > > > On Fri, Jun 28, 2013 at 10:53:35AM +0100, Luciano Coelho wrote:
+> > > > > > > On Fri, 2013-06-28 at 10:38 +0100, Mark Rutland wrote:
+> > > > > > > > On Tue, Jun 25, 2013 at 09:35:30AM +0100, Luciano Coelho wrote:
+> > > > > > > > > +Optional properties:
+> > > > > > > > > +--------------------
+> > > > > > > > > +
+> > > > > > > > > +- refclock: the internal WLAN reference clock frequency (required for
+> > > > > > > > > +  WiLink6 and WiLink7; not used for WiLink8).  Must be one of the
+> > > > > > > > > +  following:
+> > > > > > > > > +	0 = 19.2 MHz
+> > > > > > > > > +	1 = 26.0 MHz
+> > > > > > > > > +	2 = 38.4 MHz
+> > > > > > > > > +	3 = 52.0 MHz
+> > > > > > > > > +	4 = 38.4 MHz, XTAL
+> > > > > > > > > +	5 = 26.0 MHz, XTAL
+> > > > > > > > > +
+> > > > > > > > > +- tcxoclock: the internal WLAN TCXO clock frequency (required for
+> > > > > > > > > +  WiLink7 not used for WiLink6 and WiLink8).  Must be one of the
+> > > > > > > > > +  following:
+> > > > > > > > > +	0 = 19.200 MHz
+> > > > > > > > > +	1 = 26.000 MHz
+> > > > > > > > > +	2 = 38.400 MHz
+> > > > > > > > > +	3 = 52.000 MHz
+> > > > > > > > > +	4 = 16.368 MHz
+> > > > > > > > > +	5 = 32.736 MHz
+> > > > > > > > > +	6 = 16.800 MHz
+> > > > > > > > > +	7 = 33.600 MHz
+> > > > > > > > 
+> > > > > > > > This looks suspiciously like what we have the common clock bindings for:
+> > > > > > > > 
+> > > > > > > > refclk {
+> > > > > > > > 	compatible = "fixed-clock";
+> > > > > > > > 	#clock-cells = <0>;
+> > > > > > > > 	clock-frequency = <19200000>;
+> > > > > > > > }
+> > > > > > > > 
+> > > > > > > > wilink {
+> > > > > > > > 	compatible = "ti,wilink7";
+> > > > > > > > 	interrupt-parent = <&some_interrupt_controller>;
+> > > > > > > > 	interrupts = <0 1 1>;
+> > > > > > > > 	clocks = <&refclk>, <&refclk>;
+> > > > > > > > 	clock-names = "refclk", "txoclk";
+> > > > > > > > };
+> > > > > > > > 
+> > > > > > > > Could you not use them?
+> > > > > > > 
+> > > > > > > Hmmm... this actually does look good.  But these are internal clocks in
+> > > > > > > the modules, they cannot be accessed from outside.  Does it make sense
+> > > > > > > to register them with the clock framework?
+> > > > > > 
+> > > > > > Given we already have a common way of describing clocks, I think it
+> > > > > > makes sense to use it -- people already understand the common bindings,
+> > > > > > and it's less code to add add to the kernel. I don't think the fact
+> > > > > > these clocks are internal should prevent us from describing them as we
+> > > > > > would an external clock.
+> > > > > 
+> > > > > Yes, I agree with you.  Thanks for the suggestion! I think it will look
+> > > > > much better.  And now that I dug a bit more into the code, I can see
+> > > > > that there are only structs being populated, so there shouldn't be any
+> > > > > other side-effects.
+> > > > 
+> > > > Hmmm, one thing that escaped me.  Besides the frequency, I also need a
+> > > > boolean that tells if the clock is XTAL or not.  I can't figure out how
+> > > > to pass this if I use the generic clock framework.  Any suggestions?
+> > > 
+> > > Could you use clock-output-names for that ?
+> > > 
+> > > XTAL clock:
+> > > 
+> > > refclk {
+> > > 	compatible = "fixed-clock";
+> > > 	#clock cells = <0>;
+> > > 	clock-frequency = <19200000>;
+> > > 	clock-output-names = "xtal";
+> > > };
+> > > 
+> > > non-XTAL clock:
+> > > 
+> > > refclk {
+> > > 	compatible = "fixed-clock";
+> > > 	#clock cells = <0>;
+> > > 	clock-frequency = <19200000>;
+> > > 	clock-output-names = "osc"; /* any better name ? */
+> > > };
+> > 
+> > This starts looking a bit hacky.  Using the output name as a flag is not
+> > very pretty.
+> > 
+> > I think it would be better to have a separate flag for it in the wlan
+> > node.  Like an optional "refclock-xtal" boolean or something.  The
+> > downside of this is that we would be adding information about the clock
+> > details in the wilink node. :(
+> > 
+> > OTOH, we could add a flag to the generic clock binding? A new optional
+> > boolean that tells whether the clock is XTAL or not:
+> > 
+> > refclk {
+> > 	compatible = "fixed-clock";
+> > 	#clock cells = <0>;
+> > 	clock-frequency = <19200000>;
+> > 	clock-xtal;
+> > };
+> > 
+> > Do you think that would make sense?
 > 
-> On Fri, Jun 28, 2013 at 02:46:11PM +0300, Roger Quadros wrote:
->> On 06/28/2013 02:33 PM, Michael Trimarchi wrote:
->>> Hi Roger
->>>
->>> On Thu, Jun 27, 2013 at 11:07:11PM +0300, Ruslan Bilovol wrote:
->>>> On Thu, Jun 27, 2013 at 10:24 PM, Michael Trimarchi
->>>> <michael@amarulasolutions.com> wrote:
->>
->>>> Do you have locks around this software workaround?
->>>> The patch I did against 3.4 linux kernel may be helpful for
->>>> you in such case: http://review.omapzoom.org/28515
->>>> Another patch extends this WA for all OMAP4 SoCs:
->>>> http://review.omapzoom.org/31108
->>>
->>> I'm testing using pm_test and stop to core (5ms and not 5 seconds) (usb suspend cycle are done correctly) so
->>> the problem could be:
->>>
->>> 1) SAR usb context restore. I have applied the SAR workaround but the core doesn't go in full retantion
->>> could be it a problem?
->>
->> If core doesn't go in to OFF then SAR will not come into play. Are you still affected by the
->> issue if OFF mode is disabled? If yes then it probably is not related to SAR.
->>
-> 
-> I don't go in full retantion for FSUSB now
-> 
-> [   36.317413]    PD_CORE curr=ON prev=ON logic=ON
-> [   36.317413]    PD_L3_INIT curr=ON prev=ON logic=ON
-> [   36.317413]       CD_L3_INIT mode=SW_SLEEP activity=0x2100
-> [   36.317413]          FSUSB mode=DISABLED stbyst=STBY idlest=TRANSITION
-> [   36.317413] Powerdomain (core_pwrdm) didn't enter target state 1 Vs achieved state 3. current state 3
-> [   36.317413] Powerdomain (l3init_pwrdm) didn't enter target state 1 Vs achieved state 3. current state 3
-> 
-> This with enable_off_mode equal to 1 and usb stuck
-> 
-> but if I switch to enable_off_mode 0 (debug file), it works. So the problem seems somewhere there.
+> sure, that looks alright to me. Surely there are other devices out there
+> who want to know if the clock comes from a crystal or not ?!?
 
-OK. Looks like the FSUSB module is stuck in transition. This can happen if the bootloader
-hasn't improperly managed the FSUSB clock.
+Mike, what do you think about this idea? If it sounds okay to you, I can
+cook up a patch adding this flag.
 
-Can you apply the below patch to your bootloader and make sure FSUSB module is OFF at boot.
+--
+Cheers,
+Luca.
 
-Let's see how it behaves with FSUSB out of the picture.
-
-cheers,
--roger
-
->From 0e42d3643d531daabd086f7ee451fdda8f22e72a Mon Sep 17 00:00:00 2001
-From: Tero Kristo <t-kristo@ti.com>
-Date: Wed, 25 Apr 2012 06:05:20 +0000
-Subject: [PATCH] omap4: do not enable fs-usb module
-
-If this is done in the bootloader, the FS-USB will later be stuck into
-intransition state, which will prevent the device from entering idle.
-
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/cpu/armv7/omap4/clocks.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/cpu/armv7/omap4/clocks.c b/arch/arm/cpu/armv7/omap4/clocks.c
-index e2189f7..2802559 100644
---- a/arch/arm/cpu/armv7/omap4/clocks.c
-+++ b/arch/arm/cpu/armv7/omap4/clocks.c
-@@ -355,7 +355,6 @@ void enable_basic_clocks(void)
- 		&prcm->cm_l4per_gptimer2_clkctrl,
- 		&prcm->cm_wkup_wdtimer2_clkctrl,
- 		&prcm->cm_l4per_uart3_clkctrl,
--		&prcm->cm_l3init_fsusb_clkctrl,
- 		&prcm->cm_l3init_hsusbhost_clkctrl,
- 		0
- 	};
-@@ -482,7 +481,6 @@ void enable_non_essential_clocks(void)
- 		&prcm->cm_dss_dss_clkctrl,
- 		&prcm->cm_sgx_sgx_clkctrl,
- 		&prcm->cm_l3init_hsusbhost_clkctrl,
--		&prcm->cm_l3init_fsusb_clkctrl,
- 		0
- 	};
- 
--- 
-1.7.4.1
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
