@@ -1,86 +1,96 @@
-From: "Fernandes, Joel" <joelf-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 0/5] AM33xx: MMC resources from DT without HWMOD data
-Date: Fri, 28 Jun 2013 16:56:04 +0000
-Message-ID: <083BC63EECB6FD41B8E81CF7FD87CC0F2E4F186C@DLEE08.ent.ti.com>
-References: <1372209808-6532-1-git-send-email-joelagnel@ti.com>
-	<CAD=GYpbdVVrh-tiqOcbHi3mkWRJUBdx0EsEZEFVVbgFgcCWgsw@mail.gmail.com>
-	<51CC2A1E.2040003@ti.com>
-	<CAD=GYpa9LQ1fV6=O9B65sJURVAigsgXCPLWav8cHXTuGQXPc9A@mail.gmail.com>
-	<51CC67CA.2070805@ti.com>
-	<083BC63EECB6FD41B8E81CF7FD87CC0F2E4F0F95@DLEE08.ent.ti.com>
-	<51CDB06B.9010604@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] usb: dwc3: core: continue probe even if usb3 phy is not
+ available
+Date: Fri, 28 Jun 2013 21:00:00 +0300
+Message-ID: <20130628180000.GF25498@arwen.pp.htv.fi>
+References: <1372238954-29047-1-git-send-email-george.cherian@ti.com>
+ <20130626101647.GT12640@arwen.pp.htv.fi>
+ <51CAD977.6040309@ti.com>
+ <20130626121210.GA12640@arwen.pp.htv.fi>
+ <874nclghu2.fsf@ashishki-desk.ger.corp.intel.com>
+ <20130627061416.GI3523@pengutronix.de>
+ <20130627063526.GG15455@arwen.pp.htv.fi>
+ <20130627072408.GJ3523@pengutronix.de>
+ <20130627073033.GN15455@arwen.pp.htv.fi>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <51CDB06B.9010604-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>
-Cc: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "benoit.cousson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <benoit.cousson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, "lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org" <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-k>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yQbNiKLmgenwUfTN"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130627073033.GN15455@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Michael Grzeschik <mgr@pengutronix.de>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, George Cherian <george.cherian@ti.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Alan Stern <stern@rowland.harvard.edu>
 List-Id: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Krishnamoorthy, Balaji T
-> Sent: Friday, June 28, 2013 10:49 AM
-> To: Fernandes, Joel
-> Cc: benoit.cousson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org; Tony Lindgren; Nori, Sekhar;
-> Matt Porter; Grant Likely; Rob Herring; Vinod Koul; Mark Brown; Russell King;
-> Rob Landley; Andrew Morton; Jason Kridner; Koen Kooi; Chris Ball; Devicetree
-> Discuss; Linux OMAP List; Linux ARM Kernel List; Linux DaVinci Kernel List;
-> Linux Kernel Mailing List; Linux MMC List; Arnd Bergmann
-> Subject: Re: [PATCH 0/5] AM33xx: MMC resources from DT without HWMOD
-> data
-> 
-> On Thursday 27 June 2013 11:38 PM, Fernandes, Joel wrote:
-> > Hi Balaji,
-> >
-> 
-> <snip>
-> 
-> >>> Some patches were squashed and others dropped in the series
-> >>> resulting in the single patch above. This patch should be good to
-> >>> apply
-> >> Hi Joel,
-> >>
-> >> Before pushing mmc dts support for am335x, Can you please let me know
-> >> if below 2 patches [1] are merged/accepted, IIRC these patches are
-> >> needed for MMC to work properly.
-> >>
-> >> I suggest to hold the dts patch until slave_sg_limit gets merged
-> >> otherwise it will cause regression in am335x mmc.
-> >>
-> >> [PATCH v4 1/3] dmaengine: add dma_get_slave_sg_limits() [PATCH v4
-> >> 2/3] dma: edma: add device_slave_sg_limits() support
-> >
-> > Actually this is an independent regression and is currently worked on by Lars-
-> Peter Clausen [1].
-> >
-> > Currently not having the MMC DTS merged is also a regression,
-> 
-> No, Right now mmc support is not added to am335x, so it is not really a
-> regression.
-> 
->  > so I suggest lets take it one
-> > step at a time and get the DTS merged in first. Also there will be
-> > overhead of reposting this DTS patch later again which will not change. What
-> do you say?
-> >
-> 
-> If it gets enabled via dts, without slave sg limit support, file read/write will fail,
-> possibly corrupting file system.
+--yQbNiKLmgenwUfTN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I agree with this. Thank you.
+Hi,
 
-Tony, Benoit, I guess let's just not apply the DTS yet till the slave-sg limits support
-is merged as well. Sorry for the noise. Thanks.
+On Thu, Jun 27, 2013 at 10:30:33AM +0300, Felipe Balbi wrote:
+> Hi,
+>=20
+> On Thu, Jun 27, 2013 at 09:24:08AM +0200, Michael Grzeschik wrote:
+> > > > > > right, but in DT you will define both instances and each instan=
+ce will
+> > > > > > have a seaparate snps,maximum_speed attribute :-)
+> > > > > >
+> > > > > > I'm now considering if we should make maximum_speed a generic a=
+ttribute,
+> > > > > > Kishon ? Alex ? Alan ?
+> > > > > >
+> > > > > > anyone else needs such thing ?
+> > > > >=20
+> > > > > We have a force-full-speed attibute for chipidea on the way. This
+> > > > > maximum_speed looks like a more generic alternative. Michael, wha=
+t say
+> > > > > you?
+> > > >=20
+> > > > The maximum_speed attribute sounds more reasonable. I will change my
+> > > > patch to it.
+> > >=20
+> > > thanks, perhaps we can add a generic helper in udc-core or usb-common=
+ ?
+> >=20
+> > As this function is not only udc specific, this should go into usb-comm=
+on.
+> > But right, we should go with a helper here. I will write one in addition
+> > to my full-speed patch as first user of it.
+>=20
+> alright, thanks :-)
 
--Joel
+Michael, if you need any help with patching in maximum_speed attribute,
+let me know as I have some time to work on that part.
+
+cheers
+
+--=20
+balbi
+
+--yQbNiKLmgenwUfTN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRzc8gAAoJEIaOsuA1yqREmHIQAIxdWheDf+szT0G39nO4b92U
+h+ydOWA42VquQ8AmICYM+xOXq0l17immZb3y9ySNY7woji9fas78dCeps/DlPjcd
+FyEbdmR0fYXL3wXkAEESsjx9hHV3KW8Zl/80GjetzebZzPMPrAXOeI7mpgYDgLUJ
+TyhTK4brnC0UyHBwTiVt0F2jLuXB955taLXwzxPHv6ejL8ysNStkPPPVBoq6rclt
+VsM6pY89mhbgOtpj/KBxCLKK5/2SsT0gJRuQVsFLEOvK7aXit9H200W7JZk+bh4C
+NTn1gnN8UHz/Y5Gps43rZYdjHJaAVLdSugMu2d0A70NQDIFPAVFY+Ogj4h+6d3jU
+QLaMXWhkQk0AT1Jb1AXEY5KBhSkgQnEBtO5jJw3DRTg9BitZTDBa8D2BYhFLBCad
+lWxmRfRJSj7z8xbLyjdoOdXQ4zbgJvkz/D/rkLyS5igO1N4+XDi0JfNfKEj0tv6T
+gbKCgF88sZJRRPyw4uyo23+icDV2V7CRfN7abshIRPHDDAe392+zNiS5cLahS2YS
+Tr9nD0iBucS8h79ugK8zxfmhQKfBV2NpJh22IZWtZE4H65CRcGSdOhE91fiVHBzx
+U63SevQK/aAG2UpaOcS6l09sZY/Q8yPHA+4fKiDxkHRTqHjZAiAwzY5pMoT4ZE1G
+ynnJE/ByKUPhUSU2fRnH
+=CHmE
+-----END PGP SIGNATURE-----
+
+--yQbNiKLmgenwUfTN--
