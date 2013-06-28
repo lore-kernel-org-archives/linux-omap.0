@@ -1,56 +1,73 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH] mmc: omap_hsmmc: use for OMAP5 as well
-Date: Fri, 28 Jun 2013 21:27:20 +0530
-Message-ID: <51CDB260.8080108@ti.com>
-References: <1372422894-23729-1-git-send-email-a-bindra@ti.com>
+From: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
+Subject: Re: omap4 ehci sporadic resume issue
+Date: Fri, 28 Jun 2013 18:47:51 +0200
+Message-ID: <20130628164751.GA1281@panicking>
+References: <51CC2755.2030505@amarulasolutions.com>
+ <51CC454A.1040104@ti.com>
+ <20130627141704.GF12956@panicking>
+ <51CC5105.4070301@ti.com>
+ <20130627175623.GB21364@panicking>
+ <CAB=otbQXVqFKOTtgvif=FZnWgDpbovAB6naPKTrsEHUJb21xTw@mail.gmail.com>
+ <20130627192413.GA14115@panicking>
+ <CAB=otbT-BcJg5tNZ=7jd1jvoK8N1Hd_skScuxczaeP=tagdcSw@mail.gmail.com>
+ <20130628113314.GA25536@panicking>
+ <51CD7783.8030907@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1372422894-23729-1-git-send-email-a-bindra@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: a-bindra@ti.com
-Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-omap@vger.kernel.org, balbi@ti.com, nm@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <51CD7783.8030907-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 28 June 2013 06:04 PM, a-bindra@ti.com wrote:
-> From: Amarinder Bindra <a-bindra@ti.com>
->
-> OMAP's hs_mmc driver is also used for OMAP5 MMC controller operation.
-> Considering that the device tree entries are already there for this,
-> allow the driver to be built when only OMAP5 is enabled.
-> This allows MMC root filesystems to be available in "OMAP5 only"
-> configurations.
->
-> Signed-off-by: Amarinder Bindra <a-bindra@ti.com>
-> Acked-by: Felipe Balbi <balbi@ti.com>
-> Acked-by: Nishanth Menon <nm@ti.com>
+Hi
 
-Looks good to me,
-Acked-by: Balaji T K <balajitk@ti.com>
+On Fri, Jun 28, 2013 at 02:46:11PM +0300, Roger Quadros wrote:
+> On 06/28/2013 02:33 PM, Michael Trimarchi wrote:
+> > Hi Roger
+> > 
+> > On Thu, Jun 27, 2013 at 11:07:11PM +0300, Ruslan Bilovol wrote:
+> >> On Thu, Jun 27, 2013 at 10:24 PM, Michael Trimarchi
+> >> <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org> wrote:
+> 
+> >> Do you have locks around this software workaround?
+> >> The patch I did against 3.4 linux kernel may be helpful for
+> >> you in such case: http://review.omapzoom.org/28515
+> >> Another patch extends this WA for all OMAP4 SoCs:
+> >> http://review.omapzoom.org/31108
+> > 
+> > I'm testing using pm_test and stop to core (5ms and not 5 seconds) (usb suspend cycle are done correctly) so
+> > the problem could be:
+> > 
+> > 1) SAR usb context restore. I have applied the SAR workaround but the core doesn't go in full retantion
+> > could be it a problem?
+> 
+> If core doesn't go in to OFF then SAR will not come into play. Are you still affected by the
+> issue if OFF mode is disabled? If yes then it probably is not related to SAR.
+> 
+> > 
+> > 2) idle status of ulpis pins?
+> 
+> Yes this can be possible.
+> 
+> When you said earlier that the problem doesn't happen when one of the ULPIs is used
+> did you try both of them individually. e.g. case 1: port 1 only enabled,
+> case 2: port 2 only enabled.
+> 
+> Did it work in both the cases?
 
-> ---
->   drivers/mmc/host/Kconfig |    6 +++---
->   1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
-> index 009dabd..6722e21 100644
-> --- a/drivers/mmc/host/Kconfig
-> +++ b/drivers/mmc/host/Kconfig
-> @@ -254,11 +254,11 @@ config MMC_OMAP
->
->   config MMC_OMAP_HS
->   	tristate "TI OMAP High Speed Multimedia Card Interface support"
-> -	depends on SOC_OMAP2430 || ARCH_OMAP3 || ARCH_OMAP4
-> +	depends on SOC_OMAP2430 || ARCH_OMAP3 || ARCH_OMAP4 || SOC_OMAP5
->   	help
->   	  This selects the TI OMAP High Speed Multimedia card Interface.
-> -	  If you have an OMAP2430 or OMAP3 board or OMAP4 board with a
-> -	  Multimedia Card slot, say Y or M here.
-> +	  If you have an OMAP2430 or OMAP3 board or OMAP4 board or OMAP5
-> +	  board with a Multimedia Card slot, say Y or M here.
->
->   	  If unsure, say N.
->
->
+Yes, so I don't think could be a problem of ulpi pins and why this happen
+on both at the same time? Seems more connected to somenthing else.
 
+Michael
+
+> 
+> cheers,
+> -roger
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
