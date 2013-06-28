@@ -1,115 +1,72 @@
-From: Abhishek Karan <a.k.living.on.instinct@gmail.com>
-Subject: Remounting of system partition
-Date: Fri, 28 Jun 2013 07:13:26 +0000 (UTC)
-Message-ID: <loom.20130628T090949-560@post.gmane.org>
+From: Tomi Valkeinen <tomi.valkeinen@iki.fi>
+Subject: Re: [PATCH v2] ARM: DTS: OMAP4: Add OMAP4 Blaze Tablet support
+Date: Fri, 28 Jun 2013 10:58:43 +0300
+Message-ID: <51CD4233.3040209@iki.fi>
+References: <1372159970-6361-1-git-send-email-ruslan.bilovol@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:60172 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752072Ab3F1HPG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Jun 2013 03:15:06 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1UsSta-0007G3-QS
-	for linux-omap@vger.kernel.org; Fri, 28 Jun 2013 09:15:03 +0200
-Received: from 59.145.174.34 ([59.145.174.34])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Fri, 28 Jun 2013 09:15:02 +0200
-Received: from a.k.living.on.instinct by 59.145.174.34 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Fri, 28 Jun 2013 09:15:02 +0200
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="----enig2KCGSAMPDOGDKJLXTPATW"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1372159970-6361-1-git-send-email-ruslan.bilovol@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Cc: b-cousson@ti.com, tony@atomide.com, benoit.cousson@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-I am facing one problem in one of the OMAP4430 based tab that I am using.
-I try to remount the system partition as rw but it is not doing so .
-as some other service is continuously remouting it to ro.
-I am getting the following logs a lot of time
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+------enig2KCGSAMPDOGDKJLXTPATW
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-<6>[  645.504150] C1 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
+On 25/06/13 14:32, Ruslan Bilovol wrote:
+> The OMAP4 Blaze Tablet is TI OMAP4 processor-based
+> development platform in a tablet formfactor.
+> The platform contains many of the features found in
+> present-day handsets (such as audio, video, wireless
+> functions and user interfaces) and in addition
+> contains features for software development and test.
+>=20
+> This patch adds initial support for the OMAP4 Blaze
+> Tablet development platform. Additional functionality
+> depends on different drivers and code modifications that
+> are not upstreamed yet or do not support DT yet, so will
+> be added later.
 
-<6>[  645.534545] C1 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
+I think there are (at least) two revisions of the blaze tablet, the
+newer one has a higher resolution LCD. I don't know what the other
+differences are.
 
-<6>[  650.121795] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
+I think you have the newer revision. I have the older. Do you know about
+the diff of those revisions, or more importantly, will the same blaze
+tablet support work for the older revision also?
 
-<6>[  650.147888] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
+ Tomi
 
-<6>[  654.732482] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
 
-<6>[  654.758270] C1 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
 
-<6>[  660.346282] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
+------enig2KCGSAMPDOGDKJLXTPATW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-<6>[  660.370635] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-<6>[  662.031921] C1 [       watchdog] !@Sync 13
+iQIcBAEBAgAGBQJRzUI3AAoJEPo9qoy8lh71X10QAI0GTRyNcaK2aEWzd4Wd7oHh
+Q2f88YpyYttnEVYEwJqRaLCgqN9OMQ4zzwxcxFH6sGYoAhIhALKZRP88YZr9vhUy
+WkaHU8xgOb3oDs7Mz5xPEMGgXXRmBEzuaNxU1o8VPNfgW2nINsQU6Qq4bnQDdKgV
+0nperAnILmaVD09zn4bhLhmBOWTGRRHs07Hs5J2auCh0+h7kyEVu9ppPcqeph9VH
+NlnEkMHuueaXT1qq84uvMRS9weQefLhEmk66hJRM5AZP47tc5xYWs5ZN++NxZqMO
+FvBuRmzqkiAwDKuwyGpNoE0YOZoliQnQP+LfglpTfC3lxVAYS8dxC8iAGOpfGwRx
+ivAjdDRrRPi1PnRTri8MnAcc9OR5FfrY4wP56+ZvrffKoXqfsWy309Fj4gYhwFzL
+/WEmLldKMFciKUiEtmqbvv50uqm6Tcd6wm8WKV2qilF125h3Aa62LgBEBBDuB9rm
+pQpKFER8BL6JyCLUaZDjGwIhishvQnJGvivztieCRRJhJ0kqFGFCItsnNAiTFd2i
+bSsjfcXQRSk6ypTli4whYgjmsuNsm0l8mWM6ciRpT+fvzNvKVx+njL0V7mXCbLTp
+kFjOE1SNPmpKJ/Yh0/0+FCC2hqyaTMQTQ2X+qVMQBKrmZ375ZYpojFvbDx+8tmXJ
+JcPKMqrpG9RXJJz3K+K0
+=xf48
+-----END PGP SIGNATURE-----
 
-<6>[  664.957794] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
-
-<6>[  664.983764] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
-
-<6>[  670.567962] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
-
-<6>[  670.594787] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
-
-<6>[  674.640686] C0 [    kworker/0:1] max17042 7-0036: VCELL : 3784, 
-data : 0xbd38
-
-<6>[  674.641479] C0 [    kworker/0:1] max17042 7-0036: AVG Current : 449, 
-data :0xb3a
-
-<6>[  674.642242] C0 [    kworker/0:1] max17042 7-0036: Current : 456, 
-data :0xb68
-
-<6>[  674.642974] C0 [    kworker/0:1] max17042 7-0036: SOC : 18, data : 
-0x1252
-
-<6>[  674.645233] C0 [    kworker/0:1] max17042 7-0036: TEMPERATURE : 278, 
-data :0x1bdf
-
-<6>[  674.705383] C0 [    kworker/0:1] battery_manager battery_manager: 
-vcell = 3784000 soc = 18  current = 456 avg_current = 449 status = 2 
-health = 1 temp = 278 discharge status = 0, limit time : 0, bootmode : 0
-
-<6>[  675.183227] C1 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
-
-<6>[  675.210021] C1 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
-
-<6>[  679.795349] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
-
-<6>[  679.821105] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
-
-<6>[  685.408721] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
-
-<6>[  685.436767] C0 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
-
-<6>[  690.026428] C1 [          mount] EXT4-fs (mmcblk0p9): re-mounted. 
-Opts: (null)
-
-Can you help me with it that whether it is a bug or is it normal 
-for the partition to be remounted so many times
-
-thanks and Regards
-
+------enig2KCGSAMPDOGDKJLXTPATW--
