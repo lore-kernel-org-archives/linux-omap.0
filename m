@@ -1,55 +1,135 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: omap4 ehci sporadic resume issue
-Date: Fri, 28 Jun 2013 14:46:11 +0300
-Message-ID: <51CD7783.8030907@ti.com>
-References: <51CC2755.2030505@amarulasolutions.com> <51CC454A.1040104@ti.com> <20130627141704.GF12956@panicking> <51CC5105.4070301@ti.com> <20130627175623.GB21364@panicking> <CAB=otbQXVqFKOTtgvif=FZnWgDpbovAB6naPKTrsEHUJb21xTw@mail.gmail.com> <20130627192413.GA14115@panicking> <CAB=otbT-BcJg5tNZ=7jd1jvoK8N1Hd_skScuxczaeP=tagdcSw@mail.gmail.com> <20130628113314.GA25536@panicking>
+From: Luciano Coelho <coelho@ti.com>
+Subject: Re: [PATCH] Documentation: dt: bindings: TI WiLink modules
+Date: Fri, 28 Jun 2013 15:13:52 +0300
+Message-ID: <1372421632.21065.60.camel@cumari.coelho.fi>
+References: <1372149330-24335-1-git-send-email-coelho@ti.com>
+	 <20130628093848.GA2139@e106331-lin.cambridge.arm.com>
+	 <1372413215.21065.41.camel@cumari.coelho.fi>
+	 <20130628102145.GB2139@e106331-lin.cambridge.arm.com>
+	 <1372415514.21065.50.camel@cumari.coelho.fi>
+	 <1372418531.21065.53.camel@cumari.coelho.fi>
+	 <20130628114129.GO11297@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130628113314.GA25536@panicking>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
-Cc: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20130628114129.GO11297@arwen.pp.htv.fi>
+Sender: linux-doc-owner@vger.kernel.org
+To: balbi@ti.com, mturquette@linaro.org
+Cc: Mark Rutland <mark.rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-arm@vger.kernel.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 06/28/2013 02:33 PM, Michael Trimarchi wrote:
-> Hi Roger
+On Fri, 2013-06-28 at 14:41 +0300, Felipe Balbi wrote:
+> On Fri, Jun 28, 2013 at 02:22:11PM +0300, Luciano Coelho wrote:
+> > On Fri, 2013-06-28 at 13:31 +0300, Luciano Coelho wrote:
+> > > (fixed Mike's address)
+> > > 
+> > > On Fri, 2013-06-28 at 11:21 +0100, Mark Rutland wrote:
+> > > > On Fri, Jun 28, 2013 at 10:53:35AM +0100, Luciano Coelho wrote:
+> > > > > On Fri, 2013-06-28 at 10:38 +0100, Mark Rutland wrote:
+> > > > > > On Tue, Jun 25, 2013 at 09:35:30AM +0100, Luciano Coelho wrote:
+> > > > > > > +Optional properties:
+> > > > > > > +--------------------
+> > > > > > > +
+> > > > > > > +- refclock: the internal WLAN reference clock frequency (required for
+> > > > > > > +  WiLink6 and WiLink7; not used for WiLink8).  Must be one of the
+> > > > > > > +  following:
+> > > > > > > +	0 = 19.2 MHz
+> > > > > > > +	1 = 26.0 MHz
+> > > > > > > +	2 = 38.4 MHz
+> > > > > > > +	3 = 52.0 MHz
+> > > > > > > +	4 = 38.4 MHz, XTAL
+> > > > > > > +	5 = 26.0 MHz, XTAL
+> > > > > > > +
+> > > > > > > +- tcxoclock: the internal WLAN TCXO clock frequency (required for
+> > > > > > > +  WiLink7 not used for WiLink6 and WiLink8).  Must be one of the
+> > > > > > > +  following:
+> > > > > > > +	0 = 19.200 MHz
+> > > > > > > +	1 = 26.000 MHz
+> > > > > > > +	2 = 38.400 MHz
+> > > > > > > +	3 = 52.000 MHz
+> > > > > > > +	4 = 16.368 MHz
+> > > > > > > +	5 = 32.736 MHz
+> > > > > > > +	6 = 16.800 MHz
+> > > > > > > +	7 = 33.600 MHz
+> > > > > > 
+> > > > > > This looks suspiciously like what we have the common clock bindings for:
+> > > > > > 
+> > > > > > refclk {
+> > > > > > 	compatible = "fixed-clock";
+> > > > > > 	#clock-cells = <0>;
+> > > > > > 	clock-frequency = <19200000>;
+> > > > > > }
+> > > > > > 
+> > > > > > wilink {
+> > > > > > 	compatible = "ti,wilink7";
+> > > > > > 	interrupt-parent = <&some_interrupt_controller>;
+> > > > > > 	interrupts = <0 1 1>;
+> > > > > > 	clocks = <&refclk>, <&refclk>;
+> > > > > > 	clock-names = "refclk", "txoclk";
+> > > > > > };
+> > > > > > 
+> > > > > > Could you not use them?
+> > > > > 
+> > > > > Hmmm... this actually does look good.  But these are internal clocks in
+> > > > > the modules, they cannot be accessed from outside.  Does it make sense
+> > > > > to register them with the clock framework?
+> > > > 
+> > > > Given we already have a common way of describing clocks, I think it
+> > > > makes sense to use it -- people already understand the common bindings,
+> > > > and it's less code to add add to the kernel. I don't think the fact
+> > > > these clocks are internal should prevent us from describing them as we
+> > > > would an external clock.
+> > > 
+> > > Yes, I agree with you.  Thanks for the suggestion! I think it will look
+> > > much better.  And now that I dug a bit more into the code, I can see
+> > > that there are only structs being populated, so there shouldn't be any
+> > > other side-effects.
+> > 
+> > Hmmm, one thing that escaped me.  Besides the frequency, I also need a
+> > boolean that tells if the clock is XTAL or not.  I can't figure out how
+> > to pass this if I use the generic clock framework.  Any suggestions?
 > 
-> On Thu, Jun 27, 2013 at 11:07:11PM +0300, Ruslan Bilovol wrote:
->> On Thu, Jun 27, 2013 at 10:24 PM, Michael Trimarchi
->> <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org> wrote:
-
->> Do you have locks around this software workaround?
->> The patch I did against 3.4 linux kernel may be helpful for
->> you in such case: http://review.omapzoom.org/28515
->> Another patch extends this WA for all OMAP4 SoCs:
->> http://review.omapzoom.org/31108
+> Could you use clock-output-names for that ?
 > 
-> I'm testing using pm_test and stop to core (5ms and not 5 seconds) (usb suspend cycle are done correctly) so
-> the problem could be:
+> XTAL clock:
 > 
-> 1) SAR usb context restore. I have applied the SAR workaround but the core doesn't go in full retantion
-> could be it a problem?
-
-If core doesn't go in to OFF then SAR will not come into play. Are you still affected by the
-issue if OFF mode is disabled? If yes then it probably is not related to SAR.
-
+> refclk {
+> 	compatible = "fixed-clock";
+> 	#clock cells = <0>;
+> 	clock-frequency = <19200000>;
+> 	clock-output-names = "xtal";
+> };
 > 
-> 2) idle status of ulpis pins?
+> non-XTAL clock:
+> 
+> refclk {
+> 	compatible = "fixed-clock";
+> 	#clock cells = <0>;
+> 	clock-frequency = <19200000>;
+> 	clock-output-names = "osc"; /* any better name ? */
+> };
 
-Yes this can be possible.
+This starts looking a bit hacky.  Using the output name as a flag is not
+very pretty.
 
-When you said earlier that the problem doesn't happen when one of the ULPIs is used
-did you try both of them individually. e.g. case 1: port 1 only enabled,
-case 2: port 2 only enabled.
+I think it would be better to have a separate flag for it in the wlan
+node.  Like an optional "refclock-xtal" boolean or something.  The
+downside of this is that we would be adding information about the clock
+details in the wilink node. :(
 
-Did it work in both the cases?
+OTOH, we could add a flag to the generic clock binding? A new optional
+boolean that tells whether the clock is XTAL or not:
 
-cheers,
--roger
+refclk {
+	compatible = "fixed-clock";
+	#clock cells = <0>;
+	clock-frequency = <19200000>;
+	clock-xtal;
+};
+
+Do you think that would make sense?
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Luca.
+
