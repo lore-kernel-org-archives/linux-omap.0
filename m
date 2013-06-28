@@ -1,96 +1,52 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: dwc3: core: continue probe even if usb3 phy is not
- available
-Date: Fri, 28 Jun 2013 21:00:00 +0300
-Message-ID: <20130628180000.GF25498@arwen.pp.htv.fi>
-References: <1372238954-29047-1-git-send-email-george.cherian@ti.com>
- <20130626101647.GT12640@arwen.pp.htv.fi>
- <51CAD977.6040309@ti.com>
- <20130626121210.GA12640@arwen.pp.htv.fi>
- <874nclghu2.fsf@ashishki-desk.ger.corp.intel.com>
- <20130627061416.GI3523@pengutronix.de>
- <20130627063526.GG15455@arwen.pp.htv.fi>
- <20130627072408.GJ3523@pengutronix.de>
- <20130627073033.GN15455@arwen.pp.htv.fi>
-Reply-To: <balbi@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.10-rc6
+Date: Fri, 28 Jun 2013 18:45:38 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1306281844090.8767@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com> <20130625160243.GE22312@arwen.pp.htv.fi> <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com> <51C9F0A8.1050607@ti.com> <87fvw6t136.fsf@linaro.org> <79CD15C6BA57404B839C016229A409A83ECC952D@DBDE04.ent.ti.com>
+ <51CAEB33.5010101@ti.com> <alpine.DEB.2.02.1306261722520.6135@utopia.booyaka.com> <51CBBCD8.5030600@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yQbNiKLmgenwUfTN"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130627073033.GN15455@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Michael Grzeschik <mgr@pengutronix.de>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, George Cherian <george.cherian@ti.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Alan Stern <stern@rowland.harvard.edu>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:53379 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751518Ab3F1Spj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jun 2013 14:45:39 -0400
+In-Reply-To: <51CBBCD8.5030600@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Kevin Hilman <khilman@linaro.org>, "Rini, Tom" <trini@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---yQbNiKLmgenwUfTN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Lokesh
 
-Hi,
+On Thu, 27 Jun 2013, Lokesh Vutla wrote:
 
-On Thu, Jun 27, 2013 at 10:30:33AM +0300, Felipe Balbi wrote:
-> Hi,
->=20
-> On Thu, Jun 27, 2013 at 09:24:08AM +0200, Michael Grzeschik wrote:
-> > > > > > right, but in DT you will define both instances and each instan=
-ce will
-> > > > > > have a seaparate snps,maximum_speed attribute :-)
-> > > > > >
-> > > > > > I'm now considering if we should make maximum_speed a generic a=
-ttribute,
-> > > > > > Kishon ? Alex ? Alan ?
-> > > > > >
-> > > > > > anyone else needs such thing ?
-> > > > >=20
-> > > > > We have a force-full-speed attibute for chipidea on the way. This
-> > > > > maximum_speed looks like a more generic alternative. Michael, wha=
-t say
-> > > > > you?
-> > > >=20
-> > > > The maximum_speed attribute sounds more reasonable. I will change my
-> > > > patch to it.
-> > >=20
-> > > thanks, perhaps we can add a generic helper in udc-core or usb-common=
- ?
-> >=20
-> > As this function is not only udc specific, this should go into usb-comm=
-on.
-> > But right, we should go with a helper here. I will write one in addition
-> > to my full-speed patch as first user of it.
->=20
-> alright, thanks :-)
+> On Wednesday 26 June 2013 10:56 PM, Paul Walmsley wrote:
+> > 
+> > Here's how I do it:
+> > 
+> > ARCH=arm CROSS_COMPILE=${TOOLCHAIN_PATH}/bin/${TOOLCHAIN_PREFIX} nice make
+> > -j$CORES zImage am335x-bone.dtb
+> > 
+> > cat arch/arm/boot/zImage arch/arm/boot/am335x-bone.dtb >
+> > arch/arm/boot/zImage-dtb.am335x-bone
+> Here is the catch..
+> Your dtb is generated in arch/arm/boot/dts/ folder(before V3.8 dtb was
+> generated in arch/arm/boot).
 
-Michael, if you need any help with patching in maximum_speed attribute,
-let me know as I have some time to work on that part.
+Ugh... that's probably it :-(
 
-cheers
+> You are using very old dtb file. Please delete all your dtb files in
+> arch/arm/boot/ folder and check once.
 
---=20
-balbi
+The tree is freshly recreated for each build, so the most likely scenario 
+is that there's no DTB file at all appended to the image.
 
---yQbNiKLmgenwUfTN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> Here is the patch from Grant Likely which does that.
+> https://patchwork.kernel.org/patch/1813321/
+> Can you please give a try updating this ..:)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Yeah will try that, probably either today or tomorrow.
 
-iQIcBAEBAgAGBQJRzc8gAAoJEIaOsuA1yqREmHIQAIxdWheDf+szT0G39nO4b92U
-h+ydOWA42VquQ8AmICYM+xOXq0l17immZb3y9ySNY7woji9fas78dCeps/DlPjcd
-FyEbdmR0fYXL3wXkAEESsjx9hHV3KW8Zl/80GjetzebZzPMPrAXOeI7mpgYDgLUJ
-TyhTK4brnC0UyHBwTiVt0F2jLuXB955taLXwzxPHv6ejL8ysNStkPPPVBoq6rclt
-VsM6pY89mhbgOtpj/KBxCLKK5/2SsT0gJRuQVsFLEOvK7aXit9H200W7JZk+bh4C
-NTn1gnN8UHz/Y5Gps43rZYdjHJaAVLdSugMu2d0A70NQDIFPAVFY+Ogj4h+6d3jU
-QLaMXWhkQk0AT1Jb1AXEY5KBhSkgQnEBtO5jJw3DRTg9BitZTDBa8D2BYhFLBCad
-lWxmRfRJSj7z8xbLyjdoOdXQ4zbgJvkz/D/rkLyS5igO1N4+XDi0JfNfKEj0tv6T
-gbKCgF88sZJRRPyw4uyo23+icDV2V7CRfN7abshIRPHDDAe392+zNiS5cLahS2YS
-Tr9nD0iBucS8h79ugK8zxfmhQKfBV2NpJh22IZWtZE4H65CRcGSdOhE91fiVHBzx
-U63SevQK/aAG2UpaOcS6l09sZY/Q8yPHA+4fKiDxkHRTqHjZAiAwzY5pMoT4ZE1G
-ynnJE/ByKUPhUSU2fRnH
-=CHmE
------END PGP SIGNATURE-----
 
---yQbNiKLmgenwUfTN--
+- Paul
