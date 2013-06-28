@@ -1,71 +1,73 @@
-From: Michael Trimarchi <michael@amarulasolutions.com>
-Subject: Re: omap4 ehci sporadic resume issue
-Date: Fri, 28 Jun 2013 21:42:40 +0200
-Message-ID: <51CDE730.7070608@amarulasolutions.com>
-References: <51CC2755.2030505@amarulasolutions.com> <51CC454A.1040104@ti.com> <20130627141704.GF12956@panicking> <51CC5105.4070301@ti.com> <20130627175623.GB21364@panicking> <CAB=otbQXVqFKOTtgvif=FZnWgDpbovAB6naPKTrsEHUJb21xTw@mail.gmail.com> <20130627192413.GA14115@panicking> <CAB=otbT-BcJg5tNZ=7jd1jvoK8N1Hd_skScuxczaeP=tagdcSw@mail.gmail.com> <20130628113314.GA25536@panicking> <51CD7783.8030907@ti.com>
+From: Michael Grzeschik <mgr-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCH] usb: dwc3: core: continue probe even if usb3 phy is
+ not available
+Date: Fri, 28 Jun 2013 22:06:01 +0200
+Message-ID: <20130628200601.GK3523@pengutronix.de>
+References: <1372238954-29047-1-git-send-email-george.cherian@ti.com>
+ <20130626101647.GT12640@arwen.pp.htv.fi>
+ <51CAD977.6040309@ti.com>
+ <20130626121210.GA12640@arwen.pp.htv.fi>
+ <874nclghu2.fsf@ashishki-desk.ger.corp.intel.com>
+ <20130627061416.GI3523@pengutronix.de>
+ <20130627063526.GG15455@arwen.pp.htv.fi>
+ <20130627072408.GJ3523@pengutronix.de>
+ <20130627073033.GN15455@arwen.pp.htv.fi>
+ <20130628180000.GF25498@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f173.google.com ([209.85.215.173]:49936 "EHLO
-	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751568Ab3F1Tmp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jun 2013 15:42:45 -0400
-Received: by mail-ea0-f173.google.com with SMTP id g15so1239083eak.4
-        for <linux-omap@vger.kernel.org>; Fri, 28 Jun 2013 12:42:44 -0700 (PDT)
-In-Reply-To: <51CD7783.8030907@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20130628180000.GF25498-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Ruslan Bilovol <ruslan.bilovol@ti.com>, USB list <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>
 
-Hi
+On Fri, Jun 28, 2013 at 09:00:00PM +0300, Felipe Balbi wrote:
+> Hi,
+> 
+> On Thu, Jun 27, 2013 at 10:30:33AM +0300, Felipe Balbi wrote:
+> > Hi,
+> > 
+> > On Thu, Jun 27, 2013 at 09:24:08AM +0200, Michael Grzeschik wrote:
+> > > > > > > right, but in DT you will define both instances and each instance will
+> > > > > > > have a seaparate snps,maximum_speed attribute :-)
+> > > > > > >
+> > > > > > > I'm now considering if we should make maximum_speed a generic attribute,
+> > > > > > > Kishon ? Alex ? Alan ?
+> > > > > > >
+> > > > > > > anyone else needs such thing ?
+> > > > > > 
+> > > > > > We have a force-full-speed attibute for chipidea on the way. This
+> > > > > > maximum_speed looks like a more generic alternative. Michael, what say
+> > > > > > you?
+> > > > > 
+> > > > > The maximum_speed attribute sounds more reasonable. I will change my
+> > > > > patch to it.
+> > > > 
+> > > > thanks, perhaps we can add a generic helper in udc-core or usb-common ?
+> > > 
+> > > As this function is not only udc specific, this should go into usb-common.
+> > > But right, we should go with a helper here. I will write one in addition
+> > > to my full-speed patch as first user of it.
+> > 
+> > alright, thanks :-)
+> 
+> Michael, if you need any help with patching in maximum_speed attribute,
+> let me know as I have some time to work on that part.
 
-On 06/28/2013 01:46 PM, Roger Quadros wrote:
-> On 06/28/2013 02:33 PM, Michael Trimarchi wrote:
->> Hi Roger
->>
->> On Thu, Jun 27, 2013 at 11:07:11PM +0300, Ruslan Bilovol wrote:
->>> On Thu, Jun 27, 2013 at 10:24 PM, Michael Trimarchi
->>> <michael@amarulasolutions.com> wrote:
-> 
->>> Do you have locks around this software workaround?
->>> The patch I did against 3.4 linux kernel may be helpful for
->>> you in such case: http://review.omapzoom.org/28515
->>> Another patch extends this WA for all OMAP4 SoCs:
->>> http://review.omapzoom.org/31108
->>
->> I'm testing using pm_test and stop to core (5ms and not 5 seconds) (usb suspend cycle are done correctly) so
->> the problem could be:
->>
->> 1) SAR usb context restore. I have applied the SAR workaround but the core doesn't go in full retantion
->> could be it a problem?
-> 
-> If core doesn't go in to OFF then SAR will not come into play. Are you still affected by the
-> issue if OFF mode is disabled? If yes then it probably is not related to SAR.
-> 
->>
->> 2) idle status of ulpis pins?
-> 
-> Yes this can be possible.
-> 
-> When you said earlier that the problem doesn't happen when one of the ULPIs is used
-> did you try both of them individually. e.g. case 1: port 1 only enabled,
-> case 2: port 2 only enabled.
-> 
-> Did it work in both the cases?
+Feel free to begin with anything. I am currently short on time.
+Do you need some pointers?
 
-off state of the line can make the situation worst ;). What are the idle/off state of the lines
-on your platforms?
-
-I can use PAD_REMUX flag to change the datax and signal of each port. I think that when the core
-is in RET_OFF the signal lines are remuxed in off mode. Correct?
-
+Thanks,
 Michael
 
-
-> 
-> cheers,
-> -roger
-> 
-
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
