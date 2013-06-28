@@ -1,104 +1,68 @@
-From: Mark Rutland <mark.rutland@arm.com>
+From: Luciano Coelho <coelho@ti.com>
 Subject: Re: [PATCH] Documentation: dt: bindings: TI WiLink modules
-Date: Fri, 28 Jun 2013 10:38:48 +0100
-Message-ID: <20130628093848.GA2139@e106331-lin.cambridge.arm.com>
+Date: Fri, 28 Jun 2013 12:53:35 +0300
+Message-ID: <1372413215.21065.41.camel@cumari.coelho.fi>
 References: <1372149330-24335-1-git-send-email-coelho@ti.com>
+	 <20130628093848.GA2139@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1372149330-24335-1-git-send-email-coelho@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Luciano Coelho <coelho@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20130628093848.GA2139@e106331-lin.cambridge.arm.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
 Cc: "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-arm@vger.kernel.org" <linux-arm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jun 25, 2013 at 09:35:30AM +0100, Luciano Coelho wrote:
-> Add device tree bindings documentation for the TI WiLink modules.
-> Currently only the WLAN part of the WiLink6, WiLink7 and WiLink8
-> modules is supported.
+On Fri, 2013-06-28 at 10:38 +0100, Mark Rutland wrote:
+> On Tue, Jun 25, 2013 at 09:35:30AM +0100, Luciano Coelho wrote:
+> > +Optional properties:
+> > +--------------------
+> > +
+> > +- refclock: the internal WLAN reference clock frequency (required for
+> > +  WiLink6 and WiLink7; not used for WiLink8).  Must be one of the
+> > +  following:
+> > +	0 = 19.2 MHz
+> > +	1 = 26.0 MHz
+> > +	2 = 38.4 MHz
+> > +	3 = 52.0 MHz
+> > +	4 = 38.4 MHz, XTAL
+> > +	5 = 26.0 MHz, XTAL
+> > +
+> > +- tcxoclock: the internal WLAN TCXO clock frequency (required for
+> > +  WiLink7 not used for WiLink6 and WiLink8).  Must be one of the
+> > +  following:
+> > +	0 = 19.200 MHz
+> > +	1 = 26.000 MHz
+> > +	2 = 38.400 MHz
+> > +	3 = 52.000 MHz
+> > +	4 = 16.368 MHz
+> > +	5 = 32.736 MHz
+> > +	6 = 16.800 MHz
+> > +	7 = 33.600 MHz
 > 
-> Signed-off-by: Luciano Coelho <coelho@ti.com>
-> ---
+> This looks suspiciously like what we have the common clock bindings for:
 > 
-> I created a new directory under net to contain wireless bindings documentation.
+> refclk {
+> 	compatible = "fixed-clock";
+> 	#clock-cells = <0>;
+> 	clock-frequency = <19200000>;
+> }
 > 
-> The actual implementation in the driver will follow separately.
+> wilink {
+> 	compatible = "ti,wilink7";
+> 	interrupt-parent = <&some_interrupt_controller>;
+> 	interrupts = <0 1 1>;
+> 	clocks = <&refclk>, <&refclk>;
+> 	clock-names = "refclk", "txoclk";
+> };
 > 
->  .../devicetree/bindings/net/wireless/ti-wilink.txt |   46 ++++++++++++++++++++
->  1 file changed, 46 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt b/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
-> new file mode 100644
-> index 0000000..d8e8bfbb
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
-> @@ -0,0 +1,46 @@
-> +TI WiLink Wireless Modules Device Tree Bindings
-> +===============================================
-> +
-> +The WiLink modules provide wireless connectivity, such as WLAN,
-> +Bluetooth, FM and NFC.
-> +
-> +There are several different modules available, which can be grouped by
-> +their generation: WiLink6, WiLink7 and WiLink8.  WiLink4 is not
-> +currently supported with device tree.
-> +
-> +Currently, only the WLAN portion of the modules is supported with
-> +device tree.
-> +
-> +Required properties:
-> +--------------------
-> +
-> +- compatible: should be "ti,wilink6", "ti,wilink7" or "ti,wilink8"
-> +- interrupt-parent: the interrupt controller
-> +- interrupts: out-of-band WLAN interrupt
-> +	See the interrupt controller's bindings documentation for
-> +	detailed definition.
-> +
-> +Optional properties:
-> +--------------------
-> +
-> +- refclock: the internal WLAN reference clock frequency (required for
-> +  WiLink6 and WiLink7; not used for WiLink8).  Must be one of the
-> +  following:
-> +	0 = 19.2 MHz
-> +	1 = 26.0 MHz
-> +	2 = 38.4 MHz
-> +	3 = 52.0 MHz
-> +	4 = 38.4 MHz, XTAL
-> +	5 = 26.0 MHz, XTAL
-> +
-> +- tcxoclock: the internal WLAN TCXO clock frequency (required for
-> +  WiLink7 not used for WiLink6 and WiLink8).  Must be one of the
-> +  following:
-> +	0 = 19.200 MHz
-> +	1 = 26.000 MHz
-> +	2 = 38.400 MHz
-> +	3 = 52.000 MHz
-> +	4 = 16.368 MHz
-> +	5 = 32.736 MHz
-> +	6 = 16.800 MHz
-> +	7 = 33.600 MHz
+> Could you not use them?
 
-This looks suspiciously like what we have the common clock bindings for:
+Hmmm... this actually does look good.  But these are internal clocks in
+the modules, they cannot be accessed from outside.  Does it make sense
+to register them with the clock framework?
 
-refclk {
-	compatible = "fixed-clock";
-	#clock-cells = <0>;
-	clock-frequency = <19200000>;
-}
+--
+Luca.
 
-wilink {
-	compatible = "ti,wilink7";
-	interrupt-parent = <&some_interrupt_controller>;
-	interrupts = <0 1 1>;
-	clocks = <&refclk>, <&refclk>;
-	clock-names = "refclk", "txoclk";
-};
-
-Could you not use them?
-
-Thanks,
-Mark.
