@@ -1,102 +1,84 @@
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v3 2/2] gpio/omap: auto request GPIO as input if used as
- IRQ via DT
-Date: Fri, 28 Jun 2013 10:55:21 +0100
-Message-ID: <CACxGe6vAzgiddE5V=H8BZ9OEYVJsZPxeQv6WWQ2L8mghaULjew@mail.gmail.com>
-References: <1372276203-21755-1-git-send-email-javier.martinez@collabora.co.uk>
- <1372276203-21755-3-git-send-email-javier.martinez@collabora.co.uk>
+From: "Manjunathappa, Prakash" <prakash.pm-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 2/4] davinci: da8xx/omap-l1: Remove hard coding of rtc
+	device	wakeup
+Date: Fri, 28 Jun 2013 10:14:34 +0000
+Message-ID: <A73F36158E33644199EB82C5EC81C7BC3EA95D17@DBDE04.ent.ti.com>
+References: <1372412109-986-1-git-send-email-gururaja.hebbar@ti.com>
+	<1372412109-986-3-git-send-email-gururaja.hebbar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f176.google.com ([209.85.223.176]:40711 "EHLO
-	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755036Ab3F1Jzl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jun 2013 05:55:41 -0400
-Received: by mail-ie0-f176.google.com with SMTP id ar20so3807967iec.35
-        for <linux-omap@vger.kernel.org>; Fri, 28 Jun 2013 02:55:41 -0700 (PDT)
-In-Reply-To: <1372276203-21755-3-git-send-email-javier.martinez@collabora.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1372412109-986-3-git-send-email-gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: "Hebbar, Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>, "khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Cousson,
+  Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: "davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org" <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Jon Hunter <jgchunter@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-On Wed, Jun 26, 2013 at 8:50 PM, Javier Martinez Canillas
-<javier.martinez@collabora.co.uk> wrote:
-> When an OMAP GPIO is used as an IRQ line, a call to gpio_request()
-> has to be made to initialize the OMAP GPIO bank before a driver
-> request the IRQ. Otherwise the call to request_irq() fails.
->
-> Drives should not be aware of this neither care wether an IRQ line
-> is a GPIO or not. They should just request the IRQ and this has to
-> be handled by the irq_chip driver.
->
-> With the current OMAP GPIO DT binding, if we define:
->
->     gpio6: gpio@49058000 {
->            compatible = "ti,omap3-gpio";
->            reg = <0x49058000 0x200>;
->            interrupts = <34>;
->            ti,hwmods = "gpio6";
->            gpio-controller;
->            #gpio-cells = <2>;
->            interrupt-controller;
->            #interrupt-cells = <2>;
->     };
->
->            interrupt-parent = <&gpio6>;
->            interrupts = <16 8>;
->
-> The GPIO is correctly mapped as an IRQ but a call to gpio_request()
-> is never made. Since a call to the custom IRQ domain .map function
-> handler is made for each GPIO used as an IRQ, the GPIO can be setup
-> and configured as input there automatically.
->
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Hi,
 
-Acked-by: Grant Likely <grant.likely@linaro.org>
+On Fri, Jun 28, 2013 at 15:05:07, Hebbar, Gururaja wrote:
+> Since now rtc-omap driver itself calls deice_init_wakeup(dev, true),
+> duplicate call from the rtc device registration can be removed.
+> 
 
+Tested on da850-evm for rtc wake along with patch 1/2.
+$rtcwake -s 2 -d /dev/rtc0 -m mem
+
+Tested-by: Manjunathappa, Prakash <prakash.pm-l0cyMroinI0@public.gmane.org>
+
+> This is basically a partial revert of the prev commit
+> 
+> commit 75c99bb0006ee065b4e2995078d779418b0fab54
+> Author: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+> 
+>     davinci: da8xx/omap-l1: mark RTC as a wakeup source
+> 
+> Signed-off-by: Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+> Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+> Cc: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+> 
 > ---
->
-> Changes since v2:
->  - Only make the call to gpio_request_one() conditional in the DT
->    case as suggested by Grant Likely.
->
-> Changes since v1:
->   - Split the irq domain mapping function handler and the GPIO
->     request in two different patches.
->
->  drivers/gpio/gpio-omap.c |   11 +++++++++++
->  1 files changed, 11 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 42f04ff..98848c9 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -1090,6 +1090,8 @@ static int omap_gpio_irq_map(struct irq_domain *d, unsigned int virq,
->                              irq_hw_number_t hwirq)
+> :100644 100644 bf57252... 85a900c... M	arch/arm/mach-davinci/devices-da8xx.c
+>  arch/arm/mach-davinci/devices-da8xx.c |    9 +--------
+>  1 file changed, 1 insertion(+), 8 deletions(-)
+> 
+> diff --git a/arch/arm/mach-davinci/devices-da8xx.c b/arch/arm/mach-davinci/devices-da8xx.c
+> index bf57252..85a900c 100644
+> --- a/arch/arm/mach-davinci/devices-da8xx.c
+> +++ b/arch/arm/mach-davinci/devices-da8xx.c
+> @@ -827,14 +827,7 @@ static struct platform_device da8xx_rtc_device = {
+>  
+>  int da8xx_register_rtc(void)
 >  {
->         struct gpio_bank *bank = d->host_data;
-> +       int gpio;
-> +       int ret;
->
->         if (!bank)
->                 return -EINVAL;
-> @@ -1104,6 +1106,15 @@ static int omap_gpio_irq_map(struct irq_domain *d, unsigned int virq,
->                 set_irq_flags(virq, IRQF_VALID);
->         }
->
-> +       if (of_have_populated_dt()) {
-> +               gpio = irq_to_gpio(bank, hwirq);
-> +               ret = gpio_request_one(gpio, GPIOF_IN, NULL);
-> +               if (ret) {
-> +                       dev_err(bank->dev, "Could not request GPIO%d\n", gpio);
-> +                       return ret;
-> +               }
-> +       }
-> +
->         return 0;
+> -	int ret;
+> -
+> -	ret = platform_device_register(&da8xx_rtc_device);
+> -	if (!ret)
+> -		/* Atleast on DA850, RTC is a wakeup source */
+> -		device_init_wakeup(&da8xx_rtc_device.dev, true);
+> -
+> -	return ret;
+> +	return  platform_device_register(&da8xx_rtc_device);
 >  }
->
-> --
-> 1.7.7.6
->
+>  
+>  static void __iomem *da8xx_ddr2_ctlr_base;
+> -- 
+> 1.7.9.5
+> 
+> _______________________________________________
+> Davinci-linux-open-source mailing list
+> Davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
+> 
