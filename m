@@ -1,74 +1,104 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH v4 1/2] gpio/omap: don't create an IRQ mapping for every
- GPIO on DT
-Date: Sun, 30 Jun 2013 02:25:15 +0200
-Message-ID: <CAAwP0s2jtVEoqMVE7ru-tcXMX8ZKZObnDz0UDWiS4QkbJODOHA@mail.gmail.com>
-References: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk> <CACRpkdZryWYZuOLx5E2njLNRd1SLj4VgtEyEETh88+3SS5ckyQ@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] usb: dwc3: core: continue probe even if usb3 phy is not
+ available
+Date: Sun, 30 Jun 2013 11:20:54 +0300
+Message-ID: <20130630082054.GA2634@arwen.pp.htv.fi>
+References: <20130626101647.GT12640@arwen.pp.htv.fi>
+ <51CAD977.6040309@ti.com>
+ <20130626121210.GA12640@arwen.pp.htv.fi>
+ <874nclghu2.fsf@ashishki-desk.ger.corp.intel.com>
+ <20130627061416.GI3523@pengutronix.de>
+ <20130627063526.GG15455@arwen.pp.htv.fi>
+ <20130627072408.GJ3523@pengutronix.de>
+ <20130627073033.GN15455@arwen.pp.htv.fi>
+ <20130628180000.GF25498@arwen.pp.htv.fi>
+ <20130628200601.GK3523@pengutronix.de>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="AhhlLboLdkugWU4S"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:58811 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752057Ab3F3AZg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 Jun 2013 20:25:36 -0400
-Received: by mail-ie0-f182.google.com with SMTP id s9so6975839iec.13
-        for <linux-omap@vger.kernel.org>; Sat, 29 Jun 2013 17:25:36 -0700 (PDT)
-In-Reply-To: <CACRpkdZryWYZuOLx5E2njLNRd1SLj4VgtEyEETh88+3SS5ckyQ@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49967 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751273Ab3F3IVG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 30 Jun 2013 04:21:06 -0400
+Content-Disposition: inline
+In-Reply-To: <20130628200601.GK3523@pengutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Grant Likely <grant.likely@linaro.org>, jgchunter@gmail.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Michael Grzeschik <mgr@pengutronix.de>
+Cc: Felipe Balbi <balbi@ti.com>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, George Cherian <george.cherian@ti.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Alan Stern <stern@rowland.harvard.edu>
 
-On Sun, Jun 30, 2013 at 1:44 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
-> On Fri, Jun 28, 2013 at 5:27 PM, Javier Martinez Canillas
-> <javier.martinez@collabora.co.uk> wrote:
->
->> When a GPIO is defined as an interrupt line using Device
->> Tree, a call to irq_create_of_mapping() is made that calls
->> irq_create_mapping(). So, is not necessary to do the mapping
->> for all OMAP GPIO lines and explicitly call irq_create_mapping()
->> on the driver probe() when booting with Device Tree.
->>
->> Add a custom IRQ domain .map function handler that will be
->> called by irq_create_mapping() to map the GPIO lines used as IRQ.
->> This also allows to execute needed setup code such as configuring
->> a GPIO as input and enabling the GPIO bank.
->>
->> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
->> Tested-by: Enric Balletbo i Serra <eballetbo@gmail.com>
->> Acked-by: Grant Likely <grant.likely@secretlab.ca>
->> Acked-by: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
->> ---
->>
->> Changes since v3:
->>   - Use bank->chip.of_node instead of_have_populated_dt() to check
->>     DT or legacy boot as suggested by Jean-Christophe PLAGNIOL-VILLARD
->
-> This does not apply to the "next" branch on my GPIO tree,
-> i.e:
-> https://git.kernel.org/cgit/linux/kernel/git/linusw/linux-gpio.git/
->
-> Not even with fuzzing :-(
->
-> Can you rebase them?
->
-> Yours,
-> Linus Walleij
-> --
+--AhhlLboLdkugWU4S
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hi Linus,
+Hi,
 
-Yes, It doesn't apply cleanly to your "next" branch cleanly because
-this patch-set depends on the following bugfix patch merged late on
-the -rc cycle (3.10-rc7):
+On Fri, Jun 28, 2013 at 10:06:01PM +0200, Michael Grzeschik wrote:
+> > > > > > > > right, but in DT you will define both instances and each in=
+stance will
+> > > > > > > > have a seaparate snps,maximum_speed attribute :-)
+> > > > > > > >
+> > > > > > > > I'm now considering if we should make maximum_speed a gener=
+ic attribute,
+> > > > > > > > Kishon ? Alex ? Alan ?
+> > > > > > > >
+> > > > > > > > anyone else needs such thing ?
+> > > > > > >=20
+> > > > > > > We have a force-full-speed attibute for chipidea on the way. =
+This
+> > > > > > > maximum_speed looks like a more generic alternative. Michael,=
+ what say
+> > > > > > > you?
+> > > > > >=20
+> > > > > > The maximum_speed attribute sounds more reasonable. I will chan=
+ge my
+> > > > > > patch to it.
+> > > > >=20
+> > > > > thanks, perhaps we can add a generic helper in udc-core or usb-co=
+mmon ?
+> > > >=20
+> > > > As this function is not only udc specific, this should go into usb-=
+common.
+> > > > But right, we should go with a helper here. I will write one in add=
+ition
+> > > > to my full-speed patch as first user of it.
+> > >=20
+> > > alright, thanks :-)
+> >=20
+> > Michael, if you need any help with patching in maximum_speed attribute,
+> > let me know as I have some time to work on that part.
+>=20
+> Feel free to begin with anything. I am currently short on time.
+> Do you need some pointers?
 
-397eada9 ("gpio/omap: don't use linear domain mapping for OMAP1")
+not, really v1 will come on monday.
 
-but your next branch is based on Linux 3.10-rc3.
+--=20
+balbi
 
-So, I could change the patches so they can be applied cleanly on your
-branch but then it will not apply cleanly when you send your pull
-request to Torvalds.
+--AhhlLboLdkugWU4S
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Thanks a lot and best regards,
-Javier
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRz+plAAoJEIaOsuA1yqREzY8QAJBVfr+9xHIGhPF4GJOADpJk
+bRkjLZu/HRbq9Z9UT5elWmufWMuf6DygVzaiEgTA/JJLExLEp80SZKVNS/PPDSYP
+xn80hE0TiEGulLF8xZMvd0JWrZqrvnxVcr1TV3uposDDHqCW7EfKMgnUv/IA6JrH
+2MeeTk+VaPA626kPIVfZXTK/XURhAJXBPoMH2/kybrKE9gaU3UkrG2RRNOWEQCGh
+EO/S+y/4qWX1U0TBmAcZxFN+yN4PyX7J6DtlnB2Hcdcx/bO6HWALFbBJu51qJv3N
+wzt5fs4Qak2ip4a8+FZmBMq6tkov13X0w7u32IXot+riJF3craVygxZKy+HfoOxr
+TpxZz5IMHYm3ov2TmN5QdhOxJ6w6v+moApkodwrlLGglMqN43rZKdQI04MEvmghu
+HQtJyABQ9kjCGFW+OZIQIuE3nLgj+xg+rycMX8xJSC5gSj6HUpsxvFtR/KUYQ2us
+YpNfPJu2OLxROX0cz4hhtJL7Fj6pX/NYlH8wUXoiwgGl2aPD1fvfxDUe0+Mnralv
+eqIUX+PINlsgmXzCi0WcVNEE+4J5SUNJwv7IRaiVxb+nB+W1PQWSOG+ZH3xZzM0y
+ibtcCsfkVfDo4XXoshQEMScB9iKT8WBygCTOsdvX7hQoYtad/vTPZ4s+5nhTTpyD
+TqriesaHiaJB5vlM1f0L
+=Pjbb
+-----END PGP SIGNATURE-----
+
+--AhhlLboLdkugWU4S--
