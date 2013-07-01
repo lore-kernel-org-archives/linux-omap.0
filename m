@@ -1,56 +1,116 @@
-From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Subject: Re: [PATCH v3 1/4] mtd:nand:omap2: clean-up BCHx_HW and BCHx_SW ECC
- configurations in device_probe
-Date: Mon, 01 Jul 2013 11:16:28 +0300
-Message-ID: <1372666588.22014.43.camel@sauron.fi.intel.com>
-References: <1372010299-30141-1-git-send-email-pekon@ti.com>
-	 <1372010299-30141-2-git-send-email-pekon@ti.com>
-Reply-To: artem.bityutskiy@linux.intel.com
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during
+ bus suspend
+Date: Mon, 1 Jul 2013 11:16:45 +0300
+Message-ID: <51D13AED.4010307@ti.com>
+References: <Pine.LNX.4.44L0.1306281346430.1047-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:56306 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752879Ab3GAIRS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Jul 2013 04:17:18 -0400
-In-Reply-To: <1372010299-30141-2-git-send-email-pekon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1306281346430.1047-100000@iolanthe.rowland.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: balbi@ti.com, tony@atomide.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: tony@atomide.com, b-cousson@ti.com, arnd@arndb.de, jp.francois@cynove.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Pekon,
-
-On Sun, 2013-06-23 at 23:28 +0530, Pekon Gupta wrote:
-> +---------------------------------------+---------------+---------------+
-> | ECC scheme				|ECC calculation|Error detection|
-> +---------------------------------------+---------------+---------------+
-> |OMAP_ECC_HAMMING_CODE_DEFAULT		|S/W		|S/W		|
-> |OMAP_ECC_HAMMING_CODE_HW		|H/W (GPMC)	|S/W		|
-> |OMAP_ECC_HAMMING_CODE_HW_ROMCODE	|H/W (GPMC)	|S/W		|
-> +---------------------------------------+---------------+---------------+
-> |(requires CONFIG_MTD_NAND_ECC_BCH)	|		|		|
-> |OMAP_ECC_BCH8_CODE_HW_DETECTION_SW	|H/W (GPMC)	|S/W		|
-> +---------------------------------------+---------------+---------------+
-> |(requires CONFIG_MTD_NAND_OMAP_BCH)	|		|		|
-> |OMAP_ECC_BCH8_CODE_HW			|H/W (GPMC)	|H/W (ELM)	|
-> +---------------------------------------+---------------+---------------+
-
-This is a nice table, and you are doing very good job clearly
-classifying what is going on. I'd suggest to also put stuff like this to
-comments in the code.
-
-> This patch
-> - separates the configurations for various ECC schemes.
-> - fixes dependency issues based on Kconfig options.
-> - cleans up redundant code
+On 06/28/2013 10:06 PM, Alan Stern wrote:
+> On Fri, 28 Jun 2013, Roger Quadros wrote:
 > 
-> Signed-off-by: Pekon Gupta <pekon@ti.com>
+>>> That's not what I meant.  Never mind the pinctrl; I was asking about
+>>> the EHCI controller itself.  Under what circumstances does the
+>>> controller assert its wakeup signal?  And how do you tell it to stop
+>>> asserting that signal?
+>>
+>> I believe this would be through the EHCI Interrupt enable register (USBINTR).
+>> I'm not aware of any other mechanism.
+> 
+> That's strange, because ehci_suspend() sets the intr_enable register to 
+> 0.  So how do you ever get any wakeup interrupts at all?
 
-This does not apply to l2-mtd.git, could you please re-base?
+Because after ehci_suspend() for OMAP, we solely rely on the out of band wake up
+mechanism. i.e. Pad wakeup.
+> 
+>> Right. It seems the external hub has signaled remote wakeup but the kernel doesn't
+>> resume the root hub's port it is connected to.
+>>
+>> By observing the detailed logs below you can see that the root hub does not generate
+>> an INTerrupt transaction to notify the port status change event. I've captured the pstatus
+>> and GetPortStatus info as well.
+> 
+> We don't need an interrupt.  The driver is supposed to detect the
+> remote wakeup sent by the external hub all by itself.
 
--- 
-Best Regards,
-Artem Bityutskiy
+OK. Then it could point to a bug in our stack.
+> 
+>> Failing case
+>> ------------
+>>
+>> [   16.108032] usb usb1: usb auto-resume
+>> [   16.108062] ehci-omap 48064800.ehci: resume root hub
+>> [   16.108154] hub 1-0:1.0: hub_resume
+>> [   16.108398] ehci_hub_control GetPortStatus, port 1 temp = 0x1000
+>> [   16.108459] ehci_hub_control GetPortStatus, port 2 temp = 0x14c5
+> 
+> Here's where we should detect it.  Look at the GetPortStatus case in
+> ehci_hub_control(); the PORT_RESUME bit (0x0040) is set in temp, so the
+> "Remote Wakeup received?" code should run.  In particular, these lines
+> should run:
+> 
+> 			/* resume signaling for 20 msec */
+> 			ehci->reset_done[wIndex] = jiffies
+> 					+ msecs_to_jiffies(20);
+> 			usb_hcd_start_port_resume(&hcd->self, wIndex);
+> 			/* check the port again */
+> 			mod_timer(&ehci_to_hcd(ehci)->rh_timer,
+> 					ehci->reset_done[wIndex]);
+> 
+> Therefore 20 ms later, around timestamp 16.128459,
+> ehci_hub_status_data() should have been called.  At that time, the
+> root-hub port should have been fully resumed.
 
+OK. right.
+> 
+>> [   16.108551] hub 1-0:1.0: port 2: status 0507 change 0000
+>> [   16.108612] ehci_hub_control GetPortStatus, port 3 temp = 0x1000
+>> [   16.108642] hub 1-0:1.0: hub_activate submitting urb
+>> [   16.109222] ehci_irq port 3 pstatus 0x1000
+>> [   16.109222] ehci_irq port 2 pstatus 0x14c5
+>> [   16.109252] ehci_irq port 1 pstatus 0x1000
+>> [   16.109374] hub 1-0:1.0: state 7 ports 3 chg 0000 evt 0000
+> 
+> But apparently nothing happened.  Why not?  Did the rh_timer get reset?  
+> Maybe you can find out what went wrong.
+> 
+
+Sure. I'll investigate.
+
+> (Hmmm, we seem to be missing a
+> 
+> 			set_bit(wIndex, &ehci->resuming_ports);
+> 
+> line in there...)
+> 
+>>> Also, why do you need omap->initialized?  Do you think you might get a 
+>>> wakeup interrupt before the controller has been fully set up?  I don't 
+>>> see how you could, given the pm_runtime_get_sync() call in the probe 
+>>> routine.
+>>>
+>>
+>> During probe we need to runtime_resume the device before usb_add_hcd() since the
+>> controller clocks must be enabled before any registers are accessed.
+>> However, we cannot call ehci_resume() before usb_add_hcd(). So to prevent this
+>> chicken & egg situation, I've used the omap->initialized flag. It only indicates that
+>> the ehci structures are initialized and we can call ehci_resume/suspend().
+> 
+> Ah, yes.  Other subsystems, such as PCI, face exactly the same problem.
+> 
+> You probably shouldn't call it "initialized", though, because the same
+> issue arises in ehci_hcd_omap_remove() -- the pm_runtime_put_sync()  
+> there would end up calling ehci_suspend() after usb_remove_hcd().  
+> "bound" or "started" would be better names.
+> 
+OK. Started seems fine.
+
+cheers,
+-roger
