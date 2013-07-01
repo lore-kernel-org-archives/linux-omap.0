@@ -1,38 +1,61 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during
- bus suspend
-Date: Mon, 1 Jul 2013 17:01:27 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1307011655580.1547-100000@iolanthe.rowland.org>
-References: <20130701164920.GA31370@arwen.pp.htv.fi>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: [PATCH] N900: enable N900-specific drivers even if device tree is
+ enabled
+Date: Mon, 1 Jul 2013 23:15:04 +0200
+Message-ID: <20130701211504.GB15318@amd.pavel.ucw.cz>
+References: <20130613132624.GA3464@amd.pavel.ucw.cz>
+ <20130613141001.GF8164@atomide.com>
+ <20130613142809.GA3775@amd.pavel.ucw.cz>
+ <20130613145724.GH8164@atomide.com>
+ <20130613155240.GB3775@amd.pavel.ucw.cz>
+ <20130613161418.GJ8164@atomide.com>
+ <20130613230808.GA14876@amd.pavel.ucw.cz>
+ <20130614055629.GM8164@atomide.com>
+ <20130614212816.GA31768@atrey.karlin.mff.cuni.cz>
+ <20130617111031.GQ20992@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130701164920.GA31370@arwen.pp.htv.fi>
+Content-Disposition: inline
+In-Reply-To: <20130617111031.GQ20992@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, tony@atomide.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 1 Jul 2013, Felipe Balbi wrote:
 
-> > I don't know what Pad wakeup is.  The wakeup signal has to originate 
-> > from the EHCI controller, doesn't it?  If not, how does the Pad know 
-> > when a wakeup is needed?
-> 
-> That's really an OMAP thing, I guess. Pad wakeup sits in the PRCM (IIRC)
-> inside and always on power domain. EHCI sits in another power domain
-> which be turned off. When it's turned off (power gated and clock gated)
-> the EHCI block has no means to wakeup whatsoever. That's when pad wakeup
-> comes into play. It is generated when PRCM sees a change in the actual
-> pad of the die. To check who should 'own' the wakeup, it checks the
-> muxing settings to verify whose pad is that.
+We still need video & sound drivers with device tree enabled.
 
-How does the PRCM know which changes should generate wakeup events?  
-In the EHCI controller, this is managed by the settings of the WKOC_E,
-WKDSCNNT_E, and WKCNNT_E bits in the PORTSC registers.  But if EHCI is
-powered off, those bits can't be used.
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-Also, once the wakeup signal has been turned on, how does it get turned 
-off again?
+---
 
-Alan Stern
+Patch against 3.10.
+
+--- linux-delme-clean//arch/arm/mach-omap2/board-rx51-video.c	2013-07-01 21:51:07.000000000 +0200
++++ linux-delme/arch/arm/mach-omap2/board-rx51-video.c	2013-07-01 22:50:27.000000000 +0200
+@@ -61,7 +61,7 @@
+ 
+ static int __init rx51_video_init(void)
+ {
+-	if (!machine_is_nokia_rx51())
++	if (!machine_is_nokia_rx51() && !of_machine_is_compatible("nokia,omap3-n900"))
+ 		return 0;
+ 
+ 	if (omap_mux_init_gpio(RX51_LCD_RESET_GPIO, OMAP_PIN_OUTPUT)) {
+diff -urN linux-delme-clean//sound/soc/omap/rx51.c linux-delme/sound/soc/omap/rx51.c
+--- linux-delme-clean//sound/soc/omap/rx51.c	2013-07-01 21:54:49.000000000 +0200
++++ linux-delme/sound/soc/omap/rx51.c	2013-07-01 22:50:27.000000000 +0200
+@@ -396,7 +396,7 @@
+ {
+ 	int err;
+ 
+-	if (!machine_is_nokia_rx51())
++	if (!machine_is_nokia_rx51() && !of_machine_is_compatible("nokia,omap3-n900"))
+ 		return -ENODEV;
+ 
+ 	err = gpio_request_one(RX51_TVOUT_SEL_GPIO,
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
