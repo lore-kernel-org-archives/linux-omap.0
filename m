@@ -1,46 +1,49 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH v5 3/3] mtd: devices: elm: Low power transition support
-Date: Mon, 01 Jul 2013 11:02:31 +0300
-Message-ID: <1372665751.22014.41.camel@sauron.fi.intel.com>
-References: <1371494799-11876-1-git-send-email-pekon@ti.com>
- <1371494799-11876-4-git-send-email-pekon@ti.com>
-Reply-To: dedekind1@gmail.com
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v4 1/2] gpio/omap: don't create an IRQ mapping for every
+ GPIO on DT
+Date: Mon, 1 Jul 2013 10:04:18 +0200
+Message-ID: <CACRpkdaQ+zvrYF6o65Emkf2yiMR4YOfutBv-LTDc0xOmnkZkBg@mail.gmail.com>
+References: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk>
+	<CACRpkdZryWYZuOLx5E2njLNRd1SLj4VgtEyEETh88+3SS5ckyQ@mail.gmail.com>
+	<CAAwP0s2jtVEoqMVE7ru-tcXMX8ZKZObnDz0UDWiS4QkbJODOHA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <1371494799-11876-4-git-send-email-pekon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, khilman@linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oa0-f45.google.com ([209.85.219.45]:57939 "EHLO
+	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752738Ab3GAIET (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jul 2013 04:04:19 -0400
+Received: by mail-oa0-f45.google.com with SMTP id j1so4447095oag.4
+        for <linux-omap@vger.kernel.org>; Mon, 01 Jul 2013 01:04:18 -0700 (PDT)
+In-Reply-To: <CAAwP0s2jtVEoqMVE7ru-tcXMX8ZKZObnDz0UDWiS4QkbJODOHA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Grant Likely <grant.likely@linaro.org>, Jon Hunter <jgchunter@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-On Tue, 2013-06-18 at 00:16 +0530, Pekon Gupta wrote:
-> From: avinash philip <avinashphilip@ti.com>
-> 
-> ELM is used for locating bit-flip errors in when using BCH ECC scheme.
-> This patch adds suspend/resume support for leaf level ELM driver,
-> And also provides ELM register context save & restore support, so that
-> configurations are preserved across hardware power-off/on transitions.
-> 
-> Signed-off-by: Philip Avinash <avinashphilip@ti.com>
-> Signed-off-by: Pekon Gupta <pekon@ti.com>
+On Sun, Jun 30, 2013 at 2:25 AM, Javier Martinez Canillas
+<martinez.javier@gmail.com> wrote:
 
-Pushed to l2-mtd.git, thanks!
+> Yes, It doesn't apply cleanly to your "next" branch cleanly because
+> this patch-set depends on the following bugfix patch merged late on
+> the -rc cycle (3.10-rc7):
+>
+> 397eada9 ("gpio/omap: don't use linear domain mapping for OMAP1")
 
--- 
-Best Regards,
-Artem Bityutskiy
+Aha, well this fix was only CC:ed to Grant so I never saw it
+happen. Obviously it cannot be merged through my GPIO tree
+then.
 
+> So, I could change the patches so they can be applied cleanly on your
+> branch but then it will not apply cleanly when you send your pull
+> request to Torvalds.
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+That will probably not work as it would cause even more conflicts
+upstream, and now the merge window is open so no way can I
+rebase the tree either.
+
+Let's see if we can cram it in as part of a late v3.11 merge or
+if we'll have to defer to v3.12.
+
+Yours,
+Linus Walleij
