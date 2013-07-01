@@ -1,70 +1,98 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH] N900: fix operation on emulator
-Date: Tue, 02 Jul 2013 00:00:02 +0400
-Message-ID: <51D1DFC2.4080209@cogentembedded.com>
-References: <20130613142809.GA3775@amd.pavel.ucw.cz> <20130613145724.GH8164@atomide.com> <20130613155240.GB3775@amd.pavel.ucw.cz> <20130613161418.GJ8164@atomide.com> <20130613230808.GA14876@amd.pavel.ucw.cz> <20130614055629.GM8164@atomide.com> <20130614212816.GA31768@atrey.karlin.mff.cuni.cz> <20130617111031.GQ20992@atomide.com> <20130701140315.GA15318@amd.pavel.ucw.cz> <51D1C8DD.6040409@cogentembedded.com> <20130701195147.GA22174@amd.pavel.ucw.cz>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: OMAP baseline test results for v3.10-rc7
+Date: Mon, 1 Jul 2013 23:42:36 +0300
+Message-ID: <20130701204236.GA805@arwen.pp.htv.fi>
+References: <alpine.DEB.2.02.1307011946180.4358@utopia.booyaka.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130701195147.GA22174@amd.pavel.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4Ckj6UjgE2iN1+kY"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48855 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754818Ab3GAUnE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Jul 2013 16:43:04 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1307011946180.4358@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hello.
+--4Ckj6UjgE2iN1+kY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 07/01/2013 11:51 PM, Pavel Machek wrote:
+Hi,
 
->>> Errata workarounds for N900 hardware actually break operation on
->>> emulator. Fix it.
+On Mon, Jul 01, 2013 at 07:48:50PM +0000, Paul Walmsley wrote:
+> Boot to userspace:
+>     FAIL ( 2/12): 37xxevm, am335xbonelt
 
->>> This approach was suggested by Pali Roh=E1r <pali.rohar@gmail.com>
->>> (thanks!).
+<quoting part of [1]>
+| U-Boot# tftp 0x82000000 am335x-boneblack.dtb
+| link up on port 0, speed 100, full duplex
+| Using cpsw device
+| TFTP from server 192.168.57.1; our IP address is 192.168.57.138
+| Filename 'am335x-boneblack.dtb'.
 
->>> (Also explain what "sleep_ind" led actually does).
+Where are you taking am335x-boneblack.dtb from ? It's not in mainline
+v3.10-rc7 kernel:
 
->>     Looks like unrelated change and probably worth another patch?
+$ ls arch/arm/boot/dts/am33*.dts
+arch/arm/boot/dts/am335x-bone.dts  arch/arm/boot/dts/am335x-evm.dts
+arch/arm/boot/dts/am335x-evmsk.dts
+$ git grep -e boneblack arch/arm/
+$ echo $
+1
+$ git show
+commit 9e895ace5d82df8929b16f58e9f515f6d54ab82d
+Author: Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Sat Jun 22 09:47:31 2013 -1000
 
-> Separate patch for adding single-line comment?
+    Linux 3.10-rc7
 
-    If it's unrelated to the main patch purpose, yes. As the Russians=20
-say: "cutlets separately and flies separately".
+diff --git a/Makefile b/Makefile
+index c6863b5..0142c93 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,7 +1,7 @@
+ VERSION =3D 3
+ PATCHLEVEL =3D 10
+ SUBLEVEL =3D 0
+-EXTRAVERSION =3D -rc6
++EXTRAVERSION =3D -rc7
+ NAME =3D Unicycling Gorilla
+=20
+ # *DOCUMENTATION*
 
->>> --- a/arch/arm/mach-omap2/board-rx51.c
->>> +++ b/arch/arm/mach-omap2/board-rx51.c
->>> @@ -33,9 +33,12 @@
->>>   #include "pm.h"
->>>   #include "sdram-nokia.h"
->>>   #include "board-rx51-secure.h"
->>> +#include "soc.h"
->>>
->>>   #define RX51_GPIO_SLEEP_IND 162
->>>
->>> +/* This lights up left part of keyboard */
->>> +
->>>   static struct gpio_led gpio_leds[] =3D {
-> ...
->>>   #ifdef CONFIG_ARM_ERRATA_430973
->>> -	printk(KERN_INFO "RX-51: Enabling ARM errata 430973 workaround.\n=
-");
->>> -	/* set IBE to 1 */
->>> -	rx51_secure_update_aux_cr(1 << 6, 0);
->>> +	if (omap_type() =3D=3D OMAP2_DEVICE_TYPE_SEC) {
->>> +		printk(KERN_INFO "RX-51: Enabling ARM errata 430973 workaround.\=
-n");
+[1] http://www.pwsan.com/omap/testlogs/test_v3.10-rc7/20130630191558/boot/a=
+m335xbonelt/am335x-bone/am335xbonelt_log.txt
 
->>     How about pr_info() instead?
+--=20
+balbi
 
-> <sarcasm>Would not that be unrelated change and worth of separate
-> patch?</sarcasm>
+--4Ckj6UjgE2iN1+kY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-    No, this would be a related change. Sarcasm wasted.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-> :-).
+iQIcBAEBAgAGBQJR0em8AAoJEIaOsuA1yqREFXMP/0Qyqg0F0LBzFrSHClIrDKo8
+O4fLUeQ8OGlfHendAwxbvwZRk/08hZuWjmudfneTKTVQ9k2TMaxKa3h1VTR0pU0A
+dAkipJSycB6DzEJzwWfKDYEAI4AyvWozbgcP0EC28QIsjk/1HM0EJwiYKsI9epB8
+B/RCxnsk2u+uvjozWOlTUq95mYXSPUAY6wFpAfDls8615sFZ51GGM5swWKiGOfEG
+Elv0/gMyUR+ZRVSmh5WryU2hxYg3+mV7oBQyTcmATigfhq0veRhrIqhjp6C2TAoN
+tNv3aJS0zUW5MDmsqgu9CX9JNzXIgNHt5POOuuXS7LtcFKkNBEnxd9HCIgQjkxnH
+um/fGHos05jSr/Lg9tiZW5QoxlZDpS3wQhONDNPVPBI3xwhv9uzp2utPj1jDBffw
+vkhev0We1B1ZoYcxrGfF5x5RRjbITQcsrRH9xOkwIwNgxIdk0IR6j+Ue0gKXID2y
+JP5bkj9mXGF4BIe5kiVP/yNVbEby8ZZ+JuC/dMiUuXY8c9csiw/In3V92hNDLIBF
+PVfIXjW4tkFznSX3eTeTiYypALlf68OTHcgfQEifoUH+zV38E1EO5p31f5HxgAoz
+iGz+yuUQ+e8zlddY8TzMmvqXDvFxV5JloGAtiw/pFHAbVWZXX0vRS2Gu5nPj5QYG
+vfGnVO7wJuN+PsqZ7i9Z
+=ibS1
+-----END PGP SIGNATURE-----
 
-> 									Pavel
-
-WBR, Sergei
+--4Ckj6UjgE2iN1+kY--
