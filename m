@@ -1,104 +1,39 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: dwc3: core: continue probe even if usb3 phy is not
- available
-Date: Sun, 30 Jun 2013 11:20:54 +0300
-Message-ID: <20130630082054.GA2634@arwen.pp.htv.fi>
-References: <20130626101647.GT12640@arwen.pp.htv.fi>
- <51CAD977.6040309@ti.com>
- <20130626121210.GA12640@arwen.pp.htv.fi>
- <874nclghu2.fsf@ashishki-desk.ger.corp.intel.com>
- <20130627061416.GI3523@pengutronix.de>
- <20130627063526.GG15455@arwen.pp.htv.fi>
- <20130627072408.GJ3523@pengutronix.de>
- <20130627073033.GN15455@arwen.pp.htv.fi>
- <20130628180000.GF25498@arwen.pp.htv.fi>
- <20130628200601.GK3523@pengutronix.de>
-Reply-To: <balbi@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.10-rc6
+Date: Mon, 1 Jul 2013 02:15:38 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1307010211580.3741@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com> <20130625160243.GE22312@arwen.pp.htv.fi> <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com> <51C9F0A8.1050607@ti.com> <87fvw6t136.fsf@linaro.org> <79CD15C6BA57404B839C016229A409A83ECC952D@DBDE04.ent.ti.com>
+ <51CAEB33.5010101@ti.com> <alpine.DEB.2.02.1306261722520.6135@utopia.booyaka.com> <51CBBCD8.5030600@ti.com> <alpine.DEB.2.02.1306281844090.8767@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="AhhlLboLdkugWU4S"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49967 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751273Ab3F3IVG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 30 Jun 2013 04:21:06 -0400
-Content-Disposition: inline
-In-Reply-To: <20130628200601.GK3523@pengutronix.de>
+Received: from utopia.booyaka.com ([74.50.51.50]:47538 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751386Ab3GACPj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 30 Jun 2013 22:15:39 -0400
+In-Reply-To: <alpine.DEB.2.02.1306281844090.8767@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Michael Grzeschik <mgr@pengutronix.de>
-Cc: Felipe Balbi <balbi@ti.com>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, George Cherian <george.cherian@ti.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Alan Stern <stern@rowland.harvard.edu>
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Kevin Hilman <khilman@linaro.org>, "Rini, Tom" <trini@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---AhhlLboLdkugWU4S
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Fri, 28 Jun 2013, Paul Walmsley wrote:
 
-Hi,
+> On Thu, 27 Jun 2013, Lokesh Vutla wrote:
+>
+> > Here is the catch..
+> > Your dtb is generated in arch/arm/boot/dts/ folder(before V3.8 dtb was
+> > generated in arch/arm/boot).
+> 
+> Ugh... that's probably it :-(
 
-On Fri, Jun 28, 2013 at 10:06:01PM +0200, Michael Grzeschik wrote:
-> > > > > > > > right, but in DT you will define both instances and each in=
-stance will
-> > > > > > > > have a seaparate snps,maximum_speed attribute :-)
-> > > > > > > >
-> > > > > > > > I'm now considering if we should make maximum_speed a gener=
-ic attribute,
-> > > > > > > > Kishon ? Alex ? Alan ?
-> > > > > > > >
-> > > > > > > > anyone else needs such thing ?
-> > > > > > >=20
-> > > > > > > We have a force-full-speed attibute for chipidea on the way. =
-This
-> > > > > > > maximum_speed looks like a more generic alternative. Michael,=
- what say
-> > > > > > > you?
-> > > > > >=20
-> > > > > > The maximum_speed attribute sounds more reasonable. I will chan=
-ge my
-> > > > > > patch to it.
-> > > > >=20
-> > > > > thanks, perhaps we can add a generic helper in udc-core or usb-co=
-mmon ?
-> > > >=20
-> > > > As this function is not only udc specific, this should go into usb-=
-common.
-> > > > But right, we should go with a helper here. I will write one in add=
-ition
-> > > > to my full-speed patch as first user of it.
-> > >=20
-> > > alright, thanks :-)
-> >=20
-> > Michael, if you need any help with patching in maximum_speed attribute,
-> > let me know as I have some time to work on that part.
->=20
-> Feel free to begin with anything. I am currently short on time.
-> Do you need some pointers?
+Indeed, this was at least one major problem.  With this fixed, and with 
+CONFIG_MACH_OMAP_GENERIC=y in the v3.10-rc Kconfigs, the BeagleBone white 
+boots here now with v3.10-rc7.  Will test the previous releases going back 
+to v3.8 and will update the web-linked READMEs as appropriate.
 
-not, really v1 will come on monday.
+Thanks for the help and the fixes.  Vaibhav and Rajendra, thanks also for 
+looking into it.
 
---=20
-balbi
 
---AhhlLboLdkugWU4S
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRz+plAAoJEIaOsuA1yqREzY8QAJBVfr+9xHIGhPF4GJOADpJk
-bRkjLZu/HRbq9Z9UT5elWmufWMuf6DygVzaiEgTA/JJLExLEp80SZKVNS/PPDSYP
-xn80hE0TiEGulLF8xZMvd0JWrZqrvnxVcr1TV3uposDDHqCW7EfKMgnUv/IA6JrH
-2MeeTk+VaPA626kPIVfZXTK/XURhAJXBPoMH2/kybrKE9gaU3UkrG2RRNOWEQCGh
-EO/S+y/4qWX1U0TBmAcZxFN+yN4PyX7J6DtlnB2Hcdcx/bO6HWALFbBJu51qJv3N
-wzt5fs4Qak2ip4a8+FZmBMq6tkov13X0w7u32IXot+riJF3craVygxZKy+HfoOxr
-TpxZz5IMHYm3ov2TmN5QdhOxJ6w6v+moApkodwrlLGglMqN43rZKdQI04MEvmghu
-HQtJyABQ9kjCGFW+OZIQIuE3nLgj+xg+rycMX8xJSC5gSj6HUpsxvFtR/KUYQ2us
-YpNfPJu2OLxROX0cz4hhtJL7Fj6pX/NYlH8wUXoiwgGl2aPD1fvfxDUe0+Mnralv
-eqIUX+PINlsgmXzCi0WcVNEE+4J5SUNJwv7IRaiVxb+nB+W1PQWSOG+ZH3xZzM0y
-ibtcCsfkVfDo4XXoshQEMScB9iKT8WBygCTOsdvX7hQoYtad/vTPZ4s+5nhTTpyD
-TqriesaHiaJB5vlM1f0L
-=Pjbb
------END PGP SIGNATURE-----
-
---AhhlLboLdkugWU4S--
+- Paul
