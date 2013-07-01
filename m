@@ -1,191 +1,176 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: [RFC] wlcore: sdio: add wilink clock providers
-Date: Mon, 1 Jul 2013 22:34:10 +0300
-Message-ID: <1372707250-11998-1-git-send-email-coelho@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.10-rc7
+Date: Mon, 1 Jul 2013 19:48:50 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1307011946180.4358@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: mturquette@linaro.org, mark.rutland@arm.com, balbi@ti.com
-Cc: devicetree-discuss@lists.ozlabs.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, grant.likely@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, --linux-doc@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:45358 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754853Ab3GATsv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jul 2013 15:48:51 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-Add refclock and tcxoclock as clock providers in WiLink.  These clocks
-are not accesible outside the WiLink module, but they are registered
-in the clock framework anyway.  Only the WiLink chip consumes these
-clocks.
 
-In theory, the WiLink chip could be connected to external clocks
-instead of using these internal clocks, so make the clock consumer
-code generic enough.  If external clocks are used, then the internal
-clock device tree nodes are not necessary, but the external ones must
-be specified.
+Here are some basic OMAP test results for Linux v3.10-rc7.
+Logs and other details at:
 
-Signed-off-by: Luciano Coelho <coelho@ti.com>
----
+    http://www.pwsan.com/omap/testlogs/test_v3.10-rc7/20130630191558/
 
-Hi,
+Special thanks to Lokesh Vutla, Vaibhav Hiremath, Kevin Hilman, and 
+Rajendra Nayak for helping unravel the Beaglebone-White test problems.
 
-I came up with this code, trying to make the WiLink clocks definitions
-as generic as possible and use existing fixed-clock bindings.  This
-looks relatively clean to me, even though it adds some complexity.
-But I think it's better than the original bindings I had defined.
 
-I still need to take care of the XTAL/not-XTAl boolean, but I will do
-that separately.
+Test summary
+------------
 
-This patch will be split (to take away the Panda DTS part) and
-squashed in other patches in my series.
+Build: uImage:
+    Pass (16/16): am33xx_only, n800_multi_omap2xxx, n800_only_a,
+                  omap1_defconfig, omap1_defconfig_1510innovator_only, 
+                  omap1_defconfig_5912osk_only, omap2plus_defconfig, 
+                  omap2plus_defconfig_2430sdp_only
+                  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm, 
+                  omap2plus_defconfig_omap2_4_only, 
+                  omap2plus_defconfig_omap3_4_only, 
+                  rmk_omap3430_ldp_allnoconfig, 
+                  rmk_omap3430_ldp_oldconfig, 
+                  rmk_omap4430_sdp_allnoconfig, 
+                  rmk_omap4430_sdp_oldconfig
 
-Please let me know what you think.
+Build: zImage:
+    Pass ( 1/ 1): omap2plus_defconfig
 
---
-Cheers,
-Luca.
+Boot to userspace:
+    FAIL ( 2/12): 37xxevm, am335xbonelt
+    Pass (10/12): 2420n800, 2430sdp, 3517evm, 3530es3beagle,
+                  3730beaglexm, 4430es2panda, 4460pandaes, 5912osk,
+                  am335xbone, cmt3517
 
- arch/arm/boot/dts/omap4-panda-common.dtsi |   16 ++++++++---
- drivers/net/wireless/ti/wlcore/sdio.c     |   43 ++++++++++++++++++++++++++---
- 2 files changed, 51 insertions(+), 8 deletions(-)
+PM: chip retention via suspend:
+    FAIL ( 3/ 6): 2430sdp, 37xxevm, 4430es2panda
+    Pass ( 3/ 6): 3530es3beagle, 3730beaglexm, 4460pandaes
 
-diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-index 670c3ce..7f061b8 100644
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -65,11 +65,19 @@
- 		enable-active-high;
- 	};
- 
-+
- 	wlan {
--	     compatible = "ti,wilink6";
--	     interrupt-parent = <&gpio2>;
--	     interrupts = <21 0x4>;	/* gpio line 53, high level triggered */
--	     refclock = <2>;		/* 38.4 MHz */
-+		compatible = "ti,wilink6";
-+		interrupt-parent = <&gpio2>;
-+		interrupts = <21 0x4>;	/* gpio line 53, high level triggered */
-+		clocks = <&refclock>;
-+		clock-names = "refclock";
-+
-+		refclock: refclock {
-+			compatible = "ti,wilink-clock";
-+			#clock-cells = <0>;
-+			clock-frequency = <38400000>;
-+		};
- 	 };
- };
- 
-diff --git a/drivers/net/wireless/ti/wlcore/sdio.c b/drivers/net/wireless/ti/wlcore/sdio.c
-index 5b08620..60fce49 100644
---- a/drivers/net/wireless/ti/wlcore/sdio.c
-+++ b/drivers/net/wireless/ti/wlcore/sdio.c
-@@ -34,6 +34,7 @@
- #include <linux/wl12xx.h>
- #include <linux/pm_runtime.h>
- #include <linux/printk.h>
-+#include <linux/clk-provider.h>
- 
- #include "wlcore.h"
- #include "wl12xx_80211.h"
-@@ -52,6 +53,7 @@ static bool dump = false;
- struct wl12xx_sdio_glue {
- 	struct device *dev;
- 	struct platform_device *core;
-+	struct clk *refclock, *tcxoclock;
- };
- 
- static const struct sdio_device_id wl1271_devices[] = {
-@@ -214,10 +216,16 @@ static struct wl1271_if_operations sdio_ops = {
- 	.set_block_size = wl1271_sdio_set_block_size,
- };
- 
-+static const struct of_device_id wlcore_sdio_of_clk_match_table[] = {
-+	{ .compatible = "ti,wilink-clock" },
-+};
-+
- static struct wl12xx_platform_data *wlcore_get_pdata_from_of(struct device *dev)
- {
- 	struct wl12xx_platform_data *pdata;
- 	struct device_node *np = dev->of_node;
-+	struct device_node *clock_node;
-+	struct wl12xx_sdio_glue *glue = sdio_get_drvdata(dev_to_sdio_func(dev));
- 
- 	if (!np) {
- 		np = of_find_matching_node(NULL, dev->driver->of_match_table);
-@@ -241,11 +249,28 @@ static struct wl12xx_platform_data *wlcore_get_pdata_from_of(struct device *dev)
- 		goto out_free;
- 	}
- 
-+	for_each_matching_node(clock_node, wlcore_sdio_of_clk_match_table)
-+		of_fixed_clk_setup(clock_node);
-+
- 	/* TODO: make sure we have this when needed (ie. for WL6 and WL7) */
--	of_property_read_u32(np, "refclock", &pdata->ref_clock_freq);
-+	glue->refclock = of_clk_get_by_name(np, "refclock");
-+	if (IS_ERR(glue->refclock)) {
-+		dev_err(dev, "couldn't find refclock on the device tree\n");
-+		glue->refclock = NULL;
-+	} else {
-+		clk_prepare_enable(glue->refclock);
-+		pdata->ref_clock_freq = clk_get_rate(glue->refclock);
-+	}
- 
- 	/* TODO: make sure we have this when needed (ie. for WL7) */
--	of_property_read_u32(np, "tcxoclock", &pdata->tcxo_clock_freq);
-+	glue->tcxoclock = of_clk_get_by_name(np, "tcxoclock");
-+	if (IS_ERR(glue->tcxoclock)) {
-+		dev_err(dev, "couldn't find tcxoclock on the device tree\n");
-+		glue->tcxoclock = NULL;
-+	} else {
-+		clk_prepare_enable(glue->tcxoclock);
-+		pdata->ref_clock_freq = clk_get_rate(glue->tcxoclock);
-+	}
- 
- 	goto out;
- 
-@@ -291,6 +316,8 @@ static int wl1271_probe(struct sdio_func *func,
- 	/* Use block mode for transferring over one block size of data */
- 	func->card->quirks |= MMC_QUIRK_BLKSZ_FOR_BYTE_MODE;
- 
-+	sdio_set_drvdata(func, glue);
-+
- 	/* The pdata allocated here is freed when the device is freed,
- 	 * so we don't need an additional out label to free it in case
- 	 * of error further on.
-@@ -316,8 +343,6 @@ static int wl1271_probe(struct sdio_func *func,
- 	if (mmcflags & MMC_PM_KEEP_POWER)
- 		pdev_data->pwr_in_suspend = true;
- 
--	sdio_set_drvdata(func, glue);
--
- 	/* Tell PM core that we don't need the card to be powered now */
- 	pm_runtime_put_noidle(&func->dev);
- 
-@@ -384,6 +409,16 @@ static void wl1271_remove(struct sdio_func *func)
- {
- 	struct wl12xx_sdio_glue *glue = sdio_get_drvdata(func);
- 
-+	if (glue->refclock) {
-+		clk_disable_unprepare(glue->refclock);
-+		clk_put(glue->refclock);
-+	}
-+
-+	if (glue->tcxoclock) {
-+		clk_disable_unprepare(glue->tcxoclock);
-+		clk_put(glue->tcxoclock);
-+	}
-+
- 	/* Undo decrement done above in wl1271_probe */
- 	pm_runtime_get_noresume(&func->dev);
- 
--- 
-1.7.10.4
+PM: chip retention via dynamic idle:
+    FAIL ( 4/ 6): 2430sdp, 37xxevm, 4430es2panda, 4460pandaes
+    Pass ( 2/ 6): 3530es3beagle, 3730beaglexm
+
+PM: chip off except CORE via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off except CORE via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 3/ 4): 37xxevm, 4430es2panda, 4460pandaes
+    Pass ( 1/ 4): 3530es3beagle
+
+PM: chip off via dynamic idle:
+    FAIL ( 3/ 4): 37xxevm, 4430es2panda, 4460pandaes
+    Pass ( 1/ 4): 3530es3beagle
+
+
+Failing tests: fixed by posted patches
+--------------------------------------
+
+* 37xx EVM: boot fails
+  - as of v3.10-rc1
+  - Fixed by http://marc.info/?l=linux-arm-kernel&m=137112093431021&w=2
+  
+
+Failing tests: needing investigation
+------------------------------------
+
+Boot tests:
+
+* 3517EVM & CM-T3517: boot hangs with NFS root
+  - Likely some Kconfig, board file, and PM issues with EMAC
+  - Longstanding bug
+  - Not currently part of the automated test suite
+
+Boot warnings:
+
+* 2420N800, 2430sdp: failed to get counter_32k resource
+  - "omap2_sync32k_clocksource_init: failed to get counter_32k resource"
+  - Cause unknown
+
+* CM-T3517: L3 in-band error with IPSS during boot
+  - Cause unknown but see http://marc.info/?l=linux-omap&m=134833869730129&w=2
+  - Longstanding issue; does not occur on the 3517EVM
+
+* 3730 Beagle XM, 3517EVM, CM-T3517: uart4_rx.uart4_rx mux failure
+  - Cause unknown
+  - May be related to the OMAP serial driver and/or DT mux data
+  - http://marc.info/?l=linux-arm-kernel&m=137121357528854&w=2
+
+PM tests:
+
+* 2430sdp: power domains not entering retention
+  - Cause unknown
+
+* 3730 Beagle XM: does not serial wake from off-idle suspend when console
+  UART doesn't clock-gate ("debug ignore_loglevel")
+  - Cause unknown
+  - Not yet part of the automated test suite
+  - Re-tested at v3.7; still failing:
+    http://www.pwsan.com/omap/transcripts/20121211-3730beaglexm-3.7-pm-offmode-fail-debug.txt
+
+* 4430es2panda: pwrdm state mismatch on CAM, DSS
+
+* 4430es2panda: CORE, TESLA, IVAHD, L3INIT didn't enter target state
+  - Probably due to lack of reset code for M3, DSP, SL2IF, FSUSB
+    per discussion with Tero Kristo
+  - Likely dependent on the bootloader version
+    - fails with 2012.07-00136-g755de79
+  - http://marc.info/?l=linux-arm-kernel&m=136432340618226&w=2
+
+* 4430es2panda: MPU, ABE didn't enter target state
+  - New for v3.10-rc
+
+* 4460pandaes: pwrdm state mismatch on DSS, ABE, IVAHD, TESLA
+
+* 4460pandaes: chip not entering retention in dynamic idle
+  - Presumably 4430es2panda also fails this
+  - Suspend-to-RAM enters full chip retention
+
+Other:
+
+* 4430es2panda: omap_hwmod: l3_instr: _wait_target_disable failed
+  - Unknown cause; could be due to the lack of hierarchical enable/disable
+    in hwmod code
+  - Jon Hunter and Santosh Shilimkar report this does not appear with
+    the same X-loader/bootloader on his 4430ES2.3 Panda, so could be
+    ES-level dependent
+
+
+Failing tests: reported by others 
+---------------------------------
+
+- RTC wakeup from suspend broken on 3730beaglexm
+  - as of v3.10-rc1
+  - discussion here: http://marc.info/?l=linux-omap&m=136915841625434&w=2
+
+
+vmlinux object size
+(delta in bytes from test_v3.10-rc6 
+(7d132055814ef17a6c7b69f342244c410a5e000f)):
+   text     data      bss    total  kernel
+   +969     +600        0    +1569  am33xx_only
+   +813        0        0     +813  n800_multi_omap2xxx
+   +813        0        0     +813  n800_only_a
+   +861       -8        0     +853  omap1_defconfig
+   +861        0        0     +861  omap1_defconfig_1510innovator_only
+   +861      +24        0     +885  omap1_defconfig_5912osk_only
+   +925        0        0     +925  omap2plus_defconfig
+   +901        0        0     +901  omap2plus_defconfig_2430sdp_only
+   +925        0        0     +925  omap2plus_defconfig_cpupm
+ -14807    -1880    -8256   -24943  omap2plus_defconfig_no_pm
+   +989        0        0     +989  omap2plus_defconfig_omap2_4_only
+   +925        0        0     +925  omap2plus_defconfig_omap3_4_only
+   +384        0      -16     +368  rmk_omap3430_ldp_allnoconfig
+   +285        0        0     +285  rmk_omap3430_ldp_oldconfig
+   +384        0      -16     +368  rmk_omap4430_sdp_allnoconfig
+   +257        0        0     +257  rmk_omap4430_sdp_oldconfig
+
