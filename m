@@ -1,141 +1,95 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH] N900: add device tree
-Date: Mon, 1 Jul 2013 23:17:54 +0200
-Message-ID: <20130701211753.GC15318@amd.pavel.ucw.cz>
-References: <20130613132624.GA3464@amd.pavel.ucw.cz>
- <20130613141001.GF8164@atomide.com>
- <20130613142809.GA3775@amd.pavel.ucw.cz>
- <20130613145724.GH8164@atomide.com>
- <20130613155240.GB3775@amd.pavel.ucw.cz>
- <20130613161418.GJ8164@atomide.com>
- <20130613230808.GA14876@amd.pavel.ucw.cz>
- <20130614055629.GM8164@atomide.com>
- <20130614212816.GA31768@atrey.karlin.mff.cuni.cz>
- <20130617111031.GQ20992@atomide.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH v3 0/2]: auto request GPIO as input if used as IRQ via DT
+Date: Mon, 01 Jul 2013 16:23:37 -0700
+Message-ID: <87li5pooee.fsf@linaro.org>
+References: <1372276203-21755-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130617111031.GQ20992@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, b-cousson@ti.com
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:39340 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755179Ab3GAXXl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jul 2013 19:23:41 -0400
+Received: by mail-pd0-f178.google.com with SMTP id w11so2999270pde.23
+        for <linux-omap@vger.kernel.org>; Mon, 01 Jul 2013 16:23:41 -0700 (PDT)
+In-Reply-To: <1372276203-21755-1-git-send-email-javier.martinez@collabora.co.uk>
+	(Javier Martinez Canillas's message of "Wed, 26 Jun 2013 21:50:01
+	+0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Grant Likely <grant.likely@linaro.org>, jgchunter@gmail.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, eballetbo@gmail.com, thomas.petazzoni@free-electrons.com, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>, aaro.koskinen@iki.fi
 
+Javier Martinez Canillas <javier.martinez@collabora.co.uk> writes:
 
-This adds device tree with neccessary support to boot with functional
-video (on both emulator and real N900 device).
+> When an OMAP GPIO is used as an IRQ line, a call to gpio_request()
+> has to be made to initialize the OMAP GPIO bank before a driver
+> request the IRQ. Otherwise the call to request_irq() fails.
+>
+> Drivers should not be aware of this neither care wether an IRQ line
+> is a GPIO or not. They should just request the IRQ and this has to
+> be handled by the irq_chip driver.
+>
+> With the current OMAP GPIO DT binding, if we define:
+>
+>                 gpio6: gpio@49058000 {
+>                         compatible = "ti,omap3-gpio";
+>                         reg = <0x49058000 0x200>;
+>                         interrupts = <34>;
+>                         ti,hwmods = "gpio6";
+>                         gpio-controller;
+>                         #gpio-cells = <2>;
+>                         interrupt-controller;
+>                         #interrupt-cells = <2>;
+>                 };
+>
+>                 interrupt-parent = <&gpio6>;
+>                 interrupts = <16 8>;
+>
+> The GPIO is correctly mapped as an IRQ but a call to gpio_request()
+> is never made. Ideally this has to be handled by the IRQ core and
+> there are some work-in-progress to add this logic to the core but
+> until this general solution gets into mainline we need to solve this
+> on a per irq_chip driver basis.
+>
+> Some drivers solve this by calling gpio_request() using a custom
+> .xlate function handler. But .xlate could get called many times
+> while the irq domain .map function handler is called just once
+> when a IRQ mapping is created with a call to irq_create_mapping().
+>
+> This patch-set adds a custom .map function handler for the gpio-omap
+> irq_chip driver that automatically call gpio_request() when a IRQ
+> mapping is created for the GPIO line used as interrupt when using DT.
+> This is just a temporary solution (a.k.a a hack) until a kernel wide
+> approach is implemented and added to mainline.
+>
+> This is a third version of a patch-set that addresses some issues pointed
+> out by Grant Like, it is composed of the following patches:
+>
+> [PATCH v3 1/2] gpio/omap: don't create an IRQ mapping for every GPIO on DT
+> [PATCH v3 2/2] gpio/omap: auto request GPIO as input if used as IRQ via DT
+>
+> This was tested on an OMAP3 DM3735 board (IGEPv2) and all the supported
+> peripherals are working correctly with both legacy and DT booting. Further
+> testing will be highly appreciated.
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Was there any testing done to hit low-power modes?  suspend/resume?
+CPUidle enabled? etc.  It is especially instructive to enable off
+mode[1] on OMAP3 platforms and see if things still work as expected.
 
---- linux-delme-clean//arch/arm/boot/dts/Makefile	2013-07-01 21:51:00.000000000 +0200
-+++ linux-delme/arch/arm/boot/dts/Makefile	2013-07-01 22:53:06.000000000 +0200
-@@ -141,6 +141,7 @@
- 	omap3-devkit8000.dtb \
- 	omap3-beagle-xm.dtb \
- 	omap3-evm.dtb \
-+	omap3-n900.dtb \
- 	omap3-tobi.dtb \
- 	omap3-igep0020.dtb \
- 	omap3-igep0030.dtb \
---- linux-delme-clean//arch/arm/boot/dts/omap3-n900.dts	1970-01-01 01:00:00.000000000 +0100
-+++ linux-delme/arch/arm/boot/dts/omap3-n900.dts	2013-07-01 22:50:21.000000000 +0200
-@@ -0,0 +1,94 @@
-+/*
-+ * Copyright (C) 2013 Pavel Machek <pavel@ucw.cz>
-+ * Copyright 2013 Aaro Koskinen <aaro.koskinen@iki.fi>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 (or later) as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/dts-v1/;
-+
-+/include/ "omap34xx.dtsi"
-+
-+/ {
-+	model = "Nokia N900";
-+	compatible = "nokia,omap3-n900", "ti,omap3";
-+
-+	cpus {
-+		cpu@0 {
-+//			cpu0-supply = <&vcc>;
-+		};
-+	};
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x10000000>; /* 256 MB */
-+	};
-+
-+};
-+
-+&i2c1 {
-+	clock-frequency = <2200000>;
-+
-+	twl: twl@48 {
-+		reg = <0x48>;
-+		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-+		interrupt-parent = <&intc>;
-+	};
-+};
-+
-+/include/ "twl4030.dtsi"
-+
-+&twl_gpio {
-+	ti,pullups	= <0x0>;
-+	ti,pulldowns	= <0x03ff3f>; /* BIT(0..5) | BIT(8..17) */
-+};
-+
-+&i2c2 {
-+	clock-frequency = <400000>;
-+};
-+
-+&i2c3 {
-+	clock-frequency = <100000>;
-+};
-+
-+&mmc1 {
-+	status = "disabled";
-+};
-+
-+&mmc2 {
-+	status = "disabled";
-+};
-+
-+&mmc3 {
-+	status = "disabled";
-+};
-+
-+&mcspi1 {
-+	// For some reason, touchscreen is neccessary for screen to work at 
-+	// all on real hw. It works well without it on emulator.
-+	//
-+	// Also... order in the device tree actually matters here.
-+	tsc2005@0 {
-+		compatible = "tsc2005";
-+		spi-max-frequency = <6000000>;
-+		reg = <0>;
-+	};
-+	mipid@2 {
-+		compatible = "acx565akm";
-+		spi-max-frequency = <6000000>;
-+		reg = <2>;
-+		// turbo_mode = 0,
-+		// cs_per_word = 0
-+	};
-+};
-+
-+/*
-+&usb_otg_hs {
-+	interface-type = <0>;
-+	usb-phy = <&usb2_phy>;
-+	mode = <2>;
-+	power = <50>;
-+};
-+*/
+Kevin
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+[1] echo 1 > /sys/kerel/debug/pm_debug/enable_off_mode
+
+> Aaro, could you please test if these changes break any of your OMAP1 boards?
+> Although it shouldn't do it as far as I can tell.
+>
+> Many thanks to Jon Hunter and Grant Likely for their feedback and
+> suggestions on how to solve this.
+>
+> Best regards,
+> Javier
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
