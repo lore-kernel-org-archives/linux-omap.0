@@ -1,8 +1,7 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH] N900: enable N900-specific drivers even if device tree is
- enabled
-Date: Mon, 1 Jul 2013 23:15:04 +0200
-Message-ID: <20130701211504.GB15318@amd.pavel.ucw.cz>
+Subject: [PATCH] N900: add device tree
+Date: Mon, 1 Jul 2013 23:17:54 +0200
+Message-ID: <20130701211753.GC15318@amd.pavel.ucw.cz>
 References: <20130613132624.GA3464@amd.pavel.ucw.cz>
  <20130613141001.GF8164@atomide.com>
  <20130613142809.GA3775@amd.pavel.ucw.cz>
@@ -19,42 +18,123 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <20130617111031.GQ20992@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>, b-cousson@ti.com
 Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
-We still need video & sound drivers with device tree enabled.
+This adds device tree with neccessary support to boot with functional
+video (on both emulator and real N900 device).
 
 Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
----
-
-Patch against 3.10.
-
---- linux-delme-clean//arch/arm/mach-omap2/board-rx51-video.c	2013-07-01 21:51:07.000000000 +0200
-+++ linux-delme/arch/arm/mach-omap2/board-rx51-video.c	2013-07-01 22:50:27.000000000 +0200
-@@ -61,7 +61,7 @@
- 
- static int __init rx51_video_init(void)
- {
--	if (!machine_is_nokia_rx51())
-+	if (!machine_is_nokia_rx51() && !of_machine_is_compatible("nokia,omap3-n900"))
- 		return 0;
- 
- 	if (omap_mux_init_gpio(RX51_LCD_RESET_GPIO, OMAP_PIN_OUTPUT)) {
-diff -urN linux-delme-clean//sound/soc/omap/rx51.c linux-delme/sound/soc/omap/rx51.c
---- linux-delme-clean//sound/soc/omap/rx51.c	2013-07-01 21:54:49.000000000 +0200
-+++ linux-delme/sound/soc/omap/rx51.c	2013-07-01 22:50:27.000000000 +0200
-@@ -396,7 +396,7 @@
- {
- 	int err;
- 
--	if (!machine_is_nokia_rx51())
-+	if (!machine_is_nokia_rx51() && !of_machine_is_compatible("nokia,omap3-n900"))
- 		return -ENODEV;
- 
- 	err = gpio_request_one(RX51_TVOUT_SEL_GPIO,
+--- linux-delme-clean//arch/arm/boot/dts/Makefile	2013-07-01 21:51:00.000000000 +0200
++++ linux-delme/arch/arm/boot/dts/Makefile	2013-07-01 22:53:06.000000000 +0200
+@@ -141,6 +141,7 @@
+ 	omap3-devkit8000.dtb \
+ 	omap3-beagle-xm.dtb \
+ 	omap3-evm.dtb \
++	omap3-n900.dtb \
+ 	omap3-tobi.dtb \
+ 	omap3-igep0020.dtb \
+ 	omap3-igep0030.dtb \
+--- linux-delme-clean//arch/arm/boot/dts/omap3-n900.dts	1970-01-01 01:00:00.000000000 +0100
++++ linux-delme/arch/arm/boot/dts/omap3-n900.dts	2013-07-01 22:50:21.000000000 +0200
+@@ -0,0 +1,94 @@
++/*
++ * Copyright (C) 2013 Pavel Machek <pavel@ucw.cz>
++ * Copyright 2013 Aaro Koskinen <aaro.koskinen@iki.fi>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 (or later) as
++ * published by the Free Software Foundation.
++ */
++
++/dts-v1/;
++
++/include/ "omap34xx.dtsi"
++
++/ {
++	model = "Nokia N900";
++	compatible = "nokia,omap3-n900", "ti,omap3";
++
++	cpus {
++		cpu@0 {
++//			cpu0-supply = <&vcc>;
++		};
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x10000000>; /* 256 MB */
++	};
++
++};
++
++&i2c1 {
++	clock-frequency = <2200000>;
++
++	twl: twl@48 {
++		reg = <0x48>;
++		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
++		interrupt-parent = <&intc>;
++	};
++};
++
++/include/ "twl4030.dtsi"
++
++&twl_gpio {
++	ti,pullups	= <0x0>;
++	ti,pulldowns	= <0x03ff3f>; /* BIT(0..5) | BIT(8..17) */
++};
++
++&i2c2 {
++	clock-frequency = <400000>;
++};
++
++&i2c3 {
++	clock-frequency = <100000>;
++};
++
++&mmc1 {
++	status = "disabled";
++};
++
++&mmc2 {
++	status = "disabled";
++};
++
++&mmc3 {
++	status = "disabled";
++};
++
++&mcspi1 {
++	// For some reason, touchscreen is neccessary for screen to work at 
++	// all on real hw. It works well without it on emulator.
++	//
++	// Also... order in the device tree actually matters here.
++	tsc2005@0 {
++		compatible = "tsc2005";
++		spi-max-frequency = <6000000>;
++		reg = <0>;
++	};
++	mipid@2 {
++		compatible = "acx565akm";
++		spi-max-frequency = <6000000>;
++		reg = <2>;
++		// turbo_mode = 0,
++		// cs_per_word = 0
++	};
++};
++
++/*
++&usb_otg_hs {
++	interface-type = <0>;
++	usb-phy = <&usb2_phy>;
++	mode = <2>;
++	power = <50>;
++};
++*/
 
 -- 
 (english) http://www.livejournal.com/~pavelmachek
