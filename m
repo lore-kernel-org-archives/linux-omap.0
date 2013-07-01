@@ -1,67 +1,38 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [RFC] wlcore: sdio: add wilink clock providers
-Date: Mon, 1 Jul 2013 23:55:28 +0300
-Message-ID: <1372712128.21065.71.camel@cumari.coelho.fi>
-References: <1372707250-11998-1-git-send-email-coelho@ti.com>
- <20130701204633.GB805@arwen.pp.htv.fi>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during
+ bus suspend
+Date: Mon, 1 Jul 2013 17:01:27 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1307011655580.1547-100000@iolanthe.rowland.org>
+References: <20130701164920.GA31370@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130701204633.GB805@arwen.pp.htv.fi>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: balbi@ti.com
-Cc: mark.rutland@arm.com, mturquette@linaro.org, devicetree-discuss@lists.ozlabs.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, grant.likely@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, --linux-doc@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130701164920.GA31370@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, tony@atomide.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 2013-07-01 at 23:46 +0300, Felipe Balbi wrote:
-> Hi,
+On Mon, 1 Jul 2013, Felipe Balbi wrote:
+
+> > I don't know what Pad wakeup is.  The wakeup signal has to originate 
+> > from the EHCI controller, doesn't it?  If not, how does the Pad know 
+> > when a wakeup is needed?
 > 
-> On Mon, Jul 01, 2013 at 10:34:10PM +0300, Luciano Coelho wrote:
-> > diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-> > index 670c3ce..7f061b8 100644
-> > --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-> > +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-> > @@ -65,11 +65,19 @@
-> >  		enable-active-high;
-> >  	};
-> >  
-> > +
-> >  	wlan {
-> > -	     compatible = "ti,wilink6";
-> > -	     interrupt-parent = <&gpio2>;
-> > -	     interrupts = <21 0x4>;	/* gpio line 53, high level triggered */
-> > -	     refclock = <2>;		/* 38.4 MHz */
-> > +		compatible = "ti,wilink6";
-> > +		interrupt-parent = <&gpio2>;
-> > +		interrupts = <21 0x4>;	/* gpio line 53, high level triggered */
-> > +		clocks = <&refclock>;
-> > +		clock-names = "refclock";
-> 
-> hmmm, shouldn't you provide both clocks (refclock and tcx0clock)
-> explicitly here ?
+> That's really an OMAP thing, I guess. Pad wakeup sits in the PRCM (IIRC)
+> inside and always on power domain. EHCI sits in another power domain
+> which be turned off. When it's turned off (power gated and clock gated)
+> the EHCI block has no means to wakeup whatsoever. That's when pad wakeup
+> comes into play. It is generated when PRCM sees a change in the actual
+> pad of the die. To check who should 'own' the wakeup, it checks the
+> muxing settings to verify whose pad is that.
 
-No, not needed for Panda.  Panda uses WiLink6 and only the refclock
-needs to be provided.
+How does the PRCM know which changes should generate wakeup events?  
+In the EHCI controller, this is managed by the settings of the WKOC_E,
+WKDSCNNT_E, and WKCNNT_E bits in the PORTSC registers.  But if EHCI is
+powered off, those bits can't be used.
 
+Also, once the wakeup signal has been turned on, how does it get turned 
+off again?
 
-> Also, you should probably make it clear that the WiLink module is fed by
-> the 32K sync clock just to make sure clock usecounts are correctly
-> incremented ?
-
-Hmmm, yes, that is probably a good idea.  At least to make sure
-everything is initialized properly before the WiLink module is up and
-running.  I'll look into it and eventually add in a separate patch.
-
-Thanks for your comments!
-
---
-Luca.
+Alan Stern
