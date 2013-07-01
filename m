@@ -1,73 +1,73 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH] N900: fix operation on emulator
-Date: Mon, 1 Jul 2013 16:03:20 +0200
-Message-ID: <20130701140315.GA15318@amd.pavel.ucw.cz>
-References: <20130613132624.GA3464@amd.pavel.ucw.cz>
- <20130613141001.GF8164@atomide.com>
- <20130613142809.GA3775@amd.pavel.ucw.cz>
- <20130613145724.GH8164@atomide.com>
- <20130613155240.GB3775@amd.pavel.ucw.cz>
- <20130613161418.GJ8164@atomide.com>
- <20130613230808.GA14876@amd.pavel.ucw.cz>
- <20130614055629.GM8164@atomide.com>
- <20130614212816.GA31768@atrey.karlin.mff.cuni.cz>
- <20130617111031.GQ20992@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [-next PATCH 0/2] ARM: OMAP5: fix build breakage due to SCU usage
+Date: Mon, 1 Jul 2013 10:34:21 -0500
+Message-ID: <51D1A17D.9070701@ti.com>
+References: <1372257587-21720-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130617111031.GQ20992@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:37067 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753148Ab3GAPfK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jul 2013 11:35:10 -0400
+In-Reply-To: <1372257587-21720-1-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Russell King <linux@arm.linux.org.uk>, Stephen Warren <swarren@nvidia.com>, Rob Herring <rob.herring@calxeda.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 
-Errata workarounds for N900 hardware actually break operation on
-emulator. Fix it.
+Tony,
 
-This approach was suggested by Pali Roh=E1r <pali.rohar@gmail.com>
-(thanks!).
+Any chance of picking these up?
 
-(Also explain what "sleep_ind" led actually does).
+I see that next-20130701 is broke as well in an OMAP5 only build. beyond 
+the fixes already merged in - the missing series seems to be the 
+$subject series to allow an OMAP5 only build.
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
+On 06/26/2013 09:39 AM, Nishanth Menon wrote:
+> Hi,
+>
+> Cortex-A15 based OMAP5 does not use Snoop Control Unit(SCU)[1].
+> However, there is lot of code that is shared between Cortex-A9 based
+> OMAP4 and OMAP5, hence functionality code is shared with runtime usage
+> of SCU based on SoC worked on. However on building with OMAP5 only
+> generates the following errors:
+> arch/arm/mach-omap2/built-in.o: In function `scu_gp_set':
+> arch/arm/mach-omap2/sleep44xx.S:132: undefined reference to `scu_power_mode'
+> arch/arm/mach-omap2/built-in.o: In function `scu_gp_clear':
+> arch/arm/mach-omap2/sleep44xx.S:229: undefined reference to `scu_power_mode'
+> arch/arm/mach-omap2/built-in.o: In function `omap4_smp_init_cpus':
+> arch/arm/mach-omap2/omap-smp.c:185: undefined reference to `scu_get_core_count'
+> arch/arm/mach-omap2/built-in.o: In function `omap4_smp_prepare_cpus':
+> arch/arm/mach-omap2/omap-smp.c:211: undefined reference to `scu_enable'
+>
+> This was attempted to be "fixed" in various attempts in the past [2] [3].
+>
+> This series applies on top of the other fixes in discussion for linux-next [4] [5].
+>
+> Based on:
+> git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git  next-20130626
+>
+> Nishanth Menon (2):
+>    ARM: OMAP4: sleep: build OMAP4 specific functions only for OMAP4
+>    ARM: scu: provide inline dummy functions when SCU is not present
+>
+>   arch/arm/include/asm/smp_scu.h  |   13 ++++++++++++-
+>   arch/arm/mach-omap2/sleep44xx.S |    6 +++++-
+>   2 files changed, 17 insertions(+), 2 deletions(-)
+>
+> [1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0407e/CHDFJICC.html
+> [2] https://patchwork.kernel.org/patch/2568091/
+> [3] http://marc.info/?t=137120115400001&r=1&w=2
+> [4] http://lists.infradead.org/pipermail/linux-arm-kernel/2013-June/178209.html
+> [5] https://patchwork.kernel.org/patch/2781471/
+>
+> Regards,
+> Nishanth Menon
+>
 
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/boa=
-rd-rx51.c
-index 74f83a5..81f7b9f 100644
---- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -33,9 +33,12 @@
- #include "pm.h"
- #include "sdram-nokia.h"
- #include "board-rx51-secure.h"
-+#include "soc.h"
-=20
- #define RX51_GPIO_SLEEP_IND 162
-=20
-+/* This lights up left part of keyboard */
-+
- static struct gpio_led gpio_leds[] =3D {
- 	{
- 		.name	=3D "sleep_ind",
-@@ -107,9 +110,11 @@ static void __init rx51_init(void)
- 	rx51_camera_init();
-=20
- #ifdef CONFIG_ARM_ERRATA_430973
--	printk(KERN_INFO "RX-51: Enabling ARM errata 430973 workaround.\n");
--	/* set IBE to 1 */
--	rx51_secure_update_aux_cr(1 << 6, 0);
-+	if (omap_type() =3D=3D OMAP2_DEVICE_TYPE_SEC) {
-+		printk(KERN_INFO "RX-51: Enabling ARM errata 430973 workaround.\n");
-+		/* set IBE to 1 */
-+		rx51_secure_update_aux_cr(1 << 6, 0);
-+	}
- #endif
-=20
- 	/* Ensure SDRC pins are mux'd for self-refresh */
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
+-- 
+Regards,
+Nishanth Menon
