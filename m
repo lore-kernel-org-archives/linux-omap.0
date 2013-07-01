@@ -1,73 +1,55 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [-next PATCH 0/2] ARM: OMAP5: fix build breakage due to SCU usage
-Date: Mon, 1 Jul 2013 10:34:21 -0500
-Message-ID: <51D1A17D.9070701@ti.com>
-References: <1372257587-21720-1-git-send-email-nm@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during
+ bus suspend
+Date: Mon, 1 Jul 2013 12:24:07 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1307011209440.1547-100000@iolanthe.rowland.org>
+References: <51D13AED.4010307@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37067 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753148Ab3GAPfK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jul 2013 11:35:10 -0400
-In-Reply-To: <1372257587-21720-1-git-send-email-nm@ti.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:38491 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752093Ab3GAQYI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jul 2013 12:24:08 -0400
+In-Reply-To: <51D13AED.4010307@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, Russell King <linux@arm.linux.org.uk>, Stephen Warren <swarren@nvidia.com>, Rob Herring <rob.herring@calxeda.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, tony@atomide.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tony,
+On Mon, 1 Jul 2013, Roger Quadros wrote:
 
-Any chance of picking these up?
+> On 06/28/2013 10:06 PM, Alan Stern wrote:
+> > On Fri, 28 Jun 2013, Roger Quadros wrote:
+> > 
+> >>> That's not what I meant.  Never mind the pinctrl; I was asking about
+> >>> the EHCI controller itself.  Under what circumstances does the
+> >>> controller assert its wakeup signal?  And how do you tell it to stop
+> >>> asserting that signal?
+> >>
+> >> I believe this would be through the EHCI Interrupt enable register (USBINTR).
+> >> I'm not aware of any other mechanism.
+> > 
+> > That's strange, because ehci_suspend() sets the intr_enable register to 
+> > 0.  So how do you ever get any wakeup interrupts at all?
+> 
+> Because after ehci_suspend() for OMAP, we solely rely on the out of band wake up
+> mechanism. i.e. Pad wakeup.
 
-I see that next-20130701 is broke as well in an OMAP5 only build. beyond 
-the fixes already merged in - the missing series seems to be the 
-$subject series to allow an OMAP5 only build.
-
-On 06/26/2013 09:39 AM, Nishanth Menon wrote:
-> Hi,
->
-> Cortex-A15 based OMAP5 does not use Snoop Control Unit(SCU)[1].
-> However, there is lot of code that is shared between Cortex-A9 based
-> OMAP4 and OMAP5, hence functionality code is shared with runtime usage
-> of SCU based on SoC worked on. However on building with OMAP5 only
-> generates the following errors:
-> arch/arm/mach-omap2/built-in.o: In function `scu_gp_set':
-> arch/arm/mach-omap2/sleep44xx.S:132: undefined reference to `scu_power_mode'
-> arch/arm/mach-omap2/built-in.o: In function `scu_gp_clear':
-> arch/arm/mach-omap2/sleep44xx.S:229: undefined reference to `scu_power_mode'
-> arch/arm/mach-omap2/built-in.o: In function `omap4_smp_init_cpus':
-> arch/arm/mach-omap2/omap-smp.c:185: undefined reference to `scu_get_core_count'
-> arch/arm/mach-omap2/built-in.o: In function `omap4_smp_prepare_cpus':
-> arch/arm/mach-omap2/omap-smp.c:211: undefined reference to `scu_enable'
->
-> This was attempted to be "fixed" in various attempts in the past [2] [3].
->
-> This series applies on top of the other fixes in discussion for linux-next [4] [5].
->
-> Based on:
-> git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git  next-20130626
->
-> Nishanth Menon (2):
->    ARM: OMAP4: sleep: build OMAP4 specific functions only for OMAP4
->    ARM: scu: provide inline dummy functions when SCU is not present
->
->   arch/arm/include/asm/smp_scu.h  |   13 ++++++++++++-
->   arch/arm/mach-omap2/sleep44xx.S |    6 +++++-
->   2 files changed, 17 insertions(+), 2 deletions(-)
->
-> [1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0407e/CHDFJICC.html
-> [2] https://patchwork.kernel.org/patch/2568091/
-> [3] http://marc.info/?t=137120115400001&r=1&w=2
-> [4] http://lists.infradead.org/pipermail/linux-arm-kernel/2013-June/178209.html
-> [5] https://patchwork.kernel.org/patch/2781471/
->
-> Regards,
-> Nishanth Menon
->
+I don't know what Pad wakeup is.  The wakeup signal has to originate 
+from the EHCI controller, doesn't it?  If not, how does the Pad know 
+when a wakeup is needed?
 
 
--- 
-Regards,
-Nishanth Menon
+> We can't enable_irq at the start as the controller will only be resumed
+> after usb_remote_wakeup().
+
+Hmmm, yes, I had realized that at one point and then forgot it.  You
+don't want an IRQ to arrive before you're prepared to handle it.
+
+This suggests that you really want to call enable_irq() call at the end
+of ehci_resume() instead of the beginning.  (Convert the "return 0" to
+a jump to the end of the routine.)
+
+Alan Stern
+
