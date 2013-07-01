@@ -1,39 +1,78 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.10-rc6
-Date: Mon, 1 Jul 2013 02:15:38 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1307010211580.3741@utopia.booyaka.com>
-References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com> <20130625160243.GE22312@arwen.pp.htv.fi> <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com> <51C9F0A8.1050607@ti.com> <87fvw6t136.fsf@linaro.org> <79CD15C6BA57404B839C016229A409A83ECC952D@DBDE04.ent.ti.com>
- <51CAEB33.5010101@ti.com> <alpine.DEB.2.02.1306261722520.6135@utopia.booyaka.com> <51CBBCD8.5030600@ti.com> <alpine.DEB.2.02.1306281844090.8767@utopia.booyaka.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [PATCH 0/3] spi/mtd generic framework,ti qspi controller and
+ spansion driver
+Date: Mon, 1 Jul 2013 10:47:16 +0530
+Message-ID: <51D110DC.2050107@ti.com>
+References: <1372232472-2641-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:47538 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751386Ab3GACPj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 30 Jun 2013 22:15:39 -0400
-In-Reply-To: <alpine.DEB.2.02.1306281844090.8767@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <1372232472-2641-1-git-send-email-sourav.poddar@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Sourav Poddar <sourav.poddar@ti.com>, artem.bityutskiy@linux.intel.com
+Cc: rnayak@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, broonie@kernel.org, linux-mtd@lists.infradead.org, tqnguyen@micron.com, grant.likely@linaro.org, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, dwmw2@infradead.org, manonuevo@micron.com
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Kevin Hilman <khilman@linaro.org>, "Rini, Tom" <trini@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, 28 Jun 2013, Paul Walmsley wrote:
-
-> On Thu, 27 Jun 2013, Lokesh Vutla wrote:
++ Artem
+On Wednesday 26 June 2013 01:11 PM, Sourav Poddar wrote:
+> This patch series add support for the generic spi based flash
+> framework(spinand_mtd), which can be used used by any spi based flash device to
+> attach itself to mtd framework.
 >
-> > Here is the catch..
-> > Your dtb is generated in arch/arm/boot/dts/ folder(before V3.8 dtb was
-> > generated in arch/arm/boot).
-> 
-> Ugh... that's probably it :-(
+> The first patch of this series includes both the generic framework and the
+> the micron device(spinand_lld) making use of the framework.
+> I picked the first patch as a standalone patch. Can split the generic and
+> the lld part based on community suggestions.
+>
+> The second patch is the ti qspi controller driver.
+> The third patch is the spansion s25fl256s driver, making use of the the
+> generic spinand_mtd frameowrk.
+>
+> Test info:
+> Tested the generic framework(spinand_mtd.c) along with patch(2&3) on my dra7xx board
+> for write/erase/read using nand utils.
+>
+> Compile tested(spinand_lld.c).
+>
+> Mona Anonuevo (1):
+>    drivers: mtd: spinand: Add generic spinand frameowrk and micron
+>      driver.
+>
+> Sourav Poddar (2):
+>    drivers: spi: Add qspi flash controller
+>    drivers: mtd: spinand: Add qspi spansion flash controller
+>
+>   drivers/mtd/Kconfig                 |    2 +
+>   drivers/mtd/Makefile                |    2 +
+>   drivers/mtd/spinand/Kconfig         |   31 ++
+>   drivers/mtd/spinand/Makefile        |   10 +
+>   drivers/mtd/spinand/spinand_lld.c   |  776 +++++++++++++++++++++++++++++++++++
+>   drivers/mtd/spinand/spinand_mtd.c   |  690 +++++++++++++++++++++++++++++++
+>   drivers/mtd/spinand/ti-qspi-flash.c |  373 +++++++++++++++++
+>   drivers/spi/Kconfig                 |    6 +
+>   drivers/spi/Makefile                |    1 +
+>   drivers/spi/ti-qspi.c               |  352 ++++++++++++++++
+>   include/linux/mtd/spinand.h         |  155 +++++++
+>   11 files changed, 2398 insertions(+), 0 deletions(-)
+>   create mode 100644 drivers/mtd/spinand/Kconfig
+>   create mode 100644 drivers/mtd/spinand/Makefile
+>   create mode 100644 drivers/mtd/spinand/spinand_lld.c
+>   create mode 100644 drivers/mtd/spinand/spinand_mtd.c
+>   create mode 100644 drivers/mtd/spinand/ti-qspi-flash.c
+>   create mode 100644 drivers/spi/ti-qspi.c
+>   create mode 100644 include/linux/mtd/spinand.h
+>
 
-Indeed, this was at least one major problem.  With this fixed, and with 
-CONFIG_MACH_OMAP_GENERIC=y in the v3.10-rc Kconfigs, the BeagleBone white 
-boots here now with v3.10-rc7.  Will test the previous releases going back 
-to v3.8 and will update the web-linked READMEs as appropriate.
 
-Thanks for the help and the fixes.  Vaibhav and Rajendra, thanks also for 
-looking into it.
-
-
-- Paul
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
