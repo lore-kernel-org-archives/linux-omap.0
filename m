@@ -1,164 +1,59 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [PATCH] Documentation: dt: bindings: TI WiLink modules
-Date: Mon, 1 Jul 2013 15:39:30 +0300
-Message-ID: <1372682370.21065.68.camel@cumari.coelho.fi>
-References: <1372149330-24335-1-git-send-email-coelho@ti.com>
-	 <20130628093848.GA2139@e106331-lin.cambridge.arm.com>
-	 <1372413215.21065.41.camel@cumari.coelho.fi>
-	 <20130628102145.GB2139@e106331-lin.cambridge.arm.com>
-	 <1372415514.21065.50.camel@cumari.coelho.fi>
-	 <1372418531.21065.53.camel@cumari.coelho.fi>
-	 <20130628114129.GO11297@arwen.pp.htv.fi>
-	 <1372421632.21065.60.camel@cumari.coelho.fi>
-	 <20130628121859.GP11297@arwen.pp.htv.fi>
-	 <1372425670.21065.61.camel@cumari.coelho.fi>
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v4 1/2] gpio/omap: don't create an IRQ mapping for every
+ GPIO on DT
+Date: Mon, 1 Jul 2013 13:49:15 +0100
+Message-ID: <CACxGe6sf4SEMuiYAPpUq=zE1ENu8cwPkz6G_9X8j5TjrmVDEhw@mail.gmail.com>
+References: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk>
+ <CACRpkdZryWYZuOLx5E2njLNRd1SLj4VgtEyEETh88+3SS5ckyQ@mail.gmail.com>
+ <CAAwP0s2jtVEoqMVE7ru-tcXMX8ZKZObnDz0UDWiS4QkbJODOHA@mail.gmail.com> <CACRpkdaQ+zvrYF6o65Emkf2yiMR4YOfutBv-LTDc0xOmnkZkBg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1372425670.21065.61.camel@cumari.coelho.fi>
-Sender: linux-doc-owner@vger.kernel.org
-To: mturquette@linaro.org, Mark Rutland <mark.rutland@arm.com>
-Cc: balbi@ti.com, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-arm@vger.kernel.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:35253 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753553Ab3GAMtg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jul 2013 08:49:36 -0400
+Received: by mail-ie0-f172.google.com with SMTP id 16so9173185iea.31
+        for <linux-omap@vger.kernel.org>; Mon, 01 Jul 2013 05:49:35 -0700 (PDT)
+In-Reply-To: <CACRpkdaQ+zvrYF6o65Emkf2yiMR4YOfutBv-LTDc0xOmnkZkBg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jon Hunter <jgchunter@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-On Fri, 2013-06-28 at 16:21 +0300, Luciano Coelho wrote:
-> On Fri, 2013-06-28 at 15:18 +0300, Felipe Balbi wrote:
-> > On Fri, Jun 28, 2013 at 03:13:52PM +0300, Luciano Coelho wrote:
-> > > On Fri, 2013-06-28 at 14:41 +0300, Felipe Balbi wrote:
-> > > > On Fri, Jun 28, 2013 at 02:22:11PM +0300, Luciano Coelho wrote:
-> > > > > On Fri, 2013-06-28 at 13:31 +0300, Luciano Coelho wrote:
-> > > > > > (fixed Mike's address)
-> > > > > > 
-> > > > > > On Fri, 2013-06-28 at 11:21 +0100, Mark Rutland wrote:
-> > > > > > > On Fri, Jun 28, 2013 at 10:53:35AM +0100, Luciano Coelho wrote:
-> > > > > > > > On Fri, 2013-06-28 at 10:38 +0100, Mark Rutland wrote:
-> > > > > > > > > On Tue, Jun 25, 2013 at 09:35:30AM +0100, Luciano Coelho wrote:
-> > > > > > > > > > +Optional properties:
-> > > > > > > > > > +--------------------
-> > > > > > > > > > +
-> > > > > > > > > > +- refclock: the internal WLAN reference clock frequency (required for
-> > > > > > > > > > +  WiLink6 and WiLink7; not used for WiLink8).  Must be one of the
-> > > > > > > > > > +  following:
-> > > > > > > > > > +	0 = 19.2 MHz
-> > > > > > > > > > +	1 = 26.0 MHz
-> > > > > > > > > > +	2 = 38.4 MHz
-> > > > > > > > > > +	3 = 52.0 MHz
-> > > > > > > > > > +	4 = 38.4 MHz, XTAL
-> > > > > > > > > > +	5 = 26.0 MHz, XTAL
-> > > > > > > > > > +
-> > > > > > > > > > +- tcxoclock: the internal WLAN TCXO clock frequency (required for
-> > > > > > > > > > +  WiLink7 not used for WiLink6 and WiLink8).  Must be one of the
-> > > > > > > > > > +  following:
-> > > > > > > > > > +	0 = 19.200 MHz
-> > > > > > > > > > +	1 = 26.000 MHz
-> > > > > > > > > > +	2 = 38.400 MHz
-> > > > > > > > > > +	3 = 52.000 MHz
-> > > > > > > > > > +	4 = 16.368 MHz
-> > > > > > > > > > +	5 = 32.736 MHz
-> > > > > > > > > > +	6 = 16.800 MHz
-> > > > > > > > > > +	7 = 33.600 MHz
-> > > > > > > > > 
-> > > > > > > > > This looks suspiciously like what we have the common clock bindings for:
-> > > > > > > > > 
-> > > > > > > > > refclk {
-> > > > > > > > > 	compatible = "fixed-clock";
-> > > > > > > > > 	#clock-cells = <0>;
-> > > > > > > > > 	clock-frequency = <19200000>;
-> > > > > > > > > }
-> > > > > > > > > 
-> > > > > > > > > wilink {
-> > > > > > > > > 	compatible = "ti,wilink7";
-> > > > > > > > > 	interrupt-parent = <&some_interrupt_controller>;
-> > > > > > > > > 	interrupts = <0 1 1>;
-> > > > > > > > > 	clocks = <&refclk>, <&refclk>;
-> > > > > > > > > 	clock-names = "refclk", "txoclk";
-> > > > > > > > > };
-> > > > > > > > > 
-> > > > > > > > > Could you not use them?
-> > > > > > > > 
-> > > > > > > > Hmmm... this actually does look good.  But these are internal clocks in
-> > > > > > > > the modules, they cannot be accessed from outside.  Does it make sense
-> > > > > > > > to register them with the clock framework?
-> > > > > > > 
-> > > > > > > Given we already have a common way of describing clocks, I think it
-> > > > > > > makes sense to use it -- people already understand the common bindings,
-> > > > > > > and it's less code to add add to the kernel. I don't think the fact
-> > > > > > > these clocks are internal should prevent us from describing them as we
-> > > > > > > would an external clock.
-> > > > > > 
-> > > > > > Yes, I agree with you.  Thanks for the suggestion! I think it will look
-> > > > > > much better.  And now that I dug a bit more into the code, I can see
-> > > > > > that there are only structs being populated, so there shouldn't be any
-> > > > > > other side-effects.
-> > > > > 
-> > > > > Hmmm, one thing that escaped me.  Besides the frequency, I also need a
-> > > > > boolean that tells if the clock is XTAL or not.  I can't figure out how
-> > > > > to pass this if I use the generic clock framework.  Any suggestions?
-> > > > 
-> > > > Could you use clock-output-names for that ?
-> > > > 
-> > > > XTAL clock:
-> > > > 
-> > > > refclk {
-> > > > 	compatible = "fixed-clock";
-> > > > 	#clock cells = <0>;
-> > > > 	clock-frequency = <19200000>;
-> > > > 	clock-output-names = "xtal";
-> > > > };
-> > > > 
-> > > > non-XTAL clock:
-> > > > 
-> > > > refclk {
-> > > > 	compatible = "fixed-clock";
-> > > > 	#clock cells = <0>;
-> > > > 	clock-frequency = <19200000>;
-> > > > 	clock-output-names = "osc"; /* any better name ? */
-> > > > };
-> > > 
-> > > This starts looking a bit hacky.  Using the output name as a flag is not
-> > > very pretty.
-> > > 
-> > > I think it would be better to have a separate flag for it in the wlan
-> > > node.  Like an optional "refclock-xtal" boolean or something.  The
-> > > downside of this is that we would be adding information about the clock
-> > > details in the wilink node. :(
-> > > 
-> > > OTOH, we could add a flag to the generic clock binding? A new optional
-> > > boolean that tells whether the clock is XTAL or not:
-> > > 
-> > > refclk {
-> > > 	compatible = "fixed-clock";
-> > > 	#clock cells = <0>;
-> > > 	clock-frequency = <19200000>;
-> > > 	clock-xtal;
-> > > };
-> > > 
-> > > Do you think that would make sense?
-> > 
-> > sure, that looks alright to me. Surely there are other devices out there
-> > who want to know if the clock comes from a crystal or not ?!?
-> 
-> Mike, what do you think about this idea? If it sounds okay to you, I can
-> cook up a patch adding this flag.
+On Mon, Jul 1, 2013 at 9:04 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
+> On Sun, Jun 30, 2013 at 2:25 AM, Javier Martinez Canillas
+> <martinez.javier@gmail.com> wrote:
+>
+>> Yes, It doesn't apply cleanly to your "next" branch cleanly because
+>> this patch-set depends on the following bugfix patch merged late on
+>> the -rc cycle (3.10-rc7):
+>>
+>> 397eada9 ("gpio/omap: don't use linear domain mapping for OMAP1")
+>
+> Aha, well this fix was only CC:ed to Grant so I never saw it
+> happen. Obviously it cannot be merged through my GPIO tree
+> then.
+>
+>> So, I could change the patches so they can be applied cleanly on your
+>> branch but then it will not apply cleanly when you send your pull
+>> request to Torvalds.
+>
+> That will probably not work as it would cause even more conflicts
+> upstream, and now the merge window is open so no way can I
+> rebase the tree either.
+>
+> Let's see if we can cram it in as part of a late v3.11 merge or
+> if we'll have to defer to v3.12.
 
-Hmmm... I started implementing this whole thing, but using these clocks
-as "fixed-clock"s is not so straightforward.  The problem is that I
-would need to register my driver as a clock provider and add the OF
-match for "fixed-clock".
+Linus, you can actually merge in the final v3.10 tag into your
+gpio-next branch and then apply on top of that. I would send it as two
+separate pull requests though. One pull with all the stuff that was in
+linux-next, and a second that includes the v3.10 merge and the OMAP
+patches. Include an explaination in that pull request that it is an
+important bug fix, but it took a bit of time to get it worked out
+correctly; hence the reason for the merge. That will let Linus T make
+a decision about whether or not to merge it without affecting the bulk
+of the gpio changes.
 
-If I do that, all the other "fixed-clock" nodes would be passed to my
-driver too, which is wrong.  Or, the platform should register the
-"fixed-clock" match, but this would be wrong too, since it would find
-*my* fixed-clocks.
-
-The only thing I can come up with is to make a small clock driver (maybe
-even inside the WiLink module itself) that registers a new type of
-clock, "ti,wilink-clock" or something.  But this would really be
-overkill, wouldn't it?
-
-Any other ideas?
-
---
-Luca.
-
+g.
