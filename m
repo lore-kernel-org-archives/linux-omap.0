@@ -1,41 +1,73 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v4 1/2] gpio/omap: don't create an IRQ mapping for every
- GPIO on DT
-Date: Mon, 1 Jul 2013 15:23:36 +0200
-Message-ID: <CACRpkda0CeLxGBt24XEHeLjmnOfn9iCBw6-r9FQDDkX9JChF5w@mail.gmail.com>
-References: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk>
-	<CACRpkdZryWYZuOLx5E2njLNRd1SLj4VgtEyEETh88+3SS5ckyQ@mail.gmail.com>
-	<CAAwP0s2jtVEoqMVE7ru-tcXMX8ZKZObnDz0UDWiS4QkbJODOHA@mail.gmail.com>
-	<CACRpkdaQ+zvrYF6o65Emkf2yiMR4YOfutBv-LTDc0xOmnkZkBg@mail.gmail.com>
-	<CACxGe6sf4SEMuiYAPpUq=zE1ENu8cwPkz6G_9X8j5TjrmVDEhw@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: [PATCH] N900: fix operation on emulator
+Date: Mon, 1 Jul 2013 16:03:20 +0200
+Message-ID: <20130701140315.GA15318@amd.pavel.ucw.cz>
+References: <20130613132624.GA3464@amd.pavel.ucw.cz>
+ <20130613141001.GF8164@atomide.com>
+ <20130613142809.GA3775@amd.pavel.ucw.cz>
+ <20130613145724.GH8164@atomide.com>
+ <20130613155240.GB3775@amd.pavel.ucw.cz>
+ <20130613161418.GJ8164@atomide.com>
+ <20130613230808.GA14876@amd.pavel.ucw.cz>
+ <20130614055629.GM8164@atomide.com>
+ <20130614212816.GA31768@atrey.karlin.mff.cuni.cz>
+ <20130617111031.GQ20992@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f47.google.com ([209.85.219.47]:35568 "EHLO
-	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753440Ab3GANXg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jul 2013 09:23:36 -0400
-Received: by mail-oa0-f47.google.com with SMTP id m1so4820280oag.6
-        for <linux-omap@vger.kernel.org>; Mon, 01 Jul 2013 06:23:36 -0700 (PDT)
-In-Reply-To: <CACxGe6sf4SEMuiYAPpUq=zE1ENu8cwPkz6G_9X8j5TjrmVDEhw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130617111031.GQ20992@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jon Hunter <jgchunter@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-On Mon, Jul 1, 2013 at 2:49 PM, Grant Likely <grant.likely@linaro.org> wrote:
+Errata workarounds for N900 hardware actually break operation on
+emulator. Fix it.
 
-> Linus, you can actually merge in the final v3.10 tag into your
-> gpio-next branch and then apply on top of that. I would send it as two
-> separate pull requests though. One pull with all the stuff that was in
-> linux-next, and a second that includes the v3.10 merge and the OMAP
-> patches.
+This approach was suggested by Pali Roh=E1r <pali.rohar@gmail.com>
+(thanks!).
 
-The first is already done :-D
+(Also explain what "sleep_ind" led actually does).
 
-I'll queue the OMAP stuff on a branch based off v3.10 sharp and
-put into -next right now so we can propose it for fixes or as a
-second pull request during the merge window.
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-Yours,
-Linus Walleij
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/boa=
+rd-rx51.c
+index 74f83a5..81f7b9f 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -33,9 +33,12 @@
+ #include "pm.h"
+ #include "sdram-nokia.h"
+ #include "board-rx51-secure.h"
++#include "soc.h"
+=20
+ #define RX51_GPIO_SLEEP_IND 162
+=20
++/* This lights up left part of keyboard */
++
+ static struct gpio_led gpio_leds[] =3D {
+ 	{
+ 		.name	=3D "sleep_ind",
+@@ -107,9 +110,11 @@ static void __init rx51_init(void)
+ 	rx51_camera_init();
+=20
+ #ifdef CONFIG_ARM_ERRATA_430973
+-	printk(KERN_INFO "RX-51: Enabling ARM errata 430973 workaround.\n");
+-	/* set IBE to 1 */
+-	rx51_secure_update_aux_cr(1 << 6, 0);
++	if (omap_type() =3D=3D OMAP2_DEVICE_TYPE_SEC) {
++		printk(KERN_INFO "RX-51: Enabling ARM errata 430973 workaround.\n");
++		/* set IBE to 1 */
++		rx51_secure_update_aux_cr(1 << 6, 0);
++	}
+ #endif
+=20
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
