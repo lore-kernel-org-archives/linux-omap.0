@@ -1,154 +1,107 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: RT and omap-gpio irqchip with DeviceTree
-Date: Tue, 2 Jul 2013 17:51:14 +0200
-Message-ID: <CAAwP0s1JCyWTS=TXKPOCuUtZr8a7Ufy=k2hMAswZQ37wWqyu7w@mail.gmail.com>
-References: <20130702114452.GA13763@localhost.localdomain> <CAAwP0s2KUCowe5scWJtiZ8hZb-5EMbmef_WO_03cY3H7DqxSOQ@mail.gmail.com>
- <20130702143130.GC27329@localhost.localdomain>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv2] drivers: spi: Add qspi flash controller
+Date: Tue, 2 Jul 2013 18:58:27 +0300
+Message-ID: <20130702155827.GA7626@arwen.pp.htv.fi>
+References: <1372755399-21769-1-git-send-email-sourav.poddar@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f170.google.com ([209.85.223.170]:62480 "EHLO
-	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750774Ab3GBPvf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jul 2013 11:51:35 -0400
-In-Reply-To: <20130702143130.GC27329@localhost.localdomain>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="xHFwDpU9dbj6ez1V"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1372755399-21769-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Torben Hohn <torbenh@linutronix.de>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@linaro.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, tglx@linutronix.de, bigeasy@linutronix.de, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
 
-On Tue, Jul 2, 2013 at 4:31 PM, Torben Hohn <torbenh@linutronix.de> wro=
-te:
-> On Tue, Jul 02, 2013 at 02:15:46PM +0200, Javier Martinez Canillas wr=
-ote:
->> + Grant, Linus W and Jean-Christophe.
->>
->> On Tue, Jul 2, 2013 at 1:44 PM, Torben Hohn <torbenh@linutronix.de> =
-wrote:
->> >
->> > Hi..
->> >
->> > I am running into Problems with a network adapter IRQ connected to=
- an
->> > omap-gpio pin.
->> >
->> > omap-gpio expects gpio-request() to be called before i can use the=
- pin.
->> > But this is abstracted via the DeviceTree bindings.
->> >
->> > I see 8d4c277e185c31359cf70573d8b0351fb7dd0dfe in mainline.
->> > This one just puts a warning into the exact place, i am dealing wi=
-th.
->> > But i need to make this work, instead of bailing out.
->> >
->>
->> This has been discussed extensively on the linux-omap mailing list a=
-nd
->> the agreement is that it has to be handled by the IRQ core. So when =
-a
->> GPIO line is mapped in the IRQ domain with irq_create_of_mapping(),
->> the core has to take care to request the GPIO and configure it as
->> input.
->
-> Can you give me a pointer to this discussion please ?
-> Because i fail to understand why you just dont save the irq_type in s=
-ome
-> private data structure, and then use chip->irq_enable() or something.
->
->
+--xHFwDpU9dbj6ez1V
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes, it starts here [1] but it the thread is 90+ mails long.
+Hi,
 
->>
->>  But until we have this general solution we have to do it on a per i=
-rq
->> chip driver basis and the less hack-ish solution is to have a custom
->> .map function handler that request the GPIO used as IRQ.
->>
->> There is already a patch [1] queued in Linus Walleij linux-gpio tree
->> [2] for-next branch that implements this for OMAP GPIO. It would be
->> great if you can test it and give feedback.
->
-> Thanks for the pointer.
-> The kernel i am working on is based on 3.8.x (this is before the
-> irq_domain change to linear)
->
-> First i only backported: [1] and [2]
->
-> With these i see big streams like these:
-> [    1.554809] omap_gpio gpio.9: Could not request GPIO-256
-> [    1.560394] omap_gpio gpio.9: Could not request GPIO-255
-> [    1.566009] omap_gpio gpio.9: Could not request GPIO-254
-> [    1.571594] omap_gpio gpio.9: Could not request GPIO-253
-> [    1.577178] omap_gpio gpio.9: Could not request GPIO-252
-> [    1.582794] omap_gpio gpio.9: Could not request GPIO-251
->
-> This is basically coming from irq_domain_add_legacy() which calls
-> ops->map(domain, irq, hwirq) before the gpio chip is actually added.
->
-> I fixed it by also taking [3].
->
+Alright, so I spent some time looking at the SPI framework and :
 
-Yes, sorry for not mentioning that it has as a dependency the legacy
-to linear domain mapping change. I didn't mentioned since I thought
-that you were basing your work on mainline.
+On Tue, Jul 02, 2013 at 02:26:39PM +0530, Sourav Poddar wrote:
+> +static int dra7xxx_qspi_start_transfer_one(struct spi_master *master,
+> +		struct spi_message *m)
+> +{
+> +	struct dra7xxx_qspi *qspi =3D spi_master_get_devdata(master);
+> +	struct spi_device *spi =3D m->spi;
+> +	struct spi_transfer *t;
+> +	int status =3D 0;
+> +	int flags =3D 0;
+> +
+> +	/* setup command reg */
+> +	qspi->cmd =3D 0;
+> +	qspi->cmd |=3D QSPI_WLEN(8);
 
-> However, OMAP1 is still calling irq_domain_add_legacy(). This would
-> probably break with DeviceTree.
+this m->spi->bits_per_word;
 
-Indeed, OMAP1 doesn't support DT. In fact if you are interested in
-OMAP1, then you need to cherry-pick another patch from mainline since
-linear domain mapping does not work with OMAP1 because OMAP1 does not
-support SPARSE_IRQ. That's why the change from legacy to linear domain
-mapping was partially reverted for OMAP1 in mainline commit 397eada9
-("gpio/omap: don't use linear domain mapping for OMAP1")
+> +	qspi->cmd |=3D QSPI_EN_CS(0);
 
-> But since omap1 doesnt use DeviceTree, this is probably a non-issue.
->
+this should be m->spi->chip_select;
 
-Yes, the GPIO is only requested on the .map function handler if
-bank->chip.of_node is not NULL so it doesn't have a side effect on
-platforms that don't support DT.
+> +	qspi->cmd |=3D 0xfff;
 
-After all, this issue has only been detected once we migrated to DT
-since for legacy booting is the platform code the responsible to do
-this setup (e.g: configuring the OMAP pin mux, request the GPIO,
-configure it as input, etc).
+this will be a little tricky to count... because, I believe it should be
+something like:
 
-> [1] https://git.kernel.org/cgit/linux/kernel/git/linusw/linux-gpio.gi=
-t/commit/?h=3Dfor-next&id=3D570c4bb53366157fa076922d0fc7e7adfd81cf42
-> [2] https://git.kernel.org/cgit/linux/kernel/git/linusw/linux-gpio.gi=
-t/commit/?h=3Dfor-next&id=3D50fc1d067d9f4b6c99717b91c1aaaa618075f859
-> [3] https://git.kernel.org/cgit/linux/kernel/git/linusw/linux-gpio.gi=
-t/commit/?h=3Dfor-next&id=3Dede4d7a5b9835510fd1f724367f68d2fa4128453
->
->
-> --
-> Mit freundlichen Gr=C3=BC=C3=9Fen
-> Torben Hohn
->
-> Linutronix GmbH
->
-> Standort: Bremen
->
-> Phone: +49 421 5650 2310 ; Fax.: +49 7556 919 886
-> mailto: torbenh@linutronix.de
-> Firmensitz / Registered Office: D-88690 Uhldingen, Auf dem Berg 3
-> Registergericht / Local District Court: Freiburg i. Br., HRB Nr. / Tr=
-ade
-> register no.: 700 806;
->
-> Gesch=C3=A4ftsf=C3=BChrer / Managing Directors: Heinz Egger, Thomas G=
-leixner
+	int count =3D 0;
 
-Best regards,
-Javier
+	list_for_each_entry(t, &m->transfers, transfer_list)
+		count +=3D t->len;
 
-[1]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg85544.ht=
-ml
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	frame_length =3D DIV_ROUND_UP(count, m->spi->bits_per_word);
+
+	/* up to 4096 words */
+	frame_length =3D clamp(frame_length, 4096);
+
+	qspi->cmd |=3D QSPI_FRAME_LENGTH(DIV_ROUND_UP(count,
+			frame_length));
+
+Now, it would've been better if SPI framework would already give us
+some sort of total_length field in struct spi_message which would be the
+sum of all spi_transfers.
+
+> +	/* setup device control reg */
+> +	qspi->dc =3D 0;
+> +
+> +	if (spi->mode & SPI_CPHA)
+> +		qspi->dc |=3D QSPI_CKPHA(0);
+> +	if (spi->mode & SPI_CPOL)
+> +		qspi->dc |=3D QSPI_CKPOL(0);
+> +	if (spi->mode & SPI_CS_HIGH)
+> +		qspi->dc |=3D QSPI_CSPOL(0);
+
+all of these zeroes being passed to these macros should be
+m->spi->chip_select
+
+--=20
+balbi
+
+--xHFwDpU9dbj6ez1V
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR0vijAAoJEIaOsuA1yqREp2kP/32rbawdCtptwh5qLxCUeHsq
+t8dX+o2jD60H1YxzC7ezstOAKwoJTSlk/oKELw4TFZP6rWjTwkM1FiYXoeP/s0Qu
+pmH9XsF7Pmswj4pTq9DPOv/BseOF3ZSezYr3kGFE6DS2KNWGY2gpmoGgV8l76nyE
+zwvspPhmQITrpSyJ9WDZ+1bI6iMwRPGLL1/k6c4h6+65q6ml9kD5Xv/ZY2D9lyHJ
+KR9BbDETRF6lkNr4/elBE4zFCcUFsdDvQar45QWCwhHInk0BtkCKoareKdKQ3nAL
+xFWj8V5Hr9ARbWhk1tEUIjYBr8Y8l4ttd+iUGWvNM3cRKfYxRWu8VZpNEUERNiVp
+RtJE+dtnBsvbQo5C2q1HAU6AQlsfhJDSYS3/ZyLji1Ox+i/Sxo5KzznBuL3hqqU9
+gofPP9PQ2xSbEn9q4orCM2x14bqhRuTCeweMskYs6UK82Vr2hEzYGL1EPg+vmdpn
+wpWiSZz0syunxSMrp2X2olWcbveE4+eUyLqCwDhnUPnFe8y63CgvMZwG8Y2Kqo7i
+B2j18wjtuFs3C/lSMb/r9EMWVIcBuTp6h1flzQAtD7v1i71a2RYCgaONem/9xdUs
+KYkFgoT5yPU5xgaRcSN2vuMI7u5+KG7Vq9mwrvVlkCkPbyip4F8h7xKlcSffs4gM
+isRaXBE/C/pY/8JTTQGB
+=mXSm
+-----END PGP SIGNATURE-----
+
+--xHFwDpU9dbj6ez1V--
