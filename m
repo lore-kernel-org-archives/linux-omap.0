@@ -1,52 +1,58 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [PATCH v2 4/9] wl12xx: use frequency instead of enumerations
- for pdata clocks
-Date: Tue, 2 Jul 2013 23:14:44 +0300
-Message-ID: <1372796084.21065.85.camel@cumari.coelho.fi>
-References: <1372776948-24840-1-git-send-email-coelho@ti.com>
-	 <1372776948-24840-5-git-send-email-coelho@ti.com>
-	 <20130702153113.GF7013@arwen.pp.htv.fi>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/1] gpio/omap: fix build error when OF_GPIO is not defined.
+Date: Tue, 2 Jul 2013 22:15:37 +0200
+Message-ID: <CACRpkdb3n6BKswq=ODXdByRJL3y+ezYF3ZS=nG2K=7Tn=amM9w@mail.gmail.com>
+References: <1372794390-9512-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130702153113.GF7013@arwen.pp.htv.fi>
-Sender: linux-doc-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-wireless@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, mturquette@linaro.org, mark.rutland@arm.com, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oa0-f48.google.com ([209.85.219.48]:53120 "EHLO
+	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755382Ab3GBUPi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jul 2013 16:15:38 -0400
+Received: by mail-oa0-f48.google.com with SMTP id f4so6938129oah.21
+        for <linux-omap@vger.kernel.org>; Tue, 02 Jul 2013 13:15:37 -0700 (PDT)
+In-Reply-To: <1372794390-9512-1-git-send-email-javier.martinez@collabora.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Grant Likely <grant.likely@linaro.org>, Jon Hunter <jgchunter@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@linaro.org>
 
-On Tue, 2013-07-02 at 18:31 +0300, Felipe Balbi wrote:
-> Hi,
-> 
-> On Tue, Jul 02, 2013 at 05:55:43PM +0300, Luciano Coelho wrote:
-> > diff --git a/drivers/net/wireless/ti/wl12xx/main.c b/drivers/net/wireless/ti/wl12xx/main.c
-> > index 1c627da..903dcb3 100644
-> > --- a/drivers/net/wireless/ti/wl12xx/main.c
-> > +++ b/drivers/net/wireless/ti/wl12xx/main.c
-> > @@ -1701,6 +1701,42 @@ static struct ieee80211_sta_ht_cap wl12xx_ht_cap = {
-> >  		},
-> >  };
-> >  
-> > +static struct wl12xx_clock wl12xx_refclock_table[] = {
-> 
-> const
-> 
-> > +	{ 19200000,	false,	WL12XX_REFCLOCK_19	},
-> > +	{ 26000000,	false,	WL12XX_REFCLOCK_26	},
-> > +	{ 26000000,	true,	WL12XX_REFCLOCK_26_XTAL	},
-> > +	{ 38400000,	false,	WL12XX_REFCLOCK_38	},
-> > +	{ 38400000,	true,	WL12XX_REFCLOCK_38_XTAL	},
-> > +	{ 52000000,	false,	WL12XX_REFCLOCK_52	},
-> > +	{ 0,		false,	0 }
-> > +};
-> > +
-> > +static struct wl12xx_clock wl12xx_tcxoclock_table[] = {
-> 
-> const
+On Tue, Jul 2, 2013 at 9:46 PM, Javier Martinez Canillas
+<javier.martinez@collabora.co.uk> wrote:
 
-Duh! Thanks for noticing it.
+> The OMAP GPIO driver check if the chip has an associated
+> Device Tree node using the struct gpio_chip of_node member.
+>
+> But this is only build if CONFIG_OF_GPIO is defined which
+> leads to the following error when using omap1_defconfig:
+>
+> linux/drivers/gpio/gpio-omap.c: In function 'omap_gpio_chip_init':
+> linux/drivers/gpio/gpio-omap.c:1080:17: error: 'struct gpio_chip' has no member named 'of_node'
+> linux/drivers/gpio/gpio-omap.c: In function 'omap_gpio_irq_map':
+> linux/drivers/gpio/gpio-omap.c:1116:16: error: 'struct gpio_chip' has no member named 'of_node'
+>
+> Reported-by: Kevin Hilman <khilman@linaro.org>
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> ---
+>
+> Hi Linus,
+>
+> Sorry for not spoting this issue before. In a previous version of the patch-set:
+>
+> [PATCH v3 0/2]: auto request GPIO as input if used as IRQ via DT
+>
+> of_have_populated_dt() was used instead of struct gpio_chip of_node member to
+> check wether legacy or DT boot was used. I did a build test on every OMAP platform
+> but later I was asked to use .of_node instead of_have_populated_dt() and forget
+> to do a built test for OMAP1.
 
---
-Luca.
+Such things happen ...
 
+> I hope this patch can go as a fix for the v3.11-rc cycle.
+
+Yeah I queued it on top of the others. Good thing I didn't rush the
+other two out :-)
+
+Yours,
+Linus Walleij
