@@ -1,67 +1,79 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH 1/1] gpio/omap: fix build error when OF_GPIO is not defined.
-Date: Tue, 02 Jul 2013 13:48:49 -0700
-Message-ID: <87d2r0lmby.fsf@linaro.org>
-References: <1372794390-9512-1-git-send-email-javier.martinez@collabora.co.uk>
-	<CACRpkdb3n6BKswq=ODXdByRJL3y+ezYF3ZS=nG2K=7Tn=amM9w@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 7/9] wlcore: sdio: add wilink clock providers
+Date: Wed, 3 Jul 2013 00:30:30 +0300
+Message-ID: <20130702213030.GB10388@arwen.pp.htv.fi>
+References: <1372776948-24840-1-git-send-email-coelho@ti.com>
+ <1372776948-24840-8-git-send-email-coelho@ti.com>
+ <20130702153423.GH7013@arwen.pp.htv.fi>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4SFOXa2GPu3tIq4H"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:41443 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755086Ab3GBUsz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jul 2013 16:48:55 -0400
-Received: by mail-pd0-f173.google.com with SMTP id v14so3935353pde.32
-        for <linux-omap@vger.kernel.org>; Tue, 02 Jul 2013 13:48:54 -0700 (PDT)
-In-Reply-To: <CACRpkdb3n6BKswq=ODXdByRJL3y+ezYF3ZS=nG2K=7Tn=amM9w@mail.gmail.com>
-	(Linus Walleij's message of "Tue, 2 Jul 2013 22:15:37 +0200")
+Received: from comal.ext.ti.com ([198.47.26.152]:38089 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754749Ab3GBVbE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Jul 2013 17:31:04 -0400
+Content-Disposition: inline
+In-Reply-To: <20130702153423.GH7013@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Grant Likely <grant.likely@linaro.org>, Jon Hunter <jgchunter@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Luciano Coelho <coelho@ti.com>, linux-wireless@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, mturquette@linaro.org, mark.rutland@arm.com, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Linus Walleij <linus.walleij@linaro.org> writes:
+--4SFOXa2GPu3tIq4H
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> On Tue, Jul 2, 2013 at 9:46 PM, Javier Martinez Canillas
-> <javier.martinez@collabora.co.uk> wrote:
->
->> The OMAP GPIO driver check if the chip has an associated
->> Device Tree node using the struct gpio_chip of_node member.
->>
->> But this is only build if CONFIG_OF_GPIO is defined which
->> leads to the following error when using omap1_defconfig:
->>
->> linux/drivers/gpio/gpio-omap.c: In function 'omap_gpio_chip_init':
->> linux/drivers/gpio/gpio-omap.c:1080:17: error: 'struct gpio_chip' has no member named 'of_node'
->> linux/drivers/gpio/gpio-omap.c: In function 'omap_gpio_irq_map':
->> linux/drivers/gpio/gpio-omap.c:1116:16: error: 'struct gpio_chip' has no member named 'of_node'
->>
->> Reported-by: Kevin Hilman <khilman@linaro.org>
->> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
->> ---
->>
->> Hi Linus,
->>
->> Sorry for not spoting this issue before. In a previous version of the patch-set:
->>
->> [PATCH v3 0/2]: auto request GPIO as input if used as IRQ via DT
->>
->> of_have_populated_dt() was used instead of struct gpio_chip of_node member to
->> check wether legacy or DT boot was used. I did a build test on every OMAP platform
->> but later I was asked to use .of_node instead of_have_populated_dt() and forget
->> to do a built test for OMAP1.
->
-> Such things happen ...
->
->> I hope this patch can go as a fix for the v3.11-rc cycle.
->
-> Yeah I queued it on top of the others. Good thing I didn't rush the
-> other two out :-)
+Hi,
 
-I can confirm this makes the build work again for omap1_defconfig.
+On Tue, Jul 02, 2013 at 06:34:23PM +0300, Felipe Balbi wrote:
+> On Tue, Jul 02, 2013 at 05:55:46PM +0300, Luciano Coelho wrote:
+> > Add refclock and tcxoclock as clock providers in WiLink.  These clocks
+> > are not accesible outside the WiLink module, but they are registered
+> > in the clock framework anyway.  Only the WiLink chip consumes these
+> > clocks.
+> >=20
+> > In theory, the WiLink chip could be connected to external clocks
+> > instead of using these internal clocks, so make the clock consumer
+> > code generic enough.  If external clocks are used, then the internal
+> > clock device tree nodes are not necessary, but the external ones must
+> > be specified.
+> >=20
+> > Signed-off-by: Luciano Coelho <coelho@ti.com>
+>=20
+> Acked-by: Felipe Balbi <balbi@ti.com>
 
-Javier, thanks for the quick fix!     
+I guess this should've been
 
-Acked-by: Kevin Hilman <khilman@linaro.org>
+Reviewed-by: Felipe Balbi <balbi@ti.com>
 
-Kevin
+instead
+
+--=20
+balbi
+
+--4SFOXa2GPu3tIq4H
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR00Z2AAoJEIaOsuA1yqREEt8P/1njtIAvN5wlNlH6uuTde3Ul
+LVDwR8xpbaLKByJVAHcaGGA0ZWZ7SfTUVxBFoTM/ttRnYz9qXhimoRNuUKIgQDqI
+Kq45Va+AcKdOsDNpQl8lnfurXky8iwKCYCFCnfpe0lviYoTwK4Ri7I2B/R6nym1M
+w0Ehvc5XL3eBqNzdjtXTDPD9klCAVM7She/jWBQsvTCn1B/XxwO9I9WMwWFUeodA
++EdpCGyFO2UZJQH7XGQvYpeMgraFqC4iW7CNaF3A1cMgcx0qIo3q3X77+XM1Ar0O
+hLG+W2c4flz2Gt3ox/c2aRKEXnkhlmn2M9G/L7eeM+3g8Z6NZBHmNxue8OpXYrDn
+p2NmusEOEiha5EwkbiylhCOPEMdMPfQCF4gfUit76JXMnOOC7bDReKd2neKaqv//
+D96KeatpMYFcSVlrYjMwnLL8q4+R6m4b8wL7C1tzr/3ulChTntdWE888OcWqFoF7
+ITzjzGHJy7JNNVW/opLw3wv5JU6HLxe/+qfXGo02jlAwQc25lCR7Cz55Wqr11MDr
+AAR7D7p+wXxvZm06nWhNXNeoHYBKDfZlp5+O3B3Z3wtBFrDCijexAXKWQIfuI5nE
+2MIngJQz0VUz1Kc3j0WkZJRdT5haoWx4yWDKb6E1Mxzgqf430Lfezur+JdE1J/hD
+Pf/D9UwgGU+gKReHlJ5R
+=TM3w
+-----END PGP SIGNATURE-----
+
+--4SFOXa2GPu3tIq4H--
