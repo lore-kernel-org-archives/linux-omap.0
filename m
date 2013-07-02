@@ -1,95 +1,73 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH v3 0/2]: auto request GPIO as input if used as IRQ via DT
-Date: Mon, 01 Jul 2013 16:23:37 -0700
-Message-ID: <87li5pooee.fsf@linaro.org>
-References: <1372276203-21755-1-git-send-email-javier.martinez@collabora.co.uk>
+Subject: Re: [PATCH 1/4] rtc: omap: restore back (hard-code) wakeup support
+Date: Mon, 01 Jul 2013 17:06:38 -0700
+Message-ID: <87ehbhomep.fsf@linaro.org>
+References: <1372412109-986-1-git-send-email-gururaja.hebbar@ti.com>
+	<1372412109-986-2-git-send-email-gururaja.hebbar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:39340 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755179Ab3GAXXl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jul 2013 19:23:41 -0400
-Received: by mail-pd0-f178.google.com with SMTP id w11so2999270pde.23
-        for <linux-omap@vger.kernel.org>; Mon, 01 Jul 2013 16:23:41 -0700 (PDT)
-In-Reply-To: <1372276203-21755-1-git-send-email-javier.martinez@collabora.co.uk>
-	(Javier Martinez Canillas's message of "Wed, 26 Jun 2013 21:50:01
-	+0200")
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:54874 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755614Ab3GBAGm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jul 2013 20:06:42 -0400
+Received: by mail-pa0-f42.google.com with SMTP id rl6so5610727pac.29
+        for <linux-omap@vger.kernel.org>; Mon, 01 Jul 2013 17:06:41 -0700 (PDT)
+In-Reply-To: <1372412109-986-2-git-send-email-gururaja.hebbar@ti.com> (Hebbar
+	Gururaja's message of "Fri, 28 Jun 2013 15:05:06 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Grant Likely <grant.likely@linaro.org>, jgchunter@gmail.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, eballetbo@gmail.com, thomas.petazzoni@free-electrons.com, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>, aaro.koskinen@iki.fi
+To: Hebbar Gururaja <gururaja.hebbar@ti.com>
+Cc: tony@atomide.com, b-cousson@ti.com, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, davinci-linux-open-source@linux.davincidsp.com, vaibhav.bedia@ti.com, sudhakar.raj@ti.com, Alessandro Zummo <a.zummo@towertech.it>, rtc-linux@googlegroups.com
 
-Javier Martinez Canillas <javier.martinez@collabora.co.uk> writes:
+Hebbar Gururaja <gururaja.hebbar@ti.com> writes:
 
-> When an OMAP GPIO is used as an IRQ line, a call to gpio_request()
-> has to be made to initialize the OMAP GPIO bank before a driver
-> request the IRQ. Otherwise the call to request_irq() fails.
+> rtc-omap driver modules is used both by OMAP1/2, Davinci SoC platforms.
 >
-> Drivers should not be aware of this neither care wether an IRQ line
-> is a GPIO or not. They should just request the IRQ and this has to
-> be handled by the irq_chip driver.
+> However, rtc wake support on OMAP1 is broken. Hence the
+> device_init_wakeup() was removed from rtc-omap driver and moved to
+> platform board files that supported it (DA850/OMAP-L138). [1]
 >
-> With the current OMAP GPIO DT binding, if we define:
+> However, recently [2] it was suggested that driver should always do a
+> device_init_wakeup(dev, true). Platforms that don't want/need
+> wakeup support can disable it from userspace via:
 >
->                 gpio6: gpio@49058000 {
->                         compatible = "ti,omap3-gpio";
->                         reg = <0x49058000 0x200>;
->                         interrupts = <34>;
->                         ti,hwmods = "gpio6";
->                         gpio-controller;
->                         #gpio-cells = <2>;
->                         interrupt-controller;
->                         #interrupt-cells = <2>;
->                 };
+>     echo disabled > /sys/devices/.../power/wakeup
 >
->                 interrupt-parent = <&gpio6>;
->                 interrupts = <16 8>;
+> Also, with the new DT boot-up, board file doesn't exist and hence there
+> is no way to have device wakeup support rtc.
 >
-> The GPIO is correctly mapped as an IRQ but a call to gpio_request()
-> is never made. Ideally this has to be handled by the IRQ core and
-> there are some work-in-progress to add this logic to the core but
-> until this general solution gets into mainline we need to solve this
-> on a per irq_chip driver basis.
+> The fix for above issues, is to hard code device_init_wakeup() inside
+> driver and let platforms that don't need this, handle it through the
+> sysfs power entry.
 >
-> Some drivers solve this by calling gpio_request() using a custom
-> .xlate function handler. But .xlate could get called many times
-> while the irq domain .map function handler is called just once
-> when a IRQ mapping is created with a call to irq_create_mapping().
+> [1]
+> https://patchwork.kernel.org/patch/136731/
 >
-> This patch-set adds a custom .map function handler for the gpio-omap
-> irq_chip driver that automatically call gpio_request() when a IRQ
-> mapping is created for the GPIO line used as interrupt when using DT.
-> This is just a temporary solution (a.k.a a hack) until a kernel wide
-> approach is implemented and added to mainline.
+> [2]
+> http://www.mail-archive.com/davinci-linux-open-source@linux.
+> davincidsp.com/msg26077.html
 >
-> This is a third version of a patch-set that addresses some issues pointed
-> out by Grant Like, it is composed of the following patches:
->
-> [PATCH v3 1/2] gpio/omap: don't create an IRQ mapping for every GPIO on DT
-> [PATCH v3 2/2] gpio/omap: auto request GPIO as input if used as IRQ via DT
->
-> This was tested on an OMAP3 DM3735 board (IGEPv2) and all the supported
-> peripherals are working correctly with both legacy and DT booting. Further
-> testing will be highly appreciated.
+> Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
+> Cc: Alessandro Zummo <a.zummo@towertech.it>
+> Cc: rtc-linux@googlegroups.com
 
-Was there any testing done to hit low-power modes?  suspend/resume?
-CPUidle enabled? etc.  It is especially instructive to enable off
-mode[1] on OMAP3 platforms and see if things still work as expected.
+Acked-by: Kevin Hilman <khilman@linaro.org>
 
-Kevin
-
-[1] echo 1 > /sys/kerel/debug/pm_debug/enable_off_mode
-
-> Aaro, could you please test if these changes break any of your OMAP1 boards?
-> Although it shouldn't do it as far as I can tell.
+> ---
+> :100644 100644 b0ba3fc... 761919d... M	drivers/rtc/rtc-omap.c
+>  drivers/rtc/rtc-omap.c |    2 ++
+>  1 file changed, 2 insertions(+)
 >
-> Many thanks to Jon Hunter and Grant Likely for their feedback and
-> suggestions on how to solve this.
->
-> Best regards,
-> Javier
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+> index b0ba3fc..761919d 100644
+> --- a/drivers/rtc/rtc-omap.c
+> +++ b/drivers/rtc/rtc-omap.c
+> @@ -423,6 +423,8 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+>  	 *    is write-only, and always reads as zero...)
+>  	 */
+>  
+> +	device_init_wakeup(&pdev->dev, true);
+> +
+>  	if (new_ctrl & (u8) OMAP_RTC_CTRL_SPLIT)
+>  		pr_info("%s: split power mode\n", pdev->name);
