@@ -1,96 +1,118 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 Subject: Re: [PATCHv2] drivers: spi: Add qspi flash controller
-Date: Tue, 2 Jul 2013 13:43:38 +0300
-Message-ID: <20130702104338.GA5107@arwen.pp.htv.fi>
+Date: Tue, 2 Jul 2013 16:27:36 +0530
+Message-ID: <51D2B220.1010501@ti.com>
 References: <1372755399-21769-1-git-send-email-sourav.poddar@ti.com>
- <20130702093247.GY27646@sirena.org.uk>
- <20130702094404.GL3352@arwen.pp.htv.fi>
- <20130702101718.GE27646@sirena.org.uk>
-Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yrj/dFKFPuw6o+aM"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130702101718.GE27646@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Felipe Balbi <balbi@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1372755399-21769-1-git-send-email-sourav.poddar-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Cc: rnayak-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---yrj/dFKFPuw6o+aM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 7/2/2013 2:26 PM, Sourav Poddar wrote:
+> The patch add basic support for the quad spi controller.
+> 
+> QSPI is a kind of spi module that allows single,
+> dual and quad read access to external spi devices. The module
+> has a memory mapped interface which provide direct interface
+> for accessing data form external spi devices.
+> 
+> The patch will configure controller clocks, device control
+> register and for defining low level transfer apis which
+> will be used by the spi framework to transfer data to
+> the slave spi device(flash in this case).
+> 
+> Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+> ---
+> This patch was sent as a part of a series[1];
+> but this can go in as a standalone patch.
+> [1]: https://lkml.org/lkml/2013/6/26/83
+> 
+> v1->v2:
+> 1. Placed pm specific calls in prepare/unprepare apis.
+> 2. Put a mask to support upto 32 bits word length.
+> 3. Used "devm_ioremap_resource" variants.
+> 4. Add dt binding doumentation.
+>  Documentation/devicetree/bindings/spi/ti_qspi.txt |   22 ++
+>  drivers/spi/Kconfig                               |    8 +
+>  drivers/spi/Makefile                              |    1 +
+>  drivers/spi/ti-qspi.c                             |  357 +++++++++++++++++++++
+>  4 files changed, 388 insertions(+), 0 deletions(-)
 
-On Tue, Jul 02, 2013 at 11:17:18AM +0100, Mark Brown wrote:
-> On Tue, Jul 02, 2013 at 12:44:04PM +0300, Felipe Balbi wrote:
-> > On Tue, Jul 02, 2013 at 10:32:47AM +0100, Mark Brown wrote:
->=20
-> > > Does this hardware really support anything other than 8 bits per word?
-> > > There is no code in the driver which pays any attention to the word
-> > > size...
->=20
-> > the HW has a 128-bit shift register ;-) but driver doesn't look
-> > complete.
->=20
-> That's not the issue - remember that SPI specifies big endian byte
-> ordering for words on the bus so things will need to be reordered by the
-> hardware for anything except 8 bits.
+>  create mode 100644 Documentation/devicetree/bindings/spi/ti_qspi.txt
+>  create mode 100644 drivers/spi/ti-qspi.c
 
-right, the driver is far from being complete. In fact this driver is
-quite buggy, if you look here :
+Please cc devicetree-discuss list when adding new bindings.
 
-> +static int dra7xxx_qspi_start_transfer_one(struct spi_master *master,
-> +		struct spi_message *m)
+> +static int dra7xxx_qspi_probe(struct platform_device *pdev)
 > +{
-> +	struct dra7xxx_qspi *qspi =3D spi_master_get_devdata(master);
-> +	struct spi_device *spi =3D m->spi;
-> +	struct spi_transfer *t;
-> +	int status =3D 0;
-> +	int flags =3D 0;
+> +	struct  dra7xxx_qspi *qspi;
+> +	struct spi_master *master;
+> +	struct resource         *r;
+> +	struct device_node *np = pdev->dev.of_node;
+> +	u32 max_freq;
+> +	int ret;
 > +
-> +	/* setup command reg */
-> +	qspi->cmd =3D 0;
-> +	qspi->cmd |=3D QSPI_WLEN(8);
+> +	master = spi_alloc_master(&pdev->dev, sizeof(*qspi));
+> +	if (!master)
+> +		return -ENOMEM;
+> +
+> +	master->mode_bits = SPI_CPOL | SPI_CPHA;
+> +
+> +	master->num_chipselect = 1;
+> +	master->bus_num = -1;
+> +	master->setup = dra7xxx_qspi_setup;
+> +	master->prepare_transfer_hardware = dra7xxx_qspi_prepare_xfer;
+> +	master->transfer_one_message = dra7xxx_qspi_start_transfer_one;
+> +	master->unprepare_transfer_hardware = dra7xxx_qspi_unprepare_xfer;
+> +	master->dev.of_node = pdev->dev.of_node;
+> +	master->bits_per_word_mask = BIT(32 - 1) | BIT(16 - 1) | BIT(8 - 1);
+> +
+> +	dev_set_drvdata(&pdev->dev, master);
+> +
+> +	qspi = spi_master_get_devdata(master);
+> +	qspi->master = master;
+> +	qspi->dev = &pdev->dev;
+> +
+> +	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	if (r == NULL) {
+> +		ret = -ENODEV;
+> +		goto free_master;
+> +	}
+> +
+> +	qspi->base = devm_ioremap_resource(&pdev->dev, r);
 
-Sourav hardcodes wordlenght to 8-bits, and yet he enables 8, 16 and
-32-bits per word.
+> +	if (!qspi->base) {
+> +		dev_dbg(&pdev->dev, "can't ioremap MCSPI\n");
+> +		ret = -ENOMEM;
+> +		goto free_master;
+> +	}
 
-> +	qspi->cmd |=3D QSPI_EN_CS(0);
+This should be
 
-he's also hardcoding the chipselect line which should be take from
-m->spi->chip_select
+	if (IS_ERR(qspi->base)) {
+		dev_dbg(&pdev->dev, "can't ioremap QSPI\n");
+		ret = PTR_ERR(qspi->base);
+		goto free_master;
+	}
 
-> +	qspi->cmd |=3D 0xfff;
+Thanks,
+Sekhar
 
-and he's hardcoding the frame length to 4096 frames!!
+------------------------------------------------------------------------------
+This SF.net email is sponsored by Windows:
 
-This is all buggy.
+Build for Windows Store.
 
---=20
-balbi
-
---yrj/dFKFPuw6o+aM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR0q7aAAoJEIaOsuA1yqREAR0P/RlrlVr39YQQxlNaBNcnbAg3
-6GHnUv9iGuSCpoiT4P5zseMhXENXQmnQeRsNQ25VojjbUGRniAry1/3xkLzoO8cd
-iZ0C8zD+86XFEtPpDjKKkGN9j26fT/+8K/db6blgk/VxdUhhV/ExWBgzM7NBFe4D
-qnnbcL1j28y72Q7L+tbzdkjAKBGdLYN8H4ylwY1MVFV7bmUO0gN7j3dWia7o40Gr
-3puIhpXl/8u91gxbRnSFaw01r7E+l9e3TTlNm9nCWa0p19zmCo0cRmnWzQJPfS7l
-0+MCS1Atyi+sBY9UzakBLDgX96HA1NXw8INfgv3xGDpJRFDGzy/+5YqIHGisPigx
-7LjdGVv7Y5k+lrGviJop3NzHfQPPfTMCmnhJUHEksP7Ba3oCYGxX2OXxx29oIaBj
-EgfBQz0f+yo8FqI03K4cGlYbwXhTdx/YKybm4cbciLvMvaeoHcnGEjLrFzOaYzJn
-inHSdIeHsmEBv9rpGYdI7kr5N8RwLXp3N4fPVeCiX9RfPbBfXBK/YbB4vQ37GHdc
-NONKSBGycNrBkZ5Zm5dr1uS3hgyZMmEfWE78niI5ZF07g/WV/ZdJgblnphpOHGHe
-88vYC7vm0eG95Po7pXOK0srpupJ4F+YpWcBWkHQzXxvoOwiBDdGVVQAeY5wNPTws
-aA4yun2Ely7fh5lTsD1F
-=QF1n
------END PGP SIGNATURE-----
-
---yrj/dFKFPuw6o+aM--
+http://p.sf.net/sfu/windows-dev2dev
