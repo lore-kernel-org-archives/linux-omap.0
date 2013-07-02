@@ -1,70 +1,219 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: [PATCH v2 7/9] wlcore: sdio: add wilink clock providers
-Date: Tue, 2 Jul 2013 17:55:46 +0300
-Message-ID: <1372776948-24840-8-git-send-email-coelho@ti.com>
+From: Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 2/9] wlcore: use irq_flags in pdata instead of hiding it
+ behind a quirk
+Date: Tue, 2 Jul 2013 17:55:41 +0300
+Message-ID: <1372776948-24840-3-git-send-email-coelho@ti.com>
 References: <1372776948-24840-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1372776948-24840-1-git-send-email-coelho@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-wireless@vger.kernel.org, tony@atomide.com, nsekhar@ti.com
-Cc: mturquette@linaro.org, mark.rutland@arm.com, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, coelho@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1372776948-24840-1-git-send-email-coelho-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Cc: coelho-l0cyMroinI0@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add refclock and tcxoclock as clock providers in WiLink.  These clocks
-are not accesible outside the WiLink module, but they are registered
-in the clock framework anyway.  Only the WiLink chip consumes these
-clocks.
+The platform_quirk element in the platform data was used to change the
+way the IRQ is triggered.  When set, the EDGE_IRQ quirk would change
+the irqflags used and treat edge trigger differently from the rest.
 
-In theory, the WiLink chip could be connected to external clocks
-instead of using these internal clocks, so make the clock consumer
-code generic enough.  If external clocks are used, then the internal
-clock device tree nodes are not necessary, but the external ones must
-be specified.
+Instead of hiding this irq flag setting behind the quirk, export the
+whole irq_flags element and let the board file define what to use.
+This will be more meaningful than driver-specific quirks when we
+switch to DT.
 
-Signed-off-by: Luciano Coelho <coelho@ti.com>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/net/wireless/ti/wlcore/sdio.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/arm/mach-davinci/board-da850-evm.c      |    2 +-
+ arch/arm/mach-omap2/board-4430sdp.c          |    1 +
+ arch/arm/mach-omap2/board-omap3evm.c         |    1 +
+ arch/arm/mach-omap2/board-omap4panda.c       |    1 +
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    1 +
+ drivers/net/wireless/ti/wlcore/debugfs.c     |    2 +-
+ drivers/net/wireless/ti/wlcore/main.c        |   13 +++----------
+ drivers/net/wireless/ti/wlcore/wlcore.h      |    5 ++---
+ include/linux/wl12xx.h                       |    5 +----
+ 9 files changed, 12 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/net/wireless/ti/wlcore/sdio.c b/drivers/net/wireless/ti/wlcore/sdio.c
-index 9370d7e..980bf3d 100644
---- a/drivers/net/wireless/ti/wlcore/sdio.c
-+++ b/drivers/net/wireless/ti/wlcore/sdio.c
-@@ -34,6 +34,7 @@
- #include <linux/wl12xx.h>
- #include <linux/pm_runtime.h>
- #include <linux/printk.h>
-+#include <linux/clk-provider.h>
+diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
+index 8a24b6c..d2a2a98 100644
+--- a/arch/arm/mach-davinci/board-da850-evm.c
++++ b/arch/arm/mach-davinci/board-da850-evm.c
+@@ -1377,8 +1377,8 @@ static const short da850_wl12xx_pins[] __initconst = {
  
- #include "wlcore.h"
- #include "wl12xx_80211.h"
-@@ -214,10 +215,15 @@ static struct wl1271_if_operations sdio_ops = {
- 	.set_block_size = wl1271_sdio_set_block_size,
+ static struct wl12xx_platform_data da850_wl12xx_wlan_data __initdata = {
+ 	.irq			= -1,
++	.irq_flags		= IRQF_TRIGGER_RISING,
+ 	.board_ref_clock	= WL12XX_REFCLOCK_38,
+-	.platform_quirks	= WL12XX_PLATFORM_QUIRK_EDGE_IRQ,
  };
  
-+static const struct of_device_id wlcore_sdio_of_clk_match_table[] = {
-+	{ .compatible = "ti,wilink-clock" },
-+};
+ static __init int da850_wl12xx_init(void)
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 56a9a4f..c2334aa 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -693,6 +693,7 @@ static void __init omap4_sdp4430_wifi_mux_init(void)
+ }
+ 
+ static struct wl12xx_platform_data omap4_sdp4430_wlan_data __initdata = {
++	.irq_flags = IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
+ 	.board_ref_clock = WL12XX_REFCLOCK_26,
+ 	.board_tcxo_clock = WL12XX_TCXOCLOCK_26,
+ };
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index f76d0de..a0c0adf 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -458,6 +458,7 @@ static struct platform_device omap3evm_wlan_regulator = {
+ };
+ 
+ struct wl12xx_platform_data omap3evm_wlan_data __initdata = {
++	.irq_flags = IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
+ 	.board_ref_clock = WL12XX_REFCLOCK_38, /* 38.4 MHz */
+ };
+ #endif
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index 1e2c75e..ba00862 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -230,6 +230,7 @@ static struct platform_device omap_vwlan_device = {
+ };
+ 
+ static struct wl12xx_platform_data omap_panda_wlan_data  __initdata = {
++	.irq_flags = IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
+ 	.board_ref_clock = WL12XX_REFCLOCK_38, /* 38.4 MHz */
+ };
+ 
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index a90375d..ced012c 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -244,6 +244,7 @@ static struct platform_device *zoom_devices[] __initdata = {
+ };
+ 
+ static struct wl12xx_platform_data omap_zoom_wlan_data __initdata = {
++	.irq_flags = IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
+ 	.board_ref_clock = WL12XX_REFCLOCK_26, /* 26 MHz */
+ };
+ 
+diff --git a/drivers/net/wireless/ti/wlcore/debugfs.c b/drivers/net/wireless/ti/wlcore/debugfs.c
+index c3e1f79..5eff663 100644
+--- a/drivers/net/wireless/ti/wlcore/debugfs.c
++++ b/drivers/net/wireless/ti/wlcore/debugfs.c
+@@ -486,7 +486,7 @@ static ssize_t driver_state_read(struct file *file, char __user *user_buf,
+ 	DRIVER_STATE_PRINT_HEX(irq);
+ 	/* TODO: ref_clock and tcxo_clock were moved to wl12xx priv */
+ 	DRIVER_STATE_PRINT_HEX(hw_pg_ver);
+-	DRIVER_STATE_PRINT_HEX(platform_quirks);
++	DRIVER_STATE_PRINT_HEX(irq_flags);
+ 	DRIVER_STATE_PRINT_HEX(chip.id);
+ 	DRIVER_STATE_PRINT_STR(chip.fw_ver_str);
+ 	DRIVER_STATE_PRINT_STR(chip.phy_fw_ver_str);
+diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/ti/wlcore/main.c
+index b8db55c..e7294b8 100644
+--- a/drivers/net/wireless/ti/wlcore/main.c
++++ b/drivers/net/wireless/ti/wlcore/main.c
+@@ -516,7 +516,7 @@ static int wlcore_irq_locked(struct wl1271 *wl)
+ 	 * In case edge triggered interrupt must be used, we cannot iterate
+ 	 * more than once without introducing race conditions with the hardirq.
+ 	 */
+-	if (wl->platform_quirks & WL12XX_PLATFORM_QUIRK_EDGE_IRQ)
++	if (wl->irq_flags & IRQF_TRIGGER_RISING)
+ 		loopcount = 1;
+ 
+ 	wl1271_debug(DEBUG_IRQ, "IRQ work");
+@@ -5765,7 +5765,6 @@ struct ieee80211_hw *wlcore_alloc_hw(size_t priv_size, u32 aggr_buf_size,
+ 	wl->ap_ps_map = 0;
+ 	wl->ap_fw_ps_map = 0;
+ 	wl->quirks = 0;
+-	wl->platform_quirks = 0;
+ 	wl->system_hlid = WL12XX_SYSTEM_HLID;
+ 	wl->active_sta_count = 0;
+ 	wl->active_link_count = 0;
+@@ -5901,7 +5900,6 @@ static void wlcore_nvs_cb(const struct firmware *fw, void *context)
+ 	struct platform_device *pdev = wl->pdev;
+ 	struct wlcore_platdev_data *pdev_data = pdev->dev.platform_data;
+ 	struct wl12xx_platform_data *pdata = pdev_data->pdata;
+-	unsigned long irqflags;
+ 	int ret;
+ 
+ 	if (fw) {
+@@ -5928,16 +5926,11 @@ static void wlcore_nvs_cb(const struct firmware *fw, void *context)
+ 	wlcore_adjust_conf(wl);
+ 
+ 	wl->irq = platform_get_irq(pdev, 0);
+-	wl->platform_quirks = pdata->platform_quirks;
+ 	wl->if_ops = pdev_data->if_ops;
+-
+-	if (wl->platform_quirks & WL12XX_PLATFORM_QUIRK_EDGE_IRQ)
+-		irqflags = IRQF_TRIGGER_RISING;
+-	else
+-		irqflags = IRQF_TRIGGER_HIGH | IRQF_ONESHOT;
++	wl->irq_flags = pdata->irq_flags;
+ 
+ 	ret = request_threaded_irq(wl->irq, NULL, wlcore_irq,
+-				   irqflags, pdev->name, wl);
++				   wl->irq_flags, pdev->name, wl);
+ 	if (ret < 0) {
+ 		wl1271_error("request_irq() failed: %d", ret);
+ 		goto out_free_nvs;
+diff --git a/drivers/net/wireless/ti/wlcore/wlcore.h b/drivers/net/wireless/ti/wlcore/wlcore.h
+index 0034979..8306bde 100644
+--- a/drivers/net/wireless/ti/wlcore/wlcore.h
++++ b/drivers/net/wireless/ti/wlcore/wlcore.h
+@@ -185,6 +185,8 @@ struct wl1271 {
+ 
+ 	int irq;
+ 
++	int irq_flags;
 +
- static struct wl12xx_platform_data *wlcore_get_pdata_from_of(struct device *dev)
- {
- 	struct wl12xx_platform_data *pdata;
- 	struct device_node *np = dev->of_node;
-+	struct device_node *clock_node;
+ 	spinlock_t wl_lock;
  
- 	if (!np) {
- 		np = of_find_matching_node(NULL, dev->driver->of_match_table);
-@@ -241,6 +247,9 @@ static struct wl12xx_platform_data *wlcore_get_pdata_from_of(struct device *dev)
- 		goto out_free;
- 	}
+ 	enum wlcore_state state;
+@@ -384,9 +386,6 @@ struct wl1271 {
+ 	/* Quirks of specific hardware revisions */
+ 	unsigned int quirks;
  
-+	for_each_matching_node(clock_node, wlcore_sdio_of_clk_match_table)
-+		of_fixed_clk_setup(clock_node);
-+
- 	goto out;
+-	/* Platform limitations */
+-	unsigned int platform_quirks;
+-
+ 	/* number of currently active RX BA sessions */
+ 	int ba_rx_session_count;
  
- out_free:
+diff --git a/include/linux/wl12xx.h b/include/linux/wl12xx.h
+index b516b4f..04e3096 100644
+--- a/include/linux/wl12xx.h
++++ b/include/linux/wl12xx.h
+@@ -57,15 +57,12 @@ struct wl1251_platform_data {
+ 
+ struct wl12xx_platform_data {
+ 	int irq;
++	unsigned long irq_flags;
+ 	int board_ref_clock;
+ 	int board_tcxo_clock;
+-	unsigned long platform_quirks;
+ 	bool pwr_in_suspend;
+ };
+ 
+-/* Platform does not support level trigger interrupts */
+-#define WL12XX_PLATFORM_QUIRK_EDGE_IRQ	BIT(0)
+-
+ #ifdef CONFIG_WILINK_PLATFORM_DATA
+ 
+ int wl12xx_set_platform_data(const struct wl12xx_platform_data *data);
 -- 
 1.7.10.4
