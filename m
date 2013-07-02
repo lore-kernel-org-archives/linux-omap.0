@@ -1,50 +1,36 @@
 From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [PATCH v2 5/9] wlcore: always use one-shot IRQ
-Date: Tue, 2 Jul 2013 23:16:58 +0300
-Message-ID: <1372796218.21065.87.camel@cumari.coelho.fi>
+Subject: Re: [PATCH v2 8/9] wlcore: sdio: get clocks from device tree
+Date: Tue, 2 Jul 2013 23:19:54 +0300
+Message-ID: <1372796394.21065.89.camel@cumari.coelho.fi>
 References: <1372776948-24840-1-git-send-email-coelho@ti.com>
- <1372776948-24840-6-git-send-email-coelho@ti.com>
- <20130702153229.GG7013@arwen.pp.htv.fi>
+	 <1372776948-24840-9-git-send-email-coelho@ti.com>
+	 <20130702153526.GI7013@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130702153229.GG7013@arwen.pp.htv.fi>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130702153526.GI7013@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@ti.com
-Cc: mark.rutland@arm.com, mturquette@linaro.org, linux-doc@vger.kernel.org, tony@atomide.com, linux-wireless@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, grant.likely@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-wireless@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, mturquette@linaro.org, mark.rutland@arm.com, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2013-07-02 at 18:32 +0300, Felipe Balbi wrote:
-> On Tue, Jul 02, 2013 at 05:55:44PM +0300, Luciano Coelho wrote:
-> > Since we are now using threaded IRQs without the primary handler, we
-> > need to set IRQF_ONESHOT, otherwise our request will fail.
-> > 
-> > Signed-off-by: Luciano Coelho <coelho@ti.com>
+On Tue, 2013-07-02 at 18:35 +0300, Felipe Balbi wrote:
+> Hi,
 > 
-> good to see this happening, I remember we talked about this a while back
-> :-)
-
-Yeah, we talked about it and I did the patch immediately.  This is
-needed because this is obviously not set automatically in the interrupts
-created via device tree.
-
-
-> Acked-by: Felipe Balbi <balbi@ti.com>
+> On Tue, Jul 02, 2013 at 05:55:47PM +0300, Luciano Coelho wrote:
+> > @@ -294,6 +316,8 @@ static int wl1271_probe(struct sdio_func *func,
+> >  	/* Use block mode for transferring over one block size of data */
+> >  	func->card->quirks |= MMC_QUIRK_BLKSZ_FOR_BYTE_MODE;
+> >  
+> > +	sdio_set_drvdata(func, glue);
 > 
-> Still, if you call irq_set_irq_type() on board-file (since DT will do
-> something similar for you anyway) then you can completely drop
-> irq_flags.
+> is this move really necessary ?
 
-Yep.
+It is, because I use the glue in wlcore_get_pdata_from_of(), so I need
+to call sdio_set_drvdata() earlier.  I reckoned it wouldn't hurt to move
+this, so I wouldn't have to pass the glue in the
+wlcore_get_pdata_from_of() call.
 
 --
 Luca.
