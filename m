@@ -1,31 +1,26 @@
 From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v4 3/4] mtd:nand:omap2: updated support for BCH4 ECC scheme
-Date: Tue, 2 Jul 2013 17:02:36 +0530
-Message-ID: <1372764757-29511-4-git-send-email-pekon@ti.com>
+Subject: [PATCH v4 2/4] ARM: OMAP2+: cleaned-up DT support of various ECC schemes
+Date: Tue, 2 Jul 2013 17:02:35 +0530
+Message-ID: <1372764757-29511-3-git-send-email-pekon@ti.com>
 References: <1372764757-29511-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36586 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752447Ab3GBLeD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Jul 2013 07:34:03 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:42010 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752462Ab3GBLeG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jul 2013 07:34:06 -0400
 In-Reply-To: <1372764757-29511-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, artem.bityutskiy@linux.intel.com, benoit.cousson@linaro.org, olof@lixom.net
 Cc: arnd@arndb.de, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, jp.francois@cynove.com, devicetree-discuss@lists.ozlabs.org, sfr@canb.auug.org.au, Pekon Gupta <pekon@ti.com>
 
-This patch adds following two flavours of BCH4 ECC scheme in omap2-nand driver
-- OMAP_ECC_BCH4_CODE_HW_DETECTION_SW
-	- uses GPMC H/W engine for calculating ECC.
-	- uses software library (lib/bch.h & nand_bch.h) for error correction.
+ECC scheme on NAND devices can be implemented in multiple ways.Some using
+Software algorithm, while others using in-build Hardware engines.
+omap2-nand driver currently supports following flavours of ECC schemes,
+selectable via DTB.
 
-- OMAP_ECC_BCH4_CODE_HW
-	- uses GPMC H/W engine for calculating ECC.
-	- uses ELM H/W engine for error correction.
-
-With this patch omap2-nand driver supports following ECC schemes:
 +---------------------------------------+---------------+---------------+
 | ECC scheme				|ECC calculation|Error detection|
 +---------------------------------------+---------------+---------------+
@@ -33,408 +28,145 @@ With this patch omap2-nand driver supports following ECC schemes:
 |OMAP_ECC_HAMMING_CODE_HW		|H/W (GPMC)	|S/W		|
 |OMAP_ECC_HAMMING_CODE_HW_ROMCODE	|H/W (GPMC)	|S/W		|
 +---------------------------------------+---------------+---------------+
-|OMAP_ECC_BCH4_CODE_HW_DETECTION_SW	|H/W (GPMC)	|S/W (lib/bch.h)|
-|OMAP_ECC_BCH4_CODE_HW			|H/W (GPMC)	|H/W (ELM)	|
+|(requires CONFIG_MTD_NAND_ECC_BCH)	|		|		|
+|OMAP_ECC_BCH8_CODE_HW_DETECTION_SW	|H/W (GPMC)	|S/W		|
 +---------------------------------------+---------------+---------------+
-|OMAP_ECC_BCH8_CODE_HW_DETECTION_SW	|H/W (GPMC)	|S/W (lib/bch.h)|
+|(requires CONFIG_MTD_NAND_OMAP_BCH)	|		|		|
 |OMAP_ECC_BCH8_CODE_HW			|H/W (GPMC)	|H/W (ELM)	|
 +---------------------------------------+---------------+---------------+
-Important:
-- Selection of OMAP_ECC_BCHx_CODE_HW_DETECTION_SW requires,
-	Kconfig: CONFIG_MTD_NAND_ECC_BCH: enables S/W based BCH ECC algorithm.
 
-- Selection of OMAP_ECC_BCHx_CODE_HW requires,
-	Kconfig: CONFIG_MTD_NAND_OMAP_BCH: enables ELM H/W module.
+Selection of some ECC schemes also require enabling following Kconfig options.
+This was done to optimize footprint of omap2-nand driver.
+-Kconfig:CONFIG_MTD_NAND_ECC_BCH	enables S/W based BCH ECC algorithm
+-Kconfig:CONFIG_MTD_NAND_OMAP_BCH	enables H/W based BCH ECC algorithm
 
 Signed-off-by: Pekon Gupta <pekon@ti.com>
 ---
- .../devicetree/bindings/mtd/gpmc-nand.txt          |  27 +++-
- drivers/mtd/nand/Kconfig                           |  30 +---
- drivers/mtd/nand/omap2.c                           | 165 +++++++++------------
- include/linux/platform_data/mtd-nand-omap2.h       |  10 +-
- 4 files changed, 101 insertions(+), 131 deletions(-)
+ .../devicetree/bindings/mtd/gpmc-nand.txt          | 44 ++++++++++++++++------
+ arch/arm/mach-omap2/gpmc.c                         | 14 ++++---
+ include/linux/platform_data/mtd-nand-omap2.h       | 22 +++++++----
+ 3 files changed, 56 insertions(+), 24 deletions(-)
 
 diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-index 690070e..b3f23df 100644
+index 6a983c1..690070e 100644
 --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
 +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-@@ -28,26 +28,43 @@ Optional properties:
- 	"hamming_code_sw"		1-bit Hamming ECC
- 					- ECC calculation in software
- 					- Error detection in software
-+					- ECC layout compatible with S/W scheme
+@@ -17,20 +17,42 @@ Required properties:
  
- 	"hamming_code_hw"		1-bit Hamming ECC
- 					- ECC calculation in hardware
- 					- Error detection in software
-+					- ECC layout compatible with S/W scheme
+ Optional properties:
  
- 	"hamming_code_hw_romcode"	1-bit Hamming ECC
- 					- ECC calculation in hardware
- 					- Error detection in software
--					- ECC layout compatible to ROM code
-+					- ECC layout compatible with ROM code
+- - nand-bus-width: 		Set this numeric value to 16 if the hardware
+-				is wired that way. If not specified, a bus
+-				width of 8 is assumed.
++ - nand-bus-width: 		Determines data-width of the connected device
++				x16 = "16"
++				x8  = "8" (default)
  
--	"bch8_hw_code_detection_sw"	8-bit BCH ECC
-+	"bch4_code_hw_detection_sw"	4-bit BCH ECC
- 					- ECC calculation in hardware
- 					- Error detection in software
--					- depends on CONFIG_MTD_NAND_ECC_BCH
-+					- ECC layout compatible with S/W scheme
-+					* depends on CONFIG_MTD_NAND_ECC_BCH
+- - ti,nand-ecc-opt:		A string setting the ECC layout to use. One of:
+ 
+-		"sw"		Software method (default)
+-		"hw"		Hardware method
+-		"hw-romcode"	gpmc hamming mode method & romcode layout
+-		"bch4"		4-bit BCH ecc code
+-		"bch8"		8-bit BCH ecc code
++ - ti,nand-ecc-opt:		Determines the ECC scheme used by driver.
++				It can be any of the following strings:
 +
-+	"bch4_code_hw"             	4-bit BCH ECC
-+					- ECC calculation in hardware
-+					- Error detection in hardware
-+					- ECC layout compatible with ROM code
-+					* depends on CONFIG_MTD_NAND_OMAP_BCH
-+					* requires <elm_id> to be specified
++	"hamming_code_sw"		1-bit Hamming ECC
++					- ECC calculation in software
++					- Error detection in software
 +
-+	"bch8_code_hw_detection_sw"	8-bit BCH ECC
++	"hamming_code_hw"		1-bit Hamming ECC
 +					- ECC calculation in hardware
 +					- Error detection in software
-+					- ECC layout compatible with S/W scheme
-+					* depends on CONFIG_MTD_NAND_ECC_BCH
- 
- 	"bch8_code_hw"             	8-bit BCH ECC
- 					- ECC calculation in hardware
- 					- Error detection in hardware
--					- depends on CONFIG_MTD_NAND_OMAP_BCH
--					- requires <elm_id> to be specified
-+					- ECC layout compatible with ROM code
-+					* depends on CONFIG_MTD_NAND_OMAP_BCH
-+					* requires <elm_id> to be specified
- 
- 
-  - elm_id:			Specifies elm device node. This is required to
-diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
-index 3ae9105..a6e247c 100644
---- a/drivers/mtd/nand/Kconfig
-+++ b/drivers/mtd/nand/Kconfig
-@@ -95,35 +95,13 @@ config MTD_NAND_OMAP2
- 
- config MTD_NAND_OMAP_BCH
- 	depends on MTD_NAND && MTD_NAND_OMAP2 && ARCH_OMAP3
--	bool "Enable support for hardware BCH error correction"
-+	bool "Support hardware based BCH error correction"
- 	default n
- 	select BCH
--	select BCH_CONST_PARAMS
- 	help
--	 Support for hardware BCH error correction.
--
--choice
--	prompt "BCH error correction capability"
--	depends on MTD_NAND_OMAP_BCH
--
--config MTD_NAND_OMAP_BCH8
--	bool "8 bits / 512 bytes (recommended)"
--	help
--	 Support correcting up to 8 bitflips per 512-byte block.
--	 This will use 13 bytes of spare area per 512 bytes of page data.
--	 This is the recommended mode, as 4-bit mode does not work
--	 on some OMAP3 revisions, due to a hardware bug.
--
--config MTD_NAND_OMAP_BCH4
--	bool "4 bits / 512 bytes"
--	help
--	 Support correcting up to 4 bitflips per 512-byte block.
--	 This will use 7 bytes of spare area per 512 bytes of page data.
--	 Note that this mode does not work on some OMAP3 revisions, due to a
--	 hardware bug. Please check your OMAP datasheet before selecting this
--	 mode.
--
--endchoice
-+	  Some devices have built-in ELM hardware engine, which can be used to
-+	  locate and correct errors when using BCH ECC scheme. This enables the
-+	  driver support for same.
- 
- if MTD_NAND_OMAP_BCH
- config BCH_CONST_M
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index c4c7e0d..65b24b2 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -27,6 +27,7 @@
- 
- #ifdef CONFIG_MTD_NAND_ECC_BCH
- #include <linux/bch.h>
-+#include <linux/mtd/nand_bch.h>
- #endif
- #ifdef CONFIG_MTD_NAND_OMAP_BCH
- #include <linux/platform_data/elm.h>
-@@ -144,7 +145,6 @@
- #define BCH_ECC_SIZE1		0x20	/* ecc_size1 = 32 */
- 
- #define BADBLOCK_MARKER_LENGTH		0x2
--#define OMAP_ECC_BCH8_POLYNOMIAL	0x201b
- 
- #ifdef CONFIG_MTD_NAND_OMAP_BCH
- static u_char bch8_vector[] = {0xf3, 0xdb, 0x14, 0x16, 0x8b, 0xd2, 0xbe, 0xcc,
-@@ -185,10 +185,9 @@ struct omap_nand_info {
- 		OMAP_NAND_IO_WRITE,	/* write */
- 	} iomode;
- 	u_char				*buf;
--	int					buf_len;
-+	int				buf_len;
- 	struct gpmc_nand_regs		reg;
- 	/* fields specific for BCHx_HW ECC scheme */
--	struct bch_control              *bch;
- 	bool				is_elm_used;
- 	struct device			*elm_dev;
- 	struct device_node		*of_node;
-@@ -1227,58 +1226,6 @@ static int omap3_calculate_ecc_bch8(struct mtd_info *mtd, const u_char *dat,
- 	return 0;
- }
- 
--/**
-- * omap3_correct_data_bch - Decode received data and correct errors
-- * @mtd: MTD device structure
-- * @data: page data
-- * @read_ecc: ecc read from nand flash
-- * @calc_ecc: ecc read from HW ECC registers
-- */
--static int omap3_correct_data_bch(struct mtd_info *mtd, u_char *data,
--				  u_char *read_ecc, u_char *calc_ecc)
--{
--	int i, count;
--	/* cannot correct more than 8 errors */
--	unsigned int errloc[8];
--	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
--						   mtd);
--
--	count = decode_bch(info->bch, NULL, 512, read_ecc, calc_ecc, NULL,
--			   errloc);
--	if (count > 0) {
--		/* correct errors */
--		for (i = 0; i < count; i++) {
--			/* correct data only, not ecc bytes */
--			if (errloc[i] < 8*512)
--				data[errloc[i]/8] ^= 1 << (errloc[i] & 7);
--			pr_debug("corrected bitflip %u\n", errloc[i]);
--		}
--	} else if (count < 0) {
--		pr_err("ecc unrecoverable error\n");
--	}
--	return count;
--}
--
--/**
-- * omap3_free_bch - Release BCH ecc resources
-- * @mtd: MTD device structure
-- */
--static void omap3_free_bch(struct mtd_info *mtd)
--{
--	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
--						   mtd);
--	if (info->bch) {
--		free_bch(info->bch);
--		info->bch = NULL;
--	}
--}
--
--#else
--
--static void omap3_free_bch(struct mtd_info *mtd)
--{
--}
--
- #endif /* CONFIG_MTD_NAND_ECC_BCH */
- 
- 
-@@ -1730,13 +1677,13 @@ static int omap_nand_probe(struct platform_device *pdev)
- 	info->pdev		= pdev;
- 	info->gpmc_cs		= pdata->cs;
- 	info->reg		= pdata->reg;
--	info->bch		= NULL;
- 
- 	info->nand.options	= NAND_BUSWIDTH_AUTO;
- 	info->nand.options	|= NAND_SKIP_BBTSCAN;
- #ifdef CONFIG_MTD_NAND_OMAP_BCH
- 	info->of_node		= pdata->of_node;
- #endif
-+	info->nand.ecc.priv			= NULL;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (res == NULL) {
-@@ -1933,19 +1880,42 @@ static int omap_nand_probe(struct platform_device *pdev)
- 							omap_oobinfo.eccbytes;
- 		goto custom_ecc_layout;
- 
-+#ifdef CONFIG_MTD_NAND_ECC_BCH
-+	case OMAP_ECC_BCH4_CODE_HW_DETECTION_SW:
-+		pr_info("using OMAP_ECC_BCH4_CODE_HW_DETECTION_SW ECC scheme");
-+		info->nand.ecc.mode		= NAND_ECC_HW;
-+		info->nand.ecc.size		= 512;
-+		info->nand.ecc.bytes		= 7;
-+		info->nand.ecc.strength		= 4;
-+		info->nand.ecc.hwctl		= omap3_enable_hwecc_bch;
-+		info->nand.ecc.correct		= nand_bch_correct_data;
-+		info->nand.ecc.calculate	= omap3_calculate_ecc_bch4;
-+		/* software bch library is used for locating errors */
-+		info->nand.ecc.priv		= nand_bch_init(mtd,
-+						info->nand.ecc.size,
-+						info->nand.ecc.bytes,
-+						&info->nand.ecc.layout);
-+		if (!info->nand.ecc.priv) {
-+			pr_err("unable initialize S/W BCH logic\n");
-+			err = -EINVAL;
-+			goto out_release_mem_region;
-+		}
-+		goto generic_ecc_layout;
-+#endif
- #ifdef CONFIG_MTD_NAND_OMAP_BCH
--	case OMAP_ECC_BCH8_CODE_HW:
--		pr_info("using OMAP_ECC_BCH8_CODE_HW ECC scheme\n");
--		if (is_elm_present(info, ECC_TYPE_BCH8) < 0) {
-+	case OMAP_ECC_BCH4_CODE_HW:
-+		pr_info("using OMAP_ECC_BCH4_CODE_HW ECC scheme");
-+		/* check if ELM module is present on SoC */
-+		if (is_elm_present(info, ECC_TYPE_BCH4) < 0) {
- 			pr_err("ELM module not detected, required for ECC\n");
- 			err = -EINVAL;
- 			goto out_release_mem_region;
- 		}
- 		info->nand.ecc.mode		= NAND_ECC_HW;
- 		info->nand.ecc.size		= 512;
--		/* 14th bit is kept reserved for ROM-code compatibility */
--		info->nand.ecc.bytes		= 13 + 1;
--		info->nand.ecc.strength		= 8;
-+		/* 8th bit is kept reserved for ROM-code compatibility */
-+		info->nand.ecc.bytes		= 7 + 1;
-+		info->nand.ecc.strength		= 4;
- 		info->nand.ecc.hwctl		= omap3_enable_hwecc_bch;
- 		info->nand.ecc.correct		= omap_elm_correct_data;
- 		info->nand.ecc.calculate	= omap3_calculate_ecc_bch;
-@@ -1968,51 +1938,45 @@ static int omap_nand_probe(struct platform_device *pdev)
- 		info->nand.ecc.bytes		= 13;
- 		info->nand.ecc.strength		= 8;
- 		info->nand.ecc.hwctl		= omap3_enable_hwecc_bch;
--		info->nand.ecc.correct		= omap3_correct_data_bch;
-+		info->nand.ecc.correct		= nand_bch_correct_data;
- 		info->nand.ecc.calculate	= omap3_calculate_ecc_bch8;
--		/* define custom ECC layout */
--		omap_oobinfo.eccbytes		= info->nand.ecc.bytes *
--							(mtd->writesize /
--							info->nand.ecc.size);
--		omap_oobinfo.eccpos[0]		= info->mtd.oobsize -
--							omap_oobinfo.eccbytes;
--		omap_oobinfo.oobfree->offset	= BADBLOCK_MARKER_LENGTH;
- 		/* software bch library is used for locating errors */
--		info->bch = init_bch(info->nand.ecc.bytes,
--					info->nand.ecc.strength,
--					OMAP_ECC_BCH8_POLYNOMIAL);
--		if (!info->bch) {
-+		info->nand.ecc.priv		= nand_bch_init(mtd,
-+						info->nand.ecc.size,
-+						info->nand.ecc.bytes,
-+						&info->nand.ecc.layout);
-+		if (!info->nand.ecc.priv) {
- 			pr_err("unable initialize S/W BCH logic\n");
- 			err = -EINVAL;
- 			goto out_release_mem_region;
- 		}
--		goto custom_ecc_layout;
--
--	case OMAP_ECC_BCH4_CODE_HW_DETECTION_SW:
--		pr_info("using OMAP_ECC_BCH4_CODE_HW_DETECTION_SW ECC\n");
-+		goto generic_ecc_layout;
-+#endif
-+#ifdef CONFIG_MTD_NAND_OMAP_BCH
-+	case OMAP_ECC_BCH8_CODE_HW:
-+		pr_info("using OMAP_ECC_BCH8_CODE_HW ECC scheme\n");
-+		if (is_elm_present(info, ECC_TYPE_BCH8) < 0) {
-+			pr_err("ELM module not detected, required for ECC\n");
-+			err = -EINVAL;
-+			goto out_release_mem_region;
-+		}
- 		info->nand.ecc.mode		= NAND_ECC_HW;
- 		info->nand.ecc.size		= 512;
--		info->nand.ecc.bytes		= 7;
--		info->nand.ecc.strength		= 4;
-+		/* 14th bit is kept reserved for ROM-code compatibility */
-+		info->nand.ecc.bytes		= 13 + 1;
-+		info->nand.ecc.strength		= 8;
- 		info->nand.ecc.hwctl		= omap3_enable_hwecc_bch;
--		info->nand.ecc.correct		= omap3_correct_data_bch;
--		info->nand.ecc.calculate	= omap3_calculate_ecc_bch4;
-+		info->nand.ecc.correct		= omap_elm_correct_data;
-+		info->nand.ecc.calculate	= omap3_calculate_ecc_bch;
-+		info->nand.ecc.read_page	= omap_read_page_bch;
-+		info->nand.ecc.write_page	= omap_write_page_bch;
- 		/* define custom ECC layout */
- 		omap_oobinfo.eccbytes		= info->nand.ecc.bytes *
- 							(mtd->writesize /
- 							info->nand.ecc.size);
--		omap_oobinfo.eccpos[0]		= info->mtd.oobsize -
-+		omap_oobinfo.eccpos[0]		= BADBLOCK_MARKER_LENGTH;
-+		omap_oobinfo.oobfree->offset	= omap_oobinfo.eccpos[0] +
- 							omap_oobinfo.eccbytes;
--		omap_oobinfo.oobfree->offset	= BADBLOCK_MARKER_LENGTH;
--		/* software bch library is used for locating errors */
--		info->bch = init_bch(info->nand.ecc.bytes,
--					info->nand.ecc.strength,
--					OMAP_ECC_BCH8_POLYNOMIAL);
--		if (!info->bch) {
--			pr_err("unable initialize S/W BCH logic\n");
--			err = -EINVAL;
--			goto out_release_mem_region;
--		}
- 		goto custom_ecc_layout;
- #endif
- 	default:
-@@ -2064,8 +2028,14 @@ out_release_mem_region:
- 	if (info->gpmc_irq_fifo > 0)
- 		free_irq(info->gpmc_irq_fifo, info);
- 	release_mem_region(info->phys_base, info->mem_size);
 +
- out_free_info:
--	omap3_free_bch(&info->mtd);
-+#ifdef CONFIG_MTD_NAND_ECC_BCH
-+	if (info->nand.ecc.priv) {
-+		nand_bch_free(info->nand.ecc.priv);
-+		info->nand.ecc.priv = NULL;
-+	}
-+#endif
- 	kfree(info);
++	"hamming_code_hw_romcode"	1-bit Hamming ECC
++					- ECC calculation in hardware
++					- Error detection in software
++					- ECC layout compatible to ROM code
++
++	"bch8_hw_code_detection_sw"	8-bit BCH ECC
++					- ECC calculation in hardware
++					- Error detection in software
++					- depends on CONFIG_MTD_NAND_ECC_BCH
++
++	"bch8_code_hw"             	8-bit BCH ECC
++					- ECC calculation in hardware
++					- Error detection in hardware
++					- depends on CONFIG_MTD_NAND_OMAP_BCH
++					- requires <elm_id> to be specified
++
++
++ - elm_id:			Specifies elm device node. This is required to
++				support some BCH ECC schemes mentioned above.
  
- 	return err;
-@@ -2077,8 +2047,13 @@ static int omap_nand_remove(struct platform_device *pdev)
- 	struct mtd_info *mtd = platform_get_drvdata(pdev);
- 	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
- 							mtd);
--	omap3_free_bch(&info->mtd);
+- - elm_id:	Specifies elm device node. This is required to support BCH
+- 		error correction using ELM module.
  
-+#ifdef CONFIG_MTD_NAND_ECC_BCH
-+	if (info->nand.ecc.priv) {
-+		nand_bch_free(info->nand.ecc.priv);
-+		info->nand.ecc.priv = NULL;
-+	}
-+#endif
- 	if (info->dma)
- 		dma_release_channel(info->dma);
+ For inline partiton table parsing (optional):
  
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index fb6f241..2a6001e 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1341,11 +1341,13 @@ static void __maybe_unused gpmc_read_timings_dt(struct device_node *np,
+ #ifdef CONFIG_MTD_NAND
+ 
+ static const char * const nand_ecc_opts[] = {
+-	[OMAP_ECC_HAMMING_CODE_DEFAULT]		= "sw",
+-	[OMAP_ECC_HAMMING_CODE_HW]		= "hw",
+-	[OMAP_ECC_HAMMING_CODE_HW_ROMCODE]	= "hw-romcode",
+-	[OMAP_ECC_BCH4_CODE_HW]			= "bch4",
+-	[OMAP_ECC_BCH8_CODE_HW]			= "bch8",
++	[OMAP_ECC_HAMMING_CODE_DEFAULT]		= "hamming_code_sw",
++	[OMAP_ECC_HAMMING_CODE_HW]		= "hamming_code_hw",
++	[OMAP_ECC_HAMMING_CODE_HW_ROMCODE]	= "hamming_code_hw_romcode",
++	[OMAP_ECC_BCH4_CODE_HW]			= "bch4_code_hw",
++	[OMAP_ECC_BCH4_CODE_HW_DETECTION_SW]	= "bch4_code_hw_detection_sw",
++	[OMAP_ECC_BCH8_CODE_HW]			= "bch8_code_hw",
++	[OMAP_ECC_BCH8_CODE_HW_DETECTION_SW]	= "bch8_code_hw_detection_sw"
+ };
+ 
+ static int gpmc_probe_nand_child(struct platform_device *pdev,
+@@ -1372,7 +1374,7 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
+ 
+ 	if (!of_property_read_string(child, "ti,nand-ecc-opt", &s))
+ 		for (val = 0; val < ARRAY_SIZE(nand_ecc_opts); val++)
+-			if (!strcasecmp(s, nand_ecc_opts[val])) {
++			if (!strcmp(s, nand_ecc_opts[val])) {
+ 				gpmc_nand_data->ecc_opt = val;
+ 				break;
+ 			}
 diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
-index ce74576..9fcee61 100644
+index 6bf9ef4..ce74576 100644
 --- a/include/linux/platform_data/mtd-nand-omap2.h
 +++ b/include/linux/platform_data/mtd-nand-omap2.h
-@@ -30,14 +30,14 @@ enum omap_ecc {
- 	/* 1-bit  ECC calculation by GPMC, Error detection by Software */
- 	/* ECC layout compatible to legacy ROMCODE. */
- 	OMAP_ECC_HAMMING_CODE_HW_ROMCODE,
--	/* 4-bit  ECC calculation by GPMC, Error detection by ELM */
--	OMAP_ECC_BCH4_CODE_HW,
- 	/* 4-bit  ECC calculation by GPMC, Error detection by Software */
- 	OMAP_ECC_BCH4_CODE_HW_DETECTION_SW,
--	/* 8-bit  ECC calculation by GPMC, Error detection by ELM */
--	OMAP_ECC_BCH8_CODE_HW,
+@@ -23,13 +23,21 @@ enum nand_io {
+ };
+ 
+ enum omap_ecc {
+-		/* 1-bit ecc: stored at end of spare area */
+-	OMAP_ECC_HAMMING_CODE_DEFAULT = 0, /* Default, s/w method */
+-	OMAP_ECC_HAMMING_CODE_HW, /* gpmc to detect the error */
+-		/* 1-bit ecc: stored at beginning of spare area as romcode */
+-	OMAP_ECC_HAMMING_CODE_HW_ROMCODE, /* gpmc method & romcode layout */
+-	OMAP_ECC_BCH4_CODE_HW, /* 4-bit BCH ecc code */
+-	OMAP_ECC_BCH8_CODE_HW, /* 8-bit BCH ecc code */
++	/* 1-bit  ECC calculation by Software, Error detection by Software */
++	OMAP_ECC_HAMMING_CODE_DEFAULT = 0,
++	/* 1-bit  ECC calculation by GPMC, Error detection by Software */
++	OMAP_ECC_HAMMING_CODE_HW,
++	/* 1-bit  ECC calculation by GPMC, Error detection by Software */
++	/* ECC layout compatible to legacy ROMCODE. */
++	OMAP_ECC_HAMMING_CODE_HW_ROMCODE,
 +	/* 4-bit  ECC calculation by GPMC, Error detection by ELM */
 +	OMAP_ECC_BCH4_CODE_HW,
- 	/* 8-bit  ECC calculation by GPMC, Error detection by Software */
--	OMAP_ECC_BCH8_CODE_HW_DETECTION_SW
-+	OMAP_ECC_BCH8_CODE_HW_DETECTION_SW,
++	/* 4-bit  ECC calculation by GPMC, Error detection by Software */
++	OMAP_ECC_BCH4_CODE_HW_DETECTION_SW,
 +	/* 8-bit  ECC calculation by GPMC, Error detection by ELM */
-+	OMAP_ECC_BCH8_CODE_HW
++	OMAP_ECC_BCH8_CODE_HW,
++	/* 8-bit  ECC calculation by GPMC, Error detection by Software */
++	OMAP_ECC_BCH8_CODE_HW_DETECTION_SW
  };
  
  struct gpmc_nand_regs {
