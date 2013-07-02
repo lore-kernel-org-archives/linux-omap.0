@@ -1,175 +1,145 @@
-From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v4 2/4] ARM: OMAP2+: cleaned-up DT support of various ECC schemes
-Date: Tue, 2 Jul 2013 17:02:35 +0530
-Message-ID: <1372764757-29511-3-git-send-email-pekon@ti.com>
-References: <1372764757-29511-1-git-send-email-pekon@ti.com>
+From: Torben Hohn <torbenh@linutronix.de>
+Subject: RT and omap-gpio irqchip with DeviceTree
+Date: Tue, 2 Jul 2013 13:44:53 +0200
+Message-ID: <20130702114452.GA13763@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="lrZ03NoBR/3+SXJZ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42010 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752462Ab3GBLeG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jul 2013 07:34:06 -0400
-In-Reply-To: <1372764757-29511-1-git-send-email-pekon@ti.com>
+Received: from www.linutronix.de ([62.245.132.108]:60024 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752111Ab3GBLoy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jul 2013 07:44:54 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, artem.bityutskiy@linux.intel.com, benoit.cousson@linaro.org, olof@lixom.net
-Cc: arnd@arndb.de, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, jp.francois@cynove.com, devicetree-discuss@lists.ozlabs.org, sfr@canb.auug.org.au, Pekon Gupta <pekon@ti.com>
+To: tglx@linutronix.de
+Cc: bigeasy@linutronix.de, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
 
-ECC scheme on NAND devices can be implemented in multiple ways.Some using
-Software algorithm, while others using in-build Hardware engines.
-omap2-nand driver currently supports following flavours of ECC schemes,
-selectable via DTB.
 
-+---------------------------------------+---------------+---------------+
-| ECC scheme				|ECC calculation|Error detection|
-+---------------------------------------+---------------+---------------+
-|OMAP_ECC_HAMMING_CODE_DEFAULT		|S/W		|S/W		|
-|OMAP_ECC_HAMMING_CODE_HW		|H/W (GPMC)	|S/W		|
-|OMAP_ECC_HAMMING_CODE_HW_ROMCODE	|H/W (GPMC)	|S/W		|
-+---------------------------------------+---------------+---------------+
-|(requires CONFIG_MTD_NAND_ECC_BCH)	|		|		|
-|OMAP_ECC_BCH8_CODE_HW_DETECTION_SW	|H/W (GPMC)	|S/W		|
-+---------------------------------------+---------------+---------------+
-|(requires CONFIG_MTD_NAND_OMAP_BCH)	|		|		|
-|OMAP_ECC_BCH8_CODE_HW			|H/W (GPMC)	|H/W (ELM)	|
-+---------------------------------------+---------------+---------------+
+--lrZ03NoBR/3+SXJZ
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Selection of some ECC schemes also require enabling following Kconfig options.
-This was done to optimize footprint of omap2-nand driver.
--Kconfig:CONFIG_MTD_NAND_ECC_BCH	enables S/W based BCH ECC algorithm
--Kconfig:CONFIG_MTD_NAND_OMAP_BCH	enables H/W based BCH ECC algorithm
 
-Signed-off-by: Pekon Gupta <pekon@ti.com>
----
- .../devicetree/bindings/mtd/gpmc-nand.txt          | 44 ++++++++++++++++------
- arch/arm/mach-omap2/gpmc.c                         | 14 ++++---
- include/linux/platform_data/mtd-nand-omap2.h       | 22 +++++++----
- 3 files changed, 56 insertions(+), 24 deletions(-)
+Hi..
 
-diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-index 6a983c1..690070e 100644
---- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-+++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-@@ -17,20 +17,42 @@ Required properties:
- 
- Optional properties:
- 
-- - nand-bus-width: 		Set this numeric value to 16 if the hardware
--				is wired that way. If not specified, a bus
--				width of 8 is assumed.
-+ - nand-bus-width: 		Determines data-width of the connected device
-+				x16 = "16"
-+				x8  = "8" (default)
- 
-- - ti,nand-ecc-opt:		A string setting the ECC layout to use. One of:
- 
--		"sw"		Software method (default)
--		"hw"		Hardware method
--		"hw-romcode"	gpmc hamming mode method & romcode layout
--		"bch4"		4-bit BCH ecc code
--		"bch8"		8-bit BCH ecc code
-+ - ti,nand-ecc-opt:		Determines the ECC scheme used by driver.
-+				It can be any of the following strings:
-+
-+	"hamming_code_sw"		1-bit Hamming ECC
-+					- ECC calculation in software
-+					- Error detection in software
-+
-+	"hamming_code_hw"		1-bit Hamming ECC
-+					- ECC calculation in hardware
-+					- Error detection in software
-+
-+	"hamming_code_hw_romcode"	1-bit Hamming ECC
-+					- ECC calculation in hardware
-+					- Error detection in software
-+					- ECC layout compatible to ROM code
-+
-+	"bch8_hw_code_detection_sw"	8-bit BCH ECC
-+					- ECC calculation in hardware
-+					- Error detection in software
-+					- depends on CONFIG_MTD_NAND_ECC_BCH
-+
-+	"bch8_code_hw"             	8-bit BCH ECC
-+					- ECC calculation in hardware
-+					- Error detection in hardware
-+					- depends on CONFIG_MTD_NAND_OMAP_BCH
-+					- requires <elm_id> to be specified
-+
-+
-+ - elm_id:			Specifies elm device node. This is required to
-+				support some BCH ECC schemes mentioned above.
- 
-- - elm_id:	Specifies elm device node. This is required to support BCH
-- 		error correction using ELM module.
- 
- For inline partiton table parsing (optional):
- 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index fb6f241..2a6001e 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -1341,11 +1341,13 @@ static void __maybe_unused gpmc_read_timings_dt(struct device_node *np,
- #ifdef CONFIG_MTD_NAND
- 
- static const char * const nand_ecc_opts[] = {
--	[OMAP_ECC_HAMMING_CODE_DEFAULT]		= "sw",
--	[OMAP_ECC_HAMMING_CODE_HW]		= "hw",
--	[OMAP_ECC_HAMMING_CODE_HW_ROMCODE]	= "hw-romcode",
--	[OMAP_ECC_BCH4_CODE_HW]			= "bch4",
--	[OMAP_ECC_BCH8_CODE_HW]			= "bch8",
-+	[OMAP_ECC_HAMMING_CODE_DEFAULT]		= "hamming_code_sw",
-+	[OMAP_ECC_HAMMING_CODE_HW]		= "hamming_code_hw",
-+	[OMAP_ECC_HAMMING_CODE_HW_ROMCODE]	= "hamming_code_hw_romcode",
-+	[OMAP_ECC_BCH4_CODE_HW]			= "bch4_code_hw",
-+	[OMAP_ECC_BCH4_CODE_HW_DETECTION_SW]	= "bch4_code_hw_detection_sw",
-+	[OMAP_ECC_BCH8_CODE_HW]			= "bch8_code_hw",
-+	[OMAP_ECC_BCH8_CODE_HW_DETECTION_SW]	= "bch8_code_hw_detection_sw"
- };
- 
- static int gpmc_probe_nand_child(struct platform_device *pdev,
-@@ -1372,7 +1374,7 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
- 
- 	if (!of_property_read_string(child, "ti,nand-ecc-opt", &s))
- 		for (val = 0; val < ARRAY_SIZE(nand_ecc_opts); val++)
--			if (!strcasecmp(s, nand_ecc_opts[val])) {
-+			if (!strcmp(s, nand_ecc_opts[val])) {
- 				gpmc_nand_data->ecc_opt = val;
- 				break;
- 			}
-diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
-index 6bf9ef4..ce74576 100644
---- a/include/linux/platform_data/mtd-nand-omap2.h
-+++ b/include/linux/platform_data/mtd-nand-omap2.h
-@@ -23,13 +23,21 @@ enum nand_io {
- };
- 
- enum omap_ecc {
--		/* 1-bit ecc: stored at end of spare area */
--	OMAP_ECC_HAMMING_CODE_DEFAULT = 0, /* Default, s/w method */
--	OMAP_ECC_HAMMING_CODE_HW, /* gpmc to detect the error */
--		/* 1-bit ecc: stored at beginning of spare area as romcode */
--	OMAP_ECC_HAMMING_CODE_HW_ROMCODE, /* gpmc method & romcode layout */
--	OMAP_ECC_BCH4_CODE_HW, /* 4-bit BCH ecc code */
--	OMAP_ECC_BCH8_CODE_HW, /* 8-bit BCH ecc code */
-+	/* 1-bit  ECC calculation by Software, Error detection by Software */
-+	OMAP_ECC_HAMMING_CODE_DEFAULT = 0,
-+	/* 1-bit  ECC calculation by GPMC, Error detection by Software */
-+	OMAP_ECC_HAMMING_CODE_HW,
-+	/* 1-bit  ECC calculation by GPMC, Error detection by Software */
-+	/* ECC layout compatible to legacy ROMCODE. */
-+	OMAP_ECC_HAMMING_CODE_HW_ROMCODE,
-+	/* 4-bit  ECC calculation by GPMC, Error detection by ELM */
-+	OMAP_ECC_BCH4_CODE_HW,
-+	/* 4-bit  ECC calculation by GPMC, Error detection by Software */
-+	OMAP_ECC_BCH4_CODE_HW_DETECTION_SW,
-+	/* 8-bit  ECC calculation by GPMC, Error detection by ELM */
-+	OMAP_ECC_BCH8_CODE_HW,
-+	/* 8-bit  ECC calculation by GPMC, Error detection by Software */
-+	OMAP_ECC_BCH8_CODE_HW_DETECTION_SW
- };
- 
- struct gpmc_nand_regs {
--- 
-1.8.1
+I am running into Problems with a network adapter IRQ connected to an
+omap-gpio pin.
 
+omap-gpio expects gpio-request() to be called before i can use the pin.
+But this is abstracted via the DeviceTree bindings.
+
+I see 8d4c277e185c31359cf70573d8b0351fb7dd0dfe in mainline.
+This one just puts a warning into the exact place, i am dealing with.
+But i need to make this work, instead of bailing out.
+
+I have this fix in place, instead:
+---------------------------------------------------------------------------=
+------------
+commit 4ca17be8e7e24863cb98f440992fd89034aa34f5
+Author: Torben Hohn <torbenh@linutronix.de>
+Date:   Fri Jun 21 17:34:24 2013 +0200
+
+    gpio omap: Fix for DT calling into gpio_irq_type without request_gpio()
+   =20
+    gpio_irq_type() requires that the GPIO is requested, do that.
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index f1fbedb2..57d956c 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -87,6 +87,8 @@ struct gpio_bank {
+ #define GPIO_BIT(bank, gpio) (1 << GPIO_INDEX(bank, gpio))
+ #define GPIO_MOD_CTRL_BIT      BIT(0)
+=20
++static int omap_gpio_request(struct gpio_chip *chip, unsigned offset);
++
+ static int irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq)
+ {
+        return gpio_irq - bank->irq_base + bank->chip.base;
+@@ -429,6 +431,9 @@ static int gpio_irq_type(struct irq_data *d, unsigned t=
+ype)
+        if (!gpio)
+                gpio =3D irq_to_gpio(bank, d->irq);
+=20
++       if (!bank->mod_usage)
++               omap_gpio_request( &bank->chip, gpio );
++
+        if (type & ~IRQ_TYPE_SENSE_MASK)
+                return -EINVAL;
+=20
+
+---------------------------------------------------------------------------=
+--------------
+
+
+But now with RT i am running into a Problem, because gpio_irq_type() is cal=
+led=20
+under a raw_spinlock() But its calling pm_runtime_suspend() which carries a=
+ normal spinlock.
+
+
+---------------------------------------------------------------------------=
+--------------
+/**
+ *      irq_set_type - set the irq trigger type for an irq
+ *      @irq:   irq number
+ *      @type:  IRQ_TYPE_{LEVEL,EDGE}_* value - see include/linux/irq.h
+ */    =20
+int irq_set_irq_type(unsigned int irq, unsigned int type)
+{
+        unsigned long flags;
+        struct irq_desc *desc =3D irq_get_desc_buslock(irq, &flags, IRQ_GET=
+_DESC_CHECK_GLOBAL);
+        int ret =3D 0;
+       =20
+        if (!desc)
+                return -EINVAL;
+       =20
+        type &=3D IRQ_TYPE_SENSE_MASK;
+        ret =3D __irq_set_trigger(desc, irq, type);
+        irq_put_desc_busunlock(desc, flags);
+        return ret;
+}
+---------------------------------------------------------------------------=
+--------------
+
+I think, i need a normal hook in the irq_chip, which "prepares" the irq, bu=
+t i dont see one.
+
+
+--=20
+Mit freundlichen Gr=FC=DFen
+Torben Hohn
+
+Linutronix GmbH
+
+Standort: Bremen
+
+Phone: +49 421 5650 2310 ; Fax.: +49 7556 919 886
+mailto: torbenh@linutronix.de
+Firmensitz / Registered Office: D-88690 Uhldingen, Auf dem Berg 3
+Registergericht / Local District Court: Freiburg i. Br., HRB Nr. / Trade
+register no.: 700 806;
+
+Gesch=E4ftsf=FChrer / Managing Directors: Heinz Egger, Thomas Gleixner
+
+--lrZ03NoBR/3+SXJZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQEcBAEBAgAGBQJR0r00AAoJEESSOlgt2wc7lBAIAI+pNvlDs9qSlf7F8KHDYoxd
+oGVe8ETpfVnqNq5l18y8qVHgPm/YZ1TG1U1NNrpiwzo8sIDsOHSs62PADfaIUNp9
+fGqL+vtPY9vSLkct1rSqWISpZdEHyDDK/r+4nI0xx+/Qz++FP6eR3Mn1UFBfF86Q
+u/ekdtSbIdHxIeNZsFfRYl6oiZMaw/lwyR7LyEUeiMBrdKJzKM+KAH5CnUPOX2hJ
+Bv5nM4jf5aVIinsnkCFgmowUQAOEHEG/qE0fCgKAiB8Qq3zJdBxjct/hK3mySQNO
+QgG32eUjuUr911ENmQvl/D4vYBp1BsyfRA1+r2p9n5BWCsINp/oJeDtXHQND9zg=
+=1QUR
+-----END PGP SIGNATURE-----
+
+--lrZ03NoBR/3+SXJZ--
