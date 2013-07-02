@@ -1,120 +1,78 @@
-From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+From: Mark Brown <broonie@kernel.org>
 Subject: Re: [PATCHv2] drivers: spi: Add qspi flash controller
-Date: Tue, 2 Jul 2013 16:29:47 +0530
-Message-ID: <51D2B2A3.3080402@ti.com>
+Date: Tue, 2 Jul 2013 12:04:32 +0100
+Message-ID: <20130702110432.GJ27646@sirena.org.uk>
 References: <1372755399-21769-1-git-send-email-sourav.poddar@ti.com>
-	<51D2B220.1010501@ti.com>
+ <20130702093247.GY27646@sirena.org.uk>
+ <20130702094404.GL3352@arwen.pp.htv.fi>
+ <20130702101718.GE27646@sirena.org.uk>
+ <20130702104338.GA5107@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <51D2B220.1010501-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Cc: rnayak-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0uEakrcbPVGl0QO8"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:58233 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754415Ab3GBLEi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jul 2013 07:04:38 -0400
+Content-Disposition: inline
+In-Reply-To: <20130702104338.GA5107@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-Hi Sekhar,
-On Tuesday 02 July 2013 04:27 PM, Sekhar Nori wrote:
-> On 7/2/2013 2:26 PM, Sourav Poddar wrote:
->> The patch add basic support for the quad spi controller.
->>
->> QSPI is a kind of spi module that allows single,
->> dual and quad read access to external spi devices. The module
->> has a memory mapped interface which provide direct interface
->> for accessing data form external spi devices.
->>
->> The patch will configure controller clocks, device control
->> register and for defining low level transfer apis which
->> will be used by the spi framework to transfer data to
->> the slave spi device(flash in this case).
->>
->> Signed-off-by: Sourav Poddar<sourav.poddar-l0cyMroinI0@public.gmane.org>
->> ---
->> This patch was sent as a part of a series[1];
->> but this can go in as a standalone patch.
->> [1]: https://lkml.org/lkml/2013/6/26/83
->>
->> v1->v2:
->> 1. Placed pm specific calls in prepare/unprepare apis.
->> 2. Put a mask to support upto 32 bits word length.
->> 3. Used "devm_ioremap_resource" variants.
->> 4. Add dt binding doumentation.
->>   Documentation/devicetree/bindings/spi/ti_qspi.txt |   22 ++
->>   drivers/spi/Kconfig                               |    8 +
->>   drivers/spi/Makefile                              |    1 +
->>   drivers/spi/ti-qspi.c                             |  357 +++++++++++++++++++++
->>   4 files changed, 388 insertions(+), 0 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/spi/ti_qspi.txt
->>   create mode 100644 drivers/spi/ti-qspi.c
-> Please cc devicetree-discuss list when adding new bindings.
->
-Ok.
->> +static int dra7xxx_qspi_probe(struct platform_device *pdev)
->> +{
->> +	struct  dra7xxx_qspi *qspi;
->> +	struct spi_master *master;
->> +	struct resource         *r;
->> +	struct device_node *np = pdev->dev.of_node;
->> +	u32 max_freq;
->> +	int ret;
->> +
->> +	master = spi_alloc_master(&pdev->dev, sizeof(*qspi));
->> +	if (!master)
->> +		return -ENOMEM;
->> +
->> +	master->mode_bits = SPI_CPOL | SPI_CPHA;
->> +
->> +	master->num_chipselect = 1;
->> +	master->bus_num = -1;
->> +	master->setup = dra7xxx_qspi_setup;
->> +	master->prepare_transfer_hardware = dra7xxx_qspi_prepare_xfer;
->> +	master->transfer_one_message = dra7xxx_qspi_start_transfer_one;
->> +	master->unprepare_transfer_hardware = dra7xxx_qspi_unprepare_xfer;
->> +	master->dev.of_node = pdev->dev.of_node;
->> +	master->bits_per_word_mask = BIT(32 - 1) | BIT(16 - 1) | BIT(8 - 1);
->> +
->> +	dev_set_drvdata(&pdev->dev, master);
->> +
->> +	qspi = spi_master_get_devdata(master);
->> +	qspi->master = master;
->> +	qspi->dev =&pdev->dev;
->> +
->> +	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> +	if (r == NULL) {
->> +		ret = -ENODEV;
->> +		goto free_master;
->> +	}
->> +
->> +	qspi->base = devm_ioremap_resource(&pdev->dev, r);
->> +	if (!qspi->base) {
->> +		dev_dbg(&pdev->dev, "can't ioremap MCSPI\n");
->> +		ret = -ENOMEM;
->> +		goto free_master;
->> +	}
-> This should be
->
-> 	if (IS_ERR(qspi->base)) {
-> 		dev_dbg(&pdev->dev, "can't ioremap QSPI\n");
-> 		ret = PTR_ERR(qspi->base);
-> 		goto free_master;
-> 	}
->
-Ok. will change it in next version.
-> Thanks,
-> Sekhar
+To: Felipe Balbi <balbi@ti.com>
+Cc: Sourav Poddar <sourav.poddar@ti.com>, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-------------------------------------------------------------------------------
-This SF.net email is sponsored by Windows:
+--0uEakrcbPVGl0QO8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Build for Windows Store.
+On Tue, Jul 02, 2013 at 01:43:38PM +0300, Felipe Balbi wrote:
+> On Tue, Jul 02, 2013 at 11:17:18AM +0100, Mark Brown wrote:
 
-http://p.sf.net/sfu/windows-dev2dev
+> > +	/* setup command reg */
+> > +	qspi->cmd =3D 0;
+> > +	qspi->cmd |=3D QSPI_WLEN(8);
+
+> Sourav hardcodes wordlenght to 8-bits, and yet he enables 8, 16 and
+> 32-bits per word.
+
+Yeah, that's what I noticed (well first off I noticed that there were no
+constraints on bits per word at all).
+
+> > +	qspi->cmd |=3D QSPI_EN_CS(0);
+
+> he's also hardcoding the chipselect line which should be take from
+> m->spi->chip_select
+
+This one *can* be OK if the driver only accepts one chip select (though
+obviously supporting more is better).  I'd really only done a fairly
+high level review for framework stuff so hadn't got that far yet.
+
+One thing I really want to get round to doing with the SPI core is
+providing an easy to pick up GPIO chip select as standard=20
+
+--0uEakrcbPVGl0QO8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR0rO9AAoJELSic+t+oim9/icP/04F45yCdn1B7anQgFZwmjYe
+XuvyHwMbJRHboM43B5ZuVtDeiFBR64VbM9av0JmiCcdGxbIGUwc61Pzj8YcGNGbC
++pKLGiUHahuIDJrCOQz6HfkA1pt6GqRcEHmCry/v8GFQodwIrfYyu+Jy/+SSkrd6
+r1vh8k+5ecjII20YCgkn4X5fMut004PeIydTo6+lyaCJQBBhpOK7nN9XaQ7uR1Sp
+5P+ZI+WGsJuFHj3sYkAbe77B84sq4UP6M8UpAPQwEQZx/VZp60vp/yyCixed3ntr
+HymFJk21mjbm8sJ8MYl32F3yG3pr2XGdpIiNyYs83PnGg3BoOzO2A3h9CjpgZt0f
+c5c7Pg/C+26V5hGxqdxJAztITMOHt9vxCSWjdYPOM0BG2T+pPXsTzSFLz7Mc8GTl
+5MofPJhkSe7o7DnjzQhMoCRo32/NZluqE2uwe9cFufqNFApMzJo9vEhd68ttD+jd
+TS6FQh6IQj0IwwF8jx+luIWWJ2dX3JMy/UKEoN/mS4UZNyRbC3o6CKM4F0xUlxsX
+2e2yYicCso5qHaQmHZSbKwqf5lVJeQkcrVBgTBJtQREQLevvAC0RGcZ78G291b7W
+sGyjU2C0lJWk+6VwVstogQfvfUgnApqFvBamkXAMAtaMB+sDqrYPPOfJzZSdu0/J
+lprgbktWiCSbmzDvZtox
+=ZiK7
+-----END PGP SIGNATURE-----
+
+--0uEakrcbPVGl0QO8--
