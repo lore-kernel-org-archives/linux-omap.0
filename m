@@ -1,149 +1,119 @@
-From: Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 6/9] wlcore: add initial device tree support to the sdio
- module
-Date: Tue, 2 Jul 2013 17:55:45 +0300
-Message-ID: <1372776948-24840-7-git-send-email-coelho@ti.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: [PATCH v2 9/9] wlcore/wl12xx: check if we got correct clock data from DT
+Date: Tue, 2 Jul 2013 17:55:48 +0300
+Message-ID: <1372776948-24840-10-git-send-email-coelho@ti.com>
 References: <1372776948-24840-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1372776948-24840-1-git-send-email-coelho-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
-Cc: coelho-l0cyMroinI0@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1372776948-24840-1-git-send-email-coelho@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-wireless@vger.kernel.org, tony@atomide.com, nsekhar@ti.com
+Cc: mturquette@linaro.org, mark.rutland@arm.com, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, coelho@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-If platform data is not available, try to get the required information
-from the device tree.  Register an OF match table and parse the
-appropriate device tree nodes.
+The fref and the tcxo clocks settings are optional in some platforms.
+WiLink8 doesn't need either, so we don't check the values.  WiLink 6
+only needs the fref clock, so we check that it is valid or return with
+an error.  WiLink7 needs both clocks, if either is not available we
+return with an error.
 
-Parse interrupt property only, for now.
-
-Signed-off-by: Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Luciano Coelho <coelho@ti.com>
 ---
- drivers/net/wireless/ti/wlcore/sdio.c |   69 ++++++++++++++++++++++++++++++---
- 1 file changed, 63 insertions(+), 6 deletions(-)
+ drivers/net/wireless/ti/wl12xx/main.c |   20 +++++++++++++++++---
+ drivers/net/wireless/ti/wlcore/sdio.c |    4 ----
+ 2 files changed, 17 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/net/wireless/ti/wlcore/sdio.c b/drivers/net/wireless/ti/wlcore/sdio.c
-index 4c7e8ac..9370d7e 100644
---- a/drivers/net/wireless/ti/wlcore/sdio.c
-+++ b/drivers/net/wireless/ti/wlcore/sdio.c
-@@ -30,7 +30,7 @@
- #include <linux/mmc/sdio_ids.h>
- #include <linux/mmc/card.h>
- #include <linux/mmc/host.h>
--#include <linux/gpio.h>
-+#include <linux/of_irq.h>
- #include <linux/wl12xx.h>
- #include <linux/pm_runtime.h>
- #include <linux/printk.h>
-@@ -214,6 +214,43 @@ static struct wl1271_if_operations sdio_ops = {
- 	.set_block_size = wl1271_sdio_set_block_size,
- };
+diff --git a/drivers/net/wireless/ti/wl12xx/main.c b/drivers/net/wireless/ti/wl12xx/main.c
+index 903dcb3..72d13e4 100644
+--- a/drivers/net/wireless/ti/wl12xx/main.c
++++ b/drivers/net/wireless/ti/wl12xx/main.c
+@@ -927,6 +927,11 @@ static int wl128x_boot_clk(struct wl1271 *wl, int *selected_clock)
+ 	u16 sys_clk_cfg;
+ 	int ret;
  
-+static struct wl12xx_platform_data *wlcore_get_pdata_from_of(struct device *dev)
-+{
-+	struct wl12xx_platform_data *pdata;
-+	struct device_node *np = dev->of_node;
-+
-+	if (!np) {
-+		np = of_find_matching_node(NULL, dev->driver->of_match_table);
-+		if (!np) {
-+			dev_notice(dev, "device tree node not available\n");
-+			pdata = ERR_PTR(-ENODEV);
-+			goto out;
-+		}
++	if ((priv->ref_clock < 0) || (priv->tcxo_clock < 0)) {
++		wl1271_error("Missing fref and/or tcxo clock settings\n");
++		return -EINVAL;
 +	}
 +
-+	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata) {
-+		dev_err(dev, "can't allocate platform data\n");
-+		pdata = ERR_PTR(-ENODEV);
-+		goto out;
-+	}
-+
-+	pdata->irq = irq_of_parse_and_map(np, 0);
-+	if (pdata->irq < 0) {
-+		dev_err(dev, "can't get interrupt gpio from the device tree\n");
-+		goto out_free;
-+	}
-+
-+	goto out;
-+
-+out_free:
-+	kfree(pdata);
-+	pdata = ERR_PTR(-ENODEV);
-+
-+out:
-+	return pdata;
-+}
-+
- static int wl1271_probe(struct sdio_func *func,
- 				  const struct sdio_device_id *id)
- {
-@@ -248,11 +285,22 @@ static int wl1271_probe(struct sdio_func *func,
- 	/* Use block mode for transferring over one block size of data */
- 	func->card->quirks |= MMC_QUIRK_BLKSZ_FOR_BYTE_MODE;
+ 	/* For XTAL-only modes, FREF will be used after switching from TCXO */
+ 	if (priv->ref_clock == WL12XX_REFCLOCK_26_XTAL ||
+ 	    priv->ref_clock == WL12XX_REFCLOCK_38_XTAL) {
+@@ -976,6 +981,11 @@ static int wl127x_boot_clk(struct wl1271 *wl)
+ 	u32 clk;
+ 	int ret;
  
-+	/* The pdata allocated here is freed when the device is freed,
-+	 * so we don't need an additional out label to free it in case
-+	 * of error further on.
-+	 */
++	if (priv->ref_clock < 0) {
++		wl1271_error("Missing fref clock settings\n");
++		return -EINVAL;
++	}
 +
-+	/* Try to get legacy platform data from the board file */
- 	pdev_data->pdata = wl12xx_get_platform_data();
- 	if (IS_ERR(pdev_data->pdata)) {
--		ret = PTR_ERR(pdev_data->pdata);
--		dev_err(glue->dev, "missing wlan platform data: %d\n", ret);
--		goto out_free_glue;
-+		dev_info(&func->dev,
-+			 "legacy platform data not found, trying device tree\n");
-+
-+		pdev_data->pdata = wlcore_get_pdata_from_of(&func->dev);
-+		if (IS_ERR(pdev_data->pdata)) {
-+			dev_err(&func->dev, "can't get platform data\n");
-+			goto out_free_glue;
-+		}
+ 	if (WL127X_PG_GET_MAJOR(wl->hw_pg_ver) < 3)
+ 		wl->quirks |= WLCORE_QUIRK_END_OF_TRANSACTION;
+ 
+@@ -1757,7 +1767,7 @@ static int wl12xx_setup(struct wl1271 *wl)
+ 	wlcore_set_ht_cap(wl, IEEE80211_BAND_5GHZ, &wl12xx_ht_cap);
+ 	wl12xx_conf_init(wl);
+ 
+-	if (!fref_param) {
++	if (!fref_param && (pdata->ref_clock_freq > 0)) {
+ 		priv->ref_clock = wl12xx_get_clock_idx(wl12xx_refclock_table,
+ 						       pdata->ref_clock_freq,
+ 						       pdata->ref_clock_xtal);
+@@ -1768,6 +1778,8 @@ static int wl12xx_setup(struct wl1271 *wl)
+ 
+ 			return priv->ref_clock;
+ 		}
++	} else if (!fref_param) {
++		priv->ref_clock = -EINVAL;
+ 	} else {
+ 		if (!strcmp(fref_param, "19.2"))
+ 			priv->ref_clock = WL12XX_REFCLOCK_19;
+@@ -1785,7 +1797,7 @@ static int wl12xx_setup(struct wl1271 *wl)
+ 			wl1271_error("Invalid fref parameter %s", fref_param);
  	}
  
- 	/* if sdio can keep power while host is suspended, enable wow */
-@@ -386,16 +434,25 @@ static const struct dev_pm_ops wl1271_sdio_pm_ops = {
- };
- #endif
+-	if (!tcxo_param) {
++	if (!fref_param && (pdata->tcxo_clock_freq > 0)) {
+ 		priv->tcxo_clock = wl12xx_get_clock_idx(wl12xx_tcxoclock_table,
+ 							pdata->tcxo_clock_freq,
+ 							pdata->tcxo_clock_xtal);
+@@ -1796,7 +1808,9 @@ static int wl12xx_setup(struct wl1271 *wl)
  
-+static const struct of_device_id wlcore_sdio_of_match_table[] = {
-+	{ .compatible = "ti,wilink6" },
-+	{ .compatible = "ti,wilink7" },
-+	{ .compatible = "ti,wilink8" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, wlcore_sdio_of_match_table);
-+
- static struct sdio_driver wl1271_sdio_driver = {
- 	.name		= "wl1271_sdio",
- 	.id_table	= wl1271_devices,
- 	.probe		= wl1271_probe,
- 	.remove		= wl1271_remove,
--#ifdef CONFIG_PM
- 	.drv = {
-+#ifdef CONFIG_PM
- 		.pm = &wl1271_sdio_pm_ops,
--	},
- #endif
-+		.of_match_table = of_match_ptr(wlcore_sdio_of_match_table),
-+	},
- };
+ 			return priv->tcxo_clock;
+ 		}
+-	} else {
++	} else if (!fref_param) {
++		priv->tcxo_clock = -EINVAL;
++	}else {
+ 		if (!strcmp(tcxo_param, "19.2"))
+ 			priv->tcxo_clock = WL12XX_TCXOCLOCK_19_2;
+ 		else if (!strcmp(tcxo_param, "26"))
+diff --git a/drivers/net/wireless/ti/wlcore/sdio.c b/drivers/net/wireless/ti/wlcore/sdio.c
+index 60fce49..c76eb66 100644
+--- a/drivers/net/wireless/ti/wlcore/sdio.c
++++ b/drivers/net/wireless/ti/wlcore/sdio.c
+@@ -252,20 +252,16 @@ static struct wl12xx_platform_data *wlcore_get_pdata_from_of(struct device *dev)
+ 	for_each_matching_node(clock_node, wlcore_sdio_of_clk_match_table)
+ 		of_fixed_clk_setup(clock_node);
  
- static int __init wl1271_init(void)
+-	/* TODO: make sure we have this when needed (ie. for WL6 and WL7) */
+ 	glue->refclock = of_clk_get_by_name(np, "refclock");
+ 	if (IS_ERR(glue->refclock)) {
+-		dev_err(dev, "couldn't find refclock on the device tree\n");
+ 		glue->refclock = NULL;
+ 	} else {
+ 		clk_prepare_enable(glue->refclock);
+ 		pdata->ref_clock_freq = clk_get_rate(glue->refclock);
+ 	}
+ 
+-	/* TODO: make sure we have this when needed (ie. for WL7) */
+ 	glue->tcxoclock = of_clk_get_by_name(np, "tcxoclock");
+ 	if (IS_ERR(glue->tcxoclock)) {
+-		dev_err(dev, "couldn't find tcxoclock on the device tree\n");
+ 		glue->tcxoclock = NULL;
+ 	} else {
+ 		clk_prepare_enable(glue->tcxoclock);
 -- 
 1.7.10.4
