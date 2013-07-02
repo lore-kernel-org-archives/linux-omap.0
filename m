@@ -1,78 +1,64 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCHv2] drivers: spi: Add qspi flash controller
-Date: Tue, 2 Jul 2013 12:04:32 +0100
-Message-ID: <20130702110432.GJ27646@sirena.org.uk>
-References: <1372755399-21769-1-git-send-email-sourav.poddar@ti.com>
- <20130702093247.GY27646@sirena.org.uk>
- <20130702094404.GL3352@arwen.pp.htv.fi>
- <20130702101718.GE27646@sirena.org.uk>
- <20130702104338.GA5107@arwen.pp.htv.fi>
+From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Subject: [RFC 0/9] Consolidate AM335x and OMAP4 PRM/CM APIs
+Date: Tue, 2 Jul 2013 16:58:09 +0530
+Message-ID: <1372764498-32503-1-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0uEakrcbPVGl0QO8"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:58233 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754415Ab3GBLEi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jul 2013 07:04:38 -0400
-Content-Disposition: inline
-In-Reply-To: <20130702104338.GA5107@arwen.pp.htv.fi>
+Received: from bear.ext.ti.com ([192.94.94.41]:33015 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750774Ab3GBL3K (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Jul 2013 07:29:10 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Sourav Poddar <sourav.poddar@ti.com>, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: tony@atomide.com, paul@pwsan.com, rnayak@ti.com, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
+Even though there are differences in the PRCM features on different
+TI SoCs (mostly OMAP3+) the underlying PRCM architecture is similar
+on OMAP4+, AM335x, AM437x (and DM81xx). With some rework of the OMAP4
+APIs we can easily consolidate the low level PRM/CM APIs for these
+SoCs and cut down 800+ lines under mach-omap2.
 
---0uEakrcbPVGl0QO8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+These patches go on top of v3.10-rc7 (would rebase once 3.11-rc1 is out)
+and have been boot tested on AM335x EVM. I have tried to ensure OMAP4+
+is not affected but any testing on OMAP4+ would be helpful.
 
-On Tue, Jul 02, 2013 at 01:43:38PM +0300, Felipe Balbi wrote:
-> On Tue, Jul 02, 2013 at 11:17:18AM +0100, Mark Brown wrote:
+NOTE: The last patch which has the AM335x restart function would need
+to be reworked since the OMAP4 code is moving to a different file.
 
-> > +	/* setup command reg */
-> > +	qspi->cmd =3D 0;
-> > +	qspi->cmd |=3D QSPI_WLEN(8);
+Vaibhav Bedia (9):
+  ARM: OMAP2+: AM335X: Add a constant CM_INST for all the clkdomains
+  ARM: OMAP2+: CM code: Reintroduce SW_SLEEP for OMAP4 class of devices
+  ARM: OMAP2+: AM335X: Add a constant PRCM_PARITION for the pwrdomains
+  ARM: OMAP4: PRM: Get rid of hardcoded offsets
+  ARM: OMAP4: Add offsets for pwrstctrl and pwrstst
+  ARM: OMAP4: CM code: Remove the check for non-zero clkctrl_offs
+  ARM: OMAP4: Generalize reset handling API
+  ARM: OMAP2+: AM335x: Migrate to OMAP4 PRM/CM APIs
+  ARM: OMAP2+: AM33XX: Get rid of custom PRM, CM APIs
 
-> Sourav hardcodes wordlenght to 8-bits, and yet he enables 8, 16 and
-> 32-bits per word.
+ arch/arm/mach-omap2/Makefile                |   3 +-
+ arch/arm/mach-omap2/am33xx-restart.c        |  34 ---
+ arch/arm/mach-omap2/clockdomains33xx_data.c |  18 ++
+ arch/arm/mach-omap2/cm33xx.c                | 364 ----------------------------
+ arch/arm/mach-omap2/cm33xx.h                |  41 +---
+ arch/arm/mach-omap2/cminst44xx.c            |  31 ++-
+ arch/arm/mach-omap2/io.c                    |   3 +
+ arch/arm/mach-omap2/omap4-common.c          |  14 ++
+ arch/arm/mach-omap2/omap_hwmod.c            | 184 +-------------
+ arch/arm/mach-omap2/powerdomains33xx_data.c |   6 +
+ arch/arm/mach-omap2/powerdomains44xx_data.c |  32 +++
+ arch/arm/mach-omap2/prm33xx.c               | 338 --------------------------
+ arch/arm/mach-omap2/prm33xx.h               |  12 +-
+ arch/arm/mach-omap2/prm44xx.c               |  45 ++--
+ arch/arm/mach-omap2/prminst44xx.c           |  47 +++-
+ arch/arm/mach-omap2/prminst44xx.h           |   6 +-
+ 16 files changed, 183 insertions(+), 995 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/am33xx-restart.c
+ delete mode 100644 arch/arm/mach-omap2/cm33xx.c
+ delete mode 100644 arch/arm/mach-omap2/prm33xx.c
 
-Yeah, that's what I noticed (well first off I noticed that there were no
-constraints on bits per word at all).
+-- 
+1.8.1
 
-> > +	qspi->cmd |=3D QSPI_EN_CS(0);
-
-> he's also hardcoding the chipselect line which should be take from
-> m->spi->chip_select
-
-This one *can* be OK if the driver only accepts one chip select (though
-obviously supporting more is better).  I'd really only done a fairly
-high level review for framework stuff so hadn't got that far yet.
-
-One thing I really want to get round to doing with the SPI core is
-providing an easy to pick up GPIO chip select as standard=20
-
---0uEakrcbPVGl0QO8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR0rO9AAoJELSic+t+oim9/icP/04F45yCdn1B7anQgFZwmjYe
-XuvyHwMbJRHboM43B5ZuVtDeiFBR64VbM9av0JmiCcdGxbIGUwc61Pzj8YcGNGbC
-+pKLGiUHahuIDJrCOQz6HfkA1pt6GqRcEHmCry/v8GFQodwIrfYyu+Jy/+SSkrd6
-r1vh8k+5ecjII20YCgkn4X5fMut004PeIydTo6+lyaCJQBBhpOK7nN9XaQ7uR1Sp
-5P+ZI+WGsJuFHj3sYkAbe77B84sq4UP6M8UpAPQwEQZx/VZp60vp/yyCixed3ntr
-HymFJk21mjbm8sJ8MYl32F3yG3pr2XGdpIiNyYs83PnGg3BoOzO2A3h9CjpgZt0f
-c5c7Pg/C+26V5hGxqdxJAztITMOHt9vxCSWjdYPOM0BG2T+pPXsTzSFLz7Mc8GTl
-5MofPJhkSe7o7DnjzQhMoCRo32/NZluqE2uwe9cFufqNFApMzJo9vEhd68ttD+jd
-TS6FQh6IQj0IwwF8jx+luIWWJ2dX3JMy/UKEoN/mS4UZNyRbC3o6CKM4F0xUlxsX
-2e2yYicCso5qHaQmHZSbKwqf5lVJeQkcrVBgTBJtQREQLevvAC0RGcZ78G291b7W
-sGyjU2C0lJWk+6VwVstogQfvfUgnApqFvBamkXAMAtaMB+sDqrYPPOfJzZSdu0/J
-lprgbktWiCSbmzDvZtox
-=ZiK7
------END PGP SIGNATURE-----
-
---0uEakrcbPVGl0QO8--
