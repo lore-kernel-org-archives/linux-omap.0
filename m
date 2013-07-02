@@ -1,162 +1,186 @@
 From: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Subject: [RFC 4/9] ARM: OMAP4: PRM: Get rid of hardcoded offsets
-Date: Tue, 2 Jul 2013 16:58:13 +0530
-Message-ID: <1372764498-32503-5-git-send-email-vaibhav.bedia@ti.com>
+Subject: [RFC 5/9] ARM: OMAP4: Add offsets for pwrstctrl and pwrstst
+Date: Tue, 2 Jul 2013 16:58:14 +0530
+Message-ID: <1372764498-32503-6-git-send-email-vaibhav.bedia@ti.com>
 References: <1372764498-32503-1-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34363 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:36367 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751705Ab3GBL3W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Jul 2013 07:29:22 -0400
+	id S1751602Ab3GBL3U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Jul 2013 07:29:20 -0400
 In-Reply-To: <1372764498-32503-1-git-send-email-vaibhav.bedia@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: tony@atomide.com, paul@pwsan.com, rnayak@ti.com, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-Instead of hardcoded offsets of PWRSTCTRL and PWRSTST
-use the offsets from the pwrdomain data. This helps
-us in reusing the same code across OMAP4 and AM335x.
+OMAP4 powerdomains have a consistent register layout
+and so far the pwrstctrl and pwrstst offsets were
+hardcoded in the lowlevel APIs.
+
+AM335x powerdomains don't have a consistent register
+layout and hence the offsets used in the lowlevel APIs
+need to be removed. As part of the AM335x work two additional
+fields pwrstctrl_offs and pwrstst_offs were introduced in
+the pwrdomain data structure. To enable consolidation of
+AM335x and OMAP4 lowlevel APIs add in the appropriate
+offsets to the OMAP4 pwrdomains.
 
 Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 ---
- arch/arm/mach-omap2/prm44xx.c | 30 ++++++++++++++++--------------
- 1 file changed, 16 insertions(+), 14 deletions(-)
+ arch/arm/mach-omap2/powerdomains44xx_data.c | 32 +++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 415c7e0..11f56a7 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -384,7 +384,8 @@ static int omap4_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
- 	omap4_prminst_rmw_inst_reg_bits(OMAP_POWERSTATE_MASK,
- 					(pwrst << OMAP_POWERSTATE_SHIFT),
- 					pwrdm->prcm_partition,
--					pwrdm->prcm_offs, OMAP4_PM_PWSTCTRL);
-+					pwrdm->prcm_offs,
-+					pwrdm->pwrstctrl_offs);
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
+index 704664c..ed53787 100644
+--- a/arch/arm/mach-omap2/powerdomains44xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
+@@ -36,6 +36,8 @@ static struct powerdomain core_44xx_pwrdm = {
+ 	.voltdm		  = { .name = "core" },
+ 	.prcm_offs	  = OMAP4430_PRM_CORE_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
++	.pwrstctrl_offs	  = OMAP4_PM_PWSTCTRL,
++	.pwrstst_offs	  = OMAP4_PM_PWSTST,
+ 	.pwrsts		  = PWRSTS_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 5,
+@@ -62,6 +64,8 @@ static struct powerdomain gfx_44xx_pwrdm = {
+ 	.voltdm		  = { .name = "core" },
+ 	.prcm_offs	  = OMAP4430_PRM_GFX_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
++	.pwrstctrl_offs	  = OMAP4_PM_PWSTCTRL,
++	.pwrstst_offs	  = OMAP4_PM_PWSTST,
+ 	.pwrsts		  = PWRSTS_OFF_ON,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	= {
+@@ -79,6 +83,8 @@ static struct powerdomain abe_44xx_pwrdm = {
+ 	.voltdm		  = { .name = "iva" },
+ 	.prcm_offs	  = OMAP4430_PRM_ABE_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
++	.pwrstctrl_offs	  = OMAP4_PM_PWSTCTRL,
++	.pwrstst_offs	  = OMAP4_PM_PWSTST,
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF,
+ 	.banks		  = 2,
+@@ -99,6 +105,8 @@ static struct powerdomain dss_44xx_pwrdm = {
+ 	.voltdm		  = { .name = "core" },
+ 	.prcm_offs	  = OMAP4430_PRM_DSS_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
++	.pwrstctrl_offs	  = OMAP4_PM_PWSTCTRL,
++	.pwrstst_offs	  = OMAP4_PM_PWSTST,
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF,
+ 	.banks		  = 1,
+@@ -117,6 +125,8 @@ static struct powerdomain tesla_44xx_pwrdm = {
+ 	.voltdm		  = { .name = "iva" },
+ 	.prcm_offs	  = OMAP4430_PRM_TESLA_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
++	.pwrstctrl_offs	  = OMAP4_PM_PWSTCTRL,
++	.pwrstst_offs	  = OMAP4_PM_PWSTST,
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 3,
+@@ -139,6 +149,8 @@ static struct powerdomain wkup_44xx_pwrdm = {
+ 	.voltdm		  = { .name = "wakeup" },
+ 	.prcm_offs	  = OMAP4430_PRM_WKUP_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
++	.pwrstctrl_offs	  = OMAP4_PM_PWSTCTRL,
++	.pwrstst_offs	  = OMAP4_PM_PWSTST,
+ 	.pwrsts		  = PWRSTS_ON,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	= {
+@@ -155,6 +167,8 @@ static struct powerdomain cpu0_44xx_pwrdm = {
+ 	.voltdm		  = { .name = "mpu" },
+ 	.prcm_offs	  = OMAP4430_PRCM_MPU_CPU0_INST,
+ 	.prcm_partition	  = OMAP4430_PRCM_MPU_PARTITION,
++	.pwrstctrl_offs	  = OMAP4_PM_PWSTCTRL,
++	.pwrstst_offs	  = OMAP4_PM_PWSTST,
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 1,
+@@ -172,6 +186,8 @@ static struct powerdomain cpu1_44xx_pwrdm = {
+ 	.voltdm		  = { .name = "mpu" },
+ 	.prcm_offs	  = OMAP4430_PRCM_MPU_CPU1_INST,
+ 	.prcm_partition	  = OMAP4430_PRCM_MPU_PARTITION,
++	.pwrstctrl_offs	  = OMAP4_PM_PWSTCTRL,
++	.pwrstst_offs	  = OMAP4_PM_PWSTST,
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 1,
+@@ -189,6 +205,8 @@ static struct powerdomain emu_44xx_pwrdm = {
+ 	.voltdm		  = { .name = "wakeup" },
+ 	.prcm_offs	  = OMAP4430_PRM_EMU_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
++	.pwrstctrl_offs	  = OMAP4_PM_PWSTCTRL,
++	.pwrstst_offs	  = OMAP4_PM_PWSTST,
+ 	.pwrsts		  = PWRSTS_OFF_ON,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	= {
+@@ -205,6 +223,8 @@ static struct powerdomain mpu_44xx_pwrdm = {
+ 	.voltdm		  = { .name = "mpu" },
+ 	.prcm_offs	  = OMAP4430_PRM_MPU_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
++	.pwrstctrl_offs	  = OMAP4_PM_PWSTCTRL,
++	.pwrstst_offs	  = OMAP4_PM_PWSTST,
+ 	.pwrsts		  = PWRSTS_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 3,
+@@ -226,6 +246,8 @@ static struct powerdomain ivahd_44xx_pwrdm = {
+ 	.voltdm		  = { .name = "iva" },
+ 	.prcm_offs	  = OMAP4430_PRM_IVAHD_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
++	.pwrstctrl_offs	  = OMAP4_PM_PWSTCTRL,
++	.pwrstst_offs	  = OMAP4_PM_PWSTST,
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF,
+ 	.banks		  = 4,
+@@ -250,6 +272,8 @@ static struct powerdomain cam_44xx_pwrdm = {
+ 	.voltdm		  = { .name = "core" },
+ 	.prcm_offs	  = OMAP4430_PRM_CAM_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
++	.pwrstctrl_offs	  = OMAP4_PM_PWSTCTRL,
++	.pwrstst_offs	  = OMAP4_PM_PWSTST,
+ 	.pwrsts		  = PWRSTS_OFF_ON,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	= {
+@@ -267,6 +291,8 @@ static struct powerdomain l3init_44xx_pwrdm = {
+ 	.voltdm		  = { .name = "core" },
+ 	.prcm_offs	  = OMAP4430_PRM_L3INIT_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
++	.pwrstctrl_offs	  = OMAP4_PM_PWSTCTRL,
++	.pwrstst_offs	  = OMAP4_PM_PWSTST,
+ 	.pwrsts		  = PWRSTS_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 1,
+@@ -285,6 +311,8 @@ static struct powerdomain l4per_44xx_pwrdm = {
+ 	.voltdm		  = { .name = "core" },
+ 	.prcm_offs	  = OMAP4430_PRM_L4PER_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
++	.pwrstctrl_offs	  = OMAP4_PM_PWSTCTRL,
++	.pwrstst_offs	  = OMAP4_PM_PWSTST,
+ 	.pwrsts		  = PWRSTS_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 2,
+@@ -308,6 +336,8 @@ static struct powerdomain always_on_core_44xx_pwrdm = {
+ 	.voltdm		  = { .name = "core" },
+ 	.prcm_offs	  = OMAP4430_PRM_ALWAYS_ON_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
++	.pwrstctrl_offs	  = OMAP4_PM_PWSTCTRL,
++	.pwrstst_offs	  = OMAP4_PM_PWSTST,
+ 	.pwrsts		  = PWRSTS_ON,
+ };
  
-@@ -393,7 +394,7 @@ static int omap4_pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
- 	u32 v;
- 
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTCTRL);
-+					pwrdm->pwrstctrl_offs);
- 	v &= OMAP_POWERSTATE_MASK;
- 	v >>= OMAP_POWERSTATE_SHIFT;
- 
-@@ -405,7 +406,7 @@ static int omap4_pwrdm_read_pwrst(struct powerdomain *pwrdm)
- 	u32 v;
- 
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTST);
-+					pwrdm->pwrstst_offs);
- 	v &= OMAP_POWERSTATEST_MASK;
- 	v >>= OMAP_POWERSTATEST_SHIFT;
- 
-@@ -417,7 +418,7 @@ static int omap4_pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
- 	u32 v;
- 
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTST);
-+					pwrdm->pwrstst_offs);
- 	v &= OMAP4430_LASTPOWERSTATEENTERED_MASK;
- 	v >>= OMAP4430_LASTPOWERSTATEENTERED_SHIFT;
- 
-@@ -429,7 +430,8 @@ static int omap4_pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm)
- 	omap4_prminst_rmw_inst_reg_bits(OMAP4430_LOWPOWERSTATECHANGE_MASK,
- 					(1 << OMAP4430_LOWPOWERSTATECHANGE_SHIFT),
- 					pwrdm->prcm_partition,
--					pwrdm->prcm_offs, OMAP4_PM_PWSTCTRL);
-+					pwrdm->prcm_offs,
-+					pwrdm->pwrstctrl_offs);
- 	return 0;
- }
- 
-@@ -438,7 +440,7 @@ static int omap4_pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
- 	omap4_prminst_rmw_inst_reg_bits(OMAP4430_LASTPOWERSTATEENTERED_MASK,
- 					OMAP4430_LASTPOWERSTATEENTERED_MASK,
- 					pwrdm->prcm_partition,
--					pwrdm->prcm_offs, OMAP4_PM_PWSTST);
-+					pwrdm->prcm_offs, pwrdm->pwrstst_offs);
- 	return 0;
- }
- 
-@@ -449,7 +451,7 @@ static int omap4_pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
- 	v = pwrst << __ffs(OMAP4430_LOGICRETSTATE_MASK);
- 	omap4_prminst_rmw_inst_reg_bits(OMAP4430_LOGICRETSTATE_MASK, v,
- 					pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTCTRL);
-+					pwrdm->pwrstctrl_offs);
- 
- 	return 0;
- }
-@@ -463,7 +465,7 @@ static int omap4_pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank,
- 
- 	omap4_prminst_rmw_inst_reg_bits(m, (pwrst << __ffs(m)),
- 					pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTCTRL);
-+					pwrdm->pwrstctrl_offs);
- 
- 	return 0;
- }
-@@ -477,7 +479,7 @@ static int omap4_pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank,
- 
- 	omap4_prminst_rmw_inst_reg_bits(m, (pwrst << __ffs(m)),
- 					pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTCTRL);
-+					pwrdm->pwrstctrl_offs);
- 
- 	return 0;
- }
-@@ -487,7 +489,7 @@ static int omap4_pwrdm_read_logic_pwrst(struct powerdomain *pwrdm)
- 	u32 v;
- 
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTST);
-+					pwrdm->pwrstst_offs);
- 	v &= OMAP4430_LOGICSTATEST_MASK;
- 	v >>= OMAP4430_LOGICSTATEST_SHIFT;
- 
-@@ -499,7 +501,7 @@ static int omap4_pwrdm_read_logic_retst(struct powerdomain *pwrdm)
- 	u32 v;
- 
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTCTRL);
-+					pwrdm->pwrstctrl_offs);
- 	v &= OMAP4430_LOGICRETSTATE_MASK;
- 	v >>= OMAP4430_LOGICRETSTATE_SHIFT;
- 
-@@ -541,7 +543,7 @@ static int omap4_pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
- 	m = omap2_pwrdm_get_mem_bank_stst_mask(bank);
- 
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTST);
-+					pwrdm->pwrstst_offs);
- 	v &= m;
- 	v >>= __ffs(m);
- 
-@@ -555,7 +557,7 @@ static int omap4_pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank)
- 	m = omap2_pwrdm_get_mem_bank_retst_mask(bank);
- 
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTCTRL);
-+					pwrdm->pwrstctrl_offs);
- 	v &= m;
- 	v >>= __ffs(m);
- 
-@@ -604,7 +606,7 @@ static int omap4_pwrdm_wait_transition(struct powerdomain *pwrdm)
- 	/* XXX Is this udelay() value meaningful? */
- 	while ((omap4_prminst_read_inst_reg(pwrdm->prcm_partition,
- 					    pwrdm->prcm_offs,
--					    OMAP4_PM_PWSTST) &
-+					    pwrdm->pwrstst_offs) &
- 		OMAP_INTRANSITION_MASK) &&
- 	       (c++ < PWRDM_TRANSITION_BAILOUT))
- 		udelay(1);
+@@ -317,6 +347,8 @@ static struct powerdomain cefuse_44xx_pwrdm = {
+ 	.voltdm		  = { .name = "core" },
+ 	.prcm_offs	  = OMAP4430_PRM_CEFUSE_INST,
+ 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
++	.pwrstctrl_offs	  = OMAP4_PM_PWSTCTRL,
++	.pwrstst_offs	  = OMAP4_PM_PWSTST,
+ 	.pwrsts		  = PWRSTS_OFF_ON,
+ 	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
+ };
 -- 
 1.8.1
 
