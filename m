@@ -1,57 +1,67 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [PATCH v2 4/9] wl12xx: use frequency instead of enumerations
- for pdata clocks
-Date: Tue, 2 Jul 2013 23:27:30 +0300
-Message-ID: <1372796850.21065.93.camel@cumari.coelho.fi>
-References: <1372776948-24840-1-git-send-email-coelho@ti.com>
- <1372776948-24840-5-git-send-email-coelho@ti.com>
- <20130702150208.GA4233@kahuna>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH 1/1] gpio/omap: fix build error when OF_GPIO is not defined.
+Date: Tue, 02 Jul 2013 13:48:49 -0700
+Message-ID: <87d2r0lmby.fsf@linaro.org>
+References: <1372794390-9512-1-git-send-email-javier.martinez@collabora.co.uk>
+	<CACRpkdb3n6BKswq=ODXdByRJL3y+ezYF3ZS=nG2K=7Tn=amM9w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130702150208.GA4233@kahuna>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nishanth Menon <nm@ti.com>
-Cc: mark.rutland@arm.com, mturquette@linaro.org, linux-doc@vger.kernel.org, tony@atomide.com, linux-wireless@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, rob.herring@calxeda.com, grant.likely@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:41443 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755086Ab3GBUsz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jul 2013 16:48:55 -0400
+Received: by mail-pd0-f173.google.com with SMTP id v14so3935353pde.32
+        for <linux-omap@vger.kernel.org>; Tue, 02 Jul 2013 13:48:54 -0700 (PDT)
+In-Reply-To: <CACRpkdb3n6BKswq=ODXdByRJL3y+ezYF3ZS=nG2K=7Tn=amM9w@mail.gmail.com>
+	(Linus Walleij's message of "Tue, 2 Jul 2013 22:15:37 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Grant Likely <grant.likely@linaro.org>, Jon Hunter <jgchunter@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-On Tue, 2013-07-02 at 10:02 -0500, Nishanth Menon wrote:
-> On 17:55-20130702, Luciano Coelho wrote:
-> > Instead of defining an enumeration with the FW specific values for the
-> > different clock rates, use the actual frequency instead.  Also add a
-> > boolean to specify whether the clock is XTAL or not.
-> > 
-> > Change all board files to reflect this.
-> > 
-> > Cc: Tony Lindgren <tony@atomide.com>
-> > Cc: Sekhar Nori <nsekhar@ti.com>
-> > Signed-off-by: Luciano Coelho <coelho@ti.com>
-> > ---
-> >  arch/arm/mach-davinci/board-da850-evm.c      |    3 +-
-> >  arch/arm/mach-omap2/board-4430sdp.c          |    5 ++-
-> ^^
-> >  arch/arm/mach-omap2/board-omap3evm.c         |    3 +-
-> >  arch/arm/mach-omap2/board-omap4panda.c       |    3 +-
-> ^^
-> Please do not add more platform data to platforms that are DT only.
+Linus Walleij <linus.walleij@linaro.org> writes:
 
-Ah, I hadn't realized that board_omap4panda.c and board-4430sdp.c had
-been removed in linux-next.  I base my tree on wireless-next and it
-doesn't contain these changes yet.  I would only have noticed this when
-I rebased my tree once the merge window is closed. ;)
+> On Tue, Jul 2, 2013 at 9:46 PM, Javier Martinez Canillas
+> <javier.martinez@collabora.co.uk> wrote:
+>
+>> The OMAP GPIO driver check if the chip has an associated
+>> Device Tree node using the struct gpio_chip of_node member.
+>>
+>> But this is only build if CONFIG_OF_GPIO is defined which
+>> leads to the following error when using omap1_defconfig:
+>>
+>> linux/drivers/gpio/gpio-omap.c: In function 'omap_gpio_chip_init':
+>> linux/drivers/gpio/gpio-omap.c:1080:17: error: 'struct gpio_chip' has no member named 'of_node'
+>> linux/drivers/gpio/gpio-omap.c: In function 'omap_gpio_irq_map':
+>> linux/drivers/gpio/gpio-omap.c:1116:16: error: 'struct gpio_chip' has no member named 'of_node'
+>>
+>> Reported-by: Kevin Hilman <khilman@linaro.org>
+>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+>> ---
+>>
+>> Hi Linus,
+>>
+>> Sorry for not spoting this issue before. In a previous version of the patch-set:
+>>
+>> [PATCH v3 0/2]: auto request GPIO as input if used as IRQ via DT
+>>
+>> of_have_populated_dt() was used instead of struct gpio_chip of_node member to
+>> check wether legacy or DT boot was used. I did a build test on every OMAP platform
+>> but later I was asked to use .of_node instead of_have_populated_dt() and forget
+>> to do a built test for OMAP1.
+>
+> Such things happen ...
+>
+>> I hope this patch can go as a fix for the v3.11-rc cycle.
+>
+> Yeah I queued it on top of the others. Good thing I didn't rush the
+> other two out :-)
 
-Thanks for pointing out, I'll make sure these changes will not be there
-when I send the pull request.
+I can confirm this makes the build work again for omap1_defconfig.
 
---
-Cheers,
-Luca.
+Javier, thanks for the quick fix!     
+
+Acked-by: Kevin Hilman <khilman@linaro.org>
+
+Kevin
