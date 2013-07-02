@@ -1,126 +1,104 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH v3 0/2]: auto request GPIO as input if used as IRQ via DT
-Date: Tue, 2 Jul 2013 19:31:44 +0200
-Message-ID: <CAAwP0s1QpvSUgt0f1r4acKNCuzNdLb6qG-poOHMcyN2gUCjQUg@mail.gmail.com>
-References: <1372276203-21755-1-git-send-email-javier.martinez@collabora.co.uk>
- <CAGa+x87OnYmnCQjLzyc5CFJE_n8GXaka2iPjCUdGj=yx1uqd4Q@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: OMAP baseline test results for v3.10-rc7
+Date: Tue, 2 Jul 2013 21:16:47 +0300
+Message-ID: <20130702181647.GA9216@arwen.pp.htv.fi>
+References: <alpine.DEB.2.02.1307011946180.4358@utopia.booyaka.com>
+ <20130701204236.GA805@arwen.pp.htv.fi>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gBBFr7Ir9EOA20Yy"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f171.google.com ([209.85.223.171]:47580 "EHLO
-	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753085Ab3GBRcG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jul 2013 13:32:06 -0400
-Received: by mail-ie0-f171.google.com with SMTP id qd12so13250162ieb.30
-        for <linux-omap@vger.kernel.org>; Tue, 02 Jul 2013 10:32:05 -0700 (PDT)
-In-Reply-To: <CAGa+x87OnYmnCQjLzyc5CFJE_n8GXaka2iPjCUdGj=yx1uqd4Q@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:52937 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753227Ab3GBSRS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Jul 2013 14:17:18 -0400
+Content-Disposition: inline
+In-Reply-To: <20130701204236.GA805@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Grant Likely <grant.likely@linaro.org>, jgchunter@gmail.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, eballetbo@gmail.com, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, linux-omap <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, aaro.koskinen@iki.fi
+To: Felipe Balbi <balbi@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Jul 2, 2013 at 6:10 PM, Kevin Hilman <khilman@linaro.org> wrote:
-> On Wed, Jun 26, 2013 at 12:50 PM, Javier Martinez Canillas
-> <javier.martinez@collabora.co.uk> wrote:
->
-> [...]
->
->> Aaro, could you please test if these changes break any of your OMAP1 boards?
->> Although it shouldn't do it as far as I can tell.
->
-> This doesn't build for omap1_defconfig (at least in next-20130702):
->
-> /work/kernel/next/drivers/gpio/gpio-omap.c: In function 'omap_gpio_chip_init':
-> /work/kernel/next/drivers/gpio/gpio-omap.c:1080:17: error: 'struct
-> gpio_chip' has no member named 'of_node'
-> /work/kernel/next/drivers/gpio/gpio-omap.c: In function 'omap_gpio_irq_map':
-> /work/kernel/next/drivers/gpio/gpio-omap.c:1116:16: error: 'struct
-> gpio_chip' has no member named 'of_node'
->
-> Probably because OMAP1 is non-DT?
->
-> Kevin
-> --
+--gBBFr7Ir9EOA20Yy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hi Kevin,
+Hi,
 
-Yes, sorry about that. In the a previous version of the patch-set
-of_have_populated_dt() was used instead of chip.of_node and it built
-correctly with OMAP1 since it just default to return false.
+On Mon, Jul 01, 2013 at 11:42:36PM +0300, Felipe Balbi wrote:
+> On Mon, Jul 01, 2013 at 07:48:50PM +0000, Paul Walmsley wrote:
+> > Boot to userspace:
+> >     FAIL ( 2/12): 37xxevm, am335xbonelt
+>=20
+> <quoting part of [1]>
+> | U-Boot# tftp 0x82000000 am335x-boneblack.dtb
+> | link up on port 0, speed 100, full duplex
+> | Using cpsw device
+> | TFTP from server 192.168.57.1; our IP address is 192.168.57.138
+> | Filename 'am335x-boneblack.dtb'.
+>=20
+> Where are you taking am335x-boneblack.dtb from ? It's not in mainline
+> v3.10-rc7 kernel:
+>=20
+> $ ls arch/arm/boot/dts/am33*.dts
+> arch/arm/boot/dts/am335x-bone.dts  arch/arm/boot/dts/am335x-evm.dts
+> arch/arm/boot/dts/am335x-evmsk.dts
+> $ git grep -e boneblack arch/arm/
+> $ echo $
+> 1
+> $ git show
+> commit 9e895ace5d82df8929b16f58e9f515f6d54ab82d
+> Author: Linus Torvalds <torvalds@linux-foundation.org>
+> Date:   Sat Jun 22 09:47:31 2013 -1000
+>=20
+>     Linux 3.10-rc7
+>=20
+> diff --git a/Makefile b/Makefile
+> index c6863b5..0142c93 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -1,7 +1,7 @@
+>  VERSION =3D 3
+>  PATCHLEVEL =3D 10
+>  SUBLEVEL =3D 0
+> -EXTRAVERSION =3D -rc6
+> +EXTRAVERSION =3D -rc7
+>  NAME =3D Unicycling Gorilla
+> =20
+>  # *DOCUMENTATION*
+>=20
+> [1] http://www.pwsan.com/omap/testlogs/test_v3.10-rc7/20130630191558/boot=
+/am335xbonelt/am335x-bone/am335xbonelt_log.txt
 
-Then I was told to check if the struct gpio_chip has an associated
-device node instead and forget to build test for OMAP1 :-(
+just a gentle ping here, wondering if you still have some garbage DTBs
+left in your tree.
 
-Could you please tell me if the following patch looks like a good fix
-to you so I can do a proper post?
 
->From 2d14bcc7c300a9451d7d8a37eeff4e0285c977a0 Mon Sep 17 00:00:00 2001
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Date: Tue, 2 Jul 2013 19:04:14 +0200
-Subject: [PATCH 1/1] gpio/omap: fix build error when CONFIG_OF_GPIO is not
- defined.
+--=20
+balbi
 
-The OMAP GPIO driver check if the chip has an associated
-DT device node using the struct gpio_chip of_node member.
+--gBBFr7Ir9EOA20Yy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-But this is only built if CONFIG_OF_GPIO is defined which
-leads to the following error when using omap1_defconfig:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-linux/drivers/gpio/gpio-omap.c: In function 'omap_gpio_chip_init':
-linux/drivers/gpio/gpio-omap.c:1080:17: error: 'struct gpio_chip' has
-no member named 'of_node'
-linux/drivers/gpio/gpio-omap.c: In function 'omap_gpio_irq_map':
-linux/drivers/gpio/gpio-omap.c:1116:16: error: 'struct gpio_chip' has
-no member named 'of_node'
+iQIcBAEBAgAGBQJR0xkPAAoJEIaOsuA1yqREI9UQALWe1Xlk5mj4PmzjBhyjECG7
+WqGDnErqGG2GsGZLPeL9seC41zKDUtUQIeTiaVhKPu6/LGTXvIfnzdP3cI3evEXB
+Ndy+Ls2/6CD1CK6PXjSdao9g2IZElpdODJcBriBsvJBRftMLak9Du7JY2tquYUTO
+9WeoMNSL4CG1scAkh70Z18bjlV4RxdC4XKiPR5R98NOXNopZHiNVjCQQaFQNDqTW
+5oRESgY2EM5gC39M0y23YVCxMRFbCR+PEn9+U7DfyaR21Ixf+erMb9UKI9gf6E8x
+DErWvY8ZcrViU3arXLbRJ0G7ZVmAQucvMjy2etXFw7YqnDnKKYhqc6vXHB7t5rn/
+OJp4VGUwt1fllX33i/mdh/18ozXgjSS+aeG44uijm3ysDjoJLCauEzkmOwcY1DC5
+fwChpvAOeD+aI0QLqVhwdXgBg0iMhBN7QG4RRW5UGgtn8WtAIQOj7l+ENVhaPDUT
+PYKvF8WnvuSyAFW3E/4JzRFSrkawgh8N8vFLUy+u7cNwVo3skXInt0J722xskhpP
+pxaAqDqEnA8MlHarR7RwbpOB9QLq9qP4tbXyvKCElChpTH/pTJYZQaWn9Pnj7yC0
+Jx5asHjNDqAQDI1mmVQyfi1t3XQjK1BsZrbh0MoZOvhd0pn7xPNV6UxaI91CVuXT
+q+AgSoGqrrmvyALqJc7k
+=ZhPd
+-----END PGP SIGNATURE-----
 
-Reported-by: Kevin Hilman <khilman@linaro.org>
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
- drivers/gpio/gpio-omap.c |   16 ++++++++++++++--
- 1 files changed, 14 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index c4f0aa2..bd536f1 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1037,6 +1037,18 @@ omap_mpuio_alloc_gc(struct gpio_bank *bank,
-unsigned int irq_start,
- 			       IRQ_NOREQUEST | IRQ_NOPROBE, 0);
- }
-
-+#if defined(CONFIG_OF_GPIO)
-+static inline bool omap_gpio_chip_dt_boot(struct gpio_chip *chip)
-+{
-+	return chip->of_node != NULL;
-+}
-+#else
-+static inline bool omap_gpio_chip_dt_boot(struct gpio_chip *chip)
-+{
-+	return false;
-+}
-+#endif
-+
- static void omap_gpio_chip_init(struct gpio_bank *bank)
- {
- 	int j;
-@@ -1077,7 +1089,7 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
- 	 * irq_create_of_mapping() only for the GPIO lines that
- 	 * are used as interrupts.
- 	 */
--	if (!bank->chip.of_node)
-+	if (!omap_gpio_chip_dt_boot(&bank->chip))
- 		for (j = 0; j < bank->width; j++)
- 			irq_create_mapping(bank->domain, j);
- 	irq_set_chained_handler(bank->irq, gpio_irq_handler);
-@@ -1113,7 +1125,7 @@ static int omap_gpio_irq_map(struct irq_domain
-*d, unsigned int virq,
- 	 * but until then this has to be done on a per driver
- 	 * basis. Remove this once this is managed by the core.
- 	 */
--	if (bank->chip.of_node) {
-+	if (omap_gpio_chip_dt_boot(&bank->chip)) {
- 		gpio = irq_to_gpio(bank, hwirq);
- 		ret = gpio_request_one(gpio, GPIOF_IN, NULL);
- 		if (ret) {
--- 
-1.7.7.6
+--gBBFr7Ir9EOA20Yy--
