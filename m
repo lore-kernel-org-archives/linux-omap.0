@@ -1,64 +1,96 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: omap4 ehci sporadic resume issue
-Date: Tue, 2 Jul 2013 18:03:23 +0300
-Message-ID: <51D2EBBB.8000504@ti.com>
-References: <51CC2755.2030505@amarulasolutions.com> <51CC454A.1040104@ti.com> <20130627141704.GF12956@panicking> <51CC5105.4070301@ti.com> <20130627175623.GB21364@panicking> <CAB=otbQXVqFKOTtgvif=FZnWgDpbovAB6naPKTrsEHUJb21xTw@mail.gmail.com> <20130627192413.GA14115@panicking> <CAB=otbT-BcJg5tNZ=7jd1jvoK8N1Hd_skScuxczaeP=tagdcSw@mail.gmail.com> <20130628113314.GA25536@panicking> <51CD7783.8030907@ti.com> <20130628164751.GA1281@panicking> <51D2E6DA.6030000@ti.com> <51D2E88A.7050202@amarulasolutions.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv2] drivers: spi: Add qspi flash controller
+Date: Tue, 2 Jul 2013 18:19:47 +0300
+Message-ID: <20130702151947.GD7013@arwen.pp.htv.fi>
+References: <1372755399-21769-1-git-send-email-sourav.poddar@ti.com>
+ <20130702093247.GY27646@sirena.org.uk>
+ <20130702094404.GL3352@arwen.pp.htv.fi>
+ <20130702101718.GE27646@sirena.org.uk>
+ <20130702104338.GA5107@arwen.pp.htv.fi>
+ <20130702110432.GJ27646@sirena.org.uk>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43012 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752907Ab3GBPD1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Jul 2013 11:03:27 -0400
-In-Reply-To: <51D2E88A.7050202@amarulasolutions.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Ycz6tD7Th1CMF4v7"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130702110432.GJ27646@sirena.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Felipe Balbi <balbi@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Michael Trimarchi <michael@amarulasolutions.com>
-Cc: Ruslan Bilovol <ruslan.bilovol@ti.com>, USB list <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>
 
+--Ycz6tD7Th1CMF4v7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 07/02/2013 05:49 PM, Michael Trimarchi wrote:
-> Hi Roger
-> 
-> On 07/02/2013 04:42 PM, Roger Quadros wrote:
->> On 06/28/2013 07:47 PM, Michael Trimarchi wrote:
->>> Hi
->>>
+On Tue, Jul 02, 2013 at 12:04:32PM +0100, Mark Brown wrote:
+> On Tue, Jul 02, 2013 at 01:43:38PM +0300, Felipe Balbi wrote:
+> > On Tue, Jul 02, 2013 at 11:17:18AM +0100, Mark Brown wrote:
+>=20
+> > > +	/* setup command reg */
+> > > +	qspi->cmd =3D 0;
+> > > +	qspi->cmd |=3D QSPI_WLEN(8);
+>=20
+> > Sourav hardcodes wordlenght to 8-bits, and yet he enables 8, 16 and
+> > 32-bits per word.
+>=20
+> Yeah, that's what I noticed (well first off I noticed that there were no
+> constraints on bits per word at all).
+>=20
+> > > +	qspi->cmd |=3D QSPI_EN_CS(0);
+>=20
+> > he's also hardcoding the chipselect line which should be take from
+> > m->spi->chip_select
+>=20
+> This one *can* be OK if the driver only accepts one chip select (though
+> obviously supporting more is better).  I'd really only done a fairly
 
->>>>
->>>> When you said earlier that the problem doesn't happen when one of the ULPIs is used
->>>> did you try both of them individually. e.g. case 1: port 1 only enabled,
->>>> case 2: port 2 only enabled.
->>>>
->>>> Did it work in both the cases?
->>>
->>> Yes, so I don't think could be a problem of ulpi pins and why this happen
->>> on both at the same time? Seems more connected to somenthing else.
->>>
->>
->> Right. Seems to be related to two things. OFF Mode and 2 ports being used simultaneously.
->>
->> I'm not sure how to go about fixing this. How important is OFF Mode for your application.
->> Can you keep it always disabled?
->>
+this controller has 6 chip selects IIRC
 
+> high level review for framework stuff so hadn't got that far yet.
+>=20
+> One thing I really want to get round to doing with the SPI core is
+> providing an easy to pick up GPIO chip select as standard=20
 
-> 
-> Right now I delivery without off mode. I will try to fix in long run the usb and I think that it could be a good platform to test omap4 mainline.
-> 
+that should be fairly simple I guess. Just lack of time, I'm assuming ?
 
-Yes, our aim is to get it working with mainline as well.
+Complex will be to support up to 128-bits per word as this particular
+controller supports. In fact, this controller is, IMO, overly flexible.
+You can do 1, 2, 3, 4, 5, 6, ... , 128 bits per word.
 
-> Last question:
-> If one domain is in RET mode and not OFF mode what happen during SAR restore in OFF mode?
-> 
+The only problem is that the DATA registers which give you access to the
+shift register, aren't mapped to consecutive offsets, but that should
+still be ok since we will, anyway, be using readl/writel for each
+register. Still, for platforms which can provide writeq/readq (not sure
+if that's already supported on ARM) we could save a few cycles, no ?
 
-SAR restore will only happen when the Device enters OFF mode.
+anyway... it is what it is.
 
-Device OFF mode can only be reached when all voltage domains are switched OFF and that would depend
-if all power domains entered OFF or not. Just a simplistic explanation. You can refer to chapter
-"3.9.3 Device OFF State Management" in the TRM.
+--=20
+balbi
 
-cheers,
--roger
+--Ycz6tD7Th1CMF4v7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR0u+SAAoJEIaOsuA1yqREm9EQAJ+r138z4rCoBi8STfIS0NYa
+om18NcTr31ycXVyrr+/RkbPcUqKVgO7bksM+cCBezbOnlyqw1qoca0xXpLbGnMmR
+79+TXW13KamKMbcoEn3HuhmqcE58Ajdn7I5g8O1umt02NdA2LgTSYUFINz8I7Qz+
+VFo//cTyv6Iq1OQfxZx+fU0wA5ZI4c3bLmxbQwhJnoEE9m/y+4XvKv6WgmNYs63j
+uVs5GDj2WqG2gj8raPIc3xlUiL9M1rXAw6NFdMIXFlNoQRmLlcHm3AYIZs80jFcs
+RKxBcL4BmrFly+XyzVCZxl9FAxv6lT/sSOCtrngqcUFAdFBxAvGM7lGORaQ2OH4q
+3kQfRvaKGWI8zXMxkZnPGw4ZPRoMRWf3WdD3yiCpR4tm15SnCEbnZI8bCultYTuZ
+wtUWM7H95Pe2TPXtBa5GiafSwsx1uqT/vVEznSeRBDmMNoIiGYxtNGinhjhoGb65
+NtxvhGHGF4egS0aHtWuOXBBwGZAFAW94C0LkPNwWn15KFWmyJXj8uCQNnCGwxk4z
+cgmvtop9W58leJqQKZrXAYcL/Lyg9oM9x3vqD4eQ40ymDBpCGoJVo53yr9FrZMHN
+XvejSfD3khBNgP+mIjJvfsZ9J0lCXxcdk49R2nnvCJfJFX+i+bhYw2fIvzaB/NRK
+x43POSrTnm3jId+DKfsh
+=p6My
+-----END PGP SIGNATURE-----
+
+--Ycz6tD7Th1CMF4v7--
