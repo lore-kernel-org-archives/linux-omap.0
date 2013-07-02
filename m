@@ -1,104 +1,173 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: OMAP baseline test results for v3.10-rc7
-Date: Tue, 2 Jul 2013 21:16:47 +0300
-Message-ID: <20130702181647.GA9216@arwen.pp.htv.fi>
-References: <alpine.DEB.2.02.1307011946180.4358@utopia.booyaka.com>
- <20130701204236.GA805@arwen.pp.htv.fi>
+Subject: Re: [PATCH 3/5] usb: common: introduce of_usb_get_maximum_speed()
+Date: Tue, 2 Jul 2013 21:22:06 +0300
+Message-ID: <20130702182206.GB9216@arwen.pp.htv.fi>
+References: <1372663135-436-1-git-send-email-balbi@ti.com>
+ <1372663135-436-4-git-send-email-balbi@ti.com>
+ <51D289FF.8030909@linutronix.de>
+ <20130702081009.GE3352@arwen.pp.htv.fi>
+ <51D28BD0.3090101@linutronix.de>
+ <20130702082605.GG3352@arwen.pp.htv.fi>
+ <51D29264.6070207@linutronix.de>
+ <20130702093114.GJ3352@arwen.pp.htv.fi>
+ <A2CA0424C0A6F04399FB9E1CD98E030458DD886F@US01WEMBX2.internal.synopsys.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gBBFr7Ir9EOA20Yy"
+	protocol="application/pgp-signature"; boundary="WhfpMioaduB5tiZL"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52937 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53153 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753227Ab3GBSRS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Jul 2013 14:17:18 -0400
+	id S1752940Ab3GBSW0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Jul 2013 14:22:26 -0400
 Content-Disposition: inline
-In-Reply-To: <20130701204236.GA805@arwen.pp.htv.fi>
+In-Reply-To: <A2CA0424C0A6F04399FB9E1CD98E030458DD886F@US01WEMBX2.internal.synopsys.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Zimmerman <Paul.Zimmerman@synopsys.com>
+Cc: "balbi@ti.com" <balbi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Michael Grzeschik <mgr@pengutronix.de>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, George Cherian <george.cherian@ti.com>, Benoit Cousson <b-cousson@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
---gBBFr7Ir9EOA20Yy
+--WhfpMioaduB5tiZL
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Jul 01, 2013 at 11:42:36PM +0300, Felipe Balbi wrote:
-> On Mon, Jul 01, 2013 at 07:48:50PM +0000, Paul Walmsley wrote:
-> > Boot to userspace:
-> >     FAIL ( 2/12): 37xxevm, am335xbonelt
+On Tue, Jul 02, 2013 at 06:04:45PM +0000, Paul Zimmerman wrote:
+> > From: linux-usb-owner@vger.kernel.org [mailto:linux-usb-owner@vger.kern=
+el.org] On Behalf Of Felipe Balbi
+> > Sent: Tuesday, July 02, 2013 2:31 AM
+> >=20
+> >     Signed-off-by: Felipe Balbi <balbi@ti.com>
+> >=20
+> > diff --git a/Documentation/devicetree/bindings/usb/generic.txt b/Docume=
+ntation/devicetree/bindings/usb/generic.txt
+> > new file mode 100644
+> > index 0000000..477d5bb
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/usb/generic.txt
+> > @@ -0,0 +1,24 @@
+> > +Generic USB Properties
+> > +
+> > +Optional properties:
+> > + - maximum-speed: tells USB controllers we want to work up to a certain
+> > +			speed. Valid arguments are "super-speed", "high-speed",
+> > +			"full-speed" and "low-speed". In case this isn't passed
+> > +			via DT, USB controllers should default to their maximum
+> > +			HW capability.
+> > + - dr_mode: tells Dual-Role USB controllers that we want to work on a
+> > +			particular mode. Valid arguments are "host",
+> > +			"peripheral" and "otg". In case this attribute isn't
+> > +			passed via DT, USB DRD controllers should default to
+> > +			OTG.
+> > +
+> > +This is an attribute to a USB controller such as:
+> > +
+> > +dwc3@4a030000 {
+> > +	compatible =3D "synopsys,dwc3";
 >=20
-> <quoting part of [1]>
-> | U-Boot# tftp 0x82000000 am335x-boneblack.dtb
-> | link up on port 0, speed 100, full duplex
-> | Using cpsw device
-> | TFTP from server 192.168.57.1; our IP address is 192.168.57.138
-> | Filename 'am335x-boneblack.dtb'.
+> Hi Felipe,
 >=20
-> Where are you taking am335x-boneblack.dtb from ? It's not in mainline
-> v3.10-rc7 kernel:
->=20
-> $ ls arch/arm/boot/dts/am33*.dts
-> arch/arm/boot/dts/am335x-bone.dts  arch/arm/boot/dts/am335x-evm.dts
-> arch/arm/boot/dts/am335x-evmsk.dts
-> $ git grep -e boneblack arch/arm/
-> $ echo $
-> 1
-> $ git show
-> commit 9e895ace5d82df8929b16f58e9f515f6d54ab82d
-> Author: Linus Torvalds <torvalds@linux-foundation.org>
-> Date:   Sat Jun 22 09:47:31 2013 -1000
->=20
->     Linux 3.10-rc7
->=20
-> diff --git a/Makefile b/Makefile
-> index c6863b5..0142c93 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -1,7 +1,7 @@
->  VERSION =3D 3
->  PATCHLEVEL =3D 10
->  SUBLEVEL =3D 0
-> -EXTRAVERSION =3D -rc6
-> +EXTRAVERSION =3D -rc7
->  NAME =3D Unicycling Gorilla
-> =20
->  # *DOCUMENTATION*
->=20
-> [1] http://www.pwsan.com/omap/testlogs/test_v3.10-rc7/20130630191558/boot=
-/am335xbonelt/am335x-bone/am335xbonelt_log.txt
+> Just a small nit. Weren't you going to change this property to
+> "snps,dwc3" to match the existing Synopsys DT naming convention
+> in the kernel? Or has the horse already left the gate on that?
 
-just a gentle ping here, wondering if you still have some garbage DTBs
-left in your tree.
+I think we can still change, but we need to keep compatibility for the
+old one in the driver :-)
 
+Here's a patch for that:
+
+commit 90dc4b82df9d0b4d049d03d1be225b9c7456522b
+Author: Felipe Balbi <balbi@ti.com>
+Date:   Tue Jul 2 21:20:24 2013 +0300
+
+    usb: dwc3: core: switch to snps,dwc3
+   =20
+    all other drivers using Synopsys IPs with DT
+    have a compatible of snps,$driver, in order
+    to add consistency, we are switching over to
+    snps,dwc3 but keeping synopsys,dwc3 in the core
+    driver to maintain backwards compatibility.
+   =20
+    New DTS bindings should NOT use synopsys,dwc3.
+   =20
+    Signed-off-by: Felipe Balbi <balbi@ti.com>
+
+diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation=
+/devicetree/bindings/usb/dwc3.txt
+index 7a95c65..3a64e20 100644
+--- a/Documentation/devicetree/bindings/usb/dwc3.txt
++++ b/Documentation/devicetree/bindings/usb/dwc3.txt
+@@ -3,7 +3,7 @@ synopsys DWC3 CORE
+ DWC3- USB3 CONTROLLER
+=20
+ Required properties:
+- - compatible: must be "synopsys,dwc3"
++ - compatible: must be "snps,dwc3"
+  - reg : Address and length of the register set for the device
+  - interrupts: Interrupts used by the dwc3 controller.
+  - usb-phy : array of phandle for the PHY device
+@@ -14,7 +14,7 @@ Optional properties:
+ This is usually a subnode to DWC3 glue to which it is connected.
+=20
+ dwc3@4a030000 {
+-	compatible =3D "synopsys,dwc3";
++	compatible =3D "snps,dwc3";
+ 	reg =3D <0x4a030000 0xcfff>;
+ 	interrupts =3D <0 92 4>
+ 	usb-phy =3D <&usb2_phy>, <&usb3,phy>;
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 635cae2..2462708 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -641,7 +641,7 @@
+ 			utmi-mode =3D <2>;
+ 			ranges;
+ 			dwc3@4a030000 {
+-				compatible =3D "synopsys,dwc3";
++				compatible =3D "snps,dwc3";
+ 				reg =3D <0x4a030000 0x1000>;
+ 				interrupts =3D <0 92 4>;
+ 				usb-phy =3D <&usb2_phy>, <&usb3_phy>;
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index c86ae12..a4dab1c 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -755,6 +755,9 @@ static const struct dev_pm_ops dwc3_dev_pm_ops =3D {
+ #ifdef CONFIG_OF
+ static const struct of_device_id of_dwc3_match[] =3D {
+ 	{
++		.compatible =3D "snps,dwc3"
++	},
++	{
+ 		.compatible =3D "synopsys,dwc3"
+ 	},
+ 	{ },
 
 --=20
 balbi
 
---gBBFr7Ir9EOA20Yy
+--WhfpMioaduB5tiZL
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJR0xkPAAoJEIaOsuA1yqREI9UQALWe1Xlk5mj4PmzjBhyjECG7
-WqGDnErqGG2GsGZLPeL9seC41zKDUtUQIeTiaVhKPu6/LGTXvIfnzdP3cI3evEXB
-Ndy+Ls2/6CD1CK6PXjSdao9g2IZElpdODJcBriBsvJBRftMLak9Du7JY2tquYUTO
-9WeoMNSL4CG1scAkh70Z18bjlV4RxdC4XKiPR5R98NOXNopZHiNVjCQQaFQNDqTW
-5oRESgY2EM5gC39M0y23YVCxMRFbCR+PEn9+U7DfyaR21Ixf+erMb9UKI9gf6E8x
-DErWvY8ZcrViU3arXLbRJ0G7ZVmAQucvMjy2etXFw7YqnDnKKYhqc6vXHB7t5rn/
-OJp4VGUwt1fllX33i/mdh/18ozXgjSS+aeG44uijm3ysDjoJLCauEzkmOwcY1DC5
-fwChpvAOeD+aI0QLqVhwdXgBg0iMhBN7QG4RRW5UGgtn8WtAIQOj7l+ENVhaPDUT
-PYKvF8WnvuSyAFW3E/4JzRFSrkawgh8N8vFLUy+u7cNwVo3skXInt0J722xskhpP
-pxaAqDqEnA8MlHarR7RwbpOB9QLq9qP4tbXyvKCElChpTH/pTJYZQaWn9Pnj7yC0
-Jx5asHjNDqAQDI1mmVQyfi1t3XQjK1BsZrbh0MoZOvhd0pn7xPNV6UxaI91CVuXT
-q+AgSoGqrrmvyALqJc7k
-=ZhPd
+iQIcBAEBAgAGBQJR0xpOAAoJEIaOsuA1yqREShIP/2VcWyCGuHhHi1LIpbd1lP+v
+f4kXEz3eNrstJidqtT4DVNlKF4ObwoUZ1bQ6c7sJ6REBsMWwpDIgdQuwlcmrl1N9
+XlMdc6+fYjo6RoyULDHStgz/Gy06fgGCOWYTv6HaZ1jPUKuWnfc/veS9RwgeaOxS
+TWBuKBGHOWmfn2iRm4AagJXZqIYSVeg21N7usNh+29EXABOX0GiLLD8zHnrQKyf+
+qT2HGYnU53RVT5A8ZExjc9DsJMH7A+p2sKwYZtYGvKWemup++bmK+Gg7AVEHa/JS
+uRD8qXpRisEAUeFfi1ldOxawBy1bzmEJDnPktkN4ZAYz7cCiCy5JIhnaMc1GY9Qb
+1+NhbhF7szypS3cEX/N7nTErRsLWkF1xIxpWgHn7SFZvRXkx9vtLw0PzPLzOGRTN
+xYifrs7S9eJsftdcz75lzj+6H4sJ3Eqi9KCZLi6t7VyGqCbQdc7cyycTyijthqHX
+BOrLSMYWs4mv+0ORAlLd7iojQGHDJxdqXVNrk8XEz0gnaOd5IpJO5e4UQ3lQjuLv
+1IngAkWB4+brRoQ+U35Ooi7mGlydw3M9RojrqNKnLkOsxHUHCmkdZppWxHAB7/So
+GbLHIpNuowY5m23f0wWsUQpftG/GfgA0jHgB2ccQf7xhM3d6laIU8EbAUKFKvjwu
+tzauXp2MTpnG3YAzq02I
+=/NhX
 -----END PGP SIGNATURE-----
 
---gBBFr7Ir9EOA20Yy--
+--WhfpMioaduB5tiZL--
