@@ -1,66 +1,64 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH v3 1/4] mtd:nand:omap2: clean-up BCHx_HW and BCHx_SW ECC
- configurations in device_probe
-Date: Tue, 2 Jul 2013 12:44:40 +0530
-Message-ID: <51D27DE0.3000905@ti.com>
-References: <1372010299-30141-1-git-send-email-pekon@ti.com>  <1372010299-30141-2-git-send-email-pekon@ti.com> <1372666588.22014.43.camel@sauron.fi.intel.com> <20980858CB6D3A4BAE95CA194937D5E73E9E29F6@DBDE04.ent.ti.com> <51D1BE59.4000203@ti.com> <20980858CB6D3A4BAE95CA194937D5E73E9E3B5D@DBDE04.ent.ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during
+ bus suspend
+Date: Tue, 2 Jul 2013 11:22:17 +0300
+Message-ID: <51D28DB9.704@ti.com>
+References: <Pine.LNX.4.44L0.1307011655580.1547-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51001 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932219Ab3GBHPO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Jul 2013 03:15:14 -0400
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73E9E3B5D@DBDE04.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <Pine.LNX.4.44L0.1307011655580.1547-100000@iolanthe.rowland.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-usb@vger.kernel.org, tony@atomide.com, ruslan.bilovol@ti.com, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
-Cc: "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "arnd@arndb.de" <arnd@arndb.de>, "jp.francois@cynove.com" <jp.francois@cynove.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Benoit Cousson (benoit.cousson@linaro.org)" <benoit.cousson@linaro.org>
 
-On 7/2/2013 9:44 AM, Gupta, Pekon wrote:
->>>> This does not apply to l2-mtd.git, could you please re-base?
->>>>
->>> [Pekon]: rebased to l2-mtd.git
->>> - updated [Patch 3/4] which conflicted with commit '26331c04' which
->> touched omap2.c.
->>> - Please ignore [Patch 4/4] as it=E2=80=99s a DT update, which adds=
- on top of Benoit's
->> tree (which has NAND node commits too).
->> If you need one patch (DT patch) in the series to be merged in anoth=
-er
->> repository (DT maintainer tree) then separate out that patch as sepa=
-rate
->> series and mention the dependency or need ack from the driver mainta=
-iner
->> so that both maintainer can apply the whole series into his reposito=
-ry
->> instead of applying partially here and there.
+On 07/02/2013 12:01 AM, Alan Stern wrote:
+> On Mon, 1 Jul 2013, Felipe Balbi wrote:
+> 
+>>> I don't know what Pad wakeup is.  The wakeup signal has to originate 
+>>> from the EHCI controller, doesn't it?  If not, how does the Pad know 
+>>> when a wakeup is needed?
 >>
-> Agree. Yes, I should have sent the DT patch separately.
-> But I posted all changes as part of single series, as its easy for us=
-ers to
-> Test and Ack them.
-> Similarly patches for GPMC (Tony's tree) and NAND (Artem's tree) are
-> functionally coupled, So at times I have to send them as part of same=
- series.
-> However, I'll clearly mention that in my cover-letter for future patc=
-hes.
-> Thanks for feedback ..
->
->
-In that case you can publish your testing branch to a public repo and p=
-oint to
-that repo in your cover letter so that someone who wants to test can te=
-st
-from your repo which has all dependent patches.
+>> That's really an OMAP thing, I guess. Pad wakeup sits in the PRCM (IIRC)
+>> inside and always on power domain. EHCI sits in another power domain
+>> which be turned off. When it's turned off (power gated and clock gated)
+>> the EHCI block has no means to wakeup whatsoever. That's when pad wakeup
+>> comes into play. It is generated when PRCM sees a change in the actual
+>> pad of the die. To check who should 'own' the wakeup, it checks the
+>> muxing settings to verify whose pad is that.
+> 
+> How does the PRCM know which changes should generate wakeup events?  
 
-Regards
-Mugunthan V N
+It doesn't know. It will always generate a wakeup on any change in the monitored pins.
+We can only configure which pins we want to monitor.
+So we can't choose which wakeup events we want to monitor. We just can
+enable or disable all events.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> In the EHCI controller, this is managed by the settings of the WKOC_E,
+> WKDSCNNT_E, and WKCNNT_E bits in the PORTSC registers.  But if EHCI is
+> powered off, those bits can't be used.
+
+Is "powered off" same as ehci_suspend? If yes then how does it work on other systems
+for remote wakeup?
+
+> 
+> Also, once the wakeup signal has been turned on, how does it get turned 
+> off again?
+
+That is taken care of by the OMAP pinctrl driver. It will always turn off the
+wakeup signal once the event is detected and forwarded as an IRQ.
+
+I know that all this is a bit ugly :(.
+
+cheers,
+-roger
