@@ -1,78 +1,114 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 4/4] ARM: dts: AM33XX: update rtc node compatibility
-Date: Tue, 2 Jul 2013 06:19:45 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EC4E80D@DBDE04.ent.ti.com>
-References: <1372412109-986-1-git-send-email-gururaja.hebbar@ti.com>
-	<1372412109-986-5-git-send-email-gururaja.hebbar@ti.com>
-	<51D26F61.7080308@ti.com>
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: Re: [PATCH v3 0/2]: auto request GPIO as input if used as IRQ via
+ DT
+Date: Tue, 02 Jul 2013 08:21:25 +0200
+Message-ID: <51D27165.1050800@collabora.co.uk>
+References: <1372276203-21755-1-git-send-email-javier.martinez@collabora.co.uk> <87li5pooee.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <51D26F61.7080308-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>
-Cc: "davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org" <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?utf-8?B?QmVub8OudCBDb3Vzc29u?= <benoit.cousson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:43923 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932213Ab3GBGVa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jul 2013 02:21:30 -0400
+In-Reply-To: <87li5pooee.fsf@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Grant Likely <grant.likely@linaro.org>, jgchunter@gmail.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, eballetbo@gmail.com, thomas.petazzoni@free-electrons.com, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>, aaro.koskinen@iki.fi
 
-On Tue, Jul 02, 2013 at 11:42:49, Nori, Sekhar wrote:
-> Changing to Benoit's gmail id since he apparently wont access TI mail
-> anymore.
+On 07/02/2013 01:23 AM, Kevin Hilman wrote:
+> Javier Martinez Canillas <javier.martinez@collabora.co.uk> writes:
 > 
-> On 6/28/2013 3:05 PM, Hebbar Gururaja wrote:
-> > Since AM33xx  RTC IP has RTC_IRQWAKEEN to support Alarm Wake-up.
-> > 
-> > Update the rtc compatible property to "ti,am3352-rtc" to enable handling
-> > of this feature inside rtc-omap driver.
-> > 
-> > Signed-off-by: Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-> > Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> > Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-> > Cc: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> > Cc: b-cousson-l0cyMroinI0@public.gmane.org
-> > ---
-> > :100644 100644 77aa1b0... dde180a... M	arch/arm/boot/dts/am33xx.dtsi
-> >  arch/arm/boot/dts/am33xx.dtsi |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> > index 77aa1b0..dde180a 100644
-> > --- a/arch/arm/boot/dts/am33xx.dtsi
-> > +++ b/arch/arm/boot/dts/am33xx.dtsi
-> > @@ -297,7 +297,7 @@
-> >  		};
-> >  
-> >  		rtc@44e3e000 {
-> > -			compatible = "ti,da830-rtc";
-> > +			compatible = "ti,am3352-rtc";
+>> When an OMAP GPIO is used as an IRQ line, a call to gpio_request()
+>> has to be made to initialize the OMAP GPIO bank before a driver
+>> request the IRQ. Otherwise the call to request_irq() fails.
+>>
+>> Drivers should not be aware of this neither care wether an IRQ line
+>> is a GPIO or not. They should just request the IRQ and this has to
+>> be handled by the irq_chip driver.
+>>
+>> With the current OMAP GPIO DT binding, if we define:
+>>
+>>                 gpio6: gpio@49058000 {
+>>                         compatible = "ti,omap3-gpio";
+>>                         reg = <0x49058000 0x200>;
+>>                         interrupts = <34>;
+>>                         ti,hwmods = "gpio6";
+>>                         gpio-controller;
+>>                         #gpio-cells = <2>;
+>>                         interrupt-controller;
+>>                         #interrupt-cells = <2>;
+>>                 };
+>>
+>>                 interrupt-parent = <&gpio6>;
+>>                 interrupts = <16 8>;
+>>
+>> The GPIO is correctly mapped as an IRQ but a call to gpio_request()
+>> is never made. Ideally this has to be handled by the IRQ core and
+>> there are some work-in-progress to add this logic to the core but
+>> until this general solution gets into mainline we need to solve this
+>> on a per irq_chip driver basis.
+>>
+>> Some drivers solve this by calling gpio_request() using a custom
+>> .xlate function handler. But .xlate could get called many times
+>> while the irq domain .map function handler is called just once
+>> when a IRQ mapping is created with a call to irq_create_mapping().
+>>
+>> This patch-set adds a custom .map function handler for the gpio-omap
+>> irq_chip driver that automatically call gpio_request() when a IRQ
+>> mapping is created for the GPIO line used as interrupt when using DT.
+>> This is just a temporary solution (a.k.a a hack) until a kernel wide
+>> approach is implemented and added to mainline.
+>>
+>> This is a third version of a patch-set that addresses some issues pointed
+>> out by Grant Like, it is composed of the following patches:
+>>
+>> [PATCH v3 1/2] gpio/omap: don't create an IRQ mapping for every GPIO on DT
+>> [PATCH v3 2/2] gpio/omap: auto request GPIO as input if used as IRQ via DT
+>>
+>> This was tested on an OMAP3 DM3735 board (IGEPv2) and all the supported
+>> peripherals are working correctly with both legacy and DT booting. Further
+>> testing will be highly appreciated.
 > 
-> compatible is a list so you can instead do:
-> 	
-> 	compatible = "ti,am3352-rtc", "ti,da830-rtc";
-
-I believe the order is not important here. I mean, below is also fine. Right?
-
-	compatible = "ti,da830-rtc", "ti,am3352-rtc";
-
-
+> Was there any testing done to hit low-power modes?  suspend/resume?
+> CPUidle enabled? etc.  It is especially instructive to enable off
+> mode[1] on OMAP3 platforms and see if things still work as expected.
 > 
-> That way the dts works irrespective of driver updates. When driver
-> supports enhanced features of hardware, they are available to the user
-> else the basic functionality still works.
+> Kevin
 > 
-> Thanks,
-> Sekhar
-> 
+> [1] echo 1 > /sys/kerel/debug/pm_debug/enable_off_mode
+>
 
+Hi Kevin,
 
-Regards, 
-Gururaja
+Thanks a lot for your feedback.
+
+I tested enabling power domain transitions to off mode [1] and suspending to RAM
+[2] with both DT and legacy boot. With legacy booting everything works as expected.
+
+In the DT case suspending/resume (without enabling off mode) doesn't affect
+system operation. For example the Ethernet chip that uses a GPIO IRQ still is
+able to transmit frames after suspending to RAM and waking up the board hitting
+Ctrl+C in the serial console.
+
+Now, enabling off mode [2] with DT makes the board to never go out from suspend:
+
+root@igep00x0:~# echo 1 > /sys/kernel/debug/pm_debug/enable_off_mode
+root@igep00x0:~# echo mem > /sys/power/state
+[  129.833343] PM: Syncing filesystems ... done.
+[  129.879211] Freezing user space processes ... (elapsed 0.01 seconds) done.
+[  129.905487] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
+[  129.935363] Suspending console(s) (use no_console_suspend to debug)
+
+The board just hangs/sleeps and I don't have a way to take it from suspend.
+
+I don't know if there something missing on my board DT file but I think this is
+orthogonal with these patches since since I got the same behavior without them.
+
+Best regards,
+Javier
+
+[1] echo 1 > /sys/kernel/debug/pm_debug/enable_off_mode
+[2] echo mem > /sys/power/state
