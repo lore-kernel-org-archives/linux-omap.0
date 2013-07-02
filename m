@@ -1,60 +1,138 @@
-From: Mark Brown <broonie@kernel.org>
+From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
 Subject: Re: [PATCHv2] drivers: spi: Add qspi flash controller
-Date: Tue, 2 Jul 2013 11:17:18 +0100
-Message-ID: <20130702101718.GE27646@sirena.org.uk>
+Date: Tue, 2 Jul 2013 15:53:49 +0530
+Message-ID: <51D2AA35.2070002@ti.com>
 References: <1372755399-21769-1-git-send-email-sourav.poddar@ti.com>
- <20130702093247.GY27646@sirena.org.uk>
- <20130702094404.GL3352@arwen.pp.htv.fi>
+	<20130702092458.GI3352@arwen.pp.htv.fi> <51D2A4CA.5030804@ti.com>
+	<20130702101608.GO3352@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="l6uVvLg33S+39+i8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130702094404.GL3352@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Sourav Poddar <sourav.poddar@ti.com>, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20130702101608.GO3352-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: rnayak-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Tuesday 02 July 2013 03:46 PM, Felipe Balbi wrote:
+> Hi,
+>
+> On Tue, Jul 02, 2013 at 03:30:42PM +0530, Sourav Poddar wrote:
+>>>> +static int dra7xxx_qspi_setup(struct spi_device *spi)
+>>>> +{
+>>>> +	struct dra7xxx_qspi	*qspi =
+>>>> +			spi_master_get_devdata(spi->master);
+>>>> +
+>>>> +	int clk_div;
+>>>> +
+>>>> +	if (!qspi->spi_max_frequency)
+>>>> +		clk_div = 0;
+>>> won't this generate division by zero ?
+>>>
+>> Yes, Probably only an error should be thrown here. ?
+>> since min clk_div should be kept at 1.
+> right, if spi_max_frequency isn't passed, this is a broken DT binding.
+> Bail out.
+>
+>>>> +	pm_runtime_get_sync(qspi->dev);
+>>>> +
+>>>> +	/* disable SCLK */
+>>>> +	dra7xxx_writel(qspi, dra7xxx_readl(qspi, QSPI_SPI_CLOCK_CNTRL_REG)
+>>>> +			&   ~QSPI_CLK_EN, QSPI_SPI_CLOCK_CNTRL_REG);
+>>>> +
+>>>> +	if (clk_div<   0) {
+> btw, add a space between clk_div and<
+>
+>>>> +			dra7xxx_writel(qspi, *txbuf++, QSPI_SPI_DATA_REG);
+>>>> +			dra7xxx_writel(qspi, qspi->dc, QSPI_SPI_DC_REG);
+>>>> +			dra7xxx_writel(qspi, qspi->cmd | QSPI_WR_SNGL,
+>>>> +					QSPI_SPI_CMD_REG);
+>>>> +			status = dra7xxx_readl(qspi, QSPI_SPI_STATUS_REG);
+>>>> +			timeout = QSPI_TIMEOUT;
+>>>> +			while ((status&   QSPI_WC_BUSY) != QSPI_XFER_DONE) {
+>>> do you really need to poll ? No IRQ available ?
+>>>
+>> There is an interrupt available, I will try using that.
+> look at how i2c-omap.c synchronizes interrupt with the transfer_msg
+> code. It just uses a wait_for_completion().
+>
+Ok.
+>>>> +static int dra7xxx_qspi_start_transfer_one(struct spi_master *master,
+>>>> +		struct spi_message *m)
+>>>> +{
+>>>> +	struct dra7xxx_qspi *qspi = spi_master_get_devdata(master);
+>>>> +	struct spi_device *spi = m->spi;
+>>>> +	struct spi_transfer *t;
+>>>> +	int status = 0;
+>>>> +	int flags = 0;
+>>>> +
+>>>> +	/* setup command reg */
+>>>> +	qspi->cmd = 0;
+>>>> +	qspi->cmd |= QSPI_WLEN(8);
+>>>> +	qspi->cmd |= QSPI_EN_CS(0);
+>>>> +	qspi->cmd |= 0xfff;
+>> Since, we dont know the number of frame lenght that need to be
+>> transferred and it comes from the spi framework, we keep the frame
+>> lenght to maximum.
+>> Then depending on the count value above in while loop, we terminate
+>> our trasnfer.
+> what ? seriously didn't get what you meant.
+>
+I mean, the lower 12 bits of cmd register is meant to be filled with 
+frame lenght.
 
---l6uVvLg33S+39+i8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+But the frame lenght is parsed when you iterate the list. So, what is 
+done here is that
+the framelenght is kept to its maximum value.
 
-On Tue, Jul 02, 2013 at 12:44:04PM +0300, Felipe Balbi wrote:
-> On Tue, Jul 02, 2013 at 10:32:47AM +0100, Mark Brown wrote:
+Then, to signal the the end of the frame, we use
 
-> > Does this hardware really support anything other than 8 bits per word?
-> > There is no code in the driver which pays any attention to the word
-> > size...
+static int qspi_transfer_msg(struct dra7xxx_qspi *qspi, unsigned count,
+                         const u8 *txbuf, u8 *rxbuf, bool flags)
+{
+         uint status;
+         int timeout;
 
-> the HW has a 128-bit shift register ;-) but driver doesn't look
-> complete.
+         while (count--) {
+                 if (txbuf) {
+                         pr_debug("tx cmd %08x dc %08x data %02x\n",
+                                 qspi->cmd | QSPI_WR_SNGL, qspi->dc, 
+*txbuf);
+                         dra7xxx_writel(qspi, *txbuf++, QSPI_SPI_DATA_REG);
+                         dra7xxx_writel(qspi, qspi->dc, QSPI_SPI_DC_REG);
+                         dra7xxx_writel(qspi, qspi->cmd | QSPI_WR_SNGL,
+                                         QSPI_SPI_CMD_REG);
+                         status = dra7xxx_readl(qspi, QSPI_SPI_STATUS_REG);
+                         timeout = QSPI_TIMEOUT;
+                         while ((status & QSPI_WC_BUSY) != QSPI_XFER_DONE) {
+                                 if (--timeout < 0) {
+                                         pr_debug("QSPI tx timed out\n");
+                                         return
 
-That's not the issue - remember that SPI specifies big endian byte
-ordering for words on the bus so things will need to be reordered by the
-hardware for anything except 8 bits.
+      .............................
 
---l6uVvLg33S+39+i8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+                                    status, *(rxbuf-1));
+                 }
+         }
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
+         if (flags & XFER_END)
+                 dra7xxx_writel(qspi, qspi->cmd | QSPI_INVAL, 
+QSPI_SPI_CMD_REG);
 
-iQIcBAEBAgAGBQJR0qiqAAoJELSic+t+oim9YAsP/1np9MigYru6uKF4qNf7pVl9
-UKaCIhPzQAAmC1V5eqfHyPkKCsX2a4SWA0W0KGFRUbGplW997utTsJGe0P3GzQ36
-m/8RQtJTZV4LmsTJi/dPxJ3DvT9X5KZOUFF6KULUHHyG8UNGwHycKc/+oTOeZmFq
-AUlBbSOBPGm8g7zsZ9D4+0jvQtlyVc3c8SmIjQWYj9CnJru2l2RYlBrYrYQ24yT7
-vpgIzoFtxhrAmEOxGzh/XYyfkaTCq/yIwNvbh47OlYKCYafYExPwCe3DH3NDNfyN
-1wLx6xykQCU0lVG4/FF1/JhWwUdWt9R2zyVMj9eNZC8ZV7jM9iiUyhNrtEAGJ1wI
-NqexzOCvTlnFbtSRwRLC8pB0mcYldkNpq0v8HkI2gLDhXYWMEtgkUwNbJoXaJ7yL
-dHUSPk5YINWy6sqgli4m4I1w6iMRSjZLRf+3VZsuccpIIrITX768PzF9WhyF8rVd
-oqOeSD1R9F/pczYchvNtGlHlvSAdGjq/xsTydVA4f8aOlDFn7+/W7WrpKVPjJQZi
-eaYjB/Tp1CJiU1VeF5XMxLZkYUZmSJWoUNNNFs3TzOa+Qg4C1fqf/ygYTC5E9XaM
-JIhmSVfDoHogTPyKYjiwacsUrytsMoQGeFlGIyHDsHBlxYL/gu/ggxh/Qc6sN1V5
-tNa4OodyOnAA9tUgabd9
-=39MU
------END PGP SIGNATURE-----
+}
+INVAL will terminate the current frame.
 
---l6uVvLg33S+39+i8--
+------------------------------------------------------------------------------
+This SF.net email is sponsored by Windows:
+
+Build for Windows Store.
+
+http://p.sf.net/sfu/windows-dev2dev
