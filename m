@@ -1,129 +1,67 @@
-From: Torben Hohn <torbenh@linutronix.de>
-Subject: Re: RT and omap-gpio irqchip with DeviceTree
-Date: Tue, 2 Jul 2013 16:31:30 +0200
-Message-ID: <20130702143130.GC27329@localhost.localdomain>
-References: <20130702114452.GA13763@localhost.localdomain>
- <CAAwP0s2KUCowe5scWJtiZ8hZb-5EMbmef_WO_03cY3H7DqxSOQ@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: omap4 ehci sporadic resume issue
+Date: Tue, 2 Jul 2013 17:42:34 +0300
+Message-ID: <51D2E6DA.6030000@ti.com>
+References: <51CC2755.2030505@amarulasolutions.com> <51CC454A.1040104@ti.com> <20130627141704.GF12956@panicking> <51CC5105.4070301@ti.com> <20130627175623.GB21364@panicking> <CAB=otbQXVqFKOTtgvif=FZnWgDpbovAB6naPKTrsEHUJb21xTw@mail.gmail.com> <20130627192413.GA14115@panicking> <CAB=otbT-BcJg5tNZ=7jd1jvoK8N1Hd_skScuxczaeP=tagdcSw@mail.gmail.com> <20130628113314.GA25536@panicking> <51CD7783.8030907@ti.com> <20130628164751.GA1281@panicking>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xesSdrSSBC0PokLI"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:60799 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751503Ab3GBObd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jul 2013 10:31:33 -0400
-Content-Disposition: inline
-In-Reply-To: <CAAwP0s2KUCowe5scWJtiZ8hZb-5EMbmef_WO_03cY3H7DqxSOQ@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43166 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751281Ab3GBOmj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Jul 2013 10:42:39 -0400
+In-Reply-To: <20130628164751.GA1281@panicking>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@linaro.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, tglx@linutronix.de, bigeasy@linutronix.de, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
+To: Michael Trimarchi <michael@amarulasolutions.com>
+Cc: Ruslan Bilovol <ruslan.bilovol@ti.com>, USB list <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>
 
+On 06/28/2013 07:47 PM, Michael Trimarchi wrote:
+> Hi
+> 
+> On Fri, Jun 28, 2013 at 02:46:11PM +0300, Roger Quadros wrote:
+>> On 06/28/2013 02:33 PM, Michael Trimarchi wrote:
+>>> Hi Roger
+>>>
+>>> On Thu, Jun 27, 2013 at 11:07:11PM +0300, Ruslan Bilovol wrote:
+>>>> On Thu, Jun 27, 2013 at 10:24 PM, Michael Trimarchi
+>>>> <michael@amarulasolutions.com> wrote:
+>>
+>>>> Do you have locks around this software workaround?
+>>>> The patch I did against 3.4 linux kernel may be helpful for
+>>>> you in such case: http://review.omapzoom.org/28515
+>>>> Another patch extends this WA for all OMAP4 SoCs:
+>>>> http://review.omapzoom.org/31108
+>>>
+>>> I'm testing using pm_test and stop to core (5ms and not 5 seconds) (usb suspend cycle are done correctly) so
+>>> the problem could be:
+>>>
+>>> 1) SAR usb context restore. I have applied the SAR workaround but the core doesn't go in full retantion
+>>> could be it a problem?
+>>
+>> If core doesn't go in to OFF then SAR will not come into play. Are you still affected by the
+>> issue if OFF mode is disabled? If yes then it probably is not related to SAR.
+>>
+>>>
+>>> 2) idle status of ulpis pins?
+>>
+>> Yes this can be possible.
+>>
+>> When you said earlier that the problem doesn't happen when one of the ULPIs is used
+>> did you try both of them individually. e.g. case 1: port 1 only enabled,
+>> case 2: port 2 only enabled.
+>>
+>> Did it work in both the cases?
+> 
+> Yes, so I don't think could be a problem of ulpi pins and why this happen
+> on both at the same time? Seems more connected to somenthing else.
+> 
 
---xesSdrSSBC0PokLI
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Right. Seems to be related to two things. OFF Mode and 2 ports being used simultaneously.
 
-On Tue, Jul 02, 2013 at 02:15:46PM +0200, Javier Martinez Canillas wrote:
-> + Grant, Linus W and Jean-Christophe.
->=20
-> On Tue, Jul 2, 2013 at 1:44 PM, Torben Hohn <torbenh@linutronix.de> wrote:
-> >
-> > Hi..
-> >
-> > I am running into Problems with a network adapter IRQ connected to an
-> > omap-gpio pin.
-> >
-> > omap-gpio expects gpio-request() to be called before i can use the pin.
-> > But this is abstracted via the DeviceTree bindings.
-> >
-> > I see 8d4c277e185c31359cf70573d8b0351fb7dd0dfe in mainline.
-> > This one just puts a warning into the exact place, i am dealing with.
-> > But i need to make this work, instead of bailing out.
-> >
->=20
-> This has been discussed extensively on the linux-omap mailing list and
-> the agreement is that it has to be handled by the IRQ core. So when a
-> GPIO line is mapped in the IRQ domain with irq_create_of_mapping(),
-> the core has to take care to request the GPIO and configure it as
-> input.
+I'm not sure how to go about fixing this. How important is OFF Mode for your application.
+Can you keep it always disabled?
 
-Can you give me a pointer to this discussion please ?
-Because i fail to understand why you just dont save the irq_type in some
-private data structure, and then use chip->irq_enable() or something.
-
-
->=20
->  But until we have this general solution we have to do it on a per irq
-> chip driver basis and the less hack-ish solution is to have a custom
-> .map function handler that request the GPIO used as IRQ.
->=20
-> There is already a patch [1] queued in Linus Walleij linux-gpio tree
-> [2] for-next branch that implements this for OMAP GPIO. It would be
-> great if you can test it and give feedback.
-
-Thanks for the pointer.
-The kernel i am working on is based on 3.8.x (this is before the
-irq_domain change to linear)
-
-First i only backported: [1] and [2]
-
-With these i see big streams like these:
-[    1.554809] omap_gpio gpio.9: Could not request GPIO-256
-[    1.560394] omap_gpio gpio.9: Could not request GPIO-255
-[    1.566009] omap_gpio gpio.9: Could not request GPIO-254
-[    1.571594] omap_gpio gpio.9: Could not request GPIO-253
-[    1.577178] omap_gpio gpio.9: Could not request GPIO-252
-[    1.582794] omap_gpio gpio.9: Could not request GPIO-251
-
-This is basically coming from irq_domain_add_legacy() which calls
-ops->map(domain, irq, hwirq) before the gpio chip is actually added.
-
-I fixed it by also taking [3].
-
-However, OMAP1 is still calling irq_domain_add_legacy(). This would
-probably break with DeviceTree.=20
-But since omap1 doesnt use DeviceTree, this is probably a non-issue.
-
-[1] https://git.kernel.org/cgit/linux/kernel/git/linusw/linux-gpio.git/comm=
-it/?h=3Dfor-next&id=3D570c4bb53366157fa076922d0fc7e7adfd81cf42
-[2] https://git.kernel.org/cgit/linux/kernel/git/linusw/linux-gpio.git/comm=
-it/?h=3Dfor-next&id=3D50fc1d067d9f4b6c99717b91c1aaaa618075f859
-[3] https://git.kernel.org/cgit/linux/kernel/git/linusw/linux-gpio.git/comm=
-it/?h=3Dfor-next&id=3Dede4d7a5b9835510fd1f724367f68d2fa4128453
-
-
---=20
-Mit freundlichen Gr=FC=DFen
-Torben Hohn
-
-Linutronix GmbH
-
-Standort: Bremen
-
-Phone: +49 421 5650 2310 ; Fax.: +49 7556 919 886
-mailto: torbenh@linutronix.de
-Firmensitz / Registered Office: D-88690 Uhldingen, Auf dem Berg 3
-Registergericht / Local District Court: Freiburg i. Br., HRB Nr. / Trade
-register no.: 700 806;
-
-Gesch=E4ftsf=FChrer / Managing Directors: Heinz Egger, Thomas Gleixner
-
---xesSdrSSBC0PokLI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQEcBAEBAgAGBQJR0uRCAAoJEESSOlgt2wc79gEH/0JPOsXM6+XwqurIllucJ6B8
-k7ApMZ555M3Lq8R5bh1jvIvxHTwKyYSLrONSP1tKGw4j+NabWnfUcuRNqFZKDgSr
-2WEhWwUSkcEjC3t+IRnalyvQZ8tIDzP9g270J8UsyM4uvLFpHC8T5RdjQBQ1ztJk
-+jpOfBVFFuZY5o1HdLav8l0/+XdgRRuAZDjUTrlpX+fgKInKSvCtBYI5c/q8idx9
-PTczg3i5Varb/G/ox0gOIx0vjxl4I1FXSraX4sQGypx31thGJC30xenf9CecezQX
-d2fBCzBHAfpSWbz3rbPnaHA3n5cdUPPGmkjriNSCKCcp3nnCR4hbo2cpG1n8Dks=
-=ytgM
------END PGP SIGNATURE-----
-
---xesSdrSSBC0PokLI--
+cheers,
+-roger
