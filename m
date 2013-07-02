@@ -1,81 +1,93 @@
-From: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
-Subject: Re: omap4 ehci sporadic resume issue
-Date: Tue, 02 Jul 2013 16:49:46 +0200
-Message-ID: <51D2E88A.7050202@amarulasolutions.com>
-References: <51CC2755.2030505@amarulasolutions.com> <51CC454A.1040104@ti.com> <20130627141704.GF12956@panicking> <51CC5105.4070301@ti.com> <20130627175623.GB21364@panicking> <CAB=otbQXVqFKOTtgvif=FZnWgDpbovAB6naPKTrsEHUJb21xTw@mail.gmail.com> <20130627192413.GA14115@panicking> <CAB=otbT-BcJg5tNZ=7jd1jvoK8N1Hd_skScuxczaeP=tagdcSw@mail.gmail.com> <20130628113314.GA25536@panicking> <51CD7783.8030907@ti.com> <20130628164751.GA1281@panicking> <51D2E6DA.6030000@ti.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: [PATCH v2 0/9] wilink: add device tree support
+Date: Tue, 2 Jul 2013 17:55:39 +0300
+Message-ID: <1372776948-24840-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51D2E6DA.6030000-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: linux-wireless@vger.kernel.org, tony@atomide.com, nsekhar@ti.com
+Cc: mturquette@linaro.org, mark.rutland@arm.com, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, coelho@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Roger
+Hi,
 
-On 07/02/2013 04:42 PM, Roger Quadros wrote:
-> On 06/28/2013 07:47 PM, Michael Trimarchi wrote:
->> Hi
->>
->> On Fri, Jun 28, 2013 at 02:46:11PM +0300, Roger Quadros wrote:
->>> On 06/28/2013 02:33 PM, Michael Trimarchi wrote:
->>>> Hi Roger
->>>>
->>>> On Thu, Jun 27, 2013 at 11:07:11PM +0300, Ruslan Bilovol wrote:
->>>>> On Thu, Jun 27, 2013 at 10:24 PM, Michael Trimarchi
->>>>> <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org> wrote:
->>>
->>>>> Do you have locks around this software workaround?
->>>>> The patch I did against 3.4 linux kernel may be helpful for
->>>>> you in such case: http://review.omapzoom.org/28515
->>>>> Another patch extends this WA for all OMAP4 SoCs:
->>>>> http://review.omapzoom.org/31108
->>>>
->>>> I'm testing using pm_test and stop to core (5ms and not 5 seconds) (usb suspend cycle are done correctly) so
->>>> the problem could be:
->>>>
->>>> 1) SAR usb context restore. I have applied the SAR workaround but the core doesn't go in full retantion
->>>> could be it a problem?
->>>
->>> If core doesn't go in to OFF then SAR will not come into play. Are you still affected by the
->>> issue if OFF mode is disabled? If yes then it probably is not related to SAR.
->>>
->>>>
->>>> 2) idle status of ulpis pins?
->>>
->>> Yes this can be possible.
->>>
->>> When you said earlier that the problem doesn't happen when one of the ULPIs is used
->>> did you try both of them individually. e.g. case 1: port 1 only enabled,
->>> case 2: port 2 only enabled.
->>>
->>> Did it work in both the cases?
->>
->> Yes, so I don't think could be a problem of ulpi pins and why this happen
->> on both at the same time? Seems more connected to somenthing else.
->>
-> 
-> Right. Seems to be related to two things. OFF Mode and 2 ports being used simultaneously.
-> 
-> I'm not sure how to go about fixing this. How important is OFF Mode for your application.
-> Can you keep it always disabled?
-> 
+This is a follow-up on a previous patch set that had a smaller
+audience.  This time, I added the lists and people who were involved
+in the review of the bindings documentation, since most of my changes
+in v2 are coming from discussions there.
 
-Right now I delivery without off mode. I will try to fix in long run the usb and I think that it could be a good platform to test omap4 mainline.
+This patch series adds device tree support to the wlcore_sdio driver,
+which is used by WiLink6, WiLink7 and WiLink8.
 
-Last question:
-If one domain is in RET mode and not OFF mode what happen during SAR restore in OFF mode?
+The first patches do some clean-up to make the data needed in the
+wilink device tree node smaller.  The remaining patches implement the
+actual device tree node parsing in wlcore_sdio.
 
+I still need to figure out how to add the information about whether
+the clocks are XTAL or not.  I'll send it in a separate patche set.
 
-Michael
+The DTS file changes will be sent separately, since they need to go
+via different trees.
 
+The bindings documentation patch will also be updated and sent
+separately, once the XTAL issue is solved.
 
-> cheers,
-> -roger
-> 
+Tony has acked some of the patches that touch OMAP areas.  I still
+need one more ack to a new patch I added (wl12xx: use frequency
+instead of enumerations for pdata clocks).
+
+Sekhar, can you please check the patches that touch the davinci board
+file and ack them?
+
+Changes in v2:
+
+* New clean-up patch (4/9);
+
+* Patch 6/9 (previously patch 5/5) now doesn't add the clock parsing,
+  since it became more complicated and I added separate patches for
+  that;
+
+* 3 new patches (from 7/9 till 9/9) to handle the clock reading in the
+  device tree;
+
+Please review.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers,
+Luca.
+
+Luciano Coelho (9):
+  wl1251: split wl251 platform data to a separate structure
+  wlcore: use irq_flags in pdata instead of hiding it behind a quirk
+  wlcore: remove pwr_in_suspend from platform data
+  wl12xx: use frequency instead of enumerations for pdata clocks
+  wlcore: always use one-shot IRQ
+  wlcore: add initial device tree support to the sdio module
+  wlcore: sdio: add wilink clock providers
+  wlcore: sdio: get clocks from device tree
+  wlcore/wl12xx: check if we got correct clock data from DT
+
+ arch/arm/mach-davinci/board-da850-evm.c        |    5 +-
+ arch/arm/mach-omap2/board-4430sdp.c            |    6 +-
+ arch/arm/mach-omap2/board-omap3evm.c           |    4 +-
+ arch/arm/mach-omap2/board-omap3pandora.c       |    4 +-
+ arch/arm/mach-omap2/board-omap4panda.c         |    4 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c   |    2 +-
+ arch/arm/mach-omap2/board-zoom-peripherals.c   |    4 +-
+ drivers/net/wireless/ti/wilink_platform_data.c |   37 ++++++--
+ drivers/net/wireless/ti/wl1251/sdio.c          |   12 +--
+ drivers/net/wireless/ti/wl1251/spi.c           |    2 +-
+ drivers/net/wireless/ti/wl12xx/main.c          |   78 +++++++++++++++--
+ drivers/net/wireless/ti/wl12xx/wl12xx.h        |   28 ++++++
+ drivers/net/wireless/ti/wlcore/debugfs.c       |    2 +-
+ drivers/net/wireless/ti/wlcore/main.c          |   16 ++--
+ drivers/net/wireless/ti/wlcore/sdio.c          |  112 ++++++++++++++++++++++--
+ drivers/net/wireless/ti/wlcore/wlcore.h        |    5 +-
+ drivers/net/wireless/ti/wlcore/wlcore_i.h      |    1 +
+ include/linux/wl12xx.h                         |   54 ++++++------
+ 18 files changed, 295 insertions(+), 81 deletions(-)
+
+-- 
+1.7.10.4
+
