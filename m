@@ -1,19 +1,15 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 3/4] rtc: omap: add rtc wakeup support to alarm events
-Date: Wed, 3 Jul 2013 05:03:05 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EC4F8CA@DBDE04.ent.ti.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 4/4] ARM: dts: AM33XX: update rtc node compatibility
+Date: Wed, 3 Jul 2013 13:42:07 +0530
+Message-ID: <51D3DCD7.2010209@ti.com>
 References: <1372412109-986-1-git-send-email-gururaja.hebbar@ti.com>
-	<1372412109-986-4-git-send-email-gururaja.hebbar@ti.com>
-	<51D26CFA.5090500@ti.com>
-	<1BAFE6F6C881BF42822005164F1491C33EC4E7AB@DBDE04.ent.ti.com>
-	<51D26E98.9040303@ti.com>
-	<1BAFE6F6C881BF42822005164F1491C33EC4E7CC@DBDE04.ent.ti.com>
-	<51D27052.6080303@ti.com>
+	<1372412109-986-5-git-send-email-gururaja.hebbar@ti.com>
+	<51D26F61.7080308@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <51D26F61.7080308-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
 	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
@@ -21,129 +17,64 @@ List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@pu
 List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
 List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
 	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>
-Cc: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, "davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org" <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "Cousson,  Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, "rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <benoit.cousson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgYWxsLA0KDQpLaW5kbHkgaWdub3JlIHRoaXMgbWVzc2FnZS4gSXQgd2FzIHNlbnQgaW4gd3Jv
-bmcgZm9ybWF0Lg0KDQpTb3JyeSBmb3IgdGhlIG5vaXNlDQoNClJlZ2FyZHMsIA0KR3VydXJhamEN
-Cg0KT24gV2VkLCBKdWwgMDMsIDIwMTMgYXQgMTA6MjY6NTcsIEhlYmJhciwgR3VydXJhamEgd3Jv
-dGU6DQo+IEJlbG93IGlzIHRoZSBjb2RlIHNuaXBwZXQgSSB3YXMgcmVmZXJyaW5nIHRvDQo+ICAN
-Cj4gIA0KPiBGcm9tIGRyaXZlcnMvcnRjL3J0Yy1vbWFwLmMNCj4gIA0KPiBzdGF0aWMgc3RydWN0
-IHBsYXRmb3JtX2RldmljZV9pZCBvbWFwX3J0Y19kZXZ0eXBlW10gPSB7DQo+ICAgICAgIHsNCj4g
-ICAgICAgICAgICAgLm5hbWUgPSBEUklWRVJfTkFNRSwNCj4gICAgICAgfSwNCj4gICAgICAgW09N
-QVBfUlRDX0RBVEFfQU0zMzUyX0lEWF0gPSB7DQo+ICAgICAgICAgICAgIC5uYW1lID0gImFtMzM1
-Mi1ydGMiLA0KPiAgICAgICAgICAgICAuZHJpdmVyX2RhdGEgPSBPTUFQX1JUQ19IQVNfS0lDS0VS
-IHwgT01BUF9SVENfSEFTX0lSUVdBS0VFTiwNCj4gICAgICAgfSwNCj4gICAgICAgW09NQVBfUlRD
-X0RBVEFfREE4MzBfSURYXSA9IHsNCj4gICAgICAgICAgICAgLm5hbWUgPSAiZGE4MzAtcnRjIiwN
-Cj4gICAgICAgICAgICAgLmRyaXZlcl9kYXRhID0gT01BUF9SVENfSEFTX0tJQ0tFUiwNCj4gICAg
-ICB9LA0KPiAgICAgICB7fSwNCj4gfTsNCj4gTU9EVUxFX0RFVklDRV9UQUJMRShwbGF0Zm9ybSwg
-b21hcF9ydGNfZGV2dHlwZSk7DQo+ICANCj4gc3RhdGljIGNvbnN0IHN0cnVjdCBvZl9kZXZpY2Vf
-aWQgb21hcF9ydGNfb2ZfbWF0Y2hbXSA9IHsNCj4gICAgICAgeyAgICAgLmNvbXBhdGlibGUgPSAi
-dGksZGE4MzAtcnRjIiwNCj4gICAgICAgICAgICAgLmRhdGEgICAgICAgPSAmb21hcF9ydGNfZGV2
-dHlwZVtPTUFQX1JUQ19EQVRBX0RBODMwX0lEWF0sDQo+ICAgICAgIH0sDQo+ICAgICAgIHsgICAg
-IC5jb21wYXRpYmxlID0gInRpLGFtMzM1Mi1ydGMiLA0KPiAgICAgICAgICAgICAuZGF0YSAgICAg
-ICA9ICZvbWFwX3J0Y19kZXZ0eXBlW09NQVBfUlRDX0RBVEFfQU0zMzUyX0lEWF0sDQo+ICAgICAg
-IH0sDQo+ICAgICAgIHt9LA0KPiB9Ow0KPiBNT0RVTEVfREVWSUNFX1RBQkxFKG9mLCBvbWFwX3J0
-Y19vZl9tYXRjaCk7DQo+ICANCj4gIA0KPiBGcm9tIGFyY2gvYXJtL2Jvb3QvZHRzL2FtMzN4eC5k
-dHNpDQo+ICANCj4gICAgICAgICAgICAgcnRjQDQ0ZTNlMDAwIHsNCj4gICAgICAgICAgICAgICAg
-ICAgY29tcGF0aWJsZSA9ICJ0aSxkYTgzMC1ydGMiLCAidGksYW0zMzUyLXJ0YyI7DQo+ICAgICAg
-ICAgICAgICAgICAgIHJlZyA9IDwweDQ0ZTNlMDAwIDB4MTAwMD47DQo+ICAgICAgICAgICAgICAg
-ICAgIGludGVycnVwdHMgPSA8NzUNCj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgNzY+
-Ow0KPiAgICAgICAgICAgICAgICAgICB0aSxod21vZHMgPSAicnRjIjsNCj4gICAgICAgICAgICAg
-fTsNCj4gIA0KPiAgDQo+IEFzIHNlZW4gZnJvbSBhYm92ZSBzbmlwcGV0LCAyIGNvbXBhdGlibGUg
-aXRlbXMgYXJlIHNwZWNpZmllZCBmb3INCj4gY29tcGF0aWJsZSBkdCBwcm9wZXJ0eSAodGksZGE4
-MzAtcnRjIiAmICJ0aSxhbTMzNTItcnRj4oCdKQ0KPiBUaGVzZSBhcmUgdGhlIHNhbWUgY29tcGF0
-aWJsZXMgdGhhdCBhcmUgbWVudGlvbmVkIGluIHRoZSBvZl9kZXZpY2VfaWQNCj4gc3RydWN0dXJl
-IGluc2lkZSBydGMtb21hcCBkcml2ZXIuDQo+ICANCj4gV2hhdCBJIG9ic2VydmVkIGlzLCBpZiB3
-ZSBtZW50aW9uIGJvdGggY29tcGF0aWJsZSBpbiB0aGUgLmR0c2kgZmlsZSB0aGF0DQo+IGFyZSB1
-bmRlciBvbmUgc2luZ2xlIG9mX2RldmljZV9pZCBzdHJ1Y3R1cmUsIHRoZSBmaXJzdCBtYXRjaCBm
-cm9tIHRoZQ0KPiBvZl9kZXZpY2VfaWQgc3RydWN0dXJlIGlzIGNvbnNpZGVyZWQgKHRpLGRhODMw
-LXJ0YyBpbiBhYm92ZSBjYXNlKQ0KPiAgDQo+IFRvIGNvbmZpcm0sIEkgc3dpdGNoZWQgdGhlIDIg
-Y29tcGF0aWJsZSBpbnNpZGUgb2ZfZGV2aWNlX2lkIHN0cnVjdHVyZSBhcw0KPiBiZWxvdw0KPiAg
-DQo+ICANCj4gc3RhdGljIGNvbnN0IHN0cnVjdCBvZl9kZXZpY2VfaWQgb21hcF9ydGNfb2ZfbWF0
-Y2hbXSA9IHsNCj4gICAgICAgeyAgICAgLmNvbXBhdGlibGUgPSAidGksYW0zMzUyLXJ0YyIsDQo+
-ICAgICAgICAgICAgIC5kYXRhICAgICAgID0gJm9tYXBfcnRjX2RldnR5cGVbT01BUF9SVENfREFU
-QV9BTTMzNTJfSURYXSwNCj4gICAgICAgfSwNCj4gICAgICAgeyAgICAgLmNvbXBhdGlibGUgPSAi
-dGksZGE4MzAtcnRjIiwNCj4gICAgICAgICAgICAgLmRhdGEgICAgICAgPSAmb21hcF9ydGNfZGV2
-dHlwZVtPTUFQX1JUQ19EQVRBX0RBODMwX0lEWF0sDQo+ICAgICAgIH0sDQo+ICAgICAgIHt9LA0K
-PiB9Ow0KPiAgDQo+IEluIHRoaXMgY2FzZSwgdGhlIGZpcnN0IG1hdGNoIGZyb20gY29tcGF0aWJs
-ZSBmaWVsZCB3YXMgY2hvc2VuDQo+ICh0aSxhbTMzNTItcnRjIG5vdykuDQo+ICANCj4gIA0KPiBI
-b3BlIHRoaXMgaXMgY2xlYXIuDQo+ICANCj4gS2luZGx5IGxldCBtZSBrbm93IHdoZW4geW91IGFy
-ZSBmcmVlIHRvIGRpc2N1c3MuDQo+ICANCj4gIA0KPiBSZWdhcmRzDQo+IEd1cnVyYWphDQo+ICAN
-Cj4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+IEZyb206IE5vcmksIFNla2hhcg0K
-PiA+IFNlbnQ6IFR1ZXNkYXksIEp1bHkgMDIsIDIwMTMgMTE6NDcgQU0NCj4gPiBUbzogSGViYmFy
-LCBHdXJ1cmFqYQ0KPiA+IENjOiBraGlsbWFuQGxpbmFyby5vcmc7IHRvbnlAYXRvbWlkZS5jb207
-IENvdXNzb24sIEJlbm9pdDsgbGludXgtDQo+ID4gb21hcEB2Z2VyLmtlcm5lbC5vcmc7IGRldmlj
-ZXRyZWUtZGlzY3Vzc0BsaXN0cy5vemxhYnMub3JnOyBsaW51eC0NCj4gPiBrZXJuZWxAdmdlci5r
-ZXJuZWwub3JnOyBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmc7DQo+ID4gZGF2
-aW5jaS1saW51eC1vcGVuLXNvdXJjZUBsaW51eC5kYXZpbmNpZHNwLmNvbTsgQmVkaWEsIFZhaWJo
-YXY7DQo+ID4gUmFqYXNoZWtoYXJhLCBTdWRoYWthcjsgR3JhbnQgTGlrZWx5OyBSb2IgSGVycmlu
-ZzsgUm9iIExhbmRsZXk7DQo+ID4gQWxlc3NhbmRybyBadW1tbzsgcnRjLWxpbnV4QGdvb2dsZWdy
-b3Vwcy5jb207IGxpbnV4LQ0KPiA+IGRvY0B2Z2VyLmtlcm5lbC5vcmcNCj4gPiBTdWJqZWN0OiBS
-ZTogW1BBVENIIDMvNF0gcnRjOiBvbWFwOiBhZGQgcnRjIHdha2V1cCBzdXBwb3J0IHRvDQo+ID4g
-YWxhcm0gZXZlbnRzDQo+ID4gDQo+ID4gDQo+ID4gDQo+ID4gT24gNy8yLzIwMTMgMTE6NDEgQU0s
-IEhlYmJhciwgR3VydXJhamEgd3JvdGU6DQo+ID4gPiBPbiBUdWUsIEp1bCAwMiwgMjAxMyBhdCAx
-MTozOToyOCwgTm9yaSwgU2VraGFyIHdyb3RlOg0KPiA+ID4+IE9uIDcvMi8yMDEzIDExOjM0IEFN
-LCBIZWJiYXIsIEd1cnVyYWphIHdyb3RlOg0KPiA+ID4+PiBPbiBUdWUsIEp1bCAwMiwgMjAxMyBh
-dCAxMTozMjozNCwgTm9yaSwgU2VraGFyIHdyb3RlOg0KPiA+ID4+Pj4gT24gNi8yOC8yMDEzIDM6
-MDUgUE0sIEhlYmJhciBHdXJ1cmFqYSB3cm90ZToNCj4gPiA+Pj4+PiBPbiBzb21lIHBsYXRmb3Jt
-cyAobGlrZSBBTTMzeHgpLCBhIHNwZWNpYWwgcmVnaXN0ZXINCj4gPiAoUlRDX0lSUVdBS0VFTikN
-Cj4gPiA+Pj4+PiBpcyBhdmFpbGFibGUgdG8gZW5hYmxlIEFsYXJtIFdha2V1cCBmZWF0dXJlLiBU
-aGlzIHJlZ2lzdGVyDQo+ID4gbmVlZHMgdG8gYmUNCj4gPiA+Pj4+PiBwcm9wZXJseSBoYW5kbGVk
-IGZvciB0aGUgcnRjd2FrZSB0byB3b3JrIHByb3Blcmx5Lg0KPiA+ID4+Pj4+DQo+ID4gPj4+Pj4g
-UGxhdGZvcm1zIHVzaW5nIHN1Y2ggSVAgc2hvdWxkIHNldCAidGksYW0zMzUyLXJ0YyIgaW4gcnRj
-DQo+ID4gZGV2aWNlIGR0DQo+ID4gPj4+Pj4gY29tcGF0aWJpbGl0eSBub2RlLg0KPiA+ID4+Pj4+
-DQo+ID4gPj4+Pj4gU2lnbmVkLW9mZi1ieTogSGViYmFyIEd1cnVyYWphIDxndXJ1cmFqYS5oZWJi
-YXJAdGkuY29tDQo+IDxtYWlsdG86Z3VydXJhamEuaGViYmFyQHRpLmNvbT4gPg0KPiA+ID4+Pj4+
-IENjOiBHcmFudCBMaWtlbHkgPGdyYW50Lmxpa2VseUBsaW5hcm8ub3JnDQo+IDxtYWlsdG86Z3Jh
-bnQubGlrZWx5QGxpbmFyby5vcmc+ID4NCj4gPiA+Pj4+PiBDYzogUm9iIEhlcnJpbmcgPHJvYi5o
-ZXJyaW5nQGNhbHhlZGEuY29tDQo+IDxtYWlsdG86cm9iLmhlcnJpbmdAY2FseGVkYS5jb20+ID4N
-Cj4gPiA+Pj4+PiBDYzogUm9iIExhbmRsZXkgPHJvYkBsYW5kbGV5Lm5ldCA8bWFpbHRvOnJvYkBs
-YW5kbGV5Lm5ldD4gPg0KPiA+ID4+Pj4+IENjOiBTZWtoYXIgTm9yaSA8bnNla2hhckB0aS5jb20g
-PG1haWx0bzpuc2VraGFyQHRpLmNvbT4gPg0KPiA+ID4+Pj4+IENjOiBLZXZpbiBIaWxtYW4gPGto
-aWxtYW5AbGluYXJvLm9yZyA8bWFpbHRvOmtoaWxtYW5AbGluYXJvLm9yZz4NCj4gPg0KPiA+ID4+
-Pj4+IENjOiBBbGVzc2FuZHJvIFp1bW1vIDxhLnp1bW1vQHRvd2VydGVjaC5pdA0KPiA8bWFpbHRv
-OmEuenVtbW9AdG93ZXJ0ZWNoLml0PiA+DQo+ID4gPj4+Pj4gQ2M6IHJ0Yy1saW51eEBnb29nbGVn
-cm91cHMuY29tDQo+IDxtYWlsdG86cnRjLWxpbnV4QGdvb2dsZWdyb3Vwcy5jb20+IA0KPiA+ID4+
-Pj4+IENjOiBkZXZpY2V0cmVlLWRpc2N1c3NAbGlzdHMub3psYWJzLm9yZw0KPiA8bWFpbHRvOmRl
-dmljZXRyZWUtZGlzY3Vzc0BsaXN0cy5vemxhYnMub3JnPiANCj4gPiA+Pj4+PiBDYzogbGludXgt
-ZG9jQHZnZXIua2VybmVsLm9yZyA8bWFpbHRvOmxpbnV4LWRvY0B2Z2VyLmtlcm5lbC5vcmc+DQo+
-ID4gPj4+Pj4gLS0tDQo+ID4gPj4+Pg0KPiA+ID4+Pj4gWy4uLl0NCj4gPiA+Pj4+DQo+ID4gPj4+
-Pj4gLSNkZWZpbmUgIE9NQVBfUlRDX0RBVEFfREE4MzBfSURYIDENCj4gPiA+Pj4+PiArI2RlZmlu
-ZSAgT01BUF9SVENfREFUQV9EQTgzMF9JRFggICAgICAgMQ0KPiA+ID4+Pj4+ICsjZGVmaW5lICBP
-TUFQX1JUQ19EQVRBX0FNMzM1WF9JRFggICAgICAyDQo+ID4gPj4+Pj4NCj4gPiA+Pj4+PiAgc3Rh
-dGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2VfaWQgb21hcF9ydGNfZGV2dHlwZVtdID0gew0KPiA+
-ID4+Pj4+ICAgICB7DQo+ID4gPj4+Pj4gQEAgLTMwOSw2ICszMjEsOSBAQCBzdGF0aWMgc3RydWN0
-IHBsYXRmb3JtX2RldmljZV9pZA0KPiA+IG9tYXBfcnRjX2RldnR5cGVbXSA9IHsNCj4gPiA+Pj4+
-PiAgICAgfSwgew0KPiA+ID4+Pj4+ICAgICAgICAgICAubmFtZSA9ICJkYTgzMC1ydGMiLA0KPiA+
-ID4+Pj4+ICAgICAgICAgICAuZHJpdmVyX2RhdGEgPSBPTUFQX1JUQ19IQVNfS0lDS0VSLA0KPiA+
-ID4+Pj4+ICsgICB9LCB7DQo+ID4gPj4+Pj4gKyAgICAgICAgIC5uYW1lID0gImFtMzM1eC1ydGMi
-LA0KPiA+ID4+Pj4NCj4gPiA+Pj4+IG1heSBiZSB1c2UgYW0zMzUyLXJ0YyBoZXJlIGp1c3QgdG8g
-a2VlcCB0aGUgcGxhdGZvcm0gZGV2aWNlDQo+ID4gbmFtZSBhbmQgb2YNCj4gPiA+Pj4+IGNvbXBh
-dGlibGUgaW4gc3luYy4NCj4gPiA+Pj4NCj4gPiA+Pj4gQ29ycmVjdC4gSSB3aWxsIHVwZGF0ZSB0
-aGUgc2FtZSBpbiB2Mi4NCj4gPiA+Pj4NCj4gPiA+Pj4+DQo+ID4gPj4+Pj4gKyAgICAgICAgIC5k
-cml2ZXJfZGF0YSA9IE9NQVBfUlRDX0hBU19LSUNLRVIgfA0KPiA+IE9NQVBfUlRDX0hBU19JUlFX
-QUtFRU4sDQo+ID4gPj4+Pj4gICAgIH0sDQo+ID4gPj4+Pj4gICAgIHt9LA0KPiA+ID4+Pj4NCj4g
-PiA+Pj4+IEl0IGlzIGJldHRlciB0byB1c2UgdGhlIGluZGV4IGRlZmluZWQgYWJvdmUgaW4gdGhl
-IHN0YXRpYw0KPiA+IGluaXRpYWxpemF0aW9uDQo+ID4gPj4+PiBzbyB0aGV5IHJlbWFpbiBpbiBz
-eW5jLg0KPiA+ID4+Pg0KPiA+ID4+PiBTb3JyeS4gSSBkaWRu4oCZdCBnZXQgdGhpcy4NCj4gPiA+
-Pj4NCj4gPiA+Pg0KPiA+ID4+IFNlZSBleGFtcGxlIGJlbG93IEkgcHJvdmlkZWQuIElmIGl0cyBz
-dGlsbCBub3QgY2xlYXIsIGxldCBtZQ0KPiA+IGtub3cgd2hhdA0KPiA+ID4+IGlzIG5vdCBjbGVh
-ci4NCj4gPiA+Pg0KPiA+ID4+Pj4gICAgICAuLi4NCj4gPiA+Pj4+ICAgICAgW09NQVBfUlRDX0RB
-VEFfREE4MzBfSURYXSA9IHsNCj4gPiA+Pj4+ICAgICAgICAgICAgLm5hbWUgPSAiZGE4MzAtcnRj
-IiwNCj4gPiA+Pj4+ICAgICAgICAgICAgLmRyaXZlcl9kYXRhID0gT01BUF9SVENfSEFTX0tJQ0tF
-UiwNCj4gPiA+Pj4+ICAgICAgfSwNCj4gPiA+DQo+ID4gPiBUaGFua3MgZm9yIHRoZSBjbGFyaWZp
-Y2F0aW9uLiBJbiB0aGlzIGNhc2Ugd2lsbCBpdCBvayBpZiBJDQo+ID4gdXBkYXRlIHRoZSBwcmV2
-aW91cw0KPiA+ID4gbWVtYmVyIGFsc28uDQo+ID4gDQo+ID4gWW91IGRvbnQgcmVhbGx5IHJlZmVy
-ZW5jZSBbMF0gaW4gb21hcF9ydGNfb2ZfbWF0Y2hbXSBzbyBldmVuIGlmDQo+ID4geW91DQo+ID4g
-bGVhdmUgaXQgYXMtaXMsIHRoYXQncyBmaW5lIHdpdGggbWUuIEkgYW0gbW9zdGx5IGNvbmNlcm5l
-ZCB3aXRoDQo+ID4gdGhlDQo+ID4gaW5kZXggZGVmaW5pdGlvbnMgYW5kIGluaXRpYWxpemF0aW9u
-IG9yZGVyIGJlaW5nIG91dCBvZiBzeW5jIGFuZA0KPiA+IHRoYXQncw0KPiA+IHJlYWxseSBub3Qg
-YW4gaXNzdWUgd2l0aCBbMF0uDQo+ID4gDQo+ID4gVGhhbmtzLA0KPiA+IFNla2hhcg0KPiANCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkRhdmluY2ktbGlu
-dXgtb3Blbi1zb3VyY2UgbWFpbGluZyBsaXN0CkRhdmluY2ktbGludXgtb3Blbi1zb3VyY2VAbGlu
-dXguZGF2aW5jaWRzcC5jb20KaHR0cDovL2xpbnV4LmRhdmluY2lkc3AuY29tL21haWxtYW4vbGlz
-dGluZm8vZGF2aW5jaS1saW51eC1vcGVuLXNvdXJjZQo=
+Gururaja,
+
+On 7/2/2013 11:42 AM, Sekhar Nori wrote:
+> Changing to Benoit's gmail id since he apparently wont access TI mail
+> anymore.
+> 
+> On 6/28/2013 3:05 PM, Hebbar Gururaja wrote:
+>> Since AM33xx  RTC IP has RTC_IRQWAKEEN to support Alarm Wake-up.
+>>
+>> Update the rtc compatible property to "ti,am3352-rtc" to enable handling
+>> of this feature inside rtc-omap driver.
+>>
+>> Signed-off-by: Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+>> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>> Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+>> Cc: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>> Cc: b-cousson-l0cyMroinI0@public.gmane.org
+>> ---
+>> :100644 100644 77aa1b0... dde180a... M	arch/arm/boot/dts/am33xx.dtsi
+>>  arch/arm/boot/dts/am33xx.dtsi |    2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+>> index 77aa1b0..dde180a 100644
+>> --- a/arch/arm/boot/dts/am33xx.dtsi
+>> +++ b/arch/arm/boot/dts/am33xx.dtsi
+>> @@ -297,7 +297,7 @@
+>>  		};
+>>  
+>>  		rtc@44e3e000 {
+>> -			compatible = "ti,da830-rtc";
+>> +			compatible = "ti,am3352-rtc";
+> 
+> compatible is a list so you can instead do:
+> 	
+> 	compatible = "ti,am3352-rtc", "ti,da830-rtc";
+> 
+> That way the dts works irrespective of driver updates. When driver
+> supports enhanced features of hardware, they are available to the user
+> else the basic functionality still works.
+
+On doing some experiments myself, the of_device_id which gets selected
+during probe depends on the order in which its entry appears in the
+match table inside the driver rather than how the compatible string is
+written. I think this puts undue dependency on how the driver is
+written, so I am okay with providing a single compatible value like the
+way you have done ATM.
+
+I do think the string appearing first in the compatible list is what
+should be selected if a match is available but I am not sure if there
+are other considerations due to which of_match_device() is written the
+way it is written.
+
+Thanks,
+Sekhar
