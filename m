@@ -1,73 +1,63 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [PATCH v2 4/9] wl12xx: use frequency instead of enumerations
- for pdata clocks
-Date: Wed, 3 Jul 2013 15:14:34 +0300
-Message-ID: <1372853674.21065.106.camel@cumari.coelho.fi>
-References: <1372776948-24840-1-git-send-email-coelho@ti.com>
- <1372776948-24840-5-git-send-email-coelho@ti.com>
- <20130702150208.GA4233@kahuna> <1372796850.21065.93.camel@cumari.coelho.fi>
- <20130703113334.GY5523@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during
+ bus suspend
+Date: Wed, 3 Jul 2013 15:57:19 +0300
+Message-ID: <20130703125719.GD15056@arwen.pp.htv.fi>
+References: <51D28DB9.704@ti.com>
+ <Pine.LNX.4.44L0.1307021302430.1086-100000@iolanthe.rowland.org>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130703113334.GY5523@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, mark.rutland@arm.com, mturquette@linaro.org, linux-doc@vger.kernel.org, linux-wireless@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, rob.herring@calxeda.com, grant.likely@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="RYJh/3oyKhIjGcML"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1307021302430.1086-100000@iolanthe.rowland.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@ti.com>, tony@atomide.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 2013-07-03 at 04:33 -0700, Tony Lindgren wrote:
-> * Luciano Coelho <coelho@ti.com> [130702 13:33]:
-> > On Tue, 2013-07-02 at 10:02 -0500, Nishanth Menon wrote:
-> > > On 17:55-20130702, Luciano Coelho wrote:
-> > > > Instead of defining an enumeration with the FW specific values for the
-> > > > different clock rates, use the actual frequency instead.  Also add a
-> > > > boolean to specify whether the clock is XTAL or not.
-> > > > 
-> > > > Change all board files to reflect this.
-> > > > 
-> > > > Cc: Tony Lindgren <tony@atomide.com>
-> > > > Cc: Sekhar Nori <nsekhar@ti.com>
-> > > > Signed-off-by: Luciano Coelho <coelho@ti.com>
-> > > > ---
-> > > >  arch/arm/mach-davinci/board-da850-evm.c      |    3 +-
-> > > >  arch/arm/mach-omap2/board-4430sdp.c          |    5 ++-
-> > > ^^
-> > > >  arch/arm/mach-omap2/board-omap3evm.c         |    3 +-
-> > > >  arch/arm/mach-omap2/board-omap4panda.c       |    3 +-
-> > > ^^
-> > > Please do not add more platform data to platforms that are DT only.
-> > 
-> > Ah, I hadn't realized that board_omap4panda.c and board-4430sdp.c had
-> > been removed in linux-next.  I base my tree on wireless-next and it
-> > doesn't contain these changes yet.  I would only have noticed this when
-> > I rebased my tree once the merge window is closed. ;)
-> > 
-> > Thanks for pointing out, I'll make sure these changes will not be there
-> > when I send the pull request.
-> 
-> Please separate out the minimal pdata and arch/arm/mach-omap2 changes int
-> a immutable branch on v3.11-rc1 that I can also pull in. For v3.12, we're
-> going to be making more boards device tree only, so these changes may
-> otherwise cause pointless merge conflicts.
+--RYJh/3oyKhIjGcML
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Okay.  I don't want to freeze my work, I'll continue using my
-wireless-based tree (which is based on 3.10) for now.  When the merge
-window closes, I'll reorganize all this before sending pull requests, so
-we can avoid conflicts.
+Hi,
 
-Please ignore my changes to board files that will disappear on 3.11 and
-keep reviewing the rest. ;)
+On Tue, Jul 02, 2013 at 01:17:58PM -0400, Alan Stern wrote:
+> A PCI-based EHCI controller has two power sources: the core well (which
+> is turned off during suspend) and the auxiliary well (which remains
+> powered).  That's how remote wakeup works; it uses the auxiliary well.
 
---
-Cheers,
-Luca.
+This, kinda, matches what OMAP tries to do with pad wakeup. Just that
+pad wakeup sits outside of the device itself. Perhaps we could look into
+how PCI handles the aux well and take some inspiration from there.
+
+Any pointers under drivers/pci/ would be great :-)
+
+--=20
+balbi
+
+--RYJh/3oyKhIjGcML
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR1B+vAAoJEIaOsuA1yqREti0P+wXM7xlwOz8N871VTg4ptbXw
+lr0bVuOguXvZ+donKXZzqGG9Qf9JbwBIP/JPVGOrXUZeKXuk2vMUO7QMcGexFPRZ
+iVfPggyxxxgkZWQo4tQIfBzm3MhgegvVzvx2z7DKqmroDwJoXJkZyOxuYBAa7pgI
+DC6nXxtzMTv96TYt4l8Q8kpo5cvwXZzJl8ifZ3lw53AqZA1B0GVlQdT9bIs22Jsl
+w+Zqq2sKmssPdo1uokm8Ay4iNttD4XRweZ4LPq4UvPtIviK/+WMkceqHIU7l2sfh
+nTrPJqXMXr/F5A8e4CkfjWhX7l0rm+UIqVx2g9UPcyRBdqAtsdmJHbPurtGfEZ1p
+3pMUYD8DvW+aK+WqbkL+oTht/xilTjNY74VcBXH67odRXiF0vkbHhAoTu3UJO8dW
+OBmMSXG85aD4lsyFow4GDekJ5ZcMGQDLrvQmke5tdGDAfs8mWOMCdLtOnZ9JJd7I
+2ASUYWgUMzoIKcnRAbAn2cCkNM5JY+vOpl+MzXzzXKw46cLj60n9Vlc3/xES7P+F
+tdE23TEy6DOeebEAzaM6V8RwBluyVx8TjElDwNVvquISJuHWY3fEN0Qhe3yV5vD3
+O7q49Hh+Z+CW1g4Dl/ZxC/zdaVrzYiizNYksvT2bL4pGPAAGdSzEflcSWzg3TUsP
+uO+QqI/g4WyAqq3rZvep
+=51TX
+-----END PGP SIGNATURE-----
+
+--RYJh/3oyKhIjGcML--
