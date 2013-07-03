@@ -1,53 +1,92 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: OMAP5: Enable Cortex A15 errata 798181
-Date: Wed, 3 Jul 2013 09:55:21 -0400
-Message-ID: <51D42D49.700@ti.com>
-References: <1371671532-27071-1-git-send-email-santosh.shilimkar@ti.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: [PATCH v3 0/8] wilink: add device tree support
+Date: Wed, 3 Jul 2013 17:03:21 +0300
+Message-ID: <1372860209-3504-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49383 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932128Ab3GCNz4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Jul 2013 09:55:56 -0400
-In-Reply-To: <1371671532-27071-1-git-send-email-santosh.shilimkar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-wireless@vger.kernel.org, tony@atomide.com, nsekhar@ti.com
+Cc: mturquette@linaro.org, mark.rutland@arm.com, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, coelho@ti.com, nm@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Ping..
+Hi,
 
-On Wednesday 19 June 2013 03:52 PM, Santosh Shilimkar wrote:
-> ARM errata 798181 is applicable for OMAP5 based devices. So enable
-> the same in the build. Errata extract and workaround information
-> is as below.
-> 
-> On Cortex-A15 (r0p0..r3p2) the TLBI*IS/DSB operations are not
-> adequately shooting down all use of the old entries. The
-> ARM_ERRATA_798181 option enables the Linux kernel workaround
-> for this erratum which sends an IPI to the CPUs that are running
-> the same ASID as the one being invalidated.
-> 
-> Cc: Tony Lindgren <tony@atomide.com>
-> 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/mach-omap2/Kconfig |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index f49cd51..fbd2b9f 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -112,6 +112,7 @@ config SOC_OMAP5
->  	select HAVE_SMP
->  	select COMMON_CLK
->  	select HAVE_ARM_ARCH_TIMER
-> +	select ARM_ERRATA_798181
->  
->  comment "OMAP Core Type"
->  	depends on ARCH_OMAP2
-> 
+This patch series adds device tree support to the wlcore_sdio driver,
+which is used by WiLink6, WiLink7 and WiLink8.
 
+The first patches do some clean-up to make the data needed in the
+wilink device tree node smaller.  The remaining patches implement the
+actual device tree node parsing in wlcore_sdio.
+
+I still need to figure out how to add the information about whether
+the clocks are XTAL or not.  I'll send it in a separate patche set.
+
+The DTS file changes will be sent separately, since they need to go
+via different trees.
+
+The bindings documentation patch will also be updated and sent
+separately, once the XTAL issue is solved.
+
+
+Changes in v3:
+
+* Remove irq_flags from pdata and handle them in the board files.
+  This caused the "wlcore: use irq_flags in pdata instead of hiding it
+  behind a quirk" (now 2/8) to be changed considerably, so I removed
+  the Acked-by from Tony.  I also added calls to gpio_request_one()
+  for the WiLink IRQ GPIO that were missing in the board files (thanks
+  Felipe);
+
+* Added "const" to the frequency tables in patch 4/8 (thanks Felipe);
+
+* Squashed patch 5/9 into the new 2/8;
+
+* Added comment about the sdio_set_drvdata() call move in 7/8 (thanks
+  Felipe);
+
+* I'm still modifying the panda and 4430sdp board files that are going
+  to be removed in 3.11.  Please ignore the changes I made there, I
+  just wanted to make sure they still work with my current tree.  Once
+  the 3.11 merge window close, I'll do the relevant merges before I
+  send pull requests (thanks Tony and Nishant).
+
+Please review.
+
+--
+Cheers,
+Luca.
+
+Luciano Coelho (8):
+  wl1251: split wl251 platform data to a separate structure
+  wlcore: set irq_flags in the board files instead of hiding behind a
+    quirk
+  wlcore: remove pwr_in_suspend from platform data
+  wl12xx: use frequency instead of enumerations for pdata clocks
+  wlcore: add initial device tree support to the sdio module
+  wlcore: sdio: add wilink clock providers
+  wlcore: sdio: get clocks from device tree
+  wlcore/wl12xx: check if we got correct clock data from DT
+
+ arch/arm/mach-davinci/board-da850-evm.c        |   11 ++-
+ arch/arm/mach-omap2/board-4430sdp.c            |   23 ++++-
+ arch/arm/mach-omap2/board-omap3evm.c           |   22 ++++-
+ arch/arm/mach-omap2/board-omap3pandora.c       |    4 +-
+ arch/arm/mach-omap2/board-omap4panda.c         |   39 +++++++--
+ arch/arm/mach-omap2/board-rx51-peripherals.c   |    2 +-
+ arch/arm/mach-omap2/board-zoom-peripherals.c   |   33 ++++++-
+ drivers/net/wireless/ti/wilink_platform_data.c |   37 ++++++--
+ drivers/net/wireless/ti/wl1251/sdio.c          |   12 +--
+ drivers/net/wireless/ti/wl1251/spi.c           |    2 +-
+ drivers/net/wireless/ti/wl12xx/main.c          |   77 ++++++++++++++--
+ drivers/net/wireless/ti/wl12xx/wl12xx.h        |   28 ++++++
+ drivers/net/wireless/ti/wlcore/debugfs.c       |    2 +-
+ drivers/net/wireless/ti/wlcore/main.c          |   26 +++---
+ drivers/net/wireless/ti/wlcore/sdio.c          |  112 ++++++++++++++++++++++--
+ drivers/net/wireless/ti/wlcore/wlcore.h        |    5 +-
+ drivers/net/wireless/ti/wlcore/wlcore_i.h      |    1 +
+ include/linux/wl12xx.h                         |   52 +++++------
+ 18 files changed, 398 insertions(+), 90 deletions(-)
+
+-- 
+1.7.10.4
