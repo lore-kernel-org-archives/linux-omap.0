@@ -1,90 +1,68 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [alsa-devel] Query on Audio DMA using DMAEngine
-Date: Wed, 3 Jul 2013 13:18:06 -0500
-Message-ID: <51D46ADE.3040500@ti.com>
-References: <083BC63EECB6FD41B8E81CF7FD87CC0F2E4F1488@DLEE08.ent.ti.com> <51D01F31.3010602@metafoo.de> <51D11D64.3070805@topic.nl> <51D24A01.2050709@ti.com> <51D26A18.8040903@topic.nl> <20130702121345.GL27646@sirena.org.uk> <51D3EA42.3040205@metafoo.de> <20130703094307.GE27646@sirena.org.uk> <51D46598.6070005@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.10-rc6
+Date: Wed, 3 Jul 2013 19:51:09 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1307031944580.9618@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com> <20130625160243.GE22312@arwen.pp.htv.fi> <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com> <51C9F0A8.1050607@ti.com> <87fvw6t136.fsf@linaro.org> <79CD15C6BA57404B839C016229A409A83ECC952D@DBDE04.ent.ti.com>
+ <51CAEB33.5010101@ti.com> <alpine.DEB.2.02.1306261722520.6135@utopia.booyaka.com> <51CBBCD8.5030600@ti.com> <alpine.DEB.2.02.1306281844090.8767@utopia.booyaka.com> <alpine.DEB.2.02.1307010211580.3741@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83ECCC435@DBDE04.ent.ti.com>
+ <51D2E096.5040700@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41508 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932744Ab3GCSSI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Jul 2013 14:18:08 -0400
-Received: from dlelxv90.itg.ti.com ([172.17.2.17])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id r63II73c016422
-	for <linux-omap@vger.kernel.org>; Wed, 3 Jul 2013 13:18:07 -0500
-In-Reply-To: <51D46598.6070005@ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:44493 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932690Ab3GCTvK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jul 2013 15:51:10 -0400
+In-Reply-To: <51D2E096.5040700@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Darren Etheridge <detheridge@ti.com>
-Cc: linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com
+To: Nishanth Menon <nm@ti.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Vutla, Lokesh" <lokeshvutla@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, Kevin Hilman <khilman@linaro.org>, "Rini, Tom" <trini@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 07/03/2013 01:12 PM, Mark Brown wrote:> On Wed, Jul 03, 2013 at 12:55:36PM
--0500, Joel Fernandes wrote:
->
->> When would it not be possible to cope with a large period size? Are there any
->> guidelines on what to consider when fixing a period size?
->
-> This is an application issue not a driver issue.  An application that
-> wants low latency may need high resolution information about what
-> exactly the hardware is doing.
->
+On Tue, 2 Jul 2013, Nishanth Menon wrote:
 
-Hi Darren,
+> On 07/01/2013 11:29 PM, Hiremath, Vaibhav wrote:
+> > 
+> > > -----Original Message-----
+> > > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > > Sent: Monday, July 01, 2013 7:46 AM
+> > > To: Vutla, Lokesh
+> > > Cc: Nayak, Rajendra; Hiremath, Vaibhav; Kevin Hilman; Rini, Tom; linux-
+> > > omap@vger.kernel.org; Balbi, Felipe; linux-arm-
+> > > kernel@lists.infradead.org
+> > > Subject: Re: OMAP baseline test results for v3.10-rc6
+> > > 
+> > > On Fri, 28 Jun 2013, Paul Walmsley wrote:
+> > > 
+> > > > On Thu, 27 Jun 2013, Lokesh Vutla wrote:
+> > > > 
+> > > > > Here is the catch..
+> > > > > Your dtb is generated in arch/arm/boot/dts/ folder(before V3.8 dtb
+> > > was
+> > > > > generated in arch/arm/boot).
+> > > > 
+> > > > Ugh... that's probably it :-(
+> to prevent this from happening again, Lokesh did post a patch:
+> https://patchwork.kernel.org/patch/2796921/
+> 
+> Will be good to ack it if we think it might prevent such scenarios in the
+> future.
 
-  Can anyone in your team share some insight about min/max buffer size and
-min/max period size in the davinci-pcm driver. This will help make better
-decisions about the Cyclic DMA. Below was my original email on the mailing list.
+Thanks for the suggestion.  
 
-Also could you copy Peter? I couldn't find his email address.
+Unfortunately it wouldn't have caught the problem, since, as I mentioned 
+in the E-mail you quoted, I build from a fresh tree each time.  So there 
+was no previous DTB.  This wasn't caught here because 'cat' was copying 
+over the kernel to its standard output, even though it was returning an 
+error, and I wasn't checking the 'cat' return value.  This is obviously 
+being remedied here.
 
-Thanks,
-Joel
+Also will modify the build scripts to output each command as it's being 
+run.
 
-
-Quoting my original email to the mailing list:
-
-
-Copying some more lists are we're also discussing the DMA controller in the
-SoCs. Thanks.
-
-On 07/03/2013 04:43 AM, Mark Brown wrote:
-> On Wed, Jul 03, 2013 at 11:09:22AM +0200, Lars-Peter Clausen wrote:
->> On 07/02/2013 02:13 PM, Mark Brown wrote:
->
->>> This sort of cyclic thing tends to be best, ideally you don't need
->>> interrupts at all (other than a timer).
->
->> Yes, this is usually how it is done. But I'm wondering maybe the EDMA
->> controller only has a small total amount of slots available.
->
-> Well, you don't need particularly many slots so long as you can cope
-> with a large period size.
-
-Hi Mark,
-
-When would it not be possible to cope with a large period size? Are there any
-guidelines on what to consider when fixing a period size?
-
-I see tegra and aux1x go upto .period_bytes_min = 1024
-
-About slots, following are no.of slots on some SoCs with EDMA:
-
-am1808 - 96 slots available + 32 taken up for channel but can be reused with
-some changes.
-am335x - 172 slots available + 64 taken up for channels
-
-On a slightly different note, about buffer_bytes_max, is there any drawback to
-setting it to a smaller value? Currently 128K is about what is used on davinci-pcm.
-My idea is to map to do the direct mapping to IRAM if the IRAM transfers are
-really what are preventing the under runs, but 128K will be too much for the
-buffer as we don't have that much IRAM infact it is just the boundary on am33xx
-(128K)
+As far as Lokesh's patch goes: it doesn't make sense to me to remove a 
+file during 'make clean' that the build process doesn't create.  So while 
+I understand the motivation for the patch, and don't mind if upstream 
+takes it, I personally wouldn't care to ack it.
 
 
-Thanks,
-
--Joel
-
-
+- Paul
