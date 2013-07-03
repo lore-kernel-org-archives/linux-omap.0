@@ -1,94 +1,118 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during
- bus suspend
-Date: Wed, 3 Jul 2013 12:13:55 +0300
-Message-ID: <51D3EB53.7080803@ti.com>
-References: <Pine.LNX.4.44L0.1307021302430.1086-100000@iolanthe.rowland.org>
+From: "Patel, Satish" <satish.patel@ti.com>
+Subject: RE: [PATCH v9 0/8] Generic PHY Framework
+Date: Wed, 3 Jul 2013 09:32:58 +0000
+Message-ID: <780E789C2E067A4BB8F69D0BB9EC4F253E975B5E@DBDE04.ent.ti.com>
+References: <1372247257-30186-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1307021302430.1086-100000@iolanthe.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Felipe Balbi <balbi@ti.com>, tony@atomide.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=Windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1372247257-30186-1-git-send-email-kishon@ti.com>
+Content-Language: en-US
+Sender: linux-doc-owner@vger.kernel.org
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "tony@atomide.com" <tony@atomide.com>, "Balbi, Felipe" <balbi@ti.com>, "arnd@arndb.de" <arnd@arndb.de>, "swarren@nvidia.com" <swarren@nvidia.com>, "sylvester.nawrocki@gmail.com" <sylvester.nawrocki@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
+Cc: "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rob@landley.net" <rob@landley.net>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "cesarb@cesarb.net" <cesarb@cesarb.net>, "davem@davemloft.net" <davem@davemloft.net>, "Nayak, Rajendra" <rnayak@ti.com>, "shawn.guo@linaro.org" <shawn.guo@linaro.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "Cherian, George" <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/02/2013 08:17 PM, Alan Stern wrote:
-> On Tue, 2 Jul 2013, Roger Quadros wrote:
-> 
->> On 07/02/2013 12:01 AM, Alan Stern wrote:
->>> On Mon, 1 Jul 2013, Felipe Balbi wrote:
->>>
->>>>> I don't know what Pad wakeup is.  The wakeup signal has to originate 
->>>>> from the EHCI controller, doesn't it?  If not, how does the Pad know 
->>>>> when a wakeup is needed?
->>>>
->>>> That's really an OMAP thing, I guess. Pad wakeup sits in the PRCM (IIRC)
->>>> inside and always on power domain. EHCI sits in another power domain
->>>> which be turned off. When it's turned off (power gated and clock gated)
->>>> the EHCI block has no means to wakeup whatsoever. That's when pad wakeup
->>>> comes into play. It is generated when PRCM sees a change in the actual
->>>> pad of the die. To check who should 'own' the wakeup, it checks the
->>>> muxing settings to verify whose pad is that.
->>>
->>> How does the PRCM know which changes should generate wakeup events?  
->>
->> It doesn't know. It will always generate a wakeup on any change in the monitored pins.
->> We can only configure which pins we want to monitor.
->> So we can't choose which wakeup events we want to monitor. We just can
->> enable or disable all events.
->>
->>> In the EHCI controller, this is managed by the settings of the WKOC_E,
->>> WKDSCNNT_E, and WKCNNT_E bits in the PORTSC registers.  But if EHCI is
->>> powered off, those bits can't be used.
->>
->> Is "powered off" same as ehci_suspend? If yes then how does it work on other systems
->> for remote wakeup?
-> 
-> Above, Felipe wrote that on OMAP, EHCI sits in a power domain which is
-> turned off: power gated and clock gated.  ehci_suspend() doesn't do
-> those things, but they are what I was referring to.
+Hi Kishon,
 
-OK right, those things are done by OMAP platform support code.
-> 
-> A PCI-based EHCI controller has two power sources: the core well (which
-> is turned off during suspend) and the auxiliary well (which remains
-> powered).  That's how remote wakeup works; it uses the auxiliary well.
-> 
+> -----Original Message-----
+> From: ABRAHAM, KISHON VIJAY
+> Sent: Wednesday, June 26, 2013 5:17 PM
+> To: grant.likely@linaro.org; tony@atomide.com; Balbi, Felipe; ABRAHAM=
+,
+> KISHON VIJAY; arnd@arndb.de; swarren@nvidia.com;
+> sylvester.nawrocki@gmail.com; linux-kernel@vger.kernel.org; linux-
+> omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
+> usb@vger.kernel.org; gregkh@linuxfoundation.org; akpm@linux-
+> foundation.org
+> Cc: rob.herring@calxeda.com; rob@landley.net; linux@arm.linux.org.uk;
+> benoit.cousson@linaro.org; mchehab@redhat.com; cesarb@cesarb.net;
+> davem@davemloft.net; Nayak, Rajendra; shawn.guo@linaro.org; Shilimkar=
+,
+> Santosh; devicetree-discuss@lists.ozlabs.org; linux-
+> doc@vger.kernel.org; Nori, Sekhar; Krishnamoorthy, Balaji T; Cherian,
+> George
+> Subject: [PATCH v9 0/8] Generic PHY Framework
+>=20
+> Added a generic PHY framework that provides a set of APIs for the PHY
+> drivers
+> to create/destroy a PHY and APIs for the PHY users to obtain a
+> reference to
+> the PHY with or without using phandle.
+>=20
+> This framework will be of use only to devices that uses external PHY
+> (PHY
+> functionality is not embedded within the controller).
+>=20
+> The intention of creating this framework is to bring the phy drivers
+> spread
+> all over the Linux kernel to drivers/phy to increase code re-use and
+> to
+> increase code maintainability.
 
-OK. Thanks for the info.
+I would like to use this framework for a smart-card controller connecte=
+d to a
+smart-card phy. I have some questions and would like to get feedback on=
+ the same.
 
->>> Also, once the wakeup signal has been turned on, how does it get turned 
->>> off again?
->>
->> That is taken care of by the OMAP pinctrl driver. It will always turn off the
->> wakeup signal once the event is detected and forwarded as an IRQ.
->>
->> I know that all this is a bit ugly :(.
-> 
-> I still a little confused.  The wakeup signal turns on.  Then the
-> pinctrl driver sees it, forwards it as an IRQ, and turns the wakeup
-> signal off.  But what if the IRQ is disabled (as it would be with your
-> patch)?  Does the IRQ line remain active until it causes an interrupt?  
-> What eventually turns off the IRQ line?
-> 
+I am using =93TDA8026" Smartcard PHY from NXP. Here is the link for dat=
+asheet
+and app note for the same. The smart card controller is inside the TI S=
+oC
+I am working with.
 
-In the beagle/panda board, the USB lines of the OMAP are used in ULPI mode.
-Here we are monitoring DATA0, DATA1 and DATA3 lines which get configured as Linestate
-and Interrupt of the PHY device whenever the PHY is put into suspend mode. This usually
-happens when we suspend the EHCI controller.
+Datasheet :=20
+www.nxp.com/documents/data_sheet/TDA8026.pdf?
 
-When EHCI is suspended, the pinctrl wakeup mechanism is active. Whenever there is
-a change in the monitored lines we get the PAD IRQ and hence the EHCI IRQ. We don't really
-care much about which line changed state.
-(NOTE: while suspending, we didn't disable the EHCI IRQ). So we will always get the first IRQ
-and then we disable it and queue a hub_resume_work.
-Then EHCI resumes, pinctrl wakeup is disabled and EHCI IRQ is enabled.
+Appnote :
+http://www.nxp.com/documents/application_note/AN10724.pdf
 
-When pinctrl wakeup mechanism is active, it clears the wakeup event flag after a PAD IRQ, but it
-has no control on disabling the interrupt source. If there is a change in the pad, the
-PAD IRQ will fire again.
+The TI SoC details are not public (yet). I can provide details to you o=
+ffline.
 
-cheers,
--roger
+Brief about operation:
+-	The controller can work with and without a PHY
+-	When not using PHY, it is limited to talking to a single
+	smart card. There is also a need to put external de-activation logic
+	on card removal for this case.
+-	With a PHY you can use more than one smart card.
+-	Phy has 5 slots :  1 for smart card (credit/debit/other card with chi=
+p)=20
+      and others for SAM =96 SIM like modules
+- 	Once the PHY is initialized, there are some operations that the cont=
+roller
+	can request of the PHY like:
+	- Card configurations  - set voltage
+	- Activation of card
+	- ATR =96 Answer to reset
+	- Warm reset
+	- ADPU exchange
+	- Deactivation ( Normal/Emergency)
+- 	In the mode when smartcard controller talks directly to the card	wit=
+hout the need
+	for a PHY, all the above operations will be carried	out by the control=
+ler itself
+
+My current thought process is to make the controller driver provide the=
+ user interface
+and talk to the PHY using the generic PHY framework you proposed. In th=
+e case where there
+is no PHY, my idea is to create a "dummy" PHY which uses the controller=
+ functionality itself.
+
+What I seem to be missing from the PHY framework is support for event d=
+etection and generic
+read/write API which will enable the controller to talk to the PHY for =
+the operations listed
+above and also react to events from the PHY.
+
+Is there a reason why such functionality has not been included. If it w=
+as only a case
+of lack of use case, then do you think it will be useful to extend the =
+framework to add
+such functionality? I can help with the development.
+
+Thanks,
+Satish
+
