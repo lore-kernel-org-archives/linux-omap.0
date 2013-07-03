@@ -1,63 +1,41 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during
- bus suspend
-Date: Wed, 3 Jul 2013 15:57:19 +0300
-Message-ID: <20130703125719.GD15056@arwen.pp.htv.fi>
-References: <51D28DB9.704@ti.com>
- <Pine.LNX.4.44L0.1307021302430.1086-100000@iolanthe.rowland.org>
-Reply-To: <balbi@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v4 0/4] mtd:nand:omap2: clean-up of supported ECC schemes
+Date: Wed, 3 Jul 2013 15:03:49 +0200
+Message-ID: <201307031503.50033.arnd@arndb.de>
+References: <1372764757-29511-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RYJh/3oyKhIjGcML"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1307021302430.1086-100000@iolanthe.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@ti.com>, tony@atomide.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.9]:61170 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752773Ab3GCNEI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jul 2013 09:04:08 -0400
+In-Reply-To: <1372764757-29511-1-git-send-email-pekon@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pekon Gupta <pekon@ti.com>
+Cc: tony@atomide.com, artem.bityutskiy@linux.intel.com, benoit.cousson@linaro.org, olof@lixom.net, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, jp.francois@cynove.com, devicetree-discuss@lists.ozlabs.org, sfr@canb.auug.org.au
 
---RYJh/3oyKhIjGcML
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tuesday 02 July 2013, Pekon Gupta wrote:
+> (+ CC: devicetree-discuss@lists.ozlabs.org)
+> 
+> Changes v3 -> v4
+> - [Patch 1/3] removed MTD_NAND_OMAP_BCH8 & MTD_NAND_OMAP_BCH4 from nand/Kconfig
+> 	ECC scheme selectable via nand DT (nand-ecc-opt).
+> - [*] rebased for l2-mtd.git
 
-Hi,
+Do you also fix these build error?
 
-On Tue, Jul 02, 2013 at 01:17:58PM -0400, Alan Stern wrote:
-> A PCI-based EHCI controller has two power sources: the core well (which
-> is turned off during suspend) and the auxiliary well (which remains
-> powered).  That's how remote wakeup works; it uses the auxiliary well.
+/git/arm-soc/drivers/mtd/nand/omap2.c: In function 'omap_nand_probe':
+/git/arm-soc/drivers/mtd/nand/omap2.c:1964:7: error: 'OMAP_ECC_BCH8_CODE_HW_DETECTION_SW' undeclared (first use in this function)
+  case OMAP_ECC_BCH8_CODE_HW_DETECTION_SW:
+       ^
+/git/arm-soc/drivers/mtd/nand/omap2.c:1964:7: note: each undeclared identifier is reported only once for each function it appears in
+/git/arm-soc/drivers/mtd/nand/omap2.c:1991:7: error: 'OMAP_ECC_BCH4_CODE_HW_DETECTION_SW' undeclared (first use in this function)
+  case OMAP_ECC_BCH4_CODE_HW_DETECTION_SW:
+       ^
 
-This, kinda, matches what OMAP tries to do with pad wakeup. Just that
-pad wakeup sits outside of the device itself. Perhaps we could look into
-how PCI handles the aux well and take some inspiration from there.
 
-Any pointers under drivers/pci/ would be great :-)
-
---=20
-balbi
-
---RYJh/3oyKhIjGcML
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR1B+vAAoJEIaOsuA1yqREti0P+wXM7xlwOz8N871VTg4ptbXw
-lr0bVuOguXvZ+donKXZzqGG9Qf9JbwBIP/JPVGOrXUZeKXuk2vMUO7QMcGexFPRZ
-iVfPggyxxxgkZWQo4tQIfBzm3MhgegvVzvx2z7DKqmroDwJoXJkZyOxuYBAa7pgI
-DC6nXxtzMTv96TYt4l8Q8kpo5cvwXZzJl8ifZ3lw53AqZA1B0GVlQdT9bIs22Jsl
-w+Zqq2sKmssPdo1uokm8Ay4iNttD4XRweZ4LPq4UvPtIviK/+WMkceqHIU7l2sfh
-nTrPJqXMXr/F5A8e4CkfjWhX7l0rm+UIqVx2g9UPcyRBdqAtsdmJHbPurtGfEZ1p
-3pMUYD8DvW+aK+WqbkL+oTht/xilTjNY74VcBXH67odRXiF0vkbHhAoTu3UJO8dW
-OBmMSXG85aD4lsyFow4GDekJ5ZcMGQDLrvQmke5tdGDAfs8mWOMCdLtOnZ9JJd7I
-2ASUYWgUMzoIKcnRAbAn2cCkNM5JY+vOpl+MzXzzXKw46cLj60n9Vlc3/xES7P+F
-tdE23TEy6DOeebEAzaM6V8RwBluyVx8TjElDwNVvquISJuHWY3fEN0Qhe3yV5vD3
-O7q49Hh+Z+CW1g4Dl/ZxC/zdaVrzYiizNYksvT2bL4pGPAAGdSzEflcSWzg3TUsP
-uO+QqI/g4WyAqq3rZvep
-=51TX
------END PGP SIGNATURE-----
-
---RYJh/3oyKhIjGcML--
+	Arnd
