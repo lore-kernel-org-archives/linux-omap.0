@@ -1,11 +1,14 @@
 From: Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-Subject: [Patch V2 0/4] rtc: omap: handle rtc wakeup support in driver
-Date: Wed, 3 Jul 2013 14:17:01 +0530
-Message-ID: <1372841225-18813-1-git-send-email-gururaja.hebbar@ti.com>
+Subject: [Patch V2 2/4] ARM: Davinci: da8xx/omap-l1: Remove hard coding of rtc
+	device wakeup
+Date: Wed, 3 Jul 2013 14:17:03 +0530
+Message-ID: <1372841225-18813-3-git-send-email-gururaja.hebbar@ti.com>
+References: <1372841225-18813-1-git-send-email-gururaja.hebbar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1372841225-18813-1-git-send-email-gururaja.hebbar-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
 	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
@@ -16,61 +19,51 @@ List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open
 Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
 Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
 To: khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, benoit.cousson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-rtc-omap driver modules is used both by OMAP1/2, Davinci SoC platforms.
+Since now rtc-omap driver itself calls deice_init_wakeup(dev, true),
+duplicate call from the rtc device registration can be removed.
 
-However, rtc wake support on OMAP1 is broken. Hence the
-device_init_wakeup() was removed from rtc-omap driver and moved to
-platform board files that supported it (DA850/OMAP-L138). [1]
+This is basically a partial revert of the prev commit
 
-However, recently [2] it was suggested that driver should always do a
-device_init_wakeup(dev, true). Platforms that don't want/need
-wakeup support can disable it from userspace via:
+commit 75c99bb0006ee065b4e2995078d779418b0fab54
+Author: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 
-    echo disabled > /sys/devices/.../power/wakeup
+    davinci: da8xx/omap-l1: mark RTC as a wakeup source
 
-Also, with the new DT boot-up, board file doesn't exist and hence there
-is no way to have device wakeup support rtc.
-
-The fix for above issues, is to hard code device_init_wakeup() inside
-driver and let platforms that don't need this, handle it through the
-sysfs power entry.
-
-
-Also, update Davinci & AM335x files to above changes.
-
-[1]
-https://patchwork.kernel.org/patch/136731/
-
-[2]
-http://www.mail-archive.com/davinci-linux-open-source@linux.
-davincidsp.com/msg26077.html
-
+Signed-off-by: Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+Acked-by: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Acked-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+---
 Changes in V2:
-	- Coding style corrections (remove extra space, use lower case
-	  for hex numbers
-	- use prefix ARM: for commit subject keeping with arch/arm
-	  convention)
-	- use "[AM/am]3352" instead of "[AM/am]335x" to keep the all
-	  usages in sync.
-	- Use index defined for struct members so they remain in sync
-	- Add new compatible to existing one so that when driver
-	  supports enhanced features of hardware, they are available
-	  to the user else the basic functionality still works
+	- Coding style corrections (remove extra space)
+	- use prefix ARM: for commit subject keeping with arch/arm convention
 
-Hebbar Gururaja (4):
-  rtc: omap: restore back (hard-code) wakeup support
-  ARM: Davinci: da8xx/omap-l1: Remove hard coding of rtc device wakeup
-  rtc: omap: add rtc wakeup support to alarm events
-  ARM: dts: AM33XX: update rtc node compatibility
+:100644 100644 bf57252... 9140b1c... M	arch/arm/mach-davinci/devices-da8xx.c
+ arch/arm/mach-davinci/devices-da8xx.c |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
- Documentation/devicetree/bindings/rtc/rtc-omap.txt |    6 +-
- arch/arm/boot/dts/am33xx.dtsi                      |    2 +-
- arch/arm/mach-davinci/devices-da8xx.c              |    9 +--
- drivers/rtc/rtc-omap.c                             |   62 +++++++++++++++++---
- 4 files changed, 61 insertions(+), 18 deletions(-)
-
+diff --git a/arch/arm/mach-davinci/devices-da8xx.c b/arch/arm/mach-davinci/devices-da8xx.c
+index bf57252..9140b1c 100644
+--- a/arch/arm/mach-davinci/devices-da8xx.c
++++ b/arch/arm/mach-davinci/devices-da8xx.c
+@@ -827,14 +827,7 @@ static struct platform_device da8xx_rtc_device = {
+ 
+ int da8xx_register_rtc(void)
+ {
+-	int ret;
+-
+-	ret = platform_device_register(&da8xx_rtc_device);
+-	if (!ret)
+-		/* Atleast on DA850, RTC is a wakeup source */
+-		device_init_wakeup(&da8xx_rtc_device.dev, true);
+-
+-	return ret;
++	return platform_device_register(&da8xx_rtc_device);
+ }
+ 
+ static void __iomem *da8xx_ddr2_ctlr_base;
 -- 
 1.7.9.5
