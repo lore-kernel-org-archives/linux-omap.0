@@ -1,61 +1,77 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v4 0/4] mtd:nand:omap2: clean-up of supported ECC schemes
-Date: Wed, 3 Jul 2013 18:04:21 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73E9E47B4@DBDE04.ent.ti.com>
-References: <1372764757-29511-1-git-send-email-pekon@ti.com>
- <20980858CB6D3A4BAE95CA194937D5E73E9E46CA@DBDE04.ent.ti.com>
- <1372857987.9767.162.camel@sauron.fi.intel.com>
- <201307031527.17219.arnd@arndb.de>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [alsa-devel] Query on Audio DMA using DMAEngine
+Date: Wed, 3 Jul 2013 19:12:26 +0100
+Message-ID: <20130703181226.GY27646@sirena.org.uk>
+References: <083BC63EECB6FD41B8E81CF7FD87CC0F2E4F1488@DLEE08.ent.ti.com>
+	<51D01F31.3010602@metafoo.de> <51D11D64.3070805@topic.nl>
+	<51D24A01.2050709@ti.com> <51D26A18.8040903@topic.nl>
+	<20130702121345.GL27646@sirena.org.uk>
+	<51D3EA42.3040205@metafoo.de>
+	<20130703094307.GE27646@sirena.org.uk> <51D46598.6070005@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45183 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755068Ab3GCSFN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jul 2013 14:05:13 -0400
-In-Reply-To: <201307031527.17219.arnd@arndb.de>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============0564249526=="
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <51D46598.6070005-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Cc: Mike Looijmans <mike.looijmans-Oq418RWZeHk@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>
-Cc: "tony@atomide.com" <tony@atomide.com>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "olof@lixom.net" <olof@lixom.net>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "jp.francois@cynove.com" <jp.francois@cynove.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-PiANCj4gT24gV2VkbmVzZGF5IDAzIEp1bHkgMjAxMywgQXJ0ZW0gQml0eXV0c2tpeSB3cm90ZToN
-Cj4gPiBPbiBXZWQsIDIwMTMtMDctMDMgYXQgMTM6MTYgKzAwMDAsIEd1cHRhLCBQZWtvbiB3cm90
-ZToNCj4gPiA+IFtQZWtvbl06IFllcywgSSdtIG5vdCBzZWVpbmcgdGhlc2UgYnVpbGQgaXNzdWVz
-LCBhcyBJJ20gY2xlYW5seQ0KPiA+ID4gcmV0dXJuaW5nIGZyb20gcHJvYmUgd2l0aCBwcl9lcnIo
-KSwgaWYgdGhlIHJlcXVpcmVkIGxpYnJhcmllcyAoL2xpYi9iY2guYykNCj4gPiA+IGFyZSBub3Qg
-YnVpbGQtaW4gdGhlIHN5c3RlbS4NCj4gPiA+IC0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gPiA+IFtQ
-YXRjaCB2NCAxLzRdOiBtdGQ6bmFuZDpvbWFwMjogY2xlYW4tdXAgQkNIeF9IVyBhbmQgQkNIeF9T
-VyBFQ0MuLg0KPiA+ID4gQEBzdGF0aWMgaW50IG9tYXBfbmFuZF9wcm9iZShzdHJ1Y3QgcGxhdGZv
-cm1fZGV2aWNlICpwZGV2KQ0KPiA+ID4gKwlkZWZhdWx0Og0KPiA+ID4gKwkJcHJfZXJyKCJzZWxl
-Y3RlZCBFQ0Mgc2NoZW1lIG5vdCBzdXBwb3J0ZWQgb3Igbm90DQo+IGVuYWJsZWRcbiIpOw0KPiA+
-ID4gKwkJZXJyID0gLUVJTlZBTDsNCj4gPiA+ICsJCWdvdG8gb3V0X3JlbGVhc2VfbWVtX3JlZ2lv
-bjsNCj4gPiA+ICsJfQ0KPiA+ID4gLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiA+ID4gSG93ZXZlciwg
-aWYgeW91IGFyZSBzdGlsbCBzZWVpbmcgdGhpcywgY291bGQgeW91IHBsZWFzZSBzZW5kIG1lIHlv
-dXINCj4gY29uZmlnPw0KPiA+DQo+ID4gSSBjb21waWxlIHRlc3RlZCB5b3VyIHBhdGNoZXMgdG9v
-LCBhbmQgZGlkIG5vdCBzZWUgYW55IGlzc3VlcyB3aXRoIG15DQo+ID4gb21hcDJfZGVmY29uZmln
-Lg0KPiANCj4gDQo+IFRvIGNsYXJpZnk6IEknbSBnZXR0aW5nIHRoaXMgZXJyb3Igd2l0aCByYW5k
-Y29uZmlnIG9uIHRvZGF5J3MgbGludXgtbmV4dC4NCj4gSSB0aGluayBpdCBvbmx5IGhhcHBlbnMg
-d2l0aCBNVERfTkFORF9FQ0NfQkNIIGVuYWJsZWQsIHdoaWNoIGlzIG5vdA0KPiB0aGUgZGVmYXVs
-dCBpbiBvbWFwMl9kZWZjb25maWcuDQo+IA0KPiAJQXJuZA0KDQpIaSBBcm5kLCBBcnRlbSwgU3Rl
-cGhlbiwNCg0KSSBzZWUgdGhlIGlzc3VlIGluIGxpbnV4LW5leHQvbWFzdGVyIHRyZWUuLg0KbGlu
-dXgtbmV4dC9tYXN0ZXIgaGFzIG9ubHkgdGhlIGZpcnN0IFtQYXRjaCB2NCAxLzRdIGZyb20gdGhl
-IHNlcmllcy4NCk90aGVyIHBhdGNoZXMgW1BhdGNoIHY0IDIvNC4uIDQvNF0gb2YgdGhpcyBzZXJp
-ZXMgd2VyZSBkcm9wcGVkLA0KYXMgJ09sb2YgSm9oYW5zc29uJyBoYWQgc29tZSBhcHByZWhlbnNp
-b25zIGFib3V0IERUIGJpbmRpbmdzLg0KaHR0cDovL3Blcm1hbGluay5nbWFuZS5vcmcvZ21hbmUu
-bGludXgucG9ydHMuYXJtLmtlcm5lbC8yNDk2NjINCg0KQXMgdGhlc2UgcGF0Y2hlcyBhcmUgaW50
-ZXItZGVwZW5kZW50LCBzbyBwbGVhc2UgZHJvcCB0aGUgd2hvbGUgc2VyaWVzDQppbmNsdWRpbmcg
-dGhlIGNvbW1pdCBiZWxvdy4NCmZiMTU4NWIgIFtQYXRjaCB2NCAxLzRdIG10ZDogbmFuZDogb21h
-cDI6IGNsZWFuLXVwIEJDSHhfSFcgYW5kIEJDSHhfU1cNCg0KSSdtIGF3YWl0aW5nIGZlZWRiYWNr
-cyBmcm9tICdPbG9mIEpvaGFuc3Nvbicgb3Igb3RoZXIgRFQgbWFpbnRhaW5lcnMsDQpvbmNlIGFw
-cHJvdmVkLCBJJ2xsIHJlc2VuZCB0aGUgd2hvbGUgc2VyaWVzLg0KDQoiW1BBVENIIHY0IDIvNF0g
-QVJNOiBPTUFQMis6IGNsZWFuZWQtdXAgRFQgc3VwcG9ydCAiIGhhZCB0aGUNCmRlY2xhcmF0aW9u
-cyB3aGljaCB3ZXJlIHJlcXVpcmVkIGZvciBhYm92ZSBidWlsZCBlcnJvcnMuDQotLS0tLS0tLS0t
-LS0tLS0NCmluY2x1ZGUvbGludXgvcGxhdGZvcm1fZGF0YS9tdGQtbmFuZC1vbWFwMi5oDQplbnVt
-IG9tYXBfZWNjIHsNCisJLyogNC1iaXQgIEVDQyBjYWxjdWxhdGlvbiBieSBHUE1DLCBFcnJvciBk
-ZXRlY3Rpb24gYnkgU29mdHdhcmUgKi8NCisJT01BUF9FQ0NfQkNINF9DT0RFX0hXX0RFVEVDVElP
-Tl9TVywNCi4uLg0KKwkvKiA4LWJpdCAgRUNDIGNhbGN1bGF0aW9uIGJ5IEdQTUMsIEVycm9yIGRl
-dGVjdGlvbiBieSBTb2Z0d2FyZSAqLw0KKwlPTUFQX0VDQ19CQ0g4X0NPREVfSFdfREVURUNUSU9O
-X1NXDQotLS0tLS0tLS0tLS0tLS0NCg0KDQp3aXRoIHJlZ2FyZHMsIHBla29uDQoNCg==
+--===============0564249526==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="N+tBtqvhbbu3guFw"
+Content-Disposition: inline
+
+--N+tBtqvhbbu3guFw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Wed, Jul 03, 2013 at 12:55:36PM -0500, Joel Fernandes wrote:
+
+> When would it not be possible to cope with a large period size? Are there any
+> guidelines on what to consider when fixing a period size?
+
+This is an application issue not a driver issue.  An application that
+wants low latency may need high resolution information about what
+exactly the hardware is doing.
+
+--N+tBtqvhbbu3guFw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR1GmHAAoJELSic+t+oim9M08P/jNHuw186utt4oqEtIt0HVXE
+BWw7fIj07ZjXu9kR0NH8IguMJU+UEl64DGbX3XhJoJ4QHcCbeigIKLt+eYWgudDD
+LHviwfou4PgHkDjeTERZZi5qdzJnMt9u5bpEcsVEXKQ3kwdIcTCQKd1CSEJs1qfM
+fmFxQEViFHHAzGEeKLvRiCzrjuIf9zUmQDfwZ4faGj8OhCbANBZ/d6wQ1on7KPs/
+Iexap0IwakgiSNJe6ayXsx6+4T7TOZUX+2dtAjbVBVxUZBAghRtqvOaKA2TVM/Ie
+pWLkKZgQYZozaszz8A7n+so1EwOp6VWe1QWitpqdyz+gEH5Z7OHZ+pth/4RmEfHS
+seG3TW7lOdNX8VIOGG0WeStxxDo4RfYLhDXedqUAtLEa1xqzUTyuN/v+7VSo9nQI
+AbNOqOaQK4E5iGRhmrak9f04SSeaKZF2SzRoKizWfv99Ds2y3B1/lRgKkK3dNqd8
+d2as9DEx7Bem2A7ftUyHybfwsqO2ekt4IJj6Q+biTzP8ZuXMSh71fnrjHXKz5zP3
+vXUa5jJF4575SefWUiCNBTehEnoT5muYGTW3oc9qiNk3o8kXSlpMDX2pkvCzz9R0
+6KiaoGWFDzFxDgBPzbjSUuL6qHVSF30hWUTR7w3cKbEsKt/V/6TlqR0CKqKnQKYL
+i0L6awH+laMjYjavENd/
+=PVbY
+-----END PGP SIGNATURE-----
+
+--N+tBtqvhbbu3guFw--
+
+--===============0564249526==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============0564249526==--
