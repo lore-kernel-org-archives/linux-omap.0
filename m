@@ -1,205 +1,68 @@
-From: Florian Fainelli <florian@openwrt.org>
-Subject: Re: [PATCHv2] drivers: mtd: spinand: Add generic spinand frameowrk.
-Date: Wed, 3 Jul 2013 18:17:51 +0100
-Message-ID: <CAGVrzcbuK-xBeCVTsXhgEbX9CRqt8Dj7++ikoNZW8bY24Uz2Zg@mail.gmail.com>
-References: <1372851110-580-1-git-send-email-sourav.poddar@ti.com>
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: Re: [alsa-devel] Query on Audio DMA using DMAEngine
+Date: Wed, 3 Jul 2013 12:55:36 -0500
+Message-ID: <51D46598.6070005@ti.com>
+References: <083BC63EECB6FD41B8E81CF7FD87CC0F2E4F1488@DLEE08.ent.ti.com>
+	<51D01F31.3010602@metafoo.de> <51D11D64.3070805@topic.nl>
+	<51D24A01.2050709@ti.com> <51D26A18.8040903@topic.nl>
+	<20130702121345.GL27646@sirena.org.uk>
+	<51D3EA42.3040205@metafoo.de>
+	<20130703094307.GE27646@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1372851110-580-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: artem.bityutskiy@linux.intel.com, linux-mtd@lists.infradead.org, David Woodhouse <dwmw2@infradead.org>, manonuevo@micron.com, tqnguyen@micron.com, balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20130703094307.GE27646-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Mike Looijmans <mike.looijmans-Oq418RWZeHk@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+Copying some more lists are we're also discussing the DMA controller in the
+SoCs. Thanks.
 
-2013/7/3 Sourav Poddar <sourav.poddar@ti.com>:
-> From: Mona Anonuevo <manonuevo@micron.com>
->
-> This patch adds support for a generic spinand framework(spinand_mtd.c).
-> This frameowrk can be used for other spi based flash devices. The idea
-> is to have a common model under drivers/mtd, as also present for other non spi
-> devices(there is a generic framework and device part simply attaches itself to it.)
+On 07/03/2013 04:43 AM, Mark Brown wrote:
+> On Wed, Jul 03, 2013 at 11:09:22AM +0200, Lars-Peter Clausen wrote:
+>> On 07/02/2013 02:13 PM, Mark Brown wrote:
+> 
+>>> This sort of cyclic thing tends to be best, ideally you don't need
+>>> interrupts at all (other than a timer).
+> 
+>> Yes, this is usually how it is done. But I'm wondering maybe the EDMA
+>> controller only has a small total amount of slots available.
+> 
+> Well, you don't need particularly many slots so long as you can cope
+> with a large period size.
 
-Resending my comments since your previous submissino
+Hi Mark,
 
->
-> Signed-off-by: Mona Anonuevo <manonuevo@micron.com>
-> Signed-off-by: Tuan Nguyen <tqnguyen@micron.com>
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ----
->
+When would it not be possible to cope with a large period size? Are there any
+guidelines on what to consider when fixing a period size?
 
-[snip]
+I see tegra and aux1x go upto .period_bytes_min = 1024
 
-> +if MTD_SPINAND
-> +
-> +config MTD_SPINAND_ONDIEECC
-> +       bool "Use SPINAND internal ECC"
-> +       help
-> +        Internel ECC
-> +
-> +config MTD_SPINAND_SWECC
-> +       bool "Use software ECC"
-> +       depends on MTD_NAND
-> +       help
-> +        software ECC
+About slots, following are no.of slots on some SoCs with EDMA:
 
-Can this somehow be made a runtime thing?
+am1808 - 96 slots available + 32 taken up for channel but can be reused with
+some changes.
+am335x - 172 slots available + 64 taken up for channels
 
-[snip]
+On a slightly different note, about buffer_bytes_max, is there any drawback to
+setting it to a smaller value? Currently 128K is about what is used on davinci-pcm.
+My idea is to map to do the direct mapping to IRAM if the IRAM transfers are
+really what are preventing the under runs, but 128K will be too much for the
+buffer as we don't have that much IRAM infact it is just the boundary on am33xx
+(128K)
 
-> +               if (count < oob_num && ops->oobbuf && chip->oobbuf) {
-> +                       int size;
-> +                       int offset, len, temp;
-> +
-> +                       /* repack spare to oob */
-> +                       memset(chip->oobbuf, 0, info->ecclayout->oobavail);
-> +
-> +                       temp = 0;
-> +                       offset = info->ecclayout->oobfree[0].offset;
-> +                       len = info->ecclayout->oobfree[0].length;
-> +                       memcpy(chip->oobbuf + temp,
-> +                               chip->buf + info->page_main_size + offset, len);
 
-Sounds like a for look might be useful here
+Thanks,
 
-> +
-> +                       temp += len;
-> +                       offset = info->ecclayout->oobfree[1].offset;
-> +                       len = info->ecclayout->oobfree[1].length;
-> +                       memcpy(chip->oobbuf + temp,
-> +                               chip->buf + info->page_main_size + offset, len);
-> +
-> +                       temp += len;
-> +                       offset = info->ecclayout->oobfree[2].offset;
-> +                       len = info->ecclayout->oobfree[2].length;
-> +                       memcpy(chip->oobbuf + temp,
-> +                               chip->buf + info->page_main_size + offset, len);
-> +
-> +                       temp += len;
-> +                       offset = info->ecclayout->oobfree[3].offset;
-> +                       len = info->ecclayout->oobfree[3].length;
-> +                       memcpy(chip->oobbuf + temp,
-> +                               chip->buf + info->page_main_size + offset, len);
-> +
-
-[snip]
-
-> +                       /* repack oob to spare */
-> +                       temp = 0;
-> +                       offset = info->ecclayout->oobfree[0].offset;
-> +                       len = info->ecclayout->oobfree[0].length;
-> +                       memcpy(chip->buf + info->page_main_size + offset,
-> +                                       chip->oobbuf + temp, len);
-
-And here too.
-
-> +
-> +                       temp += len;
-> +                       offset = info->ecclayout->oobfree[1].offset;
-> +                       len = info->ecclayout->oobfree[1].length;
-> +                       memcpy(chip->buf + info->page_main_size + offset,
-> +                                       chip->oobbuf + temp, len);
-> +
-> +                       temp += len;
-> +                       offset = info->ecclayout->oobfree[2].offset;
-> +                       len = info->ecclayout->oobfree[2].length;
-> +                       memcpy(chip->buf + info->page_main_size + offset,
-> +                                       chip->oobbuf + temp, len);
-> +
-> +                       temp += len;
-> +                       offset = info->ecclayout->oobfree[3].offset;
-> +                       len = info->ecclayout->oobfree[3].length;
-> +                       memcpy(chip->buf + info->page_main_size + offset,
-> +                                       chip->oobbuf + temp, len);
-> +               }
-
-[snip]
-
-> +++ b/include/linux/mtd/spinand.h
-> @@ -0,0 +1,155 @@
-> +/*
-> + *  linux/include/linux/mtd/spinand.h
-> + *  Copyright (c) 2009-2010 Micron Technology, Inc.
-> + *  This software is licensed under the terms of the GNU General Public
-> + *  License version 2, as published by the Free Software Foundation, and
-> + *  may be copied, distributed, and modified under those terms.
-> +
-> + *  This program is distributed in the hope that it will be useful,
-> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *  GNU General Public License for more details.
-> +/bin/bash: 4: command not found
-> + *
-> + *  based on nand.h
-> + */
-> +#ifndef __LINUX_MTD_SPI_NAND_H
-> +#define __LINUX_MTD_SPI_NAND_H
-> +
-> +#include <linux/wait.h>
-> +#include <linux/spinlock.h>
-> +#include <linux/mtd/mtd.h>
-> +
-> +/* cmd */
-> +#define CMD_READ                               0x13
-> +#define CMD_READ_RDM                   0x03
-> +#define CMD_PROG_PAGE_CLRCACHE 0x02
-> +#define CMD_PROG_PAGE                  0x84
-> +#define CMD_PROG_PAGE_EXC              0x10
-> +#define CMD_ERASE_BLK                  0xd8
-> +#define CMD_WR_ENABLE                  0x06
-> +#define CMD_WR_DISABLE                 0x04
-> +#define CMD_READ_ID                    0x9f
-> +#define CMD_RESET                              0xff
-> +#define CMD_READ_REG                   0x0f
-> +#define CMD_WRITE_REG                  0x1f
-
-Can we somehow namespace these defines so they are not so generic?
-Something like SPI_NAND_CMD_READ would be just fine I guess.
-
-> +
-> +/* feature/ status reg */
-> +#define REG_BLOCK_LOCK         0xa0
-> +#define REG_OTP                                0xb0
-> +#define REG_STATUS                     0xc0/* timing */
-> +
-> +/* status */
-> +#define STATUS_OIP_MASK                0x01
-> +#define STATUS_READY           (0 << 0)
-> +#define STATUS_BUSY                    (1 << 0)
-> +
-> +#define STATUS_E_FAIL_MASK     0x04
-> +#define STATUS_E_FAIL          (1 << 2)
-> +
-> +#define STATUS_P_FAIL_MASK     0x08
-> +#define STATUS_P_FAIL          (1 << 3)
-> +
-> +#define STATUS_ECC_MASK                0x30
-> +#define STATUS_ECC_1BIT_CORRECTED      (1 << 4)
-> +#define STATUS_ECC_ERROR                       (2 << 4)
-> +#define STATUS_ECC_RESERVED                    (3 << 4)
-> +
-> +
-> +/*ECC enable defines*/
-> +#define OTP_ECC_MASK           0x10
-> +#define OTP_ECC_OFF                    0
-> +#define OTP_ECC_ON                     1
-> +
-> +#define ECC_DISABLED
-> +#define ECC_IN_NAND
-> +#define ECC_SOFT
-> +
-> +/* block lock */
-> +#define BL_ALL_LOCKED      0x38
-> +#define BL_1_2_LOCKED      0x30
-> +#define BL_1_4_LOCKED      0x28
-> +#define BL_1_8_LOCKED      0x20
-> +#define BL_1_16_LOCKED     0x18
-> +#define BL_1_32_LOCKED     0x10
-> +#define BL_1_64_LOCKED     0x08
-> +#define BL_ALL_UNLOCKED    0
-
---
-Florian
+-Joel
