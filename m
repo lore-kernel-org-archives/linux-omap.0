@@ -1,69 +1,82 @@
-From: Florian Fainelli <florian@openwrt.org>
-Subject: Re: [PATCHv2] drivers: mtd: spinand: Add generic spinand frameowrk.
-Date: Thu, 04 Jul 2013 08:21:59 +0100
-Message-ID: <1390226.n8Vjs1lthe@lenovo>
-References: <1372851110-580-1-git-send-email-sourav.poddar@ti.com> <CAGVrzcbuK-xBeCVTsXhgEbX9CRqt8Dj7++ikoNZW8bY24Uz2Zg@mail.gmail.com> <51D4FD7F.3020104@ti.com>
+From: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
+Subject: Re: omap4 ehci sporadic resume issue
+Date: Thu, 04 Jul 2013 10:53:31 +0200
+Message-ID: <51D5380B.3060401@amarulasolutions.com>
+References: <51CC2755.2030505@amarulasolutions.com> <51CC454A.1040104@ti.com> <20130627141704.GF12956@panicking> <51CC5105.4070301@ti.com> <20130627175623.GB21364@panicking> <CAB=otbQXVqFKOTtgvif=FZnWgDpbovAB6naPKTrsEHUJb21xTw@mail.gmail.com> <20130627192413.GA14115@panicking> <CAB=otbT-BcJg5tNZ=7jd1jvoK8N1Hd_skScuxczaeP=tagdcSw@mail.gmail.com> <20130628113314.GA25536@panicking> <51CD7783.8030907@ti.com> <20130628164751.GA1281@panicking> <51D2E6DA.6030000@ti.com> <51D2E88A.7050202@amarulasolutions.com> <51D2EBBB.8000504@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51D4FD7F.3020104@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: artem.bityutskiy@linux.intel.com, linux-mtd@lists.infradead.org, David Woodhouse <dwmw2@infradead.org>, manonuevo@micron.com, tqnguyen@micron.com, balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <51D2EBBB.8000504-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+Hi
 
-Le jeudi 4 juillet 2013 10:13:43 Sourav Poddar a =E9crit :
-> >=20
-> > Can this somehow be made a runtime thing?
->=20
-> Ahh..I think we might opt for a device tree entry and based on that
-> check for ECC.
+On 07/02/2013 05:03 PM, Roger Quadros wrote:
+> 
+> On 07/02/2013 05:49 PM, Michael Trimarchi wrote:
+>> Hi Roger
+>>
+>> On 07/02/2013 04:42 PM, Roger Quadros wrote:
+>>> On 06/28/2013 07:47 PM, Michael Trimarchi wrote:
+>>>> Hi
+>>>>
+> 
+>>>>>
+>>>>> When you said earlier that the problem doesn't happen when one of the ULPIs is used
+>>>>> did you try both of them individually. e.g. case 1: port 1 only enabled,
+>>>>> case 2: port 2 only enabled.
+>>>>>
+>>>>> Did it work in both the cases?
+>>>>
+>>>> Yes, so I don't think could be a problem of ulpi pins and why this happen
+>>>> on both at the same time? Seems more connected to somenthing else.
+>>>>
+>>>
+>>> Right. Seems to be related to two things. OFF Mode and 2 ports being used simultaneously.
+>>>
+>>> I'm not sure how to go about fixing this. How important is OFF Mode for your application.
+>>> Can you keep it always disabled?
+>>>
+> 
+> 
+>>
+>> Right now I delivery without off mode. I will try to fix in long run the usb and I think that it could be a good platform to test omap4 mainline.
+>>
+> 
+> Yes, our aim is to get it working with mainline as well.
+> 
+>> Last question:
+>> If one domain is in RET mode and not OFF mode what happen during SAR restore in OFF mode?
+>>
+> 
+> SAR restore will only happen when the Device enters OFF mode.
+> 
+> Device OFF mode can only be reached when all voltage domains are switched OFF and that would depend
+> if all power domains entered OFF or not. Just a simplistic explanation. You can refer to chapter
+> "3.9.3 Device OFF State Management" in the TRM.
 
-Ok, sounds good too.
+What happen if we ask to go in off mode for all domains but one doesn't go in off mode so the device
+will not go in off mode and the sar will not be used? How can work the restore?
 
->=20
-> > [snip]
-> >=20
-> >> +               if (count<  oob_num&&  ops->oobbuf&&  chip->oobbuf=
-) {
-> >> +                       int size;
-> >> +                       int offset, len, temp;
-> >> +
-> >> +                       /* repack spare to oob */
-> >> +                       memset(chip->oobbuf, 0,
-> >> info->ecclayout->oobavail);
-> >> +
-> >> +                       temp =3D 0;
-> >> +                       offset =3D info->ecclayout->oobfree[0].off=
-set;
-> >> +                       len =3D info->ecclayout->oobfree[0].length=
-;
-> >> +                       memcpy(chip->oobbuf + temp,
-> >> +                               chip->buf + info->page_main_size +
-> >> offset, len);>=20
-> > Sounds like a for look might be useful here
->=20
-> I dont think so, there is a while loop above under which it happens.
-> We are increasing count at the bottom of the while loop. So, I think
-> this should work fine.
+> 
 
-What I meant here, is that you could use a for loop to repeat 4 times t=
-he same=20
-following pattern, such that it becomes:
+I have added a check of CM_RESTORE_ST. This register need to be clear before
+going in OFF mode and then show if the status of phase1 2a and 2b is completed.
+So before proceed with system resume and after resetting OFF_MODE bit I have tried to wait on this register,
+but without success.
 
-for (j =3D 0; j < 4; j++0 {
-	temp +=3D len;
-	offset =3D info->ecclayout->oobfree[j].offset;
-	len =3D info->ecclayout->oobfree[j].length;
-	memcpy(chip->oobbuf + temp,
-		chip->buf + info->page_main_size + offset, len);
-}
+Michael
 
-Or even make it a helper function which is inlined if that is deemed mo=
-re=20
-elegant.
---=20
-=46lorian
+> cheers,
+> -roger
+> 
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
