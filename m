@@ -1,114 +1,43 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v9 0/8] Generic PHY Framework
-Date: Thu, 4 Jul 2013 10:47:53 +0530
-Message-ID: <51D50581.1000800@ti.com>
-References: <1372247257-30186-1-git-send-email-kishon@ti.com>
- <780E789C2E067A4BB8F69D0BB9EC4F253E975B5E@DBDE04.ent.ti.com>
- <51D3F773.9000209@ti.com> <20130703132038.GI15056@arwen.pp.htv.fi>
+From: Ruchika Kharwar <ruchika@ti.com>
+Subject: [PATCH] usb: phy: omap-usb3: fix dpll clock index
+Date: Thu, 4 Jul 2013 00:21:19 -0500
+Message-ID: <1372915279-14565-1-git-send-email-ruchika@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20130703132038.GI15056-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: "mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Patel,
- Satish" <satish.patel-l0cyMroinI0@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org" <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org" <cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org>, "Cherian,
- George" <george.cherian-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb@vge>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:49017 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752364Ab3GDFWA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jul 2013 01:22:00 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ruchika Kharwar <ruchika@ti.com>, Nikhil Devshatwar <nikhil.nd@ti.com>
 
-SGksCgpPbiBXZWRuZXNkYXkgMDMgSnVseSAyMDEzIDA2OjUwIFBNLCBGZWxpcGUgQmFsYmkgd3Jv
-dGU6Cj4gSGksCj4KPiBPbiBXZWQsIEp1bCAwMywgMjAxMyBhdCAwMzozNTozOVBNICswNTMwLCBL
-aXNob24gVmlqYXkgQWJyYWhhbSBJIHdyb3RlOgo+PiBPbiBXZWRuZXNkYXkgMDMgSnVseSAyMDEz
-IDAzOjAyIFBNLCBQYXRlbCwgU2F0aXNoIHdyb3RlOgo+Pj4gSGkgS2lzaG9uLAo+Pj4KPj4+PiAt
-LS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQo+Pj4+IEZyb206IEFCUkFIQU0sIEtJU0hPTiBWSUpB
-WQo+Pj4+IFNlbnQ6IFdlZG5lc2RheSwgSnVuZSAyNiwgMjAxMyA1OjE3IFBNCj4+Pj4gVG86IGdy
-YW50Lmxpa2VseUBsaW5hcm8ub3JnOyB0b255QGF0b21pZGUuY29tOyBCYWxiaSwgRmVsaXBlOyBB
-QlJBSEFNLAo+Pj4+IEtJU0hPTiBWSUpBWTsgYXJuZEBhcm5kYi5kZTsgc3dhcnJlbkBudmlkaWEu
-Y29tOwo+Pj4+IHN5bHZlc3Rlci5uYXdyb2NraUBnbWFpbC5jb207IGxpbnV4LWtlcm5lbEB2Z2Vy
-Lmtlcm5lbC5vcmc7IGxpbnV4LQo+Pj4+IG9tYXBAdmdlci5rZXJuZWwub3JnOyBsaW51eC1hcm0t
-a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmc7IGxpbnV4LQo+Pj4+IHVzYkB2Z2VyLmtlcm5lbC5v
-cmc7IGdyZWdraEBsaW51eGZvdW5kYXRpb24ub3JnOyBha3BtQGxpbnV4LQo+Pj4+IGZvdW5kYXRp
-b24ub3JnCj4+Pj4gQ2M6IHJvYi5oZXJyaW5nQGNhbHhlZGEuY29tOyByb2JAbGFuZGxleS5uZXQ7
-IGxpbnV4QGFybS5saW51eC5vcmcudWs7Cj4+Pj4gYmVub2l0LmNvdXNzb25AbGluYXJvLm9yZzsg
-bWNoZWhhYkByZWRoYXQuY29tOyBjZXNhcmJAY2VzYXJiLm5ldDsKPj4+PiBkYXZlbUBkYXZlbWxv
-ZnQubmV0OyBOYXlhaywgUmFqZW5kcmE7IHNoYXduLmd1b0BsaW5hcm8ub3JnOyBTaGlsaW1rYXIs
-Cj4+Pj4gU2FudG9zaDsgZGV2aWNldHJlZS1kaXNjdXNzQGxpc3RzLm96bGFicy5vcmc7IGxpbnV4
-LQo+Pj4+IGRvY0B2Z2VyLmtlcm5lbC5vcmc7IE5vcmksIFNla2hhcjsgS3Jpc2huYW1vb3J0aHks
-IEJhbGFqaSBUOyBDaGVyaWFuLAo+Pj4+IEdlb3JnZQo+Pj4+IFN1YmplY3Q6IFtQQVRDSCB2OSAw
-LzhdIEdlbmVyaWMgUEhZIEZyYW1ld29yawo+Pj4+Cj4+Pj4gQWRkZWQgYSBnZW5lcmljIFBIWSBm
-cmFtZXdvcmsgdGhhdCBwcm92aWRlcyBhIHNldCBvZiBBUElzIGZvciB0aGUgUEhZCj4+Pj4gZHJp
-dmVycwo+Pj4+IHRvIGNyZWF0ZS9kZXN0cm95IGEgUEhZIGFuZCBBUElzIGZvciB0aGUgUEhZIHVz
-ZXJzIHRvIG9idGFpbiBhCj4+Pj4gcmVmZXJlbmNlIHRvCj4+Pj4gdGhlIFBIWSB3aXRoIG9yIHdp
-dGhvdXQgdXNpbmcgcGhhbmRsZS4KPj4+Pgo+Pj4+IFRoaXMgZnJhbWV3b3JrIHdpbGwgYmUgb2Yg
-dXNlIG9ubHkgdG8gZGV2aWNlcyB0aGF0IHVzZXMgZXh0ZXJuYWwgUEhZCj4+Pj4gKFBIWQo+Pj4+
-IGZ1bmN0aW9uYWxpdHkgaXMgbm90IGVtYmVkZGVkIHdpdGhpbiB0aGUgY29udHJvbGxlcikuCj4+
-Pj4KPj4+PiBUaGUgaW50ZW50aW9uIG9mIGNyZWF0aW5nIHRoaXMgZnJhbWV3b3JrIGlzIHRvIGJy
-aW5nIHRoZSBwaHkgZHJpdmVycwo+Pj4+IHNwcmVhZAo+Pj4+IGFsbCBvdmVyIHRoZSBMaW51eCBr
-ZXJuZWwgdG8gZHJpdmVycy9waHkgdG8gaW5jcmVhc2UgY29kZSByZS11c2UgYW5kCj4+Pj4gdG8K
-Pj4+PiBpbmNyZWFzZSBjb2RlIG1haW50YWluYWJpbGl0eS4KPj4+Cj4+PiBJIHdvdWxkIGxpa2Ug
-dG8gdXNlIHRoaXMgZnJhbWV3b3JrIGZvciBhIHNtYXJ0LWNhcmQgY29udHJvbGxlciBjb25uZWN0
-ZWQgdG8gYQo+Pj4gc21hcnQtY2FyZCBwaHkuIEkgaGF2ZSBzb21lIHF1ZXN0aW9ucyBhbmQgd291
-bGQgbGlrZSB0byBnZXQgZmVlZGJhY2sgb24gdGhlIHNhbWUuCj4+Cj4+IGdsYWQgdG8ga25vdyB0
-aGF0IDotKQo+Pj4KPj4+IEkgYW0gdXNpbmcg4oCcVERBODAyNiIgU21hcnRjYXJkIFBIWSBmcm9t
-IE5YUC4gSGVyZSBpcyB0aGUgbGluayBmb3IgZGF0YXNoZWV0Cj4+PiBhbmQgYXBwIG5vdGUgZm9y
-IHRoZSBzYW1lLiBUaGUgc21hcnQgY2FyZCBjb250cm9sbGVyIGlzIGluc2lkZSB0aGUgVEkgU29D
-Cj4+PiBJIGFtIHdvcmtpbmcgd2l0aC4KPj4+Cj4+PiBEYXRhc2hlZXQgOgo+Pj4gd3d3Lm54cC5j
-b20vZG9jdW1lbnRzL2RhdGFfc2hlZXQvVERBODAyNi5wZGY/Cj4+Pgo+Pj4gQXBwbm90ZSA6Cj4+
-PiBodHRwOi8vd3d3Lm54cC5jb20vZG9jdW1lbnRzL2FwcGxpY2F0aW9uX25vdGUvQU4xMDcyNC5w
-ZGYKPj4+Cj4+PiBUaGUgVEkgU29DIGRldGFpbHMgYXJlIG5vdCBwdWJsaWMgKHlldCkuIEkgY2Fu
-IHByb3ZpZGUgZGV0YWlscyB0byB5b3Ugb2ZmbGluZS4KPj4+Cj4+PiBCcmllZiBhYm91dCBvcGVy
-YXRpb246Cj4+PiAtCVRoZSBjb250cm9sbGVyIGNhbiB3b3JrIHdpdGggYW5kIHdpdGhvdXQgYSBQ
-SFkKPj4+IC0JV2hlbiBub3QgdXNpbmcgUEhZLCBpdCBpcyBsaW1pdGVkIHRvIHRhbGtpbmcgdG8g
-YSBzaW5nbGUKPj4+IAlzbWFydCBjYXJkLiBUaGVyZSBpcyBhbHNvIGEgbmVlZCB0byBwdXQgZXh0
-ZXJuYWwgZGUtYWN0aXZhdGlvbiBsb2dpYwo+Pj4gCW9uIGNhcmQgcmVtb3ZhbCBmb3IgdGhpcyBj
-YXNlLgo+Pj4gLQlXaXRoIGEgUEhZIHlvdSBjYW4gdXNlIG1vcmUgdGhhbiBvbmUgc21hcnQgY2Fy
-ZC4KPj4+IC0JUGh5IGhhcyA1IHNsb3RzIDogIDEgZm9yIHNtYXJ0IGNhcmQgKGNyZWRpdC9kZWJp
-dC9vdGhlciBjYXJkIHdpdGggY2hpcCkKPj4+ICAgICAgICBhbmQgb3RoZXJzIGZvciBTQU0g4oCT
-IFNJTSBsaWtlIG1vZHVsZXMKPj4+IC0gCU9uY2UgdGhlIFBIWSBpcyBpbml0aWFsaXplZCwgdGhl
-cmUgYXJlIHNvbWUgb3BlcmF0aW9ucyB0aGF0IHRoZSBjb250cm9sbGVyCj4+PiAJY2FuIHJlcXVl
-c3Qgb2YgdGhlIFBIWSBsaWtlOgo+Pj4gCS0gQ2FyZCBjb25maWd1cmF0aW9ucyAgLSBzZXQgdm9s
-dGFnZQo+Pj4gCS0gQWN0aXZhdGlvbiBvZiBjYXJkCj4+PiAJLSBBVFIg4oCTIEFuc3dlciB0byBy
-ZXNldAo+Pj4gCS0gV2FybSByZXNldAo+Pj4gCS0gQURQVSBleGNoYW5nZQo+Pj4gCS0gRGVhY3Rp
-dmF0aW9uICggTm9ybWFsL0VtZXJnZW5jeSkKPj4KPj4gaG1tLi4gV2Ugc2hvdWxkIHRoaW5rIGFi
-b3V0IGV4dGVuZGluZyB0aGUgcGh5X29wcyB0byBpbmNsdWRlIHRoZXNlCj4+IG9wZXJhdGlvbnMg
-KHNvbWV0aGluZyBsaWtlIHBoeV9zbWFydF9jYXJkX29wcyBzbyB0aGF0IG90aGVyCj4+IHNtYXJ0
-X2NhcmQgUEhZcyB3aWxsIGFsc28gYmUgYWJsZSB0byB1c2UgaXQpLgo+Cj4gbGV0J3MgdHJ5IHRv
-IGF2b2lkIHVzZS1jYXNlIHNwZWNpZmljIGFkZGl0aW9ucy4gc2V0X3ZvbHRhZ2Ugc291bmRzIGxp
-a2UKPiBhIHJlZ3VsYXRvciB0aGluZywgYnV0IHRoZSByZWd1bGF0b3IgaXMgY29udHJvbGxlZCB0
-aHJvdWdoIHRoZSBQSFkuIEkKPiBndWVzcyBpdCBtYWtlcyBzZW5zZSB0byBoYXZlIGEgZ2VuZXJp
-YyBwaHlfc2V0X3ZvbHRhZ2UoKSBjYWxsIHNpbmNlIGV2ZW4KPiBVU0IgY2FuIG1ha2UgdXNlIG9m
-IHRoYXQuCj4KPiBGb3IgY2FyZCBhY3RpdmF0aW9uLCBpdCBzb3VuZHMgbGlrZSBwaHlfaW5pdCgp
-L3BoeV9zaHV0ZG93bigpIHdvdWxkCj4gY292ZXIgaXQuCj4KPiBGb3Igd2FybSByZXNldCBwZXJo
-YXBzIGEgcGh5X3Jlc2V0KCkgY2FsbGJhY2sgPyBBbHRob3VnaCB0aGF0IGNvdWxkLAo+IGVhc2ls
-eSwgZ2V0IGFidXNlZC4KPgo+IEZvciBkZWFjdGl2YXRpb24sIHRoYXQncyBwaHlfc2h1dGRvd24o
-KS4KPgo+IEFUUiBhbmQgQURQVSBuZWVkcyBtb3JlIHRob3VnaHQsIEkgZ3Vlc3MuCj4KPj4+IC0g
-CUluIHRoZSBtb2RlIHdoZW4gc21hcnRjYXJkIGNvbnRyb2xsZXIgdGFsa3MgZGlyZWN0bHkgdG8g
-dGhlIGNhcmQgd2l0aG91dCB0aGUgbmVlZAo+Pj4gCWZvciBhIFBIWSwgYWxsIHRoZSBhYm92ZSBv
-cGVyYXRpb25zIHdpbGwgYmUgY2FycmllZCBvdXQgYnkgdGhlIGNvbnRyb2xsZXIgaXRzZWxmCj4+
-Pgo+Pj4gTXkgY3VycmVudCB0aG91Z2h0IHByb2Nlc3MgaXMgdG8gbWFrZSB0aGUgY29udHJvbGxl
-ciBkcml2ZXIgcHJvdmlkZSB0aGUgdXNlciBpbnRlcmZhY2UKPj4+IGFuZCB0YWxrIHRvIHRoZSBQ
-SFkgdXNpbmcgdGhlIGdlbmVyaWMgUEhZIGZyYW1ld29yayB5b3UgcHJvcG9zZWQuIEluIHRoZSBj
-YXNlIHdoZXJlIHRoZXJlCj4+PiBpcyBubyBQSFksIG15IGlkZWEgaXMgdG8gY3JlYXRlIGEgImR1
-bW15IiBQSFkgd2hpY2ggdXNlcyB0aGUgY29udHJvbGxlciBmdW5jdGlvbmFsaXR5IGl0c2VsZi4K
-Pj4KPj4gcmlnaHQuIEFuZCBpbiB0aGUgY2FzZSB3aGVyZSB5b3UgYWN0dWFsbHkgaGF2ZSBhIFBI
-WSwgY3JlYXRlIGEgUEhZCj4+IGRyaXZlciBhbmQgaW1wbGVtZW50IHRoZSBwaHlfc21hcnRfY2Fy
-ZF9vcHMgYW5kIHJlZ2lzdGVyIHdpdGggdGhlIFBIWQo+PiBmcmFtZXdvcmsuCj4KPiBJIHdvdWxk
-IHRyeSB0byBhdm9pZCB0aGF0LiBPdGhlcndpc2Ugd2Ugd2lsbCBoYXZlIHBoeV91c2Jfb3BzLAo+
-IHBoeV9zYXRhX29wcywgcGh5X25ldHdvcmtfb3BzLCBwaHlfcGNpX29wcywgZXRjIGV0YyBldGMu
-IEl0IHdvdWxkIGVhc2lseQo+IGJsb3cgdXAuCgp0cnVlLiBCdXQgaXQncyBjZXJ0YWlubHkgZ29p
-bmcgdG8gYmUgZGlmZmljdWx0IHRvIG1hcCBjZXJ0YWluIGZ1bmN0aW9uCnNwZWNpZmljIG9wcyB0
-byB0aGUgZ2VuZXJpYyBvcHMgKGp1c3QgbGlrZSBBVFIgYW5kIEFEUFUgaW4gc21hcnQgY2FyZApj
-YXNlIG9yIHNldCBwaXhlbCBmb3IgaGRtaSkuCgpUaGFua3MKS2lzaG9uCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRldmljZXRyZWUtZGlzY3VzcyBtYWls
-aW5nIGxpc3QKZGV2aWNldHJlZS1kaXNjdXNzQGxpc3RzLm96bGFicy5vcmcKaHR0cHM6Ly9saXN0
-cy5vemxhYnMub3JnL2xpc3RpbmZvL2RldmljZXRyZWUtZGlzY3Vzcwo=
+Correction of the omap_usb3_dpll_params array when the sys_clk_rate is
+20MHz.
+
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+Signed-off-by: Ruchika Kharwar <ruchika@ti.com>
+---
+ drivers/usb/phy/phy-omap-usb3.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/phy/phy-omap-usb3.c b/drivers/usb/phy/phy-omap-usb3.c
+index efe6e14..a2fb30b 100644
+--- a/drivers/usb/phy/phy-omap-usb3.c
++++ b/drivers/usb/phy/phy-omap-usb3.c
+@@ -71,9 +71,9 @@ static struct usb_dpll_params omap_usb3_dpll_params[NUM_SYS_CLKS] = {
+ 	{1250, 5, 4, 20, 0},		/* 12 MHz */
+ 	{3125, 20, 4, 20, 0},		/* 16.8 MHz */
+ 	{1172, 8, 4, 20, 65537},	/* 19.2 MHz */
++	{1000, 7, 4, 10, 0},            /* 20 MHz */
+ 	{1250, 12, 4, 20, 0},		/* 26 MHz */
+ 	{3125, 47, 4, 20, 92843},	/* 38.4 MHz */
+-	{1000, 7, 4, 10, 0},            /* 20 MHz */
+ 
+ };
+ 
+-- 
+1.7.9.5
+
