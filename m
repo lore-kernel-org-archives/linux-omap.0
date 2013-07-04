@@ -1,43 +1,52 @@
-From: Wei Yongjun <weiyj.lk@gmail.com>
-Subject: [PATCH] ARM: OMAP: fix return value check in omap_device_build_from_dt()
-Date: Thu, 4 Jul 2013 21:42:34 +0800
-Message-ID: <CAPgLHd_E8wht4q5c9=TjUTwXxysjbbX+HnZyYe2KJU=w79cK4w@mail.gmail.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 14/22] arm/am33xx: add TSC/ADC mfd device support
+Date: Thu, 4 Jul 2013 19:19:03 +0530
+Message-ID: <51D57D4F.30905@ti.com>
+References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de> <1370950268-7224-15-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f54.google.com ([209.85.214.54]:60304 "EHLO
-	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468Ab3GDNmg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jul 2013 09:42:36 -0400
-Received: by mail-bk0-f54.google.com with SMTP id it16so661816bkc.13
-        for <linux-omap@vger.kernel.org>; Thu, 04 Jul 2013 06:42:35 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1370950268-7224-15-git-send-email-bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, Sebastian Andrzej Siewior <sebastian-E0PNVn5OA6ohrxcnuTQ+TQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux@arm.linux.org.uk
-Cc: yongjun_wei@trendmicro.com.cn, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-In case of error, the function omap_device_alloc() returns ERR_PTR()
-and never returns NULL. The NULL test in the return value check
-should be replaced with IS_ERR().
+On 6/11/2013 5:01 PM, Sebastian Andrzej Siewior wrote:
+> From: "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>
+> 
+> Add support for core multifunctional device along
+> with its clients touchscreen and ADC.
+> 
+> [ panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org : make sure status is
+> 	set to 'disabled' in dtsi file. ]
+> 
+> Signed-off-by: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+> Signed-off-by: Patil, Rachna <rachna-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> [bigeasy: add 'status = "okay"']
+> Signed-off-by: Sebastian Andrzej Siewior <sebastian-E0PNVn5OA6ohrxcnuTQ+TQ@public.gmane.org>
+> ---
+>  arch/arm/boot/dts/am335x-evm.dts |   14 ++++++++++++++
+>  arch/arm/boot/dts/am33xx.dtsi    |   18 ++++++++++++++++++
+>  2 files changed, 32 insertions(+)
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- arch/arm/mach-omap2/omap_device.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 1460d9b..4ad7797 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -404,6 +404,24 @@
+>  			ti,hwmods = "wkup_m3";
+>  		};
+>  
+> +		tscadc: tscadc@44e0d000 {
+> +			compatible = "ti,am3359-tscadc";
+> +			reg = <0x44e0d000 0x1000>;
+> +			interrupt-parent = <&intc>;
 
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index 5cc9287..28e70c0 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -155,7 +155,7 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
- 	}
- 
- 	od = omap_device_alloc(pdev, hwmods, oh_cnt);
--	if (!od) {
-+	if (IS_ERR(od)) {
- 		dev_err(&pdev->dev, "Cannot allocate omap_device for :%s\n",
- 			oh_name);
- 		ret = PTR_ERR(od);
+interrupt-parent can be dropped since it will be inherited from parent.
 
+Thanks,
+Sekhar
