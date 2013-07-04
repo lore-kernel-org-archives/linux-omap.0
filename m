@@ -1,44 +1,30 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] N900: add device tree
-Date: Thu, 4 Jul 2013 20:19:39 +0300
-Message-ID: <20130704171939.GA27374@blackmetal.musicnaut.iki.fi>
-References: <20130613141001.GF8164@atomide.com>
- <20130613142809.GA3775@amd.pavel.ucw.cz>
- <20130613145724.GH8164@atomide.com>
- <20130613155240.GB3775@amd.pavel.ucw.cz>
- <20130613161418.GJ8164@atomide.com>
- <20130613230808.GA14876@amd.pavel.ucw.cz>
- <20130614055629.GM8164@atomide.com>
- <20130614212816.GA31768@atrey.karlin.mff.cuni.cz>
- <20130617111031.GQ20992@atomide.com>
- <20130701211753.GC15318@amd.pavel.ucw.cz>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.10-rc7
+Date: Thu, 4 Jul 2013 17:39:48 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1307041738550.6258@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1307011946180.4358@utopia.booyaka.com> <20130701204236.GA805@arwen.pp.htv.fi> <alpine.DEB.2.02.1307041650170.6258@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130701211753.GC15318@amd.pavel.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tony Lindgren <tony@atomide.com>, b-cousson@ti.com, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:42554 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756752Ab3GDRjt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jul 2013 13:39:49 -0400
+In-Reply-To: <alpine.DEB.2.02.1307041650170.6258@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Jul 01, 2013 at 11:17:54PM +0200, Pavel Machek wrote:
-> This adds device tree with neccessary support to boot with functional
-> video (on both emulator and real N900 device).
+On Thu, 4 Jul 2013, Paul Walmsley wrote:
 
-Is this really correct? You have commented out the USB, so there is no
-way for a developer to interact with the device.
+> So that's good, will switch to am335x-bone.dtb for the testing restate 
+> jobs to be run for BeagleBone-white, and let's see what previous kernels 
+> it boots with now...
 
-Some minor issue too:
+Sorry, this was unclear.  To rephrase, I will add 
+BeagleBone-black boot retest runs, using am335x-bone.dtb, to the testing 
+restate jobs that were planned for BeagleBone-white.
 
-> +/*
-> + * Copyright (C) 2013 Pavel Machek <pavel@ucw.cz>
-> + * Copyright 2013 Aaro Koskinen <aaro.koskinen@iki.fi>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 (or later) as
-> + * published by the Free Software Foundation.
 
-Should be just GPLv2.
-
-A.
+- Paul
