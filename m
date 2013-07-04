@@ -1,71 +1,78 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 1/4] arm: omap: Add phy binding info for musb in plat
- data
-Date: Thu, 4 Jul 2013 17:40:25 +0530
-Message-ID: <51D56631.2010901@ti.com>
-References: <1371631951-369-1-git-send-email-kishon@ti.com> <1371631951-369-2-git-send-email-kishon@ti.com> <20130704114439.GA5523@atomide.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [RFC 0/4] Cleanup PRM and CM regbit headers
+Date: Thu, 4 Jul 2013 17:44:59 +0530
+Message-ID: <51D56743.9080800@ti.com>
+References: <1372076143-12955-1-git-send-email-rnayak@ti.com> <20130625071428.GC5523@atomide.com> <51C95839.6050307@ti.com> <20130704115819.GJ5523@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130704114439.GA5523@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, balbi@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38832 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755312Ab3GDMP2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jul 2013 08:15:28 -0400
+In-Reply-To: <20130704115819.GJ5523@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "benoit.cousson@gmail.com" <benoit.cousson@gmail.com>
 
-Hi,
-
-On Thursday 04 July 2013 05:14 PM, Tony Lindgren wrote:
-> * Kishon Vijay Abraham I <kishon@ti.com> [130619 01:58]:
->> In order for controllers to get PHY in case of non dt boot, the phy
->> binding information (phy label) should be added in the platform
->> data of the controller.
+On Thursday 04 July 2013 05:28 PM, Tony Lindgren wrote:
+> * Rajendra Nayak <rnayak@ti.com> [130625 01:49]:
+>> On Tuesday 25 June 2013 12:44 PM, Tony Lindgren wrote:
+>>>> Rajendra Nayak (4):
+>>>>>   ARM: OMAP2: PRM/CM: Cleanup unused header contents
+>>>>>   ARM: OMAP3: PRM/CM: Cleanup unused header contents
+>>>>>   ARM: OMAP4: PRM/CM: Cleanup unused header contents
+>>>>>   ARM: OMAP5: PRM/CM: Cleanup unused header contents
+>>>>>
+>>>>>  arch/arm/mach-omap2/cm-regbits-24xx.h  |  317 ----
+>>>>>  arch/arm/mach-omap2/cm-regbits-33xx.h  |  758 ---------
+>>>>>  arch/arm/mach-omap2/cm-regbits-34xx.h  |  631 --------
+>>>>>  arch/arm/mach-omap2/cm-regbits-44xx.h  | 1557 -------------------
+>>>>>  arch/arm/mach-omap2/cm-regbits-54xx.h  | 1632 -------------------
+>>>>>  arch/arm/mach-omap2/prm-regbits-24xx.h |  246 ---
+>>>>>  arch/arm/mach-omap2/prm-regbits-33xx.h |  305 ----
+>>>>>  arch/arm/mach-omap2/prm-regbits-34xx.h |  480 ------
+>>>>>  arch/arm/mach-omap2/prm-regbits-44xx.h | 2225 --------------------------
+>>>>>  arch/arm/mach-omap2/prm-regbits-54xx.h | 2677 --------------------------------
+>>>>>  10 files changed, 10828 deletions(-)
+>>> If things build and work after applying this, I suggest we send them
+>>> as a clean-up branch right after -rc1.
 >>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> Acked-by: Felipe Balbi <balbi@ti.com>
->> Tested-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->> ---
->>   arch/arm/mach-omap2/usb-musb.c |    6 +++++-
->>   include/linux/usb/musb.h       |    3 +++
->>   2 files changed, 8 insertions(+), 1 deletion(-)
+>> They build fine, and I boot tested on the omap4/5 boards that I have too.
+>> (I had the out of tree clock data pulled in for omap5 before I did this
+>> cleanup).
 >>
->> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
->> index 3242a55..5ddbe39 100644
->> --- a/arch/arm/mach-omap2/usb-musb.c
->> +++ b/arch/arm/mach-omap2/usb-musb.c
->> @@ -85,8 +85,12 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
->>   	musb_plat.mode = board_data->mode;
->>   	musb_plat.extvbus = board_data->extvbus;
+>>>
+>>> It seems that build testing and then randconfig testing
+>>> should be enough for these if they are unused and only
+>>> removal.
 >>
->> -	if (cpu_is_omap44xx())
->> +	if (cpu_is_omap44xx()) {
->>   		musb_plat.has_mailbox = true;
->> +		musb_plat.phy_name = "omap-usb2";
->> +	} else if (cpu_is_omap34xx()) {
->> +		musb_plat.phy_name = "twl4030";
->> +	}
->>
->>   	if (soc_is_am35xx()) {
->>   		oh_name = "am35x_otg_hs";
->
-> Care to refresh this patch against the current mainline tree?
+>> Right, I'll do more testing and even though they should just boot
+>> fine on the omap2/3 boards too since all thats removed is anyway
+>> unused, I will still do more sanity test before posting them on -rc1.
+> 
+> Looks like we have all the pending stuff merged already, this would
+> probably be a good time to post a pull request for these.
 
-I'll do that on monday as I'm not in office and I dont have any boards
-to test at my disposal now.
-> Now omap4 is DT only, so this part won't apply. Mostly I'm wondering
-> what the phy_name should be for am35xx that's not covered by this
-> patch.
+Ok, will do, thanks.
 
-am35xx doesn't have a separate PHY driver yet (I guess the programming
-is done in the controller code now). So this binding is not needed for
-am35xx.
->
-> Also let me know if the last patch is safe to queue alone as a fix
-> or if it depends on the driver related changes in this series.
+Paul/Benoit,
 
-No. The last patch is kind-of cleanup needed after applying the first
-3 patches. It's better it's applied along with the other patches.
+Should I also drop these lines from the file headers since they are no
+longer same as the outputs from autogen files?
 
-Thanks
-Kishon
+ * This file is automatically generated from the OMAP hardware databases.
+ * We respectfully ask that any modifications to this file be coordinated
+ * with the public linux-omap@vger.kernel.org mailing list and the
+ * authors above to ensure that the autogeneration scripts are kept
+ * up-to-date with the file contents.
+
+regards,
+Rajendra
+
+> 
+> Tony
+> 
+
