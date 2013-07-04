@@ -1,59 +1,46 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] arm: omap: Add phy binding info for musb in plat
- data
-Date: Thu, 4 Jul 2013 04:44:39 -0700
-Message-ID: <20130704114439.GA5523@atomide.com>
-References: <1371631951-369-1-git-send-email-kishon@ti.com>
- <1371631951-369-2-git-send-email-kishon@ti.com>
+Subject: Re: [PATCH 1/1] ARM: OMAP3: igep0020: Set DSS pins in correct mux
+ mode.
+Date: Thu, 4 Jul 2013 04:47:15 -0700
+Message-ID: <20130704114714.GB5523@atomide.com>
+References: <1371659083-14536-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19362 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753258Ab3GDLrT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jul 2013 07:47:19 -0400
 Content-Disposition: inline
-In-Reply-To: <1371631951-369-2-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, balbi@ti.com
+In-Reply-To: <1371659083-14536-1-git-send-email-javier.martinez@collabora.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, linux-omap@vger.kernel.org, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-* Kishon Vijay Abraham I <kishon@ti.com> [130619 01:58]:
-> In order for controllers to get PHY in case of non dt boot, the phy
-> binding information (phy label) should be added in the platform
-> data of the controller.
+* Javier Martinez Canillas <javier.martinez@collabora.co.uk> [130619 09:31]:
+> From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 > 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Acked-by: Felipe Balbi <balbi@ti.com>
-> Tested-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Platform code used to depend on bootloadres for correctly setting the mux
+> pin modes. But bootloaders should only set the minimum required mux pins.
+> So, DSS mux pins are not set in U-Boot anymore and video display is broken
+> on IGEPv2 when booting with newer U-Boot versions.
+> 
+> Setup the DSS pin muxes to enable display functionality.
+> 
+> Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+> Reviewed-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 > ---
->  arch/arm/mach-omap2/usb-musb.c |    6 +++++-
->  include/linux/usb/musb.h       |    3 +++
->  2 files changed, 8 insertions(+), 1 deletion(-)
 > 
-> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-> index 3242a55..5ddbe39 100644
-> --- a/arch/arm/mach-omap2/usb-musb.c
-> +++ b/arch/arm/mach-omap2/usb-musb.c
-> @@ -85,8 +85,12 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
->  	musb_plat.mode = board_data->mode;
->  	musb_plat.extvbus = board_data->extvbus;
->  
-> -	if (cpu_is_omap44xx())
-> +	if (cpu_is_omap44xx()) {
->  		musb_plat.has_mailbox = true;
-> +		musb_plat.phy_name = "omap-usb2";
-> +	} else if (cpu_is_omap34xx()) {
-> +		musb_plat.phy_name = "twl4030";
-> +	}
->  
->  	if (soc_is_am35xx()) {
->  		oh_name = "am35x_otg_hs";
+> Tony,
+> 
+> Can you please take this until we have finished the OMAP3 migration to DT?
+> 
+> I think it falls under the critical fix category that you were talking about.
 
-Care to refresh this patch against the current mainline tree?
-Now omap4 is DT only, so this part won't apply. Mostly I'm wondering
-what the phy_name should be for am35xx that's not covered by this
-patch.
-
-Also let me know if the last patch is safe to queue alone as a fix
-or if it depends on the driver related changes in this series.
+Thanks, yes I'll apply it into omap-for-v3.11/fixes. Other than DSS and the
+pending pinctrl-single patches, we have off-idle working for omap3 with DT,
+so there really are no reasons to not make omap3 DT only very soon.
 
 Regards,
 
