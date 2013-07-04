@@ -1,38 +1,81 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: [PATCH 14/22] arm/am33xx: add TSC/ADC mfd device support
-Date: Thu, 04 Jul 2013 15:51:54 +0200
-Message-ID: <51D57DFA.9060809@linutronix.de>
-References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de> <1370950268-7224-15-git-send-email-bigeasy@linutronix.de> <51D57D4F.30905@ti.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: Re: [PATCH v3 2/8] wlcore: set irq_flags in the board files instead
+ of hiding behind a quirk
+Date: Thu, 4 Jul 2013 17:21:43 +0300
+Message-ID: <1372947703.21065.126.camel@cumari.coelho.fi>
+References: <1372860209-3504-1-git-send-email-coelho@ti.com>
+	 <1372860209-3504-3-git-send-email-coelho@ti.com>
+	 <1372860925.21065.115.camel@cumari.coelho.fi>
+	 <CAAwP0s3xkqUGnGvojfpyQq97qUmKCqY3BD4RyK1_uuX=pNy91g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51D57D4F.30905-l0cyMroinI0@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, Sebastian Andrzej Siewior <sebastian-E0PNVn5OA6ohrxcnuTQ+TQ@public.gmane.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <CAAwP0s3xkqUGnGvojfpyQq97qUmKCqY3BD4RyK1_uuX=pNy91g@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: linux-wireless@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, mturquette@linaro.org, mark.rutland@arm.com, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 07/04/2013 03:49 PM, Sekhar Nori wrote:
->> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
->> index 1460d9b..4ad7797 100644
->> --- a/arch/arm/boot/dts/am33xx.dtsi
->> +++ b/arch/arm/boot/dts/am33xx.dtsi
->> @@ -404,6 +404,24 @@
->>  			ti,hwmods = "wkup_m3";
->>  		};
->>  
->> +		tscadc: tscadc@44e0d000 {
->> +			compatible = "ti,am3359-tscadc";
->> +			reg = <0x44e0d000 0x1000>;
->> +			interrupt-parent = <&intc>;
+On Wed, 2013-07-03 at 17:12 +0200, Javier Martinez Canillas wrote:
+> On Wed, Jul 3, 2013 at 4:15 PM, Luciano Coelho <coelho@ti.com> wrote:
+> > On Wed, 2013-07-03 at 17:03 +0300, Luciano Coelho wrote:
+> >> The platform_quirk element in the platform data was used to change the
+> >> way the IRQ is triggered.  When set, the EDGE_IRQ quirk would change
+> >> the irqflags used and treat edge trigger differently from the rest.
+> >>
+> >> Instead of hiding this irq flag setting behind the quirk, have the
+> >> board files set the flags during initialization.  This will be more
+> >> meaningful than driver-specific quirks when we switch to DT.
+> >>
+> >> Additionally, fix missing gpio_request() calls in the boarding files
+> >> (so that setting the flags actually works).
+> >>
+> >> Cc: Tony Lindgren <tony@atomide.com>
+> >> Cc: Sekhar Nori <nsekhar@ti.com>
+> >> Signed-off-by: Luciano Coelho <coelho@ti.com>
+> >> ---
+> >
+> > [...]
+> >
+> >> @@ -5928,16 +5927,21 @@ static void wlcore_nvs_cb(const struct firmware *fw, void *context)
+> >>       wlcore_adjust_conf(wl);
+> >>
+> >>       wl->irq = platform_get_irq(pdev, 0);
+> >> -     wl->platform_quirks = pdata->platform_quirks;
+> >>       wl->if_ops = pdev_data->if_ops;
+> >>
+> >> -     if (wl->platform_quirks & WL12XX_PLATFORM_QUIRK_EDGE_IRQ)
+> >> -             irqflags = IRQF_TRIGGER_RISING;
+> >> -     else
+> >> -             irqflags = IRQF_TRIGGER_HIGH | IRQF_ONESHOT;
+> >> +     irq_data = irq_get_irq_data(wl->irq);
+> >> +     if (!irq_data) {
+> >> +             wl1271_error("couldn't get irq data for irq %d\n", wl->irq);
+> >> +             ret = -EINVAL;
+> >> +             goto out_free_nvs;
+> >> +     }
+> >> +
+> >> +     wl->irq_flags = irqd_get_trigger_type(irq_data);
+> >
+> > BTW, there seems to be a patch on its way to make reading the flags
+> > easier (ie. no need to get the irq_data first):
+> >
+> > http://mid.gmane.org/1367945288-5625-1-git-send-email-javier@dowhile0.org
+> >
+> > I'm not sure if this is going to be taken in, but if it does, it would
+> > be nice to change the code here to use the new irq_get_trigger_type()
+> > function.
+
+> That patch has been already merged in Linus tree as commit 1f6236bf
+> ("genirq: Add irq_get_trigger_type() to get IRQ flags").
 > 
-> interrupt-parent can be dropped since it will be inherited from parent.
+> So yes, it would be better if you can use irq_get_trigger_type()
+> instead calling irq_get_irq_data() + irqd_get_trigger_type().
 
-That is true. I prepare a patch for that after the merge window.
+That's great, thanks! I'll make this change as soon as I get your patch
+into my tree (ie. after the merge window closes).
 
-> 
-> Thanks,
-> Sekhar
+--
+Luca.
 
-Sebastian
