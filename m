@@ -1,52 +1,60 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH -next] ARM: OMAP2+: devices: remove duplicated include
- from devices.c
-Date: Thu, 4 Jul 2013 04:53:27 -0700
-Message-ID: <20130704115327.GI5523@atomide.com>
-References: <CAPgLHd9rXBA_QtQqOj4JbcFpfPoRTN5Ac9m9ofbP2PKVSmgANA@mail.gmail.com>
+Subject: Re: [RFC 0/4] Cleanup PRM and CM regbit headers
+Date: Thu, 4 Jul 2013 04:58:19 -0700
+Message-ID: <20130704115819.GJ5523@atomide.com>
+References: <1372076143-12955-1-git-send-email-rnayak@ti.com>
+ <20130625071428.GC5523@atomide.com>
+ <51C95839.6050307@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62710 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753359Ab3GDLxf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jul 2013 07:53:35 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:39563 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750985Ab3GDL6X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jul 2013 07:58:23 -0400
 Content-Disposition: inline
-In-Reply-To: <CAPgLHd9rXBA_QtQqOj4JbcFpfPoRTN5Ac9m9ofbP2PKVSmgANA@mail.gmail.com>
+In-Reply-To: <51C95839.6050307@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Wei Yongjun <weiyj.lk@gmail.com>
-Cc: linux@arm.linux.org.uk, yongjun_wei@trendmicro.com.cn, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Wei Yongjun <weiyj.lk@gmail.com> [130619 17:07]:
-> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+* Rajendra Nayak <rnayak@ti.com> [130625 01:49]:
+> On Tuesday 25 June 2013 12:44 PM, Tony Lindgren wrote:
+> >> Rajendra Nayak (4):
+> >> >   ARM: OMAP2: PRM/CM: Cleanup unused header contents
+> >> >   ARM: OMAP3: PRM/CM: Cleanup unused header contents
+> >> >   ARM: OMAP4: PRM/CM: Cleanup unused header contents
+> >> >   ARM: OMAP5: PRM/CM: Cleanup unused header contents
+> >> > 
+> >> >  arch/arm/mach-omap2/cm-regbits-24xx.h  |  317 ----
+> >> >  arch/arm/mach-omap2/cm-regbits-33xx.h  |  758 ---------
+> >> >  arch/arm/mach-omap2/cm-regbits-34xx.h  |  631 --------
+> >> >  arch/arm/mach-omap2/cm-regbits-44xx.h  | 1557 -------------------
+> >> >  arch/arm/mach-omap2/cm-regbits-54xx.h  | 1632 -------------------
+> >> >  arch/arm/mach-omap2/prm-regbits-24xx.h |  246 ---
+> >> >  arch/arm/mach-omap2/prm-regbits-33xx.h |  305 ----
+> >> >  arch/arm/mach-omap2/prm-regbits-34xx.h |  480 ------
+> >> >  arch/arm/mach-omap2/prm-regbits-44xx.h | 2225 --------------------------
+> >> >  arch/arm/mach-omap2/prm-regbits-54xx.h | 2677 --------------------------------
+> >> >  10 files changed, 10828 deletions(-)
+> > If things build and work after applying this, I suggest we send them
+> > as a clean-up branch right after -rc1.
 > 
-> Remove duplicated include.
+> They build fine, and I boot tested on the omap4/5 boards that I have too.
+> (I had the out of tree clock data pulled in for omap5 before I did this
+> cleanup).
 > 
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> > 
+> > It seems that build testing and then randconfig testing
+> > should be enough for these if they are unused and only
+> > removal.
+> 
+> Right, I'll do more testing and even though they should just boot
+> fine on the omap2/3 boards too since all thats removed is anyway
+> unused, I will still do more sanity test before posting them on -rc1.
 
-Thanks applying into omap-for-v3.11/fixes. Looks like the reboot.h
-duplicate has already been removed.
-
-Regards,
+Looks like we have all the pending stuff merged already, this would
+probably be a good time to post a pull request for these.
 
 Tony
-
-> ---
->  arch/arm/mach-omap2/devices.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index c0f99ab..8349238 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -15,7 +15,6 @@
->  #include <linux/io.h>
->  #include <linux/clk.h>
->  #include <linux/err.h>
-> -#include <linux/gpio.h>
->  #include <linux/slab.h>
->  #include <linux/of.h>
->  #include <linux/pinctrl/machine.h>
-
-
