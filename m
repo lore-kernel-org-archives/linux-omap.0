@@ -1,87 +1,221 @@
-From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: Re: Query on Audio DMA using DMAEngine
-Date: Wed, 3 Jul 2013 14:56:27 -0500
-Message-ID: <51D481EB.5030902@ti.com>
-References: <083BC63EECB6FD41B8E81CF7FD87CC0F2E4F1488@DLEE08.ent.ti.com>
-	<51D01F31.3010602@metafoo.de> <51D11D64.3070805@topic.nl>
-	<51D24A01.2050709@ti.com> <51D26A18.8040903@topic.nl>
-	<20130702121345.GL27646@sirena.org.uk>
-	<51D3EA42.3040205@metafoo.de>
-	<20130703094307.GE27646@sirena.org.uk> <51D4245F.8070307@topic.nl>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [PATCHv2] drivers: mtd: spinand: Add generic spinand frameowrk.
+Date: Thu, 4 Jul 2013 10:13:43 +0530
+Message-ID: <51D4FD7F.3020104@ti.com>
+References: <1372851110-580-1-git-send-email-sourav.poddar@ti.com>
+ <CAGVrzcbuK-xBeCVTsXhgEbX9CRqt8Dj7++ikoNZW8bY24Uz2Zg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <51D4245F.8070307-Oq418RWZeHk@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Mike Looijmans <mike.looijmans-Oq418RWZeHk@public.gmane.org>
-Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <CAGVrzcbuK-xBeCVTsXhgEbX9CRqt8Dj7++ikoNZW8bY24Uz2Zg@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Florian Fainelli <florian@openwrt.org>
+Cc: artem.bityutskiy@linux.intel.com, rnayak@ti.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, balbi@ti.com, linux-mtd@lists.infradead.org, tqnguyen@micron.com, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, manonuevo@micron.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mike,
-
-On 07/03/2013 08:17 AM, Mike Looijmans wrote:
-> On 07/03/2013 11:43 AM, Mark Brown wrote:
->> On Wed, Jul 03, 2013 at 11:09:22AM +0200, Lars-Peter Clausen wrote:
->>> On 07/02/2013 02:13 PM, Mark Brown wrote:
+Hi,
+On Wednesday 03 July 2013 10:47 PM, Florian Fainelli wrote:
+> Hello,
+>
+> 2013/7/3 Sourav Poddar<sourav.poddar@ti.com>:
+>> From: Mona Anonuevo<manonuevo@micron.com>
 >>
->>>> This sort of cyclic thing tends to be best, ideally you don't need
->>>> interrupts at all (other than a timer).
+>> This patch adds support for a generic spinand framework(spinand_mtd.c).
+>> This frameowrk can be used for other spi based flash devices. The idea
+>> is to have a common model under drivers/mtd, as also present for other non spi
+>> devices(there is a generic framework and device part simply attaches itself to it.)
+> Resending my comments since your previous submissino
+>
+>> Signed-off-by: Mona Anonuevo<manonuevo@micron.com>
+>> Signed-off-by: Tuan Nguyen<tqnguyen@micron.com>
+>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
+>> ----
 >>
->>> Yes, this is usually how it is done. But I'm wondering maybe the EDMA
->>> controller only has a small total amount of slots available.
->>
->> Well, you don't need particularly many slots so long as you can cope
->> with a large period size.
-> 
-> On the OMAP L138, there are 128 PARAM slots. 32 of those are tied to hardware
-> events (though you can use them if you aren't using the related hardware, for
-> example the UART drivers don't use DMA so you can freely use those slots if you
-> want), leaving (at least) 96 PARAM slots free. Both audio events are on the same
-> controller, so you can't use the 128 of the other one (the OMAP has 2 EDMA
-> controllers). Only a few dozen of those are being used by various drivers, the
-> SD card driver being the most hungry.
-> For the system to work, you can even get away with only using one slot, and
-> hence one period, but then you'll have to use a mmap and a timer to fill it.
-> 
-> I experimented with various memory layouts. For large transfers, using 2 big
-> periods was quite enough. I also tested with very small period sizes. Using the
+> [snip]
+>
+>> +if MTD_SPINAND
+>> +
+>> +config MTD_SPINAND_ONDIEECC
+>> +       bool "Use SPINAND internal ECC"
+>> +       help
+>> +        Internel ECC
+>> +
+>> +config MTD_SPINAND_SWECC
+>> +       bool "Use software ECC"
+>> +       depends on MTD_NAND
+>> +       help
+>> +        software ECC
+> Can this somehow be made a runtime thing?
+>
+Ahh..I think we might opt for a device tree entry and based on that
+check for ECC.
+> [snip]
+>
+>> +               if (count<  oob_num&&  ops->oobbuf&&  chip->oobbuf) {
+>> +                       int size;
+>> +                       int offset, len, temp;
+>> +
+>> +                       /* repack spare to oob */
+>> +                       memset(chip->oobbuf, 0, info->ecclayout->oobavail);
+>> +
+>> +                       temp = 0;
+>> +                       offset = info->ecclayout->oobfree[0].offset;
+>> +                       len = info->ecclayout->oobfree[0].length;
+>> +                       memcpy(chip->oobbuf + temp,
+>> +                               chip->buf + info->page_main_size + offset, len);
+> Sounds like a for look might be useful here
+>
+I dont think so, there is a while loop above under which it happens.
+We are increasing count at the bottom of the while loop. So, I think
+this should work fine.
+>> +
+>> +                       temp += len;
+>> +                       offset = info->ecclayout->oobfree[1].offset;
+>> +                       len = info->ecclayout->oobfree[1].length;
+>> +                       memcpy(chip->oobbuf + temp,
+>> +                               chip->buf + info->page_main_size + offset, len);
+>> +
+>> +                       temp += len;
+>> +                       offset = info->ecclayout->oobfree[2].offset;
+>> +                       len = info->ecclayout->oobfree[2].length;
+>> +                       memcpy(chip->oobbuf + temp,
+>> +                               chip->buf + info->page_main_size + offset, len);
+>> +
+>> +                       temp += len;
+>> +                       offset = info->ecclayout->oobfree[3].offset;
+>> +                       len = info->ecclayout->oobfree[3].length;
+>> +                       memcpy(chip->oobbuf + temp,
+>> +                               chip->buf + info->page_main_size + offset, len);
+>> +
+> [snip]
+>
+>> +                       /* repack oob to spare */
+>> +                       temp = 0;
+>> +                       offset = info->ecclayout->oobfree[0].offset;
+>> +                       len = info->ecclayout->oobfree[0].length;
+>> +                       memcpy(chip->buf + info->page_main_size + offset,
+>> +                                       chip->oobbuf + temp, len);
+> And here too.
+>
+>
+Same as above.
+>> +
+>> +                       temp += len;
+>> +                       offset = info->ecclayout->oobfree[1].offset;
+>> +                       len = info->ecclayout->oobfree[1].length;
+>> +                       memcpy(chip->buf + info->page_main_size + offset,
+>> +                                       chip->oobbuf + temp, len);
+>> +
+>> +                       temp += len;
+>> +                       offset = info->ecclayout->oobfree[2].offset;
+>> +                       len = info->ecclayout->oobfree[2].length;
+>> +                       memcpy(chip->buf + info->page_main_size + offset,
+>> +                                       chip->oobbuf + temp, len);
+>> +
+>> +                       temp += len;
+>> +                       offset = info->ecclayout->oobfree[3].offset;
+>> +                       len = info->ecclayout->oobfree[3].length;
+>> +                       memcpy(chip->buf + info->page_main_size + offset,
+>> +                                       chip->oobbuf + temp, len);
+>> +               }
+> [snip]
+>
+>> +++ b/include/linux/mtd/spinand.h
+>> @@ -0,0 +1,155 @@
+>> +/*
+>> + *  linux/include/linux/mtd/spinand.h
+>> + *  Copyright (c) 2009-2010 Micron Technology, Inc.
+>> + *  This software is licensed under the terms of the GNU General Public
+>> + *  License version 2, as published by the Free Software Foundation, and
+>> + *  may be copied, distributed, and modified under those terms.
+>> +
+>> + *  This program is distributed in the hope that it will be useful,
+>> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + *  GNU General Public License for more details.
+>> +/bin/bash: 4: command not found
+>> + *
+>> + *  based on nand.h
+>> + */
+>> +#ifndef __LINUX_MTD_SPI_NAND_H
+>> +#define __LINUX_MTD_SPI_NAND_H
+>> +
+>> +#include<linux/wait.h>
+>> +#include<linux/spinlock.h>
+>> +#include<linux/mtd/mtd.h>
+>> +
+>> +/* cmd */
+>> +#define CMD_READ                               0x13
+>> +#define CMD_READ_RDM                   0x03
+>> +#define CMD_PROG_PAGE_CLRCACHE 0x02
+>> +#define CMD_PROG_PAGE                  0x84
+>> +#define CMD_PROG_PAGE_EXC              0x10
+>> +#define CMD_ERASE_BLK                  0xd8
+>> +#define CMD_WR_ENABLE                  0x06
+>> +#define CMD_WR_DISABLE                 0x04
+>> +#define CMD_READ_ID                    0x9f
+>> +#define CMD_RESET                              0xff
+>> +#define CMD_READ_REG                   0x0f
+>> +#define CMD_WRITE_REG                  0x1f
+> Can we somehow namespace these defines so they are not so generic?
+> Something like SPI_NAND_CMD_READ would be just fine I guess.
+>
+I think SPI_CMD_READ will make more sense then, since these
+commands will be applicable for other type of flash devices also.
+>> +
+>> +/* feature/ status reg */
+>> +#define REG_BLOCK_LOCK         0xa0
+>> +#define REG_OTP                                0xb0
+>> +#define REG_STATUS                     0xc0/* timing */
+>> +
+>> +/* status */
+>> +#define STATUS_OIP_MASK                0x01
+>> +#define STATUS_READY           (0<<  0)
+>> +#define STATUS_BUSY                    (1<<  0)
+>> +
+>> +#define STATUS_E_FAIL_MASK     0x04
+>> +#define STATUS_E_FAIL          (1<<  2)
+>> +
+>> +#define STATUS_P_FAIL_MASK     0x08
+>> +#define STATUS_P_FAIL          (1<<  3)
+>> +
+>> +#define STATUS_ECC_MASK                0x30
+>> +#define STATUS_ECC_1BIT_CORRECTED      (1<<  4)
+>> +#define STATUS_ECC_ERROR                       (2<<  4)
+>> +#define STATUS_ECC_RESERVED                    (3<<  4)
+>> +
+>> +
+>> +/*ECC enable defines*/
+>> +#define OTP_ECC_MASK           0x10
+>> +#define OTP_ECC_OFF                    0
+>> +#define OTP_ECC_ON                     1
+>> +
+>> +#define ECC_DISABLED
+>> +#define ECC_IN_NAND
+>> +#define ECC_SOFT
+>> +
+>> +/* block lock */
+>> +#define BL_ALL_LOCKED      0x38
+>> +#define BL_1_2_LOCKED      0x30
+>> +#define BL_1_4_LOCKED      0x28
+>> +#define BL_1_8_LOCKED      0x20
+>> +#define BL_1_16_LOCKED     0x18
+>> +#define BL_1_32_LOCKED     0x10
+>> +#define BL_1_64_LOCKED     0x08
+>> +#define BL_ALL_UNLOCKED    0
+> --
+> Florian
 
-Wouldn't very small periods take up too many interrupts, and also occupy lots of
-slots?
 
-> original code, I was unable to reliably capture (to /dev/null) at period sizes
-> below 80 samples. With the cyclic DMA, I could set a period size of only 40
-> samples and still be able to record audio reliably, when using only 8 periods.
-> The same for playback, basically. So that's how I arrived at the MAX_PERIODS
-> define of "8". It will only claim channels when you use them, so setting it to
-> say "100" will not crash the system.
-
-Thanks for your post Mike. It makes more sense to me now.
-Correct me if I'm wrong but:
-- more the periods, more the granularity- but the drawback is you'd need more
-slots and too many interrupts; so we want fewer periods as many as we need. I
-still don't know though, how do we arrive at an acceptable number that userspace
-expects?
-- periods also will determine buffer size. Considering in future if we'd want to
-use IRAM as the buffer which is limited on some users of the davinci-pcm, there
-might not be enough buffer space.
-
-So too many periods is certainly not a good thing. I wonder how we can arrive at
-what would constitute an acceptable number? As Linus said, "we never break
-userspace :P" so I'd rather not change anything that breaks someone's audio
-application.
-
-I will post some RFC notes soon capture our discussion and other ideas I had put
-together for EDMA as some notes to summarize and get everyone's opinion. I will
-copy you on that as well. Thanks.
-
--Joel
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
