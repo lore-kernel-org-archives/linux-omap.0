@@ -1,37 +1,60 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: [PATCH 04/22] input/ti_am33x_tsc: Order of TSC wires, made configurable
-Date: Thu, 04 Jul 2013 13:33:20 +0200
-Message-ID: <51D55D80.6080803@linutronix.de>
-References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de> <1370950268-7224-5-git-send-email-bigeasy@linutronix.de> <51D5592F.6050208@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/4] arm: omap: Add phy binding info for musb in plat
+ data
+Date: Thu, 4 Jul 2013 04:44:39 -0700
+Message-ID: <20130704114439.GA5523@atomide.com>
+References: <1371631951-369-1-git-send-email-kishon@ti.com>
+ <1371631951-369-2-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51D5592F.6050208-l0cyMroinI0@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1371631951-369-2-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 07/04/2013 01:14 PM, Sekhar Nori wrote:
+* Kishon Vijay Abraham I <kishon@ti.com> [130619 01:58]:
+> In order for controllers to get PHY in case of non dt boot, the phy
+> binding information (phy label) should be added in the platform
+> data of the controller.
 > 
-> On 6/11/2013 5:00 PM, Sebastian Andrzej Siewior wrote:
->> From: "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>
->>
->> The current driver expected touchscreen input
->> wires(XP,XN,YP,YN) to be connected in a particular order.
->> Making changes to accept this as platform data
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> Tested-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>  arch/arm/mach-omap2/usb-musb.c |    6 +++++-
+>  include/linux/usb/musb.h       |    3 +++
+>  2 files changed, 8 insertions(+), 1 deletion(-)
 > 
-> The platform data part of this driver will never get used since it is
-> used on DT-only platforms (and future platforms will all be DT-only).
-> You should get rid of it as it will save you some code.
+> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+> index 3242a55..5ddbe39 100644
+> --- a/arch/arm/mach-omap2/usb-musb.c
+> +++ b/arch/arm/mach-omap2/usb-musb.c
+> @@ -85,8 +85,12 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
+>  	musb_plat.mode = board_data->mode;
+>  	musb_plat.extvbus = board_data->extvbus;
+>  
+> -	if (cpu_is_omap44xx())
+> +	if (cpu_is_omap44xx()) {
+>  		musb_plat.has_mailbox = true;
+> +		musb_plat.phy_name = "omap-usb2";
+> +	} else if (cpu_is_omap34xx()) {
+> +		musb_plat.phy_name = "twl4030";
+> +	}
+>  
+>  	if (soc_is_am35xx()) {
+>  		oh_name = "am35x_otg_hs";
 
-If you follow the series you will notice that the platform bits are
-removed later. Should I have overlooked something please say so.
+Care to refresh this patch against the current mainline tree?
+Now omap4 is DT only, so this part won't apply. Mostly I'm wondering
+what the phy_name should be for am35xx that's not covered by this
+patch.
 
-> 
-> Thanks,
-> Sekhar
-> 
+Also let me know if the last patch is safe to queue alone as a fix
+or if it depends on the driver related changes in this series.
 
-Sebastian
+Regards,
+
+Tony
