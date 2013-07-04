@@ -1,50 +1,40 @@
-From: Mike Looijmans <mike.looijmans@topic.nl>
-Subject: Re: Query on Audio DMA using DMAEngine
-Date: Thu, 04 Jul 2013 07:56:25 +0200
-Message-ID: <51D50E89.5090503@topic.nl>
-References: <083BC63EECB6FD41B8E81CF7FD87CC0F2E4F1488@DLEE08.ent.ti.com>
- <51D01F31.3010602@metafoo.de> <51D11D64.3070805@topic.nl>
- <51D24A01.2050709@ti.com> <51D26A18.8040903@topic.nl>
- <20130702121345.GL27646@sirena.org.uk> <51D3EA42.3040205@metafoo.de>
- <20130703094307.GE27646@sirena.org.uk> <51D46598.6070005@ti.com>
- <20130703181226.GY27646@sirena.org.uk>
+From: Ruchika Kharwar <ruchika@ti.com>
+Subject: [PATCH] usb: dwc3: fix the error returned with usb3_phy failure
+Date: Thu, 4 Jul 2013 00:59:34 -0500
+Message-ID: <1372917575-23069-1-git-send-email-ruchika@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20130703181226.GY27646@sirena.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Joel Fernandes <joelf@ti.com>, alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46301 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755197Ab3GDGAJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Jul 2013 02:00:09 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ruchika Kharwar <ruchika@ti.com>
 
-On 07/03/2013 08:12 PM, Mark Brown wrote:
-> On Wed, Jul 03, 2013 at 12:55:36PM -0500, Joel Fernandes wrote:
->
->> When would it not be possible to cope with a large period size? Are there any
->> guidelines on what to consider when fixing a period size?
->
-> This is an application issue not a driver issue.  An application that
-> wants low latency may need high resolution information about what
-> exactly the hardware is doing.
+When there is an error with the usb3_phy probe or absence, the error returned
+is erroneously for usb2_phy.
 
-To get low-latency, the best thing from userspace is to mmap the audio 
-buffer, and monitor the position of the DMA transfers. If the driver 
-reports the DMA position accurately, you can get latencies of only a few 
-samples. I must admit that I know next to nothing about how ALSA works 
-in userspace, but that's how DirectSound works, for example. And from 
-what I've seen, this is also possible with ALSA.
+Signed-off-by: Ruchika Kharwar <ruchika@ti.com>
+---
+ drivers/usb/dwc3/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Even without that - I tried with small periods of only 40 samples, this 
-invariably fails on the current driver, with or without the ping-ping. 
-Using the cyclic DMA I had no problem using such small periods.
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index c35d49d..358375e 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -450,7 +450,7 @@ static int dwc3_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	if (IS_ERR(dwc->usb3_phy)) {
+-		ret = PTR_ERR(dwc->usb2_phy);
++		ret = PTR_ERR(dwc->usb3_phy);
+ 
+ 		/*
+ 		 * if -ENXIO is returned, it means PHY layer wasn't
+-- 
+1.7.9.5
 
-Mike.
