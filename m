@@ -1,72 +1,155 @@
-From: Mike Looijmans <mike.looijmans@topic.nl>
-Subject: Re: [alsa-devel] Query on Audio DMA using DMAEngine
-Date: Thu, 04 Jul 2013 08:06:34 +0200
-Message-ID: <51D510EA.1030809@topic.nl>
-References: <083BC63EECB6FD41B8E81CF7FD87CC0F2E4F1488@DLEE08.ent.ti.com> <51D01F31.3010602@metafoo.de> <51D11D64.3070805@topic.nl> <51D24A01.2050709@ti.com> <51D26A18.8040903@topic.nl> <20130702121345.GL27646@sirena.org.uk> <51D3EA42.3040205@metafoo.de> <20130703094307.GE27646@sirena.org.uk> <51D46598.6070005@ti.com>
+From: Ruchika Kharwar <ruchika-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] [RFC] usb: dwc3: removal of assumption that usb3 phy always present
+Date: Thu, 4 Jul 2013 01:26:42 -0500
+Message-ID: <1372919202-26755-1-git-send-email-ruchika@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atl4mhob09.myregisteredsite.com ([209.17.115.47]:55993 "EHLO
-	atl4mhob09.myregisteredsite.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755249Ab3GDGGh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jul 2013 02:06:37 -0400
-Received: from mailpod.hostingplatform.com ([10.30.71.207])
-	by atl4mhob09.myregisteredsite.com (8.14.4/8.14.4) with ESMTP id r6466aEr001485
-	for <linux-omap@vger.kernel.org>; Thu, 4 Jul 2013 02:06:36 -0400
-In-Reply-To: <51D46598.6070005@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Ruchika Kharwar <ruchika-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Mark Brown <broonie@kernel.org>, Lars-Peter Clausen <lars@metafoo.de>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com
 
-On 07/03/2013 07:55 PM, Joel Fernandes wrote:
-> Copying some more lists are we're also discussing the DMA controller in the
-> SoCs. Thanks.
->
-> On 07/03/2013 04:43 AM, Mark Brown wrote:
->> On Wed, Jul 03, 2013 at 11:09:22AM +0200, Lars-Peter Clausen wrote:
->>> On 07/02/2013 02:13 PM, Mark Brown wrote:
->>
->>>> This sort of cyclic thing tends to be best, ideally you don't need
->>>> interrupts at all (other than a timer).
->>
->>> Yes, this is usually how it is done. But I'm wondering maybe the EDMA
->>> controller only has a small total amount of slots available.
->>
->> Well, you don't need particularly many slots so long as you can cope
->> with a large period size.
->
-> Hi Mark,
->
-> When would it not be possible to cope with a large period size? Are there any
-> guidelines on what to consider when fixing a period size?
->
-> I see tegra and aux1x go upto .period_bytes_min = 1024
->
-> About slots, following are no.of slots on some SoCs with EDMA:
->
-> am1808 - 96 slots available + 32 taken up for channel but can be reused with
-> some changes.
-> am335x - 172 slots available + 64 taken up for channels
->
-> On a slightly different note, about buffer_bytes_max, is there any drawback to
-> setting it to a smaller value? Currently 128K is about what is used on davinci-pcm.
-> My idea is to map to do the direct mapping to IRAM if the IRAM transfers are
-> really what are preventing the under runs, but 128K will be too much for the
-> buffer as we don't have that much IRAM infact it is just the boundary on am33xx
-> (128K)
+DRA7XX has several USB OTG subsystems. USB_OTG_SS1 includes a USB1 and USB2
+phy. USB_OTG_SS2 includes only a USB2 phy.
+This patch allows the dwc3 probe to continue if a usb3_phy is not found.
 
-In any case, using the IRAM directly might have some use, because you 
-don't have to compete for the DDRRAM with other devices. But I never 
-understood what the ping-ping via IRAM was supposed to accomplish, I 
-don't see why McASP -> IRAM -> DDRRAM (or the other way around) would be 
-better than just McASP -> DDRRAM. Especially since the McASP has a 
-built-in 256 byte FIFO buffer on both channels. In all my measurements, 
-using the IRAM ping-pong only made things worse in terms of overruns and 
-underruns, not better.
+This patch currently works for DRA7XX and submitted in the interim a nicer
+method emerges.
 
-Anyone who know why the ping-pong was implemented and what kind of usage 
-it was intended for?
+Signed-off-by: Ruchika Kharwar <ruchika-l0cyMroinI0@public.gmane.org>
+---
+ drivers/usb/dwc3/core.c   |   38 ++++++++++++++++++++------------------
+ drivers/usb/dwc3/gadget.c |   11 ++++++++---
+ 2 files changed, 28 insertions(+), 21 deletions(-)
 
-Mike.
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 358375e..feea92d 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -100,7 +100,10 @@ static void dwc3_core_soft_reset(struct dwc3 *dwc)
+ 	dwc3_writel(dwc->regs, DWC3_GUSB2PHYCFG(0), reg);
+ 
+ 	usb_phy_init(dwc->usb2_phy);
+-	usb_phy_init(dwc->usb3_phy);
++
++	if (!IS_ERR(dwc->usb3_phy))
++		usb_phy_init(dwc->usb3_phy);
++
+ 	mdelay(100);
+ 
+ 	/* Clear USB3 PHY reset */
+@@ -360,7 +363,9 @@ err0:
+ static void dwc3_core_exit(struct dwc3 *dwc)
+ {
+ 	usb_phy_shutdown(dwc->usb2_phy);
+-	usb_phy_shutdown(dwc->usb3_phy);
++
++	if (!IS_ERR(dwc->usb3_phy))
++		usb_phy_shutdown(dwc->usb3_phy);
+ }
+ 
+ #define DWC3_ALIGN_MASK		(16 - 1)
+@@ -450,22 +455,13 @@ static int dwc3_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	if (IS_ERR(dwc->usb3_phy)) {
+-		ret = PTR_ERR(dwc->usb3_phy);
+-
+-		/*
+-		 * if -ENXIO is returned, it means PHY layer wasn't
+-		 * enabled, so it makes no sense to return -EPROBE_DEFER
+-		 * in that case, since no PHY driver will ever probe.
+-		 */
+-		if (ret == -ENXIO)
+-			return ret;
+-
+-		dev_err(dev, "no usb3 phy configured\n");
+-		return -EPROBE_DEFER;
++		dev_dbg(dev, "no usb3 phy configured, possibly absent\n");
+ 	}
+ 
+ 	usb_phy_set_suspend(dwc->usb2_phy, 0);
+-	usb_phy_set_suspend(dwc->usb3_phy, 0);
++
++	if (!IS_ERR(dwc->usb3_phy))
++		usb_phy_set_suspend(dwc->usb3_phy, 0);
+ 
+ 	spin_lock_init(&dwc->lock);
+ 	platform_set_drvdata(pdev, dwc);
+@@ -604,7 +600,9 @@ static int dwc3_remove(struct platform_device *pdev)
+ 	struct dwc3	*dwc = platform_get_drvdata(pdev);
+ 
+ 	usb_phy_set_suspend(dwc->usb2_phy, 1);
+-	usb_phy_set_suspend(dwc->usb3_phy, 1);
++
++	if (!IS_ERR(dwc->usb3_phy))
++		usb_phy_set_suspend(dwc->usb3_phy, 1);
+ 
+ 	pm_runtime_put(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+@@ -700,7 +698,9 @@ static int dwc3_suspend(struct device *dev)
+ 	dwc->gctl = dwc3_readl(dwc->regs, DWC3_GCTL);
+ 	spin_unlock_irqrestore(&dwc->lock, flags);
+ 
+-	usb_phy_shutdown(dwc->usb3_phy);
++	if (!IS_ERR(dwc->usb3_phy))
++		usb_phy_shutdown(dwc->usb3_phy);
++
+ 	usb_phy_shutdown(dwc->usb2_phy);
+ 
+ 	return 0;
+@@ -711,7 +711,9 @@ static int dwc3_resume(struct device *dev)
+ 	struct dwc3	*dwc = dev_get_drvdata(dev);
+ 	unsigned long	flags;
+ 
+-	usb_phy_init(dwc->usb3_phy);
++	if (!IS_ERR(dwc->usb3_phy))
++		usb_phy_init(dwc->usb3_phy);
++
+ 	usb_phy_init(dwc->usb2_phy);
+ 	msleep(100);
+ 
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index b5e5b35..7ca3745 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -2176,7 +2176,9 @@ static void dwc3_gadget_reset_interrupt(struct dwc3 *dwc)
+ 	if (dwc->revision < DWC3_REVISION_194A) {
+ 		/* Resume PHYs */
+ 		dwc3_gadget_usb2_phy_suspend(dwc, false);
+-		dwc3_gadget_usb3_phy_suspend(dwc, false);
++
++		if (!IS_ERR(dwc->usb3_phy))
++			dwc3_gadget_usb3_phy_suspend(dwc, false);
+ 	}
+ 
+ 	if (dwc->gadget.speed != USB_SPEED_UNKNOWN)
+@@ -2231,7 +2233,8 @@ static void dwc3_gadget_phy_suspend(struct dwc3 *dwc, u8 speed)
+ 	case USB_SPEED_HIGH:
+ 	case USB_SPEED_FULL:
+ 	case USB_SPEED_LOW:
+-		dwc3_gadget_usb3_phy_suspend(dwc, true);
++		if (!IS_ERR(dwc->usb3_phy))
++			dwc3_gadget_usb3_phy_suspend(dwc, true);
+ 		break;
+ 	}
+ }
+@@ -2649,7 +2652,9 @@ int dwc3_gadget_init(struct dwc3 *dwc)
+ 	/* Enable USB2 LPM and automatic phy suspend only on recent versions */
+ 	if (dwc->revision >= DWC3_REVISION_194A) {
+ 		dwc3_gadget_usb2_phy_suspend(dwc, false);
+-		dwc3_gadget_usb3_phy_suspend(dwc, false);
++
++		if (!IS_ERR(dwc->usb3_phy))
++			dwc3_gadget_usb3_phy_suspend(dwc, false);
+ 	}
+ 
+ 	ret = usb_add_gadget_udc(dwc->dev, &dwc->gadget);
+-- 
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
