@@ -1,81 +1,32 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [PATCH v3 2/8] wlcore: set irq_flags in the board files instead
- of hiding behind a quirk
-Date: Thu, 4 Jul 2013 17:21:43 +0300
-Message-ID: <1372947703.21065.126.camel@cumari.coelho.fi>
-References: <1372860209-3504-1-git-send-email-coelho@ti.com>
-	 <1372860209-3504-3-git-send-email-coelho@ti.com>
-	 <1372860925.21065.115.camel@cumari.coelho.fi>
-	 <CAAwP0s3xkqUGnGvojfpyQq97qUmKCqY3BD4RyK1_uuX=pNy91g@mail.gmail.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH 04/22] input/ti_am33x_tsc: Order of TSC wires, made configurable
+Date: Thu, 4 Jul 2013 19:57:26 +0530
+Message-ID: <51D5864E.20401@ti.com>
+References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de> <1370950268-7224-5-git-send-email-bigeasy@linutronix.de> <51D5592F.6050208@ti.com> <51D55D80.6080803@linutronix.de> <51D57AF9.2020001@ti.com> <51D57DBC.3050503@linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CAAwP0s3xkqUGnGvojfpyQq97qUmKCqY3BD4RyK1_uuX=pNy91g@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: linux-wireless@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, mturquette@linaro.org, mark.rutland@arm.com, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:43842 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752610Ab3GDO1p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jul 2013 10:27:45 -0400
+In-Reply-To: <51D57DBC.3050503@linutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
 
-On Wed, 2013-07-03 at 17:12 +0200, Javier Martinez Canillas wrote:
-> On Wed, Jul 3, 2013 at 4:15 PM, Luciano Coelho <coelho@ti.com> wrote:
-> > On Wed, 2013-07-03 at 17:03 +0300, Luciano Coelho wrote:
-> >> The platform_quirk element in the platform data was used to change the
-> >> way the IRQ is triggered.  When set, the EDGE_IRQ quirk would change
-> >> the irqflags used and treat edge trigger differently from the rest.
-> >>
-> >> Instead of hiding this irq flag setting behind the quirk, have the
-> >> board files set the flags during initialization.  This will be more
-> >> meaningful than driver-specific quirks when we switch to DT.
-> >>
-> >> Additionally, fix missing gpio_request() calls in the boarding files
-> >> (so that setting the flags actually works).
-> >>
-> >> Cc: Tony Lindgren <tony@atomide.com>
-> >> Cc: Sekhar Nori <nsekhar@ti.com>
-> >> Signed-off-by: Luciano Coelho <coelho@ti.com>
-> >> ---
-> >
-> > [...]
-> >
-> >> @@ -5928,16 +5927,21 @@ static void wlcore_nvs_cb(const struct firmware *fw, void *context)
-> >>       wlcore_adjust_conf(wl);
-> >>
-> >>       wl->irq = platform_get_irq(pdev, 0);
-> >> -     wl->platform_quirks = pdata->platform_quirks;
-> >>       wl->if_ops = pdev_data->if_ops;
-> >>
-> >> -     if (wl->platform_quirks & WL12XX_PLATFORM_QUIRK_EDGE_IRQ)
-> >> -             irqflags = IRQF_TRIGGER_RISING;
-> >> -     else
-> >> -             irqflags = IRQF_TRIGGER_HIGH | IRQF_ONESHOT;
-> >> +     irq_data = irq_get_irq_data(wl->irq);
-> >> +     if (!irq_data) {
-> >> +             wl1271_error("couldn't get irq data for irq %d\n", wl->irq);
-> >> +             ret = -EINVAL;
-> >> +             goto out_free_nvs;
-> >> +     }
-> >> +
-> >> +     wl->irq_flags = irqd_get_trigger_type(irq_data);
-> >
-> > BTW, there seems to be a patch on its way to make reading the flags
-> > easier (ie. no need to get the irq_data first):
-> >
-> > http://mid.gmane.org/1367945288-5625-1-git-send-email-javier@dowhile0.org
-> >
-> > I'm not sure if this is going to be taken in, but if it does, it would
-> > be nice to change the code here to use the new irq_get_trigger_type()
-> > function.
-
-> That patch has been already merged in Linus tree as commit 1f6236bf
-> ("genirq: Add irq_get_trigger_type() to get IRQ flags").
+On 7/4/2013 7:20 PM, Sebastian Andrzej Siewior wrote:
+> On 07/04/2013 03:39 PM, Sekhar Nori wrote:
+>> Yes, I noticed that after sending the mail. To me it does not make sense
+>> to make changes to accept something as platform data only to remove
+>> platform data itself later.
 > 
-> So yes, it would be better if you can use irq_get_trigger_type()
-> instead calling irq_get_irq_data() + irqd_get_trigger_type().
+> The patches were made earlier and it was easier that way to take
+> everything and simple remove the platform part later.
 
-That's great, thanks! I'll make this change as soon as I get your patch
-into my tree (ie. after the merge window closes).
+Okay, then. If the maintainers do not have objection, I am fine too!
 
---
-Luca.
-
+Regards,
+Sekhar
