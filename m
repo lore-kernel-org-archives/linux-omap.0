@@ -1,168 +1,267 @@
-From: "Patel, Satish" <satish.patel@ti.com>
-Subject: RE: [PATCH v9 0/8] Generic PHY Framework
-Date: Thu, 4 Jul 2013 09:58:07 +0000
-Message-ID: <780E789C2E067A4BB8F69D0BB9EC4F253E975DB0@DBDE04.ent.ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v9 0/8] Generic PHY Framework
+Date: Thu, 4 Jul 2013 13:12:16 +0300
+Message-ID: <20130704101216.GD4830@arwen.pp.htv.fi>
 References: <1372247257-30186-1-git-send-email-kishon@ti.com>
  <780E789C2E067A4BB8F69D0BB9EC4F253E975B5E@DBDE04.ent.ti.com>
  <51D3F773.9000209@ti.com> <20130703132038.GI15056@arwen.pp.htv.fi>
  <780E789C2E067A4BB8F69D0BB9EC4F253E975D6E@DBDE04.ent.ti.com>
  <51D54694.20203@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51D54694.20203@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Cc: "mchehab@redhat.com" <mchehab@redhat.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, "Mankad, Maulik Ojas" <maulik@ti.com>, "swarren@nvidia.com" <swarren@nvidia.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "cesarb@cesarb.net" <cesarb@cesarb.net>, "Cherian,
- George" <george.cherian@ti.com>, "arnd@arndb.de" <arnd@arndb.de>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nayak, Rajendra" <rnayak@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "sylvester.nawrocki@gmail.com" <sylvester.nawrocki@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Krishnamoorthy, Balaji T" <balajitk@ti.>
+Content-Type: multipart/mixed; boundary="===============0033406102592651998=="
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <51D54694.20203-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: "mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Patel,
+ Satish" <satish.patel-l0cyMroinI0@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "Mankad,
+ Maulik Ojas" <maulik-l0cyMroinI0@public.gmane.org>, "swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org" <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org" <cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org>, "Cherian,
+ George" <george.cherian-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>li
 List-Id: linux-omap@vger.kernel.org
 
-SGksDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQUJSQUhBTSwgS0lT
-SE9OIFZJSkFZDQo+IFNlbnQ6IFRodXJzZGF5LCBKdWx5IDA0LCAyMDEzIDM6MjYgUE0NCj4gVG86
-IFBhdGVsLCBTYXRpc2gNCj4gQ2M6IEJhbGJpLCBGZWxpcGU7IGdyYW50Lmxpa2VseUBsaW5hcm8u
-b3JnOyB0b255QGF0b21pZGUuY29tOw0KPiBhcm5kQGFybmRiLmRlOyBzd2FycmVuQG52aWRpYS5j
-b207IHN5bHZlc3Rlci5uYXdyb2NraUBnbWFpbC5jb207DQo+IGxpbnV4LWtlcm5lbEB2Z2VyLmtl
-cm5lbC5vcmc7IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnOyBsaW51eC1hcm0tDQo+IGtlcm5l
-bEBsaXN0cy5pbmZyYWRlYWQub3JnOyBsaW51eC11c2JAdmdlci5rZXJuZWwub3JnOw0KPiBncmVn
-a2hAbGludXhmb3VuZGF0aW9uLm9yZzsgYWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZzsNCj4gcm9i
-LmhlcnJpbmdAY2FseGVkYS5jb207IHJvYkBsYW5kbGV5Lm5ldDsgbGludXhAYXJtLmxpbnV4Lm9y
-Zy51azsNCj4gYmVub2l0LmNvdXNzb25AbGluYXJvLm9yZzsgbWNoZWhhYkByZWRoYXQuY29tOyBj
-ZXNhcmJAY2VzYXJiLm5ldDsNCj4gZGF2ZW1AZGF2ZW1sb2Z0Lm5ldDsgTmF5YWssIFJhamVuZHJh
-OyBzaGF3bi5ndW9AbGluYXJvLm9yZzsgU2hpbGlta2FyLA0KPiBTYW50b3NoOyBkZXZpY2V0cmVl
-LWRpc2N1c3NAbGlzdHMub3psYWJzLm9yZzsgbGludXgtDQo+IGRvY0B2Z2VyLmtlcm5lbC5vcmc7
-IE5vcmksIFNla2hhcjsgS3Jpc2huYW1vb3J0aHksIEJhbGFqaSBUOyBDaGVyaWFuLA0KPiBHZW9y
-Z2U7IE1hbmthZCwgTWF1bGlrIE9qYXMNCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2OSAwLzhdIEdl
-bmVyaWMgUEhZIEZyYW1ld29yaw0KPiANCj4gT24gVGh1cnNkYXkgMDQgSnVseSAyMDEzIDAyOjUx
-IFBNLCBQYXRlbCwgU2F0aXNoIHdyb3RlOg0KPiA+IEhpLA0KPiA+DQo+ID4+IC0tLS0tT3JpZ2lu
-YWwgTWVzc2FnZS0tLS0tDQo+ID4+IEZyb206IEJhbGJpLCBGZWxpcGUNCj4gPj4gU2VudDogV2Vk
-bmVzZGF5LCBKdWx5IDAzLCAyMDEzIDY6NTEgUE0NCj4gPj4gVG86IEFCUkFIQU0sIEtJU0hPTiBW
-SUpBWQ0KPiA+PiBDYzogUGF0ZWwsIFNhdGlzaDsgZ3JhbnQubGlrZWx5QGxpbmFyby5vcmc7IHRv
-bnlAYXRvbWlkZS5jb207DQo+IEJhbGJpLA0KPiA+PiBGZWxpcGU7IGFybmRAYXJuZGIuZGU7IHN3
-YXJyZW5AbnZpZGlhLmNvbTsNCj4gPj4gc3lsdmVzdGVyLm5hd3JvY2tpQGdtYWlsLmNvbTsgbGlu
-dXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgbGludXgtDQo+ID4+IG9tYXBAdmdlci5rZXJuZWwu
-b3JnOyBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmc7IGxpbnV4LQ0KPiA+PiB1
-c2JAdmdlci5rZXJuZWwub3JnOyBncmVna2hAbGludXhmb3VuZGF0aW9uLm9yZzsgYWtwbUBsaW51
-eC0NCj4gPj4gZm91bmRhdGlvbi5vcmc7IHJvYi5oZXJyaW5nQGNhbHhlZGEuY29tOyByb2JAbGFu
-ZGxleS5uZXQ7DQo+ID4+IGxpbnV4QGFybS5saW51eC5vcmcudWs7IGJlbm9pdC5jb3Vzc29uQGxp
-bmFyby5vcmc7DQo+IG1jaGVoYWJAcmVkaGF0LmNvbTsNCj4gPj4gY2VzYXJiQGNlc2FyYi5uZXQ7
-IGRhdmVtQGRhdmVtbG9mdC5uZXQ7IE5heWFrLCBSYWplbmRyYTsNCj4gPj4gc2hhd24uZ3VvQGxp
-bmFyby5vcmc7IFNoaWxpbWthciwgU2FudG9zaDsgZGV2aWNldHJlZS0NCj4gPj4gZGlzY3Vzc0Bs
-aXN0cy5vemxhYnMub3JnOyBsaW51eC1kb2NAdmdlci5rZXJuZWwub3JnOyBOb3JpLCBTZWtoYXI7
-DQo+ID4+IEtyaXNobmFtb29ydGh5LCBCYWxhamkgVDsgQ2hlcmlhbiwgR2VvcmdlDQo+ID4+IFN1
-YmplY3Q6IFJlOiBbUEFUQ0ggdjkgMC84XSBHZW5lcmljIFBIWSBGcmFtZXdvcmsNCj4gPj4NCj4g
-Pj4gSGksDQo+ID4+DQo+ID4+IE9uIFdlZCwgSnVsIDAzLCAyMDEzIGF0IDAzOjM1OjM5UE0gKzA1
-MzAsIEtpc2hvbiBWaWpheSBBYnJhaGFtIEkNCj4gPj4gd3JvdGU6DQo+ID4+PiBPbiBXZWRuZXNk
-YXkgMDMgSnVseSAyMDEzIDAzOjAyIFBNLCBQYXRlbCwgU2F0aXNoIHdyb3RlOg0KPiA+Pj4+IEhp
-IEtpc2hvbiwNCj4gPj4+Pg0KPiA+Pj4+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+
-Pj4+PiBGcm9tOiBBQlJBSEFNLCBLSVNIT04gVklKQVkNCj4gPj4+Pj4gU2VudDogV2VkbmVzZGF5
-LCBKdW5lIDI2LCAyMDEzIDU6MTcgUE0NCj4gPj4+Pj4gVG86IGdyYW50Lmxpa2VseUBsaW5hcm8u
-b3JnOyB0b255QGF0b21pZGUuY29tOyBCYWxiaSwgRmVsaXBlOw0KPiA+PiBBQlJBSEFNLA0KPiA+
-Pj4+PiBLSVNIT04gVklKQVk7IGFybmRAYXJuZGIuZGU7IHN3YXJyZW5AbnZpZGlhLmNvbTsNCj4g
-Pj4+Pj4gc3lsdmVzdGVyLm5hd3JvY2tpQGdtYWlsLmNvbTsgbGludXgta2VybmVsQHZnZXIua2Vy
-bmVsLm9yZzsNCj4gbGludXgtDQo+ID4+Pj4+IG9tYXBAdmdlci5rZXJuZWwub3JnOyBsaW51eC1h
-cm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmc7DQo+IGxpbnV4LQ0KPiA+Pj4+PiB1c2JAdmdl
-ci5rZXJuZWwub3JnOyBncmVna2hAbGludXhmb3VuZGF0aW9uLm9yZzsgYWtwbUBsaW51eC0NCj4g
-Pj4+Pj4gZm91bmRhdGlvbi5vcmcNCj4gPj4+Pj4gQ2M6IHJvYi5oZXJyaW5nQGNhbHhlZGEuY29t
-OyByb2JAbGFuZGxleS5uZXQ7DQo+ID4+IGxpbnV4QGFybS5saW51eC5vcmcudWs7DQo+ID4+Pj4+
-IGJlbm9pdC5jb3Vzc29uQGxpbmFyby5vcmc7IG1jaGVoYWJAcmVkaGF0LmNvbTsNCj4gY2VzYXJi
-QGNlc2FyYi5uZXQ7DQo+ID4+Pj4+IGRhdmVtQGRhdmVtbG9mdC5uZXQ7IE5heWFrLCBSYWplbmRy
-YTsgc2hhd24uZ3VvQGxpbmFyby5vcmc7DQo+ID4+IFNoaWxpbWthciwNCj4gPj4+Pj4gU2FudG9z
-aDsgZGV2aWNldHJlZS1kaXNjdXNzQGxpc3RzLm96bGFicy5vcmc7IGxpbnV4LQ0KPiA+Pj4+PiBk
-b2NAdmdlci5rZXJuZWwub3JnOyBOb3JpLCBTZWtoYXI7IEtyaXNobmFtb29ydGh5LCBCYWxhamkg
-VDsNCj4gPj4gQ2hlcmlhbiwNCj4gPj4+Pj4gR2VvcmdlDQo+ID4+Pj4+IFN1YmplY3Q6IFtQQVRD
-SCB2OSAwLzhdIEdlbmVyaWMgUEhZIEZyYW1ld29yaw0KPiA+Pj4+Pg0KPiA+Pj4+PiBBZGRlZCBh
-IGdlbmVyaWMgUEhZIGZyYW1ld29yayB0aGF0IHByb3ZpZGVzIGEgc2V0IG9mIEFQSXMgZm9yDQo+
-IHRoZQ0KPiA+PiBQSFkNCj4gPj4+Pj4gZHJpdmVycw0KPiA+Pj4+PiB0byBjcmVhdGUvZGVzdHJv
-eSBhIFBIWSBhbmQgQVBJcyBmb3IgdGhlIFBIWSB1c2VycyB0byBvYnRhaW4gYQ0KPiA+Pj4+PiBy
-ZWZlcmVuY2UgdG8NCj4gPj4+Pj4gdGhlIFBIWSB3aXRoIG9yIHdpdGhvdXQgdXNpbmcgcGhhbmRs
-ZS4NCj4gPj4+Pj4NCj4gPj4+Pj4gVGhpcyBmcmFtZXdvcmsgd2lsbCBiZSBvZiB1c2Ugb25seSB0
-byBkZXZpY2VzIHRoYXQgdXNlcyBleHRlcm5hbA0KPiA+PiBQSFkNCj4gPj4+Pj4gKFBIWQ0KPiA+
-Pj4+PiBmdW5jdGlvbmFsaXR5IGlzIG5vdCBlbWJlZGRlZCB3aXRoaW4gdGhlIGNvbnRyb2xsZXIp
-Lg0KPiA+Pj4+Pg0KPiA+Pj4+PiBUaGUgaW50ZW50aW9uIG9mIGNyZWF0aW5nIHRoaXMgZnJhbWV3
-b3JrIGlzIHRvIGJyaW5nIHRoZSBwaHkNCj4gPj4gZHJpdmVycw0KPiA+Pj4+PiBzcHJlYWQNCj4g
-Pj4+Pj4gYWxsIG92ZXIgdGhlIExpbnV4IGtlcm5lbCB0byBkcml2ZXJzL3BoeSB0byBpbmNyZWFz
-ZSBjb2RlIHJlLXVzZQ0KPiA+PiBhbmQNCj4gPj4+Pj4gdG8NCj4gPj4+Pj4gaW5jcmVhc2UgY29k
-ZSBtYWludGFpbmFiaWxpdHkuDQo+ID4+Pj4NCj4gPj4+PiBJIHdvdWxkIGxpa2UgdG8gdXNlIHRo
-aXMgZnJhbWV3b3JrIGZvciBhIHNtYXJ0LWNhcmQgY29udHJvbGxlcg0KPiA+PiBjb25uZWN0ZWQg
-dG8gYQ0KPiA+Pj4+IHNtYXJ0LWNhcmQgcGh5LiBJIGhhdmUgc29tZSBxdWVzdGlvbnMgYW5kIHdv
-dWxkIGxpa2UgdG8gZ2V0DQo+ID4+IGZlZWRiYWNrIG9uIHRoZSBzYW1lLg0KPiA+Pj4NCj4gPj4+
-IGdsYWQgdG8ga25vdyB0aGF0IDotKQ0KPiA+Pj4+DQo+ID4+Pj4gSSBhbSB1c2luZyDigJxUREE4
-MDI2IiBTbWFydGNhcmQgUEhZIGZyb20gTlhQLiBIZXJlIGlzIHRoZSBsaW5rIGZvcg0KPiA+PiBk
-YXRhc2hlZXQNCj4gPj4+PiBhbmQgYXBwIG5vdGUgZm9yIHRoZSBzYW1lLiBUaGUgc21hcnQgY2Fy
-ZCBjb250cm9sbGVyIGlzIGluc2lkZQ0KPiB0aGUNCj4gPj4gVEkgU29DDQo+ID4+Pj4gSSBhbSB3
-b3JraW5nIHdpdGguDQo+ID4+Pj4NCj4gPj4+PiBEYXRhc2hlZXQgOg0KPiA+Pj4+IHd3dy5ueHAu
-Y29tL2RvY3VtZW50cy9kYXRhX3NoZWV0L1REQTgwMjYucGRmPw0KPiA+Pj4+DQo+ID4+Pj4gQXBw
-bm90ZSA6DQo+ID4+Pj4gaHR0cDovL3d3dy5ueHAuY29tL2RvY3VtZW50cy9hcHBsaWNhdGlvbl9u
-b3RlL0FOMTA3MjQucGRmDQo+ID4+Pj4NCj4gPj4+PiBUaGUgVEkgU29DIGRldGFpbHMgYXJlIG5v
-dCBwdWJsaWMgKHlldCkuIEkgY2FuIHByb3ZpZGUgZGV0YWlscyB0bw0KPiA+PiB5b3Ugb2ZmbGlu
-ZS4NCj4gPj4+Pg0KPiA+Pj4+IEJyaWVmIGFib3V0IG9wZXJhdGlvbjoNCj4gPj4+PiAtCVRoZSBj
-b250cm9sbGVyIGNhbiB3b3JrIHdpdGggYW5kIHdpdGhvdXQgYSBQSFkNCj4gPj4+PiAtCVdoZW4g
-bm90IHVzaW5nIFBIWSwgaXQgaXMgbGltaXRlZCB0byB0YWxraW5nIHRvIGEgc2luZ2xlDQo+ID4+
-Pj4gCXNtYXJ0IGNhcmQuIFRoZXJlIGlzIGFsc28gYSBuZWVkIHRvIHB1dCBleHRlcm5hbCBkZS1h
-Y3RpdmF0aW9uDQo+ID4+IGxvZ2ljDQo+ID4+Pj4gCW9uIGNhcmQgcmVtb3ZhbCBmb3IgdGhpcyBj
-YXNlLg0KPiA+Pj4+IC0JV2l0aCBhIFBIWSB5b3UgY2FuIHVzZSBtb3JlIHRoYW4gb25lIHNtYXJ0
-IGNhcmQuDQo+ID4+Pj4gLQlQaHkgaGFzIDUgc2xvdHMgOiAgMSBmb3Igc21hcnQgY2FyZCAoY3Jl
-ZGl0L2RlYml0L290aGVyIGNhcmQNCj4gPj4gd2l0aCBjaGlwKQ0KPiA+Pj4+ICAgICAgICBhbmQg
-b3RoZXJzIGZvciBTQU0g4oCTIFNJTSBsaWtlIG1vZHVsZXMNCj4gPj4+PiAtIAlPbmNlIHRoZSBQ
-SFkgaXMgaW5pdGlhbGl6ZWQsIHRoZXJlIGFyZSBzb21lIG9wZXJhdGlvbnMNCj4gdGhhdCB0aGUN
-Cj4gPj4gY29udHJvbGxlcg0KPiA+Pj4+IAljYW4gcmVxdWVzdCBvZiB0aGUgUEhZIGxpa2U6DQo+
-ID4+Pj4gCS0gQ2FyZCBjb25maWd1cmF0aW9ucyAgLSBzZXQgdm9sdGFnZQ0KPiA+Pj4+IAktIEFj
-dGl2YXRpb24gb2YgY2FyZA0KPiA+Pj4+IAktIEFUUiDigJMgQW5zd2VyIHRvIHJlc2V0DQo+ID4+
-Pj4gCS0gV2FybSByZXNldA0KPiA+Pj4+IAktIEFEUFUgZXhjaGFuZ2UNCj4gPj4+PiAJLSBEZWFj
-dGl2YXRpb24gKCBOb3JtYWwvRW1lcmdlbmN5KQ0KPiA+Pj4NCj4gPj4+IGhtbS4uIFdlIHNob3Vs
-ZCB0aGluayBhYm91dCBleHRlbmRpbmcgdGhlIHBoeV9vcHMgdG8gaW5jbHVkZSB0aGVzZQ0KPiA+
-Pj4gb3BlcmF0aW9ucyAoc29tZXRoaW5nIGxpa2UgcGh5X3NtYXJ0X2NhcmRfb3BzIHNvIHRoYXQg
-b3RoZXINCj4gPj4+IHNtYXJ0X2NhcmQgUEhZcyB3aWxsIGFsc28gYmUgYWJsZSB0byB1c2UgaXQp
-Lg0KPiA+Pg0KPiA+PiBsZXQncyB0cnkgdG8gYXZvaWQgdXNlLWNhc2Ugc3BlY2lmaWMgYWRkaXRp
-b25zLiBzZXRfdm9sdGFnZSBzb3VuZHMNCj4gPj4gbGlrZQ0KPiA+PiBhIHJlZ3VsYXRvciB0aGlu
-ZywgYnV0IHRoZSByZWd1bGF0b3IgaXMgY29udHJvbGxlZCB0aHJvdWdoIHRoZSBQSFkuDQo+IEkN
-Cj4gPj4gZ3Vlc3MgaXQgbWFrZXMgc2Vuc2UgdG8gaGF2ZSBhIGdlbmVyaWMgcGh5X3NldF92b2x0
-YWdlKCkgY2FsbCBzaW5jZQ0KPiA+PiBldmVuDQo+ID4+IFVTQiBjYW4gbWFrZSB1c2Ugb2YgdGhh
-dC4NCj4gPj4NCj4gPj4gRm9yIGNhcmQgYWN0aXZhdGlvbiwgaXQgc291bmRzIGxpa2UgcGh5X2lu
-aXQoKS9waHlfc2h1dGRvd24oKSB3b3VsZA0KPiA+PiBjb3ZlciBpdC4NCj4gPj4NCj4gPj4gRm9y
-IHdhcm0gcmVzZXQgcGVyaGFwcyBhIHBoeV9yZXNldCgpIGNhbGxiYWNrID8gQWx0aG91Z2ggdGhh
-dA0KPiBjb3VsZCwNCj4gPj4gZWFzaWx5LCBnZXQgYWJ1c2VkLg0KPiA+Pg0KPiA+PiBGb3IgZGVh
-Y3RpdmF0aW9uLCB0aGF0J3MgcGh5X3NodXRkb3duKCkuDQo+ID4+DQo+ID4+IEFUUiBhbmQgQURQ
-VSBuZWVkcyBtb3JlIHRob3VnaHQsIEkgZ3Vlc3MuDQo+ID4+DQo+ID4+Pj4gLSAJSW4gdGhlIG1v
-ZGUgd2hlbiBzbWFydGNhcmQgY29udHJvbGxlciB0YWxrcyBkaXJlY3RseSB0bw0KPiB0aGUNCj4g
-Pj4gY2FyZCB3aXRob3V0IHRoZSBuZWVkDQo+ID4+Pj4gCWZvciBhIFBIWSwgYWxsIHRoZSBhYm92
-ZSBvcGVyYXRpb25zIHdpbGwgYmUgY2FycmllZCBvdXQgYnkgdGhlDQo+ID4+IGNvbnRyb2xsZXIg
-aXRzZWxmDQo+ID4+Pj4NCj4gPj4+PiBNeSBjdXJyZW50IHRob3VnaHQgcHJvY2VzcyBpcyB0byBt
-YWtlIHRoZSBjb250cm9sbGVyIGRyaXZlcg0KPiBwcm92aWRlDQo+ID4+IHRoZSB1c2VyIGludGVy
-ZmFjZQ0KPiA+Pj4+IGFuZCB0YWxrIHRvIHRoZSBQSFkgdXNpbmcgdGhlIGdlbmVyaWMgUEhZIGZy
-YW1ld29yayB5b3UgcHJvcG9zZWQuDQo+ID4+IEluIHRoZSBjYXNlIHdoZXJlIHRoZXJlDQo+ID4+
-Pj4gaXMgbm8gUEhZLCBteSBpZGVhIGlzIHRvIGNyZWF0ZSBhICJkdW1teSIgUEhZIHdoaWNoIHVz
-ZXMgdGhlDQo+ID4+IGNvbnRyb2xsZXIgZnVuY3Rpb25hbGl0eSBpdHNlbGYuDQo+ID4+Pg0KPiA+
-Pj4gcmlnaHQuIEFuZCBpbiB0aGUgY2FzZSB3aGVyZSB5b3UgYWN0dWFsbHkgaGF2ZSBhIFBIWSwg
-Y3JlYXRlIGEgUEhZDQo+ID4+PiBkcml2ZXIgYW5kIGltcGxlbWVudCB0aGUgcGh5X3NtYXJ0X2Nh
-cmRfb3BzIGFuZCByZWdpc3RlciB3aXRoIHRoZQ0KPiA+PiBQSFkNCj4gPj4+IGZyYW1ld29yay4N
-Cj4gPj4NCj4gPj4gSSB3b3VsZCB0cnkgdG8gYXZvaWQgdGhhdC4gT3RoZXJ3aXNlIHdlIHdpbGwg
-aGF2ZSBwaHlfdXNiX29wcywNCj4gPj4gcGh5X3NhdGFfb3BzLCBwaHlfbmV0d29ya19vcHMsIHBo
-eV9wY2lfb3BzLCBldGMgZXRjIGV0Yy4gSXQgd291bGQNCj4gPj4gZWFzaWx5DQo+ID4+IGJsb3cg
-dXAuDQo+ID4+DQo+ID4NCj4gPiAtIEkgZG8gYWdyZWUgd2l0aCB5b3UuIENyZWF0aW5nIFBoeSBz
-cGVjaWZpYyBvcHMgd2lsbCBibG93IHVwIHdob2xlDQo+ID4gICAgY29uY2VwdCBvZiBnZW5lcmlj
-IHBoeSBmL3cuDQo+ID4gLSBDYW4gd2UgaGF2ZSBpbnRlcmZhY2UgbGlrZSBwaHlfc2V0Y29uZmln
-IC0gd2l0aCBwYXJhbWV0ZXIgbGlrZQ0KPiA+ICAgIHBoeV9zZXRjb25maWcoaW50IHBhcmFtLCB2
-b2lkICp2YWx1ZSkNCj4gPiAJLSBIZXJlIHBhcmFtIGNhbiBiZSBlbnVtIG9mIGF2YWlsYWJsZSBj
-b25maWcgcGFyYW1ldGVycyBmb3INCj4gPiAJICBzcGVjaWZpYyBwaHkuDQo+ID4gUGh5IGNhbiBw
-ZXJmb3JtIGRpZmZlcmVudCBvcGVyYXRpb24vc2V0IGludGVybmFsIHN0YXRlIGJhc2VkIG9uDQo+
-ID4gcGFyYW0gc2VsZWN0aW9uIGFuZCB2YWx1ZSBwYXNzZWQgYnkuDQo+ID4NCj4gPiBlLnggaW4g
-Y2FzZSBvZiBzbWFydGNhcmQNCj4gPiAJZW51bSBzZXRfY29uZmlnIHsNCj4gPiAJCVNFVF9WT0xB
-VEFHRSwNCj4gPiAJCVNFVF9BQ1RJVkFURSwNCj4gPiAJCVNFVF9XQVJNUkVTRVQsDQo+ID4gCQlT
-RVRfQVRSLA0KPiA+IAkJU0VUX0RFQUNUSVZFLA0KPiA+IAkJLi4uLg0KPiA+IAl9Ow0KPiANCj4g
-aG1tLi4gdGhpcyBsb29rcyBzaW1pbGFyIHRvIGlvY3RsIGFuZCBjYW4gYmUgYWJ1c2VkIGVhc2ls
-eSBJTU8gOnMNCj4gDQp3aGF0IGFyZSB5b3VyIGlucHV0cyB0byBhZGFwdCBtdWx0aXBsZSBwaHlz
-IGludG8gZ2VuZXJpYyBwaHkgZi93ID8NCg0KPiAtS2lzaG9uDQpfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlz
-dApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJh
-ZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+--===============0033406102592651998==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DrWhICOqskFTAXiy"
+Content-Disposition: inline
+
+--DrWhICOqskFTAXiy
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Jul 04, 2013 at 03:25:32PM +0530, Kishon Vijay Abraham I wrote:
+> On Thursday 04 July 2013 02:51 PM, Patel, Satish wrote:
+> >Hi,
+> >
+> >>-----Original Message-----
+> >>From: Balbi, Felipe
+> >>Sent: Wednesday, July 03, 2013 6:51 PM
+> >>To: ABRAHAM, KISHON VIJAY
+> >>Cc: Patel, Satish; grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org; tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org; Balbi,
+> >>Felipe; arnd-r2nGTMty4D4@public.gmane.org; swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org;
+> >>sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
+> >>omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-
+> >>usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org; akpm@linux-
+> >>foundation.org; rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org; rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org;
+> >>linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org; benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org; mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org;
+> >>cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org; davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org; Nayak, Rajendra;
+> >>shawn.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org; Shilimkar, Santosh; devicetree-
+> >>discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org; linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Nori, Sekhar;
+> >>Krishnamoorthy, Balaji T; Cherian, George
+> >>Subject: Re: [PATCH v9 0/8] Generic PHY Framework
+> >>
+> >>Hi,
+> >>
+> >>On Wed, Jul 03, 2013 at 03:35:39PM +0530, Kishon Vijay Abraham I
+> >>wrote:
+> >>>On Wednesday 03 July 2013 03:02 PM, Patel, Satish wrote:
+> >>>>Hi Kishon,
+> >>>>
+> >>>>>-----Original Message-----
+> >>>>>From: ABRAHAM, KISHON VIJAY
+> >>>>>Sent: Wednesday, June 26, 2013 5:17 PM
+> >>>>>To: grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org; tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org; Balbi, Felipe;
+> >>ABRAHAM,
+> >>>>>KISHON VIJAY; arnd-r2nGTMty4D4@public.gmane.org; swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org;
+> >>>>>sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
+> >>>>>omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-
+> >>>>>usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org; akpm@linux-
+> >>>>>foundation.org
+> >>>>>Cc: rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org; rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org;
+> >>linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org;
+> >>>>>benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org; mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org;
+> >>>>>davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org; Nayak, Rajendra; shawn.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org;
+> >>Shilimkar,
+> >>>>>Santosh; devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org; linux-
+> >>>>>doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Nori, Sekhar; Krishnamoorthy, Balaji T;
+> >>Cherian,
+> >>>>>George
+> >>>>>Subject: [PATCH v9 0/8] Generic PHY Framework
+> >>>>>
+> >>>>>Added a generic PHY framework that provides a set of APIs for the
+> >>PHY
+> >>>>>drivers
+> >>>>>to create/destroy a PHY and APIs for the PHY users to obtain a
+> >>>>>reference to
+> >>>>>the PHY with or without using phandle.
+> >>>>>
+> >>>>>This framework will be of use only to devices that uses external
+> >>PHY
+> >>>>>(PHY
+> >>>>>functionality is not embedded within the controller).
+> >>>>>
+> >>>>>The intention of creating this framework is to bring the phy
+> >>drivers
+> >>>>>spread
+> >>>>>all over the Linux kernel to drivers/phy to increase code re-use
+> >>and
+> >>>>>to
+> >>>>>increase code maintainability.
+> >>>>
+> >>>>I would like to use this framework for a smart-card controller
+> >>connected to a
+> >>>>smart-card phy. I have some questions and would like to get
+> >>feedback on the same.
+> >>>
+> >>>glad to know that :-)
+> >>>>
+> >>>>I am using =E2=80=9CTDA8026" Smartcard PHY from NXP. Here is the link=
+ for
+> >>datasheet
+> >>>>and app note for the same. The smart card controller is inside the
+> >>TI SoC
+> >>>>I am working with.
+> >>>>
+> >>>>Datasheet :
+> >>>>www.nxp.com/documents/data_sheet/TDA8026.pdf?
+> >>>>
+> >>>>Appnote :
+> >>>>http://www.nxp.com/documents/application_note/AN10724.pdf
+> >>>>
+> >>>>The TI SoC details are not public (yet). I can provide details to
+> >>you offline.
+> >>>>
+> >>>>Brief about operation:
+> >>>>-	The controller can work with and without a PHY
+> >>>>-	When not using PHY, it is limited to talking to a single
+> >>>>	smart card. There is also a need to put external de-activation
+> >>logic
+> >>>>	on card removal for this case.
+> >>>>-	With a PHY you can use more than one smart card.
+> >>>>-	Phy has 5 slots :  1 for smart card (credit/debit/other card
+> >>with chip)
+> >>>>       and others for SAM =E2=80=93 SIM like modules
+> >>>>- 	Once the PHY is initialized, there are some operations that the
+> >>controller
+> >>>>	can request of the PHY like:
+> >>>>	- Card configurations  - set voltage
+> >>>>	- Activation of card
+> >>>>	- ATR =E2=80=93 Answer to reset
+> >>>>	- Warm reset
+> >>>>	- ADPU exchange
+> >>>>	- Deactivation ( Normal/Emergency)
+> >>>
+> >>>hmm.. We should think about extending the phy_ops to include these
+> >>>operations (something like phy_smart_card_ops so that other
+> >>>smart_card PHYs will also be able to use it).
+> >>
+> >>let's try to avoid use-case specific additions. set_voltage sounds
+> >>like
+> >>a regulator thing, but the regulator is controlled through the PHY. I
+> >>guess it makes sense to have a generic phy_set_voltage() call since
+> >>even
+> >>USB can make use of that.
+> >>
+> >>For card activation, it sounds like phy_init()/phy_shutdown() would
+> >>cover it.
+> >>
+> >>For warm reset perhaps a phy_reset() callback ? Although that could,
+> >>easily, get abused.
+> >>
+> >>For deactivation, that's phy_shutdown().
+> >>
+> >>ATR and ADPU needs more thought, I guess.
+> >>
+> >>>>- 	In the mode when smartcard controller talks directly to the
+> >>card without the need
+> >>>>	for a PHY, all the above operations will be carried out by the
+> >>controller itself
+> >>>>
+> >>>>My current thought process is to make the controller driver provide
+> >>the user interface
+> >>>>and talk to the PHY using the generic PHY framework you proposed.
+> >>In the case where there
+> >>>>is no PHY, my idea is to create a "dummy" PHY which uses the
+> >>controller functionality itself.
+> >>>
+> >>>right. And in the case where you actually have a PHY, create a PHY
+> >>>driver and implement the phy_smart_card_ops and register with the
+> >>PHY
+> >>>framework.
+> >>
+> >>I would try to avoid that. Otherwise we will have phy_usb_ops,
+> >>phy_sata_ops, phy_network_ops, phy_pci_ops, etc etc etc. It would
+> >>easily
+> >>blow up.
+> >>
+> >
+> >- I do agree with you. Creating Phy specific ops will blow up whole
+> >   concept of generic phy f/w.
+> >- Can we have interface like phy_setconfig - with parameter like
+> >   phy_setconfig(int param, void *value)
+> >	- Here param can be enum of available config parameters for
+> >	  specific phy.
+> >Phy can perform different operation/set internal state based on
+> >param selection and value passed by.
+> >=09
+> >e.x in case of smartcard
+> >	enum set_config {
+> >		SET_VOLATAGE,
+> >		SET_ACTIVATE,
+> >		SET_WARMRESET,
+> >		SET_ATR,
+> >		SET_DEACTIVE,
+> >		....
+> >	};
+>=20
+> hmm.. this looks similar to ioctl and can be abused easily IMO :s
+
++1
+
+What we need is to come up with generic ways to model those, if we need
+set voltage, then add a phy_set_voltage() kinda thing, perhaps add
+capability flags to enable/disable support fort those (just like mmc
+does).
+
+But adding something which can handle "anything" like phy_set_config(),
+it's the same as adding use-case specific ops.
+
+--=20
+balbi
+
+--DrWhICOqskFTAXiy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR1UqAAAoJEIaOsuA1yqREhAkP/Rd4xec0TWkbSZsV6qhxZAaZ
+Y6oPI+mTdrCUPYWM6itlSpFV/FndNy0KM+lEQyPCDEdgRObar5NYBJ2moKKtzyEB
+LwzdyYTYK2hZXZyQ2s2YLFKA19hjs7biABzAW2Xd/rEhn0+x+fhJQvuoGCGFLRQn
+vKPZlNsaBR+zAzzZKAVqntvmFxcIPLkgfRpSNYHNoAITRO40wUVeIf+8wfqXQG5q
+4d0Ft7L1FBWRJjXdfyaJrvlhym2uu+fmspnpWPdFITfJ2AYxP5yac/pZe+RWSlg+
+SLReGDPi6pXxDg1kGNBW4B/37yIUmUOjp43VysX5onl9t8GthgjsGWxOLiJDswwh
+L6KnknTd4Lb8bBFMeTlO56R7xTIrqys9sk6WsfGGxtIVklCqG2UOLHx8NdA4CvUK
+eXUoSq8IDG8l5ycG54Y07TKvL4xH9WmGKMtVRiNMzKpPF0ayfmk0uGYTruTwHzYa
+pvQu6taDM+j784Odr7lX24vVrWcOL9shmU09MHYfpeL4bVCFm4uM70TydGnb4DRS
+mUFt6A3JFNF09S5Rv8ROjkXOqgJ0knplWuGDyQSHman2EXwzgvXxaut88vd3Htnm
++hK2k9Mh9OOGAJhE7v0gdxvZ31tL4QdqPvv2/9zMxtuPysqDCUsPMf3hQPcHqUyG
+1Wxtl9E13UejWAjs5Ax5
+=QJRa
+-----END PGP SIGNATURE-----
+
+--DrWhICOqskFTAXiy--
+
+--===============0033406102592651998==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--===============0033406102592651998==--
