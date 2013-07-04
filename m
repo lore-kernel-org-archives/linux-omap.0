@@ -1,26 +1,23 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [-next PATCH 0/2] ARM: OMAP5: fix build breakage due to SCU
- usage
-Date: Thu, 4 Jul 2013 05:02:17 -0700
-Message-ID: <20130704120216.GL5523@atomide.com>
-References: <1372257587-21720-1-git-send-email-nm@ti.com>
- <51D1A17D.9070701@ti.com>
+Subject: Re: [PATCH v2 1/2] ARM: configs: Enable TI_EDMA in
+ omap2plus_defconfig
+Date: Thu, 4 Jul 2013 05:05:23 -0700
+Message-ID: <20130704120523.GM5523@atomide.com>
+References: <1372304523-30742-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <51D1A17D.9070701@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Stephen Warren <swarren@nvidia.com>, Rob Herring <rob.herring@calxeda.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+In-Reply-To: <1372304523-30742-1-git-send-email-joelf@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, Matt Porter <matt@ohporter.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Mark Brown <broonie@linaro.org>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Rob Landley <rob@landley.net>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [130701 08:41]:
-> Tony,
-> 
-> Any chance of picking these up?
+* Joel Fernandes <joelf@ti.com> [130626 20:48]:
+> Build EDMA in by default to avoid fewer people stepping on their toes
+> with broken DMA on drivers needing EDMA.
 
-Thanks yes applying into omap-for-v3.11/fixes now that the pending
-branches have been merged.
+Thanks applying this one into omap-for-v3.11/fixes.
 
 Tony
