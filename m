@@ -1,32 +1,70 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH 04/22] input/ti_am33x_tsc: Order of TSC wires, made configurable
-Date: Thu, 4 Jul 2013 19:57:26 +0530
-Message-ID: <51D5864E.20401@ti.com>
-References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de> <1370950268-7224-5-git-send-email-bigeasy@linutronix.de> <51D5592F.6050208@ti.com> <51D55D80.6080803@linutronix.de> <51D57AF9.2020001@ti.com> <51D57DBC.3050503@linutronix.de>
+From: Mark Jackson <mpfj-list@newflow.co.uk>
+Subject: Re: Boot hang regression 3.10.0-rc4 -> 3.10.0
+Date: Thu, 04 Jul 2013 16:14:14 +0100
+Message-ID: <51D59146.3070002@newflow.co.uk>
+References: <51D577E6.5010507@newflow.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43842 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752610Ab3GDO1p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jul 2013 10:27:45 -0400
-In-Reply-To: <51D57DBC.3050503@linutronix.de>
+Received: from mercuryimc.plus.com ([80.229.200.144]:50433 "EHLO
+	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752610Ab3GDPOP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jul 2013 11:14:15 -0400
+In-Reply-To: <51D577E6.5010507@newflow.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 7/4/2013 7:20 PM, Sebastian Andrzej Siewior wrote:
-> On 07/04/2013 03:39 PM, Sekhar Nori wrote:
->> Yes, I noticed that after sending the mail. To me it does not make sense
->> to make changes to accept something as platform data only to remove
->> platform data itself later.
+On 04/07/13 14:25, Mark Jackson wrote:
+> Our custom AM335x board has been booting just fine under 3.10.0-rc4.
 > 
-> The patches were made earlier and it was easier that way to take
-> everything and simple remove the platform part later.
+> I've just done a git pull to update to 3.10 (now that it's released)
+> and the board now hangs.
+> 
+> Before I start trying to bisect the issue, does anyone have an clues ?
 
-Okay, then. If the maintainers do not have objection, I am fine too!
+Okay ... I've now bisected it to:-
 
-Regards,
-Sekhar
+a630fbfbb1beeffc5bbe542a7986bf2068874633 is the first bad commit
+commit a630fbfbb1beeffc5bbe542a7986bf2068874633
+Author: Tony Lindgren <tony@atomide.com>
+Date:   Mon Jun 10 07:39:09 2013 -0700
+
+    serial: omap: Fix device tree based PM runtime
+    
+    In the runtime_suspend function pdata is not being used, and
+    also blocks the function in device tree based booting. Fix it
+    by removing the unused pdata from the runtime_suspend function.
+    
+    Further, context loss count is not being passed in pdata, so
+    let's just reinitialize the port every time for those case.
+    This can be further optimized later on for the device tree
+    case by adding detection for the hardware state and possibly
+    by adding a driver specific autosuspend timeout.
+    
+    And doing this, we can then make the related dev_err into a
+    dev_dbg message instead of an error.
+    
+    In order for the wake-up events to work, we also need to set
+    autosuspend_timeout to -1 if 0, and also device_init_wakeup()
+    as that's not being done by the platform init code for the
+    device tree case.
+    
+    Note that this does not affect legacy booting, and in fact
+    might make it work for the cases where the context loss info
+    is not being passed in pdata.
+    
+    Thanks to Kevin Hilman <khilman@linaro.org> for debugging
+    and suggesting fixes for the autosuspend_timeout and
+    device_init_wakeup() related initializiation.
+    
+    Reviewed-by: Kevin Hilman <khilman@linaro.org>
+    Tested-by: Kevin Hilman <khilman@linaro.org>
+    Signed-off-by: Tony Lindgren <tony@atomide.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+:040000 040000 38900a5a2ed6dfeb812d93bf1918725021298884 a38d37777dcd46276dc27b87157fd0b1e292804c M	drivers
+
+
