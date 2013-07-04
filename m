@@ -1,23 +1,31 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/2] ARM: configs: Enable TI_EDMA in
- omap2plus_defconfig
-Date: Thu, 4 Jul 2013 05:05:23 -0700
-Message-ID: <20130704120523.GM5523@atomide.com>
-References: <1372304523-30742-1-git-send-email-joelf@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: omap2plus_defconfig: Enable appended DTB
+ support
+Date: Thu, 4 Jul 2013 05:09:04 -0700
+Message-ID: <20130704120903.GN5523@atomide.com>
+References: <1372684393-19025-1-git-send-email-trini@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37168 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752167Ab3GDMJH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jul 2013 08:09:07 -0400
 Content-Disposition: inline
-In-Reply-To: <1372304523-30742-1-git-send-email-joelf@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Matt Porter <matt@ohporter.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Mark Brown <broonie@linaro.org>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Rob Landley <rob@landley.net>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>
+In-Reply-To: <1372684393-19025-1-git-send-email-trini@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tom Rini <trini@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>
 
-* Joel Fernandes <joelf@ti.com> [130626 20:48]:
-> Build EDMA in by default to avoid fewer people stepping on their toes
-> with broken DMA on drivers needing EDMA.
+* Tom Rini <trini@ti.com> [130701 06:19]:
+> As this config must support boards which cannot support separate device
+> trees, enable support for appended ones.
 
-Thanks applying this one into omap-for-v3.11/fixes.
+This can cause things to go wrong when DTB is not appended for mistaking the
+memory as an appended DTB, especially when doing a warm reset. But as we need
+this in practise for older platforms, let's add it.
+
+Regards,
 
 Tony
