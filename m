@@ -1,42 +1,43 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 04/22] input/ti_am33x_tsc: Order of TSC wires, made configurable
-Date: Thu, 4 Jul 2013 19:09:05 +0530
-Message-ID: <51D57AF9.2020001@ti.com>
-References: <1370950268-7224-1-git-send-email-bigeasy@linutronix.de> <1370950268-7224-5-git-send-email-bigeasy@linutronix.de> <51D5592F.6050208@ti.com> <51D55D80.6080803@linutronix.de>
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Subject: [PATCH] ARM: OMAP: fix return value check in omap_device_build_from_dt()
+Date: Thu, 4 Jul 2013 21:42:34 +0800
+Message-ID: <CAPgLHd_E8wht4q5c9=TjUTwXxysjbbX+HnZyYe2KJU=w79cK4w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51D55D80.6080803-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f54.google.com ([209.85.214.54]:60304 "EHLO
+	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751468Ab3GDNmg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jul 2013 09:42:36 -0400
+Received: by mail-bk0-f54.google.com with SMTP id it16so661816bkc.13
+        for <linux-omap@vger.kernel.org>; Thu, 04 Jul 2013 06:42:35 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, linux@arm.linux.org.uk
+Cc: yongjun_wei@trendmicro.com.cn, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 7/4/2013 5:03 PM, Sebastian Andrzej Siewior wrote:
-> On 07/04/2013 01:14 PM, Sekhar Nori wrote:
->>
->> On 6/11/2013 5:00 PM, Sebastian Andrzej Siewior wrote:
->>> From: "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>
->>>
->>> The current driver expected touchscreen input
->>> wires(XP,XN,YP,YN) to be connected in a particular order.
->>> Making changes to accept this as platform data
->>
->> The platform data part of this driver will never get used since it is
->> used on DT-only platforms (and future platforms will all be DT-only).
->> You should get rid of it as it will save you some code.
-> 
-> If you follow the series you will notice that the platform bits are
-> removed later. Should I have overlooked something please say so.
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Yes, I noticed that after sending the mail. To me it does not make sense
-to make changes to accept something as platform data only to remove
-platform data itself later.
+In case of error, the function omap_device_alloc() returns ERR_PTR()
+and never returns NULL. The NULL test in the return value check
+should be replaced with IS_ERR().
 
-May be reorder the series to move this to after platform data removal -
-that way any platform data related changes in the patch will have to go
-away.
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ arch/arm/mach-omap2/omap_device.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
-Sekhar
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index 5cc9287..28e70c0 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -155,7 +155,7 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
+ 	}
+ 
+ 	od = omap_device_alloc(pdev, hwmods, oh_cnt);
+-	if (!od) {
++	if (IS_ERR(od)) {
+ 		dev_err(&pdev->dev, "Cannot allocate omap_device for :%s\n",
+ 			oh_name);
+ 		ret = PTR_ERR(od);
+
