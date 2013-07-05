@@ -1,51 +1,49 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: Boot hang regression 3.10.0-rc4 -> 3.10.0
-Date: Fri, 5 Jul 2013 08:11:00 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EE93C23@DBDE04.ent.ti.com>
-References: <51D577E6.5010507@newflow.co.uk>
- <51D59146.3070002@newflow.co.uk> <51D59C0E.8080003@newflow.co.uk>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 0/4] OMAP2+: Cleanup PRM and CM regbit headers
+Date: Fri, 5 Jul 2013 16:02:33 +0530
+Message-ID: <1373020357-13528-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51404 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757172Ab3GEILc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jul 2013 04:11:32 -0400
-In-Reply-To: <51D59C0E.8080003@newflow.co.uk>
-Content-Language: en-US
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40460 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757197Ab3GEKdR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 5 Jul 2013 06:33:17 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Jackson <mpfj-list@newflow.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: paul@pwsan.com, tony@atomide.com, benoit.cousson@gmail.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-T24gVGh1LCBKdWwgMDQsIDIwMTMgYXQgMjE6MzA6MTQsIE1hcmsgSmFja3NvbiB3cm90ZToNCj4g
-T24gMDQvMDcvMTMgMTY6MTQsIE1hcmsgSmFja3NvbiB3cm90ZToNCj4gPiBPbiAwNC8wNy8xMyAx
-NDoyNSwgTWFyayBKYWNrc29uIHdyb3RlOg0KPiA+PiBPdXIgY3VzdG9tIEFNMzM1eCBib2FyZCBo
-YXMgYmVlbiBib290aW5nIGp1c3QgZmluZSB1bmRlciAzLjEwLjAtcmM0Lg0KPiA+Pg0KPiA+PiBJ
-J3ZlIGp1c3QgZG9uZSBhIGdpdCBwdWxsIHRvIHVwZGF0ZSB0byAzLjEwIChub3cgdGhhdCBpdCdz
-IHJlbGVhc2VkKQ0KPiA+PiBhbmQgdGhlIGJvYXJkIG5vdyBoYW5ncy4NCj4gPj4NCj4gPj4gQmVm
-b3JlIEkgc3RhcnQgdHJ5aW5nIHRvIGJpc2VjdCB0aGUgaXNzdWUsIGRvZXMgYW55b25lIGhhdmUg
-YW4gY2x1ZXMgPw0KPiA+IA0KPiA+IE9rYXkgLi4uIEkndmUgbm93IGJpc2VjdGVkIGl0IHRvOi0N
-Cj4gPiANCj4gPiBhNjMwZmJmYmIxYmVlZmZjNWJiZTU0MmE3OTg2YmYyMDY4ODc0NjMzIGlzIHRo
-ZSBmaXJzdCBiYWQgY29tbWl0DQo+ID4gY29tbWl0IGE2MzBmYmZiYjFiZWVmZmM1YmJlNTQyYTc5
-ODZiZjIwNjg4NzQ2MzMNCj4gPiBBdXRob3I6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5j
-b20+DQo+ID4gRGF0ZTogICBNb24gSnVuIDEwIDA3OjM5OjA5IDIwMTMgLTA3MDANCj4gPiANCj4g
-PiAgICAgc2VyaWFsOiBvbWFwOiBGaXggZGV2aWNlIHRyZWUgYmFzZWQgUE0gcnVudGltZQ0KPiAN
-Cj4gSG93ZXZlciwgcmV2ZXJ0aW5nIHRoZSBjb21taXQgZG9lcyAqbm90KiBmaXggdGhlIGlzc3Vl
-LCB3ZWlyZCAhIQ0KPiANCj4gQnV0IEkgaGF2ZSBub3cgdGVzdGVkOi0NCj4gDQo+IHYzLjEwLXJj
-NCAgICAgLT4gd29ya3MNCj4gdjMuMTAtcmM1ICAgICAtPiB3b3Jrcw0KPiB2My4xMC1yYzYgICAg
-IC0+IHdvcmtzDQo+IHYzLjEwLXJjNyAgICAgLT4gd29ya3MNCj4gdjMuMTAgICAgICAgICAtPiB3
-b3Jrcw0KPiBvcmlnaW4vbWFzdGVyIC0+IGhhbmdzDQo+IA0KPiBBbnkgaWRlYXMgPw0KDQpJIGp1
-c3QgY2hlY2tlZCB0aGUgYmVoYXZpb3Igb24gbXkgQU0zMzV4LUVWTS4gQ3VycmVudCBtYWlubGlu
-ZSBib290cyBmaW5lDQpwcm92aWRlZCBJIGRvbid0IHVzZSBlYXJseXByaW50ay4gIFRoZSBvZmZl
-bmRpbmcgcGF0Y2ggWzFdIGluIHRoaXMgY2FzZSBpcyB0aGUgb25lDQp0aGF0IHRyaWVzIHRvIGdl
-dCByaWQgb2Ygb21hcF9zZXJpYWxfZWFybHlfaW5pdCgpIGZvciBEVCBib290LiBUaGlzIGNoYW5n
-ZSBpbmFkdmVydGVudGx5DQphbHNvIHJlc3VsdHMgaW4gdGhlIGNvbnNvbGUgVUFSVCBnZXR0aW5n
-IHJlc2V0IGFuZCBpZGxlZCBkdXJpbmcgYm9vdHVwIGFuZCB0aGF0J3Mgd2hlcmUNCnRoZSBib290
-IHN0b3BzIGZvciB5b3UuIEkgdGhpbmsgaWYgeW91IHNraXAgZWFybHlwcmludGsgZnJvbSB0aGUg
-Ym9vdGFyZ3MgeW91IHNob3VsZCBzZWUNCnRoZSBzeXN0ZW0gYm9vdGluZyBmaW5lLiANCg0KSSBn
-dWVzcyB3ZSBuZWVkIHRvIHJldGFpbiB0aGUgTk9fSURMRSBhbmQgTk9fUkVTRVQgYXNwZWN0IGZv
-ciB0aGUgY29uc29sZSBVQVJUIGluDQpvbWFwX3NlcmlhbF9lYXJseV9pbml0KCkgdG8gZ2V0IGVh
-cmx5cHJpbnRrIHdvcmtpbmcgYWdhaW4uDQoNClJlZ2FyZHMsDQpWYWliaGF2IEIuDQoNClsxXSBo
-dHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LW9tYXAvbXNnOTE4MjUuaHRtbA0KDQo=
+Over the years the PRM and CM headers for OMAP have been growing largely
+due to autogeneration which creates headers for complete PRM and
+CM register space, regardless of the actual usage of these registers in
+the kernel.
+
+The PRM and CM regbit headers in particular were found to be around 
+90% unused and hence this series is an attempt to clean all unsued
+data from these headers.
+
+Rajendra Nayak (4):
+  ARM: OMAP2: PRM/CM: Cleanup unused header
+  ARM: OMAP3: PRM/CM: Cleanup unused header
+  ARM: OMAP4: PRM/CM: Cleanup unused header
+  ARM: OMAP5: PRM/CM: Cleanup unused header
+
+ arch/arm/mach-omap2/cm-regbits-24xx.h       |  318 ----
+ arch/arm/mach-omap2/cm-regbits-33xx.h       |  749 --------
+ arch/arm/mach-omap2/cm-regbits-34xx.h       |  632 -------
+ arch/arm/mach-omap2/cm-regbits-44xx.h       | 1558 ---------------
+ arch/arm/mach-omap2/cm-regbits-54xx.h       | 1633 ----------------
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c  |    1 -
+ arch/arm/mach-omap2/powerdomains54xx_data.c |    1 -
+ arch/arm/mach-omap2/prm-regbits-24xx.h      |  247 ---
+ arch/arm/mach-omap2/prm-regbits-33xx.h      |  306 ---
+ arch/arm/mach-omap2/prm-regbits-34xx.h      |  481 -----
+ arch/arm/mach-omap2/prm-regbits-44xx.h      | 2226 ----------------------
+ arch/arm/mach-omap2/prm-regbits-54xx.h      | 2701 ---------------------------
+ 12 files changed, 10853 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/prm-regbits-54xx.h
+
+-- 
+1.7.9.5
+
