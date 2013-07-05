@@ -1,92 +1,76 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC PATCH V2 1/8] regulator: Introduce OMAP regulator to
- control PMIC over VC/VP
-Date: Fri, 5 Jul 2013 15:08:28 +0100
-Message-ID: <20130705140828.GA27646@sirena.org.uk>
-References: <1371849949-12649-1-git-send-email-nm@ti.com>
- <1371849949-12649-2-git-send-email-nm@ti.com>
- <20130704154105.GD27646@sirena.org.uk>
- <20130705135507.GA17439@kahuna>
+From: Tom Rini <trini@ti.com>
+Subject: Re: OMAP baseline test results for v3.10-rc6
+Date: Fri, 5 Jul 2013 10:14:50 -0400
+Message-ID: <51D6D4DA.5070903@ti.com>
+References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com>
+ <20130625160243.GE22312@arwen.pp.htv.fi>
+ <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com>
+ <51C9F0A8.1050607@ti.com> <87fvw6t136.fsf@linaro.org>
+ <79CD15C6BA57404B839C016229A409A83ECC952D@DBDE04.ent.ti.com>
+ <51CAEB33.5010101@ti.com>
+ <alpine.DEB.2.02.1306261722520.6135@utopia.booyaka.com>
+ <51CBBCD8.5030600@ti.com>
+ <alpine.DEB.2.02.1306281844090.8767@utopia.booyaka.com>
+ <alpine.DEB.2.02.1307010211580.3741@utopia.booyaka.com>
+ <79CD15C6BA57404B839C016229A409A83ECCC435@DBDE04.ent.ti.com>
+ <51D2E096.5040700@ti.com>
+ <alpine.DEB.2.02.1307031944580.9618@utopia.booyaka.com>
+ <alpine.DEB.2.02.1307041810410.6258@utopia.booyaka.com>
+ <51D65E3C.1070202@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="47uHu9eEG8RBDiQe"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130705135507.GA17439@kahuna>
-Sender: linux-doc-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grygorii Strashko <grygorii.strashko@ti.com>, Taras Kondratiuk <taras@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51D65E3C.1070202@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Vutla,
+ Lokesh" <lokeshvutla@ti.com>, "Hiremath,
+ Vaibhav" <hvaibhav@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 07/05/2013 01:48 AM, Rajendra Nayak wrote:
+> On Thursday 04 July 2013 11:42 PM, Paul Walmsley wrote:
+>> On Wed, 3 Jul 2013, Paul Walmsley wrote:
+>>
+>>> As far as Lokesh's patch goes: it doesn't make sense to me to remove a 
+>>> file during 'make clean' that the build process doesn't create.  So while 
+>>> I understand the motivation for the patch, and don't mind if upstream 
+>>> takes it, I personally wouldn't care to ack it.
+>>
+>> Incidentally, if there's any patch that would improve the current 
+>> situation with appended DTBs by going upstream, it would be a patch like 
+>> Grant's "HACK" patch to add appended DTB building into the kernel build 
+>> system.  Maybe folks can push to something similar to that one upstream?
+> 
+> Grant already made it clear when he posted that patch that neither that nor
+> anything similar would be taken up mainline because the appended dtb was only
+> meant for folks stuck with legacy bootloaders and have no way to upgrade.
+> Anyone who uses a bootloader capable of passing the dtb should *not* use the
+> appended dtb way.
 
---47uHu9eEG8RBDiQe
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The problem with that statement, and why I poked rmk the other week to
+confirm, and posted a patch to enable appended dtb support in the
+omap2plus_defconfig is that Grants statement conflicts with rmk's statement.
 
-On Fri, Jul 05, 2013 at 08:55:07AM -0500, Nishanth Menon wrote:
+Now, my personal preference, with my U-Boot guy hat on, would be to say
+that eval boards (those things that come with support and instructions
+on un-bricking them, and really have to have bootloader source available
+when applicable, or should be thrown back at the vendor, with extreme
+prejudice) ought to require passed dtbs even if that means upgrading
+bootloader.  Shipping product boards, well, you make do, and that
+probably means passing a new bootloader to the locked bootloader to pass
+in a separate dtb is going to be left to the folks who think that is
+fun.  Everyone else will be happy just booting mainline(ish) kernels
+with appended dtb.
 
-Please write in paragraphs, an enormous wall of unbroken text isn't
-helpful for legibility.
-
-> On 16:41-20130704, Mark Brown wrote:
-
-> > So, this still has the thing where all the data about the PMIC is
-> > replicated (but now in this driver).  It should be possible to pull all
-> > the above information except possibly the I2C timeout and perhaps the
-> > I2C address (if there's a separate control interface) from the standard
-> > regulator core data structures for the PMIC.  This would allow the
-> > driver to Just Work with any PMIC without needing to add it in two
-> > places.
-
-> option 1) we just bypass get_voltage/set_voltage to point through to
-> this function. result will be something similar to what we got here[1]
-
-I don't really know what you mean when you say "bypass get_voltage/set_voltage
-so it's kind of hard to comment...  the link you posted appears to be a
-link to the code I'm reviewing so it's not terribly enlightening.
-
-> Again, based on this discussion, it is wrong - and we already did implement
-> the *wrong* way in OMAP and the new code is supposed to throw away the
-> old code once all relevant platforms are converted to DT.
-> - now, we could improve this by passing rdev and slurp out required
->  data from regulator structures, but obviously, as you pointed out, it wont
->  be sufficient.
-> - In this solution, we will have existing regulator drivers supporting
-> additional data path. *but* that also means that existing regulator
-> drivers will need to be modified to handle multiple data path and "Just
-> Work" wont happen - so not really good other than screw up existing
-> regulator drivers with handling OMAP specific APIs in them.
-
-What makes you think that the existing regulator drivers need to be
-modified?  They already have all the data exported to the core (or
-should do)...  the only thing that's missing is the timeouts and it's
-not at all obvious why those need to be tuned per device.
-
-> option 2) make omap_pmic regulator use twl_regulator - regulator
-> chaining.
-
-Again I don't know what this is.
-
---47uHu9eEG8RBDiQe
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR1tNYAAoJELSic+t+oim9yhQP/079dA+d6EDSqViNUz8r5j7M
-/RC/RLLjEXjJQ2cEqDjaOSjqaUPW98ynqakL7Pl7CNOB4fQjyIO2ClAiZ1TshMCu
-xJoSRAXDdalbH+Z7XsQC3qBVkzP9doEHf2vCm5JiMUlphSdm6fAtLigvz/PDd172
-fwEjb+oFoWWhy8Gd6TbesfuL8JglTxuEwZb7voMTFPbs3E3vrHqPr4pSAngHuHRt
-EUFCACUTvJ3EkW4HUBC9N29VMOi/I6iTBPbQBrqHCoF/KfysptLkG6eXqUv+/dMR
-tJXr9mH6eHbF24xXDnzztq/S4pIXb+nxsv41bUPdlBPgRPOi2ggwHihuBMWrXpIg
-tEmbqv66lHJWonSqJUI2lhLmiQKhJ909AaNyVHyTF5I32ZPW7J+0WQ/yd/rziMlX
-uUBZa60UUmjtMncyciSnEaje1LPzp+NyJS6Dij7AG0qYBIeSIjYCeU2xSuNeUTdj
-FmcWGJQohLyamJXowTmxxtcZ8uiTwXK7Y5rXIfH3PBSL1rN5HU4sp9hvMW8LWs0N
-tQW724OfnkRt70EdR6DrSiGq4HFKkqaAjatFzRf0QW+7vwxfLwp7YCqwEiaVoyLZ
-R95i9C9zHMnT3oerwiEMx1jhaMYzyGLJjL4fTak26UzRTpeoxBVXKpVlpryK7ubN
-UogTwCVs7QAG7rWNNWx7
-=lyOC
------END PGP SIGNATURE-----
-
---47uHu9eEG8RBDiQe--
+-- 
+Tom
