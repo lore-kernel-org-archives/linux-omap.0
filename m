@@ -1,56 +1,77 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] N900: add device tree
-Date: Thu, 4 Jul 2013 23:32:56 +0300
-Message-ID: <20130704203256.GB27374@blackmetal.musicnaut.iki.fi>
-References: <20130613145724.GH8164@atomide.com>
- <20130613155240.GB3775@amd.pavel.ucw.cz>
- <20130613161418.GJ8164@atomide.com>
- <20130613230808.GA14876@amd.pavel.ucw.cz>
- <20130614055629.GM8164@atomide.com>
- <20130614212816.GA31768@atrey.karlin.mff.cuni.cz>
- <20130617111031.GQ20992@atomide.com>
- <20130701211753.GC15318@amd.pavel.ucw.cz>
- <20130704171939.GA27374@blackmetal.musicnaut.iki.fi>
- <20130704202145.GB10752@amd.pavel.ucw.cz>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v4 0/4] mtd:nand:omap2: clean-up of supported ECC schemes
+Date: Fri, 5 Jul 2013 04:12:15 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73E9E4B15@DBDE04.ent.ti.com>
+References: <1372764757-29511-1-git-send-email-pekon@ti.com>
+ <20980858CB6D3A4BAE95CA194937D5E73E9E46CA@DBDE04.ent.ti.com>
+ <1372857987.9767.162.camel@sauron.fi.intel.com>
+ <201307031527.17219.arnd@arndb.de>
+ <20980858CB6D3A4BAE95CA194937D5E73E9E47B4@DBDE04.ent.ti.com>
+ <51D5A963.6020102@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130704202145.GB10752@amd.pavel.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tony Lindgren <tony@atomide.com>, b-cousson@ti.com, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37538 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750723Ab3GEENI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 5 Jul 2013 00:13:08 -0400
+In-Reply-To: <51D5A963.6020102@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "N, Mugunthan V" <mugunthanvnm@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>, "tony@atomide.com" <tony@atomide.com>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "olof@lixom.net" <olof@lixom.net>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "jp.francois@cynove.com" <jp.francois@cynove.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-Hi,
-
-On Thu, Jul 04, 2013 at 10:21:45PM +0200, Pavel Machek wrote:
-> > > This adds device tree with neccessary support to boot with functional
-> > > video (on both emulator and real N900 device).
-> > 
-> > Is this really correct? You have commented out the USB, so there is no
-> > way for a developer to interact with the device.
-> 
-> Well... I do not have USB & SDcard set up, so my testing was "does it
-> show failed to mount root message on screen". 
-> 
-> Now, if I do quick test of enabling it on 3.9, I get:
-> 
->   DTC     arch/arm/boot/dts/omap3-n900.dtb
-> Error: arch/arm/boot/dts/omap3-n900.dts:92.2-3 label or path,
-> 'usb_otg_hs', not found
-> FATAL ERROR: Syntax error parsing input tree
-> make[1]: *** [arch/arm/boot/dts/omap3-n900.dtb] Error 1
-> make: *** [dtbs] Error 2
-
-You need 3.10. It was added in ad871c10b55654910ba97af00a00e65725da5e40
-(ARM: dts: OMAP: Add usb_otg and glue data to OMAP3+ boards).
-
-3.9 is very old. :-)
-
-> If you could test the patches with the USB support uncommented, that
-> would be very good...
-
-I can do that, but not before next week.
-
-A.
+PiANCj4gT24gNy8zLzIwMTMgMTE6MzQgUE0sIEd1cHRhLCBQZWtvbiB3cm90ZToNCj4gPj4gT24g
+V2VkbmVzZGF5IDAzIEp1bHkgMjAxMywgQXJ0ZW0gQml0eXV0c2tpeSB3cm90ZToNCj4gPj4+IE9u
+IFdlZCwgMjAxMy0wNy0wMyBhdCAxMzoxNiArMDAwMCwgR3VwdGEsIFBla29uIHdyb3RlOg0KPiA+
+Pj4+IFtQZWtvbl06IFllcywgSSdtIG5vdCBzZWVpbmcgdGhlc2UgYnVpbGQgaXNzdWVzLCBhcyBJ
+J20gY2xlYW5seQ0KPiA+Pj4+IHJldHVybmluZyBmcm9tIHByb2JlIHdpdGggcHJfZXJyKCksIGlm
+IHRoZSByZXF1aXJlZCBsaWJyYXJpZXMgKC9saWIvYmNoLmMpDQo+ID4+Pj4gYXJlIG5vdCBidWls
+ZC1pbiB0aGUgc3lzdGVtLg0KPiA+Pj4+IC0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gPj4+PiBbUGF0
+Y2ggdjQgMS80XTogbXRkOm5hbmQ6b21hcDI6IGNsZWFuLXVwIEJDSHhfSFcgYW5kIEJDSHhfU1cN
+Cj4gRUNDLi4NCj4gPj4+PiBAQHN0YXRpYyBpbnQgb21hcF9uYW5kX3Byb2JlKHN0cnVjdCBwbGF0
+Zm9ybV9kZXZpY2UgKnBkZXYpDQo+ID4+Pj4gKwlkZWZhdWx0Og0KPiA+Pj4+ICsJCXByX2Vycigi
+c2VsZWN0ZWQgRUNDIHNjaGVtZSBub3Qgc3VwcG9ydGVkIG9yIG5vdA0KPiA+PiBlbmFibGVkXG4i
+KTsNCj4gPj4+PiArCQllcnIgPSAtRUlOVkFMOw0KPiA+Pj4+ICsJCWdvdG8gb3V0X3JlbGVhc2Vf
+bWVtX3JlZ2lvbjsNCj4gPj4+PiArCX0NCj4gPj4+PiAtLS0tLS0tLS0tLS0tLS0tLS0tDQo+ID4+
+Pj4gSG93ZXZlciwgaWYgeW91IGFyZSBzdGlsbCBzZWVpbmcgdGhpcywgY291bGQgeW91IHBsZWFz
+ZSBzZW5kIG1lIHlvdXINCj4gPj4gY29uZmlnPw0KPiA+Pj4gSSBjb21waWxlIHRlc3RlZCB5b3Vy
+IHBhdGNoZXMgdG9vLCBhbmQgZGlkIG5vdCBzZWUgYW55IGlzc3VlcyB3aXRoIG15DQo+ID4+PiBv
+bWFwMl9kZWZjb25maWcuDQo+ID4+DQo+ID4+IFRvIGNsYXJpZnk6IEknbSBnZXR0aW5nIHRoaXMg
+ZXJyb3Igd2l0aCByYW5kY29uZmlnIG9uIHRvZGF5J3MgbGludXgtbmV4dC4NCj4gPj4gSSB0aGlu
+ayBpdCBvbmx5IGhhcHBlbnMgd2l0aCBNVERfTkFORF9FQ0NfQkNIIGVuYWJsZWQsIHdoaWNoIGlz
+IG5vdA0KPiA+PiB0aGUgZGVmYXVsdCBpbiBvbWFwMl9kZWZjb25maWcuDQo+ID4+DQo+ID4+IAlB
+cm5kDQo+ID4gSGkgQXJuZCwgQXJ0ZW0sIFN0ZXBoZW4sDQo+ID4NCj4gPiBJIHNlZSB0aGUgaXNz
+dWUgaW4gbGludXgtbmV4dC9tYXN0ZXIgdHJlZS4uDQo+ID4gbGludXgtbmV4dC9tYXN0ZXIgaGFz
+IG9ubHkgdGhlIGZpcnN0IFtQYXRjaCB2NCAxLzRdIGZyb20gdGhlIHNlcmllcy4NCj4gPiBPdGhl
+ciBwYXRjaGVzIFtQYXRjaCB2NCAyLzQuLiA0LzRdIG9mIHRoaXMgc2VyaWVzIHdlcmUgZHJvcHBl
+ZCwNCj4gPiBhcyAnT2xvZiBKb2hhbnNzb24nIGhhZCBzb21lIGFwcHJlaGVuc2lvbnMgYWJvdXQg
+RFQgYmluZGluZ3MuDQo+ID4gaHR0cDovL3Blcm1hbGluay5nbWFuZS5vcmcvZ21hbmUubGludXgu
+cG9ydHMuYXJtLmtlcm5lbC8yNDk2NjINCj4gPg0KPiA+IEFzIHRoZXNlIHBhdGNoZXMgYXJlIGlu
+dGVyLWRlcGVuZGVudCwgc28gcGxlYXNlIGRyb3AgdGhlIHdob2xlIHNlcmllcw0KPiA+IGluY2x1
+ZGluZyB0aGUgY29tbWl0IGJlbG93Lg0KPiA+IGZiMTU4NWIgIFtQYXRjaCB2NCAxLzRdIG10ZDog
+bmFuZDogb21hcDI6IGNsZWFuLXVwIEJDSHhfSFcgYW5kDQo+IEJDSHhfU1cNCj4gPg0KPiA+IEkn
+bSBhd2FpdGluZyBmZWVkYmFja3MgZnJvbSAnT2xvZiBKb2hhbnNzb24nIG9yIG90aGVyIERUIG1h
+aW50YWluZXJzLA0KPiA+IG9uY2UgYXBwcm92ZWQsIEknbGwgcmVzZW5kIHRoZSB3aG9sZSBzZXJp
+ZXMuDQo+ID4NCj4gPiAiW1BBVENIIHY0IDIvNF0gQVJNOiBPTUFQMis6IGNsZWFuZWQtdXAgRFQg
+c3VwcG9ydCAiIGhhZCB0aGUNCj4gPiBkZWNsYXJhdGlvbnMgd2hpY2ggd2VyZSByZXF1aXJlZCBm
+b3IgYWJvdmUgYnVpbGQgZXJyb3JzLg0KPiA+IC0tLS0tLS0tLS0tLS0tLQ0KPiA+IGluY2x1ZGUv
+bGludXgvcGxhdGZvcm1fZGF0YS9tdGQtbmFuZC1vbWFwMi5oDQo+ID4gZW51bSBvbWFwX2VjYyB7
+DQo+ID4gKwkvKiA0LWJpdCAgRUNDIGNhbGN1bGF0aW9uIGJ5IEdQTUMsIEVycm9yIGRldGVjdGlv
+biBieSBTb2Z0d2FyZSAqLw0KPiA+ICsJT01BUF9FQ0NfQkNINF9DT0RFX0hXX0RFVEVDVElPTl9T
+VywNCj4gPiAuLi4NCj4gPiArCS8qIDgtYml0ICBFQ0MgY2FsY3VsYXRpb24gYnkgR1BNQywgRXJy
+b3IgZGV0ZWN0aW9uIGJ5IFNvZnR3YXJlICovDQo+ID4gKwlPTUFQX0VDQ19CQ0g4X0NPREVfSFdf
+REVURUNUSU9OX1NXDQo+ID4gLS0tLS0tLS0tLS0tLS0tDQo+ID4NCj4gQnV0IHBhdGNoZXMgc2hv
+dWxkIG5vdCBoYXZlIGludGVyIGRlcGVuZGVuY3kgZm9yIGNvbXBpbGF0aW9uLiBJdCB3aWxsIGFm
+ZmVjdA0KPiB0aGUgYmlzZWN0IHByb2Nlc3MuDQo+IA0KW1Bla29uXTogVGhleSBkb24ndCwgSWYg
+eW91IHJlYWQgdGhyb3VnaCB0aGUgZW1haWwsIHRoaXMgaXNzdWUgd2FzIGhpdA0Kd2l0aCByYW5k
+Y29uZmlnLCBhbmQgbm90IHdpdGggb21hcDJwbHVzX2RlZmNvbmZpZy4gU28geW91IHdvdWxkIG5v
+dCBzZWUNCmJ1aWxkIGlzc3VlIGlmIHlvdSBhcmUgYmlzZWN0aW5nIHVzaW5nIGNvcnJlY3QgY29u
+ZmlnIChvbWFwMnBsdXNfZGVmY29uZmlnKS4NCkFsc28gaWYgSSBtZXJnZSBhbGwgdGhlIHJlbGV2
+YW50IGNoYW5nZXMgaW4gc2luZ2xlIHBhdGNoLCB0aGVuIGlmIHdvdWxkDQpiZWNvbWUgZGlmZmlj
+dWx0IGZvciByZXZpZXcsIGFuZCBpdCB3b3VsZCBiZSBjb25mbGljdCB5b3VyIGVhcmxpZXIgZmVl
+ZGJhY2sNCm9mIGJyZWFraW5nIHRoZSBwYXRjaCBzZXRzLg0KDQpIb3dldmVyLCBJIGxlYXZlIGl0
+IHRvIEFybmQgYW5kIEFydGVtIGlmIHRoZXkgd2FudCBtZSB0byByZS1zaHVmZmxlIA0KY2hhbmdl
+cyBhbmQgcmUtc3VibWl0Lg0KDQoNCndpdGggcmVnYXJkcywgcGVrb24NCg==
