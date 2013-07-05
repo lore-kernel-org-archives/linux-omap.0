@@ -1,26 +1,51 @@
-From: proofpoint-pps@Foxnews.com
-Subject: Email Security Rule Was Triggered By You
-Date: Fri, 5 Jul 2013 03:34:38 -0400
-Message-ID: <mailbox-23699-1373009678-400647@FNCProofpointNYAGT>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: Boot hang regression 3.10.0-rc4 -> 3.10.0
+Date: Fri, 5 Jul 2013 08:11:00 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EE93C23@DBDE04.ent.ti.com>
+References: <51D577E6.5010507@newflow.co.uk>
+ <51D59146.3070002@newflow.co.uk> <51D59C0E.8080003@newflow.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail3.foxnews.com ([74.120.98.15]:59088 "EHLO
-	FNCProofpointNYAGT.foxnewsnyc.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751534Ab3GEH7w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jul 2013 03:59:52 -0400
-Received: from pps.filterd (FNCProofpointNYAGT [127.0.0.1])
-	by FNCProofpointNYAGT.foxnewsnyc.com (8.14.5/8.14.5) with SMTP id r657LZ0A012697
-	for <linux-omap@vger.kernel.org>; Fri, 5 Jul 2013 03:34:38 -0400
-Received: from foxnews.com (localhost [127.0.0.1])
-	by FNCProofpointNYAGT.foxnewsnyc.com with ESMTP id 1dd4bgb0ft-1
-	(version=TLSv1/SSLv3 cipher=AES256-SHA bits=256 verify=NOT)
-	for <linux-omap@vger.kernel.org>; Fri, 05 Jul 2013 03:34:38 -0400
-Received: from FNCProofpointNYAGT (FNCProofpointNYAGT [127.0.0.1])
-	by pps.default (8.14.5/8.14.5) with SMTP id r657YcmQ021800
-	for <linux-omap@vger.kernel.org>; Fri, 5 Jul 2013 03:34:38 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:51404 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757172Ab3GEILc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jul 2013 04:11:32 -0400
+In-Reply-To: <51D59C0E.8080003@newflow.co.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Mark Jackson <mpfj-list@newflow.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Please call the helpdesk x14357 for assistance in sending out this work related attachment.
+T24gVGh1LCBKdWwgMDQsIDIwMTMgYXQgMjE6MzA6MTQsIE1hcmsgSmFja3NvbiB3cm90ZToNCj4g
+T24gMDQvMDcvMTMgMTY6MTQsIE1hcmsgSmFja3NvbiB3cm90ZToNCj4gPiBPbiAwNC8wNy8xMyAx
+NDoyNSwgTWFyayBKYWNrc29uIHdyb3RlOg0KPiA+PiBPdXIgY3VzdG9tIEFNMzM1eCBib2FyZCBo
+YXMgYmVlbiBib290aW5nIGp1c3QgZmluZSB1bmRlciAzLjEwLjAtcmM0Lg0KPiA+Pg0KPiA+PiBJ
+J3ZlIGp1c3QgZG9uZSBhIGdpdCBwdWxsIHRvIHVwZGF0ZSB0byAzLjEwIChub3cgdGhhdCBpdCdz
+IHJlbGVhc2VkKQ0KPiA+PiBhbmQgdGhlIGJvYXJkIG5vdyBoYW5ncy4NCj4gPj4NCj4gPj4gQmVm
+b3JlIEkgc3RhcnQgdHJ5aW5nIHRvIGJpc2VjdCB0aGUgaXNzdWUsIGRvZXMgYW55b25lIGhhdmUg
+YW4gY2x1ZXMgPw0KPiA+IA0KPiA+IE9rYXkgLi4uIEkndmUgbm93IGJpc2VjdGVkIGl0IHRvOi0N
+Cj4gPiANCj4gPiBhNjMwZmJmYmIxYmVlZmZjNWJiZTU0MmE3OTg2YmYyMDY4ODc0NjMzIGlzIHRo
+ZSBmaXJzdCBiYWQgY29tbWl0DQo+ID4gY29tbWl0IGE2MzBmYmZiYjFiZWVmZmM1YmJlNTQyYTc5
+ODZiZjIwNjg4NzQ2MzMNCj4gPiBBdXRob3I6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5j
+b20+DQo+ID4gRGF0ZTogICBNb24gSnVuIDEwIDA3OjM5OjA5IDIwMTMgLTA3MDANCj4gPiANCj4g
+PiAgICAgc2VyaWFsOiBvbWFwOiBGaXggZGV2aWNlIHRyZWUgYmFzZWQgUE0gcnVudGltZQ0KPiAN
+Cj4gSG93ZXZlciwgcmV2ZXJ0aW5nIHRoZSBjb21taXQgZG9lcyAqbm90KiBmaXggdGhlIGlzc3Vl
+LCB3ZWlyZCAhIQ0KPiANCj4gQnV0IEkgaGF2ZSBub3cgdGVzdGVkOi0NCj4gDQo+IHYzLjEwLXJj
+NCAgICAgLT4gd29ya3MNCj4gdjMuMTAtcmM1ICAgICAtPiB3b3Jrcw0KPiB2My4xMC1yYzYgICAg
+IC0+IHdvcmtzDQo+IHYzLjEwLXJjNyAgICAgLT4gd29ya3MNCj4gdjMuMTAgICAgICAgICAtPiB3
+b3Jrcw0KPiBvcmlnaW4vbWFzdGVyIC0+IGhhbmdzDQo+IA0KPiBBbnkgaWRlYXMgPw0KDQpJIGp1
+c3QgY2hlY2tlZCB0aGUgYmVoYXZpb3Igb24gbXkgQU0zMzV4LUVWTS4gQ3VycmVudCBtYWlubGlu
+ZSBib290cyBmaW5lDQpwcm92aWRlZCBJIGRvbid0IHVzZSBlYXJseXByaW50ay4gIFRoZSBvZmZl
+bmRpbmcgcGF0Y2ggWzFdIGluIHRoaXMgY2FzZSBpcyB0aGUgb25lDQp0aGF0IHRyaWVzIHRvIGdl
+dCByaWQgb2Ygb21hcF9zZXJpYWxfZWFybHlfaW5pdCgpIGZvciBEVCBib290LiBUaGlzIGNoYW5n
+ZSBpbmFkdmVydGVudGx5DQphbHNvIHJlc3VsdHMgaW4gdGhlIGNvbnNvbGUgVUFSVCBnZXR0aW5n
+IHJlc2V0IGFuZCBpZGxlZCBkdXJpbmcgYm9vdHVwIGFuZCB0aGF0J3Mgd2hlcmUNCnRoZSBib290
+IHN0b3BzIGZvciB5b3UuIEkgdGhpbmsgaWYgeW91IHNraXAgZWFybHlwcmludGsgZnJvbSB0aGUg
+Ym9vdGFyZ3MgeW91IHNob3VsZCBzZWUNCnRoZSBzeXN0ZW0gYm9vdGluZyBmaW5lLiANCg0KSSBn
+dWVzcyB3ZSBuZWVkIHRvIHJldGFpbiB0aGUgTk9fSURMRSBhbmQgTk9fUkVTRVQgYXNwZWN0IGZv
+ciB0aGUgY29uc29sZSBVQVJUIGluDQpvbWFwX3NlcmlhbF9lYXJseV9pbml0KCkgdG8gZ2V0IGVh
+cmx5cHJpbnRrIHdvcmtpbmcgYWdhaW4uDQoNClJlZ2FyZHMsDQpWYWliaGF2IEIuDQoNClsxXSBo
+dHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LW9tYXAvbXNnOTE4MjUuaHRtbA0KDQo=
