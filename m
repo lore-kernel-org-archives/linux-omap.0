@@ -1,7 +1,7 @@
 From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: [PATCH 5/5] musb: musb: dsps: remove instances variable
-Date: Fri,  5 Jul 2013 15:32:58 +0200
-Message-ID: <1373031178-8871-6-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 1/5] usb: phy: phy-nop: add support for am335x PHY
+Date: Fri,  5 Jul 2013 15:32:54 +0200
+Message-ID: <1373031178-8871-2-git-send-email-bigeasy@linutronix.de>
 References: <1373031178-8871-1-git-send-email-bigeasy@linutronix.de>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1373031178-8871-1-git-send-email-bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
@@ -10,38 +10,193 @@ To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, george.cherian-l0cyMroinI
 Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Remove the instances variable, there is no single use of it.
+The am335x PHY code is well hidden in multiple places. The glue layer
+uses the nop and does up/down in the background. This patch copies the
+power on / power off part out of dsps so it can be removed later in
+dsps. At this point I am not sure if it is better to write a new phy
+driver for am335x or just add the missing pieces to this one.
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
 ---
- drivers/usb/musb/musb_dsps.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/usb/phy/phy-nop.c | 113 +++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 101 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 0e01cc1..edeb2ad 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -111,8 +111,6 @@ struct dsps_musb_wrapper {
- 	/* miscellaneous stuff */
- 	u32		musb_core_offset;
- 	u8		poll_seconds;
--	/* number of musb instances */
--	u8		instances;
+diff --git a/drivers/usb/phy/phy-nop.c b/drivers/usb/phy/phy-nop.c
+index 55445e5d..ad85090 100644
+--- a/drivers/usb/phy/phy-nop.c
++++ b/drivers/usb/phy/phy-nop.c
+@@ -35,6 +35,7 @@
+ #include <linux/clk.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/of.h>
++#include <linux/of_address.h>
+ 
+ struct nop_usb_xceiv {
+ 	struct usb_phy phy;
+@@ -42,6 +43,14 @@ struct nop_usb_xceiv {
+ 	struct clk *clk;
+ 	struct regulator *vcc;
+ 	struct regulator *reset;
++
++	void __iomem *priv_reg;
++};
++
++struct phy_data {
++	int	(*phy_init)(struct usb_phy *x);
++	void	(*phy_shutdown)(struct usb_phy *x);
++	int	(*reg_init)(struct platform_device *pdev);
  };
  
- /**
-@@ -650,7 +648,6 @@ static const struct dsps_musb_wrapper ti81xx_driver_data = {
- 	.rxep_bitmap		= (0xfffe << 16),
- 	.musb_core_offset	= 0x400,
- 	.poll_seconds		= 2,
--	.instances		= 1,
- };
+ static struct platform_device *pd;
+@@ -139,10 +148,84 @@ static int nop_set_host(struct usb_otg *otg, struct usb_bus *host)
+ 	return 0;
+ }
  
- static const struct platform_device_id musb_dsps_id_table[] = {
--- 
-1.8.3.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
++static int am335x_reg_init(struct platform_device *pdev)
++{
++	struct device_node *node = pdev->dev.of_node;
++	struct nop_usb_xceiv *nop;
++	struct resource res;
++	int ret;
++
++	nop = platform_get_drvdata(pdev);
++	ret = of_address_to_resource(node, 0, &res);
++		return ret;
++
++	nop->priv_reg = devm_request_and_ioremap(&pdev->dev, 0);
++	if (!nop->priv_reg)
++		return -EINVAL;
++	return 0;
++}
++
++#define AM335X_USB_CTRL	0x00
++#define AM335x_USB_STS	0x04
++
++#define USBPHY_CM_PWRDN		(1 << 0)
++#define USBPHY_OTG_PWRDN	(1 << 1)
++#define USBPHY_OTGVDET_EN	(1 << 19)
++#define USBPHY_OTGSESSEND_EN	(1 << 20)
++
++static void am335x_phy_power(struct nop_usb_xceiv *nop, bool on)
++{
++	u32 val;
++
++	val = readl(nop->priv_reg);
++	if (on) {
++		val &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN);
++		val |= USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN;
++	} else {
++		val |= USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN;
++	}
++
++	writel(val, nop->priv_reg);
++}
++
++static int am335x_phy_init(struct usb_phy *phy)
++{
++	struct nop_usb_xceiv *nop = dev_get_drvdata(phy->dev);
++	int ret;
++
++	ret = nop_init(phy);
++	if (ret)
++		return ret;
++	am335x_phy_power(nop, true);
++	return 0;
++}
++
++static void am335x_phy_shutdown(struct usb_phy *phy)
++{
++	struct nop_usb_xceiv *nop = dev_get_drvdata(phy->dev);
++
++	am335x_phy_power(nop, false);
++	nop_shutdown(phy);
++}
++
++struct phy_data am335x_phy_data = {
++	.reg_init	= am335x_reg_init,
++	.phy_init	= am335x_phy_init,
++	.phy_shutdown	= am335x_phy_shutdown,
++};
++
++static const struct of_device_id nop_xceiv_dt_ids[] = {
++	{ .compatible = "usb-nop-xceiv" },
++	{ .compatible = "ti,am335x-usb-phy", .data = &am335x_phy_data },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, nop_xceiv_dt_ids);
++
+ static int nop_usb_xceiv_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct nop_usb_xceiv_platform_data *pdata = pdev->dev.platform_data;
++	const struct phy_data	*phy_data = NULL;
+ 	struct nop_usb_xceiv	*nop;
+ 	enum usb_phy_type	type = USB_PHY_TYPE_USB2;
+ 	int err;
+@@ -154,6 +237,7 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
+ 	if (!nop)
+ 		return -ENOMEM;
+ 
++	platform_set_drvdata(pdev, nop);
+ 	nop->phy.otg = devm_kzalloc(&pdev->dev, sizeof(*nop->phy.otg),
+ 							GFP_KERNEL);
+ 	if (!nop->phy.otg)
+@@ -161,13 +245,20 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
+ 
+ 	if (dev->of_node) {
+ 		struct device_node *node = dev->of_node;
++		const struct of_device_id *of_id;
+ 
+ 		if (of_property_read_u32(node, "clock-frequency", &clk_rate))
+ 			clk_rate = 0;
+ 
+ 		needs_vcc = of_property_read_bool(node, "vcc-supply");
+ 		needs_reset = of_property_read_bool(node, "reset-supply");
+-
++		of_id = of_match_node(nop_xceiv_dt_ids, node);
++		if (of_id) {
++			phy_data = of_id->data;
++			err = phy_data->reg_init(pdev);
++			if (err)
++				return err;
++		}
+ 	} else if (pdata) {
+ 		type = pdata->type;
+ 		clk_rate = pdata->clk_rate;
+@@ -217,8 +308,15 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
+ 	nop->phy.dev		= nop->dev;
+ 	nop->phy.label		= "nop-xceiv";
+ 	nop->phy.set_suspend	= nop_set_suspend;
+-	nop->phy.init		= nop_init;
+-	nop->phy.shutdown	= nop_shutdown;
++	if (phy_data && phy_data->phy_init)
++		nop->phy.init	= phy_data->phy_init;
++	else
++		nop->phy.init	= nop_init;
++
++	if (phy_data && phy_data->phy_shutdown)
++		nop->phy.shutdown = phy_data->phy_shutdown;
++	else
++		nop->phy.shutdown	= nop_shutdown;
+ 	nop->phy.state		= OTG_STATE_UNDEFINED;
+ 	nop->phy.type		= type;
+ 
+@@ -233,8 +331,6 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
+ 		goto err_add;
+ 	}
+ 
+-	platform_set_drvdata(pdev, nop);
+-
+ 	ATOMIC_INIT_NOTIFIER_HEAD(&nop->phy.notifier);
+ 
+ 	return 0;
+@@ -257,13 +353,6 @@ static int nop_usb_xceiv_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static const struct of_device_id nop_xceiv_dt_ids[] = {
+-	{ .compatible = "usb-nop-xceiv" },
+-	{ }
+-};
+-
+-MODULE_DEVICE_TABLE(of, nop_xceiv_dt_ids);
