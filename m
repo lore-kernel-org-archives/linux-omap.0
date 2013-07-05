@@ -1,27 +1,40 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 4/5] usb: musb: dsps: use proper child nodes
-Date: Fri, 05 Jul 2013 17:24:40 +0200
-Message-ID: <51D6E538.3050207@linutronix.de>
-References: <1373031178-8871-1-git-send-email-bigeasy@linutronix.de> <1373031178-8871-5-git-send-email-bigeasy@linutronix.de> <CAFqH_529D9rEJJ2rk3jGm0aGt4ZXBpP=R3azAKUxyp9vA-Nf4Q@mail.gmail.com> <51D6E2FB.3040303@linutronix.de> <CAFqH_51dW_GEx8mROjj-rGQ9D7RgrJhN2GJQfQAQ8wbj7n-0DQ@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.10-rc6
+Date: Fri, 5 Jul 2013 15:44:32 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1307051530290.8573@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com> <20130625160243.GE22312@arwen.pp.htv.fi> <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com> <51C9F0A8.1050607@ti.com> <87fvw6t136.fsf@linaro.org> <79CD15C6BA57404B839C016229A409A83ECC952D@DBDE04.ent.ti.com>
+ <51CAEB33.5010101@ti.com> <alpine.DEB.2.02.1306261722520.6135@utopia.booyaka.com> <51CBBCD8.5030600@ti.com> <alpine.DEB.2.02.1306281844090.8767@utopia.booyaka.com> <alpine.DEB.2.02.1307010211580.3741@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83ECCC435@DBDE04.ent.ti.com>
+ <51D2E096.5040700@ti.com> <alpine.DEB.2.02.1307031944580.9618@utopia.booyaka.com> <alpine.DEB.2.02.1307041810410.6258@utopia.booyaka.com> <51D65E3C.1070202@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:45725 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757373Ab3GEPYn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jul 2013 11:24:43 -0400
-In-Reply-To: <CAFqH_51dW_GEx8mROjj-rGQ9D7RgrJhN2GJQfQAQ8wbj7n-0DQ@mail.gmail.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:56824 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751174Ab3GEPod (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jul 2013 11:44:33 -0400
+In-Reply-To: <51D65E3C.1070202@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletbo Serra <eballetbo@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, george.cherian@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, b-cousson@ti.com
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Vutla, Lokesh" <lokeshvutla@ti.com>, Kevin Hilman <khilman@linaro.org>, "Rini, Tom" <trini@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 07/05/2013 05:22 PM, Enric Balletbo Serra wrote:
-> Fixed, I didn't update my DT for my custom board properly. Thanks.
+On Fri, 5 Jul 2013, Rajendra Nayak wrote:
 
-Good. I hate breaking the compatibility for DT but unfortunately it is
-beyond repair.
+> Grant already made it clear when he posted that patch that neither that nor
+> anything similar would be taken up mainline because the appended dtb was only
+> meant for folks stuck with legacy bootloaders and have no way to upgrade.
 
-Sebastian
+He's not the final arbiter of what goes into the mainline kernel :-)
 
+> Anyone who uses a bootloader capable of passing the dtb should *not* use
+> the appended dtb way.
+
+Look, either the kernel should support appended DTB booting, or it 
+shouldn't.  If it shouldn't, then that code should be ripped out of the 
+kernel completely, and we tell people 'tough luck'. If it should, then it 
+makes sense to help the millions of folks out there with locked 
+bootloaders to build and boot new kernels. This half-support that's in the 
+kernel now is not good.
+
+
+- Paul
