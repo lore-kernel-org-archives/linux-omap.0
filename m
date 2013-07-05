@@ -1,43 +1,87 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: OMAP baseline test results for v3.10-rc6
-Date: Fri, 5 Jul 2013 11:18:44 +0530
-Message-ID: <51D65E3C.1070202@ti.com>
-References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com> <20130625160243.GE22312@arwen.pp.htv.fi> <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com> <51C9F0A8.1050607@ti.com> <87fvw6t136.fsf@linaro.org> <79CD15C6BA57404B839C016229A409A83ECC952D@DBDE04.ent.ti.com> <51CAEB33.5010101@ti.com> <alpine.DEB.2.02.1306261722520.6135@utopia.booyaka.com> <51CBBCD8.5030600@ti.com> <alpine.DEB.2.02.1306281844090.8767@utopia.booyaka.com> <alpine.DEB.2.02.1307010211580.3741@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83ECCC435@DBDE04.ent.ti.com> <51D2E096.5040700@ti.com> <alpine.DEB.2.02.1307031944580.9618@utopia.booyaka.com> <alpine.DEB.2.02.1307041810410.6258@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC 0/4] Cleanup PRM and CM regbit headers
+Date: Fri, 5 Jul 2013 00:03:48 -0700
+Message-ID: <20130705070347.GP5523@atomide.com>
+References: <1372076143-12955-1-git-send-email-rnayak@ti.com>
+ <20130625071428.GC5523@atomide.com>
+ <51C95839.6050307@ti.com>
+ <20130704115819.GJ5523@atomide.com>
+ <51D56743.9080800@ti.com>
+ <alpine.DEB.2.02.1307041627540.6258@utopia.booyaka.com>
+ <51D65CE8.4050004@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41346 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751998Ab3GEFtQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Jul 2013 01:49:16 -0400
-In-Reply-To: <alpine.DEB.2.02.1307041810410.6258@utopia.booyaka.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52286 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751222Ab3GEHDx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jul 2013 03:03:53 -0400
+Content-Disposition: inline
+In-Reply-To: <51D65CE8.4050004@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Nishanth Menon <nm@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Vutla, Lokesh" <lokeshvutla@ti.com>, Kevin Hilman <khilman@linaro.org>, "Rini, Tom" <trini@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "benoit.cousson@gmail.com" <benoit.cousson@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thursday 04 July 2013 11:42 PM, Paul Walmsley wrote:
-> On Wed, 3 Jul 2013, Paul Walmsley wrote:
-> 
->> As far as Lokesh's patch goes: it doesn't make sense to me to remove a 
->> file during 'make clean' that the build process doesn't create.  So while 
->> I understand the motivation for the patch, and don't mind if upstream 
->> takes it, I personally wouldn't care to ack it.
-> 
-> Incidentally, if there's any patch that would improve the current 
-> situation with appended DTBs by going upstream, it would be a patch like 
-> Grant's "HACK" patch to add appended DTB building into the kernel build 
-> system.  Maybe folks can push to something similar to that one upstream?
+* Rajendra Nayak <rnayak@ti.com> [130704 22:49]:
+> On Thursday 04 July 2013 10:14 PM, Paul Walmsley wrote:
+> > You mentioned that these patches were generated with some kind of a=
+wk/grep=20
+> > scripting.  Can you integrate that in an automated way into the=20
+> > autogeneration flow?  If the answer is yes, then keep the header.  =
+If the=20
+> > answer is no, then the header should be dropped.  Beno=C3=AEt, mayb=
+e you have=20
+> > an opinion too?
+>=20
+> Ok, I'll try and integrate those scripts so all this can be done in a=
+n
+> automated way even for newer SoCs.
+>=20
+> >=20
+> > As far as whether this should go in -rcX or not, my view is that, a=
+s a=20
+> > matter of policy, large changes like this should wait until v3.12. =
+ Now,=20
+> > having written that, I also was under the impression that the OMAP5=
+=20
+> > changes weren't going to be sent upstream unless the total diffstat=
+ would=20
+> > be balanced to roughly zero or negative lines.  As far as I know, t=
+hat=20
+> > didn't happen.  So I guess, v3.11-rc it is...  kernel development b=
+y=20
+> > diffstat :-(
+>=20
+> I don't mind these going in -rcX or 3.12, either way is fine.
 
-Grant already made it clear when he posted that patch that neither that nor
-anything similar would be taken up mainline because the appended dtb was only
-meant for folks stuck with legacy bootloaders and have no way to upgrade.
-Anyone who uses a bootloader capable of passing the dtb should *not* use the
-appended dtb way.
+Removal of unused code should be OK for the early -rc. I doubt that
+anybody would object it especially considering that's it's a huge
+pile of unused defines that most likely won't ever be needed for
+DT based booting.
+=20
+> > Finally, please repost the whole series once you're done with your=20
+> > changes, as a non-RFC, along with your pull request (if you plan to=
+ send=20
+> > one).  I guess I should be the one to take these, since I wound up =
+taking=20
+> > the OMAP5 addition...
+>=20
+> :) I thought so too that you should be the one sending the pull.
+> I will post these out as non-RFC after I do a clean integration into
+> the autogen scripts, and then you can take a call on sending the pull=
+ for
+> either -rcX or 3.12
 
-> 
-> 
-> - Paul
-> 
+I'd prefer to have it done now for the early -rc series. But if it
+drags on, we should not merge it during the -rc series.
 
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
