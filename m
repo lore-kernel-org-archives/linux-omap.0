@@ -1,43 +1,42 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 1/6] ARM: OMAP2+: Remove board-4430sdp.c
-Date: Sat, 6 Jul 2013 23:36:48 +0200
-Message-ID: <201307062336.49066.arnd@arndb.de>
-References: <20130517191304.468.73487.stgit@localhost> <20130520095447.GR21614@n2100.arm.linux.org.uk> <20130706131057.GU21614@n2100.arm.linux.org.uk>
+From: Ezequiel Garcia <elezegarcia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: musb: dsps: make it work with two instances
+Date: Sat, 6 Jul 2013 18:39:50 -0300
+Message-ID: <CALF0-+Vo64Znw_iY0gOx5hGJ9mgw7OXFQ5HqBrTW4udW-Z=N+g@mail.gmail.com>
+References: <1373031178-8871-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:51212 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751984Ab3GFVh2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Jul 2013 17:37:28 -0400
-In-Reply-To: <20130706131057.GU21614@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1373031178-8871-1-git-send-email-bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, george.cherian-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, shawn.guo@linaro.org
 
-On Saturday 06 July 2013, Russell King - ARM Linux wrote:
-> Oh wait, why don't I get to choose my "debug console UART" on an AT91?
-> Maybe AT91 should move their debug uart selection into this menu as well,
-> and maybe the Versatile Express options too, because they're all to do
-> with selecting the UART to be used.  Please... some sane thought would
-> be really good here.
-> 
-> Oh my god, you're not the only ones.  Arnd/Olof, who started this madness
-> and why haven't you already stepped on it?  Right, I'm fixing this in
-> this merge window.  Everything is moving under the original choice menu
-> as it was intended to be.
+Hi Sebastian,
 
-Sorry, I missed that this was going on, and I absolutely agree with your
-sentiment. From what I can tell from the git log, Tegra was the first
-to have the separate choice statement, after it just move its
-options from mach-tegra/Kconfig into the Kconfig.debug. OMAP followed
-with the same method and I think from there people just copied it.
+On Fri, Jul 5, 2013 at 10:32 AM, Sebastian Andrzej Siewior
+<bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org> wrote:
+> This enables the two musb instances on am335x to work.
 
-I can understand why one wants to have some more structure in the list,
-given that i.MX alone has 37 options for UART addresses, but we first
-need to have a consistent method of configuring the addresses.
+I like a lot the idea of splitting the DT representation of the two
+USB instances. The DT binding
+looks much better this way.
 
-	Arnd
+After some minor DT tweaking on the current patchset,
+I've managed to detect an USB mass storage device in the
+second instance (host / usb1) using a Beaglebone black board.
+
+However, after I unplug the device, it's not recognized
+when I replug it. Maybe you can take a look at this;
+i'll do some more testings and see what I can come up with.
+
+Also, FWIW, I think that having a separate USB phy for am35xx would be
+much better.
+
+Nice job!
+-- 
+    Ezequiel
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
