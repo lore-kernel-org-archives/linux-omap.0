@@ -1,86 +1,68 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] arm: dts: AM43x: Add usb_otg_hs node
-Date: Sun, 7 Jul 2013 11:35:58 +0300
-Message-ID: <20130707083558.GA12992@arwen.pp.htv.fi>
-References: <1372401887-19422-1-git-send-email-george.cherian@ti.com>
-Reply-To: <balbi@ti.com>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: use for OMAP5 as well
+Date: Sun, 7 Jul 2013 17:13:10 -0300
+Message-ID: <20130707201309.GA5429@localhost>
+References: <1372422894-23729-1-git-send-email-a-bindra@ti.com>
+ <51CDB260.8080108@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41314 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751641Ab3GGIgo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 7 Jul 2013 04:36:44 -0400
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1372401887-19422-1-git-send-email-george.cherian@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <51CDB260.8080108@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: a-bindra@ti.com, linux-mmc@vger.kernel.org, cjb@laptop.org, linux-omap@vger.kernel.org, balbi@ti.com, nm@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, benoit.cousson@linaro.org, a-kishore@ti.com, afzal@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com
 
---PNTmBPCT7hxwcZjr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi guys,
 
-Hi,
+On Fri, Jun 28, 2013 at 09:27:20PM +0530, Balaji T K wrote:
+> On Friday 28 June 2013 06:04 PM, a-bindra@ti.com wrote:
+> > From: Amarinder Bindra <a-bindra@ti.com>
+> >
+> > OMAP's hs_mmc driver is also used for OMAP5 MMC controller operatio=
+n.
+> > Considering that the device tree entries are already there for this=
+,
+> > allow the driver to be built when only OMAP5 is enabled.
+> > This allows MMC root filesystems to be available in "OMAP5 only"
+> > configurations.
+> >
+> > Signed-off-by: Amarinder Bindra <a-bindra@ti.com>
+> > Acked-by: Felipe Balbi <balbi@ti.com>
+> > Acked-by: Nishanth Menon <nm@ti.com>
+>=20
+> Looks good to me,
+> Acked-by: Balaji T K <balajitk@ti.com>
+>=20
 
-On Fri, Jun 28, 2013 at 12:14:47PM +0530, George Cherian wrote:
-> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-> index ddc1df7..e4f5eb8 100644
-> --- a/arch/arm/boot/dts/am4372.dtsi
-> +++ b/arch/arm/boot/dts/am4372.dtsi
-> @@ -64,5 +64,24 @@
->  			compatible =3D "ti,am4372-counter32k","ti,omap-counter32k";
->  			reg =3D <0x44e86000 0x40>;
->  		};
-> +
-> +		usb_otg_hs1: am4372_dwc3@48380000 {
-> +			compatible =3D "ti,am437x-dwc3";
-> +			reg =3D <0x48380000 0x1ff>;
-> +			interrupts =3D <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
-> +			#address-cells =3D <1>;
-> +			#size-cells =3D <1>;
-> +			utmi-mode =3D <1>;
-> +			ranges;
-> +
-> +			dwc3@48390000 {
-> +				compatible =3D "synopsys,dwc3";
+I came across this same issue while trying MMC patches on AM3xx,
+which is nor OMAP3 neither OMAP4.
 
-let's us snps,dwc3. I recently posted a patch converting synopsys to
-snps like all other DesignWare drivers. Support for synopsys,dwc3 is
-still there, but shouldn't be used.
+Now, looking at the driver I don't see any OMAP-specific bits
+(welcome to the multiplatform world ;-) so I think we can just
+remove the 'depends' line. Something like this:
 
-> +				reg =3D <0x48390000 0xcfff>;
-> +				interrupts =3D <GIC_SPI  168 IRQ_TYPE_LEVEL_HIGH>;
-> +				tx-fifo-resize;
-
-is this flag *really* necessary, I asked you and didn't get an answer.
+---
+diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
+index 9ab8f8d..bade7f2 100644
+--- a/drivers/mmc/host/Kconfig
++++ b/drivers/mmc/host/Kconfig
+@@ -273,10 +273,9 @@ config MMC_OMAP
+=20
+ config MMC_OMAP_HS
+ 	tristate "TI OMAP High Speed Multimedia Card Interface support"
+-	depends on SOC_OMAP2430 || ARCH_OMAP3 || ARCH_OMAP4
+ 	help
+ 	  This selects the TI OMAP High Speed Multimedia card Interface.
+-	  If you have an OMAP2430 or OMAP3 board or OMAP4 board with a
++	  If you have an OMAP2430, OMAP3, OMAP4 or AM3xx board with a
+ 	  Multimedia Card slot, say Y or M here.
+=20
+ 	  If unsure, say N.
 
 --=20
-balbi
-
---PNTmBPCT7hxwcZjr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR2ShuAAoJEIaOsuA1yqREZ+UQAJRKQneE7PVa/XniQyQVGDfW
-zoF7Dx+KCBYijI5h9HDhSFKbs0OffUFwyfx3TOyJfhHrcRzSPy1PNHxdJ1i2XwRf
-LqZG7+HQgz2+ruRRp6WunU7JXFpfDukhQ0JA6zcmW3H1HqTrJNWPVWRGBbNmfj1o
-fJuYDQ9KijlRZ62n3Sw/oXIP0Tl0lMSc4Ap7egEc7AIXLFJwn4DLS1yr3wPF3e+c
-i2V5rUv0iRiA3Gj7c/klXxEjQDSIHUCprNQ9rDuO6W0GCe0Z49kvdYoq/WFH+eYf
-txGi8yfyLQM7Sz+iin8rlVJjDkerVqRB1OmBsxcHnCOdO+StC5coNNS2W6tWUNVO
-CX/obXNKm4WuO4KFS3loptlvSN96yPyhrbgwAjQnIR+Zqfgk8aSasDR19B1md0e6
-rJxIiM/n9FO7C5thnVUWplrOr+Zp7MDPCqFYOUO8B7k/MvEL7uGviLEorF9MnvnS
-jC4G2POETbWjaXIGEgBBZisXm3Qhm+GIIyAkDGHjGmDFJRp9/KlTTXSFOphu28ih
-3iPelDS3d0DnhyTdyQFyWCODHAS/PDpHqM1xxItzYBrRfUmbR/YhiC3T6BsAkF6G
-ZvmLwtFuqHya2RCoFVypOvfGyDF1aMv7BntlcrUfes6dAkuD/xqyapu9igQ48Btc
-UAZx397b9Plp3BshcBa6
-=m44g
------END PGP SIGNATURE-----
-
---PNTmBPCT7hxwcZjr--
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
