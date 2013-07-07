@@ -1,92 +1,86 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: debugging options (was: Re: [PATCH 1/6] ARM: OMAP2+: Remove
-	board-4430sdp.c)
-Date: Sun, 7 Jul 2013 00:37:08 +0100
-Message-ID: <20130706233708.GW21614@n2100.arm.linux.org.uk>
-References: <20130517191304.468.73487.stgit@localhost> <20130520095447.GR21614@n2100.arm.linux.org.uk> <20130706131057.GU21614@n2100.arm.linux.org.uk> <201307062336.49066.arnd@arndb.de>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] arm: dts: AM43x: Add usb_otg_hs node
+Date: Sun, 7 Jul 2013 11:35:58 +0300
+Message-ID: <20130707083558.GA12992@arwen.pp.htv.fi>
+References: <1372401887-19422-1-git-send-email-george.cherian@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35920 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751029Ab3GFXh0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Jul 2013 19:37:26 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:41314 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751641Ab3GGIgo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 7 Jul 2013 04:36:44 -0400
 Content-Disposition: inline
-In-Reply-To: <201307062336.49066.arnd@arndb.de>
+In-Reply-To: <1372401887-19422-1-git-send-email-george.cherian@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, shawn.guo@linaro.org
+To: George Cherian <george.cherian@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, benoit.cousson@linaro.org, a-kishore@ti.com, afzal@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com
 
-Apologies for the topic hijack.
+--PNTmBPCT7hxwcZjr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Sat, Jul 06, 2013 at 11:36:48PM +0200, Arnd Bergmann wrote:
-> Sorry, I missed that this was going on, and I absolutely agree with your
-> sentiment. From what I can tell from the git log, Tegra was the first
-> to have the separate choice statement, after it just move its
-> options from mach-tegra/Kconfig into the Kconfig.debug. OMAP followed
-> with the same method and I think from there people just copied it.
-> 
-> I can understand why one wants to have some more structure in the list,
-> given that i.MX alone has 37 options for UART addresses, but we first
-> need to have a consistent method of configuring the addresses.
+Hi,
 
-I don't have an option with an option after the choice or a set of
-options afterwards asking for details about the selected option -
-that is logical.
+On Fri, Jun 28, 2013 at 12:14:47PM +0530, George Cherian wrote:
+> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+> index ddc1df7..e4f5eb8 100644
+> --- a/arch/arm/boot/dts/am4372.dtsi
+> +++ b/arch/arm/boot/dts/am4372.dtsi
+> @@ -64,5 +64,24 @@
+>  			compatible =3D "ti,am4372-counter32k","ti,omap-counter32k";
+>  			reg =3D <0x44e86000 0x40>;
+>  		};
+> +
+> +		usb_otg_hs1: am4372_dwc3@48380000 {
+> +			compatible =3D "ti,am437x-dwc3";
+> +			reg =3D <0x48380000 0x1ff>;
+> +			interrupts =3D <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
+> +			#address-cells =3D <1>;
+> +			#size-cells =3D <1>;
+> +			utmi-mode =3D <1>;
+> +			ranges;
+> +
+> +			dwc3@48390000 {
+> +				compatible =3D "synopsys,dwc3";
 
-For example, if we were to reduce the 8250-uart based stuff down to
-a single "8250-compatible uart" option, and then ask for the address,
-register shift and register access size.
+let's us snps,dwc3. I recently posted a patch converting synopsys to
+snps like all other DesignWare drivers. Support for synopsys,dwc3 is
+still there, but shouldn't be used.
 
-... and of course by this time I now have a patch set which does
-exactly that... and it can do more by getting rid of that 8250_32.S
-file as well with another config option.  The patch below tries
-hard not to break anything or lose information as to the details of
-the 8250 UART in any platform which they're already known to the
-kernel, but they can be trivially overridden.  Eventually (maybe
-tomorrow), I expect a load of the choice config statements in
-arch/arm/Kconfig.debug to go away, replaced just with a generic
-"Kernel low-level debugging messages via 8250 UART" option.
+> +				reg =3D <0x48390000 0xcfff>;
+> +				interrupts =3D <GIC_SPI  168 IRQ_TYPE_LEVEL_HIGH>;
+> +				tx-fifo-resize;
 
- arch/arm/Kconfig.debug                             |   92 ++++++++++++++++++--
- arch/arm/include/asm/hardware/debug-8250.S         |   29 ------
- arch/arm/include/debug/8250.S                      |   36 ++++++++
- arch/arm/include/debug/mvebu.S                     |   30 -------
- arch/arm/include/debug/nspire.S                    |    9 +--
- arch/arm/include/debug/pxa.S                       |   33 -------
- arch/arm/include/debug/rockchip.S                  |   42 ---------
- arch/arm/include/debug/sunxi.S                     |   27 ------
- arch/arm/mach-dove/include/mach/debug-macro.S      |   19 ----
- arch/arm/mach-ebsa110/include/mach/debug-macro.S   |   22 -----
- .../arm/mach-footbridge/include/mach/debug-macro.S |   15 ---
- arch/arm/mach-gemini/include/mach/debug-macro.S    |   21 -----
- arch/arm/mach-iop13xx/include/mach/debug-macro.S   |   24 -----
- arch/arm/mach-iop32x/include/mach/debug-macro.S    |   21 -----
- arch/arm/mach-iop33x/include/mach/debug-macro.S    |   22 -----
- arch/arm/mach-ixp4xx/include/mach/debug-macro.S    |   26 ------
- arch/arm/mach-kirkwood/include/mach/debug-macro.S  |   19 ----
- arch/arm/mach-lpc32xx/include/mach/debug-macro.S   |   29 ------
- arch/arm/mach-mv78xx0/include/mach/debug-macro.S   |   19 ----
- arch/arm/mach-orion5x/include/mach/debug-macro.S   |   21 -----
- arch/arm/mach-rpc/include/mach/debug-macro.S       |   23 -----
- 21 files changed, 121 insertions(+), 458 deletions(-)
- delete mode 100644 arch/arm/include/asm/hardware/debug-8250.S
- create mode 100644 arch/arm/include/debug/8250.S
- delete mode 100644 arch/arm/include/debug/mvebu.S
- delete mode 100644 arch/arm/include/debug/pxa.S
- delete mode 100644 arch/arm/include/debug/rockchip.S
- delete mode 100644 arch/arm/include/debug/sunxi.S
- delete mode 100644 arch/arm/mach-dove/include/mach/debug-macro.S
- delete mode 100644 arch/arm/mach-ebsa110/include/mach/debug-macro.S
- delete mode 100644 arch/arm/mach-gemini/include/mach/debug-macro.S
- delete mode 100644 arch/arm/mach-iop13xx/include/mach/debug-macro.S
- delete mode 100644 arch/arm/mach-iop32x/include/mach/debug-macro.S
- delete mode 100644 arch/arm/mach-iop33x/include/mach/debug-macro.S
- delete mode 100644 arch/arm/mach-ixp4xx/include/mach/debug-macro.S
- delete mode 100644 arch/arm/mach-kirkwood/include/mach/debug-macro.S
- delete mode 100644 arch/arm/mach-lpc32xx/include/mach/debug-macro.S
- delete mode 100644 arch/arm/mach-mv78xx0/include/mach/debug-macro.S
- delete mode 100644 arch/arm/mach-orion5x/include/mach/debug-macro.S
- delete mode 100644 arch/arm/mach-rpc/include/mach/debug-macro.S
+is this flag *really* necessary, I asked you and didn't get an answer.
 
+--=20
+balbi
+
+--PNTmBPCT7hxwcZjr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR2ShuAAoJEIaOsuA1yqREZ+UQAJRKQneE7PVa/XniQyQVGDfW
+zoF7Dx+KCBYijI5h9HDhSFKbs0OffUFwyfx3TOyJfhHrcRzSPy1PNHxdJ1i2XwRf
+LqZG7+HQgz2+ruRRp6WunU7JXFpfDukhQ0JA6zcmW3H1HqTrJNWPVWRGBbNmfj1o
+fJuYDQ9KijlRZ62n3Sw/oXIP0Tl0lMSc4Ap7egEc7AIXLFJwn4DLS1yr3wPF3e+c
+i2V5rUv0iRiA3Gj7c/klXxEjQDSIHUCprNQ9rDuO6W0GCe0Z49kvdYoq/WFH+eYf
+txGi8yfyLQM7Sz+iin8rlVJjDkerVqRB1OmBsxcHnCOdO+StC5coNNS2W6tWUNVO
+CX/obXNKm4WuO4KFS3loptlvSN96yPyhrbgwAjQnIR+Zqfgk8aSasDR19B1md0e6
+rJxIiM/n9FO7C5thnVUWplrOr+Zp7MDPCqFYOUO8B7k/MvEL7uGviLEorF9MnvnS
+jC4G2POETbWjaXIGEgBBZisXm3Qhm+GIIyAkDGHjGmDFJRp9/KlTTXSFOphu28ih
+3iPelDS3d0DnhyTdyQFyWCODHAS/PDpHqM1xxItzYBrRfUmbR/YhiC3T6BsAkF6G
+ZvmLwtFuqHya2RCoFVypOvfGyDF1aMv7BntlcrUfes6dAkuD/xqyapu9igQ48Btc
+UAZx397b9Plp3BshcBa6
+=m44g
+-----END PGP SIGNATURE-----
+
+--PNTmBPCT7hxwcZjr--
