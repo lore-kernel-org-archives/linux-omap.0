@@ -1,62 +1,58 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 3/3] mmc: omap_hsmmc: add PSTATE to debugfs regs_show.
-Date: Mon, 8 Jul 2013 10:52:21 +0300
-Message-ID: <20130708075213.GG16635@arwen.pp.htv.fi>
-References: <1365770307-19859-1-git-send-email-andreas.fenkart@streamunlimited.com>
- <1365770307-19859-4-git-send-email-andreas.fenkart@streamunlimited.com>
-Reply-To: <balbi@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Subject: Re: musb: dsps: make it work with two instances
+Date: Mon, 08 Jul 2013 10:28:12 +0200
+Message-ID: <51DA781C.1020701@linutronix.de>
+References: <1373031178-8871-1-git-send-email-bigeasy@linutronix.de> <CALF0-+Vo64Znw_iY0gOx5hGJ9mgw7OXFQ5HqBrTW4udW-Z=N+g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="F4+N/OgRSdC8YnqX"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46121 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751118Ab3GHHwq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Jul 2013 03:52:46 -0400
-Content-Disposition: inline
-In-Reply-To: <1365770307-19859-4-git-send-email-andreas.fenkart@streamunlimited.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CALF0-+Vo64Znw_iY0gOx5hGJ9mgw7OXFQ5HqBrTW4udW-Z=N+g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ezequiel Garcia <elezegarcia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, george.cherian-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
-Cc: tony@atomide.com, cjb@laptop.org, arnd@arndb.de, balajitk@ti.com, grant.likely@secretlab.ca, linux-mmc@vger.kernel.org, rob@landley.net, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, zonque@gmail.com
 
---F4+N/OgRSdC8YnqX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 07/06/2013 11:39 PM, Ezequiel Garcia wrote:
+> Hi Sebastian,
 
-On Fri, Apr 12, 2013 at 02:38:27PM +0200, Andreas Fenkart wrote:
-> PSTATE shows current state of data lines.
->=20
-> Signed-off-by: Andreas Fenkart <andreas.fenkart@streamunlimited.com>
+Hello Ezequiel,
 
-this looks useful
+> On Fri, Jul 5, 2013 at 10:32 AM, Sebastian Andrzej Siewior
+> <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org> wrote:
+>> This enables the two musb instances on am335x to work.
+> 
+> I like a lot the idea of splitting the DT representation of the two
+> USB instances. The DT binding
+> looks much better this way.
+> 
+> After some minor DT tweaking on the current patchset,
+> I've managed to detect an USB mass storage device in the
+> second instance (host / usb1) using a Beaglebone black board.
 
-Reviewed-by: Felipe Balbi <balbi@ti.com>
+Forgot that. Will update the .dts
 
---=20
-balbi
+> However, after I unplug the device, it's not recognized
+> when I replug it. Maybe you can take a look at this;
+> i'll do some more testings and see what I can come up with.
 
---F4+N/OgRSdC8YnqX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I've seen that. If I remember correctly this isn't happening if
+runtime-pm is enabled. However if I reload the driver it works again.
+I will look at this.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+> Also, FWIW, I think that having a separate USB phy for am35xx would be
+> much better.
 
-iQIcBAEBAgAGBQJR2m+1AAoJEIaOsuA1yqREK0oP+wWYnaidkl1lXgxRxJUc8Flc
-OOjaRDqtvPxnl16WUwhbPdCyS0F1ySJzS8tS5gYaVjl+NXqp/4BvIwENXXkXIMyU
-Hr+gCnlyvzcV1RtwU3c4FbTQPSy5zuJzFhT44LaXm2YT2JJ4IjNPbFN6ZEUnmTpO
-xonaw7SZZbIrtKw/BrDfIr/wuC8RRWK4O3kcwMJ248znNlU7mv7rVOW/OAtmLvnn
-PYhScRqaPh/XtSTn7Fd69h0aP9vE65XQl1IdddmdvKIC2CAaZRJNuLd/9u3c4x6i
-S+D3OE6RagyXkxH9HrK5nubONNZu9CVxVGZ3zWl+UpeXaGwq1NC4ovgDtkJU9Tq/
-oJU36bRsKJWpCdrkTPgjxDUNYaDXFlbrvLuOuzv4SZ4JnQphb11yYLYnpX1MXDy4
-eBRwWMojvaE/UTD8OnCDqMWzfglQywQKbfMRG3INvnCJDZud3fzXfCx53oMHHhzC
-zC6E4sPkxnra/1M1yIzseWhNY1x7h0TC1KNoG5TxCcEuQIFESgneaKl3hG7M7rsb
-o7nVfgDdcLdVGPflSBtKJaCL/MH6RuckEE0kXaKjeDSSwOgkXNr8FxgZUGQlR3Lb
-Sl1Hnlln4WeL06s9hx7S5tX9x77ssxXsPqvFshyvZSe2MJB0c8fi8gC7QLoky5EV
-ef5evCEU7wumwHHW70iy
-=DkUi
------END PGP SIGNATURE-----
+George Cherian said that he is writing a phy driver. So my phy is just
+temporary but I think he keep the device nodes just remove the nop-phy
+code.
 
---F4+N/OgRSdC8YnqX--
+> 
+> Nice job!
+
+
+Sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
