@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 2/4] usb: phy: add a new API to get PHY ref by label
-Date: Mon, 8 Jul 2013 16:44:15 +0530
-Message-ID: <1373282057-20181-3-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 3/4] usb: musb: omap: use the new API to get PHY reference by label
+Date: Mon, 8 Jul 2013 16:44:16 +0530
+Message-ID: <1373282057-20181-4-git-send-email-kishon@ti.com>
 References: <1373282057-20181-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,145 +14,55 @@ List-Id: linux-omap@vger.kernel.org
 
 After the devices are created using PLATFORM_DEVID_AUTO,
 devm_usb_get_phy_dev and usb_get_phy_dev can't be used reliably
-as it relies on the device_names passed in usb_bind_phy. So
-added a new API to get the PHY reference by PHY label (PHY label
-should be filled which creating the PHY).
+as it relies on the device_names passed in usb_bind_phy. So used the
+new API devm_usb_get_phy_by_name to get the PHY reference.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 Tested-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/phy/phy.c   |   77 +++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/usb/phy.h |   14 +++++++++
- 2 files changed, 91 insertions(+)
+ drivers/usb/musb/musb_core.c |    1 +
+ drivers/usb/musb/musb_core.h |    1 +
+ drivers/usb/musb/omap2430.c  |    2 +-
+ 3 files changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/usb/phy/phy.c b/drivers/usb/phy/phy.c
-index a9984c7..92bba2f 100644
---- a/drivers/usb/phy/phy.c
-+++ b/drivers/usb/phy/phy.c
-@@ -55,6 +55,21 @@ static struct usb_phy *__usb_find_phy_dev(struct device *dev,
- 	return ERR_PTR(-ENODEV);
- }
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 29a24ce..5eb6cd7 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1814,6 +1814,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 	musb->min_power = plat->min_power;
+ 	musb->ops = plat->platform_ops;
+ 	musb->port_mode = plat->mode;
++	musb->phy_name = plat->phy_name;
  
-+static struct usb_phy *__usb_find_phy_by_name(struct list_head *list,
-+	const char *name)
-+{
-+	struct usb_phy	*phy = NULL;
-+
-+	list_for_each_entry(phy, list, head) {
-+		if (strcmp(name, phy->label))
-+			continue;
-+
-+		return phy;
-+	}
-+
-+	return ERR_PTR(-ENODEV);
-+}
-+
- static struct usb_phy *__of_usb_find_phy(struct device_node *node)
- {
- 	struct usb_phy  *phy;
-@@ -272,6 +287,68 @@ struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index)
- EXPORT_SYMBOL_GPL(devm_usb_get_phy_dev);
+ 	/* The musb_platform_init() call:
+ 	 *   - adjusts musb->mregs
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 7d341c3..1f0863b 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -424,6 +424,7 @@ struct musb {
+ 	unsigned                double_buffer_not_ok:1;
  
- /**
-+ * usb_get_phy_by_name - find the USB PHY using device ptr and phy label
-+ * @name - the name of the phy
-+ *
-+ * Returns the phy driver, after getting a refcount to it; or
-+ * -ENODEV if there is no such phy.  The caller is responsible for
-+ * calling usb_put_phy() to release that count.
-+ *
-+ * For use by USB host and peripheral drivers.
-+ */
-+struct usb_phy *usb_get_phy_by_name(const char *name)
-+{
-+	struct usb_phy	*phy = NULL;
-+	unsigned long	flags;
-+
-+	spin_lock_irqsave(&phy_lock, flags);
-+
-+	phy = __usb_find_phy_by_name(&phy_list, name);
-+	if (IS_ERR(phy) || !try_module_get(phy->dev->driver->owner)) {
-+		pr_err("unable to find transceiver\n");
-+		goto err0;
-+	}
-+
-+	get_device(phy->dev);
-+
-+err0:
-+	spin_unlock_irqrestore(&phy_lock, flags);
-+
-+	return phy;
-+}
-+EXPORT_SYMBOL_GPL(usb_get_phy_by_name);
-+
-+/**
-+ * devm_usb_get_phy_by_name - find the USB PHY using device ptr and phy label
-+ * @dev - device that requests this phy
-+ * @name - the label of the phy
-+ *
-+ * Gets the phy using usb_get_phy_by_name(), and associates a device with it
-+ * using devres. On driver detach, release function is invoked on the devres
-+ * data, then, devres data is freed.
-+ *
-+ * For use by USB host and peripheral drivers.
-+ */
-+struct usb_phy *devm_usb_get_phy_by_name(struct device *dev, const char *name)
-+{
-+	struct usb_phy **ptr, *phy;
-+
-+	ptr = devres_alloc(devm_usb_phy_release, sizeof(*ptr), GFP_KERNEL);
-+	if (!ptr)
-+		return NULL;
-+
-+	phy = usb_get_phy_by_name(name);
-+	if (!IS_ERR(phy)) {
-+		*ptr = phy;
-+		devres_add(dev, ptr);
-+	} else
-+		devres_free(ptr);
-+
-+	return phy;
-+}
-+EXPORT_SYMBOL_GPL(devm_usb_get_phy_by_name);
-+
-+/**
-  * devm_usb_put_phy - release the USB PHY
-  * @dev - device that wants to release this phy
-  * @phy - the phy returned by devm_usb_get_phy()
-diff --git a/include/linux/usb/phy.h b/include/linux/usb/phy.h
-index 4403680..2adb782 100644
---- a/include/linux/usb/phy.h
-+++ b/include/linux/usb/phy.h
-@@ -197,6 +197,9 @@ extern struct usb_phy *devm_usb_get_phy(struct device *dev,
- 	enum usb_phy_type type);
- extern struct usb_phy *usb_get_phy_dev(struct device *dev, u8 index);
- extern struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index);
-+extern struct usb_phy *usb_get_phy_by_name(const char *name);
-+extern struct usb_phy *devm_usb_get_phy_by_name(struct device *dev,
-+	const char *name);
- extern struct usb_phy *devm_usb_get_phy_by_phandle(struct device *dev,
- 	const char *phandle, u8 index);
- extern void usb_put_phy(struct usb_phy *);
-@@ -225,6 +228,17 @@ static inline struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index)
- 	return ERR_PTR(-ENXIO);
- }
+ 	struct musb_hdrc_config	*config;
++	const char		*phy_name;
  
-+static inline struct usb_phy *usb_get_phy_by_name(const char *name)
-+{
-+	return ERR_PTR(-ENXIO);
-+}
-+
-+static inline struct usb_phy *devm_usb_get_phy_by_name(struct device *dev,
-+	const char *name)
-+{
-+	return ERR_PTR(-ENXIO);
-+}
-+
- static inline struct usb_phy *devm_usb_get_phy_by_phandle(struct device *dev,
- 	const char *phandle, u8 index)
- {
+ #ifdef MUSB_CONFIG_PROC_FS
+ 	struct proc_dir_entry *proc_entry;
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 6708a3b..5b6113a 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -352,7 +352,7 @@ static int omap2430_musb_init(struct musb *musb)
+ 		musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent,
+ 		    "usb-phy", 0);
+ 	else
+-		musb->xceiv = devm_usb_get_phy_dev(dev, 0);
++		musb->xceiv = devm_usb_get_phy_by_name(dev, musb->phy_name);
+ 
+ 	if (IS_ERR(musb->xceiv)) {
+ 		status = PTR_ERR(musb->xceiv);
 -- 
 1.7.10.4
 
