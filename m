@@ -1,103 +1,59 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH 3/3] driver: spi: Add quad spi read support
-Date: Mon, 8 Jul 2013 17:36:51 +0300
-Message-ID: <20130708143651.GH31221@arwen.pp.htv.fi>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC/PATCH 1/3] driver: spi: Modify core to compute the message
+ length
+Date: Mon, 8 Jul 2013 16:02:26 +0100
+Message-ID: <20130708150226.GA16401@sirena.org.uk>
 References: <1373290980-17883-1-git-send-email-sourav.poddar@ti.com>
- <1373290980-17883-4-git-send-email-sourav.poddar@ti.com>
-Reply-To: <balbi@ti.com>
+ <1373290980-17883-2-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VbfcI4OLZ4XW0yH2"
+	protocol="application/pgp-signature"; boundary="k1lZvvs/B4yU6o8G"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1373290980-17883-4-git-send-email-sourav.poddar@ti.com>
+In-Reply-To: <1373290980-17883-2-git-send-email-sourav.poddar@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---VbfcI4OLZ4XW0yH2
+
+--k1lZvvs/B4yU6o8G
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jul 08, 2013 at 07:13:00PM +0530, Sourav Poddar wrote:
-> Since, qspi controller uses quad read.
->=20
-> Configuring the command register, if the transfer of data needs
-> quad lines.
->=20
-> This patch has been done on top of the following patch[1], which is still
-> under review/comments.
-> This patch will also go changes, as the parent patch[1] does.
->=20
-> [1]: http://comments.gmane.org/gmane.linux.kernel.spi.devel/14047
->=20
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ---
->  drivers/spi/spi-ti-qspi.c |    8 ++++++--
->  1 files changed, 6 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
-> index 430de9c..307cbed 100644
-> --- a/drivers/spi/spi-ti-qspi.c
-> +++ b/drivers/spi/spi-ti-qspi.c
-> @@ -258,8 +258,12 @@ static int qspi_read_msg(struct dra7xxx_qspi *qspi, =
-struct spi_transfer *t)
->  			qspi->cmd | QSPI_RD_SNGL, qspi->dc);
->  		dra7xxx_writel(qspi, QSPI_WC_INT_EN, QSPI_INTR_ENABLE_SET_REG);
->  		dra7xxx_writel(qspi, qspi->dc, QSPI_SPI_DC_REG);
-> -		dra7xxx_writel(qspi, qspi->cmd | QSPI_RD_SNGL,
-> -			QSPI_SPI_CMD_REG);
-> +		if (t->bitwidth =3D=3D SPI_BITWIDTH_QUAD)
-> +			dra7xxx_writel(qspi, qspi->cmd | QSPI_RD_QUAD,
-> +				QSPI_SPI_CMD_REG);
-> +		else
-> +			dra7xxx_writel(qspi, qspi->cmd | QSPI_RD_SNGL,
-> +				QSPI_SPI_CMD_REG);
+On Mon, Jul 08, 2013 at 07:12:58PM +0530, Sourav Poddar wrote:
+> Make spi core calculate the message length while
+> populating the other transfer parameters. This will
+> be useful in cases where controller driver need to configure its=20
+> framelength field without iterating through the linklist again in the
+> driver controller.
 
-we also have read dual, in order to make this code a little better you
-could:
+This seems fine but I'm going to hold off on applying it until it's
+reqired since it'll bloat the structure a little and it's a bit unusual
+to need it.  We should do an audit in case some drivers do need this
+though...
 
-	unsigned cmd =3D qspi->cmd;
-
-	switch (t->bitwidth)
-	case SPI_BITWIDTH_QUAD:
-		cmd |=3D QSPI_RD_QUAD;
-		break;
-	case SPI_BITWIDTH_DUAL:
-		cmd |=3D QSPI_RD_DUAL;
-		break;
-	case SPI_BITWIDTH_SINGLE:
-	default:
-		cmd |=3D QSPI_RD_SNGL;
-	}
-
-	dra7xx_writel(qspi, cmd, QSPI_SPI_CMD_REG);
-
---=20
-balbi
-
---VbfcI4OLZ4XW0yH2
+--k1lZvvs/B4yU6o8G
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v2.0.20 (GNU/Linux)
 
-iQIcBAEBAgAGBQJR2s6DAAoJEIaOsuA1yqRE2BsQAJW+05dztetj0tVqUtHAwz/S
-LGBd1ke63nBFMKsieKJzGRxsD7lRV3L2STzljIajvVfehhUuEab8xXIQ8tZNY2+m
-gNftfX9JFM59D3LFjHaKeLA2vKpPe8A/JEL+BZcwm35vyTRKTW5W++OS7cjp1dHV
-nsULDWeI89zzbEI0lFalyFvn4k9/YBQqKccfld/lTCHO8js7ctcbVEdZQW7I2EgE
-fH9z2nz7fby6xo3TWnR/+kACz/gKHMqBZZsSPdSOcvQfcKEtttgS4kEzOtivKkp/
-CPftx7FUiahR/ORAbhvc5ov5OjWV7E179EiW9XX6Dfd4qzsZOIroFcpPUnMPFFcI
-oEP0LfUkMKqAVTkACWdwSU5zPFo8HhcuJr1vI36/zTtdcolrKX+EXCjiNuj/IJ5f
-Nwtu8M4FEvIn2mG6VPjy5kO7fZw2bEacO3XEuy8bDXvGh1DYG+otlpgqFfwgWAAn
-GQJtqQ122woYESPUjfFBg8WmQHfBC0vjHVJ26PXetVwNhFNJ+7k6SiT+yf6cq2MJ
-WKp0pBQ6cMrMciWkWt999A9exSTsVuTZWsDAZmoI78cxJa4mhQ8BnwVJbGdzP4Of
-FY1DiG/pATVucaL/NQSa0EfEPKlWgZas8fE4QTtMF+oxowS3rQGFBMxwlBCpIq9f
-pFTY2G6aEJ4A5Lqk/0l1
-=UlaK
+iQIcBAEBAgAGBQJR2tR/AAoJELSic+t+oim9BegP/0QJG84t44al+maP3PrnLkoY
+EJwwx9c+VQqsGEQLAPztyIAJQEuCrd6PHcoiqcB4nRvPH2SHr7iqz6GnPtibEZ3k
+cUWRvxQyYudl0w6i68WkWGohO+7upWMsi8MJkDFndGRHJv1rvakMLM4NH+JAIINP
+YywsYB5ysPLFDT+6P86EIk0S8zzzeySsP8RZ0R3FdDLWng/ZwSrClS/05SAeeAvh
+qP28NH5QC5KvsLnXW7VG7fAiW8GDIkZBPobbCTznhqK039kRetHitjR0ozh1bojE
+xXBctCxVn97V04qlbd/HH5PRlyBBi04TbRf9MYVWHbApvUEPM72vol15jHF5K0Oc
+jW+OuCyi2ev+Cy/uxjnNYDUU5W45C3j9NvPIuGP2wTgv/dXWjnGGCrq1E6EpMGNL
+LQngwj0sfi9A2FlsiLT9tb1eQwfCsix3gXOIEiA8ChRLyd9R9ixsUF4aRzW767K/
+xkO1ZP6far0z72QhOZeWst6LlqGJBz6+1Ym7QPsgB7YaLbov8hID/ej6iDnzbhJG
+lNOOx87yJImlF6MDjBPjmUAMZX8czUXY3Iyd5zhnhhNw/1xfM9oGAwGx9TLZcyHN
+TsPF2YvL716e9ujYi2/Jn2zeKjp6ZcTG/AGKfwM2LoO6in90A3i5jwV4kZ/TiYEW
+H6w+QzNrbatEcIoRnfp/
+=gsIH
 -----END PGP SIGNATURE-----
 
---VbfcI4OLZ4XW0yH2--
+--k1lZvvs/B4yU6o8G--
