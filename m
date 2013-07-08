@@ -1,91 +1,64 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v4 2/4] ARM: OMAP2+: cleaned-up DT support of various
- ECC schemes
-Date: Mon, 8 Jul 2013 04:37:36 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73E9E5014@DBDE04.ent.ti.com>
-References: <1372764757-29511-1-git-send-email-pekon@ti.com>
- <1372764757-29511-3-git-send-email-pekon@ti.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: [PATCH] arm: dts: AM43x: Add usb_otg_hs node
+Date: Mon, 8 Jul 2013 10:50:35 +0530
+Message-ID: <51DA4C23.6050604@ti.com>
+References: <1372401887-19422-1-git-send-email-george.cherian@ti.com>
+ <20130707083558.GA12992@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58438 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751265Ab3GHEia convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Jul 2013 00:38:30 -0400
-In-Reply-To: <1372764757-29511-3-git-send-email-pekon@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130707083558.GA12992@arwen.pp.htv.fi>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: balbi@ti.com
+Cc: afzal@ti.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, a-kishore@ti.com, benoit.cousson@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "olof@lixom.net" <olof@lixom.net>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
-Cc: "arnd@arndb.de" <arnd@arndb.de>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "jp.francois@cynove.com" <jp.francois@cynove.com>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>, "tony@atomide.com" <tony@atomide.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>
 
-> 
-> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> index 6a983c1..690070e 100644
-> --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> @@ -17,20 +17,42 @@ Required properties:
-> 
->  Optional properties:
-> 
-> - - nand-bus-width: 		Set this numeric value to 16 if the hardware
-> -				is wired that way. If not specified, a bus
-> -				width of 8 is assumed.
-> + - nand-bus-width: 		Determines data-width of the connected
-> device
-> +				x16 = "16"
-> +				x8  = "8" (default)
-> 
-> - - ti,nand-ecc-opt:		A string setting the ECC layout to use. One of:
-> 
-> -		"sw"		Software method (default)
-> -		"hw"		Hardware method
-> -		"hw-romcode"	gpmc hamming mode method & romcode
-> layout
-> -		"bch4"		4-bit BCH ecc code
-> -		"bch8"		8-bit BCH ecc code
-> + - ti,nand-ecc-opt:		Determines the ECC scheme used by driver.
-> +				It can be any of the following strings:
-> +
-> +	"hamming_code_sw"		1-bit Hamming ECC
-> +					- ECC calculation in software
-> +					- Error detection in software
-> +
-> +	"hamming_code_hw"		1-bit Hamming ECC
-> +					- ECC calculation in hardware
-> +					- Error detection in software
-> +
-> +	"hamming_code_hw_romcode"	1-bit Hamming ECC
-> +					- ECC calculation in hardware
-> +					- Error detection in software
-> +					- ECC layout compatible to ROM code
-> +
-> +	"bch8_hw_code_detection_sw"	8-bit BCH ECC
-> +					- ECC calculation in hardware
-> +					- Error detection in software
-> +					- depends on
-> CONFIG_MTD_NAND_ECC_BCH
-> +
-> +	"bch8_code_hw"             	8-bit BCH ECC
-> +					- ECC calculation in hardware
-> +					- Error detection in hardware
-> +					- depends on
-> CONFIG_MTD_NAND_OMAP_BCH
-> +					- requires <elm_id> to be specified
-> +
-> +
-> + - elm_id:			Specifies elm device node. This is required to
-> +				support some BCH ECC schemes mentioned
-> above.
-> 
-> - - elm_id:	Specifies elm device node. This is required to support BCH
-> - 		error correction using ELM module.
-> 
+On 7/7/2013 2:05 PM, Felipe Balbi wrote:
+> Hi,
+>
+> On Fri, Jun 28, 2013 at 12:14:47PM +0530, George Cherian wrote:
+>> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+>> index ddc1df7..e4f5eb8 100644
+>> --- a/arch/arm/boot/dts/am4372.dtsi
+>> +++ b/arch/arm/boot/dts/am4372.dtsi
+>> @@ -64,5 +64,24 @@
+>>   			compatible = "ti,am4372-counter32k","ti,omap-counter32k";
+>>   			reg = <0x44e86000 0x40>;
+>>   		};
+>> +
+>> +		usb_otg_hs1: am4372_dwc3@48380000 {
+>> +			compatible = "ti,am437x-dwc3";
+>> +			reg = <0x48380000 0x1ff>;
+>> +			interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
+>> +			#address-cells = <1>;
+>> +			#size-cells = <1>;
+>> +			utmi-mode = <1>;
+>> +			ranges;
+>> +
+>> +			dwc3@48390000 {
+>> +				compatible = "synopsys,dwc3";
+> let's us snps,dwc3. I recently posted a patch converting synopsys to
+> snps like all other DesignWare drivers. Support for synopsys,dwc3 is
+> still there, but shouldn't be used.
+okay
+>
+>> +				reg = <0x48390000 0xcfff>;
+>> +				interrupts = <GIC_SPI  168 IRQ_TYPE_LEVEL_HIGH>;
+>> +				tx-fifo-resize;
+> is this flag *really* necessary, I asked you and didn't get an answer.
+We will not be needing this flag , since each EP has 3K tx fifo size. 
+Also given the fact that we will be operating only
+in 2.0 mode the default values are only sufficient.
+I will re-send the patch with above changes.
 
-[Pekon] Requesting DT maintainers to please review the above 
-changes in values for 'nand-ecc-opt' property. And please ACK | NAK it.
-
-with regards, pekon
-
+Regards,
+-George
