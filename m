@@ -1,151 +1,135 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: Boot hang regression 3.10.0-rc4 -> 3.10.0
-Date: Mon, 8 Jul 2013 18:55:41 +0530
-Message-ID: <51DABDD5.3060601@ti.com>
-References: <51D577E6.5010507@newflow.co.uk> <51D59146.3070002@newflow.co.uk>
- <51D59C0E.8080003@newflow.co.uk>
- <B5906170F1614E41A8A28DE3B8D121433EE93C23@DBDE04.ent.ti.com>
- <20130705115959.GQ5523@atomide.com>
- <B5906170F1614E41A8A28DE3B8D121433EE94489@DBDE04.ent.ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EE94520@DBDE04.ent.ti.com>
- <20130708112553.GU5523@atomide.com> <51DAB394.3050104@ti.com>
- <20130708131033.GA5523@atomide.com> <51DABC81.3080409@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v9 0/8] Generic PHY Framework
+Date: Mon, 8 Jul 2013 16:26:34 +0300
+Message-ID: <20130708132634.GC31221@arwen.pp.htv.fi>
+References: <1372247257-30186-1-git-send-email-kishon@ti.com>
+ <780E789C2E067A4BB8F69D0BB9EC4F253E975B5E@DBDE04.ent.ti.com>
+ <51D3F773.9000209@ti.com> <20130703132038.GI15056@arwen.pp.htv.fi>
+ <780E789C2E067A4BB8F69D0BB9EC4F253E975D6E@DBDE04.ent.ti.com>
+ <51D54694.20203@ti.com> <20130704101216.GD4830@arwen.pp.htv.fi>
+ <780E789C2E067A4BB8F69D0BB9EC4F253E9764D5@DBDE04.ent.ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51DABC81.3080409@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Mark Jackson <mpfj-list@newflow.co.uk>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/mixed; boundary="===============4204743915857424839=="
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <780E789C2E067A4BB8F69D0BB9EC4F253E9764D5-yXqyApvAXouIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "Patel, Satish" <satish.patel-l0cyMroinI0@public.gmane.org>
+Cc: "mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nori,
+ Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "Mankad, Maulik Ojas" <maulik-l0cyMroinI0@public.gmane.org>, "swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org" <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "ABRAHAM,
+ KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org" <cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org>, "Cherian,
+ George" <george.cherian-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "Srinivasan,
+ Nageswari" <nageswari-l0cyMroinI0@public.gmane.org>, "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>, gregkh@linuxf
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 08 July 2013 06:50 PM, Rajendra Nayak wrote:
-> On Monday 08 July 2013 06:40 PM, Tony Lindgren wrote:
->> * Rajendra Nayak <rnayak@ti.com> [130708 05:48]:
->>> On Monday 08 July 2013 04:55 PM, Tony Lindgren wrote:
->>>> * Bedia, Vaibhav <vaibhav.bedia@ti.com> [130705 06:37]:
->>>>> On Fri, Jul 05, 2013 at 18:50:10, Bedia, Vaibhav wrote:
->>>>>> Hi Tony,
->>>>>>
->>>>>> On Fri, Jul 05, 2013 at 17:29:59, Tony Lindgren wrote:
->>>>>>> * Bedia, Vaibhav <vaibhav.bedia@ti.com> [130705 01:17]:
->>>>>>>>
->>>>>>>> I just checked the behavior on my AM335x-EVM. Current mainline boots fine
->>>>>>>> provided I don't use earlyprintk.  The offending patch [1] in this case is the one
->>>>>>>> that tries to get rid of omap_serial_early_init() for DT boot. This change inadvertently
->>>>>>>> also results in the console UART getting reset and idled during bootup and that's where
->>>>>>>> the boot stops for you. I think if you skip earlyprintk from the bootargs you should see
->>>>>>>> the system booting fine. 
->>>>>>>>
->>>>>>>> I guess we need to retain the NO_IDLE and NO_RESET aspect for the console UART in
->>>>>>>> omap_serial_early_init() to get earlyprintk working again.
->>>>>>>
->>>>>>> Hmm nothing should get idled while earlyprintk is running, and then when the
->>>>>>> serial driver kicks in it should not idle anything by default. And for DT based
->>>>>>> booting we should not have mach-omap2/serial.c initialize anything.
->>>>>>>
->>>>>>
->>>>>> If I add in the HWMOD flags without any reverts I get to the point where the serial driver
->>>>>> comes up but the boot eventually stops [1]. Without the flags the boot stops much earlier [2]
->>>>>> just like Mark reported.
->>>>>>
->>>>>
->>>>> Err.. the log with HWMOD flags added is [2] and without flags is [1]. Sorry for the confusion.
->>>>
->>>> It sounds like something needs to be fixed for am33xx as omap3 and omap4
->>>> won't hang with earlyprintk. Almost certainly mach-omap2/serial.c should not
->>>> be needed at all for am33xx, and the bug is somewhere else.
->>>
->>> Tony, I spent some time on this today and there seem to 2 issues.
->>>
->>> Issue 1: Causing boot to stop much earlier as reported (this is during hmwod setup)
->>>
->>> The commit 'e97f03cb36e9ec8a2ccaa3e4bee5297fe48156fd' 
->>> "ARM: OMAP2+: Fix serial init for device tree based booting" stubbed out omap_serial_early_init()
->>> for DT case thinking its doing the port inits. But that does not seem to be true, the port inits happen
->>> as part of omap_serial_init_port(). What omap_serial_early_init() was doing instead was adding the
->>> HWMOD_INIT_NO_IDLE and HWMOD_INIT_NO_RESET flags which would tell hmwod not to reset and then idle the
->>> console UART. With this not happening now for the DT case, it causes an issue.
->>>
->>> The issue was seen on am33xx and not on some other platforms because some platforms still have these
->>> statically defined in the hwmod data files. I could see these set for uart3 in case of omap4 and omap5.
->>> So I feel the above commit should be reverted and these static flags should be removed from the data
->>> files.
->>
->> Oh OK. That's starting to make a bit more sense then. 
->>   
->>>>>>> I wonder if this is because the timeouts get now initialized to 0 instead
->>>>>>> of -1 for the serial driver?
->>>>>>>
->>>>>>
->>>>>> You meant initialized to -1, right? There's an additional check for timeout being 0. Unless i
->>>>>> am missing something DT-boot will start off with timeout set to 0 and then get forced to -1.
->>>>
->>>> OK
->>>
->>> Issue 2: Causing boot to stop when serial driver is initialized. (After Issue 1 is fixed)
->>>
->>> I could narrow this down to the change done to return -EINVAL instead of 0 in serial_omap_get_context_loss_count()
->>> as part of commit 'a630fbfbb1beeffc5bbe542a7986bf2068874633' "serial: omap: Fix device tree based PM runtime"
->>>
->>> What this change in turn seems to do is cause a serial_omap_restore_context() to get called as part of
->>> serial_omap_runtime_resume() which was not the case when serial_omap_get_context_loss_count() returned 0
->>>
->>> from serial_omap_runtime_resume():
->>> -----
->>>         int loss_cnt = serial_omap_get_context_loss_count(up);
->>>
->>>         if (loss_cnt < 0) {
->>>                 dev_dbg(dev, "serial_omap_get_context_loss_count failed : %d\n",
->>>                         loss_cnt);
->>>                 serial_omap_restore_context(up);
->>>         } else if (up->context_loss_cnt != loss_cnt) {
->>>                 serial_omap_restore_context(up);
->>>         }
->>> -----
->>>
->>> I am still working on why a serial_omap_restore_context() could have caused console to die. I will work with
->>> Sourav on this and post the fixes for both issue 1 and issue2 once its clear on whats really causing issue 2.
->>
->> That's because we don't have the omap specific pdata callbacks for
->> context loss any longer. We may be able to detect when the context
->> was really lost in the serial driver, and only then call the
->> serial_omap_restore_context().
-> 
-> Right, but calling serial_omap_restore_context() even when the context is not lost, should not
-> ideally cause an issue.
+--===============4204743915857424839==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Bu8it7iiRSEf40bY"
+Content-Disposition: inline
 
-So looking some more into this, it turns out a lot of what serial_omap_restore_context() restores
-gets set as part of serial_omap_set_termios() which infact gets called much later and any call to
-serial_omap_restore_context before a call to serial_omap_set_termios() ends up restoring junk?
+--Bu8it7iiRSEf40bY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
->>  
->>> Let me know if the fix I listed for Issue 1: makes sense.
->>
->> Yes makes sense as a fix, but IMHO we should not need any workarounds
->> like that. Is the hwmod code idling the the uarts early? If so, then
->> it should only do that in a late_initcall if no drivers are registered.
-> 
-> hwmod as part of its setup (early) enables/resets and idles all modules.
-> These flags are used to tell hwmod to avoid a reset and idle and leave the
-> module enabled (in this case console uart)
-> 
-> regards
-> Rajendra
-> 
->>
->> Regards,
->>
->> Tony
->>
-> 
+Hi,
+
+On Mon, Jul 08, 2013 at 01:24:49PM +0200, Patel, Satish wrote:
+
+[ big snip ]
+
+> We have two options over here
+>=20
+> Option 1:=20
+>=20
+> Defining generic api to which can be mapped over multiple phys
+> For smartcard case, I have can thought of following mapping with new=20
+> generic apis as suggested.
+>=20
+> Smartcard_poweron -> power_on
+> Smartcard_powerdown -> power_off
+> Smartcard_set_voltage -> phy_set_voltage
+
+these three are generic enough
+
+> Smartcard_activate_card -> phy_activate_slot
+> Smartcard_deactivate_card -> phy_deactivate_slot
+
+this looks unnecessary, why can't you always activate the card when you
+phy_poweron ?
+
+> Smartcard_set_c4/c8/rst/io -> phy_set_pin
+
+why do you want to control each pin separately ? looks like something we
+don't want to allow, in order to prevent users fiddling with the HW
+directly.
+
+> Smartcard_warm_reset -> phy_warmreset
+
+phy_reset()
+
+> Smartcard_set_clkdiv -> phy_set_clock
+> Smartcard_get_clkdiv -> phy_get_clock
+
+why do you need to control the clock like that ? That should be
+something in the clock framework and, hey, it already exists:
+
+clk_set_rate()
+clk_get_rate()
+
+> Smartcard_set_atr_mute_timeout -> ??
+> Smartcard_set_atr_early_timeout -> ??=09
+> Smartcard_get_isr_status -> phy_get_status
+> Smartcard_get_version -> phy_get_version
+
+these look unnecessary. Why does any other entity need to know about the
+PHY version and Interrupt status ?
+
+--=20
+balbi
+
+--Bu8it7iiRSEf40bY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIbBAEBAgAGBQJR2r4KAAoJEIaOsuA1yqREUDYP90Sj2zUPdCV02zteewIlE8WY
+oFn6Hvi+JXx0HsPlenswKBeJoyVG+eoHW2NGSGuHB/kUNd0wtbtYAhzlXqpJwIH/
++rB//zSaPSIcMy4Vv0cp2A+UvrJ/trp8OI5wrXAzGeYsSR+BwSmWVIGufl/gYa3f
+yoGinT9+67YANUKzeAAL26xmJVSP9g7RNEsdpNHdUmGiIUrLtwU1kBqTUC64nYpw
+GKKta7JVrANP8S/Uo/DCNPgzMZ0CPsMjVFYVAW0Jsj7jYIxvblBTj7EX2PM9GOXE
+G9wPnsKJuCdY10JU1V112mnssU8j7hanT5h/7xjlgS5V3N6i7AI0OPBrZinf1Gr2
+UYNb/RRCZTqqkSG4On/ZjmOmG2wLx4XwpCybMV4YyXxn6LG80SxjuywqEtjOtYjx
+Dz+/iR2+j7/nMI+eL53/3Q9SabycNnrdKG0r94vrlm7j1AbFEdWido+NORW76TYH
+JoOa0//OSVGPPMDrq1NbNdaEVFSMQboZMh3IVuOx6dnkua92CW2ORAtTs2ZDr2IV
+AihtL1kRHa2X1UcFXuCQa1f1glaStQTphC3wLJij7cqRLIMYscL7KMWfmJDc/j8p
+9RGOWM8dbMDSD3VKTRbs4bbj2vutusWAoYMx2XSmSfckZ+V4NdwPny4VRJ++LueB
+hGpXx3N13o5Rx0ieemM=
+=R6VT
+-----END PGP SIGNATURE-----
+
+--Bu8it7iiRSEf40bY--
+
+--===============4204743915857424839==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--===============4204743915857424839==--
