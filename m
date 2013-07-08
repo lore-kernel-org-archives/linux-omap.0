@@ -1,101 +1,51 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH 2/5] usb: phy: phy-omap-control: Add API to power on/off USB PHY for AM335X
-Date: Mon, 8 Jul 2013 16:13:18 +0530
-Message-ID: <1373280201-31785-3-git-send-email-george.cherian@ti.com>
-References: <1373280201-31785-1-git-send-email-george.cherian@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] musb: omap: Fix: pass all the resources to musb core
+Date: Mon, 8 Jul 2013 16:25:29 +0530
+Message-ID: <1373280929-19052-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1373280201-31785-1-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com, bigeasy@linutronix.de, George Cherian <george.cherian@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kishon-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add API to power on/off USB PHY for AM335X. This API will be called
-from phy-amxxxx-usb driver.
+commit 09fc7d (usb: musb: fix incorrect usage of resource pointer)
+assumes musb core will always have only 2 resources. But for OMAP
+platforms there can be 3 resources (2 irq resource and 1 iomem
+resource). Fixed it here.
 
-Signed-off-by: George Cherian <george.cherian@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/phy/phy-omap-control.c   | 32 ++++++++++++++++++++++++++++++++
- include/linux/usb/omap_control_usb.h | 11 +++++++++++
- 2 files changed, 43 insertions(+)
+ drivers/usb/musb/omap2430.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
-index 1419ced..0c1822d 100644
---- a/drivers/usb/phy/phy-omap-control.c
-+++ b/drivers/usb/phy/phy-omap-control.c
-@@ -46,6 +46,38 @@ struct device *omap_get_control_dev(void)
- EXPORT_SYMBOL_GPL(omap_get_control_dev);
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 5b6113a..5bbef78 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -481,7 +481,7 @@ static u64 omap2430_dmamask = DMA_BIT_MASK(32);
  
- /**
-+ * omap_control_am335x_phy_power - power on/off the serializer using control
-+ *	module
-+ * @dev: the control module device
-+ * @on: 0 to off and 1 to on based on powering on or off the PHY
-+ * @id: phy id 0 or 1 for phy instance 0 and 1 repectively
-+ *
-+ * AMXXXX PHY driver should call this API to power on or off the PHY.
-+ */
-+void omap_control_am335x_phy_power(struct device *dev, bool on, u8 id)
-+{
-+	u32 val;
-+	struct omap_control_usb	*control_usb = dev_get_drvdata(dev);
-+
-+	if (control_usb->type != OMAP_CTRL_DEV_TYPE3)
-+		return;
-+
-+	val = readl(control_usb->dev_conf + (id * 2));
-+
-+	if (on) {
-+		val &= ~(AM335X_USBPHY_CM_PWRDN | AM335X_USBPHY_OTG_PWRDN);
-+		val |= AM335X_USBPHY_OTGVDET_EN |
-+			AM335X_USBPHY_OTGSESSEND_EN;
-+	} else
-+		val |= AM335X_USBPHY_CM_PWRDN | AM335X_USBPHY_OTG_PWRDN;
-+
-+
-+	writel(val, (control_usb->dev_conf + (id * 2)));
-+}
-+EXPORT_SYMBOL_GPL(omap_control_am335x_phy_power);
-+
-+
-+/**
-  * omap_control_usb3_phy_power - power on/off the serializer using control
-  *	module
-  * @dev: the control module device
-diff --git a/include/linux/usb/omap_control_usb.h b/include/linux/usb/omap_control_usb.h
-index 27b5b8c..11d7a34 100644
---- a/include/linux/usb/omap_control_usb.h
-+++ b/include/linux/usb/omap_control_usb.h
-@@ -45,6 +45,7 @@ enum omap_control_usb_mode {
- /* To differentiate ctrl module IP having either mailbox or USB3 PHY power */
- #define	OMAP_CTRL_DEV_TYPE1		0x1
- #define	OMAP_CTRL_DEV_TYPE2		0x2
-+#define	OMAP_CTRL_DEV_TYPE3		0x3
+ static int omap2430_probe(struct platform_device *pdev)
+ {
+-	struct resource			musb_resources[2];
++	struct resource			musb_resources[3];
+ 	struct musb_hdrc_platform_data	*pdata = pdev->dev.platform_data;
+ 	struct omap_musb_board_data	*data;
+ 	struct platform_device		*musb;
+@@ -489,6 +489,7 @@ static int omap2430_probe(struct platform_device *pdev)
+ 	struct device_node		*np = pdev->dev.of_node;
+ 	struct musb_hdrc_config		*config;
+ 	int				ret = -ENOMEM;
++	int				i = 0;
  
- #define	OMAP_CTRL_DEV_PHY_PD		BIT(0)
+ 	glue = devm_kzalloc(&pdev->dev, sizeof(*glue), GFP_KERNEL);
+ 	if (!glue) {
+@@ -571,15 +572,12 @@ static int omap2430_probe(struct platform_device *pdev)
+ 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
+ 			ARRAY_SIZE(musb_resources));
  
-@@ -63,10 +64,20 @@ enum omap_control_usb_mode {
- #define	OMAP_CTRL_USB3_PHY_TX_RX_POWERON	0x3
- #define	OMAP_CTRL_USB3_PHY_TX_RX_POWEROFF	0x0
- 
-+#define AM335X_USBPHY_CM_PWRDN		(1 << 0)
-+#define AM335X_USBPHY_OTG_PWRDN		(1 << 1)
-+#define AM335X_USBPHY_OTGVDET_EN		(1 << 19)
-+#define AM335X_USBPHY_OTGSESSEND_EN	(1 << 20)
-+#define AM335X_USB0_WKUP_CTRL_ENABLE	(1 << 0)
-+#define AM335X_USB1_WKUP_CTRL_ENABLE	(1 << 8)
-+
-+
-+
- #if IS_ENABLED(CONFIG_OMAP_CONTROL_USB)
- extern struct device *omap_get_control_dev(void);
- extern void omap_control_usb_phy_power(struct device *dev, int on);
- extern void omap_control_usb3_phy_power(struct device *dev, bool on);
-+extern void omap_control_am335x_phy_power(struct device *dev, bool on, u8 id);
- extern void omap_control_usb_set_mode(struct device *dev,
- 	enum omap_control_usb_mode mode);
- #else
--- 
-1.8.1.4
+-	musb_resources[0].name = pdev->resource[0].name;
+-	musb_resources[0].start = pdev->resource[0].start;
+-	musb_resources[0].end = pdev->resource[0].end;
+-	musb_resources[0].flags = pdev->resource[0].flags;
