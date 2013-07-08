@@ -1,486 +1,250 @@
-From: Mark Jackson <mpfj-list@newflow.co.uk>
-Subject: [PATCH] Add support for Newflow NanoBone board
-Date: Mon, 08 Jul 2013 19:57:09 +0100
-Message-ID: <51DB0B85.7000102@newflow.co.uk>
+From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Subject: Re: [PATCH v3 4/4] USB: OMAP1: Tahvo USB transceiver driver
+Date: Mon, 8 Jul 2013 22:44:02 +0300
+Message-ID: <20130708194402.GA8516@blackmetal.musicnaut.iki.fi>
+References: <1371575221-360-1-git-send-email-aaro.koskinen@iki.fi>
+ <1371575221-360-5-git-send-email-aaro.koskinen@iki.fi>
+ <20130708072109.GA16635@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mercuryimc.plus.com ([80.229.200.144]:59408 "EHLO
-	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751984Ab3GHS5L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Jul 2013 14:57:11 -0400
-Received: from [10.1.0.108] (unknown [176.62.209.156])
-	by centos1.newflow.co.uk (Postfix) with ESMTP id 82A1826B803D
-	for <linux-omap@vger.kernel.org>; Mon,  8 Jul 2013 19:57:09 +0100 (BST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20130708072109.GA16635-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-NanoBone Specification:
------------------------
-CPU:
-  TI AM335x @ 720MHz
+Hi,
 
-Memory:
-  256MB DDR3
-  128MB NOR flash
-  128KB FRAM
+On Mon, Jul 08, 2013 at 10:21:09AM +0300, Felipe Balbi wrote:
+> On Tue, Jun 18, 2013 at 08:07:01PM +0300, Aaro Koskinen wrote:
+> > +static ssize_t vbus_state_show(struct device *device,
+> > +			       struct device_attribute *attr, char *buf)
+> > +{
+> > +	struct tahvo_usb *tu = dev_get_drvdata(device);
+> > +	return sprintf(buf, "%d\n", tu->vbus_state);
+> > +}
+> > +static DEVICE_ATTR(vbus_state, 0444, vbus_state_show, NULL);
+> 
+> VBUS status sounds generic enough, also, you should be printing on/off
+> here instead of tahvo-specific values. Some users might not have access
+> to the docs, or even the kernel sources, to understand what that integer
+> means.
 
-Ethernet:
-  2 x 10/100 connected to SMSC LAN8710 PHY
+Ok, I'll fix.
 
-USB:
-  1 x USB2.0 Type A
+> > +static void tahvo_usb_become_host(struct tahvo_usb *tu)
+> > +{
+> > +	struct retu_dev *rdev = dev_get_drvdata(tu->pt_dev->dev.parent);
+> > +
+> > +	extcon_set_cable_state(&tu->extcon, "USB-HOST", true);
+> > +
+> > +	/* Power up the transceiver in USB host mode */
+> > +	retu_write(rdev, TAHVO_REG_USBR, USBR_REGOUT | USBR_NSUSPEND |
+> > +		   USBR_MASTER_SW2 | USBR_MASTER_SW1);
+> > +	tu->phy.state = OTG_STATE_A_IDLE;
+> > +
+> > +	check_vbus_state(tu);
+> > +}
+> > +
+> > +static void tahvo_usb_stop_host(struct tahvo_usb *tu)
+> > +{
+> > +	tu->phy.state = OTG_STATE_A_IDLE;
+> 
+> shouldn't you undo tahvo_usb_become_host() here ? I mean, set the
+> transceiver to SLAVE ?
 
-I2C:
-  2Kbit EEPROM (Microchip 24AA02)
-  RTC (Maxim DS1338)
-  GPIO Expander (Microchip MCP23017)
+tahvo_usb_become_peripheral() (or power_off) is always called after this
+function. Actually, these stop functions can be eliminated altogether
+as they are only called from a single place...
 
-Expansion connector:
-  6 x UART
-  1 x MMC/SD
-  1 x USB2.0
+> > +static int tahvo_usb_set_host(struct usb_otg *otg, struct usb_bus *host)
+> > +{
+> > +	struct tahvo_usb *tu = container_of(otg->phy, struct tahvo_usb, phy);
+> > +
+> > +	dev_dbg(&tu->pt_dev->dev, "%s %p\n", __func__, host);
+> > +
+> > +	if (otg == NULL)
+> > +		return -ENODEV;
+> > +
+> > +	mutex_lock(&tu->serialize);
+> > +
+> > +	if (host == NULL) {
+> > +		if (tu->tahvo_mode == TAHVO_MODE_HOST)
+> > +			tahvo_usb_power_off(tu);
+> > +		otg->host = NULL;
+> > +		mutex_unlock(&tu->serialize);
+> > +		return 0;
+> > +	}
+> > +
+> > +	if (tu->tahvo_mode == TAHVO_MODE_HOST) {
+> > +		otg->host = NULL;
+> > +		tahvo_usb_become_host(tu);
+> > +	}
+> > +
+> > +	otg->host = host;
+> > +
+> > +	mutex_unlock(&tu->serialize);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int tahvo_usb_set_peripheral(struct usb_otg *otg,
+> > +				    struct usb_gadget *gadget)
+> 
+> I want to get rid of the extra 'gadget' and 'host' parameters on
+> ->set_host() and ->set_peripheral(). Nobody really uses them other than:
+> 
+> my_phy->phy.otg->{gadget,host} = {gadget,host};
+> 
+> For that, I need all other PHYs to stop relying on those parameters and
+> I'll cook patches for that for v3.12 merge window.
 
-Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
----
- MAINTAINERS                       |    6 +
- arch/arm/boot/dts/Makefile        |    1 +
- arch/arm/boot/dts/am335x-nano.dts |  388 +++++++++++++++++++++++++++++=
-++++++++
- 3 files changed, 395 insertions(+)
- create mode 100644 arch/arm/boot/dts/am335x-nano.dts
+How will the PHY know if there is a host/gadget driver present? I guess
+I will need to wait for those patches...
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 97762ad..d4e0da0 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -5952,6 +5952,12 @@ L:	linux-omap@vger.kernel.org
- S:	Maintained
- F:	drivers/gpio/gpio-omap.c
+> > +static ssize_t otg_mode_store(struct device *device,
+> > +			      struct device_attribute *attr,
+> > +			      const char *buf, size_t count)
+> > +{
+> > +	struct tahvo_usb *tu = dev_get_drvdata(device);
+> > +	int r;
+> > +
+> > +	mutex_lock(&tu->serialize);
+> > +	if (count >= 4 && strncmp(buf, "host", 4) == 0) {
+> > +		if (tu->tahvo_mode == TAHVO_MODE_PERIPHERAL)
+> > +			tahvo_usb_stop_peripheral(tu);
+> > +		tu->tahvo_mode = TAHVO_MODE_HOST;
+> > +		if (tu->phy.otg->host) {
+> > +			dev_info(device, "HOST mode: host controller present\n");
+> > +			tahvo_usb_become_host(tu);
+> > +		} else {
+> > +			dev_info(device, "HOST mode: no host controller, powering off\n");
+> > +			tahvo_usb_power_off(tu);
+> > +		}
+> > +		r = strlen(buf);
+> > +	} else if (count >= 10 && strncmp(buf, "peripheral", 10) == 0) {
+> > +		if (tu->tahvo_mode == TAHVO_MODE_HOST)
+> > +			tahvo_usb_stop_host(tu);
+> > +		tu->tahvo_mode = TAHVO_MODE_PERIPHERAL;
+> > +		if (tu->phy.otg->gadget) {
+> > +			dev_info(device, "PERIPHERAL mode: gadget driver present\n");
+> > +			tahvo_usb_become_peripheral(tu);
+> > +		} else {
+> > +			dev_info(device, "PERIPHERAL mode: no gadget driver, powering off\n");
+> > +			tahvo_usb_power_off(tu);
+> > +		}
+> > +		r = strlen(buf);
+> > +	} else {
+> > +		r = -EINVAL;
+> > +	}
+> > +	mutex_unlock(&tu->serialize);
+> > +
+> > +	return r;
+> > +}
+> > +
+> > +static DEVICE_ATTR(otg_mode, 0644, otg_mode_show, otg_mode_store);
+> 
+> this looks like something which would be very nice if implemented
+> generically. Since you, anyway miss the documentation in
+> Documentation/ABI/ and need to respin the patch, how about making this
+> generic ?
 
-+OMAP/NEWFLOW NANOBONE MACHINE SUPPORT
-+M:	Mark Jackson <mpfj@newflow.co.uk>
-+L:	linux-omap@vger.kernel.org
-+S:	Maintained
-+F:	arch/arm/boot/dts/am335x-nano.dts
-+
- OMFS FILESYSTEM
- M:	Bob Copeland <me@bobcopeland.com>
- L:	linux-karma-devel@lists.sourceforge.net
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index 641b3c9..0d99a55 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -171,6 +171,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) +=3D omap2420-h4.dtb \
- 	am335x-evm.dtb \
- 	am335x-evmsk.dtb \
- 	am335x-bone.dtb \
-+	am335x-nano.dtb \
- 	am3517-evm.dtb \
- 	am3517_mt_ventoux.dtb \
- 	am43x-epos-evm.dtb
-diff --git a/arch/arm/boot/dts/am335x-nano.dts b/arch/arm/boot/dts/am33=
-5x-nano.dts
-new file mode 100644
-index 0000000..82add9b
---- /dev/null
-+++ b/arch/arm/boot/dts/am335x-nano.dts
-@@ -0,0 +1,388 @@
-+/*
-+ * Copyright (C) 2013 Newflow Ltd - http://www.newflow.co.uk/
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
-+
-+#include "am33xx.dtsi"
-+
-+/ {
-+	model =3D "Newflow AM335x NanoBone";
-+	compatible =3D "ti,am33xx";
-+
-+	cpus {
-+		cpu@0 {
-+			cpu0-supply =3D <&dcdc2_reg>;
-+		};
-+	};
-+
-+	memory {
-+		device_type =3D "memory";
-+		reg =3D <0x80000000 0x10000000>; /* 256 MB */
-+	};
-+
-+	am33xx_pinmux: pinmux@44e10800 {
-+		pinctrl-names =3D "default";
-+		pinctrl-0 =3D <&misc_pins>;
-+
-+		misc_pins: misc_pins {
-+			pinctrl-single,pins =3D <
-+				0x15c (PIN_OUTPUT | MUX_MODE7)	/* spi0_cs0.gpio0_5 */
-+			>;
-+		};
-+
-+		gpmc_pins: gpmc_pins {
-+			pinctrl-single,pins =3D <
-+				0x0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */
-+				0x4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad1.gpmc_ad1 */
-+				0x8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad2.gpmc_ad2 */
-+				0xc (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad3.gpmc_ad3 */
-+				0x10 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad4.gpmc_ad4 */
-+				0x14 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad5.gpmc_ad5 */
-+				0x18 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad6.gpmc_ad6 */
-+				0x1c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad7.gpmc_ad7 */
-+				0x20 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad8.gpmc_ad8 */
-+				0x24 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad9.gpmc_ad9 */
-+				0x28 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad10.gpmc_ad10 */
-+				0x2c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad11.gpmc_ad11 */
-+				0x30 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad12.gpmc_ad12 */
-+				0x34 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad13.gpmc_ad13 */
-+				0x38 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad14.gpmc_ad14 */
-+				0x3c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad15.gpmc_ad15 */
-+
-+				0x70 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_wait0.gpmc_wait0 */
-+				0x7c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn0.gpmc_csn0 */
-+				0x80 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn1.gpmc_csn1 */
-+				0x84 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn2.gpmc_csn2 */
-+				0x88 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn3.gpmc_csn3 */
-+
-+				0x90 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_advn_ale.gpmc_advn_ale */
-+				0x94 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_oen_ren.gpmc_oen_ren */
-+				0x98 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_wen.gpmc_wen */
-+				0x9c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_ben0_cle.gpmc_ben0_cle */
-+
-+				0xa4 (PIN_OUTPUT | MUX_MODE1)		/* lcd_data1.gpmc_a1 */
-+				0xa8 (PIN_OUTPUT | MUX_MODE1)		/* lcd_data2.gpmc_a2 */
-+				0xac (PIN_OUTPUT | MUX_MODE1)		/* lcd_data3.gpmc_a3 */
-+				0xb0 (PIN_OUTPUT | MUX_MODE1)		/* lcd_data4.gpmc_a4 */
-+				0xb4 (PIN_OUTPUT | MUX_MODE1)		/* lcd_data5.gpmc_a5 */
-+				0xb8 (PIN_OUTPUT | MUX_MODE1)		/* lcd_data6.gpmc_a6 */
-+				0xbc (PIN_OUTPUT | MUX_MODE1)		/* lcd_data7.gpmc_a7 */
-+
-+				0xe0 (PIN_OUTPUT | MUX_MODE1)		/* lcd_vsync.gpmc_a8 */
-+				0xe4 (PIN_OUTPUT | MUX_MODE1)		/* lcd_hsync.gpmc_a9 */
-+				0xe8 (PIN_OUTPUT | MUX_MODE1)		/* lcd_pclk.gpmc_a10 */
-+			>;
-+		};
-+
-+		i2c0_pins: i2c0_pins {
-+			pinctrl-single,pins =3D <
-+				0x188 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
-+				0x18c (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
-+			>;
-+		};
-+
-+		uart0_pins: uart0_pins {
-+			pinctrl-single,pins =3D <
-+				0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
-+				0x174 (PIN_OUTPUT | MUX_MODE0)		/* uart0_txd.uart0_txd */
-+			>;
-+		};
-+
-+		uart1_pins: uart1_pins {
-+			pinctrl-single,pins =3D <
-+				0x178 (PIN_OUTPUT | MUX_MODE7)		/* uart1_ctsn.uart1_ctsn */
-+				0x17c (PIN_OUTPUT | MUX_MODE7)		/* uart1_rtsn.uart1_rtsn */
-+				0x180 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart1_rxd.uart1_rxd */
-+				0x184 (PIN_OUTPUT | MUX_MODE0)		/* uart1_txd.uart1_txd */
-+			>;
-+		};
-+
-+		uart2_pins: uart2_pins {
-+			pinctrl-single,pins =3D <
-+				0xc0 (PIN_INPUT_PULLUP | MUX_MODE7)	/* lcd_data8.gpio2[14] */
-+				0xc4 (PIN_OUTPUT | MUX_MODE7)		/* lcd_data9.gpio2[15] */
-+				0x150 (PIN_INPUT | MUX_MODE1)		/* spi0_sclk.uart2_rxd */
-+				0x154 (PIN_OUTPUT | MUX_MODE1)		/* spi0_d0.uart2_txd */
-+			>;
-+		};
-+
-+		uart3_pins: uart3_pins {
-+			pinctrl-single,pins =3D <
-+				0xc8 (PIN_INPUT_PULLUP | MUX_MODE6)	/* lcd_data10.uart3_ctsn */
-+				0xcc (PIN_OUTPUT | MUX_MODE6)		/* lcd_data11.uart3_rtsn */
-+				0x160 (PIN_INPUT | MUX_MODE1)		/* spi0_cs1.uart3_rxd */
-+				0x164 (PIN_OUTPUT | MUX_MODE1)		/* ecap0_in_pwm0_out.uart3_txd */
-+			>;
-+		};
-+
-+		uart4_pins: uart4_pins {
-+			pinctrl-single,pins =3D <
-+				0xd0 (PIN_INPUT_PULLUP | MUX_MODE6)	/* lcd_data12.uart4_ctsn */
-+				0xd4 (PIN_OUTPUT | MUX_MODE6)		/* lcd_data13.uart4_rtsn */
-+				0x168 (PIN_INPUT | MUX_MODE1)		/* uart0_ctsn.uart4_rxd */
-+				0x16c (PIN_OUTPUT | MUX_MODE1)		/* uart0_rtsn.uart4_txd */
-+			>;
-+		};
-+
-+		uart5_pins: uart5_pins {
-+			pinctrl-single,pins =3D <
-+				0xd8 (PIN_INPUT | MUX_MODE4)		/* lcd_data14.uart5_rxd */
-+				0x144 (PIN_OUTPUT | MUX_MODE3)		/* rmiii1_refclk.uart5_txd */
-+			>;
-+		};
-+	};
-+
-+	ocp {
-+		uart0: serial@44e09000 {
-+			pinctrl-names =3D "default";
-+			pinctrl-0 =3D <&uart0_pins>;
-+			status =3D "okay";
-+		};
-+
-+		uart1: serial@48022000 {
-+			pinctrl-names =3D "default";
-+			pinctrl-0 =3D <&uart1_pins>;
-+			status =3D "okay";
-+		};
-+
-+		uart2: serial@48024000 {
-+			pinctrl-names =3D "default";
-+			pinctrl-0 =3D <&uart2_pins>;
-+			status =3D "okay";
-+		};
-+
-+		uart3: serial@481a6000 {
-+			pinctrl-names =3D "default";
-+			pinctrl-0 =3D <&uart3_pins>;
-+			status =3D "okay";
-+		};
-+
-+		uart4: serial@481a8000 {
-+			pinctrl-names =3D "default";
-+			pinctrl-0 =3D <&uart4_pins>;
-+			status =3D "okay";
-+		};
-+
-+		uart5: serial@481aa000 {
-+			pinctrl-names =3D "default";
-+			pinctrl-0 =3D <&uart5_pins>;
-+			status =3D "okay";
-+		};
-+
-+		i2c0: i2c@44e0b000 {
-+			status =3D "okay";
-+			pinctrl-names =3D "default";
-+			clock-frequency =3D <400000>;
-+			pinctrl-names =3D "default";
-+			pinctrl-0 =3D <&i2c0_pins>;
-+
-+			gpio@20 {
-+				compatible =3D "mcp,mcp23017";
-+				reg =3D <0x20>;
-+			};
-+
-+			tps: tps@24 {
-+				reg =3D <0x24>;
-+			};
-+
-+			eeprom@53 {
-+				compatible =3D "mcp,24c02";
-+				reg =3D <0x53>;
-+				pagesize =3D <8>;
-+			};
-+
-+			rtc@68 {
-+				compatible =3D "dallas,ds1307";
-+				reg =3D <0x68>;
-+			};
-+		};
-+
-+		elm: elm@48080000 {
-+			status =3D "okay";
-+		};
-+
-+		gpmc: gpmc@50000000 {
-+			compatible =3D "ti,am3352-gpmc";
-+			ti,hwmods =3D "gpmc";
-+			status =3D "okay";
-+			gpmc,num-waitpins =3D <2>;
-+			pinctrl-names =3D "default";
-+			pinctrl-0 =3D <&gpmc_pins>;
-+
-+			#address-cells =3D <2>;
-+			#size-cells =3D <1>;
-+			ranges =3D <0 0 0x08000000 0x08000000>;	/* CS0: NOR 128M */
-+			=09
-+			nor@0,0 {
-+				reg =3D <0 0x00000000 0x08000000>;
-+				compatible =3D "cfi-flash";
-+				linux,mtd-name =3D "spansion,s29gl010p11t";
-+				bank-width =3D <2>;
-+
-+				gpmc,mux-add-data =3D <2>;
-+
-+				gpmc,sync-clk-ps =3D <0>;
-+				gpmc,cs-on-ns =3D <0>;
-+				gpmc,cs-rd-off-ns =3D <160>;
-+				gpmc,cs-wr-off-ns =3D <160>;
-+				gpmc,adv-on-ns =3D <10>;
-+				gpmc,adv-rd-off-ns =3D <30>;
-+				gpmc,adv-wr-off-ns =3D <30>;
-+				gpmc,oe-on-ns =3D <40>;
-+				gpmc,oe-off-ns =3D <160>;
-+				gpmc,we-on-ns =3D <40>;
-+				gpmc,we-off-ns =3D <160>;
-+				gpmc,rd-cycle-ns =3D <160>;
-+				gpmc,wr-cycle-ns =3D <160>;
-+				gpmc,access-ns =3D <150>;
-+				gpmc,page-burst-access-ns =3D <10>;
-+				gpmc,cycle2cycle-samecsen;
-+				gpmc,cycle2cycle-delay-ns =3D <20>;
-+				gpmc,wr-data-mux-bus-ns =3D <70>;
-+				gpmc,wr-access-ns =3D <80>;
-+
-+				#address-cells =3D <1>;
-+				#size-cells =3D <1>;
-+
-+				/*
-+				MTD partition table
-+				=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-+				+------------+-->0x00000000-> U-Boot start
-+				|            |
-+				|            |-->0x000BFFFF-> U-Boot end
-+				|            |-->0x000C0000-> ENV1 start
-+				|            |
-+				|            |-->0x000DFFFF-> ENV1 end
-+				|            |-->0x000E0000-> ENV2 start
-+				|            |
-+				|            |-->0x000FFFFF-> ENV2 end
-+				|            |-->0x00100000-> Kernel start
-+				|            |
-+				|            |-->0x004FFFFF-> Kernel end
-+				|            |-->0x00500000-> File system start
-+				|            |
-+				|            |-->0x014FFFFF-> File system end
-+				|            |-->0x01500000-> User data start
-+				|            |
-+				|            |-->0x03FFFFFF-> User data end
-+				|            |-->0x04000000-> Data storage start
-+				|            |
-+				+------------+-->0x08000000-> NOR end (Free end)
-+				*/
-+				partition@0 {
-+					label =3D "boot";
-+					reg =3D <0x00000000 0x000c0000>; /* 768KB */
-+				};
-+
-+				partition@1 {
-+					label =3D "env1";
-+					reg =3D <0x000c0000 0x00020000>; /* 128KB */
-+				};
-+
-+				partition@2 {
-+					label =3D "env2";
-+					reg =3D <0x000e0000 0x00020000>; /* 128KB */
-+				};
-+
-+				partition@3 {
-+					label =3D "kernel";
-+					reg =3D <0x00100000 0x00400000>; /* 4MB */
-+				};
-+
-+				partition@4 {
-+					label =3D "rootfs";
-+					reg =3D <0x00500000 0x01000000>; /* 16MB */
-+				};
-+
-+				partition@5 {
-+					label =3D "user";
-+					reg =3D <0x01500000 0x02b00000>; /* 43MB */
-+				};
-+
-+				partition@6 {
-+					label =3D "data";
-+					reg =3D <0x04000000 0x04000000>; /* 64MB */
-+				};
-+			};
-+		};
-+
-+		mac: ethernet@4a100000 {
-+			dual_emac =3D <1>;
-+
-+			cpsw_emac0: slave@4a100200 {
-+				dual_emac_res_vlan =3D <1>;
-+			};
-+
-+			cpsw_emac1: slave@4a100300 {
-+				dual_emac_res_vlan =3D <2>;
-+			};
-+		};
-+	};
-+
-+	leds {
-+		compatible =3D "gpio-leds";
-+
-+		led@0 {
-+			label =3D "nanobone:green:usr1";
-+			gpios =3D <&gpio1 5 0>;
-+			default-state =3D "off";
-+		};
-+	};
-+};
-+
-+/include/ "tps65217.dtsi"
-+
-+&tps {
-+	regulators {
-+		dcdc1_reg: regulator@0 {
-+			regulator-always-on;
-+		};
-+
-+		dcdc2_reg: regulator@1 {
-+			/* VDD_MPU voltage limits 0.95V - 1.26V with =B14% tolerance */
-+			regulator-name =3D "vdd_mpu";
-+			regulator-min-microvolt =3D <925000>;
-+			regulator-max-microvolt =3D <1325000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+
-+		dcdc3_reg: regulator@2 {
-+			/* VDD_CORE voltage limits 0.95V - 1.1V with =B14% tolerance */
-+			regulator-name =3D "vdd_core";
-+			regulator-min-microvolt =3D <925000>;
-+			regulator-max-microvolt =3D <1150000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+
-+		ldo1_reg: regulator@3 {
-+			regulator-always-on;
-+		};
-+
-+		ldo2_reg: regulator@4 {
-+			regulator-always-on;
-+		};
-+
-+		ldo3_reg: regulator@5 {
-+			regulator-always-on;
-+		};
-+
-+		ldo4_reg: regulator@6 {
-+			regulator-always-on;
-+		};
-+	};
-+};
-+
-+&cpsw_emac0 {
-+	phy_id =3D <&davinci_mdio>, <0>;
-+};
-+
-+&cpsw_emac1 {
-+	phy_id =3D <&davinci_mdio>, <1>;
-+};
-+
---=20
-1.7.9.5
+Ok, I'll try to come up with something...
+
+> > +static int tahvo_usb_probe(struct platform_device *pdev)
+> > +{
+> > +	struct retu_dev *rdev = dev_get_drvdata(pdev->dev.parent);
+> > +	struct tahvo_usb *tu;
+> > +	int ret;
+> > +
+> > +	tu = devm_kzalloc(&pdev->dev, sizeof(*tu), GFP_KERNEL);
+> > +	if (!tu)
+> > +		return -ENOMEM;
+> > +
+> > +	tu->phy.otg = devm_kzalloc(&pdev->dev, sizeof(*tu->phy.otg),
+> > +				   GFP_KERNEL);
+> > +	if (!tu->phy.otg)
+> > +		return -ENOMEM;
+> > +
+> > +	tu->pt_dev = pdev;
+> > +
+> > +	/* Default mode */
+> > +#ifdef CONFIG_TAHVO_USB_HOST_BY_DEFAULT
+> > +	tu->tahvo_mode = TAHVO_MODE_HOST;
+> > +#else
+> > +	tu->tahvo_mode = TAHVO_MODE_PERIPHERAL;
+> > +#endif
+> 
+> should you call become_host()/become_peripheral() here ?
+
+Not needed. Once the PHY is registered, the framework will call set_host /
+set_peripheral and the HW gets set to correct state.
+
+> > +	mutex_init(&tu->serialize);
+> > +
+> > +	tu->ick = devm_clk_get(&pdev->dev, "usb_l4_ick");
+> > +	if (!IS_ERR(tu->ick))
+> > +		clk_enable(tu->ick);
+> > +
+> > +	/*
+> > +	 * Set initial state, so that we generate kevents only on state changes.
+> > +	 */
+> > +	tu->vbus_state = retu_read(rdev, TAHVO_REG_IDSR) & TAHVO_STAT_VBUS;
+> > +
+> > +	tu->extcon.name = DRIVER_NAME;
+> > +	tu->extcon.supported_cable = tahvo_cable;
+> > +	ret = extcon_dev_register(&tu->extcon, &pdev->dev);
+> > +	if (ret) {
+> > +		dev_err(&pdev->dev, "could not register extcon device: %d\n",
+> > +			ret);
+> > +		return ret;
+> > +	}
+> > +
+> > +	/* Set the initial cable state. */
+> > +	extcon_set_cable_state(&tu->extcon, "USB-HOST",
+> > +			       tu->tahvo_mode == TAHVO_MODE_HOST);
+> > +	extcon_set_cable_state(&tu->extcon, "USB", tu->vbus_state);
+> > +
+> > +	tu->irq = platform_get_irq(pdev, 0);
+> > +	ret = request_threaded_irq(tu->irq, NULL, tahvo_usb_vbus_interrupt, 0,
+> > +				   "tahvo-vbus", tu);
+> 
+> since your hardirq handler is NULL, you *must* pass IRQF_ONESHOT.
+
+Ok.
+
+> /Could also use devm_request_threaded_irq()
+
+Does not really help much, since the IRQ has to be freed manually anyway
+(to ensure it's disabled before usb_remove_phy(); also looks like it's
+currently enabled too early...).
+
+> > +	if (ret) {
+> > +		dev_err(&pdev->dev, "could not register tahvo-vbus irq: %d\n",
+> > +			ret);
+> > +		goto err_disable_clk;
+> > +	}
+> > +
+> > +	/* Attributes */
+> > +	ret = device_create_file(&pdev->dev, &dev_attr_vbus_state);
+> > +	ret |= device_create_file(&pdev->dev, &dev_attr_otg_mode);
+> 
+> heh, Greg wrote a very interesting article recently (look at his blog)
+> discussing kernel/userland races wrt creation of sysfs files.
+
+[...]
+
+> what if someone accesses the sysfs file you've already created before
+> you call dev_set_drvdata? (not sure  if it's possible).
+
+Yes, that's a bug, will fix.
+
+Thanks for comments,
+
+A.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
