@@ -1,135 +1,163 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v9 0/8] Generic PHY Framework
-Date: Mon, 8 Jul 2013 16:26:34 +0300
-Message-ID: <20130708132634.GC31221@arwen.pp.htv.fi>
-References: <1372247257-30186-1-git-send-email-kishon@ti.com>
- <780E789C2E067A4BB8F69D0BB9EC4F253E975B5E@DBDE04.ent.ti.com>
- <51D3F773.9000209@ti.com> <20130703132038.GI15056@arwen.pp.htv.fi>
- <780E789C2E067A4BB8F69D0BB9EC4F253E975D6E@DBDE04.ent.ti.com>
- <51D54694.20203@ti.com> <20130704101216.GD4830@arwen.pp.htv.fi>
- <780E789C2E067A4BB8F69D0BB9EC4F253E9764D5@DBDE04.ent.ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: Boot hang regression 3.10.0-rc4 -> 3.10.0
+Date: Mon, 8 Jul 2013 16:35:12 +0300
+Message-ID: <20130708133512.GD31221@arwen.pp.htv.fi>
+References: <51D59146.3070002@newflow.co.uk>
+ <51D59C0E.8080003@newflow.co.uk>
+ <B5906170F1614E41A8A28DE3B8D121433EE93C23@DBDE04.ent.ti.com>
+ <20130705115959.GQ5523@atomide.com>
+ <B5906170F1614E41A8A28DE3B8D121433EE94489@DBDE04.ent.ti.com>
+ <B5906170F1614E41A8A28DE3B8D121433EE94520@DBDE04.ent.ti.com>
+ <20130708112553.GU5523@atomide.com>
+ <51DAB394.3050104@ti.com>
+ <20130708131033.GA5523@atomide.com>
+ <51DABC81.3080409@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4204743915857424839=="
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <780E789C2E067A4BB8F69D0BB9EC4F253E9764D5-yXqyApvAXouIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Patel, Satish" <satish.patel-l0cyMroinI0@public.gmane.org>
-Cc: "mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nori,
- Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "Mankad, Maulik Ojas" <maulik-l0cyMroinI0@public.gmane.org>, "swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org" <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "ABRAHAM,
- KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org" <cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org>, "Cherian,
- George" <george.cherian-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "Srinivasan,
- Nageswari" <nageswari-l0cyMroinI0@public.gmane.org>, "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>, gregkh@linuxf
-List-Id: linux-omap@vger.kernel.org
-
---===============4204743915857424839==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Bu8it7iiRSEf40bY"
+	protocol="application/pgp-signature"; boundary="hxkXGo8AKqTJ+9QI"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:56929 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751723Ab3GHNfu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Jul 2013 09:35:50 -0400
 Content-Disposition: inline
+In-Reply-To: <51DABC81.3080409@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Sourav Poddar <sourav.poddar@ti.com>, Paul Walmsley <paul@pwsan.com>
 
---Bu8it7iiRSEf40bY
+--hxkXGo8AKqTJ+9QI
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Jul 08, 2013 at 01:24:49PM +0200, Patel, Satish wrote:
-
-[ big snip ]
-
-> We have two options over here
+On Mon, Jul 08, 2013 at 06:50:01PM +0530, Rajendra Nayak wrote:
+> >>>>>> I wonder if this is because the timeouts get now initialized to 0 =
+instead
+> >>>>>> of -1 for the serial driver?
+> >>>>>>
+> >>>>>
+> >>>>> You meant initialized to -1, right? There's an additional check for=
+ timeout being 0. Unless i
+> >>>>> am missing something DT-boot will start off with timeout set to 0 a=
+nd then get forced to -1.
+> >>>
+> >>> OK
+> >>
+> >> Issue 2: Causing boot to stop when serial driver is initialized.
+> >> (After Issue 1 is fixed)
+> >>
+> >> I could narrow this down to the change done to return -EINVAL
+> >> instead of 0 in serial_omap_get_context_loss_count() as part of
+> >> commit 'a630fbfbb1beeffc5bbe542a7986bf2068874633' "serial: omap:
+> >> Fix device tree based PM runtime"
+> >>
+> >> What this change in turn seems to do is cause a
+> >> serial_omap_restore_context() to get called as part of
+> >> serial_omap_runtime_resume() which was not the case when
+> >> serial_omap_get_context_loss_count() returned 0
+> >>
+> >> from serial_omap_runtime_resume():
+> >> -----
+> >>         int loss_cnt =3D serial_omap_get_context_loss_count(up);
+> >>
+> >>         if (loss_cnt < 0) {
+> >>                 dev_dbg(dev, "serial_omap_get_context_loss_count faile=
+d : %d\n",
+> >>                         loss_cnt);
+> >>                 serial_omap_restore_context(up);
+> >>         } else if (up->context_loss_cnt !=3D loss_cnt) {
+> >>                 serial_omap_restore_context(up);
+> >>         }
+> >> -----
+> >>
+> >> I am still working on why a serial_omap_restore_context() could
+> >> have caused console to die. I will work with Sourav on this and
+> >> post the fixes for both issue 1 and issue2 once its clear on whats
+> >> really causing issue 2.
+> >=20
+> > That's because we don't have the omap specific pdata callbacks for
+> > context loss any longer. We may be able to detect when the context
+> > was really lost in the serial driver, and only then call the
+> > serial_omap_restore_context().
 >=20
-> Option 1:=20
+> Right, but calling serial_omap_restore_context() even when the context
+> is not lost, should not ideally cause an issue.
+
+it does in one condition. If context hasn't been saved before. And that
+can happen in the case of wrong pm runtime status for that device.
+
+Imagine the device is marked as suspended even though it's fully enabled
+(it hasn't been suspended by hwmod due to NO_IDLE flag). In that case
+your context structure is all zeroes (context has never been saved
+before) then when you call pm_runtime_get_sync() on probe() your
+->runtime_resume() will get called, which will restore context,
+essentially undoing anything which was configured by u-boot.
+
+Am I missing something ?
+
+> >> Let me know if the fix I listed for Issue 1: makes sense.
+> >=20
+> > Yes makes sense as a fix, but IMHO we should not need any workarounds
+> > like that. Is the hwmod code idling the the uarts early? If so, then
+> > it should only do that in a late_initcall if no drivers are registered.
 >=20
-> Defining generic api to which can be mapped over multiple phys
-> For smartcard case, I have can thought of following mapping with new=20
-> generic apis as suggested.
->=20
-> Smartcard_poweron -> power_on
-> Smartcard_powerdown -> power_off
-> Smartcard_set_voltage -> phy_set_voltage
+> hwmod as part of its setup (early) enables/resets and idles all modules.
+> These flags are used to tell hwmod to avoid a reset and idle and leave the
+> module enabled (in this case console uart)
 
-these three are generic enough
+then it needs to call pm_runtime_set_active() for those devices which
+have that flag set, right ?
 
-> Smartcard_activate_card -> phy_activate_slot
-> Smartcard_deactivate_card -> phy_deactivate_slot
+(completely untested, didn't even try to compile, just to illustrate)
 
-this looks unnecessary, why can't you always activate the card when you
-phy_poweron ?
-
-> Smartcard_set_c4/c8/rst/io -> phy_set_pin
-
-why do you want to control each pin separately ? looks like something we
-don't want to allow, in order to prevent users fiddling with the HW
-directly.
-
-> Smartcard_warm_reset -> phy_warmreset
-
-phy_reset()
-
-> Smartcard_set_clkdiv -> phy_set_clock
-> Smartcard_get_clkdiv -> phy_get_clock
-
-why do you need to control the clock like that ? That should be
-something in the clock framework and, hey, it already exists:
-
-clk_set_rate()
-clk_get_rate()
-
-> Smartcard_set_atr_mute_timeout -> ??
-> Smartcard_set_atr_early_timeout -> ??=09
-> Smartcard_get_isr_status -> phy_get_status
-> Smartcard_get_version -> phy_get_version
-
-these look unnecessary. Why does any other entity need to know about the
-PHY version and Interrupt status ?
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hw=
+mod.c
+index 7341eff..d8dca68 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2559,6 +2559,12 @@ static void __init _setup_postsetup(struct omap_hwmo=
+d *oh)
+ 	    (postsetup_state =3D=3D _HWMOD_STATE_IDLE)) {
+ 		oh->_int_flags |=3D _HWMOD_SKIP_ENABLE;
+ 		postsetup_state =3D _HWMOD_STATE_ENABLED;
++
++		/* tell pm_runtime this device is already active */
++		pm_runtime_set_active(&oh->od->pdev->dev);
++	} else {
++		/* tell pm_runtime this device is trully suspended */
++		pm_runtime_set_suspended(&oh->od->pdev->dev);
+ 	}
+=20
+ 	if (postsetup_state =3D=3D _HWMOD_STATE_IDLE)
 
 --=20
 balbi
 
---Bu8it7iiRSEf40bY
+--hxkXGo8AKqTJ+9QI
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIbBAEBAgAGBQJR2r4KAAoJEIaOsuA1yqREUDYP90Sj2zUPdCV02zteewIlE8WY
-oFn6Hvi+JXx0HsPlenswKBeJoyVG+eoHW2NGSGuHB/kUNd0wtbtYAhzlXqpJwIH/
-+rB//zSaPSIcMy4Vv0cp2A+UvrJ/trp8OI5wrXAzGeYsSR+BwSmWVIGufl/gYa3f
-yoGinT9+67YANUKzeAAL26xmJVSP9g7RNEsdpNHdUmGiIUrLtwU1kBqTUC64nYpw
-GKKta7JVrANP8S/Uo/DCNPgzMZ0CPsMjVFYVAW0Jsj7jYIxvblBTj7EX2PM9GOXE
-G9wPnsKJuCdY10JU1V112mnssU8j7hanT5h/7xjlgS5V3N6i7AI0OPBrZinf1Gr2
-UYNb/RRCZTqqkSG4On/ZjmOmG2wLx4XwpCybMV4YyXxn6LG80SxjuywqEtjOtYjx
-Dz+/iR2+j7/nMI+eL53/3Q9SabycNnrdKG0r94vrlm7j1AbFEdWido+NORW76TYH
-JoOa0//OSVGPPMDrq1NbNdaEVFSMQboZMh3IVuOx6dnkua92CW2ORAtTs2ZDr2IV
-AihtL1kRHa2X1UcFXuCQa1f1glaStQTphC3wLJij7cqRLIMYscL7KMWfmJDc/j8p
-9RGOWM8dbMDSD3VKTRbs4bbj2vutusWAoYMx2XSmSfckZ+V4NdwPny4VRJ++LueB
-hGpXx3N13o5Rx0ieemM=
-=R6VT
+iQIcBAEBAgAGBQJR2sAQAAoJEIaOsuA1yqREceIQAIFZXLB1oavvN7MfYgFP2hvA
+Kj9eH2naIzVi0/lYFKRamV6jPweLIAt+/elcnVfA8GArnT9w92JzZuOcweM0CcMr
+mcsn3wlss4CHM24zSDkp6s8idKbdiHN/0Ap0ThAIjP5s/cmxFWHqz5oNUbMj6BkX
+ZJtJ+LligaFNEN8keA97hOeupI5KEKyNdCzUWwBcRoo3ABuxiOdpNqHpMsE1DZYh
+Ko6MeI7lszzwckbBu5ZH1KXeJJBISVP3vg5hD+zQ8M4s+YUP7Tvsa7j+xxpHf7BS
+RXPTr3KExQzMW4GQzqP5MKZjMY+qkRb5vUdjm9bXK3PLRRb+c9jcO0Cg7w+mCFWt
+woQ9aPbFYlwVSoH949i//oYFrgZU2uih+29KHXvBkclu0hB5QutkSWoV/6Vjn3Xs
+nYsDNZlTieXB5hO8x3I3spA9TlJqE37Zx5Bbu2EgWwd2QqJq3qd9U774s7GTfP9X
+hw69T6WDruT5H818fI4klj7NoEdWkdmQm7vk3lgYlT683xSNkNImzif4N5DNGJT+
+iuwWyqysgGJvVt43N4Cnno+eoT8ItXS2kIssqo/V+JVQfoyYqcmuLL5AnqxUso1M
+pRkk1peC4VSpQ9+tFV3OYLUL0Ak1l7h5thllM1GRGUpLjFlRJhDUQHgCFX2jvVZU
+p2ux1bEVFf7ubrAop6+x
+=BF23
 -----END PGP SIGNATURE-----
 
---Bu8it7iiRSEf40bY--
-
---===============4204743915857424839==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-devicetree-discuss mailing list
-devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-https://lists.ozlabs.org/listinfo/devicetree-discuss
-
---===============4204743915857424839==--
+--hxkXGo8AKqTJ+9QI--
