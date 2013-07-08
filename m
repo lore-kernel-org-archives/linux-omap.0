@@ -1,82 +1,61 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/6] ARM: OMAP2+: Remove board-4430sdp.c
-Date: Mon, 8 Jul 2013 15:21:03 +0100
-Message-ID: <20130708142103.GX21614@n2100.arm.linux.org.uk>
-References: <20130517191304.468.73487.stgit@localhost> <20130517191751.468.89202.stgit@localhost> <20130520095447.GR21614@n2100.arm.linux.org.uk> <20130706131057.GU21614@n2100.arm.linux.org.uk> <20130706133627.GV21614@n2100.arm.linux.org.uk> <20130708093410.GT5523@atomide.com>
+From: Ruchika Kharwar <ruchika@ti.com>
+Subject: Re: [PATCH] jacinto6 : usb3_phy: Updated dpll M,N values.
+Date: Mon, 8 Jul 2013 09:33:06 -0500
+Message-ID: <51DACDA2.1060806@ti.com>
+References: <1371829570-15011-1-git-send-email-ruchika@ti.com> <20130708072848.GB16635@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36115 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751430Ab3GHOVQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Jul 2013 10:21:16 -0400
-Content-Disposition: inline
-In-Reply-To: <20130708093410.GT5523@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:60091 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751464Ab3GHOdJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Jul 2013 10:33:09 -0400
+In-Reply-To: <20130708072848.GB16635@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: balbi@ti.com
+Cc: linux-usb@vger.kernel.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rob Landley <rob@landley.net>, Nikhil Devshatwar <nikhil.nd@ti.com>
 
-On Mon, Jul 08, 2013 at 02:34:11AM -0700, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [130706 06:42]:
-> > 
-> > Okay, I guessed that the OMAP4430SDP was "blaze" (it's not obvious to
-> > use internal codenames for boards when they're known as "SDP" etc -
-> > especially when they have stickers on them saying that they're "SDP".)
-> 
-> Agreed, let's update that.
->  
-> > With that worked out, throwing my standard printascii() hack into the
-> > kernel results in boot messages... up to the point where the timer is
-> > calibrated.  So, it looks like either interrupts, clocks, or the OMAP
-> > timers are non-functional with DT based kernels on the SDP board.
-> 
-> Hey the good news is that you've updated your build system to support
-> also appended dtb images, thanks for doing that!
 
-It was far from trivial - there's many places in the build process
-which do things quite differently depending on whether it's a DTB
-build or not.
+On 07/08/2013 02:28 AM, Felipe Balbi wrote:
+> On Fri, Jun 21, 2013 at 10:46:10AM -0500, Ruchika Kharwar wrote:
+>> Addition of the M and N recommended values for the USB3 PHY DPLL.
+>> Sysclk for DRA7xx is 20MHz.
+>> This yields:
+>> Clk = 20MHz * M/(N+1) = 20MHz * 1000 /(7+1) = 2.5 Ghz
+>>
+>> Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+>> Signed-off-by: Ruchika Kharwar <ruchika@ti.com>
+> this won't apply since you had already sent me another version. Please
+> send in a fix up patch if that's wrong.
+>
+I already did .. :-)
+Sent 07/04/2013
 
-> > Any ideas?
-> 
-> Looks like you need some things updated and added to your .config.
-> 
-> -# CONFIG_OMAP_MUX is not set
-> +CONFIG_MACH_OMAP_GENERIC=y
-> 
-> That we should nowadays always select though.
-> 
-> CONFIG_REGULATOR_FIXED_VOLTAGE=y
-> 
-> This you will need for Ethernet.
-> 
-> CONFIG_PINCTRL_SINGLE=y
-> 
-> This is good to have, will be needed especially for for UART
-> wake-up events with deeper idle modes enabled once the pending
-> pinctrl patches are merged.
+Correction of the omap_usb3_dpll_params array when the sys_clk_rate is
+20MHz.
 
-That probably explains why there was no output.
+Signed-off-by: Nikhil Devshatwar<nikhil.nd@ti.com>
+Signed-off-by: Ruchika Kharwar<ruchika@ti.com>
+---
+  drivers/usb/phy/phy-omap-usb3.c |    2 +-
+  1 file changed, 1 insertion(+), 1 deletion(-)
 
-> Then there's a pending patch to change drivers/i2c/busses/i2c-omap.c
-> to use just a regular module_init, that should remove the i2c timeout
-> errors as then deferred probe will work properly.
+diff --git a/drivers/usb/phy/phy-omap-usb3.c b/drivers/usb/phy/phy-omap-usb3.c
+index efe6e14..a2fb30b 100644
+--- a/drivers/usb/phy/phy-omap-usb3.c
++++ b/drivers/usb/phy/phy-omap-usb3.c
+@@ -71,9 +71,9 @@ static struct usb_dpll_params omap_usb3_dpll_params[NUM_SYS_CLKS] = {
+  	{1250, 5, 4, 20, 0},		/* 12 MHz */
+  	{3125, 20, 4, 20, 0},		/* 16.8 MHz */
+  	{1172, 8, 4, 20, 65537},	/* 19.2 MHz */
++	{1000, 7, 4, 10, 0},            /* 20 MHz */
+  	{1250, 12, 4, 20, 0},		/* 26 MHz */
+  	{3125, 47, 4, 20, 92843},	/* 38.4 MHz */
+-	{1000, 7, 4, 10, 0},            /* 20 MHz */
+  
+  };
+  
 
-It seems that - yet again - the mmc devices have swapped themselves.
-Also looks like the nonfunctional video stuff is even more nonfunctional
-than usual:
 
-omapdss DSI error: can't get VDDS_DSI regulator
-omapdss HDMI error: can't get VDDA_HDMI_DAC regulator
-
-ASoC looks dead too:
-
-omap-abe-twl6040 sound.10: ASoC: CPU DAI (null) not registered
-omap-abe-twl6040 sound.10: snd_soc_register_card() failed: -517
-
-> BTW, maybe add a link to your build system to www.arm.linux.org.uk
-> developer page too? At least I could not find a link to it.
-
-Hmm, I thought I had, but it looks like I never pushed the change to
-the main site.  I'll do that at some point.
