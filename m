@@ -1,68 +1,91 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH] mmc: omap_hsmmc: use for OMAP5 as well
-Date: Sun, 7 Jul 2013 17:13:10 -0300
-Message-ID: <20130707201309.GA5429@localhost>
-References: <1372422894-23729-1-git-send-email-a-bindra@ti.com>
- <51CDB260.8080108@ti.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v4 2/4] ARM: OMAP2+: cleaned-up DT support of various
+ ECC schemes
+Date: Mon, 8 Jul 2013 04:37:36 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73E9E5014@DBDE04.ent.ti.com>
+References: <1372764757-29511-1-git-send-email-pekon@ti.com>
+ <1372764757-29511-3-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <51CDB260.8080108@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: a-bindra@ti.com, linux-mmc@vger.kernel.org, cjb@laptop.org, linux-omap@vger.kernel.org, balbi@ti.com, nm@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:58438 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751265Ab3GHEia convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Jul 2013 00:38:30 -0400
+In-Reply-To: <1372764757-29511-3-git-send-email-pekon@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "olof@lixom.net" <olof@lixom.net>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
+Cc: "arnd@arndb.de" <arnd@arndb.de>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "jp.francois@cynove.com" <jp.francois@cynove.com>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>, "tony@atomide.com" <tony@atomide.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>
 
-Hi guys,
+> 
+> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> index 6a983c1..690070e 100644
+> --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> @@ -17,20 +17,42 @@ Required properties:
+> 
+>  Optional properties:
+> 
+> - - nand-bus-width: 		Set this numeric value to 16 if the hardware
+> -				is wired that way. If not specified, a bus
+> -				width of 8 is assumed.
+> + - nand-bus-width: 		Determines data-width of the connected
+> device
+> +				x16 = "16"
+> +				x8  = "8" (default)
+> 
+> - - ti,nand-ecc-opt:		A string setting the ECC layout to use. One of:
+> 
+> -		"sw"		Software method (default)
+> -		"hw"		Hardware method
+> -		"hw-romcode"	gpmc hamming mode method & romcode
+> layout
+> -		"bch4"		4-bit BCH ecc code
+> -		"bch8"		8-bit BCH ecc code
+> + - ti,nand-ecc-opt:		Determines the ECC scheme used by driver.
+> +				It can be any of the following strings:
+> +
+> +	"hamming_code_sw"		1-bit Hamming ECC
+> +					- ECC calculation in software
+> +					- Error detection in software
+> +
+> +	"hamming_code_hw"		1-bit Hamming ECC
+> +					- ECC calculation in hardware
+> +					- Error detection in software
+> +
+> +	"hamming_code_hw_romcode"	1-bit Hamming ECC
+> +					- ECC calculation in hardware
+> +					- Error detection in software
+> +					- ECC layout compatible to ROM code
+> +
+> +	"bch8_hw_code_detection_sw"	8-bit BCH ECC
+> +					- ECC calculation in hardware
+> +					- Error detection in software
+> +					- depends on
+> CONFIG_MTD_NAND_ECC_BCH
+> +
+> +	"bch8_code_hw"             	8-bit BCH ECC
+> +					- ECC calculation in hardware
+> +					- Error detection in hardware
+> +					- depends on
+> CONFIG_MTD_NAND_OMAP_BCH
+> +					- requires <elm_id> to be specified
+> +
+> +
+> + - elm_id:			Specifies elm device node. This is required to
+> +				support some BCH ECC schemes mentioned
+> above.
+> 
+> - - elm_id:	Specifies elm device node. This is required to support BCH
+> - 		error correction using ELM module.
+> 
 
-On Fri, Jun 28, 2013 at 09:27:20PM +0530, Balaji T K wrote:
-> On Friday 28 June 2013 06:04 PM, a-bindra@ti.com wrote:
-> > From: Amarinder Bindra <a-bindra@ti.com>
-> >
-> > OMAP's hs_mmc driver is also used for OMAP5 MMC controller operatio=
-n.
-> > Considering that the device tree entries are already there for this=
-,
-> > allow the driver to be built when only OMAP5 is enabled.
-> > This allows MMC root filesystems to be available in "OMAP5 only"
-> > configurations.
-> >
-> > Signed-off-by: Amarinder Bindra <a-bindra@ti.com>
-> > Acked-by: Felipe Balbi <balbi@ti.com>
-> > Acked-by: Nishanth Menon <nm@ti.com>
->=20
-> Looks good to me,
-> Acked-by: Balaji T K <balajitk@ti.com>
->=20
+[Pekon] Requesting DT maintainers to please review the above 
+changes in values for 'nand-ecc-opt' property. And please ACK | NAK it.
 
-I came across this same issue while trying MMC patches on AM3xx,
-which is nor OMAP3 neither OMAP4.
+with regards, pekon
 
-Now, looking at the driver I don't see any OMAP-specific bits
-(welcome to the multiplatform world ;-) so I think we can just
-remove the 'depends' line. Something like this:
-
----
-diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
-index 9ab8f8d..bade7f2 100644
---- a/drivers/mmc/host/Kconfig
-+++ b/drivers/mmc/host/Kconfig
-@@ -273,10 +273,9 @@ config MMC_OMAP
-=20
- config MMC_OMAP_HS
- 	tristate "TI OMAP High Speed Multimedia Card Interface support"
--	depends on SOC_OMAP2430 || ARCH_OMAP3 || ARCH_OMAP4
- 	help
- 	  This selects the TI OMAP High Speed Multimedia card Interface.
--	  If you have an OMAP2430 or OMAP3 board or OMAP4 board with a
-+	  If you have an OMAP2430, OMAP3, OMAP4 or AM3xx board with a
- 	  Multimedia Card slot, say Y or M here.
-=20
- 	  If unsure, say N.
-
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
