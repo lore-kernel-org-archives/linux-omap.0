@@ -1,70 +1,112 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Boot hang regression 3.10.0-rc4 -> 3.10.0
-Date: Mon, 8 Jul 2013 04:25:54 -0700
-Message-ID: <20130708112553.GU5523@atomide.com>
-References: <51D577E6.5010507@newflow.co.uk>
- <51D59146.3070002@newflow.co.uk>
- <51D59C0E.8080003@newflow.co.uk>
- <B5906170F1614E41A8A28DE3B8D121433EE93C23@DBDE04.ent.ti.com>
- <20130705115959.GQ5523@atomide.com>
- <B5906170F1614E41A8A28DE3B8D121433EE94489@DBDE04.ent.ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EE94520@DBDE04.ent.ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 2/5] usb: phy: phy-omap-control: Add API to power on/off
+ USB PHY for AM335X
+Date: Mon, 8 Jul 2013 17:07:23 +0530
+Message-ID: <51DAA473.9030207@ti.com>
+References: <1373280201-31785-1-git-send-email-george.cherian@ti.com> <1373280201-31785-3-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:54434 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751939Ab3GHL0A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Jul 2013 07:26:00 -0400
-Content-Disposition: inline
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EE94520@DBDE04.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1373280201-31785-3-git-send-email-george.cherian@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, bigeasy@linutronix.de
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: Mark Jackson <mpfj-list@newflow.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Bedia, Vaibhav <vaibhav.bedia@ti.com> [130705 06:37]:
-> On Fri, Jul 05, 2013 at 18:50:10, Bedia, Vaibhav wrote:
-> > Hi Tony,
-> > 
-> > On Fri, Jul 05, 2013 at 17:29:59, Tony Lindgren wrote:
-> > > * Bedia, Vaibhav <vaibhav.bedia@ti.com> [130705 01:17]:
-> > > > 
-> > > > I just checked the behavior on my AM335x-EVM. Current mainline boots fine
-> > > > provided I don't use earlyprintk.  The offending patch [1] in this case is the one
-> > > > that tries to get rid of omap_serial_early_init() for DT boot. This change inadvertently
-> > > > also results in the console UART getting reset and idled during bootup and that's where
-> > > > the boot stops for you. I think if you skip earlyprintk from the bootargs you should see
-> > > > the system booting fine. 
-> > > > 
-> > > > I guess we need to retain the NO_IDLE and NO_RESET aspect for the console UART in
-> > > > omap_serial_early_init() to get earlyprintk working again.
-> > > 
-> > > Hmm nothing should get idled while earlyprintk is running, and then when the
-> > > serial driver kicks in it should not idle anything by default. And for DT based
-> > > booting we should not have mach-omap2/serial.c initialize anything.
-> > > 
-> > 
-> > If I add in the HWMOD flags without any reverts I get to the point where the serial driver
-> > comes up but the boot eventually stops [1]. Without the flags the boot stops much earlier [2]
-> > just like Mark reported.
-> > 
-> 
-> Err.. the log with HWMOD flags added is [2] and without flags is [1]. Sorry for the confusion.
+Hi,
 
-It sounds like something needs to be fixed for am33xx as omap3 and omap4
-won't hang with earlyprintk. Almost certainly mach-omap2/serial.c should not
-be needed at all for am33xx, and the bug is somewhere else.
- 
-> > > I wonder if this is because the timeouts get now initialized to 0 instead
-> > > of -1 for the serial driver?
-> > > 
-> > 
-> > You meant initialized to -1, right? There's an additional check for timeout being 0. Unless i
-> > am missing something DT-boot will start off with timeout set to 0 and then get forced to -1.
+On Monday 08 July 2013 04:13 PM, George Cherian wrote:
+> Add API to power on/off USB PHY for AM335X. This API will be called
+> from phy-amxxxx-usb driver.
+>
+> Signed-off-by: George Cherian <george.cherian@ti.com>
+> ---
+>   drivers/usb/phy/phy-omap-control.c   | 32 ++++++++++++++++++++++++++++++++
+>   include/linux/usb/omap_control_usb.h | 11 +++++++++++
+>   2 files changed, 43 insertions(+)
+>
+> diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
+> index 1419ced..0c1822d 100644
+> --- a/drivers/usb/phy/phy-omap-control.c
+> +++ b/drivers/usb/phy/phy-omap-control.c
+> @@ -46,6 +46,38 @@ struct device *omap_get_control_dev(void)
+>   EXPORT_SYMBOL_GPL(omap_get_control_dev);
+>
+>   /**
+> + * omap_control_am335x_phy_power - power on/off the serializer using control
+> + *	module
+> + * @dev: the control module device
+> + * @on: 0 to off and 1 to on based on powering on or off the PHY
+> + * @id: phy id 0 or 1 for phy instance 0 and 1 repectively
+> + *
+> + * AMXXXX PHY driver should call this API to power on or off the PHY.
+> + */
+> +void omap_control_am335x_phy_power(struct device *dev, bool on, u8 id)
+> +{
+> +	u32 val;
+> +	struct omap_control_usb	*control_usb = dev_get_drvdata(dev);
+> +
+> +	if (control_usb->type != OMAP_CTRL_DEV_TYPE3)
+> +		return;
 
-OK
+Lets validate id also here.
+> +
+> +	val = readl(control_usb->dev_conf + (id * 2));
 
-Regards,
+Understand you use id to calculate the offset. But looks a bit hacky to me.
+Can we define macros and use it instead?
+> +
+> +	if (on) {
+> +		val &= ~(AM335X_USBPHY_CM_PWRDN | AM335X_USBPHY_OTG_PWRDN);
+> +		val |= AM335X_USBPHY_OTGVDET_EN |
+> +			AM335X_USBPHY_OTGSESSEND_EN;
+> +	} else
+> +		val |= AM335X_USBPHY_CM_PWRDN | AM335X_USBPHY_OTG_PWRDN;
+> +
+> +
+> +	writel(val, (control_usb->dev_conf + (id * 2)));
+> +}
+> +EXPORT_SYMBOL_GPL(omap_control_am335x_phy_power);
+> +
+> +
+> +/**
+>    * omap_control_usb3_phy_power - power on/off the serializer using control
+>    *	module
+>    * @dev: the control module device
+> diff --git a/include/linux/usb/omap_control_usb.h b/include/linux/usb/omap_control_usb.h
+> index 27b5b8c..11d7a34 100644
+> --- a/include/linux/usb/omap_control_usb.h
+> +++ b/include/linux/usb/omap_control_usb.h
+> @@ -45,6 +45,7 @@ enum omap_control_usb_mode {
+>   /* To differentiate ctrl module IP having either mailbox or USB3 PHY power */
+>   #define	OMAP_CTRL_DEV_TYPE1		0x1
+>   #define	OMAP_CTRL_DEV_TYPE2		0x2
+> +#define	OMAP_CTRL_DEV_TYPE3		0x3
+>
+>   #define	OMAP_CTRL_DEV_PHY_PD		BIT(0)
+>
+> @@ -63,10 +64,20 @@ enum omap_control_usb_mode {
+>   #define	OMAP_CTRL_USB3_PHY_TX_RX_POWERON	0x3
+>   #define	OMAP_CTRL_USB3_PHY_TX_RX_POWEROFF	0x0
+>
+> +#define AM335X_USBPHY_CM_PWRDN		(1 << 0)
+> +#define AM335X_USBPHY_OTG_PWRDN		(1 << 1)
+> +#define AM335X_USBPHY_OTGVDET_EN		(1 << 19)
+> +#define AM335X_USBPHY_OTGSESSEND_EN	(1 << 20)
+> +#define AM335X_USB0_WKUP_CTRL_ENABLE	(1 << 0)
+> +#define AM335X_USB1_WKUP_CTRL_ENABLE	(1 << 8)
+> +
+> +
+> +
+>   #if IS_ENABLED(CONFIG_OMAP_CONTROL_USB)
+>   extern struct device *omap_get_control_dev(void);
+>   extern void omap_control_usb_phy_power(struct device *dev, int on);
+>   extern void omap_control_usb3_phy_power(struct device *dev, bool on);
+> +extern void omap_control_am335x_phy_power(struct device *dev, bool on, u8 id);
 
-Tony
+You might also need to provide an empty stub when CONFIG_OMAP_CONTROL_USB is
+not set.
+
+Thanks
+Kishon
