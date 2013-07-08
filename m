@@ -1,51 +1,65 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] musb: omap: Fix: pass all the resources to musb core
-Date: Mon, 8 Jul 2013 16:25:29 +0530
-Message-ID: <1373280929-19052-1-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 1/4] arm: omap: Add phy binding info for musb in plat data
+Date: Mon, 8 Jul 2013 16:44:14 +0530
+Message-ID: <1373282057-20181-2-git-send-email-kishon@ti.com>
+References: <1373282057-20181-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kishon-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1373282057-20181-1-git-send-email-kishon@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: kishon@ti.com, tony@atomide.com, balbi@ti.com
+Cc: linux@arm.linux.org.uk, eballetbo@gmail.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, javier@dowhile0.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-commit 09fc7d (usb: musb: fix incorrect usage of resource pointer)
-assumes musb core will always have only 2 resources. But for OMAP
-platforms there can be 3 resources (2 irq resource and 1 iomem
-resource). Fixed it here.
+In order for controllers to get PHY in case of non dt boot, the phy
+binding information (phy label) should be added in the platform
+data of the controller.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+Tested-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/usb/musb/omap2430.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/usb-musb.c |    3 +++
+ include/linux/usb/musb.h       |    3 +++
+ 2 files changed, 6 insertions(+)
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 5b6113a..5bbef78 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -481,7 +481,7 @@ static u64 omap2430_dmamask = DMA_BIT_MASK(32);
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index 8c4de27..20b42de 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -85,6 +85,9 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
+ 	musb_plat.mode = board_data->mode;
+ 	musb_plat.extvbus = board_data->extvbus;
  
- static int omap2430_probe(struct platform_device *pdev)
- {
--	struct resource			musb_resources[2];
-+	struct resource			musb_resources[3];
- 	struct musb_hdrc_platform_data	*pdata = pdev->dev.platform_data;
- 	struct omap_musb_board_data	*data;
- 	struct platform_device		*musb;
-@@ -489,6 +489,7 @@ static int omap2430_probe(struct platform_device *pdev)
- 	struct device_node		*np = pdev->dev.of_node;
- 	struct musb_hdrc_config		*config;
- 	int				ret = -ENOMEM;
-+	int				i = 0;
++	if (cpu_is_omap34xx())
++		musb_plat.phy_name = "twl4030";
++
+ 	if (soc_is_am35xx()) {
+ 		oh_name = "am35x_otg_hs";
+ 		name = "musb-am35x";
+diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
+index 053c268..c05d46d 100644
+--- a/include/linux/usb/musb.h
++++ b/include/linux/usb/musb.h
+@@ -104,6 +104,9 @@ struct musb_hdrc_platform_data {
+ 	/* for clk_get() */
+ 	const char	*clock;
  
- 	glue = devm_kzalloc(&pdev->dev, sizeof(*glue), GFP_KERNEL);
- 	if (!glue) {
-@@ -571,15 +572,12 @@ static int omap2430_probe(struct platform_device *pdev)
- 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
- 			ARRAY_SIZE(musb_resources));
++	/* phy device label */
++	const char	*phy_name;
++
+ 	/* (HOST or OTG) switch VBUS on/off */
+ 	int		(*set_vbus)(struct device *dev, int is_on);
  
--	musb_resources[0].name = pdev->resource[0].name;
--	musb_resources[0].start = pdev->resource[0].start;
--	musb_resources[0].end = pdev->resource[0].end;
--	musb_resources[0].flags = pdev->resource[0].flags;
+-- 
+1.7.10.4
