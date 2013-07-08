@@ -1,55 +1,61 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 0/5] Add phy support for AM335X platform using Generic
- PHy framework
-Date: Mon, 08 Jul 2013 21:44:33 +0200
-Message-ID: <51DB16A1.6010006@linutronix.de>
-References: <1373280201-31785-1-git-send-email-george.cherian@ti.com>
+From: Nishanth Menon <nm@TI.COM>
+Subject: Re: [PATCH] mmc: omap_hsmmc: use for OMAP5 as well
+Date: Mon, 8 Jul 2013 14:58:28 -0500
+Message-ID: <20130708195828.GA28218@kahuna>
+References: <1372422894-23729-1-git-send-email-a-bindra@ti.com>
+ <51CDB260.8080108@ti.com>
+ <20130707201309.GA5429@localhost>
+ <20130708074606.GD16635@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:54582 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752274Ab3GHToh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Jul 2013 15:44:37 -0400
-In-Reply-To: <1373280201-31785-1-git-send-email-george.cherian@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130708074606.GD16635@arwen.pp.htv.fi>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Felipe Balbi <balbi@TI.COM>
+Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Balaji T K <balajitk@TI.COM>, a-bindra@TI.COM, linux-mmc@vger.kernel.org, cjb@laptop.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com
 
-On 07/08/2013 12:43 PM, George Cherian wrote:
-> This patch series adds phy support for AM335X platform.
-> This patch series is based on Generic PHY framework [1]. 
+On 10:46-20130708, Felipe Balbi wrote:
+> On Sun, Jul 07, 2013 at 05:13:10PM -0300, Ezequiel Garcia wrote:
+> > Hi guys,
+> > 
+> > On Fri, Jun 28, 2013 at 09:27:20PM +0530, Balaji T K wrote:
+> > > On Friday 28 June 2013 06:04 PM, a-bindra@ti.com wrote:
+> > > > From: Amarinder Bindra <a-bindra@ti.com>
+> > > >
+> > > > OMAP's hs_mmc driver is also used for OMAP5 MMC controller operation.
+> > > > Considering that the device tree entries are already there for this,
+> > > > allow the driver to be built when only OMAP5 is enabled.
+> > > > This allows MMC root filesystems to be available in "OMAP5 only"
+> > > > configurations.
+> > > >
+> > > > Signed-off-by: Amarinder Bindra <a-bindra@ti.com>
+> > > > Acked-by: Felipe Balbi <balbi@ti.com>
+> > > > Acked-by: Nishanth Menon <nm@ti.com>
+> > > 
+> > > Looks good to me,
+> > > Acked-by: Balaji T K <balajitk@ti.com>
+> > > 
+> > 
+> > I came across this same issue while trying MMC patches on AM3xx,
+> > which is nor OMAP3 neither OMAP4.
+> > 
+> > Now, looking at the driver I don't see any OMAP-specific bits
+> > (welcome to the multiplatform world ;-) so I think we can just
+> > remove the 'depends' line. Something like this:
 > 
-> 
-> This series has
-> 	- adds dual musb instances support for am335x platform (just for testing)
-> 	- adds phy-amxxxx-usb driver used in AMxxxx platforms
-> 	- adds dt  bindings for the phys
-> 	- removes usb-phy and replaced with generic phy apis in glue layer
+> frankly speaking, this driver should be deleted and all users should be
+> moved to sdhci. OMAP's HSMMC controller is compatible with SDHCI except
+> for a couple quirks which can be easily worked around.
+Do we take that as a NAK to this specific patch?
 
-No, I don't like this all. You did the one thing I tried to avoid while
-posting my quick-and-dirty phy driver recently: You duplicated a lot of
-code which can be served by the nop driver and added only power
-on/power off callbacks.
-In numbers:
->  7 files changed, 316 insertions(+), 70 deletions(-)
-vs
-   2 files changed, 117 insertions, 12 deletions
+I am not complaining about the future migration to a solution that is
+much more generic and scalable, but having fixes for current problems
+should'nt be ignored IMHO.
 
-I assumed you had also the OTG callbacks (set host/device mode) and
-wake up but I don't see it there.
-Adding a power regulator would do the same job, wouldn't it? If the phy
-driver remains just doing power on/off I suggest simply adding a power
-regulator. If it will do more I would move the am35xx specific bits
-into a separate file and glue it to the nop driver.
-
-What else? The abstraction in device tree is wrong. It remains wrong if
-add stuff on top to it.
-We need two nodes each one with a glue layer and a musb child node. The
-instances crap in kernel has to vanish. Also that means your phy nodes
-are wrong. This is not musb with two ports but two musb instances each
-with one port.
-
-Sebastian
+How about a depends on CONFIG_ARCH_OMAP2PLUS instead? will that solve
+our pains with all OMAP2+ usin this?
+-- 
+Regards,
+Nishanth Menon
