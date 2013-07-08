@@ -1,14 +1,13 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 2/5] usb: phy: phy-omap-control: Add API to power on/off
- USB PHY for AM335X
-Date: Mon, 8 Jul 2013 17:07:23 +0530
-Message-ID: <51DAA473.9030207@ti.com>
-References: <1373280201-31785-1-git-send-email-george.cherian@ti.com> <1373280201-31785-3-git-send-email-george.cherian@ti.com>
+Subject: Re: [PATCH 3/5] phy: phy-amxxxx-usb: Add PHY driver for amxxxx platform
+Date: Mon, 8 Jul 2013 17:22:03 +0530
+Message-ID: <51DAA7E3.3080704@ti.com>
+References: <1373280201-31785-1-git-send-email-george.cherian@ti.com> <1373280201-31785-4-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1373280201-31785-3-git-send-email-george.cherian@ti.com>
+In-Reply-To: <1373280201-31785-4-git-send-email-george.cherian@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: George Cherian <george.cherian@ti.com>
 Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, bigeasy@linutronix.de
@@ -17,96 +16,197 @@ List-Id: linux-omap@vger.kernel.org
 Hi,
 
 On Monday 08 July 2013 04:13 PM, George Cherian wrote:
-> Add API to power on/off USB PHY for AM335X. This API will be called
-> from phy-amxxxx-usb driver.
+> Adds phy driver support for am33xx platform, the host/device
+> peripheral controller shall get this phy object to control the phy
+> operations.
 >
 > Signed-off-by: George Cherian <george.cherian@ti.com>
 > ---
->   drivers/usb/phy/phy-omap-control.c   | 32 ++++++++++++++++++++++++++++++++
->   include/linux/usb/omap_control_usb.h | 11 +++++++++++
->   2 files changed, 43 insertions(+)
+>   drivers/phy/Kconfig          |  12 +++
+>   drivers/phy/Makefile         |   1 +
+>   drivers/phy/phy-amxxxx-usb.c | 201 +++++++++++++++++++++++++++++++++++++++++++
+>   3 files changed, 214 insertions(+)
+>   create mode 100644 drivers/phy/phy-amxxxx-usb.c
 >
-> diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
-> index 1419ced..0c1822d 100644
-> --- a/drivers/usb/phy/phy-omap-control.c
-> +++ b/drivers/usb/phy/phy-omap-control.c
-> @@ -46,6 +46,38 @@ struct device *omap_get_control_dev(void)
->   EXPORT_SYMBOL_GPL(omap_get_control_dev);
+> diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
+> index 5f85909..55087ab 100644
+> --- a/drivers/phy/Kconfig
+> +++ b/drivers/phy/Kconfig
+> @@ -11,3 +11,15 @@ menuconfig GENERIC_PHY
+>   	  devices present in the kernel. This layer will have the generic
+>   	  API by which phy drivers can create PHY using the phy framework and
+>   	  phy users can obtain reference to the PHY.
+> +if GENERIC_PHY
+> +
+> +config PHY_AMXXXX_USB
+> +	tristate "AMXXXX USB2 PHY Driver"
+> +	depends on SOC_AM33XX
+> +	help
+> +	  Enable this to support the transceiver that is part of SOC. This
+> +	  phy supports all LS/FS/HS speed and also supports OTG functionality.
+> +	  The USB OTG controller communicates with this phy through stand UTMI
+> +	  interface.
+> +
+> +endif
+> diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
+> index 9e9560f..471c525 100644
+> --- a/drivers/phy/Makefile
+> +++ b/drivers/phy/Makefile
+> @@ -3,3 +3,4 @@
+>   #
 >
->   /**
-> + * omap_control_am335x_phy_power - power on/off the serializer using control
-> + *	module
-> + * @dev: the control module device
-> + * @on: 0 to off and 1 to on based on powering on or off the PHY
-> + * @id: phy id 0 or 1 for phy instance 0 and 1 repectively
+>   obj-$(CONFIG_GENERIC_PHY)	+= phy-core.o
+> +obj-$(CONFIG_PHY_AMXXXX_USB)	+= phy-amxxxx-usb.o
+> diff --git a/drivers/phy/phy-amxxxx-usb.c b/drivers/phy/phy-amxxxx-usb.c
+> new file mode 100644
+> index 0000000..52c48eb
+> --- /dev/null
+> +++ b/drivers/phy/phy-amxxxx-usb.c
+> @@ -0,0 +1,201 @@
+> +/*
+> + * phy-amxxxx-usb.c - USB PHY, talking to usb controller in AMXXX.
 > + *
-> + * AMXXXX PHY driver should call this API to power on or off the PHY.
+> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com
+
+2013 ;-)
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * Author: George Cherian <george.cherian@ti.com>
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
 > + */
-> +void omap_control_am335x_phy_power(struct device *dev, bool on, u8 id)
+> +
+> +#include <linux/module.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/of.h>
+> +#include <linux/usb/phy_companion.h>
+
+phy_companion not needed here.
+> +#include <linux/clk.h>
+> +#include <linux/pm_runtime.h>
+> +#include <linux/usb/omap_control_usb.h>
+> +#include <linux/phy/phy.h>
+> +
+> +struct amxxxx_usb {
+> +	struct usb_phy	phy;
+> +	struct device	*dev;
+> +	struct device	*control_dev;
+> +	struct clk	*optclk;
+> +	u8		id;
+> +};
+> +
+> +#define phy_to_amxxxxphy(x)	container_of((x), struct amxxxx_phy, phy)
+> +
+> +
+
+Additional blank line.
+> +static int amxxxx_usb_power_off(struct phy *x)
 > +{
-> +	u32 val;
-> +	struct omap_control_usb	*control_usb = dev_get_drvdata(dev);
+> +	struct amxxxx_usb *phy = phy_get_drvdata(x);
 > +
-> +	if (control_usb->type != OMAP_CTRL_DEV_TYPE3)
-> +		return;
-
-Lets validate id also here.
+> +	omap_control_am335x_phy_power(phy->control_dev, 0, phy->id);
 > +
-> +	val = readl(control_usb->dev_conf + (id * 2));
-
-Understand you use id to calculate the offset. But looks a bit hacky to me.
-Can we define macros and use it instead?
-> +
-> +	if (on) {
-> +		val &= ~(AM335X_USBPHY_CM_PWRDN | AM335X_USBPHY_OTG_PWRDN);
-> +		val |= AM335X_USBPHY_OTGVDET_EN |
-> +			AM335X_USBPHY_OTGSESSEND_EN;
-> +	} else
-> +		val |= AM335X_USBPHY_CM_PWRDN | AM335X_USBPHY_OTG_PWRDN;
-> +
-> +
-> +	writel(val, (control_usb->dev_conf + (id * 2)));
+> +	return 0;
 > +}
-> +EXPORT_SYMBOL_GPL(omap_control_am335x_phy_power);
 > +
+> +static int amxxxx_usb_power_on(struct phy *x)
+> +{
+> +	struct amxxxx_usb *phy = phy_get_drvdata(x);
 > +
-> +/**
->    * omap_control_usb3_phy_power - power on/off the serializer using control
->    *	module
->    * @dev: the control module device
-> diff --git a/include/linux/usb/omap_control_usb.h b/include/linux/usb/omap_control_usb.h
-> index 27b5b8c..11d7a34 100644
-> --- a/include/linux/usb/omap_control_usb.h
-> +++ b/include/linux/usb/omap_control_usb.h
-> @@ -45,6 +45,7 @@ enum omap_control_usb_mode {
->   /* To differentiate ctrl module IP having either mailbox or USB3 PHY power */
->   #define	OMAP_CTRL_DEV_TYPE1		0x1
->   #define	OMAP_CTRL_DEV_TYPE2		0x2
-> +#define	OMAP_CTRL_DEV_TYPE3		0x3
->
->   #define	OMAP_CTRL_DEV_PHY_PD		BIT(0)
->
-> @@ -63,10 +64,20 @@ enum omap_control_usb_mode {
->   #define	OMAP_CTRL_USB3_PHY_TX_RX_POWERON	0x3
->   #define	OMAP_CTRL_USB3_PHY_TX_RX_POWEROFF	0x0
->
-> +#define AM335X_USBPHY_CM_PWRDN		(1 << 0)
-> +#define AM335X_USBPHY_OTG_PWRDN		(1 << 1)
-> +#define AM335X_USBPHY_OTGVDET_EN		(1 << 19)
-> +#define AM335X_USBPHY_OTGSESSEND_EN	(1 << 20)
-> +#define AM335X_USB0_WKUP_CTRL_ENABLE	(1 << 0)
-> +#define AM335X_USB1_WKUP_CTRL_ENABLE	(1 << 8)
+> +	omap_control_am335x_phy_power(phy->control_dev, 1, phy->id);
 > +
+> +	return 0;
+> +}
 > +
+> +static struct phy_ops ops = {
+> +	.power_on	= amxxxx_usb_power_on,
+> +	.power_off	= amxxxx_usb_power_off,
+> +	.owner		= THIS_MODULE,
+> +};
 > +
->   #if IS_ENABLED(CONFIG_OMAP_CONTROL_USB)
->   extern struct device *omap_get_control_dev(void);
->   extern void omap_control_usb_phy_power(struct device *dev, int on);
->   extern void omap_control_usb3_phy_power(struct device *dev, bool on);
-> +extern void omap_control_am335x_phy_power(struct device *dev, bool on, u8 id);
+> +static int amxxxx_usb2_probe(struct platform_device *pdev)
+> +{
+> +	struct device_node *np = pdev->dev.of_node;
+> +	struct amxxxx_usb			*phy;
+> +	struct phy			*generic_phy;
+> +	struct usb_otg			*otg;
+> +	struct phy_provider		*phy_provider;
 
-You might also need to provide an empty stub when CONFIG_OMAP_CONTROL_USB is
-not set.
+Alignment is not needed for local variables.
+> +
+> +	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
+> +	if (!phy) {
+> +		dev_err(&pdev->dev, "unable to allocate memory for USB2 PHY\n");
+
+remove this dev_err. memory allocation failures will throw some dumps already.
+> +		return -ENOMEM;
+> +	}
+> +
+> +	otg = devm_kzalloc(&pdev->dev, sizeof(*otg), GFP_KERNEL);
+> +	if (!otg) {
+> +		dev_err(&pdev->dev, "unable to allocate memory for USB OTG\n");
+
+ditto.
+> +		return -ENOMEM;
+> +	}
+> +
+> +	phy->dev		= &pdev->dev;
+> +
+> +	if (np)
+> +		of_property_read_u8(np, "id", &phy->id);
+> +
+> +	phy->phy.dev		= phy->dev;
+> +	phy->phy.label		= "amxxxx-usb2";
+> +	phy->phy.otg		= otg;
+> +	phy->phy.type		= USB_PHY_TYPE_USB2;
+> +
+> +	phy_provider = devm_of_phy_provider_register(phy->dev,
+> +			of_phy_simple_xlate);
+> +	if (IS_ERR(phy_provider))
+> +		return PTR_ERR(phy_provider);
+> +
+> +	phy->control_dev = omap_get_control_dev();
+> +	if (IS_ERR(phy->control_dev)) {
+> +		dev_dbg(&pdev->dev, "Failed to get control device\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	omap_control_am335x_phy_power(phy->control_dev, 0, phy->id);
+> +
+> +	otg->phy		= &phy->phy;
+> +
+> +	platform_set_drvdata(pdev, phy);
+> +	pm_runtime_enable(phy->dev);
+> +
+> +	generic_phy = devm_phy_create(phy->dev, 0, &ops, "amxxxx-usb2");
+> +
+blank line..
+> +	if (IS_ERR(generic_phy))
+> +		return PTR_ERR(generic_phy);
+> +
+> +	phy_set_drvdata(generic_phy, phy);
+> +
+> +	phy->optclk = devm_clk_get(phy->dev, "usbotg_fck");
+> +
+blank line..
+> +	if (IS_ERR(phy->optclk))
+> +		dev_err(&pdev->dev, "unable to get usbotg_fck\n");
+> +	else
+> +		clk_prepare(phy->optclk);
+> +
+> +
+blank line..
+> +	usb_add_phy_dev(&phy->phy);
+
+Any reason why you are using the old USB PHY APIs. Because of
+MUSB?
 
 Thanks
 Kishon
