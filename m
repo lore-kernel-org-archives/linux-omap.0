@@ -1,13 +1,14 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 4/5] arm: dts: Add USB phy nodes for AM33XX
-Date: Mon, 8 Jul 2013 17:24:56 +0530
-Message-ID: <51DAA890.5090006@ti.com>
-References: <1373280201-31785-1-git-send-email-george.cherian@ti.com> <1373280201-31785-5-git-send-email-george.cherian@ti.com>
+Subject: Re: [PATCH 5/5] usb: musb: dsps: Remove the phy control from glue
+ and add phy driver APIs
+Date: Mon, 8 Jul 2013 17:38:06 +0530
+Message-ID: <51DAABA6.9050106@ti.com>
+References: <1373280201-31785-1-git-send-email-george.cherian@ti.com> <1373280201-31785-6-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1373280201-31785-5-git-send-email-george.cherian@ti.com>
+In-Reply-To: <1373280201-31785-6-git-send-email-george.cherian@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: George Cherian <george.cherian@ti.com>
 Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, bigeasy@linutronix.de
@@ -16,54 +17,100 @@ List-Id: linux-omap@vger.kernel.org
 Hi,
 
 On Monday 08 July 2013 04:13 PM, George Cherian wrote:
-> Add DT bindings of phy nodes for AM33XX platform.
+> Remove usb phy control module access from platform glue.
+> The same is now done using amxxxx phy driver and phy-omap-control.
 >
 > Signed-off-by: George Cherian <george.cherian@ti.com>
 > ---
->   arch/arm/boot/dts/am33xx.dtsi | 22 ++++++++++++++++++++++
->   1 file changed, 22 insertions(+)
+>   drivers/usb/musb/musb_dsps.c | 105 +++++++++++++++----------------------------
+>   1 file changed, 36 insertions(+), 69 deletions(-)
 >
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 8e1248f..4f3cca0 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -326,6 +326,25 @@
->   			status = "disabled";
->   		};
+> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+> index 41f135a..8f4e04a 100644
+> --- a/drivers/usb/musb/musb_dsps.c
+> +++ b/drivers/usb/musb/musb_dsps.c
+> @@ -123,49 +123,11 @@ struct dsps_glue {
+>   	const struct dsps_musb_wrapper *wrp; /* wrapper register offsets */
+>   	struct timer_list timer[2];	/* otg_workaround timer */
+>   	unsigned long last_timer[2];    /* last timer data for each instance */
+> -	u32 __iomem *usb_ctrl[2];
+>   };
 >
-> +		phy1: usbphy-gs70@44e10620 {
+> -#define	DSPS_AM33XX_CONTROL_MODULE_PHYS_0	0x44e10620
+> -#define	DSPS_AM33XX_CONTROL_MODULE_PHYS_1	0x44e10628
+> +#define glue_to_musb(g, i)		platform_get_drvdata(g->musb[i])
+>
+> -static const resource_size_t dsps_control_module_phys[] = {
+> -	DSPS_AM33XX_CONTROL_MODULE_PHYS_0,
+> -	DSPS_AM33XX_CONTROL_MODULE_PHYS_1,
+> -};
+> -
+> -#define USBPHY_CM_PWRDN		(1 << 0)
+> -#define USBPHY_OTG_PWRDN	(1 << 1)
+> -#define USBPHY_OTGVDET_EN	(1 << 19)
+> -#define USBPHY_OTGSESSEND_EN	(1 << 20)
+> -
+> -/**
+> - * musb_dsps_phy_control - phy on/off
+> - * @glue: struct dsps_glue *
+> - * @id: musb instance
+> - * @on: flag for phy to be switched on or off
+> - *
+> - * This is to enable the PHY using usb_ctrl register in system control
+> - * module space.
+> - *
+> - * XXX: This function will be removed once we have a seperate driver for
+> - * control module
+> - */
+> -static void musb_dsps_phy_control(struct dsps_glue *glue, u8 id, u8 on)
+> -{
+> -	u32 usbphycfg;
+>
+> -	usbphycfg = readl(glue->usb_ctrl[id]);
+> -
+> -	if (on) {
+> -		usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN);
+> -		usbphycfg |= USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN;
+> -	} else {
+> -		usbphycfg |= USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN;
+> -	}
+> -
+> -	writel(usbphycfg, glue->usb_ctrl[id]);
+> -}
+>   /**
+>    * dsps_musb_enable - enable interrupts
+>    */
+> @@ -411,16 +373,31 @@ static int dsps_musb_init(struct musb *musb)
+>   	void __iomem *reg_base = musb->ctrl_base;
+>   	u32 rev, val;
+>   	int status;
+> +	char phyname[12];
+>
+>   	/* mentor core register starts at offset of 0x400 from musb base */
+>   	musb->mregs += wrp->musb_core_offset;
+>
+> -	/* NOP driver needs change if supporting dual instance */
+> -	usb_nop_xceiv_register();
+> -	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
+> +	if (dev->parent->of_node) {
+> +		snprintf(phyname , 12, "am335x-usb%d", pdev->id);
+> +		musb->phy = devm_phy_get(dev->parent, phyname);
+> +		musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent,
+> +							"phys", pdev->id);
+> +	} else {
+> +		snprintf(phyname , 12, "am335x-usb%d", pdev->id);
 
-*44e10620* is not needed if you are not having the reg property.
-> +			compatible = "ti,am335x-usb2";
-> +			#phy-cells = <0>;
-> +			id = <0>;
-> +		};
+Both these snprintf can be moved out of the *if*.
+> +		musb->phy = devm_phy_get(dev, musb->phy_label);
+> +		musb->xceiv = devm_usb_get_phy_dev(dev, pdev->id);
+> +	}
 > +
-> +		phy2: usbphy-gs71@44e10628 {
-ditto.
-> +			compatible = "ti,am335x-usb2";
-> +			#phy-cells = <0>;
-> +			id = <1>;
-> +		};
-> +
-> +		omap_control_usb: omap-control-usb@44e10620 {
-> +			compatible = "ti,omap-control-usb";
-> +			reg = <0x44e10620 0x10>;
-> +			reg-names = "control_dev_conf";
-> +			ti,type = <3>;
-> +		};
-> +
->   		usb@47400000 {
->   			compatible = "ti,musb-am33xx";
->   			reg = <0x47400000 0x1000	/* usbss */
-> @@ -341,6 +360,9 @@
->   			port1-mode = <3>;
->   			power = <250>;
->   			ti,hwmods = "usb_otg_hs";
-> +			phy-names = "am335x-usb0", "am335x-usb1";
-> +			phys	= <&phy1>, <&phy2>;
+>   	if (IS_ERR_OR_NULL(musb->xceiv))
+>   		return -EPROBE_DEFER;
+>
+> +	if (IS_ERR_OR_NULL(musb->phy)) {
 
-Lets have *phys* before *phy-names*.
+The framework should never return NULL.
 
 Thanks
 Kishon
