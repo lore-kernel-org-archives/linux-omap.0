@@ -1,65 +1,67 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 1/4] arm: omap: Add phy binding info for musb in plat data
-Date: Mon, 8 Jul 2013 16:44:14 +0530
-Message-ID: <1373282057-20181-2-git-send-email-kishon@ti.com>
-References: <1373282057-20181-1-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 0/4] usb: musb: fix USB enumeration issue in OMAP3 platform
+Date: Mon, 8 Jul 2013 16:44:13 +0530
+Message-ID: <1373282057-20181-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1373282057-20181-1-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: kishon@ti.com, tony@atomide.com, balbi@ti.com
-Cc: linux@arm.linux.org.uk, eballetbo@gmail.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, javier@dowhile0.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: gregkh@linuxfoundation.org, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-In order for controllers to get PHY in case of non dt boot, the phy
-binding information (phy label) should be added in the platform
-data of the controller.
+This series fixes the USB enumeration issue caused because of the controller
+not able to get a reference to the PHY because of incorrect binding in the
+board file.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
-Tested-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- arch/arm/mach-omap2/usb-musb.c |    3 +++
- include/linux/usb/musb.h       |    3 +++
- 2 files changed, 6 insertions(+)
+In the case of non-dt boot, the platform specific initialization file
+(board file) will do usb_bind_phy that binds the usb controller with the
+PHY using device names. After the device names are created using 
+PLATFORM_DEVID_AUTO, our original method of binding by device names doesn't
+work reliably (since the device name changes). Hence the usb controller
+is made to use labels for getting the PHY.
 
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 8c4de27..20b42de 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -85,6 +85,9 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
- 	musb_plat.mode = board_data->mode;
- 	musb_plat.extvbus = board_data->extvbus;
- 
-+	if (cpu_is_omap34xx())
-+		musb_plat.phy_name = "twl4030";
-+
- 	if (soc_is_am35xx()) {
- 		oh_name = "am35x_otg_hs";
- 		name = "musb-am35x";
-diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
-index 053c268..c05d46d 100644
---- a/include/linux/usb/musb.h
-+++ b/include/linux/usb/musb.h
-@@ -104,6 +104,9 @@ struct musb_hdrc_platform_data {
- 	/* for clk_get() */
- 	const char	*clock;
- 
-+	/* phy device label */
-+	const char	*phy_name;
-+
- 	/* (HOST or OTG) switch VBUS on/off */
- 	int		(*set_vbus)(struct device *dev, int is_on);
- 
+Here the PHY name is added in the plat data of USB controller device which
+should be used by the controller driver to get the PHY.
+Two new APIs usb_get_phy_by_name and devm_usb_get_phy_by_name are added to
+be used by the controller to get the PHY by name.
+
+Changes from v1:
+*) Rebased to the latest mainline kernel
+
+Changes from RFC
+*) Changed the signature of usb_get_phy_by_name() not to use struct device *
+
+Kishon Vijay Abraham I (4):
+  arm: omap: Add phy binding info for musb in plat data
+  usb: phy: add a new API to get PHY ref by label
+  usb: musb: omap: use the new API to get PHY reference by label
+  arm: omap: remove using usb_bind_phy for binding musb and phy
+
+ arch/arm/mach-omap2/board-2430sdp.c          |    1 -
+ arch/arm/mach-omap2/board-3430sdp.c          |    1 -
+ arch/arm/mach-omap2/board-cm-t35.c           |    1 -
+ arch/arm/mach-omap2/board-devkit8000.c       |    1 -
+ arch/arm/mach-omap2/board-igep0020.c         |    1 -
+ arch/arm/mach-omap2/board-ldp.c              |    1 -
+ arch/arm/mach-omap2/board-omap3beagle.c      |    1 -
+ arch/arm/mach-omap2/board-omap3evm.c         |    1 -
+ arch/arm/mach-omap2/board-omap3logic.c       |    1 -
+ arch/arm/mach-omap2/board-omap3pandora.c     |    1 -
+ arch/arm/mach-omap2/board-omap3stalker.c     |    1 -
+ arch/arm/mach-omap2/board-omap3touchbook.c   |    1 -
+ arch/arm/mach-omap2/board-overo.c            |    1 -
+ arch/arm/mach-omap2/board-rm680.c            |    1 -
+ arch/arm/mach-omap2/board-rx51.c             |    1 -
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    1 -
+ arch/arm/mach-omap2/usb-musb.c               |    3 +
+ drivers/usb/musb/musb_core.c                 |    1 +
+ drivers/usb/musb/musb_core.h                 |    1 +
+ drivers/usb/musb/omap2430.c                  |    2 +-
+ drivers/usb/phy/phy.c                        |   77 ++++++++++++++++++++++++++
+ include/linux/usb/musb.h                     |    3 +
+ include/linux/usb/phy.h                      |   14 +++++
+ 23 files changed, 100 insertions(+), 17 deletions(-)
+
 -- 
 1.7.10.4
