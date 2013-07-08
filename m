@@ -1,235 +1,210 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 4/4] arm: omap: remove using usb_bind_phy for binding musb and phy
-Date: Mon, 8 Jul 2013 16:44:17 +0530
-Message-ID: <1373282057-20181-5-git-send-email-kishon@ti.com>
-References: <1373282057-20181-1-git-send-email-kishon@ti.com>
+From: "Patel, Satish" <satish.patel@ti.com>
+Subject: RE: [PATCH v9 0/8] Generic PHY Framework
+Date: Mon, 8 Jul 2013 11:24:49 +0000
+Message-ID: <780E789C2E067A4BB8F69D0BB9EC4F253E9764D5@DBDE04.ent.ti.com>
+References: <1372247257-30186-1-git-send-email-kishon@ti.com>
+ <780E789C2E067A4BB8F69D0BB9EC4F253E975B5E@DBDE04.ent.ti.com>
+ <51D3F773.9000209@ti.com> <20130703132038.GI15056@arwen.pp.htv.fi>
+ <780E789C2E067A4BB8F69D0BB9EC4F253E975D6E@DBDE04.ent.ti.com>
+ <51D54694.20203@ti.com> <20130704101216.GD4830@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1373282057-20181-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: kishon@ti.com, tony@atomide.com, balbi@ti.com
-Cc: gregkh@linuxfoundation.org, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130704101216.GD4830@arwen.pp.htv.fi>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Balbi, Felipe" <balbi@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Cc: "mchehab@redhat.com" <mchehab@redhat.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, "Mankad, Maulik Ojas" <maulik@ti.com>, "swarren@nvidia.com" <swarren@nvidia.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "cesarb@cesarb.net" <cesarb@cesarb.net>, "Cherian,
+ George" <george.cherian@ti.com>, "arnd@arndb.de" <arnd@arndb.de>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nayak, Rajendra" <rnayak@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "sylvester.nawrocki@gmail.com" <sylvester.nawrocki@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Srinivasan,
+ Nageswari" <nageswari@ti.>
 List-Id: linux-omap@vger.kernel.org
 
-Now that MUSB for OMAP started using devm_usb_get_phy_by_name
-which does not require PHY library to already have the binding
-information, removed usb_bind_phy calls that binds the MUSB controller
-with the PHY from the board files.
-
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
-Tested-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- arch/arm/mach-omap2/board-2430sdp.c          |    1 -
- arch/arm/mach-omap2/board-3430sdp.c          |    1 -
- arch/arm/mach-omap2/board-cm-t35.c           |    1 -
- arch/arm/mach-omap2/board-devkit8000.c       |    1 -
- arch/arm/mach-omap2/board-igep0020.c         |    1 -
- arch/arm/mach-omap2/board-ldp.c              |    1 -
- arch/arm/mach-omap2/board-omap3beagle.c      |    1 -
- arch/arm/mach-omap2/board-omap3evm.c         |    1 -
- arch/arm/mach-omap2/board-omap3logic.c       |    1 -
- arch/arm/mach-omap2/board-omap3pandora.c     |    1 -
- arch/arm/mach-omap2/board-omap3stalker.c     |    1 -
- arch/arm/mach-omap2/board-omap3touchbook.c   |    1 -
- arch/arm/mach-omap2/board-overo.c            |    1 -
- arch/arm/mach-omap2/board-rm680.c            |    1 -
- arch/arm/mach-omap2/board-rx51.c             |    1 -
- arch/arm/mach-omap2/board-zoom-peripherals.c |    1 -
- 16 files changed, 16 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index 244d8a5..30d81f2 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -233,7 +233,6 @@ static void __init omap_2430sdp_init(void)
- 	omap_hsmmc_init(mmc);
- 
- 	omap_mux_init_signal("usb0hs_stp", OMAP_PULL_ENA | OMAP_PULL_UP);
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 
- 	board_smc91x_init();
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 23b004a..7f431b4 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -590,7 +590,6 @@ static void __init omap_3430sdp_init(void)
- 	omap_ads7846_init(1, gpio_pendown, 310, NULL);
- 	omap_serial_init();
- 	omap_sdrc_init(hyb18m512160af6_sdrc_params, NULL);
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	board_smc91x_init();
- 	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index d4622ed..c776c66 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -691,7 +691,6 @@ static void __init cm_t3x_common_init(void)
- 	cm_t35_init_display();
- 	omap_twl4030_audio_init("cm-t3x", NULL);
- 
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	cm_t35_init_usbh();
- 	cm_t35_init_camera();
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index f1d91ba..2da5fd9 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -594,7 +594,6 @@ static void __init devkit8000_init(void)
- 
- 	omap_ads7846_init(2, OMAP3_DEVKIT_TS_GPIO, 0, NULL);
- 
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
- 	board_nand_init(devkit8000_nand_partitions,
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index b54562d..5451c9c 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -628,7 +628,6 @@ static void __init igep_init(void)
- 	omap_serial_init();
- 	omap_sdrc_init(m65kxxxxam_sdrc_params,
- 				  m65kxxxxam_sdrc_params);
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 
- 	igep_flash_init();
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 62e4f70..ff2892d 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -377,7 +377,6 @@ static void __init omap_ldp_init(void)
- 	omap_ads7846_init(1, 54, 310, NULL);
- 	omap_serial_init();
- 	omap_sdrc_init(NULL, NULL);
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	board_nand_init(ldp_nand_partitions, ARRAY_SIZE(ldp_nand_partitions),
- 			ZOOM_NAND_CS, 0, nand_default_timings);
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 04c1165..47d7dd7 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -551,7 +551,6 @@ static void __init omap3_beagle_init(void)
- 	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
- 				  mt46h32m32lf6_sdrc_params);
- 
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 
- 	usbhs_init(&usbhs_bdata);
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 8c02626..9bfc99f 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -706,7 +706,6 @@ static void __init omap3_evm_init(void)
- 		omap_mux_init_gpio(135, OMAP_PIN_OUTPUT);
- 		phy_data[0].reset_gpio = 135;
- 	}
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(&musb_board_data);
- 
- 	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
-diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
-index bab51e6..16e4e2a 100644
---- a/arch/arm/mach-omap2/board-omap3logic.c
-+++ b/arch/arm/mach-omap2/board-omap3logic.c
-@@ -216,7 +216,6 @@ static void __init omap3logic_init(void)
- 	board_mmc_init();
- 	board_smsc911x_init();
- 
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 
- 	/* Ensure SDRC pins are mux'd for self-refresh */
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index b1547a0..f058f43 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -611,7 +611,6 @@ static void __init omap3pandora_init(void)
- 	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
- 	usbhs_init(&usbhs_bdata);
- 
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	gpmc_nand_init(&pandora_nand_data, NULL);
- 
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index d37e6b1..6f6fc92 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -394,7 +394,6 @@ static void __init omap3_stalker_init(void)
- 
- 	omap_serial_init();
- 	omap_sdrc_init(mt46h32m32lf6_sdrc_params, NULL);
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 
- 	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index 7da48bc..bbff6de 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -367,7 +367,6 @@ static void __init omap3_touchbook_init(void)
- 
- 	/* Touchscreen and accelerometer */
- 	omap_ads7846_init(4, OMAP3_TS_GPIO, 310, &ads7846_pdata);
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 
- 	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 5748b5d..6c2bb5a 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -473,7 +473,6 @@ static void __init overo_init(void)
- 				  mt46h32m32lf6_sdrc_params);
- 	board_nand_init(overo_nand_partitions,
- 			ARRAY_SIZE(overo_nand_partitions), NAND_CS, 0, NULL);
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 
- 	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
-diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
-index 345e8c4..cadeb5c 100644
---- a/arch/arm/mach-omap2/board-rm680.c
-+++ b/arch/arm/mach-omap2/board-rm680.c
-@@ -135,7 +135,6 @@ static void __init rm680_init(void)
- 	sdrc_params = nokia_get_sdram_timings();
- 	omap_sdrc_init(sdrc_params, sdrc_params);
- 
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	rm680_peripherals_init();
- }
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-index d2ea68e..0d16d37 100644
---- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -99,7 +99,6 @@ static void __init rx51_init(void)
- 	sdrc_params = nokia_get_sdram_timings();
- 	omap_sdrc_init(sdrc_params, sdrc_params);
- 
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(&musb_board_data);
- 	rx51_peripherals_init();
- 
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index a90375d..d05db2d 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -353,7 +353,6 @@ void __init zoom_peripherals_init(void)
- 	omap_i2c_init();
- 	pwm_add_table(zoom_pwm_lookup, ARRAY_SIZE(zoom_pwm_lookup));
- 	platform_add_devices(zoom_devices, ARRAY_SIZE(zoom_devices));
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	enable_board_wakeup_source();
- 	omap_serial_init();
--- 
-1.7.10.4
+SGksDQoNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBCYWxiaSwgRmVs
+aXBlDQo+IFNlbnQ6IFRodXJzZGF5LCBKdWx5IDA0LCAyMDEzIDM6NDIgUE0NCj4gVG86IEFCUkFI
+QU0sIEtJU0hPTiBWSUpBWQ0KPiBDYzogUGF0ZWwsIFNhdGlzaDsgQmFsYmksIEZlbGlwZTsgZ3Jh
+bnQubGlrZWx5QGxpbmFyby5vcmc7DQo+IHRvbnlAYXRvbWlkZS5jb207IGFybmRAYXJuZGIuZGU7
+IHN3YXJyZW5AbnZpZGlhLmNvbTsNCj4gc3lsdmVzdGVyLm5hd3JvY2tpQGdtYWlsLmNvbTsgbGlu
+dXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgbGludXgtDQo+IG9tYXBAdmdlci5rZXJuZWwub3Jn
+OyBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmc7IGxpbnV4LQ0KPiB1c2JAdmdl
+ci5rZXJuZWwub3JnOyBncmVna2hAbGludXhmb3VuZGF0aW9uLm9yZzsgYWtwbUBsaW51eC0NCj4g
+Zm91bmRhdGlvbi5vcmc7IHJvYi5oZXJyaW5nQGNhbHhlZGEuY29tOyByb2JAbGFuZGxleS5uZXQ7
+DQo+IGxpbnV4QGFybS5saW51eC5vcmcudWs7IGJlbm9pdC5jb3Vzc29uQGxpbmFyby5vcmc7IG1j
+aGVoYWJAcmVkaGF0LmNvbTsNCj4gY2VzYXJiQGNlc2FyYi5uZXQ7IGRhdmVtQGRhdmVtbG9mdC5u
+ZXQ7IE5heWFrLCBSYWplbmRyYTsNCj4gc2hhd24uZ3VvQGxpbmFyby5vcmc7IFNoaWxpbWthciwg
+U2FudG9zaDsgZGV2aWNldHJlZS0NCj4gZGlzY3Vzc0BsaXN0cy5vemxhYnMub3JnOyBsaW51eC1k
+b2NAdmdlci5rZXJuZWwub3JnOyBOb3JpLCBTZWtoYXI7DQo+IEtyaXNobmFtb29ydGh5LCBCYWxh
+amkgVDsgQ2hlcmlhbiwgR2VvcmdlOyBNYW5rYWQsIE1hdWxpayBPamFzDQo+IFN1YmplY3Q6IFJl
+OiBbUEFUQ0ggdjkgMC84XSBHZW5lcmljIFBIWSBGcmFtZXdvcmsNCj4gDQo+IE9uIFRodSwgSnVs
+IDA0LCAyMDEzIGF0IDAzOjI1OjMyUE0gKzA1MzAsIEtpc2hvbiBWaWpheSBBYnJhaGFtIEkNCj4g
+d3JvdGU6DQo+ID4gT24gVGh1cnNkYXkgMDQgSnVseSAyMDEzIDAyOjUxIFBNLCBQYXRlbCwgU2F0
+aXNoIHdyb3RlOg0KPiA+ID5IaSwNCj4gPiA+DQo+ID4gPj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
+LS0tLQ0KPiA+ID4+RnJvbTogQmFsYmksIEZlbGlwZQ0KPiA+ID4+U2VudDogV2VkbmVzZGF5LCBK
+dWx5IDAzLCAyMDEzIDY6NTEgUE0NCj4gPiA+PlRvOiBBQlJBSEFNLCBLSVNIT04gVklKQVkNCj4g
+PiA+PkNjOiBQYXRlbCwgU2F0aXNoOyBncmFudC5saWtlbHlAbGluYXJvLm9yZzsgdG9ueUBhdG9t
+aWRlLmNvbTsNCj4gQmFsYmksDQo+ID4gPj5GZWxpcGU7IGFybmRAYXJuZGIuZGU7IHN3YXJyZW5A
+bnZpZGlhLmNvbTsNCj4gPiA+PnN5bHZlc3Rlci5uYXdyb2NraUBnbWFpbC5jb207IGxpbnV4LWtl
+cm5lbEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiA+ID4+b21hcEB2Z2VyLmtlcm5lbC5vcmc7
+IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZzsgbGludXgtDQo+ID4gPj51c2JA
+dmdlci5rZXJuZWwub3JnOyBncmVna2hAbGludXhmb3VuZGF0aW9uLm9yZzsgYWtwbUBsaW51eC0N
+Cj4gPiA+PmZvdW5kYXRpb24ub3JnOyByb2IuaGVycmluZ0BjYWx4ZWRhLmNvbTsgcm9iQGxhbmRs
+ZXkubmV0Ow0KPiA+ID4+bGludXhAYXJtLmxpbnV4Lm9yZy51azsgYmVub2l0LmNvdXNzb25AbGlu
+YXJvLm9yZzsNCj4gbWNoZWhhYkByZWRoYXQuY29tOw0KPiA+ID4+Y2VzYXJiQGNlc2FyYi5uZXQ7
+IGRhdmVtQGRhdmVtbG9mdC5uZXQ7IE5heWFrLCBSYWplbmRyYTsNCj4gPiA+PnNoYXduLmd1b0Bs
+aW5hcm8ub3JnOyBTaGlsaW1rYXIsIFNhbnRvc2g7IGRldmljZXRyZWUtDQo+ID4gPj5kaXNjdXNz
+QGxpc3RzLm96bGFicy5vcmc7IGxpbnV4LWRvY0B2Z2VyLmtlcm5lbC5vcmc7IE5vcmksIFNla2hh
+cjsNCj4gPiA+PktyaXNobmFtb29ydGh5LCBCYWxhamkgVDsgQ2hlcmlhbiwgR2VvcmdlDQo+ID4g
+Pj5TdWJqZWN0OiBSZTogW1BBVENIIHY5IDAvOF0gR2VuZXJpYyBQSFkgRnJhbWV3b3JrDQo+ID4g
+Pj4NCj4gPiA+PkhpLA0KPiA+ID4+DQo+ID4gPj5PbiBXZWQsIEp1bCAwMywgMjAxMyBhdCAwMzoz
+NTozOVBNICswNTMwLCBLaXNob24gVmlqYXkgQWJyYWhhbSBJDQo+ID4gPj53cm90ZToNCj4gPiA+
+Pj5PbiBXZWRuZXNkYXkgMDMgSnVseSAyMDEzIDAzOjAyIFBNLCBQYXRlbCwgU2F0aXNoIHdyb3Rl
+Og0KPiA+ID4+Pj5IaSBLaXNob24sDQo+ID4gPj4+Pg0KPiA+ID4+Pj4+LS0tLS1PcmlnaW5hbCBN
+ZXNzYWdlLS0tLS0NCj4gPiA+Pj4+PkZyb206IEFCUkFIQU0sIEtJU0hPTiBWSUpBWQ0KPiA+ID4+
+Pj4+U2VudDogV2VkbmVzZGF5LCBKdW5lIDI2LCAyMDEzIDU6MTcgUE0NCj4gPiA+Pj4+PlRvOiBn
+cmFudC5saWtlbHlAbGluYXJvLm9yZzsgdG9ueUBhdG9taWRlLmNvbTsgQmFsYmksIEZlbGlwZTsN
+Cj4gPiA+PkFCUkFIQU0sDQo+ID4gPj4+Pj5LSVNIT04gVklKQVk7IGFybmRAYXJuZGIuZGU7IHN3
+YXJyZW5AbnZpZGlhLmNvbTsNCj4gPiA+Pj4+PnN5bHZlc3Rlci5uYXdyb2NraUBnbWFpbC5jb207
+IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7DQo+IGxpbnV4LQ0KPiA+ID4+Pj4+b21hcEB2
+Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZzsNCj4g
+bGludXgtDQo+ID4gPj4+Pj51c2JAdmdlci5rZXJuZWwub3JnOyBncmVna2hAbGludXhmb3VuZGF0
+aW9uLm9yZzsgYWtwbUBsaW51eC0NCj4gPiA+Pj4+PmZvdW5kYXRpb24ub3JnDQo+ID4gPj4+Pj5D
+Yzogcm9iLmhlcnJpbmdAY2FseGVkYS5jb207IHJvYkBsYW5kbGV5Lm5ldDsNCj4gPiA+PmxpbnV4
+QGFybS5saW51eC5vcmcudWs7DQo+ID4gPj4+Pj5iZW5vaXQuY291c3NvbkBsaW5hcm8ub3JnOyBt
+Y2hlaGFiQHJlZGhhdC5jb207DQo+IGNlc2FyYkBjZXNhcmIubmV0Ow0KPiA+ID4+Pj4+ZGF2ZW1A
+ZGF2ZW1sb2Z0Lm5ldDsgTmF5YWssIFJhamVuZHJhOyBzaGF3bi5ndW9AbGluYXJvLm9yZzsNCj4g
+PiA+PlNoaWxpbWthciwNCj4gPiA+Pj4+PlNhbnRvc2g7IGRldmljZXRyZWUtZGlzY3Vzc0BsaXN0
+cy5vemxhYnMub3JnOyBsaW51eC0NCj4gPiA+Pj4+PmRvY0B2Z2VyLmtlcm5lbC5vcmc7IE5vcmks
+IFNla2hhcjsgS3Jpc2huYW1vb3J0aHksIEJhbGFqaSBUOw0KPiA+ID4+Q2hlcmlhbiwNCj4gPiA+
+Pj4+Pkdlb3JnZQ0KPiA+ID4+Pj4+U3ViamVjdDogW1BBVENIIHY5IDAvOF0gR2VuZXJpYyBQSFkg
+RnJhbWV3b3JrDQo+ID4gPj4+Pj4NCj4gPiA+Pj4+PkFkZGVkIGEgZ2VuZXJpYyBQSFkgZnJhbWV3
+b3JrIHRoYXQgcHJvdmlkZXMgYSBzZXQgb2YgQVBJcyBmb3INCj4gdGhlDQo+ID4gPj5QSFkNCj4g
+PiA+Pj4+PmRyaXZlcnMNCj4gPiA+Pj4+PnRvIGNyZWF0ZS9kZXN0cm95IGEgUEhZIGFuZCBBUElz
+IGZvciB0aGUgUEhZIHVzZXJzIHRvIG9idGFpbiBhDQo+ID4gPj4+Pj5yZWZlcmVuY2UgdG8NCj4g
+PiA+Pj4+PnRoZSBQSFkgd2l0aCBvciB3aXRob3V0IHVzaW5nIHBoYW5kbGUuDQo+ID4gPj4+Pj4N
+Cj4gPiA+Pj4+PlRoaXMgZnJhbWV3b3JrIHdpbGwgYmUgb2YgdXNlIG9ubHkgdG8gZGV2aWNlcyB0
+aGF0IHVzZXMNCj4gZXh0ZXJuYWwNCj4gPiA+PlBIWQ0KPiA+ID4+Pj4+KFBIWQ0KPiA+ID4+Pj4+
+ZnVuY3Rpb25hbGl0eSBpcyBub3QgZW1iZWRkZWQgd2l0aGluIHRoZSBjb250cm9sbGVyKS4NCj4g
+PiA+Pj4+Pg0KPiA+ID4+Pj4+VGhlIGludGVudGlvbiBvZiBjcmVhdGluZyB0aGlzIGZyYW1ld29y
+ayBpcyB0byBicmluZyB0aGUgcGh5DQo+ID4gPj5kcml2ZXJzDQo+ID4gPj4+Pj5zcHJlYWQNCj4g
+PiA+Pj4+PmFsbCBvdmVyIHRoZSBMaW51eCBrZXJuZWwgdG8gZHJpdmVycy9waHkgdG8gaW5jcmVh
+c2UgY29kZSByZS0NCj4gdXNlDQo+ID4gPj5hbmQNCj4gPiA+Pj4+PnRvDQo+ID4gPj4+Pj5pbmNy
+ZWFzZSBjb2RlIG1haW50YWluYWJpbGl0eS4NCj4gPiA+Pj4+DQo+ID4gPj4+Pkkgd291bGQgbGlr
+ZSB0byB1c2UgdGhpcyBmcmFtZXdvcmsgZm9yIGEgc21hcnQtY2FyZCBjb250cm9sbGVyDQo+ID4g
+Pj5jb25uZWN0ZWQgdG8gYQ0KPiA+ID4+Pj5zbWFydC1jYXJkIHBoeS4gSSBoYXZlIHNvbWUgcXVl
+c3Rpb25zIGFuZCB3b3VsZCBsaWtlIHRvIGdldA0KPiA+ID4+ZmVlZGJhY2sgb24gdGhlIHNhbWUu
+DQo+ID4gPj4+DQo+ID4gPj4+Z2xhZCB0byBrbm93IHRoYXQgOi0pDQo+ID4gPj4+Pg0KPiA+ID4+
+Pj5JIGFtIHVzaW5nIOKAnFREQTgwMjYiIFNtYXJ0Y2FyZCBQSFkgZnJvbSBOWFAuIEhlcmUgaXMg
+dGhlIGxpbmsNCj4gZm9yDQo+ID4gPj5kYXRhc2hlZXQNCj4gPiA+Pj4+YW5kIGFwcCBub3RlIGZv
+ciB0aGUgc2FtZS4gVGhlIHNtYXJ0IGNhcmQgY29udHJvbGxlciBpcyBpbnNpZGUNCj4gdGhlDQo+
+ID4gPj5USSBTb0MNCj4gPiA+Pj4+SSBhbSB3b3JraW5nIHdpdGguDQo+ID4gPj4+Pg0KPiA+ID4+
+Pj5EYXRhc2hlZXQgOg0KPiA+ID4+Pj53d3cubnhwLmNvbS9kb2N1bWVudHMvZGF0YV9zaGVldC9U
+REE4MDI2LnBkZj8NCj4gPiA+Pj4+DQo+ID4gPj4+PkFwcG5vdGUgOg0KPiA+ID4+Pj5odHRwOi8v
+d3d3Lm54cC5jb20vZG9jdW1lbnRzL2FwcGxpY2F0aW9uX25vdGUvQU4xMDcyNC5wZGYNCj4gPiA+
+Pj4+DQo+ID4gPj4+PlRoZSBUSSBTb0MgZGV0YWlscyBhcmUgbm90IHB1YmxpYyAoeWV0KS4gSSBj
+YW4gcHJvdmlkZSBkZXRhaWxzDQo+IHRvDQo+ID4gPj55b3Ugb2ZmbGluZS4NCj4gPiA+Pj4+DQo+
+ID4gPj4+PkJyaWVmIGFib3V0IG9wZXJhdGlvbjoNCj4gPiA+Pj4+LQlUaGUgY29udHJvbGxlciBj
+YW4gd29yayB3aXRoIGFuZCB3aXRob3V0IGEgUEhZDQo+ID4gPj4+Pi0JV2hlbiBub3QgdXNpbmcg
+UEhZLCBpdCBpcyBsaW1pdGVkIHRvIHRhbGtpbmcgdG8gYSBzaW5nbGUNCj4gPiA+Pj4+CXNtYXJ0
+IGNhcmQuIFRoZXJlIGlzIGFsc28gYSBuZWVkIHRvIHB1dCBleHRlcm5hbCBkZS1hY3RpdmF0aW9u
+DQo+ID4gPj5sb2dpYw0KPiA+ID4+Pj4Jb24gY2FyZCByZW1vdmFsIGZvciB0aGlzIGNhc2UuDQo+
+ID4gPj4+Pi0JV2l0aCBhIFBIWSB5b3UgY2FuIHVzZSBtb3JlIHRoYW4gb25lIHNtYXJ0IGNhcmQu
+DQo+ID4gPj4+Pi0JUGh5IGhhcyA1IHNsb3RzIDogIDEgZm9yIHNtYXJ0IGNhcmQgKGNyZWRpdC9k
+ZWJpdC9vdGhlcg0KPiBjYXJkDQo+ID4gPj53aXRoIGNoaXApDQo+ID4gPj4+PiAgICAgICBhbmQg
+b3RoZXJzIGZvciBTQU0g4oCTIFNJTSBsaWtlIG1vZHVsZXMNCj4gPiA+Pj4+LSAJT25jZSB0aGUg
+UEhZIGlzIGluaXRpYWxpemVkLCB0aGVyZSBhcmUgc29tZSBvcGVyYXRpb25zDQo+IHRoYXQgdGhl
+DQo+ID4gPj5jb250cm9sbGVyDQo+ID4gPj4+PgljYW4gcmVxdWVzdCBvZiB0aGUgUEhZIGxpa2U6
+DQo+ID4gPj4+PgktIENhcmQgY29uZmlndXJhdGlvbnMgIC0gc2V0IHZvbHRhZ2UNCj4gPiA+Pj4+
+CS0gQWN0aXZhdGlvbiBvZiBjYXJkDQo+ID4gPj4+PgktIEFUUiDigJMgQW5zd2VyIHRvIHJlc2V0
+DQo+ID4gPj4+PgktIFdhcm0gcmVzZXQNCj4gPiA+Pj4+CS0gQURQVSBleGNoYW5nZQ0KPiA+ID4+
+Pj4JLSBEZWFjdGl2YXRpb24gKCBOb3JtYWwvRW1lcmdlbmN5KQ0KPiA+ID4+Pg0KPiA+ID4+Pmht
+bS4uIFdlIHNob3VsZCB0aGluayBhYm91dCBleHRlbmRpbmcgdGhlIHBoeV9vcHMgdG8gaW5jbHVk
+ZQ0KPiB0aGVzZQ0KPiA+ID4+Pm9wZXJhdGlvbnMgKHNvbWV0aGluZyBsaWtlIHBoeV9zbWFydF9j
+YXJkX29wcyBzbyB0aGF0IG90aGVyDQo+ID4gPj4+c21hcnRfY2FyZCBQSFlzIHdpbGwgYWxzbyBi
+ZSBhYmxlIHRvIHVzZSBpdCkuDQo+ID4gPj4NCj4gPiA+PmxldCdzIHRyeSB0byBhdm9pZCB1c2Ut
+Y2FzZSBzcGVjaWZpYyBhZGRpdGlvbnMuIHNldF92b2x0YWdlIHNvdW5kcw0KPiA+ID4+bGlrZQ0K
+PiA+ID4+YSByZWd1bGF0b3IgdGhpbmcsIGJ1dCB0aGUgcmVndWxhdG9yIGlzIGNvbnRyb2xsZWQg
+dGhyb3VnaCB0aGUNCj4gUEhZLiBJDQo+ID4gPj5ndWVzcyBpdCBtYWtlcyBzZW5zZSB0byBoYXZl
+IGEgZ2VuZXJpYyBwaHlfc2V0X3ZvbHRhZ2UoKSBjYWxsDQo+IHNpbmNlDQo+ID4gPj5ldmVuDQo+
+ID4gPj5VU0IgY2FuIG1ha2UgdXNlIG9mIHRoYXQuDQo+ID4gPj4NCj4gPiA+PkZvciBjYXJkIGFj
+dGl2YXRpb24sIGl0IHNvdW5kcyBsaWtlIHBoeV9pbml0KCkvcGh5X3NodXRkb3duKCkNCj4gd291
+bGQNCj4gPiA+PmNvdmVyIGl0Lg0KPiA+ID4+DQo+ID4gPj5Gb3Igd2FybSByZXNldCBwZXJoYXBz
+IGEgcGh5X3Jlc2V0KCkgY2FsbGJhY2sgPyBBbHRob3VnaCB0aGF0DQo+IGNvdWxkLA0KPiA+ID4+
+ZWFzaWx5LCBnZXQgYWJ1c2VkLg0KPiA+ID4+DQo+ID4gPj5Gb3IgZGVhY3RpdmF0aW9uLCB0aGF0
+J3MgcGh5X3NodXRkb3duKCkuDQo+ID4gPj4NCj4gPiA+PkFUUiBhbmQgQURQVSBuZWVkcyBtb3Jl
+IHRob3VnaHQsIEkgZ3Vlc3MuDQo+ID4gPj4NCj4gPiA+Pj4+LSAJSW4gdGhlIG1vZGUgd2hlbiBz
+bWFydGNhcmQgY29udHJvbGxlciB0YWxrcyBkaXJlY3RseSB0bw0KPiB0aGUNCj4gPiA+PmNhcmQg
+d2l0aG91dCB0aGUgbmVlZA0KPiA+ID4+Pj4JZm9yIGEgUEhZLCBhbGwgdGhlIGFib3ZlIG9wZXJh
+dGlvbnMgd2lsbCBiZSBjYXJyaWVkIG91dCBieSB0aGUNCj4gPiA+PmNvbnRyb2xsZXIgaXRzZWxm
+DQo+ID4gPj4+Pg0KPiA+ID4+Pj5NeSBjdXJyZW50IHRob3VnaHQgcHJvY2VzcyBpcyB0byBtYWtl
+IHRoZSBjb250cm9sbGVyIGRyaXZlcg0KPiBwcm92aWRlDQo+ID4gPj50aGUgdXNlciBpbnRlcmZh
+Y2UNCj4gPiA+Pj4+YW5kIHRhbGsgdG8gdGhlIFBIWSB1c2luZyB0aGUgZ2VuZXJpYyBQSFkgZnJh
+bWV3b3JrIHlvdQ0KPiBwcm9wb3NlZC4NCj4gPiA+PkluIHRoZSBjYXNlIHdoZXJlIHRoZXJlDQo+
+ID4gPj4+PmlzIG5vIFBIWSwgbXkgaWRlYSBpcyB0byBjcmVhdGUgYSAiZHVtbXkiIFBIWSB3aGlj
+aCB1c2VzIHRoZQ0KPiA+ID4+Y29udHJvbGxlciBmdW5jdGlvbmFsaXR5IGl0c2VsZi4NCj4gPiA+
+Pj4NCj4gPiA+Pj5yaWdodC4gQW5kIGluIHRoZSBjYXNlIHdoZXJlIHlvdSBhY3R1YWxseSBoYXZl
+IGEgUEhZLCBjcmVhdGUgYQ0KPiBQSFkNCj4gPiA+Pj5kcml2ZXIgYW5kIGltcGxlbWVudCB0aGUg
+cGh5X3NtYXJ0X2NhcmRfb3BzIGFuZCByZWdpc3RlciB3aXRoIHRoZQ0KPiA+ID4+UEhZDQo+ID4g
+Pj4+ZnJhbWV3b3JrLg0KPiA+ID4+DQo+ID4gPj5JIHdvdWxkIHRyeSB0byBhdm9pZCB0aGF0LiBP
+dGhlcndpc2Ugd2Ugd2lsbCBoYXZlIHBoeV91c2Jfb3BzLA0KPiA+ID4+cGh5X3NhdGFfb3BzLCBw
+aHlfbmV0d29ya19vcHMsIHBoeV9wY2lfb3BzLCBldGMgZXRjIGV0Yy4gSXQgd291bGQNCj4gPiA+
+PmVhc2lseQ0KPiA+ID4+YmxvdyB1cC4NCj4gPiA+Pg0KPiA+ID4NCj4gPiA+LSBJIGRvIGFncmVl
+IHdpdGggeW91LiBDcmVhdGluZyBQaHkgc3BlY2lmaWMgb3BzIHdpbGwgYmxvdyB1cCB3aG9sZQ0K
+PiA+ID4gICBjb25jZXB0IG9mIGdlbmVyaWMgcGh5IGYvdy4NCj4gPiA+LSBDYW4gd2UgaGF2ZSBp
+bnRlcmZhY2UgbGlrZSBwaHlfc2V0Y29uZmlnIC0gd2l0aCBwYXJhbWV0ZXIgbGlrZQ0KPiA+ID4g
+ICBwaHlfc2V0Y29uZmlnKGludCBwYXJhbSwgdm9pZCAqdmFsdWUpDQo+ID4gPgktIEhlcmUgcGFy
+YW0gY2FuIGJlIGVudW0gb2YgYXZhaWxhYmxlIGNvbmZpZyBwYXJhbWV0ZXJzIGZvcg0KPiA+ID4J
+ICBzcGVjaWZpYyBwaHkuDQo+ID4gPlBoeSBjYW4gcGVyZm9ybSBkaWZmZXJlbnQgb3BlcmF0aW9u
+L3NldCBpbnRlcm5hbCBzdGF0ZSBiYXNlZCBvbg0KPiA+ID5wYXJhbSBzZWxlY3Rpb24gYW5kIHZh
+bHVlIHBhc3NlZCBieS4NCj4gPiA+DQo+ID4gPmUueCBpbiBjYXNlIG9mIHNtYXJ0Y2FyZA0KPiA+
+ID4JZW51bSBzZXRfY29uZmlnIHsNCj4gPiA+CQlTRVRfVk9MQVRBR0UsDQo+ID4gPgkJU0VUX0FD
+VElWQVRFLA0KPiA+ID4JCVNFVF9XQVJNUkVTRVQsDQo+ID4gPgkJU0VUX0FUUiwNCj4gPiA+CQlT
+RVRfREVBQ1RJVkUsDQo+ID4gPgkJLi4uLg0KPiA+ID4JfTsNCj4gPg0KPiA+IGhtbS4uIHRoaXMg
+bG9va3Mgc2ltaWxhciB0byBpb2N0bCBhbmQgY2FuIGJlIGFidXNlZCBlYXNpbHkgSU1PIDpzDQo+
+IA0KPiArMQ0KPiANCj4gV2hhdCB3ZSBuZWVkIGlzIHRvIGNvbWUgdXAgd2l0aCBnZW5lcmljIHdh
+eXMgdG8gbW9kZWwgdGhvc2UsIGlmIHdlDQo+IG5lZWQNCj4gc2V0IHZvbHRhZ2UsIHRoZW4gYWRk
+IGEgcGh5X3NldF92b2x0YWdlKCkga2luZGEgdGhpbmcsIHBlcmhhcHMgYWRkDQo+IGNhcGFiaWxp
+dHkgZmxhZ3MgdG8gZW5hYmxlL2Rpc2FibGUgc3VwcG9ydCBmb3J0IHRob3NlIChqdXN0IGxpa2Ug
+bW1jDQo+IGRvZXMpLg0KPiANCj4gQnV0IGFkZGluZyBzb21ldGhpbmcgd2hpY2ggY2FuIGhhbmRs
+ZSAiYW55dGhpbmciIGxpa2UNCj4gcGh5X3NldF9jb25maWcoKSwNCj4gaXQncyB0aGUgc2FtZSBh
+cyBhZGRpbmcgdXNlLWNhc2Ugc3BlY2lmaWMgb3BzLg0KPiANCg0KV2UgaGF2ZSB0d28gb3B0aW9u
+cyBvdmVyIGhlcmUNCg0KT3B0aW9uIDE6IA0KDQpEZWZpbmluZyBnZW5lcmljIGFwaSB0byB3aGlj
+aCBjYW4gYmUgbWFwcGVkIG92ZXIgbXVsdGlwbGUgcGh5cw0KRm9yIHNtYXJ0Y2FyZCBjYXNlLCBJ
+IGhhdmUgY2FuIHRob3VnaHQgb2YgZm9sbG93aW5nIG1hcHBpbmcgd2l0aCBuZXcgDQpnZW5lcmlj
+IGFwaXMgYXMgc3VnZ2VzdGVkLg0KDQpTbWFydGNhcmRfcG93ZXJvbiAtPiBwb3dlcl9vbg0KU21h
+cnRjYXJkX3Bvd2VyZG93biAtPiBwb3dlcl9vZmYNClNtYXJ0Y2FyZF9zZXRfdm9sdGFnZSAtPiBw
+aHlfc2V0X3ZvbHRhZ2UNClNtYXJ0Y2FyZF9hY3RpdmF0ZV9jYXJkIC0+IHBoeV9hY3RpdmF0ZV9z
+bG90DQpTbWFydGNhcmRfZGVhY3RpdmF0ZV9jYXJkIC0+IHBoeV9kZWFjdGl2YXRlX3Nsb3QNClNt
+YXJ0Y2FyZF9zZXRfYzQvYzgvcnN0L2lvIC0+IHBoeV9zZXRfcGluDQpTbWFydGNhcmRfd2FybV9y
+ZXNldCAtPiBwaHlfd2FybXJlc2V0DQpTbWFydGNhcmRfc2V0X2Nsa2RpdiAtPiBwaHlfc2V0X2Ns
+b2NrDQpTbWFydGNhcmRfZ2V0X2Nsa2RpdiAtPiBwaHlfZ2V0X2Nsb2NrDQpTbWFydGNhcmRfc2V0
+X2F0cl9tdXRlX3RpbWVvdXQgLT4gPz8NClNtYXJ0Y2FyZF9zZXRfYXRyX2Vhcmx5X3RpbWVvdXQg
+LT4gPz8JDQpTbWFydGNhcmRfZ2V0X2lzcl9zdGF0dXMgLT4gcGh5X2dldF9zdGF0dXMNClNtYXJ0
+Y2FyZF9nZXRfdmVyc2lvbiAtPiBwaHlfZ2V0X3ZlcnNpb24NCg0KDQotIFByb3M6DQoJLSBzbWFy
+dGNhcmQgcGh5IGNhbiBtYWtlIHVzZSBvZiBnZW5lcmljIHBoeSBmL3cNCi0gY29uczoNCgktIGRv
+ZXMgbm90IGNvbmZpcm0gd2hldGhlciBhYm92ZSBBUElzIHdpbGwgY2FwYWJsZSBvZiBpbmNsdWRp
+bmcgcmVxdWlyZW1lbnRzDQoJICBvZiBvdGhlciBhdmFpbGFibGUgcGh5cw0KCS0gbGlzdCBtaWdo
+dCBnZXRzIGV4dGVuZGVkIGZvciBvdGhlciBwaHlzIGxpa2UgZXRoZXJuZXQsIHNlbnNvciBwaHkg
+ZXRjLg0KCS0gYW55IGNoYW5nZSBpbiBzaW5nbGUgYXBpIG5lZWRzIHRvIHZhbGlkYXRlZCBmb3Ig
+YWxsIGV4aXN0aW5nIHBoeSB3aGljaCBoYXMNCgkgIGJpbmQgdG8gZ2VuZXJpYyBmL3cgDQoJDQpP
+cHRpb24gMjoNCldlIGNhbiBoYXZlIHNldC9nZXQgY29uZmlnIG9yIGdlbmVyaWMgb3BzIGtpbmQg
+b2YgaW1wbGVtZW50YXRpb24NCg0KLSBwcm9zOg0KCS0gYWxsIHBoeSBjYW4gYmUgcGx1Z2VkLWlu
+IHRvIHRoaXMgZi93LiBUaGUgd29yZCAiZ2VuZXJpYyBwaHkiIHdpbGwgYmUganVzdGlmaWVkDQoJ
+LSBubyBjb3N0IG9mIG1haW50YWluaW5nIG9yIGRlZmluaW5nIGFwaXMgZm9yIHVua25vd24gcGh5
+IGNhcGFiaWxpdGllcyBhdCBwcmVzZW50DQoNCi0gY29uczoNCgktIGZhY3RvciBvZiBnZXR0aW5n
+IGFidXNlZCBieSBjb21tdW5pdHkuDQoNCk15IHJlY29tbWVuZGF0aW9uIGlzIHRvIHNlZSB0aGUg
+cHJvYmxlbSBhcyBnZW5lcmljIGxvZ2ljYWwgbGV2ZWwgcmF0aGVyIHRoYW4gdGhpbmtpbmcgd2hh
+dCANCmFscmVhZHkgZXhpdHMgYW5kIHdoYXQgY2Fubm90IGJlIHJlcGVhdGVkIC0gYmVjYXVzZSBp
+bnRlcmZhY2UgbG9va3MgbGlrZSB1c2VyIHNwYWNlIG9yIGtlcm5lbA0Kc3BhY2UgY29tbXVuaWNh
+dGlvbi4NCg0KV2hlcmUgd2Ugc2hvdWxkIG1ha2Ugb3VyIGNhbGwgPz8NCg0KLQ0Kc2F0aXNoDQoN
+Cj4gLS0NCj4gYmFsYmkNCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlz
+dHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL2xpbnV4LWFybS1rZXJuZWwK
