@@ -1,116 +1,67 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 5/5] usb: musb: dsps: Remove the phy control from glue
- and add phy driver APIs
-Date: Mon, 8 Jul 2013 17:38:06 +0530
-Message-ID: <51DAABA6.9050106@ti.com>
-References: <1373280201-31785-1-git-send-email-george.cherian@ti.com> <1373280201-31785-6-git-send-email-george.cherian@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Boot hang regression 3.10.0-rc4 -> 3.10.0
+Date: Mon, 8 Jul 2013 05:16:36 -0700
+Message-ID: <20130708121635.GZ5523@atomide.com>
+References: <51D577E6.5010507@newflow.co.uk>
+ <51D59146.3070002@newflow.co.uk>
+ <51D59C0E.8080003@newflow.co.uk>
+ <B5906170F1614E41A8A28DE3B8D121433EE93C23@DBDE04.ent.ti.com>
+ <20130705115959.GQ5523@atomide.com>
+ <B5906170F1614E41A8A28DE3B8D121433EE94489@DBDE04.ent.ti.com>
+ <B5906170F1614E41A8A28DE3B8D121433EE94520@DBDE04.ent.ti.com>
+ <20130708112553.GU5523@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1373280201-31785-6-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, bigeasy@linutronix.de
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34240 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751665Ab3GHMQk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Jul 2013 08:16:40 -0400
+Content-Disposition: inline
+In-Reply-To: <20130708112553.GU5523@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: Mark Jackson <mpfj-list@newflow.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+* Tony Lindgren <tony@atomide.com> [130708 04:32]:
+> * Bedia, Vaibhav <vaibhav.bedia@ti.com> [130705 06:37]:
+> > On Fri, Jul 05, 2013 at 18:50:10, Bedia, Vaibhav wrote:
+> > > Hi Tony,
+> > > 
+> > > On Fri, Jul 05, 2013 at 17:29:59, Tony Lindgren wrote:
+> > > > * Bedia, Vaibhav <vaibhav.bedia@ti.com> [130705 01:17]:
+> > > > > 
+> > > > > I just checked the behavior on my AM335x-EVM. Current mainline boots fine
+> > > > > provided I don't use earlyprintk.  The offending patch [1] in this case is the one
+> > > > > that tries to get rid of omap_serial_early_init() for DT boot. This change inadvertently
+> > > > > also results in the console UART getting reset and idled during bootup and that's where
+> > > > > the boot stops for you. I think if you skip earlyprintk from the bootargs you should see
+> > > > > the system booting fine. 
+> > > > > 
+> > > > > I guess we need to retain the NO_IDLE and NO_RESET aspect for the console UART in
+> > > > > omap_serial_early_init() to get earlyprintk working again.
+> > > > 
+> > > > Hmm nothing should get idled while earlyprintk is running, and then when the
+> > > > serial driver kicks in it should not idle anything by default. And for DT based
+> > > > booting we should not have mach-omap2/serial.c initialize anything.
+> > > > 
+> > > 
+> > > If I add in the HWMOD flags without any reverts I get to the point where the serial driver
+> > > comes up but the boot eventually stops [1]. Without the flags the boot stops much earlier [2]
+> > > just like Mark reported.
+> > > 
+> > 
+> > Err.. the log with HWMOD flags added is [2] and without flags is [1]. Sorry for the confusion.
+> 
+> It sounds like something needs to be fixed for am33xx as omap3 and omap4
+> won't hang with earlyprintk. Almost certainly mach-omap2/serial.c should not
+> be needed at all for am33xx, and the bug is somewhere else.
 
-On Monday 08 July 2013 04:13 PM, George Cherian wrote:
-> Remove usb phy control module access from platform glue.
-> The same is now done using amxxxx phy driver and phy-omap-control.
->
-> Signed-off-by: George Cherian <george.cherian@ti.com>
-> ---
->   drivers/usb/musb/musb_dsps.c | 105 +++++++++++++++----------------------------
->   1 file changed, 36 insertions(+), 69 deletions(-)
->
-> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-> index 41f135a..8f4e04a 100644
-> --- a/drivers/usb/musb/musb_dsps.c
-> +++ b/drivers/usb/musb/musb_dsps.c
-> @@ -123,49 +123,11 @@ struct dsps_glue {
->   	const struct dsps_musb_wrapper *wrp; /* wrapper register offsets */
->   	struct timer_list timer[2];	/* otg_workaround timer */
->   	unsigned long last_timer[2];    /* last timer data for each instance */
-> -	u32 __iomem *usb_ctrl[2];
->   };
->
-> -#define	DSPS_AM33XX_CONTROL_MODULE_PHYS_0	0x44e10620
-> -#define	DSPS_AM33XX_CONTROL_MODULE_PHYS_1	0x44e10628
-> +#define glue_to_musb(g, i)		platform_get_drvdata(g->musb[i])
->
-> -static const resource_size_t dsps_control_module_phys[] = {
-> -	DSPS_AM33XX_CONTROL_MODULE_PHYS_0,
-> -	DSPS_AM33XX_CONTROL_MODULE_PHYS_1,
-> -};
-> -
-> -#define USBPHY_CM_PWRDN		(1 << 0)
-> -#define USBPHY_OTG_PWRDN	(1 << 1)
-> -#define USBPHY_OTGVDET_EN	(1 << 19)
-> -#define USBPHY_OTGSESSEND_EN	(1 << 20)
-> -
-> -/**
-> - * musb_dsps_phy_control - phy on/off
-> - * @glue: struct dsps_glue *
-> - * @id: musb instance
-> - * @on: flag for phy to be switched on or off
-> - *
-> - * This is to enable the PHY using usb_ctrl register in system control
-> - * module space.
-> - *
-> - * XXX: This function will be removed once we have a seperate driver for
-> - * control module
-> - */
-> -static void musb_dsps_phy_control(struct dsps_glue *glue, u8 id, u8 on)
-> -{
-> -	u32 usbphycfg;
->
-> -	usbphycfg = readl(glue->usb_ctrl[id]);
-> -
-> -	if (on) {
-> -		usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN);
-> -		usbphycfg |= USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN;
-> -	} else {
-> -		usbphycfg |= USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN;
-> -	}
-> -
-> -	writel(usbphycfg, glue->usb_ctrl[id]);
-> -}
->   /**
->    * dsps_musb_enable - enable interrupts
->    */
-> @@ -411,16 +373,31 @@ static int dsps_musb_init(struct musb *musb)
->   	void __iomem *reg_base = musb->ctrl_base;
->   	u32 rev, val;
->   	int status;
-> +	char phyname[12];
->
->   	/* mentor core register starts at offset of 0x400 from musb base */
->   	musb->mregs += wrp->musb_core_offset;
->
-> -	/* NOP driver needs change if supporting dual instance */
-> -	usb_nop_xceiv_register();
-> -	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
-> +	if (dev->parent->of_node) {
-> +		snprintf(phyname , 12, "am335x-usb%d", pdev->id);
-> +		musb->phy = devm_phy_get(dev->parent, phyname);
-> +		musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent,
-> +							"phys", pdev->id);
-> +	} else {
-> +		snprintf(phyname , 12, "am335x-usb%d", pdev->id);
+Oops, sorry correction: I'm seeing it, I did not have console=ttyO
+earlier in my cmdline. It seems that omap-serial.c console suspends
+the hardware while earlyprintk is still trying to access it?
 
-Both these snprintf can be moved out of the *if*.
-> +		musb->phy = devm_phy_get(dev, musb->phy_label);
-> +		musb->xceiv = devm_usb_get_phy_dev(dev, pdev->id);
-> +	}
-> +
->   	if (IS_ERR_OR_NULL(musb->xceiv))
->   		return -EPROBE_DEFER;
->
-> +	if (IS_ERR_OR_NULL(musb->phy)) {
+Regards,
 
-The framework should never return NULL.
-
-Thanks
-Kishon
+Tony
