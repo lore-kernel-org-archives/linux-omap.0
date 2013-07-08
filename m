@@ -1,203 +1,65 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v9 0/8] Generic PHY Framework
-Date: Mon, 8 Jul 2013 17:47:21 +0530
-Message-ID: <51DAADD1.3060302@ti.com>
-References: <1372247257-30186-1-git-send-email-kishon@ti.com>
- <780E789C2E067A4BB8F69D0BB9EC4F253E975B5E@DBDE04.ent.ti.com>
- <51D3F773.9000209@ti.com> <20130703132038.GI15056@arwen.pp.htv.fi>
- <780E789C2E067A4BB8F69D0BB9EC4F253E975D6E@DBDE04.ent.ti.com>
- <51D54694.20203@ti.com> <20130704101216.GD4830@arwen.pp.htv.fi>
- <780E789C2E067A4BB8F69D0BB9EC4F253E9764D5@DBDE04.ent.ti.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH] musb: omap: Fix: pass all the resources to musb core
+Date: Mon, 08 Jul 2013 16:22:02 +0400
+Message-ID: <51DAAEEA.60409@cogentembedded.com>
+References: <1373280929-19052-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <780E789C2E067A4BB8F69D0BB9EC4F253E9764D5-yXqyApvAXouIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Patel, Satish" <satish.patel-l0cyMroinI0@public.gmane.org>
-Cc: "mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nori,
- Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "Mankad, Maulik Ojas" <maulik-l0cyMroinI0@public.gmane.org>, "swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org" <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org" <cesarb-PWySMVKUnqmsTnJN9+BGXg@public.gmane.org>, "Cherian,
- George" <george.cherian-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "Srinivasan,
- Nageswari" <nageswari-l0cyMroinI0@public.gmane.org>, "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1373280929-19052-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGksCgpPbiBNb25kYXkgMDggSnVseSAyMDEzIDA0OjU0IFBNLCBQYXRlbCwgU2F0aXNoIHdyb3Rl
-Ogo+IEhpLAo+Cj4KPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KPj4gRnJvbTogQmFsYmks
-IEZlbGlwZQo+PiBTZW50OiBUaHVyc2RheSwgSnVseSAwNCwgMjAxMyAzOjQyIFBNCj4+IFRvOiBB
-QlJBSEFNLCBLSVNIT04gVklKQVkKPj4gQ2M6IFBhdGVsLCBTYXRpc2g7IEJhbGJpLCBGZWxpcGU7
-IGdyYW50Lmxpa2VseUBsaW5hcm8ub3JnOwo+PiB0b255QGF0b21pZGUuY29tOyBhcm5kQGFybmRi
-LmRlOyBzd2FycmVuQG52aWRpYS5jb207Cj4+IHN5bHZlc3Rlci5uYXdyb2NraUBnbWFpbC5jb207
-IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQo+PiBvbWFwQHZnZXIua2VybmVs
-Lm9yZzsgbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnOyBsaW51eC0KPj4gdXNi
-QHZnZXIua2VybmVsLm9yZzsgZ3JlZ2toQGxpbnV4Zm91bmRhdGlvbi5vcmc7IGFrcG1AbGludXgt
-Cj4+IGZvdW5kYXRpb24ub3JnOyByb2IuaGVycmluZ0BjYWx4ZWRhLmNvbTsgcm9iQGxhbmRsZXku
-bmV0Owo+PiBsaW51eEBhcm0ubGludXgub3JnLnVrOyBiZW5vaXQuY291c3NvbkBsaW5hcm8ub3Jn
-OyBtY2hlaGFiQHJlZGhhdC5jb207Cj4+IGNlc2FyYkBjZXNhcmIubmV0OyBkYXZlbUBkYXZlbWxv
-ZnQubmV0OyBOYXlhaywgUmFqZW5kcmE7Cj4+IHNoYXduLmd1b0BsaW5hcm8ub3JnOyBTaGlsaW1r
-YXIsIFNhbnRvc2g7IGRldmljZXRyZWUtCj4+IGRpc2N1c3NAbGlzdHMub3psYWJzLm9yZzsgbGlu
-dXgtZG9jQHZnZXIua2VybmVsLm9yZzsgTm9yaSwgU2VraGFyOwo+PiBLcmlzaG5hbW9vcnRoeSwg
-QmFsYWppIFQ7IENoZXJpYW4sIEdlb3JnZTsgTWFua2FkLCBNYXVsaWsgT2phcwo+PiBTdWJqZWN0
-OiBSZTogW1BBVENIIHY5IDAvOF0gR2VuZXJpYyBQSFkgRnJhbWV3b3JrCj4+Cj4+IE9uIFRodSwg
-SnVsIDA0LCAyMDEzIGF0IDAzOjI1OjMyUE0gKzA1MzAsIEtpc2hvbiBWaWpheSBBYnJhaGFtIEkK
-Pj4gd3JvdGU6Cj4+PiBPbiBUaHVyc2RheSAwNCBKdWx5IDIwMTMgMDI6NTEgUE0sIFBhdGVsLCBT
-YXRpc2ggd3JvdGU6Cj4+Pj4gSGksCj4+Pj4KPj4+Pj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0t
-LS0KPj4+Pj4gRnJvbTogQmFsYmksIEZlbGlwZQo+Pj4+PiBTZW50OiBXZWRuZXNkYXksIEp1bHkg
-MDMsIDIwMTMgNjo1MSBQTQo+Pj4+PiBUbzogQUJSQUhBTSwgS0lTSE9OIFZJSkFZCj4+Pj4+IENj
-OiBQYXRlbCwgU2F0aXNoOyBncmFudC5saWtlbHlAbGluYXJvLm9yZzsgdG9ueUBhdG9taWRlLmNv
-bTsKPj4gQmFsYmksCj4+Pj4+IEZlbGlwZTsgYXJuZEBhcm5kYi5kZTsgc3dhcnJlbkBudmlkaWEu
-Y29tOwo+Pj4+PiBzeWx2ZXN0ZXIubmF3cm9ja2lAZ21haWwuY29tOyBsaW51eC1rZXJuZWxAdmdl
-ci5rZXJuZWwub3JnOyBsaW51eC0KPj4+Pj4gb21hcEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWFy
-bS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZzsgbGludXgtCj4+Pj4+IHVzYkB2Z2VyLmtlcm5l
-bC5vcmc7IGdyZWdraEBsaW51eGZvdW5kYXRpb24ub3JnOyBha3BtQGxpbnV4LQo+Pj4+PiBmb3Vu
-ZGF0aW9uLm9yZzsgcm9iLmhlcnJpbmdAY2FseGVkYS5jb207IHJvYkBsYW5kbGV5Lm5ldDsKPj4+
-Pj4gbGludXhAYXJtLmxpbnV4Lm9yZy51azsgYmVub2l0LmNvdXNzb25AbGluYXJvLm9yZzsKPj4g
-bWNoZWhhYkByZWRoYXQuY29tOwo+Pj4+PiBjZXNhcmJAY2VzYXJiLm5ldDsgZGF2ZW1AZGF2ZW1s
-b2Z0Lm5ldDsgTmF5YWssIFJhamVuZHJhOwo+Pj4+PiBzaGF3bi5ndW9AbGluYXJvLm9yZzsgU2hp
-bGlta2FyLCBTYW50b3NoOyBkZXZpY2V0cmVlLQo+Pj4+PiBkaXNjdXNzQGxpc3RzLm96bGFicy5v
-cmc7IGxpbnV4LWRvY0B2Z2VyLmtlcm5lbC5vcmc7IE5vcmksIFNla2hhcjsKPj4+Pj4gS3Jpc2hu
-YW1vb3J0aHksIEJhbGFqaSBUOyBDaGVyaWFuLCBHZW9yZ2UKPj4+Pj4gU3ViamVjdDogUmU6IFtQ
-QVRDSCB2OSAwLzhdIEdlbmVyaWMgUEhZIEZyYW1ld29yawo+Pj4+Pgo+Pj4+PiBIaSwKPj4+Pj4K
-Pj4+Pj4gT24gV2VkLCBKdWwgMDMsIDIwMTMgYXQgMDM6MzU6MzlQTSArMDUzMCwgS2lzaG9uIFZp
-amF5IEFicmFoYW0gSQo+Pj4+PiB3cm90ZToKPj4+Pj4+IE9uIFdlZG5lc2RheSAwMyBKdWx5IDIw
-MTMgMDM6MDIgUE0sIFBhdGVsLCBTYXRpc2ggd3JvdGU6Cj4+Pj4+Pj4gSGkgS2lzaG9uLAo+Pj4+
-Pj4+Cj4+Pj4+Pj4+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tCj4+Pj4+Pj4+IEZyb206IEFC
-UkFIQU0sIEtJU0hPTiBWSUpBWQo+Pj4+Pj4+PiBTZW50OiBXZWRuZXNkYXksIEp1bmUgMjYsIDIw
-MTMgNToxNyBQTQo+Pj4+Pj4+PiBUbzogZ3JhbnQubGlrZWx5QGxpbmFyby5vcmc7IHRvbnlAYXRv
-bWlkZS5jb207IEJhbGJpLCBGZWxpcGU7Cj4+Pj4+IEFCUkFIQU0sCj4+Pj4+Pj4+IEtJU0hPTiBW
-SUpBWTsgYXJuZEBhcm5kYi5kZTsgc3dhcnJlbkBudmlkaWEuY29tOwo+Pj4+Pj4+PiBzeWx2ZXN0
-ZXIubmF3cm9ja2lAZ21haWwuY29tOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOwo+PiBs
-aW51eC0KPj4+Pj4+Pj4gb21hcEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWFybS1rZXJuZWxAbGlz
-dHMuaW5mcmFkZWFkLm9yZzsKPj4gbGludXgtCj4+Pj4+Pj4+IHVzYkB2Z2VyLmtlcm5lbC5vcmc7
-IGdyZWdraEBsaW51eGZvdW5kYXRpb24ub3JnOyBha3BtQGxpbnV4LQo+Pj4+Pj4+PiBmb3VuZGF0
-aW9uLm9yZwo+Pj4+Pj4+PiBDYzogcm9iLmhlcnJpbmdAY2FseGVkYS5jb207IHJvYkBsYW5kbGV5
-Lm5ldDsKPj4+Pj4gbGludXhAYXJtLmxpbnV4Lm9yZy51azsKPj4+Pj4+Pj4gYmVub2l0LmNvdXNz
-b25AbGluYXJvLm9yZzsgbWNoZWhhYkByZWRoYXQuY29tOwo+PiBjZXNhcmJAY2VzYXJiLm5ldDsK
-Pj4+Pj4+Pj4gZGF2ZW1AZGF2ZW1sb2Z0Lm5ldDsgTmF5YWssIFJhamVuZHJhOyBzaGF3bi5ndW9A
-bGluYXJvLm9yZzsKPj4+Pj4gU2hpbGlta2FyLAo+Pj4+Pj4+PiBTYW50b3NoOyBkZXZpY2V0cmVl
-LWRpc2N1c3NAbGlzdHMub3psYWJzLm9yZzsgbGludXgtCj4+Pj4+Pj4+IGRvY0B2Z2VyLmtlcm5l
-bC5vcmc7IE5vcmksIFNla2hhcjsgS3Jpc2huYW1vb3J0aHksIEJhbGFqaSBUOwo+Pj4+PiBDaGVy
-aWFuLAo+Pj4+Pj4+PiBHZW9yZ2UKPj4+Pj4+Pj4gU3ViamVjdDogW1BBVENIIHY5IDAvOF0gR2Vu
-ZXJpYyBQSFkgRnJhbWV3b3JrCj4+Pj4+Pj4+Cj4+Pj4+Pj4+IEFkZGVkIGEgZ2VuZXJpYyBQSFkg
-ZnJhbWV3b3JrIHRoYXQgcHJvdmlkZXMgYSBzZXQgb2YgQVBJcyBmb3IKPj4gdGhlCj4+Pj4+IFBI
-WQo+Pj4+Pj4+PiBkcml2ZXJzCj4+Pj4+Pj4+IHRvIGNyZWF0ZS9kZXN0cm95IGEgUEhZIGFuZCBB
-UElzIGZvciB0aGUgUEhZIHVzZXJzIHRvIG9idGFpbiBhCj4+Pj4+Pj4+IHJlZmVyZW5jZSB0bwo+
-Pj4+Pj4+PiB0aGUgUEhZIHdpdGggb3Igd2l0aG91dCB1c2luZyBwaGFuZGxlLgo+Pj4+Pj4+Pgo+
-Pj4+Pj4+PiBUaGlzIGZyYW1ld29yayB3aWxsIGJlIG9mIHVzZSBvbmx5IHRvIGRldmljZXMgdGhh
-dCB1c2VzCj4+IGV4dGVybmFsCj4+Pj4+IFBIWQo+Pj4+Pj4+PiAoUEhZCj4+Pj4+Pj4+IGZ1bmN0
-aW9uYWxpdHkgaXMgbm90IGVtYmVkZGVkIHdpdGhpbiB0aGUgY29udHJvbGxlcikuCj4+Pj4+Pj4+
-Cj4+Pj4+Pj4+IFRoZSBpbnRlbnRpb24gb2YgY3JlYXRpbmcgdGhpcyBmcmFtZXdvcmsgaXMgdG8g
-YnJpbmcgdGhlIHBoeQo+Pj4+PiBkcml2ZXJzCj4+Pj4+Pj4+IHNwcmVhZAo+Pj4+Pj4+PiBhbGwg
-b3ZlciB0aGUgTGludXgga2VybmVsIHRvIGRyaXZlcnMvcGh5IHRvIGluY3JlYXNlIGNvZGUgcmUt
-Cj4+IHVzZQo+Pj4+PiBhbmQKPj4+Pj4+Pj4gdG8KPj4+Pj4+Pj4gaW5jcmVhc2UgY29kZSBtYWlu
-dGFpbmFiaWxpdHkuCj4+Pj4+Pj4KPj4+Pj4+PiBJIHdvdWxkIGxpa2UgdG8gdXNlIHRoaXMgZnJh
-bWV3b3JrIGZvciBhIHNtYXJ0LWNhcmQgY29udHJvbGxlcgo+Pj4+PiBjb25uZWN0ZWQgdG8gYQo+
-Pj4+Pj4+IHNtYXJ0LWNhcmQgcGh5LiBJIGhhdmUgc29tZSBxdWVzdGlvbnMgYW5kIHdvdWxkIGxp
-a2UgdG8gZ2V0Cj4+Pj4+IGZlZWRiYWNrIG9uIHRoZSBzYW1lLgo+Pj4+Pj4KPj4+Pj4+IGdsYWQg
-dG8ga25vdyB0aGF0IDotKQo+Pj4+Pj4+Cj4+Pj4+Pj4gSSBhbSB1c2luZyDigJxUREE4MDI2IiBT
-bWFydGNhcmQgUEhZIGZyb20gTlhQLiBIZXJlIGlzIHRoZSBsaW5rCj4+IGZvcgo+Pj4+PiBkYXRh
-c2hlZXQKPj4+Pj4+PiBhbmQgYXBwIG5vdGUgZm9yIHRoZSBzYW1lLiBUaGUgc21hcnQgY2FyZCBj
-b250cm9sbGVyIGlzIGluc2lkZQo+PiB0aGUKPj4+Pj4gVEkgU29DCj4+Pj4+Pj4gSSBhbSB3b3Jr
-aW5nIHdpdGguCj4+Pj4+Pj4KPj4+Pj4+PiBEYXRhc2hlZXQgOgo+Pj4+Pj4+IHd3dy5ueHAuY29t
-L2RvY3VtZW50cy9kYXRhX3NoZWV0L1REQTgwMjYucGRmPwo+Pj4+Pj4+Cj4+Pj4+Pj4gQXBwbm90
-ZSA6Cj4+Pj4+Pj4gaHR0cDovL3d3dy5ueHAuY29tL2RvY3VtZW50cy9hcHBsaWNhdGlvbl9ub3Rl
-L0FOMTA3MjQucGRmCj4+Pj4+Pj4KPj4+Pj4+PiBUaGUgVEkgU29DIGRldGFpbHMgYXJlIG5vdCBw
-dWJsaWMgKHlldCkuIEkgY2FuIHByb3ZpZGUgZGV0YWlscwo+PiB0bwo+Pj4+PiB5b3Ugb2ZmbGlu
-ZS4KPj4+Pj4+Pgo+Pj4+Pj4+IEJyaWVmIGFib3V0IG9wZXJhdGlvbjoKPj4+Pj4+PiAtCVRoZSBj
-b250cm9sbGVyIGNhbiB3b3JrIHdpdGggYW5kIHdpdGhvdXQgYSBQSFkKPj4+Pj4+PiAtCVdoZW4g
-bm90IHVzaW5nIFBIWSwgaXQgaXMgbGltaXRlZCB0byB0YWxraW5nIHRvIGEgc2luZ2xlCj4+Pj4+
-Pj4gCXNtYXJ0IGNhcmQuIFRoZXJlIGlzIGFsc28gYSBuZWVkIHRvIHB1dCBleHRlcm5hbCBkZS1h
-Y3RpdmF0aW9uCj4+Pj4+IGxvZ2ljCj4+Pj4+Pj4gCW9uIGNhcmQgcmVtb3ZhbCBmb3IgdGhpcyBj
-YXNlLgo+Pj4+Pj4+IC0JV2l0aCBhIFBIWSB5b3UgY2FuIHVzZSBtb3JlIHRoYW4gb25lIHNtYXJ0
-IGNhcmQuCj4+Pj4+Pj4gLQlQaHkgaGFzIDUgc2xvdHMgOiAgMSBmb3Igc21hcnQgY2FyZCAoY3Jl
-ZGl0L2RlYml0L290aGVyCj4+IGNhcmQKPj4+Pj4gd2l0aCBjaGlwKQo+Pj4+Pj4+ICAgICAgICBh
-bmQgb3RoZXJzIGZvciBTQU0g4oCTIFNJTSBsaWtlIG1vZHVsZXMKPj4+Pj4+PiAtIAlPbmNlIHRo
-ZSBQSFkgaXMgaW5pdGlhbGl6ZWQsIHRoZXJlIGFyZSBzb21lIG9wZXJhdGlvbnMKPj4gdGhhdCB0
-aGUKPj4+Pj4gY29udHJvbGxlcgo+Pj4+Pj4+IAljYW4gcmVxdWVzdCBvZiB0aGUgUEhZIGxpa2U6
-Cj4+Pj4+Pj4gCS0gQ2FyZCBjb25maWd1cmF0aW9ucyAgLSBzZXQgdm9sdGFnZQo+Pj4+Pj4+IAkt
-IEFjdGl2YXRpb24gb2YgY2FyZAo+Pj4+Pj4+IAktIEFUUiDigJMgQW5zd2VyIHRvIHJlc2V0Cj4+
-Pj4+Pj4gCS0gV2FybSByZXNldAo+Pj4+Pj4+IAktIEFEUFUgZXhjaGFuZ2UKPj4+Pj4+PiAJLSBE
-ZWFjdGl2YXRpb24gKCBOb3JtYWwvRW1lcmdlbmN5KQo+Pj4+Pj4KPj4+Pj4+IGhtbS4uIFdlIHNo
-b3VsZCB0aGluayBhYm91dCBleHRlbmRpbmcgdGhlIHBoeV9vcHMgdG8gaW5jbHVkZQo+PiB0aGVz
-ZQo+Pj4+Pj4gb3BlcmF0aW9ucyAoc29tZXRoaW5nIGxpa2UgcGh5X3NtYXJ0X2NhcmRfb3BzIHNv
-IHRoYXQgb3RoZXIKPj4+Pj4+IHNtYXJ0X2NhcmQgUEhZcyB3aWxsIGFsc28gYmUgYWJsZSB0byB1
-c2UgaXQpLgo+Pj4+Pgo+Pj4+PiBsZXQncyB0cnkgdG8gYXZvaWQgdXNlLWNhc2Ugc3BlY2lmaWMg
-YWRkaXRpb25zLiBzZXRfdm9sdGFnZSBzb3VuZHMKPj4+Pj4gbGlrZQo+Pj4+PiBhIHJlZ3VsYXRv
-ciB0aGluZywgYnV0IHRoZSByZWd1bGF0b3IgaXMgY29udHJvbGxlZCB0aHJvdWdoIHRoZQo+PiBQ
-SFkuIEkKPj4+Pj4gZ3Vlc3MgaXQgbWFrZXMgc2Vuc2UgdG8gaGF2ZSBhIGdlbmVyaWMgcGh5X3Nl
-dF92b2x0YWdlKCkgY2FsbAo+PiBzaW5jZQo+Pj4+PiBldmVuCj4+Pj4+IFVTQiBjYW4gbWFrZSB1
-c2Ugb2YgdGhhdC4KPj4+Pj4KPj4+Pj4gRm9yIGNhcmQgYWN0aXZhdGlvbiwgaXQgc291bmRzIGxp
-a2UgcGh5X2luaXQoKS9waHlfc2h1dGRvd24oKQo+PiB3b3VsZAo+Pj4+PiBjb3ZlciBpdC4KPj4+
-Pj4KPj4+Pj4gRm9yIHdhcm0gcmVzZXQgcGVyaGFwcyBhIHBoeV9yZXNldCgpIGNhbGxiYWNrID8g
-QWx0aG91Z2ggdGhhdAo+PiBjb3VsZCwKPj4+Pj4gZWFzaWx5LCBnZXQgYWJ1c2VkLgo+Pj4+Pgo+
-Pj4+PiBGb3IgZGVhY3RpdmF0aW9uLCB0aGF0J3MgcGh5X3NodXRkb3duKCkuCj4+Pj4+Cj4+Pj4+
-IEFUUiBhbmQgQURQVSBuZWVkcyBtb3JlIHRob3VnaHQsIEkgZ3Vlc3MuCj4+Pj4+Cj4+Pj4+Pj4g
-LSAJSW4gdGhlIG1vZGUgd2hlbiBzbWFydGNhcmQgY29udHJvbGxlciB0YWxrcyBkaXJlY3RseSB0
-bwo+PiB0aGUKPj4+Pj4gY2FyZCB3aXRob3V0IHRoZSBuZWVkCj4+Pj4+Pj4gCWZvciBhIFBIWSwg
-YWxsIHRoZSBhYm92ZSBvcGVyYXRpb25zIHdpbGwgYmUgY2FycmllZCBvdXQgYnkgdGhlCj4+Pj4+
-IGNvbnRyb2xsZXIgaXRzZWxmCj4+Pj4+Pj4KPj4+Pj4+PiBNeSBjdXJyZW50IHRob3VnaHQgcHJv
-Y2VzcyBpcyB0byBtYWtlIHRoZSBjb250cm9sbGVyIGRyaXZlcgo+PiBwcm92aWRlCj4+Pj4+IHRo
-ZSB1c2VyIGludGVyZmFjZQo+Pj4+Pj4+IGFuZCB0YWxrIHRvIHRoZSBQSFkgdXNpbmcgdGhlIGdl
-bmVyaWMgUEhZIGZyYW1ld29yayB5b3UKPj4gcHJvcG9zZWQuCj4+Pj4+IEluIHRoZSBjYXNlIHdo
-ZXJlIHRoZXJlCj4+Pj4+Pj4gaXMgbm8gUEhZLCBteSBpZGVhIGlzIHRvIGNyZWF0ZSBhICJkdW1t
-eSIgUEhZIHdoaWNoIHVzZXMgdGhlCj4+Pj4+IGNvbnRyb2xsZXIgZnVuY3Rpb25hbGl0eSBpdHNl
-bGYuCj4+Pj4+Pgo+Pj4+Pj4gcmlnaHQuIEFuZCBpbiB0aGUgY2FzZSB3aGVyZSB5b3UgYWN0dWFs
-bHkgaGF2ZSBhIFBIWSwgY3JlYXRlIGEKPj4gUEhZCj4+Pj4+PiBkcml2ZXIgYW5kIGltcGxlbWVu
-dCB0aGUgcGh5X3NtYXJ0X2NhcmRfb3BzIGFuZCByZWdpc3RlciB3aXRoIHRoZQo+Pj4+PiBQSFkK
-Pj4+Pj4+IGZyYW1ld29yay4KPj4+Pj4KPj4+Pj4gSSB3b3VsZCB0cnkgdG8gYXZvaWQgdGhhdC4g
-T3RoZXJ3aXNlIHdlIHdpbGwgaGF2ZSBwaHlfdXNiX29wcywKPj4+Pj4gcGh5X3NhdGFfb3BzLCBw
-aHlfbmV0d29ya19vcHMsIHBoeV9wY2lfb3BzLCBldGMgZXRjIGV0Yy4gSXQgd291bGQKPj4+Pj4g
-ZWFzaWx5Cj4+Pj4+IGJsb3cgdXAuCj4+Pj4+Cj4+Pj4KPj4+PiAtIEkgZG8gYWdyZWUgd2l0aCB5
-b3UuIENyZWF0aW5nIFBoeSBzcGVjaWZpYyBvcHMgd2lsbCBibG93IHVwIHdob2xlCj4+Pj4gICAg
-Y29uY2VwdCBvZiBnZW5lcmljIHBoeSBmL3cuCj4+Pj4gLSBDYW4gd2UgaGF2ZSBpbnRlcmZhY2Ug
-bGlrZSBwaHlfc2V0Y29uZmlnIC0gd2l0aCBwYXJhbWV0ZXIgbGlrZQo+Pj4+ICAgIHBoeV9zZXRj
-b25maWcoaW50IHBhcmFtLCB2b2lkICp2YWx1ZSkKPj4+PiAJLSBIZXJlIHBhcmFtIGNhbiBiZSBl
-bnVtIG9mIGF2YWlsYWJsZSBjb25maWcgcGFyYW1ldGVycyBmb3IKPj4+PiAJICBzcGVjaWZpYyBw
-aHkuCj4+Pj4gUGh5IGNhbiBwZXJmb3JtIGRpZmZlcmVudCBvcGVyYXRpb24vc2V0IGludGVybmFs
-IHN0YXRlIGJhc2VkIG9uCj4+Pj4gcGFyYW0gc2VsZWN0aW9uIGFuZCB2YWx1ZSBwYXNzZWQgYnku
-Cj4+Pj4KPj4+PiBlLnggaW4gY2FzZSBvZiBzbWFydGNhcmQKPj4+PiAJZW51bSBzZXRfY29uZmln
-IHsKPj4+PiAJCVNFVF9WT0xBVEFHRSwKPj4+PiAJCVNFVF9BQ1RJVkFURSwKPj4+PiAJCVNFVF9X
-QVJNUkVTRVQsCj4+Pj4gCQlTRVRfQVRSLAo+Pj4+IAkJU0VUX0RFQUNUSVZFLAo+Pj4+IAkJLi4u
-Lgo+Pj4+IAl9Owo+Pj4KPj4+IGhtbS4uIHRoaXMgbG9va3Mgc2ltaWxhciB0byBpb2N0bCBhbmQg
-Y2FuIGJlIGFidXNlZCBlYXNpbHkgSU1PIDpzCj4+Cj4+ICsxCj4+Cj4+IFdoYXQgd2UgbmVlZCBp
-cyB0byBjb21lIHVwIHdpdGggZ2VuZXJpYyB3YXlzIHRvIG1vZGVsIHRob3NlLCBpZiB3ZQo+PiBu
-ZWVkCj4+IHNldCB2b2x0YWdlLCB0aGVuIGFkZCBhIHBoeV9zZXRfdm9sdGFnZSgpIGtpbmRhIHRo
-aW5nLCBwZXJoYXBzIGFkZAo+PiBjYXBhYmlsaXR5IGZsYWdzIHRvIGVuYWJsZS9kaXNhYmxlIHN1
-cHBvcnQgZm9ydCB0aG9zZSAoanVzdCBsaWtlIG1tYwo+PiBkb2VzKS4KPj4KPj4gQnV0IGFkZGlu
-ZyBzb21ldGhpbmcgd2hpY2ggY2FuIGhhbmRsZSAiYW55dGhpbmciIGxpa2UKPj4gcGh5X3NldF9j
-b25maWcoKSwKPj4gaXQncyB0aGUgc2FtZSBhcyBhZGRpbmcgdXNlLWNhc2Ugc3BlY2lmaWMgb3Bz
-Lgo+Pgo+Cj4gV2UgaGF2ZSB0d28gb3B0aW9ucyBvdmVyIGhlcmUKPgo+IE9wdGlvbiAxOgo+Cj4g
-RGVmaW5pbmcgZ2VuZXJpYyBhcGkgdG8gd2hpY2ggY2FuIGJlIG1hcHBlZCBvdmVyIG11bHRpcGxl
-IHBoeXMKPiBGb3Igc21hcnRjYXJkIGNhc2UsIEkgaGF2ZSBjYW4gdGhvdWdodCBvZiBmb2xsb3dp
-bmcgbWFwcGluZyB3aXRoIG5ldwo+IGdlbmVyaWMgYXBpcyBhcyBzdWdnZXN0ZWQuCj4KPiBTbWFy
-dGNhcmRfcG93ZXJvbiAtPiBwb3dlcl9vbgo+IFNtYXJ0Y2FyZF9wb3dlcmRvd24gLT4gcG93ZXJf
-b2ZmCj4gU21hcnRjYXJkX3NldF92b2x0YWdlIC0+IHBoeV9zZXRfdm9sdGFnZQo+IFNtYXJ0Y2Fy
-ZF9hY3RpdmF0ZV9jYXJkIC0+IHBoeV9hY3RpdmF0ZV9zbG90Cj4gU21hcnRjYXJkX2RlYWN0aXZh
-dGVfY2FyZCAtPiBwaHlfZGVhY3RpdmF0ZV9zbG90Cgpob3cgaXMgYWN0aXZhdGUvZGVhY3RpdmF0
-ZSBkaWZmZXJlbnQgZnJvbSBwb3dlcm9uL3Bvd2Vyb2ZmIGluIHRoaXMKdXNlIGNhc2U/Cj4gU21h
-cnRjYXJkX3NldF9jNC9jOC9yc3QvaW8gLT4gcGh5X3NldF9waW4KCldoYXRzIHNob3VsZCBiZSBl
-eGFjdGx5IGRvbmUgaGVyZT8gTG9va3MgdG8gbWUgbGlrZSBpdCBzaG91bGQgYmUKcGFydCBvZiBp
-bml0LiBEb2VzIHRoZXNlIHBpbiBzZXR0aW5ncyBuZWVkIHRvIGJlIGNoYW5nZWQgZHluYW1pY2Fs
-bHk/Cj4gU21hcnRjYXJkX3dhcm1fcmVzZXQgLT4gcGh5X3dhcm1yZXNldAoKQWdhaW4gbG9va3Mg
-dG8gbWUgbGlrZSBpdCBzaG91bGQgYmUgcGFydCBvZiBpbml0Lgo+IFNtYXJ0Y2FyZF9zZXRfY2xr
-ZGl2IC0+IHBoeV9zZXRfY2xvY2sKPiBTbWFydGNhcmRfZ2V0X2Nsa2RpdiAtPiBwaHlfZ2V0X2Ns
-b2NrCgpXaHkgd291bGQgdGhlIHNtYXJ0Y2FyZCBnaXZlIGNsb2NrIHRvIHRoZSBQSFk/IFNob3Vs
-ZG4ndCB0aGUgZHJpdmVyCm9mIHRoZSBQSFkgZHJpdmVyIGJlIGRvaW5nIHRoYXQgYnkgaXRzZWxm
-PwoKPiBTbWFydGNhcmRfc2V0X2F0cl9tdXRlX3RpbWVvdXQgLT4gPz8KPiBTbWFydGNhcmRfc2V0
-X2F0cl9lYXJseV90aW1lb3V0IC0+ID8/CQo+IFNtYXJ0Y2FyZF9nZXRfaXNyX3N0YXR1cyAtPiBw
-aHlfZ2V0X3N0YXR1cwoKV2h5PyBJcyBpdCBsaWtlIHRoZSBkZXRlY3Rpb24gb2YgYW4gZXh0ZXJu
-YWwgZXZlbnQ/IFRoZW4gdGhlIFBIWQpkcml2ZXIgc2hvdWxkIHVzZSAqZXh0Y29uKiBmb3IgZXZl
-bnQgZGV0ZWN0aW9uIGFuZCBwYXNzaW5nLgoKPiBTbWFydGNhcmRfZ2V0X3ZlcnNpb24gLT4gcGh5
-X2dldF92ZXJzaW9uCgpBZ2FpbiB3aHk/IFdoeSB3b3VsZCB0aGUgc21hcnRjYXJkIG5lZWQgdGhl
-IHZlcnNpb24gb2YgdGhlIFBIWT8KClRoYW5rcwpLaXNob24KX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KZGV2aWNldHJlZS1kaXNjdXNzIG1haWxpbmcgbGlz
-dApkZXZpY2V0cmVlLWRpc2N1c3NAbGlzdHMub3psYWJzLm9yZwpodHRwczovL2xpc3RzLm96bGFi
-cy5vcmcvbGlzdGluZm8vZGV2aWNldHJlZS1kaXNjdXNzCg==
+Hello.
+
+On 08-07-2013 14:55, Kishon Vijay Abraham I wrote:
+
+> commit 09fc7d (usb: musb: fix incorrect usage of resource pointer)
+> assumes musb core will always have only 2 resources. But for OMAP
+> platforms there can be 3 resources (2 irq resource and 1 iomem
+> resource). Fixed it here.
+
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>   drivers/usb/musb/omap2430.c |   18 ++++++++----------
+>   1 file changed, 8 insertions(+), 10 deletions(-)
+
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index 5b6113a..5bbef78 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+[...]
+> @@ -489,6 +489,7 @@ static int omap2430_probe(struct platform_device *pdev)
+>   	struct device_node		*np = pdev->dev.of_node;
+>   	struct musb_hdrc_config		*config;
+>   	int				ret = -ENOMEM;
+> +	int				i = 0;
+
+    Redundant initialization.
+
+>   	glue = devm_kzalloc(&pdev->dev, sizeof(*glue), GFP_KERNEL);
+>   	if (!glue) {
+> @@ -571,15 +572,12 @@ static int omap2430_probe(struct platform_device *pdev)
+>   	memset(musb_resources, 0x00, sizeof(*musb_resources) *
+>   			ARRAY_SIZE(musb_resources));
+>
+> -	musb_resources[0].name = pdev->resource[0].name;
+> -	musb_resources[0].start = pdev->resource[0].start;
+> -	musb_resources[0].end = pdev->resource[0].end;
+> -	musb_resources[0].flags = pdev->resource[0].flags;
+> -
+> -	musb_resources[1].name = pdev->resource[1].name;
+> -	musb_resources[1].start = pdev->resource[1].start;
+> -	musb_resources[1].end = pdev->resource[1].end;
+> -	musb_resources[1].flags = pdev->resource[1].flags;
+> +	for (i = 0; i < ARRAY_SIZE(musb_resources); i++) {
+> +		musb_resources[i].name = pdev->resource[i].name;
+> +		musb_resources[i].start = pdev->resource[i].start;
+> +		musb_resources[i].end = pdev->resource[i].end;
+> +		musb_resources[i].flags = pdev->resource[i].flags;
+> +	}
+
+WBR, Sergei
