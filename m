@@ -1,54 +1,48 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v2] arm: dts: AM43x: Add usb_otg_hs node
-Date: Tue, 9 Jul 2013 14:47:26 +0530
-Message-ID: <1373361446-30050-1-git-send-email-george.cherian@ti.com>
+From: Yegor Yefremov <yegorslists@googlemail.com>
+Subject: Re: [PATCH 1/1] OMAPDSS: Add sil9022 driver
+Date: Tue, 9 Jul 2013 11:37:27 +0200
+Message-ID: <CAGm1_kuVLrTPS2TYw=TRWOppbY4HW0tpYUJzWqyv7MapJTL-_Q@mail.gmail.com>
+References: <1373360825-25170-1-git-send-email-sathyap@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: linux@arm.linux.org.uk, benoit.cousson@linaro.org, afzal@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, George Cherian <george.cherian@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:60267 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753601Ab3GIJht (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jul 2013 05:37:49 -0400
+In-Reply-To: <1373360825-25170-1-git-send-email-sathyap@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sathya Prakash M R <sathyap@ti.com>
+Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, archit@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Srinivas Pulukuru <srinivas.pulukuru@ti.com>
 
-Adds device node for HS USB Host module for AM437x
+On Tue, Jul 9, 2013 at 11:07 AM, Sathya Prakash M R <sathyap@ti.com> wrote:
+> From: Srinivas Pulukuru <srinivas.pulukuru@ti.com>
+>
+> Add driver for SIL9022 DPI-to-HDMI chip.
+>
+> Signed-off-by: Srinivas Pulukuru <srinivas.pulukuru@ti.com>
+> [sathyap@ti.com: Ported the driver from 2.6.32 based internal
+> kernel to v3.10 kernel]
+> Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
+> ---
+> This patch was tested using the legacy OMAP3630 based Zoom3 platform.
+> There is no DT support for Zoom , hence board file changes
+> made locally were used for validation purpose.
+> Further, DT support will be added for a newer SOC which uses
+> the sil9022 HDMI interface chip.
+>
+>  drivers/video/omap2/displays/Kconfig         |    8 +
+>  drivers/video/omap2/displays/Makefile        |    1 +
+>  drivers/video/omap2/displays/panel-sil9022.c | 1274 ++++++++++++++++++++++++++
+>  drivers/video/omap2/displays/panel-sil9022.h |  527 +++++++++++
+>  4 files changed, 1810 insertions(+)
+>  create mode 100644 drivers/video/omap2/displays/panel-sil9022.c
+>  create mode 100644 drivers/video/omap2/displays/panel-sil9022.h
 
-changes from v1
+What about making this driver more general. We've tested this HDMI
+chip on am335x and there are also Freescal based devices using this
+chip (http://www.genesi-tech.com/products/efika and kernel repo
+http://github.com/genesi/linux-legacy).
 
-renamed synopsis to snps
-removed flag tx-fifo-resize
-
-Signed-off-by: George Cherian <george.cherian@ti.com>
----
- arch/arm/boot/dts/am4372.dtsi | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
-
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index ddc1df7..c9e0da8 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -64,5 +64,23 @@
- 			compatible = "ti,am4372-counter32k","ti,omap-counter32k";
- 			reg = <0x44e86000 0x40>;
- 		};
-+
-+		usb_otg_hs1: am4372_dwc3@48380000 {
-+			compatible = "ti,am437x-dwc3";
-+			reg = <0x48380000 0x1ff>;
-+			interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			utmi-mode = <1>;
-+			ranges;
-+
-+			dwc3@48390000 {
-+				compatible = "snps,dwc3";
-+				reg = <0x48390000 0xcfff>;
-+				interrupts = <GIC_SPI  168 IRQ_TYPE_LEVEL_HIGH>;
-+			};
-+
-+		};
-+		
- 	};
- };
--- 
-1.8.1.4
+Yegor
