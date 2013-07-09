@@ -1,57 +1,77 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: Re: [PATCH v2] arm: dts: AM43x: Add usb_otg_hs node
-Date: Tue, 9 Jul 2013 17:22:43 +0530
-Message-ID: <51DBF98B.1050104@ti.com>
-References: <1373361446-30050-1-git-send-email-george.cherian@ti.com> <20130709102022.GH5552@arwen.pp.htv.fi> <51DBF23F.20103@ti.com> <20130709112751.GI5552@arwen.pp.htv.fi>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v3 1/2] USB: PHY: Make PHY driver selection possible by
+ controller drivers
+Date: Tue, 9 Jul 2013 15:01:14 +0300
+Message-ID: <51DBFB8A.6000908@ti.com>
+References: <1371203502-29624-1-git-send-email-rogerq@ti.com> <1371203502-29624-2-git-send-email-rogerq@ti.com> <20130709112948.GJ5552@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33853 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753487Ab3GILxM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jul 2013 07:53:12 -0400
-In-Reply-To: <20130709112751.GI5552@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130709112948.GJ5552@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@ti.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, benoit.cousson@linaro.org, afzal@ti.com, linux-kernel@vger.kernel.org
+Cc: gregkh@linuxfoundation.org, stern@rowland.harvard.edu, arnd@arndb.de, adrienverge@gmail.com, kishon@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Pavankumar Kondeti <pkondeti@codeaurora.org>, Roland Stigge <stigge@antcom.de>
+List-Id: linux-omap@vger.kernel.org
 
-On 7/9/2013 4:57 PM, Felipe Balbi wrote:
-> Hi,
->
-> On Tue, Jul 09, 2013 at 04:51:35PM +0530, George Cherian wrote:
->>>> +				compatible = "snps,dwc3";
->>>> +				reg = <0x48390000 0xcfff>;
->>> weird size, shouldn't this be 0xd000 then the size would be exactly
->>> 52KiB
->> okay
-> btw, the reason here is that when you call devm_ioremap_resource(), that
-> will call resource_size() which does:
->
-> 	size = res->end - res->start - 1;
->
-> so you need this extra 1 on the size when passing it via DT.
+On 07/09/2013 02:29 PM, Felipe Balbi wrote:
+> On Fri, Jun 14, 2013 at 12:51:41PM +0300, Roger Quadros wrote:
+>> Convert PHY Drivers from menuconfig to menu so that the PHY drivers
+>> can be explicitely selected by the controller drivers.
+>>
+>> USB_PHY is no longer a user visible option. It is upto to the PHY
+>> drivers to select it if needed. This patch does so for the existing
+>> PHY drivers that use the USB_PHY library.
+>>
+>> Doing so moves the USB_PHY and PHY driver selection problem from the
+>> end user to the PHY and controller driver developer.
+>>
+>> e.g.
+>>
+>> Earlier, a controller driver (e.g. EHCI_OMAP) that needs to select
+>> a PHY driver (e.g. NOP_PHY) couldn't do so because the PHY driver
+>> depended on USB_PHY. Making the controller driver depend on USB_PHY
+>> has a negative effect i.e. it becomes invisible to the user till
+>> USB_PHY is enabled. Most end users will not familiar with this.
+>>
+>> With this patch, the end user just needs to select the controller driver
+>> needed for his/her platform without worrying about which PHY driver to
+>> select.
+>>
+>> Also update USB_EHCI_MSM, USB_LPC32XX and USB_OMAP to not depend
+>> on USB_PHY any more. They can safely select the necessary PHY drivers.
+>>
+>> CC: Pavankumar Kondeti <pkondeti@codeaurora.org>
+>> CC: Roland Stigge <stigge@antcom.de>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> [USB_LPC32XX part] Acked-by: Roland Stigge <stigge@antcom.de>
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> 
+> There is one problem (?) with this: phy-core.ko will never be a module.
+> If that's not a problem for anyone, I guess this is safe to apply. I'll
+> wait a little longer until merge window closes to give people some extra
+> time to shout.
+> 
 
-agreed.
->>> Another thing: am437x has 4 instances of this IP, why are you adding
->>> only one ?
->> AM437x has got only 2 instances. I have verified only one on HAPS so
->> adding only one.
-> weird, on my TRM I see for dwc3 but 2 PHYs.
+Is phy-core already meant to be loaded as a module already?
 
-Please confirm whether you are looking at am437x TRM or dra7x TRM?
-dra7x has 4 dwc3 and 2 internal  phys and 2 external phys
->>> And why aren't you pasing the PHY nodes here ? The device
->>> won't work without its PHYs.
->> Yes true, again in HAPS I  didnt have any PHY configuration to be done.
-> alright, but we should still pass the PHY right ? once silicon comes,
-> we want this to work without any further changers.
+At least with the old phy.c I was getting the following build errors if it was built as
+a module
 
-okay will add phy nodes and 2 instances of dwc3.
+arch/arm/mach-omap2/built-in.o: In function `usbhs_init_phys':
+/work/linux-2.6/arch/arm/mach-omap2/usb-host.c:652: undefined reference to `usb_bind_phy'
+arch/arm/mach-omap2/built-in.o: In function `omap_2430sdp_init':
+/work/linux-2.6/arch/arm/mach-omap2/board-2430sdp.c:236: undefined reference to `usb_bind_phy'
+arch/arm/mach-omap2/built-in.o: In function `omap3_beagle_init':
+/work/linux-2.6/arch/arm/mach-omap2/board-omap3beagle.c:554: undefined reference to `usb_bind_phy'
+arch/arm/mach-omap2/built-in.o: In function `devkit8000_init':
+/work/linux-2.6/arch/arm/mach-omap2/board-devkit8000.c:596: undefined reference to `usb_bind_phy'
+arch/arm/mach-omap2/built-in.o: In function `omap_ldp_init':
+/work/linux-2.6/arch/arm/mach-omap2/board-ldp.c:379: undefined reference to `usb_bind_phy'
 
+If we are sure it can be built as a module then we could just change "config USB_PHY" to tristate
+instead of bool.
 
-
--- 
--George
-
+cheers,
+-roger
