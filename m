@@ -1,165 +1,218 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: Boot hang regression 3.10.0-rc4 -> 3.10.0
-Date: Tue, 9 Jul 2013 09:42:12 +0300
-Message-ID: <20130709064212.GB5552@arwen.pp.htv.fi>
-References: <B5906170F1614E41A8A28DE3B8D121433EE93C23@DBDE04.ent.ti.com>
- <20130705115959.GQ5523@atomide.com>
- <B5906170F1614E41A8A28DE3B8D121433EE94489@DBDE04.ent.ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EE94520@DBDE04.ent.ti.com>
- <20130708112553.GU5523@atomide.com>
- <51DAB394.3050104@ti.com>
- <20130708131033.GA5523@atomide.com>
- <51DABC81.3080409@ti.com>
- <20130708133512.GD31221@arwen.pp.htv.fi>
- <51DBA0C2.6030003@ti.com>
+Subject: Re: [PATCHv3 2/3] drivers: spi: Add qspi flash controller
+Date: Tue, 9 Jul 2013 09:51:43 +0300
+Message-ID: <20130709065143.GC5552@arwen.pp.htv.fi>
+References: <1373290980-17883-1-git-send-email-sourav.poddar@ti.com>
+ <1373290980-17883-3-git-send-email-sourav.poddar@ti.com>
+ <20130708203330.GA28322@kahuna>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yEPQxsgoJgBvi8ip"
+	protocol="application/pgp-signature"; boundary="qjNfmADvan18RZcF"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59929 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752858Ab3GIGmw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Jul 2013 02:42:52 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:48063 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753141Ab3GIGwH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jul 2013 02:52:07 -0400
 Content-Disposition: inline
-In-Reply-To: <51DBA0C2.6030003@ti.com>
+In-Reply-To: <20130708203330.GA28322@kahuna>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Sourav Poddar <sourav.poddar@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Sourav Poddar <sourav.poddar@ti.com>, broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
---yEPQxsgoJgBvi8ip
+--qjNfmADvan18RZcF
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Tue, Jul 09, 2013 at 11:03:54AM +0530, Rajendra Nayak wrote:
-> On Monday 08 July 2013 07:05 PM, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Mon, Jul 08, 2013 at 06:50:01PM +0530, Rajendra Nayak wrote:
-> >>>>>>>> I wonder if this is because the timeouts get now initialized to =
-0 instead
-> >>>>>>>> of -1 for the serial driver?
-> >>>>>>>>
-> >>>>>>>
-> >>>>>>> You meant initialized to -1, right? There's an additional check f=
-or timeout being 0. Unless i
-> >>>>>>> am missing something DT-boot will start off with timeout set to 0=
- and then get forced to -1.
-> >>>>>
-> >>>>> OK
-> >>>>
-> >>>> Issue 2: Causing boot to stop when serial driver is initialized.
-> >>>> (After Issue 1 is fixed)
-> >>>>
-> >>>> I could narrow this down to the change done to return -EINVAL
-> >>>> instead of 0 in serial_omap_get_context_loss_count() as part of
-> >>>> commit 'a630fbfbb1beeffc5bbe542a7986bf2068874633' "serial: omap:
-> >>>> Fix device tree based PM runtime"
-> >>>>
-> >>>> What this change in turn seems to do is cause a
-> >>>> serial_omap_restore_context() to get called as part of
-> >>>> serial_omap_runtime_resume() which was not the case when
-> >>>> serial_omap_get_context_loss_count() returned 0
-> >>>>
-> >>>> from serial_omap_runtime_resume():
-> >>>> -----
-> >>>>         int loss_cnt =3D serial_omap_get_context_loss_count(up);
-> >>>>
-> >>>>         if (loss_cnt < 0) {
-> >>>>                 dev_dbg(dev, "serial_omap_get_context_loss_count fai=
-led : %d\n",
-> >>>>                         loss_cnt);
-> >>>>                 serial_omap_restore_context(up);
-> >>>>         } else if (up->context_loss_cnt !=3D loss_cnt) {
-> >>>>                 serial_omap_restore_context(up);
-> >>>>         }
-> >>>> -----
-> >>>>
-> >>>> I am still working on why a serial_omap_restore_context() could
-> >>>> have caused console to die. I will work with Sourav on this and
-> >>>> post the fixes for both issue 1 and issue2 once its clear on whats
-> >>>> really causing issue 2.
-> >>>
-> >>> That's because we don't have the omap specific pdata callbacks for
-> >>> context loss any longer. We may be able to detect when the context
-> >>> was really lost in the serial driver, and only then call the
-> >>> serial_omap_restore_context().
-> >>
-> >> Right, but calling serial_omap_restore_context() even when the context
-> >> is not lost, should not ideally cause an issue.
-> >=20
-> > it does in one condition. If context hasn't been saved before. And that
-> > can happen in the case of wrong pm runtime status for that device.
-> >=20
-> > Imagine the device is marked as suspended even though it's fully enabled
-> > (it hasn't been suspended by hwmod due to NO_IDLE flag). In that case
-> > your context structure is all zeroes (context has never been saved
-> > before) then when you call pm_runtime_get_sync() on probe() your
-> > ->runtime_resume() will get called, which will restore context,
-> > essentially undoing anything which was configured by u-boot.
->=20
-> This could be a problem for drivers which do a save context in ->runtime_=
-suspend()
-> but from what I see with omap serial, there is no save context done as pa=
-rt of
-> ->runtime_suspend.
-
-right, because context is "saved" in set_termios. probe() will get
-called much before set_termios() has a chance to run, right ?
-
-Same problem will trigger in that case.
-
-I still think patch below is necessary
-
-> > (completely untested, didn't even try to compile, just to illustrate)
-> >=20
-> > diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
-p_hwmod.c
-> > index 7341eff..d8dca68 100644
-> > --- a/arch/arm/mach-omap2/omap_hwmod.c
-> > +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> > @@ -2559,6 +2559,12 @@ static void __init _setup_postsetup(struct omap_=
-hwmod *oh)
-> >  	    (postsetup_state =3D=3D _HWMOD_STATE_IDLE)) {
-> >  		oh->_int_flags |=3D _HWMOD_SKIP_ENABLE;
-> >  		postsetup_state =3D _HWMOD_STATE_ENABLED;
+On Mon, Jul 08, 2013 at 03:33:30PM -0500, Nishanth Menon wrote:
+> > +static inline unsigned long dra7xxx_readl_data(struct dra7xxx_qspi *qs=
+pi,
+> > +		unsigned long reg, int wlen)
+> > +{
+> > +	switch (wlen) {
+> > +	case 8:
+> > +		return readw(qspi->base + reg);
+> > +		break;
+> > +	case 16:
+> > +		return readb(qspi->base + reg);
+> > +		break;
+> > +	case 32:
+> > +		return readl(qspi->base + reg);
+> > +		break;
+> > +	default:
+> > +		return -1;
+> > +	}
+> > +}
 > > +
-> > +		/* tell pm_runtime this device is already active */
-> > +		pm_runtime_set_active(&oh->od->pdev->dev);
-> > +	} else {
-> > +		/* tell pm_runtime this device is trully suspended */
-> > +		pm_runtime_set_suspended(&oh->od->pdev->dev);
-> >  	}
-> > =20
-> >  	if (postsetup_state =3D=3D _HWMOD_STATE_IDLE)
+> > +static inline void dra7xxx_writel_data(struct dra7xxx_qspi *qspi,
+> > +		unsigned long val, unsigned long reg, int wlen)
+> > +{
+> > +	switch (wlen) {
+> > +	case 8:
+> > +		writew(val, qspi->base + reg);
+> > +		break;
+> > +	case 16:
+> > +		writeb(val, qspi->base + reg);
+> > +		break;
+> > +	case 32:
+> > +		writeb(val, qspi->base + reg);
+> > +		break;
+> > +	default:
+> > +		dev_dbg(qspi->dev, "word lenght out of range");
+> > +		break;
+> > +	}
+> > +}
+> Looks like a case to use regmap?
+> Dumb q: why cant we use regmap_spi? worst case, you should be able to
+
+read regmap-spi and you'll see why it can't be used in this case.
+
+regmap-spi is for SPI clients who want to read their register map
+through SPI commands. This is a driver for the SPI master which has its
+registers memory mapped.
+
+> > +static int dra7xxx_qspi_start_transfer_one(struct spi_master *master,
+> > +		struct spi_message *m)
+> > +{
+> > +	struct dra7xxx_qspi *qspi =3D spi_master_get_devdata(master);
+> > +	struct spi_device *spi =3D m->spi;
+> > +	struct spi_transfer *t;
+> > +	int status =3D 0;
+> > +	int frame_length;
+> > +
+> > +	/* setup device control reg */
+> > +	qspi->dc =3D 0;
+> > +
+> > +	if (spi->mode & SPI_CPHA)
+> > +		qspi->dc |=3D QSPI_CKPHA(spi->chip_select);
+> > +	if (spi->mode & SPI_CPOL)
+> > +		qspi->dc |=3D QSPI_CKPOL(spi->chip_select);
+> > +	if (spi->mode & SPI_CS_HIGH)
+> > +		qspi->dc |=3D QSPI_CSPOL(spi->chip_select);
+> > +
+> > +	frame_length =3D DIV_ROUND_UP(m->frame_length * spi->bits_per_word,
+> > +				spi->bits_per_word);
+> > +
+> > +	frame_length =3D clamp(frame_length, 0, QSPI_FRAME_MAX);
+> > +
+> > +	/* setup command reg */
+> > +	qspi->cmd =3D 0;
+> > +	qspi->cmd |=3D QSPI_EN_CS(spi->chip_select);
+> > +	qspi->cmd |=3D QSPI_FLEN(frame_length);
+> > +
+> how does one ensure pm runtime has not disabled clocks in
+> background? e.g. long latency between transfers.
+
+because pm_runtime_put*() has not been called ?
+
+There's no way clocks will be gated until we kick the pm autosuspend
+timer, which is only done when the transfer is finished.
+
+> > +static irqreturn_t dra7xxx_qspi_isr(int irq, void *dev_id)
+> > +{
+> > +	struct dra7xxx_qspi *qspi =3D dev_id;
+> > +	u16 mask, stat;
+> > +
+> > +	irqreturn_t ret =3D IRQ_HANDLED;
+> > +
+> > +	spin_lock(&qspi->lock);
+> > +
+> what if autosuspend has triggered here? before ISR was scheduled?
+
+how ?
+
+the pm timer hasn't been kicked yet
+
+> > +	stat =3D dra7xxx_readl(qspi, QSPI_SPI_STATUS_REG);
+> > +	mask =3D dra7xxx_readl(qspi, QSPI_SPI_CMD_REG);
+> > +
+> > +	if ((stat & QSPI_WC) && (mask & QSPI_WC_CMD_INT_EN))
+> > +		ret =3D IRQ_WAKE_THREAD;
+> > +
+> > +	spin_unlock(&qspi->lock);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +static irqreturn_t dra7xxx_qspi_threaded_isr(int this_irq, void *dev_i=
+d)
+> > +{
+> > +	struct dra7xxx_qspi *qspi =3D dev_id;
+> > +	unsigned long flags;
+> > +
+> > +	spin_lock_irqsave(&qspi->lock, flags);
+> > +
+> what if autosuspend has triggered here? before ISR was scheduled?
+
+how ?
+
+pm timer hasn't been kicked yet
+
+> > +	qspi->base =3D devm_ioremap_resource(&pdev->dev, r);
+> > +	if (IS_ERR(qspi->base)) {
+> > +		ret =3D -ENOMEM;
+> > +		goto free_master;
+> > +	}
+> why not use devm_request_and_ioremap? Lock that region down so that no
+> two drivers can manage the same region?
+
+read devm_ioremap_resource() and look at the git log for all the
+numerous drivers which were converted to devm_ioremap_resource() to find
+the reason.
+
+> > +static struct platform_driver dra7xxx_qspi_driver =3D {
+> > +	.probe	=3D dra7xxx_qspi_probe,
+> > +	.remove	=3D dra7xxx_qspi_remove,
+> > +	.driver =3D {
+> > +		.name	=3D "ti,dra7xxx-qspi",
+> > +		.owner	=3D THIS_MODULE,
+> > +		.of_match_table =3D dra7xxx_qspi_match,
+> > +	}
+> no need for pm_ops?
+
++1
+
+> > +};
+> > +
+> > +module_platform_driver(dra7xxx_qspi_driver);
+> > +
+> > +MODULE_LICENSE("GPL");
+> GPL V2?
+
++1
+
+> > +MODULE_DESCRIPTION("TI QSPI controller driver");
+> MODULE_AUTHOR?
+
++1
 
 --=20
 balbi
 
---yEPQxsgoJgBvi8ip
+--qjNfmADvan18RZcF
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIbBAEBAgAGBQJR27DEAAoJEIaOsuA1yqRECeUP+M/7Shwqu3WXcWijKubhg2Od
-dZNcJVtmicldrEse/5/L36umFuBWU7wfiTGDPXRvImgYwaNXQW/UK2R243AmzVzr
-zfXpPdq3lWIxGNDJUamKcO67vdSv9wH/xW1c/hiv/w+knOPxbTycFr5reMxbpchE
-UXxn35vpjeiMZUpIg9JGGmFuZf3Sf4RdOdJyf/Gxpf9kL/5PH4yuU8WTMaO7wbUY
-uPVP+G/6UTrKOESXvKZzt9gSTayMX9LidHkR8gI7xv6hXzrirYj0GCjHKVSfdBfc
-+yKrw5J5o1Ob2N5DWPCNWMZqBONEQEb+onGX/gexAfJrtfiq8YMHVqtAbeA+ny7J
-5JnThymDOXT+T+39S34a0KRqxPicbfGbkLK2u2rUdY0uKx+0sL12GHczsWsuhWaD
-vcisUDJRmaUkf5UOk47cjkVE9QcS3XrWoBOEM6WdtDA6+cg/wIyfVBVzAEBS3wjb
-WEUeQXIIsFqitsZhqg5uokdH2h4DR2jgTNlVC1SqLbAjf8rJNyx/VkH4Vx2FyyPV
-AOWIaUeV3dfGfFuqIvwUrzuTqfHpsfpP2DHH6Fvf8/WSL5H7xboJQKVk9RZ9qCzr
-UYzjaGiJvPnUy/QsC9qmYqcG3bFKPig41ICzZcuCp+CmIwEgsJ390kLcnGJPGhMA
-hQNEIyxoYJsPA31ESXE=
-=3dr9
+iQIcBAEBAgAGBQJR27L/AAoJEIaOsuA1yqRE1JUQAKYl15ph7O3TsVSPAsOe12eE
+qTORaT3XGCQvBax+CvYB/osnJMmEY7Ehd3U6ycVjkNg8w9KufmNFuZ9Us5hv4qTv
+HjH6NQG0b/piNuxBf+z1E/khWSO+SQZwp7ntjikG7DiAp58b69l8icn/lzdwq00y
+usyuVuquZFlubz15SRlLogW4z+bjFaHh6cSqJUFESYhpD576W16wirxD7ppd0FVy
+f6BeyXNZdBp7015xQnByEoC9AVL0xVEgrk3ZQTtpFG+k94OxO26/epvQ7Dkh/Crc
+WZcZy2FQA506MIp48mqtPDCg9kswMDSPqZ4FELDllMb0GQMHx4A8hypbOIEtogqd
+EvXZuidVrvUHPOeHicdHqZGirHdOoJ5v2QxIW/Vj1e79ztEEF7rIuj2XWXioGlRu
+wcpbjohxiybOHij4bi6ujYT43pvWQmkGY891nXpSrr4Br3yFDSGUZxC8a7gT3zYh
+yx28DmcuXGTesbcoNNfznbsL76fpviFjxyOU5CDYDH91SW4UnNCJEyRn1tj6YRrz
+/My33lQNVw4umCFsS9S2l50U16giDOO4Q3jIzEM+F8hpmXF1Pd673fQhXbrNuPkM
+SL6jZlbm5ZXNKP4loOStDz3C+CcXJ4ifIHQTlkKNteeM3k3I2+jCF/+BKgvofZoe
+b6RvzDon+TFv5Y+rDdV4
+=/lHe
 -----END PGP SIGNATURE-----
 
---yEPQxsgoJgBvi8ip--
+--qjNfmADvan18RZcF--
