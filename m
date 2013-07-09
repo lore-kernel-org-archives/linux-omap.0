@@ -1,105 +1,64 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv3 2/3] drivers: spi: Add qspi flash controller
-Date: Tue, 9 Jul 2013 07:50:55 -0500
-Message-ID: <51DC072F.40704@ti.com>
-References: <1373290980-17883-1-git-send-email-sourav.poddar@ti.com> <1373290980-17883-3-git-send-email-sourav.poddar@ti.com> <20130708203330.GA28322@kahuna> <20130709065143.GC5552@arwen.pp.htv.fi>
+From: Stefan Roese <sr@denx.de>
+Subject: Re: [PATCH] ARM: OMAP3: Beagle: Fix USB Host on beagle xM Ax/Bx
+Date: Tue, 09 Jul 2013 15:02:31 +0200
+Message-ID: <51DC09E7.1070302@denx.de>
+References: <1366024808-4691-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36299 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753777Ab3GIMvG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Jul 2013 08:51:06 -0400
-In-Reply-To: <20130709065143.GC5552@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1366024808-4691-1-git-send-email-rogerq@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, balbi@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Sourav Poddar <sourav.poddar@ti.com>, broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 07/09/2013 01:51 AM, Felipe Balbi wrote:
-> On Mon, Jul 08, 2013 at 03:33:30PM -0500, Nishanth Menon wrote:
+Roger,
 
->>> +static int dra7xxx_qspi_start_transfer_one(struct spi_master *master,
->>> +		struct spi_message *m)
->>> +{
->>> +	struct dra7xxx_qspi *qspi = spi_master_get_devdata(master);
->>> +	struct spi_device *spi = m->spi;
->>> +	struct spi_transfer *t;
->>> +	int status = 0;
->>> +	int frame_length;
->>> +
->>> +	/* setup device control reg */
->>> +	qspi->dc = 0;
->>> +
->>> +	if (spi->mode & SPI_CPHA)
->>> +		qspi->dc |= QSPI_CKPHA(spi->chip_select);
->>> +	if (spi->mode & SPI_CPOL)
->>> +		qspi->dc |= QSPI_CKPOL(spi->chip_select);
->>> +	if (spi->mode & SPI_CS_HIGH)
->>> +		qspi->dc |= QSPI_CSPOL(spi->chip_select);
->>> +
->>> +	frame_length = DIV_ROUND_UP(m->frame_length * spi->bits_per_word,
->>> +				spi->bits_per_word);
->>> +
->>> +	frame_length = clamp(frame_length, 0, QSPI_FRAME_MAX);
->>> +
->>> +	/* setup command reg */
->>> +	qspi->cmd = 0;
->>> +	qspi->cmd |= QSPI_EN_CS(spi->chip_select);
->>> +	qspi->cmd |= QSPI_FLEN(frame_length);
->>> +
->> how does one ensure pm runtime has not disabled clocks in
->> background? e.g. long latency between transfers.
->
-> because pm_runtime_put*() has not been called ?
->
-> There's no way clocks will be gated until we kick the pm autosuspend
-> timer, which is only done when the transfer is finished.
+On 04/15/2013 01:20 PM, Roger Quadros wrote:
+> On Beagle xM Rev. Ax/Bx, the USB power enable GPIO logic is
+> reversed when compared to other revisions i.e. it is
+> active high instead of active low.
+> 
+> Use the beagle_config.usb_pwr_level flag correctly so that
+> the power regulator can be configured at runtime.
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 
-with this input and looking closer, I think I see what you are saying now:
-dra7xxx_qspi_prepare_xfer -> does a pm_runtime_get_sync
-dra7xxx_qspi_unprepare_xfer -> does a pm_runtime_mark_last_busy, 
-pm_runtime_put_autosuspend
+I'm currently trying to use an SMSC95xx USB ethernet adapter on the
+OMAP3 Beagleboard (old one "Beagle Rev C1/C2/C3") via the OMAP EHCI
+controller. And am testing this by trying to mount the rootfs via NFS.
+What I see is that the NFS mounting stalls/hangs most of the time quite
+early in the mount process:
 
-In between these calls, you have the remaining xfer calls going on.
-we are assuming here that autosuspend timeout should be greater than the 
-time to complete the worst case transfer.
+[    6.425689] VFS: Mounted root (nfs filesystem) on device 0:12.
+[    6.435485] devtmpfs: mounted
+[    6.440002] Freeing unused kernel memory: 384K (c077a000 - c07da000)
+INIT: version 2.88 booting
+Starting udev
+[  188.311309] nfs: server 10.0.0.152 not responding, still trying
+[  188.317687] nfs: server 10.0.0.152 not responding, still trying
+...
 
-Is that a valid assumption? would it not be better to mark_busy at other 
-points? my thought is that considering a threaded isr, if by any chance 
-you have a latency > autosuspend due to premption or some un-forseen 
-event, this could crash badly, no? mark_busy will atleast ensure that 
-runtime timer is reset. yep, we can also argue to converse, with a 
-autosuspend delay set to appropriate value, we should not see this 
-issue. pm_runtime_mark_last_busy() may be executed from interrupt 
-context as well. At least going with "marks the last time of the 
-device's busy state" we dont seem to mark them at all potential points?
+Only very seldom the rootfs can be mounted successfully to the prompt.
 
-ofcourse we can debate about how granular the marking should be, IMHO, 
-though, I like autosuspend, however, I like autosuspend as a way to 
-reduce transfer-to-transfer latency to re-enable the clocks. I however 
-am a bit gittery about autosuspend kicking inside required time 
-boundaries (especially considering the delay is upto user of the system).
+I'm using latest kernel.org for this (git ID d2b4a646 also tested with
+v3.10 release). This is with DT-enabled booting and without-DT (same
+problem). I also tested some older Linux kernel versions and it fails
+there as well. Only v3.2.40 seems to be able to mount this rootfs via
+NFS reliably (approx. 10 times success).
 
-Just my 2 cents.
+Is this a known issue on the Beagleboard? Do you have any ideas what
+might cause such an issue (unreliable USB connection, hangup of NFS
+mounting)? Any hints/links appretiated.
 
-[...]
-
->>> +	qspi->base = devm_ioremap_resource(&pdev->dev, r);
->>> +	if (IS_ERR(qspi->base)) {
->>> +		ret = -ENOMEM;
->>> +		goto free_master;
->>> +	}
->> why not use devm_request_and_ioremap? Lock that region down so that no
->> two drivers can manage the same region?
->
-> read devm_ioremap_resource() and look at the git log for all the
-> numerous drivers which were converted to devm_ioremap_resource() to find
-> the reason.
-
-my bad. fair enough.
-
--- 
-Regards,
-Nishanth Menon
+Thanks,
+Stefan
