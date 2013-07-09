@@ -1,76 +1,93 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: OMAP3: Beagle: Fix USB Host on beagle xM Ax/Bx
-Date: Tue, 9 Jul 2013 16:55:23 +0300
-Message-ID: <51DC164B.5010608@ti.com>
-References: <1366024808-4691-1-git-send-email-rogerq@ti.com> <51DC09E7.1070302@denx.de>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC PATCH 4/6] USB: ehci-omap: Suspend the controller during
+ bus suspend
+Date: Tue, 9 Jul 2013 16:58:42 +0300
+Message-ID: <51DC1712.30401@ti.com>
+References: <Pine.LNX.4.44L0.1306281346430.1047-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40189 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752727Ab3GINz5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Jul 2013 09:55:57 -0400
-In-Reply-To: <51DC09E7.1070302@denx.de>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.1306281346430.1047-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, ruslan.bilovol-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Stefan Roese <sr@denx.de>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com
 
-Hi Stefan,
-
-On 07/09/2013 04:02 PM, Stefan Roese wrote:
-> Roger,
+On 06/28/2013 10:06 PM, Alan Stern wrote:
+> On Fri, 28 Jun 2013, Roger Quadros wrote:
 > 
-> On 04/15/2013 01:20 PM, Roger Quadros wrote:
->> On Beagle xM Rev. Ax/Bx, the USB power enable GPIO logic is
->> reversed when compared to other revisions i.e. it is
->> active high instead of active low.
+>>> That's not what I meant.  Never mind the pinctrl; I was asking about
+>>> the EHCI controller itself.  Under what circumstances does the
+>>> controller assert its wakeup signal?  And how do you tell it to stop
+>>> asserting that signal?
 >>
->> Use the beagle_config.usb_pwr_level flag correctly so that
->> the power regulator can be configured at runtime.
+>> I believe this would be through the EHCI Interrupt enable register (USBINTR).
+>> I'm not aware of any other mechanism.
+> 
+> That's strange, because ehci_suspend() sets the intr_enable register to 
+> 0.  So how do you ever get any wakeup interrupts at all?
+> 
+>> Right. It seems the external hub has signaled remote wakeup but the kernel doesn't
+>> resume the root hub's port it is connected to.
 >>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> By observing the detailed logs below you can see that the root hub does not generate
+>> an INTerrupt transaction to notify the port status change event. I've captured the pstatus
+>> and GetPortStatus info as well.
 > 
-> I'm currently trying to use an SMSC95xx USB ethernet adapter on the
-> OMAP3 Beagleboard (old one "Beagle Rev C1/C2/C3") via the OMAP EHCI
-> controller. And am testing this by trying to mount the rootfs via NFS.
-> What I see is that the NFS mounting stalls/hangs most of the time quite
-> early in the mount process:
+> We don't need an interrupt.  The driver is supposed to detect the
+> remote wakeup sent by the external hub all by itself.
 > 
-> [    6.425689] VFS: Mounted root (nfs filesystem) on device 0:12.
-> [    6.435485] devtmpfs: mounted
-> [    6.440002] Freeing unused kernel memory: 384K (c077a000 - c07da000)
-> INIT: version 2.88 booting
-> Starting udev
-> [  188.311309] nfs: server 10.0.0.152 not responding, still trying
-> [  188.317687] nfs: server 10.0.0.152 not responding, still trying
-> ...
+>> Failing case
+>> ------------
+>>
+>> [   16.108032] usb usb1: usb auto-resume
+>> [   16.108062] ehci-omap 48064800.ehci: resume root hub
+>> [   16.108154] hub 1-0:1.0: hub_resume
+>> [   16.108398] ehci_hub_control GetPortStatus, port 1 temp = 0x1000
+>> [   16.108459] ehci_hub_control GetPortStatus, port 2 temp = 0x14c5
 > 
-> Only very seldom the rootfs can be mounted successfully to the prompt.
+> Here's where we should detect it.  Look at the GetPortStatus case in
+> ehci_hub_control(); the PORT_RESUME bit (0x0040) is set in temp, so the
+> "Remote Wakeup received?" code should run.  In particular, these lines
+> should run:
 > 
-> I'm using latest kernel.org for this (git ID d2b4a646 also tested with
-> v3.10 release). This is with DT-enabled booting and without-DT (same
-> problem). I also tested some older Linux kernel versions and it fails
-> there as well. Only v3.2.40 seems to be able to mount this rootfs via
-> NFS reliably (approx. 10 times success).
+> 			/* resume signaling for 20 msec */
+> 			ehci->reset_done[wIndex] = jiffies
+> 					+ msecs_to_jiffies(20);
+> 			usb_hcd_start_port_resume(&hcd->self, wIndex);
+> 			/* check the port again */
+> 			mod_timer(&ehci_to_hcd(ehci)->rh_timer,
+> 					ehci->reset_done[wIndex]);
+> 
+> Therefore 20 ms later, around timestamp 16.128459,
+> ehci_hub_status_data() should have been called.  At that time, the
+> root-hub port should have been fully resumed.
+> 
+>> [   16.108551] hub 1-0:1.0: port 2: status 0507 change 0000
+>> [   16.108612] ehci_hub_control GetPortStatus, port 3 temp = 0x1000
+>> [   16.108642] hub 1-0:1.0: hub_activate submitting urb
+>> [   16.109222] ehci_irq port 3 pstatus 0x1000
+>> [   16.109222] ehci_irq port 2 pstatus 0x14c5
+>> [   16.109252] ehci_irq port 1 pstatus 0x1000
+>> [   16.109374] hub 1-0:1.0: state 7 ports 3 chg 0000 evt 0000
+> 
+> But apparently nothing happened.  Why not?  Did the rh_timer get reset?  
+> Maybe you can find out what went wrong.
+> 
+> (Hmmm, we seem to be missing a
+> 
+> 			set_bit(wIndex, &ehci->resuming_ports);
+> 
+> line in there...)
+> 
 
-I can't really tell at the moment where the problem is.
-
-Did you compile in all the necessary drivers required for NFS booting?
-In the beagle case that would mean NOP_USB_XCEIV, USB_EHCI_HCD, USB_EHCI_HCD_OMAP
-and the smsc95xx driver.
-
-If you can paste your full kernel boot log we can check if all these show up
-before the kernel tries to look up for the NFS server.
-> 
-> Is this a known issue on the Beagleboard? Do you have any ideas what
-> might cause such an issue (unreliable USB connection, hangup of NFS
-> mounting)? Any hints/links appretiated.
-> 
-
-I have been too lazy to setup NFS :). But I will give it a shot soon to see what's going
-wrong.
+Right. This is indeed the problem. I've cooked up a patch for that and will send
+it separately in a moment.
 
 cheers,
 -roger
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
