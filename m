@@ -1,61 +1,114 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 09/12] ARM: DRA7: hwmod: Create initial DRA7XX SoC data
-Date: Tue, 9 Jul 2013 15:44:58 +0530
-Message-ID: <51DBE2A2.2040403@ti.com>
-References: <1373355139-12487-1-git-send-email-rnayak@ti.com> <1373355139-12487-10-git-send-email-rnayak@ti.com> <20130709083152.GC5523@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2] arm: dts: AM43x: Add usb_otg_hs node
+Date: Tue, 9 Jul 2013 13:20:22 +0300
+Message-ID: <20130709102022.GH5552@arwen.pp.htv.fi>
+References: <1373361446-30050-1-git-send-email-george.cherian@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+QwZB9vYiNIzNXIj"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41194 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750928Ab3GIKPd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Jul 2013 06:15:33 -0400
-In-Reply-To: <20130709083152.GC5523@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:58368 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750763Ab3GIKVZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jul 2013 06:21:25 -0400
+Content-Disposition: inline
+In-Reply-To: <1373361446-30050-1-git-send-email-george.cherian@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.com, r.sricharan@ti.com, ambresh@ti.com, Tero Kristo <t-kristo@ti.com>
+To: George Cherian <george.cherian@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, benoit.cousson@linaro.org, afzal@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com
 
-On Tuesday 09 July 2013 02:01 PM, Tony Lindgren wrote:
-> * Rajendra Nayak <rnayak@ti.com> [130709 00:39]:
->> From: Ambresh K <ambresh@ti.com>
-> 
->> --- /dev/null
->> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> ...
-> 
->> +/* dma_system */
->> +static struct omap_hwmod_irq_info dra7xx_dma_system_irqs[] = {
->> +	{ .name = "0", .irq = 12 + DRA7XX_IRQ_GIC_START },
->> +	{ .name = "1", .irq = 13 + DRA7XX_IRQ_GIC_START },
->> +	{ .name = "2", .irq = 14 + DRA7XX_IRQ_GIC_START },
->> +	{ .name = "3", .irq = 15 + DRA7XX_IRQ_GIC_START },
->> +	{ .irq = -1 }
->> +};
-> 
-> I think these should no longer be needed?
+--+QwZB9vYiNIzNXIj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-These are needed only for dma because mach-omap2/dma.c still creates
-devices from hmwod and which are used by plat/dma.c.
-These irqs for sdma exist even in the cleaned up omap4 and omap5 hmwod files.
-I'll try and get rid of that dependency of plat/dma on mach/dma to create devices.
+On Tue, Jul 09, 2013 at 02:47:26PM +0530, George Cherian wrote:
+> Adds device node for HS USB Host module for AM437x
+>=20
+> changes from v1
+>=20
+> renamed synopsis to snps
+> removed flag tx-fifo-resize
 
-> 
-> In general, we must move the hwmod stuff to drivers/bus and start
-> parsing the data from device tree along the lines Tero is doing
-> for the clock data.
+the patch revision changes don't need to go to the commit log,
+they should be placed after the tearline (---) and before the diffstat.
 
-We already have irq/dma and iospace moved to DT (some iospace info still
-exists because of non-DT drivers). With Teros patches to move clock data we
-should be able to pass the main_clk and all interface level clock info too
-from DT.
+> Signed-off-by: George Cherian <george.cherian@ti.com>
+> ---
+>  arch/arm/boot/dts/am4372.dtsi | 18 ++++++++++++++++++
+>  1 file changed, 18 insertions(+)
+>=20
+> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+> index ddc1df7..c9e0da8 100644
+> --- a/arch/arm/boot/dts/am4372.dtsi
+> +++ b/arch/arm/boot/dts/am4372.dtsi
+> @@ -64,5 +64,23 @@
+>  			compatible =3D "ti,am4372-counter32k","ti,omap-counter32k";
+>  			reg =3D <0x44e86000 0x40>;
+>  		};
+> +
+> +		usb_otg_hs1: am4372_dwc3@48380000 {
 
-> 
-> What's the plan for doing that?
-> 
-> Regards,
-> 
-> Tony
-> 
+dtsi should always have status =3D "disabled"; no ?
 
+> +			compatible =3D "ti,am437x-dwc3";
+> +			reg =3D <0x48380000 0x1ff>;
+
+weird size, shouldn't this be 0x200 ?
+
+> +			interrupts =3D <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
+> +			#address-cells =3D <1>;
+> +			#size-cells =3D <1>;
+> +			utmi-mode =3D <1>;
+> +			ranges;
+> +
+> +			dwc3@48390000 {
+
+dtsi should always have status =3D "disabled"; no ?
+
+> +				compatible =3D "snps,dwc3";
+> +				reg =3D <0x48390000 0xcfff>;
+
+weird size, shouldn't this be 0xd000 then the size would be exactly
+52KiB
+
+> +				interrupts =3D <GIC_SPI  168 IRQ_TYPE_LEVEL_HIGH>;
+> +			};
+> +
+> +		};
+> +	=09
+
+there two trailing tabs on this line.
+
+Another thing: am437x has 4 instances of this IP, why are you adding
+only one ? And why aren't you pasing the PHY nodes here ? The device
+won't work without its PHYs.
+
+--=20
+balbi
+
+--+QwZB9vYiNIzNXIj
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR2+PmAAoJEIaOsuA1yqRE9KQP/R/EN80a1vDZzkZRGmM4HLEd
+AtsJnkkcb1q/mSyge3BhuXN03ue3iZ7SGGErEy07zb83zERwFeM+7KikA5g3KMWz
+09bxKBarhdzNxO8d2b1HqeUXNAZEYMZNaSshIUb5LUMwfApIRH6OY2D38crzWfWQ
+YEa5OURx6sWfs/iKNnL+p8LK0ldhoShMBhEKwXQDc321Mc3Cfs1oVF9SoxOQXVyC
+L2mN4pPidlMeUt6E57/8SaQrQOK3rExdfjkcqOqWXTYefT6zdrnz1q5vhCmxdi/L
+7b5RrMPw37H/XMoOYcltd8PRuyYFVzin62AAHC2YX2+LFv9l0nS5CoHWqUoN9Una
+A7N2u53bWDpgXEH2e0qOYbpXnwJaJIS2q8qlAwVp1LeqPed/f2eMVZBfYQJeVv7H
+kKUqdI3FLxf10/eR+k0KWPBIMFTB9AjnLYKy6q7NwSK8oPTSB0476xOoUJcuOKDW
+5ZiF71GT+0W97rJbs3Q7Vrq+et4Xrc5z/ylDH101b5HscOlLxyxwc1H2x3kkOvy/
+QiyZ0hqKdJ19lsEcDBKiH/H/lE4X7fjS6ySNyL59NUci9obPj9DEikEYPCIY2Fm6
+3v2C6H3dMuG1nDnGk8ecClTCUV26zeBjpo91s3qmgNBwObPX406qii8lVdDJ81/y
+0FHJeTl88TXuJ7s3m+Ke
+=BA/h
+-----END PGP SIGNATURE-----
+
+--+QwZB9vYiNIzNXIj--
