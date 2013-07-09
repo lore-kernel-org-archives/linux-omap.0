@@ -1,68 +1,61 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCHv3 2/3] drivers: spi: Add qspi flash controller
-Date: Tue, 9 Jul 2013 11:05:26 +0100
-Message-ID: <20130709100525.GR27646@sirena.org.uk>
-References: <1373290980-17883-1-git-send-email-sourav.poddar@ti.com>
- <1373290980-17883-3-git-send-email-sourav.poddar@ti.com>
- <20130708203330.GA28322@kahuna>
- <20130709065143.GC5552@arwen.pp.htv.fi>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 09/12] ARM: DRA7: hwmod: Create initial DRA7XX SoC data
+Date: Tue, 9 Jul 2013 15:44:58 +0530
+Message-ID: <51DBE2A2.2040403@ti.com>
+References: <1373355139-12487-1-git-send-email-rnayak@ti.com> <1373355139-12487-10-git-send-email-rnayak@ti.com> <20130709083152.GC5523@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xuphU+ty49MprRdU"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:34016 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752001Ab3GIKGL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jul 2013 06:06:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20130709065143.GC5552@arwen.pp.htv.fi>
+Received: from bear.ext.ti.com ([192.94.94.41]:41194 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750928Ab3GIKPd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Jul 2013 06:15:33 -0400
+In-Reply-To: <20130709083152.GC5523@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.com, r.sricharan@ti.com, ambresh@ti.com, Tero Kristo <t-kristo@ti.com>
 
+On Tuesday 09 July 2013 02:01 PM, Tony Lindgren wrote:
+> * Rajendra Nayak <rnayak@ti.com> [130709 00:39]:
+>> From: Ambresh K <ambresh@ti.com>
+> 
+>> --- /dev/null
+>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> ...
+> 
+>> +/* dma_system */
+>> +static struct omap_hwmod_irq_info dra7xx_dma_system_irqs[] = {
+>> +	{ .name = "0", .irq = 12 + DRA7XX_IRQ_GIC_START },
+>> +	{ .name = "1", .irq = 13 + DRA7XX_IRQ_GIC_START },
+>> +	{ .name = "2", .irq = 14 + DRA7XX_IRQ_GIC_START },
+>> +	{ .name = "3", .irq = 15 + DRA7XX_IRQ_GIC_START },
+>> +	{ .irq = -1 }
+>> +};
+> 
+> I think these should no longer be needed?
 
---xuphU+ty49MprRdU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+These are needed only for dma because mach-omap2/dma.c still creates
+devices from hmwod and which are used by plat/dma.c.
+These irqs for sdma exist even in the cleaned up omap4 and omap5 hmwod files.
+I'll try and get rid of that dependency of plat/dma on mach/dma to create devices.
 
-On Tue, Jul 09, 2013 at 09:51:43AM +0300, Felipe Balbi wrote:
+> 
+> In general, we must move the hwmod stuff to drivers/bus and start
+> parsing the data from device tree along the lines Tero is doing
+> for the clock data.
 
-> > Looks like a case to use regmap?
-> > Dumb q: why cant we use regmap_spi? worst case, you should be able to
+We already have irq/dma and iospace moved to DT (some iospace info still
+exists because of non-DT drivers). With Teros patches to move clock data we
+should be able to pass the main_clk and all interface level clock info too
+from DT.
 
-> read regmap-spi and you'll see why it can't be used in this case.
+> 
+> What's the plan for doing that?
+> 
+> Regards,
+> 
+> Tony
+> 
 
-> regmap-spi is for SPI clients who want to read their register map
-> through SPI commands. This is a driver for the SPI master which has its
-> registers memory mapped.
-
-Indeed, regmap-spi would be a client of this driver.  Though there is
-regmap-mmio which may be helpful, on the other hand it's relatively
-heavyweight and SPI can be a bit performance sensitive so perhaps it's
-not awesome here.  Russell did mention the idea of some helpers along a
-similar style though, they may be a good idea but nobody wrote them yet.
-
---xuphU+ty49MprRdU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR2+BdAAoJELSic+t+oim9hAUP/jMKcQ5yJDkGq08a+NUKybbA
-/1vzSBvFMwyZVeuludCMfL4JSlFNvuaW3+VJIowNwOdysIBAgT3NA23KrTE6iCap
-OymJIwrldbiqnb0705DNw3OzJ/0jJyXgiRruhogwcH7e1TCV9zQcW5/inAKkkOL5
-OKr42c1fs7bR/aKUee7OJXYwOgyAeHt4M0RAN3HLLoK6PX4c5nFd1/Pv2y1ortfZ
-o3uO2GXQgbNbo0T2LBJN76XXqqlogBFbuxrQOx90yCRDGFmYswmwd6xQfR/UxE3c
-+7jE+GpyWeZctMBrS23wqGQ1aFE7a03sv5tr3pUNNwQ/t2f1AmZ2HCjy0JFkOMNg
-/Brn1Upr+FpgY7ZfGLr90ZuHpB4EyYOfy6gxn1ruTDUd7PVYV2Mt7pPtDiI/Z/d0
-FyV/Dt9PRwdSJiY7DpCqD3WScTbdth2a+tgRVrJ/sQc8nGB6aaDz4PsSJhqJ6Lfo
-L5p6lkj1ajHWNXQ8RCPkcClw3aQV+Oj2Gf0fXwlFuzernuUX24U928nxVABLG4FY
-riiqAqpJtB3cF53w/g1IfHMrUO0azvZz9hr0GT73VUr7wFkva8C2MKXI9HK1aRuM
-WVIaPaYt/hg5b7bIS8LWNIoOrKE6oW8ZxncacydT6h6Ql6NuEbbceqq6wXgSzJSZ
-SxglcxwzGphJwUO5vHCI
-=LHL1
------END PGP SIGNATURE-----
-
---xuphU+ty49MprRdU--
