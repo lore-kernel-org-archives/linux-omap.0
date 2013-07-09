@@ -1,73 +1,63 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH v2] arm: dts: AM43x: Add usb_otg_hs node
-Date: Tue, 09 Jul 2013 18:07:51 +0400
-Message-ID: <51DC1937.9080302@cogentembedded.com>
-References: <1373361446-30050-1-git-send-email-george.cherian@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCHv3 2/3] drivers: spi: Add qspi flash controller
+Date: Tue, 9 Jul 2013 15:40:43 +0100
+Message-ID: <20130709144043.GV27646@sirena.org.uk>
+References: <1373290980-17883-1-git-send-email-sourav.poddar@ti.com>
+ <1373290980-17883-3-git-send-email-sourav.poddar@ti.com>
+ <20130708203330.GA28322@kahuna>
+ <20130709065143.GC5552@arwen.pp.htv.fi>
+ <51DC072F.40704@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:37355 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752914Ab3GIOHz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jul 2013 10:07:55 -0400
-Received: by mail-lb0-f174.google.com with SMTP id x10so4762682lbi.33
-        for <linux-omap@vger.kernel.org>; Tue, 09 Jul 2013 07:07:53 -0700 (PDT)
-In-Reply-To: <1373361446-30050-1-git-send-email-george.cherian@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="W8H4ZJu+ON5Wa/ox"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <51DC072F.40704@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: balbi@ti.com, Sourav Poddar <sourav.poddar@ti.com>, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, afzal@ti.com, linux@arm.linux.org.uk, balbi@ti.com, linux-kernel@vger.kernel.org, benoit.cousson@linaro.org
-
-Hello.
-
-On 09-07-2013 13:17, George Cherian wrote:
-
-> Adds device node for HS USB Host module for AM437x
-
-> changes from v1
-
-> renamed synopsis to snps
-> removed flag tx-fifo-resize
-
-> Signed-off-by: George Cherian <george.cherian@ti.com>
-> ---
->   arch/arm/boot/dts/am4372.dtsi | 18 ++++++++++++++++++
->   1 file changed, 18 insertions(+)
-
-> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-> index ddc1df7..c9e0da8 100644
-> --- a/arch/arm/boot/dts/am4372.dtsi
-> +++ b/arch/arm/boot/dts/am4372.dtsi
-> @@ -64,5 +64,23 @@
->   			compatible = "ti,am4372-counter32k","ti,omap-counter32k";
->   			reg = <0x44e86000 0x40>;
->   		};
-> +
-> +		usb_otg_hs1: am4372_dwc3@48380000 {
-
-    See http://www.devicetree.org/Device_Tree_Usage, "Node Names" section.
-
-> +			compatible = "ti,am437x-dwc3";
-> +			reg = <0x48380000 0x1ff>;
-> +			interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
-> +			#address-cells = <1>;
-> +			#size-cells = <1>;
-> +			utmi-mode = <1>;
-> +			ranges;
-> +
-> +			dwc3@48390000 {
-
-    The same comment.
-
-> +				compatible = "snps,dwc3";
-> +				reg = <0x48390000 0xcfff>;
-> +				interrupts = <GIC_SPI  168 IRQ_TYPE_LEVEL_HIGH>;
-> +			};
-> +
-> +		};
-> +		
-
-WBR, Sergei
 
 
+--W8H4ZJu+ON5Wa/ox
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Jul 09, 2013 at 07:50:55AM -0500, Nishanth Menon wrote:
+
+> with this input and looking closer, I think I see what you are saying now:
+> dra7xxx_qspi_prepare_xfer -> does a pm_runtime_get_sync
+> dra7xxx_qspi_unprepare_xfer -> does a pm_runtime_mark_last_busy,
+> pm_runtime_put_autosuspend
+
+> In between these calls, you have the remaining xfer calls going on.
+> we are assuming here that autosuspend timeout should be greater than
+> the time to complete the worst case transfer.
+
+No, autosuspend will do nothing so long as there are references to the
+device held.  The effect of autosuspend is to delay power down after the
+last reference has been dropped, otherwise things run normally.
+
+--W8H4ZJu+ON5Wa/ox
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR3CDoAAoJELSic+t+oim9mlQP/1O+Zz4BGus/wyIG4C7J3ypQ
+kcnb4c0jRkB+8qr0827e3FBaxf9+acKEHD6D62l0aJjtlbyNKbg9WNFEVxFHRcdC
+niNie4ImofcIrlBkf4xKZ4h20jYEN+Mf9GdmEWd6QR5Df6RrGRJfCTNcZVjA3GhZ
+DbaeCt1bAejD/hRv7sEwlUy9sKl+Ggx42im/zf1sGdL7bbJwAn8aZ7T0LQGyv1uX
+a8p24UXX+sLCnHYQUUANUdL9H9dfGHxz9/f/q0/VVG8NXHjB5Ck1HvlzAtDLR4p1
+IRCQ34zOKDlnix0ltH/2MOendAQzO0VeDU1g2a68TQjHkIolTOMr/jFDqdKjf8L0
+p+go/0gYSFYFoTo3vhVIe5LQ6e1gO5OMwX8vcI6yrGKaN5lJutQ32mcrZ4TOym4W
+MEfIG0VZK8UPD8GEcgcCI6NEYUyGwGlosxk8g2C5l7OWi8T2ksbWj1rM6LnInYwB
+tgw7IPjfj3XPpwJOWOjAboMcEKyZ4w2/wrhDiIUZYtnDIlzZKVq+lI6OrQi1bOv8
+3pQ9sROQHGBCzjyulyU9HMQoNF8ZUqZNaffIy75G7ydQ1yUPtlIUIsscD+DTU87z
+beGkcRV4jrDW/M7iTPwlUvjvknoeVBIDbWWFo7crVK8Jj+EoqtSIxKtcRcGnTr26
+Cjci4NzQqXFaOLSIXndk
+=LrUV
+-----END PGP SIGNATURE-----
+
+--W8H4ZJu+ON5Wa/ox--
