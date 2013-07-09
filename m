@@ -1,90 +1,87 @@
-From: George Cherian <george.cherian@ti.com>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH v2] arm: dts: AM43x: Add usb_otg_hs node
-Date: Tue, 9 Jul 2013 16:51:35 +0530
-Message-ID: <51DBF23F.20103@ti.com>
-References: <1373361446-30050-1-git-send-email-george.cherian@ti.com> <20130709102022.GH5552@arwen.pp.htv.fi>
+Date: Tue, 9 Jul 2013 14:27:51 +0300
+Message-ID: <20130709112751.GI5552@arwen.pp.htv.fi>
+References: <1373361446-30050-1-git-send-email-george.cherian@ti.com>
+ <20130709102022.GH5552@arwen.pp.htv.fi>
+ <51DBF23F.20103@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="poJSiGMzRSvrLGLs"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32842 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33070 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751141Ab3GILWI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Jul 2013 07:22:08 -0400
-In-Reply-To: <20130709102022.GH5552@arwen.pp.htv.fi>
+	id S1751176Ab3GIL2c (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Jul 2013 07:28:32 -0400
+Content-Disposition: inline
+In-Reply-To: <51DBF23F.20103@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, benoit.cousson@linaro.org, afzal@ti.com, linux-kernel@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: balbi@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, benoit.cousson@linaro.org, afzal@ti.com, linux-kernel@vger.kernel.org
 
-On 7/9/2013 3:50 PM, Felipe Balbi wrote:
-> On Tue, Jul 09, 2013 at 02:47:26PM +0530, George Cherian wrote:
->> Adds device node for HS USB Host module for AM437x
->>
->> changes from v1
->>
->> renamed synopsis to snps
->> removed flag tx-fifo-resize
-> the patch revision changes don't need to go to the commit log,
-> they should be placed after the tearline (---) and before the diffstat.
->
->> Signed-off-by: George Cherian <george.cherian@ti.com>
->> ---
->>   arch/arm/boot/dts/am4372.dtsi | 18 ++++++++++++++++++
->>   1 file changed, 18 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
->> index ddc1df7..c9e0da8 100644
->> --- a/arch/arm/boot/dts/am4372.dtsi
->> +++ b/arch/arm/boot/dts/am4372.dtsi
->> @@ -64,5 +64,23 @@
->>   			compatible = "ti,am4372-counter32k","ti,omap-counter32k";
->>   			reg = <0x44e86000 0x40>;
->>   		};
->> +
->> +		usb_otg_hs1: am4372_dwc3@48380000 {
-> dtsi should always have status = "disabled"; no ?
->
->> +			compatible = "ti,am437x-dwc3";
->> +			reg = <0x48380000 0x1ff>;
-> weird size, shouldn't this be 0x200 ?
-okay
->> +			interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
->> +			#address-cells = <1>;
->> +			#size-cells = <1>;
->> +			utmi-mode = <1>;
->> +			ranges;
->> +
->> +			dwc3@48390000 {
-> dtsi should always have status = "disabled"; no ?
-okay
->
->> +				compatible = "snps,dwc3";
->> +				reg = <0x48390000 0xcfff>;
-> weird size, shouldn't this be 0xd000 then the size would be exactly
-> 52KiB
+--poJSiGMzRSvrLGLs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-okay
->> +				interrupts = <GIC_SPI  168 IRQ_TYPE_LEVEL_HIGH>;
->> +			};
->> +
->> +		};
->> +		
-> there two trailing tabs on this line.
->
-> Another thing: am437x has 4 instances of this IP, why are you adding
-> only one ?
+Hi,
 
-AM437x has got only 2 instances. I have verified only one on HAPS so 
-adding only one.
+On Tue, Jul 09, 2013 at 04:51:35PM +0530, George Cherian wrote:
+> >>+				compatible =3D "snps,dwc3";
+> >>+				reg =3D <0x48390000 0xcfff>;
+> >weird size, shouldn't this be 0xd000 then the size would be exactly
+> >52KiB
+>=20
+> okay
 
-> And why aren't you pasing the PHY nodes here ? The device
-> won't work without its PHYs.
+btw, the reason here is that when you call devm_ioremap_resource(), that
+will call resource_size() which does:
 
-Yes true, again in HAPS I  didnt have any PHY configuration to be done.
->
+	size =3D res->end - res->start - 1;
 
+so you need this extra 1 on the size when passing it via DT.
 
--- 
--George
+> >Another thing: am437x has 4 instances of this IP, why are you adding
+> >only one ?
+>=20
+> AM437x has got only 2 instances. I have verified only one on HAPS so
+> adding only one.
 
+weird, on my TRM I see for dwc3 but 2 PHYs.
+
+> >And why aren't you pasing the PHY nodes here ? The device
+> >won't work without its PHYs.
+>=20
+> Yes true, again in HAPS I  didnt have any PHY configuration to be done.
+
+alright, but we should still pass the PHY right ? once silicon comes,
+we want this to work without any further changers.
+
+--=20
+balbi
+
+--poJSiGMzRSvrLGLs
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR2/O3AAoJEIaOsuA1yqREQG8P/03IiNYWxofEiiBOjt1pNPEv
+7pdR6dQdkb3AnTmIYyoulaWYC5SpmcwGyFoWOrcJPHb7bJ1R5zfjNqkpVqfhd7Tl
+lhLKVYS/3DnSazb7Iekx/vdUgG0VCXDkk7UHATkS6y5Oldjxs7m92/Mrt3VyNZ4F
+LabfdDtc8Y/tv3mCCxX6RfjJFChx+jj9ip8rrRnw7SEhqpub8oP60xY9ozO33K3Z
+/QC5OqPkx8iZXEMV519PcCVnvriLhWSMLG2ioO6qZ0fUYJ1cG6w9bNsFeNtHCyhp
+2ZUpJkKfNQ78tsEzivN9wXRMsz/wreE2Z7qHwe8BRWJCf96+candoHobhjInLI7S
+CFX0a/YQ6A1fptHt9lBS8eVEYpNtLfQh0oP3OX/IV7rVMrV2WgavtqMKmvL0sIdi
+FcKb1jhSeY3a9twDhBNeGcik2ii0UUaix0yvkr9DlJ9VaCMEVm7zkkTnkXZfQkNx
+PMBfvbPdcw6XbYXJe1hUcydmyPfeibHbB9Jf3tlgc7AA8ESUF25391CPOxyMdOPw
+mafSjiIYQUISg8eZh6QDiSJwKS27O3TJOduPJUSzcv0Yqc2HReDizldwev+0JRAt
+72sIFdR0i210/meQWMeZ25mNuheuE8/LMjxU1g8+Pzw4qEwyvhJF51WC3UFPKsCS
++q0VoL1AUVA4w3Lx2PYT
+=JCMD
+-----END PGP SIGNATURE-----
+
+--poJSiGMzRSvrLGLs--
