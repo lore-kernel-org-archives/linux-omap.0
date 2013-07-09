@@ -1,15 +1,15 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 4/8] ARM: DRA7: Reuse all of PRCM and MPUSS SMP infra
-Date: Tue, 9 Jul 2013 12:57:49 +0530
-Message-ID: <1373354873-12359-5-git-send-email-rnayak@ti.com>
+Subject: [PATCH 5/8] ARM: DRA7: Reuse io tables and add a new .init_early
+Date: Tue, 9 Jul 2013 12:57:50 +0530
+Message-ID: <1373354873-12359-6-git-send-email-rnayak@ti.com>
 References: <1373354873-12359-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51203 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51202 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752821Ab3GIH2n (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Jul 2013 03:28:43 -0400
+	id S1752794Ab3GIH2m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Jul 2013 03:28:42 -0400
 In-Reply-To: <1373354873-12359-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,77 +18,89 @@ Cc: tony@atomide.com, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.c
 
 From: R Sricharan <r.sricharan@ti.com>
 
-The PRCM and MPUSS parts of DRA7 devices are quite identical
-to OMAP5 so as to reuse all the existing infrastructure around it.
-Makefile updates to do just that.
+The IO descriptor tables for DRA7 are a complete reuse from OMAP5.
+A new dra7xx_init_early() does the base address inits.
 
 Signed-off-by: R Sricharan <r.sricharan@ti.com>
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/Makefile |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/arm/mach-omap2/common.h   |    1 +
+ arch/arm/mach-omap2/io.c       |   22 ++++++++++++++++++++--
+ arch/arm/mach-omap2/omap54xx.h |    4 ++++
+ 3 files changed, 25 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index ea5a27f..dbcd73f 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -23,6 +23,7 @@ obj-$(CONFIG_ARCH_OMAP4) += prm44xx.o $(hwmod-common) $(secure-common)
- obj-$(CONFIG_SOC_AM33XX) += irq.o $(hwmod-common)
- obj-$(CONFIG_SOC_OMAP5)	 += prm44xx.o $(hwmod-common) $(secure-common)
- obj-$(CONFIG_SOC_AM43XX) += $(hwmod-common) $(secure-common)
-+obj-$(CONFIG_SOC_DRA7XX) += prm44xx.o $(hwmod-common) $(secure-common)
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 72cab3f..d226661 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -109,6 +109,7 @@ void omap3630_init_late(void);
+ void am35xx_init_late(void);
+ void ti81xx_init_late(void);
+ int omap2_common_pm_late_init(void);
++void dra7xx_init_early(void);
  
- ifneq ($(CONFIG_SND_OMAP_SOC_MCBSP),)
- obj-y += mcbsp.o
-@@ -39,6 +40,7 @@ omap-4-5-common				=  omap4-common.o omap-wakeupgen.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-4-5-common) $(smp-y) sleep44xx.o
- obj-$(CONFIG_SOC_OMAP5)			+= $(omap-4-5-common) $(smp-y) sleep44xx.o
- obj-$(CONFIG_SOC_AM43XX)		+= $(omap-4-5-common)
-+obj-$(CONFIG_SOC_DRA7XX)		+= $(omap-4-5-common) $(smp-y)
+ #ifdef CONFIG_SOC_BUS
+ void omap_soc_device_init(void);
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index fe3253a..542e6bd 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -251,7 +251,7 @@ static struct map_desc omap44xx_io_desc[] __initdata = {
+ };
+ #endif
  
- plus_sec := $(call as-instr,.arch_extension sec,+sec)
- AFLAGS_omap-headsmp.o			:=-Wa,-march=armv7-a$(plus_sec)
-@@ -87,6 +89,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
- obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o omap-mpuss-lowpower.o
- obj-$(CONFIG_SOC_OMAP5)			+= omap-mpuss-lowpower.o
-+obj-$(CONFIG_SOC_DRA7XX)		+= omap-mpuss-lowpower.o
- obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+-#ifdef	CONFIG_SOC_OMAP5
++#if defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX)
+ static struct map_desc omap54xx_io_desc[] __initdata = {
+ 	{
+ 		.virtual	= L3_54XX_VIRT,
+@@ -333,7 +333,7 @@ void __init omap4_map_io(void)
+ }
+ #endif
  
- obj-$(CONFIG_POWER_AVS_OMAP)		+= sr_device.o
-@@ -118,6 +121,7 @@ omap-prcm-4-5-common			=  cminst44xx.o cm44xx.o prm44xx.o \
- 					   vc44xx_data.o vp44xx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-prcm-4-5-common)
- obj-$(CONFIG_SOC_OMAP5)			+= $(omap-prcm-4-5-common)
-+obj-$(CONFIG_SOC_DRA7XX)		+= $(omap-prcm-4-5-common)
+-#ifdef CONFIG_SOC_OMAP5
++#if defined(CONFIG_SOC_OMAP5) ||  defined(CONFIG_SOC_DRA7XX)
+ void __init omap5_map_io(void)
+ {
+ 	iotable_init(omap54xx_io_desc, ARRAY_SIZE(omap54xx_io_desc));
+@@ -653,6 +653,24 @@ void __init omap5_init_early(void)
+ }
+ #endif
  
- # OMAP voltage domains
- voltagedomain-common			:= voltage.o vc.o vp.o
-@@ -147,6 +151,7 @@ obj-$(CONFIG_SOC_AM33XX)		+= powerdomains33xx_data.o
- obj-$(CONFIG_SOC_AM43XX)		+= $(powerdomain-common)
- obj-$(CONFIG_SOC_OMAP5)			+= $(powerdomain-common)
- obj-$(CONFIG_SOC_OMAP5)			+= powerdomains54xx_data.o
-+obj-$(CONFIG_SOC_DRA7XX)		+= $(powerdomain-common)
++#ifdef CONFIG_SOC_DRA7XX
++void __init dra7xx_init_early(void)
++{
++	omap2_set_globals_tap(DRA7XX_CLASS,
++			      OMAP2_L4_IO_ADDRESS(DRA7XX_TAP_BASE));
++	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE),
++				  OMAP2_L4_IO_ADDRESS(DRA7XX_CTRL_BASE));
++	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRM_BASE));
++	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(DRA7XX_CM_CORE_AON_BASE),
++			     OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_BASE));
++	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
++	omap_prm_base_init();
++	omap_cm_base_init();
++	dra7xx_check_revision();
++}
++#endif
++
++
+ void __init omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+ 				      struct omap_sdrc_params *sdrc_cs1)
+ {
+diff --git a/arch/arm/mach-omap2/omap54xx.h b/arch/arm/mach-omap2/omap54xx.h
+index a086ba1..2d35c57 100644
+--- a/arch/arm/mach-omap2/omap54xx.h
++++ b/arch/arm/mach-omap2/omap54xx.h
+@@ -30,4 +30,8 @@
+ #define OMAP54XX_CTRL_BASE		0x4a002800
+ #define OMAP54XX_SAR_RAM_BASE		0x4ae26000
  
- # PRCM clockdomain control
- clockdomain-common			+= clockdomain.o
-@@ -164,6 +169,7 @@ obj-$(CONFIG_SOC_AM33XX)		+= clockdomains33xx_data.o
- obj-$(CONFIG_SOC_AM43XX)		+= $(clockdomain-common)
- obj-$(CONFIG_SOC_OMAP5)			+= $(clockdomain-common)
- obj-$(CONFIG_SOC_OMAP5)			+= clockdomains54xx_data.o
-+obj-$(CONFIG_SOC_DRA7XX)		+= $(clockdomain-common)
- 
- # Clock framework
- obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common) clock2xxx.o
-@@ -185,6 +191,8 @@ obj-$(CONFIG_SOC_AM33XX)		+= $(clock-common) dpll3xxx.o
- obj-$(CONFIG_SOC_AM33XX)		+= cclock33xx_data.o
- obj-$(CONFIG_SOC_OMAP5)			+= $(clock-common)
- obj-$(CONFIG_SOC_OMAP5)			+= dpll3xxx.o dpll44xx.o
-+obj-$(CONFIG_SOC_DRA7XX)		+= $(clock-common)
-+obj-$(CONFIG_SOC_DRA7XX)		+= dpll3xxx.o dpll44xx.o
- 
- # OMAP2 clock rate set data (old "OPP" data)
- obj-$(CONFIG_SOC_OMAP2420)		+= opp2420_data.o
++#define DRA7XX_CM_CORE_AON_BASE		0x4a005000
++#define DRA7XX_CTRL_BASE		0x4a003400
++#define DRA7XX_TAP_BASE			0x4ae0c000
++
+ #endif /* __ASM_SOC_OMAP555554XX_H */
 -- 
 1.7.9.5
 
