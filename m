@@ -1,84 +1,99 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 11/12] ARM: DRA7: Add the build support in omap2plus
-Date: Tue, 9 Jul 2013 13:02:18 +0530
-Message-ID: <1373355139-12487-12-git-send-email-rnayak@ti.com>
+Subject: [PATCH 08/12] ARM: DRA7: Reuse the omap44xx_restart and fix the device instance
+Date: Tue, 9 Jul 2013 13:02:15 +0530
+Message-ID: <1373355139-12487-9-git-send-email-rnayak@ti.com>
 References: <1373355139-12487-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34132 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51478 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753218Ab3GIHdc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Jul 2013 03:33:32 -0400
+	id S1753141Ab3GIHd2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Jul 2013 03:33:28 -0400
 In-Reply-To: <1373355139-12487-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: tony@atomide.com, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.com, r.sricharan@ti.com, ambresh@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-From: R Sricharan <r.sricharan@ti.com>
+The omap44xx_restart used on omap4 and omap5 devices can be reused
+on dra7 devices as well. The device instance however is different
+across omap5 and dra7 as compared to omap4. So fix this for omap5
+as well as dra7.
 
-Now that all the needed pieces for DRA7 based SoCs' is present, enable
-the build support in omap2plus_defconfig
-
-Signed-off-by: R Sricharan <r.sricharan@ti.com>
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: R Sricharan <r.sricharan@ti.com>
 ---
- arch/arm/configs/omap2plus_defconfig |    1 +
- arch/arm/mach-omap2/Kconfig          |   10 +++++++++-
- arch/arm/plat-omap/Kconfig           |    2 +-
- 3 files changed, 11 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/Makefile        |    1 +
+ arch/arm/mach-omap2/board-generic.c |    1 +
+ arch/arm/mach-omap2/prminst44xx.c   |   20 ++++++++++++++++----
+ 3 files changed, 18 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 2ac0ffb..8b17466 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -286,3 +286,4 @@ CONFIG_SOC_OMAP5=y
- CONFIG_TI_DAVINCI_MDIO=y
- CONFIG_TI_DAVINCI_CPDMA=y
- CONFIG_TI_CPSW=y
-+CONFIG_SOC_DRA7XX=y
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index bd34483..e85d430 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -36,7 +36,7 @@ config ARCH_OMAP2PLUS_TYPICAL
- 	select I2C
- 	select I2C_OMAP
- 	select MENELAUS if ARCH_OMAP2
--	select NEON if ARCH_OMAP3 || ARCH_OMAP4 || SOC_OMAP5
-+	select NEON if CPU_V7
- 	select PM_RUNTIME
- 	select REGULATOR
- 	select TWL4030_CORE if ARCH_OMAP3 || ARCH_OMAP4
-@@ -115,6 +115,14 @@ config SOC_OMAP5
- 	select COMMON_CLK
- 	select HAVE_ARM_ARCH_TIMER
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index d0a9d15..137c9e4 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -63,6 +63,7 @@ obj-$(CONFIG_SOC_AM33XX)		+= am33xx-restart.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= omap3-restart.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= omap4-restart.o
+ obj-$(CONFIG_SOC_OMAP5)			+= omap4-restart.o
++obj-$(CONFIG_SOC_DRA7XX)		+= omap4-restart.o
  
-+config SOC_DRA7XX
-+	bool "TI DRA7XX"
-+	select ARM_ARCH_TIMER
-+	select CPU_V7
-+	select ARM_GIC
-+	select HAVE_SMP
-+	select COMMON_CLK
+ # Pin multiplexing
+ obj-$(CONFIG_SOC_OMAP2420)		+= mux2420.o
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 92f8dd3..55d3ee8 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -217,5 +217,6 @@ DT_MACHINE_START(DRA7XX_DT, "Generic DRA7XX (Flattened Device Tree)")
+ 	.init_machine	= omap_generic_init,
+ 	.init_time	= omap5_realtime_timer_init,
+ 	.dt_compat	= dra7xx_boards_compat,
++	.restart	= omap44xx_restart,
+ MACHINE_END
+ #endif
+diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
+index c12320c..6334b96 100644
+--- a/arch/arm/mach-omap2/prminst44xx.c
++++ b/arch/arm/mach-omap2/prminst44xx.c
+@@ -20,10 +20,13 @@
+ #include "common.h"
+ #include "prcm-common.h"
+ #include "prm44xx.h"
++#include "prm54xx.h"
++#include "prm7xx.h"
+ #include "prminst44xx.h"
+ #include "prm-regbits-44xx.h"
+ #include "prcm44xx.h"
+ #include "prcm_mpu44xx.h"
++#include "soc.h"
+ 
+ static void __iomem *_prm_bases[OMAP4_MAX_PRCM_PARTITIONS];
+ 
+@@ -165,10 +168,19 @@ int omap4_prminst_deassert_hardreset(u8 shift, u8 part, s16 inst,
+ void omap4_prminst_global_warm_sw_reset(void)
+ {
+ 	u32 v;
+-
+-	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
+-				    OMAP4430_PRM_DEVICE_INST,
+-				    OMAP4_PRM_RSTCTRL_OFFSET);
++	s16 dev_inst;
 +
- comment "OMAP Core Type"
- 	depends on ARCH_OMAP2
- 
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index f82bae2..436ea97 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -106,7 +106,7 @@ config OMAP_32K_TIMER
- 	  This timer saves power compared to the OMAP_MPU_TIMER, and has
- 	  support for no tick during idle. The 32KHz timer provides less
- 	  intra-tick resolution than OMAP_MPU_TIMER. The 32KHz timer is
--	  currently only available for OMAP16XX, 24XX, 34XX and OMAP4/5.
-+	  currently only available for OMAP16XX, 24XX, 34XX, OMAP4/5 and DRA7XX.
- 
- 	  On OMAP2PLUS this value is only used for CONFIG_HZ and
- 	  CLOCK_TICK_RATE compile time calculation.
++	if (cpu_is_omap44xx())
++		dev_inst = OMAP4430_PRM_DEVICE_INST;
++	else if (soc_is_omap54xx())
++		dev_inst = OMAP54XX_PRM_DEVICE_INST;
++	else if (soc_is_dra7xx())
++		dev_inst = DRA7XX_PRM_DEVICE_INST;
++	else
++		return;
++
++	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION, dev_inst,
++					OMAP4_PRM_RSTCTRL_OFFSET);
+ 	v |= OMAP4430_RST_GLOBAL_WARM_SW_MASK;
+ 	omap4_prminst_write_inst_reg(v, OMAP4430_PRM_PARTITION,
+ 				 OMAP4430_PRM_DEVICE_INST,
 -- 
 1.7.9.5
 
