@@ -1,76 +1,67 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2] arm: dts: AM43x: Add usb_otg_hs node
-Date: Tue, 9 Jul 2013 15:03:54 +0300
-Message-ID: <20130709120354.GP5552@arwen.pp.htv.fi>
-References: <1373361446-30050-1-git-send-email-george.cherian@ti.com>
- <20130709102022.GH5552@arwen.pp.htv.fi>
- <51DBF23F.20103@ti.com>
- <20130709112751.GI5552@arwen.pp.htv.fi>
- <51DBF98B.1050104@ti.com>
-Reply-To: <balbi@ti.com>
+From: Yegor Yefremov <yegorslists@googlemail.com>
+Subject: Re: [PATCH 1/1] OMAPDSS: Add sil9022 driver
+Date: Tue, 9 Jul 2013 14:31:52 +0200
+Message-ID: <CAGm1_kuvXPgY6uymAO1DhvF7cFa+mrdeQnV7knO0ZnF1o+ZthQ@mail.gmail.com>
+References: <1373360825-25170-1-git-send-email-sathyap@ti.com>
+ <CAGm1_kuVLrTPS2TYw=TRWOppbY4HW0tpYUJzWqyv7MapJTL-_Q@mail.gmail.com> <51DBEC74.70406@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tjOMJDssiV0CZSJH"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <51DBF98B.1050104@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: balbi@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, benoit.cousson@linaro.org, afzal@ti.com, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f45.google.com ([209.85.214.45]:54661 "EHLO
+	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752846Ab3GIMcN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jul 2013 08:32:13 -0400
+In-Reply-To: <51DBEC74.70406@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sathya Prakash <a0393677@ti.com>
+Cc: Sathya Prakash M R <sathyap@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, archit@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Srinivas Pulukuru <srinivas.pulukuru@ti.com>
 
---tjOMJDssiV0CZSJH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, Jul 9, 2013 at 12:56 PM, Sathya Prakash <a0393677@ti.com> wrote:
+> Hi,
+>
+>
+> On Tuesday 09 July 2013 03:07 PM, Yegor Yefremov wrote:
+>>
+>> On Tue, Jul 9, 2013 at 11:07 AM, Sathya Prakash M R <sathyap@ti.com>
+>> wrote:
+>>>
+>>> From: Srinivas Pulukuru <srinivas.pulukuru@ti.com>
+>>>
+>>> Add driver for SIL9022 DPI-to-HDMI chip.
+>>>
+>>> Signed-off-by: Srinivas Pulukuru <srinivas.pulukuru@ti.com>
+>>> [sathyap@ti.com: Ported the driver from 2.6.32 based internal
+>>> kernel to v3.10 kernel]
+>>> Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
+>>> ---
+>>> This patch was tested using the legacy OMAP3630 based Zoom3 platform.
+>>> There is no DT support for Zoom , hence board file changes
+>>> made locally were used for validation purpose.
+>>> Further, DT support will be added for a newer SOC which uses
+>>> the sil9022 HDMI interface chip.
+>>>
+>>>   drivers/video/omap2/displays/Kconfig         |    8 +
+>>>   drivers/video/omap2/displays/Makefile        |    1 +
+>>>   drivers/video/omap2/displays/panel-sil9022.c | 1274
+>>> ++++++++++++++++++++++++++
+>>>   drivers/video/omap2/displays/panel-sil9022.h |  527 +++++++++++
+>>>   4 files changed, 1810 insertions(+)
+>>>   create mode 100644 drivers/video/omap2/displays/panel-sil9022.c
+>>>   create mode 100644 drivers/video/omap2/displays/panel-sil9022.h
+>>
+>> What about making this driver more general. We've tested this HDMI
+>> chip on am335x and there are also Freescal based devices using this
+>> chip (http://www.genesi-tech.com/products/efika and kernel repo
+>> http://github.com/genesi/linux-legacy).
+>
+> Currently the panel driver is tied to the OMAPDSS and hence making
+> this driver more generic is a difficult job.
+> But the Common Display Framework (CDF) will surely help us in future
+> to get drivers like this easy to port across different platforms.
+> In the future, will make this driver part of CDF to help in making it more
+> general.
 
-Hi,
+O.K.
 
-On Tue, Jul 09, 2013 at 05:22:43PM +0530, George Cherian wrote:
-> >>>Another thing: am437x has 4 instances of this IP, why are you adding
-> >>>only one ?
-> >>AM437x has got only 2 instances. I have verified only one on HAPS so
-> >>adding only one.
-> >weird, on my TRM I see for dwc3 but 2 PHYs.
->=20
-> Please confirm whether you are looking at am437x TRM or dra7x TRM?
-> dra7x has 4 dwc3 and 2 internal  phys and 2 external phys
-
-guilty as charged :-)
-
-> >>>And why aren't you pasing the PHY nodes here ? The device
-> >>>won't work without its PHYs.
-> >>Yes true, again in HAPS I  didnt have any PHY configuration to be done.
-> >alright, but we should still pass the PHY right ? once silicon comes,
-> >we want this to work without any further changers.
->=20
-> okay will add phy nodes and 2 instances of dwc3.
-
-thanks
-
---=20
-balbi
-
---tjOMJDssiV0CZSJH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR2/wpAAoJEIaOsuA1yqRE+u8P/i9RlFNpp8aZoU5wgz1njZXm
-SKe0j03SMLzX1HX5VeNu+Y0kzVBs3cxfRXTwwY1f1TAlsB15xSNm/ZiORfpgXXWE
-516fxrJRsgwP7ZUW/I35iBh5NP0XOqZYv8p3rW5k52ojkc5RU8MrDpLntVB0TziA
-XqmWUhEt8bjSeCLux8yPRYCYMmaE2WH5w/583eSQlA/yfI7IX7ciYt/sKOKv2Hu8
-udRBoRZNNOBmnOKY9Mh5Lsh7b/BC94Nz3MdHLiZRsSgp1XwzyFvK0AiJJEj5CC4w
-G0syL74R3fEJdbL511yhWPhGzQanlsHvlNFVwggEnsKHp+rGUL9xjf2N07lXTF3B
-BcIkkaegykrKwfMEXWzx7Sl8aeagyWXjRylLHGcwEkCyhfBzs3+cu27BpnZtUu5k
-5mHHVZ1eHcWk+kGoZMGDsVJsDBjSBI5nHK9EvUIpcrMqjyYqmQgvGpFg5m1odDur
-+Ii0YI1oI5OG/H6zn5PJGspOGRzhV6Xbe7ePNsTw/Cbq/NFkeFBCHC4+GpzkLqU0
-tlB2X620+YvFDFbZjyX3ugJLVrqWQYHwgAbJch8GKJMLa3hsMRcvkZ/ww/gf4j5Q
-b73ql+Al7lNnThZuVgshBjHVAMizTgySSZWeX6tWPQXSxEu1cYzdcKj/jDofVe6p
-pQVIPXxAFWS1eL1N93Gw
-=DMc7
------END PGP SIGNATURE-----
-
---tjOMJDssiV0CZSJH--
+Yegor
