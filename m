@@ -1,324 +1,88 @@
-From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv3 2/3] drivers: spi: Add qspi flash controller
-Date: Tue, 9 Jul 2013 12:59:26 +0530
-Message-ID: <51DBBBD6.8030906@ti.com>
-References: <1373290980-17883-1-git-send-email-sourav.poddar@ti.com>
-	<1373290980-17883-3-git-send-email-sourav.poddar@ti.com>
-	<20130708143251.GG31221@arwen.pp.htv.fi>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 00/12] DRA7xx PRCM, hwmod and DT data
+Date: Tue, 9 Jul 2013 13:02:07 +0530
+Message-ID: <1373355139-12487-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20130708143251.GG31221-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: rnayak-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51423 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752624Ab3GIHcx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Jul 2013 03:32:53 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: tony@atomide.com, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.com, r.sricharan@ti.com, ambresh@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-On Monday 08 July 2013 08:02 PM, Felipe Balbi wrote:
-> Hi,
->
-> On Mon, Jul 08, 2013 at 07:12:59PM +0530, Sourav Poddar wrote:
->> +static inline unsigned long dra7xxx_readl(struct dra7xxx_qspi *qspi,
->> +		unsigned long reg)
->> +{
->> +	return readl(qspi->base + reg);
->> +}
->> +
->> +static inline void dra7xxx_writel(struct dra7xxx_qspi *qspi,
->> +		unsigned long val, unsigned long reg)
->> +{
->> +	writel(val, qspi->base + reg);
->> +}
->> +
->> +static inline unsigned long dra7xxx_readl_data(struct dra7xxx_qspi *qspi,
->> +		unsigned long reg, int wlen)
->> +{
->> +	switch (wlen) {
->> +	case 8:
->> +		return readw(qspi->base + reg);
->> +		break;
->> +	case 16:
->> +		return readb(qspi->base + reg);
->> +		break;
->> +	case 32:
->> +		return readl(qspi->base + reg);
->> +		break;
->> +	default:
->> +		return -1;
-> return -EINVAL ? or some other error code ?
->
-Ok.will change.
->> +	}
->> +}
->> +
->> +static inline void dra7xxx_writel_data(struct dra7xxx_qspi *qspi,
->> +		unsigned long val, unsigned long reg, int wlen)
->> +{
->> +	switch (wlen) {
->> +	case 8:
->> +		writew(val, qspi->base + reg);
->> +		break;
->> +	case 16:
->> +		writeb(val, qspi->base + reg);
->> +		break;
->> +	case 32:
->> +		writeb(val, qspi->base + reg);
->> +		break;
->> +	default:
->> +		dev_dbg(qspi->dev, "word lenght out of range");
->> +		break;
->> +	}
->> +}
->> +
->> +static int dra7xxx_qspi_setup(struct spi_device *spi)
->> +{
->> +	struct dra7xxx_qspi	*qspi = spi_master_get_devdata(spi->master);
->> +	int clk_div = 0;
->> +	u32 clk_ctrl_reg, clk_rate;
->> +
->> +	clk_rate = clk_get_rate(qspi->fclk);
->> +
->> +	if (!qspi->spi_max_frequency) {
->> +		dev_err(qspi->dev, "spi max frequency not defined\n");
->> +		return -1;
-> same here
->
-Ok.
->> +	} else
-> this needs to have curly braces too, per CodingStyle
->
-hmm..will change.
->> +		clk_div = (clk_rate / qspi->spi_max_frequency) - 1;
->> +
->> +	dev_dbg(qspi->dev, "%s: hz: %d, clock divider %d\n", __func__,
->> +			qspi->spi_max_frequency, clk_div);
->> +
->> +	pm_runtime_get_sync(qspi->dev);
->> +
->> +	clk_ctrl_reg = dra7xxx_readl(qspi, QSPI_SPI_CLOCK_CNTRL_REG);
->> +
->> +	clk_ctrl_reg&= ~QSPI_CLK_EN;
->> +
->> +	/* disable SCLK */
->> +	dra7xxx_writel(qspi, clk_ctrl_reg, QSPI_SPI_CLOCK_CNTRL_REG);
->> +
->> +	if (clk_div<  0) {
->> +		dev_dbg(qspi->dev, "%s: clock divider<  0, using /1 divider\n",
->> +				__func__);
->> +		clk_div = 1;
->> +	}
->> +
->> +	if (clk_div>  QSPI_CLK_DIV_MAX) {
->> +		dev_dbg(qspi->dev, "%s: clock divider>%d , using /%d divider\n",
->> +			__func__, QSPI_CLK_DIV_MAX, QSPI_CLK_DIV_MAX + 1);
->> +		clk_div = QSPI_CLK_DIV_MAX;
->> +	}
->> +
->> +	/* enable SCLK */
->> +	dra7xxx_writel(qspi, QSPI_CLK_EN | clk_div, QSPI_SPI_CLOCK_CNTRL_REG);
->> +
->> +	pm_runtime_mark_last_busy(qspi->dev);
->> +	pm_runtime_put_autosuspend(qspi->dev);
->> +
->> +	return 0;
->> +}
->> +
->> +static int dra7xxx_qspi_prepare_xfer(struct spi_master *master)
->> +{
->> +	struct dra7xxx_qspi *qspi = spi_master_get_devdata(master);
->> +
->> +	pm_runtime_get_sync(qspi->dev);
-> not going to check return value ?
->
-Will add.
->> +	return 0;
->> +}
->> +
->> +static int dra7xxx_qspi_unprepare_xfer(struct spi_master *master)
->> +{
->> +	struct dra7xxx_qspi *qspi = spi_master_get_devdata(master);
->> +
->> +	pm_runtime_mark_last_busy(qspi->dev);
->> +	pm_runtime_put_autosuspend(qspi->dev);
-> what about on these two ?
->
-Yes, will add error checking.
->> +	return 0;
->> +}
->> +
->> +static int qspi_write_msg(struct dra7xxx_qspi *qspi, struct spi_transfer *t)
->> +{
->> +	const u8 *txbuf;
->> +	int wlen, count;
->> +
->> +	count = t->len;
->> +	txbuf = t->tx_buf;
->> +	wlen = t->bits_per_word;
->> +
->> +	while (count--) {
->> +		dev_dbg(qspi->dev, "tx cmd %08x dc %08x data %02x\n",
->> +			qspi->cmd | QSPI_WR_SNGL, qspi->dc, *txbuf);
->> +		dra7xxx_writel(qspi, QSPI_WC_INT_EN, QSPI_INTR_ENABLE_SET_REG);
-> you should enable the interrupt as the last step. Also, why aren't you
-> using frame interrupt ?
->
->> +		dra7xxx_writel_data(qspi, *txbuf++, QSPI_SPI_DATA_REG, wlen);
->> +		dra7xxx_writel(qspi, qspi->dc, QSPI_SPI_DC_REG);
->> +		dra7xxx_writel(qspi, qspi->cmd | QSPI_WR_SNGL,
->> +			QSPI_SPI_CMD_REG);
->> +		wait_for_completion(&qspi->word_complete);
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->> +static int qspi_read_msg(struct dra7xxx_qspi *qspi, struct spi_transfer *t)
->> +{
->> +	u8 *rxbuf;
->> +	int wlen, count;
->> +
->> +	count = t->len;
->> +	rxbuf = t->rx_buf;
->> +	wlen = t->bits_per_word;
->> +
->> +	while (count--) {
->> +		dev_dbg(qspi->dev, "rx cmd %08x dc %08x\n",
->> +			qspi->cmd | QSPI_RD_SNGL, qspi->dc);
->> +		dra7xxx_writel(qspi, QSPI_WC_INT_EN, QSPI_INTR_ENABLE_SET_REG);
-> ditto
->
-hmm. will move this down.
->> +		dra7xxx_writel(qspi, qspi->dc, QSPI_SPI_DC_REG);
->> +		dra7xxx_writel(qspi, qspi->cmd | QSPI_RD_SNGL,
->> +			QSPI_SPI_CMD_REG);
->> +		wait_for_completion(&qspi->word_complete);
->> +		*rxbuf++ = dra7xxx_readl_data(qspi, QSPI_SPI_DATA_REG, wlen);
->> +		dev_dbg(qspi->dev, "rx done, read %02x\n", *(rxbuf-1));
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->> +static int qspi_transfer_msg(struct dra7xxx_qspi *qspi, struct spi_transfer *t)
->> +{
->> +	if (t->tx_buf)
->> +		qspi_write_msg(qspi, t);
->> +	if (t->rx_buf)
->> +		qspi_read_msg(qspi, t);
->> +
->> +	return 0;
->> +}
->> +
->> +static int dra7xxx_qspi_start_transfer_one(struct spi_master *master,
->> +		struct spi_message *m)
->> +{
->> +	struct dra7xxx_qspi *qspi = spi_master_get_devdata(master);
->> +	struct spi_device *spi = m->spi;
->> +	struct spi_transfer *t;
->> +	int status = 0;
->> +	int frame_length;
->> +
->> +	/* setup device control reg */
->> +	qspi->dc = 0;
->> +
->> +	if (spi->mode&  SPI_CPHA)
->> +		qspi->dc |= QSPI_CKPHA(spi->chip_select);
->> +	if (spi->mode&  SPI_CPOL)
->> +		qspi->dc |= QSPI_CKPOL(spi->chip_select);
->> +	if (spi->mode&  SPI_CS_HIGH)
->> +		qspi->dc |= QSPI_CSPOL(spi->chip_select);
->> +
->> +	frame_length = DIV_ROUND_UP(m->frame_length * spi->bits_per_word,
-> why this multiplication ? Frame is not counted in bits but in number of
-> words. Which means that m->framelength / spi->bits_per_word should be
-> enough.
-Yes, got confused here. Will change.
-> Also, this actually brings up a mistake I made, if I read the TRM
-> correclty this time, frame length is nothing but the t->len which
-> renders patch 1 in this series unnecessary, my mistake.
->
-If flen is t->len, then
-1.) yes patch 1 is useles.
-2.) frame interrupt will make more sense then.
-       Till now, we were using flen as sum of all transfers, because of 
-which
-        I was forced to check for word complete.
+This series adds the data files for DRA7xx devices for
+PRCM, hwmod and DT. This is dependent on the core support [1]
+patches for DRA7xx and leaves out the clock data since its
+on its way to DT [2]
 
-     I will check on "flen" and will get back on frame interrupt with 
-experimental results.
->> +				spi->bits_per_word);
->> +
->> +	frame_length = clamp(frame_length, 0, QSPI_FRAME_MAX);
->> +
->> +	/* setup command reg */
->> +	qspi->cmd = 0;
->> +	qspi->cmd |= QSPI_EN_CS(spi->chip_select);
->> +	qspi->cmd |= QSPI_FLEN(frame_length);
-> right, right, so far so good...
->
->> +	list_for_each_entry(t,&m->transfers, transfer_list) {
->> +		qspi->cmd |= QSPI_WLEN(t->bits_per_word);
-> sure about this ? according to TRM a write of 0 means 1 bit, 1, means 2
-> bits, 2 means 3 bits, etc... So this should be t->bits_per_word - 1.
->
-QSPI_WLEN is taking care of subtrating it by -1.
->> +		qspi->cmd |= QSPI_WC_CMD_INT_EN;
-> ... but why are you still interrupting on every word ????
->
-> as I said before, we want to interrupt on every frame. one spi_transfer
-> is one frame, if that frame has a length of 1MiB, I want to be
-> interrupted after 1MiB.
+The regbit headers for prm and cm are cleaned up post the
+autogeneration as 95% was seen to be currently unused
+(prm-regbits-7xx.h was 100% unused and hence removed)
 
->> +		qspi_transfer_msg(qspi, t);
->> +		m->actual_length += t->len;
->> +
->> +		if (list_is_last(&t->transfer_list,&m->transfers))
->> +			goto out;
->> +	}
->> +
->> +out:
->> +	m->status = status;
->> +	spi_finalize_current_message(master);
->> +
->> +	dra7xxx_writel(qspi, qspi->cmd | QSPI_INVAL, QSPI_SPI_CMD_REG);
->> +
->> +	return status;
->> +}
->> +
->> +static irqreturn_t dra7xxx_qspi_isr(int irq, void *dev_id)
->> +{
->> +	struct dra7xxx_qspi *qspi = dev_id;
->> +	u16 mask, stat;
->> +
->> +	irqreturn_t ret = IRQ_HANDLED;
->> +
->> +	spin_lock(&qspi->lock);
->> +
->> +	stat = dra7xxx_readl(qspi, QSPI_SPI_STATUS_REG);
->> +	mask = dra7xxx_readl(qspi, QSPI_SPI_CMD_REG);
->> +
->> +	if ((stat&  QSPI_WC)&&  (mask&  QSPI_WC_CMD_INT_EN))
-> this is wrong, everytime you want to handle another IRQ bit, you will
-> have to update this line.
->
-> 	if (stat&  mask)
->
-> sounds like it's enough
->
-Yes, correct will change.
+These patches along with the core support patches are available at:
+git://github.com/rrnayak/linux.git for-3.12/dra-core-data
 
+[1] http://marc.info/?l=linux-omap&m=137335492102004&w=2
 
-------------------------------------------------------------------------------
-See everything from the browser to the database with AppDynamics
-Get end-to-end visibility with application monitoring from AppDynamics
-Isolate bottlenecks and diagnose root cause in seconds.
-Start your free trial of AppDynamics Pro today!
-http://pubads.g.doubleclick.net/gampad/clk?id=48808831&iu=/4140/ostg.clktrk
+[2] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg91318.html
+
+Ambresh K (7):
+  ARM: DRA7: PRM: Add DRA7XX register definitions
+  ARM: DRA7: CM: Add DRA7XX register defines
+  ARM: DRA7: PRCM: Add DRA7XX local MPU PRCM regsiters
+  ARM: DRA7: clockdomain: Add DRA7XX data and update header
+  ARM: DRA7: powerdomain: Add DRA7XX data and update header
+  ARM: DRA7: hwmod: Create initial DRA7XX SoC data
+  ARM: DRA7: Enable PM framework initializations
+
+R Sricharan (2):
+  ARM: DRA7: Add the build support in omap2plus
+  ARM: DRA7: dts: Add the dts files for dra7 SoC and dra7-evm board
+
+Rajendra Nayak (3):
+  ARM: DRA7: CM: Add minimal regbit shifts
+  ARM: DRA7: powerdomain: Handle missing vc/vp
+  ARM: DRA7: Reuse the omap44xx_restart and fix the device instance
+
+ arch/arm/boot/dts/Makefile                 |    3 +-
+ arch/arm/boot/dts/dra7-evm.dts             |   20 +
+ arch/arm/boot/dts/dra7.dtsi                |  488 +++++
+ arch/arm/configs/omap2plus_defconfig       |    1 +
+ arch/arm/mach-omap2/Kconfig                |   10 +-
+ arch/arm/mach-omap2/Makefile               |    4 +
+ arch/arm/mach-omap2/board-generic.c        |    1 +
+ arch/arm/mach-omap2/clockdomain.h          |    1 +
+ arch/arm/mach-omap2/clockdomains7xx_data.c |  739 ++++++++
+ arch/arm/mach-omap2/cm-regbits-7xx.h       |   50 +
+ arch/arm/mach-omap2/cm1_7xx.h              |  323 ++++
+ arch/arm/mach-omap2/cm2_7xx.h              |  512 ++++++
+ arch/arm/mach-omap2/io.c                   |    5 +
+ arch/arm/mach-omap2/omap_hwmod.h           |    1 +
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c  | 2724 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomain.h          |    1 +
+ arch/arm/mach-omap2/powerdomains7xx_data.c |  453 +++++
+ arch/arm/mach-omap2/prcm44xx.h             |    5 +
+ arch/arm/mach-omap2/prcm_mpu7xx.h          |   77 +
+ arch/arm/mach-omap2/prm44xx.c              |   12 +-
+ arch/arm/mach-omap2/prm7xx.h               |  677 +++++++
+ arch/arm/mach-omap2/prminst44xx.c          |   20 +-
+ arch/arm/plat-omap/Kconfig                 |    2 +-
+ 23 files changed, 6121 insertions(+), 8 deletions(-)
+ create mode 100644 arch/arm/boot/dts/dra7-evm.dts
+ create mode 100644 arch/arm/boot/dts/dra7.dtsi
+ create mode 100644 arch/arm/mach-omap2/clockdomains7xx_data.c
+ create mode 100644 arch/arm/mach-omap2/cm-regbits-7xx.h
+ create mode 100644 arch/arm/mach-omap2/cm1_7xx.h
+ create mode 100644 arch/arm/mach-omap2/cm2_7xx.h
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+ create mode 100644 arch/arm/mach-omap2/powerdomains7xx_data.c
+ create mode 100644 arch/arm/mach-omap2/prcm_mpu7xx.h
+ create mode 100644 arch/arm/mach-omap2/prm7xx.h
+
+-- 
+1.7.9.5
+
