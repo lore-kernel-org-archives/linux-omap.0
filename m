@@ -1,64 +1,105 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+From: Nishanth Menon <nm@ti.com>
 Subject: Re: [PATCHv3 2/3] drivers: spi: Add qspi flash controller
-Date: Tue, 9 Jul 2013 07:32:43 -0500
-Message-ID: <51DC02EB.8070905@ti.com>
-References: <1373290980-17883-1-git-send-email-sourav.poddar@ti.com>
-	<1373290980-17883-3-git-send-email-sourav.poddar@ti.com>
-	<20130708203330.GA28322@kahuna>
-	<20130709065143.GC5552@arwen.pp.htv.fi>
-	<20130709100525.GR27646@sirena.org.uk>
+Date: Tue, 9 Jul 2013 07:50:55 -0500
+Message-ID: <51DC072F.40704@ti.com>
+References: <1373290980-17883-1-git-send-email-sourav.poddar@ti.com> <1373290980-17883-3-git-send-email-sourav.poddar@ti.com> <20130708203330.GA28322@kahuna> <20130709065143.GC5552@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20130709100525.GR27646-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: rnayak-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36299 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753777Ab3GIMvG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Jul 2013 08:51:06 -0400
+In-Reply-To: <20130709065143.GC5552@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Sourav Poddar <sourav.poddar@ti.com>, broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 07/09/2013 05:05 AM, Mark Brown wrote:
-> On Tue, Jul 09, 2013 at 09:51:43AM +0300, Felipe Balbi wrote:
+On 07/09/2013 01:51 AM, Felipe Balbi wrote:
+> On Mon, Jul 08, 2013 at 03:33:30PM -0500, Nishanth Menon wrote:
+
+>>> +static int dra7xxx_qspi_start_transfer_one(struct spi_master *master,
+>>> +		struct spi_message *m)
+>>> +{
+>>> +	struct dra7xxx_qspi *qspi = spi_master_get_devdata(master);
+>>> +	struct spi_device *spi = m->spi;
+>>> +	struct spi_transfer *t;
+>>> +	int status = 0;
+>>> +	int frame_length;
+>>> +
+>>> +	/* setup device control reg */
+>>> +	qspi->dc = 0;
+>>> +
+>>> +	if (spi->mode & SPI_CPHA)
+>>> +		qspi->dc |= QSPI_CKPHA(spi->chip_select);
+>>> +	if (spi->mode & SPI_CPOL)
+>>> +		qspi->dc |= QSPI_CKPOL(spi->chip_select);
+>>> +	if (spi->mode & SPI_CS_HIGH)
+>>> +		qspi->dc |= QSPI_CSPOL(spi->chip_select);
+>>> +
+>>> +	frame_length = DIV_ROUND_UP(m->frame_length * spi->bits_per_word,
+>>> +				spi->bits_per_word);
+>>> +
+>>> +	frame_length = clamp(frame_length, 0, QSPI_FRAME_MAX);
+>>> +
+>>> +	/* setup command reg */
+>>> +	qspi->cmd = 0;
+>>> +	qspi->cmd |= QSPI_EN_CS(spi->chip_select);
+>>> +	qspi->cmd |= QSPI_FLEN(frame_length);
+>>> +
+>> how does one ensure pm runtime has not disabled clocks in
+>> background? e.g. long latency between transfers.
 >
->>> Looks like a case to use regmap?
->>> Dumb q: why cant we use regmap_spi? worst case, you should be able to
+> because pm_runtime_put*() has not been called ?
 >
->> read regmap-spi and you'll see why it can't be used in this case.
+> There's no way clocks will be gated until we kick the pm autosuspend
+> timer, which is only done when the transfer is finished.
+
+with this input and looking closer, I think I see what you are saying now:
+dra7xxx_qspi_prepare_xfer -> does a pm_runtime_get_sync
+dra7xxx_qspi_unprepare_xfer -> does a pm_runtime_mark_last_busy, 
+pm_runtime_put_autosuspend
+
+In between these calls, you have the remaining xfer calls going on.
+we are assuming here that autosuspend timeout should be greater than the 
+time to complete the worst case transfer.
+
+Is that a valid assumption? would it not be better to mark_busy at other 
+points? my thought is that considering a threaded isr, if by any chance 
+you have a latency > autosuspend due to premption or some un-forseen 
+event, this could crash badly, no? mark_busy will atleast ensure that 
+runtime timer is reset. yep, we can also argue to converse, with a 
+autosuspend delay set to appropriate value, we should not see this 
+issue. pm_runtime_mark_last_busy() may be executed from interrupt 
+context as well. At least going with "marks the last time of the 
+device's busy state" we dont seem to mark them at all potential points?
+
+ofcourse we can debate about how granular the marking should be, IMHO, 
+though, I like autosuspend, however, I like autosuspend as a way to 
+reduce transfer-to-transfer latency to re-enable the clocks. I however 
+am a bit gittery about autosuspend kicking inside required time 
+boundaries (especially considering the delay is upto user of the system).
+
+Just my 2 cents.
+
+[...]
+
+>>> +	qspi->base = devm_ioremap_resource(&pdev->dev, r);
+>>> +	if (IS_ERR(qspi->base)) {
+>>> +		ret = -ENOMEM;
+>>> +		goto free_master;
+>>> +	}
+>> why not use devm_request_and_ioremap? Lock that region down so that no
+>> two drivers can manage the same region?
 >
->> regmap-spi is for SPI clients who want to read their register map
->> through SPI commands. This is a driver for the SPI master which has its
->> registers memory mapped.
->
-> Indeed, regmap-spi would be a client of this driver.  Though there is
-> regmap-mmio which may be helpful, on the other hand it's relatively
-> heavyweight and SPI can be a bit performance sensitive so perhaps it's
-> not awesome here.  Russell did mention the idea of some helpers along a
-> similar style though, they may be a good idea but nobody wrote them yet.
->
-Fair enough. I am starting to see at least a second driver (internally 
-for DRA7 IRQ/DMA crossbar) doing the same handling for different bit 
-sized registers. maybe now is the time for us to create a lighter 
-version of mmio. mmio at least the last I looked uses spinlocks and is 
-fairly fast. But, I agree, when the client of regmap uses locks to 
-protect operations of their own, regmap might be a bit of an overhead. 
-that said, replicating regmap logic in the driver looks a bit weird and 
-might allow the basis for other drivers to do the same as well as some 
-users of mmio would consider themselves performance sensitive :(.
+> read devm_ioremap_resource() and look at the git log for all the
+> numerous drivers which were converted to devm_ioremap_resource() to find
+> the reason.
+
+my bad. fair enough.
 
 -- 
 Regards,
 Nishanth Menon
-
-------------------------------------------------------------------------------
-See everything from the browser to the database with AppDynamics
-Get end-to-end visibility with application monitoring from AppDynamics
-Isolate bottlenecks and diagnose root cause in seconds.
-Start your free trial of AppDynamics Pro today!
-http://pubads.g.doubleclick.net/gampad/clk?id=48808831&iu=/4140/ostg.clktrk
