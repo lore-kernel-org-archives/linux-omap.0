@@ -1,61 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 09/12] ARM: DRA7: hwmod: Create initial DRA7XX SoC data
-Date: Tue, 9 Jul 2013 04:36:57 -0700
-Message-ID: <20130709113657.GF5523@atomide.com>
-References: <1373355139-12487-1-git-send-email-rnayak@ti.com>
- <1373355139-12487-10-git-send-email-rnayak@ti.com>
- <20130709083152.GC5523@atomide.com>
- <51DBE2A2.2040403@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] jacinto6 : usb3_phy: Updated dpll M,N values.
+Date: Tue, 9 Jul 2013 14:43:56 +0300
+Message-ID: <51DBF77C.4000603@ti.com>
+References: <1371829570-15011-1-git-send-email-ruchika@ti.com> <20130708072848.GB16635@arwen.pp.htv.fi> <51DACDA2.1060806@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:15099 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752846Ab3GILhA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jul 2013 07:37:00 -0400
-Content-Disposition: inline
-In-Reply-To: <51DBE2A2.2040403@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <51DACDA2.1060806-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ruchika Kharwar <ruchika-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Nikhil Devshatwar <nikhil.nd-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.com, r.sricharan@ti.com, ambresh@ti.com, Tero Kristo <t-kristo@ti.com>
 
-* Rajendra Nayak <rnayak@ti.com> [130709 03:21]:
-> On Tuesday 09 July 2013 02:01 PM, Tony Lindgren wrote:
-> > * Rajendra Nayak <rnayak@ti.com> [130709 00:39]:
-> >> From: Ambresh K <ambresh@ti.com>
-> > 
-> >> --- /dev/null
-> >> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> > ...
-> > 
-> >> +/* dma_system */
-> >> +static struct omap_hwmod_irq_info dra7xx_dma_system_irqs[] = {
-> >> +	{ .name = "0", .irq = 12 + DRA7XX_IRQ_GIC_START },
-> >> +	{ .name = "1", .irq = 13 + DRA7XX_IRQ_GIC_START },
-> >> +	{ .name = "2", .irq = 14 + DRA7XX_IRQ_GIC_START },
-> >> +	{ .name = "3", .irq = 15 + DRA7XX_IRQ_GIC_START },
-> >> +	{ .irq = -1 }
-> >> +};
-> > 
-> > I think these should no longer be needed?
+On 07/08/2013 05:33 PM, Ruchika Kharwar wrote:
 > 
-> These are needed only for dma because mach-omap2/dma.c still creates
-> devices from hmwod and which are used by plat/dma.c.
-> These irqs for sdma exist even in the cleaned up omap4 and omap5 hmwod files.
-> I'll try and get rid of that dependency of plat/dma on mach/dma to create devices.
+> On 07/08/2013 02:28 AM, Felipe Balbi wrote:
+>> On Fri, Jun 21, 2013 at 10:46:10AM -0500, Ruchika Kharwar wrote:
+>>> Addition of the M and N recommended values for the USB3 PHY DPLL.
+>>> Sysclk for DRA7xx is 20MHz.
+>>> This yields:
+>>> Clk = 20MHz * M/(N+1) = 20MHz * 1000 /(7+1) = 2.5 Ghz
+>>>
+>>> Signed-off-by: Nikhil Devshatwar <nikhil.nd-l0cyMroinI0@public.gmane.org>
+>>> Signed-off-by: Ruchika Kharwar <ruchika-l0cyMroinI0@public.gmane.org>
+>> this won't apply since you had already sent me another version. Please
+>> send in a fix up patch if that's wrong.
+>>
+> I already did .. :-)
+> Sent 07/04/2013
 
-OK great.
- 
-> > In general, we must move the hwmod stuff to drivers/bus and start
-> > parsing the data from device tree along the lines Tero is doing
-> > for the clock data.
-> 
-> We already have irq/dma and iospace moved to DT (some iospace info still
-> exists because of non-DT drivers). With Teros patches to move clock data we
-> should be able to pass the main_clk and all interface level clock info too
-> from DT.
+FYI, I've just sent a better version to fix the root of the problem,
+i.e. use lookup table instead of index based lookup.
 
-OK.
+That should avoid such problems in the future.
 
-Tony
+cheers,
+-roger
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
