@@ -1,91 +1,92 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: Boot hang regression 3.10.0-rc4 -> 3.10.0
-Date: Wed, 10 Jul 2013 19:11:58 +0300
-Message-ID: <20130710161158.GA19716@arwen.pp.htv.fi>
-References: <B5906170F1614E41A8A28DE3B8D121433EE94489@DBDE04.ent.ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EE94520@DBDE04.ent.ti.com>
- <20130708112553.GU5523@atomide.com>
- <51DAB394.3050104@ti.com>
- <20130708131033.GA5523@atomide.com>
- <51DABC81.3080409@ti.com>
- <20130708133512.GD31221@arwen.pp.htv.fi>
- <87mwpuakod.fsf@linaro.org>
- <20130710142633.GV5523@atomide.com>
- <20130710160704.GH18966@arwen.pp.htv.fi>
-Reply-To: <balbi@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 0/6] USB: Implement runtime idling and remote wakeup for OMAP
+ EHCI controller
+Date: Wed, 10 Jul 2013 19:17:55 +0300
+Message-ID: <1373473081-27181-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MGYHOYXEY6WxJCY8"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55106 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754466Ab3GJQMk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Jul 2013 12:12:40 -0400
-Content-Disposition: inline
-In-Reply-To: <20130710160704.GH18966@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: stern@rowland.harvard.edu
+Cc: khilman@linaro.org, sergei.shtylyov@cogentembedded.com, tony@atomide.com, gregkh@linuxfoundation.org, ruslan.bilovol@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@linaro.org>, Rajendra Nayak <rnayak@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Sourav Poddar <sourav.poddar@ti.com>, Paul Walmsley <paul@pwsan.com>
-
---MGYHOYXEY6WxJCY8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Wed, Jul 10, 2013 at 07:07:04PM +0300, Felipe Balbi wrote:
-> how about something like below ? It makes omap_device/hwmod and
-> pm_runtime agree on the initial state of the device and will prevent
-> ->runtime_resume() from being called on first pm_runtime_get*() done
-> during probe.
->=20
-> This is similar to what PCI bus does (if you look at pci_pm_init()).
->=20
-> commit 59108a500b4ab4b1a5102648a3360276dbf7df6f
-> Author: Felipe Balbi <balbi@ti.com>
-> Date:   Wed Jul 10 18:50:16 2013 +0300
->=20
->     arm: omap2plus: unidle devices which are about to probe
->    =20
->     in order to make HWMOD and pm_runtime agree on the
->     initial state of the device, we will unidle the device
->     and call pm_runtime_set_active() to tell pm_runtime
->     that the device is really active.
->    =20
->     By the time driver's probe() is reached, a call to
->     pm_runtime_get_sync() will not cause driver's
->     ->runtime_resume() method to be called at first, only
->     after a successful ->runtime_suspend().
->    =20
->     Signed-off-by: Felipe Balbi <balbi@ti.com>
+This series implements suspend/resume for the OMAP EHCI host controller during
+runtime idle. This will cause its parent, the OMAP USB Host Module as well
+as the USB TLL Module to be put in suspend and hence allow the USB power domain
+to be put in a lower power state. Then we no longer prevent the rest of the OMAP
+SoC from entering lower power states like RETention or OFF mode when
+USB (or system) is suspended. This was one of the main reason why EHCI_OMAP
+is still not enabled in OMAP2 defconfig.
 
-btw, this is RFC, haven't tested at all.
+In order for remote wakeup or hub events (connect/disconnect) to be detected
+while in suspend, we need to rely on the IO daisy chaining mechanism on OMAP.
+This is nothing but configuring a pin to be wakeup capable and triggering an
+interrupt on any pin activity while the hardware module or the entire SoC is
+in sleep state. For this to work, we rely on the wakeup feature added to the
+omap-pinctrl-single driver in [1]. This takes care of routing IO pad wakeup
+interrupt to the right driver's interrupt handler (i.e. ehci_irq in our case).
 
---=20
-balbi
+The pin state information for DEFAULT and IDLE is specified for the omap3beagle-xm
+board in patch 2. So this is tested only on omap3beagle-xm board.
 
---MGYHOYXEY6WxJCY8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Patch 4 takes care of switching the pin states between DEFAULT and IDLE during
+idle/active mode using the pinctrl framework.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Patch 5 takes care of handling the wakeup IRQ when the USB controller is suspended
+and Hardware is not accessible.
 
-iQIcBAEBAgAGBQJR3YfOAAoJEIaOsuA1yqREyDAQAJczUmOc65Cw5oJDldN2wb65
-lAzFxGKXe98R5Od2AlALduoKBRWuIgatn9k/4UUm5kHkK6ST+qd8VnGD9d2s5iAB
-YUDU47Zsa2F9sQ3hmtlZIIy/LLadbrYjUuyAfr7B0JRvioFU13qOQoWsI8qM3f7Q
-BohT0ut/mrGmebQ2qIRAgg9Kf2D+V0+c5iwwS0hCz4SOueD2NnrrTdqRkstXRnxz
-Q0wp0qX63OlL8it/3Faw+YwXvlyv+cjWUQKbA4cO0BWSjzYvScu/cVl0fOJijqaA
-O8NedId0s1OtoLUGMOuUrjP/741AEiP86wGu94PKV+9Fn5vcGk5pLvrefujgfREX
-z5a7ONT+DWghqixcr/cvbjEkSz+r5ufddv5YKppTYbSluHmnQzP1luYlfvuP8Iym
-PSujEiuhixn79A9BbMFETYkjMmf3KCizC8ABm0J2SOe9PYed9385ew9eE4+ogsmM
-zDlrnZuY/ybSkRgiEthY8GWQ5I/BImiUSO/xqS7boGfZwa2VCi+m9tfCSiOEwlAi
-1F3C1qf0hPJWedVSdTAJc8fBsRCKlLU3E9EhpLuB30mz7vze5kPRxjQ9p0pke9D7
-mc0YmqFReSIaMmPbT/HOUaYBHZ+sNybGxBt4UvBfEv1i8FZ+buCFOAHEWaCiuiuX
-NQGbEeqs44T1aQrzfdIz
-=5X8T
------END PGP SIGNATURE-----
+Patch 6 implements runtime and system suspend/resume for the OMAP EHCI controller
 
---MGYHOYXEY6WxJCY8--
+Changelog:
+v1:
+- addressed review comments on RFC patchset
+- Special case handling of controllers that can generate wakeup IRQ when
+suspended is done in HCD core instead of ehci-hcd.
+- Patches based on linus/master commit 496322bc91e35007ed754184dcd447a02b6dd685
+with the following patches on top
+
+[1] - OMAP pinctrl wakeup support
+http://thread.gmane.org/gmane.linux.ports.arm.omap/99010/focus=99041
+This does not apply cleanly though. Tony has agreed to post a revision anytime soon.
+
+[2] - [PATCH v5 0/2] ARM: dts: Add USB host support for Beagle-xm
+http://thread.gmane.org/gmane.linux.drivers.devicetree/39291
+
+[3] - USB-EHCI-Fix-resume-signalling-on-remote-wakeup.patch
+http://thread.gmane.org/gmane.linux.usb.general/89608
+
+cheers,
+-roger
+
+---
+Roger Quadros (6):
+  ARM: OMAP3: Enable Hardware Save and Restore for USB Host
+  ARM: dts: omap3beagle-xm: Add idle state pins for USB host
+  mfd: omap-usb-host: move initialization to module_init()
+  mfd: omap-usb-host: Put pins in IDLE state on suspend
+  USB: Support wakeup IRQ for suspended controllers
+  USB: ehci-omap: Implement suspend/resume
+
+ arch/arm/boot/dts/omap3-beagle-xm.dts       |   29 ++++++++++---
+ arch/arm/mach-omap2/powerdomains3xxx_data.c |    8 +---
+ drivers/mfd/omap-usb-host.c                 |   45 ++++++++++--------
+ drivers/mfd/omap-usb-tll.c                  |   20 +--------
+ drivers/usb/core/hcd.c                      |   21 ++++++++-
+ drivers/usb/host/ehci-omap.c                |   64 ++++++++++++++++++++++++++-
+ include/linux/usb/hcd.h                     |    3 +
+ 7 files changed, 136 insertions(+), 54 deletions(-)
+
+-- 
+1.7.4.1
