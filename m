@@ -1,75 +1,80 @@
 From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 5/6] USB: Support wakeup IRQ for suspended controllers
-Date: Wed, 10 Jul 2013 14:45:02 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1307101440140.1215-100000@iolanthe.rowland.org>
-References: <1373473393-27552-1-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH 6/6] USB: ehci-omap: Implement suspend/resume
+Date: Wed, 10 Jul 2013 15:04:08 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1307101446270.1215-100000@iolanthe.rowland.org>
+References: <1373473405-27589-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1373473393-27552-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1373473405-27589-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
-Cc: khilman@linaro.org, sergei.shtylyov@cogentembedded.com, tony@atomide.com, gregkh@linuxfoundation.org, ruslan.bilovol@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: gregkh@linuxfoundation.org, balbi@ti.com, sergei.shtylyov@cogentembedded.com, khilman@linaro.org, tony@atomide.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 On Wed, 10 Jul 2013, Roger Quadros wrote:
 
-> Some platforms e.g. ehci-omap can generate an interrupt
-> (i.e. remote wakeup) even when the controller is suspended i.e.
-> HW_ACCESSIBLE is cleared.
+> Call ehci_suspend/resume() during runtime suspend/resume
+> as well as system suspend/resume.
 > 
-> Introduce a flag "has_wakeup_irq" in struct usb_hcd to indicate
-> such cases.
+> Use a flag "bound" to indicate that the HCD structures are valid.
+> This is only true between usb_add_hcd() and usb_remove_hcd() calls.
 > 
-> We tackle this case by disabling the IRQ, scheduling a
-> hub resume and enabling back the IRQ after the controller has
-> resumed. This ensures that the IRQ handler runs only after the
-> controller is accessible.
+> The flag can be used by omap_ehci_runtime_suspend/resume() handlers
+> to avoid calling ehci_suspend/resume() when we are no longer bound
+> to the HCD e.g. during probe() and remove();
 
-> @@ -2248,7 +2253,21 @@ irqreturn_t usb_hcd_irq (int irq, void *__hcd)
->  	 */
->  	local_irq_save(flags);
+> @@ -293,15 +301,67 @@ static const struct of_device_id omap_ehci_dt_ids[] = {
 >  
-> -	if (unlikely(HCD_DEAD(hcd) || !HCD_HW_ACCESSIBLE(hcd)))
-> +	if (unlikely(HCD_DEAD(hcd)))
-> +		rc = IRQ_NONE;
-> +	else if (unlikely(!HCD_HW_ACCESSIBLE(hcd) && hcd->has_wakeup_irq)) {
-> +		/*
-> +		 * We got a wakeup interrupt while the controller was
-> +		 * suspending or suspended.  We can't handle it now, so
-> +		 * disable the IRQ and resume the root hub (and hence
-> +		 * the controller too).
-> +		 */
-> +		disable_irq_nosync(hcd->irq);
-> +		set_bit(HCD_FLAG_IRQ_DISABLED, &hcd->flags);
-> +		usb_hcd_resume_root_hub(hcd);
+>  MODULE_DEVICE_TABLE(of, omap_ehci_dt_ids);
+>  
+> +static int omap_ehci_suspend(struct device *dev)
+> +{
+> +	struct usb_hcd *hcd = dev_get_drvdata(dev);
 > +
-> +		rc = IRQ_HANDLED;
-> +	} else if (unlikely(!HCD_HW_ACCESSIBLE(hcd)))
->  		rc = IRQ_NONE;
+> +	dev_dbg(dev, "%s\n", __func__);
+> +
+> +	return ehci_suspend(hcd, true);
+> +}
+> +
+> +static int omap_ehci_resume(struct device *dev)
+> +{
+> +	struct usb_hcd *hcd = dev_get_drvdata(dev);
+> +
+> +	dev_dbg(dev, "%s\n", __func__);
+> +
+> +	return ehci_resume(hcd, false);
+> +}
 
-In the interest of minimizing the amount of work needed in the most 
-common case, this should be written as:
+There are three problems here.  The first is very simple: the wakeup 
+settings are messed up.  Wakeup is supposed to be enabled always for
+runtime suspend, whereas it is controlled by device_may_wakeup() for
+system suspend.  You reversed them.
 
-	else if (unlikely(!HCD_HW_ACCESSIBLE(hcd))) {
-		if (hcd->has_wakeup_irq) {
-			...
-		} else
-			rc = IRQ_NONE;
+The other two problems are both related to the interaction between
+system PM and runtime PM.  Suppose the controller is already runtime
+suspended when the system goes to sleep.  Because it is runtime
+suspended, it is enabled for wakeup.  But device_may_wakeup() could
+return false; if this happens then you have to do a runtime-resume in
+omap_ehci_suspend() before calling ehci_suspend(), so that the
+controller can be suspended again with wakeups disabled.  (Or you could
+choose an alternative method for accomplishing the same result, such as
+disabling the wakeup signal from the pad without going through a whole
+EHCI resume/suspend cycle.)  Conversely, if device_may_wakeup() returns
+true then you shouldn't do anything at all, because the controller is
+already suspended with the correct wakeup setting.
 
->  	else if (hcd->driver->irq(hcd) == IRQ_NONE)
->  		rc = IRQ_NONE;
+For the third problem, suppose the controller was runtime suspended
+when the system went to sleep.  When the system wakes up, the
+controller will become active, so you have to inform the runtime PM
+core about its change of state.  Basically, if omap_ehci_resume() sees
+that ehci_resume() returned 0 then it must do:
 
-Apart from that, the patch is okay.  When you rearrange the logic, you 
-can add my Acked-by.
+	pm_runtime_disable(dev);
+	pm_runtime_set_active(dev);
+	pm_runtime_enable(dev);
+
+All of these issues are discussed (among lots of other material) in 
+Documentation/power/runtime_pm.txt.
 
 Alan Stern
