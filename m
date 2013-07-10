@@ -1,80 +1,92 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2] musb: omap: Fix: pass all the resources to musb core
-Date: Wed, 10 Jul 2013 19:09:58 +0530
-Message-ID: <51DD642E.2030900@ti.com>
-References: <51DAAEEA.60409@cogentembedded.com> <1373453962-21344-1-git-send-email-kishon@ti.com> <20130710112746.GA18966@arwen.pp.htv.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Boot hang regression 3.10.0-rc4 -> 3.10.0
+Date: Wed, 10 Jul 2013 07:26:34 -0700
+Message-ID: <20130710142633.GV5523@atomide.com>
+References: <B5906170F1614E41A8A28DE3B8D121433EE93C23@DBDE04.ent.ti.com>
+ <20130705115959.GQ5523@atomide.com>
+ <B5906170F1614E41A8A28DE3B8D121433EE94489@DBDE04.ent.ti.com>
+ <B5906170F1614E41A8A28DE3B8D121433EE94520@DBDE04.ent.ti.com>
+ <20130708112553.GU5523@atomide.com>
+ <51DAB394.3050104@ti.com>
+ <20130708131033.GA5523@atomide.com>
+ <51DABC81.3080409@ti.com>
+ <20130708133512.GD31221@arwen.pp.htv.fi>
+ <87mwpuakod.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130710112746.GA18966-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, inux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:22586 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754402Ab3GJO0j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Jul 2013 10:26:39 -0400
+Content-Disposition: inline
+In-Reply-To: <87mwpuakod.fsf@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: balbi@ti.com, Rajendra Nayak <rnayak@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Sourav Poddar <sourav.poddar@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Wednesday 10 July 2013 04:57 PM, Felipe Balbi wrote:
-> On Wed, Jul 10, 2013 at 04:29:22PM +0530, Kishon Vijay Abraham I wrote:
->> commit 09fc7d (usb: musb: fix incorrect usage of resource pointer)
->> assumes musb core will always have only 2 resources. But for OMAP
->> platforms there can be 3 resources (2 irq resource and 1 iomem
->> resource). Fixed it here.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
->> ---
->> Changes from v1:
->> *) Removed redundant initialization of *i*
->>
->>  drivers/usb/musb/omap2430.c |   18 ++++++++----------
->>  1 file changed, 8 insertions(+), 10 deletions(-)
->>
->> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
->> index 5b6113a..5bbef78 100644
->> --- a/drivers/usb/musb/omap2430.c
->> +++ b/drivers/usb/musb/omap2430.c
->> @@ -481,7 +481,7 @@ static u64 omap2430_dmamask = DMA_BIT_MASK(32);
->>  
->>  static int omap2430_probe(struct platform_device *pdev)
->>  {
->> -	struct resource			musb_resources[2];
->> +	struct resource			musb_resources[3];
->>  	struct musb_hdrc_platform_data	*pdata = pdev->dev.platform_data;
->>  	struct omap_musb_board_data	*data;
->>  	struct platform_device		*musb;
->> @@ -489,6 +489,7 @@ static int omap2430_probe(struct platform_device *pdev)
->>  	struct device_node		*np = pdev->dev.of_node;
->>  	struct musb_hdrc_config		*config;
->>  	int				ret = -ENOMEM;
->> +	int				i;
->>  
->>  	glue = devm_kzalloc(&pdev->dev, sizeof(*glue), GFP_KERNEL);
->>  	if (!glue) {
->> @@ -571,15 +572,12 @@ static int omap2430_probe(struct platform_device *pdev)
->>  	memset(musb_resources, 0x00, sizeof(*musb_resources) *
->>  			ARRAY_SIZE(musb_resources));
->>  
->> -	musb_resources[0].name = pdev->resource[0].name;
->> -	musb_resources[0].start = pdev->resource[0].start;
->> -	musb_resources[0].end = pdev->resource[0].end;
->> -	musb_resources[0].flags = pdev->resource[0].flags;
->> -
->> -	musb_resources[1].name = pdev->resource[1].name;
->> -	musb_resources[1].start = pdev->resource[1].start;
->> -	musb_resources[1].end = pdev->resource[1].end;
->> -	musb_resources[1].flags = pdev->resource[1].flags;
->> +	for (i = 0; i < ARRAY_SIZE(musb_resources); i++) {
+* Kevin Hilman <khilman@linaro.org> [130710 01:29]:
+> Felipe Balbi <balbi@ti.com> writes:
+> >> 
+> >> Right, but calling serial_omap_restore_context() even when the context
+> >> is not lost, should not ideally cause an issue.
+> >
+> > it does in one condition. If context hasn't been saved before. And that
+> > can happen in the case of wrong pm runtime status for that device.
+> >
+> > Imagine the device is marked as suspended even though it's fully enabled
+> > (it hasn't been suspended by hwmod due to NO_IDLE flag). In that case
+> > your context structure is all zeroes (context has never been saved
+> > before) then when you call pm_runtime_get_sync() on probe() your
+> > ->runtime_resume() will get called, which will restore context,
+> > essentially undoing anything which was configured by u-boot.
+> >
+> > Am I missing something ?
 > 
-> then this is not enough, what if one device using omap2430.c has 2
-> resources and the other has 3 ? and what if a new one has 4 ?
-> 
-> How about using pdev->num_resources to dynamically allocate
-> musb_resources array and using the same thing iterate here ?
+> You're right, the _set_active() is crucial in the case when we prevent
+> the console UART from idling during boot (though that shouldn't be
+> happening in mainline unless the fix for "Issue 1" is done.)
 
-Yeah. This looks better.
+Felipe is right, looks like all we need is to check if context is
+initialized or not. So no need for mach-omap2/serial.c or hwmod tinkering.
 
-Thanks
-Kishon
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+After that having DEBUG_LL and cmdline with earlyprintk console=ttyO..
+works for me. We could also check for some combination of the context
+save registers being NULL if somebody has a good idea which ones
+should never be 0.
+
+Regards,
+
+Tony
+
+
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -161,6 +161,7 @@ struct uart_omap_port {
+ 	u32			calc_latency;
+ 	struct work_struct	qos_work;
+ 	struct pinctrl		*pins;
++	bool			initialized;
+ 	bool			is_suspending;
+ };
+ 
+@@ -1523,6 +1524,8 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 
+ 	pm_runtime_mark_last_busy(up->dev);
+ 	pm_runtime_put_autosuspend(up->dev);
++	up->initialized = true;
++
+ 	return 0;
+ 
+ err_add_port:
+@@ -1584,6 +1587,9 @@ static void serial_omap_mdr1_errataset(struct uart_omap_port *up, u8 mdr1)
+ #ifdef CONFIG_PM_RUNTIME
+ static void serial_omap_restore_context(struct uart_omap_port *up)
+ {
++	if (!up->initialized)
++		return;
++
+ 	if (up->errata & UART_ERRATA_i202_MDR1_ACCESS)
+ 		serial_omap_mdr1_errataset(up, UART_OMAP_MDR1_DISABLE);
+ 	else
