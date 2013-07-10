@@ -1,41 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Boot hang regression 3.10.0-rc4 -> 3.10.0
-Date: Wed, 10 Jul 2013 05:27:44 -0700
-Message-ID: <20130710122744.GU5523@atomide.com>
-References: <20130705115959.GQ5523@atomide.com>
- <B5906170F1614E41A8A28DE3B8D121433EE94489@DBDE04.ent.ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EE94520@DBDE04.ent.ti.com>
- <20130708112553.GU5523@atomide.com>
- <51DAB394.3050104@ti.com>
- <20130708131033.GA5523@atomide.com>
- <51DABC81.3080409@ti.com>
- <20130708133512.GD31221@arwen.pp.htv.fi>
- <87mwpuakod.fsf@linaro.org>
- <20130710121037.GS5523@atomide.com>
+From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: [PATCH v2 0/2] arm: omap: RX-51: ARM errata 430973 workaround
+Date: Wed, 10 Jul 2013 14:59:03 +0200
+Message-ID: <1373461145-9812-1-git-send-email-pali.rohar@gmail.com>
+References: <1362044548-5398-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:31289 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754511Ab3GJM1s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Jul 2013 08:27:48 -0400
-Content-Disposition: inline
-In-Reply-To: <20130710121037.GS5523@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1362044548-5398-1-git-send-email-pali.rohar@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Pavel Machek <pavel@ucw.cz>, Peter De Schrijver <pdeschrijver@nvidia.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Ivaylo Dimitrov <freemangordon@abv.bg>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: balbi@ti.com, Rajendra Nayak <rnayak@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Sourav Poddar <sourav.poddar@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-* Tony Lindgren <tony@atomide.com> [130710 05:17]:
-> * Kevin Hilman <khilman@linaro.org> [130710 01:29]:
-> 
-> If the problem is omap-serial.c idling things while earlycon is
-> running, then omap-serial.c should be fixed.
+This patch adds RX-51 specific SMC support and sets IBE bit in ACTLR du=
+ring
+board init code for ARM errata 430973 workaround.
 
-If this is the case, then delaying the idling in omap-serial.c
-should take care of the issue as earlycon gets disabled when
-the real console has been initialized.
+This is second version of patch which simplifing API and moving all boa=
+rd
+functions to one file board-rx51.c. Wrapper around smc #1 instruction i=
+s in
+omap-smc.S file because some other board may use it too.
 
-Regards,
+Pali Roh=C3=A1r (2):
+  ARM: OMAP: Add secure function omap_smc3() which calling instruction
+    smc #1
+  RX-51: ARM errata 430973 workaround
 
-Tony
+ arch/arm/mach-omap2/board-rx51.c  |   78 +++++++++++++++++++++++++++++=
+++++++++
+ arch/arm/mach-omap2/omap-secure.h |    1 +
+ arch/arm/mach-omap2/omap-smc.S    |   22 ++++++++++-
+ 3 files changed, 100 insertions(+), 1 deletion(-)
+
+--=20
+1.7.10.4
