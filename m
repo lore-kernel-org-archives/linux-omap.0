@@ -1,108 +1,98 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v3] arm: dts: AM43x: Add usb DT nodes for AM4372
-Date: Wed, 10 Jul 2013 13:44:42 +0530
-Message-ID: <1373444082-4169-1-git-send-email-george.cherian@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: Boot hang regression 3.10.0-rc4 -> 3.10.0
+Date: Wed, 10 Jul 2013 09:22:42 +0100
+Message-ID: <87mwpuakod.fsf@linaro.org>
+References: <51D59146.3070002@newflow.co.uk> <51D59C0E.8080003@newflow.co.uk>
+	<B5906170F1614E41A8A28DE3B8D121433EE93C23@DBDE04.ent.ti.com>
+	<20130705115959.GQ5523@atomide.com>
+	<B5906170F1614E41A8A28DE3B8D121433EE94489@DBDE04.ent.ti.com>
+	<B5906170F1614E41A8A28DE3B8D121433EE94520@DBDE04.ent.ti.com>
+	<20130708112553.GU5523@atomide.com> <51DAB394.3050104@ti.com>
+	<20130708131033.GA5523@atomide.com> <51DABC81.3080409@ti.com>
+	<20130708133512.GD31221@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34399 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750736Ab3GJIP3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Jul 2013 04:15:29 -0400
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:54127 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751288Ab3GJIWr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Jul 2013 04:22:47 -0400
+Received: by mail-wi0-f176.google.com with SMTP id ey16so11138568wid.15
+        for <linux-omap@vger.kernel.org>; Wed, 10 Jul 2013 01:22:46 -0700 (PDT)
+In-Reply-To: <20130708133512.GD31221@arwen.pp.htv.fi> (Felipe Balbi's message
+	of "Mon, 8 Jul 2013 16:35:12 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: linux@arm.linux.org.uk, benoit.cousson@linaro.org, a-kishore@ti.com, afzal@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, George Cherian <george.cherian@ti.com>
+To: balbi@ti.com
+Cc: Rajendra Nayak <rnayak@ti.com>, Tony Lindgren <tony@atomide.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Sourav Poddar <sourav.poddar@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-This patch adds
-	- HS USB nodes
-	- phy nodes
-	- usb control module nodes.
+Felipe Balbi <balbi@ti.com> writes:
 
-Signed-off-by: George Cherian <george.cherian@ti.com>
----
+> Hi,
+>
+> On Mon, Jul 08, 2013 at 06:50:01PM +0530, Rajendra Nayak wrote:
+>> >>>>>> I wonder if this is because the timeouts get now initialized to 0 instead
+>> >>>>>> of -1 for the serial driver?
+>> >>>>>>
+>> >>>>>
+>> >>>>> You meant initialized to -1, right? There's an additional check for timeout being 0. Unless i
+>> >>>>> am missing something DT-boot will start off with timeout set to 0 and then get forced to -1.
+>> >>>
+>> >>> OK
+>> >>
+>> >> Issue 2: Causing boot to stop when serial driver is initialized.
+>> >> (After Issue 1 is fixed)
+>> >>
+>> >> I could narrow this down to the change done to return -EINVAL
+>> >> instead of 0 in serial_omap_get_context_loss_count() as part of
+>> >> commit 'a630fbfbb1beeffc5bbe542a7986bf2068874633' "serial: omap:
+>> >> Fix device tree based PM runtime"
+>> >>
+>> >> What this change in turn seems to do is cause a
+>> >> serial_omap_restore_context() to get called as part of
+>> >> serial_omap_runtime_resume() which was not the case when
+>> >> serial_omap_get_context_loss_count() returned 0
+>> >>
+>> >> from serial_omap_runtime_resume():
+>> >> -----
+>> >>         int loss_cnt = serial_omap_get_context_loss_count(up);
+>> >>
+>> >>         if (loss_cnt < 0) {
+>> >>                 dev_dbg(dev, "serial_omap_get_context_loss_count failed : %d\n",
+>> >>                         loss_cnt);
+>> >>                 serial_omap_restore_context(up);
+>> >>         } else if (up->context_loss_cnt != loss_cnt) {
+>> >>                 serial_omap_restore_context(up);
+>> >>         }
+>> >> -----
+>> >>
+>> >> I am still working on why a serial_omap_restore_context() could
+>> >> have caused console to die. I will work with Sourav on this and
+>> >> post the fixes for both issue 1 and issue2 once its clear on whats
+>> >> really causing issue 2.
+>> > 
+>> > That's because we don't have the omap specific pdata callbacks for
+>> > context loss any longer. We may be able to detect when the context
+>> > was really lost in the serial driver, and only then call the
+>> > serial_omap_restore_context().
+>> 
+>> Right, but calling serial_omap_restore_context() even when the context
+>> is not lost, should not ideally cause an issue.
+>
+> it does in one condition. If context hasn't been saved before. And that
+> can happen in the case of wrong pm runtime status for that device.
+>
+> Imagine the device is marked as suspended even though it's fully enabled
+> (it hasn't been suspended by hwmod due to NO_IDLE flag). In that case
+> your context structure is all zeroes (context has never been saved
+> before) then when you call pm_runtime_get_sync() on probe() your
+> ->runtime_resume() will get called, which will restore context,
+> essentially undoing anything which was configured by u-boot.
+>
+> Am I missing something ?
 
-changes from v2
-change synopsis to snps 
-use simple node names
-add both USB and PHY instances
-add usbctrl node 
+You're right, the _set_active() is crucial in the case when we prevent
+the console UART from idling during boot (though that shouldn't be
+happening in mainline unless the fix for "Issue 1" is done.)
 
-changes from v1
-renamed synopsis to snps
-removed flag tx-fifo-resize
-
- arch/arm/boot/dts/am4372.dtsi | 58 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
-
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index ddc1df7..37f196f 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -64,5 +64,63 @@
- 			compatible = "ti,am4372-counter32k","ti,omap-counter32k";
- 			reg = <0x44e86000 0x40>;
- 		};
-+
-+		phy1: usbphy1 {
-+			compatible = "ti,am4372-usb2";
-+			#phy-cells = <0>;
-+			id = <0>;
-+			status = "disabled";
-+		};
-+
-+		phy2: usbphy2 {
-+			compatible = "ti,am4372-usb2";
-+			#phy-cells = <0>;
-+			id = <1>;
-+			status = "disabled";
-+		};
-+
-+		usbctrl: omap-control-usb@44e10620 {
-+			compatible = "ti,omap-control-usb";
-+			reg = <0x44e10620 0x10>;
-+			reg-names = "control_dev_conf";
-+			ti,type = <3>;
-+			status = "disabled";
-+		};
-+
-+		usb1: am4372_dwc3@48380000 {
-+			status = "disabled";
-+			compatible = "ti,am4372-dwc3";
-+			reg = <0x48380000 0x200>;
-+			interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			utmi-mode = <1>;
-+			ranges;
-+			dwc3@48390000 {
-+				compatible = "snps,dwc3";
-+				reg = <0x48390000 0xd000>;
-+				interrupts = <GIC_SPI  168 IRQ_TYPE_LEVEL_HIGH>;
-+				phys = <&phy1>;
-+				phy-names = "am4372-usb1";
-+			};
-+		};
-+
-+		usb2: am4372_dwc3@483c0000 {
-+			status = "disabled";
-+			compatible = "ti,am4372-dwc3";
-+			reg = <0x483c0000 0x200>;
-+			interrupts = <GIC_SPI 178 IRQ_TYPE_LEVEL_HIGH>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			utmi-mode = <1>;
-+			ranges;
-+			dwc3@483d0000 {
-+				compatible = "snps,dwc3";
-+				reg = <0x483d0000 0xd000>;
-+				interrupts = <GIC_SPI  174 IRQ_TYPE_LEVEL_HIGH>;
-+				phys = <&phy2>;
-+				phy-names = "am4372-usb2";
-+			};
-+		};
- 	};
- };
--- 
-1.8.1.4
-
+Kevin
