@@ -1,78 +1,108 @@
-From: Enric Balletbo Serra <eballetbo@gmail.com>
-Subject: Re: [PATCH] ARM: dts: igep00x0: Add pinmux configuration for MCBSP2.
-Date: Wed, 10 Jul 2013 10:07:22 +0200
-Message-ID: <CAFqH_50ud=SFEe=9ctfdMPV5XP5HuS5068yiea0BSFZqEiOf6g@mail.gmail.com>
-References: <CABxcv=mfOhZFG4yE7LG9FdGyz0bhN0qPB4ZTD4hTknAygWGs8A@mail.gmail.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: [PATCH v3] arm: dts: AM43x: Add usb DT nodes for AM4372
+Date: Wed, 10 Jul 2013 13:44:42 +0530
+Message-ID: <1373444082-4169-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:52526 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751087Ab3GJIHX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Jul 2013 04:07:23 -0400
-Received: by mail-wi0-f172.google.com with SMTP id c10so11123061wiw.5
-        for <linux-omap@vger.kernel.org>; Wed, 10 Jul 2013 01:07:22 -0700 (PDT)
-In-Reply-To: <CABxcv=mfOhZFG4yE7LG9FdGyz0bhN0qPB4ZTD4hTknAygWGs8A@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:34399 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750736Ab3GJIP3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Jul 2013 04:15:29 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: =?UTF-8?Q?Beno=C3=AEt_Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: linux@arm.linux.org.uk, benoit.cousson@linaro.org, a-kishore@ti.com, afzal@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, George Cherian <george.cherian@ti.com>
 
-Hi Benoit,
+This patch adds
+	- HS USB nodes
+	- phy nodes
+	- usb control module nodes.
 
-2013/7/6 Javier Martinez Canillas <javier@dowhile0.org>:
-> On Fri, Jul 5, 2013 at 11:38 PM, Enric Balletbo i Serra
-> <eballetbo@gmail.com> wrote:
->> IGEP Processor Boards based on OMAP3 have the MCBSP2 connected to the TDM
->> interface. The kernel should configure the pinmux for these pins in order
->> to get TWL4030 codec working. Without this, for example, playing a wav file
->> doesn't work.
->>
->> Signed-off-by: Enric Balletbo i Serra <eballetbo@gmail.com>
->> ---
->>  arch/arm/boot/dts/omap3-igep.dtsi | 14 ++++++++++++++
->>  1 file changed, 14 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
->> index bc48b11..2326d11 100644
->> --- a/arch/arm/boot/dts/omap3-igep.dtsi
->> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
->> @@ -48,6 +48,15 @@
->>                 >;
->>         };
->>
->> +       mcbsp2_pins: pinmux_mcbsp2_pins {
->> +               pinctrl-single,pins = <
->> +                       0x10c (PIN_INPUT | MUX_MODE0)           /* mcbsp2_fsx.mcbsp2_fsx */
->> +                       0x10e (PIN_INPUT | MUX_MODE0)           /* mcbsp2_clkx.mcbsp2_clkx */
->> +                       0x110 (PIN_INPUT | MUX_MODE0)           /* mcbsp2_dr.mcbsp2.dr */
->> +                       0x112 (PIN_OUTPUT | MUX_MODE0)          /* mcbsp2_dx.mcbsp2_dx */
->> +               >;
->> +       };
->> +
->>         mmc1_pins: pinmux_mmc1_pins {
->>                 pinctrl-single,pins = <
->>                         0x114 (PIN_INPUT_PULLUP | MUX_MODE0)    /* sdmmc1_clk.sdmmc1_clk */
->> @@ -93,6 +102,11 @@
->>         clock-frequency = <400000>;
->>  };
->>
->> +&mcbsp2 {
->> +       pinctrl-names = "default";
->> +       pinctrl-0 = <&mcbsp2_pins>;
->> +};
->> +
->>  &mmc1 {
->>        pinctrl-names = "default";
->>        pinctrl-0 = <&mmc1_pins>;
->> --
->> 1.8.1.2
->>
->
-> Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
+Signed-off-by: George Cherian <george.cherian@ti.com>
+---
 
-As this is a fix and without this the audio interface doesn't work,
-it's possible to add this patch  for v3.11 merge window ?
+changes from v2
+change synopsis to snps 
+use simple node names
+add both USB and PHY instances
+add usbctrl node 
 
-Thanks,
-    Enric
+changes from v1
+renamed synopsis to snps
+removed flag tx-fifo-resize
+
+ arch/arm/boot/dts/am4372.dtsi | 58 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index ddc1df7..37f196f 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -64,5 +64,63 @@
+ 			compatible = "ti,am4372-counter32k","ti,omap-counter32k";
+ 			reg = <0x44e86000 0x40>;
+ 		};
++
++		phy1: usbphy1 {
++			compatible = "ti,am4372-usb2";
++			#phy-cells = <0>;
++			id = <0>;
++			status = "disabled";
++		};
++
++		phy2: usbphy2 {
++			compatible = "ti,am4372-usb2";
++			#phy-cells = <0>;
++			id = <1>;
++			status = "disabled";
++		};
++
++		usbctrl: omap-control-usb@44e10620 {
++			compatible = "ti,omap-control-usb";
++			reg = <0x44e10620 0x10>;
++			reg-names = "control_dev_conf";
++			ti,type = <3>;
++			status = "disabled";
++		};
++
++		usb1: am4372_dwc3@48380000 {
++			status = "disabled";
++			compatible = "ti,am4372-dwc3";
++			reg = <0x48380000 0x200>;
++			interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			utmi-mode = <1>;
++			ranges;
++			dwc3@48390000 {
++				compatible = "snps,dwc3";
++				reg = <0x48390000 0xd000>;
++				interrupts = <GIC_SPI  168 IRQ_TYPE_LEVEL_HIGH>;
++				phys = <&phy1>;
++				phy-names = "am4372-usb1";
++			};
++		};
++
++		usb2: am4372_dwc3@483c0000 {
++			status = "disabled";
++			compatible = "ti,am4372-dwc3";
++			reg = <0x483c0000 0x200>;
++			interrupts = <GIC_SPI 178 IRQ_TYPE_LEVEL_HIGH>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			utmi-mode = <1>;
++			ranges;
++			dwc3@483d0000 {
++				compatible = "snps,dwc3";
++				reg = <0x483d0000 0xd000>;
++				interrupts = <GIC_SPI  174 IRQ_TYPE_LEVEL_HIGH>;
++				phys = <&phy2>;
++				phy-names = "am4372-usb2";
++			};
++		};
+ 	};
+ };
+-- 
+1.8.1.4
+
