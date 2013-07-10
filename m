@@ -1,32 +1,49 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: USB & hwmon on am33xx
-Date: Wed, 10 Jul 2013 11:37:26 +0530
-Message-ID: <51DCFA1E.3000202@ti.com>
-References: <51DC3B39.6000104@linutronix.de> <51DC5185.4000804@ti.com> <51DC6C00.7090402@linutronix.de>
+From: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
+Subject: [PATCH v2 1/2] ARM: dts: twl: Add GPADC data to device tree
+Date: Wed, 10 Jul 2013 10:08:53 +0300
+Message-ID: <1373440134-30118-2-git-send-email-oleksandr.kozaruk@ti.com>
+References: <1373440134-30118-1-git-send-email-oleksandr.kozaruk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51732 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751077Ab3GJGHh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Jul 2013 02:07:37 -0400
-In-Reply-To: <51DC6C00.7090402@linutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1373440134-30118-1-git-send-email-oleksandr.kozaruk@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, gg@slimlogic.co.uk, peter.ujfalusi@ti.com, kishon@ti.com, benoit.cousson@linaro.org, grant.likely@linaro.org, rob.herring@calxeda.com, sameo@linux.intel.com, ch.naveen@samsung.com, milo.kim@ti.com, poeschel@lemonage.de, balajitk@ti.com
+Cc: linux-iio@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On 7/10/2013 1:31 AM, Sebastian Andrzej Siewior wrote:
-> On 07/09/2013 08:08 PM, Mugunthan V N wrote:
->> Yes, you need hwmod entry for each of the above device. Since USB has only only
->> clock ctrl register, have one as parrent and make other  devices as child node.
->> you can take CPSW as an example.
-> So there is not some kind of ref counting if I use this entry twice?
-> What about the PWM as an example? It has two child nodes and also only
-> one clock register.
->
-Yes, you can take PWM as example.
+GPADC is the general purpose ADC present on twl6030.
+The dt data is interrupt used to trigger end of ADC
+conversion.
 
-Regards
-Mugunthan V N
+Signed-off-by: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
+---
+ arch/arm/boot/dts/twl6030.dtsi |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/arch/arm/boot/dts/twl6030.dtsi b/arch/arm/boot/dts/twl6030.dtsi
+index 2e3bd31..434842c 100644
+--- a/arch/arm/boot/dts/twl6030.dtsi
++++ b/arch/arm/boot/dts/twl6030.dtsi
+@@ -103,4 +103,10 @@
+ 		compatible = "ti,twl6030-pwmled";
+ 		#pwm-cells = <2>;
+ 	};
++
++	gpadc: twl6030_gpadc {
++		compatible = "ti,twl6030_gpadc";
++		interrupts = <3>;
++		#io-channel-cells = <1>;
++	};
+ };
+-- 
+1.7.9.5
