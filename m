@@ -1,7 +1,7 @@
 From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH v2 1/2] ARM: OMAP: Add secure function omap_smc3() which calling instruction smc #1
-Date: Wed, 10 Jul 2013 14:59:04 +0200
-Message-ID: <1373461145-9812-2-git-send-email-pali.rohar@gmail.com>
+Subject: [PATCH v2 2/2] RX-51: ARM errata 430973 workaround
+Date: Wed, 10 Jul 2013 14:59:05 +0200
+Message-ID: <1373461145-9812-3-git-send-email-pali.rohar@gmail.com>
 References: <1362044548-5398-1-git-send-email-pali.rohar@gmail.com>
  <1373461145-9812-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
@@ -14,72 +14,160 @@ To: linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Aaro Koskine
 Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Pavel Machek <pavel@ucw.cz>, Peter De Schrijver <pdeschrijver@nvidia.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Ivaylo Dimitrov <freemangordon@abv.bg>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Other secure functions omap_smc1() and omap_smc2() calling instruction =
-smc #0
-but Nokia RX-51 board needs to call smc #1 for PPA access.
+Closed and signed Nokia X-Loader bootloader stored in RX-51 nand does n=
+ot set
+IBE bit in ACTLR and starting kernel in non-secure mode. So direct writ=
+e to
+ACTLR by our kernel does not working and the code for ARM errata 430973=
+ in
+commit 7ce236fcd6fd45b0441a2d49acb2ceb2de2e8a47 that sets IBE bit is a =
+noop.
+
+In order to have workaround for ARM errata 430973 from non-secure world=
+ on
+RX-51 we needs Secure Monitor Call to set IBE BIT in ACTLR.
+
+This patch adds RX-51 specific SMC support and sets IBE bit in ACTLR du=
+ring
+board init code for ARM errata 430973 workaround.
+
+ARM errata 430973 workaround is needed for thumb-2 ISA compiled userspa=
+ce
+binaries. Without this workaround thumb-2 binaries crashing. So with th=
+is
+patch it is possible to recompile and run applications/binaries with th=
+umb-2
+ISA on RX-51.
 
 Signed-off-by: Ivaylo Dimitrov <freemangordon@abv.bg>
 Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
 ---
- arch/arm/mach-omap2/omap-secure.h |    1 +
- arch/arm/mach-omap2/omap-smc.S    |   22 +++++++++++++++++++++-
- 2 files changed, 22 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/board-rx51.c |   78 ++++++++++++++++++++++++++++++=
+++++++++
+ 1 file changed, 78 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/om=
-ap-secure.h
-index 0e72917..c4586f4 100644
---- a/arch/arm/mach-omap2/omap-secure.h
-+++ b/arch/arm/mach-omap2/omap-secure.h
-@@ -51,6 +51,7 @@
- extern u32 omap_secure_dispatcher(u32 idx, u32 flag, u32 nargs,
- 				u32 arg1, u32 arg2, u32 arg3, u32 arg4);
- extern u32 omap_smc2(u32 id, u32 falg, u32 pargs);
-+extern u32 omap_smc3(u32 id, u32 process, u32 flag, u32 pargs);
- extern phys_addr_t omap_secure_ram_mempool_base(void);
- extern int omap_secure_ram_reserve_memblock(void);
-=20
-diff --git a/arch/arm/mach-omap2/omap-smc.S b/arch/arm/mach-omap2/omap-=
-smc.S
-index f6441c1..5c02b8d 100644
---- a/arch/arm/mach-omap2/omap-smc.S
-+++ b/arch/arm/mach-omap2/omap-smc.S
-@@ -1,9 +1,11 @@
- /*
-- * OMAP44xx secure APIs file.
-+ * OMAP34xx and OMAP44xx secure APIs file.
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/boa=
+rd-rx51.c
+index 03663c2..f234dee 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -2,6 +2,8 @@
+  * Board support file for Nokia N900 (aka RX-51).
   *
-  * Copyright (C) 2010 Texas Instruments, Inc.
-  * Written by Santosh Shilimkar <santosh.shilimkar@ti.com>
-  *
+  * Copyright (C) 2007, 2008 Nokia
 + * Copyright (C) 2012 Ivaylo Dimitrov <freemangordon@abv.bg>
 + * Copyright (C) 2013 Pali Roh=C3=A1r <pali.rohar@gmail.com>
   *
-  * This program is free software,you can redistribute it and/or modify
+  * This program is free software; you can redistribute it and/or modif=
+y
   * it under the terms of the GNU General Public License version 2 as
-@@ -54,6 +56,24 @@ ENTRY(omap_smc2)
- 	ldmfd   sp!, {r4-r12, pc}
- ENDPROC(omap_smc2)
+@@ -21,6 +23,7 @@
+ #include <linux/usb/musb.h>
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+=20
++#include <asm/cacheflush.h>
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+@@ -31,7 +34,14 @@
+ #include "mux.h"
+ #include "gpmc.h"
+ #include "pm.h"
++#include "soc.h"
+ #include "sdram-nokia.h"
++#include "omap-secure.h"
++
++/* Secure PPA (Primary Protected Application) APIs */
++#define RX51_PPA_HWRNG			29
++#define RX51_PPA_L2_INVAL		40
++#define RX51_PPA_WRITE_ACR		42
+=20
+ #define RX51_GPIO_SLEEP_IND 162
+=20
+@@ -90,6 +100,66 @@ static struct omap_musb_board_data musb_board_data =
+=3D {
+ 	.power			=3D 0,
+ };
 =20
 +/**
-+ * u32 omap_smc3(u32 service_id, u32 process_id, u32 flag, u32 pargs)
-+ * Low level common routine for secure HAL and PPA APIs via smc #1
-+ * r0 - @service_id: Secure Service ID
-+ * r1 - @process_id: Process ID
-+ * r2 - @flag: Flag to indicate the criticality of operation
-+ * r3 - @pargs: Physical address of parameter list
++ * rx51_secure_dispatcher: Routine to dispatch secure PPA API calls
++ * @idx: The PPA API index
++ * @process: Process ID
++ * @flag: The flag indicating criticality of operation
++ * @nargs: Number of valid arguments out of four.
++ * @arg1, arg2, arg3 args4: Parameters passed to secure API
++ *
++ * Return the non-zero error value on failure.
 + */
-+ENTRY(omap_smc3)
-+	stmfd	sp!, {r4-r12, lr}
-+	mov	r12, r0		@ Copy the secure service ID
-+	mov	r6, #0xff	@ Indicate new Task call
-+	dsb
-+	dmb
-+	smc	#1		@ call PPA service
-+	ldmfd	sp!, {r4-r12, pc}
-+ENDPROC(omap_smc3)
++static u32 rx51_secure_dispatcher(u32 idx, u32 process, u32 flag, u32 =
+nargs,
++			   u32 arg1, u32 arg2, u32 arg3, u32 arg4)
++{
++	u32 ret;
++	u32 param[5];
 +
- ENTRY(omap_modify_auxcoreboot0)
- 	stmfd   sp!, {r1-r12, lr}
- 	ldr	r12, =3D0x104
++	param[0] =3D nargs+1; /* RX-51 needs number of arguments + 1 */
++	param[1] =3D arg1;
++	param[2] =3D arg2;
++	param[3] =3D arg3;
++	param[4] =3D arg4;
++
++	/*
++	 * Secure API needs physical address
++	 * pointer for the parameters
++	 */
++	local_irq_disable();
++	local_fiq_disable();
++	flush_cache_all();
++	outer_clean_range(__pa(param), __pa(param + 5));
++	ret =3D omap_smc3(idx, process, flag, __pa(param));
++	flush_cache_all();
++	local_fiq_enable();
++	local_irq_enable();
++
++	return ret;
++}
++
++/**
++ * rx51_secure_update_aux_cr: Routine to modify the contents of Auxili=
+ary Control Register
++ *  @set_bits: bits to set in ACR
++ *  @clr_bits: bits to clear in ACR
++ *
++ * Return the non-zero error value on failure.
++*/
++static u32 rx51_secure_update_aux_cr(u32 set_bits, u32 clear_bits)
++{
++	u32 acr;
++
++	/* Read ACR */
++	asm volatile ("mrc p15, 0, %0, c1, c0, 1" : "=3Dr" (acr));
++	acr &=3D ~clear_bits;
++	acr |=3D set_bits;
++
++	return rx51_secure_dispatcher(RX51_PPA_WRITE_ACR,
++				      0,
++				      FLAG_START_CRITICAL,
++				      1, acr, 0, 0, 0);
++}
++
+ static void __init rx51_init(void)
+ {
+ 	struct omap_sdrc_params *sdrc_params;
+@@ -105,6 +175,14 @@ static void __init rx51_init(void)
+ 	rx51_peripherals_init();
+ 	rx51_camera_init();
+=20
++	if (omap_type() =3D=3D OMAP2_DEVICE_TYPE_SEC) {
++#ifdef CONFIG_ARM_ERRATA_430973
++		pr_info("RX-51: Enabling ARM errata 430973 workaround\n");
++		/* set IBE to 1 */
++		rx51_secure_update_aux_cr(BIT(6), 0);
++#endif
++	}
++
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+ 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+ 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
 --=20
 1.7.10.4
