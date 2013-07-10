@@ -1,41 +1,35 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 5/6] USB: Support wakeup IRQ for suspended controllers
-Date: Wed, 10 Jul 2013 15:08:43 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1307101504220.1215-100000@iolanthe.rowland.org>
-References: <1373473393-27552-1-git-send-email-rogerq@ti.com>
+From: Marek Vasut <marex@denx.de>
+Subject: Re: [PATCH 04/12] drivers/mmc/host: don't use devm_pinctrl_get_select_default() in probe
+Date: Wed, 10 Jul 2013 21:57:16 +0200
+Message-ID: <201307102157.16419.marex@denx.de>
+References: <1373471889-18107-1-git-send-email-wsa@the-dreams.de> <1373471889-18107-4-git-send-email-wsa@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1373473393-27552-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: gregkh@linuxfoundation.org, balbi@ti.com, sergei.shtylyov@cogentembedded.com, khilman@linaro.org, tony@atomide.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1373471889-18107-4-git-send-email-wsa@the-dreams.de>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-kernel@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Chris Ball <cjb@laptop.org>, Balaji T K <balajitk@ti.com>, Barry Song <baohua.song@csr.com>, Andrew Lunn <andrew@lunn.ch>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Jason Cooper <jason@lakedaemon.net>, Jingoo Han <jg1.han@samsung.com>, Shawn Guo <shawn.guo@linaro.org>, Fabio Estevam <fabio.estevam@freescale.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sascha Hauer <s.hauer@pengutronix.de>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 10 Jul 2013, Roger Quadros wrote:
+Dear Wolfram Sang,
 
-> Some platforms e.g. ehci-omap can generate an interrupt
-> (i.e. remote wakeup) even when the controller is suspended i.e.
-> HW_ACCESSIBLE is cleared.
+> Since commit ab78029 (drivers/pinctrl: grab default handles from device
+> core), we can rely on device core for setting the default pins. Compile
+> tested only.
 > 
-> Introduce a flag "has_wakeup_irq" in struct usb_hcd to indicate
-> such cases.
-> 
-> We tackle this case by disabling the IRQ, scheduling a
-> hub resume and enabling back the IRQ after the controller has
-> resumed. This ensures that the IRQ handler runs only after the
-> controller is accessible.
+> Acked-by: Linus Walleij <linus.walleij@linaro.org> (personally at LCE13)
+> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
 
-Oh yes, one more thing...
+Something like that is already in -next:
 
-> @@ -132,6 +134,7 @@ struct usb_hcd {
->  	unsigned		wireless:1;	/* Wireless USB HCD */
->  	unsigned		authorized_default:1;
->  	unsigned		has_tt:1;	/* Integrated TT in root hub */
-> +	unsigned		has_wakeup_irq:1; /* Can IRQ when suspended */
+    mmc: mxs-mmc: Let device core handle pinctrl
 
-Please add a highly visible comment here, warning that has_wakeup_irq
-should never be set on systems with shared IRQs.  Having both would ...
-well, it would indicate a really bad system design.
+Otherwise
 
-Alan Stern
+Tested-by: Marek Vasut <marex@denx.de>
+
+Best regards,
+Marek Vasut
