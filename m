@@ -1,50 +1,52 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [GIT PULL] remoteproc fixes
-Date: Wed, 10 Jul 2013 18:29:44 +0300
-Message-ID: <CAK=WgbYHzYdSsuFa0K=q8iUS3ykXy-5=XifxweCx8Uqrg-CYAg@mail.gmail.com>
-References: <CAK=WgbbJesp2Yg0mXOyxzhnQxwvoNLdt7GsY5v2yN+SAc2=WZQ@mail.gmail.com>
+From: "Anna, Suman" <s-anna@ti.com>
+Subject: RE: find real users and drivers of rpmsg
+Date: Wed, 10 Jul 2013 15:32:04 +0000
+Message-ID: <37C860A02101E749A747FA2D3C1E3C504D4660@DLEE11.ent.ti.com>
+References: <CAGsJ_4z3-g_u5qHdoje=MASbRBoRMFjCU4jUfrrCc2836E_umQ@mail.gmail.com>
+ <CAK=WgbYavJUg3WGU9gCF133kEsFF_1ViAT04SDE7Eps8B4h=tA@mail.gmail.com>
+ <51DC841A.9070409@ti.com>
+ <CAGsJ_4w1aK3Za3LpejTWuvHArhoOeXBc6+Ox_ZWx3mVmt42q0g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK=WgbbJesp2Yg0mXOyxzhnQxwvoNLdt7GsY5v2yN+SAc2=WZQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Suman Anna <s-anna@ti.com>, Thomas Meyer <thomas@m3y3r.de>, Wei Yongjun <yongjun_wei@trendmicro.com.cn>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:54295 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754516Ab3GJPcH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Jul 2013 11:32:07 -0400
+In-Reply-To: <CAGsJ_4w1aK3Za3LpejTWuvHArhoOeXBc6+Ox_ZWx3mVmt42q0g@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Barry Song <21cnbao@gmail.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-omap <linux-omap@vger.kernel.org>, "pandaboard@googlegroups.com" <pandaboard@googlegroups.com>
 
-With the lists this time
-
-On Wed, Jul 10, 2013 at 6:17 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> The following changes since commit 9e895ace5d82df8929b16f58e9f515f6d54ab82d:
->
->   Linux 3.10-rc7 (2013-06-22 09:47:31 -1000)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git
-> tags/remoteproc-3.11-fixes
->
-> for you to fetch changes up to 95cee62cb4776a65229a6b6d5969be56589d95c1:
->
->   remoteproc: Cocci spatch "memdup.spatch" (2013-07-01 17:23:58 +0300)
->
-> ----------------------------------------------------------------
-> Trivial remoteproc fixes by Suman Anna, Wei Yongjun and Thomas Meyer.
->
-> ----------------------------------------------------------------
-> Suman Anna (3):
->       remoteproc: fix checkpatch errors in remoteproc code
->       remoteproc/omap: fix a sparse warning
->       remoteproc: free carveout memories only after unmapping them
->
-> Thomas Meyer (1):
->       remoteproc: Cocci spatch "memdup.spatch"
->
-> Wei Yongjun (1):
->       remoteproc: fix error return code in rproc_fw_boot()
->
->  drivers/remoteproc/remoteproc_core.c          | 24 ++++++++++++------------
->  drivers/remoteproc/remoteproc_debugfs.c       |  3 +--
->  drivers/remoteproc/remoteproc_internal.h      |  4 ++--
->  include/linux/platform_data/remoteproc-omap.h |  2 +-
->  4 files changed, 16 insertions(+), 17 deletions(-)
+QmFycnksDQoNCj4gPj4gT24gTW9uLCBKdWwgOCwgMjAxMyBhdCAxMDozMSBBTSwgQmFycnkgU29u
+ZyA8MjFjbmJhb0BnbWFpbC5jb20+IHdyb3RlOg0KPiA+Pj4gaGkgT2hhZC9hbGwsDQo+ID4+PiBp
+IGFtIHRyeWluZyB0byBmaW5kIHNvbWUgcmVhbCB1c2VycyBvZiBycG1zZywgaGVyZSBpIG9ubHkg
+Z2V0DQo+ID4+PiBzYW1wbGVzL3JwbXNnL3JwbXNnX2NsaWVudF9zYW1wbGUuYywgZG9lcyBpdCBt
+ZWFuIG90aGVyIHJlYWwgZHJpdmVycw0KPiA+Pj4gYXJlIG91dCBvZiBtYWlubGluZT8NCj4gPj4N
+Cj4gPj4gWWVzDQo+ID4+DQo+ID4+PiB3aGVyZSBjb3VsZCBpIGdldCB0aGVtPw0KPiA+Pg0KPiA+
+PiBUSSBtYWludGFpbnMgdGhlbSBpbiBpbnRlcm5hbCB0cmVlcywgc29tZSBvZiB3aGljaCBtaWdo
+dCBiZSBwdWJsaWMuDQo+ID4+IEknbSBsb29waW5nIGluIFN1bWFuIGZyb20gVEkgd2hvIG1pZ2h0
+IGJlIGFibGUgdG8gcmVmZXIgeW91IHRvIHNvbWUNCj4gPg0KPiA+IFlvdSB3aWxsIGZpbmQgY291
+cGxlIG9mIHJwbXNnIGNsaWVudCBkcml2ZXJzIGluIG91ciBwcm9kdWN0IGtlcm5lbHMuDQo+ID4g
+Rm9sbG93aW5nIGlzIGEga2VybmVsIHVzZWQgdG93YXJkcyBvdXIgQW5kcm9pZCBwcm9kdWN0LCB5
+b3UgY2FuIGxvb2sNCj4gPiBpbiB0aGUgZHJpdmVycy9ycG1zZyBmb2xkZXIuDQo+ID4NCj4gPiBo
+dHRwOi8vZ2l0Lm9tYXB6b29tLm9yZy8/cD1rZXJuZWwvb21hcC5naXQ7YT1zaG9ydGxvZztoPXJl
+ZnMvaGVhZHMvcC0NCj4gbGludXgtb21hcC0zLjQNCj4gDQo+IHllcy4gaSBoYXZlIHJlcG1zZy1y
+ZXNtZ3IgYW5kIHJlcG1zZy1vbXggbm93LiBhbmQgaSBhbHNvIGhhdmUNCj4gc3lzYmlvcy1ycG1z
+ZyBhbmQgZG9teC4gdGhhbmtzIQ0KPiANCj4gPg0KPiA+Pg0KPiA+Pj4gaSBhbSBhbHNvIHRyeWlu
+ZyB0byBmaW5kIHNvdXJjZSBjb2RlcyBydW5uaW5nIGluIENvcnRleC1NMyB3aGljaCB1c2UNCj4g
+Pj4+IHJwbXNnIGFuZCBob3BlIHRvIGZpbmQgc29tZSBMaW51eCB1c2Vyc3BhY2UgY29kZXMgd2hp
+Y2ggdXNlIHJwbXNnIHRvby4NCj4gPj4+IFRoYW5rcw0KPiA+Pj4gYmFycnkNCj4gPg0KPiA+IFNv
+bWUgaW5mb3JtYXRpb24gZnJvbSB0aGUgZm9sbG93aW5nIHdpa2kgbWlnaHQgYWxzbyBiZSBoYW5k
+eSAoa2luZGEgb2xkLA0KPiA+IGJ1dCBzdGlsbCB1c2VmdWwpIGZvciB5b3UgdG8gZmluZCB0aGUg
+ZXF1aXZhbGVudCBjb2RlIHJ1bm5pbmcgb24gdGhlDQo+ID4gQ29ydGV4LU0zDQo+ID4NCj4gPiBo
+dHRwOi8vb21hcHBlZGlhLm9yZy93aWtpL0NhdGVnb3J5OlJQTXNnDQo+IA0KPiBET01YKERpc3Ry
+aWJ1dGVkIE9wZW5NQVggZm9yIE9NQVA0IHByb2Nlc3NvcnMpIG9uIHRoZSBwYWdlIHNlZW1zIHRv
+IGJlDQo+IGJhc2VkIG9uIHN5c2xpbmsgYW5kIGxvc2UgbWFpbnRhaW5jZSBmb3IgMyB5ZWFycywg
+d2hlcmUgY2FuIGkgZ2V0IGENCj4gbmV3IHZlcnNpb24gYmFzZWQgb24gcnBtc2c/DQo+IA0KDQpM
+b29rIHRocm91Z2ggdGhlIGZvbGxvd2luZyBwcm9qZWN0LA0KaHR0cDovL2dpdC5vbWFwem9vbS5v
+cmcvP3A9cGxhdGZvcm0vaGFyZHdhcmUvdGkvZG9teC5naXQ7YT1zaG9ydGxvZztoPXJlZnMvaGVh
+ZHMvcC1qYi1tcjEtcmVsZWFzZQ0KDQpyZWdhcmRzDQpTdW1hbg0K
