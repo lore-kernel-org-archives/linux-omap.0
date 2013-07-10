@@ -1,49 +1,78 @@
-From: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
-Subject: [PATCH v2 1/2] ARM: dts: twl: Add GPADC data to device tree
-Date: Wed, 10 Jul 2013 10:08:53 +0300
-Message-ID: <1373440134-30118-2-git-send-email-oleksandr.kozaruk@ti.com>
-References: <1373440134-30118-1-git-send-email-oleksandr.kozaruk@ti.com>
+From: Oleksandr Kozaruk <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 0/2] TWL6030, TWL6032 GPADC driver
+Date: Wed, 10 Jul 2013 10:08:52 +0300
+Message-ID: <1373440134-30118-1-git-send-email-oleksandr.kozaruk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1373440134-30118-1-git-send-email-oleksandr.kozaruk@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, gg@slimlogic.co.uk, peter.ujfalusi@ti.com, kishon@ti.com, benoit.cousson@linaro.org, grant.likely@linaro.org, rob.herring@calxeda.com, sameo@linux.intel.com, ch.naveen@samsung.com, milo.kim@ti.com, poeschel@lemonage.de, balajitk@ti.com
-Cc: linux-iio@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, milo.kim-l0cyMroinI0@public.gmane.org, poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-GPADC is the general purpose ADC present on twl6030.
-The dt data is interrupt used to trigger end of ADC
-conversion.
+Hello,
 
-Signed-off-by: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
----
- arch/arm/boot/dts/twl6030.dtsi |    6 ++++++
- 1 file changed, 6 insertions(+)
+This is version 2 - the driver put in drivers/iio, and
+converted using iio facilities as suggested by Graeme.
 
-diff --git a/arch/arm/boot/dts/twl6030.dtsi b/arch/arm/boot/dts/twl6030.dtsi
-index 2e3bd31..434842c 100644
---- a/arch/arm/boot/dts/twl6030.dtsi
-+++ b/arch/arm/boot/dts/twl6030.dtsi
-@@ -103,4 +103,10 @@
- 		compatible = "ti,twl6030-pwmled";
- 		#pwm-cells = <2>;
- 	};
-+
-+	gpadc: twl6030_gpadc {
-+		compatible = "ti,twl6030_gpadc";
-+		interrupts = <3>;
-+		#io-channel-cells = <1>;
-+	};
- };
+TWL603[02] GPADC is used to measure battery voltage,
+battery temperature, battery presence ID, and could
+be used to measure twl603[02] die temperature.
+This is used on TI blaze, blaze tablet platforms.
+
+The TWL6030/TWL6032 is a PMIC that has a GPADC with 17/19
+channels respectively. Some channels have current
+source and are used for measuring voltage drop
+on resistive load for detecting battery ID resistance,
+or measuring voltage drop on NTC resistors for external
+temperature measurements, other channels measure voltage,
+(i.e. battery voltage), and have inbuilt voltage dividers,
+thus, capable to scale voltage. Some channels are dedicated
+for measuring die temperature.
+
+Some channels could be calibrated in 2 points, having
+offsets from ideal values in trim registers.
+
+The difference between GPADC in TWL6030 and TWL6032:
+- 10 bit vs 12 bit ADC;
+- 17 vs 19 channels;
+- channels have different purpose(i. e. battery voltage
+  channel 8 vs channel 18);
+- trim values are interpreted differently.
+
+The driver exports function returning converted value for
+requested channels.
+
+Sysfs entries are added to start and read conversion result
+in millivolts for chosen channel.
+
+The driver is derived from git://git.omapzoom.org/kernel/omap.git
+The original driver's authors and contributors are Balaji T K,
+Graeme Gregory, Ambresh K, Girish S Ghongdemath.
+
+The changes to the original driver:
+- device tree adaptation;
+- drop ioctl support - never been used;
+- unified measurement method for both devices;
+- get rid of "if (device == X)" code style to data driven;
+- drop polling end of conversion and use interrupt instead;
+- iio framework is used
+
+Tested with on blaze tablet 2 with OMAP4430(twl6030), and
+OMAP4470(twl6032) SOMs.
+
+The patches were tested against 3.10-rc7
+
+Oleksandr Kozaruk (2):
+  ARM: dts: twl: Add GPADC data to device tree
+  iio: twl6030-gpadc: TWL6030, TWL6032 GPADC driver
+
+ arch/arm/boot/dts/twl6030.dtsi  |    6 +
+ drivers/iio/adc/Kconfig         |    8 +
+ drivers/iio/adc/Makefile        |    1 +
+ drivers/iio/adc/twl6030-gpadc.c | 1019 +++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 1034 insertions(+)
+ create mode 100644 drivers/iio/adc/twl6030-gpadc.c
+
 -- 
 1.7.9.5
