@@ -1,55 +1,80 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 0/4] pinctrl single support for SoC specific features
-Date: Wed, 10 Jul 2013 16:14:21 +0300
-Message-ID: <51DD5E2D.50504@ti.com>
-References: <20130607203936.16513.57494.stgit@localhost> <51DD4F30.7050603@ti.com> <20130710122417.GT5523@atomide.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2] musb: omap: Fix: pass all the resources to musb core
+Date: Wed, 10 Jul 2013 19:09:58 +0530
+Message-ID: <51DD642E.2030900@ti.com>
+References: <51DAAEEA.60409@cogentembedded.com> <1373453962-21344-1-git-send-email-kishon@ti.com> <20130710112746.GA18966@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45331 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754481Ab3GJNOq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Jul 2013 09:14:46 -0400
-In-Reply-To: <20130710122417.GT5523@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130710112746.GA18966-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, inux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linus.walleij@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 07/10/2013 03:24 PM, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [130710 05:16]:
->> Hi Tony,
+On Wednesday 10 July 2013 04:57 PM, Felipe Balbi wrote:
+> On Wed, Jul 10, 2013 at 04:29:22PM +0530, Kishon Vijay Abraham I wrote:
+>> commit 09fc7d (usb: musb: fix incorrect usage of resource pointer)
+>> assumes musb core will always have only 2 resources. But for OMAP
+>> platforms there can be 3 resources (2 irq resource and 1 iomem
+>> resource). Fixed it here.
 >>
->> On 06/07/2013 11:50 PM, Tony Lindgren wrote:
->>> Hi all,
->>>
->>> Here are few patches to add support for SoC specific features
->>> to pinctrl-single. This is needed at least for omaps to support
->>> IO chain wake-up events from deeper idle states.
->>>
->>> With this patch series, device drivers can request named pinctrl
->>> states like active and idle from the PM runtime suspend and resume
->>> calls to set the wake enable bits for selected pins. Further
->>> the device driver can toggle the wake-up feature as needed based on
->>> the device_may_wakeup() state set by the standard sysfs
->>> power/wakeup entry.
->>>
->>> This is implemented in a separate pinctrl-single-omap driver that
->>> works together with pinctrl-single. This way the SoC specific
->>> are separated from the common pinctrl-single, and allows a relatively
->>> easy way to implement SoC specific things like wake-up events,
->>> pin interrupts, and GPIO.
+>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>> ---
+>> Changes from v1:
+>> *) Removed redundant initialization of *i*
 >>
->> What's the status of this? Would be nice to get it in 3.12. I'm basing
->> the OMAP USB host wakeup support on this.
+>>  drivers/usb/musb/omap2430.c |   18 ++++++++----------
+>>  1 file changed, 8 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+>> index 5b6113a..5bbef78 100644
+>> --- a/drivers/usb/musb/omap2430.c
+>> +++ b/drivers/usb/musb/omap2430.c
+>> @@ -481,7 +481,7 @@ static u64 omap2430_dmamask = DMA_BIT_MASK(32);
+>>  
+>>  static int omap2430_probe(struct platform_device *pdev)
+>>  {
+>> -	struct resource			musb_resources[2];
+>> +	struct resource			musb_resources[3];
+>>  	struct musb_hdrc_platform_data	*pdata = pdev->dev.platform_data;
+>>  	struct omap_musb_board_data	*data;
+>>  	struct platform_device		*musb;
+>> @@ -489,6 +489,7 @@ static int omap2430_probe(struct platform_device *pdev)
+>>  	struct device_node		*np = pdev->dev.of_node;
+>>  	struct musb_hdrc_config		*config;
+>>  	int				ret = -ENOMEM;
+>> +	int				i;
+>>  
+>>  	glue = devm_kzalloc(&pdev->dev, sizeof(*glue), GFP_KERNEL);
+>>  	if (!glue) {
+>> @@ -571,15 +572,12 @@ static int omap2430_probe(struct platform_device *pdev)
+>>  	memset(musb_resources, 0x00, sizeof(*musb_resources) *
+>>  			ARRAY_SIZE(musb_resources));
+>>  
+>> -	musb_resources[0].name = pdev->resource[0].name;
+>> -	musb_resources[0].start = pdev->resource[0].start;
+>> -	musb_resources[0].end = pdev->resource[0].end;
+>> -	musb_resources[0].flags = pdev->resource[0].flags;
+>> -
+>> -	musb_resources[1].name = pdev->resource[1].name;
+>> -	musb_resources[1].start = pdev->resource[1].start;
+>> -	musb_resources[1].end = pdev->resource[1].end;
+>> -	musb_resources[1].flags = pdev->resource[1].flags;
+>> +	for (i = 0; i < ARRAY_SIZE(musb_resources); i++) {
 > 
-> How about I'll push an immutable branch against v3.11-rc1 when it's
-> tagged and send a pull request to Linus W for the first three patches?
+> then this is not enough, what if one device using omap2430.c has 2
+> resources and the other has 3 ? and what if a new one has 4 ?
 > 
-> That way we can base other branches on this if needed.
+> How about using pdev->num_resources to dynamically allocate
+> musb_resources array and using the same thing iterate here ?
 
-Looks good to me. Thanks.
+Yeah. This looks better.
 
-cheers,
--roger
+Thanks
+Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
