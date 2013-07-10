@@ -1,69 +1,32 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: Re: [PATCH 0/5] Add phy support for AM335X platform using Generic
- PHy framework
-Date: Wed, 10 Jul 2013 11:13:57 +0530
-Message-ID: <51DCF49D.5010107@ti.com>
-References: <1373280201-31785-1-git-send-email-george.cherian@ti.com> <51DB16A1.6010006@linutronix.de> <51DBA23A.8000505@ti.com> <51DBF59F.1030109@ti.com> <51DCE979.8010108@ti.com> <20130710052343.GA15674@arwen.pp.htv.fi>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: USB & hwmon on am33xx
+Date: Wed, 10 Jul 2013 11:37:26 +0530
+Message-ID: <51DCFA1E.3000202@ti.com>
+References: <51DC3B39.6000104@linutronix.de> <51DC5185.4000804@ti.com> <51DC6C00.7090402@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130710052343.GA15674@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51732 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751077Ab3GJGHh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Jul 2013 02:07:37 -0400
+In-Reply-To: <51DC6C00.7090402@linutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On 7/10/2013 10:53 AM, Felipe Balbi wrote:
-> On Wed, Jul 10, 2013 at 10:26:25AM +0530, George Cherian wrote:
->> On 7/9/2013 5:05 PM, Kishon Vijay Abraham I wrote:
->>> Hi,
->>>
->>> On Tuesday 09 July 2013 11:10 AM, George Cherian wrote:
->>>> On 7/9/2013 1:14 AM, Sebastian Andrzej Siewior wrote:
->>>>> On 07/08/2013 12:43 PM, George Cherian wrote:
->>>>>> This patch series adds phy support for AM335X platform.
->>>>>> This patch series is based on Generic PHY framework [1].
->>>>>>
->>>>>>
->>>>>> This series has
->>>>>>      - adds dual musb instances support for am335x platform (just for testing)
->>>>>>      - adds phy-amxxxx-usb driver used in AMxxxx platforms
->>>>>>      - adds dt  bindings for the phys
->>>>>>      - removes usb-phy and replaced with generic phy apis in glue layer
->>>>> No, I don't like this all. You did the one thing I tried to avoid while
->>>>> posting my quick-and-dirty phy driver recently: You duplicated a lot of
->>>>> code which can be served by the nop driver and added only power
->>>>> on/power off callbacks.
->>>> I wanted to add phy wakeup control also, but currently phy_ops  dont have an op
->>>> for wkup_ctrl
->>>> Kishon, Can we add one?
->>> Since this should be a capability of the PHY, can't we have wkup_ctrl always
->>> enabled if the PHY has such a capability?
->> No, we cant have wakeup always enabled. Normally we enable it only
->> when we go to low power states and
->> if the user needs USB a wakeup source.
->>
->> So how about enable/disable  phy wakeup from phy suspend/resume?
-> you should use something like so on your ->suspend() or
-> ->runtime_suspend() method
+On 7/10/2013 1:31 AM, Sebastian Andrzej Siewior wrote:
+> On 07/09/2013 08:08 PM, Mugunthan V N wrote:
+>> Yes, you need hwmod entry for each of the above device. Since USB has only only
+>> clock ctrl register, have one as parrent and make other  devices as child node.
+>> you can take CPSW as an example.
+> So there is not some kind of ref counting if I use this entry twice?
+> What about the PWM as an example? It has two child nodes and also only
+> one clock register.
 >
-> static int my_phy_{suspend,runtime_suspend}(struct device *dev)
-> {
-> 	struct my_phy *phy = dev_get_drvdata(dev);
->
-> 	if (device_may_wakeup(dev))
-> 		my_phy_enable_wakeup(phy);
->
-> 	return 0;
-> }
+Yes, you can take PWM as example.
 
-Makes sense. will do it in v2.
->>> or if it needs more user control,
->>> should we implement a sysfs entry to enable wakeup?
-> that already exists ;-)
->
-
-
--- 
--George
+Regards
+Mugunthan V N
