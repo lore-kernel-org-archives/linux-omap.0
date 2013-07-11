@@ -1,40 +1,51 @@
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH 1/2] ARM i.MX53: mba53: Fix PWM backlight DT node
-Date: Thu, 11 Jul 2013 16:37:47 +0200
-Message-ID: <1373553468-6564-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1373553468-6564-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48332 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932986Ab3GKOhQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Jul 2013 10:37:16 -0400
-In-Reply-To: <1373553468-6564-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: twl-common: Remove code for twl6030 and
+ twl6040 setup for legacy boot
+Date: Thu, 11 Jul 2013 09:59:16 -0500
+Message-ID: <20130711145916.GA6138@kahuna>
+References: <1373552638-13930-1-git-send-email-peter.ujfalusi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1373552638-13930-1-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Shawn Guo <shawn.guo@linaro.org>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, Boris BREZILLON <linux-arm@overkiz.com>, Tomasz Figa <t.figa@samsung.com>, Philip Avinash <avinashphilip@ti.com>, Tony Prisk <linux@prisktech.co.nz>, linux-pwm@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The i.MX53 PWM controller uses two cells to describe the PWM specifier.
-Remove the extra unused values from the backlight DT node pwms property.
+On 16:23-20130711, Peter Ujfalusi wrote:
+> OMAP4 no longer boots in legacy mode so the code here is no longer used.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  arch/arm/mach-omap2/twl-common.c | 332 ++-------------------------------------
+>  arch/arm/mach-omap2/twl-common.h |   8 -
+>  2 files changed, 12 insertions(+), 328 deletions(-)
+Could we modify the Makefile and build twl-common.o only for
+CONFIG_ARCH_OMAP3?
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- arch/arm/boot/dts/imx53-mba53.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+We could get rid of all the #ifdef from the code that way. OMAP3 is the
+only platform that still depends on this - Further, with this change,
 
-diff --git a/arch/arm/boot/dts/imx53-mba53.dts b/arch/arm/boot/dts/imx53-mba53.dts
-index aaa33bc..a630902 100644
---- a/arch/arm/boot/dts/imx53-mba53.dts
-+++ b/arch/arm/boot/dts/imx53-mba53.dts
-@@ -27,7 +27,7 @@
- 
- 	backlight {
- 		compatible = "pwm-backlight";
--		pwms = <&pwm2 0 50000 0 0>;
-+		pwms = <&pwm2 0 50000>;
- 		brightness-levels = <0 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100>;
- 		default-brightness-level = <10>;
- 		enable-gpios = <&gpio7 7 0>;
+commit 34a38440689b06a515104d668494e0ff8a4e1537
+(regulator: twl6030: add support for vdd1, vdd2 and vdd3 regulators)
+will need a relook as well. currently part of the discussion with Mark
+in [1]
+
+
+[1] http://marc.info/?t=137185016300003&r=1&w=2
+
+
 -- 
-1.8.1.5
-
+Regards,
+Nishanth Menon
