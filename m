@@ -1,70 +1,292 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: Boot hang regression 3.10.0-rc4 -> 3.10.0
-Date: Thu, 11 Jul 2013 14:41:11 +0530
-Message-ID: <51DE76AF.8030402@ti.com>
-References: <B5906170F1614E41A8A28DE3B8D121433EE94489@DBDE04.ent.ti.com> <B5906170F1614E41A8A28DE3B8D121433EE94520@DBDE04.ent.ti.com> <20130708112553.GU5523@atomide.com> <51DAB394.3050104@ti.com> <20130708131033.GA5523@atomide.com> <51DABC81.3080409@ti.com> <20130708133512.GD31221@arwen.pp.htv.fi> <87mwpuakod.fsf@linaro.org> <20130710142633.GV5523@atomide.com> <51DE4E3F.6030503@ti.com> <20130711062440.GY5523@atomide.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [PATCHv3 2/3] drivers: spi: Add qspi flash controller
+Date: Thu, 11 Jul 2013 14:42:27 +0530
+Message-ID: <51DE76FB.8080303@ti.com>
+References: <1373290980-17883-1-git-send-email-sourav.poddar@ti.com> <1373290980-17883-3-git-send-email-sourav.poddar@ti.com> <20130708143251.GG31221@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42464 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932451Ab3GKJLl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Jul 2013 05:11:41 -0400
-In-Reply-To: <20130711062440.GY5523@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130708143251.GG31221@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@linaro.org>, balbi@ti.com, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Sourav Poddar <sourav.poddar@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Thursday 11 July 2013 11:54 AM, Tony Lindgren wrote:
-> * Rajendra Nayak <rnayak@ti.com> [130710 23:25]:
->> On Wednesday 10 July 2013 07:56 PM, Tony Lindgren wrote:
->>>
->>> Felipe is right, looks like all we need is to check if context is
->>> initialized or not. So no need for mach-omap2/serial.c or hwmod tinkering.
->>>
->>> After that having DEBUG_LL and cmdline with earlyprintk console=ttyO..
->>> works for me.
->>
->> On what platform? Like I said there are flags set statically in hmwod
->> data for OMAP4 and OMAP5, which make it work without any hwmod tinkering
->> in mach-omap2/serial.c. But it won't work for am33xx.
-> 
-> For me omap4 sdp hangs during ttyO2 probe if earlyprintk is enabled for
-> that port and console is enabled for that port. That's because we attempt
-> to restore uninitialized context.
-
-Right, so thats the Issue 2: that you see on the omap4 sdp. You never hit
-Issue 1: despite not doing any hwmod tinkering because of the static flags
-set for uart3 in hwmod data.
-
-> 
-> It's possible that we have more than one bug here though.
-
-Right, we have 2 issues like I said earlier. Issue 1: is when hwmod _setup()
-does a console UART reset (Not seen if the flags are set either runtime or
-statically)
-
-Issue 2: Is when omap serial does a runtime resume before set_termios().
-
->  
->>> @@ -1523,6 +1524,8 @@ static int serial_omap_probe(struct platform_device *pdev)
->>>  
->>>  	pm_runtime_mark_last_busy(up->dev);
->>>  	pm_runtime_put_autosuspend(up->dev);
->>> +	up->initialized = true;
->>
->> This won't help as the context save for serial happens as part of set_termios() and not
->> when the device is probed.
-> 
-> The issue is that in serial probe we currently restore NULL context to
-> the port which kills earlyprintk output until set_termios() is called.
-> 
-> But as discussed, there are better ways for fixing this issue.
-> 
-> Regards,
-> 
-> Tony
-> 
-
+On Monday 08 July 2013 08:02 PM, Felipe Balbi wrote:
+> Hi,
+>
+> On Mon, Jul 08, 2013 at 07:12:59PM +0530, Sourav Poddar wrote:
+>> +static inline unsigned long dra7xxx_readl(struct dra7xxx_qspi *qspi,
+>> +		unsigned long reg)
+>> +{
+>> +	return readl(qspi->base + reg);
+>> +}
+>> +
+>> +static inline void dra7xxx_writel(struct dra7xxx_qspi *qspi,
+>> +		unsigned long val, unsigned long reg)
+>> +{
+>> +	writel(val, qspi->base + reg);
+>> +}
+>> +
+>> +static inline unsigned long dra7xxx_readl_data(struct dra7xxx_qspi *qspi,
+>> +		unsigned long reg, int wlen)
+>> +{
+>> +	switch (wlen) {
+>> +	case 8:
+>> +		return readw(qspi->base + reg);
+>> +		break;
+>> +	case 16:
+>> +		return readb(qspi->base + reg);
+>> +		break;
+>> +	case 32:
+>> +		return readl(qspi->base + reg);
+>> +		break;
+>> +	default:
+>> +		return -1;
+> return -EINVAL ? or some other error code ?
+>
+>> +	}
+>> +}
+>> +
+>> +static inline void dra7xxx_writel_data(struct dra7xxx_qspi *qspi,
+>> +		unsigned long val, unsigned long reg, int wlen)
+>> +{
+>> +	switch (wlen) {
+>> +	case 8:
+>> +		writew(val, qspi->base + reg);
+>> +		break;
+>> +	case 16:
+>> +		writeb(val, qspi->base + reg);
+>> +		break;
+>> +	case 32:
+>> +		writeb(val, qspi->base + reg);
+>> +		break;
+>> +	default:
+>> +		dev_dbg(qspi->dev, "word lenght out of range");
+>> +		break;
+>> +	}
+>> +}
+>> +
+>> +static int dra7xxx_qspi_setup(struct spi_device *spi)
+>> +{
+>> +	struct dra7xxx_qspi	*qspi = spi_master_get_devdata(spi->master);
+>> +	int clk_div = 0;
+>> +	u32 clk_ctrl_reg, clk_rate;
+>> +
+>> +	clk_rate = clk_get_rate(qspi->fclk);
+>> +
+>> +	if (!qspi->spi_max_frequency) {
+>> +		dev_err(qspi->dev, "spi max frequency not defined\n");
+>> +		return -1;
+> same here
+>
+>> +	} else
+> this needs to have curly braces too, per CodingStyle
+>
+>> +		clk_div = (clk_rate / qspi->spi_max_frequency) - 1;
+>> +
+>> +	dev_dbg(qspi->dev, "%s: hz: %d, clock divider %d\n", __func__,
+>> +			qspi->spi_max_frequency, clk_div);
+>> +
+>> +	pm_runtime_get_sync(qspi->dev);
+>> +
+>> +	clk_ctrl_reg = dra7xxx_readl(qspi, QSPI_SPI_CLOCK_CNTRL_REG);
+>> +
+>> +	clk_ctrl_reg&= ~QSPI_CLK_EN;
+>> +
+>> +	/* disable SCLK */
+>> +	dra7xxx_writel(qspi, clk_ctrl_reg, QSPI_SPI_CLOCK_CNTRL_REG);
+>> +
+>> +	if (clk_div<  0) {
+>> +		dev_dbg(qspi->dev, "%s: clock divider<  0, using /1 divider\n",
+>> +				__func__);
+>> +		clk_div = 1;
+>> +	}
+>> +
+>> +	if (clk_div>  QSPI_CLK_DIV_MAX) {
+>> +		dev_dbg(qspi->dev, "%s: clock divider>%d , using /%d divider\n",
+>> +			__func__, QSPI_CLK_DIV_MAX, QSPI_CLK_DIV_MAX + 1);
+>> +		clk_div = QSPI_CLK_DIV_MAX;
+>> +	}
+>> +
+>> +	/* enable SCLK */
+>> +	dra7xxx_writel(qspi, QSPI_CLK_EN | clk_div, QSPI_SPI_CLOCK_CNTRL_REG);
+>> +
+>> +	pm_runtime_mark_last_busy(qspi->dev);
+>> +	pm_runtime_put_autosuspend(qspi->dev);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int dra7xxx_qspi_prepare_xfer(struct spi_master *master)
+>> +{
+>> +	struct dra7xxx_qspi *qspi = spi_master_get_devdata(master);
+>> +
+>> +	pm_runtime_get_sync(qspi->dev);
+> not going to check return value ?
+>
+>> +	return 0;
+>> +}
+>> +
+>> +static int dra7xxx_qspi_unprepare_xfer(struct spi_master *master)
+>> +{
+>> +	struct dra7xxx_qspi *qspi = spi_master_get_devdata(master);
+>> +
+>> +	pm_runtime_mark_last_busy(qspi->dev);
+>> +	pm_runtime_put_autosuspend(qspi->dev);
+> what about on these two ?
+>
+Just realised this, pm_runtime_mark_last_busy does not need a check, it 
+returns nothing.
+>> +	return 0;
+>> +}
+>> +
+>> +static int qspi_write_msg(struct dra7xxx_qspi *qspi, struct spi_transfer *t)
+>> +{
+>> +	const u8 *txbuf;
+>> +	int wlen, count;
+>> +
+>> +	count = t->len;
+>> +	txbuf = t->tx_buf;
+>> +	wlen = t->bits_per_word;
+>> +
+>> +	while (count--) {
+>> +		dev_dbg(qspi->dev, "tx cmd %08x dc %08x data %02x\n",
+>> +			qspi->cmd | QSPI_WR_SNGL, qspi->dc, *txbuf);
+>> +		dra7xxx_writel(qspi, QSPI_WC_INT_EN, QSPI_INTR_ENABLE_SET_REG);
+> you should enable the interrupt as the last step. Also, why aren't you
+> using frame interrupt ?
+>
+>> +		dra7xxx_writel_data(qspi, *txbuf++, QSPI_SPI_DATA_REG, wlen);
+>> +		dra7xxx_writel(qspi, qspi->dc, QSPI_SPI_DC_REG);
+>> +		dra7xxx_writel(qspi, qspi->cmd | QSPI_WR_SNGL,
+>> +			QSPI_SPI_CMD_REG);
+>> +		wait_for_completion(&qspi->word_complete);
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int qspi_read_msg(struct dra7xxx_qspi *qspi, struct spi_transfer *t)
+>> +{
+>> +	u8 *rxbuf;
+>> +	int wlen, count;
+>> +
+>> +	count = t->len;
+>> +	rxbuf = t->rx_buf;
+>> +	wlen = t->bits_per_word;
+>> +
+>> +	while (count--) {
+>> +		dev_dbg(qspi->dev, "rx cmd %08x dc %08x\n",
+>> +			qspi->cmd | QSPI_RD_SNGL, qspi->dc);
+>> +		dra7xxx_writel(qspi, QSPI_WC_INT_EN, QSPI_INTR_ENABLE_SET_REG);
+> ditto
+>
+>> +		dra7xxx_writel(qspi, qspi->dc, QSPI_SPI_DC_REG);
+>> +		dra7xxx_writel(qspi, qspi->cmd | QSPI_RD_SNGL,
+>> +			QSPI_SPI_CMD_REG);
+>> +		wait_for_completion(&qspi->word_complete);
+>> +		*rxbuf++ = dra7xxx_readl_data(qspi, QSPI_SPI_DATA_REG, wlen);
+>> +		dev_dbg(qspi->dev, "rx done, read %02x\n", *(rxbuf-1));
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int qspi_transfer_msg(struct dra7xxx_qspi *qspi, struct spi_transfer *t)
+>> +{
+>> +	if (t->tx_buf)
+>> +		qspi_write_msg(qspi, t);
+>> +	if (t->rx_buf)
+>> +		qspi_read_msg(qspi, t);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int dra7xxx_qspi_start_transfer_one(struct spi_master *master,
+>> +		struct spi_message *m)
+>> +{
+>> +	struct dra7xxx_qspi *qspi = spi_master_get_devdata(master);
+>> +	struct spi_device *spi = m->spi;
+>> +	struct spi_transfer *t;
+>> +	int status = 0;
+>> +	int frame_length;
+>> +
+>> +	/* setup device control reg */
+>> +	qspi->dc = 0;
+>> +
+>> +	if (spi->mode&  SPI_CPHA)
+>> +		qspi->dc |= QSPI_CKPHA(spi->chip_select);
+>> +	if (spi->mode&  SPI_CPOL)
+>> +		qspi->dc |= QSPI_CKPOL(spi->chip_select);
+>> +	if (spi->mode&  SPI_CS_HIGH)
+>> +		qspi->dc |= QSPI_CSPOL(spi->chip_select);
+>> +
+>> +	frame_length = DIV_ROUND_UP(m->frame_length * spi->bits_per_word,
+> why this multiplication ? Frame is not counted in bits but in number of
+> words. Which means that m->framelength / spi->bits_per_word should be
+> enough.
+>
+> Also, this actually brings up a mistake I made, if I read the TRM
+> correclty this time, frame length is nothing but the t->len which
+> renders patch 1 in this series unnecessary, my mistake.
+>
+>> +				spi->bits_per_word);
+>> +
+>> +	frame_length = clamp(frame_length, 0, QSPI_FRAME_MAX);
+>> +
+>> +	/* setup command reg */
+>> +	qspi->cmd = 0;
+>> +	qspi->cmd |= QSPI_EN_CS(spi->chip_select);
+>> +	qspi->cmd |= QSPI_FLEN(frame_length);
+> right, right, so far so good...
+>
+>> +	list_for_each_entry(t,&m->transfers, transfer_list) {
+>> +		qspi->cmd |= QSPI_WLEN(t->bits_per_word);
+> sure about this ? according to TRM a write of 0 means 1 bit, 1, means 2
+> bits, 2 means 3 bits, etc... So this should be t->bits_per_word - 1.
+>
+>> +		qspi->cmd |= QSPI_WC_CMD_INT_EN;
+> ... but why are you still interrupting on every word ????
+>
+> as I said before, we want to interrupt on every frame. one spi_transfer
+> is one frame, if that frame has a length of 1MiB, I want to be
+> interrupted after 1MiB.
+>
+>> +		qspi_transfer_msg(qspi, t);
+>> +		m->actual_length += t->len;
+>> +
+>> +		if (list_is_last(&t->transfer_list,&m->transfers))
+>> +			goto out;
+>> +	}
+>> +
+>> +out:
+>> +	m->status = status;
+>> +	spi_finalize_current_message(master);
+>> +
+>> +	dra7xxx_writel(qspi, qspi->cmd | QSPI_INVAL, QSPI_SPI_CMD_REG);
+>> +
+>> +	return status;
+>> +}
+>> +
+>> +static irqreturn_t dra7xxx_qspi_isr(int irq, void *dev_id)
+>> +{
+>> +	struct dra7xxx_qspi *qspi = dev_id;
+>> +	u16 mask, stat;
+>> +
+>> +	irqreturn_t ret = IRQ_HANDLED;
+>> +
+>> +	spin_lock(&qspi->lock);
+>> +
+>> +	stat = dra7xxx_readl(qspi, QSPI_SPI_STATUS_REG);
+>> +	mask = dra7xxx_readl(qspi, QSPI_SPI_CMD_REG);
+>> +
+>> +	if ((stat&  QSPI_WC)&&  (mask&  QSPI_WC_CMD_INT_EN))
+> this is wrong, everytime you want to handle another IRQ bit, you will
+> have to update this line.
+>
+> 	if (stat&  mask)
+>
+> sounds like it's enough
+>
