@@ -1,46 +1,68 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 5/6] USB: Support wakeup IRQ for suspended controllers
-Date: Thu, 11 Jul 2013 10:30:35 +0300
-Message-ID: <51DE5F1B.8080201@ti.com>
-References: <Pine.LNX.4.44L0.1307101504220.1215-100000@iolanthe.rowland.org>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH] omapfb: In omapfb_probe return -EPROBE_DEFER when display
+ driver is not loaded yet
+Date: Thu, 11 Jul 2013 14:08:49 +0530
+Message-ID: <51DE6F19.6050606@ti.com>
+References: <1373461739-10168-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1307101504220.1215-100000@iolanthe.rowland.org>
+In-Reply-To: <1373461739-10168-1-git-send-email-pali.rohar@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: gregkh@linuxfoundation.org, balbi@ti.com, sergei.shtylyov@cogentembedded.com, khilman@linaro.org, tony@atomide.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/10/2013 10:08 PM, Alan Stern wrote:
-> On Wed, 10 Jul 2013, Roger Quadros wrote:
-> 
->> Some platforms e.g. ehci-omap can generate an interrupt
->> (i.e. remote wakeup) even when the controller is suspended i.e.
->> HW_ACCESSIBLE is cleared.
->>
->> Introduce a flag "has_wakeup_irq" in struct usb_hcd to indicate
->> such cases.
->>
->> We tackle this case by disabling the IRQ, scheduling a
->> hub resume and enabling back the IRQ after the controller has
->> resumed. This ensures that the IRQ handler runs only after the
->> controller is accessible.
-> 
-> Oh yes, one more thing...
-> 
->> @@ -132,6 +134,7 @@ struct usb_hcd {
->>  	unsigned		wireless:1;	/* Wireless USB HCD */
->>  	unsigned		authorized_default:1;
->>  	unsigned		has_tt:1;	/* Integrated TT in root hub */
->> +	unsigned		has_wakeup_irq:1; /* Can IRQ when suspended */
-> 
-> Please add a highly visible comment here, warning that has_wakeup_irq
-> should never be set on systems with shared IRQs.  Having both would ...
-> well, it would indicate a really bad system design.
-> 
-OK, will do.
+Hi,
 
-cheers,
--roger
+On Wednesday 10 July 2013 06:38 PM, Pali Roh=C3=A1r wrote:
+> * On RX-51 probing for acx565akm driver is later then for omapfb whic=
+h cause that omapfb probe fail and framebuffer is not working
+> * EPROBE_DEFER causing that kernel try to probe for omapfb later agai=
+n which fixing this problem
+>
+> * Without this patch display on Nokia RX-51 (N900) phone not working
+>
+> Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> ---
+>   drivers/video/omap2/omapfb/omapfb-main.c |    9 +++++++++
+>   1 file changed, 9 insertions(+)
+>
+> diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video=
+/omap2/omapfb/omapfb-main.c
+> index 856917b..93e7c84 100644
+> --- a/drivers/video/omap2/omapfb/omapfb-main.c
+> +++ b/drivers/video/omap2/omapfb/omapfb-main.c
+> @@ -2419,6 +2419,15 @@ static int omapfb_probe(struct platform_device=
+ *pdev)
+>   	if (omapdss_is_initialized() =3D=3D false)
+>   		return -EPROBE_DEFER;
+>
+> +	dssdev =3D NULL;
+> +	for_each_dss_dev(dssdev) {
+> +		if (!dssdev->driver) {
+> +			dev_warn(&pdev->dev, "no driver for display: %s\n",
+> +				dssdev->name);
+> +			return -EPROBE_DEFER;
+
+This will make omapfb probe defer till the time every panel has a=20
+driver. It's possible that all the panel driver modules are never=20
+interested by userspace. This will lead to the panels having drivers=20
+also not work.
+
+I think Tomi was working on this, it was something like making omapfb=20
+defer only if the default display doesn't have a driver. We can wait fo=
+r=20
+his comment.
+
+Archit
+
+> +		}
+> +	}
+> +
+>   	if (pdev->num_resources !=3D 0) {
+>   		dev_err(&pdev->dev, "probed for an unknown device\n");
+>   		r =3D -ENODEV;
+>
