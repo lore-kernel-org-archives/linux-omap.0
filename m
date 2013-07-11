@@ -1,56 +1,44 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: OMAP3: Beagle: Fix USB Host on beagle xM Ax/Bx
-Date: Thu, 11 Jul 2013 17:35:58 +0300
-Message-ID: <51DEC2CE.70400@ti.com>
-References: <1366024808-4691-1-git-send-email-rogerq@ti.com>
- <51DC09E7.1070302@denx.de> <51DC164B.5010608@ti.com>
- <51DC1B47.7070504@denx.de> <51DE87D3.5030600@ti.com>
- <51DEA7F1.1050902@denx.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51DEA7F1.1050902@denx.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Stefan Roese <sr@denx.de>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, balbi@ti.com, linux-arm-kernel@lists.infradead.org
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH 0/2] Add PWM polarity flag macros for DT
+Date: Thu, 11 Jul 2013 16:37:46 +0200
+Message-ID: <1373553468-6564-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48320 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932980Ab3GKOhQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Jul 2013 10:37:16 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: Shawn Guo <shawn.guo@linaro.org>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, Boris BREZILLON <linux-arm@overkiz.com>, Tomasz Figa <t.figa@samsung.com>, Philip Avinash <avinashphilip@ti.com>, Tony Prisk <linux@prisktech.co.nz>, linux-pwm@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 07/11/2013 03:41 PM, Stefan Roese wrote:
-> On 07/11/2013 12:24 PM, Roger Quadros wrote:
->> My u-boot script is below and boot log is attached.
-> 
-> BTW: I noticed a git ID (8e1cacd) in your kernel that I can't identify.
-> Do you have any patches locally applied to the kernel.org version that
-> might be helpful with this USB issue I'm seeing?
+Hello,
 
-Yes I had tested it on a more recent kernel with some local patches applied
-that I've recently sent for review.
+Here's a small patch set that replaces PWM polarity numerical constants with
+macros in DT. The series starts with a fix for an error in the i.MX53 mba53 DT,
+and the second patch then introduces the macros and update both bindings
+documentation and existing DT.
 
-But to cross check with your setup I've retested it with commit d2b4a646 
-with the 2 below patches on top
+Laurent Pinchart (2):
+  ARM i.MX53: mba53: Fix PWM backlight DT node
+  pwm: Add PWM polarity flag macros for DT
 
-https://lkml.org/lkml/2013/6/20/327
-https://lkml.org/lkml/2013/6/20/339
+ Documentation/devicetree/bindings/pwm/atmel-tcb-pwm.txt |  6 +++---
+ Documentation/devicetree/bindings/pwm/pwm-samsung.txt   |  5 +++--
+ Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt  |  5 +++--
+ Documentation/devicetree/bindings/pwm/pwm.txt           |  8 +++++---
+ Documentation/devicetree/bindings/pwm/vt8500-pwm.txt    |  5 +++--
+ arch/arm/boot/dts/am335x-evm.dts                        |  3 ++-
+ arch/arm/boot/dts/am335x-evmsk.dts                      |  3 ++-
+ arch/arm/boot/dts/imx53-mba53.dts                       |  2 +-
+ arch/arm/boot/dts/wm8850-w70v2.dts                      |  3 ++-
+ include/dt-bindings/pwm/pwm.h                           | 15 +++++++++++++++
+ include/linux/pwm.h                                     |  4 ++--
+ 11 files changed, 41 insertions(+), 18 deletions(-)
+ create mode 100644 include/dt-bindings/pwm/pwm.h
 
-I've tried it again with the ELDK 5.3 root but still can't get it to fail.
+-- 
+Regards,
 
-I think we should match our u-boot as well. Could you please let me know
-your u-boot commit and uEnv.txt?
+Laurent Pinchart
 
-My network setup is pretty simple, beagle-xm is connected directly to my laptop's
-ethernet port. No network switch in between.
-
-When you get the problem do you cold boot the board or warm boot it?
-I've been always cold booting it.
-
-cheers,
--roger
