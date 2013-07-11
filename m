@@ -1,254 +1,191 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH RFC 07/13] ARM: OMAP2+: CM: AM43x clockdomain data
-Date: Thu, 11 Jul 2013 12:06:12 +0530
-Message-ID: <cc28ac4f840bdef5816423b576af623972b137d9.1373519192.git.afzal@ti.com>
+Subject: [PATCH RFC 08/13] ARM: OMAP2+: hwmod: AMx3: runtime AM43x handling
+Date: Thu, 11 Jul 2013 12:06:20 +0530
+Message-ID: <244f8bb41eb3a15fd12a6180736defca8baaefbf.1373519192.git.afzal@ti.com>
 References: <cover.1373519192.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35802 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54672 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750904Ab3GKGgl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Jul 2013 02:36:41 -0400
+	id S1751009Ab3GKGgs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Jul 2013 02:36:48 -0400
 In-Reply-To: <cover.1373519192.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Paul Walmsley <paul@pwsan.com>, Benoit Cousson <benoit.cousson@linaro.org>, Tony Lindgren <tony@atomide.com>, Ambresh K <ambresh@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Benoit Cousson <benoit.cousson@linaro.org>, Tony Lindgren <tony@atomide.com>
 
-From: Ambresh K <ambresh@ti.com>
+Update AM43x CLKCTRL, RSTCTRL, RSTST offsets, clockdomain & ocpif clk
+that differ with AM335x at runtime. This helps in resuing much of the
+AM335x hwmod data's for AM43x.
 
-Add the data file to describe clock domains in AM43x SoC.
-
-Signed-off-by: Ambresh K <ambresh@ti.com>
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 110 +++++++++++++++++++++++++++++
+ 1 file changed, 110 insertions(+)
 
-Note: domain operations to be used would have to modified as mentioned in
-	the cover letter
-
- arch/arm/mach-omap2/clockdomain.h           |   1 +
- arch/arm/mach-omap2/clockdomains43xx_data.c | 199 ++++++++++++++++++++++++++++
- 2 files changed, 200 insertions(+)
- create mode 100644 arch/arm/mach-omap2/clockdomains43xx_data.c
-
-diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index 8c22ce6..3b61557 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -215,6 +215,7 @@ extern void __init omap242x_clockdomains_init(void);
- extern void __init omap243x_clockdomains_init(void);
- extern void __init omap3xxx_clockdomains_init(void);
- extern void __init am33xx_clockdomains_init(void);
-+extern void am43xx_clockdomains_init(void);
- extern void __init omap44xx_clockdomains_init(void);
- extern void __init omap54xx_clockdomains_init(void);
- 
-diff --git a/arch/arm/mach-omap2/clockdomains43xx_data.c b/arch/arm/mach-omap2/clockdomains43xx_data.c
-new file mode 100644
-index 0000000..5ddc010
---- /dev/null
-+++ b/arch/arm/mach-omap2/clockdomains43xx_data.c
-@@ -0,0 +1,199 @@
-+/*
-+ * AM43xx Clock domains framework
-+ *
-+ * Copyright (C) 2013 Texas Instruments, Inc.
-+ *
-+ * This file is made by modifying the file generated automatically
-+ * from the OMAP hardware databases.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/io.h>
-+
-+#include "clockdomain.h"
-+#include "prcm44xx.h"
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+index a61032d..7897fec 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -26,6 +26,7 @@
+ #include "cm33xx.h"
+ #include "prm33xx.h"
+ #include "prm-regbits-33xx.h"
 +#include "prcm43xx.h"
-+
-+static struct clockdomain l4_cefuse_43xx_clkdm = {
-+	.name		  = "l4_cefuse_clkdm",
-+	.pwrdm		  = { .name = "cefuse_pwrdm" },
-+	.prcm_partition	  = AM43XX_CM_PARTITION,
-+	.cm_inst	  = AM43XX_CM_CEFUSE_INST,
-+	.clkdm_offs	  = AM43XX_CM_CEFUSE_CEFUSE_CDOFFS,
-+	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_FORCE_SLEEP,
-+};
-+
-+static struct clockdomain mpu_43xx_clkdm = {
-+	.name		  = "mpu_clkdm",
-+	.pwrdm		  = { .name = "mpu_pwrdm" },
-+	.prcm_partition	  = AM43XX_CM_PARTITION,
-+	.cm_inst	  = AM43XX_CM_MPU_INST,
-+	.clkdm_offs	  = AM43XX_CM_MPU_MPU_CDOFFS,
-+	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
-+};
-+
-+static struct clockdomain l4ls_43xx_clkdm = {
-+	.name		  = "l4ls_clkdm",
-+	.pwrdm		  = { .name = "per_pwrdm" },
-+	.prcm_partition	  = AM43XX_CM_PARTITION,
-+	.cm_inst	  = AM43XX_CM_PER_INST,
-+	.clkdm_offs	  = AM43XX_CM_PER_L4LS_CDOFFS,
-+	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_FORCE_SLEEP,
-+};
-+
-+static struct clockdomain tamper_43xx_clkdm = {
-+	.name		  = "tamper_clkdm",
-+	.pwrdm		  = { .name = "tamper_pwrdm" },
-+	.prcm_partition	  = AM43XX_CM_PARTITION,
-+	.cm_inst	  = AM43XX_CM_TAMPER_INST,
-+	.clkdm_offs	  = AM43XX_CM_TAMPER_TAMPER_CDOFFS,
-+	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_FORCE_SLEEP,
-+};
-+
-+static struct clockdomain l4_rtc_43xx_clkdm = {
-+	.name		  = "l4_rtc_clkdm",
-+	.pwrdm		  = { .name = "rtc_pwrdm" },
-+	.prcm_partition	  = AM43XX_CM_PARTITION,
-+	.cm_inst	  = AM43XX_CM_RTC_INST,
-+	.clkdm_offs	  = AM43XX_CM_RTC_RTC_CDOFFS,
-+	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_FORCE_SLEEP,
-+};
-+
-+static struct clockdomain pruss_ocp_43xx_clkdm = {
-+	.name		  = "pruss_ocp_clkdm",
-+	.pwrdm		  = { .name = "per_pwrdm" },
-+	.prcm_partition	  = AM43XX_CM_PARTITION,
-+	.cm_inst	  = AM43XX_CM_PER_INST,
-+	.clkdm_offs	  = AM43XX_CM_PER_ICSS_CDOFFS,
-+	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_FORCE_SLEEP,
-+};
-+
-+static struct clockdomain ocpwp_l3_43xx_clkdm = {
-+	.name		  = "ocpwp_l3_clkdm",
-+	.pwrdm		  = { .name = "per_pwrdm" },
-+	.prcm_partition	  = AM43XX_CM_PARTITION,
-+	.cm_inst	  = AM43XX_CM_PER_INST,
-+	.clkdm_offs	  = AM43XX_CM_PER_OCPWP_L3_CDOFFS,
-+	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_FORCE_SLEEP,
-+};
-+
-+static struct clockdomain l3s_tsc_43xx_clkdm = {
-+	.name		  = "l3s_tsc_clkdm",
-+	.pwrdm		  = { .name = "wkup_pwrdm" },
-+	.prcm_partition	  = AM43XX_CM_PARTITION,
-+	.cm_inst	  = AM43XX_CM_WKUP_INST,
-+	.clkdm_offs	  = AM43XX_CM_WKUP_L3S_TSC_CDOFFS,
-+	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_FORCE_SLEEP,
-+};
-+
-+static struct clockdomain dss_43xx_clkdm = {
-+	.name		  = "dss_clkdm",
-+	.pwrdm		  = { .name = "per_pwrdm" },
-+	.prcm_partition	  = AM43XX_CM_PARTITION,
-+	.cm_inst	  = AM43XX_CM_PER_INST,
-+	.clkdm_offs	  = AM43XX_CM_PER_DSS_CDOFFS,
-+	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_FORCE_SLEEP,
-+};
-+
-+static struct clockdomain l3_aon_43xx_clkdm = {
-+	.name		  = "l3_aon_clkdm",
-+	.pwrdm		  = { .name = "wkup_pwrdm" },
-+	.prcm_partition	  = AM43XX_CM_PARTITION,
-+	.cm_inst	  = AM43XX_CM_WKUP_INST,
-+	.clkdm_offs	  = AM43XX_CM_WKUP_L3_AON_CDOFFS,
-+	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_FORCE_SLEEP,
-+};
-+
-+static struct clockdomain emif_43xx_clkdm = {
-+	.name		  = "emif_clkdm",
-+	.pwrdm		  = { .name = "per_pwrdm" },
-+	.prcm_partition	  = AM43XX_CM_PARTITION,
-+	.cm_inst	  = AM43XX_CM_PER_INST,
-+	.clkdm_offs	  = AM43XX_CM_PER_EMIF_CDOFFS,
-+	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_FORCE_SLEEP,
-+};
-+
-+static struct clockdomain l4_wkup_aon_43xx_clkdm = {
-+	.name		  = "l4_wkup_aon_clkdm",
-+	.pwrdm		  = { .name = "wkup_pwrdm" },
-+	.prcm_partition	  = AM43XX_CM_PARTITION,
-+	.cm_inst	  = AM43XX_CM_WKUP_INST,
-+	.clkdm_offs	  = AM43XX_CM_WKUP_L4_WKUP_AON_CDOFFS,
-+};
-+
-+static struct clockdomain l3_43xx_clkdm = {
-+	.name		  = "l3_clkdm",
-+	.pwrdm		  = { .name = "per_pwrdm" },
-+	.prcm_partition	  = AM43XX_CM_PARTITION,
-+	.cm_inst	  = AM43XX_CM_PER_INST,
-+	.clkdm_offs	  = AM43XX_CM_PER_L3_CDOFFS,
-+	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_FORCE_SLEEP,
-+};
-+
-+static struct clockdomain l4_wkup_43xx_clkdm = {
-+	.name		  = "l4_wkup_clkdm",
-+	.pwrdm		  = { .name = "wkup_pwrdm" },
-+	.prcm_partition	  = AM43XX_CM_PARTITION,
-+	.cm_inst	  = AM43XX_CM_WKUP_INST,
-+	.clkdm_offs	  = AM43XX_CM_WKUP_WKUP_CDOFFS,
-+	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_FORCE_SLEEP,
-+};
-+
-+static struct clockdomain cpsw_125mhz_43xx_clkdm = {
-+	.name		  = "cpsw_125mhz_clkdm",
-+	.pwrdm		  = { .name = "per_pwrdm" },
-+	.prcm_partition	  = AM43XX_CM_PARTITION,
-+	.cm_inst	  = AM43XX_CM_PER_INST,
-+	.clkdm_offs	  = AM43XX_CM_PER_CPSW_CDOFFS,
-+	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_FORCE_SLEEP,
-+};
-+
-+static struct clockdomain gfx_l3_43xx_clkdm = {
-+	.name		  = "gfx_l3_clkdm",
-+	.pwrdm		  = { .name = "gfx_pwrdm" },
-+	.prcm_partition	  = AM43XX_CM_PARTITION,
-+	.cm_inst	  = AM43XX_CM_GFX_INST,
-+	.clkdm_offs	  = AM43XX_CM_GFX_GFX_L3_CDOFFS,
-+	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_FORCE_SLEEP,
-+};
-+
-+static struct clockdomain l3s_43xx_clkdm = {
-+	.name		  = "l3s_clkdm",
-+	.pwrdm		  = { .name = "per_pwrdm" },
-+	.prcm_partition	  = AM43XX_CM_PARTITION,
-+	.cm_inst	  = AM43XX_CM_PER_INST,
-+	.clkdm_offs	  = AM43XX_CM_PER_L3S_CDOFFS,
-+	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_FORCE_SLEEP,
-+};
-+
-+static struct clockdomain *clockdomains_am43xx[] __initdata = {
-+	&l4_cefuse_43xx_clkdm,
-+	&mpu_43xx_clkdm,
-+	&l4ls_43xx_clkdm,
-+	&tamper_43xx_clkdm,
-+	&l4_rtc_43xx_clkdm,
-+	&pruss_ocp_43xx_clkdm,
-+	&ocpwp_l3_43xx_clkdm,
-+	&l3s_tsc_43xx_clkdm,
-+	&dss_43xx_clkdm,
-+	&l3_aon_43xx_clkdm,
-+	&emif_43xx_clkdm,
-+	&l4_wkup_aon_43xx_clkdm,
-+	&l3_43xx_clkdm,
-+	&l4_wkup_43xx_clkdm,
-+	&cpsw_125mhz_43xx_clkdm,
-+	&gfx_l3_43xx_clkdm,
-+	&l3s_43xx_clkdm,
-+	NULL
-+};
-+
-+void __init am43xx_clockdomains_init(void)
+ #include "i2c.h"
+ #include "mmc.h"
+ #include "wd_timer.h"
+@@ -2380,6 +2381,71 @@ static struct omap_hwmod_ocp_if am33xx_l3_main__aes0 = {
+ 
+ #define CLKCTRL(oh, clkctrl) ((oh).prcm.omap4.clkctrl_offs = (clkctrl))
+ 
++static void am43xx_hwmod_clkctrl(void)
 +{
-+	clkdm_register_platform_funcs(&omap4_clkdm_operations);
-+	clkdm_register_clkdms(clockdomains_am43xx);
-+	clkdm_complete_init();
++	CLKCTRL(am33xx_uart2_hwmod, AM43XX_CM_PER_UART1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_uart3_hwmod, AM43XX_CM_PER_UART2_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_uart4_hwmod, AM43XX_CM_PER_UART3_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_uart5_hwmod, AM43XX_CM_PER_UART4_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_uart6_hwmod, AM43XX_CM_PER_UART5_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_dcan0_hwmod, AM43XX_CM_PER_DCAN0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_dcan1_hwmod, AM43XX_CM_PER_DCAN1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_elm_hwmod, AM43XX_CM_PER_ELM_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_epwmss0_hwmod, AM43XX_CM_PER_EPWMSS0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_epwmss1_hwmod, AM43XX_CM_PER_EPWMSS1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_epwmss2_hwmod, AM43XX_CM_PER_EPWMSS2_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_gpio1_hwmod, AM43XX_CM_PER_GPIO1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_gpio2_hwmod, AM43XX_CM_PER_GPIO2_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_gpio3_hwmod, AM43XX_CM_PER_GPIO3_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_i2c2_hwmod, AM43XX_CM_PER_I2C1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_i2c3_hwmod, AM43XX_CM_PER_I2C2_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_mailbox_hwmod, AM43XX_CM_PER_MAILBOX0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_mmc0_hwmod, AM43XX_CM_PER_MMC0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_mmc1_hwmod, AM43XX_CM_PER_MMC1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_spi0_hwmod, AM43XX_CM_PER_SPI0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_spi1_hwmod, AM43XX_CM_PER_SPI1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_spinlock_hwmod, AM43XX_CM_PER_SPINLOCK_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_timer2_hwmod, AM43XX_CM_PER_TIMER2_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_timer3_hwmod, AM43XX_CM_PER_TIMER3_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_timer4_hwmod, AM43XX_CM_PER_TIMER4_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_timer5_hwmod, AM43XX_CM_PER_TIMER5_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_timer6_hwmod, AM43XX_CM_PER_TIMER6_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_timer7_hwmod, AM43XX_CM_PER_TIMER7_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_wkup_m3_hwmod, AM43XX_CM_WKUP_WKUP_M3_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_control_hwmod, AM43XX_CM_WKUP_CONTROL_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_smartreflex0_hwmod,
++		AM43XX_CM_WKUP_SMARTREFLEX0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_smartreflex1_hwmod,
++		AM43XX_CM_WKUP_SMARTREFLEX1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_uart1_hwmod, AM43XX_CM_WKUP_UART0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_timer1_hwmod, AM43XX_CM_WKUP_TIMER1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_i2c1_hwmod, AM43XX_CM_WKUP_I2C0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_gpio0_hwmod, AM43XX_CM_WKUP_GPIO0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_adc_tsc_hwmod, AM43XX_CM_WKUP_ADC_TSC_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_wd_timer1_hwmod, AM43XX_CM_WKUP_WDT1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_l4_wkup_hwmod, AM43XX_CM_WKUP_L4WKUP_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_rtc_hwmod, AM43XX_CM_RTC_RTC_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_mmc2_hwmod, AM43XX_CM_PER_MMC2_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_gpmc_hwmod, AM43XX_CM_PER_GPMC_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_mcasp0_hwmod, AM43XX_CM_PER_MCASP0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_mcasp1_hwmod, AM43XX_CM_PER_MCASP1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_l4_ls_hwmod, AM43XX_CM_PER_L4LS_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_l3_main_hwmod, AM43XX_CM_PER_L3_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_tpcc_hwmod, AM43XX_CM_PER_TPCC_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_tptc0_hwmod, AM43XX_CM_PER_TPTC0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_tptc1_hwmod, AM43XX_CM_PER_TPTC1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_tptc2_hwmod, AM43XX_CM_PER_TPTC2_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_cpgmac0_hwmod, AM43XX_CM_PER_CPGMAC0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_pruss_hwmod, AM43XX_CM_PER_PRUSS_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_gfx_hwmod, AM43XX_CM_GFX_GFX_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_l4_hs_hwmod, AM43XX_CM_PER_L4HS_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_mpu_hwmod , AM43XX_CM_MPU_MPU_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_l3_instr_hwmod , AM43XX_CM_PER_L3_INSTR_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_ocmcram_hwmod , AM43XX_CM_PER_OCMCRAM_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_sha0_hwmod , AM43XX_CM_PER_SHA0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_aes0_hwmod , AM43XX_CM_PER_AES0_CLKCTRL_OFFSET);
 +}
++
+ static void am33xx_hwmod_clkctrl(void)
+ {
+ 	CLKCTRL(am33xx_uart2_hwmod, AM33XX_CM_PER_UART1_CLKCTRL_OFFSET);
+@@ -2447,6 +2513,13 @@ static void am33xx_hwmod_clkctrl(void)
+ 
+ #define RSTCTRL(oh, rstctrl) ((oh).prcm.omap4.rstctrl_offs = (rstctrl))
+ 
++static void am43xx_hwmod_rstctrl(void)
++{
++	RSTCTRL(am33xx_pruss_hwmod, AM43XX_RM_PER_RSTCTRL_OFFSET);
++	RSTCTRL(am33xx_gfx_hwmod, AM43XX_RM_GFX_RSTCTRL_OFFSET);
++	RSTCTRL(am33xx_wkup_m3_hwmod, AM43XX_RM_WKUP_RSTCTRL_OFFSET);
++}
++
+ static void am33xx_hwmod_rstctrl(void)
+ {
+ 	RSTCTRL(am33xx_pruss_hwmod, AM33XX_RM_PER_RSTCTRL_OFFSET);
+@@ -2456,18 +2529,49 @@ static void am33xx_hwmod_rstctrl(void)
+ 
+ #define RSTST(oh, rstst) ((oh).prcm.omap4.rstst_offs = (rstst))
+ 
++static void am43xx_hwmod_rstst(void)
++{
++	RSTST(am33xx_gfx_hwmod, AM43XX_RM_GFX_RSTST_OFFSET);
++	RSTST(am33xx_wkup_m3_hwmod, AM43XX_RM_WKUP_RSTST_OFFSET);
++}
++
+ static void am33xx_hwmod_rstst(void)
+ {
+ 	RSTST(am33xx_gfx_hwmod, AM33XX_RM_GFX_RSTST_OFFSET);
+ 	RSTST(am33xx_wkup_m3_hwmod, AM33XX_RM_WKUP_RSTST_OFFSET);
+ }
+ 
++static void am43xx_hwmod_clockdomain(void)
++{
++	am33xx_l4_hs_hwmod.clkdm_name = "l3_clkdm";
++	am33xx_adc_tsc_hwmod.clkdm_name = "l3s_tsc_clkdm";
++}
++
+ static void am33xx_hwmod_clockdomain(void)
+ {
+ 	am33xx_l4_hs_hwmod.clkdm_name = "l4hs_clkdm";
+ 	am33xx_adc_tsc_hwmod.clkdm_name = "l4_wkup_clkdm";
+ }
+ 
++#define AM43XX_L4_WKUP_OCPIF_CLK "sys_clkin_ck"
++
++static void am43xx_hwmod_ocpif_clk(void)
++{
++	am33xx_l4_wkup__wkup_m3.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_l4_wkup__control.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_l4_wkup__smartreflex0.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_l4_wkup__smartreflex1.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_l4_wkup__uart1.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_l4_wkup__timer1.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_l4_wkup__i2c1.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_l4_wkup__gpio0.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_l4_wkup__wd_timer1.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_wkup_m3__l4_wkup.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_wkup_m3_hwmod.main_clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_control_hwmod.main_clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_gpio0_hwmod.main_clk = AM43XX_L4_WKUP_OCPIF_CLK;
++}
++
+ #define AM33XX_L4_WKUP_OCPIF_CLK "dpll_core_m4_div2_ck"
+ 
+ static void am33xx_hwmod_ocpif_clk(void)
+@@ -2584,6 +2688,12 @@ int __init am33xx_hwmod_init(void)
+ 		am33xx_hwmod_rstst();
+ 		am33xx_hwmod_clockdomain();
+ 		am33xx_hwmod_ocpif_clk();
++	} else {
++		am43xx_hwmod_clkctrl();
++		am43xx_hwmod_rstctrl();
++		am43xx_hwmod_rstst();
++		am43xx_hwmod_clockdomain();
++		am43xx_hwmod_ocpif_clk();
+ 	}
+ 
+ 	ret = omap_hwmod_register_links(amx3xx_hwmod_ocp_ifs);
 -- 
 1.8.3.1
 
