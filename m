@@ -1,88 +1,65 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH 6/6] USB: ehci-omap: Implement suspend/resume
-Date: Thu, 11 Jul 2013 11:14:29 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1307111106090.1276-100000@iolanthe.rowland.org>
-References: <51DE71F3.1040101@ti.com>
+From: Stefan Roese <sr@denx.de>
+Subject: Re: [PATCH] ARM: OMAP3: Beagle: Fix USB Host on beagle xM Ax/Bx
+Date: Thu, 11 Jul 2013 17:34:14 +0200
+Message-ID: <51DED076.3040000@denx.de>
+References: <1366024808-4691-1-git-send-email-rogerq@ti.com> <51DC09E7.1070302@denx.de> <51DC164B.5010608@ti.com> <51DC1B47.7070504@denx.de> <51DE87D3.5030600@ti.com> <51DEA7F1.1050902@denx.de> <51DEC2CE.70400@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51DE71F3.1040101-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, ruslan.bilovol-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mo-p05-ob.rzone.de ([81.169.146.181]:9000 "EHLO
+	mo-p05-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755885Ab3GKPen (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Jul 2013 11:34:43 -0400
+In-Reply-To: <51DEC2CE.70400@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com
 
-On Thu, 11 Jul 2013, Roger Quadros wrote:
-
-> > The other two problems are both related to the interaction between
-> > system PM and runtime PM.  Suppose the controller is already runtime
-> > suspended when the system goes to sleep.  Because it is runtime
-> > suspended, it is enabled for wakeup.  But device_may_wakeup() could
-> > return false; if this happens then you have to do a runtime-resume in
-> > omap_ehci_suspend() before calling ehci_suspend(), so that the
-> > controller can be suspended again with wakeups disabled.  (Or you could
-> > choose an alternative method for accomplishing the same result, such as
-> > disabling the wakeup signal from the pad without going through a whole
-> > EHCI resume/suspend cycle.)  Conversely, if device_may_wakeup() returns
-> > true then you shouldn't do anything at all, because the controller is
-> > already suspended with the correct wakeup setting.
+On 07/11/2013 04:35 PM, Roger Quadros wrote:
+>> BTW: I noticed a git ID (8e1cacd) in your kernel that I can't identify.
+>> Do you have any patches locally applied to the kernel.org version that
+>> might be helpful with this USB issue I'm seeing?
 > 
-> I think this case is taken care of by the Runtime PM core at least for the OMAP
-> platform according to the documentation
+> Yes I had tested it on a more recent kernel with some local patches applied
+> that I've recently sent for review.
 > 
-> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/power/runtime_pm.txt#n647
-
-No; that section refers only to races, not to wakeup settings.
-
-> At the end of this mail is the log during system suspend/resume
+> But to cross check with your setup I've retested it with commit d2b4a646 
+> with the 2 below patches on top
 > 
-> You can notice the following sequence
+> https://lkml.org/lkml/2013/6/20/327
+> https://lkml.org/lkml/2013/6/20/339
+
+Thanks. I have exactly those 2 patches applies as well. But on a
+different git commit. And with some local (unrelated) patches as well.
+I'll revert to exactly your version tomorrow and test again.
+
+> I've tried it again with the ELDK 5.3 root but still can't get it to fail.
 > 
-> -ehci runtime suspends
-> -system suspend triggered
-> -ehci runtime resumes
-> -ehci suspends (uses new wakeup settings)
-> -system wakeup triggered
-> -ehci resumes
-> -ehci runtime suspends
+> I think we should match our u-boot as well. Could you please let me know
+> your u-boot commit and uEnv.txt?
 
-This is because the root hub was runtime suspended with the wrong
-wakeup setting.  The USB core, which is careful about these things,
-resumed and re-suspended it with the proper wakeup setting.  In the 
-process, the controller had to be runtime resumed as well.
+Good idea. I'm currently using a "dirty" local version. I'll try to
+switch to an officially available version tomorrow. And send you the
+version/git id.
 
-Try doing the test over again, but this time with the root hub enabled 
-for wakeup and the controller disabled.  (I know this is a bizarre 
-combination, but try it anyway.)  Also, after the system wakes up, see 
-whether the root hub and controller get runtime suspended.
+> My network setup is pretty simple, beagle-xm is connected directly to my laptop's
+> ethernet port. No network switch in between.
 
-> > For the third problem, suppose the controller was runtime suspended
-> > when the system went to sleep.  When the system wakes up, the
-> > controller will become active, so you have to inform the runtime PM
-> > core about its change of state.  Basically, if omap_ehci_resume() sees
-> > that ehci_resume() returned 0 then it must do:
-> > 
-> > 	pm_runtime_disable(dev);
-> > 	pm_runtime_set_active(dev);
-> > 	pm_runtime_enable(dev);
-> > 
-> > All of these issues are discussed (among lots of other material) in 
-> > Documentation/power/runtime_pm.txt.
-> 
-> Is this still applicable? Documentation claims
-> 
->    "During system resume it calls pm_runtime_enable() and pm_runtime_put_sync()
->     for every device right after executing the subsystem-level .resume_early()
->     callback and right after executing the subsystem-level .resume() callback
->     for it, respectively."
+I have a switch in between the target and my PC. But this network setup
+is also quite "simple" and works with all other boards as well. So this
+shouldn't be a problem.
 
-Yes, this is applicable, but it is irrelevant to the problem I 
-described.  You still have to tell the runtime PM core that the device 
-is now active.
+> When you get the problem do you cold boot the board or warm boot it?
+> I've been always cold booting it.
 
-Alan Stern
+I'm usually warm booting (pushbutton reset).
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+As mentioned above, I have some "homework" now to move to a
+setup/configuration (official git commits) that you can reproduce on
+your version C2 beagleboard as well. Stay tuned... ;)
+
+Thanks,
+Stefan
+
