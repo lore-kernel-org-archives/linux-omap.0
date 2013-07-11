@@ -1,53 +1,55 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 0/2] Fix omap serial early crash during hwmod _setup()
-Date: Thu, 11 Jul 2013 16:23:03 +0530
-Message-ID: <1373539986-27272-1-git-send-email-rnayak@ti.com>
+Subject: [PATCH 1/2] Revert "ARM: OMAP2+: Fix serial init for device tree based booting"
+Date: Thu, 11 Jul 2013 16:23:04 +0530
+Message-ID: <1373539986-27272-2-git-send-email-rnayak@ti.com>
+References: <1373539986-27272-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44608 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755807Ab3GKKxr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Jul 2013 06:53:47 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36140 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755807Ab3GKKxv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Jul 2013 06:53:51 -0400
+In-Reply-To: <1373539986-27272-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: khilman@linaro.org, linux-omap@vger.kernel.org, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, mpfj-list@newflow.co.uk, sourav.poddar@ti.com, paul@pwsan.com, balbi@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-This series should fix the issue with the early serial crash seen
-during hwmod _setup() as reported by [1]
+This reverts commit 82702ea11ddfe0e43382e1fa5b66d807d8114916.
 
-The issue was reported on a am33xx device and was not seen on omap4
-or omap5 devices as the hwmod data for both omap4 and omap5 had
-statically defined HWMOD_INIT_NO_IDLE and HWMOD_INIT_NO_RESET for
-uart3 which happens to be the debug console used on omap4 panda and
-omap5 uevm boards.
+The above commit stubbed out omap_serial_early_init() in case of
+DT build thinking it was doing the serial port initializations.
 
-The series reverts the patch which stubbed out omap_serial_early_init()
-for DT boot and gets rid of the static flags in omap4 and omap5 hwmod
-data.
+omap_serial_early_init() however does not do the serial port
+inits (its instead done by omap_serial_init_port()) instead
+it sets the HWMOD_INIT_NO_IDLE and HWMOD_INIT_NO_RESET flags
+for the console uart which causes hwmod to avoid doing a reset
+followed by the idling of the console uart.
 
-This series along with the patch posted by Felipe [2] should fix the
-issue reported by [1] completely and boot to prompt on a am33xx device
-with LL_DEBUG enabled.
+This is still needed even in the DT case.
 
-I have boot tested this series (along with [2]) on a omap4 panda es and
-a am335x boneblack.
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Reported-by: Mark Jackson <mpfj-list@newflow.co.uk>
+Reported-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+---
+ arch/arm/mach-omap2/serial.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-[1] http://comments.gmane.org/gmane.linux.ports.arm.omap/100628
-
-[2] http://marc.info/?l=linux-omap&m=137353783912736&w=2
-
-Rajendra Nayak (2):
-  Revert "ARM: OMAP2+: Fix serial init for device tree based booting"
-  ARM: OMAP4+: Get rid of the HWMOD_INIT_NO_IDLE and
-    HWMOD_INIT_NO_RESET flags for uart
-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +--
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c |    1 -
- arch/arm/mach-omap2/serial.c               |    3 ---
- 3 files changed, 1 insertion(+), 6 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 3a674de..58d5b56 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -175,9 +175,6 @@ static char *cmdline_find_option(char *str)
+ 
+ static int __init omap_serial_early_init(void)
+ {
+-	if (of_have_populated_dt())
+-		return -ENODEV;
+-
+ 	do {
+ 		char oh_name[MAX_UART_HWMOD_NAME_LEN];
+ 		struct omap_hwmod *oh;
 -- 
 1.7.9.5
 
