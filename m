@@ -1,87 +1,86 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 0/2] Fix omap serial early crash during hwmod _setup()
-Date: Thu, 11 Jul 2013 16:28:18 +0300
-Message-ID: <20130711132818.GE30970@arwen.pp.htv.fi>
-References: <1373539986-27272-1-git-send-email-rnayak@ti.com>
-Reply-To: <balbi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] ARM: OMAP2+: Remove legacy device creation for McPDM and DMIC
+Date: Thu, 11 Jul 2013 16:04:48 +0200
+Message-ID: <1373551488-3816-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="47eKBCiAZYFK5l32"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51066 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751866Ab3GKN3G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Jul 2013 09:29:06 -0400
-Content-Disposition: inline
-In-Reply-To: <1373539986-27272-1-git-send-email-rnayak@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:56453 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755025Ab3GKOFb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Jul 2013 10:05:31 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: tony@atomide.com, khilman@linaro.org, linux-omap@vger.kernel.org, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, mpfj-list@newflow.co.uk, sourav.poddar@ti.com, paul@pwsan.com, balbi@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---47eKBCiAZYFK5l32
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+McPDM and DMIC only available on OMAP4/5 which no longer boots in legacy
+mode.
+The code to create the devices in legacy mode can be removed.
 
-On Thu, Jul 11, 2013 at 04:23:03PM +0530, Rajendra Nayak wrote:
-> This series should fix the issue with the early serial crash seen
-> during hwmod _setup() as reported by [1]
->=20
-> The issue was reported on a am33xx device and was not seen on omap4
-> or omap5 devices as the hwmod data for both omap4 and omap5 had
-> statically defined HWMOD_INIT_NO_IDLE and HWMOD_INIT_NO_RESET for
-> uart3 which happens to be the debug console used on omap4 panda and
-> omap5 uevm boards.
->=20
-> The series reverts the patch which stubbed out omap_serial_early_init()
-> for DT boot and gets rid of the static flags in omap4 and omap5 hwmod
-> data.
->=20
-> This series along with the patch posted by Felipe [2] should fix the
-> issue reported by [1] completely and boot to prompt on a am33xx device
-> with LL_DEBUG enabled.
->=20
-> I have boot tested this series (along with [2]) on a omap4 panda es and
-> a am335x boneblack.
->=20
-> [1] http://comments.gmane.org/gmane.linux.ports.arm.omap/100628
->=20
-> [2] http://marc.info/?l=3Dlinux-omap&m=3D137353783912736&w=3D2
->=20
-> Rajendra Nayak (2):
->   Revert "ARM: OMAP2+: Fix serial init for device tree based booting"
->   ARM: OMAP4+: Get rid of the HWMOD_INIT_NO_IDLE and
->     HWMOD_INIT_NO_RESET flags for uart
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ arch/arm/mach-omap2/devices.c | 40 ----------------------------------------
+ 1 file changed, 40 deletions(-)
 
-boot tested on omap4-panda rev a3. Console still works and it suspends
-and resumes fine after setting a proper timeout.
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index aef96e4..dbcadcc 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -328,44 +328,6 @@ static void omap_init_audio(void)
+ static inline void omap_init_audio(void) {}
+ #endif
+ 
+-#if defined(CONFIG_SND_OMAP_SOC_MCPDM) || \
+-		defined(CONFIG_SND_OMAP_SOC_MCPDM_MODULE)
+-
+-static void __init omap_init_mcpdm(void)
+-{
+-	struct omap_hwmod *oh;
+-	struct platform_device *pdev;
+-
+-	oh = omap_hwmod_lookup("mcpdm");
+-	if (!oh)
+-		return;
+-
+-	pdev = omap_device_build("omap-mcpdm", -1, oh, NULL, 0);
+-	WARN(IS_ERR(pdev), "Can't build omap_device for omap-mcpdm.\n");
+-}
+-#else
+-static inline void omap_init_mcpdm(void) {}
+-#endif
+-
+-#if defined(CONFIG_SND_OMAP_SOC_DMIC) || \
+-		defined(CONFIG_SND_OMAP_SOC_DMIC_MODULE)
+-
+-static void __init omap_init_dmic(void)
+-{
+-	struct omap_hwmod *oh;
+-	struct platform_device *pdev;
+-
+-	oh = omap_hwmod_lookup("dmic");
+-	if (!oh)
+-		return;
+-
+-	pdev = omap_device_build("omap-dmic", -1, oh, NULL, 0);
+-	WARN(IS_ERR(pdev), "Can't build omap_device for omap-dmic.\n");
+-}
+-#else
+-static inline void omap_init_dmic(void) {}
+-#endif
+-
+ #if defined(CONFIG_SND_OMAP_SOC_OMAP_HDMI) || \
+ 		defined(CONFIG_SND_OMAP_SOC_OMAP_HDMI_MODULE)
+ 
+@@ -566,8 +528,6 @@ static int __init omap2_init_devices(void)
+ 	omap_init_mbox();
+ 	/* If dtb is there, the devices will be created dynamically */
+ 	if (!of_have_populated_dt()) {
+-		omap_init_dmic();
+-		omap_init_mcpdm();
+ 		omap_init_mcspi();
+ 		omap_init_sham();
+ 		omap_init_aes();
+-- 
+1.8.2.1
 
-Tested-by: Felipe Balbi <balbi@ti.com>
-
---=20
-balbi
-
---47eKBCiAZYFK5l32
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR3rLyAAoJEIaOsuA1yqREqtMP/2ZMsg8NK+CpB5i48rkWT2Vk
-0TBX9YGfybb58ju65lxvOpQst5JQNrKAtVYTywGAA0tg6Nhpb2q4bTamJo1bYubq
-4A6WIAbLXkKMaRPu+FeaqWAj9wVqpRjl2FD1nCs7BkIkViES9P3lPbza5EkPh0GX
-kwa7f/IOo+IuAaTI6S2zoczEswIOCcqZxpTjm86zoP6Glm29ZTBfwUB9CrNNmZtn
-fCFr8ZQiIuS7osN96UOCH9eSqJQ8vXhQEzQVk5DDqb0CRC025FSmGNViLI05+T1J
-pxiejkGqp4hvK+sb1WrnCAcXWsqLPpbcHKhsY1NjkP0aljeMl5Lvx/f8HlMjiJyJ
-seiOA5pGT1XZF5s5dKppejpjT9o7yBYTFgQvCFpbu/Vh3BDaa9OU3FiAy50oT9FH
-tw1iAV/pQHILbQUwF7K6cFwrQC0PqKQSgNLWMmZa96gkwInDNIeR0w9Ult/tnqL3
-CdDOnTaW/sJdYfdC9PXYiHmgxsEGJzHNQ6PoKipUSUs5XuId12eDKp8s6ipVjdAW
-VpaTUjfK9S8lpK0rLSp0eOzRDuCmM1FSIM8mhW7+F1pPxFNuPZOyxJSHqcCGYukS
-7UfYdDWdIn2S7fvOD99o7aFjCXSb41pggffjio5rWQhn2nVlEoWB502ie2tXwrMM
-s4E9yZyu+5Id8PMGWwQY
-=0wJh
------END PGP SIGNATURE-----
-
---47eKBCiAZYFK5l32--
