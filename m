@@ -1,106 +1,106 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/2] serial: omap: fix wrong context restoration on init
-Date: Fri, 12 Jul 2013 15:11:46 +0300
-Message-ID: <20130712121146.GC17053@arwen.pp.htv.fi>
-References: <1373630142-21765-1-git-send-email-grygorii.strashko@ti.com>
- <1373630142-21765-2-git-send-email-grygorii.strashko@ti.com>
-Reply-To: <balbi@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 1/2] Revert "ARM: OMAP2+: Fix serial init for device tree
+ based booting"
+Date: Fri, 12 Jul 2013 17:42:04 +0530
+Message-ID: <51DFF294.9080501@ti.com>
+References: <1373539986-27272-1-git-send-email-rnayak@ti.com> <1373539986-27272-2-git-send-email-rnayak@ti.com> <20130712072051.GA7656@atomide.com> <51DFB0E4.6040007@ti.com> <20130712080305.GD7656@atomide.com> <51DFC58C.7030105@ti.com> <20130712091827.GH7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7qSK/uQB79J36Y4o"
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1373630142-21765-2-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@linaro.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36629 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932193Ab3GLMMe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Jul 2013 08:12:34 -0400
+In-Reply-To: <20130712091827.GH7656@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: khilman@linaro.org, linux-omap@vger.kernel.org, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, mpfj-list@newflow.co.uk, sourav.poddar@ti.com, paul@pwsan.com, balbi@ti.com
 
---7qSK/uQB79J36Y4o
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Friday 12 July 2013 02:48 PM, Tony Lindgren wrote:
+> * Rajendra Nayak <rnayak@ti.com> [130712 02:06]:
+>> On Friday 12 July 2013 01:33 PM, Tony Lindgren wrote:
+>>>
+>>> OK, so that's only for earlyprintk then?
+>>
+>> yes,
+>>
+>>>
+>>> If so, it seems the right fix is to set the NO_IDLE and NO_RESET
+>>> flags based on ifdef CONFIG_DEBUG_OMAP4UART3 etc as that is selected
+>>> in the Kconfig now.
+>>
+>> ok makes sense. It seems like the static data in hwmod can be populated
+>> based on these defines? something like
+>>
+>> /* uart3 */
+>> static struct omap_hwmod omap44xx_uart3_hwmod = {
+>>         .name           = "uart3",
+>>         .class          = &omap44xx_uart_hwmod_class,
+>>         .clkdm_name     = "l4_per_clkdm",
+>> #ifdef CONFIG_DEBUG_OMAP4UART3
+>>         .flags          = HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET |
+>>                                 HWMOD_SWSUP_SIDLE_ACT,
+>> #else
+>>         .flags          = HWMOD_SWSUP_SIDLE_ACT,
+>> #endif
+>>         .main_clk       = "func_48m_fclk",
+>>         .prcm = {
+>>                 .omap4 = {
+>>                         .clkctrl_offs = OMAP4_CM_L4PER_UART3_CLKCTRL_OFFSET,
+>>                         .context_offs = OMAP4_RM_L4PER_UART3_CONTEXT_OFFSET,
+>>                         .modulemode   = MODULEMODE_SWCTRL,
+>>                 },
+>>         },
+>> };
+>>
+>> And same way for others? That way the cmdline parsing can be done away
+>> with even for the non-DT case.
+> 
+> Yes we can do it that way. How about add a common macro for it if
+> it's always the same? Then the .flags line would be just:
+> 
+> #define HWMOD_OMAP_UART_FLAGS(soc, port)
+> ...
+> 
+> 	.flags		= HWMOD_OMAP_UART_FLAGS(4, 3),
 
-hi,
+I started doing this and ended up with equal number of #ifdefs in the
+header :( Was the intention of doing this to reduce the #ifdefs? in which
+case maybe I am doing something wrong.
 
-On Fri, Jul 12, 2013 at 02:55:42PM +0300, Grygorii Strashko wrote:
-> Since commit a630fbf "serial: omap: Fix device tree based PM runtime"
-> the OMAP serial driver will always try to restore its context in
-> serial_omap_runtime_resume(). But the problem is that during driver
-> initialization the UART context is not ready yet and, as result, first
-> call to pm_runtime_get*() will cause UART register overwriting by all
-> zeros. This causes Kernel boot hang in case if "earlyprintk" feature is
-> enabled at least [1].
->=20
-> Unfortunately, there is no exact place in driver now where we can
-> determine that UART context is ready - most of registers configured in
-> serial_omap_set_termios(), but some of them in other places.
-> More over, even if PM runtime will be disabled (blocked) during OMAP
-> serial driver probe() execution [2],[3] it will fix only console UART,
-> but context of other UARTs will be overwriting by all zeros during first
-> access to the corresponding UART.
->=20
-> To fix this issue:
-> - introduce additional "initialized" flag and update PM runtime callback
-> to do nothing if its not set. Set "initialized" at the end of probe().
-> - read current UART registers configuration in probe and use it by
-> default.
->=20
-> [1] http://www.spinics.net/lists/arm-kernel/msg256828.html
-> [2] http://www.spinics.net/lists/arm-kernel/msg258062.html
-> [3] http://www.spinics.net/lists/arm-kernel/msg258040.html
->=20
-> CC: Tony Lindgren <tony@atomide.com>
-> CC: Rajendra Nayak <rnayak@ti.com>
-> CC: Felipe Balbi <balbi@ti.com>
-> CC: Kevin Hilman <khilman@linaro.org>
->=20
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> ---
-> tested on OMAP4 SDP with and without earlyprintk enabled.
->  drivers/tty/serial/omap-serial.c |   27 ++++++++++++++++++++++++++-
->  1 file changed, 26 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-s=
-erial.c
-> index f39bf0c..e1e9667 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -162,6 +162,7 @@ struct uart_omap_port {
->  	struct work_struct	qos_work;
->  	struct pinctrl		*pins;
->  	bool			is_suspending;
-> +	bool			initialized;
+> 
+>>> The current code in mach-omap2/serial.c is wrong, and is a hack
+>>> needed for the pdata based booting. What's broken is that
+>>> omap_serial_early_init() parses the cmdline for console, which
+>>> itself is pretty nasty, and it won't work the right way as
+>>> there's nothing stopping from having the earlycon in a different
+>>> UART from the serial console. So we just want to get rid of the
+>>> whole mach-omap2/serial.c once we're all DT.
+>>>
+>>> So to summarize, we have two bugs:
+>>>
+>>> 1. Omap hwmod code can reset UART while earlycon may be using
+>>>    it. The fix to this is to use NO_IDLE and NO_RESET flags in
+>>>    the hwmod code if CONFIG_DEBUG_OMAPxUARTy is specified.
+>>>
+>>> 2. A bug in drivers/tty/serial/omap-serial.c where the
+>>>    missing context loss count can cause NULL context to be
+>>>    initialized during driver probe causing port to hang for
+>>>    earlycon. The fix for that is what Felipe has suggested or
+>>>    fix it in the driver by removing the context loss count usage
+>>>    and detect the need for context restore based on the UART
+>>>    state.
+>>>
+>>> Or am I still missing something?
+>>
+>> No, thats pretty much the 2 issues we have.
+> 
+> OK thanks good to hear it's limited to earlycon issues.
+> 
+> Regards,
+> 
+> Tony
+> 
 
-you really think adding this sort of bool flag is the best thing we can
-do ? Something which will, quite likely, spread through every single
-driver ?
-
-oh well...
-
---=20
-balbi
-
---7qSK/uQB79J36Y4o
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR3/KBAAoJEIaOsuA1yqREAM8P/0KBH59o9s1wvbaDv+hmMYRe
-yPX7NUzO0y4IEBadl41CLKK00Gle/YXUJ/tQC24mzySVwOj/k94bS2bfeLaSnIxq
-jRgj0sreP4jwoBiW++lRyzaH750KVO/qI+w/gHSvxBxYmFmRhXL6ttoqCQ4xv2z7
-iYeV3Po4QUDJnqHTIpqnUIkLedGwM9hVAhMN0FA9ceC/7NyRYUHW8BckMSaUXwzu
-5T4KFb+YlahGLVtmvNDaTOiNGnPI+gOXykRU6MHkoym7VNS5W0AJgkt6VD7G3pdy
-1/5EFGIMI4ndrJ3Vuit9blNcvxE3q7hYqKwhsZAKcYcvyzTfQbobEeT8gR/j735o
-r3mk3AuwUa9WiUbZX6JMaSfkMaBm3xh2boJtwVBHClM1/8gx3OHI9vyZzcw/fX+s
-ek27O29iAu/g7qqePcPcgEysdQ2/7dMpCCxOaOzkDe2EGBP/N1yvDbWE6oMZO340
-pG4dXWcUr6FniJadqr2MYmLCT4uaHH3Ki7+0uYkInZl9fB7FOJ0XcWPApLZ4H1eu
-7YXjZUzZtoI19+1X3O81yRdqa30avnNsKbk/Z6ASAKLYeoFLRN1aYyJ3HDiS19cL
-d1j1pXFoMzfei1YGLmHE/yWttCrh0kkf5PnnzBqWpB2flEfQC+FNtVX8tdMhXR//
-PmCvE0G11PTxzTwABSEt
-=xa+7
------END PGP SIGNATURE-----
-
---7qSK/uQB79J36Y4o--
