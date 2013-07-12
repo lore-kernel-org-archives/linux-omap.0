@@ -1,46 +1,79 @@
-From: Wei Yongjun <weiyj.lk@gmail.com>
-Subject: [PATCH RESEND] PM / AVS: SmartReflex: remove redundant dev_err call
- in omap_sr_probe()
-Date: Fri, 12 Jul 2013 12:59:40 +0800
-Message-ID: <CAPgLHd-toHh8DcooiVz7222kiE-F+xsj1nai2hNEHo95X-3+Ow@mail.gmail.com>
-References: <CAPgLHd_K37Uf420FRiEkiCZQiL9bAdiE2_qG4dp7WmQRaCnDqQ@mail.gmail.com>
-	<20130626130641.GA26920@kahuna>
-	<877gh8nbpm.fsf@linaro.org>
+From: Oleksandr Kozaruk <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 0/2] TWL6030, TWL6032 GPADC driver
+Date: Fri, 12 Jul 2013 10:18:00 +0300
+Message-ID: <1373613482-28390-1-git-send-email-oleksandr.kozaruk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <877gh8nbpm.fsf@linaro.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: khilman@linaro.org
-Cc: nm@ti.com, anton@enomsg.org, dwmw2@infradead.org, andrii.tseglytskyi@ti.com, jean.pihet@newoldbits.com, tony@atomide.com, yongjun_wei@trendmicro.com.cn, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org, milo.kim-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-There is a error message within devm_ioremap_resource
-already, so remove the dev_err call to avoid redundant
-error message.
+Hello,
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Acked-by: Nishanth Menon <nm@ti.com>
----
-cc to linux-pm with Nishanth Menon's ACK
----
- drivers/power/avs/smartreflex.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+v3 - fixed compiler warning
+v2 - the driver put in drivers/iio, and
+converted using iio facilities as suggested by Graeme.
 
-diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
-index db9973b..c26acfc 100644
---- a/drivers/power/avs/smartreflex.c
-+++ b/drivers/power/avs/smartreflex.c
-@@ -871,10 +871,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	sr_info->base = devm_ioremap_resource(&pdev->dev, mem);
--	if (IS_ERR(sr_info->base)) {
--		dev_err(&pdev->dev, "%s: ioremap fail\n", __func__);
-+	if (IS_ERR(sr_info->base))
- 		return PTR_ERR(sr_info->base);
--	}
- 
- 	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
- 
+TWL603[02] GPADC is used to measure battery voltage,
+battery temperature, battery presence ID, and could
+be used to measure twl603[02] die temperature.
+This is used on TI blaze, blaze tablet platforms.
 
+The TWL6030/TWL6032 is a PMIC that has a GPADC with 17/19
+channels respectively. Some channels have current
+source and are used for measuring voltage drop
+on resistive load for detecting battery ID resistance,
+or measuring voltage drop on NTC resistors for external
+temperature measurements, other channels measure voltage,
+(i.e. battery voltage), and have inbuilt voltage dividers,
+thus, capable to scale voltage. Some channels are dedicated
+for measuring die temperature.
+
+Some channels could be calibrated in 2 points, having
+offsets from ideal values in trim registers.
+
+The difference between GPADC in TWL6030 and TWL6032:
+- 10 bit vs 12 bit ADC;
+- 17 vs 19 channels;
+- channels have different purpose(i. e. battery voltage
+  channel 8 vs channel 18);
+- trim values are interpreted differently.
+
+The driver exports function returning converted value for
+requested channels.
+
+Sysfs entries are added to start and read conversion result
+in millivolts for chosen channel.
+
+The driver is derived from git://git.omapzoom.org/kernel/omap.git
+The original driver's authors and contributors are Balaji T K,
+Graeme Gregory, Ambresh K, Girish S Ghongdemath.
+
+The changes to the original driver:
+- device tree adaptation;
+- drop ioctl support - never been used;
+- unified measurement method for both devices;
+- get rid of "if (device == X)" code style to data driven;
+- drop polling end of conversion and use interrupt instead;
+- iio framework is used
+
+Tested with on blaze tablet 2 with OMAP4430(twl6030), and
+OMAP4470(twl6032) SOMs.
+
+The patches were tested against 3.10-rc7
+
+Oleksandr Kozaruk (2):
+  ARM: dts: twl: Add GPADC data to device tree
+  iio: twl6030-gpadc: TWL6030, TWL6032 GPADC driver
+
+ arch/arm/boot/dts/twl6030.dtsi  |    6 +
+ drivers/iio/adc/Kconfig         |    8 +
+ drivers/iio/adc/Makefile        |    1 +
+ drivers/iio/adc/twl6030-gpadc.c | 1019 +++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 1034 insertions(+)
+ create mode 100644 drivers/iio/adc/twl6030-gpadc.c
+
+-- 
+1.7.9.5
