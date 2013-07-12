@@ -1,37 +1,94 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] omap fixes for v3.11 merge window
-Date: Fri, 12 Jul 2013 10:57:17 -0700
-Message-ID: <20130712175717.GA27575@quad.lixom.net>
-References: <20130710080241.GN5523@atomide.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH] remove vlan tags in CPSW dual emac mode
+Date: Sat, 13 Jul 2013 00:05:53 +0530
+Message-ID: <51E04C89.8030202@ti.com>
+References: <4699400.vD3TdgH1nR@localhost> <5176C4FE.4080305@ti.com> <51E00B2F.6050406@newflow.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:61158 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933186Ab3GLR5R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jul 2013 13:57:17 -0400
-Received: by mail-pa0-f41.google.com with SMTP id bj3so9263696pad.0
-        for <linux-omap@vger.kernel.org>; Fri, 12 Jul 2013 10:57:17 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20130710080241.GN5523@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52475 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965131Ab3GLSgb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Jul 2013 14:36:31 -0400
+In-Reply-To: <51E00B2F.6050406@newflow.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Mark Jackson <mpfj-list@newflow.co.uk>
+Cc: Markus Brunner <systemprogrammierung.brunner@gmail.com>, netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Wed, Jul 10, 2013 at 01:02:41AM -0700, Tony Lindgren wrote:
-> The following changes since commit ddcf6600b133697adbafd96e080818bdc0dfd028:
-> 
->   Merge tag 'hwmon-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging (2013-07-03 19:56:35 -0700)
-> 
-> are available in the git repository at:
-> 
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/fixes-for-merge-window
+On 7/12/2013 7:27 PM, Mark Jackson wrote:
+> On 23/04/13 18:29, Mugunthan V N wrote:
+>> On 4/23/2013 9:48 PM, Markus Brunner wrote:
+>>> If operating in dual emac mode all packets sent by the CPSW contain vlan headers with the reserved VID 0,
+>>> which gets stripped away by all somewhat recent Linux versions. Operating systems without that behaviour will fail to communicate.
+>>> This patch fixes that behaviour by disabling the VLAN_AWARE mode as already described by the comment above.
+>>>
+>>> Signed-off-by: Markus Brunner <systemprogrammierung.brunner@gmail.com>
+>>> Tested-by: Mark Jackson <mpfj@newflow.co.uk>
+>>>
+>>> ---
+>>> --- linux-3.9-rc8.orig/drivers/net/ethernet/ti/cpsw.c    2013-04-23 17:26:11.000000000 +0200
+>>> +++ linux-3.9-rc8/drivers/net/ethernet/ti/cpsw.c    2013-04-23 17:36:25.000000000 +0200
+>>> @@ -751,9 +751,9 @@ static void cpsw_init_host_port(struct c
+>>>       /* switch to vlan unaware mode */
+>>>       cpsw_ale_control_set(priv->ale, priv->host_port, ALE_VLAN_AWARE,
+>>>                    CPSW_ALE_VLAN_AWARE);
+>>>       control_reg = readl(&priv->regs->control);
+>>> -    control_reg |= CPSW_VLAN_AWARE;
+>>> +    control_reg &= ~CPSW_VLAN_AWARE;
+>>>       writel(control_reg, &priv->regs->control);
+>>>       fifo_mode = (priv->data.dual_emac) ? CPSW_FIFO_DUAL_MAC_MODE :
+>>>                CPSW_FIFO_NORMAL_MODE;
+>>>       writel(fifo_mode, &priv->host_port_regs->tx_in_ctl);
+>> Disabling VLAN aware mode will enable switching mode and the feature of
+>> separating the two down stream port is lost with this patch
+>> Please check TRM for more info in *14.3.2.10.2 Dual Mac Mode* chapter
+> Just to update this (old) thread ...
+>
+> I can still confirm that *without* the above patch, I am *unable* to use both network
+> ports on our AM335x board.
+>
+> My .dts file contains:-
+>
+> mac: ethernet@4a100000 {
+> 	dual_emac = <1>;
+>
+> 	cpsw_emac0: slave@4a100200 {
+> 		dual_emac_res_vlan = <1>;
+> 	};
+>
+> 	cpsw_emac1: slave@4a100300 {
+> 		dual_emac_res_vlan = <2>;
+> 	};
+> };
+>
+> &cpsw_emac0 {
+> 	phy_id = <&davinci_mdio>, <0>;
+> };
+>
+> &cpsw_emac1 {
+> 	phy_id = <&davinci_mdio>, <1>;
+> };
+>
+> My /etc/network/interfaces file is:-
+>
+> auto lo eth0 eth1
+> iface lo inet loopback
+> iface eth0 inet static
+> address 10.0.101.3
+> netmask 255.255.0.0
+> gateway 10.0.0.1
+> iface eth1 inet static
+> address 10.1.101.3
+> netmask 255.255.0.0
+>
+> So I'm not sure what's wrong, but it's *definitely* not correct.
+>
+>
+I am sure that current code in mainline works for Dual EMAC. I can test it
+again and share the images with you if are interested. But had tested with DHCP
+on both the interfaces.
 
-
-Thanks, merged. There was a quite verbose merge conflict due to the changes of
-the Kconfig in our fixes branch, so please double-check my resolution.
-
-
--Olof
+Regards
+Mugunthan V N
