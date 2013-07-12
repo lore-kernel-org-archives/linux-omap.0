@@ -1,102 +1,98 @@
-From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+From: Stephen Warren <swarren@wwwdotorg.org>
 Subject: Re: [PATCH 2/2] pwm: Add PWM polarity flag macros for DT
-Date: Fri, 12 Jul 2013 08:40:07 -0600
-Message-ID: <51E01547.4030204@wwwdotorg.org>
-References: <1373553468-6564-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1373553468-6564-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <51DEEE15.7040801@wwwdotorg.org> <3211864.2dENa1E110@avalon>
+Date: Fri, 12 Jul 2013 08:42:41 -0600
+Message-ID: <51E015E1.2090906@wwwdotorg.org>
+References: <1373553468-6564-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20130711193245.GB17212@dhcp-172-17-186-34.nvidia.com> <51DF1054.9000207@wwwdotorg.org> <2172485.AZTjvkLGcM@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <3211864.2dENa1E110@avalon>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Boris BREZILLON <linux-arm-ZNYIgs0QAGpBDgjK7y7TUQ@public.gmane.org>, Laurent Pinchart <laurent.pinchart+renesas-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Philip Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steffen Trumtrar <s.trumtrar-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:44886 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757332Ab3GLOmn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jul 2013 10:42:43 -0400
+In-Reply-To: <2172485.AZTjvkLGcM@avalon>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, linux-pwm@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linux-omap@vger.kernel.org, Philip Avinash <avinashphilip@ti.com>, Grant Likely <grant.likely@linaro.org>, Boris BREZILLON <linux-arm@overkiz.com>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-On 07/12/2013 04:41 AM, Laurent Pinchart wrote:
-> Hi Stephen,
+On 07/12/2013 05:01 AM, Laurent Pinchart wrote:
+> Hi,
 > 
-> On Thursday 11 July 2013 11:40:37 Stephen Warren wrote:
->> On 07/11/2013 08:37 AM, Laurent Pinchart wrote:
->>> Define PWM_POLARITY_NORMAL and PWM_POLARITY_INVERTED macros in
->>> include/dt-bindings/pwm/pwm.h to be used by device tree sources.
+> On Thursday 11 July 2013 14:06:44 Stephen Warren wrote:
+>> On 07/11/2013 01:32 PM, Thierry Reding wrote:
+>>> On Thu, Jul 11, 2013 at 11:50:48AM -0600, Stephen Warren wrote:
+>>>> On 07/11/2013 09:36 AM, Thierry Reding wrote:
+>>>>> On Thu, Jul 11, 2013 at 04:37:48PM +0200, Laurent Pinchart
+>>>>> wrote: [...]
+>>>>>
+>>>>>> diff --git
+>>>>>> a/Documentation/devicetree/bindings/pwm/atmel-tcb-pwm.txt
+>>>>>> b/Documentation/devicetree/bindings/pwm/atmel-tcb-pwm.txt
+>>>>>> index de0eaed..be09be4 100644 ---
+>>>>>> a/Documentation/devicetree/bindings/pwm/atmel-tcb-pwm.txt
+>>>>>> +++ b/Documentation/devicetree/bindings/pwm/atmel-tcb-pwm.txt
+>>>>>> @@ -4,9 +4,9 @@ Required properties: - compatible: should be
+>>>>>> "atmel,tcb-pwm" - #pwm-cells: Should be 3.  The first cell
+>>>>>> specifies the per-chip index of the PWM to use, the second
+>>>>>> cell is the period in nanoseconds and -  bit 0 in the third
+>>>>>> cell is used to encode the polarity of PWM output. -  Set bit
+>>>>>> 0 of the third cell in PWM specifier to 1 for inverse
+>>>>>> polarity & -  set to 0 for normal polarity. +  the third cell
+>>>>>> is used to encode the polarity of PWM output. Set the +
+>>>>>> PWM_POLARITY_NORMAL flag for normal polarity or the
+>>>>>> PWM_POLARITY_INVERSED +  flag for inverted polarity. PWM
+>>>>>> flags are defined in <dt-bindings/pwm/pwm.h>. - tc-block: The
+>>>>>> Timer Counter block to use as a PWM chip.
+>>>>>
+>>>>>> Example:
+>>>>> I'd prefer for the original text to stay in place and the reference to
+>>>>> the dt-bindings/pwm/pwm.h file to go below that block.
+>>>>
+>>>> I disagree here. The whole point of creating header files for the
+>>>> constants in binding definitions was so that you wouldn't have to
+>>>> duplicate all the values into the binding definitions. Rather, you'd
+>>>> simply say "see <dt-bindings/xxx.h>".
 >>>
->>>  Documentation/devicetree/bindings/pwm/atmel-tcb-pwm.txt |  6 +++---
->>>  Documentation/devicetree/bindings/pwm/pwm-samsung.txt   |  5 +++--
->>>  Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt  |  5 +++--
->>>  Documentation/devicetree/bindings/pwm/pwm.txt           |  8 +++++---
->>>  Documentation/devicetree/bindings/pwm/vt8500-pwm.txt    |  5 +++--
->>>  arch/arm/boot/dts/am335x-evm.dts                        |  3 ++-
->>>  arch/arm/boot/dts/am335x-evmsk.dts                      |  3 ++-
->>>  arch/arm/boot/dts/wm8850-w70v2.dts                      |  3 ++-
->>>  include/dt-bindings/pwm/pwm.h                           | 15 ++++++++++++
->>>  include/linux/pwm.h                                     |  4 ++--
+>>> But that's not something that this patch solves.
 >>
->> I think this needs to be separate patches; at least the new pwm.h should
->> be introduced separately to the board-specific *.dts edits, and perhaps
->> further split up?
+>> Well, if the comments I made on the patch re: that <linux/pwm.h> should
+>> simply #include <dt-bindings/pwm/pwm.h> instead of duplicating the
+>> constants, then yet this patch will solve that. There will be a single place
+>> where the constants are defined.
 > 
-> What about splitting it in three patches that
+> As explained in another reply, this would require replacing the enum with an 
+> unsigned int. I can write a patch if we agree on this.
 > 
-> - add the include/dt-bindings/pwm/pwm.h header, and update include/linux/pwm.h 
-> and Documentation/devicetree/bindings/pwm/pwm.txt
-> 
-> - update the rest of the documentation
-> 
-> - update the .dts files
-
-I think that sounds reasonable.
-
->> That way, the one patch that introduces <dt-bindings/pwm.h> would be
->> available to be merged into any other tree that wanted to take patches
->> to use the new defines.
+>>> And it could be solved even in the absence of the header file defining the
+>>> symbolic constants. If all the standard flags that dt-bindings/pwm/pwm.txt
+>>> now specifies were to be listed in pwm.txt (they actually are) then
+>>> referring to that document as the canonical source works equally well.
 >>
->>> diff --git a/include/linux/pwm.h b/include/linux/pwm.h
->>>
->>>  enum pwm_polarity {
->>>
->>> -	PWM_POLARITY_NORMAL,
->>> -	PWM_POLARITY_INVERSED,
->>> +	PWM_POLARITY_NORMAL = 0,
->>> +	PWM_POLARITY_INVERSED = 1,
->>>
->>>  };
->>
->> Rather than manually editing that to ensure the enum matches the DT bindings
->> header, the whole point of making a separate <dt-bindings/...> directory was
->> that drivers could include the binding header files directly to avoid having
->> to duplicate the constant definitions. Can't <linux/pwm.h> include <dt-
->> bindings/pwm.h> and remove that enum?
+>> If that's all the happens, then there will still be duplication
+>> between pwm.txt and <linux/pwm.h>.
 > 
-> We could do that, but we would then need to modify all drivers to replace 
-> enum_pwm_polarity with unsigned int. Thierry, what's your opinion on this ?
+> I've explicitly mentioned the flags in individual DT bindings to ease adding 
+> new flags in the future. At the moment the defined flags are either all 
+> supported or not used at all by drivers. If we later add a new flag supported 
+> by a subset of drivers only the driver bindings should list supported flags 
+> for each driver.
+> 
+> I'm fine with removing the explicit mentions of individual flags right now and 
+> adding it back when needed if you think that's better.
 
-Or perhaps we could keep the enums around, but force the values to match
-the DT constants:
+I think the values for any common system-wide flags should be defined
+once in some system-wide place, and the values for any HW-specific
+values should be defined only in the documentation for that specific HW.
+You could try and avoid conflicts by either:
 
-enum pwm_polarity {
-	PWM_POLARITY_NORMAL = PWM_POLARITY_NORMAL,
-	PWM_POLARITY_INVERTED = PWM_POLARITY_INVERTED,
-};
+a) Allocating system-wide flags from bit 0 up, and HW-specific flags
+from bit 31 down.
 
-(although obviously you'd need to avoid the enum and DT constants having
-the same name).
+or:
 
-Although this brings up one point: let's say we support ACPI/.. bindings
-in the future. The enum possibly can't match the binding values from
-every different kind of binding definition (DT, ACPI, ...) so perhaps
-rather than changing the enum definition in <linux/pwm.h>, what we
-should be doing is mapping between the different name-spaces in whatever
-of_xlate function exists for the PWM flags cell. That would be more
-flexible.
+b) Using 1 cell for standard flags, and a separate cell for any
+HW-specific flags. Drivers can quite easily adapt to adding extra cells
+to #pwm-cells, thus making adding a HW-specific cell later
+backwards-compatible.
