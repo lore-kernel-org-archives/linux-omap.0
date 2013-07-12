@@ -1,80 +1,103 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: OMAP3: Beagle: Fix USB Host on beagle xM Ax/Bx
-Date: Fri, 12 Jul 2013 12:15:27 +0300
-Message-ID: <51DFC92F.1050701@ti.com>
-References: <1366024808-4691-1-git-send-email-rogerq@ti.com> <51DC09E7.1070302@denx.de> <51DC164B.5010608@ti.com> <51DC1B47.7070504@denx.de> <51DE87D3.5030600@ti.com> <51DEA7F1.1050902@denx.de> <51DEC2CE.70400@ti.com> <51DED076.3040000@denx.de> <51DEF0DE.4050607@denx.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] Revert "ARM: OMAP2+: Fix serial init for device
+ tree based booting"
+Date: Fri, 12 Jul 2013 02:18:27 -0700
+Message-ID: <20130712091827.GH7656@atomide.com>
+References: <1373539986-27272-1-git-send-email-rnayak@ti.com>
+ <1373539986-27272-2-git-send-email-rnayak@ti.com>
+ <20130712072051.GA7656@atomide.com>
+ <51DFB0E4.6040007@ti.com>
+ <20130712080305.GD7656@atomide.com>
+ <51DFC58C.7030105@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48125 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757211Ab3GLJP4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Jul 2013 05:15:56 -0400
-In-Reply-To: <51DEF0DE.4050607@denx.de>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54534 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757477Ab3GLJSb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jul 2013 05:18:31 -0400
+Content-Disposition: inline
+In-Reply-To: <51DFC58C.7030105@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stefan Roese <sr@denx.de>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: khilman@linaro.org, linux-omap@vger.kernel.org, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, mpfj-list@newflow.co.uk, sourav.poddar@ti.com, paul@pwsan.com, balbi@ti.com
 
-Stefan,
-
-On 07/11/2013 08:52 PM, Stefan Roese wrote:
-> On 07/11/2013 05:34 PM, Stefan Roese wrote:
->> On 07/11/2013 04:35 PM, Roger Quadros wrote:
->>>> BTW: I noticed a git ID (8e1cacd) in your kernel that I can't identify.
->>>> Do you have any patches locally applied to the kernel.org version that
->>>> might be helpful with this USB issue I'm seeing?
->>>
->>> Yes I had tested it on a more recent kernel with some local patches applied
->>> that I've recently sent for review.
->>>
->>> But to cross check with your setup I've retested it with commit d2b4a646 
->>> with the 2 below patches on top
->>>
->>> https://lkml.org/lkml/2013/6/20/327
->>> https://lkml.org/lkml/2013/6/20/339
->>
->> Thanks. I have exactly those 2 patches applies as well. But on a
->> different git commit. And with some local (unrelated) patches as well.
->> I'll revert to exactly your version tomorrow and test again.
+* Rajendra Nayak <rnayak@ti.com> [130712 02:06]:
+> On Friday 12 July 2013 01:33 PM, Tony Lindgren wrote:
+> > 
+> > OK, so that's only for earlyprintk then?
 > 
-> Okay. I changed to exactly this version: d2b4a646 with those 2 patches
-> on top.
+> yes,
 > 
->>> I've tried it again with the ELDK 5.3 root but still can't get it to fail.
->>>
->>> I think we should match our u-boot as well. Could you please let me know
->>> your u-boot commit and uEnv.txt?
->>
->> Good idea. I'm currently using a "dirty" local version. I'll try to
->> switch to an officially available version tomorrow. And send you the
->> version/git id.
+> > 
+> > If so, it seems the right fix is to set the NO_IDLE and NO_RESET
+> > flags based on ifdef CONFIG_DEBUG_OMAP4UART3 etc as that is selected
+> > in the Kconfig now.
 > 
-> I updated my U-Boot to the following version: Based on mainline git
-> commit ID 225fd8c. Only this patch added:
+> ok makes sense. It seems like the static data in hwmod can be populated
+> based on these defines? something like
 > 
-> http://patchwork.ozlabs.org/patch/256702/
+> /* uart3 */
+> static struct omap_hwmod omap44xx_uart3_hwmod = {
+>         .name           = "uart3",
+>         .class          = &omap44xx_uart_hwmod_class,
+>         .clkdm_name     = "l4_per_clkdm",
+> #ifdef CONFIG_DEBUG_OMAP4UART3
+>         .flags          = HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET |
+>                                 HWMOD_SWSUP_SIDLE_ACT,
+> #else
+>         .flags          = HWMOD_SWSUP_SIDLE_ACT,
+> #endif
+>         .main_clk       = "func_48m_fclk",
+>         .prcm = {
+>                 .omap4 = {
+>                         .clkctrl_offs = OMAP4_CM_L4PER_UART3_CLKCTRL_OFFSET,
+>                         .context_offs = OMAP4_RM_L4PER_UART3_CONTEXT_OFFSET,
+>                         .modulemode   = MODULEMODE_SWCTRL,
+>                 },
+>         },
+> };
 > 
-> This is needed for USB to work in U-Boot. Otherwise my external USB
-> SMSC95xx will not be detected in U-Boot.
+> And same way for others? That way the cmdline parsing can be done away
+> with even for the non-DT case.
 
-I can only test on beagle-xm (which is also rev. C2) with integrated SMSC ethernet chip
-as I don't have an external USB-ethernet adapter.
-The above commit doesn't work well for beagle-xm, so my u-boot is on tag v2013.04
-and you don't need that additional patch.
+Yes we can do it that way. How about add a common macro for it if
+it's always the same? Then the .flags line would be just:
 
-Can you please retest on it? Thanks.
+#define HWMOD_OMAP_UART_FLAGS(soc, port)
+...
 
-You will need to set "usbethaddr" before starting USB else SMSC will not work.
-e.g.
-	setenv usbethaddr A6:66:4D:B0:69:04
+	.flags		= HWMOD_OMAP_UART_FLAGS(4, 3),
 
-Also could you please increase the Linux console message verbosity to debug (8), so that
-all kernel messages are visible in the log? If it spits out something more than what you
-sent last time then do send it to me.
+> > The current code in mach-omap2/serial.c is wrong, and is a hack
+> > needed for the pdata based booting. What's broken is that
+> > omap_serial_early_init() parses the cmdline for console, which
+> > itself is pretty nasty, and it won't work the right way as
+> > there's nothing stopping from having the earlycon in a different
+> > UART from the serial console. So we just want to get rid of the
+> > whole mach-omap2/serial.c once we're all DT.
+> > 
+> > So to summarize, we have two bugs:
+> > 
+> > 1. Omap hwmod code can reset UART while earlycon may be using
+> >    it. The fix to this is to use NO_IDLE and NO_RESET flags in
+> >    the hwmod code if CONFIG_DEBUG_OMAPxUARTy is specified.
+> > 
+> > 2. A bug in drivers/tty/serial/omap-serial.c where the
+> >    missing context loss count can cause NULL context to be
+> >    initialized during driver probe causing port to hang for
+> >    earlycon. The fix for that is what Felipe has suggested or
+> >    fix it in the driver by removing the context loss count usage
+> >    and detect the need for context restore based on the UART
+> >    state.
+> > 
+> > Or am I still missing something?
+> 
+> No, thats pretty much the 2 issues we have.
 
-Let's first sort out the beagle-xm problem, then we can see about old beagle.
+OK thanks good to hear it's limited to earlycon issues.
 
-cheers,
--roger
+Regards,
+
+Tony
