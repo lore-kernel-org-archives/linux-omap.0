@@ -1,98 +1,128 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH 2/2] pwm: Add PWM polarity flag macros for DT
-Date: Fri, 12 Jul 2013 08:42:41 -0600
-Message-ID: <51E015E1.2090906@wwwdotorg.org>
-References: <1373553468-6564-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20130711193245.GB17212@dhcp-172-17-186-34.nvidia.com> <51DF1054.9000207@wwwdotorg.org> <2172485.AZTjvkLGcM@avalon>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] arm: omap5: hwmod: add missing ocp2scp hwmod data
+Date: Fri, 12 Jul 2013 18:14:26 +0300
+Message-ID: <1373642066-5235-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:44886 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757332Ab3GLOmn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jul 2013 10:42:43 -0400
-In-Reply-To: <2172485.AZTjvkLGcM@avalon>
+Received: from comal.ext.ti.com ([198.47.26.152]:34933 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932759Ab3GLPPN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Jul 2013 11:15:13 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, linux-pwm@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linux-omap@vger.kernel.org, Philip Avinash <avinashphilip@ti.com>, Grant Likely <grant.likely@linaro.org>, Boris BREZILLON <linux-arm@overkiz.com>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <benoit.cousson@linaro.org>, Felipe Balbi <balbi@ti.com>
 
-On 07/12/2013 05:01 AM, Laurent Pinchart wrote:
-> Hi,
-> 
-> On Thursday 11 July 2013 14:06:44 Stephen Warren wrote:
->> On 07/11/2013 01:32 PM, Thierry Reding wrote:
->>> On Thu, Jul 11, 2013 at 11:50:48AM -0600, Stephen Warren wrote:
->>>> On 07/11/2013 09:36 AM, Thierry Reding wrote:
->>>>> On Thu, Jul 11, 2013 at 04:37:48PM +0200, Laurent Pinchart
->>>>> wrote: [...]
->>>>>
->>>>>> diff --git
->>>>>> a/Documentation/devicetree/bindings/pwm/atmel-tcb-pwm.txt
->>>>>> b/Documentation/devicetree/bindings/pwm/atmel-tcb-pwm.txt
->>>>>> index de0eaed..be09be4 100644 ---
->>>>>> a/Documentation/devicetree/bindings/pwm/atmel-tcb-pwm.txt
->>>>>> +++ b/Documentation/devicetree/bindings/pwm/atmel-tcb-pwm.txt
->>>>>> @@ -4,9 +4,9 @@ Required properties: - compatible: should be
->>>>>> "atmel,tcb-pwm" - #pwm-cells: Should be 3.  The first cell
->>>>>> specifies the per-chip index of the PWM to use, the second
->>>>>> cell is the period in nanoseconds and -  bit 0 in the third
->>>>>> cell is used to encode the polarity of PWM output. -  Set bit
->>>>>> 0 of the third cell in PWM specifier to 1 for inverse
->>>>>> polarity & -  set to 0 for normal polarity. +  the third cell
->>>>>> is used to encode the polarity of PWM output. Set the +
->>>>>> PWM_POLARITY_NORMAL flag for normal polarity or the
->>>>>> PWM_POLARITY_INVERSED +  flag for inverted polarity. PWM
->>>>>> flags are defined in <dt-bindings/pwm/pwm.h>. - tc-block: The
->>>>>> Timer Counter block to use as a PWM chip.
->>>>>
->>>>>> Example:
->>>>> I'd prefer for the original text to stay in place and the reference to
->>>>> the dt-bindings/pwm/pwm.h file to go below that block.
->>>>
->>>> I disagree here. The whole point of creating header files for the
->>>> constants in binding definitions was so that you wouldn't have to
->>>> duplicate all the values into the binding definitions. Rather, you'd
->>>> simply say "see <dt-bindings/xxx.h>".
->>>
->>> But that's not something that this patch solves.
->>
->> Well, if the comments I made on the patch re: that <linux/pwm.h> should
->> simply #include <dt-bindings/pwm/pwm.h> instead of duplicating the
->> constants, then yet this patch will solve that. There will be a single place
->> where the constants are defined.
-> 
-> As explained in another reply, this would require replacing the enum with an 
-> unsigned int. I can write a patch if we agree on this.
-> 
->>> And it could be solved even in the absence of the header file defining the
->>> symbolic constants. If all the standard flags that dt-bindings/pwm/pwm.txt
->>> now specifies were to be listed in pwm.txt (they actually are) then
->>> referring to that document as the canonical source works equally well.
->>
->> If that's all the happens, then there will still be duplication
->> between pwm.txt and <linux/pwm.h>.
-> 
-> I've explicitly mentioned the flags in individual DT bindings to ease adding 
-> new flags in the future. At the moment the defined flags are either all 
-> supported or not used at all by drivers. If we later add a new flag supported 
-> by a subset of drivers only the driver bindings should list supported flags 
-> for each driver.
-> 
-> I'm fine with removing the explicit mentions of individual flags right now and 
-> adding it back when needed if you think that's better.
+From: Benoit Cousson <benoit.cousson@linaro.org>
 
-I think the values for any common system-wide flags should be defined
-once in some system-wide place, and the values for any HW-specific
-values should be defined only in the documentation for that specific HW.
-You could try and avoid conflicts by either:
+without that hwmod data, USB3 will not in OMAP5 boards.
 
-a) Allocating system-wide flags from bit 0 up, and HW-specific flags
-from bit 31 down.
+While at that, also fix DTS data to pass reg property,
+otherwise driver won't probe.
 
-or:
+Signed-off-by: Benoit Cousson <benoit.cousson@linaro.org>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
 
-b) Using 1 cell for standard flags, and a separate cell for any
-HW-specific flags. Drivers can quite easily adapt to adding extra cells
-to #pwm-cells, thus making adding a HW-specific cell later
-backwards-compatible.
+tested on OMAP5 uEVM. Gets rid of a data abort when USB3
+is enabled. There still some other patches missing to get
+USB3 working out of the box, but that's on Palmas and will
+come as soon as I get those ready.
+
+This is already on step forward.
+
+ arch/arm/boot/dts/omap5.dtsi               |  3 +-
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 45 ++++++++++++++++++++++++++++++
+ 2 files changed, 47 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index da41d70..a0de586 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -654,10 +654,11 @@
+ 			};
+ 		};
+ 
+-		ocp2scp {
++		ocp2scp@4a080000 {
+ 			compatible = "ti,omap-ocp2scp";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
++			reg = <0x4a080000 0x20>;
+ 			ranges;
+ 			ti,hwmods = "ocp2scp1";
+ 			usb2_phy: usb2phy@4a084000 {
+diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+index 2435109..d9118a1 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+@@ -1105,6 +1105,42 @@ static struct omap_hwmod omap54xx_mpu_hwmod = {
+ };
+ 
+ /*
++ * 'ocp2scp' class
++ * bridge to transform ocp interface protocol to scp (serial control port)
++ * protocol
++ */
++
++static struct omap_hwmod_class_sysconfig omap54xx_ocp2scp_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
++			SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap54xx_ocp2scp_hwmod_class = {
++	.name	= "ocp2scp",
++	.sysc	= &omap54xx_ocp2scp_sysc,
++};
++
++/* ocp2scp1 */
++static struct omap_hwmod omap54xx_ocp2scp1_hwmod = {
++	.name		= "ocp2scp1",
++	.class		= &omap54xx_ocp2scp_hwmod_class,
++	.clkdm_name	= "l3init_clkdm",
++	.main_clk	= "l4_root_clk_div",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = OMAP54XX_CM_L3INIT_OCP2SCP1_CLKCTRL_OFFSET,
++			.context_offs = OMAP54XX_RM_L3INIT_OCP2SCP1_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_HWCTRL,
++		},
++	},
++};
++
++/*
+  * 'timer' class
+  * general purpose timer module with accurate 1ms tick
+  * This class contains several variants: ['timer_1ms', 'timer']
+@@ -1900,6 +1936,14 @@ static struct omap_hwmod_ocp_if omap54xx_l4_cfg__mpu = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* l4_cfg -> ocp2scp1 */
++static struct omap_hwmod_ocp_if omap54xx_l4_cfg__ocp2scp1 = {
++	.master		= &omap54xx_l4_cfg_hwmod,
++	.slave		= &omap54xx_ocp2scp1_hwmod,
++	.clk		= "l4_root_clk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ /* l4_wkup -> timer1 */
+ static struct omap_hwmod_ocp_if omap54xx_l4_wkup__timer1 = {
+ 	.master		= &omap54xx_l4_wkup_hwmod,
+@@ -2102,6 +2146,7 @@ static struct omap_hwmod_ocp_if *omap54xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap54xx_l4_per__mmc4,
+ 	&omap54xx_l4_per__mmc5,
+ 	&omap54xx_l4_cfg__mpu,
++	&omap54xx_l4_cfg__ocp2scp1,
+ 	&omap54xx_l4_wkup__timer1,
+ 	&omap54xx_l4_per__timer2,
+ 	&omap54xx_l4_per__timer3,
+-- 
+1.8.2.1
+
