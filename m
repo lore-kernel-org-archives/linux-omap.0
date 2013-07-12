@@ -1,128 +1,56 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] arm: omap5: hwmod: add missing ocp2scp hwmod data
-Date: Fri, 12 Jul 2013 18:14:26 +0300
-Message-ID: <1373642066-5235-1-git-send-email-balbi@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [RFC] ARM: OMAP2+: omap_device: add pinctrl handling
+Date: Fri, 12 Jul 2013 18:36:30 +0300
+Message-ID: <51E0227E.2000008@ti.com>
+References: <1371826990-25820-1-git-send-email-grygorii.strashko@ti.com> <CACRpkdY=m1b9Lh27+wHP8FQ4SbVZKmAOCGhxe59aP+TcuR9QaA@mail.gmail.com> <20130625065811.GZ5523@atomide.com> <51CAEA90.90200@ti.com> <CACRpkdbKgEcfF67oO9HrczvDp4Po3Xt1hFajJ1vO8kEvsZH4jA@mail.gmail.com> <51CC45D3.2000305@ti.com> <CACRpkdYU13bhPaL2ZG9CT9JRv9sKQ+1N3zCUPizk571+LQqB4A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34933 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932759Ab3GLPPN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Jul 2013 11:15:13 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CACRpkdYU13bhPaL2ZG9CT9JRv9sKQ+1N3zCUPizk571+LQqB4A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@linaro.org>, Hebbar Gururaja <gururaja.hebbar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <benoit.cousson@linaro.org>, Felipe Balbi <balbi@ti.com>
 
-From: Benoit Cousson <benoit.cousson@linaro.org>
+Hi Linus,
 
-without that hwmod data, USB3 will not in OMAP5 boards.
+On 07/10/2013 11:36 PM, Linus Walleij wrote:
+> On Thu, Jun 27, 2013 at 4:01 PM, Grygorii Strashko
+> <grygorii.strashko@ti.com> wrote:
+>
+>> I think, In the future the OMAP pinctrl configurations would be manged in
+>> more flexible way then now (thanks to "pinctrl PM helpers" and you;))
+>> - "Idle" state will be splitted to "Idle"/"sleep"
+>> - "default" state will be splitted to "default"/"active"
+>
+> OK so the first ones we already have so the discussion is now down
+> to adding the "active" state (and pinctrl_pm* helper function).
+>
+> I guess we need a patch set prepared which adds the "active" state
+> and helper function as the first patch, i.e. this:
+> http://marc.info/?l=linux-kernel&m=137094012703340&w=2
+> Can I have your ACK on this patch?
+I've verified combination of
+[PATCH] drivers: pinctrl: add active state to core
+[RFC] ARM: OMAP2+: omap_device: add pinctrl handling
+on OMAP4 SDP board+UARTs and going to send patches on Monday.
 
-While at that, also fix DTS data to pass reg property,
-otherwise driver won't probe.
+So, Acked/Tested-by: Grygorii Strashko <grygorii.strashko@ti.com>
+(I can't reply directly to thread - not signed to those lists :))
 
-Signed-off-by: Benoit Cousson <benoit.cousson@linaro.org>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
+What is the best branch to base my patches on?
 
-tested on OMAP5 uEVM. Gets rid of a data abort when USB3
-is enabled. There still some other patches missing to get
-USB3 working out of the box, but that's on Palmas and will
-come as soon as I get those ready.
+>
+> I do not want to add the state unless there is a clear consumer,
+> so it needs to go in with the first patch to a device driver that uses
+> pinctrl_pm_select_active_state() which will be a good demonstration
+> on its use and utility. (And a point to object and suggest other ways
+> to do the same thing...)
+>
+> Yours,
+> Linus Walleij
+>
 
-This is already on step forward.
-
- arch/arm/boot/dts/omap5.dtsi               |  3 +-
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 45 ++++++++++++++++++++++++++++++
- 2 files changed, 47 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index da41d70..a0de586 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -654,10 +654,11 @@
- 			};
- 		};
- 
--		ocp2scp {
-+		ocp2scp@4a080000 {
- 			compatible = "ti,omap-ocp2scp";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
-+			reg = <0x4a080000 0x20>;
- 			ranges;
- 			ti,hwmods = "ocp2scp1";
- 			usb2_phy: usb2phy@4a084000 {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-index 2435109..d9118a1 100644
---- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -1105,6 +1105,42 @@ static struct omap_hwmod omap54xx_mpu_hwmod = {
- };
- 
- /*
-+ * 'ocp2scp' class
-+ * bridge to transform ocp interface protocol to scp (serial control port)
-+ * protocol
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap54xx_ocp2scp_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
-+			SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap54xx_ocp2scp_hwmod_class = {
-+	.name	= "ocp2scp",
-+	.sysc	= &omap54xx_ocp2scp_sysc,
-+};
-+
-+/* ocp2scp1 */
-+static struct omap_hwmod omap54xx_ocp2scp1_hwmod = {
-+	.name		= "ocp2scp1",
-+	.class		= &omap54xx_ocp2scp_hwmod_class,
-+	.clkdm_name	= "l3init_clkdm",
-+	.main_clk	= "l4_root_clk_div",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = OMAP54XX_CM_L3INIT_OCP2SCP1_CLKCTRL_OFFSET,
-+			.context_offs = OMAP54XX_RM_L3INIT_OCP2SCP1_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_HWCTRL,
-+		},
-+	},
-+};
-+
-+/*
-  * 'timer' class
-  * general purpose timer module with accurate 1ms tick
-  * This class contains several variants: ['timer_1ms', 'timer']
-@@ -1900,6 +1936,14 @@ static struct omap_hwmod_ocp_if omap54xx_l4_cfg__mpu = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_cfg -> ocp2scp1 */
-+static struct omap_hwmod_ocp_if omap54xx_l4_cfg__ocp2scp1 = {
-+	.master		= &omap54xx_l4_cfg_hwmod,
-+	.slave		= &omap54xx_ocp2scp1_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* l4_wkup -> timer1 */
- static struct omap_hwmod_ocp_if omap54xx_l4_wkup__timer1 = {
- 	.master		= &omap54xx_l4_wkup_hwmod,
-@@ -2102,6 +2146,7 @@ static struct omap_hwmod_ocp_if *omap54xx_hwmod_ocp_ifs[] __initdata = {
- 	&omap54xx_l4_per__mmc4,
- 	&omap54xx_l4_per__mmc5,
- 	&omap54xx_l4_cfg__mpu,
-+	&omap54xx_l4_cfg__ocp2scp1,
- 	&omap54xx_l4_wkup__timer1,
- 	&omap54xx_l4_per__timer2,
- 	&omap54xx_l4_per__timer3,
--- 
-1.8.2.1
-
+Regards,
+-grygorii
