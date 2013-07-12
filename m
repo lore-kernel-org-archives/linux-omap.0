@@ -1,132 +1,37 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH 2/2] pwm: Add PWM polarity flag macros for DT
-Date: Fri, 12 Jul 2013 11:40:44 -0600
-Message-ID: <51E03F9C.2060903@wwwdotorg.org>
-References: <1373553468-6564-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1373553468-6564-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <51DEEE15.7040801@wwwdotorg.org> <3211864.2dENa1E110@avalon> <51E01547.4030204@wwwdotorg.org> <20130712172441.GB9620@dhcp-172-17-186-34.nvidia.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap fixes for v3.11 merge window
+Date: Fri, 12 Jul 2013 10:57:17 -0700
+Message-ID: <20130712175717.GA27575@quad.lixom.net>
+References: <20130710080241.GN5523@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:60387 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964778Ab3GLRkt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jul 2013 13:40:49 -0400
-In-Reply-To: <20130712172441.GB9620@dhcp-172-17-186-34.nvidia.com>
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:61158 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933186Ab3GLR5R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jul 2013 13:57:17 -0400
+Received: by mail-pa0-f41.google.com with SMTP id bj3so9263696pad.0
+        for <linux-omap@vger.kernel.org>; Fri, 12 Jul 2013 10:57:17 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20130710080241.GN5523@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, Philip Avinash <avinashphilip@ti.com>, Boris BREZILLON <linux-arm@overkiz.com>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 07/12/2013 11:24 AM, Thierry Reding wrote:
-> On Fri, Jul 12, 2013 at 08:40:07AM -0600, Stephen Warren wrote:
->> On 07/12/2013 04:41 AM, Laurent Pinchart wrote:
->>> Hi Stephen,
-> [...]
->>> What about splitting it in three patches that
->>> 
->>> - add the include/dt-bindings/pwm/pwm.h header, and update
->>> include/linux/pwm.h and
->>> Documentation/devicetree/bindings/pwm/pwm.txt
->>> 
->>> - update the rest of the documentation
->>> 
->>> - update the .dts files
->> 
->> I think that sounds reasonable.
+On Wed, Jul 10, 2013 at 01:02:41AM -0700, Tony Lindgren wrote:
+> The following changes since commit ddcf6600b133697adbafd96e080818bdc0dfd028:
 > 
-> Shouldn't the addition of include/dt-bindings/pwm/pwm.h be separate
-> from its inclusion in include/linux/pwm.h so that it can be moved
-> more easily (cherry-picked) to a separate repository?
-
-I'm fine with that being another separate patch. However, I doubt
-cherry-picking is an issue here; when the separate DT repo is created,
-it seems likely that someone will simply copy the latest files from
-the latest Linux kernel in order to populate the tree. cherry-picking
-probably won't work because:
-
-a) I doubt that the DT binding/header additions have always been kept
-separate from kernel code changes in all of Linux's history.
-
-b) I wouldn't be remotely surprised if the layout of the new repo was
-entirely different to the kernel source tree layout, so direct
-cherry-pick wouldn't work.
-
-c) Not having a common git history would make adding a kernel remote
-into the DT repo rather odd.
-
-(b) and (c)  would at leat require some kind of git filter operation
-rather than cherry-pick, and this issue could be solve in that filter
-definition.
-
->>>>> diff --git a/include/linux/pwm.h b/include/linux/pwm.h
->>>>> 
->>>>> enum pwm_polarity {
->>>>> 
->>>>> -	PWM_POLARITY_NORMAL, -	PWM_POLARITY_INVERSED, +
->>>>> PWM_POLARITY_NORMAL = 0, +	PWM_POLARITY_INVERSED = 1,
->>>>> 
->>>>> };
->>>> 
->>>> Rather than manually editing that to ensure the enum matches
->>>> the DT bindings header, the whole point of making a separate
->>>> <dt-bindings/...> directory was that drivers could include
->>>> the binding header files directly to avoid having to
->>>> duplicate the constant definitions. Can't <linux/pwm.h>
->>>> include <dt- bindings/pwm.h> and remove that enum?
->>> 
->>> We could do that, but we would then need to modify all drivers
->>> to replace enum_pwm_polarity with unsigned int. Thierry, what's
->>> your opinion on this ?
->> 
->> Or perhaps we could keep the enums around, but force the values
->> to match the DT constants:
->> 
->> enum pwm_polarity { PWM_POLARITY_NORMAL = PWM_POLARITY_NORMAL, 
->> PWM_POLARITY_INVERTED = PWM_POLARITY_INVERTED, };
->> 
->> (although obviously you'd need to avoid the enum and DT constants
->> having the same name).
+>   Merge tag 'hwmon-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging (2013-07-03 19:56:35 -0700)
 > 
-> I think I've seen stuff like the following done in a few header
-> files to keep compatibility between enums and defines.
+> are available in the git repository at:
 > 
-> enum foo { BAR, #define BAR BAR BAZ, #define BAZ BAZ };
 > 
-> Which, as I understand it, won't work in this case because DTC can
-> only cope with plain cpp files?
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/fixes-for-merge-window
 
-Yeah, dtc doesn't understand "enum", so you can't include an enum
-definition in a DT file. You have to share simple #define headers
-between DT and kernel code.
 
->> Although this brings up one point: let's say we support ACPI/..
->> bindings in the future. The enum possibly can't match the binding
->> values from every different kind of binding definition (DT, ACPI,
->> ...) so perhaps rather than changing the enum definition in
->> <linux/pwm.h>, what we should be doing is mapping between the
->> different name-spaces in whatever of_xlate function exists for
->> the PWM flags cell. That would be more flexible.
-> 
-> I'm not quite sure what exactly you are suggesting here. Can you 
-> elaborate?
+Thanks, merged. There was a quite verbose merge conflict due to the changes of
+the Kconfig in our fixes branch, so please double-check my resolution.
 
-Suppose ACPI (or whatever else) starts representing PWM devices.
-Suppose the author isn't aware that DT exists, represents PWM devices
-and/or has already defined some PWM-related flags. So, ACPI picks bit
-5 in some data value to represent inverted, rather than bit 0. Then,
-there is no way that all of [ (a) DT binding PWM flags (b) ACPI PWM
-flags (c) Linux's enum foo ] can use the same values. Hence, some
-mapping is required between them.
 
-The typical way to do this is to define an "of_xlate" function which
-converts from DT cell values to Linux-internal representation.
-Presumably if we added an ACPI parser, there'd be some equivalent for
-that.
-
-So, what I'm arguing for is that of_pwm_simple_xlate() (or any other
-custom xlate function) should include both <dt-bindings/pwm/pwm.h> and
-<linux/pwm.h>, and contain explicit code to convert between the two
-name-spaces of flags definitions. Since those two name-spaces
-currently are 100% identical, presumably if the code is written in the
-right way, the compiler will actually just optimize it all away...
-
+-Olof
