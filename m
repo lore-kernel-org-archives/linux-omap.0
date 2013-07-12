@@ -1,83 +1,119 @@
-From: Stefan Roese <sr@denx.de>
-Subject: Re: [PATCH] ARM: OMAP3: Beagle: Fix USB Host on beagle xM Ax/Bx
-Date: Fri, 12 Jul 2013 12:52:04 +0200
-Message-ID: <51DFDFD4.3040900@denx.de>
-References: <1366024808-4691-1-git-send-email-rogerq@ti.com>
- <51DC09E7.1070302@denx.de> <51DC164B.5010608@ti.com>
- <51DC1B47.7070504@denx.de> <51DE87D3.5030600@ti.com>
- <51DEA7F1.1050902@denx.de> <51DEC2CE.70400@ti.com> <51DED076.3040000@denx.de>
- <51DEF0DE.4050607@denx.de> <51DFC92F.1050701@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 2/2] pwm: Add PWM polarity flag macros for DT
+Date: Fri, 12 Jul 2013 13:01:01 +0200
+Message-ID: <2172485.AZTjvkLGcM@avalon>
+References: <1373553468-6564-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20130711193245.GB17212@dhcp-172-17-186-34.nvidia.com> <51DF1054.9000207@wwwdotorg.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51DFC92F.1050701@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, balbi@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54283 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757344Ab3GLLAX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jul 2013 07:00:23 -0400
+In-Reply-To: <51DF1054.9000207@wwwdotorg.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Thierry Reding <thierry.reding@gmail.com>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, linux-pwm@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linux-omap@vger.kernel.org, Philip Avinash <avinashphilip@ti.com>, Grant Likely <grant.likely@linaro.org>, Boris BREZILLON <linux-arm@overkiz.com>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-Roger,
+Hi,
 
-On 07/12/2013 11:15 AM, Roger Quadros wrote:
->>> Good idea. I'm currently using a "dirty" local version. I'll try to
->>> switch to an officially available version tomorrow. And send you the
->>> version/git id.
->>
->> I updated my U-Boot to the following version: Based on mainline git
->> commit ID 225fd8c. Only this patch added:
->>
->> http://patchwork.ozlabs.org/patch/256702/
->>
->> This is needed for USB to work in U-Boot. Otherwise my external USB
->> SMSC95xx will not be detected in U-Boot.
+On Thursday 11 July 2013 14:06:44 Stephen Warren wrote:
+> On 07/11/2013 01:32 PM, Thierry Reding wrote:
+> > On Thu, Jul 11, 2013 at 11:50:48AM -0600, Stephen Warren wrote:
+> >> On 07/11/2013 09:36 AM, Thierry Reding wrote:
+> >>> On Thu, Jul 11, 2013 at 04:37:48PM +0200, Laurent Pinchart
+> >>> wrote: [...]
+> >>> 
+> >>>> diff --git
+> >>>> a/Documentation/devicetree/bindings/pwm/atmel-tcb-pwm.txt
+> >>>> b/Documentation/devicetree/bindings/pwm/atmel-tcb-pwm.txt
+> >>>> index de0eaed..be09be4 100644 ---
+> >>>> a/Documentation/devicetree/bindings/pwm/atmel-tcb-pwm.txt
+> >>>> +++ b/Documentation/devicetree/bindings/pwm/atmel-tcb-pwm.txt
+> >>>> @@ -4,9 +4,9 @@ Required properties: - compatible: should be
+> >>>> "atmel,tcb-pwm" - #pwm-cells: Should be 3.  The first cell
+> >>>> specifies the per-chip index of the PWM to use, the second
+> >>>> cell is the period in nanoseconds and -  bit 0 in the third
+> >>>> cell is used to encode the polarity of PWM output. -  Set bit
+> >>>> 0 of the third cell in PWM specifier to 1 for inverse
+> >>>> polarity & -  set to 0 for normal polarity. +  the third cell
+> >>>> is used to encode the polarity of PWM output. Set the +
+> >>>> PWM_POLARITY_NORMAL flag for normal polarity or the
+> >>>> PWM_POLARITY_INVERSED +  flag for inverted polarity. PWM
+> >>>> flags are defined in <dt-bindings/pwm/pwm.h>. - tc-block: The
+> >>>> Timer Counter block to use as a PWM chip.
+> >>> 
+> >>>> Example:
+> >>> I'd prefer for the original text to stay in place and the reference to
+> >>> the dt-bindings/pwm/pwm.h file to go below that block.
+> >> 
+> >> I disagree here. The whole point of creating header files for the
+> >> constants in binding definitions was so that you wouldn't have to
+> >> duplicate all the values into the binding definitions. Rather, you'd
+> >> simply say "see <dt-bindings/xxx.h>".
+> > 
+> > But that's not something that this patch solves.
 > 
-> I can only test on beagle-xm (which is also rev. C2) with integrated SMSC ethernet chip
-> as I don't have an external USB-ethernet adapter.
+> Well, if the comments I made on the patch re: that <linux/pwm.h> should
+> simply #include <dt-bindings/pwm/pwm.h> instead of duplicating the
+> constants, then yet this patch will solve that. There will be a single place
+> where the constants are defined.
 
-Too bad. This difference in boards makes the tests a bit less
-meaningful. Is there really no USB-ethernet adapter somewhere in your
-department (perhaps a non-SMSC95xx might serve as well?)? I might
-send/order you one if necessary. ;)
+As explained in another reply, this would require replacing the enum with an 
+unsigned int. I can write a patch if we agree on this.
 
-> The above commit doesn't work well for beagle-xm,
-
-Why is this? What does happen? Does U-Boot not boot up to the prompt?
-Please send me a log.
-
-> so my u-boot is on tag v2013.04
-> and you don't need that additional patch.
+> > And it could be solved even in the absence of the header file defining the
+> > symbolic constants. If all the standard flags that dt-bindings/pwm/pwm.txt
+> > now specifies were to be listed in pwm.txt (they actually are) then
+> > referring to that document as the canonical source works equally well.
 > 
-> Can you please retest on it? Thanks.
+> If that's all the happens, then there will still be duplication
+> between pwm.txt and <linux/pwm.h>.
 
-Done, please see below.
+I've explicitly mentioned the flags in individual DT bindings to ease adding 
+new flags in the future. At the moment the defined flags are either all 
+supported or not used at all by drivers. If we later add a new flag supported 
+by a subset of drivers only the driver bindings should list supported flags 
+for each driver.
 
-> You will need to set "usbethaddr" before starting USB else SMSC will not work.
-> e.g.
-> 	setenv usbethaddr A6:66:4D:B0:69:04
+I'm fine with removing the explicit mentions of individual flags right now and 
+adding it back when needed if you think that's better.
 
-I don't have a beagle-xm, only my beable. And my U-Boot network setup is
-already working, thanks.
+> > If we can take both of the above for granted, then sure, let's refer to
+> > the header from within the generic pwm.txt file and add a reference to
+> > that in bindings for drivers that use the standard flags.
+> > 
+> >>> Another issue might be that people without access to recent versions of
+> >>> DTC won't be able to use the new #include feature, so keeping the
+> >>> documentation backwards compatible seems like a good idea.
+> >> 
+> >> The dtc source tree is duplicated into the kernel source tree, so that
+> >> isn't an issue for now.
+> >> 
+> >> Besides, the dtc version is an entirely unrelated issue to how the
+> >> documentation is written.
+> > 
+> > Well, not really. If the documentation specifies the binding in a way that
+> > the DTC can't handle that's still a problem. People will end up with a DTS
+> > that their DTC can't compile. I guess that can be resolved by adding a
+> > note to the upstream device tree repository about the minimum required
+> > version of DTC.
+> 
+> Yes, the separate repository would obviously require a version of dtc that's
+> able to compile the files there; i.e. a version equivalent to what's already
+> in the kernel tree (upstream 1.4.0 specifically).
+> 
+> Again, right now, all of the binding docs, the *.dts files, and the dtc
+> required to use them are part of the kernel; a single package, so there's no
+> scope for issues re: using dtc features that aren't supported. If those
+> components get separated later, obviously there will be a requirement to
+> install a specific version of dtc to use with the separated *.dts and
+> binding files.
 
-> Also could you please increase the Linux console message verbosity to debug (8), so that
-> all kernel messages are visible in the log? If it spits out something more than what you
-> sent last time then do send it to me.
+-- 
+Regards,
 
-I added "ignore_loglevel" to the cmdline. But I cannot see anything
-interesting that has not been there before with "debug" as well.
+Laurent Pinchart
 
-> Let's first sort out the beagle-xm problem, then we can see about old beagle.
-
-Okay, I tested again with U-Boot v2013.01 plus my SMSC patch. Same
-problem. NFS booting/mounting hangs at some time.
-
-Thanks,
-Stefan
