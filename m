@@ -1,42 +1,29 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 0/2] Fix omap serial early crash during hwmod _setup()
-Date: Fri, 12 Jul 2013 13:03:13 +0530
-Message-ID: <51DFB139.8060408@ti.com>
-References: <1373539986-27272-1-git-send-email-rnayak@ti.com> <20130712072244.GB7656@atomide.com>
+From: Shawn Guo <shawn.guo@linaro.org>
+Subject: Re: [PATCH 1/2] ARM i.MX53: mba53: Fix PWM backlight DT node
+Date: Fri, 12 Jul 2013 15:55:37 +0800
+Message-ID: <20130712075535.GE25501@S2101-09.ap.freescale.net>
+References: <1373553468-6564-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1373553468-6564-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44103 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753027Ab3GLHdn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Jul 2013 03:33:43 -0400
-In-Reply-To: <20130712072244.GB7656@atomide.com>
+Received: from mail-db8lp0187.outbound.messaging.microsoft.com ([213.199.154.187]:34328
+	"EHLO db8outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757184Ab3GLHz4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Jul 2013 03:55:56 -0400
+Content-Disposition: inline
+In-Reply-To: <1373553468-6564-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: khilman@linaro.org, linux-omap@vger.kernel.org, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, mpfj-list@newflow.co.uk, sourav.poddar@ti.com, paul@pwsan.com, balbi@ti.com
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, Boris BREZILLON <linux-arm@overkiz.com>, Tomasz Figa <t.figa@samsung.com>, Philip Avinash <avinashphilip@ti.com>, Tony Prisk <linux@prisktech.co.nz>, linux-pwm@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Friday 12 July 2013 12:52 PM, Tony Lindgren wrote:
-> * Rajendra Nayak <rnayak@ti.com> [130711 03:59]:
->> This series should fix the issue with the early serial crash seen
->> during hwmod _setup() as reported by [1]
->>
->> The issue was reported on a am33xx device and was not seen on omap4
->> or omap5 devices as the hwmod data for both omap4 and omap5 had
->> statically defined HWMOD_INIT_NO_IDLE and HWMOD_INIT_NO_RESET for
->> uart3 which happens to be the debug console used on omap4 panda and
->> omap5 uevm boards.
+On Thu, Jul 11, 2013 at 04:37:47PM +0200, Laurent Pinchart wrote:
+> The i.MX53 PWM controller uses two cells to describe the PWM specifier.
+> Remove the extra unused values from the backlight DT node pwms property.
 > 
-> The serial driver should be capable of setting this on it's own
-> as it sets up the console.
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-These flags are used to avoid an early reset that hwmod does to all devices
-on the SoC and is done much before serial driver is initialized.
-
-> 
-> Regards,
-> 
-> Tony
-> 
+Applied, thanks.
 
