@@ -1,116 +1,85 @@
-From: Dave Martin <Dave.Martin@arm.com>
-Subject: Re: [PATCH v2 1/2] ARM: OMAP: Add secure function omap_smc3() which
- calling instruction smc #1
-Date: Fri, 12 Jul 2013 11:24:37 +0100
-Message-ID: <20130712102430.GA3249@localhost.localdomain>
-References: <531356997.66774.1373571839852.JavaMail.apache@mail81.abv.bg>
- <51DF0D7A.4090008@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 2/2] pwm: Add PWM polarity flag macros for DT
+Date: Fri, 12 Jul 2013 12:41:57 +0200
+Message-ID: <3211864.2dENa1E110@avalon>
+References: <1373553468-6564-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1373553468-6564-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <51DEEE15.7040801@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <51DF0D7A.4090008@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: nm@ti.com, linux@arm.linux.org.uk, aaro.koskinen@iki.fi, tony@atomide.com, pdeschrijver@nvidia.com, linux-kernel@vger.kernel.org, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, pavel@ucw.cz, pali.rohar@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54168 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757350Ab3GLKlW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jul 2013 06:41:22 -0400
+In-Reply-To: <51DEEE15.7040801@wwwdotorg.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Thierry Reding <thierry.reding@gmail.com>, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, Philip Avinash <avinashphilip@ti.com>, Boris BREZILLON <linux-arm@overkiz.com>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-T24gVGh1LCBKdWwgMTEsIDIwMTMgYXQgMDM6NTQ6MzRQTSAtMDQwMCwgU2FudG9zaCBTaGlsaW1r
-YXIgd3JvdGU6Cj4gT24gVGh1cnNkYXkgMTEgSnVseSAyMDEzIDAzOjQzIFBNLCDQmNCy0LDQudC7
-0L4g0JTQuNC80LjRgtGA0L7QsiB3cm90ZToKPiA+ICAKPiA+IAo+ID4gCj4gPiAKPiA+IAo+ID4g
-ID4tLS0tLS0tLSDQntGA0LjQs9C40L3QsNC70L3QviDQv9C40YHQvNC+IC0tLS0tLS0tCj4gPiAg
-PtCe0YI6ICBEYXZlIE1hcnRpbiAKPiA+ICA+0J7RgtC90L7RgdC90L46IFJlOiBbUEFUQ0ggdjIg
-MS8yXSBBUk06IE9NQVA6IEFkZCBzZWN1cmUgZnVuY3Rpb24gb21hcF9zbWMzKCkgd2hpY2gKPiA+
-ICBjYWxsaW5nIGluc3RydWN0aW9uIHNtYyAjMQo+ID4gID7QlNC+OiBQYWxpIFJvaMOhciAKPiA+
-ICA+0JjQt9C/0YDQsNGC0LXQvdC+INC90LA6INCh0YDRj9C00LAsIDIwMTMsINCu0LvQuCAxMCAy
-MDo0NToyNiBFRVNUCj4gPiAgPgo+ID4gID4KPiA+ICA+T24gV2VkLCBKdWwgMTAsIDIwMTMgYXQg
-MDI6NTk6MDRQTSArMDIwMCwgUGFsaSBSb2jDoXIgd3JvdGU6Cj4gPiAgPj4gT3RoZXIgc2VjdXJl
-IGZ1bmN0aW9ucyBvbWFwX3NtYzEoKSBhbmQgb21hcF9zbWMyKCkgY2FsbGluZyBpbnN0cnVjdGlv
-biBzbWMgIzAKPiA+ICA+PiBidXQgTm9raWEgUlgtNTEgYm9hcmQgbmVlZHMgdG8gY2FsbCBzbWMg
-IzEgZm9yIFBQQSBhY2Nlc3MuCj4gPiAgPj4gCj4gPiAgPj4gU2lnbmVkLW9mZi1ieTogSXZheWxv
-IERpbWl0cm92IAo+ID4gID4+IFNpZ25lZC1vZmYtYnk6IFBhbGkgUm9ow6FyIAo+ID4gID4+IC0t
-LQo+ID4gID4+ICBhcmNoL2FybS9tYWNoLW9tYXAyL29tYXAtc2VjdXJlLmggfCAgICAxICsKPiA+
-ICA+PiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwLXNtYy5TICAgIHwgICAyMiArKysrKysrKysr
-KysrKysrKysrKystCj4gPiAgPj4gIDIgZmlsZXMgY2hhbmdlZCwgMjIgaW5zZXJ0aW9ucygrKSwg
-MSBkZWxldGlvbigtKQo+ID4gID4+IAo+ID4gID4+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNo
-LW9tYXAyL29tYXAtc2VjdXJlLmggYi9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXAtc2VjdXJlLmgK
-PiA+ICA+PiBpbmRleCAwZTcyOTE3Li5jNDU4NmY0IDEwMDY0NAo+ID4gID4+IC0tLSBhL2FyY2gv
-YXJtL21hY2gtb21hcDIvb21hcC1zZWN1cmUuaAo+ID4gID4+ICsrKyBiL2FyY2gvYXJtL21hY2gt
-b21hcDIvb21hcC1zZWN1cmUuaAo+ID4gID4+IEBAIC01MSw2ICs1MSw3IEBACj4gPiAgPj4gIGV4
-dGVybiB1MzIgb21hcF9zZWN1cmVfZGlzcGF0Y2hlcih1MzIgaWR4LCB1MzIgZmxhZywgdTMyIG5h
-cmdzLAo+ID4gID4+ICAJCQkJdTMyIGFyZzEsIHUzMiBhcmcyLCB1MzIgYXJnMywgdTMyIGFyZzQp
-Owo+ID4gID4+ICBleHRlcm4gdTMyIG9tYXBfc21jMih1MzIgaWQsIHUzMiBmYWxnLCB1MzIgcGFy
-Z3MpOwo+ID4gID4+ICtleHRlcm4gdTMyIG9tYXBfc21jMyh1MzIgaWQsIHUzMiBwcm9jZXNzLCB1
-MzIgZmxhZywgdTMyIHBhcmdzKTsKPiA+ICA+PiAgZXh0ZXJuIHBoeXNfYWRkcl90IG9tYXBfc2Vj
-dXJlX3JhbV9tZW1wb29sX2Jhc2Uodm9pZCk7Cj4gPiAgPj4gIGV4dGVybiBpbnQgb21hcF9zZWN1
-cmVfcmFtX3Jlc2VydmVfbWVtYmxvY2sodm9pZCk7Cj4gPiAgPj4gIAo+ID4gID4+IGRpZmYgLS1n
-aXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXAtc21jLlMgYi9hcmNoL2FybS9tYWNoLW9tYXAy
-L29tYXAtc21jLlMKPiA+ICA+PiBpbmRleCBmNjQ0MWMxLi41YzAyYjhkIDEwMDY0NAo+ID4gID4+
-IC0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvb21hcC1zbWMuUwo+ID4gID4+ICsrKyBiL2FyY2gv
-YXJtL21hY2gtb21hcDIvb21hcC1zbWMuUwo+ID4gID4+IEBAIC0xLDkgKzEsMTEgQEAKPiA+ICA+
-PiAgLyoKPiA+ICA+PiAtICogT01BUDQ0eHggc2VjdXJlIEFQSXMgZmlsZS4KPiA+ICA+PiArICog
-T01BUDM0eHggYW5kIE9NQVA0NHh4IHNlY3VyZSBBUElzIGZpbGUuCj4gPiAgPj4gICAqCj4gPiAg
-Pj4gICAqIENvcHlyaWdodCAoQykgMjAxMCBUZXhhcyBJbnN0cnVtZW50cywgSW5jLgo+ID4gID4+
-ICAgKiBXcml0dGVuIGJ5IFNhbnRvc2ggU2hpbGlta2FyIAo+ID4gID4+ICAgKgo+ID4gID4+ICsg
-KiBDb3B5cmlnaHQgKEMpIDIwMTIgSXZheWxvIERpbWl0cm92IAo+ID4gID4+ICsgKiBDb3B5cmln
-aHQgKEMpIDIwMTMgUGFsaSBSb2jDoXIgCj4gPiAgPj4gICAqCj4gPiAgPj4gICAqIFRoaXMgcHJv
-Z3JhbSBpcyBmcmVlIHNvZnR3YXJlLHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2Rp
-ZnkKPiA+ICA+PiAgICogaXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJs
-aWMgTGljZW5zZSB2ZXJzaW9uIDIgYXMKPiA+ICA+PiBAQCAtNTQsNiArNTYsMjQgQEAgRU5UUlko
-b21hcF9zbWMyKQo+ID4gID4+ICAJbGRtZmQgICBzcCEsIHtyNC1yMTIsIHBjfQo+ID4gID4+ICBF
-TkRQUk9DKG9tYXBfc21jMikKPiA+ICA+PiAgCj4gPiAgPj4gKy8qKgo+ID4gID4+ICsgKiB1MzIg
-b21hcF9zbWMzKHUzMiBzZXJ2aWNlX2lkLCB1MzIgcHJvY2Vzc19pZCwgdTMyIGZsYWcsIHUzMiBw
-YXJncykKPiA+ICA+PiArICogTG93IGxldmVsIGNvbW1vbiByb3V0aW5lIGZvciBzZWN1cmUgSEFM
-IGFuZCBQUEEgQVBJcyB2aWEgc21jICMxCj4gPiAgPj4gKyAqIHIwIC0gQHNlcnZpY2VfaWQ6IFNl
-Y3VyZSBTZXJ2aWNlIElECj4gPiAgPj4gKyAqIHIxIC0gQHByb2Nlc3NfaWQ6IFByb2Nlc3MgSUQK
-PiA+ICA+PiArICogcjIgLSBAZmxhZzogRmxhZyB0byBpbmRpY2F0ZSB0aGUgY3JpdGljYWxpdHkg
-b2Ygb3BlcmF0aW9uCj4gPiAgPj4gKyAqIHIzIC0gQHBhcmdzOiBQaHlzaWNhbCBhZGRyZXNzIG9m
-IHBhcmFtZXRlciBsaXN0Cj4gPiAgPj4gKyAqLwo+ID4gID4+ICtFTlRSWShvbWFwX3NtYzMpCj4g
-PiAgPj4gKwlzdG1mZAlzcCEsIHtyNC1yMTIsIGxyfQo+ID4gID4KPiA+ICA+WW91IGRvbid0IG5l
-ZWQgdG8gc2F2ZS9yZXN0b3JlIHIxMi4gIFRoZSBBQkkgYWxsb3dzIGl0IHRvIGJlIGNsb2JiZXJl
-ZAo+ID4gID5hY3Jvc3MgZnVuY3Rpb24gY2FsbHMuCj4gPiAgPgo+ID4gID4+ICsJbW92CXIxMiwg
-cjAJCUAgQ29weSB0aGUgc2VjdXJlIHNlcnZpY2UgSUQKPiA+ICA+PiArCW1vdglyNiwgIzB4ZmYJ
-QCBJbmRpY2F0ZSBuZXcgVGFzayBjYWxsCj4gPiAgPj4gKwlkc2IKPiA+ICA+PiArCWRtYgo+ID4g
-ID4KPiA+ICA+ZHNiIHN5bmNocm9uaXNlcyBhIHN1cGVyc2V0IG9mIHdoYXQgZG1iIHN5bmNocm9u
-aXNlcywgc28gdGhlIGRtYiBoZXJlIGlzCj4gPiAgPm5vdCB1c2VmdWwuCj4gPiAgPgo+ID4gID5J
-biBhbnkgY2FzZSwgYW55IGNvZGUgY2FsbGluZyB0aGlzIG11c3QgZmx1c2ggdGhlIHJlZ2lvbiBh
-ZGRyZXNzZWQgYnkKPiA+ICA+cjMgYmVmb3JlaGFuZCBhbnl3YXksIHdoaWNoIHdpbGwgaW5jbHVk
-ZSBhIGRzYiBhcyBwYXJ0IG9mIGl0cyBzZW1hbnRpY3MKPiA+ICA+LS0gdGhpcyBpcyBob3cgeW91
-IGNhbGwgaXQgZnJvbSByeDUxX3NlY3VyZV9kaXNwYXRjaGVyKCkuCj4gPiAgPgo+ID4gID5TbyBJ
-IHRoaW5rIHRoZSBkc2IgbWF5IG5vdCBiZSBuZWVkZWQgaGVyZSAoPykKPiA+ICA+Cj4gPiAgPkNo
-ZWVycwo+ID4gID4tLS1EYXZlCj4gPiAgPgo+ID4gID4KPiA+IAo+ID4gQ291bGQgYmUsIGJ1dCBJ
-IHdvbmRlciB3aHkgYWxtb3N0IGFsbCB0aGUga2VybmVsIGNvZGUoSSBhbSBhd2FyZSBvZikgdGhh
-dCB1c2VzIFNNQyBhbmQgaXMgd3JpdHRlbiBieSBUSSwgaXMgc3RvcmluZyByMTIgYW5kIGlzIHVz
-aW5nIGJvdGggRFNCIGFuZCBETUIuIFNlZSBhcmNoL2FybS9tYWNoLW9tYXAyL3NsZWVwMzR4eC5T
-IG9yIGFyY2gvYXJtL21hY2gtb21hcDIvb21hcC1zbWMuUyBmb3IgZXhhbXBsZXMuIEknZCByYXRo
-ZXIgcGxheSBpdCBzYWZlIGFuZCBsZWF2ZSBpdCB0aGF0IHdheSwgdW5sZXNzIHNvbWVvbmUgY29u
-ZmlybXMgdGhlIG90aGVyIGNvZGUgdXNpbmcgU01DIGhhcyBleHRyYSBEU0IvRE1CIGluc3RydWN0
-aW9ucyB0b28uIEkgd291bGRuJ3QgcmlzayBwYXNzaW5nIGludmFsaWQvc3RhbGUgZGF0YSB0byB0
-aGUgU2VjdXJlIE1vbml0b3IgdG8ganVzdCBzYXZlIDggYnl0ZXMgYW5kIGJhcnJpZXJzIGluIGEg
-cGVyZm9ybWFuY2Ugbm9uLWNyaXRpY2FsIGNvZGUgd2hpY2ggd2lsbCBiZSBjYWxsZWQgb25seSBh
-IGNvdXBsZSBvZiB0aW1lcyBkdXJpbmcgdGhlIGJvb3QtdXAgcHJvY2Vzcy4gcjEyIHNhdmUvcmVz
-dG9yZSBpcyBhIGxlZ2FjeSBmcm9tIG9tYXBfc21jMiBpbiBvbWFwLXNtYy5TLCBzbyBJIGd1ZXNz
-IGl0IGNhbiBnbyBhd2F5IHdpdGhvdXQgbXVjaCBvZiBhIHRyb3VibGUuCj4gPiAKPiBEYXZlIHBv
-aW50ZWQgb3V0IGFib3V0IHRoZSBkc2IgYW5kIHIxMiB0byBtZSBpbiBhbm90aGVyIHRocmVhZC4g
-UjEyIGNhbiBiZSBlYXNpbHkgcmVtb3ZlZAo+IGJ1dCB0aGUgRFNCJ3Mgd2VyZSBuZWVkZWQgb24g
-T01BUCBmb3IgcG93ZXIgc2VxdWVuY2luZy4gV2l0aG91dCB0aG9zZSwgd2UgaGF2ZSBzZWVuCj4g
-bWFueSBpc3N1ZXMuIFNvIHlvdSBjYW4gbGVhdmUgdGhlIGRzYidzIHRvIGJlIGNvbnNpc3RlbnQg
-d2l0aCByZXN0IG9mIHRoZSBjb2RlLgoKQ29uc2lzdGVuY3kgaXMgYSBwZXJmZWN0bHkgZ29vZCBy
-ZWFzb24sIGVzcGVjaWFsbHkgaW4gY29kZSBsaWtlIHRoaXMKd2hlcmUgYSBjZXJ0YWluIGNvZGUg
-c2VxdWVuY2UgaGFzIGJlZW4gcHJvdmVuLCBidXQgaXQncyBwcmVmZXJhYmxlIHRvCmluY2x1ZGUg
-YnJpZWYgY29tbWVudHMgdG8gZXhwbGFpbiBub25ldGhlbGVzcy4KCkRpZmZpY3VsdHkgaW4gZXhw
-bGFpbmluZyBwcmVjaXNlbHkgd2h5IHNvbWV0aGluZyBpcyBuZWVkZWQgc2hvdWxkIGJlIGEKd2Fy
-bmluZyBmbGFnIHRoYXQgYSBjb21tZW50IGlzIG5lZWRlZC4KCkNoZWVycwotLS1EYXZlCgoKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtl
-cm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0
-dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5l
-bAo=
+Hi Stephen,
+
+On Thursday 11 July 2013 11:40:37 Stephen Warren wrote:
+> On 07/11/2013 08:37 AM, Laurent Pinchart wrote:
+> > Define PWM_POLARITY_NORMAL and PWM_POLARITY_INVERTED macros in
+> > include/dt-bindings/pwm/pwm.h to be used by device tree sources.
+> > 
+> >  Documentation/devicetree/bindings/pwm/atmel-tcb-pwm.txt |  6 +++---
+> >  Documentation/devicetree/bindings/pwm/pwm-samsung.txt   |  5 +++--
+> >  Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt  |  5 +++--
+> >  Documentation/devicetree/bindings/pwm/pwm.txt           |  8 +++++---
+> >  Documentation/devicetree/bindings/pwm/vt8500-pwm.txt    |  5 +++--
+> >  arch/arm/boot/dts/am335x-evm.dts                        |  3 ++-
+> >  arch/arm/boot/dts/am335x-evmsk.dts                      |  3 ++-
+> >  arch/arm/boot/dts/wm8850-w70v2.dts                      |  3 ++-
+> >  include/dt-bindings/pwm/pwm.h                           | 15 ++++++++++++
+> >  include/linux/pwm.h                                     |  4 ++--
+> 
+> I think this needs to be separate patches; at least the new pwm.h should
+> be introduced separately to the board-specific *.dts edits, and perhaps
+> further split up?
+
+What about splitting it in three patches that
+
+- add the include/dt-bindings/pwm/pwm.h header, and update include/linux/pwm.h 
+and Documentation/devicetree/bindings/pwm/pwm.txt
+
+- update the rest of the documentation
+
+- update the .dts files
+
+> That way, the one patch that introduces <dt-bindings/pwm.h> would be
+> available to be merged into any other tree that wanted to take patches
+> to use the new defines.
+> 
+> > diff --git a/include/linux/pwm.h b/include/linux/pwm.h
+> > 
+> >  enum pwm_polarity {
+> > 
+> > -	PWM_POLARITY_NORMAL,
+> > -	PWM_POLARITY_INVERSED,
+> > +	PWM_POLARITY_NORMAL = 0,
+> > +	PWM_POLARITY_INVERSED = 1,
+> > 
+> >  };
+> 
+> Rather than manually editing that to ensure the enum matches the DT bindings
+> header, the whole point of making a separate <dt-bindings/...> directory was
+> that drivers could include the binding header files directly to avoid having
+> to duplicate the constant definitions. Can't <linux/pwm.h> include <dt-
+> bindings/pwm.h> and remove that enum?
+
+We could do that, but we would then need to modify all drivers to replace 
+enum_pwm_polarity with unsigned int. Thierry, what's your opinion on this ?
+
+Replying to a comment from another e-mail, I know that the above change to 
+include/linux/pwm.h is not strictly needed as the enum values are already 
+correct. The point of specifying the enum values explicitly was to hint that 
+the values matter and should not be changed. A comment in the source would 
+probably be more appropriate though.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
