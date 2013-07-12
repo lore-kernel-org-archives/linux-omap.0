@@ -1,44 +1,38 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: twl-common: Remove code for twl6030 and
- twl6040 setup for legacy boot
-Date: Fri, 12 Jul 2013 11:27:36 +0200
-Message-ID: <51DFCC08.4050204@ti.com>
-References: <1373552638-13930-1-git-send-email-peter.ujfalusi@ti.com> <20130711145916.GA6138@kahuna> <51DED333.9080609@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] Revert "ARM: OMAP2+: Fix serial init for device
+ tree based booting"
+Date: Fri, 12 Jul 2013 02:46:31 -0700
+Message-ID: <20130712094631.GI7656@atomide.com>
+References: <1373539986-27272-1-git-send-email-rnayak@ti.com>
+ <1373539986-27272-2-git-send-email-rnayak@ti.com>
+ <20130712072051.GA7656@atomide.com>
+ <51DFB0E4.6040007@ti.com>
+ <20130712080305.GD7656@atomide.com>
+ <51DFC58C.7030105@ti.com>
+ <20130712091827.GH7656@atomide.com>
+ <51DFCAF3.7040503@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47622 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757326Ab3GLJ2B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jul 2013 05:28:01 -0400
-In-Reply-To: <51DED333.9080609@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34509 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757350Ab3GLJqh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jul 2013 05:46:37 -0400
+Content-Disposition: inline
+In-Reply-To: <51DFCAF3.7040503@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: khilman@linaro.org, linux-omap@vger.kernel.org, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, mpfj-list@newflow.co.uk, sourav.poddar@ti.com, paul@pwsan.com, balbi@ti.com
 
-On 07/11/2013 05:45 PM, Peter Ujfalusi wrote:
->> We could get rid of all the #ifdef from the code that way. OMAP3 is =
-the
->> only platform that still depends on this - Further, with this change=
-,
->=20
-> Yep, I can do that. I'll send a separate patch to do this.
+* Rajendra Nayak <rnayak@ti.com> [130712 02:29]:
+>
+> Right, that seems much cleaner. I will send a patch out for it and get rid
+> of all the cmdline parsing in serial.c
 
-Now that I have looked at this: we might need to wait a bit and clean u=
-p other
-files first: if we compile twl-common only if OMAP3 is selected, a buil=
-d for
-OMAP4/5 only will break due to missing symbol in pm.c (omap_pmic_late_i=
-nit is
-missing).
-I could add another set of #ifdef there, but it defeats the point IMHO.
+Oh that's right, then it should not be needed for legacy pdata based
+booting either :)
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+Tony
