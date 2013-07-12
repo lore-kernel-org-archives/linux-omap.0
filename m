@@ -1,153 +1,106 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] arm: omap2plus: unidle devices which are about to probe
-Date: Fri, 12 Jul 2013 15:10:31 +0300
-Message-ID: <20130712121031.GB17053@arwen.pp.htv.fi>
-References: <20130711092612.GG23892@arwen.pp.htv.fi>
- <1373537788-30413-1-git-send-email-balbi@ti.com>
- <51DFEF59.1010509@ti.com>
+Subject: Re: [PATCH 2/2] serial: omap: fix wrong context restoration on init
+Date: Fri, 12 Jul 2013 15:11:46 +0300
+Message-ID: <20130712121146.GC17053@arwen.pp.htv.fi>
+References: <1373630142-21765-1-git-send-email-grygorii.strashko@ti.com>
+ <1373630142-21765-2-git-send-email-grygorii.strashko@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jq0ap7NbKX2Kqbes"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53283 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932193Ab3GLMLV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jul 2013 08:11:21 -0400
+	protocol="application/pgp-signature"; boundary="7qSK/uQB79J36Y4o"
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <51DFEF59.1010509@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <1373630142-21765-2-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
 To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@linaro.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, mpfj-list@newflow.co.uk, Sourav Poddar <sourav.poddar@ti.com>, paul@pwsan.com
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@linaro.org>
+List-Id: linux-omap@vger.kernel.org
 
---jq0ap7NbKX2Kqbes
+--7qSK/uQB79J36Y4o
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 12, 2013 at 02:58:17PM +0300, Grygorii Strashko wrote:
-> On 07/11/2013 01:16 PM, Felipe Balbi wrote:
-> >in order to make HWMOD and pm_runtime agree on the
-> >initial state of the device, we will unidle the device
-> >and call pm_runtime_set_active() to tell pm_runtime
-> >that the device is really active.
-> >
-> >By the time driver's probe() is reached, a call to
-> >pm_runtime_get_sync() will not cause driver's
-> >->runtime_resume() method to be called at first, only
-> >after a successful ->runtime_suspend().
-> >
-> >Note that we must prevent pm_runtime transitions while
-> >driver is probing otherwise drivers would be suspended
-> >as soon as they call pm_runtime_use_autosuspend(). By
-> >calling pm_runtime_forbid() before probe() and
-> >pm_runtime_allow() after probe() we 'fix' that detail.
-> >
-> >Note that this patch was inspired by PCI's pci_pm_init().
+hi,
+
+On Fri, Jul 12, 2013 at 02:55:42PM +0300, Grygorii Strashko wrote:
+> Since commit a630fbf "serial: omap: Fix device tree based PM runtime"
+> the OMAP serial driver will always try to restore its context in
+> serial_omap_runtime_resume(). But the problem is that during driver
+> initialization the UART context is not ready yet and, as result, first
+> call to pm_runtime_get*() will cause UART register overwriting by all
+> zeros. This causes Kernel boot hang in case if "earlyprintk" feature is
+> enabled at least [1].
 >=20
-> NAK. This is a hack.
-
-hack is your flag to check if the driver is "initialized". pff
-
-> In addition to what I've mentioned in
-> http://www.spinics.net/lists/arm-kernel/msg258061.html there are
-> following issues:
-> 1) this patch disables call to PM runtime callbacks for all
-
-no, it does not. It forbids pm runtime transitions during probe.
-
-> OMAP drivers which is wrong - I've found, for example, that
-> omap-usb-host.c driver enables TLL in some configurations in its
-> .runtime_resume():
+> Unfortunately, there is no exact place in driver now where we can
+> determine that UART context is ready - most of registers configured in
+> serial_omap_set_termios(), but some of them in other places.
+> More over, even if PM runtime will be disabled (blocked) during OMAP
+> serial driver probe() execution [2],[3] it will fix only console UART,
+> but context of other UARTs will be overwriting by all zeros during first
+> access to the corresponding UART.
 >=20
-> usbhs_runtime_resume()
-> |-omap_tll_enable()
+> To fix this issue:
+> - introduce additional "initialized" flag and update PM runtime callback
+> to do nothing if its not set. Set "initialized" at the end of probe().
+> - read current UART registers configuration in probe and use it by
+> default.
+>=20
+> [1] http://www.spinics.net/lists/arm-kernel/msg256828.html
+> [2] http://www.spinics.net/lists/arm-kernel/msg258062.html
+> [3] http://www.spinics.net/lists/arm-kernel/msg258040.html
+>=20
+> CC: Tony Lindgren <tony@atomide.com>
+> CC: Rajendra Nayak <rnayak@ti.com>
+> CC: Felipe Balbi <balbi@ti.com>
+> CC: Kevin Hilman <khilman@linaro.org>
+>=20
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> ---
+> tested on OMAP4 SDP with and without earlyprintk enabled.
+>  drivers/tty/serial/omap-serial.c |   27 ++++++++++++++++++++++++++-
+>  1 file changed, 26 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-s=
+erial.c
+> index f39bf0c..e1e9667 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -162,6 +162,7 @@ struct uart_omap_port {
+>  	struct work_struct	qos_work;
+>  	struct pinctrl		*pins;
+>  	bool			is_suspending;
+> +	bool			initialized;
 
-which is wrong. PM runtime callbacks are supposed to be use for,
-surprise, PM!
+you really think adding this sort of bool flag is the best thing we can
+do ? Something which will, quite likely, spread through every single
+driver ?
 
-> 2) even with this fix the restore context issue will not be fixed for
-> *non* console UARTs. Just try:
-> #echo 0xDEAD > dev/ttyO3 // checked on OMAP4 SDP
-
-that I have not checked, but then again, with that you're not calling
-set_termios() anyway.
-
-> 3) I've checked most of OMAP drivers and all of them solve such kind
-> of problem internally (SPI, MMC, I2C, etc.)
-
-and you see no problem with that ? Repeating the same thing over and
-over again ?
-
-> 4) See inline
-> >
-> >Signed-off-by: Felipe Balbi <balbi@ti.com>
-> >---
-> >
-> >boot tested on top of today's Linus master
-> >6d128e1e72bf082542e85f72e6b7ddd704193588 with OMAP4
-> >panda. Reached console prompt and, after setting a
-> >proper autosuspend delay, consoles autosuspend just
-> >fine.
-> >
-> >It needs to be tested on other platforms.
-> >
-> >ps: note that we also call pm_runtime_set_suspended(dev)
-> >from our late_initcall() to disable devices so that pm_runtime
-> >and HWMOD continue to aggree on device's state.
-> >
-> >  arch/arm/mach-omap2/omap_device.c | 44 +++++++++++++++++++++++++++++++=
-++++----
-> >  1 file changed, 40 insertions(+), 4 deletions(-)
-> >
-> >diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/oma=
-p_device.c
-> >index 5cc9287..cb1fc1d 100644
-> >--- a/arch/arm/mach-omap2/omap_device.c
-> >+++ b/arch/arm/mach-omap2/omap_device.c
-> >@@ -178,6 +178,26 @@ odbfd_exit:
-> >  	return ret;
-> >  }
-> >
-> >+static void omap_device_pm_init(struct platform_device *pdev)
-> >+{
-> >+	omap_device_enable(pdev);
-> >+	pm_runtime_forbid(&pdev->dev);
-> It's wrong to use pm_runtime_forbid() - pm_runtime_get_noresume()
-> should be used instead.
-
-how come ? What makes you think pm_runtime_get_noresume() is the right
-thing here ?=20
-
-> pm_runtime_forbid()
-> |-rpm_resume()
-
-so what ? flags is zero.
+oh well...
 
 --=20
 balbi
 
---jq0ap7NbKX2Kqbes
+--7qSK/uQB79J36Y4o
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJR3/I2AAoJEIaOsuA1yqREU34QAJQmW/Yxvs6R6sY8hBSkMpJI
-D5/75zLIJIxV0LMvBM2wZaJSIXAwStT7IIsO9BnhGwdgJeJdATvQnKcho90DIC7O
-58dt0us6zepBR2kohLjBSG89XOdjItvzfBRXLX1Qe3a6f2d4uk1vvRskQaOWi7Bf
-dybICbw6lkPSH/SQSgbwcMu9BFS1+enXUdNs6Nts29BTq5gkYeUbsOzbaLG9CFE4
-eNTYcj72F0E2WRqv6lHobRQr5kEPC5bLpaKRDp+f4QHz0AGGqghweSn9WnorHjhK
-tW08kn5zOCrX4Ojnwg+ZUhNvIOj6KC6FH5go76A6kSnAyI9LvKRfsu5iSrHbw3DQ
-BnH4MBAEHGzjDLl8pgbEGOgWy++CHwg4PFfIZnKvnBEw/x33Ccrhwmu4e+5OHU9S
-RYhkeI0A3cAg6HrulnuAFDrBS+fySeJN4tMxniIKYbVhjPeVWIoUtjABsQVPpVQC
-LMPvZyRZNgmptchDCekwtA6dCx3VVW6l6dGxoxGfWbSutMNHLMOwxAm6hKqeYniK
-JdPW2QRTo44q/LlEmDIWtiPdA+XsEMGS6vgUYJqsG3tMxW7uD4NXTlzOfZeEPAgt
-npZRXvrAAxOg7tvhbMepksYMFVo3FdCNt6EpPaEnJ8SgQ8hMBYRHjpkZi3vBB+dg
-NHed+EDdlfQ/CtpFg+i8
-=cKUo
+iQIcBAEBAgAGBQJR3/KBAAoJEIaOsuA1yqREAM8P/0KBH59o9s1wvbaDv+hmMYRe
+yPX7NUzO0y4IEBadl41CLKK00Gle/YXUJ/tQC24mzySVwOj/k94bS2bfeLaSnIxq
+jRgj0sreP4jwoBiW++lRyzaH750KVO/qI+w/gHSvxBxYmFmRhXL6ttoqCQ4xv2z7
+iYeV3Po4QUDJnqHTIpqnUIkLedGwM9hVAhMN0FA9ceC/7NyRYUHW8BckMSaUXwzu
+5T4KFb+YlahGLVtmvNDaTOiNGnPI+gOXykRU6MHkoym7VNS5W0AJgkt6VD7G3pdy
+1/5EFGIMI4ndrJ3Vuit9blNcvxE3q7hYqKwhsZAKcYcvyzTfQbobEeT8gR/j735o
+r3mk3AuwUa9WiUbZX6JMaSfkMaBm3xh2boJtwVBHClM1/8gx3OHI9vyZzcw/fX+s
+ek27O29iAu/g7qqePcPcgEysdQ2/7dMpCCxOaOzkDe2EGBP/N1yvDbWE6oMZO340
+pG4dXWcUr6FniJadqr2MYmLCT4uaHH3Ki7+0uYkInZl9fB7FOJ0XcWPApLZ4H1eu
+7YXjZUzZtoI19+1X3O81yRdqa30avnNsKbk/Z6ASAKLYeoFLRN1aYyJ3HDiS19cL
+d1j1pXFoMzfei1YGLmHE/yWttCrh0kkf5PnnzBqWpB2flEfQC+FNtVX8tdMhXR//
+PmCvE0G11PTxzTwABSEt
+=xa+7
 -----END PGP SIGNATURE-----
 
---jq0ap7NbKX2Kqbes--
+--7qSK/uQB79J36Y4o--
