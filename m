@@ -1,73 +1,85 @@
-From: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
-Subject: [PATCH v1 2/2] PM / AVS: SmartReflex: disable spamming interrupts
-Date: Fri, 12 Jul 2013 16:52:03 +0300
-Message-ID: <1373637123-1152-3-git-send-email-andrii.tseglytskyi@ti.com>
-References: <1373637123-1152-1-git-send-email-andrii.tseglytskyi@ti.com>
+From: Mark Jackson <mpfj-list@newflow.co.uk>
+Subject: Re: [PATCH] remove vlan tags in CPSW dual emac mode
+Date: Fri, 12 Jul 2013 14:57:03 +0100
+Message-ID: <51E00B2F.6050406@newflow.co.uk>
+References: <4699400.vD3TdgH1nR@localhost> <5176C4FE.4080305@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1373637123-1152-1-git-send-email-andrii.tseglytskyi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: khilman@linaro.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, Nishanth Menon <nm@ti.com>, Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <5176C4FE.4080305@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Markus Brunner <systemprogrammierung.brunner@gmail.com>, netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Nishanth Menon <nm@ti.com>
+On 23/04/13 18:29, Mugunthan V N wrote:
+> On 4/23/2013 9:48 PM, Markus Brunner wrote:
+>> If operating in dual emac mode all packets sent by the CPSW contain vlan headers with the reserved VID 0,
+>> which gets stripped away by all somewhat recent Linux versions. Operating systems without that behaviour will fail to communicate.
+>> This patch fixes that behaviour by disabling the VLAN_AWARE mode as already described by the comment above.
+>>
+>> Signed-off-by: Markus Brunner <systemprogrammierung.brunner@gmail.com>
+>> Tested-by: Mark Jackson <mpfj@newflow.co.uk>
+>>
+>> ---
+>> --- linux-3.9-rc8.orig/drivers/net/ethernet/ti/cpsw.c    2013-04-23 17:26:11.000000000 +0200
+>> +++ linux-3.9-rc8/drivers/net/ethernet/ti/cpsw.c    2013-04-23 17:36:25.000000000 +0200
+>> @@ -751,9 +751,9 @@ static void cpsw_init_host_port(struct c
+>>       /* switch to vlan unaware mode */
+>>       cpsw_ale_control_set(priv->ale, priv->host_port, ALE_VLAN_AWARE,
+>>                    CPSW_ALE_VLAN_AWARE);
+>>       control_reg = readl(&priv->regs->control);
+>> -    control_reg |= CPSW_VLAN_AWARE;
+>> +    control_reg &= ~CPSW_VLAN_AWARE;
+>>       writel(control_reg, &priv->regs->control);
+>>       fifo_mode = (priv->data.dual_emac) ? CPSW_FIFO_DUAL_MAC_MODE :
+>>                CPSW_FIFO_NORMAL_MODE;
+>>       writel(fifo_mode, &priv->host_port_regs->tx_in_ctl);
+> Disabling VLAN aware mode will enable switching mode and the feature of
+> separating the two down stream port is lost with this patch
+> Please check TRM for more info in *14.3.2.10.2 Dual Mac Mode* chapter
 
-At times with bad SR configurations, especially during silicon bring-ups,
-we could get continuous spurious interrupts which end up hanging the
-platform in the form of an ISR call for status bits that are
-automatically enabled by the hardware without any software clearing
-option.
+Just to update this (old) thread ...
 
-If we detect scenarios where ISR was called without the corresponding
-notification bit being set, instead of hanging up the system,
-we will disable interrupt after noting the event in the system log
-to try and keep system sanity and allow developer to debug and fix
-the condition.
+I can still confirm that *without* the above patch, I am *unable* to use both network
+ports on our AM335x board.
 
-The same condition applies when a notifier does not exist OR is unable
-to handle the interrupt as well.
+My .dts file contains:-
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
----
- drivers/power/avs/smartreflex.c |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+mac: ethernet@4a100000 {
+	dual_emac = <1>;
 
-diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
-index 5b2b703..185098f 100644
---- a/drivers/power/avs/smartreflex.c
-+++ b/drivers/power/avs/smartreflex.c
-@@ -120,8 +120,27 @@ static irqreturn_t sr_interrupt(int irq, void *data)
- 		return IRQ_NONE;
- 	}
- 
--	if (sr_class->notify)
--		sr_class->notify(sr_info, status);
-+	/* Attempt some resemblance of recovery! */
-+	if (!status) {
-+		dev_err(&sr_info->pdev->dev,
-+			"%s: Spurious interrupt!status = 0x%08x."
-+			"Disabling to prevent spamming!!\n",
-+			__func__, status);
-+		disable_irq_nosync(sr_info->irq);
-+	} else {
-+		/*
-+		 * If the notifier does not exist OR reports inability to
-+		 * handle, disable as well
-+		 */
-+		if (!sr_class->notify ||
-+		    sr_class->notify(sr_info, status)) {
-+			dev_err(&sr_info->pdev->dev,
-+				"%s: Callback cant handle int status=0x%08x."
-+				"Disabling to prevent spam!!\n",
-+				__func__, status);
-+			disable_irq_nosync(sr_info->irq);
-+		}
-+	}
- 
- 	return IRQ_HANDLED;
- }
--- 
-1.7.9.5
+	cpsw_emac0: slave@4a100200 {
+		dual_emac_res_vlan = <1>;
+	};
+
+	cpsw_emac1: slave@4a100300 {
+		dual_emac_res_vlan = <2>;
+	};
+};
+
+&cpsw_emac0 {
+	phy_id = <&davinci_mdio>, <0>;
+};
+
+&cpsw_emac1 {
+	phy_id = <&davinci_mdio>, <1>;
+};
+
+My /etc/network/interfaces file is:-
+
+auto lo eth0 eth1
+iface lo inet loopback
+iface eth0 inet static
+address 10.0.101.3
+netmask 255.255.0.0
+gateway 10.0.0.1
+iface eth1 inet static
+address 10.1.101.3
+netmask 255.255.0.0
+
+So I'm not sure what's wrong, but it's *definitely* not correct.
+
+Cheers
+Mark J.
