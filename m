@@ -1,55 +1,93 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v5 0/4] mtd:nand:omap2: clean-up of supported ECC schemes
-Date: Sat, 13 Jul 2013 21:13:16 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73E9E7FDB@DBDE04.ent.ti.com>
-References: <1373748891-7779-1-git-send-email-pekon@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH] arm: omap2plus: unidle devices which are about to probe
+Date: Sat, 13 Jul 2013 23:21:29 +0100
+Message-ID: <8738rije3a.fsf@linaro.org>
+References: <20130711092612.GG23892@arwen.pp.htv.fi>
+	<1373537788-30413-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36216 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750819Ab3GMVOG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Jul 2013 17:14:06 -0400
-In-Reply-To: <1373748891-7779-1-git-send-email-pekon@ti.com>
-Content-Language: en-US
+Received: from mail-we0-f169.google.com ([74.125.82.169]:50565 "EHLO
+	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751247Ab3GMWVc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Jul 2013 18:21:32 -0400
+Received: by mail-we0-f169.google.com with SMTP id n57so9167094wev.28
+        for <linux-omap@vger.kernel.org>; Sat, 13 Jul 2013 15:21:31 -0700 (PDT)
+In-Reply-To: <1373537788-30413-1-git-send-email-balbi@ti.com> (Felipe Balbi's
+	message of "Thu, 11 Jul 2013 13:16:28 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "dedekind1@gmail.com" <dedekind1@gmail.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "arnd@arndb.de" <arnd@arndb.de>, "olof@lixom.net" <olof@lixom.net>, "N, Mugunthan V" <mugunthanvnm@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, mpfj-list@newflow.co.uk, Sourav Poddar <sourav.poddar@ti.com>, paul@pwsan.com
 
-> 
-> Changes v4 -> v5
-> - Rebased to linux-next
-> IMPORTANT: Need to revert commit fb1585b, [PATCH 2/4] part of previous
-> version
-> 	http://lists.infradead.org/pipermail/linux-mtd/2013-July/047441.html
-> 
-> - Swapped PATCH-1 & PATCH-2 to maintain bisectibility & compilation
-> dependency
-> 	http://lists.infradead.org/pipermail/linux-mtd/2013-July/047461.html
-> 
-> - PATCH-2: re-ordered call to is_elm_present() for later updates ELM driver
-> 	- dropped changes in include/linux/platform_data/elm.h (not
-> needed)
-> - PATCH-3: re-ordered call to is_elm_present() for later updates ELM driver
-> - Re-formated patch description (replaced tabs with white-spaces)
-> 
+Felipe Balbi <balbi@ti.com> writes:
 
-Hi Olof, Arnd,
+> in order to make HWMOD and pm_runtime agree on the
+> initial state of the device, we will unidle the device
+> and call pm_runtime_set_active() to tell pm_runtime
+> that the device is really active.
+>
+> By the time driver's probe() is reached, a call to
+> pm_runtime_get_sync() will not cause driver's
+> ->runtime_resume() method to be called at first, only
+> after a successful ->runtime_suspend().
+>
+> Note that we must prevent pm_runtime transitions while
+> driver is probing otherwise drivers would be suspended
+> as soon as they call pm_runtime_use_autosuspend(). By
+> calling pm_runtime_forbid() before probe() and
+> pm_runtime_allow() after probe() we 'fix' that detail.
 
-I have re-submitted patch with minor updates and re-ordered PATCH-1 & 2
-to preserve bisectibility. And there is no comment | objection from
-maintainers about the DT bindings. So request you to please Ack | Review
-this series for it to be picked by Artem | David Woodhouse in MTD tree.
+This part sounds a bit strange to me, and sounds more like a driver bug.
+Looking at omap-serial, this probably happens because the driver calls
+_use_autosuspend() after it has called _enable() but before has done its
+_get_sync().
 
-Also please revert commit fb1585b in linux-next, as its left-over piece of
-same series v4.
+> Note that this patch was inspired by PCI's pci_pm_init().
+>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>
+> boot tested on top of today's Linus master
+> 6d128e1e72bf082542e85f72e6b7ddd704193588 with OMAP4
+> panda. Reached console prompt and, after setting a
+> proper autosuspend delay, consoles autosuspend just
+> fine.
+>
+> It needs to be tested on other platforms.
+>
+> ps: note that we also call pm_runtime_set_suspended(dev)
+> from our late_initcall() to disable devices so that pm_runtime
+> and HWMOD continue to aggree on device's state.
 
-- This series is the base for further clean-up of omap2-nand driver, hence
-its important for it to be up-streamed for future work.
+Excellent.
 
+I like this approach, but agree it needs more testing like you
+mentioned.
 
-with regards, pekon
+>  arch/arm/mach-omap2/omap_device.c | 44 +++++++++++++++++++++++++++++++++++----
+>  1 file changed, 40 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+> index 5cc9287..cb1fc1d 100644
+> --- a/arch/arm/mach-omap2/omap_device.c
+> +++ b/arch/arm/mach-omap2/omap_device.c
+> @@ -178,6 +178,26 @@ odbfd_exit:
+>  	return ret;
+>  }
+>  
+> +static void omap_device_pm_init(struct platform_device *pdev)
+> +{
+> +	omap_device_enable(pdev);
+> +	pm_runtime_forbid(&pdev->dev);
+> +	pm_runtime_set_active(&pdev->dev);
+> +	device_enable_async_suspend(&pdev->dev);
 
+You don't comment in the changelog about what this is for.  I think we
+probably want this, but I suspect it belongs in a follow-up patch with
+its own changelog.
 
+Also Like PCI, I think we also want the device_set_wakeup_capable() here
+also, but that should have its own patch+changelog also.
+
+Kevin
