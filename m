@@ -1,55 +1,54 @@
-From: Peter Korsgaard <jacmet@sunsite.dk>
-Subject: Re: [PATCHv2] am33xx: cpsw: default to ethernet hwaddr from efuse if not defined in dt
-Date: Mon, 15 Jul 2013 07:31:18 +0200
-Message-ID: <871u70bd95.fsf@dell.be.48ers.dk>
-References: <1358461134-13452-1-git-send-email-jacmet@sunsite.dk>
-	<50F8DA3A.3090406@ti.com> <51DAB39C.7090106@newflow.co.uk>
-	<51E013D7.7060301@newflow.co.uk>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH 8/8] ARM: DRA7: Kconfig: Increase the default gpio count
+Date: Sun, 14 Jul 2013 13:07:30 +0100
+Message-ID: <51E29482.7060208@linaro.org>
+References: <1373354873-12359-1-git-send-email-rnayak@ti.com> <1373354873-12359-9-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f173.google.com ([209.85.215.173]:59801 "EHLO
-	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753992Ab3GOFbY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jul 2013 01:31:24 -0400
-In-Reply-To: <51E013D7.7060301@newflow.co.uk> (Mark Jackson's message of "Fri,
-	12 Jul 2013 15:33:59 +0100")
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:45818 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750960Ab3GOFwT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jul 2013 01:52:19 -0400
+Received: by mail-pd0-f175.google.com with SMTP id 4so10288480pdd.20
+        for <linux-omap@vger.kernel.org>; Sun, 14 Jul 2013 22:52:19 -0700 (PDT)
+In-Reply-To: <1373354873-12359-9-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Jackson <mpfj-list@newflow.co.uk>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, hvaibhav@ti.com, richardcochran@gmail.com, tony@atomide.com, michal.bachraty@gmail.com, michal.bachraty@streamunlimited.com
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, paul@pwsan.com, benoit.cousson@gmail.com, r.sricharan@ti.com, ambresh@ti.com
 
->>>>> "Mark" == Mark Jackson <mpfj-list@newflow.co.uk> writes:
+On 07/09/2013 08:27 AM, Rajendra Nayak wrote:
+> From: R Sricharan <r.sricharan@ti.com>
+> 
+> DRA7xx has 8 GPIO banks so that there are 32x8 = 256 GPIOs.
+> In order for the gpiolib to detect and initialize these
+> additional GPIOs and other TWL GPIOs, ARCH_NR_GPIO is set
+> to 512 instead of present 256.
 
-Hi,
+nit: the patch itself doesn't change 256 to 512, but just adds another
+Kconfig default.
 
- Mark> On 08/07/13 13:42, Mark Jackson wrote:
- >> On 18/01/13 05:14, Mugunthan V N wrote:
- >>> On 1/18/2013 3:48 AM, Peter Korsgaard wrote:
- >>>> When booting with CONFIG_ARM_APPENDED_DTB (either because of using an old
- >>>> U-Boot, not wanting the hassle of 2 files or when using Falcon fast boot
- >>>> mode in U-Boot), nothing updates the ethernet hwaddr specified for the
- >>>> CPSW slaves, causing the driver to use a random hwaddr, which is some times
- >>>> troublesome.
- >>>> 
- >>>> The am33xx has unique ethernet hwaddrs programmed in the efuse, so it makes
- >>>> more sense to default to these rather than random ones. Add a fixup step
- >>>> which adds mac-address dt properties using the efuse addresses if the DTB
- >>>> didn't contain valid ones.
- >>>> 
- >>>> Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
- >>> 
- >>> This implementation looks fine.
- >>> Acked-by: Mugunthan V N <mugunthanvnm@ti.com>
- >> 
- >> Tested-by: Mark Jackson <mpfj-list@newflow.co.uk>
+Kevin
 
- Mark> Is this ever going to be put into the mainline code ?
-
-Good question. Tony, could you please pick this up? It has been pending
-since January and has a number of acks.
-
-Do you want me to resend?
-
--- 
-Bye, Peter Korsgaard
+> Signed-off-by: R Sricharan <r.sricharan@ti.com>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  arch/arm/Kconfig |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+> index 5ef7af0..9faed52 100644
+> --- a/arch/arm/Kconfig
+> +++ b/arch/arm/Kconfig
+> @@ -1599,7 +1599,7 @@ config LOCAL_TIMERS
+>  config ARCH_NR_GPIO
+>  	int
+>  	default 1024 if ARCH_SHMOBILE || ARCH_TEGRA
+> -	default 512 if SOC_OMAP5
+> +	default 512 if SOC_OMAP5 || SOC_DRA7XX
+>  	default 512 if ARCH_KEYSTONE
+>  	default 392 if ARCH_U8500
+>  	default 352 if ARCH_VT8500
+> 
