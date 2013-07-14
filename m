@@ -1,93 +1,165 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] arm: omap2plus: unidle devices which are about to probe
-Date: Sat, 13 Jul 2013 23:21:29 +0100
-Message-ID: <8738rije3a.fsf@linaro.org>
-References: <20130711092612.GG23892@arwen.pp.htv.fi>
-	<1373537788-30413-1-git-send-email-balbi@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH v2] N900: add device tree
+Date: Mon, 15 Jul 2013 01:28:19 +0300
+Message-ID: <20130714222819.GB3296@blackmetal.musicnaut.iki.fi>
+References: <20130613161418.GJ8164@atomide.com>
+ <20130613230808.GA14876@amd.pavel.ucw.cz>
+ <20130614055629.GM8164@atomide.com>
+ <20130614212816.GA31768@atrey.karlin.mff.cuni.cz>
+ <20130617111031.GQ20992@atomide.com>
+ <20130701211753.GC15318@amd.pavel.ucw.cz>
+ <20130704171939.GA27374@blackmetal.musicnaut.iki.fi>
+ <20130704202145.GB10752@amd.pavel.ucw.cz>
+ <20130704203256.GB27374@blackmetal.musicnaut.iki.fi>
+ <20130713121709.GC16473@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f169.google.com ([74.125.82.169]:50565 "EHLO
-	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751247Ab3GMWVc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Jul 2013 18:21:32 -0400
-Received: by mail-we0-f169.google.com with SMTP id n57so9167094wev.28
-        for <linux-omap@vger.kernel.org>; Sat, 13 Jul 2013 15:21:31 -0700 (PDT)
-In-Reply-To: <1373537788-30413-1-git-send-email-balbi@ti.com> (Felipe Balbi's
-	message of "Thu, 11 Jul 2013 13:16:28 +0300")
+Received: from filtteri1.pp.htv.fi ([213.243.153.184]:39344 "EHLO
+	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753322Ab3GNW2Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Jul 2013 18:28:24 -0400
+Content-Disposition: inline
+In-Reply-To: <20130713121709.GC16473@amd.pavel.ucw.cz>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, vaibhav.bedia@ti.com, linux-arm-kernel@lists.infradead.org, mpfj-list@newflow.co.uk, Sourav Poddar <sourav.poddar@ti.com>, paul@pwsan.com
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Tony Lindgren <tony@atomide.com>, b-cousson@ti.com, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 
-Felipe Balbi <balbi@ti.com> writes:
+Hi,
 
-> in order to make HWMOD and pm_runtime agree on the
-> initial state of the device, we will unidle the device
-> and call pm_runtime_set_active() to tell pm_runtime
-> that the device is really active.
->
-> By the time driver's probe() is reached, a call to
-> pm_runtime_get_sync() will not cause driver's
-> ->runtime_resume() method to be called at first, only
-> after a successful ->runtime_suspend().
->
-> Note that we must prevent pm_runtime transitions while
-> driver is probing otherwise drivers would be suspended
-> as soon as they call pm_runtime_use_autosuspend(). By
-> calling pm_runtime_forbid() before probe() and
-> pm_runtime_allow() after probe() we 'fix' that detail.
+On Sat, Jul 13, 2013 at 02:17:09PM +0200, Pavel Machek wrote:
+> 
+> This adds device tree with neccessary support to boot with functional
+> video (on both emulator and real N900 device).
+> 
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-This part sounds a bit strange to me, and sounds more like a driver bug.
-Looking at omap-serial, this probably happens because the driver calls
-_use_autosuspend() after it has called _enable() but before has done its
-_get_sync().
+You can also add:
 
-> Note that this patch was inspired by PCI's pci_pm_init().
->
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+
+Thanks,
+
+A.
+
+> 
 > ---
->
-> boot tested on top of today's Linus master
-> 6d128e1e72bf082542e85f72e6b7ddd704193588 with OMAP4
-> panda. Reached console prompt and, after setting a
-> proper autosuspend delay, consoles autosuspend just
-> fine.
->
-> It needs to be tested on other platforms.
->
-> ps: note that we also call pm_runtime_set_suspended(dev)
-> from our late_initcall() to disable devices so that pm_runtime
-> and HWMOD continue to aggree on device's state.
-
-Excellent.
-
-I like this approach, but agree it needs more testing like you
-mentioned.
-
->  arch/arm/mach-omap2/omap_device.c | 44 +++++++++++++++++++++++++++++++++++----
->  1 file changed, 40 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-> index 5cc9287..cb1fc1d 100644
-> --- a/arch/arm/mach-omap2/omap_device.c
-> +++ b/arch/arm/mach-omap2/omap_device.c
-> @@ -178,6 +178,26 @@ odbfd_exit:
->  	return ret;
->  }
->  
-> +static void omap_device_pm_init(struct platform_device *pdev)
-> +{
-> +	omap_device_enable(pdev);
-> +	pm_runtime_forbid(&pdev->dev);
-> +	pm_runtime_set_active(&pdev->dev);
-> +	device_enable_async_suspend(&pdev->dev);
-
-You don't comment in the changelog about what this is for.  I think we
-probably want this, but I suspect it belongs in a follow-up patch with
-its own changelog.
-
-Also Like PCI, I think we also want the device_set_wakeup_capable() here
-also, but that should have its own patch+changelog also.
-
-Kevin
+> 
+> From v1: Aaro wants just GPLv2, so I did that. I re-enabled parts that
+> can be enabled on 3.10, and tested it on that kernel.
+> 
+> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+> index f0895c5..1950aed 100644
+> --- a/arch/arm/boot/dts/Makefile
+> +++ b/arch/arm/boot/dts/Makefile
+> @@ -141,6 +141,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+>  	omap3-devkit8000.dtb \
+>  	omap3-beagle-xm.dtb \
+>  	omap3-evm.dtb \
+> +	omap3-n900.dtb \
+>  	omap3-tobi.dtb \
+>  	omap3-igep0020.dtb \
+>  	omap3-igep0030.dtb \
+> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+> new file mode 100644
+> index 0000000..fb461bf
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/omap3-n900.dts
+> @@ -0,0 +1,92 @@
+> +/*
+> + * Copyright (C) 2013 Pavel Machek <pavel@ucw.cz>
+> + * Copyright 2013 Aaro Koskinen <aaro.koskinen@iki.fi>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +/dts-v1/;
+> +
+> +/include/ "omap34xx.dtsi"
+> +
+> +/ {
+> +	model = "Nokia N900";
+> +	compatible = "nokia,omap3-n900", "ti,omap3";
+> +
+> +	cpus {
+> +		cpu@0 {
+> +			cpu0-supply = <&vcc>;
+> +		};
+> +	};
+> +
+> +	memory {
+> +		device_type = "memory";
+> +		reg = <0x80000000 0x10000000>; /* 256 MB */
+> +	};
+> +
+> +};
+> +
+> +&i2c1 {
+> +	clock-frequency = <2200000>;
+> +
+> +	twl: twl@48 {
+> +		reg = <0x48>;
+> +		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+> +		interrupt-parent = <&intc>;
+> +	};
+> +};
+> +
+> +/include/ "twl4030.dtsi"
+> +
+> +&twl_gpio {
+> +	ti,pullups	= <0x0>;
+> +	ti,pulldowns	= <0x03ff3f>; /* BIT(0..5) | BIT(8..17) */
+> +};
+> +
+> +&i2c2 {
+> +	clock-frequency = <400000>;
+> +};
+> +
+> +&i2c3 {
+> +	clock-frequency = <100000>;
+> +};
+> +
+> +&mmc1 {
+> +	status = "disabled";
+> +};
+> +
+> +&mmc2 {
+> +	status = "disabled";
+> +};
+> +
+> +&mmc3 {
+> +	status = "disabled";
+> +};
+> +
+> +&mcspi1 {
+> +	// For some reason, touchscreen is neccessary for screen to work at 
+> +	// all on real hw. It works well without it on emulator.
+> +	//
+> +	// Also... order in the device tree actually matters here.
+> +	tsc2005@0 {
+> +		compatible = "tsc2005";
+> +		spi-max-frequency = <6000000>;
+> +		reg = <0>;
+> +	};
+> +	mipid@2 {
+> +		compatible = "acx565akm";
+> +		spi-max-frequency = <6000000>;
+> +		reg = <2>;
+> +		// turbo_mode = 0,
+> +		// cs_per_word = 0
+> +	};
+> +};
+> +
+> +&usb_otg_hs {
+> +	interface-type = <0>;
+> +	usb-phy = <&usb2_phy>;
+> +	mode = <2>;
+> +	power = <50>;
+> +};
+> 
+> -- 
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
