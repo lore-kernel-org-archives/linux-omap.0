@@ -1,54 +1,36 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH] remove vlan tags in CPSW dual emac mode
-Date: Mon, 15 Jul 2013 18:15:27 +0530
-Message-ID: <51E3EEE7.9030508@ti.com>
-References: <4699400.vD3TdgH1nR@localhost> <5176C4FE.4080305@ti.com> <51E00B2F.6050406@newflow.co.uk> <51E04C89.8030202@ti.com> <51E0582D.4090306@newflow.co.uk>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v5 0/2] ARM: dts: Add USB host support for Beagle-xm
+Date: Mon, 15 Jul 2013 16:20:21 +0300
+Message-ID: <51E3F715.9070103@ti.com>
+References: <1371732374-27191-1-git-send-email-rogerq@ti.com>
+ <B7CE1C39EBFBA0428A012975D4B2FC830B72CECA@DNCE05.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43800 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755631Ab3GOMp5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Jul 2013 08:45:57 -0400
-In-Reply-To: <51E0582D.4090306@newflow.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <B7CE1C39EBFBA0428A012975D4B2FC830B72CECA@DNCE05.ent.ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: benoit.cousson@linaro.org
+Cc: "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Jackson <mpfj-list@newflow.co.uk>
-Cc: Markus Brunner <systemprogrammierung.brunner@gmail.com>, netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 7/13/2013 12:55 AM, Mark Jackson wrote:
-> On 12/07/13 19:35, Mugunthan V N wrote:
->> On 7/12/2013 7:27 PM, Mark Jackson wrote:
-> [snip]
->
->>> Just to update this (old) thread ...
->>>
->>> I can still confirm that *without* the above patch, I am *unable* to use both network
->>> ports on our AM335x board.
->>>
-> [snip]
->
->>> So I'm not sure what's wrong, but it's *definitely* not correct.
->>>
->>>
->> I am sure that current code in mainline works for Dual EMAC. I can test it
->> again and share the images with you if are interested. But had tested with DHCP
->> on both the interfaces.
-> Hmmm ... well it's not working for me.  What hardware are you testing it on ?
->
-> I tried DHCP to start with, and switched to static IP when that failed.
-> Then I recalled this patch and re-applied it ... hey presto !!
->
-> Markus, are you still using this patch ?
->
-Today I have tested the Dual EMAC on my am335x-evmsk and its working fine with
-net/master branch.
-I had 3 patches additional to net/master in which two for basic boot of EVMsk
-and one for enabling Dual EMAC. I had pushed the branch in the below repo
-repo:
-git://git.ti.com/~mugunthanvnm/ti-linux-kernel/mugunth-connectivity-linux-feature-tree.git
-branch: dual-emac
+Hi Benoit,
 
-Regards
-Mugunthan V N
+On 06/20/2013 05:11 PM, Cousson, Benoit wrote:
+> Thanks Roger,
+> 
+> I'll take them for 3.12. I was already late for my 3.11 pull request.
+
+Please disregard these patches. I'll send a new version based on the reset-gpio
+driver.
+
+cheers,
+-roger
