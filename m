@@ -1,205 +1,56 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: Boot hang regression 3.10.0-rc4 -> 3.10.0
-Date: Mon, 15 Jul 2013 15:31:01 +0530
-Message-ID: <51E3C85D.2010008@ti.com>
-References: <B5906170F1614E41A8A28DE3B8D121433EE94520@DBDE04.ent.ti.com> <20130708112553.GU5523@atomide.com> <51DAB394.3050104@ti.com> <20130708131033.GA5523@atomide.com> <51DABC81.3080409@ti.com> <20130708133512.GD31221@arwen.pp.htv.fi> <87mwpuakod.fsf@linaro.org> <20130710142633.GV5523@atomide.com> <20130710160704.GH18966@arwen.pp.htv.fi> <20130710161158.GA19716@arwen.pp.htv.fi> <20130711063209.GZ5523@atomide.com> <51DE8215.5060306@ti.com> <51DF508F.3050703@ti.com> <51E39A3F.6080106@ti.com>
+From: "Kozaruk, Oleksandr" <oleksandr.kozaruk@ti.com>
+Subject: RE: [PATCH v3 2/2] iio: twl6030-gpadc: TWL6030, TWL6032 GPADC driver
+Date: Mon, 15 Jul 2013 11:09:40 +0000
+Message-ID: <2A7ABDFCE21540479A5AEB0244A684D5E3D067@DNCE04.ent.ti.com>
+References: <1373613482-28390-1-git-send-email-oleksandr.kozaruk@ti.com>
+ <1373613482-28390-3-git-send-email-oleksandr.kozaruk@ti.com>,
+ <51E05F6C.1060506@metafoo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34405 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754696Ab3GOKBc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Jul 2013 06:01:32 -0400
-In-Reply-To: <51E39A3F.6080106@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51E05F6C.1060506@metafoo.de>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lars-Peter Clausen <lars@metafoo.de>
+Cc: "Kim, Milo" <Milo.Kim@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nayak, Rajendra" <rnayak@ti.com>, "poeschel@lemonage.de" <poeschel@lemonage.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "ABRAHAM,
+ KISHON VIJAY" <kishon@ti.com>, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>, "jic23@cam.ac.uk" <jic23@cam.ac.uk>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, "ch.naveen@samsung.com" <ch.naveen@samsung.com>, "linux-arm-kernel@lists.infradead.org" <linux-a>
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@linaro.org>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Sourav Poddar <sourav.poddar@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Monday 15 July 2013 12:14 PM, Rajendra Nayak wrote:
-> On Friday 12 July 2013 06:10 AM, Suman Anna wrote:
->> On 07/11/2013 04:59 AM, Grygorii Strashko wrote:
->>> Hi,
->>>
->>> On 07/11/2013 09:32 AM, Tony Lindgren wrote:
->>>> * Felipe Balbi <balbi@ti.com> [130710 09:18]:
->>>>>
->>>>> On Wed, Jul 10, 2013 at 07:07:04PM +0300, Felipe Balbi wrote:
->>>>>> how about something like below ? It makes omap_device/hwmod and
->>>>>> pm_runtime agree on the initial state of the device and will prevent
->>>>>> ->runtime_resume() from being called on first pm_runtime_get*() done
->>>>>> during probe.
->>>>>>
->>>>>> This is similar to what PCI bus does (if you look at pci_pm_init()).
->>>>>>
->>>>>> commit 59108a500b4ab4b1a5102648a3360276dbf7df6f
->>>>>> Author: Felipe Balbi <balbi@ti.com>
->>>>>> Date:   Wed Jul 10 18:50:16 2013 +0300
->>>>>>
->>>>>>      arm: omap2plus: unidle devices which are about to probe
->>>>>>
->>>>>>      in order to make HWMOD and pm_runtime agree on the
->>>>>>      initial state of the device, we will unidle the device
->>>>>>      and call pm_runtime_set_active() to tell pm_runtime
->>>>>>      that the device is really active.
->>> Don't think that it's good idea (
->>> I've checked some driver's and think this patch will enable some devices
->>> unpredictably:
->>> - hwspinlock
->>> - mailbox
->>> - iommu
->>> - ipu
->>> All above devices need to be enabled on demand only (no
->>> pm_runtime_get*() calls in probe). More over, some of them have very
->>> specific enabling sequence - like ipu).
->>>
->>> May be Summan can say more on that.
->>
->> Indeed, this is a problem for any of the slave processor devices.
->> mailbox and iommu would be slaves to the remoteproc and the drivers have
->> a specific sequence of bringing up a processor. The current
->> hwmod/omap_device code is such that these devices will be left in reset
->> and the driver code use the omap_device_(de)assert_hardreset API
->> together with omap_device_enable code to bring up the devices. The
->> remoteproc driver also needs to assert the resets (there are other
->> problems associated with using omap_device_idle for remoteproc and
->> iommu) for bringing up the devices after a suspend sequence. hwspinlock
->> and mailbox may get away since they are in CORE domain, but definitely
->> an issue for iommu and remoteproc. I would think that this would also
->> affect other compute devices like IVAHD, ISS, SGX.
-> 
-> Today, for these IPs I guess hwmod waits for the resets to be de-asserted, right?
-> 
->         /*
->          * If an IP block contains HW reset lines and all of them are
->          * asserted, we let integration code associated with that
->          * block handle the enable.  We've received very little
->          * information on what those driver authors need, and until
->          * detailed information is provided and the driver code is
->          * posted to the public lists, this is probably the best we
->          * can do.
->          */
->         if (_are_all_hardreset_lines_asserted(oh))
->                 return 0;
-> 
-> What if this information is send back to omap_device() through a return value
-> so omap_device() knows about this too, so it avoids marking the omap device as
-> enabled? Wouldn't that fix the issue?
+Hello Lars-Peter,
+Thank you for the review.
 
-I meant something like this..
+>> diff --git a/drivers/iio/adc/twl6030-gpadc.c b/drivers/iio/adc/twl6030-gpadc.c
+>> new file mode 100644
+>> index 0000000..6ceb789
+>> --- /dev/null
+>> +++ b/drivers/iio/adc/twl6030-gpadc.c
+>> @@ -0,0 +1,1019 @@
+>[...]
+>> +static u8 twl6032_channel_to_reg(int channel)
+>> +{
+>> +     return TWL6032_GPADC_GPCH0_LSB;
+>
+>There is more than one channel, isn't there?
+Yes. But for twl6032 channel of interest is chosen first. When the conversion
+is ready tre result is available in GPCH0_LSB/GPCH1_MSB for any cosen
+channel. For twl6030 there are as many result register pairs as many of
+channels.
 
->From 2fbea0dde0f72897089ef2e8e441b5e5bd6ea967 Mon Sep 17 00:00:00 2001
-From: Rajendra Nayak <rnayak@ti.com>
-Date: Mon, 15 Jul 2013 15:23:07 +0530
-Subject: [PATCH] ARM: OMAP2+: Make omap_device aware of hwmod failing to
- enable/idle/shutdown the hwmods
-
-For IP blocks (mainly processors) which have hard reset lines, hwmod avoids
-enable/idle/shutdown operations as long as all the hard reset lines are
-kept asserted. However it does not return an error back to the caller (in some
-cases the omap_device layer) to communicate back the failure to operate on the
-hwmod.
-
-Fix this by making _enable()/_idle()/_shutdown() all return an error in such
-cases, and also fix the omap_device layer to look at the return values coming
-from hwmod operations before doing a omap_device level state transition.
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/omap_device.c |   20 ++++++++++----------
- arch/arm/mach-omap2/omap_hwmod.c  |    6 +++---
- 2 files changed, 13 insertions(+), 13 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index 5cc9287..e89244b 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -210,13 +210,12 @@ static int _omap_device_notifier_call(struct notifier_block *nb,
-  */
- static int _omap_device_enable_hwmods(struct omap_device *od)
- {
--	int i;
-+	int i, ret = 0;
- 
- 	for (i = 0; i < od->hwmods_cnt; i++)
--		omap_hwmod_enable(od->hwmods[i]);
-+		ret |= omap_hwmod_enable(od->hwmods[i]);
- 
--	/* XXX pass along return value here? */
--	return 0;
-+	return ret;
- }
- 
- /**
-@@ -227,13 +226,12 @@ static int _omap_device_enable_hwmods(struct omap_device *od)
-  */
- static int _omap_device_idle_hwmods(struct omap_device *od)
- {
--	int i;
-+	int i, ret = 0;
- 
- 	for (i = 0; i < od->hwmods_cnt; i++)
--		omap_hwmod_idle(od->hwmods[i]);
-+		ret |= omap_hwmod_idle(od->hwmods[i]);
- 
--	/* XXX pass along return value here? */
--	return 0;
-+	return ret;
- }
- 
- /* Public functions for use by core code */
-@@ -697,7 +695,8 @@ int omap_device_enable(struct platform_device *pdev)
- 
- 	ret = _omap_device_enable_hwmods(od);
- 
--	od->_state = OMAP_DEVICE_STATE_ENABLED;
-+	if (!ret)
-+		od->_state = OMAP_DEVICE_STATE_ENABLED;
- 
- 	return ret;
- }
-@@ -727,7 +726,8 @@ int omap_device_idle(struct platform_device *pdev)
- 
- 	ret = _omap_device_idle_hwmods(od);
- 
--	od->_state = OMAP_DEVICE_STATE_IDLE;
-+	if (!ret)
-+		od->_state = OMAP_DEVICE_STATE_IDLE;
- 
- 	return ret;
- }
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 7341eff..07fd2a8 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2133,7 +2133,7 @@ static int _enable(struct omap_hwmod *oh)
- 	 * can do.
- 	 */
- 	if (_are_all_hardreset_lines_asserted(oh))
--		return 0;
-+		return -EPERM;
- 
- 	/* Mux pins for device runtime if populated */
- 	if (oh->mux && (!oh->mux->enabled ||
-@@ -2222,7 +2222,7 @@ static int _idle(struct omap_hwmod *oh)
- 	}
- 
- 	if (_are_all_hardreset_lines_asserted(oh))
--		return 0;
-+		return -EPERM;
- 
- 	if (oh->class->sysc)
- 		_idle_sysc(oh);
-@@ -2276,7 +2276,7 @@ static int _shutdown(struct omap_hwmod *oh)
- 	}
- 
- 	if (_are_all_hardreset_lines_asserted(oh))
--		return 0;
-+		return -EPERM;
- 
- 	pr_debug("omap_hwmod: %s: disabling\n", oh->name);
- 
--- 
-1.7.9.5
-
+>> +     ret = devm_request_threaded_irq(dev, irq, NULL,
+>> +                                     twl6030_gpadc_irq_handler,
+>> +                                     IRQF_ONESHOT, "twl6030_gpadc", gpadc);
+>
+>You access memory in the interrupt handler which is freed before the interrupt
+>handler is freed.
+Thanks for pointing this. devm_* will free memory for irq after the driver
+is removed and memory for the device is freed. I took me awhile to understand
+this. Is there going to be something like devm_iio_device_alloc? whould it be helpfull?
