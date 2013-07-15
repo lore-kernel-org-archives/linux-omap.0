@@ -1,95 +1,42 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 4/4] ARM: OMAP2+: Provide alias to USB PHY clock
-Date: Mon, 15 Jul 2013 17:05:13 +0300
-Message-ID: <51E40199.9070906@ti.com>
-References: <1371571487-14389-1-git-send-email-rogerq@ti.com> <1371571487-14389-5-git-send-email-rogerq@ti.com>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH v1 0/5] optimize and clean-up of OMAP NAND and ELM driver
+Date: Mon, 15 Jul 2013 20:25:47 +0530
+Message-ID: <1373900152-26885-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47903 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47085 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756878Ab3GOOFo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Jul 2013 10:05:44 -0400
-In-Reply-To: <1371571487-14389-5-git-send-email-rogerq@ti.com>
+	id S932088Ab3GOO4d (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Jul 2013 10:56:33 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: Roger Quadros <rogerq@ti.com>, benoit.cousson@linaro.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, "Balbi, Felipe" <balbi@ti.com>
+To: dedekind1@gmail.com, dwmw2@infradead.org
+Cc: arnd@arndb.de, tony@atomide.com, benoit.cousson@linaro.org, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Pekon Gupta <pekon@ti.com>
 
-Hi Tony,
+This patch series builds the base for adding support for newer H/W based ECC
+schemes for NAND flash. This patch cleans-up redundant code among various
+ECC schemes and improves scalability and readability.
+This patch affects following data-paths: 
+[PATCH 1/5] NAND chip->ecc.correct(): Detects and corrects ECC errors on read accesses.
+[PATCH 2/5] NAND chip->ecc.calculate(): Calculates and fetches ECC syndrome from controller.
+[PATCH 3/5] NAND chip->ecc.hwctl(): Configures H/W controller for Read/Write data acccesses.
+[PATCH 4/5] ELM  add checks and updates code for scalability.
+[PATCH 5/5] NAND code clean-up to improve readability.
 
-On 06/18/2013 07:04 PM, Roger Quadros wrote:
-> Till the OMAP clocks are correctly defined in device tree, use
-> this temporary hack to provide clock alias to the USB PHY clocks.
-> 
-> Without this, USB Host & Ethernet will not be functional with
-> device tree boots on Panda and uEVM.
 
-Looks like this one got missed out.
+Pekon Gupta (5):
+  mtd: nand: omap: optimized chip->ecc.correct() for H/W ECC schemes
+  mtd: nand: omap: optimize chip->ecc.calculate() for H/W ECC schemes
+  mtd: nand: omap: optimize chip->ecc.hwctl() for H/W ECC schemes
+  mtd: devices: elm: add checks ELM H/W constrains, driver code cleanup
+  mtd: nand: omap: code clean-up and white-space fixes
 
-USB host no longer works on Panda with DT boot.
-Could you please queue this for next 3.11-rc? Thanks.
+ drivers/mtd/devices/elm.c         | 114 ++---
+ drivers/mtd/nand/omap2.c          | 906 ++++++++++++++------------------------
+ include/linux/platform_data/elm.h |   6 +-
+ 3 files changed, 411 insertions(+), 615 deletions(-)
 
-cheers,
--roger
-
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  arch/arm/mach-omap2/board-generic.c |   23 ++++++++++++++++++++++-
->  1 files changed, 22 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> index 88aa6b1..7428733 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -15,6 +15,7 @@
->  #include <linux/of_irq.h>
->  #include <linux/of_platform.h>
->  #include <linux/irqdomain.h>
-> +#include <linux/clk.h>
->  
->  #include <asm/mach/arch.h>
->  
-> @@ -35,6 +36,21 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
->  	{ }
->  };
->  
-> +/*
-> + * Create alias for USB host PHY clock.
-> + * Remove this when clock phandle can be provided via DT
-> + */
-> +static void __init legacy_init_ehci_clk(char *clkname)
-> +{
-> +	int ret;
-> +
-> +	ret = clk_add_alias("main_clk", NULL, clkname, NULL);
-> +	if (ret) {
-> +		pr_err("%s:Failed to add main_clk alias to %s :%d\n",
-> +						__func__, clkname, ret);
-> +	}
-> +}
-> +
->  static void __init omap_generic_init(void)
->  {
->  	omap_sdrc_init(NULL, NULL);
-> @@ -45,10 +61,15 @@ static void __init omap_generic_init(void)
->  	 * HACK: call display setup code for selected boards to enable omapdss.
->  	 * This will be removed when omapdss supports DT.
->  	 */
-> -	if (of_machine_is_compatible("ti,omap4-panda"))
-> +	if (of_machine_is_compatible("ti,omap4-panda")) {
->  		omap4_panda_display_init_of();
-> +		legacy_init_ehci_clk("auxclk3_ck");
-> +
-> +	}
->  	else if (of_machine_is_compatible("ti,omap4-sdp"))
->  		omap_4430sdp_display_init_of();
-> +	else if (of_machine_is_compatible("ti,omap5-uevm"))
-> +		legacy_init_ehci_clk("auxclk1_ck");
->  }
->  
->  #ifdef CONFIG_SOC_OMAP2420
-> 
+-- 
+1.8.1
 
