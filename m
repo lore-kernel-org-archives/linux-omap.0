@@ -1,14 +1,14 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+From: Mark Brown <broonie@kernel.org>
 Subject: Re: [PATCH] ASoC: omap: Enable COMPILE_TEST build for
 	DT platforms
-Date: Mon, 15 Jul 2013 18:43:46 +0200
-Message-ID: <51E426C2.5060209@ti.com>
+Date: Mon, 15 Jul 2013 18:03:07 +0100
+Message-ID: <20130715170307.GV11538@sirena.org.uk>
 References: <1373903876-26370-1-git-send-email-broonie@kernel.org>
+ <51E426C2.5060209@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============3316865185229061215=="
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1373903876-26370-1-git-send-email-broonie@kernel.org>
+In-Reply-To: <51E426C2.5060209@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -18,69 +18,64 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Errors-To: alsa-devel-bounces@alsa-project.org
 Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@kernel.org>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Mark Brown <broonie@linaro.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mark,
 
-On 07/15/2013 05:57 PM, Mark Brown wrote:
-> From: Mark Brown <broonie@linaro.org>
-> =
-
-> The DT platforms don't have any source dependency on any OMAP stuff so
-> allow them to be built when COMPILE_TEST is enabled.
-
-The OMAP3 generic machine driver could be also included in this patch:
-SND_OMAP_SOC_OMAP_TWL4030
-
-> Signed-off-by: Mark Brown <broonie@linaro.org>
-> ---
-
-Otherwise:
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
->  sound/soc/omap/Kconfig | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> =
-
-> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-> index 9f5d55e..68dfc0a 100644
-> --- a/sound/soc/omap/Kconfig
-> +++ b/sound/soc/omap/Kconfig
-> @@ -1,6 +1,6 @@
->  config SND_OMAP_SOC
->  	tristate "SoC Audio for the Texas Instruments OMAP chips"
-> -	depends on ARCH_OMAP && DMA_OMAP
-> +	depends on (ARCH_OMAP && DMA_OMAP) || COMPILE_TEST
->  	select SND_SOC_DMAENGINE_PCM
->  =
-
->  config SND_OMAP_SOC_DMIC
-> @@ -26,7 +26,7 @@ config SND_OMAP_SOC_N810
->  =
-
->  config SND_OMAP_SOC_RX51
->  	tristate "SoC Audio support for Nokia RX-51"
-> -	depends on SND_OMAP_SOC && MACH_NOKIA_RX51
-> +	depends on SND_OMAP_SOC && (MACH_NOKIA_RX51 || COMPILE_TEST)
->  	select SND_OMAP_SOC_MCBSP
->  	select SND_SOC_TLV320AIC3X
->  	select SND_SOC_TPA6130A2
-> @@ -87,7 +87,7 @@ config SND_OMAP_SOC_OMAP_TWL4030
->  =
-
->  config SND_OMAP_SOC_OMAP_ABE_TWL6040
->  	tristate "SoC Audio support for OMAP boards using ABE and twl6040 codec"
-> -	depends on TWL6040_CORE && SND_OMAP_SOC && ARCH_OMAP4
-> +	depends on TWL6040_CORE && SND_OMAP_SOC && (ARCH_OMAP4 || COMPILE_TEST)
->  	select SND_OMAP_SOC_DMIC
->  	select SND_OMAP_SOC_MCPDM
->  	select SND_SOC_TWL6040
-> =
+--===============3316865185229061215==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SidV/bKy1CyabPX8"
+Content-Disposition: inline
 
 
+--SidV/bKy1CyabPX8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
--- =
+On Mon, Jul 15, 2013 at 06:43:46PM +0200, Peter Ujfalusi wrote:
+> On 07/15/2013 05:57 PM, Mark Brown wrote:
+> > From: Mark Brown <broonie@linaro.org>
 
-P=E9ter
+> > The DT platforms don't have any source dependency on any OMAP stuff so
+> > allow them to be built when COMPILE_TEST is enabled.
+
+> The OMAP3 generic machine driver could be also included in this patch:
+> SND_OMAP_SOC_OMAP_TWL4030
+
+There's no need for that - it has no dependencies other than the TWL4030
+core driver and SND_OMAP_SOC so as soon as SND_OMAP_SOC can be enabled
+it is too.
+
+--SidV/bKy1CyabPX8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR5CtIAAoJELSic+t+oim9vskQAJ0sZYIJdIWaWAWYDUPPoSFL
+Qgxrue8lLc/VAdxnsiSAZev7jkgV7nGjmAzZ6Ly+7oeDmJHCdK4IimdLftZkeGV5
+z9gbyvBEeeut+pqufVFD+z/ipK/m1RSvLwhctg5hyzsP25W2GsR923Pfqw/6i/Vd
+BLz5HacdyDWhyPQU78O9lkEEIC9jwUPiaweY4W8KU0+80qQtTzEOKaQkAA7jdLoA
+OUMcnR3vtYMmDBaBPsWnsF89WbbFMC6lD+5LvtaY8oSGfBR9D1B29ByWd9bcQSBA
+6YoX9vs69Bwlwv9km7GlkSgbusBhgJ25SImcibfH2L+6s9FUp+cGLmgGmcLz2l9H
+e/1OiK1gWhA8T4hGm8STa9qBK2wEp/wtg8GtZU+C5Pa8Q/A7XrPilWT9QwJ4jgTW
+MhsHx2/56LUNfQdcLTEAX6krBwkaRnP/DWVC/zeHGSLcOT09JsSvQso2/gs8qM/8
+bFp1zr2Glw5rAYlLoaKhyNXmDG4cE5p8l5IZB/QVlPnjEQk40chw5FlZ4Ejr6T6w
+S9qGTl3Qj88uzGGyyGL0ncJlhAr2l7g2JFVGL2OqekKE3cNzhCUHUhdHPo/CraXy
+fFiFf8Nreem3ih0cBL9QkVOPZco2kq7KBHVHI5urwalpYjrp87qHQHLaZThlEQt/
+otz38gV4sQ1mTjv2uINI
+=ojXs
+-----END PGP SIGNATURE-----
+
+--SidV/bKy1CyabPX8--
+
+--===============3316865185229061215==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============3316865185229061215==--
