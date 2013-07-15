@@ -1,56 +1,86 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: multi_v7: Enabled omap4430 sdp nfsroot
-Date: Mon, 15 Jul 2013 00:58:17 -0700
-Message-ID: <20130715075816.GN7656@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] ARM: OMAP3: Beagle: Fix USB Host on beagle xM Ax/Bx
+Date: Mon, 15 Jul 2013 11:16:52 +0300
+Message-ID: <51E3AFF4.7060607@ti.com>
+References: <1366024808-4691-1-git-send-email-rogerq@ti.com> <51DC09E7.1070302@denx.de> <51DC164B.5010608@ti.com> <51DC1B47.7070504@denx.de> <51DE87D3.5030600@ti.com> <51DEA7F1.1050902@denx.de> <51DEC2CE.70400@ti.com> <51DED076.3040000@denx.de> <51DEF0DE.4050607@denx.de> <51DFC92F.1050701@ti.com> <51DFDFD4.3040900@denx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56025 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754283Ab3GOH6U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jul 2013 03:58:20 -0400
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:50888 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752825Ab3GOIRW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Jul 2013 04:17:22 -0400
+In-Reply-To: <51DFDFD4.3040900@denx.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+To: Stefan Roese <sr@denx.de>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com
 
-Author: Tony Lindgren <tony@atomide.com>
-Date:   Mon Jul 15 00:39:41 2013 -0700
+On 07/12/2013 01:52 PM, Stefan Roese wrote:
+> Roger,
+> 
+> On 07/12/2013 11:15 AM, Roger Quadros wrote:
+>>>> Good idea. I'm currently using a "dirty" local version. I'll try to
+>>>> switch to an officially available version tomorrow. And send you the
+>>>> version/git id.
+>>>
+>>> I updated my U-Boot to the following version: Based on mainline git
+>>> commit ID 225fd8c. Only this patch added:
+>>>
+>>> http://patchwork.ozlabs.org/patch/256702/
+>>>
+>>> This is needed for USB to work in U-Boot. Otherwise my external USB
+>>> SMSC95xx will not be detected in U-Boot.
+>>
+>> I can only test on beagle-xm (which is also rev. C2) with integrated SMSC ethernet chip
+>> as I don't have an external USB-ethernet adapter.
+> 
+> Too bad. This difference in boards makes the tests a bit less
+> meaningful. Is there really no USB-ethernet adapter somewhere in your
+> department (perhaps a non-SMSC95xx might serve as well?)? I might
+> send/order you one if necessary. ;)
 
-    ARM: multi_v7: Enabled omap4430 sdp nfsroot
-    
-    By adding support for OCP2SCP, SPI and KS8851 I can also boot test
-    multi_v7_defconfig easily.
-    
-    Note that if using an older u-boot, CONFIG_ARM_ATAG_DTB_COMPAT=y
-    may also be needed for the appended DTB based booting.
-    
-    Signed-off-by: Tony Lindgren <tony@atomide.com>
+Thanks for the offer :). I'll just get one for myself by today/tomorrow.
+The one available here uses this driver "drivers/net/usb/asix.c"
 
---- a/arch/arm/configs/multi_v7_defconfig
-+++ b/arch/arm/configs/multi_v7_defconfig
-@@ -53,6 +53,7 @@ CONFIG_IP_PNP=y
- CONFIG_IP_PNP_DHCP=y
- CONFIG_DEVTMPFS=y
- CONFIG_DEVTMPFS_MOUNT=y
-+CONFIG_OMAP_OCP2SCP=y
- CONFIG_BLK_DEV_SD=y
- CONFIG_ATA=y
- CONFIG_SATA_AHCI_PLATFORM=y
-@@ -61,6 +62,7 @@ CONFIG_SATA_MV=y
- CONFIG_NETDEVICES=y
- CONFIG_SUN4I_EMAC=y
- CONFIG_NET_CALXEDA_XGMAC=y
-+CONFIG_KS8851=y
- CONFIG_SMSC911X=y
- CONFIG_STMMAC_ETH=y
- CONFIG_MDIO_SUN4I=y
-@@ -89,6 +91,7 @@ CONFIG_I2C_DESIGNWARE_PLATFORM=y
- CONFIG_I2C_SIRF=y
- CONFIG_I2C_TEGRA=y
- CONFIG_SPI=y
-+CONFIG_SPI_OMAP24XX=y
- CONFIG_SPI_PL022=y
- CONFIG_SPI_SIRF=y
- CONFIG_SPI_TEGRA114=y
+> 
+>> The above commit doesn't work well for beagle-xm,
+> 
+> Why is this? What does happen? Does U-Boot not boot up to the prompt?
+> Please send me a log.
+
+The last time it had failed I remember seeing a lot of IO pad configuration errors.
+But I'm no longer able to reproduce that problem. Maybe it was just a messed up
+build. In case I observe it again I'll let you know.
+
+> 
+>> so my u-boot is on tag v2013.04
+>> and you don't need that additional patch.
+>>
+>> Can you please retest on it? Thanks.
+> 
+> Done, please see below.
+> 
+>> You will need to set "usbethaddr" before starting USB else SMSC will not work.
+>> e.g.
+>> 	setenv usbethaddr A6:66:4D:B0:69:04
+> 
+> I don't have a beagle-xm, only my beable. And my U-Boot network setup is
+> already working, thanks.
+
+Right. you won't need that for beagle. It was only for beagle-xm or panda with on board
+usb-ethernet.
+
+> 
+>> Also could you please increase the Linux console message verbosity to debug (8), so that
+>> all kernel messages are visible in the log? If it spits out something more than what you
+>> sent last time then do send it to me.
+> 
+> I added "ignore_loglevel" to the cmdline. But I cannot see anything
+> interesting that has not been there before with "debug" as well.
+
+OK.
+
+cheers,
+-roger
