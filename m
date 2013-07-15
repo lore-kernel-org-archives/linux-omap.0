@@ -1,51 +1,73 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 0/4] Enable USB3 for OMAP5
-Date: Mon, 15 Jul 2013 18:33:39 +0300
-Message-ID: <1373902423-28654-1-git-send-email-balbi@ti.com>
+Subject: [PATCH 3/4] arm: omap5: dts: add palmas-usb node
+Date: Mon, 15 Jul 2013 18:33:42 +0300
+Message-ID: <1373902423-28654-4-git-send-email-balbi@ti.com>
+References: <1373902423-28654-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53604 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932244Ab3GOPec (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Jul 2013 11:34:32 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:51948 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932644Ab3GOPeh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jul 2013 11:34:37 -0400
+In-Reply-To: <1373902423-28654-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Kishon Vijay Abraham I <kishon@ti.com>, Felipe Balbi <balbi@ti.com>
 
-Hi,
+Without this node, there will be no palmas
+driver to notify dwc3 that a cable has
+been connected and, without that, dwc3
+will never initialize.
 
-I have just tested all these patches on OMAP5 uEVM and it's
-working fine.
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/boot/dts/omap5-uevm.dts | 10 ++++++++++
+ arch/arm/boot/dts/omap5.dtsi     |  2 +-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-| [1141397.137900] usb 10-2: USB disconnect, device number 3
-| [1142023.549485] usb 10-2: new SuperSpeed USB device number 4 using xhci_hcd
-| [1142024.185535] usb 10-2: Parent hub missing LPM exit latency info.  Power management will be impacted.
-| [1142025.458738] usb 10-2: New USB device found, idVendor=0525, idProduct=a4a0
-| [1142025.458744] usb 10-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-| [1142025.458748] usb 10-2: Product: Gadget Zero
-| [1142025.458752] usb 10-2: Manufacturer: Linux 3.11.0-rc1-00068-g6df6cd3-dirty with dwc3-gadget
-| [1142025.458755] usb 10-2: SerialNumber: 0123456789.0123456789.0123456789
-| [1142025.866540] usbtest 10-2:3.0: Linux gadget zero
-| [1142025.866547] usbtest 10-2:3.0: super-speed {control in/out bulk-in bulk-out} tests (+alt)
-
-please consider applying them.
-
-Benoit Cousson (1):
-  arm: omap5: hwmod: add missing ocp2scp hwmod data
-
-Felipe Balbi (3):
-  arm: omap5: dts: fix reg property size
-  arm: omap5: dts: add palmas-usb node
-  arm: omap2plus_defconfig: enable dwc3 and dependencies
-
- arch/arm/boot/dts/omap5-uevm.dts           | 10 +++++++
- arch/arm/boot/dts/omap5.dtsi               |  9 +++---
- arch/arm/configs/omap2plus_defconfig       |  9 ++++++
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 45 ++++++++++++++++++++++++++++++
- 4 files changed, 69 insertions(+), 4 deletions(-)
-
+diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+index 08b7267..badceb8 100644
+--- a/arch/arm/boot/dts/omap5-uevm.dts
++++ b/arch/arm/boot/dts/omap5-uevm.dts
+@@ -272,6 +272,11 @@
+ 		interrupt-controller;
+ 		#interrupt-cells = <2>;
+ 
++		extcon_usb3: palmas_usb {
++			compatible = "ti,palmas-usb";
++			ti,wakeup;
++		};
++
+ 		palmas_pmic {
+ 			compatible = "ti,palmas-pmic";
+ 			interrupt-parent = <&palmas>;
+@@ -450,6 +455,11 @@
+ 	phys = <0 &hsusb2_phy &hsusb3_phy>;
+ };
+ 
++&usb3 {
++	extcon = <&extcon_usb3>;
++	vbus-supply = <&smps10_reg>;
++};
++
+ &mcspi1 {
+ 
+ };
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 4e41409..1659246 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -634,7 +634,7 @@
+ 			ti,type = <2>;
+ 		};
+ 
+-		omap_dwc3@4a020000 {
++		usb3: omap_dwc3@4a020000 {
+ 			compatible = "ti,dwc3";
+ 			ti,hwmods = "usb_otg_ss";
+ 			reg = <0x4a020000 0x10000>;
 -- 
 1.8.2.1
 
