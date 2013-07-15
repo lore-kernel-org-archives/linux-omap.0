@@ -1,165 +1,55 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH v2] N900: add device tree
-Date: Mon, 15 Jul 2013 01:28:19 +0300
-Message-ID: <20130714222819.GB3296@blackmetal.musicnaut.iki.fi>
-References: <20130613161418.GJ8164@atomide.com>
- <20130613230808.GA14876@amd.pavel.ucw.cz>
- <20130614055629.GM8164@atomide.com>
- <20130614212816.GA31768@atrey.karlin.mff.cuni.cz>
- <20130617111031.GQ20992@atomide.com>
- <20130701211753.GC15318@amd.pavel.ucw.cz>
- <20130704171939.GA27374@blackmetal.musicnaut.iki.fi>
- <20130704202145.GB10752@amd.pavel.ucw.cz>
- <20130704203256.GB27374@blackmetal.musicnaut.iki.fi>
- <20130713121709.GC16473@amd.pavel.ucw.cz>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: [PATCHv2] am33xx: cpsw: default to ethernet hwaddr from efuse if not defined in dt
+Date: Mon, 15 Jul 2013 07:31:18 +0200
+Message-ID: <871u70bd95.fsf@dell.be.48ers.dk>
+References: <1358461134-13452-1-git-send-email-jacmet@sunsite.dk>
+	<50F8DA3A.3090406@ti.com> <51DAB39C.7090106@newflow.co.uk>
+	<51E013D7.7060301@newflow.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri1.pp.htv.fi ([213.243.153.184]:39344 "EHLO
-	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753322Ab3GNW2Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Jul 2013 18:28:24 -0400
-Content-Disposition: inline
-In-Reply-To: <20130713121709.GC16473@amd.pavel.ucw.cz>
+Received: from mail-ea0-f173.google.com ([209.85.215.173]:59801 "EHLO
+	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753992Ab3GOFbY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jul 2013 01:31:24 -0400
+In-Reply-To: <51E013D7.7060301@newflow.co.uk> (Mark Jackson's message of "Fri,
+	12 Jul 2013 15:33:59 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tony Lindgren <tony@atomide.com>, b-cousson@ti.com, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+To: Mark Jackson <mpfj-list@newflow.co.uk>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, hvaibhav@ti.com, richardcochran@gmail.com, tony@atomide.com, michal.bachraty@gmail.com, michal.bachraty@streamunlimited.com
+
+>>>>> "Mark" == Mark Jackson <mpfj-list@newflow.co.uk> writes:
 
 Hi,
 
-On Sat, Jul 13, 2013 at 02:17:09PM +0200, Pavel Machek wrote:
-> 
-> This adds device tree with neccessary support to boot with functional
-> video (on both emulator and real N900 device).
-> 
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+ Mark> On 08/07/13 13:42, Mark Jackson wrote:
+ >> On 18/01/13 05:14, Mugunthan V N wrote:
+ >>> On 1/18/2013 3:48 AM, Peter Korsgaard wrote:
+ >>>> When booting with CONFIG_ARM_APPENDED_DTB (either because of using an old
+ >>>> U-Boot, not wanting the hassle of 2 files or when using Falcon fast boot
+ >>>> mode in U-Boot), nothing updates the ethernet hwaddr specified for the
+ >>>> CPSW slaves, causing the driver to use a random hwaddr, which is some times
+ >>>> troublesome.
+ >>>> 
+ >>>> The am33xx has unique ethernet hwaddrs programmed in the efuse, so it makes
+ >>>> more sense to default to these rather than random ones. Add a fixup step
+ >>>> which adds mac-address dt properties using the efuse addresses if the DTB
+ >>>> didn't contain valid ones.
+ >>>> 
+ >>>> Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
+ >>> 
+ >>> This implementation looks fine.
+ >>> Acked-by: Mugunthan V N <mugunthanvnm@ti.com>
+ >> 
+ >> Tested-by: Mark Jackson <mpfj-list@newflow.co.uk>
 
-You can also add:
+ Mark> Is this ever going to be put into the mainline code ?
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Good question. Tony, could you please pick this up? It has been pending
+since January and has a number of acks.
 
-Thanks,
+Do you want me to resend?
 
-A.
-
-> 
-> ---
-> 
-> From v1: Aaro wants just GPLv2, so I did that. I re-enabled parts that
-> can be enabled on 3.10, and tested it on that kernel.
-> 
-> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> index f0895c5..1950aed 100644
-> --- a/arch/arm/boot/dts/Makefile
-> +++ b/arch/arm/boot/dts/Makefile
-> @@ -141,6 +141,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
->  	omap3-devkit8000.dtb \
->  	omap3-beagle-xm.dtb \
->  	omap3-evm.dtb \
-> +	omap3-n900.dtb \
->  	omap3-tobi.dtb \
->  	omap3-igep0020.dtb \
->  	omap3-igep0030.dtb \
-> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-> new file mode 100644
-> index 0000000..fb461bf
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap3-n900.dts
-> @@ -0,0 +1,92 @@
-> +/*
-> + * Copyright (C) 2013 Pavel Machek <pavel@ucw.cz>
-> + * Copyright 2013 Aaro Koskinen <aaro.koskinen@iki.fi>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +/dts-v1/;
-> +
-> +/include/ "omap34xx.dtsi"
-> +
-> +/ {
-> +	model = "Nokia N900";
-> +	compatible = "nokia,omap3-n900", "ti,omap3";
-> +
-> +	cpus {
-> +		cpu@0 {
-> +			cpu0-supply = <&vcc>;
-> +		};
-> +	};
-> +
-> +	memory {
-> +		device_type = "memory";
-> +		reg = <0x80000000 0x10000000>; /* 256 MB */
-> +	};
-> +
-> +};
-> +
-> +&i2c1 {
-> +	clock-frequency = <2200000>;
-> +
-> +	twl: twl@48 {
-> +		reg = <0x48>;
-> +		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-> +		interrupt-parent = <&intc>;
-> +	};
-> +};
-> +
-> +/include/ "twl4030.dtsi"
-> +
-> +&twl_gpio {
-> +	ti,pullups	= <0x0>;
-> +	ti,pulldowns	= <0x03ff3f>; /* BIT(0..5) | BIT(8..17) */
-> +};
-> +
-> +&i2c2 {
-> +	clock-frequency = <400000>;
-> +};
-> +
-> +&i2c3 {
-> +	clock-frequency = <100000>;
-> +};
-> +
-> +&mmc1 {
-> +	status = "disabled";
-> +};
-> +
-> +&mmc2 {
-> +	status = "disabled";
-> +};
-> +
-> +&mmc3 {
-> +	status = "disabled";
-> +};
-> +
-> +&mcspi1 {
-> +	// For some reason, touchscreen is neccessary for screen to work at 
-> +	// all on real hw. It works well without it on emulator.
-> +	//
-> +	// Also... order in the device tree actually matters here.
-> +	tsc2005@0 {
-> +		compatible = "tsc2005";
-> +		spi-max-frequency = <6000000>;
-> +		reg = <0>;
-> +	};
-> +	mipid@2 {
-> +		compatible = "acx565akm";
-> +		spi-max-frequency = <6000000>;
-> +		reg = <2>;
-> +		// turbo_mode = 0,
-> +		// cs_per_word = 0
-> +	};
-> +};
-> +
-> +&usb_otg_hs {
-> +	interface-type = <0>;
-> +	usb-phy = <&usb2_phy>;
-> +	mode = <2>;
-> +	power = <50>;
-> +};
-> 
-> -- 
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+-- 
+Bye, Peter Korsgaard
