@@ -1,118 +1,51 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: Boot hang regression 3.10.0-rc4 -> 3.10.0
-Date: Mon, 15 Jul 2013 12:14:15 +0530
-Message-ID: <51E39A3F.6080106@ti.com>
-References: <B5906170F1614E41A8A28DE3B8D121433EE94520@DBDE04.ent.ti.com> <20130708112553.GU5523@atomide.com> <51DAB394.3050104@ti.com> <20130708131033.GA5523@atomide.com> <51DABC81.3080409@ti.com> <20130708133512.GD31221@arwen.pp.htv.fi> <87mwpuakod.fsf@linaro.org> <20130710142633.GV5523@atomide.com> <20130710160704.GH18966@arwen.pp.htv.fi> <20130710161158.GA19716@arwen.pp.htv.fi> <20130711063209.GZ5523@atomide.com> <51DE8215.5060306@ti.com> <51DF508F.3050703@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/6] ARM: OMAP2+: Remove board-4430sdp.c
+Date: Sun, 14 Jul 2013 23:55:42 -0700
+Message-ID: <20130715065542.GK7656@atomide.com>
+References: <20130517191304.468.73487.stgit@localhost>
+ <20130517191751.468.89202.stgit@localhost>
+ <20130520095447.GR21614@n2100.arm.linux.org.uk>
+ <20130706131057.GU21614@n2100.arm.linux.org.uk>
+ <20130706133627.GV21614@n2100.arm.linux.org.uk>
+ <CAOesGMjv=GxWSxaUebY6pP4sJHfQNeuUk2BcAFBT3QxX3jGZLw@mail.gmail.com>
+ <CAOesGMgO74FU0P4DC6_yws8ZaQ6F923-LWwGAxbCQkQbr69L5w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58568 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754063Ab3GOGoq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Jul 2013 02:44:46 -0400
-In-Reply-To: <51DF508F.3050703@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:14450 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750753Ab3GOGzs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jul 2013 02:55:48 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOesGMgO74FU0P4DC6_yws8ZaQ6F923-LWwGAxbCQkQbr69L5w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@linaro.org>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Sourav Poddar <sourav.poddar@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Olof Johansson <olof@lixom.net>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "arm@kernel.org" <arm@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Arnd Bergmann <arnd@arndb.de>
 
-On Friday 12 July 2013 06:10 AM, Suman Anna wrote:
-> On 07/11/2013 04:59 AM, Grygorii Strashko wrote:
->> Hi,
->>
->> On 07/11/2013 09:32 AM, Tony Lindgren wrote:
->>> * Felipe Balbi <balbi@ti.com> [130710 09:18]:
->>>>
->>>> On Wed, Jul 10, 2013 at 07:07:04PM +0300, Felipe Balbi wrote:
->>>>> how about something like below ? It makes omap_device/hwmod and
->>>>> pm_runtime agree on the initial state of the device and will prevent
->>>>> ->runtime_resume() from being called on first pm_runtime_get*() done
->>>>> during probe.
->>>>>
->>>>> This is similar to what PCI bus does (if you look at pci_pm_init()).
->>>>>
->>>>> commit 59108a500b4ab4b1a5102648a3360276dbf7df6f
->>>>> Author: Felipe Balbi <balbi@ti.com>
->>>>> Date:   Wed Jul 10 18:50:16 2013 +0300
->>>>>
->>>>>      arm: omap2plus: unidle devices which are about to probe
->>>>>
->>>>>      in order to make HWMOD and pm_runtime agree on the
->>>>>      initial state of the device, we will unidle the device
->>>>>      and call pm_runtime_set_active() to tell pm_runtime
->>>>>      that the device is really active.
->> Don't think that it's good idea (
->> I've checked some driver's and think this patch will enable some devices
->> unpredictably:
->> - hwspinlock
->> - mailbox
->> - iommu
->> - ipu
->> All above devices need to be enabled on demand only (no
->> pm_runtime_get*() calls in probe). More over, some of them have very
->> specific enabling sequence - like ipu).
->>
->> May be Summan can say more on that.
+* Olof Johansson <olof@lixom.net> [130712 20:16]:
+> On Fri, Jul 12, 2013 at 7:31 PM, Olof Johansson <olof@lixom.net> wrote:
 > 
-> Indeed, this is a problem for any of the slave processor devices.
-> mailbox and iommu would be slaves to the remoteproc and the drivers have
-> a specific sequence of bringing up a processor. The current
-> hwmod/omap_device code is such that these devices will be left in reset
-> and the driver code use the omap_device_(de)assert_hardreset API
-> together with omap_device_enable code to bring up the devices. The
-> remoteproc driver also needs to assert the resets (there are other
-> problems associated with using omap_device_idle for remoteproc and
-> iommu) for bringing up the devices after a suspend sequence. hwspinlock
-> and mailbox may get away since they are in CORE domain, but definitely
-> an issue for iommu and remoteproc. I would think that this would also
-> affect other compute devices like IVAHD, ISS, SGX.
-
-Today, for these IPs I guess hwmod waits for the resets to be de-asserted, right?
-
-        /*
-         * If an IP block contains HW reset lines and all of them are
-         * asserted, we let integration code associated with that
-         * block handle the enable.  We've received very little
-         * information on what those driver authors need, and until
-         * detailed information is provided and the driver code is
-         * posted to the public lists, this is probably the best we
-         * can do.
-         */
-        if (_are_all_hardreset_lines_asserted(oh))
-                return 0;
-
-What if this information is send back to omap_device() through a return value
-so omap_device() knows about this too, so it avoids marking the omap device as
-enabled? Wouldn't that fix the issue?
-
-
+> > This is pretty painful, and I don't know if we want to rethink Arnd's
+> > patch since it will break existing defconfigs out there that rely on
+> > OMAP2PLUS enabling the socs instead of the other way around. Opinions?
 > 
-> regards
-> Suman
+> (replying to myself, I know, I know...)
 > 
->>
->>>>>
->>>>>      By the time driver's probe() is reached, a call to
->>>>>      pm_runtime_get_sync() will not cause driver's
->>>>>      ->runtime_resume() method to be called at first, only
->>>>>      after a successful ->runtime_suspend().
->>>>>
->>>>>      Signed-off-by: Felipe Balbi <balbi@ti.com>
->>>>
->>>> btw, this is RFC, haven't tested at all.
->>>
->>> Yes it does not compile, then removing the extra ; at the end
->>> of the functions, it oopses with a NULL pointer exception.
->>>
->>> Regards,
->>>
->>> Tony
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
-> 
+> I think it's probably easiest to just select the OMAP{2,3,4} and
+> AM33XX options in multi_v7_defconfig just like Arnd did in the commit
+> that changed the dependencies for now. I've added a patch on top of
+> our current fixes branch to do so.
 
+Well should select only omap 3 and later for multi_v7_defconfig as
+omap2 is v6 :)
+ 
+> Note that you need to make corresponding changes to your seeds for
+> your build tests, Russell.
+
+Eventually we could have them all selected based on the core type,
+but I'd rather not do that until clocks and hwmod data come from DT.
+
+Regards,
+
+Tony
