@@ -1,76 +1,205 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] arm: omap5: dts: add palmas-usb node
-Date: Mon, 15 Jul 2013 12:26:33 +0300
-Message-ID: <20130715092633.GC14330@arwen.pp.htv.fi>
-References: <1373645681-29779-1-git-send-email-balbi@ti.com>
-Reply-To: <balbi@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: Boot hang regression 3.10.0-rc4 -> 3.10.0
+Date: Mon, 15 Jul 2013 15:31:01 +0530
+Message-ID: <51E3C85D.2010008@ti.com>
+References: <B5906170F1614E41A8A28DE3B8D121433EE94520@DBDE04.ent.ti.com> <20130708112553.GU5523@atomide.com> <51DAB394.3050104@ti.com> <20130708131033.GA5523@atomide.com> <51DABC81.3080409@ti.com> <20130708133512.GD31221@arwen.pp.htv.fi> <87mwpuakod.fsf@linaro.org> <20130710142633.GV5523@atomide.com> <20130710160704.GH18966@arwen.pp.htv.fi> <20130710161158.GA19716@arwen.pp.htv.fi> <20130711063209.GZ5523@atomide.com> <51DE8215.5060306@ti.com> <51DF508F.3050703@ti.com> <51E39A3F.6080106@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ncSAzJYg3Aa9+CRW"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53624 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34405 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754609Ab3GOJ1X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Jul 2013 05:27:23 -0400
-Content-Disposition: inline
-In-Reply-To: <1373645681-29779-1-git-send-email-balbi@ti.com>
+	id S1754696Ab3GOKBc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Jul 2013 06:01:32 -0400
+In-Reply-To: <51E39A3F.6080106@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>, Kishon Vijay Abraham I <kishon@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Suman Anna <s-anna@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@linaro.org>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Sourav Poddar <sourav.poddar@ti.com>, Paul Walmsley <paul@pwsan.com>
 
---ncSAzJYg3Aa9+CRW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Monday 15 July 2013 12:14 PM, Rajendra Nayak wrote:
+> On Friday 12 July 2013 06:10 AM, Suman Anna wrote:
+>> On 07/11/2013 04:59 AM, Grygorii Strashko wrote:
+>>> Hi,
+>>>
+>>> On 07/11/2013 09:32 AM, Tony Lindgren wrote:
+>>>> * Felipe Balbi <balbi@ti.com> [130710 09:18]:
+>>>>>
+>>>>> On Wed, Jul 10, 2013 at 07:07:04PM +0300, Felipe Balbi wrote:
+>>>>>> how about something like below ? It makes omap_device/hwmod and
+>>>>>> pm_runtime agree on the initial state of the device and will prevent
+>>>>>> ->runtime_resume() from being called on first pm_runtime_get*() done
+>>>>>> during probe.
+>>>>>>
+>>>>>> This is similar to what PCI bus does (if you look at pci_pm_init()).
+>>>>>>
+>>>>>> commit 59108a500b4ab4b1a5102648a3360276dbf7df6f
+>>>>>> Author: Felipe Balbi <balbi@ti.com>
+>>>>>> Date:   Wed Jul 10 18:50:16 2013 +0300
+>>>>>>
+>>>>>>      arm: omap2plus: unidle devices which are about to probe
+>>>>>>
+>>>>>>      in order to make HWMOD and pm_runtime agree on the
+>>>>>>      initial state of the device, we will unidle the device
+>>>>>>      and call pm_runtime_set_active() to tell pm_runtime
+>>>>>>      that the device is really active.
+>>> Don't think that it's good idea (
+>>> I've checked some driver's and think this patch will enable some devices
+>>> unpredictably:
+>>> - hwspinlock
+>>> - mailbox
+>>> - iommu
+>>> - ipu
+>>> All above devices need to be enabled on demand only (no
+>>> pm_runtime_get*() calls in probe). More over, some of them have very
+>>> specific enabling sequence - like ipu).
+>>>
+>>> May be Summan can say more on that.
+>>
+>> Indeed, this is a problem for any of the slave processor devices.
+>> mailbox and iommu would be slaves to the remoteproc and the drivers have
+>> a specific sequence of bringing up a processor. The current
+>> hwmod/omap_device code is such that these devices will be left in reset
+>> and the driver code use the omap_device_(de)assert_hardreset API
+>> together with omap_device_enable code to bring up the devices. The
+>> remoteproc driver also needs to assert the resets (there are other
+>> problems associated with using omap_device_idle for remoteproc and
+>> iommu) for bringing up the devices after a suspend sequence. hwspinlock
+>> and mailbox may get away since they are in CORE domain, but definitely
+>> an issue for iommu and remoteproc. I would think that this would also
+>> affect other compute devices like IVAHD, ISS, SGX.
+> 
+> Today, for these IPs I guess hwmod waits for the resets to be de-asserted, right?
+> 
+>         /*
+>          * If an IP block contains HW reset lines and all of them are
+>          * asserted, we let integration code associated with that
+>          * block handle the enable.  We've received very little
+>          * information on what those driver authors need, and until
+>          * detailed information is provided and the driver code is
+>          * posted to the public lists, this is probably the best we
+>          * can do.
+>          */
+>         if (_are_all_hardreset_lines_asserted(oh))
+>                 return 0;
+> 
+> What if this information is send back to omap_device() through a return value
+> so omap_device() knows about this too, so it avoids marking the omap device as
+> enabled? Wouldn't that fix the issue?
 
-On Fri, Jul 12, 2013 at 07:14:41PM +0300, Felipe Balbi wrote:
-> Without this node, there will be no palmas
-> driver to notify dwc3 that a cable has
-> been connected and, without that, dwc3
-> will never initialize.
->=20
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
->=20
-> after this, all we need is wait EXTCON merge
-> which contains the final changes necessary
-> to get USB3 working out of the box.
->=20
-> I'd suggest waiting on this patch until EXTCON
-> reaches mainline, just to make sure we don't
-> end up with DTS data for devices which don't
-> exist.
+I meant something like this..
 
-this is not entirely correct. v3.11-rc1 has almost everything we need,
-already have a newer version of this patch but dwc3 has decided not to
-behave.
+>From 2fbea0dde0f72897089ef2e8e441b5e5bd6ea967 Mon Sep 17 00:00:00 2001
+From: Rajendra Nayak <rnayak@ti.com>
+Date: Mon, 15 Jul 2013 15:23:07 +0530
+Subject: [PATCH] ARM: OMAP2+: Make omap_device aware of hwmod failing to
+ enable/idle/shutdown the hwmods
 
-don't apply this version
+For IP blocks (mainly processors) which have hard reset lines, hwmod avoids
+enable/idle/shutdown operations as long as all the hard reset lines are
+kept asserted. However it does not return an error back to the caller (in some
+cases the omap_device layer) to communicate back the failure to operate on the
+hwmod.
 
---=20
-balbi
+Fix this by making _enable()/_idle()/_shutdown() all return an error in such
+cases, and also fix the omap_device layer to look at the return values coming
+from hwmod operations before doing a omap_device level state transition.
 
---ncSAzJYg3Aa9+CRW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/omap_device.c |   20 ++++++++++----------
+ arch/arm/mach-omap2/omap_hwmod.c  |    6 +++---
+ 2 files changed, 13 insertions(+), 13 deletions(-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index 5cc9287..e89244b 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -210,13 +210,12 @@ static int _omap_device_notifier_call(struct notifier_block *nb,
+  */
+ static int _omap_device_enable_hwmods(struct omap_device *od)
+ {
+-	int i;
++	int i, ret = 0;
+ 
+ 	for (i = 0; i < od->hwmods_cnt; i++)
+-		omap_hwmod_enable(od->hwmods[i]);
++		ret |= omap_hwmod_enable(od->hwmods[i]);
+ 
+-	/* XXX pass along return value here? */
+-	return 0;
++	return ret;
+ }
+ 
+ /**
+@@ -227,13 +226,12 @@ static int _omap_device_enable_hwmods(struct omap_device *od)
+  */
+ static int _omap_device_idle_hwmods(struct omap_device *od)
+ {
+-	int i;
++	int i, ret = 0;
+ 
+ 	for (i = 0; i < od->hwmods_cnt; i++)
+-		omap_hwmod_idle(od->hwmods[i]);
++		ret |= omap_hwmod_idle(od->hwmods[i]);
+ 
+-	/* XXX pass along return value here? */
+-	return 0;
++	return ret;
+ }
+ 
+ /* Public functions for use by core code */
+@@ -697,7 +695,8 @@ int omap_device_enable(struct platform_device *pdev)
+ 
+ 	ret = _omap_device_enable_hwmods(od);
+ 
+-	od->_state = OMAP_DEVICE_STATE_ENABLED;
++	if (!ret)
++		od->_state = OMAP_DEVICE_STATE_ENABLED;
+ 
+ 	return ret;
+ }
+@@ -727,7 +726,8 @@ int omap_device_idle(struct platform_device *pdev)
+ 
+ 	ret = _omap_device_idle_hwmods(od);
+ 
+-	od->_state = OMAP_DEVICE_STATE_IDLE;
++	if (!ret)
++		od->_state = OMAP_DEVICE_STATE_IDLE;
+ 
+ 	return ret;
+ }
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 7341eff..07fd2a8 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2133,7 +2133,7 @@ static int _enable(struct omap_hwmod *oh)
+ 	 * can do.
+ 	 */
+ 	if (_are_all_hardreset_lines_asserted(oh))
+-		return 0;
++		return -EPERM;
+ 
+ 	/* Mux pins for device runtime if populated */
+ 	if (oh->mux && (!oh->mux->enabled ||
+@@ -2222,7 +2222,7 @@ static int _idle(struct omap_hwmod *oh)
+ 	}
+ 
+ 	if (_are_all_hardreset_lines_asserted(oh))
+-		return 0;
++		return -EPERM;
+ 
+ 	if (oh->class->sysc)
+ 		_idle_sysc(oh);
+@@ -2276,7 +2276,7 @@ static int _shutdown(struct omap_hwmod *oh)
+ 	}
+ 
+ 	if (_are_all_hardreset_lines_asserted(oh))
+-		return 0;
++		return -EPERM;
+ 
+ 	pr_debug("omap_hwmod: %s: disabling\n", oh->name);
+ 
+-- 
+1.7.9.5
 
-iQIcBAEBAgAGBQJR48BJAAoJEIaOsuA1yqREzAAP/jqljQWxtHjl5etcQvM4go7F
-gfCDbdCL4i3KT2ZG6Ul8BBMzPrqEV4fqicvIiP8kaWmF1iFywCHmaXjAUCFPVt3z
-ebkWcWdYCyCh0iw9g4bSJPL3GLqswMrgudmXs4KHL8Xh94BGUfyH0KuKNMUs9eIe
-ao8kkcfBWFaGQWfUT/aAgkbET1PP390LRzXT/++Tw6VpTMTbsgowa0nzYTy3X2JT
-ypaqBJc8gep+13/OYj+SYhmZLwVc1QKkWHid2CeU85RGAAGkDffss9uzqjJcxSLZ
-K4uhHZObup5lJQZIXLOtiBrL0ViH6iYgpZT+84iAQjyF9XFsQNiDKdmscbKYjxf/
-HV7nUYFLGx+++JNNjObEprRFlAiFXG7EJibFroBdjnUg3IsoVerg0f0dWRjPvpko
-fh0sNIVPKhUCiu889vIvQf9BkMGqoFd6V+neBwycDKWXFEXtqvvZr5UUcH71F7vR
-+1VQuDkScJiWG5zk82TGshcMTLIMqsIbMDh8U+SmgmVKL2GozUW1mgfmYUfi1/cj
-T33PbbWJGChNdSudKSxswzosK2x2WpgKXbSsrhjKMvJ0xiKBiAkl2TyjZGJ17mV5
-rzlVEa7RsYqovn46OJ1ZcBexlOSZBeGNTNrxkIgRhSD0GzdObWNZ4P6ZPjDlkGpA
-yjwqggO2ecke3ovTeLJO
-=jse+
------END PGP SIGNATURE-----
-
---ncSAzJYg3Aa9+CRW--
