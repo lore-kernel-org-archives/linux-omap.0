@@ -1,122 +1,51 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 2/4] arm: omap5: hwmod: add missing ocp2scp hwmod data
-Date: Mon, 15 Jul 2013 18:33:41 +0300
-Message-ID: <1373902423-28654-3-git-send-email-balbi@ti.com>
-References: <1373902423-28654-1-git-send-email-balbi@ti.com>
+Subject: [PATCH 0/4] Enable USB3 for OMAP5
+Date: Mon, 15 Jul 2013 18:33:39 +0300
+Message-ID: <1373902423-28654-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49340 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:53604 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932644Ab3GOPed (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Jul 2013 11:34:33 -0400
-In-Reply-To: <1373902423-28654-1-git-send-email-balbi@ti.com>
+	id S932244Ab3GOPec (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Jul 2013 11:34:32 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Kishon Vijay Abraham I <kishon@ti.com>, Benoit Cousson <benoit.cousson@linaro.org>, Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Kishon Vijay Abraham I <kishon@ti.com>, Felipe Balbi <balbi@ti.com>
 
-From: Benoit Cousson <benoit.cousson@linaro.org>
+Hi,
 
-without that hwmod data, USB3 will not in OMAP5 boards.
+I have just tested all these patches on OMAP5 uEVM and it's
+working fine.
 
-While at that, also fix DTS data to pass reg property,
-otherwise driver won't probe.
+| [1141397.137900] usb 10-2: USB disconnect, device number 3
+| [1142023.549485] usb 10-2: new SuperSpeed USB device number 4 using xhci_hcd
+| [1142024.185535] usb 10-2: Parent hub missing LPM exit latency info.  Power management will be impacted.
+| [1142025.458738] usb 10-2: New USB device found, idVendor=0525, idProduct=a4a0
+| [1142025.458744] usb 10-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+| [1142025.458748] usb 10-2: Product: Gadget Zero
+| [1142025.458752] usb 10-2: Manufacturer: Linux 3.11.0-rc1-00068-g6df6cd3-dirty with dwc3-gadget
+| [1142025.458755] usb 10-2: SerialNumber: 0123456789.0123456789.0123456789
+| [1142025.866540] usbtest 10-2:3.0: Linux gadget zero
+| [1142025.866547] usbtest 10-2:3.0: super-speed {control in/out bulk-in bulk-out} tests (+alt)
 
-Signed-off-by: Benoit Cousson <benoit.cousson@linaro.org>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/boot/dts/omap5.dtsi               |  3 +-
+please consider applying them.
+
+Benoit Cousson (1):
+  arm: omap5: hwmod: add missing ocp2scp hwmod data
+
+Felipe Balbi (3):
+  arm: omap5: dts: fix reg property size
+  arm: omap5: dts: add palmas-usb node
+  arm: omap2plus_defconfig: enable dwc3 and dependencies
+
+ arch/arm/boot/dts/omap5-uevm.dts           | 10 +++++++
+ arch/arm/boot/dts/omap5.dtsi               |  9 +++---
+ arch/arm/configs/omap2plus_defconfig       |  9 ++++++
  arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 45 ++++++++++++++++++++++++++++++
- 2 files changed, 47 insertions(+), 1 deletion(-)
+ 4 files changed, 69 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 5c99f19..4e41409 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -652,10 +652,11 @@
- 			};
- 		};
- 
--		ocp2scp {
-+		ocp2scp@4a080000 {
- 			compatible = "ti,omap-ocp2scp";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
-+			reg = <0x4a080000 0x20>;
- 			ranges;
- 			ti,hwmods = "ocp2scp1";
- 			usb2_phy: usb2phy@4a084000 {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-index f37ae96..542eddd 100644
---- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -1114,6 +1114,42 @@ static struct omap_hwmod omap54xx_mpu_hwmod = {
- };
- 
- /*
-+ * 'ocp2scp' class
-+ * bridge to transform ocp interface protocol to scp (serial control port)
-+ * protocol
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap54xx_ocp2scp_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
-+			SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap54xx_ocp2scp_hwmod_class = {
-+	.name	= "ocp2scp",
-+	.sysc	= &omap54xx_ocp2scp_sysc,
-+};
-+
-+/* ocp2scp1 */
-+static struct omap_hwmod omap54xx_ocp2scp1_hwmod = {
-+	.name		= "ocp2scp1",
-+	.class		= &omap54xx_ocp2scp_hwmod_class,
-+	.clkdm_name	= "l3init_clkdm",
-+	.main_clk	= "l4_root_clk_div",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = OMAP54XX_CM_L3INIT_OCP2SCP1_CLKCTRL_OFFSET,
-+			.context_offs = OMAP54XX_RM_L3INIT_OCP2SCP1_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_HWCTRL,
-+		},
-+	},
-+};
-+
-+/*
-  * 'timer' class
-  * general purpose timer module with accurate 1ms tick
-  * This class contains several variants: ['timer_1ms', 'timer']
-@@ -1919,6 +1955,14 @@ static struct omap_hwmod_ocp_if omap54xx_l4_cfg__mpu = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_cfg -> ocp2scp1 */
-+static struct omap_hwmod_ocp_if omap54xx_l4_cfg__ocp2scp1 = {
-+	.master		= &omap54xx_l4_cfg_hwmod,
-+	.slave		= &omap54xx_ocp2scp1_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* l4_wkup -> timer1 */
- static struct omap_hwmod_ocp_if omap54xx_l4_wkup__timer1 = {
- 	.master		= &omap54xx_l4_wkup_hwmod,
-@@ -2121,6 +2165,7 @@ static struct omap_hwmod_ocp_if *omap54xx_hwmod_ocp_ifs[] __initdata = {
- 	&omap54xx_l4_per__mmc4,
- 	&omap54xx_l4_per__mmc5,
- 	&omap54xx_l4_cfg__mpu,
-+	&omap54xx_l4_cfg__ocp2scp1,
- 	&omap54xx_l4_wkup__timer1,
- 	&omap54xx_l4_per__timer2,
- 	&omap54xx_l4_per__timer3,
 -- 
 1.8.2.1
 
