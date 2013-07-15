@@ -1,51 +1,56 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/6] ARM: OMAP2+: Remove board-4430sdp.c
-Date: Sun, 14 Jul 2013 23:55:42 -0700
-Message-ID: <20130715065542.GK7656@atomide.com>
-References: <20130517191304.468.73487.stgit@localhost>
- <20130517191751.468.89202.stgit@localhost>
- <20130520095447.GR21614@n2100.arm.linux.org.uk>
- <20130706131057.GU21614@n2100.arm.linux.org.uk>
- <20130706133627.GV21614@n2100.arm.linux.org.uk>
- <CAOesGMjv=GxWSxaUebY6pP4sJHfQNeuUk2BcAFBT3QxX3jGZLw@mail.gmail.com>
- <CAOesGMgO74FU0P4DC6_yws8ZaQ6F923-LWwGAxbCQkQbr69L5w@mail.gmail.com>
+Subject: [PATCH] ARM: multi_v7: Enabled omap4430 sdp nfsroot
+Date: Mon, 15 Jul 2013 00:58:17 -0700
+Message-ID: <20130715075816.GN7656@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:14450 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56025 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750753Ab3GOGzs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jul 2013 02:55:48 -0400
+	with ESMTP id S1754283Ab3GOH6U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jul 2013 03:58:20 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOesGMgO74FU0P4DC6_yws8ZaQ6F923-LWwGAxbCQkQbr69L5w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "arm@kernel.org" <arm@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-* Olof Johansson <olof@lixom.net> [130712 20:16]:
-> On Fri, Jul 12, 2013 at 7:31 PM, Olof Johansson <olof@lixom.net> wrote:
-> 
-> > This is pretty painful, and I don't know if we want to rethink Arnd's
-> > patch since it will break existing defconfigs out there that rely on
-> > OMAP2PLUS enabling the socs instead of the other way around. Opinions?
-> 
-> (replying to myself, I know, I know...)
-> 
-> I think it's probably easiest to just select the OMAP{2,3,4} and
-> AM33XX options in multi_v7_defconfig just like Arnd did in the commit
-> that changed the dependencies for now. I've added a patch on top of
-> our current fixes branch to do so.
+Author: Tony Lindgren <tony@atomide.com>
+Date:   Mon Jul 15 00:39:41 2013 -0700
 
-Well should select only omap 3 and later for multi_v7_defconfig as
-omap2 is v6 :)
- 
-> Note that you need to make corresponding changes to your seeds for
-> your build tests, Russell.
+    ARM: multi_v7: Enabled omap4430 sdp nfsroot
+    
+    By adding support for OCP2SCP, SPI and KS8851 I can also boot test
+    multi_v7_defconfig easily.
+    
+    Note that if using an older u-boot, CONFIG_ARM_ATAG_DTB_COMPAT=y
+    may also be needed for the appended DTB based booting.
+    
+    Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Eventually we could have them all selected based on the core type,
-but I'd rather not do that until clocks and hwmod data come from DT.
-
-Regards,
-
-Tony
+--- a/arch/arm/configs/multi_v7_defconfig
++++ b/arch/arm/configs/multi_v7_defconfig
+@@ -53,6 +53,7 @@ CONFIG_IP_PNP=y
+ CONFIG_IP_PNP_DHCP=y
+ CONFIG_DEVTMPFS=y
+ CONFIG_DEVTMPFS_MOUNT=y
++CONFIG_OMAP_OCP2SCP=y
+ CONFIG_BLK_DEV_SD=y
+ CONFIG_ATA=y
+ CONFIG_SATA_AHCI_PLATFORM=y
+@@ -61,6 +62,7 @@ CONFIG_SATA_MV=y
+ CONFIG_NETDEVICES=y
+ CONFIG_SUN4I_EMAC=y
+ CONFIG_NET_CALXEDA_XGMAC=y
++CONFIG_KS8851=y
+ CONFIG_SMSC911X=y
+ CONFIG_STMMAC_ETH=y
+ CONFIG_MDIO_SUN4I=y
+@@ -89,6 +91,7 @@ CONFIG_I2C_DESIGNWARE_PLATFORM=y
+ CONFIG_I2C_SIRF=y
+ CONFIG_I2C_TEGRA=y
+ CONFIG_SPI=y
++CONFIG_SPI_OMAP24XX=y
+ CONFIG_SPI_PL022=y
+ CONFIG_SPI_SIRF=y
+ CONFIG_SPI_TEGRA114=y
