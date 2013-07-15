@@ -1,373 +1,365 @@
 From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v1 1/5] mtd: nand: omap: optimized chip->ecc.correct() for H/W ECC schemes
-Date: Mon, 15 Jul 2013 20:25:48 +0530
-Message-ID: <1373900152-26885-2-git-send-email-pekon@ti.com>
+Subject: [PATCH v1 2/5] mtd: nand: omap: optimize chip->ecc.calculate() for H/W ECC schemes
+Date: Mon, 15 Jul 2013 20:25:49 +0530
+Message-ID: <1373900152-26885-3-git-send-email-pekon@ti.com>
 References: <1373900152-26885-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49492 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:49497 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932088Ab3GOO4i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jul 2013 10:56:38 -0400
+	with ESMTP id S932088Ab3GOO4k (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jul 2013 10:56:40 -0400
 In-Reply-To: <1373900152-26885-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: dedekind1@gmail.com, dwmw2@infradead.org
 Cc: arnd@arndb.de, tony@atomide.com, benoit.cousson@linaro.org, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Pekon Gupta <pekon@ti.com>
 
-chip->ecc.correct() is used for detecting and correcting bit-flips during read
-operations. In omap2-nand driver this is done usingt following functions:
+chip->ecc.calculate() is used for calculating and fetching of ECC syndrome by
+processing the data passed during Read/Write accesses.
 
-- omap_correct_data(): for H/W based HAM1_ECC schemes
-	(Un-Touched in current patch)
+All H/W based ECC schemes supported in omap2-nand driver use GPMC controller
+to calculate ECC syndrome. But each BCHx_ECC scheme implements its own function
+to process and fetch ECC syndrom from GPMC controller.
 
-- omap_elm_correct_data(): for H/W based BCHx_ECC scheme
-	Current implementation of this function is not scalable for newer ECC
-	schemes because:
-	- It depends on a specific byte-position in OOB area (reserved as 0x00)
-	  to differentiates between programmed-pages and erased-pages.
-	  This reserved byte-position cannot be accomodated in all ECC schemes.
-	- Current code is not scalable for future ECC schemes due to tweaks for
-	  BCH4_ECC and BCH8_ECC at multiple places.
-	- It checks for bit-flips in Erased-pages using check_erased_page().
-	  This is over-work, as sanity of Erased-page can be verified by just
-	  comparing them to a pre-defined ECC-syndrome for all_0xFF data.
-
-	This patch optimizes omap_elm_correct_data() in following ways:
-	(1) Removes dependency on specific reserved-byte (0x00) in OOB area,
-	    instead Erased-page is identified by matching calc_ecc with a
-	    pre-defined ECC syndrome of all(0xFF) data
-	(2) merges common code for BCH4_ECC and BCH8_ECC for scalability.
-	(3) handles incorrect elm_error_location beyond data+oob buffer.
-	(4) removes check_erased_page(): Bit-flips in erased-page are handled
-	    in same way as for programmed-page
+This patch tries to merges the common code for different BCHx_ECC schemes into
+single omap_calculate_ecc_bch(), And adds schemes specific post-possessing
+after fetching ECC-syndrome. This removes redundant code and adds scalability
+for future ECC-schemes. This patch:
+- [un-touched]	omap_calculate_ecc():		Used for HAM1_ECC
+- [merged]	omap3_calculate_ecc_bch4():	Used for BCH4_HW_DETECTION_SW
+- [merged]	omap3_calculate_ecc_bch8():	Used for BCH8_HW_DETECTION_SW
+- [merged]	omap3_calculate_ecc_bch():	Used for BCH4_HW and BCH8_HW
+- [new]		omap_calculate_ecc_bch():	Now used for all BCHx_ECC
 
 Signed-off-by: Pekon Gupta <pekon@ti.com>
 ---
- drivers/mtd/nand/omap2.c | 249 ++++++++++++++---------------------------------
- 1 file changed, 75 insertions(+), 174 deletions(-)
+ drivers/mtd/nand/omap2.c | 249 ++++++++++++++++++-----------------------------
+ 1 file changed, 95 insertions(+), 154 deletions(-)
 
 diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index e9ef743..5321bdcc 100644
+index 5321bdcc..7f7a2ee 100644
 --- a/drivers/mtd/nand/omap2.c
 +++ b/drivers/mtd/nand/omap2.c
-@@ -176,6 +176,7 @@ struct omap_nand_info {
- 	int				gpmc_cs;
- 	unsigned long			phys_base;
- 	unsigned long			mem_size;
-+	enum omap_ecc			ecc_opt;
- 	struct completion		comp;
- 	struct dma_chan			*dma;
- 	int				gpmc_irq_fifo;
-@@ -1307,219 +1308,118 @@ static int omap3_calculate_ecc_bch(struct mtd_info *mtd, const u_char *dat,
+@@ -151,7 +151,9 @@ static u_char bch8_vector[] = {0xf3, 0xdb, 0x14, 0x16, 0x8b, 0xd2, 0xbe, 0xcc,
+ 	0xac, 0x6b, 0xff, 0x99, 0x7b};
+ static u_char bch4_vector[] = {0x00, 0x6b, 0x31, 0xdd, 0x41, 0xbc, 0x10};
+ #endif
+-
++static u8  bch4_polynomial[] = {0x28, 0x13, 0xcc, 0x39, 0x96, 0xac, 0x7f};
++static u8  bch8_polynomial[] = {0xef, 0x51, 0x2e, 0x09, 0xed, 0x93, 0x9a, 0xc2,
++				0x97, 0x79, 0xe5, 0x24, 0xb5};
+ /* oob info generated runtime depending on ecc algorithm and layout selected */
+ static struct nand_ecclayout omap_oobinfo;
+ /* Define some generic bad / good block scan pattern which are used
+@@ -950,9 +952,11 @@ static int omap_calculate_ecc(struct mtd_info *mtd, const u_char *dat,
+ 	u32 val;
+ 
+ 	val = readl(info->reg.gpmc_ecc_config);
+-	if (((val >> ECC_CONFIG_CS_SHIFT)  & ~CS_MASK) != info->gpmc_cs)
++	if (((val >> 1) & 0x07) != info->gpmc_cs) {
++		pr_err("%s: invalid ECC configuration for chip-select=%d",
++				DRIVER_NAME, info->gpmc_cs);
+ 		return -EINVAL;
+-
++	}
+ 	/* read ecc result */
+ 	val = readl(info->reg.gpmc_ecc1_result);
+ 	*ecc_code++ = val;          /* P128e, ..., P1e */
+@@ -1141,172 +1145,109 @@ static void omap3_enable_hwecc_bch(struct mtd_info *mtd, int mode)
+ 	writel(ECCCLEAR | ECC1, info->reg.gpmc_ecc_control);
  }
  
+-#ifdef CONFIG_MTD_NAND_ECC_BCH
  /**
-- * erased_sector_bitflips - count bit flips
-- * @data:	data sector buffer
-- * @oob:	oob buffer
-- * @info:	omap_nand_info
-- *
-- * Check the bit flips in erased page falls below correctable level.
-- * If falls below, report the page as erased with correctable bit
-- * flip, else report as uncorrectable page.
+- * omap3_calculate_ecc_bch4 - Generate 7 bytes of ECC bytes
+- * @mtd: MTD device structure
+- * @dat: The pointer to data on which ecc is computed
+- * @ecc_code: The ecc_code buffer
 - */
--static int erased_sector_bitflips(u_char *data, u_char *oob,
--		struct omap_nand_info *info)
+-static int omap3_calculate_ecc_bch4(struct mtd_info *mtd, const u_char *dat,
+-				    u_char *ecc_code)
 -{
--	int flip_bits = 0, i;
+-	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
+-						   mtd);
+-	unsigned long nsectors, val1, val2;
+-	int i;
 -
--	for (i = 0; i < info->nand.ecc.size; i++) {
--		flip_bits += hweight8(~data[i]);
--		if (flip_bits > info->nand.ecc.strength)
--			return 0;
+-	nsectors = ((readl(info->reg.gpmc_ecc_config) >> 4) & 0x7) + 1;
+-
+-	for (i = 0; i < nsectors; i++) {
+-
+-		/* Read hw-computed remainder */
+-		val1 = readl(info->reg.gpmc_bch_result0[i]);
+-		val2 = readl(info->reg.gpmc_bch_result1[i]);
+-
+-		/*
+-		 * Add constant polynomial to remainder, in order to get an ecc
+-		 * sequence of 0xFFs for a buffer filled with 0xFFs; and
+-		 * left-justify the resulting polynomial.
+-		 */
+-		*ecc_code++ = 0x28 ^ ((val2 >> 12) & 0xFF);
+-		*ecc_code++ = 0x13 ^ ((val2 >>  4) & 0xFF);
+-		*ecc_code++ = 0xcc ^ (((val2 & 0xF) << 4)|((val1 >> 28) & 0xF));
+-		*ecc_code++ = 0x39 ^ ((val1 >> 20) & 0xFF);
+-		*ecc_code++ = 0x96 ^ ((val1 >> 12) & 0xFF);
+-		*ecc_code++ = 0xac ^ ((val1 >> 4) & 0xFF);
+-		*ecc_code++ = 0x7f ^ ((val1 & 0xF) << 4);
 -	}
 -
--	for (i = 0; i < info->nand.ecc.bytes - 1; i++) {
--		flip_bits += hweight8(~oob[i]);
--		if (flip_bits > info->nand.ecc.strength)
--			return 0;
--	}
--
--	/*
--	 * Bit flips falls in correctable level.
--	 * Fill data area with 0xFF
--	 */
--	if (flip_bits) {
--		memset(data, 0xFF, info->nand.ecc.size);
--		memset(oob, 0xFF, info->nand.ecc.bytes);
--	}
--
--	return flip_bits;
+-	return 0;
 -}
 -
 -/**
-  * omap_elm_correct_data - corrects page data area in case error reported
-  * @mtd:	MTD device structure
-  * @data:	page data
-  * @read_ecc:	ecc read from nand flash
-- * @calc_ecc:	ecc read from HW ECC registers
-- *
-- * Calculated ecc vector reported as zero in case of non-error pages.
-- * In case of error/erased pages non-zero error vector is reported.
-- * In case of non-zero ecc vector, check read_ecc at fixed offset
-- * (x = 13/7 in case of BCH8/4 == 0) to find page programmed or not.
-- * To handle bit flips in this data, count the number of 0's in
-- * read_ecc[x] and check if it greater than 4. If it is less, it is
-- * programmed page, else erased page.
-- *
-- * 1. If page is erased, check with standard ecc vector (ecc vector
-- * for erased page to find any bit flip). If check fails, bit flip
-- * is present in erased page. Count the bit flips in erased page and
-- * if it falls under correctable level, report page with 0xFF and
-- * update the correctable bit information.
-- * 2. If error is reported on programmed page, update elm error
-- * vector and correct the page with ELM error correction routine.
-- *
-+ * @calc_ecc:	ecc calculated after reading Data and OOB regions from flash
-+ * As calc_ecc is calculated over both main & oob, so calc_ecc would be
-+ * non-zero only in following cases:
-+ * - bit-flips in data or oob region
-+ * - erase page, where no ECC is written in OOB area
-+ *   However, erased_pages can be differentiated from corrupted pages
-+ *   by comparing the calculated ECC with pre-defined syndrome ECC_of_ALL(0xFF)
-+ *   Bit-flips in erased-pages would also be caught by comparing, calc_ecc
-+ *   with ECC_of_ALL(0xFF)
-  */
- static int omap_elm_correct_data(struct mtd_info *mtd, u_char *data,
- 				u_char *read_ecc, u_char *calc_ecc)
- {
- 	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
- 			mtd);
--	int eccsteps = info->nand.ecc.steps;
--	int i , j, stat = 0;
--	int eccsize, eccflag, ecc_vector_size;
-+	enum omap_ecc ecc_opt = info->ecc_opt;
-+	struct nand_chip *chip = mtd->priv;
-+	int eccsteps = chip->ecc.steps;
-+	int eccsize  = chip->ecc.size;
-+	int eccbytes = chip->ecc.bytes;
-+	int i , j, stat = 0, ret = 0, flag_read_ecc;
- 	struct elm_errorvec err_vec[ERROR_VECTOR_MAX];
--	u_char *ecc_vec = calc_ecc;
--	u_char *spare_ecc = read_ecc;
--	u_char *erased_ecc_vec;
--	enum bch_ecc type;
-+	u_char *ecc;
- 	bool is_error_reported = false;
-+	u32 bit_pos, byte_pos, error_max, pos;
- 
- 	/* Initialize elm error vector to zero */
- 	memset(err_vec, 0, sizeof(err_vec));
- 
--	if (info->nand.ecc.strength == BCH8_MAX_ERROR) {
--		type = BCH8_ECC;
--		erased_ecc_vec = bch8_vector;
--	} else {
--		type = BCH4_ECC;
--		erased_ecc_vec = bch4_vector;
--	}
+- * omap3_calculate_ecc_bch8 - Generate 13 bytes of ECC bytes
+- * @mtd: MTD device structure
+- * @dat: The pointer to data on which ecc is computed
+- * @ecc_code: The ecc_code buffer
+- */
+-static int omap3_calculate_ecc_bch8(struct mtd_info *mtd, const u_char *dat,
+-				    u_char *ecc_code)
+-{
+-	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
+-						   mtd);
+-	unsigned long nsectors, val1, val2, val3, val4;
+-	int i;
 -
--	ecc_vector_size = info->nand.ecc.bytes;
+-	nsectors = ((readl(info->reg.gpmc_ecc_config) >> 4) & 0x7) + 1;
 -
--	/*
--	 * Remove extra byte padding for BCH8 RBL
--	 * compatibility and erased page handling
--	 */
--	eccsize = ecc_vector_size - 1;
+-	for (i = 0; i < nsectors; i++) {
 -
- 	for (i = 0; i < eccsteps ; i++) {
--		eccflag = 0;	/* initialize eccflag */
+-		/* Read hw-computed remainder */
+-		val1 = readl(info->reg.gpmc_bch_result0[i]);
+-		val2 = readl(info->reg.gpmc_bch_result1[i]);
+-		val3 = readl(info->reg.gpmc_bch_result2[i]);
+-		val4 = readl(info->reg.gpmc_bch_result3[i]);
 -
 -		/*
--		 * Check any error reported,
--		 * In case of error, non zero ecc reported.
+-		 * Add constant polynomial to remainder, in order to get an ecc
+-		 * sequence of 0xFFs for a buffer filled with 0xFFs.
 -		 */
+-		*ecc_code++ = 0xef ^ (val4 & 0xFF);
+-		*ecc_code++ = 0x51 ^ ((val3 >> 24) & 0xFF);
+-		*ecc_code++ = 0x2e ^ ((val3 >> 16) & 0xFF);
+-		*ecc_code++ = 0x09 ^ ((val3 >> 8) & 0xFF);
+-		*ecc_code++ = 0xed ^ (val3 & 0xFF);
+-		*ecc_code++ = 0x93 ^ ((val2 >> 24) & 0xFF);
+-		*ecc_code++ = 0x9a ^ ((val2 >> 16) & 0xFF);
+-		*ecc_code++ = 0xc2 ^ ((val2 >> 8) & 0xFF);
+-		*ecc_code++ = 0x97 ^ (val2 & 0xFF);
+-		*ecc_code++ = 0x79 ^ ((val1 >> 24) & 0xFF);
+-		*ecc_code++ = 0xe5 ^ ((val1 >> 16) & 0xFF);
+-		*ecc_code++ = 0x24 ^ ((val1 >> 8) & 0xFF);
+-		*ecc_code++ = 0xb5 ^ (val1 & 0xFF);
+-	}
 -
--		for (j = 0; (j < eccsize); j++) {
--			if (calc_ecc[j] != 0) {
--				eccflag = 1; /* non zero ecc, error present */
-+		flag_read_ecc = 0;
-+		ecc = calc_ecc + (i * eccbytes);
-+		/* check calc_ecc */
-+		for (j = 0; j < eccbytes; j++) {
-+			if (*(ecc + j) != 0x00) {
-+				flag_read_ecc = 1;
- 				break;
- 			}
+-	return 0;
+-}
+-
+-#endif /* CONFIG_MTD_NAND_ECC_BCH */
+-
+-
+-#ifdef CONFIG_MTD_NAND_OMAP_BCH
+-/**
+- * omap3_calculate_ecc_bch - Generate bytes of ECC bytes
++ * omap_calculate_ecc_bch - Generate bytes of ECC bytes
+  * @mtd:	MTD device structure
+  * @dat:	The pointer to data on which ecc is computed
+  * @ecc_code:	The ecc_code buffer
+  *
+  * Support calculating of BCH4/8 ecc vectors for the page
+  */
+-static int omap3_calculate_ecc_bch(struct mtd_info *mtd, const u_char *dat,
+-				    u_char *ecc_code)
++static int omap_calculate_ecc_bch(struct mtd_info *mtd, const u_char *dat,
++				    u_char *ecc_calc)
+ {
+ 	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
+ 						   mtd);
+-	unsigned long nsectors, bch_val1, bch_val2, bch_val3, bch_val4;
+-	int i, eccbchtsel;
++	struct nand_chip *chip = mtd->priv;
++	enum omap_ecc ecc_opt = info->ecc_opt;
++	struct gpmc_nand_regs	*gpmc_regs = &info->reg;
++	u32 eccbytes = chip->ecc.bytes;
++	u_char *ecc_ptr;
++	u32 nsectors;
++	int i, val;
+ 
+-	nsectors = ((readl(info->reg.gpmc_ecc_config) >> 4) & 0x7) + 1;
+-	/*
+-	 * find BCH scheme used
+-	 * 0 -> BCH4
+-	 * 1 -> BCH8
+-	 */
+-	eccbchtsel = ((readl(info->reg.gpmc_ecc_config) >> 12) & 0x3);
++	val = readl(info->reg.gpmc_ecc_config);
++	if (((val >> 1) & 0x07) != info->gpmc_cs) {
++		pr_err("%s: invalid ECC configuration for chip-select=%d",
++				DRIVER_NAME, info->gpmc_cs);
++		return -EINVAL;
++	}
++	nsectors = ((readl(gpmc_regs->gpmc_ecc_config) >> 4) & 0x7) + 1;
+ 
+ 	for (i = 0; i < nsectors; i++) {
+-
+-		/* Read hw-computed remainder */
+-		bch_val1 = readl(info->reg.gpmc_bch_result0[i]);
+-		bch_val2 = readl(info->reg.gpmc_bch_result1[i]);
+-		if (eccbchtsel) {
+-			bch_val3 = readl(info->reg.gpmc_bch_result2[i]);
+-			bch_val4 = readl(info->reg.gpmc_bch_result3[i]);
++		ecc_ptr = ecc_calc;
++		switch (ecc_opt) {
++		case OMAP_ECC_HAMMING_CODE_DEFAULT:
++		case OMAP_ECC_HAMMING_CODE_HW:
++		case OMAP_ECC_HAMMING_CODE_HW_ROMCODE:
++			return -EINVAL;
++		case OMAP_ECC_BCH4_CODE_HW_DETECTION_SW:
++		case OMAP_ECC_BCH4_CODE_HW:
++			val = readl(gpmc_regs->gpmc_bch_result1[i]);
++			*(ecc_ptr++) = ((val >> 12) & 0xFF);
++			*(ecc_ptr++) = ((val >>  4) & 0xFF);
++			*(ecc_ptr)   = ((val >>  0) << 4) & 0xF0;
++			val = readl(gpmc_regs->gpmc_bch_result0[i]);
++			*(ecc_ptr)   = ((val >> 28) & 0x0F) | *(ecc_ptr);
++			ecc_ptr++;
++			*(ecc_ptr++) = ((val >> 20) & 0xFF);
++			*(ecc_ptr++) = ((val >> 12) & 0xFF);
++			*(ecc_ptr++) = ((val >>  4) & 0xFF);
++			*(ecc_ptr++) = ((val >>  0) << 4) & 0xF0;
++			break;
++		case OMAP_ECC_BCH8_CODE_HW_DETECTION_SW:
++		case OMAP_ECC_BCH8_CODE_HW:
++			val = readl(gpmc_regs->gpmc_bch_result3[i]);
++			*(ecc_ptr++) = ((val >>  0) & 0xFF);
++			val = readl(gpmc_regs->gpmc_bch_result2[i]);
++			*(ecc_ptr++) = ((val >> 24) & 0xFF);
++			*(ecc_ptr++) = ((val >> 16) & 0xFF);
++			*(ecc_ptr++) = ((val >>  8) & 0xFF);
++			*(ecc_ptr++) = ((val >>  0) & 0xFF);
++			val = readl(gpmc_regs->gpmc_bch_result1[i]);
++			*(ecc_ptr++) = ((val >> 24) & 0xFF);
++			*(ecc_ptr++) = ((val >> 16) & 0xFF);
++			*(ecc_ptr++) = ((val >>  8) & 0xFF);
++			*(ecc_ptr++) = ((val >>  0) & 0xFF);
++			val = readl(gpmc_regs->gpmc_bch_result0[i]);
++			*(ecc_ptr++) = ((val >> 24) & 0xFF);
++			*(ecc_ptr++) = ((val >> 16) & 0xFF);
++			*(ecc_ptr++) = ((val >>  8) & 0xFF);
++			*(ecc_ptr++) = ((val >>  0) & 0xFF);
++			break;
++		default:
++			return -EINVAL;
  		}
 -
--		if (eccflag == 1) {
+-		if (eccbchtsel) {
+-			/* BCH8 ecc scheme */
+-			*ecc_code++ = (bch_val4 & 0xFF);
+-			*ecc_code++ = ((bch_val3 >> 24) & 0xFF);
+-			*ecc_code++ = ((bch_val3 >> 16) & 0xFF);
+-			*ecc_code++ = ((bch_val3 >> 8) & 0xFF);
+-			*ecc_code++ = (bch_val3 & 0xFF);
+-			*ecc_code++ = ((bch_val2 >> 24) & 0xFF);
+-			*ecc_code++ = ((bch_val2 >> 16) & 0xFF);
+-			*ecc_code++ = ((bch_val2 >> 8) & 0xFF);
+-			*ecc_code++ = (bch_val2 & 0xFF);
+-			*ecc_code++ = ((bch_val1 >> 24) & 0xFF);
+-			*ecc_code++ = ((bch_val1 >> 16) & 0xFF);
+-			*ecc_code++ = ((bch_val1 >> 8) & 0xFF);
+-			*ecc_code++ = (bch_val1 & 0xFF);
 -			/*
--			 * Set threshold to minimum of 4, half of ecc.strength/2
--			 * to allow max bit flip in byte to 4
+-			 * Setting 14th byte to zero to handle
+-			 * erased page & maintain compatibility
+-			 * with RBL
 -			 */
--			unsigned int threshold = min_t(unsigned int, 4,
--					info->nand.ecc.strength / 2);
--
+-			*ecc_code++ = 0x0;
+-		} else {
+-			/* BCH4 ecc scheme */
+-			*ecc_code++ = ((bch_val2 >> 12) & 0xFF);
+-			*ecc_code++ = ((bch_val2 >> 4) & 0xFF);
+-			*ecc_code++ = ((bch_val2 & 0xF) << 4) |
+-				((bch_val1 >> 28) & 0xF);
+-			*ecc_code++ = ((bch_val1 >> 20) & 0xFF);
+-			*ecc_code++ = ((bch_val1 >> 12) & 0xFF);
+-			*ecc_code++ = ((bch_val1 >> 4) & 0xFF);
+-			*ecc_code++ = ((bch_val1 & 0xF) << 4);
 -			/*
--			 * Check data area is programmed by counting
--			 * number of 0's at fixed offset in spare area.
--			 * Checking count of 0's against threshold.
--			 * In case programmed page expects at least threshold
--			 * zeros in byte.
--			 * If zeros are less than threshold for programmed page/
--			 * zeros are more than threshold erased page, either
--			 * case page reported as uncorrectable.
+-			 * Setting 8th byte to zero to handle
+-			 * erased page
 -			 */
--			if (hweight8(~read_ecc[eccsize]) >= threshold) {
--				/*
--				 * Update elm error vector as
--				 * data area is programmed
--				 */
--				err_vec[i].error_reported = true;
--				is_error_reported = true;
--			} else {
--				/* Error reported in erased page */
--				int bitflip_count;
--				u_char *buf = &data[info->nand.ecc.size * i];
--
--				if (memcmp(calc_ecc, erased_ecc_vec, eccsize)) {
--					bitflip_count = erased_sector_bitflips(
--							buf, read_ecc, info);
--
--					if (bitflip_count)
--						stat += bitflip_count;
--					else
--						return -EINVAL;
--				}
-+		/* check if its a erased-page */
-+		if (flag_read_ecc) {
-+			switch (ecc_opt) {
-+			case OMAP_ECC_BCH8_CODE_HW:
-+				if (memcmp(ecc, bch8_vector, eccbytes))
-+					err_vec[i].error_reported = true;
-+				break;
-+			case OMAP_ECC_BCH4_CODE_HW:
-+				if (memcmp(ecc, bch4_vector, eccbytes))
-+					err_vec[i].error_reported = true;
-+				break;
-+			default:
-+				pr_err("%s: invalid configuration",
-+								 DRIVER_NAME);
-+				return -EINVAL;
- 			}
+-			*ecc_code++ = 0x0;
++		/* ECC scheme specific syndrome customizations */
++		switch (ecc_opt) {
++		case OMAP_ECC_HAMMING_CODE_DEFAULT:
++		case OMAP_ECC_HAMMING_CODE_HW:
++		case OMAP_ECC_HAMMING_CODE_HW_ROMCODE:
++			return -EINVAL;
++		case OMAP_ECC_BCH4_CODE_HW_DETECTION_SW:
++			for (i = 0; i < eccbytes; i++)
++				*(ecc_calc + i) = *(ecc_calc + i) ^
++							bch4_polynomial[i];
++			break;
++		case OMAP_ECC_BCH4_CODE_HW:
++			*(ecc_ptr++) = 0x00;
++			break;
++		case OMAP_ECC_BCH8_CODE_HW_DETECTION_SW:
++			for (i = 0; i < eccbytes; i++)
++				*(ecc_calc + i) = *(ecc_calc + i) ^
++							bch8_polynomial[i];
++			break;
++		case OMAP_ECC_BCH8_CODE_HW:
++			*(ecc_ptr++) = 0x00;
++			break;
  		}
--
--		/* Update the ecc vector */
--		calc_ecc += ecc_vector_size;
--		read_ecc += ecc_vector_size;
-+		/* page definitely has bit-flips */
-+		if (err_vec[i].error_reported)
-+			is_error_reported = true;
++		/* update pointer to next sector */
++		ecc_calc += eccbytes;
  	}
- 
--	/* Check if any error reported */
- 	if (!is_error_reported)
- 		return 0;
-+	/* detect bit-flips using ELM module */
-+	elm_decode_bch_error_page(info->elm_dev, calc_ecc, err_vec);
- 
--	/* Decode BCH error using ELM module */
--	elm_decode_bch_error_page(info->elm_dev, ecc_vec, err_vec);
 -
-+	/* correct bit-flip */
- 	for (i = 0; i < eccsteps; i++) {
--		if (err_vec[i].error_reported) {
-+		if (err_vec[i].error_uncorrectable) {
-+			ret = -EBADMSG;
-+		} else if (err_vec[i].error_reported) {
- 			for (j = 0; j < err_vec[i].error_count; j++) {
--				u32 bit_pos, byte_pos, error_max, pos;
--
--				if (type == BCH8_ECC)
--					error_max = BCH8_ECC_MAX;
--				else
--					error_max = BCH4_ECC_MAX;
--
--				if (info->nand.ecc.strength == BCH8_MAX_ERROR)
--					pos = err_vec[i].error_loc[j];
--				else
-+				switch (ecc_opt) {
-+				case OMAP_ECC_BCH4_CODE_HW:
-+					error_max = SECTOR_BYTES +
-+							(eccbytes - 1);
- 					/* Add 4 to take care 4 bit padding */
- 					pos = err_vec[i].error_loc[j] +
--						BCH4_BIT_PAD;
--
--				/* Calculate bit position of error */
-+							BCH4_BIT_PAD;
-+					break;
-+				case OMAP_ECC_BCH8_CODE_HW:
-+					error_max = SECTOR_BYTES +
-+							(eccbytes - 1);
-+					pos = err_vec[i].error_loc[j];
-+					break;
-+				default:
-+					return -EINVAL;
-+				}
-+				/* Calculate bit & byte bit-flip position */
- 				bit_pos = pos % 8;
--
--				/* Calculate byte position of error */
--				byte_pos = (error_max - pos - 1) / 8;
--
--				if (pos < error_max) {
--					if (byte_pos < 512)
--						data[byte_pos] ^= 1 << bit_pos;
--					else
--						spare_ecc[byte_pos - 512] ^=
-+				byte_pos = error_max - (pos / 8) - 1;
-+				if (byte_pos < SECTOR_BYTES)
-+					data[byte_pos] ^= 1 << bit_pos;
-+				else if (byte_pos < error_max)
-+					read_ecc[byte_pos - SECTOR_BYTES] ^=
- 							1 << bit_pos;
--				}
--				/* else, not interested to correct ecc */
-+				else
-+					ret = -EBADMSG;
- 			}
- 		}
--
- 		/* Update number of correctable errors */
- 		stat += err_vec[i].error_count;
--
- 		/* Update page data with sector size */
--		data += info->nand.ecc.size;
--		spare_ecc += ecc_vector_size;
-+		data	 += eccsize;
-+		read_ecc += eccbytes;
- 	}
- 
--	for (i = 0; i < eccsteps; i++)
--		/* Return error if uncorrectable error present */
--		if (err_vec[i].error_uncorrectable)
--			return -EINVAL;
--
--	return stat;
-+	return (ret < 0) ? ret : stat;
+ 	return 0;
  }
  
++#ifdef CONFIG_MTD_NAND_OMAP_BCH
  /**
-@@ -1677,13 +1577,14 @@ static int omap_nand_probe(struct platform_device *pdev)
- 	info->pdev		= pdev;
- 	info->gpmc_cs		= pdata->cs;
- 	info->reg		= pdata->reg;
-+	info->ecc_opt		= pdata->ecc_opt;
- 
- 	info->nand.options	= NAND_BUSWIDTH_AUTO;
- 	info->nand.options	|= NAND_SKIP_BBTSCAN;
-+	info->nand.ecc.priv	= NULL;
- #ifdef CONFIG_MTD_NAND_OMAP_BCH
- 	info->of_node		= pdata->of_node;
- #endif
--	info->nand.ecc.priv			= NULL;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (res == NULL) {
+  * omap_elm_correct_data - corrects page data area in case error reported
+  * @mtd:	MTD device structure
+@@ -1790,7 +1731,7 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 		info->nand.ecc.strength		= 4;
+ 		info->nand.ecc.hwctl		= omap3_enable_hwecc_bch;
+ 		info->nand.ecc.correct		= nand_bch_correct_data;
+-		info->nand.ecc.calculate	= omap3_calculate_ecc_bch4;
++		info->nand.ecc.calculate	= omap_calculate_ecc_bch;
+ 		/* software bch library is used for locating errors */
+ 		info->nand.ecc.priv		= nand_bch_init(mtd,
+ 						info->nand.ecc.size,
+@@ -1813,7 +1754,7 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 		info->nand.ecc.strength		= 4;
+ 		info->nand.ecc.hwctl		= omap3_enable_hwecc_bch;
+ 		info->nand.ecc.correct		= omap_elm_correct_data;
+-		info->nand.ecc.calculate	= omap3_calculate_ecc_bch;
++		info->nand.ecc.calculate	= omap_calculate_ecc_bch;
+ 		info->nand.ecc.read_page	= omap_read_page_bch;
+ 		info->nand.ecc.write_page	= omap_write_page_bch;
+ 		/* ELM H/W engine is used for locating errors */
+@@ -1840,7 +1781,7 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 		info->nand.ecc.strength		= 8;
+ 		info->nand.ecc.hwctl		= omap3_enable_hwecc_bch;
+ 		info->nand.ecc.correct		= nand_bch_correct_data;
+-		info->nand.ecc.calculate	= omap3_calculate_ecc_bch8;
++		info->nand.ecc.calculate	= omap_calculate_ecc_bch;
+ 		/* software bch library is used for locating errors */
+ 		info->nand.ecc.priv		= nand_bch_init(mtd,
+ 						info->nand.ecc.size,
+@@ -1863,7 +1804,7 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 		info->nand.ecc.strength		= 8;
+ 		info->nand.ecc.hwctl		= omap3_enable_hwecc_bch;
+ 		info->nand.ecc.correct		= omap_elm_correct_data;
+-		info->nand.ecc.calculate	= omap3_calculate_ecc_bch;
++		info->nand.ecc.calculate	= omap_calculate_ecc_bch;
+ 		info->nand.ecc.read_page	= omap_read_page_bch;
+ 		info->nand.ecc.write_page	= omap_write_page_bch;
+ 		/* ELM H/W engine is used for locating errors */
 -- 
 1.8.1
 
