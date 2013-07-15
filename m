@@ -1,109 +1,123 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] [RFC] usb: dwc3: removal of assumption that usb3 phy
- always present
-Date: Mon, 15 Jul 2013 22:17:24 +0300
-Message-ID: <20130715191724.GA4063@arwen.pp.htv.fi>
-References: <1372919202-26755-1-git-send-email-ruchika@ti.com>
- <51D6D999.5020505@ti.com>
-Reply-To: <balbi@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: Boot hang regression 3.10.0-rc4 -> 3.10.0
+Date: Mon, 15 Jul 2013 14:23:52 -0500
+Message-ID: <51E44C48.3090905@ti.com>
+References: <B5906170F1614E41A8A28DE3B8D121433EE94520@DBDE04.ent.ti.com> <20130708112553.GU5523@atomide.com> <51DAB394.3050104@ti.com> <20130708131033.GA5523@atomide.com> <51DABC81.3080409@ti.com> <20130708133512.GD31221@arwen.pp.htv.fi> <87mwpuakod.fsf@linaro.org> <20130710142633.GV5523@atomide.com> <20130710160704.GH18966@arwen.pp.htv.fi> <20130710161158.GA19716@arwen.pp.htv.fi> <20130711063209.GZ5523@atomide.com> <51DE8215.5060306@ti.com> <51DF508F.3050703@ti.com> <51E39A3F.6080106@ti.com> <51E3C85D.2010008@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gBBFr7Ir9EOA20Yy"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35966 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59458 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755124Ab3GOTRv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Jul 2013 15:17:51 -0400
-Content-Disposition: inline
-In-Reply-To: <51D6D999.5020505@ti.com>
+	id S1753716Ab3GOTaI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Jul 2013 15:30:08 -0400
+In-Reply-To: <51E3C85D.2010008@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ruchika Kharwar <ruchika@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@linaro.org>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Sourav Poddar <sourav.poddar@ti.com>, Paul Walmsley <paul@pwsan.com>
 
---gBBFr7Ir9EOA20Yy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 07/15/2013 05:01 AM, Rajendra Nayak wrote:
+> On Monday 15 July 2013 12:14 PM, Rajendra Nayak wrote:
+>> On Friday 12 July 2013 06:10 AM, Suman Anna wrote:
+>>> On 07/11/2013 04:59 AM, Grygorii Strashko wrote:
+>>>> Hi,
+>>>>
+>>>> On 07/11/2013 09:32 AM, Tony Lindgren wrote:
+>>>>> * Felipe Balbi <balbi@ti.com> [130710 09:18]:
+>>>>>>
+>>>>>> On Wed, Jul 10, 2013 at 07:07:04PM +0300, Felipe Balbi wrote:
+>>>>>>> how about something like below ? It makes omap_device/hwmod and
+>>>>>>> pm_runtime agree on the initial state of the device and will prevent
+>>>>>>> ->runtime_resume() from being called on first pm_runtime_get*() done
+>>>>>>> during probe.
+>>>>>>>
+>>>>>>> This is similar to what PCI bus does (if you look at pci_pm_init()).
+>>>>>>>
+>>>>>>> commit 59108a500b4ab4b1a5102648a3360276dbf7df6f
+>>>>>>> Author: Felipe Balbi <balbi@ti.com>
+>>>>>>> Date:   Wed Jul 10 18:50:16 2013 +0300
+>>>>>>>
+>>>>>>>      arm: omap2plus: unidle devices which are about to probe
+>>>>>>>
+>>>>>>>      in order to make HWMOD and pm_runtime agree on the
+>>>>>>>      initial state of the device, we will unidle the device
+>>>>>>>      and call pm_runtime_set_active() to tell pm_runtime
+>>>>>>>      that the device is really active.
+>>>> Don't think that it's good idea (
+>>>> I've checked some driver's and think this patch will enable some devices
+>>>> unpredictably:
+>>>> - hwspinlock
+>>>> - mailbox
+>>>> - iommu
+>>>> - ipu
+>>>> All above devices need to be enabled on demand only (no
+>>>> pm_runtime_get*() calls in probe). More over, some of them have very
+>>>> specific enabling sequence - like ipu).
+>>>>
+>>>> May be Summan can say more on that.
+>>>
+>>> Indeed, this is a problem for any of the slave processor devices.
+>>> mailbox and iommu would be slaves to the remoteproc and the drivers have
+>>> a specific sequence of bringing up a processor. The current
+>>> hwmod/omap_device code is such that these devices will be left in reset
+>>> and the driver code use the omap_device_(de)assert_hardreset API
+>>> together with omap_device_enable code to bring up the devices. The
+>>> remoteproc driver also needs to assert the resets (there are other
+>>> problems associated with using omap_device_idle for remoteproc and
+>>> iommu) for bringing up the devices after a suspend sequence. hwspinlock
+>>> and mailbox may get away since they are in CORE domain, but definitely
+>>> an issue for iommu and remoteproc. I would think that this would also
+>>> affect other compute devices like IVAHD, ISS, SGX.
+>>
+>> Today, for these IPs I guess hwmod waits for the resets to be de-asserted, right?
 
-On Fri, Jul 05, 2013 at 09:35:05AM -0500, Ruchika Kharwar wrote:
->=20
-> On 07/04/2013 01:26 AM, Ruchika Kharwar wrote:
-> >DRA7XX has several USB OTG subsystems. USB_OTG_SS1 includes a USB1 and U=
-SB2
-> >phy. USB_OTG_SS2 includes only a USB2 phy.
-> >This patch allows the dwc3 probe to continue if a usb3_phy is not found.
-> The need for this will go away as soon as "of_get_maximum_speed" is
-> introduced. The speed can then be used to determine if a USB3 phy is
-> required or not for dra7xx as well.
+Yes, the omap_device_enable bails out if the reset lines are still
+asserted, and the driver code deals with the resets currently. This code
+essentially achieves the same as if a HWMOD_INIT_NO_RESET flag is
+added to the corresponding hwmods - we do not want the hwmod/omap_device
+code to enable the processor IPs and leave the enabling/device
+management to the driver.
 
-there is one problem with this approach (even my approach which I had
-cooked before).
+>>
+>>         /*
+>>          * If an IP block contains HW reset lines and all of them are
+>>          * asserted, we let integration code associated with that
+>>          * block handle the enable.  We've received very little
+>>          * information on what those driver authors need, and until
+>>          * detailed information is provided and the driver code is
+>>          * posted to the public lists, this is probably the best we
+>>          * can do.
+>>          */
+>>         if (_are_all_hardreset_lines_asserted(oh))
+>>                 return 0;
+>>
+>> What if this information is send back to omap_device() through a return value
+>> so omap_device() knows about this too, so it avoids marking the omap device as
+>> enabled? Wouldn't that fix the issue?
+> 
+> I meant something like this..
+> 
+> From 2fbea0dde0f72897089ef2e8e441b5e5bd6ea967 Mon Sep 17 00:00:00 2001
+> From: Rajendra Nayak <rnayak@ti.com>
+> Date: Mon, 15 Jul 2013 15:23:07 +0530
+> Subject: [PATCH] ARM: OMAP2+: Make omap_device aware of hwmod failing to
+>  enable/idle/shutdown the hwmods
+> 
+> For IP blocks (mainly processors) which have hard reset lines, hwmod avoids
+> enable/idle/shutdown operations as long as all the hard reset lines are
+> kept asserted. However it does not return an error back to the caller (in some
+> cases the omap_device layer) to communicate back the failure to operate on the
+> hwmod.
+> 
+> Fix this by making _enable()/_idle()/_shutdown() all return an error in such
+> cases, and also fix the omap_device layer to look at the return values coming
+> from hwmod operations before doing a omap_device level state transition.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
-I was testing OMAP5 today (finally got most pieces in mainline, so I
-could test something with little out of tree), and as it turns out, the
-USB3PHY DPLL is used to generate the PIPE3 clock and that clock is used
-to power some important part of the IP.
+Let me test this and get back to you if there are any issues.
 
-=46rom what I could grasp out of OMAP5 ES2.0 TRM and Synopsys databook, I
-believe OMAP5 decided to tie ram_clk to pipe3_clk (the PIP3 bus clock)
-and if we let USB3 PHY be optional on OMAP5, we might end up with broken
-DTS files which cause device not to work.
+regards
+Suman
 
-That aside, what caught my attention is how the problem exposes itself:
-
-	We end up in a situation where DWC3_DEPCMD_SETEPCONFIG never
-	completes although the previous DWC3_DEPCMD_DEPSTARTCFG
-	completes just fine.
-
-This happens early on, when we're trying to enable physical endpoint 0,
-then the driver bails out.
-
-I'm assuming that DWC3_DEPCMD_DEPSTARTCFG is very easy to process, maybe
-it just puts the internal FSM into a post-idle state which simply waits
-for the endpoint configuration to come through the registers while, in
-turn, DWC3_DEPCMD_DEPSTARTCFG is far more complex to process and needs
-other parts of the IP to be fully powered and clocked in order to
-complete.
-
-If my speculation is correct thus far, it also means that those blocks
-are somehow powered by pipe3_clk (or a derivation of it).
-
-It would be nice if SNPS could shed some light here, but I'll continue
-digging the docs, for now the feature of optional USB3PHY will be
-pending in a separate branch while I try to get all information related
-to this problem.
-
-The decision came after figuring out that if we don't
-usb_phy_init(dwc->usb3_phy), OMAP5 would never, ever work because the
-USB3 PHY DPLL is locked in ->init() callback of that driver in ordre to
-conserve power.
-
-cheers
-
---=20
-balbi
-
---gBBFr7Ir9EOA20Yy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR5ErEAAoJEIaOsuA1yqRE/goQAKNjhl4s0bXqYf2vuKlER2O/
-kXGIldX+e8UvrqoKff7s+lDSTyZP8BdKtcfOpIb/KpZ8/VDYI4mdg0V8LGaIOC5w
-pdoRpBPdTn0x4YMeTmVzywwHdYfzKiZUfyYEa8LuyfaochNBpjAM/bwIllvTLP8R
-LE4Tv2jryssC4P0gdLsH4vsOQU0jKXdhHECXiUV9PTKIg6H+35xIUvKKpgN9GTSb
-XFtagPtjCWlwd72XvAMXLwTrrgEIpgJQal8uBCf0KbTOaULdU/Fb2wLzJll5j92/
-dYUdEfnCknhu+16kleytDhYytjlYpvSk7BTyr3EpvLSDL2ebG/My0wk6ZrAGvxE8
-AfJWoO20ejSxrdbdieuiHm+1ZC6kV1pnDg4VoQnZN6+QYqTeaia0mQV17wz5Wh18
-/zq1k8qZbPuPl3H4rlPmqohGguwqavauPH8FXcwRYMPP+Woe++6Ntk2cOjogzH5a
-3vJ+3LthEInZlJr0W/WMkaveXoSp6un2P25l5LcDdp2Y+69YghV2c1vrqTcB8s9A
-vys6vRwgrbq4KerJ7CP1Q8rzkip5GBWb9YSVbv7Ulai2owDmHxi1kB4tshdrjwnT
-GHeDd8QV/4aM2uFnSs4FJ8DBALO6S9DNpIP15He5j2gEmeBMSlJbHC4kkOUpaPZJ
-XAzF1vbIyZUonGYQdyF1
-=iT1k
------END PGP SIGNATURE-----
-
---gBBFr7Ir9EOA20Yy--
