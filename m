@@ -1,72 +1,43 @@
-From: Stefan Roese <sr@denx.de>
-Subject: Re: [PATCH] ARM: OMAP3: Beagle: Fix USB Host on beagle xM Ax/Bx
-Date: Mon, 15 Jul 2013 10:24:17 +0200
-Message-ID: <51E3B1B1.3060202@denx.de>
-References: <1366024808-4691-1-git-send-email-rogerq@ti.com> <51DC09E7.1070302@denx.de> <51DC164B.5010608@ti.com> <51DC1B47.7070504@denx.de> <51DE87D3.5030600@ti.com> <51DEA7F1.1050902@denx.de> <51DEC2CE.70400@ti.com> <51DED076.3040000@denx.de> <51DEF0DE.4050607@denx.de> <51DFC92F.1050701@ti.com> <51DFDFD4.3040900@denx.de> <51E3AFF4.7060607@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 09/12] ARM: DRA7: hwmod: Create initial DRA7XX SoC data
+Date: Mon, 15 Jul 2013 14:52:23 +0530
+Message-ID: <51E3BF4F.2010803@ti.com>
+References: <1373355139-12487-1-git-send-email-rnayak@ti.com> <1373355139-12487-10-git-send-email-rnayak@ti.com> <20130709083152.GC5523@atomide.com> <51DBE2A2.2040403@ti.com> <20130709113657.GF5523@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mo-p05-ob.rzone.de ([81.169.146.181]:34901 "EHLO
-	mo-p05-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754133Ab3GOIY6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jul 2013 04:24:58 -0400
-In-Reply-To: <51E3AFF4.7060607@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:36483 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754459Ab3GOJWw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Jul 2013 05:22:52 -0400
+In-Reply-To: <20130709113657.GF5523@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.com, r.sricharan@ti.com, ambresh@ti.com, Tero Kristo <t-kristo@ti.com>
 
-On 07/15/2013 10:16 AM, Roger Quadros wrote:
->>> I can only test on beagle-xm (which is also rev. C2) with integrated SMSC ethernet chip
->>> as I don't have an external USB-ethernet adapter.
->>
->> Too bad. This difference in boards makes the tests a bit less
->> meaningful. Is there really no USB-ethernet adapter somewhere in your
->> department (perhaps a non-SMSC95xx might serve as well?)? I might
->> send/order you one if necessary. ;)
-> 
-> Thanks for the offer :). I'll just get one for myself by today/tomorrow.
-> The one available here uses this driver "drivers/net/usb/asix.c"
+On Tuesday 09 July 2013 05:06 PM, Tony Lindgren wrote:
+>>>> +/* dma_system */
+>>>> > >> +static struct omap_hwmod_irq_info dra7xx_dma_system_irqs[] = {
+>>>> > >> +	{ .name = "0", .irq = 12 + DRA7XX_IRQ_GIC_START },
+>>>> > >> +	{ .name = "1", .irq = 13 + DRA7XX_IRQ_GIC_START },
+>>>> > >> +	{ .name = "2", .irq = 14 + DRA7XX_IRQ_GIC_START },
+>>>> > >> +	{ .name = "3", .irq = 15 + DRA7XX_IRQ_GIC_START },
+>>>> > >> +	{ .irq = -1 }
+>>>> > >> +};
+>>> > > 
+>>> > > I think these should no longer be needed?
+>> > 
+>> > These are needed only for dma because mach-omap2/dma.c still creates
+>> > devices from hmwod and which are used by plat/dma.c.
+>> > These irqs for sdma exist even in the cleaned up omap4 and omap5 hmwod files.
+>> > I'll try and get rid of that dependency of plat/dma on mach/dma to create devices.
+> OK great.
 
-Great.
+Looks like this wouldn't be possible because drivers/dma/omap-dma.c is the one which is
+probing the sdma device created using device tree. So we can't have plat-omap/dma.c probe the
+same device.
 
->>
->>> The above commit doesn't work well for beagle-xm,
->>
->> Why is this? What does happen? Does U-Boot not boot up to the prompt?
->> Please send me a log.
-> 
-> The last time it had failed I remember seeing a lot of IO pad configuration errors.
-> But I'm no longer able to reproduce that problem. Maybe it was just a messed up
-> build. In case I observe it again I'll let you know.
+>  
 
-It might be related to a problem with the gd (global-data) pointer being
-overwritten in den SPL. This is still not finally resolved the upcoming
-release:
-
-http://patchwork.ozlabs.org/patch/251293/
-
->>
->>> so my u-boot is on tag v2013.04
->>> and you don't need that additional patch.
->>>
->>> Can you please retest on it? Thanks.
->>
->> Done, please see below.
->>
->>> You will need to set "usbethaddr" before starting USB else SMSC will not work.
->>> e.g.
->>> 	setenv usbethaddr A6:66:4D:B0:69:04
->>
->> I don't have a beagle-xm, only my beable. And my U-Boot network setup is
->> already working, thanks.
-> 
-> Right. you won't need that for beagle. It was only for beagle-xm or panda with on board
-> usb-ethernet.
-
-I'm using the (external) USB-ethernet adapter on the beagle in U-Boot as
-well. To tftp the kernel/dtb.
-
-Thanks,
-Stefan
