@@ -1,90 +1,63 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/4] arm: omap5: hwmod: add missing ocp2scp hwmod data
-Date: Mon, 15 Jul 2013 18:46:03 +0300
-Message-ID: <20130715154603.GC32035@arwen.pp.htv.fi>
-References: <1373902423-28654-1-git-send-email-balbi@ti.com>
- <1373902423-28654-3-git-send-email-balbi@ti.com>
- <51E418A4.9000109@ti.com>
-Reply-To: <balbi@ti.com>
+From: Mark Jackson <mpfj-list@newflow.co.uk>
+Subject: Re: [PATCH] remove vlan tags in CPSW dual emac mode
+Date: Mon, 15 Jul 2013 16:50:12 +0100
+Message-ID: <51E41A34.4030000@newflow.co.uk>
+References: <4699400.vD3TdgH1nR@localhost> <5176C4FE.4080305@ti.com> <51E00B2F.6050406@newflow.co.uk> <51E04C89.8030202@ti.com> <51E0582D.4090306@newflow.co.uk> <51E3EEE7.9030508@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VywGB/WGlW4DM4P8"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52659 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932092Ab3GOPqw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jul 2013 11:46:52 -0400
-Content-Disposition: inline
-In-Reply-To: <51E418A4.9000109@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <51E3EEE7.9030508@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>, Markus Brunner <systemprogrammierung.brunner@gmail.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <benoit.cousson@linaro.org>
 
---VywGB/WGlW4DM4P8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 15/07/13 13:45, Mugunthan V N wrote:
+> On 7/13/2013 12:55 AM, Mark Jackson wrote:
+>> On 12/07/13 19:35, Mugunthan V N wrote:
+>>> On 7/12/2013 7:27 PM, Mark Jackson wrote:
+>> [snip]
+>>
+>>>> Just to update this (old) thread ...
+>>>>
+>>>> I can still confirm that *without* the above patch, I am *unable* to use both network
+>>>> ports on our AM335x board.
+>>>>
+>> [snip]
+>>
+>>>> So I'm not sure what's wrong, but it's *definitely* not correct.
+>>>>
+>>>>
+>>> I am sure that current code in mainline works for Dual EMAC. I can test it
+>>> again and share the images with you if are interested. But had tested with DHCP
+>>> on both the interfaces.
+>> Hmmm ... well it's not working for me.  What hardware are you testing it on ?
+>>
+>> I tried DHCP to start with, and switched to static IP when that failed.
+>> Then I recalled this patch and re-applied it ... hey presto !!
+>>
+>> Markus, are you still using this patch ?
+>>
+> Today I have tested the Dual EMAC on my am335x-evmsk and its working fine with
+> net/master branch.
+> I had 3 patches additional to net/master in which two for basic boot of EVMsk
+> and one for enabling Dual EMAC. I had pushed the branch in the below repo
+> repo:
+> git://git.ti.com/~mugunthanvnm/ti-linux-kernel/mugunth-connectivity-linux-feature-tree.git
+> branch: dual-emac
 
-On Mon, Jul 15, 2013 at 09:13:32PM +0530, Kishon Vijay Abraham I wrote:
-> Hi,
->=20
-> On Monday 15 July 2013 09:03 PM, Felipe Balbi wrote:
-> > From: Benoit Cousson <benoit.cousson@linaro.org>
-> >=20
-> > without that hwmod data, USB3 will not in OMAP5 boards.
-> >=20
-> > While at that, also fix DTS data to pass reg property,
-> > otherwise driver won't probe.
-> >=20
-> > Signed-off-by: Benoit Cousson <benoit.cousson@linaro.org>
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> >  arch/arm/boot/dts/omap5.dtsi               |  3 +-
-> >  arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 45 ++++++++++++++++++++++=
-++++++++
-> >  2 files changed, 47 insertions(+), 1 deletion(-)
-> >=20
-> > diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> > index 5c99f19..4e41409 100644
-> > --- a/arch/arm/boot/dts/omap5.dtsi
-> > +++ b/arch/arm/boot/dts/omap5.dtsi
-> > @@ -652,10 +652,11 @@
-> >  			};
-> >  		};
-> > =20
-> > -		ocp2scp {
-> > +		ocp2scp@4a080000 {
->=20
-> While at that, can we also name it ocp2scp1 since we have 3 instances of
-> ocp2scp and it'll conflict when we want to add it for SATA and PCIE.
+Okay ... I can't test that at the moment as I can only boot from MMC as there's
+currently no support for MMC booting in the mainline kernel.
 
-Tony/Benoit, you want that in same patch or as a separate patch
-altogether ?
+So ... the code works for you, but not for me.
 
---=20
-balbi
+I guess the other difference is that I'm not using the same PHY (we use a 10/100
+SMSC 8710A, not the GbE Atheros part).
 
---VywGB/WGlW4DM4P8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Could that make any difference ?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Markus, are you still seeing the same issue ?  What PHY are you using ?
 
-iQIcBAEBAgAGBQJR5Bk7AAoJEIaOsuA1yqREu4oQALQr8RH8onQR5QtDzKeOckW8
-EE3M2ohrkqLb0xPjUVRxVweE6ZMdoyQzhvjwVwFk50la8IUlDBito5FRiIq1170E
-yqpWdgSsnVXPkk4jdoeJSTHAFrD3DYgxy9qpsNJS5cIWXSCPJkiMZmSCRKlnt75p
-h5QF498O5oB9iiGuCFm8CX8CTtVz63+5RYi3JkKha4ecXkqkEkFLpVPtMhh3DWos
-O6+BOj/cgck2jGz0Nord3r9JUqVfQP0TDXwBjwRoaZRuyV26wffjPSAjUrVRHdsL
-IKGcVqpX3EUp7xW8xOg9w678V+EL+KeC1hNLRAY5NlOL26HFpfX3wjDnAC8DjPBz
-r9FzeuV2pkXRZYQbGH60djFY1CvazM+HKhuozSOPFmr9XeNpIxILpGbKEXmq1Mqs
-VQva60qhAhdC9MnWlsfykYOT1TVzhm7yBrkMQ2/4N4vido5NpWNueWkBJ8LdkrwM
-SmtfqcYnSX+tFPCeGHdXwPTbXieWvyVNKsDJwYQn6L5JNR5oEZj6KD+5IG3VwnvL
-nB9VCtYoQk8isMUmoh3M4YNDZglcBzL2a+QI4sj2x6YtnVy6xAWSxBAuLQ3AjRe2
-QlDZ2cSO5cvXeLvc7uW/X1pib2hidGP01ghXNUAT/qdSl+v1kD1D4AauOs4ieEtT
-jZZ8RWvyPGdPNpeNTnNH
-=NGh+
------END PGP SIGNATURE-----
-
---VywGB/WGlW4DM4P8--
+Cheers
+Mark J.
