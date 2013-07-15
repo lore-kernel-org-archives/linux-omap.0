@@ -1,16 +1,14 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Subject: Re: [PATCH] ASoC: omap: Enable COMPILE_TEST build for
 	DT platforms
-Date: Mon, 15 Jul 2013 19:32:02 +0300
-Message-ID: <20130715163201.GC7366@arwen.pp.htv.fi>
+Date: Mon, 15 Jul 2013 18:43:46 +0200
+Message-ID: <51E426C2.5060209@ti.com>
 References: <1373903876-26370-1-git-send-email-broonie@kernel.org>
- <20130715160045.GG32035@arwen.pp.htv.fi>
- <20130715162605.GS11538@sirena.org.uk>
-Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2082839125152524611=="
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20130715162605.GS11538@sirena.org.uk>
+In-Reply-To: <1373903876-26370-1-git-send-email-broonie@kernel.org>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -21,77 +19,68 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 Errors-To: alsa-devel-bounces@alsa-project.org
 Sender: alsa-devel-bounces@alsa-project.org
 To: Mark Brown <broonie@kernel.org>
-Cc: alsa-devel@alsa-project.org, Liam Girdwood <lgirdwood@gmail.com>, Felipe Balbi <balbi@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Mark Brown <broonie@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
---===============2082839125152524611==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="aT9PWwzfKXlsBJM1"
-Content-Disposition: inline
+Hi Mark,
 
---aT9PWwzfKXlsBJM1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 07/15/2013 05:57 PM, Mark Brown wrote:
+> From: Mark Brown <broonie@linaro.org>
+> =
 
-On Mon, Jul 15, 2013 at 05:26:05PM +0100, Mark Brown wrote:
-> On Mon, Jul 15, 2013 at 07:00:45PM +0300, Felipe Balbi wrote:
-> > On Mon, Jul 15, 2013 at 04:57:56PM +0100, Mark Brown wrote:
-> > > @@ -26,7 +26,7 @@ config SND_OMAP_SOC_N810
->=20
-> > >  config SND_OMAP_SOC_RX51
-> > >  	tristate "SoC Audio support for Nokia RX-51"
-> > > -	depends on SND_OMAP_SOC && MACH_NOKIA_RX51
-> > > +	depends on SND_OMAP_SOC && (MACH_NOKIA_RX51 || COMPILE_TEST)
->=20
-> > RX51 is OMAP3, and that's DT at all. This is likely just a case of
-                             ^
-			     not
+> The DT platforms don't have any source dependency on any OMAP stuff so
+> allow them to be built when COMPILE_TEST is enabled.
 
+The OMAP3 generic machine driver could be also included in this patch:
+SND_OMAP_SOC_OMAP_TWL4030
 
-> > updating commit log.
->=20
-> Sentence parse grammar not.
->=20
-> However...  if you look at the driver it actually does have DT support
-> in there, it checks for the machine type or for compatibility with n900.
-> Probably needs an ARM dependency which I'll add due to the machine type
-> check.
+> Signed-off-by: Mark Brown <broonie@linaro.org>
+> ---
 
-alright.
+Otherwise:
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
---=20
-balbi
+>  sound/soc/omap/Kconfig | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> =
 
---aT9PWwzfKXlsBJM1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+> index 9f5d55e..68dfc0a 100644
+> --- a/sound/soc/omap/Kconfig
+> +++ b/sound/soc/omap/Kconfig
+> @@ -1,6 +1,6 @@
+>  config SND_OMAP_SOC
+>  	tristate "SoC Audio for the Texas Instruments OMAP chips"
+> -	depends on ARCH_OMAP && DMA_OMAP
+> +	depends on (ARCH_OMAP && DMA_OMAP) || COMPILE_TEST
+>  	select SND_SOC_DMAENGINE_PCM
+>  =
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+>  config SND_OMAP_SOC_DMIC
+> @@ -26,7 +26,7 @@ config SND_OMAP_SOC_N810
+>  =
 
-iQIcBAEBAgAGBQJR5CQBAAoJEIaOsuA1yqREntAP/RBejmzZvWGQKHR1lqz6aVxN
-sgol0iagfOAOXquHlQ8ZjS3myFB/cDTMuHYXvX+C2IQqRn4xaHcTDmxPOHcnV9rG
-GkIBiz6URQK90uJFHVbWzocEJUYZnzyciQY/xadFnmQdE0cietRMr71WdqT3DmqH
-PiHZbJzgwre1MPz/dlIJX1J6Nn2aCNZEvSBQTQpILElE/WbuS2cYFIGouVMDnGr9
-spArOJ9Wazzet2gGcKUzlW0qfiAPZibSje1zLO5jkUstSNkFuvALyCI78xdzsf+y
-RD95Ab77Ag65qvzWVwoS78T7EALcQLKlCSZV9FLWBLl5jdQhCUwlzibuMbrYQOSi
-kQ1UHIlSj2N7YhOnaEIJ9B4IfI6Y4O3u4PKl+pCtGgpzVzpax4izJl6KZ6TMKtgN
-AMKrN3whE4t3nC9W0IsFmMAR1FmNRGgeQ3eJVtL1ICydmeJRONGBeFbbypi0rYgF
-D/8Dvh5NiZcD7785z/D3SODYoOhyKJ3gLolhgP2CBqc/wv7E3iUCUrUKTIR+Fy1v
-UPCdajLWsYwc+NOlrGXtnyK7VH4SSiZAmoKyVNP1wfNzNDIV2TJ4fQzIWF6hPnug
-WxDy5MOetJMeYZpLkcCJdTww8BRKHMPbgbpvu63naDN0vCDCwUWl4cT47JHWQHQD
-8PLI+SalQ8oQ8+WZjd/i
-=OBTT
------END PGP SIGNATURE-----
+>  config SND_OMAP_SOC_RX51
+>  	tristate "SoC Audio support for Nokia RX-51"
+> -	depends on SND_OMAP_SOC && MACH_NOKIA_RX51
+> +	depends on SND_OMAP_SOC && (MACH_NOKIA_RX51 || COMPILE_TEST)
+>  	select SND_OMAP_SOC_MCBSP
+>  	select SND_SOC_TLV320AIC3X
+>  	select SND_SOC_TPA6130A2
+> @@ -87,7 +87,7 @@ config SND_OMAP_SOC_OMAP_TWL4030
+>  =
 
---aT9PWwzfKXlsBJM1--
-
---===============2082839125152524611==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>  config SND_OMAP_SOC_OMAP_ABE_TWL6040
+>  	tristate "SoC Audio support for OMAP boards using ABE and twl6040 codec"
+> -	depends on TWL6040_CORE && SND_OMAP_SOC && ARCH_OMAP4
+> +	depends on TWL6040_CORE && SND_OMAP_SOC && (ARCH_OMAP4 || COMPILE_TEST)
+>  	select SND_OMAP_SOC_DMIC
+>  	select SND_OMAP_SOC_MCPDM
+>  	select SND_SOC_TWL6040
+> =
 
 
---===============2082839125152524611==--
+
+-- =
+
+P=E9ter
