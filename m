@@ -1,69 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] arm: omap5: hwmod: add missing ocp2scp hwmod data
-Date: Tue, 16 Jul 2013 05:24:32 -0700
-Message-ID: <20130716122432.GX7656@atomide.com>
-References: <1373902423-28654-1-git-send-email-balbi@ti.com>
- <1373902423-28654-3-git-send-email-balbi@ti.com>
- <51E418A4.9000109@ti.com>
- <20130715154603.GC32035@arwen.pp.htv.fi>
+Subject: Re: [PATCH v2 4/4] ARM: OMAP2+: Provide alias to USB PHY clock
+Date: Tue, 16 Jul 2013 05:32:56 -0700
+Message-ID: <20130716123256.GY7656@atomide.com>
+References: <1371571487-14389-1-git-send-email-rogerq@ti.com>
+ <1371571487-14389-5-git-send-email-rogerq@ti.com>
+ <51E40199.9070906@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:27257 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753895Ab3GPMYh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jul 2013 08:24:37 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130715154603.GC32035@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <51E40199.9070906@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: benoit.cousson@linaro.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, "Balbi, Felipe" <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <benoit.cousson@linaro.org>
 
-* Felipe Balbi <balbi@ti.com> [130715 08:52]:
-> On Mon, Jul 15, 2013 at 09:13:32PM +0530, Kishon Vijay Abraham I wrote:
-> > Hi,
+* Roger Quadros <rogerq@ti.com> [130715 07:11]:
+> Hi Tony,
+> 
+> On 06/18/2013 07:04 PM, Roger Quadros wrote:
+> > Till the OMAP clocks are correctly defined in device tree, use
+> > this temporary hack to provide clock alias to the USB PHY clocks.
 > > 
-> > On Monday 15 July 2013 09:03 PM, Felipe Balbi wrote:
-> > > From: Benoit Cousson <benoit.cousson@linaro.org>
-> > > 
-> > > without that hwmod data, USB3 will not in OMAP5 boards.
-> > > 
-> > > While at that, also fix DTS data to pass reg property,
-> > > otherwise driver won't probe.
-> > > 
-> > > Signed-off-by: Benoit Cousson <benoit.cousson@linaro.org>
-> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > > ---
-> > >  arch/arm/boot/dts/omap5.dtsi               |  3 +-
-> > >  arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 45 ++++++++++++++++++++++++++++++
-> > >  2 files changed, 47 insertions(+), 1 deletion(-)
-> > > 
-> > > diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> > > index 5c99f19..4e41409 100644
-> > > --- a/arch/arm/boot/dts/omap5.dtsi
-> > > +++ b/arch/arm/boot/dts/omap5.dtsi
-> > > @@ -652,10 +652,11 @@
-> > >  			};
-> > >  		};
-> > >  
-> > > -		ocp2scp {
-> > > +		ocp2scp@4a080000 {
-> > 
-> > While at that, can we also name it ocp2scp1 since we have 3 instances of
-> > ocp2scp and it'll conflict when we want to add it for SATA and PCIE.
+> > Without this, USB Host & Ethernet will not be functional with
+> > device tree boots on Panda and uEVM.
+> 
+> Looks like this one got missed out.
+> 
+> USB host no longer works on Panda with DT boot.
+> Could you please queue this for next 3.11-rc? Thanks.
 
-Hmm the differentiatior is the name, so ocp2scp@4a800000 should
-be enough and actually follows the naming standars where the name
-should describe the type. I guess it could be just ocp@4a080000
-or scp@4a080000 but I think it translates both ways, so ocp2scp
-is probably pretty good.
- 
-> Tony/Benoit, you want that in same patch or as a separate patch
-> altogether ?
+OK thanks for checking, applying into omap-for-v3.11/fixes.
 
-Please do the .dts changes in separate patches as they should
-get merged separately for most part.
+Looks like I also have some pending the .dts changes in
+omap-for-v3.11/dt branch:
+
+4cf2198b1e3cee47a1cccbb500b67782c36615d5 ARM: dts: omap3-beagle-xm: Add USB host supprot for Rev. Ax/Bx
+9bc44515819a00c0ffaf751ad497ddf275089ede ARM: dts: omap3-beagle-xm: Add USB Host support
+fd65d7df4598c1d2ad27d664c719611a1a070edc ARM: dts: omap3-beagle: Make USB host pin naming consistent
+39ea891d9da6ae1824bc9f689db3f306f5ce0724 ARM: dts: omap4-panda: Add USB Host support
+
+Those should get merged as fixes, right? Can you please
+check and see if they're still OK or if we also need
+something else?
 
 Regards,
 
