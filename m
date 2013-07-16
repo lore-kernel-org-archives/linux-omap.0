@@ -1,50 +1,38 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v4 1/2] ARM: dts: twl: Add GPADC data to device tree
-Date: Tue, 16 Jul 2013 18:22:08 +0400
-Message-ID: <51E55710.8060907@cogentembedded.com>
-References: <1373974500-23609-1-git-send-email-oleksandr.kozaruk@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 0/2] regulator: palmas-pmic: doc: update device tree bindings
+Date: Tue, 16 Jul 2013 09:23:52 -0500
+Message-ID: <1373984635-14958-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1373974500-23609-1-git-send-email-oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Oleksandr Kozaruk <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org, milo.kim-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Graeme Gregory <gg@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-doc@vger.kernel.org, J Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Laxman Dewangan <ldewangan@nvidia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+We seem to have a few missing updates to device tree bindings with the
+latest set of changes getting merged in.
 
-On 07/16/2013 03:34 PM, Oleksandr Kozaruk wrote:
+Based on v3.11-rc1 tag
 
-> GPADC is the general purpose ADC present on twl6030.
-> The dt data is interrupt used to trigger end of ADC
-> conversion.
+Nishanth Menon (2):
+  regulator: palmas-pmic: doc: fix typo for sleep-mode
+  regulator: palmas-pmic: doc: remove ti,tstep
 
-> Signed-off-by: Oleksandr Kozaruk <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
-> ---
->   arch/arm/boot/dts/twl6030.dtsi | 6 ++++++
->   1 file changed, 6 insertions(+)
+ .../devicetree/bindings/regulator/palmas-pmic.txt  |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-> diff --git a/arch/arm/boot/dts/twl6030.dtsi b/arch/arm/boot/dts/twl6030.dtsi
-> index 2e3bd31..434842c 100644
-> --- a/arch/arm/boot/dts/twl6030.dtsi
-> +++ b/arch/arm/boot/dts/twl6030.dtsi
-> @@ -103,4 +103,10 @@
->   		compatible = "ti,twl6030-pwmled";
->   		#pwm-cells = <2>;
->   	};
-> +
-> +	gpadc: twl6030_gpadc {
-> +		compatible = "ti,twl6030_gpadc";
-> +		interrupts = <3>;
-> +		#io-channel-cells = <1>;
-> +	};
+-- 
+1.7.9.5
 
-    ePAPR [1] says: "The name of a node should be somewhat generic, 
-reflecting the function of the device and not its precise programming 
-model."
-
-[1] http://www.power.org/resources/downloads/Power_ePAPR_APPROVED_v1.0.pdf
-
-WBR, Sergei
+Regards,
+Nishanth Menon
