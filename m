@@ -1,183 +1,146 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Division by zero caused by CCF
-Date: Tue, 16 Jul 2013 15:37:09 +0300
-Message-ID: <20130716123709.GA15036@arwen.pp.htv.fi>
-Reply-To: <balbi@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [GIT PULL] PHY Framework for 3.12 merge window
+Date: Tue, 16 Jul 2013 18:08:26 +0530
+Message-ID: <51E53EC2.5080401@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wac7ysb48OaltWcw"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36293 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754627Ab3GPMiC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Jul 2013 08:38:02 -0400
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "balbi@ti.com" <balbi@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, mturquette@linaro.or, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
---wac7ysb48OaltWcw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Greg,
 
-Hi,
+Here's the pull request for the PHY Framework which I've been working on for a
+while.
 
-trying to get USB host verified on OMAP5 uEVM with v3.11-rc1. The
-clk_set_rate() call ends up in a division by zero, which is quite
-interesting provided the driver will only call clk_set_rate() if the
-clock is valid and clk_rate is !=3D 0.
+I've applied these patches on the current linux mainline HEAD (which has one
+commit after 3.11-rc1 is tagged).
+
+Even before this framework is merged, quite a few people started using it. I've
+queued those patches along with the PHY framework as well.
+
+I'm also planning to maintain this framework henceforth and will be sending
+pull requests for anything related to this framework or users of this framework.
+
+Let me know if you want any changes on this pull request
+
+Thanks
+Kishon
+
+The following changes since commit 47188d39b5deeebf41f87a02af1b3935866364cf:
+
+  Merge tag 'ext4_for_linus' of
+git://git.kernel.org/pub/scm/linux/kernel/git/tytso/ext4 (2013-07-14 21:47:51
+-0700)
+
+are available in the git repository at:
 
 
-[   22.009238] Division by zero in kernel.
-[   22.009250] CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W    3.11.0-=
-rc1-00081-g3310d44-dirty #118
-[   22.009275] [<c001c83c>] (unwind_backtrace+0x0/0xf0) from [<c0018a1c>] (=
-show_stack+0x10/0x14)
-[   22.009289] [<c0018a1c>] (show_stack+0x10/0x14) from [<c057403c>] (dump_=
-stack+0x70/0x8c)
-[   22.009304] [<c057403c>] (dump_stack+0x70/0x8c) from [<c02e4154>] (Ldiv0=
-+0x8/0x10)
-[   22.009319] [<c02e4154>] (Ldiv0+0x8/0x10) from [<c048d460>] (clk_divider=
-_set_rate+0x10/0xdc)
-[   22.009331] [<c048d460>] (clk_divider_set_rate+0x10/0xdc) from [<c048c12=
-4>] (clk_change_rate+0x38/0xb0)
-[   22.009341] [<c048c124>] (clk_change_rate+0x38/0xb0) from [<c048c20c>] (=
-clk_set_rate+0x70/0xa8)
-[   22.009354] [<c048c20c>] (clk_set_rate+0x70/0xa8) from [<c042b244>] (nop=
-_usb_xceiv_probe+0x1fc/0x2f8)
-[   22.009369] [<c042b244>] (nop_usb_xceiv_probe+0x1fc/0x2f8) from [<c036b4=
-7c>] (platform_drv_probe+0x18/0x1c)
-[   22.009380] [<c036b47c>] (platform_drv_probe+0x18/0x1c) from [<c0369f44>=
-] (really_probe+0x70/0x1f4)
-[   22.009390] [<c0369f44>] (really_probe+0x70/0x1f4) from [<c036a1dc>] (dr=
-iver_probe_device+0x30/0x48)
-[   22.009401] [<c036a1dc>] (driver_probe_device+0x30/0x48) from [<c036a288=
->] (__driver_attach+0x94/0x98)
-[   22.009411] [<c036a288>] (__driver_attach+0x94/0x98) from [<c0368748>] (=
-bus_for_each_dev+0x54/0x88)
-[   22.009420] [<c0368748>] (bus_for_each_dev+0x54/0x88) from [<c036972c>] =
-(bus_add_driver+0xdc/0x29c)
-[   22.009430] [<c036972c>] (bus_add_driver+0xdc/0x29c) from [<c036a760>] (=
-driver_register+0x78/0x190)
-[   22.009440] [<c036a760>] (driver_register+0x78/0x190) from [<c00087b0>] =
-(do_one_initcall+0x34/0x164)
-[   22.009453] [<c00087b0>] (do_one_initcall+0x34/0x164) from [<c07b18f4>] =
-(do_basic_setup+0x90/0xc4)
-[   22.009466] [<c07b18f4>] (do_basic_setup+0x90/0xc4) from [<c07b199c>] (k=
-ernel_init_freeable+0x74/0x110)
-[   22.009478] [<c07b199c>] (kernel_init_freeable+0x74/0x110) from [<c05676=
-c4>] (kernel_init+0x8/0xe4)
-[   22.009491] [<c05676c4>] (kernel_init+0x8/0xe4) from [<c0014648>] (ret_f=
-rom_fork+0x14/0x2c)
+  git://gitorious.org/linuxphy/linuxphy.git tags/phy-for-v3.12
 
-I believe the problem is the actual division reaching
-clk_divider_set_rate().
+for you to fetch changes up to 827c292242da5723345e5649e38279c721125ca8:
 
-drivers/clk/clk-divider.c::clk_divider_set_rate()
+  video: exynos_dp: Use the generic PHY driver (2013-07-16 14:37:04 +0530)
 
-| static int clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
-|                                 unsigned long parent_rate)
-| {
-|         struct clk_divider *divider =3D to_clk_divider(hw);
-|         unsigned int div, value;
-|         unsigned long flags =3D 0;
-|         u32 val;
-|=20
-|         div =3D parent_rate / rate;
+----------------------------------------------------------------
+PHY: patches for 3.12 merge window
 
-right here, but how come rate would zero provided driver checks for it
-as below.
+We're introducing a new kernel wide generic PHY framework.
 
-drivers/usb/phy/phy-nop.c::nop_usb_xceiv_probe()
+This framework provides a set of APIs for the PHY drivers to
+create/destroy a PHY and APIs for the PHY users to obtain a
+reference to the PHY with or without using phandle.
 
-|         if (!IS_ERR(nop->clk) && clk_rate) {
-|                 err =3D clk_set_rate(nop->clk, clk_rate);
-|                 if (err) {
-|                         dev_err(&pdev->dev, "Error setting clock rate\n");
-|                         return err;
-|                 }
-|         }
+This framework will be of use only to devices that uses external PHY (PHY
+functionality is not embedded within the controller).
 
-I've added a few prints around CCF to try and track what's going on:
+The intention of creating this framework is to bring the phy drivers spread
+all over the Linux kernel to drivers/phy to increase code re-use and for
+better code maintainability.
 
-[   21.592690] =3D=3D=3D=3D> nop_usb_xceiv_probe rate 19200000
-[   21.592700] =3D=3D=3D=3D> clk_set_rate rate 19200000
-[   21.592707] =3D=3D=3D=3D> clk_calc_new_rates rate 19200000
-[   21.592713] =3D=3D=3D=3D> clk_divider_round_rate rate 19200000
-[   21.592719] =3D=3D=3D=3D> clk_divider_bestdiv rate 19200000
-[   21.592726] =3D=3D=3D=3D> clk_change_rate best_parent_rate 0
-[   21.592732] =3D=3D=3D=3D> clk_divider_set_rate rate 0
-[   21.592737] Division by zero in kernel.
-[   21.592747] CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W    3.11.0-=
-rc1-00081-g3310d44-dirty #121
-[   21.592773] [<c001c83c>] (unwind_backtrace+0x0/0xf0) from [<c0018a1c>] (=
-show_stack+0x10/0x14)
-[   21.592787] [<c0018a1c>] (show_stack+0x10/0x14) from [<c057400c>] (dump_=
-stack+0x70/0x8c)
-[   21.592803] [<c057400c>] (dump_stack+0x70/0x8c) from [<c02e4154>] (Ldiv0=
-+0x8/0x10)
-[   21.592819] [<c02e4154>] (Ldiv0+0x8/0x10) from [<c048d3e0>] (clk_divider=
-_set_rate+0x2c/0x100)
-[   21.592831] [<c048d3e0>] (clk_divider_set_rate+0x2c/0x100) from [<c048c0=
-50>] (clk_change_rate+0x48/0xe0)
-[   21.592841] [<c048c050>] (clk_change_rate+0x48/0xe0) from [<c048c174>] (=
-clk_set_rate+0x8c/0xc0)
-[   21.592855] [<c048c174>] (clk_set_rate+0x8c/0xc0) from [<c042b254>] (nop=
-_usb_xceiv_probe+0x20c/0x304)
-[   21.592869] [<c042b254>] (nop_usb_xceiv_probe+0x20c/0x304) from [<c036b4=
-7c>] (platform_drv_probe+0x18/0x1c)
-[   21.592880] [<c036b47c>] (platform_drv_probe+0x18/0x1c) from [<c0369f44>=
-] (really_probe+0x70/0x1f4)
-[   21.592891] [<c0369f44>] (really_probe+0x70/0x1f4) from [<c036a1dc>] (dr=
-iver_probe_device+0x30/0x48)
-[   21.592901] [<c036a1dc>] (driver_probe_device+0x30/0x48) from [<c036a288=
->] (__driver_attach+0x94/0x98)
-[   21.592911] [<c036a288>] (__driver_attach+0x94/0x98) from [<c0368748>] (=
-bus_for_each_dev+0x54/0x88)
-[   21.592921] [<c0368748>] (bus_for_each_dev+0x54/0x88) from [<c036972c>] =
-(bus_add_driver+0xdc/0x29c)
-[   21.592930] [<c036972c>] (bus_add_driver+0xdc/0x29c) from [<c036a760>] (=
-driver_register+0x78/0x190)
-[   21.592941] [<c036a760>] (driver_register+0x78/0x190) from [<c00087b0>] =
-(do_one_initcall+0x34/0x164)
-[   21.592954] [<c00087b0>] (do_one_initcall+0x34/0x164) from [<c07b18f4>] =
-(do_basic_setup+0x90/0xc4)
-[   21.592966] [<c07b18f4>] (do_basic_setup+0x90/0xc4) from [<c07b199c>] (k=
-ernel_init_freeable+0x74/0x110)
-[   21.592980] [<c07b199c>] (kernel_init_freeable+0x74/0x110) from [<c05676=
-94>] (kernel_init+0x8/0xe4)
-[   21.592992] [<c0567694>] (kernel_init+0x8/0xe4) from [<c0014648>] (ret_f=
-rom_fork+0x14/0x2c)
+There are already quite a few users for this framework.
+Samsung Exynos SoC Display Port PHY and MIPI PHY are some of the early users
+of this framework in addition to OMAP-USB2 PHY and TWL4030-USB.
 
-even though driver passed 19.2MHz, best_parent_rate ends up being zero
-which triggers the division by zero above.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 
-cheers
+----------------------------------------------------------------
+Jingoo Han (3):
+      phy: Add driver for Exynos DP PHY
+      video: exynos_dp: remove non-DT support for Exynos Display Port
+      video: exynos_dp: Use the generic PHY driver
 
---=20
-balbi
+Kishon Vijay Abraham I (8):
+      drivers: phy: add generic PHY framework
+      usb: phy: omap-usb2: use the new generic PHY framework
+      usb: phy: twl4030: use the new generic PHY framework
+      ARM: OMAP: USB: Add phy binding information
+      ARM: dts: omap: update usb_otg_hs data
+      usb: musb: omap2430: use the new generic PHY framework
+      usb: phy: omap-usb2: remove *set_suspend* callback from omap-usb2
+      usb: phy: twl4030-usb: remove *set_suspend* and *phy_init* ops
 
---wac7ysb48OaltWcw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Sylwester Nawrocki (4):
+      phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
+      video: exynos_mipi_dsim: Use the generic PHY driver
+      exynos4-is: Use the generic MIPI CSIS PHY driver
+      ARM: Samsung: Remove the MIPI PHY setup code
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR5T51AAoJEIaOsuA1yqREMk8P/2WxK8Rhyny7/QfTsTp6esXx
-COXD4t0xjvEOYn9zv3+dAIXQhZ1BhnJ7qPtRABfQT6YhmpyLyx2CzwyToTkWMHp9
-p0+hDy/RM6ny0qH5gQRFEOMn6KT7R/9BHvhpd9/8KnH/i8frRZAv37RDNs3xf+dV
-LIm+sDdbqtDayr0ozcRUgIi50+XdLshgPMWoAkAcR7NAD3gJx3CCSv/KYulLcu/s
-Gqm3Z3w0jacZde+N1EQXaiGp1cbVR6MLDc/1qOB7KU11mMPcQuuSbphKQsR6s95R
-lpMNPIkr2ZUSSr4/uobfbsTOjqCXK4ayeBLGWrjeJ7t+9Ph00iUW3Nb2eSU+dxC4
-wHvT6iwEIWRVKopBKw27VACtiU9oyl4Wy95oskGRsY/nIqDRlSiKA1/yaSWMK7NT
-kUPKjEBL14stQ6y2Vp6vf1pozkQGVvKg6QBXC27ZPXg4oXviO0aMY+QqnHs3oO61
-YLvXd+B6Luf4MrGnNZl/An9KBjrhJTQVQy11K3XJK2D4l/alqzAk40avSEMUymnH
-ePZoZRPuFBgvQMvFh0Y0YbEd/baN9OSvqVqSzTiuoTEIBOK/RXgPNo4Qn6Of60X9
-xfdM0mWlIaxeeI1cyCh9PsUkXMlZLMYq3iCXi4tBgUy4W9xyYLOdZf5SqMUabiMR
-3vWeeubP/C0fYLGGSfc2
-=jvRQ
------END PGP SIGNATURE-----
-
---wac7ysb48OaltWcw--
+ .../devicetree/bindings/phy/phy-bindings.txt       |   66 +++
+ .../devicetree/bindings/phy/samsung-phy.txt        |   22 +
+ Documentation/devicetree/bindings/usb/omap-usb.txt |    5 +
+ Documentation/devicetree/bindings/usb/usb-phy.txt  |    6 +
+ .../devicetree/bindings/video/exynos_dp.txt        |   12 +-
+ Documentation/phy.txt                              |  129 +++++
+ MAINTAINERS                                        |    7 +
+ arch/arm/boot/dts/omap3-beagle-xm.dts              |    2 +
+ arch/arm/boot/dts/omap3-evm.dts                    |    2 +
+ arch/arm/boot/dts/omap3-overo.dtsi                 |    2 +
+ arch/arm/boot/dts/omap4.dtsi                       |    3 +
+ arch/arm/boot/dts/twl4030.dtsi                     |    1 +
+ arch/arm/mach-exynos/include/mach/regs-pmu.h       |    5 -
+ arch/arm/mach-omap2/usb-musb.c                     |    3 +
+ arch/arm/mach-s5pv210/include/mach/regs-clock.h    |    4 -
+ arch/arm/plat-samsung/Kconfig                      |    5 -
+ arch/arm/plat-samsung/Makefile                     |    1 -
+ arch/arm/plat-samsung/setup-mipiphy.c              |   60 ---
+ drivers/Kconfig                                    |    2 +
+ drivers/Makefile                                   |    2 +
+ drivers/media/platform/exynos4-is/mipi-csis.c      |   16 +-
+ drivers/phy/Kconfig                                |   28 +
+ drivers/phy/Makefile                               |    7 +
+ drivers/phy/phy-core.c                             |  544 ++++++++++++++++++++
+ drivers/phy/phy-exynos-dp-video.c                  |  111 ++++
+ drivers/phy/phy-exynos-mipi-video.c                |  169 ++++++
+ drivers/usb/musb/Kconfig                           |    1 +
+ drivers/usb/musb/musb_core.c                       |    1 +
+ drivers/usb/musb/musb_core.h                       |    3 +
+ drivers/usb/musb/omap2430.c                        |   26 +-
+ drivers/usb/phy/Kconfig                            |    1 +
+ drivers/usb/phy/phy-omap-usb2.c                    |   60 ++-
+ drivers/usb/phy/phy-twl4030-usb.c                  |   63 ++-
+ drivers/video/exynos/Kconfig                       |    2 +-
+ drivers/video/exynos/exynos_dp_core.c              |  132 ++---
+ drivers/video/exynos/exynos_dp_core.h              |  110 ++++
+ drivers/video/exynos/exynos_dp_reg.c               |    2 -
+ drivers/video/exynos/exynos_mipi_dsi.c             |   19 +-
+ include/linux/phy/phy.h                            |  344 +++++++++++++
+ include/linux/platform_data/mipi-csis.h            |   11 +-
+ include/linux/usb/musb.h                           |    3 +
+ include/video/exynos_dp.h                          |  131 -----
+ include/video/exynos_mipi_dsim.h                   |    6 +-
+ 43 files changed, 1746 insertions(+), 383 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/phy/phy-bindings.txt
+ create mode 100644 Documentation/devicetree/bindings/phy/samsung-phy.txt
+ create mode 100644 Documentation/phy.txt
+ delete mode 100644 arch/arm/plat-samsung/setup-mipiphy.c
+ create mode 100644 drivers/phy/Kconfig
+ create mode 100644 drivers/phy/Makefile
+ create mode 100644 drivers/phy/phy-core.c
+ create mode 100644 drivers/phy/phy-exynos-dp-video.c
+ create mode 100644 drivers/phy/phy-exynos-mipi-video.c
+ create mode 100644 include/linux/phy/phy.h
+ delete mode 100644 include/video/exynos_dp.h
