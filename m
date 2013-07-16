@@ -1,67 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 4/4] ARM: OMAP2+: Provide alias to USB PHY clock
-Date: Tue, 16 Jul 2013 06:43:50 -0700
-Message-ID: <20130716134350.GD7656@atomide.com>
-References: <1371571487-14389-1-git-send-email-rogerq@ti.com>
- <1371571487-14389-5-git-send-email-rogerq@ti.com>
- <51E40199.9070906@ti.com>
- <20130716123256.GY7656@atomide.com>
- <51E54D0D.3030200@ti.com>
+From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH v4 1/2] ARM: dts: twl: Add GPADC data to device tree
+Date: Tue, 16 Jul 2013 18:22:08 +0400
+Message-ID: <51E55710.8060907@cogentembedded.com>
+References: <1373974500-23609-1-git-send-email-oleksandr.kozaruk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <51E54D0D.3030200@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: benoit.cousson@linaro.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, "Balbi, Felipe" <balbi@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1373974500-23609-1-git-send-email-oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Oleksandr Kozaruk <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org, milo.kim-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [130716 06:45]:
-> On 07/16/2013 03:32 PM, Tony Lindgren wrote:
-> > * Roger Quadros <rogerq@ti.com> [130715 07:11]:
-> >> Hi Tony,
-> >>
-> >> On 06/18/2013 07:04 PM, Roger Quadros wrote:
-> >>> Till the OMAP clocks are correctly defined in device tree, use
-> >>> this temporary hack to provide clock alias to the USB PHY clocks.
-> >>>
-> >>> Without this, USB Host & Ethernet will not be functional with
-> >>> device tree boots on Panda and uEVM.
-> >>
-> >> Looks like this one got missed out.
-> >>
-> >> USB host no longer works on Panda with DT boot.
-> >> Could you please queue this for next 3.11-rc? Thanks.
-> > 
-> > OK thanks for checking, applying into omap-for-v3.11/fixes.
-> 
-> Thanks.
-> 
-> > 
-> > Looks like I also have some pending the .dts changes in
-> > omap-for-v3.11/dt branch:
-> > 
-> > 4cf2198b1e3cee47a1cccbb500b67782c36615d5 ARM: dts: omap3-beagle-xm: Add USB host supprot for Rev. Ax/Bx
-> > 9bc44515819a00c0ffaf751ad497ddf275089ede ARM: dts: omap3-beagle-xm: Add USB Host support
-> > fd65d7df4598c1d2ad27d664c719611a1a070edc ARM: dts: omap3-beagle: Make USB host pin naming consistent
-> 
-> Please disregard those. They are old versions.
+Hello.
 
-OK, poof that branch is now gone.
- 
-> Benoit had agreed to take the newer version of those for 3.12.
-> 
-> Please pick this one to get usb host working on 3.11 with DT.
-> 
-> http://www.spinics.net/lists/arm-kernel/msg253612.html
-> 
-> > 39ea891d9da6ae1824bc9f689db3f306f5ce0724 ARM: dts: omap4-panda: Add USB Host support
-> 
-> This one is already in through Benoit.
+On 07/16/2013 03:34 PM, Oleksandr Kozaruk wrote:
 
-It's best that Benoit queue all those to avoid more confusion :)
+> GPADC is the general purpose ADC present on twl6030.
+> The dt data is interrupt used to trigger end of ADC
+> conversion.
 
-Regards,
+> Signed-off-by: Oleksandr Kozaruk <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
+> ---
+>   arch/arm/boot/dts/twl6030.dtsi | 6 ++++++
+>   1 file changed, 6 insertions(+)
 
-Tony
+> diff --git a/arch/arm/boot/dts/twl6030.dtsi b/arch/arm/boot/dts/twl6030.dtsi
+> index 2e3bd31..434842c 100644
+> --- a/arch/arm/boot/dts/twl6030.dtsi
+> +++ b/arch/arm/boot/dts/twl6030.dtsi
+> @@ -103,4 +103,10 @@
+>   		compatible = "ti,twl6030-pwmled";
+>   		#pwm-cells = <2>;
+>   	};
+> +
+> +	gpadc: twl6030_gpadc {
+> +		compatible = "ti,twl6030_gpadc";
+> +		interrupts = <3>;
+> +		#io-channel-cells = <1>;
+> +	};
+
+    ePAPR [1] says: "The name of a node should be somewhat generic, 
+reflecting the function of the device and not its precise programming 
+model."
+
+[1] http://www.power.org/resources/downloads/Power_ePAPR_APPROVED_v1.0.pdf
+
+WBR, Sergei
