@@ -1,108 +1,95 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: Boot hang regression 3.10.0-rc4 -> 3.10.0
-Date: Tue, 16 Jul 2013 13:27:02 +0300
-Message-ID: <51E51FF6.60608@ti.com>
-References: <20130705115959.GQ5523@atomide.com> <B5906170F1614E41A8A28DE3B8D121433EE94489@DBDE04.ent.ti.com> <B5906170F1614E41A8A28DE3B8D121433EE94520@DBDE04.ent.ti.com> <20130708112553.GU5523@atomide.com> <51DAB394.3050104@ti.com> <20130708131033.GA5523@atomide.com> <51DABC81.3080409@ti.com> <20130708133512.GD31221@arwen.pp.htv.fi> <87mwpuakod.fsf@linaro.org> <20130710142633.GV5523@atomide.com> <20130710160704.GH18966@arwen.pp.htv.fi> <51DE780C.2070701@ti.com>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] i2c-omap: always send stop after nack
+Date: Tue, 16 Jul 2013 14:01:11 +0300
+Message-ID: <51E527F7.4080007@ti.com>
+References: <51E50217.1000507@yahoo.es> <20130716090300.GG8880@arwen.pp.htv.fi> <51E5137B.7000302@yahoo.es> <20130716094212.GL8880@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44121 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754858Ab3GPK2U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Jul 2013 06:28:20 -0400
-In-Reply-To: <51DE780C.2070701@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130716094212.GL8880-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Hein Tibosch <hein_tibosch-mRCrAkd8dF0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-i2c <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@linaro.org>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Sourav Poddar <sourav.poddar@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi Rajendra,
+Hi Hein, Felipe
 
-On 07/11/2013 12:17 PM, Rajendra Nayak wrote:
-> On Wednesday 10 July 2013 09:37 PM, Felipe Balbi wrote:
->> how about something like below ? It makes omap_device/hwmod and
->> pm_runtime agree on the initial state of the device and will prevent
->> ->runtime_resume() from being called on first pm_runtime_get*() done
->> during probe.
+On 07/16/2013 12:42 PM, Felipe Balbi wrote:
+> Hi,
+>
+> On Tue, Jul 16, 2013 at 05:33:47PM +0800, Hein Tibosch wrote:
+>> On 7/16/2013 5:03 PM, Felipe Balbi wrote:
+>>> Hi,
+>>>
+>>> On Tue, Jul 16, 2013 at 04:19:35PM +0800, Hein Tibosch wrote:
+>>>> Hi Vikram,
+>>>>
+>>>> On a OMAP4460, i2c-bus-3:
+>>>>
+>>>> A driver (lm75) is causing many 'timeout waiting for bus ready' errors.
+>>>> SDA remains high (as it should), but SCL remains low after a NACK.
+>>>> The bus becomes _unusable for other clients_.
+>>>>
+>>>> While probing, "lm75" writes a command, followed by a read + stop,
+>>>> but the write command is NACK'd. The chip does accept other writes/reads,
+>>>> it just refuses to ack invalid commands.
+>>>>
+>>>> Can you tell me if the patch below would make any sense? Or is it the
+>>>> responsibility of the client to reset the i2c_smbus?
+>>> patch below breaks repeated start.
+Felipe, I'd very appreciate if you'd be able to provide the use case
+which will fail with such solution?
+
+>> Hi,
 >>
->> This is similar to what PCI bus does (if you look at pci_pm_init()).
->
-> I tried something similar [1] but what I found is that the serial
-> runtime resume was called despite it being marked as active using
-> pm_runtime_set_active().
->
-> That seems to be because of the pm_runtime_set_autosuspend_delay()
-> because we have the autosuspend_delay = -1
->
-> -----
-> static void update_autosuspend(struct device *dev, int old_delay, int old_use)
-> {
->          int delay = dev->power.autosuspend_delay;
->
->          /* Should runtime suspend be prevented now? */
->          if (dev->power.use_autosuspend && delay < 0) {
->
->                  /* If it used to be allowed then prevent it. */
->                  if (!old_use || old_delay >= 0) {
->                          atomic_inc(&dev->power.usage_count);
->                          rpm_resume(dev, 0); <------------------------------- calls serial runtime resume.
->                  }
->          }
-> -----
->
-> So we end up with the same issue with serial resume being called before set_termios()
->
-> [1]
->
-> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-> index 5cc9287..c71d47d 100644
-> --- a/arch/arm/mach-omap2/omap_device.c
-> +++ b/arch/arm/mach-omap2/omap_device.c
-> @@ -129,6 +129,7 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
->          struct device_node *node = pdev->dev.of_node;
->          const char *oh_name;
->          int oh_cnt, i, ret = 0;
-> +       bool device_active = false;
->
->          oh_cnt = of_property_count_strings(node, "ti,hwmods");
->          if (oh_cnt <= 0) {
-> @@ -152,6 +153,9 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
->                          goto odbfd_exit1;
->                  }
->                  hwmods[i] = oh;
-> +               if (oh->flags & HWMOD_INIT_NO_IDLE)
-> +                       device_active = true;
-> +
->          }
->
->          od = omap_device_alloc(pdev, hwmods, oh_cnt);
-> @@ -172,6 +176,11 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
->
->          pdev->dev.pm_domain = &omap_device_pm_domain;
->
-> +       if (device_active) {
-> +               omap_device_enable(pdev);
-> +               pm_runtime_set_active(&pdev->dev);
-> +       }
-> +
->   odbfd_exit1:
->          kfree(hwmods);
->   odbfd_exit:
+>> No, after the NACK, no more commands are being processed,
+>> including a repeated start. omap_i2c_xfer() returns -EREMOTEIO
+>> without ever freeing the bus.
+>>
+>> The bus is left in an impossible state with SCL constantly low
+>> and all next commands (to different chips) will therefore get
+>> a -ETIMEDOUT
+>>
+>> With this patch, the bus will become idle again and new commands
+>> can be processed normally
+I think, this is valid fix, but it was done here already:)
+http://patchwork.ozlabs.org/patch/249790/
+"i2c: omap: query STP always when NACK is received"
 
-This solution works good for me in combination with
-"serial: omap: enable PM runtime only when its fully configured"
-http://www.spinics.net/lists/linux-serial/msg10317.html
-(earlyprintk use case)
+And nacked in the same way :(
+But! I've back-ported my patch on TI Android product kernel 3.4, did
+sanity test and I didn't see any issues with my patch :))
 
-And I think the best way would be to move forward with yours solution.
-- it will affect only on needed IPs drivers - not on all, so no issues 
-with iommu and etc.
+>
+> but you mentioned that if you have IGNORE_NAK set, everything is fine,
+> since lm75 will get a return value of 0 and things will work just fine,
+> right ?
+>
+> Also, you also said that the chip 'refuses to ack invalid commands', why
+> are you sending invalid commands to start with ? This could be a bug in
+> i2c-omap.c, sure, but let's try to figure out why IGNORE_NAK helps and
+> why is lm75 driver sending invalid commands.
+>
 
-But issue with *non console" UARTs will still be here and, I think,
-there are no way ti solve it from OMAP device/hwmod frameworks side,
-because only driver can know when his context is ready.
-To test do: #echo 0xDEAD > dev/ttyO3
+The problem is, that lm75 device is SmBus compatible and its driver has
+.detect() function implemented. During detection it tries to scan some
+registers which might be not present in current device - in my case
+it's tmp105.
+
+For example to read regA in tmp105 following is done:
+1) do write in "Index" register (val RegA index) (I2C 1st message)
+2) do read (I2C 2d message)
+the message 1 is Nacked by device in case if register index is wrong, 
+but i2c-omap don't send NACK (or STP). As result, bus stack in Bus Busy 
+state.
+
+For SMBus devices the specification states (http://smbus.org/specs/)
+"4.2.Acknowledge (ACK) and not acknowledge (NACK)":
+- "The slave device detects an invalid command or invalid data. In this
+case the slave device must not acknowledge the received byte. The
+master upon detection of this condition must generate a STOP condition
+and retry the transaction"
 
 Regards,
 -grygorii
