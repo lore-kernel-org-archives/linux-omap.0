@@ -1,7 +1,7 @@
 From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/2] regulator: palmas-pmic: doc: fix typo for sleep-mode
-Date: Tue, 16 Jul 2013 09:23:53 -0500
-Message-ID: <1373984635-14958-2-git-send-email-nm@ti.com>
+Subject: [PATCH 2/2] regulator: palmas-pmic: doc: remove ti,tstep
+Date: Tue, 16 Jul 2013 09:23:54 -0500
+Message-ID: <1373984635-14958-3-git-send-email-nm@ti.com>
 References: <1373984635-14958-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,29 +22,36 @@ To: Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, Mark Brown <bro
 Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-commit 3c870e3f9d9d98f1ab98614b3b1fd5c79287d361
-(regulator: palmas: Change the DT node property names to follow the convention)
+commit 28d1e8cd671a53d6b4f967abbbc2a55f7bd333f6
+(regulator: palma: add ramp delay support through regulator constraints)
 
-Missed updating mode-sleep from sleep-mode. Fix the same.
-Documentation seems proper for this property.
+Removed the regulator's ti,step option from driver without updating the
+documentation. remove the support from documentation and example as well.
 
 Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 ---
- .../devicetree/bindings/regulator/palmas-pmic.txt  |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .../devicetree/bindings/regulator/palmas-pmic.txt  |    2 --
+ 1 file changed, 2 deletions(-)
 
 diff --git a/Documentation/devicetree/bindings/regulator/palmas-pmic.txt b/Documentation/devicetree/bindings/regulator/palmas-pmic.txt
-index d5a3086..04d67f0 100644
+index 04d67f0..30b0581 100644
 --- a/Documentation/devicetree/bindings/regulator/palmas-pmic.txt
 +++ b/Documentation/devicetree/bindings/regulator/palmas-pmic.txt
-@@ -31,7 +31,7 @@ Optional nodes:
- 	       Optional sub-node properties:
- 	       ti,warm-reset - maintain voltage during warm reset(boolean)
+@@ -33,7 +33,6 @@ Optional nodes:
  	       ti,roof-floor - control voltage selection by pin(boolean)
--	       ti,sleep-mode - mode to adopt in pmic sleep 0 - off, 1 - auto,
-+	       ti,mode-sleep - mode to adopt in pmic sleep 0 - off, 1 - auto,
+ 	       ti,mode-sleep - mode to adopt in pmic sleep 0 - off, 1 - auto,
  	       2 - eco, 3 - forced pwm
- 	       ti,tstep - slope control 0 - Jump, 1 10mV/us, 2 5mV/us, 3 2.5mV/us
+-	       ti,tstep - slope control 0 - Jump, 1 10mV/us, 2 5mV/us, 3 2.5mV/us
  	       ti,smps-range - OTP has the wrong range set for the hardware so override
+ 	       0 - low range, 1 - high range.
+ 
+@@ -59,7 +58,6 @@ pmic {
+ 			ti,warm-reset;
+ 			ti,roof-floor;
+ 			ti,mode-sleep = <0>;
+-			ti,tstep = <0>;
+ 			ti,smps-range = <1>;
+ 		};
+ 
 -- 
 1.7.9.5
