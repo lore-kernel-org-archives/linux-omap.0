@@ -1,132 +1,112 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/4] pinctrl: Allow pinctrl to have multiple active states
-Date: Tue, 16 Jul 2013 02:05:34 -0700
-Message-ID: <20130716090534.5541.60381.stgit@localhost>
+Subject: Re: [PATCH 0/4] improved support for runtime muxing for pinctrl
+Date: Tue, 16 Jul 2013 02:14:14 -0700
+Message-ID: <20130716091413.GT7656@atomide.com>
 References: <20130716090310.5541.36777.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38006 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754148Ab3GPJOQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jul 2013 05:14:16 -0400
+Content-Disposition: inline
 In-Reply-To: <20130716090310.5541.36777.stgit@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linus.walleij@linaro.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Stephen Warren <swarren@wwwdotorg.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linus.walleij@linaro.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-It's quite common that we need to dynamically change some pins for a
-device for runtime PM, or toggle a pin between rx and tx. Changing all
-the pins for a device is not efficient way of doing it.
+* Tony Lindgren <tony@atomide.com> [130716 02:12]:
+> 
+> As discussed earlier, the pinctrl support for changing some of the
+> consumer device pins during runtime needs some improvment.
+> 
+> Here are the patches to do that, I'll also post a minimal sample
+> patch as a reply to this thread on how to do the muxing for
+> runtime PM.
 
-So let's allow setting up multiple active states for pinctrl. Currently
-we only need PINCTRL_STATIC and PINCTRL_DYNAMIC, where PINCTRL_STATIC
-covers the current default pins, and PINCTRL_DYNAMIC holds the dynamic
-pins that need to be toggled.
+Here's a patch showing the suggested usage remuxing SDIO IRQ
+to GPIO mode for runtime PM. Note that this patch depends on
+three other patches for the hsmmc driver, I'll post that series
+separately.
 
-Cc: Stephen Warren <swarren@wwwdotorg.org>
+Regards,
+
+Tony
+
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 15 Jul 2013 07:39:39 -0700
+Subject: [PATCH] mmc: omap_hsmmc: Remux pins to support SDIO interrupt and PM runtime
+
+On some omaps we need to remux MMC pins for PM, and for some omaps
+we need to remux the SDIO IRQ pin.
+
+Based on an earlier patch by Andreas Fenkart <afenkart@gmail.com>.
+
+Cc: Andreas Fenkart <afenkart@gmail.com>
+Cc: Balaji T K <balajitk@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/pinctrl/core.c |   18 ++++++++++--------
- drivers/pinctrl/core.h |   10 ++++++++--
- 2 files changed, 18 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/pinctrl/core.c b/drivers/pinctrl/core.c
-index bda2c61..8da11d5 100644
---- a/drivers/pinctrl/core.c
-+++ b/drivers/pinctrl/core.c
-@@ -885,7 +885,8 @@ static void pinctrl_free(struct pinctrl *p, bool inlist)
- 	mutex_lock(&pinctrl_list_mutex);
- 	list_for_each_entry_safe(state, n1, &p->states, node) {
- 		list_for_each_entry_safe(setting, n2, &state->settings, node) {
--			pinctrl_free_setting(state == p->state, setting);
-+			pinctrl_free_setting(state == p->state[PINCTRL_STATIC],
-+					     setting);
- 			list_del(&setting->node);
- 			kfree(setting);
- 		}
-@@ -955,13 +956,13 @@ EXPORT_SYMBOL_GPL(pinctrl_lookup_state);
- int pinctrl_select_state(struct pinctrl *p, struct pinctrl_state *state)
- {
- 	struct pinctrl_setting *setting, *setting2;
--	struct pinctrl_state *old_state = p->state;
-+	struct pinctrl_state *old_state = p->state[PINCTRL_STATIC];
- 	int ret;
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1869,7 +1869,6 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+ 	const struct of_device_id *match;
+ 	dma_cap_mask_t mask;
+ 	unsigned tx_req, rx_req;
+-	struct pinctrl *pinctrl;
  
--	if (p->state == state)
-+	if (old_state == state)
- 		return 0;
+ 	match = of_match_device(of_match_ptr(omap_mmc_of_match), &pdev->dev);
+ 	if (match) {
+@@ -2114,21 +2113,19 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
  
--	if (p->state) {
-+	if (old_state) {
- 		/*
- 		 * The set of groups with a mux configuration in the old state
- 		 * may not be identical to the set of groups with a mux setting
-@@ -971,7 +972,7 @@ int pinctrl_select_state(struct pinctrl *p, struct pinctrl_state *state)
- 		 * but not in the new state, this code puts that group into a
- 		 * safe/disabled state.
- 		 */
--		list_for_each_entry(setting, &p->state->settings, node) {
-+		list_for_each_entry(setting, &old_state->settings, node) {
- 			bool found = false;
- 			if (setting->type != PIN_MAP_TYPE_MUX_GROUP)
- 				continue;
-@@ -989,7 +990,7 @@ int pinctrl_select_state(struct pinctrl *p, struct pinctrl_state *state)
- 		}
- 	}
+ 	omap_hsmmc_disable_irq(host);
  
--	p->state = NULL;
-+	p->state[PINCTRL_STATIC] = NULL;
- 
- 	/* Apply all the settings for the new state */
- 	list_for_each_entry(setting, &state->settings, node) {
-@@ -1011,7 +1012,7 @@ int pinctrl_select_state(struct pinctrl *p, struct pinctrl_state *state)
- 		}
- 	}
- 
--	p->state = state;
-+	p->state[PINCTRL_STATIC] = state;
- 
- 	return 0;
- 
-@@ -1484,7 +1485,8 @@ static int pinctrl_show(struct seq_file *s, void *what)
- 	list_for_each_entry(p, &pinctrl_list, node) {
- 		seq_printf(s, "device: %s current state: %s\n",
- 			   dev_name(p->dev),
--			   p->state ? p->state->name : "none");
-+			   p->state[PINCTRL_STATIC] ?
-+			   p->state[PINCTRL_STATIC]->name : "none");
- 
- 		list_for_each_entry(state, &p->states, node) {
- 			seq_printf(s, "  state: %s\n", state->name);
-diff --git a/drivers/pinctrl/core.h b/drivers/pinctrl/core.h
-index 75476b3..b99e4b3 100644
---- a/drivers/pinctrl/core.h
-+++ b/drivers/pinctrl/core.h
-@@ -53,12 +53,18 @@ struct pinctrl_dev {
- #endif
- };
- 
-+enum pinctr_states {
-+	PINCTRL_STATIC,
-+	PINCTRL_DYNAMIC,
-+	PINCTRL_NR_STATES,
-+};
+-	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
+-	if (IS_ERR(pinctrl))
+-		dev_warn(&pdev->dev,
+-			"pins are not configured from the driver\n");
+-
+ 	/*
+-	 * For now, only support SDIO interrupt if we are doing
+-	 * muxing of dat1 when booted with DT. This is because the
++	 * For now, only support SDIO interrupt if we are doing dynamic
++	 * remuxing of dat1 when booted with DT. This is because the
+ 	 * supposedly the wake-up events for CTPL don't work from deeper
+ 	 * idle states. And we don't want to add new legacy mux platform
+ 	 * init code callbacks any longer as we are moving to DT based
+ 	 * booting anyways.
+ 	 */
+ 	if (match) {
+-		if (!IS_ERR(pinctrl) && mmc_slot(host).sdio_irq)
++		struct device *dev = &pdev->dev;
 +
- /**
-  * struct pinctrl - per-device pin control state holder
-  * @node: global list node
-  * @dev: the device using this pin control handle
-  * @states: a list of states for this device
-- * @state: the current state
-+ * @state: the current state(s)
-  * @dt_maps: the mapping table chunks dynamically parsed from device tree for
-  *	this device, if any
-  * @users: reference count
-@@ -67,7 +73,7 @@ struct pinctrl {
- 	struct list_head node;
- 	struct device *dev;
- 	struct list_head states;
--	struct pinctrl_state *state;
-+	struct pinctrl_state *state[PINCTRL_NR_STATES];
- 	struct list_head dt_maps;
- 	struct kref users;
- };
++		if (!pinctrl_pm_check_idle_state(dev) &&
++		    mmc_slot(host).sdio_irq)
+ 			mmc->caps |= MMC_CAP_SDIO_IRQ;
+ 	}
+ 
+@@ -2348,6 +2345,10 @@ static int omap_hsmmc_runtime_suspend(struct device *dev)
+ 		OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
+ 		spin_unlock_irqrestore(&host->irq_lock, flags);
+ 
++		ret = pinctrl_pm_select_idle_state(dev);
++		if (ret < 0)
++			dev_err(dev, "Unable to select idle pinmux\n");
++
+ 		if (mmc_slot(host).sdio_irq)
+ 			enable_irq(mmc_slot(host).sdio_irq);
+ 	}
+@@ -2371,6 +2372,10 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
+ 		if (mmc_slot(host).sdio_irq)
+ 			disable_irq(mmc_slot(host).sdio_irq);
+ 
++		ret = pinctrl_pm_select_active_state(dev);
++		if (ret < 0)
++			dev_err(dev, "Unable to select active pinmux\n");
++
+ 		spin_lock_irqsave(&host->irq_lock, flags);
+ 		host->active_pinmux = true;
+ 
