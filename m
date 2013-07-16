@@ -1,76 +1,48 @@
-From: Hein Tibosch <hein_tibosch@yahoo.es>
-Subject: Re: [PATCH] i2c-omap: always send stop after nack
-Date: Wed, 17 Jul 2013 00:17:21 +0800
-Message-ID: <51E57211.2040001@yahoo.es>
-References: <51E50217.1000507@yahoo.es> <20130716090300.GG8880@arwen.pp.htv.fi> <51E5137B.7000302@yahoo.es> <20130716094212.GL8880@arwen.pp.htv.fi> <51E527F7.4080007@ti.com> <20130716112746.GN8880@arwen.pp.htv.fi> <51E537A4.40300@ti.com> <20130716130058.GD15036@arwen.pp.htv.fi>
+From: Stefan Roese <sr@denx.de>
+Subject: Re: [PATCH] ARM: OMAP3: Beagle: Fix USB Host on beagle xM Ax/Bx
+Date: Tue, 16 Jul 2013 18:19:07 +0200
+Message-ID: <51E5727B.2010500@denx.de>
+References: <1366024808-4691-1-git-send-email-rogerq@ti.com> <51DC09E7.1070302@denx.de> <51DC164B.5010608@ti.com> <51DC1B47.7070504@denx.de> <51DE87D3.5030600@ti.com> <51DEA7F1.1050902@denx.de> <51DEC2CE.70400@ti.com> <51DED076.3040000@denx.de> <51DEF0DE.4050607@denx.de> <51DFC92F.1050701@ti.com> <51DFDFD4.3040900@denx.de> <51E3AFF4.7060607@ti.com> <51E3B1B1.3060202@denx.de> <51E55AAE.3000209@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bosmailout13.eigbox.net ([66.96.186.13]:45659 "EHLO
-	bosmailout13.eigbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933023Ab3GPQTR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jul 2013 12:19:17 -0400
-In-Reply-To: <20130716130058.GD15036@arwen.pp.htv.fi>
+Received: from mo-p05-ob.rzone.de ([81.169.146.181]:26841 "EHLO
+	mo-p05-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933240Ab3GPQT5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jul 2013 12:19:57 -0400
+In-Reply-To: <51E55AAE.3000209@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-i2c <linux-i2c@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Alan Stern <stern@rowland.harvard.edu>
 
-Hi Grygorii, Filipe,
+Hi Roger,
 
-On 7/16/2013 9:00 PM, Felipe Balbi wrote:
-> On Tue, Jul 16, 2013 at 03:08:04PM +0300, Grygorii Strashko wrote:
->> Hi Felipe,
->> On 07/16/2013 02:27 PM, Felipe Balbi wrote:
->>> Hi,
+On 07/16/2013 04:37 PM, Roger Quadros wrote:
+> On 07/15/2013 11:24 AM, Stefan Roese wrote:
+>> On 07/15/2013 10:16 AM, Roger Quadros wrote:
+>>>>> I can only test on beagle-xm (which is also rev. C2) with integrated SMSC ethernet chip
+>>>>> as I don't have an external USB-ethernet adapter.
+>>>>
+>>>> Too bad. This difference in boards makes the tests a bit less
+>>>> meaningful. Is there really no USB-ethernet adapter somewhere in your
+>>>> department (perhaps a non-SMSC95xx might serve as well?)? I might
+>>>> send/order you one if necessary. ;)
 >>>
->>> On Tue, Jul 16, 2013 at 02:01:11PM +0300, Grygorii Strashko wrote:
->>>>>>>> On a OMAP4460, i2c-bus-3:
->>>>>>>>
->>>>>>>> A driver (lm75) is causing many 'timeout waiting for bus ready' errors.
->>>>>>>> SDA remains high (as it should), but SCL remains low after a NACK.
->>>>>>>> The bus becomes _unusable for other clients_.
->>>>>>>>
->>>>>>>> While probing, "lm75" writes a command, followed by a read + stop,
->>>>>>>> but the write command is NACK'd. The chip does accept other writes/reads,
->>>>>>>> it just refuses to ack invalid commands.
+>>> Thanks for the offer :). I'll just get one for myself by today/tomorrow.
+>>> The one available here uses this driver "drivers/net/usb/asix.c"
+>>
+>> Great.
+>>
+> 
+> OK. Finally managed to reproduce the problem.
 
-In case the NACK may not be ignored, I believe it is correct
-to break out of the loop and send a stop for 2 reasons:
+Ahh, great. Thanks for the effort.
 
-1. all chips, including the target chip, will know that the
-   current transaction is finished
+> Don't know the root cause yet. Will need to investigate.
 
-2. to set CLK high again, which prevents numerous timeouts
-   on subsequent transactions
+Thanks. Just let me know if I can be of any assistance (testing etc).
 
-As a test I've set 'I2C_M_IGNORE_NAK' for all .detect messages
-sent by the lm75 driver.
-Now the chip (tmp105) will provide read data as expected
-after the _repeated start_, even though it NACK'd the preceding
-WR command.
-And also the detection trick does work now, addresses 4,5,6,7 return
-the same read data as was returned from the last valid address 2.
-
-Felipe:
-> Which means your original patch starts to make a lot more sense. I
-> wonder is this is really what we should be doing though - breaking out
-> of the loop, I mean.
-
-So yes, we have to break the loop as the caller is not interested
-in processing any further commands.
-
-In i2c/algos/i2c-algo-bit.c, bit_xfer() works exactly the same way:
-break the loop (unless IGNORE_NAK) and call unconditionally i2c_stop().
-
-It looks like TI's i2c-davinci will have the same problem as i2c-omap,
-and will need the same change.
-
-Grygorii, if you submit the patch, please add my
-
-Signed-off-by: Hein Tibosch <hein_tibosch@yahoo.es>
-
-cause you were earlier to notice and fix this problem.
-
-Hein
+Cheers,
+Stefan
