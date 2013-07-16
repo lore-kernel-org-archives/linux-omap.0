@@ -1,112 +1,70 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] improved support for runtime muxing for pinctrl
-Date: Tue, 16 Jul 2013 02:14:14 -0700
-Message-ID: <20130716091413.GT7656@atomide.com>
-References: <20130716090310.5541.36777.stgit@localhost>
+Subject: [GIT PULL] pinctrl-single SoC specific support for v3.12
+Date: Tue, 16 Jul 2013 02:18:16 -0700
+Message-ID: <20130716091816.GU7656@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38006 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754148Ab3GPJOQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jul 2013 05:14:16 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:63019 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753139Ab3GPJSU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jul 2013 05:18:20 -0400
 Content-Disposition: inline
-In-Reply-To: <20130716090310.5541.36777.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linus.walleij@linaro.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Roger Quadros <rogerq@ti.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [130716 02:12]:
-> 
-> As discussed earlier, the pinctrl support for changing some of the
-> consumer device pins during runtime needs some improvment.
-> 
-> Here are the patches to do that, I'll also post a minimal sample
-> patch as a reply to this thread on how to do the muxing for
-> runtime PM.
+Hi Linus,
 
-Here's a patch showing the suggested usage remuxing SDIO IRQ
-to GPIO mode for runtime PM. Note that this patch depends on
-three other patches for the hsmmc driver, I'll post that series
-separately.
+Here's a pull request for the pinctrl-single changes posted
+few weeks ago. Assuming this pull request and the patches
+are OK, I'd like to also merge this branch into omap tree so
+we can have the wake-up events working. So we'd have to
+establish keeping these commits immutable.
+
+Note that this series does not depend on the dynamic remuxing
+patches I just posted. These patches can be used without the
+dynamic remuxing support for devices that have dedicated
+wake-up path and don't need remuxing, such as UART on most
+omaps.
 
 Regards,
 
 Tony
 
 
-From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 15 Jul 2013 07:39:39 -0700
-Subject: [PATCH] mmc: omap_hsmmc: Remux pins to support SDIO interrupt and PM runtime
+The following changes since commit ad81f0545ef01ea651886dddac4bef6cec930092:
 
-On some omaps we need to remux MMC pins for PM, and for some omaps
-we need to remux the SDIO IRQ pin.
+  Linux 3.11-rc1 (2013-07-14 15:18:27 -0700)
 
-Based on an earlier patch by Andreas Fenkart <afenkart@gmail.com>.
+are available in the git repository at:
 
-Cc: Andreas Fenkart <afenkart@gmail.com>
-Cc: Balaji T K <balajitk@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/pinctrl-single-for-linus
 
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1869,7 +1869,6 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 	const struct of_device_id *match;
- 	dma_cap_mask_t mask;
- 	unsigned tx_req, rx_req;
--	struct pinctrl *pinctrl;
- 
- 	match = of_match_device(of_match_ptr(omap_mmc_of_match), &pdev->dev);
- 	if (match) {
-@@ -2114,21 +2113,19 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 
- 	omap_hsmmc_disable_irq(host);
- 
--	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
--	if (IS_ERR(pinctrl))
--		dev_warn(&pdev->dev,
--			"pins are not configured from the driver\n");
--
- 	/*
--	 * For now, only support SDIO interrupt if we are doing
--	 * muxing of dat1 when booted with DT. This is because the
-+	 * For now, only support SDIO interrupt if we are doing dynamic
-+	 * remuxing of dat1 when booted with DT. This is because the
- 	 * supposedly the wake-up events for CTPL don't work from deeper
- 	 * idle states. And we don't want to add new legacy mux platform
- 	 * init code callbacks any longer as we are moving to DT based
- 	 * booting anyways.
- 	 */
- 	if (match) {
--		if (!IS_ERR(pinctrl) && mmc_slot(host).sdio_irq)
-+		struct device *dev = &pdev->dev;
-+
-+		if (!pinctrl_pm_check_idle_state(dev) &&
-+		    mmc_slot(host).sdio_irq)
- 			mmc->caps |= MMC_CAP_SDIO_IRQ;
- 	}
- 
-@@ -2348,6 +2345,10 @@ static int omap_hsmmc_runtime_suspend(struct device *dev)
- 		OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
- 		spin_unlock_irqrestore(&host->irq_lock, flags);
- 
-+		ret = pinctrl_pm_select_idle_state(dev);
-+		if (ret < 0)
-+			dev_err(dev, "Unable to select idle pinmux\n");
-+
- 		if (mmc_slot(host).sdio_irq)
- 			enable_irq(mmc_slot(host).sdio_irq);
- 	}
-@@ -2371,6 +2372,10 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
- 		if (mmc_slot(host).sdio_irq)
- 			disable_irq(mmc_slot(host).sdio_irq);
- 
-+		ret = pinctrl_pm_select_active_state(dev);
-+		if (ret < 0)
-+			dev_err(dev, "Unable to select active pinmux\n");
-+
- 		spin_lock_irqsave(&host->irq_lock, flags);
- 		host->active_pinmux = true;
- 
+for you to fetch changes up to 8f406c0772ace721f0350c92acd043732285ba9f:
+
+  pinctrl: single: omap: Add SoC specific module for wake-up events (2013-07-15 00:17:07 -0700)
+
+----------------------------------------------------------------
+Pinctrl single changes to add support for SoC specific features
+that were too late for v3.11. This branch is needed as a dependency
+also for the omap tree for off-idle and USB wake-up events, so
+posting it as a pull request.
+
+----------------------------------------------------------------
+Tony Lindgren (3):
+      pinctrl: single: Prepare for supporting SoC specific features
+      pinctrl: single: Add hardware specific hooks for IRQ and GPIO wake-up events
+      pinctrl: single: omap: Add SoC specific module for wake-up events
+
+ .../devicetree/bindings/pinctrl/pinctrl-single.txt |   5 +
+ drivers/pinctrl/Makefile                           |   3 +-
+ drivers/pinctrl/pinctrl-single-omap.c              | 287 +++++++++++++++++++++
+ drivers/pinctrl/pinctrl-single.c                   | 158 +++++++++---
+ drivers/pinctrl/pinctrl-single.h                   |  43 +++
+ include/linux/platform_data/pinctrl-single-omap.h  |   4 +
+ 6 files changed, 468 insertions(+), 32 deletions(-)
+ create mode 100644 drivers/pinctrl/pinctrl-single-omap.c
+ create mode 100644 drivers/pinctrl/pinctrl-single.h
+ create mode 100644 include/linux/platform_data/pinctrl-single-omap.h
