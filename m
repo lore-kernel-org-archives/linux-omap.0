@@ -1,73 +1,105 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH v2 3/5] arm: omap5: dts: add palmas-usb node
-Date: Tue, 16 Jul 2013 15:50:35 +0300
-Message-ID: <1373979037-27587-4-git-send-email-balbi@ti.com>
-References: <1373979037-27587-1-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] i2c-omap: always send stop after nack
+Date: Tue, 16 Jul 2013 16:00:58 +0300
+Message-ID: <20130716130058.GD15036@arwen.pp.htv.fi>
+References: <51E50217.1000507@yahoo.es>
+ <20130716090300.GG8880@arwen.pp.htv.fi>
+ <51E5137B.7000302@yahoo.es>
+ <20130716094212.GL8880@arwen.pp.htv.fi>
+ <51E527F7.4080007@ti.com>
+ <20130716112746.GN8880@arwen.pp.htv.fi>
+ <51E537A4.40300@ti.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49429 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932191Ab3GPMvc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Jul 2013 08:51:32 -0400
-In-Reply-To: <1373979037-27587-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="d9ADC0YsG2v16Js0"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <51E537A4.40300-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, Hein Tibosch <hein_tibosch-mRCrAkd8dF0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-i2c <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Benoit Cousson <benoit.cousson@linaro.org>, Kishon Vijay Abraham I <kishon@ti.com>, Felipe Balbi <balbi@ti.com>
 
-Without this node, there will be no palmas
-driver to notify dwc3 that a cable has
-been connected and, without that, dwc3
-will never initialize.
+--d9ADC0YsG2v16Js0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/boot/dts/omap5-uevm.dts | 10 ++++++++++
- arch/arm/boot/dts/omap5.dtsi     |  2 +-
- 2 files changed, 11 insertions(+), 1 deletion(-)
+Hi,
 
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 08b7267..badceb8 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -272,6 +272,11 @@
- 		interrupt-controller;
- 		#interrupt-cells = <2>;
- 
-+		extcon_usb3: palmas_usb {
-+			compatible = "ti,palmas-usb";
-+			ti,wakeup;
-+		};
-+
- 		palmas_pmic {
- 			compatible = "ti,palmas-pmic";
- 			interrupt-parent = <&palmas>;
-@@ -450,6 +455,11 @@
- 	phys = <0 &hsusb2_phy &hsusb3_phy>;
- };
- 
-+&usb3 {
-+	extcon = <&extcon_usb3>;
-+	vbus-supply = <&smps10_reg>;
-+};
-+
- &mcspi1 {
- 
- };
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 4e41409..1659246 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -634,7 +634,7 @@
- 			ti,type = <2>;
- 		};
- 
--		omap_dwc3@4a020000 {
-+		usb3: omap_dwc3@4a020000 {
- 			compatible = "ti,dwc3";
- 			ti,hwmods = "usb_otg_ss";
- 			reg = <0x4a020000 0x10000>;
--- 
-1.8.3.3.754.g9c3c367
+(when replying, can you add some blank lines around your reply and the
+previous mail, it's quite difficult to find your replies with so many
+quote marks (>) around)
 
+On Tue, Jul 16, 2013 at 03:08:04PM +0300, Grygorii Strashko wrote:
+> Hi Felipe,
+> On 07/16/2013 02:27 PM, Felipe Balbi wrote:
+> >Hi,
+> >
+> >On Tue, Jul 16, 2013 at 02:01:11PM +0300, Grygorii Strashko wrote:
+> >>>>>>On a OMAP4460, i2c-bus-3:
+> >>>>>>
+> >>>>>>A driver (lm75) is causing many 'timeout waiting for bus ready' err=
+ors.
+> >>>>>>SDA remains high (as it should), but SCL remains low after a NACK.
+> >>>>>>The bus becomes _unusable for other clients_.
+> >>>>>>
+> >>>>>>While probing, "lm75" writes a command, followed by a read + stop,
+> >>>>>>but the write command is NACK'd. The chip does accept other writes/=
+reads,
+> >>>>>>it just refuses to ack invalid commands.
+> >>>>>>
+> >>>>>>Can you tell me if the patch below would make any sense? Or is it t=
+he
+> >>>>>>responsibility of the client to reset the i2c_smbus?
+> >>>>>patch below breaks repeated start.
+> >>Felipe, I'd very appreciate if you'd be able to provide the use case
+> >>which will fail with such solution?
+> >
+> >can't you see how this would fail ?
+> >
+> >assume omap_i2c_xfer() is called with its last argument (num) being
+> >greater than one and you get the NAK before the last transfer.
+> That's our case - NACK from slave before last transfer
+
+with one difference, your device requires a STP condition because it's
+SMBus, right ? Not all devices act like that :-)
+
+But now I noticed, because of your reply, something I have been
+overlooking for quite some time. As you said below, in case of NAK we
+break out of the loop and don't even try the following messages.
+
+Which means your original patch starts to make a lot more sense. I
+wonder is this is really what we should be doing though - breaking out
+of the loop, I mean.
+
+It'd be cool to get an answer from I2C maintainers if we're doing the
+right thing here.
+
+--=20
+balbi
+
+--d9ADC0YsG2v16Js0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR5UQKAAoJEIaOsuA1yqREBIwP+wVCJ64Ql/JvPR+EF74Bacn/
+5Y36cStTBebsy/F2shSslrHroQJ3/JHlvG1Y464FykzSMTruj4yYcm8yo8XXh1sd
+Rr+eSfGSAklfwLXdZ8MFX/LaFzPQTs3J5M0Kb8NaGpLetHcEL6wCXFlxwYySq4zh
+NvCp2J9iXTlR4jLaR2qwJUU0LWfyKsY1Lsfx3cnP6Cv2tzwespNVUZrWi8fBfZqy
+846gS5cPSs0lnsDGFzCYNiYikKyH4HMCl34M0bN70mzA0SmIwwNd4z9jL8bxkymG
+OMkvrAi6x6gTV+n0C0RHB6Zl9GoISNsI/5sTuYhg1sD7We24mI1nYc6SoAYk/gJp
+l9zQq4FfiTIF6kLbs8EDeWxuE9ukr/g14Ft8NIU0qkdVpBrz7Q2AQ5RbPNBysgr0
+waljATqZjJSzpLB8wkPPIHuvdPlNz/bEMRhY66a3KhZd/SQgiezEZT8JJThj9GgS
+OxAuuJfTgx+/isoffr3vC1JEECSZ7r6TPJdEBLJ22pIlGLW+t+DKJ8fuWkNKm8om
+q4YSjYXKB/JtL/RPjCrSBwpxTuiCNehA4KkemxlOgS1ti/5AYfx6Z7XXrsvYjK4q
+ZOvksdJcWbomikWl0HMznmvwOX4xKqKOj9byKaSP8XrXki7lXjTDwnrhM1NUYWHF
+VhP/C/sQssvQOH7tHczT
+=cn8R
+-----END PGP SIGNATURE-----
+
+--d9ADC0YsG2v16Js0--
