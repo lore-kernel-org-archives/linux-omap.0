@@ -1,59 +1,38 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH 2/2] ARM: dts: add AM33XX SPI DMA support
-Date: Tue, 16 Jul 2013 17:30:32 -0500
-Message-ID: <1374013832-26638-2-git-send-email-joelf@ti.com>
-References: <1374013832-26638-1-git-send-email-joelf@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: [PATCH 0/2] ARM: dts: Add SHAM and AES DT information
+Date: Tue, 16 Jul 2013 16:29:26 -0700
+Message-ID: <1374017368-5267-1-git-send-email-mgreer@animalcreek.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39948 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933554Ab3GPWao (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Jul 2013 18:30:44 -0400
-In-Reply-To: <1374013832-26638-1-git-send-email-joelf@ti.com>
+Received: from p3plsmtpa06-08.prod.phx3.secureserver.net ([173.201.192.109]:42160
+	"EHLO p3plsmtpa06-08.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755191Ab3GPX3x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Jul 2013 19:29:53 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <benoit.cousson@linaro.org>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: paul@pwsan.com, "Mark A. Greer" <mgreer@animalcreek.com>
 
-From: Matt Porter <mporter@ti.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
 
-Adds DMA resources to the AM33XX SPI nodes.
+Long overdue patches to add the device tree updates and
+documentation for the SHAM and AES modules on the am33xx.
+The supporting code is already in the mainline kernel.
 
-Signed-off-by: Matt Porter <mporter@ti.com>
-Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
----
- arch/arm/boot/dts/am33xx.dtsi |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+Mark A. Greer (2):
+  ARM: dts: Add SHAM data and documentation for AM33XX
+  ARM: dts: Add AES data and documentation for AM33XX
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 784f774..0fdb949 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -331,6 +331,11 @@
- 			interrupts = <65>;
- 			ti,spi-num-cs = <2>;
- 			ti,hwmods = "spi0";
-+			dmas = <&edma 16
-+				&edma 17
-+				&edma 18
-+				&edma 19>;
-+			dma-names = "tx0", "rx0", "tx1", "rx1";
- 			status = "disabled";
- 		};
- 
-@@ -342,6 +347,11 @@
- 			interrupts = <125>;
- 			ti,spi-num-cs = <2>;
- 			ti,hwmods = "spi1";
-+			dmas = <&edma 42
-+				&edma 43
-+				&edma 44
-+				&edma 45>;
-+			dma-names = "tx0", "rx0", "tx1", "rx1";
- 			status = "disabled";
- 		};
- 
+ .../devicetree/bindings/crypto/omap-aes.txt        | 35 ++++++++++++++++++++++
+ .../devicetree/bindings/crypto/omap-sham.txt       | 33 ++++++++++++++++++++
+ arch/arm/boot/dts/am335x-bone.dts                  |  8 +++++
+ arch/arm/boot/dts/am335x-evm.dts                   |  8 +++++
+ arch/arm/boot/dts/am335x-evmsk.dts                 |  7 +++++
+ arch/arm/boot/dts/am33xx.dtsi                      | 20 +++++++++++++
+ 6 files changed, 111 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/crypto/omap-aes.txt
+ create mode 100644 Documentation/devicetree/bindings/crypto/omap-sham.txt
+
 -- 
-1.7.9.5
+1.7.12
 
