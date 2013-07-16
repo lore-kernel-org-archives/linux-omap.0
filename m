@@ -1,57 +1,47 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 4/4] ARM: OMAP2+: Provide alias to USB PHY clock
-Date: Tue, 16 Jul 2013 16:39:25 +0300
-Message-ID: <51E54D0D.3030200@ti.com>
-References: <1371571487-14389-1-git-send-email-rogerq@ti.com> <1371571487-14389-5-git-send-email-rogerq@ti.com> <51E40199.9070906@ti.com> <20130716123256.GY7656@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/4] pinctrl: Remove duplicate code in
+ pinctrl_pm_select_state functions
+Date: Tue, 16 Jul 2013 06:41:18 -0700
+Message-ID: <20130716134118.GC7656@atomide.com>
+References: <20130716090310.5541.36777.stgit@localhost>
+ <20130716090529.5541.54331.stgit@localhost>
+ <51E5475B.1050900@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130716123256.GY7656@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <51E5475B.1050900@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, benoit.cousson@linaro.org
-Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, "Balbi, Felipe" <balbi@ti.com>
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: linus.walleij@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Stephen Warren <swarren@wwwdotorg.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/16/2013 03:32 PM, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [130715 07:11]:
->> Hi Tony,
->>
->> On 06/18/2013 07:04 PM, Roger Quadros wrote:
->>> Till the OMAP clocks are correctly defined in device tree, use
->>> this temporary hack to provide clock alias to the USB PHY clocks.
->>>
->>> Without this, USB Host & Ethernet will not be functional with
->>> device tree boots on Panda and uEVM.
->>
->> Looks like this one got missed out.
->>
->> USB host no longer works on Panda with DT boot.
->> Could you please queue this for next 3.11-rc? Thanks.
+* Grygorii Strashko <grygorii.strashko@ti.com> [130716 06:22]:
+> Hi Tony,
 > 
-> OK thanks for checking, applying into omap-for-v3.11/fixes.
+> This patch causes boot failure when I've applied my patch
+> "[RFC] ARM: OMAP2+: omap_device: add pinctrl handling"
+> https://lkml.org/lkml/2013/6/21/309
+>
+> on top of it:
 
-Thanks.
+Hmm this patch alone removes duplicate code and if it causes
+issues I must have made a typo somewhere.
 
-> 
-> Looks like I also have some pending the .dts changes in
-> omap-for-v3.11/dt branch:
-> 
-> 4cf2198b1e3cee47a1cccbb500b67782c36615d5 ARM: dts: omap3-beagle-xm: Add USB host supprot for Rev. Ax/Bx
-> 9bc44515819a00c0ffaf751ad497ddf275089ede ARM: dts: omap3-beagle-xm: Add USB Host support
-> fd65d7df4598c1d2ad27d664c719611a1a070edc ARM: dts: omap3-beagle: Make USB host pin naming consistent
+I cannot see a typo though, but in your dmesg I see something..
 
-Please disregard those. They are old versions.
+> [    0.610565] PC is at pinctrl_pm_select_active_state+0x4/0xc
 
-Benoit had agreed to take the newer version of those for 3.12.
+..looks like you have something applied for the active_state
+that only gets introduced later on in this series.
 
-Please pick this one to get usb host working on 3.11 with DT.
+Maybe you have the earlier version of drivers/base/pinctrl.c
+active_state patch that was in linux next for a while but
+got reverted as we noticed we had to rework some things?
 
-http://www.spinics.net/lists/arm-kernel/msg253612.html
+So maybe try with v3.11-rc1 + these four patches + your
+omap_device patch?
 
-> 39ea891d9da6ae1824bc9f689db3f306f5ce0724 ARM: dts: omap4-panda: Add USB Host support
+Regards,
 
-This one is already in through Benoit.
-
-cheers,
--roger
+Tony
