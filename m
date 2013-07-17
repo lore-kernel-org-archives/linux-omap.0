@@ -1,58 +1,59 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 8/9] ARM: dts: omap5-uevm: update LDO7 voltage to 2V and
- settings
-Date: Wed, 17 Jul 2013 11:45:37 -0500
-Message-ID: <1374079538-19548-9-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 4/9] ARM: dts: omap5-uevm: update LDO1 voltage to 1.5V and settings
+Date: Wed, 17 Jul 2013 11:45:33 -0500
+Message-ID: <1374079538-19548-5-git-send-email-nm@ti.com>
 References: <1374079538-19548-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1374079538-19548-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1374079538-19548-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <benoit.cousson@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, J Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Y29tbWl0IGUwMGMyN2VmM2I0YzIzZTM5ZDBhNzdiN2M4ZTViZTQ0YzI4MDAxYzcKKEFSTTogZHRz
-OiBPTUFQNTogQWRkIFBhbG1hcyBNRkQgbm9kZSBhbmQgcmVndWxhdG9yIG5vZGVzKQppbnRyb2R1
-Y2VkIHJlZ3VsYXRvciBlbnRyaWVzIGZvciBPTUFQNXVFVk0uCgpIb3dldmVyLCBUaGUgcmVndWxh
-dG9yIGluZm9ybWF0aW9uIGlzIGJhc2VkIG9uIGFuIG9sZGVyIHRlbXBvcmFyeQpwcmUtcHJvZHVj
-dGlvbiBib2FyZCB2YXJpYW50IGFuZCBkb2VzIG5vdCByZWZsZWN0IHByb2R1Y3Rpb24gYm9hcmQK
-NzUwLTI2MjgtWFhYIGJvYXJkcy4KCkxETzQgc3VwcGxpZXMgVkREX1ZQUCB3aGljaCBpcyB2cHAx
-LiBUaGlzIGlzIGN1cnJlbnRseSBjb25maWd1cmVkIGZvcgoxLjVWIHdoaWNoIGFzIHBlciBkYXRh
-IG1hbnVhbCAiQSBwdWxzZSB3aWR0aCBvZiAxMDAwIG5zIGFuZCBhbiBhbXBsaXR1ZGUKb2YgMlYg
-aXMgcmVxdWlyZWQgdG8gcHJvZ3JhbSBlYWNoIGVGdXNlIGJpdC4gT3RoZXJ3aXNlLCBWUFAxIG11
-c3Qgbm90CmJlIHN1cHBsaWVkIi4KClNvLCBmaXggdGhlIHZvbHRhZ2UgdG8gMlYuIGFuZCBkaXNh
-YmxlIHRoZSBzdXBwbHkgc2luY2Ugd2UgaGF2ZSBubyBwbGFucwpvZiBwcm9ncmFtbWluZyBlZnVz
-ZSBiaXRzIC0gaXQgY2FuIG9ubHkgYmUgZG9uZSBvbmNlIC0gaW4gZmFjdG9yeS4KCkZ1cnRoZXIg
-aXQgaXMgbm90IGVuYWJsZWQgYnkgZGVmYXVsdCBieSBQTUlDIHNvLCAnYm9vdC1vbicgbXVzdCBi
-ZQpyZW1vdmVkLCBhbmQgdGhlICdhbHdheXMtb24nIG5lZWRzIHRvIGJlIHJlbW92ZWQgdG8gYWNo
-aWV2ZSBwdWxzaW5nCmlmIGVmdXNlIG5lZWRzIHRvIGJlIHByb2dyYW1tZWQuCgpSZXBvcnRlZC1i
-eTogTWFyYyBKw7x0dG5lciA8bS1qdWV0dG5lckB0aS5jb20+ClNpZ25lZC1vZmYtYnk6IE5pc2hh
-bnRoIE1lbm9uIDxubUB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5k
-dHMgfCAgICA4ICsrKystLS0tCiAxIGZpbGUgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCA0IGRl
-bGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LXVldm0uZHRz
-IGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKaW5kZXggM2ZmNTg3NC4uZWYwNTY3
-NiAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKKysrIGIvYXJj
-aC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKQEAgLTM5NywxMCArMzk3LDEwIEBACiAJCQkJ
-bGRvN19yZWc6IGxkbzcgewogCQkJCQkvKiBWRERfVlBQOiB2cHAxICovCiAJCQkJCXJlZ3VsYXRv
-ci1uYW1lID0gImxkbzciOwotCQkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwxNTAwMDAw
-PjsKLQkJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MTUwMDAwMD47Ci0JCQkJCXJlZ3Vs
-YXRvci1hbHdheXMtb247Ci0JCQkJCXJlZ3VsYXRvci1ib290LW9uOworCQkJCQlyZWd1bGF0b3It
-bWluLW1pY3Jvdm9sdCA9IDwyMDAwMDAwPjsKKwkJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQg
-PSA8MjAwMDAwMD47CisJCQkJCS8qIE9ubHkgZm9yIGVmdXNlIHJlcHJvZ3JhbWluZyEgKi8KKwkJ
-CQkJc3RhdHVzID0gImRpc2FibGVkIjsKIAkJCQl9OwogCiAJCQkJbGRvOF9yZWc6IGxkbzggewot
-LSAKMS43LjkuNQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KZGV2aWNldHJlZS1kaXNjdXNzIG1haWxpbmcgbGlzdApkZXZpY2V0cmVlLWRpc2N1c3NAbGlz
-dHMub3psYWJzLm9yZwpodHRwczovL2xpc3RzLm96bGFicy5vcmcvbGlzdGluZm8vZGV2aWNldHJl
-ZS1kaXNjdXNzCg==
+commit e00c27ef3b4c23e39d0a77b7c8e5be44c28001c7
+(ARM: dts: OMAP5: Add Palmas MFD node and regulator nodes)
+introduced regulator entries for OMAP5uEVM.
+
+However, The regulator information is based on an older temporary
+pre-production board variant and does not reflect production board
+750-2628-XXX boards.
+
+LDO1 supplies VDDAPHY_CAM which is OMAP5's vdda_csiporta/b/c. This
+can only be supplied at 1.5V or 1.8V and we currently supply 2.8V.
+
+To prevent any potential device damage risk, use the specified
+1.5V-1.8V supply.
+
+Remove 'always-on' and 'boot-on' settings here as it is
+a 'on need' supply to SoC IP and is not enabled by PMIC by
+default at boot.
+
+Reported-by: Marc J=C3=BCttner <m-juettner@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/boot/dts/omap5-uevm.dts |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5=
+-uevm.dts
+index 87b3e9e..a55f4d8 100644
+--- a/arch/arm/boot/dts/omap5-uevm.dts
++++ b/arch/arm/boot/dts/omap5-uevm.dts
+@@ -346,10 +346,8 @@
+ 				ldo1_reg: ldo1 {
+ 					/* VDDAPHY_CAM: vdda_csiport */
+ 					regulator-name =3D "ldo1";
+-					regulator-min-microvolt =3D <2800000>;
+-					regulator-max-microvolt =3D <2800000>;
+-					regulator-always-on;
+-					regulator-boot-on;
++					regulator-min-microvolt =3D <1500000>;
++					regulator-max-microvolt =3D <1800000>;
+ 				};
+=20
+ 				ldo2_reg: ldo2 {
+--=20
+1.7.9.5
