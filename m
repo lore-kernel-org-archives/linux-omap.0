@@ -1,52 +1,85 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH V2 0/2] regulator: palmas-pmic: doc: update device tree
- bindings
-Date: Wed, 17 Jul 2013 11:06:24 +0100
-Message-ID: <20130717100624.GJ22506@sirena.org.uk>
-References: <20130716161939.GR22506@sirena.org.uk>
- <1373992870-20725-1-git-send-email-nm@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 2/2] pwm: Add PWM polarity flag macros for DT
+Date: Wed, 17 Jul 2013 13:00:21 +0200
+Message-ID: <2989497.8E7gzkcamn@avalon>
+References: <1373553468-6564-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <2883016.87pKJk9n0R@avalon> <51E4C073.4020407@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ch6x/diZ8cQC324S"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1373992870-20725-1-git-send-email-nm@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Graeme Gregory <gg@slimlogic.co.uk>, J Keerthy <j-keerthy@ti.com>, Laxman Dewangan <ldewangan@nvidia.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60764 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753578Ab3GQK7i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jul 2013 06:59:38 -0400
+In-Reply-To: <51E4C073.4020407@wwwdotorg.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Thierry Reding <thierry.reding@gmail.com>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, linux-pwm@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linux-omap@vger.kernel.org, Philip Avinash <avinashphilip@ti.com>, Grant Likely <grant.likely@linaro.org>, Boris BREZILLON <linux-arm@overkiz.com>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
+Hi Stephen,
 
---ch6x/diZ8cQC324S
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Monday 15 July 2013 21:39:31 Stephen Warren wrote:
+> On 07/15/2013 07:10 PM, Laurent Pinchart wrote:
+> > On Friday 12 July 2013 08:42:41 Stephen Warren wrote:
+> ...
+> 
+> >> I think the values for any common system-wide flags should be defined
+> >> once in some system-wide place, and the values for any HW-specific
+> >> values should be defined only in the documentation for that specific HW.
+> >> You could try and avoid conflicts by either:
+> >> 
+> >> a) Allocating system-wide flags from bit 0 up, and HW-specific flags
+> >> from bit 31 down.
+> >> 
+> >> or:
+> >> 
+> >> b) Using 1 cell for standard flags, and a separate cell for any
+> >> HW-specific flags. Drivers can quite easily adapt to adding extra cells
+> >> to #pwm-cells, thus making adding a HW-specific cell later
+> >> backwards-compatible.
+> > 
+> > I wasn't referring to HW-specific flags, but rather to system-wide flags
+> > that might not be supported by all drivers. If we later add new
+> > system-wide flags I think the individual DT bindings should explicitly
+> > document which flags they support.
+> 
+> Shouldn't all system-wide flags be supported by all HW, perhaps being
+> implemented by the core subsystem rather than individual drivers to
+> ensure that? Consider the case of the GPIO active-low flag which is
+> actually implemented in SW, hence can work with any GPIO controller.
+> 
+> Perhaps that's not possible in all cases, in which case, yes, it does
+> make sense to define which of the common flags a particular HW module
+> supports.
 
-On Tue, Jul 16, 2013 at 11:41:08AM -0500, Nishanth Menon wrote:
-> We seem to have a few missing updates to device tree bindings with the
-> latest set of changes getting merged in.
+It largely depends on what we consider as system flags. We should probably be 
+talking about common flags instead of system flags. I usually try to 
+standardize DT properties that are common to multiple devices. Some of those 
+properties can apply to all devices of the same class (possibly 
+implemented/emulated in software when the hardware doesn't support them), but 
+others are just commonly seen properties that don't make sense for all the 
+devices.
 
-Applied both, thanks.
+One example I'm familiar with can be found in V4L2 DT bindings. We've 
+standardized properties to specify what kind of video synchronization signals 
+devices support/use. Not all synchronization signals are supported by a given 
+video transmitter, so DT bindings for such chips list (or at least should 
+list) the common properties supported by a given device. The definitions of 
+the properties should of course not be duplicated to all individual DT 
+bindings.
 
---ch6x/diZ8cQC324S
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> But then there's a problem where people assume that the common flags are
+> always available, and somewhere they aren't... Care is needed in the
+> choice of which common flags to define and/or how they're used.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
+Exactly. That's why I think listing the supported common flags in individual 
+bindings makes sense when some of the flags are not supported by all devices. 
+As the only PWM flags currently used are common to all PWM devices I can leave 
+this out now. I have no strong preference, I'll follow your opinion on this.
 
-iQIcBAEBAgAGBQJR5mydAAoJELSic+t+oim9uI0P/ju9mHU6RSsiI13NGEKWuJFS
-Bbtz3T1qCxjyT7baEqfADUWtRA76LQxbx/Xo8eTm30AHNi7l3j0VctXW4ndfYrka
-NxFU0VDGUpTKjb879R3JQtqr8X3AoV0ElHuiTElNpz4+Xrg0IcIzAMGNFTJ98+CA
-JQMrDlY4+KQ1ANnz4Am8y/jLwfI3ZJ3Gyh/HC5xKJo+kuU8QZLw/04MxDketBndt
-p4Ekx5c95dSC9RVJPrBHXs2zy456uF0CDufyhBT7XvZ3DaE9D6czOb9kITUZXNxf
-FndrNNBfIXCzpCfNndqv8BAcZcu9IM1NkVeJWN8HTyeu63aOFMA10H149VmIi0Rw
-vrlrsT0uRqTqsHDhb34MX/xI6yunETRn+t5MzHdg/oNUlESn6GiDy7PcrGy9vvmQ
-dn0STP7WtH4gNfJ+YXL4Dkvbvc5Yj2A4GovJKCPtSA+uRTuYJIoh0DcOUaJU3aNa
-HpdX2KcjOnVS5Dg2qqOWaQ2H/GskRqwQ2MCmCR/Okpd+6/eMNwMJ3mJTQWX+SkYY
-AwM3J7iMXW0qJblMdO7YXqbdIbAd9w8ao1XMa3qpZ8tGPtzucNhw1i7YMb2P8ue/
-DB8HC57Bqa6z77l9oo/ZCGW0Xhj+bdkJKs/dJHYF/W4KH57QX+FxskPp3onHQl3e
-DmB6kixtB/mf+KMH+sgs
-=UhAE
------END PGP SIGNATURE-----
+-- 
+Regards,
 
---ch6x/diZ8cQC324S--
+Laurent Pinchart
+
