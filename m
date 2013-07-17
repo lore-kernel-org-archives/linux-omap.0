@@ -1,71 +1,53 @@
 From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH v2 1/4] pwm: Add PWM polarity flag macro for DT
-Date: Thu, 18 Jul 2013 00:54:21 +0200
-Message-ID: <1374101664-21112-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH v2 2/4] pwm: Use the DT macro directly when parsing PWM DT flags
+Date: Thu, 18 Jul 2013 00:54:22 +0200
+Message-ID: <1374101664-21112-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 References: <1374101664-21112-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36058 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36067 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757814Ab3GQWxo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jul 2013 18:53:44 -0400
+	with ESMTP id S932457Ab3GQWxp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jul 2013 18:53:45 -0400
 In-Reply-To: <1374101664-21112-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Thierry Reding <thierry.reding@gmail.com>
 Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-pwm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Boris BREZILLON <linux-arm@overkiz.com>, Shawn Guo <shawn.guo@linaro.org>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, Stephen Warren <swarren@wwwdotorg.org>, Tomasz Figa <t.figa@samsung.com>
 
-Define a PWM_POLARITY_INVERTED macro in include/dt-bindings/pwm/pwm.h to
-be used by device tree sources.
+Don't redefine a PWM_SPEC_POLARITY macro with a value identical to
+PWM_POLARITY_INVERTED, use the PWM DT macro directly.
 
 Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- Documentation/devicetree/bindings/pwm/pwm.txt |  7 ++++---
- include/dt-bindings/pwm/pwm.h                 | 14 ++++++++++++++
- 2 files changed, 18 insertions(+), 3 deletions(-)
- create mode 100644 include/dt-bindings/pwm/pwm.h
+ drivers/pwm/core.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/pwm/pwm.txt b/Documentation/devicetree/bindings/pwm/pwm.txt
-index 06e6724..8556263 100644
---- a/Documentation/devicetree/bindings/pwm/pwm.txt
-+++ b/Documentation/devicetree/bindings/pwm/pwm.txt
-@@ -43,13 +43,14 @@ because the name "backlight" would be used as fallback anyway.
- pwm-specifier typically encodes the chip-relative PWM number and the PWM
- period in nanoseconds.
+diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
+index dfbfbc5..2ca9504 100644
+--- a/drivers/pwm/core.c
++++ b/drivers/pwm/core.c
+@@ -30,10 +30,9 @@
+ #include <linux/debugfs.h>
+ #include <linux/seq_file.h>
  
--Optionally, the pwm-specifier can encode a number of flags in a third cell:
--- bit 0: PWM signal polarity (0: normal polarity, 1: inverse polarity)
-+Optionally, the pwm-specifier can encode a number of flags (defined in
-+<dt-bindings/pwm/pwm.h>) in a third cell:
-+- PWM_POLARITY_INVERTED: invert the PWM signal polarity
+-#define MAX_PWMS 1024
++#include <dt-bindings/pwm/pwm.h>
  
- Example with optional PWM specifier for inverse polarity
+-/* flags in the third cell of the DT PWM specifier */
+-#define PWM_SPEC_POLARITY	(1 << 0)
++#define MAX_PWMS 1024
  
- 	bl: backlight {
--		pwms = <&pwm 0 5000000 1>;
-+		pwms = <&pwm 0 5000000 PWM_POLARITY_INVERTED>;
- 		pwm-names = "backlight";
- 	};
+ static DEFINE_MUTEX(pwm_lookup_lock);
+ static LIST_HEAD(pwm_lookup_list);
+@@ -149,7 +148,7 @@ of_pwm_xlate_with_flags(struct pwm_chip *pc, const struct of_phandle_args *args)
  
-diff --git a/include/dt-bindings/pwm/pwm.h b/include/dt-bindings/pwm/pwm.h
-new file mode 100644
-index 0000000..96f49e8
---- /dev/null
-+++ b/include/dt-bindings/pwm/pwm.h
-@@ -0,0 +1,14 @@
-+/*
-+ * This header provides constants for most PWM bindings.
-+ *
-+ * Most PWM bindings can include a flags cell as part of the PWM specifier.
-+ * In most cases, the format of the flags cell uses the standard values
-+ * defined in this header.
-+ */
-+
-+#ifndef _DT_BINDINGS_PWM_PWM_H
-+#define _DT_BINDINGS_PWM_PWM_H
-+
-+#define PWM_POLARITY_INVERTED			(1 << 0)
-+
-+#endif
+ 	pwm_set_period(pwm, args->args[1]);
+ 
+-	if (args->args[2] & PWM_SPEC_POLARITY)
++	if (args->args[2] & PWM_POLARITY_INVERTED)
+ 		pwm_set_polarity(pwm, PWM_POLARITY_INVERSED);
+ 	else
+ 		pwm_set_polarity(pwm, PWM_POLARITY_NORMAL);
 -- 
 1.8.1.5
 
