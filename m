@@ -1,100 +1,29 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v9 1/8] drivers: phy: add generic PHY framework
-Date: Wed, 17 Jul 2013 15:02:59 +0530
-Message-ID: <51E664CB.8050906@ti.com>
-References: <1372247257-30186-1-git-send-email-kishon@ti.com>
- <1372247257-30186-2-git-send-email-kishon@ti.com>
- <20130717062944.GA24968@kroah.com>
+From: Oleksandr Kozaruk <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/2] iio: twl6030-gpadc: TWL6030, TWL6032 GPADC driver
+Date: Wed, 17 Jul 2013 12:49:40 +0300
+Message-ID: <51E668B4.1010000@ti.com>
+References: <1373974023-23521-1-git-send-email-oleksandr.kozaruk@ti.com> <1373974023-23521-3-git-send-email-oleksandr.kozaruk@ti.com> <c8f86766-822b-4fe3-ae2a-e0b12412ef39@email.android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130717062944.GA24968@kroah.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: mchehab@redhat.com, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, swarren@nvidia.com, grant.likely@linaro.org, cesarb@cesarb.net, george.cherian@ti.com, arnd@arndb.de, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, rob.herring@calxeda.com, linux@arm.linux.org.uk, sylvester.nawrocki@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, santosh.shilimkar@ti.com, rob@landley.net, benoit.cousson@linaro.org, akpm@linux-foundation.org, shawn.guo@linaro.org, davem@davemloft.net
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <c8f86766-822b-4fe3-ae2a-e0b12412ef39-2ueSQiBKiTY7tOexoI0I+QC/G2K4zDHf@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org, milo.kim-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hello Jonathan,
 
-On Wednesday 17 July 2013 11:59 AM, Greg KH wrote:
-> On Wed, Jun 26, 2013 at 05:17:29PM +0530, Kishon Vijay Abraham I wrote:
->> +menuconfig GENERIC_PHY
->> +	tristate "PHY Subsystem"
->> +	help
->> +	  Generic PHY support.
->> +
->> +	  This framework is designed to provide a generic interface for PHY
->> +	  devices present in the kernel. This layer will have the generic
->> +	  API by which phy drivers can create PHY using the phy framework and
->> +	  phy users can obtain reference to the PHY.
-> 
-> Shouldn't this be something that other drivers select?  How will anyone
-> know if they need this or not?
+ >Two very quick comments based on quick glance as it may be a while 
+before I can do a full review.
 
-All the PHY drivers should go here. So only if *GENERIC_PHY* is enabled those
-PHY drivers can be selected like in [1].
-The PHY consumer driver should ideally use *depends on* in their Kconfig.
+ >We still have channels that are only usable for temperature being 
+output to user space as voltage channels? Is the conversion so very hard?
 
-[1] ->
-http://archive.arm.linux.org.uk/lurker/message/20130628.134308.4a8f7668.ca.html
-> 
->> --- /dev/null
->> +++ b/drivers/phy/phy-core.c
->> @@ -0,0 +1,544 @@
->> +/*
->> + * phy-core.c  --  Generic Phy framework.
->> + *
->> + * Copyright (C) 2013 Texas Instruments
->> + *
->> + * Author: Kishon Vijay Abraham I <kishon@ti.com>
->> + *
->> + * This program is free software; you can redistribute  it and/or modify it
->> + * under  the terms of  the GNU General  Public License as published by the
->> + * Free Software Foundation;  either version 2 of the  License, or (at your
->> + * option) any later version.
-> 
-> You really mean "any later version" (I have to ask)?
+Can you please clarify what should return temperature channel for 
+in_tempX_input (processed)? Is it voltage or Celsius degree?
+in_tempX_raw should return ADC code? Right?
 
-That was copied from somewhere :-s
-> 
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + *
->> + * You should have received a copy of the GNU General Public License
->> + * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-> 
-> Are these two paragraphs needed?  This isn't a "program", and they got a
-> copy of the GPL already with the kernel.
-
-hmm.. I can remove that.
-> 
->> +static struct class *phy_class;
-> 
-> Why do you need a class?
-
-Wanted to group all the PHY drivers to be used by different subsystems
-(SATA/USB/PCIE/HDMI/VIDEO) into a single entity. There were some comments in my
-initial version [3] on using a bus_type instead of class but then it was
-decided to go with class itself.
-
-[3] -> http://lkml.indiana.edu/hypermail/linux/kernel/1302.2/01389.html
-> 
-> When modifying/adding new sysfs stuff, you need a Documentation/ABI/
-> entry as well.
-
-I'm not actually adding any new sysfs entry other than what a *class_create*
-must have created. Do I need to add one for that?
-
-Thanks
-Kishon
+Regards,
+OK.
