@@ -1,53 +1,180 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 5/9] ARM: dts: omap5-uevm: update LDO3 voltage to 1.5V and
- settings
-Date: Wed, 17 Jul 2013 11:45:34 -0500
-Message-ID: <1374079538-19548-6-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 1/9] ARM: dts: omap5-uevm: document regulator signals used on the actual board
+Date: Wed, 17 Jul 2013 11:45:30 -0500
+Message-ID: <1374079538-19548-2-git-send-email-nm@ti.com>
 References: <1374079538-19548-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1374079538-19548-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1374079538-19548-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <benoit.cousson@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, J Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Y29tbWl0IGUwMGMyN2VmM2I0YzIzZTM5ZDBhNzdiN2M4ZTViZTQ0YzI4MDAxYzcKKEFSTTogZHRz
-OiBPTUFQNTogQWRkIFBhbG1hcyBNRkQgbm9kZSBhbmQgcmVndWxhdG9yIG5vZGVzKQppbnRyb2R1
-Y2VkIHJlZ3VsYXRvciBlbnRyaWVzIGZvciBPTUFQNXVFVk0uCgpIb3dldmVyLCBUaGUgcmVndWxh
-dG9yIGluZm9ybWF0aW9uIGlzIGJhc2VkIG9uIGFuIG9sZGVyIHRlbXBvcmFyeQpwcmUtcHJvZHVj
-dGlvbiBib2FyZCB2YXJpYW50IGFuZCBkb2VzIG5vdCByZWZsZWN0IHByb2R1Y3Rpb24gYm9hcmQK
-NzUwLTI2MjgtWFhYIGJvYXJkcy4KCkxETzMgc3VwcGxpZXMgTG93IExhdGVuY3kgSW50ZXJmYWNl
-KExMSSkgaGFyZHdhcmUgbW9kdWxlIHdoaWNoIGlzIGEKc3BlY2lhbCBoYXJkd2FyZSB0byBjb21t
-dW5pY2F0ZSB3aXRoIE1vZGVtLiBIb3dldmVyIHNpbmNlIHVFVk0gaXMKbm90IHNldHVwIGJ5IGRl
-ZmF1bHQgZm9yIHRoaXMgY29tbXVuaWNhdGlvbiwgdGhpcyBzaG91bGQgYmUgZGlzYWJsZWQKYnkg
-ZGVmYXVsdC4KCkZ1cnRoZXIsIHZkZGFfbGxpIGlzIHN1cHBvc2VkIHRvIGJlIDEuNVYgYW5kIG5v
-dCAzVi4KClJlcG9ydGVkLWJ5OiBNYXJjIErDvHR0bmVyIDxtLWp1ZXR0bmVyQHRpLmNvbT4KU2ln
-bmVkLW9mZi1ieTogTmlzaGFudGggTWVub24gPG5tQHRpLmNvbT4KLS0tCiBhcmNoL2FybS9ib290
-L2R0cy9vbWFwNS11ZXZtLmR0cyB8ICAgIDcgKysrKy0tLQogMSBmaWxlIGNoYW5nZWQsIDQgaW5z
-ZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0
-cy9vbWFwNS11ZXZtLmR0cyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LXVldm0uZHRzCmluZGV4
-IGE1NWY0ZDguLmM2ZDU2MGIgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LXVl
-dm0uZHRzCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LXVldm0uZHRzCkBAIC0zNjIsMTAg
-KzM2MiwxMSBAQAogCQkJCWxkbzNfcmVnOiBsZG8zIHsKIAkJCQkJLyogVkREQVBIWV9NRE06IHZk
-ZGFfbGxpICovCiAJCQkJCXJlZ3VsYXRvci1uYW1lID0gImxkbzMiOwotCQkJCQlyZWd1bGF0b3It
-bWluLW1pY3Jvdm9sdCA9IDwzMDAwMDAwPjsKLQkJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQg
-PSA8MzAwMDAwMD47Ci0JCQkJCXJlZ3VsYXRvci1hbHdheXMtb247CisJCQkJCXJlZ3VsYXRvci1t
-aW4tbWljcm92b2x0ID0gPDE1MDAwMDA+OworCQkJCQlyZWd1bGF0b3ItbWF4LW1pY3Jvdm9sdCA9
-IDwxNTAwMDAwPjsKIAkJCQkJcmVndWxhdG9yLWJvb3Qtb247CisJCQkJCS8qIE9ubHkgaWYgTW9k
-ZW0gaXMgdXNlZCAqLworCQkJCQlzdGF0dXMgPSAiZGlzYWJsZWQiOwogCQkJCX07CiAKIAkJCQls
-ZG80X3JlZzogbGRvNCB7Ci0tIAoxLjcuOS41CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpkZXZpY2V0cmVlLWRpc2N1c3MgbWFpbGluZyBsaXN0CmRldmlj
-ZXRyZWUtZGlzY3Vzc0BsaXN0cy5vemxhYnMub3JnCmh0dHBzOi8vbGlzdHMub3psYWJzLm9yZy9s
-aXN0aW5mby9kZXZpY2V0cmVlLWRpc2N1c3MK
+commit e00c27ef3b4c23e39d0a77b7c8e5be44c28001c7
+(ARM: dts: OMAP5: Add Palmas MFD node and regulator nodes)
+introduced regulator entries for OMAP5uEVM.
+
+However, currently we use the Palmas regulator names which is used for
+different purposes on uEVM. Document the same based on 750-2628-XXX
+boards - which is meant to be supported by this dts.
+
+Reported-by: Marc J=C3=BCttner <m-juettner@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/boot/dts/omap5-uevm.dts |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5=
+-uevm.dts
+index 08b7267..b430b8f 100644
+--- a/arch/arm/boot/dts/omap5-uevm.dts
++++ b/arch/arm/boot/dts/omap5-uevm.dts
+@@ -282,6 +282,7 @@
+=20
+ 			regulators {
+ 				smps123_reg: smps123 {
++					/* VDD_OPP_MPU */
+ 					regulator-name =3D "smps123";
+ 					regulator-min-microvolt =3D < 600000>;
+ 					regulator-max-microvolt =3D <1500000>;
+@@ -290,6 +291,7 @@
+ 				};
+=20
+ 				smps45_reg: smps45 {
++					/* VDD_OPP_MM */
+ 					regulator-name =3D "smps45";
+ 					regulator-min-microvolt =3D < 600000>;
+ 					regulator-max-microvolt =3D <1310000>;
+@@ -298,6 +300,7 @@
+ 				};
+=20
+ 				smps6_reg: smps6 {
++					/* VDD_DDR3 - over VDD_SMPS6 */
+ 					regulator-name =3D "smps6";
+ 					regulator-min-microvolt =3D <1200000>;
+ 					regulator-max-microvolt =3D <1200000>;
+@@ -306,6 +309,7 @@
+ 				};
+=20
+ 				smps7_reg: smps7 {
++					/* VDDS_1v8_OMAP over VDDS_1v8_MAIN */
+ 					regulator-name =3D "smps7";
+ 					regulator-min-microvolt =3D <1800000>;
+ 					regulator-max-microvolt =3D <1800000>;
+@@ -314,6 +318,7 @@
+ 				};
+=20
+ 				smps8_reg: smps8 {
++					/* VDD_OPP_CORE */
+ 					regulator-name =3D "smps8";
+ 					regulator-min-microvolt =3D < 600000>;
+ 					regulator-max-microvolt =3D <1310000>;
+@@ -322,6 +327,7 @@
+ 				};
+=20
+ 				smps9_reg: smps9 {
++					/* VDDA_2v1_AUD over VDD_2v1 */
+ 					regulator-name =3D "smps9";
+ 					regulator-min-microvolt =3D <2100000>;
+ 					regulator-max-microvolt =3D <2100000>;
+@@ -331,6 +337,7 @@
+ 				};
+=20
+ 				smps10_reg: smps10 {
++					/* VBUS_5V_OTG */
+ 					regulator-name =3D "smps10";
+ 					regulator-min-microvolt =3D <5000000>;
+ 					regulator-max-microvolt =3D <5000000>;
+@@ -339,6 +346,7 @@
+ 				};
+=20
+ 				ldo1_reg: ldo1 {
++					/* VDDAPHY_CAM: vdda_csiport */
+ 					regulator-name =3D "ldo1";
+ 					regulator-min-microvolt =3D <2800000>;
+ 					regulator-max-microvolt =3D <2800000>;
+@@ -347,6 +355,7 @@
+ 				};
+=20
+ 				ldo2_reg: ldo2 {
++					/* VCC_2V8_DISP: Does not go anywhere */
+ 					regulator-name =3D "ldo2";
+ 					regulator-min-microvolt =3D <2900000>;
+ 					regulator-max-microvolt =3D <2900000>;
+@@ -355,6 +364,7 @@
+ 				};
+=20
+ 				ldo3_reg: ldo3 {
++					/* VDDAPHY_MDM: vdda_lli */
+ 					regulator-name =3D "ldo3";
+ 					regulator-min-microvolt =3D <3000000>;
+ 					regulator-max-microvolt =3D <3000000>;
+@@ -363,6 +373,7 @@
+ 				};
+=20
+ 				ldo4_reg: ldo4 {
++					/* VDDAPHY_DISP: vdda_dsiport/hdmi */
+ 					regulator-name =3D "ldo4";
+ 					regulator-min-microvolt =3D <2200000>;
+ 					regulator-max-microvolt =3D <2200000>;
+@@ -371,6 +382,7 @@
+ 				};
+=20
+ 				ldo5_reg: ldo5 {
++					/* VDDA_1V8_PHY: usb/sata/hdmi.. */
+ 					regulator-name =3D "ldo5";
+ 					regulator-min-microvolt =3D <1800000>;
+ 					regulator-max-microvolt =3D <1800000>;
+@@ -379,6 +391,7 @@
+ 				};
+=20
+ 				ldo6_reg: ldo6 {
++					/* VDDS_1V2_WKUP: hsic/ldo_emu_wkup */
+ 					regulator-name =3D "ldo6";
+ 					regulator-min-microvolt =3D <1500000>;
+ 					regulator-max-microvolt =3D <1500000>;
+@@ -387,6 +400,7 @@
+ 				};
+=20
+ 				ldo7_reg: ldo7 {
++					/* VDD_VPP: vpp1 */
+ 					regulator-name =3D "ldo7";
+ 					regulator-min-microvolt =3D <1500000>;
+ 					regulator-max-microvolt =3D <1500000>;
+@@ -395,6 +409,7 @@
+ 				};
+=20
+ 				ldo8_reg: ldo8 {
++					/* VDD_3v0: Does not go anywhere */
+ 					regulator-name =3D "ldo8";
+ 					regulator-min-microvolt =3D <1500000>;
+ 					regulator-max-microvolt =3D <1500000>;
+@@ -403,6 +418,7 @@
+ 				};
+=20
+ 				ldo9_reg: ldo9 {
++					/* VCC_DV_SDIO: vdds_sdcard */
+ 					regulator-name =3D "ldo9";
+ 					regulator-min-microvolt =3D <1800000>;
+ 					regulator-max-microvolt =3D <3300000>;
+@@ -411,6 +427,7 @@
+ 				};
+=20
+ 				ldoln_reg: ldoln {
++					/* VDDA_1v8_REF: vdds_osc/mm_l4per.. */
+ 					regulator-name =3D "ldoln";
+ 					regulator-min-microvolt =3D <1800000>;
+ 					regulator-max-microvolt =3D <1800000>;
+@@ -419,6 +436,7 @@
+ 				};
+=20
+ 				ldousb_reg: ldousb {
++					/* VDDA_3V_USB: VDDA_USBHS33 */
+ 					regulator-name =3D "ldousb";
+ 					regulator-min-microvolt =3D <3250000>;
+ 					regulator-max-microvolt =3D <3250000>;
+--=20
+1.7.9.5
