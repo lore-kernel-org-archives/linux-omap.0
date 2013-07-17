@@ -1,15 +1,15 @@
 From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v1 2/4] mtd: nand: omap: add support for BCH16_ECC - ELM driver updates
-Date: Thu, 18 Jul 2013 01:22:04 +0530
-Message-ID: <1374090726-9393-3-git-send-email-pekon@ti.com>
+Subject: [PATCH v1 1/4] mtd: nand: omap: add support for BCH16_ECC - DT updates
+Date: Thu, 18 Jul 2013 01:22:03 +0530
+Message-ID: <1374090726-9393-2-git-send-email-pekon@ti.com>
 References: <1374090726-9393-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55989 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38177 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752393Ab3GQTy3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Jul 2013 15:54:29 -0400
+	id S1752264Ab3GQTy0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Jul 2013 15:54:26 -0400
 In-Reply-To: <1374090726-9393-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -30,75 +30,53 @@ OOBsize per page >= 26 * (page-size / 512)
 
 Signed-off-by: Pekon Gupta <pekon@ti.com>
 ---
- drivers/mtd/devices/elm.c         | 29 +++++++++++++++++++++++++++++
- include/linux/platform_data/elm.h |  8 +-------
- 2 files changed, 30 insertions(+), 7 deletions(-)
+ Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 7 +++++++
+ include/linux/platform_data/mtd-nand-omap2.h        | 7 ++++++-
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/mtd/devices/elm.c b/drivers/mtd/devices/elm.c
-index fca436e..f50f36b 100644
---- a/drivers/mtd/devices/elm.c
-+++ b/drivers/mtd/devices/elm.c
-@@ -217,6 +217,35 @@ static void elm_load_syndrome(struct elm_info *info,
- 				elm_write_reg(info, (ELM_SYNDROME_FRAGMENT_3 +
- 						 offset), cpu_to_le32(val));
- 				break;
-+			case BCH16_ECC:
-+				val =	*(ecc + 25) << 0  | *(ecc + 24) <<  8 |
-+					*(ecc + 23) << 16 | *(ecc + 22) << 24;
-+				elm_write_reg(info, (ELM_SYNDROME_FRAGMENT_0 +
-+						 offset), cpu_to_le32(val));
-+				val =	*(ecc + 21) <<  0 | *(ecc + 20) <<  8 |
-+					*(ecc + 19) << 16 | *(ecc + 18) << 24;
-+				elm_write_reg(info, (ELM_SYNDROME_FRAGMENT_1 +
-+						 offset), cpu_to_le32(val));
-+				val =	*(ecc + 17) <<  0 | *(ecc + 16) <<  8 |
-+					*(ecc + 15) << 16 | *(ecc + 14) << 24;
-+				elm_write_reg(info, (ELM_SYNDROME_FRAGMENT_2 +
-+						 offset), cpu_to_le32(val));
-+				val =	*(ecc + 13) <<  0 | *(ecc + 12) <<  8 |
-+					*(ecc + 11) << 16 | *(ecc + 10) << 24;
-+				elm_write_reg(info, (ELM_SYNDROME_FRAGMENT_3 +
-+						 offset), cpu_to_le32(val));
-+				val =	*(ecc +  9) <<  0 | *(ecc +  8) <<  8 |
-+					*(ecc +  7) << 16 | *(ecc +  6) << 24;
-+				elm_write_reg(info, (ELM_SYNDROME_FRAGMENT_4 +
-+						 offset), cpu_to_le32(val));
-+				val =	*(ecc +  5) <<  0 | *(ecc +  4) <<  8 |
-+					*(ecc +  3) << 16 | *(ecc +  2) << 24;
-+				elm_write_reg(info, (ELM_SYNDROME_FRAGMENT_5 +
-+						 offset), cpu_to_le32(val));
-+				val =	*(ecc +  1) <<  0 | *(ecc +  0) <<  8;
-+				elm_write_reg(info, (ELM_SYNDROME_FRAGMENT_6 +
-+						 offset), cpu_to_le32(val));
-+				break;
- 			}
- 		}
- 	}
-diff --git a/include/linux/platform_data/elm.h b/include/linux/platform_data/elm.h
-index d16465b..18b37d8 100644
---- a/include/linux/platform_data/elm.h
-+++ b/include/linux/platform_data/elm.h
-@@ -21,19 +21,13 @@
- enum bch_ecc {
- 	BCH4_ECC = 0,
- 	BCH8_ECC,
-+	BCH16_ECC
+diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+index d307c67..017d818 100644
+--- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
++++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+@@ -66,6 +66,13 @@ Optional properties:
+ 					* depends on CONFIG_MTD_NAND_OMAP_BCH
+ 					* requires <elm_id> to be specified
+ 
++	"bch16_code_hw"             	16-bit BCH ECC
++					- ECC calculation in hardware
++					- Error detection in hardware
++					- ECC layout compatible with ROM code
++					* depends on CONFIG_MTD_NAND_OMAP_BCH
++					* requires <elm_id> to be specified
++
+ 
+  - elm_id:			Specifies elm device node. This is required to
+ 				support some BCH ECC schemes mentioned above.
+diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
+index 9fcee61..50a6413 100644
+--- a/include/linux/platform_data/mtd-nand-omap2.h
++++ b/include/linux/platform_data/mtd-nand-omap2.h
+@@ -37,7 +37,9 @@ enum omap_ecc {
+ 	/* 8-bit  ECC calculation by GPMC, Error detection by Software */
+ 	OMAP_ECC_BCH8_CODE_HW_DETECTION_SW,
+ 	/* 8-bit  ECC calculation by GPMC, Error detection by ELM */
+-	OMAP_ECC_BCH8_CODE_HW
++	OMAP_ECC_BCH8_CODE_HW,
++	/* 16-bit ECC calculation by GPMC, Error detection by ELM */
++	OMAP_ECC_BCH16_CODE_HW
  };
  
- /* ELM support 8 error syndrome process */
- #define ERROR_VECTOR_MAX		8
- #define ELM_MAX_DETECTABLE_ERRORS	16
+ struct gpmc_nand_regs {
+@@ -57,6 +59,9 @@ struct gpmc_nand_regs {
+ 	void __iomem	*gpmc_bch_result1[GPMC_BCH_NUM_REMAINDER];
+ 	void __iomem	*gpmc_bch_result2[GPMC_BCH_NUM_REMAINDER];
+ 	void __iomem	*gpmc_bch_result3[GPMC_BCH_NUM_REMAINDER];
++	void __iomem	*gpmc_bch_result4[GPMC_BCH_NUM_REMAINDER];
++	void __iomem	*gpmc_bch_result5[GPMC_BCH_NUM_REMAINDER];
++	void __iomem	*gpmc_bch_result6[GPMC_BCH_NUM_REMAINDER];
+ };
  
--#define BCH8_ECC_OOB_BYTES		13
--#define BCH4_ECC_OOB_BYTES		7
--/* RBL requires 14 byte even though BCH8 uses only 13 byte */
--#define BCH8_SIZE			(BCH8_ECC_OOB_BYTES + 1)
--/* Uses 1 extra byte to handle erased pages */
--#define BCH4_SIZE			(BCH4_ECC_OOB_BYTES + 1)
--
- /**
-  * struct elm_errorvec - error vector for elm
-  * @error_reported:		set true for vectors error is reported
+ struct omap_nand_platform_data {
 -- 
 1.8.1
 
