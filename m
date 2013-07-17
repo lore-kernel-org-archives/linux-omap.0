@@ -1,47 +1,76 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/9] ARM: dts: omap5-uevm: update SMPS9 settings
-Date: Wed, 17 Jul 2013 11:45:31 -0500
-Message-ID: <1374079538-19548-3-git-send-email-nm@ti.com>
-References: <1374079538-19548-1-git-send-email-nm@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 2/3] ARM: OMAP2+: omap_device: add pinctrl handling
+Date: Wed, 17 Jul 2013 19:56:22 +0300
+Message-ID: <51E6CCB6.2000907@ti.com>
+References: <1374061312-25469-1-git-send-email-grygorii.strashko@ti.com> <1374061312-25469-3-git-send-email-grygorii.strashko@ti.com> <20130717153838.GJ7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1374079538-19548-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:47692 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755507Ab3GQRFk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Jul 2013 13:05:40 -0400
+In-Reply-To: <20130717153838.GJ7656@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Linus Walleij <linus.walleij@linaro.org>, Stephen Warren <swarren@wwwdotorg.org>
 
-Y29tbWl0IGUwMGMyN2VmM2I0YzIzZTM5ZDBhNzdiN2M4ZTViZTQ0YzI4MDAxYzcKKEFSTTogZHRz
-OiBPTUFQNTogQWRkIFBhbG1hcyBNRkQgbm9kZSBhbmQgcmVndWxhdG9yIG5vZGVzKQppbnRyb2R1
-Y2VkIHJlZ3VsYXRvciBlbnRyaWVzIGZvciBPTUFQNXVFVk0uCgpIb3dldmVyLCBUaGUgcmVndWxh
-dG9yIGluZm9ybWF0aW9uIGlzIGJhc2VkIG9uIGFuIG9sZGVyIHRlbXBvcmFyeQpwcmUtcHJvZHVj
-dGlvbiBib2FyZCB2YXJpYW50IGFuZCBkb2VzIG5vdCByZWZsZWN0IHByb2R1Y3Rpb24gYm9hcmQK
-NzUwLTI2MjgtWFhYIGJvYXJkcy4KClNNUFM5IHN1cHBsaWVzIFRXTDYwNDAgb3ZlciBWRERBXzJ2
-MV9BVUQuIFRoaXMgcmVndWxhdG9yIG5lZWRzIHRvIGJlCmVuYWJsZWQgb25seSB3aGVuIGF1ZGlv
-IGlzIGFjdGl2ZS4gU2luY2UgaXQgZG9lcyBub3QgY29tZSBhY3RpdmUgYnkKZGVmYXVsdCwgaXQg
-ZG9lcyBub3QgcmVxdWlyZSAiYWx3YXlzLW9uIiBvciAiYm9vdC1vbiIuCgpSZXBvcnRlZC1ieTog
-TWFyYyBKw7x0dG5lciA8bS1qdWV0dG5lckB0aS5jb20+ClNpZ25lZC1vZmYtYnk6IE5pc2hhbnRo
-IE1lbm9uIDxubUB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMg
-fCAgICAyIC0tCiAxIGZpbGUgY2hhbmdlZCwgMiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9h
-cmNoL2FybS9ib290L2R0cy9vbWFwNS11ZXZtLmR0cyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1
-LXVldm0uZHRzCmluZGV4IGI0MzBiOGYuLjY3MDlmMWUgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL2Jv
-b3QvZHRzL29tYXA1LXVldm0uZHRzCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LXVldm0u
-ZHRzCkBAIC0zMzEsOCArMzMxLDYgQEAKIAkJCQkJcmVndWxhdG9yLW5hbWUgPSAic21wczkiOwog
-CQkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwyMTAwMDAwPjsKIAkJCQkJcmVndWxhdG9y
-LW1heC1taWNyb3ZvbHQgPSA8MjEwMDAwMD47Ci0JCQkJCXJlZ3VsYXRvci1hbHdheXMtb247Ci0J
-CQkJCXJlZ3VsYXRvci1ib290LW9uOwogCQkJCQl0aSxzbXBzLXJhbmdlID0gPDB4ODA+OwogCQkJ
-CX07CiAKLS0gCjEuNy45LjUKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmRldmljZXRyZWUtZGlzY3VzcyBtYWlsaW5nIGxpc3QKZGV2aWNldHJlZS1kaXNj
-dXNzQGxpc3RzLm96bGFicy5vcmcKaHR0cHM6Ly9saXN0cy5vemxhYnMub3JnL2xpc3RpbmZvL2Rl
-dmljZXRyZWUtZGlzY3Vzcwo=
+On 07/17/2013 06:38 PM, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko@ti.com> [130717 04:49]:
+>> Before switching to DT pinctrl states of OMAP IPs have been handled by hwmod
+>> framework. After switching to DT-boot the pinctrl handling was dropped from
+>> hwmod framework and, as it was recommended, OMAP IP's drivers have to be updated
+>> to handle pinctrl states by itself using pinctrl_pm_select_xx() helpers
+>> (see http://lists.infradead.org/pipermail/linux-arm-kernel/2013-June/173514.html)
+>>
+>> But this is not right for OMAP2+ SoC where real IPs state is controlled
+>> by omap_device core which enables/disables modules & clocks actually.
+>
+> I'm not convinced we should try to handle this in a generic way
+> as only some devices need dynamic remuxing of some pins.
+>
+>> For example, if OMAP I2C driver will handle pinctrl state during system wide
+>> suspend the following issue may occure:
+>> - suspend_noirq - I2C device can be still active because of PM auto-suspend
+>>    |-_od_suspend_noirq
+>>       |- omap_i2c_suspend_noirq
+>>          |- PINs state set to SLEEP
+>>    |- pm_generic_runtime_suspend
+>>       |- omap_i2c_runtime_suspend()
+>>          |- PINs state set to IDLE  <--- *oops* PINs state is IDLE and not SLEEP
+>>    |- omap_device_idle()
+>>       |- omap_hwmod_idle()
+>>          |- _idle()
+>>             |- disbale module (sysc&clocks)
+>
+> And in this example you are assuming that you need separate idle and
+> sleep states, which is not true at least for most cases I've seen.
+
+I don't need both states (at least right now) :), but
+- if any OMAP2+ driver will have two states defined: "idle" and "sleep"
+- and if it will try to manage them from drivers callbacks only using
+   pure calls to pinctrl_pm_select_xx() helpers
+
+the "idle" state will be selected during suspend and *not* "sleep".
+
+>
+> It is possible that am33xx needs separate idle and sleep states, but
+> most likely only for some pins. For omap[345] we can get away with
+> just the default state for most cases.
+>
+
+
+In case, if only "default" state is defined for device - nothing will
+  be done by OMAP device framework for it (I mean any call to
+pinctrl_pm_select_xx() will do nothing - it just checks that there is
+no state and returns 0).
+
+> Regards,
+>
+> Tony
+>
+
+Regards,
+- grygorii
