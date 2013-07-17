@@ -1,75 +1,53 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 9/9] ARM: dts: omap5-uevm: update SDCARD LDO9 and resource REGEN3
-Date: Wed, 17 Jul 2013 11:45:38 -0500
-Message-ID: <1374079538-19548-10-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 6/9] ARM: dts: omap5-uevm: update LDO4 voltage to 1.5V and
+ settings
+Date: Wed, 17 Jul 2013 11:45:35 -0500
+Message-ID: <1374079538-19548-7-git-send-email-nm@ti.com>
 References: <1374079538-19548-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1374079538-19548-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <benoit.cousson@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, J Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1374079538-19548-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-commit e00c27ef3b4c23e39d0a77b7c8e5be44c28001c7
-(ARM: dts: OMAP5: Add Palmas MFD node and regulator nodes)
-introduced regulator entries for OMAP5uEVM.
-
-However, The regulator information is based on an older temporary
-pre-production board variant and does not reflect production board
-750-2628-XXX boards.
-
-LDO9 supplies the board specified vdds_sdcard supply going within SoC
-specification of 1.8V or 3.0V. Further the supply is controlled by
-switch enabled by REGEN3. So, introduce REGEN3 and map sdcard slot to
-be powered by LDO9. Remove 'always-on' allowing the LDO to be disabled
-on need basis.
-
-Reported-by: Marc J=C3=BCttner <m-juettner@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/boot/dts/omap5-uevm.dts |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5=
--uevm.dts
-index ef05676..65d7b60 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -235,7 +235,7 @@
- };
-=20
- &mmc1 {
--	vmmc-supply =3D <&vmmcsd_fixed>;
-+	vmmc-supply =3D <&ldo9_reg>;
- 	bus-width =3D <4>;
- };
-=20
-@@ -417,8 +417,7 @@
- 					/* VCC_DV_SDIO: vdds_sdcard */
- 					regulator-name =3D "ldo9";
- 					regulator-min-microvolt =3D <1800000>;
--					regulator-max-microvolt =3D <3300000>;
--					regulator-always-on;
-+					regulator-max-microvolt =3D <3000000>;
- 					regulator-boot-on;
- 				};
-=20
-@@ -439,6 +438,13 @@
- 					regulator-always-on;
- 					regulator-boot-on;
- 				};
-+
-+				regen3_reg: regen3 {
-+					/* REGEN3 controls LDO9 supply to card */
-+					regulator-name =3D "regen3";
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
- 			};
- 		};
- 	};
---=20
-1.7.9.5
+Y29tbWl0IGUwMGMyN2VmM2I0YzIzZTM5ZDBhNzdiN2M4ZTViZTQ0YzI4MDAxYzcKKEFSTTogZHRz
+OiBPTUFQNTogQWRkIFBhbG1hcyBNRkQgbm9kZSBhbmQgcmVndWxhdG9yIG5vZGVzKQppbnRyb2R1
+Y2VkIHJlZ3VsYXRvciBlbnRyaWVzIGZvciBPTUFQNXVFVk0uCgpIb3dldmVyLCBUaGUgcmVndWxh
+dG9yIGluZm9ybWF0aW9uIGlzIGJhc2VkIG9uIGFuIG9sZGVyIHRlbXBvcmFyeQpwcmUtcHJvZHVj
+dGlvbiBib2FyZCB2YXJpYW50IGFuZCBkb2VzIG5vdCByZWZsZWN0IHByb2R1Y3Rpb24gYm9hcmQK
+NzUwLTI2MjgtWFhYIGJvYXJkcy4KCkxETzQgc3VwcGxpZXMgVkREQVBIWV9ESVNQIHdoaWNoIGlz
+IHZkZGFfZHNpcG9ydGEvYy92ZGRhX2hkbWkKClRoaXMgY2FuIG9ubHkgYmUgc3VwcGxpZWQgYXQg
+MS41ViBvciAxLjhWIGFuZCB3ZSBjdXJyZW50bHkKc3VwcGx5IDIuMlYuCgpUbyBwcmV2ZW50IGFu
+eSBwb3RlbnRpYWwgZGV2aWNlIGRhbWFnZSByaXNrLCB1c2UgdGhlIHNwZWNpZmllZAoxLjVWLTEu
+OFYgc3VwcGx5LgoKUmVtb3ZlICdhbHdheXMtb24nIGFuZCAnYm9vdC1vbicgc2V0dGluZ3MgaGVy
+ZSBhcyBpdCBpcyBhICdvbiBuZWVkJwpzdXBwbHkgdG8gU29DIElQIGFuZCBpcyBub3QgZW5hYmxl
+ZCBieSBQTUlDIGJ5IGRlZmF1bHQgYXQgYm9vdC4KClJlcG9ydGVkLWJ5OiBNYXJjIErDvHR0bmVy
+IDxtLWp1ZXR0bmVyQHRpLmNvbT4KU2lnbmVkLW9mZi1ieTogTmlzaGFudGggTWVub24gPG5tQHRp
+LmNvbT4KLS0tCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNS11ZXZtLmR0cyB8ICAgIDYgKystLS0t
+CiAxIGZpbGUgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQoKZGlmZiAt
+LWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LXVldm0uZHRzIGIvYXJjaC9hcm0vYm9vdC9k
+dHMvb21hcDUtdWV2bS5kdHMKaW5kZXggYzZkNTYwYi4uMTU1MGQ2YSAxMDA2NDQKLS0tIGEvYXJj
+aC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21h
+cDUtdWV2bS5kdHMKQEAgLTM3MiwxMCArMzcyLDggQEAKIAkJCQlsZG80X3JlZzogbGRvNCB7CiAJ
+CQkJCS8qIFZEREFQSFlfRElTUDogdmRkYV9kc2lwb3J0L2hkbWkgKi8KIAkJCQkJcmVndWxhdG9y
+LW5hbWUgPSAibGRvNCI7Ci0JCQkJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPDIyMDAwMDA+
+OwotCQkJCQlyZWd1bGF0b3ItbWF4LW1pY3Jvdm9sdCA9IDwyMjAwMDAwPjsKLQkJCQkJcmVndWxh
+dG9yLWFsd2F5cy1vbjsKLQkJCQkJcmVndWxhdG9yLWJvb3Qtb247CisJCQkJCXJlZ3VsYXRvci1t
+aW4tbWljcm92b2x0ID0gPDE1MDAwMDA+OworCQkJCQlyZWd1bGF0b3ItbWF4LW1pY3Jvdm9sdCA9
+IDwxODAwMDAwPjsKIAkJCQl9OwogCiAJCQkJbGRvNV9yZWc6IGxkbzUgewotLSAKMS43LjkuNQoK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZGV2aWNldHJl
+ZS1kaXNjdXNzIG1haWxpbmcgbGlzdApkZXZpY2V0cmVlLWRpc2N1c3NAbGlzdHMub3psYWJzLm9y
+ZwpodHRwczovL2xpc3RzLm96bGFicy5vcmcvbGlzdGluZm8vZGV2aWNldHJlZS1kaXNjdXNzCg==
