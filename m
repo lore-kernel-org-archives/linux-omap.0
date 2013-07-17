@@ -1,79 +1,48 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 3/3] ARM: dts: omap4-sdp: add dynamic pin states for uart3/4
-Date: Wed, 17 Jul 2013 19:41:29 +0300
-Message-ID: <51E6C939.40208@ti.com>
-References: <1374061312-25469-1-git-send-email-grygorii.strashko@ti.com> <1374061312-25469-4-git-send-email-grygorii.strashko@ti.com> <20130717153248.GI7656@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 7/9] ARM: dts: omap5-uevm: update LDO6 voltage to 1.2V
+Date: Wed, 17 Jul 2013 11:45:36 -0500
+Message-ID: <1374079538-19548-8-git-send-email-nm@ti.com>
+References: <1374079538-19548-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130717153248.GI7656@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <benoit.cousson@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Stephen Warren <swarren@wwwdotorg.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1374079538-19548-1-git-send-email-nm@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <benoit.cousson@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, J Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On 07/17/2013 06:32 PM, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko@ti.com> [130717 04:49]:
->> Add dynamic "active"/"idle" pin states for uart3/4 which will be applied
->> when uart3/4 state is switched from active to idle and back by Runtime
->> PM or during system suspend.
->
-> This is good for testing code, but should not be merged because
-> omap4 has the iopad wake-ups available for uarts. So those can
-> be always enabled.
-
-In this case, 2 IRQ will be received per each UART RX event - one from
-PRCM and from UART - and that's not good from PM perspective (It will
-affect on CPUIdle and CPUFreq at least).
-
--- log when wake-up enabled always
-106:        729          0       GIC 106  OMAP UART2
-115:         13          0       GIC 115  mmc0
-118:         68          0       GIC 118  mmc1
-151:          0          0       GIC 151  twl6040
-361:        322          0      PRCM  hwmod_io
-             ^^^^
--- log when wake-up enabled only when UART3 (console) is active
-106:       1104          0       GIC 106  OMAP UART2
-115:         13          0       GIC 115  mmc0
-118:         68          0       GIC 118  mmc1
-151:          0          0       GIC 151  twl6040
-361:          7          0      PRCM  hwmod_io
-
-The same is valid for all devices which will leave WAKEUP_EN set
-all the time (
-
->
->> --- a/arch/arm/boot/dts/omap4-sdp.dts
->> +++ b/arch/arm/boot/dts/omap4-sdp.dts
->> @@ -181,18 +181,40 @@
->>   		pinctrl-single,pins = <
->>   			0x100 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart3_cts_rctx.uart3_cts_rctx */
->>   			0x102 (PIN_OUTPUT | MUX_MODE0)		/* uart3_rts_sd.uart3_rts_sd */
->> -			0x104 (PIN_INPUT | MUX_MODE0)		/* uart3_rx_irrx.uart3_rx_irrx */
->>   			0x106 (PIN_OUTPUT | MUX_MODE0)		/* uart3_tx_irtx.uart3_tx_irtx */
->>   		>;
->>   	};
->
-> This just need to become:
-> 		pinctrl-single,pins = <
-> 			...
-> 			0x104 (WAKEUP_EN | PIN_INPUT_MUX_MODE0)	/* uart3_rx_irrx.uart3_rx_irrx */
-> 			...
-> 		>;
-> 		interrupts = <GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH>;
-> 	};
->
-> And so on. For am33xx you need to remux things to GPIO for the wake-up
-> events, so you should maybe test on that instead.
->
-> Regards,
->
-> Tony
->
-
-Regards,
-- grygorii
+Y29tbWl0IGUwMGMyN2VmM2I0YzIzZTM5ZDBhNzdiN2M4ZTViZTQ0YzI4MDAxYzcKKEFSTTogZHRz
+OiBPTUFQNTogQWRkIFBhbG1hcyBNRkQgbm9kZSBhbmQgcmVndWxhdG9yIG5vZGVzKQppbnRyb2R1
+Y2VkIHJlZ3VsYXRvciBlbnRyaWVzIGZvciBPTUFQNXVFVk0uCgpIb3dldmVyLCBUaGUgcmVndWxh
+dG9yIGluZm9ybWF0aW9uIGlzIGJhc2VkIG9uIGFuIG9sZGVyIHRlbXBvcmFyeQpwcmUtcHJvZHVj
+dGlvbiBib2FyZCB2YXJpYW50IGFuZCBkb2VzIG5vdCByZWZsZWN0IHByb2R1Y3Rpb24gYm9hcmQK
+NzUwLTI2MjgtWFhYIGJvYXJkcy4KCkxETzYgc3VwcGxpZXMgdGhlIGJvYXJkIHNwZWNpZmllZCBW
+RERTXzFWMl9XS1VQIHN1cHBseSBnb2luZyB0bwpsZG9fZW11X3drdXAvdmRkc19oc2ljLiBUbyBz
+dGF5IHdpdGhpbiB0aGUgU29DIHNwZWNpZmljYXRpb24gc3VwcGx5CjEuMlYgaW5zdGVhZCBvZiAx
+LjVWLgoKUmVwb3J0ZWQtYnk6IE1hcmMgSsO8dHRuZXIgPG0tanVldHRuZXJAdGkuY29tPgpTaWdu
+ZWQtb2ZmLWJ5OiBOaXNoYW50aCBNZW5vbiA8bm1AdGkuY29tPgotLS0KIGFyY2gvYXJtL2Jvb3Qv
+ZHRzL29tYXA1LXVldm0uZHRzIHwgICAgNCArKy0tCiAxIGZpbGUgY2hhbmdlZCwgMiBpbnNlcnRp
+b25zKCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29t
+YXA1LXVldm0uZHRzIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKaW5kZXggMTU1
+MGQ2YS4uM2ZmNTg3NCAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5k
+dHMKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKQEAgLTM4OCw4ICszODgs
+OCBAQAogCQkJCWxkbzZfcmVnOiBsZG82IHsKIAkJCQkJLyogVkREU18xVjJfV0tVUDogaHNpYy9s
+ZG9fZW11X3drdXAgKi8KIAkJCQkJcmVndWxhdG9yLW5hbWUgPSAibGRvNiI7Ci0JCQkJCXJlZ3Vs
+YXRvci1taW4tbWljcm92b2x0ID0gPDE1MDAwMDA+OwotCQkJCQlyZWd1bGF0b3ItbWF4LW1pY3Jv
+dm9sdCA9IDwxNTAwMDAwPjsKKwkJCQkJcmVndWxhdG9yLW1pbi1taWNyb3ZvbHQgPSA8MTIwMDAw
+MD47CisJCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDEyMDAwMDA+OwogCQkJCQlyZWd1
+bGF0b3ItYWx3YXlzLW9uOwogCQkJCQlyZWd1bGF0b3ItYm9vdC1vbjsKIAkJCQl9OwotLSAKMS43
+LjkuNQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxp
+bnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFk
+ZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
+LWFybS1rZXJuZWwK
