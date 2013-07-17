@@ -1,56 +1,108 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: musb: dsps: make it work with two instances
-Date: Wed, 17 Jul 2013 19:12:29 +0200
-Message-ID: <20130717171229.GA1516@linutronix.de>
-References: <1373031178-8871-1-git-send-email-bigeasy@linutronix.de>
- <CALF0-+Vo64Znw_iY0gOx5hGJ9mgw7OXFQ5HqBrTW4udW-Z=N+g@mail.gmail.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v9 1/8] drivers: phy: add generic PHY framework
+Date: Wed, 17 Jul 2013 10:25:10 -0700
+Message-ID: <20130717172510.GB17093@kroah.com>
+References: <1372247257-30186-1-git-send-email-kishon@ti.com>
+ <1372247257-30186-2-git-send-email-kishon@ti.com>
+ <20130717062944.GA24968@kroah.com>
+ <51E664CB.8050906@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:37455 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753646Ab3GQRMb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jul 2013 13:12:31 -0400
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CALF0-+Vo64Znw_iY0gOx5hGJ9mgw7OXFQ5HqBrTW4udW-Z=N+g@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <51E664CB.8050906@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: grant.likely@linaro.org, tony@atomide.com, balbi@ti.com, arnd@arndb.de, swarren@nvidia.com, sylvester.nawrocki@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, akpm@linux-foundation.org, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, benoit.cousson@linaro.org, mchehab@redhat.com, cesarb@cesarb.net, davem@davemloft.net, rnayak@ti.com, shawn.guo@linaro.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, nsekhar@ti.com, balajitk@ti.com, george.cherian@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <elezegarcia@gmail.com>, Felipe Balbi <balbi@ti.com>
-Cc: george.cherian@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, b-cousson@ti.com
 
-* Ezequiel Garcia | 2013-07-06 18:39:50 [-0300]:
+On Wed, Jul 17, 2013 at 03:02:59PM +0530, Kishon Vijay Abraham I wrote:
+> Hi,
+> 
+> On Wednesday 17 July 2013 11:59 AM, Greg KH wrote:
+> > On Wed, Jun 26, 2013 at 05:17:29PM +0530, Kishon Vijay Abraham I wrote:
+> >> +menuconfig GENERIC_PHY
+> >> +	tristate "PHY Subsystem"
+> >> +	help
+> >> +	  Generic PHY support.
+> >> +
+> >> +	  This framework is designed to provide a generic interface for PHY
+> >> +	  devices present in the kernel. This layer will have the generic
+> >> +	  API by which phy drivers can create PHY using the phy framework and
+> >> +	  phy users can obtain reference to the PHY.
+> > 
+> > Shouldn't this be something that other drivers select?  How will anyone
+> > know if they need this or not?
+> 
+> All the PHY drivers should go here. So only if *GENERIC_PHY* is enabled those
+> PHY drivers can be selected like in [1].
+> The PHY consumer driver should ideally use *depends on* in their Kconfig.
+> 
+> [1] ->
+> http://archive.arm.linux.org.uk/lurker/message/20130628.134308.4a8f7668.ca.html
 
->Hi Sebastian,
-Hi Ezequiel,
+No, switch it around the other way.  How would I even _know_ that I need
+to enable the generic PHY subsystem in the first place?  How can I
+determine that I need this for my hardware?  You need to give hints to
+someone who doesn't even know what a PHY is, otherwise they will always
+disable it and move on.
 
->After some minor DT tweaking on the current patchset,
->I've managed to detect an USB mass storage device in the
->second instance (host / usb1) using a Beaglebone black board.
+> >> --- /dev/null
+> >> +++ b/drivers/phy/phy-core.c
+> >> @@ -0,0 +1,544 @@
+> >> +/*
+> >> + * phy-core.c  --  Generic Phy framework.
+> >> + *
+> >> + * Copyright (C) 2013 Texas Instruments
+> >> + *
+> >> + * Author: Kishon Vijay Abraham I <kishon@ti.com>
+> >> + *
+> >> + * This program is free software; you can redistribute  it and/or modify it
+> >> + * under  the terms of  the GNU General  Public License as published by the
+> >> + * Free Software Foundation;  either version 2 of the  License, or (at your
+> >> + * option) any later version.
+> > 
+> > You really mean "any later version" (I have to ask)?
+> 
+> That was copied from somewhere :-s
 
-Beaglebone black, that one has a different device tree which is not
-mainline, right?
+So, is that what you really mean to have for this code?
 
->However, after I unplug the device, it's not recognized
->when I replug it. Maybe you can take a look at this;
->i'll do some more testings and see what I can come up with.
+> >> + * This program is distributed in the hope that it will be useful,
+> >> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> >> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> >> + * GNU General Public License for more details.
+> >> + *
+> >> + * You should have received a copy of the GNU General Public License
+> >> + * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+> > 
+> > Are these two paragraphs needed?  This isn't a "program", and they got a
+> > copy of the GPL already with the kernel.
+> 
+> hmm.. I can remove that.
+> > 
+> >> +static struct class *phy_class;
+> > 
+> > Why do you need a class?
+> 
+> Wanted to group all the PHY drivers to be used by different subsystems
+> (SATA/USB/PCIE/HDMI/VIDEO) into a single entity. There were some comments in my
+> initial version [3] on using a bus_type instead of class but then it was
+> decided to go with class itself.
+> 
+> [3] -> http://lkml.indiana.edu/hypermail/linux/kernel/1302.2/01389.html
 
-I figured out why my Host is not recognized on the second plug:
-At module load time, musb_start() is executed and it sets the
-MUSB_DEVCTL_SESSION in devctl.
-After the device is unplugged dsps_musb_try_idle() schedules a timer
-which executes the local otg_timer() function. Since the phy is in
-OTG_STATE_A_WAIT_BCON state, the MUSB_DEVCTL_SESSION bit gets removed.
-If the removal of the bit is ignored, the device is recognized after a
-re-plug.
+Ok, but what does the class usage get you?
 
-Now a question: I see that am35x and anothers also remove that flag in
-thsi case. How is the flag supposed to come back?
-I see that blackfin removes that bit and stuffs it back in. Any idea
-what should be done here?
+> > When modifying/adding new sysfs stuff, you need a Documentation/ABI/
+> > entry as well.
+> 
+> I'm not actually adding any new sysfs entry other than what a *class_create*
+> must have created. Do I need to add one for that?
 
->Also, FWIW, I think that having a separate USB phy for am35xx would be
->much better.
-So you would prefer a new file with 90% copy of what we already have in
-the nop_phy?
+If you are not creating anything in sysfs at all, why use the driver
+model?  (hint, I think you need to do something here to justify it...)
 
-Sebastian
+thanks,
+
+greg k-h
