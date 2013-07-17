@@ -1,136 +1,43 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [PATCH v2 2/2] ARM: dts: Add AES data and documentation for AM33XX
-Date: Wed, 17 Jul 2013 09:23:42 -0700
-Message-ID: <1374078222-12883-3-git-send-email-mgreer@animalcreek.com>
-References: <1374078222-12883-1-git-send-email-mgreer@animalcreek.com>
+From: Mark Jackson <mpfj-list@newflow.co.uk>
+Subject: Re: ARM: AM335x: Kernel oops when using EDMA and MMC
+Date: Wed, 17 Jul 2013 17:28:37 +0100
+Message-ID: <51E6C635.5020506@newflow.co.uk>
+References: <51E6BE84.6080905@newflow.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from p3plsmtpa06-05.prod.phx3.secureserver.net ([173.201.192.106]:51897
-	"EHLO p3plsmtpa06-05.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756440Ab3GQQX5 (ORCPT
+Received: from 217-155-41-104.dsl.in-addr.zen.co.uk ([217.155.41.104]:57560
+	"EHLO centos1.newflow.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752060Ab3GQQ2i (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Jul 2013 12:23:57 -0400
-In-Reply-To: <1374078222-12883-1-git-send-email-mgreer@animalcreek.com>
+	Wed, 17 Jul 2013 12:28:38 -0400
+In-Reply-To: <51E6BE84.6080905@newflow.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Paul Walmsley <paul@pwsan.com>, "Mark A. Greer" <mgreer@animalcreek.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Matt Porter <mporter@ti.com>, Tony Lindgren <tony@atomide.com>, Joel Fernandes <joelf@ti.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, Balaji TK <balajitk@ti.com>
 
-From: "Mark A. Greer" <mgreer@animalcreek.com>
+On 17/07/13 16:55, Mark Jackson wrote:
+> I'm trying to get the MMC port working on our custom AM3352 CPU board.
+> 
+> I have added MMC entries to out dts file (similar to [1]), and I've
+> enabled CONFIG_TI_EDMA.
+> 
+> Our board boots fine without an SD card inserted ...
+> 
+> [    0.000000] Booting Linux on physical CPU 0x0
+> [    0.000000] Linux version 3.11.0-rc1-00025-g95b9b72 (mpfj@mpfj-nanobone) (gcc version 4.6.3 (Buildroot 2013.02-dirty) ) #309 Wed Jul 17 16:37:28 BST 2013
+> ...
+> [    2.789028] VFS: Mounted root (ubifs filesystem) on device 0:12.
+> [    2.797268] devtmpfs: mounted
+> [    2.801032] Freeing unused kernel memory: 200K (c0551000 - c0583000)
+> ...
+> Welcome to Buildroot
+> nanobone login:
 
-Add the generic AM33XX AES module's device tree data and
-enable it for the am335x-evm, am335x-evmsk, and am335x-bone
-platforms.  Also add Documentation file describing the data
-for the AES module.
+I have just noticed the following in the boot log:-
 
-CC: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
----
- .../devicetree/bindings/crypto/omap-aes.txt        | 35 ++++++++++++++++++++++
- arch/arm/boot/dts/am335x-bone.dts                  |  4 +++
- arch/arm/boot/dts/am335x-evm.dts                   |  4 +++
- arch/arm/boot/dts/am335x-evmsk.dts                 |  4 +++
- arch/arm/boot/dts/am33xx.dtsi                      | 11 +++++++
- 5 files changed, 58 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/crypto/omap-aes.txt
-
-diff --git a/Documentation/devicetree/bindings/crypto/omap-aes.txt b/Documentation/devicetree/bindings/crypto/omap-aes.txt
-new file mode 100644
-index 0000000..b51d12f
---- /dev/null
-+++ b/Documentation/devicetree/bindings/crypto/omap-aes.txt
-@@ -0,0 +1,35 @@
-+OMAP SoC AES crypto Module
-+
-+Required properties:
-+
-+- compatible : Should contain entries for this and backward compatible
-+  AES versions:
-+  - "ti,omap2-aes" for OMAP2.
-+  - "ti,omap3-aes" for OMAP3.
-+  - "ti,omap4-aes" for OMAP4 and AM33XX.
-+  Note that the OMAP2 and 3 versions are compatible (OMAP3 supports
-+  more algorithms) but they are incompatible with OMAP4.
-+- ti,hwmods: Name of the hwmod associated with the AES odule
-+- reg : Offset and length of the register set for the module
-+- interrupt-parent : the phandle for the interrupt controller that
-+  services interrupts for this module.
-+- interrupts : the interrupt number for the AES odule.
-+
-+Optional properties:
-+- dmas: DMA controller phandle and DMA request ordered pairs.
-+- dma-names: DMA request names. This string corresponds 1:1 with
-+	the ordered pairs in dmas. The string naming is to be
-+	"tx" for TX request and "rx" for RX request.
-+
-+Example:
-+	/* AM335x */
-+	aes: aes@53500000 {
-+		compatible = "ti,omap4-aes";
-+		ti,hwmods = "aes";
-+		reg = <0x53500000 0xa0>;
-+		interrupt-parent = <&intc>;
-+		interrupts = <102>;
-+		dmas = <&edma 6
-+			&edma 5>;
-+		dma-names = "tx", "rx";
-+	};
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index bc75b2c..0cb454e 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -238,3 +238,7 @@
- &sham {
- 	status = "okay";
- };
-+
-+&aes {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 9b8c56d..76ba004 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -492,3 +492,7 @@
- &sham {
- 	status = "okay";
- };
-+
-+&aes {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index 61dc5d4..025a47e 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -406,3 +406,7 @@
- &sham {
- 	status = "okay";
- };
-+
-+&aes {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 63a5e95..2a7ff0f 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -540,5 +540,16 @@
- 			dmas = <&edma 36>;
- 			dma-names = "rx";
- 		};
-+
-+		aes: aes@53500000 {
-+			compatible = "ti,omap4-aes";
-+			ti,hwmods = "aes";
-+			reg = <0x53500000 0xa0>;
-+			interrupt-parent = <&intc>;
-+			interrupts = <102>;
-+			dmas = <&edma 6
-+				&edma 5>;
-+			dma-names = "tx", "rx";
-+		};
- 	};
- };
--- 
-1.7.12
-
+...
+[    1.225698] omap_hsmmc 48060000.mmc: unable to obtain RX DMA engine channel 3227000204
+...
