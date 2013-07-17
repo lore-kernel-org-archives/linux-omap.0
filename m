@@ -1,53 +1,71 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH 3/4] pinctrl: Add support for additional dynamic states
-Date: Wed, 17 Jul 2013 15:23:41 -0600
-Message-ID: <51E70B5D.6030802@wwwdotorg.org>
-References: <20130716090310.5541.36777.stgit@localhost> <20130716090536.5541.36289.stgit@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH v2 1/4] pwm: Add PWM polarity flag macro for DT
+Date: Thu, 18 Jul 2013 00:54:21 +0200
+Message-ID: <1374101664-21112-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1374101664-21112-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:41122 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754126Ab3GQVXn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jul 2013 17:23:43 -0400
-In-Reply-To: <20130716090536.5541.36289.stgit@localhost>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36058 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757814Ab3GQWxo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jul 2013 18:53:44 -0400
+In-Reply-To: <1374101664-21112-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linus.walleij@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-pwm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Boris BREZILLON <linux-arm@overkiz.com>, Shawn Guo <shawn.guo@linaro.org>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, Stephen Warren <swarren@wwwdotorg.org>, Tomasz Figa <t.figa@samsung.com>
 
-On 07/16/2013 03:05 AM, Tony Lindgren wrote:
-> To toggle dynamic states, let's add the optional active state in
-> addition to the static default state. Then if the optional active
-> state is defined, we can require that idle and sleep states cover
-> the same pingroups as the active state.
-> 
-> Then let's add pinctrl_check_dynamic() and pinctrl_select_dynamic()
-> to use instead of pinctrl_select() to avoid breaking existing users.
-> 
-> With pinctrl_check_dynamic() we can check that idle and sleep states
-> match the active state for pingroups during init, and don't need to
-> do it during runtime.
-> 
-> Then with the states pre-validated, pinctrl_select_dynamic() can
-> just toggle between the dynamic states without extra checks.
-> 
-> Note that pinctr_select_state() still has valid use cases, such as
-> changing states when the pins can be shared between two drivers
-> and don't necessarily cover the same pingroups. For dynamic runtime
-> toggling of pin states, we should eventually always use just
-> pinctrl_select_dynamic().
+Define a PWM_POLARITY_INVERTED macro in include/dt-bindings/pwm/pwm.h to
+be used by device tree sources.
 
-Something in this series should edit Documentation/pinctrl.txt to
-explain the philosophy behind the static/dynamic state split. That
-philosophy and/or semantics are more important to review than the code...
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ Documentation/devicetree/bindings/pwm/pwm.txt |  7 ++++---
+ include/dt-bindings/pwm/pwm.h                 | 14 ++++++++++++++
+ 2 files changed, 18 insertions(+), 3 deletions(-)
+ create mode 100644 include/dt-bindings/pwm/pwm.h
 
-Related to that, I'm worried that using pinctrl_select_state() and
-pinctrl_select_dynamic() appear to be mutually-exclusive options here.
-Why shouldn't e.g. a pinctrl-based I2C mux also be able to do runtime
-PM? Does the mux setting select which states are used for runtime PM, or
-does runtime PM override the basic mux setting, or must the pincrl-I2C
-mux manually implement custom runtime-PM/pinctrl interaction since
-there's no generic answer to those questions? How many more custom
-exceptions will there be?
+diff --git a/Documentation/devicetree/bindings/pwm/pwm.txt b/Documentation/devicetree/bindings/pwm/pwm.txt
+index 06e6724..8556263 100644
+--- a/Documentation/devicetree/bindings/pwm/pwm.txt
++++ b/Documentation/devicetree/bindings/pwm/pwm.txt
+@@ -43,13 +43,14 @@ because the name "backlight" would be used as fallback anyway.
+ pwm-specifier typically encodes the chip-relative PWM number and the PWM
+ period in nanoseconds.
+ 
+-Optionally, the pwm-specifier can encode a number of flags in a third cell:
+-- bit 0: PWM signal polarity (0: normal polarity, 1: inverse polarity)
++Optionally, the pwm-specifier can encode a number of flags (defined in
++<dt-bindings/pwm/pwm.h>) in a third cell:
++- PWM_POLARITY_INVERTED: invert the PWM signal polarity
+ 
+ Example with optional PWM specifier for inverse polarity
+ 
+ 	bl: backlight {
+-		pwms = <&pwm 0 5000000 1>;
++		pwms = <&pwm 0 5000000 PWM_POLARITY_INVERTED>;
+ 		pwm-names = "backlight";
+ 	};
+ 
+diff --git a/include/dt-bindings/pwm/pwm.h b/include/dt-bindings/pwm/pwm.h
+new file mode 100644
+index 0000000..96f49e8
+--- /dev/null
++++ b/include/dt-bindings/pwm/pwm.h
+@@ -0,0 +1,14 @@
++/*
++ * This header provides constants for most PWM bindings.
++ *
++ * Most PWM bindings can include a flags cell as part of the PWM specifier.
++ * In most cases, the format of the flags cell uses the standard values
++ * defined in this header.
++ */
++
++#ifndef _DT_BINDINGS_PWM_PWM_H
++#define _DT_BINDINGS_PWM_PWM_H
++
++#define PWM_POLARITY_INVERTED			(1 << 0)
++
++#endif
+-- 
+1.8.1.5
+
