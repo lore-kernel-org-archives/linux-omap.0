@@ -1,36 +1,60 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH 2/2] ARM: dts: Add AES data and documentation for AM33XX
-Date: Tue, 16 Jul 2013 18:53:43 -0500
-Message-ID: <51E5DD07.6020801@ti.com>
-References: <1374017368-5267-1-git-send-email-mgreer@animalcreek.com> <1374017368-5267-3-git-send-email-mgreer@animalcreek.com>
-Reply-To: <joelf@ti.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [GIT PULL] PHY Framework for 3.12 merge window
+Date: Tue, 16 Jul 2013 21:13:27 -0700
+Message-ID: <20130717041327.GA20201@kroah.com>
+References: <51E53EC2.5080401@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51775 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755071Ab3GPXyJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jul 2013 19:54:09 -0400
-In-Reply-To: <1374017368-5267-3-git-send-email-mgreer@animalcreek.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <51E53EC2.5080401@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: "balbi@ti.com" <balbi@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com
 
-On 07/16/2013 06:29 PM, Mark A. Greer wrote:
-> From: "Mark A. Greer" <mgreer@animalcreek.com>
+On Tue, Jul 16, 2013 at 06:08:26PM +0530, Kishon Vijay Abraham I wrote:
+> Hi Greg,
 > 
-> Add the generic AM33XX AES module's device tree data and
-> enable it for the am335x-evm, am335x-evmsk, and am335x-bone
-> platforms.  Also add Documentation file describing the data
-> for the AES module.
+> Here's the pull request for the PHY Framework which I've been working on for a
+> while.
 > 
-> CC: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+> I've applied these patches on the current linux mainline HEAD (which has one
+> commit after 3.11-rc1 is tagged).
+> 
+> Even before this framework is merged, quite a few people started using it. I've
+> queued those patches along with the PHY framework as well.
+> 
+> I'm also planning to maintain this framework henceforth and will be sending
+> pull requests for anything related to this framework or users of this framework.
+> 
+> Let me know if you want any changes on this pull request
+> 
+> Thanks
+> Kishon
+> 
+> The following changes since commit 47188d39b5deeebf41f87a02af1b3935866364cf:
+> 
+>   Merge tag 'ext4_for_linus' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/tytso/ext4 (2013-07-14 21:47:51
+> -0700)
+> 
+> are available in the git repository at:
+> 
+> 
+>   git://gitorious.org/linuxphy/linuxphy.git tags/phy-for-v3.12
 
-Tested-by: Joel Fernandes <joelf@ti.com>
+I'm sorry, but I can't pull from a non-kernel.org account.  And, why is
+this a pull request at all?   There aren't many patches in this series,
+I can take them just fine through email.  I only do pull requests from a
+_very_ limited number of people whom I have been working with for a long
+time, everyone else I handle just fine with email.
 
-Thanks,
+Also, why me for this?   Should it go through my "char/misc" tree?  Do
+you have sign-offs for the subsystems that you touch?  Will you be
+moving more phy code from the different subsystems (like all the USB phy
+code), into here as well?  Or is this just for new devices?
 
--Joel
+thanks,
+
+greg k-h
