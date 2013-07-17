@@ -1,17 +1,21 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCH 5/8] arm: dts: add omap4430 thermal data
-Date: Wed, 17 Jul 2013 11:02:46 -0400
-Message-ID: <1374073374-30946-11-git-send-email-eduardo.valentin@ti.com>
+Subject: [PATCH 7/9] arm: dts: add omap4430 thermal data
+Date: Wed, 17 Jul 2013 11:02:50 -0400
+Message-ID: <1374073374-30946-15-git-send-email-eduardo.valentin@ti.com>
 References: <1374073374-30946-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:50438 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932297Ab3GQPGd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Jul 2013 11:06:33 -0400
 In-Reply-To: <1374073374-30946-1-git-send-email-eduardo.valentin@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: devicetree-discuss@lists.ozlabs.org
 Cc: wni@nvidia.com, l.stach@pengutronix.de, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-List-Id: linux-omap@vger.kernel.org
 
 This patch changes the dtsi entry on omap4430 to contain
 the thermal data. This data will enable the passive
@@ -32,7 +36,7 @@ Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 
 diff --git a/arch/arm/boot/dts/omap443x.dtsi b/arch/arm/boot/dts/omap44=
 3x.dtsi
-index bcf455e..c9a1c89 100644
+index 4a4dcc3..27f0e0f 100644
 --- a/arch/arm/boot/dts/omap443x.dtsi
 +++ b/arch/arm/boot/dts/omap443x.dtsi
 @@ -8,6 +8,7 @@
@@ -43,7 +47,7 @@ index bcf455e..c9a1c89 100644
  #include "omap4.dtsi"
 =20
  / {
-@@ -26,8 +27,34 @@
+@@ -27,8 +28,34 @@
  	};
 =20
  	bandgap {
@@ -82,3 +86,9 @@ index bcf455e..c9a1c89 100644
  };
 --=20
 1.8.2.1.342.gfa7285d
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
