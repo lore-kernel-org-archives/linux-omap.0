@@ -1,49 +1,85 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH v5 1/2] ARM: dts: twl: Add GPADC data to device tree
-Date: Wed, 17 Jul 2013 18:33:56 +0400
-Message-ID: <51E6AB54.103@cogentembedded.com>
-References: <1374059564-6872-1-git-send-email-oleksandr.kozaruk@ti.com> <1374059564-6872-2-git-send-email-oleksandr.kozaruk@ti.com>
+From: Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH v3 2/2] iio: twl6030-gpadc: TWL6030, TWL6032 GPADC driver
+Date: Wed, 17 Jul 2013 16:47:14 +0200
+Message-ID: <51E6AE72.2060008@metafoo.de>
+References: <1373613482-28390-1-git-send-email-oleksandr.kozaruk@ti.com> <1373613482-28390-3-git-send-email-oleksandr.kozaruk@ti.com>,<51E05F6C.1060506@metafoo.de> <2A7ABDFCE21540479A5AEB0244A684D5E3D067@DNCE04.ent.ti.com> <51E3DE21.9060105@metafoo.de> <51E6A015.8040705@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f173.google.com ([209.85.217.173]:53561 "EHLO
-	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755421Ab3GQOd5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jul 2013 10:33:57 -0400
-Received: by mail-lb0-f173.google.com with SMTP id v1so1623821lbd.18
-        for <linux-omap@vger.kernel.org>; Wed, 17 Jul 2013 07:33:56 -0700 (PDT)
-In-Reply-To: <1374059564-6872-2-git-send-email-oleksandr.kozaruk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51E6A015.8040705@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
-Cc: tony@atomide.com, benoit.cousson@linaro.org, rnayak@ti.com, peter.ujfalusi@ti.com, kishon@ti.com, jic23@cam.ac.uk, grant.likely@linaro.org, rob.herring@calxeda.com, lars@metafoo.de, sameo@linux.intel.com, ch.naveen@samsung.com, poeschel@lemonage.de, milo.kim@ti.com, balajitk@ti.com, gg@slimlogic.co.uk, linux-iio@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: "tony@atomide.com" <tony@atomide.com>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, "jic23@cam.ac.uk" <jic23@cam.ac.uk>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "ch.naveen@samsung.com" <ch.naveen@samsung.com>, "poeschel@lemonage.de" <poeschel@lemonage.de>, "Kim, Milo" <Milo.Kim@ti.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-dis>
+List-Id: linux-omap@vger.kernel.org
 
-Hello.
+On 07/17/2013 03:45 PM, Oleksandr Kozaruk wrote:
+> On Mon, Jul 15, 2013 at 01:33:53PM +0200, Lars-Peter Clausen wrote:
+>> On 07/15/2013 01:09 PM, Kozaruk, Oleksandr wrote:
+>> [...]
+>> >
+>> >>> +     ret = devm_request_threaded_irq(dev, irq, NULL,
+>> >>> + twl6030_gpadc_irq_handler,
+>> >>> + IRQF_ONESHOT, "twl6030_gpadc", gpadc);
+>> >>
+>> >> You access memory in the interrupt handler which is freed before the
+> interrupt
+>> >> handler is freed.
+>> > Thanks for pointing this. devm_* will free memory for irq after the driver
+>> > is removed and memory for the device is freed. I took me awhile to
+> understand
+>> > this. Is there going to be something like devm_iio_device_alloc? whould
+> it be helpfull?
+>> >
+>>
+>> Yes, I think it certainly makes sense to add a devm_iio_device_alloc(), care
+>> to send a patch?
+> 
+> Anything like this? (of course it's not a patch)
+> 
 
-On 17-07-2013 15:12, Oleksandr Kozaruk wrote:
+No. I think you can for example use devm_regulator_get() as a template. But
+instead of regulator_get() and regulator_put() use iio_device_alloc() and
+iio_device_free().
 
-> GPADC is the general purpose ADC present on twl6030.
-> The dt data is interrupt used to trigger end of ADC
-> conversion.
-
-> Signed-off-by: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
-> ---
->   arch/arm/boot/dts/twl6030.dtsi | 6 ++++++
->   1 file changed, 6 insertions(+)
-
-> diff --git a/arch/arm/boot/dts/twl6030.dtsi b/arch/arm/boot/dts/twl6030.dtsi
-> index 2e3bd31..322aa8e 100644
-> --- a/arch/arm/boot/dts/twl6030.dtsi
-> +++ b/arch/arm/boot/dts/twl6030.dtsi
-> @@ -103,4 +103,10 @@
->   		compatible = "ti,twl6030-pwmled";
->   		#pwm-cells = <2>;
->   	};
-> +
-> +	adc: twl6030_gpadc {
-
-    I was talking about the device name, not label. The "twl6030_gpadc" part.
-
-WBR, Sergei
-
+> struct iio_dev *devm_iio_device_alloc(struct device *dev, int sizeof_priv)
+> {
+>     struct iio_dev *indio_dev;
+>     size_t alloc_size;
+> 
+>     alloc_size = sizeof(struct iio_dev);
+>     if (sizeof_priv) {
+>         alloc_size = ALIGN(alloc_size, IIO_ALIGN);
+>         alloc_size += sizeof_priv;
+>     }
+>     /* ensure 32-byte alignment of whole construct ? */
+>     alloc_size += IIO_ALIGN - 1;
+> 
+>     indio_dev = devm_kzalloc(dev, alloc_size, GFP_KERNEL);
+>     if (indio_dev) {
+>         indio_dev->dev.groups = indio_dev->groups;
+>         indio_dev->dev.type = &iio_device_type;
+>         indio_dev->dev.bus = &iio_bus_type;
+>         device_initialize(&indio_dev->dev);
+>         dev_set_drvdata(&indio_dev->dev, (void *)indio_dev);
+>         mutex_init(&indio_dev->mlock);
+>         mutex_init(&indio_dev->info_exist_lock);
+>         INIT_LIST_HEAD(&indio_dev->channel_attr_list);
+> 
+>         indio_dev->id = ida_simple_get(&iio_ida, 0, 0, GFP_KERNEL);
+>         if (indio_dev->id < 0) {
+>             /* cannot use a dev_err as the name isn't available */
+>             printk(KERN_ERR "Failed to get id\n");
+>             kfree(dev);
+>             return NULL;
+>         }
+>         dev_set_name(&indio_dev->dev, "iio:device%d", indio_dev->id);
+>         INIT_LIST_HEAD(&indio_dev->buffer_list);
+>     }
+> 
+>     return indio_dev;
+> }
+> EXPORT_SYMBOL(devm_iio_device_alloc);
+> 
+> Regards,
+> OK
