@@ -1,82 +1,46 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCH 2/2] pwm: Add PWM polarity flag macros for DT
-Date: Wed, 17 Jul 2013 11:20:23 -0700
-Message-ID: <20130717182021.GA24079@dhcp-172-17-186-34.nvidia.com>
-References: <1373553468-6564-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <2883016.87pKJk9n0R@avalon>
- <51E4C073.4020407@wwwdotorg.org>
- <2989497.8E7gzkcamn@avalon>
- <51E6D037.3020706@wwwdotorg.org>
+From: Jonathan Cameron <jic23@kernel.org>
+Subject: Re: [PATCH 2/2] iio: twl6030-gpadc: TWL6030, TWL6032 GPADC driver
+Date: Wed, 17 Jul 2013 20:04:02 +0100
+Message-ID: <7725cc73-4cab-49f5-9c33-ef3b24a7ee57@email.android.com>
+References: <1373974023-23521-1-git-send-email-oleksandr.kozaruk@ti.com> <1373974023-23521-3-git-send-email-oleksandr.kozaruk@ti.com> <c8f86766-822b-4fe3-ae2a-e0b12412ef39@email.android.com> <51E668B4.1010000@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f170.google.com ([209.85.215.170]:53264 "EHLO
-	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756024Ab3GQSUb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jul 2013 14:20:31 -0400
-Content-Disposition: inline
-In-Reply-To: <51E6D037.3020706@wwwdotorg.org>
+Received: from saturn.retrosnub.co.uk ([178.18.118.26]:36171 "EHLO
+	saturn.retrosnub.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752325Ab3GQTEP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jul 2013 15:04:15 -0400
+In-Reply-To: <51E668B4.1010000@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, linux-pwm@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linux-omap@vger.kernel.org, Philip Avinash <avinashphilip@ti.com>, Grant Likely <grant.likely@linaro.org>, Boris BREZILLON <linux-arm@overkiz.com>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
+Cc: tony@atomide.com, benoit.cousson@linaro.org, rnayak@ti.com, peter.ujfalusi@ti.com, kishon@ti.com, jic23@cam.ac.uk, grant.likely@linaro.org, rob.herring@calxeda.com, lars@metafoo.de, sameo@linux.intel.com, ch.naveen@samsung.com, poeschel@lemonage.de, milo.kim@ti.com, balajitk@ti.com, gg@slimlogic.co.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org
 
 
---mP3DRpeJDSE+ciuQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jul 17, 2013 at 11:11:19AM -0600, Stephen Warren wrote:
-> On 07/17/2013 05:00 AM, Laurent Pinchart wrote:
-> > On Monday 15 July 2013 21:39:31 Stephen Warren wrote:
-> ...
-> >> But then there's a problem where people assume that the common flags a=
-re
-> >> always available, and somewhere they aren't... Care is needed in the
-> >> choice of which common flags to define and/or how they're used.
-> >=20
-> > Exactly. That's why I think listing the supported common flags in indiv=
-idual=20
-> > bindings makes sense when some of the flags are not supported by all de=
-vices.=20
-> > As the only PWM flags currently used are common to all PWM devices I ca=
-n leave=20
-> > this out now. I have no strong preference, I'll follow your opinion on =
-this.
->=20
-> Yes, I guess separating the concept of defining common flags and which
-> devices use them is good. And then indeed individual devices need to
-> define which of the common flags they support. I'd still like to see the
-> *definition* of those common flags in some central place (i.e. pwm.txt
-> or a header that defines constants for it), and the other device
-> bindings simply reference that for the actual definitions.
+Oleksandr Kozaruk <oleksandr.kozaruk@ti.com> wrote:
+>Hello Jonathan,
+>
+> >Two very quick comments based on quick glance as it may be a while 
+>before I can do a full review.
+>
+> >We still have channels that are only usable for temperature being 
+>output to user space as voltage channels? Is the conversion so very
+>hard?
+>
+>Can you please clarify what should return temperature channel for 
+>in_tempX_input (processed)? Is it voltage or Celsius degree?
+Milli degrees centigrade.
 
-That sounds reasonable to me.
+>in_tempX_raw should return ADC code? Right?
+Yes
 
-Thierry
+See Documentation/ABI/testing/sysfs-bus-iio
+>
+>Regards,
+>OK.
 
---mP3DRpeJDSE+ciuQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR5uBlAAoJEN0jrNd/PrOh97QP/1xi4cp9qXADN5RzJzjIh0Qn
-rAtMQCp2NggBKz0p3yueGufLiS1izARSOb13uDJUWeFsikVyhGYng8i3ZRrlaoVA
-ktBoZf5CuSGmqKyURzIBEjc1nxAj4V9H0pKrpinj2XsDBKcVsmjjVHzQRu/tDnXk
-J5GKDgdl2wTwTHmg/9zrYVcuJsOuCPNm2YsGcAaR/7dL9fNHTgfhsrqTANXU+Y7Y
-M1IdG3etDvFrGlDTTnYXtYpDnr49VOuGL3KrFeYaFeQIVAKN+kDbGe2WR2F3O22E
-lDek6DW4hNRgLKdJIwSGIcEDw8AzcKpKHicn3DNvQQtnzzLJ4vNShJzIDfxlj0qg
-ptoOjnz1MB2dsyShOI0z8PvWdhseMndQ5wpXveeJjZ5Ck46USCl3NaysTtmZPYjd
-saabdM/E85g5HQZ79sggqg0st2P3l5TsEFFJ8Ie41ysf6kp8ofXYG8H/OiaAapKz
-hysfTGj6tgtY9jorIO3YdkZX59ALQikfFjawUzFQ4onYcXLymkyHUQI4i20k/wVo
-VQ1SIWbZ8aofbA5kqvdNH/ZSMl8uMgRLrUtd1EPx0scS6F1mf9GvQ/S6q0PKdQGM
-k0yxqk0YWkFtnzM/ccrpI5g29I6mnXiOUTlFSM3V12JAW4+kh6lF7V+m2tRWft3+
-aCEjtkBeqFwvYE+oJezc
-=+FHU
------END PGP SIGNATURE-----
-
---mP3DRpeJDSE+ciuQ--
+-- 
+Sent from my Android phone with K-9 Mail. Please excuse my brevity.
