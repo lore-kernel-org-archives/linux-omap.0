@@ -1,24 +1,26 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 7/9] ARM: dts: omap5-uevm: update LDO6 voltage to 1.2V
-Date: Wed, 17 Jul 2013 11:45:36 -0500
-Message-ID: <1374079538-19548-8-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 8/9] ARM: dts: omap5-uevm: update LDO7 voltage to 2V and
+ settings
+Date: Wed, 17 Jul 2013 11:45:37 -0500
+Message-ID: <1374079538-19548-9-git-send-email-nm@ti.com>
 References: <1374079538-19548-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1374079538-19548-1-git-send-email-nm@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <benoit.cousson@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, J Keerthy <j-keerthy@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1374079538-19548-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 Y29tbWl0IGUwMGMyN2VmM2I0YzIzZTM5ZDBhNzdiN2M4ZTViZTQ0YzI4MDAxYzcKKEFSTTogZHRz
@@ -26,23 +28,31 @@ OiBPTUFQNTogQWRkIFBhbG1hcyBNRkQgbm9kZSBhbmQgcmVndWxhdG9yIG5vZGVzKQppbnRyb2R1
 Y2VkIHJlZ3VsYXRvciBlbnRyaWVzIGZvciBPTUFQNXVFVk0uCgpIb3dldmVyLCBUaGUgcmVndWxh
 dG9yIGluZm9ybWF0aW9uIGlzIGJhc2VkIG9uIGFuIG9sZGVyIHRlbXBvcmFyeQpwcmUtcHJvZHVj
 dGlvbiBib2FyZCB2YXJpYW50IGFuZCBkb2VzIG5vdCByZWZsZWN0IHByb2R1Y3Rpb24gYm9hcmQK
-NzUwLTI2MjgtWFhYIGJvYXJkcy4KCkxETzYgc3VwcGxpZXMgdGhlIGJvYXJkIHNwZWNpZmllZCBW
-RERTXzFWMl9XS1VQIHN1cHBseSBnb2luZyB0bwpsZG9fZW11X3drdXAvdmRkc19oc2ljLiBUbyBz
-dGF5IHdpdGhpbiB0aGUgU29DIHNwZWNpZmljYXRpb24gc3VwcGx5CjEuMlYgaW5zdGVhZCBvZiAx
-LjVWLgoKUmVwb3J0ZWQtYnk6IE1hcmMgSsO8dHRuZXIgPG0tanVldHRuZXJAdGkuY29tPgpTaWdu
-ZWQtb2ZmLWJ5OiBOaXNoYW50aCBNZW5vbiA8bm1AdGkuY29tPgotLS0KIGFyY2gvYXJtL2Jvb3Qv
-ZHRzL29tYXA1LXVldm0uZHRzIHwgICAgNCArKy0tCiAxIGZpbGUgY2hhbmdlZCwgMiBpbnNlcnRp
-b25zKCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29t
-YXA1LXVldm0uZHRzIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKaW5kZXggMTU1
-MGQ2YS4uM2ZmNTg3NCAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5k
-dHMKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKQEAgLTM4OCw4ICszODgs
-OCBAQAogCQkJCWxkbzZfcmVnOiBsZG82IHsKIAkJCQkJLyogVkREU18xVjJfV0tVUDogaHNpYy9s
-ZG9fZW11X3drdXAgKi8KIAkJCQkJcmVndWxhdG9yLW5hbWUgPSAibGRvNiI7Ci0JCQkJCXJlZ3Vs
-YXRvci1taW4tbWljcm92b2x0ID0gPDE1MDAwMDA+OwotCQkJCQlyZWd1bGF0b3ItbWF4LW1pY3Jv
-dm9sdCA9IDwxNTAwMDAwPjsKKwkJCQkJcmVndWxhdG9yLW1pbi1taWNyb3ZvbHQgPSA8MTIwMDAw
-MD47CisJCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDEyMDAwMDA+OwogCQkJCQlyZWd1
-bGF0b3ItYWx3YXlzLW9uOwogCQkJCQlyZWd1bGF0b3ItYm9vdC1vbjsKIAkJCQl9OwotLSAKMS43
-LjkuNQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxp
-bnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFk
-ZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
-LWFybS1rZXJuZWwK
+NzUwLTI2MjgtWFhYIGJvYXJkcy4KCkxETzQgc3VwcGxpZXMgVkREX1ZQUCB3aGljaCBpcyB2cHAx
+LiBUaGlzIGlzIGN1cnJlbnRseSBjb25maWd1cmVkIGZvcgoxLjVWIHdoaWNoIGFzIHBlciBkYXRh
+IG1hbnVhbCAiQSBwdWxzZSB3aWR0aCBvZiAxMDAwIG5zIGFuZCBhbiBhbXBsaXR1ZGUKb2YgMlYg
+aXMgcmVxdWlyZWQgdG8gcHJvZ3JhbSBlYWNoIGVGdXNlIGJpdC4gT3RoZXJ3aXNlLCBWUFAxIG11
+c3Qgbm90CmJlIHN1cHBsaWVkIi4KClNvLCBmaXggdGhlIHZvbHRhZ2UgdG8gMlYuIGFuZCBkaXNh
+YmxlIHRoZSBzdXBwbHkgc2luY2Ugd2UgaGF2ZSBubyBwbGFucwpvZiBwcm9ncmFtbWluZyBlZnVz
+ZSBiaXRzIC0gaXQgY2FuIG9ubHkgYmUgZG9uZSBvbmNlIC0gaW4gZmFjdG9yeS4KCkZ1cnRoZXIg
+aXQgaXMgbm90IGVuYWJsZWQgYnkgZGVmYXVsdCBieSBQTUlDIHNvLCAnYm9vdC1vbicgbXVzdCBi
+ZQpyZW1vdmVkLCBhbmQgdGhlICdhbHdheXMtb24nIG5lZWRzIHRvIGJlIHJlbW92ZWQgdG8gYWNo
+aWV2ZSBwdWxzaW5nCmlmIGVmdXNlIG5lZWRzIHRvIGJlIHByb2dyYW1tZWQuCgpSZXBvcnRlZC1i
+eTogTWFyYyBKw7x0dG5lciA8bS1qdWV0dG5lckB0aS5jb20+ClNpZ25lZC1vZmYtYnk6IE5pc2hh
+bnRoIE1lbm9uIDxubUB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5k
+dHMgfCAgICA4ICsrKystLS0tCiAxIGZpbGUgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCA0IGRl
+bGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LXVldm0uZHRz
+IGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKaW5kZXggM2ZmNTg3NC4uZWYwNTY3
+NiAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKKysrIGIvYXJj
+aC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKQEAgLTM5NywxMCArMzk3LDEwIEBACiAJCQkJ
+bGRvN19yZWc6IGxkbzcgewogCQkJCQkvKiBWRERfVlBQOiB2cHAxICovCiAJCQkJCXJlZ3VsYXRv
+ci1uYW1lID0gImxkbzciOwotCQkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwxNTAwMDAw
+PjsKLQkJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MTUwMDAwMD47Ci0JCQkJCXJlZ3Vs
+YXRvci1hbHdheXMtb247Ci0JCQkJCXJlZ3VsYXRvci1ib290LW9uOworCQkJCQlyZWd1bGF0b3It
+bWluLW1pY3Jvdm9sdCA9IDwyMDAwMDAwPjsKKwkJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQg
+PSA8MjAwMDAwMD47CisJCQkJCS8qIE9ubHkgZm9yIGVmdXNlIHJlcHJvZ3JhbWluZyEgKi8KKwkJ
+CQkJc3RhdHVzID0gImRpc2FibGVkIjsKIAkJCQl9OwogCiAJCQkJbGRvOF9yZWc6IGxkbzggewot
+LSAKMS43LjkuNQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KZGV2aWNldHJlZS1kaXNjdXNzIG1haWxpbmcgbGlzdApkZXZpY2V0cmVlLWRpc2N1c3NAbGlz
+dHMub3psYWJzLm9yZwpodHRwczovL2xpc3RzLm96bGFicy5vcmcvbGlzdGluZm8vZGV2aWNldHJl
+ZS1kaXNjdXNzCg==
