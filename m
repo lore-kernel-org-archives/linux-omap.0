@@ -1,15 +1,13 @@
 From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [PATCH v2 1/2] ARM: dts: Add SHAM data and documentation for AM33XX
-Date: Wed, 17 Jul 2013 09:23:41 -0700
-Message-ID: <1374078222-12883-2-git-send-email-mgreer@animalcreek.com>
-References: <1374078222-12883-1-git-send-email-mgreer@animalcreek.com>
+Subject: [PATCH v2 0/2] ARM: dts: Add SHAM and AES DT information
+Date: Wed, 17 Jul 2013 09:23:40 -0700
+Message-ID: <1374078222-12883-1-git-send-email-mgreer@animalcreek.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from p3plsmtpa06-04.prod.phx3.secureserver.net ([173.201.192.105]:33929
-	"EHLO p3plsmtpa06-04.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755479Ab3GQQXy (ORCPT
+Received: from p3plsmtpa06-08.prod.phx3.secureserver.net ([173.201.192.109]:44387
+	"EHLO p3plsmtpa06-08.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756440Ab3GQQX4 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Jul 2013 12:23:54 -0400
-In-Reply-To: <1374078222-12883-1-git-send-email-mgreer@animalcreek.com>
+	Wed, 17 Jul 2013 12:23:56 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
@@ -17,117 +15,30 @@ Cc: Paul Walmsley <paul@pwsan.com>, "Mark A. Greer" <mgreer@animalcreek.com>
 
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 
-Add the generic AM33XX SHAM module's device tree data and
-enable it for the am335x-evm, am335x-evmsk, and am335x-bone
-platforms.  Also add Documentation file describing the data
-for the SHAM module.
+Long overdue patches to add the device tree updates and
+documentation for the SHAM and AES modules on the am33xx.
+The supporting code is already in the mainline kernel.
 
-CC: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
----
- .../devicetree/bindings/crypto/omap-sham.txt       | 33 ++++++++++++++++++++++
- arch/arm/boot/dts/am335x-bone.dts                  |  4 +++
- arch/arm/boot/dts/am335x-evm.dts                   |  4 +++
- arch/arm/boot/dts/am335x-evmsk.dts                 |  4 +++
- arch/arm/boot/dts/am33xx.dtsi                      | 10 +++++++
- 5 files changed, 55 insertions(+)
+This series is based on the current mainline kernel,
+c0d15cc (linked-list: Remove __list_for_each).
+
+Changes from v1:
+ - Added missing '};' as pointed out by Lokesh Vutla <lokeshvutla@ti.com>
+
+Mark A. Greer (2):
+  ARM: dts: Add SHAM data and documentation for AM33XX
+  ARM: dts: Add AES data and documentation for AM33XX
+
+ .../devicetree/bindings/crypto/omap-aes.txt        | 35 ++++++++++++++++++++++
+ .../devicetree/bindings/crypto/omap-sham.txt       | 33 ++++++++++++++++++++
+ arch/arm/boot/dts/am335x-bone.dts                  |  8 +++++
+ arch/arm/boot/dts/am335x-evm.dts                   |  8 +++++
+ arch/arm/boot/dts/am335x-evmsk.dts                 |  8 +++++
+ arch/arm/boot/dts/am33xx.dtsi                      | 21 +++++++++++++
+ 6 files changed, 113 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/crypto/omap-aes.txt
  create mode 100644 Documentation/devicetree/bindings/crypto/omap-sham.txt
 
-diff --git a/Documentation/devicetree/bindings/crypto/omap-sham.txt b/Documentation/devicetree/bindings/crypto/omap-sham.txt
-new file mode 100644
-index 0000000..c6d1202
---- /dev/null
-+++ b/Documentation/devicetree/bindings/crypto/omap-sham.txt
-@@ -0,0 +1,33 @@
-+OMAP SoC SHA crypto Module
-+
-+Required properties:
-+
-+- compatible : Should contain entries for this and backward compatible
-+  SHAM versions:
-+  - "ti,omap2-sham" for OMAP2 & OMAP3.
-+  - "ti,omap4-sham" for OMAP4 and AM33XX.
-+  Note that these two versions are incompatible.
-+- ti,hwmods: Name of the hwmod associated with the SHAM module
-+- reg : Offset and length of the register set for the module
-+- interrupt-parent : the phandle for the interrupt controller that
-+  services interrupts for this module.
-+- interrupts : the interrupt number for the SHAM module.
-+
-+Optional properties:
-+- dmas: DMA controller phandle and DMA request ordered pair.
-+	Only one rx pair is valid per SHAM module.
-+- dma-names: DMA request name. This string corresponds 1:1 with
-+	the ordered pair in dmas. The string naming is to be
-+	"rx" for RX request.
-+
-+Example:
-+	/* AM335x */
-+	sham: sham@53100000 {
-+		compatible = "ti,omap4-sham";
-+		ti,hwmods = "sham";
-+		reg = <0x53100000 0x200>;
-+		interrupt-parent = <&intc>;
-+		interrupts = <109>;
-+		dmas = <&edma 36>;
-+		dma-names = "rx";
-+	};
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 444b4ed..bc75b2c 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -234,3 +234,7 @@
- 	pinctrl-0 = <&davinci_mdio_default>;
- 	pinctrl-1 = <&davinci_mdio_sleep>;
- };
-+
-+&sham {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 3aee1a4..9b8c56d 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -488,3 +488,7 @@
- 		ti,adc-channels = <4 5 6 7>;
- 	};
- };
-+
-+&sham {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index 0c8ad17..61dc5d4 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -402,3 +402,7 @@
- 	phy_id = <&davinci_mdio>, <1>;
- 	phy-mode = "rgmii-txid";
- };
-+
-+&sham {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 38b446b..63a5e95 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -530,5 +530,15 @@
- 			#size-cells = <1>;
- 			status = "disabled";
- 		};
-+
-+		sham: sham@53100000 {
-+			compatible = "ti,omap4-sham";
-+			ti,hwmods = "sham";
-+			reg = <0x53100000 0x200>;
-+			interrupt-parent = <&intc>;
-+			interrupts = <109>;
-+			dmas = <&edma 36>;
-+			dma-names = "rx";
-+		};
- 	};
- };
 -- 
 1.7.12
 
