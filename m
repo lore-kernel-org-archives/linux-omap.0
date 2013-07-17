@@ -1,57 +1,81 @@
-From: Mark Jackson <mpfj-list-2FZW7xY0fHgqdlJmJB21zg@public.gmane.org>
-Subject: Re: [PATCH v2] ARM: dts: add AM33XX MMC support
-Date: Wed, 17 Jul 2013 13:08:02 +0100
-Message-ID: <51E68922.5020503@newflow.co.uk>
-References: <1372303956-30208-1-git-send-email-joelf@ti.com>
+From: Oleksandr Kozaruk <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 2/2] iio: twl6030-gpadc: TWL6030, TWL6032 GPADC driver
+Date: Wed, 17 Jul 2013 16:45:57 +0300
+Message-ID: <51E6A015.8040705@ti.com>
+References: <1373613482-28390-1-git-send-email-oleksandr.kozaruk@ti.com> <1373613482-28390-3-git-send-email-oleksandr.kozaruk@ti.com>,<51E05F6C.1060506@metafoo.de> <2A7ABDFCE21540479A5AEB0244A684D5E3D067@DNCE04.ent.ti.com> <51E3DE21.9060105@metafoo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1372303956-30208-1-git-send-email-joelf-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Gururaja Hebbar <gururaja.hebbar-l0cyMroinI0@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Balaji TK <balajitk-l0cyMroinI0@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Matt Porter <matt-agtwNxEcTQJWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <51E3DE21.9060105-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
+Cc: "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>, "Ujfalusi, Peter" <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>, "jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org" <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org" <poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org>, "Kim, Milo" <Milo.Kim-l0cyMroinI0@public.gmane.org>, "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>, "gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org" <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-dis>
 List-Id: linux-omap@vger.kernel.org
 
-On 27/06/13 04:32, Joel Fernandes wrote:
-> From: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-> 
-> Adds AM33XX MMC support for am335x-bone, am335x-evm, and am335x-evmsk.
-> Also added is the DMA binding definitions based on the generic DMA
-> request binding.
-> 
-> The HWMOD data removal was breaking MMC so some new properties like reg,
-> interrupt etc were added.
-> 
-> Changes to DTS:
-> Interrupt and reg added by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-> Compatible added by Balaji TK <balajitk-l0cyMroinI0@public.gmane.org>
-> ti,needs-special-hs-handling added by Gururaja Hebbar <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-> 
-> Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-> ---
->  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   26 +++++++++++++-
->  arch/arm/boot/dts/am335x-bone.dts                  |    7 ++++
->  arch/arm/boot/dts/am335x-evm.dts                   |    7 ++++
->  arch/arm/boot/dts/am335x-evmsk.dts                 |    7 ++++
->  arch/arm/boot/dts/am33xx.dtsi                      |   38 ++++++++++++++++++++
->  5 files changed, 84 insertions(+), 1 deletion(-)
+On Mon, Jul 15, 2013 at 01:33:53PM +0200, Lars-Peter Clausen wrote:
+ > On 07/15/2013 01:09 PM, Kozaruk, Oleksandr wrote:
+ > [...]
+ > >
+ > >>> +     ret = devm_request_threaded_irq(dev, irq, NULL,
+ > >>> + twl6030_gpadc_irq_handler,
+ > >>> + IRQF_ONESHOT, "twl6030_gpadc", gpadc);
+ > >>
+ > >> You access memory in the interrupt handler which is freed before 
+the interrupt
+ > >> handler is freed.
+ > > Thanks for pointing this. devm_* will free memory for irq after the 
+driver
+ > > is removed and memory for the device is freed. I took me awhile to 
+understand
+ > > this. Is there going to be something like devm_iio_device_alloc? 
+whould it be helpfull?
+ > >
+ >
+ > Yes, I think it certainly makes sense to add a 
+devm_iio_device_alloc(), care
+ > to send a patch?
 
-Excuse my ignorance, but which git repository is this against ?
+Anything like this? (of course it's not a patch)
 
+struct iio_dev *devm_iio_device_alloc(struct device *dev, int sizeof_priv)
+{
+     struct iio_dev *indio_dev;
+     size_t alloc_size;
 
-------------------------------------------------------------------------------
-See everything from the browser to the database with AppDynamics
-Get end-to-end visibility with application monitoring from AppDynamics
-Isolate bottlenecks and diagnose root cause in seconds.
-Start your free trial of AppDynamics Pro today!
-http://pubads.g.doubleclick.net/gampad/clk?id=48808831&iu=/4140/ostg.clktrk
+     alloc_size = sizeof(struct iio_dev);
+     if (sizeof_priv) {
+         alloc_size = ALIGN(alloc_size, IIO_ALIGN);
+         alloc_size += sizeof_priv;
+     }
+     /* ensure 32-byte alignment of whole construct ? */
+     alloc_size += IIO_ALIGN - 1;
+
+     indio_dev = devm_kzalloc(dev, alloc_size, GFP_KERNEL);
+     if (indio_dev) {
+         indio_dev->dev.groups = indio_dev->groups;
+         indio_dev->dev.type = &iio_device_type;
+         indio_dev->dev.bus = &iio_bus_type;
+         device_initialize(&indio_dev->dev);
+         dev_set_drvdata(&indio_dev->dev, (void *)indio_dev);
+         mutex_init(&indio_dev->mlock);
+         mutex_init(&indio_dev->info_exist_lock);
+         INIT_LIST_HEAD(&indio_dev->channel_attr_list);
+
+         indio_dev->id = ida_simple_get(&iio_ida, 0, 0, GFP_KERNEL);
+         if (indio_dev->id < 0) {
+             /* cannot use a dev_err as the name isn't available */
+             printk(KERN_ERR "Failed to get id\n");
+             kfree(dev);
+             return NULL;
+         }
+         dev_set_name(&indio_dev->dev, "iio:device%d", indio_dev->id);
+         INIT_LIST_HEAD(&indio_dev->buffer_list);
+     }
+
+     return indio_dev;
+}
+EXPORT_SYMBOL(devm_iio_device_alloc);
+
+Regards,
+OK
