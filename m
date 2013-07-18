@@ -1,96 +1,61 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv4 2/3] drivers: spi: Add qspi flash controller
-Date: Thu, 18 Jul 2013 16:31:58 +0300
-Message-ID: <20130718133158.GA1628@arwen.pp.htv.fi>
-References: <1374141687-10790-1-git-send-email-sourav.poddar@ti.com>
- <1374141687-10790-3-git-send-email-sourav.poddar@ti.com>
- <20130718104233.GG22506@sirena.org.uk>
- <51E7D569.2010709@ti.com>
- <20130718131822.GN22506@sirena.org.uk>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/4] drivers: Add pinctrl handling for dynamic pin
+ states
+Date: Thu, 18 Jul 2013 06:48:07 -0700
+Message-ID: <20130718134806.GW7656@atomide.com>
+References: <20130716090310.5541.36777.stgit@localhost>
+ <20130716090539.5541.980.stgit@localhost>
+ <51E70ADF.8090805@wwwdotorg.org>
+ <20130718074508.GQ7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RnlQjJ0d97Da+TV1"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130718131822.GN22506@sirena.org.uk>
+In-Reply-To: <20130718074508.GQ7656@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Sourav Poddar <sourav.poddar@ti.com>, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: linus.walleij@linaro.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---RnlQjJ0d97Da+TV1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* Tony Lindgren <tony@atomide.com> [130718 00:57]:
+> * Stephen Warren <swarren@wwwdotorg.org> [130717 14:28]:
+> > 
+> > Oh, I see you're trying to check that the set of pins in the active,
+> > sleep, and idle states are identical.
+> 
+> Right, that's to avoid any further checking during runtime for runtime PM.
+>  
+> > But I think that pinctrl_check_dynamic() only checks that one state is a
+> > subset of the other, not that the two states are equal. Instead, I think
+> > you want to comparison coded in pinctrl_check_dynamic() to be:
+> 
+> In pinctrl_check_dynamic() we check that the pins match between the
+> states, and the number of found pins matches the first set. I'll
+> take a look if we check the total pins between the two sets.
 
-Hi,
+That that is a bit painful right now to check properly as we don't
+have any sorting, and we could use that elsewhere too for checks
+probably..
+  
+> > gen_group_list_of_pinctrl_state(s1, array1);
+> > gen_group_list_of_pinctrl_state(s2, array2);
+> > mismatch = memcmp(array1, array2, length);
+> 
+> Well we could allocate and sort the pins, but the number of pins
+> for runtime PM is typically very small for each pin consumer device.
+> Typically you just need to toggle RX pin to GPIO mode for idle. And
+> this check is only done during consumer driver probe time. So
+> optimizing it for larger sets could be done at any point later on
+> as needed.
 
-On Thu, Jul 18, 2013 at 02:18:22PM +0100, Mark Brown wrote:
-> > >>+static irqreturn_t ti_qspi_isr(int irq, void *dev_id)
-> > >>+{
-> > >>+	struct ti_qspi *qspi =3D dev_id;
-> > >>+	u16 mask, stat;
-> > >>+
-> > >>+	irqreturn_t ret =3D IRQ_HANDLED;
-> > >>+
-> > >>+	spin_lock(&qspi->lock);
-> > >>+
-> > >>+	stat =3D ti_qspi_readl(qspi, QSPI_SPI_STATUS_REG);
-> > >>+	mask =3D ti_qspi_readl(qspi, QSPI_INTR_ENABLE_SET_REG);
-> > >>+
-> > >>+	if (stat&&  mask)
-> > >>+		ret =3D IRQ_WAKE_THREAD;
-> > >>+
-> > >>+	spin_unlock(&qspi->lock);
-> > >>+
-> > >>+	return ret;
->=20
-> > >According to the above code we might interrupt for masked events...
-> > >that's a bit worrying isn't it?
->=20
-> > Yes, there is WC interrupt enable bit which enables the interrupt.
-> > This interrupt
-> > gets disabled by writing to the CLEAR reg in the threaded irq.
->=20
-> So why do we report that we handled the interrupt then?  Shouldn't we at
-> least warn if we're getting spurious IRQs?
+..so for now, let's just check the total number of pins for the sets
+like Felipe suggested. I think we're better off improving the pinctrl
+data first to make various checks easier.
 
-not spurious. OMAP has two sets of IRQ status registers. One is call
-IRQSTATUS$n (n =3D 0, 1, ...) and IRQSTATUS_RAW$n.
+What you're suggesting with the mepcmp() can be done easily if we add
+something like device_get_pins() and have the pins sorted for the
+various states for a device at the device probe time.
 
-IRQSTATUS$n will only enable the bits which fired IRQs and aren't
-masked while IRQSTATUS_RAW$n will also enable the bits which are masked.
-I could never come up with a use case where we would need to handle IRQs
-which we decided to mask, but perhaps there might be some cases, I don't
-know.
+Regards,
 
-Based on that, I believe Sourav is reading IRQSTATUS_RAW$n, then he need
-to clear the masked bits.
-
---=20
-balbi
-
---RnlQjJ0d97Da+TV1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR5+5OAAoJEIaOsuA1yqREC3oP/1JMFGVDgtocw9+tkQ8PjAJK
-8FTZepYulE+n4xdK9DOzlpOTG86NeRj/yKDbnCc08sUlbl98atbbo2XYtcA0R5eJ
-U9LtlCDetFODqW9MYAglJ0i9whzjMfnY8ieVqOpih3zvvrkoVZi6kER00TtoTj6E
-sAYRUJSEpwy+V7NV0WxC+y+mYTTxmzsj8SAY8UFSyCfQm5hlTmmBPrLz80f/U7TT
-vT+lEIHF1FJd2TRwtWvmWYBimrNWsHgs5eUEifRS2YEL6sR0p/tvZJ+5ZOzUAC78
-RuF1Bv7EN4398+dVC2ghwoWbj1KJI0TcstBO7URnBdVEo4zbXmSpMhZ9yulRbeRI
-yEhKx/69HtiNCv8gxNE+7aX6mVhsOkVJdPTqxp9Whs95hjfHseTF9QTsNTSIzqd4
-3Jj9NXzH5LP75SOF915WpBToXJ457QJYhTRcA7cqNnIG/s/IjXPTt0Nl4jljDbJ0
-WD1D4zb9kyemOUWtgbygzSdvYIB+WbSzrzw6WJh2GpPLg8DTNQlsRE39L5oGXVDF
-881hL84IWdPV44ZRBUdb8DO9FX512GJXwb8NjB1obDt+ki8HeGaNHBLSGzCrUnIY
-W4pJ9Tw8V8cjhsVo+7vEgl7g5NXE1V5fzUOWWfGpAwJBlkRHUQcy4wbWuVirSOAP
-89k2MZ57pC2lKObviv7S
-=zaXD
------END PGP SIGNATURE-----
-
---RnlQjJ0d97Da+TV1--
+Tony
