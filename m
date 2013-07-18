@@ -1,69 +1,107 @@
-From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC/PATCHv2 3/3] driver: spi: Add quad spi read support
-Date: Thu, 18 Jul 2013 17:22:01 +0530
-Message-ID: <51E7D6E1.3000208@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv4 2/3] drivers: spi: Add qspi flash controller
+Date: Thu, 18 Jul 2013 14:56:07 +0300
+Message-ID: <20130718115607.GK11251@arwen.pp.htv.fi>
 References: <1374141687-10790-1-git-send-email-sourav.poddar@ti.com>
-	<1374141687-10790-4-git-send-email-sourav.poddar@ti.com>
-	<20130718104414.GH22506@sirena.org.uk>
+ <1374141687-10790-3-git-send-email-sourav.poddar@ti.com>
+ <20130718104233.GG22506@sirena.org.uk>
+ <51E7D569.2010709@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20130718104414.GH22506-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: rnayak-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="rpGc+ACYPE+RMC+Z"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <51E7D569.2010709@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: Mark Brown <broonie@kernel.org>, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 18 July 2013 04:14 PM, Mark Brown wrote:
-> On Thu, Jul 18, 2013 at 03:31:27PM +0530, Sourav Poddar wrote:
->> Since, qspi controller uses quad read.
->>
->> Configuring the command register, if the transfer of data needs
->> dual or quad lines.
->>
->> This patch has been done on top of the following patch[1], which is just the
->> basic idea of adding dual/quad support in spi framework.
->> $subject patch will undergo changes as the parent patch goes[1]
->>
->> [1]: http://comments.gmane.org/gmane.linux.kernel.spi.devel/14047
-> Just as with commit IDs you should include a plain text description of
-> anything you link to so that people reading your e-mail can tell what
-> you're talking about without going on line.
-Ok, will keep that in mind for future.
+--rpGc+ACYPE+RMC+Z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Just to give you a brief description here,
-Requirement is to have a dual/quad support in spi frameowrk, so that
-drivers can use multiple lines for data transfers.
+Hi,
 
-What patch[1] tries to does, is
-[1]:  http://comments.gmane.org/gmane.linux.kernel.spi.devel/14047
+On Thu, Jul 18, 2013 at 05:15:45PM +0530, Sourav Poddar wrote:
+> >>+	list_for_each_entry(t,&m->transfers, transfer_list) {
+> >>+		qspi->cmd |=3D QSPI_WLEN(t->bits_per_word);
+> >>+		qspi->cmd |=3D QSPI_WC_CMD_INT_EN;
+> >>+
+> >>+		ret =3D qspi_transfer_msg(qspi, t);
+> >>+		if (ret) {
+> >>+			dev_dbg(qspi->dev, "transfer message failed\n");
+> >>+			return -EINVAL;
+> >>+		}
+> >>+
+> >>+		m->actual_length +=3D t->len;
+> >>+
+> >>+		if (list_is_last(&t->transfer_list,&m->transfers))
+> >>+			goto out;
+> >>+	}
+> >The use of list_is_last() here is *realy* strange - what's going on
+> >there?
+> >
+> We are checking if there is any transfer left, if no we are signalling the
+> flash device about the end of transfer.
 
-is to add to each transfer the bitwidth it supports, so that that 
-bitwidth information
-can be parsed in controller driver and can be used for respective 
-read/writes.
+I'll quote your diff below because I wanted to show where your 'out'
+label lies:
 
-A typical usecase on my side is,
-I have a spansion flash connected to qspi. Flash device supports quad 
-read with
-a certain read opcode(QUAD_READ). So, Whenever the opcode send is QUAD_READ,
-we will append that information as a bitwidth to the spi transfer. This 
-information will
-be parsed by the controller driver and will be used to configure the cmd 
-reg to do
-the particular type of reads.
++       list_for_each_entry(t, &m->transfers, transfer_list) {
++               qspi->cmd |=3D QSPI_WLEN(t->bits_per_word);
++               qspi->cmd |=3D QSPI_WC_CMD_INT_EN;
++
++               ret =3D qspi_transfer_msg(qspi, t);
++               if (ret) {
++                       dev_dbg(qspi->dev, "transfer message failed\n");
++                       return -EINVAL;
++               }
++
++               m->actual_length +=3D t->len;
++
++               if (list_is_last(&t->transfer_list, &m->transfers))
++                       goto out;
++       }
++
++out:
++       m->status =3D status;
++       spi_finalize_current_message(master);
 
-------------------------------------------------------------------------------
-See everything from the browser to the database with AppDynamics
-Get end-to-end visibility with application monitoring from AppDynamics
-Isolate bottlenecks and diagnose root cause in seconds.
-Start your free trial of AppDynamics Pro today!
-http://pubads.g.doubleclick.net/gampad/clk?id=48808831&iu=/4140/ostg.clktrk
+see how it's place right after the closing curly brackets ? In that
+case, why do you need it ? list_for_each_entry() will do exactly what it
+says: iterate over each entry on the entry. When it reaches the last
+one, the loop will end.
+
+This renders your list_is_last() check useless. In fact, you could've
+figured that out if you just spent the time to read
+list_for_each_entry() carefully.
+
+--=20
+balbi
+
+--rpGc+ACYPE+RMC+Z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR59fXAAoJEIaOsuA1yqREAlwP/0zhNva5B7OXjxfF9oX/4Sjz
+SBcU7bAvTtwFwl9ENPGvW0yA7I/ZPVqoJKnzV/ZCEgDW5M2W/F/U2lscjriuned9
+bsj4J8ZpG+k+G9oeN688UtG7Y/toF0cUTwHd4K77lfAtAtw+z7IS0hgK9buaKome
+oKw2C6Ahu93dXNjmb9Wh5WZdoSmEsihuIffXZ98nu6mKieREtH+UJ1FCR0fz3M2i
+CXoYxsFaOvacJNyIYRGRsrllY81SBCepZh2o61MjFUrWFL23xaFN0QG0B/aH0b0x
+3OXFIT3mrQgCsiEQ5Q4GbFmfCib/gVU7FDBqCuwJ1stuo6T8wqQHVs4cTMDAbiGI
+YH/DcuSqnDiHULMQM2dzJt23lqiDGYFJD4DvNd3nAOd7Vqu6JIj7GIv2EPH7CYQn
+a7uA2/dp4MrWpGLwA0g9O669RacUU7vZ6grp3P4bBXF71/4fDDOTsbPcrFtgrKk6
+Le7aMf8FJhGNILuIC9/T6wGJ9DZwMVIqcF9vOyp1mQb2Qr8HE75PLPf7I2ELcL5s
+G5nkC2U/CR0BO+8jxrOrBe1Y0fUyL7+AXN+abuRBlkqZtA4ONbGlbUs4GFKn+znR
+E5CIymlJMPCjTaoahx/KmJbLdx/+OdpHpkwSBV8i/7+AMOQNdxx8DGxZ7KW27G4I
+qTF6O+P1pMhD8YB8gTj7
+=jftt
+-----END PGP SIGNATURE-----
+
+--rpGc+ACYPE+RMC+Z--
