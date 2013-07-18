@@ -1,158 +1,138 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Mark Brown <broonie@kernel.org>
 Subject: Re: [PATCHv4 2/3] drivers: spi: Add qspi flash controller
-Date: Thu, 18 Jul 2013 13:24:04 +0300
-Message-ID: <20130718102404.GH11251@arwen.pp.htv.fi>
+Date: Thu, 18 Jul 2013 11:42:33 +0100
+Message-ID: <20130718104233.GG22506@sirena.org.uk>
 References: <1374141687-10790-1-git-send-email-sourav.poddar@ti.com>
  <1374141687-10790-3-git-send-email-sourav.poddar@ti.com>
-Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Ah9ph+G2cWRpKogL"
+	protocol="application/pgp-signature"; boundary="cMRp6r1K6JdiUiOM"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <1374141687-10790-3-git-send-email-sourav.poddar@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---Ah9ph+G2cWRpKogL
+
+--cMRp6r1K6JdiUiOM
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-it might be just me, but ...
 
 On Thu, Jul 18, 2013 at 03:31:26PM +0530, Sourav Poddar wrote:
-> +static inline unsigned long ti_qspi_readl_data(struct ti_qspi *qspi,
-> +		unsigned long reg, int wlen)
+
+> QSPI is a kind of spi module that allows single,
+> dual and quad read access to external spi devices. The module
+> has a memory mapped interface which provide direct interface
+> for accessing data form external spi devices.
+
+Have you seen the ongoing thread about SPI buses with extra data lines?
+How does this driver fit in with that?
+
+> --- a/drivers/spi/Makefile
+> +++ b/drivers/spi/Makefile
+> @@ -46,6 +46,7 @@ obj-$(CONFIG_SPI_OCTEON)		+= spi-octeon.o
+>  obj-$(CONFIG_SPI_OMAP_UWIRE)		+= spi-omap-uwire.o
+>  obj-$(CONFIG_SPI_OMAP_100K)		+= spi-omap-100k.o
+>  obj-$(CONFIG_SPI_OMAP24XX)		+= spi-omap2-mcspi.o
+> +obj-$(CONFIG_QSPI_DRA7xxx)              += spi-ti-qspi.o
+>  obj-$(CONFIG_SPI_ORION)			+= spi-orion.o
+>  obj-$(CONFIG_SPI_PL022)			+= spi-pl022.o
+>  obj-$(CONFIG_SPI_PPC4xx)		+= spi-ppc4xx.o
+
+Please use SPI_ like the other drivers.
+
+> +static int ti_qspi_prepare_xfer(struct spi_master *master)
 > +{
-> +	switch (wlen) {
-> +	case 8:
-> +		return readw(qspi->base + reg);
-> +		break;
-> +	case 16:
-> +		return readb(qspi->base + reg);
-> +		break;
-> +	case 32:
-> +		return readl(qspi->base + reg);
-> +		break;
-> +	default:
-> +		return -EINVAL;
+> +	struct ti_qspi *qspi = spi_master_get_devdata(master);
+> +	int ret;
+> +
+> +	ret = pm_runtime_get_sync(qspi->dev);
+> +	if (ret < 0) {
+> +		dev_err(qspi->dev, "pm_runtime_get_sync() failed\n");
+> +		return ret;
 > +	}
-> +}
 > +
-> +static inline void ti_qspi_writel_data(struct ti_qspi *qspi,
-> +		unsigned long val, unsigned long reg, int wlen)
-> +{
-> +	switch (wlen) {
-> +	case 8:
-> +		writew(val, qspi->base + reg);
-> +		break;
-> +	case 16:
-> +		writeb(val, qspi->base + reg);
-> +		break;
-> +	case 32:
-> +		writeb(val, qspi->base + reg);
-> +		break;
-> +	default:
-> +		dev_dbg(qspi->dev, "word lenght out of range");
-> +		break;
+> +	return 0;
+> +}
+
+This is a very common pattern, it should probably be factored out into
+the core, probably not even as ops but rather as an actual feature.
+
+> +	list_for_each_entry(t, &m->transfers, transfer_list) {
+> +		qspi->cmd |= QSPI_WLEN(t->bits_per_word);
+> +		qspi->cmd |= QSPI_WC_CMD_INT_EN;
+> +
+> +		ret = qspi_transfer_msg(qspi, t);
+> +		if (ret) {
+> +			dev_dbg(qspi->dev, "transfer message failed\n");
+> +			return -EINVAL;
+> +		}
+> +
+> +		m->actual_length += t->len;
+> +
+> +		if (list_is_last(&t->transfer_list, &m->transfers))
+> +			goto out;
 > +	}
-> +}
 
-because of these two functions you have the hability to read/write
-*more* than one byte, and yet ...
+The use of list_is_last() here is *realy* strange - what's going on
+there?
 
-> +static void qspi_write_msg(struct ti_qspi *qspi, struct spi_transfer *t)
+> +static irqreturn_t ti_qspi_isr(int irq, void *dev_id)
 > +{
-> +	const u8 *txbuf;
-> +	int wlen, count;
+> +	struct ti_qspi *qspi = dev_id;
+> +	u16 mask, stat;
 > +
-> +	count =3D t->len;
-> +	txbuf =3D t->tx_buf;
-> +	wlen =3D t->bits_per_word;
+> +	irqreturn_t ret = IRQ_HANDLED;
 > +
-> +	while (count--) {
-> +		dev_dbg(qspi->dev, "tx cmd %08x dc %08x data %02x\n",
-> +			qspi->cmd | QSPI_WR_SNGL, qspi->dc, *txbuf);
-> +		ti_qspi_writel_data(qspi, *txbuf++, QSPI_SPI_DATA_REG, wlen);
-
-you always increment by each byte. Here, if you used writel(), you wrote
-4 bytes and should increment txbuf by 4. Same goes for read_data(),
-below. Another thing. Even though your wlen might be 8 bits, if you
-write 4 bytes to write, you can save a few CPU cycles by using writel().
-
-You only use writew() if you have exactly 2 bytes to write and writeb()
-if you have exactly 1 byte to write. 3 bytes we'll be left as an
-exercise.
-
-> +static int ti_qspi_start_transfer_one(struct spi_master *master,
-> +		struct spi_message *m)
-> +{
-> +	struct ti_qspi *qspi =3D spi_master_get_devdata(master);
-> +	struct spi_device *spi =3D m->spi;
-> +	struct spi_transfer *t;
-> +	int status =3D 0, ret;
-> +	int frame_length;
+> +	spin_lock(&qspi->lock);
 > +
-> +	/* setup device control reg */
-> +	qspi->dc =3D 0;
+> +	stat = ti_qspi_readl(qspi, QSPI_SPI_STATUS_REG);
+> +	mask = ti_qspi_readl(qspi, QSPI_INTR_ENABLE_SET_REG);
 > +
-> +	if (spi->mode & SPI_CPHA)
-> +		qspi->dc |=3D QSPI_CKPHA(spi->chip_select);
-> +	if (spi->mode & SPI_CPOL)
-> +		qspi->dc |=3D QSPI_CKPOL(spi->chip_select);
-> +	if (spi->mode & SPI_CS_HIGH)
-> +		qspi->dc |=3D QSPI_CSPOL(spi->chip_select);
+> +	if (stat && mask)
+> +		ret = IRQ_WAKE_THREAD;
 > +
-> +	frame_length =3D DIV_ROUND_UP(m->frame_length * spi->bits_per_word,
-> +				spi->bits_per_word);
+> +	spin_unlock(&qspi->lock);
+> +
+> +	return ret;
 
-this calculation doesn't look correct.
+According to the above code we might interrupt for masked events...
+that's a bit worrying isn't it?
 
-	(m->frame_length * spi->bits_per_word) /
-		spi->bits_per_word =3D m->frame_length
+> +	ret = devm_request_threaded_irq(&pdev->dev, irq, ti_qspi_isr,
+> +			ti_qspi_threaded_isr, IRQF_NO_SUSPEND | IRQF_ONESHOT,
+> +			dev_name(&pdev->dev), qspi);
+> +	if (ret < 0) {
+> +		dev_err(&pdev->dev, "Failed to register ISR for IRQ %d\n",
+> +				irq);
+> +		goto free_master;
+> +	}
 
-What are you trying to achieve here ? frame_length should be counted in
-words right ? And we get that value in bytes. So what's the best
-calculation to convert bytes into words ? If you have 8 bits_per_word
-you don't need any calculation, but if you have 32 bits_per_word, you
-_do_ need something.
+Standard question about devm_request_threaded_irq() - how can we be
+certain it's safe to use during removal?
 
-How will you achieve the number you want ? (hint: 1 byte =3D=3D 8 bits)
-
-And btw, all of these mistakes pretty much tell me that this driver
-hasn't been tested. How have you tested this driver ? Is your spansion
-memory accessed with 8 bits_per_word only ? Is there anyway to use
-32 bits_per_word with that device ? That would uncover quite a few
-mistakes in $subject.
-
---=20
-balbi
-
---Ah9ph+G2cWRpKogL
+--cMRp6r1K6JdiUiOM
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v2.0.20 (GNU/Linux)
 
-iQIcBAEBAgAGBQJR58JDAAoJEIaOsuA1yqREd4IP/0hO3zH0hK2xkDrc35yIeMEt
-MEIXOLl4Qhj4rl1YSVqHV7OwUFeOqOng2PniJp9ui+WaB/SGCp9iMrIM32ragTQk
-XuF48EBgX+cxNVhBJJ2Bvhhbk5jkqPvZPxGoJlLtqC/yG7wRE6WRPzq5BbR8y4PS
-hpa21rpyWgwgjd2sqkIoWp2QcZCwAmc6z2awYB7KdHBBhOVX6oPokHlHDVWoPanr
-1MVB9c/QKBYeE1sXivA9TZ0IvYhXXePthQMN65xodcKg5C6Ag/xBYXQcOlFZl5DV
-FNBJ5eMlEcnp5BZOsackiOSbenXsJgTCLhNpzSJbnnMpZ5Ma2EpqRZIsb6AJ66s+
-COcq8WVUHCqH//J9726mcVnmpcy3ua9TZJ6cP+Og80xXNjoT4Vdm1PU29St+x06Z
-9UoKebcWaz0hvhQSUyGC3fcsst2VIm6GrOnyeZc3AMO0DTVr5+Kq7Kv9LPoC6dRF
-LZh1om2DyOWcCsFo7bO+WoZv2LLlildm9EM7+cBoQq75zfmekjiNFJyZlqZ841bP
-qjM1d4LAuN0S80DRj8htSUeSUvGXFWG7RMvqq9dcSYWtdXywjyhWj1EjDnlF/qVG
-TOKfZjOD9r9k6sPhZAXPG50bRK3IVRePrxyD0rTzZvr/xbOZdu/hKSd8As9E5NRG
-SNSxQ2QCAdai7Gm9H1wx
-=jHvY
+iQIcBAEBAgAGBQJR58aWAAoJELSic+t+oim9xJ4QAJm/Wqlsli/tSWF94XdIAfpk
+MXFm8VC9SYXBEsQKcsCeUddwOKlcnjRXOXv7KDPuvnfb8jmolCu0uy4HMSidMPgX
+1DE/1JwZv6A/OOKjJRM98qNdn7o06Cjv0Yra61ebxpDljGxlFegUSIo1Ey5PRLiN
+GhzJsjKunkVmrYDbUCSYUUJlZVykLX9s4ab1Y6XjCuz3lQmwikkQNrzMbESOX7gC
+ctZbHTB+L056egqEI+h4Pe9heAUnSmD/9N/3XIDemervD3a0lD0SNL06UNaMJe/i
+vvW4ISIzg/tt337nYiRE/BIrJc9O5hRhp0w02v+053uq0fQ+/d83UuPmrOf/xiuI
+HMs4CdDaHY7XiRMwZB4IJYhBqh9n/wL5Zy8iNoM1BS5tuZFz6tgf0JulpghfttLj
+2i/TQqtt8jrLxiq8WF4sjMqZSeF+GaX2gFegyxaC45YiJyfkwEsub3Fz9tIY+vot
+KpsBJfrCWPNIR4YbLX4EszECFwuFpO/iF0iHDA9bo3rZH4+Inb0G589PfLmPFc+i
+1Ksb50/G55/GPin784pUZzGdQ2OAL4BZLCmgdqIZPtWMIC3+b01+u7a4YsvrqJ8g
+Ue7Af2Y3oe/ONoRuXO3wCxNhXug0GImaBx2fcWZRM8sR9kHklM0dVryC6Ghj0602
+sXM6FFLI5bTZvvI7LFLC
+=li9c
 -----END PGP SIGNATURE-----
 
---Ah9ph+G2cWRpKogL--
+--cMRp6r1K6JdiUiOM--
