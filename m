@@ -1,76 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] pinctrl: Add support for additional dynamic states
-Date: Thu, 18 Jul 2013 03:53:46 -0700
-Message-ID: <20130718105345.GV7656@atomide.com>
-References: <20130716090310.5541.36777.stgit@localhost>
- <20130716090536.5541.36289.stgit@localhost>
- <51E70953.1000601@wwwdotorg.org>
- <20130718072034.GO7656@atomide.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: Re: [PATCH RFC 00/13] ARM: OMAP2+: AM43x PRCM support
+Date: Thu, 18 Jul 2013 16:37:06 +0530
+Message-ID: <51E7CC5A.8020906@ti.com>
+References: <cover.1373519192.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130718072034.GO7656@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: linus.walleij@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:38616 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758756Ab3GRLHe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Jul 2013 07:07:34 -0400
+In-Reply-To: <cover.1373519192.git.afzal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <benoit.cousson@linaro.org>, Tony Lindgren <tony@atomide.com>
 
-* Tony Lindgren <tony@atomide.com> [130718 00:31]:
-> * Stephen Warren <swarren@wwwdotorg.org> [130717 14:21]:
-> > On 07/16/2013 03:05 AM, Tony Lindgren wrote:
-> > > +int pinctrl_check_dynamic(struct device *dev, struct pinctrl_state *st1,
-> > > +			  struct pinctrl_state *st2)
-> > > +{
-> > > +	struct pinctrl_setting *s1, *s2;
-> > > +
-> > > +	list_for_each_entry(s1, &st1->settings, node) {
-> > ...
-> > > +		list_for_each_entry(s2, &st2->settings, node) {
-> > ...
-> > > +			if (pctldev1 != pctldev2) {
-> > > +				dev_dbg(dev, "pctldev must be the same for states\n");
-> > > +				return -EINVAL;
-> > > +			}
-> > 
-> > I don't think we should require that; it's perfectly legal at the moment
-> > for some device's pinctrl configuration to include settings from
-> > multiple different pin controllers.
-> 
-> Yes that's fine for pinctrl_select(), but let's not do that for
-> runtime muxing.
+Hi Tony, Paul,
 
-Hmm reading this again, you're right, there should not be anything
-preventing mixing multiple controllers as long as the states match.
- 
-> > > +			for (i = 0; i < num_pins1; i++) {
-> > > +				int pin1 = pins1[i];
-> > > +
-> > > +				for (j = 0; j < num_pins2; j++) {
-> > > +					int pin2 = pins2[j];
-> > > +
-> > > +					if (pin1 == pin2) {
-> > > +						found++;
-> > > +						break;
-> > > +					}
-> > > +				}
-> > > +			}
-> > > +
-> > > +			if (found != num_pins1) {
-> > 
-> > I guess this make sure that every entry in the dynamic state is in the
-> > state state, but not vice-versa; the static state can affect more stuff
-> > than the dynamic state?
-> > 
-> > If so, shouldn't that check be if (found != num_pins2)?
-> 
-> The check is that idle_state and sleep_state pins must match the
-> active_state pins. This is intentionally different from the current
-> pinctrl_select() logic.
+On 7/11/2013 12:03 PM, Afzal Mohammed wrote:
 
-And here things will get messed up if the order of settings is diffrent..
-So yes, pinctrl_check_dynamic() needs more work.
+> AM43x PRCM support (excluding clock tree) is being added with this
+> series. AM43x reuses most of the IP's from AM335x, as that is the
+> case, it was felt that reusing AM335x code as much as possible for
+> AM43x is better - it also helps to keep LOC less.
 
-Regards,
+> Major reuse has been with hwmod database of AM335x, moving common
+> elements to a new array and keeping separate arrays for elements that
+> are specific only to either one of AM335x or AM43x. And in the cases
+> where relevant IP is present in both that has difference in details
+> like CLKCTRL register offsets, it is being updated at runtime based on
+> the SoC detected.
 
-Tony
+> This series is being developed with additional clock tree changes that
+> would be DT'fied.
+
+> Additional DTS changes are also required for hwmod to get register
+> target address space as most of AM335x hwmod address space details has
+> been recently cleaned up and moved to DTS.
+
+ > 		********
+ >
+ > This RFC is being posted to get an early feedback on approach taken
+ > here mainly w.r.t reusing AM335x hwmod database for AM43x.
+ >
+ > 		********
+
+Please let me know your comments on this series.
+
+Most of the IP's in AM335x is reused on AM43x and hence out of the
+existing 77 hwmod ocpif entries on AM335x, 73 are reused on AM43x by
+moving to a common array (only 4 is left AM335x specific).
+
+Even the address space of those peripherals that are common between
+AM335x & AM43x is same. And AM43x has only a few newer IP's as
+compared to AM335x.
+
+Regards
+Afzal
