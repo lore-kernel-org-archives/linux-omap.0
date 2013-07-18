@@ -1,56 +1,60 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC/PATCHv2 1/3] driver: spi: Modify core to compute the
- message length
-Date: Thu, 18 Jul 2013 16:22:14 +0100
-Message-ID: <20130718152214.GR22506@sirena.org.uk>
+Subject: Re: [PATCHv4 2/3] drivers: spi: Add qspi flash controller
+Date: Thu, 18 Jul 2013 16:28:37 +0100
+Message-ID: <20130718152837.GS22506@sirena.org.uk>
 References: <1374141687-10790-1-git-send-email-sourav.poddar@ti.com>
- <1374141687-10790-2-git-send-email-sourav.poddar@ti.com>
+ <1374141687-10790-3-git-send-email-sourav.poddar@ti.com>
+ <20130718104233.GG22506@sirena.org.uk>
+ <51E7D569.2010709@ti.com>
+ <20130718131822.GN22506@sirena.org.uk>
+ <20130718133158.GA1628@arwen.pp.htv.fi>
+ <20130718144241.GO22506@sirena.org.uk>
+ <51E801C9.60609@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gb6VZqxBV+KJ1lA0"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:39909 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753865Ab3GRPWk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jul 2013 11:22:40 -0400
+	protocol="application/pgp-signature"; boundary="CUHu8oqV+HCwPlU/"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1374141687-10790-2-git-send-email-sourav.poddar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <51E801C9.60609@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Felipe Balbi <balbi@ti.com>, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
 
---gb6VZqxBV+KJ1lA0
+--CUHu8oqV+HCwPlU/
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Jul 18, 2013 at 03:31:25PM +0530, Sourav Poddar wrote:
-> Make spi core calculate the message length while
-> populating the other transfer parameters.
+On Thu, Jul 18, 2013 at 08:25:05PM +0530, Sourav Poddar wrote:
 
-Applied, thanks.
+> there is a QSPI_INTR_STATUS_ENABLED_CLEAR register, which indicated
+> the interrupt
+> status.
+> if nothing is set in the above register, I should return IRQ_NONE.
 
---gb6VZqxBV+KJ1lA0
+Yes, and/or complain in the log.
+
+--CUHu8oqV+HCwPlU/
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.20 (GNU/Linux)
 
-iQIcBAEBAgAGBQJR6AgjAAoJELSic+t+oim9v4QP/0bmwo+Khybpw5bjzUVo3RIp
-/ZGRBntxX1krc2JW974r67fHrlbbV1tW/x8EN6xI4NK6HFOOlTI4kK9RtW0BLTD9
-QTy2OKe8AVh7Db6OXU2WGD1lQOFHbVAzoPDGZmBnfyhiWNVHlLBm9ZyHz98CpnDh
-9TFJnt89AhJ8vdIavRTARsojvolG7OmghnQM5vqgK6H3eZmwc6SGvckETpH+iqHK
-BhpZUim54YYe0+PZlYJ8vhYbOp5tG1nBFg7QNss8XgPaGKiQunbh7/cGRl2FuQAd
-4Ny8IeU6SWjLyLXIDGLB8w8qJjpTHAKWDOnlXmEUMmquAW2qZWkU8qvNUPXCBkDV
-s6ggkzD4EUqABqHoqEqBOSDBplmS3+rFnSrX0Mb1Iom8LB4byBbpV4LH2zaA8yOr
-1L0kCl3DLDaPwkieyw4m6VHJGvel6t9OGFSP6ols5ctiAFYngH1clXO70ryWulZ0
-MC5mYBkxxTJ912FjGNIThJk9lGAmZ2WJ6obU1Unek/rB42GUSgjdmW32wlmfY5t6
-9kw96SgHw9nRcOYeDj1BqvbLmHmJEQXFaApYKXfcr2xA2sudeCGi+DvHib0COl6y
-6dI8Rd5CG3RTeH0hDFpRYdVb3PtItQZo7/jfBUmCtOQjws5FGLNA8/gpyD24bCDr
-5WA5o1S6YGxZjR+PKH2g
-=DCcK
+iQIcBAEBAgAGBQJR6AmiAAoJELSic+t+oim9g44P/1rjoLOGRA2eKexrsxH8Vg2r
+LrHGRH04kkrxYFrRLY8TUKxyxwrKmS/n4mVg3fSec+z+kIAsCmwdeolkmQLeBCJq
+iwyCxneI0V5+Dvo5+8WCjESpB1My4hV+3yH1LDdFYdZKToPXVssAMSogz0LX6VsO
+iXIoPwf5P0gfXI4WCWpdhKXsg3eoHy14KQKz8eRDr+4Ft+XpCoxuGJTUAqk6FKPE
+1EkQtY3bPPjmj3gmlHknaiawQboAnMI7juNEzyHuWQ5sIjdwQGkg4R+Dve3IwCny
+bfxv48QGVp0gQAI33OEnN7U+UlW2JqcEw0iEjKH1JGfg5a8p3NnMYsY0K0ahlmfC
+bhw3nhujVoC4dujud8oI4GwWC6xNCLP4kGxTjFxjARLflXFW+LmVMwc7mOtGzcwc
+KwSwR6zdWZTJhBbtacgL1rzYGBoZPYnBQg31zSd79fmb35Dx2mgmK/Ygpss8Jd16
+dqHMPS829SsOyZYpTh7iHEw0D9qGfQwuBpTXJcvFi2vzrUVTqMBv7bdpmjDKIWc3
+bPYOUHUYFfffKkq5ypCKUpleZ40mD6GNEbb5ZfZvfsA+UTKwXozMbGgPQUARspvS
+GGTdS72HeAxdehPUbWwXijrMxwT5F8IsQVTg0dBDCd7qaagDo+cXA3Z2JHPOvJxk
+hXNL7vGhRM913eK7YkdP
+=6pML
 -----END PGP SIGNATURE-----
 
---gb6VZqxBV+KJ1lA0--
+--CUHu8oqV+HCwPlU/--
