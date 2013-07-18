@@ -1,190 +1,71 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 13/15] phy: Add driver for Exynos DP PHY
-Date: Thu, 18 Jul 2013 12:16:22 +0530
-Message-ID: <1374129984-765-14-git-send-email-kishon@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 04/15] ARM: OMAP: USB: Add phy binding information
+Date: Thu, 18 Jul 2013 00:02:20 -0700
+Message-ID: <20130718070219.GM7656@atomide.com>
 References: <1374129984-765-1-git-send-email-kishon@ti.com>
+ <1374129984-765-5-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1374129984-765-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org, kyungmin.park@samsung.com, balbi@ti.com, kishon@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com
-Cc: grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1374129984-765-5-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Jingoo Han <jg1.han@samsung.com>
+* Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [130717 23:53]:
+> In order for controllers to get PHY in case of non dt boot, the phy
+> binding information (phy device name) should be added in the platform
+> data of the controller.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+> Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> ---
+>  arch/arm/mach-omap2/usb-musb.c |    3 +++
+>  include/linux/usb/musb.h       |    3 +++
+>  2 files changed, 6 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+> index 8c4de27..6aa7cbf 100644
+> --- a/arch/arm/mach-omap2/usb-musb.c
+> +++ b/arch/arm/mach-omap2/usb-musb.c
+> @@ -85,6 +85,9 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
+>  	musb_plat.mode = board_data->mode;
+>  	musb_plat.extvbus = board_data->extvbus;
+>  
+> +	if (cpu_is_omap34xx())
+> +		musb_plat.phy_label = "twl4030";
+> +
+>  	if (soc_is_am35xx()) {
+>  		oh_name = "am35x_otg_hs";
+>  		name = "musb-am35x";
 
-Add a PHY provider driver for the Samsung Exynos SoC Display Port PHY.
+I don't think there's a USB PHY on non-twl4030 chips, so this should
+be OK:
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Reviewed-by: Tomasz Figa <t.figa@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- .../devicetree/bindings/phy/samsung-phy.txt        |    8 ++
- drivers/phy/Kconfig                                |    6 ++
- drivers/phy/Makefile                               |    1 +
- drivers/phy/phy-exynos-dp-video.c                  |  111 ++++++++++++++++++++
- 4 files changed, 126 insertions(+)
- create mode 100644 drivers/phy/phy-exynos-dp-video.c
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-diff --git a/Documentation/devicetree/bindings/phy/samsung-phy.txt b/Documentation/devicetree/bindings/phy/samsung-phy.txt
-index 5ff208c..c0fccaa 100644
---- a/Documentation/devicetree/bindings/phy/samsung-phy.txt
-+++ b/Documentation/devicetree/bindings/phy/samsung-phy.txt
-@@ -12,3 +12,11 @@ the PHY specifier identifies the PHY and its meaning is as follows:
-   1 - MIPI DSIM 0,
-   2 - MIPI CSIS 1,
-   3 - MIPI DSIM 1.
-+
-+Samsung EXYNOS SoC series Display Port PHY
-+-------------------------------------------------
-+
-+Required properties:
-+- compatible : should be "samsung,exynos5250-dp-video-phy";
-+- reg : offset and length of the Display Port PHY register set;
-+- #phy-cells : from the generic PHY bindings, must be 0;
-diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-index 6f446d0..ed0b1b8 100644
---- a/drivers/phy/Kconfig
-+++ b/drivers/phy/Kconfig
-@@ -19,4 +19,10 @@ config PHY_EXYNOS_MIPI_VIDEO
- 	help
- 	  Support for MIPI CSI-2 and MIPI DSI DPHY found on Samsung
- 	  S5P and EXYNOS SoCs.
-+
-+config PHY_EXYNOS_DP_VIDEO
-+	tristate "EXYNOS SoC series Display Port PHY driver"
-+	depends on OF
-+	help
-+	  Support for Display Port PHY found on Samsung EXYNOS SoCs.
- endif
-diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
-index 71d8841..0fd1340 100644
---- a/drivers/phy/Makefile
-+++ b/drivers/phy/Makefile
-@@ -4,3 +4,4 @@
- 
- obj-$(CONFIG_GENERIC_PHY)		+= phy-core.o
- obj-$(CONFIG_PHY_EXYNOS_MIPI_VIDEO)	+= phy-exynos-mipi-video.o
-+obj-$(CONFIG_PHY_EXYNOS_DP_VIDEO)	+= phy-exynos-dp-video.o
-diff --git a/drivers/phy/phy-exynos-dp-video.c b/drivers/phy/phy-exynos-dp-video.c
-new file mode 100644
-index 0000000..3c8e247
---- /dev/null
-+++ b/drivers/phy/phy-exynos-dp-video.c
-@@ -0,0 +1,111 @@
-+/*
-+ * Samsung EXYNOS SoC series Display Port PHY driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Author: Jingoo Han <jg1.han@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/io.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_address.h>
-+#include <linux/phy/phy.h>
-+#include <linux/platform_device.h>
-+
-+/* DPTX_PHY_CONTROL register */
-+#define EXYNOS_DPTX_PHY_ENABLE		(1 << 0)
-+
-+struct exynos_dp_video_phy {
-+	void __iomem *regs;
-+};
-+
-+static int __set_phy_state(struct exynos_dp_video_phy *state, unsigned int on)
-+{
-+	u32 reg;
-+
-+	reg = readl(state->regs);
-+	if (on)
-+		reg |= EXYNOS_DPTX_PHY_ENABLE;
-+	else
-+		reg &= ~EXYNOS_DPTX_PHY_ENABLE;
-+	writel(reg, state->regs);
-+
-+	return 0;
-+}
-+
-+static int exynos_dp_video_phy_power_on(struct phy *phy)
-+{
-+	struct exynos_dp_video_phy *state = phy_get_drvdata(phy);
-+
-+	return __set_phy_state(state, 1);
-+}
-+
-+static int exynos_dp_video_phy_power_off(struct phy *phy)
-+{
-+	struct exynos_dp_video_phy *state = phy_get_drvdata(phy);
-+
-+	return __set_phy_state(state, 0);
-+}
-+
-+static struct phy_ops exynos_dp_video_phy_ops = {
-+	.power_on	= exynos_dp_video_phy_power_on,
-+	.power_off	= exynos_dp_video_phy_power_off,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static int exynos_dp_video_phy_probe(struct platform_device *pdev)
-+{
-+	struct exynos_dp_video_phy *state;
-+	struct device *dev = &pdev->dev;
-+	struct resource *res;
-+	struct phy_provider *phy_provider;
-+	struct phy *phy;
-+
-+	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
-+	if (!state)
-+		return -ENOMEM;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+
-+	state->regs = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(state->regs))
-+		return PTR_ERR(state->regs);
-+
-+	phy_provider = devm_of_phy_provider_register(dev, of_phy_simple_xlate);
-+	if (IS_ERR(phy_provider))
-+		return PTR_ERR(phy_provider);
-+
-+	phy = devm_phy_create(dev, 0, &exynos_dp_video_phy_ops, NULL);
-+	if (IS_ERR(phy)) {
-+		dev_err(dev, "failed to create Display Port PHY\n");
-+		return PTR_ERR(phy);
-+	}
-+	phy_set_drvdata(phy, state);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id exynos_dp_video_phy_of_match[] = {
-+	{ .compatible = "samsung,exynos5250-dp-video-phy" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, exynos_dp_video_phy_of_match);
-+
-+static struct platform_driver exynos_dp_video_phy_driver = {
-+	.probe	= exynos_dp_video_phy_probe,
-+	.driver = {
-+		.name	= "exynos-dp-video-phy",
-+		.owner	= THIS_MODULE,
-+		.of_match_table	= exynos_dp_video_phy_of_match,
-+	}
-+};
-+module_platform_driver(exynos_dp_video_phy_driver);
-+
-+MODULE_AUTHOR("Jingoo Han <jg1.han@samsung.com>");
-+MODULE_DESCRIPTION("Samsung EXYNOS SoC DP PHY driver");
-+MODULE_LICENSE("GPL v2");
--- 
-1.7.10.4
+
+> diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
+> index 053c268..596f8c8 100644
+> --- a/include/linux/usb/musb.h
+> +++ b/include/linux/usb/musb.h
+> @@ -104,6 +104,9 @@ struct musb_hdrc_platform_data {
+>  	/* for clk_get() */
+>  	const char	*clock;
+>  
+> +	/* phy label */
+> +	const char	*phy_label;
+> +
+>  	/* (HOST or OTG) switch VBUS on/off */
+>  	int		(*set_vbus)(struct device *dev, int is_on);
+>  
+> -- 
+> 1.7.10.4
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
