@@ -1,109 +1,102 @@
-From: "Arend van Spriel" <arend@broadcom.com>
-Subject: Re: Regression 3.11-rc1: omap4panda: no usb and consequently no
- ethernet
-Date: Thu, 18 Jul 2013 14:38:15 +0200
-Message-ID: <51E7E1B7.6090104@broadcom.com>
-References: <51E7AA24.6080600@broadcom.com> <51E7CEF3.5000408@ti.com>
- <51E7D080.6070401@broadcom.com> <51E7D1D2.1060006@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: Regression 3.11-rc1: omap4panda: no usb and consequently no ethernet
+Date: Thu, 18 Jul 2013 15:42:21 +0300
+Message-ID: <51E7E2AD.8020106@ti.com>
+References: <51E7AA24.6080600@broadcom.com> <51E7CEF3.5000408@ti.com> <51E7D080.6070401@broadcom.com> <51E7D1D2.1060006@ti.com> <51E7E1B7.6090104@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8;
- format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51E7D1D2.1060006@ti.com>
+In-Reply-To: <51E7E1B7.6090104@broadcom.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
+To: Arend van Spriel <arend@broadcom.com>
 Cc: tony@atomide.com, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/18/2013 01:30 PM, Roger Quadros wrote:
-> On 07/18/2013 02:24 PM, Arend van Spriel wrote:
->> On 07/18/2013 01:18 PM, Roger Quadros wrote:
->>> Hi Arend,
+On 07/18/2013 03:38 PM, Arend van Spriel wrote:
+> On 07/18/2013 01:30 PM, Roger Quadros wrote:
+>> On 07/18/2013 02:24 PM, Arend van Spriel wrote:
+>>> On 07/18/2013 01:18 PM, Roger Quadros wrote:
+>>>> Hi Arend,
+>>>>
+>>>> On 07/18/2013 11:41 AM, Arend van Spriel wrote:
+>>>>> Hi Tony,
+>>>>>
+>>>>>
+>>>>> We are using the panda board (es variant) for testing our SDIO based chips. For this we have an adapter card connection to expansion connector A. As this adapter is not publicly available we had internally patched board-omap4panda.c. Also we follow the -rc releases and use TFTP to boot the kernel image which requires USB.
+>>>>>
+>>>>> Moving to 3.11-rc1 I found that the mentioned board file was removed by your commit:
+>>>>>
+>>>>> commit b42b918194c4791510ac049e3d507169a7de8544
+>>>>> Author: Tony Lindgren <tony@atomide.com>
+>>>>> Date:   Thu May 30 12:53:05 2013 -0700
+>>>>>
+>>>>>       ARM: OMAP2+: Remove board-omap4panda.c
+>>>>>
+>>>>> As our patches on that file are internal I do not hold it against you. This is no regression and we need to fix it.
+>>>>>
+>>>>> So my first step was to follow the recipe given in that commit. Beside that I noticed a thread about USB issue on LKML so I also applied the following commit:
+>>>>>
+>>>>> commit 352f573e59050c7a604c35c58b4bbfc51edebbee
+>>>>> Author: Roger Quadros <rogerq@ti.com>
+>>>>> Date:   Tue Jun 18 19:04:47 2013 +0300
+>>>>>
+>>>>>       ARM: OMAP2+: Provide alias to USB PHY clock
+>>>>>
+>>>>> The attached kernel log seems to suggest that the device tree is picked up by the kernel, but the USB does not seem very active. No ethernet connectivity. This does seem a regression to me. Is there some other patch that I need to get it going again?
+>>>>>
+>>>>
+>>>> I tried with your config and 3.11-rc1 kernel with the above commit on top and ethernet seems to
+>>>> work for me. My boot log is attached.
+>>>>
+>>>> Are you sure that you are building the DTB for panda-es and the bootloader is picking up the right file and
+>>>> not an outdated one?
 >>>
->>> On 07/18/2013 11:41 AM, Arend van Spriel wrote:
->>>> Hi Tony,
->>>>
->>>>
->>>> We are using the panda board (es variant) for testing our SDIO based chips. For this we have an adapter card connection to expansion connector A. As this adapter is not publicly available we had internally patched board-omap4panda.c. Also we follow the -rc releases and use TFTP to boot the kernel image which requires USB.
->>>>
->>>> Moving to 3.11-rc1 I found that the mentioned board file was removed by your commit:
->>>>
->>>> commit b42b918194c4791510ac049e3d507169a7de8544
->>>> Author: Tony Lindgren <tony@atomide.com>
->>>> Date:   Thu May 30 12:53:05 2013 -0700
->>>>
->>>>       ARM: OMAP2+: Remove board-omap4panda.c
->>>>
->>>> As our patches on that file are internal I do not hold it against you. This is no regression and we need to fix it.
->>>>
->>>> So my first step was to follow the recipe given in that commit. Beside that I noticed a thread about USB issue on LKML so I also applied the following commit:
->>>>
->>>> commit 352f573e59050c7a604c35c58b4bbfc51edebbee
->>>> Author: Roger Quadros <rogerq@ti.com>
->>>> Date:   Tue Jun 18 19:04:47 2013 +0300
->>>>
->>>>       ARM: OMAP2+: Provide alias to USB PHY clock
->>>>
->>>> The attached kernel log seems to suggest that the device tree is picked up by the kernel, but the USB does not seem very active. No ethernet connectivity. This does seem a regression to me. Is there some other patch that I need to get it going again?
->>>>
+>>> I appended the DTB to the kernel image thus avoiding the need to update u-boot (at least that is what I understood from Tony's commit).
 >>>
->>> I tried with your config and 3.11-rc1 kernel with the above commit on top and ethernet seems to
->>> work for me. My boot log is attached.
+>>
+>> I understand this can be a little tedious at first.
+>>
+>> This is my u-boot boot.txt
+>>
+>> fatload mmc 0:1 0x825f0000 omap4-panda-es.dtb
+>> fatload mmc 0:1 0x80300000 uImage
+>> set fdt_high 0xffffffff
+>> setenv bootargs console=ttyO2,115200n8 mem=1G@0x80000000 root=/dev/mmcblk0p2 rootwait
+>> bootm 0x80300000 - 0x825f0000
+>>
+>> You need to generate boot.scr from the above boot.txt and place it in SD card boot partition.
+>>
+>> mkimage -A arm -T script -C none -n "Boot Image" -d boot.txt boot.scr
+>>
+>> And of course copy the omap4-panda-es.dtb to SD card boot partition.
+>>
+>> hope this helps.
+> 
+> Thanks for sharing this.
+> 
+>>>> Why is the version of SPL loader and u-boot different in your log?
+>>>> You need to use the MLO file generated by the u-boot build along with the uImage.
+>>>>
+>>>> Just to be sure we are on the same setup could you please try with latest u-boot release (2013-04). Thanks.
 >>>
->>> Are you sure that you are building the DTB for panda-es and the bootloader is picking up the right file and
->>> not an outdated one?
->>
->> I appended the DTB to the kernel image thus avoiding the need to update u-boot (at least that is what I understood from Tony's commit).
->>
->
-> I understand this can be a little tedious at first.
->
-> This is my u-boot boot.txt
->
-> fatload mmc 0:1 0x825f0000 omap4-panda-es.dtb
-> fatload mmc 0:1 0x80300000 uImage
-> set fdt_high 0xffffffff
-> setenv bootargs console=ttyO2,115200n8 mem=1G@0x80000000 root=/dev/mmcblk0p2 rootwait
-> bootm 0x80300000 - 0x825f0000
->
-> You need to generate boot.scr from the above boot.txt and place it in SD card boot partition.
->
-> mkimage -A arm -T script -C none -n "Boot Image" -d boot.txt boot.scr
->
-> And of course copy the omap4-panda-es.dtb to SD card boot partition.
->
-> hope this helps.
-
-Thanks for sharing this.
-
->>> Why is the version of SPL loader and u-boot different in your log?
->>> You need to use the MLO file generated by the u-boot build along with the uImage.
+>>> I recall having difficulty with TFTP boot using a 2013 u-boot release, but that hurdle is for later. I will try.
 >>>
->>> Just to be sure we are on the same setup could you please try with latest u-boot release (2013-04). Thanks.
 >>
->> I recall having difficulty with TFTP boot using a 2013 u-boot release, but that hurdle is for later. I will try.
->>
->
-> OK. We can figure this out as well.
+>> OK. We can figure this out as well.
+> 
+> I tried with same SPL and u-boot version, but that did not work out. So I moved to v2013.04 and the log looks better. I was especially interested in this:
+> 
+> [    2.807434] usb 1-1.1: new high-speed USB device number 3 using ehci-omap
+> [    2.932495] usb 1-1.1: New USB device found, idVendor=0424, idProduct=ec00
+> [    2.932495] usb 1-1.1: New USB device strings: Mfr=0, Product=0, SerialNumbe0
+> [    2.958770] smsc95xx v1.0.4
+> Starting logging: OK
+> Initializing random number generator... [    3.045806] smsc95xx 1-1.1:1.0 eth0
 
-I tried with same SPL and u-boot version, but that did not work out. So 
-I moved to v2013.04 and the log looks better. I was especially 
-interested in this:
+Cool! :).
 
-[    2.807434] usb 1-1.1: new high-speed USB device number 3 using 
-ehci-omap
-[    2.932495] usb 1-1.1: New USB device found, idVendor=0424, 
-idProduct=ec00
-[    2.932495] usb 1-1.1: New USB device strings: Mfr=0, Product=0, 
-SerialNumbe0
-[    2.958770] smsc95xx v1.0.4 
+FYI. I also tested tftpboot from u-boot and NFS root file system and it works fine.
 
-Starting logging: OK 
-
-Initializing random number generator... [    3.045806] smsc95xx 
-1-1.1:1.0 eth0
-
-Regards,
-Arend
+cheers,
+-roger
