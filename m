@@ -1,21 +1,21 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH 3/4] pinctrl: Add support for additional dynamic states
-Date: Thu, 18 Jul 2013 00:25:16 -0700
-Message-ID: <20130718072034.GO7656@atomide.com>
+Date: Thu, 18 Jul 2013 00:36:39 -0700
+Message-ID: <20130718073638.GP7656@atomide.com>
 References: <20130716090310.5541.36777.stgit@localhost>
  <20130716090536.5541.36289.stgit@localhost>
- <51E70953.1000601@wwwdotorg.org>
+ <51E70B5D.6030802@wwwdotorg.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <51E70953.1000601@wwwdotorg.org>
+In-Reply-To: <51E70B5D.6030802@wwwdotorg.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Stephen Warren <swarren@wwwdotorg.org>
 Cc: linus.walleij@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Stephen Warren <swarren@wwwdotorg.org> [130717 14:21]:
+* Stephen Warren <swarren@wwwdotorg.org> [130717 14:30]:
 > On 07/16/2013 03:05 AM, Tony Lindgren wrote:
 > > To toggle dynamic states, let's add the optional active state in
 > > addition to the static default state. Then if the optional active
@@ -38,130 +38,39 @@ List-Id: linux-omap@vger.kernel.org
 > > toggling of pin states, we should eventually always use just
 > > pinctrl_select_dynamic().
 > 
-> > diff --git a/drivers/pinctrl/core.c b/drivers/pinctrl/core.c
-> 
-> > @@ -887,6 +887,8 @@ static void pinctrl_free(struct pinctrl *p, bool inlist)
-> >  		list_for_each_entry_safe(setting, n2, &state->settings, node) {
-> >  			pinctrl_free_setting(state == p->state[PINCTRL_STATIC],
-> >  					     setting);
-> > +			pinctrl_free_setting(state == p->state[PINCTRL_DYNAMIC],
-> > +					     setting);
-> 
-> This will cause pinmux_free_setting() or pinconf_free_setting() to be
-> called twice on the setting object. Right now they don't do anything,
-> but if they start to kfree() some dynamically-allocated data that's
-> stored within the setting, that'll cause problems. I would suggest a
-> loop body something more like:
-> 
-> bool disable_setting = state == XXX || state == YYY;
-> pinctrl_free_setting(disable_setting, setting);
+> Something in this series should edit Documentation/pinctrl.txt to
+> explain the philosophy behind the static/dynamic state split. That
+> philosophy and/or semantics are more important to review than the code...
 
-OK good point, I'll check it.
+Sure, I'll write up something on that.
  
-> > +int pinctrl_check_dynamic(struct device *dev, struct pinctrl_state *st1,
-> > +			  struct pinctrl_state *st2)
-> > +{
-> > +	struct pinctrl_setting *s1, *s2;
-> > +
-> > +	list_for_each_entry(s1, &st1->settings, node) {
-> ...
-> > +		list_for_each_entry(s2, &st2->settings, node) {
-> ...
-> > +			if (pctldev1 != pctldev2) {
-> > +				dev_dbg(dev, "pctldev must be the same for states\n");
-> > +				return -EINVAL;
-> > +			}
-> 
-> I don't think we should require that; it's perfectly legal at the moment
-> for some device's pinctrl configuration to include settings from
-> multiple different pin controllers.
+> Related to that, I'm worried that using pinctrl_select_state() and
+> pinctrl_select_dynamic() appear to be mutually-exclusive options here.
 
-Yes that's fine for pinctrl_select(), but let's not do that for
-runtime muxing.
+Not currently, but eventually I think that's a good idea. We should
+use pinctrl_select_state() only during init time eventually because
+of the diffing of states it does.
 
-Here we want to do a one-time check during init to make  sure that
-if active_state is defined, then the idle_state and sleep_state
-must match active_state for pins.
+> Why shouldn't e.g. a pinctrl-based I2C mux also be able to do runtime
+> PM? Does the mux setting select which states are used for runtime PM, or
+> does runtime PM override the basic mux setting, or must the pincrl-I2C
+> mux manually implement custom runtime-PM/pinctrl interaction since
+> there's no generic answer to those questions? How many more custom
+> exceptions will there be?
 
-This way we can avoid checking things over and over again during
-runtime like pinctrl_select() is currently doing.
- 
-> > +			for (i = 0; i < num_pins1; i++) {
-> > +				int pin1 = pins1[i];
-> > +
-> > +				for (j = 0; j < num_pins2; j++) {
-> > +					int pin2 = pins2[j];
-> > +
-> > +					if (pin1 == pin2) {
-> > +						found++;
-> > +						break;
-> > +					}
-> > +				}
-> > +			}
-> > +
-> > +			if (found != num_pins1) {
-> 
-> I guess this make sure that every entry in the dynamic state is in the
-> state state, but not vice-versa; the static state can affect more stuff
-> than the dynamic state?
-> 
-> If so, shouldn't that check be if (found != num_pins2)?
+The idea is that runtime PM will never touch the basic mux settings
+at all. The "default" state should be considered a static state
+that is claimed during driver probe, and released when the driver
+is unloaded. This is typically let's say 90% of the pins for any
+device.
 
-The check is that idle_state and sleep_state pins must match the
-active_state pins. This is intentionally different from the current
-pinctrl_select() logic.
- 
-> > +int pinctrl_select_dynamic(struct pinctrl *p, struct pinctrl_state *state)
-> 
-> The body of this function is rather duplicated with pinctrl_select().
+For runtime PM, we can just toggle the PM related pinctrl states as
+they have been verified to match the active state during init.
 
-Well we may be able to make pinctrl_select() use this too, I'll take
-a look. Initially I'd rather not start messing with pinctrl_select()
-to avoid breaking existing users.
- 
-> > @@ -1241,7 +1371,13 @@ static int pinctrl_pm_select_state(struct device *dev, struct pinctrl_state *sta
-> >  		return 0;
-> >  	if (IS_ERR(state))
-> >  		return 0; /* No such state */
-> > -	ret = pinctrl_select_state(pins->p, state);
-> > +
-> > +	/* Configured for proper dynamic muxing? */
-> 
-> I don't think "proper" is correct here; it's just fine not to have any
-> dynamic configuration.
-
-Right, that's the most common case. I'll drop the "proper".
- 
-> > +	if (!IS_ERR(dev->pins->active_state))
-> > +		ret = pinctrl_select_dynamic(pins->p, state);
-> > +	else
-> > +		ret = pinctrl_select_state(pins->p, state);
-> 
-> Hmmm. I'm not quite sure this is right... Surely this function should
-> just do nothing if the dynamic states aren't defined? The system should
-> just, and only, be in the "default" state and never do anything else.
-
-This keeps the existing behaviour. We should be able to drop the
-call to pinctrl_select_state() here after the existing use in
-drivers has been fixed.
- 
-> Looking back at patch 1, I see the are
-> pinctrl_pm_select_{default,sleep,idle}_state(). Shouldn't that list be
-> active/sleep/idle, since I assume default is that "static" state, and
-> the other three are the "dynamic" states?
-
-Yes after this patch set that's the case, then we have default
-plus optional active. Then if active is defined, sleep and idle
-pins must match active. 
- 
-> > +static int pinctrl_pm_check_state(struct device *dev,
-> > +				  struct pinctrl_state *state)
-> 
-> Naming this pinctrl_pm_is_state_error() or pinctrl_pm_is_state_ok()
-> might give more clue what its return value is expected to be.
-
-OK yeah I did not like that naming either, pinctrl_pm_is_state_error()
-sounds good to me.
+So I don't see why pinctrl-I2C would have to do anything specific.
+All that is required is that the pins are grouped for the consumer
+driver, and we can provide some automated checks on the states for
+runtime PM.
 
 Regards,
 
