@@ -1,107 +1,63 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv4 2/3] drivers: spi: Add qspi flash controller
-Date: Thu, 18 Jul 2013 14:56:07 +0300
-Message-ID: <20130718115607.GK11251@arwen.pp.htv.fi>
-References: <1374141687-10790-1-git-send-email-sourav.poddar@ti.com>
- <1374141687-10790-3-git-send-email-sourav.poddar@ti.com>
- <20130718104233.GG22506@sirena.org.uk>
- <51E7D569.2010709@ti.com>
-Reply-To: <balbi@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 3/3] ARM: dts: omap4-sdp: add dynamic pin states for uart3/4
+Date: Thu, 18 Jul 2013 15:01:17 +0300
+Message-ID: <51E7D90D.6070101@ti.com>
+References: <1374061312-25469-1-git-send-email-grygorii.strashko@ti.com> <1374061312-25469-4-git-send-email-grygorii.strashko@ti.com> <20130717153248.GI7656@atomide.com> <51E6C939.40208@ti.com> <20130718080953.GR7656@atomide.com> <51E7AD38.6010108@ti.com> <20130718090408.GU7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="rpGc+ACYPE+RMC+Z"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <51E7D569.2010709@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: Mark Brown <broonie@kernel.org>, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47198 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757578Ab3GRMCk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Jul 2013 08:02:40 -0400
+In-Reply-To: <20130718090408.GU7656@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <benoit.cousson@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Stephen Warren <swarren@wwwdotorg.org>
 
---rpGc+ACYPE+RMC+Z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Tony,
 
-Hi,
+On 07/18/2013 12:04 PM, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko@ti.com> [130718 02:01]:
+>> On 07/18/2013 11:09 AM, Tony Lindgren wrote:
+>>
+>> Don't think it's debug code - IO chain need to be rearmed after each
+>> PRCM IO IRQ - otherwise IO wakeup events may be lost (at least on
+>> OMAP4, OMAP5 requires more complex handling(( ).
+>
+> Nope, only after the mux register changes. I've verified it on
+> am3730 with off-idle for both serial and wl12xx.
 
-On Thu, Jul 18, 2013 at 05:15:45PM +0530, Sourav Poddar wrote:
-> >>+	list_for_each_entry(t,&m->transfers, transfer_list) {
-> >>+		qspi->cmd |=3D QSPI_WLEN(t->bits_per_word);
-> >>+		qspi->cmd |=3D QSPI_WC_CMD_INT_EN;
-> >>+
-> >>+		ret =3D qspi_transfer_msg(qspi, t);
-> >>+		if (ret) {
-> >>+			dev_dbg(qspi->dev, "transfer message failed\n");
-> >>+			return -EINVAL;
-> >>+		}
-> >>+
-> >>+		m->actual_length +=3D t->len;
-> >>+
-> >>+		if (list_is_last(&t->transfer_list,&m->transfers))
-> >>+			goto out;
-> >>+	}
-> >The use of list_is_last() here is *realy* strange - what's going on
-> >there?
-> >
-> We are checking if there is any transfer left, if no we are signalling the
-> flash device about the end of transfer.
+Unfortunately, there is a possibility to lose wake up events in case if
+IO daisy chain will be rearmed (this will clean up all WAKEUPEVENT bits)
+while there is some pending  WAKEUP event present. In this case, 
+pcs_omap_handle_irq() will not call generic_handle_irq(wakeirq).
 
-I'll quote your diff below because I wanted to show where your 'out'
-label lies:
+The below patch contains explanation of such kind of issue we've solved
+in K3.4
+http://git.omapzoom.org/?p=kernel/omap.git;a=commit;h=5ff316db224a2c3c23bfe44261275d520b4f78bb
 
-+       list_for_each_entry(t, &m->transfers, transfer_list) {
-+               qspi->cmd |=3D QSPI_WLEN(t->bits_per_word);
-+               qspi->cmd |=3D QSPI_WC_CMD_INT_EN;
-+
-+               ret =3D qspi_transfer_msg(qspi, t);
-+               if (ret) {
-+                       dev_dbg(qspi->dev, "transfer message failed\n");
-+                       return -EINVAL;
-+               }
-+
-+               m->actual_length +=3D t->len;
-+
-+               if (list_is_last(&t->transfer_list, &m->transfers))
-+                       goto out;
-+       }
-+
-+out:
-+       m->status =3D status;
-+       spi_finalize_current_message(master);
+Currently, in Mainline the same is possible on OMAP4 (which is SMP) if
+some Device will be switched to idle and rearm IO chain while there is
+pending WAKEUP event form USB for example. So, IO rearming need to be 
+delayed until PRCM irq will be served served and PRCM irq handler should 
+finally rearm IO daisy chain.
 
-see how it's place right after the closing curly brackets ? In that
-case, why do you need it ? list_for_each_entry() will do exactly what it
-says: iterate over each entry on the entry. When it reaches the last
-one, the loop will end.
 
-This renders your list_is_last() check useless. In fact, you could've
-figured that out if you just spent the time to read
-list_for_each_entry() carefully.
+>
+>> I didn't pick up your padconf patches yet -seems i need to be in sync :)
+>
+> Well you need those for proper wake-up event support..
+>
+>> Below the diff I used to verify IO wake up (It follows old IO daisy
+>> chain hanlding models in hwmod before DT):
+>
+> ..then these changes not needed with the pinctrl-single changes.
+>
+> Regards,
+>
+> Tony
+>
 
---=20
-balbi
-
---rpGc+ACYPE+RMC+Z
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR59fXAAoJEIaOsuA1yqREAlwP/0zhNva5B7OXjxfF9oX/4Sjz
-SBcU7bAvTtwFwl9ENPGvW0yA7I/ZPVqoJKnzV/ZCEgDW5M2W/F/U2lscjriuned9
-bsj4J8ZpG+k+G9oeN688UtG7Y/toF0cUTwHd4K77lfAtAtw+z7IS0hgK9buaKome
-oKw2C6Ahu93dXNjmb9Wh5WZdoSmEsihuIffXZ98nu6mKieREtH+UJ1FCR0fz3M2i
-CXoYxsFaOvacJNyIYRGRsrllY81SBCepZh2o61MjFUrWFL23xaFN0QG0B/aH0b0x
-3OXFIT3mrQgCsiEQ5Q4GbFmfCib/gVU7FDBqCuwJ1stuo6T8wqQHVs4cTMDAbiGI
-YH/DcuSqnDiHULMQM2dzJt23lqiDGYFJD4DvNd3nAOd7Vqu6JIj7GIv2EPH7CYQn
-a7uA2/dp4MrWpGLwA0g9O669RacUU7vZ6grp3P4bBXF71/4fDDOTsbPcrFtgrKk6
-Le7aMf8FJhGNILuIC9/T6wGJ9DZwMVIqcF9vOyp1mQb2Qr8HE75PLPf7I2ELcL5s
-G5nkC2U/CR0BO+8jxrOrBe1Y0fUyL7+AXN+abuRBlkqZtA4ONbGlbUs4GFKn+znR
-E5CIymlJMPCjTaoahx/KmJbLdx/+OdpHpkwSBV8i/7+AMOQNdxx8DGxZ7KW27G4I
-qTF6O+P1pMhD8YB8gTj7
-=jftt
------END PGP SIGNATURE-----
-
---rpGc+ACYPE+RMC+Z--
