@@ -1,178 +1,214 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 05/15] ARM: dts: omap: update usb_otg_hs data
-Date: Thu, 18 Jul 2013 00:05:09 -0700
-Message-ID: <20130718070508.GN7656@atomide.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Thu, 18 Jul 2013 00:20:04 -0700
+Message-ID: <20130718072004.GA16720@kroah.com>
 References: <1374129984-765-1-git-send-email-kishon@ti.com>
- <1374129984-765-6-git-send-email-kishon@ti.com>
+ <1374129984-765-2-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1374129984-765-6-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1374129984-765-2-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
 To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: gregkh@linuxfoundation.org, kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, arnd@arndb.de, swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
+Cc: kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon@ti.com> [130717 23:53]:
-> Updated the usb_otg_hs dt data to include the *phy* and *phy-names*
-> binding in order for the driver to use the new generic PHY framework.
-> Also updated the Documentation to include the binding information.
-> The PHY binding information can be found at
-> Documentation/devicetree/bindings/phy/phy-bindings.txt
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Acked-by: Felipe Balbi <balbi@ti.com>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+On Thu, Jul 18, 2013 at 12:16:10PM +0530, Kishon Vijay Abraham I wrote:
+> +struct phy_provider *__of_phy_provider_register(struct device *dev,
+> +	struct module *owner, struct phy * (*of_xlate)(struct device *dev,
+> +	struct of_phandle_args *args));
+> +struct phy_provider *__devm_of_phy_provider_register(struct device *dev,
+> +	struct module *owner, struct phy * (*of_xlate)(struct device *dev,
+> +	struct of_phandle_args *args))
+> +
+> +__of_phy_provider_register and __devm_of_phy_provider_register can be used to
+> +register the phy_provider and it takes device, owner and of_xlate as
+> +arguments. For the dt boot case, all PHY providers should use one of the above
+> +2 APIs to register the PHY provider.
 
-In general the .dts changes should be separate to avoid pointless
-merge conflicts. But sounds like things will stop working for
-USB unless we do it like this so:
+Why do you have __ for the prefix of a public function?  Is that really
+the way that OF handles this type of thing?
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+> --- /dev/null
+> +++ b/drivers/phy/Kconfig
+> @@ -0,0 +1,13 @@
+> +#
+> +# PHY
+> +#
+> +
+> +menuconfig GENERIC_PHY
+> +	tristate "PHY Subsystem"
+> +	help
+> +	  Generic PHY support.
+> +
+> +	  This framework is designed to provide a generic interface for PHY
+> +	  devices present in the kernel. This layer will have the generic
+> +	  API by which phy drivers can create PHY using the phy framework and
+> +	  phy users can obtain reference to the PHY.
+
+Again, please reverse this.  The drivers that use it should select it,
+not depend on it, which will then enable this option.  I will never know
+if I need to enable it, and based on your follow-on patches, if I don't,
+drivers that were working just fine, now disappeared from my build,
+which isn't nice, and a pain to notice and fix up.
+
+> +/**
+> + * phy_create() - create a new phy
+> + * @dev: device that is creating the new phy
+> + * @id: id of the phy
+> + * @ops: function pointers for performing phy operations
+> + * @label: label given to the phy
+> + *
+> + * Called to create a phy using phy framework.
+> + */
+> +struct phy *phy_create(struct device *dev, u8 id, const struct phy_ops *ops,
+> +	const char *label)
+> +{
+> +	int ret;
+> +	struct phy *phy;
+> +
+> +	if (!dev) {
+> +		dev_WARN(dev, "no device provided for PHY\n");
+> +		ret = -EINVAL;
+> +		goto err0;
+> +	}
+> +
+> +	phy = kzalloc(sizeof(*phy), GFP_KERNEL);
+> +	if (!phy) {
+> +		ret = -ENOMEM;
+> +		goto err0;
+> +	}
+> +
+> +	device_initialize(&phy->dev);
+> +	mutex_init(&phy->mutex);
+> +
+> +	phy->dev.class = phy_class;
+> +	phy->dev.parent = dev;
+> +	phy->dev.of_node = dev->of_node;
+> +	phy->id = id;
+> +	phy->ops = ops;
+> +	phy->label = kstrdup(label, GFP_KERNEL);
+> +
+> +	ret = dev_set_name(&phy->dev, "%s.%d", dev_name(dev), id);
+
+Your naming is odd, no "phy" anywhere in it?  You rely on the sender to
+never send a duplicate name.id pair?  Why not create your own ids based
+on the number of phys in the system, like almost all other classes and
+subsystems do?
+
+> +static inline int phy_pm_runtime_get(struct phy *phy)
+> +{
+> +	if (WARN(IS_ERR(phy), "Invalid PHY reference\n"))
+> +		return -EINVAL;
+
+Why would phy ever not be valid and a error pointer?  And why dump the
+stack if that happens, that seems really extreme.
+
+> +
+> +	if (!pm_runtime_enabled(&phy->dev))
+> +		return -ENOTSUPP;
+> +
+> +	return pm_runtime_get(&phy->dev);
+> +}
+
+This, and the other inline functions in this .h file seem huge, why are
+they inline and not in the .c file?  There's no speed issues, and it
+should save space overall in the .c file.  Please move them.
 
 
-> ---
->  Documentation/devicetree/bindings/usb/omap-usb.txt |    5 +++++
->  Documentation/devicetree/bindings/usb/usb-phy.txt  |    6 ++++++
->  arch/arm/boot/dts/omap3-beagle-xm.dts              |    2 ++
->  arch/arm/boot/dts/omap3-evm.dts                    |    2 ++
->  arch/arm/boot/dts/omap3-overo.dtsi                 |    2 ++
->  arch/arm/boot/dts/omap4.dtsi                       |    3 +++
->  arch/arm/boot/dts/twl4030.dtsi                     |    1 +
->  7 files changed, 21 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
-> index 57e71f6..825790d 100644
-> --- a/Documentation/devicetree/bindings/usb/omap-usb.txt
-> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
-> @@ -19,6 +19,9 @@ OMAP MUSB GLUE
->   - power : Should be "50". This signifies the controller can supply up to
->     100mA when operating in host mode.
->   - usb-phy : the phandle for the PHY device
-> + - phys : the phandle for the PHY device (used by generic PHY framework)
-> + - phy-names : the names of the PHY corresponding to the PHYs present in the
-> +   *phy* phandle.
->  
->  Optional properties:
->   - ctrl-module : phandle of the control module this glue uses to write to
-> @@ -33,6 +36,8 @@ usb_otg_hs: usb_otg_hs@4a0ab000 {
->  	num-eps = <16>;
->  	ram-bits = <12>;
->  	ctrl-module = <&omap_control_usb>;
-> +	phys = <&usb2_phy>;
-> +	phy-names = "usb2-phy";
->  };
->  
->  Board specific device node entry
-> diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Documentation/devicetree/bindings/usb/usb-phy.txt
-> index 61496f5..c0245c8 100644
-> --- a/Documentation/devicetree/bindings/usb/usb-phy.txt
-> +++ b/Documentation/devicetree/bindings/usb/usb-phy.txt
-> @@ -5,6 +5,8 @@ OMAP USB2 PHY
->  Required properties:
->   - compatible: Should be "ti,omap-usb2"
->   - reg : Address and length of the register set for the device.
-> + - #phy-cells: determine the number of cells that should be given in the
-> +   phandle while referencing this phy.
->  
->  Optional properties:
->   - ctrl-module : phandle of the control module used by PHY driver to power on
-> @@ -16,6 +18,7 @@ usb2phy@4a0ad080 {
->  	compatible = "ti,omap-usb2";
->  	reg = <0x4a0ad080 0x58>;
->  	ctrl-module = <&omap_control_usb>;
-> +	#phy-cells = <0>;
->  };
->  
->  OMAP USB3 PHY
-> @@ -25,6 +28,8 @@ Required properties:
->   - reg : Address and length of the register set for the device.
->   - reg-names: The names of the register addresses corresponding to the registers
->     filled in "reg".
-> + - #phy-cells: determine the number of cells that should be given in the
-> +   phandle while referencing this phy.
->  
->  Optional properties:
->   - ctrl-module : phandle of the control module used by PHY driver to power on
-> @@ -39,4 +44,5 @@ usb3phy@4a084400 {
->  	      <0x4a084c00 0x40>;
->  	reg-names = "phy_rx", "phy_tx", "pll_ctrl";
->  	ctrl-module = <&omap_control_usb>;
-> +	#phy-cells = <0>;
->  };
-> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-> index afdb164..533b2da 100644
-> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-> @@ -144,6 +144,8 @@
->  &usb_otg_hs {
->  	interface-type = <0>;
->  	usb-phy = <&usb2_phy>;
-> +	phys = <&usb2_phy>;
-> +	phy-names = "usb2-phy";
->  	mode = <3>;
->  	power = <50>;
->  };
-> diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
-> index 7d4329d..4134dd0 100644
-> --- a/arch/arm/boot/dts/omap3-evm.dts
-> +++ b/arch/arm/boot/dts/omap3-evm.dts
-> @@ -70,6 +70,8 @@
->  &usb_otg_hs {
->  	interface-type = <0>;
->  	usb-phy = <&usb2_phy>;
-> +	phys = <&usb2_phy>;
-> +	phy-names = "usb2-phy";
->  	mode = <3>;
->  	power = <50>;
->  };
-> diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
-> index 8f1abec..a461d2f 100644
-> --- a/arch/arm/boot/dts/omap3-overo.dtsi
-> +++ b/arch/arm/boot/dts/omap3-overo.dtsi
-> @@ -76,6 +76,8 @@
->  &usb_otg_hs {
->  	interface-type = <0>;
->  	usb-phy = <&usb2_phy>;
-> +	phys = <&usb2_phy>;
-> +	phy-names = "usb2-phy";
->  	mode = <3>;
->  	power = <50>;
->  };
-> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> index 22d9f2b..1e8e2fe 100644
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -520,6 +520,7 @@
->  				compatible = "ti,omap-usb2";
->  				reg = <0x4a0ad080 0x58>;
->  				ctrl-module = <&omap_control_usb>;
-> +				#phy-cells = <0>;
->  			};
->  		};
->  
-> @@ -658,6 +659,8 @@
->  			interrupt-names = "mc", "dma";
->  			ti,hwmods = "usb_otg_hs";
->  			usb-phy = <&usb2_phy>;
-> +			phys = <&usb2_phy>;
-> +			phy-names = "usb2-phy";
->  			multipoint = <1>;
->  			num-eps = <16>;
->  			ram-bits = <12>;
-> diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
-> index b3034da..ce4cd6f 100644
-> --- a/arch/arm/boot/dts/twl4030.dtsi
-> +++ b/arch/arm/boot/dts/twl4030.dtsi
-> @@ -80,6 +80,7 @@
->  		usb1v8-supply = <&vusb1v8>;
->  		usb3v1-supply = <&vusb3v1>;
->  		usb_mode = <1>;
-> +		#phy-cells = <0>;
->  	};
->  
->  	twl_pwm: pwm {
-> -- 
-> 1.7.10.4
-> 
+> +static inline int phy_init(struct phy *phy)
+> +{
+> +	int ret;
+> +
+> +	ret = phy_pm_runtime_get_sync(phy);
+> +	if (ret < 0 && ret != -ENOTSUPP)
+> +		return ret;
+> +
+> +	mutex_lock(&phy->mutex);
+> +	if (phy->init_count++ == 0 && phy->ops->init) {
+> +		ret = phy->ops->init(phy);
+> +		if (ret < 0) {
+> +			dev_err(&phy->dev, "phy init failed --> %d\n", ret);
+> +			goto out;
+> +		}
+> +	}
+> +
+> +out:
+> +	mutex_unlock(&phy->mutex);
+> +	phy_pm_runtime_put(phy);
+> +	return ret;
+> +}
+> +
+> +static inline int phy_exit(struct phy *phy)
+> +{
+> +	int ret;
+> +
+> +	ret = phy_pm_runtime_get_sync(phy);
+> +	if (ret < 0 && ret != -ENOTSUPP)
+> +		return ret;
+> +
+> +	mutex_lock(&phy->mutex);
+> +	if (--phy->init_count == 0 && phy->ops->exit) {
+> +		ret = phy->ops->exit(phy);
+> +		if (ret < 0) {
+> +			dev_err(&phy->dev, "phy exit failed --> %d\n", ret);
+> +			goto out;
+> +		}
+> +	}
+> +
+> +out:
+> +	mutex_unlock(&phy->mutex);
+> +	phy_pm_runtime_put(phy);
+> +	return ret;
+> +}
+> +
+> +static inline int phy_power_on(struct phy *phy)
+> +{
+> +	int ret = -ENOTSUPP;
+> +
+> +	ret = phy_pm_runtime_get_sync(phy);
+> +	if (ret < 0 && ret != -ENOTSUPP)
+> +		return ret;
+> +
+> +	mutex_lock(&phy->mutex);
+> +	if (phy->power_count++ == 0 && phy->ops->power_on) {
+> +		ret = phy->ops->power_on(phy);
+> +		if (ret < 0) {
+> +			dev_err(&phy->dev, "phy poweron failed --> %d\n", ret);
+> +			goto out;
+> +		}
+> +	}
+> +
+> +out:
+> +	mutex_unlock(&phy->mutex);
+> +
+> +	return ret;
+> +}
+> +
+> +static inline int phy_power_off(struct phy *phy)
+> +{
+> +	int ret = -ENOTSUPP;
+> +
+> +	mutex_lock(&phy->mutex);
+> +	if (--phy->power_count == 0 && phy->ops->power_off) {
+> +		ret =  phy->ops->power_off(phy);
+> +		if (ret < 0) {
+> +			dev_err(&phy->dev, "phy poweroff failed --> %d\n", ret);
+> +			goto out;
+> +		}
+> +	}
+> +
+> +out:
+> +	mutex_unlock(&phy->mutex);
+> +	phy_pm_runtime_put(phy);
+> +
+> +	return ret;
+> +}
+
+Look at those 3 functions, they are all "real" and not an inline
+function at all, please move them.
+
+thanks,
+
+greg k-h
