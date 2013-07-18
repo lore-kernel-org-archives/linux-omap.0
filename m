@@ -1,65 +1,158 @@
-From: "Arend van Spriel" <arend@broadcom.com>
-Subject: Re: Regression 3.11-rc1: omap4panda: no usb and consequently no
- ethernet
-Date: Thu, 18 Jul 2013 12:18:09 +0200
-Message-ID: <51E7C0E1.5090705@broadcom.com>
-References: <51E7AA24.6080600@broadcom.com>
- <20130718085951.GT7656@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv4 2/3] drivers: spi: Add qspi flash controller
+Date: Thu, 18 Jul 2013 13:24:04 +0300
+Message-ID: <20130718102404.GH11251@arwen.pp.htv.fi>
+References: <1374141687-10790-1-git-send-email-sourav.poddar@ti.com>
+ <1374141687-10790-3-git-send-email-sourav.poddar@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=iso-8859-1;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mms3.broadcom.com ([216.31.210.19]:4637 "EHLO mms3.broadcom.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754291Ab3GRKSR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Jul 2013 06:18:17 -0400
-In-Reply-To: <20130718085951.GT7656@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Ah9ph+G2cWRpKogL"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1374141687-10790-3-git-send-email-sourav.poddar@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
 
-On 07/18/2013 10:59 AM, Tony Lindgren wrote:
-> * Arend van Spriel <arend@broadcom.com> [130718 01:47]:
->> So my first step was to follow the recipe given in that commit.
->> Beside that I noticed a thread about USB issue on LKML so I also
->> applied the following commit:
->>
->> commit 352f573e59050c7a604c35c58b4bbfc51edebbee
->> Author: Roger Quadros <rogerq@ti.com>
->> Date:   Tue Jun 18 19:04:47 2013 +0300
->>
->>      ARM: OMAP2+: Provide alias to USB PHY clock
->>
->> The attached kernel log seems to suggest that the device tree is
->> picked up by the kernel, but the USB does not seem very active. No
->> ethernet connectivity. This does seem a regression to me. Is there
->> some other patch that I need to get it going again?
->
-> There are few .dts related patches missing for USB. Roger can
-> point you to the current versions that Benoit should be queueing
-> for the -rc series.
+--Ah9ph+G2cWRpKogL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hope Roger or Benoit will chime in.
+Hi,
 
-> Then for the SDIO with device tree, take a look at the following
-> patches:
->
-> [PATCH 0/3] WLAN support for omap4 when booted with devicetree
-> http://comments.gmane.org/gmane.linux.ports.arm.omap/97522#
->
-> The wl12xx .dts changes for pandaboard are still missing too.
->
-> Then I'll be updating these soonish:
-> [PATCH 0/4] Updated omap_hsmmc SDIO and remuxing patches
->
-> Those are needed for the SDIO interrupt, SDIO will work also
-> without those.
+it might be just me, but ...
 
-Thanks for the pointers,
+On Thu, Jul 18, 2013 at 03:31:26PM +0530, Sourav Poddar wrote:
+> +static inline unsigned long ti_qspi_readl_data(struct ti_qspi *qspi,
+> +		unsigned long reg, int wlen)
+> +{
+> +	switch (wlen) {
+> +	case 8:
+> +		return readw(qspi->base + reg);
+> +		break;
+> +	case 16:
+> +		return readb(qspi->base + reg);
+> +		break;
+> +	case 32:
+> +		return readl(qspi->base + reg);
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +}
+> +
+> +static inline void ti_qspi_writel_data(struct ti_qspi *qspi,
+> +		unsigned long val, unsigned long reg, int wlen)
+> +{
+> +	switch (wlen) {
+> +	case 8:
+> +		writew(val, qspi->base + reg);
+> +		break;
+> +	case 16:
+> +		writeb(val, qspi->base + reg);
+> +		break;
+> +	case 32:
+> +		writeb(val, qspi->base + reg);
+> +		break;
+> +	default:
+> +		dev_dbg(qspi->dev, "word lenght out of range");
+> +		break;
+> +	}
+> +}
 
-Arend
+because of these two functions you have the hability to read/write
+*more* than one byte, and yet ...
 
+> +static void qspi_write_msg(struct ti_qspi *qspi, struct spi_transfer *t)
+> +{
+> +	const u8 *txbuf;
+> +	int wlen, count;
+> +
+> +	count =3D t->len;
+> +	txbuf =3D t->tx_buf;
+> +	wlen =3D t->bits_per_word;
+> +
+> +	while (count--) {
+> +		dev_dbg(qspi->dev, "tx cmd %08x dc %08x data %02x\n",
+> +			qspi->cmd | QSPI_WR_SNGL, qspi->dc, *txbuf);
+> +		ti_qspi_writel_data(qspi, *txbuf++, QSPI_SPI_DATA_REG, wlen);
 
+you always increment by each byte. Here, if you used writel(), you wrote
+4 bytes and should increment txbuf by 4. Same goes for read_data(),
+below. Another thing. Even though your wlen might be 8 bits, if you
+write 4 bytes to write, you can save a few CPU cycles by using writel().
+
+You only use writew() if you have exactly 2 bytes to write and writeb()
+if you have exactly 1 byte to write. 3 bytes we'll be left as an
+exercise.
+
+> +static int ti_qspi_start_transfer_one(struct spi_master *master,
+> +		struct spi_message *m)
+> +{
+> +	struct ti_qspi *qspi =3D spi_master_get_devdata(master);
+> +	struct spi_device *spi =3D m->spi;
+> +	struct spi_transfer *t;
+> +	int status =3D 0, ret;
+> +	int frame_length;
+> +
+> +	/* setup device control reg */
+> +	qspi->dc =3D 0;
+> +
+> +	if (spi->mode & SPI_CPHA)
+> +		qspi->dc |=3D QSPI_CKPHA(spi->chip_select);
+> +	if (spi->mode & SPI_CPOL)
+> +		qspi->dc |=3D QSPI_CKPOL(spi->chip_select);
+> +	if (spi->mode & SPI_CS_HIGH)
+> +		qspi->dc |=3D QSPI_CSPOL(spi->chip_select);
+> +
+> +	frame_length =3D DIV_ROUND_UP(m->frame_length * spi->bits_per_word,
+> +				spi->bits_per_word);
+
+this calculation doesn't look correct.
+
+	(m->frame_length * spi->bits_per_word) /
+		spi->bits_per_word =3D m->frame_length
+
+What are you trying to achieve here ? frame_length should be counted in
+words right ? And we get that value in bytes. So what's the best
+calculation to convert bytes into words ? If you have 8 bits_per_word
+you don't need any calculation, but if you have 32 bits_per_word, you
+_do_ need something.
+
+How will you achieve the number you want ? (hint: 1 byte =3D=3D 8 bits)
+
+And btw, all of these mistakes pretty much tell me that this driver
+hasn't been tested. How have you tested this driver ? Is your spansion
+memory accessed with 8 bits_per_word only ? Is there anyway to use
+32 bits_per_word with that device ? That would uncover quite a few
+mistakes in $subject.
+
+--=20
+balbi
+
+--Ah9ph+G2cWRpKogL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR58JDAAoJEIaOsuA1yqREd4IP/0hO3zH0hK2xkDrc35yIeMEt
+MEIXOLl4Qhj4rl1YSVqHV7OwUFeOqOng2PniJp9ui+WaB/SGCp9iMrIM32ragTQk
+XuF48EBgX+cxNVhBJJ2Bvhhbk5jkqPvZPxGoJlLtqC/yG7wRE6WRPzq5BbR8y4PS
+hpa21rpyWgwgjd2sqkIoWp2QcZCwAmc6z2awYB7KdHBBhOVX6oPokHlHDVWoPanr
+1MVB9c/QKBYeE1sXivA9TZ0IvYhXXePthQMN65xodcKg5C6Ag/xBYXQcOlFZl5DV
+FNBJ5eMlEcnp5BZOsackiOSbenXsJgTCLhNpzSJbnnMpZ5Ma2EpqRZIsb6AJ66s+
+COcq8WVUHCqH//J9726mcVnmpcy3ua9TZJ6cP+Og80xXNjoT4Vdm1PU29St+x06Z
+9UoKebcWaz0hvhQSUyGC3fcsst2VIm6GrOnyeZc3AMO0DTVr5+Kq7Kv9LPoC6dRF
+LZh1om2DyOWcCsFo7bO+WoZv2LLlildm9EM7+cBoQq75zfmekjiNFJyZlqZ841bP
+qjM1d4LAuN0S80DRj8htSUeSUvGXFWG7RMvqq9dcSYWtdXywjyhWj1EjDnlF/qVG
+TOKfZjOD9r9k6sPhZAXPG50bRK3IVRePrxyD0rTzZvr/xbOZdu/hKSd8As9E5NRG
+SNSxQ2QCAdai7Gm9H1wx
+=jHvY
+-----END PGP SIGNATURE-----
+
+--Ah9ph+G2cWRpKogL--
