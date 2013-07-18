@@ -1,133 +1,158 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 15/15] video: exynos_dp: Use the generic PHY driver
-Date: Thu, 18 Jul 2013 12:16:24 +0530
-Message-ID: <1374129984-765-16-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 08/15] usb: phy: twl4030-usb: remove *set_suspend* and
+ *phy_init* ops
+Date: Thu, 18 Jul 2013 12:16:17 +0530
+Message-ID: <1374129984-765-9-git-send-email-kishon@ti.com>
 References: <1374129984-765-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <1374129984-765-1-git-send-email-kishon@ti.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org, kyungmin.park@samsung.com, balbi@ti.com, kishon@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com
-Cc: grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1374129984-765-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
+Cc: linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Jingoo Han <jg1.han@samsung.com>
+Now that twl4030-usb is adapted to the new generic PHY framework,
+*set_suspend* and *phy_init* ops can be removed from twl4030-usb driver.
 
-Use the generic PHY API to control the DP PHY.
-
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Reviewed-by: Tomasz Figa <t.figa@samsung.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 ---
- .../devicetree/bindings/video/exynos_dp.txt          |   18 +++++++++---------
- drivers/video/exynos/exynos_dp_core.c                |   16 ++++++++++++----
- drivers/video/exynos/exynos_dp_core.h                |    1 +
- 3 files changed, 22 insertions(+), 13 deletions(-)
+ drivers/usb/phy/phy-twl4030-usb.c |   57 +++++++++----------------------------
+ 1 file changed, 13 insertions(+), 44 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/video/exynos_dp.txt b/Documentation/devicetree/bindings/video/exynos_dp.txt
-index 84f10c1..2f56376 100644
---- a/Documentation/devicetree/bindings/video/exynos_dp.txt
-+++ b/Documentation/devicetree/bindings/video/exynos_dp.txt
-@@ -6,10 +6,10 @@ We use two nodes:
- 	-dptx-phy node(defined inside dp-controller node)
+diff --git a/drivers/usb/phy/phy-twl4030-usb.c b/drivers/usb/phy/phy-twl4030-usb.c
+index 9051756..44f8b1b 100644
+--- a/drivers/usb/phy/phy-twl4030-usb.c
++++ b/drivers/usb/phy/phy-twl4030-usb.c
+@@ -422,25 +422,20 @@ static void twl4030_phy_power(struct twl4030_usb *twl, int on)
+ 	}
+ }
  
- For the DP-PHY initialization, we use the dptx-phy node.
--Required properties for dptx-phy:
--	-reg:
-+Required properties for dptx-phy: deprecated, use phys and phy-names
-+	-reg: deprecated
- 		Base address of DP PHY register.
--	-samsung,enable-mask:
-+	-samsung,enable-mask: deprecated
- 		The bit-mask used to enable/disable DP PHY.
+-static void twl4030_phy_suspend(struct twl4030_usb *twl, int controller_off)
++static int twl4030_phy_power_off(struct phy *phy)
+ {
++	struct twl4030_usb *twl = phy_get_drvdata(phy);
++
+ 	if (twl->asleep)
+-		return;
++		return 0;
  
- For the Panel initialization, we read data from dp-controller node.
-@@ -25,6 +25,10 @@ Required properties for dp-controller:
- 		from common clock binding: handle to dp clock.
- 	-clock-names:
- 		from common clock binding: Shall be "dp".
-+	-phys:
-+		from general PHY binding: the phandle for the PHY device.
-+	-phy-names:
-+		from general PHY binding: Should be "dp".
- 	-interrupt-parent:
- 		phandle to Interrupt combiner node.
- 	-samsung,color-space:
-@@ -67,12 +71,8 @@ SOC specific portion:
- 		interrupt-parent = <&combiner>;
- 		clocks = <&clock 342>;
- 		clock-names = "dp";
+ 	twl4030_phy_power(twl, 0);
+ 	twl->asleep = 1;
+ 	dev_dbg(twl->dev, "%s\n", __func__);
+-}
 -
--		dptx-phy {
--			reg = <0x10040720>;
--			samsung,enable-mask = <1>;
--		};
+-static int twl4030_phy_power_off(struct phy *phy)
+-{
+-	struct twl4030_usb *twl = phy_get_drvdata(phy);
 -
-+		phys = <&dp_phy>;
-+		phy-names = "dp";
- 	};
+-	twl4030_phy_suspend(twl, 0);
+ 	return 0;
+ }
  
- Board Specific portion:
-diff --git a/drivers/video/exynos/exynos_dp_core.c b/drivers/video/exynos/exynos_dp_core.c
-index 05fed7d..5e1a715 100644
---- a/drivers/video/exynos/exynos_dp_core.c
-+++ b/drivers/video/exynos/exynos_dp_core.c
-@@ -19,6 +19,7 @@
- #include <linux/interrupt.h>
- #include <linux/delay.h>
- #include <linux/of.h>
-+#include <linux/phy/phy.h>
+-static void __twl4030_phy_resume(struct twl4030_usb *twl)
++static void __twl4030_phy_power_on(struct twl4030_usb *twl)
+ {
+ 	twl4030_phy_power(twl, 1);
+ 	twl4030_i2c_access(twl, 1);
+@@ -449,11 +444,13 @@ static void __twl4030_phy_resume(struct twl4030_usb *twl)
+ 		twl4030_i2c_access(twl, 0);
+ }
  
- #include "exynos_dp_core.h"
+-static void twl4030_phy_resume(struct twl4030_usb *twl)
++static int twl4030_phy_power_on(struct phy *phy)
+ {
++	struct twl4030_usb *twl = phy_get_drvdata(phy);
++
+ 	if (!twl->asleep)
+-		return;
+-	__twl4030_phy_resume(twl);
++		return 0;
++	__twl4030_phy_power_on(twl);
+ 	twl->asleep = 0;
+ 	dev_dbg(twl->dev, "%s\n", __func__);
  
-@@ -960,8 +961,11 @@ static int exynos_dp_dt_parse_phydata(struct exynos_dp_device *dp)
+@@ -466,13 +463,6 @@ static void twl4030_phy_resume(struct twl4030_usb *twl)
+ 		cancel_delayed_work(&twl->id_workaround_work);
+ 		schedule_delayed_work(&twl->id_workaround_work, HZ);
+ 	}
+-}
+-
+-static int twl4030_phy_power_on(struct phy *phy)
+-{
+-	struct twl4030_usb *twl = phy_get_drvdata(phy);
+-
+-	twl4030_phy_resume(twl);
+ 	return 0;
+ }
  
- 	dp_phy_node = of_find_node_by_name(dp_phy_node, "dptx-phy");
- 	if (!dp_phy_node) {
--		dev_err(dp->dev, "could not find dptx-phy node\n");
--		return -ENODEV;
-+		dp->phy = devm_phy_get(dp->dev, "dp");
-+		if (IS_ERR(dp->phy))
-+			return PTR_ERR(dp->phy);
-+		else
-+			return 0;
+@@ -604,9 +594,9 @@ static void twl4030_id_workaround_work(struct work_struct *work)
+ 	}
+ }
+ 
+-static int twl4030_usb_phy_init(struct usb_phy *phy)
++static int twl4030_phy_init(struct phy *phy)
+ {
+-	struct twl4030_usb *twl = phy_to_twl(phy);
++	struct twl4030_usb *twl = phy_get_drvdata(phy);
+ 	enum omap_musb_vbus_id_status status;
+ 
+ 	/*
+@@ -621,32 +611,13 @@ static int twl4030_usb_phy_init(struct usb_phy *phy)
+ 
+ 	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID) {
+ 		omap_musb_mailbox(twl->linkstat);
+-		twl4030_phy_resume(twl);
++		twl4030_phy_power_on(phy);
  	}
  
- 	if (of_property_read_u32(dp_phy_node, "reg", &phy_base)) {
-@@ -992,7 +996,9 @@ err:
+ 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
+ 	return 0;
+ }
  
- static void exynos_dp_phy_init(struct exynos_dp_device *dp)
+-static int twl4030_phy_init(struct phy *phy)
+-{
+-	struct twl4030_usb *twl = phy_get_drvdata(phy);
+-
+-	return twl4030_usb_phy_init(&twl->phy);
+-}
+-
+-static int twl4030_set_suspend(struct usb_phy *x, int suspend)
+-{
+-	struct twl4030_usb *twl = phy_to_twl(x);
+-
+-	if (suspend)
+-		twl4030_phy_suspend(twl, 1);
+-	else
+-		twl4030_phy_resume(twl);
+-
+-	return 0;
+-}
+-
+ static int twl4030_set_peripheral(struct usb_otg *otg,
+ 					struct usb_gadget *gadget)
  {
--	if (dp->phy_addr) {
-+	if (dp->phy) {
-+		phy_power_on(dp->phy);
-+	} else if (dp->phy_addr) {
- 		u32 reg;
+@@ -717,8 +688,6 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+ 	twl->phy.label		= "twl4030";
+ 	twl->phy.otg		= otg;
+ 	twl->phy.type		= USB_PHY_TYPE_USB2;
+-	twl->phy.set_suspend	= twl4030_set_suspend;
+-	twl->phy.init		= twl4030_usb_phy_init;
  
- 		reg = __raw_readl(dp->phy_addr);
-@@ -1003,7 +1009,9 @@ static void exynos_dp_phy_init(struct exynos_dp_device *dp)
- 
- static void exynos_dp_phy_exit(struct exynos_dp_device *dp)
- {
--	if (dp->phy_addr) {
-+	if (dp->phy) {
-+		phy_power_off(dp->phy);
-+	} else if (dp->phy_addr) {
- 		u32 reg;
- 
- 		reg = __raw_readl(dp->phy_addr);
-diff --git a/drivers/video/exynos/exynos_dp_core.h b/drivers/video/exynos/exynos_dp_core.h
-index 56cfec8..607e36d 100644
---- a/drivers/video/exynos/exynos_dp_core.h
-+++ b/drivers/video/exynos/exynos_dp_core.h
-@@ -151,6 +151,7 @@ struct exynos_dp_device {
- 	struct video_info	*video_info;
- 	struct link_train	link_train;
- 	struct work_struct	hotplug_work;
-+	struct phy		*phy;
- };
- 
- /* exynos_dp_reg.c */
+ 	otg->phy		= &twl->phy;
+ 	otg->set_host		= twl4030_set_host;
 -- 
 1.7.10.4
