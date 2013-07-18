@@ -1,127 +1,168 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 02/15] usb: phy: omap-usb2: use the new generic PHY
- framework
-Date: Thu, 18 Jul 2013 00:21:49 -0700
-Message-ID: <20130718072149.GB16720@kroah.com>
-References: <1374129984-765-1-git-send-email-kishon@ti.com>
- <1374129984-765-3-git-send-email-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4] pinctrl: Add support for additional dynamic states
+Date: Thu, 18 Jul 2013 00:25:16 -0700
+Message-ID: <20130718072034.GO7656@atomide.com>
+References: <20130716090310.5541.36777.stgit@localhost>
+ <20130716090536.5541.36289.stgit@localhost>
+ <51E70953.1000601@wwwdotorg.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1374129984-765-3-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
+In-Reply-To: <51E70953.1000601@wwwdotorg.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: linus.walleij@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 18, 2013 at 12:16:11PM +0530, Kishon Vijay Abraham I wrote:
-> Used the generic PHY framework API to create the PHY. Now the power off and
-> power on are done in omap_usb_power_off and omap_usb_power_on respectively.
+* Stephen Warren <swarren@wwwdotorg.org> [130717 14:21]:
+> On 07/16/2013 03:05 AM, Tony Lindgren wrote:
+> > To toggle dynamic states, let's add the optional active state in
+> > addition to the static default state. Then if the optional active
+> > state is defined, we can require that idle and sleep states cover
+> > the same pingroups as the active state.
+> > 
+> > Then let's add pinctrl_check_dynamic() and pinctrl_select_dynamic()
+> > to use instead of pinctrl_select() to avoid breaking existing users.
+> > 
+> > With pinctrl_check_dynamic() we can check that idle and sleep states
+> > match the active state for pingroups during init, and don't need to
+> > do it during runtime.
+> > 
+> > Then with the states pre-validated, pinctrl_select_dynamic() can
+> > just toggle between the dynamic states without extra checks.
+> > 
+> > Note that pinctr_select_state() still has valid use cases, such as
+> > changing states when the pins can be shared between two drivers
+> > and don't necessarily cover the same pingroups. For dynamic runtime
+> > toggling of pin states, we should eventually always use just
+> > pinctrl_select_dynamic().
 > 
-> However using the old USB PHY library cannot be completely removed
-> because OTG is intertwined with PHY and moving to the new framework
-> will break OTG. Once we have a separate OTG state machine, we
-> can get rid of the USB PHY library.
+> > diff --git a/drivers/pinctrl/core.c b/drivers/pinctrl/core.c
 > 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Acked-by: Felipe Balbi <balbi@ti.com>
-> ---
->  drivers/usb/phy/Kconfig         |    1 +
->  drivers/usb/phy/phy-omap-usb2.c |   45 +++++++++++++++++++++++++++++++++++----
->  2 files changed, 42 insertions(+), 4 deletions(-)
+> > @@ -887,6 +887,8 @@ static void pinctrl_free(struct pinctrl *p, bool inlist)
+> >  		list_for_each_entry_safe(setting, n2, &state->settings, node) {
+> >  			pinctrl_free_setting(state == p->state[PINCTRL_STATIC],
+> >  					     setting);
+> > +			pinctrl_free_setting(state == p->state[PINCTRL_DYNAMIC],
+> > +					     setting);
 > 
-> diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
-> index 3622fff..cc55993 100644
-> --- a/drivers/usb/phy/Kconfig
-> +++ b/drivers/usb/phy/Kconfig
-> @@ -75,6 +75,7 @@ config OMAP_CONTROL_USB
->  config OMAP_USB2
->  	tristate "OMAP USB2 PHY Driver"
->  	depends on ARCH_OMAP2PLUS
-> +	depends on GENERIC_PHY
->  	select OMAP_CONTROL_USB
->  	help
->  	  Enable this to support the transceiver that is part of SOC. This
-> diff --git a/drivers/usb/phy/phy-omap-usb2.c b/drivers/usb/phy/phy-omap-usb2.c
-> index 844ab68..751b30f 100644
-> --- a/drivers/usb/phy/phy-omap-usb2.c
-> +++ b/drivers/usb/phy/phy-omap-usb2.c
-> @@ -28,6 +28,7 @@
->  #include <linux/pm_runtime.h>
->  #include <linux/delay.h>
->  #include <linux/usb/omap_control_usb.h>
-> +#include <linux/phy/phy.h>
->  
->  /**
->   * omap_usb2_set_comparator - links the comparator present in the sytem with
-> @@ -119,10 +120,36 @@ static int omap_usb2_suspend(struct usb_phy *x, int suspend)
->  	return 0;
->  }
->  
-> +static int omap_usb_power_off(struct phy *x)
-> +{
-> +	struct omap_usb *phy = phy_get_drvdata(x);
-> +
-> +	omap_control_usb_phy_power(phy->control_dev, 0);
-> +
-> +	return 0;
-> +}
-> +
-> +static int omap_usb_power_on(struct phy *x)
-> +{
-> +	struct omap_usb *phy = phy_get_drvdata(x);
-> +
-> +	omap_control_usb_phy_power(phy->control_dev, 1);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct phy_ops ops = {
-> +	.power_on	= omap_usb_power_on,
-> +	.power_off	= omap_usb_power_off,
-> +	.owner		= THIS_MODULE,
-> +};
-> +
->  static int omap_usb2_probe(struct platform_device *pdev)
->  {
->  	struct omap_usb			*phy;
-> +	struct phy			*generic_phy;
->  	struct usb_otg			*otg;
-> +	struct phy_provider		*phy_provider;
->  
->  	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
->  	if (!phy) {
-> @@ -144,6 +171,11 @@ static int omap_usb2_probe(struct platform_device *pdev)
->  	phy->phy.otg		= otg;
->  	phy->phy.type		= USB_PHY_TYPE_USB2;
->  
-> +	phy_provider = devm_of_phy_provider_register(phy->dev,
-> +			of_phy_simple_xlate);
-> +	if (IS_ERR(phy_provider))
-> +		return PTR_ERR(phy_provider);
-> +
->  	phy->control_dev = omap_get_control_dev();
->  	if (IS_ERR(phy->control_dev)) {
->  		dev_dbg(&pdev->dev, "Failed to get control device\n");
-> @@ -159,6 +191,15 @@ static int omap_usb2_probe(struct platform_device *pdev)
->  	otg->start_srp		= omap_usb_start_srp;
->  	otg->phy		= &phy->phy;
->  
-> +	platform_set_drvdata(pdev, phy);
-> +	pm_runtime_enable(phy->dev);
-> +
-> +	generic_phy = devm_phy_create(phy->dev, 0, &ops, "omap-usb2");
-> +	if (IS_ERR(generic_phy))
-> +		return PTR_ERR(generic_phy);
+> This will cause pinmux_free_setting() or pinconf_free_setting() to be
+> called twice on the setting object. Right now they don't do anything,
+> but if they start to kfree() some dynamically-allocated data that's
+> stored within the setting, that'll cause problems. I would suggest a
+> loop body something more like:
+> 
+> bool disable_setting = state == XXX || state == YYY;
+> pinctrl_free_setting(disable_setting, setting);
 
-So, if I have two of these controllers in my system, I can't create the
-second phy because the name for it will be identical to the first?
-That's why the phy core should handle the id, and not rely on the
-drivers to set it, as they have no idea how many they have in the
-system.
+OK good point, I'll check it.
+ 
+> > +int pinctrl_check_dynamic(struct device *dev, struct pinctrl_state *st1,
+> > +			  struct pinctrl_state *st2)
+> > +{
+> > +	struct pinctrl_setting *s1, *s2;
+> > +
+> > +	list_for_each_entry(s1, &st1->settings, node) {
+> ...
+> > +		list_for_each_entry(s2, &st2->settings, node) {
+> ...
+> > +			if (pctldev1 != pctldev2) {
+> > +				dev_dbg(dev, "pctldev must be the same for states\n");
+> > +				return -EINVAL;
+> > +			}
+> 
+> I don't think we should require that; it's perfectly legal at the moment
+> for some device's pinctrl configuration to include settings from
+> multiple different pin controllers.
 
-thanks,
+Yes that's fine for pinctrl_select(), but let's not do that for
+runtime muxing.
 
-greg k-h
+Here we want to do a one-time check during init to make  sure that
+if active_state is defined, then the idle_state and sleep_state
+must match active_state for pins.
+
+This way we can avoid checking things over and over again during
+runtime like pinctrl_select() is currently doing.
+ 
+> > +			for (i = 0; i < num_pins1; i++) {
+> > +				int pin1 = pins1[i];
+> > +
+> > +				for (j = 0; j < num_pins2; j++) {
+> > +					int pin2 = pins2[j];
+> > +
+> > +					if (pin1 == pin2) {
+> > +						found++;
+> > +						break;
+> > +					}
+> > +				}
+> > +			}
+> > +
+> > +			if (found != num_pins1) {
+> 
+> I guess this make sure that every entry in the dynamic state is in the
+> state state, but not vice-versa; the static state can affect more stuff
+> than the dynamic state?
+> 
+> If so, shouldn't that check be if (found != num_pins2)?
+
+The check is that idle_state and sleep_state pins must match the
+active_state pins. This is intentionally different from the current
+pinctrl_select() logic.
+ 
+> > +int pinctrl_select_dynamic(struct pinctrl *p, struct pinctrl_state *state)
+> 
+> The body of this function is rather duplicated with pinctrl_select().
+
+Well we may be able to make pinctrl_select() use this too, I'll take
+a look. Initially I'd rather not start messing with pinctrl_select()
+to avoid breaking existing users.
+ 
+> > @@ -1241,7 +1371,13 @@ static int pinctrl_pm_select_state(struct device *dev, struct pinctrl_state *sta
+> >  		return 0;
+> >  	if (IS_ERR(state))
+> >  		return 0; /* No such state */
+> > -	ret = pinctrl_select_state(pins->p, state);
+> > +
+> > +	/* Configured for proper dynamic muxing? */
+> 
+> I don't think "proper" is correct here; it's just fine not to have any
+> dynamic configuration.
+
+Right, that's the most common case. I'll drop the "proper".
+ 
+> > +	if (!IS_ERR(dev->pins->active_state))
+> > +		ret = pinctrl_select_dynamic(pins->p, state);
+> > +	else
+> > +		ret = pinctrl_select_state(pins->p, state);
+> 
+> Hmmm. I'm not quite sure this is right... Surely this function should
+> just do nothing if the dynamic states aren't defined? The system should
+> just, and only, be in the "default" state and never do anything else.
+
+This keeps the existing behaviour. We should be able to drop the
+call to pinctrl_select_state() here after the existing use in
+drivers has been fixed.
+ 
+> Looking back at patch 1, I see the are
+> pinctrl_pm_select_{default,sleep,idle}_state(). Shouldn't that list be
+> active/sleep/idle, since I assume default is that "static" state, and
+> the other three are the "dynamic" states?
+
+Yes after this patch set that's the case, then we have default
+plus optional active. Then if active is defined, sleep and idle
+pins must match active. 
+ 
+> > +static int pinctrl_pm_check_state(struct device *dev,
+> > +				  struct pinctrl_state *state)
+> 
+> Naming this pinctrl_pm_is_state_error() or pinctrl_pm_is_state_ok()
+> might give more clue what its return value is expected to be.
+
+OK yeah I did not like that naming either, pinctrl_pm_is_state_error()
+sounds good to me.
+
+Regards,
+
+Tony
