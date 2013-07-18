@@ -1,79 +1,79 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/3] dmaengine: add dma_get_slave_sg_limits()
-Date: Thu, 18 Jul 2013 18:08:25 +0100
-Message-ID: <20130718170825.GZ21614@n2100.arm.linux.org.uk>
-References: <1374166001-31340-1-git-send-email-joelf@ti.com> <1374166001-31340-2-git-send-email-joelf@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/3] misc: Add crossbar driver
+Date: Thu, 18 Jul 2013 21:25:04 +0300
+Message-ID: <20130718182504.GA7497@arwen.pp.htv.fi>
+References: <1374165830-6367-1-git-send-email-r.sricharan@ti.com>
+ <1374165830-6367-2-git-send-email-r.sricharan@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37473 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758860Ab3GRRIy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jul 2013 13:08:54 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="oyUTqETQ0mS9luUI"
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1374166001-31340-2-git-send-email-joelf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1374165830-6367-2-git-send-email-r.sricharan@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, nm@ti.com, rnayak@ti.com, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Matt Porter <matt@ohporter.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Mark Brown <broonie@linaro.org>, Benoit Cousson <benoit.cousson@linaro.org>, Balaji TK <balajitk@ti.com>, Gururaja Hebbar <gururaja.hebbar@ti.com>, Chris Ball <cjb@laptop.org>, Jason Kridner <jkridner@beagleboard.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>Linux
 
-On Thu, Jul 18, 2013 at 11:46:39AM -0500, Joel Fernandes wrote:
-> The API is optionally implemented by dmaengine drivers and when
-> unimplemented will return a NULL pointer. A client driver using
-> this API provides the required dma channel, address width, and
-> burst size of the transfer. dma_get_slave_sg_limits() returns an
-> SG limits structure with the maximum number and size of SG segments
-> that the given channel can handle.
+--oyUTqETQ0mS9luUI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Please look at what's already in struct device:
+Hi,
 
-struct device {
-...
-        struct device_dma_parameters *dma_parms;
-...
-};
+On Thu, Jul 18, 2013 at 10:13:48PM +0530, Sricharan R wrote:
+> Some socs have a large number of interrupts/dma requests to service
+> the needs of its many peripherals and subsystems. All of the
+> requests lines from the subsystems are not needed at the same
+> time, so they have to be muxed to the controllers appropriately.
+> In such places a interrupt/dma controllers are preceded by an
+> IRQ/DMA CROSSBAR that provides flexibility in muxing the device
+> requests to the controller inputs.
+>=20
+> The Peripheral irq/dma requests are connected to one crossbar's input
+> and the output of the crossbar is connected to controller's input
+> line. On POR, there are some mappings which are done by default.
+> Those peripherals which do not have a mapping on POR, should be configured
+> to route its requests using the crossbar.
+>=20
+> The drivers identifies every controller's crossbar as individual devices.
+> The mappings can be specified from the DT crossbar nodes and those gets m=
+apped
+> during the crossbar device's probe. The mappings can also be specified by=
+ adding
+> the crossbar lines to the peripheral device nodes and map it with
+> crossbar_map/unmap apis.
+>=20
+> Signed-off-by: Sricharan R <r.sricharan@ti.com>
 
-This provides:
+why isn't this done under pinctrl ? If all it does is mux DMA and IRQ
+request lines, it should be written as a pinctrl driver no ?
 
-struct device_dma_parameters {
-        /*
-         * a low level driver may set these to teach IOMMU code about
-         * sg limitations.
-         */
-        unsigned int max_segment_size;
-        unsigned long segment_boundary_mask;
-};
+--=20
+balbi
 
-Now, these are helpfully accessed via:
+--oyUTqETQ0mS9luUI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-dma_get_max_seg_size(dev)
-dma_set_max_seg_size(dev)
-dma_get_seg_boundary(dev)
-dma_set_seg_boundary(dev, mask)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Drivers already use these to work out how to construct the scatterlist
-before passing it to the DMA API, which means that they should also be
-used when creating a scatterlist for the DMA engine (think about it -
-you have to use the DMA API to map the buffers for the DMA engine too.)
+iQIcBAEBAgAGBQJR6DMAAAoJEIaOsuA1yqREgo8P/0I6lAle/+b+V/gKoAi+ZUWF
+NjNF5+d52UZEEReo7aLygZIqiuOT7ujEFRzCELyO6CGcnrpudep1d9swGIbGkst+
+L3epIt5GC1ZG1ohaSBo9fksJUlhsBhAOeXPnGYRFTw+mgSo9Y+lNpekCHQwVydRy
+DLY12zYQlbFxVL9eur0p60AWi90NeyzgiCVoS/AJkT7r6tMFJXYJoiCjwqF0P/04
+z2ek/HdVeJJpLJv8zW7i9xrlsSqtQwa+FauxHzlXAmkQ7SuTUbApDM431JaT/7fZ
+rzTnM/HVix1nW+fL/WQssTn5VJbtBgPb3eud353rvLPZthJJvi0mDuUbH7N0l9VJ
+JE/H1Ow0hSz4Ea5hoxXlWqMBL5rzLx4MgGB8d/5zvEYUUM6cHcJpYM2urM2LYgId
+HY4nvPuCwzVyb5q1ejMowyOb3YM3THB/ZSDvOXIl7lr7gJIeusqmdQLm2yhilexd
+7cLY4DjzRntI0SF1JK+bEjjm8klK4x31neGHRtO+LzE4c3zUD1vr1+Fnlbz88JYK
+Txdc3O5df9ULkX6VaXCMKUdOofRfb7cKx9bi99uuw8Nrd7+aAQ7zRfxDMTLZl9JQ
+qX5mfCX31Dusf3wCb+xg/kU8i/B4gsd/gPdCe1PzJvtl3dGW9rMEm2YNMA39xV5E
+kra5dfRkS/94XqjP1fxO
+=NZ5K
+-----END PGP SIGNATURE-----
 
-So, we already have two properties defined on a per-device basis: the
-maximum size of a scatterlist segment, and the boundary over which any
-segment must not cross.
-
-The former ties up with your max_seg_len() property, though arguably it
-may depend on the DMA engine access size.  The problem with implementing
-this new API though is that the subsystems (such as SCSI) which already
-use dma_get_max_seg_size() will be at odds with what is possible via the
-DMA engine.
-
-I strongly suggest using the infrastructure at device level and not
-implementing some private DMA engine API to convey this information.
-
-As for the maximum number of scatterlist entries, really that's a bug in
-the DMA engine implementations if they can't accept arbitary lengths.
-I've created DMA engine drivers for implementations where you have to
-program each segment individually, ones which can have the current and
-next segments, as well as those which can walk a list.  Provided you get
-informed of a transfer being completed, there really is no reason for a
-DMA engine driver to limit the number of scatterlist entries that it
-will accept.
+--oyUTqETQ0mS9luUI--
