@@ -1,180 +1,132 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/6] usb: phy-nop: Use RESET Controller for managing the reset
- line
-Date: Thu, 18 Jul 2013 11:53:05 +0300
-Message-ID: <1374137590-17865-2-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 5/6] ARM: dts: omap3-beagle-xm: Add USB Host support
+Date: Thu, 18 Jul 2013 11:53:09 +0300
+Message-ID: <1374137590-17865-6-git-send-email-rogerq@ti.com>
 References: <1374137590-17865-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1374137590-17865-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: balbi-l0cyMroinI0@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1374137590-17865-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com, benoit.cousson@linaro.org
+Cc: p.zabel@pengutronix.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Till now we were modelling the RESET line as a voltage regulator and
-using the regulator framework to manage it.
+Provide RESET controller and Power regulator for the USB PHY,
+the USB Host port mode and the PHY device. Provide
+pin multiplexer information for USB host pins.
 
-[1] introduces a GPIO based reset controller driver. We use that
-to manage the PHY reset line, at least for DT boots. For legacy boots,
-will still need to use the regulator framework for reset lines.
+We also relocate omap3_pmx_core pin definations so that they
+are close to omap3_pmx_wkup pin definations.
 
-[1] - http://thread.gmane.org/gmane.linux.drivers.devicetree/41348
-
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- .../devicetree/bindings/usb/usb-nop-xceiv.txt      |   10 +++--
- drivers/usb/phy/Kconfig                            |    1 +
- drivers/usb/phy/phy-nop.c                          |   48 +++++++++++++++-----
- 3 files changed, 44 insertions(+), 15 deletions(-)
+ arch/arm/boot/dts/omap3-beagle-xm.dts |   75 +++++++++++++++++++++++++++++----
+ 1 files changed, 66 insertions(+), 9 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
-index d7e2726..5c3e978 100644
---- a/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
-+++ b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
-@@ -15,7 +15,9 @@ Optional properties:
+diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
+index afdb164..2273c24 100644
+--- a/arch/arm/boot/dts/omap3-beagle-xm.dts
++++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+@@ -69,6 +69,33 @@
+ 		};
  
- - vcc-supply: phandle to the regulator that provides RESET to the PHY.
- 
--- reset-supply: phandle to the regulator that provides power to the PHY.
-+- resets: phandle to the reset controller.
-+
-+- reset-names: must be "reset"
- 
- Example:
- 
-@@ -25,10 +27,10 @@ Example:
- 		clocks = <&osc 0>;
- 		clock-names = "main_clk";
- 		vcc-supply = <&hsusb1_vcc_regulator>;
--		reset-supply = <&hsusb1_reset_regulator>;
-+		resets = <&hsusb1_reset>;
-+		reset-names = "reset"
  	};
- 
- hsusb1_phy is a NOP USB PHY device that gets its clock from an oscillator
- and expects that clock to be configured to 19.2MHz by the NOP PHY driver.
--hsusb1_vcc_regulator provides power to the PHY and hsusb1_reset_regulator
--controls RESET.
-+hsusb1_vcc_regulator provides power to the PHY and hsusb1_reset controls RESET.
-diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
-index 3622fff..213b5ad 100644
---- a/drivers/usb/phy/Kconfig
-+++ b/drivers/usb/phy/Kconfig
-@@ -58,6 +58,7 @@ config MV_U3D_PHY
- 
- config NOP_USB_XCEIV
- 	tristate "NOP USB Transceiver Driver"
-+	depends on RESET_CONTROLLER
- 	help
- 	  This driver is to be used by all the usb transceiver which are either
- 	  built-in with usb ip or which are autonomous and doesn't require any
-diff --git a/drivers/usb/phy/phy-nop.c b/drivers/usb/phy/phy-nop.c
-index 55445e5d..a2cbda5 100644
---- a/drivers/usb/phy/phy-nop.c
-+++ b/drivers/usb/phy/phy-nop.c
-@@ -35,13 +35,15 @@
- #include <linux/clk.h>
- #include <linux/regulator/consumer.h>
- #include <linux/of.h>
-+#include <linux/reset.h>
- 
- struct nop_usb_xceiv {
- 	struct usb_phy phy;
- 	struct device *dev;
- 	struct clk *clk;
- 	struct regulator *vcc;
--	struct regulator *reset;
-+	struct regulator *reset_reg; /* only used for non-DT boot */
-+	struct reset_control *reset;
++
++	/* HS USB Port 2 RESET */
++	hsusb2_reset: hsusb2_reset {
++		compatible = "gpio-reset";
++		reset-gpios = <&gpio5 19 GPIO_ACTIVE_LOW>; /* gpio_147 */
++		reset-delay-us = <70000>;
++		initially-in-reset;
++		#reset-cells = <0>;
++	};
++
++	/* HS USB Port 2 Power */
++	hsusb2_power: hsusb2_power_reg {
++		compatible = "regulator-fixed";
++		regulator-name = "hsusb2_vbus";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		gpio = <&twl_gpio 18 0>;	/* GPIO LEDA */
++		startup-delay-us = <70000>;
++	};
++
++	/* HS USB Host PHY on PORT 2 */
++	hsusb2_phy: hsusb2_phy {
++		compatible = "usb-nop-xceiv";
++		resets = <&hsusb2_reset>;
++		reset-names = "reset";
++		vcc-supply = <&hsusb2_power>;
++	};
  };
  
- static struct platform_device *pd;
-@@ -82,9 +84,14 @@ static int nop_init(struct usb_phy *phy)
- 	if (!IS_ERR(nop->clk))
- 		clk_enable(nop->clk);
+ &omap3_pmx_wkup {
+@@ -79,6 +106,37 @@
+ 	};
+ };
  
-+	/* De-assert RESET */
-+	if (!IS_ERR(nop->reset_reg)) {
-+		if (regulator_enable(nop->reset_reg))
-+			dev_err(phy->dev, "Failed to de-assert reset\n");
-+	}
++&omap3_pmx_core {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++			&hsusbb2_pins
++	>;
 +
- 	if (!IS_ERR(nop->reset)) {
--		/* De-assert RESET */
--		if (regulator_enable(nop->reset))
-+		if (reset_control_deassert(nop->reset))
- 			dev_err(phy->dev, "Failed to de-assert reset\n");
- 	}
- 
-@@ -95,9 +102,14 @@ static void nop_shutdown(struct usb_phy *phy)
- {
- 	struct nop_usb_xceiv *nop = dev_get_drvdata(phy->dev);
- 
-+	/* Assert RESET */
-+	if (!IS_ERR(nop->reset_reg)) {
-+		if (regulator_disable(nop->reset_reg))
-+			dev_err(phy->dev, "Failed to assert reset\n");
-+	}
++	uart3_pins: pinmux_uart3_pins {
++		pinctrl-single,pins = <
++			0x16e (PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0) /* uart3_rx_irrx.uart3_rx_irrx */
++			0x170 (PIN_OUTPUT | MUX_MODE0) /* uart3_tx_irtx.uart3_tx_irtx OUTPUT | MODE0 */
++		>;
++	};
 +
- 	if (!IS_ERR(nop->reset)) {
--		/* Assert RESET */
--		if (regulator_disable(nop->reset))
-+		if (reset_control_assert(nop->reset))
- 			dev_err(phy->dev, "Failed to assert reset\n");
- 	}
- 
-@@ -166,7 +178,7 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
- 			clk_rate = 0;
- 
- 		needs_vcc = of_property_read_bool(node, "vcc-supply");
--		needs_reset = of_property_read_bool(node, "reset-supply");
-+		needs_reset = of_property_read_bool(node, "resets");
- 
- 	} else if (pdata) {
- 		type = pdata->type;
-@@ -205,12 +217,26 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
- 			return -EPROBE_DEFER;
- 	}
- 
--	nop->reset = devm_regulator_get(&pdev->dev, "reset");
--	if (IS_ERR(nop->reset)) {
--		dev_dbg(&pdev->dev, "Error getting reset regulator: %ld\n",
-+	nop->reset_reg = ERR_PTR(-EINVAL);
-+	nop->reset = ERR_PTR(-EINVAL);
++	hsusbb2_pins: pinmux_hsusbb2_pins {
++		pinctrl-single,pins = <
++			0x5c0 (PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
++			0x5c2 (PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
++			0x5c4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
++			0x5c6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
++			0x5c8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
++			0x5cA (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
++			0x1a4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
++			0x1a6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
++			0x1a8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
++			0x1aa (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_somi.hsusb2_data5 */
++			0x1ac (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs0.hsusb2_data6 */
++			0x1ae (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs1.hsusb2_data3 */
++		>;
++	};
++};
 +
-+	if (dev->of_node) {
-+		nop->reset = devm_reset_control_get(dev, "reset");
-+		if (IS_ERR(nop->reset)) {
-+			dev_dbg(dev, "Couldn't get reset controller: %ld\n",
- 					PTR_ERR(nop->reset));
--		if (needs_reset)
--			return -EPROBE_DEFER;
-+			if (needs_reset && PTR_ERR(nop->reset) == -ENODEV)
-+				return -EPROBE_DEFER;
-+		}
-+
-+	} else {
-+		nop->reset_reg = devm_regulator_get(&pdev->dev, "reset");
-+		if (IS_ERR(nop->reset_reg)) {
-+			dev_dbg(&pdev->dev, "Error getting reset regulator: %ld\n",
-+					PTR_ERR(nop->reset_reg));
-+			if (needs_reset)
-+				return -EPROBE_DEFER;
-+		}
- 	}
+ &i2c1 {
+ 	clock-frequency = <2600000>;
  
- 	nop->dev		= &pdev->dev;
+@@ -148,15 +206,6 @@
+ 	power = <50>;
+ };
+ 
+-&omap3_pmx_core {
+-	uart3_pins: pinmux_uart3_pins {
+-		pinctrl-single,pins = <
+-			0x16e (PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0) /* uart3_rx_irrx.uart3_rx_irrx */
+-			0x170 (PIN_OUTPUT | MUX_MODE0) /* uart3_tx_irtx.uart3_tx_irtx OUTPUT | MODE0 */
+-		>;
+-	};
+-};
+-
+ &uart3 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&uart3_pins>;
+@@ -166,3 +215,11 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&gpio1_pins>;
+ };
++
++&usbhshost {
++	port2-mode = "ehci-phy";
++};
++
++&usbhsehci {
++	phys = <0 &hsusb2_phy>;
++};
 -- 
 1.7.4.1
