@@ -1,142 +1,103 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/3] misc: Add crossbar driver
-Date: Thu, 18 Jul 2013 13:56:15 -0500
-Message-ID: <51E83A4F.5080904@ti.com>
-References: <1374165830-6367-1-git-send-email-r.sricharan@ti.com>
- <1374165830-6367-2-git-send-email-r.sricharan@ti.com>
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/3] dmaengine: add dma_get_slave_sg_limits()
+Date: Thu, 18 Jul 2013 13:57:33 -0500
+Message-ID: <51E83A9D.5020008@ti.com>
+References: <1374166001-31340-1-git-send-email-joelf@ti.com>
+	<1374166001-31340-2-git-send-email-joelf@ti.com>
+	<20130718170825.GZ21614@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1374165830-6367-2-git-send-email-r.sricharan@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: linux@arm.linux.org.uk, linux-doc@vger.kernel.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20130718170825.GZ21614-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Benoit Cousson <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Balaji TK <balajitk-l0cyMroinI0@public.gmane.org>, Mark Jackson <mpfj-list-2FZW7xY0fHgqdlJmJB21zg@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29Tb/PtFMR13I2A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/18/2013 11:43 AM, Sricharan R wrote:
-> Some socs have a large number of interrupts/dma requests to service
-> the needs of its many peripherals and subsystems. All of the
-> requests lines from the subsystems are not needed at the same
-> time, so they have to be muxed to the controllers appropriately.
-> In such places a interrupt/dma controllers are preceded by an
-> IRQ/DMA CROSSBAR that provides flexibility in muxing the device
-> requests to the controller inputs.
->
-> The Peripheral irq/dma requests are connected to one crossbar's input
-> and the output of the crossbar is connected to controller's input
-> line. On POR, there are some mappings which are done by default.
-> Those peripherals which do not have a mapping on POR, should be configured
-> to route its requests using the crossbar.
->
-> The drivers identifies every controller's crossbar as individual devices.
-> The mappings can be specified from the DT crossbar nodes and those gets mapped
-> during the crossbar device's probe. The mappings can also be specified by adding
-> the crossbar lines to the peripheral device nodes and map it with
-> crossbar_map/unmap apis.
->
-> Signed-off-by: Sricharan R <r.sricharan@ti.com>
-> ---
->   .../devicetree/bindings/arm/omap/crossbar.txt      |   24 ++
->   drivers/misc/Kconfig                               |    8 +
->   drivers/misc/Makefile                              |    1 +
->   drivers/misc/crossbar.c                            |  258 ++++++++++++++++++++
->   include/linux/crossbar.h                           |   71 ++++++
->   5 files changed, 362 insertions(+)
->   create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
->   create mode 100644 drivers/misc/crossbar.c
->   create mode 100644 include/linux/crossbar.h
->
-> diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
-> new file mode 100644
-> index 0000000..02a8a28
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
-> @@ -0,0 +1,24 @@
-> +* TI - IRQ/DMA Crossbar
-> +
-> +This version is an implementation of the Crossbar IRQ/DMA IP
-> +
-> +Required properties:
-> +- compatible : Should be "ti,dra-crossbar"
-> +- crossbar-name: Name of the controller to which crossbar output is routed
-> +- reg:	Contains crossbar register address range
-> +- reg-width: Represents the width of the individual registers
-> +- crossbar-lines:  Default mappings.Should contain the crossbar-name
-> +		   device name, int/dma request number, crossbar number,
-> +		   register offset in the same order.
-> +
-> +Examples:
-> +		crossbar_mpu: mpuirq@4a002a48 {
-> +			compatible = "crossbar";
-> +			crossbar-name = "mpu-irq";
-> +			reg = <0x4a002a48 0x0130>;
-> +			reg-width = <16>;
-> +			crossbar-lines = "mpu-irq", "rtc-ss-alarm", <0x9f 0xd9 0x12c>,
-> +					 "mpu-irq", "mcasp3-arevt", <0x9e 0x96 0x12a>,
-> +					 "mpu-irq", "mcasp3-axevt", <0x9d 0x97 0x128>;
-> +		};
+On 07/18/2013 12:08 PM, Russell King - ARM Linux wrote:
+> On Thu, Jul 18, 2013 at 11:46:39AM -0500, Joel Fernandes wrote:
+>> The API is optionally implemented by dmaengine drivers and when
+>> unimplemented will return a NULL pointer. A client driver using
+>> this API provides the required dma channel, address width, and
+>> burst size of the transfer. dma_get_slave_sg_limits() returns an
+>> SG limits structure with the maximum number and size of SG segments
+>> that the given channel can handle.
+> 
+> Please look at what's already in struct device:
+> 
+> struct device {
+> ...
+>         struct device_dma_parameters *dma_parms;
+> ...
+> };
+> 
+> This provides:
+> 
+> struct device_dma_parameters {
+>         /*
+>          * a low level driver may set these to teach IOMMU code about
+>          * sg limitations.
+>          */
+>         unsigned int max_segment_size;
+>         unsigned long segment_boundary_mask;
+> };
+> 
+> Now, these are helpfully accessed via:
+> 
+> dma_get_max_seg_size(dev)
+> dma_set_max_seg_size(dev)
+> dma_get_seg_boundary(dev)
+> dma_set_seg_boundary(dev, mask)
+> Drivers already use these to work out how to construct the scatterlist
+> before passing it to the DMA API, which means that they should also be
+> used when creating a scatterlist for the DMA engine (think about it -
+> you have to use the DMA API to map the buffers for the DMA engine too.)
+> 
+> So, we already have two properties defined on a per-device basis: the
+> maximum size of a scatterlist segment, and the boundary over which any
+> segment must not cross.
+> 
+> The former ties up with your max_seg_len() property, though arguably it
+> may depend on the DMA engine access size.  The problem with implementing
+> this new API though is that the subsystems (such as SCSI) which already
+> use dma_get_max_seg_size() will be at odds with what is possible via the
+> DMA engine.
 
-I carry forward my TI internal objection to this approach:
+Not very clear for this particular case, are you saying the DMAEngine
+driver implementation should set the max_seg_size of its own struct dev,
+and then the drivers retrieve it from the channel they are allocated?
 
-NAK.
+> I strongly suggest using the infrastructure at device level and not
+> implementing some private DMA engine API to convey this information.
 
-DRA7 uses a cross bar to map a line to GIC interrupt. Flow of interrupt 
-is as follows:
-hardware IP block -interrupt line-> IRQ Cross bar -> GIC IRQ line --> 
-MPU IRQ.
+Certainly see the value. OK with either approach. Can Vinod add to the
+discussion here, and we can decide a way forward? Is it ok to use the
+new CAPS API added for now so that we can keep AM33xx MMC alive?
+seg_size atleast is a real regression, the number of slots limit however
+is related more to MMC grabbing a lot of slots. Atleast for -rc cycle
+the seg_size and MMC fixes should go in.
 
+> As for the maximum number of scatterlist entries, really that's a bug in
+> the DMA engine implementations if they can't accept arbitary lengths.
+> I've created DMA engine drivers for implementations where you have to
+> program each segment individually, ones which can have the current and
+> next segments, as well as those which can walk a list.  Provided you get
+> informed of a transfer being completed, there really is no reason for a
+> DMA engine driver to limit the number of scatterlist entries that it
+> will accept.
 
-What we have done today for DRA is to provide IRQ numbers as direct maps 
-from hardware IP block to GIC based on default IRQ cross bar mapping.
+Sure, that makes sense. Can you point to such a typical example
+implementation to get some ideas?
 
-Lets see what happens as a result of this:
+Thanks,
 
-https://patchwork.kernel.org/patch/2825148/ (introducing DTS for DRA7)
-uart1 to uart6 is defined. while in fact 10 uarts exist on IP block.
-uart1: serial@4806a000 {
-<snip>
-+			interrupts = <0 72 0x4>;
-Assumes that GIC interrupt by default mapping used.
-
-Now, think of a product that wants to use UART10 instead of UART1, SoC 
-design allows you do that by doing a remapping of GIC interrupt to 
-UART10 - which is awesome.
-
-Option 1: u-boot/bootloader
-mw.l IRQ_CROSSBAR_address with value to map uart10 to GIC IRQ for UART1,
-
-Option 2: in kernel do a raw_writel version of option 1.
-This patch does option 1 in kernel in a "fancy way" - why the heck would 
-I want to do that when u-boot allows me to do the same thing in uEnv.txt
-
-Option 3: map GIC interrupt to IRQ CROSS bar dynamically.
-a) Allows us to define every single IP available on DRA7 SoC.
-b) GIC allocation happens dynamically
-c) allow products use IPs as needed.
-
-Sorry, Conceptually option 3 is the right approach in my view.
-instead of doing
-uart1: serial@4806a000 {
-<snip>
-+			interrupts = <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
-
-we should be able to do the following:
-uart1: serial@4806a000 {
-<snip>
-+			interrupts = <TI_IRQ_CROSSBAR 192 IRQ_TYPE_LEVEL_HIGH>;
-
-and not worry about the GIC interrupt number used
-
-
--- 
-Regards,
-Nishanth Menon
+-Joel
