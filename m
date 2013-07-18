@@ -1,184 +1,48 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] Documentation: dt: bindings: TI WiLink modules
-Date: Thu, 18 Jul 2013 01:58:17 +0200
-Message-ID: <1698879.DLaB5pbe5M@avalon>
-References: <1372149330-24335-1-git-send-email-coelho@ti.com> <1372425670.21065.61.camel@cumari.coelho.fi> <1372682370.21065.68.camel@cumari.coelho.fi>
+From: majianpeng <majianpeng@gmail.com>
+Subject: About omap2 mmc host  close too long irq in irqaction.
+Date: Thu, 18 Jul 2013 10:53:01 +0800
+Message-ID: <201307181052572266628@gmail.com>
+Reply-To: majianpeng <majianpeng@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1372682370.21065.68.camel@cumari.coelho.fi>
-Sender: linux-doc-owner@vger.kernel.org
-To: Luciano Coelho <coelho@ti.com>
-Cc: mturquette@linaro.org, Mark Rutland <mark.rutland@arm.com>, balbi@ti.com, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-arm@vger.kernel.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balajitk <balajitk@ti.com>
+Cc: cjb <cjb@laptop.org>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, devicetree-discuss <devicetree-discuss@lists.ozlabs.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Luciano,
-
-On Monday 01 July 2013 15:39:30 Luciano Coelho wrote:
-> On Fri, 2013-06-28 at 16:21 +0300, Luciano Coelho wrote:
-> > On Fri, 2013-06-28 at 15:18 +0300, Felipe Balbi wrote:
-> > > On Fri, Jun 28, 2013 at 03:13:52PM +0300, Luciano Coelho wrote:
-> > > > On Fri, 2013-06-28 at 14:41 +0300, Felipe Balbi wrote:
-> > > > > On Fri, Jun 28, 2013 at 02:22:11PM +0300, Luciano Coelho wrote:
-> > > > > > On Fri, 2013-06-28 at 13:31 +0300, Luciano Coelho wrote:
-> > > > > > > (fixed Mike's address)
-> > > > > > > 
-> > > > > > > On Fri, 2013-06-28 at 11:21 +0100, Mark Rutland wrote:
-> > > > > > > > On Fri, Jun 28, 2013 at 10:53:35AM +0100, Luciano Coelho 
-wrote:
-> > > > > > > > > On Fri, 2013-06-28 at 10:38 +0100, Mark Rutland wrote:
-> > > > > > > > > > On Tue, Jun 25, 2013 at 09:35:30AM +0100, Luciano Coelho 
-wrote:
-> > > > > > > > > > > +Optional properties:
-> > > > > > > > > > > +--------------------
-> > > > > > > > > > > +
-> > > > > > > > > > > +- refclock: the internal WLAN reference clock frequency
-> > > > > > > > > > > (required for
-> > > > > > > > > > > +  WiLink6 and WiLink7; not used for WiLink8).  Must be
-> > > > > > > > > > > one of the
-> > > > > > > > > > > +  following:
-> > > > > > > > > > > +	0 = 19.2 MHz
-> > > > > > > > > > > +	1 = 26.0 MHz
-> > > > > > > > > > > +	2 = 38.4 MHz
-> > > > > > > > > > > +	3 = 52.0 MHz
-> > > > > > > > > > > +	4 = 38.4 MHz, XTAL
-> > > > > > > > > > > +	5 = 26.0 MHz, XTAL
-> > > > > > > > > > > +
-> > > > > > > > > > > +- tcxoclock: the internal WLAN TCXO clock frequency
-> > > > > > > > > > > (required for
-> > > > > > > > > > > +  WiLink7 not used for WiLink6 and WiLink8).  Must be
-> > > > > > > > > > > one of the
-> > > > > > > > > > > +  following:
-> > > > > > > > > > > +	0 = 19.200 MHz
-> > > > > > > > > > > +	1 = 26.000 MHz
-> > > > > > > > > > > +	2 = 38.400 MHz
-> > > > > > > > > > > +	3 = 52.000 MHz
-> > > > > > > > > > > +	4 = 16.368 MHz
-> > > > > > > > > > > +	5 = 32.736 MHz
-> > > > > > > > > > > +	6 = 16.800 MHz
-> > > > > > > > > > > +	7 = 33.600 MHz
-> > > > > > > > > > 
-> > > > > > > > > > This looks suspiciously like what we have the common clock
-> > > > > > > > > > bindings for:
-> > > > > > > > > > 
-> > > > > > > > > > refclk {
-> > > > > > > > > > 
-> > > > > > > > > > 	compatible = "fixed-clock";
-> > > > > > > > > > 	#clock-cells = <0>;
-> > > > > > > > > > 	clock-frequency = <19200000>;
-> > > > > > > > > > 
-> > > > > > > > > > }
-> > > > > > > > > > 
-> > > > > > > > > > wilink {
-> > > > > > > > > > 
-> > > > > > > > > > 	compatible = "ti,wilink7";
-> > > > > > > > > > 	interrupt-parent = <&some_interrupt_controller>;
-> > > > > > > > > > 	interrupts = <0 1 1>;
-> > > > > > > > > > 	clocks = <&refclk>, <&refclk>;
-> > > > > > > > > > 	clock-names = "refclk", "txoclk";
-> > > > > > > > > > 
-> > > > > > > > > > };
-> > > > > > > > > > 
-> > > > > > > > > > Could you not use them?
-> > > > > > > > > 
-> > > > > > > > > Hmmm... this actually does look good.  But these are
-> > > > > > > > > internal clocks in the modules, they cannot be accessed from
-> > > > > > > > > outside.  Does it make sense to register them with the clock
-> > > > > > > > > framework?
-> > > > > > > > 
-> > > > > > > > Given we already have a common way of describing clocks, I
-> > > > > > > > think it makes sense to use it -- people already understand
-> > > > > > > > the common bindings, and it's less code to add add to the
-> > > > > > > > kernel. I don't think the fact these clocks are internal
-> > > > > > > > should prevent us from describing them as we would an external
-> > > > > > > > clock.
-> > > > > > > 
-> > > > > > > Yes, I agree with you.  Thanks for the suggestion! I think it
-> > > > > > > will look much better.  And now that I dug a bit more into the
-> > > > > > > code, I can see that there are only structs being populated, so
-> > > > > > > there shouldn't be any other side-effects.
-> > > > > > 
-> > > > > > Hmmm, one thing that escaped me.  Besides the frequency, I also
-> > > > > > need a boolean that tells if the clock is XTAL or not.  I can't
-> > > > > > figure out how to pass this if I use the generic clock framework. 
-> > > > > > Any suggestions?
-> > > > > 
-> > > > > Could you use clock-output-names for that ?
-> > > > > 
-> > > > > XTAL clock:
-> > > > > 
-> > > > > refclk {
-> > > > > 
-> > > > > 	compatible = "fixed-clock";
-> > > > > 	#clock cells = <0>;
-> > > > > 	clock-frequency = <19200000>;
-> > > > > 	clock-output-names = "xtal";
-> > > > > 
-> > > > > };
-> > > > > 
-> > > > > non-XTAL clock:
-> > > > > 
-> > > > > refclk {
-> > > > > 
-> > > > > 	compatible = "fixed-clock";
-> > > > > 	#clock cells = <0>;
-> > > > > 	clock-frequency = <19200000>;
-> > > > > 	clock-output-names = "osc"; /* any better name ? */
-> > > > > 
-> > > > > };
-> > > > 
-> > > > This starts looking a bit hacky.  Using the output name as a flag is
-> > > > not very pretty.
-> > > > 
-> > > > I think it would be better to have a separate flag for it in the wlan
-> > > > node.  Like an optional "refclock-xtal" boolean or something.  The
-> > > > downside of this is that we would be adding information about the
-> > > > clock details in the wilink node. :(
-> > > > 
-> > > > OTOH, we could add a flag to the generic clock binding? A new optional
-> > > > boolean that tells whether the clock is XTAL or not:
-> > > > 
-> > > > refclk {
-> > > > 
-> > > > 	compatible = "fixed-clock";
-> > > > 	#clock cells = <0>;
-> > > > 	clock-frequency = <19200000>;
-> > > > 	clock-xtal;
-> > > > 
-> > > > };
-> > > > 
-> > > > Do you think that would make sense?
-> > > 
-> > > sure, that looks alright to me. Surely there are other devices out there
-> > > who want to know if the clock comes from a crystal or not ?!?
-> > 
-> > Mike, what do you think about this idea? If it sounds okay to you, I can
-> > cook up a patch adding this flag.
-> 
-> Hmmm... I started implementing this whole thing, but using these clocks
-> as "fixed-clock"s is not so straightforward.  The problem is that I
-> would need to register my driver as a clock provider and add the OF
-> match for "fixed-clock".
-> 
-> If I do that, all the other "fixed-clock" nodes would be passed to my
-> driver too, which is wrong.  Or, the platform should register the
-> "fixed-clock" match, but this would be wrong too, since it would find
-> *my* fixed-clocks.
-> 
-> The only thing I can come up with is to make a small clock driver (maybe
-> even inside the WiLink module itself) that registers a new type of
-> clock, "ti,wilink-clock" or something.  But this would really be
-> overkill, wouldn't it?
-> 
-> Any other ideas?
-
-One possibility would be to just call clk_get_rate() on the clock from the 
-WiLink driver, which would return the fixed frequency specified in DT, and 
-configure the WiLink hardware accordingly. This might be a bit hackish though.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+SGkgYWxsLA0KCU5vdyBpIHdvcmtlZCBvbiBvbXAyIGFuZCBtZXQgYSBwcm9iZWxtIHdoaWNoIHNv
+bWVwbGFjZSBjbG9zZV9pcnEgZm9yIDMuNnNlY29uZC4gDQpUaGUga2VybmVsIHZlcnNpb24gaXMg
+Mi42LjM3LiBJIHVzZWQgdHJhY2UgdG8gZmluZCBpbiBpcnFfYWN0aW9uOm9tYXBfaHNtbWNfaXJx
+Lg0KVGhpcyBwcm9ibGVtIG9jY3VyZWQgYnkgcmVtb3ZlZCB0aGUgc2RjYXJkIHdoZW4gdGhlcmUg
+YXJlIGlvIG9wZXJhdGlvbnMuDQoNCkkgZm91bmQgdGhlIHJlYWQgcHJvYmxlbSBpcyBpbiBvbWFw
+X2hzbW1jX3Jlc2V0X2NvbnRyb2xsZXJfZnNtLg0KSW4gb21hcF9oc21tY19yZXNldF9jb250cm9s
+bGVyX2ZzbToNCj5zdGF0aWMgaW5saW5lIHZvaWQgb21hcF9oc21tY19yZXNldF9jb250cm9sbGVy
+X2ZzbShzdHJ1Y3Qgb21hcF9oc21tY19ob3N0ICpob3N0LA0KPiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHVuc2lnbmVkIGxvbmcgYml0KQ0KPnsNCj4g
+ICAgICAgIHVuc2lnbmVkIGxvbmcgaSA9IDA7IA0KPiAgICAgICAgdW5zaWduZWQgbG9uZyBsaW1p
+dCA9IChsb29wc19wZXJfamlmZnkgKg0KPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+bXNlY3NfdG9famlmZmllcyhNTUNfVElNRU9VVF9NUykpOw0KDQo+ICAgICAgICBPTUFQX0hTTU1D
+X1dSSVRFKGhvc3QtPmJhc2UsIFNZU0NUTCwNCj4gICAgICAgICAgICAgICAgICAgICAgICAgT01B
+UF9IU01NQ19SRUFEKGhvc3QtPmJhc2UsIFNZU0NUTCkgfCBiaXQpOw0KDQo+ICAgICAgICAvKiAg
+IA0KPiAgICAgICAgICogT01BUDQgRVMyIGFuZCBncmVhdGVyIGhhcyBhbiB1cGRhdGVkIHJlc2V0
+IGxvZ2ljLg0KPiAgICAgICAgICogTW9uaXRvciBhIDAtPjEgdHJhbnNpdGlvbiBmaXJzdA0KPiAg
+ICAgICAgICovDQo+ICAgICAgICBpZiAobW1jX3Nsb3QoaG9zdCkuZmVhdHVyZXMgJiBIU01NQ19I
+QVNfVVBEQVRFRF9SRVNFVCkgew0KPiAgICAgICAgICAgICAgICB3aGlsZSAoKCEoT01BUF9IU01N
+Q19SRUFEKGhvc3QtPmJhc2UsIFNZU0NUTCkgJiBiaXQpKQ0KPiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICYmIChpKysgPCBsaW1pdCkpDQo+ICAgICAgICAgICAgICAgICAg
+ICAgICAgY3B1X3JlbGF4KCk7DQogICAgICAgIH0gICAgDQogSW4gZnVuYywgaXQgdXNlZCBsb29w
+c19wZXJfamlmZnkgIGluIG9yZGVyIHRvIGF2b2lkIGRvIG1hbnkgdGltZSBleGNlZWQgTU1DX1RJ
+TUVPVVRfTVMuDQpJbiBmYWNlIG9vcHNfcGVyX2ppaWZ5IGlzIGxpa2U6DQp3aGlsZShpKysgPCBs
+b29wc19wZXJfamlmZnkpDQoJY3B1X3JlbGF4KCk7DQpCdXQgYWN0dWFsbHksIGl0IHVzZWQgYXMg
+Zm9sbG93Og0KPndoaWxlICgoIShPTUFQX0hTTU1DX1JFQUQoaG9zdC0+YmFzZSwgU1lTQ1RMKSAm
+IGJpdCkpDQo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAmJiAoaSsrIDwg
+bGltaXQpKQ0KaXQgYWRkIHNvbWUgb3BlcmF0aW9ucyBsaWtlOiByZWFkIHJlZ2lzZ2VyLCAmLCAm
+Ji4NClNvIHRoZSB0aW1lIG1heSBleGNlZWQgTU1DX1RJTUVPVVRfTVMuDQpJIHVzZWQgdGhvc2Ug
+Y29kZSB0byB0ZXN0IGFuZCBmb3VuZCBpdCdzIG9rOg0KZm9yIChpID0gMCA7IGkgPCAxMDsgaSsr
+KXsNCglpZiAoIShPTUFQX0hTTU1DX1JFQUQoaG9zdC0+YmFzZSwgU1lTQ1RMKSAmIGJpdCkpDQoJ
+CSAgYnJlYWs7DQoJaiA9IGxpbWl0LzEwOw0KCXdoaWxlKGotLSkNCgkJY3B1X3JlbGF4KCk7DQp9
+DQoNClVzaW5nIHRoaXMgdGhlIHByb2Jsb20gY2FuJ3Qgb2NjdXIuDQpBbSBpIG1pc3Npbmcgc29t
+ZXRoaW5nPw0KDQpUaGFua3MhDQpKaWFucGVuZyBNYQ==
