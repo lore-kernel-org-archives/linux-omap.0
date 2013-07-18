@@ -1,156 +1,97 @@
-From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv4 2/3] drivers: spi: Add qspi flash controller
-Date: Thu, 18 Jul 2013 16:48:41 +0530
-Message-ID: <51E7CF11.5030301@ti.com>
-References: <1374141687-10790-1-git-send-email-sourav.poddar@ti.com>
-	<1374141687-10790-3-git-send-email-sourav.poddar@ti.com>
-	<20130718102404.GH11251@arwen.pp.htv.fi>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 2/3] ARM: OMAP2+: omap_device: add pinctrl handling
+Date: Thu, 18 Jul 2013 14:22:02 +0300
+Message-ID: <51E7CFDA.6070600@ti.com>
+References: <1374061312-25469-1-git-send-email-grygorii.strashko@ti.com>
+ <1374061312-25469-3-git-send-email-grygorii.strashko@ti.com>
+ <20130717153838.GJ7656@atomide.com> <51E6CCB6.2000907@ti.com>
+ <20130718081405.GS7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20130718102404.GH11251-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: rnayak-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130718081405.GS7656@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@linaro.org>, Stephen Warren <swarren@wwwdotorg.org>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
-On Thursday 18 July 2013 03:54 PM, Felipe Balbi wrote:
-> Hi,
->
-> it might be just me, but ...
->
-> On Thu, Jul 18, 2013 at 03:31:26PM +0530, Sourav Poddar wrote:
->> +static inline unsigned long ti_qspi_readl_data(struct ti_qspi *qspi,
->> +		unsigned long reg, int wlen)
->> +{
->> +	switch (wlen) {
->> +	case 8:
->> +		return readw(qspi->base + reg);
->> +		break;
->> +	case 16:
->> +		return readb(qspi->base + reg);
->> +		break;
->> +	case 32:
->> +		return readl(qspi->base + reg);
->> +		break;
->> +	default:
->> +		return -EINVAL;
->> +	}
->> +}
->> +
->> +static inline void ti_qspi_writel_data(struct ti_qspi *qspi,
->> +		unsigned long val, unsigned long reg, int wlen)
->> +{
->> +	switch (wlen) {
->> +	case 8:
->> +		writew(val, qspi->base + reg);
->> +		break;
->> +	case 16:
->> +		writeb(val, qspi->base + reg);
->> +		break;
->> +	case 32:
->> +		writeb(val, qspi->base + reg);
->> +		break;
->> +	default:
->> +		dev_dbg(qspi->dev, "word lenght out of range");
->> +		break;
->> +	}
->> +}
-> because of these two functions you have the hability to read/write
-> *more* than one byte, and yet ...
->
->> +static void qspi_write_msg(struct ti_qspi *qspi, struct spi_transfer *t)
->> +{
->> +	const u8 *txbuf;
->> +	int wlen, count;
->> +
->> +	count = t->len;
->> +	txbuf = t->tx_buf;
->> +	wlen = t->bits_per_word;
->> +
->> +	while (count--) {
->> +		dev_dbg(qspi->dev, "tx cmd %08x dc %08x data %02x\n",
->> +			qspi->cmd | QSPI_WR_SNGL, qspi->dc, *txbuf);
->> +		ti_qspi_writel_data(qspi, *txbuf++, QSPI_SPI_DATA_REG, wlen);
-> you always increment by each byte. Here, if you used writel(), you wrote
-> 4 bytes and should increment txbuf by 4.
+On 07/18/2013 11:14 AM, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko@ti.com> [130717 10:11]:
+>> On 07/17/2013 06:38 PM, Tony Lindgren wrote:
+>>> * Grygorii Strashko <grygorii.strashko@ti.com> [130717 04:49]:
+>>>> Before switching to DT pinctrl states of OMAP IPs have been handled by hwmod
+>>>> framework. After switching to DT-boot the pinctrl handling was dropped from
+>>>> hwmod framework and, as it was recommended, OMAP IP's drivers have to be updated
+>>>> to handle pinctrl states by itself using pinctrl_pm_select_xx() helpers
+>>>> (see http://lists.infradead.org/pipermail/linux-arm-kernel/2013-June/173514.html)
+>>>>
+>>>> But this is not right for OMAP2+ SoC where real IPs state is controlled
+>>>> by omap_device core which enables/disables modules & clocks actually.
+>>>
+>>> I'm not convinced we should try to handle this in a generic way
+>>> as only some devices need dynamic remuxing of some pins.
+>>>
+>>>> For example, if OMAP I2C driver will handle pinctrl state during system wide
+>>>> suspend the following issue may occure:
+>>>> - suspend_noirq - I2C device can be still active because of PM auto-suspend
+>>>>    |-_od_suspend_noirq
+>>>>       |- omap_i2c_suspend_noirq
+>>>>          |- PINs state set to SLEEP
+>>>>    |- pm_generic_runtime_suspend
+>>>>       |- omap_i2c_runtime_suspend()
+>>>>          |- PINs state set to IDLE  <--- *oops* PINs state is IDLE and not SLEEP
+>>>>    |- omap_device_idle()
+>>>>       |- omap_hwmod_idle()
+>>>>          |- _idle()
+>>>>             |- disbale module (sysc&clocks)
 
-hmm..got this point. Yes, my mistake, here I agree if wlen is not 8 bits
-txbuf++ is not valid.
->   Same goes for read_data(),
-> below. Another thing. Even though your wlen might be 8 bits, if you
-> write 4 bytes to write, you can save a few CPU cycles by using writel().
->
-Do you mean 4 words of 8 bits?
-> You only use writew() if you have exactly 2 bytes to write and writeb()
-> if you have exactly 1 byte to write. 3 bytes we'll be left as an
-> exercise.
-hmm..yes.
->> +static int ti_qspi_start_transfer_one(struct spi_master *master,
->> +		struct spi_message *m)
->> +{
->> +	struct ti_qspi *qspi = spi_master_get_devdata(master);
->> +	struct spi_device *spi = m->spi;
->> +	struct spi_transfer *t;
->> +	int status = 0, ret;
->> +	int frame_length;
->> +
->> +	/* setup device control reg */
->> +	qspi->dc = 0;
->> +
->> +	if (spi->mode&  SPI_CPHA)
->> +		qspi->dc |= QSPI_CKPHA(spi->chip_select);
->> +	if (spi->mode&  SPI_CPOL)
->> +		qspi->dc |= QSPI_CKPOL(spi->chip_select);
->> +	if (spi->mode&  SPI_CS_HIGH)
->> +		qspi->dc |= QSPI_CSPOL(spi->chip_select);
->> +
->> +	frame_length = DIV_ROUND_UP(m->frame_length * spi->bits_per_word,
->> +				spi->bits_per_word);
-> this calculation doesn't look correct.
->
-> 	(m->frame_length * spi->bits_per_word) /
-> 		spi->bits_per_word = m->frame_length
->
-> What are you trying to achieve here ? frame_length should be counted in
-> words right ? And we get that value in bytes. So what's the best
-> calculation to convert bytes into words ? If you have 8 bits_per_word
-> you don't need any calculation, but if you have 32 bits_per_word, you
-> _do_ need something.
->
-Yes, just derive this formulae with 8 bits per word in mind.
-Will change.
-It should be (m->frame_length * 8) / spi->bits_per_word
-> How will you achieve the number you want ? (hint: 1 byte == 8 bits)
->
-> And btw, all of these mistakes pretty much tell me that this driver
-> hasn't been tested. How have you tested this driver ?
-After bootup, I checked for deive detting enumerated as /proc/mtd.
-After which I am using mtdutils(erase, dump and write utilied to
-check for the communication with the flash device.)
-> Is your spansion
-> memory accessed with 8 bits_per_word only ?
-Yes, most of the places is like that and data is sapmled in 8 bits.
-For some opcodes, we need to send 3 bytes addresses after instruction
-  to the flash chip.
->   Is there anyway to use
-> 32 bits_per_word with that device ? That would uncover quite a few
-> mistakes in $subject.
->
+Above call sequence explains what's going on when .suspend_noirq() is 
+called - .suspend_noirq() handler ==> _od_suspend_noirq() and it's set 
+for all OMAP2+ devices.
 
 
-------------------------------------------------------------------------------
-See everything from the browser to the database with AppDynamics
-Get end-to-end visibility with application monitoring from AppDynamics
-Isolate bottlenecks and diagnose root cause in seconds.
-Start your free trial of AppDynamics Pro today!
-http://pubads.g.doubleclick.net/gampad/clk?id=48808831&iu=/4140/ostg.clktrk
+>>>
+>>> And in this example you are assuming that you need separate idle and
+>>> sleep states, which is not true at least for most cases I've seen.
+>>
+>> I don't need both states (at least right now) :), but
+>> - if any OMAP2+ driver will have two states defined: "idle" and "sleep"
+>> - and if it will try to manage them from drivers callbacks only using
+>>    pure calls to pinctrl_pm_select_xx() helpers
+>>
+>> the "idle" state will be selected during suspend and *not* "sleep".
+>
+> But the drivers have separate calls for runtime PM and suspend/resume?
+
+Yes, but for OMAP2+ everything is handled by OMAP device framework :)
+
+>
+>>> It is possible that am33xx needs separate idle and sleep states, but
+>>> most likely only for some pins. For omap[345] we can get away with
+>>> just the default state for most cases.
+>>>
+>>
+>>
+>> In case, if only "default" state is defined for device - nothing will
+>>   be done by OMAP device framework for it (I mean any call to
+>> pinctrl_pm_select_xx() will do nothing - it just checks that there is
+>> no state and returns 0).
+>
+> If we want to automate something, it should be done at Linux generic
+> level rather than at omap "bus" level. That sort of relates to drivers
+> needing to know when they've lost context too, which should be
+> implemented in Linux generic way.
+>
+> Regards,
+>
+> Tony
+>
