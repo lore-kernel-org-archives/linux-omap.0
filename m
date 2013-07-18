@@ -1,129 +1,77 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 3/3] ARM: dts: omap4-sdp: add dynamic pin states for uart3/4
-Date: Thu, 18 Jul 2013 11:54:16 +0300
-Message-ID: <51E7AD38.6010108@ti.com>
-References: <1374061312-25469-1-git-send-email-grygorii.strashko@ti.com> <1374061312-25469-4-git-send-email-grygorii.strashko@ti.com> <20130717153248.GI7656@atomide.com> <51E6C939.40208@ti.com> <20130718080953.GR7656@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Regression 3.11-rc1: omap4panda: no usb and consequently no
+ ethernet
+Date: Thu, 18 Jul 2013 01:59:51 -0700
+Message-ID: <20130718085951.GT7656@atomide.com>
+References: <51E7AA24.6080600@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130718080953.GR7656@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <51E7AA24.6080600@broadcom.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <benoit.cousson@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Stephen Warren <swarren@wwwdotorg.org>
+To: Arend van Spriel <arend@broadcom.com>
+Cc: linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/18/2013 11:09 AM, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko@ti.com> [130717 09:48]:
->> Hi,
->>
->> On 07/17/2013 06:32 PM, Tony Lindgren wrote:
->>> * Grygorii Strashko <grygorii.strashko@ti.com> [130717 04:49]:
->>>> Add dynamic "active"/"idle" pin states for uart3/4 which will be applied
->>>> when uart3/4 state is switched from active to idle and back by Runtime
->>>> PM or during system suspend.
->>>
->>> This is good for testing code, but should not be merged because
->>> omap4 has the iopad wake-ups available for uarts. So those can
->>> be always enabled.
->>
->> In this case, 2 IRQ will be received per each UART RX event - one from
->> PRCM and from UART - and that's not good from PM perspective (It will
->> affect on CPUIdle and CPUFreq at least).
->
-> Oh I see, that's because I accidentally left the debug code enabled
-> to make it easier to test the wake-up events without having to
-> have working off-idle. The wake flags can be kept on always for
-> sure.
->
-> The patch below should sort out the issue of getting wake-up interrupts
-> during runtime as long as you don't have DEBUG defined.
->
-> Regards,
->
-> Tony
->
-> --- a/drivers/pinctrl/pinctrl-single-omap.c
-> +++ b/drivers/pinctrl/pinctrl-single-omap.c
-> @@ -140,9 +140,17 @@ static irqreturn_t pcs_omap_handle_irq(int irq, void *data)
->   		if ((val & OMAP_WAKEUP_EVENT_MASK) == OMAP_WAKEUP_EVENT_MASK)
->   			generic_handle_irq(wakeirq);
->   	}
-> -
-> +#ifdef DEBUG
+* Arend van Spriel <arend@broadcom.com> [130718 01:47]:
+> 
+> We are using the panda board (es variant) for testing our SDIO based
+> chips. For this we have an adapter card connection to expansion
+> connector A. As this adapter is not publicly available we had
+> internally patched board-omap4panda.c. Also we follow the -rc
+> releases and use TFTP to boot the kernel image which requires USB.
+> 
+> Moving to 3.11-rc1 I found that the mentioned board file was removed
+> by your commit:
+> 
+> commit b42b918194c4791510ac049e3d507169a7de8544
+> Author: Tony Lindgren <tony@atomide.com>
+> Date:   Thu May 30 12:53:05 2013 -0700
+> 
+>     ARM: OMAP2+: Remove board-omap4panda.c
+> 
+> As our patches on that file are internal I do not hold it against
+> you. This is no regression and we need to fix it.
 
-Don't think it's debug code - IO chain need to be rearmed after each
-PRCM IO IRQ - otherwise IO wakeup events may be lost (at least on
-OMAP4, OMAP5 requires more complex handling(( ).
+Right, we need to move on to device tree based booting. Most of
+it should be pretty trivial configuring of the .dts file and
+some .config changes so whatever issues are remaining should
+be out of the way by v3.11.
+ 
+> So my first step was to follow the recipe given in that commit.
+> Beside that I noticed a thread about USB issue on LKML so I also
+> applied the following commit:
+> 
+> commit 352f573e59050c7a604c35c58b4bbfc51edebbee
+> Author: Roger Quadros <rogerq@ti.com>
+> Date:   Tue Jun 18 19:04:47 2013 +0300
+> 
+>     ARM: OMAP2+: Provide alias to USB PHY clock
+> 
+> The attached kernel log seems to suggest that the device tree is
+> picked up by the kernel, but the USB does not seem very active. No
+> ethernet connectivity. This does seem a regression to me. Is there
+> some other patch that I need to get it going again?
 
+There are few .dts related patches missing for USB. Roger can
+point you to the current versions that Benoit should be queueing
+for the -rc series.
 
-> +	/*
-> +	 * This enables wake-up interrupts during runtime also
-> +	 * causing duplicate interrupts. But it also makes debugging
-> +	 * the wake-up events easy as deeper idle states often are
-> +	 * not working for new devices while the drivers are being
-> +	 * developed.
-> +	 */
->   	if (pcso->reconfigure_io_chain)
->   		pcso->reconfigure_io_chain();
-> +#endif
->
->   	return IRQ_HANDLED;
->   }
->
+Then for the SDIO with device tree, take a look at the following
+patches:
 
-I didn't pick up your padconf patches yet -seems i need to be in sync :)
+[PATCH 0/3] WLAN support for omap4 when booted with devicetree
+http://comments.gmane.org/gmane.linux.ports.arm.omap/97522#
 
-Below the diff I used to verify IO wake up (It follows old IO daisy
-chain hanlding models in hwmod before DT):
+The wl12xx .dts changes for pandaboard are still missing too.
 
+Then I'll be updating these soonish:
+[PATCH 0/4] Updated omap_hsmmc SDIO and remuxing patches
 
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -574,7 +574,7 @@ odbs_exit:
+Those are needed for the SDIO interrupt, SDIO will work also
+without those.
 
-         return ERR_PTR(ret);
-  }
--
-+#include "prm44xx.h"
-  #ifdef CONFIG_PM_RUNTIME
-  static int _od_runtime_suspend(struct device *dev)
-  {
-@@ -586,6 +586,7 @@ static int _od_runtime_suspend(struct device *dev)
-         if (!ret) {
-                 omap_device_idle(pdev);
-                 pinctrl_pm_select_idle_state(dev);
-+               omap44xx_prm_reconfigure_io_chain();
-         }
+Regards,
 
-         return ret;
-@@ -596,6 +597,7 @@ static int _od_runtime_resume(struct device *dev)
-         struct platform_device *pdev = to_platform_device(dev);
-
-         pinctrl_pm_select_active_state(dev);
-+       omap44xx_prm_reconfigure_io_chain();
-
-         omap_device_enable(pdev);
-
-diff --git a/arch/arm/mach-omap2/prm_common.c 
-b/arch/arm/mach-omap2/prm_common.c
-index 228b850..5db073a 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -79,7 +79,7 @@ static void omap_prcm_events_filter_priority(unsigned 
-long *events,
-                 events[i] ^= priority_events[i];
-         }
-  }
--
-+#include "prm44xx.h"
-  /*
-   * PRCM Interrupt Handler
-   *
-@@ -144,6 +144,7 @@ static void omap_prcm_irq_handler(unsigned int irq, 
-struct irq_desc *desc)
-         chip->irq_unmask(&desc->irq_data);
-
-         prcm_irq_setup->ocp_barrier(); /* avoid spurious IRQs */
-+       omap44xx_prm_reconfigure_io_chain();
-  }
+Tony
