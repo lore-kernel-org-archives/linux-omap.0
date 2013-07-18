@@ -1,158 +1,555 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 08/15] usb: phy: twl4030-usb: remove *set_suspend* and
- *phy_init* ops
-Date: Thu, 18 Jul 2013 12:16:17 +0530
-Message-ID: <1374129984-765-9-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 14/15] video: exynos_dp: remove non-DT support for Exynos Display Port
+Date: Thu, 18 Jul 2013 12:16:23 +0530
+Message-ID: <1374129984-765-15-git-send-email-kishon@ti.com>
 References: <1374129984-765-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1374129984-765-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
-Cc: linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <1374129984-765-1-git-send-email-kishon@ti.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: gregkh@linuxfoundation.org, kyungmin.park@samsung.com, balbi@ti.com, kishon@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com
+Cc: grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Now that twl4030-usb is adapted to the new generic PHY framework,
-*set_suspend* and *phy_init* ops can be removed from twl4030-usb driver.
+From: Jingoo Han <jg1.han@samsung.com>
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Exynos Display Port can be used only for Exynos SoCs. In addition,
+non-DT for EXYNOS SoCs is not supported from v3.11; thus, there is
+no need to support non-DT for Exynos Display Port.
+
+The 'include/video/exynos_dp.h' file has been used for non-DT
+support and the content of file include/video/exynos_dp.h is moved
+to drivers/video/exynos/exynos_dp_core.h. Thus, the 'exynos_dp.h'
+file is removed. Also, 'struct exynos_dp_platdata' is removed,
+because it is not used any more.
+
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Reviewed-by: Tomasz Figa <t.figa@samsung.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/usb/phy/phy-twl4030-usb.c |   57 +++++++++----------------------------
- 1 file changed, 13 insertions(+), 44 deletions(-)
+ drivers/video/exynos/Kconfig          |    2 +-
+ drivers/video/exynos/exynos_dp_core.c |  116 +++++++----------------------
+ drivers/video/exynos/exynos_dp_core.h |  109 +++++++++++++++++++++++++++
+ drivers/video/exynos/exynos_dp_reg.c  |    2 -
+ include/video/exynos_dp.h             |  131 ---------------------------------
+ 5 files changed, 135 insertions(+), 225 deletions(-)
+ delete mode 100644 include/video/exynos_dp.h
 
-diff --git a/drivers/usb/phy/phy-twl4030-usb.c b/drivers/usb/phy/phy-twl4030-usb.c
-index 9051756..44f8b1b 100644
---- a/drivers/usb/phy/phy-twl4030-usb.c
-+++ b/drivers/usb/phy/phy-twl4030-usb.c
-@@ -422,25 +422,20 @@ static void twl4030_phy_power(struct twl4030_usb *twl, int on)
- 	}
+diff --git a/drivers/video/exynos/Kconfig b/drivers/video/exynos/Kconfig
+index 1b035b2..fab9019 100644
+--- a/drivers/video/exynos/Kconfig
++++ b/drivers/video/exynos/Kconfig
+@@ -29,7 +29,7 @@ config EXYNOS_LCD_S6E8AX0
+ 
+ config EXYNOS_DP
+ 	bool "EXYNOS DP driver support"
+-	depends on ARCH_EXYNOS
++	depends on OF && ARCH_EXYNOS
+ 	default n
+ 	help
+ 	  This enables support for DP device.
+diff --git a/drivers/video/exynos/exynos_dp_core.c b/drivers/video/exynos/exynos_dp_core.c
+index 12bbede..05fed7d 100644
+--- a/drivers/video/exynos/exynos_dp_core.c
++++ b/drivers/video/exynos/exynos_dp_core.c
+@@ -20,8 +20,6 @@
+ #include <linux/delay.h>
+ #include <linux/of.h>
+ 
+-#include <video/exynos_dp.h>
+-
+ #include "exynos_dp_core.h"
+ 
+ static int exynos_dp_init_dp(struct exynos_dp_device *dp)
+@@ -894,26 +892,17 @@ static void exynos_dp_hotplug(struct work_struct *work)
+ 		dev_err(dp->dev, "unable to config video\n");
  }
  
--static void twl4030_phy_suspend(struct twl4030_usb *twl, int controller_off)
-+static int twl4030_phy_power_off(struct phy *phy)
+-#ifdef CONFIG_OF
+-static struct exynos_dp_platdata *exynos_dp_dt_parse_pdata(struct device *dev)
++static struct video_info *exynos_dp_dt_parse_pdata(struct device *dev)
  {
-+	struct twl4030_usb *twl = phy_get_drvdata(phy);
+ 	struct device_node *dp_node = dev->of_node;
+-	struct exynos_dp_platdata *pd;
+ 	struct video_info *dp_video_config;
+ 
+-	pd = devm_kzalloc(dev, sizeof(*pd), GFP_KERNEL);
+-	if (!pd) {
+-		dev_err(dev, "memory allocation for pdata failed\n");
+-		return ERR_PTR(-ENOMEM);
+-	}
+ 	dp_video_config = devm_kzalloc(dev,
+ 				sizeof(*dp_video_config), GFP_KERNEL);
+-
+ 	if (!dp_video_config) {
+ 		dev_err(dev, "memory allocation for video config failed\n");
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+-	pd->video_info = dp_video_config;
+ 
+ 	dp_video_config->h_sync_polarity =
+ 		of_property_read_bool(dp_node, "hsync-active-high");
+@@ -960,7 +949,7 @@ static struct exynos_dp_platdata *exynos_dp_dt_parse_pdata(struct device *dev)
+ 		return ERR_PTR(-EINVAL);
+ 	}
+ 
+-	return pd;
++	return dp_video_config;
+ }
+ 
+ static int exynos_dp_dt_parse_phydata(struct exynos_dp_device *dp)
+@@ -1003,48 +992,30 @@ err:
+ 
+ static void exynos_dp_phy_init(struct exynos_dp_device *dp)
+ {
+-	u32 reg;
++	if (dp->phy_addr) {
++		u32 reg;
+ 
+-	reg = __raw_readl(dp->phy_addr);
+-	reg |= dp->enable_mask;
+-	__raw_writel(reg, dp->phy_addr);
++		reg = __raw_readl(dp->phy_addr);
++		reg |= dp->enable_mask;
++		__raw_writel(reg, dp->phy_addr);
++	}
+ }
+ 
+ static void exynos_dp_phy_exit(struct exynos_dp_device *dp)
+ {
+-	u32 reg;
+-
+-	reg = __raw_readl(dp->phy_addr);
+-	reg &= ~(dp->enable_mask);
+-	__raw_writel(reg, dp->phy_addr);
+-}
+-#else
+-static struct exynos_dp_platdata *exynos_dp_dt_parse_pdata(struct device *dev)
+-{
+-	return NULL;
+-}
+-
+-static int exynos_dp_dt_parse_phydata(struct exynos_dp_device *dp)
+-{
+-	return -EINVAL;
+-}
+-
+-static void exynos_dp_phy_init(struct exynos_dp_device *dp)
+-{
+-	return;
+-}
++	if (dp->phy_addr) {
++		u32 reg;
+ 
+-static void exynos_dp_phy_exit(struct exynos_dp_device *dp)
+-{
+-	return;
++		reg = __raw_readl(dp->phy_addr);
++		reg &= ~(dp->enable_mask);
++		__raw_writel(reg, dp->phy_addr);
++	}
+ }
+-#endif /* CONFIG_OF */
+ 
+ static int exynos_dp_probe(struct platform_device *pdev)
+ {
+ 	struct resource *res;
+ 	struct exynos_dp_device *dp;
+-	struct exynos_dp_platdata *pdata;
+ 
+ 	int ret = 0;
+ 
+@@ -1057,21 +1028,13 @@ static int exynos_dp_probe(struct platform_device *pdev)
+ 
+ 	dp->dev = &pdev->dev;
+ 
+-	if (pdev->dev.of_node) {
+-		pdata = exynos_dp_dt_parse_pdata(&pdev->dev);
+-		if (IS_ERR(pdata))
+-			return PTR_ERR(pdata);
++	dp->video_info = exynos_dp_dt_parse_pdata(&pdev->dev);
++	if (IS_ERR(dp->video_info))
++		return PTR_ERR(dp->video_info);
+ 
+-		ret = exynos_dp_dt_parse_phydata(dp);
+-		if (ret)
+-			return ret;
+-	} else {
+-		pdata = pdev->dev.platform_data;
+-		if (!pdata) {
+-			dev_err(&pdev->dev, "no platform data\n");
+-			return -EINVAL;
+-		}
+-	}
++	ret = exynos_dp_dt_parse_phydata(dp);
++	if (ret)
++		return ret;
+ 
+ 	dp->clock = devm_clk_get(&pdev->dev, "dp");
+ 	if (IS_ERR(dp->clock)) {
+@@ -1095,15 +1058,7 @@ static int exynos_dp_probe(struct platform_device *pdev)
+ 
+ 	INIT_WORK(&dp->hotplug_work, exynos_dp_hotplug);
+ 
+-	dp->video_info = pdata->video_info;
+-
+-	if (pdev->dev.of_node) {
+-		if (dp->phy_addr)
+-			exynos_dp_phy_init(dp);
+-	} else {
+-		if (pdata->phy_init)
+-			pdata->phy_init();
+-	}
++	exynos_dp_phy_init(dp);
+ 
+ 	exynos_dp_init_dp(dp);
+ 
+@@ -1121,18 +1076,11 @@ static int exynos_dp_probe(struct platform_device *pdev)
+ 
+ static int exynos_dp_remove(struct platform_device *pdev)
+ {
+-	struct exynos_dp_platdata *pdata = pdev->dev.platform_data;
+ 	struct exynos_dp_device *dp = platform_get_drvdata(pdev);
+ 
+ 	flush_work(&dp->hotplug_work);
+ 
+-	if (pdev->dev.of_node) {
+-		if (dp->phy_addr)
+-			exynos_dp_phy_exit(dp);
+-	} else {
+-		if (pdata->phy_exit)
+-			pdata->phy_exit();
+-	}
++	exynos_dp_phy_exit(dp);
+ 
+ 	clk_disable_unprepare(dp->clock);
+ 
+@@ -1143,20 +1091,13 @@ static int exynos_dp_remove(struct platform_device *pdev)
+ #ifdef CONFIG_PM_SLEEP
+ static int exynos_dp_suspend(struct device *dev)
+ {
+-	struct exynos_dp_platdata *pdata = dev->platform_data;
+ 	struct exynos_dp_device *dp = dev_get_drvdata(dev);
+ 
+ 	disable_irq(dp->irq);
+ 
+ 	flush_work(&dp->hotplug_work);
+ 
+-	if (dev->of_node) {
+-		if (dp->phy_addr)
+-			exynos_dp_phy_exit(dp);
+-	} else {
+-		if (pdata->phy_exit)
+-			pdata->phy_exit();
+-	}
++	exynos_dp_phy_exit(dp);
+ 
+ 	clk_disable_unprepare(dp->clock);
+ 
+@@ -1165,16 +1106,9 @@ static int exynos_dp_suspend(struct device *dev)
+ 
+ static int exynos_dp_resume(struct device *dev)
+ {
+-	struct exynos_dp_platdata *pdata = dev->platform_data;
+ 	struct exynos_dp_device *dp = dev_get_drvdata(dev);
+ 
+-	if (dev->of_node) {
+-		if (dp->phy_addr)
+-			exynos_dp_phy_init(dp);
+-	} else {
+-		if (pdata->phy_init)
+-			pdata->phy_init();
+-	}
++	exynos_dp_phy_init(dp);
+ 
+ 	clk_prepare_enable(dp->clock);
+ 
+@@ -1203,7 +1137,7 @@ static struct platform_driver exynos_dp_driver = {
+ 		.name	= "exynos-dp",
+ 		.owner	= THIS_MODULE,
+ 		.pm	= &exynos_dp_pm_ops,
+-		.of_match_table = of_match_ptr(exynos_dp_match),
++		.of_match_table = exynos_dp_match,
+ 	},
+ };
+ 
+diff --git a/drivers/video/exynos/exynos_dp_core.h b/drivers/video/exynos/exynos_dp_core.h
+index 6c567bbf..56cfec8 100644
+--- a/drivers/video/exynos/exynos_dp_core.h
++++ b/drivers/video/exynos/exynos_dp_core.h
+@@ -13,6 +13,99 @@
+ #ifndef _EXYNOS_DP_CORE_H
+ #define _EXYNOS_DP_CORE_H
+ 
++#define DP_TIMEOUT_LOOP_COUNT 100
++#define MAX_CR_LOOP 5
++#define MAX_EQ_LOOP 5
 +
- 	if (twl->asleep)
--		return;
-+		return 0;
- 
- 	twl4030_phy_power(twl, 0);
- 	twl->asleep = 1;
- 	dev_dbg(twl->dev, "%s\n", __func__);
--}
--
--static int twl4030_phy_power_off(struct phy *phy)
--{
--	struct twl4030_usb *twl = phy_get_drvdata(phy);
--
--	twl4030_phy_suspend(twl, 0);
- 	return 0;
- }
- 
--static void __twl4030_phy_resume(struct twl4030_usb *twl)
-+static void __twl4030_phy_power_on(struct twl4030_usb *twl)
- {
- 	twl4030_phy_power(twl, 1);
- 	twl4030_i2c_access(twl, 1);
-@@ -449,11 +444,13 @@ static void __twl4030_phy_resume(struct twl4030_usb *twl)
- 		twl4030_i2c_access(twl, 0);
- }
- 
--static void twl4030_phy_resume(struct twl4030_usb *twl)
-+static int twl4030_phy_power_on(struct phy *phy)
- {
-+	struct twl4030_usb *twl = phy_get_drvdata(phy);
++enum link_rate_type {
++	LINK_RATE_1_62GBPS = 0x06,
++	LINK_RATE_2_70GBPS = 0x0a
++};
 +
- 	if (!twl->asleep)
--		return;
--	__twl4030_phy_resume(twl);
-+		return 0;
-+	__twl4030_phy_power_on(twl);
- 	twl->asleep = 0;
- 	dev_dbg(twl->dev, "%s\n", __func__);
++enum link_lane_count_type {
++	LANE_COUNT1 = 1,
++	LANE_COUNT2 = 2,
++	LANE_COUNT4 = 4
++};
++
++enum link_training_state {
++	START,
++	CLOCK_RECOVERY,
++	EQUALIZER_TRAINING,
++	FINISHED,
++	FAILED
++};
++
++enum voltage_swing_level {
++	VOLTAGE_LEVEL_0,
++	VOLTAGE_LEVEL_1,
++	VOLTAGE_LEVEL_2,
++	VOLTAGE_LEVEL_3,
++};
++
++enum pre_emphasis_level {
++	PRE_EMPHASIS_LEVEL_0,
++	PRE_EMPHASIS_LEVEL_1,
++	PRE_EMPHASIS_LEVEL_2,
++	PRE_EMPHASIS_LEVEL_3,
++};
++
++enum pattern_set {
++	PRBS7,
++	D10_2,
++	TRAINING_PTN1,
++	TRAINING_PTN2,
++	DP_NONE
++};
++
++enum color_space {
++	COLOR_RGB,
++	COLOR_YCBCR422,
++	COLOR_YCBCR444
++};
++
++enum color_depth {
++	COLOR_6,
++	COLOR_8,
++	COLOR_10,
++	COLOR_12
++};
++
++enum color_coefficient {
++	COLOR_YCBCR601,
++	COLOR_YCBCR709
++};
++
++enum dynamic_range {
++	VESA,
++	CEA
++};
++
++enum pll_status {
++	PLL_UNLOCKED,
++	PLL_LOCKED
++};
++
++enum clock_recovery_m_value_type {
++	CALCULATED_M,
++	REGISTER_M
++};
++
++enum video_timing_recognition_type {
++	VIDEO_TIMING_FROM_CAPTURE,
++	VIDEO_TIMING_FROM_REGISTER
++};
++
++enum analog_power_block {
++	AUX_BLOCK,
++	CH0_BLOCK,
++	CH1_BLOCK,
++	CH2_BLOCK,
++	CH3_BLOCK,
++	ANALOG_TOTAL,
++	POWER_ALL
++};
++
+ enum dp_irq_type {
+ 	DP_IRQ_TYPE_HP_CABLE_IN,
+ 	DP_IRQ_TYPE_HP_CABLE_OUT,
+@@ -20,6 +113,22 @@ enum dp_irq_type {
+ 	DP_IRQ_TYPE_UNKNOWN,
+ };
  
-@@ -466,13 +463,6 @@ static void twl4030_phy_resume(struct twl4030_usb *twl)
- 		cancel_delayed_work(&twl->id_workaround_work);
- 		schedule_delayed_work(&twl->id_workaround_work, HZ);
- 	}
--}
++struct video_info {
++	char *name;
++
++	bool h_sync_polarity;
++	bool v_sync_polarity;
++	bool interlaced;
++
++	enum color_space color_space;
++	enum dynamic_range dynamic_range;
++	enum color_coefficient ycbcr_coeff;
++	enum color_depth color_depth;
++
++	enum link_rate_type link_rate;
++	enum link_lane_count_type lane_count;
++};
++
+ struct link_train {
+ 	int eq_loop;
+ 	int cr_loop[4];
+diff --git a/drivers/video/exynos/exynos_dp_reg.c b/drivers/video/exynos/exynos_dp_reg.c
+index 29d9d03..b70da50 100644
+--- a/drivers/video/exynos/exynos_dp_reg.c
++++ b/drivers/video/exynos/exynos_dp_reg.c
+@@ -14,8 +14,6 @@
+ #include <linux/io.h>
+ #include <linux/delay.h>
+ 
+-#include <video/exynos_dp.h>
 -
--static int twl4030_phy_power_on(struct phy *phy)
--{
--	struct twl4030_usb *twl = phy_get_drvdata(phy);
+ #include "exynos_dp_core.h"
+ #include "exynos_dp_reg.h"
+ 
+diff --git a/include/video/exynos_dp.h b/include/video/exynos_dp.h
+deleted file mode 100644
+index bd8cabd..0000000
+--- a/include/video/exynos_dp.h
++++ /dev/null
+@@ -1,131 +0,0 @@
+-/*
+- * Samsung SoC DP device support
+- *
+- * Copyright (C) 2012 Samsung Electronics Co., Ltd.
+- * Author: Jingoo Han <jg1.han@samsung.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
 -
--	twl4030_phy_resume(twl);
- 	return 0;
- }
- 
-@@ -604,9 +594,9 @@ static void twl4030_id_workaround_work(struct work_struct *work)
- 	}
- }
- 
--static int twl4030_usb_phy_init(struct usb_phy *phy)
-+static int twl4030_phy_init(struct phy *phy)
- {
--	struct twl4030_usb *twl = phy_to_twl(phy);
-+	struct twl4030_usb *twl = phy_get_drvdata(phy);
- 	enum omap_musb_vbus_id_status status;
- 
- 	/*
-@@ -621,32 +611,13 @@ static int twl4030_usb_phy_init(struct usb_phy *phy)
- 
- 	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID) {
- 		omap_musb_mailbox(twl->linkstat);
--		twl4030_phy_resume(twl);
-+		twl4030_phy_power_on(phy);
- 	}
- 
- 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
- 	return 0;
- }
- 
--static int twl4030_phy_init(struct phy *phy)
--{
--	struct twl4030_usb *twl = phy_get_drvdata(phy);
+-#ifndef _EXYNOS_DP_H
+-#define _EXYNOS_DP_H
 -
--	return twl4030_usb_phy_init(&twl->phy);
--}
+-#define DP_TIMEOUT_LOOP_COUNT 100
+-#define MAX_CR_LOOP 5
+-#define MAX_EQ_LOOP 5
 -
--static int twl4030_set_suspend(struct usb_phy *x, int suspend)
--{
--	struct twl4030_usb *twl = phy_to_twl(x);
+-enum link_rate_type {
+-	LINK_RATE_1_62GBPS = 0x06,
+-	LINK_RATE_2_70GBPS = 0x0a
+-};
 -
--	if (suspend)
--		twl4030_phy_suspend(twl, 1);
--	else
--		twl4030_phy_resume(twl);
+-enum link_lane_count_type {
+-	LANE_COUNT1 = 1,
+-	LANE_COUNT2 = 2,
+-	LANE_COUNT4 = 4
+-};
 -
--	return 0;
--}
+-enum link_training_state {
+-	START,
+-	CLOCK_RECOVERY,
+-	EQUALIZER_TRAINING,
+-	FINISHED,
+-	FAILED
+-};
 -
- static int twl4030_set_peripheral(struct usb_otg *otg,
- 					struct usb_gadget *gadget)
- {
-@@ -717,8 +688,6 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 	twl->phy.label		= "twl4030";
- 	twl->phy.otg		= otg;
- 	twl->phy.type		= USB_PHY_TYPE_USB2;
--	twl->phy.set_suspend	= twl4030_set_suspend;
--	twl->phy.init		= twl4030_usb_phy_init;
- 
- 	otg->phy		= &twl->phy;
- 	otg->set_host		= twl4030_set_host;
+-enum voltage_swing_level {
+-	VOLTAGE_LEVEL_0,
+-	VOLTAGE_LEVEL_1,
+-	VOLTAGE_LEVEL_2,
+-	VOLTAGE_LEVEL_3,
+-};
+-
+-enum pre_emphasis_level {
+-	PRE_EMPHASIS_LEVEL_0,
+-	PRE_EMPHASIS_LEVEL_1,
+-	PRE_EMPHASIS_LEVEL_2,
+-	PRE_EMPHASIS_LEVEL_3,
+-};
+-
+-enum pattern_set {
+-	PRBS7,
+-	D10_2,
+-	TRAINING_PTN1,
+-	TRAINING_PTN2,
+-	DP_NONE
+-};
+-
+-enum color_space {
+-	COLOR_RGB,
+-	COLOR_YCBCR422,
+-	COLOR_YCBCR444
+-};
+-
+-enum color_depth {
+-	COLOR_6,
+-	COLOR_8,
+-	COLOR_10,
+-	COLOR_12
+-};
+-
+-enum color_coefficient {
+-	COLOR_YCBCR601,
+-	COLOR_YCBCR709
+-};
+-
+-enum dynamic_range {
+-	VESA,
+-	CEA
+-};
+-
+-enum pll_status {
+-	PLL_UNLOCKED,
+-	PLL_LOCKED
+-};
+-
+-enum clock_recovery_m_value_type {
+-	CALCULATED_M,
+-	REGISTER_M
+-};
+-
+-enum video_timing_recognition_type {
+-	VIDEO_TIMING_FROM_CAPTURE,
+-	VIDEO_TIMING_FROM_REGISTER
+-};
+-
+-enum analog_power_block {
+-	AUX_BLOCK,
+-	CH0_BLOCK,
+-	CH1_BLOCK,
+-	CH2_BLOCK,
+-	CH3_BLOCK,
+-	ANALOG_TOTAL,
+-	POWER_ALL
+-};
+-
+-struct video_info {
+-	char *name;
+-
+-	bool h_sync_polarity;
+-	bool v_sync_polarity;
+-	bool interlaced;
+-
+-	enum color_space color_space;
+-	enum dynamic_range dynamic_range;
+-	enum color_coefficient ycbcr_coeff;
+-	enum color_depth color_depth;
+-
+-	enum link_rate_type link_rate;
+-	enum link_lane_count_type lane_count;
+-};
+-
+-struct exynos_dp_platdata {
+-	struct video_info *video_info;
+-
+-	void (*phy_init)(void);
+-	void (*phy_exit)(void);
+-};
+-
+-#endif /* _EXYNOS_DP_H */
 -- 
 1.7.10.4
