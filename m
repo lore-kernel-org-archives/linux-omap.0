@@ -1,73 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] drivers: Add pinctrl handling for dynamic pin
- states
-Date: Thu, 18 Jul 2013 00:50:06 -0700
-Message-ID: <20130718074508.GQ7656@atomide.com>
-References: <20130716090310.5541.36777.stgit@localhost>
- <20130716090539.5541.980.stgit@localhost>
- <51E70ADF.8090805@wwwdotorg.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 3/3] ARM: dts: omap4-sdp: add dynamic pin states for
+ uart3/4
+Date: Thu, 18 Jul 2013 01:09:53 -0700
+Message-ID: <20130718080953.GR7656@atomide.com>
+References: <1374061312-25469-1-git-send-email-grygorii.strashko@ti.com>
+ <1374061312-25469-4-git-send-email-grygorii.strashko@ti.com>
+ <20130717153248.GI7656@atomide.com> <51E6C939.40208@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43309 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752360Ab3GRHuM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jul 2013 03:50:12 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <51E70ADF.8090805@wwwdotorg.org>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <51E6C939.40208-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benoit Cousson <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: linus.walleij@linaro.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Stephen Warren <swarren@wwwdotorg.org> [130717 14:28]:
-> On 07/16/2013 03:05 AM, Tony Lindgren wrote:
-> > We want to have static pin states handled separately from
-> > dynamic pin states, so let's add optional state_active.
-> > 
-> > Then if state_active is defined, let's check and make sure
-> > state_idle and state_sleep match state_active for the
-> > pin groups to avoid checking them during runtime as the
-> > active and idle pins may need to be toggled for many
-> > devices every time we enter and exit idle.
+* Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [130717 09:48]:
+> Hi,
 > 
-> > +	 * Note that if active state is defined, sleep and idle states must
-> > +	 * cover the same pin groups as active state.
-> >  	 */
-> >  	dev->pins->sleep_state = pinctrl_lookup_state(dev->pins->p,
-> >  					PINCTRL_STATE_SLEEP);
-> > -	if (IS_ERR(dev->pins->sleep_state))
-> > +	if (IS_ERR(dev->pins->sleep_state)) {
-> >  		/* Not supplying this state is perfectly legal */
-> >  		dev_dbg(dev, "no sleep pinctrl state\n");
-> > +	} else if (!IS_ERR(dev->pins->active_state)) {
-> > +		ret = pinctrl_check_dynamic(dev, dev->pins->active_state,
-> > +					    dev->pins->sleep_state);
+> On 07/17/2013 06:32 PM, Tony Lindgren wrote:
+> >* Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [130717 04:49]:
+> >>Add dynamic "active"/"idle" pin states for uart3/4 which will be applied
+> >>when uart3/4 state is switched from active to idle and back by Runtime
+> >>PM or during system suspend.
+> >
+> >This is good for testing code, but should not be merged because
+> >omap4 has the iopad wake-ups available for uarts. So those can
+> >be always enabled.
 > 
-> Oh, I see you're trying to check that the set of pins in the active,
-> sleep, and idle states are identical.
+> In this case, 2 IRQ will be received per each UART RX event - one from
+> PRCM and from UART - and that's not good from PM perspective (It will
+> affect on CPUIdle and CPUFreq at least).
 
-Right, that's to avoid any further checking during runtime for runtime PM.
- 
-> But I think that pinctrl_check_dynamic() only checks that one state is a
-> subset of the other, not that the two states are equal. Instead, I think
-> you want to comparison coded in pinctrl_check_dynamic() to be:
+Oh I see, that's because I accidentally left the debug code enabled
+to make it easier to test the wake-up events without having to
+have working off-idle. The wake flags can be kept on always for
+sure.
 
-In pinctrl_check_dynamic() we check that the pins match between the
-states, and the number of found pins matches the first set. I'll
-take a look if we check the total pins between the two sets.
- 
-> gen_group_list_of_pinctrl_state(s1, array1);
-> gen_group_list_of_pinctrl_state(s2, array2);
-> mismatch = memcmp(array1, array2, length);
-
-Well we could allocate and sort the pins, but the number of pins
-for runtime PM is typically very small for each pin consumer device.
-Typically you just need to toggle RX pin to GPIO mode for idle. And
-this check is only done during consumer driver probe time. So
-optimizing it for larger sets could be done at any point later on
-as needed.
+The patch below should sort out the issue of getting wake-up interrupts
+during runtime as long as you don't have DEBUG defined.
 
 Regards,
 
 Tony
+
+--- a/drivers/pinctrl/pinctrl-single-omap.c
++++ b/drivers/pinctrl/pinctrl-single-omap.c
+@@ -140,9 +140,17 @@ static irqreturn_t pcs_omap_handle_irq(int irq, void *data)
+ 		if ((val & OMAP_WAKEUP_EVENT_MASK) == OMAP_WAKEUP_EVENT_MASK)
+ 			generic_handle_irq(wakeirq);
+ 	}
+-
++#ifdef DEBUG
++	/*
++	 * This enables wake-up interrupts during runtime also
++	 * causing duplicate interrupts. But it also makes debugging
++	 * the wake-up events easy as deeper idle states often are
++	 * not working for new devices while the drivers are being
++	 * developed.
++	 */
+ 	if (pcso->reconfigure_io_chain)
+ 		pcso->reconfigure_io_chain();
++#endif
+ 
+ 	return IRQ_HANDLED;
+ }
