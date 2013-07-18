@@ -1,71 +1,178 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 04/15] ARM: OMAP: USB: Add phy binding information
-Date: Thu, 18 Jul 2013 00:02:20 -0700
-Message-ID: <20130718070219.GM7656@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 05/15] ARM: dts: omap: update usb_otg_hs data
+Date: Thu, 18 Jul 2013 00:05:09 -0700
+Message-ID: <20130718070508.GN7656@atomide.com>
 References: <1374129984-765-1-git-send-email-kishon@ti.com>
- <1374129984-765-5-git-send-email-kishon@ti.com>
+ <1374129984-765-6-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1374129984-765-5-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+In-Reply-To: <1374129984-765-6-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: gregkh@linuxfoundation.org, kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, arnd@arndb.de, swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [130717 23:53]:
-> In order for controllers to get PHY in case of non dt boot, the phy
-> binding information (phy device name) should be added in the platform
-> data of the controller.
+* Kishon Vijay Abraham I <kishon@ti.com> [130717 23:53]:
+> Updated the usb_otg_hs dt data to include the *phy* and *phy-names*
+> binding in order for the driver to use the new generic PHY framework.
+> Also updated the Documentation to include the binding information.
+> The PHY binding information can be found at
+> Documentation/devicetree/bindings/phy/phy-bindings.txt
 > 
-> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-> Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+
+In general the .dts changes should be separate to avoid pointless
+merge conflicts. But sounds like things will stop working for
+USB unless we do it like this so:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
+
+
 > ---
->  arch/arm/mach-omap2/usb-musb.c |    3 +++
->  include/linux/usb/musb.h       |    3 +++
->  2 files changed, 6 insertions(+)
+>  Documentation/devicetree/bindings/usb/omap-usb.txt |    5 +++++
+>  Documentation/devicetree/bindings/usb/usb-phy.txt  |    6 ++++++
+>  arch/arm/boot/dts/omap3-beagle-xm.dts              |    2 ++
+>  arch/arm/boot/dts/omap3-evm.dts                    |    2 ++
+>  arch/arm/boot/dts/omap3-overo.dtsi                 |    2 ++
+>  arch/arm/boot/dts/omap4.dtsi                       |    3 +++
+>  arch/arm/boot/dts/twl4030.dtsi                     |    1 +
+>  7 files changed, 21 insertions(+)
 > 
-> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-> index 8c4de27..6aa7cbf 100644
-> --- a/arch/arm/mach-omap2/usb-musb.c
-> +++ b/arch/arm/mach-omap2/usb-musb.c
-> @@ -85,6 +85,9 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
->  	musb_plat.mode = board_data->mode;
->  	musb_plat.extvbus = board_data->extvbus;
+> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
+> index 57e71f6..825790d 100644
+> --- a/Documentation/devicetree/bindings/usb/omap-usb.txt
+> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
+> @@ -19,6 +19,9 @@ OMAP MUSB GLUE
+>   - power : Should be "50". This signifies the controller can supply up to
+>     100mA when operating in host mode.
+>   - usb-phy : the phandle for the PHY device
+> + - phys : the phandle for the PHY device (used by generic PHY framework)
+> + - phy-names : the names of the PHY corresponding to the PHYs present in the
+> +   *phy* phandle.
 >  
-> +	if (cpu_is_omap34xx())
-> +		musb_plat.phy_label = "twl4030";
-> +
->  	if (soc_is_am35xx()) {
->  		oh_name = "am35x_otg_hs";
->  		name = "musb-am35x";
-
-I don't think there's a USB PHY on non-twl4030 chips, so this should
-be OK:
-
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-
-
-> diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
-> index 053c268..596f8c8 100644
-> --- a/include/linux/usb/musb.h
-> +++ b/include/linux/usb/musb.h
-> @@ -104,6 +104,9 @@ struct musb_hdrc_platform_data {
->  	/* for clk_get() */
->  	const char	*clock;
+>  Optional properties:
+>   - ctrl-module : phandle of the control module this glue uses to write to
+> @@ -33,6 +36,8 @@ usb_otg_hs: usb_otg_hs@4a0ab000 {
+>  	num-eps = <16>;
+>  	ram-bits = <12>;
+>  	ctrl-module = <&omap_control_usb>;
+> +	phys = <&usb2_phy>;
+> +	phy-names = "usb2-phy";
+>  };
 >  
-> +	/* phy label */
-> +	const char	*phy_label;
-> +
->  	/* (HOST or OTG) switch VBUS on/off */
->  	int		(*set_vbus)(struct device *dev, int is_on);
+>  Board specific device node entry
+> diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Documentation/devicetree/bindings/usb/usb-phy.txt
+> index 61496f5..c0245c8 100644
+> --- a/Documentation/devicetree/bindings/usb/usb-phy.txt
+> +++ b/Documentation/devicetree/bindings/usb/usb-phy.txt
+> @@ -5,6 +5,8 @@ OMAP USB2 PHY
+>  Required properties:
+>   - compatible: Should be "ti,omap-usb2"
+>   - reg : Address and length of the register set for the device.
+> + - #phy-cells: determine the number of cells that should be given in the
+> +   phandle while referencing this phy.
 >  
+>  Optional properties:
+>   - ctrl-module : phandle of the control module used by PHY driver to power on
+> @@ -16,6 +18,7 @@ usb2phy@4a0ad080 {
+>  	compatible = "ti,omap-usb2";
+>  	reg = <0x4a0ad080 0x58>;
+>  	ctrl-module = <&omap_control_usb>;
+> +	#phy-cells = <0>;
+>  };
+>  
+>  OMAP USB3 PHY
+> @@ -25,6 +28,8 @@ Required properties:
+>   - reg : Address and length of the register set for the device.
+>   - reg-names: The names of the register addresses corresponding to the registers
+>     filled in "reg".
+> + - #phy-cells: determine the number of cells that should be given in the
+> +   phandle while referencing this phy.
+>  
+>  Optional properties:
+>   - ctrl-module : phandle of the control module used by PHY driver to power on
+> @@ -39,4 +44,5 @@ usb3phy@4a084400 {
+>  	      <0x4a084c00 0x40>;
+>  	reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+>  	ctrl-module = <&omap_control_usb>;
+> +	#phy-cells = <0>;
+>  };
+> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
+> index afdb164..533b2da 100644
+> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
+> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+> @@ -144,6 +144,8 @@
+>  &usb_otg_hs {
+>  	interface-type = <0>;
+>  	usb-phy = <&usb2_phy>;
+> +	phys = <&usb2_phy>;
+> +	phy-names = "usb2-phy";
+>  	mode = <3>;
+>  	power = <50>;
+>  };
+> diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
+> index 7d4329d..4134dd0 100644
+> --- a/arch/arm/boot/dts/omap3-evm.dts
+> +++ b/arch/arm/boot/dts/omap3-evm.dts
+> @@ -70,6 +70,8 @@
+>  &usb_otg_hs {
+>  	interface-type = <0>;
+>  	usb-phy = <&usb2_phy>;
+> +	phys = <&usb2_phy>;
+> +	phy-names = "usb2-phy";
+>  	mode = <3>;
+>  	power = <50>;
+>  };
+> diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
+> index 8f1abec..a461d2f 100644
+> --- a/arch/arm/boot/dts/omap3-overo.dtsi
+> +++ b/arch/arm/boot/dts/omap3-overo.dtsi
+> @@ -76,6 +76,8 @@
+>  &usb_otg_hs {
+>  	interface-type = <0>;
+>  	usb-phy = <&usb2_phy>;
+> +	phys = <&usb2_phy>;
+> +	phy-names = "usb2-phy";
+>  	mode = <3>;
+>  	power = <50>;
+>  };
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index 22d9f2b..1e8e2fe 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -520,6 +520,7 @@
+>  				compatible = "ti,omap-usb2";
+>  				reg = <0x4a0ad080 0x58>;
+>  				ctrl-module = <&omap_control_usb>;
+> +				#phy-cells = <0>;
+>  			};
+>  		};
+>  
+> @@ -658,6 +659,8 @@
+>  			interrupt-names = "mc", "dma";
+>  			ti,hwmods = "usb_otg_hs";
+>  			usb-phy = <&usb2_phy>;
+> +			phys = <&usb2_phy>;
+> +			phy-names = "usb2-phy";
+>  			multipoint = <1>;
+>  			num-eps = <16>;
+>  			ram-bits = <12>;
+> diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
+> index b3034da..ce4cd6f 100644
+> --- a/arch/arm/boot/dts/twl4030.dtsi
+> +++ b/arch/arm/boot/dts/twl4030.dtsi
+> @@ -80,6 +80,7 @@
+>  		usb1v8-supply = <&vusb1v8>;
+>  		usb3v1-supply = <&vusb3v1>;
+>  		usb_mode = <1>;
+> +		#phy-cells = <0>;
+>  	};
+>  
+>  	twl_pwm: pwm {
 > -- 
 > 1.7.10.4
 > 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
