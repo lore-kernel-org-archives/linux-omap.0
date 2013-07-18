@@ -1,131 +1,96 @@
-From: Mark Brown <broonie@kernel.org>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCHv4 2/3] drivers: spi: Add qspi flash controller
-Date: Thu, 18 Jul 2013 14:18:22 +0100
-Message-ID: <20130718131822.GN22506@sirena.org.uk>
+Date: Thu, 18 Jul 2013 16:31:58 +0300
+Message-ID: <20130718133158.GA1628@arwen.pp.htv.fi>
 References: <1374141687-10790-1-git-send-email-sourav.poddar@ti.com>
  <1374141687-10790-3-git-send-email-sourav.poddar@ti.com>
  <20130718104233.GG22506@sirena.org.uk>
  <51E7D569.2010709@ti.com>
+ <20130718131822.GN22506@sirena.org.uk>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MUgosN8HgFyWu2R6"
+	protocol="application/pgp-signature"; boundary="RnlQjJ0d97Da+TV1"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <51E7D569.2010709@ti.com>
+In-Reply-To: <20130718131822.GN22506@sirena.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Sourav Poddar <sourav.poddar@ti.com>, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
---MUgosN8HgFyWu2R6
+--RnlQjJ0d97Da+TV1
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jul 18, 2013 at 05:15:45PM +0530, Sourav Poddar wrote:
-> On Thursday 18 July 2013 04:12 PM, Mark Brown wrote:
+Hi,
 
-> >>+	list_for_each_entry(t,&m->transfers, transfer_list) {
-> >>+		qspi->cmd |=3D QSPI_WLEN(t->bits_per_word);
-> >>+		qspi->cmd |=3D QSPI_WC_CMD_INT_EN;
-> >>+
-> >>+		ret =3D qspi_transfer_msg(qspi, t);
-> >>+		if (ret) {
-> >>+			dev_dbg(qspi->dev, "transfer message failed\n");
-> >>+			return -EINVAL;
-> >>+		}
-> >>+
-> >>+		m->actual_length +=3D t->len;
-> >>+
-> >>+		if (list_is_last(&t->transfer_list,&m->transfers))
-> >>+			goto out;
-> >>+	}
-> >The use of list_is_last() here is *realy* strange - what's going on
-> >there?
-
-> We are checking if there is any transfer left, if no we are signalling the
-> flash device about the end of transfer.
-
-Please be more specific.  How will you ever reach the end of the
-transfer list in a way which wouldn't cause the for loop to terminate?
-
-> >>+static irqreturn_t ti_qspi_isr(int irq, void *dev_id)
-> >>+{
-> >>+	struct ti_qspi *qspi =3D dev_id;
-> >>+	u16 mask, stat;
-> >>+
-> >>+	irqreturn_t ret =3D IRQ_HANDLED;
-> >>+
-> >>+	spin_lock(&qspi->lock);
-> >>+
-> >>+	stat =3D ti_qspi_readl(qspi, QSPI_SPI_STATUS_REG);
-> >>+	mask =3D ti_qspi_readl(qspi, QSPI_INTR_ENABLE_SET_REG);
-> >>+
-> >>+	if (stat&&  mask)
-> >>+		ret =3D IRQ_WAKE_THREAD;
-> >>+
-> >>+	spin_unlock(&qspi->lock);
-> >>+
-> >>+	return ret;
-
-> >According to the above code we might interrupt for masked events...
-> >that's a bit worrying isn't it?
-
-> Yes, there is WC interrupt enable bit which enables the interrupt.
-> This interrupt
-> gets disabled by writing to the CLEAR reg in the threaded irq.
-
-So why do we report that we handled the interrupt then?  Shouldn't we at
-least warn if we're getting spurious IRQs?
-
-> >>+	ret =3D devm_request_threaded_irq(&pdev->dev, irq, ti_qspi_isr,
-> >>+			ti_qspi_threaded_isr, IRQF_NO_SUSPEND | IRQF_ONESHOT,
-> >>+			dev_name(&pdev->dev), qspi);
-> >>+	if (ret<  0) {
-> >>+		dev_err(&pdev->dev, "Failed to register ISR for IRQ %d\n",
-> >>+				irq);
-> >>+		goto free_master;
-> >>+	}
-> >Standard question about devm_request_threaded_irq() - how can we be
-> >certain it's safe to use during removal?
-> I am not sure about the exact flow. If we see the api description,
-> it says about irq getting
-> freed automatically.
-> Practically, I will check that on removing the driver, cat
-> /proc/interrupts  should not show
-> the required interrupt getting registered.
-> Though, I see an api also existing "devm_free_irq", which explicitly
-> un allocate your irq requested
-> through devm_* variants.
-
-You're missing the point here - how can you be sure that the interrupt
-can't fire?
-
+On Thu, Jul 18, 2013 at 02:18:22PM +0100, Mark Brown wrote:
+> > >>+static irqreturn_t ti_qspi_isr(int irq, void *dev_id)
+> > >>+{
+> > >>+	struct ti_qspi *qspi =3D dev_id;
+> > >>+	u16 mask, stat;
+> > >>+
+> > >>+	irqreturn_t ret =3D IRQ_HANDLED;
+> > >>+
+> > >>+	spin_lock(&qspi->lock);
+> > >>+
+> > >>+	stat =3D ti_qspi_readl(qspi, QSPI_SPI_STATUS_REG);
+> > >>+	mask =3D ti_qspi_readl(qspi, QSPI_INTR_ENABLE_SET_REG);
+> > >>+
+> > >>+	if (stat&&  mask)
+> > >>+		ret =3D IRQ_WAKE_THREAD;
+> > >>+
+> > >>+	spin_unlock(&qspi->lock);
+> > >>+
+> > >>+	return ret;
 >=20
+> > >According to the above code we might interrupt for masked events...
+> > >that's a bit worrying isn't it?
 >=20
+> > Yes, there is WC interrupt enable bit which enables the interrupt.
+> > This interrupt
+> > gets disabled by writing to the CLEAR reg in the threaded irq.
 >=20
+> So why do we report that we handled the interrupt then?  Shouldn't we at
+> least warn if we're getting spurious IRQs?
 
---MUgosN8HgFyWu2R6
+not spurious. OMAP has two sets of IRQ status registers. One is call
+IRQSTATUS$n (n =3D 0, 1, ...) and IRQSTATUS_RAW$n.
+
+IRQSTATUS$n will only enable the bits which fired IRQs and aren't
+masked while IRQSTATUS_RAW$n will also enable the bits which are masked.
+I could never come up with a use case where we would need to handle IRQs
+which we decided to mask, but perhaps there might be some cases, I don't
+know.
+
+Based on that, I believe Sourav is reading IRQSTATUS_RAW$n, then he need
+to clear the masked bits.
+
+--=20
+balbi
+
+--RnlQjJ0d97Da+TV1
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJR5+saAAoJELSic+t+oim9ahIP/RiffQsGKM+PGMJD/A0lZUYT
-njhqFLlCCDn9KdVEECzS+27d8kpnMFu+dsxndZDcZy8/LbA4gZbN7lNw9caTkAI2
-ZUcJ2WDY7JZkputNFQRtJAbeq7JtztkM8obgsnOQiBBjfshCpbyZUlLAhbeuVUqb
-udFgKmf0UdO2dg4F16OF1dkuctsBG777LqYKDESmyIBYc0LNjQTV36yiUuZsFtkt
-yCw/aQOIJUBnU6yrtRz6GTvANDgp5vCdUTYoNWCYk7kkCgvHmkXxS31HyVjAWgLK
-/OfRNAOxyWLwSwNcxbj0JENR+3z9o5sjvDmPVfAKFire07SGiIqyURmHcgz6LoCX
-f2WpO3ksyEo/FOgHc4tAiMBfpufymHIOZk9tkMsrG9kQtvKsx3kc39oeTYu50dQL
-VG1s6Aqol1o5bzmkB6GfOwHLhixUWD/jg/LrZPzMAKtvhiOUk9FUUrlGT3Vk8nf6
-j/F62ALiIVdzLqASJvsBLZoCalU5SsD/UHf1FN0lEAbqW0ihWSCcDO9caCrqb6Rl
-t/bveviWERGucikFYjPb4JScV74SqesSGELlVkecleOg5JbNEHyhOym+vhZEReFo
-EBO6CkYzNkgkiNRbHgE1ejMgUGc1+VXTVEsz10PwKw24rzrCtqlWa/MEv5lBOOtO
-GCkTB44I2HRxMH3h+XNt
-=TYyn
+iQIcBAEBAgAGBQJR5+5OAAoJEIaOsuA1yqREC3oP/1JMFGVDgtocw9+tkQ8PjAJK
+8FTZepYulE+n4xdK9DOzlpOTG86NeRj/yKDbnCc08sUlbl98atbbo2XYtcA0R5eJ
+U9LtlCDetFODqW9MYAglJ0i9whzjMfnY8ieVqOpih3zvvrkoVZi6kER00TtoTj6E
+sAYRUJSEpwy+V7NV0WxC+y+mYTTxmzsj8SAY8UFSyCfQm5hlTmmBPrLz80f/U7TT
+vT+lEIHF1FJd2TRwtWvmWYBimrNWsHgs5eUEifRS2YEL6sR0p/tvZJ+5ZOzUAC78
+RuF1Bv7EN4398+dVC2ghwoWbj1KJI0TcstBO7URnBdVEo4zbXmSpMhZ9yulRbeRI
+yEhKx/69HtiNCv8gxNE+7aX6mVhsOkVJdPTqxp9Whs95hjfHseTF9QTsNTSIzqd4
+3Jj9NXzH5LP75SOF915WpBToXJ457QJYhTRcA7cqNnIG/s/IjXPTt0Nl4jljDbJ0
+WD1D4zb9kyemOUWtgbygzSdvYIB+WbSzrzw6WJh2GpPLg8DTNQlsRE39L5oGXVDF
+881hL84IWdPV44ZRBUdb8DO9FX512GJXwb8NjB1obDt+ki8HeGaNHBLSGzCrUnIY
+W4pJ9Tw8V8cjhsVo+7vEgl7g5NXE1V5fzUOWWfGpAwJBlkRHUQcy4wbWuVirSOAP
+89k2MZ57pC2lKObviv7S
+=zaXD
 -----END PGP SIGNATURE-----
 
---MUgosN8HgFyWu2R6--
+--RnlQjJ0d97Da+TV1--
