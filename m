@@ -1,62 +1,55 @@
-From: Mark Brown <broonie@kernel.org>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 Subject: Re: [PATCHv4 2/3] drivers: spi: Add qspi flash controller
-Date: Thu, 18 Jul 2013 21:39:34 +0100
-Message-ID: <20130718203934.GT22506@sirena.org.uk>
+Date: Thu, 18 Jul 2013 15:59:59 -0500
+Message-ID: <51E8574F.3000905@ti.com>
 References: <1374141687-10790-1-git-send-email-sourav.poddar@ti.com>
- <1374141687-10790-3-git-send-email-sourav.poddar@ti.com>
- <CA+7tXij7W_F0ZTQZ=YvK+qOLO+O-6WpTKxLerv8NXyrdydt7FA@mail.gmail.com>
+	<1374141687-10790-3-git-send-email-sourav.poddar@ti.com>
+	<CA+7tXij7W_F0ZTQZ=YvK+qOLO+O-6WpTKxLerv8NXyrdydt7FA@mail.gmail.com>
+	<20130718203934.GT22506@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HjItbSCiIUf1YjO/"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:40855 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933196Ab3GRUjq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jul 2013 16:39:46 -0400
-Content-Disposition: inline
-In-Reply-To: <CA+7tXij7W_F0ZTQZ=YvK+qOLO+O-6WpTKxLerv8NXyrdydt7FA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20130718203934.GT22506-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, Trent Piepho <tpiepho-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Trent Piepho <tpiepho@gmail.com>
-Cc: Sourav Poddar <sourav.poddar@ti.com>, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, linux-omap@vger.kernel.org, rnayak@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com
+
+On 07/18/2013 03:39 PM, Mark Brown wrote:
+> On Thu, Jul 18, 2013 at 12:08:30PM -0700, Trent Piepho wrote:
+>> On Thu, Jul 18, 2013 at 3:01 AM, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org> wrote:
+>
+>>> +- ti,hwmods: Name of the hwmod associated to the QSPI
+>
+>> What is ti,hwmods?  It's not clear from the description.  It also
+>> doesn't appear to be used in the driver.  At least, I did not find any
+>> occurrence of "hwmods" in the driver code.
+>
+> It's a generic thing for all OMAPs which is handled by the core SoC
+> support transparently on TI chips.
+>
+Here are some ancient documentation for the same (pre-device tree) world[1]
+bindings documentation is available: 
+Documentation/devicetree/bindings/arm/omap/omap.txt
 
 
---HjItbSCiIUf1YjO/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+[1] http://omapedia.org/wiki/HWMOD
 
-On Thu, Jul 18, 2013 at 12:08:30PM -0700, Trent Piepho wrote:
-> On Thu, Jul 18, 2013 at 3:01 AM, Sourav Poddar <sourav.poddar@ti.com> wrote:
+-- 
+Regards,
+Nishanth Menon
 
-> > +- ti,hwmods: Name of the hwmod associated to the QSPI
-
-> What is ti,hwmods?  It's not clear from the description.  It also
-> doesn't appear to be used in the driver.  At least, I did not find any
-> occurrence of "hwmods" in the driver code.
-
-It's a generic thing for all OMAPs which is handled by the core SoC
-support transparently on TI chips.
-
---HjItbSCiIUf1YjO/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR6FKDAAoJELSic+t+oim9GN8P/RWnj01XQmNXFQzqipgyVrP7
-LmVdQBBwRHaIlsY/6qqK2Nd0DzKbcUrJVZE2T6RYwT7cfgffOiSx2yj7ac9Sb6wt
-4rUzqjBcjWlf5nEeeAgfwzybIq610dHNMTzegiua8WlNEO1y4ecK/OCUBO8wWf4J
-oSgZIpiass68E0mMqRUmbUHqwTduNYJU4jMBhS1uH0RNXs9nQJwVge5KLL0C43U+
-xZHrJIRy6YJm38KZDStUuhU87ojaVEbXMySG8S3bLEnH90KvU3i4xWPhe+4Fba1/
-09cKL00sz+mleydmJbq4iSVpXnTB702ehG40TUQ6e7umI9DODFPHHdjiWBbfG+aM
-ezdMc8oBmi+s8Ht2nAY+DZwVkLpeM/QEXjrm2VPbSTfoXbhAWRvDOm3bHqwVYc25
-DENL0gczBMSIe5uzvrG7I7W35TqlFN7/Mcz2cDyhAWGnu4WiJnK8eKd9sbur6XBX
-wbOvYUncGt/gZo98rkJ80Lu78Q8YrnFSpUChJfjije93Sbw+laBajW/WQHXBCeTx
-c93PLi/PrzkNbwgRgzPD5YeyyrfscTwuwpXTflEiJvCI779KXKG2MYEZTNsZbiIy
-e5uTpL5KnVvPuUvUiEOVnCMgjOBm3O4KtVGLa9fWaHxKJhrJufDWF5irvaZRz/G3
-9MnWtc1VJyYMOTbE08mK
-=CjTo
------END PGP SIGNATURE-----
-
---HjItbSCiIUf1YjO/--
+------------------------------------------------------------------------------
+See everything from the browser to the database with AppDynamics
+Get end-to-end visibility with application monitoring from AppDynamics
+Isolate bottlenecks and diagnose root cause in seconds.
+Start your free trial of AppDynamics Pro today!
+http://pubads.g.doubleclick.net/gampad/clk?id=48808831&iu=/4140/ostg.clktrk
