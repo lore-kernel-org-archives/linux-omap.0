@@ -1,57 +1,62 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH 3/4] pinctrl: Add support for additional dynamic states
-Date: Thu, 18 Jul 2013 13:26:56 -0600
-Message-ID: <51E84180.6080902@wwwdotorg.org>
-References: <20130716090310.5541.36777.stgit@localhost> <20130716090536.5541.36289.stgit@localhost> <51E70B5D.6030802@wwwdotorg.org> <20130718073638.GP7656@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCHv4 2/3] drivers: spi: Add qspi flash controller
+Date: Thu, 18 Jul 2013 21:39:34 +0100
+Message-ID: <20130718203934.GT22506@sirena.org.uk>
+References: <1374141687-10790-1-git-send-email-sourav.poddar@ti.com>
+ <1374141687-10790-3-git-send-email-sourav.poddar@ti.com>
+ <CA+7tXij7W_F0ZTQZ=YvK+qOLO+O-6WpTKxLerv8NXyrdydt7FA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130718073638.GP7656@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linus.walleij@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HjItbSCiIUf1YjO/"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:40855 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933196Ab3GRUjq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jul 2013 16:39:46 -0400
+Content-Disposition: inline
+In-Reply-To: <CA+7tXij7W_F0ZTQZ=YvK+qOLO+O-6WpTKxLerv8NXyrdydt7FA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Trent Piepho <tpiepho@gmail.com>
+Cc: Sourav Poddar <sourav.poddar@ti.com>, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, linux-omap@vger.kernel.org, rnayak@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com
 
-On 07/18/2013 01:36 AM, Tony Lindgren wrote:
-> * Stephen Warren <swarren@wwwdotorg.org> [130717 14:30]:
->> On 07/16/2013 03:05 AM, Tony Lindgren wrote:
-...
->> Why shouldn't e.g. a pinctrl-based I2C mux also be able to do runtime
->> PM? Does the mux setting select which states are used for runtime PM, or
->> does runtime PM override the basic mux setting, or must the pincrl-I2C
->> mux manually implement custom runtime-PM/pinctrl interaction since
->> there's no generic answer to those questions? How many more custom
->> exceptions will there be?
-> 
-> The idea is that runtime PM will never touch the basic mux settings
-> at all. The "default" state should be considered a static state
-> that is claimed during driver probe, and released when the driver
-> is unloaded. This is typically let's say 90% of the pins for any
-> device.
-> 
-> For runtime PM, we can just toggle the PM related pinctrl states as
-> they have been verified to match the active state during init.
-> 
-> So I don't see why pinctrl-I2C would have to do anything specific.
-> All that is required is that the pins are grouped for the consumer
-> driver, and we can provide some automated checks on the states for
-> runtime PM.
 
-So, consider a pinctrl-based I2C mux. It has 2 states to cover two I2C
-buses:
+--HjItbSCiIUf1YjO/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-a) bus 1: I2C controller is muxed out onto one set of pins.
+On Thu, Jul 18, 2013 at 12:08:30PM -0700, Trent Piepho wrote:
+> On Thu, Jul 18, 2013 at 3:01 AM, Sourav Poddar <sourav.poddar@ti.com> wrote:
 
-b) bus 2: I2C controller is muxed out onto another set of pins.
+> > +- ti,hwmods: Name of the hwmod associated to the QSPI
 
-Now, the system could go idle in either of those 2 states, and then
-later need to return to one of those states. I just don't see how that
-would work, since the runtime PM code in this series switches to *an*
-active state when the device becomes non-idle. If the definition of the
-idle state switches the mux function for both sets of pins to some
-idle/quiescent value, then you'd need to do different reprogramming when
-going back to "the" active state; I guess the system would need to
-remember which state was active before switching to idle, then switch
-back to that same state rather than hard-coding the active state name as
-"active"...
+> What is ti,hwmods?  It's not clear from the description.  It also
+> doesn't appear to be used in the driver.  At least, I did not find any
+> occurrence of "hwmods" in the driver code.
+
+It's a generic thing for all OMAPs which is handled by the core SoC
+support transparently on TI chips.
+
+--HjItbSCiIUf1YjO/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR6FKDAAoJELSic+t+oim9GN8P/RWnj01XQmNXFQzqipgyVrP7
+LmVdQBBwRHaIlsY/6qqK2Nd0DzKbcUrJVZE2T6RYwT7cfgffOiSx2yj7ac9Sb6wt
+4rUzqjBcjWlf5nEeeAgfwzybIq610dHNMTzegiua8WlNEO1y4ecK/OCUBO8wWf4J
+oSgZIpiass68E0mMqRUmbUHqwTduNYJU4jMBhS1uH0RNXs9nQJwVge5KLL0C43U+
+xZHrJIRy6YJm38KZDStUuhU87ojaVEbXMySG8S3bLEnH90KvU3i4xWPhe+4Fba1/
+09cKL00sz+mleydmJbq4iSVpXnTB702ehG40TUQ6e7umI9DODFPHHdjiWBbfG+aM
+ezdMc8oBmi+s8Ht2nAY+DZwVkLpeM/QEXjrm2VPbSTfoXbhAWRvDOm3bHqwVYc25
+DENL0gczBMSIe5uzvrG7I7W35TqlFN7/Mcz2cDyhAWGnu4WiJnK8eKd9sbur6XBX
+wbOvYUncGt/gZo98rkJ80Lu78Q8YrnFSpUChJfjije93Sbw+laBajW/WQHXBCeTx
+c93PLi/PrzkNbwgRgzPD5YeyyrfscTwuwpXTflEiJvCI779KXKG2MYEZTNsZbiIy
+e5uTpL5KnVvPuUvUiEOVnCMgjOBm3O4KtVGLa9fWaHxKJhrJufDWF5irvaZRz/G3
+9MnWtc1VJyYMOTbE08mK
+=CjTo
+-----END PGP SIGNATURE-----
+
+--HjItbSCiIUf1YjO/--
