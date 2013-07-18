@@ -1,29 +1,28 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Nishanth Menon <nm@ti.com>
 Subject: Re: [PATCH 1/3] misc: Add crossbar driver
-Date: Thu, 18 Jul 2013 21:25:04 +0300
-Message-ID: <20130718182504.GA7497@arwen.pp.htv.fi>
+Date: Thu, 18 Jul 2013 13:56:15 -0500
+Message-ID: <51E83A4F.5080904@ti.com>
 References: <1374165830-6367-1-git-send-email-r.sricharan@ti.com>
  <1374165830-6367-2-git-send-email-r.sricharan@ti.com>
-Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oyUTqETQ0mS9luUI"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1374165830-6367-2-git-send-email-r.sricharan@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Sricharan R <r.sricharan@ti.com>
-Cc: linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, nm@ti.com, rnayak@ti.com, balbi@ti.com
+Cc: linux@arm.linux.org.uk, linux-doc@vger.kernel.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---oyUTqETQ0mS9luUI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Thu, Jul 18, 2013 at 10:13:48PM +0530, Sricharan R wrote:
+On 07/18/2013 11:43 AM, Sricharan R wrote:
 > Some socs have a large number of interrupts/dma requests to service
 > the needs of its many peripherals and subsystems. All of the
 > requests lines from the subsystems are not needed at the same
@@ -31,49 +30,113 @@ On Thu, Jul 18, 2013 at 10:13:48PM +0530, Sricharan R wrote:
 > In such places a interrupt/dma controllers are preceded by an
 > IRQ/DMA CROSSBAR that provides flexibility in muxing the device
 > requests to the controller inputs.
->=20
+>
 > The Peripheral irq/dma requests are connected to one crossbar's input
 > and the output of the crossbar is connected to controller's input
 > line. On POR, there are some mappings which are done by default.
 > Those peripherals which do not have a mapping on POR, should be configured
 > to route its requests using the crossbar.
->=20
+>
 > The drivers identifies every controller's crossbar as individual devices.
-> The mappings can be specified from the DT crossbar nodes and those gets m=
-apped
-> during the crossbar device's probe. The mappings can also be specified by=
- adding
+> The mappings can be specified from the DT crossbar nodes and those gets mapped
+> during the crossbar device's probe. The mappings can also be specified by adding
 > the crossbar lines to the peripheral device nodes and map it with
 > crossbar_map/unmap apis.
->=20
+>
 > Signed-off-by: Sricharan R <r.sricharan@ti.com>
+> ---
+>   .../devicetree/bindings/arm/omap/crossbar.txt      |   24 ++
+>   drivers/misc/Kconfig                               |    8 +
+>   drivers/misc/Makefile                              |    1 +
+>   drivers/misc/crossbar.c                            |  258 ++++++++++++++++++++
+>   include/linux/crossbar.h                           |   71 ++++++
+>   5 files changed, 362 insertions(+)
+>   create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
+>   create mode 100644 drivers/misc/crossbar.c
+>   create mode 100644 include/linux/crossbar.h
+>
+> diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+> new file mode 100644
+> index 0000000..02a8a28
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+> @@ -0,0 +1,24 @@
+> +* TI - IRQ/DMA Crossbar
+> +
+> +This version is an implementation of the Crossbar IRQ/DMA IP
+> +
+> +Required properties:
+> +- compatible : Should be "ti,dra-crossbar"
+> +- crossbar-name: Name of the controller to which crossbar output is routed
+> +- reg:	Contains crossbar register address range
+> +- reg-width: Represents the width of the individual registers
+> +- crossbar-lines:  Default mappings.Should contain the crossbar-name
+> +		   device name, int/dma request number, crossbar number,
+> +		   register offset in the same order.
+> +
+> +Examples:
+> +		crossbar_mpu: mpuirq@4a002a48 {
+> +			compatible = "crossbar";
+> +			crossbar-name = "mpu-irq";
+> +			reg = <0x4a002a48 0x0130>;
+> +			reg-width = <16>;
+> +			crossbar-lines = "mpu-irq", "rtc-ss-alarm", <0x9f 0xd9 0x12c>,
+> +					 "mpu-irq", "mcasp3-arevt", <0x9e 0x96 0x12a>,
+> +					 "mpu-irq", "mcasp3-axevt", <0x9d 0x97 0x128>;
+> +		};
 
-why isn't this done under pinctrl ? If all it does is mux DMA and IRQ
-request lines, it should be written as a pinctrl driver no ?
+I carry forward my TI internal objection to this approach:
 
---=20
-balbi
+NAK.
 
---oyUTqETQ0mS9luUI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+DRA7 uses a cross bar to map a line to GIC interrupt. Flow of interrupt 
+is as follows:
+hardware IP block -interrupt line-> IRQ Cross bar -> GIC IRQ line --> 
+MPU IRQ.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJR6DMAAAoJEIaOsuA1yqREgo8P/0I6lAle/+b+V/gKoAi+ZUWF
-NjNF5+d52UZEEReo7aLygZIqiuOT7ujEFRzCELyO6CGcnrpudep1d9swGIbGkst+
-L3epIt5GC1ZG1ohaSBo9fksJUlhsBhAOeXPnGYRFTw+mgSo9Y+lNpekCHQwVydRy
-DLY12zYQlbFxVL9eur0p60AWi90NeyzgiCVoS/AJkT7r6tMFJXYJoiCjwqF0P/04
-z2ek/HdVeJJpLJv8zW7i9xrlsSqtQwa+FauxHzlXAmkQ7SuTUbApDM431JaT/7fZ
-rzTnM/HVix1nW+fL/WQssTn5VJbtBgPb3eud353rvLPZthJJvi0mDuUbH7N0l9VJ
-JE/H1Ow0hSz4Ea5hoxXlWqMBL5rzLx4MgGB8d/5zvEYUUM6cHcJpYM2urM2LYgId
-HY4nvPuCwzVyb5q1ejMowyOb3YM3THB/ZSDvOXIl7lr7gJIeusqmdQLm2yhilexd
-7cLY4DjzRntI0SF1JK+bEjjm8klK4x31neGHRtO+LzE4c3zUD1vr1+Fnlbz88JYK
-Txdc3O5df9ULkX6VaXCMKUdOofRfb7cKx9bi99uuw8Nrd7+aAQ7zRfxDMTLZl9JQ
-qX5mfCX31Dusf3wCb+xg/kU8i/B4gsd/gPdCe1PzJvtl3dGW9rMEm2YNMA39xV5E
-kra5dfRkS/94XqjP1fxO
-=NZ5K
------END PGP SIGNATURE-----
+What we have done today for DRA is to provide IRQ numbers as direct maps 
+from hardware IP block to GIC based on default IRQ cross bar mapping.
 
---oyUTqETQ0mS9luUI--
+Lets see what happens as a result of this:
+
+https://patchwork.kernel.org/patch/2825148/ (introducing DTS for DRA7)
+uart1 to uart6 is defined. while in fact 10 uarts exist on IP block.
+uart1: serial@4806a000 {
+<snip>
++			interrupts = <0 72 0x4>;
+Assumes that GIC interrupt by default mapping used.
+
+Now, think of a product that wants to use UART10 instead of UART1, SoC 
+design allows you do that by doing a remapping of GIC interrupt to 
+UART10 - which is awesome.
+
+Option 1: u-boot/bootloader
+mw.l IRQ_CROSSBAR_address with value to map uart10 to GIC IRQ for UART1,
+
+Option 2: in kernel do a raw_writel version of option 1.
+This patch does option 1 in kernel in a "fancy way" - why the heck would 
+I want to do that when u-boot allows me to do the same thing in uEnv.txt
+
+Option 3: map GIC interrupt to IRQ CROSS bar dynamically.
+a) Allows us to define every single IP available on DRA7 SoC.
+b) GIC allocation happens dynamically
+c) allow products use IPs as needed.
+
+Sorry, Conceptually option 3 is the right approach in my view.
+instead of doing
+uart1: serial@4806a000 {
+<snip>
++			interrupts = <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
+
+we should be able to do the following:
+uart1: serial@4806a000 {
+<snip>
++			interrupts = <TI_IRQ_CROSSBAR 192 IRQ_TYPE_LEVEL_HIGH>;
+
+and not worry about the GIC interrupt number used
+
+
+-- 
+Regards,
+Nishanth Menon
