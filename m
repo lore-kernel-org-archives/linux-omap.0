@@ -1,67 +1,76 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC/PATCHv2 3/3] driver: spi: Add quad spi read support
-Date: Thu, 18 Jul 2013 11:44:14 +0100
-Message-ID: <20130718104414.GH22506@sirena.org.uk>
-References: <1374141687-10790-1-git-send-email-sourav.poddar@ti.com>
- <1374141687-10790-4-git-send-email-sourav.poddar@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4] pinctrl: Add support for additional dynamic states
+Date: Thu, 18 Jul 2013 03:53:46 -0700
+Message-ID: <20130718105345.GV7656@atomide.com>
+References: <20130716090310.5541.36777.stgit@localhost>
+ <20130716090536.5541.36289.stgit@localhost>
+ <51E70953.1000601@wwwdotorg.org>
+ <20130718072034.GO7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yBTt7CTH+yMq4SuJ"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:52907 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754600Ab3GRKoj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jul 2013 06:44:39 -0400
-Content-Disposition: inline
-In-Reply-To: <1374141687-10790-4-git-send-email-sourav.poddar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-
-
---yBTt7CTH+yMq4SuJ
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20130718072034.GO7656@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: linus.walleij@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 18, 2013 at 03:31:27PM +0530, Sourav Poddar wrote:
-> Since, qspi controller uses quad read.
->=20
-> Configuring the command register, if the transfer of data needs
-> dual or quad lines.
->=20
-> This patch has been done on top of the following patch[1], which is just =
-the=20
-> basic idea of adding dual/quad support in spi framework. =20
-> $subject patch will undergo changes as the parent patch goes[1]
->=20
-> [1]: http://comments.gmane.org/gmane.linux.kernel.spi.devel/14047
+* Tony Lindgren <tony@atomide.com> [130718 00:31]:
+> * Stephen Warren <swarren@wwwdotorg.org> [130717 14:21]:
+> > On 07/16/2013 03:05 AM, Tony Lindgren wrote:
+> > > +int pinctrl_check_dynamic(struct device *dev, struct pinctrl_state *st1,
+> > > +			  struct pinctrl_state *st2)
+> > > +{
+> > > +	struct pinctrl_setting *s1, *s2;
+> > > +
+> > > +	list_for_each_entry(s1, &st1->settings, node) {
+> > ...
+> > > +		list_for_each_entry(s2, &st2->settings, node) {
+> > ...
+> > > +			if (pctldev1 != pctldev2) {
+> > > +				dev_dbg(dev, "pctldev must be the same for states\n");
+> > > +				return -EINVAL;
+> > > +			}
+> > 
+> > I don't think we should require that; it's perfectly legal at the moment
+> > for some device's pinctrl configuration to include settings from
+> > multiple different pin controllers.
+> 
+> Yes that's fine for pinctrl_select(), but let's not do that for
+> runtime muxing.
 
-Just as with commit IDs you should include a plain text description of
-anything you link to so that people reading your e-mail can tell what
-you're talking about without going on line.
+Hmm reading this again, you're right, there should not be anything
+preventing mixing multiple controllers as long as the states match.
+ 
+> > > +			for (i = 0; i < num_pins1; i++) {
+> > > +				int pin1 = pins1[i];
+> > > +
+> > > +				for (j = 0; j < num_pins2; j++) {
+> > > +					int pin2 = pins2[j];
+> > > +
+> > > +					if (pin1 == pin2) {
+> > > +						found++;
+> > > +						break;
+> > > +					}
+> > > +				}
+> > > +			}
+> > > +
+> > > +			if (found != num_pins1) {
+> > 
+> > I guess this make sure that every entry in the dynamic state is in the
+> > state state, but not vice-versa; the static state can affect more stuff
+> > than the dynamic state?
+> > 
+> > If so, shouldn't that check be if (found != num_pins2)?
+> 
+> The check is that idle_state and sleep_state pins must match the
+> active_state pins. This is intentionally different from the current
+> pinctrl_select() logic.
 
---yBTt7CTH+yMq4SuJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+And here things will get messed up if the order of settings is diffrent..
+So yes, pinctrl_check_dynamic() needs more work.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
+Regards,
 
-iQIcBAEBAgAGBQJR58b7AAoJELSic+t+oim9jwMP/Asz1edR2cgkUy0hsKMh8dr4
-wibv6McCcJrnEy3f4CawpiuJ7QQC2I1hS1S+zn45eTaiI4SWibxKWKLp3INnY8k4
-gvnEmlbSaggRpDPdsyS6nnOpFeGOpmlcJWgqjbIkPCMIUsh5zAYN4W3G2aOLI5se
-blz7lpn9+L7zmFe8VeO1GtWl1QGngRdni/U0/d5iA9Qz+5aiZ3djwzKF1Nk9dO5v
-dghJnsP/rA5ll+sXMgGd0U07bmeVG4deicwdpPqiST2SK+MTx5TgU+/K3RVfs0h8
-YH5PVcPVjYYnRQUiO2cHvSwl2XWE4Yqbzp26cYsNK80kD2wAPUM/5Z2/MCFwKsoK
-oR/lzuvKjFu2lIxY/HVORTSaqZgttIDQRyB753//xqoQ6kXQnX5LQ19cyNHExGM3
-3kDUMICXZqvn5koBo1HWfg4U4ZThi/RUm+wA/s+bXaY/7HRXc5CtoZWLD7J2vnhn
-FYcRnx9sqtLRM5fdn1F+i2+sqWVaFzm5kSXBKSrT+iWtJV4SnGlfRlwRVA6baZuE
-fQL1m4qs7xBNjC9JKavlId2F6xDd9v/Tb/HdIyj5RFNhP9FMZ2X7tzfwwu3YrYvy
-cySGwOGXJOgFFKWXriuda6DqbT9tt5SwzCCV3/dvpZuLYaTEEq7rB7nSZZ1HlQKu
-ZeGMkRl2FftAlPrLzOzW
-=Nt+Z
------END PGP SIGNATURE-----
-
---yBTt7CTH+yMq4SuJ--
+Tony
