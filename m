@@ -1,61 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] drivers: Add pinctrl handling for dynamic pin
- states
-Date: Thu, 18 Jul 2013 06:48:07 -0700
-Message-ID: <20130718134806.GW7656@atomide.com>
-References: <20130716090310.5541.36777.stgit@localhost>
- <20130716090539.5541.980.stgit@localhost>
- <51E70ADF.8090805@wwwdotorg.org>
- <20130718074508.GQ7656@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCHv4 2/3] drivers: spi: Add qspi flash controller
+Date: Thu, 18 Jul 2013 15:42:41 +0100
+Message-ID: <20130718144241.GO22506@sirena.org.uk>
+References: <1374141687-10790-1-git-send-email-sourav.poddar@ti.com>
+ <1374141687-10790-3-git-send-email-sourav.poddar@ti.com>
+ <20130718104233.GG22506@sirena.org.uk>
+ <51E7D569.2010709@ti.com>
+ <20130718131822.GN22506@sirena.org.uk>
+ <20130718133158.GA1628@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mkFcsau6kMcX4bpT"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:60166 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757351Ab3GROnL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jul 2013 10:43:11 -0400
 Content-Disposition: inline
-In-Reply-To: <20130718074508.GQ7656@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: linus.walleij@linaro.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20130718133158.GA1628@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Sourav Poddar <sourav.poddar@ti.com>, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [130718 00:57]:
-> * Stephen Warren <swarren@wwwdotorg.org> [130717 14:28]:
-> > 
-> > Oh, I see you're trying to check that the set of pins in the active,
-> > sleep, and idle states are identical.
-> 
-> Right, that's to avoid any further checking during runtime for runtime PM.
->  
-> > But I think that pinctrl_check_dynamic() only checks that one state is a
-> > subset of the other, not that the two states are equal. Instead, I think
-> > you want to comparison coded in pinctrl_check_dynamic() to be:
-> 
-> In pinctrl_check_dynamic() we check that the pins match between the
-> states, and the number of found pins matches the first set. I'll
-> take a look if we check the total pins between the two sets.
 
-That that is a bit painful right now to check properly as we don't
-have any sorting, and we could use that elsewhere too for checks
-probably..
-  
-> > gen_group_list_of_pinctrl_state(s1, array1);
-> > gen_group_list_of_pinctrl_state(s2, array2);
-> > mismatch = memcmp(array1, array2, length);
-> 
-> Well we could allocate and sort the pins, but the number of pins
-> for runtime PM is typically very small for each pin consumer device.
-> Typically you just need to toggle RX pin to GPIO mode for idle. And
-> this check is only done during consumer driver probe time. So
-> optimizing it for larger sets could be done at any point later on
-> as needed.
+--mkFcsau6kMcX4bpT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-..so for now, let's just check the total number of pins for the sets
-like Felipe suggested. I think we're better off improving the pinctrl
-data first to make various checks easier.
+On Thu, Jul 18, 2013 at 04:31:58PM +0300, Felipe Balbi wrote:
+> On Thu, Jul 18, 2013 at 02:18:22PM +0100, Mark Brown wrote:
 
-What you're suggesting with the mepcmp() can be done easily if we add
-something like device_get_pins() and have the pins sorted for the
-various states for a device at the device probe time.
+> > So why do we report that we handled the interrupt then?  Shouldn't we at
+> > least warn if we're getting spurious IRQs?
 
-Regards,
+> not spurious. OMAP has two sets of IRQ status registers. One is call
+> IRQSTATUS$n (n = 0, 1, ...) and IRQSTATUS_RAW$n.
 
-Tony
+> IRQSTATUS$n will only enable the bits which fired IRQs and aren't
+> masked while IRQSTATUS_RAW$n will also enable the bits which are masked.
+> I could never come up with a use case where we would need to handle IRQs
+> which we decided to mask, but perhaps there might be some cases, I don't
+> know.
+
+> Based on that, I believe Sourav is reading IRQSTATUS_RAW$n, then he need
+> to clear the masked bits.
+
+That's not the issue - the issue is that if none of the unmasked
+interrupts are being asserted we shouldn't be in the interrupt handler
+in the first place but the driver silently accepts that and reports that
+it handled the interrupt.
+
+--mkFcsau6kMcX4bpT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR5/7eAAoJELSic+t+oim9keQP/3SJe7J2pK0LjYO+/4lS1LV2
+bTBysL9rcqADayeXAGPIOGtQGGXLRwtwc1di/UyIz/U+nhf5ugevw7GBuTGJYyBe
+wQEZxyF3rTFSETfs63NikBfPM8Qu0Y62i9tpwqkp9Wshs29NYteFP1RjbTdm3leB
+vqb9gnzgAAtKOfedMick+HAd2zKp7HZfM35MHklaSfNRVyXLWKgqL7ZqWPEGM0N2
+3nkRuOYhjL49801mNDF8EN/H69eNsH2wWatCPxDbKEHXD2Jrc7IFQcGMupMA18CH
+hwEnVyH7mvGr/3N9TcuKbKr6kweDDKOKZqK8C9wEJOByCe/T+gQCROVIF+KXoEen
+fjJA+8YfR2HqZnlq8me9JetIL49qSnIvY5VEb7fTJXredgMRFROh+/QgITE/X8tF
+q17agXrggedHb7z4YXohKAkUCXBs7u9SgqVlh9o9NaDuOjQwG+EGAFPF5yGh7zQy
+mABC5zl5DaQ5jtDJuP6A1YKOdS8bXavbXK0vtAp/ub8fqh19en0JnlFEuePuOR2G
++RjOebes9zgGbVBkVj2KonoP6oPoeou96aZlgXaam4Ln0ZIizQs7+L+84Rudi3zw
+GuOqfEy4SirfjOS1EfJd0HgkRQXCFXT0shy8zQCTjxc0YVDQKT+zgS1aHJPDvOiN
+oNkDgy71ty0pciZtIrlI
+=rsqo
+-----END PGP SIGNATURE-----
+
+--mkFcsau6kMcX4bpT--
