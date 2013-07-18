@@ -1,36 +1,36 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH v2 0/4] Add PWM polarity flag macro for DT
-Date: Thu, 18 Jul 2013 10:55:56 -0600
-Message-ID: <51E81E1C.20708@wwwdotorg.org>
-References: <1374101664-21112-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH 1/3] dmaengine: add dma_get_slave_sg_limits()
+Date: Thu, 18 Jul 2013 21:46:58 +0530
+Message-ID: <20130718161658.GW16653@intel.com>
+References: <1374166001-31340-1-git-send-email-joelf@ti.com>
+ <1374166001-31340-2-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:34261 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759166Ab3GRQ4A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jul 2013 12:56:00 -0400
-In-Reply-To: <1374101664-21112-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1374166001-31340-2-git-send-email-joelf@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Matt Porter <matt@ohporter.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Mark Brown <broonie@linaro.org>, Benoit Cousson <benoit.cousson@linaro.org>, Russell King <linux@arm.linux.org.uk>, Balaji TK <balajitk@ti.com>, Gururaja Hebbar <gururaja.hebbar@ti.com>, Chris Ball <cjb@laptop.org>, Jason Kridner <jkridner@beagleboard.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>L
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-pwm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Boris BREZILLON <linux-arm@overkiz.com>, Shawn Guo <shawn.guo@linaro.org>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, Tomasz Figa <t.figa@samsung.com>
 
-On 07/17/2013 04:54 PM, Laurent Pinchart wrote:
-> Hello,
+On Thu, Jul 18, 2013 at 11:46:39AM -0500, Joel Fernandes wrote:
+> From: Matt Porter <mporter@ti.com>
 > 
-> Here's a small patch set that replaces PWM polarity numerical constants with
-> macros in DT.
+> Add a dmaengine API to retrieve slave SG transfer limits.
+> 
+> The API is optionally implemented by dmaengine drivers and when
+> unimplemented will return a NULL pointer. A client driver using
+> this API provides the required dma channel, address width, and
+> burst size of the transfer. dma_get_slave_sg_limits() returns an
+> SG limits structure with the maximum number and size of SG segments
+> that the given channel can handle.
+Hi Joel,
 
-The series,
-Reviewed-by: Stephen Warren <swarren@nvidia.com>
+I have already resurrected this and generalized the API to get the slave
+capablities. 
+https://lkml.org/lkml/2013/7/15/147
 
-I'm (very very) slightly hesitant about patch 3/4, since it's moving
-towards all PWMs having to use the same specifier format, whereas
-specifiers are at least potentially binding-specific, not
-device-type-specific. However, consistency is good; there's no need to
-do something different just for the heck of it. Equally, there's nothing
-actually stopping a new binding from defining its own format rather than
-simply deferring to pwm.txt if it absolutely has to, so I think this
-will turn out fine.
+Please start using this API
+
+~Vinod
