@@ -1,176 +1,110 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/3] misc: Add crossbar driver
-Date: Thu, 18 Jul 2013 19:13:18 -0500
-Message-ID: <CAGo_u6rO0SjHzXhMBPeSmWykqqpf9phLEPBEaeFtS9bkHoq8qg@mail.gmail.com>
-References: <1374165830-6367-1-git-send-email-r.sricharan@ti.com>
- <1374165830-6367-2-git-send-email-r.sricharan@ti.com>
- <51E83A4F.5080904@ti.com> <51E87C98.5030001@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [PATCHv4 2/3] drivers: spi: Add qspi flash controller
+Date: Fri, 19 Jul 2013 10:32:50 +0530
+Message-ID: <51E8C87A.3030007@ti.com>
+References: <1374141687-10790-1-git-send-email-sourav.poddar@ti.com>	<1374141687-10790-3-git-send-email-sourav.poddar@ti.com> <CA+7tXij7W_F0ZTQZ=YvK+qOLO+O-6WpTKxLerv8NXyrdydt7FA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <51E87C98.5030001-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35433 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932084Ab3GSFDF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Jul 2013 01:03:05 -0400
+In-Reply-To: <CA+7tXij7W_F0ZTQZ=YvK+qOLO+O-6WpTKxLerv8NXyrdydt7FA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Trent Piepho <tpiepho@gmail.com>
+Cc: broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, linux-omap@vger.kernel.org, rnayak@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com
 
-On Thu, Jul 18, 2013 at 6:39 PM, Santosh Shilimkar
-<santosh.shilimkar-l0cyMroinI0@public.gmane.org> wrote:
-> On Thursday 18 July 2013 02:56 PM, Nishanth Menon wrote:
->> On 07/18/2013 11:43 AM, Sricharan R wrote:
->>> Some socs have a large number of interrupts/dma requests to service
->>> the needs of its many peripherals and subsystems. All of the
->>> requests lines from the subsystems are not needed at the same
->>> time, so they have to be muxed to the controllers appropriately.
->>> In such places a interrupt/dma controllers are preceded by an
->>> IRQ/DMA CROSSBAR that provides flexibility in muxing the device
->>> requests to the controller inputs.
->>>
->>> The Peripheral irq/dma requests are connected to one crossbar's input
->>> and the output of the crossbar is connected to controller's input
->>> line. On POR, there are some mappings which are done by default.
->>> Those peripherals which do not have a mapping on POR, should be configured
->>> to route its requests using the crossbar.
->>>
->>> The drivers identifies every controller's crossbar as individual devices.
->>> The mappings can be specified from the DT crossbar nodes and those gets mapped
->>> during the crossbar device's probe. The mappings can also be specified by adding
->>> the crossbar lines to the peripheral device nodes and map it with
->>> crossbar_map/unmap apis.
->>>
->>> Signed-off-by: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
->>> ---
->>>   .../devicetree/bindings/arm/omap/crossbar.txt      |   24 ++
->>>   drivers/misc/Kconfig                               |    8 +
->>>   drivers/misc/Makefile                              |    1 +
->>>   drivers/misc/crossbar.c                            |  258 ++++++++++++++++++++
->>>   include/linux/crossbar.h                           |   71 ++++++
->>>   5 files changed, 362 insertions(+)
->>>   create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
->>>   create mode 100644 drivers/misc/crossbar.c
->>>   create mode 100644 include/linux/crossbar.h
->>>
->>> diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
->>> new file mode 100644
->>> index 0000000..02a8a28
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
->>> @@ -0,0 +1,24 @@
->>> +* TI - IRQ/DMA Crossbar
->>> +
->>> +This version is an implementation of the Crossbar IRQ/DMA IP
->>> +
->>> +Required properties:
->>> +- compatible : Should be "ti,dra-crossbar"
->>> +- crossbar-name: Name of the controller to which crossbar output is routed
->>> +- reg:    Contains crossbar register address range
->>> +- reg-width: Represents the width of the individual registers
->>> +- crossbar-lines:  Default mappings.Should contain the crossbar-name
->>> +           device name, int/dma request number, crossbar number,
->>> +           register offset in the same order.
->>> +
->>> +Examples:
->>> +        crossbar_mpu: mpuirq@4a002a48 {
->>> +            compatible = "crossbar";
->>> +            crossbar-name = "mpu-irq";
->>> +            reg = <0x4a002a48 0x0130>;
->>> +            reg-width = <16>;
->>> +            crossbar-lines = "mpu-irq", "rtc-ss-alarm", <0x9f 0xd9 0x12c>,
->>> +                     "mpu-irq", "mcasp3-arevt", <0x9e 0x96 0x12a>,
->>> +                     "mpu-irq", "mcasp3-axevt", <0x9d 0x97 0x128>;
->>> +        };
->>
->> I carry forward my TI internal objection to this approach:
->>
->> NAK.
->>
->> DRA7 uses a cross bar to map a line to GIC interrupt. Flow of interrupt is as follows:
->> hardware IP block -interrupt line-> IRQ Cross bar -> GIC IRQ line --> MPU IRQ.
->>
->>
->> What we have done today for DRA is to provide IRQ numbers as direct maps from hardware IP block to GIC based on default IRQ cross bar mapping.
->>
->> Lets see what happens as a result of this:
->>
->> https://patchwork.kernel.org/patch/2825148/ (introducing DTS for DRA7)
->> uart1 to uart6 is defined. while in fact 10 uarts exist on IP block.
->> uart1: serial@4806a000 {
->> <snip>
->> +            interrupts = <0 72 0x4>;
->> Assumes that GIC interrupt by default mapping used.
->>
->> Now, think of a product that wants to use UART10 instead of UART1, SoC design allows you do that by doing a remapping of GIC interrupt to UART10 - which is awesome.
->>
->> Option 1: u-boot/bootloader
->> mw.l IRQ_CROSSBAR_address with value to map uart10 to GIC IRQ for UART1,
->>
->> Option 2: in kernel do a raw_writel version of option 1.
->> This patch does option 1 in kernel in a "fancy way" - why the heck would I want to do that when u-boot allows me to do the same thing in uEnv.txt
->>
->> Option 3: map GIC interrupt to IRQ CROSS bar dynamically.
->> a) Allows us to define every single IP available on DRA7 SoC.
->> b) GIC allocation happens dynamically
->> c) allow products use IPs as needed.
->>
->> Sorry, Conceptually option 3 is the right approach in my view.
->> instead of doing
->> uart1: serial@4806a000 {
->> <snip>
->> +            interrupts = <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
->>
->> we should be able to do the following:
->> uart1: serial@4806a000 {
->> <snip>
->> +            interrupts = <TI_IRQ_CROSSBAR 192 IRQ_TYPE_LEVEL_HIGH>;
->>
->> and not worry about the GIC interrupt number used
->>
->>
-> Since the cross-bar is not limited t0 IRQ lines and applicable for
-> DMA request lines as well, making it IRQ chip doesn't make sense. Its
-> not typical pin control functionality either but at least that framework
-> is much closer to consider as an option.
+On Friday 19 July 2013 12:38 AM, Trent Piepho wrote:
+> On Thu, Jul 18, 2013 at 3:01 AM, Sourav Poddar<sourav.poddar@ti.com>  wrote:
+>> +Required properties:
+>> +- compatible : should be "ti,dra7xxx-qspi".
+>> +- reg: Should contain QSPI registers location and length.
+>> +- #address-cells, #size-cells : Must be present if the device has sub-nodes
+>> +- ti,hwmods: Name of the hwmod associated to the QSPI
+> What is ti,hwmods?  It's not clear from the description.  It also
+> doesn't appear to be used in the driver.  At least, I did not find any
+> occurrence of "hwmods" in the driver code.
+>
+>> +static inline unsigned long ti_qspi_readl_data(struct ti_qspi *qspi,
+>> +               unsigned long reg, int wlen)
+> "readl" means read LONG.  That's what the L is for.  But this does
+> different widths.
+>
+>> +{
+>> +       switch (wlen) {
+>> +       case 8:
+>> +               return readw(qspi->base + reg);
+>> +               break;
+> wlen == 8, but readw == 16 bit read?
+Yes, I need to change this. should be readb.
+> The break after the return isn't necessary.
+>
+>> +       case 16:
+>> +               return readb(qspi->base + reg);
+>> +               break;
+> wlen == 16, but readb == 8 bit read?
+>
+same here.
+>> +       case 32:
+>> +               return readl(qspi->base + reg);
+> wlen == 32, readl == 32, this one makes sense, but....
+>
+>> +static inline void ti_qspi_writel_data(struct ti_qspi *qspi,
+>> +               unsigned long val, unsigned long reg, int wlen)
+>> +       case 32:
+>> +               writeb(val, qspi->base + reg);
+>> +               break;
+> A 32 bit write uses an 8 bit write command, while read is 32 bits??
+>
+> This doesn't make a lot of sense.  If it's actually correct, there
+> should be come kind of comment about it.
+>
+Yes, I will change this in the next version.
+>> +
+>> +static int ti_qspi_setup(struct spi_device *spi)
+>> +{
+>> +
+>> +       clk_ctrl_reg = ti_qspi_readl(qspi, QSPI_SPI_CLOCK_CNTRL_REG);
+>> +
+>> +       clk_ctrl_reg&= ~QSPI_CLK_EN;
+>> +
+>> +       /* disable SCLK */
+>> +       ti_qspi_writel(qspi, clk_ctrl_reg, QSPI_SPI_CLOCK_CNTRL_REG);
+> Did you read this from Documentation/spi/spi-summary?
+>                  ** BUG ALERT:  for some reason the first version of
+>                  ** many spi_master drivers seems to get this wrong.
+>                  ** When you code setup(), ASSUME that the controller
+>                  ** is actively processing transfers for another device.
+>
+But I see in this documentation, that setup is usually used for setting up
+device clock rate, modes etc.
+So, what do you recommend here, should we move clk settings to prepare
+hardware ?
+>> +static int ti_qspi_probe(struct platform_device *pdev)
+>> +{
+>> +
+>> +       master->mode_bits = SPI_CPOL | SPI_CPHA;
+> Does your device support full duplex?  It doesn't look like it does.
+> You should set the SPI_MASER_HALF_DUPLEX flag in master->flags.
+>
+hmm. Ok, will add.
+>> +
+>> +       if (!of_property_read_u32(np, "ti,spi-num-cs",&num_cs))
+>> +               master->num_chipselect = num_cs;
+> You didn't document this property.  How is this different than the
+> "num-cs" property already documented in spi-bus bindings?
+>
+Actually, it is no different. This also means the total number of 
+chipselects.
+I used it from omap mcspi. I will make this property in accordance with the
+generic binding.
+Will also send a seperate patch for omap mcspi.
+>> +       qspi->base = devm_ioremap_resource(&pdev->dev, r);
+>> +       if (IS_ERR(qspi->base)) {
+>> +               ret = -ENOMEM;
+> Shouldn't that be ret = PTR_ERR(qspi->base)
+hmm.will change.
 
-The core concept is that this is a trivial mapping problem and if can
-extrapolate pinctrl to be mapping for SoC internal signals, oh great!
-
-pinctrl solved a problem where we are not absolutely sure how to
-reallocate SoC *external* pins to board interface. pinctrl works in
-more complex world, each SoC pinout has A options, but not all B SoC
-signals can or will routed there - in fact, inside one single SoC
-family, there never was a pattern even as it all depended on how the
-board manufacturer wanted to do it - and yep, it was easy - a signal
-just had limited number of options it could go to review and pinctrl
-options to do that was simple as well!
-
-The problem here IMHO is different. it is a simple X->Y mapping, where
-X > Y, but any of X can be mapped to any of Y - so, now with a static
-map, you need be sure that you do not map double even by mistake - so
-what ever number of GIC mappings need to be evaluated always every
-time we do a static map change to ensure no conflicts w.r.t board
-usage etc. Doable? sure! Right way to solve a simple X->Y mapping
-problem? I personally don't think so.
-
-<rant>
-
-Now, if we want to force every single DRA7 product board designers and
-s/w board support guy to consider how the DRA internal signals are
-mapped using dts - yes, we are proposing to solve the problem of a
-trivial resource allocation problem with a framework meant to handle
-much more complex muxing problem and ensured that all DRA7 product
-guys will wonder "what the heck were these guys thinking"?
-
-</rant>
-
-Regards,
-Nishanth Menon
