@@ -1,7 +1,7 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: [PATCH 15/22] ARM: ux500: Remove '0x's from OMAP3 DTS file
-Date: Fri, 19 Jul 2013 14:58:46 +0100
-Message-ID: <1374242333-6852-15-git-send-email-lee.jones@linaro.org>
+Subject: [PATCH 17/22] ARM: ux500: Remove '0x's from OMAP4 DTS file
+Date: Fri, 19 Jul 2013 14:58:48 +0100
+Message-ID: <1374242333-6852-17-git-send-email-lee.jones@linaro.org>
 References: <1374242333-6852-1-git-send-email-lee.jones@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -18,22 +18,23 @@ Cc: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org
 Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- arch/arm/boot/dts/omap3.dtsi | 2 +-
+ arch/arm/boot/dts/omap4.dtsi | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dts=
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dts=
 i
-index 7d95cda..16420ae 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -111,7 +111,7 @@
- 			pinctrl-single,function-mask =3D <0x7f1f>;
- 		};
+index 22d9f2b..45708e1 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -56,7 +56,7 @@
+ 		cache-level =3D <2>;
+ 	};
 =20
--		omap3_pmx_wkup: pinmux@0x48002a00 {
-+		omap3_pmx_wkup: pinmux@48002a00 {
- 			compatible =3D "ti,omap3-padconf", "pinctrl-single";
- 			reg =3D <0x48002a00 0x5c>;
- 			#address-cells =3D <1>;
+-	local-timer@0x48240600 {
++	local-timer@48240600 {
+ 		compatible =3D "arm,cortex-a9-twd-timer";
+ 		reg =3D <0x48240600 0x20>;
+ 		interrupts =3D <GIC_PPI 13 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_HIG=
+H)>;
 --=20
 1.8.1.2
