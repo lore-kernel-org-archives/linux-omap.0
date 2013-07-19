@@ -1,69 +1,85 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v6 1/2] ARM: dts: twl: Add GPADC data to device tree
-Date: Fri, 19 Jul 2013 18:40:27 +0300
-Message-ID: <51E95DEB.7010702@ti.com>
-References: <1374226039-16943-1-git-send-email-oleksandr.kozaruk@ti.com>
- <1374226039-16943-2-git-send-email-oleksandr.kozaruk@ti.com>
- <51E94F97.40002@cogentembedded.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Fri, 19 Jul 2013 09:54:29 -0600
+Message-ID: <51E96135.9090108@wwwdotorg.org>
+References: <1374129984-765-1-git-send-email-kishon@ti.com> <1374129984-765-2-git-send-email-kishon@ti.com> <20130718072004.GA16720@kroah.com> <51E7AE88.3050007@ti.com> <20130718154954.GA31961@kroah.com> <51E8D086.809@ti.com> <20130719054311.GA14638@kroah.com> <51E8D4E0.8060200@ti.com> <20130719062941.GA23611@kroah.com> <51E8DE51.1060404@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51E94F97.40002@cogentembedded.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: milo.kim@ti.com, lars@metafoo.de, sameo@linux.intel.com, tony@atomide.com, poeschel@lemonage.de, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, kishon@ti.com, peter.ujfalusi@ti.com, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, jic23@cam.ac.uk, grant.likely@linaro.org, benoit.cousson@linaro.org, gg@slimlogic.co.uk, ch.naveen@samsung.com, linux-arm-kernel@lists.infradead.org, balajitk@ti.com
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <51E8DE51.1060404@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>, linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, nsekhar@ti.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, grant.likely@linaro.org, linux-media@vger.kernel.org, george.cherian@ti.com, devicetree-discuss@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.park@samsung.com, akpm@linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/19/2013 05:39 PM, Sergei Shtylyov wrote:
-> Hello.
->
-> On 19-07-2013 13:27, Oleksandr Kozaruk wrote:
->
->> GPADC is the general purpose ADC present on twl6030.
->> The dt data is interrupt used to trigger end of ADC
->> conversion.
->
->> Signed-off-by: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
->> ---
->>   arch/arm/boot/dts/twl6030.dtsi | 6 ++++++
->>   1 file changed, 6 insertions(+)
->
->> diff --git a/arch/arm/boot/dts/twl6030.dtsi
->> b/arch/arm/boot/dts/twl6030.dtsi
->> index 2e3bd31..d7d4c28 100644
->> --- a/arch/arm/boot/dts/twl6030.dtsi
->> +++ b/arch/arm/boot/dts/twl6030.dtsi
->> @@ -103,4 +103,10 @@
->>           compatible = "ti,twl6030-pwmled";
->>           #pwm-cells = <2>;
->>       };
->> +
->> +    adc: gpadc {
->
->     Read my lips: the node should be called just "adc", not "gpadc".
-       ^^^^^^^^^^^^ Are you sure?
+On 07/19/2013 12:36 AM, Kishon Vijay Abraham I wrote:
+> Hi,
+> 
+> On Friday 19 July 2013 11:59 AM, Greg KH wrote:
+>> On Fri, Jul 19, 2013 at 11:25:44AM +0530, Kishon Vijay Abraham I wrote:
+>>> Hi,
+>>>
+>>> On Friday 19 July 2013 11:13 AM, Greg KH wrote:
+>>>> On Fri, Jul 19, 2013 at 11:07:10AM +0530, Kishon Vijay Abraham I wrote:
+>>>>>>>>> +	ret = dev_set_name(&phy->dev, "%s.%d", dev_name(dev), id);
+>>>>>>>>
+>>>>>>>> Your naming is odd, no "phy" anywhere in it?  You rely on the sender to
+>>>>>>>> never send a duplicate name.id pair?  Why not create your own ids based
+>>>>>>>> on the number of phys in the system, like almost all other classes and
+>>>>>>>> subsystems do?
+>>>>>>>
+>>>>>>> hmm.. some PHY drivers use the id they provide to perform some of their
+>>>>>>> internal operation as in [1] (This is used only if a single PHY provider
+>>>>>>> implements multiple PHYS). Probably I'll add an option like PLATFORM_DEVID_AUTO
+>>>>>>> to give the PHY drivers an option to use auto id.
+>>>>>>>
+>>>>>>> [1] ->
+>>>>>>> http://archive.arm.linux.org.uk/lurker/message/20130628.134308.4a8f7668.ca.html
+>>>>>>
+>>>>>> No, who cares about the id?  No one outside of the phy core ever should,
+>>>>>> because you pass back the only pointer that they really do care about,
+>>>>>> if they need to do anything with the device.  Use that, and then you can
+>>>>>
+>>>>> hmm.. ok.
+>>>>>
+>>>>>> rip out all of the "search for a phy by a string" logic, as that's not
+>>>>>
+>>>>> Actually this is needed for non-dt boot case. In the case of dt boot, we use a
+>>>>> phandle by which the controller can get a reference to the phy. But in the case
+>>>>> of non-dt boot, the controller can get a reference to the phy only by label.
+>>>>
+>>>> I don't understand.  They registered the phy, and got back a pointer to
+>>>> it.  Why can't they save it in their local structure to use it again
+>>>> later if needed?  They should never have to "ask" for the device, as the
+>>>
+>>> One is a *PHY provider* driver which is a driver for some PHY device. This will
+>>> use phy_create to create the phy.
+>>> The other is a *PHY consumer* driver which might be any controller driver (can
+>>> be USB/SATA/PCIE). The PHY consumer will use phy_get to get a reference to the
+>>> phy (by *phandle* in the case of dt boot and *label* in the case of non-dt boot).
+>>>> device id might be unknown if there are multiple devices in the system.
+>>>
+>>> I agree with you on the device id part. That need not be known to the PHY driver.
+>>
+>> How does a consumer know which "label" to use in a non-dt system if
+>> there are multiple PHYs in the system?
+> 
+> That should be passed using platform data.
 
-Why? The name was selected according to the documentation on device 
-"General purpose analog-to-digital converter (GPADC)".
+I don't think that's right. That's just like passing clock names in
+platform data, which I believe is frowned upon.
 
-PS. Following your logic - "GPIO" need to renamed to "IO" everywhere ;P
+Instead, why not take the approach that e.g. regulators have taken? Each
+driver defines the names of the objects that it requires. There is a
+table (registered by a board file) that has lookup key (device name,
+regulator name), and the output is the regulator device (or global
+regulator name).
 
->
-> WBR, Sergei
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This is almost the same way that DT works, except that in DT, the table
+is represented as properties in the DT. The DT binding defines the names
+of those properties, or the strings that must be in the foo-names
+properties, just like a driver in non-DT Linux is going to define the
+names it expects to be provided with.
 
-Regards,
-- grygorii
+That way, you don't need platform data to define the names.
