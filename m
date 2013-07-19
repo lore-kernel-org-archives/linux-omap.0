@@ -1,68 +1,49 @@
-From: "Arend van Spriel" <arend@broadcom.com>
-Subject: Re: Regression 3.11-rc1: omap4panda: no usb and consequently no
- ethernet
-Date: Fri, 19 Jul 2013 12:36:48 +0200
-Message-ID: <51E916C0.8080206@broadcom.com>
-References: <51E7AA24.6080600@broadcom.com>
- <20130718085951.GT7656@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes against v3.11-rc1
+Date: Fri, 19 Jul 2013 03:45:38 -0700
+Message-ID: <20130719104538.GE7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=iso-8859-1;
- format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mms2.broadcom.com ([216.31.210.18]:2617 "EHLO mms2.broadcom.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965356Ab3GSKg5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Jul 2013 06:36:57 -0400
-In-Reply-To: <20130718085951.GT7656@atomide.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:14849 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759405Ab3GSKpo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jul 2013 06:45:44 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 07/18/2013 10:59 AM, Tony Lindgren wrote:
-> Then for the SDIO with device tree, take a look at the following
-> patches:
->
-> [PATCH 0/3] WLAN support for omap4 when booted with devicetree
-> http://comments.gmane.org/gmane.linux.ports.arm.omap/97522#
 
-I have been looking at the pandaboard patch in the series above and I do 
-have a question. Among other things the patch adds these dt entries.
+The following changes since commit ad81f0545ef01ea651886dddac4bef6cec930092:
 
-+			0x108 0x118	/* sdmmc5_clk.sdmmc5_clk INPUT_PULLUP | MODE0 */
-+			0x10a 0x118	/* sdmmc5_cmd.sdmmc5_cmd INPUT_PULLUP | MODE0 */
+  Linux 3.11-rc1 (2013-07-14 15:18:27 -0700)
 
-If I look at the similar names in the deceased board-omap4panda.c:
+are available in the git repository at:
 
-board-omap4panda.c:	OMAP4_MUX(SDMMC5_CMD, OMAP_MUX_MODE0 | 
-OMAP_PIN_INPUT_PULLUP),
-board-omap4panda.c:	OMAP4_MUX(SDMMC5_CLK, OMAP_MUX_MODE0 | 
-OMAP_PIN_INPUT_PULLUP),
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/fixes-against-rc1
 
-and in mux44xx.h:
+for you to fetch changes up to 7956c487e407bdbf7f8c8a570fd5d4d089973692:
 
-mux44xx.h:#define OMAP4_CTRL_MODULE_PAD_SDMMC5_CLK_OFFSET	0x0148
-mux44xx.h:#define OMAP4_CTRL_MODULE_PAD_SDMMC5_CMD_OFFSET	0x014a
+  Merge branch 'omap-for-v3.11/dt-fixes' into omap-for-v3.11/fixes (2013-07-19 03:28:35 -0700)
 
-So how did 0x0148 get 0x0108 in DT and 0x014a get 0x010a. There is 
-probably an explanation to it and it would help my understanding to know 
-where this difference comes from. Hope you can help me out here.
+----------------------------------------------------------------
 
-Below are the definitions that I need to move into a dts.
+Omap fixes mostly to deal with the dropping of platform
+data for omap4, and to make v7_defconfig bootable on omap4
+SDP with nfsroot.
 
-Regards,
-Arend
+----------------------------------------------------------------
+Roger Quadros (1):
+      ARM: OMAP2+: Provide alias to USB PHY clock
 
-	/* MMC2 Mux for extension board */
-	/* MMC2 CMD */
-	OMAP4_MUX(GPMC_NWE, OMAP_MUX_MODE1 | OMAP_PIN_INPUT_PULLUP),
-	/* MMC2 CLK */
-	OMAP4_MUX(GPMC_NOE, OMAP_MUX_MODE1 | OMAP_PIN_INPUT_PULLUP),
-	/* MMC2 DAT 0-7 */
-	OMAP4_MUX(GPMC_AD0, OMAP_MUX_MODE1 | OMAP_PIN_INPUT_PULLUP),
-	OMAP4_MUX(GPMC_AD1, OMAP_MUX_MODE1 | OMAP_PIN_INPUT_PULLUP),
-	OMAP4_MUX(GPMC_AD2, OMAP_MUX_MODE1 | OMAP_PIN_INPUT_PULLUP),
-	OMAP4_MUX(GPMC_AD3, OMAP_MUX_MODE1 | OMAP_PIN_INPUT_PULLUP),
+Tony Lindgren (3):
+      ARM: multi_v7: Enabled omap4430 sdp nfsroot
+      ARM: dts: Add missing vmmc2 regulator for twl
+      Merge branch 'omap-for-v3.11/dt-fixes' into omap-for-v3.11/fixes
 
+ arch/arm/boot/dts/twl4030.dtsi      |  6 ++++++
+ arch/arm/configs/multi_v7_defconfig |  3 +++
+ arch/arm/mach-omap2/board-generic.c | 23 ++++++++++++++++++++++-
+ 3 files changed, 31 insertions(+), 1 deletion(-)
