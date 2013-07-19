@@ -1,184 +1,78 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] arm: dts: twl6030: typical connection to omap4 as a separate
- dtsi file
-Date: Fri, 19 Jul 2013 09:10:56 -0500
-Message-ID: <51E948F0.4070307@ti.com>
-References: <1374235814-17834-1-git-send-email-ruslan.bilovol@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH v2 3/4] arm: dts: Add USB phy nodes for AM33XX
+Date: Fri, 19 Jul 2013 16:20:32 +0200
+Message-ID: <51E94B30.9070805@linutronix.de>
+References: <1374237277-17769-1-git-send-email-george.cherian@ti.com> <1374237277-17769-4-git-send-email-george.cherian@ti.com> <51E94571.8080805@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1374235814-17834-1-git-send-email-ruslan.bilovol@ti.com>
+In-Reply-To: <51E94571.8080805@cogentembedded.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Cc: benoit.cousson@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: George Cherian <george.cherian@ti.com>, linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 07/19/2013 07:10 AM, Ruslan Bilovol wrote:
-> The OMAP4 SoC family uses specially-designed
-> PMIC (power management IC) companion chip for power
-> management needs: TWL6030/TWL6032.
-> Therefore there is a typical connection of PMIC to OMAP4
-> so we can figure it out into separate .dtsi file
-> and do not duplicate over board-specific files.
->
-> Tested on OMAP4 SDP board and compile-tested for Panda board
->
-> Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
-> ---
->   arch/arm/boot/dts/omap4-panda-common.dtsi |   21 +---------------
->   arch/arm/boot/dts/omap4-sdp.dts           |   21 +---------------
->   arch/arm/boot/dts/twl6030_omap4.dtsi      |   38 +++++++++++++++++++++++++++++
-arch/arm/boot/dts/omap4-var-som.dts ?
+On 07/19/2013 03:56 PM, Sergei Shtylyov wrote:
+> On 19-07-2013 16:34, George Cherian wrote:
+> 
+>> diff --git a/arch/arm/boot/dts/am33xx.dtsi
+>> b/arch/arm/boot/dts/am33xx.dtsi
+>> index 8e1248f..e3890c4 100644
+>> --- a/arch/arm/boot/dts/am33xx.dtsi
+>> +++ b/arch/arm/boot/dts/am33xx.dtsi
+>> @@ -326,21 +326,59 @@
+>>               status = "disabled";
+>>           };
+>>
+>> -        usb@47400000 {
+>> -            compatible = "ti,musb-am33xx";
+>> -            reg = <0x47400000 0x1000    /* usbss */
+>> -                   0x47401000 0x800        /* musb instance 0 */
+>> -                   0x47401800 0x800>;    /* musb instance 1 */
+>> -            interrupts = <17        /* usbss */
+>> -                      18        /* musb instance 0 */
+>> -                      19>;        /* musb instance 1 */
+>> -            multipoint = <1>;
+>> -            num-eps = <16>;
+>> -            ram-bits = <12>;
+>> -            port0-mode = <3>;
+>> -            port1-mode = <3>;
+>> -            power = <250>;
+>> -            ti,hwmods = "usb_otg_hs";
+>> +        phy1: am335x-usb0@44e10620 {
+> 
+>    Shouldn't the PHYs be *under* the usb0/1 device nodes in the hierarchy?
+> They're not on the same bus as the MUSB controllers for sure.
 
->   3 files changed, 40 insertions(+), 40 deletions(-)
->   create mode 100644 arch/arm/boot/dts/twl6030_omap4.dtsi
->
-> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-> index faa95b5..d796302 100644
-> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-> @@ -109,23 +109,9 @@
->   	};
->   };
->
-> -&omap4_pmx_wkup {
-> -	pinctrl-names = "default";
-> -	pinctrl-0 = <
-> -			&twl6030_wkup_pins
-> -	>;
-> -
-> -	twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
-> -		pinctrl-single,pins = <
-> -			0x14 (PIN_OUTPUT | MUX_MODE2)		/* fref_clk0_out.sys_drm_msecure */
-> -		>;
-> -	};
-> -};
-> -
->   &omap4_pmx_core {
->   	pinctrl-names = "default";
->   	pinctrl-0 = <
-> -			&twl6030_pins
->   			&twl6040_pins
->   			&mcpdm_pins
->   			&mcbsp1_pins
-> @@ -134,12 +120,6 @@
->   			&hsusbb1_pins
->   	>;
->
-> -	twl6030_pins: pinmux_twl6030_pins {
-> -		pinctrl-single,pins = <
-> -			0x15e (WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0)	/* sys_nirq1.sys_nirq1 */
-> -		>;
-> -	};
-> -
->   	twl6040_pins: pinmux_twl6040_pins {
->   		pinctrl-single,pins = <
->   			0xe0 (PIN_OUTPUT | MUX_MODE3)	/* hdq_sio.gpio_127 */
-> @@ -265,6 +245,7 @@
->   };
->
->   #include "twl6030.dtsi"
-> +#include "twl6030_omap4.dtsi"
->
->   &i2c2 {
->   	pinctrl-names = "default";
-> diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-> index 7951b4e..91030c3 100644
-> --- a/arch/arm/boot/dts/omap4-sdp.dts
-> +++ b/arch/arm/boot/dts/omap4-sdp.dts
-> @@ -142,23 +142,9 @@
->   	};
->   };
->
-> -&omap4_pmx_wkup {
-> -	pinctrl-names = "default";
-> -	pinctrl-0 = <
-> -			&twl6030_wkup_pins
-> -	>;
-> -
-> -	twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
-> -		pinctrl-single,pins = <
-> -			0x14 (PIN_OUTPUT | MUX_MODE2)		/* fref_clk0_out.sys_drm_msecure */
-> -		>;
-> -	};
-> -};
-> -
->   &omap4_pmx_core {
->   	pinctrl-names = "default";
->   	pinctrl-0 = <
-> -			&twl6030_pins
->   			&twl6040_pins
->   			&mcpdm_pins
->   			&dmic_pins
-> @@ -193,12 +179,6 @@
->   		>;
->   	};
->
-> -	twl6030_pins: pinmux_twl6030_pins {
-> -		pinctrl-single,pins = <
-> -			0x15e (WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0)	/* sys_nirq1.sys_nirq1 */
-> -		>;
-> -	};
-> -
->   	twl6040_pins: pinmux_twl6040_pins {
->   		pinctrl-single,pins = <
->   			0xe0 (PIN_OUTPUT | MUX_MODE3)		/* hdq_sio.gpio_127 */
-> @@ -337,6 +317,7 @@
->   };
->
->   #include "twl6030.dtsi"
-> +#include "twl6030_omap4.dtsi"
->
->   &i2c2 {
->   	pinctrl-names = "default";
-> diff --git a/arch/arm/boot/dts/twl6030_omap4.dtsi b/arch/arm/boot/dts/twl6030_omap4.dtsi
-> new file mode 100644
-> index 0000000..a4fa570
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/twl6030_omap4.dtsi
-> @@ -0,0 +1,38 @@
-> +/*
-> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +&twl {
-> +	/*
-> +	 * On most OMAP4 platforms, the twl6030 IRQ line is connected
-> +	 * to the SYS_NIRQ1 line on OMAP and the twl6030 MSECURE line is
-> +	 * connected to the fref_clk0_out.sys_drm_msecure line.
-> +	 * Therefore, configure the defaults for the SYS_NIRQ1 and
-> +	 * fref_clk0_out.sys_drm_msecure pins here.
-> +	 */
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <
-> +		&twl6030_pins
-> +		&twl6030_wkup_pins
-> +	>;
-> +};
-> +
-> +&omap4_pmx_wkup {
-> +	twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
-> +		pinctrl-single,pins = <
-> +			0x14 (PIN_OUTPUT | MUX_MODE2)		/* fref_clk0_out.sys_drm_msecure */
-> +		>;
-> +	};
-> +};
-> +
-> +&omap4_pmx_core {
-> +	twl6030_pins: pinmux_twl6030_pins {
-> +		pinctrl-single,pins = <
-> +			0x15e (WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0)	/* sys_nirq1.sys_nirq1 */
-> +		>;
-> +	};
-> +};
->
+I redo the complete thing. I have now:
 
+usb: usb@47400000 {
+	compatible = "ti,am33xx-usb";
+	
+	usb0_phy: phy@47401300 {
+		compatible = "ti,am335x-usb-phy";
+	}
+	usb0: usb@47401000 {
+		musb0: usb@47401400 {
+			compatible = "mg,musbmhdrc";
+		}
+	}
+	usb1_phy: phy@47402300 {
+		compatible = "ti,am335x-usb-phy";
+	}
+	usb1: usb@47402000 {
+		musb1: usb@47402400 {
+			compatible = "mg,musbmhdrc";
+		}
+	}
+}
 
--- 
-Regards,
-Nishanth Menon
+And you want usb0_phy to be child of usb0? In the TRM they are all in
+the same block.
+
+> 
+> WBR, Sergei
+> 
+
+Sebastian
