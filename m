@@ -1,62 +1,71 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/4] dra7: I2C/MCSPI/UART pin control datas
-Date: Fri, 19 Jul 2013 11:31:15 -0500
-Message-ID: <51E969D3.2080804@ti.com>
-References: <1374251050-10033-1-git-send-email-sourav.poddar@ti.com>
+From: Markus Brunner <systemprogrammierung.brunner@gmail.com>
+Subject: Re: [PATCH] remove vlan tags in CPSW dual emac mode
+Date: Fri, 19 Jul 2013 20:07:00 +0200
+Message-ID: <CAOFKi=amD5Ho0LpOm+G-2pQezUjJMgSgH0XxHXQ_md57c3FwVA@mail.gmail.com>
+References: <4699400.vD3TdgH1nR@localhost>
+	<5176C4FE.4080305@ti.com>
+	<51E00B2F.6050406@newflow.co.uk>
+	<51E04C89.8030202@ti.com>
+	<51E0582D.4090306@newflow.co.uk>
+	<51E3EEE7.9030508@ti.com>
+	<51E41A34.4030000@newflow.co.uk>
+	<51E42B43.8060307@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1374251050-10033-1-git-send-email-sourav.poddar-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <51E42B43.8060307@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Mark Jackson <mpfj-list@newflow.co.uk>, netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/19/2013 11:24 AM, Sourav Poddar wrote:
-> These series add support for I2C/MCSPI/UART pin control datas.
->
-> The series is done on top of Rajendra Nayak series[1](posted to the list),
-> which has basic dt boot enable for dra7.
-> These patches has been tested, along with I2C and UART patches from
-> wolfram sang patch series[2].
->
->
-> [1]: http://www.spinics.net/lists/linux-omap/msg93535.html
-> [2]: https://lkml.org/lkml/2013/7/10/335
->
-> Sourav Poddar (4):
->    arm: dts: omap5-evm: Add I2c pinctrl data
->    arm: dts: omap5-evm: Add I2c pinctrl data
->    arm: dts: dra7-evm: Add SPI pinctrl data
->    arm: dts: dra7-evm: Add UART pinctrl data
->
->   arch/arm/boot/dts/dra7-evm.dts |  123 ++++++++++++++++++++++++++++++++++++++++
->   arch/arm/boot/dts/dra7.dtsi    |   15 +++++
->   2 files changed, 138 insertions(+), 0 deletions(-)
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-DRA7 DTS is not merged yet, If I am not mistaken.
-Ref[1] [2]
-So why not squash these to [2]?
+On Mon, Jul 15, 2013 at 7:02 PM, Mugunthan V N <mugunthanvnm@ti.com> wrote:
+> On 7/15/2013 9:20 PM, Mark Jackson wrote:
+>> On 15/07/13 13:45, Mugunthan V N wrote:
+>>> On 7/13/2013 12:55 AM, Mark Jackson wrote:
+>>>> On 12/07/13 19:35, Mugunthan V N wrote:
+>>>>> On 7/12/2013 7:27 PM, Mark Jackson wrote:
+>>>> [snip]
+>>>>
+>>>>>> Just to update this (old) thread ...
+>>>>>>
+>>>>>> I can still confirm that *without* the above patch, I am *unable* to use both network
+>>>>>> ports on our AM335x board.
 
-[1] http://marc.info/?t=137335517900001&r=1&w=2
-[2] http://marc.info/?l=linux-arm-kernel&m=137335590702349&w=2
+I can confirm that. Windows won't strip away the vlan header like linux does.
 
+[snip]
+>>>> Markus, are you still using this patch ?
 
--- 
+yes.
+
+>>>>
+>>> Today I have tested the Dual EMAC on my am335x-evmsk and its working fine with
+>>> net/master branch.
+>>> I had 3 patches additional to net/master in which two for basic boot of EVMsk
+>>> and one for enabling Dual EMAC. I had pushed the branch in the below repo
+>>> repo:
+>>> git://git.ti.com/~mugunthanvnm/ti-linux-kernel/mugunth-connectivity-linux-feature-tree.git
+>>> branch: dual-emac
+
+I tested it and it has the same problem as with 3.9 - 3.11-rc1.
+
+>> Okay ... I can't test that at the moment as I can only boot from MMC as there's
+>> currently no support for MMC booting in the mainline kernel.
+>>
+>> So ... the code works for you, but not for me.
+>>
+>> I guess the other difference is that I'm not using the same PHY (we use a 10/100
+>> SMSC 8710A, not the GbE Atheros part).
+>>
+>> Could that make any difference ?
+>>
+>> Markus, are you still seeing the same issue ?  What PHY are you using ?
+
+I', using a Micrel ksz8895mq, which is actually a switch, however one
+phy is connected directly, so bootstrapping can work and even if I
+don't enable the switch I have the same issue on that port. I doubt
+the phy will change anything.
+
 Regards,
-Nishanth Menon
+Markus
