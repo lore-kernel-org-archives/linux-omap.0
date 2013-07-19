@@ -1,104 +1,124 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
+From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
 Subject: Re: [PATCHv4 2/3] drivers: spi: Add qspi flash controller
-Date: Fri, 19 Jul 2013 17:18:47 +0530
-Message-ID: <51E9279F.6010601@ti.com>
-References: <1374141687-10790-1-git-send-email-sourav.poddar@ti.com> <1374141687-10790-3-git-send-email-sourav.poddar@ti.com> <20130718102404.GH11251@arwen.pp.htv.fi> <51E7CF11.5030301@ti.com> <20130718112458.GJ11251@arwen.pp.htv.fi>
+Date: Fri, 19 Jul 2013 17:25:50 +0530
+Message-ID: <51E92946.8030907@ti.com>
+References: <1374141687-10790-1-git-send-email-sourav.poddar@ti.com>
+	<1374141687-10790-3-git-send-email-sourav.poddar@ti.com>
+	<20130718104233.GG22506@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52150 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760259Ab3GSLtD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Jul 2013 07:49:03 -0400
-In-Reply-To: <20130718112458.GJ11251@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20130718104233.GG22506-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: rnayak-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Felipe,
-On Thursday 18 July 2013 04:54 PM, Felipe Balbi wrote:
-> On Thu, Jul 18, 2013 at 04:48:41PM +0530, Sourav Poddar wrote:
->>>> +static void qspi_write_msg(struct ti_qspi *qspi, struct spi_transfer *t)
->>>> +{
->>>> +	const u8 *txbuf;
->>>> +	int wlen, count;
->>>> +
->>>> +	count = t->len;
->>>> +	txbuf = t->tx_buf;
->>>> +	wlen = t->bits_per_word;
->>>> +
->>>> +	while (count--) {
->>>> +		dev_dbg(qspi->dev, "tx cmd %08x dc %08x data %02x\n",
->>>> +			qspi->cmd | QSPI_WR_SNGL, qspi->dc, *txbuf);
->>>> +		ti_qspi_writel_data(qspi, *txbuf++, QSPI_SPI_DATA_REG, wlen);
->>> you always increment by each byte. Here, if you used writel(), you wrote
->>> 4 bytes and should increment txbuf by 4.
->> hmm..got this point. Yes, my mistake, here I agree if wlen is not 8 bits
->> txbuf++ is not valid.
->>>   Same goes for read_data(),
->>> below. Another thing. Even though your wlen might be 8 bits, if you
->>> write 4 bytes to write, you can save a few CPU cycles by using writel().
->>>
->> Do you mean 4 words of 8 bits?
-> yeah. Say you have wlen = 8 but the transfer length is 8 bytes (64
-> bits). If you use writeb(), you will do 8 writes, if you use writel()
-> you'll do 2 writes.
+Hi Mark,
+On Thursday 18 July 2013 04:12 PM, Mark Brown wrote:
+> On Thu, Jul 18, 2013 at 03:31:26PM +0530, Sourav Poddar wrote:
 >
-Just some more findings on this, after wlen bits are transferred we need 
-an WC interrupt.
-So, if I try to pack 4 words of 8bits and use readl/writel, there will 
-be an interrupt after every
-wlen bits transferred and things will get screwd up.
-
-So, for 8 bits word we need to use readb, for 16 bits word readw.
->>>> +static int ti_qspi_start_transfer_one(struct spi_master *master,
->>>> +		struct spi_message *m)
->>>> +{
->>>> +	struct ti_qspi *qspi = spi_master_get_devdata(master);
->>>> +	struct spi_device *spi = m->spi;
->>>> +	struct spi_transfer *t;
->>>> +	int status = 0, ret;
->>>> +	int frame_length;
->>>> +
->>>> +	/* setup device control reg */
->>>> +	qspi->dc = 0;
->>>> +
->>>> +	if (spi->mode&   SPI_CPHA)
->>>> +		qspi->dc |= QSPI_CKPHA(spi->chip_select);
->>>> +	if (spi->mode&   SPI_CPOL)
->>>> +		qspi->dc |= QSPI_CKPOL(spi->chip_select);
->>>> +	if (spi->mode&   SPI_CS_HIGH)
->>>> +		qspi->dc |= QSPI_CSPOL(spi->chip_select);
->>>> +
->>>> +	frame_length = DIV_ROUND_UP(m->frame_length * spi->bits_per_word,
->>>> +				spi->bits_per_word);
->>> this calculation doesn't look correct.
->>>
->>> 	(m->frame_length * spi->bits_per_word) /
->>> 		spi->bits_per_word = m->frame_length
->>>
->>> What are you trying to achieve here ? frame_length should be counted in
->>> words right ? And we get that value in bytes. So what's the best
->>> calculation to convert bytes into words ? If you have 8 bits_per_word
->>> you don't need any calculation, but if you have 32 bits_per_word, you
->>> _do_ need something.
->>>
->> Yes, just derive this formulae with 8 bits per word in mind.
->> Will change.
->> It should be (m->frame_length * 8) / spi->bits_per_word
-> right on. To make sure this will execute a little faster (you never know
-> what several different versions of GCC will do), instead of multiplying
-> by 8, left shift by 3.
+>> QSPI is a kind of spi module that allows single,
+>> dual and quad read access to external spi devices. The module
+>> has a memory mapped interface which provide direct interface
+>> for accessing data form external spi devices.
+> Have you seen the ongoing thread about SPI buses with extra data lines?
+> How does this driver fit in with that?
 >
->>> How will you achieve the number you want ? (hint: 1 byte == 8 bits)
->>>
->>> And btw, all of these mistakes pretty much tell me that this driver
->>> hasn't been tested. How have you tested this driver ?
->> After bootup, I checked for deive detting enumerated as /proc/mtd.
->> After which I am using mtdutils(erase, dump and write utilied to
->> check for the communication with the flash device.)
-> alright, make that clear in your commit log.
+>> --- a/drivers/spi/Makefile
+>> +++ b/drivers/spi/Makefile
+>> @@ -46,6 +46,7 @@ obj-$(CONFIG_SPI_OCTEON)		+= spi-octeon.o
+>>   obj-$(CONFIG_SPI_OMAP_UWIRE)		+= spi-omap-uwire.o
+>>   obj-$(CONFIG_SPI_OMAP_100K)		+= spi-omap-100k.o
+>>   obj-$(CONFIG_SPI_OMAP24XX)		+= spi-omap2-mcspi.o
+>> +obj-$(CONFIG_QSPI_DRA7xxx)              += spi-ti-qspi.o
+>>   obj-$(CONFIG_SPI_ORION)			+= spi-orion.o
+>>   obj-$(CONFIG_SPI_PL022)			+= spi-pl022.o
+>>   obj-$(CONFIG_SPI_PPC4xx)		+= spi-ppc4xx.o
+> Please use SPI_ like the other drivers.
+>
+>> +static int ti_qspi_prepare_xfer(struct spi_master *master)
+>> +{
+>> +	struct ti_qspi *qspi = spi_master_get_devdata(master);
+>> +	int ret;
+>> +
+>> +	ret = pm_runtime_get_sync(qspi->dev);
+>> +	if (ret<  0) {
+>> +		dev_err(qspi->dev, "pm_runtime_get_sync() failed\n");
+>> +		return ret;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+> This is a very common pattern, it should probably be factored out into
+> the core, probably not even as ops but rather as an actual feature.
 >
 
+I see, every other driver doing it this way right now.
+Is it ok, if I take your above idea as an seperate excercise after this 
+patch.?
+>> +	list_for_each_entry(t,&m->transfers, transfer_list) {
+>> +		qspi->cmd |= QSPI_WLEN(t->bits_per_word);
+>> +		qspi->cmd |= QSPI_WC_CMD_INT_EN;
+>> +
+>> +		ret = qspi_transfer_msg(qspi, t);
+>> +		if (ret) {
+>> +			dev_dbg(qspi->dev, "transfer message failed\n");
+>> +			return -EINVAL;
+>> +		}
+>> +
+>> +		m->actual_length += t->len;
+>> +
+>> +		if (list_is_last(&t->transfer_list,&m->transfers))
+>> +			goto out;
+>> +	}
+> The use of list_is_last() here is *realy* strange - what's going on
+> there?
+>
+>> +static irqreturn_t ti_qspi_isr(int irq, void *dev_id)
+>> +{
+>> +	struct ti_qspi *qspi = dev_id;
+>> +	u16 mask, stat;
+>> +
+>> +	irqreturn_t ret = IRQ_HANDLED;
+>> +
+>> +	spin_lock(&qspi->lock);
+>> +
+>> +	stat = ti_qspi_readl(qspi, QSPI_SPI_STATUS_REG);
+>> +	mask = ti_qspi_readl(qspi, QSPI_INTR_ENABLE_SET_REG);
+>> +
+>> +	if (stat&&  mask)
+>> +		ret = IRQ_WAKE_THREAD;
+>> +
+>> +	spin_unlock(&qspi->lock);
+>> +
+>> +	return ret;
+> According to the above code we might interrupt for masked events...
+> that's a bit worrying isn't it?
+>
+>> +	ret = devm_request_threaded_irq(&pdev->dev, irq, ti_qspi_isr,
+>> +			ti_qspi_threaded_isr, IRQF_NO_SUSPEND | IRQF_ONESHOT,
+>> +			dev_name(&pdev->dev), qspi);
+>> +	if (ret<  0) {
+>> +		dev_err(&pdev->dev, "Failed to register ISR for IRQ %d\n",
+>> +				irq);
+>> +		goto free_master;
+>> +	}
+> Standard question about devm_request_threaded_irq() - how can we be
+> certain it's safe to use during removal?
+
+
+------------------------------------------------------------------------------
+See everything from the browser to the database with AppDynamics
+Get end-to-end visibility with application monitoring from AppDynamics
+Isolate bottlenecks and diagnose root cause in seconds.
+Start your free trial of AppDynamics Pro today!
+http://pubads.g.doubleclick.net/gampad/clk?id=48808831&iu=/4140/ostg.clktrk
