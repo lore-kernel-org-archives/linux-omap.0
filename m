@@ -1,129 +1,61 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH v2 3/4] arm: dts: Add USB phy nodes for AM33XX
-Date: Fri, 19 Jul 2013 17:56:01 +0400
-Message-ID: <51E94571.8080805@cogentembedded.com>
-References: <1374237277-17769-1-git-send-email-george.cherian@ti.com> <1374237277-17769-4-git-send-email-george.cherian@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: [PATCH 12/22] ARM: ux500: Remove '0x's from OMAP2420 H4 DTS file
+Date: Fri, 19 Jul 2013 14:58:43 +0100
+Message-ID: <1374242333-6852-12-git-send-email-lee.jones@linaro.org>
+References: <1374242333-6852-1-git-send-email-lee.jones@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1374237277-17769-4-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com, bigeasy@linutronix.de
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ea0-f175.google.com ([209.85.215.175]:40272 "EHLO
+	mail-ea0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760630Ab3GSN70 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jul 2013 09:59:26 -0400
+Received: by mail-ea0-f175.google.com with SMTP id z7so2379675eaf.20
+        for <linux-omap@vger.kernel.org>; Fri, 19 Jul 2013 06:59:25 -0700 (PDT)
+In-Reply-To: <1374242333-6852-1-git-send-email-lee.jones@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: arnd@arndb.de, linus.walleij@stericsson.com, srinidhi.kasagar@stericsson.com, Lee Jones <lee.jones@linaro.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Hello.
+Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Lee Jones <lee.jones@linaro.org>
+---
+ arch/arm/boot/dts/omap2420-h4.dts | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-On 19-07-2013 16:34, George Cherian wrote:
+diff --git a/arch/arm/boot/dts/omap2420-h4.dts b/arch/arm/boot/dts/omap=
+2420-h4.dts
+index 224c08f..34cdecb 100644
+--- a/arch/arm/boot/dts/omap2420-h4.dts
++++ b/arch/arm/boot/dts/omap2420-h4.dts
+@@ -50,15 +50,15 @@
+ 			label =3D "bootloader";
+ 			reg =3D <0 0x20000>;
+ 		};
+-		partition@0x20000 {
++		partition@20000 {
+ 			label =3D "params";
+ 			reg =3D <0x20000 0x20000>;
+ 		};
+-		partition@0x40000 {
++		partition@40000 {
+ 			label =3D "kernel";
+ 			reg =3D <0x40000 0x200000>;
+ 		};
+-		partition@0x240000 {
++		partition@240000 {
+ 			label =3D "file-system";
+ 			reg =3D <0x240000 0x3dc0000>;
+ 		};
+--=20
+1.8.1.2
 
-> Add phy nodes for AM33XX platform and split the musb nodes
-> per instance.
-
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> Signed-off-by: George Cherian <george.cherian@ti.com>
-> ---
->   arch/arm/boot/dts/am33xx.dtsi | 68 +++++++++++++++++++++++++++++++++----------
->   1 file changed, 53 insertions(+), 15 deletions(-)
-
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 8e1248f..e3890c4 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -326,21 +326,59 @@
->   			status = "disabled";
->   		};
->
-> -		usb@47400000 {
-> -			compatible = "ti,musb-am33xx";
-> -			reg = <0x47400000 0x1000	/* usbss */
-> -			       0x47401000 0x800		/* musb instance 0 */
-> -			       0x47401800 0x800>;	/* musb instance 1 */
-> -			interrupts = <17		/* usbss */
-> -				      18		/* musb instance 0 */
-> -				      19>;		/* musb instance 1 */
-> -			multipoint = <1>;
-> -			num-eps = <16>;
-> -			ram-bits = <12>;
-> -			port0-mode = <3>;
-> -			port1-mode = <3>;
-> -			power = <250>;
-> -			ti,hwmods = "usb_otg_hs";
-> +		phy1: am335x-usb0@44e10620 {
-
-    Shouldn't the PHYs be *under* the usb0/1 device nodes in the hierarchy?
-They're not on the same bus as the MUSB controllers for sure.
-
-> +			compatible = "ti,am335x-usb2";
-> +			#phy-cells = <0>;
-> +			id= <0>;
-
-    Forgot space before =.
-
-> +		};
-> +
-> +		phy2: am335x-usb1@44e10628 {
-> +			compatible = "ti,am335x-usb2";
-> +			#phy-cells = <0>;
-> +			id= <1>;
-
-    Same here.
-
-> +		};
-> +
-> +		omap_control_usb: omap-control-usb@44e10620 {
-> +			compatible = "ti,omap-control-usb";
-> +			reg = <0x44e10620 0x10>;
-> +			reg-names = "control_dev_conf";
-> +			ti,type = <3>;
-> +		};
-> +
-> +                musb: usb@47400000 {
-> +                        compatible = "ti,musb-am33xx";
-> +                        reg = <0x47400000 0x1000>;
-> +                        ranges;
-> +                        #address-cells = <1>;
-> +                        #size-cells = <1>;
-> +                        interrupts = <17>;
-> +                        ti,hwmods = "usb_otg_hs";
-> +
-> +                        usb0@47401000 {
-
-    I don't think you need index in the name since you have the address as a 
-part of the name anyway. That way it's closer to the ePAPR spec.
-
-> +                                reg = <0x47401000 0x800>;
-> +                                interrupts = <18>;
-> +                                interrupt-names = "mc";
-> +                                multipoint = <1>;
-> +                                num-eps = <16>;
-> +                                ram-bits = <12>;
-> +                                port-mode = <3>;
-> +                                power = <250>;
-> +                                phys = <&phy1>;
-
-    The above lines are indented with spaces, the below one with tabs. Use 
-tabs please.
-
-> +				phy-names = "am335x-usb0";
-> +                        };
-> +
-> +                        usb1@47401800 {
-> +                                reg = <0x47401800 0x800>;
-> +                                interrupts = <19>;
-> +                                interrupt-names = "mc";
-> +                                multipoint = <1>;
-> +                                num-eps = <16>;
-> +                                ram-bits = <12>;
-> +                                port-mode = <3>;
-> +                                power = <250>;
-> +                                phys = <&phy2>;
-
-    The above lines are indented with spaces, the below one with tabs. Use 
-tabs please.
-
-> +				phy-names = "am335x-usb1";
-> +			};
->   		};
-
-WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
