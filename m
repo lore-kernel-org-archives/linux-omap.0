@@ -1,42 +1,92 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] misc: Add crossbar driver
-Date: Fri, 19 Jul 2013 00:17:29 -0700
-Message-ID: <20130719071728.GX7656@atomide.com>
-References: <1374165830-6367-1-git-send-email-r.sricharan@ti.com>
- <1374165830-6367-2-git-send-email-r.sricharan@ti.com>
- <51E83A4F.5080904@ti.com>
- <51E87C98.5030001@ti.com>
+Subject: Re: [PATCH 3/4] pinctrl: Add support for additional dynamic states
+Date: Fri, 19 Jul 2013 00:29:27 -0700
+Message-ID: <20130719072927.GY7656@atomide.com>
+References: <20130716090310.5541.36777.stgit@localhost>
+ <20130716090536.5541.36289.stgit@localhost>
+ <51E70953.1000601@wwwdotorg.org>
+ <20130718072034.GO7656@atomide.com>
+ <51E8401E.8040705@wwwdotorg.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50467 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934032Ab3GSH3a (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jul 2013 03:29:30 -0400
 Content-Disposition: inline
-In-Reply-To: <51E87C98.5030001@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, balbi@ti.com, Sricharan R <r.sricharan@ti.com>, linux@arm.linux.org.uk, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linus Walleij <linus.walleij@linaro.org>
+In-Reply-To: <51E8401E.8040705@wwwdotorg.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: linus.walleij@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-> On Thursday 18 July 2013 02:56 PM, Nishanth Menon wrote:
+* Stephen Warren <swarren@wwwdotorg.org> [130718 12:27]:
+> On 07/18/2013 01:25 AM, Tony Lindgren wrote:
+> > * Stephen Warren <swarren@wwwdotorg.org> [130717 14:21]:
+> >> On 07/16/2013 03:05 AM, Tony Lindgren wrote:
+> >>> To toggle dynamic states, let's add the optional active state in
+> >>> addition to the static default state. Then if the optional active
+> >>> state is defined, we can require that idle and sleep states cover
+> >>> the same pingroups as the active state.
+> >>>
+> >>> Then let's add pinctrl_check_dynamic() and pinctrl_select_dynamic()
+> >>> to use instead of pinctrl_select() to avoid breaking existing users.
+> >>>
+> >>> With pinctrl_check_dynamic() we can check that idle and sleep states
+> >>> match the active state for pingroups during init, and don't need to
+> >>> do it during runtime.
+> >>>
+> >>> Then with the states pre-validated, pinctrl_select_dynamic() can
+> >>> just toggle between the dynamic states without extra checks.
+> >>>
+> >>> Note that pinctr_select_state() still has valid use cases, such as
+> >>> changing states when the pins can be shared between two drivers
+> >>> and don't necessarily cover the same pingroups. For dynamic runtime
+> >>> toggling of pin states, we should eventually always use just
+> >>> pinctrl_select_dynamic().
 > 
-> Since the cross-bar is not limited t0 IRQ lines and applicable for
-> DMA request lines as well, making it IRQ chip doesn't make sense. Its
-> not typical pin control functionality either but at least that framework
-> is much closer to consider as an option.
+> >>> @@ -1241,7 +1371,13 @@ static int pinctrl_pm_select_state(struct device *dev, struct pinctrl_state *sta
+> >>>  		return 0;
+> >>>  	if (IS_ERR(state))
+> >>>  		return 0; /* No such state */
+> >>> -	ret = pinctrl_select_state(pins->p, state);
+> >>> +
+> >>> +	/* Configured for proper dynamic muxing? */
+> >>> +	if (!IS_ERR(dev->pins->active_state))
+> >>> +		ret = pinctrl_select_dynamic(pins->p, state);
+> >>> +	else
+> >>> +		ret = pinctrl_select_state(pins->p, state);
+> >>
+> >> Hmmm. I'm not quite sure this is right... Surely this function should
+> >> just do nothing if the dynamic states aren't defined? The system should
+> >> just, and only, be in the "default" state and never do anything else.
+> > 
+> > This keeps the existing behaviour. We should be able to drop the
+> > call to pinctrl_select_state() here after the existing use in
+> > drivers has been fixed.
 > 
-> Actually its more of setting up the IRQ and DMA pins maps once
-> at boot for a given SOC based on chosen configuration by the
-> board. So I am leaning towards pinctrl as well. Just haven't
-> thought enough about whether thats the best approach.
-> 
-> CC'ing Linus W and Tony L whether we can use pinctrl framework
-> for such an IP and if yes how ;-).
+> How many DT-based systems already have multiple of default/idle/sleep
+> states defined in DT? Right now, since the kernel code uses
+> pinctrl_select_state() to switch between those, the state definitions
+> need to define /all/ pins used by those states, not just the dynamic
+> ones. However, with this series in place, the default state should only
+> include the static pins, and the active/idle/sleep states should only
+> include the dynamic pins. That's a change to the DT bindings, since it
+> changes how the DT must be written, and causes older DTs to be
+> incompatible with newer kernels and vice-versa.
 
-If it really muxes signals then using pinctrl seems logical.
-Especially if the registers are in the SCM block.
+Well we can keep the current behaviour with pinctrl_select_state() around
+as long as needed. For the legacy cases, there is no active state defined
+and we fall back to pinctrl_select_state().
+ 
+> So, do we just ignore this DT ABI change again, or insist on doing it in
+> some compatible way? DT ABI-ness is a PITA:-(
 
-It might be already possible to handle it already with
-pinctrl-single,bits for the muxing part.
+I'd vote for keeping the existing behaviour with pinctrl_select_state()
+when no active state is defined.
 
 Regards,
 
 Tony
+
