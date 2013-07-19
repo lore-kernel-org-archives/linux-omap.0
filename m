@@ -1,78 +1,49 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH v2 3/4] arm: dts: Add USB phy nodes for AM33XX
-Date: Fri, 19 Jul 2013 16:20:32 +0200
-Message-ID: <51E94B30.9070805@linutronix.de>
-References: <1374237277-17769-1-git-send-email-george.cherian@ti.com> <1374237277-17769-4-git-send-email-george.cherian@ti.com> <51E94571.8080805@cogentembedded.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH v6 1/2] ARM: dts: twl: Add GPADC data to device tree
+Date: Fri, 19 Jul 2013 18:39:19 +0400
+Message-ID: <51E94F97.40002@cogentembedded.com>
+References: <1374226039-16943-1-git-send-email-oleksandr.kozaruk@ti.com> <1374226039-16943-2-git-send-email-oleksandr.kozaruk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51E94571.8080805@cogentembedded.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: George Cherian <george.cherian@ti.com>, linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:45925 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760494Ab3GSOjR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jul 2013 10:39:17 -0400
+Received: by mail-lb0-f179.google.com with SMTP id w20so3490542lbh.38
+        for <linux-omap@vger.kernel.org>; Fri, 19 Jul 2013 07:39:13 -0700 (PDT)
+In-Reply-To: <1374226039-16943-2-git-send-email-oleksandr.kozaruk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
+Cc: tony@atomide.com, benoit.cousson@linaro.org, rnayak@ti.com, peter.ujfalusi@ti.com, kishon@ti.com, jic23@cam.ac.uk, grant.likely@linaro.org, rob.herring@calxeda.com, lars@metafoo.de, sameo@linux.intel.com, ch.naveen@samsung.com, poeschel@lemonage.de, milo.kim@ti.com, balajitk@ti.com, gg@slimlogic.co.uk, linux-iio@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 07/19/2013 03:56 PM, Sergei Shtylyov wrote:
-> On 19-07-2013 16:34, George Cherian wrote:
-> 
->> diff --git a/arch/arm/boot/dts/am33xx.dtsi
->> b/arch/arm/boot/dts/am33xx.dtsi
->> index 8e1248f..e3890c4 100644
->> --- a/arch/arm/boot/dts/am33xx.dtsi
->> +++ b/arch/arm/boot/dts/am33xx.dtsi
->> @@ -326,21 +326,59 @@
->>               status = "disabled";
->>           };
->>
->> -        usb@47400000 {
->> -            compatible = "ti,musb-am33xx";
->> -            reg = <0x47400000 0x1000    /* usbss */
->> -                   0x47401000 0x800        /* musb instance 0 */
->> -                   0x47401800 0x800>;    /* musb instance 1 */
->> -            interrupts = <17        /* usbss */
->> -                      18        /* musb instance 0 */
->> -                      19>;        /* musb instance 1 */
->> -            multipoint = <1>;
->> -            num-eps = <16>;
->> -            ram-bits = <12>;
->> -            port0-mode = <3>;
->> -            port1-mode = <3>;
->> -            power = <250>;
->> -            ti,hwmods = "usb_otg_hs";
->> +        phy1: am335x-usb0@44e10620 {
-> 
->    Shouldn't the PHYs be *under* the usb0/1 device nodes in the hierarchy?
-> They're not on the same bus as the MUSB controllers for sure.
+Hello.
 
-I redo the complete thing. I have now:
+On 19-07-2013 13:27, Oleksandr Kozaruk wrote:
 
-usb: usb@47400000 {
-	compatible = "ti,am33xx-usb";
-	
-	usb0_phy: phy@47401300 {
-		compatible = "ti,am335x-usb-phy";
-	}
-	usb0: usb@47401000 {
-		musb0: usb@47401400 {
-			compatible = "mg,musbmhdrc";
-		}
-	}
-	usb1_phy: phy@47402300 {
-		compatible = "ti,am335x-usb-phy";
-	}
-	usb1: usb@47402000 {
-		musb1: usb@47402400 {
-			compatible = "mg,musbmhdrc";
-		}
-	}
-}
+> GPADC is the general purpose ADC present on twl6030.
+> The dt data is interrupt used to trigger end of ADC
+> conversion.
 
-And you want usb0_phy to be child of usb0? In the TRM they are all in
-the same block.
+> Signed-off-by: Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>
+> ---
+>   arch/arm/boot/dts/twl6030.dtsi | 6 ++++++
+>   1 file changed, 6 insertions(+)
 
-> 
-> WBR, Sergei
-> 
+> diff --git a/arch/arm/boot/dts/twl6030.dtsi b/arch/arm/boot/dts/twl6030.dtsi
+> index 2e3bd31..d7d4c28 100644
+> --- a/arch/arm/boot/dts/twl6030.dtsi
+> +++ b/arch/arm/boot/dts/twl6030.dtsi
+> @@ -103,4 +103,10 @@
+>   		compatible = "ti,twl6030-pwmled";
+>   		#pwm-cells = <2>;
+>   	};
+> +
+> +	adc: gpadc {
 
-Sebastian
+    Read my lips: the node should be called just "adc", not "gpadc".
+
+WBR, Sergei
+
