@@ -1,152 +1,117 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 1/4] usb: phy: phy-omap-control: Add API to power and
- wakeup
-Date: Fri, 19 Jul 2013 18:50:44 +0530
-Message-ID: <51E93D2C.1090202@ti.com>
-References: <1374237277-17769-1-git-send-email-george.cherian@ti.com> <1374237277-17769-2-git-send-email-george.cherian@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/2] Input: omap-keypad: Cleanup - remove unnecessary IRQ
+ enabling/disabling
+Date: Fri, 19 Jul 2013 16:26:48 +0300
+Message-ID: <20130719132648.GB17188@arwen.pp.htv.fi>
+References: <1374239027-3927-1-git-send-email-illia.smyrnov@globallogic.com>
+ <1374239027-3927-3-git-send-email-illia.smyrnov@globallogic.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yEPQxsgoJgBvi8ip"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1374237277-17769-2-git-send-email-george.cherian@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1374239027-3927-3-git-send-email-illia.smyrnov@globallogic.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, bigeasy@linutronix.de
+To: Illia Smyrnov <illia.smyrnov@globallogic.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+
+--yEPQxsgoJgBvi8ip
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Friday 19 July 2013 06:04 PM, George Cherian wrote:
-> on/off USB PHY for AM335X
-> 
-> Add APIs to
-> 	-power on/off USB PHY for AM335X
-> 	-enable/disable PHY wakeup.
-> 
-> This API will be called from phy-amxxxx-usb driver.
-> 
-> Signed-off-by: George Cherian <george.cherian@ti.com>
+On Fri, Jul 19, 2013 at 04:03:47PM +0300, Illia Smyrnov wrote:
+> From: Illia Smyrnov <illia.smyrnov@ti.com>
+>=20
+> Remove unnecessary IRQ enabling/disabling for certain keyboard events.
+>=20
+> Signed-off-by: Illia Smyrnov <illia.smyrnov@ti.com>
 > ---
->  drivers/usb/phy/phy-omap-control.c   | 67 ++++++++++++++++++++++++++++++++++++
->  include/linux/usb/omap_control_usb.h | 24 +++++++++++++
->  2 files changed, 91 insertions(+)
-> 
-> diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
-> index 1419ced..4f2502c 100644
-> --- a/drivers/usb/phy/phy-omap-control.c
-> +++ b/drivers/usb/phy/phy-omap-control.c
-> @@ -46,6 +46,73 @@ struct device *omap_get_control_dev(void)
->  EXPORT_SYMBOL_GPL(omap_get_control_dev);
->  
->  /**
-> + * omap_control_am335x_phy_wkup - PHY wakeup on/off  using control
-> + *	module
-> + * @dev: the control module device
-> + * @on: 0 to off and 1 to on PHY wakeup feature
+>  drivers/input/keyboard/omap4-keypad.c |   15 ++++-----------
+>  1 files changed, 4 insertions(+), 11 deletions(-)
+>=20
+> diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboa=
+rd/omap4-keypad.c
+> index c727548..73813b6 100644
+> --- a/drivers/input/keyboard/omap4-keypad.c
+> +++ b/drivers/input/keyboard/omap4-keypad.c
+> @@ -121,10 +121,6 @@ static irqreturn_t omap4_keypad_interrupt(int irq, v=
+oid *dev_id)
+>  	unsigned int col, row, code, changed;
+>  	u32 *new_state =3D (u32 *) key_state;
+> =20
+> -	/* Disable interrupts */
+> -	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
+> -			 OMAP4_VAL_IRQDISABLE);
+> -
+>  	*new_state =3D kbd_readl(keypad_data, OMAP4_KBD_FULLCODE31_0);
+>  	*(new_state + 1) =3D kbd_readl(keypad_data, OMAP4_KBD_FULLCODE63_32);
+> =20
+> @@ -154,11 +150,6 @@ static irqreturn_t omap4_keypad_interrupt(int irq, v=
+oid *dev_id)
+>  	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS,
+>  			 kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS));
+> =20
+> -	/* enable interrupts */
+> -	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
+> -		OMAP4_DEF_IRQENABLE_EVENTEN |
+> -				OMAP4_DEF_IRQENABLE_LONGKEY);
+> -
 
-%s/off/disable %s/on/enable
-> + * @id: phy id 0 or 1 for phy instance 0 and 1 repectively
-> + *
-> + * AMXXXX PHY driver should call this API to enable or disable PHY wakeup.
-> + */
-> +void omap_control_am335x_phy_wkup(struct device *dev, bool on, u8 id)
-> +{
-> +	u32 val;
-> +	u32 *phy_wkup_reg;
-> +	struct omap_control_usb	*control_usb = dev_get_drvdata(dev);
-> +
-> +	if (control_usb->type != OMAP_CTRL_DEV_TYPE3 || id < 0 || id > 1)
-> +		return;
-> +
-> +	phy_wkup_reg = control_usb->dev_conf + AM335X_USB_WKUP_OFFSET;
-> +	val = readl(phy_wkup_reg);
-> +
-> +	if (on)
-> +		val |= id ? AM335X_USB1_WKUP_CTRL_ENABLE :
-> +				AM335X_USB0_WKUP_CTRL_ENABLE;
-> +	 else
-> +		val &= id ? ~AM335X_USB1_WKUP_CTRL_ENABLE :
-> +				~AM335X_USB0_WKUP_CTRL_ENABLE;
-> +
-> +
+please don't remove this code. It'll be good to have this around when we
+move the driver to threaded IRQs without IRQF_ONESHOT. In fact, it would
+be very simple to implement such a change, wanna take it up ?
 
-You really need two blank spaces here?
-> +	writel(val, phy_wkup_reg);
-> +}
-> +EXPORT_SYMBOL_GPL(omap_control_am335x_phy_wkup);
-> +
-> +/**
-> + * omap_control_am335x_phy_power - power on/off the serializer using control
-> + *	module
-> + * @dev: the control module device
-> + * @on: 0 to off and 1 to on based on powering on or off the PHY
-> + * @id: phy id 0 or 1 for phy instance 0 and 1 repectively
-> + *
-> + * AMXXXX PHY driver should call this API to power on or off the PHY.
-> + */
-> +void omap_control_am335x_phy_power(struct device *dev, bool on, u8 id)
-> +{
-> +	u32 val;
-> +	u32 *phy_pwr_reg;
-> +	struct omap_control_usb	*control_usb = dev_get_drvdata(dev);
-> +
-> +	if (control_usb->type != OMAP_CTRL_DEV_TYPE3 || id < 0 || id > 1)
-> +		return;
-> +
-> +	phy_pwr_reg = GET_PHY_POWER_REG(control_usb->dev_conf, id);
-> +	val = readl(phy_pwr_reg);
-> +
-> +	if (on) {
-> +		val &= ~(AM335X_USBPHY_CM_PWRDN | AM335X_USBPHY_OTG_PWRDN);
-> +		val |= AM335X_USBPHY_OTGVDET_EN |
-> +			AM335X_USBPHY_OTGSESSEND_EN;
-> +	} else
-> +		val |= AM335X_USBPHY_CM_PWRDN | AM335X_USBPHY_OTG_PWRDN;
-> +
-> +
-ditto.
-> +	writel(val, phy_pwr_reg);
-> +}
-> +EXPORT_SYMBOL_GPL(omap_control_am335x_phy_power);
-> +
-> +
-ditto.
-> +/**
->   * omap_control_usb3_phy_power - power on/off the serializer using control
->   *	module
->   * @dev: the control module device
-> diff --git a/include/linux/usb/omap_control_usb.h b/include/linux/usb/omap_control_usb.h
-> index 27b5b8c..a92b417 100644
-> --- a/include/linux/usb/omap_control_usb.h
-> +++ b/include/linux/usb/omap_control_usb.h
-> @@ -45,6 +45,7 @@ enum omap_control_usb_mode {
->  /* To differentiate ctrl module IP having either mailbox or USB3 PHY power */
->  #define	OMAP_CTRL_DEV_TYPE1		0x1
->  #define	OMAP_CTRL_DEV_TYPE2		0x2
-> +#define	OMAP_CTRL_DEV_TYPE3		0x3
->  
->  #define	OMAP_CTRL_DEV_PHY_PD		BIT(0)
->  
-> @@ -63,10 +64,23 @@ enum omap_control_usb_mode {
->  #define	OMAP_CTRL_USB3_PHY_TX_RX_POWERON	0x3
->  #define	OMAP_CTRL_USB3_PHY_TX_RX_POWEROFF	0x0
->  
-> +#define GET_PHY_POWER_REG(base, id)	((u32 *)base + (id * 2))
+It should be doable in few patches:
 
-how about
-#define GET_PHY_POWER_REG(base, id)	((u32 *)(base) + ((id) * 2))
-> +#define AM335X_USBPHY_CM_PWRDN		(1 << 0)
-> +#define AM335X_USBPHY_OTG_PWRDN		(1 << 1)
-> +#define AM335X_USBPHY_OTGVDET_EN		(1 << 19)
-> +#define AM335X_USBPHY_OTGSESSEND_EN	(1 << 20)
-> +#define AM335X_USB_WKUP_OFFSET		0xA
-> +#define AM335X_USB0_WKUP_CTRL_ENABLE	(1 << 0)
-> +#define AM335X_USB1_WKUP_CTRL_ENABLE	(1 << 8)
-> +
-> +
-> +
+1) switch over to request_threaded_irq()
 
-too many blank lines...
+	just blind move to a thread, without hardirq handler, so
+	IRQF_ONESHOT is mandatory.
 
-Thanks
-Kishon
+2) add hardirq handler
+
+	read IRQSTATUS to check if our device has generated IRQs
+	returning IRQ_WAKE_THREAD if true
+
+3) move 'IRQ masking logic' to hardirq handler, before returning
+IRQ_WAKE_THREAD
+
+	this will let you remove IRQF_ONESHOT
+
+4) finally remove IRQF_ONESHOT
+
+	this makes sure that IRQs aren't kept disabled until we have
+	time to iterate over the entire keypad matrix. Only the keypad
+	IRQ will be masked.
+
+--=20
+balbi
+
+--yEPQxsgoJgBvi8ip
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR6T6YAAoJEIaOsuA1yqREiu8P/13909a6NgJFVGavASP9XXGk
+4XZjZfFJjA/o0kqsms9Oo3A7HaGVyNgfDwYynZruNJX/eQaPiiEFZi5nUwYLsOMZ
+a1UlpXnHrfIvJis6u9njgtVbvFINt5fab28QEMAKFkqbz8tqK5qlQZ1VuZvNpkxS
+hEQKC9DY1vAPLH8TMVIUYvZ9Wk1qleQNoJIlqj7hkz0FS+2C+MEPzbYI6Ele/X7N
+HnUj01IqV0cwLCM1Sbzyh5UfeXAJCcXNlj4Z+TeF+gysdpVUKNRbW7nQGRFND+5u
+3eHah6VGkQPr+zePF8OwObPlsa+nZhGnTqlVs7p2W1AD3OeNxV+VCZ9ZXoGlJlcB
+G3C2y6wjNJDuvpowRL0PlgQVtD5ee2VS5hZoVldM4aWWgLcsJzDOC7eXL6o2sVC6
+Vjj2r+msCZ7XuzDUgnwVvxNd9I0/JrEtGYBOU04oh/OSzRfzOMVIxXbA7AwBQIaX
+WwDDbLCEvPDSI+4K5bxl00H6f6FoY1rECQ5L3Tx5xUM57Z257HGEj5jhn44KbMa+
+SVorZdNudFia9wA0cWINi0+rw+fJlMN2H1Q7saseJQ6DautHtBRD9u3uhIUKZ8FQ
+wMEqUP3INNFoVsKwbIokevh57v5JPewts8DB9pwRsElDRSryZQzjoqlEdCjqNE7z
+b4y4G9daSw1acPmkpzox
+=kACE
+-----END PGP SIGNATURE-----
+
+--yEPQxsgoJgBvi8ip--
