@@ -1,86 +1,62 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCH 4/4] arm: dts: dra7-evm: Add UART pinctrl data
-Date: Fri, 19 Jul 2013 21:54:10 +0530
-Message-ID: <1374251050-10033-5-git-send-email-sourav.poddar@ti.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 0/4] dra7: I2C/MCSPI/UART pin control datas
+Date: Fri, 19 Jul 2013 11:31:15 -0500
+Message-ID: <51E969D3.2080804@ti.com>
 References: <1374251050-10033-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42407 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760794Ab3GSQYd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Jul 2013 12:24:33 -0400
-In-Reply-To: <1374251050-10033-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1374251050-10033-1-git-send-email-sourav.poddar-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, benoit.cousson@linaro.org
-Cc: balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Sourav Poddar <sourav.poddar@ti.com>
 
-Add pin control datas for uart1, uart2 and uart3.
+On 07/19/2013 11:24 AM, Sourav Poddar wrote:
+> These series add support for I2C/MCSPI/UART pin control datas.
+>
+> The series is done on top of Rajendra Nayak series[1](posted to the list),
+> which has basic dt boot enable for dra7.
+> These patches has been tested, along with I2C and UART patches from
+> wolfram sang patch series[2].
+>
+>
+> [1]: http://www.spinics.net/lists/linux-omap/msg93535.html
+> [2]: https://lkml.org/lkml/2013/7/10/335
+>
+> Sourav Poddar (4):
+>    arm: dts: omap5-evm: Add I2c pinctrl data
+>    arm: dts: omap5-evm: Add I2c pinctrl data
+>    arm: dts: dra7-evm: Add SPI pinctrl data
+>    arm: dts: dra7-evm: Add UART pinctrl data
+>
+>   arch/arm/boot/dts/dra7-evm.dts |  123 ++++++++++++++++++++++++++++++++++++++++
+>   arch/arm/boot/dts/dra7.dtsi    |   15 +++++
+>   2 files changed, 138 insertions(+), 0 deletions(-)
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+DRA7 DTS is not merged yet, If I am not mistaken.
+Ref[1] [2]
+So why not squash these to [2]?
 
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
----
- arch/arm/boot/dts/dra7-evm.dts |   43 ++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 43 insertions(+), 0 deletions(-)
+[1] http://marc.info/?t=137335517900001&r=1&w=2
+[2] http://marc.info/?l=linux-arm-kernel&m=137335590702349&w=2
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index d8b0da9..8f3be53 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -61,6 +61,31 @@
- 			0x3cc 0xe0000	/* spi2_cs0 */
- 		>;
- 	};
-+
-+	uart1_pins: pinmux_uart1_pins {
-+		pinctrl-single,pins = <
-+			0x3e0 0xe0000	/* uart1_rxd */
-+			0x3e4 0xe0000	/* uart1_txd */
-+			0x3e8 0x60003	/* uart1_ctsn */
-+			0x3ec 0x60003	/* uart1_rtsn */
-+		>;
-+	};
-+
-+	uart2_pins: pinmux_uart2_pins {
-+		pinctrl-single,pins = <
-+			0x3f0 0x60000 /* uart2_rxd */
-+			0x3f4 0x60000 /* uart2_txd */
-+			0x3f8 0x60000 /* uart2_ctsn */
-+			0x3fc 0x60000 /* uart2_rtsn */
-+		>;
-+	};
-+
-+	uart3_pins: pinmux_uart3_pins {
-+		pinctrl-single,pins = <
-+			0x248 0xc0000 /* uart3_rxd */
-+			0x24c 0xc0000 /* uart3_txd */
-+		>;
-+	};
- };
- 
- &i2c1 {
-@@ -98,3 +123,21 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mcspi2_pins>;
- };
-+
-+&uart1 {
-+	status = "okay";
-+        pinctrl-names = "default";
-+        pinctrl-0 = <&uart1_pins>;
-+};
-+
-+&uart2 {
-+        status = "okay";
-+        pinctrl-names = "default";
-+        pinctrl-0 = <&uart2_pins>;
-+};
-+
-+&uart3 {
-+        status = "okay";
-+        pinctrl-names = "default";
-+        pinctrl-0 = <&uart3_pins>;
-+};
+
 -- 
-1.7.1
-
+Regards,
+Nishanth Menon
