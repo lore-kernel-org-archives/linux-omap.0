@@ -1,62 +1,40 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 0/4] usb: musb: fix USB enumeration issue in OMAP3
- platform
-Date: Fri, 19 Jul 2013 14:15:02 +0530
-Message-ID: <51E8FC8E.7090302@ti.com>
-References: <1373282057-20181-1-git-send-email-kishon@ti.com>
- <51E4DFA6.2010501@ti.com> <20130716124227.GC15036@arwen.pp.htv.fi>
+From: =?UTF-8?q?Teresa=20G=C3=A1mez?= <t.gamez@phytec.de>
+Subject: [PATCH] mtd: nand: omap2: Fix oobfree offset
+Date: Fri, 19 Jul 2013 11:13:22 +0200
+Message-ID: <1374225202-26518-1-git-send-email-t.gamez@phytec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130716124227.GC15036@arwen.pp.htv.fi>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: balbi@ti.com
-Cc: linux@arm.linux.org.uk, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, eballetbo@gmail.com, javier@dowhile0.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: linux-mtd@lists.infradead.org
+Cc: tony@atomide.com, artem.bityutskiy@linux.intel.com, afzal@ti.com, linux-omap@vger.kernel.org, dwmw2@infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Felipe,
-
-On Tuesday 16 July 2013 06:12 PM, Felipe Balbi wrote:
-> Hi,
-> 
-> On Tue, Jul 16, 2013 at 11:22:38AM +0530, Kishon Vijay Abraham I wrote:
->> Tony,
->>
->> On Monday 08 July 2013 04:44 PM, Kishon Vijay Abraham I wrote:
->>> This series fixes the USB enumeration issue caused because of the controller
->>> not able to get a reference to the PHY because of incorrect binding in the
->>> board file.
->>>
->>> In the case of non-dt boot, the platform specific initialization file
->>> (board file) will do usb_bind_phy that binds the usb controller with the
->>> PHY using device names. After the device names are created using 
->>> PLATFORM_DEVID_AUTO, our original method of binding by device names doesn't
->>> work reliably (since the device name changes). Hence the usb controller
->>> is made to use labels for getting the PHY.
->>>
->>> Here the PHY name is added in the plat data of USB controller device which
->>> should be used by the controller driver to get the PHY.
->>> Two new APIs usb_get_phy_by_name and devm_usb_get_phy_by_name are added to
->>> be used by the controller to get the PHY by name.
->>
->> You haven't picked this patch series?
-> 
-> yeah and now it's too much to send during the -rc series. Here's what we
-> can do, we can to minimum fix for -rc series (patching the names again)
-
-There are a lot of different boards available using OMAP3 and the device names
-(PHY and MUSB) vary across each board (apparently). It will be difficult to
-find the device names (for PHY and MUSB) for all the different boards available
-(partly because of non-availability of all the boards) and test it.
-
-Thanks
-Kishon
+VGhlIGNhbGN1bGF0aW9uIG9mIHRoZSBvb2JmcmVlWzBdLm9mZnNldCBpcyB3cm9uZyB3aGVuIHVz
+aW5nIEJDSDgKYW5kIGVsbS4KClRoZSBsYXlvdXQtPmVjY2J5dGVzIGlzIGFscmVhZHkgc3RlcHMq
+aW5mby0+bmFuZC5lY2MuYnl0ZXMuIFRoZSBzZWNvbmQKbXVsdGlwbGljYXRpb24gd2l0aCBzdGVw
+cyBpcyB0b28gbXVjaCBhbmQgd2lsbCBjcmVhdGUgYSB2YWx1ZQpsYXJnZXIgdGhhbiB0aGUgb29i
+IGFyZWEuCgpGaXhlZCB0aGUgY2FsY3VsYXRpb24uCgpTaWduZWQtb2ZmLWJ5OiBUZXJlc2EgR8Oh
+bWV6IDx0LmdhbWV6QHBoeXRlYy5kZT4KLS0tCiBkcml2ZXJzL210ZC9uYW5kL29tYXAyLmMgfCAg
+ICAyICstCiAxIGZpbGVzIGNoYW5nZWQsIDEgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbnMoLSkK
+CmRpZmYgLS1naXQgYS9kcml2ZXJzL210ZC9uYW5kL29tYXAyLmMgYi9kcml2ZXJzL210ZC9uYW5k
+L29tYXAyLmMKaW5kZXggODFiODBhZi4uOTIyNzA2YiAxMDA2NDQKLS0tIGEvZHJpdmVycy9tdGQv
+bmFuZC9vbWFwMi5jCisrKyBiL2RyaXZlcnMvbXRkL25hbmQvb21hcDIuYwpAQCAtMTc5MCw3ICsx
+NzkwLDcgQEAgc3RhdGljIGludCBvbWFwM19pbml0X2JjaF90YWlsKHN0cnVjdCBtdGRfaW5mbyAq
+bXRkKQogCQlsYXlvdXQtPmVjY3Bvc1tpXSA9IG9mZnNldCArIGk7CiAKIAlpZiAoaW5mby0+aXNf
+ZWxtX3VzZWQgJiYgKGluZm8tPm5hbmQuZWNjLmJ5dGVzID09IEJDSDhfU0laRSkpCi0JCWxheW91
+dC0+b29iZnJlZVswXS5vZmZzZXQgPSAyICsgbGF5b3V0LT5lY2NieXRlcyAqIHN0ZXBzOworCQls
+YXlvdXQtPm9vYmZyZWVbMF0ub2Zmc2V0ID0gMiArIGxheW91dC0+ZWNjYnl0ZXM7CiAJZWxzZQog
+CQlsYXlvdXQtPm9vYmZyZWVbMF0ub2Zmc2V0ID0gMjsKIAotLSAKMS43LjAuNAoKCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eCBNVEQg
+ZGlzY3Vzc2lvbiBtYWlsaW5nIGxpc3QKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1h
+bi9saXN0aW5mby9saW51eC1tdGQvCg==
