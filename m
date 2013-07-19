@@ -1,75 +1,85 @@
 From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCH 3/4] arm: dts: dra7-evm: Add SPI pinctrl data
-Date: Fri, 19 Jul 2013 21:54:09 +0530
-Message-ID: <1374251050-10033-4-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCH 4/4] arm: dts: dra7-evm: Add UART pinctrl data
+Date: Fri, 19 Jul 2013 21:54:10 +0530
+Message-ID: <1374251050-10033-5-git-send-email-sourav.poddar@ti.com>
 References: <1374251050-10033-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60730 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760794Ab3GSQY3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jul 2013 12:24:29 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:42407 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760794Ab3GSQYd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Jul 2013 12:24:33 -0400
 In-Reply-To: <1374251050-10033-1-git-send-email-sourav.poddar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, benoit.cousson@linaro.org
 Cc: balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Sourav Poddar <sourav.poddar@ti.com>
 
-Add pin control data for mcspi1 and mcspi2.
+Add pin control datas for uart1, uart2 and uart3.
 
 Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 ---
- arch/arm/boot/dts/dra7-evm.dts |   33 +++++++++++++++++++++++++++++++++
- 1 files changed, 33 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/dra7-evm.dts |   43 ++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 43 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index 5591db2..d8b0da9 100644
+index d8b0da9..8f3be53 100644
 --- a/arch/arm/boot/dts/dra7-evm.dts
 +++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -40,6 +40,27 @@
- 			0x414 0x60000	/* i2c3_scl */
+@@ -61,6 +61,31 @@
+ 			0x3cc 0xe0000	/* spi2_cs0 */
  		>;
  	};
 +
-+	mcspi1_pins: pinmux_mcspi1_pins {
++	uart1_pins: pinmux_uart1_pins {
 +		pinctrl-single,pins = <
-+			0x3a4 0x40000	/* spi2_clk */
-+			0x3a8 0x40000	/* spi2_d1 */
-+			0x3ac 0x40000	/* spi2_d0 */
-+			0x3b0 0xc0000	/* spi2_cs0 */
-+			0x3b4 0xc0000	/* spi2_cs1 */
-+			0x3b8 0xe0006	/* spi2_cs2 */
-+			0x3bc 0xe0006	/* spi2_cs3 */
++			0x3e0 0xe0000	/* uart1_rxd */
++			0x3e4 0xe0000	/* uart1_txd */
++			0x3e8 0x60003	/* uart1_ctsn */
++			0x3ec 0x60003	/* uart1_rtsn */
 +		>;
 +	};
 +
-+	mcspi2_pins: pinmux_mcspi2_pins {
++	uart2_pins: pinmux_uart2_pins {
 +		pinctrl-single,pins = <
-+			0x3c0 0x40000	/* spi2_sclk */
-+			0x3c4 0xc0000	/* spi2_d1 */
-+			0x3c8 0xc0000	/* spi2_d1 */
-+			0x3cc 0xe0000	/* spi2_cs0 */
++			0x3f0 0x60000 /* uart2_rxd */
++			0x3f4 0x60000 /* uart2_txd */
++			0x3f8 0x60000 /* uart2_ctsn */
++			0x3fc 0x60000 /* uart2_rtsn */
++		>;
++	};
++
++	uart3_pins: pinmux_uart3_pins {
++		pinctrl-single,pins = <
++			0x248 0xc0000 /* uart3_rxd */
++			0x24c 0xc0000 /* uart3_txd */
 +		>;
 +	};
  };
  
  &i2c1 {
-@@ -65,3 +86,15 @@
- 
- 	clock-frequency = <3400000>;
+@@ -98,3 +123,21 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&mcspi2_pins>;
  };
 +
-+&mcspi1 {
-+        status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mcspi1_pins>;
++&uart1 {
++	status = "okay";
++        pinctrl-names = "default";
++        pinctrl-0 = <&uart1_pins>;
 +};
 +
-+&mcspi2 {
++&uart2 {
 +        status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mcspi2_pins>;
++        pinctrl-names = "default";
++        pinctrl-0 = <&uart2_pins>;
++};
++
++&uart3 {
++        status = "okay";
++        pinctrl-names = "default";
++        pinctrl-0 = <&uart3_pins>;
 +};
 -- 
 1.7.1
