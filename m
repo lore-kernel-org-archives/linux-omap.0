@@ -1,176 +1,116 @@
-From: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Subject: [PATCH] arm: dts: twl6030: typical connection to omap4 as a separate dtsi file
-Date: Fri, 19 Jul 2013 15:10:14 +0300
-Message-ID: <1374235814-17834-1-git-send-email-ruslan.bilovol@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv4 2/3] drivers: spi: Add qspi flash controller
+Date: Fri, 19 Jul 2013 15:20:29 +0300
+Message-ID: <20130719122029.GE16115@arwen.pp.htv.fi>
+References: <1374141687-10790-1-git-send-email-sourav.poddar@ti.com>
+ <1374141687-10790-3-git-send-email-sourav.poddar@ti.com>
+ <20130718102404.GH11251@arwen.pp.htv.fi>
+ <51E7CF11.5030301@ti.com>
+ <20130718112458.GJ11251@arwen.pp.htv.fi>
+ <51E9279F.6010601@ti.com>
+Reply-To: <balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ILuaRSyQpoVaJ1HG"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:36489 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760393Ab3GSMKW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jul 2013 08:10:22 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53349 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751149Ab3GSMUo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Jul 2013 08:20:44 -0400
+Content-Disposition: inline
+In-Reply-To: <51E9279F.6010601@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: benoit.cousson@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, nm@ti.com
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: balbi@ti.com, broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The OMAP4 SoC family uses specially-designed
-PMIC (power management IC) companion chip for power
-management needs: TWL6030/TWL6032.
-Therefore there is a typical connection of PMIC to OMAP4
-so we can figure it out into separate .dtsi file
-and do not duplicate over board-specific files.
+--ILuaRSyQpoVaJ1HG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Tested on OMAP4 SDP board and compile-tested for Panda board
+Hi,
 
-Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
----
- arch/arm/boot/dts/omap4-panda-common.dtsi |   21 +---------------
- arch/arm/boot/dts/omap4-sdp.dts           |   21 +---------------
- arch/arm/boot/dts/twl6030_omap4.dtsi      |   38 +++++++++++++++++++++++++++++
- 3 files changed, 40 insertions(+), 40 deletions(-)
- create mode 100644 arch/arm/boot/dts/twl6030_omap4.dtsi
+On Fri, Jul 19, 2013 at 05:18:47PM +0530, Sourav Poddar wrote:
+> On Thursday 18 July 2013 04:54 PM, Felipe Balbi wrote:
+> >On Thu, Jul 18, 2013 at 04:48:41PM +0530, Sourav Poddar wrote:
+> >>>>+static void qspi_write_msg(struct ti_qspi *qspi, struct spi_transfer=
+ *t)
+> >>>>+{
+> >>>>+	const u8 *txbuf;
+> >>>>+	int wlen, count;
+> >>>>+
+> >>>>+	count =3D t->len;
+> >>>>+	txbuf =3D t->tx_buf;
+> >>>>+	wlen =3D t->bits_per_word;
+> >>>>+
+> >>>>+	while (count--) {
+> >>>>+		dev_dbg(qspi->dev, "tx cmd %08x dc %08x data %02x\n",
+> >>>>+			qspi->cmd | QSPI_WR_SNGL, qspi->dc, *txbuf);
+> >>>>+		ti_qspi_writel_data(qspi, *txbuf++, QSPI_SPI_DATA_REG, wlen);
+> >>>you always increment by each byte. Here, if you used writel(), you wro=
+te
+> >>>4 bytes and should increment txbuf by 4.
+> >>hmm..got this point. Yes, my mistake, here I agree if wlen is not 8 bits
+> >>txbuf++ is not valid.
+> >>>  Same goes for read_data(),
+> >>>below. Another thing. Even though your wlen might be 8 bits, if you
+> >>>write 4 bytes to write, you can save a few CPU cycles by using writel(=
+).
+> >>>
+> >>Do you mean 4 words of 8 bits?
+> >yeah. Say you have wlen =3D 8 but the transfer length is 8 bytes (64
+> >bits). If you use writeb(), you will do 8 writes, if you use writel()
+> >you'll do 2 writes.
+> >
+> Just some more findings on this, after wlen bits are transferred we
+> need an WC interrupt.
+> So, if I try to pack 4 words of 8bits and use readl/writel, there
+> will be an interrupt after every
+> wlen bits transferred and things will get screwd up.
 
-diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-index faa95b5..d796302 100644
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -109,23 +109,9 @@
- 	};
- };
- 
--&omap4_pmx_wkup {
--	pinctrl-names = "default";
--	pinctrl-0 = <
--			&twl6030_wkup_pins
--	>;
--
--	twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
--		pinctrl-single,pins = <
--			0x14 (PIN_OUTPUT | MUX_MODE2)		/* fref_clk0_out.sys_drm_msecure */
--		>;
--	};
--};
--
- &omap4_pmx_core {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <
--			&twl6030_pins
- 			&twl6040_pins
- 			&mcpdm_pins
- 			&mcbsp1_pins
-@@ -134,12 +120,6 @@
- 			&hsusbb1_pins
- 	>;
- 
--	twl6030_pins: pinmux_twl6030_pins {
--		pinctrl-single,pins = <
--			0x15e (WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0)	/* sys_nirq1.sys_nirq1 */
--		>;
--	};
--
- 	twl6040_pins: pinmux_twl6040_pins {
- 		pinctrl-single,pins = <
- 			0xe0 (PIN_OUTPUT | MUX_MODE3)	/* hdq_sio.gpio_127 */
-@@ -265,6 +245,7 @@
- };
- 
- #include "twl6030.dtsi"
-+#include "twl6030_omap4.dtsi"
- 
- &i2c2 {
- 	pinctrl-names = "default";
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 7951b4e..91030c3 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -142,23 +142,9 @@
- 	};
- };
- 
--&omap4_pmx_wkup {
--	pinctrl-names = "default";
--	pinctrl-0 = <
--			&twl6030_wkup_pins
--	>;
--
--	twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
--		pinctrl-single,pins = <
--			0x14 (PIN_OUTPUT | MUX_MODE2)		/* fref_clk0_out.sys_drm_msecure */
--		>;
--	};
--};
--
- &omap4_pmx_core {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <
--			&twl6030_pins
- 			&twl6040_pins
- 			&mcpdm_pins
- 			&dmic_pins
-@@ -193,12 +179,6 @@
- 		>;
- 	};
- 
--	twl6030_pins: pinmux_twl6030_pins {
--		pinctrl-single,pins = <
--			0x15e (WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0)	/* sys_nirq1.sys_nirq1 */
--		>;
--	};
--
- 	twl6040_pins: pinmux_twl6040_pins {
- 		pinctrl-single,pins = <
- 			0xe0 (PIN_OUTPUT | MUX_MODE3)		/* hdq_sio.gpio_127 */
-@@ -337,6 +317,7 @@
- };
- 
- #include "twl6030.dtsi"
-+#include "twl6030_omap4.dtsi"
- 
- &i2c2 {
- 	pinctrl-names = "default";
-diff --git a/arch/arm/boot/dts/twl6030_omap4.dtsi b/arch/arm/boot/dts/twl6030_omap4.dtsi
-new file mode 100644
-index 0000000..a4fa570
---- /dev/null
-+++ b/arch/arm/boot/dts/twl6030_omap4.dtsi
-@@ -0,0 +1,38 @@
-+/*
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+&twl {
-+	/*
-+	 * On most OMAP4 platforms, the twl6030 IRQ line is connected
-+	 * to the SYS_NIRQ1 line on OMAP and the twl6030 MSECURE line is
-+	 * connected to the fref_clk0_out.sys_drm_msecure line.
-+	 * Therefore, configure the defaults for the SYS_NIRQ1 and
-+	 * fref_clk0_out.sys_drm_msecure pins here.
-+	 */
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+		&twl6030_pins
-+		&twl6030_wkup_pins
-+	>;
-+};
-+
-+&omap4_pmx_wkup {
-+	twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
-+		pinctrl-single,pins = <
-+			0x14 (PIN_OUTPUT | MUX_MODE2)		/* fref_clk0_out.sys_drm_msecure */
-+		>;
-+	};
-+};
-+
-+&omap4_pmx_core {
-+	twl6030_pins: pinmux_twl6030_pins {
-+		pinctrl-single,pins = <
-+			0x15e (WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0)	/* sys_nirq1.sys_nirq1 */
-+		>;
-+	};
-+};
--- 
-1.7.9.5
+they will not if you throttle the IRQs or add some knowledge about the
+FIFO sizes. I mean, there are ways to get this working.
 
+> So, for 8 bits word we need to use readb, for 16 bits word readw.
+
+not entirely true...
+
+I mean, you have a 32-bit FIFO, why would underutilize the FIFO by
+always writing 8-bits ? Write 32 bits, when you get the first word
+completion, you know you have 8-bits of space in the FIFO, then you
+can fill those 8 bits with new data. (all of this is assuming word
+length is 8-bits, clearly if it is more, then you need to change the
+assumptions).
+
+Another thing which might help, is checking if the HW will even access
+the other DATA registers even if word length is <=3D 32 bits. If it does,
+then you have a total of 128 bits to shift data into, which can save you
+a lot of time filling up FIFOs and waiting for them to empty.
+
+--=20
+balbi
+
+--ILuaRSyQpoVaJ1HG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR6S8NAAoJEIaOsuA1yqREcxAQAJ3fzcYXPhzrs/UkmLCYktEJ
+XBBvsLuWxHSQpDCrdJOHM3c6KPw+EXeWBwbL94d3GeViInt4a5rPT89TdshHgex4
+VFmKkX6meREDZjy0YBO9KPrhxHn2XzuUQsOf+omOG9UOpGuw1mu3y/oERoZBjQB8
+g6KYu5ZHp2nZEjl1/vXoSXFF2Yd6CGzTEhuKOzN31mxxWyiqWz8LBLsjbeiuMQp3
+EEOvujxUQI64LrgB1y+jp6rfF2u0zQroOjHj1IfFxhH02tFSE/cLZ1b3DaQ3T0vH
+sGOKiVRO23pbGGmUZFUYPau7LMJ9dHzKB9jCWBhVy+N1Ni1uo7saALZ2As7+K0LU
+13IgrteV5ZvRzXxmrZZCq9BFrOVME+3so3i9g9IF01P0N68IaKPCjesX5Ll2t/te
+PwV3mMj+8k9iQ8KehFi+XJ6jgaHEiExxyhvERoQQwlXN9TmIgMNajguL75IXtdIH
+T+6H9SYk9iODunAT3M/A87j1KUfbQ9NTu1g5BWRxQrvu0CI4oZZ3llGmCVG3jqnW
+d/Z0kCSHNDvY9DHtYb8+wFS8hwZWZA/OzgU+nN1oqJ75ho38D/KHZ4MvG4A4/hOC
+l9f5juv5vavJHNARpUSMx6x+Zgm1sNV83PqEC94JtQ7MCFabbuwPz6EIb3oYnv1f
+Kg5GuoqMpWzx42ARb6vN
+=jiHB
+-----END PGP SIGNATURE-----
+
+--ILuaRSyQpoVaJ1HG--
