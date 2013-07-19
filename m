@@ -1,177 +1,184 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [net-next PATCH 1/1] drivers: net: cpsw: add support to show hw stats via ethtool get_regs
-Date: Fri, 19 Jul 2013 19:37:21 +0530
-Message-ID: <1374242841-17141-1-git-send-email-mugunthanvnm@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] arm: dts: twl6030: typical connection to omap4 as a separate
+ dtsi file
+Date: Fri, 19 Jul 2013 09:10:56 -0500
+Message-ID: <51E948F0.4070307@ti.com>
+References: <1374235814-17834-1-git-send-email-ruslan.bilovol@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58214 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751125Ab3GSOFh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Jul 2013 10:05:37 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1374235814-17834-1-git-send-email-ruslan.bilovol@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Cc: benoit.cousson@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 
-Add support to show CPSW hardware statistics to user via ethtool get_regs
-ops so user can find if there were any error reported or the system is
-over loaded duing hagh data rate transfer.
+On 07/19/2013 07:10 AM, Ruslan Bilovol wrote:
+> The OMAP4 SoC family uses specially-designed
+> PMIC (power management IC) companion chip for power
+> management needs: TWL6030/TWL6032.
+> Therefore there is a typical connection of PMIC to OMAP4
+> so we can figure it out into separate .dtsi file
+> and do not duplicate over board-specific files.
+>
+> Tested on OMAP4 SDP board and compile-tested for Panda board
+>
+> Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
+> ---
+>   arch/arm/boot/dts/omap4-panda-common.dtsi |   21 +---------------
+>   arch/arm/boot/dts/omap4-sdp.dts           |   21 +---------------
+>   arch/arm/boot/dts/twl6030_omap4.dtsi      |   38 +++++++++++++++++++++++++++++
+arch/arm/boot/dts/omap4-var-som.dts ?
 
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
- drivers/net/ethernet/ti/cpsw.c |   74 ++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 71 insertions(+), 3 deletions(-)
+>   3 files changed, 40 insertions(+), 40 deletions(-)
+>   create mode 100644 arch/arm/boot/dts/twl6030_omap4.dtsi
+>
+> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+> index faa95b5..d796302 100644
+> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
+> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+> @@ -109,23 +109,9 @@
+>   	};
+>   };
+>
+> -&omap4_pmx_wkup {
+> -	pinctrl-names = "default";
+> -	pinctrl-0 = <
+> -			&twl6030_wkup_pins
+> -	>;
+> -
+> -	twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
+> -		pinctrl-single,pins = <
+> -			0x14 (PIN_OUTPUT | MUX_MODE2)		/* fref_clk0_out.sys_drm_msecure */
+> -		>;
+> -	};
+> -};
+> -
+>   &omap4_pmx_core {
+>   	pinctrl-names = "default";
+>   	pinctrl-0 = <
+> -			&twl6030_pins
+>   			&twl6040_pins
+>   			&mcpdm_pins
+>   			&mcbsp1_pins
+> @@ -134,12 +120,6 @@
+>   			&hsusbb1_pins
+>   	>;
+>
+> -	twl6030_pins: pinmux_twl6030_pins {
+> -		pinctrl-single,pins = <
+> -			0x15e (WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0)	/* sys_nirq1.sys_nirq1 */
+> -		>;
+> -	};
+> -
+>   	twl6040_pins: pinmux_twl6040_pins {
+>   		pinctrl-single,pins = <
+>   			0xe0 (PIN_OUTPUT | MUX_MODE3)	/* hdq_sio.gpio_127 */
+> @@ -265,6 +245,7 @@
+>   };
+>
+>   #include "twl6030.dtsi"
+> +#include "twl6030_omap4.dtsi"
+>
+>   &i2c2 {
+>   	pinctrl-names = "default";
+> diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+> index 7951b4e..91030c3 100644
+> --- a/arch/arm/boot/dts/omap4-sdp.dts
+> +++ b/arch/arm/boot/dts/omap4-sdp.dts
+> @@ -142,23 +142,9 @@
+>   	};
+>   };
+>
+> -&omap4_pmx_wkup {
+> -	pinctrl-names = "default";
+> -	pinctrl-0 = <
+> -			&twl6030_wkup_pins
+> -	>;
+> -
+> -	twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
+> -		pinctrl-single,pins = <
+> -			0x14 (PIN_OUTPUT | MUX_MODE2)		/* fref_clk0_out.sys_drm_msecure */
+> -		>;
+> -	};
+> -};
+> -
+>   &omap4_pmx_core {
+>   	pinctrl-names = "default";
+>   	pinctrl-0 = <
+> -			&twl6030_pins
+>   			&twl6040_pins
+>   			&mcpdm_pins
+>   			&dmic_pins
+> @@ -193,12 +179,6 @@
+>   		>;
+>   	};
+>
+> -	twl6030_pins: pinmux_twl6030_pins {
+> -		pinctrl-single,pins = <
+> -			0x15e (WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0)	/* sys_nirq1.sys_nirq1 */
+> -		>;
+> -	};
+> -
+>   	twl6040_pins: pinmux_twl6040_pins {
+>   		pinctrl-single,pins = <
+>   			0xe0 (PIN_OUTPUT | MUX_MODE3)		/* hdq_sio.gpio_127 */
+> @@ -337,6 +317,7 @@
+>   };
+>
+>   #include "twl6030.dtsi"
+> +#include "twl6030_omap4.dtsi"
+>
+>   &i2c2 {
+>   	pinctrl-names = "default";
+> diff --git a/arch/arm/boot/dts/twl6030_omap4.dtsi b/arch/arm/boot/dts/twl6030_omap4.dtsi
+> new file mode 100644
+> index 0000000..a4fa570
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/twl6030_omap4.dtsi
+> @@ -0,0 +1,38 @@
+> +/*
+> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +&twl {
+> +	/*
+> +	 * On most OMAP4 platforms, the twl6030 IRQ line is connected
+> +	 * to the SYS_NIRQ1 line on OMAP and the twl6030 MSECURE line is
+> +	 * connected to the fref_clk0_out.sys_drm_msecure line.
+> +	 * Therefore, configure the defaults for the SYS_NIRQ1 and
+> +	 * fref_clk0_out.sys_drm_msecure pins here.
+> +	 */
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <
+> +		&twl6030_pins
+> +		&twl6030_wkup_pins
+> +	>;
+> +};
+> +
+> +&omap4_pmx_wkup {
+> +	twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
+> +		pinctrl-single,pins = <
+> +			0x14 (PIN_OUTPUT | MUX_MODE2)		/* fref_clk0_out.sys_drm_msecure */
+> +		>;
+> +	};
+> +};
+> +
+> +&omap4_pmx_core {
+> +	twl6030_pins: pinmux_twl6030_pins {
+> +		pinctrl-single,pins = <
+> +			0x15e (WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0)	/* sys_nirq1.sys_nirq1 */
+> +		>;
+> +	};
+> +};
+>
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 05a1674..64117f5 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -85,12 +85,14 @@ do {								\
- 
- #define HOST_PORT_NUM		0
- #define SLIVER_SIZE		0x40
-+#define CPSW_HW_STATS_LEN	36
- 
- #define CPSW1_HOST_PORT_OFFSET	0x028
- #define CPSW1_SLAVE_OFFSET	0x050
- #define CPSW1_SLAVE_SIZE	0x040
- #define CPSW1_CPDMA_OFFSET	0x100
- #define CPSW1_STATERAM_OFFSET	0x200
-+#define CPSW1_HW_STATS		0x400
- #define CPSW1_CPTS_OFFSET	0x500
- #define CPSW1_ALE_OFFSET	0x600
- #define CPSW1_SLIVER_OFFSET	0x700
-@@ -99,6 +101,7 @@ do {								\
- #define CPSW2_SLAVE_OFFSET	0x200
- #define CPSW2_SLAVE_SIZE	0x100
- #define CPSW2_CPDMA_OFFSET	0x800
-+#define CPSW2_HW_STATS		0x900
- #define CPSW2_STATERAM_OFFSET	0xa00
- #define CPSW2_CPTS_OFFSET	0xc00
- #define CPSW2_ALE_OFFSET	0xd00
-@@ -332,6 +335,7 @@ struct cpsw_priv {
- 	struct cpsw_platform_data	data;
- 	struct cpsw_ss_regs __iomem	*regs;
- 	struct cpsw_wr_regs __iomem	*wr_regs;
-+	void __iomem			*hw_stats;
- 	struct cpsw_host_regs __iomem	*host_port_regs;
- 	u32				msg_enable;
- 	u32				version;
-@@ -723,6 +727,64 @@ static int cpsw_set_coalesce(struct net_device *ndev,
- 	return 0;
- }
- 
-+static int cpsw_get_regs_len(struct net_device *ndev)
-+{
-+	int len;
-+
-+	len = CPSW_HW_STATS_LEN * sizeof(u32);
-+	len += 2 * sizeof(struct cpdma_chan_stats);
-+
-+	return len;
-+}
-+
-+static void cpsw_get_regs(struct net_device *ndev,
-+			  struct ethtool_regs *regs, void *p)
-+{
-+	struct cpsw_priv *priv = netdev_priv(ndev);
-+	struct cpdma_chan_stats	dma_stats;
-+	u32 *reg = p;
-+	int i;
-+
-+	/* update CPSW IP version */
-+	regs->version = priv->version;
-+
-+	/* Packet Tx/Rx statistics */
-+	for (i = 0; i < CPSW_HW_STATS_LEN; i++)
-+		reg[i] = readl(((u32 *)priv->hw_stats) + i);
-+
-+	/* Rx DMA statistics */
-+	cpdma_chan_get_stats(priv->rxch, &dma_stats);
-+	reg[i++] = dma_stats.head_enqueue;
-+	reg[i++] = dma_stats.tail_enqueue;
-+	reg[i++] = dma_stats.pad_enqueue;
-+	reg[i++] = dma_stats.misqueued;
-+	reg[i++] = dma_stats.desc_alloc_fail;
-+	reg[i++] = dma_stats.pad_alloc_fail;
-+	reg[i++] = dma_stats.runt_receive_buff;
-+	reg[i++] = dma_stats.runt_transmit_buff;
-+	reg[i++] = dma_stats.empty_dequeue;
-+	reg[i++] = dma_stats.busy_dequeue;
-+	reg[i++] = dma_stats.good_dequeue;
-+	reg[i++] = dma_stats.requeue;
-+	reg[i++] = dma_stats.teardown_dequeue;
-+
-+	/* Tx DMA statistics */
-+	cpdma_chan_get_stats(priv->txch, &dma_stats);
-+	reg[i++] = dma_stats.head_enqueue;
-+	reg[i++] = dma_stats.tail_enqueue;
-+	reg[i++] = dma_stats.pad_enqueue;
-+	reg[i++] = dma_stats.misqueued;
-+	reg[i++] = dma_stats.desc_alloc_fail;
-+	reg[i++] = dma_stats.pad_alloc_fail;
-+	reg[i++] = dma_stats.runt_receive_buff;
-+	reg[i++] = dma_stats.runt_transmit_buff;
-+	reg[i++] = dma_stats.empty_dequeue;
-+	reg[i++] = dma_stats.busy_dequeue;
-+	reg[i++] = dma_stats.good_dequeue;
-+	reg[i++] = dma_stats.requeue;
-+	reg[i++] = dma_stats.teardown_dequeue;
-+}
-+
- static inline int __show_stat(char *buf, int maxlen, const char *name, u32 val)
- {
- 	static char *leader = "........................................";
-@@ -1344,9 +1406,10 @@ static void cpsw_get_drvinfo(struct net_device *ndev,
- {
- 	struct cpsw_priv *priv = netdev_priv(ndev);
- 
--	strlcpy(info->driver, "TI CPSW Driver v1.0", sizeof(info->driver));
-+	strlcpy(info->driver, "cpsw", sizeof(info->driver));
- 	strlcpy(info->version, "1.0", sizeof(info->version));
- 	strlcpy(info->bus_info, priv->pdev->name, sizeof(info->bus_info));
-+	info->regdump_len = cpsw_get_regs_len(ndev);
- }
- 
- static u32 cpsw_get_msglevel(struct net_device *ndev)
-@@ -1426,6 +1489,8 @@ static const struct ethtool_ops cpsw_ethtool_ops = {
- 	.set_settings	= cpsw_set_settings,
- 	.get_coalesce	= cpsw_get_coalesce,
- 	.set_coalesce	= cpsw_set_coalesce,
-+	.get_regs_len	= cpsw_get_regs_len,
-+	.get_regs	= cpsw_get_regs,
- };
- 
- static void cpsw_slave_init(struct cpsw_slave *slave, struct cpsw_priv *priv,
-@@ -1623,6 +1688,7 @@ static int cpsw_probe_dual_emac(struct platform_device *pdev,
- 	priv_sl2->host_port = priv->host_port;
- 	priv_sl2->host_port_regs = priv->host_port_regs;
- 	priv_sl2->wr_regs = priv->wr_regs;
-+	priv_sl2->hw_stats = priv->hw_stats;
- 	priv_sl2->dma = priv->dma;
- 	priv_sl2->txch = priv->txch;
- 	priv_sl2->rxch = priv->rxch;
-@@ -1780,7 +1846,8 @@ static int cpsw_probe(struct platform_device *pdev)
- 	switch (priv->version) {
- 	case CPSW_VERSION_1:
- 		priv->host_port_regs = ss_regs + CPSW1_HOST_PORT_OFFSET;
--		priv->cpts->reg       = ss_regs + CPSW1_CPTS_OFFSET;
-+		priv->hw_stats	     = ss_regs + CPSW1_HW_STATS;
-+		priv->cpts->reg      = ss_regs + CPSW1_CPTS_OFFSET;
- 		dma_params.dmaregs   = ss_regs + CPSW1_CPDMA_OFFSET;
- 		dma_params.txhdp     = ss_regs + CPSW1_STATERAM_OFFSET;
- 		ale_params.ale_regs  = ss_regs + CPSW1_ALE_OFFSET;
-@@ -1791,7 +1858,8 @@ static int cpsw_probe(struct platform_device *pdev)
- 		break;
- 	case CPSW_VERSION_2:
- 		priv->host_port_regs = ss_regs + CPSW2_HOST_PORT_OFFSET;
--		priv->cpts->reg       = ss_regs + CPSW2_CPTS_OFFSET;
-+		priv->hw_stats	     = ss_regs + CPSW2_HW_STATS;
-+		priv->cpts->reg      = ss_regs + CPSW2_CPTS_OFFSET;
- 		dma_params.dmaregs   = ss_regs + CPSW2_CPDMA_OFFSET;
- 		dma_params.txhdp     = ss_regs + CPSW2_STATERAM_OFFSET;
- 		ale_params.ale_regs  = ss_regs + CPSW2_ALE_OFFSET;
+
 -- 
-1.7.9.5
-
+Regards,
+Nishanth Menon
