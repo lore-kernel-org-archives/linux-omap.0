@@ -1,66 +1,51 @@
-From: "Arend van Spriel" <arend@broadcom.com>
-Subject: Re: Regression 3.11-rc1: omap4panda: no usb and consequently no
- ethernet
-Date: Fri, 19 Jul 2013 12:57:04 +0200
-Message-ID: <51E91B80.1050609@broadcom.com>
-References: <51E7AA24.6080600@broadcom.com>
- <20130718085951.GT7656@atomide.com> <51E916C0.8080206@broadcom.com>
- <51E919CA.8060805@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 0/4] Add PWM polarity flag macro for DT
+Date: Fri, 19 Jul 2013 13:29:13 +0200
+Message-ID: <10033310.z2U2FSCElN@avalon>
+References: <1374101664-21112-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <51E81E1C.20708@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=iso-8859-1;
- format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mms2.broadcom.com ([216.31.210.18]:1381 "EHLO mms2.broadcom.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751102Ab3GSK5M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Jul 2013 06:57:12 -0400
-In-Reply-To: <51E919CA.8060805@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46601 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751107Ab3GSL21 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jul 2013 07:28:27 -0400
+In-Reply-To: <51E81E1C.20708@wwwdotorg.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-pwm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Boris BREZILLON <linux-arm@overkiz.com>, Shawn Guo <shawn.guo@linaro.org>, Steffen Trumtrar <s.trumtrar@pengutronix.de>, Tomasz Figa <t.figa@samsung.com>
 
-On 07/19/2013 12:49 PM, Roger Quadros wrote:
-> On 07/19/2013 01:36 PM, Arend van Spriel wrote:
->> On 07/18/2013 10:59 AM, Tony Lindgren wrote:
->>> Then for the SDIO with device tree, take a look at the following
->>> patches:
->>>
->>> [PATCH 0/3] WLAN support for omap4 when booted with devicetree
->>> http://comments.gmane.org/gmane.linux.ports.arm.omap/97522#
->>
->> I have been looking at the pandaboard patch in the series above and I do have a question. Among other things the patch adds these dt entries.
->>
->> +            0x108 0x118    /* sdmmc5_clk.sdmmc5_clk INPUT_PULLUP | MODE0 */
->> +            0x10a 0x118    /* sdmmc5_cmd.sdmmc5_cmd INPUT_PULLUP | MODE0 */
->>
->> If I look at the similar names in the deceased board-omap4panda.c:
->>
->> board-omap4panda.c:    OMAP4_MUX(SDMMC5_CMD, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
->> board-omap4panda.c:    OMAP4_MUX(SDMMC5_CLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
->>
->> and in mux44xx.h:
->>
->> mux44xx.h:#define OMAP4_CTRL_MODULE_PAD_SDMMC5_CLK_OFFSET    0x0148
->> mux44xx.h:#define OMAP4_CTRL_MODULE_PAD_SDMMC5_CMD_OFFSET    0x014a
->>
->> So how did 0x0148 get 0x0108 in DT and 0x014a get 0x010a. There is probably an explanation to it and it would help my understanding to know where this difference comes from. Hope you can help me out here.
->>
->
-> If you see omap4.dtsi, omap4_pmx_core starts at register address 0x4a100040.
->
-> So, you need to subtract 0x40 from the offsets defined in mux44xx.h for pmx_core registers.
+Hi Stephen,
 
-That was what I was looking for. Thanks!
+On Thursday 18 July 2013 10:55:56 Stephen Warren wrote:
+> On 07/17/2013 04:54 PM, Laurent Pinchart wrote:
+> > Hello,
+> > 
+> > Here's a small patch set that replaces PWM polarity numerical constants
+> > with macros in DT.
+> 
+> The series,
+> Reviewed-by: Stephen Warren <swarren@nvidia.com>
+> 
+> I'm (very very) slightly hesitant about patch 3/4, since it's moving towards
+> all PWMs having to use the same specifier format, whereas specifiers are at
+> least potentially binding-specific, not device-type-specific. However,
+> consistency is good; there's no need to do something different just for the
+> heck of it. Equally, there's nothing actually stopping a new binding from
+> defining its own format rather than simply deferring to pwm.txt if it
+> absolutely has to, so I think this will turn out fine.
 
-> NOTE: omap4_pmx_wkup starts at a different address. Those are for wakeup domain
-> control registers.
+Exactly, that's why I don't think it's an issue. pwm.txt defines a common 
+format, individual bindings are free to use it or not.
 
-Will keep that in mind.
+Thierry, if you're fine with the patches, could you take them in your tree 
+with Stephen's Reviewed-by, or should I report them and send you a pull 
+request ?
 
+-- 
 Regards,
-Arend
 
+Laurent Pinchart
 
