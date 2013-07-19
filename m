@@ -1,263 +1,191 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 2/4] phy: phy-amxxxx-usb: Add PHY driver for amxxxx
- platform
-Date: Fri, 19 Jul 2013 19:02:33 +0530
-Message-ID: <51E93FF1.4060506@ti.com>
-References: <1374237277-17769-1-git-send-email-george.cherian@ti.com> <1374237277-17769-3-git-send-email-george.cherian@ti.com>
+From: Michael Trimarchi <michael@amarulasolutions.com>
+Subject: mcbsp.1 slave clkx ext problem
+Date: Fri, 19 Jul 2013 15:33:17 +0200
+Message-ID: <20130719133317.GA21833@panicking>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1374237277-17769-3-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, bigeasy@linutronix.de
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ea0-f182.google.com ([209.85.215.182]:36059 "EHLO
+	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752517Ab3GSNdX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jul 2013 09:33:23 -0400
+Received: by mail-ea0-f182.google.com with SMTP id d10so2413490eaj.13
+        for <linux-omap@vger.kernel.org>; Fri, 19 Jul 2013 06:33:21 -0700 (PDT)
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+Hi
 
-On Friday 19 July 2013 06:04 PM, George Cherian wrote:
-> Adds phy driver support for am33xx platform, the host/device
-> peripheral controller shall get this phy object to control the phy
-> operations.
-> 
-> Signed-off-by: George Cherian <george.cherian@ti.com>
-> ---
->  drivers/phy/Kconfig          |  12 +++
->  drivers/phy/Makefile         |   1 +
->  drivers/phy/phy-amxxxx-usb.c | 222 +++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 235 insertions(+)
->  create mode 100644 drivers/phy/phy-amxxxx-usb.c
-> 
-> diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-> index 5f85909..55087ab 100644
-> --- a/drivers/phy/Kconfig
-> +++ b/drivers/phy/Kconfig
-> @@ -11,3 +11,15 @@ menuconfig GENERIC_PHY
->  	  devices present in the kernel. This layer will have the generic
->  	  API by which phy drivers can create PHY using the phy framework and
->  	  phy users can obtain reference to the PHY.
-> +if GENERIC_PHY
+I'm trying to understand what is wrong here with this small
+driver.
 
-Greg has some comments about the generic PHY framework. So instead of having
-like this, you might have to select GENERIC_PHY in the Kconfig of your phy driver.
-> +
-> +config PHY_AMXXXX_USB
-> +	tristate "AMXXXX USB2 PHY Driver"
-> +	depends on SOC_AM33XX
-> +	help
-> +	  Enable this to support the transceiver that is part of SOC. This
-> +	  phy supports all LS/FS/HS speed and also supports OTG functionality.
-> +	  The USB OTG controller communicates with this phy through stand UTMI
-> +	  interface.
-> +
-> +endif
-> diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
-> index 9e9560f..471c525 100644
-> --- a/drivers/phy/Makefile
-> +++ b/drivers/phy/Makefile
-> @@ -3,3 +3,4 @@
->  #
->  
->  obj-$(CONFIG_GENERIC_PHY)	+= phy-core.o
-> +obj-$(CONFIG_PHY_AMXXXX_USB)	+= phy-amxxxx-usb.o
-> diff --git a/drivers/phy/phy-amxxxx-usb.c b/drivers/phy/phy-amxxxx-usb.c
-> new file mode 100644
-> index 0000000..d0b0749
-> --- /dev/null
-> +++ b/drivers/phy/phy-amxxxx-usb.c
-> @@ -0,0 +1,222 @@
-> +/*
-> + * phy-amxxxx-usb.c - USB PHY, talking to usb controller in AMXXX.
-> + *
-> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * Author: George Cherian <george.cherian@ti.com>
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/of.h>
-> +#include <linux/usb/otg.h>
-> +#include <linux/clk.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/usb/omap_control_usb.h>
-> +#include <linux/phy/phy.h>
-> +
-> +struct amxxxx_usb {
-> +	struct usb_phy	phy;
-> +	struct device	*dev;
-> +	struct device	*control_dev;
-> +	struct clk	*optclk;
-> +	u32		id;
-> +};
-> +
-> +#define phy_to_amxxxxphy(x)	container_of((x), struct amxxxx_phy, phy)
-> +
-> +
+/* McBSP1 */
+OMAP4_MUX(ABE_MCBSP1_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+OMAP4_MUX(ABE_MCBSP1_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
+OMAP4_MUX(ABE_MCBSP1_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT |
+          OMAP_PULL_ENA),
+OMAP4_MUX(ABE_MCBSP1_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
 
-additional blank line..
-> +static int amxxxx_usb_set_host(struct usb_otg *otg, struct usb_bus *host)
-> +{
-> +	struct usb_phy	*phy = otg->phy;
-> +
-> +	otg->host = host;
-> +	if (!host)
-> +		phy->state = OTG_STATE_UNDEFINED;
-> +
-> +	return 0;
-> +}
-> +
-> +static int amxxxx_usb_set_peripheral(struct usb_otg *otg,
-> +		struct usb_gadget *gadget)
-> +{
-> +	struct usb_phy	*phy = otg->phy;
-> +
-> +	otg->gadget = gadget;
-> +	if (!gadget)
-> +		phy->state = OTG_STATE_UNDEFINED;
-> +
-> +	return 0;
-> +}
-> +
-> +
-> +
-ditto..
-> +static int amxxxx_usb_power_off(struct phy *x)
-> +{
-> +	struct amxxxx_usb *phy = phy_get_drvdata(x);
-> +
-> +	omap_control_am335x_phy_power(phy->control_dev, 0, phy->id);
-> +
-> +	return 0;
-> +}
-> +
-> +static int amxxxx_usb_power_on(struct phy *x)
-> +{
-> +	struct amxxxx_usb *phy = phy_get_drvdata(x);
-> +
-> +	omap_control_am335x_phy_power(phy->control_dev, 1, phy->id);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct phy_ops ops = {
-> +	.power_on	= amxxxx_usb_power_on,
-> +	.power_off	= amxxxx_usb_power_off,
-> +	.owner		= THIS_MODULE,
-> +};
-> +
-> +static int amxxxx_usb2_probe(struct platform_device *pdev)
-> +{
-> +	struct device_node *np = pdev->dev.of_node;
-> +	struct amxxxx_usb			*phy;
-> +	struct phy			*generic_phy;
-> +	struct usb_otg			*otg;
-> +	struct phy_provider		*phy_provider;
-> +
-> +	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
+kernel 3.8.0
 
-You might have to bail out of memory allocation fails.
-> +
-> +	otg = devm_kzalloc(&pdev->dev, sizeof(*otg), GFP_KERNEL);
+[  107.276702] omap-mcbsp omap-mcbsp.1: Configuring McBSP1  phys_base: 0x40122000
+[  107.283691] omap-mcbsp omap-mcbsp.1: **** McBSP1 regs ****
+[  107.283721] omap-mcbsp omap-mcbsp.1: DRR2:  0x88260a09
+[  107.283721] omap-mcbsp omap-mcbsp.1: DRR1:  0x0000
+[  107.283752] omap-mcbsp omap-mcbsp.1: DXR2:  0x0000
+[  107.283752] omap-mcbsp omap-mcbsp.1: DXR1:  0x0000
+[  107.283752] omap-mcbsp omap-mcbsp.1: SPCR2: 0x0233
+[  107.283782] omap-mcbsp omap-mcbsp.1: SPCR1: 0x0030
+[  107.283782] omap-mcbsp omap-mcbsp.1: RCR2:  0x80a1
+[  107.283813] omap-mcbsp omap-mcbsp.1: RCR1:  0x00a0
+[  107.283813] omap-mcbsp omap-mcbsp.1: XCR2:  0x80a1
+[  107.283813] omap-mcbsp omap-mcbsp.1: XCR1:  0x00a0
+[  107.283843] omap-mcbsp omap-mcbsp.1: SRGR2: 0x203f
+[  107.283843] omap-mcbsp omap-mcbsp.1: SRGR1: 0x1f00
+[  107.283843] omap-mcbsp omap-mcbsp.1: PCR0:  0x008f
+[  107.283874] omap-mcbsp omap-mcbsp.1: ***********************
+[  119.926177] omap-dma-engine omap-dma-engine: freeing channel for 33
 
-ditto.
-> +
-> +	phy->dev		= &pdev->dev;
-> +
-> +	if (np)
-> +		of_property_read_u32(np, "id", &phy->id);
-> +
-> +	phy->phy.dev		= phy->dev;
-> +	phy->phy.label		= "amxxxx-usb2";
-> +	phy->phy.otg		= otg;
-> +	phy->phy.type		= USB_PHY_TYPE_USB2;
-> +
-> +	phy_provider = devm_of_phy_provider_register(phy->dev,
-> +			of_phy_simple_xlate);
-> +	if (IS_ERR(phy_provider))
-> +		return PTR_ERR(phy_provider);
-> +
-> +	phy->control_dev = omap_get_control_dev();
-> +	if (IS_ERR(phy->control_dev)) {
-> +		dev_dbg(&pdev->dev, "Failed to get control device\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	omap_control_am335x_phy_power(phy->control_dev, 0, phy->id);
-> +
-> +	otg->set_host		= amxxxx_usb_set_host;
-> +	otg->set_peripheral	= amxxxx_usb_set_peripheral;
-> +	otg->phy		= &phy->phy;
-> +
-> +	platform_set_drvdata(pdev, phy);
-> +	pm_runtime_enable(phy->dev);
-> +
-> +	generic_phy = devm_phy_create(phy->dev, 0, &ops, "amxxxx-usb2");
-> +	if (IS_ERR(generic_phy))
-> +		return PTR_ERR(generic_phy);
-> +
-> +	phy_set_drvdata(generic_phy, phy);
-> +
-> +	phy->optclk = devm_clk_get(phy->dev, "usbotg_fck");
+Well basically it doesn't start the transfer. The clock is provided
+using the clkx pin. clkx is rate * channel * bitsxword and come from
+the codec. 
 
-Will the device be functional without this clock? If it's not functional,, then
-you might have to bail out.
-> +	if (IS_ERR(phy->optclk))
-> +		dev_err(&pdev->dev, "unable to get usbotg_fck\n");
-> +	else
-> +		clk_prepare(phy->optclk);
-> +
-> +	device_init_wakeup(&pdev->dev, true);
-> +	usb_add_phy_dev(&phy->phy);
-> +
-> +	return 0;
-> +}
-> +
-> +static int amxxxx_usb2_remove(struct platform_device *pdev)
-> +{
-> +	struct amxxxx_usb	*phy = platform_get_drvdata(pdev);
-> +
-> +	clk_unprepare(phy->optclk);
-> +	usb_remove_phy(&phy->phy);
+What is wrong? (I know that how I register the card is deprecated)
 
-Should we be doing a power off of phy here?
-> +
-> +	return 0;
-> +}
-> +
-> +#ifdef CONFIG_PM_RUNTIME
-> +
-> +static int amxxxx_usb2_runtime_suspend(struct device *dev)
-> +{
-> +	struct platform_device	*pdev = to_platform_device(dev);
-> +	struct amxxxx_usb	*phy = platform_get_drvdata(pdev);
-> +
-> +	omap_control_am335x_phy_power(phy->control_dev, 0, phy->id);
-> +	if (device_may_wakeup(dev))
-> +		omap_control_am335x_phy_wkup(phy->control_dev, 1, phy->id);
-> +	clk_disable(phy->optclk);
-> +
-> +	return 0;
-> +}
-> +
-> +static int amxxxx_usb2_runtime_resume(struct device *dev)
-> +{
-> +	struct platform_device	*pdev = to_platform_device(dev);
-> +	struct amxxxx_usb	*phy = platform_get_drvdata(pdev);
-> +
-> +
-empty blank line..
+Regards Michael
 
-Thanks
-Kishon
+/*
+ * dacmax.c  --  SoC audio for pandaboard demokit
+ *
+ * Author: Michael Trimarchi <michael@amarulasolutions.com>
+ *
+ * Based on:
+ * Author: Misael Lopez Cruz <x0052729@ti.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA
+ *
+ */
+
+#include <linux/clk.h>
+#include <linux/platform_device.h>
+#include <sound/core.h>
+#include <sound/pcm.h>
+#include <sound/pcm_params.h>
+#include <sound/soc.h>
+
+#include <asm/mach-types.h>
+#include <linux/gpio.h>
+#include <linux/platform_data/asoc-ti-mcbsp.h>
+
+#include <linux/module.h>
+#include "omap-mcbsp.h"
+
+static struct snd_soc_card snd_soc_dacmax;
+
+static int dacmax_hw_params(struct snd_pcm_substream *substream,
+	struct snd_pcm_hw_params *params)
+{
+	int ret;
+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
+
+	pr_info("%s: setting the params\n", __func__);
+
+	ret = snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_SYSCLK_CLKX_EXT, 0,
+                                SND_SOC_CLOCK_IN);
+	if (ret < 0) {
+		printk(KERN_ERR "can't set CPU system clock " \
+			        "OMAP_MCBSP_CLKR_SRC_CLKX\n");
+	}
+
+	return 0;
+}
+
+static struct snd_soc_ops dacmax_ops = {
+	.hw_params = dacmax_hw_params,
+};
+
+static int dacmax_init(struct snd_soc_pcm_runtime *rtd)
+{
+	pr_info("%s: INIT\n", __func__);
+	return 0;
+}
+
+/* Digital audio interface glue - connects codec <--> CPU */
+static struct snd_soc_dai_link dacmax_dai = {
+	.name = "DACMAX-I2S",
+	.stream_name = "DACMAX-Audio",
+	.cpu_dai_name = "omap-mcbsp.1",
+	.codec_dai_name = "pcm1792a-hifi",
+	.platform_name = "omap-pcm-audio",
+	.codec_name = "pcm1792a",
+	.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
+		   SND_SOC_DAIFMT_CBM_CFM,
+	.init = dacmax_init,
+	.ops = &dacmax_ops,
+};
+
+/* Audio machine driver */
+static struct snd_soc_card snd_soc_dacmax = {
+	.name = "DACMAX",
+	.driver_name = "OMAP4",
+	.long_name = "TI OMAP4 Board",
+	.dai_link = &dacmax_dai,
+	.num_links = 1,
+};
+
+static struct platform_device *dacmax_snd_device;
+
+static int __init dacmax_soc_init(void)
+{
+	int ret;
+
+	printk(KERN_INFO "DACMAX SoC init\n");
+
+	dacmax_snd_device = platform_device_alloc("soc-audio", -1);
+	if (!dacmax_snd_device) {
+		printk(KERN_ERR "Platform device allocation failed\n");
+		return -ENOMEM;
+	}
+
+	platform_set_drvdata(dacmax_snd_device, &snd_soc_dacmax);
+
+	ret = platform_device_add(dacmax_snd_device);
+	if (ret)
+		goto err1;
+
+	return 0;
+
+err1:
+	printk(KERN_ERR "Unable to add platform device\n");
+	platform_device_put(dacmax_snd_device);
+
+	return ret;
+}
+module_init(dacmax_soc_init);
+
+static void __exit dacmax_soc_exit(void)
+{
+	platform_device_unregister(dacmax_snd_device);
+}
+module_exit(dacmax_soc_exit);
+
+MODULE_AUTHOR("Michael Trimarchi <michael@amurulasolutions.com>");
+MODULE_DESCRIPTION("ALSA SoC DACMAX");
+MODULE_LICENSE("GPL");
+
