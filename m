@@ -1,68 +1,89 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH v2 3/4] arm: dts: Add USB phy nodes for AM33XX
-Date: Fri, 19 Jul 2013 20:42:31 +0200
-Message-ID: <51E98897.6050105@linutronix.de>
-References: <1374237277-17769-1-git-send-email-george.cherian@ti.com> <1374237277-17769-4-git-send-email-george.cherian@ti.com> <51E94571.8080805@cogentembedded.com> <51E94B30.9070805@linutronix.de> <51E98663.2040308@cogentembedded.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH 3/4] pinctrl: Add support for additional dynamic states
+Date: Fri, 19 Jul 2013 12:52:28 -0600
+Message-ID: <51E98AEC.5000802@wwwdotorg.org>
+References: <20130716090310.5541.36777.stgit@localhost> <20130716090536.5541.36289.stgit@localhost> <51E70953.1000601@wwwdotorg.org> <20130718072034.GO7656@atomide.com> <51E8401E.8040705@wwwdotorg.org> <20130719072927.GY7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51E98663.2040308@cogentembedded.com>
+In-Reply-To: <20130719072927.GY7656@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: George Cherian <george.cherian@ti.com>, linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linus.walleij@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/19/2013 08:33 PM, Sergei Shtylyov wrote:
-> Hello.
+On 07/19/2013 01:29 AM, Tony Lindgren wrote:
+> * Stephen Warren <swarren@wwwdotorg.org> [130718 12:27]:
+>> On 07/18/2013 01:25 AM, Tony Lindgren wrote:
+>>> * Stephen Warren <swarren@wwwdotorg.org> [130717 14:21]:
+>>>> On 07/16/2013 03:05 AM, Tony Lindgren wrote:
+>>>>> To toggle dynamic states, let's add the optional active state in
+>>>>> addition to the static default state. Then if the optional active
+>>>>> state is defined, we can require that idle and sleep states cover
+>>>>> the same pingroups as the active state.
+>>>>>
+>>>>> Then let's add pinctrl_check_dynamic() and pinctrl_select_dynamic()
+>>>>> to use instead of pinctrl_select() to avoid breaking existing users.
+>>>>>
+>>>>> With pinctrl_check_dynamic() we can check that idle and sleep states
+>>>>> match the active state for pingroups during init, and don't need to
+>>>>> do it during runtime.
+>>>>>
+>>>>> Then with the states pre-validated, pinctrl_select_dynamic() can
+>>>>> just toggle between the dynamic states without extra checks.
+>>>>>
+>>>>> Note that pinctr_select_state() still has valid use cases, such as
+>>>>> changing states when the pins can be shared between two drivers
+>>>>> and don't necessarily cover the same pingroups. For dynamic runtime
+>>>>> toggling of pin states, we should eventually always use just
+>>>>> pinctrl_select_dynamic().
+>>
+>>>>> @@ -1241,7 +1371,13 @@ static int pinctrl_pm_select_state(struct device *dev, struct pinctrl_state *sta
+>>>>>  		return 0;
+>>>>>  	if (IS_ERR(state))
+>>>>>  		return 0; /* No such state */
+>>>>> -	ret = pinctrl_select_state(pins->p, state);
+>>>>> +
+>>>>> +	/* Configured for proper dynamic muxing? */
+>>>>> +	if (!IS_ERR(dev->pins->active_state))
+>>>>> +		ret = pinctrl_select_dynamic(pins->p, state);
+>>>>> +	else
+>>>>> +		ret = pinctrl_select_state(pins->p, state);
+>>>>
+>>>> Hmmm. I'm not quite sure this is right... Surely this function should
+>>>> just do nothing if the dynamic states aren't defined? The system should
+>>>> just, and only, be in the "default" state and never do anything else.
+>>>
+>>> This keeps the existing behaviour. We should be able to drop the
+>>> call to pinctrl_select_state() here after the existing use in
+>>> drivers has been fixed.
+>>
+>> How many DT-based systems already have multiple of default/idle/sleep
+>> states defined in DT? Right now, since the kernel code uses
+>> pinctrl_select_state() to switch between those, the state definitions
+>> need to define /all/ pins used by those states, not just the dynamic
+>> ones. However, with this series in place, the default state should only
+>> include the static pins, and the active/idle/sleep states should only
+>> include the dynamic pins. That's a change to the DT bindings, since it
+>> changes how the DT must be written, and causes older DTs to be
+>> incompatible with newer kernels and vice-versa.
+> 
+> Well we can keep the current behaviour with pinctrl_select_state() around
+> as long as needed. For the legacy cases, there is no active state defined
+> and we fall back to pinctrl_select_state().
+>  
+>> So, do we just ignore this DT ABI change again, or insist on doing it in
+>> some compatible way? DT ABI-ness is a PITA:-(
+> 
+> I'd vote for keeping the existing behaviour with pinctrl_select_state()
+> when no active state is defined.
 
-Hello,
+Yes, I think that will work, since the active state cannot exist before
+this new scheme is in place.
 
->> usb: usb@47400000 {
->>     compatible =3D "ti,am33xx-usb";
->>    =20
->>     usb0_phy: phy@47401300 {
->>         compatible =3D "ti,am335x-usb-phy";
->>     }
->>     usb0: usb@47401000 {
->>         musb0: usb@47401400 {
->>             compatible =3D "mg,musbmhdrc";
->>         }
->>     }
->>     usb1_phy: phy@47402300 {
->>         compatible =3D "ti,am335x-usb-phy";
->>     }
->>     usb1: usb@47402000 {
->>         musb1: usb@47402400 {
->>             compatible =3D "mg,musbmhdrc";
->>         }
->>     }
->> }
->=20
->> And you want usb0_phy to be child of usb0? In the TRM they are all i=
-n
->> the same block.
->=20
->    Ah, the fact that PHYs didn't have the "reg" property got me muddl=
-ed,
-> I didn't pay attention to the address part of the node names... BTW,
-> where is the "reg" prop?
-
-I skipped it for the general idea. I planned to repost is today but I
-messed up dsps and need to get it working first=85
-
-> I see PHYs share the address space with
-> "omap-control-usb@44e10620" device -- what's the point with this?
-
-I decided to get rid of this. Both phys have 8 bytes (2 registers)
-which are exclusive for them.
-There is one register for the wakeup which is shared by both.
-I changed this to limit it only to the 8bytes per phy. I care about
-wakeup later - hopefully George will take care of this :)
-
->=20
->> Sebastian
->=20
-> WBR, Sergei
->=20
-Sebastian
+But, this needs to be very clearly spell out in the DT binding
+documentation: If you have states default/idle/sleep, they're complete
+alternatives, whereas if you have states default/active/idle/sleep, the
+latter 3 are alternatives that build on top of the first. I foresee mass
+confusion, but perhaps I'm being pessimistic.
