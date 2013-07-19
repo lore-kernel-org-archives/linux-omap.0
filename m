@@ -1,271 +1,60 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH] of: provide of_platform_unpopulate()
-Date: Fri, 19 Jul 2013 20:14:51 +0200
-Message-ID: <1374257691-31981-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Tony Lindgren <tony@atomide.com>, Doug Anderson <dianders@chromium.org>, Vivek Gautam <gautam.vivek@samsung.com>, Naveen Krishna Chatradhi <ch.naveen@samsung.com>, Kukjin Kim <kgene.kim@samsung.com>, Kishon Vijay Abraham I <kishon@ti.com>, Roger Quadros <rogerq@ti.com>, George Cherian <george.cherian@ti.com>, Felipe Balbi <balbi@ti.com>
+From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH v6 1/2] ARM: dts: twl: Add GPADC data to device tree
+Date: Fri, 19 Jul 2013 22:18:56 +0400
+Message-ID: <51E98310.7020103@cogentembedded.com>
+References: <1374226039-16943-1-git-send-email-oleksandr.kozaruk@ti.com> <1374226039-16943-2-git-send-email-oleksandr.kozaruk@ti.com> <51E94F97.40002@cogentembedded.com> <51E95DEB.7010702@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <51E95DEB.7010702-l0cyMroinI0@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: Oleksandr Kozaruk <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org, milo.kim-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-So I called of_platform_populate() on a device to get each child device
-probed and on rmmod and I need to reverse its doing. After a quick grep
-I did what others did as well and rmmod ended in:
+Hello.
 
-| Unable to handle kernel NULL pointer dereference at virtual address 00000018
-| PC is at release_resource+0x18/0x80
-| Process rmmod (pid: 2005, stack limit = 0xedc30238)
-| [<c003add0>] (release_resource+0x18/0x80) from [<c0300e08>] (platform_device_del+0x78/0xac)
-| [<c0300e08>] (platform_device_del+0x78/0xac) from [<c0301358>] (platform_device_unregister+0xc/0x18)
+On 07/19/2013 07:40 PM, Grygorii Strashko wrote:
 
-The problem is that platform_device_del() "releases" each ressource in its
-tree. This does not work on platform_devices created by OF becuase they
-were never added via insert_resource(). As a consequence old->parent in
-__release_resource() is NULL and we explode while accessing ->child.
-So I either I do something completly wrong _or_ nobody here tested the
-rmmod path of their driver.
+>>> GPADC is the general purpose ADC present on twl6030.
+>>> The dt data is interrupt used to trigger end of ADC
+>>> conversion.
 
-This patch provides a common function to unregister / remove devices
-which added to the system via of_platform_populate(). While this works
-now on my test case I have not tested any of the driver I modify here so
-feedback is greatly appreciated.
+>>> Signed-off-by: Oleksandr Kozaruk <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
+>>> ---
+>>>   arch/arm/boot/dts/twl6030.dtsi | 6 ++++++
+>>>   1 file changed, 6 insertions(+)
 
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Doug Anderson <dianders@chromium.org>
-Cc: Vivek Gautam <gautam.vivek@samsung.com>
-Cc: Naveen Krishna Chatradhi <ch.naveen@samsung.com>
-Cc: Kukjin Kim <kgene.kim@samsung.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>
-Cc: George Cherian <george.cherian@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- drivers/bus/omap-ocp2scp.c     | 13 ++-----------
- drivers/iio/adc/exynos_adc.c   | 15 ++-------------
- drivers/mfd/omap-usb-host.c    |  9 +--------
- drivers/of/platform.c          | 22 ++++++++++++++++++++++
- drivers/usb/dwc3/dwc3-exynos.c | 11 +----------
- drivers/usb/dwc3/dwc3-omap.c   | 12 +-----------
- include/linux/of_platform.h    |  4 ++++
- 7 files changed, 33 insertions(+), 53 deletions(-)
+>>> diff --git a/arch/arm/boot/dts/twl6030.dtsi
+>>> b/arch/arm/boot/dts/twl6030.dtsi
+>>> index 2e3bd31..d7d4c28 100644
+>>> --- a/arch/arm/boot/dts/twl6030.dtsi
+>>> +++ b/arch/arm/boot/dts/twl6030.dtsi
+>>> @@ -103,4 +103,10 @@
+>>>           compatible = "ti,twl6030-pwmled";
+>>>           #pwm-cells = <2>;
+>>>       };
+>>> +
+>>> +    adc: gpadc {
 
-diff --git a/drivers/bus/omap-ocp2scp.c b/drivers/bus/omap-ocp2scp.c
-index 5511f98..510bb9e 100644
---- a/drivers/bus/omap-ocp2scp.c
-+++ b/drivers/bus/omap-ocp2scp.c
-@@ -23,15 +23,6 @@
- #include <linux/of.h>
- #include <linux/of_platform.h>
- 
--static int ocp2scp_remove_devices(struct device *dev, void *c)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--
--	platform_device_unregister(pdev);
--
--	return 0;
--}
--
- static int omap_ocp2scp_probe(struct platform_device *pdev)
- {
- 	int ret;
-@@ -51,7 +42,7 @@ static int omap_ocp2scp_probe(struct platform_device *pdev)
- 	return 0;
- 
- err0:
--	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
-+	of_platform_unpopulate(&pdev->dev);
- 
- 	return ret;
- }
-@@ -59,7 +50,7 @@ static int omap_ocp2scp_probe(struct platform_device *pdev)
- static int omap_ocp2scp_remove(struct platform_device *pdev)
- {
- 	pm_runtime_disable(&pdev->dev);
--	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
-+	of_platform_unpopulate(&pdev->dev);
- 
- 	return 0;
- }
-diff --git a/drivers/iio/adc/exynos_adc.c b/drivers/iio/adc/exynos_adc.c
-index 9809fc9..10248e1 100644
---- a/drivers/iio/adc/exynos_adc.c
-+++ b/drivers/iio/adc/exynos_adc.c
-@@ -216,15 +216,6 @@ static const struct iio_chan_spec exynos_adc_iio_channels[] = {
- 	ADC_CHANNEL(9, "adc9"),
- };
- 
--static int exynos_adc_remove_devices(struct device *dev, void *c)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--
--	platform_device_unregister(pdev);
--
--	return 0;
--}
--
- static void exynos_adc_hw_init(struct exynos_adc *info)
- {
- 	u32 con1, con2;
-@@ -357,8 +348,7 @@ static int exynos_adc_probe(struct platform_device *pdev)
- 	return 0;
- 
- err_of_populate:
--	device_for_each_child(&pdev->dev, NULL,
--				exynos_adc_remove_devices);
-+	of_platform_unpopulate(&pdev->dev);
- 	regulator_disable(info->vdd);
- 	clk_disable_unprepare(info->clk);
- err_iio_dev:
-@@ -375,8 +365,7 @@ static int exynos_adc_remove(struct platform_device *pdev)
- 	struct iio_dev *indio_dev = platform_get_drvdata(pdev);
- 	struct exynos_adc *info = iio_priv(indio_dev);
- 
--	device_for_each_child(&pdev->dev, NULL,
--				exynos_adc_remove_devices);
-+	of_platform_unpopulate(&pdev->dev);
- 	regulator_disable(info->vdd);
- 	clk_disable_unprepare(info->clk);
- 	writel(0, info->enable_reg);
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 759fae3..bb26cea 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -832,13 +832,6 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 	return ret;
- }
- 
--static int usbhs_omap_remove_child(struct device *dev, void *data)
--{
--	dev_info(dev, "unregistering\n");
--	platform_device_unregister(to_platform_device(dev));
--	return 0;
--}
--
- /**
-  * usbhs_omap_remove - shutdown processing for UHH & TLL HCDs
-  * @pdev: USB Host Controller being removed
-@@ -871,7 +864,7 @@ static int usbhs_omap_remove(struct platform_device *pdev)
- 	pm_runtime_disable(&pdev->dev);
- 
- 	/* remove children */
--	device_for_each_child(&pdev->dev, NULL, usbhs_omap_remove_child);
-+	of_platform_unpopulate(&pdev->dev);
- 	return 0;
- }
- 
-diff --git a/drivers/of/platform.c b/drivers/of/platform.c
-index e0a6514..9cbb0c3 100644
---- a/drivers/of/platform.c
-+++ b/drivers/of/platform.c
-@@ -473,4 +473,26 @@ int of_platform_populate(struct device_node *root,
- 	return rc;
- }
- EXPORT_SYMBOL_GPL(of_platform_populate);
-+
-+static int of_remove_populated_child(struct device *dev, void *d)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+
-+	of_device_unregister(pdev);
-+	return 0;
-+}
-+/**
-+ * of_platform_unpopulate() - Remove populated devices.
-+ * @parent: parent of the populated devices.
-+ *
-+ * The reverse of of_platform_populate() and can only be used a parent was
-+ * specified while invoking the former.
-+ */
-+void of_platform_unpopulate(struct device *parent)
-+{
-+	if (WARN_ON(!parent))
-+		return;
-+	device_for_each_child(parent, NULL, of_remove_populated_child);
-+}
-+EXPORT_SYMBOL_GPL(of_platform_unpopulate);
- #endif /* CONFIG_OF_ADDRESS */
-diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
-index 8ce9d7f..2bf5664 100644
---- a/drivers/usb/dwc3/dwc3-exynos.c
-+++ b/drivers/usb/dwc3/dwc3-exynos.c
-@@ -86,15 +86,6 @@ static int dwc3_exynos_register_phys(struct dwc3_exynos *exynos)
- 	return ret;
- }
- 
--static int dwc3_exynos_remove_child(struct device *dev, void *unused)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--
--	platform_device_unregister(pdev);
--
--	return 0;
--}
--
- static int dwc3_exynos_probe(struct platform_device *pdev)
- {
- 	struct dwc3_exynos	*exynos;
-@@ -164,7 +155,7 @@ static int dwc3_exynos_remove(struct platform_device *pdev)
- {
- 	struct dwc3_exynos	*exynos = platform_get_drvdata(pdev);
- 
--	device_for_each_child(&pdev->dev, NULL, dwc3_exynos_remove_child);
-+	of_platform_unpopulate(&pdev->dev);
- 	platform_device_unregister(exynos->usb2_phy);
- 	platform_device_unregister(exynos->usb3_phy);
- 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 077f110..8688613 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -327,15 +327,6 @@ static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
- 	return IRQ_HANDLED;
- }
- 
--static int dwc3_omap_remove_core(struct device *dev, void *c)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--
--	platform_device_unregister(pdev);
--
--	return 0;
--}
--
- static void dwc3_omap_enable_irqs(struct dwc3_omap *omap)
- {
- 	u32			reg;
-@@ -529,8 +520,7 @@ static int dwc3_omap_remove(struct platform_device *pdev)
- 	dwc3_omap_disable_irqs(omap);
- 	pm_runtime_put_sync(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
--	device_for_each_child(&pdev->dev, NULL, dwc3_omap_remove_core);
--
-+	of_platform_unpopulate(&pdev->dev);
- 	return 0;
- }
- 
-diff --git a/include/linux/of_platform.h b/include/linux/of_platform.h
-index 05cb4a9..e354f9c 100644
---- a/include/linux/of_platform.h
-+++ b/include/linux/of_platform.h
-@@ -72,6 +72,7 @@ extern int of_platform_populate(struct device_node *root,
- 				const struct of_device_id *matches,
- 				const struct of_dev_auxdata *lookup,
- 				struct device *parent);
-+extern  void of_platform_unpopulate(struct device *parent);
- #else
- static inline int of_platform_populate(struct device_node *root,
- 					const struct of_device_id *matches,
-@@ -80,6 +81,9 @@ static inline int of_platform_populate(struct device_node *root,
- {
- 	return -ENODEV;
- }
-+static inline void of_platform_unpopulate(struct device *parent)
-+{
-+}
- #endif
- 
- #endif	/* _LINUX_OF_PLATFORM_H */
--- 
-1.8.3.2
+>>     Read my lips: the node should be called just "adc", not "gpadc".
+>        ^^^^^^^^^^^^ Are you sure?
+
+    I didn't know how to express my disappointment from Oleksandr's inability 
+to understand what I wanted to convey to him from 2 attempts... first, he 
+changed the label instead of the node name, then he only dropped "twl6030_" 
+prefix from the name. I should probably have been even more specific before.
+
+> Why? The name was selected according to the documentation on device "General
+> purpose analog-to-digital converter (GPADC)".
+
+    Sigh, we simply don't care whether this ADC is general-purpose or not.
+The main thing it is ADC.
+
+> PS. Following your logic - "GPIO" need to renamed to "IO" everywhere ;P
+
+    GPIO is well known and established abbreviation, contrasted to GPADC.
+Moreover, ePAPR spec lists "gpio" as a generic node name.
+
+WBR, Sergei
