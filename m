@@ -1,110 +1,108 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCHv4 2/3] drivers: spi: Add qspi flash controller
-Date: Fri, 19 Jul 2013 10:32:50 +0530
-Message-ID: <51E8C87A.3030007@ti.com>
-References: <1374141687-10790-1-git-send-email-sourav.poddar@ti.com>	<1374141687-10790-3-git-send-email-sourav.poddar@ti.com> <CA+7tXij7W_F0ZTQZ=YvK+qOLO+O-6WpTKxLerv8NXyrdydt7FA@mail.gmail.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Fri, 19 Jul 2013 11:07:10 +0530
+Message-ID: <51E8D086.809@ti.com>
+References: <1374129984-765-1-git-send-email-kishon@ti.com>
+ <1374129984-765-2-git-send-email-kishon@ti.com>
+ <20130718072004.GA16720@kroah.com> <51E7AE88.3050007@ti.com>
+ <20130718154954.GA31961@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35433 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932084Ab3GSFDF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Jul 2013 01:03:05 -0400
-In-Reply-To: <CA+7tXij7W_F0ZTQZ=YvK+qOLO+O-6WpTKxLerv8NXyrdydt7FA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130718154954.GA31961@kroah.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, grant.likely@linaro.org, linux-media@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, devicetree-discuss@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.park@samsung.com, akpm@linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
-To: Trent Piepho <tpiepho@gmail.com>
-Cc: broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, linux-omap@vger.kernel.org, rnayak@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com
 
-On Friday 19 July 2013 12:38 AM, Trent Piepho wrote:
-> On Thu, Jul 18, 2013 at 3:01 AM, Sourav Poddar<sourav.poddar@ti.com>  wrote:
->> +Required properties:
->> +- compatible : should be "ti,dra7xxx-qspi".
->> +- reg: Should contain QSPI registers location and length.
->> +- #address-cells, #size-cells : Must be present if the device has sub-nodes
->> +- ti,hwmods: Name of the hwmod associated to the QSPI
-> What is ti,hwmods?  It's not clear from the description.  It also
-> doesn't appear to be used in the driver.  At least, I did not find any
-> occurrence of "hwmods" in the driver code.
->
->> +static inline unsigned long ti_qspi_readl_data(struct ti_qspi *qspi,
->> +               unsigned long reg, int wlen)
-> "readl" means read LONG.  That's what the L is for.  But this does
-> different widths.
->
->> +{
->> +       switch (wlen) {
->> +       case 8:
->> +               return readw(qspi->base + reg);
->> +               break;
-> wlen == 8, but readw == 16 bit read?
-Yes, I need to change this. should be readb.
-> The break after the return isn't necessary.
->
->> +       case 16:
->> +               return readb(qspi->base + reg);
->> +               break;
-> wlen == 16, but readb == 8 bit read?
->
-same here.
->> +       case 32:
->> +               return readl(qspi->base + reg);
-> wlen == 32, readl == 32, this one makes sense, but....
->
->> +static inline void ti_qspi_writel_data(struct ti_qspi *qspi,
->> +               unsigned long val, unsigned long reg, int wlen)
->> +       case 32:
->> +               writeb(val, qspi->base + reg);
->> +               break;
-> A 32 bit write uses an 8 bit write command, while read is 32 bits??
->
-> This doesn't make a lot of sense.  If it's actually correct, there
-> should be come kind of comment about it.
->
-Yes, I will change this in the next version.
->> +
->> +static int ti_qspi_setup(struct spi_device *spi)
->> +{
->> +
->> +       clk_ctrl_reg = ti_qspi_readl(qspi, QSPI_SPI_CLOCK_CNTRL_REG);
->> +
->> +       clk_ctrl_reg&= ~QSPI_CLK_EN;
->> +
->> +       /* disable SCLK */
->> +       ti_qspi_writel(qspi, clk_ctrl_reg, QSPI_SPI_CLOCK_CNTRL_REG);
-> Did you read this from Documentation/spi/spi-summary?
->                  ** BUG ALERT:  for some reason the first version of
->                  ** many spi_master drivers seems to get this wrong.
->                  ** When you code setup(), ASSUME that the controller
->                  ** is actively processing transfers for another device.
->
-But I see in this documentation, that setup is usually used for setting up
-device clock rate, modes etc.
-So, what do you recommend here, should we move clk settings to prepare
-hardware ?
->> +static int ti_qspi_probe(struct platform_device *pdev)
->> +{
->> +
->> +       master->mode_bits = SPI_CPOL | SPI_CPHA;
-> Does your device support full duplex?  It doesn't look like it does.
-> You should set the SPI_MASER_HALF_DUPLEX flag in master->flags.
->
-hmm. Ok, will add.
->> +
->> +       if (!of_property_read_u32(np, "ti,spi-num-cs",&num_cs))
->> +               master->num_chipselect = num_cs;
-> You didn't document this property.  How is this different than the
-> "num-cs" property already documented in spi-bus bindings?
->
-Actually, it is no different. This also means the total number of 
-chipselects.
-I used it from omap mcspi. I will make this property in accordance with the
-generic binding.
-Will also send a seperate patch for omap mcspi.
->> +       qspi->base = devm_ioremap_resource(&pdev->dev, r);
->> +       if (IS_ERR(qspi->base)) {
->> +               ret = -ENOMEM;
-> Shouldn't that be ret = PTR_ERR(qspi->base)
-hmm.will change.
+Hi,
 
+On Thursday 18 July 2013 09:19 PM, Greg KH wrote:
+> On Thu, Jul 18, 2013 at 02:29:52PM +0530, Kishon Vijay Abraham I wrote:
+>> Hi,
+>>
+>> On Thursday 18 July 2013 12:50 PM, Greg KH wrote:
+>>> On Thu, Jul 18, 2013 at 12:16:10PM +0530, Kishon Vijay Abraham I wrote:
+>>>> +struct phy_provider *__of_phy_provider_register(struct device *dev,
+>>>> +	struct module *owner, struct phy * (*of_xlate)(struct device *dev,
+>>>> +	struct of_phandle_args *args));
+>>>> +struct phy_provider *__devm_of_phy_provider_register(struct device *dev,
+>>>> +	struct module *owner, struct phy * (*of_xlate)(struct device *dev,
+>>>> +	struct of_phandle_args *args))
+>>>> +
+>>>> +__of_phy_provider_register and __devm_of_phy_provider_register can be used to
+>>>> +register the phy_provider and it takes device, owner and of_xlate as
+>>>> +arguments. For the dt boot case, all PHY providers should use one of the above
+>>>> +2 APIs to register the PHY provider.
+>>>
+>>> Why do you have __ for the prefix of a public function?  Is that really
+>>> the way that OF handles this type of thing?
+>>
+>> I have a macro of_phy_provider_register/devm_of_phy_provider_register that
+>> calls these functions and should be used by the PHY drivers. Probably I should
+>> make a mention of it in the Documentation.
+> 
+> Yes, mention those as you never want to be calling __* functions
+> directly, right?
+
+correct.
+> 
+>>>> +	ret = dev_set_name(&phy->dev, "%s.%d", dev_name(dev), id);
+>>>
+>>> Your naming is odd, no "phy" anywhere in it?  You rely on the sender to
+>>> never send a duplicate name.id pair?  Why not create your own ids based
+>>> on the number of phys in the system, like almost all other classes and
+>>> subsystems do?
+>>
+>> hmm.. some PHY drivers use the id they provide to perform some of their
+>> internal operation as in [1] (This is used only if a single PHY provider
+>> implements multiple PHYS). Probably I'll add an option like PLATFORM_DEVID_AUTO
+>> to give the PHY drivers an option to use auto id.
+>>
+>> [1] ->
+>> http://archive.arm.linux.org.uk/lurker/message/20130628.134308.4a8f7668.ca.html
+> 
+> No, who cares about the id?  No one outside of the phy core ever should,
+> because you pass back the only pointer that they really do care about,
+> if they need to do anything with the device.  Use that, and then you can
+
+hmm.. ok.
+
+> rip out all of the "search for a phy by a string" logic, as that's not
+
+Actually this is needed for non-dt boot case. In the case of dt boot, we use a
+phandle by which the controller can get a reference to the phy. But in the case
+of non-dt boot, the controller can get a reference to the phy only by label.
+> needed either.  Just stick to the pointer, it's easier, and safer that
+> way.
+> 
+>>>> +static inline int phy_pm_runtime_get(struct phy *phy)
+>>>> +{
+>>>> +	if (WARN(IS_ERR(phy), "Invalid PHY reference\n"))
+>>>> +		return -EINVAL;
+>>>
+>>> Why would phy ever not be valid and a error pointer?  And why dump the
+>>> stack if that happens, that seems really extreme.
+>>
+>> hmm.. there might be cases where the same controller in one soc needs PHY
+>> control and in some other soc does not need PHY control. In such cases, we
+>> might get error pointer here.
+>> I'll change WARN to dev_err.
+> 
+> I still don't understand.  You have control over the code that calls
+> these functions, just ensure that they pass in a valid pointer, it's
+> that simple.  Or am I missing something?
+
+You are right. Valid pointer check can be done in controller code as well.
+
+Thanks
+Kishon
