@@ -1,44 +1,27 @@
-From: Illia Smyrnov <x0194613@ti.com>
-Subject: Re: [PATCH 0/2] Input: omap-keypad: Cleanup - remove hardcoded values
- and IRQ enabling/disabling
-Date: Fri, 19 Jul 2013 16:10:50 +0300
-Message-ID: <51E93ADA.3010402@ti.com>
-References: <1374239027-3927-1-git-send-email-illia.smyrnov@globallogic.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v2 0/4] Add phy support for AM335X platform using Generic
+ PHy framework
+Date: Fri, 19 Jul 2013 18:47:49 +0530
+Message-ID: <51E93C7D.9070709@ti.com>
+References: <1374237277-17769-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1374239027-3927-1-git-send-email-illia.smyrnov@globallogic.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1374237277-17769-1-git-send-email-george.cherian@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, bigeasy@linutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-On 07/19/2013 04:03 PM, Illia Smyrnov wrote:
-> From: Illia Smyrnov <illia.smyrnov@ti.com>
->
-> Replace unclear hardcoded values with bit field and remove
-> unnecessary IRQ enabling/disabling.
->
-> Based on top of v3.10-rc1.
+Hi,
 
-Sorry, it is typo here. Based on v3.11-rc1.
+On Friday 19 July 2013 06:04 PM, George Cherian wrote:
+> This patch series adds phy support for AM335X platform.
+> This patch series is based on Generic PHY framework [1].
 
->
-> Tested on OMAP4 SDP.
->
-> Illia Smyrnov (2):
->    Input: omap-keypad: Cleanup - use bitfiled instead of hardcoded
->      values
->    Input: omap-keypad: Cleanup - remove unnecessary IRQ
->      enabling/disabling
->
->   drivers/input/keyboard/omap4-keypad.c |   40 ++++++++++++--------------------
->   1 files changed, 15 insertions(+), 25 deletions(-)
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
+There are some comments on the generic PHY framework. So you might have to
+adapt it once those comments are fixed.
+
+Thanks
+Kishon
