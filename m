@@ -1,48 +1,35 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [PATCH] Documentation: dt: bindings: TI WiLink modules
-Date: Sat, 20 Jul 2013 10:48:08 +0300
-Message-ID: <1374306488.8385.56.camel@cumari.coelho.fi>
-References: <1372149330-24335-1-git-send-email-coelho@ti.com>
- <1372425670.21065.61.camel@cumari.coelho.fi>
- <1372682370.21065.68.camel@cumari.coelho.fi> <1698879.DLaB5pbe5M@avalon>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [net-next PATCH 1/1] drivers: net: cpsw: add support to show
+ hw stats via ethtool get_regs
+Date: Sat, 20 Jul 2013 13:30:07 +0530
+Message-ID: <51EA4387.9070301@ti.com>
+References: <1374242841-17141-1-git-send-email-mugunthanvnm@ti.com> <20130719.173202.1362261343675979678.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1698879.DLaB5pbe5M@avalon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, mturquette@linaro.org, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, balbi@ti.com, "grant.likely@linaro.org" <grant.likely@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm@vger.kernel.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20130719.173202.1362261343675979678.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 2013-07-18 at 01:58 +0200, Laurent Pinchart wrote:
-> Hi Luciano,
+On 7/20/2013 6:02 AM, David Miller wrote:
+> From: Mugunthan V N <mugunthanvnm@ti.com>
+> Date: Fri, 19 Jul 2013 19:37:21 +0530
+>
+>> Add support to show CPSW hardware statistics to user via ethtool get_regs
+>> ops so user can find if there were any error reported or the system is
+>> over loaded duing hagh data rate transfer.
+>>
+>> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+> This is not the correct way to provide this functionality.  ->get_regs()
+> is for dumping the raw hardware registers to userspace for low level
+> debugging purposes, not for providing HW specific statistics.
+>
+> The correct thing to do is provide an appropriate implementation of
+> the ->get_strings() and ->get_ethtool_stats() methods.
+Will change the implementation and resubmit the patch.
 
-Hi Laurent,
-
-> On Monday 01 July 2013 15:39:30 Luciano Coelho wrote:
-> > The only thing I can come up with is to make a small clock driver (maybe
-> > even inside the WiLink module itself) that registers a new type of
-> > clock, "ti,wilink-clock" or something.  But this would really be
-> > overkill, wouldn't it?
-> > 
-> > Any other ideas?
-> 
-> One possibility would be to just call clk_get_rate() on the clock from the 
-> WiLink driver, which would return the fixed frequency specified in DT, and 
-> configure the WiLink hardware accordingly. This might be a bit hackish though.
-
-The problem is not get the rate itself, the problem is knowing whether
-the clock is XTAL or not.  The WiLink chip uses the clock in a slightly
-different way if it is XTAL, due to some stabilization time constraints.
-
---
-Luca.
+Regards
+Mugunthan V N
