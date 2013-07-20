@@ -1,95 +1,99 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Sat, 20 Jul 2013 08:49:32 +0530
-Message-ID: <51EA01C4.2010006@ti.com>
-References: <1374129984-765-1-git-send-email-kishon@ti.com>
- <1374129984-765-2-git-send-email-kishon@ti.com>
- <20130718072004.GA16720@kroah.com> <51E7AE88.3050007@ti.com>
- <20130718154954.GA31961@kroah.com> <51E8D086.809@ti.com>
- <20130719054311.GA14638@kroah.com> <51E8D4E0.8060200@ti.com>
- <20130719062941.GA23611@kroah.com> <51E8DE51.1060404@ti.com>
- <20130719235055.GB11498@kroah.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: [PATCH v2 3/4] arm: dts: Add USB phy nodes for AM33XX
+Date: Sat, 20 Jul 2013 09:06:32 +0530
+Message-ID: <51EA05C0.6050606@ti.com>
+References: <1374237277-17769-1-git-send-email-george.cherian@ti.com> <1374237277-17769-4-git-send-email-george.cherian@ti.com> <51E94571.8080805@cogentembedded.com> <51E94B30.9070805@linutronix.de> <51E98663.2040308@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130719235055.GB11498@kroah.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, grant.likely@linaro.org, linux-media@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, devicetree-discuss@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.park@samsung.com, akpm@linux-foundation.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58893 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753785Ab3GTDgs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Jul 2013 23:36:48 -0400
+In-Reply-To: <51E98663.2040308@cogentembedded.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com
 
-Hi,
-
-On Saturday 20 July 2013 05:20 AM, Greg KH wrote:
-> On Fri, Jul 19, 2013 at 12:06:01PM +0530, Kishon Vijay Abraham I wrote:
->> Hi,
->>
->> On Friday 19 July 2013 11:59 AM, Greg KH wrote:
->>> On Fri, Jul 19, 2013 at 11:25:44AM +0530, Kishon Vijay Abraham I wrote:
->>>> Hi,
->>>>
->>>> On Friday 19 July 2013 11:13 AM, Greg KH wrote:
->>>>> On Fri, Jul 19, 2013 at 11:07:10AM +0530, Kishon Vijay Abraham I wrote:
->>>>>>>>>> +	ret = dev_set_name(&phy->dev, "%s.%d", dev_name(dev), id);
->>>>>>>>>
->>>>>>>>> Your naming is odd, no "phy" anywhere in it?  You rely on the sender to
->>>>>>>>> never send a duplicate name.id pair?  Why not create your own ids based
->>>>>>>>> on the number of phys in the system, like almost all other classes and
->>>>>>>>> subsystems do?
->>>>>>>>
->>>>>>>> hmm.. some PHY drivers use the id they provide to perform some of their
->>>>>>>> internal operation as in [1] (This is used only if a single PHY provider
->>>>>>>> implements multiple PHYS). Probably I'll add an option like PLATFORM_DEVID_AUTO
->>>>>>>> to give the PHY drivers an option to use auto id.
->>>>>>>>
->>>>>>>> [1] ->
->>>>>>>> http://archive.arm.linux.org.uk/lurker/message/20130628.134308.4a8f7668.ca.html
->>>>>>>
->>>>>>> No, who cares about the id?  No one outside of the phy core ever should,
->>>>>>> because you pass back the only pointer that they really do care about,
->>>>>>> if they need to do anything with the device.  Use that, and then you can
->>>>>>
->>>>>> hmm.. ok.
->>>>>>
->>>>>>> rip out all of the "search for a phy by a string" logic, as that's not
->>>>>>
->>>>>> Actually this is needed for non-dt boot case. In the case of dt boot, we use a
->>>>>> phandle by which the controller can get a reference to the phy. But in the case
->>>>>> of non-dt boot, the controller can get a reference to the phy only by label.
->>>>>
->>>>> I don't understand.  They registered the phy, and got back a pointer to
->>>>> it.  Why can't they save it in their local structure to use it again
->>>>> later if needed?  They should never have to "ask" for the device, as the
->>>>
->>>> One is a *PHY provider* driver which is a driver for some PHY device. This will
->>>> use phy_create to create the phy.
->>>> The other is a *PHY consumer* driver which might be any controller driver (can
->>>> be USB/SATA/PCIE). The PHY consumer will use phy_get to get a reference to the
->>>> phy (by *phandle* in the case of dt boot and *label* in the case of non-dt boot).
->>>>> device id might be unknown if there are multiple devices in the system.
->>>>
->>>> I agree with you on the device id part. That need not be known to the PHY driver.
->>>
->>> How does a consumer know which "label" to use in a non-dt system if
->>> there are multiple PHYs in the system?
->>
->> That should be passed using platform data.
+On 7/20/2013 12:03 AM, Sergei Shtylyov wrote:
+> Hello.
 >
-> Ick, don't pass strings around, pass pointers.  If you have platform
-> data you can get to, then put the pointer there, don't use a "name".
+> On 07/19/2013 06:20 PM, Sebastian Andrzej Siewior wrote:
+>
+>>>> diff --git a/arch/arm/boot/dts/am33xx.dtsi
+>>>> b/arch/arm/boot/dts/am33xx.dtsi
+>>>> index 8e1248f..e3890c4 100644
+>>>> --- a/arch/arm/boot/dts/am33xx.dtsi
+>>>> +++ b/arch/arm/boot/dts/am33xx.dtsi
+>>>> @@ -326,21 +326,59 @@
+>>>>                status = "disabled";
+>>>>            };
+>>>>
+>>>> -        usb@47400000 {
+>>>> -            compatible = "ti,musb-am33xx";
+>>>> -            reg = <0x47400000 0x1000    /* usbss */
+>>>> -                   0x47401000 0x800        /* musb instance 0 */
+>>>> -                   0x47401800 0x800>;    /* musb instance 1 */
+>>>> -            interrupts = <17        /* usbss */
+>>>> -                      18        /* musb instance 0 */
+>>>> -                      19>;        /* musb instance 1 */
+>>>> -            multipoint = <1>;
+>>>> -            num-eps = <16>;
+>>>> -            ram-bits = <12>;
+>>>> -            port0-mode = <3>;
+>>>> -            port1-mode = <3>;
+>>>> -            power = <250>;
+>>>> -            ti,hwmods = "usb_otg_hs";
+>>>> +        phy1: am335x-usb0@44e10620 {
+>
+>>>     Shouldn't the PHYs be *under* the usb0/1 device nodes in the 
+>>> hierarchy?
+>>> They're not on the same bus as the MUSB controllers for sure.
+>
+>> I redo the complete thing. I have now:
+>
+>> usb: usb@47400000 {
+>>     compatible = "ti,am33xx-usb";
+>>
+>>     usb0_phy: phy@47401300 {
+>>         compatible = "ti,am335x-usb-phy";
+>>     }
+>>     usb0: usb@47401000 {
+>>         musb0: usb@47401400 {
+>>             compatible = "mg,musbmhdrc";
+>>         }
+>>     }
+>>     usb1_phy: phy@47402300 {
+>>         compatible = "ti,am335x-usb-phy";
+>>     }
+>>     usb1: usb@47402000 {
+>>         musb1: usb@47402400 {
+>>             compatible = "mg,musbmhdrc";
+>>         }
+>>     }
+>> }
+>
+>> And you want usb0_phy to be child of usb0? In the TRM they are all in
+>> the same block.
+>
+>    Ah, the fact that PHYs didn't have the "reg" property got me 
+> muddled, I didn't pay attention to the address part of the node 
+> names... BTW, where is the "reg" prop? I see PHYs share the address 
+> space with "omap-control-usb@44e10620" device -- what's the point with 
+> this?
+In control module(CM) each USB has got 2 registers  in which one is a 
+shared register( wakeup register)
+So all the CM access are done using the control-usb driver 
+(phy-omap-control-usb.c). Same reason why phy's dont have a reg property.
+>
+>> Sebastian
+>
+> WBR, Sergei
+>
 
-I don't think I understood you here :-s We wont have phy pointer when we 
-create the device for the controller no?(it'll be done in board file). 
-Probably I'm missing something.
 
-Thanks
-Kishon
+-- 
+-George
+
