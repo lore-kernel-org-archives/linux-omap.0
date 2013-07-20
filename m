@@ -1,187 +1,323 @@
-From: NAVEEN KRISHNA CHATRADHI <ch.naveen@samsung.com>
+From: NAVEEN KRISHNA CHATRADHI <ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: [PATCH] of: provide of_platform_unpopulate()
-Date: Sat, 20 Jul 2013 05:03:27 +0000 (GMT)
-Message-ID: <21991870.179121374296606237.JavaMail.weblogic@epml22>
-Reply-To: ch.naveen@samsung.com
+Date: Sat, 20 Jul 2013 05:43:02 +0000 (GMT)
+Message-ID: <2333396.179421374298979822.JavaMail.weblogic@epml22>
+Reply-To: ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:25676 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751074Ab3GTFD3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Jul 2013 01:03:29 -0400
-Received: from epcpsbgr1.samsung.com
- (u141.gpu120.samsung.co.kr [203.254.230.141])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MQ700KAEY1NU170@mailout1.samsung.com> for
- linux-omap@vger.kernel.org; Sat, 20 Jul 2013 14:03:28 +0900 (KST)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 MIME-version: 1.0
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, "linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@linaro.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Doug Anderson <dianders@chromium.org>, Vivek Gautam <gautam.vivek@samsung.com>, Kukjin Kim <kgene.kim@samsung.com>, Kishon Vijay Abraham I <kishon@ti.com>, Roger Quadros <rogerq@ti.com>, George Cherian <george.cherian@ti.com>, Felipe Balbi <balbi@ti.com>
 
-SGVsbG8gU2ViYXN0aWFuLAoKLS0tLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tLS0KU2VuZGVy
-IDogU2ViYXN0aWFuIEFuZHJ6ZWogU2lld2lvcjxiaWdlYXN5QGxpbnV0cm9uaXguZGU+IApEYXRl
-ICAgOiBKdWwgMTksIDIwMTMgMjM6NDQgKEdNVCswNTozMCkKVGl0bGUgIDogW1BBVENIXSBvZjog
-cHJvdmlkZSBvZl9wbGF0Zm9ybV91bnBvcHVsYXRlKCkKClNvIEkgY2FsbGVkIG9mX3BsYXRmb3Jt
-X3BvcHVsYXRlKCkgb24gYSBkZXZpY2UgdG8gZ2V0IGVhY2ggY2hpbGQgZGV2aWNlCnByb2JlZCBh
-bmQgb24gcm1tb2QgYW5kIEkgbmVlZCB0byByZXZlcnNlIGl0cyBkb2luZy4gQWZ0ZXIgYSBxdWlj
-ayBncmVwCkkgZGlkIHdoYXQgb3RoZXJzIGRpZCBhcyB3ZWxsIGFuZCBybW1vZCBlbmRlZCBpbjoK
-CnwgVW5hYmxlIHRvIGhhbmRsZSBrZXJuZWwgTlVMTCBwb2ludGVyIGRlcmVmZXJlbmNlIGF0IHZp
-cnR1YWwgYWRkcmVzcyAwMDAwMDAxOAp8IFBDIGlzIGF0IHJlbGVhc2VfcmVzb3VyY2UrMHgxOC8w
-eDgwCnwgUHJvY2VzcyBybW1vZCAocGlkOiAyMDA1LCBzdGFjayBsaW1pdCA9IDB4ZWRjMzAyMzgp
-CnwgWzxjMDAzYWRkMD5dIChyZWxlYXNlX3Jlc291cmNlKzB4MTgvMHg4MCkgZnJvbSBbPGMwMzAw
-ZTA4Pl0gKHBsYXRmb3JtX2RldmljZV9kZWwrMHg3OC8weGFjKQp8IFs8YzAzMDBlMDg+XSAocGxh
-dGZvcm1fZGV2aWNlX2RlbCsweDc4LzB4YWMpIGZyb20gWzxjMDMwMTM1OD5dIChwbGF0Zm9ybV9k
-ZXZpY2VfdW5yZWdpc3RlcisweGMvMHgxOCkKClRoZSBwcm9ibGVtIGlzIHRoYXQgcGxhdGZvcm1f
-ZGV2aWNlX2RlbCgpICJyZWxlYXNlcyIgZWFjaCByZXNzb3VyY2UgaW4gaXRzCnRyZWUuIFRoaXMg
-ZG9lcyBub3Qgd29yayBvbiBwbGF0Zm9ybV9kZXZpY2VzIGNyZWF0ZWQgYnkgT0YgYmVjdWFzZSB0
-aGV5CndlcmUgbmV2ZXIgYWRkZWQgdmlhIGluc2VydF9yZXNvdXJjZSgpLiBBcyBhIGNvbnNlcXVl
-bmNlIG9sZC0+cGFyZW50IGluCl9fcmVsZWFzZV9yZXNvdXJjZSgpIGlzIE5VTEwgYW5kIHdlIGV4
-cGxvZGUgd2hpbGUgYWNjZXNzaW5nIC0+Y2hpbGQuClNvIEkgZWl0aGVyIEkgZG8gc29tZXRoaW5n
-IGNvbXBsZXRseSB3cm9uZyBfb3JfIG5vYm9keSBoZXJlIHRlc3RlZCB0aGUKcm1tb2QgcGF0aCBv
-ZiB0aGVpciBkcml2ZXIuCgpUaGlzIHBhdGNoIHByb3ZpZGVzIGEgY29tbW9uIGZ1bmN0aW9uIHRv
-IHVucmVnaXN0ZXIgLyByZW1vdmUgZGV2aWNlcwp3aGljaCBhZGRlZCB0byB0aGUgc3lzdGVtIHZp
-YSBvZl9wbGF0Zm9ybV9wb3B1bGF0ZSgpLiBXaGlsZSB0aGlzIHdvcmtzCm5vdyBvbiBteSB0ZXN0
-IGNhc2UgSSBoYXZlIG5vdCB0ZXN0ZWQgYW55IG9mIHRoZSBkcml2ZXIgSSBtb2RpZnkgaGVyZSBz
-bwpmZWVkYmFjayBpcyBncmVhdGx5IGFwcHJlY2lhdGVkLgpJJ3ZlIHRlc3RlZCB0aGlzIG9uIHRo
-ZSBleHlub3NfYWRjIGRyaXZlciB1bmRlciBpaW8vYWRjLwphbmQgZm91bmQgYSBidWcgaW4gdGhl
-IGRyaXZlci4gV2hlbiBJIGZpeCB0aGUgYnVnLCB5b3VyIGNoYW5nZSBoYXBwaWx5IHJtbW9kcyB0
-aGUgbW9kdWxlLgoKV2lsbCBzZW5kIHRoZSBwYXRjaCBzZXBhcmF0ZWx5LgpUaGFua3MgZm9yIHBv
-aW50aW5nIG91dCB0aGUgYnVnIGZvciBtZS4KCkNjOiBUb255IExpbmRncmVuIDx0b255QGF0b21p
-ZGUuY29tPgpDYzogRG91ZyBBbmRlcnNvbiA8ZGlhbmRlcnNAY2hyb21pdW0ub3JnPgpDYzogVml2
-ZWsgR2F1dGFtIDxnYXV0YW0udml2ZWtAc2Ftc3VuZy5jb20+CkNjOiBOYXZlZW4gS3Jpc2huYSBD
-aGF0cmFkaGkgPGNoLm5hdmVlbkBzYW1zdW5nLmNvbT4KQ2M6IEt1a2ppbiBLaW0gPGtnZW5lLmtp
-bUBzYW1zdW5nLmNvbT4KQ2M6IEtpc2hvbiBWaWpheSBBYnJhaGFtIEkgPGtpc2hvbkB0aS5jb20+
-CkNjOiBSb2dlciBRdWFkcm9zIDxyb2dlcnFAdGkuY29tPgpDYzogR2VvcmdlIENoZXJpYW4gPGdl
-b3JnZS5jaGVyaWFuQHRpLmNvbT4KQ2M6IEZlbGlwZSBCYWxiaSA8YmFsYmlAdGkuY29tPgpTaWdu
-ZWQtb2ZmLWJ5OiBTZWJhc3RpYW4gQW5kcnplaiBTaWV3aW9yIDxiaWdlYXN5QGxpbnV0cm9uaXgu
-ZGU+Ci0tLQogZHJpdmVycy9idXMvb21hcC1vY3Ayc2NwLmMgICAgIHwgMTMgKystLS0tLS0tLS0t
-LQogZHJpdmVycy9paW8vYWRjL2V4eW5vc19hZGMuYyAgIHwgMTUgKystLS0tLS0tLS0tLS0tCiBk
-cml2ZXJzL21mZC9vbWFwLXVzYi1ob3N0LmMgICAgfCAgOSArLS0tLS0tLS0KIGRyaXZlcnMvb2Yv
-cGxhdGZvcm0uYyAgICAgICAgICB8IDIyICsrKysrKysrKysrKysrKysrKysrKysKIGRyaXZlcnMv
-dXNiL2R3YzMvZHdjMy1leHlub3MuYyB8IDExICstLS0tLS0tLS0tCiBkcml2ZXJzL3VzYi9kd2Mz
-L2R3YzMtb21hcC5jICAgfCAxMiArLS0tLS0tLS0tLS0KIGluY2x1ZGUvbGludXgvb2ZfcGxhdGZv
-cm0uaCAgICB8ICA0ICsrKysKIDcgZmlsZXMgY2hhbmdlZCwgMzMgaW5zZXJ0aW9ucygrKSwgNTMg
-ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9idXMvb21hcC1vY3Ayc2NwLmMgYi9k
-cml2ZXJzL2J1cy9vbWFwLW9jcDJzY3AuYwppbmRleCA1NTExZjk4Li41MTBiYjllIDEwMDY0NAot
-LS0gYS9kcml2ZXJzL2J1cy9vbWFwLW9jcDJzY3AuYworKysgYi9kcml2ZXJzL2J1cy9vbWFwLW9j
-cDJzY3AuYwpAQCAtMjMsMTUgKzIzLDYgQEAKICNpbmNsdWRlIDxsaW51eC9vZi5oPgogI2luY2x1
-ZGUgPGxpbnV4L29mX3BsYXRmb3JtLmg+CiAKLXN0YXRpYyBpbnQgb2NwMnNjcF9yZW1vdmVfZGV2
-aWNlcyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHZvaWQgKmMpCi17Ci0Jc3RydWN0IHBsYXRmb3JtX2Rl
-dmljZSAqcGRldiA9IHRvX3BsYXRmb3JtX2RldmljZShkZXYpOwotCi0JcGxhdGZvcm1fZGV2aWNl
-X3VucmVnaXN0ZXIocGRldik7Ci0KLQlyZXR1cm4gMDsKLX0KLQogc3RhdGljIGludCBvbWFwX29j
-cDJzY3BfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIHsKIAlpbnQgcmV0OwpA
-QCAtNTEsNyArNDIsNyBAQCBzdGF0aWMgaW50IG9tYXBfb2NwMnNjcF9wcm9iZShzdHJ1Y3QgcGxh
-dGZvcm1fZGV2aWNlICpwZGV2KQogCXJldHVybiAwOwogCiBlcnIwOgotCWRldmljZV9mb3JfZWFj
-aF9jaGlsZCgmcGRldi0+ZGV2LCBOVUxMLCBvY3Ayc2NwX3JlbW92ZV9kZXZpY2VzKTsKKwlvZl9w
-bGF0Zm9ybV91bnBvcHVsYXRlKCZwZGV2LT5kZXYpOwogCiAJcmV0dXJuIHJldDsKIH0KQEAgLTU5
-LDcgKzUwLDcgQEAgc3RhdGljIGludCBvbWFwX29jcDJzY3BfcHJvYmUoc3RydWN0IHBsYXRmb3Jt
-X2RldmljZSAqcGRldikKIHN0YXRpYyBpbnQgb21hcF9vY3Ayc2NwX3JlbW92ZShzdHJ1Y3QgcGxh
-dGZvcm1fZGV2aWNlICpwZGV2KQogewogCXBtX3J1bnRpbWVfZGlzYWJsZSgmcGRldi0+ZGV2KTsK
-LQlkZXZpY2VfZm9yX2VhY2hfY2hpbGQoJnBkZXYtPmRldiwgTlVMTCwgb2NwMnNjcF9yZW1vdmVf
-ZGV2aWNlcyk7CisJb2ZfcGxhdGZvcm1fdW5wb3B1bGF0ZSgmcGRldi0+ZGV2KTsKIAogCXJldHVy
-biAwOwogfQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9paW8vYWRjL2V4eW5vc19hZGMuYyBiL2RyaXZl
-cnMvaWlvL2FkYy9leHlub3NfYWRjLmMKaW5kZXggOTgwOWZjOS4uMTAyNDhlMSAxMDA2NDQKLS0t
-IGEvZHJpdmVycy9paW8vYWRjL2V4eW5vc19hZGMuYworKysgYi9kcml2ZXJzL2lpby9hZGMvZXh5
-bm9zX2FkYy5jCkBAIC0yMTYsMTUgKzIxNiw2IEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgaWlvX2No
-YW5fc3BlYyBleHlub3NfYWRjX2lpb19jaGFubmVsc1tdID0gewogCUFEQ19DSEFOTkVMKDksICJh
-ZGM5IiksCiB9OwogCi1zdGF0aWMgaW50IGV4eW5vc19hZGNfcmVtb3ZlX2RldmljZXMoc3RydWN0
-IGRldmljZSAqZGV2LCB2b2lkICpjKQotewotCXN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYg
-PSB0b19wbGF0Zm9ybV9kZXZpY2UoZGV2KTsKLQotCXBsYXRmb3JtX2RldmljZV91bnJlZ2lzdGVy
-KHBkZXYpOwotCi0JcmV0dXJuIDA7Ci19Ci0KIHN0YXRpYyB2b2lkIGV4eW5vc19hZGNfaHdfaW5p
-dChzdHJ1Y3QgZXh5bm9zX2FkYyAqaW5mbykKIHsKIAl1MzIgY29uMSwgY29uMjsKQEAgLTM1Nyw4
-ICszNDgsNyBAQCBzdGF0aWMgaW50IGV4eW5vc19hZGNfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2Rl
-dmljZSAqcGRldikKIAlyZXR1cm4gMDsKIAogZXJyX29mX3BvcHVsYXRlOgotCWRldmljZV9mb3Jf
-ZWFjaF9jaGlsZCgmcGRldi0+ZGV2LCBOVUxMLAotCQkJCWV4eW5vc19hZGNfcmVtb3ZlX2Rldmlj
-ZXMpOworCW9mX3BsYXRmb3JtX3VucG9wdWxhdGUoJnBkZXYtPmRldik7CiAJcmVndWxhdG9yX2Rp
-c2FibGUoaW5mby0+dmRkKTsKIAljbGtfZGlzYWJsZV91bnByZXBhcmUoaW5mby0+Y2xrKTsKIGVy
-cl9paW9fZGV2OgpAQCAtMzc1LDggKzM2NSw3IEBAIHN0YXRpYyBpbnQgZXh5bm9zX2FkY19yZW1v
-dmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAlzdHJ1Y3QgaWlvX2RldiAqaW5kaW9f
-ZGV2ID0gcGxhdGZvcm1fZ2V0X2RydmRhdGEocGRldik7CiAJc3RydWN0IGV4eW5vc19hZGMgKmlu
-Zm8gPSBpaW9fcHJpdihpbmRpb19kZXYpOwogCi0JZGV2aWNlX2Zvcl9lYWNoX2NoaWxkKCZwZGV2
-LT5kZXYsIE5VTEwsCi0JCQkJZXh5bm9zX2FkY19yZW1vdmVfZGV2aWNlcyk7CisJb2ZfcGxhdGZv
-cm1fdW5wb3B1bGF0ZSgmcGRldi0+ZGV2KTsKIAlyZWd1bGF0b3JfZGlzYWJsZShpbmZvLT52ZGQp
-OwogCWNsa19kaXNhYmxlX3VucHJlcGFyZShpbmZvLT5jbGspOwogCXdyaXRlbCgwLCBpbmZvLT5l
-bmFibGVfcmVnKTsKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWZkL29tYXAtdXNiLWhvc3QuYyBiL2Ry
-aXZlcnMvbWZkL29tYXAtdXNiLWhvc3QuYwppbmRleCA3NTlmYWUzLi5iYjI2Y2VhIDEwMDY0NAot
-LS0gYS9kcml2ZXJzL21mZC9vbWFwLXVzYi1ob3N0LmMKKysrIGIvZHJpdmVycy9tZmQvb21hcC11
-c2ItaG9zdC5jCkBAIC04MzIsMTMgKzgzMiw2IEBAIHN0YXRpYyBpbnQgdXNiaHNfb21hcF9wcm9i
-ZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQogCXJldHVybiByZXQ7CiB9CiAKLXN0YXRp
-YyBpbnQgdXNiaHNfb21hcF9yZW1vdmVfY2hpbGQoc3RydWN0IGRldmljZSAqZGV2LCB2b2lkICpk
-YXRhKQotewotCWRldl9pbmZvKGRldiwgInVucmVnaXN0ZXJpbmcKIik7Ci0JcGxhdGZvcm1fZGV2
-aWNlX3VucmVnaXN0ZXIodG9fcGxhdGZvcm1fZGV2aWNlKGRldikpOwotCXJldHVybiAwOwotfQot
-CiAvKioKICAqIHVzYmhzX29tYXBfcmVtb3ZlIC0gc2h1dGRvd24gcHJvY2Vzc2luZyBmb3IgVUhI
-ICYgVExMIEhDRHMKICAqIEBwZGV2OiBVU0IgSG9zdCBDb250cm9sbGVyIGJlaW5nIHJlbW92ZWQK
-QEAgLTg3MSw3ICs4NjQsNyBAQCBzdGF0aWMgaW50IHVzYmhzX29tYXBfcmVtb3ZlKHN0cnVjdCBw
-bGF0Zm9ybV9kZXZpY2UgKnBkZXYpCiAJcG1fcnVudGltZV9kaXNhYmxlKCZwZGV2LT5kZXYpOwog
-CiAJLyogcmVtb3ZlIGNoaWxkcmVuICovCi0JZGV2aWNlX2Zvcl9lYWNoX2NoaWxkKCZwZGV2LT5k
-ZXYsIE5VTEwsIHVzYmhzX29tYXBfcmVtb3ZlX2NoaWxkKTsKKwlvZl9wbGF0Zm9ybV91bnBvcHVs
-YXRlKCZwZGV2LT5kZXYpOwogCXJldHVybiAwOwogfQogCmRpZmYgLS1naXQgYS9kcml2ZXJzL29m
-L3BsYXRmb3JtLmMgYi9kcml2ZXJzL29mL3BsYXRmb3JtLmMKaW5kZXggZTBhNjUxNC4uOWNiYjBj
-MyAxMDA2NDQKLS0tIGEvZHJpdmVycy9vZi9wbGF0Zm9ybS5jCisrKyBiL2RyaXZlcnMvb2YvcGxh
-dGZvcm0uYwpAQCAtNDczLDQgKzQ3MywyNiBAQCBpbnQgb2ZfcGxhdGZvcm1fcG9wdWxhdGUoc3Ry
-dWN0IGRldmljZV9ub2RlICpyb290LAogCXJldHVybiByYzsKIH0KIEVYUE9SVF9TWU1CT0xfR1BM
-KG9mX3BsYXRmb3JtX3BvcHVsYXRlKTsKKworc3RhdGljIGludCBvZl9yZW1vdmVfcG9wdWxhdGVk
-X2NoaWxkKHN0cnVjdCBkZXZpY2UgKmRldiwgdm9pZCAqZCkKK3sKKwlzdHJ1Y3QgcGxhdGZvcm1f
-ZGV2aWNlICpwZGV2ID0gdG9fcGxhdGZvcm1fZGV2aWNlKGRldik7CisKKwlvZl9kZXZpY2VfdW5y
-ZWdpc3RlcihwZGV2KTsKKwlyZXR1cm4gMDsKK30KKy8qKgorICogb2ZfcGxhdGZvcm1fdW5wb3B1
-bGF0ZSgpIC0gUmVtb3ZlIHBvcHVsYXRlZCBkZXZpY2VzLgorICogQHBhcmVudDogcGFyZW50IG9m
-IHRoZSBwb3B1bGF0ZWQgZGV2aWNlcy4KKyAqCisgKiBUaGUgcmV2ZXJzZSBvZiBvZl9wbGF0Zm9y
-bV9wb3B1bGF0ZSgpIGFuZCBjYW4gb25seSBiZSB1c2VkIGEgcGFyZW50IHdhcworICogc3BlY2lm
-aWVkIHdoaWxlIGludm9raW5nIHRoZSBmb3JtZXIuCisgKi8KK3ZvaWQgb2ZfcGxhdGZvcm1fdW5w
-b3B1bGF0ZShzdHJ1Y3QgZGV2aWNlICpwYXJlbnQpCit7CisJaWYgKFdBUk5fT04oIXBhcmVudCkp
-CisJCXJldHVybjsKKwlkZXZpY2VfZm9yX2VhY2hfY2hpbGQocGFyZW50LCBOVUxMLCBvZl9yZW1v
-dmVfcG9wdWxhdGVkX2NoaWxkKTsKK30KK0VYUE9SVF9TWU1CT0xfR1BMKG9mX3BsYXRmb3JtX3Vu
-cG9wdWxhdGUpOwogI2VuZGlmIC8qIENPTkZJR19PRl9BRERSRVNTICovCmRpZmYgLS1naXQgYS9k
-cml2ZXJzL3VzYi9kd2MzL2R3YzMtZXh5bm9zLmMgYi9kcml2ZXJzL3VzYi9kd2MzL2R3YzMtZXh5
-bm9zLmMKaW5kZXggOGNlOWQ3Zi4uMmJmNTY2NCAxMDA2NDQKLS0tIGEvZHJpdmVycy91c2IvZHdj
-My9kd2MzLWV4eW5vcy5jCisrKyBiL2RyaXZlcnMvdXNiL2R3YzMvZHdjMy1leHlub3MuYwpAQCAt
-ODYsMTUgKzg2LDYgQEAgc3RhdGljIGludCBkd2MzX2V4eW5vc19yZWdpc3Rlcl9waHlzKHN0cnVj
-dCBkd2MzX2V4eW5vcyAqZXh5bm9zKQogCXJldHVybiByZXQ7CiB9CiAKLXN0YXRpYyBpbnQgZHdj
-M19leHlub3NfcmVtb3ZlX2NoaWxkKHN0cnVjdCBkZXZpY2UgKmRldiwgdm9pZCAqdW51c2VkKQot
-ewotCXN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYgPSB0b19wbGF0Zm9ybV9kZXZpY2UoZGV2
-KTsKLQotCXBsYXRmb3JtX2RldmljZV91bnJlZ2lzdGVyKHBkZXYpOwotCi0JcmV0dXJuIDA7Ci19
-Ci0KIHN0YXRpYyBpbnQgZHdjM19leHlub3NfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAq
-cGRldikKIHsKIAlzdHJ1Y3QgZHdjM19leHlub3MJKmV4eW5vczsKQEAgLTE2NCw3ICsxNTUsNyBA
-QCBzdGF0aWMgaW50IGR3YzNfZXh5bm9zX3JlbW92ZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpw
-ZGV2KQogewogCXN0cnVjdCBkd2MzX2V4eW5vcwkqZXh5bm9zID0gcGxhdGZvcm1fZ2V0X2RydmRh
-dGEocGRldik7CiAKLQlkZXZpY2VfZm9yX2VhY2hfY2hpbGQoJnBkZXYtPmRldiwgTlVMTCwgZHdj
-M19leHlub3NfcmVtb3ZlX2NoaWxkKTsKKwlvZl9wbGF0Zm9ybV91bnBvcHVsYXRlKCZwZGV2LT5k
-ZXYpOwogCXBsYXRmb3JtX2RldmljZV91bnJlZ2lzdGVyKGV4eW5vcy0+dXNiMl9waHkpOwogCXBs
-YXRmb3JtX2RldmljZV91bnJlZ2lzdGVyKGV4eW5vcy0+dXNiM19waHkpOwogCmRpZmYgLS1naXQg
-YS9kcml2ZXJzL3VzYi9kd2MzL2R3YzMtb21hcC5jIGIvZHJpdmVycy91c2IvZHdjMy9kd2MzLW9t
-YXAuYwppbmRleCAwNzdmMTEwLi44Njg4NjEzIDEwMDY0NAotLS0gYS9kcml2ZXJzL3VzYi9kd2Mz
-L2R3YzMtb21hcC5jCisrKyBiL2RyaXZlcnMvdXNiL2R3YzMvZHdjMy1vbWFwLmMKQEAgLTMyNywx
-NSArMzI3LDYgQEAgc3RhdGljIGlycXJldHVybl90IGR3YzNfb21hcF9pbnRlcnJ1cHQoaW50IGly
-cSwgdm9pZCAqX29tYXApCiAJcmV0dXJuIElSUV9IQU5ETEVEOwogfQogCi1zdGF0aWMgaW50IGR3
-YzNfb21hcF9yZW1vdmVfY29yZShzdHJ1Y3QgZGV2aWNlICpkZXYsIHZvaWQgKmMpCi17Ci0Jc3Ry
-dWN0IHBsYXRmb3JtX2RldmljZSAqcGRldiA9IHRvX3BsYXRmb3JtX2RldmljZShkZXYpOwotCi0J
-cGxhdGZvcm1fZGV2aWNlX3VucmVnaXN0ZXIocGRldik7Ci0KLQlyZXR1cm4gMDsKLX0KLQogc3Rh
-dGljIHZvaWQgZHdjM19vbWFwX2VuYWJsZV9pcnFzKHN0cnVjdCBkd2MzX29tYXAgKm9tYXApCiB7
-CiAJdTMyCQkJcmVnOwpAQCAtNTI5LDggKzUyMCw3IEBAIHN0YXRpYyBpbnQgZHdjM19vbWFwX3Jl
-bW92ZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQogCWR3YzNfb21hcF9kaXNhYmxlX2ly
-cXMob21hcCk7CiAJcG1fcnVudGltZV9wdXRfc3luYygmcGRldi0+ZGV2KTsKIAlwbV9ydW50aW1l
-X2Rpc2FibGUoJnBkZXYtPmRldik7Ci0JZGV2aWNlX2Zvcl9lYWNoX2NoaWxkKCZwZGV2LT5kZXYs
-IE5VTEwsIGR3YzNfb21hcF9yZW1vdmVfY29yZSk7Ci0KKwlvZl9wbGF0Zm9ybV91bnBvcHVsYXRl
-KCZwZGV2LT5kZXYpOwogCXJldHVybiAwOwogfQogCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4
-L29mX3BsYXRmb3JtLmggYi9pbmNsdWRlL2xpbnV4L29mX3BsYXRmb3JtLmgKaW5kZXggMDVjYjRh
-OS4uZTM1NGY5YyAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9vZl9wbGF0Zm9ybS5oCisrKyBi
-L2luY2x1ZGUvbGludXgvb2ZfcGxhdGZvcm0uaApAQCAtNzIsNiArNzIsNyBAQCBleHRlcm4gaW50
-IG9mX3BsYXRmb3JtX3BvcHVsYXRlKHN0cnVjdCBkZXZpY2Vfbm9kZSAqcm9vdCwKIAkJCQljb25z
-dCBzdHJ1Y3Qgb2ZfZGV2aWNlX2lkICptYXRjaGVzLAogCQkJCWNvbnN0IHN0cnVjdCBvZl9kZXZf
-YXV4ZGF0YSAqbG9va3VwLAogCQkJCXN0cnVjdCBkZXZpY2UgKnBhcmVudCk7CitleHRlcm4gIHZv
-aWQgb2ZfcGxhdGZvcm1fdW5wb3B1bGF0ZShzdHJ1Y3QgZGV2aWNlICpwYXJlbnQpOwogI2Vsc2UK
-IHN0YXRpYyBpbmxpbmUgaW50IG9mX3BsYXRmb3JtX3BvcHVsYXRlKHN0cnVjdCBkZXZpY2Vfbm9k
-ZSAqcm9vdCwKIAkJCQkJY29uc3Qgc3RydWN0IG9mX2RldmljZV9pZCAqbWF0Y2hlcywKQEAgLTgw
-LDYgKzgxLDkgQEAgc3RhdGljIGlubGluZSBpbnQgb2ZfcGxhdGZvcm1fcG9wdWxhdGUoc3RydWN0
-IGRldmljZV9ub2RlICpyb290LAogewogCXJldHVybiAtRU5PREVWOwogfQorc3RhdGljIGlubGlu
-ZSB2b2lkIG9mX3BsYXRmb3JtX3VucG9wdWxhdGUoc3RydWN0IGRldmljZSAqcGFyZW50KQorewor
-fQogI2VuZGlmCiAKICNlbmRpZgkvKiBfTElOVVhfT0ZfUExBVEZPUk1fSCAqLwotLSAKMS44LjMu
-MgoKPHA+Jm5ic3A7PC9wPjxwPiZuYnNwOzwvcD5UaGFua3MgJiBCZXN0IFJlZ2FyZHMsCk5hdmVl
-biBLcmlzaG5hIENoClNFIEAgU2Ftc3VuZy1CLkxBQg==
+Hello Sebastian,
 
+I just did one more testing.
 
+In case of iio/adc/exynos_adc.c there is a bug in the remove path.
+If I fix the bug in the driver, with below patch
+
+--- a/drivers/iio/adc/exynos_adc.c
++++ b/drivers/iio/adc/exynos_adc.c
+@@ -375,14 +375,14 @@ static int exynos_adc_remove(struct platform_device *pdev)
+        struct iio_dev *indio_dev = platform_get_drvdata(pdev);
+        struct exynos_adc *info = iio_priv(indio_dev);
+
+-       device_for_each_child(&pdev->dev, NULL,
+-                               exynos_adc_remove_devices);
+        regulator_disable(info->vdd);
+        clk_disable_unprepare(info->clk);
+        writel(0, info->enable_reg);
+        iio_device_unregister(indio_dev);
+        free_irq(info->irq, info);
+        iio_device_free(indio_dev);
++       device_for_each_child(&pdev->dev, NULL,
++                               exynos_adc_remove_devices);
+
+Even without your fix, I could configure it as a module and the rmmod, insmod are working fine. (no crash)
+
+Regards,
+Naveen
+------- Original Message -------
+Sender : Sebastian Andrzej Siewior<bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org> 
+Date   : Jul 19, 2013 23:44 (GMT+05:30)
+Title  : [PATCH] of: provide of_platform_unpopulate()
+
+So I called of_platform_populate() on a device to get each child device
+probed and on rmmod and I need to reverse its doing. After a quick grep
+I did what others did as well and rmmod ended in:
+
+| Unable to handle kernel NULL pointer dereference at virtual address 00000018
+| PC is at release_resource+0x18/0x80
+| Process rmmod (pid: 2005, stack limit = 0xedc30238)
+| [<c003add0>] (release_resource+0x18/0x80) from [<c0300e08>] (platform_device_del+0x78/0xac)
+| [<c0300e08>] (platform_device_del+0x78/0xac) from [<c0301358>] (platform_device_unregister+0xc/0x18)
+
+The problem is that platform_device_del() "releases" each ressource in its
+tree. This does not work on platform_devices created by OF becuase they
+were never added via insert_resource(). As a consequence old->parent in
+__release_resource() is NULL and we explode while accessing ->child.
+So I either I do something completly wrong _or_ nobody here tested the
+rmmod path of their driver.
+
+This patch provides a common function to unregister / remove devices
+which added to the system via of_platform_populate(). While this works
+now on my test case I have not tested any of the driver I modify here so
+feedback is greatly appreciated.
+
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Doug Anderson <dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+Cc: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Cc: Naveen Krishna Chatradhi <ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Cc: Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+---
+ drivers/bus/omap-ocp2scp.c     | 13 ++-----------
+ drivers/iio/adc/exynos_adc.c   | 15 ++-------------
+ drivers/mfd/omap-usb-host.c    |  9 +--------
+ drivers/of/platform.c          | 22 ++++++++++++++++++++++
+ drivers/usb/dwc3/dwc3-exynos.c | 11 +----------
+ drivers/usb/dwc3/dwc3-omap.c   | 12 +-----------
+ include/linux/of_platform.h    |  4 ++++
+ 7 files changed, 33 insertions(+), 53 deletions(-)
+
+diff --git a/drivers/bus/omap-ocp2scp.c b/drivers/bus/omap-ocp2scp.c
+index 5511f98..510bb9e 100644
+--- a/drivers/bus/omap-ocp2scp.c
++++ b/drivers/bus/omap-ocp2scp.c
+@@ -23,15 +23,6 @@
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
+ 
+-static int ocp2scp_remove_devices(struct device *dev, void *c)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-
+-	platform_device_unregister(pdev);
+-
+-	return 0;
+-}
+-
+ static int omap_ocp2scp_probe(struct platform_device *pdev)
+ {
+ 	int ret;
+@@ -51,7 +42,7 @@ static int omap_ocp2scp_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ err0:
+-	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
++	of_platform_unpopulate(&pdev->dev);
+ 
+ 	return ret;
+ }
+@@ -59,7 +50,7 @@ static int omap_ocp2scp_probe(struct platform_device *pdev)
+ static int omap_ocp2scp_remove(struct platform_device *pdev)
+ {
+ 	pm_runtime_disable(&pdev->dev);
+-	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
++	of_platform_unpopulate(&pdev->dev);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/iio/adc/exynos_adc.c b/drivers/iio/adc/exynos_adc.c
+index 9809fc9..10248e1 100644
+--- a/drivers/iio/adc/exynos_adc.c
++++ b/drivers/iio/adc/exynos_adc.c
+@@ -216,15 +216,6 @@ static const struct iio_chan_spec exynos_adc_iio_channels[] = {
+ 	ADC_CHANNEL(9, "adc9"),
+ };
+ 
+-static int exynos_adc_remove_devices(struct device *dev, void *c)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-
+-	platform_device_unregister(pdev);
+-
+-	return 0;
+-}
+-
+ static void exynos_adc_hw_init(struct exynos_adc *info)
+ {
+ 	u32 con1, con2;
+@@ -357,8 +348,7 @@ static int exynos_adc_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ err_of_populate:
+-	device_for_each_child(&pdev->dev, NULL,
+-				exynos_adc_remove_devices);
++	of_platform_unpopulate(&pdev->dev);
+ 	regulator_disable(info->vdd);
+ 	clk_disable_unprepare(info->clk);
+ err_iio_dev:
+@@ -375,8 +365,7 @@ static int exynos_adc_remove(struct platform_device *pdev)
+ 	struct iio_dev *indio_dev = platform_get_drvdata(pdev);
+ 	struct exynos_adc *info = iio_priv(indio_dev);
+ 
+-	device_for_each_child(&pdev->dev, NULL,
+-				exynos_adc_remove_devices);
++	of_platform_unpopulate(&pdev->dev);
+ 	regulator_disable(info->vdd);
+ 	clk_disable_unprepare(info->clk);
+ 	writel(0, info->enable_reg);
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 759fae3..bb26cea 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -832,13 +832,6 @@ static int usbhs_omap_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int usbhs_omap_remove_child(struct device *dev, void *data)
+-{
+-	dev_info(dev, "unregistering
+");
+-	platform_device_unregister(to_platform_device(dev));
+-	return 0;
+-}
+-
+ /**
+  * usbhs_omap_remove - shutdown processing for UHH & TLL HCDs
+  * @pdev: USB Host Controller being removed
+@@ -871,7 +864,7 @@ static int usbhs_omap_remove(struct platform_device *pdev)
+ 	pm_runtime_disable(&pdev->dev);
+ 
+ 	/* remove children */
+-	device_for_each_child(&pdev->dev, NULL, usbhs_omap_remove_child);
++	of_platform_unpopulate(&pdev->dev);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/of/platform.c b/drivers/of/platform.c
+index e0a6514..9cbb0c3 100644
+--- a/drivers/of/platform.c
++++ b/drivers/of/platform.c
+@@ -473,4 +473,26 @@ int of_platform_populate(struct device_node *root,
+ 	return rc;
+ }
+ EXPORT_SYMBOL_GPL(of_platform_populate);
++
++static int of_remove_populated_child(struct device *dev, void *d)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++
++	of_device_unregister(pdev);
++	return 0;
++}
++/**
++ * of_platform_unpopulate() - Remove populated devices.
++ * @parent: parent of the populated devices.
++ *
++ * The reverse of of_platform_populate() and can only be used a parent was
++ * specified while invoking the former.
++ */
++void of_platform_unpopulate(struct device *parent)
++{
++	if (WARN_ON(!parent))
++		return;
++	device_for_each_child(parent, NULL, of_remove_populated_child);
++}
++EXPORT_SYMBOL_GPL(of_platform_unpopulate);
+ #endif /* CONFIG_OF_ADDRESS */
+diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
+index 8ce9d7f..2bf5664 100644
+--- a/drivers/usb/dwc3/dwc3-exynos.c
++++ b/drivers/usb/dwc3/dwc3-exynos.c
+@@ -86,15 +86,6 @@ static int dwc3_exynos_register_phys(struct dwc3_exynos *exynos)
+ 	return ret;
+ }
+ 
+-static int dwc3_exynos_remove_child(struct device *dev, void *unused)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-
+-	platform_device_unregister(pdev);
+-
+-	return 0;
+-}
+-
+ static int dwc3_exynos_probe(struct platform_device *pdev)
+ {
+ 	struct dwc3_exynos	*exynos;
+@@ -164,7 +155,7 @@ static int dwc3_exynos_remove(struct platform_device *pdev)
+ {
+ 	struct dwc3_exynos	*exynos = platform_get_drvdata(pdev);
+ 
+-	device_for_each_child(&pdev->dev, NULL, dwc3_exynos_remove_child);
++	of_platform_unpopulate(&pdev->dev);
+ 	platform_device_unregister(exynos->usb2_phy);
+ 	platform_device_unregister(exynos->usb3_phy);
+ 
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index 077f110..8688613 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -327,15 +327,6 @@ static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int dwc3_omap_remove_core(struct device *dev, void *c)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-
+-	platform_device_unregister(pdev);
+-
+-	return 0;
+-}
+-
+ static void dwc3_omap_enable_irqs(struct dwc3_omap *omap)
+ {
+ 	u32			reg;
+@@ -529,8 +520,7 @@ static int dwc3_omap_remove(struct platform_device *pdev)
+ 	dwc3_omap_disable_irqs(omap);
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+-	device_for_each_child(&pdev->dev, NULL, dwc3_omap_remove_core);
+-
++	of_platform_unpopulate(&pdev->dev);
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/of_platform.h b/include/linux/of_platform.h
+index 05cb4a9..e354f9c 100644
+--- a/include/linux/of_platform.h
++++ b/include/linux/of_platform.h
+@@ -72,6 +72,7 @@ extern int of_platform_populate(struct device_node *root,
+ 				const struct of_device_id *matches,
+ 				const struct of_dev_auxdata *lookup,
+ 				struct device *parent);
++extern  void of_platform_unpopulate(struct device *parent);
+ #else
+ static inline int of_platform_populate(struct device_node *root,
+ 					const struct of_device_id *matches,
+@@ -80,6 +81,9 @@ static inline int of_platform_populate(struct device_node *root,
+ {
+ 	return -ENODEV;
+ }
++static inline void of_platform_unpopulate(struct device *parent)
++{
++}
+ #endif
+ 
+ #endif	/* _LINUX_OF_PLATFORM_H */
+-- 
+1.8.3.2
+
+<p>&nbsp;</p><p>&nbsp;</p>Thanks & Best Regards,
+Naveen Krishna Ch
+SE @ Samsung-B.LAB
