@@ -1,52 +1,55 @@
-From: Sascha Hauer <s.hauer@pengutronix.de>
+From: Tomasz Figa <tomasz.figa@gmail.com>
 Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Sun, 21 Jul 2013 12:22:48 +0200
-Message-ID: <20130721102248.GE29785@pengutronix.de>
-References: <20130720220006.GA7977@kroah.com>
- <Pine.LNX.4.44L0.1307202223430.8250-100000@netrider.rowland.org>
- <20130721025910.GA23043@kroah.com>
+Date: Sun, 21 Jul 2013 12:31:05 +0200
+Message-ID: <3839600.WiC1OLF35o@flatron>
+References: <20130720220006.GA7977@kroah.com> <Pine.LNX.4.44L0.1307202223430.8250-100000@netrider.rowland.org> <20130721025910.GA23043@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 In-Reply-To: <20130721025910.GA23043@kroah.com>
-Sender: linux-doc-owner@vger.kernel.org
+Sender: linux-samsung-soc-owner@vger.kernel.org
 To: Greg KH <gregkh@linuxfoundation.org>
 Cc: Alan Stern <stern@rowland.harvard.edu>, Kishon Vijay Abraham I <kishon@ti.com>, kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Jul 20, 2013 at 07:59:10PM -0700, Greg KH wrote:
+Hi,
+
+On Saturday 20 of July 2013 19:59:10 Greg KH wrote:
 > On Sat, Jul 20, 2013 at 10:32:26PM -0400, Alan Stern wrote:
 > > On Sat, 20 Jul 2013, Greg KH wrote:
-> > 
 > > > > >>That should be passed using platform data.
 > > > > >
-> > > > >Ick, don't pass strings around, pass pointers.  If you have platform
-> > > > >data you can get to, then put the pointer there, don't use a "name".
+> > > > >Ick, don't pass strings around, pass pointers.  If you have
+> > > > >platform
+> > > > >data you can get to, then put the pointer there, don't use a
+> > > > >"name".
 > > > > 
 > > > > I don't think I understood you here :-s We wont have phy pointer
 > > > > when we create the device for the controller no?(it'll be done in
 > > > > board file). Probably I'm missing something.
 > > > 
-> > > Why will you not have that pointer?  You can't rely on the "name" as the
-> > > device id will not match up, so you should be able to rely on the
-> > > pointer being in the structure that the board sets up, right?
+> > > Why will you not have that pointer?  You can't rely on the "name" as
+> > > the device id will not match up, so you should be able to rely on
+> > > the pointer being in the structure that the board sets up, right?
 > > > 
-> > > Don't use names, especially as ids can, and will, change, that is going
-> > > to cause big problems.  Use pointers, this is C, we are supposed to be
+> > > Don't use names, especially as ids can, and will, change, that is
+> > > going
+> > > to cause big problems.  Use pointers, this is C, we are supposed to
+> > > be
 > > > doing that :)
 > > 
 > > Kishon, I think what Greg means is this:  The name you are using must
 > > be stored somewhere in a data structure constructed by the board file,
-> > right?  Or at least, associated with some data structure somehow.  
+> > right?  Or at least, associated with some data structure somehow.
 > > Otherwise the platform code wouldn't know which PHY hardware
 > > corresponded to a particular name.
 > > 
-> > Greg's suggestion is that you store the address of that data structure 
-> > in the platform data instead of storing the name string.  Have the 
-> > consumer pass the data structure's address when it calls phy_create, 
-> > instead of passing the name.  Then you don't have to worry about two 
-> > PHYs accidentally ending up with the same name or any other similar 
+> > Greg's suggestion is that you store the address of that data structure
+> > in the platform data instead of storing the name string.  Have the
+> > consumer pass the data structure's address when it calls phy_create,
+> > instead of passing the name.  Then you don't have to worry about two
+> > PHYs accidentally ending up with the same name or any other similar
 > > problems.
 > 
 > Close, but the issue is that whatever returns from phy_create() should
@@ -54,21 +57,62 @@ On Sat, Jul 20, 2013 at 07:59:10PM -0700, Greg KH wrote:
 > the pointer that phy_create() returns.  Much like all other class api
 > functions in the kernel work.
 
-I think the problem here is to connect two from the bus structure
-completely independent devices. Several frameworks (ASoC, soc-camera)
-had this problem and this wasn't solved until the advent of devicetrees
-and their phandles.
-phy_create might be called from the probe function of some i2c device
-(the phy device) and the resulting pointer is then needed in some other
-platform devices (the user of the phy) probe function.
-The best solution we have right now is implemented in the clk framework
-which uses a string matching of the device names in clk_get() (at least
-in the non-dt case).
+I think there is a confusion here about who registers the PHYs.
 
-Sascha
+All platform code does is registering a platform/i2c/whatever device, 
+which causes a driver (located in drivers/phy/) to be instantiated. Such 
+drivers call phy_create(), usually in their probe() callbacks, so 
+platform_code has no way (and should have no way, for the sake of 
+layering) to get what phy_create() returns.
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+IMHO we need a lookup method for PHYs, just like for clocks, regulators, 
+PWMs or even i2c busses because there are complex cases when passing just 
+a name using platform data will not work. I would second what Stephen said 
+[1] and define a structure doing things in a DT-like way.
+
+Example;
+
+[platform code]
+
+static const struct phy_lookup my_phy_lookup[] = {
+	PHY_LOOKUP("s3c-hsotg.0", "otg", "samsung-usbphy.1", "phy.2"),
+	/* etc... */
+};
+
+static void my_machine_init(void)
+{
+	/* ... */
+	phy_register_lookup(my_phy_lookup, ARRAY_SIZE(my_phy_lookup));
+	/* ... */
+}
+
+/* Notice nothing stuffed in platform data. */
+
+[provider code - samsung-usbphy driver]
+
+static int samsung_usbphy_probe(...)
+{
+	/* ... */
+		for (i = 0; i < PHY_COUNT; ++i) {
+			usbphy->phy[i].name = "phy";
+			usbphy->phy[i].id = i;
+			/* ... */
+			ret = phy_create(&usbphy->phy);
+			/* err handling */
+		}
+	/* ... */
+}
+
+[consumer code - s3c-hsotg driver]
+
+static int s3c_hsotg_probe(...)
+{
+	/* ... */
+	phy = phy_get(&pdev->dev, "otg");
+	/* ... */
+}
+
+[1] http://thread.gmane.org/gmane.linux.ports.arm.kernel/252813
+
+Best regards,
+Tomasz
