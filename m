@@ -1,88 +1,55 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Sun, 21 Jul 2013 15:22:21 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1307211453450.19133-100000@netrider.rowland.org>
-References: <51EC170E.3080201@gmail.com>
+From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Subject: Re: [PATCH] of: provide of_platform_unpopulate()
+Date: Sun, 21 Jul 2013 21:47:44 +0200
+Message-ID: <51EC3AE0.5020107@linutronix.de>
+References: <1374257691-31981-1-git-send-email-bigeasy@linutronix.de>
+ <51EBF33A.4050207@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <51EC170E.3080201@gmail.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, Sascha Hauer <s.hauer@pengutronix.de>, Kishon Vijay Abraham I <kishon@ti.com>, kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <51EBF33A.4050207-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Naveen Krishna Chatradhi <ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, 21 Jul 2013, Sylwester Nawrocki wrote:
+On 07/21/2013 04:42 PM, Rob Herring wrote:
+> Wouldn't the correct fix be to call insert_resource somehow?
 
-> > What's wrong with the platform_data structure, why can't that be used
-> > for this?
+Yes unless there was a reason this wasn't done in the first place.
+
+> The problem
+> I have is that while of_platform_populate is all about parsing the DT
+> and creating devices, the removal side has nothing to do with DT. So
+> this should not be in the DT code. I think the core device code should
+> be able to handle removal if the device creation side is done correctly.
+
+If there is no need to use the special removal function (in case we add
+insert_ressource) then yes. What about a pointer in
+of_platform_populate()'s comment referring to the removal function?
+
 > 
-> At the point the platform data of some driver is initialized, e.g. in
-> board setup code the PHY pointer is not known, since the PHY supplier
-> driver has not initialized yet.  Even though we wanted to pass pointer
-> to a PHY through some notifier call, it would have been not clear
-> which PHY user driver should match on such notifier.  A single PHY
-> supplier driver can create M PHY objects and this needs to be mapped
-> to N PHY user drivers.  This mapping needs to be defined somewhere by
-> the system integrator.  It works well with device tree, but except that
-> there seems to be no other reliable infrastructure in the kernel to
-> define links/dependencies between devices, since device identifiers are
-> not known in advance in all cases.
+> It looks to me like of_device_add either needs to call
+> platform_device_add rather than device_add. I think the device name
+> setting in platform_device_add should be a nop. If not, a check that the
+> name is already set could be added.
+
+It does actually the same thing as platform_device_add except the
+"dynamic device id" and the resource insert if I remember correctly. If
+you guys prefer the platdorm_device_add() path including
+insert_ressource() I can try this.
+
 > 
-> What Tomasz proposed seems currently most reasonable to me for non-dt.
-> 
-> > Or, if not, we can always add pointers to the platform device structure,
-> > or even the main 'struct device' as well, that's what it is there for.
-> 
-> Still we would need to solve a problem which platform device structure
-> gets which PHY pointer.
+> Rob
 
-Can you explain the issues in more detail?  I don't fully understand 
-the situation.
-
-Here's what I think I know:
-
-	The PHY and the controller it is attached to are both physical
-	devices.
-
-	The connection between them is hardwired by the system
-	manufacturer and cannot be changed by software.
-
-	PHYs are generally described by fixed system-specific board
-	files or by Device Tree information.  Are they ever discovered
-	dynamically?
-
-	Is the same true for the controllers attached to the PHYs?
-	If not -- if both a PHY and a controller are discovered 
-	dynamically -- how does the kernel know whether they are 
-	connected to each other?
-
-	The kernel needs to know which controller is attached to which
-	PHY.  Currently this information is represented by name or ID
-	strings embedded in platform data.
-
-	The PHY's driver (the supplier) uses the platform data to 
-	construct a platform_device structure that represents the PHY.  
-	Until this is done, the controller's driver (the client) cannot 
-	use the PHY.
-
-	Since there is no parent-child relation between the PHY and the 
-	controller, there is no guarantee that the PHY's driver will be
-	ready when the controller's driver wants to use it.  A deferred
-	probe may be needed.
-
-	The issue (or one of the issues) in this discussion is that 
-	Greg does not like the idea of using names or IDs to associate
-	PHYs with controllers, because they are too prone to
-	duplications or other errors.  Pointers are more reliable.
-
-	But pointers to what?  Since the only data known to be 
-	available to both the PHY driver and controller driver is the
-	platform data, the obvious answer is a pointer to platform data
-	(either for the PHY or for the controller, or maybe both).
-
-Probably some of the details above are wrong; please indicate where I
-have gone astray.  Also, I'm not clear about the role played by various 
-APIs.  For example, where does phy_create() fit into this picture?
-
-Alan Stern
+Sebastian
