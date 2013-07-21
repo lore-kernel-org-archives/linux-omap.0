@@ -1,57 +1,69 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Sat, 20 Jul 2013 19:59:10 -0700
-Message-ID: <20130721025910.GA23043@kroah.com>
-References: <20130720220006.GA7977@kroah.com>
- <Pine.LNX.4.44L0.1307202223430.8250-100000@netrider.rowland.org>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: Need help for DT GPIO probing
+Date: Sun, 21 Jul 2013 06:54:46 +0200
+Message-ID: <CAAwP0s3S8r_UPBZykxVoTrkLOWDMcBUaYLNziK+e7aLq9m6kig@mail.gmail.com>
+References: <CACpRUmig-J7tgipRFC5h09+4fHiOWpHpc3ELuTnujE1_gQCZrw@mail.gmail.com>
+	<CACRpkdYXK6Phg4H5UviLSsJPsCOjykHRe3EnKpMphdFdOdnZUA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1307202223430.8250-100000@netrider.rowland.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f173.google.com ([209.85.223.173]:59916 "EHLO
+	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751348Ab3GUEyr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Jul 2013 00:54:47 -0400
+In-Reply-To: <CACRpkdYXK6Phg4H5UviLSsJPsCOjykHRe3EnKpMphdFdOdnZUA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Soumya Sutar <soumyasutar@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, ext Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>
 
-On Sat, Jul 20, 2013 at 10:32:26PM -0400, Alan Stern wrote:
-> On Sat, 20 Jul 2013, Greg KH wrote:
-> 
-> > > >>That should be passed using platform data.
-> > > >
-> > > >Ick, don't pass strings around, pass pointers.  If you have platform
-> > > >data you can get to, then put the pointer there, don't use a "name".
-> > > 
-> > > I don't think I understood you here :-s We wont have phy pointer
-> > > when we create the device for the controller no?(it'll be done in
-> > > board file). Probably I'm missing something.
-> > 
-> > Why will you not have that pointer?  You can't rely on the "name" as the
-> > device id will not match up, so you should be able to rely on the
-> > pointer being in the structure that the board sets up, right?
-> > 
-> > Don't use names, especially as ids can, and will, change, that is going
-> > to cause big problems.  Use pointers, this is C, we are supposed to be
-> > doing that :)
-> 
-> Kishon, I think what Greg means is this:  The name you are using must
-> be stored somewhere in a data structure constructed by the board file,
-> right?  Or at least, associated with some data structure somehow.  
-> Otherwise the platform code wouldn't know which PHY hardware
-> corresponded to a particular name.
-> 
-> Greg's suggestion is that you store the address of that data structure 
-> in the platform data instead of storing the name string.  Have the 
-> consumer pass the data structure's address when it calls phy_create, 
-> instead of passing the name.  Then you don't have to worry about two 
-> PHYs accidentally ending up with the same name or any other similar 
-> problems.
+Hi Soumya
 
-Close, but the issue is that whatever returns from phy_create() should
-then be used, no need to call any "find" functions, as you can just use
-the pointer that phy_create() returns.  Much like all other class api
-functions in the kernel work.
+On Saturday, July 20, 2013, Linus Walleij wrote:
+>
+> On Fri, Jul 12, 2013 at 4:05 PM, Soumya Sutar <soumyasutar@gmail.com>=
+ wrote:
+>
+> > Hi Linus,
+> >
+> > I am facing DT GPIO probing problem same as below link.
+> > http://us.generation-nt.com/answer/gpio-crashed-when-not-using-help=
+-208346861.html
+> >
+> > Could you know any patch is available for this issues or still we n=
+eed to
+> > use gpio_request() in driver.
+>
 
-thanks,
+Yes, Linus W has already queued some patches for gpio-omap on the
+for-next branch of his linux-gpio tree [1] that solves this issue.
 
-greg k-h
+Take a look to commit b4419e1a ("gpio/omap: auto request GPIO as input
+if used as IRQ via DT") although this patch depends on others so you
+should merge the whole branch to make it work.
+
+Linus, are you still planing to send this patches as fixes for the
+v3.11 -rc cycle or did you decide to wait for v3.12?
+
+>
+> Please ask questions like this on the mailing lists and include
+> the OMAP GPIO maintainers (Santosh & Kevin).
+>
+> And the answer is yes, all GPIO lines you are using need to
+> be requested by the driver.
+>
+> Yours,
+> Linus Walleij
+> --
+
+Thanks a lot and best regards,
+Javier
+
+[1]: =C2=A0https://git.kernel.org/cgit/linux/kernel/git/linusw/linux-gp=
+io.git/log/?h=3Dfor-next
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
