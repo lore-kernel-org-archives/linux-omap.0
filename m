@@ -1,64 +1,88 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ASoC: omap-mcbsp: Support
- SND_SOC_DAIFMT_CBM_CFS for omap3/4
-Date: Sun, 21 Jul 2013 19:25:06 +0200
-Message-ID: <51EC1972.8020602@ti.com>
-References: <20130721162400.GA17491@panicking>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Sun, 21 Jul 2013 15:22:21 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1307211453450.19133-100000@netrider.rowland.org>
+References: <51EC170E.3080201@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20130721162400.GA17491@panicking>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Michael Trimarchi <michael@amarulasolutions.com>
-Cc: linux-omap@vger.kernel.org, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, alsa-devel@alsa-project.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <51EC170E.3080201@gmail.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>, Sascha Hauer <s.hauer@pengutronix.de>, Kishon Vijay Abraham I <kishon@ti.com>, kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 07/21/2013 06:24 PM, Michael Trimarchi wrote:
-> Add SND_SOC_DAIFMT_CBM_CFS support for omap3/omap4. The patch was tested =
-on
-> a pandaboard-es board connected to the pcm1792a codec. mcbspx_fsx must
-> configured as output and mcbspx_clkx must be configured as input.
+On Sun, 21 Jul 2013, Sylwester Nawrocki wrote:
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> > What's wrong with the platform_data structure, why can't that be used
+> > for this?
+> 
+> At the point the platform data of some driver is initialized, e.g. in
+> board setup code the PHY pointer is not known, since the PHY supplier
+> driver has not initialized yet.  Even though we wanted to pass pointer
+> to a PHY through some notifier call, it would have been not clear
+> which PHY user driver should match on such notifier.  A single PHY
+> supplier driver can create M PHY objects and this needs to be mapped
+> to N PHY user drivers.  This mapping needs to be defined somewhere by
+> the system integrator.  It works well with device tree, but except that
+> there seems to be no other reliable infrastructure in the kernel to
+> define links/dependencies between devices, since device identifiers are
+> not known in advance in all cases.
+> 
+> What Tomasz proposed seems currently most reasonable to me for non-dt.
+> 
+> > Or, if not, we can always add pointers to the platform device structure,
+> > or even the main 'struct device' as well, that's what it is there for.
+> 
+> Still we would need to solve a problem which platform device structure
+> gets which PHY pointer.
 
-> =
+Can you explain the issues in more detail?  I don't fully understand 
+the situation.
 
-> Signed-off-by: Michael Trimarchi <michael@amarulasolutions.com>
-> ---
->  sound/soc/omap/omap-mcbsp.c |    5 +++++
->  1 file changed, 5 insertions(+)
-> =
+Here's what I think I know:
 
-> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-> index 7483efb..6c19bba 100644
-> --- a/sound/soc/omap/omap-mcbsp.c
-> +++ b/sound/soc/omap/omap-mcbsp.c
-> @@ -433,6 +433,11 @@ static int omap_mcbsp_dai_set_dai_fmt(struct snd_soc=
-_dai *cpu_dai,
->  		/* Sample rate generator drives the FS */
->  		regs->srgr2	|=3D FSGM;
->  		break;
-> +	case SND_SOC_DAIFMT_CBM_CFS:
-> +		/* McBSP slave. FS clock as output */
-> +		regs->srgr2	|=3D FSGM;
-> +		regs->pcr0	|=3D FSXM;
-> +		break;
->  	case SND_SOC_DAIFMT_CBM_CFM:
->  		/* McBSP slave */
->  		break;
-> =
+	The PHY and the controller it is attached to are both physical
+	devices.
 
+	The connection between them is hardwired by the system
+	manufacturer and cannot be changed by software.
 
+	PHYs are generally described by fixed system-specific board
+	files or by Device Tree information.  Are they ever discovered
+	dynamically?
 
--- =
+	Is the same true for the controllers attached to the PHYs?
+	If not -- if both a PHY and a controller are discovered 
+	dynamically -- how does the kernel know whether they are 
+	connected to each other?
 
-P=E9ter
+	The kernel needs to know which controller is attached to which
+	PHY.  Currently this information is represented by name or ID
+	strings embedded in platform data.
+
+	The PHY's driver (the supplier) uses the platform data to 
+	construct a platform_device structure that represents the PHY.  
+	Until this is done, the controller's driver (the client) cannot 
+	use the PHY.
+
+	Since there is no parent-child relation between the PHY and the 
+	controller, there is no guarantee that the PHY's driver will be
+	ready when the controller's driver wants to use it.  A deferred
+	probe may be needed.
+
+	The issue (or one of the issues) in this discussion is that 
+	Greg does not like the idea of using names or IDs to associate
+	PHYs with controllers, because they are too prone to
+	duplications or other errors.  Pointers are more reliable.
+
+	But pointers to what?  Since the only data known to be 
+	available to both the PHY driver and controller driver is the
+	platform data, the obvious answer is a pointer to platform data
+	(either for the PHY or for the controller, or maybe both).
+
+Probably some of the details above are wrong; please indicate where I
+have gone astray.  Also, I'm not clear about the role played by various 
+APIs.  For example, where does phy_create() fit into this picture?
+
+Alan Stern
