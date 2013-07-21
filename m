@@ -1,55 +1,67 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+From: Rob Herring <robherring2@gmail.com>
 Subject: Re: [PATCH] of: provide of_platform_unpopulate()
-Date: Sun, 21 Jul 2013 21:47:44 +0200
-Message-ID: <51EC3AE0.5020107@linutronix.de>
-References: <1374257691-31981-1-git-send-email-bigeasy@linutronix.de>
- <51EBF33A.4050207@gmail.com>
+Date: Sun, 21 Jul 2013 15:48:08 -0500
+Message-ID: <51EC4908.4040504@gmail.com>
+References: <1374257691-31981-1-git-send-email-bigeasy@linutronix.de> <51EBF33A.4050207@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <51EBF33A.4050207-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Naveen Krishna Chatradhi <ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <51EBF33A.4050207@gmail.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@linaro.org>, Kishon Vijay Abraham I <kishon@ti.com>, George Cherian <george.cherian@ti.com>, linux-samsung-soc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Vivek Gautam <gautam.vivek@samsung.com>, linux-omap@vger.kernel.org, Naveen Krishna Chatradhi <ch.naveen@samsung.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/21/2013 04:42 PM, Rob Herring wrote:
-> Wouldn't the correct fix be to call insert_resource somehow?
-
-Yes unless there was a reason this wasn't done in the first place.
-
-> The problem
+On 07/21/2013 09:42 AM, Rob Herring wrote:
+> On 07/19/2013 01:14 PM, Sebastian Andrzej Siewior wrote:
+>> So I called of_platform_populate() on a device to get each child device
+>> probed and on rmmod and I need to reverse its doing. After a quick grep
+>> I did what others did as well and rmmod ended in:
+>>
+>> | Unable to handle kernel NULL pointer dereference at virtual address 00000018
+>> | PC is at release_resource+0x18/0x80
+>> | Process rmmod (pid: 2005, stack limit = 0xedc30238)
+>> | [<c003add0>] (release_resource+0x18/0x80) from [<c0300e08>] (platform_device_del+0x78/0xac)
+>> | [<c0300e08>] (platform_device_del+0x78/0xac) from [<c0301358>] (platform_device_unregister+0xc/0x18)
+>>
+>> The problem is that platform_device_del() "releases" each ressource in its
+>> tree. This does not work on platform_devices created by OF becuase they
+>> were never added via insert_resource(). As a consequence old->parent in
+>> __release_resource() is NULL and we explode while accessing ->child.
+>> So I either I do something completly wrong _or_ nobody here tested the
+>> rmmod path of their driver.
+> 
+> Wouldn't the correct fix be to call insert_resource somehow? The problem
 > I have is that while of_platform_populate is all about parsing the DT
 > and creating devices, the removal side has nothing to do with DT. So
 > this should not be in the DT code. I think the core device code should
 > be able to handle removal if the device creation side is done correctly.
-
-If there is no need to use the special removal function (in case we add
-insert_ressource) then yes. What about a pointer in
-of_platform_populate()'s comment referring to the removal function?
-
 > 
 > It looks to me like of_device_add either needs to call
 > platform_device_add rather than device_add. I think the device name
 > setting in platform_device_add should be a nop. If not, a check that the
 > name is already set could be added.
-
-It does actually the same thing as platform_device_add except the
-"dynamic device id" and the resource insert if I remember correctly. If
-you guys prefer the platdorm_device_add() path including
-insert_ressource() I can try this.
-
 > 
-> Rob
 
-Sebastian
+BTW, it looks like Grant has attempted this already:
+
+commit 02bbde7849e68e193cefaa1885fe0df0f03c9fcd
+Author: Grant Likely <grant.likely@secretlab.ca>
+Date:   Sun Feb 17 20:03:27 2013 +0000
+
+    Revert "of: use platform_device_add"
+
+    This reverts commit aac73f34542bc7ae4317928d2eabfeb21d247323. That
+    commit causes two kinds of breakage; it breaks registration of AMBA
+    devices when one of the parent nodes already contains overlapping
+    resource regions, and it breaks calls to request_region() by device
+    drivers in certain conditions where there are overlapping memory
+    regions. Both of these problems can probably be fixed, but it is better
+    to back out the commit and get a proper fix designed before trying
+again.
+
+    Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+
+
+Rob
