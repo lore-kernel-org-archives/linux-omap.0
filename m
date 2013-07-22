@@ -1,147 +1,68 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 2/4] pinctrl: single: Add hardware specific hooks for IRQ
- and GPIO wake-up events
-Date: Mon, 22 Jul 2013 23:44:22 +0200
-Message-ID: <CACRpkdZNGHRJX3_HRCAfKgrRGLMVbqNzFBfu7wP-3YrhOUESkw@mail.gmail.com>
-References: <20130607203936.16513.57494.stgit@localhost>
-	<20130607205040.16513.36794.stgit@localhost>
-	<CAN1soZznJ1YxWhaFZ4rhQx+uk3aCigAcVeuLpOU+3oPzmfXF6w@mail.gmail.com>
-	<20130610153637.GK8164@atomide.com>
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/3] dmaengine: add dma_get_slave_sg_limits()
+Date: Mon, 22 Jul 2013 16:45:51 -0500
+Message-ID: <51EDA80F.7060606@ti.com>
+References: <1374166001-31340-1-git-send-email-joelf@ti.com>
+	<1374166001-31340-2-git-send-email-joelf@ti.com>
+	<20130718161658.GW16653@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f54.google.com ([209.85.219.54]:33413 "EHLO
-	mail-oa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932517Ab3GVVoX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 17:44:23 -0400
-Received: by mail-oa0-f54.google.com with SMTP id o6so9570524oag.41
-        for <linux-omap@vger.kernel.org>; Mon, 22 Jul 2013 14:44:22 -0700 (PDT)
-In-Reply-To: <20130610153637.GK8164@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20130718161658.GW16653-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Benoit Cousson <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Balaji TK <balajitk-l0cyMroinI0@public.gmane.org>, Mark Jackson <mpfj-list-2FZW7xY0fHgqdlJmJB21zg@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-k>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Haojian Zhuang <haojian.zhuang@gmail.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Roger Quadros <rogerq@ti.com>
 
-On Mon, Jun 10, 2013 at 5:36 PM, Tony Lindgren <tony@atomide.com> wrote:
-
-> At least on omaps, each board typically has at least one device
-> configured as wake-up capable from deeper idle modes. In the
-> deeper idle modes the normal interrupt wake-up path won't work
-> as the logic is powered off and separate wake-up hardware is
-> available either via IO ring or GPIO hardware.
-
-What I do not understand is why the irq_set_wake() should
-not fall through to that IO ring / GPIO hardware.
-
-For example: a composite GPIO+irqchip driver should surely
-set the wake up for a certain line for irq_set_wake()?
-
-> The wake-up
-> event can be device specific, or may need to be dynamically
-> remuxed to GPIO input for wake-up events. When the wake-up
-> event happens, it's IRQ need to be called so the device won't
-> lose interrupts.
-
-I recognize this hardware type. The name I use for these
-things are "latent interrupts".
-
-What I think is that they should maybe be modeled as
-irqchip from end to end, so that we don't orthogonally use
-any pinctrl states to set this up.
-
-> Allow supporting IRQ and GPIO wake-up events if a hardware
-> spefific module is registered for the enable and disable
-
-s/spefific/specific
-
-> calls.
+On 07/18/2013 11:16 AM, Vinod Koul wrote:> On Thu, Jul 18, 2013 at
+11:46:39AM -0500, Joel Fernandes wrote:
+>> From: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+>>
+>> Add a dmaengine API to retrieve slave SG transfer limits.
+>>
+>> The API is optionally implemented by dmaengine drivers and when
+>> unimplemented will return a NULL pointer. A client driver using
+>> this API provides the required dma channel, address width, and
+>> burst size of the transfer. dma_get_slave_sg_limits() returns an
+>> SG limits structure with the maximum number and size of SG segments
+>> that the given channel can handle.
+> Hi Joel,
 >
-> Done in collaboration with Roger Quadros <rogerq@ti.com>.
->
-> Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Cc: devicetree-discuss@lists.ozlabs.org
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-(...)
-> +- interrrupts : the interrupt that a function may have for a wake-up event
+> I have already resurrected this and generalized the API to get the slave
+> capablities.
+> https://lkml.org/lkml/2013/7/15/147
 
-interrupts
+Hi Vinod,
 
-> +
-> +- gpios: the gpio that a function may have for a wake-up event
+get_caps and get_sg_limits are 2 different things, looks like this was
+already discussed earlier, and this patch series is a separate API that
+adds support for SG limits.
 
-Is this a GPIO property or a pin property?
+Infact, you can already see here that he changed the name of the
+function from caps to dma_get_slave_sg_limits:
+http://linux.davincidsp.com/pipermail/davinci-linux-open-source/2013-March/026601.html
 
-"wake up" is not supported by the GPIO subsystem is it?
-Not in <linux/gpio.h> atleast.
+Considering this, what is the way forward? Can this patch series be
+merged as it is a different API as discussed above?
 
-This smells like shoehorning pin config stuff into the GPIO
-subsystem again which is a no-no :-)
+Summarizing:
+* get_caps API cannot be used for this same purpose, as get_caps is done
+_before_ the DMA channel can be configured from what it looks like:
+* get_sg_limits, on the other hand is supposed to already have the
+parameters required for configuring the DMA channel before hand.
 
-> diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-> @@ -1183,6 +1241,24 @@ static int pcs_parse_one_pinctrl_entry(struct pcs_device *pcs,
->         } else {
->                 *num_maps = 1;
->         }
-> +
-> +       if (pcs->flags & PCS_HAS_FUNCTION_IRQ)
-> +               function->irq = irq_of_parse_and_map(np, 0);
-> +
-> +       if (pcs->flags & PCS_HAS_FUNCTION_GPIO) {
-> +               function->gpio = of_get_gpio(np, 0);
-> +               if (function->gpio > 0 && !function->irq) {
-> +                       if (gpio_is_valid(function->gpio))
-> +                               function->irq = gpio_to_irq(function->gpio);
-> +               }
-> +       }
-> +
-> +       if (function->irq > 0 && pcs->soc && pcs->soc->reg_init) {
-> +               res = pcs_parse_wakeup(pcs, np, function);
-> +               if (res)
-> +                       goto free_pingroups;
-> +       }
+Are there any other changes to the get_sg_limits series you would like
+before it can be applied? Any other suggestions?
 
-So this thing here. Instead of introducing a cross reference to the
-IRQ and GPIO here and
+Thanks,
 
-> + * @irq:       optional irq specified for wake-up for example
-> + * @gpio:      optional gpio specified for wake-up for example
-> + * @node:      optional list
-> + */
-> +struct pcs_reg {
-> +       unsigned (*read)(void __iomem *reg);
-> +       void (*write)(unsigned val, void __iomem *reg);
-> +       void __iomem *reg;
-> +       unsigned val;
-> +       int irq;
-> +       int gpio;
-> +       struct list_head node;
-> +};
-> +
-> +#define PCS_HAS_FUNCTION_GPIO   (1 << 2)
-> +#define PCS_HAS_FUNCTION_IRQ    (1 << 1)
->  #define PCS_HAS_PINCONF         (1 << 0)
->
->  /**
->   * struct pcs_soc - SoC specific interface to pinctrl-single
->   * @data:      SoC specific data pointer
->   * @flags:     mask of PCS_HAS_xxx values
-> + * @reg_init:  SoC specific register init function
-> + * @enable:    SoC specific enable function
-> + * @disable:   SoC specific disable function
->   */
->  struct pcs_soc {
->         void *data;
->         unsigned flags;
-> +       int (*reg_init)(const struct pcs_soc *soc, struct pcs_reg *r);
-> +       int (*enable)(const struct pcs_soc *soc, struct pcs_reg *r);
-> +       void (*disable)(const struct pcs_soc *soc, struct pcs_reg *r);
-
-Then these quirks and sub-modules ...
-
-Why can't the irqchip/GPIO driver call down to this driver
-instead?
-
-Yours,
-Linus Walleij
+-Joel
