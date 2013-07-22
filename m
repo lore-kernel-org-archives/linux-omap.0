@@ -1,46 +1,58 @@
-From: Cesar Eduardo Barros <cesarb@cesarb.eti.br>
-Subject: Re: [PATCH 03/18] MAINTAINERS: OMAP POWERDOMAIN, update patterns
-Date: Mon, 22 Jul 2013 06:20:09 -0300
-Message-ID: <51ECF949.4000802@cesarb.eti.br>
-References: <cover.1374451988.git.joe@perches.com>  <8c1406e78f8536ff46ad9000b5634487243d5854.1374451988.git.joe@perches.com>  <alpine.DEB.2.02.1307220501390.4804@utopia.booyaka.com> <1374470152.2061.28.camel@joe-AO722> <alpine.DEB.2.02.1307220530140.4804@utopia.booyaka.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 0/4] OMAP2+: Fix boot hang with earlycon enabled
+Date: Mon, 22 Jul 2013 15:31:13 +0530
+Message-ID: <1374487277-26099-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hm1479-10.locaweb.com.br ([201.76.49.80]:39980 "EHLO
-	hm1479-10.locaweb.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755896Ab3GVJvt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 05:51:49 -0400
-In-Reply-To: <alpine.DEB.2.02.1307220530140.4804@utopia.booyaka.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59376 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755285Ab3GVKCC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Jul 2013 06:02:02 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Joe Perches <joe@perches.com>, Andrew Morton <akpm@linux-foundation.org>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: tony@atomide.com, linux-omap@vger.kernel.org
+Cc: paul@pwsan.com, balbi@ti.com, mpfj-list@newflow.co.uk, vaibhav.bedia@ti.com, khilman@linaro.org, sourav.poddar@ti.com, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, linux-serial@vger.kernel.org, grygorii.strashko@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-Em 22-07-2013 02:32, Paul Walmsley escreveu:
-> On Sun, 21 Jul 2013, Joe Perches wrote:
->
->> I certainly don't object at all if Andrew picks
->> up the patches you mentioned and drops these 2.
->>
->> Andrew, here are links to Cesar's original patches
->> https://patchwork.kernel.org/project/LKML/list/?submitter=3513
->> https://lkml.org/lkml/2013/3/2/185
->>
->> It seems a few are similar/duplicated to these 18.
->>
->> Cesar, maybe you should resend yours.  I thought
->> they were applied and forgot all about them.
->
-> Another possibility, assuming that there are some fixes from your series
-> that Cesar didn't have, would be for you to take his patches into the
-> series that you're sending to Andrew, assuming that you agree with them.
-> Then we'd benefit from the superset of fixes.
+Boot on all OMAP2+ devices is broken with earlycon enabled
+as discussed here [1]
 
-I don't care whose patches are applied or who gets the credit. They are 
-just trivial changes to a text file. What matters is that the patterns 
-are correct enough that get_maintainer.pl does the right thing.
+There were 2 issues which were rootcaused
+1. Issue caused due to hwmod doing a reset of console uart while
+earlycon was using it (seen only on am335x devices)
+
+2. omap serial causing a NULL context restore with context loss
+count missing.
+
+This patch set attempts to fix both the issues and is one of the
+different approaches discussed [1] on how to fix these issues.
+
+Boot tested on omap4 panda es with and without earlycon (DT boot)
+Boot tested on am335x bone black with and without earlycon (DT boot)
+Boot tested on OMAP3 beagle XM with and without earlycon (non-DT boot)
+
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg91662.html
+
+Grygorii Strashko (1):
+  serial: omap: enable PM runtime only when its fully configured
+
+Rajendra Nayak (3):
+  ARM: OMAP2+: hwmod: Fix a crash in _setup_reset() with DEBUG_LL
+  ARM: OMAP2+: Avoid idling memory controllers with no drivers
+  ARM: OMAP2+: Sync hwmod state with the pm_runtime and omap_device
+    state
+
+ arch/arm/mach-omap2/omap_device.c                  |   18 ++++++++
+ arch/arm/mach-omap2/omap_hwmod.h                   |   48 ++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    6 +--
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    9 ++--
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    5 +-
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |    3 +-
+ arch/arm/mach-omap2/serial.c                       |   11 -----
+ drivers/tty/serial/omap-serial.c                   |    3 +-
+ 9 files changed, 81 insertions(+), 24 deletions(-)
 
 -- 
-Cesar Eduardo Barros
-cesarb@cesarb.eti.br
+1.7.9.5
+
