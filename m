@@ -1,81 +1,35 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH v2] ARM: EDMA: Fix clearing of unused list for DT DMA resources
-Date: Mon, 22 Jul 2013 12:59:49 -0500
-Message-ID: <1374515989-7391-1-git-send-email-joelf@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP2430 SDP boot broken after Linus' rmk merge
+Date: Mon, 22 Jul 2013 18:07:47 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1307221801110.10891@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Vinod Koul <vinod.koul@intel.com>, Benoit Cousson <benoit.cousson@linaro.org>, Balaji TK <balajitk@ti.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: Mark Jackson <mpfj-list@newflow.co.uk>, Joel Fernandes <joelf@ti.com>, Pantel Antoniou <panto@antoniou-consulting.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jason Kridner <jkridner@beagleboard.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:47640 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932264Ab3GVSHs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 14:07:48 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux@arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-HWMOD removal for MMC is breaking edma_start as the events are being manually
-triggered due to unused channel list not being clear, Thanks to Balaji TK for
-finding this issue.
 
-This patch fixes the issue, by reading the "dmas" property from the DT node if
-it exists and clearing the bits in the unused channel list.
+Hi,
 
-Cc: Balaji T K <balajitk@ti.com>
-Cc: Pantel Antoniou <panto@antoniou-consulting.com>
-Signed-off-by: Joel Fernandes <joelf@ti.com>
----
-v2 changes: Fixed compiler warning
+After Linus's commit fb2af0020a51709ad87ea8055c325d3fbde04158 ("Merge 
+branch 'for-linus' of git://git.linaro.org/people/rmk/linux-arm"), the 
+OMAP2430 SDP here stopped booting.
 
- arch/arm/common/edma.c |   31 +++++++++++++++++++++++--------
- 1 file changed, 23 insertions(+), 8 deletions(-)
+Here's the bootlog at the commit before the merge, commit 790eac5640:
 
-diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index a432e6c..765d578 100644
---- a/arch/arm/common/edma.c
-+++ b/arch/arm/common/edma.c
-@@ -561,14 +561,29 @@ static int reserve_contiguous_slots(int ctlr, unsigned int id,
- static int prepare_unused_channel_list(struct device *dev, void *data)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
--	int i, ctlr;
--
--	for (i = 0; i < pdev->num_resources; i++) {
--		if ((pdev->resource[i].flags & IORESOURCE_DMA) &&
--				(int)pdev->resource[i].start >= 0) {
--			ctlr = EDMA_CTLR(pdev->resource[i].start);
--			clear_bit(EDMA_CHAN_SLOT(pdev->resource[i].start),
--					edma_cc[ctlr]->edma_unused);
-+	int i = 0, ctlr;
-+	u32 dma_chan;
-+	const __be32 *dma_chan_p;
-+	struct property *prop;
-+
-+	if (dev->of_node) {
-+		of_property_for_each_u32(dev->of_node, "dmas", prop, \
-+					 dma_chan_p, dma_chan) {
-+			if (i++ & 1) {
-+				ctlr = EDMA_CTLR(dma_chan);
-+				clear_bit(EDMA_CHAN_SLOT(dma_chan),
-+						edma_cc[ctlr]->edma_unused);
-+			}
-+		}
-+	} else {
-+		for (; i < pdev->num_resources; i++) {
-+			if ((pdev->resource[i].flags & IORESOURCE_DMA) &&
-+			    (int)pdev->resource[i].start >= 0) {
-+				ctlr = EDMA_CTLR(pdev->resource[i].start);
-+				clear_bit(EDMA_CHAN_SLOT(
-+					  pdev->resource[i].start),
-+					  edma_cc[ctlr]->edma_unused);
-+			}
- 		}
- 	}
- 
--- 
-1.7.9.5
+http://www.pwsan.com/omap/testlogs/bisect_2430sdp_hang_v3.11-rc/20130722015454/
+
+and here's a log at commit fb2af0020a5:
+
+http://www.pwsan.com/omap/testlogs/bisect_2430sdp_hang_v3.11-rc/20130722005921/
+
+Any ideas as to what might have caused this?
+
+
+- Paul
