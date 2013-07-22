@@ -1,27 +1,21 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 02/18] MAINTAINERS: ARM: OMAP2/3: Remove unused clockdomain
- files
-Date: Mon, 22 Jul 2013 05:01:16 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1307220459020.4804@utopia.booyaka.com>
-References: <cover.1374451988.git.joe@perches.com> <0de56f7acdc9ed7aced4a78000c0ec7e0f70c011.1374451988.git.joe@perches.com>
+Subject: Re: [PATCH 03/18] MAINTAINERS: OMAP POWERDOMAIN, update patterns
+Date: Mon, 22 Jul 2013 05:03:27 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1307220501390.4804@utopia.booyaka.com>
+References: <cover.1374451988.git.joe@perches.com> <8c1406e78f8536ff46ad9000b5634487243d5854.1374451988.git.joe@perches.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:42225 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752954Ab3GVFBR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 01:01:17 -0400
-In-Reply-To: <0de56f7acdc9ed7aced4a78000c0ec7e0f70c011.1374451988.git.joe@perches.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <8c1406e78f8536ff46ad9000b5634487243d5854.1374451988.git.joe@perches.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Joe Perches <joe@perches.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-kernel@vger.kernel.org, cesarb@cesarb.net, linux-omap@vger.kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, cesarb@cesarb.net
+List-Id: linux-omap@vger.kernel.org
 
 On Sun, 21 Jul 2013, Joe Perches wrote:
 
-> commit 4bd5259e53a ("ARM: OMAP2/3: clockdomain/PRM/CM: move the
-> low-level clockdomain functions into PRM/CM") deleted the files,
-> update the pattern.
+> commit 498153995b9 ("ARM: OMAP2+: powerdomain/PRM: move the
+> low-level powerdomain") renamed the files, update the patterns.
 > 
 > Signed-off-by: Joe Perches <joe@perches.com>
 > cc: Paul Walmsley <paul@pwsan.com>
@@ -34,7 +28,9 @@ in March:
 
 http://lkml.indiana.edu/hypermail/linux/kernel/1303.0/00904.html
 
-Please take his patch instead, or credit him in your patch.
+The regex used in his pattern is also more accurate.  Please take his 
+patch instead, or credit him in your patch and use the cm*.[ch]/prm*.[ch] 
+notation from his patch.
 
 
 - Paul
