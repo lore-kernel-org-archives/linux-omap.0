@@ -1,83 +1,61 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 2/4] serial: omap: enable PM runtime only when its fully configured
-Date: Mon, 22 Jul 2013 15:31:15 +0530
-Message-ID: <1374487277-26099-3-git-send-email-rnayak@ti.com>
-References: <1374487277-26099-1-git-send-email-rnayak@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: [PATCH 12/22] ARM: dts: Remove '0x's from OMAP2420 H4 DTS file
+Date: Mon, 22 Jul 2013 11:52:31 +0100
+Message-ID: <1374490361-25769-12-git-send-email-lee.jones@linaro.org>
+References: <1374490361-25769-1-git-send-email-lee.jones@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50255 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757284Ab3GVKCL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Jul 2013 06:02:11 -0400
-In-Reply-To: <1374487277-26099-1-git-send-email-rnayak@ti.com>
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:54591 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932107Ab3GVKxM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 06:53:12 -0400
+Received: by mail-ee0-f49.google.com with SMTP id b57so3681161eek.36
+        for <linux-omap@vger.kernel.org>; Mon, 22 Jul 2013 03:53:11 -0700 (PDT)
+In-Reply-To: <1374490361-25769-1-git-send-email-lee.jones@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org
-Cc: paul@pwsan.com, balbi@ti.com, mpfj-list@newflow.co.uk, vaibhav.bedia@ti.com, khilman@linaro.org, sourav.poddar@ti.com, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, linux-serial@vger.kernel.org, grygorii.strashko@ti.com, Rajendra Nayak <rnayak@ti.com>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: arnd@arndb.de, linus.walleij@stericsson.com, Lee Jones <lee.jones@linaro.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-
-If earlyprintk is enabled and current UART is console port the platform
-code can mark it as RPM_ACTIVE to sync real IP state with PM Runtime and
-avoid resuming of already active device, but now, driver initialization
-will be performed in the wrong way:
-
-	pm_runtime_enable(&pdev->dev);
-    <-- PM runtime alowed (device state RPM_ACTIVE)
-	if (omap_up_info->autosuspend_timeout == 0)
-		omap_up_info->autosuspend_timeout = -1;
-	device_init_wakeup(up->dev, true);
-	pm_runtime_use_autosuspend(&pdev->dev);
-	<-- update_autosuspend() will be called and it will disable device
-        (device state RPM_SUSPENDED)
-	pm_runtime_set_autosuspend_delay(&pdev->dev,
-			omap_up_info->autosuspend_timeout);
-	<-- update_autosuspend() will be called which will re-enable device
-        (device state RPM_ACTIVE), because autosuspend_timeout < 0
-
-	pm_runtime_irq_safe(&pdev->dev);
-	pm_runtime_get_sync(&pdev->dev);
-	<-- will do nothing
-
-Such behavior isn't expected by OMAP serial drivers and causes
-unpredictable calls of serial_omap_runtime_suspend() and
-serial_omap_runtime_resume().
-
-Hence, fix it by allowing PM runtime only after all its parameters are
-configured.
-
-CC: Tony Lindgren <tony@atomide.com>
-CC: Rajendra Nayak <rnayak@ti.com>
-CC: Felipe Balbi <balbi@ti.com>
-CC: Kevin Hilman <khilman@linaro.org>
-
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/tty/serial/omap-serial.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/omap2420-h4.dts | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index b6d1728..f39bf0c 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -1501,7 +1501,6 @@ static int serial_omap_probe(struct platform_device *pdev)
- 	INIT_WORK(&up->qos_work, serial_omap_uart_qos_work);
- 
- 	platform_set_drvdata(pdev, up);
--	pm_runtime_enable(&pdev->dev);
- 	if (omap_up_info->autosuspend_timeout == 0)
- 		omap_up_info->autosuspend_timeout = -1;
- 	device_init_wakeup(up->dev, true);
-@@ -1510,6 +1509,8 @@ static int serial_omap_probe(struct platform_device *pdev)
- 			omap_up_info->autosuspend_timeout);
- 
- 	pm_runtime_irq_safe(&pdev->dev);
-+	pm_runtime_enable(&pdev->dev);
-+
- 	pm_runtime_get_sync(&pdev->dev);
- 
- 	omap_serial_fill_features_erratas(up);
--- 
-1.7.9.5
+diff --git a/arch/arm/boot/dts/omap2420-h4.dts b/arch/arm/boot/dts/omap=
+2420-h4.dts
+index 224c08f..34cdecb 100644
+--- a/arch/arm/boot/dts/omap2420-h4.dts
++++ b/arch/arm/boot/dts/omap2420-h4.dts
+@@ -50,15 +50,15 @@
+ 			label =3D "bootloader";
+ 			reg =3D <0 0x20000>;
+ 		};
+-		partition@0x20000 {
++		partition@20000 {
+ 			label =3D "params";
+ 			reg =3D <0x20000 0x20000>;
+ 		};
+-		partition@0x40000 {
++		partition@40000 {
+ 			label =3D "kernel";
+ 			reg =3D <0x40000 0x200000>;
+ 		};
+-		partition@0x240000 {
++		partition@240000 {
+ 			label =3D "file-system";
+ 			reg =3D <0x240000 0x3dc0000>;
+ 		};
+--=20
+1.8.1.2
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
