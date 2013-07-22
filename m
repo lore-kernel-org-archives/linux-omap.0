@@ -1,62 +1,55 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH] of: provide of_platform_unpopulate()
-Date: Mon, 22 Jul 2013 16:16:07 -0500
-Message-ID: <51EDA117.10605@gmail.com>
-References: <1374257691-31981-1-git-send-email-bigeasy@linutronix.de> <51EBF33A.4050207@gmail.com> <51EC4908.4040504@gmail.com> <CACxGe6sqv2Wsp26MWqqs9W_eWO3tjs-+2z3z8fC=2fe-BjJvkA@mail.gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCHv2 0/5] omap mailbox dt support
+Date: Mon, 22 Jul 2013 16:26:28 -0500
+Message-ID: <1374528388-59442-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <CACxGe6sqv2Wsp26MWqqs9W_eWO3tjs-+2z3z8fC=2fe-BjJvkA@mail.gmail.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Rob Herring <rob.herring@calxeda.com>, Kishon Vijay Abraham I <kishon@ti.com>, George Cherian <george.cherian@ti.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree-discuss <devicetree-discuss@lists.ozlabs.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Vivek Gautam <gautam.vivek@samsung.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Naveen Krishna Chatradhi <ch.naveen@samsung.com>, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34893 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932388Ab3GVVdB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Jul 2013 17:33:01 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Suman Anna <s-anna@ti.com>
 
-On 07/21/2013 06:44 PM, Grant Likely wrote:
-> On Sun, Jul 21, 2013 at 9:48 PM, Rob Herring <robherring2@gmail.com> wrote:
->> On 07/21/2013 09:42 AM, Rob Herring wrote:
->>> On 07/19/2013 01:14 PM, Sebastian Andrzej Siewior wrote:
->>>> So I called of_platform_populate() on a device to get each child device
->>>> probed and on rmmod and I need to reverse its doing. After a quick grep
->>>> I did what others did as well and rmmod ended in:
->>>>
->>>> | Unable to handle kernel NULL pointer dereference at virtual address 00000018
->>>> | PC is at release_resource+0x18/0x80
->>>> | Process rmmod (pid: 2005, stack limit = 0xedc30238)
->>>> | [<c003add0>] (release_resource+0x18/0x80) from [<c0300e08>] (platform_device_del+0x78/0xac)
->>>> | [<c0300e08>] (platform_device_del+0x78/0xac) from [<c0301358>] (platform_device_unregister+0xc/0x18)
->>>>
->>>> The problem is that platform_device_del() "releases" each ressource in its
->>>> tree. This does not work on platform_devices created by OF becuase they
->>>> were never added via insert_resource(). As a consequence old->parent in
->>>> __release_resource() is NULL and we explode while accessing ->child.
->>>> So I either I do something completly wrong _or_ nobody here tested the
->>>> rmmod path of their driver.
->>>
->>> Wouldn't the correct fix be to call insert_resource somehow? The problem
->>> I have is that while of_platform_populate is all about parsing the DT
->>> and creating devices, the removal side has nothing to do with DT. So
->>> this should not be in the DT code. I think the core device code should
->>> be able to handle removal if the device creation side is done correctly.
->>>
->>> It looks to me like of_device_add either needs to call
->>> platform_device_add rather than device_add. I think the device name
->>> setting in platform_device_add should be a nop. If not, a check that the
->>> name is already set could be added.
->>>
->>
->> BTW, it looks like Grant has attempted this already:
-> 
-> Yup, things broke badly. Unfortunately the of_platform_device and
-> platform_device history doesn't treat resources in the same way. I
-> would like to merge the code, but I haven't been able to figure out a
-> clean way to do it. Looks like we do need the unpopulate function.
+Hi,
 
-Was there more breakage than imx6 and amba devices? Your first version
-had a fallback case for powerpc. Couldn't we do just allow that for more
-than just powerpc? I'd much rather see some work-around within the core
-DT code with a warning to prevent more proliferation than putting this
-into drivers.
+This is an updated series for adding the device tree support to
+the OMAP mailbox driver. The series is based on 3.11-rc2 and I
+have tested this on Beagle-XM, Panda4 and OMAP5 uEVM (with
+out-of-tree clock patches).
 
-Rob
+Changes in v2:
+- Removed the #ti,mbox-data-cells from DT bindings and node data
+- Includes 2 new patches that adds the data for OMAP5.
+
+v1:
+http://marc.info/?l=linux-omap&m=137159523405468&w=2
+
+Suman Anna (5):
+  mailbox/omap: add a parent structure common to all mboxes
+  mailbox/omap: add support for parsing dt devices
+  ARM: dts: OMAP2+: Add mailbox nodes
+  ARM: OMAP5: hwmod data: Add mailbox data
+  ARM: dts: OMAP5: Add mailbox dt node
+
+ .../devicetree/bindings/mailbox/omap-mailbox.txt   |  43 ++++
+ arch/arm/boot/dts/omap2420.dtsi                    |  12 ++
+ arch/arm/boot/dts/omap2430.dtsi                    |  11 ++
+ arch/arm/boot/dts/omap3.dtsi                       |  11 ++
+ arch/arm/boot/dts/omap4.dtsi                       |  11 ++
+ arch/arm/boot/dts/omap5.dtsi                       |  11 ++
+ arch/arm/mach-omap2/devices.c                      |   2 +-
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  42 ++++
+ drivers/mailbox/mailbox-omap1.c                    |  27 ++-
+ drivers/mailbox/mailbox-omap2.c                    | 217 ++++++++++++++++-----
+ drivers/mailbox/omap-mailbox.c                     |  32 ++-
+ drivers/mailbox/omap-mbox.h                        |  10 +
+ 12 files changed, 355 insertions(+), 74 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
+
+-- 
+1.8.3.3
+
