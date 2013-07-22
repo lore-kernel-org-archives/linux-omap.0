@@ -1,130 +1,79 @@
-From: Oleksandr Kozaruk <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v6 2/2] iio: twl6030-gpadc: TWL6030, TWL6032 GPADC driver
-Date: Mon, 22 Jul 2013 12:12:07 +0300
-Message-ID: <CAPb7_mskrx9uKtYFi2sJiZu-r0Jb_JEm19e05ZmmjWTJ7Qnc+g@mail.gmail.com>
-References: <1374226039-16943-1-git-send-email-oleksandr.kozaruk@ti.com>
-	<1374226039-16943-3-git-send-email-oleksandr.kozaruk@ti.com>
-	<51EA69DE.4080908@kernel.org>
+From: Roger Quadros <rogerq@ti.com>
+Subject: linux-3.11-rc1: Internal error: Oops - undefined instruction: 0 [#1]
+ SMP ARM on OMAP3/AM335x
+Date: Mon, 22 Jul 2013 12:30:20 +0300
+Message-ID: <51ECFBAC.7090900@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51EA69DE.4080908-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org, milo.kim-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57968 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756928Ab3GVJbH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Jul 2013 05:31:07 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: catalin.marinas@arm.com
+Cc: Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kernel development list <linux-kernel@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "Mesfin, Yebio" <ymesfin@ti.com>
 
-Hi Jonathan,
+Hi,
 
-On Sat, Jul 20, 2013 at 1:43 PM, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On 07/19/2013 10:27 AM, Oleksandr Kozaruk wrote:
->> The GPADC is general purpose ADC found on TWL6030, and TWL6032 PMIC,
->> known also as Phoenix and PhoenixLite.
->>
->> The TWL6030 and TWL6032 have GPADC with 17 and 19 channels
->> respectively. Some channels have current source and are used for
->> measuring voltage drop on resistive load for detecting battery ID
->> resistance, or measuring voltage drop on NTC resistors for external
->> temperature measurements. Some channels measure voltage, (i.e. battery
->> voltage), and have voltage dividers, thus, capable to scale voltage.
->> Some channels are dedicated for measuring die temperature.
->>
->> Some channels are calibrated in 2 points, having offsets from ideal
->> values kept in trim registers. This is used to correct measurements.
->>
->> The differences between GPADC in TWL6030 and TWL6032:
->> - 10 bit vs 12 bit ADC;
->> - 17 vs 19 channels;
->> - channels have different purpose(i.e. battery voltage
->>   channel 8 vs channel 18);
->> - trim values are interpreted differently.
->>
->> Based on the driver patched from Balaji TK, Graeme Gregory, Ambresh K,
->> Girish S Ghongdemath.
->>
->> Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
->> Signed-off-by: Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>
->> Signed-off-by: Oleksandr Kozaruk <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
-> A few little bits and bobs inline.
->
-> My only major query is about the lack of info for the temperature
-> channels.  How do you convert these to useful real world units?
+I observe the following problem on booting v3.11-rc1 on OMAP3 beagle board.
 
-If I get your question right: the ADC channels 1, 4 are dedicated for
-measuring resistive value.
-The temperature measurement will depend on:
-1) the ADC code(provided by the driver);
-2) value of the NTC resistor, its characteristics, the way it is
-plugged in the circuit,
-and may be some calibration data(platform dependent); How the driver can the
-drive take care of these?
-[...]
+[    5.888946] Internal error: Oops - undefined instruction: 0 [#1] SMP ARM
+[    5.896057] Modules linked in:
+[    5.899322] CPU: 0 PID: 9 Comm: rcu_sched Not tainted 3.11.0-rc2-00001-g1ea701a #876
+[    5.907501] task: ce0720c0 ti: ce07a000 task.ti: ce07a000
+[    5.913208] PC is at check_and_switch_context+0x130/0x4dc
+[    5.918914] LR is at check_and_switch_context+0xd8/0x4dc
+[    5.924530] pc : [<c0023d1c>]    lr : [<c0023cc4>]    psr: 40000193
+[    5.924530] sp : ce07bd70  ip : 00000000  fp : c078d7b0
+[    5.936645] r10: ce5084c0  r9 : 00000000  r8 : 00000201
+[    5.942169] r7 : 00000000  r6 : 00000000  r5 : 00000000  r4 : c081de04
+[    5.949066] r3 : 00000000  r2 : d0091010  r1 : 00000000  r0 : 00000001
+[    5.955963] Flags: nZcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+[    5.963775] Control: 10c5387d  Table: 80004019  DAC: 00000017
+[    5.969848] Process rcu_sched (pid: 9, stack limit = 0xce07a240)
+[    5.976165] Stack: (0xce07bd70 to 0xce07c000)
+[    5.980773] bd60:                                     c078c990 961b12b4 00000000 ce508658
+[    5.989440] bd80: c0780510 20000193 00000200 00000000 c078c944 c0780510 c0780518 ce5084c0
+[    5.998077] bda0: c0f90fc0 ce425440 ce5084c0 c078fd08 ce0720c0 ce184a40 ce07a000 c0f90fc0
+[    6.006713] bdc0: ce07be74 c05065bc c081fe24 ce0720c0 ce072558 00000000 5efa46d6 00000001
+[    6.015350] bde0: 00000000 c050331c c0782fc0 c0782fc0 c0782fc0 c0782fc0 0007735a 00000000
+[    6.023986] be00: c0782fc0 c0782fc0 00000000 00000000 60000193 00000498 00000000 c08304c0
+[    6.032623] be20: a0000113 c00531b8 ce07be78 ce07a000 ce0720c0 c05080dc 00000001 c07860c0
+[    6.041259] be40: ce07bf00 ce07a000 00000064 c0097bfc a0000113 ce07be7c c08304c0 ffff8d19
+[    6.049926] be60: c08304c0 c07860c0 ce07bf00 ce07a000 00000064 c050331c a0000113 c08305b8
+[    6.058563] be80: c08305b8 ffff8d19 c08304c0 c005329c ce0720c0 ffffffff ffffffff 00000000
+[    6.067199] bea0: 00000000 00000000 00000000 00000000 c083150c 00000000 00000000 c0663d9c
+[    6.075836] bec0: c078d1e0 ce07a000 c07e4c50 c078d1e0 00000001 00000002 c07e4b40 c00aed80
+[    6.084472] bee0: 00000000 ce07bf00 c07e4cb8 c07e4c00 00000001 00000000 ce0720c0 c006749c
+[    6.093109] bf00: c07e4c70 c07e4c70 60000153 ce04be8c 00000000 c07e4b40 c00aeacc 00000000
+[    6.101745] bf20: 00000000 00000000 00000000 c0066b74 00000001 00000000 00000000 c07e4b40
+[    6.110382] bf40: 00000000 00000000 dead4ead ffffffff ffffffff c08323fc 00000000 00000000
+[    6.119049] bf60: c0662544 ce07bf64 ce07bf64 00000000 00000000 dead4ead ffffffff ffffffff
+[    6.127685] bf80: c08323fc 00000000 00000000 c0662544 ce07bf90 ce07bf90 ce072a80 ce04be8c
+[    6.136322] bfa0: c0066ad0 00000000 00000000 c0013ea8 00000000 00000000 00000000 00000000
+[    6.144958] bfc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    6.153594] bfe0: 00000000 00000000 00000000 00000000 00000013 00000000 01ffdf08 20ffde24
+[    6.162261] [<c0023d1c>] (check_and_switch_context+0x130/0x4dc) from [<c05065bc>] (__schedule+0x334/0x7f4)
+[    6.172454] [<c05065bc>] (__schedule+0x334/0x7f4) from [<c050331c>] (schedule_timeout+0x124/0x214)
+[    6.181945] [<c050331c>] (schedule_timeout+0x124/0x214) from [<c00aed80>] (rcu_gp_kthread+0x2b4/0x52c)
+[    6.191772] [<c00aed80>] (rcu_gp_kthread+0x2b4/0x52c) from [<c0066b74>] (kthread+0xa4/0xb0)
+[    6.200622] [<c0066b74>] (kthread+0xa4/0xb0) from [<c0013ea8>] (ret_from_fork+0x14/0x2c)
+[    6.209167] Code: e3120602 1e083f13 ee073f9a ee073f95 (ee083f33) 
+[    6.215606] ---[ end trace bad27cd834df5662 ]---
 
->> +static int twl6030_gpadc_read_raw(struct iio_dev *indio_dev,
->> +                          const struct iio_chan_spec *chan,
->> +                          int *val, int *val2, long mask)
->> +{
->> +     struct twl6030_gpadc_data *gpadc = iio_priv(indio_dev);
->> +     int ret = -EINVAL;
-> I'm suprised you didn't get a warning about the assigment above
-> being pointless as you overwrite ret just below.
-Indeed, ret is overwritten, though, there is no warning from make C=2
-and checkpatch is silent.
-I'll remove the initialization.
-[...]
+I'm suspecting the issue to be caused by the below commit
 
->> +
->> +#define TWL6030_GPADC_CHAN(chn, _type, chan_info) {  \
->> +     .type = _type,                                  \
->> +     .channel = chn,                                 \
->> +     .info_mask_separate = BIT(chan_info),           \
->> +     .indexed = 1,                                   \
->> +}
->> +
->
->
-> Why list these at all?  I see they are no longer visible from
-> userspace, but they are still taking up memory etc without I
-> think ever being used?
-I've kept it because for twl6032 there is a gap if I drop channels 15, 16,
-as channels 17, 18 are used.
+commit 93dc68876b608da041fe40ed39424b0fcd5aa2fb
+Author: Catalin Marinas <catalin.marinas@arm.com>
+Date:   Tue Mar 26 23:35:04 2013 +0100
 
->> +/* internal test network channel */
->> +#define TWL6030_GPADC_TEST_CHAN(chn, chan_info) {    \
->> +     .type = IIO_VOLTAGE,                            \
->> +     .channel = chn,                                 \
->> +     .indexed = 1,                                   \
->> +}
->> +
->> +static const struct iio_chan_spec twl6030_gpadc_iio_channels[] = {
->> +     TWL6030_GPADC_CHAN(0, IIO_VOLTAGE, IIO_CHAN_INFO_PROCESSED),
->> +     TWL6030_GPADC_CHAN(1, IIO_TEMP, IIO_CHAN_INFO_RAW),
-> So we have no other information about the temp channels other than
-> raw adc counts?  If so, how are these useful?  I guess you might
-> be intending to use iio-hwmon to get these into hwmon the use
-> lm-sensors config files to convert to something useful.
-> Otherwise, you probably want to get the board specific info on
-> the calibration of these in here to make the data available to userspace
-> in a useful format...
+    ARM: 7684/1: errata: Workaround for Cortex-A15 erratum 798181 (TLBI/DSB operations)
 
-Hmm, it seems that info on the NTC type is board specific. And we
-should get it from device tree?
-I thought the driver just gives the ADC code, and consumer will know
-what to do with the ADC data.
-So, calculation for converting to temperature should be done in this driver?
-I don't know how yet.
-[...]
+It seems that in check_and_switch_context(), we call dummy_flush_tlb_a15_erratum() which an A15 instruction
+without A15 revision check.
 
->> +MODULE_AUTHOR("Texas Instruments Inc.");
->
-> I would normally expect an actual person for
-> the module author.  Is this TI policy or simply a case of no clear single
-> author?  Note I believe there is no problem with having multiple
-> MODULE_AUTHOR lines so that everyone who made a major contribution is
-> included.
-
-Yes, this is because of having multiple authors. I will change it for
-Balaji, Graeme and myself.
-
-Regards,
-OK.
+cheers,
+-roger
