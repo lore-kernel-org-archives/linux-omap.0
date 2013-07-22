@@ -1,109 +1,40 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: [PATCH 16/22] ARM: dts: Remove '0x's from OMAP3430 SDP DTS file
-Date: Mon, 22 Jul 2013 11:52:35 +0100
-Message-ID: <1374490361-25769-16-git-send-email-lee.jones@linaro.org>
+Subject: [PATCH 17/22] ARM: dts: Remove '0x's from OMAP4 DTS file
+Date: Mon, 22 Jul 2013 11:52:36 +0100
+Message-ID: <1374490361-25769-17-git-send-email-lee.jones@linaro.org>
 References: <1374490361-25769-1-git-send-email-lee.jones@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:64442 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932182Ab3GVKxf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 06:53:35 -0400
-Received: by mail-ee0-f48.google.com with SMTP id b47so3669168eek.21
-        for <linux-omap@vger.kernel.org>; Mon, 22 Jul 2013 03:53:34 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1374490361-25769-1-git-send-email-lee.jones@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 Cc: arnd@arndb.de, linus.walleij@stericsson.com, Lee Jones <lee.jones@linaro.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
 Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org
 Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- arch/arm/boot/dts/omap3430-sdp.dts | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ arch/arm/boot/dts/omap4.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/oma=
-p3430-sdp.dts
-index e2249bc..281914e 100644
---- a/arch/arm/boot/dts/omap3430-sdp.dts
-+++ b/arch/arm/boot/dts/omap3430-sdp.dts
-@@ -84,15 +84,15 @@
- 			label =3D "bootloader-nor";
- 			reg =3D <0 0x40000>;
- 		};
--		partition@0x40000 {
-+		partition@40000 {
- 			label =3D "params-nor";
- 			reg =3D <0x40000 0x40000>;
- 		};
--		partition@0x80000 {
-+		partition@80000 {
- 			label =3D "kernel-nor";
- 			reg =3D <0x80000 0x200000>;
- 		};
--		partition@0x280000 {
-+		partition@280000 {
- 			label =3D "filesystem-nor";
- 			reg =3D <0x240000 0x7d80000>;
- 		};
-@@ -125,19 +125,19 @@
- 			label =3D "xloader-nand";
- 			reg =3D <0 0x80000>;
- 		};
--		partition@0x80000 {
-+		partition@80000 {
- 			label =3D "bootloader-nand";
- 			reg =3D <0x80000 0x140000>;
- 		};
--		partition@0x1c0000 {
-+		partition@1c0000 {
- 			label =3D "params-nand";
- 			reg =3D <0x1c0000 0xc0000>;
- 		};
--		partition@0x280000 {
-+		partition@280000 {
- 			label =3D "kernel-nand";
- 			reg =3D <0x280000 0x500000>;
- 		};
--		partition@0x780000 {
-+		partition@780000 {
- 			label =3D "filesystem-nand";
- 			reg =3D <0x780000 0x7880000>;
- 		};
-@@ -170,19 +170,19 @@
- 			label =3D "xloader-onenand";
- 			reg =3D <0 0x80000>;
- 		};
--		partition@0x80000 {
-+		partition@80000 {
- 			label =3D "bootloader-onenand";
- 			reg =3D <0x80000 0x40000>;
- 		};
--		partition@0xc0000 {
-+		partition@c0000 {
- 			label =3D "params-onenand";
- 			reg =3D <0xc0000 0x20000>;
- 		};
--		partition@0xe0000 {
-+		partition@e0000 {
- 			label =3D "kernel-onenand";
- 			reg =3D <0xe0000 0x200000>;
- 		};
--		partition@0x2e0000 {
-+		partition@2e0000 {
- 			label =3D "filesystem-onenand";
- 			reg =3D <0x2e0000 0xfd20000>;
- 		};
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dts=
+i
+index 22d9f2b..45708e1 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -56,7 +56,7 @@
+ 		cache-level =3D <2>;
+ 	};
+=20
+-	local-timer@0x48240600 {
++	local-timer@48240600 {
+ 		compatible =3D "arm,cortex-a9-twd-timer";
+ 		reg =3D <0x48240600 0x20>;
+ 		interrupts =3D <GIC_PPI 13 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_HIG=
+H)>;
 --=20
 1.8.1.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
