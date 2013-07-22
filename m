@@ -1,39 +1,96 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 03/18] MAINTAINERS: OMAP POWERDOMAIN, update patterns
-Date: Mon, 22 Jul 2013 05:32:05 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1307220530140.4804@utopia.booyaka.com>
-References: <cover.1374451988.git.joe@perches.com>  <8c1406e78f8536ff46ad9000b5634487243d5854.1374451988.git.joe@perches.com>  <alpine.DEB.2.02.1307220501390.4804@utopia.booyaka.com> <1374470152.2061.28.camel@joe-AO722>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: [PATCH v2 3/4] arm: dts: Add USB phy nodes for AM33XX
+Date: Mon, 22 Jul 2013 11:15:41 +0530
+Message-ID: <51ECC705.2070904@ti.com>
+References: <1374237277-17769-1-git-send-email-george.cherian@ti.com> <1374237277-17769-4-git-send-email-george.cherian@ti.com> <51E94571.8080805@cogentembedded.com> <51E94B30.9070805@linutronix.de> <51E98663.2040308@cogentembedded.com> <51E98897.6050105@linutronix.de> <51EA06EB.4080709@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1374470152.2061.28.camel@joe-AO722>
+In-Reply-To: <51EA06EB.4080709@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Cesar Eduardo Barros <cesarb@cesarb.net>, Andrew Morton <akpm@linux-foundation.org>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Joe,
+On 7/20/2013 9:11 AM, George Cherian wrote:
+> On 7/20/2013 12:12 AM, Sebastian Andrzej Siewior wrote:
+>> On 07/19/2013 08:33 PM, Sergei Shtylyov wrote:
+>>> Hello.
+>> Hello,
+>>
+>>>> usb: usb@47400000 {
+>>>>      compatible = "ti,am33xx-usb";
+>>>>           usb0_phy: phy@47401300 {
+>>>>          compatible = "ti,am335x-usb-phy";
+>>>>      }
+>>>>      usb0: usb@47401000 {
+>>>>          musb0: usb@47401400 {
+>>>>              compatible = "mg,musbmhdrc";
+>>>>          }
+>>>>      }
+>>>>      usb1_phy: phy@47402300 {
+>>>>          compatible = "ti,am335x-usb-phy";
+>>>>      }
+>>>>      usb1: usb@47402000 {
+>>>>          musb1: usb@47402400 {
+>>>>              compatible = "mg,musbmhdrc";
+>>>>          }
+>>>>      }
+>>>> }
 
-On Sun, 21 Jul 2013, Joe Perches wrote:
+How about something like this ?
 
-> I certainly don't object at all if Andrew picks
-> up the patches you mentioned and drops these 2.
-> 
-> Andrew, here are links to Cesar's original patches
-> https://patchwork.kernel.org/project/LKML/list/?submitter=3513
-> https://lkml.org/lkml/2013/3/2/185
-> 
-> It seems a few are similar/duplicated to these 18.
-> 
-> Cesar, maybe you should resend yours.  I thought
-> they were applied and forgot all about them.
+Here am making
+     wrapper -> musb instance 0 -> phy0
+     wrapper -> musb instance 1 -> phy1
 
-Another possibility, assuming that there are some fixes from your series 
-that Cesar didn't have, would be for you to take his patches into the 
-series that you're sending to Andrew, assuming that you agree with them.  
-Then we'd benefit from the superset of fixes.
+                 musb: usb@47400000 {
+                         compatible = "ti,musb-am33xx";
+                         reg = <0x47400000 0x1000>;
+                         ranges;
+                         #address-cells = <1>;
+                         #size-cells = <1>;
+                         interrupts = <17>;
+                         ti,hwmods = "usb_otg_hs";
 
-regards,
+                         usb0@47401000 {
+                                 reg = <0x47401000 0x800>;
+                                 interrupts = <18>;
+                                 interrupt-names = "mc";
+                                 multipoint = <1>;
+                                 num-eps = <16>;
+                                 ram-bits = <12>;
+                                 port-mode = <3>;
+                                 power = <250>;
+                                 phys = <&phy1>;
+                                 phy-names = "am335x-usb0";
+                                 phy1: am335x-usb0 {
+                                         compatible = "ti,am335x-usb2";
+                                         #phy-cells = <0>;
+                                         id= <0>;
+                                 };
+                         };
 
+                         usb1@47401800 {
+                                 reg = <0x47401800 0x800>;
+                                 interrupts = <19>;
+                                 interrupt-names = "mc";
+                                 multipoint = <1>;
+                                 num-eps = <16>;
+                                 ram-bits = <12>;
+                                 port-mode = <3>;
+                                 power = <250>;
+                                 phys = <&phy2>;
+                                 phy-names = "am335x-usb1";
+                                 phy2: am335x-usb1 {
+                                         compatible = "ti,am335x-usb2";
+                                         #phy-cells = <0>;
+                                         id= <1>;
+                                 };
+                         };
 
-- Paul
+                 };
+
+-- 
+-George
