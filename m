@@ -1,59 +1,82 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCH 0/4] dra7: I2C/MCSPI/UART pin control datas
-Date: Mon, 22 Jul 2013 17:51:40 +0530
-Message-ID: <51ED23D4.50005@ti.com>
-References: <1374251050-10033-1-git-send-email-sourav.poddar@ti.com> <51E969D3.2080804@ti.com>
+From: Oleksandr Kozaruk <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v7 0/2] TWL6030, TWL6032 GPADC driver
+Date: Mon, 22 Jul 2013 15:22:50 +0300
+Message-ID: <1374495772-17758-1-git-send-email-oleksandr.kozaruk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41752 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750876Ab3GVMVs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 08:21:48 -0400
-In-Reply-To: <51E969D3.2080804@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org, milo.kim-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: tony@atomide.com, benoit.cousson@linaro.org, balbi@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-On Friday 19 July 2013 10:01 PM, Nishanth Menon wrote:
-> On 07/19/2013 11:24 AM, Sourav Poddar wrote:
->> These series add support for I2C/MCSPI/UART pin control datas.
->>
->> The series is done on top of Rajendra Nayak series[1](posted to the 
->> list),
->> which has basic dt boot enable for dra7.
->> These patches has been tested, along with I2C and UART patches from
->> wolfram sang patch series[2].
->>
->>
->> [1]: http://www.spinics.net/lists/linux-omap/msg93535.html
->> [2]: https://lkml.org/lkml/2013/7/10/335
->>
->> Sourav Poddar (4):
->>    arm: dts: omap5-evm: Add I2c pinctrl data
->>    arm: dts: omap5-evm: Add I2c pinctrl data
->>    arm: dts: dra7-evm: Add SPI pinctrl data
->>    arm: dts: dra7-evm: Add UART pinctrl data
->>
->>   arch/arm/boot/dts/dra7-evm.dts |  123 
->> ++++++++++++++++++++++++++++++++++++++++
->>   arch/arm/boot/dts/dra7.dtsi    |   15 +++++
->>   2 files changed, 138 insertions(+), 0 deletions(-)
->>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> DRA7 DTS is not merged yet, If I am not mistaken.
-> Ref[1] [2]
-> So why not squash these to [2]?
->
-> [1] http://marc.info/?t=137335517900001&r=1&w=2
-> [2] http://marc.info/?l=linux-arm-kernel&m=137335590702349&w=2
->
->
-Yes, its not merged.
-We can squash these series.
+Hello,
+
+v7 - addressed clean up comments, removed test channels
+v6 - addressed comments about trim bits, checkpatch clean up
+v5 - gpadc DT node renamed from "gpadc" to generic "adc", added
+     temperature channels; raw code is corracted with calibration
+     data.
+v4 - addressed comments: fixed style violation, bug in freeing memory,
+     added comments explaining calibration method, removed test network
+     channels from exposing to userspace, error handling for 
+     wait_for_complition
+v3 - fixed compiler warning
+v2 - the driver put in drivers/iio, and
+converted using iio facilities as suggested by Graeme.
+
+TWL603[02] GPADC is used to measure battery voltage,
+battery temperature, battery presence ID, and could
+be used to measure twl603[02] die temperature.
+This is used on TI blaze, blaze tablet platforms.
+
+The TWL6030/TWL6032 is a PMIC that has a GPADC with 17/19
+channels respectively. Some channels have current
+source and are used for measuring voltage drop
+on resistive load for detecting battery ID resistance,
+or measuring voltage drop on NTC resistors for external
+temperature measurements, other channels measure voltage,
+(i.e. battery voltage), and have inbuilt voltage dividers,
+thus, capable to scale voltage. Some channels are dedicated
+for measuring die temperature.
+
+Some channels could be calibrated in 2 points, having
+offsets from ideal values in trim registers.
+
+The difference between GPADC in TWL6030 and TWL6032:
+- 10 bit vs 12 bit ADC;
+- 17 vs 19 channels;
+- channels have different purpose(i. e. battery voltage
+  channel 8 vs channel 18);
+- trim values are interpreted differently.
+
+The driver is derived from git://git.omapzoom.org/kernel/omap.git
+The original driver's authors and contributors are Balaji T K,
+Graeme Gregory, Ambresh K, Girish S Ghongdemath.
+
+The changes to the original driver:
+- device tree adaptation;
+- drop ioctl support - never been used;
+- unified measurement method for both devices;
+- get rid of "if (device == X)" code style to data driven;
+- drop polling end of conversion and use interrupt instead;
+- iio framework is used
+
+Tested with on blaze tablet 2 with OMAP4430(twl6030), and
+OMAP4470(twl6032) SOMs.
+
+The patches were tested against 3.11-rc2
+
+Oleksandr Kozaruk (2):
+  ARM: dts: twl: Add GPADC data to device tree
+  iio: twl6030-gpadc: TWL6030, TWL6032 GPADC driver
+
+ arch/arm/boot/dts/twl6030.dtsi  |   6 +
+ drivers/iio/adc/Kconfig         |  14 +
+ drivers/iio/adc/Makefile        |   1 +
+ drivers/iio/adc/twl6030-gpadc.c | 981 ++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 1002 insertions(+)
+ create mode 100644 drivers/iio/adc/twl6030-gpadc.c
+
+-- 
+1.8.1.2
