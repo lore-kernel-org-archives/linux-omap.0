@@ -1,50 +1,62 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 1/4] pinctrl: single: Prepare for supporting SoC specific features
-Date: Mon, 22 Jul 2013 23:15:52 +0200
-Message-ID: <CACRpkdapXZO003xhRCVg5sfQCfJUPMzunui5u6npmht-2hP7Tg@mail.gmail.com>
-References: <20130607203936.16513.57494.stgit@localhost>
-	<20130607205037.16513.84242.stgit@localhost>
-	<CAN1soZzLYpiakcgPR7mBOC7_mLFW=mZwOG98Dq6JpO+JHUW=cw@mail.gmail.com>
-	<20130608152732.GR3331@atomide.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH] of: provide of_platform_unpopulate()
+Date: Mon, 22 Jul 2013 16:16:07 -0500
+Message-ID: <51EDA117.10605@gmail.com>
+References: <1374257691-31981-1-git-send-email-bigeasy@linutronix.de> <51EBF33A.4050207@gmail.com> <51EC4908.4040504@gmail.com> <CACxGe6sqv2Wsp26MWqqs9W_eWO3tjs-+2z3z8fC=2fe-BjJvkA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f179.google.com ([209.85.214.179]:56570 "EHLO
-	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933278Ab3GVVPx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 17:15:53 -0400
-Received: by mail-ob0-f179.google.com with SMTP id xk17so8569214obc.24
-        for <linux-omap@vger.kernel.org>; Mon, 22 Jul 2013 14:15:53 -0700 (PDT)
-In-Reply-To: <20130608152732.GR3331@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <CACxGe6sqv2Wsp26MWqqs9W_eWO3tjs-+2z3z8fC=2fe-BjJvkA@mail.gmail.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Grant Likely <grant.likely@linaro.org>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Rob Herring <rob.herring@calxeda.com>, Kishon Vijay Abraham I <kishon@ti.com>, George Cherian <george.cherian@ti.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree-discuss <devicetree-discuss@lists.ozlabs.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Vivek Gautam <gautam.vivek@samsung.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Naveen Krishna Chatradhi <ch.naveen@samsung.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Haojian Zhuang <haojian.zhuang@gmail.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Roger Quadros <rogerq@ti.com>
 
-On Sat, Jun 8, 2013 at 5:27 PM, Tony Lindgren <tony@atomide.com> wrote:
+On 07/21/2013 06:44 PM, Grant Likely wrote:
+> On Sun, Jul 21, 2013 at 9:48 PM, Rob Herring <robherring2@gmail.com> wrote:
+>> On 07/21/2013 09:42 AM, Rob Herring wrote:
+>>> On 07/19/2013 01:14 PM, Sebastian Andrzej Siewior wrote:
+>>>> So I called of_platform_populate() on a device to get each child device
+>>>> probed and on rmmod and I need to reverse its doing. After a quick grep
+>>>> I did what others did as well and rmmod ended in:
+>>>>
+>>>> | Unable to handle kernel NULL pointer dereference at virtual address 00000018
+>>>> | PC is at release_resource+0x18/0x80
+>>>> | Process rmmod (pid: 2005, stack limit = 0xedc30238)
+>>>> | [<c003add0>] (release_resource+0x18/0x80) from [<c0300e08>] (platform_device_del+0x78/0xac)
+>>>> | [<c0300e08>] (platform_device_del+0x78/0xac) from [<c0301358>] (platform_device_unregister+0xc/0x18)
+>>>>
+>>>> The problem is that platform_device_del() "releases" each ressource in its
+>>>> tree. This does not work on platform_devices created by OF becuase they
+>>>> were never added via insert_resource(). As a consequence old->parent in
+>>>> __release_resource() is NULL and we explode while accessing ->child.
+>>>> So I either I do something completly wrong _or_ nobody here tested the
+>>>> rmmod path of their driver.
+>>>
+>>> Wouldn't the correct fix be to call insert_resource somehow? The problem
+>>> I have is that while of_platform_populate is all about parsing the DT
+>>> and creating devices, the removal side has nothing to do with DT. So
+>>> this should not be in the DT code. I think the core device code should
+>>> be able to handle removal if the device creation side is done correctly.
+>>>
+>>> It looks to me like of_device_add either needs to call
+>>> platform_device_add rather than device_add. I think the device name
+>>> setting in platform_device_add should be a nop. If not, a check that the
+>>> name is already set could be added.
+>>>
+>>
+>> BTW, it looks like Grant has attempted this already:
+> 
+> Yup, things broke badly. Unfortunately the of_platform_device and
+> platform_device history doesn't treat resources in the same way. I
+> would like to merge the code, but I haven't been able to figure out a
+> clean way to do it. Looks like we do need the unpopulate function.
 
-> Subject: [PATCH] pinctrl: single: Prepare for supporting SoC specific features
->
-> Let's replace is_pinconf with flags and add struct pcs_soc so we
-> can support also other features like pin wake-up events. Let's
-> export the probe so the SoC specific modules can pass their
-> SoC specific data to pinctrl-single if needed.
+Was there more breakage than imx6 and amba devices? Your first version
+had a fallback case for powerpc. Couldn't we do just allow that for more
+than just powerpc? I'd much rather see some work-around within the core
+DT code with a warning to prevent more proliferation than putting this
+into drivers.
 
-I don't quite understand this motivation. Can this be more verbose and
-include a bit about the mechanics?
-
-- Why is this necessary? For example, pinctrl-single already supports
- generic pinconf, and we can surely add a PIN_CONFIG_WAKEUP
- to include/linux/pinctrl/pinconf-generic.h.
-
-- Also: how does this cooperate with irq_set_wake()? If a pin is
- set to GPIO it is often backed by a GPIO driver (which is calling
- pinctrl_request_gpio() etc), maybe we should just add a
- pinctrl_set_wake() then that the irqchip portions of the GPIO drivers
- can call down to so the pinctrl driver sets this bit if need be?
-
-I think this needs some more thought, especially the latter
-concern.
-
-Yours,
-Linus Walleij
+Rob
