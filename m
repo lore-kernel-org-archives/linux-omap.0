@@ -1,299 +1,130 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [PATCH 1/1] drivers: net: cpsw: add support to show hw stats via ethtool
-Date: Mon, 22 Jul 2013 14:07:11 +0530
-Message-ID: <1374482231-8201-1-git-send-email-mugunthanvnm@ti.com>
+From: Oleksandr Kozaruk <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v6 2/2] iio: twl6030-gpadc: TWL6030, TWL6032 GPADC driver
+Date: Mon, 22 Jul 2013 12:12:07 +0300
+Message-ID: <CAPb7_mskrx9uKtYFi2sJiZu-r0Jb_JEm19e05ZmmjWTJ7Qnc+g@mail.gmail.com>
+References: <1374226039-16943-1-git-send-email-oleksandr.kozaruk@ti.com>
+	<1374226039-16943-3-git-send-email-oleksandr.kozaruk@ti.com>
+	<51EA69DE.4080908@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <51EA69DE.4080908-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org, milo.kim-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add support to show CPSW hardware statistics to user via ethtool
-so user can find if there were any error reported by hardware or
-the system is over loaded duing high data rate transfer.
+Hi Jonathan,
 
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
- drivers/net/ethernet/ti/cpsw.c | 202 ++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 200 insertions(+), 2 deletions(-)
+On Sat, Jul 20, 2013 at 1:43 PM, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On 07/19/2013 10:27 AM, Oleksandr Kozaruk wrote:
+>> The GPADC is general purpose ADC found on TWL6030, and TWL6032 PMIC,
+>> known also as Phoenix and PhoenixLite.
+>>
+>> The TWL6030 and TWL6032 have GPADC with 17 and 19 channels
+>> respectively. Some channels have current source and are used for
+>> measuring voltage drop on resistive load for detecting battery ID
+>> resistance, or measuring voltage drop on NTC resistors for external
+>> temperature measurements. Some channels measure voltage, (i.e. battery
+>> voltage), and have voltage dividers, thus, capable to scale voltage.
+>> Some channels are dedicated for measuring die temperature.
+>>
+>> Some channels are calibrated in 2 points, having offsets from ideal
+>> values kept in trim registers. This is used to correct measurements.
+>>
+>> The differences between GPADC in TWL6030 and TWL6032:
+>> - 10 bit vs 12 bit ADC;
+>> - 17 vs 19 channels;
+>> - channels have different purpose(i.e. battery voltage
+>>   channel 8 vs channel 18);
+>> - trim values are interpreted differently.
+>>
+>> Based on the driver patched from Balaji TK, Graeme Gregory, Ambresh K,
+>> Girish S Ghongdemath.
+>>
+>> Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>
+>> Signed-off-by: Oleksandr Kozaruk <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
+> A few little bits and bobs inline.
+>
+> My only major query is about the lack of info for the temperature
+> channels.  How do you convert these to useful real world units?
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 05a1674..f344c05 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -91,6 +91,7 @@ do {								\
- #define CPSW1_SLAVE_SIZE	0x040
- #define CPSW1_CPDMA_OFFSET	0x100
- #define CPSW1_STATERAM_OFFSET	0x200
-+#define CPSW1_HW_STATS		0x400
- #define CPSW1_CPTS_OFFSET	0x500
- #define CPSW1_ALE_OFFSET	0x600
- #define CPSW1_SLIVER_OFFSET	0x700
-@@ -99,6 +100,7 @@ do {								\
- #define CPSW2_SLAVE_OFFSET	0x200
- #define CPSW2_SLAVE_SIZE	0x100
- #define CPSW2_CPDMA_OFFSET	0x800
-+#define CPSW2_HW_STATS		0x900
- #define CPSW2_STATERAM_OFFSET	0xa00
- #define CPSW2_CPTS_OFFSET	0xc00
- #define CPSW2_ALE_OFFSET	0xd00
-@@ -299,6 +301,44 @@ struct cpsw_sliver_regs {
- 	u32	rx_pri_map;
- };
- 
-+struct cpsw_hw_stats {
-+	u32	rxgoodframes;
-+	u32	rxbroadcastframes;
-+	u32	rxmulticastframes;
-+	u32	rxpauseframes;
-+	u32	rxcrcerrors;
-+	u32	rxaligncodeerrors;
-+	u32	rxoversizedframes;
-+	u32	rxjabberframes;
-+	u32	rxundersizedframes;
-+	u32	rxfragments;
-+	u32	__pad_0[2];
-+	u32	rxoctets;
-+	u32	txgoodframes;
-+	u32	txbroadcastframes;
-+	u32	txmulticastframes;
-+	u32	txpauseframes;
-+	u32	txdeferredframes;
-+	u32	txcollisionframes;
-+	u32	txsinglecollframes;
-+	u32	txmultcollframes;
-+	u32	txexcessivecollisions;
-+	u32	txlatecollisions;
-+	u32	txunderrun;
-+	u32	txcarriersenseerrors;
-+	u32	txoctets;
-+	u32	octetframes64;
-+	u32	octetframes65t127;
-+	u32	octetframes128t255;
-+	u32	octetframes256t511;
-+	u32	octetframes512t1023;
-+	u32	octetframes1024tup;
-+	u32	netoctets;
-+	u32	rxsofoverruns;
-+	u32	rxmofoverruns;
-+	u32	rxdmaoverruns;
-+};
-+
- struct cpsw_slave {
- 	void __iomem			*regs;
- 	struct cpsw_sliver_regs __iomem	*sliver;
-@@ -332,6 +372,7 @@ struct cpsw_priv {
- 	struct cpsw_platform_data	data;
- 	struct cpsw_ss_regs __iomem	*regs;
- 	struct cpsw_wr_regs __iomem	*wr_regs;
-+	struct cpsw_hw_stats __iomem	*hw_stats;
- 	struct cpsw_host_regs __iomem	*host_port_regs;
- 	u32				msg_enable;
- 	u32				version;
-@@ -354,6 +395,94 @@ struct cpsw_priv {
- 	u32 emac_port;
- };
- 
-+struct cpsw_stats {
-+	char stat_string[ETH_GSTRING_LEN];
-+	int type;
-+	int sizeof_stat;
-+	int stat_offset;
-+};
-+
-+enum {
-+	CPSW_STATS,
-+	CPDMA_RX_STATS,
-+	CPDMA_TX_STATS,
-+};
-+
-+#define CPSW_STAT(m)		CPSW_STATS,				\
-+				sizeof(((struct cpsw_hw_stats *)0)->m), \
-+				offsetof(struct cpsw_hw_stats, m)
-+#define CPDMA_RX_STAT(m)	CPDMA_RX_STATS,				   \
-+				sizeof(((struct cpdma_chan_stats *)0)->m), \
-+				offsetof(struct cpdma_chan_stats, m)
-+#define CPDMA_TX_STAT(m)	CPDMA_TX_STATS,				   \
-+				sizeof(((struct cpdma_chan_stats *)0)->m), \
-+				offsetof(struct cpdma_chan_stats, m)
-+
-+static const struct cpsw_stats cpsw_gstrings_stats[] = {
-+	{ "Good Rx Frames", CPSW_STAT(rxgoodframes) },
-+	{ "Broadcast Rx Frames", CPSW_STAT(rxbroadcastframes) },
-+	{ "Multicast Rx Frames", CPSW_STAT(rxmulticastframes) },
-+	{ "Pause Rx Frames", CPSW_STAT(rxpauseframes) },
-+	{ "Rx CRC Errors", CPSW_STAT(rxcrcerrors) },
-+	{ "Rx Align/Code Errors", CPSW_STAT(rxaligncodeerrors) },
-+	{ "Oversize Rx Frames", CPSW_STAT(rxoversizedframes) },
-+	{ "Rx Jabbers", CPSW_STAT(rxjabberframes) },
-+	{ "Undersize (Short) Rx Frames", CPSW_STAT(rxundersizedframes) },
-+	{ "Rx Fragments", CPSW_STAT(rxfragments) },
-+	{ "Rx Octets", CPSW_STAT(rxoctets) },
-+	{ "Good Tx Frames", CPSW_STAT(txgoodframes) },
-+	{ "Broadcast Tx Frames", CPSW_STAT(txbroadcastframes) },
-+	{ "Multicast Tx Frames", CPSW_STAT(txmulticastframes) },
-+	{ "Pause Tx Frames", CPSW_STAT(txpauseframes) },
-+	{ "Deferred Tx Frames", CPSW_STAT(txdeferredframes) },
-+	{ "Collisions", CPSW_STAT(txcollisionframes) },
-+	{ "Single Collision Tx Frames", CPSW_STAT(txsinglecollframes) },
-+	{ "Multiple Collision Tx Frames", CPSW_STAT(txmultcollframes) },
-+	{ "Excessive Collisions", CPSW_STAT(txexcessivecollisions) },
-+	{ "Late Collisions", CPSW_STAT(txlatecollisions) },
-+	{ "Tx Underrun", CPSW_STAT(txunderrun) },
-+	{ "Carrier Sense Errors", CPSW_STAT(txcarriersenseerrors) },
-+	{ "Tx Octets", CPSW_STAT(txoctets) },
-+	{ "Rx + Tx 64 Octet Frames", CPSW_STAT(octetframes64) },
-+	{ "Rx + Tx 65-127 Octet Frames", CPSW_STAT(octetframes65t127) },
-+	{ "Rx + Tx 128-255 Octet Frames", CPSW_STAT(octetframes128t255) },
-+	{ "Rx + Tx 256-511 Octet Frames", CPSW_STAT(octetframes256t511) },
-+	{ "Rx + Tx 512-1023 Octet Frames", CPSW_STAT(octetframes512t1023) },
-+	{ "Rx + Tx 1024-Up Octet Frames", CPSW_STAT(octetframes1024tup) },
-+	{ "Net Octets", CPSW_STAT(netoctets) },
-+	{ "Rx Start of Frame Overruns", CPSW_STAT(rxsofoverruns) },
-+	{ "Rx Middle of Frame Overruns", CPSW_STAT(rxmofoverruns) },
-+	{ "Rx DMA Overruns", CPSW_STAT(rxdmaoverruns) },
-+	{ "Rx DMA chan: head_enqueue", CPDMA_RX_STAT(head_enqueue) },
-+	{ "Rx DMA chan: tail_enqueue", CPDMA_RX_STAT(tail_enqueue) },
-+	{ "Rx DMA chan: pad_enqueue", CPDMA_RX_STAT(pad_enqueue) },
-+	{ "Rx DMA chan: misqueued", CPDMA_RX_STAT(misqueued) },
-+	{ "Rx DMA chan: desc_alloc_fail", CPDMA_RX_STAT(desc_alloc_fail) },
-+	{ "Rx DMA chan: pad_alloc_fail", CPDMA_RX_STAT(pad_alloc_fail) },
-+	{ "Rx DMA chan: runt_receive_buf", CPDMA_RX_STAT(runt_receive_buff) },
-+	{ "Rx DMA chan: runt_transmit_buf", CPDMA_RX_STAT(runt_transmit_buff) },
-+	{ "Rx DMA chan: empty_dequeue", CPDMA_RX_STAT(empty_dequeue) },
-+	{ "Rx DMA chan: busy_dequeue", CPDMA_RX_STAT(busy_dequeue) },
-+	{ "Rx DMA chan: good_dequeue", CPDMA_RX_STAT(good_dequeue) },
-+	{ "Rx DMA chan: requeue", CPDMA_RX_STAT(requeue) },
-+	{ "Rx DMA chan: teardown_dequeue", CPDMA_RX_STAT(teardown_dequeue) },
-+	{ "Tx DMA chan: head_enqueue", CPDMA_TX_STAT(head_enqueue) },
-+	{ "Tx DMA chan: tail_enqueue", CPDMA_TX_STAT(tail_enqueue) },
-+	{ "Tx DMA chan: pad_enqueue", CPDMA_TX_STAT(pad_enqueue) },
-+	{ "Tx DMA chan: misqueued", CPDMA_TX_STAT(misqueued) },
-+	{ "Tx DMA chan: desc_alloc_fail", CPDMA_TX_STAT(desc_alloc_fail) },
-+	{ "Tx DMA chan: pad_alloc_fail", CPDMA_TX_STAT(pad_alloc_fail) },
-+	{ "Tx DMA chan: runt_receive_buf", CPDMA_TX_STAT(runt_receive_buff) },
-+	{ "Tx DMA chan: runt_transmit_buf", CPDMA_TX_STAT(runt_transmit_buff) },
-+	{ "Tx DMA chan: empty_dequeue", CPDMA_TX_STAT(empty_dequeue) },
-+	{ "Tx DMA chan: busy_dequeue", CPDMA_TX_STAT(busy_dequeue) },
-+	{ "Tx DMA chan: good_dequeue", CPDMA_TX_STAT(good_dequeue) },
-+	{ "Tx DMA chan: requeue", CPDMA_TX_STAT(requeue) },
-+	{ "Tx DMA chan: teardown_dequeue", CPDMA_TX_STAT(teardown_dequeue) },
-+};
-+
-+#define CPSW_STATS_LEN	ARRAY_SIZE(cpsw_gstrings_stats)
-+
- #define napi_to_priv(napi)	container_of(napi, struct cpsw_priv, napi)
- #define for_each_slave(priv, func, arg...)				\
- 	do {								\
-@@ -723,6 +852,69 @@ static int cpsw_set_coalesce(struct net_device *ndev,
- 	return 0;
- }
- 
-+static int cpsw_get_sset_count(struct net_device *ndev, int sset)
-+{
-+	switch (sset) {
-+	case ETH_SS_STATS:
-+		return CPSW_STATS_LEN;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+}
-+
-+static void cpsw_get_strings(struct net_device *ndev, u32 stringset, u8 *data)
-+{
-+	u8 *p = data;
-+	int i;
-+
-+	switch (stringset) {
-+	case ETH_SS_STATS:
-+		for (i = 0; i < CPSW_STATS_LEN; i++) {
-+			memcpy(p, cpsw_gstrings_stats[i].stat_string,
-+			       ETH_GSTRING_LEN);
-+			p += ETH_GSTRING_LEN;
-+		}
-+		break;
-+	}
-+}
-+
-+static void cpsw_get_ethtool_stats(struct net_device *ndev,
-+				    struct ethtool_stats *stats, u64 *data)
-+{
-+	struct cpsw_priv *priv = netdev_priv(ndev);
-+	struct cpdma_chan_stats rx_stats;
-+	struct cpdma_chan_stats tx_stats;
-+	u32 val;
-+	u8 *p;
-+	int i;
-+
-+	/* Collect Davinci CPDMA stats for Rx and Tx Channel */
-+	cpdma_chan_get_stats(priv->rxch, &rx_stats);
-+	cpdma_chan_get_stats(priv->txch, &tx_stats);
-+
-+	for (i = 0; i < CPSW_STATS_LEN; i++) {
-+		switch (cpsw_gstrings_stats[i].type) {
-+		case CPSW_STATS:
-+			val = readl((u8 *)priv->hw_stats +
-+				    cpsw_gstrings_stats[i].stat_offset);
-+			data[i] = val;
-+			break;
-+
-+		case CPDMA_RX_STATS:
-+			p = (u8 *)&rx_stats +
-+				cpsw_gstrings_stats[i].stat_offset;
-+			data[i] = *(u32 *)p;
-+			break;
-+
-+		case CPDMA_TX_STATS:
-+			p = (u8 *)&tx_stats +
-+				cpsw_gstrings_stats[i].stat_offset;
-+			data[i] = *(u32 *)p;
-+			break;
-+		}
-+	}
-+}
-+
- static inline int __show_stat(char *buf, int maxlen, const char *name, u32 val)
- {
- 	static char *leader = "........................................";
-@@ -1426,6 +1618,9 @@ static const struct ethtool_ops cpsw_ethtool_ops = {
- 	.set_settings	= cpsw_set_settings,
- 	.get_coalesce	= cpsw_get_coalesce,
- 	.set_coalesce	= cpsw_set_coalesce,
-+	.get_sset_count		= cpsw_get_sset_count,
-+	.get_strings		= cpsw_get_strings,
-+	.get_ethtool_stats	= cpsw_get_ethtool_stats,
- };
- 
- static void cpsw_slave_init(struct cpsw_slave *slave, struct cpsw_priv *priv,
-@@ -1623,6 +1818,7 @@ static int cpsw_probe_dual_emac(struct platform_device *pdev,
- 	priv_sl2->host_port = priv->host_port;
- 	priv_sl2->host_port_regs = priv->host_port_regs;
- 	priv_sl2->wr_regs = priv->wr_regs;
-+	priv_sl2->hw_stats = priv->hw_stats;
- 	priv_sl2->dma = priv->dma;
- 	priv_sl2->txch = priv->txch;
- 	priv_sl2->rxch = priv->rxch;
-@@ -1780,7 +1976,8 @@ static int cpsw_probe(struct platform_device *pdev)
- 	switch (priv->version) {
- 	case CPSW_VERSION_1:
- 		priv->host_port_regs = ss_regs + CPSW1_HOST_PORT_OFFSET;
--		priv->cpts->reg       = ss_regs + CPSW1_CPTS_OFFSET;
-+		priv->cpts->reg      = ss_regs + CPSW1_CPTS_OFFSET;
-+		priv->hw_stats	     = ss_regs + CPSW1_HW_STATS;
- 		dma_params.dmaregs   = ss_regs + CPSW1_CPDMA_OFFSET;
- 		dma_params.txhdp     = ss_regs + CPSW1_STATERAM_OFFSET;
- 		ale_params.ale_regs  = ss_regs + CPSW1_ALE_OFFSET;
-@@ -1791,7 +1988,8 @@ static int cpsw_probe(struct platform_device *pdev)
- 		break;
- 	case CPSW_VERSION_2:
- 		priv->host_port_regs = ss_regs + CPSW2_HOST_PORT_OFFSET;
--		priv->cpts->reg       = ss_regs + CPSW2_CPTS_OFFSET;
-+		priv->cpts->reg      = ss_regs + CPSW2_CPTS_OFFSET;
-+		priv->hw_stats	     = ss_regs + CPSW2_HW_STATS;
- 		dma_params.dmaregs   = ss_regs + CPSW2_CPDMA_OFFSET;
- 		dma_params.txhdp     = ss_regs + CPSW2_STATERAM_OFFSET;
- 		ale_params.ale_regs  = ss_regs + CPSW2_ALE_OFFSET;
--- 
-1.8.1.2
+If I get your question right: the ADC channels 1, 4 are dedicated for
+measuring resistive value.
+The temperature measurement will depend on:
+1) the ADC code(provided by the driver);
+2) value of the NTC resistor, its characteristics, the way it is
+plugged in the circuit,
+and may be some calibration data(platform dependent); How the driver can the
+drive take care of these?
+[...]
+
+>> +static int twl6030_gpadc_read_raw(struct iio_dev *indio_dev,
+>> +                          const struct iio_chan_spec *chan,
+>> +                          int *val, int *val2, long mask)
+>> +{
+>> +     struct twl6030_gpadc_data *gpadc = iio_priv(indio_dev);
+>> +     int ret = -EINVAL;
+> I'm suprised you didn't get a warning about the assigment above
+> being pointless as you overwrite ret just below.
+Indeed, ret is overwritten, though, there is no warning from make C=2
+and checkpatch is silent.
+I'll remove the initialization.
+[...]
+
+>> +
+>> +#define TWL6030_GPADC_CHAN(chn, _type, chan_info) {  \
+>> +     .type = _type,                                  \
+>> +     .channel = chn,                                 \
+>> +     .info_mask_separate = BIT(chan_info),           \
+>> +     .indexed = 1,                                   \
+>> +}
+>> +
+>
+>
+> Why list these at all?  I see they are no longer visible from
+> userspace, but they are still taking up memory etc without I
+> think ever being used?
+I've kept it because for twl6032 there is a gap if I drop channels 15, 16,
+as channels 17, 18 are used.
+
+>> +/* internal test network channel */
+>> +#define TWL6030_GPADC_TEST_CHAN(chn, chan_info) {    \
+>> +     .type = IIO_VOLTAGE,                            \
+>> +     .channel = chn,                                 \
+>> +     .indexed = 1,                                   \
+>> +}
+>> +
+>> +static const struct iio_chan_spec twl6030_gpadc_iio_channels[] = {
+>> +     TWL6030_GPADC_CHAN(0, IIO_VOLTAGE, IIO_CHAN_INFO_PROCESSED),
+>> +     TWL6030_GPADC_CHAN(1, IIO_TEMP, IIO_CHAN_INFO_RAW),
+> So we have no other information about the temp channels other than
+> raw adc counts?  If so, how are these useful?  I guess you might
+> be intending to use iio-hwmon to get these into hwmon the use
+> lm-sensors config files to convert to something useful.
+> Otherwise, you probably want to get the board specific info on
+> the calibration of these in here to make the data available to userspace
+> in a useful format...
+
+Hmm, it seems that info on the NTC type is board specific. And we
+should get it from device tree?
+I thought the driver just gives the ADC code, and consumer will know
+what to do with the ADC data.
+So, calculation for converting to temperature should be done in this driver?
+I don't know how yet.
+[...]
+
+>> +MODULE_AUTHOR("Texas Instruments Inc.");
+>
+> I would normally expect an actual person for
+> the module author.  Is this TI policy or simply a case of no clear single
+> author?  Note I believe there is no problem with having multiple
+> MODULE_AUTHOR lines so that everyone who made a major contribution is
+> included.
+
+Yes, this is because of having multiple authors. I will change it for
+Balaji, Graeme and myself.
+
+Regards,
+OK.
