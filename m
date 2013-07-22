@@ -1,84 +1,34 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH] ARM: OMAP3EVM: Marking omap3_evm_display_init() with
- CONFIG_BROKEN
-Date: Mon, 22 Jul 2013 17:30:25 +0400
-Message-ID: <51ED33F1.4000801@cogentembedded.com>
-References: <alpine.DEB.2.02.1307220523380.4804@utopia.booyaka.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: Need help for DT GPIO probing
+Date: Mon, 22 Jul 2013 10:43:49 -0400
+Message-ID: <51ED4525.4050304@ti.com>
+References: <CACpRUmig-J7tgipRFC5h09+4fHiOWpHpc3ELuTnujE1_gQCZrw@mail.gmail.com> <CACRpkdYXK6Phg4H5UviLSsJPsCOjykHRe3EnKpMphdFdOdnZUA@mail.gmail.com> <CAAwP0s3S8r_UPBZykxVoTrkLOWDMcBUaYLNziK+e7aLq9m6kig@mail.gmail.com> <CACRpkdbp5mGWmrzUae=Qm7Pu41pjm2aPCAW75Pzx3m5zz-sKbw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.02.1307220523380.4804@utopia.booyaka.com>
-Sender: stable-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: stable@vger.kernel.org, tony@atomide.com, lokeshvutla@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43819 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755780Ab3GVOnw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Jul 2013 10:43:52 -0400
+In-Reply-To: <CACRpkdbp5mGWmrzUae=Qm7Pu41pjm2aPCAW75Pzx3m5zz-sKbw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Soumya Sutar <soumyasutar@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>
 
-Hello.
+On Sunday 21 July 2013 07:10 AM, Linus Walleij wrote:
+> On Sun, Jul 21, 2013 at 6:54 AM, Javier Martinez Canillas
+> <martinez.javier@gmail.com> wrote:
+> 
+>> Linus, are you still planing to send this patches as fixes for the
+>> v3.11 -rc cycle or did you decide to wait for v3.12?
+> 
+> It will go into the v3.11 RC:s.
+> 
+Thanks Linus. IIRC, off-list I pointed out the same patch-set
+to Soumya.
 
-On 22-07-2013 9:29, Paul Walmsley wrote:
+Regards,
+Santosh
 
-> From: Lokesh Vutla <lokeshvutla@ti.com>
-
-> On 37xx EVM non-dt boot fails with current mainline,
-> because of broken GPIO numbering in the board file
-> that uses hardcoded GPIOs.
-
-> So marking omap3_evm_display_init() with CONFIG_BROKEN
-> for now as suggested by Tony as per the below link:
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg90399.html
-
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> Tested-by: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-> ---
-
-> Hi -stablers,
-
-> OMAP37xx EVM does not boot on v3.10 without this patch, so please consider
-> it for the v3.10 stable releases.  It is upstream already as commit ID
-> 8fb61e8d84e673eebf31e564a83bb71a50b1ed48.  Perhaps if I had managed to
-> test it sooner, we could have gotten it up during v3.10-rc, but, alas,
-> stable it is...
-
->   arch/arm/mach-omap2/board-omap3evm.c |    4 ++++
->   1 file changed, 4 insertions(+)
-
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-> index f76d0de..278bf25 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -174,6 +174,7 @@ static struct panel_sharp_ls037v7dw01_data omap3_evm_lcd_data = {
->   	.ud_gpio = OMAP3EVM_LCD_PANEL_UD,
->   };
->
-> +#ifdef CONFIG_BROKEN
->   static void __init omap3_evm_display_init(void)
->   {
->   	int r;
-> @@ -193,6 +194,7 @@ static void __init omap3_evm_display_init(void)
->   	else
->   		gpio_set_value_cansleep(OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO, 1);
->   }
-
-    Perhaps it's better to follow what Documentation/SubmittingPatches suggests:
-
-#else
-static inline __init void omap3_evm_display_init(void) {}
-
-> +#endif
->
->   static struct omap_dss_device omap3_evm_lcd_device = {
->   	.name			= "lcd",
-> @@ -715,7 +717,9 @@ static void __init omap3_evm_init(void)
->
->   	omap_ads7846_init(1, OMAP3_EVM_TS_GPIO, 310, NULL);
->   	omap3evm_init_smsc911x();
-> +#ifdef CONFIG_BROKEN
->   	omap3_evm_display_init();
-> +#endif
-
-    ... and eliminate #ifdef here?
-
-WBR, Sergei
