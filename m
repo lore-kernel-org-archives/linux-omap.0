@@ -1,62 +1,35 @@
-From: Illia Smyrnov <x0194613@ti.com>
-Subject: Re: [PATCH 2/2] Input: omap-keypad: Cleanup - remove unnecessary
- IRQ enabling/disabling
-Date: Mon, 22 Jul 2013 20:25:05 +0300
-Message-ID: <51ED6AF1.9070605@ti.com>
-References: <1374239027-3927-1-git-send-email-illia.smyrnov@globallogic.com> <1374239027-3927-3-git-send-email-illia.smyrnov@globallogic.com> <20130719132648.GB17188@arwen.pp.htv.fi>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 3/4] ARM: OMAP2+: Avoid idling memory controllers with
+ no drivers
+Date: Mon, 22 Jul 2013 17:48:43 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1307221746430.10891@utopia.booyaka.com>
+References: <1374487277-26099-1-git-send-email-rnayak@ti.com> <1374487277-26099-4-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20130719132648.GB17188@arwen.pp.htv.fi>
-Sender: linux-input-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Illia Smyrnov <illia.smyrnov@globallogic.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:47549 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757458Ab3GVRso (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 13:48:44 -0400
+In-Reply-To: <1374487277-26099-4-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, balbi@ti.com, mpfj-list@newflow.co.uk, vaibhav.bedia@ti.com, khilman@linaro.org, sourav.poddar@ti.com, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, linux-serial@vger.kernel.org, grygorii.strashko@ti.com
 
-Hi,
+Hi
 
-On 07/19/2013 04:26 PM, Felipe Balbi wrote:
-> Hi,
->
-> [...]
-> please don't remove this code. It'll be good to have this around when we
-> move the driver to threaded IRQs without IRQF_ONESHOT. In fact, it would
-> be very simple to implement such a change, wanna take it up ?
->
-> It should be doable in few patches:
->
-> 1) switch over to request_threaded_irq()
->
-> 	just blind move to a thread, without hardirq handler, so
-> 	IRQF_ONESHOT is mandatory.
->
-> 2) add hardirq handler
->
-> 	read IRQSTATUS to check if our device has generated IRQs
-> 	returning IRQ_WAKE_THREAD if true
->
-> 3) move 'IRQ masking logic' to hardirq handler, before returning
-> IRQ_WAKE_THREAD
->
-> 	this will let you remove IRQF_ONESHOT
->
-> 4) finally remove IRQF_ONESHOT
->
-> 	this makes sure that IRQs aren't kept disabled until we have
-> 	time to iterate over the entire keypad matrix. Only the keypad
-> 	IRQ will be masked.
->
+On Mon, 22 Jul 2013, Rajendra Nayak wrote:
 
-Ok, but why we need to remove IRQF_ONESHOT flag for omap keypad driver?
+> Memory controllers in OMAP (like GPMC and EMIF) have the hwmods marked with
+> HWMOD_INIT_NO_IDLE and are left in enabled state post initial setup.
+> 
+> Even if they have drivers missing, avoid idling them as part of
+> omap_device_late_idle()
 
-The keypad IRQ isn't shared IRQ and in our case hardirq handler will 
-always return IRQ_WAKE_THREAD like default irq_default_primary_handler 
-do. With IRQF_ONESHOT flag IRQ line will be masked until the threaded
-handler finished, but there is only keypad on this line.
+Since this patch is intended for the -rc series, it's best if you explain 
+here what effects this patch will fix.  i.e., does this fix a crash, a 
+warning, etc?  Also maybe update your series description message?
 
-I tested two versions:
-the first one - just threaded IRQs with IRQF_ONESHOT and without 
-specific hardirq handler.
-the second version - threaded IRQs without IRQF_ONESHOT as you described.
-Both versions was successfully tested on Blaze's keypad.
+
+- Paul
