@@ -1,59 +1,299 @@
-From: NAVEEN KRISHNA CHATRADHI <ch.naveen@samsung.com>
-Subject: Re: Re: [PATCH] of: provide of_platform_unpopulate()
-Date: Mon, 22 Jul 2013 08:37:00 +0000 (GMT)
-Message-ID: <23795036.212591374482218972.JavaMail.weblogic@epml23>
-Reply-To: ch.naveen@samsung.com
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [PATCH 1/1] drivers: net: cpsw: add support to show hw stats via ethtool
+Date: Mon, 22 Jul 2013 14:07:11 +0530
+Message-ID: <1374482231-8201-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:58574 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756969Ab3GVIhC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 04:37:02 -0400
-Received: from epcpsbgr3.samsung.com
- (u143.gpu120.samsung.co.kr [203.254.230.143])
- by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MQB001PTX9IF920@mailout3.samsung.com> for
- linux-omap@vger.kernel.org; Mon, 22 Jul 2013 17:37:00 +0900 (KST)
-MIME-version: 1.0
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Doug Anderson <dianders@chromium.org>, Vivek Gautam <gautam.vivek@samsung.com>, Kukjin Kim <kgene.kim@samsung.com>, Kishon Vijay Abraham I <kishon@ti.com>, Roger Quadros <rogerq@ti.com>, George Cherian <george.cherian@ti.com>, Felipe Balbi <balbi@ti.com>
 
-SGVsbG8gU2ViYXN0aWFuLAoKLS0tLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tLS0KU2VuZGVy
-IDogU2ViYXN0aWFuIEFuZHJ6ZWogU2lld2lvcjxiaWdlYXN5QGxpbnV0cm9uaXguZGU+IApEYXRl
-ICAgOiBKdWwgMjIsIDIwMTMgMTM6NTUgKEdNVCswNTozMCkKVGl0bGUgIDogUmU6IFtQQVRDSF0g
-b2Y6IHByb3ZpZGUgb2ZfcGxhdGZvcm1fdW5wb3B1bGF0ZSgpCgpPbiAwNy8yMC8yMDEzIDA3OjQy
-IEFNLCBOQVZFRU4gS1JJU0hOQSBDSEFUUkFESEkgd3JvdGU6Cj4gSGVsbG8gU2ViYXN0aWFuLAoK
-SGVsbG8gTmF2ZWVuLAoKPiAKPiBJIGp1c3QgZGlkIG9uZSBtb3JlIHRlc3RpbmcuCj4gCj4gSW4g
-Y2FzZSBvZiBpaW8vYWRjL2V4eW5vc19hZGMuYyB0aGVyZSBpcyBhIGJ1ZyBpbiB0aGUgcmVtb3Zl
-IHBhdGguCj4gSWYgSSBmaXggdGhlIGJ1ZyBpbiB0aGUgZHJpdmVyLCB3aXRoIGJlbG93IHBhdGNo
-Cj4gCj4gLS0tIGEvZHJpdmVycy9paW8vYWRjL2V4eW5vc19hZGMuYwo+ICsrKyBiL2RyaXZlcnMv
-aWlvL2FkYy9leHlub3NfYWRjLmMKPiBAQCAtMzc1LDE0ICszNzUsMTQgQEAgc3RhdGljIGludCBl
-eHlub3NfYWRjX3JlbW92ZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQo+ICAgICAgICAg
-c3RydWN0IGlpb19kZXYgKmluZGlvX2RldiA9IHBsYXRmb3JtX2dldF9kcnZkYXRhKHBkZXYpOwo+
-ICAgICAgICAgc3RydWN0IGV4eW5vc19hZGMgKmluZm8gPSBpaW9fcHJpdihpbmRpb19kZXYpOwo+
-IAo+IC0gICAgICAgZGV2aWNlX2Zvcl9lYWNoX2NoaWxkKCZwZGV2LT5kZXYsIE5VTEwsCj4gLSAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBleHlub3NfYWRjX3JlbW92ZV9kZXZpY2VzKTsK
-PiAgICAgICAgIHJlZ3VsYXRvcl9kaXNhYmxlKGluZm8tPnZkZCk7Cj4gICAgICAgICBjbGtfZGlz
-YWJsZV91bnByZXBhcmUoaW5mby0+Y2xrKTsKPiAgICAgICAgIHdyaXRlbCgwLCBpbmZvLT5lbmFi
-bGVfcmVnKTsKPiAgICAgICAgIGlpb19kZXZpY2VfdW5yZWdpc3RlcihpbmRpb19kZXYpOwo+ICAg
-ICAgICAgZnJlZV9pcnEoaW5mby0+aXJxLCBpbmZvKTsKPiAgICAgICAgIGlpb19kZXZpY2VfZnJl
-ZShpbmRpb19kZXYpOwo+ICsgICAgICAgZGV2aWNlX2Zvcl9lYWNoX2NoaWxkKCZwZGV2LT5kZXYs
-IE5VTEwsCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBleHlub3NfYWRjX3JlbW92
-ZV9kZXZpY2VzKTsKPiAKPiBFdmVuIHdpdGhvdXQgeW91ciBmaXgsIEkgY291bGQgY29uZmlndXJl
-IGl0IGFzIGEgbW9kdWxlIGFuZCB0aGUgcm1tb2QsIGluc21vZCBhcmUgd29ya2luZyBmaW5lLiAo
-bm8gY3Jhc2gpCgpJIGhhdmUgbm8gaWRlYSB3aHkgeW91IG1vdmVkIGl0LiBJIGhhdmVuJ3QgZm91
-bmQgYW55IC5kdHMgd2l0aCB0aGlzCiAgcmVndWxhdG9yX2Rpc2FibGUoaW5mby0+dmRkKTsKaGFz
-IHRvIGhhcHBlbiBiZWZvcmUgd2UgZnJlZSBhbmQgcmVtb3ZlIHRoZSBkZXZpY2VzLgpUaGUgZHRz
-IHBhcnQgaXMgbm90IHVwc3RyZWFtZWQgeWV0LgoKYmluZGluZyBidXQgZnJvbSB0aGUgYmluZGlu
-ZyBkb2N1bWVudCBJIHdvdWxkIGFzc3VtZSB0aGF0IHlvdSBkbyBub3QKaGF2ZSBhbnkgbWVtb3J5
-IHJlc291cmNlcyBhbmQgdGhlcmVmb3JlIHlvdSBkb24ndCBzZWUgdGhhdCBjcmFzaC4KWWVzLCBt
-eSBkZXZpY2VzIHVuZGVyIEFEQyBhcmUgM3JkIHBhcnR5IHRoZXJtaXN0b3JzIGFuZCB0aGV5IGRv
-bid0IGhhdmUgbWVtb3J5IHJlc291cmNlcy4KTWF5IGJlIHlvdXIgZXhwbGFuYXRpb24gc2VlbXMg
-cmlnaHQuCgpUaGFua3MsCk5hdmVlbgoKPiBSZWdhcmRzLAo+IE5hdmVlbgoKU2ViYXN0aWFuCg==
+Add support to show CPSW hardware statistics to user via ethtool
+so user can find if there were any error reported by hardware or
+the system is over loaded duing high data rate transfer.
 
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw.c | 202 ++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 200 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 05a1674..f344c05 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -91,6 +91,7 @@ do {								\
+ #define CPSW1_SLAVE_SIZE	0x040
+ #define CPSW1_CPDMA_OFFSET	0x100
+ #define CPSW1_STATERAM_OFFSET	0x200
++#define CPSW1_HW_STATS		0x400
+ #define CPSW1_CPTS_OFFSET	0x500
+ #define CPSW1_ALE_OFFSET	0x600
+ #define CPSW1_SLIVER_OFFSET	0x700
+@@ -99,6 +100,7 @@ do {								\
+ #define CPSW2_SLAVE_OFFSET	0x200
+ #define CPSW2_SLAVE_SIZE	0x100
+ #define CPSW2_CPDMA_OFFSET	0x800
++#define CPSW2_HW_STATS		0x900
+ #define CPSW2_STATERAM_OFFSET	0xa00
+ #define CPSW2_CPTS_OFFSET	0xc00
+ #define CPSW2_ALE_OFFSET	0xd00
+@@ -299,6 +301,44 @@ struct cpsw_sliver_regs {
+ 	u32	rx_pri_map;
+ };
+ 
++struct cpsw_hw_stats {
++	u32	rxgoodframes;
++	u32	rxbroadcastframes;
++	u32	rxmulticastframes;
++	u32	rxpauseframes;
++	u32	rxcrcerrors;
++	u32	rxaligncodeerrors;
++	u32	rxoversizedframes;
++	u32	rxjabberframes;
++	u32	rxundersizedframes;
++	u32	rxfragments;
++	u32	__pad_0[2];
++	u32	rxoctets;
++	u32	txgoodframes;
++	u32	txbroadcastframes;
++	u32	txmulticastframes;
++	u32	txpauseframes;
++	u32	txdeferredframes;
++	u32	txcollisionframes;
++	u32	txsinglecollframes;
++	u32	txmultcollframes;
++	u32	txexcessivecollisions;
++	u32	txlatecollisions;
++	u32	txunderrun;
++	u32	txcarriersenseerrors;
++	u32	txoctets;
++	u32	octetframes64;
++	u32	octetframes65t127;
++	u32	octetframes128t255;
++	u32	octetframes256t511;
++	u32	octetframes512t1023;
++	u32	octetframes1024tup;
++	u32	netoctets;
++	u32	rxsofoverruns;
++	u32	rxmofoverruns;
++	u32	rxdmaoverruns;
++};
++
+ struct cpsw_slave {
+ 	void __iomem			*regs;
+ 	struct cpsw_sliver_regs __iomem	*sliver;
+@@ -332,6 +372,7 @@ struct cpsw_priv {
+ 	struct cpsw_platform_data	data;
+ 	struct cpsw_ss_regs __iomem	*regs;
+ 	struct cpsw_wr_regs __iomem	*wr_regs;
++	struct cpsw_hw_stats __iomem	*hw_stats;
+ 	struct cpsw_host_regs __iomem	*host_port_regs;
+ 	u32				msg_enable;
+ 	u32				version;
+@@ -354,6 +395,94 @@ struct cpsw_priv {
+ 	u32 emac_port;
+ };
+ 
++struct cpsw_stats {
++	char stat_string[ETH_GSTRING_LEN];
++	int type;
++	int sizeof_stat;
++	int stat_offset;
++};
++
++enum {
++	CPSW_STATS,
++	CPDMA_RX_STATS,
++	CPDMA_TX_STATS,
++};
++
++#define CPSW_STAT(m)		CPSW_STATS,				\
++				sizeof(((struct cpsw_hw_stats *)0)->m), \
++				offsetof(struct cpsw_hw_stats, m)
++#define CPDMA_RX_STAT(m)	CPDMA_RX_STATS,				   \
++				sizeof(((struct cpdma_chan_stats *)0)->m), \
++				offsetof(struct cpdma_chan_stats, m)
++#define CPDMA_TX_STAT(m)	CPDMA_TX_STATS,				   \
++				sizeof(((struct cpdma_chan_stats *)0)->m), \
++				offsetof(struct cpdma_chan_stats, m)
++
++static const struct cpsw_stats cpsw_gstrings_stats[] = {
++	{ "Good Rx Frames", CPSW_STAT(rxgoodframes) },
++	{ "Broadcast Rx Frames", CPSW_STAT(rxbroadcastframes) },
++	{ "Multicast Rx Frames", CPSW_STAT(rxmulticastframes) },
++	{ "Pause Rx Frames", CPSW_STAT(rxpauseframes) },
++	{ "Rx CRC Errors", CPSW_STAT(rxcrcerrors) },
++	{ "Rx Align/Code Errors", CPSW_STAT(rxaligncodeerrors) },
++	{ "Oversize Rx Frames", CPSW_STAT(rxoversizedframes) },
++	{ "Rx Jabbers", CPSW_STAT(rxjabberframes) },
++	{ "Undersize (Short) Rx Frames", CPSW_STAT(rxundersizedframes) },
++	{ "Rx Fragments", CPSW_STAT(rxfragments) },
++	{ "Rx Octets", CPSW_STAT(rxoctets) },
++	{ "Good Tx Frames", CPSW_STAT(txgoodframes) },
++	{ "Broadcast Tx Frames", CPSW_STAT(txbroadcastframes) },
++	{ "Multicast Tx Frames", CPSW_STAT(txmulticastframes) },
++	{ "Pause Tx Frames", CPSW_STAT(txpauseframes) },
++	{ "Deferred Tx Frames", CPSW_STAT(txdeferredframes) },
++	{ "Collisions", CPSW_STAT(txcollisionframes) },
++	{ "Single Collision Tx Frames", CPSW_STAT(txsinglecollframes) },
++	{ "Multiple Collision Tx Frames", CPSW_STAT(txmultcollframes) },
++	{ "Excessive Collisions", CPSW_STAT(txexcessivecollisions) },
++	{ "Late Collisions", CPSW_STAT(txlatecollisions) },
++	{ "Tx Underrun", CPSW_STAT(txunderrun) },
++	{ "Carrier Sense Errors", CPSW_STAT(txcarriersenseerrors) },
++	{ "Tx Octets", CPSW_STAT(txoctets) },
++	{ "Rx + Tx 64 Octet Frames", CPSW_STAT(octetframes64) },
++	{ "Rx + Tx 65-127 Octet Frames", CPSW_STAT(octetframes65t127) },
++	{ "Rx + Tx 128-255 Octet Frames", CPSW_STAT(octetframes128t255) },
++	{ "Rx + Tx 256-511 Octet Frames", CPSW_STAT(octetframes256t511) },
++	{ "Rx + Tx 512-1023 Octet Frames", CPSW_STAT(octetframes512t1023) },
++	{ "Rx + Tx 1024-Up Octet Frames", CPSW_STAT(octetframes1024tup) },
++	{ "Net Octets", CPSW_STAT(netoctets) },
++	{ "Rx Start of Frame Overruns", CPSW_STAT(rxsofoverruns) },
++	{ "Rx Middle of Frame Overruns", CPSW_STAT(rxmofoverruns) },
++	{ "Rx DMA Overruns", CPSW_STAT(rxdmaoverruns) },
++	{ "Rx DMA chan: head_enqueue", CPDMA_RX_STAT(head_enqueue) },
++	{ "Rx DMA chan: tail_enqueue", CPDMA_RX_STAT(tail_enqueue) },
++	{ "Rx DMA chan: pad_enqueue", CPDMA_RX_STAT(pad_enqueue) },
++	{ "Rx DMA chan: misqueued", CPDMA_RX_STAT(misqueued) },
++	{ "Rx DMA chan: desc_alloc_fail", CPDMA_RX_STAT(desc_alloc_fail) },
++	{ "Rx DMA chan: pad_alloc_fail", CPDMA_RX_STAT(pad_alloc_fail) },
++	{ "Rx DMA chan: runt_receive_buf", CPDMA_RX_STAT(runt_receive_buff) },
++	{ "Rx DMA chan: runt_transmit_buf", CPDMA_RX_STAT(runt_transmit_buff) },
++	{ "Rx DMA chan: empty_dequeue", CPDMA_RX_STAT(empty_dequeue) },
++	{ "Rx DMA chan: busy_dequeue", CPDMA_RX_STAT(busy_dequeue) },
++	{ "Rx DMA chan: good_dequeue", CPDMA_RX_STAT(good_dequeue) },
++	{ "Rx DMA chan: requeue", CPDMA_RX_STAT(requeue) },
++	{ "Rx DMA chan: teardown_dequeue", CPDMA_RX_STAT(teardown_dequeue) },
++	{ "Tx DMA chan: head_enqueue", CPDMA_TX_STAT(head_enqueue) },
++	{ "Tx DMA chan: tail_enqueue", CPDMA_TX_STAT(tail_enqueue) },
++	{ "Tx DMA chan: pad_enqueue", CPDMA_TX_STAT(pad_enqueue) },
++	{ "Tx DMA chan: misqueued", CPDMA_TX_STAT(misqueued) },
++	{ "Tx DMA chan: desc_alloc_fail", CPDMA_TX_STAT(desc_alloc_fail) },
++	{ "Tx DMA chan: pad_alloc_fail", CPDMA_TX_STAT(pad_alloc_fail) },
++	{ "Tx DMA chan: runt_receive_buf", CPDMA_TX_STAT(runt_receive_buff) },
++	{ "Tx DMA chan: runt_transmit_buf", CPDMA_TX_STAT(runt_transmit_buff) },
++	{ "Tx DMA chan: empty_dequeue", CPDMA_TX_STAT(empty_dequeue) },
++	{ "Tx DMA chan: busy_dequeue", CPDMA_TX_STAT(busy_dequeue) },
++	{ "Tx DMA chan: good_dequeue", CPDMA_TX_STAT(good_dequeue) },
++	{ "Tx DMA chan: requeue", CPDMA_TX_STAT(requeue) },
++	{ "Tx DMA chan: teardown_dequeue", CPDMA_TX_STAT(teardown_dequeue) },
++};
++
++#define CPSW_STATS_LEN	ARRAY_SIZE(cpsw_gstrings_stats)
++
+ #define napi_to_priv(napi)	container_of(napi, struct cpsw_priv, napi)
+ #define for_each_slave(priv, func, arg...)				\
+ 	do {								\
+@@ -723,6 +852,69 @@ static int cpsw_set_coalesce(struct net_device *ndev,
+ 	return 0;
+ }
+ 
++static int cpsw_get_sset_count(struct net_device *ndev, int sset)
++{
++	switch (sset) {
++	case ETH_SS_STATS:
++		return CPSW_STATS_LEN;
++	default:
++		return -EOPNOTSUPP;
++	}
++}
++
++static void cpsw_get_strings(struct net_device *ndev, u32 stringset, u8 *data)
++{
++	u8 *p = data;
++	int i;
++
++	switch (stringset) {
++	case ETH_SS_STATS:
++		for (i = 0; i < CPSW_STATS_LEN; i++) {
++			memcpy(p, cpsw_gstrings_stats[i].stat_string,
++			       ETH_GSTRING_LEN);
++			p += ETH_GSTRING_LEN;
++		}
++		break;
++	}
++}
++
++static void cpsw_get_ethtool_stats(struct net_device *ndev,
++				    struct ethtool_stats *stats, u64 *data)
++{
++	struct cpsw_priv *priv = netdev_priv(ndev);
++	struct cpdma_chan_stats rx_stats;
++	struct cpdma_chan_stats tx_stats;
++	u32 val;
++	u8 *p;
++	int i;
++
++	/* Collect Davinci CPDMA stats for Rx and Tx Channel */
++	cpdma_chan_get_stats(priv->rxch, &rx_stats);
++	cpdma_chan_get_stats(priv->txch, &tx_stats);
++
++	for (i = 0; i < CPSW_STATS_LEN; i++) {
++		switch (cpsw_gstrings_stats[i].type) {
++		case CPSW_STATS:
++			val = readl((u8 *)priv->hw_stats +
++				    cpsw_gstrings_stats[i].stat_offset);
++			data[i] = val;
++			break;
++
++		case CPDMA_RX_STATS:
++			p = (u8 *)&rx_stats +
++				cpsw_gstrings_stats[i].stat_offset;
++			data[i] = *(u32 *)p;
++			break;
++
++		case CPDMA_TX_STATS:
++			p = (u8 *)&tx_stats +
++				cpsw_gstrings_stats[i].stat_offset;
++			data[i] = *(u32 *)p;
++			break;
++		}
++	}
++}
++
+ static inline int __show_stat(char *buf, int maxlen, const char *name, u32 val)
+ {
+ 	static char *leader = "........................................";
+@@ -1426,6 +1618,9 @@ static const struct ethtool_ops cpsw_ethtool_ops = {
+ 	.set_settings	= cpsw_set_settings,
+ 	.get_coalesce	= cpsw_get_coalesce,
+ 	.set_coalesce	= cpsw_set_coalesce,
++	.get_sset_count		= cpsw_get_sset_count,
++	.get_strings		= cpsw_get_strings,
++	.get_ethtool_stats	= cpsw_get_ethtool_stats,
+ };
+ 
+ static void cpsw_slave_init(struct cpsw_slave *slave, struct cpsw_priv *priv,
+@@ -1623,6 +1818,7 @@ static int cpsw_probe_dual_emac(struct platform_device *pdev,
+ 	priv_sl2->host_port = priv->host_port;
+ 	priv_sl2->host_port_regs = priv->host_port_regs;
+ 	priv_sl2->wr_regs = priv->wr_regs;
++	priv_sl2->hw_stats = priv->hw_stats;
+ 	priv_sl2->dma = priv->dma;
+ 	priv_sl2->txch = priv->txch;
+ 	priv_sl2->rxch = priv->rxch;
+@@ -1780,7 +1976,8 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	switch (priv->version) {
+ 	case CPSW_VERSION_1:
+ 		priv->host_port_regs = ss_regs + CPSW1_HOST_PORT_OFFSET;
+-		priv->cpts->reg       = ss_regs + CPSW1_CPTS_OFFSET;
++		priv->cpts->reg      = ss_regs + CPSW1_CPTS_OFFSET;
++		priv->hw_stats	     = ss_regs + CPSW1_HW_STATS;
+ 		dma_params.dmaregs   = ss_regs + CPSW1_CPDMA_OFFSET;
+ 		dma_params.txhdp     = ss_regs + CPSW1_STATERAM_OFFSET;
+ 		ale_params.ale_regs  = ss_regs + CPSW1_ALE_OFFSET;
+@@ -1791,7 +1988,8 @@ static int cpsw_probe(struct platform_device *pdev)
+ 		break;
+ 	case CPSW_VERSION_2:
+ 		priv->host_port_regs = ss_regs + CPSW2_HOST_PORT_OFFSET;
+-		priv->cpts->reg       = ss_regs + CPSW2_CPTS_OFFSET;
++		priv->cpts->reg      = ss_regs + CPSW2_CPTS_OFFSET;
++		priv->hw_stats	     = ss_regs + CPSW2_HW_STATS;
+ 		dma_params.dmaregs   = ss_regs + CPSW2_CPDMA_OFFSET;
+ 		dma_params.txhdp     = ss_regs + CPSW2_STATERAM_OFFSET;
+ 		ale_params.ale_regs  = ss_regs + CPSW2_ALE_OFFSET;
+-- 
+1.8.1.2
