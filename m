@@ -1,170 +1,84 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 6/6] USB: ehci-omap: Implement suspend/resume
-Date: Mon, 22 Jul 2013 16:16:24 +0300
-Message-ID: <51ED30A8.10200@ti.com>
-References: <Pine.LNX.4.44L0.1307111106090.1276-100000@iolanthe.rowland.org>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH] ARM: OMAP3EVM: Marking omap3_evm_display_init() with
+ CONFIG_BROKEN
+Date: Mon, 22 Jul 2013 17:30:25 +0400
+Message-ID: <51ED33F1.4000801@cogentembedded.com>
+References: <alpine.DEB.2.02.1307220523380.4804@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <Pine.LNX.4.44L0.1307111106090.1276-100000@iolanthe.rowland.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: khilman@linaro.org, sergei.shtylyov@cogentembedded.com, tony@atomide.com, gregkh@linuxfoundation.org, ruslan.bilovol@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1307220523380.4804@utopia.booyaka.com>
+Sender: stable-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: stable@vger.kernel.org, tony@atomide.com, lokeshvutla@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Alan,
+Hello.
 
-On 07/11/2013 06:14 PM, Alan Stern wrote:
-> On Thu, 11 Jul 2013, Roger Quadros wrote:
-> 
->>> The other two problems are both related to the interaction between
->>> system PM and runtime PM.  Suppose the controller is already runtime
->>> suspended when the system goes to sleep.  Because it is runtime
->>> suspended, it is enabled for wakeup.  But device_may_wakeup() could
->>> return false; if this happens then you have to do a runtime-resume in
->>> omap_ehci_suspend() before calling ehci_suspend(), so that the
->>> controller can be suspended again with wakeups disabled.  (Or you could
->>> choose an alternative method for accomplishing the same result, such as
->>> disabling the wakeup signal from the pad without going through a whole
->>> EHCI resume/suspend cycle.)  Conversely, if device_may_wakeup() returns
->>> true then you shouldn't do anything at all, because the controller is
->>> already suspended with the correct wakeup setting.
->>
->> I think this case is taken care of by the Runtime PM core at least for the OMAP
->> platform according to the documentation
->>
->> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/power/runtime_pm.txt#n647
-> 
-> No; that section refers only to races, not to wakeup settings.
-> 
->> At the end of this mail is the log during system suspend/resume
->>
->> You can notice the following sequence
->>
->> -ehci runtime suspends
->> -system suspend triggered
->> -ehci runtime resumes
->> -ehci suspends (uses new wakeup settings)
->> -system wakeup triggered
->> -ehci resumes
->> -ehci runtime suspends
-> 
-> This is because the root hub was runtime suspended with the wrong
-> wakeup setting.  The USB core, which is careful about these things,
-> resumed and re-suspended it with the proper wakeup setting.  In the 
-> process, the controller had to be runtime resumed as well.
-> 
-> Try doing the test over again, but this time with the root hub enabled 
-> for wakeup and the controller disabled.  (I know this is a bizarre 
-> combination, but try it anyway.)  Also, after the system wakes up, see 
-> whether the root hub and controller get runtime suspended.
-> 
+On 22-07-2013 9:29, Paul Walmsley wrote:
 
-The first part of the test caught the problem were we were trying to access
-EHCI registers when HW is not accessible. So this was a good test case.
+> From: Lokesh Vutla <lokeshvutla@ti.com>
 
->>> For the third problem, suppose the controller was runtime suspended
->>> when the system went to sleep.  When the system wakes up, the
->>> controller will become active, so you have to inform the runtime PM
->>> core about its change of state.  Basically, if omap_ehci_resume() sees
->>> that ehci_resume() returned 0 then it must do:
->>>
->>> 	pm_runtime_disable(dev);
->>> 	pm_runtime_set_active(dev);
->>> 	pm_runtime_enable(dev);
->>>
->>> All of these issues are discussed (among lots of other material) in 
->>> Documentation/power/runtime_pm.txt.
->>
->> Is this still applicable? Documentation claims
->>
->>    "During system resume it calls pm_runtime_enable() and pm_runtime_put_sync()
->>     for every device right after executing the subsystem-level .resume_early()
->>     callback and right after executing the subsystem-level .resume() callback
->>     for it, respectively."
-> 
-> Yes, this is applicable, but it is irrelevant to the problem I 
-> described.  You still have to tell the runtime PM core that the device 
-> is now active.
+> On 37xx EVM non-dt boot fails with current mainline,
+> because of broken GPIO numbering in the board file
+> that uses hardcoded GPIOs.
 
-Right, I understand it now. How does the below code look?
+> So marking omap3_evm_display_init() with CONFIG_BROKEN
+> for now as suggested by Tony as per the below link:
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg90399.html
 
-+static int omap_ehci_suspend(struct device *dev)
-+{
-+       struct usb_hcd *hcd = dev_get_drvdata(dev);
-+       bool do_wakeup = device_may_wakeup(dev);
-+       int ret;
-+
-+       dev_dbg(dev, "%s may_wakeup %d\n", __func__, do_wakeup);
-+
-+       if (pm_runtime_status_suspended(dev)) {
-+               pm_runtime_get_sync(dev);
-+               ehci_resume(hcd, false);
-+               ret = ehci_suspend(hcd, do_wakeup);
-+               pm_runtime_put_sync(dev);
-+
-+       } else {
-+               ret = ehci_suspend(hcd, do_wakeup);
-+       }
-+
-+       return ret;
-+}
-+
-+static int omap_ehci_resume(struct device *dev)
-+{
-+       struct usb_hcd *hcd = dev_get_drvdata(dev);
-+       int ret;
-+
-+       dev_dbg(dev, "%s\n", __func__);
-+
-+       ret = ehci_resume(hcd, false);
-+       if (!ret) {
-+               /*
-+                * Controller was powered ON so reflect state
-+                */
-+               pm_runtime_disable(dev);
-+               pm_runtime_set_active(dev);
-+               pm_runtime_enable(dev);
-+       }
-+
-+       return ret;
-+}
-+
-+static int omap_ehci_runtime_suspend(struct device *dev)
-+{
-+       struct usb_hcd *hcd = dev_get_drvdata(dev);
-+       struct omap_hcd *omap = (struct omap_hcd *)hcd_to_ehci(hcd)->priv;
-+
-+       dev_dbg(dev, "%s\n", __func__);
-+
-+       if (omap->bound)
-+               ehci_suspend(hcd, true);
-+
-+       return 0;
-+}
-+
-+static int omap_ehci_runtime_resume(struct device *dev)
-+{
-+       struct usb_hcd *hcd = dev_get_drvdata(dev);
-+       struct omap_hcd *omap = (struct omap_hcd *)hcd_to_ehci(hcd)->priv;
-+
-+       dev_dbg(dev, "%s\n", __func__);
-+
-+       if (omap->bound)
-+               ehci_resume(hcd, false);
-+
-+       return 0;
-+}
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> Tested-by: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
+> ---
 
-cheers,
--roger
+> Hi -stablers,
+
+> OMAP37xx EVM does not boot on v3.10 without this patch, so please consider
+> it for the v3.10 stable releases.  It is upstream already as commit ID
+> 8fb61e8d84e673eebf31e564a83bb71a50b1ed48.  Perhaps if I had managed to
+> test it sooner, we could have gotten it up during v3.10-rc, but, alas,
+> stable it is...
+
+>   arch/arm/mach-omap2/board-omap3evm.c |    4 ++++
+>   1 file changed, 4 insertions(+)
+
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+> index f76d0de..278bf25 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -174,6 +174,7 @@ static struct panel_sharp_ls037v7dw01_data omap3_evm_lcd_data = {
+>   	.ud_gpio = OMAP3EVM_LCD_PANEL_UD,
+>   };
+>
+> +#ifdef CONFIG_BROKEN
+>   static void __init omap3_evm_display_init(void)
+>   {
+>   	int r;
+> @@ -193,6 +194,7 @@ static void __init omap3_evm_display_init(void)
+>   	else
+>   		gpio_set_value_cansleep(OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO, 1);
+>   }
+
+    Perhaps it's better to follow what Documentation/SubmittingPatches suggests:
+
+#else
+static inline __init void omap3_evm_display_init(void) {}
+
+> +#endif
+>
+>   static struct omap_dss_device omap3_evm_lcd_device = {
+>   	.name			= "lcd",
+> @@ -715,7 +717,9 @@ static void __init omap3_evm_init(void)
+>
+>   	omap_ads7846_init(1, OMAP3_EVM_TS_GPIO, 310, NULL);
+>   	omap3evm_init_smsc911x();
+> +#ifdef CONFIG_BROKEN
+>   	omap3_evm_display_init();
+> +#endif
+
+    ... and eliminate #ifdef here?
+
+WBR, Sergei
