@@ -1,79 +1,62 @@
-From: Ben Hutchings <bhutchings@solarflare.com>
-Subject: Re: [PATCH 1/1] drivers: net: cpsw: add support to show hw stats
- via ethtool
-Date: Mon, 22 Jul 2013 18:05:41 +0100
-Message-ID: <1374512741.1635.12.camel@bwh-desktop.uk.level5networks.com>
-References: <1374482231-8201-1-git-send-email-mugunthanvnm@ti.com>
+From: Illia Smyrnov <x0194613@ti.com>
+Subject: Re: [PATCH 2/2] Input: omap-keypad: Cleanup - remove unnecessary
+ IRQ enabling/disabling
+Date: Mon, 22 Jul 2013 20:25:05 +0300
+Message-ID: <51ED6AF1.9070605@ti.com>
+References: <1374239027-3927-1-git-send-email-illia.smyrnov@globallogic.com> <1374239027-3927-3-git-send-email-illia.smyrnov@globallogic.com> <20130719132648.GB17188@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from webmail.solarflare.com ([12.187.104.25]:26926 "EHLO
-	webmail.solarflare.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757742Ab3GVRFq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 13:05:46 -0400
-In-Reply-To: <1374482231-8201-1-git-send-email-mugunthanvnm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20130719132648.GB17188@arwen.pp.htv.fi>
+Sender: linux-input-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Illia Smyrnov <illia.smyrnov@globallogic.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org
 
-On Mon, 2013-07-22 at 14:07 +0530, Mugunthan V N wrote:
-> Add support to show CPSW hardware statistics to user via ethtool
-> so user can find if there were any error reported by hardware or
-> the system is over loaded duing high data rate transfer.
-> 
-> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
-> ---
->  drivers/net/ethernet/ti/cpsw.c | 202 ++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 200 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index 05a1674..f344c05 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-[...]
-> +static const struct cpsw_stats cpsw_gstrings_stats[] = {
-> +	{ "Good Rx Frames", CPSW_STAT(rxgoodframes) },
-> +	{ "Broadcast Rx Frames", CPSW_STAT(rxbroadcastframes) },
-> +	{ "Multicast Rx Frames", CPSW_STAT(rxmulticastframes) },
-> +	{ "Pause Rx Frames", CPSW_STAT(rxpauseframes) },
-> +	{ "Rx CRC Errors", CPSW_STAT(rxcrcerrors) },
-[...]
+Hi,
 
-Statistic names usually don't contain spaces, though I can accept this
-is probably more readable.
+On 07/19/2013 04:26 PM, Felipe Balbi wrote:
+> Hi,
+>
+> [...]
+> please don't remove this code. It'll be good to have this around when we
+> move the driver to threaded IRQs without IRQF_ONESHOT. In fact, it would
+> be very simple to implement such a change, wanna take it up ?
+>
+> It should be doable in few patches:
+>
+> 1) switch over to request_threaded_irq()
+>
+> 	just blind move to a thread, without hardirq handler, so
+> 	IRQF_ONESHOT is mandatory.
+>
+> 2) add hardirq handler
+>
+> 	read IRQSTATUS to check if our device has generated IRQs
+> 	returning IRQ_WAKE_THREAD if true
+>
+> 3) move 'IRQ masking logic' to hardirq handler, before returning
+> IRQ_WAKE_THREAD
+>
+> 	this will let you remove IRQF_ONESHOT
+>
+> 4) finally remove IRQF_ONESHOT
+>
+> 	this makes sure that IRQs aren't kept disabled until we have
+> 	time to iterate over the entire keypad matrix. Only the keypad
+> 	IRQ will be masked.
+>
 
-> +static void cpsw_get_ethtool_stats(struct net_device *ndev,
-> +				    struct ethtool_stats *stats, u64 *data)
-> +{
-> +	struct cpsw_priv *priv = netdev_priv(ndev);
-> +	struct cpdma_chan_stats rx_stats;
-> +	struct cpdma_chan_stats tx_stats;
-> +	u32 val;
-> +	u8 *p;
-> +	int i;
-> +
-> +	/* Collect Davinci CPDMA stats for Rx and Tx Channel */
-> +	cpdma_chan_get_stats(priv->rxch, &rx_stats);
-> +	cpdma_chan_get_stats(priv->txch, &tx_stats);
-> +
-> +	for (i = 0; i < CPSW_STATS_LEN; i++) {
-> +		switch (cpsw_gstrings_stats[i].type) {
-> +		case CPSW_STATS:
-> +			val = readl((u8 *)priv->hw_stats +
+Ok, but why we need to remove IRQF_ONESHOT flag for omap keypad driver?
 
-Shouldn't this cast use 'u8 __iomem *'?
+The keypad IRQ isn't shared IRQ and in our case hardirq handler will 
+always return IRQ_WAKE_THREAD like default irq_default_primary_handler 
+do. With IRQF_ONESHOT flag IRQ line will be masked until the threaded
+handler finished, but there is only keypad on this line.
 
-Ben.
-
-> +				    cpsw_gstrings_stats[i].stat_offset);
-> +			data[i] = val;
-> +			break;
-[...]
-
--- 
-Ben Hutchings, Staff Engineer, Solarflare
-Not speaking for my employer; that's the marketing department's job.
-They asked us to note that Solarflare product names are trademarked.
-
+I tested two versions:
+the first one - just threaded IRQs with IRQF_ONESHOT and without 
+specific hardirq handler.
+the second version - threaded IRQs without IRQF_ONESHOT as you described.
+Both versions was successfully tested on Blaze's keypad.
