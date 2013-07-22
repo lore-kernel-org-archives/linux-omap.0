@@ -1,261 +1,65 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 1/4] ARM: OMAP2+: hwmod: Fix a crash in _setup_reset() with DEBUG_LL
-Date: Mon, 22 Jul 2013 15:31:14 +0530
-Message-ID: <1374487277-26099-2-git-send-email-rnayak@ti.com>
+Subject: [PATCH 4/4] ARM: OMAP2+: Sync hwmod state with the pm_runtime and omap_device state
+Date: Mon, 22 Jul 2013 15:31:17 +0530
+Message-ID: <1374487277-26099-5-git-send-email-rnayak@ti.com>
 References: <1374487277-26099-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35769 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756117Ab3GVKCI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 06:02:08 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:46123 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757284Ab3GVKCU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Jul 2013 06:02:20 -0400
 In-Reply-To: <1374487277-26099-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, balbi@ti.com, mpfj-list@newflow.co.uk, vaibhav.bedia@ti.com, khilman@linaro.org, sourav.poddar@ti.com, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, linux-serial@vger.kernel.org, grygorii.strashko@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-With commit '82702ea11ddfe0e43382e1fa5b66d807d8114916' "ARM: OMAP2+:
-Fix serial init for device tree based booting" stubbing out omap_serial_early_init()
-for Device tree based booting, there was a crash observed on AM335x based devices
-when hwmod does a _setup_reset() early at boot.
-
-This was rootcaused to hwmod trying to reset console uart while earlycon was using it.
-The way to tell hwmod not to do this is to specify the HWMOD_INIT_NO_RESET flag,
-which were infact set by the omap_serial_early_init() function by parsing the
-cmdline to identify the console device.
-
-Parsing the cmdline to identify the uart used by earlycon itself seems broken
-as there is nothing preventing earlycon to use a different one.
-
-This patch, instead, attempts to populate the requiste flags for hwmod based on
-the CONFIG_DEBUG_OMAPxUARTy FLAGS. This gets rid of the need for cmdline parsing
-in the DT as well as non-DT cases to identify the uart used by earlycon.
+Some hwmods which are marked with HWMOD_INIT_NO_IDLE are left in enabled
+state post setup(). When a omap_device gets created for such hwmods
+make sure the omap_device and pm_runtime states are also in sync for such
+hwmods by doing a omap_device_enable() and pm_runtime_set_active() for the
+device.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Reported-by: Mark Jackson <mpfj-list@newflow.co.uk>
-Reported-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.h                   |   48 ++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    6 +--
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |    2 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    9 ++--
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    5 +-
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |    3 +-
- arch/arm/mach-omap2/serial.c                       |   11 -----
- 7 files changed, 61 insertions(+), 23 deletions(-)
+ arch/arm/mach-omap2/omap_device.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-index aab33fd..8440a21 100644
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -95,6 +95,54 @@ extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type3;
- #define MODULEMODE_HWCTRL		1
- #define MODULEMODE_SWCTRL		2
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index 1c82cde..f99f68e 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -129,6 +129,7 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
+ 	struct device_node *node = pdev->dev.of_node;
+ 	const char *oh_name;
+ 	int oh_cnt, i, ret = 0;
++	bool device_active = false;
  
-+#define DEBUG_OMAP2UART1_FLAGS	0
-+#define DEBUG_OMAP2UART2_FLAGS	0
-+#define DEBUG_OMAP2UART3_FLAGS	0
-+#define DEBUG_OMAP3UART3_FLAGS	0
-+#define DEBUG_OMAP3UART4_FLAGS	0
-+#define DEBUG_OMAP4UART3_FLAGS	0
-+#define DEBUG_OMAP4UART4_FLAGS	0
-+#define DEBUG_TI81XXUART1_FLAGS	0
-+#define DEBUG_TI81XXUART2_FLAGS	0
-+#define DEBUG_TI81XXUART3_FLAGS	0
-+#define DEBUG_AM33XXUART1_FLAGS	0
-+
-+#define DEBUG_OMAPUART_FLAGS	(HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET)
-+
-+#if defined(CONFIG_DEBUG_OMAP2UART1)
-+#undef DEBUG_OMAP2UART1_FLAGS
-+#define DEBUG_OMAP2UART1_FLAGS DEBUG_OMAPUART_FLAGS
-+#elif defined(CONFIG_DEBUG_OMAP2UART2)
-+#undef DEBUG_OMAP2UART2_FLAGS
-+#define DEBUG_OMAP2UART2_FLAGS DEBUG_OMAPUART_FLAGS
-+#elif defined(CONFIG_DEBUG_OMAP2UART3)
-+#undef DEBUG_OMAP2UART3_FLAGS
-+#define DEBUG_OMAP2UART3_FLAGS DEBUG_OMAPUART_FLAGS
-+#elif defined(CONFIG_DEBUG_OMAP3UART3)
-+#undef DEBUG_OMAP3UART3_FLAGS
-+#define DEBUG_OMAP3UART3_FLAGS DEBUG_OMAPUART_FLAGS
-+#elif defined(CONFIG_DEBUG_OMAP3UART4)
-+#undef DEBUG_OMAP3UART4_FLAGS
-+#define DEBUG_OMAP3UART4_FLAGS DEBUG_OMAPUART_FLAGS
-+#elif defined(CONFIG_DEBUG_OMAP4UART3)
-+#undef DEBUG_OMAP4UART3_FLAGS
-+#define DEBUG_OMAP4UART3_FLAGS DEBUG_OMAPUART_FLAGS
-+#elif defined(CONFIG_DEBUG_OMAP4UART4)
-+#undef DEBUG_OMAP4UART4_FLAGS
-+#define DEBUG_OMAP4UART4_FLAGS DEBUG_OMAPUART_FLAGS
-+#elif defined(CONFIG_DEBUG_TI81XXUART1)
-+#undef DEBUG_TI81XXUART1_FLAGS
-+#define DEBUG_TI81XXUART1_FLAGS DEBUG_OMAPUART_FLAGS
-+#elif defined(CONFIG_DEBUG_TI81XXUART2)
-+#undef DEBUG_TI81XXUART2_FLAGS
-+#define DEBUG_TI81XXUART2_FLAGS DEBUG_OMAPUART_FLAGS
-+#elif defined(CONFIG_DEBUG_TI81XXUART3)
-+#undef DEBUG_TI81XXUART3_FLAGS
-+#define DEBUG_TI81XXUART3_FLAGS DEBUG_OMAPUART_FLAGS
-+#elif defined(CONFIG_DEBUG_AM33XXUART1)
-+#undef DEBUG_AM33XXUART1_FLAGS
-+#define DEBUG_AM33XXUART1_FLAGS DEBUG_OMAPUART_FLAGS
-+#endif
- 
- /**
-  * struct omap_hwmod_mux_info - hwmod specific mux configuration
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-index d05fc7b..56cebb0 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-@@ -512,7 +512,7 @@ struct omap_hwmod omap2xxx_uart1_hwmod = {
- 	.mpu_irqs	= omap2_uart1_mpu_irqs,
- 	.sdma_reqs	= omap2_uart1_sdma_reqs,
- 	.main_clk	= "uart1_fck",
--	.flags		= HWMOD_SWSUP_SIDLE_ACT,
-+	.flags		= DEBUG_OMAP2UART1_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = CORE_MOD,
-@@ -532,7 +532,7 @@ struct omap_hwmod omap2xxx_uart2_hwmod = {
- 	.mpu_irqs	= omap2_uart2_mpu_irqs,
- 	.sdma_reqs	= omap2_uart2_sdma_reqs,
- 	.main_clk	= "uart2_fck",
--	.flags		= HWMOD_SWSUP_SIDLE_ACT,
-+	.flags		= DEBUG_OMAP2UART2_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = CORE_MOD,
-@@ -552,7 +552,7 @@ struct omap_hwmod omap2xxx_uart3_hwmod = {
- 	.mpu_irqs	= omap2_uart3_mpu_irqs,
- 	.sdma_reqs	= omap2_uart3_sdma_reqs,
- 	.main_clk	= "uart3_fck",
--	.flags		= HWMOD_SWSUP_SIDLE_ACT,
-+	.flags		= DEBUG_OMAP2UART3_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = CORE_MOD,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index 28bbd56..d4114a9 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -1512,7 +1512,7 @@ static struct omap_hwmod am33xx_uart1_hwmod = {
- 	.name		= "uart1",
- 	.class		= &uart_class,
- 	.clkdm_name	= "l4_wkup_clkdm",
--	.flags		= HWMOD_SWSUP_SIDLE_ACT,
-+	.flags		= DEBUG_AM33XXUART1_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
- 	.main_clk	= "dpll_per_m2_div4_wkupdm_ck",
- 	.prcm		= {
- 		.omap4	= {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index f7a3df2..0c3a427 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -490,7 +490,7 @@ static struct omap_hwmod omap3xxx_uart1_hwmod = {
- 	.mpu_irqs	= omap2_uart1_mpu_irqs,
- 	.sdma_reqs	= omap2_uart1_sdma_reqs,
- 	.main_clk	= "uart1_fck",
--	.flags		= HWMOD_SWSUP_SIDLE_ACT,
-+	.flags		= DEBUG_TI81XXUART1_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = CORE_MOD,
-@@ -509,7 +509,7 @@ static struct omap_hwmod omap3xxx_uart2_hwmod = {
- 	.mpu_irqs	= omap2_uart2_mpu_irqs,
- 	.sdma_reqs	= omap2_uart2_sdma_reqs,
- 	.main_clk	= "uart2_fck",
--	.flags		= HWMOD_SWSUP_SIDLE_ACT,
-+	.flags		= DEBUG_TI81XXUART2_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = CORE_MOD,
-@@ -528,7 +528,8 @@ static struct omap_hwmod omap3xxx_uart3_hwmod = {
- 	.mpu_irqs	= omap2_uart3_mpu_irqs,
- 	.sdma_reqs	= omap2_uart3_sdma_reqs,
- 	.main_clk	= "uart3_fck",
--	.flags		= HWMOD_SWSUP_SIDLE_ACT,
-+	.flags		= DEBUG_OMAP3UART3_FLAGS | DEBUG_TI81XXUART3_FLAGS |
-+				HWMOD_SWSUP_SIDLE_ACT,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = OMAP3430_PER_MOD,
-@@ -558,7 +559,7 @@ static struct omap_hwmod omap36xx_uart4_hwmod = {
- 	.mpu_irqs	= uart4_mpu_irqs,
- 	.sdma_reqs	= uart4_sdma_reqs,
- 	.main_clk	= "uart4_fck",
--	.flags		= HWMOD_SWSUP_SIDLE_ACT,
-+	.flags		= DEBUG_OMAP3UART4_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = OMAP3430_PER_MOD,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index d04b5e6..9c3b504 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2858,8 +2858,7 @@ static struct omap_hwmod omap44xx_uart3_hwmod = {
- 	.name		= "uart3",
- 	.class		= &omap44xx_uart_hwmod_class,
- 	.clkdm_name	= "l4_per_clkdm",
--	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET |
--				HWMOD_SWSUP_SIDLE_ACT,
-+	.flags		= DEBUG_OMAP4UART3_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
- 	.main_clk	= "func_48m_fclk",
- 	.prcm = {
- 		.omap4 = {
-@@ -2875,7 +2874,7 @@ static struct omap_hwmod omap44xx_uart4_hwmod = {
- 	.name		= "uart4",
- 	.class		= &omap44xx_uart_hwmod_class,
- 	.clkdm_name	= "l4_per_clkdm",
--	.flags		= HWMOD_SWSUP_SIDLE_ACT,
-+	.flags		= DEBUG_OMAP4UART4_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
- 	.main_clk	= "func_48m_fclk",
- 	.prcm = {
- 		.omap4 = {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-index f37ae96..3c70f5c 100644
---- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -1375,7 +1375,7 @@ static struct omap_hwmod omap54xx_uart3_hwmod = {
- 	.name		= "uart3",
- 	.class		= &omap54xx_uart_hwmod_class,
- 	.clkdm_name	= "l4per_clkdm",
--	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
-+	.flags		= DEBUG_OMAP4UART3_FLAGS,
- 	.main_clk	= "func_48m_fclk",
- 	.prcm = {
- 		.omap4 = {
-@@ -1391,6 +1391,7 @@ static struct omap_hwmod omap54xx_uart4_hwmod = {
- 	.name		= "uart4",
- 	.class		= &omap54xx_uart_hwmod_class,
- 	.clkdm_name	= "l4per_clkdm",
-+	.flags		= DEBUG_OMAP4UART4_FLAGS,
- 	.main_clk	= "func_48m_fclk",
- 	.prcm = {
- 		.omap4 = {
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 3a674de..a388f8c 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -208,17 +208,6 @@ static int __init omap_serial_early_init(void)
- 				pr_info("%s used as console in debug mode: uart%d clocks will not be gated",
- 					uart_name, uart->num);
- 			}
--
--			/*
--			 * omap-uart can be used for earlyprintk logs
--			 * So if omap-uart is used as console then prevent
--			 * uart reset and idle to get logs from omap-uart
--			 * until uart console driver is available to take
--			 * care for console messages.
--			 * Idling or resetting omap-uart while printing logs
--			 * early boot logs can stall the boot-up.
--			 */
--			oh->flags |= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET;
+ 	oh_cnt = of_property_count_strings(node, "ti,hwmods");
+ 	if (oh_cnt <= 0) {
+@@ -152,6 +153,8 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
+ 			goto odbfd_exit1;
  		}
- 	} while (1);
+ 		hwmods[i] = oh;
++		if (oh->flags & HWMOD_INIT_NO_IDLE)
++			device_active = true;
+ 	}
  
+ 	od = omap_device_alloc(pdev, hwmods, oh_cnt);
+@@ -172,6 +175,11 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
+ 
+ 	pdev->dev.pm_domain = &omap_device_pm_domain;
+ 
++	if (device_active) {
++		omap_device_enable(pdev);
++		pm_runtime_set_active(&pdev->dev);
++	}
++
+ odbfd_exit1:
+ 	kfree(hwmods);
+ odbfd_exit:
 -- 
 1.7.9.5
 
