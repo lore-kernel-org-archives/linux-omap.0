@@ -1,126 +1,22 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Mon, 22 Jul 2013 12:55:18 +0530
-Message-ID: <51ECDE5E.3050104@ti.com>
-References: <Pine.LNX.4.44L0.1307211453450.19133-100000@netrider.rowland.org>
+From: "micro.solf@libero.it" <micro.solf@libero.it>
+Subject: MICROSOLF WINNER NOTIFICATION
+Date: Mon, 22 Jul 2013 09:49:42 +0200 (CEST)
+Message-ID: <2005465373.16637031374479382501.JavaMail.actor@webmail17>
+Reply-To: "micro.solf@libero.it" <micro.solf@libero.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <Pine.LNX.4.44L0.1307211453450.19133-100000@netrider.rowland.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, grant.likely@linaro.org, devicetree-discuss@lists.ozlabs.org, linux-media@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, Sascha Hauer <s.hauer@pengutronix.de>, linux-samsung-soc@vger.kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, Greg KH <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.park@samsung.com, akpm@linux-foundation.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from outrelay02.libero.it ([212.52.84.102]:47012 "EHLO
+	outrelay02.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756513Ab3GVHum (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 03:50:42 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Urgent info
+Your email I'd picked 1,000,000.00 euros. These are your draw numbers;
+85,49,73,64,95,84,99,11.
+contact Mrs Elena Beyer:Email micro.solf@aol.com, Call: 0034602480047
 
-On Monday 22 July 2013 12:52 AM, Alan Stern wrote:
-> On Sun, 21 Jul 2013, Sylwester Nawrocki wrote:
-> 
->>> What's wrong with the platform_data structure, why can't that be used
->>> for this?
->>
->> At the point the platform data of some driver is initialized, e.g. in
->> board setup code the PHY pointer is not known, since the PHY supplier
->> driver has not initialized yet.  Even though we wanted to pass pointer
->> to a PHY through some notifier call, it would have been not clear
->> which PHY user driver should match on such notifier.  A single PHY
->> supplier driver can create M PHY objects and this needs to be mapped
->> to N PHY user drivers.  This mapping needs to be defined somewhere by
->> the system integrator.  It works well with device tree, but except that
->> there seems to be no other reliable infrastructure in the kernel to
->> define links/dependencies between devices, since device identifiers are
->> not known in advance in all cases.
->>
->> What Tomasz proposed seems currently most reasonable to me for non-dt.
->>
->>> Or, if not, we can always add pointers to the platform device structure,
->>> or even the main 'struct device' as well, that's what it is there for.
->>
->> Still we would need to solve a problem which platform device structure
->> gets which PHY pointer.
-> 
-> Can you explain the issues in more detail?  I don't fully understand 
-> the situation.
-> 
-> Here's what I think I know:
-> 
-> 	The PHY and the controller it is attached to are both physical
-> 	devices.
-> 
-> 	The connection between them is hardwired by the system
-> 	manufacturer and cannot be changed by software.
-> 
-> 	PHYs are generally described by fixed system-specific board
-> 	files or by Device Tree information.  Are they ever discovered
-> 	dynamically?
 
-No. They are created just like any other platform devices are created.
-> 
-> 	Is the same true for the controllers attached to the PHYs?
-> 	If not -- if both a PHY and a controller are discovered 
-> 	dynamically -- how does the kernel know whether they are 
-> 	connected to each other?
-
-No differences here. Both PHY and controller will have dt information or hwmod
-data using which platform devices will be created.
-> 
-> 	The kernel needs to know which controller is attached to which
-> 	PHY.  Currently this information is represented by name or ID
-> 	strings embedded in platform data.
-
-right. It's embedded in the platform data of the controller.
-> 
-> 	The PHY's driver (the supplier) uses the platform data to 
-> 	construct a platform_device structure that represents the PHY.  
-
-Currently the driver assigns static labels (corresponding to the label used in
-the platform data of the controller).
-> 	Until this is done, the controller's driver (the client) cannot 
-> 	use the PHY.
-
-right.
-> 
-> 	Since there is no parent-child relation between the PHY and the 
-> 	controller, there is no guarantee that the PHY's driver will be
-> 	ready when the controller's driver wants to use it.  A deferred
-> 	probe may be needed.
-
-right.
-> 
-> 	The issue (or one of the issues) in this discussion is that 
-> 	Greg does not like the idea of using names or IDs to associate
-> 	PHYs with controllers, because they are too prone to
-> 	duplications or other errors.  Pointers are more reliable.
-> 
-> 	But pointers to what?  Since the only data known to be 
-> 	available to both the PHY driver and controller driver is the
-> 	platform data, the obvious answer is a pointer to platform data
-> 	(either for the PHY or for the controller, or maybe both).
-
-hmm.. it's not going to be simple though as the platform device for the PHY and
-controller can be created in entirely different places. e.g., in some cases the
-PHY device is a child of some mfd core device (the device will be created in
-drivers/mfd) and the controller driver (usually) is created in board file. I
-guess then we have to come up with something to share a pointer in two
-different files.
-> 
-> Probably some of the details above are wrong; please indicate where I
-> have gone astray.  Also, I'm not clear about the role played by various 
-> APIs.  For example, where does phy_create() fit into this picture?
-
-phy_create is the API by which the PHY's driver (the supplier) hook into the
-PHY framework. It's like the controller driver will always interact with the
-PHY driver through the PHY framework.
-
-Thanks
-Kishon
