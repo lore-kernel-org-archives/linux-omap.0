@@ -1,68 +1,63 @@
-From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/3] dmaengine: add dma_get_slave_sg_limits()
-Date: Mon, 22 Jul 2013 16:45:51 -0500
-Message-ID: <51EDA80F.7060606@ti.com>
-References: <1374166001-31340-1-git-send-email-joelf@ti.com>
-	<1374166001-31340-2-git-send-email-joelf@ti.com>
-	<20130718161658.GW16653@intel.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 3/4] pinctrl: single: omap: Add SoC specific module for
+ wake-up events
+Date: Tue, 23 Jul 2013 00:03:01 +0200
+Message-ID: <CACRpkda-2HBkHP+ewkvMH5MV1GxEuXxS_nYEiDdgKtnoyTJpuQ@mail.gmail.com>
+References: <20130607203936.16513.57494.stgit@localhost>
+	<20130607205044.16513.27675.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <20130718161658.GW16653-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Benoit Cousson <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Balaji TK <balajitk-l0cyMroinI0@public.gmane.org>, Mark Jackson <mpfj-list-2FZW7xY0fHgqdlJmJB21zg@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-k>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oa0-f43.google.com ([209.85.219.43]:62865 "EHLO
+	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750910Ab3GVWDE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 18:03:04 -0400
+Received: by mail-oa0-f43.google.com with SMTP id i7so9777241oag.16
+        for <linux-omap@vger.kernel.org>; Mon, 22 Jul 2013 15:03:02 -0700 (PDT)
+In-Reply-To: <20130607205044.16513.27675.stgit@localhost>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Roger Quadros <rogerq@ti.com>
 
-On 07/18/2013 11:16 AM, Vinod Koul wrote:> On Thu, Jul 18, 2013 at
-11:46:39AM -0500, Joel Fernandes wrote:
->> From: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
->>
->> Add a dmaengine API to retrieve slave SG transfer limits.
->>
->> The API is optionally implemented by dmaengine drivers and when
->> unimplemented will return a NULL pointer. A client driver using
->> this API provides the required dma channel, address width, and
->> burst size of the transfer. dma_get_slave_sg_limits() returns an
->> SG limits structure with the maximum number and size of SG segments
->> that the given channel can handle.
-> Hi Joel,
->
-> I have already resurrected this and generalized the API to get the slave
-> capablities.
-> https://lkml.org/lkml/2013/7/15/147
+On Fri, Jun 7, 2013 at 10:50 PM, Tony Lindgren <tony@atomide.com> wrote:
 
-Hi Vinod,
+> +static irqreturn_t pcs_omap_handle_irq(int irq, void *data)
+> +{
+> +       struct pcs_omap *pcso = data;
+> +       struct list_head *pos;
+> +       unsigned int wakeirq;
+> +
+> +       list_for_each(pos, &pcso->wakeirqs) {
+> +               struct pcs_reg *pcsoi;
+> +               u16 val;
+> +
+> +               pcsoi = list_entry(pos, struct pcs_reg, node);
+> +               wakeirq = pcsoi->irq;
+> +               val = pcsoi->read(pcsoi->reg);
+> +               if ((val & OMAP_WAKEUP_EVENT_MASK) == OMAP_WAKEUP_EVENT_MASK)
+> +                       generic_handle_irq(wakeirq);
+> +       }
+> +
+> +       if (pcso->reconfigure_io_chain)
+> +               pcso->reconfigure_io_chain();
+> +
+> +       return IRQ_HANDLED;
+> +}
 
-get_caps and get_sg_limits are 2 different things, looks like this was
-already discussed earlier, and this patch series is a separate API that
-adds support for SG limits.
+I fail to see why this is OMAP-specific.
 
-Infact, you can already see here that he changed the name of the
-function from caps to dma_get_slave_sg_limits:
-http://linux.davincidsp.com/pipermail/davinci-linux-open-source/2013-March/026601.html
+I would prefer that this gets handled directly in the pinctrl core or
+atleast in pinctrl-single in a generic way - latent IRQs is a generic
+problem.
 
-Considering this, what is the way forward? Can this patch series be
-merged as it is a different API as discussed above?
+And I would also like it to work the other way around: when
+irq_set_wake() is called from the irqchip it percolates down
+to the pinctrl core and sets up a cross reference like this, for the pin,
+so when an IRQ like this occurs, it will be routed up if and only
+if it has been flagged as a wakeup from the irqchip layer.
 
-Summarizing:
-* get_caps API cannot be used for this same purpose, as get_caps is done
-_before_ the DMA channel can be configured from what it looks like:
-* get_sg_limits, on the other hand is supposed to already have the
-parameters required for configuring the DMA channel before hand.
+The cross reference can be stored in struct pin_desc.
 
-Are there any other changes to the get_sg_limits series you would like
-before it can be applied? Any other suggestions?
-
-Thanks,
-
--Joel
+Yours,
+Linus Walleij
