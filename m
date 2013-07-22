@@ -1,37 +1,79 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: linux-3.11-rc1: Internal error: Oops - undefined instruction:
- 0 [#1] SMP ARM on OMAP3/AM335x
-Date: Mon, 22 Jul 2013 16:55:29 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1307221652350.10891@utopia.booyaka.com>
-References: <51ECFBAC.7090900@ti.com>
+From: Ben Hutchings <bhutchings@solarflare.com>
+Subject: Re: [PATCH 1/1] drivers: net: cpsw: add support to show hw stats
+ via ethtool
+Date: Mon, 22 Jul 2013 18:05:41 +0100
+Message-ID: <1374512741.1635.12.camel@bwh-desktop.uk.level5networks.com>
+References: <1374482231-8201-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:47267 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756343Ab3GVQzb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 12:55:31 -0400
-In-Reply-To: <51ECFBAC.7090900@ti.com>
+Received: from webmail.solarflare.com ([12.187.104.25]:26926 "EHLO
+	webmail.solarflare.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757742Ab3GVRFq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 13:05:46 -0400
+In-Reply-To: <1374482231-8201-1-git-send-email-mugunthanvnm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: catalin.marinas@arm.com, Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kernel development list <linux-kernel@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Mesfin, Yebio" <ymesfin@ti.com>
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org
 
-On Mon, 22 Jul 2013, Roger Quadros wrote:
-
-> I observe the following problem on booting v3.11-rc1 on OMAP3 beagle board.
+On Mon, 2013-07-22 at 14:07 +0530, Mugunthan V N wrote:
+> Add support to show CPSW hardware statistics to user via ethtool
+> so user can find if there were any error reported by hardware or
+> the system is over loaded duing high data rate transfer.
 > 
-> [    5.888946] Internal error: Oops - undefined instruction: 0 [#1] SMP ARM
-> [    5.896057] Modules linked in:
-> [    5.899322] CPU: 0 PID: 9 Comm: rcu_sched Not tainted 3.11.0-rc2-00001-g1ea701a #876
-> [    5.907501] task: ce0720c0 ti: ce07a000 task.ti: ce07a000
-> [    5.913208] PC is at check_and_switch_context+0x130/0x4dc
-> [    5.918914] LR is at check_and_switch_context+0xd8/0x4dc
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+> ---
+>  drivers/net/ethernet/ti/cpsw.c | 202 ++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 200 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index 05a1674..f344c05 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+[...]
+> +static const struct cpsw_stats cpsw_gstrings_stats[] = {
+> +	{ "Good Rx Frames", CPSW_STAT(rxgoodframes) },
+> +	{ "Broadcast Rx Frames", CPSW_STAT(rxbroadcastframes) },
+> +	{ "Multicast Rx Frames", CPSW_STAT(rxmulticastframes) },
+> +	{ "Pause Rx Frames", CPSW_STAT(rxpauseframes) },
+> +	{ "Rx CRC Errors", CPSW_STAT(rxcrcerrors) },
+[...]
 
-It affects 3730beaglexm and am335xbonelt here too.
+Statistic names usually don't contain spaces, though I can accept this
+is probably more readable.
 
-http://www.pwsan.com/omap/testlogs/test_v3.11-rc2/20130721203314/boot/am335xbonelt/am335x-bone/am335xbonelt_log.txt
-http://www.pwsan.com/omap/testlogs/test_v3.11-rc2/20130721203314/boot/3730beaglexm/3730beaglexm_log.txt
+> +static void cpsw_get_ethtool_stats(struct net_device *ndev,
+> +				    struct ethtool_stats *stats, u64 *data)
+> +{
+> +	struct cpsw_priv *priv = netdev_priv(ndev);
+> +	struct cpdma_chan_stats rx_stats;
+> +	struct cpdma_chan_stats tx_stats;
+> +	u32 val;
+> +	u8 *p;
+> +	int i;
+> +
+> +	/* Collect Davinci CPDMA stats for Rx and Tx Channel */
+> +	cpdma_chan_get_stats(priv->rxch, &rx_stats);
+> +	cpdma_chan_get_stats(priv->txch, &tx_stats);
+> +
+> +	for (i = 0; i < CPSW_STATS_LEN; i++) {
+> +		switch (cpsw_gstrings_stats[i].type) {
+> +		case CPSW_STATS:
+> +			val = readl((u8 *)priv->hw_stats +
 
+Shouldn't this cast use 'u8 __iomem *'?
 
-- Paul
+Ben.
+
+> +				    cpsw_gstrings_stats[i].stat_offset);
+> +			data[i] = val;
+> +			break;
+[...]
+
+-- 
+Ben Hutchings, Staff Engineer, Solarflare
+Not speaking for my employer; that's the marketing department's job.
+They asked us to note that Solarflare product names are trademarked.
+
