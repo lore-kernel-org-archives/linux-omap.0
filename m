@@ -1,58 +1,60 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 0/4] OMAP2+: Fix boot hang with earlycon enabled
-Date: Mon, 22 Jul 2013 15:31:13 +0530
-Message-ID: <1374487277-26099-1-git-send-email-rnayak@ti.com>
+Subject: [PATCH 3/4] ARM: OMAP2+: Avoid idling memory controllers with no drivers
+Date: Mon, 22 Jul 2013 15:31:16 +0530
+Message-ID: <1374487277-26099-4-git-send-email-rnayak@ti.com>
+References: <1374487277-26099-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59376 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:50256 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755285Ab3GVKCC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Jul 2013 06:02:02 -0400
+	id S1756117Ab3GVKCL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Jul 2013 06:02:11 -0400
+In-Reply-To: <1374487277-26099-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, balbi@ti.com, mpfj-list@newflow.co.uk, vaibhav.bedia@ti.com, khilman@linaro.org, sourav.poddar@ti.com, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, linux-serial@vger.kernel.org, grygorii.strashko@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-Boot on all OMAP2+ devices is broken with earlycon enabled
-as discussed here [1]
+Memory controllers in OMAP (like GPMC and EMIF) have the hwmods marked with
+HWMOD_INIT_NO_IDLE and are left in enabled state post initial setup.
 
-There were 2 issues which were rootcaused
-1. Issue caused due to hwmod doing a reset of console uart while
-earlycon was using it (seen only on am335x devices)
+Even if they have drivers missing, avoid idling them as part of
+omap_device_late_idle()
 
-2. omap serial causing a NULL context restore with context loss
-count missing.
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/omap_device.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-This patch set attempts to fix both the issues and is one of the
-different approaches discussed [1] on how to fix these issues.
-
-Boot tested on omap4 panda es with and without earlycon (DT boot)
-Boot tested on am335x bone black with and without earlycon (DT boot)
-Boot tested on OMAP3 beagle XM with and without earlycon (non-DT boot)
-
-[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg91662.html
-
-Grygorii Strashko (1):
-  serial: omap: enable PM runtime only when its fully configured
-
-Rajendra Nayak (3):
-  ARM: OMAP2+: hwmod: Fix a crash in _setup_reset() with DEBUG_LL
-  ARM: OMAP2+: Avoid idling memory controllers with no drivers
-  ARM: OMAP2+: Sync hwmod state with the pm_runtime and omap_device
-    state
-
- arch/arm/mach-omap2/omap_device.c                  |   18 ++++++++
- arch/arm/mach-omap2/omap_hwmod.h                   |   48 ++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    6 +--
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |    2 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    9 ++--
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    5 +-
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |    3 +-
- arch/arm/mach-omap2/serial.c                       |   11 -----
- drivers/tty/serial/omap-serial.c                   |    3 +-
- 9 files changed, 81 insertions(+), 24 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index 5cc9287..1c82cde 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -842,6 +842,7 @@ static int __init omap_device_late_idle(struct device *dev, void *data)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct omap_device *od = to_omap_device(pdev);
++	int i;
+ 
+ 	if (!od)
+ 		return 0;
+@@ -850,6 +851,15 @@ static int __init omap_device_late_idle(struct device *dev, void *data)
+ 	 * If omap_device state is enabled, but has no driver bound,
+ 	 * idle it.
+ 	 */
++
++	/*
++	 * Some devices (like memory controllers) are always kept
++	 * enabled, and should not be idled even with no drivers.
++	 */
++	for (i = 0; i < od->hwmods_cnt; i++)
++		if (od->hwmods[i]->flags & HWMOD_INIT_NO_IDLE)
++			return 0;
++
+ 	if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER) {
+ 		if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
+ 			dev_warn(dev, "%s: enabled but no driver.  Idling\n",
 -- 
 1.7.9.5
 
