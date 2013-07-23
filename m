@@ -1,92 +1,136 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 6/6] USB: ehci-omap: Implement suspend/resume
-Date: Tue, 23 Jul 2013 12:18:52 +0300
-Message-ID: <51EE4A7C.2020709@ti.com>
-References: <Pine.LNX.4.44L0.1307221111410.1495-100000@iolanthe.rowland.org>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] omapfb: In omapfb_probe return -EPROBE_DEFER when display
+ driver is not loaded yet
+Date: Tue, 23 Jul 2013 13:01:39 +0300
+Message-ID: <51EE5483.7000201@ti.com>
+References: <1373461739-10168-1-git-send-email-pali.rohar@gmail.com> <20130713182733.GA25019@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <Pine.LNX.4.44L0.1307221111410.1495-100000@iolanthe.rowland.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: khilman@linaro.org, sergei.shtylyov@cogentembedded.com, tony@atomide.com, gregkh@linuxfoundation.org, ruslan.bilovol@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="----enig2JWKLFOMQSOGHRIJDIVLT"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36928 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756407Ab3GWKCG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Jul 2013 06:02:06 -0400
+In-Reply-To: <20130713182733.GA25019@amd.pavel.ucw.cz>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, =?ISO-8859-1?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>
 
-On 07/22/2013 06:18 PM, Alan Stern wrote:
-> On Mon, 22 Jul 2013, Roger Quadros wrote:
-> 
->> Right, I understand it now. How does the below code look?
+------enig2JWKLFOMQSOGHRIJDIVLT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 13/07/13 21:27, Pavel Machek wrote:
+> On Wed 2013-07-10 15:08:59, Pali Roh=E1r wrote:
+>> * On RX-51 probing for acx565akm driver is later then for omapfb which=
+ cause that omapfb probe fail and framebuffer is not working
+>> * EPROBE_DEFER causing that kernel try to probe for omapfb later again=
+ which fixing this problem
 >>
->> +static int omap_ehci_suspend(struct device *dev)
->> +{
->> +       struct usb_hcd *hcd = dev_get_drvdata(dev);
->> +       bool do_wakeup = device_may_wakeup(dev);
->> +       int ret;
->> +
->> +       dev_dbg(dev, "%s may_wakeup %d\n", __func__, do_wakeup);
->> +
->> +       if (pm_runtime_status_suspended(dev)) {
-> 
-> You need to do this only when do_wakeup is false.
+>> * Without this patch display on Nokia RX-51 (N900) phone not working
+>>
+>> Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
+>=20
+> Tested-by: Pavel Machek <pavel@ucw.cz>
 
-Right. Missed that.
-> 
->> +               pm_runtime_get_sync(dev);
->> +               ehci_resume(hcd, false);
->> +               ret = ehci_suspend(hcd, do_wakeup);
->> +               pm_runtime_put_sync(dev);
-> 
-> It would be better to call pm_runtime_resume(dev) at the start instead
-> of pm_runtime_get_sync(), and eliminate the last two lines.  Then the
-> ehci_suspend() below could be moved outside the "if" statement.
+Which kernel version is this? Does it have
+dfbc32316c6991010328c21e6046b05bac57eb84 (OMAPFB: defer probe if no displ=
+ays)?
 
-Why do I find pm_runtime_* so confusing ;)
+Then again, rx51 has tv-output, which probably gets probed early. So omap=
+fb
+does see one functional display, and starts, even if the LCD is not avail=
+able
+yet.
 
-> 
-> Alternatively, if you are able to turn off the wakeup setting without
-> going through an entire resume/suspend cycle, that would be preferable.
-> 
+> (Actually, do we know which commit broke the ordering? We may want to
+> simply revert that one...)
 
-As we don't rely on the EHCI controller's interrupt any more after we
-power it down, maybe ehci_resume/suspend cycle is not required at all on OMAP,
-even if the wakeup setting is disabled during system suspend.
+Well, my understand that this is how it's supposed to work. There's no de=
+fined
+order with the driver probes, and the drivers just have to deal with thei=
+r
+dependencies not being there yet.
 
-As the wakeup is controlled entirely by pad wakeup, all we need to do is make sure
-the IO pad wakeup is configured correctly based on do_wakeup. How this is done
-is still in transition but it might be turn out to be as simple as irq_set_irq_wake()
+I don't have a perfect solution for this problem for omapfb. omapfb doesn=
+'t
+support dynamically adding displays, so all the displays it uses have to =
+be
+probed before omapfb. And omapfb doesn't know which displays will be prob=
+ed.
 
-So IMHO, for ehci-omap this should suffice
+The patch below was added for 3.11. Does it fix the issue for you? Perhap=
+s it
+should be added for 3.10 also.
 
-static int omap_ehci_suspend(struct device *dev)
-{
-	struct usb_hcd *hcd = dev_get_drvdata(dev);
-	bool do_wakeup = device_may_wakeup(dev);
-	int ret = 0;
+ Tomi
 
-	if (!pm_runtime_status_suspended(dev))
-		ret = ehci_suspend(hcd, do_wakeup);
+commit e9f322b4913e5d3e5c5d21dc462ca6f8a86e1df1
+Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Date:   Thu May 23 16:41:25 2013 +0300
 
-	/* Not tested yet */
-	irq_set_irq_wake(hcd->irq, do_wakeup);
+    OMAPFB: use EPROBE_DEFER if default display is not present
+   =20
+    Currently omapfb returns EPROBE_DEFER if no displays have been probed=
+ at
+    the time omapfb is probed. However, sometimes some of the displays ha=
+ve
+    been probed at that time, but not all. We can't return EPROBE_DEFER i=
+n
+    that case, because then one missing driver would cause omapfb to defe=
+r
+    always, preventing any display from working.
+   =20
+    However, if the user has defined a default display, we can presume th=
+at
+    the driver for that display is eventually loaded. Thus, this patch
+    changes omapfb to return EPROBE_DEFER in case default display is not
+    found.
+   =20
+    Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-	return ret;
-}
+diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/oma=
+p2/omapfb/omapfb-main.c
+index 528e453..27d6905 100644
+--- a/drivers/video/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/omap2/omapfb/omapfb-main.c
+@@ -2503,7 +2503,7 @@ static int omapfb_probe(struct platform_device *pde=
+v)
+=20
+        if (def_display =3D=3D NULL) {
+                dev_err(fbdev->dev, "failed to find default display\n");
+-               r =3D -EINVAL;
++               r =3D -EPROBE_DEFER;
+                goto cleanup;
+        }
 
-What do you think?
 
-As the OMAP IO pad wakeup management code [1] is still in transition, I'll wait till
-that gets settled and then resend this series.
 
-cheers,
--roger
+------enig2JWKLFOMQSOGHRIJDIVLT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-[1] - http://thread.gmane.org/gmane.linux.ports.arm.omap/99010
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJR7lSDAAoJEPo9qoy8lh71/FgQAKLyrva0jQbgw2QXcyn2FS/X
++NhpnYGITQUtXs9W3GcY6edU5hxxEs0tkFcWNGlOkp1AU1HRPnINVEUzDnJ+46+Y
+yf1qSsYNC9CfPNkpH2rlBnX5UBcsnEsy4GCuTc6fciKYc6ZJFx3iaCATPZRvjnjQ
+NUOKxGM/5kdUflsZy+QMbT4gWLgPZbNbH6fwgaeQ8E851rJlKQ2inYTsHvKhuS4K
+yoeSY+72J08+PWs6GrqXr21Viz4QCh72GWOM+KcYugQ7OjVQlFMnDq+FO9WZnvaN
+BeIW4DO11oMiCUyKYTeBlhh1R6kg8pSFGl/H+Emt1nZHN91CDcg0wT/ebkOp6Nfg
+gUSO1sF8uFkysewROX9Je5LZBKQYTTJh/qaB4i1NRL+6KLe7INSrFl8qCw4jpgXT
+wIhpWDofQCbJUQVf3bFzz8ccb8fNyFG1M5FyKWDVExMJckDFIwENLDEWOf2FEC1r
+G/1J0mEiTmB7elz8J58QogL7ZLHSIgTT6TJBQhlxUPcXNMphENtnjA4Cng/BWBYy
+LCYjp7dpTVa6WXuu6WPSTe3ZTPdtuqHzBrEWqI6qiZ5GbSuTMuyrpXobnzEtV7Uf
+bw4DaOnycSOp6M49WKV3DksmlTlCiLXpjj6TuWS9ek7EfCztlY8UatwJwecbGS7n
+PRXCtzmC9HfyrRAeXGzo
+=2usR
+-----END PGP SIGNATURE-----
+
+------enig2JWKLFOMQSOGHRIJDIVLT--
