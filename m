@@ -1,211 +1,162 @@
-From: Tomasz Figa <tomasz.figa@gmail.com>
+From: Greg KH <gregkh@linuxfoundation.org>
 Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Tue, 23 Jul 2013 22:46:53 +0200
-Message-ID: <5349166.Wm3v7zlK1Z@flatron>
-References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org> <19656720.FrnhefyPXl@amdc1227> <20130723180414.GA9630@kroah.com>
+Date: Tue, 23 Jul 2013 13:50:07 -0700
+Message-ID: <20130723205007.GA27166@kroah.com>
+References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
+ <20130723193105.GP9858@sirena.org.uk>
+ <20130723194423.GA22984@kroah.com>
+ <1731726.KENstTPhkb@flatron>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130723180414.GA9630@kroah.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Tomasz Figa <t.figa@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Kishon Vijay Abraham I <kishon@ti.com>, Alan Stern <stern@rowland.harvard.edu>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, broonie@kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, Sascha Hauer <s.hauer@pengutronix.de>, kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com, olof@lixom.net, b.z
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1731726.KENstTPhkb@flatron>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomasz Figa <tomasz.figa@gmail.com>
+Cc: Mark Brown <broonie@kernel.org>, Tomasz Figa <t.figa@samsung.com>, Kishon Vijay Abraham I <kishon@ti.com>, Alan Stern <stern@rowland.harvard.edu>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, Sascha Hauer <s.hauer@pengutronix.de>, kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com, olof@lixom.net, Stephen Warren <swarren@wwwdotor>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 23 of July 2013 11:04:14 Greg KH wrote:
-> On Tue, Jul 23, 2013 at 07:48:11PM +0200, Tomasz Figa wrote:
-> > On Tuesday 23 of July 2013 10:37:11 Greg KH wrote:
-> > > On Tue, Jul 23, 2013 at 06:50:29PM +0200, Tomasz Figa wrote:
-> > > > > Ick, no.  Why can't you just pass the pointer to the phy itself?
-> > > > >  If
-> > > > > you
-> > > > > had a "priv" pointer to search from, then you could have just
-> > > > > passed
-> > > > > the
-> > > > > original phy pointer in the first place, right?
-> > > > 
-> > > > IMHO it would be better if you provided some code example, but
-> > > > let's
-> > > > try to check if I understood you correctly.
+On Tue, Jul 23, 2013 at 10:07:52PM +0200, Tomasz Figa wrote:
+> On Tuesday 23 of July 2013 12:44:23 Greg KH wrote:
+> > On Tue, Jul 23, 2013 at 08:31:05PM +0100, Mark Brown wrote:
+> > > > You don't "know" the id of the device you are looking up, due to
+> > > > multiple devices being in the system (dynamic ids, look back earlier
+> > > > in
+> > > > this thread for details about that.)
 > > > 
-> > > It's not my code that I want to have added, so I don't have to write
-> > > examples, I just get to complain about the existing stuff :)
+> > > I got copied in very late so don't have most of the thread I'm afraid,
+> > > I did try looking at web archives but didn't see a clear problem
+> > > statement.  In any case this is why the APIs doing lookups do the
+> > > lookups in the context of the requesting device - devices ask for
+> > > whatever name they use locally.
 > > 
-> > Still, I think that some small code snippets illustrating the idea are
-> > really helpful.
+> > What do you mean by "locally"?
 > > 
-> > > > 8><---------------------------------------------------------------
-> > > > -----
-> > > > ----
-> > > > 
-> > > > [Board file]
-> > > > 
-> > > > static struct phy my_phy;
-> > > > 
-> > > > static struct platform_device phy_pdev = {
-> > > > 
-> > > > 	/* ... */
-> > > > 	.platform_data = &my_phy;
-> > > > 	/* ... */
-> > > > 
-> > > > };
-> > > > 
-> > > > static struct platform_device phy_pdev = {
-> > > > 
-> > > > 	/* ... */
-> > > > 	.platform_data = &my_phy;
-> > > > 	/* ... */
-> > > > 
-> > > > };
-> > > > 
-> > > > [Provider driver]
-> > > > 
-> > > > struct phy *phy = pdev->dev.platform_data;
-> > > > 
-> > > > ret = phy_create(phy);
-> > > > 
-> > > > [Consumer driver]
-> > > > 
-> > > > struct phy *phy = pdev->dev.platform_data;
-> > > > 
-> > > > ret = phy_get(&pdev->dev, phy);
-> > > > 
-> > > > ------------------------------------------------------------------
-> > > > -----
-> > > > -><8
-> > > > 
-> > > > Is this what you mean?
-> > > 
-> > > No.  Well, kind of.  What's wrong with using the platform data
-> > > structure unique to the board to have the pointer?
-> > > 
-> > > For example (just randomly picking one), the ata-pxa driver would
-> > > change include/linux/platform_data/ata-pxa.h to have a phy pointer
-> > > in it:
-> > > 
-> > > struct phy;
-> > > 
-> > > struct  pata_pxa_pdata {
-> > > 
-> > > 	/* PXA DMA DREQ<0:2> pin */
-> > > 	uint32_t	dma_dreq;
-> > > 	/* Register shift */
-> > > 	uint32_t	reg_shift;
-> > > 	/* IRQ flags */
-> > > 	uint32_t	irq_flags;
-> > > 	/* PHY */
-> > > 	struct phy	*phy;
-> > > 
-> > > };
-> > > 
-> > > Then, when you create the platform, set the phy* pointer with a call
-> > > to
-> > > phy_create().  Then you can use that pointer wherever that plaform
-> > > data
-> > > is available (i.e. whereever platform_data is at).
+> > The problem with the api was that the phy core wanted a id and a name to
+> > create a phy, and then later other code was doing a "lookup" based on
+> > the name and id (mushed together), because it "knew" that this device
+> > was the one it wanted.
 > > 
-> > Hmm? So, do you suggest to call phy_create() from board file? What
-> > phy_ops struct and other hardware parameters would it take?
+> > Just like the clock api, which, for multiple devices, has proven to
+> > cause problems.  I don't want to see us accept an api that we know has
+> > issues in it now, I'd rather us fix it up properly.
 > > 
-> > > > > The issue is that a string "name" is not going to scale at all,
-> > > > > as it
-> > > > > requires hard-coded information that will change over time (as
-> > > > > the
-> > > > > existing clock interface is already showing.)
-> > > > 
-> > > > I fully agree that a simple, single string will not scale even in
-> > > > some,
-> > > > not so uncommon cases, but there is already a lot of existing
-> > > > lookup
-> > > > solutions over the kernel and so there is no point in introducing
-> > > > another one.
-> > > 
-> > > I'm trying to get _rid_ of lookup "solutions" and just use a real
-> > > pointer, as you should.  I'll go tackle those other ones after this
-> > > one
-> > > is taken care of, to show how the others should be handled as well.
+> > Subsystems should be able to create ids how ever they want to, and not
+> > rely on the code calling them to specify the names of the devices that
+> > way, otherwise the api is just too fragile.
 > > 
-> > There was a reason for introducing lookup solutions. The reason was
-> > that in board file there is no way to get a pointer to something that
-> > is going to be created much later in time. We don't do time travel
-> > ;-).
-> > 
-> > > > > Please just pass the real "phy" pointer around, that's what it
-> > > > > is
-> > > > > there
-> > > > > for.  Your "board binding" logic/code should be able to handle
-> > > > > this,
-> > > > > as
-> > > > > it somehow was going to do the same thing with a "name".
-> > > > 
-> > > > It's technically correct, but quality of this solution isn't
-> > > > really
-> > > > nice, because it's a layering violation (at least if I understood
-> > > > what
-> > > > you mean). This is because you need to have full definition of
-> > > > struct
-> > > > phy in board file and a structure that is used as private data in
-> > > > PHY
-> > > > core comes from platform code.
-> > > 
-> > > No, just a pointer, you don't need the "full" structure until you
-> > > get to some .c code that actually manipulates the phy itself, for
-> > > all other places, you are just dealing with a pointer and a
-> > > structure you never reference.
-> > > 
-> > > Does that make more sense?
-> > 
-> > Well, to the point that I think I now understood your suggestion.
-> > Unfortunately the suggestion alone isn't really something that can be
-> > done, considering how driver core and generic frameworks work.
+> > I think, that if you create a device, then just carry around the pointer
+> > to that device (in this case a phy) and pass it to whatever other code
+> > needs it.  No need to do lookups on "known names" or anything else,
+> > just normal pointers, with no problems for multiple devices, busses, or
+> > naming issues.
 > 
-> Ok, given that I seem to be totally confused as to exactly how the
-> board-specific frameworks work, I'll take your word for it.
+> PHY object is not a device, it is something that a device driver creates 
+> (one or more instances of) when it is being probed.
 
-Well, they are working in a way that keeps separation of layers, making 
-things clean. Platform code should not (well, there might exist some in 
-tree hacks, but this should not be propagated) used to exchange data 
-between drivers, but rather to specify board specific parameters for 
-generic drivers. If drivers need to cooperate, there must be a dedicated 
-interface for this, like the PHY framework Kishon is introducing here.
+But you created a 'struct device' for it, so I think of it as a "device"
+be it "virtual" or "real" :)
 
-Sure, with platform code you can do a lot of hacky things, for example you 
-can simply provide PHY callbacks inside platform_data, like it was being 
-done historically, but that's just ugly.
+> You don't have a clean way to export this PHY object to other driver,
+> other than keeping this PHY on a list inside PHY core with some
+> well-known ID (e.g. device name + consumer port name/index, like in
+> regulator core) and then to use this well-known ID inside consumer
+> driver as a lookup key passed to phy_get();
+> 
+> Actually I think for PHY case, exactly the same way as used for
+> regulators might be completely fine:
+> 
+> 1. Each PHY would have some kind of platform, non-unique name, that is 
+> just used to print some messages (like the platform/board name of a 
+> regulator).
+> 2. Each PHY would have an array of consumers. Consumer specifier would 
+> consist of consumer device name and consumer port name - just like in 
+> regulator subsystem.
+> 3. PHY driver receives an array of, let's say, phy_init_data inside its 
+> platform data that it would use to register its PHYs.
+> 4. Consumer drivers would have constant consumer port names and wouldn't 
+> receive any information about PHYs from platform code.
+> 
+> Code example:
+> 
+> [Board file]
+> 
+> static const struct phy_consumer_data usb_20_phy0_consumers[] = {
+> 	{
+> 		.devname = "foo-ehci",
+> 		.port = "usbphy",
+> 	},
+> };
+> 
+> static const struct phy_consumer_data usb_20_phy1_consumers[] = {
+> 	{
+> 		.devname = "foo-otg",
+> 		.port = "otgphy",
+> 	},
+> };
+> 
+> static const struct phy_init_data my_phys[] = {
+> 	{
+> 		.name = "USB 2.0 PHY 0",
+> 		.consumers = usb_20_phy0_consumers,
+> 		.num_consumers = ARRAY_SIZE(usb_20_phy0_consumers),
+> 	},
+> 	{
+> 		.name = "USB 2.0 PHY 1",
+> 		.consumers = usb_20_phy1_consumers,
+> 		.num_consumers = ARRAY_SIZE(usb_20_phy1_consumers),
+> 	},
+> 	{ }
+> };
+> 
+> static const struct platform_device usb_phy_pdev = {
+> 	.name = "foo-usbphy",
+> 	.id = -1,
+> 	.dev = {
+> 		.platform_data = my_phys,
+> 	},
+> };
+> 
+> [PHY driver]
+> 
+> static int foo_usbphy_probe(pdev)
+> {
+> 	struct foo_usbphy *foo;
+> 	struct phy_init_data *init_data = pdev->dev.platform_data;
+> 	/* ... */
+> 	// for each PHY in init_data {
+> 		phy_register(&foo->phy[i], &init_data[i]);
+> 	// }
+> 	/* ... */
+> }
+> 
+> [EHCI driver]
+> 
+> static int foo_ehci_probe(pdev)
+> {
+> 	struct phy *phy;
+> 	/* ... */
+> 	phy = phy_get(&pdev->dev, "usbphy");
+> 	/* ... */
+> }
+> 
+> [OTG driver]
+> 
+> static int foo_otg_probe(pdev)
+> {
+> 	struct phy *phy;
+> 	/* ... */
+> 	phy = phy_get(&pdev->dev, "otgphy");
+> 	/* ... */
+> }
 
-Anyway, board files should now be rather considered a historical thing. We 
-are moving towards full DT-based description on ARM systems and so board 
-files and related things, like name-based lookups, statically registered 
-platform devices and so one are going away. Device Tree handles such 
-provider-consumer links automatically using specifiers with phandles and 
-lookup by node + provider-specific specifier args, so all the problems 
-with binding things together just go away.
+That's not so bad, as long as you let the phy core use whatever name it
+wants for the device when it registers it with sysfs.  Use the name you
+are requesting as a "tag" or some such "hint" as to what the phy can be
+looked up by.
 
-> But again, I will not accept "lookup by name" type solutions, when the
-> "name" is dynamic and will change.  Because you are using a "name", you
-> can deal with a pointer, putting it _somewhere_ in your board-specific
-> data structures, as you are going to need to store it anyway (hint, you
-> had to get that "name" from somewhere, right?)
+Good luck handling duplicate "tags" :)
 
-Yes. This kind of artificial names passed to both provider and consumer 
-isn't really a good way of lookup. This is just an example of bad lookup 
-key, though. IMHO for a good example of lookup you should see regulator 
-framework.
+thanks,
 
-> And maybe the way that these "generic frameworks" are created is wrong,
-> given that you don't feel that a generic pointer can be passed to the
-> needed devices.  That seems like a huge problem, one that has already
-> been pointed out is causing issues with other subsystems.
-
-What problem are you talking about here? AFAIK frameworks using correctly 
-designed lookup do work fine for most, if not all, people. See the 
-regulator framework.
-
-> So maybe they need to be fixed?
-
-I don't really think anything is broken here, so there is nothing to fix.
-
-Best regards,
-Tomasz
-
+greg k-h
