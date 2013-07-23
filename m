@@ -1,13 +1,14 @@
 From: Mark Brown <broonie@kernel.org>
 Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Tue, 23 Jul 2013 18:34:54 +0100
-Message-ID: <20130723173454.GK9858@sirena.org.uk>
-References: <3419798.aorxYv8pdo@flatron>
- <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
+Date: Tue, 23 Jul 2013 18:44:56 +0100
+Message-ID: <20130723174456.GM9858@sirena.org.uk>
+References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
+ <51EE9EC0.6060905@ti.com> <20130723161846.GD2486@kroah.com>
+ <1446965.6APW5ZgLBW@amdc1227> <20130723173710.GB28284@kroah.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3310697387910759336=="
+Content-Type: multipart/mixed; boundary="===============4371443843795486829=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
+In-Reply-To: <20130723173710.GB28284@kroah.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,63 +18,65 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-fbdev@vger.kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, Tomasz Figa <tomasz.figa@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, Kishon Vijay Abraham I <kishon@ti.com>, grant.likely@linaro.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, Stephen Warren <swarren@wwwdotorg.org>, b.zolnierkie@samsung.com, Sascha Hauer <s.hauer@pengutronix.de>, linux-samsung-soc@vger.kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, Greg KH <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.park@samsung.com
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: linux-fbdev@vger.kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-doc@vger.kernel.org, tony@atomide.com, Tomasz Figa <t.figa@samsung.com>, nsekhar@ti.com, Tomasz Figa <tomasz.figa@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, Kishon Vijay Abraham I <kishon@ti.com>, Alan Stern <stern@rowland.harvard.edu>, grant.likely@linaro.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, Stephen Warren <swarren@wwwdotorg.org>, b.zolnierkie@samsung.com, Sascha Hauer <s.hauer@pengutronix.de>, linux-samsung-soc@vger.kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@
 List-Id: linux-omap@vger.kernel.org
 
 
---===============3310697387910759336==
+--===============4371443843795486829==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="i5oaXLJ4GqfCAla0"
+	protocol="application/pgp-signature"; boundary="HQbpMUFNRY4iYVZ3"
 Content-Disposition: inline
 
 
---i5oaXLJ4GqfCAla0
+--HQbpMUFNRY4iYVZ3
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jul 23, 2013 at 10:37:05AM -0400, Alan Stern wrote:
-> On Tue, 23 Jul 2013, Tomasz Figa wrote:
+On Tue, Jul 23, 2013 at 10:37:11AM -0700, Greg KH wrote:
+> On Tue, Jul 23, 2013 at 06:50:29PM +0200, Tomasz Figa wrote:
 
-> > > > Okay.  Are PHYs _always_ platform devices?
+> > I fully agree that a simple, single string will not scale even in some,=
+ not=20
+> > so uncommon cases, but there is already a lot of existing lookup soluti=
+ons=20
+> > over the kernel and so there is no point in introducing another one.
 
-> > > They can be i2c, spi or any other device types as well.
+> I'm trying to get _rid_ of lookup "solutions" and just use a real
+> pointer, as you should.  I'll go tackle those other ones after this one
+> is taken care of, to show how the others should be handled as well.
 
-> In those other cases, presumably there is no platform data associated
-> with the PHY since it isn't a platform device.  Then how does the
-> kernel know which controller is attached to the PHY?  Is this spelled
-> out in platform data associated with the PHY's i2c/spi/whatever parent?
+What are the problems you are seeing with doing things with lookups?
+Having to write platform data for everything gets old fast and the code
+duplication is pretty tedious...
 
-Platform data is nothing to do with the platform bus - it's board
-specific data (ie, data for the platform) and can be done with any
-device.
-
---i5oaXLJ4GqfCAla0
+--HQbpMUFNRY4iYVZ3
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.20 (GNU/Linux)
 
-iQIcBAEBAgAGBQJR7r67AAoJELSic+t+oim9mQgP/jtUcLJCh8K5fwvGamn4opPT
-Lmfss8MxAGPhgblBb24+aRD7dKntVOSYIQKc51TUXDfzjyUWqCfEo6U46ej6lfkD
-kiHlIHfy6YjqIeMmI08dX/OyzgJf9wg/Btf8f3niSmEaQ6GiyuOy+ok3VLJqoIae
-lTa+q8mGrWIqHb0+sP0rolztvR4dqHWg8DseVc6mH21kR+RTexwlJcBSJJcL8xmA
-IrUbMzt4/35JMeLrgf43T0cuKrP59hT+9Cl4oEVx92We+9Jrc1b4o2LyhlxyAkM/
-X7B86hl3ExmvYnPgHMR0N4PiRgsG1XIgFAPHrQQRvfieLm3irgLUnTc9RMIdzpS7
-jsgBzR8x14b33ZtGJ8fo9WMlfO9N3ELrLQY4a6g39DPtqxCzyYMbCy5+HVNbUxvP
-nnC9V/2Mi01G9AFK1sOocgSZjKjvXa3W5Dgc8KNXIa0d7M8Gy1j/ToGFdDT2Rk9F
-f5OjxvRZv8mSffV/vp3GbNbjOhfzB3jRQp3ltmh+ayhnZmfmraOCMiQvfFuacPaC
-/QqPWfXLBO+S8iUYsxY5SqhbgP7qbOcfPFzMy6YtDuuNKvNCLbMubhW8fgDX64pt
-/nVnmWZa48yb0dCJj0rY/lNNWvFRjb2D3YEhoSxSg7i0oZk8lPO0Ivid3VCZ3AXt
-It00egc7+yTUssZUPYJW
-=NMIj
+iQIcBAEBAgAGBQJR7sEVAAoJELSic+t+oim9SUcP/ieysuGxUWbhqKHNUQJMzk22
+s5EUHq9mXmZnv8GmwmuFlQZ3ntlWPuahPB8SUVgbwmCG8726u7z5qLSI+6RLPuTm
+n1cTd1UqtKMpg3LlFky+4HaLE844ZE6fGxdQetxxDUj6D3YhENnPyqVOM+4qI9eO
+9FpL2tZArEw1Ob0aFB8LJHL5t9zK2FFLyLqqa+LxctmgN71t/U8uiEXBwsqIxYVS
+0aVhjm5L9FnnUT3uSsu8dznALPGUG5rkdWDe9FzMzyUpV8d+mn7iHHc8h8+0HNQE
+EwtT9OrmBDORDVhq7QaRMejgKyCxTZKorqOB8Z1QmK5BBQZdsQE9Tp7nyFgHcqmC
++Dny2OE2rITlcpj5R/Q93Nv9r+0y/Uf4dOGymxzIMB/cbyAndxvN0EGOzKFvTU9+
+fudz+arQaUOB29jxTN7vlnW+OSExX6zJ9uERObfOG+im8vagKcNvRok88hJOpC+7
+4lEzcZzR5T4C2uvd7Se4YZylZeEW6TnWB9yMln9TW57u1DN5AeZuAimY2GEEc+AF
+1/tvRfkNARDQmR5bianOpNPgDCoO1g+MuPyDOZYWhT/5bfuhei7Y5iy8+522HF65
+CJLlQt9GMlSKcwjre8PS97jTcscmd6CXRxHqhYNowZlbhO+IT0zTXREHuDgCRvZi
+Q63fF0aCpz1Y9Qh3iDYL
+=K4vT
 -----END PGP SIGNATURE-----
 
---i5oaXLJ4GqfCAla0--
+--HQbpMUFNRY4iYVZ3--
 
 
---===============3310697387910759336==
+--===============4371443843795486829==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -84,4 +87,4 @@ linux-arm-kernel mailing list
 linux-arm-kernel@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---===============3310697387910759336==--
+--===============4371443843795486829==--
