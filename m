@@ -1,95 +1,71 @@
-From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Tue, 23 Jul 2013 09:35:51 -0700
-Message-ID: <20130723163551.GA12990@kroah.com>
-References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
- <51EE9EC0.6060905@ti.com>
- <20130723161846.GD2486@kroah.com>
- <51EEAF32.4040905@ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: [PATCH] dma: edma: add device_slave_caps() support
+Date: Tue, 23 Jul 2013 11:43:24 -0500
+Message-ID: <1374597804-3961-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <51EEAF32.4040905-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Tomasz Figa <tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Sylwester Nawrocki <sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, b.zolnierkie-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, Daniel
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>
+Cc: Balaji TK <balajitk@ti.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Rajendra Nayak <rnayak@ti.com>, Sekhar Nori <nsekhar@ti.com>, Koen Kooi <koen@beagleboard.org>, Rob Herring <rob.herring@calxeda.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Lokesh Vutla <lokeshvutla@ti.com>, Jason Kridner <jkridner@beagleboard.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Joel Fernandes <joelf@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Matt Porter <matt@ohporter.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 23, 2013 at 09:58:34PM +0530, Kishon Vijay Abraham I wrote:
-> Hi Greg,
-> 
-> On Tuesday 23 July 2013 09:48 PM, Greg KH wrote:
-> > On Tue, Jul 23, 2013 at 08:48:24PM +0530, Kishon Vijay Abraham I wrote:
-> >> Hi,
-> >>
-> >> On Tuesday 23 July 2013 08:07 PM, Alan Stern wrote:
-> >>> On Tue, 23 Jul 2013, Tomasz Figa wrote:
-> >>>
-> >>>> On Tuesday 23 of July 2013 09:29:32 Tomasz Figa wrote:
-> >>>>> Hi Alan,
-> >>>
-> >>> Thanks for helping to clarify the issues here.
-> >>>
-> >>>>>> Okay.  Are PHYs _always_ platform devices?
-> >>>>>
-> >>>>> They can be i2c, spi or any other device types as well.
-> >>>
-> >>> In those other cases, presumably there is no platform data associated
-> >>> with the PHY since it isn't a platform device.  Then how does the
-> >>> kernel know which controller is attached to the PHY?  Is this spelled
-> >>> out in platform data associated with the PHY's i2c/spi/whatever parent?
-> .
-> .
-> <snip>
-> .
-> .
-> >>
-> >> 	static struct phy *phy_lookup(void *priv) {
-> >> 		.
-> >> 		.
-> >> 		if (phy->priv==priv) //instead of string comparison, we'll use pointer
-> >> 			return phy;
-> >> 	}
-> >>
-> >> PHY driver should be like
-> >> 	phy_create((dev, ops, pdata->info);
-> >>
-> >> The controller driver would do
-> >> 	phy_get(dev, NULL, pdata->info);
-> >>
-> >> Now the PHY framework will check for a match of *priv* pointer and return the PHY.
-> >>
-> >> I think this should be possible?
-> > 
-> > Ick, no.  Why can't you just pass the pointer to the phy itself?  If you
-> > had a "priv" pointer to search from, then you could have just passed the
-> > original phy pointer in the first place, right?
-> > 
-> > The issue is that a string "name" is not going to scale at all, as it
-> > requires hard-coded information that will change over time (as the
-> > existing clock interface is already showing.)
-> > 
-> > Please just pass the real "phy" pointer around, that's what it is there
-> > for.  Your "board binding" logic/code should be able to handle this, as
-> > it somehow was going to do the same thing with a "name".
-> 
-> The problem is the board file won't have the *phy* pointer. *phy* pointer is
-> created at a much later time when the phy driver is probed.
+Implement device_slave_caps(). EDMA has a limited number of slots.
+Slave drivers such as omap_hsmmc will query the driver to make
+sure they don't pass in more than these many scatter segments.
 
-Ok, then save it then, as no one could have used it before then, right?
+Signed-off-by: Joel Fernandes <joelf@ti.com>
+---
+Vinod, or Dan- If this patch looks ok, can you please merge in for
+-rc cycle? This patch is required to fix MMC support on AM33xx. This
+patch is blocking 3 other patches which fix various MMC things. Thanks!
 
-All I don't want to see is any "get by name/void *" functions in the
-api, as that way is fragile and will break, as people have already
-shown.
+Notes:
+(1) this approach is temporary and only for -rc cycle to fix MMC on
+AM335x. It will be replace by the RFC series in future kernels:
+http://www.spinics.net/lists/arm-kernel/msg260094.html
 
-Just pass the real pointer around.  If that is somehow a problem, then
-something larger is a problem with how board devices are tied together :)
+(2) Patch depends Vinod's patch at:
+http://permalink.gmane.org/gmane.linux.kernel/1525112
 
-thanks,
+ drivers/dma/edma.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 7222cbe..81d5429 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -517,6 +517,14 @@ static void edma_issue_pending(struct dma_chan *chan)
+ 	spin_unlock_irqrestore(&echan->vchan.lock, flags);
+ }
+ 
++static inline int edma_slave_caps(struct dma_chan *chan,
++	struct dma_slave_caps *caps)
++{
++	caps->max_sg_nr = MAX_NR_SG;
++
++	return 0;
++}
++
+ static size_t edma_desc_size(struct edma_desc *edesc)
+ {
+ 	int i;
+@@ -594,6 +602,7 @@ static void edma_dma_init(struct edma_cc *ecc, struct dma_device *dma,
+ 	dma->device_issue_pending = edma_issue_pending;
+ 	dma->device_tx_status = edma_tx_status;
+ 	dma->device_control = edma_control;
++	dma->device_slave_caps = edma_slave_caps;
+ 	dma->dev = dev;
+ 
+ 	INIT_LIST_HEAD(&dma->channels);
+-- 
+1.7.9.5
