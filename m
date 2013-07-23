@@ -1,55 +1,52 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: OMAP2430 SDP boot broken after Linus' rmk merge
-Date: Tue, 23 Jul 2013 12:33:03 +0530
-Message-ID: <51EE2AA7.5060503@ti.com>
-References: <alpine.DEB.2.02.1307221801110.10891@utopia.booyaka.com> <20130722184325.GA21614@n2100.arm.linux.org.uk> <alpine.DEB.2.02.1307222005370.26048@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: Do not run dummy_flush_tlb_a15_erratum() on
+ non-Cortex-A15
+Date: Tue, 23 Jul 2013 07:04:29 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1307230659430.27017@utopia.booyaka.com>
+References: <1374556774-18795-1-git-send-email-festevam@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57697 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752355Ab3GWHDi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Jul 2013 03:03:38 -0400
-In-Reply-To: <alpine.DEB.2.02.1307222005370.26048@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:50418 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752355Ab3GWHEa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jul 2013 03:04:30 -0400
+In-Reply-To: <1374556774-18795-1-git-send-email-festevam@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Fabio Estevam <festevam@gmail.com>
+Cc: linux@arm.linux.org.uk, catalin.marinas@arm.com, rogerq@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Fabio Estevam <fabio.estevam@freescale.com>
 
-On Tuesday 23 July 2013 01:37 AM, Paul Walmsley wrote:
-> On Mon, 22 Jul 2013, Russell King - ARM Linux wrote:
-> 
->> Bear in mind that I'm almost at the point of not boot-testing anything
->> I sent to Linus because of the uselessness of the SDP4430 board now
->> that it's DT only - the only platform which boot-tests anything I send
->> is the 3430LDP board now.  If people care about that, maybe they can
->> assist with sorting out the issues I've raised on these lists about
->> the SDP4430 - and why the SDP4430 build remains disabled in my build
->> and boot system.
-> 
-> I understand completely...
-> 
->> Looking at the boot log, it just stops after uboot hands over control.
->> With the lack of output from the decompressor, it's not possible to
->> tell whether it's a decompressor problem or a kernel problem.
->>
->> I think you need to turn on the LL_DEBUG option, select the appropriate
->> output option, and also get the decompressor to use the kernel's debug
->> io functions to output it's stuff (I think the option is DEBUG_UNCOMPRESS).
-> 
-> OK, will dig deeper here at the next opportunity.
+On Tue, 23 Jul 2013, Fabio Estevam wrote:
 
-Paul, I can take a look at the 4430sdp issue. Are you also seeing this also on
-2430sdp as the subject says, or was that a typo?
+> From: Fabio Estevam <fabio.estevam@freescale.com>
+> 
+> Commit 93dc688 (ARM: 7684/1: errata: Workaround for Cortex-A15 erratum 798181 
+> (TLBI/DSB operations)) causes the following undefined instruction error on a
+> mx53 (Cortex-A8):
+> 
+> Internal error: Oops - undefined instruction: 0 [#1] SMP ARM
+> CPU: 0 PID: 275 Comm: modprobe Not tainted 3.11.0-rc2-next-20130722-00009-g9b0f371 #881
+> task: df46cc00 ti: df48e000 task.ti: df48e000
+> PC is at check_and_switch_context+0x17c/0x4d0
+> LR is at check_and_switch_context+0xdc/0x4d0
+> 
+> This problem happens because check_and_switch_context() calls 
+> dummy_flush_tlb_a15_erratum() without checking if we are really running on a 
+> Cortex-A15 or not. 
+> 
+> To avoid this issue, always check if we are running on a Cortex-A15 or not 
+> (via erratum_a15_798181()) inside dummy_flush_tlb_a15_erratum(), so that we do 
+> not need to keep doing the same check in all occurrences of 
+> dummy_flush_tlb_a15_erratum().
+> 
+> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
 
-> 
-> 
-> - Paul
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
+Nice work.  This fixes the v3.11-rc boot regression on most OMAP3/AM33xx 
+devices.
 
+Tested-by: Paul Walmsley <paul@pwsan.com> # for OMAP2,3,4,AM33xx
+
+
+
+- Paul
