@@ -1,70 +1,63 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 02/33] clk: omap: introduce clock driver
-Date: Tue, 23 Jul 2013 10:19:57 +0300
-Message-ID: <1374564028-11352-3-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 03/33] CLK: OMAP4: Add DPLL clock support
+Date: Tue, 23 Jul 2013 10:19:58 +0300
+Message-ID: <1374564028-11352-4-git-send-email-t-kristo@ti.com>
 References: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46690 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752670Ab3GWHWD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jul 2013 03:22:03 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58475 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753635Ab3GWHWF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Jul 2013 03:22:05 -0400
 In-Reply-To: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, tony@atomide.com, mturquette@linaro.org, nm@ti.com, rnayak@ti.com
 Cc: linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Parses OMAP clock data from DT and registers those clocks with the clock
-framework.  dt_omap_clk_init must be called early during boot for timer
-initialization so it is exported and called from the existing clock code
-instead of probing like a real driver. Based on initial work done by
-Mike Turquette.
+The OMAP clock driver now supports DPLL clock type. This patch also
+adds support for DT DPLL nodes.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Mike Turquette <mturquette@linaro.org>
 ---
- drivers/clk/Makefile      |    1 +
- drivers/clk/omap/Makefile |    1 +
- drivers/clk/omap/clk.c    |   39 +++++++++++++++++++++++++++++++++++++++
- include/linux/clk/omap.h  |   24 ++++++++++++++++++++++++
- 4 files changed, 65 insertions(+)
- create mode 100644 drivers/clk/omap/Makefile
- create mode 100644 drivers/clk/omap/clk.c
- create mode 100644 include/linux/clk/omap.h
+ drivers/clk/omap/Makefile |    2 +-
+ drivers/clk/omap/clk.c    |    1 +
+ drivers/clk/omap/dpll.c   |  295 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 297 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/clk/omap/dpll.c
 
-diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
-index 4038c2b..d3c3733 100644
---- a/drivers/clk/Makefile
-+++ b/drivers/clk/Makefile
-@@ -32,6 +32,7 @@ obj-$(CONFIG_ARCH_VT8500)	+= clk-vt8500.o
- obj-$(CONFIG_ARCH_ZYNQ)		+= zynq/
- obj-$(CONFIG_ARCH_TEGRA)	+= tegra/
- obj-$(CONFIG_PLAT_SAMSUNG)	+= samsung/
-+obj-$(CONFIG_ARCH_OMAP)		+= omap/
- 
- obj-$(CONFIG_X86)		+= x86/
- 
 diff --git a/drivers/clk/omap/Makefile b/drivers/clk/omap/Makefile
-new file mode 100644
-index 0000000..8195931
---- /dev/null
+index 8195931..4cad480 100644
+--- a/drivers/clk/omap/Makefile
 +++ b/drivers/clk/omap/Makefile
-@@ -0,0 +1 @@
-+obj-y					+= clk.o
+@@ -1 +1 @@
+-obj-y					+= clk.o
++obj-y					+= clk.o dpll.o
 diff --git a/drivers/clk/omap/clk.c b/drivers/clk/omap/clk.c
-new file mode 100644
-index 0000000..4bf1929
---- /dev/null
+index 4bf1929..1dafdaa 100644
+--- a/drivers/clk/omap/clk.c
 +++ b/drivers/clk/omap/clk.c
-@@ -0,0 +1,39 @@
+@@ -28,6 +28,7 @@ static const struct of_device_id clk_match[] = {
+ 		.data = of_fixed_factor_clk_setup, },
+ 	{.compatible = "divider-clock", .data = of_divider_clk_setup, },
+ 	{.compatible = "gate-clock", .data = of_gate_clk_setup, },
++	{.compatible = "ti,omap4-dpll-clock", .data = of_omap4_dpll_setup, },
+ 	{},
+ };
+ 
+diff --git a/drivers/clk/omap/dpll.c b/drivers/clk/omap/dpll.c
+new file mode 100644
+index 0000000..66e82be
+--- /dev/null
++++ b/drivers/clk/omap/dpll.c
+@@ -0,0 +1,295 @@
 +/*
-+ * OMAP PRCM clock driver
++ * OMAP DPLL clock support
 + *
 + * Copyright (C) 2013 Texas Instruments, Inc.
-+ *     Tero Kristo <t-kristo@ti.com>
-+ *     Mike Turquette <mturquette@linaro.org>
++ *
++ * Tero Kristo <t-kristo@ti.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -77,56 +70,282 @@ index 0000000..4bf1929
 + */
 +
 +#include <linux/clk-provider.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/io.h>
++#include <linux/err.h>
++#include <linux/string.h>
++#include <linux/log2.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
 +#include <linux/clk/omap.h>
-+#include <linux/kernel.h>
-+#include <linux/of_device.h>
 +
-+/* FIXME - should the OMAP PRCM clock driver match generic types? */
-+static const struct of_device_id clk_match[] = {
-+	{.compatible = "fixed-clock", .data = of_fixed_clk_setup, },
-+	{.compatible = "mux-clock", .data = of_mux_clk_setup, },
-+	{.compatible = "fixed-factor-clock",
-+		.data = of_fixed_factor_clk_setup, },
-+	{.compatible = "divider-clock", .data = of_divider_clk_setup, },
-+	{.compatible = "gate-clock", .data = of_gate_clk_setup, },
-+	{},
++static const struct clk_ops dpll_m4xen_ck_ops = {
++	.enable		= &omap3_noncore_dpll_enable,
++	.disable	= &omap3_noncore_dpll_disable,
++	.recalc_rate	= &omap4_dpll_regm4xen_recalc,
++	.round_rate	= &omap4_dpll_regm4xen_round_rate,
++	.set_rate	= &omap3_noncore_dpll_set_rate,
++	.get_parent	= &omap2_init_dpll_parent,
 +};
 +
-+/* FIXME - need to initialize early; skip real driver registration & probe */
-+int __init dt_omap_clk_init(void)
++static const struct clk_ops dpll_core_ck_ops = {
++	.recalc_rate	= &omap3_dpll_recalc,
++	.get_parent	= &omap2_init_dpll_parent,
++};
++
++static const struct clk_ops dpll_ck_ops = {
++	.enable		= &omap3_noncore_dpll_enable,
++	.disable	= &omap3_noncore_dpll_disable,
++	.recalc_rate	= &omap3_dpll_recalc,
++	.round_rate	= &omap2_dpll_round_rate,
++	.set_rate	= &omap3_noncore_dpll_set_rate,
++	.get_parent	= &omap2_init_dpll_parent,
++	.init		= &omap2_init_clk_clkdm,
++};
++
++static const struct clk_ops dpll_x2_ck_ops = {
++	.recalc_rate	= &omap3_clkoutx2_recalc,
++};
++
++struct clk *omap_clk_register_dpll(struct device *dev, const char *name,
++		const char **parent_names, int num_parents, unsigned long flags,
++		struct dpll_data *dpll_data, const char *clkdm_name,
++		const struct clk_ops *ops)
 +{
-+	of_clk_init(clk_match);
-+	return 0;
++	struct clk *clk;
++	struct clk_init_data init;
++	struct clk_hw_omap *clk_hw;
++
++	/* allocate the divider */
++	clk_hw = kzalloc(sizeof(struct clk_hw_omap), GFP_KERNEL);
++	if (!clk_hw) {
++		pr_err("%s: could not allocate clk_hw_omap\n", __func__);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	clk_hw->dpll_data = dpll_data;
++	clk_hw->ops = &clkhwops_omap3_dpll;
++	clk_hw->clkdm_name = clkdm_name;
++	clk_hw->hw.init = &init;
++
++	init.name = name;
++	init.ops = ops;
++	init.flags = flags;
++	init.parent_names = parent_names;
++	init.num_parents = num_parents;
++
++	/* register the clock */
++	clk = clk_register(dev, &clk_hw->hw);
++
++	if (IS_ERR(clk))
++		kfree(clk_hw);
++	else
++		omap2_init_clk_hw_omap_clocks(clk);
++
++	return clk;
 +}
-diff --git a/include/linux/clk/omap.h b/include/linux/clk/omap.h
-new file mode 100644
-index 0000000..647f02f
---- /dev/null
-+++ b/include/linux/clk/omap.h
-@@ -0,0 +1,24 @@
-+/*
-+ * Copyright (C) 2013 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++
++struct clk *omap_clk_register_dpll_x2(struct device *dev, const char *name,
++		const char *parent_name, void __iomem *reg,
++		const struct clk_ops *ops)
++{
++	struct clk *clk;
++	struct clk_init_data init;
++	struct clk_hw_omap *clk_hw;
++
++	if (!parent_name) {
++		pr_err("%s: dpll_x2 must have parent\n", __func__);
++		return ERR_PTR(-EINVAL);
++	}
++
++	clk_hw = kzalloc(sizeof(struct clk_hw_omap), GFP_KERNEL);
++	if (!clk_hw) {
++		pr_err("%s: could not allocate clk_hw_omap\n", __func__);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	clk_hw->ops = &clkhwops_omap4_dpllmx;
++	clk_hw->clksel_reg = reg;
++	clk_hw->hw.init = &init;
++
++	init.name = name;
++	init.ops = ops;
++	init.parent_names = &parent_name;
++	init.num_parents = 1;
++
++	/* register the clock */
++	clk = clk_register(dev, &clk_hw->hw);
++
++	if (IS_ERR(clk))
++		kfree(clk_hw);
++	else
++		omap2_init_clk_hw_omap_clocks(clk);
++
++	return clk;
++}
++
++#ifdef CONFIG_OF
++
++/**
++ * of_omap_dpll_setup() - Setup function for OMAP DPLL clocks
 + */
++static void __init of_omap_dpll_setup(struct device_node *node,
++					const struct clk_ops *ops)
++{
++	struct clk *clk;
++	const char *clk_name = node->name;
++	int num_parents;
++	const char **parent_names;
++	const char *clkdm_name = NULL;
++	struct of_phandle_args clkspec;
++	u8 dpll_flags = 0;
++	struct dpll_data *dd;
++	u32 idlest_mask = 0x1;
++	u32 enable_mask = 0x7;
++	u32 autoidle_mask = 0x7;
++	u32 mult_mask = 0x7ff << 8;
++	u32 div1_mask = 0x7f;
++	u32 max_multiplier = 2047;
++	u32 max_divider = 128;
++	u32 min_divider = 1;
++	int i;
 +
-+#ifndef __LINUX_CLK_OMAP_H_
-+#define __LINUX_CLK_OMAP_H_
++	dd = kzalloc(sizeof(struct dpll_data), GFP_KERNEL);
++	if (!dd) {
++		pr_err("%s: could not allocate dpll_data\n", __func__);
++		return;
++	}
 +
-+int __init dt_omap_clk_init(void);
++	of_property_read_string(node, "clock-output-names", &clk_name);
 +
++	num_parents = of_clk_get_parent_count(node);
++	if (num_parents < 1) {
++		pr_err("%s: omap dpll %s must have parent(s)\n",
++			__func__, node->name);
++		goto cleanup;
++	}
++
++	parent_names = kzalloc(sizeof(char *) * num_parents, GFP_KERNEL);
++
++	for (i = 0; i < num_parents; i++)
++		parent_names[i] = of_clk_get_parent_name(node, i);
++
++	of_property_read_u32(node, "ti,idlest-mask", &idlest_mask);
++
++	of_property_read_u32(node, "ti,enable-mask", &enable_mask);
++
++	of_property_read_u32(node, "ti,autoidle-mask", &autoidle_mask);
++
++	clkspec.np = of_parse_phandle(node, "ti,clk-ref", 0);
++	dd->clk_ref = of_clk_get_from_provider(&clkspec);
++	if (!dd->clk_ref) {
++		pr_err("%s: ti,clk-ref for %s not found\n", __func__,
++			clk_name);
++		goto cleanup;
++	}
++
++	clkspec.np = of_parse_phandle(node, "ti,clk-bypass", 0);
++	dd->clk_bypass = of_clk_get_from_provider(&clkspec);
++	if (!dd->clk_bypass) {
++		pr_err("%s: ti,clk-bypass for %s not found\n", __func__,
++			clk_name);
++		goto cleanup;
++	}
++
++	of_property_read_string(node, "ti,clkdm-name", &clkdm_name);
++
++	dd->control_reg = of_iomap(node, 0);
++	dd->idlest_reg = of_iomap(node, 1);
++	dd->autoidle_reg = of_iomap(node, 2);
++	dd->mult_div1_reg = of_iomap(node, 3);
++
++	dd->idlest_mask = idlest_mask;
++	dd->enable_mask = enable_mask;
++	dd->autoidle_mask = autoidle_mask;
++
++	dd->modes = 0xa0;
++
++	if (of_property_read_bool(node, "ti,dpll-j-type")) {
++		dd->sddiv_mask = 0xff000000;
++		mult_mask = 0xfff << 8;
++		div1_mask = 0xff;
++		max_multiplier = 4095;
++		max_divider = 256;
++	}
++
++	if (of_property_read_bool(node, "ti,dpll-regm4xen")) {
++		dd->m4xen_mask = 0x800;
++		dd->lpmode_mask = 1 << 10;
++	}
++
++	dd->mult_mask = mult_mask;
++	dd->div1_mask = div1_mask;
++	dd->max_multiplier = max_multiplier;
++	dd->max_divider = max_divider;
++	dd->min_divider = min_divider;
++
++	clk = omap_clk_register_dpll(NULL, clk_name, parent_names,
++				num_parents, dpll_flags, dd,
++				clkdm_name, ops);
++
++	if (!IS_ERR(clk))
++		of_clk_add_provider(node, of_clk_src_simple_get, clk);
++	return;
++
++cleanup:
++	kfree(dd);
++	return;
++}
++
++static void __init of_omap_dpll_x2_setup(struct device_node *node)
++{
++	struct clk *clk;
++	const char *clk_name = node->name;
++	void __iomem *reg;
++	const char *parent_name;
++
++	of_property_read_string(node, "clock-output-names", &clk_name);
++
++	parent_name = of_clk_get_parent_name(node, 0);
++
++	reg = of_iomap(node, 0);
++
++	clk = omap_clk_register_dpll_x2(NULL, clk_name, parent_name,
++				reg, &dpll_x2_ck_ops);
++
++	if (!IS_ERR(clk))
++		of_clk_add_provider(node, of_clk_src_simple_get, clk);
++}
++
++__init void of_omap3_dpll_setup(struct device_node *node)
++{
++	/* XXX: to be done */
++}
++EXPORT_SYMBOL_GPL(of_omap3_dpll_setup);
++CLK_OF_DECLARE(omap3_dpll_clock, "ti,omap3-dpll-clock", of_omap3_dpll_setup);
++
++__init void of_omap4_dpll_setup(struct device_node *node)
++{
++	const struct clk_ops *ops;
++
++	ops = &dpll_ck_ops;
++
++	if (of_property_read_bool(node, "ti,dpll-regm4xen"))
++		ops = &dpll_m4xen_ck_ops;
++
++	if (of_property_read_bool(node, "ti,dpll-core"))
++		ops = &dpll_core_ck_ops;
++
++	if (of_property_read_bool(node, "ti,dpll-clk-x2")) {
++		of_omap_dpll_x2_setup(node);
++		return;
++	}
++
++	of_omap_dpll_setup(node, ops);
++}
++EXPORT_SYMBOL_GPL(of_omap4_dpll_setup);
++CLK_OF_DECLARE(omap4_dpll_clock, "ti,omap4-dpll-clock", of_omap4_dpll_setup);
 +#endif
 -- 
 1.7.9.5
