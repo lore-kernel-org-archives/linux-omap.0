@@ -1,66 +1,128 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH 1/1] drivers: net: cpsw: add support to show hw stats
- via ethtool
-Date: Tue, 23 Jul 2013 14:21:56 +0530
-Message-ID: <51EE442C.9040805@ti.com>
-References: <1374482231-8201-1-git-send-email-mugunthanvnm@ti.com> <1374512741.1635.12.camel@bwh-desktop.uk.level5networks.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: OMAP2430 SDP boot broken after Linus' rmk merge
+Date: Tue, 23 Jul 2013 14:35:17 +0530
+Message-ID: <51EE474D.5070804@ti.com>
+References: <alpine.DEB.2.02.1307221801110.10891@utopia.booyaka.com> <20130722184325.GA21614@n2100.arm.linux.org.uk> <alpine.DEB.2.02.1307222005370.26048@utopia.booyaka.com> <51EE2AA7.5060503@ti.com> <alpine.DEB.2.02.1307230705000.27017@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1374512741.1635.12.camel@bwh-desktop.uk.level5networks.com>
-Sender: netdev-owner@vger.kernel.org
-To: Ben Hutchings <bhutchings@solarflare.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:53258 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752241Ab3GWJFw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Jul 2013 05:05:52 -0400
+In-Reply-To: <alpine.DEB.2.02.1307230705000.27017@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 7/22/2013 10:35 PM, Ben Hutchings wrote:
-> On Mon, 2013-07-22 at 14:07 +0530, Mugunthan V N wrote:
->> Add support to show CPSW hardware statistics to user via ethtool
->> so user can find if there were any error reported by hardware or
->> the system is over loaded duing high data rate transfer.
+On Tuesday 23 July 2013 12:37 PM, Paul Walmsley wrote:
+> Hi Rajendra,
+> 
+> On Tue, 23 Jul 2013, Rajendra Nayak wrote:
+> 
+>> On Tuesday 23 July 2013 01:37 AM, Paul Walmsley wrote:
+>>> On Mon, 22 Jul 2013, Russell King - ARM Linux wrote:
+>>>
+>>>> Bear in mind that I'm almost at the point of not boot-testing anything
+>>>> I sent to Linus because of the uselessness of the SDP4430 board now
+>>>> that it's DT only - the only platform which boot-tests anything I send
+>>>> is the 3430LDP board now.  If people care about that, maybe they can
+>>>> assist with sorting out the issues I've raised on these lists about
+>>>> the SDP4430 - and why the SDP4430 build remains disabled in my build
+>>>> and boot system.
+>>>
+>>> I understand completely...
+>>>
+>>>> Looking at the boot log, it just stops after uboot hands over control.
+>>>> With the lack of output from the decompressor, it's not possible to
+>>>> tell whether it's a decompressor problem or a kernel problem.
+>>>>
+>>>> I think you need to turn on the LL_DEBUG option, select the appropriate
+>>>> output option, and also get the decompressor to use the kernel's debug
+>>>> io functions to output it's stuff (I think the option is DEBUG_UNCOMPRESS).
+>>>
+>>> OK, will dig deeper here at the next opportunity.
 >>
->> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
->> ---
->>  drivers/net/ethernet/ti/cpsw.c | 202 ++++++++++++++++++++++++++++++++++++++++-
->>  1 file changed, 200 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
->> index 05a1674..f344c05 100644
->> --- a/drivers/net/ethernet/ti/cpsw.c
->> +++ b/drivers/net/ethernet/ti/cpsw.c
-> [...]
->> +static const struct cpsw_stats cpsw_gstrings_stats[] = {
->> +	{ "Good Rx Frames", CPSW_STAT(rxgoodframes) },
->> +	{ "Broadcast Rx Frames", CPSW_STAT(rxbroadcastframes) },
->> +	{ "Multicast Rx Frames", CPSW_STAT(rxmulticastframes) },
->> +	{ "Pause Rx Frames", CPSW_STAT(rxpauseframes) },
->> +	{ "Rx CRC Errors", CPSW_STAT(rxcrcerrors) },
-> [...]
->
-> Statistic names usually don't contain spaces, though I can accept this
-> is probably more readable.
->
->> +static void cpsw_get_ethtool_stats(struct net_device *ndev,
->> +				    struct ethtool_stats *stats, u64 *data)
->> +{
->> +	struct cpsw_priv *priv = netdev_priv(ndev);
->> +	struct cpdma_chan_stats rx_stats;
->> +	struct cpdma_chan_stats tx_stats;
->> +	u32 val;
->> +	u8 *p;
->> +	int i;
->> +
->> +	/* Collect Davinci CPDMA stats for Rx and Tx Channel */
->> +	cpdma_chan_get_stats(priv->rxch, &rx_stats);
->> +	cpdma_chan_get_stats(priv->txch, &tx_stats);
->> +
->> +	for (i = 0; i < CPSW_STATS_LEN; i++) {
->> +		switch (cpsw_gstrings_stats[i].type) {
->> +		case CPSW_STATS:
->> +			val = readl((u8 *)priv->hw_stats +
-> Shouldn't this cast use 'u8 __iomem *'?
-Yes, will change this in v2 and submit it.
+>> Paul, I can take a look at the 4430sdp issue. Are you also seeing this also on
+>> 2430sdp as the subject says, or was that a typo?
+> 
+> Thanks for the offer.  The issue that I'm seeing is on the 2430SDP in my 
+> testbed.
+> 
+> I don't have a 4430SDP, so you might consider touching base with rmk for 
+> that one.
 
-Regards
-Mugunthan V N
+So I tried commit 'fb2af00' on the 4430SDP and it did boot fine, though I see
+the below errors. (I am using the mainline bootloaders which do not lock any
+additional DPLLs like USB)
+
+[    0.000000] clock: dpll_usb_ck failed transition to 'locked'
+[    0.000000] Division by zero in kernel.
+[    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+[    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+[    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+[    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+[    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+[    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+[    0.000000] Division by zero in kernel.
+[    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+[    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+[    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+[    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+[    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+[    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+[    0.000000] Division by zero in kernel.
+[    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+[    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+[    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+[    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+[    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+[    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+[    0.000000] Division by zero in kernel.
+[    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+[    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+[    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+[    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+[    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+[    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+[    0.000000] Division by zero in kernel.
+[    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+[    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+[    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+[    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+[    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+[    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+[    0.000000] Division by zero in kernel.
+[    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+[    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+[    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+[    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+[    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+[    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+[    0.000000] clock: trace_clk_div_ck: could not find divisor for target rate 0 for parent pmd_trace_clk_mux_ck
+[    0.000000] Division by zero in kernel.
+[    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+[    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+[    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+[    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+[    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+[    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+[    0.000000] Division by zero in kernel.
+[    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+[    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+[    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+[    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+[    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+[    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+[    0.000000] clock: dpll_per_m7x2_ck: could not find divisor for target rate 0 for parent dpll_per_x2_ck
+[    0.000000] clock: dpll_per_m6x2_ck: could not find divisor for target rate 0 for parent dpll_per_x2_ck
+[    0.000000] clock: dpll_per_m5x2_ck: could not find divisor for target rate 0 for parent dpll_per_x2_ck
+[    0.000000] clock: dpll_per_m4x2_ck: could not find divisor for target rate 0 for parent dpll_per_x2_ck
+
+> 
+> 
+> - Paul
+> 
+
