@@ -1,40 +1,34 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] omap fixes against v3.11-rc1
-Date: Mon, 22 Jul 2013 19:54:11 -0700
-Message-ID: <20130723025411.GD15637@quad.lixom.net>
-References: <20130719104538.GE7656@atomide.com>
+From: Fabio Estevam <festevam@gmail.com>
+Subject: Re: linux-3.11-rc1: Internal error: Oops - undefined instruction: 0
+ [#1] SMP ARM on OMAP3/AM335x
+Date: Tue, 23 Jul 2013 01:52:55 -0300
+Message-ID: <CAOMZO5AAz+O=Xtajc8uojMniEkzvXk-kT6QAUtMXTnmiqbS63g@mail.gmail.com>
+References: <51ECFBAC.7090900@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f50.google.com ([209.85.160.50]:54237 "EHLO
-	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754565Ab3GWCyJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 22:54:09 -0400
-Received: by mail-pb0-f50.google.com with SMTP id wz7so7825041pbc.37
-        for <linux-omap@vger.kernel.org>; Mon, 22 Jul 2013 19:54:08 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20130719104538.GE7656@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51ECFBAC.7090900@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: catalin.marinas@arm.com, Paul Walmsley <paul@pwsan.com>, Russell King <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Mesfin, Yebio" <ymesfin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Fri, Jul 19, 2013 at 03:45:38AM -0700, Tony Lindgren wrote:
-> 
-> The following changes since commit ad81f0545ef01ea651886dddac4bef6cec930092:
-> 
->   Linux 3.11-rc1 (2013-07-14 15:18:27 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/fixes-against-rc1
-> 
-> for you to fetch changes up to 7956c487e407bdbf7f8c8a570fd5d4d089973692:
-> 
->   Merge branch 'omap-for-v3.11/dt-fixes' into omap-for-v3.11/fixes (2013-07-19 03:28:35 -0700)
+Hi Roger,
 
-Pulled, thanks. I've dropped the multi_v7 defconfig update I had applied
-manually since it came in through here too.
+On Mon, Jul 22, 2013 at 6:30 AM, Roger Quadros <rogerq@ti.com> wrote:
+> Hi,
+>
+> I observe the following problem on booting v3.11-rc1 on OMAP3 beagle board.
+>
+> [    5.888946] Internal error: Oops - undefined instruction: 0 [#1] SMP ARM
+> [    5.896057] Modules linked in:
+> [    5.899322] CPU: 0 PID: 9 Comm: rcu_sched Not tainted 3.11.0-rc2-00001-g1ea701a #876
+> [    5.907501] task: ce0720c0 ti: ce07a000 task.ti: ce07a000
+> [    5.913208] PC is at check_and_switch_context+0x130/0x4dc
+> [    5.918914] LR is at check_and_switch_context+0xd8/0x4dc
 
+Got the same issue on a mx53 and prepared a fix. Will submit it shortly.
 
--Olof
+Regards,
+
+Fabio Estevam
