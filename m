@@ -1,14 +1,14 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 05/33] CLK: omap: add DT duplicate clock registration mechanism
-Date: Tue, 23 Jul 2013 10:20:00 +0300
-Message-ID: <1374564028-11352-6-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 06/33] CLK: omap: add autoidle support
+Date: Tue, 23 Jul 2013 10:20:01 +0300
+Message-ID: <1374564028-11352-7-git-send-email-t-kristo@ti.com>
 References: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48622 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33456 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753722Ab3GWHWJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753730Ab3GWHWJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 23 Jul 2013 03:22:09 -0400
 In-Reply-To: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,108 +16,215 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, tony@atomide.com, mturquette@linaro.org, nm@ti.com, rnayak@ti.com
 Cc: linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Some devices require their clocks to be available with a specific
-dev-id con-id mapping. With DT, the clocks can be found by default
-only with their name, or alternatively through the device node of
-the consumer. With drivers, that don't support DT fully yet, add
-mechanism to register specific clock names.
+OMAP clk driver now routes some of the basic clocks through own
+registration routine to allow autoidle support. This routine just
+checks a couple of device node properties and adds autoidle support
+if required, and just passes the registration forward to basic clocks.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/omap/clk.c   |   39 +++++++++++++++++++++++++++++++++++++++
- include/linux/clk/omap.h |   17 +++++++++++++++++
- 2 files changed, 56 insertions(+)
+ arch/arm/mach-omap2/clock.c |    6 ++
+ drivers/clk/omap/Makefile   |    2 +-
+ drivers/clk/omap/autoidle.c |  130 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/clk/omap/clk.c      |    4 +-
+ include/linux/clk/omap.h    |    4 ++
+ 5 files changed, 143 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/clk/omap/autoidle.c
 
-diff --git a/drivers/clk/omap/clk.c b/drivers/clk/omap/clk.c
-index 1dafdaa..cd31a81 100644
---- a/drivers/clk/omap/clk.c
-+++ b/drivers/clk/omap/clk.c
-@@ -32,6 +32,45 @@ static const struct of_device_id clk_match[] = {
- 	{},
- };
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 0c38ca9..669d4c4 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -520,6 +520,9 @@ int omap2_clk_enable_autoidle_all(void)
+ 	list_for_each_entry(c, &clk_hw_omap_clocks, node)
+ 		if (c->ops && c->ops->allow_idle)
+ 			c->ops->allow_idle(c);
++
++	of_omap_clk_allow_autoidle_all();
++
+ 	return 0;
+ }
  
-+ /**
-+ * omap_dt_clocks_register - register DT duplicate clocks during boot
-+ * @oclks: list of clocks to register
-+ * @cnt: number of clocks
+@@ -539,6 +542,9 @@ int omap2_clk_disable_autoidle_all(void)
+ 	list_for_each_entry(c, &clk_hw_omap_clocks, node)
+ 		if (c->ops && c->ops->deny_idle)
+ 			c->ops->deny_idle(c);
++
++	of_omap_clk_deny_autoidle_all();
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/clk/omap/Makefile b/drivers/clk/omap/Makefile
+index 4cad480..ca56700 100644
+--- a/drivers/clk/omap/Makefile
++++ b/drivers/clk/omap/Makefile
+@@ -1 +1 @@
+-obj-y					+= clk.o dpll.o
++obj-y					+= clk.o dpll.o autoidle.o
+diff --git a/drivers/clk/omap/autoidle.c b/drivers/clk/omap/autoidle.c
+new file mode 100644
+index 0000000..6424cb2
+--- /dev/null
++++ b/drivers/clk/omap/autoidle.c
+@@ -0,0 +1,130 @@
++/*
++ * OMAP clock autoidle support
 + *
-+ * Register duplicate or non-standard DT clock entries during boot. By
-+ * default, DT clocks are found based on their node name. If any
-+ * additional con-id / dev-id -> clock mapping is required, use this
-+ * function to list these.
++ * Copyright (C) 2013 Texas Instruments, Inc.
++ *
++ * Tero Kristo <t-kristo@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
 + */
-+void __init omap_dt_clocks_register(struct omap_dt_clk oclks[], int cnt)
-+{
-+	struct omap_dt_clk *c;
-+	struct device_node *n;
-+	struct clk *clk;
-+	struct of_phandle_args clkspec;
 +
-+	for (c = oclks; c < oclks + cnt; c++) {
-+		n = of_find_node_by_name(NULL, c->node_name);
++#include <linux/clk-provider.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/io.h>
++#include <linux/err.h>
++#include <linux/string.h>
++#include <linux/log2.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
 +
-+		if (!n) {
-+			pr_err("%s: %s not found!\n", __func__, c->node_name);
-+			continue;
-+		}
-+
-+		clkspec.np = n;
-+
-+		clk = of_clk_get_from_provider(&clkspec);
-+
-+		if (!clk) {
-+			pr_err("%s: %s has no clock!\n", __func__,
-+				c->node_name);
-+			continue;
-+		}
-+		c->lk.clk = clk;
-+		clkdev_add(&c->lk);
-+	}
-+}
-+
- /* FIXME - need to initialize early; skip real driver registration & probe */
- int __init dt_omap_clk_init(void)
- {
-diff --git a/include/linux/clk/omap.h b/include/linux/clk/omap.h
-index cba892a..c39e775 100644
---- a/include/linux/clk/omap.h
-+++ b/include/linux/clk/omap.h
-@@ -19,6 +19,8 @@
- #ifndef __LINUX_CLK_OMAP_H_
- #define __LINUX_CLK_OMAP_H_
- 
-+#include <linux/clkdev.h>
-+
- /**
-  * struct dpll_data - DPLL registers and integration data
-  * @mult_div1_reg: register containing the DPLL M and N bitfields
-@@ -146,6 +148,20 @@ struct clk_hw_omap_ops {
- 	void			(*deny_idle)(struct clk_hw_omap *oclk);
- };
- 
-+struct omap_dt_clk {
-+	struct clk_lookup		lk;
-+	const char			*node_name;
++#ifdef CONFIG_OF
++struct clk_omap_autoidle {
++	void __iomem		*reg;
++	u8			shift;
++	u8			flags;
++	const char		*name;
++	struct list_head	node;
 +};
 +
-+#define DT_CLK(dev, con, name)		\
-+	{				\
-+		.lk = {			\
-+			.dev_id = dev,	\
-+			.con_id = con,	\
-+		},			\
-+		.node_name = name,	\
++#define AUTOIDLE_LOW		0x1
++
++static LIST_HEAD(autoidle_clks);
++
++static void omap_allow_autoidle(struct clk_omap_autoidle *clk)
++{
++	u32 val;
++
++	val = readl(clk->reg);
++
++	if (clk->flags & AUTOIDLE_LOW)
++		val &= ~(1 << clk->shift);
++	else
++		val |= (1 << clk->shift);
++
++	writel(val, clk->reg);
++}
++
++static void omap_deny_autoidle(struct clk_omap_autoidle *clk)
++{
++	u32 val;
++
++	val = readl(clk->reg);
++
++	if (clk->flags & AUTOIDLE_LOW)
++		val |= (1 << clk->shift);
++	else
++		val &= ~(1 << clk->shift);
++
++	writel(val, clk->reg);
++}
++
++void of_omap_clk_allow_autoidle_all(void)
++{
++	struct clk_omap_autoidle *c;
++
++	list_for_each_entry(c, &autoidle_clks, node)
++		omap_allow_autoidle(c);
++}
++
++void of_omap_clk_deny_autoidle_all(void)
++{
++	struct clk_omap_autoidle *c;
++
++	list_for_each_entry(c, &autoidle_clks, node)
++		omap_deny_autoidle(c);
++}
++
++static __init void of_omap_autoidle_setup(struct device_node *node)
++{
++	u32 shift;
++	void __iomem *reg;
++	struct clk_omap_autoidle *clk;
++
++	if (of_property_read_u32(node, "ti,autoidle-shift", &shift))
++		return;
++
++	reg = of_iomap(node, 0);
++
++	clk = kzalloc(sizeof(struct clk_omap_autoidle), GFP_KERNEL);
++
++	if (!clk) {
++		pr_err("%s: kzalloc failed\n", __func__);
++		return;
 +	}
 +
- void omap2_init_clk_hw_omap_clocks(struct clk *clk);
- int omap3_noncore_dpll_enable(struct clk_hw *hw);
- void omap3_noncore_dpll_disable(struct clk_hw *hw);
-@@ -174,6 +190,7 @@ extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
- 
- /* DT functions */
++	clk->shift = shift;
++	clk->name = node->name;
++	clk->reg = reg;
++
++	if (of_property_read_bool(node, "ti,autoidle-low"))
++		clk->flags |= AUTOIDLE_LOW;
++
++	list_add(&clk->node, &autoidle_clks);
++}
++
++void __init of_omap_divider_setup(struct device_node *node)
++{
++	of_divider_clk_setup(node);
++	of_omap_autoidle_setup(node);
++}
++EXPORT_SYMBOL_GPL(of_omap_divider_setup);
++CLK_OF_DECLARE(omap_autoidle_clock, "divider-clock", of_omap_divider_setup);
++
++void __init of_omap_fixed_factor_setup(struct device_node *node)
++{
++	of_fixed_factor_clk_setup(node);
++	of_omap_autoidle_setup(node);
++}
++EXPORT_SYMBOL_GPL(of_omap_fixed_factor_setup);
++CLK_OF_DECLARE(omap_fixed_factor_clock, "fixed-factor-clock",
++	of_omap_fixed_factor_setup);
++
++#endif
+diff --git a/drivers/clk/omap/clk.c b/drivers/clk/omap/clk.c
+index cd31a81..c149097 100644
+--- a/drivers/clk/omap/clk.c
++++ b/drivers/clk/omap/clk.c
+@@ -25,8 +25,8 @@ static const struct of_device_id clk_match[] = {
+ 	{.compatible = "fixed-clock", .data = of_fixed_clk_setup, },
+ 	{.compatible = "mux-clock", .data = of_mux_clk_setup, },
+ 	{.compatible = "fixed-factor-clock",
+-		.data = of_fixed_factor_clk_setup, },
+-	{.compatible = "divider-clock", .data = of_divider_clk_setup, },
++		.data = of_omap_fixed_factor_setup, },
++	{.compatible = "divider-clock", .data = of_omap_divider_setup, },
+ 	{.compatible = "gate-clock", .data = of_gate_clk_setup, },
+ 	{.compatible = "ti,omap4-dpll-clock", .data = of_omap4_dpll_setup, },
+ 	{},
+diff --git a/include/linux/clk/omap.h b/include/linux/clk/omap.h
+index c39e775..904bdad 100644
+--- a/include/linux/clk/omap.h
++++ b/include/linux/clk/omap.h
+@@ -192,5 +192,9 @@ extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
  int dt_omap_clk_init(void);
-+extern void omap_dt_clocks_register(struct omap_dt_clk *oclks, int cnt);
+ extern void omap_dt_clocks_register(struct omap_dt_clk *oclks, int cnt);
  void of_omap4_dpll_setup(struct device_node *node);
++void of_omap_fixed_factor_setup(struct device_node *node);
++void of_omap_divider_setup(struct device_node *node);
++void of_omap_clk_allow_autoidle_all(void);
++void of_omap_clk_deny_autoidle_all(void);
  
  #endif
 -- 
