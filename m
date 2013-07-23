@@ -1,54 +1,85 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: [PATCH 1/1] arm: dts: dra7-evm: add sd/eMMC node
-Date: Tue, 23 Jul 2013 22:47:47 +0530
-Message-ID: <1374599867-13099-1-git-send-email-balajitk@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 3/3] Input: omap-keypad: Clear pending interrupts on
+ open
+Date: Tue, 23 Jul 2013 20:18:38 +0300
+Message-ID: <20130723171838.GA9166@radagast>
+References: <1374595798-15492-1-git-send-email-illia.smyrnov@ti.com>
+ <1374595798-15492-4-git-send-email-illia.smyrnov@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49713 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756806Ab3GWRR4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Jul 2013 13:17:56 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BXVAT5kNtrzKuDFl"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1374595798-15492-4-git-send-email-illia.smyrnov@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Illia Smyrnov <illia.smyrnov@ti.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, balbi@ti.com, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, benoit.cousson@linaro.org, tony@atomide.com
-Cc: Balaji T K <balajitk@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-Add micro SD card and eMMC support for dra7-evm
+--BXVAT5kNtrzKuDFl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Balaji T K <balajitk@ti.com>
----
- arch/arm/boot/dts/dra7-evm.dts |   18 ++++++++++++++++++
- 1 files changed, 18 insertions(+), 0 deletions(-)
+Hi,
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index cb0703c..4656ab4 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -17,4 +17,22 @@
- 		device_type = "memory";
- 		reg = <0x80000000 0x60000000>; /* 1536 MB */
- 	};
-+
-+	vmmc_fixed: fixedregulator-mmc {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vmmc_fixed";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+	};
-+};
-+
-+&mmc1 {
-+	vmmc-supply = <&vmmc_fixed>;
-+	bus-width = <4>;
-+};
-+
-+&mmc2 {
-+	vmmc-supply = <&vmmc_fixed>;
-+	bus-width = <8>;
-+	ti,non-removable;
- };
--- 
-1.7.5.4
+On Tue, Jul 23, 2013 at 07:09:58PM +0300, Illia Smyrnov wrote:
+> Clear pending interrupts when open keypad.
 
+where are these interrupts coming from ?
+
+> Signed-off-by: Illia Smyrnov <illia.smyrnov@ti.com>
+> ---
+>  drivers/input/keyboard/omap4-keypad.c |    5 +++--
+>  1 files changed, 3 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboa=
+rd/omap4-keypad.c
+> index b876a0d..62abc3e 100644
+> --- a/drivers/input/keyboard/omap4-keypad.c
+> +++ b/drivers/input/keyboard/omap4-keypad.c
+> @@ -185,13 +185,14 @@ static int omap4_keypad_open(struct input_dev *inpu=
+t)
+>  			(OMAP4_VAL_PVT << OMAP4_DEF_CTRL_PTV_SHIFT));
+>  	kbd_writel(keypad_data, OMAP4_KBD_DEBOUNCINGTIME,
+>  			OMAP4_VAL_DEBOUNCINGTIME);
+> -	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS,
+> -			OMAP4_VAL_IRQDISABLE);
+>  	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
+>  			OMAP4_DEF_IRQENABLE_EVENTEN |
+>  				OMAP4_DEF_IRQENABLE_LONGKEY);
+>  	kbd_writel(keypad_data, OMAP4_KBD_WAKEUPENABLE,
+>  			OMAP4_DEF_WUP_EVENT_ENA | OMAP4_DEF_WUP_LONG_KEY_ENA);
+> +	/* clear pending interrupts */
+> +	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS,
+> +			 kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS));
+
+you might want to clear these interrupts before unmasking them :-)
+
+--=20
+balbi
+
+--BXVAT5kNtrzKuDFl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR7rruAAoJEIaOsuA1yqREfYcP/iDwq1NDC6D7pH3Xh6Aamnqu
+Dxpb/1i8/IaHPfPNnGQAICSPgZ9sjTTc9tWvfodPQQaN0j+vCyBehE/PCFSXS7Ug
+V2X8yh5Jk2mWOK93QlgMumhjbhk46UYnPUjrym4HDS3vHA+cUpE0aFPms9FeSHvU
+USqsmS7vP/Ul/+vZWXMLILAjEAGO/nd/S07QkK/DG17kSfvIl+L3RJKJ3CR1Tpa7
+wLTAuRB5sOVBwTrDrVQshGna0WE6DC3X9OGpDVjQDdc6YhYJFXFPdwB2Bhq05Xwi
++YYThVW/PjZcCWi1Jw9gmxCWWrqb7E62NqDrEGjG2P5k6rzz+AHMG4MkeIwLq9P8
+5DFVWnQ6uZwlrj/DE+6UDBN63E4vaS+T8hnwjP3dxLB6TkNvmsTL5lFIoXj9OzmD
+RgeIGwxSlU0RHhCnwRbvpemAL/+CVgSLjpky193hHjGShxnyf6HAhzh4e6gFLUXh
+0xal/gqfPoY5iokahdYMj2k26EeRNn1gpdgNXkvwzA2urllhyGu/6Rmqgv8vjqTY
+zvXfBxMl1khBFaWQgUuFjXi7/z8Xw1xRlpu+/m0n8pwzZXePn4H/YXJz1EAeXRRv
+ZpU8I8CZYQnp73vDb3yHpQTVtX20DUZxY5baIPgmJhfK+lVC99Ab4QxN8YiLZGPS
+rWhK5fnwjZ0A/w7/2rM+
+=u7k9
+-----END PGP SIGNATURE-----
+
+--BXVAT5kNtrzKuDFl--
