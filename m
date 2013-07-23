@@ -1,162 +1,104 @@
-From: Greg KH <gregkh@linuxfoundation.org>
+From: Alan Stern <stern@rowland.harvard.edu>
 Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Tue, 23 Jul 2013 13:50:07 -0700
-Message-ID: <20130723205007.GA27166@kroah.com>
-References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
- <20130723193105.GP9858@sirena.org.uk>
- <20130723194423.GA22984@kroah.com>
- <1731726.KENstTPhkb@flatron>
+Date: Tue, 23 Jul 2013 16:53:55 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1307231632580.1304-100000@iolanthe.rowland.org>
+References: <1387574.Tkg16KearS@flatron>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1731726.KENstTPhkb@flatron>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1387574.Tkg16KearS@flatron>
+Sender: linux-media-owner@vger.kernel.org
 To: Tomasz Figa <tomasz.figa@gmail.com>
-Cc: Mark Brown <broonie@kernel.org>, Tomasz Figa <t.figa@samsung.com>, Kishon Vijay Abraham I <kishon@ti.com>, Alan Stern <stern@rowland.harvard.edu>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, Sascha Hauer <s.hauer@pengutronix.de>, kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com, olof@lixom.net, Stephen Warren <swarren@wwwdotor>
+Cc: Tomasz Figa <t.figa@samsung.com>, Greg KH <gregkh@linuxfoundation.org>, Kishon Vijay Abraham I <kishon@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, broonie@kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, Sascha Hauer <s.hauer@pengutronix.de>, kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com, olof@lixom.net
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 23, 2013 at 10:07:52PM +0200, Tomasz Figa wrote:
-> On Tuesday 23 of July 2013 12:44:23 Greg KH wrote:
-> > On Tue, Jul 23, 2013 at 08:31:05PM +0100, Mark Brown wrote:
-> > > > You don't "know" the id of the device you are looking up, due to
-> > > > multiple devices being in the system (dynamic ids, look back earlier
-> > > > in
-> > > > this thread for details about that.)
-> > > 
-> > > I got copied in very late so don't have most of the thread I'm afraid,
-> > > I did try looking at web archives but didn't see a clear problem
-> > > statement.  In any case this is why the APIs doing lookups do the
-> > > lookups in the context of the requesting device - devices ask for
-> > > whatever name they use locally.
+On Tue, 23 Jul 2013, Tomasz Figa wrote:
+
+> > That's what I was going to suggest too.  The struct phy is defined in
+> > the board file, which already knows about all the PHYs that exist in
+> > the system.  (Or perhaps it is allocated dynamically, so that when many
+> > board files are present in the same kernel, only the entries listed in
+> > the board file for the current system get created.) 
+> 
+> Well, such dynamic allocation is a must. We don't accept non-multiplatform 
+> aware code anymore, not even saying about multiboard.
+> 
+> > Then the
+> > structure's address is stored in the platform data and made available
+> > to both the provider and the consumer.
+> 
+> Yes, technically this can work. You would still have to perform some kind 
+> of synchronization to make sure that the PHY bound to this structure is 
+> actually present. This is again technically doable (e.g. a list of 
+> registered struct phys inside PHY core).
+
+The synchronization takes place inside phy_get.  If phy_create hasn't
+been called for this structure by the time phy_get runs, phy_get will 
+return an error.
+
+> > Even though the struct phy is defined (or allocated) in the board file,
+> > its contents don't get filled in until the PHY driver provides the
+> > details.
+> 
+> You can't assure this. Board file is free to do whatever it wants with 
+> this struct. A clean solution would prevent this.
+
+I'm not sure what you mean here.  Of course I can't prevent a board 
+file from messing up a data structure.  I can't prevent it from causing 
+memory access violations either; in fact, I can't prevent any bugs in 
+other people's code.
+
+Besides, why do you say the board file is free to do whatever it wants 
+with the struct phy?  Currently the struct phy is created by the PHY 
+provider and the PHY core, right?  It's not even mentioned in the board 
+file.
+
+> > > It's technically correct, but quality of this solution isn't really
+> > > nice, because it's a layering violation (at least if I understood
+> > > what you mean). This is because you need to have full definition of
+> > > struct phy in board file and a structure that is used as private data
+> > > in PHY core comes from platform code.
 > > 
-> > What do you mean by "locally"?
+> > You don't have to have a full definition in the board file.  Just a
+> > partial definition -- most of the contents can be filled in later, when
+> > the PHY driver is ready to store the private data.
 > > 
-> > The problem with the api was that the phy core wanted a id and a name to
-> > create a phy, and then later other code was doing a "lookup" based on
-> > the name and id (mushed together), because it "knew" that this device
-> > was the one it wanted.
-> > 
-> > Just like the clock api, which, for multiple devices, has proven to
-> > cause problems.  I don't want to see us accept an api that we know has
-> > issues in it now, I'd rather us fix it up properly.
-> > 
-> > Subsystems should be able to create ids how ever they want to, and not
-> > rely on the code calling them to specify the names of the devices that
-> > way, otherwise the api is just too fragile.
-> > 
-> > I think, that if you create a device, then just carry around the pointer
-> > to that device (in this case a phy) and pass it to whatever other code
-> > needs it.  No need to do lookups on "known names" or anything else,
-> > just normal pointers, with no problems for multiple devices, busses, or
-> > naming issues.
+> > It's not a layering violation for one region of the kernel to store
+> > private data in a structure defined by another part of the kernel.
+> > This happens all the time (e.g., dev_set_drvdata).
 > 
-> PHY object is not a device, it is something that a device driver creates 
-> (one or more instances of) when it is being probed.
+> Not really. The phy struct is something that _is_ private data of PHY 
+> subsystem, not something that can store private data of PHY subsystem 
+> (sure it can store private data of particular PHY driver, but that's 
+> another story) and only PHY subsystem should have access to its contents.
 
-But you created a 'struct device' for it, so I think of it as a "device"
-be it "virtual" or "real" :)
+If you want to keep the phy struct completely separate from the board
+file, there's an easy way to do it.  Let's say the board file knows
+about N different PHYs in the system.  Then you define an array of N
+pointers to phys:
 
-> You don't have a clean way to export this PHY object to other driver,
-> other than keeping this PHY on a list inside PHY core with some
-> well-known ID (e.g. device name + consumer port name/index, like in
-> regulator core) and then to use this well-known ID inside consumer
-> driver as a lookup key passed to phy_get();
-> 
-> Actually I think for PHY case, exactly the same way as used for
-> regulators might be completely fine:
-> 
-> 1. Each PHY would have some kind of platform, non-unique name, that is 
-> just used to print some messages (like the platform/board name of a 
-> regulator).
-> 2. Each PHY would have an array of consumers. Consumer specifier would 
-> consist of consumer device name and consumer port name - just like in 
-> regulator subsystem.
-> 3. PHY driver receives an array of, let's say, phy_init_data inside its 
-> platform data that it would use to register its PHYs.
-> 4. Consumer drivers would have constant consumer port names and wouldn't 
-> receive any information about PHYs from platform code.
-> 
-> Code example:
-> 
-> [Board file]
-> 
-> static const struct phy_consumer_data usb_20_phy0_consumers[] = {
-> 	{
-> 		.devname = "foo-ehci",
-> 		.port = "usbphy",
-> 	},
-> };
-> 
-> static const struct phy_consumer_data usb_20_phy1_consumers[] = {
-> 	{
-> 		.devname = "foo-otg",
-> 		.port = "otgphy",
-> 	},
-> };
-> 
-> static const struct phy_init_data my_phys[] = {
-> 	{
-> 		.name = "USB 2.0 PHY 0",
-> 		.consumers = usb_20_phy0_consumers,
-> 		.num_consumers = ARRAY_SIZE(usb_20_phy0_consumers),
-> 	},
-> 	{
-> 		.name = "USB 2.0 PHY 1",
-> 		.consumers = usb_20_phy1_consumers,
-> 		.num_consumers = ARRAY_SIZE(usb_20_phy1_consumers),
-> 	},
-> 	{ }
-> };
-> 
-> static const struct platform_device usb_phy_pdev = {
-> 	.name = "foo-usbphy",
-> 	.id = -1,
-> 	.dev = {
-> 		.platform_data = my_phys,
-> 	},
-> };
-> 
-> [PHY driver]
-> 
-> static int foo_usbphy_probe(pdev)
-> {
-> 	struct foo_usbphy *foo;
-> 	struct phy_init_data *init_data = pdev->dev.platform_data;
-> 	/* ... */
-> 	// for each PHY in init_data {
-> 		phy_register(&foo->phy[i], &init_data[i]);
-> 	// }
-> 	/* ... */
-> }
-> 
-> [EHCI driver]
-> 
-> static int foo_ehci_probe(pdev)
-> {
-> 	struct phy *phy;
-> 	/* ... */
-> 	phy = phy_get(&pdev->dev, "usbphy");
-> 	/* ... */
-> }
-> 
-> [OTG driver]
-> 
-> static int foo_otg_probe(pdev)
-> {
-> 	struct phy *phy;
-> 	/* ... */
-> 	phy = phy_get(&pdev->dev, "otgphy");
-> 	/* ... */
-> }
+struct phy *(phy_address[N]);
 
-That's not so bad, as long as you let the phy core use whatever name it
-wants for the device when it registers it with sysfs.  Use the name you
-are requesting as a "tag" or some such "hint" as to what the phy can be
-looked up by.
+In the platform data for both PHY j and its controller, store
+&phy_address[j].  The PHY provider passes this cookie to phy_create:
 
-Good luck handling duplicate "tags" :)
+	cookie = pdev->dev.platform_data;
+	ret = phy_create(phy, cookie);
 
-thanks,
+and phy_create simply stores: *cookie = phy.  The PHY consumer does
+much the same the same thing:
 
-greg k-h
+	cookie = pdev->dev.platform_data;
+	phy = phy_get(cookie);
+
+phy_get returns *cookie if it isn't NULL, or an ERR_PTR otherwise.
+
+> By the way, we need to consider other cases here as well, for example it 
+> would be nice to have a single phy_get() function that works for both non-
+> DT and DT cases to make the consumer driver not have to worry whether it's 
+> being probed from DT or not.
+
+You ought to be able to adapt this scheme to work with DT.  Maybe by 
+having multiple "phy_address" arrays.
+
+Alan Stern
