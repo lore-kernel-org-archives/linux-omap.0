@@ -1,41 +1,77 @@
-From: Greg KH <gregkh@linuxfoundation.org>
+From: Tomasz Figa <tomasz.figa@gmail.com>
 Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Tue, 23 Jul 2013 14:23:34 -0700
-Message-ID: <20130723212334.GA21945@kroah.com>
-References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
- <1731726.KENstTPhkb@flatron>
- <20130723205007.GA27166@kroah.com>
- <1769609.rbAYfG9ir3@flatron>
+Date: Tue, 23 Jul 2013 23:31:31 +0200
+Message-ID: <5977067.8rykRgjgre@flatron>
+References: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1769609.rbAYfG9ir3@flatron>
+In-Reply-To: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org>
 Sender: linux-doc-owner@vger.kernel.org
-To: Tomasz Figa <tomasz.figa@gmail.com>
-Cc: Mark Brown <broonie@kernel.org>, Tomasz Figa <t.figa@samsung.com>, Kishon Vijay Abraham I <kishon@ti.com>, Alan Stern <stern@rowland.harvard.edu>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, Sascha Hauer <s.hauer@pengutronix.de>, kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com, olof@lixom.net, Stephen Warren <swarren@wwwdotor>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Tomasz Figa <t.figa@samsung.com>, Greg KH <gregkh@linuxfoundation.org>, Kishon Vijay Abraham I <kishon@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, broonie@kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, Sascha Hauer <s.hauer@pengutronix.de>, kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com, olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>, b.zol
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 23, 2013 at 11:05:48PM +0200, Tomasz Figa wrote:
-> > That's not so bad, as long as you let the phy core use whatever name it
-> > wants for the device when it registers it with sysfs.
-> 
-> Yes, in regulator core consumer names are completely separated from this. 
-> Regulator core simply assigns a sequential integer ID to each regulator 
-> and registers /sys/class/regulator/regulator.ID for each regulator.
-
-Yes, that's fine.
-
-> > Use the name you
-> > are requesting as a "tag" or some such "hint" as to what the phy can be
-> > looked up by.
+On Tuesday 23 of July 2013 17:14:20 Alan Stern wrote:
+> On Tue, 23 Jul 2013, Tomasz Figa wrote:
+> > > If you want to keep the phy struct completely separate from the
+> > > board
+> > > file, there's an easy way to do it.  Let's say the board file knows
+> > > about N different PHYs in the system.  Then you define an array of N
+> > > pointers to phys:
+> > > 
+> > > struct phy *(phy_address[N]);
+> > > 
+> > > In the platform data for both PHY j and its controller, store
+> > > 
+> > > &phy_address[j].  The PHY provider passes this cookie to phy_create:
+> > > 	cookie = pdev->dev.platform_data;
+> > > 	ret = phy_create(phy, cookie);
+> > > 
+> > > and phy_create simply stores: *cookie = phy.  The PHY consumer does
+> > > 
+> > > much the same the same thing:
+> > > 	cookie = pdev->dev.platform_data;
+> > > 	phy = phy_get(cookie);
+> > > 
+> > > phy_get returns *cookie if it isn't NULL, or an ERR_PTR otherwise.
 > > 
-> > Good luck handling duplicate "tags" :)
+> > OK, this can work. Again, just technically, because it's rather ugly.
 > 
-> The tag alone is not a key. Lookup key consists of two components, 
-> consumer device name and consumer tag. What kind of duplicate tags can be 
-> a problem here?
+> There's no reason the phy_address things have to be arrays.  A separate
+> individual pointer for each PHY would work just as well.
+> 
+> > Where would you want to have those phy_address arrays stored? There
+> > are no board files when booting with DT. Not even saying that you
+> > don't need to use any hacky schemes like this when you have DT that
+> > nicely specifies relations between devices.
+> 
+> If everybody agrees DT has a nice scheme for specifying relations
+> between devices, why not use that same scheme in the PHY core?
 
-Ok, I didn't realize it looked at both parts, that makes sense, thanks.
+It is already used, for cases when consumer device has a DT node attached. 
+In non-DT case this kind lookup translates loosely to something that is 
+being done in regulator framework - you can't bind devices by pointers, 
+because you don't have those pointers, so you need to use device names.
 
-greg k-h
+> > Anyway, board file should not be considered as a method to exchange
+> > data between drivers. It should be used only to pass data from it to
+> > drivers, not the other way. Ideally all data in a board file should
+> > be marked as const and __init and dropped after system
+> > initialization.
+> 
+> The phy_address things don't have to be defined or allocated in the
+> board file; they could be set up along with the platform data.
+
+There is no platform data when booting with DT.
+
+> In any case, this was simply meant to be a suggestion to show that it
+> is relatively easy to do what you need without using name or ID
+> strings.
+
+Sure. It's good to have different options discussed as well.
+
+Best regards,
+Tomasz
+
