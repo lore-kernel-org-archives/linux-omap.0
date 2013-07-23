@@ -1,108 +1,107 @@
 From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH v2 2/3] Input: omap-keypad: Convert to threaded IRQ
-Date: Tue, 23 Jul 2013 20:25:01 +0300
-Message-ID: <20130723172501.GC9166@radagast>
+Date: Tue, 23 Jul 2013 20:32:27 +0300
+Message-ID: <20130723173227.GA9636@radagast>
 References: <1374595798-15492-1-git-send-email-illia.smyrnov@ti.com>
  <1374595798-15492-3-git-send-email-illia.smyrnov@ti.com>
+ <20130723172501.GC9166@radagast>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="O3RTKUHj+75w1tg5"
+	protocol="application/pgp-signature"; boundary="UugvWAfsgieZRqgk"
 Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1374595798-15492-3-git-send-email-illia.smyrnov@ti.com>
+In-Reply-To: <20130723172501.GC9166@radagast>
 Sender: linux-input-owner@vger.kernel.org
-To: Illia Smyrnov <illia.smyrnov@ti.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, balbi@ti.com, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Illia Smyrnov <illia.smyrnov@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---O3RTKUHj+75w1tg5
+--UugvWAfsgieZRqgk
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Tue, Jul 23, 2013 at 07:09:57PM +0300, Illia Smyrnov wrote:
-> Convert to use threaded IRQ.
+On Tue, Jul 23, 2013 at 08:25:01PM +0300, Felipe Balbi wrote:
+> > Convert to use threaded IRQ.
+> >=20
+> > Cc: Felipe Balbi <balbi@ti.com>
+> > Signed-off-by: Illia Smyrnov <illia.smyrnov@ti.com>
+> > ---
+> >  drivers/input/keyboard/omap4-keypad.c |   29 ++++++++++++++++++++-----=
+----
+> >  1 files changed, 20 insertions(+), 9 deletions(-)
+> >=20
+> > diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyb=
+oard/omap4-keypad.c
+> > index c727548..b876a0d 100644
+> > --- a/drivers/input/keyboard/omap4-keypad.c
+> > +++ b/drivers/input/keyboard/omap4-keypad.c
+> > @@ -112,8 +112,22 @@ static void kbd_write_irqreg(struct omap4_keypad *=
+keypad_data,
+> >  }
+> > =20
+> > =20
+> > -/* Interrupt handler */
+> > -static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
+> > +/* Interrupt handlers */
+> > +static irqreturn_t omap4_keypad_irq_handler(int irq, void *dev_id)
+> > +{
+> > +	struct omap4_keypad *keypad_data =3D dev_id;
+> > +
+> > +	if (kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS)) {
+> > +		/* Disable interrupts */
+> > +		kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
+> > +				 OMAP4_VAL_IRQDISABLE);
+> > +		return IRQ_WAKE_THREAD;
+> > +	}
+> > +
+> > +	return IRQ_NONE;
+> > +}
+> > +
+> > +static irqreturn_t omap4_keypad_irq_thread_fn(int irq, void *dev_id)
+> >  {
+> >  	struct omap4_keypad *keypad_data =3D dev_id;
+> >  	struct input_dev *input_dev =3D keypad_data->input;
+> > @@ -121,10 +135,6 @@ static irqreturn_t omap4_keypad_interrupt(int irq,=
+ void *dev_id)
+> >  	unsigned int col, row, code, changed;
+> >  	u32 *new_state =3D (u32 *) key_state;
+> > =20
+> > -	/* Disable interrupts */
+> > -	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
+> > -			 OMAP4_VAL_IRQDISABLE);
 >=20
-> Cc: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Illia Smyrnov <illia.smyrnov@ti.com>
-> ---
->  drivers/input/keyboard/omap4-keypad.c |   29 ++++++++++++++++++++-------=
---
->  1 files changed, 20 insertions(+), 9 deletions(-)
->=20
-> diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboa=
-rd/omap4-keypad.c
-> index c727548..b876a0d 100644
-> --- a/drivers/input/keyboard/omap4-keypad.c
-> +++ b/drivers/input/keyboard/omap4-keypad.c
-> @@ -112,8 +112,22 @@ static void kbd_write_irqreg(struct omap4_keypad *ke=
-ypad_data,
->  }
-> =20
-> =20
-> -/* Interrupt handler */
-> -static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
-> +/* Interrupt handlers */
-> +static irqreturn_t omap4_keypad_irq_handler(int irq, void *dev_id)
-> +{
-> +	struct omap4_keypad *keypad_data =3D dev_id;
-> +
-> +	if (kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS)) {
-> +		/* Disable interrupts */
-> +		kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
-> +				 OMAP4_VAL_IRQDISABLE);
-> +		return IRQ_WAKE_THREAD;
-> +	}
-> +
-> +	return IRQ_NONE;
-> +}
-> +
-> +static irqreturn_t omap4_keypad_irq_thread_fn(int irq, void *dev_id)
->  {
->  	struct omap4_keypad *keypad_data =3D dev_id;
->  	struct input_dev *input_dev =3D keypad_data->input;
-> @@ -121,10 +135,6 @@ static irqreturn_t omap4_keypad_interrupt(int irq, v=
-oid *dev_id)
->  	unsigned int col, row, code, changed;
->  	u32 *new_state =3D (u32 *) key_state;
-> =20
-> -	/* Disable interrupts */
-> -	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
-> -			 OMAP4_VAL_IRQDISABLE);
+> looking a lot better, but I wonder if you should add a mutex to this
+> threaded handler, but I guess there's no way this will never race since
 
-looking a lot better, but I wonder if you should add a mutex to this
-threaded handler, but I guess there's no way this will never race since
-IRQs are masked anyway and registers are only accessed from within IRQ
-handlers.
-
-Reviewed-by: Felipe Balbi <balbi@ti.com>
+s/never/ever
 
 --=20
 balbi
 
---O3RTKUHj+75w1tg5
+--UugvWAfsgieZRqgk
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJR7rxtAAoJEIaOsuA1yqRE0RkP/0AhoT9+N07m0V+zZUq4kpXh
-9MTtJrxavEAZPVml/aaB5fIGKNWpF+8Toxt6pTr7B+yXlOrCp2hL6PtjGezDyo+1
-vS63tlSSoUhQIcYXyaalUq+rrvElr2Uvd5u2e+GmmksvV0o0ANCIM957WQBxbUUs
-/xDbIk9bxoMPxA17YksRbAQvSx0LYkFMQTkWBc2WONcCPknQerJN4n5A8zG9ryhL
-d0Cy8CNHazVyLCLiccoNa3w0LkskewqU7LKAu0fBAvqlWSrDG2wFf4ac6GOVTZaq
-jH8I5KrrcuEl7Wcdeq2PcGzTuSmwnKidClNU3bQ+j61Ov4lazMWE63jCZ224TP3O
-tgPAf/vphKKK4Qv7Dh1g5DsJVIFTUd5NV5PkMV6WeyLyZgAEUc4xPFc/Jt5p/vz+
-G40yfbtWJ3vWX2z/KYRRbj+df7bJVieSq+RU63bPpG7xL/JQVfNlUDc0klHiSEbY
-UTSfRwqBjsdXkdJll0W/7EW3fVIeAbfykVFIZDweK0R6ROn0Ip0Qp8NSqhEe6kmF
-UAZsXsR+ZLy3qk+DpBK1q4ZECX3ONq+TDI854pMeXqbk/iXgXj95PGtgRuJFYik5
-V/J5kdYApv+B15LlqtTjS5sQOh7Rr6752UhUF40Z8u0mR4Ouy52lcwr8t5uQsPjk
-MDw8TJtyIsiRv0DeHm4u
-=NEoa
+iQIcBAEBAgAGBQJR7r4rAAoJEIaOsuA1yqREUPsQAJ/XGjI6hr1xErQnDOaYS5cB
+DtMggrmZvpZ+gEsS602olbYfyYg1mZQwS7gIVAgVrw0vAI/C1rDoTs0lZLiLDA1I
+5tXER4UTeMusLuQBg92GOEHn8bCiak4lHLlvRSYrW7XbuOPaFRr4T31wd2czs8RN
+zja7T/qqSq4ibVENP/nPmRJ3bnbQAZHDs7DmvO+0zJXl2+TP426CxDF9ZvloBiHW
+2sgxny9X+IiDHYQhPkF/2vvN/TOlvRmgr3LFWdOhD8dJ5kCU1Uyxvt4uuKlgdpZM
+oWbMrMcF39YmPi58Q3Axr6Aa5meOg3DHQPbjj3+1xSr52thfJN3FA/fZhc4AxYvi
+g2kDLK5zGbg1qSg7qxtrc52rEnhIT6fkTYsH0z4Nu3ay+5PcEMdQl9Eikva4J4/k
+uQ2ifyGVU9t+I8t8J+A4NGjzSe2FC+CrgmiR7igSOb3Z1dfg2vrKAZUKC0ixM6yt
+8ck48DCdoRJjAXoANEw29E+vYHaYjDu+9vEe7+8Y6NtrpVRogB3oqdO5VpieBIvg
+537qI0H2OweqWFbP4Lrgr2P+Ca/JdH6MLHYz97Ey/l5sWmfOzvBH9FDTxVUapv0Z
+vBhf3sEZYo+tIybKkYeO3Lc6LEh//vcR+o79MLyV93i/KbC0yRJNwz65l/M0Dlgl
+GMolJCn3Mv+eI8X88sP9
+=QG6h
 -----END PGP SIGNATURE-----
 
---O3RTKUHj+75w1tg5--
+--UugvWAfsgieZRqgk--
