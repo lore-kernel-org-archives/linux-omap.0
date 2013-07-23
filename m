@@ -1,119 +1,125 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Tue, 23 Jul 2013 11:17:40 +0530
-Message-ID: <51EE18FC.2070505@ti.com>
-References: <Pine.LNX.4.44L0.1307221028440.1495-100000@iolanthe.rowland.org>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 1/3] ARM: OMAP2+: Add support to parse 'main_clk' info from DT
+Date: Tue, 23 Jul 2013 11:54:37 +0530
+Message-ID: <1374560679-14666-2-git-send-email-rnayak@ti.com>
+References: <1374560679-14666-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <Pine.LNX.4.44L0.1307221028440.1495-100000@iolanthe.rowland.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, grant.likely@linaro.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, Sascha Hauer <s.hauer@pengutronix.de>, linux-samsung-soc@vger.kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, Greg KH <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.park@samsung.com, akpm@linux-foundation.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56041 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751497Ab3GWGZQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Jul 2013 02:25:16 -0400
+In-Reply-To: <1374560679-14666-1-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, t-kristo@ti.com, benoit.cousson@gmail.com
+Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Hi,
+With clocks for OMAP moving to DT, its now possible to pass the 'main_clk'
+data for each device from DT instead of having it in hwmod.
 
-On Monday 22 July 2013 08:14 PM, Alan Stern wrote:
-> On Mon, 22 Jul 2013, Kishon Vijay Abraham I wrote:
-> 
->>> 	The PHY and the controller it is attached to are both physical
->>> 	devices.
->>>
->>> 	The connection between them is hardwired by the system
->>> 	manufacturer and cannot be changed by software.
->>>
->>> 	PHYs are generally described by fixed system-specific board
->>> 	files or by Device Tree information.  Are they ever discovered
->>> 	dynamically?
->>
->> No. They are created just like any other platform devices are created.
-> 
-> Okay.  Are PHYs _always_ platform devices?
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c |   34 +++++++++++++++++++++-------------
+ 1 file changed, 21 insertions(+), 13 deletions(-)
 
-Not always. It can be any other device also.
-> 
->>> 	Is the same true for the controllers attached to the PHYs?
->>> 	If not -- if both a PHY and a controller are discovered 
->>> 	dynamically -- how does the kernel know whether they are 
->>> 	connected to each other?
->>
->> No differences here. Both PHY and controller will have dt information or hwmod
->> data using which platform devices will be created.
->>>
->>> 	The kernel needs to know which controller is attached to which
->>> 	PHY.  Currently this information is represented by name or ID
->>> 	strings embedded in platform data.
->>
->> right. It's embedded in the platform data of the controller.
-> 
-> It must also be embedded in the PHY's platform data somehow.  
-> Otherwise, how would the kernel know which PHY to use?
-> 
->>> 	The PHY's driver (the supplier) uses the platform data to 
->>> 	construct a platform_device structure that represents the PHY.  
->>
->> Currently the driver assigns static labels (corresponding to the label used in
->> the platform data of the controller).
->>> 	Until this is done, the controller's driver (the client) cannot 
->>> 	use the PHY.
->>
->> right.
->>>
->>> 	Since there is no parent-child relation between the PHY and the 
->>> 	controller, there is no guarantee that the PHY's driver will be
->>> 	ready when the controller's driver wants to use it.  A deferred
->>> 	probe may be needed.
->>
->> right.
->>>
->>> 	The issue (or one of the issues) in this discussion is that 
->>> 	Greg does not like the idea of using names or IDs to associate
->>> 	PHYs with controllers, because they are too prone to
->>> 	duplications or other errors.  Pointers are more reliable.
->>>
->>> 	But pointers to what?  Since the only data known to be 
->>> 	available to both the PHY driver and controller driver is the
->>> 	platform data, the obvious answer is a pointer to platform data
->>> 	(either for the PHY or for the controller, or maybe both).
->>
->> hmm.. it's not going to be simple though as the platform device for the PHY and
->> controller can be created in entirely different places. e.g., in some cases the
->> PHY device is a child of some mfd core device (the device will be created in
->> drivers/mfd) and the controller driver (usually) is created in board file. I
->> guess then we have to come up with something to share a pointer in two
->> different files.
-> 
-> The ability for two different source files to share a pointer to a data 
-> item defined in a third source file has been around since long before 
-> the C language was invented.  :-)
-> 
-> In this case, it doesn't matter where the platform_device structures 
-> are created or where the driver source code is.  Let's take a simple 
-> example.  Suppose the system design includes a PHY named "foo".  Then 
-> the board file could contain:
-> 
-> struct phy_info { ... } phy_foo;
-> EXPORT_SYMBOL_GPL(phy_foo);
-> 
-> and a header file would contain:
-> 
-> extern struct phy_info phy_foo;
-> 
-> The PHY supplier could then call phy_create(&phy_foo), and the PHY 
-> client could call phy_find(&phy_foo).  Or something like that; make up 
-> your own structure tags and function names.
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 5cc5123..12fa589 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -728,14 +728,18 @@ static int _del_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
+  * functional clock pointer) if a main_clk is present.  Returns 0 on
+  * success or -EINVAL on error.
+  */
+-static int _init_main_clk(struct omap_hwmod *oh)
++static int _init_main_clk(struct omap_hwmod *oh, struct device_node *np)
+ {
+ 	int ret = 0;
+ 
+-	if (!oh->main_clk)
++	if (!oh->main_clk && !of_get_property(np, "clocks", NULL))
+ 		return 0;
+ 
+-	oh->_clk = clk_get(NULL, oh->main_clk);
++	if (oh->main_clk)
++		oh->_clk = clk_get(NULL, oh->main_clk);
++	else
++		oh->_clk = of_clk_get_by_name(np, "fck");
++
+ 	if (IS_ERR(oh->_clk)) {
+ 		pr_warning("omap_hwmod: %s: cannot clk_get main_clk %s\n",
+ 			   oh->name, oh->main_clk);
+@@ -1561,7 +1565,8 @@ static int _init_clkdm(struct omap_hwmod *oh)
+  * Resolves all clock names embedded in the hwmod.  Returns 0 on
+  * success, or a negative error code on failure.
+  */
+-static int _init_clocks(struct omap_hwmod *oh, void *data)
++static int _init_clocks(struct omap_hwmod *oh, void *data,
++			struct device_node *np)
+ {
+ 	int ret = 0;
+ 
+@@ -1573,7 +1578,7 @@ static int _init_clocks(struct omap_hwmod *oh, void *data)
+ 	if (soc_ops.init_clkdm)
+ 		ret |= soc_ops.init_clkdm(oh);
+ 
+-	ret |= _init_main_clk(oh);
++	ret |= _init_main_clk(oh, np);
+ 	ret |= _init_interface_clks(oh);
+ 	ret |= _init_opt_clks(oh);
+ 
+@@ -2361,11 +2366,11 @@ static struct device_node *of_dev_hwmod_lookup(struct device_node *np,
+  * are part of the device's address space can be ioremapped properly.
+  * No return value.
+  */
+-static void __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data)
++static void __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data,
++				     struct device_node *np)
+ {
+ 	struct omap_hwmod_addr_space *mem;
+ 	void __iomem *va_start = NULL;
+-	struct device_node *np;
+ 
+ 	if (!oh)
+ 		return;
+@@ -2381,12 +2386,10 @@ static void __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data)
+ 			 oh->name);
+ 
+ 		/* Extract the IO space from device tree blob */
+-		if (!of_have_populated_dt())
++		if (!np)
+ 			return;
+ 
+-		np = of_dev_hwmod_lookup(of_find_node_by_name(NULL, "ocp"), oh);
+-		if (np)
+-			va_start = of_iomap(np, 0);
++		va_start = of_iomap(np, 0);
+ 	} else {
+ 		va_start = ioremap(mem->pa_start, mem->pa_end - mem->pa_start);
+ 	}
+@@ -2418,14 +2421,19 @@ static void __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data)
+ static int __init _init(struct omap_hwmod *oh, void *data)
+ {
+ 	int r;
++	struct device_node *np = NULL;
+ 
+ 	if (oh->_state != _HWMOD_STATE_REGISTERED)
+ 		return 0;
+ 
++	/* If booting with DT, parse the DT node for IO space/clocks etc */
++	if (of_have_populated_dt())
++		np = of_dev_hwmod_lookup(of_find_node_by_name(NULL, "ocp"), oh);
++
+ 	if (oh->class->sysc)
+-		_init_mpu_rt_base(oh, NULL);
++		_init_mpu_rt_base(oh, NULL, np);
+ 
+-	r = _init_clocks(oh, NULL);
++	r = _init_clocks(oh, NULL, np);
+ 	if (r < 0) {
+ 		WARN(1, "omap_hwmod: %s: couldn't init clocks\n", oh->name);
+ 		return -EINVAL;
+-- 
+1.7.9.5
 
-Alright. Thanks for the hint :-)
-
-Thanks
-Kishon
