@@ -1,77 +1,121 @@
 From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 6/6] USB: ehci-omap: Implement suspend/resume
-Date: Tue, 23 Jul 2013 10:14:01 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1307231009120.1304-100000@iolanthe.rowland.org>
-References: <51EE4A7C.2020709@ti.com>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Tue, 23 Jul 2013 10:37:05 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
+References: <3419798.aorxYv8pdo@flatron>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51EE4A7C.2020709@ti.com>
+In-Reply-To: <3419798.aorxYv8pdo@flatron>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: gregkh@linuxfoundation.org, balbi@ti.com, sergei.shtylyov@cogentembedded.com, khilman@linaro.org, tony@atomide.com, ruslan.bilovol@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tomasz Figa <tomasz.figa@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, broonie@kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, Greg KH <gregkh@linuxfoundation.org>, Sascha Hauer <s.hauer@pengutronix.de>, kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com, olof@lixom.net, Stephen Warren <swarren@wwwdotorg.>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 23 Jul 2013, Roger Quadros wrote:
+On Tue, 23 Jul 2013, Tomasz Figa wrote:
 
-> >> +               pm_runtime_get_sync(dev);
-> >> +               ehci_resume(hcd, false);
-> >> +               ret = ehci_suspend(hcd, do_wakeup);
-> >> +               pm_runtime_put_sync(dev);
+> On Tuesday 23 of July 2013 09:29:32 Tomasz Figa wrote:
+> > Hi Alan,
+
+Thanks for helping to clarify the issues here.
+
+> > > Okay.  Are PHYs _always_ platform devices?
 > > 
-> > It would be better to call pm_runtime_resume(dev) at the start instead
-> > of pm_runtime_get_sync(), and eliminate the last two lines.  Then the
-> > ehci_suspend() below could be moved outside the "if" statement.
-> 
-> Why do I find pm_runtime_* so confusing ;)
+> > They can be i2c, spi or any other device types as well.
 
-It tries to provide every service anyone might want, and ends up being 
-confusingly large.
+In those other cases, presumably there is no platform data associated
+with the PHY since it isn't a platform device.  Then how does the
+kernel know which controller is attached to the PHY?  Is this spelled
+out in platform data associated with the PHY's i2c/spi/whatever parent?
 
-In this case, though, the reasoning is simple.  We know that after the 
-system resumes, the device will be back in the active state.  Hence 
-there's no point in calling pm_runtime_put_sync here, other than to 
-balance the _get_sync above.  Since there's no danger of another thread 
-trying to do a runtime suspend at this point, you don't need to 
-increment the usage counter.  Therefore pm_runtime_resume is good 
-enough.
-
-> > Alternatively, if you are able to turn off the wakeup setting without
-> > going through an entire resume/suspend cycle, that would be preferable.
+> > > > > 	PHY.  Currently this information is represented by name or 
+> ID
+> > > > > 	strings embedded in platform data.
+> > > > 
+> > > > right. It's embedded in the platform data of the controller.
+> > > 
+> > > It must also be embedded in the PHY's platform data somehow.
+> > > Otherwise, how would the kernel know which PHY to use?
 > > 
-> 
-> As we don't rely on the EHCI controller's interrupt any more after we
-> power it down, maybe ehci_resume/suspend cycle is not required at all on OMAP,
-> even if the wakeup setting is disabled during system suspend.
-> 
-> As the wakeup is controlled entirely by pad wakeup, all we need to do is make sure
-> the IO pad wakeup is configured correctly based on do_wakeup. How this is done
-> is still in transition but it might be turn out to be as simple as irq_set_irq_wake()
-> 
-> So IMHO, for ehci-omap this should suffice
-> 
-> static int omap_ehci_suspend(struct device *dev)
-> {
-> 	struct usb_hcd *hcd = dev_get_drvdata(dev);
-> 	bool do_wakeup = device_may_wakeup(dev);
-> 	int ret = 0;
-> 
-> 	if (!pm_runtime_status_suspended(dev))
-> 		ret = ehci_suspend(hcd, do_wakeup);
-> 
-> 	/* Not tested yet */
-> 	irq_set_irq_wake(hcd->irq, do_wakeup);
-> 
-> 	return ret;
-> }
-> 
-> What do you think?
+> > By using a PHY lookup as Stephen and I suggested in our previous
+> > replies. Without any extra data in platform data. (I have even posted a
+> > code example.)
 
-Nice and simple.  It looks good.
+I don't understand, because I don't know what "a PHY lookup" does.
 
-> As the OMAP IO pad wakeup management code [1] is still in transition, I'll wait till
-> that gets settled and then resend this series.
+> > > In this case, it doesn't matter where the platform_device structures
+> > > are created or where the driver source code is.  Let's take a simple
+> > > example.  Suppose the system design includes a PHY named "foo".  Then
+> > > the board file could contain:
+> > > 
+> > > struct phy_info { ... } phy_foo;
+> > > EXPORT_SYMBOL_GPL(phy_foo);
+> > > 
+> > > and a header file would contain:
+> > > 
+> > > extern struct phy_info phy_foo;
+> > > 
+> > > The PHY supplier could then call phy_create(&phy_foo), and the PHY
+> > > client could call phy_find(&phy_foo).  Or something like that; make up
+> > > your own structure tags and function names.
+> > > 
+> > > It's still possible to have conflicts, but now two PHYs with the same
+> > > name (or a misspelled name somewhere) will cause an error at link
+> > > time.
+> > 
+> > This is incorrect, sorry. First of all it's a layering violation - you
+> > export random driver-specific symbols from one driver to another. Then
 
-Okay.
+No, that's not what I said.  Neither the PHY driver nor the controller
+driver exports anything to the other.  Instead, both drivers use data
+exported by the board file.
+
+> > imagine 4 SoCs - A, B, C, D. There are two PHY types PHY1 and PHY2 and
+> > there are two types of consumer drivers (e.g. USB host controllers). Now
+> > consider following mapping:
+> > 
+> > SoC	PHY	consumer
+> > A	PHY1	HOST1
+> > B	PHY1	HOST2
+> > C	PHY2	HOST1
+> > D	PHY2	HOST2
+> > 
+> > So we have to be able to use any of the PHYs with any of the host
+> > drivers. This means you would have to export symbol with the same name
+> > from both PHY drivers, which obviously would not work in this case,
+> > because having both drivers enabled (in a multiplatform aware
+> > configuration) would lead to linking conflict.
+
+You're right; the scheme was too simple.  Instead, the board file must
+export two types of data structures, one for PHYs and one for
+controllers.  Like this:
+
+struct phy_info {
+	/* Info for the controller attached to this PHY */
+	struct controller_info	*hinfo;
+};
+
+struct controller_info {
+	/* Info for the PHY which this controller is attached to */
+	struct phy_info		*pinfo;
+};
+
+The board file for SoC A would contain:
+
+struct phy_info phy1 = {&host1);
+EXPORT_SYMBOL(phy1);
+struct controller_info host1 = {&phy1};
+EXPORT_SYMBOL(host1);
+
+The board file for SoC B would contain:
+
+struct phy_info phy1 = {&host2);
+EXPORT_SYMBOL(phy1);
+struct controller_info host2 = {&phy1};
+EXPORT_SYMBOL(host2);
+
+And so on.  This explicitly gives the connection between PHYs and
+controllers.  The PHY providers would use &phy1 or &phy2, and the PHY
+consumers would use &host1 or &host2.
 
 Alan Stern
