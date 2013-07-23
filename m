@@ -1,56 +1,94 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP2430 SDP boot broken after Linus' rmk merge
-Date: Tue, 23 Jul 2013 07:07:31 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1307230705000.27017@utopia.booyaka.com>
-References: <alpine.DEB.2.02.1307221801110.10891@utopia.booyaka.com> <20130722184325.GA21614@n2100.arm.linux.org.uk> <alpine.DEB.2.02.1307222005370.26048@utopia.booyaka.com> <51EE2AA7.5060503@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv4 00/33] ARM: OMAP: clock conversion to DT
+Date: Tue, 23 Jul 2013 10:19:55 +0300
+Message-ID: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:50438 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752482Ab3GWHHc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jul 2013 03:07:32 -0400
-In-Reply-To: <51EE2AA7.5060503@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:33429 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752670Ab3GWHV4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Jul 2013 03:21:56 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, tony@atomide.com, mturquette@linaro.org, nm@ti.com, rnayak@ti.com
+Cc: linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Hi Rajendra,
+Hi,
 
-On Tue, 23 Jul 2013, Rajendra Nayak wrote:
+Changes compared to previous version:
 
-> On Tuesday 23 July 2013 01:37 AM, Paul Walmsley wrote:
-> > On Mon, 22 Jul 2013, Russell King - ARM Linux wrote:
-> > 
-> >> Bear in mind that I'm almost at the point of not boot-testing anything
-> >> I sent to Linus because of the uselessness of the SDP4430 board now
-> >> that it's DT only - the only platform which boot-tests anything I send
-> >> is the 3430LDP board now.  If people care about that, maybe they can
-> >> assist with sorting out the issues I've raised on these lists about
-> >> the SDP4430 - and why the SDP4430 build remains disabled in my build
-> >> and boot system.
-> > 
-> > I understand completely...
-> > 
-> >> Looking at the boot log, it just stops after uboot hands over control.
-> >> With the lack of output from the decompressor, it's not possible to
-> >> tell whether it's a decompressor problem or a kernel problem.
-> >>
-> >> I think you need to turn on the LL_DEBUG option, select the appropriate
-> >> output option, and also get the decompressor to use the kernel's debug
-> >> io functions to output it's stuff (I think the option is DEBUG_UNCOMPRESS).
-> > 
-> > OK, will dig deeper here at the next opportunity.
-> 
-> Paul, I can take a look at the 4430sdp issue. Are you also seeing this also on
-> 2430sdp as the subject says, or was that a typo?
+- Clock init files moved from mach-omap2/ to drivers/clk/omap/
+- AM33xx support added [patches 15-20]
+- OMAP3 support added [patches 21-29]
+- DRA7 APLL support added (thanks Keerthy) [patches 30-33]
 
-Thanks for the offer.  The issue that I'm seeing is on the 2430SDP in my 
-testbed.
+Test branch on top of 3.11-rc1 available here:
 
-I don't have a 4430SDP, so you might consider touching base with rmk for 
-that one.
+git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
+branch: mainline-3.11-rc1-omap-dt-clks
 
+Testing done:
 
-- Paul
+- boot + suspend tested on OMAP3 beagle C4 (omap3530)
+- boot + suspend tested on OMAP4 panda ES (omap4460)
+- boot tested on beagle bone (am335x)
+
+A boot test was also executed for DRA7 and OMAP5 on a separate branch
+(mainline does not have OMAP5 / DRA7 support so far.)
+
+TODO:
+- Add AM35xx support (OMAP3 derivative, AM35xx only clock nodes missing)
+
+Overall diffstat added just for fun:
+
+ arch/arm/boot/dts/am33xx-clocks.dtsi               |  663 ++++
+ arch/arm/boot/dts/am33xx.dtsi                      |    7 +
+ arch/arm/boot/dts/dra7xx-clocks.dtsi               | 2113 ++++++++++++
+ arch/arm/boot/dts/omap3.dtsi                       |    7 +
+ arch/arm/boot/dts/omap3430es1-clocks.dtsi          |  166 +
+ arch/arm/boot/dts/omap34xx-omap36xx-clocks.dtsi    |  240 ++
+ arch/arm/boot/dts/omap34xx.dtsi                    |    9 +
+ .../omap36xx-am35xx-omap3430es2plus-clocks.dtsi    |  214 ++
+ arch/arm/boot/dts/omap36xx-clocks.dtsi             |   97 +
+ .../boot/dts/omap36xx-omap3430es2plus-clocks.dtsi  |  185 +
+ arch/arm/boot/dts/omap36xx.dtsi                    |   10 +
+ arch/arm/boot/dts/omap3xxx-clocks.dtsi             | 1594 +++++++++
+ arch/arm/boot/dts/omap443x-clocks.dtsi             |   17 +
+ arch/arm/boot/dts/omap443x.dtsi                    |    8 +
+ arch/arm/boot/dts/omap4460.dtsi                    |    8 +
+ arch/arm/boot/dts/omap446x-clocks.dtsi             |   27 +
+ arch/arm/boot/dts/omap44xx-clocks.dtsi             | 1654 +++++++++
+ arch/arm/boot/dts/omap54xx-clocks.dtsi             | 1416 ++++++++
+ arch/arm/mach-omap2/Makefile                       |    5 +-
+ arch/arm/mach-omap2/cclock33xx_data.c              | 1059 ------
+ arch/arm/mach-omap2/cclock3xxx_data.c              | 3641 --------------------
+ arch/arm/mach-omap2/cclock44xx_data.c              | 1730 ----------
+ arch/arm/mach-omap2/clock.c                        |    6 +
+ arch/arm/mach-omap2/clock.h                        |  163 +-
+ arch/arm/mach-omap2/clock3xxx.h                    |    7 +-
+ arch/arm/mach-omap2/io.c                           |    7 +-
+ arch/arm/mach-omap2/omap_hwmod.c                   |    5 +-
+ drivers/clk/Makefile                               |    1 +
+ drivers/clk/clk-divider.c                          |    6 +-
+ drivers/clk/clk-fixed-factor.c                     |    6 +-
+ drivers/clk/clk-gate.c                             |    8 +-
+ drivers/clk/clk-mux.c                              |    6 +-
+ drivers/clk/clkdev.c                               |   32 +
+ drivers/clk/omap/Makefile                          |    4 +
+ drivers/clk/omap/apll.c                            |  213 ++
+ drivers/clk/omap/autoidle.c                        |  130 +
+ drivers/clk/omap/clk-33xx.c                        |   85 +
+ drivers/clk/omap/clk-3xxx.c                        |  171 +
+ drivers/clk/omap/clk-44xx.c                        |  118 +
+ drivers/clk/omap/clk-54xx.c                        |   58 +
+ drivers/clk/omap/clk-7xx.c                         |   67 +
+ drivers/clk/omap/clk.c                             |   84 +
+ drivers/clk/omap/dpll.c                            |  387 +++
+ drivers/clk/omap/gate.c                            |  166 +
+ drivers/clk/omap/interface.c                       |  110 +
+ include/linux/clk/omap.h                           |  223 ++
+ 46 files changed, 10327 insertions(+), 6606 deletions(-)
+
+-Tero
+
