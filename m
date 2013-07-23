@@ -1,47 +1,92 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 1/2] ARM: OMAP: dss-common: fix Panda's DVI DDC channel
-Date: Tue, 23 Jul 2013 12:06:44 +0300
-Message-ID: <1374570405-8301-2-git-send-email-tomi.valkeinen@ti.com>
-References: <1374570405-8301-1-git-send-email-tomi.valkeinen@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 6/6] USB: ehci-omap: Implement suspend/resume
+Date: Tue, 23 Jul 2013 12:18:52 +0300
+Message-ID: <51EE4A7C.2020709@ti.com>
+References: <Pine.LNX.4.44L0.1307221111410.1495-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51447 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752910Ab3GWJHd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jul 2013 05:07:33 -0400
-In-Reply-To: <1374570405-8301-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <Pine.LNX.4.44L0.1307221111410.1495-100000@iolanthe.rowland.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: khilman@linaro.org, sergei.shtylyov@cogentembedded.com, tony@atomide.com, gregkh@linuxfoundation.org, ruslan.bilovol@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Panda's DVI connector's DDC pins are connected to OMAP's third i2c bus.
-With non-DT, the bus number was 3, and that is what is used in the
-dss-common.c which contains the platform data for Panda's DVI.
+On 07/22/2013 06:18 PM, Alan Stern wrote:
+> On Mon, 22 Jul 2013, Roger Quadros wrote:
+> 
+>> Right, I understand it now. How does the below code look?
+>>
+>> +static int omap_ehci_suspend(struct device *dev)
+>> +{
+>> +       struct usb_hcd *hcd = dev_get_drvdata(dev);
+>> +       bool do_wakeup = device_may_wakeup(dev);
+>> +       int ret;
+>> +
+>> +       dev_dbg(dev, "%s may_wakeup %d\n", __func__, do_wakeup);
+>> +
+>> +       if (pm_runtime_status_suspended(dev)) {
+> 
+> You need to do this only when do_wakeup is false.
 
-However, with DT, the bus number is 2. As we now only have DT boot for
-Panda, we have to change the bus number to make DVI EDID read
-operational.
+Right. Missed that.
+> 
+>> +               pm_runtime_get_sync(dev);
+>> +               ehci_resume(hcd, false);
+>> +               ret = ehci_suspend(hcd, do_wakeup);
+>> +               pm_runtime_put_sync(dev);
+> 
+> It would be better to call pm_runtime_resume(dev) at the start instead
+> of pm_runtime_get_sync(), and eliminate the last two lines.  Then the
+> ehci_suspend() below could be moved outside the "if" statement.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- arch/arm/mach-omap2/dss-common.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Why do I find pm_runtime_* so confusing ;)
 
-diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
-index 393aeef..043e570 100644
---- a/arch/arm/mach-omap2/dss-common.c
-+++ b/arch/arm/mach-omap2/dss-common.c
-@@ -42,7 +42,7 @@
- 
- /* Using generic display panel */
- static struct tfp410_platform_data omap4_dvi_panel = {
--	.i2c_bus_num		= 3,
-+	.i2c_bus_num		= 2,
- 	.power_down_gpio	= PANDA_DVI_TFP410_POWER_DOWN_GPIO,
- };
- 
--- 
-1.8.1.2
+> 
+> Alternatively, if you are able to turn off the wakeup setting without
+> going through an entire resume/suspend cycle, that would be preferable.
+> 
 
+As we don't rely on the EHCI controller's interrupt any more after we
+power it down, maybe ehci_resume/suspend cycle is not required at all on OMAP,
+even if the wakeup setting is disabled during system suspend.
+
+As the wakeup is controlled entirely by pad wakeup, all we need to do is make sure
+the IO pad wakeup is configured correctly based on do_wakeup. How this is done
+is still in transition but it might be turn out to be as simple as irq_set_irq_wake()
+
+So IMHO, for ehci-omap this should suffice
+
+static int omap_ehci_suspend(struct device *dev)
+{
+	struct usb_hcd *hcd = dev_get_drvdata(dev);
+	bool do_wakeup = device_may_wakeup(dev);
+	int ret = 0;
+
+	if (!pm_runtime_status_suspended(dev))
+		ret = ehci_suspend(hcd, do_wakeup);
+
+	/* Not tested yet */
+	irq_set_irq_wake(hcd->irq, do_wakeup);
+
+	return ret;
+}
+
+What do you think?
+
+As the OMAP IO pad wakeup management code [1] is still in transition, I'll wait till
+that gets settled and then resend this series.
+
+cheers,
+-roger
+
+[1] - http://thread.gmane.org/gmane.linux.ports.arm.omap/99010
