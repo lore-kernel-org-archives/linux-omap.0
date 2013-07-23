@@ -1,90 +1,145 @@
-From: Mark Brown <broonie@kernel.org>
+From: Tomasz Figa <t.figa-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Tue, 23 Jul 2013 18:44:56 +0100
-Message-ID: <20130723174456.GM9858@sirena.org.uk>
+Date: Tue, 23 Jul 2013 19:48:11 +0200
+Message-ID: <19656720.FrnhefyPXl@amdc1227>
 References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
- <51EE9EC0.6060905@ti.com> <20130723161846.GD2486@kroah.com>
  <1446965.6APW5ZgLBW@amdc1227> <20130723173710.GB28284@kroah.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4371443843795486829=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130723173710.GB28284@kroah.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-fbdev@vger.kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-doc@vger.kernel.org, tony@atomide.com, Tomasz Figa <t.figa@samsung.com>, nsekhar@ti.com, Tomasz Figa <tomasz.figa@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, Kishon Vijay Abraham I <kishon@ti.com>, Alan Stern <stern@rowland.harvard.edu>, grant.likely@linaro.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, Stephen Warren <swarren@wwwdotorg.org>, b.zolnierkie@samsung.com, Sascha Hauer <s.hauer@pengutronix.de>, linux-samsung-soc@vger.kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <20130723173710.GB28284-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Tomasz Figa <tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Sylwester Nawrocki <sylvester.nawrocki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org, b.zolnierkie-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, Daniel
 List-Id: linux-omap@vger.kernel.org
 
-
---===============4371443843795486829==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HQbpMUFNRY4iYVZ3"
-Content-Disposition: inline
-
-
---HQbpMUFNRY4iYVZ3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Jul 23, 2013 at 10:37:11AM -0700, Greg KH wrote:
+On Tuesday 23 of July 2013 10:37:11 Greg KH wrote:
 > On Tue, Jul 23, 2013 at 06:50:29PM +0200, Tomasz Figa wrote:
+> > > Ick, no.  Why can't you just pass the pointer to the phy itself?  If
+> > > you
+> > > had a "priv" pointer to search from, then you could have just passed
+> > > the
+> > > original phy pointer in the first place, right?
+> > 
+> > IMHO it would be better if you provided some code example, but let's
+> > try to check if I understood you correctly.
+> 
+> It's not my code that I want to have added, so I don't have to write
+> examples, I just get to complain about the existing stuff :)
 
-> > I fully agree that a simple, single string will not scale even in some,=
- not=20
-> > so uncommon cases, but there is already a lot of existing lookup soluti=
-ons=20
-> > over the kernel and so there is no point in introducing another one.
+Still, I think that some small code snippets illustrating the idea are 
+really helpful.
 
+> > 8><--------------------------------------------------------------------
+> > ----
+> > 
+> > [Board file]
+> > 
+> > static struct phy my_phy;
+> > 
+> > static struct platform_device phy_pdev = {
+> > 
+> > 	/* ... */
+> > 	.platform_data = &my_phy;
+> > 	/* ... */
+> > 
+> > };
+> > 
+> > static struct platform_device phy_pdev = {
+> > 
+> > 	/* ... */
+> > 	.platform_data = &my_phy;
+> > 	/* ... */
+> > 
+> > };
+> > 
+> > [Provider driver]
+> > 
+> > struct phy *phy = pdev->dev.platform_data;
+> > 
+> > ret = phy_create(phy);
+> > 
+> > [Consumer driver]
+> > 
+> > struct phy *phy = pdev->dev.platform_data;
+> > 
+> > ret = phy_get(&pdev->dev, phy);
+> > 
+> > -----------------------------------------------------------------------
+> > -><8
+> > 
+> > Is this what you mean?
+> 
+> No.  Well, kind of.  What's wrong with using the platform data structure
+> unique to the board to have the pointer?
+> 
+> For example (just randomly picking one), the ata-pxa driver would change
+> include/linux/platform_data/ata-pxa.h to have a phy pointer in it:
+> 
+> struct phy;
+> 
+> struct  pata_pxa_pdata {
+> 	/* PXA DMA DREQ<0:2> pin */
+> 	uint32_t	dma_dreq;
+> 	/* Register shift */
+> 	uint32_t	reg_shift;
+> 	/* IRQ flags */
+> 	uint32_t	irq_flags;
+> 	/* PHY */
+> 	struct phy	*phy;
+> };
+> 
+> Then, when you create the platform, set the phy* pointer with a call to
+> phy_create().  Then you can use that pointer wherever that plaform data
+> is available (i.e. whereever platform_data is at).
+
+Hmm? So, do you suggest to call phy_create() from board file? What phy_ops 
+struct and other hardware parameters would it take?
+
+> > > The issue is that a string "name" is not going to scale at all, as it
+> > > requires hard-coded information that will change over time (as the
+> > > existing clock interface is already showing.)
+> > 
+> > I fully agree that a simple, single string will not scale even in some,
+> > not so uncommon cases, but there is already a lot of existing lookup
+> > solutions over the kernel and so there is no point in introducing
+> > another one.
 > I'm trying to get _rid_ of lookup "solutions" and just use a real
 > pointer, as you should.  I'll go tackle those other ones after this one
 > is taken care of, to show how the others should be handled as well.
 
-What are the problems you are seeing with doing things with lookups?
-Having to write platform data for everything gets old fast and the code
-duplication is pretty tedious...
+There was a reason for introducing lookup solutions. The reason was that in 
+board file there is no way to get a pointer to something that is going to be 
+created much later in time. We don't do time travel ;-).
 
---HQbpMUFNRY4iYVZ3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> > > Please just pass the real "phy" pointer around, that's what it is
+> > > there
+> > > for.  Your "board binding" logic/code should be able to handle this,
+> > > as
+> > > it somehow was going to do the same thing with a "name".
+> > 
+> > It's technically correct, but quality of this solution isn't really
+> > nice, because it's a layering violation (at least if I understood what
+> > you mean). This is because you need to have full definition of struct
+> > phy in board file and a structure that is used as private data in PHY
+> > core comes from platform code.
+> 
+> No, just a pointer, you don't need the "full" structure until you get to
+> some .c code that actually manipulates the phy itself, for all other
+> places, you are just dealing with a pointer and a structure you never
+> reference.
+> 
+> Does that make more sense?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
+Well, to the point that I think I now understood your suggestion. 
+Unfortunately the suggestion alone isn't really something that can be done, 
+considering how driver core and generic frameworks work.
 
-iQIcBAEBAgAGBQJR7sEVAAoJELSic+t+oim9SUcP/ieysuGxUWbhqKHNUQJMzk22
-s5EUHq9mXmZnv8GmwmuFlQZ3ntlWPuahPB8SUVgbwmCG8726u7z5qLSI+6RLPuTm
-n1cTd1UqtKMpg3LlFky+4HaLE844ZE6fGxdQetxxDUj6D3YhENnPyqVOM+4qI9eO
-9FpL2tZArEw1Ob0aFB8LJHL5t9zK2FFLyLqqa+LxctmgN71t/U8uiEXBwsqIxYVS
-0aVhjm5L9FnnUT3uSsu8dznALPGUG5rkdWDe9FzMzyUpV8d+mn7iHHc8h8+0HNQE
-EwtT9OrmBDORDVhq7QaRMejgKyCxTZKorqOB8Z1QmK5BBQZdsQE9Tp7nyFgHcqmC
-+Dny2OE2rITlcpj5R/Q93Nv9r+0y/Uf4dOGymxzIMB/cbyAndxvN0EGOzKFvTU9+
-fudz+arQaUOB29jxTN7vlnW+OSExX6zJ9uERObfOG+im8vagKcNvRok88hJOpC+7
-4lEzcZzR5T4C2uvd7Se4YZylZeEW6TnWB9yMln9TW57u1DN5AeZuAimY2GEEc+AF
-1/tvRfkNARDQmR5bianOpNPgDCoO1g+MuPyDOZYWhT/5bfuhei7Y5iy8+522HF65
-CJLlQt9GMlSKcwjre8PS97jTcscmd6CXRxHqhYNowZlbhO+IT0zTXREHuDgCRvZi
-Q63fF0aCpz1Y9Qh3iDYL
-=K4vT
------END PGP SIGNATURE-----
+Best regards,
+Tomasz
 
---HQbpMUFNRY4iYVZ3--
-
-
---===============4371443843795486829==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============4371443843795486829==--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
