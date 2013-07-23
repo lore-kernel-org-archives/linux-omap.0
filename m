@@ -1,87 +1,82 @@
-From: Alan Stern <stern@rowland.harvard.edu>
+From: Greg KH <gregkh@linuxfoundation.org>
 Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Tue, 23 Jul 2013 15:36:00 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1307231518310.1304-100000@iolanthe.rowland.org>
-References: <1446965.6APW5ZgLBW@amdc1227>
+Date: Tue, 23 Jul 2013 12:44:23 -0700
+Message-ID: <20130723194423.GA22984@kroah.com>
+References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
+ <51EE9EC0.6060905@ti.com>
+ <20130723161846.GD2486@kroah.com>
+ <1446965.6APW5ZgLBW@amdc1227>
+ <20130723173710.GB28284@kroah.com>
+ <20130723174456.GM9858@sirena.org.uk>
+ <20130723180110.GA8688@kroah.com>
+ <20130723193105.GP9858@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1446965.6APW5ZgLBW@amdc1227>
-Sender: linux-doc-owner@vger.kernel.org
-To: Tomasz Figa <t.figa@samsung.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, Kishon Vijay Abraham I <kishon@ti.com>, Tomasz Figa <tomasz.figa@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, broonie@kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, Sascha Hauer <s.hauer@pengutronix.de>, kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com, olof@lixom.n
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130723193105.GP9858@sirena.org.uk>
+Sender: linux-media-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Tomasz Figa <t.figa@samsung.com>, Kishon Vijay Abraham I <kishon@ti.com>, Alan Stern <stern@rowland.harvard.edu>, Tomasz Figa <tomasz.figa@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, Sascha Hauer <s.hauer@pengutronix.de>, kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com, olof@lixom.net, Stephen Warren <swarren@www>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 23 Jul 2013, Tomasz Figa wrote:
-
-> IMHO it would be better if you provided some code example, but let's try to 
-> check if I understood you correctly.
+On Tue, Jul 23, 2013 at 08:31:05PM +0100, Mark Brown wrote:
+> > You don't "know" the id of the device you are looking up, due to
+> > multiple devices being in the system (dynamic ids, look back earlier in
+> > this thread for details about that.)
 > 
-> 8><------------------------------------------------------------------------
-> 
-> [Board file]
-> 
-> static struct phy my_phy;
-> 
-> static struct platform_device phy_pdev = {
-> 	/* ... */
-> 	.platform_data = &my_phy;
-> 	/* ... */
-> };
-> 
-> static struct platform_device phy_pdev = {
+> I got copied in very late so don't have most of the thread I'm afraid, 
+> I did try looking at web archives but didn't see a clear problem
+> statement.  In any case this is why the APIs doing lookups do the
+> lookups in the context of the requesting device - devices ask for
+> whatever name they use locally.
 
-This should be controller_pdev, not phy_pdev, yes?
+What do you mean by "locally"?
 
-> 	/* ... */
-> 	.platform_data = &my_phy;
-> 	/* ... */
-> };
+The problem with the api was that the phy core wanted a id and a name to
+create a phy, and then later other code was doing a "lookup" based on
+the name and id (mushed together), because it "knew" that this device
+was the one it wanted.
+
+Just like the clock api, which, for multiple devices, has proven to
+cause problems.  I don't want to see us accept an api that we know has
+issues in it now, I'd rather us fix it up properly.
+
+Subsystems should be able to create ids how ever they want to, and not
+rely on the code calling them to specify the names of the devices that
+way, otherwise the api is just too fragile.
+
+I think, that if you create a device, then just carry around the pointer
+to that device (in this case a phy) and pass it to whatever other code
+needs it.  No need to do lookups on "known names" or anything else, just
+normal pointers, with no problems for multiple devices, busses, or
+naming issues.
+
+> > > Having to write platform data for everything gets old fast and the code
+> > > duplication is pretty tedious...
 > 
-> [Provider driver]
+> > Adding a single pointer is "tedious"?  Where is the "name" that you are
+> > going to lookup going to come from?  That code doesn't write itself...
 > 
-> struct phy *phy = pdev->dev.platform_data;
-> 
-> ret = phy_create(phy);
-> 
-> [Consumer driver]
-> 
-> struct phy *phy = pdev->dev.platform_data;
-> 
-> ret = phy_get(&pdev->dev, phy);
+> It's adding platform data in the first place that gets tedious - and of
+> course there's also DT and ACPI to worry about, it's not just a case of
+> platform data and then you're done.  Pushing the lookup into library
+> code means that drivers don't have to worry about any of this stuff.
 
-Or even just phy_get(&pdev->dev), because phy_get() could be smart 
-enough to to set phy = dev->platform_data.
+I agree, so just pass around the pointer to the phy and all is good.  No
+need to worry about DT or ACPI or anything else.
 
-> ------------------------------------------------------------------------><8
-> 
-> Is this what you mean?
+> For most of the APIs doing this there is a clear and unambiguous name in
+> the hardware that can be used (and for hardware process reasons is
+> unlikely to get changed).  The major exception to this is the clock API
+> since it is relatively rare to have clear, segregated IP level
+> information for IPs baked into larger chips.  The other APIs tend to be
+> establishing chip to chip links.
 
-That's what I was going to suggest too.  The struct phy is defined in
-the board file, which already knows about all the PHYs that exist in
-the system.  (Or perhaps it is allocated dynamically, so that when many
-board files are present in the same kernel, only the entries listed in
-the board file for the current system get created.)  Then the
-structure's address is stored in the platform data and made available
-to both the provider and the consumer.
+The clock api is having problems with multiple "names" due to dynamic
+devices from what I was told.  I want to prevent the PHY interface from
+having that same issue.
 
-Even though the struct phy is defined (or allocated) in the board file,
-its contents don't get filled in until the PHY driver provides the
-details.
+thanks,
 
-> It's technically correct, but quality of this solution isn't really nice, 
-> because it's a layering violation (at least if I understood what you mean). 
-> This is because you need to have full definition of struct phy in board file 
-> and a structure that is used as private data in PHY core comes from 
-> platform code.
-
-You don't have to have a full definition in the board file.  Just a 
-partial definition -- most of the contents can be filled in later, when 
-the PHY driver is ready to store the private data.
-
-It's not a layering violation for one region of the kernel to store 
-private data in a structure defined by another part of the kernel.  
-This happens all the time (e.g., dev_set_drvdata).
-
-Alan Stern
-
+greg k-h
