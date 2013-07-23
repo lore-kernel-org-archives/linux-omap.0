@@ -1,85 +1,60 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 3/3] Input: omap-keypad: Clear pending interrupts on
- open
-Date: Tue, 23 Jul 2013 20:18:38 +0300
-Message-ID: <20130723171838.GA9166@radagast>
+Subject: Re: [PATCH v2 1/3] Input: omap-keypad: Cleanup - use bitfiled
+ instead of hardcoded values
+Date: Tue, 23 Jul 2013 20:20:35 +0300
+Message-ID: <20130723172035.GB9166@radagast>
 References: <1374595798-15492-1-git-send-email-illia.smyrnov@ti.com>
- <1374595798-15492-4-git-send-email-illia.smyrnov@ti.com>
+ <1374595798-15492-2-git-send-email-illia.smyrnov@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BXVAT5kNtrzKuDFl"
+	protocol="application/pgp-signature"; boundary="WYTEVAkct0FjGQmd"
 Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1374595798-15492-4-git-send-email-illia.smyrnov@ti.com>
+In-Reply-To: <1374595798-15492-2-git-send-email-illia.smyrnov@ti.com>
 Sender: linux-input-owner@vger.kernel.org
 To: Illia Smyrnov <illia.smyrnov@ti.com>
 Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, balbi@ti.com, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---BXVAT5kNtrzKuDFl
+--WYTEVAkct0FjGQmd
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Tue, Jul 23, 2013 at 07:09:58PM +0300, Illia Smyrnov wrote:
-> Clear pending interrupts when open keypad.
-
-where are these interrupts coming from ?
-
-> Signed-off-by: Illia Smyrnov <illia.smyrnov@ti.com>
-> ---
->  drivers/input/keyboard/omap4-keypad.c |    5 +++--
->  1 files changed, 3 insertions(+), 2 deletions(-)
+On Tue, Jul 23, 2013 at 07:09:56PM +0300, Illia Smyrnov wrote:
+> Use bitfiled instead of hardcoded values to set KBD_CTRL, use BIT macro,
+> remove unused defines.
 >=20
-> diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboa=
-rd/omap4-keypad.c
-> index b876a0d..62abc3e 100644
-> --- a/drivers/input/keyboard/omap4-keypad.c
-> +++ b/drivers/input/keyboard/omap4-keypad.c
-> @@ -185,13 +185,14 @@ static int omap4_keypad_open(struct input_dev *inpu=
-t)
->  			(OMAP4_VAL_PVT << OMAP4_DEF_CTRL_PTV_SHIFT));
->  	kbd_writel(keypad_data, OMAP4_KBD_DEBOUNCINGTIME,
->  			OMAP4_VAL_DEBOUNCINGTIME);
-> -	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS,
-> -			OMAP4_VAL_IRQDISABLE);
->  	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
->  			OMAP4_DEF_IRQENABLE_EVENTEN |
->  				OMAP4_DEF_IRQENABLE_LONGKEY);
->  	kbd_writel(keypad_data, OMAP4_KBD_WAKEUPENABLE,
->  			OMAP4_DEF_WUP_EVENT_ENA | OMAP4_DEF_WUP_LONG_KEY_ENA);
-> +	/* clear pending interrupts */
-> +	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS,
-> +			 kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS));
+> Signed-off-by: Illia Smyrnov <illia.smyrnov@ti.com>
 
-you might want to clear these interrupts before unmasking them :-)
+Reviewed-by: Felipe Balbi <balbi@ti.com>
 
 --=20
 balbi
 
---BXVAT5kNtrzKuDFl
+--WYTEVAkct0FjGQmd
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJR7rruAAoJEIaOsuA1yqREfYcP/iDwq1NDC6D7pH3Xh6Aamnqu
-Dxpb/1i8/IaHPfPNnGQAICSPgZ9sjTTc9tWvfodPQQaN0j+vCyBehE/PCFSXS7Ug
-V2X8yh5Jk2mWOK93QlgMumhjbhk46UYnPUjrym4HDS3vHA+cUpE0aFPms9FeSHvU
-USqsmS7vP/Ul/+vZWXMLILAjEAGO/nd/S07QkK/DG17kSfvIl+L3RJKJ3CR1Tpa7
-wLTAuRB5sOVBwTrDrVQshGna0WE6DC3X9OGpDVjQDdc6YhYJFXFPdwB2Bhq05Xwi
-+YYThVW/PjZcCWi1Jw9gmxCWWrqb7E62NqDrEGjG2P5k6rzz+AHMG4MkeIwLq9P8
-5DFVWnQ6uZwlrj/DE+6UDBN63E4vaS+T8hnwjP3dxLB6TkNvmsTL5lFIoXj9OzmD
-RgeIGwxSlU0RHhCnwRbvpemAL/+CVgSLjpky193hHjGShxnyf6HAhzh4e6gFLUXh
-0xal/gqfPoY5iokahdYMj2k26EeRNn1gpdgNXkvwzA2urllhyGu/6Rmqgv8vjqTY
-zvXfBxMl1khBFaWQgUuFjXi7/z8Xw1xRlpu+/m0n8pwzZXePn4H/YXJz1EAeXRRv
-ZpU8I8CZYQnp73vDb3yHpQTVtX20DUZxY5baIPgmJhfK+lVC99Ab4QxN8YiLZGPS
-rWhK5fnwjZ0A/w7/2rM+
-=u7k9
+iQIcBAEBAgAGBQJR7rtjAAoJEIaOsuA1yqREnbIP/1edMBYasMw7k2Sc31/gVU3k
+i3xxQjrd+H2ytVFEH9Te/bC2sgva7H9q759LYZrF1bpNcN9MNwR1/vTjU3iew0qJ
+qZWCp/Mf8AHiWIJ0xPBHvWvNH5n9WhxznrHCQ/gmMyoiiD3EuT6m99+ZiTMn6vPX
+Ala8dKAPmhUaX9yzUwCL4fnD0gcimlsTvmspARgnKjhYucSzEcdl8X6B/JY8xABG
+khPW+jd0DzLWo0QFA4FAbyiHe6pFPCLn6L4RR6k/ufyGRNKZyL+gvhh2bLE+5yBj
+9FUEZFPwwsAgEX5pXelC/3CTtqSUseXxTXEBoHboMmdrKh0vsz2wHGMuphMGxc3Q
+Z6lG5PA8qeijhXJe7r+N9HkMh0CQ8BxNyWRBDThYlhrN+ZcvWgOJSP2NwjGEdi6P
+FAOlC7Glm77KsQZ4jKwXDOgbGym6MPEsblnVfUHgiZNgR1JGaYc4072Ivlxi46L7
+udAUdGui8ROnl26jUzfZoesym5UazNSyas1HdlrL6XJoRMkYg5niOXytgW5E5Bw2
+jh6+qibgPQhaE4jSHr+s4umLq7PHgsxjIvQNThmImJVzvl+7gq4ydQGeJnGBJxTM
+qmyOSp2nuI1akCQWqR6N3U8/o2q+Paeo+4KmgBfBEDD0U7yJ/D1ez2cD4lMb1sq4
+Qp1SX9sX1cial3jtlIvC
+=Ec8R
 -----END PGP SIGNATURE-----
 
---BXVAT5kNtrzKuDFl--
+--WYTEVAkct0FjGQmd--
