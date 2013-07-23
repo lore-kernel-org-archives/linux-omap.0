@@ -1,107 +1,118 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 2/3] Input: omap-keypad: Convert to threaded IRQ
-Date: Tue, 23 Jul 2013 20:32:27 +0300
-Message-ID: <20130723173227.GA9636@radagast>
-References: <1374595798-15492-1-git-send-email-illia.smyrnov@ti.com>
- <1374595798-15492-3-git-send-email-illia.smyrnov@ti.com>
- <20130723172501.GC9166@radagast>
-Reply-To: <balbi@ti.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Tue, 23 Jul 2013 10:37:11 -0700
+Message-ID: <20130723173710.GB28284@kroah.com>
+References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
+ <51EE9EC0.6060905@ti.com>
+ <20130723161846.GD2486@kroah.com>
+ <1446965.6APW5ZgLBW@amdc1227>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UugvWAfsgieZRqgk"
-Return-path: <linux-input-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130723172501.GC9166@radagast>
-Sender: linux-input-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Illia Smyrnov <illia.smyrnov@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <1446965.6APW5ZgLBW@amdc1227>
+Sender: linux-doc-owner@vger.kernel.org
+To: Tomasz Figa <t.figa@samsung.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Alan Stern <stern@rowland.harvard.edu>, Tomasz Figa <tomasz.figa@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, broonie@kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, Sascha Hauer <s.hauer@pengutronix.de>, kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com, olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>
 List-Id: linux-omap@vger.kernel.org
 
---UugvWAfsgieZRqgk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, Jul 23, 2013 at 06:50:29PM +0200, Tomasz Figa wrote:
+> > Ick, no.  Why can't you just pass the pointer to the phy itself?  If you
+> > had a "priv" pointer to search from, then you could have just passed the
+> > original phy pointer in the first place, right?
+> 
+> IMHO it would be better if you provided some code example, but let's try to 
+> check if I understood you correctly.
 
-Hi,
+It's not my code that I want to have added, so I don't have to write
+examples, I just get to complain about the existing stuff :)
 
-On Tue, Jul 23, 2013 at 08:25:01PM +0300, Felipe Balbi wrote:
-> > Convert to use threaded IRQ.
-> >=20
-> > Cc: Felipe Balbi <balbi@ti.com>
-> > Signed-off-by: Illia Smyrnov <illia.smyrnov@ti.com>
-> > ---
-> >  drivers/input/keyboard/omap4-keypad.c |   29 ++++++++++++++++++++-----=
-----
-> >  1 files changed, 20 insertions(+), 9 deletions(-)
-> >=20
-> > diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyb=
-oard/omap4-keypad.c
-> > index c727548..b876a0d 100644
-> > --- a/drivers/input/keyboard/omap4-keypad.c
-> > +++ b/drivers/input/keyboard/omap4-keypad.c
-> > @@ -112,8 +112,22 @@ static void kbd_write_irqreg(struct omap4_keypad *=
-keypad_data,
-> >  }
-> > =20
-> > =20
-> > -/* Interrupt handler */
-> > -static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
-> > +/* Interrupt handlers */
-> > +static irqreturn_t omap4_keypad_irq_handler(int irq, void *dev_id)
-> > +{
-> > +	struct omap4_keypad *keypad_data =3D dev_id;
-> > +
-> > +	if (kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS)) {
-> > +		/* Disable interrupts */
-> > +		kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
-> > +				 OMAP4_VAL_IRQDISABLE);
-> > +		return IRQ_WAKE_THREAD;
-> > +	}
-> > +
-> > +	return IRQ_NONE;
-> > +}
-> > +
-> > +static irqreturn_t omap4_keypad_irq_thread_fn(int irq, void *dev_id)
-> >  {
-> >  	struct omap4_keypad *keypad_data =3D dev_id;
-> >  	struct input_dev *input_dev =3D keypad_data->input;
-> > @@ -121,10 +135,6 @@ static irqreturn_t omap4_keypad_interrupt(int irq,=
- void *dev_id)
-> >  	unsigned int col, row, code, changed;
-> >  	u32 *new_state =3D (u32 *) key_state;
-> > =20
-> > -	/* Disable interrupts */
-> > -	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
-> > -			 OMAP4_VAL_IRQDISABLE);
->=20
-> looking a lot better, but I wonder if you should add a mutex to this
-> threaded handler, but I guess there's no way this will never race since
+> 8><------------------------------------------------------------------------
+> 
+> [Board file]
+> 
+> static struct phy my_phy;
+> 
+> static struct platform_device phy_pdev = {
+> 	/* ... */
+> 	.platform_data = &my_phy;
+> 	/* ... */
+> };
+> 
+> static struct platform_device phy_pdev = {
+> 	/* ... */
+> 	.platform_data = &my_phy;
+> 	/* ... */
+> };
+> 
+> [Provider driver]
+> 
+> struct phy *phy = pdev->dev.platform_data;
+> 
+> ret = phy_create(phy);
+> 
+> [Consumer driver]
+> 
+> struct phy *phy = pdev->dev.platform_data;
+> 
+> ret = phy_get(&pdev->dev, phy);
+> 
+> ------------------------------------------------------------------------><8
+> 
+> Is this what you mean?
 
-s/never/ever
+No.  Well, kind of.  What's wrong with using the platform data structure
+unique to the board to have the pointer?
 
---=20
-balbi
+For example (just randomly picking one), the ata-pxa driver would change
+include/linux/platform_data/ata-pxa.h to have a phy pointer in it:
 
---UugvWAfsgieZRqgk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+struct phy;
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+struct  pata_pxa_pdata {
+	/* PXA DMA DREQ<0:2> pin */
+	uint32_t	dma_dreq;
+	/* Register shift */
+	uint32_t	reg_shift;
+	/* IRQ flags */
+	uint32_t	irq_flags;
+	/* PHY */
+	struct phy	*phy;
+};
 
-iQIcBAEBAgAGBQJR7r4rAAoJEIaOsuA1yqREUPsQAJ/XGjI6hr1xErQnDOaYS5cB
-DtMggrmZvpZ+gEsS602olbYfyYg1mZQwS7gIVAgVrw0vAI/C1rDoTs0lZLiLDA1I
-5tXER4UTeMusLuQBg92GOEHn8bCiak4lHLlvRSYrW7XbuOPaFRr4T31wd2czs8RN
-zja7T/qqSq4ibVENP/nPmRJ3bnbQAZHDs7DmvO+0zJXl2+TP426CxDF9ZvloBiHW
-2sgxny9X+IiDHYQhPkF/2vvN/TOlvRmgr3LFWdOhD8dJ5kCU1Uyxvt4uuKlgdpZM
-oWbMrMcF39YmPi58Q3Axr6Aa5meOg3DHQPbjj3+1xSr52thfJN3FA/fZhc4AxYvi
-g2kDLK5zGbg1qSg7qxtrc52rEnhIT6fkTYsH0z4Nu3ay+5PcEMdQl9Eikva4J4/k
-uQ2ifyGVU9t+I8t8J+A4NGjzSe2FC+CrgmiR7igSOb3Z1dfg2vrKAZUKC0ixM6yt
-8ck48DCdoRJjAXoANEw29E+vYHaYjDu+9vEe7+8Y6NtrpVRogB3oqdO5VpieBIvg
-537qI0H2OweqWFbP4Lrgr2P+Ca/JdH6MLHYz97Ey/l5sWmfOzvBH9FDTxVUapv0Z
-vBhf3sEZYo+tIybKkYeO3Lc6LEh//vcR+o79MLyV93i/KbC0yRJNwz65l/M0Dlgl
-GMolJCn3Mv+eI8X88sP9
-=QG6h
------END PGP SIGNATURE-----
+Then, when you create the platform, set the phy* pointer with a call to
+phy_create().  Then you can use that pointer wherever that plaform data
+is available (i.e. whereever platform_data is at).
 
---UugvWAfsgieZRqgk--
+> > The issue is that a string "name" is not going to scale at all, as it
+> > requires hard-coded information that will change over time (as the
+> > existing clock interface is already showing.)
+> 
+> I fully agree that a simple, single string will not scale even in some, not 
+> so uncommon cases, but there is already a lot of existing lookup solutions 
+> over the kernel and so there is no point in introducing another one.
+
+I'm trying to get _rid_ of lookup "solutions" and just use a real
+pointer, as you should.  I'll go tackle those other ones after this one
+is taken care of, to show how the others should be handled as well.
+
+> > Please just pass the real "phy" pointer around, that's what it is there
+> > for.  Your "board binding" logic/code should be able to handle this, as
+> > it somehow was going to do the same thing with a "name".
+> 
+> It's technically correct, but quality of this solution isn't really nice, 
+> because it's a layering violation (at least if I understood what you mean). 
+> This is because you need to have full definition of struct phy in board file 
+> and a structure that is used as private data in PHY core comes from 
+> platform code.
+
+No, just a pointer, you don't need the "full" structure until you get to
+some .c code that actually manipulates the phy itself, for all other
+places, you are just dealing with a pointer and a structure you never
+reference.
+
+Does that make more sense?
+
+thanks,
+
+greg k-h
