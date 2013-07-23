@@ -1,34 +1,49 @@
-From: Fabio Estevam <festevam@gmail.com>
-Subject: Re: linux-3.11-rc1: Internal error: Oops - undefined instruction: 0
- [#1] SMP ARM on OMAP3/AM335x
-Date: Tue, 23 Jul 2013 01:52:55 -0300
-Message-ID: <CAOMZO5AAz+O=Xtajc8uojMniEkzvXk-kT6QAUtMXTnmiqbS63g@mail.gmail.com>
-References: <51ECFBAC.7090900@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 3/4] ARM: OMAP2+: Avoid idling memory controllers with
+ no drivers
+Date: Tue, 23 Jul 2013 10:29:22 +0530
+Message-ID: <51EE0DAA.9000203@ti.com>
+References: <1374487277-26099-1-git-send-email-rnayak@ti.com> <1374487277-26099-4-git-send-email-rnayak@ti.com> <alpine.DEB.2.02.1307221746430.10891@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51ECFBAC.7090900@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: catalin.marinas@arm.com, Paul Walmsley <paul@pwsan.com>, Russell King <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, Kernel development list <linux-kernel@vger.kernel.org>, "Mesfin, Yebio" <ymesfin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1307221746430.10891@utopia.booyaka.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, balbi@ti.com, mpfj-list@newflow.co.uk, vaibhav.bedia@ti.com, khilman@linaro.org, sourav.poddar@ti.com, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, linux-serial@vger.kernel.org, grygorii.strashko@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Roger,
+On Monday 22 July 2013 11:18 PM, Paul Walmsley wrote:
+> Hi
+> 
+> On Mon, 22 Jul 2013, Rajendra Nayak wrote:
+> 
+>> Memory controllers in OMAP (like GPMC and EMIF) have the hwmods marked with
+>> HWMOD_INIT_NO_IDLE and are left in enabled state post initial setup.
+>>
+>> Even if they have drivers missing, avoid idling them as part of
+>> omap_device_late_idle()
+> 
+> Since this patch is intended for the -rc series, it's best if you explain 
+> here what effects this patch will fix.  i.e., does this fix a crash, a 
+> warning, etc?  Also maybe update your series description message?
 
-On Mon, Jul 22, 2013 at 6:30 AM, Roger Quadros <rogerq@ti.com> wrote:
-> Hi,
->
-> I observe the following problem on booting v3.11-rc1 on OMAP3 beagle board.
->
-> [    5.888946] Internal error: Oops - undefined instruction: 0 [#1] SMP ARM
-> [    5.896057] Modules linked in:
-> [    5.899322] CPU: 0 PID: 9 Comm: rcu_sched Not tainted 3.11.0-rc2-00001-g1ea701a #876
-> [    5.907501] task: ce0720c0 ti: ce07a000 task.ti: ce07a000
-> [    5.913208] PC is at check_and_switch_context+0x130/0x4dc
-> [    5.918914] LR is at check_and_switch_context+0xd8/0x4dc
+This patch infact is needed because of 'PATCH 4/4' in the series which makes
+sure the omap_device and pm_runtime state are in sync with the hwmod state.
 
-Got the same issue on a mx53 and prepared a fix. Will submit it shortly.
+Without that we always had gpmc and emif having the hwmod state as enabled but
+omap_device state as disabled and we never hit the issue of omap_device_late_idle()
+trying to disable gpmc and emif.
 
-Regards,
+So in short, this does not fix anything in the existing code, but something that
+was uncovered by syncing the states across hwmod and omap_device.
 
-Fabio Estevam
+regards,
+Rajendra
+
+> 
+> 
+> - Paul
+> 
+
