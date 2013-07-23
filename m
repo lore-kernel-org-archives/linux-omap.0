@@ -1,49 +1,46 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 3/4] pinctrl: Add support for additional dynamic states
-Date: Tue, 23 Jul 2013 01:15:13 +0200
-Message-ID: <CACRpkdbHj8R-ZFa2FB-pxcvgBRYH=1KKGNEbWieAnSZSv5LHaQ@mail.gmail.com>
-References: <20130716090310.5541.36777.stgit@localhost>
-	<20130716090536.5541.36289.stgit@localhost>
-	<51E70B5D.6030802@wwwdotorg.org>
-	<20130718073638.GP7656@atomide.com>
-	<51E84180.6080902@wwwdotorg.org>
-	<20130719073957.GZ7656@atomide.com>
-	<51E91516.2040301@ti.com>
-	<51E98D89.9050407@wwwdotorg.org>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH] ARM: multi_v7: Enabled omap4430 sdp nfsroot
+Date: Mon, 22 Jul 2013 19:47:39 -0700
+Message-ID: <20130723024739.GB15637@quad.lixom.net>
+References: <20130715075816.GN7656@atomide.com>
+ <20130715132326.GA12025@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51E98D89.9050407@wwwdotorg.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:37085 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753890Ab3GWCrh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jul 2013 22:47:37 -0400
+Received: by mail-pa0-f44.google.com with SMTP id lj1so7756849pab.31
+        for <linux-omap@vger.kernel.org>; Mon, 22 Jul 2013 19:47:36 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20130715132326.GA12025@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 
-On Fri, Jul 19, 2013 at 9:03 PM, Stephen Warren <swarren@wwwdotorg.org> wrote:
-> On 07/19/2013 04:29 AM, Grygorii Strashko wrote:
+On Mon, Jul 15, 2013 at 04:23:26PM +0300, Felipe Balbi wrote:
+> On Mon, Jul 15, 2013 at 12:58:17AM -0700, Tony Lindgren wrote:
+> > Author: Tony Lindgren <tony@atomide.com>
+> > Date:   Mon Jul 15 00:39:41 2013 -0700
+> > 
+> >     ARM: multi_v7: Enabled omap4430 sdp nfsroot
+> >     
+> >     By adding support for OCP2SCP, SPI and KS8851 I can also boot test
+> >     multi_v7_defconfig easily.
+> >     
+> >     Note that if using an older u-boot, CONFIG_ARM_ATAG_DTB_COMPAT=y
+> >     may also be needed for the appended DTB based booting.
+> >     
+> >     Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> We will also use OCP2SCP driver to enable USB3 on OMAP5 uEVM, good it's
+> already enabled in multi_v7 after this patch.
+> 
+> Reviewed-by: Felipe Balbi <balbi@ti.com>
 
->> First of all, I'd like to mention that these patches do *not* connect
->> pinctrl to PM runtime, so until driver will call pinctrl_select_state()
->> or pinctrl_pm_select_*() there will be no pins state changes.
->
-> Isn't the whole point of the pinctrl_pm_select*() APIs to eventually be
-> called automatically by the runtime PM core,
+Applied to fixes for 3.11 since it gives us networking on panda.
 
-Nah I had no such complete ambitions, just factoring around.
 
-There are examples, such as deactivating a TTY from userspace,
-that should result in the pins going to sleep while it may have nothing
-to do with runtime PM.
-
-> so that we don't need to
-> write code to do this in every single driver, just like we moved the
-> call to pinctrl_select_state(default) into the device core so that we
-> didn't have to make every device do that manually?
-
-I am pretty convinced that if this dynamic muxing stuff shall be
-implemented, it should be a pinctrl subsystem intrinsic optimization
-detail and should not be exposed to the outside with all these extra
-functions at all. It looks overly complicated to me.
-
-Yours,
-Linus Walleij
+-Olof
