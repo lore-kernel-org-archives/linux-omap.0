@@ -1,84 +1,81 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 3/3] Input: omap-keypad: Clear interrupts on open
-Date: Wed, 24 Jul 2013 19:06:35 +0300
-Message-ID: <20130724160635.GG29384@radagast>
-References: <1374681293-5320-1-git-send-email-illia.smyrnov@ti.com>
- <1374681293-5320-4-git-send-email-illia.smyrnov@ti.com>
-Reply-To: <balbi@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/3] misc: Add crossbar driver
+Date: Wed, 24 Jul 2013 11:08:01 -0500
+Message-ID: <51EFFBE1.4090505@ti.com>
+References: <1374165830-6367-1-git-send-email-r.sricharan@ti.com> <1374165830-6367-2-git-send-email-r.sricharan@ti.com> <51E83A4F.5080904@ti.com> <CACRpkdY3nQaWimTwB-Zt-8+Q_KZr8a0rpB1SUQq=AuoG4bAYnQ@mail.gmail.com> <51ED2385.60108@ti.com> <51ED5C66.1010407@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bO4vSxwwZtUjUWHo"
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1374681293-5320-4-git-send-email-illia.smyrnov@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Illia Smyrnov <illia.smyrnov@ti.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57646 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754021Ab3GXQIp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Jul 2013 12:08:45 -0400
+In-Reply-To: <51ED5C66.1010407@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Sricharan R <r.sricharan@ti.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@secretlab.ca>
 
---bO4vSxwwZtUjUWHo
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 07/22/2013 11:23 AM, Santosh Shilimkar wrote:
+> To summaries it again, what I understood from Sricharan's proposal,
+>
+> - Setup all the routing at cross-bar probe so that kernel continue to
+> work like normal IRQ controller with cross-bar scope vanishes once
+> the routing is done. Cross-bar does this before any of the devices
+> are created.
+> - Something similar needs to happen for DMA lines as well or for any
+> other event routing in future.
+> - Cross-bar callbacks for device drivers for error paths.
+> (Sricharan, you have to drop these because it doesn't bring any
+> functionality and rather can create a side effects of drivers
+> getting polluted.)
+Ack.
 
-Hi,
+>
+> The concern raised on above was instead of fixing the routing at DT
+> statically, doing at the driver probes where the loop-up for IRQ or DMA
+> lines should happen in background transparently on drivers call of
+> request_irq/request_dma_channel etc with cross-bar number as
+> an input to it. Though it will be nice to have
+> such feature, it doesn't bring anything special and brings the
+> notion of these APIs which expect that you know what IRQ and DMA
+> lines you want while calling these.
+Unfortunately, we do have a constraint without allocating dynamic IRQs - 
+what IP instances should hwmod and dts contain?
 
-On Wed, Jul 24, 2013 at 06:54:53PM +0300, Illia Smyrnov wrote:
-> Clear interrupts when open keypad.
->=20
-> According to TRM, the recommended way for keyboard controller
-> initialization is clear the interrupt-status register, then set up
-> certain keyboard events for generating an interrupt request and
-> set up expected source of wake-up event that generates a wake-up
-> request.
->=20
-> Signed-off-by: Illia Smyrnov <illia.smyrnov@ti.com>
-> ---
->  drivers/input/keyboard/omap4-keypad.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
->=20
-> diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboa=
-rd/omap4-keypad.c
-> index b876a0d..0244262 100644
-> --- a/drivers/input/keyboard/omap4-keypad.c
-> +++ b/drivers/input/keyboard/omap4-keypad.c
-> @@ -185,8 +185,9 @@ static int omap4_keypad_open(struct input_dev *input)
->  			(OMAP4_VAL_PVT << OMAP4_DEF_CTRL_PTV_SHIFT));
->  	kbd_writel(keypad_data, OMAP4_KBD_DEBOUNCINGTIME,
->  			OMAP4_VAL_DEBOUNCINGTIME);
-> +	/* clear pending interrupts */
->  	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS,
-> -			OMAP4_VAL_IRQDISABLE);
-> +			 kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS));
->  	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
->  			OMAP4_DEF_IRQENABLE_EVENTEN |
->  				OMAP4_DEF_IRQENABLE_LONGKEY);
+If we go with current series of patches[1] [2] for DRA7 dts which 
+assumes default mapping, hence, uart7-10, GPTimers12-16 dont have 
+default irq - hence they dont exist in dts etc.
 
-Reviewed-by: Felipe Balbi <balbi@ti.com>
+How would we like to support those with pinctrl approach?
 
---=20
-balbi
+>
+> Note that mux inputs are pretty much fixed. Its his connection
+> to IRQ controller or DMA controller is what needs to be programmed.
+> So scope is pretty much limited. I felt this requirement is pretty
+> similar to pin-mux and hence thought of it as a viable option.
+>
+> Having said all of above, if there is a better alternative than
+> enhanced pin-mux we surely can do that.
+We could look at it as a signal mux problem as this thread suggests OR 
+look at it as interrupt distribution problem (which is how it looks like 
+at the face of it). That said, maybe a intermediate pinctrl approach 
+might be more pragmatic and less theoretically flexible.
+an option might be to "statically allocate" default number of interrupts 
+to a domain - example:
+* GIC IRQ 72->78 allotted to UARTs
+* pinctrl mapping provided for those but only 6 can be used (rest are 
+marked status="disabled" as default) at any given time (choice of 
+pinctrl option determines GIC interrupt line to use)
+* All modules will have a pinctrl definition to have a mapping - to 
+avoid bootloader overriding default cross bar setting in ways 
+un-expected by kernel.
 
---bO4vSxwwZtUjUWHo
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Does that sound fair trade off?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR7/uLAAoJEIaOsuA1yqREHBUQAI4KLEaUN+lF+B34fyOJudxQ
-YNRNsTNejFUQsD8Zp76a1is8uEvvBqQdHjE/RG15r4uNt4QbId/38FHpzb2Jjw4F
-B9kzxq5hcKCOismZiZh2v9XH/Q/Hl4r0SsS5KNJ9FDA31mfeyO/4oKlYRy4RvSH3
-XwoKeHSGHw6tRqo3W11z5psZFT5Iwt1ag92TGzXtSRpRd1YJapOFi8yeKg/N/0Bt
-XXeQGdeJrPdObl4FcJ9Bl/luG5oTkS9bIoEMrRWjG5iwVUtCn2KWnpncLsVz7D3k
-+RursuwahvaZOy/2UIFYUINX+C63HIvtBUTvYZa3N5XogYjIfX8oqayNoYzN4dFY
-+Guqv4adgYYPvRHEujU9hlW83I53s2jascgpVXg0nye21KG+d3215hb6D38jG0wN
-hzf+oRp73Bajb7M3vG/+J90AU1AoL4OQcfy7idUBZ3hYDXyOlg1SNms8gtGHXUw2
-FDQskgBhyBW8Q8D+FWIuuTjqJlB61hBiIxFBDE72qGWAjg2UMXtUmJAqZkgGmZVm
-bh6wMaVZ1vmwIA5TfibMr2QibP7HGBPHgmRFbuZfYt+SYFy+P+C6JZtn7sp7ZcZ/
-uuXPiYJzevSJZ4MD0qvlZGqcqUt6AxrntuhHsxOnKjGjz64OY+3y49vBdBw/VtcD
-rR3i8k3IicXAyju9ESsH
-=5lgY
------END PGP SIGNATURE-----
-
---bO4vSxwwZtUjUWHo--
+[1] http://marc.info/?l=linux-omap&m=137335524702155&w=2
+[2] http://marc.info/?l=linux-omap&m=137335522802144&w=2
+-- 
+Regards,
+Nishanth Menon
