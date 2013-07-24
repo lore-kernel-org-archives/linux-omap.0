@@ -1,41 +1,92 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/3] misc: Add crossbar driver
-Date: Wed, 24 Jul 2013 13:51:42 -0500
-Message-ID: <51F0223E.4050008@ti.com>
-References: <1374165830-6367-1-git-send-email-r.sricharan@ti.com> <1374165830-6367-2-git-send-email-r.sricharan@ti.com> <51E83A4F.5080904@ti.com> <CACRpkdY3nQaWimTwB-Zt-8+Q_KZr8a0rpB1SUQq=AuoG4bAYnQ@mail.gmail.com> <51ED2385.60108@ti.com> <51ED5C66.1010407@ti.com> <51EFFBE1.4090505@ti.com> <51F0031B.1050307@ti.com> <51F00530.9090703@ti.com> <51F02069.3050207@ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH] dma: edma: add device_slave_caps() support
+Date: Wed, 24 Jul 2013 13:55:24 -0500
+Message-ID: <51F0231C.7000401@ti.com>
+References: <1374597804-3961-1-git-send-email-joelf@ti.com> <51EF8A52.90902@metafoo.de> <51EF8C2B.2030409@ti.com>,<51EF8F4E.8080806@metafoo.de> <FB20353E-4890-4462-A671-3587A3841B4A@ti.com> <51EF92F2.3030405@metafoo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51F02069.3050207@ti.com>
+In-Reply-To: <51EF92F2.3030405@metafoo.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@secretlab.ca>
+To: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, Arnd Bergmann <arnd@arndb.de>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Vutla, Lokesh" <lokeshvutla@ti.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, Matt Porter <matt@ohporter.com>, Rob Herring <rob.herring@calxeda.com>, Jason Kridner <jkridner@beagleboard.org>, Koen Kooi <koen@beagleboard.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/24/2013 01:43 PM, Sricharan R wrote:
-> On Wednesday 24 July 2013 10:17 PM, Nishanth Menon wrote:
->> On 07/24/2013 11:38 AM, Santosh Shilimkar wrote:
->>> On Wednesday 24 July 2013 12:08 PM, Nishanth Menon wrote:
->>>> That said, maybe a intermediate pinctrl approach might be more pragmatic and less theoretically flexible.
->>>> an option might be to "statically allocate" default number of interrupts to a domain - example:
->>>> * GIC IRQ 72->78 allotted to UARTs
->>>> * pinctrl mapping provided for those but only 6 can be used (rest are marked status="disabled" as default) at any given time (choice of pinctrl option determines GIC interrupt line to use)
->>>> * All modules will have a pinctrl definition to have a mapping - to avoid bootloader overriding default cross bar setting in ways un-expected by kernel.
+On 07/24/2013 03:40 AM, Lars-Peter Clausen wrote:
+> On 07/24/2013 10:28 AM, Fernandes, Joel wrote:
+>>
+>> On Jul 24, 2013, at 3:23 AM, "Lars-Peter Clausen" <lars@metafoo.de> wrote:
+>>
+>>> On 07/24/2013 10:11 AM, Joel Fernandes wrote:
+>>>> On 07/24/2013 03:03 AM, Lars-Peter Clausen wrote:
+>>>>> On 07/23/2013 06:43 PM, Joel Fernandes wrote:
+>>>>>> Implement device_slave_caps(). EDMA has a limited number of slots.
+>>>>>> Slave drivers such as omap_hsmmc will query the driver to make
+>>>>>> sure they don't pass in more than these many scatter segments.
+>>>>>>
+>>>>>> Signed-off-by: Joel Fernandes <joelf@ti.com>
+>>>>>> ---
+>>>>>> Vinod, or Dan- If this patch looks ok, can you please merge in for
+>>>>>> -rc cycle? This patch is required to fix MMC support on AM33xx. This
+>>>>>> patch is blocking 3 other patches which fix various MMC things. Thanks!
+>>>>>>
+>>>>>> Notes:
+>>>>>> (1) this approach is temporary and only for -rc cycle to fix MMC on
+>>>>>> AM335x. It will be replace by the RFC series in future kernels:
+>>>>>> http://www.spinics.net/lists/arm-kernel/msg260094.html
+>>>>>>
+>>>>>> (2) Patch depends Vinod's patch at:
+>>>>>> http://permalink.gmane.org/gmane.linux.kernel/1525112
+>>>>>>
+>>>>>> drivers/dma/edma.c |    9 +++++++++
+>>>>>> 1 file changed, 9 insertions(+)
+>>>>>>
+>>>>>> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+>>>>>> index 7222cbe..81d5429 100644
+>>>>>> --- a/drivers/dma/edma.c
+>>>>>> +++ b/drivers/dma/edma.c
+>>>>>> @@ -517,6 +517,14 @@ static void edma_issue_pending(struct dma_chan *chan)
+>>>>>>    spin_unlock_irqrestore(&echan->vchan.lock, flags);
+>>>>>> }
+>>>>>>
+>>>>>> +static inline int edma_slave_caps(struct dma_chan *chan,
+>>>>>> +    struct dma_slave_caps *caps)
+>>>>>> +{
+>>>>>> +    caps->max_sg_nr = MAX_NR_SG;
+>>>>>
+>>>>> Hm, what about the other fields?
 >>>>
->>>> Does that sound fair trade off?
->>> This sounds better. That way we can get all the devices in the DT at least.
+>>>> Other fields are unused, the max segment size is supposed to be
+>>>> calculated "given" the address width and burst size. Since these
+>>>> can't be provided to get_caps, I have left it out for now.
+>>>> See: https://lkml.org/lkml/2013/3/6/464
+>>>
+>>> The PL330 driver is similar in this regard, the maximum segment size also
+>>> depends on address width and burst width. What I did for the get_slave_caps
+>>> implementation is to set it to the minimum maximum size. E.g. in you case
+>>> that should be SZ_64K - 1 (burstsize and addrwidth both set to 1).
 >>
->> Fair enough - if Linus and Tony are still ok with this approach to the problem, seeing a patch series with the effect would be beneficial.
->>
->   Ok, i will use this idea of certain number interrupts to groups.
-> Yes on DRA7XX, we have about 160 gic lines and 320 irq crossbar device inputs contending for it.
-> 1:2 and fully arbitrary.  But will we be really exhausting them ?
->
-Depends on how we allocate :). The default arbitary allocation can be 
-made more logical in your series ofcourse :).
+>> So you're setting max to minimum maximum size? Isn't that like telling the driver that its segments can't be bigger than this... Unless I'm missing something..
+> 
+> Yes. This is a limitation of the current slave_caps API. The maximum needs
+> to be the maximum for all possible configurations. A specific configuration
+> may allow a larger maximum. So we maybe have to extend the API to be able to
+> query the limits for a certain configuration. Not sure what the best way
+> would be to do that, either adding a config parameter to get_slave_caps or
+> to break it into two functions like you proposed one for the static
+> capabilities and one for the sg limits.
 
+I am OK with either approach as long as a decision can be made quickly
+by maintainers. Right now lot of back and forth has happened and 3
+different versions of the same thing have been posted since January.
+Since this is such a trivial change, it doesn't make sense to spend so
+much time on it IMO.... The sad part is though this change is trivial,
+other drivers such as MMC are broken and cannot be enabled due to this.
+We cannot afford to leave them broken.
 
--- 
-Regards,
-Nishanth Menon
+If Vinod is not available, can Dan please respond on how to proceed on
+this? We really need this trivial change to go into this -rc cycle and
+not delay it by another kernel release. Thank you.
+
+-Joel
