@@ -1,71 +1,72 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 2/4] mfd: twl6030-irq: add error check when IRQs are masked
- initially
-Date: Wed, 24 Jul 2013 14:51:40 +0300
-Message-ID: <51EFBFCC.9060302@ti.com>
-References: <1374595624-15054-1-git-send-email-grygorii.strashko@ti.com> <1374595624-15054-3-git-send-email-grygorii.strashko@ti.com> <51EEC69F.9000006@slimlogic.co.uk>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 1/4] mfd: twl6030-irq: migrate to IRQ threaded handler
+Date: Wed, 24 Jul 2013 12:54:13 +0100
+Message-ID: <20130724115413.GK26801@laptop>
+References: <1374595624-15054-1-git-send-email-grygorii.strashko@ti.com>
+ <1374595624-15054-2-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51EEC69F.9000006@slimlogic.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Graeme Gregory <gg@slimlogic.co.uk>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Kevin Hilman <khilman@linaro.org>, linux-omap@vger.kernel.org, Ruslan Bilovol <ruslan.bilovol@ti.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:57654 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751003Ab3GXLyT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jul 2013 07:54:19 -0400
+Received: by mail-ee0-f44.google.com with SMTP id c13so184859eek.17
+        for <linux-omap@vger.kernel.org>; Wed, 24 Jul 2013 04:54:18 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1374595624-15054-2-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Kevin Hilman <khilman@linaro.org>, Graeme Gregory <gg@slimlogic.co.uk>, linux-omap@vger.kernel.org, Ruslan Bilovol <ruslan.bilovol@ti.com>, linux-kernel@vger.kernel.org, Naga Venkata Srikanth V <vnv.srikanth@samsung.com>, Oleg_Kosheliev <oleg.kosheliev@ti.com>
 
-On 07/23/2013 09:08 PM, Graeme Gregory wrote:
-> On 23/07/13 17:07, Grygorii Strashko wrote:
->> Add a missed check for errors when TWL IRQs are masked
->> initially on probe and report an error in case of failure.
->>
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->> ---
->>   drivers/mfd/twl6030-irq.c |   13 +++++++++----
->>   1 file changed, 9 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
->> index b6030d9..790cc28 100644
->> --- a/drivers/mfd/twl6030-irq.c
->> +++ b/drivers/mfd/twl6030-irq.c
->> @@ -313,7 +313,7 @@ int twl6030_init_irq(struct device *dev, int irq_num)
->>   	struct			device_node *node = dev->of_node;
->>   	int			nr_irqs, irq_base, irq_end;
->>   	static struct irq_chip  twl6030_irq_chip;
->> -	int			status = 0;
->> +	int			status;
->>   	int			i;
->>   	u8			mask[3];
->>
->> @@ -335,11 +335,16 @@ int twl6030_init_irq(struct device *dev, int irq_num)
->>   	mask[2] = 0xFF;
->>
->>   	/* mask all int lines */
->> -	twl_i2c_write(TWL_MODULE_PIH, &mask[0], REG_INT_MSK_LINE_A, 3);
->> +	status = twl_i2c_write(TWL_MODULE_PIH, &mask[0], REG_INT_MSK_LINE_A, 3);
->>   	/* mask all int sts */
->> -	twl_i2c_write(TWL_MODULE_PIH, &mask[0], REG_INT_MSK_STS_A, 3);
->> +	status |= twl_i2c_write(TWL_MODULE_PIH, &mask[0], REG_INT_MSK_STS_A, 3);
->>   	/* clear INT_STS_A,B,C */
->> -	twl_i2c_write(TWL_MODULE_PIH, &mask[0], REG_INT_STS_A, 3);
->> +	status |= twl_i2c_write(TWL_MODULE_PIH, &mask[0], REG_INT_STS_A, 3);
->> +
-> You can save two i2c writes here for slightly faster initialisation,
-> only one of the REG_INT_STS_A registers needs to be written to clear
-> them all. As per the irq handling routine comment.
+On Tue, 23 Jul 2013, Grygorii Strashko wrote:
 
-Good point. thanks
+> From: Naga Venkata Srikanth V <vnv.srikanth@samsung.com>
+>=20
+> 1) Removed request_irq() and replaced it with request_threaded_irq().
+>=20
+> 2) Removed generic_handle_irq() and replaced it with
+> handle_nested_irq().
+>   Handling of these interrupts is nested, as we are handling an
+> interrupt (for e.g rtc, mmc1) when we are still servicing TWL irq.
+>=20
+> 3) Removed I2C read-retry logic for the case when twl_i2c_read() is
+> failed inside IRQ handler - there is no sense to do that, so just rep=
+ort
+> an error and return.
+>=20
+> Signed-off-by: Naga Venkata Srikanth V <vnv.srikanth@samsung.com>
+> Signed-off-by: Oleg_Kosheliev <oleg.kosheliev@ti.com>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> ---
+>  drivers/mfd/twl6030-irq.c |  146 +++++++++++++++--------------------=
+----------
+>  1 file changed, 49 insertions(+), 97 deletions(-)
+>=20
+> diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
 
->> +	if (status < 0) {
->> +		dev_err(dev, "I2C err writing TWL_MODULE_PIH: %d\n", status);
->> +		return status;
->> +	}
->>
->>   	twl6030_irq_base = irq_base;
->>
->
-> Graeme
->
+<snip>
 
-Regards,
-- grygorii
+> +	status =3D request_threaded_irq(irq_num, NULL, twl6030_irq_thread,
+> +				      IRQF_ONESHOT, "TWL6030-PIH", NULL);
+
+Oh, and please use managed resources for this: devm_*
+
+>  	if (status < 0) {
+>  		dev_err(dev, "could not claim irq %d: %d\n", irq_num, status);
+>  		goto fail_irq;
+>  	}
+> =20
+
+--=20
+Lee Jones
+Linaro ST-Ericsson Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
