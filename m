@@ -1,95 +1,288 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH] dma: edma: add device_slave_caps() support
-Date: Wed, 24 Jul 2013 10:40:18 +0200
-Message-ID: <51EF92F2.3030405@metafoo.de>
-References: <1374597804-3961-1-git-send-email-joelf@ti.com> <51EF8A52.90902@metafoo.de> <51EF8C2B.2030409@ti.com>,<51EF8F4E.8080806@metafoo.de> <FB20353E-4890-4462-A671-3587A3841B4A@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 1/4] mfd: twl6030-irq: migrate to IRQ threaded handler
+Date: Wed, 24 Jul 2013 11:49:45 +0100
+Message-ID: <20130724104945.GH26801@laptop>
+References: <1374595624-15054-1-git-send-email-grygorii.strashko@ti.com>
+ <1374595624-15054-2-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <FB20353E-4890-4462-A671-3587A3841B4A@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1374595624-15054-2-git-send-email-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Fernandes, Joel" <joelf@ti.com>
-Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, Arnd Bergmann <arnd@arndb.de>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Vutla, Lokesh" <lokeshvutla@ti.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, Matt Porter <matt@ohporter.com>, Rob Herring <rob.herring@calxeda.com>, Jason Kridner <jkridner@beagleboard.org>, Koen Kooi <koen@beagleboard.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Kevin Hilman <khilman@linaro.org>, Graeme Gregory <gg@slimlogic.co.uk>, linux-omap@vger.kernel.org, Ruslan Bilovol <ruslan.bilovol@ti.com>, linux-kernel@vger.kernel.org, Naga Venkata Srikanth V <vnv.srikanth@samsung.com>, Oleg_Kosheliev <oleg.kosheliev@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/24/2013 10:28 AM, Fernandes, Joel wrote:
-> 
-> On Jul 24, 2013, at 3:23 AM, "Lars-Peter Clausen" <lars@metafoo.de> wrote:
-> 
->> On 07/24/2013 10:11 AM, Joel Fernandes wrote:
->>> On 07/24/2013 03:03 AM, Lars-Peter Clausen wrote:
->>>> On 07/23/2013 06:43 PM, Joel Fernandes wrote:
->>>>> Implement device_slave_caps(). EDMA has a limited number of slots.
->>>>> Slave drivers such as omap_hsmmc will query the driver to make
->>>>> sure they don't pass in more than these many scatter segments.
->>>>>
->>>>> Signed-off-by: Joel Fernandes <joelf@ti.com>
->>>>> ---
->>>>> Vinod, or Dan- If this patch looks ok, can you please merge in for
->>>>> -rc cycle? This patch is required to fix MMC support on AM33xx. This
->>>>> patch is blocking 3 other patches which fix various MMC things. Thanks!
->>>>>
->>>>> Notes:
->>>>> (1) this approach is temporary and only for -rc cycle to fix MMC on
->>>>> AM335x. It will be replace by the RFC series in future kernels:
->>>>> http://www.spinics.net/lists/arm-kernel/msg260094.html
->>>>>
->>>>> (2) Patch depends Vinod's patch at:
->>>>> http://permalink.gmane.org/gmane.linux.kernel/1525112
->>>>>
->>>>> drivers/dma/edma.c |    9 +++++++++
->>>>> 1 file changed, 9 insertions(+)
->>>>>
->>>>> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
->>>>> index 7222cbe..81d5429 100644
->>>>> --- a/drivers/dma/edma.c
->>>>> +++ b/drivers/dma/edma.c
->>>>> @@ -517,6 +517,14 @@ static void edma_issue_pending(struct dma_chan *chan)
->>>>>    spin_unlock_irqrestore(&echan->vchan.lock, flags);
->>>>> }
->>>>>
->>>>> +static inline int edma_slave_caps(struct dma_chan *chan,
->>>>> +    struct dma_slave_caps *caps)
->>>>> +{
->>>>> +    caps->max_sg_nr = MAX_NR_SG;
->>>>
->>>> Hm, what about the other fields?
->>>
->>> Other fields are unused, the max segment size is supposed to be
->>> calculated "given" the address width and burst size. Since these
->>> can't be provided to get_caps, I have left it out for now.
->>> See: https://lkml.org/lkml/2013/3/6/464
->>
->> The PL330 driver is similar in this regard, the maximum segment size also
->> depends on address width and burst width. What I did for the get_slave_caps
->> implementation is to set it to the minimum maximum size. E.g. in you case
->> that should be SZ_64K - 1 (burstsize and addrwidth both set to 1).
-> 
-> So you're setting max to minimum maximum size? Isn't that like telling the driver that its segments can't be bigger than this... Unless I'm missing something..
+On Tue, 23 Jul 2013, Grygorii Strashko wrote:
 
-Yes. This is a limitation of the current slave_caps API. The maximum needs
-to be the maximum for all possible configurations. A specific configuration
-may allow a larger maximum. So we maybe have to extend the API to be able to
-query the limits for a certain configuration. Not sure what the best way
-would be to do that, either adding a config parameter to get_slave_caps or
-to break it into two functions like you proposed one for the static
-capabilities and one for the sg limits.
+> From: Naga Venkata Srikanth V <vnv.srikanth@samsung.com>
+>=20
+> 1) Removed request_irq() and replaced it with request_threaded_irq().
+>=20
+> 2) Removed generic_handle_irq() and replaced it with
+> handle_nested_irq().
+>   Handling of these interrupts is nested, as we are handling an
+> interrupt (for e.g rtc, mmc1) when we are still servicing TWL irq.
+>=20
+> 3) Removed I2C read-retry logic for the case when twl_i2c_read() is
+> failed inside IRQ handler - there is no sense to do that, so just rep=
+ort
+> an error and return.
+>=20
+> Signed-off-by: Naga Venkata Srikanth V <vnv.srikanth@samsung.com>
+> Signed-off-by: Oleg_Kosheliev <oleg.kosheliev@ti.com>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> ---
+>  drivers/mfd/twl6030-irq.c |  146 +++++++++++++++--------------------=
+----------
+>  1 file changed, 49 insertions(+), 97 deletions(-)
 
-> 
->>
->>>
->>> Even if it did, the "segment size" itself is unused in the MMC driver
->>> that this is supposed to fix, unlike the "number of segments" which I'm
->>> populating above.
->>
->> E.g. for ALSA we'll need to know the max segment size, so I think it doesn't
->> hurt add this in this patch as well.
-> 
-> For alsa it would dma only the minimum max size even if the dma controller could do more?
-> 
+Besides the points I mention below I like the way this patch is
+going.
 
-Yes, but I think 64k is still plenty enough for the max period size. The
-current davinci PCM driver even claims to only support up to 8k.
+> diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
+> index 277a8db..b6030d9 100644
+> --- a/drivers/mfd/twl6030-irq.c
+> +++ b/drivers/mfd/twl6030-irq.c
+> @@ -90,7 +90,6 @@ static unsigned twl6030_irq_base;
+>  static int twl_irq;
+>  static bool twl_irq_wake_enabled;
+> =20
+> -static struct completion irq_event;
+>  static atomic_t twl6030_wakeirqs =3D ATOMIC_INIT(0);
+> =20
+>  static int twl6030_irq_pm_notifier(struct notifier_block *notifier,
+> @@ -131,95 +130,57 @@ static struct notifier_block twl6030_irq_pm_not=
+ifier_block =3D {
+>  };
+> =20
+>  /*
+> - * This thread processes interrupts reported by the Primary Interrup=
+t Handler.
+> - */
+> -static int twl6030_irq_thread(void *data)
+> +* Threaded irq handler for the twl6030 interrupt.
+> +* We query the interrupt controller in the twl6030 to determine
+> +* which module is generating the interrupt request and call
+> +* handle_nested_irq for that module.
+> +*/
+> +static irqreturn_t twl6030_irq_thread(int irq, void *data)
+>  {
+> -	long irq =3D (long)data;
+> -	static unsigned i2c_errors;
+> -	static const unsigned max_i2c_errors =3D 100;
+> -	int ret;
+> -
+> -	while (!kthread_should_stop()) {
+> -		int i;
+> -		union {
+> +	int i, ret;
+> +	union {
+>  		u8 bytes[4];
+>  		u32 int_sts;
+> -		} sts;
+> -
+> -		/* Wait for IRQ, then read PIH irq status (also blocking) */
+> -		wait_for_completion_interruptible(&irq_event);
+> -
+> -		/* read INT_STS_A, B and C in one shot using a burst read */
+> -		ret =3D twl_i2c_read(TWL_MODULE_PIH, sts.bytes,
+> -				REG_INT_STS_A, 3);
+> -		if (ret) {
+> -			pr_warning("twl6030: I2C error %d reading PIH ISR\n",
+> -					ret);
+> -			if (++i2c_errors >=3D max_i2c_errors) {
+> -				printk(KERN_ERR "Maximum I2C error count"
+> -						" exceeded.  Terminating %s.\n",
+> -						__func__);
+> -				break;
+> -			}
+> -			complete(&irq_event);
+> -			continue;
+> -		}
+> -
+> +	} sts;
+> =20
+> +	/* read INT_STS_A, B and C in one shot using a burst read */
+> +	ret =3D twl_i2c_read(TWL_MODULE_PIH, sts.bytes, REG_INT_STS_A, 3);
+> +	if (ret) {
+> +		pr_warn("%s: I2C error %d reading PIH ISR\n", __func__, ret);
 
-- Lars
+Does the user really care which function we're returning from.
+
+Would it be better if you replace '__func__' with the device name?
+
+> +		return IRQ_HANDLED;
+> +	}
+> =20
+> -		sts.bytes[3] =3D 0; /* Only 24 bits are valid*/
+> +	sts.bytes[3] =3D 0; /* Only 24 bits are valid*/
+> =20
+> -		/*
+> -		 * Since VBUS status bit is not reliable for VBUS disconnect
+> -		 * use CHARGER VBUS detection status bit instead.
+> -		 */
+> -		if (sts.bytes[2] & 0x10)
+> -			sts.bytes[2] |=3D 0x08;
+> +	/*
+> +	 * Since VBUS status bit is not reliable for VBUS disconnect
+> +	 * use CHARGER VBUS detection status bit instead.
+> +	 */
+> +	if (sts.bytes[2] & 0x10)
+> +		sts.bytes[2] |=3D 0x08;
+> =20
+> -		for (i =3D 0; sts.int_sts; sts.int_sts >>=3D 1, i++) {
+> -			local_irq_disable();
+> -			if (sts.int_sts & 0x1) {
+> -				int module_irq =3D twl6030_irq_base +
+> +	for (i =3D 0; sts.int_sts; sts.int_sts >>=3D 1, i++)
+> +		if (sts.int_sts & 0x1) {
+
+I'm a little confused by this. Where does sts.int_sts come from?
+
+> +			int module_irq =3D twl6030_irq_base +
+>  					twl6030_interrupt_mapping[i];
+> -				generic_handle_irq(module_irq);
+> -
+> -			}
+> -		local_irq_enable();
+> +			handle_nested_irq(module_irq);
+> +			pr_debug("%s: PIH ISR %u, virq%u\n",
+> +				 __func__, i, module_irq);
+>  		}
+> =20
+> -		/*
+> -		 * NOTE:
+> -		 * Simulation confirms that documentation is wrong w.r.t the
+> -		 * interrupt status clear operation. A single *byte* write to
+> -		 * any one of STS_A to STS_C register results in all three
+> -		 * STS registers being reset. Since it does not matter which
+> -		 * value is written, all three registers are cleared on a
+> -		 * single byte write, so we just use 0x0 to clear.
+> -		 */
+> -		ret =3D twl_i2c_write_u8(TWL_MODULE_PIH, 0x00, REG_INT_STS_A);
+> -		if (ret)
+> -			pr_warning("twl6030: I2C error in clearing PIH ISR\n");
+> -
+> -		enable_irq(irq);
+> -	}
+> -
+> -	return 0;
+> -}
+> +	/*
+> +	 * NOTE:
+> +	 * Simulation confirms that documentation is wrong w.r.t the
+> +	 * interrupt status clear operation. A single *byte* write to
+> +	 * any one of STS_A to STS_C register results in all three
+> +	 * STS registers being reset. Since it does not matter which
+> +	 * value is written, all three registers are cleared on a
+> +	 * single byte write, so we just use 0x0 to clear.
+> +	 */
+> +	ret =3D twl_i2c_write_u8(TWL_MODULE_PIH, 0x00, REG_INT_STS_A);
+> +	if (ret)
+> +		pr_warn("twl6030: I2C error in clearing PIH ISR\n");
+> =20
+> -/*
+> - * handle_twl6030_int() is the desc->handle method for the twl6030 i=
+nterrupt.
+> - * This is a chained interrupt, so there is no desc->action method f=
+or it.
+> - * Now we need to query the interrupt controller in the twl6030 to d=
+etermine
+> - * which module is generating the interrupt request.  However, we ca=
+n't do i2c
+> - * transactions in interrupt context, so we must defer that work to =
+a kernel
+> - * thread.  All we do here is acknowledge and mask the interrupt and=
+ wakeup
+> - * the kernel thread.
+> - */
+> -static irqreturn_t handle_twl6030_pih(int irq, void *devid)
+> -{
+> -	disable_irq_nosync(irq);
+> -	complete(devid);
+>  	return IRQ_HANDLED;
+>  }
+> =20
+> @@ -351,7 +312,6 @@ int twl6030_init_irq(struct device *dev, int irq_=
+num)
+>  {
+>  	struct			device_node *node =3D dev->of_node;
+>  	int			nr_irqs, irq_base, irq_end;
+> -	struct task_struct	*task;
+>  	static struct irq_chip  twl6030_irq_chip;
+>  	int			status =3D 0;
+>  	int			i;
+> @@ -396,36 +356,25 @@ int twl6030_init_irq(struct device *dev, int ir=
+q_num)
+>  		irq_set_chip_and_handler(i, &twl6030_irq_chip,
+>  					 handle_simple_irq);
+>  		irq_set_chip_data(i, (void *)irq_num);
+> +		irq_set_nested_thread(i, true);
+>  		activate_irq(i);
+>  	}
+> =20
+> -	dev_info(dev, "PIH (irq %d) chaining IRQs %d..%d\n",
+> -			irq_num, irq_base, irq_end);
+> +	dev_info(dev, "PIH (irq %d) nested IRQs %d..%d\n",
+> +		 irq_num, irq_base, irq_end);
+> =20
+>  	/* install an irq handler to demultiplex the TWL6030 interrupt */
+> -	init_completion(&irq_event);
+> -
+> -	status =3D request_irq(irq_num, handle_twl6030_pih, 0, "TWL6030-PIH=
+",
+> -			     &irq_event);
+> +	status =3D request_threaded_irq(irq_num, NULL, twl6030_irq_thread,
+> +				      IRQF_ONESHOT, "TWL6030-PIH", NULL);
+>  	if (status < 0) {
+>  		dev_err(dev, "could not claim irq %d: %d\n", irq_num, status);
+>  		goto fail_irq;
+>  	}
+> =20
+> -	task =3D kthread_run(twl6030_irq_thread, (void *)irq_num, "twl6030-=
+irq");
+> -	if (IS_ERR(task)) {
+> -		dev_err(dev, "could not create irq %d thread!\n", irq_num);
+> -		status =3D PTR_ERR(task);
+> -		goto fail_kthread;
+> -	}
+> -
+>  	twl_irq =3D irq_num;
+>  	register_pm_notifier(&twl6030_irq_pm_notifier_block);
+>  	return irq_base;
+> =20
+> -fail_kthread:
+> -	free_irq(irq_num, &irq_event);
+> -
+>  fail_irq:
+>  	for (i =3D irq_base; i < irq_end; i++)
+>  		irq_set_chip_and_handler(i, NULL, NULL);
+> @@ -437,10 +386,13 @@ int twl6030_exit_irq(void)
+>  {
+>  	unregister_pm_notifier(&twl6030_irq_pm_notifier_block);
+> =20
+> -	if (twl6030_irq_base) {
+> +	if (!twl6030_irq_base) {
+>  		pr_err("twl6030: can't yet clean up IRQs?\n");
+>  		return -ENOSYS;
+>  	}
+> +
+> +	free_irq(twl_irq, NULL);
+> +
+
+If request_threaded_irq() fails, isn't there a chance that
+twl6030_irq_base will be allocated, but twl_irq will still be
+undefined?
+
+>  	return 0;
+>  }
+> =20
+
+--=20
+Lee Jones
+Linaro ST-Ericsson Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
