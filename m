@@ -1,32 +1,56 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/3] misc: Add crossbar driver
-Date: Wed, 24 Jul 2013 11:47:44 -0500
-Message-ID: <51F00530.9090703@ti.com>
-References: <1374165830-6367-1-git-send-email-r.sricharan@ti.com> <1374165830-6367-2-git-send-email-r.sricharan@ti.com> <51E83A4F.5080904@ti.com> <CACRpkdY3nQaWimTwB-Zt-8+Q_KZr8a0rpB1SUQq=AuoG4bAYnQ@mail.gmail.com> <51ED2385.60108@ti.com> <51ED5C66.1010407@ti.com> <51EFFBE1.4090505@ti.com> <51F0031B.1050307@ti.com>
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: ARM: dts: omap3-beagle-xm: fix compatible property
+Date: Wed, 24 Jul 2013 12:05:16 -0500
+Message-ID: <CAOCHtYhN4oO=xq9LcjZHCAUbSwQgTs2zEUJND1G7EbPNJ1njpA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51F0031B.1050307@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Sricharan R <r.sricharan@ti.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@secretlab.ca>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f177.google.com ([209.85.214.177]:35430 "EHLO
+	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751035Ab3GXRFR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jul 2013 13:05:17 -0400
+Received: by mail-ob0-f177.google.com with SMTP id ta17so13427345obb.8
+        for <linux-omap@vger.kernel.org>; Wed, 24 Jul 2013 10:05:16 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: tony@atomide.com, Benoit Cousson <b-cousson@ti.com>
 
-On 07/24/2013 11:38 AM, Santosh Shilimkar wrote:
-> On Wednesday 24 July 2013 12:08 PM, Nishanth Menon wrote:
->> That said, maybe a intermediate pinctrl approach might be more pragmatic and less theoretically flexible.
->> an option might be to "statically allocate" default number of interrupts to a domain - example:
->> * GIC IRQ 72->78 allotted to UARTs
->> * pinctrl mapping provided for those but only 6 can be used (rest are marked status="disabled" as default) at any given time (choice of pinctrl option determines GIC interrupt line to use)
->> * All modules will have a pinctrl definition to have a mapping - to avoid bootloader overriding default cross bar setting in ways un-expected by kernel.
->>
->> Does that sound fair trade off?
-> This sounds better. That way we can get all the devices in the DT at least.
+Hey Guys,
 
-Fair enough - if Linus and Tony are still ok with this approach to the 
-problem, seeing a patch series with the effect would be beneficial.
+While working on the device tree for the xM i noticed this little
+error on the compatible property...
+
+Thoughts?
+
+>From af8e3119ae2ee29bcf739d56168d6aaa3a2c8306 Mon Sep 17 00:00:00 2001
+From: Robert Nelson <robertcnelson@gmail.com>
+Date: Wed, 24 Jul 2013 12:02:11 -0500
+Subject: [PATCH] ARM: dts: omap3-beagle-xm: fix compatible property
+
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ arch/arm/boot/dts/omap3-beagle-xm.dts |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts
+b/arch/arm/boot/dts/omap3-beagle-xm.dts
+index afdb164..0c514dc 100644
+--- a/arch/arm/boot/dts/omap3-beagle-xm.dts
++++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+@@ -11,7 +11,7 @@
+
+ / {
+ 	model = "TI OMAP3 BeagleBoard xM";
+-	compatible = "ti,omap3-beagle-xm, ti,omap3-beagle", "ti,omap3";
++	compatible = "ti,omap3-beagle-xm", "ti,omap3-beagle", "ti,omap3";
+
+ 	cpus {
+ 		cpu@0 {
+-- 
+1.7.10.4
+
 
 -- 
-Regards,
-Nishanth Menon
+Robert Nelson
+http://www.rcn-ee.com/
