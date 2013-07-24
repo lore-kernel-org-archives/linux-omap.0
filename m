@@ -1,124 +1,77 @@
-From: "Fernandes, Joel" <joelf@ti.com>
-Subject: Re: [PATCH] dma: edma: add device_slave_caps() support
-Date: Thu, 25 Jul 2013 03:21:18 +0000
-Message-ID: <93497CC0-D756-4748-89E5-37F1C5F51EE4@ti.com>
-References: <1374597804-3961-1-git-send-email-joelf@ti.com>
- <51EF8A52.90902@metafoo.de>
- <51EF8C2B.2030409@ti.com>,<51EF8F4E.8080806@metafoo.de>
- <FB20353E-4890-4462-A671-3587A3841B4A@ti.com> <51EF92F2.3030405@metafoo.de>
- <51F0231C.7000401@ti.com>,<51F027CB.2050608@metafoo.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50487 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753343Ab3GYDVz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jul 2013 23:21:55 -0400
-In-Reply-To: <51F027CB.2050608@metafoo.de>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH] of: provide of_platform_unpopulate()
+Date: Wed, 24 Jul 2013 15:19:58 +0100
+Message-ID: <20130724141958.9156F3E0A24@localhost>
+References: <1374257691-31981-1-git-send-email-bigeasy@linutronix.de> <51EBF33A.4050207@gmail.com> <51EC4908.4040504@gmail.com> <CACxGe6sqv2Wsp26MWqqs9W_eWO3tjs-+2z3z8fC=2fe-BjJvkA@mail.gmail.com> <51EDA117.10605@gmail.com>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <51EDA117.10605@gmail.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Rob Herring <rob.herring@calxeda.com>, Kishon Vijay Abraham I <kishon@ti.com>, George Cherian <george.cherian@ti.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree-discuss <devicetree-discuss@lists.ozlabs.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Vivek Gautam <gautam.vivek@samsung.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Naveen Krishna Chatradhi <ch.naveen@samsung.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, Arnd Bergmann <arnd@arndb.de>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Vutla, Lokesh" <lokeshvutla@ti.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, Rob Herring <rob.herring@calxeda.com>, Jason Kridner <jkridner@beagleboard.org>, Koen Kooi <koen@beagleboard.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, "matt@ohporter.com" <matt@ohporter.com>
 
-
-
-Sent from my iPhone
-
-On Jul 24, 2013, at 2:15 PM, "Lars-Peter Clausen" <lars@metafoo.de> wrote:
-
-> On 07/24/2013 08:55 PM, Joel Fernandes wrote:
->> On 07/24/2013 03:40 AM, Lars-Peter Clausen wrote:
->>> On 07/24/2013 10:28 AM, Fernandes, Joel wrote:
->>>> 
->>>> On Jul 24, 2013, at 3:23 AM, "Lars-Peter Clausen" <lars@metafoo.de> wrote:
->>>> 
->>>>> On 07/24/2013 10:11 AM, Joel Fernandes wrote:
->>>>>> On 07/24/2013 03:03 AM, Lars-Peter Clausen wrote:
->>>>>>> On 07/23/2013 06:43 PM, Joel Fernandes wrote:
->>>>>>>> Implement device_slave_caps(). EDMA has a limited number of slots.
->>>>>>>> Slave drivers such as omap_hsmmc will query the driver to make
->>>>>>>> sure they don't pass in more than these many scatter segments.
->>>>>>>> 
->>>>>>>> Signed-off-by: Joel Fernandes <joelf@ti.com>
->>>>>>>> ---
->>>>>>>> Vinod, or Dan- If this patch looks ok, can you please merge in for
->>>>>>>> -rc cycle? This patch is required to fix MMC support on AM33xx. This
->>>>>>>> patch is blocking 3 other patches which fix various MMC things. Thanks!
->>>>>>>> 
->>>>>>>> Notes:
->>>>>>>> (1) this approach is temporary and only for -rc cycle to fix MMC on
->>>>>>>> AM335x. It will be replace by the RFC series in future kernels:
->>>>>>>> http://www.spinics.net/lists/arm-kernel/msg260094.html
->>>>>>>> 
->>>>>>>> (2) Patch depends Vinod's patch at:
->>>>>>>> http://permalink.gmane.org/gmane.linux.kernel/1525112
->>>>>>>> 
->>>>>>>> drivers/dma/edma.c |    9 +++++++++
->>>>>>>> 1 file changed, 9 insertions(+)
->>>>>>>> 
->>>>>>>> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
->>>>>>>> index 7222cbe..81d5429 100644
->>>>>>>> --- a/drivers/dma/edma.c
->>>>>>>> +++ b/drivers/dma/edma.c
->>>>>>>> @@ -517,6 +517,14 @@ static void edma_issue_pending(struct dma_chan *chan)
->>>>>>>>    spin_unlock_irqrestore(&echan->vchan.lock, flags);
->>>>>>>> }
->>>>>>>> 
->>>>>>>> +static inline int edma_slave_caps(struct dma_chan *chan,
->>>>>>>> +    struct dma_slave_caps *caps)
->>>>>>>> +{
->>>>>>>> +    caps->max_sg_nr = MAX_NR_SG;
->>>>>>> 
->>>>>>> Hm, what about the other fields?
->>>>>> 
->>>>>> Other fields are unused, the max segment size is supposed to be
->>>>>> calculated "given" the address width and burst size. Since these
->>>>>> can't be provided to get_caps, I have left it out for now.
->>>>>> See: https://lkml.org/lkml/2013/3/6/464
->>>>> 
->>>>> The PL330 driver is similar in this regard, the maximum segment size also
->>>>> depends on address width and burst width. What I did for the get_slave_caps
->>>>> implementation is to set it to the minimum maximum size. E.g. in you case
->>>>> that should be SZ_64K - 1 (burstsize and addrwidth both set to 1).
->>>> 
->>>> So you're setting max to minimum maximum size? Isn't that like telling the driver that its segments can't be bigger than this... Unless I'm missing something..
->>> 
->>> Yes. This is a limitation of the current slave_caps API. The maximum needs
->>> to be the maximum for all possible configurations. A specific configuration
->>> may allow a larger maximum. So we maybe have to extend the API to be able to
->>> query the limits for a certain configuration. Not sure what the best way
->>> would be to do that, either adding a config parameter to get_slave_caps or
->>> to break it into two functions like you proposed one for the static
->>> capabilities and one for the sg limits.
->> 
->> I am OK with either approach as long as a decision can be made quickly
->> by maintainers. Right now lot of back and forth has happened and 3
->> different versions of the same thing have been posted since January.
->> Since this is such a trivial change, it doesn't make sense to spend so
->> much time on it IMO.... The sad part is though this change is trivial,
->> other drivers such as MMC are broken and cannot be enabled due to this.
->> We cannot afford to leave them broken.
+On Mon, 22 Jul 2013 16:16:07 -0500, Rob Herring <robherring2@gmail.com> wrote:
+> On 07/21/2013 06:44 PM, Grant Likely wrote:
+> > On Sun, Jul 21, 2013 at 9:48 PM, Rob Herring <robherring2@gmail.com> wrote:
+> >> On 07/21/2013 09:42 AM, Rob Herring wrote:
+> >>> On 07/19/2013 01:14 PM, Sebastian Andrzej Siewior wrote:
+> >>>> So I called of_platform_populate() on a device to get each child device
+> >>>> probed and on rmmod and I need to reverse its doing. After a quick grep
+> >>>> I did what others did as well and rmmod ended in:
+> >>>>
+> >>>> | Unable to handle kernel NULL pointer dereference at virtual address 00000018
+> >>>> | PC is at release_resource+0x18/0x80
+> >>>> | Process rmmod (pid: 2005, stack limit = 0xedc30238)
+> >>>> | [<c003add0>] (release_resource+0x18/0x80) from [<c0300e08>] (platform_device_del+0x78/0xac)
+> >>>> | [<c0300e08>] (platform_device_del+0x78/0xac) from [<c0301358>] (platform_device_unregister+0xc/0x18)
+> >>>>
+> >>>> The problem is that platform_device_del() "releases" each ressource in its
+> >>>> tree. This does not work on platform_devices created by OF becuase they
+> >>>> were never added via insert_resource(). As a consequence old->parent in
+> >>>> __release_resource() is NULL and we explode while accessing ->child.
+> >>>> So I either I do something completly wrong _or_ nobody here tested the
+> >>>> rmmod path of their driver.
+> >>>
+> >>> Wouldn't the correct fix be to call insert_resource somehow? The problem
+> >>> I have is that while of_platform_populate is all about parsing the DT
+> >>> and creating devices, the removal side has nothing to do with DT. So
+> >>> this should not be in the DT code. I think the core device code should
+> >>> be able to handle removal if the device creation side is done correctly.
+> >>>
+> >>> It looks to me like of_device_add either needs to call
+> >>> platform_device_add rather than device_add. I think the device name
+> >>> setting in platform_device_add should be a nop. If not, a check that the
+> >>> name is already set could be added.
+> >>>
+> >>
+> >> BTW, it looks like Grant has attempted this already:
+> > 
+> > Yup, things broke badly. Unfortunately the of_platform_device and
+> > platform_device history doesn't treat resources in the same way. I
+> > would like to merge the code, but I haven't been able to figure out a
+> > clean way to do it. Looks like we do need the unpopulate function.
 > 
-> Well this is a new API, so it is kind of expected that there is some back and forth and that there will be a few revisions.
+> Was there more breakage than imx6 and amba devices? Your first version
+> had a fallback case for powerpc. Couldn't we do just allow that for more
+> than just powerpc? I'd much rather see some work-around within the core
+> DT code with a warning to prevent more proliferation than putting this
+> into drivers.
 
-Sure. Only thing bothered me is it is a few lines and is just API semantics, nothing functional really.
+It's tricky stuff. I've not figured out a solution I'm happy with.
+Trying to figure out when to apply a work around is hard because the
+resource reservation makes assumptions about the memory range layout
+that doesn't match the assumptions made by device tree code.
 
-The MMC dt patches were posted but not applied. I said regression because the dt was agreed for -rc cycle but only thing missing is this trivial api stuff so possibly counting that as a regression fixes MMC altogether. 6 months for trivial change blocking an otherwise fully working driver is too much. I am speaking collectively for all of us, not me or anyone in particular. Anyway looks like MMC is not going anywhere till then.
+One /possible/ option is to not add the resources to the devices at all
+when the device is registered and instead resolve them right at bind
+time. Jean Christophe proposed doing this already to solve a different
+problem; obtaining resources that require other drivers to be probed
+first. If the resources are resolved at .probe() time, then the resource
+registration problem should also go away.
 
-> 
->> 
->> If Vinod is not available, can Dan please respond on how to proceed on
->> this? We really need this trivial change to go into this -rc cycle and
->> not delay it by another kernel release. Thank you.
-> 
-> This is not something you'd merge for rc3 or even later. If the MMC driver does not work without this I guess it never worked, so strictly speaking there is no regression and it is just a new feature.
+The downside to that approach is that it makes each deferred probe more
+expensive; potentially a *lot* more expensive depending on how much work
+the xlate functions have to do. It would be worth prototyping though to
+see how well it works.
 
-Agreed.
-
--Joel
-
-> 
-> - Lars
-> 
+g.
