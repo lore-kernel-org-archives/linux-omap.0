@@ -1,56 +1,66 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: ARM: dts: omap3-beagle-xm: fix compatible property
-Date: Wed, 24 Jul 2013 12:05:16 -0500
-Message-ID: <CAOCHtYhN4oO=xq9LcjZHCAUbSwQgTs2zEUJND1G7EbPNJ1njpA@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP4430 SDP boot issues.. (Was Re: OMAP2430 SDP boot broken
+	after Linus' rmk merge)
+Date: Wed, 24 Jul 2013 18:23:22 +0100
+Message-ID: <20130724172321.GC21614@n2100.arm.linux.org.uk>
+References: <alpine.DEB.2.02.1307221801110.10891@utopia.booyaka.com> <20130722184325.GA21614@n2100.arm.linux.org.uk> <alpine.DEB.2.02.1307222005370.26048@utopia.booyaka.com> <51EE2AA7.5060503@ti.com> <alpine.DEB.2.02.1307230705000.27017@utopia.booyaka.com> <51EE474D.5070804@ti.com> <20130724135617.GI11072@mudshark.cambridge.arm.com> <51EFE1DD.8070801@ti.com> <20130724145237.GB21614@n2100.arm.linux.org.uk> <51EFF571.3070106@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f177.google.com ([209.85.214.177]:35430 "EHLO
-	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751035Ab3GXRFR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jul 2013 13:05:17 -0400
-Received: by mail-ob0-f177.google.com with SMTP id ta17so13427345obb.8
-        for <linux-omap@vger.kernel.org>; Wed, 24 Jul 2013 10:05:16 -0700 (PDT)
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38484 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752066Ab3GXRXj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jul 2013 13:23:39 -0400
+Content-Disposition: inline
+In-Reply-To: <51EFF571.3070106@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: tony@atomide.com, Benoit Cousson <b-cousson@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Will Deacon <will.deacon@arm.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Balaji T Krishnamoorthy <balajitk@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <archit@ti.com>, "Balbi, Felipe" <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hey Guys,
+On Wed, Jul 24, 2013 at 11:40:33AM -0400, Santosh Shilimkar wrote:
+> On Wednesday 24 July 2013 10:52 AM, Russell King - ARM Linux wrote:
+> > I also continue to be disappointed by the lack of things working on the
+> > 4430 - it's been a number of years now and _still_ the on-board LCDs do
+> > not work.  People have tried to blame that on hardware faults and the
+> > like, but they're just being idiotic when they say stuff like that.  It
+> > can't be hardware faults when the kernel supplied with the board is able
+> > to make them work to the extent that userspace can play back video on all
+> > three output devices simultaneously, without hiccup or any imperfection.
+> > I don't know whether it's just that the backlight support isn't working
+> > or what - because any information on the 4430 seems to be a tightly
+> > controlled secret that only a few select people are permitted to know
+> > about.  As far as I'm concerned, much of the hardware is a black box to
+> > me.
+> > 
+> On the display related issues, Tomi and Archit have been sorting out
+> issue but am not sure about the current state. If the pre-built binaries
+> video playback works means your hardware seems to be fine.
 
-While working on the device tree for the xM i noticed this little
-error on the compatible property...
+Just let me be absolutely crystal clear about this: the on-board LCDs
+have _never_ worked with a mainline kernel, but they did work with the
+kernel which originally came with the board with the original 4430 SoC.
+I can right now put the original 4430 SoC back on the board and boot
+using the kernel which is still on the SD card and they will work.
 
-Thoughts?
+Even with the original 4430 SoC and mainline kernels, they have never
+worked.
 
->From af8e3119ae2ee29bcf739d56168d6aaa3a2c8306 Mon Sep 17 00:00:00 2001
-From: Robert Nelson <robertcnelson@gmail.com>
-Date: Wed, 24 Jul 2013 12:02:11 -0500
-Subject: [PATCH] ARM: dts: omap3-beagle-xm: fix compatible property
+I tried it back and forth several times, but even with this, the
+explanation was always "your hardware must be faulty".  And then the wrong
+voltage levels was found which was preventing the LCD modules from even
+being recognised... but still, no sign of life on the LCD panels.
 
-Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
----
- arch/arm/boot/dts/omap3-beagle-xm.dts |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+It may be that there's some error in the kernel configuration I'm building.
+I don't know, because I have _no_ idea what hardware is involved in
+bringing the LCDs online.  Like I said above, the 4430SDP board is just
+a black box.  I am totally reliant on others telling me what the right
+config options are supposed to be and fixing problems when things don't
+work.
 
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts
-b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index afdb164..0c514dc 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -11,7 +11,7 @@
+With the lack of information on this board, all I can do when things don't
+work is whinge and moan at people.  I am powerless to debug the problems
+myself, even if they're a simple misconfiguration.
 
- / {
- 	model = "TI OMAP3 BeagleBoard xM";
--	compatible = "ti,omap3-beagle-xm, ti,omap3-beagle", "ti,omap3";
-+	compatible = "ti,omap3-beagle-xm", "ti,omap3-beagle", "ti,omap3";
-
- 	cpus {
- 		cpu@0 {
--- 
-1.7.10.4
-
-
--- 
-Robert Nelson
-http://www.rcn-ee.com/
+Is there information available on the 4430SDP?  Is there any reason I
+can't have access to it?
