@@ -1,79 +1,84 @@
-From: Illia Smyrnov <illia.smyrnov@ti.com>
-Subject: [PATCH v3 2/3] Input: omap-keypad: Convert to threaded IRQ
-Date: Wed, 24 Jul 2013 18:54:52 +0300
-Message-ID: <1374681293-5320-3-git-send-email-illia.smyrnov@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v3 3/3] Input: omap-keypad: Clear interrupts on open
+Date: Wed, 24 Jul 2013 19:06:35 +0300
+Message-ID: <20130724160635.GG29384@radagast>
 References: <1374681293-5320-1-git-send-email-illia.smyrnov@ti.com>
+ <1374681293-5320-4-git-send-email-illia.smyrnov@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1374681293-5320-1-git-send-email-illia.smyrnov@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="bO4vSxwwZtUjUWHo"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1374681293-5320-4-git-send-email-illia.smyrnov@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Illia Smyrnov <illia.smyrnov@ti.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Convert to use threaded IRQ.
+--bO4vSxwwZtUjUWHo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Cc: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Illia Smyrnov <illia.smyrnov@ti.com>
+Hi,
+
+On Wed, Jul 24, 2013 at 06:54:53PM +0300, Illia Smyrnov wrote:
+> Clear interrupts when open keypad.
+>=20
+> According to TRM, the recommended way for keyboard controller
+> initialization is clear the interrupt-status register, then set up
+> certain keyboard events for generating an interrupt request and
+> set up expected source of wake-up event that generates a wake-up
+> request.
+>=20
+> Signed-off-by: Illia Smyrnov <illia.smyrnov@ti.com>
+> ---
+>  drivers/input/keyboard/omap4-keypad.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+>=20
+> diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboa=
+rd/omap4-keypad.c
+> index b876a0d..0244262 100644
+> --- a/drivers/input/keyboard/omap4-keypad.c
+> +++ b/drivers/input/keyboard/omap4-keypad.c
+> @@ -185,8 +185,9 @@ static int omap4_keypad_open(struct input_dev *input)
+>  			(OMAP4_VAL_PVT << OMAP4_DEF_CTRL_PTV_SHIFT));
+>  	kbd_writel(keypad_data, OMAP4_KBD_DEBOUNCINGTIME,
+>  			OMAP4_VAL_DEBOUNCINGTIME);
+> +	/* clear pending interrupts */
+>  	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS,
+> -			OMAP4_VAL_IRQDISABLE);
+> +			 kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS));
+>  	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
+>  			OMAP4_DEF_IRQENABLE_EVENTEN |
+>  				OMAP4_DEF_IRQENABLE_LONGKEY);
+
 Reviewed-by: Felipe Balbi <balbi@ti.com>
----
- drivers/input/keyboard/omap4-keypad.c |   29 ++++++++++++++++++++---------
- 1 files changed, 20 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
-index c727548..b876a0d 100644
---- a/drivers/input/keyboard/omap4-keypad.c
-+++ b/drivers/input/keyboard/omap4-keypad.c
-@@ -112,8 +112,22 @@ static void kbd_write_irqreg(struct omap4_keypad *keypad_data,
- }
- 
- 
--/* Interrupt handler */
--static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
-+/* Interrupt handlers */
-+static irqreturn_t omap4_keypad_irq_handler(int irq, void *dev_id)
-+{
-+	struct omap4_keypad *keypad_data = dev_id;
-+
-+	if (kbd_read_irqreg(keypad_data, OMAP4_KBD_IRQSTATUS)) {
-+		/* Disable interrupts */
-+		kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
-+				 OMAP4_VAL_IRQDISABLE);
-+		return IRQ_WAKE_THREAD;
-+	}
-+
-+	return IRQ_NONE;
-+}
-+
-+static irqreturn_t omap4_keypad_irq_thread_fn(int irq, void *dev_id)
- {
- 	struct omap4_keypad *keypad_data = dev_id;
- 	struct input_dev *input_dev = keypad_data->input;
-@@ -121,10 +135,6 @@ static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
- 	unsigned int col, row, code, changed;
- 	u32 *new_state = (u32 *) key_state;
- 
--	/* Disable interrupts */
--	kbd_write_irqreg(keypad_data, OMAP4_KBD_IRQENABLE,
--			 OMAP4_VAL_IRQDISABLE);
--
- 	*new_state = kbd_readl(keypad_data, OMAP4_KBD_FULLCODE31_0);
- 	*(new_state + 1) = kbd_readl(keypad_data, OMAP4_KBD_FULLCODE63_32);
- 
-@@ -360,9 +370,10 @@ static int omap4_keypad_probe(struct platform_device *pdev)
- 		goto err_free_keymap;
- 	}
- 
--	error = request_irq(keypad_data->irq, omap4_keypad_interrupt,
--			     IRQF_TRIGGER_RISING,
--			     "omap4-keypad", keypad_data);
-+	error = request_threaded_irq(keypad_data->irq, omap4_keypad_irq_handler,
-+				     omap4_keypad_irq_thread_fn,
-+				     IRQF_TRIGGER_RISING,
-+				     "omap4-keypad", keypad_data);
- 	if (error) {
- 		dev_err(&pdev->dev, "failed to register interrupt\n");
- 		goto err_free_input;
--- 
-1.7.0.4
+--=20
+balbi
+
+--bO4vSxwwZtUjUWHo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR7/uLAAoJEIaOsuA1yqREHBUQAI4KLEaUN+lF+B34fyOJudxQ
+YNRNsTNejFUQsD8Zp76a1is8uEvvBqQdHjE/RG15r4uNt4QbId/38FHpzb2Jjw4F
+B9kzxq5hcKCOismZiZh2v9XH/Q/Hl4r0SsS5KNJ9FDA31mfeyO/4oKlYRy4RvSH3
+XwoKeHSGHw6tRqo3W11z5psZFT5Iwt1ag92TGzXtSRpRd1YJapOFi8yeKg/N/0Bt
+XXeQGdeJrPdObl4FcJ9Bl/luG5oTkS9bIoEMrRWjG5iwVUtCn2KWnpncLsVz7D3k
++RursuwahvaZOy/2UIFYUINX+C63HIvtBUTvYZa3N5XogYjIfX8oqayNoYzN4dFY
++Guqv4adgYYPvRHEujU9hlW83I53s2jascgpVXg0nye21KG+d3215hb6D38jG0wN
+hzf+oRp73Bajb7M3vG/+J90AU1AoL4OQcfy7idUBZ3hYDXyOlg1SNms8gtGHXUw2
+FDQskgBhyBW8Q8D+FWIuuTjqJlB61hBiIxFBDE72qGWAjg2UMXtUmJAqZkgGmZVm
+bh6wMaVZ1vmwIA5TfibMr2QibP7HGBPHgmRFbuZfYt+SYFy+P+C6JZtn7sp7ZcZ/
+uuXPiYJzevSJZ4MD0qvlZGqcqUt6AxrntuhHsxOnKjGjz64OY+3y49vBdBw/VtcD
+rR3i8k3IicXAyju9ESsH
+=5lgY
+-----END PGP SIGNATURE-----
+
+--bO4vSxwwZtUjUWHo--
