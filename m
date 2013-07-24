@@ -1,27 +1,56 @@
-From: Illia Smyrnov <illia.smyrnov@ti.com>
-Subject: [PATCH v3 0/3] Input: omap-keypad: Convert to threaded IRQ and cleanup
-Date: Wed, 24 Jul 2013 18:54:50 +0300
-Message-ID: <1374681293-5320-1-git-send-email-illia.smyrnov@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Olof Johansson <olof@lixom.net>
+Subject: [PATCH] mtd: nand: omap2: Fix compilation warning
+Date: Wed, 24 Jul 2013 08:56:32 -0700
+Message-ID: <1374681392-6183-1-git-send-email-olof@lixom.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Cc: Pekon Gupta <pekon@ti.com>, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, Olof Johansson <olof@lixom.net>
 List-Id: linux-omap@vger.kernel.org
 
-Replace unclear hardcoded values with bit field, convert to threaded IRQ and
-clear interrupts when open the keypad.
+fb1585bc13b (mtd: nand: omap2: clean-up BCHx_HW and BCHx_SW ECC
+configurations in device_probe) introduced a warning when the new option
+is disabled, i.e. with omap2plus_defconfig:
 
-Based on top of v3.11-rc2.
+drivers/mtd/nand/omap2.c:1075:13: warning: 'omap3_enable_hwecc_bch' defined but not used [-Wunused-function]
 
-Tested on OMAP4 SDP.
+Fix this by rescoping the ifdef. Also remove a redudant #endif/#ifdef
+pair.
 
-Illia Smyrnov (3):
-  Input: omap-keypad: Cleanup - use bitfiled instead of hardcoded
-    values
-  Input: omap-keypad: Convert to threaded IRQ
-  Input: omap-keypad: Clear interrupts on open
+Signed-off-by: Olof Johansson <olof@lixom.net>
+---
+ drivers/mtd/nand/omap2.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
- drivers/input/keyboard/omap4-keypad.c |   57 +++++++++++++++++++--------------
- 1 files changed, 33 insertions(+), 24 deletions(-)
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index c4c7e0d..cbf8b28 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -1060,6 +1060,7 @@ static int omap_dev_ready(struct mtd_info *mtd)
+ 	}
+ }
+ 
++#ifdef CONFIG_MTD_NAND_OMAP_BCH
+ /**
+  * omap3_enable_hwecc_bch - Program OMAP3 GPMC to perform BCH ECC correction
+  * @mtd: MTD device structure
+@@ -1141,7 +1142,6 @@ static void omap3_enable_hwecc_bch(struct mtd_info *mtd, int mode)
+ 	writel(ECCCLEAR | ECC1, info->reg.gpmc_ecc_control);
+ }
+ 
+-#ifdef CONFIG_MTD_NAND_ECC_BCH
+ /**
+  * omap3_calculate_ecc_bch4 - Generate 7 bytes of ECC bytes
+  * @mtd: MTD device structure
+@@ -1959,8 +1959,7 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 		omap_oobinfo.oobfree->offset	= omap_oobinfo.eccpos[0] +
+ 							omap_oobinfo.eccbytes;
+ 		goto custom_ecc_layout;
+-#endif
+-#ifdef CONFIG_MTD_NAND_ECC_BCH
++
+ 	case OMAP_ECC_BCH8_CODE_HW_DETECTION_SW:
+ 		pr_info("using OMAP_ECC_BCH8_CODE_HW_DETECTION_SW ECC\n");
+ 		info->nand.ecc.mode		= NAND_ECC_HW;
+-- 
+1.7.10.4
