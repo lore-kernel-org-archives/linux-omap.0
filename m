@@ -1,41 +1,47 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/3] misc: Add crossbar driver
-Date: Wed, 24 Jul 2013 14:59:27 -0400
-Message-ID: <51F0240F.3050507@ti.com>
-References: <1374165830-6367-1-git-send-email-r.sricharan@ti.com> <1374165830-6367-2-git-send-email-r.sricharan@ti.com> <51E83A4F.5080904@ti.com> <CACRpkdY3nQaWimTwB-Zt-8+Q_KZr8a0rpB1SUQq=AuoG4bAYnQ@mail.gmail.com> <51ED2385.60108@ti.com> <51ED5C66.1010407@ti.com> <51EFFBE1.4090505@ti.com> <51F0031B.1050307@ti.com> <51F00530.9090703@ti.com> <51F02069.3050207@ti.com> <51F0223E.4050008@ti.com>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: v3.11-rc1 USB regressions
+Date: Wed, 24 Jul 2013 21:04:28 +0200
+Message-ID: <51F0253C.7090205@gmail.com>
+References: <20130715225647.GE3296@blackmetal.musicnaut.iki.fi> <51E4E922.2040707@gmail.com> <20130716175710.GA14385@blackmetal.musicnaut.iki.fi> <20130724185119.GB26943@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51F0223E.4050008@ti.com>
+In-Reply-To: <20130724185119.GB26943@blackmetal.musicnaut.iki.fi>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Sricharan R <r.sricharan@ti.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@secretlab.ca>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 24 July 2013 02:51 PM, Nishanth Menon wrote:
-> On 07/24/2013 01:43 PM, Sricharan R wrote:
->> On Wednesday 24 July 2013 10:17 PM, Nishanth Menon wrote:
->>> On 07/24/2013 11:38 AM, Santosh Shilimkar wrote:
->>>> On Wednesday 24 July 2013 12:08 PM, Nishanth Menon wrote:
->>>>> That said, maybe a intermediate pinctrl approach might be more pragmatic and less theoretically flexible.
->>>>> an option might be to "statically allocate" default number of interrupts to a domain - example:
->>>>> * GIC IRQ 72->78 allotted to UARTs
->>>>> * pinctrl mapping provided for those but only 6 can be used (rest are marked status="disabled" as default) at any given time (choice of pinctrl option determines GIC interrupt line to use)
->>>>> * All modules will have a pinctrl definition to have a mapping - to avoid bootloader overriding default cross bar setting in ways un-expected by kernel.
->>>>>
->>>>> Does that sound fair trade off?
->>>> This sounds better. That way we can get all the devices in the DT at least.
->>>
->>> Fair enough - if Linus and Tony are still ok with this approach to the problem, seeing a patch series with the effect would be beneficial.
->>>
->>   Ok, i will use this idea of certain number interrupts to groups.
->> Yes on DRA7XX, we have about 160 gic lines and 320 irq crossbar device inputs contending for it.
->> 1:2 and fully arbitrary.  But will we be really exhausting them ?
+Hi Aaro,
+
+On 24.07.2013 20:51, Aaro Koskinen wrote:
+> On Tue, Jul 16, 2013 at 08:57:10PM +0300, Aaro Koskinen wrote:
+
+>> Here are full details:
 >>
-> Depends on how we allocate :). The default arbitary allocation can be made more logical in your series ofcourse :).
+>> Kernel v3.11-rc1 and the following USB fixes:
+>> 	ARM: omap2: fix musb usage for n8x0
+>> 	musb: omap: Fix: pass all the resources to musb core
 > 
-I would just most logical peripherals rather than providing every single
-IP connected to cross bar. Otherwise we will end up wth hwmod like
-scenario where now started removing the unused stuff because of
-maintenance and loc issues ;-)
+> [...]
+> 
+>> When I revert fe4cb0912f8e737f8e4b8b38b9e692f8062f5423 and
+>> 8b125df5b24cfb0ec7fa1971e343cc0badc1827d, it works like before (3.10):
+> 
+> I'm now running -rc2 with above fixes and reverts (the only way to get
+> USB working). I'm seeing an additional issue, the following crash happens
+> always on N900 when doing "poweroff":
+
+Yes, with the mentioned patches reverted, musb_to_hcd() will return a
+faulty pointer. You can't easily revert them unfortunately.
+
+Your platform needs a real fix, I just have trouble understanding why a
+removed usb_add_hcd() would make the gadget code fail.
+
+Sorry for the trouble, but I don't currently have a board with musb in
+gadget mode to reproduce this issue.
+
+
+Thanks,
+Daniel
