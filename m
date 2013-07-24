@@ -1,211 +1,90 @@
-From: Gururaja Hebbar <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [Patch V2 3/4] rtc: omap: add rtc wakeup support to alarm events
-Date: Wed, 24 Jul 2013 18:44:56 +0530
-Message-ID: <51EFD350.4030500@ti.com>
-References: <1372841225-18813-1-git-send-email-gururaja.hebbar@ti.com>
-	<1372841225-18813-4-git-send-email-gururaja.hebbar@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 1/4] mfd: twl6030-irq: migrate to IRQ threaded handler
+Date: Wed, 24 Jul 2013 16:17:09 +0300
+Message-ID: <51EFD3D5.2070506@ti.com>
+References: <1374595624-15054-1-git-send-email-grygorii.strashko@ti.com> <1374595624-15054-2-git-send-email-grygorii.strashko@ti.com> <20130724104945.GH26801@laptop> <51EFC072.9070702@ti.com> <20130724125011.GM26801@laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1372841225-18813-4-git-send-email-gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
-Cc: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, benoit.cousson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:43699 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750795Ab3GXNSn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Jul 2013 09:18:43 -0400
+In-Reply-To: <20130724125011.GM26801@laptop>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Kevin Hilman <khilman@linaro.org>, Graeme Gregory <gg@slimlogic.co.uk>, linux-omap@vger.kernel.org, Ruslan Bilovol <ruslan.bilovol@ti.com>, linux-kernel@vger.kernel.org, Naga Venkata Srikanth V <vnv.srikanth@samsung.com>, Oleg_Kosheliev <oleg.kosheliev@ti.com>
 
-Hi Andrew,
+On 07/24/2013 03:50 PM, Lee Jones wrote:
+>>>> +	if (ret) {
+>>>> +		pr_warn("%s: I2C error %d reading PIH ISR\n", __func__, ret);
+>>>
+>>> Does the user really care which function we're returning from.
+>>>
+>>> Would it be better if you replace '__func__' with the device name?
+>>
+>> This module hasn't been converted to the device yet:(
+>> (I mean "interrupt-controller").
+>> But I'm thinking about it as the next step :) and then It will be
+>> absolutely reasonable change to replace pr_*() with dev_*() and
+>> remove __func__.
+>
+> I don't mean anything as compicated as that for 'this' patch. (NB: See my
+> comment in subsequent patches about creating a 'struct twl6030' where
+> you could store 'struct dev'.) In this patch I mean litterally
+> replacing "%s: ", with "tw16030_irq: ". Simples. :)
 
-On 7/3/2013 2:17 PM, Hebbar Gururaja wrote:
-> On some platforms (like AM33xx), a special register (RTC_IRQWAKEEN)
-> is available to enable Alarm Wakeup feature. This register needs to be
-> properly handled for the rtcwake to work properly.
->
-> Platforms using such IP should set "ti,am3352-rtc" in rtc device dt
-> compatibility node.
+Ok. I understand it now - will redo.
 
-I just checked that the 1st patch in this series is pulled in and this
-patch [3/4] is not pulled . If you do not have any comments, can you 
-pull this one also. I have already got Acks from Sekhar & Kevin for the 
-same.
-
-Thanks & regards
-Gururaja
 
 >
-> Signed-off-by: Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-> Acked-by: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Acked-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-> Cc: Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
-> Cc: Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>
-> Cc: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>
-> Cc: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-> Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-> Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> ---
-> Changes in V2:
-> 	- Coding style corrections (use lower case for hex numbers)
-> 	- use "[AM/am]3352" instead of "[AM/am]335x" to keep the all
-> 	  usages in sync.
-> 	- Use index defined for struct members so they remain in sync
+>> Now, the pointer on "dev" (in our case "twl-core" device) isn't passed
+>> in IRQ handler, so It can't be used here.
+>>
+>> Of course it can be done, but would it make code better?
+>> My opinion - no.
 >
-> :100644 100644 b47aa41... 5a0f02d... M	Documentation/devicetree/bindings/rtc/rtc-omap.txt
-> :100644 100644 761919d... c2e18fe... M	drivers/rtc/rtc-omap.c
->   Documentation/devicetree/bindings/rtc/rtc-omap.txt |    6 +-
->   drivers/rtc/rtc-omap.c                             |   60 +++++++++++++++++---
->   2 files changed, 57 insertions(+), 9 deletions(-)
+>>>> +	if (sts.bytes[2] & 0x10)
+>>>> +		sts.bytes[2] |= 0x08;
+>>>>
+>>>> -		for (i = 0; sts.int_sts; sts.int_sts >>= 1, i++) {
+>>>> -			local_irq_disable();
+>>>> -			if (sts.int_sts & 0x1) {
+>>>> -				int module_irq = twl6030_irq_base +
+>>>> +	for (i = 0; sts.int_sts; sts.int_sts >>= 1, i++)
+>>>> +		if (sts.int_sts & 0x1) {
+>>>
+>>> I'm a little confused by this. Where does sts.int_sts come from?
+>>
+>> See my comment above, pls
 >
-> diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-> index b47aa41..5a0f02d 100644
-> --- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-> +++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-> @@ -1,7 +1,11 @@
->   TI Real Time Clock
+> Okay, that's my fault for not understanding unions properly as I've
+> never had to use one, but now I do, thanks.
 >
->   Required properties:
-> -- compatible: "ti,da830-rtc"
-> +- compatible:
-> +	- "ti,da830-rtc"  - for RTC IP used similar to that on DA8xx SoC family.
-> +	- "ti,am3352-rtc" - for RTC IP used similar to that on AM335x SoC family.
-> +			    This RTC IP has special WAKE-EN Register to enable
-> +			    Wakeup generation for event Alarm.
->   - reg: Address range of rtc register set
->   - interrupts: rtc timer, alarm interrupts in order
->   - interrupt-parent: phandle for the interrupt controller
-> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-> index 761919d..c2e18fe 100644
-> --- a/drivers/rtc/rtc-omap.c
-> +++ b/drivers/rtc/rtc-omap.c
-> @@ -72,6 +72,8 @@
->   #define OMAP_RTC_KICK0_REG		0x6c
->   #define OMAP_RTC_KICK1_REG		0x70
+>>>> @@ -437,10 +386,13 @@ int twl6030_exit_irq(void)
+>>>>   {
+>>>>   	unregister_pm_notifier(&twl6030_irq_pm_notifier_block);
+>>>>
+>>>> -	if (twl6030_irq_base) {
+>>>> +	if (!twl6030_irq_base) {
+>>>>   		pr_err("twl6030: can't yet clean up IRQs?\n");
+>>>>   		return -ENOSYS;
+>>>>   	}
+>>>> +
+>>>> +	free_irq(twl_irq, NULL);
+>>>> +
+>>>
+>>> If request_threaded_irq() fails, isn't there a chance that
+>>> twl6030_irq_base will be allocated, but twl_irq will still be
+>>> undefined?
+>>
+>> Yes. A mess is here (historically:), thanks. Will use twl_irq
+>> instead of twl6030_irq_base (I did it, actually, in patch [3]:).
 >
-> +#define OMAP_RTC_IRQWAKEEN		0x7c
-> +
->   /* OMAP_RTC_CTRL_REG bit fields: */
->   #define OMAP_RTC_CTRL_SPLIT		(1<<7)
->   #define OMAP_RTC_CTRL_DISABLE		(1<<6)
-> @@ -96,12 +98,21 @@
->   #define OMAP_RTC_INTERRUPTS_IT_ALARM    (1<<3)
->   #define OMAP_RTC_INTERRUPTS_IT_TIMER    (1<<2)
+> Yes, I saw it. It would be better if you still fixed up this patch to
+> be correct though. Even if you break it out and add it as [PATCH 1/x].
 >
-> +/* OMAP_RTC_IRQWAKEEN bit fields: */
-> +#define OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN    (1<<1)
-> +
->   /* OMAP_RTC_KICKER values */
->   #define	KICK0_VALUE			0x83e70b13
->   #define	KICK1_VALUE			0x95a4f1e0
->
->   #define	OMAP_RTC_HAS_KICKER		0x1
->
-> +/*
-> + * Few RTC IP revisions has special WAKE-EN Register to enable Wakeup
-> + * generation for event Alarm.
-> + */
-> +#define	OMAP_RTC_HAS_IRQWAKEEN		0x2
-> +
->   static void __iomem	*rtc_base;
->
->   #define rtc_read(addr)		readb(rtc_base + (addr))
-> @@ -301,12 +312,18 @@ static struct rtc_class_ops omap_rtc_ops = {
->   static int omap_rtc_alarm;
->   static int omap_rtc_timer;
->
-> -#define	OMAP_RTC_DATA_DA830_IDX	1
-> +#define	OMAP_RTC_DATA_AM3352_IDX	1
-> +#define	OMAP_RTC_DATA_DA830_IDX		2
->
->   static struct platform_device_id omap_rtc_devtype[] = {
->   	{
->   		.name	= DRIVER_NAME,
-> -	}, {
-> +	},
-> +	[OMAP_RTC_DATA_AM3352_IDX] = {
-> +		.name	= "am3352-rtc",
-> +		.driver_data = OMAP_RTC_HAS_KICKER | OMAP_RTC_HAS_IRQWAKEEN,
-> +	},
-> +	[OMAP_RTC_DATA_DA830_IDX] = {
->   		.name	= "da830-rtc",
->   		.driver_data = OMAP_RTC_HAS_KICKER,
->   	},
-> @@ -318,6 +335,9 @@ static const struct of_device_id omap_rtc_of_match[] = {
->   	{	.compatible	= "ti,da830-rtc",
->   		.data		= &omap_rtc_devtype[OMAP_RTC_DATA_DA830_IDX],
->   	},
-> +	{	.compatible	= "ti,am3352-rtc",
-> +		.data		= &omap_rtc_devtype[OMAP_RTC_DATA_AM3352_IDX],
-> +	},
->   	{},
->   };
->   MODULE_DEVICE_TABLE(of, omap_rtc_of_match);
-> @@ -466,16 +486,28 @@ static u8 irqstat;
->
->   static int omap_rtc_suspend(struct device *dev)
->   {
-> +	u8 irqwake_stat;
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +	const struct platform_device_id *id_entry =
-> +					platform_get_device_id(pdev);
-> +
->   	irqstat = rtc_read(OMAP_RTC_INTERRUPTS_REG);
->
->   	/* FIXME the RTC alarm is not currently acting as a wakeup event
-> -	 * source, and in fact this enable() call is just saving a flag
-> -	 * that's never used...
-> +	 * source on some platforms, and in fact this enable() call is just
-> +	 * saving a flag that's never used...
->   	 */
-> -	if (device_may_wakeup(dev))
-> +	if (device_may_wakeup(dev)) {
->   		enable_irq_wake(omap_rtc_alarm);
-> -	else
-> +
-> +		if (id_entry->driver_data & OMAP_RTC_HAS_IRQWAKEEN) {
-> +			irqwake_stat = rtc_read(OMAP_RTC_IRQWAKEEN);
-> +			irqwake_stat |= OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN;
-> +			rtc_write(irqwake_stat, OMAP_RTC_IRQWAKEEN);
-> +		}
-> +	} else {
->   		rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
-> +	}
->
->   	/* Disable the clock/module */
->   	pm_runtime_put_sync(dev);
-> @@ -485,13 +517,25 @@ static int omap_rtc_suspend(struct device *dev)
->
->   static int omap_rtc_resume(struct device *dev)
->   {
-> +	u8 irqwake_stat;
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +	const struct platform_device_id *id_entry =
-> +				platform_get_device_id(pdev);
-> +
->   	/* Enable the clock/module so that we can access the registers */
->   	pm_runtime_get_sync(dev);
->
-> -	if (device_may_wakeup(dev))
-> +	if (device_may_wakeup(dev)) {
->   		disable_irq_wake(omap_rtc_alarm);
-> -	else
-> +
-> +		if (id_entry->driver_data & OMAP_RTC_HAS_IRQWAKEEN) {
-> +			irqwake_stat = rtc_read(OMAP_RTC_IRQWAKEEN);
-> +			irqwake_stat &= ~OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN;
-> +			rtc_write(irqwake_stat, OMAP_RTC_IRQWAKEEN);
-> +		}
-> +	} else {
->   		rtc_write(irqstat, OMAP_RTC_INTERRUPTS_REG);
-> +	}
->   	return 0;
->   }
->   #endif
->
+ok
+
