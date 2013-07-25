@@ -1,77 +1,56 @@
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH] of: provide of_platform_unpopulate()
-Date: Wed, 24 Jul 2013 15:19:58 +0100
-Message-ID: <20130724141958.9156F3E0A24@localhost>
-References: <1374257691-31981-1-git-send-email-bigeasy@linutronix.de> <51EBF33A.4050207@gmail.com> <51EC4908.4040504@gmail.com> <CACxGe6sqv2Wsp26MWqqs9W_eWO3tjs-+2z3z8fC=2fe-BjJvkA@mail.gmail.com> <51EDA117.10605@gmail.com>
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <51EDA117.10605@gmail.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Rob Herring <rob.herring@calxeda.com>, Kishon Vijay Abraham I <kishon@ti.com>, George Cherian <george.cherian@ti.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree-discuss <devicetree-discuss@lists.ozlabs.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Vivek Gautam <gautam.vivek@samsung.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Naveen Krishna Chatradhi <ch.naveen@samsung.com>, Roger Quadros <rogerq@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Thu, 25 Jul 2013 10:41:15 +0530
+Message-ID: <51F0B373.5050907@ti.com>
+References: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org>
+ <5977067.8rykRgjgre@flatron> <201307242032.03597.arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <201307242032.03597.arnd@arndb.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-fbdev@vger.kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-doc@vger.kernel.org, tony@atomide.com, Tomasz Figa <t.figa@samsung.com>, nsekhar@ti.com, Tomasz Figa <tomasz.figa@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, Alan Stern <stern@rowland.harvard.edu>, grant.likely@linaro.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, george.cherian@ti.com, Stephen Warren <swarren@wwwdotorg.org>, b.zolnierkie@samsung.com, Sascha Hauer <s.hauer@pengutronix.de>, linux-samsung-soc@vger.kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, Greg KH <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 22 Jul 2013 16:16:07 -0500, Rob Herring <robherring2@gmail.com> wrote:
-> On 07/21/2013 06:44 PM, Grant Likely wrote:
-> > On Sun, Jul 21, 2013 at 9:48 PM, Rob Herring <robherring2@gmail.com> wrote:
-> >> On 07/21/2013 09:42 AM, Rob Herring wrote:
-> >>> On 07/19/2013 01:14 PM, Sebastian Andrzej Siewior wrote:
-> >>>> So I called of_platform_populate() on a device to get each child device
-> >>>> probed and on rmmod and I need to reverse its doing. After a quick grep
-> >>>> I did what others did as well and rmmod ended in:
-> >>>>
-> >>>> | Unable to handle kernel NULL pointer dereference at virtual address 00000018
-> >>>> | PC is at release_resource+0x18/0x80
-> >>>> | Process rmmod (pid: 2005, stack limit = 0xedc30238)
-> >>>> | [<c003add0>] (release_resource+0x18/0x80) from [<c0300e08>] (platform_device_del+0x78/0xac)
-> >>>> | [<c0300e08>] (platform_device_del+0x78/0xac) from [<c0301358>] (platform_device_unregister+0xc/0x18)
-> >>>>
-> >>>> The problem is that platform_device_del() "releases" each ressource in its
-> >>>> tree. This does not work on platform_devices created by OF becuase they
-> >>>> were never added via insert_resource(). As a consequence old->parent in
-> >>>> __release_resource() is NULL and we explode while accessing ->child.
-> >>>> So I either I do something completly wrong _or_ nobody here tested the
-> >>>> rmmod path of their driver.
-> >>>
-> >>> Wouldn't the correct fix be to call insert_resource somehow? The problem
-> >>> I have is that while of_platform_populate is all about parsing the DT
-> >>> and creating devices, the removal side has nothing to do with DT. So
-> >>> this should not be in the DT code. I think the core device code should
-> >>> be able to handle removal if the device creation side is done correctly.
-> >>>
-> >>> It looks to me like of_device_add either needs to call
-> >>> platform_device_add rather than device_add. I think the device name
-> >>> setting in platform_device_add should be a nop. If not, a check that the
-> >>> name is already set could be added.
-> >>>
-> >>
-> >> BTW, it looks like Grant has attempted this already:
-> > 
-> > Yup, things broke badly. Unfortunately the of_platform_device and
-> > platform_device history doesn't treat resources in the same way. I
-> > would like to merge the code, but I haven't been able to figure out a
-> > clean way to do it. Looks like we do need the unpopulate function.
+Hi,
+
+On Thursday 25 July 2013 12:02 AM, Arnd Bergmann wrote:
+> On Tuesday 23 July 2013, Tomasz Figa wrote:
+>> On Tuesday 23 of July 2013 17:14:20 Alan Stern wrote:
+>>> On Tue, 23 Jul 2013, Tomasz Figa wrote:
+>>>> Where would you want to have those phy_address arrays stored? There
+>>>> are no board files when booting with DT. Not even saying that you
+>>>> don't need to use any hacky schemes like this when you have DT that
+>>>> nicely specifies relations between devices.
+>>>
+>>> If everybody agrees DT has a nice scheme for specifying relations
+>>> between devices, why not use that same scheme in the PHY core?
+>>
+>> It is already used, for cases when consumer device has a DT node attached. 
+>> In non-DT case this kind lookup translates loosely to something that is 
+>> being done in regulator framework - you can't bind devices by pointers, 
+>> because you don't have those pointers, so you need to use device names.
+>>
 > 
-> Was there more breakage than imx6 and amba devices? Your first version
-> had a fallback case for powerpc. Couldn't we do just allow that for more
-> than just powerpc? I'd much rather see some work-around within the core
-> DT code with a warning to prevent more proliferation than putting this
-> into drivers.
+> Sorry for jumping in to the middle of the discussion, but why does a *new*
+> framework even bother defining an interface for board files?
+> 
+> Can't we just drop any interfaces for platform data passing in the phy
+> framework and put the burden of adding those to anyone who actually needs
+> them? All the platforms we are concerned with here (exynos and omap,
+> plus new platforms) can be booted using DT anyway.
 
-It's tricky stuff. I've not figured out a solution I'm happy with.
-Trying to figure out when to apply a work around is hard because the
-resource reservation makes assumptions about the memory range layout
-that doesn't match the assumptions made by device tree code.
+The OMAP3 platforms still needs to be supported for non-dt :-s
 
-One /possible/ option is to not add the resources to the devices at all
-when the device is registered and instead resolve them right at bind
-time. Jean Christophe proposed doing this already to solve a different
-problem; obtaining resources that require other drivers to be probed
-first. If the resources are resolved at .probe() time, then the resource
-registration problem should also go away.
-
-The downside to that approach is that it makes each deferred probe more
-expensive; potentially a *lot* more expensive depending on how much work
-the xlate functions have to do. It would be worth prototyping though to
-see how well it works.
-
-g.
+Thanks
+Kishon
