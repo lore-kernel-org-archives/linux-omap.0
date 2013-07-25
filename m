@@ -1,81 +1,125 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Thu, 25 Jul 2013 13:09:04 +0100
-Message-ID: <20130725120904.GB9858@sirena.org.uk>
-References: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org>
- <201307242032.03597.arnd@arndb.de> <2174304.5JlzJ583hP@avalon>
- <201307251300.49282.arnd@arndb.de>
+From: "Arend van Spriel" <arend@broadcom.com>
+Subject: Re: Regression 3.11-rc1: omap4panda: no usb and consequently no
+ ethernet
+Date: Thu, 25 Jul 2013 15:06:29 +0200
+Message-ID: <51F122D5.80205@broadcom.com>
+References: <51E7AA24.6080600@broadcom.com> <51E7CEF3.5000408@ti.com>
+ <51E7D080.6070401@broadcom.com> <51E7D1D2.1060006@ti.com>
+ <51E7E1B7.6090104@broadcom.com> <51E7E2AD.8020106@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5280643763233726691=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <201307251300.49282.arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-fbdev@vger.kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-doc@vger.kernel.org, tony@atomide.com, Tomasz Figa <t.figa@samsung.com>, nsekhar@ti.com, Tomasz Figa <tomasz.figa@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, Kishon Vijay Abraham I <kishon@ti.com>, Alan Stern <stern@rowland.harvard.edu>, grant.likely@linaro.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, george.cherian@ti.com, Stephen Warren <swarren@wwwdotorg.org>, b.zolnierkie@samsung.com, Sascha Hauer <s.hauer@pengutronix.de>, linux-samsung-soc@vger.kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, Greg KH <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel
-List-Id: linux-omap@vger.kernel.org
-
-
---===============5280643763233726691==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wg2zgDM1gLxA7pbN"
-Content-Disposition: inline
-
-
---wg2zgDM1gLxA7pbN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Jul 25, 2013 at 01:00:49PM +0200, Arnd Bergmann wrote:
-
-> I'm not saying that we can't support legacy board files with the common
-> PHY framework, but I'd expect things to be much easier if we focus on those
-> platforms that are actively being worked on for now, to bring an end to the
-> pointless API discussion.
-
-Well, it seemed like Greg's concerns had already been addressed anyway.
-
---wg2zgDM1gLxA7pbN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR8RVcAAoJELSic+t+oim9YuEP/1JH37qhhixNi8JrjQfegt/8
-CHa1paebHzFPGbKxxpSBJPna5OSGkSgiS+E2U+s4aP9kqkYzD3cX04ptz6v3DTTN
-5lvt1LsAVFmneFJfB4jdCjazUPEnm2kRgk6xKoBVpdswJctx9xc5pVR2OmI8BwdW
-l+7AQhCq347aGKSP4Ep/7YOUg6tD0/6zvzCmet360ai6lPAT/yhZj0dYD7Qii7Gk
-uKM3cQb1PwrJk/xBcR70vEB6XMLzkzhm0yRtVk1DBziNcXdnS+N4ZyCA8Vre82ev
-t/02/Bi1CCGwifKCDa/1RWb6zjYPyyixX5gBx+zxDChtiCcxwg5vJFfT+7uwiLFk
-jstL8OGkt7lk2jGAOcCrszLisnPqJ2siXnGJaI/4AvVXYcd7Q+9nOggg4C8Re5E/
-efnkS850CgWTgyrpun2ZyCuhoQhkbqNNB8CHw6volpjAS0i5Q0wat0FmPdBQZg9r
-Fo5iLQ0i0OxKdmVO/Z5EwOeUoWjMh9lzT9q6q1zWoS233igUr5Xf9qS1svmmz1jX
-TcRTGERIM12JlHUr8efalQZMOHhKT/NGWPskqV7g35n4/mVPu0DrsyzQl1DrJ470
-DUMlwn+AgaU3X6ttEeTbcBJLNvrkLNI/5OvwUljDN39X2wzp888H3HD8/JpqugKI
-ldM0KNy4SyQ+fIArDPob
-=fqdw
------END PGP SIGNATURE-----
-
---wg2zgDM1gLxA7pbN--
-
-
---===============5280643763233726691==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=utf-8;
+ format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mms3.broadcom.com ([216.31.210.19]:4911 "EHLO mms3.broadcom.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755911Ab3GYNGx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Jul 2013 09:06:53 -0400
+In-Reply-To: <51E7E2AD.8020106@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+On 07/18/2013 02:42 PM, Roger Quadros wrote:
+> On 07/18/2013 03:38 PM, Arend van Spriel wrote:
+>> On 07/18/2013 01:30 PM, Roger Quadros wrote:
+>>> On 07/18/2013 02:24 PM, Arend van Spriel wrote:
+>>>> On 07/18/2013 01:18 PM, Roger Quadros wrote:
+>>>>> Hi Arend,
+>>>>>
+>>>>> On 07/18/2013 11:41 AM, Arend van Spriel wrote:
+>>>>>> Hi Tony,
+>>>>>>
+>>>>>>
+>>>>>> We are using the panda board (es variant) for testing our SDIO based chips. For this we have an adapter card connection to expansion connector A. As this adapter is not publicly available we had internally patched board-omap4panda.c. Also we follow the -rc releases and use TFTP to boot the kernel image which requires USB.
+>>>>>>
+>>>>>> Moving to 3.11-rc1 I found that the mentioned board file was removed by your commit:
+>>>>>>
+>>>>>> commit b42b918194c4791510ac049e3d507169a7de8544
+>>>>>> Author: Tony Lindgren <tony@atomide.com>
+>>>>>> Date:   Thu May 30 12:53:05 2013 -0700
+>>>>>>
+>>>>>>        ARM: OMAP2+: Remove board-omap4panda.c
+>>>>>>
+>>>>>> As our patches on that file are internal I do not hold it against you. This is no regression and we need to fix it.
+>>>>>>
+>>>>>> So my first step was to follow the recipe given in that commit. Beside that I noticed a thread about USB issue on LKML so I also applied the following commit:
+>>>>>>
+>>>>>> commit 352f573e59050c7a604c35c58b4bbfc51edebbee
+>>>>>> Author: Roger Quadros <rogerq@ti.com>
+>>>>>> Date:   Tue Jun 18 19:04:47 2013 +0300
+>>>>>>
+>>>>>>        ARM: OMAP2+: Provide alias to USB PHY clock
+>>>>>>
+>>>>>> The attached kernel log seems to suggest that the device tree is picked up by the kernel, but the USB does not seem very active. No ethernet connectivity. This does seem a regression to me. Is there some other patch that I need to get it going again?
+>>>>>>
+>>>>>
+>>>>> I tried with your config and 3.11-rc1 kernel with the above commit on top and ethernet seems to
+>>>>> work for me. My boot log is attached.
+>>>>>
+>>>>> Are you sure that you are building the DTB for panda-es and the bootloader is picking up the right file and
+>>>>> not an outdated one?
+>>>>
+>>>> I appended the DTB to the kernel image thus avoiding the need to update u-boot (at least that is what I understood from Tony's commit).
+>>>>
+>>>
+>>> I understand this can be a little tedious at first.
+>>>
+>>> This is my u-boot boot.txt
+>>>
+>>> fatload mmc 0:1 0x825f0000 omap4-panda-es.dtb
+>>> fatload mmc 0:1 0x80300000 uImage
+>>> set fdt_high 0xffffffff
+>>> setenv bootargs console=ttyO2,115200n8 mem=1G@0x80000000 root=/dev/mmcblk0p2 rootwait
+>>> bootm 0x80300000 - 0x825f0000
+>>>
+>>> You need to generate boot.scr from the above boot.txt and place it in SD card boot partition.
+>>>
+>>> mkimage -A arm -T script -C none -n "Boot Image" -d boot.txt boot.scr
+>>>
+>>> And of course copy the omap4-panda-es.dtb to SD card boot partition.
+>>>
+>>> hope this helps.
+>>
+>> Thanks for sharing this.
+>>
+>>>>> Why is the version of SPL loader and u-boot different in your log?
+>>>>> You need to use the MLO file generated by the u-boot build along with the uImage.
+>>>>>
+>>>>> Just to be sure we are on the same setup could you please try with latest u-boot release (2013-04). Thanks.
+>>>>
+>>>> I recall having difficulty with TFTP boot using a 2013 u-boot release, but that hurdle is for later. I will try.
+>>>>
+>>>
+>>> OK. We can figure this out as well.
+>>
+>> I tried with same SPL and u-boot version, but that did not work out. So I moved to v2013.04 and the log looks better. I was especially interested in this:
+>>
+>> [    2.807434] usb 1-1.1: new high-speed USB device number 3 using ehci-omap
+>> [    2.932495] usb 1-1.1: New USB device found, idVendor=0424, idProduct=ec00
+>> [    2.932495] usb 1-1.1: New USB device strings: Mfr=0, Product=0, SerialNumbe0
+>> [    2.958770] smsc95xx v1.0.4
+>> Starting logging: OK
+>> Initializing random number generator... [    3.045806] smsc95xx 1-1.1:1.0 eth0
+>
+> Cool! :).
+>
+> FYI. I also tested tftpboot from u-boot and NFS root file system and it works fine.
 
---===============5280643763233726691==--
+Hi Roger,
+
+Can I get back on this topic. When USB and ethernet was working for me 
+as stated above, I was not doing tftpboot. When I use tftpboot the 
+images are obtained from the tftp server, but after kernel has started 
+there is nothing in /sys/bus/usb/devices/.
+
+I tried a 'usb stop' before booting the kernel, but that does not help 
+either. As you stated to have tftpboot working, maybe you can help me.
+
+Regards,
+Arend
+
+
+
