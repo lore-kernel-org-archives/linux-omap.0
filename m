@@ -1,63 +1,60 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 4/5] usb: musb: dsps: use proper child nodes
-Date: Thu, 25 Jul 2013 17:30:00 +0300
-Message-ID: <20130725142951.GG16106@radagast>
+Subject: Re: [PATCH 5/5] musb: musb: dsps: remove instances variable
+Date: Thu, 25 Jul 2013 17:30:50 +0300
+Message-ID: <20130725143045.GH16106@radagast>
 References: <1373031178-8871-1-git-send-email-bigeasy@linutronix.de>
- <1373031178-8871-5-git-send-email-bigeasy@linutronix.de>
+ <1373031178-8871-6-git-send-email-bigeasy@linutronix.de>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CqfQkoYPE/jGoa5Q"
+	protocol="application/pgp-signature"; boundary="p1Od3smaOkJqivj4"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52512 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54572 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756042Ab3GYOaM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Jul 2013 10:30:12 -0400
+	id S1755576Ab3GYOa7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Jul 2013 10:30:59 -0400
 Content-Disposition: inline
-In-Reply-To: <1373031178-8871-5-git-send-email-bigeasy@linutronix.de>
+In-Reply-To: <1373031178-8871-6-git-send-email-bigeasy@linutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: Felipe Balbi <balbi@ti.com>, george.cherian@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Benoit Cousson <benoit.cousson@linaro.org>
 
---CqfQkoYPE/jGoa5Q
+--p1Od3smaOkJqivj4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 05, 2013 at 03:32:57PM +0200, Sebastian Andrzej Siewior wrote:
-> This moves the two instances from the big node into two child nodes. The
-> glue layer ontop does almost nothing.
-> This could be two indepentant child nodes but I have no idea how
-> 'ti,hwmods =3D "usb_otg_hs";' affects the two musb controler.
+On Fri, Jul 05, 2013 at 03:32:58PM +0200, Sebastian Andrzej Siewior wrote:
+> Remove the instances variable, there is no single use of it.
 >=20
 > Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-pretty good :-)
+nice :-)
 
 --=20
 balbi
 
---CqfQkoYPE/jGoa5Q
+--p1Od3smaOkJqivj4
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJR8TZoAAoJEIaOsuA1yqRERZ4P/R1/WUDWFOQ6/0iF4X2x4QhT
-Y0x0CROqbODw8gTtauDrTeZPgVB+amlaUnYovPbXJ8dD0DPxGfVGhGHxlr+1Hue4
-+fvOSV6eTDAEVTuTW6D3Ekgxe/T2PeXXgaPXt+fkUqc4+8qii3uSiVLKu0tyPBxh
-K8fzvOFzUSrm96B1y8vB3XqnU4kvJXTgTiicPZmh2brKub1dctMunl+EG/yIbClf
-5RGY6DrB5HA+jO1lzjql+xkuF/SFi3IMcrw2Ky7uuR/RKnpqjjl+j3PZivyUV68I
-28MVjk8pj7/QV3CZjn42B1f/5s34VcRtZCAoYwsBuoHBLpFhHAa0Aph0YFfNHS+B
-r16cLTHUTVYyGlOrPeWrlW09eXwpYD+mZ2rQNPAtJii7qv0toKquxZF2Fr0TE3JC
-2CqwZkDmFePvz0N4+cECvBJmXHYRnvDbWpB8Zk9iE9xvS7TKfbnEoxzI4EnjRxWW
-ONcyTgjV3cEbugIc6nCDL11zJiqecyvdem0auVbjXoVTL84Tl0BH1TkQ24H0YXE1
-YXAV8uXP7o5VHIauQAJO4nGzahM/lMJPBbCFvYtuUMANja76vmhdzZ8KiLj0yTDo
-RVTUu3ZTw9RMDrv+zHIiop8ueU+rVAhqqRc6uwOgnVWVTLLRGcYBpLmVuLJL5oI4
-TP0xDeeNwLqOYdfnB9iO
-=2tPv
+iQIcBAEBAgAGBQJR8TaaAAoJEIaOsuA1yqREx1AP/i+gzKYz3qflV5X2P+PSMv9r
+XDEnfoUes4kUVIzpqPSufBfCr6fe9pU/gBEKY7XvyCGjLAX2ULCXUIWvA5404BnK
+ic+aCcyDGBIIq24MHGmtUKZg6mpq+tSI/mxnndEJtts3u9zfow+iP1D4C3Xwj9Jt
+zqPko98NgheEUmld2u/RVLdGr33+9hgnAElz7pfi0RVM8SC8eZtlf3GxMN4dkEZp
+g3RDZEx0nN94psJ5DiJdEmN//7EsUQ/WAs+K1O4rEeDPB9uust0ZtLyIh5nSlvG1
+7iezdHtVJz/DQA381dUCXUqwuvzjgRkJJNzyW5IO2XKUlbnA5yI5pjAC+EAD9Pdc
+FugPDSrwJYLxMCHPrssRNwMdoIK75Vn7mgfJrvxKd+9SbdYIWHdMsTvtYiAQ/xDO
+z4dOLAiqguHHzVyVNsObI9kEcgvXDMX9SlkuuKM3nEHpX88v+NkTT2RepNk9WpAj
+FIRzrn47XiMnDTw5qE8zYe9xjxgrKV4ypHrTBTAVT1s/K4SqE1k4kgLYwVCIEJvK
+1LXRDiWUDyfQ3OHY90pLaCflFgCtaUiCoEJ6heUoAR4BqKwfYksemO4uC/exGiEv
+O/fjWcX1SrQGjvgf26ZclO1ts4zTo6jAwYa4apX0MqctYiECg/8cbYb5efm65DD1
+YXyZhPbHtMXzE9k7G9FG
+=rLf2
 -----END PGP SIGNATURE-----
 
---CqfQkoYPE/jGoa5Q--
+--p1Od3smaOkJqivj4--
