@@ -1,37 +1,52 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: hwmod: AM335x: fix cpgmac address space
-Date: Thu, 25 Jul 2013 15:31:43 +0530
-Message-ID: <51F0F787.9030108@ti.com>
-References: <4bb04ee7bcb8ca73d5fc43049ba029471b9cdda3.1373036932.git.afzal@ti.com> <84d9a3ae9ab7a47924eb54934dcad91339543d63.1373036932.git.afzal@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Thu, 25 Jul 2013 15:41:21 +0530
+Message-ID: <51F0F9C9.2020500@ti.com>
+References: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org>
+ <5977067.8rykRgjgre@flatron> <201307242032.03597.arnd@arndb.de>
+ <20130725092957.GV9858@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40252 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755144Ab3GYKCL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Jul 2013 06:02:11 -0400
-In-Reply-To: <84d9a3ae9ab7a47924eb54934dcad91339543d63.1373036932.git.afzal@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130725092957.GV9858@sirena.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mark Brown <broonie@kernel.org>
+Cc: linux-fbdev@vger.kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-doc@vger.kernel.org, tony@atomide.com, Tomasz Figa <t.figa@samsung.com>, nsekhar@ti.com, Tomasz Figa <tomasz.figa@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, Alan Stern <stern@rowland.harvard.edu>, grant.likely@linaro.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, george.cherian@ti.com, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, b.zolnierkie@samsung.com, Sascha Hauer <s.hauer@pengutronix.de>, linux-samsung-soc@vger.kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, Greg KH <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.ker
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, "Benoit Cousson (benoit.cousson@linaro.org)" <benoit.cousson@linaro.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 
-On 7/5/2013 8:43 PM, Afzal Mohammed wrote:
-> Register target address to be used for cpgmac is the second device
-> address space. By default, hwmod picks first address space (0th index)
-> for register target.
->
-> With removal of address space from hwmod and using DT instead, cpgmac
-> is getting wrong address space for register target.
->
-> Fix it by indicating the address space to be used for register target.
->
-> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-I have tested this patch and it's needed when we have CPSW Ethernet built-in to
-go to low power state.
+Hi,
 
-Tested-by: Mugunthan V N <mugunthanvnm@ti.com>
+On Thursday 25 July 2013 02:59 PM, Mark Brown wrote:
+> On Wed, Jul 24, 2013 at 08:32:03PM +0200, Arnd Bergmann wrote:
+> 
+>> Sorry for jumping in to the middle of the discussion, but why does a *new*
+>> framework even bother defining an interface for board files?
+> 
+>> Can't we just drop any interfaces for platform data passing in the phy
+>> framework and put the burden of adding those to anyone who actually needs
+>> them? All the platforms we are concerned with here (exynos and omap,
+>> plus new platforms) can be booted using DT anyway.
+> 
+> There's a bunch of non-DT architectures that are in active use (blackfin
+> for example) and I'd really hope that this is useful for some of them.
+> 
+> The pushback here was about the fact that the subsystem was doing odd
+> things with selecting device names which is odd in itself, I don't know
+> if that had bled over into the DT bindings but it sounded like it
+> might've done so.
 
-Regards
-Mugunthan V N
+Not really. device names was specifically used for non-dt boot case. For dt, it
+uses the phandle mechanism which is pretty much used in all other subsystems.
+Anyway I'm fixing Greg's comments and will posting a new version soon.
+
+Thanks
+Kishon
