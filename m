@@ -1,74 +1,67 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/5] arm: dts: am33xx: add USB phy nodes
-Date: Thu, 25 Jul 2013 17:27:18 +0300
-Message-ID: <20130725142648.GE16106@radagast>
+Subject: Re: [PATCH 3/5] usb: musb: dsps: remove the hardcoded phy pieces
+Date: Thu, 25 Jul 2013 17:28:34 +0300
+Message-ID: <20130725142826.GF16106@radagast>
 References: <1373031178-8871-1-git-send-email-bigeasy@linutronix.de>
- <1373031178-8871-3-git-send-email-bigeasy@linutronix.de>
- <51D6DB15.1050701@ti.com>
- <51D6DE91.1000307@linutronix.de>
+ <1373031178-8871-4-git-send-email-bigeasy@linutronix.de>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Bg2esWel0ueIH/G/"
+	protocol="application/pgp-signature"; boundary="GvznHscUikHnwW2p"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51964 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:52413 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756059Ab3GYO13 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Jul 2013 10:27:29 -0400
+	id S1755609Ab3GYO2p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Jul 2013 10:28:45 -0400
 Content-Disposition: inline
-In-Reply-To: <51D6DE91.1000307@linutronix.de>
+In-Reply-To: <1373031178-8871-4-git-send-email-bigeasy@linutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: Felipe Balbi <balbi@ti.com>, george.cherian@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Benoit Cousson <benoit.cousson@linaro.org>
 
---Bg2esWel0ueIH/G/
+--GvznHscUikHnwW2p
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 05, 2013 at 04:56:17PM +0200, Sebastian Andrzej Siewior wrote:
-> On 07/05/2013 04:41 PM, Ruchika Kharwar wrote:
-> >=20
-> > On 07/05/2013 08:32 AM, Sebastian Andrzej Siewior wrote:
-> >> The memory address contains three pieces that is the reset module which
-> >> is currently the only one used and two other pices which seem
-> >> interresting based on what the register.
-> > Please fix typos "pices.. interresting".. also the description is not
-> > clear.
+Hi,
+
+On Fri, Jul 05, 2013 at 03:32:56PM +0200, Sebastian Andrzej Siewior wrote:
+> dsps uses a nop driver which is added in dsps itself and does the PHY
+> on/off calls within dsps. Since those calls are now moved the nop driver
+> itself, we can now request the phy proper phy and remove those calls.
+> Currently only the first musb interface is used so we only add one phy
+> node for now.
 >=20
-> Okay. What part is not clear?
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-Well, this statement:
-
-"... which seem interresting based on what the register."
-
-seems like it misses something. based on what register
-\(does\|is\|implements\) ???
+looks good, just wondering if this won't pose a regression since you're
+not substituting PHY handling with proper usb_phy_set_suspend() calls.
 
 --=20
 balbi
 
---Bg2esWel0ueIH/G/
+--GvznHscUikHnwW2p
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJR8TXGAAoJEIaOsuA1yqRE0vgQAIifi8NSV5cw/JjmaZzJn+Sp
-2PDsxgcG0bRrD8RnMJZA0hLf0FE+TY/VPryH0me9ugQWj0SsQ4/yJKX+ZYc2a8G+
-OKomQphwHZVALUP6lZ7c6kHk0BO3S902jhQF7RmGpD0CsWPu9gjjfLmjBD+Ytu6p
-yKLBAQFKP0Vst0FAc5Ka88sbk1NZuayoB0ASKMZHPtbQ0lUYyDIsC2st6TeS+Ca/
-U8FGmA9qjf3R/CWf8nO3bXCCKavaH6KvkQ6kUwb9WIK/bU95E6TcCV38Hs1eleFN
-FtKZ/ZzJdtvgz2G/HNP7CmM4kpvkVgEGlLqLQ/4dqHpqDikMkJyk3kg/PGe/4kF8
-yHW5L9qBe54iitnUKw2ArBxOWPbH+ac0U407yoC/d10ZI7JQl+r7eOium14m7krF
-QOrnl82fZwjgnLCMJRZRwhuGdHGHTUU/34M7TZsb09FGxiaPsj1EirYjfIt5/iB0
-He9o/wbHdW1wH2zSZqiMj+ha26rpOY6TCRfJgwFK89hJZfmiJwfO0xInxO1ByDyd
-9+OSHpHE7n6v3ImU/vFjDBymomHABmaC3FYB7MW7s18JFR7Llo323EFWF5I3rruu
-L729Ao0th7kkBEzzKuHaAv4qMo0N+hQVtq69GN6GdAfBHsAcqhvXWlnJztD2txjE
-lAThfjzrEdf07oTO9yBB
-=xr1C
+iQIcBAEBAgAGBQJR8TYSAAoJEIaOsuA1yqRE2AQP/i6Uo2WfaCSVVp8gQx57QN56
+q1HsO6ZzorZ+ttFq0Gwwi50C6woWx93plQhXj9B3iqghki902pz5M6G28h0il4D2
+ObHZHZszx4DScfCp7X0efOuGkBKcfpvQUNbhXSlNH+T3Tw9Ti0C1Q4KICTbtOjRg
+1NXWiRkOLXdtKnk3QLjK3wZsB7fy8hwQoPBtCBjQcAH93/GvI6d/QfIvYA/aqwN4
+mEUe0MHKI8gqA8dTx8VmK9bsx+eaq33P19w5pO+VdH5oHBo413sUgHiLKSP/pOcH
+wkcKxxn+G19whfNptOkgbTv4pNqeZHaXnhquISMEe9jbQbikuYz+cVIoJisv0IKL
+uFD33EFxBWKAVkgDS4wxH+5dt6KB6VJ31GuN7NSVacuVhNdlYQQU1mPq6gyKE7k+
+QshoOjPZ2H9wHBuGW7JNKb6kDOs89Q9CaCH3h7BTcrMoYmuBgWClIi2FmbFxG8M1
+4f8S3Ht4maP60Lxk8d6Q3jJdLfi5Cqi8OQ5lsPOQ1uxHEuAp/71oytfk/PxBUWE2
+jkLm2OsCL52SReb2epjj0elStPId6l6JCeNiieRrbvvusw0XtAvnTbvsCLV1K8Qh
+vm6H8tfvO/JJv4u0O+o6FgEnGMaWO7Cj4hVAM0QvMxE07kyqWlYk2M9w4m3xncHg
+KFrrmcS7IMTBdNUK1cvU
+=jC0u
 -----END PGP SIGNATURE-----
 
---Bg2esWel0ueIH/G/--
+--GvznHscUikHnwW2p--
