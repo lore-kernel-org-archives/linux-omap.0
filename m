@@ -1,68 +1,74 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/5] usb: phy: phy-nop: add support for am335x PHY
-Date: Thu, 25 Jul 2013 17:24:53 +0300
-Message-ID: <20130725142438.GD16106@radagast>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/5] arm: dts: am33xx: add USB phy nodes
+Date: Thu, 25 Jul 2013 17:27:18 +0300
+Message-ID: <20130725142648.GE16106@radagast>
 References: <1373031178-8871-1-git-send-email-bigeasy@linutronix.de>
- <1373031178-8871-2-git-send-email-bigeasy@linutronix.de>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+ <1373031178-8871-3-git-send-email-bigeasy@linutronix.de>
+ <51D6DB15.1050701@ti.com>
+ <51D6DE91.1000307@linutronix.de>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bi5JUZtvcfApsciF"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="Bg2esWel0ueIH/G/"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:51964 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756059Ab3GYO13 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Jul 2013 10:27:29 -0400
 Content-Disposition: inline
-In-Reply-To: <1373031178-8871-2-git-send-email-bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, george.cherian-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benoit Cousson <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+In-Reply-To: <51D6DE91.1000307@linutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Felipe Balbi <balbi@ti.com>, george.cherian@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Benoit Cousson <benoit.cousson@linaro.org>
 
---bi5JUZtvcfApsciF
+--Bg2esWel0ueIH/G/
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Fri, Jul 05, 2013 at 03:32:54PM +0200, Sebastian Andrzej Siewior wrote:
-> The am335x PHY code is well hidden in multiple places. The glue layer
-> uses the nop and does up/down in the background. This patch copies the
-> power on / power off part out of dsps so it can be removed later in
-> dsps. At this point I am not sure if it is better to write a new phy
-> driver for am335x or just add the missing pieces to this one.
+On Fri, Jul 05, 2013 at 04:56:17PM +0200, Sebastian Andrzej Siewior wrote:
+> On 07/05/2013 04:41 PM, Ruchika Kharwar wrote:
+> >=20
+> > On 07/05/2013 08:32 AM, Sebastian Andrzej Siewior wrote:
+> >> The memory address contains three pieces that is the reset module which
+> >> is currently the only one used and two other pices which seem
+> >> interresting based on what the register.
+> > Please fix typos "pices.. interresting".. also the description is not
+> > clear.
 >=20
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+> Okay. What part is not clear?
 
-hmm, if you do all of this then phy-nop doesn't make a lot of sense
-anymore. Can you add a few patches to start calling file and functions
-phy-generic/usb_phy_gen. Other than that looks good.
+Well, this statement:
+
+"... which seem interresting based on what the register."
+
+seems like it misses something. based on what register
+\(does\|is\|implements\) ???
 
 --=20
 balbi
 
---bi5JUZtvcfApsciF
+--Bg2esWel0ueIH/G/
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJR8TU1AAoJEIaOsuA1yqREmM4P/iS0lvzM1W6RGOZiAohCj+sK
-IAzcP6d019ZRMPNG0FN+/l0AsJKHa8Ej2cb6tHPadLzd9iA1rcQPI/5CU+dxHNu5
-bBzeMZXqHm7VmnUSgmJAENVnJ3fiAJQiTKmKmRXfnArcW6OpFE1Q3j52MdF6v/m/
-nrajAZi0oTNSTrp/DA0GWkrbaXFdswGAJbrCwurvXkzbYcB7Mi9DmfB9RUeF2FUr
-UX3wQhRXOMr8eqE+XgPRSCSCTvlgYc3P47a9PHfiy2L5dhly+DlX0HN3hjWz7Xqw
-nW97S9PgfqaOTbw0UbGJiCNTBVqXBpQjIXYPYf+0rWbQmUnmuFdQDs5SjKiCphiC
-7J7x7nEAY0+hwa+GPZBOtO7MX3tp+g6nWp0uzgemqlvW4e8MZvgWOLEj4CkBS1TE
-bYfN0SuqQrhs3hoAx4a1Xky32V5ISjmE9iwjdhrO/O9NsrrSkNmhRD+OA8r9FEQ0
-6Ou5ngylktyF4EJpn4khY4OBMZLXZ8iI2BKVnPTKZg4USkVabAf+7yxdkOUnaQzP
-r6d6RNPOfOEQy/4wnW4Lx1kYcrIi5MneoxrZBqNLL05aCrRm/Lzq/A4FaxQj22tW
-ocPlzwz/RyTcKM2mzPED+Cfp1sBRbnTspv1zFtM2UGGc4OizPs+GOutOuUzrTpWy
-/D6bidjwY5rgmuxg2sOy
-=UgMM
+iQIcBAEBAgAGBQJR8TXGAAoJEIaOsuA1yqRE0vgQAIifi8NSV5cw/JjmaZzJn+Sp
+2PDsxgcG0bRrD8RnMJZA0hLf0FE+TY/VPryH0me9ugQWj0SsQ4/yJKX+ZYc2a8G+
+OKomQphwHZVALUP6lZ7c6kHk0BO3S902jhQF7RmGpD0CsWPu9gjjfLmjBD+Ytu6p
+yKLBAQFKP0Vst0FAc5Ka88sbk1NZuayoB0ASKMZHPtbQ0lUYyDIsC2st6TeS+Ca/
+U8FGmA9qjf3R/CWf8nO3bXCCKavaH6KvkQ6kUwb9WIK/bU95E6TcCV38Hs1eleFN
+FtKZ/ZzJdtvgz2G/HNP7CmM4kpvkVgEGlLqLQ/4dqHpqDikMkJyk3kg/PGe/4kF8
+yHW5L9qBe54iitnUKw2ArBxOWPbH+ac0U407yoC/d10ZI7JQl+r7eOium14m7krF
+QOrnl82fZwjgnLCMJRZRwhuGdHGHTUU/34M7TZsb09FGxiaPsj1EirYjfIt5/iB0
+He9o/wbHdW1wH2zSZqiMj+ha26rpOY6TCRfJgwFK89hJZfmiJwfO0xInxO1ByDyd
+9+OSHpHE7n6v3ImU/vFjDBymomHABmaC3FYB7MW7s18JFR7Llo323EFWF5I3rruu
+L729Ao0th7kkBEzzKuHaAv4qMo0N+hQVtq69GN6GdAfBHsAcqhvXWlnJztD2txjE
+lAThfjzrEdf07oTO9yBB
+=xr1C
 -----END PGP SIGNATURE-----
 
---bi5JUZtvcfApsciF--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Bg2esWel0ueIH/G/--
