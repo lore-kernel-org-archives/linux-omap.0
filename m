@@ -1,51 +1,64 @@
-From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: v3.11-rc1 USB regressions
-Date: Thu, 25 Jul 2013 11:08:03 +0200
-Message-ID: <51F0EAF3.1060606@gmail.com>
-References: <20130715225647.GE3296@blackmetal.musicnaut.iki.fi> <51E4E922.2040707@gmail.com> <20130716175710.GA14385@blackmetal.musicnaut.iki.fi> <20130724185119.GB26943@blackmetal.musicnaut.iki.fi> <51F0253C.7090205@gmail.com> <20130725003029.GD26943@blackmetal.musicnaut.iki.fi>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Thu, 25 Jul 2013 11:29:46 +0200
+Message-ID: <51F0F00A.1040907@samsung.com>
+References: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org>
+ <5977067.8rykRgjgre@flatron> <201307242032.03597.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130725003029.GD26943-R3WNPi76c83LsdW6vOPryG4HOFkwEHDbMR2xtNvyitY@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-reply-to: <201307242032.03597.arnd@arndb.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-fbdev@vger.kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-doc@vger.kernel.org, tony@atomide.com, Tomasz Figa <t.figa@samsung.com>, nsekhar@ti.com, Tomasz Figa <tomasz.figa@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, Kishon Vijay Abraham I <kishon@ti.com>, Alan Stern <stern@rowland.harvard.edu>, grant.likely@linaro.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, george.cherian@ti.com, Stephen Warren <swarren@wwwdotorg.org>, b.zolnierkie@samsung.com, Sascha Hauer <s.hauer@pengutronix.de>, linux-samsung-soc@vger.kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, Greg KH <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@
 List-Id: linux-omap@vger.kernel.org
 
-On 25.07.2013 02:30, Aaro Koskinen wrote:
-> On Wed, Jul 24, 2013 at 09:04:28PM +0200, Daniel Mack wrote:
->> On 24.07.2013 20:51, Aaro Koskinen wrote:
->>>> When I revert fe4cb0912f8e737f8e4b8b38b9e692f8062f5423 and
->>>> 8b125df5b24cfb0ec7fa1971e343cc0badc1827d, it works like before (3.10):
+On 07/24/2013 08:32 PM, Arnd Bergmann wrote:
+> On Tuesday 23 July 2013, Tomasz Figa wrote:
+>> On Tuesday 23 of July 2013 17:14:20 Alan Stern wrote:
+>>> On Tue, 23 Jul 2013, Tomasz Figa wrote:
+>>>> Where would you want to have those phy_address arrays stored? There
+>>>> are no board files when booting with DT. Not even saying that you
+>>>> don't need to use any hacky schemes like this when you have DT that
+>>>> nicely specifies relations between devices.
 >>>
->>> I'm now running -rc2 with above fixes and reverts (the only way to get
->>> USB working). I'm seeing an additional issue, the following crash happens
->>> always on N900 when doing "poweroff":
+>>> If everybody agrees DT has a nice scheme for specifying relations
+>>> between devices, why not use that same scheme in the PHY core?
 >>
->> Yes, with the mentioned patches reverted, musb_to_hcd() will return a
->> faulty pointer. You can't easily revert them unfortunately.
+>> It is already used, for cases when consumer device has a DT node attached. 
+>> In non-DT case this kind lookup translates loosely to something that is 
+>> being done in regulator framework - you can't bind devices by pointers, 
+>> because you don't have those pointers, so you need to use device names.
 >>
->> Your platform needs a real fix, I just have trouble understanding why a
->> removed usb_add_hcd() would make the gadget code fail.
->>
->> Sorry for the trouble, but I don't currently have a board with musb in
->> gadget mode to reproduce this issue.
 > 
-> If you have any ideas what to look for, I can maybe try to debug this
-> issue.
+> Sorry for jumping in to the middle of the discussion, but why does a *new*
+> framework even bother defining an interface for board files?
+> 
+> Can't we just drop any interfaces for platform data passing in the phy
+> framework and put the burden of adding those to anyone who actually needs
+> them? All the platforms we are concerned with here (exynos and omap,
+> plus new platforms) can be booted using DT anyway.
 
-Please try changing the .mode field of musb_board_data to MUSB_OTG in
-your board file (arch/arm/mach-omap2/board-rx51.c). That should bring
-back the call to usb_add_hcd(), provided that you have USB_MUSB_DUAL_ROLE=y.
+Indeed, I was also a bit surprised we still need non-dt support, since
+migration to this generic PHY framework in case of exynos was solely
+part of migration of the whole platform to DT.
 
-I still don't see a reason why this is should be necessary for
-peripheral-only use though.
+Two of the drivers that are being converted are also used on s5pv210,
+but there is currently no boards in mainline that would use devices
+covered by those drivers and s5pv210 will very likely get DT support
+in v3.13 anyway.
 
+But it seems omap still needs non-dt support in the PHY framework.
 
-Daniel
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+---
+Thanks,
+Sylwester
