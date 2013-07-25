@@ -1,45 +1,51 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH] dma: edma: add device_slave_caps() support
-Date: Thu, 25 Jul 2013 12:53:51 +0530
-Message-ID: <20130725072351.GJ18642@intel.com>
-References: <1374597804-3961-1-git-send-email-joelf@ti.com>
- <51EF8A52.90902@metafoo.de>
- <51EF8C2B.2030409@ti.com>
- <51EF8F4E.8080806@metafoo.de>
- <FB20353E-4890-4462-A671-3587A3841B4A@ti.com>
- <51EF92F2.3030405@metafoo.de>
- <51F0231C.7000401@ti.com>
- <20130724183329.GH18642@intel.com>
- <51F02CBA.5060704@ti.com>
+From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: v3.11-rc1 USB regressions
+Date: Thu, 25 Jul 2013 11:08:03 +0200
+Message-ID: <51F0EAF3.1060606@gmail.com>
+References: <20130715225647.GE3296@blackmetal.musicnaut.iki.fi> <51E4E922.2040707@gmail.com> <20130716175710.GA14385@blackmetal.musicnaut.iki.fi> <20130724185119.GB26943@blackmetal.musicnaut.iki.fi> <51F0253C.7090205@gmail.com> <20130725003029.GD26943@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <51F02CBA.5060704@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>, Dan Williams <djbw@fb.com>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, Arnd Bergmann <arnd@arndb.de>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Vutla, Lokesh" <lokeshvutla@ti.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, Matt Porter <matt@ohporter.com>, Rob Herring <rob.herring@calxeda.com>, Jason Kridner <jkridner@beagleboard.org>, Koen Kooi <koen@beagleboard.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130725003029.GD26943-R3WNPi76c83LsdW6vOPryG4HOFkwEHDbMR2xtNvyitY@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 24, 2013 at 02:36:26PM -0500, Joel Fernandes wrote:
-> > Also another point worth considering is the approach Russell suggested, I havent
-> > gotten a chance to dig deeper but if I understood it correctly then programming
-> > the device_dma_parameters should be the right thing to do. Again I need to look
-> > deeper and esp wrt edma
+On 25.07.2013 02:30, Aaro Koskinen wrote:
+> On Wed, Jul 24, 2013 at 09:04:28PM +0200, Daniel Mack wrote:
+>> On 24.07.2013 20:51, Aaro Koskinen wrote:
+>>>> When I revert fe4cb0912f8e737f8e4b8b38b9e692f8062f5423 and
+>>>> 8b125df5b24cfb0ec7fa1971e343cc0badc1827d, it works like before (3.10):
+>>>
+>>> I'm now running -rc2 with above fixes and reverts (the only way to get
+>>> USB working). I'm seeing an additional issue, the following crash happens
+>>> always on N900 when doing "poweroff":
+>>
+>> Yes, with the mentioned patches reverted, musb_to_hcd() will return a
+>> faulty pointer. You can't easily revert them unfortunately.
+>>
+>> Your platform needs a real fix, I just have trouble understanding why a
+>> removed usb_add_hcd() would make the gadget code fail.
+>>
+>> Sorry for the trouble, but I don't currently have a board with musb in
+>> gadget mode to reproduce this issue.
 > 
-> OK. I have some patches sitting in my tree too that I'm working on. With
-> that I don't need to know about maximum number of allowed segments and
-> can send along any number of segment. I will rework them and post them.
-> fwiw, I will also implement caps API incase like Lars did populating the
-> other fields though these will not be unused.
-> 
-> For segment size, at this time I don't know any driver that uses it
-> other than davinci-pcm. For this reason the calculations can be done as
-> Lars suggested (for minimum of maximum). Do you know in advance if
-> you're going to amend to drop segment size if we go with what Russell
-> suggested, or are you going to leave the seg-size in the caps API anyway.
-I am just back and havent really done my work on this. Let me check and as I
-said if my understanding is right I would be inclined to remove these fields...
+> If you have any ideas what to look for, I can maybe try to debug this
+> issue.
 
-~Vinod
--- 
+Please try changing the .mode field of musb_board_data to MUSB_OTG in
+your board file (arch/arm/mach-omap2/board-rx51.c). That should bring
+back the call to usb_add_hcd(), provided that you have USB_MUSB_DUAL_ROLE=y.
+
+I still don't see a reason why this is should be necessary for
+peripheral-only use though.
+
+
+Daniel
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
