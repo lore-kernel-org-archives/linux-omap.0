@@ -1,39 +1,74 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH] ARM: OMAP: rx51: change musb mode to OTG
-Date: Thu, 25 Jul 2013 21:15:02 +0300
-Message-ID: <1374776102-12120-1-git-send-email-aaro.koskinen@iki.fi>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri5.pp.htv.fi ([213.243.153.188]:51398 "EHLO
-	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755964Ab3GYSPX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Jul 2013 14:15:23 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Subject: Re: [PATCH] usb: dwc3: core: modify IO memory resource after
+ deferred probe completes
+Date: Thu, 25 Jul 2013 21:20:51 +0300
+Message-ID: <1374776451.24810.3.camel@localhost>
+References: <1374769590-14491-1-git-send-email-iivanov@mm-sol.com>
+	 <51F15E85.1050808@cogentembedded.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51F15E85.1050808@cogentembedded.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Peripheral-only mode got broken in v3.11-rc1 because of unknown reasons.
-Change the mode to OTG, in practice that should work equally well even
-when/if the regression gets fixed.
+On Thu, 2013-07-25 at 21:21 +0400, Sergei Shtylyov wrote:
+> On 07/25/2013 08:26 PM, Ivan T. Ivanov wrote:
+> 
+> > From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+> 
+> > When deferred probe happens driver will try to ioremap multiple times
+> > and will fail. Memory resource.start variable is a global variable,
+> > modifications in this field will be accumulated on every probe.
+> > Fix this by moving the above operations after driver hold all
+> > required PHY's.
+> 
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- arch/arm/mach-omap2/board-rx51.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Forgot to mention, generated on top of Felipe's 'testing' branch.
 
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-index d2ea68e..773510556 100644
---- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -85,7 +85,7 @@ static struct omap_board_mux board_mux[] __initdata = {
- 
- static struct omap_musb_board_data musb_board_data = {
- 	.interface_type		= MUSB_INTERFACE_ULPI,
--	.mode			= MUSB_PERIPHERAL,
-+	.mode			= MUSB_OTG,
- 	.power			= 0,
- };
- 
--- 
-1.8.3.2
+> > Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
+> > ---
+> >   drivers/usb/dwc3/core.c |   31 ++++++++++++++++---------------
+> >   1 file changed, 16 insertions(+), 15 deletions(-)
+> 
+> > diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> > index 607bef8..50c833f 100644
+> > --- a/drivers/usb/dwc3/core.c
+> > +++ b/drivers/usb/dwc3/core.c
+> [...]
+> > @@ -452,6 +437,22 @@ static int dwc3_probe(struct platform_device *pdev)
+> >   		return -EPROBE_DEFER;
+> >   	}
+> >
+> > +	dwc->xhci_resources[0].start = res->start;
+> > +	dwc->xhci_resources[0].end = dwc->xhci_resources[0].start +
+> > +					DWC3_XHCI_REGS_END;
+> > +	dwc->xhci_resources[0].flags = res->flags;
+> > +	dwc->xhci_resources[0].name = res->name;
+> > +
+> > +	res->start += DWC3_GLOBALS_REGS_START;
+> > +
+> > +	 /*
+> > +	  * Request memory region but exclude xHCI regs,
+> > +	  * since it will be requested by the xhci-plat driver.
+> > +	  */
+> 
+>      Please remove an extra space after a tab on each comment line.
+> It seems like a good time to do it, while you're moving this code.
+> 
 
+Ok. 
+
+Regards,
+Ivan
+
+> > +	regs = devm_ioremap_resource(dev, res);
+> > +	if (IS_ERR(regs))
+> > +		return PTR_ERR(regs);
+> > +
+> 
+> WBR, Sergei
+> 
