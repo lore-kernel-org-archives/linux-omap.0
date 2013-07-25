@@ -1,67 +1,63 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 3/5] usb: musb: dsps: remove the hardcoded phy pieces
-Date: Thu, 25 Jul 2013 17:28:34 +0300
-Message-ID: <20130725142826.GF16106@radagast>
+Subject: Re: [PATCH 4/5] usb: musb: dsps: use proper child nodes
+Date: Thu, 25 Jul 2013 17:30:00 +0300
+Message-ID: <20130725142951.GG16106@radagast>
 References: <1373031178-8871-1-git-send-email-bigeasy@linutronix.de>
- <1373031178-8871-4-git-send-email-bigeasy@linutronix.de>
+ <1373031178-8871-5-git-send-email-bigeasy@linutronix.de>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GvznHscUikHnwW2p"
+	protocol="application/pgp-signature"; boundary="CqfQkoYPE/jGoa5Q"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52413 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:52512 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755609Ab3GYO2p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Jul 2013 10:28:45 -0400
+	id S1756042Ab3GYOaM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Jul 2013 10:30:12 -0400
 Content-Disposition: inline
-In-Reply-To: <1373031178-8871-4-git-send-email-bigeasy@linutronix.de>
+In-Reply-To: <1373031178-8871-5-git-send-email-bigeasy@linutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: Felipe Balbi <balbi@ti.com>, george.cherian@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Benoit Cousson <benoit.cousson@linaro.org>
 
---GvznHscUikHnwW2p
+--CqfQkoYPE/jGoa5Q
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Fri, Jul 05, 2013 at 03:32:56PM +0200, Sebastian Andrzej Siewior wrote:
-> dsps uses a nop driver which is added in dsps itself and does the PHY
-> on/off calls within dsps. Since those calls are now moved the nop driver
-> itself, we can now request the phy proper phy and remove those calls.
-> Currently only the first musb interface is used so we only add one phy
-> node for now.
+On Fri, Jul 05, 2013 at 03:32:57PM +0200, Sebastian Andrzej Siewior wrote:
+> This moves the two instances from the big node into two child nodes. The
+> glue layer ontop does almost nothing.
+> This could be two indepentant child nodes but I have no idea how
+> 'ti,hwmods =3D "usb_otg_hs";' affects the two musb controler.
 >=20
 > Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-looks good, just wondering if this won't pose a regression since you're
-not substituting PHY handling with proper usb_phy_set_suspend() calls.
+pretty good :-)
 
 --=20
 balbi
 
---GvznHscUikHnwW2p
+--CqfQkoYPE/jGoa5Q
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJR8TYSAAoJEIaOsuA1yqRE2AQP/i6Uo2WfaCSVVp8gQx57QN56
-q1HsO6ZzorZ+ttFq0Gwwi50C6woWx93plQhXj9B3iqghki902pz5M6G28h0il4D2
-ObHZHZszx4DScfCp7X0efOuGkBKcfpvQUNbhXSlNH+T3Tw9Ti0C1Q4KICTbtOjRg
-1NXWiRkOLXdtKnk3QLjK3wZsB7fy8hwQoPBtCBjQcAH93/GvI6d/QfIvYA/aqwN4
-mEUe0MHKI8gqA8dTx8VmK9bsx+eaq33P19w5pO+VdH5oHBo413sUgHiLKSP/pOcH
-wkcKxxn+G19whfNptOkgbTv4pNqeZHaXnhquISMEe9jbQbikuYz+cVIoJisv0IKL
-uFD33EFxBWKAVkgDS4wxH+5dt6KB6VJ31GuN7NSVacuVhNdlYQQU1mPq6gyKE7k+
-QshoOjPZ2H9wHBuGW7JNKb6kDOs89Q9CaCH3h7BTcrMoYmuBgWClIi2FmbFxG8M1
-4f8S3Ht4maP60Lxk8d6Q3jJdLfi5Cqi8OQ5lsPOQ1uxHEuAp/71oytfk/PxBUWE2
-jkLm2OsCL52SReb2epjj0elStPId6l6JCeNiieRrbvvusw0XtAvnTbvsCLV1K8Qh
-vm6H8tfvO/JJv4u0O+o6FgEnGMaWO7Cj4hVAM0QvMxE07kyqWlYk2M9w4m3xncHg
-KFrrmcS7IMTBdNUK1cvU
-=jC0u
+iQIcBAEBAgAGBQJR8TZoAAoJEIaOsuA1yqRERZ4P/R1/WUDWFOQ6/0iF4X2x4QhT
+Y0x0CROqbODw8gTtauDrTeZPgVB+amlaUnYovPbXJ8dD0DPxGfVGhGHxlr+1Hue4
++fvOSV6eTDAEVTuTW6D3Ekgxe/T2PeXXgaPXt+fkUqc4+8qii3uSiVLKu0tyPBxh
+K8fzvOFzUSrm96B1y8vB3XqnU4kvJXTgTiicPZmh2brKub1dctMunl+EG/yIbClf
+5RGY6DrB5HA+jO1lzjql+xkuF/SFi3IMcrw2Ky7uuR/RKnpqjjl+j3PZivyUV68I
+28MVjk8pj7/QV3CZjn42B1f/5s34VcRtZCAoYwsBuoHBLpFhHAa0Aph0YFfNHS+B
+r16cLTHUTVYyGlOrPeWrlW09eXwpYD+mZ2rQNPAtJii7qv0toKquxZF2Fr0TE3JC
+2CqwZkDmFePvz0N4+cECvBJmXHYRnvDbWpB8Zk9iE9xvS7TKfbnEoxzI4EnjRxWW
+ONcyTgjV3cEbugIc6nCDL11zJiqecyvdem0auVbjXoVTL84Tl0BH1TkQ24H0YXE1
+YXAV8uXP7o5VHIauQAJO4nGzahM/lMJPBbCFvYtuUMANja76vmhdzZ8KiLj0yTDo
+RVTUu3ZTw9RMDrv+zHIiop8ueU+rVAhqqRc6uwOgnVWVTLLRGcYBpLmVuLJL5oI4
+TP0xDeeNwLqOYdfnB9iO
+=2tPv
 -----END PGP SIGNATURE-----
 
---GvznHscUikHnwW2p--
+--CqfQkoYPE/jGoa5Q--
