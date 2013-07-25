@@ -1,52 +1,50 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Thu, 25 Jul 2013 15:41:21 +0530
-Message-ID: <51F0F9C9.2020500@ti.com>
-References: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org>
- <5977067.8rykRgjgre@flatron> <201307242032.03597.arnd@arndb.de>
- <20130725092957.GV9858@sirena.org.uk>
+Date: Thu, 25 Jul 2013 12:16:30 +0200
+Message-ID: <2174304.5JlzJ583hP@avalon>
+References: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org> <5977067.8rykRgjgre@flatron> <201307242032.03597.arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130725092957.GV9858@sirena.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Brown <broonie@kernel.org>
-Cc: linux-fbdev@vger.kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-doc@vger.kernel.org, tony@atomide.com, Tomasz Figa <t.figa@samsung.com>, nsekhar@ti.com, Tomasz Figa <tomasz.figa@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, Alan Stern <stern@rowland.harvard.edu>, grant.likely@linaro.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, george.cherian@ti.com, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, b.zolnierkie@samsung.com, Sascha Hauer <s.hauer@pengutronix.de>, linux-samsung-soc@vger.kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, Greg KH <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.ker
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <201307242032.03597.arnd@arndb.de>
+Sender: linux-doc-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tomasz Figa <tomasz.figa@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, Tomasz Figa <t.figa@samsung.com>, Greg KH <gregkh@linuxfoundation.org>, Kishon Vijay Abraham I <kishon@ti.com>, broonie@kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, Sascha Hauer <s.hauer@pengutronix.de>, kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, swarren@nvidia.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com, olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Arnd,
 
-On Thursday 25 July 2013 02:59 PM, Mark Brown wrote:
-> On Wed, Jul 24, 2013 at 08:32:03PM +0200, Arnd Bergmann wrote:
+On Wednesday 24 July 2013 20:32:03 Arnd Bergmann wrote:
+> On Tuesday 23 July 2013, Tomasz Figa wrote:
+> > On Tuesday 23 of July 2013 17:14:20 Alan Stern wrote:
+> > > On Tue, 23 Jul 2013, Tomasz Figa wrote:
+> > > > Where would you want to have those phy_address arrays stored? There
+> > > > are no board files when booting with DT. Not even saying that you
+> > > > don't need to use any hacky schemes like this when you have DT that
+> > > > nicely specifies relations between devices.
+> > > 
+> > > If everybody agrees DT has a nice scheme for specifying relations
+> > > between devices, why not use that same scheme in the PHY core?
+> > 
+> > It is already used, for cases when consumer device has a DT node attached.
+> > In non-DT case this kind lookup translates loosely to something that is
+> > being done in regulator framework - you can't bind devices by pointers,
+> > because you don't have those pointers, so you need to use device names.
 > 
->> Sorry for jumping in to the middle of the discussion, but why does a *new*
->> framework even bother defining an interface for board files?
+> Sorry for jumping in to the middle of the discussion, but why does a *new*
+> framework even bother defining an interface for board files?
 > 
->> Can't we just drop any interfaces for platform data passing in the phy
->> framework and put the burden of adding those to anyone who actually needs
->> them? All the platforms we are concerned with here (exynos and omap,
->> plus new platforms) can be booted using DT anyway.
-> 
-> There's a bunch of non-DT architectures that are in active use (blackfin
-> for example) and I'd really hope that this is useful for some of them.
-> 
-> The pushback here was about the fact that the subsystem was doing odd
-> things with selecting device names which is odd in itself, I don't know
-> if that had bled over into the DT bindings but it sounded like it
-> might've done so.
+> Can't we just drop any interfaces for platform data passing in the phy
+> framework and put the burden of adding those to anyone who actually needs
+> them? All the platforms we are concerned with here (exynos and omap, plus
+> new platforms) can be booted using DT anyway.
 
-Not really. device names was specifically used for non-dt boot case. For dt, it
-uses the phandle mechanism which is pretty much used in all other subsystems.
-Anyway I'm fixing Greg's comments and will posting a new version soon.
+What about non-DT architectures such as MIPS (still widely used in consumer 
+networking equipments from what I've heard) ?
 
-Thanks
-Kishon
+-- 
+Regards,
+
+Laurent Pinchart
+
