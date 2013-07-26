@@ -1,167 +1,127 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RESEND PATCH v10 5/8] ARM: dts: omap: update usb_otg_hs data
-Date: Fri, 26 Jul 2013 18:19:20 +0530
-Message-ID: <1374842963-13545-6-git-send-email-kishon@ti.com>
-References: <1374842963-13545-1-git-send-email-kishon@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: omap2430 regression due to "usb: musb: fix incorrect usage of
+ resource pointer"
+Date: Fri, 26 Jul 2013 16:51:08 +0300
+Message-ID: <20130726135108.GB9795@radagast>
+References: <20130726191445.1b2aaef7@notabene.brown>
+ <20130726102008.GE2970@radagast>
+ <20130726222458.3324ddd9@notabene.brown>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1374842963-13545-1-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org, kyungmin.park@samsung.com, balbi@ti.com, kishon@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, stern@rowland.harvard.edu, broonie@kernel.org, tomasz.figa@gmail.com, arnd@arndb.de
-Cc: grant.likely@linaro.org, tony@atomide.com, swarren@nvidia.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com, linux@arm.linux.org.uk
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Bn2rw/3z4jIqBvZU"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51614 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932222Ab3GZNv2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Jul 2013 09:51:28 -0400
+Content-Disposition: inline
+In-Reply-To: <20130726222458.3324ddd9@notabene.brown>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: balbi@ti.com, Dmitry Lifshitz <lifshitz@compulab.co.il>, linux-omap@vger.kernel.org
 
-Updated the usb_otg_hs dt data to include the *phy* and *phy-names*
-binding in order for the driver to use the new generic PHY framework.
-Also updated the Documentation to include the binding information.
-The PHY binding information can be found at
-Documentation/devicetree/bindings/phy/phy-bindings.txt
+--Bn2rw/3z4jIqBvZU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- Documentation/devicetree/bindings/usb/omap-usb.txt |    5 +++++
- Documentation/devicetree/bindings/usb/usb-phy.txt  |    6 ++++++
- arch/arm/boot/dts/omap3-beagle-xm.dts              |    2 ++
- arch/arm/boot/dts/omap3-evm.dts                    |    2 ++
- arch/arm/boot/dts/omap3-overo.dtsi                 |    2 ++
- arch/arm/boot/dts/omap4.dtsi                       |    3 +++
- arch/arm/boot/dts/twl4030.dtsi                     |    1 +
- 7 files changed, 21 insertions(+)
+On Fri, Jul 26, 2013 at 10:24:58PM +1000, NeilBrown wrote:
+> On Fri, 26 Jul 2013 13:20:08 +0300 Felipe Balbi <balbi@ti.com> wrote:
+>=20
+> > On Fri, Jul 26, 2013 at 07:14:45PM +1000, NeilBrown wrote:
+> > >=20
+> > > Hi,
+> > >  the commit:
+> > >=20
+> > > commit 09fc7d22b024692b2fe8a943b246de1af307132b
+> > > Author: Felipe Balbi <balbi@ti.com>
+> > > Date:   Wed Apr 24 17:21:42 2013 +0300
+> > >=20
+> > >     usb: musb: fix incorrect usage of resource pointer
+> > >    =20
+> > >     We can't simply pass the resource pointer from our
+> > >     device down to our children, otherwise module
+> > >     reinsertion will not work as the resource will
+> > >     continue to be marked as busy.
+> > >    =20
+> > >     Fix it by building a proper struct resource for
+> > >     our child musb device.
+> > > =20
+> > >=20
+> > > (even with the subsequent compile fix applied) breaks my USB-OTG port=
+ on my
+> > > GTA04.
+> > >=20
+> > > I must admit that I don't see the point of the patch at all.
+> > > Instead of passing one array to platform_device_add_resources()
+> > > which will copy it into malloced space, it copies bits of the array o=
+nto
+> > > the stack on passes that for platform_device_add_resources to copy.
+> > > What is the value of the second copy??
+> >=20
+> > if you don't do that, the resource will already be busy and ioremap will
+> > fail on second modprobe.
+>=20
+> Ahhh... the parent/sibling/child linkage - got it.
+>=20
+> >=20
+> > > But that isn't the real problem.  The real problem is that in omap243=
+0_probe,
+> > > on my board at least, pdev->num_resources =3D=3D 3.  But only the fir=
+st 2 entries
+> > > in the array are copied.
+> > >=20
+> > > If I make the array one entry larger and copy the extra entry it work=
+s.  Of
+> > > course that might break for someone else who only has 2 resources to =
+copy....
+> > >=20
+> > > Can we go back to just leaving it to platform_device_add_resources to=
+ do the
+> > > copying it have I missed something?  (I can't see where the new old c=
+ode
+> > > would mark something as 'busy' that the new code won't mark as busy..=
+=2E)
+> >=20
+> > patches already in Greg's queue
+> >=20
+>=20
+> Thanks.=20
+> Doesn't seem to be in the usb-next or usb-linus branches of=20
+> git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb.git
+> Can you give me a pointer?
 
-diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
-index 57e71f6..825790d 100644
---- a/Documentation/devicetree/bindings/usb/omap-usb.txt
-+++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
-@@ -19,6 +19,9 @@ OMAP MUSB GLUE
-  - power : Should be "50". This signifies the controller can supply up to
-    100mA when operating in host mode.
-  - usb-phy : the phandle for the PHY device
-+ - phys : the phandle for the PHY device (used by generic PHY framework)
-+ - phy-names : the names of the PHY corresponding to the PHYs present in the
-+   *phy* phandle.
- 
- Optional properties:
-  - ctrl-module : phandle of the control module this glue uses to write to
-@@ -33,6 +36,8 @@ usb_otg_hs: usb_otg_hs@4a0ab000 {
- 	num-eps = <16>;
- 	ram-bits = <12>;
- 	ctrl-module = <&omap_control_usb>;
-+	phys = <&usb2_phy>;
-+	phy-names = "usb2-phy";
- };
- 
- Board specific device node entry
-diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Documentation/devicetree/bindings/usb/usb-phy.txt
-index 61496f5..c0245c8 100644
---- a/Documentation/devicetree/bindings/usb/usb-phy.txt
-+++ b/Documentation/devicetree/bindings/usb/usb-phy.txt
-@@ -5,6 +5,8 @@ OMAP USB2 PHY
- Required properties:
-  - compatible: Should be "ti,omap-usb2"
-  - reg : Address and length of the register set for the device.
-+ - #phy-cells: determine the number of cells that should be given in the
-+   phandle while referencing this phy.
- 
- Optional properties:
-  - ctrl-module : phandle of the control module used by PHY driver to power on
-@@ -16,6 +18,7 @@ usb2phy@4a0ad080 {
- 	compatible = "ti,omap-usb2";
- 	reg = <0x4a0ad080 0x58>;
- 	ctrl-module = <&omap_control_usb>;
-+	#phy-cells = <0>;
- };
- 
- OMAP USB3 PHY
-@@ -25,6 +28,8 @@ Required properties:
-  - reg : Address and length of the register set for the device.
-  - reg-names: The names of the register addresses corresponding to the registers
-    filled in "reg".
-+ - #phy-cells: determine the number of cells that should be given in the
-+   phandle while referencing this phy.
- 
- Optional properties:
-  - ctrl-module : phandle of the control module used by PHY driver to power on
-@@ -39,4 +44,5 @@ usb3phy@4a084400 {
- 	      <0x4a084c00 0x40>;
- 	reg-names = "phy_rx", "phy_tx", "pll_ctrl";
- 	ctrl-module = <&omap_control_usb>;
-+	#phy-cells = <0>;
- };
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index afdb164..533b2da 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -144,6 +144,8 @@
- &usb_otg_hs {
- 	interface-type = <0>;
- 	usb-phy = <&usb2_phy>;
-+	phys = <&usb2_phy>;
-+	phy-names = "usb2-phy";
- 	mode = <3>;
- 	power = <50>;
- };
-diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
-index 7d4329d..4134dd0 100644
---- a/arch/arm/boot/dts/omap3-evm.dts
-+++ b/arch/arm/boot/dts/omap3-evm.dts
-@@ -70,6 +70,8 @@
- &usb_otg_hs {
- 	interface-type = <0>;
- 	usb-phy = <&usb2_phy>;
-+	phys = <&usb2_phy>;
-+	phy-names = "usb2-phy";
- 	mode = <3>;
- 	power = <50>;
- };
-diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
-index 8f1abec..a461d2f 100644
---- a/arch/arm/boot/dts/omap3-overo.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo.dtsi
-@@ -76,6 +76,8 @@
- &usb_otg_hs {
- 	interface-type = <0>;
- 	usb-phy = <&usb2_phy>;
-+	phys = <&usb2_phy>;
-+	phy-names = "usb2-phy";
- 	mode = <3>;
- 	power = <50>;
- };
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 22d9f2b..1e8e2fe 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -520,6 +520,7 @@
- 				compatible = "ti,omap-usb2";
- 				reg = <0x4a0ad080 0x58>;
- 				ctrl-module = <&omap_control_usb>;
-+				#phy-cells = <0>;
- 			};
- 		};
- 
-@@ -658,6 +659,8 @@
- 			interrupt-names = "mc", "dma";
- 			ti,hwmods = "usb_otg_hs";
- 			usb-phy = <&usb2_phy>;
-+			phys = <&usb2_phy>;
-+			phy-names = "usb2-phy";
- 			multipoint = <1>;
- 			num-eps = <16>;
- 			ram-bits = <12>;
-diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
-index b3034da..ce4cd6f 100644
---- a/arch/arm/boot/dts/twl4030.dtsi
-+++ b/arch/arm/boot/dts/twl4030.dtsi
-@@ -80,6 +80,7 @@
- 		usb1v8-supply = <&vusb1v8>;
- 		usb3v1-supply = <&vusb3v1>;
- 		usb_mode = <1>;
-+		#phy-cells = <0>;
- 	};
- 
- 	twl_pwm: pwm {
--- 
-1.7.10.4
+hmmm, looks like this is not in greg/usb-linus indeed. I'll send him
+another pull request on monday. If you wanna try, use my 'fixes' branch
+on kernel.org.
 
+cheers
+
+--=20
+balbi
+
+--Bn2rw/3z4jIqBvZU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR8n7MAAoJEIaOsuA1yqREcXcP/A/vcUs0ZzI9O2Aca6sL5ZZ2
+CaIyVJA6Cykh67gUMDbPiqaT6NsddVJzmxXORAQOKUA3/Y18w89TvqcbL+0cQZqT
+caH6D15b/TZBCmwJFVoYwMgfuHj7oVsgNVEzn6Awv5XYz+7O2rmyhLGNuMEUUPu/
+xLk6Hmz6z+TxhMcK30YXrkz6Rv996v6im88xqqs9iA2BPK6pG5pP15U8Kf/Kzcqf
+WawsQn0vZy1Q4NUgbfk8nKqnPiHDa+3OMwQ7dbiMVM3NWAQfdmEDcItNcYvq3+m9
+0EAlG0HcYAZKNOyAM0S/++kak5lt3GqmDvA7tSgDebjAuCCBEDOTA9Toznr/oXPC
+Wk3tr77kNGR/4Sa4frWLgouemPMjiJGG/ONKKixXL6EC+YdoofKYw+xk35KGhCeQ
+n0wVcoTeseIN8YlD2qdt5EIa5m5QLKkwW4ReHS1oajGQy703MBqrht9shGO9+Wms
+yGhSTt0vI1PZOc/47uyHrrf6h/YGvyEE6dFF6KaYAge4Y61Pcs+imLOJK9VJx8Db
+x83RPrQVMyA0mU2YYgMqtJM/pl8ZE7r000fajtNiGSMK6lrSbrd87OBz1LPP1CVi
+xWS9wCICJ4b2sN7du+Pd2MrLvysI0gLPR0VIk+MeCAwoIr11JI1b35HFgAa/4T8s
+MnZYjZmYrhhSLv8fiNPm
+=jzgO
+-----END PGP SIGNATURE-----
+
+--Bn2rw/3z4jIqBvZU--
