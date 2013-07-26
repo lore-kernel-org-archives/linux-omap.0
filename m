@@ -1,52 +1,48 @@
-From: "Arend van Spriel" <arend@broadcom.com>
-Subject: Re: Regression 3.11-rc1: omap4panda: no usb and consequently no
- ethernet
-Date: Fri, 26 Jul 2013 09:25:49 +0200
-Message-ID: <51F2247D.2000805@broadcom.com>
-References: <51E7AA24.6080600@broadcom.com> <51E7CEF3.5000408@ti.com>
- <51E7D080.6070401@broadcom.com> <51E7D1D2.1060006@ti.com>
- <51E7E1B7.6090104@broadcom.com> <51E7E2AD.8020106@ti.com>
- <51F122D5.80205@broadcom.com> <51F1E39D.2030902@ti.com>
- <51F1E65B.4020005@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 1/6] usb: phy-nop: Use RESET Controller for managing the
+ reset line
+Date: Fri, 26 Jul 2013 10:50:08 +0300
+Message-ID: <51F22A30.80507@ti.com>
+References: <1374137590-17865-1-git-send-email-rogerq@ti.com>
+ <1374137590-17865-2-git-send-email-rogerq@ti.com>
+ <20130725172855.GJ25415@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=iso-8859-1;
- format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51F1E65B.4020005@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130725172855.GJ25415@radagast>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: balbi@ti.com, p.zabel@pengutronix.de
+Cc: devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, benoit.cousson@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/26/2013 05:00 AM, Joel Fernandes wrote:
-> On 07/25/2013 09:49 PM, Joel Fernandes wrote:
->
-> [..]
->
->>> Can I get back on this topic. When USB and ethernet was working for me
->>> as stated above, I was not doing tftpboot. When I use tftpboot the
->>> images are obtained from the tftp server, but after kernel has started
->>> there is nothing in /sys/bus/usb/devices/.
+On 07/25/2013 08:28 PM, Felipe Balbi wrote:
+> On Thu, Jul 18, 2013 at 11:53:05AM +0300, Roger Quadros wrote:
+>> Till now we were modelling the RESET line as a voltage regulator and
+>> using the regulator framework to manage it.
 >>
->> I quickly tried 3.11-rc2 + Roger's USB PHY clock patch on omap4-panda-es
->> and enabled following USB options:
+>> [1] introduces a GPIO based reset controller driver. We use that
+>> to manage the PHY reset line, at least for DT boots. For legacy boots,
+>> will still need to use the regulator framework for reset lines.
 >>
->> CONFIG_USB_MUSB_HDRC=y
->> CONFIG_USB_PHY=y
->> CONFIG_OMAP_USB2=y
->> CONFIG_OMAP_CONTROL_USB=y
->> CONFIG_USB_MUSB_OMAP2PLUS=y
->> CONFIG_MFD_OMAP_USB_HOST=y
->> CONFIG_USB_EHCI_HCD=y
->> CONFIG_USB_OHCI_HCD=y
->> CONFIG_USB_EHCI_HCD_OMAP=y
->
-> Sorry I missed saying I also set had to set CONFIG_NOP_USB_XCEIV=y
->
+>> [1] - http://thread.gmane.org/gmane.linux.drivers.devicetree/41348
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> 
+> that's not in mainline yet, right ? Is it guaranteed that it will hit
+> v3.12 merge window ?
+> 
+Right. It isn't yet. I'm not sure about 3.12. Let's ask Philipp.
 
-I will compare this with my .config. At first glance it looks like I am 
-missing some of these.
+Philipp, is your GPIO Reset driver scheduled for 3.12?
 
-Gr. AvS
+cheers,
+-roger
