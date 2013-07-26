@@ -1,54 +1,77 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: OMAP2430 SDP boot broken after Linus' rmk merge
-Date: Fri, 26 Jul 2013 23:59:10 +0100
-Message-ID: <20130726225910.GD21614@n2100.arm.linux.org.uk>
-References: <20130722184325.GA21614@n2100.arm.linux.org.uk> <alpine.DEB.2.02.1307222005370.26048@utopia.booyaka.com> <51EE2AA7.5060503@ti.com> <alpine.DEB.2.02.1307230705000.27017@utopia.booyaka.com> <51EE474D.5070804@ti.com> <20130724135617.GI11072@mudshark.cambridge.arm.com> <51EFE1DD.8070801@ti.com> <20130724145237.GB21614@n2100.arm.linux.org.uk> <51F0C841.8000900@ti.com> <51F0CAA5.8010108@ti.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 2/2] serial: omap: fix wrong context restoration on init
+Date: Fri, 26 Jul 2013 16:00:51 -0700
+Message-ID: <20130726230051.GA25990@kroah.com>
+References: <1373630142-21765-1-git-send-email-grygorii.strashko@ti.com>
+ <1373630142-21765-2-git-send-email-grygorii.strashko@ti.com>
+ <20130712121146.GC17053@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38862 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756108Ab3GZW71 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jul 2013 18:59:27 -0400
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <51F0CAA5.8010108@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20130712121146.GC17053@arwen.pp.htv.fi>
+Sender: linux-serial-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Will Deacon <will.deacon@arm.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Having worked out how to get around the MMC ordering issue without having
-to go and re-tweak it should it change again in the future, I've added
-the SDP back into the build.
-
-On Thu, Jul 25, 2013 at 09:50:13AM +0300, Tomi Valkeinen wrote:
-> On 25/07/13 09:40, Tomi Valkeinen wrote:
-> > On 24/07/13 17:52, Russell King - ARM Linux wrote:
-> > 
-> >> I also continue to be disappointed by the lack of things working on the
-> >> 4430 - it's been a number of years now and _still_ the on-board LCDs do
-> >> not work.  People have tried to blame that on hardware faults and the
-> >> like, but they're just being idiotic when they say stuff like that.  It
-> >> can't be hardware faults when the kernel supplied with the board is able
-> >> to make them work to the extent that userspace can play back video on all
-> >> three output devices simultaneously, without hiccup or any imperfection.
-> >> I don't know whether it's just that the backlight support isn't working
-> >> or what - because any information on the 4430 seems to be a tightly
-> >> controlled secret that only a few select people are permitted to know
-> >> about.  As far as I'm concerned, much of the hardware is a black box to
-> >> me.
-> > 
-> > The 4430SDP's backlight hasn't been working in the mainline due to
-> > missing support from the TWL driver. But we finally did get that in for
-> > 3.10 (or maybe 3.9), and booting 3.10 non-DT kernel brings up the
-> > backlights. However, the BL doesn't work yet with DT boot, so again with
-> > 3.11, with no board files, the BL is out... Sigh.
+On Fri, Jul 12, 2013 at 03:11:46PM +0300, Felipe Balbi wrote:
+> hi,
 > 
-> Ah, sorry, I take that back. Backlight seems to be working fine with 3.11.
+> On Fri, Jul 12, 2013 at 02:55:42PM +0300, Grygorii Strashko wrote:
+> > Since commit a630fbf "serial: omap: Fix device tree based PM runtime"
+> > the OMAP serial driver will always try to restore its context in
+> > serial_omap_runtime_resume(). But the problem is that during driver
+> > initialization the UART context is not ready yet and, as result, first
+> > call to pm_runtime_get*() will cause UART register overwriting by all
+> > zeros. This causes Kernel boot hang in case if "earlyprintk" feature is
+> > enabled at least [1].
+> > 
+> > Unfortunately, there is no exact place in driver now where we can
+> > determine that UART context is ready - most of registers configured in
+> > serial_omap_set_termios(), but some of them in other places.
+> > More over, even if PM runtime will be disabled (blocked) during OMAP
+> > serial driver probe() execution [2],[3] it will fix only console UART,
+> > but context of other UARTs will be overwriting by all zeros during first
+> > access to the corresponding UART.
+> > 
+> > To fix this issue:
+> > - introduce additional "initialized" flag and update PM runtime callback
+> > to do nothing if its not set. Set "initialized" at the end of probe().
+> > - read current UART registers configuration in probe and use it by
+> > default.
+> > 
+> > [1] http://www.spinics.net/lists/arm-kernel/msg256828.html
+> > [2] http://www.spinics.net/lists/arm-kernel/msg258062.html
+> > [3] http://www.spinics.net/lists/arm-kernel/msg258040.html
+> > 
+> > CC: Tony Lindgren <tony@atomide.com>
+> > CC: Rajendra Nayak <rnayak@ti.com>
+> > CC: Felipe Balbi <balbi@ti.com>
+> > CC: Kevin Hilman <khilman@linaro.org>
+> > 
+> > Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> > ---
+> > tested on OMAP4 SDP with and without earlyprintk enabled.
+> >  drivers/tty/serial/omap-serial.c |   27 ++++++++++++++++++++++++++-
+> >  1 file changed, 26 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+> > index f39bf0c..e1e9667 100644
+> > --- a/drivers/tty/serial/omap-serial.c
+> > +++ b/drivers/tty/serial/omap-serial.c
+> > @@ -162,6 +162,7 @@ struct uart_omap_port {
+> >  	struct work_struct	qos_work;
+> >  	struct pinctrl		*pins;
+> >  	bool			is_suspending;
+> > +	bool			initialized;
+> 
+> you really think adding this sort of bool flag is the best thing we can
+> do ? Something which will, quite likely, spread through every single
+> driver ?
 
-... if you know how to configure stuff so it works.  It seems that the
-reason it hasn't been working, and the displays have been remaining
-blank is because I had no idea that CONFIG_PWM and CONFIG_PWM_TWL were
-required.  I've now added those to the config seed, so hopefully they
-should start working now.  Only taken... what... two years to find that
-out!
+I agree, that's not ok, please fix this up "properly" somehow.
+
+thanks,
+
+greg k-h
