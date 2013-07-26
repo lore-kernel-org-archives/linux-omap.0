@@ -1,63 +1,104 @@
-From: "Arend van Spriel" <arend@broadcom.com>
-Subject: Re: Regression 3.11-rc1: omap4panda: no usb and consequently no
- ethernet
-Date: Fri, 26 Jul 2013 12:15:35 +0200
-Message-ID: <51F24C47.8060802@broadcom.com>
-References: <51E7AA24.6080600@broadcom.com> <51E7CEF3.5000408@ti.com>
- <51E7D080.6070401@broadcom.com> <51E7D1D2.1060006@ti.com>
- <51E7E1B7.6090104@broadcom.com> <51E7E2AD.8020106@ti.com>
- <51F122D5.80205@broadcom.com> <51F1E39D.2030902@ti.com>
- <51F1E65B.4020005@ti.com> <51F24BD6.9010405@broadcom.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: omap2430 regression due to "usb: musb: fix incorrect usage of
+ resource pointer"
+Date: Fri, 26 Jul 2013 13:20:08 +0300
+Message-ID: <20130726102008.GE2970@radagast>
+References: <20130726191445.1b2aaef7@notabene.brown>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51F24BD6.9010405@broadcom.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Yb+qhiCg54lqZFXW"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:54629 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751983Ab3GZKUV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jul 2013 06:20:21 -0400
+Content-Disposition: inline
+In-Reply-To: <20130726191445.1b2aaef7@notabene.brown>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Felipe Balbi <balbi@ti.com>, Dmitry Lifshitz <lifshitz@compulab.co.il>, linux-omap@vger.kernel.org
 
-On 07/26/2013 12:13 PM, Arend van Spriel wrote:
-> On 07/26/2013 05:00 AM, Joel Fernandes wrote:
->> On 07/25/2013 09:49 PM, Joel Fernandes wrote:
->>
->> [..]
->>
->>>> Can I get back on this topic. When USB and ethernet was working for me
->>>> as stated above, I was not doing tftpboot. When I use tftpboot the
->>>> images are obtained from the tftp server, but after kernel has started
->>>> there is nothing in /sys/bus/usb/devices/.
->>>
->>> I quickly tried 3.11-rc2 + Roger's USB PHY clock patch on omap4-panda-es
->>> and enabled following USB options:
->>>
->>> CONFIG_USB_MUSB_HDRC=y
->>> CONFIG_USB_PHY=y
->>> CONFIG_OMAP_USB2=y
->>> CONFIG_OMAP_CONTROL_USB=y
->>> CONFIG_USB_MUSB_OMAP2PLUS=y
->>> CONFIG_MFD_OMAP_USB_HOST=y
->>> CONFIG_USB_EHCI_HCD=y
+--Yb+qhiCg54lqZFXW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Aaargh. Missing this one. Will retry.
+On Fri, Jul 26, 2013 at 07:14:45PM +1000, NeilBrown wrote:
+>=20
+> Hi,
+>  the commit:
+>=20
+> commit 09fc7d22b024692b2fe8a943b246de1af307132b
+> Author: Felipe Balbi <balbi@ti.com>
+> Date:   Wed Apr 24 17:21:42 2013 +0300
+>=20
+>     usb: musb: fix incorrect usage of resource pointer
+>    =20
+>     We can't simply pass the resource pointer from our
+>     device down to our children, otherwise module
+>     reinsertion will not work as the resource will
+>     continue to be marked as busy.
+>    =20
+>     Fix it by building a proper struct resource for
+>     our child musb device.
+> =20
+>=20
+> (even with the subsequent compile fix applied) breaks my USB-OTG port on =
+my
+> GTA04.
+>=20
+> I must admit that I don't see the point of the patch at all.
+> Instead of passing one array to platform_device_add_resources()
+> which will copy it into malloced space, it copies bits of the array onto
+> the stack on passes that for platform_device_add_resources to copy.
+> What is the value of the second copy??
 
->>> CONFIG_USB_OHCI_HCD=y
->>> CONFIG_USB_EHCI_HCD_OMAP=y
->>
->> Sorry I missed saying I also set had to set CONFIG_NOP_USB_XCEIV=y
->
-> Here are the results of the dutch jury ;-)
->
-> [    2.537109] HS USB OTG: no transceiver configured
-> [    2.542541] musb-hdrc musb-hdrc.0.auto: musb_init_controller failed
-> with status -517
-> [    2.542541] platform musb-hdrc.0.auto: Driver musb-hdrc requests
-> probe deferral
->
-> I am surely missing something here. Either in device tree or .config.
->
-> Regards,
-> Arend
+if you don't do that, the resource will already be busy and ioremap will
+fail on second modprobe.
+
+> But that isn't the real problem.  The real problem is that in omap2430_pr=
+obe,
+> on my board at least, pdev->num_resources =3D=3D 3.  But only the first 2=
+ entries
+> in the array are copied.
+>=20
+> If I make the array one entry larger and copy the extra entry it works.  =
+Of
+> course that might break for someone else who only has 2 resources to copy=
+=2E...
+>=20
+> Can we go back to just leaving it to platform_device_add_resources to do =
+the
+> copying it have I missed something?  (I can't see where the new old code
+> would mark something as 'busy' that the new code won't mark as busy...)
+
+patches already in Greg's queue
+
+--=20
+balbi
+
+--Yb+qhiCg54lqZFXW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR8k1YAAoJEIaOsuA1yqREeC8P/0offQa8wYuJJZAcn8+hxk0R
+tDNJBFg+NzK2PhIHGHSL1srWiq3DhuPE5KJcMcb7J/JyWJlBGDKs/ShqzDAxLLf7
+fYyX1lnoZdAw9c2qD2oKzKNZGQJs+Zf/hOHGJgsOXYniwlA+5AeBcG5GcHddRzMB
+i1GXkyGqiU8R78SpBgyHNlRVDCWDJUoOrHto741VXkqpICmFxUOFGoqUrGsvnSYK
+PmdoEqyEIOO56CpLJEMwDEYLFtdqC30CManRU9BTWhiH6rHW9t19H39q2LjVIrV1
+hTBTSGkO2zoK0pFVjdCHn05JVODF+71cA3OQLETsA2VuTKsZ80dssTS42w12/RnU
+ynj/LuDK//r5KVMkGS5zwjFZppxiOt1fItt9nrxwsduHcEUlJ/mm1j3NyxSizFg1
+6jeITPycf7qD0tp2Wc9mlGR54RbzCnM4oKPspeJt+9Z/S1hIXY7ySpxOzytLhkY4
+9VwGYaJZK+REeK3ujLLhT1Gq1F02FlPxvQc16I657dQQdWZ1W1jDo4/ObUIsKOms
+Jlow1t0+f1HUFNU4Xmkj+YEJ4oQr4Ibz+dDjykHwL7ftf5j8WsvQ9oDDfv/7uYFD
+zu8f4ski40jBix9wObUO7O2g6PYgAhM4xS9vzokJtybRLa33IRNM7zpwmj9haf83
+JmL9Ri1znCh33lZkfwfh
+=4KPN
+-----END PGP SIGNATURE-----
+
+--Yb+qhiCg54lqZFXW--
