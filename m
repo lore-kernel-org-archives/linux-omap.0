@@ -1,14 +1,14 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 21/21] ARM: OMAP2+: Remove old display drivers from omap2plus_defconfig
-Date: Fri, 26 Jul 2013 10:08:24 +0300
-Message-ID: <1374822504-28949-22-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 20/21] ARM: OMAP: AM3517EVM: use new display drivers
+Date: Fri, 26 Jul 2013 10:08:23 +0300
+Message-ID: <1374822504-28949-21-git-send-email-tomi.valkeinen@ti.com>
 References: <1374822504-28949-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38933 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:40820 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757225Ab3GZHJs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1757347Ab3GZHJs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 26 Jul 2013 03:09:48 -0400
 In-Reply-To: <1374822504-28949-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,32 +16,165 @@ List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-The old display drivers are no longer used, and will be phased out. So
-remove them from the omap2plus_defconfig.
+Use new display drivers for AM3517EVM board.
+
+The new OMAP display drivers were merged for 3.11, and we can now change
+the board files to use the new ones and phase out the old ones.
+
+Note: the management of LCD GPIOs is unclear. They were originally muxed
+as inputs, and LCD_PANEL_PWR was labelled as "dvi enable".
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/configs/omap2plus_defconfig | 7 -------
- 1 file changed, 7 deletions(-)
+ arch/arm/mach-omap2/board-am3517evm.c | 113 +++++++++++++++++++++++-----------
+ 1 file changed, 77 insertions(+), 36 deletions(-)
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 7ce1c29..92ba100 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -185,13 +185,6 @@ CONFIG_OMAP2_DSS_RFBI=y
- CONFIG_OMAP2_DSS_SDI=y
- CONFIG_OMAP2_DSS_DSI=y
- CONFIG_FB_OMAP2=m
--CONFIG_PANEL_GENERIC_DPI=m
--CONFIG_PANEL_TFP410=m
--CONFIG_PANEL_SHARP_LS037V7DW01=m
--CONFIG_PANEL_NEC_NL8048HL11_01B=m
--CONFIG_PANEL_TAAL=m
--CONFIG_PANEL_TPO_TD043MTEA1=m
--CONFIG_PANEL_ACX565AKM=m
- CONFIG_DISPLAY_ENCODER_TFP410=m
- CONFIG_DISPLAY_ENCODER_TPD12S015=m
- CONFIG_DISPLAY_CONNECTOR_DVI=m
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index d63f14b..8cc2c9e 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -120,56 +120,95 @@ static int __init am3517_evm_i2c_init(void)
+ 	return 0;
+ }
+ 
+-static struct panel_generic_dpi_data lcd_panel = {
+-	.name			= "sharp_lq",
+-	.num_gpios		= 3,
+-	.gpios			= {
+-		LCD_PANEL_PWR,
+-		LCD_PANEL_BKLIGHT_PWR,
+-		LCD_PANEL_PWM,
+-	},
++static const struct display_timing am3517_evm_lcd_videomode = {
++	.pixelclock	= { 0, 9000000, 0 },
++
++	.hactive = { 0, 480, 0 },
++	.hfront_porch = { 0, 3, 0 },
++	.hback_porch = { 0, 2, 0 },
++	.hsync_len = { 0, 42, 0 },
++
++	.vactive = { 0, 272, 0 },
++	.vfront_porch = { 0, 3, 0 },
++	.vback_porch = { 0, 2, 0 },
++	.vsync_len = { 0, 11, 0 },
++
++	.flags = DISPLAY_FLAGS_HSYNC_LOW | DISPLAY_FLAGS_VSYNC_LOW |
++		DISPLAY_FLAGS_DE_LOW | DISPLAY_FLAGS_PIXDATA_POSEDGE,
++};
++
++static struct panel_dpi_platform_data am3517_evm_lcd_pdata = {
++	.name                   = "lcd",
++	.source                 = "dpi.0",
++
++	.data_lines		= 16,
++
++	.display_timing		= &am3517_evm_lcd_videomode,
++
++	.enable_gpio		= LCD_PANEL_PWR,
++	.backlight_gpio		= LCD_PANEL_BKLIGHT_PWR,
++};
++
++static struct platform_device am3517_evm_lcd_device = {
++	.name                   = "panel-dpi",
++	.id                     = 0,
++	.dev.platform_data      = &am3517_evm_lcd_pdata,
+ };
+ 
+-static struct omap_dss_device am3517_evm_lcd_device = {
+-	.type			= OMAP_DISPLAY_TYPE_DPI,
+-	.name			= "lcd",
+-	.driver_name		= "generic_dpi_panel",
+-	.data			= &lcd_panel,
+-	.phy.dpi.data_lines 	= 16,
++static struct connector_dvi_platform_data am3517_evm_dvi_connector_pdata = {
++	.name                   = "dvi",
++	.source                 = "tfp410.0",
++	.i2c_bus_num            = -1,
+ };
+ 
+-static struct omap_dss_device am3517_evm_tv_device = {
+-	.type 			= OMAP_DISPLAY_TYPE_VENC,
+-	.name 			= "tv",
+-	.driver_name		= "venc",
+-	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
++static struct platform_device am3517_evm_dvi_connector_device = {
++	.name                   = "connector-dvi",
++	.id                     = 0,
++	.dev.platform_data      = &am3517_evm_dvi_connector_pdata,
+ };
+ 
+-static struct tfp410_platform_data dvi_panel = {
+-	.power_down_gpio	= -1,
+-	.i2c_bus_num		= -1,
++static struct encoder_tfp410_platform_data am3517_evm_tfp410_pdata = {
++	.name                   = "tfp410.0",
++	.source                 = "dpi.0",
++	.data_lines             = 24,
++	.power_down_gpio        = -1,
+ };
+ 
+-static struct omap_dss_device am3517_evm_dvi_device = {
+-	.type			= OMAP_DISPLAY_TYPE_DPI,
+-	.name			= "dvi",
+-	.driver_name		= "tfp410",
+-	.data			= &dvi_panel,
+-	.phy.dpi.data_lines	= 24,
++static struct platform_device am3517_evm_tfp410_device = {
++	.name                   = "tfp410",
++	.id                     = 0,
++	.dev.platform_data      = &am3517_evm_tfp410_pdata,
+ };
+ 
+-static struct omap_dss_device *am3517_evm_dss_devices[] = {
+-	&am3517_evm_lcd_device,
+-	&am3517_evm_tv_device,
+-	&am3517_evm_dvi_device,
++static struct connector_atv_platform_data am3517_evm_tv_pdata = {
++	.name = "tv",
++	.source = "venc.0",
++	.connector_type = OMAP_DSS_VENC_TYPE_SVIDEO,
++	.invert_polarity = false,
++};
++
++static struct platform_device am3517_evm_tv_connector_device = {
++	.name                   = "connector-analog-tv",
++	.id                     = 0,
++	.dev.platform_data      = &am3517_evm_tv_pdata,
+ };
+ 
+ static struct omap_dss_board_info am3517_evm_dss_data = {
+-	.num_devices	= ARRAY_SIZE(am3517_evm_dss_devices),
+-	.devices	= am3517_evm_dss_devices,
+-	.default_device	= &am3517_evm_lcd_device,
++	.default_display_name = "lcd",
+ };
+ 
++static void __init am3517_evm_display_init(void)
++{
++	gpio_request_one(LCD_PANEL_PWM, GPIOF_OUT_INIT_HIGH, "lcd panel pwm");
++
++	omap_display_init(&am3517_evm_dss_data);
++
++	platform_device_register(&am3517_evm_tfp410_device);
++	platform_device_register(&am3517_evm_dvi_connector_device);
++	platform_device_register(&am3517_evm_lcd_device);
++	platform_device_register(&am3517_evm_tv_connector_device);
++}
++
+ /*
+  * Board initialization
+  */
+@@ -295,7 +334,9 @@ static void __init am3517_evm_init(void)
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 
+ 	am3517_evm_i2c_init();
+-	omap_display_init(&am3517_evm_dss_data);
++
++	am3517_evm_display_init();
++
+ 	omap_serial_init();
+ 	omap_sdrc_init(NULL, NULL);
+ 
 -- 
 1.8.1.2
 
