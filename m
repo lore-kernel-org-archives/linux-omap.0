@@ -1,113 +1,38 @@
-From: Illia Smyrnov <x0194613@ti.com>
-Subject: Re: [PATCH 1/3] Input: omap-keypad: Enable wakeup capability for
- keypad.
-Date: Fri, 26 Jul 2013 19:58:14 +0300
-Message-ID: <51F2AAA6.6090708@ti.com>
-References: <1374856201-11507-1-git-send-email-illia.smyrnov@ti.com> <1374856201-11507-2-git-send-email-illia.smyrnov@ti.com>
+From: Illia Smyrnov <illia.smyrnov@ti.com>
+Subject: [PATCH v2 0/3] Input: omap-keypad: Wakeup capability and w/a for i689 errata.
+Date: Fri, 26 Jul 2013 20:09:03 +0300
+Message-ID: <1374858546-25034-1-git-send-email-illia.smyrnov@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1374856201-11507-2-git-send-email-illia.smyrnov@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Illia Smyrnov <illia.smyrnov@ti.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Sorry,
-this patch is incomplete and was sent by mistake.
-I will sent v2
+This patchset adds wake up capability for the keypad and
+workaround for i689 errata.
 
-On 07/26/2013 07:29 PM, Illia Smyrnov wrote:
-> Enable/disable IRQ wake in suspend/resume handlers
-> to make the keypad wakeup capable.
->
-> Signed-off-by: Illia Smyrnov <illia.smyrnov@ti.com>
-> ---
->   drivers/input/keyboard/omap4-keypad.c |   38 +++++++++++++++++++++++++++++++++
->   1 file changed, 38 insertions(+)
->
-> diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
-> index 0244262..5f0a2c7 100644
-> --- a/drivers/input/keyboard/omap4-keypad.c
-> +++ b/drivers/input/keyboard/omap4-keypad.c
-> @@ -74,6 +74,7 @@ struct omap4_keypad {
->   	struct input_dev *input;
->
->   	void __iomem *base;
-> +	bool irq_wake_enabled;
->   	unsigned int irq;
->
->   	unsigned int rows;
-> @@ -380,6 +381,7 @@ static int omap4_keypad_probe(struct platform_device *pdev)
->   		goto err_free_input;
->   	}
->
-> +	device_init_wakeup(&pdev->dev, true);
->   	pm_runtime_put_sync(&pdev->dev);
->
->   	error = input_register_device(keypad_data->input);
-> @@ -393,6 +395,7 @@ static int omap4_keypad_probe(struct platform_device *pdev)
->
->   err_pm_disable:
->   	pm_runtime_disable(&pdev->dev);
-> +	device_init_wakeup(&pdev->dev, false);
->   	free_irq(keypad_data->irq, keypad_data);
->   err_free_keymap:
->   	kfree(keypad_data->keymap);
-> @@ -418,6 +421,8 @@ static int omap4_keypad_remove(struct platform_device *pdev)
->
->   	pm_runtime_disable(&pdev->dev);
->
-> +	device_init_wakeup(&pdev->dev, false);
-> +
->   	input_unregister_device(keypad_data->input);
->
->   	iounmap(keypad_data->base);
-> @@ -439,12 +444,45 @@ static const struct of_device_id omap_keypad_dt_match[] = {
->   MODULE_DEVICE_TABLE(of, omap_keypad_dt_match);
->   #endif
->
-> +#ifdef CONFIG_PM_SLEEP
-> +static int omap4_keypad_suspend(struct device *dev)
-> +{
-> +	int error;
-> +
-> +	if (device_may_wakeup(&pdev->dev)) {
-> +		error = enable_irq_wake(keypad_data->irq);
-> +		if (!error)
-> +			keypad_data->irq_wake_enabled = true;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int omap4_keypad_resume(struct device *dev)
-> +{
-> +	if (device_may_wakeup(&pdev->dev) && keypad_data->irq_wake_enabled) {
-> +		disable_irq_wake(keypad_data->irq);
-> +		keypad_data->irq_wake_enabled = false;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static SIMPLE_DEV_PM_OPS(omap4_keypad_pm_ops, omap4_keypad_suspend,
-> +				omap4_keypad_resume);
-> +
-> +#define OMAP4_KEYPAD_PM_OPS (&omap4_keypad_pm_ops)
-> +#else
-> +#define OMAP4_KEYPAD_PM_OPS NULL
-> +#endif
-> +
->   static struct platform_driver omap4_keypad_driver = {
->   	.probe		= omap4_keypad_probe,
->   	.remove		= omap4_keypad_remove,
->   	.driver		= {
->   		.name	= "omap4-keypad",
->   		.owner	= THIS_MODULE,
-> +		.pm	= OMAP4_KEYPAD_PM_OPS,
->   		.of_match_table = of_match_ptr(omap_keypad_dt_match),
->   	},
->   };
->
+Based on top of v3.11-rc2
+
+Depends on:
+
+Input: omap-keypad: Convert to threaded IRQ
+https://patchwork.kernel.org/patch/2832920/
+
+Input: omap-keypad: Cleanup - use bitfiled instead of hardcoded values
+https://patchwork.kernel.org/patch/2832913/
+
+Axel Haslam (2):
+  Input: omap-keypad: errata i689: Correct debounce time
+  Input: omap-keypad: Set irq to level instead of edge
+
+Illia Smyrnov (1):
+  Input: omap-keypad: Enable wakeup capability for keypad.
+
+ drivers/input/keyboard/omap4-keypad.c |   55 +++++++++++++++++++++++++++++++--
+ 1 file changed, 52 insertions(+), 3 deletions(-)
+
+-- 
+1.7.9.5
+
