@@ -1,98 +1,78 @@
-From: Zubair Lutfullah <zubair.lutfullah@gmail.com>
-Subject: [PATCH] mfd: input: arm: dts: doc: ti_am335x: typo fixes (coordiante
- -> coordinate)
-Date: Fri, 26 Jul 2013 22:37:10 +0100
-Message-ID: <1374874630-25457-2-git-send-email-zubair.lutfullah@gmail.com>
-References: <1374874630-25457-1-git-send-email-zubair.lutfullah@gmail.com>
+From: Paul Zimmerman <Paul.Zimmerman-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH] usb: dwc3: core: modify IO memory resource after
+ deferred probe completes
+Date: Fri, 26 Jul 2013 22:02:08 +0000
+Message-ID: <A2CA0424C0A6F04399FB9E1CD98E030458DE18C5@US01WEMBX2.internal.synopsys.com>
+References: <1374769590-14491-1-git-send-email-iivanov@mm-sol.com>
+ <A2CA0424C0A6F04399FB9E1CD98E030458DE112E@US01WEMBX2.internal.synopsys.com>
+ <20130725205224.GA12209@radagast>
+ <A2CA0424C0A6F04399FB9E1CD98E030458DE12C9@US01WEMBX2.internal.synopsys.com>
+ <1374821306.1956.34.camel@iivanov-dev.int.mm-sol.com>
+ <20130726095347.GA2970@radagast>
+ <A2CA0424C0A6F04399FB9E1CD98E030458DE178C@US01WEMBX2.internal.synopsys.com>
+ <20130726203226.GC14077@radagast>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1374874630-25457-1-git-send-email-zubair.lutfullah@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-doc@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130726203226.GC14077@radagast>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>
+Cc: "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Did a grep for 'coordiante' and replaced them all with 'coordinate'
+> From: Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]
+> Sent: Friday, July 26, 2013 1:32 PM
+> 
+> On Fri, Jul 26, 2013 at 06:44:23PM +0000, Paul Zimmerman wrote:
+> > > From: Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]
+> > > Sent: Friday, July 26, 2013 2:54 AM
+> > > > > > Also, this is not *modifying* what was passed, just skipping the xHCI
+> > > > > > address space so we don't request_mem_region() an area we won't really
+> > > > > > handle and prevent xhci-hcd.ko from probing.
+> > > > >
+> > > > > Hmm? platform_get_resource() returns a pointer to an entry in the
+> > > > > platform_device's resource[] array. And "res->start +=" modifies the
+> > > > > entry pointed at. If it didn't, the bug fixed by this patch wouldn't
+> > > > > have happened.
+> > > > >
+> > > > > Are you sure this code will work OK if you build the driver as a module,
+> > > > > modprobe it, rmmod it, and then modprobe it again? Seems like it won't,
+> > > > > unless the dev->resource[] array gets reinitialized in between somehow.
+> > >
+> > > gotta try that one... Perhaps the correct way would be to copy the
+> > > resource to a private struct resource and modify that one, leaving
+> > > pdev->resources untouched.
+> >
+> > Maybe this is a dumb question, but why can't the driver that is going
+> > to use the resource after this just "know" that it has to add
+> > DWC3_GLOBALS_REGS_START to the start address? Are there some versions
+> > of the core where that is not the case?
+> 
+> that won't work, because dwc3.ko will already have request_mem_region()
+> the entire region and a subsequent request_mem_region() for xHCI space
+> only would fail.
+> 
+> > Or, maybe there should be two sets of resources?
+> 
+> maybe we should require two sets of resources, yes... but then there's
+> no point in having any host initialization whatsoever in dwc3.ko.
 
-Signed-off-by: Zubair Lutfullah <zubair.lutfullah@gmail.com>
-Acked-by: Lee Jones <lee.jones@linaro.org>
----
- .../bindings/input/touchscreen/ti-tsc-adc.txt      |    4 ++--
- arch/arm/boot/dts/am335x-evm.dts                   |    2 +-
- drivers/input/touchscreen/ti_am335x_tsc.c          |    2 +-
- drivers/mfd/ti_am335x_tscadc.c                     |    2 +-
- 4 files changed, 5 insertions(+), 5 deletions(-)
+Right. For a platform with a DWC3 controller, have DT or whatever set up
+a second memory resource in the platform device, and have xhci_plat_probe()
+look for that one first. If it finds it, it uses that resource instead
+of the first one. If it doesn't find the second resource (not a DWC3
+platform) then it uses the first one like it does today.
 
-diff --git a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-index 491c97b..3e22aec 100644
---- a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-+++ b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-@@ -6,7 +6,7 @@ Required properties:
- 	ti,wires: Wires refer to application modes i.e. 4/5/8 wire touchscreen
- 		  support on the platform.
- 	ti,x-plate-resistance: X plate resistance
--	ti,coordiante-readouts: The sequencer supports a total of 16
-+	ti,coordinate-readouts: The sequencer supports a total of 16
- 				programmable steps each step is used to
- 				read a single coordinate. A single
-                                 readout is enough but multiple reads can
-@@ -34,7 +34,7 @@ Example:
- 		tsc {
- 			ti,wires = <4>;
- 			ti,x-plate-resistance = <200>;
--			ti,coordiante-readouts = <5>;
-+			ti,coordinate-readouts = <5>;
- 			ti,wire-config = <0x00 0x11 0x22 0x33>;
- 		};
- 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 0fa4c7f..e50b781 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -250,7 +250,7 @@
- 	tsc {
- 		ti,wires = <4>;
- 		ti,x-plate-resistance = <200>;
--		ti,coordiante-readouts = <5>;
-+		ti,coordinate-readouts = <5>;
- 		ti,wire-config = <0x00 0x11 0x22 0x33>;
- 	};
- 
-diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-index 0e9f02a..6422f65 100644
---- a/drivers/input/touchscreen/ti_am335x_tsc.c
-+++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-@@ -348,7 +348,7 @@ static int titsc_parse_dt(struct platform_device *pdev,
- 	if (err < 0)
- 		return err;
- 
--	err = of_property_read_u32(node, "ti,coordiante-readouts",
-+	err = of_property_read_u32(node, "ti,coordinate-readouts",
- 			&ts_dev->coordinate_readouts);
- 	if (err < 0)
- 		return err;
-diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index cd74d59..1686ae6 100644
---- a/drivers/mfd/ti_am335x_tscadc.c
-+++ b/drivers/mfd/ti_am335x_tscadc.c
-@@ -106,7 +106,7 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
- 
- 	node = of_get_child_by_name(pdev->dev.of_node, "tsc");
- 	of_property_read_u32(node, "ti,wires", &tsc_wires);
--	of_property_read_u32(node, "ti,coordiante-readouts", &readouts);
-+	of_property_read_u32(node, "ti,coordinate-readouts", &readouts);
- 
- 	node = of_get_child_by_name(pdev->dev.of_node, "adc");
- 	of_property_for_each_u32(node, "ti,adc-channels", prop, cur, val) {
+Then you don't need to have dwc3 set up the xhci resource like it does
+today. Seems cleaner to me. 'Course it's incompatible with what you have
+today, I guess that's the major drawback.
+
 -- 
-1.7.9.5
+Paul
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
