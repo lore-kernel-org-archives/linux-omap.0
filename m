@@ -1,275 +1,68 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 06/21] ARM: OMAP: overo: use new display drivers
-Date: Fri, 26 Jul 2013 10:08:09 +0300
-Message-ID: <1374822504-28949-7-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 05/21] ARM: OMAP: 4430SDP: remove picodlp device data
+Date: Fri, 26 Jul 2013 10:08:08 +0300
+Message-ID: <1374822504-28949-6-git-send-email-tomi.valkeinen@ti.com>
 References: <1374822504-28949-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40813 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38922 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756954Ab3GZHJ0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Jul 2013 03:09:26 -0400
+	id S1757040Ab3GZHJb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Jul 2013 03:09:31 -0400
 In-Reply-To: <1374822504-28949-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Use the new display drivers for OMAP3 Overo board.
+4430SDP board has an option for a PicoDLP mini-projector. PicoDLP cannot
+be used at the same time as the second LCD, and there are GPIOs that
+need to be set/unset when changing the used display.
 
-The new OMAP display drivers were merged for 3.11, and we can now change
-the board files to use the new ones and phase out the old ones.
-
-Note that the LCD add-on boards for lcd43 and lcd35 use the same GPIOs
-for the panels. This means that both panel devices cannot be probed at
-the same time.
-
-DT will handle this correctly, i.e. the DT data will contain the panel
-device only for the add-on board that is attached. However, for the
-board file we need a hackish solution: We parse the kernel boot command
-line, and see whether lcd43 or lcd35 is set as a default display, and
-add the given one. Or, if neither is given, default to lcd43.
+Managing that kind of board specific setup is not simple without board
+file callbacks. As only some 4430SDP boards actually have the PicoDLP
+installed, and 4430SDP boards are not that common in the first place,
+let's remove PicoDLP data from the board file.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/board-overo.c | 160 ++++++++++++++++++++++++--------------
- 1 file changed, 100 insertions(+), 60 deletions(-)
+ arch/arm/mach-omap2/dss-common.c | 21 ---------------------
+ 1 file changed, 21 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 5748b5d..f6d3841 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -72,6 +72,9 @@
- #define OVERO_SMSC911X2_CS     4
- #define OVERO_SMSC911X2_GPIO   65
- 
-+/* whether to register LCD35 instead of LCD43 */
-+static bool overo_use_lcd35;
-+
- #if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
- 	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
- 
-@@ -149,78 +152,94 @@ static inline void __init overo_init_smsc911x(void) { return; }
- #define OVERO_GPIO_LCD_EN 144
- #define OVERO_GPIO_LCD_BL 145
- 
--static struct tfp410_platform_data dvi_panel = {
--	.i2c_bus_num		= 3,
--	.power_down_gpio	= -1,
-+static struct connector_atv_platform_data overo_tv_pdata = {
-+	.name = "tv",
-+	.source = "venc.0",
-+	.connector_type = OMAP_DSS_VENC_TYPE_SVIDEO,
-+	.invert_polarity = false,
+diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
+index 3215412..bf89eff 100644
+--- a/arch/arm/mach-omap2/dss-common.c
++++ b/arch/arm/mach-omap2/dss-common.c
+@@ -181,28 +181,7 @@ static struct platform_device sdp4430_tpd_device = {
  };
  
--static struct omap_dss_device overo_dvi_device = {
--	.name			= "dvi",
+ 
+-static struct picodlp_panel_data sdp4430_picodlp_pdata = {
+-	.picodlp_adapter_id	= 2,
+-	.emu_done_gpio		= 44,
+-	.pwrgood_gpio		= 45,
+-};
+-
+-static struct omap_dss_device sdp4430_picodlp_device = {
+-	.name			= "picodlp",
+-	.driver_name		= "picodlp_panel",
 -	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.driver_name		= "tfp410",
--	.data			= &dvi_panel,
 -	.phy.dpi.data_lines	= 24,
-+static struct platform_device overo_tv_connector_device = {
-+	.name                   = "connector-analog-tv",
-+	.id                     = 0,
-+	.dev.platform_data      = &overo_tv_pdata,
+-	.channel		= OMAP_DSS_CHANNEL_LCD2,
+-	.data			= &sdp4430_picodlp_pdata,
+-};
+-
+-static struct omap_dss_device *sdp4430_dss_devices[] = {
+-	&sdp4430_picodlp_device,
+-};
+-
+ static struct omap_dss_board_info sdp4430_dss_data = {
+-	.num_devices	= ARRAY_SIZE(sdp4430_dss_devices),
+-	.devices	= sdp4430_dss_devices,
+ 	.default_display_name = "lcd",
  };
  
--static struct omap_dss_device overo_tv_device = {
--	.name = "tv",
--	.driver_name = "venc",
--	.type = OMAP_DISPLAY_TYPE_VENC,
--	.phy.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
-+static const struct display_timing overo_lcd43_videomode = {
-+	.pixelclock	= { 0, 9200000, 0 },
-+
-+	.hactive = { 0, 480, 0 },
-+	.hfront_porch = { 0, 8, 0 },
-+	.hback_porch = { 0, 4, 0 },
-+	.hsync_len = { 0, 41, 0 },
-+
-+	.vactive = { 0, 272, 0 },
-+	.vfront_porch = { 0, 4, 0 },
-+	.vback_porch = { 0, 2, 0 },
-+	.vsync_len = { 0, 10, 0 },
-+
-+	.flags = DISPLAY_FLAGS_HSYNC_LOW | DISPLAY_FLAGS_VSYNC_LOW |
-+		DISPLAY_FLAGS_DE_HIGH | DISPLAY_FLAGS_PIXDATA_POSEDGE,
- };
- 
--static struct panel_generic_dpi_data lcd43_panel = {
--	.name			= "samsung_lte430wq_f0c",
--	.num_gpios		= 2,
--	.gpios			= {
--		OVERO_GPIO_LCD_EN,
--		OVERO_GPIO_LCD_BL
--	},
-+static struct panel_dpi_platform_data overo_lcd43_pdata = {
-+	.name                   = "lcd43",
-+	.source                 = "dpi.0",
-+
-+	.data_lines		= 24,
-+
-+	.display_timing		= &overo_lcd43_videomode,
-+
-+	.enable_gpio		= OVERO_GPIO_LCD_EN,
-+	.backlight_gpio		= OVERO_GPIO_LCD_BL,
- };
- 
--static struct omap_dss_device overo_lcd43_device = {
--	.name			= "lcd43",
--	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.driver_name		= "generic_dpi_panel",
--	.data			= &lcd43_panel,
--	.phy.dpi.data_lines	= 24,
-+static struct platform_device overo_lcd43_device = {
-+	.name                   = "panel-dpi",
-+	.id                     = 0,
-+	.dev.platform_data      = &overo_lcd43_pdata,
- };
- 
--#if defined(CONFIG_PANEL_LGPHILIPS_LB035Q02) || \
--	defined(CONFIG_PANEL_LGPHILIPS_LB035Q02_MODULE)
--static struct panel_generic_dpi_data lcd35_panel = {
--	.num_gpios		= 2,
--	.gpios			= {
--		OVERO_GPIO_LCD_EN,
--		OVERO_GPIO_LCD_BL
--	},
-+static struct connector_dvi_platform_data overo_dvi_connector_pdata = {
-+	.name                   = "dvi",
-+	.source                 = "tfp410.0",
-+	.i2c_bus_num            = 3,
- };
- 
--static struct omap_dss_device overo_lcd35_device = {
--	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.name			= "lcd35",
--	.driver_name		= "lgphilips_lb035q02_panel",
--	.phy.dpi.data_lines	= 24,
--	.data			= &lcd35_panel,
-+static struct platform_device overo_dvi_connector_device = {
-+	.name                   = "connector-dvi",
-+	.id                     = 0,
-+	.dev.platform_data      = &overo_dvi_connector_pdata,
- };
--#endif
- 
--static struct omap_dss_device *overo_dss_devices[] = {
--	&overo_dvi_device,
--	&overo_tv_device,
--#if defined(CONFIG_PANEL_LGPHILIPS_LB035Q02) || \
--	defined(CONFIG_PANEL_LGPHILIPS_LB035Q02_MODULE)
--	&overo_lcd35_device,
--#endif
--	&overo_lcd43_device,
-+static struct encoder_tfp410_platform_data overo_tfp410_pdata = {
-+	.name                   = "tfp410.0",
-+	.source                 = "dpi.0",
-+	.data_lines             = 24,
-+	.power_down_gpio        = -1,
-+};
-+
-+static struct platform_device overo_tfp410_device = {
-+	.name                   = "tfp410",
-+	.id                     = 0,
-+	.dev.platform_data      = &overo_tfp410_pdata,
- };
- 
- static struct omap_dss_board_info overo_dss_data = {
--	.num_devices	= ARRAY_SIZE(overo_dss_devices),
--	.devices	= overo_dss_devices,
--	.default_device	= &overo_dvi_device,
-+	.default_display_name = "lcd43",
- };
- 
-+static void __init overo_display_init(void)
-+{
-+	omap_display_init(&overo_dss_data);
-+
-+	if (!overo_use_lcd35)
-+		platform_device_register(&overo_lcd43_device);
-+	platform_device_register(&overo_tfp410_device);
-+	platform_device_register(&overo_dvi_connector_device);
-+	platform_device_register(&overo_tv_connector_device);
-+}
-+
- static struct mtd_partition overo_nand_partitions[] = {
- 	{
- 		.name           = "xloader",
-@@ -408,24 +427,41 @@ static int __init overo_i2c_init(void)
- 	return 0;
- }
- 
-+static struct panel_lb035q02_platform_data overo_lcd35_pdata = {
-+	.name                   = "lcd35",
-+	.source                 = "dpi.0",
-+
-+	.data_lines		= 24,
-+
-+	.enable_gpio		= OVERO_GPIO_LCD_EN,
-+	.backlight_gpio		= OVERO_GPIO_LCD_BL,
-+};
-+
-+/*
-+ * NOTE: We need to add either the lgphilips panel, or the lcd43 panel. The
-+ * selection is done based on the overo_use_lcd35 field. If new SPI
-+ * devices are added here, extra work is needed to make only the lgphilips panel
-+ * affected by the overo_use_lcd35 field.
-+ */
- static struct spi_board_info overo_spi_board_info[] __initdata = {
--#if defined(CONFIG_PANEL_LGPHILIPS_LB035Q02) || \
--	defined(CONFIG_PANEL_LGPHILIPS_LB035Q02_MODULE)
- 	{
--		.modalias		= "lgphilips_lb035q02_panel-spi",
-+		.modalias		= "panel_lgphilips_lb035q02",
- 		.bus_num		= 1,
- 		.chip_select		= 1,
- 		.max_speed_hz		= 500000,
- 		.mode			= SPI_MODE_3,
-+		.platform_data		= &overo_lcd35_pdata,
- 	},
--#endif
- };
- 
- static int __init overo_spi_init(void)
- {
- 	overo_ads7846_init();
--	spi_register_board_info(overo_spi_board_info,
--			ARRAY_SIZE(overo_spi_board_info));
-+
-+	if (overo_use_lcd35) {
-+		spi_register_board_info(overo_spi_board_info,
-+				ARRAY_SIZE(overo_spi_board_info));
-+	}
- 	return 0;
- }
- 
-@@ -463,11 +499,13 @@ static void __init overo_init(void)
- {
- 	int ret;
- 
-+	if (strstr(boot_command_line, "omapdss.def_disp=lcd35"))
-+		overo_use_lcd35 = true;
-+
- 	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	overo_i2c_init();
- 	omap_hsmmc_init(mmc);
--	omap_display_init(&overo_dss_data);
- 	omap_serial_init();
- 	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
- 				  mt46h32m32lf6_sdrc_params);
-@@ -484,6 +522,8 @@ static void __init overo_init(void)
- 	overo_init_keys();
- 	omap_twl4030_audio_init("overo", NULL);
- 
-+	overo_display_init();
-+
- 	/* Ensure SDRC pins are mux'd for self-refresh */
- 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
- 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
 -- 
 1.8.1.2
 
