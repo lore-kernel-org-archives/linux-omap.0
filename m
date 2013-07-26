@@ -1,247 +1,132 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RESEND PATCH v10 3/8] usb: phy: twl4030: use the new generic PHY framework
-Date: Fri, 26 Jul 2013 18:19:18 +0530
-Message-ID: <1374842963-13545-4-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [RESEND PATCH v10 6/8] usb: musb: omap2430: use the new generic PHY framework
+Date: Fri, 26 Jul 2013 18:19:21 +0530
+Message-ID: <1374842963-13545-7-git-send-email-kishon@ti.com>
 References: <1374842963-13545-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1374842963-13545-1-git-send-email-kishon@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org, kyungmin.park@samsung.com, balbi@ti.com, kishon@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, stern@rowland.harvard.edu, broonie@kernel.org, tomasz.figa@gmail.com, arnd@arndb.de
-Cc: grant.likely@linaro.org, tony@atomide.com, swarren@nvidia.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com, linux@arm.linux.org.uk
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1374842963-13545-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org
+Cc: grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Used the generic PHY framework API to create the PHY. For powering on
-and powering off the PHY, power_on and power_off ops are used. Once the
-MUSB OMAP glue is adapted to the new framework, the suspend and resume
-ops of usb phy library will be removed. Also twl4030-usb driver is moved
-to drivers/phy/.
+Use the generic PHY framework API to get the PHY. The usb_phy_set_resume
+and usb_phy_set_suspend is replaced with power_on and
+power_off to align with the new PHY framework.
 
-However using the old usb phy library cannot be completely removed
-because otg is intertwined with phy and moving to the new
-framework completely will break otg. Once we have a separate otg state machine,
-we can get rid of the usb phy library.
+musb->xceiv can't be removed as of now because musb core uses xceiv.state and
+xceiv.otg. Once there is a separate state machine to handle otg, these can be
+moved out of xceiv and then we can start using the generic PHY framework.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- drivers/phy/Kconfig                     |   11 ++++++
- drivers/phy/Makefile                    |    1 +
- drivers/{usb => }/phy/phy-twl4030-usb.c |   56 +++++++++++++++++++++++++++++--
- drivers/usb/phy/Kconfig                 |    9 -----
- drivers/usb/phy/Makefile                |    1 -
- include/linux/i2c/twl.h                 |    2 ++
- 6 files changed, 67 insertions(+), 13 deletions(-)
- rename drivers/{usb => }/phy/phy-twl4030-usb.c (95%)
+ drivers/usb/musb/Kconfig     |    1 +
+ drivers/usb/musb/musb_core.h |    2 ++
+ drivers/usb/musb/omap2430.c  |   26 ++++++++++++++++++++------
+ 3 files changed, 23 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-index 38c3477..ac239ac 100644
---- a/drivers/phy/Kconfig
-+++ b/drivers/phy/Kconfig
-@@ -27,4 +27,15 @@ config OMAP_USB2
- 	  The USB OTG controller communicates with the comparator using this
- 	  driver.
- 
-+config TWL4030_USB
-+	tristate "TWL4030 USB Transceiver Driver"
-+	depends on TWL4030_CORE && REGULATOR_TWL4030 && USB_MUSB_OMAP2PLUS
+diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
+index 797e3fd..25e2e57 100644
+--- a/drivers/usb/musb/Kconfig
++++ b/drivers/usb/musb/Kconfig
+@@ -76,6 +76,7 @@ config USB_MUSB_TUSB6010
+ config USB_MUSB_OMAP2PLUS
+ 	tristate "OMAP2430 and onwards"
+ 	depends on ARCH_OMAP2PLUS
 +	select GENERIC_PHY
-+	select USB_PHY
-+	help
-+	  Enable this to support the USB OTG transceiver on TWL4030
-+	  family chips (including the TWL5030 and TPS659x0 devices).
-+	  This transceiver supports high and full speed devices plus,
-+	  in host mode, low speed.
-+
- endmenu
-diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
-index ed5b088..0dd8a98 100644
---- a/drivers/phy/Makefile
-+++ b/drivers/phy/Makefile
-@@ -4,3 +4,4 @@
  
- obj-$(CONFIG_GENERIC_PHY)	+= phy-core.o
- obj-$(CONFIG_OMAP_USB2)		+= phy-omap-usb2.o
-+obj-$(CONFIG_TWL4030_USB)	+= phy-twl4030-usb.o
-diff --git a/drivers/usb/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
-similarity index 95%
-rename from drivers/usb/phy/phy-twl4030-usb.c
-rename to drivers/phy/phy-twl4030-usb.c
-index 8f78d2d..494f107 100644
---- a/drivers/usb/phy/phy-twl4030-usb.c
-+++ b/drivers/phy/phy-twl4030-usb.c
-@@ -33,6 +33,7 @@
- #include <linux/io.h>
- #include <linux/delay.h>
+ config USB_MUSB_AM35X
+ 	tristate "AM35x"
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 7d341c3..6e567bd 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -46,6 +46,7 @@
+ #include <linux/usb.h>
  #include <linux/usb/otg.h>
+ #include <linux/usb/musb.h>
 +#include <linux/phy/phy.h>
- #include <linux/usb/musb-omap.h>
- #include <linux/usb/ulpi.h>
- #include <linux/i2c/twl.h>
-@@ -431,6 +432,14 @@ static void twl4030_phy_suspend(struct twl4030_usb *twl, int controller_off)
- 	dev_dbg(twl->dev, "%s\n", __func__);
- }
  
-+static int twl4030_phy_power_off(struct phy *phy)
-+{
-+	struct twl4030_usb *twl = phy_get_drvdata(phy);
-+
-+	twl4030_phy_suspend(twl, 0);
-+	return 0;
-+}
-+
- static void __twl4030_phy_resume(struct twl4030_usb *twl)
- {
- 	twl4030_phy_power(twl, 1);
-@@ -459,6 +468,14 @@ static void twl4030_phy_resume(struct twl4030_usb *twl)
- 	}
- }
+ struct musb;
+ struct musb_hw_ep;
+@@ -346,6 +347,7 @@ struct musb {
+ 	u16			int_tx;
  
-+static int twl4030_phy_power_on(struct phy *phy)
-+{
-+	struct twl4030_usb *twl = phy_get_drvdata(phy);
-+
-+	twl4030_phy_resume(twl);
-+	return 0;
-+}
-+
- static int twl4030_usb_ldo_init(struct twl4030_usb *twl)
- {
- 	/* Enable writing to power configuration registers */
-@@ -602,13 +619,22 @@ static int twl4030_usb_phy_init(struct usb_phy *phy)
- 	status = twl4030_usb_linkstat(twl);
- 	twl->linkstat = status;
- 
--	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID)
-+	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID) {
- 		omap_musb_mailbox(twl->linkstat);
-+		twl4030_phy_resume(twl);
-+	}
- 
- 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
- 	return 0;
- }
- 
-+static int twl4030_phy_init(struct phy *phy)
-+{
-+	struct twl4030_usb *twl = phy_get_drvdata(phy);
-+
-+	return twl4030_usb_phy_init(&twl->phy);
-+}
-+
- static int twl4030_set_suspend(struct usb_phy *x, int suspend)
- {
- 	struct twl4030_usb *twl = phy_to_twl(x);
-@@ -646,13 +672,23 @@ static int twl4030_set_host(struct usb_otg *otg, struct usb_bus *host)
- 	return 0;
- }
- 
-+static const struct phy_ops ops = {
-+	.init		= twl4030_phy_init,
-+	.power_on	= twl4030_phy_power_on,
-+	.power_off	= twl4030_phy_power_off,
-+	.owner		= THIS_MODULE,
-+};
-+
- static int twl4030_usb_probe(struct platform_device *pdev)
- {
- 	struct twl4030_usb_data *pdata = pdev->dev.platform_data;
- 	struct twl4030_usb	*twl;
+ 	struct usb_phy		*xceiv;
 +	struct phy		*phy;
- 	int			status, err;
- 	struct usb_otg		*otg;
- 	struct device_node	*np = pdev->dev.of_node;
-+	struct phy_provider	*phy_provider;
-+	struct phy_init_data	*init_data = NULL;
  
- 	twl = devm_kzalloc(&pdev->dev, sizeof *twl, GFP_KERNEL);
- 	if (!twl)
-@@ -661,9 +697,10 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 	if (np)
- 		of_property_read_u32(np, "usb_mode",
- 				(enum twl4030_usb_mode *)&twl->usb_mode);
--	else if (pdata)
-+	else if (pdata) {
- 		twl->usb_mode = pdata->usb_mode;
--	else {
-+		init_data = pdata->init_data;
+ 	int nIrq;
+ 	unsigned		irq_wake:1;
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 6708a3b..f7b33f4 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -348,11 +348,21 @@ static int omap2430_musb_init(struct musb *musb)
+ 	 * up through ULPI.  TWL4030-family PMICs include one,
+ 	 * which needs a driver, drivers aren't always needed.
+ 	 */
+-	if (dev->parent->of_node)
++	if (dev->parent->of_node) {
++		musb->phy = devm_phy_get(dev->parent, "usb2-phy");
++
++		/* We can't totally remove musb->xceiv as of now because
++		 * musb core uses xceiv.state and xceiv.otg. Once we have
++		 * a separate state machine to handle otg, these can be moved
++		 * out of xceiv and then we can start using the generic PHY
++		 * framework
++		 */
+ 		musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent,
+ 		    "usb-phy", 0);
+-	else
 +	} else {
- 		dev_err(&pdev->dev, "twl4030 initialized without pdata\n");
- 		return -EINVAL;
- 	}
-@@ -689,6 +726,19 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 	otg->set_host		= twl4030_set_host;
- 	otg->set_peripheral	= twl4030_set_peripheral;
- 
-+	phy_provider = devm_of_phy_provider_register(twl->dev,
-+		of_phy_simple_xlate);
-+	if (IS_ERR(phy_provider))
-+		return PTR_ERR(phy_provider);
-+
-+	phy = devm_phy_create(twl->dev, &ops, init_data);
-+	if (IS_ERR(phy)) {
-+		dev_dbg(&pdev->dev, "Failed to create PHY\n");
-+		return PTR_ERR(phy);
+ 		musb->xceiv = devm_usb_get_phy_dev(dev, 0);
++		musb->phy = devm_phy_get(dev, "usb");
 +	}
-+
-+	phy_set_drvdata(phy, twl);
-+
- 	/* init spinlock for workqueue */
- 	spin_lock_init(&twl->lock);
  
-diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
-index 7813238..1e05b1d 100644
---- a/drivers/usb/phy/Kconfig
-+++ b/drivers/usb/phy/Kconfig
-@@ -102,15 +102,6 @@ config SAMSUNG_USB3PHY
- 	  Enable this to support Samsung USB 3.0 (Super Speed) phy controller
- 	  for samsung SoCs.
+ 	if (IS_ERR(musb->xceiv)) {
+ 		status = PTR_ERR(musb->xceiv);
+@@ -364,6 +374,10 @@ static int omap2430_musb_init(struct musb *musb)
+ 		return -EPROBE_DEFER;
+ 	}
  
--config TWL4030_USB
--	tristate "TWL4030 USB Transceiver Driver"
--	depends on TWL4030_CORE && REGULATOR_TWL4030 && USB_MUSB_OMAP2PLUS
--	help
--	  Enable this to support the USB OTG transceiver on TWL4030
--	  family chips (including the TWL5030 and TPS659x0 devices).
--	  This transceiver supports high and full speed devices plus,
--	  in host mode, low speed.
--
- config TWL6030_USB
- 	tristate "TWL6030 USB Transceiver Driver"
- 	depends on TWL4030_CORE && OMAP_USB2 && USB_MUSB_OMAP2PLUS
-diff --git a/drivers/usb/phy/Makefile b/drivers/usb/phy/Makefile
-index 56d2b03..7bcc9ed0 100644
---- a/drivers/usb/phy/Makefile
-+++ b/drivers/usb/phy/Makefile
-@@ -20,7 +20,6 @@ obj-$(CONFIG_OMAP_USB3)			+= phy-omap-usb3.o
- obj-$(CONFIG_SAMSUNG_USBPHY)		+= phy-samsung-usb.o
- obj-$(CONFIG_SAMSUNG_USB2PHY)		+= phy-samsung-usb2.o
- obj-$(CONFIG_SAMSUNG_USB3PHY)		+= phy-samsung-usb3.o
--obj-$(CONFIG_TWL4030_USB)		+= phy-twl4030-usb.o
- obj-$(CONFIG_TWL6030_USB)		+= phy-twl6030-usb.o
- obj-$(CONFIG_USB_EHCI_TEGRA)		+= phy-tegra-usb.o
- obj-$(CONFIG_USB_GPIO_VBUS)		+= phy-gpio-vbus-usb.o
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index 81cbbdb..673a3ce 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -26,6 +26,7 @@
- #define __TWL_H_
++	if (IS_ERR(musb->phy)) {
++		pr_err("HS USB OTG: no PHY configured\n");
++		return PTR_ERR(musb->phy);
++	}
+ 	musb->isr = omap2430_musb_interrupt;
  
- #include <linux/types.h>
-+#include <linux/phy/phy.h>
- #include <linux/input/matrix_keypad.h>
+ 	status = pm_runtime_get_sync(dev);
+@@ -397,7 +411,7 @@ static int omap2430_musb_init(struct musb *musb)
+ 	if (glue->status != OMAP_MUSB_UNKNOWN)
+ 		omap_musb_set_mailbox(glue);
  
- /*
-@@ -615,6 +616,7 @@ enum twl4030_usb_mode {
- struct twl4030_usb_data {
- 	enum twl4030_usb_mode	usb_mode;
- 	unsigned long		features;
-+	struct phy_init_data	*init_data;
+-	usb_phy_init(musb->xceiv);
++	phy_init(musb->phy);
  
- 	int		(*phy_init)(struct device *dev);
- 	int		(*phy_exit)(struct device *dev);
--- 
-1.7.10.4
+ 	pm_runtime_put_noidle(musb->controller);
+ 	return 0;
+@@ -460,6 +474,7 @@ static int omap2430_musb_exit(struct musb *musb)
+ 	del_timer_sync(&musb_idle_timer);
+ 
+ 	omap2430_low_level_exit(musb);
++	phy_exit(musb->phy);
+ 
+ 	return 0;
+ }
+@@ -633,7 +648,7 @@ static int omap2430_runtime_suspend(struct device *dev)
+ 				OTG_INTERFSEL);
+ 
+ 		omap2430_low_level_exit(musb);
+-		usb_phy_set_suspend(musb->xceiv, 1);
++		phy_power_off(musb->phy);
+ 	}
+ 
+ 	return 0;
+@@ -648,8 +663,7 @@ static int omap2430_runtime_resume(struct device *dev)
+ 		omap2430_low_level_init(musb);
+ 		musb_writel(musb->mregs, OTG_INTERFSEL,
+ 				musb->context.otg_interfsel);
