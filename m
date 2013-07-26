@@ -1,77 +1,46 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 2/2] serial: omap: fix wrong context restoration on init
-Date: Fri, 26 Jul 2013 16:00:51 -0700
-Message-ID: <20130726230051.GA25990@kroah.com>
-References: <1373630142-21765-1-git-send-email-grygorii.strashko@ti.com>
- <1373630142-21765-2-git-send-email-grygorii.strashko@ti.com>
- <20130712121146.GC17053@arwen.pp.htv.fi>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/3] pinctrl: rollback check for !dev->pins in
+ pinctrl_pm_select*() APIs
+Date: Sat, 27 Jul 2013 01:22:37 +0200
+Message-ID: <CACRpkdYZOFYNXDwMr6om=3Fuj9z3DnaXYHQ_3B-xfTk9dsWdnQ@mail.gmail.com>
+References: <1374061312-25469-1-git-send-email-grygorii.strashko@ti.com>
+	<1374061312-25469-2-git-send-email-grygorii.strashko@ti.com>
+	<20130717154038.GK7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130712121146.GC17053@arwen.pp.htv.fi>
-Sender: linux-serial-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oa0-f47.google.com ([209.85.219.47]:41323 "EHLO
+	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756108Ab3GZXWh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jul 2013 19:22:37 -0400
+Received: by mail-oa0-f47.google.com with SMTP id m6so1930862oag.6
+        for <linux-omap@vger.kernel.org>; Fri, 26 Jul 2013 16:22:37 -0700 (PDT)
+In-Reply-To: <20130717154038.GK7656@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Kevin Hilman <khilman@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Stephen Warren <swarren@wwwdotorg.org>
 
-On Fri, Jul 12, 2013 at 03:11:46PM +0300, Felipe Balbi wrote:
-> hi,
-> 
-> On Fri, Jul 12, 2013 at 02:55:42PM +0300, Grygorii Strashko wrote:
-> > Since commit a630fbf "serial: omap: Fix device tree based PM runtime"
-> > the OMAP serial driver will always try to restore its context in
-> > serial_omap_runtime_resume(). But the problem is that during driver
-> > initialization the UART context is not ready yet and, as result, first
-> > call to pm_runtime_get*() will cause UART register overwriting by all
-> > zeros. This causes Kernel boot hang in case if "earlyprintk" feature is
-> > enabled at least [1].
-> > 
-> > Unfortunately, there is no exact place in driver now where we can
-> > determine that UART context is ready - most of registers configured in
-> > serial_omap_set_termios(), but some of them in other places.
-> > More over, even if PM runtime will be disabled (blocked) during OMAP
-> > serial driver probe() execution [2],[3] it will fix only console UART,
-> > but context of other UARTs will be overwriting by all zeros during first
-> > access to the corresponding UART.
-> > 
-> > To fix this issue:
-> > - introduce additional "initialized" flag and update PM runtime callback
-> > to do nothing if its not set. Set "initialized" at the end of probe().
-> > - read current UART registers configuration in probe and use it by
-> > default.
-> > 
-> > [1] http://www.spinics.net/lists/arm-kernel/msg256828.html
-> > [2] http://www.spinics.net/lists/arm-kernel/msg258062.html
-> > [3] http://www.spinics.net/lists/arm-kernel/msg258040.html
-> > 
-> > CC: Tony Lindgren <tony@atomide.com>
-> > CC: Rajendra Nayak <rnayak@ti.com>
-> > CC: Felipe Balbi <balbi@ti.com>
-> > CC: Kevin Hilman <khilman@linaro.org>
-> > 
-> > Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> > ---
-> > tested on OMAP4 SDP with and without earlyprintk enabled.
-> >  drivers/tty/serial/omap-serial.c |   27 ++++++++++++++++++++++++++-
-> >  1 file changed, 26 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-> > index f39bf0c..e1e9667 100644
-> > --- a/drivers/tty/serial/omap-serial.c
-> > +++ b/drivers/tty/serial/omap-serial.c
-> > @@ -162,6 +162,7 @@ struct uart_omap_port {
-> >  	struct work_struct	qos_work;
-> >  	struct pinctrl		*pins;
-> >  	bool			is_suspending;
-> > +	bool			initialized;
-> 
-> you really think adding this sort of bool flag is the best thing we can
-> do ? Something which will, quite likely, spread through every single
-> driver ?
+On Wed, Jul 17, 2013 at 5:40 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Grygorii Strashko <grygorii.strashko@ti.com> [130717 04:49]:
+>> The pinctrl support in Device core assumed to be optional - so, It's
+>> valid case, when there are no definition for default device's pinctrl
+>> states in DT at all ("default", "active", "idle", "sleep").
+>> And in this case dev->pins == NULL and pinctrl_pm_select*() API
+>> should return 0 always.
+>>
+>> Now the checks for !dev->pins have been removed from
+>> pinctrl_pm_select*() API mistakenly by the patch
+>> pinctrl: Remove duplicate code in pinctrl_pm_select_state functions
+>> http://www.spinics.net/lists/arm-kernel/msg258829.html
+>>
+>> Hence, rollback these checks in in pinctrl_pm_select*() APIs.
+>
+> Thanks, it's best that I fold this fix into my patch as it has not
+> been committed yet.
 
-I agree, that's not ok, please fix this up "properly" somehow.
+I think I've applied the correct v2 version,
+please check that linux-next is in good shape...
 
-thanks,
-
-greg k-h
+Yours,
+Linus Walleij
