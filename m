@@ -1,120 +1,135 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 12/21] ARM: OMAP: omap3stalker: use new display drivers
-Date: Fri, 26 Jul 2013 10:08:15 +0300
-Message-ID: <1374822504-28949-13-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 11/21] ARM: OMAP: LDP: use new display drivers
+Date: Fri, 26 Jul 2013 10:08:14 +0300
+Message-ID: <1374822504-28949-12-git-send-email-tomi.valkeinen@ti.com>
 References: <1374822504-28949-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38930 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38931 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757225Ab3GZHJj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Jul 2013 03:09:39 -0400
+	id S1757225Ab3GZHJk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Jul 2013 03:09:40 -0400
 In-Reply-To: <1374822504-28949-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Use new display drivers for OMAP3 Stalker board.
+Use new display drivers for LDP board.
 
 The new OMAP display drivers were merged for 3.11, and we can now change
 the board files to use the new ones and phase out the old ones.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3stalker.c | 61 +++++++++++++++++++-------------
- 1 file changed, 37 insertions(+), 24 deletions(-)
+ arch/arm/mach-omap2/board-ldp.c | 68 ++++++++++++++++++++++++++++-------------
+ 1 file changed, 47 insertions(+), 21 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index d37e6b1..ba8342f 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -93,40 +93,50 @@ static void __init omap3_stalker_display_init(void)
- {
- 	return;
- }
-+static struct connector_dvi_platform_data omap3stalker_dvi_connector_pdata = {
-+	.name                   = "dvi",
-+	.source                 = "tfp410.0",
-+	.i2c_bus_num            = -1,
-+};
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index 62e4f70..dd8da2c 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -184,45 +184,70 @@ static inline void __init ldp_init_smsc911x(void)
+ #define LCD_PANEL_RESET_GPIO		55
+ #define LCD_PANEL_QVGA_GPIO		56
  
--static struct omap_dss_device omap3_stalker_tv_device = {
--	.name			= "tv",
--	.driver_name		= "venc",
--	.type			= OMAP_DISPLAY_TYPE_VENC,
--#if defined(CONFIG_OMAP2_VENC_OUT_TYPE_SVIDEO)
--	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
--#elif defined(CONFIG_OMAP2_VENC_OUT_TYPE_COMPOSITE)
--	.u.venc.type		= OMAP_DSS_VENC_TYPE_COMPOSITE,
--#endif
-+static struct platform_device omap3stalker_dvi_connector_device = {
-+	.name                   = "connector-dvi",
-+	.id                     = 0,
-+	.dev.platform_data      = &omap3stalker_dvi_connector_pdata,
- };
- 
--static struct tfp410_platform_data dvi_panel = {
--	.power_down_gpio	= DSS_ENABLE_GPIO,
--	.i2c_bus_num		= -1,
-+static struct encoder_tfp410_platform_data omap3stalker_tfp410_pdata = {
-+	.name                   = "tfp410.0",
-+	.source                 = "dpi.0",
-+	.data_lines             = 24,
-+	.power_down_gpio        = DSS_ENABLE_GPIO,
- };
- 
--static struct omap_dss_device omap3_stalker_dvi_device = {
--	.name			= "dvi",
--	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.driver_name		= "tfp410",
--	.data			= &dvi_panel,
--	.phy.dpi.data_lines	= 24,
-+static struct platform_device omap3stalker_tfp410_device = {
-+	.name                   = "tfp410",
-+	.id                     = 0,
-+	.dev.platform_data      = &omap3stalker_tfp410_pdata,
-+};
+-static struct panel_generic_dpi_data ldp_panel_data = {
+-	.name			= "nec_nl2432dr22-11b",
+-	.num_gpios		= 4,
+-	/* gpios filled in code */
++static const struct display_timing ldp_lcd_videomode = {
++	.pixelclock	= { 0, 5400000, 0 },
 +
-+static struct connector_atv_platform_data omap3stalker_tv_pdata = {
-+	.name = "tv",
-+	.source = "venc.0",
-+#if defined(CONFIG_OMAP2_VENC_OUT_TYPE_SVIDEO)
-+	.connector_type = OMAP_DSS_VENC_TYPE_SVIDEO,
-+#elif defined(CONFIG_OMAP2_VENC_OUT_TYPE_COMPOSITE)
-+	.connector_type = OMAP_DSS_VENC_TYPE_COMPOSITE,
-+#endif
-+	.invert_polarity = false,
++	.hactive = { 0, 240, 0 },
++	.hfront_porch = { 0, 3, 0 },
++	.hback_porch = { 0, 39, 0 },
++	.hsync_len = { 0, 3, 0 },
++
++	.vactive = { 0, 320, 0 },
++	.vfront_porch = { 0, 2, 0 },
++	.vback_porch = { 0, 7, 0 },
++	.vsync_len = { 0, 1, 0 },
++
++	.flags = DISPLAY_FLAGS_HSYNC_LOW | DISPLAY_FLAGS_VSYNC_LOW |
++		DISPLAY_FLAGS_DE_HIGH | DISPLAY_FLAGS_PIXDATA_POSEDGE,
  };
  
--static struct omap_dss_device *omap3_stalker_dss_devices[] = {
--	&omap3_stalker_tv_device,
--	&omap3_stalker_dvi_device,
-+static struct platform_device omap3stalker_tv_connector_device = {
-+	.name                   = "connector-analog-tv",
+-static struct omap_dss_device ldp_lcd_device = {
+-	.name			= "lcd",
+-	.driver_name		= "generic_dpi_panel",
+-	.type			= OMAP_DISPLAY_TYPE_DPI,
+-	.phy.dpi.data_lines	= 18,
+-	.data			= &ldp_panel_data,
++static struct panel_dpi_platform_data ldp_lcd_pdata = {
++	.name                   = "lcd",
++	.source                 = "dpi.0",
++
++	.data_lines		= 18,
++
++	.display_timing		= &ldp_lcd_videomode,
++
++	.enable_gpio		= -1,	/* filled in code */
++	.backlight_gpio		= -1,	/* filled in code */
+ };
+ 
+-static struct omap_dss_device *ldp_dss_devices[] = {
+-	&ldp_lcd_device,
++static struct platform_device ldp_lcd_device = {
++	.name                   = "panel-dpi",
 +	.id                     = 0,
-+	.dev.platform_data      = &omap3stalker_tv_pdata,
++	.dev.platform_data      = &ldp_lcd_pdata,
  };
  
- static struct omap_dss_board_info omap3_stalker_dss_data = {
--	.num_devices	= ARRAY_SIZE(omap3_stalker_dss_devices),
--	.devices	= omap3_stalker_dss_devices,
--	.default_device	= &omap3_stalker_dvi_device,
-+	.default_display_name = "dvi",
+ static struct omap_dss_board_info ldp_dss_data = {
+-	.num_devices	= ARRAY_SIZE(ldp_dss_devices),
+-	.devices	= ldp_dss_devices,
+-	.default_device	= &ldp_lcd_device,
++	.default_display_name = "lcd",
  };
  
- static struct regulator_consumer_supply omap3stalker_vmmc1_supply[] = {
-@@ -356,6 +366,9 @@ static struct usbhs_phy_data phy_data[] __initdata = {
+ static void __init ldp_display_init(void)
+ {
+-	ldp_panel_data.gpios[2] = LCD_PANEL_RESET_GPIO;
+-	ldp_panel_data.gpios[3] = LCD_PANEL_QVGA_GPIO;
++	int r;
++
++	static struct gpio gpios[] __initdata = {
++		{LCD_PANEL_RESET_GPIO, GPIOF_OUT_INIT_HIGH, "LCD RESET"},
++		{LCD_PANEL_QVGA_GPIO, GPIOF_OUT_INIT_HIGH, "LCD QVGA"},
++	};
++
++	r = gpio_request_array(gpios, ARRAY_SIZE(gpios));
++	if (r) {
++		pr_err("Cannot request LCD GPIOs, error %d\n", r);
++		return;
++	}
  
- static struct platform_device *omap3_stalker_devices[] __initdata = {
- 	&keys_gpio,
-+	&omap3stalker_tfp410_device,
-+	&omap3stalker_dvi_connector_device,
-+	&omap3stalker_tv_connector_device,
+ 	omap_display_init(&ldp_dss_data);
+ }
+ 
+ static int ldp_twl_gpio_setup(struct device *dev, unsigned gpio, unsigned ngpio)
+ {
+-	ldp_panel_data.gpios[0] = gpio + 7;
+-	ldp_panel_data.gpio_invert[0] = true;
++	/* LCD enable GPIO */
++	ldp_lcd_pdata.enable_gpio = gpio + 7;
+ 
+-	ldp_panel_data.gpios[1] = gpio + 15;
+-	ldp_panel_data.gpio_invert[1] = true;
++	/* Backlight enable GPIO */
++	ldp_lcd_pdata.backlight_gpio = gpio + 15;
+ 
+ 	return 0;
+ }
+@@ -322,6 +347,7 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ 
+ static struct platform_device *ldp_devices[] __initdata = {
+ 	&ldp_gpio_keys_device,
++	&ldp_lcd_device,
  };
  
- static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
+ #ifdef CONFIG_OMAP_MUX
 -- 
 1.8.1.2
 
