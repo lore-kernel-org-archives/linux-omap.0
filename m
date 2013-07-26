@@ -1,99 +1,52 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 19/21] ARM: OMAP: Zoom: use new display drivers
-Date: Fri, 26 Jul 2013 10:08:22 +0300
-Message-ID: <1374822504-28949-20-git-send-email-tomi.valkeinen@ti.com>
-References: <1374822504-28949-1-git-send-email-tomi.valkeinen@ti.com>
+From: "Arend van Spriel" <arend@broadcom.com>
+Subject: Re: Regression 3.11-rc1: omap4panda: no usb and consequently no
+ ethernet
+Date: Fri, 26 Jul 2013 09:25:49 +0200
+Message-ID: <51F2247D.2000805@broadcom.com>
+References: <51E7AA24.6080600@broadcom.com> <51E7CEF3.5000408@ti.com>
+ <51E7D080.6070401@broadcom.com> <51E7D1D2.1060006@ti.com>
+ <51E7E1B7.6090104@broadcom.com> <51E7E2AD.8020106@ti.com>
+ <51F122D5.80205@broadcom.com> <51F1E39D.2030902@ti.com>
+ <51F1E65B.4020005@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37017 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757357Ab3GZHJs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Jul 2013 03:09:48 -0400
-In-Reply-To: <1374822504-28949-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+ charset=iso-8859-1;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51F1E65B.4020005@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Use new display drivers for Zoom board.
+On 07/26/2013 05:00 AM, Joel Fernandes wrote:
+> On 07/25/2013 09:49 PM, Joel Fernandes wrote:
+>
+> [..]
+>
+>>> Can I get back on this topic. When USB and ethernet was working for me
+>>> as stated above, I was not doing tftpboot. When I use tftpboot the
+>>> images are obtained from the tftp server, but after kernel has started
+>>> there is nothing in /sys/bus/usb/devices/.
+>>
+>> I quickly tried 3.11-rc2 + Roger's USB PHY clock patch on omap4-panda-es
+>> and enabled following USB options:
+>>
+>> CONFIG_USB_MUSB_HDRC=y
+>> CONFIG_USB_PHY=y
+>> CONFIG_OMAP_USB2=y
+>> CONFIG_OMAP_CONTROL_USB=y
+>> CONFIG_USB_MUSB_OMAP2PLUS=y
+>> CONFIG_MFD_OMAP_USB_HOST=y
+>> CONFIG_USB_EHCI_HCD=y
+>> CONFIG_USB_OHCI_HCD=y
+>> CONFIG_USB_EHCI_HCD_OMAP=y
+>
+> Sorry I missed saying I also set had to set CONFIG_NOP_USB_XCEIV=y
+>
 
-The new OMAP display drivers were merged for 3.11, and we can now change
-the board files to use the new ones and phase out the old ones.
+I will compare this with my .config. At first glance it looks like I am 
+missing some of these.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- arch/arm/mach-omap2/board-zoom-display.c | 30 +++++++++++-------------------
- 1 file changed, 11 insertions(+), 19 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-zoom-display.c b/arch/arm/mach-omap2/board-zoom-display.c
-index c2a079c..3d8ecc1 100644
---- a/arch/arm/mach-omap2/board-zoom-display.c
-+++ b/arch/arm/mach-omap2/board-zoom-display.c
-@@ -25,32 +25,23 @@
- #define LCD_PANEL_RESET_GPIO_PILOT	55
- #define LCD_PANEL_QVGA_GPIO		56
- 
--static struct panel_nec_nl8048_data zoom_lcd_data = {
--	/* res_gpio filled in code */
--	.qvga_gpio = LCD_PANEL_QVGA_GPIO,
--};
-+static struct panel_nec_nl8048hl11_platform_data zoom_lcd_pdata = {
-+	.name                   = "lcd",
-+	.source                 = "dpi.0",
- 
--static struct omap_dss_device zoom_lcd_device = {
--	.name			= "lcd",
--	.driver_name		= "NEC_8048_panel",
--	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.phy.dpi.data_lines	= 24,
--	.data			= &zoom_lcd_data,
--};
-+	.data_lines		= 24,
- 
--static struct omap_dss_device *zoom_dss_devices[] = {
--	&zoom_lcd_device,
-+	.res_gpio		= -1,	/* filled in code */
-+	.qvga_gpio		= LCD_PANEL_QVGA_GPIO,
- };
- 
- static struct omap_dss_board_info zoom_dss_data = {
--	.num_devices		= ARRAY_SIZE(zoom_dss_devices),
--	.devices		= zoom_dss_devices,
--	.default_device		= &zoom_lcd_device,
-+	.default_display_name = "lcd",
- };
- 
- static void __init zoom_lcd_panel_init(void)
- {
--	zoom_lcd_data.res_gpio = (omap_rev() > OMAP3430_REV_ES3_0) ?
-+	zoom_lcd_pdata.res_gpio = (omap_rev() > OMAP3430_REV_ES3_0) ?
- 			LCD_PANEL_RESET_GPIO_PROD :
- 			LCD_PANEL_RESET_GPIO_PILOT;
- }
-@@ -61,19 +52,20 @@ static struct omap2_mcspi_device_config dss_lcd_mcspi_config = {
- 
- static struct spi_board_info nec_8048_spi_board_info[] __initdata = {
- 	[0] = {
--		.modalias		= "nec_8048_spi",
-+		.modalias		= "panel-nec-nl8048hl11",
- 		.bus_num		= 1,
- 		.chip_select		= 2,
- 		.max_speed_hz		= 375000,
- 		.controller_data	= &dss_lcd_mcspi_config,
-+		.platform_data		= &zoom_lcd_pdata,
- 	},
- };
- 
- void __init zoom_display_init(void)
- {
- 	omap_display_init(&zoom_dss_data);
-+	zoom_lcd_panel_init();
- 	spi_register_board_info(nec_8048_spi_board_info,
- 				ARRAY_SIZE(nec_8048_spi_board_info));
--	zoom_lcd_panel_init();
- }
- 
--- 
-1.8.1.2
-
+Gr. AvS
