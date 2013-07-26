@@ -1,106 +1,97 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: dwc3: core: modify IO memory resource after
+From: Paul Zimmerman <Paul.Zimmerman-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH] usb: dwc3: core: modify IO memory resource after
  deferred probe completes
-Date: Thu, 25 Jul 2013 23:52:24 +0300
-Message-ID: <20130725205224.GA12209@radagast>
+Date: Fri, 26 Jul 2013 02:06:55 +0000
+Message-ID: <A2CA0424C0A6F04399FB9E1CD98E030458DE12C9@US01WEMBX2.internal.synopsys.com>
 References: <1374769590-14491-1-git-send-email-iivanov@mm-sol.com>
  <A2CA0424C0A6F04399FB9E1CD98E030458DE112E@US01WEMBX2.internal.synopsys.com>
-Reply-To: <balbi@ti.com>
+ <20130725205224.GA12209@radagast>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YZ5djTAD1cGYuMQK"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <A2CA0424C0A6F04399FB9E1CD98E030458DE112E@US01WEMBX2.internal.synopsys.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Zimmerman <Paul.Zimmerman@synopsys.com>
-Cc: "Ivan T. Ivanov" <iivanov@mm-sol.com>, "balbi@ti.com" <balbi@ti.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130725205224.GA12209@radagast>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>
+Cc: "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---YZ5djTAD1cGYuMQK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> From: Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]
+> Sent: Thursday, July 25, 2013 1:52 PM
+> 
+> On Thu, Jul 25, 2013 at 07:46:58PM +0000, Paul Zimmerman wrote:
+> > > diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> > > index 607bef8..50c833f 100644
+> > > --- a/drivers/usb/dwc3/core.c
+> > > +++ b/drivers/usb/dwc3/core.c
+> > > @@ -384,21 +384,6 @@ static int dwc3_probe(struct platform_device *pdev)
+> > >  		dev_err(dev, "missing memory resource\n");
+> > >  		return -ENODEV;
+> > >  	}
+> > > -	dwc->xhci_resources[0].start = res->start;
+> > > -	dwc->xhci_resources[0].end = dwc->xhci_resources[0].start +
+> > > -					DWC3_XHCI_REGS_END;
+> > > -	dwc->xhci_resources[0].flags = res->flags;
+> > > -	dwc->xhci_resources[0].name = res->name;
+> > > -
+> > > -	res->start += DWC3_GLOBALS_REGS_START;
+> > > -
+> > > -	 /*
+> > > -	  * Request memory region but exclude xHCI regs,
+> > > -	  * since it will be requested by the xhci-plat driver.
+> > > -	  */
+> > > -	regs = devm_ioremap_resource(dev, res);
+> > > -	if (IS_ERR(regs))
+> > > -		return PTR_ERR(regs);
+> > >
+> > >  	if (node) {
+> > >  		dwc->maximum_speed = of_usb_get_maximum_speed(node);
+> > > @@ -452,6 +437,22 @@ static int dwc3_probe(struct platform_device *pdev)
+> > >  		return -EPROBE_DEFER;
+> > >  	}
+> > >
+> > > +	dwc->xhci_resources[0].start = res->start;
+> > > +	dwc->xhci_resources[0].end = dwc->xhci_resources[0].start +
+> > > +					DWC3_XHCI_REGS_END;
+> > > +	dwc->xhci_resources[0].flags = res->flags;
+> > > +	dwc->xhci_resources[0].name = res->name;
+> > > +
+> > > +	res->start += DWC3_GLOBALS_REGS_START;
+> >
+> > Ick. The driver is modifying the struct resource passed to it by the
+> 
+> heh...
+> 
+> > platform code? That seems like a layering violation, and is fragile as
+> > hell. In addition to this bug, what would happen if the struct resource
+> > was declared 'const'?
+> 
+> nothing would happen if it was declared const since platform_add_device
+> makes a copy of what was declared, and that's always non-const.
 
-Hi,
+OK.
 
-On Thu, Jul 25, 2013 at 07:46:58PM +0000, Paul Zimmerman wrote:
-> > diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-> > index 607bef8..50c833f 100644
-> > --- a/drivers/usb/dwc3/core.c
-> > +++ b/drivers/usb/dwc3/core.c
-> > @@ -384,21 +384,6 @@ static int dwc3_probe(struct platform_device *pdev)
-> >  		dev_err(dev, "missing memory resource\n");
-> >  		return -ENODEV;
-> >  	}
-> > -	dwc->xhci_resources[0].start =3D res->start;
-> > -	dwc->xhci_resources[0].end =3D dwc->xhci_resources[0].start +
-> > -					DWC3_XHCI_REGS_END;
-> > -	dwc->xhci_resources[0].flags =3D res->flags;
-> > -	dwc->xhci_resources[0].name =3D res->name;
-> > -
-> > -	res->start +=3D DWC3_GLOBALS_REGS_START;
-> > -
-> > -	 /*
-> > -	  * Request memory region but exclude xHCI regs,
-> > -	  * since it will be requested by the xhci-plat driver.
-> > -	  */
-> > -	regs =3D devm_ioremap_resource(dev, res);
-> > -	if (IS_ERR(regs))
-> > -		return PTR_ERR(regs);
-> >=20
-> >  	if (node) {
-> >  		dwc->maximum_speed =3D of_usb_get_maximum_speed(node);
-> > @@ -452,6 +437,22 @@ static int dwc3_probe(struct platform_device *pdev)
-> >  		return -EPROBE_DEFER;
-> >  	}
-> >=20
-> > +	dwc->xhci_resources[0].start =3D res->start;
-> > +	dwc->xhci_resources[0].end =3D dwc->xhci_resources[0].start +
-> > +					DWC3_XHCI_REGS_END;
-> > +	dwc->xhci_resources[0].flags =3D res->flags;
-> > +	dwc->xhci_resources[0].name =3D res->name;
-> > +
-> > +	res->start +=3D DWC3_GLOBALS_REGS_START;
->=20
-> Ick. The driver is modifying the struct resource passed to it by the
+> Also, this is not *modifying* what was passed, just skipping the xHCI
+> address space so we don't request_mem_region() an area we won't really
+> handle and prevent xhci-hcd.ko from probing.
 
-heh...
+Hmm? platform_get_resource() returns a pointer to an entry in the
+platform_device's resource[] array. And "res->start +=" modifies the
+entry pointed at. If it didn't, the bug fixed by this patch wouldn't
+have happened.
 
-> platform code? That seems like a layering violation, and is fragile as
-> hell. In addition to this bug, what would happen if the struct resource
-> was declared 'const'?
+Are you sure this code will work OK if you build the driver as a module,
+modprobe it, rmmod it, and then modprobe it again? Seems like it won't,
+unless the dev->resource[] array gets reinitialized in between somehow.
 
-nothing would happen if it was declared const since platform_add_device
-makes a copy of what was declared, and that's always non-const.
+All this assumes I'm reading the code correctly, of course. If I'm not,
+then never mind :)
 
-Also, this is not *modifying* what was passed, just skipping the xHCI
-address space so we don't request_mem_region() an area we won't really
-handle and prevent xhci-hcd.ko from probing.
+-- 
+Paul
 
---=20
-balbi
-
---YZ5djTAD1cGYuMQK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR8ZAIAAoJEIaOsuA1yqREzZ4QAKr+/5a1UX0ATZuUCb/euihF
-tLmrAUjkAIbFruS4zR2xf+KTB98e2BgA27qT+998aHOfQatQd3FbBqMC3rWpbiz4
-9CGvXEXw73VCENxHIOKzj50Yd+Zk2AOmcvswCxIeLHe737gZgrvEJdYJU28YMEzK
-NwBbKUGLwoJ4VuJDZxM7dWPPNHbZk8pQPaYQBXtmoRen89Ay3ZBqAPXp+n15c5fg
-iJy8iMWn0QBxBltoTyxria667eKYlQg/IIkaO3HAzjaiUOIk5x44FHgUcR5ePR+8
-5QNihkLhSTtt9fXU36tjslCkxKBrH21ft1hbOi/xcQTKEs1RpYML4IAAach0bmt7
-Gtu18Wtt5Mz3dUOs82f3ZIUYKtoDPzMuL6gHtwRC+a6ztqLH4FAC5IKrzJkbj+Ba
-AH16xCYQSIjJCyI71S3+P8PIQlvRI97QVBKJhqIXUUw44NbA5IV2Qh1nZekpNfBc
-caXr5SuSUn4nAydV354BMzvcElk50791hieJiTHLMNqrF/5A95ZEVKqkCRT4NbSU
-iQTFGzeBh/fL4p01LlHFEfK5BkmMBiDmiKXy+7R/EoXID5CJO/0u3wzY761UW9um
-fZTLXjsEZD3XUVXGO7iJv5LRh0+ZCcgDEBvzIHFdOITMiR5WL5szwc0+j8BbLhgN
-Nkl8TBky5fZBfLOntjBl
-=MgHP
------END PGP SIGNATURE-----
-
---YZ5djTAD1cGYuMQK--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
