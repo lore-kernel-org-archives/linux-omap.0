@@ -1,78 +1,130 @@
-From: Paul Zimmerman <Paul.Zimmerman-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH] usb: dwc3: core: modify IO memory resource after
- deferred probe completes
-Date: Fri, 26 Jul 2013 22:02:08 +0000
-Message-ID: <A2CA0424C0A6F04399FB9E1CD98E030458DE18C5@US01WEMBX2.internal.synopsys.com>
-References: <1374769590-14491-1-git-send-email-iivanov@mm-sol.com>
- <A2CA0424C0A6F04399FB9E1CD98E030458DE112E@US01WEMBX2.internal.synopsys.com>
- <20130725205224.GA12209@radagast>
- <A2CA0424C0A6F04399FB9E1CD98E030458DE12C9@US01WEMBX2.internal.synopsys.com>
- <1374821306.1956.34.camel@iivanov-dev.int.mm-sol.com>
- <20130726095347.GA2970@radagast>
- <A2CA0424C0A6F04399FB9E1CD98E030458DE178C@US01WEMBX2.internal.synopsys.com>
- <20130726203226.GC14077@radagast>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: omap2430 regression due to "usb: musb: fix incorrect usage of
+ resource pointer"
+Date: Sat, 27 Jul 2013 08:15:34 +1000
+Message-ID: <20130727081534.4c0758a9@notabene.brown>
+References: <20130726191445.1b2aaef7@notabene.brown>
+	<20130726102008.GE2970@radagast>
+	<20130726222458.3324ddd9@notabene.brown>
+	<20130726135108.GB9795@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130726203226.GC14077@radagast>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>
-Cc: "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/lUTZ4qbIsHu36BAnlepj4vG"; protocol="application/pgp-signature"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:47689 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751781Ab3GZWPt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Jul 2013 18:15:49 -0400
+In-Reply-To: <20130726135108.GB9795@radagast>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, linux-omap@vger.kernel.org
 
-> From: Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]
-> Sent: Friday, July 26, 2013 1:32 PM
-> 
-> On Fri, Jul 26, 2013 at 06:44:23PM +0000, Paul Zimmerman wrote:
-> > > From: Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]
-> > > Sent: Friday, July 26, 2013 2:54 AM
-> > > > > > Also, this is not *modifying* what was passed, just skipping the xHCI
-> > > > > > address space so we don't request_mem_region() an area we won't really
-> > > > > > handle and prevent xhci-hcd.ko from probing.
-> > > > >
-> > > > > Hmm? platform_get_resource() returns a pointer to an entry in the
-> > > > > platform_device's resource[] array. And "res->start +=" modifies the
-> > > > > entry pointed at. If it didn't, the bug fixed by this patch wouldn't
-> > > > > have happened.
-> > > > >
-> > > > > Are you sure this code will work OK if you build the driver as a module,
-> > > > > modprobe it, rmmod it, and then modprobe it again? Seems like it won't,
-> > > > > unless the dev->resource[] array gets reinitialized in between somehow.
-> > >
-> > > gotta try that one... Perhaps the correct way would be to copy the
-> > > resource to a private struct resource and modify that one, leaving
-> > > pdev->resources untouched.
-> >
-> > Maybe this is a dumb question, but why can't the driver that is going
-> > to use the resource after this just "know" that it has to add
-> > DWC3_GLOBALS_REGS_START to the start address? Are there some versions
-> > of the core where that is not the case?
-> 
-> that won't work, because dwc3.ko will already have request_mem_region()
-> the entire region and a subsequent request_mem_region() for xHCI space
-> only would fail.
-> 
-> > Or, maybe there should be two sets of resources?
-> 
-> maybe we should require two sets of resources, yes... but then there's
-> no point in having any host initialization whatsoever in dwc3.ko.
+--Sig_/lUTZ4qbIsHu36BAnlepj4vG
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Right. For a platform with a DWC3 controller, have DT or whatever set up
-a second memory resource in the platform device, and have xhci_plat_probe()
-look for that one first. If it finds it, it uses that resource instead
-of the first one. If it doesn't find the second resource (not a DWC3
-platform) then it uses the first one like it does today.
+On Fri, 26 Jul 2013 16:51:08 +0300 Felipe Balbi <balbi@ti.com> wrote:
 
-Then you don't need to have dwc3 set up the xhci resource like it does
-today. Seems cleaner to me. 'Course it's incompatible with what you have
-today, I guess that's the major drawback.
+> On Fri, Jul 26, 2013 at 10:24:58PM +1000, NeilBrown wrote:
+> > On Fri, 26 Jul 2013 13:20:08 +0300 Felipe Balbi <balbi@ti.com> wrote:
+> >=20
+> > > On Fri, Jul 26, 2013 at 07:14:45PM +1000, NeilBrown wrote:
+> > > >=20
+> > > > Hi,
+> > > >  the commit:
+> > > >=20
+> > > > commit 09fc7d22b024692b2fe8a943b246de1af307132b
+> > > > Author: Felipe Balbi <balbi@ti.com>
+> > > > Date:   Wed Apr 24 17:21:42 2013 +0300
+> > > >=20
+> > > >     usb: musb: fix incorrect usage of resource pointer
+> > > >    =20
+> > > >     We can't simply pass the resource pointer from our
+> > > >     device down to our children, otherwise module
+> > > >     reinsertion will not work as the resource will
+> > > >     continue to be marked as busy.
+> > > >    =20
+> > > >     Fix it by building a proper struct resource for
+> > > >     our child musb device.
+> > > > =20
+> > > >=20
+> > > > (even with the subsequent compile fix applied) breaks my USB-OTG po=
+rt on my
+> > > > GTA04.
+> > > >=20
+> > > > I must admit that I don't see the point of the patch at all.
+> > > > Instead of passing one array to platform_device_add_resources()
+> > > > which will copy it into malloced space, it copies bits of the array=
+ onto
+> > > > the stack on passes that for platform_device_add_resources to copy.
+> > > > What is the value of the second copy??
+> > >=20
+> > > if you don't do that, the resource will already be busy and ioremap w=
+ill
+> > > fail on second modprobe.
+> >=20
+> > Ahhh... the parent/sibling/child linkage - got it.
+> >=20
+> > >=20
+> > > > But that isn't the real problem.  The real problem is that in omap2=
+430_probe,
+> > > > on my board at least, pdev->num_resources =3D=3D 3.  But only the f=
+irst 2 entries
+> > > > in the array are copied.
+> > > >=20
+> > > > If I make the array one entry larger and copy the extra entry it wo=
+rks.  Of
+> > > > course that might break for someone else who only has 2 resources t=
+o copy....
+> > > >=20
+> > > > Can we go back to just leaving it to platform_device_add_resources =
+to do the
+> > > > copying it have I missed something?  (I can't see where the new old=
+ code
+> > > > would mark something as 'busy' that the new code won't mark as busy=
+...)
+> > >=20
+> > > patches already in Greg's queue
+> > >=20
+> >=20
+> > Thanks.=20
+> > Doesn't seem to be in the usb-next or usb-linus branches of=20
+> > git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb.git
+> > Can you give me a pointer?
+>=20
+> hmmm, looks like this is not in greg/usb-linus indeed. I'll send him
+> another pull request on monday. If you wanna try, use my 'fixes' branch
+> on kernel.org.
 
--- 
-Paul
+Thanks.  I found that one, pulled it in, and can confirm that it fixed my U=
+SB
+problem.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+NeilBrown
+
+--Sig_/lUTZ4qbIsHu36BAnlepj4vG
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIVAwUBUfL1Bjnsnt1WYoG5AQIg4w//f/EmFl7+fPGpyaZuZluBCgsVlgA651tF
+p5pVetKyx26SgIZPI6ed6cXCgCPHKIKS1OUIGJiVqC2nXG5BPsVgQ9cqqt2hBjYk
+ICQz1ZpgI8BsNfO9LZBtHrJeXeA4ZZ3sqPWj5oiRNauadeF1gzyqR+9aUAmWY3zm
+JHWskJhBA6UmFgSJ2foPtpWAUq4IVJTKgdyMjfZPaJD+lWO4M3GyoVAHuOWtJXJP
++mvK0HK3OmHuf+T8rtFyc09Rdp1kfvKeggg0KZ+3B3zwqJSuOzIidDOl5Jql5t8+
+kyFqyBA8bYXdGy3UNeFrasFFN0sfOYCo07xk5NrBt4/6BuSf3lQaSWGcnqoC2TqQ
+udVagSrPxGggCk49rcujel01vF4+naUQaQix8mBv2FY1wA7Ov0bQBE3zw23IOqAb
+yHwgC2B5dB417E7S5UkFi3DZsehnBpCuY7oT7Y+7omdl7ib7ZvLqy4oeBD09/sXo
+DBYzhsIZa6pl5crr/z/WgQUYD85U1y8KTc+n103/PJPCYbnypaRZky26hNmdqf6c
+rt6Ms86tCjVNDZwterSWAHVX6m8b1vvTo8agzUlkMqgOvxa2WYvYP8+ZNCIPsjLX
+4IDFuHhCQqV+oMjw1AzNTlgavfgFNMR97WBEWqifgUHZGhY3fJZld6bKaH4w1X2m
+/86dXaNptlk=
+=XmQF
+-----END PGP SIGNATURE-----
+
+--Sig_/lUTZ4qbIsHu36BAnlepj4vG--
