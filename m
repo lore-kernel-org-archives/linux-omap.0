@@ -1,93 +1,55 @@
-From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: [RFC/PATCH 2/2] driver: spi: Add quad spi read support
-Date: Fri, 26 Jul 2013 22:45:22 +0530
-Message-ID: <1374858922-14637-3-git-send-email-sourav.poddar@ti.com>
-References: <1374858922-14637-1-git-send-email-sourav.poddar@ti.com>
+From: Paul Zimmerman <Paul.Zimmerman-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH] usb: dwc3: core: modify IO memory resource after
+ deferred probe completes
+Date: Fri, 26 Jul 2013 18:44:23 +0000
+Message-ID: <A2CA0424C0A6F04399FB9E1CD98E030458DE178C@US01WEMBX2.internal.synopsys.com>
+References: <1374769590-14491-1-git-send-email-iivanov@mm-sol.com>
+ <A2CA0424C0A6F04399FB9E1CD98E030458DE112E@US01WEMBX2.internal.synopsys.com>
+ <20130725205224.GA12209@radagast>
+ <A2CA0424C0A6F04399FB9E1CD98E030458DE12C9@US01WEMBX2.internal.synopsys.com>
+ <1374821306.1956.34.camel@iivanov-dev.int.mm-sol.com>
+ <20130726095347.GA2970@radagast>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1374858922-14637-1-git-send-email-sourav.poddar-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, Sourav, Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130726095347.GA2970@radagast>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>, "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
+Cc: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Since, qspi controller uses quad read.
+> From: Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]
+> Sent: Friday, July 26, 2013 2:54 AM
+> > > > Also, this is not *modifying* what was passed, just skipping the xHCI
+> > > > address space so we don't request_mem_region() an area we won't really
+> > > > handle and prevent xhci-hcd.ko from probing.
+> > >
+> > > Hmm? platform_get_resource() returns a pointer to an entry in the
+> > > platform_device's resource[] array. And "res->start +=" modifies the
+> > > entry pointed at. If it didn't, the bug fixed by this patch wouldn't
+> > > have happened.
+> > >
+> > > Are you sure this code will work OK if you build the driver as a module,
+> > > modprobe it, rmmod it, and then modprobe it again? Seems like it won't,
+> > > unless the dev->resource[] array gets reinitialized in between somehow.
+> 
+> gotta try that one... Perhaps the correct way would be to copy the
+> resource to a private struct resource and modify that one, leaving
+> pdev->resources untouched.
 
-Configuring the command register, if the transfer of data needs
-dual or quad lines.
+Maybe this is a dumb question, but why can't the driver that is going
+to use the resource after this just "know" that it has to add
+DWC3_GLOBALS_REGS_START to the start address? Are there some versions
+of the core where that is not the case?
 
-This patch has been done on top of the following patch[1], which is the
-basic idea of adding dual/quad support in spi framework.
-$subject patch will undergo changes with the ongoing discussion in the
-community.
+Or, maybe there should be two sets of resources?
 
-This patch is posted to demonstrate how patch 1 of the series will support
-quad read. 
-
-[1]: http://comments.gmane.org/gmane.linux.kernel.spi.devel/14047
-
-Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
----
- drivers/spi/spi-ti-qspi.c |   16 ++++++++++++++--
- 1 files changed, 14 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
-index 7c848c8..679c813 100644
---- a/drivers/spi/spi-ti-qspi.c
-+++ b/drivers/spi/spi-ti-qspi.c
-@@ -86,6 +86,7 @@ struct ti_qspi {
- #define QSPI_3_PIN			(1 << 18)
- #define QSPI_RD_SNGL			(1 << 16)
- #define QSPI_WR_SNGL			(2 << 16)
-+#define	QSPI_RD_DUAL			(3 << 16)
- #define QSPI_RD_QUAD			(7 << 16)
- #define QSPI_INVAL			(4 << 16)
- #define QSPI_WC_CMD_INT_EN			(1 << 14)
-@@ -290,6 +291,7 @@ static void qspi_read_msg(struct ti_qspi *qspi, struct spi_transfer *t)
- {
- 	u8 *rxbuf;
- 	int wlen, count;
-+	unsigned cmd = qspi->cmd;
- 
- 	count = t->len;
- 	rxbuf = t->rx_buf;
-@@ -299,8 +301,18 @@ static void qspi_read_msg(struct ti_qspi *qspi, struct spi_transfer *t)
- 		dev_dbg(qspi->dev, "rx cmd %08x dc %08x\n",
- 			qspi->cmd | QSPI_RD_SNGL, qspi->dc);
- 		ti_qspi_write(qspi, qspi->dc, QSPI_SPI_DC_REG);
--		ti_qspi_write(qspi, qspi->cmd | QSPI_RD_SNGL,
--			QSPI_SPI_CMD_REG);
-+		switch (t->bitwidth) {
-+		case SPI_BITWIDTH_QUAD:
-+			cmd |= QSPI_RD_QUAD;
-+			break;
-+		case SPI_BITWIDTH_DUAL:
-+			cmd |= QSPI_RD_DUAL;
-+			break;
-+		case SPI_BITWIDTH_SINGLE:
-+		default:
-+			cmd |= QSPI_RD_SNGL;
-+		}
-+		ti_qspi_writel(qspi, cmd, QSPI_SPI_CMD_REG);
- 		ti_qspi_write(qspi, QSPI_WC_INT_EN, QSPI_INTR_ENABLE_SET_REG);
- 		wait_for_completion(&qspi->transfer_complete);
- 		ti_qspi_read_data(qspi, QSPI_SPI_DATA_REG, wlen, &rxbuf);
 -- 
-1.7.1
+Paul
 
-
-------------------------------------------------------------------------------
-See everything from the browser to the database with AppDynamics
-Get end-to-end visibility with application monitoring from AppDynamics
-Isolate bottlenecks and diagnose root cause in seconds.
-Start your free trial of AppDynamics Pro today!
-http://pubads.g.doubleclick.net/gampad/clk?id=48808831&iu=/4140/ostg.clktrk
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
