@@ -1,88 +1,87 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH 4/4] crypto: omap-sham: Convert to devm_kzalloc()
-Date: Fri, 26 Jul 2013 12:29:17 +0530
-Message-ID: <1374821957-30141-5-git-send-email-lokeshvutla@ti.com>
-References: <1374821957-30141-1-git-send-email-lokeshvutla@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 00/21] ARM: OMAP2+: use new display drivers
+Date: Fri, 26 Jul 2013 10:08:03 +0300
+Message-ID: <1374822504-28949-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <1374821957-30141-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, davem@davemloft.net, herbert@gondor.hengli.com.au, rnayak@ti.com, nsekhar@ti.com, joelf@ti.com, lokeshvutla@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36980 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753432Ab3GZHJR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Jul 2013 03:09:17 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Use devm_kzalloc() to make cleanup paths simpler.
+Hi,
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
----
- drivers/crypto/omap-sham.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+The display drivers for new OMAP DSS driver model were merged in v3.11, but the
+board files were not changed to use them. This series changes the board files
+to take those new drivers into use.
 
-diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-index b82b140..ae1ca8b2 100644
---- a/drivers/crypto/omap-sham.c
-+++ b/drivers/crypto/omap-sham.c
-@@ -1870,7 +1870,7 @@ static int omap_sham_probe(struct platform_device *pdev)
- 	int err, i, j;
- 	u32 rev;
- 
--	dd = kzalloc(sizeof(struct omap_sham_dev), GFP_KERNEL);
-+	dd = devm_kzalloc(dev, sizeof(struct omap_sham_dev), GFP_KERNEL);
- 	if (dd == NULL) {
- 		dev_err(dev, "unable to alloc data struct.\n");
- 		err = -ENOMEM;
-@@ -1887,12 +1887,12 @@ static int omap_sham_probe(struct platform_device *pdev)
- 	err = (dev->of_node) ? omap_sham_get_res_of(dd, dev, &res) :
- 			       omap_sham_get_res_pdev(dd, pdev, &res);
- 	if (err)
--		goto res_err;
-+		goto data_err;
- 
- 	dd->io_base = devm_ioremap_resource(dev, &res);
- 	if (IS_ERR(dd->io_base)) {
- 		err = PTR_ERR(dd->io_base);
--		goto res_err;
-+		goto data_err;
- 	}
- 	dd->phys_base = res.start;
- 
-@@ -1901,7 +1901,7 @@ static int omap_sham_probe(struct platform_device *pdev)
- 	if (err) {
- 		dev_err(dev, "unable to request irq %d, err = %d\n",
- 			dd->irq, err);
--		goto res_err;
-+		goto data_err;
- 	}
- 
- 	dma_cap_zero(mask);
-@@ -1913,7 +1913,7 @@ static int omap_sham_probe(struct platform_device *pdev)
- 		dev_err(dev, "unable to obtain RX DMA engine channel %u\n",
- 			dd->dma);
- 		err = -ENXIO;
--		goto res_err;
-+		goto data_err;
- 	}
- 
- 	dd->flags |= dd->pdata->flags;
-@@ -1951,9 +1951,6 @@ err_algs:
- 					&dd->pdata->algs_info[i].algs_list[j]);
- 	pm_runtime_disable(dev);
- 	dma_release_channel(dd->dma_lch);
--res_err:
--	kfree(dd);
--	dd = NULL;
- data_err:
- 	dev_err(dev, "initialization failed.\n");
- 
-@@ -1978,8 +1975,6 @@ static int omap_sham_remove(struct platform_device *pdev)
- 	tasklet_kill(&dd->done_task);
- 	pm_runtime_disable(&pdev->dev);
- 	dma_release_channel(dd->dma_lch);
--	kfree(dd);
--	dd = NULL;
- 
- 	return 0;
- }
+There's mostly nothing special in the patches. One complication is with Overo
+board file, which adds two panel devices, located in add-on boards, that use
+the same GPIOs, meaning that the two panel devices cannot be probed at the same
+time. The solution used here is to parse the kernel command line, and decide
+the panel device to be added depending on the given default display.
+
+The omap2plus_defconfig is changed to include a few most commonly used display
+drivers as modules, and the old drivers are removed.
+
+Note: The first patch in this series has been sent separately
+(http://mid.gmane.org/1374570405-8301-2-git-send-email-tomi.valkeinen@ti.com),
+and is a fix for v3.11. It's included here as an another patch in the series
+depends on it.
+
+Tested on 4430SDP, Panda, Beagle, Beagle xM, Overo.
+
+ Tomi
+
+Tomi Valkeinen (21):
+  ARM: OMAP: dss-common: fix Panda's DVI DDC channel
+  ARM: OMAP2+: Remove legacy DSS initialization for omap4
+  ARM: OMAP2+: Add selected display drivers to omap2plus_defconfig
+  ARM: OMAP: dss-common: use new display drivers
+  ARM: OMAP: 4430SDP: remove picodlp device data
+  ARM: OMAP: overo: use new display drivers
+  ARM: OMAP: rx51: use new display drivers
+  ARM: OMAP: beagle: use new display drivers
+  ARM: OMAP: devkit8000: use new display drivers
+  ARM: OMAP: 2430SDP: use new display drivers
+  ARM: OMAP: LDP: use new display drivers
+  ARM: OMAP: omap3stalker: use new display drivers
+  ARM: OMAP: igep0020: use new display drivers
+  ARM: OMAP: cm-t35: use new display drivers
+  ARM: OMAP: H4: use new display drivers
+  ARM: OMAP: 3430SDP: use new display drivers
+  ARM: OMAP: OMAP3EVM: use new display drivers
+  ARM: OMAP: Pandora: use new display drivers
+  ARM: OMAP: Zoom: use new display drivers
+  ARM: OMAP: AM3517EVM: use new display drivers
+  ARM: OMAP2+: Remove old display drivers from omap2plus_defconfig
+
+ arch/arm/configs/omap2plus_defconfig         |  12 +-
+ arch/arm/mach-omap2/board-2430sdp.c          |  57 ++++---
+ arch/arm/mach-omap2/board-3430sdp.c          |  83 +++++----
+ arch/arm/mach-omap2/board-am3517evm.c        | 113 +++++++++----
+ arch/arm/mach-omap2/board-cm-t35.c           | 100 +++++++----
+ arch/arm/mach-omap2/board-devkit8000.c       |  96 +++++++----
+ arch/arm/mach-omap2/board-h4.c               |  48 ++++--
+ arch/arm/mach-omap2/board-igep0020.c         |  36 ++--
+ arch/arm/mach-omap2/board-ldp.c              |  68 +++++---
+ arch/arm/mach-omap2/board-omap3beagle.c      |  56 +++---
+ arch/arm/mach-omap2/board-omap3evm.c         |  87 ++++++----
+ arch/arm/mach-omap2/board-omap3pandora.c     |  48 +++---
+ arch/arm/mach-omap2/board-omap3stalker.c     |  61 ++++---
+ arch/arm/mach-omap2/board-overo.c            | 160 +++++++++++-------
+ arch/arm/mach-omap2/board-rx51-peripherals.c |  12 ++
+ arch/arm/mach-omap2/board-rx51-video.c       |  35 ++--
+ arch/arm/mach-omap2/board-zoom-display.c     |  30 ++--
+ arch/arm/mach-omap2/dss-common.c             | 244 ++++++++++++---------------
+ arch/arm/mach-omap2/dss-common.h             |   2 -
+ 19 files changed, 787 insertions(+), 561 deletions(-)
+
 -- 
-1.7.9.5
+1.8.1.2
+
