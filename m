@@ -1,130 +1,54 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: omap2430 regression due to "usb: musb: fix incorrect usage of
- resource pointer"
-Date: Sat, 27 Jul 2013 08:15:34 +1000
-Message-ID: <20130727081534.4c0758a9@notabene.brown>
-References: <20130726191445.1b2aaef7@notabene.brown>
-	<20130726102008.GE2970@radagast>
-	<20130726222458.3324ddd9@notabene.brown>
-	<20130726135108.GB9795@radagast>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP2430 SDP boot broken after Linus' rmk merge
+Date: Fri, 26 Jul 2013 23:59:10 +0100
+Message-ID: <20130726225910.GD21614@n2100.arm.linux.org.uk>
+References: <20130722184325.GA21614@n2100.arm.linux.org.uk> <alpine.DEB.2.02.1307222005370.26048@utopia.booyaka.com> <51EE2AA7.5060503@ti.com> <alpine.DEB.2.02.1307230705000.27017@utopia.booyaka.com> <51EE474D.5070804@ti.com> <20130724135617.GI11072@mudshark.cambridge.arm.com> <51EFE1DD.8070801@ti.com> <20130724145237.GB21614@n2100.arm.linux.org.uk> <51F0C841.8000900@ti.com> <51F0CAA5.8010108@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/lUTZ4qbIsHu36BAnlepj4vG"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:47689 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751781Ab3GZWPt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Jul 2013 18:15:49 -0400
-In-Reply-To: <20130726135108.GB9795@radagast>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38862 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756108Ab3GZW71 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jul 2013 18:59:27 -0400
+Content-Disposition: inline
+In-Reply-To: <51F0CAA5.8010108@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Will Deacon <will.deacon@arm.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---Sig_/lUTZ4qbIsHu36BAnlepj4vG
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Having worked out how to get around the MMC ordering issue without having
+to go and re-tweak it should it change again in the future, I've added
+the SDP back into the build.
 
-On Fri, 26 Jul 2013 16:51:08 +0300 Felipe Balbi <balbi@ti.com> wrote:
+On Thu, Jul 25, 2013 at 09:50:13AM +0300, Tomi Valkeinen wrote:
+> On 25/07/13 09:40, Tomi Valkeinen wrote:
+> > On 24/07/13 17:52, Russell King - ARM Linux wrote:
+> > 
+> >> I also continue to be disappointed by the lack of things working on the
+> >> 4430 - it's been a number of years now and _still_ the on-board LCDs do
+> >> not work.  People have tried to blame that on hardware faults and the
+> >> like, but they're just being idiotic when they say stuff like that.  It
+> >> can't be hardware faults when the kernel supplied with the board is able
+> >> to make them work to the extent that userspace can play back video on all
+> >> three output devices simultaneously, without hiccup or any imperfection.
+> >> I don't know whether it's just that the backlight support isn't working
+> >> or what - because any information on the 4430 seems to be a tightly
+> >> controlled secret that only a few select people are permitted to know
+> >> about.  As far as I'm concerned, much of the hardware is a black box to
+> >> me.
+> > 
+> > The 4430SDP's backlight hasn't been working in the mainline due to
+> > missing support from the TWL driver. But we finally did get that in for
+> > 3.10 (or maybe 3.9), and booting 3.10 non-DT kernel brings up the
+> > backlights. However, the BL doesn't work yet with DT boot, so again with
+> > 3.11, with no board files, the BL is out... Sigh.
+> 
+> Ah, sorry, I take that back. Backlight seems to be working fine with 3.11.
 
-> On Fri, Jul 26, 2013 at 10:24:58PM +1000, NeilBrown wrote:
-> > On Fri, 26 Jul 2013 13:20:08 +0300 Felipe Balbi <balbi@ti.com> wrote:
-> >=20
-> > > On Fri, Jul 26, 2013 at 07:14:45PM +1000, NeilBrown wrote:
-> > > >=20
-> > > > Hi,
-> > > >  the commit:
-> > > >=20
-> > > > commit 09fc7d22b024692b2fe8a943b246de1af307132b
-> > > > Author: Felipe Balbi <balbi@ti.com>
-> > > > Date:   Wed Apr 24 17:21:42 2013 +0300
-> > > >=20
-> > > >     usb: musb: fix incorrect usage of resource pointer
-> > > >    =20
-> > > >     We can't simply pass the resource pointer from our
-> > > >     device down to our children, otherwise module
-> > > >     reinsertion will not work as the resource will
-> > > >     continue to be marked as busy.
-> > > >    =20
-> > > >     Fix it by building a proper struct resource for
-> > > >     our child musb device.
-> > > > =20
-> > > >=20
-> > > > (even with the subsequent compile fix applied) breaks my USB-OTG po=
-rt on my
-> > > > GTA04.
-> > > >=20
-> > > > I must admit that I don't see the point of the patch at all.
-> > > > Instead of passing one array to platform_device_add_resources()
-> > > > which will copy it into malloced space, it copies bits of the array=
- onto
-> > > > the stack on passes that for platform_device_add_resources to copy.
-> > > > What is the value of the second copy??
-> > >=20
-> > > if you don't do that, the resource will already be busy and ioremap w=
-ill
-> > > fail on second modprobe.
-> >=20
-> > Ahhh... the parent/sibling/child linkage - got it.
-> >=20
-> > >=20
-> > > > But that isn't the real problem.  The real problem is that in omap2=
-430_probe,
-> > > > on my board at least, pdev->num_resources =3D=3D 3.  But only the f=
-irst 2 entries
-> > > > in the array are copied.
-> > > >=20
-> > > > If I make the array one entry larger and copy the extra entry it wo=
-rks.  Of
-> > > > course that might break for someone else who only has 2 resources t=
-o copy....
-> > > >=20
-> > > > Can we go back to just leaving it to platform_device_add_resources =
-to do the
-> > > > copying it have I missed something?  (I can't see where the new old=
- code
-> > > > would mark something as 'busy' that the new code won't mark as busy=
-...)
-> > >=20
-> > > patches already in Greg's queue
-> > >=20
-> >=20
-> > Thanks.=20
-> > Doesn't seem to be in the usb-next or usb-linus branches of=20
-> > git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb.git
-> > Can you give me a pointer?
->=20
-> hmmm, looks like this is not in greg/usb-linus indeed. I'll send him
-> another pull request on monday. If you wanna try, use my 'fixes' branch
-> on kernel.org.
-
-Thanks.  I found that one, pulled it in, and can confirm that it fixed my U=
-SB
-problem.
-
-Thanks,
-NeilBrown
-
---Sig_/lUTZ4qbIsHu36BAnlepj4vG
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIVAwUBUfL1Bjnsnt1WYoG5AQIg4w//f/EmFl7+fPGpyaZuZluBCgsVlgA651tF
-p5pVetKyx26SgIZPI6ed6cXCgCPHKIKS1OUIGJiVqC2nXG5BPsVgQ9cqqt2hBjYk
-ICQz1ZpgI8BsNfO9LZBtHrJeXeA4ZZ3sqPWj5oiRNauadeF1gzyqR+9aUAmWY3zm
-JHWskJhBA6UmFgSJ2foPtpWAUq4IVJTKgdyMjfZPaJD+lWO4M3GyoVAHuOWtJXJP
-+mvK0HK3OmHuf+T8rtFyc09Rdp1kfvKeggg0KZ+3B3zwqJSuOzIidDOl5Jql5t8+
-kyFqyBA8bYXdGy3UNeFrasFFN0sfOYCo07xk5NrBt4/6BuSf3lQaSWGcnqoC2TqQ
-udVagSrPxGggCk49rcujel01vF4+naUQaQix8mBv2FY1wA7Ov0bQBE3zw23IOqAb
-yHwgC2B5dB417E7S5UkFi3DZsehnBpCuY7oT7Y+7omdl7ib7ZvLqy4oeBD09/sXo
-DBYzhsIZa6pl5crr/z/WgQUYD85U1y8KTc+n103/PJPCYbnypaRZky26hNmdqf6c
-rt6Ms86tCjVNDZwterSWAHVX6m8b1vvTo8agzUlkMqgOvxa2WYvYP8+ZNCIPsjLX
-4IDFuHhCQqV+oMjw1AzNTlgavfgFNMR97WBEWqifgUHZGhY3fJZld6bKaH4w1X2m
-/86dXaNptlk=
-=XmQF
------END PGP SIGNATURE-----
-
---Sig_/lUTZ4qbIsHu36BAnlepj4vG--
+... if you know how to configure stuff so it works.  It seems that the
+reason it hasn't been working, and the displays have been remaining
+blank is because I had no idea that CONFIG_PWM and CONFIG_PWM_TWL were
+required.  I've now added those to the config seed, so hopefully they
+should start working now.  Only taken... what... two years to find that
+out!
