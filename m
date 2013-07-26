@@ -1,97 +1,182 @@
-From: Paul Zimmerman <Paul.Zimmerman-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH] usb: dwc3: core: modify IO memory resource after
- deferred probe completes
-Date: Fri, 26 Jul 2013 02:06:55 +0000
-Message-ID: <A2CA0424C0A6F04399FB9E1CD98E030458DE12C9@US01WEMBX2.internal.synopsys.com>
-References: <1374769590-14491-1-git-send-email-iivanov@mm-sol.com>
- <A2CA0424C0A6F04399FB9E1CD98E030458DE112E@US01WEMBX2.internal.synopsys.com>
- <20130725205224.GA12209@radagast>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: Regression 3.11-rc1: omap4panda: no usb and consequently no ethernet
+Date: Thu, 25 Jul 2013 21:49:01 -0500
+Message-ID: <51F1E39D.2030902@ti.com>
+References: <51E7AA24.6080600@broadcom.com> <51E7CEF3.5000408@ti.com> <51E7D080.6070401@broadcom.com> <51E7D1D2.1060006@ti.com> <51E7E1B7.6090104@broadcom.com> <51E7E2AD.8020106@ti.com> <51F122D5.80205@broadcom.com>
+Reply-To: <joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130725205224.GA12209@radagast>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>
-Cc: "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51F122D5.80205@broadcom.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arend van Spriel <arend@broadcom.com>
+Cc: Roger Quadros <rogerq@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-> From: Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]
-> Sent: Thursday, July 25, 2013 1:52 PM
+Hi Arend,
+
+On 07/25/2013 08:06 AM, Arend van Spriel wrote:
+> On 07/18/2013 02:42 PM, Roger Quadros wrote:
+>> On 07/18/2013 03:38 PM, Arend van Spriel wrote:
+>>> On 07/18/2013 01:30 PM, Roger Quadros wrote:
+>>>> On 07/18/2013 02:24 PM, Arend van Spriel wrote:
+>>>>> On 07/18/2013 01:18 PM, Roger Quadros wrote:
+>>>>>> Hi Arend,
+>>>>>>
+>>>>>> On 07/18/2013 11:41 AM, Arend van Spriel wrote:
+>>>>>>> Hi Tony,
+>>>>>>>
+>>>>>>>
+>>>>>>> We are using the panda board (es variant) for testing our SDIO
+>>>>>>> based chips. For this we have an adapter card connection to
+>>>>>>> expansion connector A. As this adapter is not publicly available
+>>>>>>> we had internally patched board-omap4panda.c. Also we follow the
+>>>>>>> -rc releases and use TFTP to boot the kernel image which requires
+>>>>>>> USB.
+>>>>>>>
+>>>>>>> Moving to 3.11-rc1 I found that the mentioned board file was
+>>>>>>> removed by your commit:
+>>>>>>>
+>>>>>>> commit b42b918194c4791510ac049e3d507169a7de8544
+>>>>>>> Author: Tony Lindgren <tony@atomide.com>
+>>>>>>> Date:   Thu May 30 12:53:05 2013 -0700
+>>>>>>>
+>>>>>>>        ARM: OMAP2+: Remove board-omap4panda.c
+>>>>>>>
+>>>>>>> As our patches on that file are internal I do not hold it against
+>>>>>>> you. This is no regression and we need to fix it.
+>>>>>>>
+>>>>>>> So my first step was to follow the recipe given in that commit.
+>>>>>>> Beside that I noticed a thread about USB issue on LKML so I also
+>>>>>>> applied the following commit:
+>>>>>>>
+>>>>>>> commit 352f573e59050c7a604c35c58b4bbfc51edebbee
+>>>>>>> Author: Roger Quadros <rogerq@ti.com>
+>>>>>>> Date:   Tue Jun 18 19:04:47 2013 +0300
+>>>>>>>
+>>>>>>>        ARM: OMAP2+: Provide alias to USB PHY clock
+>>>>>>>
+>>>>>>> The attached kernel log seems to suggest that the device tree is
+>>>>>>> picked up by the kernel, but the USB does not seem very active.
+>>>>>>> No ethernet connectivity. This does seem a regression to me. Is
+>>>>>>> there some other patch that I need to get it going again?
+>>>>>>>
+>>>>>>
+>>>>>> I tried with your config and 3.11-rc1 kernel with the above commit
+>>>>>> on top and ethernet seems to
+>>>>>> work for me. My boot log is attached.
+>>>>>>
+>>>>>> Are you sure that you are building the DTB for panda-es and the
+>>>>>> bootloader is picking up the right file and
+>>>>>> not an outdated one?
+>>>>>
+>>>>> I appended the DTB to the kernel image thus avoiding the need to
+>>>>> update u-boot (at least that is what I understood from Tony's commit).
+>>>>>
+>>>>
+>>>> I understand this can be a little tedious at first.
+>>>>
+>>>> This is my u-boot boot.txt
+>>>>
+>>>> fatload mmc 0:1 0x825f0000 omap4-panda-es.dtb
+>>>> fatload mmc 0:1 0x80300000 uImage
+>>>> set fdt_high 0xffffffff
+>>>> setenv bootargs console=ttyO2,115200n8 mem=1G@0x80000000
+>>>> root=/dev/mmcblk0p2 rootwait
+>>>> bootm 0x80300000 - 0x825f0000
+>>>>
+>>>> You need to generate boot.scr from the above boot.txt and place it
+>>>> in SD card boot partition.
+>>>>
+>>>> mkimage -A arm -T script -C none -n "Boot Image" -d boot.txt boot.scr
+>>>>
+>>>> And of course copy the omap4-panda-es.dtb to SD card boot partition.
+>>>>
+>>>> hope this helps.
+>>>
+>>> Thanks for sharing this.
+>>>
+>>>>>> Why is the version of SPL loader and u-boot different in your log?
+>>>>>> You need to use the MLO file generated by the u-boot build along
+>>>>>> with the uImage.
+>>>>>>
+>>>>>> Just to be sure we are on the same setup could you please try with
+>>>>>> latest u-boot release (2013-04). Thanks.
+>>>>>
+>>>>> I recall having difficulty with TFTP boot using a 2013 u-boot
+>>>>> release, but that hurdle is for later. I will try.
+>>>>>
+>>>>
+>>>> OK. We can figure this out as well.
+>>>
+>>> I tried with same SPL and u-boot version, but that did not work out.
+>>> So I moved to v2013.04 and the log looks better. I was especially
+>>> interested in this:
+>>>
+>>> [    2.807434] usb 1-1.1: new high-speed USB device number 3 using
+>>> ehci-omap
+>>> [    2.932495] usb 1-1.1: New USB device found, idVendor=0424,
+>>> idProduct=ec00
+>>> [    2.932495] usb 1-1.1: New USB device strings: Mfr=0, Product=0,
+>>> SerialNumbe0
+>>> [    2.958770] smsc95xx v1.0.4
+>>> Starting logging: OK
+>>> Initializing random number generator... [    3.045806] smsc95xx
+>>> 1-1.1:1.0 eth0
+>>
+>> Cool! :).
+>>
+>> FYI. I also tested tftpboot from u-boot and NFS root file system and
+>> it works fine.
 > 
-> On Thu, Jul 25, 2013 at 07:46:58PM +0000, Paul Zimmerman wrote:
-> > > diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-> > > index 607bef8..50c833f 100644
-> > > --- a/drivers/usb/dwc3/core.c
-> > > +++ b/drivers/usb/dwc3/core.c
-> > > @@ -384,21 +384,6 @@ static int dwc3_probe(struct platform_device *pdev)
-> > >  		dev_err(dev, "missing memory resource\n");
-> > >  		return -ENODEV;
-> > >  	}
-> > > -	dwc->xhci_resources[0].start = res->start;
-> > > -	dwc->xhci_resources[0].end = dwc->xhci_resources[0].start +
-> > > -					DWC3_XHCI_REGS_END;
-> > > -	dwc->xhci_resources[0].flags = res->flags;
-> > > -	dwc->xhci_resources[0].name = res->name;
-> > > -
-> > > -	res->start += DWC3_GLOBALS_REGS_START;
-> > > -
-> > > -	 /*
-> > > -	  * Request memory region but exclude xHCI regs,
-> > > -	  * since it will be requested by the xhci-plat driver.
-> > > -	  */
-> > > -	regs = devm_ioremap_resource(dev, res);
-> > > -	if (IS_ERR(regs))
-> > > -		return PTR_ERR(regs);
-> > >
-> > >  	if (node) {
-> > >  		dwc->maximum_speed = of_usb_get_maximum_speed(node);
-> > > @@ -452,6 +437,22 @@ static int dwc3_probe(struct platform_device *pdev)
-> > >  		return -EPROBE_DEFER;
-> > >  	}
-> > >
-> > > +	dwc->xhci_resources[0].start = res->start;
-> > > +	dwc->xhci_resources[0].end = dwc->xhci_resources[0].start +
-> > > +					DWC3_XHCI_REGS_END;
-> > > +	dwc->xhci_resources[0].flags = res->flags;
-> > > +	dwc->xhci_resources[0].name = res->name;
-> > > +
-> > > +	res->start += DWC3_GLOBALS_REGS_START;
-> >
-> > Ick. The driver is modifying the struct resource passed to it by the
+> Hi Roger,
 > 
-> heh...
-> 
-> > platform code? That seems like a layering violation, and is fragile as
-> > hell. In addition to this bug, what would happen if the struct resource
-> > was declared 'const'?
-> 
-> nothing would happen if it was declared const since platform_add_device
-> makes a copy of what was declared, and that's always non-const.
+> Can I get back on this topic. When USB and ethernet was working for me
+> as stated above, I was not doing tftpboot. When I use tftpboot the
+> images are obtained from the tftp server, but after kernel has started
+> there is nothing in /sys/bus/usb/devices/.
 
-OK.
+I quickly tried 3.11-rc2 + Roger's USB PHY clock patch on omap4-panda-es
+and enabled following USB options:
 
-> Also, this is not *modifying* what was passed, just skipping the xHCI
-> address space so we don't request_mem_region() an area we won't really
-> handle and prevent xhci-hcd.ko from probing.
+CONFIG_USB_MUSB_HDRC=y
+CONFIG_USB_PHY=y
+CONFIG_OMAP_USB2=y
+CONFIG_OMAP_CONTROL_USB=y
+CONFIG_USB_MUSB_OMAP2PLUS=y
+CONFIG_MFD_OMAP_USB_HOST=y
+CONFIG_USB_EHCI_HCD=y
+CONFIG_USB_OHCI_HCD=y
+CONFIG_USB_EHCI_HCD_OMAP=y
 
-Hmm? platform_get_resource() returns a pointer to an entry in the
-platform_device's resource[] array. And "res->start +=" modifies the
-entry pointed at. If it didn't, the bug fixed by this patch wouldn't
-have happened.
+With this I see both USB ports, and ethernet:
 
-Are you sure this code will work OK if you build the driver as a module,
-modprobe it, rmmod it, and then modprobe it again? Seems like it won't,
-unless the dev->resource[] array gets reinitialized in between somehow.
+bash-4.2# ifconfig eth0
+eth0      Link encap:Ethernet  HWaddr BE:08:A9:74:3E:A0
+          inet addr:192.168.3.4  Bcast:192.168.3.255  Mask:255.255.255.0
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:6 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:17 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:842 (842.0 B)  TX bytes:4724 (4.6 KiB)
+bash-4.2# lsusb
 
-All this assumes I'm reading the code correctly, of course. If I'm not,
-then never mind :)
+Bus 001 Device 002: ID 0424:9514 Standard Microsystems Corp.
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 001 Device 003: ID 0424:ec00 Standard Microsystems Corp.
 
--- 
-Paul
+bash-4.2# ls /sys/bus/usb/devices/
+1-0:1.0    1-1        1-1.1      1-1.1:1.0  1-1:1.0    2-0:1.0     usb1
+      usb2
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I tried a 'usb stop' before booting the kernel, but that does not help
+> either. As you stated to have tftpboot working, maybe you can help me.
+
+I am tftp'ing kernel over USB network. I think U-boot shouldn't have
+anything to do with Kernel USB though. If it does, then its a bug.
+
+Hope this helps, Thanks,
+
+-Joel
