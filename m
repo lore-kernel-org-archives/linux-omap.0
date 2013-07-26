@@ -1,7 +1,7 @@
 From: Illia Smyrnov <illia.smyrnov@ti.com>
-Subject: [PATCH 2/3] Input: omap-keypad: errata i689: Correct debounce time
-Date: Fri, 26 Jul 2013 19:30:00 +0300
-Message-ID: <1374856201-11507-3-git-send-email-illia.smyrnov@ti.com>
+Subject: [PATCH 3/3] Input: omap-keypad: Set irq to level instead of edge
+Date: Fri, 26 Jul 2013 19:30:01 +0300
+Message-ID: <1374856201-11507-4-git-send-email-illia.smyrnov@ti.com>
 References: <1374856201-11507-1-git-send-email-illia.smyrnov@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,36 +14,8 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Axel Haslam <axelhaslam@ti.com>
 
-Set debounce time value to 12ms to workaround the errata.
-
-ERRATA DESCRIPTION:
-When a key is released for a time shorter than the debounce time,
-in-between 2 key press (KP1 and KP2), the keyboard state machine will go to
-idle mode and will never detect the key release (after KP1,and also after KP2),
-and thus will never generate a new IRQ indicating the key release.
->From the operating system standpoint, only a key press as been detected,
-and the key will keep on being printed on the screen until another or
-the same key is pressed again.When the failing state has been reached,
-the KBD_STATEMACHINE register will show "idle state" and the KBD_FULLCODE
-register won't be empty, this is the signature of the bug.There is no impact
-on the power consumption of the system as the state machine goes to IDLE state.
-
-WORKAROUND:
-First thing is to program the debounce time correctly:
-If X (us) is the maximum time of bounces when a key is pressed or released,
-and Y (us) is the minimum time of a key release that is expected to be detected,
-then the debounce time should be set to a value inbetween X and Y.
-
-In case it is still possible to get shorter than debounce time key-release
-events, then the only solution is to implement a software workaround:
-
-Before printing a second character on the screen, the software must check if
-the keyboard has hit the failing condition (cf signature of the bug above)
-or if the key is still really pressed and then take the appropriate actions.
-
-Silicon revisions impacted: OMAP4430 ES 1.0,2.0,2.1,2.2,2.3
-                            OMAP4460 ES 1.0,1.1
-                            OMAP5430 ES 1.0
+Set mpu irq to level instead of edge, since if mpu is in low power
+an edge detection may be lost if the event is a wkup event.
 
 Signed-off-by: Axel Haslam <axelhaslam@ti.com>
 Signed-off-by: Illia Smyrnov <illia.smyrnov@ti.com>
@@ -51,28 +23,30 @@ Signed-off-by: Illia Smyrnov <illia.smyrnov@ti.com>
  Based on top of v3.11-rc2
 
  Depends on:
- Input: omap-keypad: Cleanup - use bitfiled instead of hardcoded values
- https://patchwork.kernel.org/patch/2832913/
+ Input: omap-keypad: Convert to threaded IRQ
+ https://patchwork.kernel.org/patch/2832920/
 
- drivers/input/keyboard/omap4-keypad.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/input/keyboard/omap4-keypad.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
-index 5f0a2c7..b13589e 100644
+index b13589e..66a41d6 100644
 --- a/drivers/input/keyboard/omap4-keypad.c
 +++ b/drivers/input/keyboard/omap4-keypad.c
-@@ -62,8 +62,10 @@
+@@ -374,9 +374,13 @@ static int omap4_keypad_probe(struct platform_device *pdev)
+ 		goto err_free_keymap;
+ 	}
  
- /* OMAP4 values */
- #define OMAP4_VAL_IRQDISABLE		0x0
--#define OMAP4_VAL_DEBOUNCINGTIME	0x7
--#define OMAP4_VAL_PVT			0x7
-+
-+/* Errata i689: set debounce time value to 12ms */
-+#define OMAP4_VAL_DEBOUNCINGTIME	0x2
-+#define OMAP4_VAL_PVT			0x6
- 
- enum {
- 	KBD_REVISION_OMAP4 = 0,
++	/*
++	 * Set irq level detection for mpu. Edge event are missed in gic
++	 * if the mpu is in low power and keypad event is a wakeup
++	 */
+ 	error = request_threaded_irq(keypad_data->irq, omap4_keypad_irq_handler,
+ 				     omap4_keypad_irq_thread_fn,
+-				     IRQF_TRIGGER_RISING,
++				     IRQF_TRIGGER_HIGH,
+ 				     "omap4-keypad", keypad_data);
+ 	if (error) {
+ 		dev_err(&pdev->dev, "failed to register interrupt\n");
 -- 
 1.7.9.5
