@@ -1,72 +1,216 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP2430 SDP boot broken after Linus' rmk merge
-Date: Sat, 27 Jul 2013 04:10:56 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1307270405470.4546@utopia.booyaka.com>
-References: <alpine.DEB.2.02.1307221801110.10891@utopia.booyaka.com> <20130722184325.GA21614@n2100.arm.linux.org.uk> <alpine.DEB.2.02.1307222005370.26048@utopia.booyaka.com> <51EE2AA7.5060503@ti.com> <alpine.DEB.2.02.1307230705000.27017@utopia.booyaka.com>
- <51EE474D.5070804@ti.com> <20130724135617.GI11072@mudshark.cambridge.arm.com> <51EFE1DD.8070801@ti.com> <20130724142059.GJ11072@mudshark.cambridge.arm.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [Resend/PATCH] arm: dts: omap5: Add status parameter for i2c/spi/uart.
+Date: Sat, 27 Jul 2013 12:09:49 +0530
+Message-ID: <1374907189-15848-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:58673 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750725Ab3G0EK6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Jul 2013 00:10:58 -0400
-In-Reply-To: <20130724142059.GJ11072@mudshark.cambridge.arm.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:43811 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753204Ab3G0GkS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Jul 2013 02:40:18 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: benoit.cousson@linaro.org, tony@atomide.com
+Cc: devicetree@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>
 
+This patch disabled I2C/SPI/UART device initially(status = "disabled").
+This devices will only be probed, if the devices are
+present in the dts file(status = "okay").
 
-Tonight I put on a Jon Hopkins album, in recollection of my UK ARM Linux 
-colleagues perhaps, and started testing, and eventually wound up with this 
-one:
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+---
+ arch/arm/boot/dts/omap5-uevm.dts |   10 +++++++++-
+ arch/arm/boot/dts/omap5.dtsi     |   15 +++++++++++++++
+ 2 files changed, 24 insertions(+), 1 deletions(-)
 
-commit 621a0147d5c921f4cc33636ccd0602ad5d7cbfbc
-Author: Will Deacon <will.deacon@arm.com>
-Date:   Wed Jun 12 12:25:56 2013 +0100
-
-    ARM: 7757/1: mm: don't flush icache in switch_mm with hardware broadcasting
-    
-    When scheduling an mm on a CPU where it hasn't previously been used, we
-    flush the icache on that CPU so that any code loaded previously on
-    a different core can be safely executed.
-    
-    For cores with hardware broadcasting of cache maintenance operations,
-    this is clearly unnecessary, since the inner-shareable invalidation in
-    __sync_icache_dcache will affect all CPUs.
-    
-    This patch conditionalises the icache flush in switch_mm based on
-    cache_ops_need_broadcast().
-    
-    Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-    Reported-by: Albin Tonnerre <albin.tonnerre@arm.com>
-    Signed-off-by: Will Deacon <will.deacon@arm.com>
-    Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-
-...
-
-v3.11-rc2 boots with it reverted.  What also works is v3.11-rc2 with the 
-below patch applied.
-
-Would be pleased to boot-test anything you'd care to send my way, as long 
-as you can tolerate response latency jitter.
-
-
-- Paul
-
-diff --git a/arch/arm/include/asm/mmu_context.h b/arch/arm/include/asm/mmu_context.h
-index b5792b7..8dfb295 100644
---- a/arch/arm/include/asm/mmu_context.h
-+++ b/arch/arm/include/asm/mmu_context.h
-@@ -112,7 +112,7 @@ switch_mm(struct mm_struct *prev, struct mm_struct *next,
- 	 * so check for possible thread migration and invalidate the I-cache
- 	 * if we're new to this CPU.
- 	 */
--	if (cache_ops_need_broadcast() &&
-+	if (1 &&
- 	    !cpumask_empty(mm_cpumask(next)) &&
- 	    !cpumask_test_cpu(cpu, mm_cpumask(next)))
- 		__flush_icache_all();
-
+diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+index 08b7267..aef8de1 100644
+--- a/arch/arm/boot/dts/omap5-uevm.dts
++++ b/arch/arm/boot/dts/omap5-uevm.dts
+@@ -259,6 +259,7 @@
+ };
+ 
+ &i2c1 {
++	status = "okay";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&i2c1_pins>;
+ 
+@@ -431,6 +432,7 @@
+ };
+ 
+ &i2c5 {
++	status = "okay";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&i2c5_pins>;
+ 
+@@ -451,35 +453,41 @@
+ };
+ 
+ &mcspi1 {
+-
++	status = "okay";
+ };
+ 
+ &mcspi2 {
++	status = "okay";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&mcspi2_pins>;
+ };
+ 
+ &mcspi3 {
++	status = "okay";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&mcspi3_pins>;
+ };
+ 
+ &mcspi4 {
++	status = "okay";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&mcspi4_pins>;
+ };
+ 
+ &uart1 {
++	status = "okay";
+         pinctrl-names = "default";
+         pinctrl-0 = <&uart1_pins>;
+ };
+ 
+ &uart3 {
++	status = "okay";
+         pinctrl-names = "default";
+         pinctrl-0 = <&uart3_pins>;
+ };
+ 
+ &uart5 {
++	status = "okay";
+         pinctrl-names = "default";
+         pinctrl-0 = <&uart5_pins>;
+ };
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index e643620..fcd28c9 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -238,6 +238,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c1";
++			status = "disabled";
+ 		};
+ 
+ 		i2c2: i2c@48072000 {
+@@ -247,6 +248,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c2";
++			status = "disabled";
+ 		};
+ 
+ 		i2c3: i2c@48060000 {
+@@ -256,6 +258,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c3";
++			status = "disabled";
+ 		};
+ 
+ 		i2c4: i2c@4807a000 {
+@@ -265,6 +268,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c4";
++			status = "disabled";
+ 		};
+ 
+ 		i2c5: i2c@4807c000 {
+@@ -274,6 +278,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c5";
++			status = "disabled";
+ 		};
+ 
+ 		mcspi1: spi@48098000 {
+@@ -294,6 +299,7 @@
+ 			       <&sdma 42>;
+ 			dma-names = "tx0", "rx0", "tx1", "rx1",
+ 				    "tx2", "rx2", "tx3", "rx3";
++			status = "disabled";
+ 		};
+ 
+ 		mcspi2: spi@4809a000 {
+@@ -309,6 +315,7 @@
+ 			       <&sdma 45>,
+ 			       <&sdma 46>;
+ 			dma-names = "tx0", "rx0", "tx1", "rx1";
++			status = "disabled";
+ 		};
+ 
+ 		mcspi3: spi@480b8000 {
+@@ -321,6 +328,7 @@
+ 			ti,spi-num-cs = <2>;
+ 			dmas = <&sdma 15>, <&sdma 16>;
+ 			dma-names = "tx0", "rx0";
++			status = "disabled";
+ 		};
+ 
+ 		mcspi4: spi@480ba000 {
+@@ -333,6 +341,7 @@
+ 			ti,spi-num-cs = <1>;
+ 			dmas = <&sdma 70>, <&sdma 71>;
+ 			dma-names = "tx0", "rx0";
++			status = "disabled";
+ 		};
+ 
+ 		uart1: serial@4806a000 {
+@@ -341,6 +350,7 @@
+ 			interrupts = <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart1";
+ 			clock-frequency = <48000000>;
++			status = "disabled";
+ 		};
+ 
+ 		uart2: serial@4806c000 {
+@@ -349,6 +359,7 @@
+ 			interrupts = <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart2";
+ 			clock-frequency = <48000000>;
++                        status = "disabled";
+ 		};
+ 
+ 		uart3: serial@48020000 {
+@@ -357,6 +368,7 @@
+ 			interrupts = <GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart3";
+ 			clock-frequency = <48000000>;
++                        status = "disabled";
+ 		};
+ 
+ 		uart4: serial@4806e000 {
+@@ -365,6 +377,7 @@
+ 			interrupts = <GIC_SPI 70 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart4";
+ 			clock-frequency = <48000000>;
++			status = "disabled";
+ 		};
+ 
+ 		uart5: serial@48066000 {
+@@ -373,6 +386,7 @@
+ 			interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart5";
+ 			clock-frequency = <48000000>;
++			status = "disabled";
+ 		};
+ 
+ 		uart6: serial@48068000 {
+@@ -381,6 +395,7 @@
+ 			interrupts = <GIC_SPI 106 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart6";
+ 			clock-frequency = <48000000>;
++			status = "disabled";
+ 		};
+ 
+ 		mmc1: mmc@4809c000 {
+-- 
+1.7.1
 
