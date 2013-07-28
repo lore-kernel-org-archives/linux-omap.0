@@ -1,50 +1,46 @@
-From: Linus Walleij <linus.walleij@linaro.org>
+From: Alexander Holler <holler@ahsoftware.de>
 Subject: Re: [PATCH v4 1/2] gpio/omap: don't create an IRQ mapping for every
  GPIO on DT
-Date: Sun, 28 Jul 2013 16:11:29 +0200
-Message-ID: <CACRpkdbCpbkSe1+Ap1yLm+iCDy3rnHL1LYTxCVJkmwdrNJCKGQ@mail.gmail.com>
-References: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk>
-	<51F4F973.8000303@ahsoftware.de>
-	<CACRpkda8byMWTQ5n24MsUBacpcHDcf=P9KzjcckT-KyAFEinHw@mail.gmail.com>
-	<51F515A9.9010005@ahsoftware.de>
+Date: Sun, 28 Jul 2013 16:25:26 +0200
+Message-ID: <51F529D6.8030809@ahsoftware.de>
+References: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk> <51F4F973.8000303@ahsoftware.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f181.google.com ([209.85.214.181]:34220 "EHLO
-	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753564Ab3G1OL3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Jul 2013 10:11:29 -0400
-Received: by mail-ob0-f181.google.com with SMTP id dn14so7251140obc.40
-        for <linux-omap@vger.kernel.org>; Sun, 28 Jul 2013 07:11:29 -0700 (PDT)
-In-Reply-To: <51F515A9.9010005@ahsoftware.de>
+Received: from h1446028.stratoserver.net ([85.214.92.142]:51525 "EHLO
+	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753652Ab3G1O0d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Jul 2013 10:26:33 -0400
+Received: from eiche.ahsoftware (p57B21DD0.dip0.t-ipconnect.de [87.178.29.208])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.ahsoftware.de (Postfix) with ESMTPSA id E89AF423C2AF
+	for <linux-omap@vger.kernel.org>; Sun, 28 Jul 2013 16:26:29 +0200 (CEST)
+In-Reply-To: <51F4F973.8000303@ahsoftware.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alexander Holler <holler@ahsoftware.de>
-Cc: ext Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jon Hunter <jgchunter@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>, Balaji T K <balajitk@ti.com>
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@linaro.org>, jgchunter@gmail.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, eballetbo@gmail.com, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>, aaro.koskinen@iki.fi, Balaji T K <balajitk@ti.com>
 
-On Sun, Jul 28, 2013 at 2:59 PM, Alexander Holler <holler@ahsoftware.de> wrote:
-> Am 28.07.2013 13:14, schrieb Linus Walleij:
+Am 28.07.2013 12:58, schrieb Alexander Holler:
 
->> What shall we do with this mess now?
-(...)
-> Hmm, maybe something which adds a mapping for a IRQ when gpio_to_irq()
-> is called would help.
+> This patch basically broke every usage of
+> 
+> irq = gpio_to_irq(gpio);
+> request[_threaded]_irq(irq, ...);
+> 
+> because request[_threaded]_irq(irq, ...) now fails because of a missing
+> irq_domain (no mapping => no domain).
+> 
+> A prominent victim of this is the omap_hsmmc driver with the cd-gpio
+> option enabled. To reproduce it, just add "cd-gpios = <&gpio0 6
+> GPIO_ACTIVE_HIGH>;" (or similiar) to the omap-mmc part in the DT.
 
-I think this bug is pointing back to my initial remark that
-we need to flag, in the DT node for each GPIOchip
-that provides "auto-IRQs" exactly which IRQ lines that
-will be used as simple IRQ lines. This is what I called
-"GPIO hogs" a while back.
+By the way, if someone decides to touch omap_hsmmc, the driver wrongly
+assumes that 0 is not a valid IRQ number and it doesn't check if
+gpio_to_irq() returns a negative value. ;)
 
-If this had been done, gpio_request_one() would
-*only* have been called on the GPIOs marked as
-being used for IRQs simply. And we wouldn't have
-had this bug.
+Regards,
 
-I am leaning towards reverting the whole shebang
-right now, and using that as an argument to hammer
-in my opinion that we need to do it my way unless
-something incredibly clever comes up.
-
-Yours,
-Linus Walleij
+Alexander Holler
