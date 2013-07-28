@@ -1,162 +1,50 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH v2] N900: add device tree
-Date: Sun, 28 Jul 2013 15:44:09 +0200
-Message-ID: <20130728134409.GB5382@amd.pavel.ucw.cz>
-References: <20130613230808.GA14876@amd.pavel.ucw.cz>
- <20130614055629.GM8164@atomide.com>
- <20130614212816.GA31768@atrey.karlin.mff.cuni.cz>
- <20130617111031.GQ20992@atomide.com>
- <20130701211753.GC15318@amd.pavel.ucw.cz>
- <20130704171939.GA27374@blackmetal.musicnaut.iki.fi>
- <20130704202145.GB10752@amd.pavel.ucw.cz>
- <20130704203256.GB27374@blackmetal.musicnaut.iki.fi>
- <20130713121709.GC16473@amd.pavel.ucw.cz>
- <20130714222819.GB3296@blackmetal.musicnaut.iki.fi>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v4 1/2] gpio/omap: don't create an IRQ mapping for every
+ GPIO on DT
+Date: Sun, 28 Jul 2013 16:11:29 +0200
+Message-ID: <CACRpkdbCpbkSe1+Ap1yLm+iCDy3rnHL1LYTxCVJkmwdrNJCKGQ@mail.gmail.com>
+References: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk>
+	<51F4F973.8000303@ahsoftware.de>
+	<CACRpkda8byMWTQ5n24MsUBacpcHDcf=P9KzjcckT-KyAFEinHw@mail.gmail.com>
+	<51F515A9.9010005@ahsoftware.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130714222819.GB3296@blackmetal.musicnaut.iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, b-cousson@ti.com, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f181.google.com ([209.85.214.181]:34220 "EHLO
+	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753564Ab3G1OL3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Jul 2013 10:11:29 -0400
+Received: by mail-ob0-f181.google.com with SMTP id dn14so7251140obc.40
+        for <linux-omap@vger.kernel.org>; Sun, 28 Jul 2013 07:11:29 -0700 (PDT)
+In-Reply-To: <51F515A9.9010005@ahsoftware.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alexander Holler <holler@ahsoftware.de>
+Cc: ext Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jon Hunter <jgchunter@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>, Balaji T K <balajitk@ti.com>
 
-On Mon 2013-07-15 01:28:19, Aaro Koskinen wrote:
-> Hi,
-> 
-> On Sat, Jul 13, 2013 at 02:17:09PM +0200, Pavel Machek wrote:
-> > 
-> > This adds device tree with neccessary support to boot with functional
-> > video (on both emulator and real N900 device).
-> > 
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> You can also add:
-> 
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+On Sun, Jul 28, 2013 at 2:59 PM, Alexander Holler <holler@ahsoftware.de> wrote:
+> Am 28.07.2013 13:14, schrieb Linus Walleij:
 
-Benoit, could you apply this? Tony said you are doing dts changes, and
-the patch seems to be ready.
+>> What shall we do with this mess now?
+(...)
+> Hmm, maybe something which adds a mapping for a IRQ when gpio_to_irq()
+> is called would help.
 
-> > From v1: Aaro wants just GPLv2, so I did that. I re-enabled parts that
-> > can be enabled on 3.10, and tested it on that kernel.
-> > 
-> > diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> > index f0895c5..1950aed 100644
-> > --- a/arch/arm/boot/dts/Makefile
-> > +++ b/arch/arm/boot/dts/Makefile
-> > @@ -141,6 +141,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
-> >  	omap3-devkit8000.dtb \
-> >  	omap3-beagle-xm.dtb \
-> >  	omap3-evm.dtb \
-> > +	omap3-n900.dtb \
-> >  	omap3-tobi.dtb \
-> >  	omap3-igep0020.dtb \
-> >  	omap3-igep0030.dtb \
-> > diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-> > new file mode 100644
-> > index 0000000..fb461bf
-> > --- /dev/null
-> > +++ b/arch/arm/boot/dts/omap3-n900.dts
-> > @@ -0,0 +1,92 @@
-> > +/*
-> > + * Copyright (C) 2013 Pavel Machek <pavel@ucw.cz>
-> > + * Copyright 2013 Aaro Koskinen <aaro.koskinen@iki.fi>
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +/dts-v1/;
-> > +
-> > +/include/ "omap34xx.dtsi"
-> > +
-> > +/ {
-> > +	model = "Nokia N900";
-> > +	compatible = "nokia,omap3-n900", "ti,omap3";
-> > +
-> > +	cpus {
-> > +		cpu@0 {
-> > +			cpu0-supply = <&vcc>;
-> > +		};
-> > +	};
-> > +
-> > +	memory {
-> > +		device_type = "memory";
-> > +		reg = <0x80000000 0x10000000>; /* 256 MB */
-> > +	};
-> > +
-> > +};
-> > +
-> > +&i2c1 {
-> > +	clock-frequency = <2200000>;
-> > +
-> > +	twl: twl@48 {
-> > +		reg = <0x48>;
-> > +		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-> > +		interrupt-parent = <&intc>;
-> > +	};
-> > +};
-> > +
-> > +/include/ "twl4030.dtsi"
-> > +
-> > +&twl_gpio {
-> > +	ti,pullups	= <0x0>;
-> > +	ti,pulldowns	= <0x03ff3f>; /* BIT(0..5) | BIT(8..17) */
-> > +};
-> > +
-> > +&i2c2 {
-> > +	clock-frequency = <400000>;
-> > +};
-> > +
-> > +&i2c3 {
-> > +	clock-frequency = <100000>;
-> > +};
-> > +
-> > +&mmc1 {
-> > +	status = "disabled";
-> > +};
-> > +
-> > +&mmc2 {
-> > +	status = "disabled";
-> > +};
-> > +
-> > +&mmc3 {
-> > +	status = "disabled";
-> > +};
-> > +
-> > +&mcspi1 {
-> > +	// For some reason, touchscreen is neccessary for screen to work at 
-> > +	// all on real hw. It works well without it on emulator.
-> > +	//
-> > +	// Also... order in the device tree actually matters here.
-> > +	tsc2005@0 {
-> > +		compatible = "tsc2005";
-> > +		spi-max-frequency = <6000000>;
-> > +		reg = <0>;
-> > +	};
-> > +	mipid@2 {
-> > +		compatible = "acx565akm";
-> > +		spi-max-frequency = <6000000>;
-> > +		reg = <2>;
-> > +		// turbo_mode = 0,
-> > +		// cs_per_word = 0
-> > +	};
-> > +};
-> > +
-> > +&usb_otg_hs {
-> > +	interface-type = <0>;
-> > +	usb-phy = <&usb2_phy>;
-> > +	mode = <2>;
-> > +	power = <50>;
-> > +};
-> > 
-> > -- 
-> > (english) http://www.livejournal.com/~pavelmachek
-> > (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+I think this bug is pointing back to my initial remark that
+we need to flag, in the DT node for each GPIOchip
+that provides "auto-IRQs" exactly which IRQ lines that
+will be used as simple IRQ lines. This is what I called
+"GPIO hogs" a while back.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+If this had been done, gpio_request_one() would
+*only* have been called on the GPIOs marked as
+being used for IRQs simply. And we wouldn't have
+had this bug.
+
+I am leaning towards reverting the whole shebang
+right now, and using that as an argument to hammer
+in my opinion that we need to do it my way unless
+something incredibly clever comes up.
+
+Yours,
+Linus Walleij
