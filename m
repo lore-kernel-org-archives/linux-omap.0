@@ -1,75 +1,35 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: [PATCH 09/11] spi/tegra114: Use core runtime PM
-Date: Sun, 28 Jul 2013 15:43:24 +0100
-Message-ID: <1375022606-7576-9-git-send-email-broonie@kernel.org>
-References: <1375022606-7576-1-git-send-email-broonie@kernel.org>
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <1375022606-7576-1-git-send-email-broonie@kernel.org>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Linus Walleij <linus.walleij@linaro.org>
-Cc: linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linaro-kernel@lists.linaro.org, Mark Brown <broonie@linaro.org>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v4 1/2] gpio/omap: don't create an IRQ mapping for every
+ GPIO on DT
+Date: Sun, 28 Jul 2013 18:25:07 +0200
+Message-ID: <CACRpkdYKSMcCe+uNiB2Jbc8GbUwvJxyq+7EiLM-xdOevVRK-wQ@mail.gmail.com>
+References: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk>
+	<51F4F973.8000303@ahsoftware.de>
+	<51F529D6.8030809@ahsoftware.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oa0-f49.google.com ([209.85.219.49]:39029 "EHLO
+	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753713Ab3G1QZI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Jul 2013 12:25:08 -0400
+Received: by mail-oa0-f49.google.com with SMTP id n12so10967173oag.8
+        for <linux-omap@vger.kernel.org>; Sun, 28 Jul 2013 09:25:08 -0700 (PDT)
+In-Reply-To: <51F529D6.8030809@ahsoftware.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alexander Holler <holler@ahsoftware.de>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Grant Likely <grant.likely@linaro.org>, Jon Hunter <jgchunter@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>, Balaji T K <balajitk@ti.com>
 
-From: Mark Brown <broonie@linaro.org>
+On Sun, Jul 28, 2013 at 4:25 PM, Alexander Holler <holler@ahsoftware.de> wrote:
 
-Signed-off-by: Mark Brown <broonie@linaro.org>
----
- drivers/spi/spi-tegra114.c | 26 +-------------------------
- 1 file changed, 1 insertion(+), 25 deletions(-)
+> By the way, if someone decides to touch omap_hsmmc, the driver wrongly
+> assumes that 0 is not a valid IRQ number and it doesn't check if
+> gpio_to_irq() returns a negative value. ;)
 
-diff --git a/drivers/spi/spi-tegra114.c b/drivers/spi/spi-tegra114.c
-index e7d48a1..2e208dc 100644
---- a/drivers/spi/spi-tegra114.c
-+++ b/drivers/spi/spi-tegra114.c
-@@ -803,20 +803,6 @@ static int tegra_spi_setup(struct spi_device *spi)
- 	return 0;
- }
- 
--static int tegra_spi_prepare_transfer(struct spi_master *spi)
--{
--	struct tegra_spi_data *tspi = spi_master_get_devdata(spi);
--	int ret;
--
--	ret = pm_runtime_get_sync(tspi->dev);
--	if (ret < 0) {
--		dev_err(tspi->dev, "runtime PM get failed: %d\n", ret);
--		return ret;
--	}
--
--	return ret;
--}
--
- static int tegra_spi_transfer_one_message(struct spi_master *master,
- 			struct spi_message *msg)
- {
-@@ -870,15 +856,6 @@ exit:
- 	return ret;
- }
- 
--static int tegra_spi_unprepare_transfer(struct spi_master *spi)
--{
--	struct tegra_spi_data *tspi = spi_master_get_devdata(spi);
--
--	pm_runtime_put(tspi->dev);
--
--	return 0;
--}
--
- static irqreturn_t handle_cpu_based_xfer(struct tegra_spi_data *tspi)
- {
- 	struct spi_transfer *t = tspi->curr_xfer;
-@@ -1064,11 +1041,10 @@ static int tegra_spi_probe(struct platform_device *pdev)
- 	/* the spi->mode bits understood by this driver: */
- 	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH;
- 	master->setup = tegra_spi_setup;
--	master->prepare_transfer_hardware = tegra_spi_prepare_transfer;
- 	master->transfer_one_message = tegra_spi_transfer_one_message;
--	master->unprepare_transfer_hardware = tegra_spi_unprepare_transfer;
- 	master->num_chipselect = MAX_CHIP_SELECT;
- 	master->bus_num = -1;
-+	master->auto_runtime_pm = true;
- 
- 	tspi->master = master;
- 	tspi->dev = &pdev->dev;
--- 
-1.8.3.2
+Zero *is* *not* a valid IRQ number.
+
+But the latter should be checked.
+
+Yours,
+Linus Walleij
