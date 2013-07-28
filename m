@@ -1,137 +1,86 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] ARM: v6: avoid read_cpuid_ext() on ARM1136r0 in
- cache_ops_need_broadcast()
-Date: Sun, 28 Jul 2013 05:43:24 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1307280538460.8385@utopia.booyaka.com>
+Subject: [PATCH] ARM: v6: avoid remaining accesses to missing CP15 registers
+ on ARM1136 r0
+Date: Sun, 28 Jul 2013 05:46:05 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1307280543370.8385@utopia.booyaka.com>
 References: <alpine.DEB.2.02.1307221801110.10891@utopia.booyaka.com> <20130722184325.GA21614@n2100.arm.linux.org.uk> <alpine.DEB.2.02.1307222005370.26048@utopia.booyaka.com> <51EE2AA7.5060503@ti.com> <alpine.DEB.2.02.1307230705000.27017@utopia.booyaka.com>
- <51EE474D.5070804@ti.com> <20130724135617.GI11072@mudshark.cambridge.arm.com> <51EFE1DD.8070801@ti.com> <20130724142059.GJ11072@mudshark.cambridge.arm.com> <alpine.DEB.2.02.1307270405470.4546@utopia.booyaka.com>
- <20130727122221.GB6618@mudshark.cambridge.arm.com>
+ <51EE474D.5070804@ti.com> <20130724135617.GI11072@mudshark.cambridge.arm.com> <51EFE1DD.8070801@ti.com> <20130724142059.GJ11072@mudshark.cambridge.arm.com> <alpine.DEB.2.02.1307270405470.4546@utopia.booyaka.com> <20130727122221.GB6618@mudshark.cambridge.arm.com>
+ <alpine.DEB.2.02.1307280527430.8385@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:39714 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:39725 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752179Ab3G1FnZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Jul 2013 01:43:25 -0400
-In-Reply-To: <20130727122221.GB6618@mudshark.cambridge.arm.com>
+	with ESMTP id S1752179Ab3G1FqF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Jul 2013 01:46:05 -0400
+In-Reply-To: <alpine.DEB.2.02.1307280527430.8385@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Will Deacon <will.deacon@arm.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
 
-Commit 621a0147d5c921f4cc33636ccd0602ad5d7cbfbc ("ARM: 7757/1: mm:
-don't flush icache in switch_mm with hardware broadcasting") breaks
-the boot on OMAP2430SDP with omap2plus_defconfig.  Tracked to an
-undefined instruction abort from the CP15 read in
-cache_ops_need_broadcast().  It turns out that early ARM1136 variants
-don't support several CP15 registers that later ARM cores do.
-ARM1136JF-S TRM section 3.2.1 "Register allocation" has the details.
+Ensure that the remaining callers of read_cpuid_ext can't attempt an
+extended CP15 register read on ARMv6.  The only one that appears dodgy
+is tlb_ops_need_broadcast().
 
-So, prevent cache_ops_need_broadcast() from attempting the CP15 read
-if the running CPU doesn't provide the register.
-cache_ops_need_broadcast() is a hot path function, so focus on
-minimizing the execution time impact.  A subsequent patch will take
-care of the remaining cases in the current kernel.
-
-Thanks to Will Deacon for helping track this down.
+While here, convert feat_v6_fixup() to use cpu_is_arm1136_r0() to save
+a few lines of code.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Cc: Will Deacon <will.deacon@arm.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
 
-Intended for v3.11-rc.
+Intended for v3.12.  Depends on the patch "ARM: v6: avoid read_cpuid_ext() 
+on ARM1136r0 in cache_ops_need_broadcast()".
 
-Tested (along with the followup patch) here:
+Tested (along with the parent patch) here:
 
 http://www.pwsan.com/omap/testlogs/bisect_2430sdp_hang_v3.11-rc/20130727224434/README.txt
 
 against stock v3.11-rc2, so several boards aren't booting due to unrelated 
 issues.
 
- arch/arm/include/asm/cputype.h  | 37 ++++++++++++++++++++++++++++++++++++-
- arch/arm/include/asm/smp_plat.h |  4 +++-
- 2 files changed, 39 insertions(+), 2 deletions(-)
+ arch/arm/include/asm/smp_plat.h | 3 +++
+ arch/arm/kernel/setup.c         | 7 +------
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/include/asm/cputype.h b/arch/arm/include/asm/cputype.h
-index 8c25dc4..91ccd77 100644
---- a/arch/arm/include/asm/cputype.h
-+++ b/arch/arm/include/asm/cputype.h
-@@ -76,6 +76,8 @@
- #define ARM_CPU_XSCALE_ARCH_V2		0x4000
- #define ARM_CPU_XSCALE_ARCH_V3		0x6000
- 
-+#define ARM_CPU_ARM1136R0		0x4107b360
-+
- extern unsigned int processor_id;
- 
- #ifdef CONFIG_CPU_CP15
-@@ -89,10 +91,43 @@ extern unsigned int processor_id;
- 		__val;							\
- 	})
- 
-+
-+/* Workaround for missing CP15 registers on ARM1136 r0 */
-+# if defined(CONFIG_CPU_V6)
-+/**
-+ * cpu_is_arm1136_r0 - is the kernel running on an ARM1136 r0 core?
-+ *
-+ * Returns true if the kernel is running on an ARM1136 r0 core, or
-+ * false otherwise.  Callers use this to avoid undefined instruction
-+ * aborts from CP15 accesses to registers not present on the r0
-+ * variant, or to detect whether certain CPU features are available.
-+ * ARM1136JF-S TRM section 3.2.1 "Register allocation"
-+ */
-+static inline bool __attribute_const__ cpu_is_arm1136_r0(void)
-+{
-+	return ((read_cpuid(CPUID_ID) & 0xfffffff0) == ARM_CPU_ARM1136R0);
-+}
-+
-+/*
-+ * The mrc in the read_cpuid_ext macro must not be reordered on ARMv6,
-+ * else the compiler may move it before any ARM1136r0 test.
-+ */
-+# define CPUID_EXT_REORDER	volatile
-+# else
-+static inline bool __attribute_const__ cpu_is_arm1136_r0(void) { return false; }
-+# define CPUID_EXT_REORDER
-+# endif
-+
-+/*
-+ * Early ARM1136 variants don't support many CP15 registers provided
-+ * on later cores.  Users of read_cpuid_ext must ensure that it won't
-+ * be used unless it's known that the running core provides the CP15
-+ * register ext_reg.  See cpu_is_arm1136_r0() above.
-+ */
- #define read_cpuid_ext(ext_reg)						\
- 	({								\
- 		unsigned int __val;					\
--		asm("mrc	p15, 0, %0, c0, " ext_reg		\
-+		asm CPUID_EXT_REORDER("mrc p15, 0, %0, c0, " ext_reg	\
- 		    : "=r" (__val)					\
- 		    :							\
- 		    : "cc");						\
 diff --git a/arch/arm/include/asm/smp_plat.h b/arch/arm/include/asm/smp_plat.h
-index 6462a72..76214cb 100644
+index 76214cb..ad07564 100644
 --- a/arch/arm/include/asm/smp_plat.h
 +++ b/arch/arm/include/asm/smp_plat.h
-@@ -25,7 +25,6 @@ static inline bool is_smp(void)
- #endif
- }
- 
--/* all SMP configurations have the extended CPUID registers */
- #ifndef CONFIG_MMU
- #define tlb_ops_need_broadcast()	0
+@@ -30,6 +30,9 @@ static inline bool is_smp(void)
  #else
-@@ -43,6 +42,9 @@ static inline int tlb_ops_need_broadcast(void)
- #else
- static inline int cache_ops_need_broadcast(void)
+ static inline int tlb_ops_need_broadcast(void)
  {
 +	if (cpu_is_arm1136_r0())
 +		return 0;
 +
  	if (!is_smp())
  		return 0;
+ 
+diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
+index 63af9a7..a601843 100644
+--- a/arch/arm/kernel/setup.c
++++ b/arch/arm/kernel/setup.c
+@@ -389,16 +389,11 @@ static void __init cpuid_init_hwcaps(void)
+ 
+ static void __init feat_v6_fixup(void)
+ {
+-	int id = read_cpuid_id();
+-
+-	if ((id & 0xff0f0000) != 0x41070000)
+-		return;
+-
+ 	/*
+ 	 * HWCAP_TLS is available only on 1136 r1p0 and later,
+ 	 * see also kuser_get_tls_init.
+ 	 */
+-	if ((((id >> 4) & 0xfff) == 0xb36) && (((id >> 20) & 3) == 0))
++	if (cpu_is_arm1136_r0())
+ 		elf_hwcap &= ~HWCAP_TLS;
+ }
  
 -- 
 1.8.3.2
