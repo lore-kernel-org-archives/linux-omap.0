@@ -1,35 +1,56 @@
 From: Linus Walleij <linus.walleij@linaro.org>
 Subject: Re: [PATCH v4 1/2] gpio/omap: don't create an IRQ mapping for every
  GPIO on DT
-Date: Sun, 28 Jul 2013 18:25:07 +0200
-Message-ID: <CACRpkdYKSMcCe+uNiB2Jbc8GbUwvJxyq+7EiLM-xdOevVRK-wQ@mail.gmail.com>
+Date: Sun, 28 Jul 2013 18:29:09 +0200
+Message-ID: <CACRpkdbqpQ81o9b-wswNKxcDznL+o7pZy9n-8fFr67Kkrkm+1g@mail.gmail.com>
 References: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk>
 	<51F4F973.8000303@ahsoftware.de>
-	<51F529D6.8030809@ahsoftware.de>
+	<CACRpkda8byMWTQ5n24MsUBacpcHDcf=P9KzjcckT-KyAFEinHw@mail.gmail.com>
+	<51F515A9.9010005@ahsoftware.de>
+	<CACRpkdbCpbkSe1+Ap1yLm+iCDy3rnHL1LYTxCVJkmwdrNJCKGQ@mail.gmail.com>
+	<448912EABC71F84BBCADFD3C67C4BE5283E9D4@DBDE04.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f49.google.com ([209.85.219.49]:39029 "EHLO
-	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753713Ab3G1QZI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Jul 2013 12:25:08 -0400
-Received: by mail-oa0-f49.google.com with SMTP id n12so10967173oag.8
-        for <linux-omap@vger.kernel.org>; Sun, 28 Jul 2013 09:25:08 -0700 (PDT)
-In-Reply-To: <51F529D6.8030809@ahsoftware.de>
+Received: from mail-ob0-f182.google.com ([209.85.214.182]:38541 "EHLO
+	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753726Ab3G1Q3M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Jul 2013 12:29:12 -0400
+Received: by mail-ob0-f182.google.com with SMTP id wo10so7753934obc.13
+        for <linux-omap@vger.kernel.org>; Sun, 28 Jul 2013 09:29:09 -0700 (PDT)
+In-Reply-To: <448912EABC71F84BBCADFD3C67C4BE5283E9D4@DBDE04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alexander Holler <holler@ahsoftware.de>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Grant Likely <grant.likely@linaro.org>, Jon Hunter <jgchunter@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>, Balaji T K <balajitk@ti.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Alexander Holler <holler@ahsoftware.de>, ext Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jon Hunter <jgchunter@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
 
-On Sun, Jul 28, 2013 at 4:25 PM, Alexander Holler <holler@ahsoftware.de> wrote:
+On Sun, Jul 28, 2013 at 4:37 PM, Shilimkar, Santosh
+<santosh.shilimkar@ti.com> wrote:
 
-> By the way, if someone decides to touch omap_hsmmc, the driver wrongly
-> assumes that 0 is not a valid IRQ number and it doesn't check if
-> gpio_to_irq() returns a negative value. ;)
+> I think the default OMAP DT files will continue to work with
+>  these patches applied and mostly doesn't break anything
+> in default configuration.
 
-Zero *is* *not* a valid IRQ number.
+What does "mostly" mean? Hm hm. OK I feel a little
+bit better about this now...
 
-But the latter should be checked.
+> Ofcourse with the DT modification as done
+> by Alexander will expose the issue.
+
+So this is all caused by non-upstream code or
+non-upstream DTS files?
+
+> I really wanted to have the auto request GPIO supported
+> when used as IRQ line but surely not at expense of
+> breaking the client drivers.
+
+If things are working for the default DTS files in the
+kernel then I am OK with it.
+
+However moving forward to support the cases that
+Alexander is highlighting, I really really thin we need
+to put the information about taken GPIOs "input-hogs"
+into the gpio DT node.
 
 Yours,
 Linus Walleij
