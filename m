@@ -1,73 +1,59 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 10/11] spi/tegra20-sflash: Use core runtime PM
-Date: Sun, 28 Jul 2013 15:43:25 +0100
-Message-ID: <1375022606-7576-10-git-send-email-broonie@kernel.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: [PATCH 06/11] spi/pxa2xx: Convert to core runtime PM
+Date: Sun, 28 Jul 2013 15:43:21 +0100
+Message-ID: <1375022606-7576-6-git-send-email-broonie@kernel.org>
 References: <1375022606-7576-1-git-send-email-broonie@kernel.org>
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1375022606-7576-1-git-send-email-broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eric Miao <eric.y.miao-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-kernel-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <1375022606-7576-1-git-send-email-broonie@kernel.org>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linaro-kernel@lists.linaro.org, Mark Brown <broonie@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+From: Mark Brown <broonie@linaro.org>
 
-Signed-off-by: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Signed-off-by: Mark Brown <broonie@linaro.org>
 ---
- drivers/spi/spi-tegra20-sflash.c | 26 +-------------------------
- 1 file changed, 1 insertion(+), 25 deletions(-)
+ drivers/spi/spi-pxa2xx.c | 12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff --git a/drivers/spi/spi-tegra20-sflash.c b/drivers/spi/spi-tegra20-sflash.c
-index f871c4e..1d814dc 100644
---- a/drivers/spi/spi-tegra20-sflash.c
-+++ b/drivers/spi/spi-tegra20-sflash.c
-@@ -325,20 +325,6 @@ static int tegra_sflash_setup(struct spi_device *spi)
+diff --git a/drivers/spi/spi-pxa2xx.c b/drivers/spi/spi-pxa2xx.c
+index e0fd6f6..2eb06ee 100644
+--- a/drivers/spi/spi-pxa2xx.c
++++ b/drivers/spi/spi-pxa2xx.c
+@@ -811,14 +811,6 @@ static int pxa2xx_spi_transfer_one_message(struct spi_master *master,
  	return 0;
  }
  
--static int tegra_sflash_prepare_transfer(struct spi_master *spi)
+-static int pxa2xx_spi_prepare_transfer(struct spi_master *master)
 -{
--	struct tegra_sflash_data *tsd = spi_master_get_devdata(spi);
--	int ret;
+-	struct driver_data *drv_data = spi_master_get_devdata(master);
 -
--	ret = pm_runtime_get_sync(tsd->dev);
--	if (ret < 0) {
--		dev_err(tsd->dev, "runtime PM get failed: %d\n", ret);
--		return ret;
--	}
--
--	return ret;
--}
--
- static int tegra_sflash_transfer_one_message(struct spi_master *master,
- 			struct spi_message *msg)
- {
-@@ -391,15 +377,6 @@ exit:
- 	return ret;
- }
- 
--static int tegra_sflash_unprepare_transfer(struct spi_master *spi)
--{
--	struct tegra_sflash_data *tsd = spi_master_get_devdata(spi);
--
--	pm_runtime_put(tsd->dev);
--
+-	pm_runtime_get_sync(&drv_data->pdev->dev);
 -	return 0;
 -}
 -
- static irqreturn_t handle_cpu_based_xfer(struct tegra_sflash_data *tsd)
+ static int pxa2xx_spi_unprepare_transfer(struct spi_master *master)
  {
- 	struct spi_transfer *t = tsd->curr_xfer;
-@@ -492,9 +469,8 @@ static int tegra_sflash_probe(struct platform_device *pdev)
- 	/* the spi->mode bits understood by this driver: */
- 	master->mode_bits = SPI_CPOL | SPI_CPHA;
- 	master->setup = tegra_sflash_setup;
--	master->prepare_transfer_hardware = tegra_sflash_prepare_transfer;
- 	master->transfer_one_message = tegra_sflash_transfer_one_message;
--	master->unprepare_transfer_hardware = tegra_sflash_unprepare_transfer;
-+	master->auto_runtime_pm = true;
- 	master->num_chipselect = MAX_CHIP_SELECT;
- 	master->bus_num = -1;
+ 	struct driver_data *drv_data = spi_master_get_devdata(master);
+@@ -827,8 +819,6 @@ static int pxa2xx_spi_unprepare_transfer(struct spi_master *master)
+ 	write_SSCR0(read_SSCR0(drv_data->ioaddr) & ~SSCR0_SSE,
+ 		    drv_data->ioaddr);
  
+-	pm_runtime_mark_last_busy(&drv_data->pdev->dev);
+-	pm_runtime_put_autosuspend(&drv_data->pdev->dev);
+ 	return 0;
+ }
+ 
+@@ -1141,8 +1131,8 @@ static int pxa2xx_spi_probe(struct platform_device *pdev)
+ 	master->cleanup = cleanup;
+ 	master->setup = setup;
+ 	master->transfer_one_message = pxa2xx_spi_transfer_one_message;
+-	master->prepare_transfer_hardware = pxa2xx_spi_prepare_transfer;
+ 	master->unprepare_transfer_hardware = pxa2xx_spi_unprepare_transfer;
++	master->auto_runtime_pm = true;
+ 
+ 	drv_data->ssp_type = ssp->type;
+ 	drv_data->null_dma_buf = (u32 *)PTR_ALIGN(&drv_data[1], DMA_ALIGNMENT);
 -- 
 1.8.3.2
