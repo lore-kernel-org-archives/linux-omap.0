@@ -1,74 +1,64 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH] ARM: v6: avoid read_cpuid_ext() on ARM1136r0 in
- cache_ops_need_broadcast()
-Date: Sun, 28 Jul 2013 12:10:38 +0100
-Message-ID: <20130728111038.GA9374@mudshark.cambridge.arm.com>
-References: <alpine.DEB.2.02.1307222005370.26048@utopia.booyaka.com>
- <51EE2AA7.5060503@ti.com>
- <alpine.DEB.2.02.1307230705000.27017@utopia.booyaka.com>
- <51EE474D.5070804@ti.com>
- <20130724135617.GI11072@mudshark.cambridge.arm.com>
- <51EFE1DD.8070801@ti.com>
- <20130724142059.GJ11072@mudshark.cambridge.arm.com>
- <alpine.DEB.2.02.1307270405470.4546@utopia.booyaka.com>
- <20130727122221.GB6618@mudshark.cambridge.arm.com>
- <alpine.DEB.2.02.1307280538460.8385@utopia.booyaka.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v4 1/2] gpio/omap: don't create an IRQ mapping for every
+ GPIO on DT
+Date: Sun, 28 Jul 2013 13:14:23 +0200
+Message-ID: <CACRpkda8byMWTQ5n24MsUBacpcHDcf=P9KzjcckT-KyAFEinHw@mail.gmail.com>
+References: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk>
+	<51F4F973.8000303@ahsoftware.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:49142 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753412Ab3G1LLa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 28 Jul 2013 07:11:30 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1307280538460.8385@utopia.booyaka.com>
+Received: from mail-oa0-f53.google.com ([209.85.219.53]:47312 "EHLO
+	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753406Ab3G1LOY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Jul 2013 07:14:24 -0400
+Received: by mail-oa0-f53.google.com with SMTP id k14so11085156oag.12
+        for <linux-omap@vger.kernel.org>; Sun, 28 Jul 2013 04:14:23 -0700 (PDT)
+In-Reply-To: <51F4F973.8000303@ahsoftware.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Alexander Holler <holler@ahsoftware.de>, ext Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jon Hunter <jgchunter@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>, Balaji T K <balajitk@ti.com>
 
-Hi Paul,
+On Sun, Jul 28, 2013 at 12:58 PM, Alexander Holler <holler@ahsoftware.de> wrote:
+> Am 28.06.2013 17:27, schrieb Javier Martinez Canillas:
+>
+>> When a GPIO is defined as an interrupt line using Device
+>> Tree, a call to irq_create_of_mapping() is made that calls
+>> irq_create_mapping(). So, is not necessary to do the mapping
+>> for all OMAP GPIO lines and explicitly call irq_create_mapping()
+>> on the driver probe() when booting with Device Tree.
+>>
+>> Add a custom IRQ domain .map function handler that will be
+>> called by irq_create_mapping() to map the GPIO lines used as IRQ.
+>> This also allows to execute needed setup code such as configuring
+>> a GPIO as input and enabling the GPIO bank.
+>
+>
+> This patch basically broke every usage of
+>
+> irq = gpio_to_irq(gpio);
+> request[_threaded]_irq(irq, ...);
+>
+> because request[_threaded]_irq(irq, ...) now fails because of a missing
+> irq_domain (no mapping => no domain).
 
-Cheers for sticking with this!
+OK and I had ACKs from Santosh and even a Test-by tag from Enric
+on that thing.
 
-On Sun, Jul 28, 2013 at 06:43:24AM +0100, Paul Walmsley wrote:
-> 
-> Commit 621a0147d5c921f4cc33636ccd0602ad5d7cbfbc ("ARM: 7757/1: mm:
-> don't flush icache in switch_mm with hardware broadcasting") breaks
-> the boot on OMAP2430SDP with omap2plus_defconfig.  Tracked to an
-> undefined instruction abort from the CP15 read in
-> cache_ops_need_broadcast().  It turns out that early ARM1136 variants
-> don't support several CP15 registers that later ARM cores do.
-> ARM1136JF-S TRM section 3.2.1 "Register allocation" has the details.
+What shall we do with this mess now?
 
-Intriguing... I wouldn't expect a cp15 read to be emitted for 1136, since
-the SMP_ON_UP magic should have caused is_smp() to return false.
+I was told that these patches really needed to be applied because
+they were fixing a regression in v3.11, and now it seems they are
+causing another regression.
 
-> diff --git a/arch/arm/include/asm/smp_plat.h b/arch/arm/include/asm/smp_plat.h
-> index 6462a72..76214cb 100644
-> --- a/arch/arm/include/asm/smp_plat.h
-> +++ b/arch/arm/include/asm/smp_plat.h
-> @@ -25,7 +25,6 @@ static inline bool is_smp(void)
->  #endif
->  }
->  
-> -/* all SMP configurations have the extended CPUID registers */
->  #ifndef CONFIG_MMU
->  #define tlb_ops_need_broadcast()	0
->  #else
-> @@ -43,6 +42,9 @@ static inline int tlb_ops_need_broadcast(void)
->  #else
->  static inline int cache_ops_need_broadcast(void)
->  {
-> +	if (cpu_is_arm1136_r0())
-> +		return 0;
-> +
->  	if (!is_smp())
->  		return 0;
+What I need to know is what is worst: having these three patches
+there or reverting them?
 
-So we should have returned 0 here without exploding (this just reads a
-.globl initialised in head.S). Are we somehow misidentifying your 1136
-as an SMP core?
+Or should I simply revert *all* the TI GPIO stuff merged for v3.11
+now that is seems like this is a can of worms? :-/
 
-Will
+Tony, Kevin, Santosh, someone? What will make all happy?
+
+Yours,
+Linus Walleij
