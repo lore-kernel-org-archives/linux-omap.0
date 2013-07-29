@@ -1,82 +1,40 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [RFC/PATCH 2/2] driver: spi: Add quad spi read support
-Date: Mon, 29 Jul 2013 12:52:30 +0530
-Message-ID: <1375082550-30544-3-git-send-email-sourav.poddar@ti.com>
-References: <1375082550-30544-1-git-send-email-sourav.poddar@ti.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH 1/3] dmaengine: add dma_get_slave_sg_limits()
+Date: Mon, 29 Jul 2013 12:14:15 +0530
+Message-ID: <20130729064415.GF29095@intel.com>
+References: <1374166001-31340-1-git-send-email-joelf@ti.com>
+ <1374166001-31340-2-git-send-email-joelf@ti.com>
+ <20130718170825.GZ21614@n2100.arm.linux.org.uk>
+ <51E83A9D.5020008@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47530 "EHLO arroyo.ext.ti.com"
+Received: from mga02.intel.com ([134.134.136.20]:24891 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750767Ab3G2HWy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Jul 2013 03:22:54 -0400
-In-Reply-To: <1375082550-30544-1-git-send-email-sourav.poddar@ti.com>
+	id S1751735Ab3G2HXx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Jul 2013 03:23:53 -0400
+Content-Disposition: inline
+In-Reply-To: <51E83A9D.5020008@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org
-Cc: linux-omap@vger.kernel.org, rnayak@ti.com, balbi@ti.com, Sourav Poddar <sourav.poddar@ti.com>
+To: Joel Fernandes <joelf@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Matt Porter <matt@ohporter.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Mark Brown <broonie@linaro.org>, Benoit Cousson <benoit.cousson@linaro.org>, Balaji TK <balajitk@ti.com>, Gururaja Hebbar <gururaja.hebbar@ti.com>, Chris Ball <cjb@laptop.org>, Jason Kridner <jkridner@beagleboard.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.ker>
 
-Since, qspi controller uses quad read.
+On Thu, Jul 18, 2013 at 01:57:33PM -0500, Joel Fernandes wrote:
+> On 07/18/2013 12:08 PM, Russell King - ARM Linux wrote:
+> > As for the maximum number of scatterlist entries, really that's a bug in
+> > the DMA engine implementations if they can't accept arbitary lengths.
+> > I've created DMA engine drivers for implementations where you have to
+> > program each segment individually, ones which can have the current and
+> > next segments, as well as those which can walk a list.  Provided you get
+> > informed of a transfer being completed, there really is no reason for a
+> > DMA engine driver to limit the number of scatterlist entries that it
+> > will accept.
+> 
+> Sure, that makes sense. Can you point to such a typical example
+> implementation to get some ideas?
+MXS MMC driver uses this: drivers/mmc/host/mxs-mmc.c
+And dma engine driver for this is mxs-dma.c
 
-Configuring the command register, if the transfer of data needs
-dual or quad lines.
-
-This patch has been done on top of the following patch[1], which is just the
-basic idea of adding dual/quad support in spi framework.
-$subject patch will undergo changes with the ongoing discussion in the
-community.
-
-This patch is posted to demonstrate how patch 1 of the series will support
-quad read.
-
-[1]: http://comments.gmane.org/gmane.linux.kernel.spi.devel/14047
-
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
----
- drivers/spi/spi-ti-qspi.c |   16 ++++++++++++++--
- 1 files changed, 14 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
-index 51fe95f..8a32b1c 100644
---- a/drivers/spi/spi-ti-qspi.c
-+++ b/drivers/spi/spi-ti-qspi.c
-@@ -86,6 +86,7 @@ struct ti_qspi {
- #define QSPI_3_PIN			(1 << 18)
- #define QSPI_RD_SNGL			(1 << 16)
- #define QSPI_WR_SNGL			(2 << 16)
-+#define	QSPI_RD_DUAL			(3 << 16)
- #define QSPI_RD_QUAD			(7 << 16)
- #define QSPI_INVAL			(4 << 16)
- #define QSPI_WC_CMD_INT_EN			(1 << 14)
-@@ -264,6 +265,7 @@ static void qspi_read_msg(struct ti_qspi *qspi, struct spi_transfer *t)
- {
- 	u8 *rxbuf;
- 	int wlen, count;
-+	unsigned cmd = qspi->cmd;
- 
- 	count = t->len;
- 	rxbuf = t->rx_buf;
-@@ -273,8 +275,18 @@ static void qspi_read_msg(struct ti_qspi *qspi, struct spi_transfer *t)
- 		dev_dbg(qspi->dev, "rx cmd %08x dc %08x\n",
- 			qspi->cmd | QSPI_RD_SNGL, qspi->dc);
- 		ti_qspi_write(qspi, qspi->dc, QSPI_SPI_DC_REG);
--		ti_qspi_write(qspi, qspi->cmd | QSPI_RD_SNGL,
--			QSPI_SPI_CMD_REG);
-+		switch (t->bitwidth) {
-+		case SPI_BITWIDTH_QUAD:
-+			cmd |= QSPI_RD_QUAD;
-+			break;
-+		case SPI_BITWIDTH_DUAL:
-+			cmd |= QSPI_RD_DUAL;
-+			break;
-+		case SPI_BITWIDTH_SINGLE:
-+		default:
-+			cmd |= QSPI_RD_SNGL;
-+		}
-+		ti_qspi_writel(qspi, cmd, QSPI_SPI_CMD_REG);
- 		ti_qspi_write(qspi, QSPI_WC_INT_EN, QSPI_INTR_ENABLE_SET_REG);
- 		wait_for_completion(&qspi->transfer_complete);
- 		ti_qspi_read_data(qspi, QSPI_SPI_DATA_REG, wlen, &rxbuf);
+~Vinod
 -- 
-1.7.1
-
