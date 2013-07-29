@@ -1,56 +1,80 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH] dma: edma: add device_slave_caps() support
-Date: Mon, 29 Jul 2013 15:15:57 +0530
-Message-ID: <20130729094557.GG29095@intel.com>
-References: <1374597804-3961-1-git-send-email-joelf@ti.com>
- <51EF8A52.90902@metafoo.de>
- <51EF8C2B.2030409@ti.com>
- <51EF8F4E.8080806@metafoo.de>
- <FB20353E-4890-4462-A671-3587A3841B4A@ti.com>
- <51EF92F2.3030405@metafoo.de>
- <51F0231C.7000401@ti.com>
- <20130724183329.GH18642@intel.com>
- <51F02CBA.5060704@ti.com>
- <20130725072351.GJ18642@intel.com>
+From: Alexander Holler <holler@ahsoftware.de>
+Subject: Re: [PATCH v4 1/2] gpio/omap: don't create an IRQ mapping for every
+ GPIO on DT
+Date: Mon, 29 Jul 2013 12:27:35 +0200
+Message-ID: <51F64397.2090107@ahsoftware.de>
+References: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk> <51F4F973.8000303@ahsoftware.de> <CACRpkda8byMWTQ5n24MsUBacpcHDcf=P9KzjcckT-KyAFEinHw@mail.gmail.com> <51F515A9.9010005@ahsoftware.de> <CACRpkdbCpbkSe1+Ap1yLm+iCDy3rnHL1LYTxCVJkmwdrNJCKGQ@mail.gmail.com> <448912EABC71F84BBCADFD3C67C4BE5283E9D4@DBDE04.ent.ti.com> <CACRpkdbqpQ81o9b-wswNKxcDznL+o7pZy9n-8fFr67Kkrkm+1g@mail.gmail.com> <CAAwP0s18ouM7wMm=dGCbWzukf-ikpB+yarNO5d2OZLjuQei8eA@mail.gmail.com> <CACRpkdYEmzh-Viq+vj6-99yz8=Ghn=e3Xe5_UYvsSkTr0g8JyQ@mail.gmail.com> <CAAwP0s2ETdSwmFjh=QJP+LwU+hsBR_KQ0mYGX94BYYfjx3+QVA@mail.gmail.com> <51F60E81.7090103@ahsoftware.de> <CAAwP0s2ZF8_qwkHYTn4RBbMFjzL3otMNcmswsDFC9vXPmnpjwg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130725072351.GJ18642@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>, Dan Williams <djbw@fb.com>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, Arnd Bergmann <arnd@arndb.de>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Vutla, Lokesh" <lokeshvutla@ti.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, Matt Porter <matt@ohporter.com>, Rob Herring <rob.herring@calxeda.com>, Jason Kridner <jkridner@beagleboard.org>, Koen Kooi <koen@beagleboard.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from h1446028.stratoserver.net ([85.214.92.142]:46970 "EHLO
+	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753595Ab3G2K20 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 06:28:26 -0400
+Received: from eiche.ahsoftware (p57B216E0.dip0.t-ipconnect.de [87.178.22.224])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.ahsoftware.de (Postfix) with ESMTPSA id 41633423C272
+	for <linux-omap@vger.kernel.org>; Mon, 29 Jul 2013 12:28:24 +0200 (CEST)
+In-Reply-To: <CAAwP0s2ZF8_qwkHYTn4RBbMFjzL3otMNcmswsDFC9vXPmnpjwg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, ext Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jon Hunter <jgchunter@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
 
-On Thu, Jul 25, 2013 at 12:53:51PM +0530, Vinod Koul wrote:
-> On Wed, Jul 24, 2013 at 02:36:26PM -0500, Joel Fernandes wrote:
-> > > Also another point worth considering is the approach Russell suggested, I havent
-> > > gotten a chance to dig deeper but if I understood it correctly then programming
-> > > the device_dma_parameters should be the right thing to do. Again I need to look
-> > > deeper and esp wrt edma
-> > 
-> > OK. I have some patches sitting in my tree too that I'm working on. With
-> > that I don't need to know about maximum number of allowed segments and
-> > can send along any number of segment. I will rework them and post them.
-> > fwiw, I will also implement caps API incase like Lars did populating the
-> > other fields though these will not be unused.
-> > 
-> > For segment size, at this time I don't know any driver that uses it
-> > other than davinci-pcm. For this reason the calculations can be done as
-> > Lars suggested (for minimum of maximum). Do you know in advance if
-> > you're going to amend to drop segment size if we go with what Russell
-> > suggested, or are you going to leave the seg-size in the caps API anyway.
-> I am just back and havent really done my work on this. Let me check and as I
-> said if my understanding is right I would be inclined to remove these fields...
-Okay so the max sg_len should be done by setting the device_dma_parameters.
+Am 29.07.2013 10:17, schrieb Javier Martinez Canillas:
+> Hi Alexander,
+> 
+> On Mon, Jul 29, 2013 at 8:41 AM, Alexander Holler <holler@ahsoftware.de> wrote:
+>> Am 28.07.2013 21:06, schrieb Javier Martinez Canillas:
+>>
+>>> On Sun, Jul 28, 2013 at 8:22 PM, Linus Walleij <linus.walleij@linaro.org>
+>>> wrote:
+>>>>
+>>>> On Sun, Jul 28, 2013 at 7:33 PM, Javier Martinez Canillas
+>>>> <martinez.javier@gmail.com> wrote:
+>>>>
+>>>>> According to Documentation/devicetree/bindings/mmc/mmc.txt:
+>>>>>
+>>>>> cd-gpios: Specify GPIOs for card detection, see gpio binding
+>>>>>
+>>>>> So it just says that it is a GPIO for card detection and not an IRQ so
+>>>>> this assumption comes from either the omap_hsmmc driver or Alexander'
+>>>>> DTS is missing something like:
+>>>>>
+>>>>>                  interrupt-parent = <&gpio6>;
+>>>>>                  interrupts = <16 8>;
+>>
+>>
+>> What do the values 16 and 8 mean here? GPIO numbers?
+>> And where do I have to place that?
+>>
+> 
+> If you look at Documentation/devicetree/bindings/interrupt-controller/interrupts.txt
+> for the two cells interrupt controllers definition:
+> 
+>   b) two cells
+>   ------------
+>   The #interrupt-cells property is set to 2 and the first cell defines the
+>   index of the interrupt within the controller, while the second cell is used
 
-See the example in MXS DMA and MMC drivers
+I had read that. And there is written, "index of the interrupt". So may
+I ask the question how you think people are translating GPIO number to
+interrupt index?. And if it's the same, will GPIO0_0 map to IRQ 0 or how
+is the magic formular people are supposed to use?
 
-Now for second parameter why do you need that to be passed, I thought in edma the
-clients needs this value somehow to program the channel. It would be good that
-if we can delink from this and let edma derive. Also there should be no such
-thing as max_sg, the driver should be able to perform any size of sg_list.
-Internally it can be breaking the dma into multiple trasnactions.
+Besides that, the existing standard DTS I've modified into my
+"non-standard" dts is arch/arm/boot/dts/am335x-bone.dts.
 
-~Vinod
--- 
+if you look at the definition of the GPIO bank 0 in
+arch/arm/boot/dts/am33xx.dtsi, you see
+
+#interrupt-cells = <1>;
+
+Anyway, thanks for your time, but I don't want to spend more time on
+that topic.
+
+Regards,
+
+Alexander Holler
