@@ -1,174 +1,64 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH v4 1/2] gpio/omap: don't create an IRQ mapping for every
- GPIO on DT
-Date: Mon, 29 Jul 2013 10:17:38 +0200
-Message-ID: <CAAwP0s2ZF8_qwkHYTn4RBbMFjzL3otMNcmswsDFC9vXPmnpjwg@mail.gmail.com>
-References: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk>
- <51F4F973.8000303@ahsoftware.de> <CACRpkda8byMWTQ5n24MsUBacpcHDcf=P9KzjcckT-KyAFEinHw@mail.gmail.com>
- <51F515A9.9010005@ahsoftware.de> <CACRpkdbCpbkSe1+Ap1yLm+iCDy3rnHL1LYTxCVJkmwdrNJCKGQ@mail.gmail.com>
- <448912EABC71F84BBCADFD3C67C4BE5283E9D4@DBDE04.ent.ti.com>
- <CACRpkdbqpQ81o9b-wswNKxcDznL+o7pZy9n-8fFr67Kkrkm+1g@mail.gmail.com>
- <CAAwP0s18ouM7wMm=dGCbWzukf-ikpB+yarNO5d2OZLjuQei8eA@mail.gmail.com>
- <CACRpkdYEmzh-Viq+vj6-99yz8=Ghn=e3Xe5_UYvsSkTr0g8JyQ@mail.gmail.com>
- <CAAwP0s2ETdSwmFjh=QJP+LwU+hsBR_KQ0mYGX94BYYfjx3+QVA@mail.gmail.com> <51F60E81.7090103@ahsoftware.de>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.10-rc6
+Date: Mon, 29 Jul 2013 08:29:44 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1307290826180.30864@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com> <20130625160243.GE22312@arwen.pp.htv.fi> <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com> <51C9F0A8.1050607@ti.com> <alpine.DEB.2.02.1306261713260.6135@utopia.booyaka.com>
+ <51CB4C20.3060306@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f43.google.com ([209.85.219.43]:50465 "EHLO
-	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752914Ab3G2IR6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 04:17:58 -0400
-Received: by mail-oa0-f43.google.com with SMTP id i10so7105139oag.2
-        for <linux-omap@vger.kernel.org>; Mon, 29 Jul 2013 01:17:58 -0700 (PDT)
-In-Reply-To: <51F60E81.7090103@ahsoftware.de>
+Received: from utopia.booyaka.com ([74.50.51.50]:53556 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750763Ab3G2I3p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 04:29:45 -0400
+In-Reply-To: <51CB4C20.3060306@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alexander Holler <holler@ahsoftware.de>
-Cc: Linus Walleij <linus.walleij@linaro.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, ext Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jon Hunter <jgchunter@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+To: Tom Rini <trini@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-Hi Alexander,
+Hi
 
-On Mon, Jul 29, 2013 at 8:41 AM, Alexander Holler <holler@ahsoftware.de> wrote:
-> Am 28.07.2013 21:06, schrieb Javier Martinez Canillas:
->
->> On Sun, Jul 28, 2013 at 8:22 PM, Linus Walleij <linus.walleij@linaro.org>
->> wrote:
->>>
->>> On Sun, Jul 28, 2013 at 7:33 PM, Javier Martinez Canillas
->>> <martinez.javier@gmail.com> wrote:
->>>
->>>> According to Documentation/devicetree/bindings/mmc/mmc.txt:
->>>>
->>>> cd-gpios: Specify GPIOs for card detection, see gpio binding
->>>>
->>>> So it just says that it is a GPIO for card detection and not an IRQ so
->>>> this assumption comes from either the omap_hsmmc driver or Alexander'
->>>> DTS is missing something like:
->>>>
->>>>                  interrupt-parent = <&gpio6>;
->>>>                  interrupts = <16 8>;
->
->
-> What do the values 16 and 8 mean here? GPIO numbers?
-> And where do I have to place that?
->
+On Wed, 26 Jun 2013, Tom Rini wrote:
 
-If you look at Documentation/devicetree/bindings/interrupt-controller/interrupts.txt
-for the two cells interrupt controllers definition:
+> On 06/26/2013 01:19 PM, Paul Walmsley wrote:
+> > On Tue, 25 Jun 2013, Tom Rini wrote:
+> > 
+> >> On 06/25/2013 02:20 PM, Paul Walmsley wrote:
+> >>
+> >>> BeagleBone-white has the additional complication that it is not easy 
+> >>> to automate, due to the way that power is delivered to the board, so 
+> >>> there is an extra dimension of difficulty there.
+> >>
+> >> Ah-ha, I reproduced your failure.  If I make up a concat uImage + DTB,
+> >> rather than pass them separately, it fails to boot.  If you switch to
+> >> mainline U-Boot (v2012.10 or later) you get support for separate image +
+> >> dtb (v2013.04 gives you bootz and zImage support).
+> > 
+> > Yeah, I've tried to keep the original bootloader that came on the first SD 
+> > card image that was used on that device.  But am starting to think that 
+> > it's time to stop my bootloader independence jihad, since appended DTB 
+> > booting is so broken - have seen similar problems on SoCs from other 
+> > vendors as well :-(
+> 
+> Well, me?  I'm all in favor of people using latest release of U-Boot for
+> their board and yelling and screaming (or just reporting bugs) when
+> things don't work.  I'm biased of course.
 
-  b) two cells
-  ------------
-  The #interrupt-cells property is set to 2 and the first cell defines the
-  index of the interrupt within the controller, while the second cell is used
-  to specify any of the following flags:
-    - bits[3:0] trigger type and level flags
-        1 = low-to-high edge triggered
-        2 = high-to-low edge triggered
-        4 = active high level-sensitive
-        8 = active low level-sensitive
+That's exactly how bootloader developers should be testing their changes.  
+But most of the rest of us kernel folks don't want to deal with constantly 
+replacing bootloaders, and then dealing with the inevitable bootloader 
+regressions, when what we're really trying to test is the kernel...
+The kernel should be completely independent of the bootloader used.  
 
-So, the first cell in this example means the 16th GPIO in the omap
-gpio6 controller using the edge/level flag IRQ_TYPE_LEVEL_LOW.
+> And assuming rmk answers the way I expect he will, like it or not, the 
+> version(s) we kit up and get in the box need to be factored into our 
+> test system setup so if folks don't want to avail themselves of 
+> improvements, they still get a functional system too.
 
-> I've now tried the following:
->
-> --
-> &mmc1 {
->         vmmc-supply = <&vmmcsd_fixed>;
->         status = "okay";
->         pinctrl-names = "default";
->         pinctrl-0 = <&mmc1_pins>; /* pinmux for GPIO0__6 */
->         interrupt-parent = <&gpio0>;
->         interrupts = <6>;
->
->         cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
->         cd-inverted;
-> };
-> --
-> (the gpio which should be used for the IRQ is GPIO0_6)
->
-> The result was that the gpio_request() failed with -EBUSY.
-> Then I've commented out that, because it isn't necessary anymore as the
-> gpio should be set as input automatically (as I've understood the commit
-> msg).
->
+Yep seems like a good idea from a customer service point of view.  Also 
+most OMAP devices out there probably have locked bootloaders, so replacing 
+the bootloader is often not an option.
 
-Indeed, drivers shouldn't explicitly call gpio_request() when booting
-with DT. This only made sense with legacy boot. So maybe the
-omap_hsmmc driver has not been completely converted to be used with DT
-booting when using the "cd-gpios" property?
 
-> The result was
->
-> [    1.397100] genirq: Flags mismatch irq 144. 00002003 (mmc0) vs.
-> 00000000 (mmc0)
->
-> and request_threaded_irq() returned with -EBUSY.
-
-By looking at kernel/irq/manage.c, this error comes from __setup_irq()
-because the same interrupt line is tried to be shared by two users
-with different trigger (edge/level) type flags. Don't know what is
-triggering that with your DTS though.
-
->
->
-> To stop that discussion about some "non-standard" dts I'm using (I wonder
-> where the standard is), I try to formulate a clear question:
->
-> If a driver uses
-> --
-> irq = gpio_to_irq(some_gpio_number);
-> /*
-> gpio_request();
-> gpio_direction_input();
-> */
-> request_threaded_irq(irq);
-> --
->
-> How should the dts or the driver be changed that this works with 3.11-rc2?
->
-
-Drivers shouldn't do that IMHO, they should just use IRQ (virtual)
-numbers and request them. Drivers shouldn't care whether it is a GPIO
-line acting as an IRQ number or a real IRQ from an interrupt
-controller.
-
-My understanding is that defining:
-
-interrupt-parent = <&phandle>;
-interrupts = <index type_flags>;
-
-*should* be enough to make the sequence you are mentioning to work.
-Now, you said that this breaks your DTS when using the "cd-gpios"
-property with the omap hsmmc driver. Unfortunately I'm not familiar
-with neither the omap hsmmc driver nor the mmc "cd-gpios" property so
-I can't be of too much help here. I guess Balaji can take a step
-forward here and shed some light on this.
-
-My guess is that it was working on your setup because the omap hsmmc
-driver is handling GPIO-IRQ in the same way that board files do and it
-was not even described in your DTS because support for GPIO-IRQ was
-not really working for DT in OMAP (an explicit call to gpio_request
-had to be made anyways).
-
-So, I would like to first check if this really is a regression (bug)
-introduced by these changes or is an issue with the omap hsmmc driver,
-how it handles the "cd-gpios" binding or your DTS definition and
-reverting the patch-set will just hide the real problem.
-
-As I said, I don't mind if these patches are reverted although many
-people (Jon, Santosh, Grant and myself) think that this is the right
-approach and reverting them will break DTS for OMAP boards that are
-already in mainline.
-
-Yes, it is a PITA that things get broken but is the price of progress
-I think, I'll prefer fixing them than just blindly reverting patches
-because they show hidden issues. If I'm proven to be wrong I'll be
-happy if these patches get reverted though.
-
-> Regards,
->
-> Alexander Holler
-
-Thanks a lot and best regards,
-Javier
+- Paul
