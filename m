@@ -1,50 +1,59 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: OMAP5912 boot broken by "gpio/omap: don't create an IRQ mapping
- for every GPIO on DT"
-Date: Mon, 29 Jul 2013 11:01:17 +0200
-Message-ID: <CACRpkdYa8Kg_-u3gB8jrB_Ws2EpLCnXBh5UGgDvi_7tQspDP7A@mail.gmail.com>
-References: <alpine.DEB.2.02.1307290604310.30864@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: USB & hwmon on am33xx
+Date: Mon, 29 Jul 2013 09:04:43 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1307290856490.30864@utopia.booyaka.com>
+References: <51DC3B39.6000104@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f51.google.com ([209.85.219.51]:53641 "EHLO
-	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751197Ab3G2JBS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 05:01:18 -0400
-Received: by mail-oa0-f51.google.com with SMTP id h2so250827oag.10
-        for <linux-omap@vger.kernel.org>; Mon, 29 Jul 2013 02:01:17 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.02.1307290604310.30864@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:53705 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751652Ab3G2JEo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 05:04:44 -0400
+In-Reply-To: <51DC3B39.6000104@linutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Linux-OMAP <linux-omap@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hi Paul,
+Hello Sebastian,
 
-On Mon, Jul 29, 2013 at 9:52 AM, Paul Walmsley <paul@pwsan.com> wrote:
+On Tue, 9 Jul 2013, Sebastian Andrzej Siewior wrote:
 
-> your commit 0e970cec05635adbe7b686063e2548a8e4afb8f4 ("gpio/omap: don't
-> create an IRQ mapping for every GPIO on DT") breaks the boot on the
-> OMAP5912 OSK:
+> I'm slowly losing my mind with hwmod.
 
-I'm contemplating just reverting this whole series, as I didn't like
-the approach from the beginning and it has exploded in exactly
-the way I thought it would.
+Well, look on the bright side, its days are numbered...
 
-If we revert these three patches:
+> arch/arm/boot/dts/am33xx.dtsi has the ti,musb-am33xx node.
+> 
+> That one has "usb_otg_hs" as hwmod property.
+> The entry for it arch/arm/mach-omap2/omap_hwmod_33xx_data.c uses
+> AM33XX_CM_PER_USB0_CLKCTRL_OFFSET (0x1c) as the clk. The TRM only
+> mentions this one, i.e. no USB1.
+> 
+> Now I have the following logical devices here:
+> - usb0 instance + its glue code for irqs
+> - usb1 instance + its glue code for irqs
+> - two phy instances, one for USB0 and one USB1
+> - one dma engine which serves both usb instances.
+> 
+> Shouldn't I have for each device (usb0/1, phy0/1, dma) a hwmod entry?
+> Or is it enough to use the same entry for each device?
 
-commit 949eb1a4d29dc75e0b5b16b03747886b52ecf854
-"gpio/omap: fix build error when OF_GPIO is not defined."
-commit b4419e1a15905191661ffe75ba2f9e649f5d565e
-"gpio/omap: auto request GPIO as input if used as IRQ via DT"
-commit 0e970cec05635adbe7b686063e2548a8e4afb8f4
-"gpio/omap: don't create an IRQ mapping for every GPIO on DT"
+When hwmod was designed, it followed OMAP architectural conventions, which 
+was that devices didn't share enable/disable register bitfields.  AM33xx 
+seems not to have followed that convention.  This is not completely 
+surprising since it was designed by a different group of people.
 
-Does the OMAP1 boot again after this?
+But when hwmod support was added for AM33xx, no one added code to deal 
+with the AM33xx shared-bitfield model.  And I did not realize that this 
+situation existed.
 
-I think it's a way better idea to proceed with input-hogs on the gpiochip
-DT node and use that to get auto-request on the GPIO lines that
-will be used as IRQs only.
+So ideally, what should happen is that the AM33xx guys should add code to 
+deal with the problem.  Maybe by adding a hwmod flag to indicate that the 
+IP block shares an enable/disable bitfield with other IP blocks, and that 
+the hwmod code should find the other devices, and then implement some kind 
+of use-counting for that case?
 
-Yours,
-Linus Walleij
+
+- Paul
