@@ -1,159 +1,68 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: Re: OMAP5912 boot broken by "gpio/omap: don't create an IRQ mapping
- for every GPIO on DT"
-Date: Mon, 29 Jul 2013 11:39:48 +0200
-Message-ID: <51F63864.9000601@collabora.co.uk>
-References: <alpine.DEB.2.02.1307290604310.30864@utopia.booyaka.com> <CACRpkdYa8Kg_-u3gB8jrB_Ws2EpLCnXBh5UGgDvi_7tQspDP7A@mail.gmail.com> <51F633AE.8090308@collabora.co.uk>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [RFC/PATCH 2/2] driver: spi: Add quad spi read support
+Date: Mon, 29 Jul 2013 15:13:07 +0530
+Message-ID: <51F6392B.8030809@ti.com>
+References: <1375082550-30544-1-git-send-email-sourav.poddar@ti.com> <1375082550-30544-3-git-send-email-sourav.poddar@ti.com> <20130729093258.GF23710@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:43270 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751237Ab3G2Jjx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 05:39:53 -0400
-In-Reply-To: <51F633AE.8090308@collabora.co.uk>
+Received: from bear.ext.ti.com ([192.94.94.41]:59740 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753441Ab3G2JnX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Jul 2013 05:43:23 -0400
+In-Reply-To: <20130729093258.GF23710@radagast>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Paul Walmsley <paul@pwsan.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>
+To: balbi@ti.com
+Cc: broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, linux-omap@vger.kernel.org, rnayak@ti.com
 
-On 07/29/2013 11:19 AM, Javier Martinez Canillas wrote:
-> On 07/29/2013 11:01 AM, Linus Walleij wrote:
->> Hi Paul,
->> 
->> On Mon, Jul 29, 2013 at 9:52 AM, Paul Walmsley <paul@pwsan.com> wrote:
->> 
->>> your commit 0e970cec05635adbe7b686063e2548a8e4afb8f4 ("gpio/omap: don't
->>> create an IRQ mapping for every GPIO on DT") breaks the boot on the
->>> OMAP5912 OSK:
->> 
->> I'm contemplating just reverting this whole series, as I didn't like
->> the approach from the beginning and it has exploded in exactly
->> the way I thought it would.
->> 
->> If we revert these three patches:
->> 
->> commit 949eb1a4d29dc75e0b5b16b03747886b52ecf854
->> "gpio/omap: fix build error when OF_GPIO is not defined."
->> commit b4419e1a15905191661ffe75ba2f9e649f5d565e
->> "gpio/omap: auto request GPIO as input if used as IRQ via DT"
->> commit 0e970cec05635adbe7b686063e2548a8e4afb8f4
->> "gpio/omap: don't create an IRQ mapping for every GPIO on DT"
->> 
->> Does the OMAP1 boot again after this?
->> 
->> I think it's a way better idea to proceed with input-hogs on the gpiochip
->> DT node and use that to get auto-request on the GPIO lines that
->> will be used as IRQs only.
->> 
->> Yours,
->> Linus Walleij
->> 
-> 
-> Hi Paul,
-> 
-> I've looked at this and it seems that irq_create_mapping() does not call the
-> irq_domain_ops .map function handler since OMAP1 still uses legacy domain
-> mapping. I don't have an OMAP1 platform to test but could you please see if the
-> following patch [1] makes your OMAP1 platforms to boot again?
-> 
-> But I agree with Linus and probably we should just go and revert the whole
-> series since it is very hard to get it right. In another thread a user reported
-> that this change also broke his DTS tree.
-> 
-> I really tried to get this right without breaking anything but there are just
-> too many OMAP platforms behaving differently and most OMAP drivers are only half
-> converted to DT so this is really a can of worms.
-> 
-> Thanks a lot and sorry for the inconvenience,
-> Javier
-> 
-> [1]:
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index c57244e..f1c6da8 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -1090,8 +1090,18 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
->          * are used as interrupts.
->          */
->         if (!omap_gpio_chip_boot_dt(&bank->chip))
-> -               for (j = 0; j < bank->width; j++)
-> -                       irq_create_mapping(bank->domain, j);
-> +               for (j = 0; j < bank->width; j++) {
-> +                       int irq = irq_create_mapping(bank->domain, j);
-> +                       irq_set_lockdep_class(irq, &gpio_lock_class);
-> +                       irq_set_chip_data(irq, bank);
-> +                       if (bank->is_mpuio) {
-> +                               omap_mpuio_alloc_gc(bank, irq, bank->width);
-> +                       } else {
-> +                               irq_set_chip_and_handler(irq, &gpio_irq_chip,
-> +                                                        handle_simple_irq);
-> +                               set_irq_flags(irq, IRQF_VALID);
-> +                       }
-> +               }
->         irq_set_chained_handler(bank->irq, gpio_irq_handler);
->         irq_set_handler_data(bank->irq, bank);
-> 
+On Monday 29 July 2013 03:02 PM, Felipe Balbi wrote:
+> On Mon, Jul 29, 2013 at 12:52:30PM +0530, Sourav Poddar wrote:
+>> Since, qspi controller uses quad read.
+>>
+>> Configuring the command register, if the transfer of data needs
+>> dual or quad lines.
+>>
+>> This patch has been done on top of the following patch[1], which is just the
+>> basic idea of adding dual/quad support in spi framework.
+>> $subject patch will undergo changes with the ongoing discussion in the
+>> community.
+>>
+>> This patch is posted to demonstrate how patch 1 of the series will support
+>> quad read.
+>>
+>> [1]: http://comments.gmane.org/gmane.linux.kernel.spi.devel/14047
+>>
+>> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
+>> ---
+>>   drivers/spi/spi-ti-qspi.c |   16 ++++++++++++++--
+>>   1 files changed, 14 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
+>> index 51fe95f..8a32b1c 100644
+>> --- a/drivers/spi/spi-ti-qspi.c
+>> +++ b/drivers/spi/spi-ti-qspi.c
+>> @@ -86,6 +86,7 @@ struct ti_qspi {
+>>   #define QSPI_3_PIN			(1<<  18)
+>>   #define QSPI_RD_SNGL			(1<<  16)
+>>   #define QSPI_WR_SNGL			(2<<  16)
+>> +#define	QSPI_RD_DUAL			(3<<  16)
+>>   #define QSPI_RD_QUAD			(7<<  16)
+> so RD_QUAD is defined in previous patch but not RD_DUAL ? What gives ?
+>
+I think I will define RD_DUAL in the previous patch...
+> IMHO, just merge this patch with previous and make the entire driver
+> depend on the other patch.
+>
+but I was thinking of keeping rest of the $subject patch seperate, since the
+idea of implementing dual/quad read in spi framework is still under 
+discussion.
+and this patch will change.
 
-In case this solves Paul issue, a cleaned patch with a commit message is [2].
-But we should decide if is better to fix this or just drop the patches and go
-with Linus' input-hogs idea to do the GPIO auto request.
+So, it would be good if we can get the basic previous patch in, and then 
+when the
+other discussion is sorted out, we can get this in?
 
-Santosh, Kevin, Grant, what do you think we should do?
+~Sourav
 
-Thanks a lot and best regards,
-Javier
-
-commit 486402aee8f31f067dacc6a83c4a3509fc9d3bfa
-Author: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Date:   Mon Jul 29 11:03:43 2013 +0200
-
-    gpio/omap: setup IRQ in chip init instead .map for OMAP1
-
-    OMAP1 still uses the legacy domain mapping and was not converted
-    to use the linear mapping like OMAP2+ platforms.
-
-    So, irq_create_mapping() does not call the omap irq_domain_ops
-    .map function handler and the GPIO-IRQ are not correctly initialized.
-
-    Do the IRQ setup in omap_gpio_chip_init() for OMAP1 platforms to
-    avoid this issue.
-
-    Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index c57244e..c6f7c56 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1053,6 +1053,7 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
- {
- 	int j;
- 	static int gpio;
-+	int irq = 0;
-
- 	/*
- 	 * REVISIT eventually switch from OMAP-specific gpio structs
-@@ -1090,8 +1091,20 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
- 	 * are used as interrupts.
- 	 */
- 	if (!omap_gpio_chip_boot_dt(&bank->chip))
--		for (j = 0; j < bank->width; j++)
--			irq_create_mapping(bank->domain, j);
-+		for (j = 0; j < bank->width; j++) {
-+			irq = irq_create_mapping(bank->domain, j);
-+#ifdef CONFIG_ARCH_OMAP1
-+			irq_set_lockdep_class(irq, &gpio_lock_class);
-+			irq_set_chip_data(irq, bank);
-+			if (bank->is_mpuio) {
-+				omap_mpuio_alloc_gc(bank, irq, bank->width);
-+			} else {
-+				irq_set_chip_and_handler(irq, &gpio_irq_chip,
-+							 handle_simple_irq);
-+				set_irq_flags(irq, IRQF_VALID);
-+			}
-+#endif
-+		}
- 	irq_set_chained_handler(bank->irq, gpio_irq_handler);
- 	irq_set_handler_data(bank->irq, bank);
- }
