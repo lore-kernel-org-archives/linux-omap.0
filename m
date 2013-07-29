@@ -1,59 +1,91 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 05/11] spi/pl022: Convert to core runtime PM
-Date: Mon, 29 Jul 2013 07:04:31 +0100
-Message-ID: <20130729060431.GP9858@sirena.org.uk>
-References: <1375022606-7576-1-git-send-email-broonie@kernel.org>
- <1375022606-7576-5-git-send-email-broonie@kernel.org>
- <CACRpkdYRdO5C2_mumUcMd6naCA6JaHetFSnC5u6wO0FV8BZhHQ@mail.gmail.com>
+From: Alexander Holler <holler@ahsoftware.de>
+Subject: Re: [PATCH v4 1/2] gpio/omap: don't create an IRQ mapping for every
+ GPIO on DT
+Date: Mon, 29 Jul 2013 08:41:05 +0200
+Message-ID: <51F60E81.7090103@ahsoftware.de>
+References: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk> <51F4F973.8000303@ahsoftware.de> <CACRpkda8byMWTQ5n24MsUBacpcHDcf=P9KzjcckT-KyAFEinHw@mail.gmail.com> <51F515A9.9010005@ahsoftware.de> <CACRpkdbCpbkSe1+Ap1yLm+iCDy3rnHL1LYTxCVJkmwdrNJCKGQ@mail.gmail.com> <448912EABC71F84BBCADFD3C67C4BE5283E9D4@DBDE04.ent.ti.com> <CACRpkdbqpQ81o9b-wswNKxcDznL+o7pZy9n-8fFr67Kkrkm+1g@mail.gmail.com> <CAAwP0s18ouM7wMm=dGCbWzukf-ikpB+yarNO5d2OZLjuQei8eA@mail.gmail.com> <CACRpkdYEmzh-Viq+vj6-99yz8=Ghn=e3Xe5_UYvsSkTr0g8JyQ@mail.gmail.com> <CAAwP0s2ETdSwmFjh=QJP+LwU+hsBR_KQ0mYGX94BYYfjx3+QVA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="e0rzCtfzeQKTRplb"
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:53393 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752884Ab3G2GE7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 02:04:59 -0400
-Content-Disposition: inline
-In-Reply-To: <CACRpkdYRdO5C2_mumUcMd6naCA6JaHetFSnC5u6wO0FV8BZhHQ@mail.gmail.com>
+Received: from h1446028.stratoserver.net ([85.214.92.142]:47416 "EHLO
+	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752852Ab3G2Glu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 02:41:50 -0400
+Received: from eiche.ahsoftware (p57B216E0.dip0.t-ipconnect.de [87.178.22.224])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.ahsoftware.de (Postfix) with ESMTPSA id 83546423C1E2
+	for <linux-omap@vger.kernel.org>; Mon, 29 Jul 2013 08:41:47 +0200 (CEST)
+In-Reply-To: <CAAwP0s2ETdSwmFjh=QJP+LwU+hsBR_KQ0mYGX94BYYfjx3+QVA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, linaro-kernel <linaro-kernel@lists.linaro.org>
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, ext Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jon Hunter <jgchunter@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+
+Am 28.07.2013 21:06, schrieb Javier Martinez Canillas:
+> On Sun, Jul 28, 2013 at 8:22 PM, Linus Walleij <linus.walleij@linaro.org> wrote:
+>> On Sun, Jul 28, 2013 at 7:33 PM, Javier Martinez Canillas
+>> <martinez.javier@gmail.com> wrote:
+>>
+>>> According to Documentation/devicetree/bindings/mmc/mmc.txt:
+>>>
+>>> cd-gpios: Specify GPIOs for card detection, see gpio binding
+>>>
+>>> So it just says that it is a GPIO for card detection and not an IRQ so
+>>> this assumption comes from either the omap_hsmmc driver or Alexander'
+>>> DTS is missing something like:
+>>>
+>>>                  interrupt-parent = <&gpio6>;
+>>>                  interrupts = <16 8>;
+
+What do the values 16 and 8 mean here? GPIO numbers?
+And where do I have to place that?
+
+I've now tried the following:
+
+--
+&mmc1 {
+	vmmc-supply = <&vmmcsd_fixed>;
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&mmc1_pins>; /* pinmux for GPIO0__6 */
+	interrupt-parent = <&gpio0>;
+	interrupts = <6>;
+	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
+	cd-inverted;
+};
+--
+(the gpio which should be used for the IRQ is GPIO0_6)
+
+The result was that the gpio_request() failed with -EBUSY.
+Then I've commented out that, because it isn't necessary anymore as the
+gpio should be set as input automatically (as I've understood the commit
+msg).
+
+The result was
+
+[    1.397100] genirq: Flags mismatch irq 144. 00002003 (mmc0) vs.
+00000000 (mmc0)
+
+and request_threaded_irq() returned with -EBUSY.
 
 
---e0rzCtfzeQKTRplb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To stop that discussion about some "non-standard" dts I'm using (I 
+wonder where the standard is), I try to formulate a clear question:
 
-On Sun, Jul 28, 2013 at 10:52:38PM +0200, Linus Walleij wrote:
+If a driver uses
+--
+irq = gpio_to_irq(some_gpio_number);
+/*
+gpio_request();
+gpio_direction_input();
+*/
+request_threaded_irq(irq);
+--
 
-> Someone moaned about oneline commit messages in
-> the last LWN...
+How should the dts or the driver be changed that this works with 3.11-rc2?
 
-I saw that (and even followed up).  To be honest for this sort of patch
-I'm not that concerned about it - it's fairly clear what's going on and
-why it might be a good idea.
+Regards,
 
---e0rzCtfzeQKTRplb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR9gXsAAoJELSic+t+oim9kxYP/j+FTnDaYH8yWhLdSZLPZWbq
-5zO+RzDlJ1ykGwWDjDLkc8R9qv8GB1tXmZVtI80lkk+sEdDQglu3ZgUOkQJCRVLp
-QnseGPLRHA7Z4n34GYjDQgxCoN4Y9aXCKyzBnQyk1aiuM4T+pzqPFSoPEsHSBy3/
-flGqZm+rZ6YZABIQ25m8y4JoDLdQF+wis4pF9+aiPvWwHzdaIL67cZt2k9WWVxlP
-HoDEsFcECwxAlXzFMghwhYVjNT4pa6pWMIhTF98cQupxhap/LqE93PUzdwYKTusN
-e6FzcjrC5J7l2wJby4f3dR2OhU8BGW00guBvyL/krKFghJkUAvs5NapxKSfScJ7+
-SbPkwd+uKy7o6xn8NLIe/YQxdKap3Oq3hxeNZ2wYcGTVdbznYDdhB+CF4JfyIi4b
-tO6AzPcEdsGpERmrMLDW15p5Q1U+afnNrQN6ixg5RC1Jx0osP3KTxcyRvRzp/pI8
-H6kHovF5C4WfZujFCjlvW/rruIaXtYj39uRA3bvAekeWEca4h5mw9KeOl/HHaW3U
-Ekn9/vs6IPlgl0aXHioEpOZW+gomaDwsJcypagKx265rHADo00tne2eKp9WpjfWD
-tYjj2WjxdLjT7r3fPowsssFaZwK9NlZdG7ELoc/iiGJEM9Vd1MI8Dg4JL8MOvB+6
-2r1StcVPugVsEnGVqFg9
-=mhh+
------END PGP SIGNATURE-----
-
---e0rzCtfzeQKTRplb--
+Alexander Holler
