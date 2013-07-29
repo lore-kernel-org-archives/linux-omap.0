@@ -1,96 +1,89 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: Re: OMAP5912 boot broken by "gpio/omap: don't create an IRQ mapping
- for every GPIO on DT"
-Date: Mon, 29 Jul 2013 11:19:42 +0200
-Message-ID: <51F633AE.8090308@collabora.co.uk>
-References: <alpine.DEB.2.02.1307290604310.30864@utopia.booyaka.com> <CACRpkdYa8Kg_-u3gB8jrB_Ws2EpLCnXBh5UGgDvi_7tQspDP7A@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4] pinctrl: Add support for additional dynamic states
+Date: Mon, 29 Jul 2013 02:21:16 -0700
+Message-ID: <20130729092116.GA7656@atomide.com>
+References: <20130716090310.5541.36777.stgit@localhost>
+ <20130716090536.5541.36289.stgit@localhost>
+ <51E70B5D.6030802@wwwdotorg.org>
+ <20130718073638.GP7656@atomide.com>
+ <51E84180.6080902@wwwdotorg.org>
+ <20130719073957.GZ7656@atomide.com>
+ <51E98C71.5010709@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:43241 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754073Ab3G2JTv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 05:19:51 -0400
-In-Reply-To: <CACRpkdYa8Kg_-u3gB8jrB_Ws2EpLCnXBh5UGgDvi_7tQspDP7A@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <51E98C71.5010709@wwwdotorg.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: linus.walleij@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Paul Walmsley <paul@pwsan.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>
 
-On 07/29/2013 11:01 AM, Linus Walleij wrote:
-> Hi Paul,
+* Stephen Warren <swarren@wwwdotorg.org> [130719 12:05]:
+> On 07/19/2013 01:39 AM, Tony Lindgren wrote:
+> > 
+> > I think the only sane way to deal with this is to make the I2C controller
+> > to show up as two separate I2C controller instances. Then use runtime
+> > PM to save and restore the state for each instance, and locking between
+> > the two driver instances.
+> > 
+> > For the pin muxing part, I'd do this:
+> > 
+> > 			i2c1 instance	i2c2 instance	notes
+> > default_state		0 pins		0 pins		(or dedicated pins only)
+> > active_state		all pins	alls pins
+> > idle_state		safe mode	safe mode
+> > 
+> > Then when i2c1 instance is done, it's runtime PM suspend muxes the pins
+> > to safe mode, or some nop state. Then when i2c2 instance is woken, it's
+> > runtime PM resume muxes pins to i2c2.
 > 
-> On Mon, Jul 29, 2013 at 9:52 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> I see two issues with that approach:
 > 
->> your commit 0e970cec05635adbe7b686063e2548a8e4afb8f4 ("gpio/omap: don't
->> create an IRQ mapping for every GPIO on DT") breaks the boot on the
->> OMAP5912 OSK:
-> 
-> I'm contemplating just reverting this whole series, as I didn't like
-> the approach from the beginning and it has exploded in exactly
-> the way I thought it would.
-> 
-> If we revert these three patches:
-> 
-> commit 949eb1a4d29dc75e0b5b16b03747886b52ecf854
-> "gpio/omap: fix build error when OF_GPIO is not defined."
-> commit b4419e1a15905191661ffe75ba2f9e649f5d565e
-> "gpio/omap: auto request GPIO as input if used as IRQ via DT"
-> commit 0e970cec05635adbe7b686063e2548a8e4afb8f4
-> "gpio/omap: don't create an IRQ mapping for every GPIO on DT"
-> 
-> Does the OMAP1 boot again after this?
-> 
-> I think it's a way better idea to proceed with input-hogs on the gpiochip
-> DT node and use that to get auto-request on the GPIO lines that
-> will be used as IRQs only.
-> 
-> Yours,
-> Linus Walleij
-> 
+> 1) Runtime PM doesn't always put a device into an idle state as soon as
+> its work is done. Sometimes (always?) there is a delay between when the
+> device is last used and when the HW is actually made idle so that if the
+> device is re-activated quickly, the kernel hasn't wasted time making it
+> idle then active again. You'd have to force that delay to complete when
+> switching between the two virtual controller devices.
 
-Hi Paul,
+There is the autosuspend timeout for delayed transitions, but I think
+runtime PM already has calls for making the state change immediate also.
+ 
+> 2) This requires two separate device objects for the two I2C instances.
+> I guess you could have the driver for the one I2C mux node end up
+> instantiating two child devices for this purpose, and hence make that
+> happen without needing to change the DT ABI. However, that sure feels
+> complex...
 
-I've looked at this and it seems that irq_create_mapping() does not call the
-irq_domain_ops .map function handler since OMAP1 still uses legacy domain
-mapping. I don't have an OMAP1 platform to test but could you please see if the
-following patch [1] makes your OMAP1 platforms to boot again?
+Yes but you will also automatically get quite a bit of sanity to your
+I2C driver code rather than trying to handle the two separate instances
+within the driver alone. Consider things like scanning the I2C buses for
+devices and just dev_dbg().
+ 
+> I wonder if it wouldn't be better to have active/idle/sleep as
+> "modifiers" to the state name rather than alternatives, so you end up
+> with states named:
+> 
+> default
+> nobus:active
+> nobus:idle
+> nobus:sleep
+> bus0:active
+> bus0:idle
+> bus0:sleep
+> bus1:active
+> bus1:idle
+> bus1:sleep
+> 
+> Of course, if you continue on with that approach (i.e. you add more
+> sub-fields each separated by a colon), you end up with a huge
+> combinatorial mess of state names.
 
-But I agree with Linus and probably we should just go and revert the whole
-series since it is very hard to get it right. In another thread a user reported
-that this change also broke his DTS tree.
+Right :) Sooner or later we'll have some totally messed up piece of
+hardware pop up that multiplexes one controller across a large number
+number buses..
 
-I really tried to get this right without breaking anything but there are just
-too many OMAP platforms behaving differently and most OMAP drivers are only half
-converted to DT so this is really a can of worms.
+Regards,
 
-Thanks a lot and sorry for the inconvenience,
-Javier
-
-[1]:
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index c57244e..f1c6da8 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1090,8 +1090,18 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
-         * are used as interrupts.
-         */
-        if (!omap_gpio_chip_boot_dt(&bank->chip))
--               for (j = 0; j < bank->width; j++)
--                       irq_create_mapping(bank->domain, j);
-+               for (j = 0; j < bank->width; j++) {
-+                       int irq = irq_create_mapping(bank->domain, j);
-+                       irq_set_lockdep_class(irq, &gpio_lock_class);
-+                       irq_set_chip_data(irq, bank);
-+                       if (bank->is_mpuio) {
-+                               omap_mpuio_alloc_gc(bank, irq, bank->width);
-+                       } else {
-+                               irq_set_chip_and_handler(irq, &gpio_irq_chip,
-+                                                        handle_simple_irq);
-+                               set_irq_flags(irq, IRQF_VALID);
-+                       }
-+               }
-        irq_set_chained_handler(bank->irq, gpio_irq_handler);
-        irq_set_handler_data(bank->irq, bank);
-
+Tony
