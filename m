@@ -1,114 +1,134 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: Re: OMAP5912 boot broken by "gpio/omap: don't create an IRQ mapping for every GPIO on DT"
-Date: Mon, 29 Jul 2013 12:19:22 +0200
-Message-ID: <D135FD6D-D4B6-4237-9866-4FFED36C03CD@collabora.co.uk>
-References: <alpine.DEB.2.02.1307290604310.30864@utopia.booyaka.com> <CACRpkdYa8Kg_-u3gB8jrB_Ws2EpLCnXBh5UGgDvi_7tQspDP7A@mail.gmail.com> <51F633AE.8090308@collabora.co.uk> <alpine.DEB.2.02.1307290943000.30864@utopia.booyaka.com>
-Mime-Version: 1.0 (1.0)
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv6 1/2] drivers: spi: Add qspi flash controller
+Date: Mon, 29 Jul 2013 13:20:38 +0300
+Message-ID: <20130729102038.GK23710@radagast>
+References: <1375082550-30544-1-git-send-email-sourav.poddar@ti.com>
+ <1375082550-30544-2-git-send-email-sourav.poddar@ti.com>
+ <20130729093128.GE23710@radagast>
+ <51F63FF3.5070304@ti.com>
+Reply-To: <balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="GOzekVbrLdOLv44p"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:43301 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754146Ab3G2KTf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 06:19:35 -0400
-In-Reply-To: <alpine.DEB.2.02.1307290943000.30864@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:50808 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750820Ab3G2KUz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 06:20:55 -0400
+Content-Disposition: inline
+In-Reply-To: <51F63FF3.5070304@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: balbi@ti.com, broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, linux-omap@vger.kernel.org, rnayak@ti.com
 
-On 29/07/2013, at 11:47, Paul Walmsley <paul@pwsan.com> wrote:
+--GOzekVbrLdOLv44p
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Hi
-> 
-> On Mon, 29 Jul 2013, Javier Martinez Canillas wrote:
-> 
->> I've looked at this and it seems that irq_create_mapping() does not call the
->> irq_domain_ops .map function handler since OMAP1 still uses legacy domain
->> mapping. I don't have an OMAP1 platform to test but could you please see if the
->> following patch [1] makes your OMAP1 platforms to boot again?
->> 
->> But I agree with Linus and probably we should just go and revert the whole
->> series since it is very hard to get it right. In another thread a user reported
->> that this change also broke his DTS tree.
->> 
->> I really tried to get this right without breaking anything but there are just
->> too many OMAP platforms behaving differently and most OMAP drivers are only half
->> converted to DT so this is really a can of worms.
->> 
->> Thanks a lot and sorry for the inconvenience,
->> Javier
->> 
->> [1]:
->> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->> index c57244e..f1c6da8 100644
->> --- a/drivers/gpio/gpio-omap.c
->> +++ b/drivers/gpio/gpio-omap.c
->> @@ -1090,8 +1090,18 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
->>         * are used as interrupts.
->>         */
->>        if (!omap_gpio_chip_boot_dt(&bank->chip))
->> -               for (j = 0; j < bank->width; j++)
->> -                       irq_create_mapping(bank->domain, j);
->> +               for (j = 0; j < bank->width; j++) {
->> +                       int irq = irq_create_mapping(bank->domain, j);
->> +                       irq_set_lockdep_class(irq, &gpio_lock_class);
->> +                       irq_set_chip_data(irq, bank);
->> +                       if (bank->is_mpuio) {
->> +                               omap_mpuio_alloc_gc(bank, irq, bank->width);
->> +                       } else {
->> +                               irq_set_chip_and_handler(irq, &gpio_irq_chip,
->> +                                                        handle_simple_irq);
->> +                               set_irq_flags(irq, IRQF_VALID);
->> +                       }
->> +               }
->>        irq_set_chained_handler(bank->irq, gpio_irq_handler);
->>        irq_set_handler_data(bank->irq, bank);
-> 
-> For some reason this patch didn't apply cleanly on v3.11-rc3, so 
-> hand-applied the following patch.  It still doesn't boot on v3.11-rc3:
-> 
-> http://www.pwsan.com/omap/testlogs/bisect_5912osk_boot_fail_v3.11-rc3/20130729032525/boot/5912osk/5912osk_log.txt
-> 
-> 
-> - Paul
-> 
+Hi,
 
-Weird since it was against -rc3, maybe my mail client corrupted somehow.
+On Mon, Jul 29, 2013 at 03:42:03PM +0530, Sourav Poddar wrote:
+> >>+	frame_length =3D (m->frame_length<<  3) / spi->bits_per_word;
+> >there's another way to optimize this. If you assume bits_per_word to
+> >always be power of two you can:
+> >
+> >	frame_length =3D (m->frame_length<<  3)>>  __ffs(spi->bits_per_word);
+> >
+> >but that would need a comment stating that you're assuming bits_per_word
+> >to always be a power of two. Not sure if this is a correct assumption.
+> >
+> I dont think it will be a correct assumption, since our controller is
+> flexible to
+> handle anything from 1 to 128 as bits_per_word.
 
-I'm out of ideas now and I don't have an OMAP1 platform to further debug this issue.
+right, but can the framework handle non-power-of-two bits_per_word ?
 
-I guess the safer approach is to just revert these since they are causing a regression and what the patches aims to fix as been broken since the initial OMAP migration to DT anyways.
+> >>+	spin_unlock(&qspi->lock);
+> >You should, before releasing the lock, mask your IRQs, so that you can
+> >get rid of IRQF_ONESHOT. Unmask them before returning from the IRQ
+> >thread.
+> >
+> Sorry, did not get  you here?
+>  I am reading interrupt status register before and clearing them in
+> the threaded irq.
 
-Unless the current gpio-omap maintainers are willing to keep these patches and know how to fix this OMAP1 regression
+you need to mask the IRQs, clear WC and FIRQ in IRQENABLE register...
+set them back at the end of the thread handler.
 
-Thanks a lot and sorry for this mess,
-Javier
+> >>+static int ti_qspi_probe(struct platform_device *pdev)
+> >>+{
+> >>+	struct  ti_qspi *qspi;
+> >>+	struct spi_master *master;
+> >>+	struct resource         *r;
+> >>+	struct device_node *np =3D pdev->dev.of_node;
+> >>+	u32 max_freq;
+> >>+	int ret =3D 0, num_cs, irq;
+> >>+
+> >>+	master =3D spi_alloc_master(&pdev->dev, sizeof(*qspi));
+> >>+	if (!master)
+> >>+		return -ENOMEM;
+> >>+
+> >>+	master->mode_bits =3D SPI_CPOL | SPI_CPHA;
+> >>+
+> >>+	master->num_chipselect =3D 1;
+> >again with the num_chipselect =3D 1 ? IIRC this controller has 4
+> >chipselects, just read 24.5.1 on your TRM.
+> >
+> this is unnecessary. I intended to configure chip selects through
+> dt)as done below).
+> Will remove.
 
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index c57244e..23da829 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -1090,8 +1090,19 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
->     * are used as interrupts.
->     */
->    if (!omap_gpio_chip_boot_dt(&bank->chip))
-> -        for (j = 0; j < bank->width; j++)
-> -            irq_create_mapping(bank->domain, j);
-> +        for (j = 0; j < bank->width; j++) {
-> +            int irq = irq_create_mapping(bank->domain, j);
-> +            irq_set_lockdep_class(irq, &gpio_lock_class);
-> +            irq_set_chip_data(irq, bank);
-> +            if (bank->is_mpuio) {
-> +                omap_mpuio_alloc_gc(bank, irq, bank->width);
-> +            } else {
-> +                irq_set_chip_and_handler(irq, &gpio_irq_chip,
-> +                             handle_simple_irq);
-> +                set_irq_flags(irq, IRQF_VALID);
-> +            }
-> +        }
-> +
->    irq_set_chained_handler(bank->irq, gpio_irq_handler);
->    irq_set_handler_data(bank->irq, bank);
-> }
+which brings me to the point of:
+
+Do you review your own code before sending it out ? Doesn't look like...
+
+> >>+	irq =3D platform_get_irq(pdev, 0);
+> >>+	if (irq<  0) {
+> >>+		dev_err(&pdev->dev, "no irq resource?\n");
+> >>+		return irq;
+> >>+	}
+> >>+
+> >>+	spin_lock_init(&qspi->lock);
+> >>+
+> >>+	qspi->base =3D devm_ioremap_resource(&pdev->dev, r);
+> >>+	if (IS_ERR(qspi->base)) {
+> >>+		ret =3D PTR_ERR(qspi->base);
+> >>+		goto free_master;
+> >>+	}
+> >>+
+> >>+	ret =3D devm_request_threaded_irq(&pdev->dev, irq, ti_qspi_isr,
+> >>+			ti_qspi_threaded_isr, IRQF_NO_SUSPEND | IRQF_ONESHOT,
+> >why do you need IRQF_NO_SUSPEND ?
+> >
+> I should get away with this.
+
+why ? Do you need or do you *not* need it ? And in either case, why ?
+
+--=20
+balbi
+
+--GOzekVbrLdOLv44p
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR9kH2AAoJEIaOsuA1yqRE6m4QAK3cwXOJ8v0kAoG0DoSmIUVi
+xpWDr+cDsaUHgNqG+GiZElVZ7se62ig+ET5qjamsOmZmfYG4K4/LfvaIbU3Oot1L
+sbFZckdfCYLBcowRUhDoWB9Nm4cFX1Tz+9P+5BT8INHXJjbygcP+L9bgowgAkxRS
+zkkhENVaCCcT09NE+YAoZNEidgr+2aAPQjDxC9Lmfuamim89czKX6vpxpyHaa6ZA
+z8GeHOP0eIx7i/7GgozhVVCWCC4sm3iRUwh1UAqf/bJDafNbCkB6JnlefsbmYixG
+MHZ67mqwrA2K5dpY3NZjU4sf3XsSmIGf51CXYQASrUJ2HJrpUafAnMvkefi5lWiJ
+G+I0pIJIohwbExPgjkht3+7Y4tt1QFwdUhvytNYWHM408lVhyqIDmOkhe36DQaEZ
+CfDhTdBriJ3+FDydkhVDbzsKNrEUrcNTeofk7lmVE6CEvafjePjr+v1+n3ivskEa
+Vj/4vW8iPBa1NuMBQrvyDGi9H3IePZmkUexZL+hMBoj188VLpxvn1MhcH+txzpwp
+Ymwp9VmFvL21RrFmi4SFfEkSz8HiVH4/zxRzZYlTUwb66fN7THQ8B8Ay3QLhyXh4
+SVF5TSq8d7KXhVGqN6qar+MbUtRDKfwOhirRWySCJ8DKwvOjlZHL0NGFxBxdTd0v
+l8aoWZHnWjJysHlLe6bz
+=otby
+-----END PGP SIGNATURE-----
+
+--GOzekVbrLdOLv44p--
