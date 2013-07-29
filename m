@@ -1,120 +1,54 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/2] arm: omap: remove *.auto* from device names given in
- usb_bind_phy
-Date: Mon, 29 Jul 2013 18:06:38 +0300
-Message-ID: <20130729150638.GD3063@radagast>
-References: <1374829418-27503-1-git-send-email-kishon@ti.com>
- <1374829418-27503-3-git-send-email-kishon@ti.com>
-Reply-To: <balbi@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH v2 2/4] phy: phy-amxxxx-usb: Add PHY driver for amxxxx
+ platform
+Date: Mon, 29 Jul 2013 17:17:54 +0200
+Message-ID: <20130729151754.GB827@linutronix.de>
+References: <1374237277-17769-1-git-send-email-george.cherian@ti.com>
+ <1374237277-17769-3-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TybLhxa8M7aNoW+V"
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1374829418-27503-3-git-send-email-kishon@ti.com>
+In-Reply-To: <1374237277-17769-3-git-send-email-george.cherian@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: balbi@ti.com, tony@atomide.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
---TybLhxa8M7aNoW+V
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* George Cherian | 2013-07-19 18:04:35 [+0530]:
 
-Hi,
+>Adds phy driver support for am33xx platform, the host/device
+>peripheral controller shall get this phy object to control the phy
+>operations.
 
-On Fri, Jul 26, 2013 at 02:33:38PM +0530, Kishon Vijay Abraham I wrote:
-> Previously MUSB wrapper (OMAP) device used PLATFORM_DEVID_AUTO while crea=
-ting
-> MUSB core device. So in usb_bind_phy (binds the controller with the PHY),=
- the
-> device name of the controller had *.auto* in it. Since with using
-> PLATFORM_DEVID_AUTO, there is no way to know the exact device name in adv=
-ance,
-> the data given in usb_bind_phy became obsolete and usb_get_phy was failin=
-g.
-> So MUSB wrapper was modified not to use PLATFORM_DEVID_AUTO. Corresponding
-> change is done in board file here.
->=20
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  arch/arm/mach-omap2/board-2430sdp.c          |    2 +-
->  arch/arm/mach-omap2/board-3430sdp.c          |    2 +-
->  arch/arm/mach-omap2/board-cm-t35.c           |    2 +-
->  arch/arm/mach-omap2/board-devkit8000.c       |    2 +-
->  arch/arm/mach-omap2/board-igep0020.c         |    2 +-
->  arch/arm/mach-omap2/board-ldp.c              |    2 +-
->  arch/arm/mach-omap2/board-omap3beagle.c      |    2 +-
->  arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
->  arch/arm/mach-omap2/board-omap3logic.c       |    2 +-
->  arch/arm/mach-omap2/board-omap3pandora.c     |    2 +-
->  arch/arm/mach-omap2/board-omap3stalker.c     |    2 +-
->  arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +-
->  arch/arm/mach-omap2/board-overo.c            |    2 +-
->  arch/arm/mach-omap2/board-rm680.c            |    2 +-
->  arch/arm/mach-omap2/board-rx51.c             |    2 +-
->  arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
->  16 files changed, 16 insertions(+), 16 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/bo=
-ard-2430sdp.c
-> index 244d8a5..17bb076 100644
-> --- a/arch/arm/mach-omap2/board-2430sdp.c
-> +++ b/arch/arm/mach-omap2/board-2430sdp.c
-> @@ -233,7 +233,7 @@ static void __init omap_2430sdp_init(void)
->  	omap_hsmmc_init(mmc);
-> =20
->  	omap_mux_init_signal("usb0hs_stp", OMAP_PULL_ENA | OMAP_PULL_UP);
-> -	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-> +	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
+If you rebase this on-top of the two instances patches I've sent earlier
+then you can bury patch 3 and 4, right?
 
-how about moving usb_bind_phy() calls to omap2430.c ?
+I don't like very much the way you obtain the phy id:
+>+		of_property_read_u32(np, "id", &phy->id);
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index f44e8b5..b6abc1a 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -544,6 +544,9 @@ static int omap2430_probe(struct platform_device *pdev)
-=20
- 		pdata->board_data	=3D data;
- 		pdata->config		=3D config;
-+	} else {
-+		/* bind the PHY */
-+		usb_bind_phy(dev_name(&musb->dev), 0, "twl4030_usb");
- 	}
-=20
- 	if (pdata->has_mailbox) {
+with the .dts changes I made you should able to use
+    of_alias_get_id()
+instead.
 
-The only problem is if some board comes with a PHY other than
-twl4030_usb, but in that case we can add a separate compatible flag and
-treat it properly. We only need to bind the phy in non-DT case anyway,
-so that's temporary. It might be better than to reintroduce the IDR in
-musb_core.c.
+Let me look what you have additionaly:
+- usbotg_fck
+  Is this really required? I have the phy as a child of the "main"
+  device which has a hwmod property which is associated with this clock.
+  So pm enable/ disable should also enable this clock if possible,
+  right? 
 
---=20
-balbi
+- device wakeup via omap_control_am335x_phy_wkup()
+  Now. that is one thing that the simple phy driver is missing. If you
+  call a magic function for this to happen than I don't have to worry
+  about the missing memory space for this function.
 
---TybLhxa8M7aNoW+V
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+So from what I see now, it is most likely the easiest thing to just add
+that wakeup to the phy driver I posted. Do you agree?
+If so we need to figure out where the memory for the wakeup register is
+comming from. We need also to ensure that both phys can not write at the
+same time. A look would be nice.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+>Signed-off-by: George Cherian <george.cherian@ti.com>
 
-iQIcBAEBAgAGBQJR9oT+AAoJEIaOsuA1yqRErrAQAI5WGvGhARD2HcOc+4iJ3IKy
-qUIxGfmesWRXi2OiT0xoN4NXI23Res067TFii082mUqpx7Eq8YJbZF8sqHOxg6Sx
-5GDY6YF4CaDj5EDnNuogvzHvFx4xfVrxmq4oOqXQWEQvPJKbPJc4n1cV1LngCgmg
-2EgGagJ+DGfIz6mOTqyHY6J0IhnTVJMKG7OXUUhcO3aPQ8oUKB8WW5YDTDsTK1UO
-mFb2VSgbdz1A6yuc0cQUyS+fS8VfKeVUL9WnTGsHXHezfmIKgE78fUU2fKthuOgC
-uep/Rxq7gIKZCDUYVL57kWZI0ZR3KQCvGgYnZLuxVn8PkqNkGv+qCOoMyq3CX4Ew
-ZTjHwwupiOEFZiIstKh1wNA0svYjEPRyeGjT5cwMB2h7gIoBN52/R8zFrdLbkak1
-QoStzdzkAx46yLnlwN7rCjjOTNoR+c0DVT0GPDkTt7v76mkV4UwY7gYv+n/geEyD
-/uW0pnxmX0aFv2+//ZhfrQeuWHptBaBj4zaW9kgbuhfiYn7ZrmR7E1xlNJIHp/2C
-av0RPWDR2ONi2/LQQv4VKc6Yb/dwTc/XdxNbqgiqVpq/BV4rdDyZHj+udsz3NRAf
-fgnXTNz1VT5jyHsFGwLLFy4+O6dqd1qMBwqNMn3biajBs/kJqlpF7GQXb7q7J4cw
-nBBvWtz9pEWNhZTL6sj5
-=CKdj
------END PGP SIGNATURE-----
-
---TybLhxa8M7aNoW+V--
+Sebastian
