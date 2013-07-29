@@ -1,115 +1,122 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 1/3] Input: omap-keypad: Enable wakeup capability for
- keypad.
-Date: Mon, 29 Jul 2013 21:04:41 +0300
-Message-ID: <20130729180441.GF4964@radagast>
+Subject: Re: [PATCH v3 2/3] Input: omap-keypad: errata i689: Correct debounce
+ time
+Date: Mon, 29 Jul 2013 21:08:12 +0300
+Message-ID: <20130729180812.GG4964@radagast>
 References: <1375116311-13999-1-git-send-email-illia.smyrnov@ti.com>
- <1375116311-13999-2-git-send-email-illia.smyrnov@ti.com>
+ <1375116311-13999-3-git-send-email-illia.smyrnov@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DNUSDXU7R7AVVM8C"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="FLPM4o+7JoHGki3m"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:50158 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753616Ab3G2SIW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 14:08:22 -0400
 Content-Disposition: inline
-In-Reply-To: <1375116311-13999-2-git-send-email-illia.smyrnov@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1375116311-13999-3-git-send-email-illia.smyrnov@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Illia Smyrnov <illia.smyrnov@ti.com>
 Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
---DNUSDXU7R7AVVM8C
+--FLPM4o+7JoHGki3m
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Jul 29, 2013 at 07:45:09PM +0300, Illia Smyrnov wrote:
-> Enable/disable IRQ wake in suspend/resume handlers
-> to make the keypad wakeup capable.
+On Mon, Jul 29, 2013 at 07:45:10PM +0300, Illia Smyrnov wrote:
+> From: Axel Haslam <axelhaslam@ti.com>
 >=20
-> Signed-off-by: Illia Smyrnov <illia.smyrnov@ti.com>
-> ---
->  drivers/input/keyboard/omap4-keypad.c |   43 +++++++++++++++++++++++++++=
-++++++
->  1 file changed, 43 insertions(+)
+> Set debounce time value to 12ms to workaround the errata.
 >=20
+> ERRATA DESCRIPTION:
+> When a key is released for a time shorter than the debounce time,
+> in-between 2 key press (KP1 and KP2), the keyboard state machine will go =
+to
+> idle mode and will never detect the key release (after KP1,and also after=
+ KP2),
+> and thus will never generate a new IRQ indicating the key release.
+> From the operating system standpoint, only a key press as been detected,
+> and the key will keep on being printed on the screen until another or
+> the same key is pressed again.When the failing state has been reached,
+> the KBD_STATEMACHINE register will show "idle state" and the KBD_FULLCODE
+> register won't be empty, this is the signature of the bug.There is no imp=
+act
+> on the power consumption of the system as the state machine goes to IDLE =
+state.
+>=20
+> WORKAROUND:
+> First thing is to program the debounce time correctly:
+> If X (us) is the maximum time of bounces when a key is pressed or release=
+d,
+> and Y (us) is the minimum time of a key release that is expected to be de=
+tected,
+> then the debounce time should be set to a value inbetween X and Y.
+>=20
+> In case it is still possible to get shorter than debounce time key-release
+> events, then the only solution is to implement a software workaround:
+>=20
+> Before printing a second character on the screen, the software must check=
+ if
+> the keyboard has hit the failing condition (cf signature of the bug above)
+> or if the key is still really pressed and then take the appropriate actio=
+ns.
+>=20
+> Silicon revisions impacted: OMAP4430 ES 1.0,2.0,2.1,2.2,2.3
+>                             OMAP4460 ES 1.0,1.1
+>                             OMAP5430 ES 1.0
+
+if only these are affected, should you have revision check ? Also we
+don't support OMAP5430 ES 1.0. I say this because, IMO, debouncing time
+is likely to be board-specific and/or application-specific.
+
 > diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboa=
 rd/omap4-keypad.c
-> index 0244262..feab00f 100644
+> index feab00f..e8bdc76 100644
 > --- a/drivers/input/keyboard/omap4-keypad.c
 > +++ b/drivers/input/keyboard/omap4-keypad.c
-> @@ -74,6 +74,7 @@ struct omap4_keypad {
->  	struct input_dev *input;
+> @@ -62,8 +62,10 @@
 > =20
->  	void __iomem *base;
-> +	bool irq_wake_enabled;
-
-this flag is a bit weird... but I can't find a better way to handle this
-situation. In one way, you shouldn't prevent system suspend, so you can
-error out in case enable_irq_wake() fails, otoh if enable_irq_wake()
-fails and you return 0, on resume disable_irq_wake() will throw
-unbalanced calls warning. Maybe someone else has a better idea.
-
-> @@ -439,12 +444,50 @@ static const struct of_device_id omap_keypad_dt_mat=
-ch[] =3D {
->  MODULE_DEVICE_TABLE(of, omap_keypad_dt_match);
->  #endif
-> =20
-> +#ifdef CONFIG_PM_SLEEP
-> +static int omap4_keypad_suspend(struct device *dev)
-> +{
-> +	struct platform_device *pdev =3D to_platform_device(dev);
-
-you don't need to access the platform_device...
-
-> +	struct omap4_keypad *keypad_data =3D platform_get_drvdata(pdev);
-
-=2E.. since this can become:
-
-	struct omap4_keypad *keypad_data =3D dev_get_drvdata(dev);
-
-> +	int error;
+>  /* OMAP4 values */
+>  #define OMAP4_VAL_IRQDISABLE		0x0
+> -#define OMAP4_VAL_DEBOUNCINGTIME	0x7
+> -#define OMAP4_VAL_PVT			0x7
 > +
-> +	if (device_may_wakeup(&pdev->dev)) {
-> +		error =3D enable_irq_wake(keypad_data->irq);
-> +		if (!error)
-> +			keypad_data->irq_wake_enabled =3D true;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int omap4_keypad_resume(struct device *dev)
-> +{
-> +	struct platform_device *pdev =3D to_platform_device(dev);
-> +	struct omap4_keypad *keypad_data =3D platform_get_drvdata(pdev);
+> +/* Errata i689: set debounce time value to 12ms */
+> +#define OMAP4_VAL_DEBOUNCINGTIME	0x2
+> +#define OMAP4_VAL_PVT			0x6
 
-ditto, use dev_get_drvdata() instead.
+to make this easier to understand, you might want to convert this into a
+better macro that takes an argument in microseconds and you calculate
+the debouncing time which should be written to HW.
 
 --=20
 balbi
 
---DNUSDXU7R7AVVM8C
+--FLPM4o+7JoHGki3m
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJR9q65AAoJEIaOsuA1yqREeHsQAItblV3kfd1BZpuKxbk6AJgP
-+kOEAXOjbAArm1HnXemOt2v+fo8IcrlTCuHfWpSVTAgChJkD3YwewNyeY5/FwscD
-lruGSyWOqp9DevdtLBf30SPQiHq/rMO87V8JJwL57ge7/L5m/5KFhK+jXNvFhJji
-5mdadiSMSADoJxFv/TwhZDdNLD5P5cbxT9JFxaNVA55OA/VAzF0C9Ec4UcZ6VeHr
-JRitvuCKKBoBNwrrnLZNM/zRhafBz2B7jpd/CS1RiQnFhbsUjDdfs4qXEsoEStXe
-Qs5XAX8AfjnM6VDZQ7uyiThCA814y4IXHOy59DmA35BMiTBIoYjnaYTvZ9zWHWhq
-5+vzlxsL81iIV8aqtZJLrJXQwyx8ZLgKb1ZvLTAHrwdfbcgqicNo6pyF1WFJ+Key
-0U8RjbvH1HcdmXkufP2/eakPVihK/dmDF3taVT97a1oTFtpJnzcIrasQESYiafwb
-aU6wsG25WSZAeCWDogUxxz3yNPRfte+f1xNMCXsz8KuPvOxsr5x+A7AQH7PrfylL
-4NLU6wbTC3VecpDSkny0A+klf8nXO7yE8s28fMWmQ5wjOszSG0uGpxF7IVlUptZr
-sGVvXo5ni1C/hi3Rs+hc1aUS1idpdnqwiNi9VpELelRQl2X6rZZ3sUIthHpzaDBp
-HciCukc3ilh7EZY/nDTg
-=F9E5
+iQIcBAEBAgAGBQJR9q+MAAoJEIaOsuA1yqREI0YP+wb3LdCD9jqLKao2yeF4OnqI
+RjTtngNmCfqmDL2mpyo8HLz+dRNSt3sBeR+E129Y7TaL0YbggfpIATGRTgL0ijDE
+KgFwbKZu4uT2YQt0l/Eq0nJeDKtiMawXwxZONFpFiLeDki+oTXuLEhCvyJ7kdEpG
+SX6cPjT02ScLbXxT+f6hRPt4AWK2lOdgKDhZHtGbusUz6G+Npc/E28YrTZV5uYXc
+vCk74D3uDhbp3M9tnFVxOqSDSGTKhVpp4pxiNJwzvxwfxUXM5w9sYC+VuMk2s64O
+Dup6D8EknuSoiZKLOAwxrWDx64tpSACYq9k86Gpzu4ZizHG3LHqkD/3bYObzyYy/
+xnXU4yJdR6w8S0ByVOh+8R3KeD9hPO5iFC/g3MnOqbLMgb8cqojTLfEFLxcs9cry
+AaRXCQlV7KJ21Yw8iPkWFhFEqO4MSZpMxCx0uVNxb8Bu9HLDDpNF6UjDwFs4OI8j
+JEmNYxOvdR25wVZKpk48L687h81Uzf/msdZRHhB1B0kXfceB8iY39aTNon/bNZ5c
+7Hd/LZj8CkuGBwGjyyoPrzOmFUXQS9h3s47OL6rqkwUA5Q1lsz2lVkDTdbRhAmq6
+Loe2iC31jEorjLxVn0NAQac4cT6jrSVS0EevNgzjYWXZj8p9H6syRERZbf0C7gPt
+OkRKC6VizDUbDd8iTokS
+=ZCke
 -----END PGP SIGNATURE-----
 
---DNUSDXU7R7AVVM8C--
+--FLPM4o+7JoHGki3m--
