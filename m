@@ -1,58 +1,76 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 04/11] spi/omap2: Covert to core runtime PM
-Date: Mon, 29 Jul 2013 00:20:17 +0300
-Message-ID: <20130728212017.GA22261@radagast>
-References: <1375022606-7576-1-git-send-email-broonie@kernel.org>
- <1375022606-7576-4-git-send-email-broonie@kernel.org>
-Reply-To: <balbi@ti.com>
+From: Trent Piepho <tpiepho@gmail.com>
+Subject: Re: [PATCHv5 1/2] drivers: spi: Add qspi flash controller
+Date: Sun, 28 Jul 2013 17:13:53 -0700
+Message-ID: <CA+7tXiiQGfYN6sck3YQo8RinPad0e8bgW3J6rBc9sCq_J48fTg@mail.gmail.com>
+References: <1374858922-14637-1-git-send-email-sourav.poddar@ti.com>
+	<1374858922-14637-2-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GvXjxJ+pjyke8COw"
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1375022606-7576-4-git-send-email-broonie@kernel.org>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Linus Walleij <linus.walleij@linaro.org>, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linaro-kernel@lists.linaro.org, Mark Brown <broonie@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f176.google.com ([209.85.214.176]:43360 "EHLO
+	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751485Ab3G2ANy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Jul 2013 20:13:54 -0400
+Received: by mail-ob0-f176.google.com with SMTP id v19so7984265obq.21
+        for <linux-omap@vger.kernel.org>; Sun, 28 Jul 2013 17:13:53 -0700 (PDT)
+In-Reply-To: <1374858922-14637-2-git-send-email-sourav.poddar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, linux-omap@vger.kernel.org, rnayak@ti.com, balbi@ti.com
 
---GvXjxJ+pjyke8COw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Fri, Jul 26, 2013 at 10:15 AM, Sourav Poddar <sourav.poddar@ti.com> wrote:
+> +
+> +static inline void ti_qspi_read_data(struct ti_qspi *qspi,
+> +               unsigned long reg, int wlen, u8 **rxbuf)
+> +{
+> +       switch (wlen) {
+> +       case 8:
+> +               **rxbuf = readw(qspi->base + reg);
+> +               dev_dbg(qspi->dev, "rx done, read %02x\n", *(*rxbuf-1));
+> +               *rxbuf += 1;
 
-Hi,
+You still have readw() paired with 8 bit length, readb() with 16, and
+so on.  I do not think your 16 and 32 bit cases will even work.  Since
+**rxbuf will always be an pointer to an 8-bit value, it will always
+just use the lower 8 bits of the register.  You also always increment
+the address by 1.  And the printout, which is the same in every case
+so maybe you shouldn't duplicate it, isn't correct.  It will print out
+the previous byte in the buffer.  It will possibly crash on the first
+byte, since you will be reading before the beginning of the buffer.
 
-On Sun, Jul 28, 2013 at 03:43:19PM +0100, Mark Brown wrote:
-> From: Mark Brown <broonie@linaro.org>
->=20
-> Signed-off-by: Mark Brown <broonie@linaro.org>
+You probably only tested this with 8 bit word length.  Since that has
+readw(), it probably does not matter what
+size is used for the read.
 
-Reviewed-by: Felipe Balbi <balbi@ti.com>
+> +static int ti_qspi_setup(struct spi_device *spi)
+> +{
+> +
+> +       clk_ctrl_reg = ti_qspi_read(qspi, QSPI_SPI_CLOCK_CNTRL_REG);
+> +
+> +       clk_ctrl_reg &= ~QSPI_CLK_EN;
+> +
+> +       /* disable SCLK */
+> +       ti_qspi_write(qspi, clk_ctrl_reg, QSPI_SPI_CLOCK_CNTRL_REG);
 
---=20
-balbi
+This looks like to are still not taking into account that setup() can
+be called while a transfer for another slave is in progress.
 
---GvXjxJ+pjyke8COw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> +
+> +       /* setup command reg */
+> +       qspi->cmd = 0;
+> +       qspi->cmd |= QSPI_EN_CS(spi->chip_select);
+> +       qspi->cmd |= QSPI_FLEN(frame_length);
+> +
+> +       list_for_each_entry(t, &m->transfers, transfer_list) {
+> +               qspi->cmd |= QSPI_WLEN(t->bits_per_word);
+> +               qspi->cmd |= QSPI_WC_CMD_INT_EN;
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Why is the QSPI_WC_CMD_INT_EN bit set inside the loop but the
+QSPI_EN_CS() and QSPI_FLEN() bits are set outside the loop?
 
-iQIcBAEBAgAGBQJR9YsRAAoJEIaOsuA1yqRE6QgQAICPp6jFM15n90dNMD6odnIR
-/Gfcl2RpKpTFmjRRS1M8C7Sk/4j55cuh+qnkjcakyjsqzf5r0NE4dprZKe7SW2a9
-4Za1ye/eFx3Pg9laCGX5/b2yXXW4p2afnBoHnNK1CBrpPykdL5MXitI7wgn0LeN+
-UEOXguVyEzrahFv1eLGC1+aHrEsfz2NE1XioKK5tOj98FgC7SANYBInJ621oI7c5
-VScTWT035opo4Gr/ND20UTqFx+csbGRdPQXBUCFJOGoL+aoayQZ0plaAmxIhA2Qh
-ezdAoOOV+s8ViBJpCaHn7e12+FrhfilxL9wLI7vEuzhPXntmCLi7GV+2LCAml9Tq
-tCQwhbfxHfS2byu8FPFqzepL+9gPFVVjb0YQ/u4wg8ERGKz4FtXXAToQI5LkmPUk
-sSSriGsztu05cu8c+WO/PSYHuEABpL6crA++jCmYSzKdkL8lhsGMTvuC6jpKHoSw
-dkgZLCtqtTP0gb3Tf//cSiTDRZuL8XBD2YlBcFVcpQmAh9qrRpWIuJEKj73FMKrS
-37kX/ULrZTnwiUiY0OPyzuL5i/OQaFTY/bdnjns38ydeqk6ibFXMMPJ3Gp0kg54O
-0skBovbpu1dU5P+R38R9jBUgd6TB7TEArm641IcsPaGRkWm1AIB8l78ewqbd9aeR
-PoxHp35GPjK5e/I93iId
-=+qmS
------END PGP SIGNATURE-----
+> +
+> +       if (!of_property_read_u32(np, "ti,num-cs", &num_cs))
+> +               master->num_chipselect = num_cs;
 
---GvXjxJ+pjyke8COw--
+You are still not using standard "num-cs" property?
