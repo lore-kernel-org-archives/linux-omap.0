@@ -1,62 +1,120 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: OMAP5912 boot broken by "gpio/omap: don't create an IRQ mapping
- for every GPIO on DT"
-Date: Mon, 29 Jul 2013 11:06:26 -0400
-Message-ID: <51F684F2.5050308@ti.com>
-References: <alpine.DEB.2.02.1307290604310.30864@utopia.booyaka.com> <CACRpkdYa8Kg_-u3gB8jrB_Ws2EpLCnXBh5UGgDvi_7tQspDP7A@mail.gmail.com> <51F633AE.8090308@collabora.co.uk> <51F63864.9000601@collabora.co.uk> <51F666B7.7020209@ti.com> <51F681C4.3000400@ahsoftware.de>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/2] arm: omap: remove *.auto* from device names given in
+ usb_bind_phy
+Date: Mon, 29 Jul 2013 18:06:38 +0300
+Message-ID: <20130729150638.GD3063@radagast>
+References: <1374829418-27503-1-git-send-email-kishon@ti.com>
+ <1374829418-27503-3-git-send-email-kishon@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41516 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751892Ab3G2PHH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Jul 2013 11:07:07 -0400
-In-Reply-To: <51F681C4.3000400@ahsoftware.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="TybLhxa8M7aNoW+V"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1374829418-27503-3-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, tony@atomide.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alexander Holler <holler@ahsoftware.de>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Linus Walleij <linus.walleij@linaro.org>, Paul Walmsley <paul@pwsan.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Kevin Hilman <khilman@linaro.org>
 
-On Monday 29 July 2013 10:52 AM, Alexander Holler wrote:
-> Am 29.07.2013 14:57, schrieb Santosh Shilimkar:
-> 
->> With some helps from MMC and other guys, we validated the Linus's tip which includes
->> your patches. It actually doesn't break anything and as OMAP hsmmc maintainer
->> clarified, the cd-gpios isn't supported yet for DT. While supporting that it
->> can use appropriate binding whichever works.
->>
->> But with OMAP1 breakage reported by Paul, I think we are not left with choice
->> but to revert those commits. We *must* respect rc rules for the fixes.
->> *No regression*
->>
->> Thanks for your hardwork to cook up those patches but now Linus's W proposal
->> is going to be generic, hopefully the issue can be address better. Till
->> then we can't get the ethernet support.
-> 
-> The problem never was just the omap_hsmmc driver. I rather would say all drivers which do use GPIOs as IRQs were affected.
-> 
-> I've only used the omap_hsmmc driver as example, because that was the driver I've tried to actually use with sd-cards, which is rather impossible without having a working CD-signal. And all code was already there and seems to work (at least during my few tests), so I've just added an entry to the dts to be able to use a mmc-slot as one would expect a mmc-slot does work.
-> 
-> If someone wants to test a new feature at the same front, I would suggest to try it out using gpio-keys. That driver should work on almost any architecture/platform/hardware which supports gpios and is small enough to be a good test candidate. Having had a short look at gpio-keys.c, I think the same problems as with omap_hsmmc would have been occured when someone had tried to use that driver with 3.11-rc2.
-> 
-The 3 OMAP platforms which supports DT are AM33XX, OMAP4 and OMAP5.
-OMAP3 based boards are getting converted but they are bit far from being
-DT only. So my statement was again from what we support on mainline today
-and those platform don't use gpio-keys. But for testing perspective,
-I guess its good idea.
+--TybLhxa8M7aNoW+V
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-As mentioned above, we are going ahead with revert and possible better
-alternative to the root of the problem.
+Hi,
 
-Regards,
-Santosh
-P.S: Please sensibly wrap your email replies to 80 chars so that
-people can read it without scrolling to the end of the line.
+On Fri, Jul 26, 2013 at 02:33:38PM +0530, Kishon Vijay Abraham I wrote:
+> Previously MUSB wrapper (OMAP) device used PLATFORM_DEVID_AUTO while crea=
+ting
+> MUSB core device. So in usb_bind_phy (binds the controller with the PHY),=
+ the
+> device name of the controller had *.auto* in it. Since with using
+> PLATFORM_DEVID_AUTO, there is no way to know the exact device name in adv=
+ance,
+> the data given in usb_bind_phy became obsolete and usb_get_phy was failin=
+g.
+> So MUSB wrapper was modified not to use PLATFORM_DEVID_AUTO. Corresponding
+> change is done in board file here.
+>=20
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-2430sdp.c          |    2 +-
+>  arch/arm/mach-omap2/board-3430sdp.c          |    2 +-
+>  arch/arm/mach-omap2/board-cm-t35.c           |    2 +-
+>  arch/arm/mach-omap2/board-devkit8000.c       |    2 +-
+>  arch/arm/mach-omap2/board-igep0020.c         |    2 +-
+>  arch/arm/mach-omap2/board-ldp.c              |    2 +-
+>  arch/arm/mach-omap2/board-omap3beagle.c      |    2 +-
+>  arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
+>  arch/arm/mach-omap2/board-omap3logic.c       |    2 +-
+>  arch/arm/mach-omap2/board-omap3pandora.c     |    2 +-
+>  arch/arm/mach-omap2/board-omap3stalker.c     |    2 +-
+>  arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +-
+>  arch/arm/mach-omap2/board-overo.c            |    2 +-
+>  arch/arm/mach-omap2/board-rm680.c            |    2 +-
+>  arch/arm/mach-omap2/board-rx51.c             |    2 +-
+>  arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
+>  16 files changed, 16 insertions(+), 16 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/bo=
+ard-2430sdp.c
+> index 244d8a5..17bb076 100644
+> --- a/arch/arm/mach-omap2/board-2430sdp.c
+> +++ b/arch/arm/mach-omap2/board-2430sdp.c
+> @@ -233,7 +233,7 @@ static void __init omap_2430sdp_init(void)
+>  	omap_hsmmc_init(mmc);
+> =20
+>  	omap_mux_init_signal("usb0hs_stp", OMAP_PULL_ENA | OMAP_PULL_UP);
+> -	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
+> +	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
 
-Regards,
-Santosh
+how about moving usb_bind_phy() calls to omap2430.c ?
 
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index f44e8b5..b6abc1a 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -544,6 +544,9 @@ static int omap2430_probe(struct platform_device *pdev)
+=20
+ 		pdata->board_data	=3D data;
+ 		pdata->config		=3D config;
++	} else {
++		/* bind the PHY */
++		usb_bind_phy(dev_name(&musb->dev), 0, "twl4030_usb");
+ 	}
+=20
+ 	if (pdata->has_mailbox) {
 
+The only problem is if some board comes with a PHY other than
+twl4030_usb, but in that case we can add a separate compatible flag and
+treat it properly. We only need to bind the phy in non-DT case anyway,
+so that's temporary. It might be better than to reintroduce the IDR in
+musb_core.c.
 
+--=20
+balbi
 
+--TybLhxa8M7aNoW+V
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR9oT+AAoJEIaOsuA1yqRErrAQAI5WGvGhARD2HcOc+4iJ3IKy
+qUIxGfmesWRXi2OiT0xoN4NXI23Res067TFii082mUqpx7Eq8YJbZF8sqHOxg6Sx
+5GDY6YF4CaDj5EDnNuogvzHvFx4xfVrxmq4oOqXQWEQvPJKbPJc4n1cV1LngCgmg
+2EgGagJ+DGfIz6mOTqyHY6J0IhnTVJMKG7OXUUhcO3aPQ8oUKB8WW5YDTDsTK1UO
+mFb2VSgbdz1A6yuc0cQUyS+fS8VfKeVUL9WnTGsHXHezfmIKgE78fUU2fKthuOgC
+uep/Rxq7gIKZCDUYVL57kWZI0ZR3KQCvGgYnZLuxVn8PkqNkGv+qCOoMyq3CX4Ew
+ZTjHwwupiOEFZiIstKh1wNA0svYjEPRyeGjT5cwMB2h7gIoBN52/R8zFrdLbkak1
+QoStzdzkAx46yLnlwN7rCjjOTNoR+c0DVT0GPDkTt7v76mkV4UwY7gYv+n/geEyD
+/uW0pnxmX0aFv2+//ZhfrQeuWHptBaBj4zaW9kgbuhfiYn7ZrmR7E1xlNJIHp/2C
+av0RPWDR2ONi2/LQQv4VKc6Yb/dwTc/XdxNbqgiqVpq/BV4rdDyZHj+udsz3NRAf
+fgnXTNz1VT5jyHsFGwLLFy4+O6dqd1qMBwqNMn3biajBs/kJqlpF7GQXb7q7J4cw
+nBBvWtz9pEWNhZTL6sj5
+=CKdj
+-----END PGP SIGNATURE-----
+
+--TybLhxa8M7aNoW+V--
