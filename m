@@ -1,110 +1,100 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] pinctrl: Allow pinctrl to have multiple active
- states
-Date: Mon, 29 Jul 2013 02:45:02 -0700
-Message-ID: <20130729094501.GC7656@atomide.com>
-References: <20130718151213.30990.45828.stgit@localhost>
- <20130718151507.30990.67174.stgit@localhost>
- <CACRpkdY5-OFN4YQywPj06jkf493BhwgJGMEnmKmbovTh+co2Yg@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP5912 boot broken by "gpio/omap: don't create an IRQ mapping
+ for every GPIO on DT"
+Date: Mon, 29 Jul 2013 09:47:45 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1307290943000.30864@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1307290604310.30864@utopia.booyaka.com> <CACRpkdYa8Kg_-u3gB8jrB_Ws2EpLCnXBh5UGgDvi_7tQspDP7A@mail.gmail.com> <51F633AE.8090308@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkdY5-OFN4YQywPj06jkf493BhwgJGMEnmKmbovTh+co2Yg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:54042 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754783Ab3G2Jrq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 05:47:46 -0400
+In-Reply-To: <51F633AE.8090308@collabora.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>
 
-* Linus Walleij <linus.walleij@linaro.org> [130722 16:01]:
-> On Thu, Jul 18, 2013 at 5:15 PM, Tony Lindgren <tony@atomide.com> wrote:
+Hi
+
+On Mon, 29 Jul 2013, Javier Martinez Canillas wrote:
+
+> I've looked at this and it seems that irq_create_mapping() does not call the
+> irq_domain_ops .map function handler since OMAP1 still uses legacy domain
+> mapping. I don't have an OMAP1 platform to test but could you please see if the
+> following patch [1] makes your OMAP1 platforms to boot again?
 > 
-> > It's quite common that we need to dynamically change some pins for a
-> > device for runtime PM, or toggle a pin between rx and tx. Changing all
+> But I agree with Linus and probably we should just go and revert the whole
+> series since it is very hard to get it right. In another thread a user reported
+> that this change also broke his DTS tree.
 > 
-> What does "change" mean above?
+> I really tried to get this right without breaking anything but there are just
+> too many OMAP platforms behaving differently and most OMAP drivers are only half
+> converted to DT so this is really a can of worms.
 > 
-> Please reword to "remux" if that is what is meant.
-
-Yes remux or reconfigure the pinconf depending on the hardware.
-And possibly based on the board specific configuration if both
-options are available.
- 
-> > the pins for a device is not efficient way of doing it.
-> >
-> > So let's allow setting up multiple active states for pinctrl.
+> Thanks a lot and sorry for the inconvenience,
+> Javier
 > 
-> Do you mean multiple default states?
+> [1]:
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index c57244e..f1c6da8 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -1090,8 +1090,18 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
+>          * are used as interrupts.
+>          */
+>         if (!omap_gpio_chip_boot_dt(&bank->chip))
+> -               for (j = 0; j < bank->width; j++)
+> -                       irq_create_mapping(bank->domain, j);
+> +               for (j = 0; j < bank->width; j++) {
+> +                       int irq = irq_create_mapping(bank->domain, j);
+> +                       irq_set_lockdep_class(irq, &gpio_lock_class);
+> +                       irq_set_chip_data(irq, bank);
+> +                       if (bank->is_mpuio) {
+> +                               omap_mpuio_alloc_gc(bank, irq, bank->width);
+> +                       } else {
+> +                               irq_set_chip_and_handler(irq, &gpio_irq_chip,
+> +                                                        handle_simple_irq);
+> +                               set_irq_flags(irq, IRQF_VALID);
+> +                       }
+> +               }
+>         irq_set_chained_handler(bank->irq, gpio_irq_handler);
+>         irq_set_handler_data(bank->irq, bank);
 > 
-> I have a hard time understanding so please help me out :-/
 
-One default state, which should only contain the static pins that
-don't need to be remuxed or reconfigured during runtime PM.
+For some reason this patch didn't apply cleanly on v3.11-rc3, so 
+hand-applied the following patch.  It still doesn't boot on v3.11-rc3:
 
-It should probably say "support for multiple currently activated
-states", does that make it clearer?
- 
-> > Currently
-> > we only need PINCTRL_STATIC and PINCTRL_DYNAMIC, where PINCTRL_STATIC
-> > covers the current default pins, and PINCTRL_DYNAMIC holds the dynamic
-> > pins that need to be toggled.
-> 
-> Toggled when?
+http://www.pwsan.com/omap/testlogs/bisect_5912osk_boot_fail_v3.11-rc3/20130729032525/boot/5912osk/5912osk_log.txt
 
-Remuxed or reconfigured constantly for runtime PM.
- 
-> When changing state to another one? Any other state? Or back to
-> this state? Sorry not following ... this needs to be more verbose.
 
-How about "toggle dynamic pins between active and idle state
-for runtime PM"?
- 
-> > --- a/drivers/pinctrl/core.h
-> > +++ b/drivers/pinctrl/core.h
-> > @@ -53,12 +53,18 @@ struct pinctrl_dev {
-> >  #endif
-> >  };
-> >
-> > +enum pinctrl_states {
-> > +       PINCTRL_STATIC,
-> > +       PINCTRL_DYNAMIC,
-> > +       PINCTRL_NR_STATES,
-> > +};
-> 
-> This needs some very precise kerneldoc so it is chrystal clear what these
-> states are all about. "pinctrl_states" is not a good name for this enum,
-> please find some more precise name, because we have functions
-> with names like pinctrl_select_state() which is not related to this.
-> 
-> Is this substates or?
+- Paul
 
-This lists the sets of pins that can be activated the same
-time. So after this, we support two sets of pins that a
-pinctrl consumer driver can have activated the same time:
-static pins and dynamic pins. There can be any number of
-named modes for dynamic pins, but typically only active and
-idle.
-
-Then if for some reason we need more than two sets activated
-the same time, we can expand the array as needed. So that's
-mostly to try to keep things future proof and not limit things
-to two sets as noted by Stephen earlier.
- 
-> > +
-> >  /**
-> >   * struct pinctrl - per-device pin control state holder
-> >   * @node: global list node
-> >   * @dev: the device using this pin control handle
-> >   * @states: a list of states for this device
-> > - * @state: the current state
-> > + * @state: the current state(s)
-> 
-> How can more than one state be the current state? Sorry I don't get this.
-> This needs to be more precise I think.
-
-Hopefully the explanation above helps with that, if not,
-let me know.
- 
-Regards,
-
-Tony
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index c57244e..23da829 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1090,8 +1090,19 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
+ 	 * are used as interrupts.
+ 	 */
+ 	if (!omap_gpio_chip_boot_dt(&bank->chip))
+-		for (j = 0; j < bank->width; j++)
+-			irq_create_mapping(bank->domain, j);
++		for (j = 0; j < bank->width; j++) {
++			int irq = irq_create_mapping(bank->domain, j);
++			irq_set_lockdep_class(irq, &gpio_lock_class);
++			irq_set_chip_data(irq, bank);
++			if (bank->is_mpuio) {
++				omap_mpuio_alloc_gc(bank, irq, bank->width);
++			} else {
++				irq_set_chip_and_handler(irq, &gpio_irq_chip,
++							 handle_simple_irq);
++				set_irq_flags(irq, IRQF_VALID);
++			}
++		}
++
+ 	irq_set_chained_handler(bank->irq, gpio_irq_handler);
+ 	irq_set_handler_data(bank->irq, bank);
+ }
