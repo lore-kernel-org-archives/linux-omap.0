@@ -1,35 +1,56 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH 01/11] spi: Provide core support for runtime PM during
- transfers
-Date: Mon, 29 Jul 2013 10:56:07 -0600
-Message-ID: <51F69EA7.5070704@wwwdotorg.org>
-References: <1375022606-7576-1-git-send-email-broonie@kernel.org>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH V2 0/3] ARM: dts: omap5-uevm: fixup wrong regulator
+ configuration
+Date: Mon, 29 Jul 2013 12:03:00 -0500
+Message-ID: <1375117383-19285-1-git-send-email-nm@ti.com>
+References: <51F67D7D.9070003@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:51203 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757691Ab3G2Q4L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 12:56:11 -0400
-In-Reply-To: <1375022606-7576-1-git-send-email-broonie@kernel.org>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51F67D7D.9070003@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Benoit Cousson <benoit.cousson@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, dt list <devicetree@vger.kernel.org>, J Keerthy <j-keerthy@ti.com>, lkml <linux-kernel@vger.kernel.org>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Kukjin Kim <kgene.kim@samsung.com>, Linus Walleij <linus.walleij@linaro.org>, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linaro-kernel@lists.linaro.org, Mark Brown <broonie@linaro.org>
 
-On 07/28/2013 08:43 AM, Mark Brown wrote:
-> From: Mark Brown <broonie@linaro.org>
-> 
-> Most SPI drivers that implement runtime PM support use identical code to
-> do so: they acquire a runtime PM lock in prepare_transfer_hardware() and
-> then they release it in unprepare_transfer_hardware(). The variations in
-> this are mostly missing error checking and the choice to use autosuspend.
-> 
-> Since these runtime PM calls are normally the only thing in the prepare
-> and unprepare callbacks and the autosuspend API transparently does the
-> right thing on devices with autosuspend disabled factor all of this out
-> into the core with a flag to enable the behaviour.
+Due to wrong older revision of documentation used as reference, we
+seem to have a bunch of LDOs wrongly configured on OMAP5 uEVM. This
+series is based power tree on production board 750-2628-XXX platform.
+Unfortunately, the wrong voltages may be detrimental to OMAP5 as they
+supply hardware blocks at voltages that are out of specification.
 
-Patch 1, 9, 10, 11,
-Reviewed-by: Stephen Warren <swarren@nvidia.com>
+Also available at:
+based on v3.11-rc1 tag
+http link: https://github.com/nmenon/linux-2.6-playground/commits/push/omap5-palmas-fixes-v2
+git link: git://github.com/nmenon/linux-2.6-playground.git
+branch: push/omap5-palmas-fixes-v2
+
+Changes since V1:
+ - squash of patches
+ - picked up Ack from Keerthy
+ - based on v3.11-rc3 tag
+
+V1: http://marc.info/?t=137407980100008&r=1&w=2
+
+Nishanth Menon (3):
+  ARM: dts: omap5-uevm: document regulator signals used on the actual
+    board
+  ARM: dts: omap5-uevm: fix regulator configurations mandatory for SoC
+  ARM: dts: omap5-uevm: update optional/unused regulator configurations
+
+ arch/arm/boot/dts/omap5-uevm.dts |   78 ++++++++++++++++++++++++--------------
+ 1 file changed, 49 insertions(+), 29 deletions(-)
+
+Regards,
+Nishanth Menon
+-- 
+1.7.9.5
