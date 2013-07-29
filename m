@@ -1,221 +1,133 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
-Date: Mon, 29 Jul 2013 14:36:08 +0200
-Message-ID: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.df.lth.se ([194.47.250.12]:40080 "EHLO mail.df.lth.se"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751740Ab3G2Ms2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Jul 2013 08:48:28 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: OMAP5912 boot broken by "gpio/omap: don't create an IRQ mapping
+ for every GPIO on DT"
+Date: Mon, 29 Jul 2013 08:57:27 -0400
+Message-ID: <51F666B7.7020209@ti.com>
+References: <alpine.DEB.2.02.1307290604310.30864@utopia.booyaka.com>
+ <CACRpkdYa8Kg_-u3gB8jrB_Ws2EpLCnXBh5UGgDvi_7tQspDP7A@mail.gmail.com>
+ <51F633AE.8090308@collabora.co.uk> <51F63864.9000601@collabora.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51F63864.9000601@collabora.co.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Linus Walleij <linus.walleij@linaro.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Grant Likely <grant.likely@secretlab.ca>, Linux-OMAP <linux-omap@vger.kernel.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alexander Holler <holler@ahsoftware.de>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, devicetree@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Grant Likely <grant.likely@secretlab.ca>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>
 
-NOTE: THIS PATCH IS UNFINISHED AND UNTESTED AND THE ONLY
-INTENTION IS TO SHOWCASE MY DESIRED APPROACH, IT WILL NOT
-TRAVERSE THE DT INTERRUPTS PROPERLY AS OF NOW. PLEASE LET US
-JUST DISCUSS THIS APPROACH.
+Javier,
 
-Currently the kernel are ambigously treating GPIOs and interrupts
-from a GPIO controller: GPIOs and interrupts are treated as
-orthogonal. This unfortunately makes it unclear how to actually
-retrieve and request a GPIO line or interrupt from a GPIO
-controller in the device tree probe path.
+On Monday 29 July 2013 05:39 AM, Javier Martinez Canillas wrote:
+> On 07/29/2013 11:19 AM, Javier Martinez Canillas wrote:
+>> On 07/29/2013 11:01 AM, Linus Walleij wrote:
+>>> Hi Paul,
+>>>
+>>> On Mon, Jul 29, 2013 at 9:52 AM, Paul Walmsley <paul@pwsan.com> wrote:
+>>>
+>>>> your commit 0e970cec05635adbe7b686063e2548a8e4afb8f4 ("gpio/omap: don't
+>>>> create an IRQ mapping for every GPIO on DT") breaks the boot on the
+>>>> OMAP5912 OSK:
+>>>
+>>> I'm contemplating just reverting this whole series, as I didn't like
+>>> the approach from the beginning and it has exploded in exactly
+>>> the way I thought it would.
+>>>
+>>> If we revert these three patches:
+>>>
+>>> commit 949eb1a4d29dc75e0b5b16b03747886b52ecf854
+>>> "gpio/omap: fix build error when OF_GPIO is not defined."
+>>> commit b4419e1a15905191661ffe75ba2f9e649f5d565e
+>>> "gpio/omap: auto request GPIO as input if used as IRQ via DT"
+>>> commit 0e970cec05635adbe7b686063e2548a8e4afb8f4
+>>> "gpio/omap: don't create an IRQ mapping for every GPIO on DT"
+>>>
+>>> Does the OMAP1 boot again after this?
+>>>
+>>> I think it's a way better idea to proceed with input-hogs on the gpiochip
+>>> DT node and use that to get auto-request on the GPIO lines that
+>>> will be used as IRQs only.
+>>>
+>>> Yours,
+>>> Linus Walleij
+>>>
+>>
+>> Hi Paul,
+>>
+>> I've looked at this and it seems that irq_create_mapping() does not call the
+>> irq_domain_ops .map function handler since OMAP1 still uses legacy domain
+>> mapping. I don't have an OMAP1 platform to test but could you please see if the
+>> following patch [1] makes your OMAP1 platforms to boot again?
+>>
+>> But I agree with Linus and probably we should just go and revert the whole
+>> series since it is very hard to get it right. In another thread a user reported
+>> that this change also broke his DTS tree.
+>>
+>> I really tried to get this right without breaking anything but there are just
+>> too many OMAP platforms behaving differently and most OMAP drivers are only half
+>> converted to DT so this is really a can of worms.
+>>
+>> Thanks a lot and sorry for the inconvenience,
+>> Javier
+>>
+>> [1]:
+>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>> index c57244e..f1c6da8 100644
+>> --- a/drivers/gpio/gpio-omap.c
+>> +++ b/drivers/gpio/gpio-omap.c
+>> @@ -1090,8 +1090,18 @@ static void omap_gpio_chip_init(struct gpio_bank *bank)
+>>          * are used as interrupts.
+>>          */
+>>         if (!omap_gpio_chip_boot_dt(&bank->chip))
+>> -               for (j = 0; j < bank->width; j++)
+>> -                       irq_create_mapping(bank->domain, j);
+>> +               for (j = 0; j < bank->width; j++) {
+>> +                       int irq = irq_create_mapping(bank->domain, j);
+>> +                       irq_set_lockdep_class(irq, &gpio_lock_class);
+>> +                       irq_set_chip_data(irq, bank);
+>> +                       if (bank->is_mpuio) {
+>> +                               omap_mpuio_alloc_gc(bank, irq, bank->width);
+>> +                       } else {
+>> +                               irq_set_chip_and_handler(irq, &gpio_irq_chip,
+>> +                                                        handle_simple_irq);
+>> +                               set_irq_flags(irq, IRQF_VALID);
+>> +                       }
+>> +               }
+>>         irq_set_chained_handler(bank->irq, gpio_irq_handler);
+>>         irq_set_handler_data(bank->irq, bank);
+>>
+> 
+> In case this solves Paul issue, a cleaned patch with a commit message is [2].
+> But we should decide if is better to fix this or just drop the patches and go
+> with Linus' input-hogs idea to do the GPIO auto request.
+> 
+> Santosh, Kevin, Grant, what do you think we should do?
+> 
+With some helps from MMC and other guys, we validated the Linus's tip which includes
+your patches. It actually doesn't break anything and as OMAP hsmmc maintainer
+clarified, the cd-gpios isn't supported yet for DT. While supporting that it
+can use appropriate binding whichever works.
 
-In the non-DT probe path it is clear that the GPIO number has to
-be passed to the consuming device, and if it is to be used as
-an interrupt, the consumer shall performa a gpio_to_irq() mapping
-and request the resulting IRQ number.
+But with OMAP1 breakage reported by Paul, I think we are not left with choice
+but to revert those commits. We *must* respect rc rules for the fixes.
+*No regression*
 
-In the DT boot path consumers may have been given one or more
-interrupts from the interrupt-controller side of the GPIO chip
-in an abstract way, such that the driver is not aware of the
-fact that a GPIO chip is backing this interrupt, and the GPIO
-side of the same line is never requested with gpio_request().
-A typical case for this is ethernet chips which just take some
-interrupt line which may be a "hard" interrupt line (such as an
-external interrupt line from an SoC) or a cascaded interrupt
-connected to a GPIO line.
+Thanks for your hardwork to cook up those patches but now Linus's W proposal
+is going to be generic, hopefully the issue can be address better. Till
+then we can't get the ethernet support.
 
-This has the following undesired effects:
+Linus,
+I guess you have already gone ahead on revert path as seen from other email.
+Lets just make that official. We are sorry for cause you trouble over a
+week-end.
 
-- The GPIOlib subsystem is not aware that the line is in use
-  and willingly lets some other consumer perform gpio_request()
-  on it, leading to a complex resource conflict if it occurs.
-
-- The GPIO debugfs file claims this GPIO line is "free".
-
-- The line direction of the interrupt GPIO line is not
-  explicitly set as input, even though it is obvious that such
-  a line need to be set up in this way, often making the system
-  depend on boot-on defaults for this kind of settings.
-
-To solve this dilemma, perform an interrupt consistency check
-when adding a GPIO chip: if the chip is both gpio-controller and
-interrupt-controller, walk all children of the device tree,
-check if these in turn reference the interrupt-controller, and
-if they do, loop over the interrupts used by that child and
-perform gpio_reques() and gpio_direction_input() on these,
-making them unreachable from the GPIO side.
-
-Cc: devicetree@vger.kernel.org
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Enric Balletbo i Serra <eballetbo@gmail.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@linaro.org>
-Cc: Balaji T K <balajitk@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Jon Hunter <jgchunter@gmail.com>
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
----
- drivers/gpio/gpiolib-of.c | 110 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 110 insertions(+)
-
-diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
-index 665f953..129f0e7 100644
---- a/drivers/gpio/gpiolib-of.c
-+++ b/drivers/gpio/gpiolib-of.c
-@@ -19,6 +19,7 @@
- #include <linux/of.h>
- #include <linux/of_address.h>
- #include <linux/of_gpio.h>
-+#include <linux/of_irq.h>
- #include <linux/pinctrl/pinctrl.h>
- #include <linux/slab.h>
- 
-@@ -127,6 +128,112 @@ int of_gpio_simple_xlate(struct gpio_chip *gc,
- EXPORT_SYMBOL(of_gpio_simple_xlate);
- 
- /**
-+ * of_gpiochip_interrupt_consistency_check - check IRQ consistency
-+ * @np:		device node of the GPIO chip
-+ * @gc:		GPIO chip instantiated from same node
-+ *
-+ * This function is called after instantiating a GPIO chip from a device
-+ * tree node to assert that all interrupts derived from the chip are
-+ * consistently requested as GPIO lines, if the GPIO chip is BOTH a
-+ * gpio-controller AND an interrupt-controller.
-+ *
-+ * If another node in the device tree is referencing the interrupt-controller
-+ * portions of the GPIO chip, such that it is using a GPIO line as some
-+ * arbitrary interrupt source, the following holds:
-+ *
-+ * - That line must NOT be used anywhere else in the device tree as a
-+ *   <&gpio N> reference, or GPIO and interrupt usage may conflict.
-+ *
-+ * Conversely, if a node is using a line as a direct reference to a GPIO line,
-+ * no node in the tree may use that line as an interrupt.
-+ *
-+ * If another node is referencing a GPIO line, and also want to use that line
-+ * as an interrupt source, it is necessary for this driver to use the
-+ * gpio_to_irq() kernel interface.
-+ */
-+static void of_gpiochip_interrupt_consistency_check(struct device_node *np,
-+						    struct gpio_chip *gc)
-+{
-+	struct device_node *root, *child;
-+	struct device_node *irq_parent;
-+
-+	/*
-+	 * If this chip is not tagged as interrupt-controller, there is
-+	 * no problem so we just exit.
-+	 */
-+	if (!of_property_read_bool(np, "interrupt-controller"))
-+	    return;
-+
-+	/*
-+	 * Proceed to check the consistency of all references to this
-+	 * GPIO chip.
-+	 */
-+	root = of_find_node_by_path("/");
-+	if (!root)
-+		return;
-+
-+	for_each_child_of_node(root, child) {
-+		const __be32 *intspec;
-+		u32 intlen;
-+		u32 offset;
-+		int ret;
-+		int num_irq;
-+		int i;
-+
-+		/* Check if we have an IRQ parent, else continue */
-+		irq_parent = of_irq_find_parent(child);
-+		if (!irq_parent)
-+			continue;
-+
-+		/* Is it so that this very GPIO chip is the parent? */
-+		if (irq_parent != np) {
-+			of_node_put(irq_parent);
-+			continue;
-+		}
-+		of_node_put(irq_parent);
-+
-+		pr_debug("gpiochip OF: node reference GPIO interrupt lines\n");
-+
-+		/* Get the interrupts property */
-+		intspec = of_get_property(child, "interrupts", &intlen);
-+		if (intspec == NULL)
-+			continue;
-+		intlen /= sizeof(*intspec);
-+
-+		num_irq = of_irq_count(np);
-+		for (i = 0; i < num_irq; i++) {
-+			/*
-+			 * The first cell is always the local IRQ number, and
-+			 * this corresponds to the GPIO line offset for a GPIO
-+			 * chip.
-+			 *
-+			 * FIXME: take interrupt-cells into account here.
-+			 */
-+			offset = of_read_number(intspec + i, 1);
-+			pr_debug("gpiochip: OF node references offset=%d\n",
-+				 offset);
-+
-+			/*
-+			 * This child is making a reference to this chip
-+			 * through the interrupts property, so reserve these
-+			 * GPIO lines and set them as input.
-+			 */
-+			ret = gpio_request(gc->base + offset, "OF IRQ");
-+			if (ret)
-+				pr_err("gpiolib OF: could not request IRQ GPIO %d (%d)\n",
-+				       gc->base + offset, offset);
-+			ret = gpio_direction_input(gc->base + offset);
-+			if (ret)
-+				pr_err("gpiolib OF: could not set IRQ GPIO %d (%d) as input\n",
-+				       gc->base + offset, offset);
-+		}
-+
-+	}
-+
-+	of_node_put(root);
-+}
-+
-+/**
-  * of_mm_gpiochip_add - Add memory mapped GPIO chip (bank)
-  * @np:		device node of the GPIO chip
-  * @mm_gc:	pointer to the of_mm_gpio_chip allocated structure
-@@ -170,6 +277,8 @@ int of_mm_gpiochip_add(struct device_node *np,
- 	if (ret)
- 		goto err2;
- 
-+	of_gpiochip_interrupt_consistency_check(np, gc);
-+
- 	return 0;
- err2:
- 	iounmap(mm_gc->regs);
-@@ -231,6 +340,7 @@ void of_gpiochip_add(struct gpio_chip *chip)
- 		chip->of_xlate = of_gpio_simple_xlate;
- 	}
- 
-+	of_gpiochip_interrupt_consistency_check(chip->of_node, chip);
- 	of_gpiochip_add_pin_range(chip);
- 	of_node_get(chip->of_node);
- }
--- 
-1.8.1.4
-
+Regards,
+Santosh
