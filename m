@@ -1,109 +1,61 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: [PATCH v2] Documentation: dt: bindings: TI WiLink modules
-Date: Mon, 29 Jul 2013 17:55:28 +0300
-Message-ID: <1375109728-5931-1-git-send-email-coelho@ti.com>
+From: Alexander Holler <holler@ahsoftware.de>
+Subject: Re: OMAP5912 boot broken by "gpio/omap: don't create an IRQ mapping
+ for every GPIO on DT"
+Date: Mon, 29 Jul 2013 16:52:52 +0200
+Message-ID: <51F681C4.3000400@ahsoftware.de>
+References: <alpine.DEB.2.02.1307290604310.30864@utopia.booyaka.com> <CACRpkdYa8Kg_-u3gB8jrB_Ws2EpLCnXBh5UGgDvi_7tQspDP7A@mail.gmail.com> <51F633AE.8090308@collabora.co.uk> <51F63864.9000601@collabora.co.uk> <51F666B7.7020209@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Cc: mturquette@linaro.org, mark.rutland@arm.com, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-wireless@vger.kernel.org, linux-arm@vger.kernel.org, tony@atomide.com, nm@ti.com, laurent.pinchart@ideasonboard.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from h1446028.stratoserver.net ([85.214.92.142]:57220 "EHLO
+	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757074Ab3G2O4Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 10:56:16 -0400
+Received: from eiche.ahsoftware (p57B216E0.dip0.t-ipconnect.de [87.178.22.224])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.ahsoftware.de (Postfix) with ESMTPSA id 4404D423C272
+	for <linux-omap@vger.kernel.org>; Mon, 29 Jul 2013 16:56:14 +0200 (CEST)
+In-Reply-To: <51F666B7.7020209@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Linus Walleij <linus.walleij@linaro.org>, Paul Walmsley <paul@pwsan.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Kevin Hilman <khilman@linaro.org>
 
-Add device tree bindings documentation for the TI WiLink modules.
-Currently only the WLAN part of the WiLink6, WiLink7 and WiLink8
-modules is supported.
+Am 29.07.2013 14:57, schrieb Santosh Shilimkar:
 
-Signed-off-by: Luciano Coelho <coelho@ti.com>
----
+> With some helps from MMC and other guys, we validated the Linus's tip which includes
+> your patches. It actually doesn't break anything and as OMAP hsmmc maintainer
+> clarified, the cd-gpios isn't supported yet for DT. While supporting that it
+> can use appropriate binding whichever works.
+>
+> But with OMAP1 breakage reported by Paul, I think we are not left with choice
+> but to revert those commits. We *must* respect rc rules for the fixes.
+> *No regression*
+>
+> Thanks for your hardwork to cook up those patches but now Linus's W proposal
+> is going to be generic, hopefully the issue can be address better. Till
+> then we can't get the ethernet support.
 
-Changes in v2:
+The problem never was just the omap_hsmmc driver. I rather would say all 
+drivers which do use GPIOs as IRQs were affected.
 
-Use generic clock definitions to get the clock data instead of passing
-the frequencies directly.  Also added definition for "internal"
-ti,wilink-clock.
+I've only used the omap_hsmmc driver as example, because that was the 
+driver I've tried to actually use with sd-cards, which is rather 
+impossible without having a working CD-signal. And all code was already 
+there and seems to work (at least during my few tests), so I've just 
+added an entry to the dts to be able to use a mmc-slot as one would 
+expect a mmc-slot does work.
 
-Please review.
+If someone wants to test a new feature at the same front, I would 
+suggest to try it out using gpio-keys. That driver should work on almost 
+any architecture/platform/hardware which supports gpios and is small 
+enough to be a good test candidate. Having had a short look at 
+gpio-keys.c, I think the same problems as with omap_hsmmc would have 
+been occured when someone had tried to use that driver with 3.11-rc2.
 
-Luca.
+Regards,
 
- .../devicetree/bindings/net/wireless/ti-wilink.txt | 68 ++++++++++++++++++++++
- 1 file changed, 68 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
+Alexander Holler
 
-diff --git a/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt b/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
-new file mode 100644
-index 0000000..5fd27dc
---- /dev/null
-+++ b/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
-@@ -0,0 +1,68 @@
-+TI WiLink Wireless Modules Device Tree Bindings
-+===============================================
-+
-+The WiLink modules provide wireless connectivity, such as WLAN,
-+Bluetooth, FM and NFC.
-+
-+There are several different modules available, which can be grouped by
-+their generation: WiLink6, WiLink7 and WiLink8.  WiLink4 is not
-+currently supported with device tree.
-+
-+Currently, only the WLAN portion of the modules is supported with
-+device tree.
-+
-+Required properties:
-+--------------------
-+
-+- compatible: should be "ti,wilink6", "ti,wilink7" or "ti,wilink8"
-+- interrupt-parent: the interrupt controller
-+- interrupts: out-of-band WLAN interrupt
-+	See the interrupt controller's bindings documentation for
-+	detailed definition.
-+
-+Optional properties:
-+--------------------
-+
-+- clocks: list of clocks needed by the chip as follows:
-+
-+  refclock: the internal WLAN reference clock frequency (required for
-+	WiLink6 and WiLink7; not used for WiLink8).
-+
-+  tcxoclock: the internal WLAN TCXO clock frequency (required for
-+	WiLink7 not used for WiLink6 and WiLink8).
-+
-+  The clocks must be defined and named accordingly.  For example:
-+
-+  clocks = <&refclock>
-+  clock-names = "refclock";
-+
-+  refclock: refclock {
-+		     compatible = "ti,wilink-clock";
-+		     #clock-cells = <0>;
-+		     clock-frequency = <38400000>;
-+	};
-+
-+  Some modules that contain the WiLink chip provide clocks in the
-+  module itself.  In this case, we define a "ti,wilink-clock" as shown
-+  above.  But any other clock could in theory be used, so the proper
-+  clock definition should be used.
-+
-+
-+Example:
-+--------
-+
-+Example definition that can be used in OMAP4 Panda:
-+
-+wlan {
-+	compatible = "ti,wilink6";
-+	interrupt-parent = <&gpio2>;
-+	interrupts = <21 0x4>;	/* gpio line 53, high level triggered */
-+	clocks = <&refclock>;
-+	clock-names = "refclock";
-+
-+	refclock: refclock {
-+		compatible = "ti,wilink-clock";
-+		#clock-cells = <0>;
-+		clock-frequency = <38400000>;
-+	};
-+};
--- 
-1.8.3.2
