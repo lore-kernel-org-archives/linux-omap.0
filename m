@@ -1,108 +1,97 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH 2/2] driver: spi: Add quad spi read support
-Date: Mon, 29 Jul 2013 12:59:58 +0300
-Message-ID: <20130729095958.GI23710@radagast>
-References: <1375082550-30544-1-git-send-email-sourav.poddar@ti.com>
- <1375082550-30544-3-git-send-email-sourav.poddar@ti.com>
- <20130729093258.GF23710@radagast>
- <51F6392B.8030809@ti.com>
-Reply-To: <balbi@ti.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH] ARM: v6: prevent gcc from reordering extended CP15 reads
+ above is_smp() test
+Date: Mon, 29 Jul 2013 11:02:43 +0100
+Message-ID: <20130729100243.GC32383@mudshark.cambridge.arm.com>
+References: <51EE2AA7.5060503@ti.com>
+ <alpine.DEB.2.02.1307230705000.27017@utopia.booyaka.com>
+ <51EE474D.5070804@ti.com>
+ <20130724135617.GI11072@mudshark.cambridge.arm.com>
+ <51EFE1DD.8070801@ti.com>
+ <20130724142059.GJ11072@mudshark.cambridge.arm.com>
+ <alpine.DEB.2.02.1307270405470.4546@utopia.booyaka.com>
+ <20130727122221.GB6618@mudshark.cambridge.arm.com>
+ <alpine.DEB.2.02.1307280538460.8385@utopia.booyaka.com>
+ <alpine.DEB.2.02.1307282012280.23852@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="fDERRRNgB4on1jOB"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49927 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752331Ab3G2KAW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 06:00:22 -0400
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:34162 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752093Ab3G2KDX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Jul 2013 06:03:23 -0400
 Content-Disposition: inline
-In-Reply-To: <51F6392B.8030809@ti.com>
+In-Reply-To: <alpine.DEB.2.02.1307282012280.23852@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: balbi@ti.com, broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, linux-omap@vger.kernel.org, rnayak@ti.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---fDERRRNgB4on1jOB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Paul,
 
-On Mon, Jul 29, 2013 at 03:13:07PM +0530, Sourav Poddar wrote:
-> On Monday 29 July 2013 03:02 PM, Felipe Balbi wrote:
-> >On Mon, Jul 29, 2013 at 12:52:30PM +0530, Sourav Poddar wrote:
-> >>Since, qspi controller uses quad read.
-> >>
-> >>Configuring the command register, if the transfer of data needs
-> >>dual or quad lines.
-> >>
-> >>This patch has been done on top of the following patch[1], which is jus=
-t the
-> >>basic idea of adding dual/quad support in spi framework.
-> >>$subject patch will undergo changes with the ongoing discussion in the
-> >>community.
-> >>
-> >>This patch is posted to demonstrate how patch 1 of the series will supp=
-ort
-> >>quad read.
-> >>
-> >>[1]: http://comments.gmane.org/gmane.linux.kernel.spi.devel/14047
-> >>
-> >>Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
-> >>---
-> >>  drivers/spi/spi-ti-qspi.c |   16 ++++++++++++++--
-> >>  1 files changed, 14 insertions(+), 2 deletions(-)
-> >>
-> >>diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
-> >>index 51fe95f..8a32b1c 100644
-> >>--- a/drivers/spi/spi-ti-qspi.c
-> >>+++ b/drivers/spi/spi-ti-qspi.c
-> >>@@ -86,6 +86,7 @@ struct ti_qspi {
-> >>  #define QSPI_3_PIN			(1<<  18)
-> >>  #define QSPI_RD_SNGL			(1<<  16)
-> >>  #define QSPI_WR_SNGL			(2<<  16)
-> >>+#define	QSPI_RD_DUAL			(3<<  16)
-> >>  #define QSPI_RD_QUAD			(7<<  16)
-> >so RD_QUAD is defined in previous patch but not RD_DUAL ? What gives ?
-> >
-> I think I will define RD_DUAL in the previous patch...
-> >IMHO, just merge this patch with previous and make the entire driver
-> >depend on the other patch.
-> >
-> but I was thinking of keeping rest of the $subject patch seperate, since =
-the
-> idea of implementing dual/quad read in spi framework is still under
-> discussion.
-> and this patch will change.
->=20
-> So, it would be good if we can get the basic previous patch in, and
-> then when the
-> other discussion is sorted out, we can get this in?
+On Sun, Jul 28, 2013 at 09:16:29PM +0100, Paul Walmsley wrote:
+> 
+> Commit 621a0147d5c921f4cc33636ccd0602ad5d7cbfbc ("ARM: 7757/1: mm:
+> don't flush icache in switch_mm with hardware broadcasting") breaks
+> the boot on OMAP2430SDP with omap2plus_defconfig.  Tracked to an
+> undefined instruction abort from the CP15 read in
+> cache_ops_need_broadcast().  It turns out that gcc reorders the
+> extended CP15 read above the is_smp() test.  This breaks ARM1136 r0
+> cores, since they don't support several CP15 registers that later ARM
+> cores do.  ARM1136JF-S TRM section 3.2.1 "Register allocation" has the
+> details.
 
-alright, in that case it makes sense.
+Cheers for tracking this down. Interestingly, I can't reproduce this with
+anything other than GCC 4.5.* tools -- 4.6+ do what we want. Still, it looks
+like a valid (if not misguided) thing to do.
 
---=20
-balbi
+> diff --git a/arch/arm/include/asm/cputype.h b/arch/arm/include/asm/cputype.h
+> index 8c25dc4..f428eb0 100644
+> --- a/arch/arm/include/asm/cputype.h
+> +++ b/arch/arm/include/asm/cputype.h
+> @@ -89,13 +89,25 @@ extern unsigned int processor_id;
+>  		__val;							\
+>  	})
+>  
+> +
+> +# if defined(CONFIG_CPU_V6)
+> +/*
+> + * The mrc in the read_cpuid_ext macro must not be reordered on ARMv6,
+> + * else the compiler may move it before an is_smp() test, causing
+> + * undefined instruction aborts on ARM1136 r0.
+> + */
+> +# define CPUID_EXT_REORDER	"cc", "memory"
+> +# else
+> +# define CPUID_EXT_REORDER	"cc"
+> +# endif
+> +
+>  #define read_cpuid_ext(ext_reg)						\
+>  	({								\
+>  		unsigned int __val;					\
+>  		asm("mrc	p15, 0, %0, c0, " ext_reg		\
+>  		    : "=r" (__val)					\
+>  		    :							\
+> -		    : "cc");						\
+> +		    : CPUID_EXT_REORDER);				\
+>  		__val;							\
+>  	})
 
---fDERRRNgB4on1jOB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I wouldn't worry about checking for CPU_V6. Besides, we probably need this
+to be re-evaluated across barrier() when we get CPU migration on a
+big-little platform anyway (we should probably also drop the
+__attribute_const__ for that).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+So you can just replace the "cc" (now that Nico kindly explained why those
+aren't needed the other day) with "memory".
 
-iQIcBAEBAgAGBQJR9j0dAAoJEIaOsuA1yqREznMQAJz4eE7HEKPkFZYxYn1ruqTD
-L7gan9TKe9gBnTYBVhMZks0OpTklQfVAHZZWXdU5bj1SVy7hHeCJw/yXIOXn7vqg
-ivdYk3H1aEIi+QlYoxYw0z1XojTU1wOz/J6gX7RPnd9luRrVK/AKeIlFAvBBbpDl
-UdsFGP3bA7EdGs8cSh6tQP8uqPuXiO1FKnOQmXDC7G9Vi2ofYrzBUEhWQTSg9/Za
-zkUPCUic/vxIqWo80QpLDq6GKVRQ/B7hrO0SehEr4MLmSaZq9RPmrlF7+aOQ7PFJ
-0vsEuNddNAy50S3UjxQso4Ias6pCtk8BA6bJhotuFnEZQvjymDXF6DVWvmgyvXWE
-ps/HqJD907OZjqL+cX7dBNMErVQbGveumckBxJNlkEBfpGwZ2mhPt9JRjPsBraUu
-NkKAUu3rrF2Lllp0EewPm08s0onsXHAZIyYtcezNuGl6hrx1gKri9KOFBR5V8amH
-O3dQ80yAmBrOc2ZkduEfgTxU8snHK0MfkkMyprESO9cyUHhnOd7qDDAMg8uVCzib
-8vp9XdAq8d2ctwA7r5eZDTCWSh0A1UUv3dts0nfSZL5At88FApqUQGjaXYvxPt/x
-qDEqYJPdM4CwNifed4eXR7pNm9kRKoBwzYXiFJ5B43zeKNRlQB1nacBJ8MmoKM0f
-Sf3WsVSmAdVAlWXGuzkc
-=mr1V
------END PGP SIGNATURE-----
+An alternative is to add barrier() between is_smp() and the read_cpuid_ext()
+in all callers, adding a fake read from the stack to the latter (like I did
+for the per-cpu accessor). However, this relies on fixing all callers for
+very little gain, so I don't think it's worth the hassle.
 
---fDERRRNgB4on1jOB--
+I can cook a patch if you're tied up with other things -- just let me know.
+
+Cheers,
+
+Will
