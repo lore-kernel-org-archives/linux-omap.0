@@ -1,61 +1,71 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 3/3] Input: omap-keypad: Setup irq type from DT
-Date: Mon, 29 Jul 2013 21:09:29 +0300
-Message-ID: <20130729180929.GH4964@radagast>
-References: <1375116311-13999-1-git-send-email-illia.smyrnov@ti.com>
- <1375116311-13999-4-git-send-email-illia.smyrnov@ti.com>
-Reply-To: <balbi@ti.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v3 1/3] Input: omap-keypad: Enable wakeup capability for keypad.
+Date: Mon, 29 Jul 2013 11:59:45 -0700
+Message-ID: <7605900.g1IUvSbegi@dtor-d630.eng.vmware.com>
+References: <1375116311-13999-1-git-send-email-illia.smyrnov@ti.com> <1375116311-13999-2-git-send-email-illia.smyrnov@ti.com> <20130729180441.GF4964@radagast>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wjoFZxbW4tu+iR6v"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1375116311-13999-4-git-send-email-illia.smyrnov@ti.com>
+In-Reply-To: <20130729180441.GF4964@radagast>
 Sender: linux-input-owner@vger.kernel.org
-To: Illia Smyrnov <illia.smyrnov@ti.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+To: balbi@ti.com
+Cc: Illia Smyrnov <illia.smyrnov@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---wjoFZxbW4tu+iR6v
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Monday, July 29, 2013 09:04:41 PM Felipe Balbi wrote:
+> Hi,
+> 
+> On Mon, Jul 29, 2013 at 07:45:09PM +0300, Illia Smyrnov wrote:
+> > Enable/disable IRQ wake in suspend/resume handlers
+> > to make the keypad wakeup capable.
+> > 
+> > Signed-off-by: Illia Smyrnov <illia.smyrnov@ti.com>
+> > ---
+> > 
+> >  drivers/input/keyboard/omap4-keypad.c |   43
+> >  +++++++++++++++++++++++++++++++++ 1 file changed, 43 insertions(+)
+> > 
+> > diff --git a/drivers/input/keyboard/omap4-keypad.c
+> > b/drivers/input/keyboard/omap4-keypad.c index 0244262..feab00f 100644
+> > --- a/drivers/input/keyboard/omap4-keypad.c
+> > +++ b/drivers/input/keyboard/omap4-keypad.c
+> > @@ -74,6 +74,7 @@ struct omap4_keypad {
+> > 
+> >  	struct input_dev *input;
+> >  	
+> >  	void __iomem *base;
+> > 
+> > +	bool irq_wake_enabled;
+> 
+> this flag is a bit weird... but I can't find a better way to handle this
+> situation. In one way, you shouldn't prevent system suspend, so you can
+> error out in case enable_irq_wake() fails, otoh if enable_irq_wake()
+> fails and you return 0, on resume disable_irq_wake() will throw
+> unbalanced calls warning. Maybe someone else has a better idea.
+> 
+> > @@ -439,12 +444,50 @@ static const struct of_device_id
+> > omap_keypad_dt_match[] = {> 
+> >  MODULE_DEVICE_TABLE(of, omap_keypad_dt_match);
+> >  #endif
+> > 
+> > +#ifdef CONFIG_PM_SLEEP
+> > +static int omap4_keypad_suspend(struct device *dev)
+> > +{
+> > +	struct platform_device *pdev = to_platform_device(dev);
+> 
+> you don't need to access the platform_device...
+> 
+> > +	struct omap4_keypad *keypad_data = platform_get_drvdata(pdev);
+> 
+> ... since this can become:
+> 
+> 	struct omap4_keypad *keypad_data = dev_get_drvdata(dev);
 
-On Mon, Jul 29, 2013 at 07:45:11PM +0300, Illia Smyrnov wrote:
-> OMAP4 is DT only, so read the keypad IRQ type from DT instead hardcoding =
-it
-> in driver.
->=20
-> Cc: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Illia Smyrnov <illia.smyrnov@ti.com>
+No, please use correct accessors for the objects. Platform drivers deal
+with platform devices and I prefer using platform_get_drvdata() on them.
 
-Looks good to my eyes:
+Thanks.
 
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-
---=20
-balbi
-
---wjoFZxbW4tu+iR6v
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR9q/ZAAoJEIaOsuA1yqREquAP/0pA41s72XEblH5Fgp4KxZ5o
-vvLglkBi2fDTCNx4C9FXXr5jO9wQV0ANRiVPt4NRicVCrU97En7o9BkbBjoOTicm
-BaQSGED8gah+AHMm6G4bX+TGnyf+RzqecfuKkGgeTMb6RtOEZvlPcRAG59z6IlCw
-zQUavrou7IIaN69ysVzWKtnFHHtvQCgc9bbh29OrB0Tk3ogzDuwyXknsoRwPKQ8V
-osZcRMBhu5/ajzcXeJ7rSELmZ5XFHYC/EjGaIbgNwlXt87w2ysJ9bBCtc2ve0ylb
-npVPuWhsIh8gnomWzEBu3YAHsRQVFgM47so86nBJX0vAILcrFxFs45SXavZS/1am
-EM6y4VIwVgTzdcZ8vgJp6Pbvoz57Kbr7SSS/CPYjNomIs7icA8+mZgF+dM/qXKhp
-Vu4uUbXlv+IzcB0uOPAgcRoofOzusr+Gwnk8nwKAIQi2z3Ow4lK3qiGS/a56LxSR
-93IJFuiY66OJl9OcbNCaBE+QxuTLkw+p712uUmc96fe/9BLc3TC3BQplgFtCx/PZ
-ZHFDhrkSvquQjVn/LiwVPeJ99qbSyatjvvPULcnSV4knpGBIpZLDyLCFvuhRxfw3
-YHlaHw2tp7XepqlQlXFvfCI5QRYDLZUUoW9pPqnjSAPNrDfBb+qKAEVnJCovMuit
-InKKcCu98NaxuZHsQ3xq
-=+L4K
------END PGP SIGNATURE-----
-
---wjoFZxbW4tu+iR6v--
+-- 
+Dmitry
