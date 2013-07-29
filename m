@@ -1,196 +1,109 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2 2/3] ARM: dts: omap5-uevm: fix regulator configurations mandatory for SoC
-Date: Mon, 29 Jul 2013 12:03:02 -0500
-Message-ID: <1375117383-19285-3-git-send-email-nm@ti.com>
+Subject: [PATCH V2 1/3] ARM: dts: omap5-uevm: document regulator signals used
+ on the actual board
+Date: Mon, 29 Jul 2013 12:03:01 -0500
+Message-ID: <1375117383-19285-2-git-send-email-nm@ti.com>
 References: <51F67D7D.9070003@ti.com>
  <1375117383-19285-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1375117383-19285-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Benoit Cousson <benoit.cousson@gmail.com>, Tony Lindgren <tony@atomide.com>
-Cc: l-o <linux-omap@vger.kernel.org>, dt list <devicetree@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>, J Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, dt list <devicetree@vger.kernel.org>, J Keerthy <j-keerthy@ti.com>, lkml <linux-kernel@vger.kernel.org>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-commit e00c27ef3b4c23e39d0a77b7c8e5be44c28001c7
-(ARM: dts: OMAP5: Add Palmas MFD node and regulator nodes)
-introduced regulator entries for OMAP5uEVM.
-
-However, The regulator information is based on an older temporary
-pre-production board variant and does not reflect production board
-750-2628-XXX boards.
-
-The following fixes are hence mandatory to ensure right voltage is
-supplied to key OMAP5 SoC voltage rails:
-
-- LDO1 supplies VDDAPHY_CAM which is OMAP5's vdda_csiporta/b/c. This
-can only be supplied at 1.5V or 1.8V and we currently supply 2.8V.
-
-To prevent any potential device damage risk, use the specified
-1.5V-1.8V supply.
-
-Remove 'always-on' and 'boot-on' settings here as it is
-a 'on need' supply to SoC IP and is not enabled by PMIC by
-default at boot.
-
-- LDO3 supplies Low Latency Interface(LLI) hardware module which is a
-special hardware to communicate with Modem. However since uEVM is
-not setup by default for this communication, this should be disabled
-by default.
-
-=46urther, vdda_lli is supposed to be 1.5V and not 3V.
-
-- LDO4 supplies VDDAPHY_DISP which is vdda_dsiporta/c/vdda_hdmi
-
-This can only be supplied at 1.5V or 1.8V and we currently
-supply 2.2V.
-
-To prevent any potential device damage risk, use the specified
-1.5V-1.8V supply.
-
-Remove 'always-on' and 'boot-on' settings here as it is a 'on need'
-supply to SoC IP and is not enabled by PMIC by default at boot.
-
-- LDO6 supplies the board specified VDDS_1V2_WKUP supply going to
-ldo_emu_wkup/vdds_hsic. To stay within the SoC specification supply
-1.2V instead of 1.5V.
-
-- LDO7 supplies VDD_VPP which is vpp1. This is currently configured for
-1.5V which as per data manual "A pulse width of 1000 ns and an amplitud=
-e
-of 2V is required to program each eFuse bit. Otherwise, VPP1 must not
-be supplied".
-
-So, fix the voltage to 2V. and disable the supply since we have no plan=
-s
-of programming efuse bits - it can only be done once - in factory.
-
-=46urther it is not enabled by default by PMIC so, 'boot-on' must be
-removed, and the 'always-on' needs to be removed to achieve pulsing
-if efuse needs to be programmed.
-
-- LDO9 supplies the board specified vdds_sdcard supply going within SoC
-specification of 1.8V or 3.0V. Further the supply is controlled by
-switch enabled by REGEN3. So, introduce REGEN3 and map sdcard slot to
-be powered by LDO9. Remove 'always-on' allowing the LDO to be disabled
-on need basis.
-
-Reported-by: Marc J=C3=BCttner <m-juettner@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Acked-by: J Keerthy <j-keerthy@ti.com>
----
-
-V2: squash of multiple patches from V1, as suggested in:
-	http://marc.info/?l=3Ddevicetree&m=3D137510852731656&w=3D2
-
- arch/arm/boot/dts/omap5-uevm.dts |   43 ++++++++++++++++++++----------=
---------
- 1 file changed, 23 insertions(+), 20 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5=
--uevm.dts
-index b430b8f..247c03c 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -235,7 +235,7 @@
- };
-=20
- &mmc1 {
--	vmmc-supply =3D <&vmmcsd_fixed>;
-+	vmmc-supply =3D <&ldo9_reg>;
- 	bus-width =3D <4>;
- };
-=20
-@@ -348,10 +348,8 @@
- 				ldo1_reg: ldo1 {
- 					/* VDDAPHY_CAM: vdda_csiport */
- 					regulator-name =3D "ldo1";
--					regulator-min-microvolt =3D <2800000>;
--					regulator-max-microvolt =3D <2800000>;
--					regulator-always-on;
--					regulator-boot-on;
-+					regulator-min-microvolt =3D <1500000>;
-+					regulator-max-microvolt =3D <1800000>;
- 				};
-=20
- 				ldo2_reg: ldo2 {
-@@ -366,19 +364,18 @@
- 				ldo3_reg: ldo3 {
- 					/* VDDAPHY_MDM: vdda_lli */
- 					regulator-name =3D "ldo3";
--					regulator-min-microvolt =3D <3000000>;
--					regulator-max-microvolt =3D <3000000>;
--					regulator-always-on;
-+					regulator-min-microvolt =3D <1500000>;
-+					regulator-max-microvolt =3D <1500000>;
- 					regulator-boot-on;
-+					/* Only if Modem is used */
-+					status =3D "disabled";
- 				};
-=20
- 				ldo4_reg: ldo4 {
- 					/* VDDAPHY_DISP: vdda_dsiport/hdmi */
- 					regulator-name =3D "ldo4";
--					regulator-min-microvolt =3D <2200000>;
--					regulator-max-microvolt =3D <2200000>;
--					regulator-always-on;
--					regulator-boot-on;
-+					regulator-min-microvolt =3D <1500000>;
-+					regulator-max-microvolt =3D <1800000>;
- 				};
-=20
- 				ldo5_reg: ldo5 {
-@@ -393,8 +390,8 @@
- 				ldo6_reg: ldo6 {
- 					/* VDDS_1V2_WKUP: hsic/ldo_emu_wkup */
- 					regulator-name =3D "ldo6";
--					regulator-min-microvolt =3D <1500000>;
--					regulator-max-microvolt =3D <1500000>;
-+					regulator-min-microvolt =3D <1200000>;
-+					regulator-max-microvolt =3D <1200000>;
- 					regulator-always-on;
- 					regulator-boot-on;
- 				};
-@@ -402,10 +399,10 @@
- 				ldo7_reg: ldo7 {
- 					/* VDD_VPP: vpp1 */
- 					regulator-name =3D "ldo7";
--					regulator-min-microvolt =3D <1500000>;
--					regulator-max-microvolt =3D <1500000>;
--					regulator-always-on;
--					regulator-boot-on;
-+					regulator-min-microvolt =3D <2000000>;
-+					regulator-max-microvolt =3D <2000000>;
-+					/* Only for efuse reprograming! */
-+					status =3D "disabled";
- 				};
-=20
- 				ldo8_reg: ldo8 {
-@@ -421,8 +418,7 @@
- 					/* VCC_DV_SDIO: vdds_sdcard */
- 					regulator-name =3D "ldo9";
- 					regulator-min-microvolt =3D <1800000>;
--					regulator-max-microvolt =3D <3300000>;
--					regulator-always-on;
-+					regulator-max-microvolt =3D <3000000>;
- 					regulator-boot-on;
- 				};
-=20
-@@ -443,6 +439,13 @@
- 					regulator-always-on;
- 					regulator-boot-on;
- 				};
-+
-+				regen3_reg: regen3 {
-+					/* REGEN3 controls LDO9 supply to card */
-+					regulator-name =3D "regen3";
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
- 			};
- 		};
- 	};
---=20
-1.7.9.5
+Y29tbWl0IGUwMGMyN2VmM2I0YzIzZTM5ZDBhNzdiN2M4ZTViZTQ0YzI4MDAxYzcKKEFSTTogZHRz
+OiBPTUFQNTogQWRkIFBhbG1hcyBNRkQgbm9kZSBhbmQgcmVndWxhdG9yIG5vZGVzKQppbnRyb2R1
+Y2VkIHJlZ3VsYXRvciBlbnRyaWVzIGZvciBPTUFQNXVFVk0uCgpIb3dldmVyLCBjdXJyZW50bHkg
+d2UgdXNlIHRoZSBQYWxtYXMgcmVndWxhdG9yIG5hbWVzIHdoaWNoIGlzIHVzZWQgZm9yCmRpZmZl
+cmVudCBwdXJwb3NlcyBvbiB1RVZNLiBEb2N1bWVudCB0aGUgc2FtZSBiYXNlZCBvbiA3NTAtMjYy
+OC1YWFgKYm9hcmRzIC0gd2hpY2ggaXMgbWVhbnQgdG8gYmUgc3VwcG9ydGVkIGJ5IHRoaXMgZHRz
+LgoKUmVwb3J0ZWQtYnk6IE1hcmMgSsO8dHRuZXIgPG0tanVldHRuZXJAdGkuY29tPgpTaWduZWQt
+b2ZmLWJ5OiBOaXNoYW50aCBNZW5vbiA8bm1AdGkuY29tPgpBY2tlZC1ieTogSiBLZWVydGh5IDxq
+LWtlZXJ0aHlAdGkuY29tPgotLS0KClYyOiBubyBjaGFuZ2UKVjE6IGh0dHBzOi8vcGF0Y2h3b3Jr
+Lmtlcm5lbC5vcmcvcGF0Y2gvMjgyODg2Mi8KCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNS11ZXZt
+LmR0cyB8ICAgMTggKysrKysrKysrKysrKysrKysrCiAxIGZpbGUgY2hhbmdlZCwgMTggaW5zZXJ0
+aW9ucygrKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LXVldm0uZHRzIGIv
+YXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKaW5kZXggMDhiNzI2Ny4uYjQzMGI4ZiAx
+MDA2NDQKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKKysrIGIvYXJjaC9h
+cm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKQEAgLTI4Miw2ICsyODIsNyBAQAogCiAJCQlyZWd1
+bGF0b3JzIHsKIAkJCQlzbXBzMTIzX3JlZzogc21wczEyMyB7CisJCQkJCS8qIFZERF9PUFBfTVBV
+ICovCiAJCQkJCXJlZ3VsYXRvci1uYW1lID0gInNtcHMxMjMiOwogCQkJCQlyZWd1bGF0b3ItbWlu
+LW1pY3Jvdm9sdCA9IDwgNjAwMDAwPjsKIAkJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8
+MTUwMDAwMD47CkBAIC0yOTAsNiArMjkxLDcgQEAKIAkJCQl9OwogCiAJCQkJc21wczQ1X3JlZzog
+c21wczQ1IHsKKwkJCQkJLyogVkREX09QUF9NTSAqLwogCQkJCQlyZWd1bGF0b3ItbmFtZSA9ICJz
+bXBzNDUiOwogCQkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwgNjAwMDAwPjsKIAkJCQkJ
+cmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MTMxMDAwMD47CkBAIC0yOTgsNiArMzAwLDcgQEAK
+IAkJCQl9OwogCiAJCQkJc21wczZfcmVnOiBzbXBzNiB7CisJCQkJCS8qIFZERF9ERFIzIC0gb3Zl
+ciBWRERfU01QUzYgKi8KIAkJCQkJcmVndWxhdG9yLW5hbWUgPSAic21wczYiOwogCQkJCQlyZWd1
+bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwxMjAwMDAwPjsKIAkJCQkJcmVndWxhdG9yLW1heC1taWNy
+b3ZvbHQgPSA8MTIwMDAwMD47CkBAIC0zMDYsNiArMzA5LDcgQEAKIAkJCQl9OwogCiAJCQkJc21w
+czdfcmVnOiBzbXBzNyB7CisJCQkJCS8qIFZERFNfMXY4X09NQVAgb3ZlciBWRERTXzF2OF9NQUlO
+ICovCiAJCQkJCXJlZ3VsYXRvci1uYW1lID0gInNtcHM3IjsKIAkJCQkJcmVndWxhdG9yLW1pbi1t
+aWNyb3ZvbHQgPSA8MTgwMDAwMD47CiAJCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDE4
+MDAwMDA+OwpAQCAtMzE0LDYgKzMxOCw3IEBACiAJCQkJfTsKIAogCQkJCXNtcHM4X3JlZzogc21w
+czggeworCQkJCQkvKiBWRERfT1BQX0NPUkUgKi8KIAkJCQkJcmVndWxhdG9yLW5hbWUgPSAic21w
+czgiOwogCQkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwgNjAwMDAwPjsKIAkJCQkJcmVn
+dWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MTMxMDAwMD47CkBAIC0zMjIsNiArMzI3LDcgQEAKIAkJ
+CQl9OwogCiAJCQkJc21wczlfcmVnOiBzbXBzOSB7CisJCQkJCS8qIFZEREFfMnYxX0FVRCBvdmVy
+IFZERF8ydjEgKi8KIAkJCQkJcmVndWxhdG9yLW5hbWUgPSAic21wczkiOwogCQkJCQlyZWd1bGF0
+b3ItbWluLW1pY3Jvdm9sdCA9IDwyMTAwMDAwPjsKIAkJCQkJcmVndWxhdG9yLW1heC1taWNyb3Zv
+bHQgPSA8MjEwMDAwMD47CkBAIC0zMzEsNiArMzM3LDcgQEAKIAkJCQl9OwogCiAJCQkJc21wczEw
+X3JlZzogc21wczEwIHsKKwkJCQkJLyogVkJVU181Vl9PVEcgKi8KIAkJCQkJcmVndWxhdG9yLW5h
+bWUgPSAic21wczEwIjsKIAkJCQkJcmVndWxhdG9yLW1pbi1taWNyb3ZvbHQgPSA8NTAwMDAwMD47
+CiAJCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDUwMDAwMDA+OwpAQCAtMzM5LDYgKzM0
+Niw3IEBACiAJCQkJfTsKIAogCQkJCWxkbzFfcmVnOiBsZG8xIHsKKwkJCQkJLyogVkREQVBIWV9D
+QU06IHZkZGFfY3NpcG9ydCAqLwogCQkJCQlyZWd1bGF0b3ItbmFtZSA9ICJsZG8xIjsKIAkJCQkJ
+cmVndWxhdG9yLW1pbi1taWNyb3ZvbHQgPSA8MjgwMDAwMD47CiAJCQkJCXJlZ3VsYXRvci1tYXgt
+bWljcm92b2x0ID0gPDI4MDAwMDA+OwpAQCAtMzQ3LDYgKzM1NSw3IEBACiAJCQkJfTsKIAogCQkJ
+CWxkbzJfcmVnOiBsZG8yIHsKKwkJCQkJLyogVkNDXzJWOF9ESVNQOiBEb2VzIG5vdCBnbyBhbnl3
+aGVyZSAqLwogCQkJCQlyZWd1bGF0b3ItbmFtZSA9ICJsZG8yIjsKIAkJCQkJcmVndWxhdG9yLW1p
+bi1taWNyb3ZvbHQgPSA8MjkwMDAwMD47CiAJCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0g
+PDI5MDAwMDA+OwpAQCAtMzU1LDYgKzM2NCw3IEBACiAJCQkJfTsKIAogCQkJCWxkbzNfcmVnOiBs
+ZG8zIHsKKwkJCQkJLyogVkREQVBIWV9NRE06IHZkZGFfbGxpICovCiAJCQkJCXJlZ3VsYXRvci1u
+YW1lID0gImxkbzMiOwogCQkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwzMDAwMDAwPjsK
+IAkJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MzAwMDAwMD47CkBAIC0zNjMsNiArMzcz
+LDcgQEAKIAkJCQl9OwogCiAJCQkJbGRvNF9yZWc6IGxkbzQgeworCQkJCQkvKiBWRERBUEhZX0RJ
+U1A6IHZkZGFfZHNpcG9ydC9oZG1pICovCiAJCQkJCXJlZ3VsYXRvci1uYW1lID0gImxkbzQiOwog
+CQkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwyMjAwMDAwPjsKIAkJCQkJcmVndWxhdG9y
+LW1heC1taWNyb3ZvbHQgPSA8MjIwMDAwMD47CkBAIC0zNzEsNiArMzgyLDcgQEAKIAkJCQl9Owog
+CiAJCQkJbGRvNV9yZWc6IGxkbzUgeworCQkJCQkvKiBWRERBXzFWOF9QSFk6IHVzYi9zYXRhL2hk
+bWkuLiAqLwogCQkJCQlyZWd1bGF0b3ItbmFtZSA9ICJsZG81IjsKIAkJCQkJcmVndWxhdG9yLW1p
+bi1taWNyb3ZvbHQgPSA8MTgwMDAwMD47CiAJCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0g
+PDE4MDAwMDA+OwpAQCAtMzc5LDYgKzM5MSw3IEBACiAJCQkJfTsKIAogCQkJCWxkbzZfcmVnOiBs
+ZG82IHsKKwkJCQkJLyogVkREU18xVjJfV0tVUDogaHNpYy9sZG9fZW11X3drdXAgKi8KIAkJCQkJ
+cmVndWxhdG9yLW5hbWUgPSAibGRvNiI7CiAJCQkJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0g
+PDE1MDAwMDA+OwogCQkJCQlyZWd1bGF0b3ItbWF4LW1pY3Jvdm9sdCA9IDwxNTAwMDAwPjsKQEAg
+LTM4Nyw2ICs0MDAsNyBAQAogCQkJCX07CiAKIAkJCQlsZG83X3JlZzogbGRvNyB7CisJCQkJCS8q
+IFZERF9WUFA6IHZwcDEgKi8KIAkJCQkJcmVndWxhdG9yLW5hbWUgPSAibGRvNyI7CiAJCQkJCXJl
+Z3VsYXRvci1taW4tbWljcm92b2x0ID0gPDE1MDAwMDA+OwogCQkJCQlyZWd1bGF0b3ItbWF4LW1p
+Y3Jvdm9sdCA9IDwxNTAwMDAwPjsKQEAgLTM5NSw2ICs0MDksNyBAQAogCQkJCX07CiAKIAkJCQls
+ZG84X3JlZzogbGRvOCB7CisJCQkJCS8qIFZERF8zdjA6IERvZXMgbm90IGdvIGFueXdoZXJlICov
+CiAJCQkJCXJlZ3VsYXRvci1uYW1lID0gImxkbzgiOwogCQkJCQlyZWd1bGF0b3ItbWluLW1pY3Jv
+dm9sdCA9IDwxNTAwMDAwPjsKIAkJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MTUwMDAw
+MD47CkBAIC00MDMsNiArNDE4LDcgQEAKIAkJCQl9OwogCiAJCQkJbGRvOV9yZWc6IGxkbzkgewor
+CQkJCQkvKiBWQ0NfRFZfU0RJTzogdmRkc19zZGNhcmQgKi8KIAkJCQkJcmVndWxhdG9yLW5hbWUg
+PSAibGRvOSI7CiAJCQkJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPDE4MDAwMDA+OwogCQkJ
+CQlyZWd1bGF0b3ItbWF4LW1pY3Jvdm9sdCA9IDwzMzAwMDAwPjsKQEAgLTQxMSw2ICs0MjcsNyBA
+QAogCQkJCX07CiAKIAkJCQlsZG9sbl9yZWc6IGxkb2xuIHsKKwkJCQkJLyogVkREQV8xdjhfUkVG
+OiB2ZGRzX29zYy9tbV9sNHBlci4uICovCiAJCQkJCXJlZ3VsYXRvci1uYW1lID0gImxkb2xuIjsK
+IAkJCQkJcmVndWxhdG9yLW1pbi1taWNyb3ZvbHQgPSA8MTgwMDAwMD47CiAJCQkJCXJlZ3VsYXRv
+ci1tYXgtbWljcm92b2x0ID0gPDE4MDAwMDA+OwpAQCAtNDE5LDYgKzQzNiw3IEBACiAJCQkJfTsK
+IAogCQkJCWxkb3VzYl9yZWc6IGxkb3VzYiB7CisJCQkJCS8qIFZEREFfM1ZfVVNCOiBWRERBX1VT
+QkhTMzMgKi8KIAkJCQkJcmVndWxhdG9yLW5hbWUgPSAibGRvdXNiIjsKIAkJCQkJcmVndWxhdG9y
+LW1pbi1taWNyb3ZvbHQgPSA8MzI1MDAwMD47CiAJCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0
+ID0gPDMyNTAwMDA+OwotLSAKMS43LjkuNQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFy
+bS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
