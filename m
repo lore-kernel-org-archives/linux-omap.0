@@ -1,76 +1,119 @@
-From: Trent Piepho <tpiepho@gmail.com>
-Subject: Re: [PATCHv5 1/2] drivers: spi: Add qspi flash controller
-Date: Sun, 28 Jul 2013 17:13:53 -0700
-Message-ID: <CA+7tXiiQGfYN6sck3YQo8RinPad0e8bgW3J6rBc9sCq_J48fTg@mail.gmail.com>
-References: <1374858922-14637-1-git-send-email-sourav.poddar@ti.com>
-	<1374858922-14637-2-git-send-email-sourav.poddar@ti.com>
+From: Alexander Holler <holler@ahsoftware.de>
+Subject: Re: [PATCH v4 1/2] gpio/omap: don't create an IRQ mapping for every
+ GPIO on DT
+Date: Mon, 29 Jul 2013 07:24:30 +0200
+Message-ID: <51F5FC8E.9010007@ahsoftware.de>
+References: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk> <51F4F973.8000303@ahsoftware.de> <51F529D6.8030809@ahsoftware.de> <CACRpkdYKSMcCe+uNiB2Jbc8GbUwvJxyq+7EiLM-xdOevVRK-wQ@mail.gmail.com> <51F54A98.80601@ahsoftware.de> <CACRpkdYb7jBpZofLn5VLL7pcMdh5P227ZpwYfV2HJAszFwUEig@mail.gmail.com> <CAAwP0s0q6U6MDYBHiA=u3N_3bJ7CXTPKX_A_wwTrWrqj17mH0w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f176.google.com ([209.85.214.176]:43360 "EHLO
-	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751485Ab3G2ANy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Jul 2013 20:13:54 -0400
-Received: by mail-ob0-f176.google.com with SMTP id v19so7984265obq.21
-        for <linux-omap@vger.kernel.org>; Sun, 28 Jul 2013 17:13:53 -0700 (PDT)
-In-Reply-To: <1374858922-14637-2-git-send-email-sourav.poddar@ti.com>
+Received: from h1446028.stratoserver.net ([85.214.92.142]:41301 "EHLO
+	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752625Ab3G2F0N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 01:26:13 -0400
+Received: from eiche.ahsoftware (p57B216E0.dip0.t-ipconnect.de [87.178.22.224])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.ahsoftware.de (Postfix) with ESMTPSA id 3E544423C03C
+	for <linux-omap@vger.kernel.org>; Mon, 29 Jul 2013 07:26:10 +0200 (CEST)
+In-Reply-To: <CAAwP0s0q6U6MDYBHiA=u3N_3bJ7CXTPKX_A_wwTrWrqj17mH0w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, linux-omap@vger.kernel.org, rnayak@ti.com, balbi@ti.com
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Grant Likely <grant.likely@linaro.org>, Jon Hunter <jgchunter@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>, Balaji T K <balajitk@ti.com>
 
-On Fri, Jul 26, 2013 at 10:15 AM, Sourav Poddar <sourav.poddar@ti.com> wrote:
-> +
-> +static inline void ti_qspi_read_data(struct ti_qspi *qspi,
-> +               unsigned long reg, int wlen, u8 **rxbuf)
-> +{
-> +       switch (wlen) {
-> +       case 8:
-> +               **rxbuf = readw(qspi->base + reg);
-> +               dev_dbg(qspi->dev, "rx done, read %02x\n", *(*rxbuf-1));
-> +               *rxbuf += 1;
+Am 28.07.2013 20:50, schrieb Javier Martinez Canillas:
+> On Sun, Jul 28, 2013 at 8:06 PM, Linus Walleij <linus.walleij@linaro.org> wrote:
+>> On Sun, Jul 28, 2013 at 6:45 PM, Alexander Holler <holler@ahsoftware.de> wrote:
+>>> Am 28.07.2013 18:25, schrieb Linus Walleij:
+>>>> On Sun, Jul 28, 2013 at 4:25 PM, Alexander Holler <holler@ahsoftware.de> wrote:
+>>>>
+>>>>> By the way, if someone decides to touch omap_hsmmc, the driver wrongly
+>>>>> assumes that 0 is not a valid IRQ number and it doesn't check if
+>>>>> gpio_to_irq() returns a negative value. ;)
+>>>>
+>>>> Zero *is* *not* a valid IRQ number.
+>>>
+>>> Where is that mentioned?
+>>
+>> This has been a major debate in the kernel in recent months, and we are
+>> agreed to remove 0 as a valid Linux IRQ number. The fact that up until
+>> two years ago the ARM kernel allowed it is a historical artifact.
+>>
+>> Please see this article for background:
+>> http://lwn.net/Articles/470820/
+>>
+>> Which falls back to this posting from Torvalds:
+>> http://linux.derkeiler.com/Mailing-Lists/Kernel/2005-11/7628.html
+>>
+>>> gpio.txt states:
+>>>
+>>> ----
+>>> Non-error values returned from gpio_to_irq() can be passed to request_irq()
+>>> or free_irq().  They will often be stored into IRQ resources for platform
+>>
+>> While IRQ 0 is not an error, it means that this particular GPIO line
+>> does not have an IRQ, or cannot be translated into an IRQ, and
+>> should not be passed to request_irq().
+>>
+>> Patches to the documentation is welcome.
+>>
+>>> With the new patches gpio_to_irq() returns 0.
+>>
+>> This is not good. Under which circumstances does that happen?
+>>
+>>> Documentation/IRQ-domain.txt:
+>>> ----
+>>> The legacy map should only be used if fixed IRQ mappings must be
+>>> supported.  For example, ISA controllers would use the legacy map for
+>>> mapping Linux IRQs 0-15 so that existing ISA drivers get the correct IRQ
+>>> numbers.
+>>> ----
+>>>
+>>> You see the 0 too?
+>>
+>> Is OMAP still using the legacy map? I don't think that works
+>> on any system utilizing the GIC driver. It is called legacy because
+>> it is not supposed to be used :-/
+>>
+>
+> Not anymore, it was changed recently to use the linear domain mapping
+> instead in commit ede4d7a5 ("gpio/omap: convert gpio irq domain to
+> linear mapping").
+>
 
-You still have readw() paired with 8 bit length, readb() with 16, and
-so on.  I do not think your 16 and 32 bit cases will even work.  Since
-**rxbuf will always be an pointer to an 8-bit value, it will always
-just use the lower 8 bits of the register.  You also always increment
-the address by 1.  And the printout, which is the same in every case
-so maybe you shouldn't duplicate it, isn't correct.  It will print out
-the previous byte in the buffer.  It will possibly crash on the first
-byte, since you will be reading before the beginning of the buffer.
+I don't really care which mapping is in place. I just care if zero is a 
+valid IRQ number for the IRQ and related APIs. And I have to assume that 
+those APIs don't switch their internal handling because of the irq 
+mapping in place.
 
-You probably only tested this with 8 bit word length.  Since that has
-readw(), it probably does not matter what
-size is used for the read.
+Of course, having zero as an invalid IRQ number is a handy thing, but I 
+just didn't find a place where this is written down. And the usually 
+numbering in IT (starting at zero) makes it very likely that zero could 
+be valid IRQ number.
 
-> +static int ti_qspi_setup(struct spi_device *spi)
-> +{
-> +
-> +       clk_ctrl_reg = ti_qspi_read(qspi, QSPI_SPI_CLOCK_CNTRL_REG);
-> +
-> +       clk_ctrl_reg &= ~QSPI_CLK_EN;
-> +
-> +       /* disable SCLK */
-> +       ti_qspi_write(qspi, clk_ctrl_reg, QSPI_SPI_CLOCK_CNTRL_REG);
+> The commit message says Reported-by: Linus Walleij
+> <linus.walleij@linaro.org> ;-)
+>
+>>> Of ourse, I might be wrong, but you just stated that 0 isn't valid, and
+>>> I would be happy to find a source for your statement.
+>>
+>> See above.
 
-This looks like to are still not taking into account that setup() can
-be called while a transfer for another slave is in progress.
+Yeah, as usual, some mail, discussion, thread, article or similiar in 
+the small internet everyone has memorized in full. ;)
 
-> +
-> +       /* setup command reg */
-> +       qspi->cmd = 0;
-> +       qspi->cmd |= QSPI_EN_CS(spi->chip_select);
-> +       qspi->cmd |= QSPI_FLEN(frame_length);
-> +
-> +       list_for_each_entry(t, &m->transfers, transfer_list) {
-> +               qspi->cmd |= QSPI_WLEN(t->bits_per_word);
-> +               qspi->cmd |= QSPI_WC_CMD_INT_EN;
+Once, a maintainer refered me to a discussion and commit which happend 
+10 years ago and it sounded like I'm a morron because I didn't know that. ;)
 
-Why is the QSPI_WC_CMD_INT_EN bit set inside the loop but the
-QSPI_EN_CS() and QSPI_FLEN() bits are set outside the loop?
+Thanks a lot for the article about NO_IRQ, it describes the pit I fell 
+into too, very good.
 
-> +
-> +       if (!of_property_read_u32(np, "ti,num-cs", &num_cs))
-> +               master->num_chipselect = num_cs;
+Maybe it might be worth to suggest using/returning NO_IRQ in (new) 
+patches instead of zero. That would make it very clear that the value 0 
+isn't to be used later.
 
-You are still not using standard "num-cs" property?
+Regards,
+
+Alexander Holler
