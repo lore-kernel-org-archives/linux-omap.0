@@ -1,133 +1,115 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/2] arm: omap: remove *.auto* from device names given in
- usb_bind_phy
-Date: Mon, 29 Jul 2013 20:54:13 +0300
-Message-ID: <20130729175413.GC4964@radagast>
-References: <1374829418-27503-1-git-send-email-kishon@ti.com>
- <1374829418-27503-3-git-send-email-kishon@ti.com>
- <20130729150638.GD3063@radagast>
- <51F68A56.8060805@ti.com>
+Subject: Re: [PATCH v3 1/3] Input: omap-keypad: Enable wakeup capability for
+ keypad.
+Date: Mon, 29 Jul 2013 21:04:41 +0300
+Message-ID: <20130729180441.GF4964@radagast>
+References: <1375116311-13999-1-git-send-email-illia.smyrnov@ti.com>
+ <1375116311-13999-2-git-send-email-illia.smyrnov@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RhUH2Ysw6aD5utA4"
+	protocol="application/pgp-signature"; boundary="DNUSDXU7R7AVVM8C"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <51F68A56.8060805@ti.com>
+In-Reply-To: <1375116311-13999-2-git-send-email-illia.smyrnov@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: balbi@ti.com, tony@atomide.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
+To: Illia Smyrnov <illia.smyrnov@ti.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---RhUH2Ysw6aD5utA4
-Content-Type: text/plain; charset=utf-8
+--DNUSDXU7R7AVVM8C
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Jul 29, 2013 at 08:59:26PM +0530, Kishon Vijay Abraham I wrote:
-> >> Previously MUSB wrapper (OMAP) device used PLATFORM_DEVID_AUTO while c=
-reating
-> >> MUSB core device. So in usb_bind_phy (binds the controller with the PH=
-Y), the
-> >> device name of the controller had *.auto* in it. Since with using
-> >> PLATFORM_DEVID_AUTO, there is no way to know the exact device name in =
-advance,
-> >> the data given in usb_bind_phy became obsolete and usb_get_phy was fai=
-ling.
-> >> So MUSB wrapper was modified not to use PLATFORM_DEVID_AUTO. Correspon=
-ding
-> >> change is done in board file here.
-> >>
-> >> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> >> ---
-> >>  arch/arm/mach-omap2/board-2430sdp.c          |    2 +-
-> >>  arch/arm/mach-omap2/board-3430sdp.c          |    2 +-
-> >>  arch/arm/mach-omap2/board-cm-t35.c           |    2 +-
-> >>  arch/arm/mach-omap2/board-devkit8000.c       |    2 +-
-> >>  arch/arm/mach-omap2/board-igep0020.c         |    2 +-
-> >>  arch/arm/mach-omap2/board-ldp.c              |    2 +-
-> >>  arch/arm/mach-omap2/board-omap3beagle.c      |    2 +-
-> >>  arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
-> >>  arch/arm/mach-omap2/board-omap3logic.c       |    2 +-
-> >>  arch/arm/mach-omap2/board-omap3pandora.c     |    2 +-
-> >>  arch/arm/mach-omap2/board-omap3stalker.c     |    2 +-
-> >>  arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +-
-> >>  arch/arm/mach-omap2/board-overo.c            |    2 +-
-> >>  arch/arm/mach-omap2/board-rm680.c            |    2 +-
-> >>  arch/arm/mach-omap2/board-rx51.c             |    2 +-
-> >>  arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
-> >>  16 files changed, 16 insertions(+), 16 deletions(-)
-> >>
-> >> diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2=
-/board-2430sdp.c
-> >> index 244d8a5..17bb076 100644
-> >> --- a/arch/arm/mach-omap2/board-2430sdp.c
-> >> +++ b/arch/arm/mach-omap2/board-2430sdp.c
-> >> @@ -233,7 +233,7 @@ static void __init omap_2430sdp_init(void)
-> >>  	omap_hsmmc_init(mmc);
-> >> =20
-> >>  	omap_mux_init_signal("usb0hs_stp", OMAP_PULL_ENA | OMAP_PULL_UP);
-> >> -	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-> >> +	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
-> >=20
-> > how about moving usb_bind_phy() calls to omap2430.c ?
-> >=20
-> > diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> > index f44e8b5..b6abc1a 100644
-> > --- a/drivers/usb/musb/omap2430.c
-> > +++ b/drivers/usb/musb/omap2430.c
-> > @@ -544,6 +544,9 @@ static int omap2430_probe(struct platform_device *p=
-dev)
-> > =20
-> >  		pdata->board_data	=3D data;
-> >  		pdata->config		=3D config;
-> > +	} else {
-> > +		/* bind the PHY */
-> > +		usb_bind_phy(dev_name(&musb->dev), 0, "twl4030_usb");
+On Mon, Jul 29, 2013 at 07:45:09PM +0300, Illia Smyrnov wrote:
+> Enable/disable IRQ wake in suspend/resume handlers
+> to make the keypad wakeup capable.
 >=20
-> This looks like a hack IMHO to workaround the usb phy library. otherwise =
-it is
-> similar to get_phy_by_name.
-
-actually, this is a workaround to the fact that we're not creating all
-platform_devices in arch/arm/mach-omap2/ :-)
-
-If we had the musb allocation there, we could easily handle
-usb_bind_phy()
-
-> > so that's temporary. It might be better than to reintroduce the IDR in
-> > musb_core.c.
+> Signed-off-by: Illia Smyrnov <illia.smyrnov@ti.com>
+> ---
+>  drivers/input/keyboard/omap4-keypad.c |   43 +++++++++++++++++++++++++++=
+++++++
+>  1 file changed, 43 insertions(+)
 >=20
-> that=E2=80=99s needed for generic phy framework anyway :-s
+> diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboa=
+rd/omap4-keypad.c
+> index 0244262..feab00f 100644
+> --- a/drivers/input/keyboard/omap4-keypad.c
+> +++ b/drivers/input/keyboard/omap4-keypad.c
+> @@ -74,6 +74,7 @@ struct omap4_keypad {
+>  	struct input_dev *input;
+> =20
+>  	void __iomem *base;
+> +	bool irq_wake_enabled;
 
-right, but generic phy framework can handle everything just fine, the
-only problem is that names are changing.
+this flag is a bit weird... but I can't find a better way to handle this
+situation. In one way, you shouldn't prevent system suspend, so you can
+error out in case enable_irq_wake() fails, otoh if enable_irq_wake()
+fails and you return 0, on resume disable_irq_wake() will throw
+unbalanced calls warning. Maybe someone else has a better idea.
+
+> @@ -439,12 +444,50 @@ static const struct of_device_id omap_keypad_dt_mat=
+ch[] =3D {
+>  MODULE_DEVICE_TABLE(of, omap_keypad_dt_match);
+>  #endif
+> =20
+> +#ifdef CONFIG_PM_SLEEP
+> +static int omap4_keypad_suspend(struct device *dev)
+> +{
+> +	struct platform_device *pdev =3D to_platform_device(dev);
+
+you don't need to access the platform_device...
+
+> +	struct omap4_keypad *keypad_data =3D platform_get_drvdata(pdev);
+
+=2E.. since this can become:
+
+	struct omap4_keypad *keypad_data =3D dev_get_drvdata(dev);
+
+> +	int error;
+> +
+> +	if (device_may_wakeup(&pdev->dev)) {
+> +		error =3D enable_irq_wake(keypad_data->irq);
+> +		if (!error)
+> +			keypad_data->irq_wake_enabled =3D true;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int omap4_keypad_resume(struct device *dev)
+> +{
+> +	struct platform_device *pdev =3D to_platform_device(dev);
+> +	struct omap4_keypad *keypad_data =3D platform_get_drvdata(pdev);
+
+ditto, use dev_get_drvdata() instead.
 
 --=20
 balbi
 
---RhUH2Ysw6aD5utA4
+--DNUSDXU7R7AVVM8C
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJR9qxFAAoJEIaOsuA1yqREUNQP/Ryi9cCIBBhNivPwQKtifmVC
-Apgp/VKOVUgmmaeO/HBFnpJu08rN/OucgarvM0kCLZfn8KLb2phRsCYiLH9gIieX
-iHmf3X/iWuM1XQPLX5P7xX9GAAYL6TmSUQLp8FaFolAW5NX5k8U8FVxafv84+kmn
-My/I21L1GezLgk8za2caefscekToMupQvOjR8laB/CS8QlENQpy8cUGoiyg9gseD
-3U+o2XP8ET+ZsRI9gcFsdSmKfZTEvP4q3EzWLmYGI20jP3TzrxWz2XKBRxi1u+cY
-svv0zm7m88/L0TFp8SVx4t390mNLSODLljPrBYfyGTP+B3oBS1B+8xkjQHAF89k+
-z4yUa/OxnVvKn2GtyBcmO+EQuYJDhGG3jJPn/0AnqrdQItmgD0QOw6hq5uWchxhL
-duuKIjwroWbfmmlGNl1OL+PeLEVKu25LOCKk2oIKuO9cpxAkVC4yknqBtvkLSH/p
-GA4SPT//e6u7g3DEJV6bcZkSBeKf85ep+NK1U4pz1Blw+v6uYIkSgKyUpcclxmyc
-O5bNAQPyI3ZxNMJ/G7S+WVhGcpXKEDg4Vvg3ds0YBO6atbZlckZ35H1dWpXn7u2j
-/mrkF351wcugFjAlADJGUd1KIf1Qr6u0+8EQgsFpbW4tEIyFxFG7RyJa/Lf+tdXW
-lYZkNqn7KJWnzb1pAGeP
-=+6DW
+iQIcBAEBAgAGBQJR9q65AAoJEIaOsuA1yqREeHsQAItblV3kfd1BZpuKxbk6AJgP
++kOEAXOjbAArm1HnXemOt2v+fo8IcrlTCuHfWpSVTAgChJkD3YwewNyeY5/FwscD
+lruGSyWOqp9DevdtLBf30SPQiHq/rMO87V8JJwL57ge7/L5m/5KFhK+jXNvFhJji
+5mdadiSMSADoJxFv/TwhZDdNLD5P5cbxT9JFxaNVA55OA/VAzF0C9Ec4UcZ6VeHr
+JRitvuCKKBoBNwrrnLZNM/zRhafBz2B7jpd/CS1RiQnFhbsUjDdfs4qXEsoEStXe
+Qs5XAX8AfjnM6VDZQ7uyiThCA814y4IXHOy59DmA35BMiTBIoYjnaYTvZ9zWHWhq
+5+vzlxsL81iIV8aqtZJLrJXQwyx8ZLgKb1ZvLTAHrwdfbcgqicNo6pyF1WFJ+Key
+0U8RjbvH1HcdmXkufP2/eakPVihK/dmDF3taVT97a1oTFtpJnzcIrasQESYiafwb
+aU6wsG25WSZAeCWDogUxxz3yNPRfte+f1xNMCXsz8KuPvOxsr5x+A7AQH7PrfylL
+4NLU6wbTC3VecpDSkny0A+klf8nXO7yE8s28fMWmQ5wjOszSG0uGpxF7IVlUptZr
+sGVvXo5ni1C/hi3Rs+hc1aUS1idpdnqwiNi9VpELelRQl2X6rZZ3sUIthHpzaDBp
+HciCukc3ilh7EZY/nDTg
+=F9E5
 -----END PGP SIGNATURE-----
 
---RhUH2Ysw6aD5utA4--
+--DNUSDXU7R7AVVM8C--
