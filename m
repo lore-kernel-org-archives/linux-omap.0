@@ -1,80 +1,60 @@
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-Subject: [PATCH v2] usb: dwc3: core: modify IO memory resource after deferred probe completes
-Date: Mon, 29 Jul 2013 10:27:02 +0300
-Message-ID: <1375082822-3516-1-git-send-email-iivanov@mm-sol.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com, gregkh@linuxfoundation.org
-Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, "Ivan T. Ivanov" <iivanov@mm-sol.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: v6: prevent gcc from reordering extended CP15
+ reads above is_smp() test
+Date: Mon, 29 Jul 2013 00:30:11 -0700
+Message-ID: <20130729073010.GU7656@atomide.com>
+References: <51EE2AA7.5060503@ti.com>
+ <alpine.DEB.2.02.1307230705000.27017@utopia.booyaka.com>
+ <51EE474D.5070804@ti.com>
+ <20130724135617.GI11072@mudshark.cambridge.arm.com>
+ <51EFE1DD.8070801@ti.com>
+ <20130724142059.GJ11072@mudshark.cambridge.arm.com>
+ <alpine.DEB.2.02.1307270405470.4546@utopia.booyaka.com>
+ <20130727122221.GB6618@mudshark.cambridge.arm.com>
+ <alpine.DEB.2.02.1307280538460.8385@utopia.booyaka.com>
+ <alpine.DEB.2.02.1307282012280.23852@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38782 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752647Ab3G2HaR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 03:30:17 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1307282012280.23852@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Will Deacon <will.deacon@arm.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Hi,
 
-When deferred probe happens driver will try to ioremap multiple times
-and will fail. Memory resource.start variable is a global variable,
-modifications in this field will be accumulated on every probe.
-Fix this by moving the above operations after driver hold all
-required PHY's.
+* Paul Walmsley <paul@pwsan.com> [130728 13:23]:
+> 
+> Commit 621a0147d5c921f4cc33636ccd0602ad5d7cbfbc ("ARM: 7757/1: mm:
+> don't flush icache in switch_mm with hardware broadcasting") breaks
+> the boot on OMAP2430SDP with omap2plus_defconfig.  Tracked to an
+> undefined instruction abort from the CP15 read in
+> cache_ops_need_broadcast().  It turns out that gcc reorders the
+> extended CP15 read above the is_smp() test.  This breaks ARM1136 r0
+> cores, since they don't support several CP15 registers that later ARM
+> cores do.  ARM1136JF-S TRM section 3.2.1 "Register allocation" has the
+> details.
+> 
+> So, when the kernel is built for ARMv6 cores, mark the extended CP15
+> read as clobbering memory, which seems to prevent the compiler from
+> reordering it before the is_smp() test.  Russell states that the code
+> generated from this approach is preferable to marking the inline asm
+> as volatile.
+> 
+> This patch was developed in collaboration with Will Deacon and Russell
+> King.
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 
-Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
----
+Sorry to be late to this party, I was offline last week. This
+patch fixes the issue for me:
 
-Felipe, Paul if you get better solution please go ahead and ignore
-this patch.
-
-v2 - inline comments
-
- drivers/usb/dwc3/core.c |   31 ++++++++++++++++---------------
- 1 file changed, 16 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index 607bef8..c257117 100644
---- a/drivers/usb/dwc3/core.c
-+++ b/drivers/usb/dwc3/core.c
-@@ -384,21 +384,6 @@ static int dwc3_probe(struct platform_device *pdev)
- 		dev_err(dev, "missing memory resource\n");
- 		return -ENODEV;
- 	}
--	dwc->xhci_resources[0].start = res->start;
--	dwc->xhci_resources[0].end = dwc->xhci_resources[0].start +
--					DWC3_XHCI_REGS_END;
--	dwc->xhci_resources[0].flags = res->flags;
--	dwc->xhci_resources[0].name = res->name;
--
--	res->start += DWC3_GLOBALS_REGS_START;
--
--	 /*
--	  * Request memory region but exclude xHCI regs,
--	  * since it will be requested by the xhci-plat driver.
--	  */
--	regs = devm_ioremap_resource(dev, res);
--	if (IS_ERR(regs))
--		return PTR_ERR(regs);
- 
- 	if (node) {
- 		dwc->maximum_speed = of_usb_get_maximum_speed(node);
-@@ -452,6 +437,22 @@ static int dwc3_probe(struct platform_device *pdev)
- 		return -EPROBE_DEFER;
- 	}
- 
-+	dwc->xhci_resources[0].start = res->start;
-+	dwc->xhci_resources[0].end = dwc->xhci_resources[0].start +
-+					DWC3_XHCI_REGS_END;
-+	dwc->xhci_resources[0].flags = res->flags;
-+	dwc->xhci_resources[0].name = res->name;
-+
-+	res->start += DWC3_GLOBALS_REGS_START;
-+
-+	/*
-+	 * Request memory region but exclude xHCI regs,
-+	 * since it will be requested by the xhci-plat driver.
-+	 */
-+	regs = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(regs))
-+		return PTR_ERR(regs);
-+
- 	usb_phy_set_suspend(dwc->usb2_phy, 0);
- 	usb_phy_set_suspend(dwc->usb3_phy, 0);
- 
--- 
-1.7.9.5
+Acked-by: Tony Lindgren <tony@atomide.com>
