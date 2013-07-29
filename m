@@ -1,109 +1,133 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2 1/3] ARM: dts: omap5-uevm: document regulator signals used
- on the actual board
-Date: Mon, 29 Jul 2013 12:03:01 -0500
-Message-ID: <1375117383-19285-2-git-send-email-nm@ti.com>
-References: <51F67D7D.9070003@ti.com>
- <1375117383-19285-1-git-send-email-nm@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/2] arm: omap: remove *.auto* from device names given in
+ usb_bind_phy
+Date: Mon, 29 Jul 2013 20:54:13 +0300
+Message-ID: <20130729175413.GC4964@radagast>
+References: <1374829418-27503-1-git-send-email-kishon@ti.com>
+ <1374829418-27503-3-git-send-email-kishon@ti.com>
+ <20130729150638.GD3063@radagast>
+ <51F68A56.8060805@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1375117383-19285-1-git-send-email-nm@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benoit Cousson <benoit.cousson@gmail.com>, Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, dt list <devicetree@vger.kernel.org>, J Keerthy <j-keerthy@ti.com>, lkml <linux-kernel@vger.kernel.org>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="RhUH2Ysw6aD5utA4"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <51F68A56.8060805@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, tony@atomide.com, linux@arm.linux.org.uk, eballetbo@gmail.com, javier@dowhile0.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Y29tbWl0IGUwMGMyN2VmM2I0YzIzZTM5ZDBhNzdiN2M4ZTViZTQ0YzI4MDAxYzcKKEFSTTogZHRz
-OiBPTUFQNTogQWRkIFBhbG1hcyBNRkQgbm9kZSBhbmQgcmVndWxhdG9yIG5vZGVzKQppbnRyb2R1
-Y2VkIHJlZ3VsYXRvciBlbnRyaWVzIGZvciBPTUFQNXVFVk0uCgpIb3dldmVyLCBjdXJyZW50bHkg
-d2UgdXNlIHRoZSBQYWxtYXMgcmVndWxhdG9yIG5hbWVzIHdoaWNoIGlzIHVzZWQgZm9yCmRpZmZl
-cmVudCBwdXJwb3NlcyBvbiB1RVZNLiBEb2N1bWVudCB0aGUgc2FtZSBiYXNlZCBvbiA3NTAtMjYy
-OC1YWFgKYm9hcmRzIC0gd2hpY2ggaXMgbWVhbnQgdG8gYmUgc3VwcG9ydGVkIGJ5IHRoaXMgZHRz
-LgoKUmVwb3J0ZWQtYnk6IE1hcmMgSsO8dHRuZXIgPG0tanVldHRuZXJAdGkuY29tPgpTaWduZWQt
-b2ZmLWJ5OiBOaXNoYW50aCBNZW5vbiA8bm1AdGkuY29tPgpBY2tlZC1ieTogSiBLZWVydGh5IDxq
-LWtlZXJ0aHlAdGkuY29tPgotLS0KClYyOiBubyBjaGFuZ2UKVjE6IGh0dHBzOi8vcGF0Y2h3b3Jr
-Lmtlcm5lbC5vcmcvcGF0Y2gvMjgyODg2Mi8KCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNS11ZXZt
-LmR0cyB8ICAgMTggKysrKysrKysrKysrKysrKysrCiAxIGZpbGUgY2hhbmdlZCwgMTggaW5zZXJ0
-aW9ucygrKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LXVldm0uZHRzIGIv
-YXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKaW5kZXggMDhiNzI2Ny4uYjQzMGI4ZiAx
-MDA2NDQKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKKysrIGIvYXJjaC9h
-cm0vYm9vdC9kdHMvb21hcDUtdWV2bS5kdHMKQEAgLTI4Miw2ICsyODIsNyBAQAogCiAJCQlyZWd1
-bGF0b3JzIHsKIAkJCQlzbXBzMTIzX3JlZzogc21wczEyMyB7CisJCQkJCS8qIFZERF9PUFBfTVBV
-ICovCiAJCQkJCXJlZ3VsYXRvci1uYW1lID0gInNtcHMxMjMiOwogCQkJCQlyZWd1bGF0b3ItbWlu
-LW1pY3Jvdm9sdCA9IDwgNjAwMDAwPjsKIAkJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8
-MTUwMDAwMD47CkBAIC0yOTAsNiArMjkxLDcgQEAKIAkJCQl9OwogCiAJCQkJc21wczQ1X3JlZzog
-c21wczQ1IHsKKwkJCQkJLyogVkREX09QUF9NTSAqLwogCQkJCQlyZWd1bGF0b3ItbmFtZSA9ICJz
-bXBzNDUiOwogCQkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwgNjAwMDAwPjsKIAkJCQkJ
-cmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MTMxMDAwMD47CkBAIC0yOTgsNiArMzAwLDcgQEAK
-IAkJCQl9OwogCiAJCQkJc21wczZfcmVnOiBzbXBzNiB7CisJCQkJCS8qIFZERF9ERFIzIC0gb3Zl
-ciBWRERfU01QUzYgKi8KIAkJCQkJcmVndWxhdG9yLW5hbWUgPSAic21wczYiOwogCQkJCQlyZWd1
-bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwxMjAwMDAwPjsKIAkJCQkJcmVndWxhdG9yLW1heC1taWNy
-b3ZvbHQgPSA8MTIwMDAwMD47CkBAIC0zMDYsNiArMzA5LDcgQEAKIAkJCQl9OwogCiAJCQkJc21w
-czdfcmVnOiBzbXBzNyB7CisJCQkJCS8qIFZERFNfMXY4X09NQVAgb3ZlciBWRERTXzF2OF9NQUlO
-ICovCiAJCQkJCXJlZ3VsYXRvci1uYW1lID0gInNtcHM3IjsKIAkJCQkJcmVndWxhdG9yLW1pbi1t
-aWNyb3ZvbHQgPSA8MTgwMDAwMD47CiAJCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDE4
-MDAwMDA+OwpAQCAtMzE0LDYgKzMxOCw3IEBACiAJCQkJfTsKIAogCQkJCXNtcHM4X3JlZzogc21w
-czggeworCQkJCQkvKiBWRERfT1BQX0NPUkUgKi8KIAkJCQkJcmVndWxhdG9yLW5hbWUgPSAic21w
-czgiOwogCQkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwgNjAwMDAwPjsKIAkJCQkJcmVn
-dWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MTMxMDAwMD47CkBAIC0zMjIsNiArMzI3LDcgQEAKIAkJ
-CQl9OwogCiAJCQkJc21wczlfcmVnOiBzbXBzOSB7CisJCQkJCS8qIFZEREFfMnYxX0FVRCBvdmVy
-IFZERF8ydjEgKi8KIAkJCQkJcmVndWxhdG9yLW5hbWUgPSAic21wczkiOwogCQkJCQlyZWd1bGF0
-b3ItbWluLW1pY3Jvdm9sdCA9IDwyMTAwMDAwPjsKIAkJCQkJcmVndWxhdG9yLW1heC1taWNyb3Zv
-bHQgPSA8MjEwMDAwMD47CkBAIC0zMzEsNiArMzM3LDcgQEAKIAkJCQl9OwogCiAJCQkJc21wczEw
-X3JlZzogc21wczEwIHsKKwkJCQkJLyogVkJVU181Vl9PVEcgKi8KIAkJCQkJcmVndWxhdG9yLW5h
-bWUgPSAic21wczEwIjsKIAkJCQkJcmVndWxhdG9yLW1pbi1taWNyb3ZvbHQgPSA8NTAwMDAwMD47
-CiAJCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDUwMDAwMDA+OwpAQCAtMzM5LDYgKzM0
-Niw3IEBACiAJCQkJfTsKIAogCQkJCWxkbzFfcmVnOiBsZG8xIHsKKwkJCQkJLyogVkREQVBIWV9D
-QU06IHZkZGFfY3NpcG9ydCAqLwogCQkJCQlyZWd1bGF0b3ItbmFtZSA9ICJsZG8xIjsKIAkJCQkJ
-cmVndWxhdG9yLW1pbi1taWNyb3ZvbHQgPSA8MjgwMDAwMD47CiAJCQkJCXJlZ3VsYXRvci1tYXgt
-bWljcm92b2x0ID0gPDI4MDAwMDA+OwpAQCAtMzQ3LDYgKzM1NSw3IEBACiAJCQkJfTsKIAogCQkJ
-CWxkbzJfcmVnOiBsZG8yIHsKKwkJCQkJLyogVkNDXzJWOF9ESVNQOiBEb2VzIG5vdCBnbyBhbnl3
-aGVyZSAqLwogCQkJCQlyZWd1bGF0b3ItbmFtZSA9ICJsZG8yIjsKIAkJCQkJcmVndWxhdG9yLW1p
-bi1taWNyb3ZvbHQgPSA8MjkwMDAwMD47CiAJCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0g
-PDI5MDAwMDA+OwpAQCAtMzU1LDYgKzM2NCw3IEBACiAJCQkJfTsKIAogCQkJCWxkbzNfcmVnOiBs
-ZG8zIHsKKwkJCQkJLyogVkREQVBIWV9NRE06IHZkZGFfbGxpICovCiAJCQkJCXJlZ3VsYXRvci1u
-YW1lID0gImxkbzMiOwogCQkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwzMDAwMDAwPjsK
-IAkJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MzAwMDAwMD47CkBAIC0zNjMsNiArMzcz
-LDcgQEAKIAkJCQl9OwogCiAJCQkJbGRvNF9yZWc6IGxkbzQgeworCQkJCQkvKiBWRERBUEhZX0RJ
-U1A6IHZkZGFfZHNpcG9ydC9oZG1pICovCiAJCQkJCXJlZ3VsYXRvci1uYW1lID0gImxkbzQiOwog
-CQkJCQlyZWd1bGF0b3ItbWluLW1pY3Jvdm9sdCA9IDwyMjAwMDAwPjsKIAkJCQkJcmVndWxhdG9y
-LW1heC1taWNyb3ZvbHQgPSA8MjIwMDAwMD47CkBAIC0zNzEsNiArMzgyLDcgQEAKIAkJCQl9Owog
-CiAJCQkJbGRvNV9yZWc6IGxkbzUgeworCQkJCQkvKiBWRERBXzFWOF9QSFk6IHVzYi9zYXRhL2hk
-bWkuLiAqLwogCQkJCQlyZWd1bGF0b3ItbmFtZSA9ICJsZG81IjsKIAkJCQkJcmVndWxhdG9yLW1p
-bi1taWNyb3ZvbHQgPSA8MTgwMDAwMD47CiAJCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0g
-PDE4MDAwMDA+OwpAQCAtMzc5LDYgKzM5MSw3IEBACiAJCQkJfTsKIAogCQkJCWxkbzZfcmVnOiBs
-ZG82IHsKKwkJCQkJLyogVkREU18xVjJfV0tVUDogaHNpYy9sZG9fZW11X3drdXAgKi8KIAkJCQkJ
-cmVndWxhdG9yLW5hbWUgPSAibGRvNiI7CiAJCQkJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0g
-PDE1MDAwMDA+OwogCQkJCQlyZWd1bGF0b3ItbWF4LW1pY3Jvdm9sdCA9IDwxNTAwMDAwPjsKQEAg
-LTM4Nyw2ICs0MDAsNyBAQAogCQkJCX07CiAKIAkJCQlsZG83X3JlZzogbGRvNyB7CisJCQkJCS8q
-IFZERF9WUFA6IHZwcDEgKi8KIAkJCQkJcmVndWxhdG9yLW5hbWUgPSAibGRvNyI7CiAJCQkJCXJl
-Z3VsYXRvci1taW4tbWljcm92b2x0ID0gPDE1MDAwMDA+OwogCQkJCQlyZWd1bGF0b3ItbWF4LW1p
-Y3Jvdm9sdCA9IDwxNTAwMDAwPjsKQEAgLTM5NSw2ICs0MDksNyBAQAogCQkJCX07CiAKIAkJCQls
-ZG84X3JlZzogbGRvOCB7CisJCQkJCS8qIFZERF8zdjA6IERvZXMgbm90IGdvIGFueXdoZXJlICov
-CiAJCQkJCXJlZ3VsYXRvci1uYW1lID0gImxkbzgiOwogCQkJCQlyZWd1bGF0b3ItbWluLW1pY3Jv
-dm9sdCA9IDwxNTAwMDAwPjsKIAkJCQkJcmVndWxhdG9yLW1heC1taWNyb3ZvbHQgPSA8MTUwMDAw
-MD47CkBAIC00MDMsNiArNDE4LDcgQEAKIAkJCQl9OwogCiAJCQkJbGRvOV9yZWc6IGxkbzkgewor
-CQkJCQkvKiBWQ0NfRFZfU0RJTzogdmRkc19zZGNhcmQgKi8KIAkJCQkJcmVndWxhdG9yLW5hbWUg
-PSAibGRvOSI7CiAJCQkJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPDE4MDAwMDA+OwogCQkJ
-CQlyZWd1bGF0b3ItbWF4LW1pY3Jvdm9sdCA9IDwzMzAwMDAwPjsKQEAgLTQxMSw2ICs0MjcsNyBA
-QAogCQkJCX07CiAKIAkJCQlsZG9sbl9yZWc6IGxkb2xuIHsKKwkJCQkJLyogVkREQV8xdjhfUkVG
-OiB2ZGRzX29zYy9tbV9sNHBlci4uICovCiAJCQkJCXJlZ3VsYXRvci1uYW1lID0gImxkb2xuIjsK
-IAkJCQkJcmVndWxhdG9yLW1pbi1taWNyb3ZvbHQgPSA8MTgwMDAwMD47CiAJCQkJCXJlZ3VsYXRv
-ci1tYXgtbWljcm92b2x0ID0gPDE4MDAwMDA+OwpAQCAtNDE5LDYgKzQzNiw3IEBACiAJCQkJfTsK
-IAogCQkJCWxkb3VzYl9yZWc6IGxkb3VzYiB7CisJCQkJCS8qIFZEREFfM1ZfVVNCOiBWRERBX1VT
-QkhTMzMgKi8KIAkJCQkJcmVndWxhdG9yLW5hbWUgPSAibGRvdXNiIjsKIAkJCQkJcmVndWxhdG9y
-LW1pbi1taWNyb3ZvbHQgPSA8MzI1MDAwMD47CiAJCQkJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0
-ID0gPDMyNTAwMDA+OwotLSAKMS43LjkuNQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFy
-bS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+--RhUH2Ysw6aD5utA4
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Mon, Jul 29, 2013 at 08:59:26PM +0530, Kishon Vijay Abraham I wrote:
+> >> Previously MUSB wrapper (OMAP) device used PLATFORM_DEVID_AUTO while c=
+reating
+> >> MUSB core device. So in usb_bind_phy (binds the controller with the PH=
+Y), the
+> >> device name of the controller had *.auto* in it. Since with using
+> >> PLATFORM_DEVID_AUTO, there is no way to know the exact device name in =
+advance,
+> >> the data given in usb_bind_phy became obsolete and usb_get_phy was fai=
+ling.
+> >> So MUSB wrapper was modified not to use PLATFORM_DEVID_AUTO. Correspon=
+ding
+> >> change is done in board file here.
+> >>
+> >> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> >> ---
+> >>  arch/arm/mach-omap2/board-2430sdp.c          |    2 +-
+> >>  arch/arm/mach-omap2/board-3430sdp.c          |    2 +-
+> >>  arch/arm/mach-omap2/board-cm-t35.c           |    2 +-
+> >>  arch/arm/mach-omap2/board-devkit8000.c       |    2 +-
+> >>  arch/arm/mach-omap2/board-igep0020.c         |    2 +-
+> >>  arch/arm/mach-omap2/board-ldp.c              |    2 +-
+> >>  arch/arm/mach-omap2/board-omap3beagle.c      |    2 +-
+> >>  arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
+> >>  arch/arm/mach-omap2/board-omap3logic.c       |    2 +-
+> >>  arch/arm/mach-omap2/board-omap3pandora.c     |    2 +-
+> >>  arch/arm/mach-omap2/board-omap3stalker.c     |    2 +-
+> >>  arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +-
+> >>  arch/arm/mach-omap2/board-overo.c            |    2 +-
+> >>  arch/arm/mach-omap2/board-rm680.c            |    2 +-
+> >>  arch/arm/mach-omap2/board-rx51.c             |    2 +-
+> >>  arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
+> >>  16 files changed, 16 insertions(+), 16 deletions(-)
+> >>
+> >> diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2=
+/board-2430sdp.c
+> >> index 244d8a5..17bb076 100644
+> >> --- a/arch/arm/mach-omap2/board-2430sdp.c
+> >> +++ b/arch/arm/mach-omap2/board-2430sdp.c
+> >> @@ -233,7 +233,7 @@ static void __init omap_2430sdp_init(void)
+> >>  	omap_hsmmc_init(mmc);
+> >> =20
+> >>  	omap_mux_init_signal("usb0hs_stp", OMAP_PULL_ENA | OMAP_PULL_UP);
+> >> -	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
+> >> +	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
+> >=20
+> > how about moving usb_bind_phy() calls to omap2430.c ?
+> >=20
+> > diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> > index f44e8b5..b6abc1a 100644
+> > --- a/drivers/usb/musb/omap2430.c
+> > +++ b/drivers/usb/musb/omap2430.c
+> > @@ -544,6 +544,9 @@ static int omap2430_probe(struct platform_device *p=
+dev)
+> > =20
+> >  		pdata->board_data	=3D data;
+> >  		pdata->config		=3D config;
+> > +	} else {
+> > +		/* bind the PHY */
+> > +		usb_bind_phy(dev_name(&musb->dev), 0, "twl4030_usb");
+>=20
+> This looks like a hack IMHO to workaround the usb phy library. otherwise =
+it is
+> similar to get_phy_by_name.
+
+actually, this is a workaround to the fact that we're not creating all
+platform_devices in arch/arm/mach-omap2/ :-)
+
+If we had the musb allocation there, we could easily handle
+usb_bind_phy()
+
+> > so that's temporary. It might be better than to reintroduce the IDR in
+> > musb_core.c.
+>=20
+> that=E2=80=99s needed for generic phy framework anyway :-s
+
+right, but generic phy framework can handle everything just fine, the
+only problem is that names are changing.
+
+--=20
+balbi
+
+--RhUH2Ysw6aD5utA4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR9qxFAAoJEIaOsuA1yqREUNQP/Ryi9cCIBBhNivPwQKtifmVC
+Apgp/VKOVUgmmaeO/HBFnpJu08rN/OucgarvM0kCLZfn8KLb2phRsCYiLH9gIieX
+iHmf3X/iWuM1XQPLX5P7xX9GAAYL6TmSUQLp8FaFolAW5NX5k8U8FVxafv84+kmn
+My/I21L1GezLgk8za2caefscekToMupQvOjR8laB/CS8QlENQpy8cUGoiyg9gseD
+3U+o2XP8ET+ZsRI9gcFsdSmKfZTEvP4q3EzWLmYGI20jP3TzrxWz2XKBRxi1u+cY
+svv0zm7m88/L0TFp8SVx4t390mNLSODLljPrBYfyGTP+B3oBS1B+8xkjQHAF89k+
+z4yUa/OxnVvKn2GtyBcmO+EQuYJDhGG3jJPn/0AnqrdQItmgD0QOw6hq5uWchxhL
+duuKIjwroWbfmmlGNl1OL+PeLEVKu25LOCKk2oIKuO9cpxAkVC4yknqBtvkLSH/p
+GA4SPT//e6u7g3DEJV6bcZkSBeKf85ep+NK1U4pz1Blw+v6uYIkSgKyUpcclxmyc
+O5bNAQPyI3ZxNMJ/G7S+WVhGcpXKEDg4Vvg3ds0YBO6atbZlckZ35H1dWpXn7u2j
+/mrkF351wcugFjAlADJGUd1KIf1Qr6u0+8EQgsFpbW4tEIyFxFG7RyJa/Lf+tdXW
+lYZkNqn7KJWnzb1pAGeP
+=+6DW
+-----END PGP SIGNATURE-----
+
+--RhUH2Ysw6aD5utA4--
