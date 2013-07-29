@@ -1,134 +1,56 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv6 1/2] drivers: spi: Add qspi flash controller
-Date: Mon, 29 Jul 2013 13:20:38 +0300
-Message-ID: <20130729102038.GK23710@radagast>
-References: <1375082550-30544-1-git-send-email-sourav.poddar@ti.com>
- <1375082550-30544-2-git-send-email-sourav.poddar@ti.com>
- <20130729093128.GE23710@radagast>
- <51F63FF3.5070304@ti.com>
-Reply-To: <balbi@ti.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH] dma: edma: add device_slave_caps() support
+Date: Mon, 29 Jul 2013 15:15:57 +0530
+Message-ID: <20130729094557.GG29095@intel.com>
+References: <1374597804-3961-1-git-send-email-joelf@ti.com>
+ <51EF8A52.90902@metafoo.de>
+ <51EF8C2B.2030409@ti.com>
+ <51EF8F4E.8080806@metafoo.de>
+ <FB20353E-4890-4462-A671-3587A3841B4A@ti.com>
+ <51EF92F2.3030405@metafoo.de>
+ <51F0231C.7000401@ti.com>
+ <20130724183329.GH18642@intel.com>
+ <51F02CBA.5060704@ti.com>
+ <20130725072351.GJ18642@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GOzekVbrLdOLv44p"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50808 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750820Ab3G2KUz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 06:20:55 -0400
-Content-Disposition: inline
-In-Reply-To: <51F63FF3.5070304@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: balbi@ti.com, broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, linux-omap@vger.kernel.org, rnayak@ti.com
-
---GOzekVbrLdOLv44p
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20130725072351.GJ18642@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>, Dan Williams <djbw@fb.com>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, Arnd Bergmann <arnd@arndb.de>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Vutla, Lokesh" <lokeshvutla@ti.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, Matt Porter <matt@ohporter.com>, Rob Herring <rob.herring@calxeda.com>, Jason Kridner <jkridner@beagleboard.org>, Koen Kooi <koen@beagleboard.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>
+List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Thu, Jul 25, 2013 at 12:53:51PM +0530, Vinod Koul wrote:
+> On Wed, Jul 24, 2013 at 02:36:26PM -0500, Joel Fernandes wrote:
+> > > Also another point worth considering is the approach Russell suggested, I havent
+> > > gotten a chance to dig deeper but if I understood it correctly then programming
+> > > the device_dma_parameters should be the right thing to do. Again I need to look
+> > > deeper and esp wrt edma
+> > 
+> > OK. I have some patches sitting in my tree too that I'm working on. With
+> > that I don't need to know about maximum number of allowed segments and
+> > can send along any number of segment. I will rework them and post them.
+> > fwiw, I will also implement caps API incase like Lars did populating the
+> > other fields though these will not be unused.
+> > 
+> > For segment size, at this time I don't know any driver that uses it
+> > other than davinci-pcm. For this reason the calculations can be done as
+> > Lars suggested (for minimum of maximum). Do you know in advance if
+> > you're going to amend to drop segment size if we go with what Russell
+> > suggested, or are you going to leave the seg-size in the caps API anyway.
+> I am just back and havent really done my work on this. Let me check and as I
+> said if my understanding is right I would be inclined to remove these fields...
+Okay so the max sg_len should be done by setting the device_dma_parameters.
 
-On Mon, Jul 29, 2013 at 03:42:03PM +0530, Sourav Poddar wrote:
-> >>+	frame_length =3D (m->frame_length<<  3) / spi->bits_per_word;
-> >there's another way to optimize this. If you assume bits_per_word to
-> >always be power of two you can:
-> >
-> >	frame_length =3D (m->frame_length<<  3)>>  __ffs(spi->bits_per_word);
-> >
-> >but that would need a comment stating that you're assuming bits_per_word
-> >to always be a power of two. Not sure if this is a correct assumption.
-> >
-> I dont think it will be a correct assumption, since our controller is
-> flexible to
-> handle anything from 1 to 128 as bits_per_word.
+See the example in MXS DMA and MMC drivers
 
-right, but can the framework handle non-power-of-two bits_per_word ?
+Now for second parameter why do you need that to be passed, I thought in edma the
+clients needs this value somehow to program the channel. It would be good that
+if we can delink from this and let edma derive. Also there should be no such
+thing as max_sg, the driver should be able to perform any size of sg_list.
+Internally it can be breaking the dma into multiple trasnactions.
 
-> >>+	spin_unlock(&qspi->lock);
-> >You should, before releasing the lock, mask your IRQs, so that you can
-> >get rid of IRQF_ONESHOT. Unmask them before returning from the IRQ
-> >thread.
-> >
-> Sorry, did not get  you here?
->  I am reading interrupt status register before and clearing them in
-> the threaded irq.
-
-you need to mask the IRQs, clear WC and FIRQ in IRQENABLE register...
-set them back at the end of the thread handler.
-
-> >>+static int ti_qspi_probe(struct platform_device *pdev)
-> >>+{
-> >>+	struct  ti_qspi *qspi;
-> >>+	struct spi_master *master;
-> >>+	struct resource         *r;
-> >>+	struct device_node *np =3D pdev->dev.of_node;
-> >>+	u32 max_freq;
-> >>+	int ret =3D 0, num_cs, irq;
-> >>+
-> >>+	master =3D spi_alloc_master(&pdev->dev, sizeof(*qspi));
-> >>+	if (!master)
-> >>+		return -ENOMEM;
-> >>+
-> >>+	master->mode_bits =3D SPI_CPOL | SPI_CPHA;
-> >>+
-> >>+	master->num_chipselect =3D 1;
-> >again with the num_chipselect =3D 1 ? IIRC this controller has 4
-> >chipselects, just read 24.5.1 on your TRM.
-> >
-> this is unnecessary. I intended to configure chip selects through
-> dt)as done below).
-> Will remove.
-
-which brings me to the point of:
-
-Do you review your own code before sending it out ? Doesn't look like...
-
-> >>+	irq =3D platform_get_irq(pdev, 0);
-> >>+	if (irq<  0) {
-> >>+		dev_err(&pdev->dev, "no irq resource?\n");
-> >>+		return irq;
-> >>+	}
-> >>+
-> >>+	spin_lock_init(&qspi->lock);
-> >>+
-> >>+	qspi->base =3D devm_ioremap_resource(&pdev->dev, r);
-> >>+	if (IS_ERR(qspi->base)) {
-> >>+		ret =3D PTR_ERR(qspi->base);
-> >>+		goto free_master;
-> >>+	}
-> >>+
-> >>+	ret =3D devm_request_threaded_irq(&pdev->dev, irq, ti_qspi_isr,
-> >>+			ti_qspi_threaded_isr, IRQF_NO_SUSPEND | IRQF_ONESHOT,
-> >why do you need IRQF_NO_SUSPEND ?
-> >
-> I should get away with this.
-
-why ? Do you need or do you *not* need it ? And in either case, why ?
-
---=20
-balbi
-
---GOzekVbrLdOLv44p
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR9kH2AAoJEIaOsuA1yqRE6m4QAK3cwXOJ8v0kAoG0DoSmIUVi
-xpWDr+cDsaUHgNqG+GiZElVZ7se62ig+ET5qjamsOmZmfYG4K4/LfvaIbU3Oot1L
-sbFZckdfCYLBcowRUhDoWB9Nm4cFX1Tz+9P+5BT8INHXJjbygcP+L9bgowgAkxRS
-zkkhENVaCCcT09NE+YAoZNEidgr+2aAPQjDxC9Lmfuamim89czKX6vpxpyHaa6ZA
-z8GeHOP0eIx7i/7GgozhVVCWCC4sm3iRUwh1UAqf/bJDafNbCkB6JnlefsbmYixG
-MHZ67mqwrA2K5dpY3NZjU4sf3XsSmIGf51CXYQASrUJ2HJrpUafAnMvkefi5lWiJ
-G+I0pIJIohwbExPgjkht3+7Y4tt1QFwdUhvytNYWHM408lVhyqIDmOkhe36DQaEZ
-CfDhTdBriJ3+FDydkhVDbzsKNrEUrcNTeofk7lmVE6CEvafjePjr+v1+n3ivskEa
-Vj/4vW8iPBa1NuMBQrvyDGi9H3IePZmkUexZL+hMBoj188VLpxvn1MhcH+txzpwp
-Ymwp9VmFvL21RrFmi4SFfEkSz8HiVH4/zxRzZYlTUwb66fN7THQ8B8Ay3QLhyXh4
-SVF5TSq8d7KXhVGqN6qar+MbUtRDKfwOhirRWySCJ8DKwvOjlZHL0NGFxBxdTd0v
-l8aoWZHnWjJysHlLe6bz
-=otby
------END PGP SIGNATURE-----
-
---GOzekVbrLdOLv44p--
+~Vinod
+-- 
