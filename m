@@ -1,39 +1,48 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v4 1/2] gpio/omap: don't create an IRQ mapping for every
- GPIO on DT
-Date: Mon, 29 Jul 2013 11:05:13 +0200
-Message-ID: <CACRpkda3vN1SQR-25358B20Gye3kgVOBTQqYT+reYhjQoZ2rbA@mail.gmail.com>
-References: <1372433223-9053-1-git-send-email-javier.martinez@collabora.co.uk>
-	<51F4F973.8000303@ahsoftware.de>
-	<51F529D6.8030809@ahsoftware.de>
-	<CACRpkdYKSMcCe+uNiB2Jbc8GbUwvJxyq+7EiLM-xdOevVRK-wQ@mail.gmail.com>
-	<51F54A98.80601@ahsoftware.de>
-	<CACRpkdYb7jBpZofLn5VLL7pcMdh5P227ZpwYfV2HJAszFwUEig@mail.gmail.com>
-	<CAAwP0s0q6U6MDYBHiA=u3N_3bJ7CXTPKX_A_wwTrWrqj17mH0w@mail.gmail.com>
-	<51F5FC8E.9010007@ahsoftware.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4] pinctrl: Add support for additional dynamic states
+Date: Mon, 29 Jul 2013 02:05:24 -0700
+Message-ID: <20130729090524.GY7656@atomide.com>
+References: <20130716090310.5541.36777.stgit@localhost>
+ <20130716090536.5541.36289.stgit@localhost>
+ <51E70953.1000601@wwwdotorg.org>
+ <20130718072034.GO7656@atomide.com>
+ <51E8401E.8040705@wwwdotorg.org>
+ <20130719072927.GY7656@atomide.com>
+ <51E98AEC.5000802@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:51427 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751652Ab3G2JFO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 05:05:14 -0400
-Received: by mail-ob0-f174.google.com with SMTP id wd6so5602839obb.33
-        for <linux-omap@vger.kernel.org>; Mon, 29 Jul 2013 02:05:13 -0700 (PDT)
-In-Reply-To: <51F5FC8E.9010007@ahsoftware.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <51E98AEC.5000802@wwwdotorg.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: linus.walleij@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Alexander Holler <holler@ahsoftware.de>
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Grant Likely <grant.likely@linaro.org>, Jon Hunter <jgchunter@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>, Balaji T K <balajitk@ti.com>
 
-On Mon, Jul 29, 2013 at 7:24 AM, Alexander Holler <holler@ahsoftware.de> wrote:
+* Stephen Warren <swarren@wwwdotorg.org> [130719 11:59]:
+> On 07/19/2013 01:29 AM, Tony Lindgren wrote:
+> > 
+> > I'd vote for keeping the existing behaviour with pinctrl_select_state()
+> > when no active state is defined.
+> 
+> Yes, I think that will work, since the active state cannot exist before
+> this new scheme is in place.
 
-> Maybe it might be worth to suggest using/returning NO_IRQ in (new) patches
-> instead of zero. That would make it very clear that the value 0 isn't to be
-> used later.
+Right.
+ 
+> But, this needs to be very clearly spell out in the DT binding
+> documentation: If you have states default/idle/sleep, they're complete
+> alternatives, whereas if you have states default/active/idle/sleep, the
+> latter 3 are alternatives that build on top of the first. I foresee mass
+> confusion, but perhaps I'm being pessimistic.
 
-Using NO_IRQ is also discouraged, and this is because we should
-use the if (!irq) design pattern and not if (irq == NO_IRQ).
+I'm hoping we can automate the runtime PM handling with default/active/idle
+completely from the consumer driver point of view. And then when that's
+working, we can probably deprecate any runtime PM related handling using
+pinctr_select_state() and print warnings. And we can also improve the
+documentation so no new users will use the default/idle/sleep for runtime
+PM unless they really want to.
 
-Yours,
-Linus Walleij
+Regards,
+
+Tony
