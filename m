@@ -1,82 +1,67 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 0/9] ARM: dts: omap5-uevm: fixup wrong regulator
- configuration
-Date: Mon, 29 Jul 2013 09:13:09 -0500
-Message-ID: <51F67875.9020602@ti.com>
-References: <1374079538-19548-1-git-send-email-nm@ti.com>
- <51F63C74.6070503@ti.com> <51F66B65.4030702@ti.com>
- <51F670AF.9080808@gmail.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH v2 1/4] usb: phy: phy-omap-control: Add API to power
+ and wakeup
+Date: Mon, 29 Jul 2013 16:25:17 +0200
+Message-ID: <20130729142517.GA827@linutronix.de>
+References: <1374237277-17769-1-git-send-email-george.cherian@ti.com>
+ <1374237277-17769-2-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51F670AF.9080808@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benoit Cousson <benoit.cousson@gmail.com>
-Cc: devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, J Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <benoit.cousson@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1374237277-17769-2-git-send-email-george.cherian@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 07/29/2013 08:39 AM, Benoit Cousson wrote:
-> Hi Nishanth,
->
-> On 29/07/2013 15:17, Nishanth Menon wrote:
->> On 07/29/2013 04:57 AM, Keerthy wrote:
->>> Hi Nishanth,
->>>
->>> On Wednesday 17 July 2013 10:15 PM, Nishanth Menon wrote:
->>>> Due to wrong older revision of documentation used as reference, we
->>>> seem to have a bunch of LDOs wrongly configured on OMAP5 uEVM. This
->>>> series is based power tree on production board 750-2628-XXX platform.
->>>> Unfortunately, the wrong voltages may be detrimental to OMAP5 as they
->>>> supply hardware blocks at voltages that are out of specification.
->>>
->>> This series looks good to me.
->>>
->>> Acked-by:  J Keerthy <j-keerthy@ti.com>
->>
->> Tony, Benoit - this series could prevent OMAP5 from being damaged on
->> uEVMs with current 3.11 rc - could you suggest what we need to do to
->> get it in?
->
-> I'm still on vacation with no way to pull any patch... but I can still
-> comment on the series quickly.
+* George Cherian | 2013-07-19 18:04:34 [+0530]:
 
-Thanks for responding while on vacation.
+>diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
+>index 1419ced..4f2502c 100644
+>--- a/drivers/usb/phy/phy-omap-control.c
+>+++ b/drivers/usb/phy/phy-omap-control.c
+>@@ -46,6 +46,73 @@ struct device *omap_get_control_dev(void)
+> EXPORT_SYMBOL_GPL(omap_get_control_dev);
+> 
+> /**
+>+ * omap_control_am335x_phy_wkup - PHY wakeup on/off  using control
+>+ *	module
+>+ * @dev: the control module device
+>+ * @on: 0 to off and 1 to on PHY wakeup feature
+>+ * @id: phy id 0 or 1 for phy instance 0 and 1 repectively
+>+ *
+>+ * AMXXXX PHY driver should call this API to enable or disable PHY wakeup.
+>+ */
+>+void omap_control_am335x_phy_wkup(struct device *dev, bool on, u8 id)
+>+{
+>+	u32 val;
+>+	u32 *phy_wkup_reg;
+>+	struct omap_control_usb	*control_usb = dev_get_drvdata(dev);
+>+
+>+	if (control_usb->type != OMAP_CTRL_DEV_TYPE3 || id < 0 || id > 1)
+>+		return;
+>+
+>+	phy_wkup_reg = control_usb->dev_conf + AM335X_USB_WKUP_OFFSET;
+>+	val = readl(phy_wkup_reg);
 
->
-> It seems to me that this series contains some real fixes that might
-> damage the board due to hihest voltage than expected and some which are
-> just improvement like for the SMPS9 or LDO[28]. In theory they should no
-> go necesseraly to -rc, but, I guess that's fine for that one.
->
-> All the "fixes" are sharing more than 50% of the changelog content with
-> only 2 changes in the code, so you'd better squash them into one patch
-> to avoid repeating the same thing again and again.
->
-Reason for keeping them separate was to allow any future git bisect to 
-narrow down to precise patch.
-<--->
-  ARM: dts: omap5-uevm: update SMPS9 settings
-   ARM: dts: omap5-uevm: update and disable unused regulators LDO[28]
-   ARM: dts: omap5-uevm: update LDO1 voltage to 1.5V and settings
-   ARM: dts: omap5-uevm: update LDO3 voltage to 1.5V and settings
-   ARM: dts: omap5-uevm: update LDO4 voltage to 1.5V and settings
-   ARM: dts: omap5-uevm: update LDO6 voltage to 1.2V
-   ARM: dts: omap5-uevm: update LDO7 voltage to 2V and settings
-   ARM: dts: omap5-uevm: update SDCARD LDO9 and resource REGEN3
-<---->
+Where do you get the memory from? In the DT patches I've made I export
+one memory space of 8 bytes for each phy. This memory space applies
+directly to the on/off register. I didn't export the register for wakeup
+so far since I had no idea how this will be used.
+So how do you get your re-mapped memory here?
 
-Would you have suggestions on what to squash up?
+>+
+>+	if (on)
+>+		val |= id ? AM335X_USB1_WKUP_CTRL_ENABLE :
+>+				AM335X_USB0_WKUP_CTRL_ENABLE;
+>+	 else
+>+		val &= id ? ~AM335X_USB1_WKUP_CTRL_ENABLE :
+>+				~AM335X_USB0_WKUP_CTRL_ENABLE;
+>+
+>+
+>+	writel(val, phy_wkup_reg);
+>+}
+>+EXPORT_SYMBOL_GPL(omap_control_am335x_phy_wkup);
 
-
--- 
-Regards,
-Nishanth Menon
+Sebastian
