@@ -1,64 +1,52 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH 7/9] ARM: edma: Don't clear EMR of channel in edma_stop
-Date: Mon, 29 Jul 2013 08:29:53 -0500
-Message-ID: <1375104595-16018-8-git-send-email-joelf@ti.com>
-References: <1375104595-16018-1-git-send-email-joelf@ti.com>
+From: Benoit Cousson <benoit.cousson@gmail.com>
+Subject: Re: [PATCH 0/9] ARM: dts: omap5-uevm: fixup wrong regulator configuration
+Date: Mon, 29 Jul 2013 15:39:59 +0200
+Message-ID: <51F670AF.9080808@gmail.com>
+References: <1374079538-19548-1-git-send-email-nm@ti.com> <51F63C74.6070503@ti.com> <51F66B65.4030702@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1375104595-16018-1-git-send-email-joelf@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sricharan R <r.sricharan@ti.com>, Rajendra Nayak <rnayak@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Matt Porter <matt@ohporter.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Mark Brown <broonie@linaro.org>, Benoit Cousson <benoit.cousson@linaro.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Balaji TK <balajitk@ti.com>, Gururaja Hebbar <gururaja.hebbar@ti.com>, Chris Ball <cjb@laptop.org>, Jason Kridner <jkridner@beagleboard.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Joel Fernandes <joelf@ti.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51F66B65.4030702@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <benoit.cousson@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, J Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-We certainly don't want error conditions to be cleared anywhere
-as this will make us 'forget' about missed events. We depend on
-knowing which events were missed in order to be able to reissue them.
+Hi Nishanth,
 
-This fixes a race condition where the EMR was being cleared
-by the transfer completion interrupt handler.
+On 29/07/2013 15:17, Nishanth Menon wrote:
+> On 07/29/2013 04:57 AM, Keerthy wrote:
+>> Hi Nishanth,
+>>
+>> On Wednesday 17 July 2013 10:15 PM, Nishanth Menon wrote:
+>>> Due to wrong older revision of documentation used as reference, we
+>>> seem to have a bunch of LDOs wrongly configured on OMAP5 uEVM. This
+>>> series is based power tree on production board 750-2628-XXX platform.
+>>> Unfortunately, the wrong voltages may be detrimental to OMAP5 as they
+>>> supply hardware blocks at voltages that are out of specification.
+>>
+>> This series looks good to me.
+>>
+>> Acked-by:  J Keerthy <j-keerthy@ti.com>
+>
+> Tony, Benoit - this series could prevent OMAP5 from being damaged on
+> uEVMs with current 3.11 rc - could you suggest what we need to do to
+> get it in?
 
-Basically, what was happening was:
+I'm still on vacation with no way to pull any patch... but I can still
+comment on the series quickly.
 
-            Missed event
-             |
-             |
-             V
-SG1-SG2-SG3-Null
-         \
-          \__TC Interrupt (Almost same time as ARM is executing
-TC interrupt handler, an event got missed and also forgotten
-by clearing the EMR).
+It seems to me that this series contains some real fixes that might
+damage the board due to hihest voltage than expected and some which are
+just improvement like for the SMPS9 or LDO[28]. In theory they should no
+go necesseraly to -rc, but, I guess that's fine for that one.
 
-The EMR is ultimately being cleared by the Error interrupt
-handler once it is handled so we don't have to do it in edma_stop.
+All the "fixes" are sharing more than 50% of the changelog content with
+only 2 changes in the code, so you'd better squash them into one patch
+to avoid repeating the same thing again and again.
 
-Signed-off-by: Joel Fernandes <joelf@ti.com>
----
- arch/arm/common/edma.c |    1 -
- 1 file changed, 1 deletion(-)
+Beside that, I will ack the updated one to allow Tony to push them ASAP.
 
-diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index 10995b2..dec772e 100644
---- a/arch/arm/common/edma.c
-+++ b/arch/arm/common/edma.c
-@@ -1328,7 +1328,6 @@ void edma_stop(unsigned channel)
- 		edma_shadow0_write_array(ctlr, SH_EECR, j, mask);
- 		edma_shadow0_write_array(ctlr, SH_ECR, j, mask);
- 		edma_shadow0_write_array(ctlr, SH_SECR, j, mask);
--		edma_write_array(ctlr, EDMA_EMCR, j, mask);
- 
- 		pr_debug("EDMA: EER%d %08x\n", j,
- 				edma_shadow0_read_array(ctlr, SH_EER, j));
--- 
-1.7.9.5
+Regards,
+Benoit
