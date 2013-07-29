@@ -1,40 +1,80 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH 1/3] dmaengine: add dma_get_slave_sg_limits()
-Date: Mon, 29 Jul 2013 12:14:15 +0530
-Message-ID: <20130729064415.GF29095@intel.com>
-References: <1374166001-31340-1-git-send-email-joelf@ti.com>
- <1374166001-31340-2-git-send-email-joelf@ti.com>
- <20130718170825.GZ21614@n2100.arm.linux.org.uk>
- <51E83A9D.5020008@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:24891 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751735Ab3G2HXx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Jul 2013 03:23:53 -0400
-Content-Disposition: inline
-In-Reply-To: <51E83A9D.5020008@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Subject: [PATCH v2] usb: dwc3: core: modify IO memory resource after deferred probe completes
+Date: Mon, 29 Jul 2013 10:27:02 +0300
+Message-ID: <1375082822-3516-1-git-send-email-iivanov@mm-sol.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com, gregkh@linuxfoundation.org
+Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, "Ivan T. Ivanov" <iivanov@mm-sol.com>
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Matt Porter <matt@ohporter.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Mark Brown <broonie@linaro.org>, Benoit Cousson <benoit.cousson@linaro.org>, Balaji TK <balajitk@ti.com>, Gururaja Hebbar <gururaja.hebbar@ti.com>, Chris Ball <cjb@laptop.org>, Jason Kridner <jkridner@beagleboard.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.ker>
 
-On Thu, Jul 18, 2013 at 01:57:33PM -0500, Joel Fernandes wrote:
-> On 07/18/2013 12:08 PM, Russell King - ARM Linux wrote:
-> > As for the maximum number of scatterlist entries, really that's a bug in
-> > the DMA engine implementations if they can't accept arbitary lengths.
-> > I've created DMA engine drivers for implementations where you have to
-> > program each segment individually, ones which can have the current and
-> > next segments, as well as those which can walk a list.  Provided you get
-> > informed of a transfer being completed, there really is no reason for a
-> > DMA engine driver to limit the number of scatterlist entries that it
-> > will accept.
-> 
-> Sure, that makes sense. Can you point to such a typical example
-> implementation to get some ideas?
-MXS MMC driver uses this: drivers/mmc/host/mxs-mmc.c
-And dma engine driver for this is mxs-dma.c
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
 
-~Vinod
+When deferred probe happens driver will try to ioremap multiple times
+and will fail. Memory resource.start variable is a global variable,
+modifications in this field will be accumulated on every probe.
+Fix this by moving the above operations after driver hold all
+required PHY's.
+
+Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
+---
+
+Felipe, Paul if you get better solution please go ahead and ignore
+this patch.
+
+v2 - inline comments
+
+ drivers/usb/dwc3/core.c |   31 ++++++++++++++++---------------
+ 1 file changed, 16 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 607bef8..c257117 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -384,21 +384,6 @@ static int dwc3_probe(struct platform_device *pdev)
+ 		dev_err(dev, "missing memory resource\n");
+ 		return -ENODEV;
+ 	}
+-	dwc->xhci_resources[0].start = res->start;
+-	dwc->xhci_resources[0].end = dwc->xhci_resources[0].start +
+-					DWC3_XHCI_REGS_END;
+-	dwc->xhci_resources[0].flags = res->flags;
+-	dwc->xhci_resources[0].name = res->name;
+-
+-	res->start += DWC3_GLOBALS_REGS_START;
+-
+-	 /*
+-	  * Request memory region but exclude xHCI regs,
+-	  * since it will be requested by the xhci-plat driver.
+-	  */
+-	regs = devm_ioremap_resource(dev, res);
+-	if (IS_ERR(regs))
+-		return PTR_ERR(regs);
+ 
+ 	if (node) {
+ 		dwc->maximum_speed = of_usb_get_maximum_speed(node);
+@@ -452,6 +437,22 @@ static int dwc3_probe(struct platform_device *pdev)
+ 		return -EPROBE_DEFER;
+ 	}
+ 
++	dwc->xhci_resources[0].start = res->start;
++	dwc->xhci_resources[0].end = dwc->xhci_resources[0].start +
++					DWC3_XHCI_REGS_END;
++	dwc->xhci_resources[0].flags = res->flags;
++	dwc->xhci_resources[0].name = res->name;
++
++	res->start += DWC3_GLOBALS_REGS_START;
++
++	/*
++	 * Request memory region but exclude xHCI regs,
++	 * since it will be requested by the xhci-plat driver.
++	 */
++	regs = devm_ioremap_resource(dev, res);
++	if (IS_ERR(regs))
++		return PTR_ERR(regs);
++
+ 	usb_phy_set_suspend(dwc->usb2_phy, 0);
+ 	usb_phy_set_suspend(dwc->usb3_phy, 0);
+ 
 -- 
+1.7.9.5
