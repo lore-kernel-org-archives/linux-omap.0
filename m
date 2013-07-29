@@ -1,68 +1,110 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [RFC/PATCH 2/2] driver: spi: Add quad spi read support
-Date: Mon, 29 Jul 2013 15:13:07 +0530
-Message-ID: <51F6392B.8030809@ti.com>
-References: <1375082550-30544-1-git-send-email-sourav.poddar@ti.com> <1375082550-30544-3-git-send-email-sourav.poddar@ti.com> <20130729093258.GF23710@radagast>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/4] pinctrl: Allow pinctrl to have multiple active
+ states
+Date: Mon, 29 Jul 2013 02:45:02 -0700
+Message-ID: <20130729094501.GC7656@atomide.com>
+References: <20130718151213.30990.45828.stgit@localhost>
+ <20130718151507.30990.67174.stgit@localhost>
+ <CACRpkdY5-OFN4YQywPj06jkf493BhwgJGMEnmKmbovTh+co2Yg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59740 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753441Ab3G2JnX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Jul 2013 05:43:23 -0400
-In-Reply-To: <20130729093258.GF23710@radagast>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACRpkdY5-OFN4YQywPj06jkf493BhwgJGMEnmKmbovTh+co2Yg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, linux-omap@vger.kernel.org, rnayak@ti.com
 
-On Monday 29 July 2013 03:02 PM, Felipe Balbi wrote:
-> On Mon, Jul 29, 2013 at 12:52:30PM +0530, Sourav Poddar wrote:
->> Since, qspi controller uses quad read.
->>
->> Configuring the command register, if the transfer of data needs
->> dual or quad lines.
->>
->> This patch has been done on top of the following patch[1], which is just the
->> basic idea of adding dual/quad support in spi framework.
->> $subject patch will undergo changes with the ongoing discussion in the
->> community.
->>
->> This patch is posted to demonstrate how patch 1 of the series will support
->> quad read.
->>
->> [1]: http://comments.gmane.org/gmane.linux.kernel.spi.devel/14047
->>
->> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
->> ---
->>   drivers/spi/spi-ti-qspi.c |   16 ++++++++++++++--
->>   1 files changed, 14 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
->> index 51fe95f..8a32b1c 100644
->> --- a/drivers/spi/spi-ti-qspi.c
->> +++ b/drivers/spi/spi-ti-qspi.c
->> @@ -86,6 +86,7 @@ struct ti_qspi {
->>   #define QSPI_3_PIN			(1<<  18)
->>   #define QSPI_RD_SNGL			(1<<  16)
->>   #define QSPI_WR_SNGL			(2<<  16)
->> +#define	QSPI_RD_DUAL			(3<<  16)
->>   #define QSPI_RD_QUAD			(7<<  16)
-> so RD_QUAD is defined in previous patch but not RD_DUAL ? What gives ?
->
-I think I will define RD_DUAL in the previous patch...
-> IMHO, just merge this patch with previous and make the entire driver
-> depend on the other patch.
->
-but I was thinking of keeping rest of the $subject patch seperate, since the
-idea of implementing dual/quad read in spi framework is still under 
-discussion.
-and this patch will change.
+* Linus Walleij <linus.walleij@linaro.org> [130722 16:01]:
+> On Thu, Jul 18, 2013 at 5:15 PM, Tony Lindgren <tony@atomide.com> wrote:
+> 
+> > It's quite common that we need to dynamically change some pins for a
+> > device for runtime PM, or toggle a pin between rx and tx. Changing all
+> 
+> What does "change" mean above?
+> 
+> Please reword to "remux" if that is what is meant.
 
-So, it would be good if we can get the basic previous patch in, and then 
-when the
-other discussion is sorted out, we can get this in?
+Yes remux or reconfigure the pinconf depending on the hardware.
+And possibly based on the board specific configuration if both
+options are available.
+ 
+> > the pins for a device is not efficient way of doing it.
+> >
+> > So let's allow setting up multiple active states for pinctrl.
+> 
+> Do you mean multiple default states?
+> 
+> I have a hard time understanding so please help me out :-/
 
-~Sourav
+One default state, which should only contain the static pins that
+don't need to be remuxed or reconfigured during runtime PM.
 
+It should probably say "support for multiple currently activated
+states", does that make it clearer?
+ 
+> > Currently
+> > we only need PINCTRL_STATIC and PINCTRL_DYNAMIC, where PINCTRL_STATIC
+> > covers the current default pins, and PINCTRL_DYNAMIC holds the dynamic
+> > pins that need to be toggled.
+> 
+> Toggled when?
+
+Remuxed or reconfigured constantly for runtime PM.
+ 
+> When changing state to another one? Any other state? Or back to
+> this state? Sorry not following ... this needs to be more verbose.
+
+How about "toggle dynamic pins between active and idle state
+for runtime PM"?
+ 
+> > --- a/drivers/pinctrl/core.h
+> > +++ b/drivers/pinctrl/core.h
+> > @@ -53,12 +53,18 @@ struct pinctrl_dev {
+> >  #endif
+> >  };
+> >
+> > +enum pinctrl_states {
+> > +       PINCTRL_STATIC,
+> > +       PINCTRL_DYNAMIC,
+> > +       PINCTRL_NR_STATES,
+> > +};
+> 
+> This needs some very precise kerneldoc so it is chrystal clear what these
+> states are all about. "pinctrl_states" is not a good name for this enum,
+> please find some more precise name, because we have functions
+> with names like pinctrl_select_state() which is not related to this.
+> 
+> Is this substates or?
+
+This lists the sets of pins that can be activated the same
+time. So after this, we support two sets of pins that a
+pinctrl consumer driver can have activated the same time:
+static pins and dynamic pins. There can be any number of
+named modes for dynamic pins, but typically only active and
+idle.
+
+Then if for some reason we need more than two sets activated
+the same time, we can expand the array as needed. So that's
+mostly to try to keep things future proof and not limit things
+to two sets as noted by Stephen earlier.
+ 
+> > +
+> >  /**
+> >   * struct pinctrl - per-device pin control state holder
+> >   * @node: global list node
+> >   * @dev: the device using this pin control handle
+> >   * @states: a list of states for this device
+> > - * @state: the current state
+> > + * @state: the current state(s)
+> 
+> How can more than one state be the current state? Sorry I don't get this.
+> This needs to be more precise I think.
+
+Hopefully the explanation above helps with that, if not,
+let me know.
+ 
+Regards,
+
+Tony
