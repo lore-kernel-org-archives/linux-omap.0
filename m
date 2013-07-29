@@ -1,64 +1,54 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.10-rc6
-Date: Mon, 29 Jul 2013 08:29:44 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1307290826180.30864@utopia.booyaka.com>
-References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com> <20130625160243.GE22312@arwen.pp.htv.fi> <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com> <51C9F0A8.1050607@ti.com> <alpine.DEB.2.02.1306261713260.6135@utopia.booyaka.com>
- <51CB4C20.3060306@ti.com>
+Subject: Re: [PATCH 0/2] ARM: AM33XX: clock: Add debugSS data to clk and
+ hwmod database
+Date: Mon, 29 Jul 2013 08:35:49 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1307290833540.30864@utopia.booyaka.com>
+References: <1371532080-27714-1-git-send-email-hvaibhav@ti.com> <51C10002.5040301@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:53556 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:53609 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750763Ab3G2I3p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 04:29:45 -0400
-In-Reply-To: <51CB4C20.3060306@ti.com>
+	with ESMTP id S1751066Ab3G2Ifu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 04:35:50 -0400
+In-Reply-To: <51C10002.5040301@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tom Rini <trini@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Vaibhav Hiremath <hvaibhav@ti.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-Hi
+Hi guys
 
-On Wed, 26 Jun 2013, Tom Rini wrote:
+On Tue, 18 Jun 2013, Benoit Cousson wrote:
 
-> On 06/26/2013 01:19 PM, Paul Walmsley wrote:
-> > On Tue, 25 Jun 2013, Tom Rini wrote:
+> On 06/18/2013 12:07 AM, Vaibhav Hiremath wrote:
+> > This patch adds DebugSS data to clock-tree and hwmod data files.
 > > 
-> >> On 06/25/2013 02:20 PM, Paul Walmsley wrote:
-> >>
-> >>> BeagleBone-white has the additional complication that it is not easy 
-> >>> to automate, due to the way that power is delivered to the board, so 
-> >>> there is an extra dimension of difficulty there.
-> >>
-> >> Ah-ha, I reproduced your failure.  If I make up a concat uImage + DTB,
-> >> rather than pass them separately, it fails to boot.  If you switch to
-> >> mainline U-Boot (v2012.10 or later) you get support for separate image +
-> >> dtb (v2013.04 gives you bootz and zImage support).
+> > Changes from RFC/V1 (No code change):
+> > 	- Based on comments, we have to follow DT and loadable module
+> > 	  approach for debugSS module as well, so separated out 2 patches
+> > 	  of clock-tree and hwmod data addition from the RFC patch-series.
+> > 	- Added Paul's Ack on clock-tree patch.
+> > 	- Rebased on top of Benoit's for-3.11/dts branch.
 > > 
-> > Yeah, I've tried to keep the original bootloader that came on the first SD 
-> > card image that was used on that device.  But am starting to think that 
-> > it's time to stop my bootloader independence jihad, since appended DTB 
-> > booting is so broken - have seen similar problems on SoCs from other 
-> > vendors as well :-(
+> > Link to original RFC -
+> > http://archive.arm.linux.org.uk/lurker/message/20130304.113554.53c9ec25.en.html
+> > 
+> > Vaibhav Hiremath (2):
+> >    ARM: AM33XX: clock: Add debugSS clock nodes
 > 
-> Well, me?  I'm all in favor of people using latest release of U-Boot for
-> their board and yelling and screaming (or just reporting bugs) when
-> things don't work.  I'm biased of course.
+> I'll take that one, but the next one:
+> 
+> >    ARM: AM33XX: hwmod: Add hwmod data for debugSS
+> 
+> Still need to go through Paul's tree.
+> 
+> Paul,
+> 
+> Do you want to ack it, so I'll be able to take the whole series?
 
-That's exactly how bootloader developers should be testing their changes.  
-But most of the rest of us kernel folks don't want to deal with constantly 
-replacing bootloaders, and then dealing with the inevitable bootloader 
-regressions, when what we're really trying to test is the kernel...
-The kernel should be completely independent of the bootloader used.  
-
-> And assuming rmk answers the way I expect he will, like it or not, the 
-> version(s) we kit up and get in the box need to be factored into our 
-> test system setup so if folks don't want to avail themselves of 
-> improvements, they still get a functional system too.
-
-Yep seems like a good idea from a customer service point of view.  Also 
-most OMAP devices out there probably have locked bootloaders, so replacing 
-the bootloader is often not an option.
+If you all are still waiting on something from me here, please let me know 
+-- I lost track of this one...
 
 
 - Paul
