@@ -1,67 +1,83 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH v2 1/4] usb: phy: phy-omap-control: Add API to power
- and wakeup
-Date: Mon, 29 Jul 2013 16:25:17 +0200
-Message-ID: <20130729142517.GA827@linutronix.de>
-References: <1374237277-17769-1-git-send-email-george.cherian@ti.com>
- <1374237277-17769-2-git-send-email-george.cherian@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 0/9] ARM: dts: omap5-uevm: fixup wrong regulator configuration
+Date: Mon, 29 Jul 2013 09:34:37 -0500
+Message-ID: <51F67D7D.9070003@ti.com>
+References: <1374079538-19548-1-git-send-email-nm@ti.com> <51F63C74.6070503@ti.com> <51F66B65.4030702@ti.com> <51F670AF.9080808@gmail.com> <51F67875.9020602@ti.com> <CADz42=M8LQ=i2q30=JJU+F-Qx89D1PwU7pW3DH7F1iYiC8-pFA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1374237277-17769-2-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39293 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751757Ab3G2OfC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Jul 2013 10:35:02 -0400
+In-Reply-To: <CADz42=M8LQ=i2q30=JJU+F-Qx89D1PwU7pW3DH7F1iYiC8-pFA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <benoit.cousson@gmail.com>
+Cc: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <benoit.cousson@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, J Keerthy <j-keerthy@ti.com>
 
-* George Cherian | 2013-07-19 18:04:34 [+0530]:
+On 07/29/2013 09:19 AM, Benoit Cousson wrote:
+> 2013/7/29 Nishanth Menon <nm@ti.com <mailto:nm@ti.com>>
+>
+> Well you're lucky I'm now in an area with Wifi and 3G access... last
+> week it whould have been impossible to receive it :-)
+hehe :)
 
->diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
->index 1419ced..4f2502c 100644
->--- a/drivers/usb/phy/phy-omap-control.c
->+++ b/drivers/usb/phy/phy-omap-control.c
->@@ -46,6 +46,73 @@ struct device *omap_get_control_dev(void)
-> EXPORT_SYMBOL_GPL(omap_get_control_dev);
-> 
-> /**
->+ * omap_control_am335x_phy_wkup - PHY wakeup on/off  using control
->+ *	module
->+ * @dev: the control module device
->+ * @on: 0 to off and 1 to on PHY wakeup feature
->+ * @id: phy id 0 or 1 for phy instance 0 and 1 repectively
->+ *
->+ * AMXXXX PHY driver should call this API to enable or disable PHY wakeup.
->+ */
->+void omap_control_am335x_phy_wkup(struct device *dev, bool on, u8 id)
->+{
->+	u32 val;
->+	u32 *phy_wkup_reg;
->+	struct omap_control_usb	*control_usb = dev_get_drvdata(dev);
->+
->+	if (control_usb->type != OMAP_CTRL_DEV_TYPE3 || id < 0 || id > 1)
->+		return;
->+
->+	phy_wkup_reg = control_usb->dev_conf + AM335X_USB_WKUP_OFFSET;
->+	val = readl(phy_wkup_reg);
+>
+>> All the "fixes" are sharing more than 50% of the changelog
+>> content with
+>> only 2 changes in the code, so you'd better squash them into one
+>> patch
+>> to avoid repeating the same thing again and again.
+>
+>> Reason for keeping them separate was to allow any future git bisect
+>> to narrow down to precise patch.
+>>     <--->
+> Mmm, why? Do you expect some settings to not work or generate crash?
 
-Where do you get the memory from? In the DT patches I've made I export
-one memory space of 8 bytes for each phy. This memory space applies
-directly to the on/off register. I didn't export the register for wakeup
-so far since I had no idea how this will be used.
-So how do you get your re-mapped memory here?
+It has worked with a backport to full fledged OS on top and I do not 
+expect it to fail, however, I am never sure about how the future issues 
+look like :)
 
->+
->+	if (on)
->+		val |= id ? AM335X_USB1_WKUP_CTRL_ENABLE :
->+				AM335X_USB0_WKUP_CTRL_ENABLE;
->+	 else
->+		val &= id ? ~AM335X_USB1_WKUP_CTRL_ENABLE :
->+				~AM335X_USB0_WKUP_CTRL_ENABLE;
->+
->+
->+	writel(val, phy_wkup_reg);
->+}
->+EXPORT_SYMBOL_GPL(omap_control_am335x_phy_wkup);
+>       ARM: dts: omap5-uevm: update SMPS9 settings
+>        ARM: dts: omap5-uevm: update and disable unused regulators LDO[28]
+>        ARM: dts: omap5-uevm: update LDO1 voltage to 1.5V and settings
+>        ARM: dts: omap5-uevm: update LDO3 voltage to 1.5V and settings
+>        ARM: dts: omap5-uevm: update LDO4 voltage to 1.5V and settings
+>        ARM: dts: omap5-uevm: update LDO6 voltage to 1.2V
+>        ARM: dts: omap5-uevm: update LDO7 voltage to 2V and settings
+>        ARM: dts: omap5-uevm: update SDCARD LDO9 and resource REGEN3
+>     <---->
+>
+>     Would you have suggestions on what to squash up?
+>
+>
+>
+> I guess one patch for all the mandatory fixes, and another one with the
+> improvements should be good enough.
+>
+> Does that sounds OK to you?
 
-Sebastian
+patch #1 ARM: dts: omap5-uevm: document regulator signals used on the 
+actual board
+   -> as is, since it is a documentation patch
+Patch #2: ARM: dts: omap5-uevm: fix regulator configurations mandatory 
+for SoC
+squash of:
+-> ARM: dts: omap5-uevm: update LDO1 voltage to 1.5V and settings
+-> ARM: dts: omap5-uevm: update LDO3 voltage to 1.5V and settings
+-> ARM: dts: omap5-uevm: update LDO4 voltage to 1.5V and settings
+-> ARM: dts: omap5-uevm: update LDO6 voltage to 1.2V
+-> ARM: dts: omap5-uevm: update LDO7 voltage to 2V and settings
+-> ARM: dts: omap5-uevm: update SDCARD LDO9 and resource REGEN3
+
+Patch #3: ARM: dts: omap5-uevm: update optional regulator configurations
+squash of:
+  -> ARM: dts: omap5-uevm: update SMPS9 settings
+  -> ARM: dts: omap5-uevm: update and disable unused regulators LDO[28]
+
+Does that sound fine?
+-- 
+Regards,
+Nishanth Menon
