@@ -1,47 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH 3/4] pinctrl: Add support for additional dynamic states
-Date: Mon, 29 Jul 2013 02:05:24 -0700
-Message-ID: <20130729090524.GY7656@atomide.com>
+Date: Mon, 29 Jul 2013 02:08:22 -0700
+Message-ID: <20130729090822.GZ7656@atomide.com>
 References: <20130716090310.5541.36777.stgit@localhost>
  <20130716090536.5541.36289.stgit@localhost>
- <51E70953.1000601@wwwdotorg.org>
- <20130718072034.GO7656@atomide.com>
- <51E8401E.8040705@wwwdotorg.org>
- <20130719072927.GY7656@atomide.com>
- <51E98AEC.5000802@wwwdotorg.org>
+ <51E70B5D.6030802@wwwdotorg.org>
+ <20130718073638.GP7656@atomide.com>
+ <51E84180.6080902@wwwdotorg.org>
+ <20130719073957.GZ7656@atomide.com>
+ <51E91516.2040301@ti.com>
+ <51E98D89.9050407@wwwdotorg.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <51E98AEC.5000802@wwwdotorg.org>
+In-Reply-To: <51E98D89.9050407@wwwdotorg.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: linus.walleij@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linus.walleij@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Stephen Warren <swarren@wwwdotorg.org> [130719 11:59]:
-> On 07/19/2013 01:29 AM, Tony Lindgren wrote:
+* Stephen Warren <swarren@wwwdotorg.org> [130719 12:10]:
+> On 07/19/2013 04:29 AM, Grygorii Strashko wrote:
 > > 
-> > I'd vote for keeping the existing behaviour with pinctrl_select_state()
-> > when no active state is defined.
+> > First of all, I'd like to mention that these patches do *not* connect
+> > pinctrl to PM runtime, so until driver will call pinctrl_select_state()
+> > or pinctrl_pm_select_*() there will be no pins state changes.
 > 
-> Yes, I think that will work, since the active state cannot exist before
-> this new scheme is in place.
+> Isn't the whole point of the pinctrl_pm_select*() APIs to eventually be
+> called automatically by the runtime PM core, so that we don't need to
+> write code to do this in every single driver, just like we moved the
+> call to pinctrl_select_state(default) into the device core so that we
+> didn't have to make every device do that manually?
 
-Right.
+Yes I think we can make it all automatic. So far it seems that the
+last missing piece was Linus' suggestion of making it mostly happen
+using irqchip with calls to pinctrl so consumer drivers may not need
+to do anything.
  
-> But, this needs to be very clearly spell out in the DT binding
-> documentation: If you have states default/idle/sleep, they're complete
-> alternatives, whereas if you have states default/active/idle/sleep, the
-> latter 3 are alternatives that build on top of the first. I foresee mass
-> confusion, but perhaps I'm being pessimistic.
+> > (As result, i2c-mux is not good example, seems:))
+> 
+> As such, I think all situations are good examples, because a generic
+> feature has to work in all cases.
 
-I'm hoping we can automate the runtime PM handling with default/active/idle
-completely from the consumer driver point of view. And then when that's
-working, we can probably deprecate any runtime PM related handling using
-pinctr_select_state() and print warnings. And we can also improve the
-documentation so no new users will use the default/idle/sleep for runtime
-PM unless they really want to.
+Yes we need to support both runtime PM, and more complex cases of
+sharing pins between devices for example that are not runtime PM
+related.
 
 Regards,
 
