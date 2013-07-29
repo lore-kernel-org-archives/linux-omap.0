@@ -1,105 +1,44 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 1/3] Input: omap-keypad: Enable wakeup capability for
- keypad.
-Date: Mon, 29 Jul 2013 23:36:05 +0300
-Message-ID: <20130729203605.GB6547@radagast>
-References: <1375116311-13999-1-git-send-email-illia.smyrnov@ti.com>
- <7605900.g1IUvSbegi@dtor-d630.eng.vmware.com>
- <20130729191324.GA5767@radagast>
- <2416808.ThTjdiEasK@dtor-d630.eng.vmware.com>
-Reply-To: <balbi@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: 3.11-rc1: OMAP3630 boot crash
+Date: Mon, 29 Jul 2013 23:38:56 +0300
+Message-ID: <20130729203856.GB30725@blackmetal.musicnaut.iki.fi>
+References: <20130716165834.GH3296@blackmetal.musicnaut.iki.fi>
+ <20130724225724.GC26943@blackmetal.musicnaut.iki.fi>
+ <alpine.DEB.2.02.1307290809200.30864@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OwLcNYc0lM97+oe1"
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2416808.ThTjdiEasK@dtor-d630.eng.vmware.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: balbi@ti.com, Illia Smyrnov <illia.smyrnov@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>
-List-Id: linux-omap@vger.kernel.org
-
---OwLcNYc0lM97+oe1
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri5.pp.htv.fi ([213.243.153.188]:37730 "EHLO
+	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752015Ab3G2UjE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 16:39:04 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <alpine.DEB.2.02.1307290809200.30864@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-Hi,
+On Mon, Jul 29, 2013 at 08:11:39AM +0000, Paul Walmsley wrote:
+> On Thu, 25 Jul 2013, Aaro Koskinen wrote:
+> 
+> > On Tue, Jul 16, 2013 at 07:58:34PM +0300, Aaro Koskinen wrote:
+> > > I get the following boot crash on N950/RM-680 (3630) with unpatched
+> > > 3.11-rc1. The crash looks specific to 3630 (it happens during
+> > > omap3630_init_late), also the same kernel binary works with N900/RX-51
+> > > (3430). You can find the .config after the crash.
+> > 
+> > I put a debug print to _omap_hwmod_mux_handle_irq
+> > (omap_hwmod_mux_scan_wakeups), and it seems when the crash happens the
+> > pad name is always "uart3_rx_irrx.uart3_rx_irrx". I made another hack
+> > and just "continue" if the pad name is this, and the crash is gone.
+> > 
+> > Any ideas?
+> 
+> Nothing comes to mind, but it's worth mentioning that this doesn't happen
+> on the 37xx EVM here.  So it's probably RM-680-specific. 
 
-On Mon, Jul 29, 2013 at 12:59:23PM -0700, Dmitry Torokhov wrote:
-> > > > > @@ -439,12 +444,50 @@ static const struct of_device_id
-> > > > > omap_keypad_dt_match[] =3D {>
-> > > > >=20
-> > > > >  MODULE_DEVICE_TABLE(of, omap_keypad_dt_match);
-> > > > >  #endif
-> > > > >=20
-> > > > > +#ifdef CONFIG_PM_SLEEP
-> > > > > +static int omap4_keypad_suspend(struct device *dev)
-> > > > > +{
-> > > > > +	struct platform_device *pdev =3D to_platform_device(dev);
-> > > >=20
-> > > > you don't need to access the platform_device...
-> > > >=20
-> > > > > +	struct omap4_keypad *keypad_data =3D platform_get_drvdata(pdev);
-> > > >=20
-> > > > ... since this can become:
-> > > > 	struct omap4_keypad *keypad_data =3D dev_get_drvdata(dev);
-> > >=20
-> > > No, please use correct accessors for the objects. Platform drivers de=
-al
-> > > with platform devices and I prefer using platform_get_drvdata() on th=
-em.
-> >=20
-> > The argument to this function is a struct device, you prefer to do some
-> > pointer math to find the containing pdev, then deref that back to dev,
-> > then to struct device_private and further to driver_data ?
-> >=20
-> > Sounds like a waste of time IMHO. You already have the device pointer
-> > anyway, why would you go through the trouble of calculating the
-> > offsets for the containing struct platform_device ?
->=20
-> This assumes knowledge of dev_get_drvdata() implementation and assumption
-> that it will stay the same. Unless I hear from device core guys that
-> <bus>_{get|set}_drvdata() methods are obsolete and will be eventually
-> removed I will require proper accessors being used.
+Probably timing specific... I enabled CONFIG_DEBUG_FS and the crash
+went away.
 
-they're not obsolete and will never be removed. They're nothing but
-helpers though. Instead of calling:
-
-	dev_set_drvdata(&pdev->dev);
-
-you call:
-
-	platform_set_drvdata(pdev);
-
-same is valid for every single bus, but in the end they all just wrap a
-call dev_{set,get}_drvdata() internally. If you already have a struct
-device pointer as argument, why waste cycles doing pointer math just to
-go back to the same struct device pointer on the next call ?
-
---=20
-balbi
-
---OwLcNYc0lM97+oe1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR9tI1AAoJEIaOsuA1yqREDyMQAJlThkNzLee8vWcWwgQ7QX4m
-r7qwOXCUQQHOKIdgeT6u9TRAezKwWo+Rf38f+XtLOjeetBZBRxe9yYME8kdoMxWS
-wvbcyzt1dTG//tl+NNZqiUDS3z2kqDpCdRe5Ku/yeKwTXGEgNnbCbcXdlDf2zCOr
-Dp5VObyW0g4HdicN0OCWDWDU7Y/6ZN7Bi1hr5lNYSCZHRJJBHlZwevLzGJRfnEXX
-z3l76nEU35KN2vIqreTtCfV0D7Aqsrv3bZIV5ToDnwyF7x8LT06ur2hb/CQKbUZv
-TNAd0pK1IZb2+f3YVOxQpieOzoE0CN5g9kHpe2SFeQlLWg5FawkDQoBaoMBcHsyx
-fRatLx3VIw3GD87gUhMUwSxEJMXSngBfY2b+VpIiZ+CY6BrgmYmbEUkuQ8E/+G+0
-p/Uu6f0cWKDuj8guYz17iajXFWMoQdxCaHDLs4V+AJAxJGj2Ai86UTpi6ylNMGRs
-K4efB/mH0iSXRoNLoJslMFwvoEnPTt/qMLcGEzu3VpLrh6Xpsj4XH3s2hcOvHXb2
-PMNca6e0pBlK372APpz65rJzlYdsTVg2qGyFduFujVvm5AEojezwjvXj4x3BAkuA
-IBo8WA3t2fUYxp4L9tvE6nmayzTU8WluzDpEvw4z+erXJfhjKDLVxhyUly10Rzu5
-z0RssZwcBUv+PxaR6G5p
-=qM/g
------END PGP SIGNATURE-----
-
---OwLcNYc0lM97+oe1--
+A.
