@@ -1,54 +1,78 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH v2 2/4] phy: phy-amxxxx-usb: Add PHY driver for amxxxx
- platform
-Date: Mon, 29 Jul 2013 17:17:54 +0200
-Message-ID: <20130729151754.GB827@linutronix.de>
-References: <1374237277-17769-1-git-send-email-george.cherian@ti.com>
- <1374237277-17769-3-git-send-email-george.cherian@ti.com>
+From: Alexander Holler <holler@ahsoftware.de>
+Subject: Re: OMAP5912 boot broken by "gpio/omap: don't create an IRQ mapping
+ for every GPIO on DT"
+Date: Mon, 29 Jul 2013 17:18:11 +0200
+Message-ID: <51F687B3.7030902@ahsoftware.de>
+References: <alpine.DEB.2.02.1307290604310.30864@utopia.booyaka.com> <CACRpkdYa8Kg_-u3gB8jrB_Ws2EpLCnXBh5UGgDvi_7tQspDP7A@mail.gmail.com> <51F633AE.8090308@collabora.co.uk> <51F63864.9000601@collabora.co.uk> <51F666B7.7020209@ti.com> <51F681C4.3000400@ahsoftware.de> <51F684F2.5050308@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1374237277-17769-3-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from h1446028.stratoserver.net ([85.214.92.142]:60721 "EHLO
+	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757245Ab3G2PS5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 11:18:57 -0400
+Received: from eiche.ahsoftware (p57B216E0.dip0.t-ipconnect.de [87.178.22.224])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.ahsoftware.de (Postfix) with ESMTPSA id 259BE423C270
+	for <linux-omap@vger.kernel.org>; Mon, 29 Jul 2013 17:18:54 +0200 (CEST)
+In-Reply-To: <51F684F2.5050308@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Linus Walleij <linus.walleij@linaro.org>, Paul Walmsley <paul@pwsan.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Kevin Hilman <khilman@linaro.org>
 
-* George Cherian | 2013-07-19 18:04:35 [+0530]:
+Am 29.07.2013 17:06, schrieb Santosh Shilimkar:
+> On Monday 29 July 2013 10:52 AM, Alexander Holler wrote:
+>> Am 29.07.2013 14:57, schrieb Santosh Shilimkar:
+>>
+>>> With some helps from MMC and other guys, we validated the Linus's tip which includes
+>>> your patches. It actually doesn't break anything and as OMAP hsmmc maintainer
+>>> clarified, the cd-gpios isn't supported yet for DT. While supporting that it
+>>> can use appropriate binding whichever works.
+>>>
+>>> But with OMAP1 breakage reported by Paul, I think we are not left with choice
+>>> but to revert those commits. We *must* respect rc rules for the fixes.
+>>> *No regression*
+>>>
+>>> Thanks for your hardwork to cook up those patches but now Linus's W proposal
+>>> is going to be generic, hopefully the issue can be address better. Till
+>>> then we can't get the ethernet support.
+>>
+>> The problem never was just the omap_hsmmc driver. I rather would say all drivers which do use GPIOs as IRQs were affected.
+>>
+>> I've only used the omap_hsmmc driver as example, because that was the driver I've tried to actually use with sd-cards, which is rather impossible without having a working CD-signal. And all code was already there and seems to work (at least during my few tests), so I've just added an entry to the dts to be able to use a mmc-slot as one would expect a mmc-slot does work.
+>>
+>> If someone wants to test a new feature at the same front, I would suggest to try it out using gpio-keys. That driver should work on almost any architecture/platform/hardware which supports gpios and is small enough to be a good test candidate. Having had a short look at gpio-keys.c, I think the same problems as with omap_hsmmc would have been occured when someone had tried to use that driver with 3.11-rc2.
+>>
+> The 3 OMAP platforms which supports DT are AM33XX, OMAP4 and OMAP5.
+> OMAP3 based boards are getting converted but they are bit far from being
+> DT only. So my statement was again from what we support on mainline today
+> and those platform don't use gpio-keys. But for testing perspective,
+> I guess its good idea.
+>
 
->Adds phy driver support for am33xx platform, the host/device
->peripheral controller shall get this phy object to control the phy
->operations.
+I wonder how you do know that no board with OMAP chips does use gpio-keys?
 
-If you rebase this on-top of the two instances patches I've sent earlier
-then you can bury patch 3 and 4, right?
+Does TI restrict their users/customers to only certified drivers? ;)
 
-I don't like very much the way you obtain the phy id:
->+		of_property_read_u32(np, "id", &phy->id);
 
-with the .dts changes I made you should able to use
-    of_alias_get_id()
-instead.
+> As mentioned above, we are going ahead with revert and possible better
+> alternative to the root of the problem.
+>
+> Regards,
+> Santosh
+> P.S: Please sensibly wrap your email replies to 80 chars so that
+> people can read it without scrolling to the end of the line.
 
-Let me look what you have additionaly:
-- usbotg_fck
-  Is this really required? I have the phy as a child of the "main"
-  device which has a hwmod property which is associated with this clock.
-  So pm enable/ disable should also enable this clock if possible,
-  right? 
+Line-wrapping mail readers do exist since some decades and I believe 
+people should be able to read e-mails with whatever line width they 
+prefer (and NOT what I prefer). So I never will hard-limit mails to some 
+specific line width on my side (besides from patch). That's just a very 
+bad behaviour.
 
-- device wakeup via omap_control_am335x_phy_wkup()
-  Now. that is one thing that the simple phy driver is missing. If you
-  call a magic function for this to happen than I don't have to worry
-  about the missing memory space for this function.
+Regards,
 
-So from what I see now, it is most likely the easiest thing to just add
-that wakeup to the phy driver I posted. Do you agree?
-If so we need to figure out where the memory for the wakeup register is
-comming from. We need also to ensure that both phys can not write at the
-same time. A look would be nice.
+Alexander Holler
 
->Signed-off-by: George Cherian <george.cherian@ti.com>
-
-Sebastian
