@@ -1,45 +1,69 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH v2 2/4] phy: phy-amxxxx-usb: Add PHY driver for amxxxx
- platform
-Date: Tue, 30 Jul 2013 16:39:28 +0200
-Message-ID: <51F7D020.3000508@linutronix.de>
-References: <1374237277-17769-1-git-send-email-george.cherian@ti.com> <1374237277-17769-3-git-send-email-george.cherian@ti.com> <20130729151754.GB827@linutronix.de> <51F74CEC.8040407@ti.com> <51F77F15.7090306@linutronix.de> <51F7CCB7.4040305@ti.com> <20130730143339.GM28162@radagast>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [Patch V2 4/4] ARM: dts: AM33XX: update rtc node compatibility
+Date: Tue, 30 Jul 2013 15:55:01 +0100
+Message-ID: <20130730145501.GA29859@e106331-lin.cambridge.arm.com>
+References: <1372841225-18813-1-git-send-email-gururaja.hebbar@ti.com>
+ <1372841225-18813-5-git-send-email-gururaja.hebbar@ti.com>
+ <51F749B0.7020802@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130730143339.GM28162@radagast>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: George Cherian <george.cherian@ti.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <51F749B0.7020802@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Gururaja Hebbar <gururaja.hebbar@ti.com>
+Cc: "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "khilman@linaro.org" <khilman@linaro.org>, "tony@atomide.com" <tony@atomide.com>, "benoit.cousson@gmail.com" <benoit.cousson@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "vaibhav.bedia@ti.com" <vaibhav.bedia@ti.com>, "sudhakar.raj@ti.com" <sudhakar.raj@ti.com>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA256
+On Tue, Jul 30, 2013 at 06:05:52AM +0100, Gururaja Hebbar wrote:
+> Hi,
+> 
+> On 7/3/2013 2:17 PM, Hebbar Gururaja wrote:
+> > Since AM33xx  RTC IP has RTC_IRQWAKEEN to support Alarm Wake-up.
+> >
+> > Update the rtc compatible property to "ti,am3352-rtc" to enable handling
+> > of this feature inside rtc-omap driver.
+> 
+> The other 2 rtc driver related patches have been pulled up. If you have 
+> no comments, can you please pull this up.
+> 
+> Regards
+> Gururaja
+> 
+> >
+> > Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
+> > ---
+> > :100644 100644 77aa1b0... dde180a... M	arch/arm/boot/dts/am33xx.dtsi
+> >   arch/arm/boot/dts/am33xx.dtsi |    2 +-
+> >   1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> > index 77aa1b0..dde180a 100644
+> > --- a/arch/arm/boot/dts/am33xx.dtsi
+> > +++ b/arch/arm/boot/dts/am33xx.dtsi
+> > @@ -297,7 +297,7 @@
+> >   		};
+> >
+> >   		rtc@44e3e000 {
+> > -			compatible = "ti,da830-rtc";
+> > +			compatible = "ti,am3352-rtc";
 
-On 07/30/2013 04:33 PM, Felipe Balbi wrote:
-> let's try not to add any new TI-specific DT bindings, can you
-> figure that out by reading some revision register ? Or perhaps by
-> using different compatible strings ?
+Given that this is backwards compatible with the old binding, it would
+be nicer to have this as:
 
-I would suggest to use a different binding. But I'm currently trying to
-come up with something for am335x with a device reference?
+	compatible = "ti,am3352-rtc", "ti,da830-rtc";
 
-Sebastian
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
+We must get into the habit of changing dts files in a
+backwards-compatible fashion.
 
-iQIcBAEBCAAGBQJR99AZAAoJEHuW6BYqjPXRf5AP/jcMFUstlqqujRppC2gMsqh6
-+xlpwh5hCHJPxQizwkG8kWW9XGMIMPmqODqoYwA9dFI3a5VgVVTRUkhnHEXlAt9A
-8X0Sl+mdKx0XwvjxjRDPUEYqvpDFAPYxgnwvxEfjtnDgQs5ikxFj4zaMonAj5oK0
-s7XnOImJmdoHbFfvR5Cx10zmfa0BjQETqk5bt/j8+8jnv86cZk8fEGE8XYoUnhFw
-BsEZgfSZH/pV6s339gTs+x4+zW0luJIhJdtQmh5Ylo+xt/3TYAmDuZ0v88A6gFV+
-MZjJLh2L9Sr6g0Pl/Rk5aMZhe5GSSrZYuu4Vltpz2xF1SjRRqg6ykmw6sqnme2uj
-BWwq5qNG5EFPtyhZCupTZ/z388kKOhC54kbFwJW7Duv9TkDUOctVuUbehEN4Pu/u
-HljW3FoYvvB/7EOXJhBcG6qy+ClS7mKkJJHeavnzbtzeg2jO1ZSKV1S/bJfpY4F6
-ualEKdC+A+UXYNHSnSkbdJPAfIQw9BOhdD3nszdzrB+0xUU1ul2V3Zdf0xKsUVPj
-8qkK9IuHum/pUfUEK/3C/igOhtag24LOhiGu1MG8Axe4FdmiTixhnV4DZzGyAMcm
-8Br/gtKVCuoU89y0mYhsAA5o+3e6YKE7lPQVULtrZO7/+wbOTrEaukvwCMB/NngL
-+qNzg8WzrRHCAQnSKni9
-=712g
------END PGP SIGNATURE-----
+Thanks,
+Mark.
