@@ -1,47 +1,75 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH] ARM: allow DEBUG_UNCOMPRESS for omap2plus
-Date: Tue, 30 Jul 2013 17:01:27 -0600
-Message-ID: <51F845C7.8020106@wwwdotorg.org>
-References: <1375224558-8170-1-git-send-email-swarren@wwwdotorg.org> <20130730225233.GF21614@n2100.arm.linux.org.uk>
+From: Luciano Coelho <coelho@ti.com>
+Subject: Re: [PATCH v4 6/8] wlcore: sdio: add wilink clock providers
+Date: Wed, 31 Jul 2013 02:04:26 +0300
+Message-ID: <1375225466.30009.7.camel@cumari.coelho.fi>
+References: <1375189476-21557-1-git-send-email-coelho@ti.com>
+ <1375189476-21557-7-git-send-email-coelho@ti.com>
+ <20130730223535.5270.39864@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:57452 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752631Ab3G3XBb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jul 2013 19:01:31 -0400
-In-Reply-To: <20130730225233.GF21614@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130730223535.5270.39864@quantum>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: mark.rutland@arm.com, nm@ti.com, linux-doc@vger.kernel.org, tony@atomide.com, linux-wireless@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, martinez.javier@gmail.com, rob.herring@calxeda.com, grant.likely@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, Shawn Guo <shawn.guo@linaro.org>
 
-On 07/30/2013 04:52 PM, Russell King - ARM Linux wrote:
-> On Tue, Jul 30, 2013 at 04:49:18PM -0600, Stephen Warren wrote:
->> From: Stephen Warren <swarren@nvidia.com>
->>
->> DEBUG_UNCOMPRESS was previously disallowed for omap2plus due to
->> omap2plus.S's use of .data, which is not allowed in the decompressor.
->> Solve this by placing that data into .text when building the file into
->> the decompressor. This relies on .text actually being writable in the
->> decompressor, which it is in practice.
+On Tue, 2013-07-30 at 15:35 -0700, Mike Turquette wrote:
+> Quoting Luciano Coelho (2013-07-30 06:04:34)
+> > +static const struct of_device_id wlcore_sdio_of_clk_match_table[] = {
+> > +       { .compatible = "ti,wilink-clock" },
+> > +};
+> > +
+> >  static struct wl12xx_platform_data *wlcore_get_pdata_from_of(struct device *dev)
+> >  {
+> >         struct wl12xx_platform_data *pdata;
+> >         struct device_node *np = dev->of_node;
+> > +       struct device_node *clock_node;
+> >  
+> >         if (!np) {
+> >                 np = of_find_matching_node(NULL, dev->driver->of_match_table);
+> > @@ -241,6 +247,9 @@ static struct wl12xx_platform_data *wlcore_get_pdata_from_of(struct device *dev)
+> >                 goto out_free;
+> >         }
+> >  
+> > +       for_each_matching_node(clock_node, wlcore_sdio_of_clk_match_table)
+> > +               of_fixed_clk_setup(clock_node);
 > 
-> Unless you decide to use ZBOOT and flash the zImage.
+> Hi Luciano,
 
-I knew there had to be a catch:-)
+Hi Mike,
 
-I have no idea if ZBOOT is a use-case that's relevant to OMAP?
 
-On Tegra at least (the same issue applies to the other patch I just
-sent), that use-case is almost impossible; even if the boot ROM directly
-booted a kernel, the boot ROM is hard-coded to copy whatever it's
-booting to SDRAM first, although I suppose if that was a boot-loader it
-could just jump back to a ROM location. That said, NOR flash is
-extremely rare on Tegra. So, I don't know if we care about this issue.
+> Any reason for establishing your own compatible string if you just plan
+> to use the fixed rate clock? You could just use "fixed-clock" compatible
+> in your DTS.
 
-Is it reasonable to just say "If you use ZBOOT, don't enable
-DEBUG_UNCOMPRESS"? Perhaps these patches should not completely remove
-the !DEBUG_TEGRA_UART from config DEBUG_UNCOMPRESS, but instead say:
+The reason is that I can't call of_clk_init(), because this function is
+not exported and my module can't use it.  I would have to link with the
+clk code to be able to call it.
 
-default y if DEBUG_LL && (!DEBUG_TEGRA_UART || !ZBOOT)?
+Also, I reckoned that, since these clock cannot be used by anyone else
+than the WiLink module itself, it would make sense to have a different
+compatible string.
+
+
+> I will be posting patches this week which makes the fixed-rate clock a
+> proper driver and matches that compatible string to instantiate those
+> clocks. That means that your driver could probably remove the clock
+> setup code completely.
+
+Okay, if this is done, then I could probably use "fixed-clock" directly,
+since the driver itself will take care of going through the DT and
+initializing all the fixed-clocks.
+
+--
+Luca.
