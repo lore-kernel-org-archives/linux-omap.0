@@ -1,54 +1,27 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH v2 2/4] phy: phy-amxxxx-usb: Add PHY driver for amxxxx
- platform
-Date: Tue, 30 Jul 2013 10:53:41 +0200
-Message-ID: <51F77F15.7090306@linutronix.de>
-References: <1374237277-17769-1-git-send-email-george.cherian@ti.com> <1374237277-17769-3-git-send-email-george.cherian@ti.com> <20130729151754.GB827@linutronix.de> <51F74CEC.8040407@ti.com>
+Subject: Re: [PATCH 1/4] usb: phy: rename nop_usb_xceiv => usb_phy_gen_xceiv
+Date: Tue, 30 Jul 2013 11:57:19 +0200
+Message-ID: <51F78DFF.2030307@linutronix.de>
+References: <1374869757-923-1-git-send-email-bigeasy@linutronix.de> <1374869757-923-2-git-send-email-bigeasy@linutronix.de> <20130729122022.GF24801@radagast> <20130730070814.GF7656@atomide.com> <51F76C90.90207@linutronix.de> <20130730075650.GI7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51F74CEC.8040407@ti.com>
+In-Reply-To: <20130730075650.GI7656@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, george.cherian@ti.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/30/2013 07:19 AM, George Cherian wrote:
->> So from what I see now, it is most likely the easiest thing to just =
-add
->> that wakeup to the phy driver I posted. Do you agree?
->=20
-> The whole idea of writing a seperate phy driver was to use the generi=
-c
-> phy framework
-> and most of the amxxxx devices have the same phy (eg am335x, am437x).
-> Now since the register is shared in am335x for phy_wkup (Not in the c=
-ase
-> of am437x)
-> how are you planning to  map it. I feel if omap_control_usb can deleg=
-ate
-> the writes
-> to phy_wkup, phy_on and phy_off, it makes the life simpler.
+On 07/30/2013 09:56 AM, Tony Lindgren wrote:
+> A separate minimal branch against -rc3 sounds good to me.
 
-that omap-control driver looks a little strange. It has a compatible
-field saying ti,omap-control-usb and then it requires additionally a
-ti,type property which should have been avoided.
+Great. Felipe, can you please put this change in a separate -rc3 based
+branch which you and Tony will pull in?
 
-But back to the initial problem. I don't really like the idea of
-touching in the control-module registers but others do it as well.
-So the idea of a control driver doesn't sound that bad.
-- an am335x-reset device
-- a phy driver with a reference to that reset device.
-- non-standard phy calls for power & wak eup on/off.
-
-Let me think about it.
-
->=20
-> Thoughts???
-
-I think I buy it but give me a bit=E2=80=A6
-
->=20
+> Regards,
+> 
+> Tony
+> 
 
 Sebastian
