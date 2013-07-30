@@ -1,68 +1,129 @@
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
-Date: Mon, 29 Jul 2013 22:30:23 -0600
-Message-ID: <CACxGe6uNJNMdZ1HYGgCtLM2t2TWGCR6btjOHVmP=vDXXvvFfRg@mail.gmail.com>
-References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH v2] ARM: EDMA: Fix clearing of unused list for DT DMA
+ resources
+Date: Mon, 29 Jul 2013 22:47:04 -0500
+Message-ID: <51F73738.6080901@ti.com>
+References: <1374515989-7391-1-git-send-email-joelf@ti.com> <51F61359.1090309@ti.com>
+Reply-To: <joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jon Hunter <jgchunter@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Alexander Holler <holler@ahsoftware.de>, Linux-OMAP <linux-omap@vger.kernel.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <51F61359.1090309@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>, Benoit Cousson <benoit.cousson@linaro.org>, Balaji TK <balajitk@ti.com>, Arnd Bergmann <arnd@arndb.de>, Jason Kridner <jkridner@beagleboard.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Pantel Antoniou <panto@antoniou-consulting.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jul 29, 2013 at 6:36 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
-> To solve this dilemma, perform an interrupt consistency check
-> when adding a GPIO chip: if the chip is both gpio-controller and
-> interrupt-controller, walk all children of the device tree,
-> check if these in turn reference the interrupt-controller, and
-> if they do, loop over the interrupts used by that child and
-> perform gpio_reques() and gpio_direction_input() on these,
-> making them unreachable from the GPIO side.
-
-Ugh, that's pretty awful, and it doesn't actually solve the root
-problem of the GPIO and IRQ subsystems not cooperating. It's also a
-very DT-centric solution even though we're going to see the exact same
-issue on ACPI machines.
-
-We have to solve the problem in a better way than that. Rearranging
-your patch description, here are some of the points you brought up so
-I can comment on them...
-
-> This has the following undesired effects:
+On 07/29/2013 02:01 AM, Sekhar Nori wrote:> On Monday 22 July 2013 11:2=
+9
+PM, Joel Fernandes wrote:
+>> HWMOD removal for MMC is breaking edma_start as the events are being
+manually
+>> triggered due to unused channel list not being clear, Thanks to
+Balaji TK for
+>> finding this issue.
 >
-> - The GPIOlib subsystem is not aware that the line is in use
->   and willingly lets some other consumer perform gpio_request()
->   on it, leading to a complex resource conflict if it occurs.
+> So, Reported-by: Balaji T K <balajitk@ti.com>
+>
+> ?
 
-If a gpio line is being both requested as a gpio and used as an
-interrupt line, then either a) it's a bug, or b) the gpio line needs
-to be used as input only so it is compatible with irq usage. b) should
-be supportable.
+Sure, I'll add that as well.
 
-> - The GPIO debugfs file claims this GPIO line is "free".
+>
+>>
+>> This patch fixes the issue, by reading the "dmas" property from the
+DT node if
+>> it exists and clearing the bits in the unused channel list.
+>>
+>> Cc: Balaji T K <balajitk@ti.com>
+>> Cc: Pantel Antoniou <panto@antoniou-consulting.com>
+>> Signed-off-by: Joel Fernandes <joelf@ti.com>
+>> ---
+>> v2 changes: Fixed compiler warning
+>>
+>>  arch/arm/common/edma.c |   31 +++++++++++++++++++++++--------
+>>  1 file changed, 23 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+>> index a432e6c..765d578 100644
+>> --- a/arch/arm/common/edma.c
+>> +++ b/arch/arm/common/edma.c
+>> @@ -561,14 +561,29 @@ static int reserve_contiguous_slots(int ctlr,
+unsigned int id,
+>>  static int prepare_unused_channel_list(struct device *dev, void *da=
+ta)
+>>  {
+>>  	struct platform_device *pdev =3D to_platform_device(dev);
+>> -	int i, ctlr;
+>> -
+>> -	for (i =3D 0; i < pdev->num_resources; i++) {
+>> -		if ((pdev->resource[i].flags & IORESOURCE_DMA) &&
+>> -				(int)pdev->resource[i].start >=3D 0) {
+>> -			ctlr =3D EDMA_CTLR(pdev->resource[i].start);
+>> -			clear_bit(EDMA_CHAN_SLOT(pdev->resource[i].start),
+>> -					edma_cc[ctlr]->edma_unused);
+>> +	int i =3D 0, ctlr;
+>> +	u32 dma_chan;
+>> +	const __be32 *dma_chan_p;
+>> +	struct property *prop;
+>> +
+>> +	if (dev->of_node) {
+>> +		of_property_for_each_u32(dev->of_node, "dmas", prop, \
+>> +					 dma_chan_p, dma_chan) {
+>> +			if (i++ & 1) {
+>> +				ctlr =3D EDMA_CTLR(dma_chan);
+>> +				clear_bit(EDMA_CHAN_SLOT(dma_chan),
+>> +						edma_cc[ctlr]->edma_unused);
+>> +			}
+>
+> I think it will be cleaner if you use of_property_count_strings() on
+> dma-names to get the count of DMA channels for this device and then u=
+se
+> of_parse_phandle_with_args() to get access to the args. Honestly, I h=
+ave
+> not used these APIs myself, so if this doesn=92t work the way I think=
+ it
+> should then let me know and I will try to do some experiments myself.
+>
+> The current way of skipping over even fields really depends on
+> #dma-cells for EDMA to be 1. That in itself is not such a bad
+> assumption, but if you have APIs which already take care of this for
+> you, why not use them?
 
-Surely we can fix this. I still don't see a problem of having the
-controller request the gpio when it is claimed as an irq if we can get
-around the problem of another user performing a /valid/ request on the
-same GPIO line. The solution may be to have a special form of request
-or flag that allows it to be shared.
+Sure, looks like of_dma_request_slave_channel does same thing in
+drive/dma/of-dma.c. Let me follow up with a patch that does it this way=
+=2E
+I agree its cleaner.
 
-> - The line direction of the interrupt GPIO line is not
->   explicitly set as input, even though it is obvious that such
->   a line need to be set up in this way, often making the system
->   depend on boot-on defaults for this kind of settings.
+>> +		}
+>> +	} else {
+>> +		for (; i < pdev->num_resources; i++) {
+>> +			if ((pdev->resource[i].flags & IORESOURCE_DMA) &&
+>> +			    (int)pdev->resource[i].start >=3D 0) {
+>> +				ctlr =3D EDMA_CTLR(pdev->resource[i].start);
+>> +				clear_bit(EDMA_CHAN_SLOT(
+>> +					  pdev->resource[i].start),
+>> +					  edma_cc[ctlr]->edma_unused);
+>> +			}
+>
+> So there is very little in common between OF and non-OF versions of t=
+his
+> function. Why not have two different versions of this function for th=
+e
+> two cases? The OF version can reside under the CONFIG_OF conditional
+> already in use in the file. This will also save you the ugly line bre=
+aks
+> you had to resort to due to too deep indentation.
 
-Should also be solvable if the gpio request problem is solved.
+Actually those line breaks are not necessary and wouldn't result in
+compilation errors. I was planning to drop them. I'll go ahead and spli=
+t
+it out anyway, now that also the OF version of the function is going to
+be bit longer if we use the of_parse functions.
 
-g.
+Thanks for your review,
+
+Regards,
+
+-Joel
