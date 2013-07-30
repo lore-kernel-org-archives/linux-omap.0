@@ -1,43 +1,60 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 2/8] ARM: DRA7: hwmod: Reuse the soc_ops used for OMAP4/5
-Date: Tue, 30 Jul 2013 16:55:40 +0530
-Message-ID: <1375183546-12758-3-git-send-email-rnayak@ti.com>
+Subject: [PATCH v2 5/8] ARM: DRA7: Resue the clocksource, clockevent support
+Date: Tue, 30 Jul 2013 16:55:43 +0530
+Message-ID: <1375183546-12758-6-git-send-email-rnayak@ti.com>
 References: <1375183546-12758-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42530 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:42535 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751193Ab3G3L0e (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Jul 2013 07:26:34 -0400
+	id S1751193Ab3G3L0g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Jul 2013 07:26:36 -0400
 In-Reply-To: <1375183546-12758-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: tony@atomide.com, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.com, r.sricharan@ti.com, ambresh@ti.com, sourav.poddar@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-The soc_ops for dra7xx devices can be completed reused
-from the ones used for omap4 and omap5 devices.
+From: R Sricharan <r.sricharan@ti.com>
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+All of OMAP5 timer support for clocksource and clockevent is completely
+reused across DRA7.
+
 Signed-off-by: R Sricharan <r.sricharan@ti.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap2/Kconfig |    2 +-
+ arch/arm/mach-omap2/timer.c |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 7341eff..f6eb29b 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -4113,7 +4113,7 @@ void __init omap_hwmod_init(void)
- 		soc_ops.assert_hardreset = _omap2_assert_hardreset;
- 		soc_ops.deassert_hardreset = _omap2_deassert_hardreset;
- 		soc_ops.is_hardreset_asserted = _omap2_is_hardreset_asserted;
--	} else if (cpu_is_omap44xx() || soc_is_omap54xx()) {
-+	} else if (cpu_is_omap44xx() || soc_is_omap54xx() || soc_is_dra7xx()) {
- 		soc_ops.enable_module = _omap4_enable_module;
- 		soc_ops.disable_module = _omap4_disable_module;
- 		soc_ops.wait_target_ready = _omap4_wait_target_ready;
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 3eed000..fc6ec23 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -132,7 +132,7 @@ config SOC_HAS_OMAP2_SDRC
+ 
+ config SOC_HAS_REALTIME_COUNTER
+ 	bool "Real time free running counter"
+-	depends on SOC_OMAP5
++	depends on SOC_OMAP5 || SOC_DRA7XX
+ 	default y
+ 
+ comment "OMAP Core Type"
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index b37e1fc..1e77f11 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -594,7 +594,8 @@ OMAP_SYS_GP_TIMER_INIT(3, 2, "timer_sys_ck", NULL,
+ 		       1, "timer_sys_ck", "ti,timer-alwon");
+ #endif
+ 
+-#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
++#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
++	defined(CONFIG_SOC_DRA7XX)
+ static OMAP_SYS_32K_TIMER_INIT(4, 1, "timer_32k_ck", "ti,timer-alwon",
+ 			       2, "sys_clkin_ck", NULL);
+ #endif
 -- 
 1.7.9.5
 
