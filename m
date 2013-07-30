@@ -1,80 +1,235 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 8/8] ARM: DRA7: dts: Add the dts files for dra7 SoC
- and dra7-evm board
-Date: Tue, 30 Jul 2013 18:31:26 +0530
-Message-ID: <51F7B926.20602@ti.com>
-References: <1375183546-12758-1-git-send-email-rnayak@ti.com> <1375183546-12758-9-git-send-email-rnayak@ti.com> <51F7B1E0.4060800@ti.com> <51F7B477.9010701@ti.com> <51F7B59D.5080607@ti.com> <51F7B80F.8090202@ti.com> <51F7B8CA.9050707@ti.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: [PATCH v4 1/8] wl1251: split wl251 platform data to a separate
+ structure
+Date: Tue, 30 Jul 2013 16:04:29 +0300
+Message-ID: <1375189476-21557-2-git-send-email-coelho@ti.com>
+References: <1375189476-21557-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46119 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752391Ab3G3NB4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Jul 2013 09:01:56 -0400
-In-Reply-To: <51F7B8CA.9050707@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1375189476-21557-1-git-send-email-coelho@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-wireless@vger.kernel.org, tony@atomide.com, nsekhar@ti.com
+Cc: mark.rutland@arm.com, nm@ti.com, coelho@ti.com, mturquette@linaro.org, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, balbi@ti.com, martinez.javier@gmail.com, rob.herring@calxeda.com, grant.likely@linaro.org, linux-omap@vger.kernel.org, luca@coelho.fi, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.com, r.sricharan@ti.com, ambresh@ti.com, sourav.poddar@ti.com
 
-On Tuesday 30 July 2013 06:29 PM, Nishanth Menon wrote:
-> On 07/30/2013 07:56 AM, Rajendra Nayak wrote:
->> On Tuesday 30 July 2013 06:16 PM, Nishanth Menon wrote:
->>> On 07/30/2013 07:41 AM, Rajendra Nayak wrote:
->>>> On Tuesday 30 July 2013 06:00 PM, Nishanth Menon wrote:
->>>>> On 07/30/2013 06:25 AM, Rajendra Nayak wrote:
->>>>>> From: R Sricharan <r.sricharan@ti.com>
->>> [...]
->>>>>> +        mcspi4: spi@480ba000 {
->>>>>> +            compatible = "ti,omap4-mcspi";
->>>>>> +            reg = <0x480ba000 0x200>;
->>>>>> +            interrupts = <0 48 0x4>;
->>>>>> +            #address-cells = <1>;
->>>>>> +            #size-cells = <0>;
->>>>>> +            ti,hwmods = "mcspi4";
->>>>>> +            ti,spi-num-cs = <1>;
->>>>>> +            dmas = <&sdma 70>, <&sdma 71>;
->>>>>> +            dma-names = "tx0", "rx0";
->>>>>> +        };
->>>>>> +    };
->>>>>> +};
->>>>>>
->>>>> ref: [1], we discussed that we should now be able to introduce all instances of h/w blocks into the dra7.dts. Further, considering [2]
->>>>
->>>> hmm, thats a long discussion on crossbar driver that [1] points to. Do you want to summarize what you mean by 'introduce all instances of h/w blocks'
->>>
->>> I recommend reading the last few emails on the thread about how we could do this with pinctrl. unfortunately, this patch is not informative enough to indicate that not all instances of the potential IP blocks are listed here.
->>>
->>>>
->>>>> would you not want to follow "status = disabled" for all modules by default and enable required modules in board file, so that we dont have to respin this yet again?
->>>>
->>>> Well, I was just following the convention of whats already followed on existing OMAPs. See [3] for some views on these.
->>>
->>> DRA7 case, I would not think it makes sense due to the number of product variants being done, not all will use the same set. Further, rationale for DRA7 and my suggestion for Grant's option (1) is mainly because the product variants will require more dtsis rather than board files using the product variants use just the necessary modules from a common dtsi. Makes support of variants like OMAP57xx etc trivial and constrainted to board file usage, rather than spinning off new dtsis.
->>
->> Makes sense with the different product variants for DRA7, AM335x already does it this way, but the rest of OMAP3/4/5 are doing it the other way.
->> I think its just too confusing to follow different conventions for different SoCs. We should stick to just one, either this way or that.
->>
-> 
-> I think bucketing DRA7(with multitude of SoC variants) with OMAP family(usually with <5 variants) will be a wrong approach. we should choose the approach appropriate for the SoC. hence, OMAPx having all default enabled makes sense (as the delta is usually trivial), but on DRA7, the variants are larger :(
-> 
-> just my 2 cents.
+Move the wl1251 part of the wl12xx platform data structure into a new
+structure specifically for wl1251.  Change the platform data built-in
+block and board files accordingly.
 
-I can respin with the changes, but before I do so, Benoit do you agree with the rationale for these and fine with the approach?
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Luciano Coelho <coelho@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-omap2/board-omap3pandora.c       |  4 +--
+ arch/arm/mach-omap2/board-rx51-peripherals.c   |  2 +-
+ drivers/net/wireless/ti/wilink_platform_data.c | 37 +++++++++++++++++++++-----
+ drivers/net/wireless/ti/wl1251/sdio.c          | 12 ++++-----
+ drivers/net/wireless/ti/wl1251/spi.c           |  2 +-
+ include/linux/wl12xx.h                         | 22 ++++++++++++++-
+ 6 files changed, 62 insertions(+), 17 deletions(-)
 
-> 
->>>
->>>>
->>>>>
->>>>>
->>>>> [1] http://marc.info/?t=137416599400001&r=1&w=2
->>>>> [2] http://marc.info/?l=linux-omap&m=137510358229479&w=2
->>>> [3] http://lists.infradead.org/pipermail/linux-arm-kernel/2012-February/086297.html
->>>>
->>>
->>>
->>
-> 
-> 
-
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index b1547a0..84d56e8 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -541,7 +541,7 @@ static struct spi_board_info omap3pandora_spi_board_info[] __initdata = {
+ 
+ static void __init pandora_wl1251_init(void)
+ {
+-	struct wl12xx_platform_data pandora_wl1251_pdata;
++	struct wl1251_platform_data pandora_wl1251_pdata;
+ 	int ret;
+ 
+ 	memset(&pandora_wl1251_pdata, 0, sizeof(pandora_wl1251_pdata));
+@@ -555,7 +555,7 @@ static void __init pandora_wl1251_init(void)
+ 		goto fail_irq;
+ 
+ 	pandora_wl1251_pdata.use_eeprom = true;
+-	ret = wl12xx_set_platform_data(&pandora_wl1251_pdata);
++	ret = wl1251_set_platform_data(&pandora_wl1251_pdata);
+ 	if (ret < 0)
+ 		goto fail_irq;
+ 
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 9c2dd10..01e5711 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -80,7 +80,7 @@ enum {
+ 	RX51_SPI_MIPID,		/* LCD panel */
+ };
+ 
+-static struct wl12xx_platform_data wl1251_pdata;
++static struct wl1251_platform_data wl1251_pdata;
+ static struct tsc2005_platform_data tsc2005_pdata;
+ 
+ #if defined(CONFIG_SENSORS_LIS3_I2C) || defined(CONFIG_SENSORS_LIS3_I2C_MODULE)
+diff --git a/drivers/net/wireless/ti/wilink_platform_data.c b/drivers/net/wireless/ti/wilink_platform_data.c
+index 998e958..a92bd3e 100644
+--- a/drivers/net/wireless/ti/wilink_platform_data.c
++++ b/drivers/net/wireless/ti/wilink_platform_data.c
+@@ -23,17 +23,17 @@
+ #include <linux/err.h>
+ #include <linux/wl12xx.h>
+ 
+-static struct wl12xx_platform_data *platform_data;
++static struct wl12xx_platform_data *wl12xx_platform_data;
+ 
+ int __init wl12xx_set_platform_data(const struct wl12xx_platform_data *data)
+ {
+-	if (platform_data)
++	if (wl12xx_platform_data)
+ 		return -EBUSY;
+ 	if (!data)
+ 		return -EINVAL;
+ 
+-	platform_data = kmemdup(data, sizeof(*data), GFP_KERNEL);
+-	if (!platform_data)
++	wl12xx_platform_data = kmemdup(data, sizeof(*data), GFP_KERNEL);
++	if (!wl12xx_platform_data)
+ 		return -ENOMEM;
+ 
+ 	return 0;
+@@ -41,9 +41,34 @@ int __init wl12xx_set_platform_data(const struct wl12xx_platform_data *data)
+ 
+ struct wl12xx_platform_data *wl12xx_get_platform_data(void)
+ {
+-	if (!platform_data)
++	if (!wl12xx_platform_data)
+ 		return ERR_PTR(-ENODEV);
+ 
+-	return platform_data;
++	return wl12xx_platform_data;
+ }
+ EXPORT_SYMBOL(wl12xx_get_platform_data);
++
++static struct wl1251_platform_data *wl1251_platform_data;
++
++int __init wl1251_set_platform_data(const struct wl1251_platform_data *data)
++{
++	if (wl1251_platform_data)
++		return -EBUSY;
++	if (!data)
++		return -EINVAL;
++
++	wl1251_platform_data = kmemdup(data, sizeof(*data), GFP_KERNEL);
++	if (!wl1251_platform_data)
++		return -ENOMEM;
++
++	return 0;
++}
++
++struct wl1251_platform_data *wl1251_get_platform_data(void)
++{
++	if (!wl1251_platform_data)
++		return ERR_PTR(-ENODEV);
++
++	return wl1251_platform_data;
++}
++EXPORT_SYMBOL(wl1251_get_platform_data);
+diff --git a/drivers/net/wireless/ti/wl1251/sdio.c b/drivers/net/wireless/ti/wl1251/sdio.c
+index e2b3d9c..b75a37a 100644
+--- a/drivers/net/wireless/ti/wl1251/sdio.c
++++ b/drivers/net/wireless/ti/wl1251/sdio.c
+@@ -227,7 +227,7 @@ static int wl1251_sdio_probe(struct sdio_func *func,
+ 	struct wl1251 *wl;
+ 	struct ieee80211_hw *hw;
+ 	struct wl1251_sdio *wl_sdio;
+-	const struct wl12xx_platform_data *wl12xx_board_data;
++	const struct wl1251_platform_data *wl1251_board_data;
+ 
+ 	hw = wl1251_alloc_hw();
+ 	if (IS_ERR(hw))
+@@ -254,11 +254,11 @@ static int wl1251_sdio_probe(struct sdio_func *func,
+ 	wl->if_priv = wl_sdio;
+ 	wl->if_ops = &wl1251_sdio_ops;
+ 
+-	wl12xx_board_data = wl12xx_get_platform_data();
+-	if (!IS_ERR(wl12xx_board_data)) {
+-		wl->set_power = wl12xx_board_data->set_power;
+-		wl->irq = wl12xx_board_data->irq;
+-		wl->use_eeprom = wl12xx_board_data->use_eeprom;
++	wl1251_board_data = wl1251_get_platform_data();
++	if (!IS_ERR(wl1251_board_data)) {
++		wl->set_power = wl1251_board_data->set_power;
++		wl->irq = wl1251_board_data->irq;
++		wl->use_eeprom = wl1251_board_data->use_eeprom;
+ 	}
+ 
+ 	if (wl->irq) {
+diff --git a/drivers/net/wireless/ti/wl1251/spi.c b/drivers/net/wireless/ti/wl1251/spi.c
+index c7dc6fe..6bbbfe6 100644
+--- a/drivers/net/wireless/ti/wl1251/spi.c
++++ b/drivers/net/wireless/ti/wl1251/spi.c
+@@ -238,7 +238,7 @@ static const struct wl1251_if_operations wl1251_spi_ops = {
+ 
+ static int wl1251_spi_probe(struct spi_device *spi)
+ {
+-	struct wl12xx_platform_data *pdata;
++	struct wl1251_platform_data *pdata;
+ 	struct ieee80211_hw *hw;
+ 	struct wl1251 *wl;
+ 	int ret;
+diff --git a/include/linux/wl12xx.h b/include/linux/wl12xx.h
+index a54fe82..b516b4f 100644
+--- a/include/linux/wl12xx.h
++++ b/include/linux/wl12xx.h
+@@ -48,11 +48,15 @@ enum {
+ 	WL12XX_TCXOCLOCK_33_6	= 7, /* 33.6 MHz */
+ };
+ 
+-struct wl12xx_platform_data {
++struct wl1251_platform_data {
+ 	void (*set_power)(bool enable);
+ 	/* SDIO only: IRQ number if WLAN_IRQ line is used, 0 for SDIO IRQs */
+ 	int irq;
+ 	bool use_eeprom;
++};
++
++struct wl12xx_platform_data {
++	int irq;
+ 	int board_ref_clock;
+ 	int board_tcxo_clock;
+ 	unsigned long platform_quirks;
+@@ -68,6 +72,10 @@ int wl12xx_set_platform_data(const struct wl12xx_platform_data *data);
+ 
+ struct wl12xx_platform_data *wl12xx_get_platform_data(void);
+ 
++int wl1251_set_platform_data(const struct wl1251_platform_data *data);
++
++struct wl1251_platform_data *wl1251_get_platform_data(void);
++
+ #else
+ 
+ static inline
+@@ -82,6 +90,18 @@ struct wl12xx_platform_data *wl12xx_get_platform_data(void)
+ 	return ERR_PTR(-ENODATA);
+ }
+ 
++static inline
++int wl1251_set_platform_data(const struct wl1251_platform_data *data)
++{
++	return -ENOSYS;
++}
++
++static inline
++struct wl1251_platform_data *wl1251_get_platform_data(void)
++{
++	return ERR_PTR(-ENODATA);
++}
++
+ #endif
+ 
+ #endif
+-- 
+1.8.3.2
