@@ -1,53 +1,49 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v2] ARM: EDMA: Fix clearing of unused list for DT DMA
- resources
-Date: Tue, 30 Jul 2013 21:59:04 +0530
-Message-ID: <51F7E9D0.1080107@ti.com>
-References: <1374515989-7391-1-git-send-email-joelf@ti.com> <51F61359.1090309@ti.com> <51F73738.6080901@ti.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: [PATCH 0/4] ARM: dts: add WiLink support to panda and omap4-sdp
+Date: Tue, 30 Jul 2013 20:27:24 +0300
+Message-ID: <1375205248-25708-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <51F73738.6080901@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: joelf@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>, Benoit Cousson <benoit.cousson@linaro.org>, Balaji TK <balajitk@ti.com>, Arnd Bergmann <arnd@arndb.de>, Jason Kridner <jkridner@beagleboard.org>, Mark Jackson <mpfj-list@newflow.co.uk>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Pantel Antoniou <panto@antoniou-consulting.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org, coelho@ti.com, linux-wireless@vger.kernel.org, balbi@ti.com, luca@coelho.fi, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 7/30/2013 9:17 AM, Joel Fernandes wrote:
+Hi,
 
->>> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
->>> index a432e6c..765d578 100644
->>> --- a/arch/arm/common/edma.c
->>> +++ b/arch/arm/common/edma.c
+These patches add the necessary DT configuration to use the WLAN part
+of WiLink on OMAP4 Pandaboard and on OMAP4-SDP (including Blaze).
 
->>> +	} else {
->>> +		for (; i < pdev->num_resources; i++) {
->>> +			if ((pdev->resource[i].flags & IORESOURCE_DMA) &&
->>> +			    (int)pdev->resource[i].start >= 0) {
->>> +				ctlr = EDMA_CTLR(pdev->resource[i].start);
->>> +				clear_bit(EDMA_CHAN_SLOT(
->>> +					  pdev->resource[i].start),
->>> +					  edma_cc[ctlr]->edma_unused);
->>> +			}
->>
->> So there is very little in common between OF and non-OF versions of this
->> function. Why not have two different versions of this function for the
->> two cases? The OF version can reside under the CONFIG_OF conditional
->> already in use in the file. This will also save you the ugly line breaks
->> you had to resort to due to too deep indentation.
-> 
-> Actually those line breaks are not necessary and wouldn't result in
-> compilation errors. I was planning to drop them. I'll go ahead and split
-> it out anyway, now that also the OF version of the function is going to
-> be bit longer if we use the of_parse functions.
-> 
-> Thanks for your review,
+I've tested these changes on Panda and it works fine.  But I couldn't
+test the OMAP4 SDP changes properly on 3.11-rc3 because I'm having
+problems with clocks and SDIO stuff.  So it's pretty much just
+compiled tested.  I've tried this (without the new clock definition
+stuff) on Blaze with 3.10 and it was working, though.
 
-It turns out, I gave a bad idea. What I suggested will break the case of
-non-DT boot with CONFIG_OF enabled. So what you had was fine. May be
-just return from "if (dev->of_node)" so you don't need to have an else
-block and can save on the indentation.
+Please take a look and let me know what you think.
 
-Thanks,
-Sekhar
+Luca.
+
+
+Luciano Coelho (4):
+  ARM: dts: omap4-panda: add MMC5 (WiLink WLAN) configuration
+  arm: dts: omap4-panda-common: add WiLink6 device tree nodes
+  ARM: dts: omap4-sdp: add MMC5 (WiLink WLAN) configuration
+  arm: dts: omap4-sdp: add WiLink7 device tree node
+
+ arch/arm/boot/dts/omap4-panda-common.dtsi | 45 +++++++++++++++++++++++++++-
+ arch/arm/boot/dts/omap4-sdp.dts           | 49 +++++++++++++++++++++++++++++++
+ 2 files changed, 93 insertions(+), 1 deletion(-)
+
+-- 
+1.8.3.2
