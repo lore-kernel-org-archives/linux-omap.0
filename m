@@ -1,39 +1,48 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: OMAP baseline test results for v3.10-rc6
-Date: Tue, 30 Jul 2013 15:28:17 -0500
-Message-ID: <51F821E1.3040808@ti.com>
-References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com> <20130625160243.GE22312@arwen.pp.htv.fi> <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com> <51C9F0A8.1050607@ti.com> <alpine.DEB.2.02.1306261713260.6135@utopia.booyaka.com> <51CB4C20.3060306@ti.com> <alpine.DEB.2.02.1307290826180.30864@utopia.booyaka.com> <51F66024.1030804@ti.com> <alpine.DEB.2.02.1307302001500.4505@utopia.booyaka.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: [PATCH v2 0/4] ARM: dts: add WiLink support to panda and omap4-sdp
+Date: Wed, 31 Jul 2013 00:15:19 +0300
+Message-ID: <1375218923-29876-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41501 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:43724 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756523Ab3G3U2k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Jul 2013 16:28:40 -0400
-In-Reply-To: <alpine.DEB.2.02.1307302001500.4505@utopia.booyaka.com>
+	id S1757033Ab3G3VPy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Jul 2013 17:15:54 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tom Rini <trini@ti.com>, "Balbi, Felipe" <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: tony@atomide.com, linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-wireless@vger.kernel.org, coelho@ti.com, luca@coelho.fi, balbi@ti.com, laurent.pinchart@ideasonboard.com
 
-On 07/30/2013 03:23 PM, Paul Walmsley wrote:
+Hi,
 
-> Do you know if anyone ever got serial cold-booting working well for, say,
-> OMAP3 and OMAP4 chips?
-
-I had done configuration header based OMAP3 boot[1] once upon a time, 
-but serial boot straight to kernel, we need a second that gives control 
-there.. could be done, have'nt heard it done + I dont directly see a 
-customer usage model for it ("ROI for investment of time") - so doubt 
-any investment was done.
-
-CH was the closest I could get to avoiding bootloaders in it's entirety. 
-but the level of interest fell off when there was no viable usage model 
-for the same.
+In v2: use IRQ_TYPE_LEVEL_HIGH when defining the interrupts, as
+suggested by Laurent.
 
 
-[1] http://marc.info/?t=127232401100003&r=1&w=2
+These patches add the necessary DT configuration to use the WLAN part
+of WiLink on OMAP4 Pandaboard and on OMAP4-SDP (including Blaze).
+
+I've tested these changes on Panda and it works fine.  But I couldn't
+test the OMAP4 SDP changes properly on 3.11-rc3 because I'm having
+problems with clocks and SDIO stuff.  So it's pretty much just
+compiled tested.  I've tried this (without the new clock definition
+stuff) on Blaze with 3.10 and it was working, though.
+
+Please take a look and let me know what you think.
+
+Luca.
+
+Luciano Coelho (4):
+  ARM: dts: omap4-panda: add MMC5 (WiLink WLAN) configuration
+  arm: dts: omap4-panda-common: add WiLink6 device tree nodes
+  ARM: dts: omap4-sdp: add MMC5 (WiLink WLAN) configuration
+  arm: dts: omap4-sdp: add WiLink7 device tree node
+
+ arch/arm/boot/dts/omap4-panda-common.dtsi | 46 +++++++++++++++++++++++++++-
+ arch/arm/boot/dts/omap4-sdp.dts           | 50 +++++++++++++++++++++++++++++++
+ 2 files changed, 95 insertions(+), 1 deletion(-)
+
 -- 
-Regards,
-Nishanth Menon
+1.8.3.2
+
