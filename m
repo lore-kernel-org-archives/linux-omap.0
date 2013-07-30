@@ -1,149 +1,94 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv4 05/33] CLK: omap: add DT duplicate clock registration
- mechanism
-Date: Tue, 30 Jul 2013 13:40:40 -0500
-Message-ID: <51F808A8.6000503@ti.com>
-References: <1374564028-11352-1-git-send-email-t-kristo@ti.com> <1374564028-11352-6-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCH v2 1/8] ARM: DRA7: id: Add cpu detection support for DRA7xx
+ based SoCs'
+Date: Tue, 30 Jul 2013 13:43:05 -0500
+Message-ID: <51F80939.7060403@ti.com>
+References: <1375183546-12758-1-git-send-email-rnayak@ti.com> <1375183546-12758-2-git-send-email-rnayak@ti.com> <20130730131009.GA28162@radagast> <51F7CB2F.6070705@ti.com> <20130730142353.GL28162@radagast> <51F7CF6F.6050702@ti.com> <20130730153138.GA5978@radagast> <51F807EF.6020809@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59353 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755920Ab3G3SlI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jul 2013 14:41:08 -0400
-In-Reply-To: <1374564028-11352-6-git-send-email-t-kristo@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:34879 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753634Ab3G3Snc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Jul 2013 14:43:32 -0400
+In-Reply-To: <51F807EF.6020809@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, tony@atomide.com, mturquette@linaro.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: balbi@ti.com, Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.com, ambresh@ti.com, sourav.poddar@ti.com
 
-On 07/23/2013 02:20 AM, Tero Kristo wrote:
-> Some devices require their clocks to be available with a specific
-> dev-id con-id mapping. With DT, the clocks can be found by default
-> only with their name, or alternatively through the device node of
-> the consumer. With drivers, that don't support DT fully yet, add
-> mechanism to register specific clock names.
->
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+On 07/30/2013 01:37 PM, Sricharan R wrote:
+> Hi,
+> On Tuesday 30 July 2013 09:02 PM, Felipe Balbi wrote:
+>> Hi,
+>>
+>> On Tue, Jul 30, 2013 at 08:06:31PM +0530, Sricharan R wrote:
+>>> On Tuesday 30 July 2013 07:53 PM, Felipe Balbi wrote:
+>>>> Hi,
+>>>>
+>>>> On Tue, Jul 30, 2013 at 07:48:23PM +0530, Sricharan R wrote:
+>>>>> On Tuesday 30 July 2013 06:40 PM, Felipe Balbi wrote:
+>>>>>> Hi,
+>>>>>>
+>>>>>> On Tue, Jul 30, 2013 at 04:55:39PM +0530, Rajendra Nayak wrote:
+>>>>>>> @@ -379,6 +407,13 @@ IS_OMAP_TYPE(3430, 0x3430)
+>>>>>>>   # define soc_is_omap543x()		is_omap543x()
+>>>>>>>   #endif
+>>>>>>>
+>>>>>>> +# if defined(CONFIG_SOC_DRA7XX)
+>>>>>>> +# undef soc_is_dra7xx
+>>>>>>> +# undef soc_is_dra75x
+>>>>>>> +# define soc_is_dra7xx()		is_dra7xx()
+>>>>>>> +# define soc_is_dra75x()		is_dra75x()
+>>>>>> since this platform is DT-only, couldn't we just believe DT-data to be
+>>>>>> correct of_machine_is_compatible() ? 2/3 of this patch would be removed.
+>>>>>>
+>>>>>> I patched this for OMAP5 (compile-tested only, no boards available) and
+>>>>>> came out with the patch below (still needs to be split):
+>>>>>>
+>>>>>> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+>>>>>> index 08b7267..b3136e5 100644
+>>>>>> --- a/arch/arm/boot/dts/omap5-uevm.dts
+>>>>>> +++ b/arch/arm/boot/dts/omap5-uevm.dts
+>>>>>> @@ -13,7 +13,7 @@
+>>>>>>
+>>>>>>   / {
+>>>>>>   	model = "TI OMAP5 uEVM board";
+>>>>>> -	compatible = "ti,omap5-uevm", "ti,omap5";
+>>>>>> +	compatible = "ti,omap5-uevm", "ti,omap5432-es2.0", "ti,omap5";
+>>>>>>
+>>>>>   ok, nice and simpler way.
+>>>>>   But would this make different revisions, to appear the same ?
+>>>> well omap5-uevm is omap5432 es2.0 only, right ? If a new board comes up,
+>>>> it should be treated as such, then you can pass a different string to
+>>>> that new board's compatible attribute.
+>>>> s
+>>>   Yes for OMAP5. I was thinking in general about this approach.
+>>>   For example, for OMAP4 we have same board and
+>>>   different revisions can be socketed there.
+>>>
+>>>   For OMAP5, this is good.
+>> do we really production socketed boards? Well, at least Blaze has such
+>> thing. But do we have too many differences that need to be trated at
+>> arch/arm or should/could those be handled by reading IP's revision
+>> register (e.g. usb host erratas)
+>>
+>   OMAP4 SDP is socketed as well.
+a) OMAP4SDP is not production device
+b) OMAP4SDP uses SOM (System On Module)
+c) Socketted SOMs were used only during initial days of SoC
+d) almost all latest OMAP4 SDP switched to using soldered in SOM
+e) we claim compatibility of OMAP4 SDP with Blaze.
 
-with this, should it not be enough to add clocks=<&phandle>
+So, I dont think this is a rational argument for keeping soc checks with 
+dts.
 
-I am not sure I understand what specific drivers should need to carry 
-this "old hack" forward. More importantly, why is it preferable to carry 
-the hack forward rather than fixing the drivers.
+>   Ya, revision checks used only in few places and as you said
+>   we handle them using IP revisions, but that we have to look and clean
+>   up those places, if we really intend to do this for other socs.
 
-
-> ---
->   drivers/clk/omap/clk.c   |   39 +++++++++++++++++++++++++++++++++++++++
->   include/linux/clk/omap.h |   17 +++++++++++++++++
->   2 files changed, 56 insertions(+)
->
-> diff --git a/drivers/clk/omap/clk.c b/drivers/clk/omap/clk.c
-> index 1dafdaa..cd31a81 100644
-> --- a/drivers/clk/omap/clk.c
-> +++ b/drivers/clk/omap/clk.c
-> @@ -32,6 +32,45 @@ static const struct of_device_id clk_match[] = {
->   	{},
->   };
->
-> + /**
-> + * omap_dt_clocks_register - register DT duplicate clocks during boot
-> + * @oclks: list of clocks to register
-> + * @cnt: number of clocks
-> + *
-> + * Register duplicate or non-standard DT clock entries during boot. By
-> + * default, DT clocks are found based on their node name. If any
-> + * additional con-id / dev-id -> clock mapping is required, use this
-> + * function to list these.
-> + */
-> +void __init omap_dt_clocks_register(struct omap_dt_clk oclks[], int cnt)
-
-Cant we use a NULL terminated array? then we dont need to pass cnt.
-
-> +{
-> +	struct omap_dt_clk *c;
-> +	struct device_node *n;
-> +	struct clk *clk;
-> +	struct of_phandle_args clkspec;
-> +
-> +	for (c = oclks; c < oclks + cnt; c++) {
-> +		n = of_find_node_by_name(NULL, c->node_name);
-> +
-> +		if (!n) {
-> +			pr_err("%s: %s not found!\n", __func__, c->node_name);
-> +			continue;
-> +		}
-> +
-> +		clkspec.np = n;
-> +
-> +		clk = of_clk_get_from_provider(&clkspec);
-> +
-> +		if (!clk) {
-> +			pr_err("%s: %s has no clock!\n", __func__,
-> +				c->node_name);
-> +			continue;
-> +		}
-> +		c->lk.clk = clk;
-> +		clkdev_add(&c->lk);
-
-why not clk_add_alias ?
-
-> +	}
-> +}
-> +
->   /* FIXME - need to initialize early; skip real driver registration & probe */
->   int __init dt_omap_clk_init(void)
->   {
-> diff --git a/include/linux/clk/omap.h b/include/linux/clk/omap.h
-> index cba892a..c39e775 100644
-> --- a/include/linux/clk/omap.h
-> +++ b/include/linux/clk/omap.h
-> @@ -19,6 +19,8 @@
->   #ifndef __LINUX_CLK_OMAP_H_
->   #define __LINUX_CLK_OMAP_H_
->
-> +#include <linux/clkdev.h>
-> +
->   /**
->    * struct dpll_data - DPLL registers and integration data
->    * @mult_div1_reg: register containing the DPLL M and N bitfields
-> @@ -146,6 +148,20 @@ struct clk_hw_omap_ops {
->   	void			(*deny_idle)(struct clk_hw_omap *oclk);
->   };
->
-> +struct omap_dt_clk {
-> +	struct clk_lookup		lk;
-> +	const char			*node_name;
-> +};
-> +
-
-documentation missing.
-
-> +#define DT_CLK(dev, con, name)		\
-> +	{				\
-> +		.lk = {			\
-> +			.dev_id = dev,	\
-> +			.con_id = con,	\
-> +		},			\
-> +		.node_name = name,	\
-> +	}
-> +
->   void omap2_init_clk_hw_omap_clocks(struct clk *clk);
->   int omap3_noncore_dpll_enable(struct clk_hw *hw);
->   void omap3_noncore_dpll_disable(struct clk_hw *hw);
-> @@ -174,6 +190,7 @@ extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
->
->   /* DT functions */
->   int dt_omap_clk_init(void);
-> +extern void omap_dt_clocks_register(struct omap_dt_clk *oclks, int cnt);
-
-do you need the extern?
-
->   void of_omap4_dpll_setup(struct device_node *node);
->
->   #endif
->
+I agree this is the right approach :).
 
 
 -- 
