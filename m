@@ -1,54 +1,61 @@
-From: Benoit Cousson <benoit.cousson@gmail.com>
-Subject: Re: [PATCH V2 0/3] ARM: dts: omap5-uevm: fixup wrong regulator configuration
-Date: Tue, 30 Jul 2013 00:18:11 +0200
-Message-ID: <51F6EA23.50803@gmail.com>
-References: <51F67D7D.9070003@ti.com> <1375117383-19285-1-git-send-email-nm@ti.com>
+From: Chen Baozi <baozich@gmail.com>
+Subject: Linux kernel for OMAP5432 uEVM
+Date: Tue, 30 Jul 2013 11:38:08 +0800
+Message-ID: <20130730033808.GA23486@cbz-workstation>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1375117383-19285-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, l-o <linux-omap@vger.kernel.org>, dt list <devicetree@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>, J Keerthy <j-keerthy@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:55159 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754623Ab3G3Dnv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jul 2013 23:43:51 -0400
+Received: by mail-pb0-f52.google.com with SMTP id xa12so5423784pbc.11
+        for <linux-omap@vger.kernel.org>; Mon, 29 Jul 2013 20:43:50 -0700 (PDT)
+Received: from localhost ([119.39.124.170])
+        by mx.google.com with ESMTPSA id ry2sm80164839pbc.41.2013.07.29.20.43.48
+        for <linux-omap@vger.kernel.org>
+        (version=TLSv1.2 cipher=RC4-SHA bits=128/128);
+        Mon, 29 Jul 2013 20:43:49 -0700 (PDT)
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi Nishanth,
+Hi all,
 
-Thanks for the quick update.
+I'm trying to boot my OMAP5432 uEVM devboard with the lastest kernel of
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git.
+However, after u-boot loading uImage & DTB, there is no output message any
+more, such as:
 
-On 29/07/2013 19:03, Nishanth Menon wrote:
-> Due to wrong older revision of documentation used as reference, we
-> seem to have a bunch of LDOs wrongly configured on OMAP5 uEVM. This
-> series is based power tree on production board 750-2628-XXX platform.
-> Unfortunately, the wrong voltages may be detrimental to OMAP5 as they
-> supply hardware blocks at voltages that are out of specification.
->
-> Also available at:
-> based on v3.11-rc1 tag
-> http link: https://github.com/nmenon/linux-2.6-playground/commits/push/omap5-palmas-fixes-v2
-> git link: git://github.com/nmenon/linux-2.6-playground.git
-> branch: push/omap5-palmas-fixes-v2
->
-> Changes since V1:
->  - squash of patches
->  - picked up Ack from Keerthy
->  - based on v3.11-rc3 tag
->
-> V1: http://marc.info/?t=137407980100008&r=1&w=2
->
-> Nishanth Menon (3):
->   ARM: dts: omap5-uevm: document regulator signals used on the actual
->     board
->   ARM: dts: omap5-uevm: fix regulator configurations mandatory for SoC
->   ARM: dts: omap5-uevm: update optional/unused regulator configurations
->
->  arch/arm/boot/dts/omap5-uevm.dts |   78 ++++++++++++++++++++++++--------------
->  1 file changed, 49 insertions(+), 29 deletions(-)
->
-> Regards,
-> Nishanth Menon
+## Executing script at 82000000
+reading omap5-evm-omap.dtb
+15280 bytes read in 6 ms (2.4 MiB/s)
+reading uImage-omap
+3996552 bytes read in 250 ms (15.2 MiB/s)
+## Booting kernel from Legacy Image at 80300000 ...
+   Image Name:   Linux-3.10.0-rc6-12306-g0dbc346
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    3996488 Bytes = 3.8 MiB
+   Load Address: 80008000
+   Entry Point:  80008000
+   Verifying Checksum ... OK
+## Flattened Device Tree blob at 825f0000
+   Booting using the fdt blob at 0x825f0000
+   Loading Kernel Image ... OK
+OK
+   reserving fdt memory region: addr=9d000000 size=3000000
+   Loading Device Tree to 83ff9000, end 83fffbaf ... OK
 
-For the whole series:
+Starting kernel ...
 
-Acked-by: Benoit Cousson <benoit.cousson@gmail.com>
+Before trying this tree, I'm using the 3.8.4 kernel from TI. And it does
+support the board and can successfully boot.
+
+Anything that I may have missed when configuring the kernel? I use
+omap2plus_defconfig and add DEBUG_LL, DEBUG_OMAP2PLUS_UART,
+DEBUG_OMAP4UART3... 
+
+Cheers,
+
+Chen Baozi 
