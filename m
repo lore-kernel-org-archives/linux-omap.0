@@ -1,102 +1,100 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: [PATCH v3] Documentation: dt: bindings: TI WiLink modules
-Date: Tue, 30 Jul 2013 23:21:08 +0300
-Message-ID: <1375215668-29171-1-git-send-email-coelho@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.10-rc6
+Date: Tue, 30 Jul 2013 20:23:40 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1307302001500.4505@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1306170521020.9909@utopia.booyaka.com> <20130625160243.GE22312@arwen.pp.htv.fi> <alpine.DEB.2.02.1306251746060.14373@utopia.booyaka.com> <51C9F0A8.1050607@ti.com> <alpine.DEB.2.02.1306261713260.6135@utopia.booyaka.com>
+ <51CB4C20.3060306@ti.com> <alpine.DEB.2.02.1307290826180.30864@utopia.booyaka.com> <51F66024.1030804@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org
-Cc: mturquette@linaro.org, mark.rutland@arm.com, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-wireless@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, nm@ti.com, laurent.pinchart@ideasonboard.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:42583 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754010Ab3G3UXl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jul 2013 16:23:41 -0400
+In-Reply-To: <51F66024.1030804@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tom Rini <trini@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-Add device tree bindings documentation for the TI WiLink modules.
-Currently only the WLAN part of the WiLink6, WiLink7 and WiLink8
-modules is supported.
+Hi Tom,
 
-Signed-off-by: Luciano Coelho <coelho@ti.com>
----
+On Mon, 29 Jul 2013, Tom Rini wrote:
 
-In v3, use IRQ_TYPE_LEVEL_HIGH in the example, as suggested by Laurent.
+> On 07/29/2013 04:29 AM, Paul Walmsley wrote:
+> > On Wed, 26 Jun 2013, Tom Rini wrote:
+> >>
+> >> Well, me?  I'm all in favor of people using latest release of U-Boot for
+> >> their board and yelling and screaming (or just reporting bugs) when
+> >> things don't work.  I'm biased of course.
+> > 
+> > That's exactly how bootloader developers should be testing their changes.  
+> > But most of the rest of us kernel folks don't want to deal with constantly 
+> > replacing bootloaders, and then dealing with the inevitable bootloader 
+> > regressions, when what we're really trying to test is the kernel...
+> > The kernel should be completely independent of the bootloader used.  
+> 
+> And thus the chicken and egg problems we have today.  The kernel should
+> be independent, but unless someone is also testing more recent U-Boots
+> as well, we may or may not have more hidden clock problems.
 
- .../devicetree/bindings/net/wireless/ti-wilink.txt | 68 ++++++++++++++++++++++
- 1 file changed, 68 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
+It doesn't have to be this way :-)
 
-diff --git a/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt b/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
-new file mode 100644
-index 0000000..aafebb1
---- /dev/null
-+++ b/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
-@@ -0,0 +1,68 @@
-+TI WiLink Wireless Modules Device Tree Bindings
-+===============================================
-+
-+The WiLink modules provide wireless connectivity, such as WLAN,
-+Bluetooth, FM and NFC.
-+
-+There are several different modules available, which can be grouped by
-+their generation: WiLink6, WiLink7 and WiLink8.  WiLink4 is not
-+currently supported with device tree.
-+
-+Currently, only the WLAN portion of the modules is supported with
-+device tree.
-+
-+Required properties:
-+--------------------
-+
-+- compatible: should be "ti,wilink6", "ti,wilink7" or "ti,wilink8"
-+- interrupt-parent: the interrupt controller
-+- interrupts: out-of-band WLAN interrupt
-+	See the interrupt controller's bindings documentation for
-+	detailed definition.
-+
-+Optional properties:
-+--------------------
-+
-+- clocks: list of clocks needed by the chip as follows:
-+
-+  refclock: the internal WLAN reference clock frequency (required for
-+	WiLink6 and WiLink7; not used for WiLink8).
-+
-+  tcxoclock: the internal WLAN TCXO clock frequency (required for
-+	WiLink7 not used for WiLink6 and WiLink8).
-+
-+  The clocks must be defined and named accordingly.  For example:
-+
-+  clocks = <&refclock>
-+  clock-names = "refclock";
-+
-+  refclock: refclock {
-+		     compatible = "ti,wilink-clock";
-+		     #clock-cells = <0>;
-+		     clock-frequency = <38400000>;
-+	};
-+
-+  Some modules that contain the WiLink chip provide clocks in the
-+  module itself.  In this case, we define a "ti,wilink-clock" as shown
-+  above.  But any other clock could in theory be used, so the proper
-+  clock definition should be used.
-+
-+
-+Example:
-+--------
-+
-+Example definition that can be used in OMAP4 Panda:
-+
-+wlan {
-+	compatible = "ti,wilink6";
-+	interrupt-parent = <&gpio2>;
-+	interrupts = <21 IRQ_TYPE_LEVEL_HIGH>;	/* gpio line 53 */
-+	clocks = <&refclock>;
-+	clock-names = "refclock";
-+
-+	refclock: refclock {
-+		compatible = "ti,wilink-clock";
-+		#clock-cells = <0>;
-+		clock-frequency = <38400000>;
-+	};
-+};
--- 
-1.8.3.2
+IMHO the only thing that the bootloader should be responsible for is the 
+minimum that's needed to get the kernel started.  Setting up RAM, maybe a 
+handful of critical system clocks, and that's basically it.
 
+In fact it would be great if there was a bootloader option where it would 
+return the rest of the bits on the chip that it tweaked to power-on reset 
+status.  That would let you guys off the hook for everything that we don't 
+set up correctly in the kernel.  And it would allow the kernel folks to 
+see where the problems really are.  And then for customer-targeted images, 
+that bootloader option could be kept off so management doesn't freak out.
+
+You might not believe this, but we went to great pain on the OMAP Linux 
+kernel to reset as much as we could, as early as possible.  This was 
+partially so that if kernel device driver authors assumed that the 
+bootloader would configure their device, it would show up as a bug that 
+would need to be fixed.  We were even resetting and reprogramming the 
+SDRAM controller for a while.  Unfortunately we weren't able to reset the 
+clocks...
+
+> I don't suspect what I'm going to say now will have a lot of traction,
+> but I really think that much like user space, every once in a while (6
+> months? year?) one ought to update their environment and make sure
+> things are still working too.
+> 
+> You folks don't need to test ever rev of U-Boot (that's my job), but it
+> often feels like there's this cycle of "U-Boot sucks and can't do ... !"
+> "We've had that fixed / improved / changed for years now, upgrade?" "No,
+> can't / won't!".  And...
+
+I've always wanted to switch most of the devices in my test platform over 
+to serial-booted bootloaders and MLOs/X-loaders/SPLs.  That way any 
+bootloader could be booted during automated test.  This is what's 
+happening now on the BeagleBone-black here; that's really easy to 
+cold-boot from serial due to the Xmodem download code implemented in the 
+ROM, plus the lack of flash:
+
+http://www.pwsan.com/omap/testlogs/test_v3.11-rc3/20130728224046/boot/am335xbonelt/am335x-bone/
+
+Do you know if anyone ever got serial cold-booting working well for, say, 
+OMAP3 and OMAP4 chips?
+ 
+> For shipping consumer product, or however you want to call those kind of
+> devices, yes, appended dtb needs to work since the bootloader is locked,
+> and making that boot something else to boot the kernel is an exercise
+> for us oddballs :)  But the boards which are designed as reference
+> platform, we can make your lives easier, if you let us help.  If
+> something is a pain to do, give us feedback.
+
+OK I would love it if you would add a bootloader option 
+"ASSUME_WORKING_KERNEL" that would reset every non-essential device on the 
+board to power-on reset, and reset any non-essential clock register bits 
+etc. to their POR values.  Unlock the USB DPLL, etc.  To start with, you'd 
+need to leave that disabled for shipping customer images, but we could 
+start testing with it and prevent patches from going upstream that 
+implicitly rely on the bootloader settings.
+
+
+- Paul
