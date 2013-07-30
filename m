@@ -1,137 +1,78 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/2] arm: omap: remove *.auto* from device names given in
- usb_bind_phy
-Date: Tue, 30 Jul 2013 11:15:20 +0300
-Message-ID: <20130730081520.GH16441@radagast>
-References: <20130729175413.GC4964@radagast> <51F74BC8.7020903@ti.com>
- <20130730060134.GD9155@radagast> <51F7590B.4020705@ti.com>
- <20130730061830.GE9155@radagast> <51F75C40.4060406@ti.com>
- <20130730062844.GH9155@radagast> <51F7613C.5070803@ti.com>
- <20130730071611.GD16441@radagast> <51F7752B.8050804@ti.com>
-Reply-To: balbi@ti.com
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 7/9] ARM: edma: Don't clear EMR of channel in edma_stop
+Date: Tue, 30 Jul 2013 13:59:54 +0530
+Message-ID: <51F77982.7030601@ti.com>
+References: <1375104595-16018-1-git-send-email-joelf@ti.com>
+	<1375104595-16018-8-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4714210123760949033=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51F7752B.8050804@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux@arm.linux.org.uk, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, eballetbo@gmail.com, javier@dowhile0.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1375104595-16018-8-git-send-email-joelf-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Cc: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Balaji TK <balajitk-l0cyMroinI0@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Santosh Shilimkar <santosh.shilim>
 List-Id: linux-omap@vger.kernel.org
 
---===============4714210123760949033==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dMyqICaxQaaUjrCL"
-Content-Disposition: inline
+On Monday 29 July 2013 06:59 PM, Joel Fernandes wrote:
+> We certainly don't want error conditions to be cleared anywhere
 
---dMyqICaxQaaUjrCL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+'anywhere' is a really loaded term.
 
-On Tue, Jul 30, 2013 at 01:41:23PM +0530, Kishon Vijay Abraham I wrote:
-> On Tuesday 30 July 2013 12:46 PM, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Tue, Jul 30, 2013 at 12:16:20PM +0530, Kishon Vijay Abraham I wrote:
-> >>>>>> the list of controller device (names) it can support (PHY framewor=
-k does not
-> >>>>>> maintain a separate list for binding like how we had in USB PHY li=
-brary). e.g.
-> >>>>>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg92817.ht=
-ml. In such
-> >>>>>
-> >>>>> this has nothing to do with $subject though. We talk about generic =
-PHY
-> >>>>> framework once all these PHY drivers are moved there :-)
-> >>>>>
-> >>>>>> cases how do we pass the device names. Also will the MUSB core dev=
-ice be
-> >>>>>> created before twl4030-usb PHY device?
-> >>>>>
-> >>>>> and why would that be a problem ? We're telling the framework that =
-the
-> >>>>> musb device will use a phy with a name of 'twl4030'. If musb calls
-> >>>>> usb_get_phy_dev() and doesn't find a phy, it'll return -EPROBE_DEFE=
-R and
-> >>>>> try again later.
-> >>>>
-> >>>> I think we are talking about different problems here ;-) I'm trying =
-to tell
-> >>>> using idr in MUSB core is needed for Generic PHY Framework. So in a =
-way, the
-> >>>> Generic PHY Framework series depends on this patch series or else MU=
-SB in OMAP3
-> >>>> platforms wont work after Generic PHY framework gets merged.
-> >>>
-> >>> then you just found a limitation in your framework, right ? :-) I mea=
-n,
-> >>> imagine if now we have to add an IDR to every single user of your
-> >>> framework because they could end up in systems with multiple instances
-> >>> of the same IP ?
-> >>
-> >> I raised a similar concern in the PHY framework discussion [1] :-) And=
- since
-> >> it's used everywhere else regulators, clkdev, etc.. it's agreed to be =
-used in
-> >> PHY as well. Btw if PLATFORM_DEVID_AUTO is used even regulator, clk_ge=
-t should
-> >> fail IMO.
-> >>
-> >> [1] -> http://lkml.indiana.edu/hypermail/linux/kernel/1307.2/03573.html
-> >=20
-> > look at Greg's and my reply to that email.
->=20
-> but finally Greg agreed to what Tomasz proposed no?
+> as this will make us 'forget' about missed events. We depend on
+> knowing which events were missed in order to be able to reissue them.
 
-that's not what I see in the thread. I see Greg agreed to regulator's
-own IDs being sequentially created, but he mentions device names can
-change.
+> This fixes a race condition where the EMR was being cleared
+> by the transfer completion interrupt handler.
+> 
+> Basically, what was happening was:
+> 
+>             Missed event
+>              |
+>              |
+>              V
+> SG1-SG2-SG3-Null
+>          \
+>           \__TC Interrupt (Almost same time as ARM is executing
+> TC interrupt handler, an event got missed and also forgotten
+> by clearing the EMR).
 
---=20
-balbi
+Sorry, but I dont see how edma_stop() is coming into picture in the race
+you describe?
 
---dMyqICaxQaaUjrCL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> The EMR is ultimately being cleared by the Error interrupt
+> handler once it is handled so we don't have to do it in edma_stop.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+This, I agree with. edma_clean_channel() also there to re-initialize the
+channel so doing it in edma_stop() certainly seems superfluous.
 
-iQIcBAEBAgAGBQJR93YXAAoJEIaOsuA1yqRE2dgP/1ub6lcQOcC0FymtHYNtY0UM
-iw5h7oeHKB+R09SmfF3Z5iEGv9gwPSp32gspFeFSy4mvtvQfjQlwNjEeUZQEsZhX
-yZ3DHYkkAyOVXIr6IWZp2lvVVOuimj0W58ddUFQqEeV4L6SlP7GVKrYpENdwGz4o
-CuG7ykx3GfGiscJFgWT8SlMCmo6PosLT6yf+eXo6Ta+YNPlqvmQmwgbeJqmZjWF/
-D/1F/GoMviBKGW/wifsf0phUCfpHP8lkc6WTb0fDOXkdJtmq6DKnuiqJr7woeZZr
-bCz85DhKIOCrRcMbNtoqFqStJ/BYvJwebTL3rolNRggM8zmQV3M9RspkqW/2QP3B
-RSPEsLMhOdyJrhcheqCHZF4CjgT9amPKlQ/5lAjGiBMykfN9p73xfk0JmmILk6MK
-WKDbj3Lh2jQvSLnFSLdDizun5RkuO+F1t1oLx4PeKfAeBaKpCWseEctlnJR/iBAR
-vu7DLOsrDfLN11Ot5D4dGxiBToBQFhhDhxiOuMzQ24ajV83fyjmI2Pqan11LVVwh
-NhApUt3nYWkYP+D+7Wgpzq6kE/5DK0IhRvyXVMHG49pYxFCqv21paoo9NgFr2bYx
-2sA15RBNgEoDQdKDgKZC6VMPg8wWVZ71uBdnVXFyB6gRh4eCHaLCYECLlsySKZax
-q2sWhY4fzN4sxbcuAXlK
-=XK1L
------END PGP SIGNATURE-----
+Thanks,
+Sekhar
 
---dMyqICaxQaaUjrCL--
-
-
---===============4714210123760949033==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============4714210123760949033==--
+> 
+> Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+> ---
+>  arch/arm/common/edma.c |    1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+> index 10995b2..dec772e 100644
+> --- a/arch/arm/common/edma.c
+> +++ b/arch/arm/common/edma.c
+> @@ -1328,7 +1328,6 @@ void edma_stop(unsigned channel)
+>  		edma_shadow0_write_array(ctlr, SH_EECR, j, mask);
+>  		edma_shadow0_write_array(ctlr, SH_ECR, j, mask);
+>  		edma_shadow0_write_array(ctlr, SH_SECR, j, mask);
+> -		edma_write_array(ctlr, EDMA_EMCR, j, mask);
+>  
+>  		pr_debug("EDMA: EER%d %08x\n", j,
+>  				edma_shadow0_read_array(ctlr, SH_EER, j));
+> 
