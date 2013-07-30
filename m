@@ -1,53 +1,249 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 06/21] ARM: OMAP: overo: use new display drivers
-Date: Tue, 30 Jul 2013 11:51:30 +0530
-Message-ID: <51F75B6A.6090900@ti.com>
-References: <1374822504-28949-1-git-send-email-tomi.valkeinen@ti.com> <1374822504-28949-7-git-send-email-tomi.valkeinen@ti.com>
+From: Rahul Sharma <r.sh.open@gmail.com>
+Subject: Re: [PATCH v9 0/8] Generic PHY Framework
+Date: Tue, 30 Jul 2013 11:55:15 +0530
+Message-ID: <CAPdUM4MoKfWRuES1QjEkYQ1=Af6MvLjjb_p6j4zdeFOAOcpDFg@mail.gmail.com>
+References: <51D3F773.9000209@ti.com> <20130703132038.GI15056@arwen.pp.htv.fi>
+ <780E789C2E067A4BB8F69D0BB9EC4F253E975D6E@DBDE04.ent.ti.com>
+ <51D54694.20203@ti.com> <20130704101216.GD4830@arwen.pp.htv.fi>
+ <780E789C2E067A4BB8F69D0BB9EC4F253E9764D5@DBDE04.ent.ti.com>
+ <51DAADD1.3060302@ti.com>
+ <780E789C2E067A4BB8F69D0BB9EC4F253E976575@DBDE04.ent.ti.com>
+ <20130709114416.GL5552@arwen.pp.htv.fi>
+ <780E789C2E067A4BB8F69D0BB9EC4F253E97670D@DBDE04.ent.ti.com>
+ <20130709173429.GE10776@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53072 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751522Ab3G3GWv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jul 2013 02:22:51 -0400
-In-Reply-To: <1374822504-28949-7-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130709173429.GE10776@arwen.pp.htv.fi>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: balbi@ti.com
+Cc: dianders@chromium.org, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Patel, Satish" <satish.patel@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>, "Cherian, George" <george.cherian@ti.com>, sunil joshi <joshi@samsung.com>, "swarren@nvidia.com" <swarren@nvidia.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "cesarb@cesarb.net" <cesarb@cesarb.net>, "Mankad, Maulik Ojas" <maulik@ti.com>, "arnd@arndb.de" <arnd@arndb.de>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nayak, Rajendra" <rnayak@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "sylvester.nawrocki@gmail.com" <sylvester.nawrocki@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vg>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+Hi Balbi, Kishon,
 
-On Friday 26 July 2013 12:38 PM, Tomi Valkeinen wrote:
-> Use the new display drivers for OMAP3 Overo board.
+I have similar requirements for exynos hdmi phy. hdmi driver (controller)
+need to set the operating clock to hdmi phy which depends on the pixel
+clock.
+
+Phy has an internal pll to be configured as per changing resolution. It can
+be done by writing into phy registers. CCF callbacks (set/get_rate) can
+not be used unless I register phy as a clock controller. But that way
+hdmi driver loses finer power control for the phy. Phy should be ON, only
+when hdmi hotplugged.
+
+Callback: set_phy_operating_freq in phy framework, seems generic and
+addressing similar requirements for other phys. What you say on this?
+
+regards,
+Rahul Sharma.
+
+On Tue, Jul 9, 2013 at 11:04 PM, Felipe Balbi <balbi@ti.com> wrote:
 >
-> The new OMAP display drivers were merged for 3.11, and we can now change
-> the board files to use the new ones and phase out the old ones.
+> Hi,
 >
-> Note that the LCD add-on boards for lcd43 and lcd35 use the same GPIOs
-> for the panels. This means that both panel devices cannot be probed at
-> the same time.
+> On Tue, Jul 09, 2013 at 02:33:58PM +0200, Patel, Satish wrote:
+> > > > Operation:
+> > > >
+> > > > Once the card gets inserted into the slot, user application can
+> > > > initiate activate sequence anytime, it is not mandatory that
+> > > > activation has to be called Immediately. It all depends whether
+> > > other
+> > > > connections ( network, printer) are proper.  User application can do
+> > > > some checks and then dynamically activate the card
+> > >
+> > > The card or the phy ? Who actually activates ? Is the activation
+> > > handling part of the PHY or part of the smartcard controller ?
+> > >
+> >
+> > It=92s a activation of smart card which is inserted into the phy slot.
+> > Smart card activation will by done phy but initiated by user application
+> > Handling of activation should be done at both the side - controller as =
+well
+> > As phy. Phy will raise certain signals and check timeout while activati=
+on
+> > , while controller will store data coming from smart card to FIFO. Its
+> > Controller which will give command to phy to initiate activation sequen=
+ce when it
+> > is ready.
+> >
+> > Which means, both controller and phy has role to play while activation.
+> > Also it is applicable while deactivation.
 >
-> DT will handle this correctly, i.e. the DT data will contain the panel
-> device only for the add-on board that is attached. However, for the
-> board file we need a hackish solution: We parse the kernel boot command
-> line, and see whether lcd43 or lcd35 is set as a default display, and
-> add the given one. Or, if neither is given, default to lcd43.
+> right, so when the smartcard device is opened, you want to powerup the
+> PHY, powerup the smartcard controller and get things going, which means
+> that all your activation logic can, and should, be hidden by
+> phy_power_on() and phy_power_off()
 >
-
-<snip>
-
->   static struct omap_dss_board_info overo_dss_data = {
-> -	.num_devices	= ARRAY_SIZE(overo_dss_devices),
-> -	.devices	= overo_dss_devices,
-> -	.default_device	= &overo_dvi_device,
-> +	.default_display_name = "lcd43",
->   };
-
-The default display previously was the dvi device, if both lcd43 and 
-lcd35 are on add-on boards, then we should probably stick to dvi itself, 
-right? The hack won't work if dvi is the default device though.
-
-Archit
-
+> Perhaps you also want to delay phy_init() and phy_shutdown() to that
+> very time, which would mean that we wouldn't even need
+> phy_power_{on,off}() calls whatsoever.
+>
+> > > > There are 2 sequence of activation - normal activation and warm
+> > > reset.
+> > > > If first fails then warm reset should be executed, if card does not
+> > > > response to both then deactivation will be carried out
+> > >
+> > > ret =3D phy_resume(phy);
+> > > if (ret =3D=3D -EINVAL) { /* perhaps there's a better error code */
+> > >     ret =3D phy_reset(phy);
+> > >     if (ret)
+> > >             phy_suspend(phy);
+> > > }
+> > >
+> >
+> > Its not like this. There are the cases, when during normal activation
+> > card respond With some characters, but they might not be valid or
+> > error prone - This check will be done by user application as only
+> > application knows how to decode characters as per protocol.
+>
+> sure, and if the characters are invalid, the application needs to tell
+> the kernel, perhaps it would be enough to send and IOCTL or, even
+> easier, close the device and reopen it.
+>
+> > It there is any error in characters/timeout paratmeters, user
+> > application will ask to initiate Warm reset.
+>
+> and for that we can use an IOCTL which is implemented by smart card
+> layer. I mean, I'm assuming the smartcard would be seen as a char dev by
+> userland so it would be something like this:
+>
+> ret =3D read(fd, buf, SIZE);
+> if (ret < 0)
+>         boom();
+>
+> ret =3D process_buffer(buf, ret);
+> if (ret =3D=3D -EINVAL) { /* we have received invalid characters */
+>         ret =3D ioctl(fd, IOCTL_SMARTCARD_WARM_RESET);
+>         if (ret < 0)
+>                 handle_error();
+> }
+>
+> in kernel space we would have an ioctl handler like so:
+>
+> static int smart_card_ioctl(struct file *fd, unsigned code, usigned long =
+v)
+> {
+>         struct smart_card *sc =3D fd->private_data;
+>         unsigned long flags;
+>         int ret;
+>
+>         spin_lock_irqsave(&sc->lock, flags);
+>         switch (v)
+>         case SMART_CARD_WARM_RESET:
+>                 ret =3D phy_shutdown(sc->phy);
+>                 if (ret < 0)
+>                         boom();
+>
+>                 ret =3D smart_card_reset(sc);
+>                 if (ret < 0)
+>                         boom();
+>
+>                 ret =3D phy_init(sc->phy);
+>                 if (ret < 0)
+>                         boom();
+>                 break;
+>         [ ... ]
+>         }
+>
+>         spin_unlock_irqrestore(&sc->lock, flags);
+>
+>         return ret;
+> }
+>
+> see, we don't need to add a bunch of stuff in the PHY framework, because
+> you shouldn't expose the PHY directly to userland. You *must* have an
+> abstraction to userland with an in-kernel usage of the PHY layer.
+>
+> > > > - on activation card will respond with some initial characters
+> > > (ATR),
+> > > > which will be verified by application, in case of error user
+> > > > application will de-activate the card not the phy module
+> > > >
+> > > > - After activation, use application initiate normal tx/rx
+> > > >
+> > > > - Once tx/rx is done, it will initiate deactivation of card not the
+> > > > phy module.
+> > >
+> > > then that has nothing to do with the PHY framework, right ?
+> >
+> > But all such sequence will be initiated by PHY by raising certain
+> > signals and only controller can give the push when to start.
+>
+> sure, that's fair. But you don't need to expose every single detail of
+> the PHY. You need to use abstractions to make accesses to the PHY easy
+> to maintain. See the example above.
+>
+> > > > > > Smartcard_set_c4/c8/rst/io -> phy_set_pin
+> > > > >
+> > > > > Whats should be exactly done here? Looks to me like it should be
+> > > > > part of init. Does these pin settings need to be changed
+> > > dynamically?
+> > > >
+> > > > These are all phy pins which will be physically come in contact with
+> > > > smart card When inserted. In case of synchronous card, these pins
+> > > will
+> > > > be toggled manually by s/w bit bang algorithm
+> > >
+> > > is that a requirement or just something that everybody does ?
+> > >
+> >
+> > Its requirement for synchronous card. At present there is no open driver
+> > Which does this thing.
+>
+> alright, so you need to tell the PHY in which mode it should work and
+> the PHY driver needs to be smart enough to choose proper callbacks
+> depending on the mode.
+>
+> > > In any case, you can hide that under some gpio calls, or something
+> > > similar.
+> >
+> > Can't be done using GPIO as pin can be toggled only which i2c read/write
+> > to the phy.
+>
+> so ? look at the numerous I2C GPIO expanders we have in the kernel ;-)
+>
+> > > > > > Smartcard_get_version -> phy_get_version
+> > > > >
+> > > > > Again why? Why would the smartcard need the version of the PHY?
+> > > > >
+> > > >
+> > > > Can be omitted. This is for the test suite reference.
+> > >
+> > > if it's for testsuite, it sounds like something that should be done
+> > > through userland and, as such, should be implemented by a set of
+> > > debugfs
+> > > files which expose the necessary information. That has nothing to do
+> > > with the PHY framework.
+> > >
+> > Agree.. can be omitted.
+> >
+> >
+> > I am ok to give internal webex presentation (TI team) to brief
+> > on phy and smart card controller interface.
+>
+> let's try to cut down on internal agreements and let the community help
+> defining a proper way to handle the PHY :-)
+>
+> Still, if you want to point me and Kishon (privately) to some internal
+> documentation, we can certainly read through it :-)
+>
+> cheers
+>
+> --
+> balbi
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>
