@@ -1,67 +1,129 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv4 15/33] CLK: OMAP: DPLL: add support for DT property
- ti,dpll-no-gate
-Date: Tue, 30 Jul 2013 14:18:39 -0500
-Message-ID: <51F8118F.3000104@ti.com>
-References: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
- <1374564028-11352-16-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCHv4 08/33] ARM: dts: omap4 clock data
+Date: Tue, 30 Jul 2013 14:27:47 -0500
+Message-ID: <51F813B3.7020000@ti.com>
+References: <1374564028-11352-1-git-send-email-t-kristo@ti.com> <1374564028-11352-9-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1374564028-11352-16-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: paul@pwsan.com, khilman@linaro.org, mturquette@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:38723 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752030Ab3G3T2P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Jul 2013 15:28:15 -0400
+In-Reply-To: <1374564028-11352-9-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, tony@atomide.com, mturquette@linaro.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
 On 07/23/2013 02:20 AM, Tero Kristo wrote:
-> AM335x has DPLL clocks that should never be attempted to be gated. Adding
-> ti,dpll-no-gate property for them handles this situation.
+> This patch creates a unique node for each clock in the OMAP4 power,
+> reset and clock manager (PRCM). OMAP443x and OMAP446x have slightly
+> different clock tree which is taken into account in the data.
 >
 > Signed-off-by: Tero Kristo <t-kristo@ti.com>
 > ---
->   drivers/clk/omap/dpll.c |   10 ++++++++++
->   1 file changed, 10 insertions(+)
+>   arch/arm/boot/dts/omap443x-clocks.dtsi |   17 +
+>   arch/arm/boot/dts/omap443x.dtsi        |    8 +
+>   arch/arm/boot/dts/omap4460.dtsi        |    8 +
+>   arch/arm/boot/dts/omap446x-clocks.dtsi |   27 +
+>   arch/arm/boot/dts/omap44xx-clocks.dtsi | 1654 ++++++++++++++++++++++++++++++++
+arch/arm/boot/dts/omap44xx-common-clocks.dtsi ?
+>   5 files changed, 1714 insertions(+)
+>   create mode 100644 arch/arm/boot/dts/omap443x-clocks.dtsi
+>   create mode 100644 arch/arm/boot/dts/omap446x-clocks.dtsi
+>   create mode 100644 arch/arm/boot/dts/omap44xx-clocks.dtsi
 >
-> diff --git a/drivers/clk/omap/dpll.c b/drivers/clk/omap/dpll.c
-> index 66e82be..1d24feada 100644
-> --- a/drivers/clk/omap/dpll.c
-> +++ b/drivers/clk/omap/dpll.c
-> @@ -54,6 +54,13 @@ static const struct clk_ops dpll_x2_ck_ops = {
->   	.recalc_rate	= &omap3_clkoutx2_recalc,
->   };
->
-> +static const struct clk_ops dpll_no_gate_ck_ops = {
-> +	.recalc_rate	= &omap3_dpll_recalc,
-> +	.get_parent	= &omap2_init_dpll_parent,
-> +	.round_rate	= &omap2_dpll_round_rate,
-> +	.set_rate	= &omap3_noncore_dpll_set_rate,
+> diff --git a/arch/arm/boot/dts/omap443x-clocks.dtsi b/arch/arm/boot/dts/omap443x-clocks.dtsi
+> new file mode 100644
+> index 0000000..2bd82b2
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/omap443x-clocks.dtsi
+> @@ -0,0 +1,17 @@
+> +/*
+> + * Device Tree Source for OMAP443x clock data
+> + *
+> + * Copyright (C) 2013 Texas Instruments, Inc.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+Doing
+/include/ "omap44xx-clocks.dtsi" might avoid including that header in 
+corresponding SoC dtsi,
+OR:
+> +bandgap_fclk: bandgap_fclk@4a307888 {
+> +	#clock-cells = <0>;
+> +	compatible = "gate-clock";
+> +	clocks = <&sys_32k_ck>;
+> +	bit-shift = <8>;
+> +	reg = <0x4a307888 0x4>;
+> +};
+
+Since we already have omap443x.dtsi and omap446x.dtsi, do we need 
+clock.dtsi containing just a few entries?
+instead we could define the delta clocks in the clocks section, and save 
+on two additional files, no?
+
+[...]
+
+> diff --git a/arch/arm/boot/dts/omap44xx-clocks.dtsi b/arch/arm/boot/dts/omap44xx-clocks.dtsi
+> new file mode 100644
+> index 0000000..ed6bc9b
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/omap44xx-clocks.dtsi
+[...]
+
+> +dpll_abe_m2x2_ck: dpll_abe_m2x2_ck@4a0041f0 {
+> +	#clock-cells = <0>;
+> +	compatible = "divider-clock";
+> +	clocks = <&dpll_abe_x2_ck>;
+> +	ti,autoidle-shift = <8>;
+> +	reg = <0x4a0041f0 0x4>;
+> +	bit-mask = <0x1f>;
+> +	index-starts-at-one;
+> +	ti,autoidle-low;
 > +};
 > +
->   struct clk *omap_clk_register_dpll(struct device *dev, const char *name,
->   		const char **parent_names, int num_parents, unsigned long flags,
->   		struct dpll_data *dpll_data, const char *clkdm_name,
-> @@ -288,6 +295,9 @@ __init void of_omap4_dpll_setup(struct device_node *node)
->   		return;
->   	}
->
-> +	if (of_property_read_bool(node, "ti,dpll-no-gate"))
-> +		ops = &dpll_no_gate_ck_ops;
+> +abe_24m_fclk: abe_24m_fclk {
+> +	#clock-cells = <0>;
+> +	compatible = "fixed-factor-clock";
+> +	clocks = <&dpll_abe_m2x2_ck>;
+> +	clock-mult = <1>;
+> +	clock-div = <8>;
+> +};
 > +
->   	of_omap_dpll_setup(node, ops);
->   }
->   EXPORT_SYMBOL_GPL(of_omap4_dpll_setup);
->
-squash this to dpll patch?
+> +abe_clk: abe_clk@4a004108 {
+> +	#clock-cells = <0>;
+> +	compatible = "divider-clock";
+> +	clocks = <&dpll_abe_m2x2_ck>;
+> +	reg = <0x4a004108 0x4>;
+> +	bit-mask = <0x3>;
+> +	index-power-of-two;
+> +};
+> +
+> +aess_fclk: aess_fclk@4a004528 {
+is there a naming convention used here? abe_clk, fclk etc?
+
+> +	#clock-cells = <0>;
+> +	compatible = "divider-clock";
+> +	clocks = <&abe_clk>;
+> +	bit-shift = <24>;
+> +	reg = <0x4a004528 0x4>;
+> +	bit-mask = <0x1>;
+> +};
+
+[...]
+
+> +
+> +ocp2scp_usb_phy_phy_48m: ocp2scp_usb_phy_phy_48m@4a0093e0 {
+_ck?
+
+[...]
+
 
 -- 
 Regards,
