@@ -1,68 +1,45 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH v2 1/8] ARM: DRA7: id: Add cpu detection support for DRA7xx
- based SoCs'
-Date: Tue, 30 Jul 2013 20:06:31 +0530
-Message-ID: <51F7CF6F.6050702@ti.com>
-References: <1375183546-12758-1-git-send-email-rnayak@ti.com> <1375183546-12758-2-git-send-email-rnayak@ti.com> <20130730131009.GA28162@radagast> <51F7CB2F.6070705@ti.com> <20130730142353.GL28162@radagast>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH v2 2/4] phy: phy-amxxxx-usb: Add PHY driver for amxxxx
+ platform
+Date: Tue, 30 Jul 2013 16:39:28 +0200
+Message-ID: <51F7D020.3000508@linutronix.de>
+References: <1374237277-17769-1-git-send-email-george.cherian@ti.com> <1374237277-17769-3-git-send-email-george.cherian@ti.com> <20130729151754.GB827@linutronix.de> <51F74CEC.8040407@ti.com> <51F77F15.7090306@linutronix.de> <51F7CCB7.4040305@ti.com> <20130730143339.GM28162@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46076 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750856Ab3G3OhC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jul 2013 10:37:02 -0400
-In-Reply-To: <20130730142353.GL28162@radagast>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130730143339.GM28162@radagast>
+Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@ti.com
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.com, ambresh@ti.com, sourav.poddar@ti.com
+Cc: George Cherian <george.cherian@ti.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com
+List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 30 July 2013 07:53 PM, Felipe Balbi wrote:
-> Hi,
->
-> On Tue, Jul 30, 2013 at 07:48:23PM +0530, Sricharan R wrote:
->> On Tuesday 30 July 2013 06:40 PM, Felipe Balbi wrote:
->>> Hi,
->>>
->>> On Tue, Jul 30, 2013 at 04:55:39PM +0530, Rajendra Nayak wrote:
->>>> @@ -379,6 +407,13 @@ IS_OMAP_TYPE(3430, 0x3430)
->>>>  # define soc_is_omap543x()		is_omap543x()
->>>>  #endif
->>>>  
->>>> +# if defined(CONFIG_SOC_DRA7XX)
->>>> +# undef soc_is_dra7xx
->>>> +# undef soc_is_dra75x
->>>> +# define soc_is_dra7xx()		is_dra7xx()
->>>> +# define soc_is_dra75x()		is_dra75x()
->>> since this platform is DT-only, couldn't we just believe DT-data to be
->>> correct of_machine_is_compatible() ? 2/3 of this patch would be removed.
->>>
->>> I patched this for OMAP5 (compile-tested only, no boards available) and
->>> came out with the patch below (still needs to be split):
->>>
->>> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
->>> index 08b7267..b3136e5 100644
->>> --- a/arch/arm/boot/dts/omap5-uevm.dts
->>> +++ b/arch/arm/boot/dts/omap5-uevm.dts
->>> @@ -13,7 +13,7 @@
->>>  
->>>  / {
->>>  	model = "TI OMAP5 uEVM board";
->>> -	compatible = "ti,omap5-uevm", "ti,omap5";
->>> +	compatible = "ti,omap5-uevm", "ti,omap5432-es2.0", "ti,omap5";
->>>  
->>  ok, nice and simpler way.
->>  But would this make different revisions, to appear the same ?
-> well omap5-uevm is omap5432 es2.0 only, right ? If a new board comes up,
-> it should be treated as such, then you can pass a different string to
-> that new board's compatible attribute.
->
- Yes for OMAP5. I was thinking in general about this approach.
- For example, for OMAP4 we have same board and
- different revisions can be socketed there.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
 
- For OMAP5, this is good.
+On 07/30/2013 04:33 PM, Felipe Balbi wrote:
+> let's try not to add any new TI-specific DT bindings, can you
+> figure that out by reading some revision register ? Or perhaps by
+> using different compatible strings ?
 
-Regards,
- Sricharan
+I would suggest to use a different binding. But I'm currently trying to
+come up with something for am335x with a device reference?
+
+Sebastian
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBCAAGBQJR99AZAAoJEHuW6BYqjPXRf5AP/jcMFUstlqqujRppC2gMsqh6
++xlpwh5hCHJPxQizwkG8kWW9XGMIMPmqODqoYwA9dFI3a5VgVVTRUkhnHEXlAt9A
+8X0Sl+mdKx0XwvjxjRDPUEYqvpDFAPYxgnwvxEfjtnDgQs5ikxFj4zaMonAj5oK0
+s7XnOImJmdoHbFfvR5Cx10zmfa0BjQETqk5bt/j8+8jnv86cZk8fEGE8XYoUnhFw
+BsEZgfSZH/pV6s339gTs+x4+zW0luJIhJdtQmh5Ylo+xt/3TYAmDuZ0v88A6gFV+
+MZjJLh2L9Sr6g0Pl/Rk5aMZhe5GSSrZYuu4Vltpz2xF1SjRRqg6ykmw6sqnme2uj
+BWwq5qNG5EFPtyhZCupTZ/z388kKOhC54kbFwJW7Duv9TkDUOctVuUbehEN4Pu/u
+HljW3FoYvvB/7EOXJhBcG6qy+ClS7mKkJJHeavnzbtzeg2jO1ZSKV1S/bJfpY4F6
+ualEKdC+A+UXYNHSnSkbdJPAfIQw9BOhdD3nszdzrB+0xUU1ul2V3Zdf0xKsUVPj
+8qkK9IuHum/pUfUEK/3C/igOhtag24LOhiGu1MG8Axe4FdmiTixhnV4DZzGyAMcm
+8Br/gtKVCuoU89y0mYhsAA5o+3e6YKE7lPQVULtrZO7/+wbOTrEaukvwCMB/NngL
++qNzg8WzrRHCAQnSKni9
+=712g
+-----END PGP SIGNATURE-----
