@@ -1,48 +1,63 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: [PATCH v2 0/4] ARM: dts: add WiLink support to panda and omap4-sdp
-Date: Wed, 31 Jul 2013 00:15:19 +0300
-Message-ID: <1375218923-29876-1-git-send-email-coelho@ti.com>
+From: Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 2/4] arm: dts: omap4-panda-common: add WiLink6 device tree nodes
+Date: Wed, 31 Jul 2013 00:15:21 +0300
+Message-ID: <1375218923-29876-3-git-send-email-coelho@ti.com>
+References: <1375218923-29876-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43724 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757033Ab3G3VPy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Jul 2013 17:15:54 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1375218923-29876-1-git-send-email-coelho-l0cyMroinI0@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coelho-l0cyMroinI0@public.gmane.org, luca-XPOmlcxoEMv1KXRcyAk9cg@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-wireless@vger.kernel.org, coelho@ti.com, luca@coelho.fi, balbi@ti.com, laurent.pinchart@ideasonboard.com
 
-Hi,
+Add the WiLink device tree nodes.  On omap4-panda, a WiLink6 module is
+connected on MMC5 and a GPIO interrupt is used.  The refclock
+frequency is 38.4MHz.
 
-In v2: use IRQ_TYPE_LEVEL_HIGH when defining the interrupts, as
-suggested by Laurent.
+Signed-off-by: Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/omap4-panda-common.dtsi | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-
-These patches add the necessary DT configuration to use the WLAN part
-of WiLink on OMAP4 Pandaboard and on OMAP4-SDP (including Blaze).
-
-I've tested these changes on Panda and it works fine.  But I couldn't
-test the OMAP4 SDP changes properly on 3.11-rc3 because I'm having
-problems with clocks and SDIO stuff.  So it's pretty much just
-compiled tested.  I've tried this (without the new clock definition
-stuff) on Blaze with 3.10 and it was working, though.
-
-Please take a look and let me know what you think.
-
-Luca.
-
-Luciano Coelho (4):
-  ARM: dts: omap4-panda: add MMC5 (WiLink WLAN) configuration
-  arm: dts: omap4-panda-common: add WiLink6 device tree nodes
-  ARM: dts: omap4-sdp: add MMC5 (WiLink WLAN) configuration
-  arm: dts: omap4-sdp: add WiLink7 device tree node
-
- arch/arm/boot/dts/omap4-panda-common.dtsi | 46 +++++++++++++++++++++++++++-
- arch/arm/boot/dts/omap4-sdp.dts           | 50 +++++++++++++++++++++++++++++++
- 2 files changed, 95 insertions(+), 1 deletion(-)
-
+diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+index b3f6e1f..59a797d 100644
+--- a/arch/arm/boot/dts/omap4-panda-common.dtsi
++++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+@@ -5,6 +5,7 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
++#include <dt-bindings/interrupt-controller/irq.h>
+ #include "elpida_ecb240abacn.dtsi"
+ 
+ / {
+@@ -117,6 +118,20 @@
+ 		startup-delay-us = <70000>;
+ 		enable-active-high;
+ 	};
++
++	wlan {
++		compatible = "ti,wilink6";
++		interrupt-parent = <&gpio2>;
++		interrupts = <21 IRQ_TYPE_LEVEL_HIGH>;	/* gpio line 53 */
++		clocks = <&refclock>;
++		clock-names = "refclock";
++
++		refclock: refclock {
++			compatible = "ti,wilink-clock";
++			#clock-cells = <0>;
++			clock-frequency = <38400000>;
++		};
++	 };
+ };
+ 
+ &omap4_pmx_wkup {
 -- 
 1.8.3.2
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
