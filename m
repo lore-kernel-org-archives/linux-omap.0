@@ -1,149 +1,60 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: [PATCH v4 5/8] wlcore: add initial device tree support to the sdio
- module
-Date: Tue, 30 Jul 2013 16:04:33 +0300
-Message-ID: <1375189476-21557-6-git-send-email-coelho@ti.com>
-References: <1375189476-21557-1-git-send-email-coelho@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: Linux kernel for OMAP5432 uEVM
+Date: Tue, 30 Jul 2013 08:09:19 -0500
+Message-ID: <51F7BAFF.3080805@ti.com>
+References: <20130730033808.GA23486@cbz-workstation> <51F7387B.9060304@ti.com> <AEBD4502-35A4-4662-B435-7F4F0D5C5D6A@gmail.com> <51F7B08C.1070200@ti.com> <83487AF3-0B91-4492-8B1E-C858972B541E@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1375189476-21557-1-git-send-email-coelho@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-wireless@vger.kernel.org, tony@atomide.com, nsekhar@ti.com
-Cc: mark.rutland@arm.com, nm@ti.com, coelho@ti.com, mturquette@linaro.org, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, balbi@ti.com, martinez.javier@gmail.com, rob.herring@calxeda.com, grant.likely@linaro.org, linux-omap@vger.kernel.org, luca@coelho.fi, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40131 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755118Ab3G3NJU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Jul 2013 09:09:20 -0400
+In-Reply-To: <83487AF3-0B91-4492-8B1E-C858972B541E@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Chen Baozi <baozich@gmail.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org
 
-If platform data is not available, try to get the required information
-from the device tree.  Register an OF match table and parse the
-appropriate device tree nodes.
+On 07/30/2013 07:44 AM, Chen Baozi wrote:
+>
+> On Jul 30, 2013, at 8:24 PM, Nishanth Menon <nm@ti.com> wrote:
+>
+>> On 07/30/2013 01:07 AM, Chen Baozi wrote:
+>>>
+>>> On Jul 30, 2013, at 11:52 AM, Lokesh Vutla <lokeshvutla@ti.com> wrote:
+>>>
+>>>> Hi Chen,
+>>>> On Tuesday 30 July 2013 09:08 AM, Chen Baozi wrote:
+>>>>> Hi all,
+>>>>>
+>>>>> I'm trying to boot my OMAP5432 uEVM devboard with the lastest kernel of
+>>>>> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git.
+>>>> Which branch are you using ?
+>>>
+>>> the master branch.
+>>>
+>>>>> However, after u-boot loading uImage & DTB, there is no output message any
+>>>>> more, such as:
+>>>> Clk data might be missing here. Try merging the below branch and test it
+>>>> https://git.kernel.org/cgit/linux/kernel/git/ssantosh/linux.git/log/?h=for_3.11/out_of_tree/omap5_clk_data
+>>>
+>>> Thanks, I'll have a try.
+>>
+>> There is also clock data dts support now in Tero's series:
+>> http://marc.info/?l=linux-omap&m=137456411706971&w=2
+>
+> Thanks, I'll have a look though Lokesh's suggestion has already booted my board.
+>
+> Might be a stupid question. What's the different functionality between these two series of patch set? For it seems clk data patches have done the some of initialization that make the system boot.
 
-Parse interrupt property only, for now.
+two different approaches - one using clock data in kernel, other with 
+clock data in dtb and generic clock drivers. Tero's approach is what is 
+being massaged for upstream as we do not wish to add additional clock 
+data into kernel source tree anymore.
 
-Signed-off-by: Luciano Coelho <coelho@ti.com>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
----
- drivers/net/wireless/ti/wlcore/sdio.c | 69 ++++++++++++++++++++++++++++++++---
- 1 file changed, 63 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/net/wireless/ti/wlcore/sdio.c b/drivers/net/wireless/ti/wlcore/sdio.c
-index 4c7e8ac..9370d7e 100644
---- a/drivers/net/wireless/ti/wlcore/sdio.c
-+++ b/drivers/net/wireless/ti/wlcore/sdio.c
-@@ -30,7 +30,7 @@
- #include <linux/mmc/sdio_ids.h>
- #include <linux/mmc/card.h>
- #include <linux/mmc/host.h>
--#include <linux/gpio.h>
-+#include <linux/of_irq.h>
- #include <linux/wl12xx.h>
- #include <linux/pm_runtime.h>
- #include <linux/printk.h>
-@@ -214,6 +214,43 @@ static struct wl1271_if_operations sdio_ops = {
- 	.set_block_size = wl1271_sdio_set_block_size,
- };
- 
-+static struct wl12xx_platform_data *wlcore_get_pdata_from_of(struct device *dev)
-+{
-+	struct wl12xx_platform_data *pdata;
-+	struct device_node *np = dev->of_node;
-+
-+	if (!np) {
-+		np = of_find_matching_node(NULL, dev->driver->of_match_table);
-+		if (!np) {
-+			dev_notice(dev, "device tree node not available\n");
-+			pdata = ERR_PTR(-ENODEV);
-+			goto out;
-+		}
-+	}
-+
-+	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata) {
-+		dev_err(dev, "can't allocate platform data\n");
-+		pdata = ERR_PTR(-ENODEV);
-+		goto out;
-+	}
-+
-+	pdata->irq = irq_of_parse_and_map(np, 0);
-+	if (pdata->irq < 0) {
-+		dev_err(dev, "can't get interrupt gpio from the device tree\n");
-+		goto out_free;
-+	}
-+
-+	goto out;
-+
-+out_free:
-+	kfree(pdata);
-+	pdata = ERR_PTR(-ENODEV);
-+
-+out:
-+	return pdata;
-+}
-+
- static int wl1271_probe(struct sdio_func *func,
- 				  const struct sdio_device_id *id)
- {
-@@ -248,11 +285,22 @@ static int wl1271_probe(struct sdio_func *func,
- 	/* Use block mode for transferring over one block size of data */
- 	func->card->quirks |= MMC_QUIRK_BLKSZ_FOR_BYTE_MODE;
- 
-+	/* The pdata allocated here is freed when the device is freed,
-+	 * so we don't need an additional out label to free it in case
-+	 * of error further on.
-+	 */
-+
-+	/* Try to get legacy platform data from the board file */
- 	pdev_data->pdata = wl12xx_get_platform_data();
- 	if (IS_ERR(pdev_data->pdata)) {
--		ret = PTR_ERR(pdev_data->pdata);
--		dev_err(glue->dev, "missing wlan platform data: %d\n", ret);
--		goto out_free_glue;
-+		dev_info(&func->dev,
-+			 "legacy platform data not found, trying device tree\n");
-+
-+		pdev_data->pdata = wlcore_get_pdata_from_of(&func->dev);
-+		if (IS_ERR(pdev_data->pdata)) {
-+			dev_err(&func->dev, "can't get platform data\n");
-+			goto out_free_glue;
-+		}
- 	}
- 
- 	/* if sdio can keep power while host is suspended, enable wow */
-@@ -386,16 +434,25 @@ static const struct dev_pm_ops wl1271_sdio_pm_ops = {
- };
- #endif
- 
-+static const struct of_device_id wlcore_sdio_of_match_table[] = {
-+	{ .compatible = "ti,wilink6" },
-+	{ .compatible = "ti,wilink7" },
-+	{ .compatible = "ti,wilink8" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, wlcore_sdio_of_match_table);
-+
- static struct sdio_driver wl1271_sdio_driver = {
- 	.name		= "wl1271_sdio",
- 	.id_table	= wl1271_devices,
- 	.probe		= wl1271_probe,
- 	.remove		= wl1271_remove,
--#ifdef CONFIG_PM
- 	.drv = {
-+#ifdef CONFIG_PM
- 		.pm = &wl1271_sdio_pm_ops,
--	},
- #endif
-+		.of_match_table = of_match_ptr(wlcore_sdio_of_match_table),
-+	},
- };
- 
- static int __init wl1271_init(void)
 -- 
-1.8.3.2
+Regards,
+Nishanth Menon
