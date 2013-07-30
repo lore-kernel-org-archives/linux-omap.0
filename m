@@ -1,67 +1,59 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: Re: [PATCH v2 1/4] usb: phy: phy-omap-control: Add API to power and
- wakeup
-Date: Tue, 30 Jul 2013 10:23:14 +0530
-Message-ID: <51F746BA.9010408@ti.com>
-References: <1374237277-17769-1-git-send-email-george.cherian@ti.com> <1374237277-17769-2-git-send-email-george.cherian@ti.com> <20130729142517.GA827@linutronix.de>
+From: Gururaja Hebbar <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [Patch V2 4/4] ARM: dts: AM33XX: update rtc node compatibility
+Date: Tue, 30 Jul 2013 10:35:52 +0530
+Message-ID: <51F749B0.7020802@ti.com>
+References: <1372841225-18813-1-git-send-email-gururaja.hebbar@ti.com>
+	<1372841225-18813-5-git-send-email-gururaja.hebbar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130729142517.GA827@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1372841225-18813-5-git-send-email-gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, benoit.cousson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, vaibhav.bedia-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 7/29/2013 7:55 PM, Sebastian Andrzej Siewior wrote:
-> * George Cherian | 2013-07-19 18:04:34 [+0530]:
+Hi,
+
+On 7/3/2013 2:17 PM, Hebbar Gururaja wrote:
+> Since AM33xx  RTC IP has RTC_IRQWAKEEN to support Alarm Wake-up.
 >
->> diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
->> index 1419ced..4f2502c 100644
->> --- a/drivers/usb/phy/phy-omap-control.c
->> +++ b/drivers/usb/phy/phy-omap-control.c
->> @@ -46,6 +46,73 @@ struct device *omap_get_control_dev(void)
->> EXPORT_SYMBOL_GPL(omap_get_control_dev);
->>
->> /**
->> + * omap_control_am335x_phy_wkup - PHY wakeup on/off  using control
->> + *	module
->> + * @dev: the control module device
->> + * @on: 0 to off and 1 to on PHY wakeup feature
->> + * @id: phy id 0 or 1 for phy instance 0 and 1 repectively
->> + *
->> + * AMXXXX PHY driver should call this API to enable or disable PHY wakeup.
->> + */
->> +void omap_control_am335x_phy_wkup(struct device *dev, bool on, u8 id)
->> +{
->> +	u32 val;
->> +	u32 *phy_wkup_reg;
->> +	struct omap_control_usb	*control_usb = dev_get_drvdata(dev);
->> +
->> +	if (control_usb->type != OMAP_CTRL_DEV_TYPE3 || id < 0 || id > 1)
->> +		return;
->> +
->> +	phy_wkup_reg = control_usb->dev_conf + AM335X_USB_WKUP_OFFSET;
->> +	val = readl(phy_wkup_reg);
-> Where do you get the memory from? In the DT patches I've made I export
-> one memory space of 8 bytes for each phy. This memory space applies
-> directly to the on/off register.
+> Update the rtc compatible property to "ti,am3352-rtc" to enable handling
+> of this feature inside rtc-omap driver.
 
-Control module have 2 separate registers for phy on/off per instance 
-(offset 0x620 and 0x628), where as
-wkup_ctrl is a shared control module register (offset 0x648). Currently 
-the  control module driver maps
-  memory from 0x620 till beyond 0x648 and uses the same mapping for 
-writing to wkup_reg.
-> I didn't export the register for wakeup
-> so far since I had no idea how this will be used.
-> So how do you get your re-mapped memory here?
+The other 2 rtc driver related patches have been pulled up. If you have 
+no comments, can you please pull this up.
 
-Mapping it per instance is not possible since its the same register (if 
-we use devm_* calls).
+Regards
+Gururaja
 
-
-
--- 
--George
+>
+> Signed-off-by: Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+> ---
+> :100644 100644 77aa1b0... dde180a... M	arch/arm/boot/dts/am33xx.dtsi
+>   arch/arm/boot/dts/am33xx.dtsi |    2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 77aa1b0..dde180a 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -297,7 +297,7 @@
+>   		};
+>
+>   		rtc@44e3e000 {
+> -			compatible = "ti,da830-rtc";
+> +			compatible = "ti,am3352-rtc";
+>   			reg = <0x44e3e000 0x1000>;
+>   			interrupts = <75
+>   				      76>;
+>
