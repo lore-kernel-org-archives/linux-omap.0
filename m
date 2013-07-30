@@ -1,126 +1,82 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2] Documentation: dt: bindings: TI WiLink modules
-Date: Tue, 30 Jul 2013 20:24:34 +0200
-Message-ID: <1551085.3MDKgN8U89@avalon>
-References: <1375109728-5931-1-git-send-email-coelho@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH v2 1/8] ARM: DRA7: id: Add cpu detection support for DRA7xx
+ based SoCs'
+Date: Wed, 31 Jul 2013 00:07:35 +0530
+Message-ID: <51F807EF.6020809@ti.com>
+References: <1375183546-12758-1-git-send-email-rnayak@ti.com> <1375183546-12758-2-git-send-email-rnayak@ti.com> <20130730131009.GA28162@radagast> <51F7CB2F.6070705@ti.com> <20130730142353.GL28162@radagast> <51F7CF6F.6050702@ti.com> <20130730153138.GA5978@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1375109728-5931-1-git-send-email-coelho@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Luciano Coelho <coelho@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, mturquette@linaro.org, mark.rutland@arm.com, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-wireless@vger.kernel.org, linux-arm@vger.kernel.org, tony@atomide.com, nm@ti.com
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:36090 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754106Ab3G3SiI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Jul 2013 14:38:08 -0400
+In-Reply-To: <20130730153138.GA5978@radagast>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.com, ambresh@ti.com, sourav.poddar@ti.com
 
-Hi Luciano,
+Hi,
+On Tuesday 30 July 2013 09:02 PM, Felipe Balbi wrote:
+> Hi,
+>
+> On Tue, Jul 30, 2013 at 08:06:31PM +0530, Sricharan R wrote:
+>> On Tuesday 30 July 2013 07:53 PM, Felipe Balbi wrote:
+>>> Hi,
+>>>
+>>> On Tue, Jul 30, 2013 at 07:48:23PM +0530, Sricharan R wrote:
+>>>> On Tuesday 30 July 2013 06:40 PM, Felipe Balbi wrote:
+>>>>> Hi,
+>>>>>
+>>>>> On Tue, Jul 30, 2013 at 04:55:39PM +0530, Rajendra Nayak wrote:
+>>>>>> @@ -379,6 +407,13 @@ IS_OMAP_TYPE(3430, 0x3430)
+>>>>>>  # define soc_is_omap543x()		is_omap543x()
+>>>>>>  #endif
+>>>>>>  
+>>>>>> +# if defined(CONFIG_SOC_DRA7XX)
+>>>>>> +# undef soc_is_dra7xx
+>>>>>> +# undef soc_is_dra75x
+>>>>>> +# define soc_is_dra7xx()		is_dra7xx()
+>>>>>> +# define soc_is_dra75x()		is_dra75x()
+>>>>> since this platform is DT-only, couldn't we just believe DT-data to be
+>>>>> correct of_machine_is_compatible() ? 2/3 of this patch would be removed.
+>>>>>
+>>>>> I patched this for OMAP5 (compile-tested only, no boards available) and
+>>>>> came out with the patch below (still needs to be split):
+>>>>>
+>>>>> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+>>>>> index 08b7267..b3136e5 100644
+>>>>> --- a/arch/arm/boot/dts/omap5-uevm.dts
+>>>>> +++ b/arch/arm/boot/dts/omap5-uevm.dts
+>>>>> @@ -13,7 +13,7 @@
+>>>>>  
+>>>>>  / {
+>>>>>  	model = "TI OMAP5 uEVM board";
+>>>>> -	compatible = "ti,omap5-uevm", "ti,omap5";
+>>>>> +	compatible = "ti,omap5-uevm", "ti,omap5432-es2.0", "ti,omap5";
+>>>>>  
+>>>>  ok, nice and simpler way.
+>>>>  But would this make different revisions, to appear the same ?
+>>> well omap5-uevm is omap5432 es2.0 only, right ? If a new board comes up,
+>>> it should be treated as such, then you can pass a different string to
+>>> that new board's compatible attribute.
+>>> s
+>>  Yes for OMAP5. I was thinking in general about this approach.
+>>  For example, for OMAP4 we have same board and
+>>  different revisions can be socketed there.
+>>
+>>  For OMAP5, this is good.
+> do we really production socketed boards? Well, at least Blaze has such
+> thing. But do we have too many differences that need to be trated at
+> arch/arm or should/could those be handled by reading IP's revision
+> register (e.g. usb host erratas)
+>
+ OMAP4 SDP is socketed as well.
+ Ya, revision checks used only in few places and as you said
+ we handle them using IP revisions, but that we have to look and clean
+ up those places, if we really intend to do this for other socs.
 
-Thank you for the patch.
-
-On Monday 29 July 2013 17:55:28 Luciano Coelho wrote:
-> Add device tree bindings documentation for the TI WiLink modules.
-> Currently only the WLAN part of the WiLink6, WiLink7 and WiLink8
-> modules is supported.
-> 
-> Signed-off-by: Luciano Coelho <coelho@ti.com>
-> ---
-> 
-> Changes in v2:
-> 
-> Use generic clock definitions to get the clock data instead of passing
-> the frequencies directly.  Also added definition for "internal"
-> ti,wilink-clock.
-> 
-> Please review.
-
-The proposal looks good to me, I just have one small comment.
-
->  .../devicetree/bindings/net/wireless/ti-wilink.txt | 68 +++++++++++++++++++
->  1 file changed, 68 insertions(+)
->  create mode 100644
-> Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
-> b/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt new file
-> mode 100644
-> index 0000000..5fd27dc
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
-> @@ -0,0 +1,68 @@
-> +TI WiLink Wireless Modules Device Tree Bindings
-> +===============================================
-> +
-> +The WiLink modules provide wireless connectivity, such as WLAN,
-> +Bluetooth, FM and NFC.
-> +
-> +There are several different modules available, which can be grouped by
-> +their generation: WiLink6, WiLink7 and WiLink8.  WiLink4 is not
-> +currently supported with device tree.
-> +
-> +Currently, only the WLAN portion of the modules is supported with
-> +device tree.
-> +
-> +Required properties:
-> +--------------------
-> +
-> +- compatible: should be "ti,wilink6", "ti,wilink7" or "ti,wilink8"
-> +- interrupt-parent: the interrupt controller
-> +- interrupts: out-of-band WLAN interrupt
-> +	See the interrupt controller's bindings documentation for
-> +	detailed definition.
-> +
-> +Optional properties:
-> +--------------------
-> +
-> +- clocks: list of clocks needed by the chip as follows:
-> +
-> +  refclock: the internal WLAN reference clock frequency (required for
-> +	WiLink6 and WiLink7; not used for WiLink8).
-> +
-> +  tcxoclock: the internal WLAN TCXO clock frequency (required for
-> +	WiLink7 not used for WiLink6 and WiLink8).
-> +
-> +  The clocks must be defined and named accordingly.  For example:
-> +
-> +  clocks = <&refclock>
-> +  clock-names = "refclock";
-> +
-> +  refclock: refclock {
-> +		     compatible = "ti,wilink-clock";
-> +		     #clock-cells = <0>;
-> +		     clock-frequency = <38400000>;
-> +	};
-> +
-> +  Some modules that contain the WiLink chip provide clocks in the
-> +  module itself.  In this case, we define a "ti,wilink-clock" as shown
-> +  above.  But any other clock could in theory be used, so the proper
-> +  clock definition should be used.
-> +
-> +
-> +Example:
-> +--------
-> +
-> +Example definition that can be used in OMAP4 Panda:
-> +
-> +wlan {
-> +	compatible = "ti,wilink6";
-> +	interrupt-parent = <&gpio2>;
-> +	interrupts = <21 0x4>;	/* gpio line 53, high level triggered */
-
-Could you please use the IRQ_TYPE_LEVEL_HIGH macro (defined in <dt-
-bindings/interrupt-controller/irq.h>) instead of the hardcode 0x4 constant ?
-
-> +	clocks = <&refclock>;
-> +	clock-names = "refclock";
-> +
-> +	refclock: refclock {
-> +		compatible = "ti,wilink-clock";
-> +		#clock-cells = <0>;
-> +		clock-frequency = <38400000>;
-> +	};
-> +};
--- 
 Regards,
-
-Laurent Pinchart
-
+ Sricharan
