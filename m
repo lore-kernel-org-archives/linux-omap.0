@@ -1,50 +1,67 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v2] ARM: EDMA: Fix clearing of unused list for DT DMA
- resources
-Date: Tue, 30 Jul 2013 10:22:24 +0530
-Message-ID: <51F74688.3090702@ti.com>
-References: <1374515989-7391-1-git-send-email-joelf@ti.com>
- <51F4589E.5070108@ti.com> <51F6140B.3070600@ti.com> <51F738BF.7070808@ti.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: [PATCH v2 1/4] usb: phy: phy-omap-control: Add API to power and
+ wakeup
+Date: Tue, 30 Jul 2013 10:23:14 +0530
+Message-ID: <51F746BA.9010408@ti.com>
+References: <1374237277-17769-1-git-send-email-george.cherian@ti.com> <1374237277-17769-2-git-send-email-george.cherian@ti.com> <20130729142517.GA827@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51F738BF.7070808@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: joelf@ti.com
-Cc: Balaji TK <balajitk@ti.com>, Arnd Bergmann <arnd@arndb.de>, Mark Jackson <mpfj-list@newflow.co.uk>, Tony Lindgren <tony@atomide.com>, Pantel Antoniou <panto@antoniou-consulting.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Vinod Koul <vinod.koul@intel.com>, Jason Kridner <jkridner@beagleboard.org>, Benoit Cousson <benoit.cousson@linaro.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130729142517.GA827@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 30 July 2013 09:23 AM, Joel Fernandes wrote:
-> On 07/29/2013 02:04 AM, Sekhar Nori wrote:
->> On Sunday 28 July 2013 05:02 AM, Joel Fernandes wrote:
->>> Hi Tony or Sekhar,
->>>
->>> If this patch looks ok, could you pick it up for -rc cycle?
->>>
->>> It fixes DMA breakages after the merge window for devices for which DMA
->>> resources are being populated in device tree instead pdev.
+On 7/29/2013 7:55 PM, Sebastian Andrzej Siewior wrote:
+> * George Cherian | 2013-07-19 18:04:34 [+0530]:
+>
+>> diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
+>> index 1419ced..4f2502c 100644
+>> --- a/drivers/usb/phy/phy-omap-control.c
+>> +++ b/drivers/usb/phy/phy-omap-control.c
+>> @@ -46,6 +46,73 @@ struct device *omap_get_control_dev(void)
+>> EXPORT_SYMBOL_GPL(omap_get_control_dev);
 >>
->> But which DT-enabled platform in kernel is using EDMA? A grep for edma
->> over arch/arm/boot/dts/* brings up nothing.
->> Does this really have to go into the -rc cycle or can it wait till
->> v3.12?
-> 
-> 
-> But unused channel list is also populated for private EDMA callers like
-> davinci-pcm no? IIRC, HWMOD data is also removed for McASP so EDMA for
-> those may break.
+>> /**
+>> + * omap_control_am335x_phy_wkup - PHY wakeup on/off  using control
+>> + *	module
+>> + * @dev: the control module device
+>> + * @on: 0 to off and 1 to on PHY wakeup feature
+>> + * @id: phy id 0 or 1 for phy instance 0 and 1 repectively
+>> + *
+>> + * AMXXXX PHY driver should call this API to enable or disable PHY wakeup.
+>> + */
+>> +void omap_control_am335x_phy_wkup(struct device *dev, bool on, u8 id)
+>> +{
+>> +	u32 val;
+>> +	u32 *phy_wkup_reg;
+>> +	struct omap_control_usb	*control_usb = dev_get_drvdata(dev);
+>> +
+>> +	if (control_usb->type != OMAP_CTRL_DEV_TYPE3 || id < 0 || id > 1)
+>> +		return;
+>> +
+>> +	phy_wkup_reg = control_usb->dev_conf + AM335X_USB_WKUP_OFFSET;
+>> +	val = readl(phy_wkup_reg);
+> Where do you get the memory from? In the DT patches I've made I export
+> one memory space of 8 bytes for each phy. This memory space applies
+> directly to the on/off register.
 
-Yes, but which DT-enabled platform has davinci-pcm working today?
-AFAICS, this bug affects DT-enabled platforms only.
+Control module have 2 separate registers for phy on/off per instance 
+(offset 0x620 and 0x628), where as
+wkup_ctrl is a shared control module register (offset 0x648). Currently 
+the  control module driver maps
+  memory from 0x620 till beyond 0x648 and uses the same mapping for 
+writing to wkup_reg.
+> I didn't export the register for wakeup
+> so far since I had no idea how this will be used.
+> So how do you get your re-mapped memory here?
 
-Thanks,
-Sekhar
+Mapping it per instance is not possible since its the same register (if 
+we use devm_* calls).
+
+
+
+-- 
+-George
