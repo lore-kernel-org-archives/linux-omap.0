@@ -1,147 +1,95 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/2] arm: omap: remove *.auto* from device names given in
- usb_bind_phy
-Date: Tue, 30 Jul 2013 09:01:34 +0300
-Message-ID: <20130730060134.GD9155@radagast>
-References: <1374829418-27503-1-git-send-email-kishon@ti.com>
- <1374829418-27503-3-git-send-email-kishon@ti.com>
- <20130729150638.GD3063@radagast>
- <51F68A56.8060805@ti.com>
- <20130729175413.GC4964@radagast>
- <51F74BC8.7020903@ti.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 09/21] ARM: OMAP: devkit8000: use new display drivers
+Date: Tue, 30 Jul 2013 09:01:52 +0300
+Message-ID: <51F756D0.3050009@ti.com>
+References: <1374822504-28949-1-git-send-email-tomi.valkeinen@ti.com> <1374822504-28949-10-git-send-email-tomi.valkeinen@ti.com> <51F753BD.5040509@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hoZxPH4CaxYzWscb"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <51F74BC8.7020903-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+	protocol="application/pgp-signature";
+	boundary="W7OdsVPtR7Rbf7N2kPeuu1JX4WesU98GE"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:55976 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757487Ab3G3GCR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Jul 2013 02:02:17 -0400
+In-Reply-To: <51F753BD.5040509@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, weber@corscience.de
 
---hoZxPH4CaxYzWscb
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+--W7OdsVPtR7Rbf7N2kPeuu1JX4WesU98GE
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Tue, Jul 30, 2013 at 10:44:48AM +0530, Kishon Vijay Abraham I wrote:
-> > On Mon, Jul 29, 2013 at 08:59:26PM +0530, Kishon Vijay Abraham I wrote:
-> >>>> Previously MUSB wrapper (OMAP) device used PLATFORM_DEVID_AUTO while=
- creating
-> >>>> MUSB core device. So in usb_bind_phy (binds the controller with the =
-PHY), the
-> >>>> device name of the controller had *.auto* in it. Since with using
-> >>>> PLATFORM_DEVID_AUTO, there is no way to know the exact device name i=
-n advance,
-> >>>> the data given in usb_bind_phy became obsolete and usb_get_phy was f=
-ailing.
-> >>>> So MUSB wrapper was modified not to use PLATFORM_DEVID_AUTO. Corresp=
-onding
-> >>>> change is done in board file here.
-> >>>>
-> >>>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> >>>> ---
-> >>>>  arch/arm/mach-omap2/board-2430sdp.c          |    2 +-
-> >>>>  arch/arm/mach-omap2/board-3430sdp.c          |    2 +-
-> >>>>  arch/arm/mach-omap2/board-cm-t35.c           |    2 +-
-> >>>>  arch/arm/mach-omap2/board-devkit8000.c       |    2 +-
-> >>>>  arch/arm/mach-omap2/board-igep0020.c         |    2 +-
-> >>>>  arch/arm/mach-omap2/board-ldp.c              |    2 +-
-> >>>>  arch/arm/mach-omap2/board-omap3beagle.c      |    2 +-
-> >>>>  arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
-> >>>>  arch/arm/mach-omap2/board-omap3logic.c       |    2 +-
-> >>>>  arch/arm/mach-omap2/board-omap3pandora.c     |    2 +-
-> >>>>  arch/arm/mach-omap2/board-omap3stalker.c     |    2 +-
-> >>>>  arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +-
-> >>>>  arch/arm/mach-omap2/board-overo.c            |    2 +-
-> >>>>  arch/arm/mach-omap2/board-rm680.c            |    2 +-
-> >>>>  arch/arm/mach-omap2/board-rx51.c             |    2 +-
-> >>>>  arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
-> >>>>  16 files changed, 16 insertions(+), 16 deletions(-)
-> >>>>
-> >>>> diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-oma=
-p2/board-2430sdp.c
-> >>>> index 244d8a5..17bb076 100644
-> >>>> --- a/arch/arm/mach-omap2/board-2430sdp.c
-> >>>> +++ b/arch/arm/mach-omap2/board-2430sdp.c
-> >>>> @@ -233,7 +233,7 @@ static void __init omap_2430sdp_init(void)
-> >>>>  	omap_hsmmc_init(mmc);
-> >>>> =20
-> >>>>  	omap_mux_init_signal("usb0hs_stp", OMAP_PULL_ENA | OMAP_PULL_UP);
-> >>>> -	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-> >>>> +	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
-> >>>
-> >>> how about moving usb_bind_phy() calls to omap2430.c ?
-> >>>
-> >>> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> >>> index f44e8b5..b6abc1a 100644
-> >>> --- a/drivers/usb/musb/omap2430.c
-> >>> +++ b/drivers/usb/musb/omap2430.c
-> >>> @@ -544,6 +544,9 @@ static int omap2430_probe(struct platform_device =
-*pdev)
-> >>> =20
-> >>>  		pdata->board_data	=3D data;
-> >>>  		pdata->config		=3D config;
-> >>> +	} else {
-> >>> +		/* bind the PHY */
-> >>> +		usb_bind_phy(dev_name(&musb->dev), 0, "twl4030_usb");
-> >>
-> >> This looks like a hack IMHO to workaround the usb phy library. otherwi=
-se it is
-> >> similar to get_phy_by_name.
-> >=20
-> > actually, this is a workaround to the fact that we're not creating all
-> > platform_devices in arch/arm/mach-omap2/ :-)
-> >=20
-> > If we had the musb allocation there, we could easily handle
-> > usb_bind_phy()
-> >=20
-> >>> so that's temporary. It might be better than to reintroduce the IDR in
-> >>> musb_core.c.
-> >>
-> >> that=E2=80=99s needed for generic phy framework anyway :-s
-> >=20
-> > right, but generic phy framework can handle everything just fine, the
-> > only problem is that names are changing.
+On 30/07/13 08:48, Archit Taneja wrote:
+> Hi,
 >=20
-> right. But if the names change, PHY framework wouldn't be able to return =
-the
-> reference to the PHY.
+> On Friday 26 July 2013 12:38 PM, Tomi Valkeinen wrote:
+>> Use new display drivers for devkit8000 board.
+>>
+>> The new OMAP display drivers were merged for 3.11, and we can now chan=
+ge
+>> the board files to use the new ones and phase out the old ones.
+>>
+>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/board-devkit8000.c | 96
+>> +++++++++++++++++++++++-----------
+>>   1 file changed, 65 insertions(+), 31 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/board-devkit8000.c
+>> b/arch/arm/mach-omap2/board-devkit8000.c
+>> index f1d91ba..cdc4fb9 100644
+>> --- a/arch/arm/mach-omap2/board-devkit8000.c
+>> +++ b/arch/arm/mach-omap2/board-devkit8000.c
+>> @@ -112,50 +112,81 @@ static struct regulator_consumer_supply
+>> devkit8000_vio_supply[] =3D {
+>>       REGULATOR_SUPPLY("vcc", "spi2.0"),
+>>   };
+>>
+>> -static struct panel_generic_dpi_data lcd_panel =3D {
+>> -    .name            =3D "innolux_at070tn83",
+>> -    /* gpios filled in code */
+>> +static const struct display_timing devkit8000_lcd_videomode =3D {
+>> +    .pixelclock    =3D { 0, 40000000, 0 },
+>=20
+> This is unrelated to the work being done here, but noticed that the
+> pixel clock for this panel seems to be too high for the given timings.
+> It puts the refresh rate around 90 Hz, which is odd.
 
-with my suggestion they can change whenever they want since we're using
-dev_name() of the just-created musb platform_device. Right ?
+So it does... Quick googling found the specs for the panel, but even
+with the typical values in the spec I get somewhwat odd refresh rate.
 
---=20
-balbi
+Well, as you said, it's unrelated to these changes. I guess it's better
+not to touch it.
 
---hoZxPH4CaxYzWscb
+ Tomi
+
+
+
+--W7OdsVPtR7Rbf7N2kPeuu1JX4WesU98GE
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJR91a+AAoJEIaOsuA1yqREInAP/24uFqeFDQGuhDAdaELJDW3O
-9adi2mRhLHud86tyodt76WHryaRgCA8EUzoWaWGTjk+Mj07fWMNAR0wBIhRyBfYF
-rPLENuvMqsFcSszLXf0RBKJkob+fyqIW57ANeDR8oU/mmfRh6Cg3stwKYsoKB9am
-yUGmTlaMg+REuqLklBrOrKCqoXraIWNDNYd63sSDH8TgWrRx9UXQSn6m48oIVmm4
-6y1Ev+BIoJCEeLKkfS1sQakoF/5Cf6IWXjDXO1nyQ3GXtrt9JUWrDhft37QtBrgT
-+PP28VQXgCkBfY9r45r4eD8JQpj5YGguDJEBFYs06XLNK3VthrRXTTW9ygTpg02J
-ZDWJCbLG63Z2BPZ9F1Wr7iFcNo8J9Ip/WD3V4y3RLwvJYejYoV3BSARZ+L53rbBi
-X7U4xKtbIg+0q95Vkfi3PgIZUhJHmCnpxdbPyWEqQa2nz9M99O/SOd1FJ+K0tgLc
-AMoRPOEaQiYHZM6rrWV4Yy/TfZ5KGsqdfa6yzecTc0dsk2Rls/pR5jOZJZ8OJ3i2
-0cYtVvLZyf+3260tMYRBVl6ouJGnpXOXe+5F377fT1uKDaZ1xUAvSgjJGx/B1B5C
-1JuDU7dGNuI5YCKUFJe4iE/Kupfdi8n9qn/wfsucdjFqLy9H6kX/UrpR80TbVh/P
-wlVClv8sctN5614HrwaF
-=5dWQ
+iQIcBAEBAgAGBQJR91bQAAoJEPo9qoy8lh71/g8P/0c8Sao+VIALJg+0DlXaaWKM
+UeQSe4oA1c3U9KVArBAFwM9EJixTopLeGEAeRfQ+dc1lqX27wPGwVnChQ8l6aegX
+GEMnieGc0xe4mlzn5H8ybnJxAdWyoM8QnNHQ7wsMX5TT08gMoGnXgEY/0+I7pwxW
+CmFI1gd3QmdSNyPXnV4B5NpcfJQAGHVVmcoJ1Gy6PUmlPMyi2w1ZUIyQweQuS9hA
+QXbezs3K9Rt5/00FPCsVwA6Al2b7EpeYeaOrUtfqZe6lNq3kiQK8Awsjpx22mf46
+QVzjCNUnCQRQ210hfOdcdI4Vv0RkwtiSmoBA07KJDMmyOiUaJKvahL52jcB5hwH2
+r8UlFcRQb80DBpgVbC0jFZRY/6QVA3KDmSFPoSCsPzuUAgO6hJTrXuiHZiqM5UOa
+JUxrS3bqItJ7nhYTtCzqkgR3uIDjp9Yn4md51QCzDgCfhCPDzYAK3c5iMZKFf8Uq
+PVmvON52vFjdzLteh1fHrFUMjLiAsEP1T6PcigpP8GKrpg/PZLFRaTrz2sfBEAUT
+FIbP6gJ9UElOdQqi/Jy4P7rC4rNV47sLwDAnoUjLjk3my0NU+ouo1+/hnmeOVYDH
+qtSeeHHU5Sc6KWYwO3KohbGI63E7ZhBIS0nn/e39Ktl52om2s2GGCNVYTMUyqDXZ
+bK3dYwFrS879N6qbJUQH
+=AV6r
 -----END PGP SIGNATURE-----
 
---hoZxPH4CaxYzWscb--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--W7OdsVPtR7Rbf7N2kPeuu1JX4WesU98GE--
