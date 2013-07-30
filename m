@@ -1,75 +1,102 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [PATCH v4 6/8] wlcore: sdio: add wilink clock providers
-Date: Wed, 31 Jul 2013 02:04:26 +0300
-Message-ID: <1375225466.30009.7.camel@cumari.coelho.fi>
-References: <1375189476-21557-1-git-send-email-coelho@ti.com>
- <1375189476-21557-7-git-send-email-coelho@ti.com>
- <20130730223535.5270.39864@quantum>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
+Date: Wed, 31 Jul 2013 01:44:53 +0200
+Message-ID: <CACRpkdYjJL6FZwEbB7XLnb9QtjB=3LeE9Ny6KQ4PkM3zpdNqqg@mail.gmail.com>
+References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org>
+	<CACxGe6uNJNMdZ1HYGgCtLM2t2TWGCR6btjOHVmP=vDXXvvFfRg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130730223535.5270.39864@quantum>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: mark.rutland@arm.com, nm@ti.com, linux-doc@vger.kernel.org, tony@atomide.com, linux-wireless@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, martinez.javier@gmail.com, rob.herring@calxeda.com, grant.likely@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CACxGe6uNJNMdZ1HYGgCtLM2t2TWGCR6btjOHVmP=vDXXvvFfRg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grant Likely <grant.likely@linaro.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Alexander Holler <holler@ahsoftware.de>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2013-07-30 at 15:35 -0700, Mike Turquette wrote:
-> Quoting Luciano Coelho (2013-07-30 06:04:34)
-> > +static const struct of_device_id wlcore_sdio_of_clk_match_table[] = {
-> > +       { .compatible = "ti,wilink-clock" },
-> > +};
-> > +
-> >  static struct wl12xx_platform_data *wlcore_get_pdata_from_of(struct device *dev)
-> >  {
-> >         struct wl12xx_platform_data *pdata;
-> >         struct device_node *np = dev->of_node;
-> > +       struct device_node *clock_node;
-> >  
-> >         if (!np) {
-> >                 np = of_find_matching_node(NULL, dev->driver->of_match_table);
-> > @@ -241,6 +247,9 @@ static struct wl12xx_platform_data *wlcore_get_pdata_from_of(struct device *dev)
-> >                 goto out_free;
-> >         }
-> >  
-> > +       for_each_matching_node(clock_node, wlcore_sdio_of_clk_match_table)
-> > +               of_fixed_clk_setup(clock_node);
-> 
-> Hi Luciano,
+On Tue, Jul 30, 2013 at 6:30 AM, Grant Likely <grant.likely@linaro.org> wrote:
+> On Mon, Jul 29, 2013 at 6:36 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
+>> To solve this dilemma, perform an interrupt consistency check
+>> when adding a GPIO chip: if the chip is both gpio-controller and
+>> interrupt-controller, walk all children of the device tree,
+>> check if these in turn reference the interrupt-controller, and
+>> if they do, loop over the interrupts used by that child and
+>> perform gpio_reques() and gpio_direction_input() on these,
+>> making them unreachable from the GPIO side.
+>
+> Ugh, that's pretty awful, and it doesn't actually solve the root
+> problem of the GPIO and IRQ subsystems not cooperating. It's also a
+> very DT-centric solution even though we're going to see the exact same
+> issue on ACPI machines.
 
-Hi Mike,
+The problem is that the patches for OMAP that I applied
+and now have had to revert solves it in an even uglier way,
+leading to breaking boards, as was noticed.
 
+The approach in this patch has the potential to actually
+work without regressing a bunch of boards...
 
-> Any reason for establishing your own compatible string if you just plan
-> to use the fixed rate clock? You could just use "fixed-clock" compatible
-> in your DTS.
+Whether this is a problem in ACPI or not remains to be seen,
+but I'm not sure about that. Device trees allows for a GPIO line
+to be used as an interrupt source and GPIO line orthogonally,
+and that is the root of this problem. Does ACPI have the same
+problem, or does it impose natural restrictions on such use
+cases?
 
-The reason is that I can't call of_clk_init(), because this function is
-not exported and my module can't use it.  I would have to link with the
-clk code to be able to call it.
+> We have to solve the problem in a better way than that. Rearranging
+> your patch description, here are some of the points you brought up so
+> I can comment on them...
+>
+>> This has the following undesired effects:
+>>
+>> - The GPIOlib subsystem is not aware that the line is in use
+>>   and willingly lets some other consumer perform gpio_request()
+>>   on it, leading to a complex resource conflict if it occurs.
+>
+> If a gpio line is being both requested as a gpio and used as an
+> interrupt line, then either a) it's a bug, or b) the gpio line needs
+> to be used as input only so it is compatible with irq usage. b) should
+> be supportable.
 
-Also, I reckoned that, since these clock cannot be used by anyone else
-than the WiLink module itself, it would make sense to have a different
-compatible string.
+Yes this is what I'm saying too I think...
 
+The bug in (a) manifested itself in the OMAP patch with
+no real solution in sight.
 
-> I will be posting patches this week which makes the fixed-rate clock a
-> proper driver and matches that compatible string to instantiate those
-> clocks. That means that your driver could probably remove the clock
-> setup code completely.
+>> - The GPIO debugfs file claims this GPIO line is "free".
+>
+> Surely we can fix this. I still don't see a problem of having the
+> controller request the gpio when it is claimed as an irq if we can get
+> around the problem of another user performing a /valid/ request on the
+> same GPIO line. The solution may be to have a special form of request
+> or flag that allows it to be shared.
 
-Okay, if this is done, then I could probably use "fixed-clock" directly,
-since the driver itself will take care of going through the DT and
-initializing all the fixed-clocks.
+I don't see how sharing works here, or how another user,
+i.e. another one than the user wanting to recieve the IRQ,
+can validly request such a line? What would the usecase for
+that valid request be?
 
---
-Luca.
+Basically I believe these two things need to be exclusive in
+the DT world:
+
+A: request_irq(a resource passed from "interrupts");
+     -> core implicitly performs gpio_request()
+         gpio_direction_input()
+
+B: gpio_request(a resource passed from "gpios");
+     gpio_direction_input()
+     request_irq(gpio_to_irq())
+
+Never both. And IIUC that was what happened in the
+OMAP case.
+
+>> - The line direction of the interrupt GPIO line is not
+>>   explicitly set as input, even though it is obvious that such
+>>   a line need to be set up in this way, often making the system
+>>   depend on boot-on defaults for this kind of settings.
+>
+> Should also be solvable if the gpio request problem is solved.
+
+Agreed...
+
+Yours,
+Linus Walleij
