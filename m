@@ -1,56 +1,68 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH v4 6/8] wlcore: sdio: add wilink clock providers
-Date: Tue, 30 Jul 2013 15:35:35 -0700
-Message-ID: <20130730223535.5270.39864@quantum>
-References: <1375189476-21557-1-git-send-email-coelho@ti.com>
- <1375189476-21557-7-git-send-email-coelho@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1375189476-21557-7-git-send-email-coelho@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: linux-wireless@vger.kernel.org, tony@atomide.com, nsekhar@ti.com
-Cc: coelho@ti.com, luca@coelho.fi, mark.rutland@arm.com, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, martinez.javier@gmail.com
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: [PATCH] ARM: allow DEBUG_UNCOMPRESS for omap2plus
+Date: Tue, 30 Jul 2013 16:49:18 -0600
+Message-ID: <1375224558-8170-1-git-send-email-swarren@wwwdotorg.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:50351 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755863Ab3G3WtY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jul 2013 18:49:24 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, Shawn Guo <shawn.guo@linaro.org>
 
-Quoting Luciano Coelho (2013-07-30 06:04:34)
-> +static const struct of_device_id wlcore_sdio_of_clk_match_table[] = {
-> +       { .compatible = "ti,wilink-clock" },
-> +};
-> +
->  static struct wl12xx_platform_data *wlcore_get_pdata_from_of(struct device *dev)
->  {
->         struct wl12xx_platform_data *pdata;
->         struct device_node *np = dev->of_node;
-> +       struct device_node *clock_node;
->  
->         if (!np) {
->                 np = of_find_matching_node(NULL, dev->driver->of_match_table);
-> @@ -241,6 +247,9 @@ static struct wl12xx_platform_data *wlcore_get_pdata_from_of(struct device *dev)
->                 goto out_free;
->         }
->  
-> +       for_each_matching_node(clock_node, wlcore_sdio_of_clk_match_table)
-> +               of_fixed_clk_setup(clock_node);
+From: Stephen Warren <swarren@nvidia.com>
 
-Hi Luciano,
+DEBUG_UNCOMPRESS was previously disallowed for omap2plus due to
+omap2plus.S's use of .data, which is not allowed in the decompressor.
+Solve this by placing that data into .text when building the file into
+the decompressor. This relies on .text actually being writable in the
+decompressor, which it is in practice.
 
-Any reason for establishing your own compatible string if you just plan
-to use the fixed rate clock? You could just use "fixed-clock" compatible
-in your DTS.
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Signed-off-by: Stephen Warren <swarren@nvidia.com>
+---
+Note that I have build-tested this with omap2plus_defconfig, but not
+run-time tested it in any way.
+---
+ arch/arm/Kconfig.debug             | 2 +-
+ arch/arm/include/debug/omap2plus.S | 4 ++++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-I will be posting patches this week which makes the fixed-rate clock a
-proper driver and matches that compatible string to instantiate those
-clocks. That means that your driver could probably remove the clock
-setup code completely.
+diff --git a/arch/arm/Kconfig.debug b/arch/arm/Kconfig.debug
+index d8ff7f7..8eb04b1 100644
+--- a/arch/arm/Kconfig.debug
++++ b/arch/arm/Kconfig.debug
+@@ -1046,7 +1046,7 @@ config DEBUG_UART_8250_FLOW_CONTROL
+ config DEBUG_UNCOMPRESS
+ 	bool
+ 	depends on ARCH_MULTIPLATFORM
+-	default y if DEBUG_LL && !DEBUG_OMAP2PLUS_UART
++	default y if DEBUG_LL
+ 	help
+ 	  This option influences the normal decompressor output for
+ 	  multiplatform kernels.  Normally, multiplatform kernels disable
+diff --git a/arch/arm/include/debug/omap2plus.S b/arch/arm/include/debug/omap2plus.S
+index 6d867ae..364ae35 100644
+--- a/arch/arm/include/debug/omap2plus.S
++++ b/arch/arm/include/debug/omap2plus.S
+@@ -58,11 +58,15 @@
+ 
+ #define UART_OFFSET(addr)	((addr) & 0x00ffffff)
+ 
++#if !defined(ZIMAGE)
+ 		.pushsection .data
++#endif
+ omap_uart_phys:	.word	0
+ omap_uart_virt:	.word	0
+ omap_uart_lsr:	.word	0
++#if !defined(ZIMAGE)
+ 		.popsection
++#endif
+ 
+ 		.macro	addruart, rp, rv, tmp
+ 
+-- 
+1.8.1.5
 
-Regards,
-Mike
-
-> +
->         goto out;
->  
->  out_free:
-> -- 
-> 1.8.3.2
