@@ -1,39 +1,102 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv4 29/33] CLK: omap: add omap3 clock init file
-Date: Tue, 30 Jul 2013 15:19:35 -0500
-Message-ID: <51F81FD7.2060707@ti.com>
-References: <1374564028-11352-1-git-send-email-t-kristo@ti.com> <1374564028-11352-30-git-send-email-t-kristo@ti.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: [PATCH v3] Documentation: dt: bindings: TI WiLink modules
+Date: Tue, 30 Jul 2013 23:21:08 +0300
+Message-ID: <1375215668-29171-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36481 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751777Ab3G3UUB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jul 2013 16:20:01 -0400
-In-Reply-To: <1374564028-11352-30-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org
+Cc: mturquette@linaro.org, mark.rutland@arm.com, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-wireless@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, nm@ti.com, laurent.pinchart@ideasonboard.com
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, tony@atomide.com, mturquette@linaro.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-On 07/23/2013 02:20 AM, Tero Kristo wrote:
-> clk-3xxx.c now contains the clock init functionality for omap3, including
-> DT clock registration and adding of static clkdev entries.
->
-> This patch also splits the OMAP3 clock registration code under mach-omap2
-> to use OMAP3 subtype specific clk init functions.
->
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
->   arch/arm/mach-omap2/Makefile          |    2 +-
->   arch/arm/mach-omap2/cclock3xxx_data.c | 3641 ---------------------------------
+Add device tree bindings documentation for the TI WiLink modules.
+Currently only the WLAN part of the WiLink6, WiLink7 and WiLink8
+modules is supported.
 
-Tony and a lot of people is not going to like removing support for 
-non-dt boot for OMAP3 before "it's time is due" ;)
+Signed-off-by: Luciano Coelho <coelho@ti.com>
+---
 
+In v3, use IRQ_TYPE_LEVEL_HIGH in the example, as suggested by Laurent.
 
+ .../devicetree/bindings/net/wireless/ti-wilink.txt | 68 ++++++++++++++++++++++
+ 1 file changed, 68 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
 
+diff --git a/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt b/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
+new file mode 100644
+index 0000000..aafebb1
+--- /dev/null
++++ b/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
+@@ -0,0 +1,68 @@
++TI WiLink Wireless Modules Device Tree Bindings
++===============================================
++
++The WiLink modules provide wireless connectivity, such as WLAN,
++Bluetooth, FM and NFC.
++
++There are several different modules available, which can be grouped by
++their generation: WiLink6, WiLink7 and WiLink8.  WiLink4 is not
++currently supported with device tree.
++
++Currently, only the WLAN portion of the modules is supported with
++device tree.
++
++Required properties:
++--------------------
++
++- compatible: should be "ti,wilink6", "ti,wilink7" or "ti,wilink8"
++- interrupt-parent: the interrupt controller
++- interrupts: out-of-band WLAN interrupt
++	See the interrupt controller's bindings documentation for
++	detailed definition.
++
++Optional properties:
++--------------------
++
++- clocks: list of clocks needed by the chip as follows:
++
++  refclock: the internal WLAN reference clock frequency (required for
++	WiLink6 and WiLink7; not used for WiLink8).
++
++  tcxoclock: the internal WLAN TCXO clock frequency (required for
++	WiLink7 not used for WiLink6 and WiLink8).
++
++  The clocks must be defined and named accordingly.  For example:
++
++  clocks = <&refclock>
++  clock-names = "refclock";
++
++  refclock: refclock {
++		     compatible = "ti,wilink-clock";
++		     #clock-cells = <0>;
++		     clock-frequency = <38400000>;
++	};
++
++  Some modules that contain the WiLink chip provide clocks in the
++  module itself.  In this case, we define a "ti,wilink-clock" as shown
++  above.  But any other clock could in theory be used, so the proper
++  clock definition should be used.
++
++
++Example:
++--------
++
++Example definition that can be used in OMAP4 Panda:
++
++wlan {
++	compatible = "ti,wilink6";
++	interrupt-parent = <&gpio2>;
++	interrupts = <21 IRQ_TYPE_LEVEL_HIGH>;	/* gpio line 53 */
++	clocks = <&refclock>;
++	clock-names = "refclock";
++
++	refclock: refclock {
++		compatible = "ti,wilink-clock";
++		#clock-cells = <0>;
++		clock-frequency = <38400000>;
++	};
++};
 -- 
-Regards,
-Nishanth Menon
+1.8.3.2
+
