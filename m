@@ -1,187 +1,104 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/2] arm: omap: remove *.auto* from device names given in
- usb_bind_phy
-Date: Tue, 30 Jul 2013 09:28:44 +0300
-Message-ID: <20130730062844.GH9155@radagast>
-References: <1374829418-27503-1-git-send-email-kishon@ti.com>
- <1374829418-27503-3-git-send-email-kishon@ti.com>
- <20130729150638.GD3063@radagast> <51F68A56.8060805@ti.com>
- <20130729175413.GC4964@radagast> <51F74BC8.7020903@ti.com>
- <20130730060134.GD9155@radagast> <51F7590B.4020705@ti.com>
- <20130730061830.GE9155@radagast> <51F75C40.4060406@ti.com>
-Reply-To: balbi@ti.com
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 06/21] ARM: OMAP: overo: use new display drivers
+Date: Tue, 30 Jul 2013 09:39:32 +0300
+Message-ID: <51F75FA4.1050406@ti.com>
+References: <1374822504-28949-1-git-send-email-tomi.valkeinen@ti.com> <1374822504-28949-7-git-send-email-tomi.valkeinen@ti.com> <51F75B6A.6090900@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2452216042544206555=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51F75C40.4060406@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux@arm.linux.org.uk, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, eballetbo@gmail.com, javier@dowhile0.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-List-Id: linux-omap@vger.kernel.org
-
---===============2452216042544206555==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WRT3RXLOp/bBMgTI"
-Content-Disposition: inline
+	protocol="application/pgp-signature";
+	boundary="aw3JI2j5uAssKQtrt6be8trCtKl2aDCCc"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:57505 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750711Ab3G3Gj5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Jul 2013 02:39:57 -0400
+In-Reply-To: <51F75B6A.6090900@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---WRT3RXLOp/bBMgTI
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+--aw3JI2j5uAssKQtrt6be8trCtKl2aDCCc
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Tue, Jul 30, 2013 at 11:55:04AM +0530, Kishon Vijay Abraham I wrote:
-> > On Tue, Jul 30, 2013 at 11:41:23AM +0530, Kishon Vijay Abraham I wrote:
-> >>>>>>>> diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach=
--omap2/board-2430sdp.c
-> >>>>>>>> index 244d8a5..17bb076 100644
-> >>>>>>>> --- a/arch/arm/mach-omap2/board-2430sdp.c
-> >>>>>>>> +++ b/arch/arm/mach-omap2/board-2430sdp.c
-> >>>>>>>> @@ -233,7 +233,7 @@ static void __init omap_2430sdp_init(void)
-> >>>>>>>>  	omap_hsmmc_init(mmc);
-> >>>>>>>> =20
-> >>>>>>>>  	omap_mux_init_signal("usb0hs_stp", OMAP_PULL_ENA | OMAP_PULL_U=
-P);
-> >>>>>>>> -	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-> >>>>>>>> +	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
-> >>>>>>>
-> >>>>>>> how about moving usb_bind_phy() calls to omap2430.c ?
-> >>>>>>>
-> >>>>>>> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2=
-430.c
-> >>>>>>> index f44e8b5..b6abc1a 100644
-> >>>>>>> --- a/drivers/usb/musb/omap2430.c
-> >>>>>>> +++ b/drivers/usb/musb/omap2430.c
-> >>>>>>> @@ -544,6 +544,9 @@ static int omap2430_probe(struct platform_dev=
-ice *pdev)
-> >>>>>>> =20
-> >>>>>>>  		pdata->board_data	=3D data;
-> >>>>>>>  		pdata->config		=3D config;
-> >>>>>>> +	} else {
-> >>>>>>> +		/* bind the PHY */
-> >>>>>>> +		usb_bind_phy(dev_name(&musb->dev), 0, "twl4030_usb");
-> >>>>>>
-> >>>>>> This looks like a hack IMHO to workaround the usb phy library. oth=
-erwise it is
-> >>>>>> similar to get_phy_by_name.
-> >>>>>
-> >>>>> actually, this is a workaround to the fact that we're not creating =
-all
-> >>>>> platform_devices in arch/arm/mach-omap2/ :-)
-> >>>>>
-> >>>>> If we had the musb allocation there, we could easily handle
-> >>>>> usb_bind_phy()
-> >>>>>
-> >>>>>>> so that's temporary. It might be better than to reintroduce the I=
-DR in
-> >>>>>>> musb_core.c.
-> >>>>>>
-> >>>>>> that=E2=80=99s needed for generic phy framework anyway :-s
-> >>>>>
-> >>>>> right, but generic phy framework can handle everything just fine, t=
-he
-> >>>>> only problem is that names are changing.
-> >>>>
-> >>>> right. But if the names change, PHY framework wouldn't be able to re=
-turn the
-> >>>> reference to the PHY.
-> >>>
-> >>> with my suggestion they can change whenever they want since we're usi=
-ng
-> >>> dev_name() of the just-created musb platform_device. Right ?
-> >>
-> >> right. But the PHY device can be created in a different place from whe=
-re the
-> >> musb devices are created. And in the PHY framework, the PHY device sho=
-uld have
-> >=20
-> > this shouldn't be a problem. As long as the phy is created, all should
-> > be good.
-> >=20
-> >> the list of controller device (names) it can support (PHY framework do=
-es not
-> >> maintain a separate list for binding like how we had in USB PHY librar=
-y). e.g.
-> >> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg92817.html. =
-In such
-> >=20
-> > this has nothing to do with $subject though. We talk about generic PHY
-> > framework once all these PHY drivers are moved there :-)
-> >=20
-> >> cases how do we pass the device names. Also will the MUSB core device =
-be
-> >> created before twl4030-usb PHY device?
-> >=20
-> > and why would that be a problem ? We're telling the framework that the
-> > musb device will use a phy with a name of 'twl4030'. If musb calls
-> > usb_get_phy_dev() and doesn't find a phy, it'll return -EPROBE_DEFER and
-> > try again later.
+On 30/07/13 09:21, Archit Taneja wrote:
+> Hi,
 >=20
-> I think we are talking about different problems here ;-) I'm trying to te=
-ll
-> using idr in MUSB core is needed for Generic PHY Framework. So in a way, =
-the
-> Generic PHY Framework series depends on this patch series or else MUSB in=
- OMAP3
-> platforms wont work after Generic PHY framework gets merged.
+> On Friday 26 July 2013 12:38 PM, Tomi Valkeinen wrote:
+>> Use the new display drivers for OMAP3 Overo board.
+>>
+>> The new OMAP display drivers were merged for 3.11, and we can now chan=
+ge
+>> the board files to use the new ones and phase out the old ones.
+>>
+>> Note that the LCD add-on boards for lcd43 and lcd35 use the same GPIOs=
 
-then you just found a limitation in your framework, right ? :-) I mean,
-imagine if now we have to add an IDR to every single user of your
-framework because they could end up in systems with multiple instances
-of the same IP ?
+>> for the panels. This means that both panel devices cannot be probed at=
 
-Now consider that you aim to have your framework be used by Network,
-USB, SATA, Graphics, etc... Have you really only considered DT
-platforms ? DT is quite easy since you can require folks to pass the
-proper phandle, but drivers will want to use PLATFORM_DEVID_AUTO and
-your framework needs to cope with that.
+>> the same time.
+>>
+>> DT will handle this correctly, i.e. the DT data will contain the panel=
 
---=20
-balbi
+>> device only for the add-on board that is attached. However, for the
+>> board file we need a hackish solution: We parse the kernel boot comman=
+d
+>> line, and see whether lcd43 or lcd35 is set as a default display, and
+>> add the given one. Or, if neither is given, default to lcd43.
+>>
+>=20
+> <snip>
+>=20
+>>   static struct omap_dss_board_info overo_dss_data =3D {
+>> -    .num_devices    =3D ARRAY_SIZE(overo_dss_devices),
+>> -    .devices    =3D overo_dss_devices,
+>> -    .default_device    =3D &overo_dvi_device,
+>> +    .default_display_name =3D "lcd43",
+>>   };
+>=20
+> The default display previously was the dvi device, if both lcd43 and
+> lcd35 are on add-on boards, then we should probably stick to dvi itself=
+,
+> right? The hack won't work if dvi is the default device though.
 
---WRT3RXLOp/bBMgTI
+DVI is also on an add-on board, but it doesn't conflict with lcd43 or lcd=
+35.
+
+The hack works fine even if DVI is the default device. In that case, it
+doesn't matter if lcd43 or lcd35 is added, because the user doesn't use
+them (as long as only one of them is added, because otherwise there'll
+be an error during probe).
+
+If DVI is the default device, we could actually skip adding both lcd43
+and lcd35. I just wanted to minimize the code in this hack, so I didn't
+do that.
+
+ Tomi
+
+
+
+--aw3JI2j5uAssKQtrt6be8trCtKl2aDCCc
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJR910bAAoJEIaOsuA1yqREgQ4P+we8b7ZPyz5Vj4OaPTnmmv5p
-PFOgeb2+emM7sCILleJFlmq0Pn63jNnjdrGi+VfREUbdoFYasdkpnsuYVOBimYWX
-W62fSm0kzXaL89RFoRjfGAfhhXSEQbDE48gFdm3PgREQlrzb9gvuKjg/Ab49fx97
-dgEjDqDW3vJb9EJOYEhQbSrTTozh+2Blp6+0l+XA0x76j1zQNVqF84b5oIx3LWZM
-XiI8zTYB7Zbe1A6RqkaxKdZxAgH5rWYkvCNIjWFjn43JWSuKTBfNaAjSAxzq8+nP
-oNYJ4nqRZrbPH+uiWIy4HAUijBT1wVErQ5qXH3tac4e72OayuOwv4oS3eHonWudn
-wr7xuqTmel1/SAsnHKhGDTraCibKU8bZLeOUsI5HCDZkl9XBgY7OvzRV3FxV/5j7
-eJuBS2bl6FTFjNFm9a1O3u0U2cQ2AUAhfKXX3E9T3B3Bd5F/dV3mpaqTw1vqYsJn
-ez0SMV/rXhA+Jay5Qc5h6gjcADnf+pMxyQDJBJs26lhciPnVXO4JGcosK8u+MCPH
-bzphorXzrcoWF9qF+O0LNsxx8WGLUlwzIjaKNvc+1k7lmw4VtejYvG4fZZB/fLcw
-S9GzNEnALh4aDBmpPXvXpN+7bKnCd5y4M5vVFytKvHCHF++SNZ4WZZbVUnH0tVLb
-pE+uL46w9XK3HHD/2zkH
-=/Iy8
+iQIcBAEBAgAGBQJR91+kAAoJEPo9qoy8lh71Pc8QAJtFRd8D50NVyiiOAk6kkj39
+Yci/uK1g9pgjGPsba889snhmtWP5Xe8DkSp/q/giOibtHi1QjHe11X/slUlAPnqZ
+suFLyDOXi0LpX9DS4nppbYYpUbVwn/YzVE61pmQpoYJMHZjMSYNjFBkO+CWawSn3
+kkhf9ekuRfPvLcPM2bbgbFbf3pajJ6LCcq+RAM2TLpV8pgi/NeQ01XhipgR2r4dJ
+oudO7T/QF7rkrMHDzNBKde6ZiNUVDPRU/y7sOxmg91kc8g/11vH7lL2AUUcp0pBK
+eH3LVEqNwUQ3s80rhNVcmMGgs8xRXn9BiRMK/A8IoT3ysJ0Ng7oTHr7goMva7LLI
+BlZMJ3bbn9Xy+2fkrI/1/gmdBD9JHn6uXOi0lCgpaPd0AD7pAA882YAv1PmNbSR1
+lAtAo+yojMubGnfyjY/J3FoL66Y+sBJM2BZBdM+SVcqW1E982su3Km7LDCo0exf4
+Ww9VKNzNxEEKZ+jEYxOw9UzzP6j+Rl+wNwC8qsrz2pfqvfEHvd+p9NwVVseLTJF/
+LGOPUtS6VCjQsb+VjPS/oOyd0FZoyCKsJlsTCJfmFuPploCwZbRypbBT46ss6fUK
+pDI2IbGWkgZOLM20JXwliqmVG5vgu9DxDqR7XQbVYFX3nknoeEjfGhfi6j8d0+xt
+F8VYLeKDMqQFNdQCcfJk
+=Kpsx
 -----END PGP SIGNATURE-----
 
---WRT3RXLOp/bBMgTI--
-
-
---===============2452216042544206555==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============2452216042544206555==--
+--aw3JI2j5uAssKQtrt6be8trCtKl2aDCCc--
