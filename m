@@ -1,126 +1,94 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/2] arm: omap: remove *.auto* from device names given in
- usb_bind_phy
-Date: Tue, 30 Jul 2013 10:16:11 +0300
-Message-ID: <20130730071611.GD16441@radagast>
-References: <20130729150638.GD3063@radagast> <51F68A56.8060805@ti.com>
- <20130729175413.GC4964@radagast> <51F74BC8.7020903@ti.com>
- <20130730060134.GD9155@radagast> <51F7590B.4020705@ti.com>
- <20130730061830.GE9155@radagast> <51F75C40.4060406@ti.com>
- <20130730062844.GH9155@radagast> <51F7613C.5070803@ti.com>
-Reply-To: balbi@ti.com
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [PATCHv6 1/2] drivers: spi: Add qspi flash controller
+Date: Tue, 30 Jul 2013 13:04:28 +0530
+Message-ID: <51F76C84.8080601@ti.com>
+References: <1375082550-30544-1-git-send-email-sourav.poddar@ti.com> <1375082550-30544-2-git-send-email-sourav.poddar@ti.com> <20130729093128.GE23710@radagast> <51F63FF3.5070304@ti.com> <20130729102038.GK23710@radagast> <51F64C49.4080606@ti.com> <20130729110902.GE24801@radagast> <51F64EB6.5020807@ti.com> <20130729123515.GJ24801@radagast>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2044752646361712003=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51F7613C.5070803@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux@arm.linux.org.uk, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, eballetbo@gmail.com, javier@dowhile0.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-List-Id: linux-omap@vger.kernel.org
-
---===============2044752646361712003==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oj4kGyHlBMXGt3Le"
-Content-Disposition: inline
-
---oj4kGyHlBMXGt3Le
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Tue, Jul 30, 2013 at 12:16:20PM +0530, Kishon Vijay Abraham I wrote:
-> >>>> the list of controller device (names) it can support (PHY framework =
-does not
-> >>>> maintain a separate list for binding like how we had in USB PHY libr=
-ary). e.g.
-> >>>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg92817.html=
-=2E In such
-> >>>
-> >>> this has nothing to do with $subject though. We talk about generic PHY
-> >>> framework once all these PHY drivers are moved there :-)
-> >>>
-> >>>> cases how do we pass the device names. Also will the MUSB core devic=
-e be
-> >>>> created before twl4030-usb PHY device?
-> >>>
-> >>> and why would that be a problem ? We're telling the framework that the
-> >>> musb device will use a phy with a name of 'twl4030'. If musb calls
-> >>> usb_get_phy_dev() and doesn't find a phy, it'll return -EPROBE_DEFER =
-and
-> >>> try again later.
-> >>
-> >> I think we are talking about different problems here ;-) I'm trying to=
- tell
-> >> using idr in MUSB core is needed for Generic PHY Framework. So in a wa=
-y, the
-> >> Generic PHY Framework series depends on this patch series or else MUSB=
- in OMAP3
-> >> platforms wont work after Generic PHY framework gets merged.
-> >=20
-> > then you just found a limitation in your framework, right ? :-) I mean,
-> > imagine if now we have to add an IDR to every single user of your
-> > framework because they could end up in systems with multiple instances
-> > of the same IP ?
->=20
-> I raised a similar concern in the PHY framework discussion [1] :-) And si=
-nce
-> it's used everywhere else regulators, clkdev, etc.. it's agreed to be use=
-d in
-> PHY as well. Btw if PLATFORM_DEVID_AUTO is used even regulator, clk_get s=
-hould
-> fail IMO.
->=20
-> [1] -> http://lkml.indiana.edu/hypermail/linux/kernel/1307.2/03573.html
-
-look at Greg's and my reply to that email.
-
---=20
-balbi
-
---oj4kGyHlBMXGt3Le
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR92g7AAoJEIaOsuA1yqREY0IP/2rLJXtchwOiyow03vRcjVbv
-tsWrWB2cGvtGAe3cnyAqaBzTIJ0RlA/N3d+gjy8qPWrShKrLTOgBXB+vcjpQZUcZ
-9zfFef0pz1vz3/lXkDYj/mDNkIcIS6SslzbJ8KIfArniXgfB6Yj+T3xgtzc1gbKH
-76OrAq3fTZJYPeoLFUVQX+Eh3z8O33QocWYLFHFXpcDO5wMTrz5B2lGmfhukd/FN
-yPaZvh/34EqdOTNdt7xxcbZNj0gTzsGVyFPgrrixn/arkbX13Ffzhn/caGuHIrSC
-SrTKJ6+GCuur+XFduYtOweV6mKs/DTxK7UCIqPKHbYuUnKJXmYppTRUAKqJ4fSWo
-nBotOyRwS6JYl+1JRWrC1BPnwnZJ83ECXo9+Un5FwFjNoZ6oqTHFIgrzSlpIkNZF
-eIU6GhDlXZGf7M08cHZ+ALsdA0eMgt7RYW2W+zlkL3L4OIHEPLD/UiWoAX/LEnGY
-yAJLslgXBkvRwUa3UyABg9GRg1F+mhCzEI+Zq8lc+u98WcfQ5r6g4K64QImFJnBa
-7IdK6t5IX8/T1FfCZA/Jfg7VMwPPV7meIar0gUQTSciex6/gMYuQlXM5txMuGbk2
-xO1rUy1q6Zfw4DbPWS/7eYPT+WUBn2jZFPk9IfFU3AUPzJlNiGPE7kDaJ8ph/l21
-Eix1XIq50wgErgvxv2c8
-=0vRB
------END PGP SIGNATURE-----
-
---oj4kGyHlBMXGt3Le--
-
-
---===============2044752646361712003==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55132 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757643Ab3G3Hen (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Jul 2013 03:34:43 -0400
+In-Reply-To: <20130729123515.GJ24801@radagast>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, linux-omap@vger.kernel.org, rnayak@ti.com
 
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Hi Felipe,
+On Monday 29 July 2013 06:05 PM, Felipe Balbi wrote:
+> Hi,
+>
+> On Mon, Jul 29, 2013 at 04:45:02PM +0530, Sourav Poddar wrote:
+>>>>>>>> +	irq = platform_get_irq(pdev, 0);
+>>>>>>>> +	if (irq<     0) {
+>>>>>>>> +		dev_err(&pdev->dev, "no irq resource?\n");
+>>>>>>>> +		return irq;
+>>>>>>>> +	}
+>>>>>>>> +
+>>>>>>>> +	spin_lock_init(&qspi->lock);
+>>>>>>>> +
+>>>>>>>> +	qspi->base = devm_ioremap_resource(&pdev->dev, r);
+>>>>>>>> +	if (IS_ERR(qspi->base)) {
+>>>>>>>> +		ret = PTR_ERR(qspi->base);
+>>>>>>>> +		goto free_master;
+>>>>>>>> +	}
+>>>>>>>> +
+>>>>>>>> +	ret = devm_request_threaded_irq(&pdev->dev, irq, ti_qspi_isr,
+>>>>>>>> +			ti_qspi_threaded_isr, IRQF_NO_SUSPEND | IRQF_ONESHOT,
+>>>>>>> why do you need IRQF_NO_SUSPEND ?
+>>>>>>>
+>>>>>> I should get away with this.
+>>>>> why ? Do you need or do you *not* need it ? And in either case, why ?
+>>>>>
+>>>> I was thinking, this will keep the irqs up even when we are
+>>>> hitting suspend, we will not be prepared to handle it. ?
+>>> won't be prepared in what way ?
+>>>
+>> Our driver will be down, so the irq might go un-serviced.
+> only if you wrote the driver that way. IRQ subsystem doesn't know the
+> state of the device, all it knows is that in case an IRQ fires, it needs
+> to call the registered IRQ handler.
+>
+> Now the thing is:
+>
+> Initially you had the flag setup, so I asked why you needed it. I
+> expected you to tell me why you think QSPI's IRQ shouldn't be disabled
+> during suspend and the implications of disabling it.
+>
+> Instead you just changed your mind and decided to remove the flag.
+>
+> Because you changed your mind with no explanation, that tells me you
+> haven't fully grasped how that flag works and what it means to set (or
+> not set) it.
+>
+> My question now is simply: why don't you need that flag ? What are the
+> implications of setting that flag ? How would your driver behave if an
+> IRQ fired while your driver was suspended ? Unless you understand what
+> it does, how can you understand the behavior or the driver ?
+>
+> cheers
+>
+We dont need IRQF_NO_SUSPEND flag in our qspi controller.
 
---===============2044752646361712003==--
+Qspi driver need to be prevented from receiving interrupts during system 
+wide suspend/hibernation.
+"suspend_device_irqs" in kernel/irq/pm.c marks interrupt line in use and 
+sets IRQS_SUSPENDED
+for them.
+If we use "IRQF_NO_SUSPEND", we will bypass setting this IRQS_SUSPENDED 
+flag, which is not.
+desired
+
+
+For this, interrupt lines need to
+  and this function is provided for this purpose.
+  * It marks all interrupt lines in use, except for the timer ones, as 
+disabled
+  * and sets the IRQS_SUSPENDED flag for each of them.
+
+This flag gets used in __disable_irq api(kernel/irq/manage.c) which
+
+
