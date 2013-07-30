@@ -1,62 +1,47 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V2 0/3] ARM: dts: omap5-uevm: fixup wrong regulator configuration
-Date: Tue, 30 Jul 2013 07:18:45 -0500
-Message-ID: <CAGo_u6qqGaMKGE66wt_EqeGGcdxNm2jmp6H+NCMeCuswLHT3rA@mail.gmail.com>
-References: <51F67D7D.9070003@ti.com>
-	<1375117383-19285-1-git-send-email-nm@ti.com>
-	<51F6EA23.50803@gmail.com>
-	<20130730065253.GE7656@atomide.com>
+Subject: Re: Linux kernel for OMAP5432 uEVM
+Date: Tue, 30 Jul 2013 07:24:44 -0500
+Message-ID: <51F7B08C.1070200@ti.com>
+References: <20130730033808.GA23486@cbz-workstation> <51F7387B.9060304@ti.com> <AEBD4502-35A4-4662-B435-7F4F0D5C5D6A@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130730065253.GE7656@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Benoit Cousson <benoit.cousson@gmail.com>, l-o <linux-omap@vger.kernel.org>, dt list <devicetree@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>, J Keerthy <j-keerthy@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:39693 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751747Ab3G3MYq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jul 2013 08:24:46 -0400
+In-Reply-To: <AEBD4502-35A4-4662-B435-7F4F0D5C5D6A@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Chen Baozi <baozich@gmail.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org
 
-On Tue, Jul 30, 2013 at 1:52 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Benoit Cousson <benoit.cousson@gmail.com> [130729 15:24]:
->> On 29/07/2013 19:03, Nishanth Menon wrote:
->> > Due to wrong older revision of documentation used as reference, we
->> > seem to have a bunch of LDOs wrongly configured on OMAP5 uEVM. This
->> > series is based power tree on production board 750-2628-XXX platform.
->> > Unfortunately, the wrong voltages may be detrimental to OMAP5 as they
->> > supply hardware blocks at voltages that are out of specification.
->> >
->> > Also available at:
->> > based on v3.11-rc1 tag
->> > http link: https://github.com/nmenon/linux-2.6-playground/commits/push/omap5-palmas-fixes-v2
->> > git link: git://github.com/nmenon/linux-2.6-playground.git
->> > branch: push/omap5-palmas-fixes-v2
->> >
->> > Changes since V1:
->> >  - squash of patches
->> >  - picked up Ack from Keerthy
->> >  - based on v3.11-rc3 tag
->> >
->> > V1: http://marc.info/?t=137407980100008&r=1&w=2
->> >
->> > Nishanth Menon (3):
->> >   ARM: dts: omap5-uevm: document regulator signals used on the actual
->> >     board
->> >   ARM: dts: omap5-uevm: fix regulator configurations mandatory for SoC
->> >   ARM: dts: omap5-uevm: update optional/unused regulator configurations
->> >
->> >  arch/arm/boot/dts/omap5-uevm.dts |   78 ++++++++++++++++++++++++--------------
->> >  1 file changed, 49 insertions(+), 29 deletions(-)
->> >
->> > Regards,
->> > Nishanth Menon
->>
->> For the whole series:
->>
->> Acked-by: Benoit Cousson <benoit.cousson@gmail.com>
+On 07/30/2013 01:07 AM, Chen Baozi wrote:
 >
-> Thanks, I've applied these into omap-for-v3.11/fixes-omap5
-> and will send a pull request for these today as these seem
-> quite urgent fixes.
-yes they are. thanks for picking these up and the reviews.
+> On Jul 30, 2013, at 11:52 AM, Lokesh Vutla <lokeshvutla@ti.com> wrote:
+>
+>> Hi Chen,
+>> On Tuesday 30 July 2013 09:08 AM, Chen Baozi wrote:
+>>> Hi all,
+>>>
+>>> I'm trying to boot my OMAP5432 uEVM devboard with the lastest kernel of
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git.
+>> Which branch are you using ?
+>
+> the master branch.
+>
+>>> However, after u-boot loading uImage & DTB, there is no output message any
+>>> more, such as:
+>> Clk data might be missing here. Try merging the below branch and test it
+>> https://git.kernel.org/cgit/linux/kernel/git/ssantosh/linux.git/log/?h=for_3.11/out_of_tree/omap5_clk_data
+>
+> Thanks, I'll have a try.
 
+There is also clock data dts support now in Tero's series:
+http://marc.info/?l=linux-omap&m=137456411706971&w=2
+
+
+-- 
 Regards,
 Nishanth Menon
