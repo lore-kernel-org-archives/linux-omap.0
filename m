@@ -1,15 +1,18 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Tue, 30 Jul 2013 10:11:06 +0300
-Message-ID: <20130730071106.GC16441@radagast>
-References: <20130720220006.GA7977@kroah.com> <3839600.WiC1OLF35o@flatron>
- <51EBC0F5.70601@ti.com> <9748041.Qq1fWJBg6D@flatron>
- <20130721154653.GG16598@kroah.com>
+Subject: Re: [PATCH 2/2] arm: omap: remove *.auto* from device names given in
+ usb_bind_phy
+Date: Tue, 30 Jul 2013 10:16:11 +0300
+Message-ID: <20130730071611.GD16441@radagast>
+References: <20130729150638.GD3063@radagast> <51F68A56.8060805@ti.com>
+ <20130729175413.GC4964@radagast> <51F74BC8.7020903@ti.com>
+ <20130730060134.GD9155@radagast> <51F7590B.4020705@ti.com>
+ <20130730061830.GE9155@radagast> <51F75C40.4060406@ti.com>
+ <20130730062844.GH9155@radagast> <51F7613C.5070803@ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4750305062473751746=="
+Content-Type: multipart/mixed; boundary="===============2044752646361712003=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130721154653.GG16598@kroah.com>
+In-Reply-To: <51F7613C.5070803@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,190 +22,97 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, Tomasz Figa <tomasz.figa@gmail.com>, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, Kishon Vijay Abraham I <kishon@ti.com>, Alan Stern <stern@rowland.harvard.edu>, grant.likely@linaro.org, linux-media@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, devicetree-discuss@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.park@samsung.com, akpm@linux-foundation.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux@arm.linux.org.uk, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, eballetbo@gmail.com, javier@dowhile0.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---===============4750305062473751746==
+--===============2044752646361712003==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pAwQNkOnpTn9IO2O"
+	protocol="application/pgp-signature"; boundary="oj4kGyHlBMXGt3Le"
 Content-Disposition: inline
 
---pAwQNkOnpTn9IO2O
+--oj4kGyHlBMXGt3Le
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Jul 21, 2013 at 08:46:53AM -0700, Greg KH wrote:
-> On Sun, Jul 21, 2013 at 01:12:07PM +0200, Tomasz Figa wrote:
-> > On Sunday 21 of July 2013 16:37:33 Kishon Vijay Abraham I wrote:
-> > > Hi,
-> > >=20
-> > > On Sunday 21 July 2013 04:01 PM, Tomasz Figa wrote:
-> > > > Hi,
-> > > >=20
-> > > > On Saturday 20 of July 2013 19:59:10 Greg KH wrote:
-> > > >> On Sat, Jul 20, 2013 at 10:32:26PM -0400, Alan Stern wrote:
-> > > >>> On Sat, 20 Jul 2013, Greg KH wrote:
-> > > >>>>>>> That should be passed using platform data.
-> > > >>>>>>=20
-> > > >>>>>> Ick, don't pass strings around, pass pointers.  If you have
-> > > >>>>>> platform
-> > > >>>>>> data you can get to, then put the pointer there, don't use a
-> > > >>>>>> "name".
-> > > >>>>>=20
-> > > >>>>> I don't think I understood you here :-s We wont have phy pointer
-> > > >>>>> when we create the device for the controller no?(it'll be done =
-in
-> > > >>>>> board file). Probably I'm missing something.
-> > > >>>>=20
-> > > >>>> Why will you not have that pointer?  You can't rely on the "name"
-> > > >>>> as
-> > > >>>> the device id will not match up, so you should be able to rely on
-> > > >>>> the pointer being in the structure that the board sets up, right?
-> > > >>>>=20
-> > > >>>> Don't use names, especially as ids can, and will, change, that is
-> > > >>>> going
-> > > >>>> to cause big problems.  Use pointers, this is C, we are supposed=
- to
-> > > >>>> be
-> > > >>>> doing that :)
-> > > >>>=20
-> > > >>> Kishon, I think what Greg means is this:  The name you are using
-> > > >>> must
-> > > >>> be stored somewhere in a data structure constructed by the board
-> > > >>> file,
-> > > >>> right?  Or at least, associated with some data structure somehow.
-> > > >>> Otherwise the platform code wouldn't know which PHY hardware
-> > > >>> corresponded to a particular name.
-> > > >>>=20
-> > > >>> Greg's suggestion is that you store the address of that data
-> > > >>> structure
-> > > >>> in the platform data instead of storing the name string.  Have the
-> > > >>> consumer pass the data structure's address when it calls phy_crea=
-te,
-> > > >>> instead of passing the name.  Then you don't have to worry about =
-two
-> > > >>> PHYs accidentally ending up with the same name or any other simil=
-ar
-> > > >>> problems.
-> > > >>=20
-> > > >> Close, but the issue is that whatever returns from phy_create()
-> > > >> should
-> > > >> then be used, no need to call any "find" functions, as you can just
-> > > >> use
-> > > >> the pointer that phy_create() returns.  Much like all other class =
-api
-> > > >> functions in the kernel work.
-> > > >=20
-> > > > I think there is a confusion here about who registers the PHYs.
-> > > >=20
-> > > > All platform code does is registering a platform/i2c/whatever devic=
-e,
-> > > > which causes a driver (located in drivers/phy/) to be instantiated.
-> > > > Such drivers call phy_create(), usually in their probe() callbacks,
-> > > > so platform_code has no way (and should have no way, for the sake of
-> > > > layering) to get what phy_create() returns.
->=20
-> Why not put pointers in the platform data structure that can hold these
-> pointers?  I thought that is why we created those structures in the
-> first place.  If not, what are they there for?
+Hi,
 
-heh, IMO we shouldn't pass pointers of any kind through platform_data,
-we want to pass data :-)
-
-Allowing to pass pointers through that, is one of the reasons which got
-us in such a big mess in ARM land, well it was much easier for a
-board-file/driver writer to pass a function pointer then to create a
-generic framework :-)
-
-> > > > IMHO we need a lookup method for PHYs, just like for clocks,
-> > > > regulators, PWMs or even i2c busses because there are complex cases
-> > > > when passing just a name using platform data will not work. I would
-> > > > second what Stephen said [1] and define a structure doing things in=
- a
-> > > > DT-like way.
-> > > >=20
-> > > > Example;
-> > > >=20
-> > > > [platform code]
-> > > >=20
-> > > > static const struct phy_lookup my_phy_lookup[] =3D {
-> > > >=20
-> > > > 	PHY_LOOKUP("s3c-hsotg.0", "otg", "samsung-usbphy.1", "phy.2"),
-> > >=20
-> > > The only problem here is that if *PLATFORM_DEVID_AUTO* is used while
-> > > creating the device, the ids in the device name would change and
-> > > PHY_LOOKUP wont be useful.
+On Tue, Jul 30, 2013 at 12:16:20PM +0530, Kishon Vijay Abraham I wrote:
+> >>>> the list of controller device (names) it can support (PHY framework =
+does not
+> >>>> maintain a separate list for binding like how we had in USB PHY libr=
+ary). e.g.
+> >>>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg92817.html=
+=2E In such
+> >>>
+> >>> this has nothing to do with $subject though. We talk about generic PHY
+> >>> framework once all these PHY drivers are moved there :-)
+> >>>
+> >>>> cases how do we pass the device names. Also will the MUSB core devic=
+e be
+> >>>> created before twl4030-usb PHY device?
+> >>>
+> >>> and why would that be a problem ? We're telling the framework that the
+> >>> musb device will use a phy with a name of 'twl4030'. If musb calls
+> >>> usb_get_phy_dev() and doesn't find a phy, it'll return -EPROBE_DEFER =
+and
+> >>> try again later.
+> >>
+> >> I think we are talking about different problems here ;-) I'm trying to=
+ tell
+> >> using idr in MUSB core is needed for Generic PHY Framework. So in a wa=
+y, the
+> >> Generic PHY Framework series depends on this patch series or else MUSB=
+ in OMAP3
+> >> platforms wont work after Generic PHY framework gets merged.
 > >=20
-> > I don't think this is a problem. All the existing lookup methods alread=
-y=20
-> > use ID to identify devices (see regulators, clkdev, PWMs, i2c, ...). Yo=
-u=20
-> > can simply add a requirement that the ID must be assigned manually,=20
-> > without using PLATFORM_DEVID_AUTO to use PHY lookup.
+> > then you just found a limitation in your framework, right ? :-) I mean,
+> > imagine if now we have to add an IDR to every single user of your
+> > framework because they could end up in systems with multiple instances
+> > of the same IP ?
 >=20
-> And I'm saying that this idea, of using a specific name and id, is
-> frought with fragility and will break in the future in various ways when
-> devices get added to systems, making these strings constantly have to be
-> kept up to date with different board configurations.
+> I raised a similar concern in the PHY framework discussion [1] :-) And si=
+nce
+> it's used everywhere else regulators, clkdev, etc.. it's agreed to be use=
+d in
+> PHY as well. Btw if PLATFORM_DEVID_AUTO is used even regulator, clk_get s=
+hould
+> fail IMO.
 >=20
-> People, NEVER, hardcode something like an id.  The fact that this
-> happens today with the clock code, doesn't make it right, it makes the
-> clock code wrong.  Others have already said that this is wrong there as
-> well, as systems change and dynamic ids get used more and more.
->=20
-> Let's not repeat the same mistakes of the past just because we refuse to
-> learn from them...
->=20
-> So again, the "find a phy by a string" functions should be removed, the
-> device id should be automatically created by the phy core just to make
-> things unique in sysfs, and no driver code should _ever_ be reliant on
-> the number that is being created, and the pointer to the phy structure
-> should be used everywhere instead.
->=20
-> With those types of changes, I will consider merging this subsystem, but
-> without them, sorry, I will not.
+> [1] -> http://lkml.indiana.edu/hypermail/linux/kernel/1307.2/03573.html
 
-I'll agree with Greg here, the very fact that we see people trying to
-add a requirement of *NOT* using PLATFORM_DEVID_AUTO already points to a
-big problem in the framework.
-
-The fact is that if we don't allow PLATFORM_DEVID_AUTO we will end up
-adding similar infrastructure to the driver themselves to make sure we
-don't end up with duplicate names in sysfs in case we have multiple
-instances of the same IP in the SoC (or several of the same PCIe card).
-I really don't want to go back to that.
+look at Greg's and my reply to that email.
 
 --=20
 balbi
 
---pAwQNkOnpTn9IO2O
+--oj4kGyHlBMXGt3Le
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJR92cJAAoJEIaOsuA1yqRE0ugP/2Nn6KnDxcBCsTxnEc+tLsEu
-qY26sZZlwsPRX/zcDTYePFWKgo0OUUptbfgBj22cCrRtSRi5X3vTFC4+ZsKoXGGq
-NjSaAfgRD8Axh0EKLslTtPm+E5t8hVcaGfYA/wZzCKbGIMxvD0n1ncR48+oOG41z
-Zfglv2e19KMP/tBdSYDOgw6JbUQuGuk+4ovthn2vMHjbQHffoLYmphh+evu5BYsE
-KRCvbtHCMFA7xdsKW6wnZ8kwLsK5jZXLQcM3H1++eezXBhdwsHPUmsVH+81PRdZk
-hPt8QlM1mcZyfzMuZKGnYTobrC69wlzW1x1YFvKjFLnduZzyMjQnSwunYbKG7bhq
-jceUghC2LPA3H6PVGWvmlePwHCB1OW1Pk8yaYlwBUiDBJ7WbDvkJ+SOkISinAdB5
-9NzCSSwBfuebrsoNVj+osoegdvUyZpYuEbMu/we5vps5/h85Wh5KaU437eF++kBA
-eWIkQAwtvvhXcEVcWTbJ3jttOX26k7YHAU7PZ/JT62xKB3JG3/mGr/CjRTlwL4C/
-R26PhaBB3+WdZI+ZtuMILW/repNw4uXE1VLMklDD0uF6qs8y8oO8TUAnpOEXrUiG
-hEh+8Rz/LhCiIi4GOkCNht3m3aA0WFT27n3+UjYu8c32Kzh4wLFB4dstufAJ3Qcx
-gPysm9AJ4/XDXQkSS1p/
-=cE11
+iQIcBAEBAgAGBQJR92g7AAoJEIaOsuA1yqREY0IP/2rLJXtchwOiyow03vRcjVbv
+tsWrWB2cGvtGAe3cnyAqaBzTIJ0RlA/N3d+gjy8qPWrShKrLTOgBXB+vcjpQZUcZ
+9zfFef0pz1vz3/lXkDYj/mDNkIcIS6SslzbJ8KIfArniXgfB6Yj+T3xgtzc1gbKH
+76OrAq3fTZJYPeoLFUVQX+Eh3z8O33QocWYLFHFXpcDO5wMTrz5B2lGmfhukd/FN
+yPaZvh/34EqdOTNdt7xxcbZNj0gTzsGVyFPgrrixn/arkbX13Ffzhn/caGuHIrSC
+SrTKJ6+GCuur+XFduYtOweV6mKs/DTxK7UCIqPKHbYuUnKJXmYppTRUAKqJ4fSWo
+nBotOyRwS6JYl+1JRWrC1BPnwnZJ83ECXo9+Un5FwFjNoZ6oqTHFIgrzSlpIkNZF
+eIU6GhDlXZGf7M08cHZ+ALsdA0eMgt7RYW2W+zlkL3L4OIHEPLD/UiWoAX/LEnGY
+yAJLslgXBkvRwUa3UyABg9GRg1F+mhCzEI+Zq8lc+u98WcfQ5r6g4K64QImFJnBa
+7IdK6t5IX8/T1FfCZA/Jfg7VMwPPV7meIar0gUQTSciex6/gMYuQlXM5txMuGbk2
+xO1rUy1q6Zfw4DbPWS/7eYPT+WUBn2jZFPk9IfFU3AUPzJlNiGPE7kDaJ8ph/l21
+Eix1XIq50wgErgvxv2c8
+=0vRB
 -----END PGP SIGNATURE-----
 
---pAwQNkOnpTn9IO2O--
+--oj4kGyHlBMXGt3Le--
 
 
---===============4750305062473751746==
+--===============2044752646361712003==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -213,4 +123,4 @@ linux-arm-kernel mailing list
 linux-arm-kernel@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---===============4750305062473751746==--
+--===============2044752646361712003==--
