@@ -1,59 +1,57 @@
-From: Gururaja Hebbar <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [Patch V2 4/4] ARM: dts: AM33XX: update rtc node compatibility
-Date: Tue, 30 Jul 2013 10:35:52 +0530
-Message-ID: <51F749B0.7020802@ti.com>
-References: <1372841225-18813-1-git-send-email-gururaja.hebbar@ti.com>
-	<1372841225-18813-5-git-send-email-gururaja.hebbar@ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH v2] ARM: EDMA: Fix clearing of unused list for DT DMA
+ resources
+Date: Tue, 30 Jul 2013 00:05:25 -0500
+Message-ID: <51F74995.2050202@ti.com>
+References: <1374515989-7391-1-git-send-email-joelf@ti.com>
+ <51F4589E.5070108@ti.com> <51F6140B.3070600@ti.com> <51F738BF.7070808@ti.com>
+ <51F74688.3090702@ti.com>
+Reply-To: joelf@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1372841225-18813-5-git-send-email-gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, benoit.cousson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, vaibhav.bedia-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51F74688.3090702@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Balaji TK <balajitk@ti.com>, Arnd Bergmann <arnd@arndb.de>, Mark Jackson <mpfj-list@newflow.co.uk>, Tony Lindgren <tony@atomide.com>, Pantel Antoniou <panto@antoniou-consulting.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Vinod Koul <vinod.koul@intel.com>, Jason Kridner <jkridner@beagleboard.org>, Benoit Cousson <benoit.cousson@linaro.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On 07/29/2013 11:52 PM, Sekhar Nori wrote:> On Tuesday 30 July 2013
+09:23 AM, Joel Fernandes wrote:
+>> On 07/29/2013 02:04 AM, Sekhar Nori wrote:
+>>> On Sunday 28 July 2013 05:02 AM, Joel Fernandes wrote:
+>>>> Hi Tony or Sekhar,
+>>>>
+>>>> If this patch looks ok, could you pick it up for -rc cycle?
+>>>>
+>>>> It fixes DMA breakages after the merge window for devices for which DMA
+>>>> resources are being populated in device tree instead pdev.
+>>>
+>>> But which DT-enabled platform in kernel is using EDMA? A grep for edma
+>>> over arch/arm/boot/dts/* brings up nothing.
+>>> Does this really have to go into the -rc cycle or can it wait till
+>>> v3.12?
+>>
+>>
+>> But unused channel list is also populated for private EDMA callers like
+>> davinci-pcm no? IIRC, HWMOD data is also removed for McASP so EDMA for
+>> those may break.
+>
+> Yes, but which DT-enabled platform has davinci-pcm working today?
+> AFAICS, this bug affects DT-enabled platforms only.
 
-On 7/3/2013 2:17 PM, Hebbar Gururaja wrote:
-> Since AM33xx  RTC IP has RTC_IRQWAKEEN to support Alarm Wake-up.
->
-> Update the rtc compatible property to "ti,am3352-rtc" to enable handling
-> of this feature inside rtc-omap driver.
+Yes, you're right. I didn't realize nothing else is working yet. I guess
+its fine then for next kernel release.
 
-The other 2 rtc driver related patches have been pulled up. If you have 
-no comments, can you please pull this up.
+Thanks,
 
-Regards
-Gururaja
-
->
-> Signed-off-by: Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-> ---
-> :100644 100644 77aa1b0... dde180a... M	arch/arm/boot/dts/am33xx.dtsi
->   arch/arm/boot/dts/am33xx.dtsi |    2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 77aa1b0..dde180a 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -297,7 +297,7 @@
->   		};
->
->   		rtc@44e3e000 {
-> -			compatible = "ti,da830-rtc";
-> +			compatible = "ti,am3352-rtc";
->   			reg = <0x44e3e000 0x1000>;
->   			interrupts = <75
->   				      76>;
->
+-Joel
