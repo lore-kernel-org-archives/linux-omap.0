@@ -1,499 +1,126 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv4 04/33] CLK: omap: move part of the machine specific
- clock header contents to driver
-Date: Tue, 30 Jul 2013 13:22:20 -0500
-Message-ID: <51F8045C.6020603@ti.com>
-References: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
- <1374564028-11352-5-git-send-email-t-kristo@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2] Documentation: dt: bindings: TI WiLink modules
+Date: Tue, 30 Jul 2013 20:24:34 +0200
+Message-ID: <1551085.3MDKgN8U89@avalon>
+References: <1375109728-5931-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1374564028-11352-5-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: paul@pwsan.com, khilman@linaro.org, mturquette@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1375109728-5931-1-git-send-email-coelho@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Luciano Coelho <coelho@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, mturquette@linaro.org, mark.rutland@arm.com, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-wireless@vger.kernel.org, linux-arm@vger.kernel.org, tony@atomide.com, nm@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-this patch should be 3/33 to allow dpll.c to build.
+Hi Luciano,
 
-On 07/23/2013 02:19 AM, Tero Kristo wrote:
-> Some of the clock.h contents are needed by the new OMAP clock driver,
-> including dpll_data and clk_hw_omap. Thus, move these to the generic
-> omap header file which can be accessed by the driver.
->
-Looking at the change, I wonder what the rules are for the movement? 
-commit message was not clear.
+Thank you for the patch.
 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+On Monday 29 July 2013 17:55:28 Luciano Coelho wrote:
+> Add device tree bindings documentation for the TI WiLink modules.
+> Currently only the WLAN part of the WiLink6, WiLink7 and WiLink8
+> modules is supported.
+> 
+> Signed-off-by: Luciano Coelho <coelho@ti.com>
 > ---
->   arch/arm/mach-omap2/clock.h |  151 +----------------------------------------
->   include/linux/clk/omap.h    |  157 ++++++++++++++++++++++++++++++++++++++++++-
->   2 files changed, 157 insertions(+), 151 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-> index 7aa32cd..d1a3125 100644
-> --- a/arch/arm/mach-omap2/clock.h
-> +++ b/arch/arm/mach-omap2/clock.h
-> @@ -21,6 +21,7 @@
->
->   #include <linux/clkdev.h>
->   #include <linux/clk-provider.h>
-> +#include <linux/clk/omap.h>
->
->   struct omap_clk {
->   	u16				cpu;
-> @@ -178,83 +179,6 @@ struct clksel {
->   	const struct clksel_rate *rates;
->   };
->
-> -/**
-> - * struct dpll_data - DPLL registers and integration data
-> - * @mult_div1_reg: register containing the DPLL M and N bitfields
-> - * @mult_mask: mask of the DPLL M bitfield in @mult_div1_reg
-> - * @div1_mask: mask of the DPLL N bitfield in @mult_div1_reg
-> - * @clk_bypass: struct clk pointer to the clock's bypass clock input
-> - * @clk_ref: struct clk pointer to the clock's reference clock input
-> - * @control_reg: register containing the DPLL mode bitfield
-> - * @enable_mask: mask of the DPLL mode bitfield in @control_reg
-> - * @last_rounded_rate: cache of the last rate result of omap2_dpll_round_rate()
-> - * @last_rounded_m: cache of the last M result of omap2_dpll_round_rate()
-> - * @last_rounded_m4xen: cache of the last M4X result of
-> - *			omap4_dpll_regm4xen_round_rate()
-> - * @last_rounded_lpmode: cache of the last lpmode result of
-> - *			 omap4_dpll_lpmode_recalc()
-> - * @max_multiplier: maximum valid non-bypass multiplier value (actual)
-> - * @last_rounded_n: cache of the last N result of omap2_dpll_round_rate()
-> - * @min_divider: minimum valid non-bypass divider value (actual)
-> - * @max_divider: maximum valid non-bypass divider value (actual)
-> - * @modes: possible values of @enable_mask
-> - * @autoidle_reg: register containing the DPLL autoidle mode bitfield
-> - * @idlest_reg: register containing the DPLL idle status bitfield
-> - * @autoidle_mask: mask of the DPLL autoidle mode bitfield in @autoidle_reg
-> - * @freqsel_mask: mask of the DPLL jitter correction bitfield in @control_reg
-> - * @idlest_mask: mask of the DPLL idle status bitfield in @idlest_reg
-> - * @lpmode_mask: mask of the DPLL low-power mode bitfield in @control_reg
-> - * @m4xen_mask: mask of the DPLL M4X multiplier bitfield in @control_reg
-> - * @auto_recal_bit: bitshift of the driftguard enable bit in @control_reg
-> - * @recal_en_bit: bitshift of the PRM_IRQENABLE_* bit for recalibration IRQs
-> - * @recal_st_bit: bitshift of the PRM_IRQSTATUS_* bit for recalibration IRQs
-> - * @flags: DPLL type/features (see below)
-> - *
-> - * Possible values for @flags:
-> - * DPLL_J_TYPE: "J-type DPLL" (only some 36xx, 4xxx DPLLs)
-> - *
-> - * @freqsel_mask is only used on the OMAP34xx family and AM35xx.
-> - *
-> - * XXX Some DPLLs have multiple bypass inputs, so it's not technically
-> - * correct to only have one @clk_bypass pointer.
-> - *
-> - * XXX The runtime-variable fields (@last_rounded_rate, @last_rounded_m,
-> - * @last_rounded_n) should be separated from the runtime-fixed fields
-> - * and placed into a different structure, so that the runtime-fixed data
-> - * can be placed into read-only space.
-> - */
-> -struct dpll_data {
-> -	void __iomem		*mult_div1_reg;
-> -	u32			mult_mask;
-> -	u32			div1_mask;
-> -	struct clk		*clk_bypass;
-> -	struct clk		*clk_ref;
-> -	void __iomem		*control_reg;
-> -	u32			enable_mask;
-> -	unsigned long		last_rounded_rate;
-> -	u16			last_rounded_m;
-> -	u8			last_rounded_m4xen;
-> -	u8			last_rounded_lpmode;
-> -	u16			max_multiplier;
-> -	u8			last_rounded_n;
-> -	u8			min_divider;
-> -	u16			max_divider;
-> -	u8			modes;
-> -	void __iomem		*autoidle_reg;
-> -	void __iomem		*idlest_reg;
-> -	u32			autoidle_mask;
-> -	u32			freqsel_mask;
-> -	u32			idlest_mask;
-> -	u32			dco_mask;
-> -	u32			sddiv_mask;
-> -	u32			lpmode_mask;
-> -	u32			m4xen_mask;
-> -	u8			auto_recal_bit;
-> -	u8			recal_en_bit;
-> -	u8			recal_st_bit;
-> -	u8			flags;
-> -};
-> -
->   /*
->    * struct clk.flags possibilities
->    *
-> @@ -274,56 +198,6 @@ struct dpll_data {
->   #define INVERT_ENABLE		(1 << 4)	/* 0 enables, 1 disables */
->   #define CLOCK_CLKOUTX2		(1 << 5)
->
-> -/**
-> - * struct clk_hw_omap - OMAP struct clk
-> - * @node: list_head connecting this clock into the full clock list
-> - * @enable_reg: register to write to enable the clock (see @enable_bit)
-> - * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
-> - * @flags: see "struct clk.flags possibilities" above
-> - * @clksel_reg: for clksel clks, register va containing src/divisor select
-> - * @clksel_mask: bitmask in @clksel_reg for the src/divisor selector
-> - * @clksel: for clksel clks, pointer to struct clksel for this clock
-> - * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
-> - * @clkdm_name: clockdomain name that this clock is contained in
-> - * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
-> - * @rate_offset: bitshift for rate selection bitfield (OMAP1 only)
-> - * @src_offset: bitshift for source selection bitfield (OMAP1 only)
-> - *
-> - * XXX @rate_offset, @src_offset should probably be removed and OMAP1
-> - * clock code converted to use clksel.
-> - *
-> - */
-> -
-> -struct clk_hw_omap_ops;
-> -
-> -struct clk_hw_omap {
-> -	struct clk_hw		hw;
-> -	struct list_head	node;
-> -	unsigned long		fixed_rate;
-> -	u8			fixed_div;
-> -	void __iomem		*enable_reg;
-> -	u8			enable_bit;
-> -	u8			flags;
-> -	void __iomem		*clksel_reg;
-> -	u32			clksel_mask;
-> -	const struct clksel	*clksel;
-> -	struct dpll_data	*dpll_data;
-> -	const char		*clkdm_name;
-> -	struct clockdomain	*clkdm;
-> -	const struct clk_hw_omap_ops	*ops;
-> -};
-> -
-> -struct clk_hw_omap_ops {
-> -	void			(*find_idlest)(struct clk_hw_omap *oclk,
-> -					void __iomem **idlest_reg,
-> -					u8 *idlest_bit, u8 *idlest_val);
-> -	void			(*find_companion)(struct clk_hw_omap *oclk,
-> -					void __iomem **other_reg,
-> -					u8 *other_bit);
-> -	void			(*allow_idle)(struct clk_hw_omap *oclk);
-> -	void			(*deny_idle)(struct clk_hw_omap *oclk);
-> -};
-> -
->   unsigned long omap_fixed_divisor_recalc(struct clk_hw *hw,
->   					unsigned long parent_rate);
->
-> @@ -356,28 +230,13 @@ unsigned long omap_fixed_divisor_recalc(struct clk_hw *hw,
->   /* DPLL Type and DCO Selection Flags */
->   #define DPLL_J_TYPE		0x1
->
-> -long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
-> -			unsigned long *parent_rate);
-> -unsigned long omap3_dpll_recalc(struct clk_hw *hw, unsigned long parent_rate);
-> -int omap3_noncore_dpll_enable(struct clk_hw *hw);
-> -void omap3_noncore_dpll_disable(struct clk_hw *hw);
-> -int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
-> -				unsigned long parent_rate);
+> 
+> Changes in v2:
+> 
+> Use generic clock definitions to get the clock data instead of passing
+> the frequencies directly.  Also added definition for "internal"
+> ti,wilink-clock.
+> 
+> Please review.
 
-Why are these being moved to generic?
+The proposal looks good to me, I just have one small comment.
 
->   u32 omap3_dpll_autoidle_read(struct clk_hw_omap *clk);
->   void omap3_dpll_allow_idle(struct clk_hw_omap *clk);
->   void omap3_dpll_deny_idle(struct clk_hw_omap *clk);
+>  .../devicetree/bindings/net/wireless/ti-wilink.txt | 68 +++++++++++++++++++
+>  1 file changed, 68 insertions(+)
+>  create mode 100644
+> Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
+> b/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt new file
+> mode 100644
+> index 0000000..5fd27dc
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
+> @@ -0,0 +1,68 @@
+> +TI WiLink Wireless Modules Device Tree Bindings
+> +===============================================
+> +
+> +The WiLink modules provide wireless connectivity, such as WLAN,
+> +Bluetooth, FM and NFC.
+> +
+> +There are several different modules available, which can be grouped by
+> +their generation: WiLink6, WiLink7 and WiLink8.  WiLink4 is not
+> +currently supported with device tree.
+> +
+> +Currently, only the WLAN portion of the modules is supported with
+> +device tree.
+> +
+> +Required properties:
+> +--------------------
+> +
+> +- compatible: should be "ti,wilink6", "ti,wilink7" or "ti,wilink8"
+> +- interrupt-parent: the interrupt controller
+> +- interrupts: out-of-band WLAN interrupt
+> +	See the interrupt controller's bindings documentation for
+> +	detailed definition.
+> +
+> +Optional properties:
+> +--------------------
+> +
+> +- clocks: list of clocks needed by the chip as follows:
+> +
+> +  refclock: the internal WLAN reference clock frequency (required for
+> +	WiLink6 and WiLink7; not used for WiLink8).
+> +
+> +  tcxoclock: the internal WLAN TCXO clock frequency (required for
+> +	WiLink7 not used for WiLink6 and WiLink8).
+> +
+> +  The clocks must be defined and named accordingly.  For example:
+> +
+> +  clocks = <&refclock>
+> +  clock-names = "refclock";
+> +
+> +  refclock: refclock {
+> +		     compatible = "ti,wilink-clock";
+> +		     #clock-cells = <0>;
+> +		     clock-frequency = <38400000>;
+> +	};
+> +
+> +  Some modules that contain the WiLink chip provide clocks in the
+> +  module itself.  In this case, we define a "ti,wilink-clock" as shown
+> +  above.  But any other clock could in theory be used, so the proper
+> +  clock definition should be used.
+> +
+> +
+> +Example:
+> +--------
+> +
+> +Example definition that can be used in OMAP4 Panda:
+> +
+> +wlan {
+> +	compatible = "ti,wilink6";
+> +	interrupt-parent = <&gpio2>;
+> +	interrupts = <21 0x4>;	/* gpio line 53, high level triggered */
 
-> -unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
-> -				    unsigned long parent_rate);
-why move this?
+Could you please use the IRQ_TYPE_LEVEL_HIGH macro (defined in <dt-
+bindings/interrupt-controller/irq.h>) instead of the hardcode 0x4 constant ?
 
->   int omap4_dpllmx_gatectrl_read(struct clk_hw_omap *clk);
->   void omap4_dpllmx_allow_gatectrl(struct clk_hw_omap *clk);
->   void omap4_dpllmx_deny_gatectrl(struct clk_hw_omap *clk);
-> -unsigned long omap4_dpll_regm4xen_recalc(struct clk_hw *hw,
-> -				unsigned long parent_rate);
-> -long omap4_dpll_regm4xen_round_rate(struct clk_hw *hw,
-> -				    unsigned long target_rate,
-> -				    unsigned long *parent_rate);
-same here.
-
->
-> -void omap2_init_clk_clkdm(struct clk_hw *clk);
-same question again.
-
->   void __init omap2_clk_disable_clkdm_control(void);
->
->   /* clkt_clksel.c public functions */
-> @@ -396,7 +255,6 @@ int omap2_clksel_set_parent(struct clk_hw *hw, u8 field_val);
->   extern void omap2_clkt_iclk_allow_idle(struct clk_hw_omap *clk);
->   extern void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk);
->
-> -u8 omap2_init_dpll_parent(struct clk_hw *hw);
-why move this?
-
->   unsigned long omap2_get_dpll_rate(struct clk_hw_omap *clk);
->
->   int omap2_dflt_clk_enable(struct clk_hw *hw);
-> @@ -408,9 +266,7 @@ void omap2_clk_dflt_find_companion(struct clk_hw_omap *clk,
->   void omap2_clk_dflt_find_idlest(struct clk_hw_omap *clk,
->   				void __iomem **idlest_reg,
->   				u8 *idlest_bit, u8 *idlest_val);
-> -void omap2_init_clk_hw_omap_clocks(struct clk *clk);
-why move this?
-
->   int omap2_clk_enable_autoidle_all(void);
-> -int omap2_clk_disable_autoidle_all(void);
-why move this?
-
->   void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks);
->   int omap2_clk_switch_mpurate_at_boot(const char *mpurate_ck_name);
->   void omap2_clk_print_new_rates(const char *hfclkin_ck_name,
-> @@ -431,10 +287,8 @@ extern const struct clksel_rate gfx_l3_rates[];
->   extern const struct clksel_rate dsp_ick_rates[];
->   extern struct clk dummy_ck;
->
-> -extern const struct clk_hw_omap_ops clkhwops_omap3_dpll;
-is this needed to be moved?
-
->   extern const struct clk_hw_omap_ops clkhwops_iclk_wait;
->   extern const struct clk_hw_omap_ops clkhwops_wait;
-> -extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
-is this needed to be moved?
-
->   extern const struct clk_hw_omap_ops clkhwops_iclk;
->   extern const struct clk_hw_omap_ops clkhwops_omap3430es2_ssi_wait;
->   extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait;
-> @@ -460,8 +314,5 @@ extern const struct clksel_rate div31_1to31_rates[];
->
->   extern int am33xx_clk_init(void);
->
-> -extern int omap2_clkops_enable_clkdm(struct clk_hw *hw);
-> -extern void omap2_clkops_disable_clkdm(struct clk_hw *hw);
-> -
-
-
->   extern void omap_clocks_register(struct omap_clk *oclks, int cnt);
->   #endif
-> diff --git a/include/linux/clk/omap.h b/include/linux/clk/omap.h
-> index 647f02f..cba892a 100644
-> --- a/include/linux/clk/omap.h
-> +++ b/include/linux/clk/omap.h
-> @@ -19,6 +19,161 @@
->   #ifndef __LINUX_CLK_OMAP_H_
->   #define __LINUX_CLK_OMAP_H_
->
-> -int __init dt_omap_clk_init(void);
-> +/**
-> + * struct dpll_data - DPLL registers and integration data
-> + * @mult_div1_reg: register containing the DPLL M and N bitfields
-> + * @mult_mask: mask of the DPLL M bitfield in @mult_div1_reg
-> + * @div1_mask: mask of the DPLL N bitfield in @mult_div1_reg
-> + * @clk_bypass: struct clk pointer to the clock's bypass clock input
-> + * @clk_ref: struct clk pointer to the clock's reference clock input
-> + * @control_reg: register containing the DPLL mode bitfield
-> + * @enable_mask: mask of the DPLL mode bitfield in @control_reg
-> + * @last_rounded_rate: cache of the last rate result of omap2_dpll_round_rate()
-> + * @last_rounded_m: cache of the last M result of omap2_dpll_round_rate()
-> + * @last_rounded_m4xen: cache of the last M4X result of
-> + *                     omap4_dpll_regm4xen_round_rate()
-> + * @last_rounded_lpmode: cache of the last lpmode result of
-> + *                      omap4_dpll_lpmode_recalc()
-> + * @max_multiplier: maximum valid non-bypass multiplier value (actual)
-> + * @last_rounded_n: cache of the last N result of omap2_dpll_round_rate()
-> + * @min_divider: minimum valid non-bypass divider value (actual)
-> + * @max_divider: maximum valid non-bypass divider value (actual)
-> + * @modes: possible values of @enable_mask
-> + * @autoidle_reg: register containing the DPLL autoidle mode bitfield
-> + * @idlest_reg: register containing the DPLL idle status bitfield
-> + * @autoidle_mask: mask of the DPLL autoidle mode bitfield in @autoidle_reg
-> + * @freqsel_mask: mask of the DPLL jitter correction bitfield in @control_reg
-> + * @idlest_mask: mask of the DPLL idle status bitfield in @idlest_reg
-> + * @lpmode_mask: mask of the DPLL low-power mode bitfield in @control_reg
-> + * @m4xen_mask: mask of the DPLL M4X multiplier bitfield in @control_reg
-> + * @auto_recal_bit: bitshift of the driftguard enable bit in @control_reg
-> + * @recal_en_bit: bitshift of the PRM_IRQENABLE_* bit for recalibration IRQs
-> + * @recal_st_bit: bitshift of the PRM_IRQSTATUS_* bit for recalibration IRQs
-> + * @flags: DPLL type/features (see below)
-> + *
-> + * Possible values for @flags:
-> + * DPLL_J_TYPE: "J-type DPLL" (only some 36xx, 4xxx DPLLs)
-but the flag is in arch/arm/mach-omap2/clock.h ?
-
-> + *
-> + * @freqsel_mask is only used on the OMAP34xx family and AM35xx.
-> + *
-> + * XXX Some DPLLs have multiple bypass inputs, so it's not technically
-> + * correct to only have one @clk_bypass pointer.
-> + *
-> + * XXX The runtime-variable fields (@last_rounded_rate, @last_rounded_m,
-> + * @last_rounded_n) should be separated from the runtime-fixed fields
-> + * and placed into a different structure, so that the runtime-fixed data
-> + * can be placed into read-only space.
-> + */
-> +struct dpll_data {
-
-is it necessary to export this? usage is limited to dpll.c and could be 
-made private to it alone, no?
-
-> +	void __iomem		*mult_div1_reg;
-> +	u32			mult_mask;
-> +	u32			div1_mask;
-> +	struct clk		*clk_bypass;
-> +	struct clk		*clk_ref;
-> +	void __iomem		*control_reg;
-> +	u32			enable_mask;
-> +	unsigned long		last_rounded_rate;
-> +	u16			last_rounded_m;
-> +	u8			last_rounded_m4xen;
-> +	u8			last_rounded_lpmode;
-> +	u16			max_multiplier;
-> +	u8			last_rounded_n;
-> +	u8			min_divider;
-> +	u16			max_divider;
-> +	u8			modes;
-> +	void __iomem		*autoidle_reg;
-> +	void __iomem		*idlest_reg;
-> +	u32			autoidle_mask;
-> +	u32			freqsel_mask;
-> +	u32			idlest_mask;
-> +	u32			dco_mask;
-
-not part of kernel documentation above.
-
-> +	u32			sddiv_mask;
-
-not part of kernel documentation above.
-
-
-> +	u32			lpmode_mask;
-> +	u32			m4xen_mask;
-> +	u8			auto_recal_bit;
-> +	u8			recal_en_bit;
-> +	u8			recal_st_bit;
-> +	u8			flags;
+> +	clocks = <&refclock>;
+> +	clock-names = "refclock";
+> +
+> +	refclock: refclock {
+> +		compatible = "ti,wilink-clock";
+> +		#clock-cells = <0>;
+> +		clock-frequency = <38400000>;
+> +	};
 > +};
-> +
-> +/**
-> + * struct clk_hw_omap - OMAP struct clk
-> + * @node: list_head connecting this clock into the full clock list
-> + * @enable_reg: register to write to enable the clock (see @enable_bit)
-> + * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
-> + * @flags: see "struct clk.flags possibilities" above
-> + * @clksel_reg: for clksel clks, register va containing src/divisor select
-> + * @clksel_mask: bitmask in @clksel_reg for the src/divisor selector
-> + * @clksel: for clksel clks, pointer to struct clksel for this clock
-> + * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
-> + * @clkdm_name: clockdomain name that this clock is contained in
-> + * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
-> + * @rate_offset: bitshift for rate selection bitfield (OMAP1 only)
-> + * @src_offset: bitshift for source selection bitfield (OMAP1 only)
-> + *
-> + * XXX @rate_offset, @src_offset should probably be removed and OMAP1
-> + * clock code converted to use clksel.
-Do you need to carry these forward? they already disappeared from the 
-struct below.
-
-> + *
-> + */
-> +
-> +struct clk_hw_omap_ops;
-you need to keep the kernel documentation next to the struct which it is 
-documenting, by introducing clk_hw_omap_ops forward declaration, we 
-introduced the following kernel-doc error:
-
-Error(include/linux/clk/omap.h:119): Cannot parse struct or union!
-
-> +
-> +struct clk_hw_omap {
-> +	struct clk_hw		hw;
-not documented.
-
-> +	struct list_head	node;
-> +	unsigned long		fixed_rate;
-not documented.
-
-> +	u8			fixed_div;
-not documented.
-
-> +	void __iomem		*enable_reg;
-> +	u8			enable_bit;
-> +	u8			flags;
-> +	void __iomem		*clksel_reg;
-> +	u32			clksel_mask;
-> +	const struct clksel	*clksel;
-> +	struct dpll_data	*dpll_data;
-> +	const char		*clkdm_name;
-> +	struct clockdomain	*clkdm;
-> +	const struct clk_hw_omap_ops	*ops;
-> +};
-> +
-> +struct clk_hw_omap_ops {
-> +	void			(*find_idlest)(struct clk_hw_omap *oclk,
-> +					void __iomem **idlest_reg,
-> +					u8 *idlest_bit, u8 *idlest_val);
-> +	void			(*find_companion)(struct clk_hw_omap *oclk,
-> +					void __iomem **other_reg,
-> +					u8 *other_bit);
-> +	void			(*allow_idle)(struct clk_hw_omap *oclk);
-> +	void			(*deny_idle)(struct clk_hw_omap *oclk);
-> +};
-
-will be nice to have kernel documentation for these.
-
-> +
-> +void omap2_init_clk_hw_omap_clocks(struct clk *clk);
-> +int omap3_noncore_dpll_enable(struct clk_hw *hw);
-> +void omap3_noncore_dpll_disable(struct clk_hw *hw);
-> +int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
-> +				unsigned long parent_rate);
-> +unsigned long omap4_dpll_regm4xen_recalc(struct clk_hw *hw,
-> +				unsigned long parent_rate);
-> +long omap4_dpll_regm4xen_round_rate(struct clk_hw *hw,
-> +				    unsigned long target_rate,
-> +				    unsigned long *parent_rate);
-> +u8 omap2_init_dpll_parent(struct clk_hw *hw);
-> +unsigned long omap3_dpll_recalc(struct clk_hw *hw, unsigned long parent_rate);
-> +long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
-> +			unsigned long *parent_rate);
-> +void omap2_init_clk_clkdm(struct clk_hw *clk);
-> +unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
-> +				    unsigned long parent_rate);
-> +
-> +int omap2_clkops_enable_clkdm(struct clk_hw *hw);
-> +void omap2_clkops_disable_clkdm(struct clk_hw *hw);
-> +
-> +int omap2_clk_disable_autoidle_all(void);
-^^ all the above, not clear why we are moving them out enmasse.
-
-> +
-> +extern const struct clk_hw_omap_ops clkhwops_omap3_dpll;
-> +extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
-why do we need to export these out?
-
-> +
-> +/* DT functions */
-> +int dt_omap_clk_init(void);
-in this change, we removed __init -> which should have been done in the 
-patch that introduced it in the first place.
-
-> +void of_omap4_dpll_setup(struct device_node *node);
-we should not be needing this.
-
->
->   #endif
->
-
-at this point, we have a dependency between drivers/clk/omap/dpll.c and 
-arch/arm/mach-omap2/ -> a possible suggestion will be to move required 
-data structures first and operations as required.
-
 -- 
 Regards,
-Nishanth Menon
+
+Laurent Pinchart
+
