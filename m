@@ -1,71 +1,83 @@
 From: Luciano Coelho <coelho@ti.com>
-Subject: [PATCH v4 6/8] wlcore: sdio: add wilink clock providers
-Date: Tue, 30 Jul 2013 16:04:34 +0300
-Message-ID: <1375189476-21557-7-git-send-email-coelho@ti.com>
-References: <1375189476-21557-1-git-send-email-coelho@ti.com>
+Subject: [PATCH v4 0/8] wilink: add device tree support
+Date: Tue, 30 Jul 2013 16:04:28 +0300
+Message-ID: <1375189476-21557-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1375189476-21557-1-git-send-email-coelho@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-wireless@vger.kernel.org, tony@atomide.com, nsekhar@ti.com
 Cc: coelho@ti.com, luca@coelho.fi, mturquette@linaro.org, mark.rutland@arm.com, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, martinez.javier@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-Add refclock and tcxoclock as clock providers in WiLink.  These clocks
-are not accesible outside the WiLink module, but they are registered
-in the clock framework anyway.  Only the WiLink chip consumes these
-clocks.
+Hi,
 
-In theory, the WiLink chip could be connected to external clocks
-instead of using these internal clocks, so make the clock consumer
-code generic enough.  If external clocks are used, then the internal
-clock device tree nodes are not necessary, but the external ones must
-be specified.
+This patch series adds device tree support to the wlcore_sdio driver,
+which is used by WiLink6, WiLink7 and WiLink8.
 
-Signed-off-by: Luciano Coelho <coelho@ti.com>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
----
- drivers/net/wireless/ti/wlcore/sdio.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+The first patches do some clean-up to make the data needed in the
+wilink device tree node smaller.  The remaining patches implement the
+actual device tree node parsing in wlcore_sdio.
 
-diff --git a/drivers/net/wireless/ti/wlcore/sdio.c b/drivers/net/wireless/ti/wlcore/sdio.c
-index 9370d7e..980bf3d 100644
---- a/drivers/net/wireless/ti/wlcore/sdio.c
-+++ b/drivers/net/wireless/ti/wlcore/sdio.c
-@@ -34,6 +34,7 @@
- #include <linux/wl12xx.h>
- #include <linux/pm_runtime.h>
- #include <linux/printk.h>
-+#include <linux/clk-provider.h>
- 
- #include "wlcore.h"
- #include "wl12xx_80211.h"
-@@ -214,10 +215,15 @@ static struct wl1271_if_operations sdio_ops = {
- 	.set_block_size = wl1271_sdio_set_block_size,
- };
- 
-+static const struct of_device_id wlcore_sdio_of_clk_match_table[] = {
-+	{ .compatible = "ti,wilink-clock" },
-+};
-+
- static struct wl12xx_platform_data *wlcore_get_pdata_from_of(struct device *dev)
- {
- 	struct wl12xx_platform_data *pdata;
- 	struct device_node *np = dev->of_node;
-+	struct device_node *clock_node;
- 
- 	if (!np) {
- 		np = of_find_matching_node(NULL, dev->driver->of_match_table);
-@@ -241,6 +247,9 @@ static struct wl12xx_platform_data *wlcore_get_pdata_from_of(struct device *dev)
- 		goto out_free;
- 	}
- 
-+	for_each_matching_node(clock_node, wlcore_sdio_of_clk_match_table)
-+		of_fixed_clk_setup(clock_node);
-+
- 	goto out;
- 
- out_free:
+Regarding the XTAL clock issues, for now we don't support XTAL mode
+with DT, but I have sent a proposal for a small change in the clock
+framework to support this, but it's still under discussions [1].
+
+The DTS file changes will be sent separately, since they need to go
+via different trees.
+
+A new version of the bindings documentation has been sent [2] and, if
+no more comments are given to it, I'll apply it via my tree.
+
+[1] http://news.gmane.org/find-root.php?message_id=1372971912-10877-1-git-send-email-coelho@ti.com
+[2] http://news.gmane.org/find-root.php?message_id=1375109728-5931-1-git-send-email-coelho@ti.com
+
+Changes in v4:
+
+* Rebased on top of 3.11-rc3 (eg. no more changes on the board files
+  that were removed);
+
+* Use the new irq_get_trigger_type() instead of
+  irqd_get_trigger_type() (thanks Javier);
+
+* Added some missing const's (thanks Felipe);
+
+* Reverted Tony's workaround to get WiLink to work on Panda while DT
+  was not supported yet.
+
+
+Please review.
+
+
+Luciano Coelho (8):
+  wl1251: split wl251 platform data to a separate structure
+  wlcore: set irq_flags in the board files instead of hiding behind a
+    quirk
+  wlcore: remove pwr_in_suspend from platform data
+  wl12xx: use frequency instead of enumerations for pdata clocks
+  wlcore: add initial device tree support to the sdio module
+  wlcore: sdio: add wilink clock providers
+  wlcore: sdio: get clocks from device tree
+  wlcore/wl12xx: check if we got correct clock data from DT
+
+ arch/arm/mach-davinci/board-da850-evm.c        |  11 ++-
+ arch/arm/mach-omap2/board-omap3evm.c           |  22 ++++-
+ arch/arm/mach-omap2/board-omap3pandora.c       |   4 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c   |   2 +-
+ arch/arm/mach-omap2/board-zoom-peripherals.c   |  33 +++++++-
+ arch/arm/mach-omap2/devices.c                  |  39 ---------
+ drivers/net/wireless/ti/wilink_platform_data.c |  37 ++++++--
+ drivers/net/wireless/ti/wl1251/sdio.c          |  12 +--
+ drivers/net/wireless/ti/wl1251/spi.c           |   2 +-
+ drivers/net/wireless/ti/wl12xx/main.c          |  78 +++++++++++++++--
+ drivers/net/wireless/ti/wl12xx/wl12xx.h        |  28 +++++++
+ drivers/net/wireless/ti/wlcore/debugfs.c       |   2 +-
+ drivers/net/wireless/ti/wlcore/main.c          |  20 ++---
+ drivers/net/wireless/ti/wlcore/sdio.c          | 112 +++++++++++++++++++++++--
+ drivers/net/wireless/ti/wlcore/wlcore.h        |   5 +-
+ drivers/net/wireless/ti/wlcore/wlcore_i.h      |   1 +
+ include/linux/wl12xx.h                         |  52 +++++-------
+ 17 files changed, 340 insertions(+), 120 deletions(-)
+
 -- 
 1.8.3.2
