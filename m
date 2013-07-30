@@ -1,16 +1,15 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [Patch V2 4/4] ARM: dts: AM33XX: update rtc node compatibility
-Date: Tue, 30 Jul 2013 15:55:01 +0100
-Message-ID: <20130730145501.GA29859@e106331-lin.cambridge.arm.com>
-References: <1372841225-18813-1-git-send-email-gururaja.hebbar@ti.com>
- <1372841225-18813-5-git-send-email-gururaja.hebbar@ti.com>
- <51F749B0.7020802@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCHv4 01/33] CLK: clkdev: add support for looking up clocks
+ from DT
+Date: Tue, 30 Jul 2013 10:04:30 -0500
+Message-ID: <51F7D5FE.7030003@ti.com>
+References: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
+ <1374564028-11352-2-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <51F749B0.7020802@ti.com>
+In-Reply-To: <1374564028-11352-2-git-send-email-t-kristo@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,50 +19,85 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Gururaja Hebbar <gururaja.hebbar@ti.com>
-Cc: "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "khilman@linaro.org" <khilman@linaro.org>, "tony@atomide.com" <tony@atomide.com>, "benoit.cousson@gmail.com" <benoit.cousson@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "vaibhav.bedia@ti.com" <vaibhav.bedia@ti.com>, "sudhakar.raj@ti.com" <sudhakar.raj@ti.com>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: paul@pwsan.com, khilman@linaro.org, mturquette@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 30, 2013 at 06:05:52AM +0100, Gururaja Hebbar wrote:
-> Hi,
-> 
-> On 7/3/2013 2:17 PM, Hebbar Gururaja wrote:
-> > Since AM33xx  RTC IP has RTC_IRQWAKEEN to support Alarm Wake-up.
-> >
-> > Update the rtc compatible property to "ti,am3352-rtc" to enable handling
-> > of this feature inside rtc-omap driver.
-> 
-> The other 2 rtc driver related patches have been pulled up. If you have 
-> no comments, can you please pull this up.
-> 
-> Regards
-> Gururaja
-> 
-> >
-> > Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
-> > ---
-> > :100644 100644 77aa1b0... dde180a... M	arch/arm/boot/dts/am33xx.dtsi
-> >   arch/arm/boot/dts/am33xx.dtsi |    2 +-
-> >   1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> > index 77aa1b0..dde180a 100644
-> > --- a/arch/arm/boot/dts/am33xx.dtsi
-> > +++ b/arch/arm/boot/dts/am33xx.dtsi
-> > @@ -297,7 +297,7 @@
-> >   		};
-> >
-> >   		rtc@44e3e000 {
-> > -			compatible = "ti,da830-rtc";
-> > +			compatible = "ti,am3352-rtc";
+On 07/23/2013 02:19 AM, Tero Kristo wrote:
+> clk_get_sys / clk_get can now find clocks from device-tree. If a DT clock
+> is found, an entry is added to the clk_lookup list also for subsequent
+> searches.
+>
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> ---
+>   drivers/clk/clkdev.c |   32 ++++++++++++++++++++++++++++++++
+>   1 file changed, 32 insertions(+)
+>
+> diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
+> index 442a313..e39f082 100644
+> --- a/drivers/clk/clkdev.c
+> +++ b/drivers/clk/clkdev.c
+> @@ -93,6 +93,18 @@ struct clk *of_clk_get_by_name(struct device_node *np, const char *name)
+>   EXPORT_SYMBOL(of_clk_get_by_name);
+>   #endif
+>
+> +/**
+> + * clkdev_add_nolock - add lookup entry for a clock
+> + * @cl: pointer to new clock lookup entry
+> + *
+> + * Non-locking version, used internally by clk_find() to add DT based
+> + * clock lookup entries.
+> + */
+> +static void clkdev_add_nolock(struct clk_lookup *cl)
+> +{
+> +	list_add_tail(&cl->node, &clocks);
+> +}
+> +
+>   /*
+>    * Find the correct struct clk for the device and connection ID.
+>    * We do slightly fuzzy matching here:
+> @@ -106,6 +118,9 @@ static struct clk_lookup *clk_find(const char *dev_id, const char *con_id)
+>   {
+>   	struct clk_lookup *p, *cl = NULL;
+>   	int match, best_found = 0, best_possible = 0;
+> +	struct device_node *node;
+> +	struct clk *clk;
+> +	struct of_phandle_args clkspec;
+>
+>   	if (dev_id)
+>   		best_possible += 2;
+> @@ -133,6 +148,23 @@ static struct clk_lookup *clk_find(const char *dev_id, const char *con_id)
+>   				break;
+>   		}
+>   	}
+> +
+> +	if (cl)
+> +		return cl;
+> +
+> +	/* If clock was not found, attempt to look-up from DT */
+> +	node = of_find_node_by_name(NULL, con_id);
+> +
+> +	clkspec.np = node;
+> +
+> +	clk = of_clk_get_from_provider(&clkspec);
+> +
+> +	if (!IS_ERR(clk)) {
+> +		/* We found a clock, add node to clkdev */
+> +		cl = clkdev_alloc(clk, con_id, dev_id);
 
-Given that this is backwards compatible with the old binding, it would
-be nicer to have this as:
+clkdev_alloc may return NULL depending on vclkdev_alloc in which case 
+clkdev_add_nolock will crash trying to dereference it.
 
-	compatible = "ti,am3352-rtc", "ti,da830-rtc";
+> +		clkdev_add_nolock(cl);
+> +	}
+> +
+>   	return cl;
+>   }
+>
+>
 
-We must get into the habit of changing dts files in a
-backwards-compatible fashion.
 
-Thanks,
-Mark.
+-- 
+Regards,
+Nishanth Menon
