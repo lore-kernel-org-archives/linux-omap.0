@@ -1,67 +1,66 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 8/8] ARM: DRA7: dts: Add the dts files for dra7 SoC
- and dra7-evm board
-Date: Tue, 30 Jul 2013 18:26:47 +0530
-Message-ID: <51F7B80F.8090202@ti.com>
-References: <1375183546-12758-1-git-send-email-rnayak@ti.com> <1375183546-12758-9-git-send-email-rnayak@ti.com> <51F7B1E0.4060800@ti.com> <51F7B477.9010701@ti.com> <51F7B59D.5080607@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v2 3/8] ARM: DRA7: Reuse all of PRCM and MPUSS SMP infra
+Date: Tue, 30 Jul 2013 07:57:52 -0500
+Message-ID: <51F7B850.5090803@ti.com>
+References: <1375183546-12758-1-git-send-email-rnayak@ti.com> <1375183546-12758-4-git-send-email-rnayak@ti.com> <51F7B100.2020600@ti.com> <51F7B3E0.9020005@ti.com> <51F7B483.8060908@ti.com> <51F7B62C.9010407@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39644 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:45937 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751453Ab3G3M5U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Jul 2013 08:57:20 -0400
-In-Reply-To: <51F7B59D.5080607@ti.com>
+	id S1751453Ab3G3M6S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Jul 2013 08:58:18 -0400
+In-Reply-To: <51F7B62C.9010407@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
+To: Rajendra Nayak <rnayak@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.com, r.sricharan@ti.com, ambresh@ti.com, sourav.poddar@ti.com
 
-On Tuesday 30 July 2013 06:16 PM, Nishanth Menon wrote:
-> On 07/30/2013 07:41 AM, Rajendra Nayak wrote:
->> On Tuesday 30 July 2013 06:00 PM, Nishanth Menon wrote:
->>> On 07/30/2013 06:25 AM, Rajendra Nayak wrote:
->>>> From: R Sricharan <r.sricharan@ti.com>
-> [...]
->>>> +        mcspi4: spi@480ba000 {
->>>> +            compatible = "ti,omap4-mcspi";
->>>> +            reg = <0x480ba000 0x200>;
->>>> +            interrupts = <0 48 0x4>;
->>>> +            #address-cells = <1>;
->>>> +            #size-cells = <0>;
->>>> +            ti,hwmods = "mcspi4";
->>>> +            ti,spi-num-cs = <1>;
->>>> +            dmas = <&sdma 70>, <&sdma 71>;
->>>> +            dma-names = "tx0", "rx0";
->>>> +        };
->>>> +    };
->>>> +};
+On 07/30/2013 07:48 AM, Rajendra Nayak wrote:
+> On Tuesday 30 July 2013 06:11 PM, Nishanth Menon wrote:
+>> On 07/30/2013 07:38 AM, Rajendra Nayak wrote:
+>>> On Tuesday 30 July 2013 05:56 PM, Nishanth Menon wrote:
+>>>> On 07/30/2013 06:25 AM, Rajendra Nayak wrote:
+>>>>> From: R Sricharan <r.sricharan@ti.com>
+>>>> [...]
+>>>>>     # Clock framework
+>>>>>     obj-$(CONFIG_ARCH_OMAP2)        += $(clock-common) clock2xxx.o
+>>>>> @@ -181,6 +187,8 @@ obj-$(CONFIG_SOC_AM33XX)        += $(clock-common) dpll3xxx.o
+>>>>>     obj-$(CONFIG_SOC_AM33XX)        += cclock33xx_data.o
+>>>>>     obj-$(CONFIG_SOC_OMAP5)            += $(clock-common)
+>>>>>     obj-$(CONFIG_SOC_OMAP5)            += dpll3xxx.o dpll44xx.o
+>>>>> +obj-$(CONFIG_SOC_DRA7XX)        += $(clock-common)
+>>>>> +obj-$(CONFIG_SOC_DRA7XX)        += dpll3xxx.o dpll44xx.o
+>>>>>
 >>>>
->>> ref: [1], we discussed that we should now be able to introduce all instances of h/w blocks into the dra7.dts. Further, considering [2]
+>>>> are these in sync with DRA7 support being introduced for clock data in [1]?
+>>>
+>>> I don't want to have a dependency on those patches since I am not sure of them
+>>> making it into 3.12.
 >>
->> hmm, thats a long discussion on crossbar driver that [1] points to. Do you want to summarize what you mean by 'introduce all instances of h/w blocks'
-> 
-> I recommend reading the last few emails on the thread about how we could do this with pinctrl. unfortunately, this patch is not informative enough to indicate that not all instances of the potential IP blocks are listed here.
-> 
->>
->>> would you not want to follow "status = disabled" for all modules by default and enable required modules in board file, so that we dont have to respin this yet again?
->>
->> Well, I was just following the convention of whats already followed on existing OMAPs. See [3] for some views on these.
-> 
-> DRA7 case, I would not think it makes sense due to the number of product variants being done, not all will use the same set. Further, rationale for DRA7 and my suggestion for Grant's option (1) is mainly because the product variants will require more dtsis rather than board files using the product variants use just the necessary modules from a common dtsi. Makes support of variants like OMAP57xx etc trivial and constrainted to board file usage, rather than spinning off new dtsis.
+>> Then we have to undo these changes again in clock data support. the chip wont bootup anyways without clock data information, so why not try and keep the changes that Tero is doing independent of these changes?
+>
+> I still have something with clock data information which boots which I am maintaining out of tree till the clock movement to DT is sorted out.
+> Maybe what you are suggesting is quite trivial and I am unable to understand. Are you suggesting we do no compile $(clock-common) and the
+> dpll files for DRA7? Is that what you are worried we might have to revert?
 
-Makes sense with the different product variants for DRA7, AM335x already does it this way, but the rest of OMAP3/4/5 are doing it the other way.
-I think its just too confusing to follow different conventions for different SoCs. We should stick to just one, either this way or that.
+yes - lets just drop that change. that allows what ever alignment we 
+have for clock data/driver to handle it appropriately. IMHO, could also 
+keeps your series independent from Tero's series.
 
-> 
 >>
 >>>
+>>>>
+>>>>
+>>>> [1] http://marc.info/?l=linux-omap&m=137456411706971&w=2
+>>>>
 >>>
->>> [1] http://marc.info/?t=137416599400001&r=1&w=2
->>> [2] http://marc.info/?l=linux-omap&m=137510358229479&w=2
->> [3] http://lists.infradead.org/pipermail/linux-arm-kernel/2012-February/086297.html
 >>
-> 
-> 
+>>
+>
 
+
+-- 
+Regards,
+Nishanth Menon
