@@ -1,79 +1,68 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 2/4] phy: phy-amxxxx-usb: Add PHY driver for amxxxx
- platform
-Date: Tue, 30 Jul 2013 17:33:39 +0300
-Message-ID: <20130730143339.GM28162@radagast>
-References: <1374237277-17769-1-git-send-email-george.cherian@ti.com>
- <1374237277-17769-3-git-send-email-george.cherian@ti.com>
- <20130729151754.GB827@linutronix.de>
- <51F74CEC.8040407@ti.com>
- <51F77F15.7090306@linutronix.de>
- <51F7CCB7.4040305@ti.com>
-Reply-To: <balbi@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH v2 1/8] ARM: DRA7: id: Add cpu detection support for DRA7xx
+ based SoCs'
+Date: Tue, 30 Jul 2013 20:06:31 +0530
+Message-ID: <51F7CF6F.6050702@ti.com>
+References: <1375183546-12758-1-git-send-email-rnayak@ti.com> <1375183546-12758-2-git-send-email-rnayak@ti.com> <20130730131009.GA28162@radagast> <51F7CB2F.6070705@ti.com> <20130730142353.GL28162@radagast>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mkHYMT4O8DyWoHkb"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <51F7CCB7.4040305@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:46076 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750856Ab3G3OhC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jul 2013 10:37:02 -0400
+In-Reply-To: <20130730142353.GL28162@radagast>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.com, ambresh@ti.com, sourav.poddar@ti.com
 
---mkHYMT4O8DyWoHkb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tuesday 30 July 2013 07:53 PM, Felipe Balbi wrote:
+> Hi,
+>
+> On Tue, Jul 30, 2013 at 07:48:23PM +0530, Sricharan R wrote:
+>> On Tuesday 30 July 2013 06:40 PM, Felipe Balbi wrote:
+>>> Hi,
+>>>
+>>> On Tue, Jul 30, 2013 at 04:55:39PM +0530, Rajendra Nayak wrote:
+>>>> @@ -379,6 +407,13 @@ IS_OMAP_TYPE(3430, 0x3430)
+>>>>  # define soc_is_omap543x()		is_omap543x()
+>>>>  #endif
+>>>>  
+>>>> +# if defined(CONFIG_SOC_DRA7XX)
+>>>> +# undef soc_is_dra7xx
+>>>> +# undef soc_is_dra75x
+>>>> +# define soc_is_dra7xx()		is_dra7xx()
+>>>> +# define soc_is_dra75x()		is_dra75x()
+>>> since this platform is DT-only, couldn't we just believe DT-data to be
+>>> correct of_machine_is_compatible() ? 2/3 of this patch would be removed.
+>>>
+>>> I patched this for OMAP5 (compile-tested only, no boards available) and
+>>> came out with the patch below (still needs to be split):
+>>>
+>>> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+>>> index 08b7267..b3136e5 100644
+>>> --- a/arch/arm/boot/dts/omap5-uevm.dts
+>>> +++ b/arch/arm/boot/dts/omap5-uevm.dts
+>>> @@ -13,7 +13,7 @@
+>>>  
+>>>  / {
+>>>  	model = "TI OMAP5 uEVM board";
+>>> -	compatible = "ti,omap5-uevm", "ti,omap5";
+>>> +	compatible = "ti,omap5-uevm", "ti,omap5432-es2.0", "ti,omap5";
+>>>  
+>>  ok, nice and simpler way.
+>>  But would this make different revisions, to appear the same ?
+> well omap5-uevm is omap5432 es2.0 only, right ? If a new board comes up,
+> it should be treated as such, then you can pass a different string to
+> that new board's compatible attribute.
+>
+ Yes for OMAP5. I was thinking in general about this approach.
+ For example, for OMAP4 we have same board and
+ different revisions can be socketed there.
 
-On Tue, Jul 30, 2013 at 07:54:55PM +0530, George Cherian wrote:
-> On 7/30/2013 2:23 PM, Sebastian Andrzej Siewior wrote:
-> >On 07/30/2013 07:19 AM, George Cherian wrote:
-> >>>So from what I see now, it is most likely the easiest thing to just add
-> >>>that wakeup to the phy driver I posted. Do you agree?
-> >>The whole idea of writing a seperate phy driver was to use the generic
-> >>phy framework
-> >>and most of the amxxxx devices have the same phy (eg am335x, am437x).
-> >>Now since the register is shared in am335x for phy_wkup (Not in the case
-> >>of am437x)
-> >>how are you planning to  map it. I feel if omap_control_usb can delegate
-> >>the writes
-> >>to phy_wkup, phy_on and phy_off, it makes the life simpler.
-> >that omap-control driver looks a little strange. It has a compatible
-> >field saying ti,omap-control-usb and then it requires additionally a
-> >ti,type property which should have been avoided.
->=20
-> ti,type property is to differentiate between usb2 and usb3 phy for a
-> single soc.
-> for eg: OMAP5 has both usb2 and usb3 phy
+ For OMAP5, this is good.
 
-let's try not to add any new TI-specific DT bindings, can you figure
-that out by reading some revision register ? Or perhaps by using
-different compatible strings ?
-
---=20
-balbi
-
---mkHYMT4O8DyWoHkb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR987DAAoJEIaOsuA1yqRE31UP/1hqCHmPWSh7Uu/t/mp/K3vs
-u4MaavsrJ8+0FhvzuzkqzhWX1Tk9ZlJ+T6srtm/be1LbQ4SF3e+qQB9WYnlBUsgQ
-ucEcgDz/28qzgBE3leHK5uO+wIg/M9qeVIXneXG4Eu7S6mb+cqps9M0vmslY1Aiy
-cZyK3an9hRTRid1heRG5AOGByKUwcQ3W6QVi5dF/xYPKtWqWNBNgH9BIfeYPw7+Q
-QagKa0zTP+QOjKGzxIEqpF3jSKNuAG/51IxCcrPON7WM5/BK/0VM+0SICgHbSjs1
-AvO7rra4sgVfa1RkK8uHmpQpUHo30xvNYxanotnrnw6qWuc4l5zjwlSl+cOUSPnk
-MPRa7Q51M59R/iKEA/uV18YzK3stVaA6mgEWduqOObLIZm28u2LtB90jZL7x3GLO
-zX7DCIcysM9gxKbMt9gLoj4bnQ7+DF9pJMfS1mS8ZOSJlXntEjqVojNW8BQ1henF
-EbBvuPLAItZ1gwPvT6yHMSKZDU76B6Uty7PqrPIMYEFAETMeTmpfGYVnVGtc5Rob
-ENnk323EDnxJz/q8zhzTSUj3SyAwUiqqGAgHQ6jAFIto4ZaBqq51TZoVWzrDPYn/
-LH2NgRF6E9nMWIcaTcRVol95KCklbbH/9Iv0x/bsFflQB0oBJrA/RD19+qTydMFd
-V3t8GTRiit6k2gR5lmyw
-=0xF8
------END PGP SIGNATURE-----
-
---mkHYMT4O8DyWoHkb--
+Regards,
+ Sricharan
