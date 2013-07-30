@@ -1,15 +1,15 @@
 From: Luciano Coelho <coelho@ti.com>
-Subject: [PATCH 3/4] ARM: dts: omap4-sdp: add MMC5 (WiLink WLAN) configuration
-Date: Tue, 30 Jul 2013 20:27:27 +0300
-Message-ID: <1375205248-25708-4-git-send-email-coelho@ti.com>
+Subject: [PATCH 1/4] ARM: dts: omap4-panda: add MMC5 (WiLink WLAN) configuration
+Date: Tue, 30 Jul 2013 20:27:25 +0300
+Message-ID: <1375205248-25708-2-git-send-email-coelho@ti.com>
 References: <1375205248-25708-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55694 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754889Ab3G3R2G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jul 2013 13:28:06 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:59433 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750957Ab3G3R2I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Jul 2013 13:28:08 -0400
 In-Reply-To: <1375205248-25708-1-git-send-email-coelho@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -21,16 +21,16 @@ on-board WiLink6 module.
 
 Signed-off-by: Luciano Coelho <coelho@ti.com>
 ---
- arch/arm/boot/dts/omap4-sdp.dts | 29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ arch/arm/boot/dts/omap4-panda-common.dtsi | 31 ++++++++++++++++++++++++++++++-
+ 1 file changed, 30 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 7951b4e..3845615 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -140,6 +140,16 @@
- 			"DMic", "Digital Mic",
- 			"Digital Mic", "Digital Mic1 Bias";
+diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+index faa95b5..b3f6e1f 100644
+--- a/arch/arm/boot/dts/omap4-panda-common.dtsi
++++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+@@ -107,6 +107,16 @@
+ 	 */
+ 		clock-frequency = <19200000>;
  	};
 +
 +	wilink_wl_en: fixedregulator@1 {
@@ -38,30 +38,30 @@ index 7951b4e..3845615 100644
 +		regulator-name = "wilink_wl_en";
 +		regulator-min-microvolt = <1800000>;
 +		regulator-max-microvolt = <1800000>;
-+		gpio = <&gpio2 22 0>; /* gpio line 54 */
++		gpio = <&gpio2 11 0>; /* gpio line 43 */
 +		startup-delay-us = <70000>;
 +		enable-active-high;
 +	};
  };
  
  &omap4_pmx_wkup {
-@@ -166,6 +176,7 @@
- 			&mcbsp2_pins
+@@ -132,6 +142,7 @@
  			&dss_hdmi_pins
  			&tpd12s015_pins
+ 			&hsusbb1_pins
 +			&wilink_pins
  	>;
  
- 	uart2_pins: pinmux_uart2_pins {
-@@ -295,6 +306,19 @@
- 			0xf0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c4_sda */
+ 	twl6030_pins: pinmux_twl6030_pins {
+@@ -235,6 +246,19 @@
+ 			0x1c (PIN_OUTPUT | MUX_MODE3)	/* gpio_wk8 */
  		>;
  	};
 +
 +	wilink_pins: pinmux_wilink_pins {
 +		pinctrl-single,pins = <
 +			0x7a 0x103      /* gpio_53  INPUT | MODE3 */
-+			0x7c 0x3	/* gpio_54  OUTPUT | MODE3 */
++			0x66 0x3	/* gpio_43  OUTPUT | MODE3 */
 +			0x148 0x118     /* clk	    INPUT PULLUP | MODE0 */
 +			0x14a 0x118     /* cmd	    INPUT PULLUP | MODE0 */
 +			0x14c 0x118     /* dat0	    INPUT PULLUP | MODE0 */
@@ -73,16 +73,17 @@ index 7951b4e..3845615 100644
  };
  
  &i2c1 {
-@@ -420,8 +444,13 @@
+@@ -314,8 +338,13 @@
  };
  
  &mmc5 {
+-	ti,non-removable;
 +	status = "okay";
 +	vmmc-supply = <&wilink_wl_en>;
  	bus-width = <4>;
 +	cap-power-off-card;
 +	keep-power-in-suspend;
- 	ti,non-removable;
++	ti,non-removable;
 +	ti,needs-special-hs-handling;
  };
  
