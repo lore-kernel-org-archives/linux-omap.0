@@ -1,92 +1,59 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 2/2] arm: omap: remove *.auto* from device names given
- in usb_bind_phy
-Date: Tue, 30 Jul 2013 10:44:48 +0530
-Message-ID: <51F74BC8.7020903@ti.com>
-References: <1374829418-27503-1-git-send-email-kishon@ti.com>
- <1374829418-27503-3-git-send-email-kishon@ti.com>
- <20130729150638.GD3063@radagast> <51F68A56.8060805@ti.com>
- <20130729175413.GC4964@radagast>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 2/4] serial: omap: enable PM runtime only when its fully
+ configured
+Date: Tue, 30 Jul 2013 10:46:01 +0530
+Message-ID: <51F74C11.2000306@ti.com>
+References: <1374487277-26099-1-git-send-email-rnayak@ti.com> <1374487277-26099-3-git-send-email-rnayak@ti.com> <alpine.DEB.2.02.1307290843090.30864@utopia.booyaka.com> <51F62CEB.2090502@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130729175413.GC4964@radagast>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: balbi@ti.com
-Cc: linux@arm.linux.org.uk, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, eballetbo@gmail.com, javier@dowhile0.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <51F62CEB.2090502@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, balbi@ti.com, mpfj-list@newflow.co.uk, vaibhav.bedia@ti.com, khilman@linaro.org, sourav.poddar@ti.com, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, linux-serial@vger.kernel.org, grygorii.strashko@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-SGksCgpPbiBNb25kYXkgMjkgSnVseSAyMDEzIDExOjI0IFBNLCBGZWxpcGUgQmFsYmkgd3JvdGU6
-Cj4gSGksCj4gCj4gT24gTW9uLCBKdWwgMjksIDIwMTMgYXQgMDg6NTk6MjZQTSArMDUzMCwgS2lz
-aG9uIFZpamF5IEFicmFoYW0gSSB3cm90ZToKPj4+PiBQcmV2aW91c2x5IE1VU0Igd3JhcHBlciAo
-T01BUCkgZGV2aWNlIHVzZWQgUExBVEZPUk1fREVWSURfQVVUTyB3aGlsZSBjcmVhdGluZwo+Pj4+
-IE1VU0IgY29yZSBkZXZpY2UuIFNvIGluIHVzYl9iaW5kX3BoeSAoYmluZHMgdGhlIGNvbnRyb2xs
-ZXIgd2l0aCB0aGUgUEhZKSwgdGhlCj4+Pj4gZGV2aWNlIG5hbWUgb2YgdGhlIGNvbnRyb2xsZXIg
-aGFkICouYXV0byogaW4gaXQuIFNpbmNlIHdpdGggdXNpbmcKPj4+PiBQTEFURk9STV9ERVZJRF9B
-VVRPLCB0aGVyZSBpcyBubyB3YXkgdG8ga25vdyB0aGUgZXhhY3QgZGV2aWNlIG5hbWUgaW4gYWR2
-YW5jZSwKPj4+PiB0aGUgZGF0YSBnaXZlbiBpbiB1c2JfYmluZF9waHkgYmVjYW1lIG9ic29sZXRl
-IGFuZCB1c2JfZ2V0X3BoeSB3YXMgZmFpbGluZy4KPj4+PiBTbyBNVVNCIHdyYXBwZXIgd2FzIG1v
-ZGlmaWVkIG5vdCB0byB1c2UgUExBVEZPUk1fREVWSURfQVVUTy4gQ29ycmVzcG9uZGluZwo+Pj4+
-IGNoYW5nZSBpcyBkb25lIGluIGJvYXJkIGZpbGUgaGVyZS4KPj4+Pgo+Pj4+IFNpZ25lZC1vZmYt
-Ynk6IEtpc2hvbiBWaWpheSBBYnJhaGFtIEkgPGtpc2hvbkB0aS5jb20+Cj4+Pj4gLS0tCj4+Pj4g
-IGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtMjQzMHNkcC5jICAgICAgICAgIHwgICAgMiArLQo+
-Pj4+ICBhcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLTM0MzBzZHAuYyAgICAgICAgICB8ICAgIDIg
-Ky0KPj4+PiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1jbS10MzUuYyAgICAgICAgICAgfCAg
-ICAyICstCj4+Pj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtZGV2a2l0ODAwMC5jICAgICAg
-IHwgICAgMiArLQo+Pj4+ICBhcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLWlnZXAwMDIwLmMgICAg
-ICAgICB8ICAgIDIgKy0KPj4+PiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1sZHAuYyAgICAg
-ICAgICAgICAgfCAgICAyICstCj4+Pj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNi
-ZWFnbGUuYyAgICAgIHwgICAgMiArLQo+Pj4+ICBhcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW9t
-YXAzZXZtLmMgICAgICAgICB8ICAgIDIgKy0KPj4+PiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2Fy
-ZC1vbWFwM2xvZ2ljLmMgICAgICAgfCAgICAyICstCj4+Pj4gIGFyY2gvYXJtL21hY2gtb21hcDIv
-Ym9hcmQtb21hcDNwYW5kb3JhLmMgICAgIHwgICAgMiArLQo+Pj4+ICBhcmNoL2FybS9tYWNoLW9t
-YXAyL2JvYXJkLW9tYXAzc3RhbGtlci5jICAgICB8ICAgIDIgKy0KPj4+PiAgYXJjaC9hcm0vbWFj
-aC1vbWFwMi9ib2FyZC1vbWFwM3RvdWNoYm9vay5jICAgfCAgICAyICstCj4+Pj4gIGFyY2gvYXJt
-L21hY2gtb21hcDIvYm9hcmQtb3Zlcm8uYyAgICAgICAgICAgIHwgICAgMiArLQo+Pj4+ICBhcmNo
-L2FybS9tYWNoLW9tYXAyL2JvYXJkLXJtNjgwLmMgICAgICAgICAgICB8ICAgIDIgKy0KPj4+PiAg
-YXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1yeDUxLmMgICAgICAgICAgICAgfCAgICAyICstCj4+
-Pj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtem9vbS1wZXJpcGhlcmFscy5jIHwgICAgMiAr
-LQo+Pj4+ICAxNiBmaWxlcyBjaGFuZ2VkLCAxNiBpbnNlcnRpb25zKCspLCAxNiBkZWxldGlvbnMo
-LSkKPj4+Pgo+Pj4+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLTI0MzBz
-ZHAuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtMjQzMHNkcC5jCj4+Pj4gaW5kZXggMjQ0
-ZDhhNS4uMTdiYjA3NiAxMDA2NDQKPj4+PiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJk
-LTI0MzBzZHAuYwo+Pj4+ICsrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtMjQzMHNkcC5j
-Cj4+Pj4gQEAgLTIzMyw3ICsyMzMsNyBAQCBzdGF0aWMgdm9pZCBfX2luaXQgb21hcF8yNDMwc2Rw
-X2luaXQodm9pZCkKPj4+PiAgCW9tYXBfaHNtbWNfaW5pdChtbWMpOwo+Pj4+ICAKPj4+PiAgCW9t
-YXBfbXV4X2luaXRfc2lnbmFsKCJ1c2IwaHNfc3RwIiwgT01BUF9QVUxMX0VOQSB8IE9NQVBfUFVM
-TF9VUCk7Cj4+Pj4gLQl1c2JfYmluZF9waHkoIm11c2ItaGRyYy4wLmF1dG8iLCAwLCAidHdsNDAz
-MF91c2IiKTsKPj4+PiArCXVzYl9iaW5kX3BoeSgibXVzYi1oZHJjLjAiLCAwLCAidHdsNDAzMF91
-c2IiKTsKPj4+Cj4+PiBob3cgYWJvdXQgbW92aW5nIHVzYl9iaW5kX3BoeSgpIGNhbGxzIHRvIG9t
-YXAyNDMwLmMgPwo+Pj4KPj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL3VzYi9tdXNiL29tYXAyNDMw
-LmMgYi9kcml2ZXJzL3VzYi9tdXNiL29tYXAyNDMwLmMKPj4+IGluZGV4IGY0NGU4YjUuLmI2YWJj
-MWEgMTAwNjQ0Cj4+PiAtLS0gYS9kcml2ZXJzL3VzYi9tdXNiL29tYXAyNDMwLmMKPj4+ICsrKyBi
-L2RyaXZlcnMvdXNiL211c2Ivb21hcDI0MzAuYwo+Pj4gQEAgLTU0NCw2ICs1NDQsOSBAQCBzdGF0
-aWMgaW50IG9tYXAyNDMwX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCj4+PiAg
-Cj4+PiAgCQlwZGF0YS0+Ym9hcmRfZGF0YQk9IGRhdGE7Cj4+PiAgCQlwZGF0YS0+Y29uZmlnCQk9
-IGNvbmZpZzsKPj4+ICsJfSBlbHNlIHsKPj4+ICsJCS8qIGJpbmQgdGhlIFBIWSAqLwo+Pj4gKwkJ
-dXNiX2JpbmRfcGh5KGRldl9uYW1lKCZtdXNiLT5kZXYpLCAwLCAidHdsNDAzMF91c2IiKTsKPj4K
-Pj4gVGhpcyBsb29rcyBsaWtlIGEgaGFjayBJTUhPIHRvIHdvcmthcm91bmQgdGhlIHVzYiBwaHkg
-bGlicmFyeS4gb3RoZXJ3aXNlIGl0IGlzCj4+IHNpbWlsYXIgdG8gZ2V0X3BoeV9ieV9uYW1lLgo+
-IAo+IGFjdHVhbGx5LCB0aGlzIGlzIGEgd29ya2Fyb3VuZCB0byB0aGUgZmFjdCB0aGF0IHdlJ3Jl
-IG5vdCBjcmVhdGluZyBhbGwKPiBwbGF0Zm9ybV9kZXZpY2VzIGluIGFyY2gvYXJtL21hY2gtb21h
-cDIvIDotKQo+IAo+IElmIHdlIGhhZCB0aGUgbXVzYiBhbGxvY2F0aW9uIHRoZXJlLCB3ZSBjb3Vs
-ZCBlYXNpbHkgaGFuZGxlCj4gdXNiX2JpbmRfcGh5KCkKPiAKPj4+IHNvIHRoYXQncyB0ZW1wb3Jh
-cnkuIEl0IG1pZ2h0IGJlIGJldHRlciB0aGFuIHRvIHJlaW50cm9kdWNlIHRoZSBJRFIgaW4KPj4+
-IG11c2JfY29yZS5jLgo+Pgo+PiB0aGF04oCZcyBuZWVkZWQgZm9yIGdlbmVyaWMgcGh5IGZyYW1l
-d29yayBhbnl3YXkgOi1zCj4gCj4gcmlnaHQsIGJ1dCBnZW5lcmljIHBoeSBmcmFtZXdvcmsgY2Fu
-IGhhbmRsZSBldmVyeXRoaW5nIGp1c3QgZmluZSwgdGhlCj4gb25seSBwcm9ibGVtIGlzIHRoYXQg
-bmFtZXMgYXJlIGNoYW5naW5nLgoKcmlnaHQuIEJ1dCBpZiB0aGUgbmFtZXMgY2hhbmdlLCBQSFkg
-ZnJhbWV3b3JrIHdvdWxkbid0IGJlIGFibGUgdG8gcmV0dXJuIHRoZQpyZWZlcmVuY2UgdG8gdGhl
-IFBIWS4KClRoYW5rcwpLaXNob24KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJu
-ZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFu
-L2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+On Monday 29 July 2013 02:20 PM, Rajendra Nayak wrote:
+> On Monday 29 July 2013 02:14 PM, Paul Walmsley wrote:
+>> Rajendra,
+>>
+>> On Mon, 22 Jul 2013, Rajendra Nayak wrote:
+>>
+>>> From: Grygorii Strashko <grygorii.strashko@ti.com>
+>>>
+>>> If earlyprintk is enabled and current UART is console port the platform
+>>> code can mark it as RPM_ACTIVE to sync real IP state with PM Runtime and
+>>> avoid resuming of already active device, but now, driver initialization
+>>> will be performed in the wrong way:
+>>
+>> ...
+>>
+>>> CC: Tony Lindgren <tony@atomide.com>
+>>> CC: Rajendra Nayak <rnayak@ti.com>
+>>> CC: Felipe Balbi <balbi@ti.com>
+>>> CC: Kevin Hilman <khilman@linaro.org>
+>>>
+>>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>>
+>> Did you intend to add your Signed-off-by: to this patch?  Since you're 
+>> formally submitting it, it needs to have your Signed-off-by: for me to 
+>> take it.  Let me know and I'll add it if needed -
+> 
+> Sorry about that Paul. I indeed missed adding my SoB for this one.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+
+Paul,
+
+Looks like this one is already been queued by Greg.
+
+regards,
+Rajendra
+
+> 
+>>
+>> - Paul
+>>
+> 
+
