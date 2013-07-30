@@ -1,41 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] usb: phy: rename nop_usb_xceiv => usb_phy_gen_xceiv
-Date: Tue, 30 Jul 2013 00:08:14 -0700
-Message-ID: <20130730070814.GF7656@atomide.com>
-References: <1374869757-923-1-git-send-email-bigeasy@linutronix.de>
- <1374869757-923-2-git-send-email-bigeasy@linutronix.de>
- <20130729122022.GF24801@radagast>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 06/21] ARM: OMAP: overo: use new display drivers
+Date: Tue, 30 Jul 2013 12:37:24 +0530
+Message-ID: <51F7662C.1060302@ti.com>
+References: <1374822504-28949-1-git-send-email-tomi.valkeinen@ti.com> <1374822504-28949-7-git-send-email-tomi.valkeinen@ti.com> <51F75B6A.6090900@ti.com> <51F75FA4.1050406@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130729122022.GF24801@radagast>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, george.cherian@ti.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:60101 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757646Ab3G3HIo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Jul 2013 03:08:44 -0400
+In-Reply-To: <51F75FA4.1050406@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Felipe Balbi <balbi@ti.com> [130729 05:27]:
-> On Fri, Jul 26, 2013 at 10:15:54PM +0200, Sebastian Andrzej Siewior wrote:
-> > The "nop" driver isn't a do-nothing-stub but supports a couple functions
-> > like clock on/off or is able to use a voltage regulator. This patch
-> > simply renames the driver to "generic" since it is easy possible to
-> > extend it by a simple function istead of writing a complete driver.
-> > 
-> > Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> 
-> to me, this is great but I need Tony's Ack for it. Let's Cc Tony and
-> linux-omap
+On Tuesday 30 July 2013 12:09 PM, Tomi Valkeinen wrote:
+> On 30/07/13 09:21, Archit Taneja wrote:
+>> Hi,
+>>
+>> On Friday 26 July 2013 12:38 PM, Tomi Valkeinen wrote:
+>>> Use the new display drivers for OMAP3 Overo board.
+>>>
+>>> The new OMAP display drivers were merged for 3.11, and we can now change
+>>> the board files to use the new ones and phase out the old ones.
+>>>
+>>> Note that the LCD add-on boards for lcd43 and lcd35 use the same GPIOs
+>>> for the panels. This means that both panel devices cannot be probed at
+>>> the same time.
+>>>
+>>> DT will handle this correctly, i.e. the DT data will contain the panel
+>>> device only for the add-on board that is attached. However, for the
+>>> board file we need a hackish solution: We parse the kernel boot command
+>>> line, and see whether lcd43 or lcd35 is set as a default display, and
+>>> add the given one. Or, if neither is given, default to lcd43.
+>>>
+>>
+>> <snip>
+>>
+>>>    static struct omap_dss_board_info overo_dss_data = {
+>>> -    .num_devices    = ARRAY_SIZE(overo_dss_devices),
+>>> -    .devices    = overo_dss_devices,
+>>> -    .default_device    = &overo_dvi_device,
+>>> +    .default_display_name = "lcd43",
+>>>    };
+>>
+>> The default display previously was the dvi device, if both lcd43 and
+>> lcd35 are on add-on boards, then we should probably stick to dvi itself,
+>> right? The hack won't work if dvi is the default device though.
+>
+> DVI is also on an add-on board, but it doesn't conflict with lcd43 or lcd35.
+>
+> The hack works fine even if DVI is the default device. In that case, it
+> doesn't matter if lcd43 or lcd35 is added, because the user doesn't use
+> them (as long as only one of them is added, because otherwise there'll
+> be an error during probe).
+>
+> If DVI is the default device, we could actually skip adding both lcd43
+> and lcd35. I just wanted to minimize the code in this hack, so I didn't
+> do that.
 
-Looking at this patch there's a pretty high probability of introducing
-pointless merge conflicts.
+Okay, thanks for the clarification, looks fine then.
 
-How about do the platform data related changes as a separate follow-up
-series? You can typically do this by keeping the old features around,
-then doing a separate series to rename or remove the users later on.
-This will remove the dependency between platform data and the driver
-changes.
+Archit
 
-Regards,
-
-Tony
