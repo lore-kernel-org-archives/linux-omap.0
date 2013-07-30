@@ -1,15 +1,17 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [RESEND PATCH v10 1/8] drivers: phy: add generic PHY framework
-Date: Tue, 30 Jul 2013 10:42:00 +0530
-Message-ID: <51F74B20.6070005@ti.com>
-References: <1374842963-13545-1-git-send-email-kishon@ti.com>
- <1374842963-13545-2-git-send-email-kishon@ti.com>
- <51F68F73.9060603@samsung.com>
+Subject: Re: [PATCH 2/2] arm: omap: remove *.auto* from device names given
+ in usb_bind_phy
+Date: Tue, 30 Jul 2013 10:44:48 +0530
+Message-ID: <51F74BC8.7020903@ti.com>
+References: <1374829418-27503-1-git-send-email-kishon@ti.com>
+ <1374829418-27503-3-git-send-email-kishon@ti.com>
+ <20130729150638.GD3063@radagast> <51F68A56.8060805@ti.com>
+ <20130729175413.GC4964@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51F68F73.9060603@samsung.com>
+In-Reply-To: <20130729175413.GC4964@radagast>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,178 +21,72 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, Tomasz Figa <t.figa@samsung.com>, nsekhar@ti.com, tomasz.figa@gmail.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, stern@rowland.harvard.edu, grant.likely@linaro.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, linux-samsung-soc@vger.kernel.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.park@samsung.com, broonie@kernel.org, akpm@linux-foundation.org
+To: balbi@ti.com
+Cc: linux@arm.linux.org.uk, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, eballetbo@gmail.com, javier@dowhile0.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Monday 29 July 2013 09:21 PM, Sylwester Nawrocki wrote:
-> On 07/26/2013 02:49 PM, Kishon Vijay Abraham I wrote:
->> The PHY framework provides a set of APIs for the PHY drivers to
->> create/destroy a PHY and APIs for the PHY users to obtain a reference to the
->> PHY with or without using phandle. For dt-boot, the PHY drivers should
->> also register *PHY provider* with the framework.
->>
->> PHY drivers should create the PHY by passing id and ops like init, exit,
->> power_on and power_off. This framework is also pm runtime enabled.
->>
->> The documentation for the generic PHY framework is added in
->> Documentation/phy.txt and the documentation for dt binding can be found at
->> Documentation/devicetree/bindings/phy/phy-bindings.txt
->>
->> Cc: Tomasz Figa <t.figa@samsung.com>
->> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> Acked-by: Felipe Balbi <balbi@ti.com>
->> Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> ---
->>  .../devicetree/bindings/phy/phy-bindings.txt       |   66 ++
->>  Documentation/phy.txt                              |  166 +++++
->>  MAINTAINERS                                        |    8 +
->>  drivers/Kconfig                                    |    2 +
->>  drivers/Makefile                                   |    2 +
->>  drivers/phy/Kconfig                                |   18 +
->>  drivers/phy/Makefile                               |    5 +
->>  drivers/phy/phy-core.c                             |  714 ++++++++++++++++++++
->>  include/linux/phy/phy.h                            |  270 ++++++++
->>  9 files changed, 1251 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/phy/phy-bindings.txt
->>  create mode 100644 Documentation/phy.txt
->>  create mode 100644 drivers/phy/Kconfig
->>  create mode 100644 drivers/phy/Makefile
->>  create mode 100644 drivers/phy/phy-core.c
->>  create mode 100644 include/linux/phy/phy.h
->>
->> diff --git a/Documentation/devicetree/bindings/phy/phy-bindings.txt b/Documentation/devicetree/bindings/phy/phy-bindings.txt
->> new file mode 100644
->> index 0000000..8ae844f
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/phy/phy-bindings.txt
->> @@ -0,0 +1,66 @@
->> +This document explains only the device tree data binding. For general
->> +information about PHY subsystem refer to Documentation/phy.txt
-> [...]
->> @@ -0,0 +1,166 @@
->> +			    PHY SUBSYSTEM
->> +		  Kishon Vijay Abraham I <kishon@ti.com>
->> +
->> +This document explains the Generic PHY Framework along with the APIs provided,
->> +and how-to-use.
->> +
->> +1. Introduction
->> +
->> +*PHY* is the abbreviation for physical layer. It is used to connect a device
->> +to the physical medium e.g., the USB controller has a PHY to provide functions
->> +such as serialization, de-serialization, encoding, decoding and is responsible
->> +for obtaining the required data transmission rate. Note that some USB
->> +controllers have PHY functionality embedded into it and others use an external
->> +PHY. Other peripherals that use PHY include Wireless LAN, Ethernet,
->> +SATA etc.
->> +
->> +The intention of creating this framework is to bring the PHY drivers spread
->> +all over the Linux kernel to drivers/phy to increase code re-use and for
->> +better code maintainability.
->> +
->> +This framework will be of use only to devices that use external PHY (PHY
->> +functionality is not embedded within the controller).
->> +
->> +2. Registering/Unregistering the PHY provider
->> +
->> +PHY provider refers to an entity that implements one or more PHY instances.
->> +For the simple case where the PHY provider implements only a single instance of
->> +the PHY, the framework provides its own implementation of of_xlate in
->> +of_phy_simple_xlate. If the PHY provider implements multiple instances, it
->> +should provide its own implementation of of_xlate. of_xlate is used only for
->> +dt boot case.
->> +
->> +#define of_phy_provider_register(dev, xlate)    \
->> +        __of_phy_provider_register((dev), THIS_MODULE, (xlate))
->> +
->> +#define devm_of_phy_provider_register(dev, xlate)       \
->> +        __of_phy_provider_register((dev), THIS_MODULE, (xlate))
-> 
-> This needs to be:
-> 
-> 	__devm_of_phy_provider_register((dev), THIS_MODULE, (xlate))
-> 
-> as Kamil pointed out. We've tested it here with v9 and it makes
-> Bad Things happen. ;)
-> 
->> +of_phy_provider_register and devm_of_phy_provider_register macros can be used to
->> +register the phy_provider and it takes device and of_xlate as
->> +arguments. For the dt boot case, all PHY providers should use one of the above
->> +2 macros to register the PHY provider.
->> +
->> +void devm_of_phy_provider_unregister(struct device *dev,
->> +	struct phy_provider *phy_provider);
->> +void of_phy_provider_unregister(struct phy_provider *phy_provider);
->> +
->> +devm_of_phy_provider_unregister and of_phy_provider_unregister can be used to
->> +unregister the PHY.
->> +
-> [...]
->> diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
->> new file mode 100644
->> index 0000000..f1d15e5
->> --- /dev/null
->> +++ b/drivers/phy/phy-core.c
->> @@ -0,0 +1,714 @@
-> [...]
->> +static struct phy *phy_lookup(struct device *device, const char *port)
->> +{
->> +	unsigned int count;
->> +	struct phy *phy;
->> +	struct device *dev;
->> +	struct phy_consumer *consumers;
->> +	struct class_dev_iter iter;
-> 	
-> Don't you need something like
-> 
-> 	if (phy->init_data == NULL)	
-> 		return ERR_PTR(-EINVAL);
-> 
-> to ensure there is no attempt to dereference NULL platform data ?
-
-hmm.. perhaps a dev_WARN too..
-> 
->> +	class_dev_iter_init(&iter, phy_class, NULL, NULL);
->> +	while ((dev = class_dev_iter_next(&iter))) {
->> +		phy = to_phy(dev);
->> +		count = phy->init_data->num_consumers;
->> +		consumers = phy->init_data->consumers;
->> +		while (count--) {
->> +			if (!strcmp(consumers->dev_name, dev_name(device)) &&
->> +					!strcmp(consumers->port, port)) {
->> +				class_dev_iter_exit(&iter);
->> +				return phy;
->> +			}
->> +			consumers++;
->> +		}
->> +	}
->> +
->> +	class_dev_iter_exit(&iter);
->> +	return ERR_PTR(-ENODEV);
->> +}
->> +
-> [...]
->> +int phy_init(struct phy *phy)
->> +{
->> +	int ret;
->> +
->> +	ret = phy_pm_runtime_get_sync(phy);
->> +	if (ret < 0 && ret != -ENOTSUPP)
->> +		return ret;
->> +
->> +	mutex_lock(&phy->mutex);
->> +	if (phy->init_count++ == 0 && phy->ops->init) {
->> +		ret = phy->ops->init(phy);
->> +		if (ret < 0) {
->> +			dev_err(&phy->dev, "phy init failed --> %d\n", ret);
->> +			goto out;
-> 
-> Is this 'goto' and similar ones below really needed ?
-That's just to signify an error path.. it doesn't affect anyways ;-)
-
-Thanks
-Kishon
+SGksCgpPbiBNb25kYXkgMjkgSnVseSAyMDEzIDExOjI0IFBNLCBGZWxpcGUgQmFsYmkgd3JvdGU6
+Cj4gSGksCj4gCj4gT24gTW9uLCBKdWwgMjksIDIwMTMgYXQgMDg6NTk6MjZQTSArMDUzMCwgS2lz
+aG9uIFZpamF5IEFicmFoYW0gSSB3cm90ZToKPj4+PiBQcmV2aW91c2x5IE1VU0Igd3JhcHBlciAo
+T01BUCkgZGV2aWNlIHVzZWQgUExBVEZPUk1fREVWSURfQVVUTyB3aGlsZSBjcmVhdGluZwo+Pj4+
+IE1VU0IgY29yZSBkZXZpY2UuIFNvIGluIHVzYl9iaW5kX3BoeSAoYmluZHMgdGhlIGNvbnRyb2xs
+ZXIgd2l0aCB0aGUgUEhZKSwgdGhlCj4+Pj4gZGV2aWNlIG5hbWUgb2YgdGhlIGNvbnRyb2xsZXIg
+aGFkICouYXV0byogaW4gaXQuIFNpbmNlIHdpdGggdXNpbmcKPj4+PiBQTEFURk9STV9ERVZJRF9B
+VVRPLCB0aGVyZSBpcyBubyB3YXkgdG8ga25vdyB0aGUgZXhhY3QgZGV2aWNlIG5hbWUgaW4gYWR2
+YW5jZSwKPj4+PiB0aGUgZGF0YSBnaXZlbiBpbiB1c2JfYmluZF9waHkgYmVjYW1lIG9ic29sZXRl
+IGFuZCB1c2JfZ2V0X3BoeSB3YXMgZmFpbGluZy4KPj4+PiBTbyBNVVNCIHdyYXBwZXIgd2FzIG1v
+ZGlmaWVkIG5vdCB0byB1c2UgUExBVEZPUk1fREVWSURfQVVUTy4gQ29ycmVzcG9uZGluZwo+Pj4+
+IGNoYW5nZSBpcyBkb25lIGluIGJvYXJkIGZpbGUgaGVyZS4KPj4+Pgo+Pj4+IFNpZ25lZC1vZmYt
+Ynk6IEtpc2hvbiBWaWpheSBBYnJhaGFtIEkgPGtpc2hvbkB0aS5jb20+Cj4+Pj4gLS0tCj4+Pj4g
+IGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtMjQzMHNkcC5jICAgICAgICAgIHwgICAgMiArLQo+
+Pj4+ICBhcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLTM0MzBzZHAuYyAgICAgICAgICB8ICAgIDIg
+Ky0KPj4+PiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1jbS10MzUuYyAgICAgICAgICAgfCAg
+ICAyICstCj4+Pj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtZGV2a2l0ODAwMC5jICAgICAg
+IHwgICAgMiArLQo+Pj4+ICBhcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLWlnZXAwMDIwLmMgICAg
+ICAgICB8ICAgIDIgKy0KPj4+PiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1sZHAuYyAgICAg
+ICAgICAgICAgfCAgICAyICstCj4+Pj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNi
+ZWFnbGUuYyAgICAgIHwgICAgMiArLQo+Pj4+ICBhcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW9t
+YXAzZXZtLmMgICAgICAgICB8ICAgIDIgKy0KPj4+PiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2Fy
+ZC1vbWFwM2xvZ2ljLmMgICAgICAgfCAgICAyICstCj4+Pj4gIGFyY2gvYXJtL21hY2gtb21hcDIv
+Ym9hcmQtb21hcDNwYW5kb3JhLmMgICAgIHwgICAgMiArLQo+Pj4+ICBhcmNoL2FybS9tYWNoLW9t
+YXAyL2JvYXJkLW9tYXAzc3RhbGtlci5jICAgICB8ICAgIDIgKy0KPj4+PiAgYXJjaC9hcm0vbWFj
+aC1vbWFwMi9ib2FyZC1vbWFwM3RvdWNoYm9vay5jICAgfCAgICAyICstCj4+Pj4gIGFyY2gvYXJt
+L21hY2gtb21hcDIvYm9hcmQtb3Zlcm8uYyAgICAgICAgICAgIHwgICAgMiArLQo+Pj4+ICBhcmNo
+L2FybS9tYWNoLW9tYXAyL2JvYXJkLXJtNjgwLmMgICAgICAgICAgICB8ICAgIDIgKy0KPj4+PiAg
+YXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1yeDUxLmMgICAgICAgICAgICAgfCAgICAyICstCj4+
+Pj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtem9vbS1wZXJpcGhlcmFscy5jIHwgICAgMiAr
+LQo+Pj4+ICAxNiBmaWxlcyBjaGFuZ2VkLCAxNiBpbnNlcnRpb25zKCspLCAxNiBkZWxldGlvbnMo
+LSkKPj4+Pgo+Pj4+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLTI0MzBz
+ZHAuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtMjQzMHNkcC5jCj4+Pj4gaW5kZXggMjQ0
+ZDhhNS4uMTdiYjA3NiAxMDA2NDQKPj4+PiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJk
+LTI0MzBzZHAuYwo+Pj4+ICsrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtMjQzMHNkcC5j
+Cj4+Pj4gQEAgLTIzMyw3ICsyMzMsNyBAQCBzdGF0aWMgdm9pZCBfX2luaXQgb21hcF8yNDMwc2Rw
+X2luaXQodm9pZCkKPj4+PiAgCW9tYXBfaHNtbWNfaW5pdChtbWMpOwo+Pj4+ICAKPj4+PiAgCW9t
+YXBfbXV4X2luaXRfc2lnbmFsKCJ1c2IwaHNfc3RwIiwgT01BUF9QVUxMX0VOQSB8IE9NQVBfUFVM
+TF9VUCk7Cj4+Pj4gLQl1c2JfYmluZF9waHkoIm11c2ItaGRyYy4wLmF1dG8iLCAwLCAidHdsNDAz
+MF91c2IiKTsKPj4+PiArCXVzYl9iaW5kX3BoeSgibXVzYi1oZHJjLjAiLCAwLCAidHdsNDAzMF91
+c2IiKTsKPj4+Cj4+PiBob3cgYWJvdXQgbW92aW5nIHVzYl9iaW5kX3BoeSgpIGNhbGxzIHRvIG9t
+YXAyNDMwLmMgPwo+Pj4KPj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL3VzYi9tdXNiL29tYXAyNDMw
+LmMgYi9kcml2ZXJzL3VzYi9tdXNiL29tYXAyNDMwLmMKPj4+IGluZGV4IGY0NGU4YjUuLmI2YWJj
+MWEgMTAwNjQ0Cj4+PiAtLS0gYS9kcml2ZXJzL3VzYi9tdXNiL29tYXAyNDMwLmMKPj4+ICsrKyBi
+L2RyaXZlcnMvdXNiL211c2Ivb21hcDI0MzAuYwo+Pj4gQEAgLTU0NCw2ICs1NDQsOSBAQCBzdGF0
+aWMgaW50IG9tYXAyNDMwX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCj4+PiAg
+Cj4+PiAgCQlwZGF0YS0+Ym9hcmRfZGF0YQk9IGRhdGE7Cj4+PiAgCQlwZGF0YS0+Y29uZmlnCQk9
+IGNvbmZpZzsKPj4+ICsJfSBlbHNlIHsKPj4+ICsJCS8qIGJpbmQgdGhlIFBIWSAqLwo+Pj4gKwkJ
+dXNiX2JpbmRfcGh5KGRldl9uYW1lKCZtdXNiLT5kZXYpLCAwLCAidHdsNDAzMF91c2IiKTsKPj4K
+Pj4gVGhpcyBsb29rcyBsaWtlIGEgaGFjayBJTUhPIHRvIHdvcmthcm91bmQgdGhlIHVzYiBwaHkg
+bGlicmFyeS4gb3RoZXJ3aXNlIGl0IGlzCj4+IHNpbWlsYXIgdG8gZ2V0X3BoeV9ieV9uYW1lLgo+
+IAo+IGFjdHVhbGx5LCB0aGlzIGlzIGEgd29ya2Fyb3VuZCB0byB0aGUgZmFjdCB0aGF0IHdlJ3Jl
+IG5vdCBjcmVhdGluZyBhbGwKPiBwbGF0Zm9ybV9kZXZpY2VzIGluIGFyY2gvYXJtL21hY2gtb21h
+cDIvIDotKQo+IAo+IElmIHdlIGhhZCB0aGUgbXVzYiBhbGxvY2F0aW9uIHRoZXJlLCB3ZSBjb3Vs
+ZCBlYXNpbHkgaGFuZGxlCj4gdXNiX2JpbmRfcGh5KCkKPiAKPj4+IHNvIHRoYXQncyB0ZW1wb3Jh
+cnkuIEl0IG1pZ2h0IGJlIGJldHRlciB0aGFuIHRvIHJlaW50cm9kdWNlIHRoZSBJRFIgaW4KPj4+
+IG11c2JfY29yZS5jLgo+Pgo+PiB0aGF04oCZcyBuZWVkZWQgZm9yIGdlbmVyaWMgcGh5IGZyYW1l
+d29yayBhbnl3YXkgOi1zCj4gCj4gcmlnaHQsIGJ1dCBnZW5lcmljIHBoeSBmcmFtZXdvcmsgY2Fu
+IGhhbmRsZSBldmVyeXRoaW5nIGp1c3QgZmluZSwgdGhlCj4gb25seSBwcm9ibGVtIGlzIHRoYXQg
+bmFtZXMgYXJlIGNoYW5naW5nLgoKcmlnaHQuIEJ1dCBpZiB0aGUgbmFtZXMgY2hhbmdlLCBQSFkg
+ZnJhbWV3b3JrIHdvdWxkbid0IGJlIGFibGUgdG8gcmV0dXJuIHRoZQpyZWZlcmVuY2UgdG8gdGhl
+IFBIWS4KClRoYW5rcwpLaXNob24KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJu
+ZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
