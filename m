@@ -1,76 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: hwmod fixes for v3.11-rc
-Date: Tue, 30 Jul 2013 06:33:36 -0700
-Message-ID: <20130730133336.GL7656@atomide.com>
-References: <alpine.DEB.2.02.1307301146110.4505@utopia.booyaka.com>
+Subject: Re: [PATCH v2 1/8] ARM: DRA7: id: Add cpu detection support for
+ DRA7xx based SoCs'
+Date: Tue, 30 Jul 2013 06:55:27 -0700
+Message-ID: <20130730135527.GM7656@atomide.com>
+References: <1375183546-12758-1-git-send-email-rnayak@ti.com>
+ <1375183546-12758-2-git-send-email-rnayak@ti.com>
+ <20130730131009.GA28162@radagast>
+ <20130730131837.GB28162@radagast>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:43530 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49668 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754653Ab3G3Ndk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jul 2013 09:33:40 -0400
+	with ESMTP id S1753951Ab3G3Nzc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jul 2013 09:55:32 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1307301146110.4505@utopia.booyaka.com>
+In-Reply-To: <20130730131837.GB28162@radagast>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.com, r.sricharan@ti.com, ambresh@ti.com, sourav.poddar@ti.com
 
-Arnd & Olof,
+* Felipe Balbi <balbi@ti.com> [130730 06:25]:
+> On Tue, Jul 30, 2013 at 04:10:09PM +0300, Felipe Balbi wrote:
+> > Hi,
+> > 
+> > On Tue, Jul 30, 2013 at 04:55:39PM +0530, Rajendra Nayak wrote:
+> > > @@ -379,6 +407,13 @@ IS_OMAP_TYPE(3430, 0x3430)
+> > >  # define soc_is_omap543x()		is_omap543x()
+> > >  #endif
+> > >  
+> > > +# if defined(CONFIG_SOC_DRA7XX)
+> > > +# undef soc_is_dra7xx
+> > > +# undef soc_is_dra75x
+> > > +# define soc_is_dra7xx()		is_dra7xx()
+> > > +# define soc_is_dra75x()		is_dra75x()
+> > 
+> > since this platform is DT-only, couldn't we just believe DT-data to be
+> > correct of_machine_is_compatible() ? 2/3 of this patch would be removed.
+> 
+> s/correct of_/correct and use of_
 
-Can you please take this pull request directly? Other than the
-omap5 regulator dts changes I just posted I don't yet have
-anything else queued up right now.
+Makes sense to me. AFAIK we no longer need to initialize much
+anything super early.
 
 Regards,
 
 Tony
-
-* Paul Walmsley <paul@pwsan.com> [130730 04:53]:
-> 
-> Hi Tony
-> 
-> The following changes since commit 5ae90d8e467e625e447000cb4335c4db973b1095:
-> 
->   Linux 3.11-rc3 (2013-07-28 20:53:33 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.11-rc/omap-fixes-b
-> 
-> for you to fetch changes up to 50c2a3a1518befe992f868fc1fd867bdad9776ad:
-> 
->   ARM: OMAP2+: hwmod: AM335x: fix cpgmac address space (2013-07-30 05:13:37 -0600)
-> 
-> ----------------------------------------------------------------
-> Some OMAP hwmod fixes for v3.11-rc.  Mostly intended to fix an earlyprintk
-> regression and an AM33xx cpgmac power management regression.
-> 
-> Basic build, boot, and PM tests are available here:
-> 
-> http://www.pwsan.com/omap/testlogs/hwmod_fixes_a_v3.11-rc/20130730042132/
-> 
-> The tests include temporary fixes for the unrelated 2430SDP and OMAP3
-> boot regressions, which are not part of this signed tag.
-> 
-> ----------------------------------------------------------------
-> Afzal Mohammed (2):
->       ARM: OMAP2+: hwmod: rt address space index for DT
->       ARM: OMAP2+: hwmod: AM335x: fix cpgmac address space
-> 
-> Rajendra Nayak (3):
->       ARM: OMAP2+: hwmod: Fix a crash in _setup_reset() with DEBUG_LL
->       ARM: OMAP2+: Avoid idling memory controllers with no drivers
->       ARM: OMAP2+: Sync hwmod state with the pm_runtime and omap_device state
-> 
->  arch/arm/mach-omap2/omap_device.c                  | 18 ++++++++
->  arch/arm/mach-omap2/omap_hwmod.c                   |  2 +-
->  arch/arm/mach-omap2/omap_hwmod.h                   | 50 ++++++++++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  6 +--
->  arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  3 +-
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  9 ++--
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |  5 +--
->  arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  3 +-
->  arch/arm/mach-omap2/serial.c                       | 11 -----
->  9 files changed, 83 insertions(+), 24 deletions(-)
