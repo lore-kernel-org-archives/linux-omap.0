@@ -1,89 +1,108 @@
-From: Chen Baozi <baozich@gmail.com>
-Subject: Re: Linux kernel for OMAP5432 uEVM
-Date: Tue, 30 Jul 2013 14:07:43 +0800
-Message-ID: <AEBD4502-35A4-4662-B435-7F4F0D5C5D6A@gmail.com>
-References: <20130730033808.GA23486@cbz-workstation> <51F7387B.9060304@ti.com>
-Mime-Version: 1.0 (Mac OS X Mail 6.5 \(1508\))
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:34590 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752230Ab3G3GHt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jul 2013 02:07:49 -0400
-Received: by mail-pd0-f178.google.com with SMTP id w10so3485012pde.9
-        for <linux-omap@vger.kernel.org>; Mon, 29 Jul 2013 23:07:48 -0700 (PDT)
-In-Reply-To: <51F7387B.9060304@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 2/2] arm: omap: remove *.auto* from device names given
+ in usb_bind_phy
+Date: Tue, 30 Jul 2013 11:41:23 +0530
+Message-ID: <51F7590B.4020705@ti.com>
+References: <1374829418-27503-1-git-send-email-kishon@ti.com>
+ <1374829418-27503-3-git-send-email-kishon@ti.com>
+ <20130729150638.GD3063@radagast> <51F68A56.8060805@ti.com>
+ <20130729175413.GC4964@radagast> <51F74BC8.7020903@ti.com>
+ <20130730060134.GD9155@radagast>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130730060134.GD9155@radagast>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: balbi@ti.com
+Cc: linux@arm.linux.org.uk, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, eballetbo@gmail.com, javier@dowhile0.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: linux-omap@vger.kernel.org
 
-
-On Jul 30, 2013, at 11:52 AM, Lokesh Vutla <lokeshvutla@ti.com> wrote:
-
-> Hi Chen,
-> On Tuesday 30 July 2013 09:08 AM, Chen Baozi wrote:
->> Hi all,
->> 
->> I'm trying to boot my OMAP5432 uEVM devboard with the lastest kernel of
->> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git.
-> Which branch are you using ?
-
-the master branch.
-
->> However, after u-boot loading uImage & DTB, there is no output message any
->> more, such as:
-> Clk data might be missing here. Try merging the below branch and test it
-> https://git.kernel.org/cgit/linux/kernel/git/ssantosh/linux.git/log/?h=for_3.11/out_of_tree/omap5_clk_data
-
-Thanks, I'll have a try.
-
-Baozi
-
-> 
-> You can also use Linus's kernel with the above clk data branch.( OMAP5 uEVM boots)
-> Please let me know if you need more info.
-> 
-> Thanks and regards,
-> Lokesh
-> 
->> 
->> ## Executing script at 82000000
->> reading omap5-evm-omap.dtb
->> 15280 bytes read in 6 ms (2.4 MiB/s)
->> reading uImage-omap
->> 3996552 bytes read in 250 ms (15.2 MiB/s)
->> ## Booting kernel from Legacy Image at 80300000 ...
->>   Image Name:   Linux-3.10.0-rc6-12306-g0dbc346
->>   Image Type:   ARM Linux Kernel Image (uncompressed)
->>   Data Size:    3996488 Bytes = 3.8 MiB
->>   Load Address: 80008000
->>   Entry Point:  80008000
->>   Verifying Checksum ... OK
->> ## Flattened Device Tree blob at 825f0000
->>   Booting using the fdt blob at 0x825f0000
->>   Loading Kernel Image ... OK
->> OK
->>   reserving fdt memory region: addr=9d000000 size=3000000
->>   Loading Device Tree to 83ff9000, end 83fffbaf ... OK
->> 
->> Starting kernel ...
->> 
->> Before trying this tree, I'm using the 3.8.4 kernel from TI. And it does
->> support the board and can successfully boot.
->> 
->> Anything that I may have missed when configuring the kernel? I use
->> omap2plus_defconfig and add DEBUG_LL, DEBUG_OMAP2PLUS_UART,
->> DEBUG_OMAP4UART3... 
->> 
->> Cheers,
->> 
->> Chen Baozi 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> 
-> 
-
+SGksCgpPbiBUdWVzZGF5IDMwIEp1bHkgMjAxMyAxMTozMSBBTSwgRmVsaXBlIEJhbGJpIHdyb3Rl
+Ogo+IEhpLAo+IAo+IE9uIFR1ZSwgSnVsIDMwLCAyMDEzIGF0IDEwOjQ0OjQ4QU0gKzA1MzAsIEtp
+c2hvbiBWaWpheSBBYnJhaGFtIEkgd3JvdGU6Cj4+PiBPbiBNb24sIEp1bCAyOSwgMjAxMyBhdCAw
+ODo1OToyNlBNICswNTMwLCBLaXNob24gVmlqYXkgQWJyYWhhbSBJIHdyb3RlOgo+Pj4+Pj4gUHJl
+dmlvdXNseSBNVVNCIHdyYXBwZXIgKE9NQVApIGRldmljZSB1c2VkIFBMQVRGT1JNX0RFVklEX0FV
+VE8gd2hpbGUgY3JlYXRpbmcKPj4+Pj4+IE1VU0IgY29yZSBkZXZpY2UuIFNvIGluIHVzYl9iaW5k
+X3BoeSAoYmluZHMgdGhlIGNvbnRyb2xsZXIgd2l0aCB0aGUgUEhZKSwgdGhlCj4+Pj4+PiBkZXZp
+Y2UgbmFtZSBvZiB0aGUgY29udHJvbGxlciBoYWQgKi5hdXRvKiBpbiBpdC4gU2luY2Ugd2l0aCB1
+c2luZwo+Pj4+Pj4gUExBVEZPUk1fREVWSURfQVVUTywgdGhlcmUgaXMgbm8gd2F5IHRvIGtub3cg
+dGhlIGV4YWN0IGRldmljZSBuYW1lIGluIGFkdmFuY2UsCj4+Pj4+PiB0aGUgZGF0YSBnaXZlbiBp
+biB1c2JfYmluZF9waHkgYmVjYW1lIG9ic29sZXRlIGFuZCB1c2JfZ2V0X3BoeSB3YXMgZmFpbGlu
+Zy4KPj4+Pj4+IFNvIE1VU0Igd3JhcHBlciB3YXMgbW9kaWZpZWQgbm90IHRvIHVzZSBQTEFURk9S
+TV9ERVZJRF9BVVRPLiBDb3JyZXNwb25kaW5nCj4+Pj4+PiBjaGFuZ2UgaXMgZG9uZSBpbiBib2Fy
+ZCBmaWxlIGhlcmUuCj4+Pj4+Pgo+Pj4+Pj4gU2lnbmVkLW9mZi1ieTogS2lzaG9uIFZpamF5IEFi
+cmFoYW0gSSA8a2lzaG9uQHRpLmNvbT4KPj4+Pj4+IC0tLQo+Pj4+Pj4gIGFyY2gvYXJtL21hY2gt
+b21hcDIvYm9hcmQtMjQzMHNkcC5jICAgICAgICAgIHwgICAgMiArLQo+Pj4+Pj4gIGFyY2gvYXJt
+L21hY2gtb21hcDIvYm9hcmQtMzQzMHNkcC5jICAgICAgICAgIHwgICAgMiArLQo+Pj4+Pj4gIGFy
+Y2gvYXJtL21hY2gtb21hcDIvYm9hcmQtY20tdDM1LmMgICAgICAgICAgIHwgICAgMiArLQo+Pj4+
+Pj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtZGV2a2l0ODAwMC5jICAgICAgIHwgICAgMiAr
+LQo+Pj4+Pj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtaWdlcDAwMjAuYyAgICAgICAgIHwg
+ICAgMiArLQo+Pj4+Pj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtbGRwLmMgICAgICAgICAg
+ICAgIHwgICAgMiArLQo+Pj4+Pj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNiZWFn
+bGUuYyAgICAgIHwgICAgMiArLQo+Pj4+Pj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21h
+cDNldm0uYyAgICAgICAgIHwgICAgMiArLQo+Pj4+Pj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9h
+cmQtb21hcDNsb2dpYy5jICAgICAgIHwgICAgMiArLQo+Pj4+Pj4gIGFyY2gvYXJtL21hY2gtb21h
+cDIvYm9hcmQtb21hcDNwYW5kb3JhLmMgICAgIHwgICAgMiArLQo+Pj4+Pj4gIGFyY2gvYXJtL21h
+Y2gtb21hcDIvYm9hcmQtb21hcDNzdGFsa2VyLmMgICAgIHwgICAgMiArLQo+Pj4+Pj4gIGFyY2gv
+YXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDN0b3VjaGJvb2suYyAgIHwgICAgMiArLQo+Pj4+Pj4g
+IGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb3Zlcm8uYyAgICAgICAgICAgIHwgICAgMiArLQo+
+Pj4+Pj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtcm02ODAuYyAgICAgICAgICAgIHwgICAg
+MiArLQo+Pj4+Pj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtcng1MS5jICAgICAgICAgICAg
+IHwgICAgMiArLQo+Pj4+Pj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtem9vbS1wZXJpcGhl
+cmFscy5jIHwgICAgMiArLQo+Pj4+Pj4gIDE2IGZpbGVzIGNoYW5nZWQsIDE2IGluc2VydGlvbnMo
+KyksIDE2IGRlbGV0aW9ucygtKQo+Pj4+Pj4KPj4+Pj4+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9t
+YWNoLW9tYXAyL2JvYXJkLTI0MzBzZHAuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtMjQz
+MHNkcC5jCj4+Pj4+PiBpbmRleCAyNDRkOGE1Li4xN2JiMDc2IDEwMDY0NAo+Pj4+Pj4gLS0tIGEv
+YXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC0yNDMwc2RwLmMKPj4+Pj4+ICsrKyBiL2FyY2gvYXJt
+L21hY2gtb21hcDIvYm9hcmQtMjQzMHNkcC5jCj4+Pj4+PiBAQCAtMjMzLDcgKzIzMyw3IEBAIHN0
+YXRpYyB2b2lkIF9faW5pdCBvbWFwXzI0MzBzZHBfaW5pdCh2b2lkKQo+Pj4+Pj4gIAlvbWFwX2hz
+bW1jX2luaXQobW1jKTsKPj4+Pj4+ICAKPj4+Pj4+ICAJb21hcF9tdXhfaW5pdF9zaWduYWwoInVz
+YjBoc19zdHAiLCBPTUFQX1BVTExfRU5BIHwgT01BUF9QVUxMX1VQKTsKPj4+Pj4+IC0JdXNiX2Jp
+bmRfcGh5KCJtdXNiLWhkcmMuMC5hdXRvIiwgMCwgInR3bDQwMzBfdXNiIik7Cj4+Pj4+PiArCXVz
+Yl9iaW5kX3BoeSgibXVzYi1oZHJjLjAiLCAwLCAidHdsNDAzMF91c2IiKTsKPj4+Pj4KPj4+Pj4g
+aG93IGFib3V0IG1vdmluZyB1c2JfYmluZF9waHkoKSBjYWxscyB0byBvbWFwMjQzMC5jID8KPj4+
+Pj4KPj4+Pj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvdXNiL211c2Ivb21hcDI0MzAuYyBiL2RyaXZl
+cnMvdXNiL211c2Ivb21hcDI0MzAuYwo+Pj4+PiBpbmRleCBmNDRlOGI1Li5iNmFiYzFhIDEwMDY0
+NAo+Pj4+PiAtLS0gYS9kcml2ZXJzL3VzYi9tdXNiL29tYXAyNDMwLmMKPj4+Pj4gKysrIGIvZHJp
+dmVycy91c2IvbXVzYi9vbWFwMjQzMC5jCj4+Pj4+IEBAIC01NDQsNiArNTQ0LDkgQEAgc3RhdGlj
+IGludCBvbWFwMjQzMF9wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQo+Pj4+PiAg
+Cj4+Pj4+ICAJCXBkYXRhLT5ib2FyZF9kYXRhCT0gZGF0YTsKPj4+Pj4gIAkJcGRhdGEtPmNvbmZp
+ZwkJPSBjb25maWc7Cj4+Pj4+ICsJfSBlbHNlIHsKPj4+Pj4gKwkJLyogYmluZCB0aGUgUEhZICov
+Cj4+Pj4+ICsJCXVzYl9iaW5kX3BoeShkZXZfbmFtZSgmbXVzYi0+ZGV2KSwgMCwgInR3bDQwMzBf
+dXNiIik7Cj4+Pj4KPj4+PiBUaGlzIGxvb2tzIGxpa2UgYSBoYWNrIElNSE8gdG8gd29ya2Fyb3Vu
+ZCB0aGUgdXNiIHBoeSBsaWJyYXJ5LiBvdGhlcndpc2UgaXQgaXMKPj4+PiBzaW1pbGFyIHRvIGdl
+dF9waHlfYnlfbmFtZS4KPj4+Cj4+PiBhY3R1YWxseSwgdGhpcyBpcyBhIHdvcmthcm91bmQgdG8g
+dGhlIGZhY3QgdGhhdCB3ZSdyZSBub3QgY3JlYXRpbmcgYWxsCj4+PiBwbGF0Zm9ybV9kZXZpY2Vz
+IGluIGFyY2gvYXJtL21hY2gtb21hcDIvIDotKQo+Pj4KPj4+IElmIHdlIGhhZCB0aGUgbXVzYiBh
+bGxvY2F0aW9uIHRoZXJlLCB3ZSBjb3VsZCBlYXNpbHkgaGFuZGxlCj4+PiB1c2JfYmluZF9waHko
+KQo+Pj4KPj4+Pj4gc28gdGhhdCdzIHRlbXBvcmFyeS4gSXQgbWlnaHQgYmUgYmV0dGVyIHRoYW4g
+dG8gcmVpbnRyb2R1Y2UgdGhlIElEUiBpbgo+Pj4+PiBtdXNiX2NvcmUuYy4KPj4+Pgo+Pj4+IHRo
+YXTigJlzIG5lZWRlZCBmb3IgZ2VuZXJpYyBwaHkgZnJhbWV3b3JrIGFueXdheSA6LXMKPj4+Cj4+
+PiByaWdodCwgYnV0IGdlbmVyaWMgcGh5IGZyYW1ld29yayBjYW4gaGFuZGxlIGV2ZXJ5dGhpbmcg
+anVzdCBmaW5lLCB0aGUKPj4+IG9ubHkgcHJvYmxlbSBpcyB0aGF0IG5hbWVzIGFyZSBjaGFuZ2lu
+Zy4KPj4KPj4gcmlnaHQuIEJ1dCBpZiB0aGUgbmFtZXMgY2hhbmdlLCBQSFkgZnJhbWV3b3JrIHdv
+dWxkbid0IGJlIGFibGUgdG8gcmV0dXJuIHRoZQo+PiByZWZlcmVuY2UgdG8gdGhlIFBIWS4KPiAK
+PiB3aXRoIG15IHN1Z2dlc3Rpb24gdGhleSBjYW4gY2hhbmdlIHdoZW5ldmVyIHRoZXkgd2FudCBz
+aW5jZSB3ZSdyZSB1c2luZwo+IGRldl9uYW1lKCkgb2YgdGhlIGp1c3QtY3JlYXRlZCBtdXNiIHBs
+YXRmb3JtX2RldmljZS4gUmlnaHQgPwoKcmlnaHQuIEJ1dCB0aGUgUEhZIGRldmljZSBjYW4gYmUg
+Y3JlYXRlZCBpbiBhIGRpZmZlcmVudCBwbGFjZSBmcm9tIHdoZXJlIHRoZQptdXNiIGRldmljZXMg
+YXJlIGNyZWF0ZWQuIEFuZCBpbiB0aGUgUEhZIGZyYW1ld29yaywgdGhlIFBIWSBkZXZpY2Ugc2hv
+dWxkIGhhdmUKdGhlIGxpc3Qgb2YgY29udHJvbGxlciBkZXZpY2UgKG5hbWVzKSBpdCBjYW4gc3Vw
+cG9ydCAoUEhZIGZyYW1ld29yayBkb2VzIG5vdAptYWludGFpbiBhIHNlcGFyYXRlIGxpc3QgZm9y
+IGJpbmRpbmcgbGlrZSBob3cgd2UgaGFkIGluIFVTQiBQSFkgbGlicmFyeSkuIGUuZy4KaHR0cDov
+L3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnL21zZzkyODE3
+Lmh0bWwuIEluIHN1Y2gKY2FzZXMgaG93IGRvIHdlIHBhc3MgdGhlIGRldmljZSBuYW1lcy4gQWxz
+byB3aWxsIHRoZSBNVVNCIGNvcmUgZGV2aWNlIGJlCmNyZWF0ZWQgYmVmb3JlIHR3bDQwMzAtdXNi
+IFBIWSBkZXZpY2U/CgpUaGFua3MKS2lzaG9uCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1h
+cm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcv
+bWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
