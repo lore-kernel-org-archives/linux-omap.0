@@ -1,70 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2 0/3] ARM: dts: omap5-uevm: fixup wrong regulator
- configuration
-Date: Mon, 29 Jul 2013 23:52:54 -0700
-Message-ID: <20130730065253.GE7656@atomide.com>
-References: <51F67D7D.9070003@ti.com>
- <1375117383-19285-1-git-send-email-nm@ti.com>
- <51F6EA23.50803@gmail.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 4/9] dma: edma: Find missed events and issue them
+Date: Tue, 30 Jul 2013 12:35:02 +0530
+Message-ID: <51F7659E.3040302@ti.com>
+References: <1375104595-16018-1-git-send-email-joelf@ti.com>
+	<1375104595-16018-5-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60921 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752812Ab3G3Gw6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jul 2013 02:52:58 -0400
-Content-Disposition: inline
-In-Reply-To: <51F6EA23.50803@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1375104595-16018-5-git-send-email-joelf-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Cc: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Balaji TK <balajitk-l0cyMroinI0@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Santosh Shilimkar <santosh.shilim>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <benoit.cousson@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, l-o <linux-omap@vger.kernel.org>, dt list <devicetree@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>, J Keerthy <j-keerthy@ti.com>
 
-* Benoit Cousson <benoit.cousson@gmail.com> [130729 15:24]:
-> Hi Nishanth,
+On Monday 29 July 2013 06:59 PM, Joel Fernandes wrote:
+> In an effort to move to using Scatter gather lists of any size with
+> EDMA as discussed at [1] instead of placing limitations on the driver,
+> we work through the limitations of the EDMAC hardware to find missed
+> events and issue them.
 > 
-> Thanks for the quick update.
+> The sequence of events that require this are:
 > 
-> On 29/07/2013 19:03, Nishanth Menon wrote:
-> > Due to wrong older revision of documentation used as reference, we
-> > seem to have a bunch of LDOs wrongly configured on OMAP5 uEVM. This
-> > series is based power tree on production board 750-2628-XXX platform.
-> > Unfortunately, the wrong voltages may be detrimental to OMAP5 as they
-> > supply hardware blocks at voltages that are out of specification.
-> >
-> > Also available at:
-> > based on v3.11-rc1 tag
-> > http link: https://github.com/nmenon/linux-2.6-playground/commits/push/omap5-palmas-fixes-v2
-> > git link: git://github.com/nmenon/linux-2.6-playground.git
-> > branch: push/omap5-palmas-fixes-v2
-> >
-> > Changes since V1:
-> >  - squash of patches
-> >  - picked up Ack from Keerthy
-> >  - based on v3.11-rc3 tag
-> >
-> > V1: http://marc.info/?t=137407980100008&r=1&w=2
-> >
-> > Nishanth Menon (3):
-> >   ARM: dts: omap5-uevm: document regulator signals used on the actual
-> >     board
-> >   ARM: dts: omap5-uevm: fix regulator configurations mandatory for SoC
-> >   ARM: dts: omap5-uevm: update optional/unused regulator configurations
-> >
-> >  arch/arm/boot/dts/omap5-uevm.dts |   78 ++++++++++++++++++++++++--------------
-> >  1 file changed, 49 insertions(+), 29 deletions(-)
-> >
-> > Regards,
-> > Nishanth Menon
+> For the scenario where MAX slots for an EDMA channel is 3:
 > 
-> For the whole series:
+> SG1 -> SG2 -> SG3 -> SG4 -> SG5 -> SG6 -> Null
 > 
-> Acked-by: Benoit Cousson <benoit.cousson@gmail.com>
+> The above SG list will have to be DMA'd in 2 sets:
+> 
+> (1) SG1 -> SG2 -> SG3 -> Null
+> (2) SG4 -> SG5 -> SG6 -> Null
+> 
+> After (1) is succesfully transferred, the events from the MMC controller
+> donot stop coming and are missed by the time we have setup the transfer
+> for (2). So here, we catch the events missed as an error condition and
+> issue them manually.
 
-Thanks, I've applied these into omap-for-v3.11/fixes-omap5
-and will send a pull request for these today as these seem
-quite urgent fixes.
+Are you sure there wont be any effect of these missed events on the
+peripheral side. For example, wont McASP get into an underrun condition
+when it encounters a null PaRAM set? Even UART has to transmit to a
+particular baud so I guess it cannot wait like the way MMC/SD can.
 
-Regards,
+Also, wont this lead to under-utilization of the peripheral bandwith?
+Meaning, MMC/SD is ready with data but cannot transfer because the DMA
+is waiting to be set-up.
 
-Tony
+Did you consider a ping-pong scheme with say three PaRAM sets per
+channel? That way you can keep a continuous transfer going on from the
+peripheral over the complete SG list.
+
+Thanks,
+Sekhar
