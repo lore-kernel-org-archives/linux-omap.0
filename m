@@ -1,97 +1,76 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv4 06/33] CLK: omap: add autoidle support
-Date: Tue, 30 Jul 2013 13:56:55 -0500
-Message-ID: <51F80C77.9020109@ti.com>
-References: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
- <1374564028-11352-7-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCHv4 07/33] CLK: omap: add support for OMAP gate clock
+Date: Tue, 30 Jul 2013 14:17:28 -0500
+Message-ID: <51F81148.4080203@ti.com>
+References: <1374564028-11352-1-git-send-email-t-kristo@ti.com> <1374564028-11352-8-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1374564028-11352-7-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: paul@pwsan.com, khilman@linaro.org, mturquette@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58849 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752030Ab3G3TR4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Jul 2013 15:17:56 -0400
+In-Reply-To: <1374564028-11352-8-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, tony@atomide.com, mturquette@linaro.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
 On 07/23/2013 02:20 AM, Tero Kristo wrote:
-> OMAP clk driver now routes some of the basic clocks through own
-> registration routine to allow autoidle support. This routine just
-> checks a couple of device node properties and adds autoidle support
-> if required, and just passes the registration forward to basic clocks.
+> This node adds support for a clock node which allows control to the
+> clockdomain enable / disable.
 
-why not extend standard framework to support autoidle capable clocks OR 
-introduce our own clk node which depends on basic clocks?
+Dont we have clkdm_enable/disable for the same? should we model 
+clockdomain as a clock node?
+
 >
 > Signed-off-by: Tero Kristo <t-kristo@ti.com>
 > ---
->   arch/arm/mach-omap2/clock.c |    6 ++
->   drivers/clk/omap/Makefile   |    2 +-
->   drivers/clk/omap/autoidle.c |  130 +++++++++++++++++++++++++++++++++++++++++++
->   drivers/clk/omap/clk.c      |    4 +-
->   include/linux/clk/omap.h    |    4 ++
->   5 files changed, 143 insertions(+), 3 deletions(-)
->   create mode 100644 drivers/clk/omap/autoidle.c
-
-I know it is getting a little stale, but anyways, device tree binding 
-missing.
-
+>   drivers/clk/omap/Makefile |    2 +-
+>   drivers/clk/omap/clk.c    |    1 +
+>   drivers/clk/omap/gate.c   |   88 +++++++++++++++++++++++++++++++++++++++++++++
+>   include/linux/clk/omap.h  |    1 +
+>   4 files changed, 91 insertions(+), 1 deletion(-)
+>   create mode 100644 drivers/clk/omap/gate.c
 >
-> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-> index 0c38ca9..669d4c4 100644
-> --- a/arch/arm/mach-omap2/clock.c
-> +++ b/arch/arm/mach-omap2/clock.c
-Not sure why, at this point in time we are going to calling drivers/clk 
-code.
 
-> @@ -520,6 +520,9 @@ int omap2_clk_enable_autoidle_all(void)
->   	list_for_each_entry(c, &clk_hw_omap_clocks, node)
->   		if (c->ops && c->ops->allow_idle)
->   			c->ops->allow_idle(c);
-> +
-> +	of_omap_clk_allow_autoidle_all();
-> +
->   	return 0;
->   }
->
-> @@ -539,6 +542,9 @@ int omap2_clk_disable_autoidle_all(void)
->   	list_for_each_entry(c, &clk_hw_omap_clocks, node)
->   		if (c->ops && c->ops->deny_idle)
->   			c->ops->deny_idle(c);
-> +
-> +	of_omap_clk_deny_autoidle_all();
-> +
+my usual crib: device tree binding documentation is missing
 
-these are defined for CONFIG_OF.. anyways, without dt nodes (OMAP3 is 
-supposed to support non-DT boot even now), this would not work, would it?
-
-
->   	return 0;
->   }
->
 > diff --git a/drivers/clk/omap/Makefile b/drivers/clk/omap/Makefile
-> index 4cad480..ca56700 100644
+> index ca56700..3d3ca30f 100644
 > --- a/drivers/clk/omap/Makefile
 > +++ b/drivers/clk/omap/Makefile
 > @@ -1 +1 @@
-> -obj-y					+= clk.o dpll.o
-> +obj-y					+= clk.o dpll.o autoidle.o
-> diff --git a/drivers/clk/omap/autoidle.c b/drivers/clk/omap/autoidle.c
+> -obj-y					+= clk.o dpll.o autoidle.o
+> +obj-y					+= clk.o dpll.o autoidle.o gate.o
+> diff --git a/drivers/clk/omap/clk.c b/drivers/clk/omap/clk.c
+> index c149097..8c89714 100644
+> --- a/drivers/clk/omap/clk.c
+> +++ b/drivers/clk/omap/clk.c
+> @@ -29,6 +29,7 @@ static const struct of_device_id clk_match[] = {
+>   	{.compatible = "divider-clock", .data = of_omap_divider_setup, },
+>   	{.compatible = "gate-clock", .data = of_gate_clk_setup, },
+>   	{.compatible = "ti,omap4-dpll-clock", .data = of_omap4_dpll_setup, },
+> +	{.compatible = "ti,gate-clock", .data = of_omap_gate_clk_setup, },
+
+I am a little lost - is there any SoC dts that actually uses this? at 
+least this series does not seem to introduce any node that uses this 
+compatibility as per git grep :(
+
+might as well drop the patch?
+
+>   	{},
+>   };
+>
+> diff --git a/drivers/clk/omap/gate.c b/drivers/clk/omap/gate.c
 > new file mode 100644
-> index 0000000..6424cb2
+> index 0000000..7186bb2
 > --- /dev/null
-> +++ b/drivers/clk/omap/autoidle.c
-> @@ -0,0 +1,130 @@
+> +++ b/drivers/clk/omap/gate.c
+> @@ -0,0 +1,88 @@
 > +/*
-> + * OMAP clock autoidle support
+> + * OMAP gate clock support
 > + *
 > + * Copyright (C) 2013 Texas Instruments, Inc.
 > + *
@@ -116,154 +95,91 @@ supposed to support non-DT boot even now), this would not work, would it?
 > +#include <linux/log2.h>
 > +#include <linux/of.h>
 > +#include <linux/of_address.h>
-at all of these required?
-
+> +#include <linux/clk/omap.h>
 > +
 > +#ifdef CONFIG_OF
-> +struct clk_omap_autoidle {
-> +	void __iomem		*reg;
-> +	u8			shift;
-> +	u8			flags;
-> +	const char		*name;
-> +	struct list_head	node;
+> +
+> +static const struct clk_ops omap_gate_clk_ops = {
+> +	.init		= &omap2_init_clk_clkdm,
+> +	.enable		= &omap2_clkops_enable_clkdm,
+> +	.disable	= &omap2_clkops_disable_clkdm,
 > +};
 > +
-> +#define AUTOIDLE_LOW		0x1
-> +
-> +static LIST_HEAD(autoidle_clks);
-> +
-> +static void omap_allow_autoidle(struct clk_omap_autoidle *clk)
+> +void __init of_omap_gate_clk_setup(struct device_node *node)
 > +{
-> +	u32 val;
+> +	struct clk *clk;
+> +	struct clk_init_data init;
+init = { 0 };
+> +	struct clk_hw_omap *clk_hw;
+> +	const char *clk_name = node->name;
+> +	int num_parents;
+> +	const char **parent_names;
+> +	int i;
 > +
-> +	val = readl(clk->reg);
-> +
-> +	if (clk->flags & AUTOIDLE_LOW)
-> +		val &= ~(1 << clk->shift);
-> +	else
-> +		val |= (1 << clk->shift);
-> +
-> +	writel(val, clk->reg);
-> +}
-> +
-> +static void omap_deny_autoidle(struct clk_omap_autoidle *clk)
-> +{
-> +	u32 val;
-> +
-> +	val = readl(clk->reg);
-> +
-> +	if (clk->flags & AUTOIDLE_LOW)
-> +		val |= (1 << clk->shift);
-> +	else
-> +		val &= ~(1 << clk->shift);
-> +
-> +	writel(val, clk->reg);
-> +}
-> +
-> +void of_omap_clk_allow_autoidle_all(void)
-> +{
-> +	struct clk_omap_autoidle *c;
-> +
-> +	list_for_each_entry(c, &autoidle_clks, node)
-> +		omap_allow_autoidle(c);
-> +}
-> +
-> +void of_omap_clk_deny_autoidle_all(void)
-> +{
-> +	struct clk_omap_autoidle *c;
-> +
-> +	list_for_each_entry(c, &autoidle_clks, node)
-> +		omap_deny_autoidle(c);
-> +}
-> +
-> +static __init void of_omap_autoidle_setup(struct device_node *node)
-> +{
-> +	u32 shift;
-> +	void __iomem *reg;
-> +	struct clk_omap_autoidle *clk;
-> +
-> +	if (of_property_read_u32(node, "ti,autoidle-shift", &shift))
-> +		return;
-> +
-> +	reg = of_iomap(node, 0);
-> +
-> +	clk = kzalloc(sizeof(struct clk_omap_autoidle), GFP_KERNEL);
-> +
-> +	if (!clk) {
-> +		pr_err("%s: kzalloc failed\n", __func__);
+> +	clk_hw = kzalloc(sizeof(struct clk_hw_omap), GFP_KERNEL);
+kzalloc(sizeof(*clk_hw)...) over kzalloc(sizeof(struct clk_hw_omap)...)
+
+> +	if (!clk_hw) {
+> +		pr_err("%s: could not allocate clk_hw_omap\n", __func__);
 > +		return;
 > +	}
 > +
-> +	clk->shift = shift;
-> +	clk->name = node->name;
-> +	clk->reg = reg;
+> +	clk_hw->hw.init = &init;
 > +
-> +	if (of_property_read_bool(node, "ti,autoidle-low"))
-> +		clk->flags |= AUTOIDLE_LOW;
+> +	of_property_read_string(node, "clock-output-names", &clk_name);
+> +	of_property_read_string(node, "ti,clkdm-name", &clk_hw->clkdm_name);
 > +
-> +	list_add(&clk->node, &autoidle_clks);
-> +}
+> +	init.name = clk_name;
+> +	init.ops = &omap_gate_clk_ops;
 > +
-> +void __init of_omap_divider_setup(struct device_node *node)
-> +{
-> +	of_divider_clk_setup(node);
-> +	of_omap_autoidle_setup(node);
-> +}
-> +EXPORT_SYMBOL_GPL(of_omap_divider_setup);
-> +CLK_OF_DECLARE(omap_autoidle_clock, "divider-clock", of_omap_divider_setup);
+> +	num_parents = of_clk_get_parent_count(node);
+> +	if (num_parents < 1) {
+> +		pr_err("%s: omap trace_clk %s must have parent(s)\n",
+> +			__func__, node->name);
+CHECK: Alignment should match open parenthesis
 
-This is overriding drivers/clk/clk-divider.c ?
+> +		goto cleanup;
+> +	}
 > +
-> +void __init of_omap_fixed_factor_setup(struct device_node *node)
-> +{
-> +	of_fixed_factor_clk_setup(node);
-> +	of_omap_autoidle_setup(node);
+> +	parent_names = kzalloc(sizeof(char *) * num_parents, GFP_KERNEL);
+> +
+> +	for (i = 0; i < num_parents; i++)
+> +		parent_names[i] = of_clk_get_parent_name(node, i);
+> +
+> +	init.num_parents = num_parents;
+> +	init.parent_names = parent_names;
+> +
+> +	clk = clk_register(NULL, &clk_hw->hw);
+> +
+> +	if (!IS_ERR(clk)) {
+> +		of_clk_add_provider(node, of_clk_src_simple_get, clk);
+> +		return;
+> +	}
+> +
+> +cleanup:
+kfree(parent_names)?
+> +	kfree(clk_hw);
 > +}
-> +EXPORT_SYMBOL_GPL(of_omap_fixed_factor_setup);
-> +CLK_OF_DECLARE(omap_fixed_factor_clock, "fixed-factor-clock",
-> +	of_omap_fixed_factor_setup);
-
-This is overriding drivers/clk/clk-fixed-factor.c ?
-> +
+> +EXPORT_SYMBOL(of_omap_gate_clk_setup);
+> +CLK_OF_DECLARE(omap_gate_clk, "ti,omap-gate-clock", of_omap_gate_clk_setup);
 > +#endif
-> diff --git a/drivers/clk/omap/clk.c b/drivers/clk/omap/clk.c
-> index cd31a81..c149097 100644
-> --- a/drivers/clk/omap/clk.c
-> +++ b/drivers/clk/omap/clk.c
-> @@ -25,8 +25,8 @@ static const struct of_device_id clk_match[] = {
->   	{.compatible = "fixed-clock", .data = of_fixed_clk_setup, },
->   	{.compatible = "mux-clock", .data = of_mux_clk_setup, },
->   	{.compatible = "fixed-factor-clock",
-> -		.data = of_fixed_factor_clk_setup, },
-> -	{.compatible = "divider-clock", .data = of_divider_clk_setup, },
-> +		.data = of_omap_fixed_factor_setup, },
-> +	{.compatible = "divider-clock", .data = of_omap_divider_setup, },
->   	{.compatible = "gate-clock", .data = of_gate_clk_setup, },
->   	{.compatible = "ti,omap4-dpll-clock", .data = of_omap4_dpll_setup, },
->   	{},
 > diff --git a/include/linux/clk/omap.h b/include/linux/clk/omap.h
-> index c39e775..904bdad 100644
+> index 904bdad..58ebb80 100644
 > --- a/include/linux/clk/omap.h
 > +++ b/include/linux/clk/omap.h
-> @@ -192,5 +192,9 @@ extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
->   int dt_omap_clk_init(void);
->   extern void omap_dt_clocks_register(struct omap_dt_clk *oclks, int cnt);
+> @@ -194,6 +194,7 @@ extern void omap_dt_clocks_register(struct omap_dt_clk *oclks, int cnt);
 >   void of_omap4_dpll_setup(struct device_node *node);
-> +void of_omap_fixed_factor_setup(struct device_node *node);
-> +void of_omap_divider_setup(struct device_node *node);
-> +void of_omap_clk_allow_autoidle_all(void);
-> +void of_omap_clk_deny_autoidle_all(void);
+>   void of_omap_fixed_factor_setup(struct device_node *node);
+>   void of_omap_divider_setup(struct device_node *node);
+> +void of_omap_gate_clk_setup(struct device_node *node);
+dont need to export I think if we use strategy mentioned previously.
+
+>   void of_omap_clk_allow_autoidle_all(void);
+>   void of_omap_clk_deny_autoidle_all(void);
 >
->   #endif
 >
 
-I personally dont prefer the fact that divider-clock and 
-fixed-rate-clock now has double meaning - building a multi-arch kernel 
-for example, this can wreak havoc. standard definitions should not be 
-monkeyed around with thus if avoidable, and in this case, very much 
-avoidable.
 
-just my 2 cents.
 -- 
 Regards,
 Nishanth Menon
