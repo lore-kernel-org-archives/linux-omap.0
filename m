@@ -1,58 +1,84 @@
-From: Chen Baozi <baozich@gmail.com>
-Subject: Re: Linux kernel for OMAP5432 uEVM
-Date: Wed, 31 Jul 2013 20:30:07 +0800
-Message-ID: <59979577-BEDE-4823-9497-BF122D1F6613@gmail.com>
-References: <20130730033808.GA23486@cbz-workstation> <51F7387B.9060304@ti.com> <D890FDE7-B6AD-48E9-BE9C-3835F95E4457@gmail.com> <51F8CB7A.9070108@ti.com> <51F8F5A9.5080308@ti.com> <51F9003A.7080402@ti.com>
-Mime-Version: 1.0 (Mac OS X Mail 6.5 \(1508\))
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f54.google.com ([209.85.160.54]:40554 "EHLO
-	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751268Ab3GaMaN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Jul 2013 08:30:13 -0400
-Received: by mail-pb0-f54.google.com with SMTP id ro12so717488pbb.41
-        for <linux-omap@vger.kernel.org>; Wed, 31 Jul 2013 05:30:12 -0700 (PDT)
-In-Reply-To: <51F9003A.7080402@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v2 1/4] ARM: dts: omap4-panda: add MMC5 (WiLink WLAN)
+ configuration
+Date: Wed, 31 Jul 2013 18:38:42 +0530
+Message-ID: <51F90C5A.2000807@ti.com>
+References: <1375218923-29876-1-git-send-email-coelho@ti.com>
+ <1375218923-29876-2-git-send-email-coelho@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1375218923-29876-2-git-send-email-coelho@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Luciano Coelho <coelho@ti.com>
+Cc: devicetree@vger.kernel.org, tony@atomide.com, linux-wireless@vger.kernel.org, balbi@ti.com, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, luca@coelho.fi, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org
 
-Hi Roger,
-On Jul 31, 2013, at 8:16 PM, Roger Quadros <rogerq@ti.com> wrote:
+On Wednesday 31 July 2013 02:45 AM, Luciano Coelho wrote:
+> Add regulator, pin muxing and MMC5 configuration to be used by the
+> on-board WiLink6 module.
+>
+> Signed-off-by: Luciano Coelho <coelho@ti.com>
+> ---
+>   arch/arm/boot/dts/omap4-panda-common.dtsi | 31 ++++++++++++++++++++++++++++++-
+>   1 file changed, 30 insertions(+), 1 deletion(-)
+>
+> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+> index faa95b5..b3f6e1f 100644
+> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
+> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+> @@ -107,6 +107,16 @@
+>   	 */
+>   		clock-frequency = <19200000>;
+>   	};
+> +
+> +	wilink_wl_en: fixedregulator@1 {
+> +		compatible = "regulator-fixed";
+> +		regulator-name = "wilink_wl_en";
+> +		regulator-min-microvolt = <1800000>;
+> +		regulator-max-microvolt = <1800000>;
+> +		gpio = <&gpio2 11 0>; /* gpio line 43 */
+> +		startup-delay-us = <70000>;
+> +		enable-active-high;
+> +	};
+>   };
+>
+>   &omap4_pmx_wkup {
+> @@ -132,6 +142,7 @@
+>   			&dss_hdmi_pins
+>   			&tpd12s015_pins
+>   			&hsusbb1_pins
+> +			&wilink_pins
+>   	>;
+>
+>   	twl6030_pins: pinmux_twl6030_pins {
+> @@ -235,6 +246,19 @@
+>   			0x1c (PIN_OUTPUT | MUX_MODE3)	/* gpio_wk8 */
+>   		>;
+>   	};
+> +
+> +	wilink_pins: pinmux_wilink_pins {
+> +		pinctrl-single,pins = <
+> +			0x7a 0x103      /* gpio_53  INPUT | MODE3 */
+> +			0x66 0x3	/* gpio_43  OUTPUT | MODE3 */
+> +			0x148 0x118     /* clk	    INPUT PULLUP | MODE0 */
+> +			0x14a 0x118     /* cmd	    INPUT PULLUP | MODE0 */
+> +			0x14c 0x118     /* dat0	    INPUT PULLUP | MODE0 */
+> +			0x14e 0x118     /* dat1	    INPUT PULLUP | MODE0 */
+> +			0x150 0x118     /* dat2	    INPUT PULLUP | MODE0 */
+> +			0x152 0x118     /* dat3	    INPUT PULLUP | MODE0 */
+Hi,
 
-> Hi Chen,
-> 
-> On 07/31/2013 02:31 PM, Roger Quadros wrote:
->> On 07/31/2013 11:31 AM, Lokesh Vutla wrote:
->>> Hi Chen,
->>> 
->>> On Wednesday 31 July 2013 01:19 PM, Chen Baozi wrote:
->>>> 
->>>> On Jul 30, 2013, at 11:52 AM, Lokesh Vutla <lokeshvutla@ti.com> wrote:
->>>> 
->>>>> You can also use Linus's kernel with the above clk data branch.( OMAP5 uEVM boots)
->>>>> Please let me know if you need more info.
->>>> 
->>>> And the ethernet driver is not available by default?
->>> You need the following patch series recently posted by Roger:
->>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg92694.html
->>> 
->> 
->> Those will work only if you proceed with Tero's clock data in DT approach.
->> 
-> 
-> I've created a branch that contains all patches required to get ethernet working on 
-> uEVM on top of Tero's DT clocks. I took the leisure of picking the baseport tree from
-> Lokesh [1].
-> 
-> You can get the necessary stuff from branch 
-> 	usbhost-uevm-3.11-rc3
-> in git tree 
-> 	git://github.com/rogerq/linux.git
-
-Thanks a lot. I'll have a try.
-
-Baozi
-
+Since the base for omap4_pmx_core is 0x4a100040, you need to offset 0x40 from
+pad address :-)
+and can you please use INPUT_EN / PIN_INPUT_PULLUP / MUX_MODEx macros
+(from dt-bindings/pinctrl/omap.h)
