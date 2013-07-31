@@ -1,72 +1,32 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [net-next PATCH 1/1] drivers: net: cpsw: Add support for new
- CPSW IP version
-Date: Wed, 31 Jul 2013 18:28:27 +0300
-Message-ID: <20130731152827.GB25618@radagast>
-References: <1375272746-24446-1-git-send-email-mugunthanvnm@ti.com>
- <20130731144957.GC4904@netboy>
-Reply-To: <balbi@ti.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH] of: provide of_platform_unpopulate()
+Date: Wed, 31 Jul 2013 11:28:24 -0500
+Message-ID: <51F93B28.3030001@gmail.com>
+References: <1374257691-31981-1-git-send-email-bigeasy@linutronix.de>  <51EBF33A.4050207@gmail.com> <51EC4908.4040504@gmail.com>  <CACxGe6sqv2Wsp26MWqqs9W_eWO3tjs-+2z3z8fC=2fe-BjJvkA@mail.gmail.com> <1375090382.3859.38.camel@pasglop>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NDin8bjvE/0mNLFQ"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130731144957.GC4904@netboy>
-Sender: netdev-owner@vger.kernel.org
-To: Richard Cochran <richardcochran@gmail.com>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>, netdev@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org, balbi@ti.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1375090382.3859.38.camel@pasglop>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Grant Likely <grant.likely@linaro.org>, George Cherian <george.cherian@ti.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree-discuss <devicetree-discuss@lists.ozlabs.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Felipe Balbi <balbi@ti.com>, Roger Quadros <rogerq@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Naveen Krishna Chatradhi <ch.naveen@samsung.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Vivek Gautam <gautam.vivek@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
---NDin8bjvE/0mNLFQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 07/29/2013 04:33 AM, Benjamin Herrenschmidt wrote:
+> On Mon, 2013-07-22 at 00:44 +0100, Grant Likely wrote:
+>>> BTW, it looks like Grant has attempted this already:
+>>
+>> Yup, things broke badly. Unfortunately the of_platform_device and
+>> platform_device history doesn't treat resources in the same way. I
+>> would like to merge the code, but I haven't been able to figure out a
+>> clean way to do it. Looks like we do need the unpopulate function.
+> 
+> What is the exact problem Grant ? Care to give me an example ?
+> 
 
-On Wed, Jul 31, 2013 at 04:49:59PM +0200, Richard Cochran wrote:
-> On Wed, Jul 31, 2013 at 05:42:26PM +0530, Mugunthan V N wrote:
-> > The new IP version has a minor changes and the offsets are same as the =
-previous
-> > version, so instead of adding CPSW version number in the driver, make t=
-he driver
-> > to fall through to the latest versions so that the new version of CPSW =
-which has
-> > the same register offsets will work directly without patching the drive=
-r.
->=20
-> This doesn't make any sense to me. Why not just add the new version
-> number?
->=20
-> None of the hunks in your patch are on performance sensitive paths, so
-> I really can't see any point in removing the error checking.
+See this thread:
 
-well, if a new revision of the IP comes, the driver at least has some
-chance to work without having to be modified. If it turns out that there
-are really different features, then we patch a new version, otherwise we
-should just assume highest known version and try it out.
+http://www.mail-archive.com/linuxppc-dev@lists.ozlabs.org/msg63678.html
 
---=20
-balbi
-
---NDin8bjvE/0mNLFQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR+S0bAAoJEIaOsuA1yqREqiQQAJppTWd65kD8C3hDmvsirpf7
-4a0Z2ZMVgSgblk2bVdL+clpRYa+SqsmKhpCbBCHgUJBPUoiq+zfUUb5m7LL4oFsN
-3k7/9+XQ766YOQBk0VxkNDlGLHr8ZqOPAagH0mTjAaF7abcuV3EYk6r0XYJqKSKp
-126OqpVQmdcqXzeNwhEAnz5PZAQnYwwz6+7GWIpHAyl3CToVTUi81wmJU6YMT9ef
-3nzTocvInZnEor20203wbFVB7KTsdxWNYy12QLzndKe6OJWL8opGNzzdJZ858tvR
-NKEQpcWnzmQA3KOCEmfjcvPVNVV9FZXM9V52H28hYC47PVNa1VFUck6V1a88pFrk
-K1dQPdZwRvJUWPiXFvuc3y+VA/exB6ngWpN2GjwHwp2rQTP9qcgMv794quHmR/VI
-6bmU2VwIziKxOl9hR1bo+81d67eNvYJ8fWh8iH8jD4m1oI1B6IKTzfYUHt0GCHBN
-HSl3Pvw5APGPHfghGP9ty3Z2l2lPEsIEDox2QLy8MQKORWXBLSL+ElJeedmjgKn6
-MCb8ldEhsIH5YyNqFcQ/YsfdFXaBRP0FONw/OtfCNWeQwHvw9k7ldBAb4BKnvNlm
-IQEFKBj8NtzmEBM6g16BGy/7MdYxzen/L9IfHk0R0yT7YdvZ6zx4UXJ05Uw+WkEY
-IJZTBtAvwNQsjXlQojrB
-=fcQk
------END PGP SIGNATURE-----
-
---NDin8bjvE/0mNLFQ--
+Rob
