@@ -1,15 +1,14 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 01/33] CLK: clkdev: add support for looking up clocks
- from DT
-Date: Wed, 31 Jul 2013 11:43:41 +0300
-Message-ID: <51F8CE3D.6040101@ti.com>
+Subject: Re: [PATCHv4 02/33] clk: omap: introduce clock driver
+Date: Wed, 31 Jul 2013 11:59:15 +0300
+Message-ID: <51F8D1E3.2@ti.com>
 References: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
- <1374564028-11352-2-git-send-email-t-kristo@ti.com> <51F7D5FE.7030003@ti.com>
+ <1374564028-11352-3-git-send-email-t-kristo@ti.com> <51F7DA0D.7060709@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51F7D5FE.7030003@ti.com>
+In-Reply-To: <51F7DA0D.7060709@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,90 +19,176 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Nishanth Menon <nm@ti.com>
-Cc: paul@pwsan.com, khilman@linaro.org, mturquette@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: paul@pwsan.com, khilman@linaro.org, mturquette@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/30/2013 06:04 PM, Nishanth Menon wrote:
+On 07/30/2013 06:21 PM, Nishanth Menon wrote:
 > On 07/23/2013 02:19 AM, Tero Kristo wrote:
->> clk_get_sys / clk_get can now find clocks from device-tree. If a DT clock
->> is found, an entry is added to the clk_lookup list also for subsequent
->> searches.
+>> Parses OMAP clock data from DT and registers those clocks with the clock
+>> framework.  dt_omap_clk_init must be called early during boot for timer
+>> initialization so it is exported and called from the existing clock code
+>> instead of probing like a real driver. Based on initial work done by
+>> Mike Turquette.
 >>
 >> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> Cc: Russell King <linux@arm.linux.org.uk>
+>> Cc: Mike Turquette <mturquette@linaro.org>
 >> ---
->>   drivers/clk/clkdev.c |   32 ++++++++++++++++++++++++++++++++
->>   1 file changed, 32 insertions(+)
+>>   drivers/clk/Makefile      |    1 +
+>>   drivers/clk/omap/Makefile |    1 +
+>>   drivers/clk/omap/clk.c    |   39
+>> +++++++++++++++++++++++++++++++++++++++
+>
+> Minor suggestion - should we just start drivers/clk/ti/ instead of
+> clk/omap?
+>
+> AM335x/DRA7 are not "strictly OMAP".. might also allow for some reuse
+> for other TI platforms..
+
+Not sure, this idea has been bounced around a bit. samsung has its own 
+directory under drivers/clk/ so maybe. I can change this if there is a 
+strong wish for this.
+
+>
+>>   include/linux/clk/omap.h  |   24 ++++++++++++++++++++++++
+>>   4 files changed, 65 insertions(+)
+>>   create mode 100644 drivers/clk/omap/Makefile
+>>   create mode 100644 drivers/clk/omap/clk.c
+>>   create mode 100644 include/linux/clk/omap.h
 >>
->> diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
->> index 442a313..e39f082 100644
->> --- a/drivers/clk/clkdev.c
->> +++ b/drivers/clk/clkdev.c
->> @@ -93,6 +93,18 @@ struct clk *of_clk_get_by_name(struct device_node
->> *np, const char *name)
->>   EXPORT_SYMBOL(of_clk_get_by_name);
->>   #endif
+>> diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
+>> index 4038c2b..d3c3733 100644
+>> --- a/drivers/clk/Makefile
+>> +++ b/drivers/clk/Makefile
+>> @@ -32,6 +32,7 @@ obj-$(CONFIG_ARCH_VT8500)    += clk-vt8500.o
+>>   obj-$(CONFIG_ARCH_ZYNQ)        += zynq/
+>>   obj-$(CONFIG_ARCH_TEGRA)    += tegra/
+>>   obj-$(CONFIG_PLAT_SAMSUNG)    += samsung/
+>> +obj-$(CONFIG_ARCH_OMAP)        += omap/
 >>
->> +/**
->> + * clkdev_add_nolock - add lookup entry for a clock
->> + * @cl: pointer to new clock lookup entry
+>>   obj-$(CONFIG_X86)        += x86/
+>>
+>> diff --git a/drivers/clk/omap/Makefile b/drivers/clk/omap/Makefile
+>> new file mode 100644
+>> index 0000000..8195931
+>> --- /dev/null
+>> +++ b/drivers/clk/omap/Makefile
+>> @@ -0,0 +1 @@
+>> +obj-y                    += clk.o
+>> diff --git a/drivers/clk/omap/clk.c b/drivers/clk/omap/clk.c
+>> new file mode 100644
+>> index 0000000..4bf1929
+>> --- /dev/null
+>> +++ b/drivers/clk/omap/clk.c
+>> @@ -0,0 +1,39 @@
+>> +/*
+>> + * OMAP PRCM clock driver
+>
+> maybe then prcm-clk.c ?
+
+Maybe remove the PRCM part. We have some clocks behind i2c for example, 
+and we might want to add support for them here.
+
+>
 >> + *
->> + * Non-locking version, used internally by clk_find() to add DT based
->> + * clock lookup entries.
+>> + * Copyright (C) 2013 Texas Instruments, Inc.
+>> + *     Tero Kristo <t-kristo@ti.com>
+>> + *     Mike Turquette <mturquette@linaro.org>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + *
+>> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+>> + * kind, whether express or implied; without even the implied warranty
+>> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
 >> + */
->> +static void clkdev_add_nolock(struct clk_lookup *cl)
+>> +
+>> +#include <linux/clk-provider.h>
+>> +#include <linux/clk/omap.h>
+>> +#include <linux/kernel.h>
+>> +#include <linux/of_device.h>
+>> +
+>> +/* FIXME - should the OMAP PRCM clock driver match generic types? */
+>
+> should it? :)
+
+Not 100% sure about the answer to this, the current implementation works 
+though so we could potentially drop this comment. :)
+
+>
+>> +static const struct of_device_id clk_match[] = {
+>> +    {.compatible = "fixed-clock", .data = of_fixed_clk_setup, },
+> drivers/clk/clk-fixed-rate.c seems to already do this with
+> CLK_OF_DECLARE, or am I mistaken? and so on?
+>> +    {.compatible = "mux-clock", .data = of_mux_clk_setup, },
+>> +    {.compatible = "fixed-factor-clock",
+>> +        .data = of_fixed_factor_clk_setup, },
+>> +    {.compatible = "divider-clock", .data = of_divider_clk_setup, },
+>> +    {.compatible = "gate-clock", .data = of_gate_clk_setup, },
+>> +    {},
+>> +};
+>> +
+>> +/* FIXME - need to initialize early; skip real driver registration &
+>> probe */
+>> +int __init dt_omap_clk_init(void)
+>
+> Might be good to have kernel doc to explain the init requirement as
+> documented in commit message.
+
+Yeah, I am lacking docs once again.
+
+>
 >> +{
->> +    list_add_tail(&cl->node, &clocks);
+>> +    of_clk_init(clk_match);
+>
+> just doing of_clk_init(NULL); should do the job, no? that could even be
+> a static inline OR introduced in board_generic without additional headers?
+
+I don't think that works, as we have special clock node types we want to 
+support (the TI specific types, and we want to override the default 
+behavior of some.)
+
+>
+>> +    return 0;
 >> +}
->> +
->>   /*
->>    * Find the correct struct clk for the device and connection ID.
->>    * We do slightly fuzzy matching here:
->> @@ -106,6 +118,9 @@ static struct clk_lookup *clk_find(const char
->> *dev_id, const char *con_id)
->>   {
->>       struct clk_lookup *p, *cl = NULL;
->>       int match, best_found = 0, best_possible = 0;
->> +    struct device_node *node;
->> +    struct clk *clk;
->> +    struct of_phandle_args clkspec;
->>
->>       if (dev_id)
->>           best_possible += 2;
->> @@ -133,6 +148,23 @@ static struct clk_lookup *clk_find(const char
->> *dev_id, const char *con_id)
->>                   break;
->>           }
->>       }
->> +
->> +    if (cl)
->> +        return cl;
->> +
->> +    /* If clock was not found, attempt to look-up from DT */
->> +    node = of_find_node_by_name(NULL, con_id);
->> +
->> +    clkspec.np = node;
->> +
->> +    clk = of_clk_get_from_provider(&clkspec);
->> +
->> +    if (!IS_ERR(clk)) {
->> +        /* We found a clock, add node to clkdev */
->> +        cl = clkdev_alloc(clk, con_id, dev_id);
+>> diff --git a/include/linux/clk/omap.h b/include/linux/clk/omap.h
+>> new file mode 100644
+>> index 0000000..647f02f
+>> --- /dev/null
+>> +++ b/include/linux/clk/omap.h
+>> @@ -0,0 +1,24 @@
+>> +/*
+>> + * Copyright (C) 2013 Texas Instruments, Inc.
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License as published by
+>> + * the Free Software Foundation; either version 2 of the License, or
+>> + * (at your option) any later version.
 >
-> clkdev_alloc may return NULL depending on vclkdev_alloc in which case
-> clkdev_add_nolock will crash trying to dereference it.
+> would you like to match licensing to that of the C file?
 
-I'll add a check for that.
-
--Tero
+Ok, copy paste bug #2 for this. Initial version was worse than this though.
 
 >
->> +        clkdev_add_nolock(cl);
->> +    }
+>> + *
+>> + * This program is distributed in the hope that it will be useful,
+>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + *
+>> + * You should have received a copy of the GNU General Public License
+>> + * along with this program; if not, write to the Free Software
+>> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+>> 02111-1307  USA
+>> + */
 >> +
->>       return cl;
->>   }
->>
+>> +#ifndef __LINUX_CLK_OMAP_H_
+>> +#define __LINUX_CLK_OMAP_H_
+>> +
+>> +int __init dt_omap_clk_init(void);
+>> +
+>> +#endif
 >>
 >
 >
