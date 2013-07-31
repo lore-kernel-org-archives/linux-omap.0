@@ -1,55 +1,72 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH] of: provide of_platform_unpopulate()
-Date: Wed, 31 Jul 2013 17:21:58 +0200
-Message-ID: <20130731152158.GA10501@linutronix.de>
-References: <1374257691-31981-1-git-send-email-bigeasy@linutronix.de>
- <51EBF33A.4050207@gmail.com>
- <51EC4908.4040504@gmail.com>
- <CACxGe6sqv2Wsp26MWqqs9W_eWO3tjs-+2z3z8fC=2fe-BjJvkA@mail.gmail.com>
- <51EDA117.10605@gmail.com>
- <20130724141958.9156F3E0A24@localhost>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [net-next PATCH 1/1] drivers: net: cpsw: Add support for new
+ CPSW IP version
+Date: Wed, 31 Jul 2013 18:28:27 +0300
+Message-ID: <20130731152827.GB25618@radagast>
+References: <1375272746-24446-1-git-send-email-mugunthanvnm@ti.com>
+ <20130731144957.GC4904@netboy>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="NDin8bjvE/0mNLFQ"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130724141958.9156F3E0A24@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <robherring2@gmail.com>, Rob Herring <rob.herring@calxeda.com>, Kishon Vijay Abraham I <kishon@ti.com>, George Cherian <george.cherian@ti.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree-discuss <devicetree-discuss@lists.ozlabs.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Vivek Gautam <gautam.vivek@samsung.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Naveen Krishna Chatradhi <ch.naveen@samsung.com>, Roger Quadros <rogerq@ti.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+In-Reply-To: <20130731144957.GC4904@netboy>
+Sender: netdev-owner@vger.kernel.org
+To: Richard Cochran <richardcochran@gmail.com>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>, netdev@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Grant Likely | 2013-07-24 15:19:58 [+0100]:
+--NDin8bjvE/0mNLFQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->> Was there more breakage than imx6 and amba devices? Your first version
->> had a fallback case for powerpc. Couldn't we do just allow that for more
->> than just powerpc? I'd much rather see some work-around within the core
->> DT code with a warning to prevent more proliferation than putting this
->> into drivers.
->
->It's tricky stuff. I've not figured out a solution I'm happy with.
->Trying to figure out when to apply a work around is hard because the
->resource reservation makes assumptions about the memory range layout
->that doesn't match the assumptions made by device tree code.
+On Wed, Jul 31, 2013 at 04:49:59PM +0200, Richard Cochran wrote:
+> On Wed, Jul 31, 2013 at 05:42:26PM +0530, Mugunthan V N wrote:
+> > The new IP version has a minor changes and the offsets are same as the =
+previous
+> > version, so instead of adding CPSW version number in the driver, make t=
+he driver
+> > to fall through to the latest versions so that the new version of CPSW =
+which has
+> > the same register offsets will work directly without patching the drive=
+r.
+>=20
+> This doesn't make any sense to me. Why not just add the new version
+> number?
+>=20
+> None of the hunks in your patch are on performance sensitive paths, so
+> I really can't see any point in removing the error checking.
 
-I can't really follow. Do you have a simple at hand?
+well, if a new revision of the IP comes, the driver at least has some
+chance to work without having to be modified. If it turns out that there
+are really different features, then we patch a new version, otherwise we
+should just assume highest known version and try it out.
 
->One /possible/ option is to not add the resources to the devices at all
->when the device is registered and instead resolve them right at bind
->time. Jean Christophe proposed doing this already to solve a different
->problem; obtaining resources that require other drivers to be probed
->first. If the resources are resolved at .probe() time, then the resource
->registration problem should also go away.
->
->The downside to that approach is that it makes each deferred probe more
->expensive; potentially a *lot* more expensive depending on how much work
->the xlate functions have to do. It would be worth prototyping though to
->see how well it works.
+--=20
+balbi
 
-So you say defer the io ressources until the device-tree device is
-actually probed. I don't really understand why that defer part should
-solve the problem but I would try and see how it goes.
-Jean-Christophe proposed that only, that means no patches yet, right?
+--NDin8bjvE/0mNLFQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
->g.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Sebastian
+iQIcBAEBAgAGBQJR+S0bAAoJEIaOsuA1yqREqiQQAJppTWd65kD8C3hDmvsirpf7
+4a0Z2ZMVgSgblk2bVdL+clpRYa+SqsmKhpCbBCHgUJBPUoiq+zfUUb5m7LL4oFsN
+3k7/9+XQ766YOQBk0VxkNDlGLHr8ZqOPAagH0mTjAaF7abcuV3EYk6r0XYJqKSKp
+126OqpVQmdcqXzeNwhEAnz5PZAQnYwwz6+7GWIpHAyl3CToVTUi81wmJU6YMT9ef
+3nzTocvInZnEor20203wbFVB7KTsdxWNYy12QLzndKe6OJWL8opGNzzdJZ858tvR
+NKEQpcWnzmQA3KOCEmfjcvPVNVV9FZXM9V52H28hYC47PVNa1VFUck6V1a88pFrk
+K1dQPdZwRvJUWPiXFvuc3y+VA/exB6ngWpN2GjwHwp2rQTP9qcgMv794quHmR/VI
+6bmU2VwIziKxOl9hR1bo+81d67eNvYJ8fWh8iH8jD4m1oI1B6IKTzfYUHt0GCHBN
+HSl3Pvw5APGPHfghGP9ty3Z2l2lPEsIEDox2QLy8MQKORWXBLSL+ElJeedmjgKn6
+MCb8ldEhsIH5YyNqFcQ/YsfdFXaBRP0FONw/OtfCNWeQwHvw9k7ldBAb4BKnvNlm
+IQEFKBj8NtzmEBM6g16BGy/7MdYxzen/L9IfHk0R0yT7YdvZ6zx4UXJ05Uw+WkEY
+IJZTBtAvwNQsjXlQojrB
+=fcQk
+-----END PGP SIGNATURE-----
+
+--NDin8bjvE/0mNLFQ--
