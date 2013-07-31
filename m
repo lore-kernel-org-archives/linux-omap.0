@@ -1,32 +1,43 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH] of: provide of_platform_unpopulate()
-Date: Wed, 31 Jul 2013 11:28:24 -0500
-Message-ID: <51F93B28.3030001@gmail.com>
-References: <1374257691-31981-1-git-send-email-bigeasy@linutronix.de>  <51EBF33A.4050207@gmail.com> <51EC4908.4040504@gmail.com>  <CACxGe6sqv2Wsp26MWqqs9W_eWO3tjs-+2z3z8fC=2fe-BjJvkA@mail.gmail.com> <1375090382.3859.38.camel@pasglop>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: [net-next PATCH 1/1] drivers: net: cpsw: Add support for new
+ CPSW IP version
+Date: Wed, 31 Jul 2013 18:38:46 +0200
+Message-ID: <20130731163845.GB4234@netboy>
+References: <1375272746-24446-1-git-send-email-mugunthanvnm@ti.com>
+ <20130731144957.GC4904@netboy>
+ <20130731152827.GB25618@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1375090382.3859.38.camel@pasglop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Grant Likely <grant.likely@linaro.org>, George Cherian <george.cherian@ti.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, devicetree-discuss <devicetree-discuss@lists.ozlabs.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Felipe Balbi <balbi@ti.com>, Roger Quadros <rogerq@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Naveen Krishna Chatradhi <ch.naveen@samsung.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Vivek Gautam <gautam.vivek@samsung.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130731152827.GB25618@radagast>
+Sender: netdev-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>, netdev@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/29/2013 04:33 AM, Benjamin Herrenschmidt wrote:
-> On Mon, 2013-07-22 at 00:44 +0100, Grant Likely wrote:
->>> BTW, it looks like Grant has attempted this already:
->>
->> Yup, things broke badly. Unfortunately the of_platform_device and
->> platform_device history doesn't treat resources in the same way. I
->> would like to merge the code, but I haven't been able to figure out a
->> clean way to do it. Looks like we do need the unpopulate function.
+On Wed, Jul 31, 2013 at 06:28:27PM +0300, Felipe Balbi wrote:
+> On Wed, Jul 31, 2013 at 04:49:59PM +0200, Richard Cochran wrote:
+> > On Wed, Jul 31, 2013 at 05:42:26PM +0530, Mugunthan V N wrote:
+> > > The new IP version has a minor changes and the offsets are same as the previous
+> > > version, so instead of adding CPSW version number in the driver, make the driver
+> > > to fall through to the latest versions so that the new version of CPSW which has
+> > > the same register offsets will work directly without patching the driver.
+> > 
+> > This doesn't make any sense to me. Why not just add the new version
+> > number?
+> > 
+> > None of the hunks in your patch are on performance sensitive paths, so
+> > I really can't see any point in removing the error checking.
 > 
-> What is the exact problem Grant ? Care to give me an example ?
-> 
+> well, if a new revision of the IP comes, the driver at least has some
+> chance to work without having to be modified. If it turns out that there
+> are really different features, then we patch a new version, otherwise we
+> should just assume highest known version and try it out.
 
-See this thread:
+And if the driver reads junk from some random address due to
+bootloader/DT/multikernel madness, it will happily peek and poke
+around instead of rejecting the wrong version number.
 
-http://www.mail-archive.com/linuxppc-dev@lists.ozlabs.org/msg63678.html
-
-Rob
+Thanks,
+Richard
