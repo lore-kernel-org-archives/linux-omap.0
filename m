@@ -1,58 +1,58 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH] ARM: allow DEBUG_UNCOMPRESS for omap2plus
-Date: Wed, 31 Jul 2013 10:57:36 -0600
-Message-ID: <51F94200.2060202@wwwdotorg.org>
-References: <1375224558-8170-1-git-send-email-swarren@wwwdotorg.org> <20130730225233.GF21614@n2100.arm.linux.org.uk> <51F845C7.8020106@wwwdotorg.org> <20130731064634.GR7656@atomide.com>
+From: Trent Piepho <tpiepho@gmail.com>
+Subject: Re: [PATCHv7 1/2] drivers: spi: Add qspi flash controller
+Date: Wed, 31 Jul 2013 11:39:29 -0700
+Message-ID: <CA+7tXijn2V7LMCKuOKxcda6r6a=JFBeSFNqGqNtYZuTF=irF1g@mail.gmail.com>
+References: <1375249673-2585-1-git-send-email-sourav.poddar@ti.com>
+	<1375249673-2585-2-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:36725 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757083Ab3GaQ5k (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Jul 2013 12:57:40 -0400
-In-Reply-To: <20130731064634.GR7656@atomide.com>
+Received: from mail-oa0-f49.google.com ([209.85.219.49]:58492 "EHLO
+	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760651Ab3GaSja (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Jul 2013 14:39:30 -0400
+Received: by mail-oa0-f49.google.com with SMTP id n16so2223175oag.8
+        for <linux-omap@vger.kernel.org>; Wed, 31 Jul 2013 11:39:29 -0700 (PDT)
+In-Reply-To: <1375249673-2585-2-git-send-email-sourav.poddar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, Shawn Guo <shawn.guo@linaro.org>
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, linux-omap@vger.kernel.org, balbi@ti.com, rnayak@ti.com
 
-On 07/31/2013 12:46 AM, Tony Lindgren wrote:
-> * Stephen Warren <swarren@wwwdotorg.org> [130730 16:08]:
->> On 07/30/2013 04:52 PM, Russell King - ARM Linux wrote:
->>> On Tue, Jul 30, 2013 at 04:49:18PM -0600, Stephen Warren wrote:
->>>> From: Stephen Warren <swarren@nvidia.com>
->>>>
->>>> DEBUG_UNCOMPRESS was previously disallowed for omap2plus due to
->>>> omap2plus.S's use of .data, which is not allowed in the decompressor.
->>>> Solve this by placing that data into .text when building the file into
->>>> the decompressor. This relies on .text actually being writable in the
->>>> decompressor, which it is in practice.
->>>
->>> Unless you decide to use ZBOOT and flash the zImage.
->>
->> I knew there had to be a catch:-)
->>
->> I have no idea if ZBOOT is a use-case that's relevant to OMAP?
->>
->> On Tegra at least (the same issue applies to the other patch I just
->> sent), that use-case is almost impossible; even if the boot ROM directly
->> booted a kernel, the boot ROM is hard-coded to copy whatever it's
->> booting to SDRAM first, although I suppose if that was a boot-loader it
->> could just jump back to a ROM location. That said, NOR flash is
->> extremely rare on Tegra. So, I don't know if we care about this issue.
->>
->> Is it reasonable to just say "If you use ZBOOT, don't enable
->> DEBUG_UNCOMPRESS"? Perhaps these patches should not completely remove
->> the !DEBUG_TEGRA_UART from config DEBUG_UNCOMPRESS, but instead say:
->>
->> default y if DEBUG_LL && (!DEBUG_TEGRA_UART || !ZBOOT)?
-> 
-> I think we're best off removing the remaining uncompress code
-> configured port detection features as the port properties are now
-> defined in kconfig anyways. That simplifies the code quite a bit.
+On Tue, Jul 30, 2013 at 10:47 PM, Sourav Poddar <sourav.poddar@ti.com> wrote:
+> Test details:
+> -------------
+> Tested this on dra7 board.
+> Test1: Ran mtd_stesstest for 40000 iterations.
+>    - All iterations went through without failure.
+> Test2: Use mtd utilities:
+>   - flash_erase to erase the flash device
+>   - nanddump to read data back.
+>   - nandwrite to write to the data flash.
+>  diff between the write and read data shows zero.
 
-If you want to do that with OMAP, I'm happy to drop this patch.
+You've obviously never tested word lengths other than 8, because...
 
-For Tegra, automatic determination of the DEBUG_LL UART is rather
-useful, so I'm not going to give that up:-)
+> +static inline void ti_qspi_read_data(struct ti_qspi *qspi,
+> +               unsigned long reg, int wlen, u8 **rxbuf)
+> +{
+> +       switch (wlen) {
+> +       case 8:
+> +               **rxbuf = readb(qspi->base + reg);
+> +               dev_vdbg(qspi->dev, "rx done, read %02x\n", *(*rxbuf));
+> +               *rxbuf += 1;
+> +               break;
+> +       case 16:
+> +               **rxbuf = readw(qspi->base + reg);
+
+*rxbuf is a u8*.  This means when you assign to **rxbuf the type of
+the lvalue is u8.  8 bits.  It does not matter what type the rvalue
+is, u8, u16, or u32, the result will always be truncated to 8 bits.
+
+IMHO, I toss the design of ti_qspi_read/write_data().  They look like
+a function to read a generic register, yet it only makes sense with
+QSPI_SPI_DATA_REG.  Passing the pointer by address so it can be
+incremented is ugly.  And doesn't work at all, since the type of the
+pointer isn't going to be the same for different word lengths.  The
+case statement inside the inner loop is inefficient.  Each case is
+largely duplicated code.
