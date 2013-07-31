@@ -1,343 +1,179 @@
-From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv7 1/2] drivers: spi: Add qspi flash controller
-Date: Wed, 31 Jul 2013 14:40:51 +0530
-Message-ID: <51F8D49B.2090307@ti.com>
-References: <1375249673-2585-1-git-send-email-sourav.poddar@ti.com>
-	<1375249673-2585-2-git-send-email-sourav.poddar@ti.com>
-	<20130731074952.GA14517@radagast>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 4/9] dma: edma: Find missed events and issue them
+Date: Wed, 31 Jul 2013 14:48:31 +0530
+Message-ID: <51F8D667.2040406@ti.com>
+References: <1375104595-16018-1-git-send-email-joelf@ti.com>
+	<1375104595-16018-5-git-send-email-joelf@ti.com>
+	<51F7659E.3040302@ti.com> <51F89763.1010102@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20130731074952.GA14517@radagast>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <51F89763.1010102-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Cc: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Balaji TK <balajitk-l0cyMroinI0@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Santosh Shilimkar <santosh.shilim>
 List-Id: linux-omap@vger.kernel.org
 
-HI,
-On Wednesday 31 July 2013 01:19 PM, Felipe Balbi wrote:
-> Hi,
->
-> On Wed, Jul 31, 2013 at 11:17:52AM +0530, Sourav Poddar wrote:
->> diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
->> new file mode 100644
->> index 0000000..3d10b69
->> --- /dev/null
->> +++ b/drivers/spi/spi-ti-qspi.c
->> @@ -0,0 +1,545 @@
-> <snip>
->
->> +/* Device Control */
->> +#define QSPI_DD(m, n)			(m<<  (3 + n*8))
->> +#define QSPI_CKPHA(n)			(1<<  (2 + n*8))
->> +#define QSPI_CSPOL(n)			(1<<  (1 + n*8))
->> +#define QSPI_CKPOL(n)			(1<<  (n*8))
-> add spaces around the * operator
->
-Ok.
->> +#define	QSPI_FRAME_MAX			0xfff
-> Frame max is 4096, 0x1000, right ?
-Yes,
-this macro was used initially to fill the register bits, where 4095 = 
-4096 words.
-Will change it to now.
->> +static inline void ti_qspi_read_data(struct ti_qspi *qspi,
->> +		unsigned long reg, int wlen, u8 **rxbuf)
->> +{
->> +	switch (wlen) {
->> +	case 8:
->> +		**rxbuf = readb(qspi->base + reg);
->> +		dev_vdbg(qspi->dev, "rx done, read %02x\n", *(*rxbuf));
->> +		*rxbuf += 1;
->> +		break;
->> +	case 16:
->> +		**rxbuf = readw(qspi->base + reg);
->> +		dev_vdbg(qspi->dev, "rx done, read %04x\n", *(*rxbuf));
->> +		*rxbuf += 2;
->> +		break;
->> +	case 32:
->> +		**rxbuf = readl(qspi->base + reg);
->> +		dev_vdbg(qspi->dev, "rx done, read %04x\n", *(*rxbuf));
-> %08x, this was commented before.
->
-Yes, My bad, will change.
->> +static int ti_qspi_setup(struct spi_device *spi)
->> +{
->> +	struct ti_qspi	*qspi = spi_master_get_devdata(spi->master);
->> +	struct ti_qspi_regs *ctx_reg =&qspi->ctx_reg;
->> +	int clk_div = 0, ret;
->> +	u32 clk_ctrl_reg, clk_rate, clk_mask;
->> +
->> +	clk_rate = clk_get_rate(qspi->fclk);
->> +
->> +	if (!qspi->spi_max_frequency) {
->> +		dev_err(qspi->dev, "spi max frequency not defined\n");
->> +		return -EINVAL;
->> +	}
->> +
->> +	clk_div = DIV_ROUND_UP(clk_rate, qspi->spi_max_frequency) - 1;
->> +
->> +	dev_dbg(qspi->dev, "%s: hz: %d, clock divider %d\n", __func__,
->> +			qspi->spi_max_frequency, clk_div);
->> +
->> +	ret = pm_runtime_get_sync(qspi->dev);
->> +	if (ret) {
->> +		dev_err(qspi->dev, "pm_runtime_get_sync() failed\n");
->> +		return ret;
->> +	}
->> +
->> +	clk_ctrl_reg = ti_qspi_read(qspi, QSPI_SPI_CLOCK_CNTRL_REG);
->> +
->> +	clk_ctrl_reg&= ~QSPI_CLK_EN;
->> +
->> +	if (spi->master->busy) {
->> +		dev_dbg(qspi->dev, "master busy doing other trasnfers\n");
->> +		return -EBUSY;
->> +	}
-> this check can be done before pm_runtime_get_sync(), you're also leaking
-> pm_runtime reference here.
->
-true. Will shift.
->> +	/* disable SCLK */
->> +	ti_qspi_write(qspi, clk_ctrl_reg, QSPI_SPI_CLOCK_CNTRL_REG);
->> +
->> +	if (clk_div<  0) {
->> +		dev_dbg(qspi->dev, "%s: clock divider<  0, using /1 divider\n",
->> +				__func__);
->> +		pm_runtime_put_sync(qspi->dev);
->> +		return -EINVAL;
->> +	}
->> +
->> +	if (clk_div>  QSPI_CLK_DIV_MAX) {
->> +		dev_dbg(qspi->dev, "%s: clock divider>%d , using /%d divider\n",
->> +			__func__, QSPI_CLK_DIV_MAX, QSPI_CLK_DIV_MAX + 1);
->> +		pm_runtime_put_sync(qspi->dev);
->> +		return -EINVAL;
->> +	}
-> why don't you move all checks to clk_div before pm_runtime_get_sync()
-> call ?
->
-Make sense. Will move.
->> +static int qspi_write_msg(struct ti_qspi *qspi, struct spi_transfer *t)
->> +{
->> +	const u8 *txbuf;
->> +	int wlen, count, ret;
->> +
->> +	count = t->len;
->> +	txbuf = t->tx_buf;
->> +	wlen = t->bits_per_word;
->> +
->> +	while (count--) {
-> you're decrementing count by one, but in some cases you write 4 bytes or
-> 2 bytes... This will blow up very soon. I can already see overflows
-> happening...
-we write 2 bytes and 4 bytes for 16 bits_per_word and 32 bits_per_word case.
-count is t->len, which is the total number of words to transfer. This
-words can be of any length (1, 2 or 4) bytes. So, I think it should be
-decremented by 1 only.
->> +static int qspi_read_msg(struct ti_qspi *qspi, struct spi_transfer *t)
->> +{
->> +	u8 *rxbuf;
->> +	int wlen, count, ret;
->> +
->> +	count = t->len;
->> +	rxbuf = t->rx_buf;
->> +	wlen = t->bits_per_word;
->> +
->> +	while (count--) {
-> ditto
->
->> +static int qspi_transfer_msg(struct ti_qspi *qspi, struct spi_transfer *t)
->> +{
->> +	int ret;
->> +
->> +	if (t->tx_buf) {
->> +		ret = qspi_write_msg(qspi, t);
->> +		if (ret) {
->> +			dev_dbg(qspi->dev, "Error while writing\n");
->> +			return -EINVAL;
-> why do you change the return value from qspi_write_msg() ?
->
-I  was not sure about this, I thought I had signals an ETIMEOUT during
-timeout, So signal a invalid transfer here.
-Do you suggest keeping ETIMEOUT here also?
+On Wednesday 31 July 2013 10:19 AM, Joel Fernandes wrote:
+> Hi Sekhar,
+> 
+> On 07/30/2013 02:05 AM, Sekhar Nori wrote:
+>> On Monday 29 July 2013 06:59 PM, Joel Fernandes wrote:
+>>> In an effort to move to using Scatter gather lists of any size with
+>>> EDMA as discussed at [1] instead of placing limitations on the driver,
+>>> we work through the limitations of the EDMAC hardware to find missed
+>>> events and issue them.
+>>>
+>>> The sequence of events that require this are:
+>>>
+>>> For the scenario where MAX slots for an EDMA channel is 3:
+>>>
+>>> SG1 -> SG2 -> SG3 -> SG4 -> SG5 -> SG6 -> Null
+>>>
+>>> The above SG list will have to be DMA'd in 2 sets:
+>>>
+>>> (1) SG1 -> SG2 -> SG3 -> Null
+>>> (2) SG4 -> SG5 -> SG6 -> Null
+>>>
+>>> After (1) is succesfully transferred, the events from the MMC controller
+>>> donot stop coming and are missed by the time we have setup the transfer
+>>> for (2). So here, we catch the events missed as an error condition and
+>>> issue them manually.
+>>
+>> Are you sure there wont be any effect of these missed events on the
+>> peripheral side. For example, wont McASP get into an underrun condition
+>> when it encounters a null PaRAM set? Even UART has to transmit to a
+> 
+> But it will not encounter null PaRAM set because McASP uses contiguous
+> buffers for transfer which are not scattered across physical memory.
+> This can be accomplished with an SG of size 1. For such SGs, this patch
+> series leaves it linked Dummy and does not link to Null set. Null set is
+> only used for SG lists that are > MAX_NR_SG in size such as those
+> created for example by MMC and Crypto.
+> 
+>> particular baud so I guess it cannot wait like the way MMC/SD can.
+> 
+> Existing driver have to wait anyway if they hit MAX SG limit today. If
+> they don't want to wait, they would have allocated a contiguous block of
+> memory and DMA that in one stretch so they don't lose any events, and in
+> such cases we are not linking to Null.
 
->> +		}
->> +	}
->> +
->> +	if (t->rx_buf) {
->> +		ret = qspi_read_msg(qspi, t);
->> +		if (ret) {
->> +			dev_dbg(qspi->dev, "Error while writing\n");
->> +			return -EINVAL;
-> why do you change the return value from qspi_read_msg() ?
->
->> +static int ti_qspi_start_transfer_one(struct spi_master *master,
->> +		struct spi_message *m)
->> +{
->> +	struct ti_qspi *qspi = spi_master_get_devdata(master);
->> +	struct spi_device *spi = m->spi;
->> +	struct spi_transfer *t;
->> +	int status = 0, ret;
->> +	int frame_length;
->> +
->> +	/* setup device control reg */
->> +	qspi->dc = 0;
->> +
->> +	if (spi->mode&  SPI_CPHA)
->> +		qspi->dc |= QSPI_CKPHA(spi->chip_select);
->> +	if (spi->mode&  SPI_CPOL)
->> +		qspi->dc |= QSPI_CKPOL(spi->chip_select);
->> +	if (spi->mode&  SPI_CS_HIGH)
->> +		qspi->dc |= QSPI_CSPOL(spi->chip_select);
->> +
->> +	frame_length = (m->frame_length<<  3) / spi->bits_per_word;
->> +
->> +	frame_length = clamp(frame_length, 0, QSPI_FRAME_MAX);
->> +
->> +	/* setup command reg */
->> +	qspi->cmd = 0;
->> +	qspi->cmd |= QSPI_EN_CS(spi->chip_select);
->> +	qspi->cmd |= QSPI_FLEN(frame_length);
->> +	qspi->cmd |= QSPI_WC_CMD_INT_EN;
->> +
->> +	ti_qspi_write(qspi, QSPI_WC_INT_EN, QSPI_INTR_ENABLE_SET_REG);
->> +
->> +	list_for_each_entry(t,&m->transfers, transfer_list) {
-> no locking around list traversal ?
->
-hmm..can put a spin_lock around "qspi_transfer_msg" ?
-                 spin_lock_irqsave(&qspi->lock, flags);
-                 ret = qspi_transfer_msg(qspi, t);
-                 if (ret) {
-                         dev_dbg(qspi->dev, "transfer message failed\n");
-                         return -EINVAL;
-                 }
-                 spin_unlock_irqrestore(&qspi->lock, flags);
->> +static irqreturn_t ti_qspi_isr(int irq, void *dev_id)
->> +{
->> +	struct ti_qspi *qspi = dev_id;
->> +	u16 stat;
->> +
->> +	irqreturn_t ret = IRQ_HANDLED;
->> +
->> +	spin_lock(&qspi->lock);
->> +
->> +	stat = ti_qspi_read(qspi, QSPI_INTR_STATUS_ENABLED_CLEAR);
->> +
->> +	if (!stat) {
->> +		dev_dbg(qspi->dev, "No IRQ triggered\n");
->> +		return IRQ_NONE;
-> leaving lock held.
->
-Will add a unlock before returning.
->> +static irqreturn_t ti_qspi_threaded_isr(int this_irq, void *dev_id)
->> +{
->> +	struct ti_qspi *qspi = dev_id;
->> +	unsigned long flags;
->> +
->> +	spin_lock_irqsave(&qspi->lock, flags);
->> +
->> +	complete(&qspi->transfer_complete);
-> you need to check if your word completion is actually set. Don't assume
-> it's set because we might want to change the code later.
->
-hmm..something like this.?
-   if (ti_qspi_read(qspi, QSPI_SPI_STATUS_REG) & WC)
-         complete(&qspi->transfer_complete);
->> +static int ti_qspi_probe(struct platform_device *pdev)
->> +{
->> +	struct  ti_qspi *qspi;
->> +	struct spi_master *master;
->> +	struct resource         *r;
->> +	struct device_node *np = pdev->dev.of_node;
->> +	u32 max_freq;
->> +	int ret = 0, num_cs, irq;
->> +
->> +	master = spi_alloc_master(&pdev->dev, sizeof(*qspi));
->> +	if (!master)
->> +		return -ENOMEM;
->> +
->> +	master->mode_bits = SPI_CPOL | SPI_CPHA;
->> +
->> +	master->bus_num = -1;
->> +	master->flags = SPI_MASTER_HALF_DUPLEX;
->> +	master->setup = ti_qspi_setup;
->> +	master->auto_runtime_pm = true;
->> +	master->transfer_one_message = ti_qspi_start_transfer_one;
->> +	master->dev.of_node = pdev->dev.of_node;
->> +	master->bits_per_word_mask = BIT(32 - 1) | BIT(16 - 1) | BIT(8 - 1);
->> +
->> +	if (!of_property_read_u32(np, "num-cs",&num_cs))
->> +		master->num_chipselect = num_cs;
->> +
->> +	platform_set_drvdata(pdev, master);
->> +
->> +	qspi = spi_master_get_devdata(master);
->> +	qspi->master = master;
->> +	qspi->dev =&pdev->dev;
->> +
->> +	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> +
->> +	irq = platform_get_irq(pdev, 0);
->> +	if (irq<  0) {
->> +		dev_err(&pdev->dev, "no irq resource?\n");
->> +		return irq;
->> +	}
->> +
->> +	spin_lock_init(&qspi->lock);
->> +
->> +	qspi->base = devm_ioremap_resource(&pdev->dev, r);
->> +	if (IS_ERR(qspi->base)) {
->> +		ret = PTR_ERR(qspi->base);
->> +		goto free_master;
->> +	}
->> +
->> +	ret = devm_request_threaded_irq(&pdev->dev, irq, ti_qspi_isr,
->> +			ti_qspi_threaded_isr, 0,
->> +			dev_name(&pdev->dev), qspi);
->> +	if (ret<  0) {
->> +		dev_err(&pdev->dev, "Failed to register ISR for IRQ %d\n",
->> +				irq);
->> +		goto free_master;
->> +	}
->> +
->> +	qspi->fclk = devm_clk_get(&pdev->dev, "fck");
->> +	if (IS_ERR(qspi->fclk)) {
->> +		ret = PTR_ERR(qspi->fclk);
->> +		dev_err(&pdev->dev, "could not get clk: %d\n", ret);
->> +	}
->> +
->> +	init_completion(&qspi->transfer_complete);
->> +
->> +	pm_runtime_use_autosuspend(&pdev->dev);
->> +	pm_runtime_set_autosuspend_delay(&pdev->dev, QSPI_AUTOSUSPEND_TIMEOUT);
->> +	pm_runtime_enable(&pdev->dev);
->> +
->> +	if (!of_property_read_u32(np, "spi-max-frequency",&max_freq))
->> +		qspi->spi_max_frequency = max_freq;
->> +
->> +	ret = spi_register_master(master);
->> +	if (ret)
->> +		goto free_master;
->> +
->> +	return ret;
-> you only get here with success, so return 0 is alright.
->
-Ok.
+As long as DMA driver can advertize its MAX SG limit, peripherals can
+always work around that by limiting the number of sync events they
+generate so as to not having any of the events getting missed. With this
+series, I am worried that EDMA drivers is advertizing that it can handle
+any length SG list while not taking care of missing any events while
+doing so. This will break the assumptions that driver writers make.
 
+> 
+>> Also, wont this lead to under-utilization of the peripheral bandwith?
+>> Meaning, MMC/SD is ready with data but cannot transfer because the DMA
+>> is waiting to be set-up.
+> 
+> But it is waiting anyway even today. Currently based on MAX segs, MMC
+> driver/subsystem will make SG list of size max_segs. Between these
+> sessions of creating such smaller SG-lists, if for some reason the MMC
+> controller is sending events, these will be lost anyway.
 
-------------------------------------------------------------------------------
-Get your SQL database under version control now!
-Version control is standard for application code, but databases havent 
-caught up. So what steps can you take to put your SQL databases under 
-version control? Why should you start doing it? Read more to find out.
-http://pubads.g.doubleclick.net/gampad/clk?id=49501711&iu=/4140/ostg.clktrk
+But if MMC/SD driver knows how many events it should generate if it
+knows the MAX SG limit. So there should not be any missed events in
+current code. And I am not claiming that your solution is making matters
+worse. But its not making it much better as well.
+
+> 
+> What will happen now with this patch series is we are simply accepting a
+> bigger list than this, and handling all the max_segs stuff within the
+> EDMA driver itself without outside world knowing. This is actually more
+> efficient as for long transfers, we are not going back and forth much
+> between the client and EDMA driver.
+
+Agreed, I am not debating that we need to handle SG lists of any length.
+The hardware is capable of handling them, and no reason kernel should not.
+
+> 
+>> Did you consider a ping-pong scheme with say three PaRAM sets per
+>> channel? That way you can keep a continuous transfer going on from the
+>> peripheral over the complete SG list.
+> 
+> Do you mean ping-pong scheme as used in the davinci-pcm driver today?
+
+No. AFAIR, thats a ping-pong between internal RAM and DDR for earlier
+audio ports which did not come with FIFO.
+
+> This can be used only for buffers that are contiguous in memory, not
+> those that are scattered across memory.
+
+I was hinting at using the linking facility of EDMA to achieve this.
+Each PaRAM set has full 32-bit source and destination pointers so I see
+no reason why non-contiguous case cannot be handled.
+
+Lets say you need to transfer SG[0..6] on channel C. Now, PaRAM sets are
+typically 4 times the number of channels. In this case we use one DMA
+PaRAM set and two Link PaRAM sets per channel. P0 is the DMA PaRAM set
+and P1 and P2 are the Link sets.
+
+Initial setup:
+
+SG0 -> SG1 -> SG2 -> SG3 -> SG4 -> SG5 -> SG6 -> NULL
+ ^      ^      ^
+ |      |      |
+P0  -> P1  -> P2  -> NULL
+
+P[0..2].TCINTEN = 1, so get an interrupt after each SG element
+completion. On each completion interrupt, hardware automatically copies
+the linked PaRAM set into the DMA PaRAM set so after SG0 is transferred
+out, the state of hardware is:
+
+SG1  -> SG2 -> SG3 -> SG3 -> SG6 -> NULL
+ ^       ^
+ |       |
+P0,1    P2  -> NULL
+ |       ^
+ |       |
+ ---------
+
+SG1 transfer has already started by the time the TC interrupt is
+handled. As you can see P1 is now redundant and ready to be recycled. So
+in the interrupt handler, software recycles P1. Thus:
+
+SG1 -> SG2 -> SG3 -> SG4 -> SG5 -> SG6 -> NULL
+ ^      ^      ^
+ |      |      |
+P0  -> P2  -> P1  -> NULL
+
+Now, on next interrupt, P2 gets copied and thus can get recycled.
+Hardware state:
+
+SG2  -> SG3 -> SG4 -> SG5 -> SG6 -> NULL
+ ^       ^
+ |       |
+P0,2    P1  -> NULL
+ |       ^
+ |       |
+ ---------
+
+As part of TC completion interrupt handling:
+
+SG2 -> SG3 -> SG4 -> SG5 -> SG6 -> NULL
+ ^      ^      ^
+ |      |      |
+P0  -> P1  -> P2  -> NULL
+
+This goes on until the SG list in exhausted. If you use more PaRAM sets,
+interrupt handler gets more time to recycle the PaRAM set. At no point
+we touch P0 as it is always under active transfer. Thus the peripheral
+is always kept busy.
+
+Do you see any reason why such a mechanism cannot be implemented?
+
+Thanks,
+Sekhar
