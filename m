@@ -1,19 +1,16 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 1/8] ARM: DRA7: id: Add cpu detection support for DRA7xx
- based SoCs'
-Date: Wed, 31 Jul 2013 11:32:34 +0530
-Message-ID: <51F8A87A.9080002@ti.com>
-References: <1375183546-12758-1-git-send-email-rnayak@ti.com>
- <1375183546-12758-2-git-send-email-rnayak@ti.com>
- <20130730131009.GA28162@radagast> <51F7CB2F.6070705@ti.com>
- <20130730142353.GL28162@radagast> <51F7CF6F.6050702@ti.com>
- <20130730153138.GA5978@radagast> <51F807EF.6020809@ti.com>
- <51F80939.7060403@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Wed, 31 Jul 2013 09:15:38 +0300
+Message-ID: <20130731061538.GC13289@radagast>
+References: <20130720220006.GA7977@kroah.com> <3839600.WiC1OLF35o@flatron>
+ <51EBC0F5.70601@ti.com> <9748041.Qq1fWJBg6D@flatron>
+ <20130721154653.GG16598@kroah.com>
+ <20130730071106.GC16441@radagast> <51F8A440.8010803@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2340482751558891651=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51F80939.7060403@ti.com>
+In-Reply-To: <51F8A440.8010803@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,97 +20,134 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nishanth Menon <nm@ti.com>
-Cc: paul@pwsan.com, khilman@linaro.org, tony@atomide.com, benoit.cousson@gmail.com, balbi@ti.com, Sricharan R <r.sricharan@ti.com>, ambresh@ti.com, sourav.poddar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, Tomasz Figa <tomasz.figa@gmail.com>, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, Alan Stern <stern@rowland.harvard.edu>, grant.likely@linaro.org, linux-media@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, devicetree-discuss@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, Greg KH <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.park@samsung.com, akpm@linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 31 July 2013 12:13 AM, Nishanth Menon wrote:
-> On 07/30/2013 01:37 PM, Sricharan R wrote:
->> Hi,
->> On Tuesday 30 July 2013 09:02 PM, Felipe Balbi wrote:
->>> Hi,
->>>
->>> On Tue, Jul 30, 2013 at 08:06:31PM +0530, Sricharan R wrote:
->>>> On Tuesday 30 July 2013 07:53 PM, Felipe Balbi wrote:
->>>>> Hi,
->>>>>
->>>>> On Tue, Jul 30, 2013 at 07:48:23PM +0530, Sricharan R wrote:
->>>>>> On Tuesday 30 July 2013 06:40 PM, Felipe Balbi wrote:
->>>>>>> Hi,
->>>>>>>
->>>>>>> On Tue, Jul 30, 2013 at 04:55:39PM +0530, Rajendra Nayak wrote:
->>>>>>>> @@ -379,6 +407,13 @@ IS_OMAP_TYPE(3430, 0x3430)
->>>>>>>>   # define soc_is_omap543x()        is_omap543x()
->>>>>>>>   #endif
->>>>>>>>
->>>>>>>> +# if defined(CONFIG_SOC_DRA7XX)
->>>>>>>> +# undef soc_is_dra7xx
->>>>>>>> +# undef soc_is_dra75x
->>>>>>>> +# define soc_is_dra7xx()        is_dra7xx()
->>>>>>>> +# define soc_is_dra75x()        is_dra75x()
->>>>>>> since this platform is DT-only, couldn't we just believe DT-data to be
->>>>>>> correct of_machine_is_compatible() ? 2/3 of this patch would be removed.
->>>>>>>
->>>>>>> I patched this for OMAP5 (compile-tested only, no boards available) and
->>>>>>> came out with the patch below (still needs to be split):
->>>>>>>
->>>>>>> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
->>>>>>> index 08b7267..b3136e5 100644
->>>>>>> --- a/arch/arm/boot/dts/omap5-uevm.dts
->>>>>>> +++ b/arch/arm/boot/dts/omap5-uevm.dts
->>>>>>> @@ -13,7 +13,7 @@
->>>>>>>
->>>>>>>   / {
->>>>>>>       model = "TI OMAP5 uEVM board";
->>>>>>> -    compatible = "ti,omap5-uevm", "ti,omap5";
->>>>>>> +    compatible = "ti,omap5-uevm", "ti,omap5432-es2.0", "ti,omap5";
->>>>>>>
->>>>>>   ok, nice and simpler way.
->>>>>>   But would this make different revisions, to appear the same ?
->>>>> well omap5-uevm is omap5432 es2.0 only, right ? If a new board comes up,
->>>>> it should be treated as such, then you can pass a different string to
->>>>> that new board's compatible attribute.
->>>>> s
->>>>   Yes for OMAP5. I was thinking in general about this approach.
->>>>   For example, for OMAP4 we have same board and
->>>>   different revisions can be socketed there.
->>>>
->>>>   For OMAP5, this is good.
->>> do we really production socketed boards? Well, at least Blaze has such
->>> thing. But do we have too many differences that need to be trated at
->>> arch/arm or should/could those be handled by reading IP's revision
->>> register (e.g. usb host erratas)
->>>
->>   OMAP4 SDP is socketed as well.
-> a) OMAP4SDP is not production device
-> b) OMAP4SDP uses SOM (System On Module)
-> c) Socketted SOMs were used only during initial days of SoC
-> d) almost all latest OMAP4 SDP switched to using soldered in SOM
-> e) we claim compatibility of OMAP4 SDP with Blaze.
-> 
-> So, I dont think this is a rational argument for keeping soc checks with dts.
+--===============2340482751558891651==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="5QAgd0e35j3NYeGe"
+Content-Disposition: inline
 
-What about OMAP4 pandas? I for instance, have an old 4430 panda and I have no idea
-if its a es2.1 or a es2.3 or something else. If we start relying on dt to pass the
-right revision check then (we need to create different dts files for these to begin with) I
-need to know exactly what silicon rev I am running on.
+--5QAgd0e35j3NYeGe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I know its good to completely get rid of all silicon rev checks and depend on IP revisions
-but we have had various IPs which do not have proper rev checks. We have I guess most often
-used these to identify PRCM differences.
+Hi,
 
-Tony, what do you suggest we do for this series? Since we have just an es1.0 and one board
-at this point for dra7xx, things would be fine even if we do a dt based parsing to identify
-the device, and I am fine with it if thats what we feel is the right way forward.
-For the rest of the DT only platforms (omap4/5/am335x) anyway getting rid of these rev checks
-from the kernel and depending on DT parsing needs to be a separate series anyway and I dont
-plan to address those as part of this series.
+On Wed, Jul 31, 2013 at 11:14:32AM +0530, Kishon Vijay Abraham I wrote:
+> >>>>> IMHO we need a lookup method for PHYs, just like for clocks,
+> >>>>> regulators, PWMs or even i2c busses because there are complex cases
+> >>>>> when passing just a name using platform data will not work. I would
+> >>>>> second what Stephen said [1] and define a structure doing things in=
+ a
+> >>>>> DT-like way.
+> >>>>>
+> >>>>> Example;
+> >>>>>
+> >>>>> [platform code]
+> >>>>>
+> >>>>> static const struct phy_lookup my_phy_lookup[] =3D {
+> >>>>>
+> >>>>> 	PHY_LOOKUP("s3c-hsotg.0", "otg", "samsung-usbphy.1", "phy.2"),
+> >>>>
+> >>>> The only problem here is that if *PLATFORM_DEVID_AUTO* is used while
+> >>>> creating the device, the ids in the device name would change and
+> >>>> PHY_LOOKUP wont be useful.
+> >>>
+> >>> I don't think this is a problem. All the existing lookup methods alre=
+ady=20
+> >>> use ID to identify devices (see regulators, clkdev, PWMs, i2c, ...). =
+You=20
+> >>> can simply add a requirement that the ID must be assigned manually,=
+=20
+> >>> without using PLATFORM_DEVID_AUTO to use PHY lookup.
+> >>
+> >> And I'm saying that this idea, of using a specific name and id, is
+> >> frought with fragility and will break in the future in various ways wh=
+en
+> >> devices get added to systems, making these strings constantly have to =
+be
+> >> kept up to date with different board configurations.
+> >>
+> >> People, NEVER, hardcode something like an id.  The fact that this
+> >> happens today with the clock code, doesn't make it right, it makes the
+> >> clock code wrong.  Others have already said that this is wrong there as
+> >> well, as systems change and dynamic ids get used more and more.
+> >>
+> >> Let's not repeat the same mistakes of the past just because we refuse =
+to
+> >> learn from them...
+> >>
+> >> So again, the "find a phy by a string" functions should be removed, the
+> >> device id should be automatically created by the phy core just to make
+> >> things unique in sysfs, and no driver code should _ever_ be reliant on
+> >> the number that is being created, and the pointer to the phy structure
+> >> should be used everywhere instead.
+> >>
+> >> With those types of changes, I will consider merging this subsystem, b=
+ut
+> >> without them, sorry, I will not.
+> >=20
+> > I'll agree with Greg here, the very fact that we see people trying to
+> > add a requirement of *NOT* using PLATFORM_DEVID_AUTO already points to a
+> > big problem in the framework.
+> >=20
+> > The fact is that if we don't allow PLATFORM_DEVID_AUTO we will end up
+> > adding similar infrastructure to the driver themselves to make sure we
+> > don't end up with duplicate names in sysfs in case we have multiple
+> > instances of the same IP in the SoC (or several of the same PCIe card).
+> > I really don't want to go back to that.
+>=20
+> If we are using PLATFORM_DEVID_AUTO, then I dont see any way we can give =
+the
+> correct binding information to the PHY framework. I think we can drop hav=
+ing
+> this non-dt support in PHY framework? I see only one platform (OMAP3) goi=
+ng to
+> be needing this non-dt support and we can use the USB PHY library for it.
 
-> 
->>   Ya, revision checks used only in few places and as you said
->>   we handle them using IP revisions, but that we have to look and clean
->>   up those places, if we really intend to do this for other socs.
-> 
-> I agree this is the right approach :).
-> 
-> 
+you shouldn't drop support for non-DT platform, in any case we lived
+without DT (and still do) for years. Gotta find a better way ;-)
+
+--=20
+balbi
+
+--5QAgd0e35j3NYeGe
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR+KuKAAoJEIaOsuA1yqREE/MQAKN7wAutlqEQhh/2yyHsehtl
+jdfoMN8pAOKD1Fs5TUwItJKRs00jIggDrlU9rl1xet+ZaBykobKzILmF5HTsHaQc
+z4ku41vMrAbgCn4LXMtLQwVWSGPTXcic9a8HLyOwdzxNwkGG7bIo62TO/kPVCMKa
+wEmbdeSbq2DTtNX+cPwE0AmJlpTyNejD+f03xfG27qpNclbaxBZlQGAvq8xDlfuU
+rueYU+4xnEgdC8ZrhNF6RWkke/haJgoy3qQjOchYflSkjeyX9gKypaPKGaA87Bu+
+z1NTYMZv6fLiCtAmpUYb05C13G2eoi2EXDVYYZg1OA9GaHDtg9J9+DiUzPpSD2Od
+fbF9ZH4EB8cwFN4SilLJjhn1ESJaMqCHuOugqXTgJD6md+k0nBX3yAkrnyCbbhIr
+4/E7TnWFar+xXGDKu2DufWYZByn5/WtYG8K0T9QJyFZyMV+X67Qz02iIrBBORST3
+3NnejtvQ84NMiy5N1Cp5M0ucHaBvoS4ic3uvhB33T8GIgZuSqr78dnWmbvsNpEI3
+gv/9z1OvuvXNcvoFiLYmGhs0b5+4xbU2qmoxfDjdUEw/JNmksf+8QGS8JYSbgu9X
+PO+W2yI5+6rWvhWy14+x/aS7Ew613pYWYiA8j9W0X9Idby88cKbN346U8zWGNovP
+tj3EzocBdvt4pr9XngYP
+=5yv8
+-----END PGP SIGNATURE-----
+
+--5QAgd0e35j3NYeGe--
+
+
+--===============2340482751558891651==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============2340482751558891651==--
