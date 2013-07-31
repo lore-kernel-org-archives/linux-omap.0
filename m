@@ -1,11 +1,13 @@
 From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv7 0/2] Add ti qspi controller
-Date: Wed, 31 Jul 2013 11:17:51 +0530
-Message-ID: <1375249673-2585-1-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCHv7 1/2] drivers: spi: Add qspi flash controller
+Date: Wed, 31 Jul 2013 11:17:52 +0530
+Message-ID: <1375249673-2585-2-git-send-email-sourav.poddar@ti.com>
+References: <1375249673-2585-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1375249673-2585-1-git-send-email-sourav.poddar-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
 	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
@@ -18,24 +20,656 @@ To: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, spi-devel-general-5NWGOfrQm
 Cc: Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sourav, balbi-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch series add support for ti qspi controller.
-Adapted this series on top of Mark brown series[1]:
+The patch add basic support for the quad spi controller.
 
-[1]: https://patchwork.kernel.org/patch/2834694/
+QSPI is a kind of spi module that allows single,
+dual and quad read access to external spi devices. The module
+has a memory mapped interface which provide direct interface
+for accessing data form external spi devices.
 
-And some other cleanups.
+The patch will configure controller clocks, device control
+register and for defining low level transfer apis which
+will be used by the spi framework to transfer data to
+the slave spi device(flash in this case).
 
-Sourav Poddar (2):
-  drivers: spi: Add qspi flash controller
-  driver: spi: Add quad spi read support
+Test details:
+-------------
+Tested this on dra7 board.
+Test1: Ran mtd_stesstest for 40000 iterations.
+   - All iterations went through without failure.
+Test2: Use mtd utilities:
+  - flash_erase to erase the flash device
+  - nanddump to read data back.
+  - nandwrite to write to the data flash.
+ diff between the write and read data shows zero.
 
+Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+---
+v6->v7:
+- Use "completion timeout" variants
+- remove "ONESHOT" and "NO_SUSPEND" flag.
+- use put_sync in error path.
+- few miscellaneous cleanup.
  Documentation/devicetree/bindings/spi/ti_qspi.txt |   22 +
  drivers/spi/Kconfig                               |    8 +
  drivers/spi/Makefile                              |    1 +
- drivers/spi/spi-ti-qspi.c                         |  557 +++++++++++++++++++++
- 4 files changed, 588 insertions(+), 0 deletions(-)
+ drivers/spi/spi-ti-qspi.c                         |  545 +++++++++++++++++++++
+ 4 files changed, 576 insertions(+), 0 deletions(-)
  create mode 100644 Documentation/devicetree/bindings/spi/ti_qspi.txt
  create mode 100644 drivers/spi/spi-ti-qspi.c
+
+diff --git a/Documentation/devicetree/bindings/spi/ti_qspi.txt b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+new file mode 100644
+index 0000000..398ef59
+--- /dev/null
++++ b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+@@ -0,0 +1,22 @@
++TI QSPI controller.
++
++Required properties:
++- compatible : should be "ti,dra7xxx-qspi".
++- reg: Should contain QSPI registers location and length.
++- #address-cells, #size-cells : Must be present if the device has sub-nodes
++- ti,hwmods: Name of the hwmod associated to the QSPI
++
++Recommended properties:
++- spi-max-frequency: Definition as per
++                     Documentation/devicetree/bindings/spi/spi-bus.txt
++
++Example:
++
++qspi: qspi@4b300000 {
++	compatible = "ti,dra7xxx-qspi";
++	reg = <0x4b300000 0x100>;
++	#address-cells = <1>;
++	#size-cells = <0>;
++	spi-max-frequency = <25000000>;
++	ti,hwmods = "qspi";
++};
+diff --git a/drivers/spi/Kconfig b/drivers/spi/Kconfig
+index 92a9345..1c4e758 100644
+--- a/drivers/spi/Kconfig
++++ b/drivers/spi/Kconfig
+@@ -285,6 +285,14 @@ config SPI_OMAP24XX
+ 	  SPI master controller for OMAP24XX and later Multichannel SPI
+ 	  (McSPI) modules.
+ 
++config SPI_TI_QSPI
++	tristate "DRA7xxx QSPI controller support"
++	depends on ARCH_OMAP2PLUS || COMPILE_TEST
++	help
++	  QSPI master controller for DRA7xxx used for flash devices.
++	  This device supports single, dual and quad read support, while
++	  it only supports single write mode.
++
+ config SPI_OMAP_100K
+ 	tristate "OMAP SPI 100K"
+ 	depends on ARCH_OMAP850 || ARCH_OMAP730
+diff --git a/drivers/spi/Makefile b/drivers/spi/Makefile
+index 33f9c09..a174030 100644
+--- a/drivers/spi/Makefile
++++ b/drivers/spi/Makefile
+@@ -46,6 +46,7 @@ obj-$(CONFIG_SPI_OCTEON)		+= spi-octeon.o
+ obj-$(CONFIG_SPI_OMAP_UWIRE)		+= spi-omap-uwire.o
+ obj-$(CONFIG_SPI_OMAP_100K)		+= spi-omap-100k.o
+ obj-$(CONFIG_SPI_OMAP24XX)		+= spi-omap2-mcspi.o
++obj-$(CONFIG_SPI_TI_QSPI)		+= spi-ti-qspi.o
+ obj-$(CONFIG_SPI_ORION)			+= spi-orion.o
+ obj-$(CONFIG_SPI_PL022)			+= spi-pl022.o
+ obj-$(CONFIG_SPI_PPC4xx)		+= spi-ppc4xx.o
+diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
+new file mode 100644
+index 0000000..3d10b69
+--- /dev/null
++++ b/drivers/spi/spi-ti-qspi.c
+@@ -0,0 +1,545 @@
++/*
++ * TI QSPI driver
++ *
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
++ * Author: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GPLv2.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR /PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/module.h>
++#include <linux/device.h>
++#include <linux/delay.h>
++#include <linux/dma-mapping.h>
++#include <linux/dmaengine.h>
++#include <linux/omap-dma.h>
++#include <linux/platform_device.h>
++#include <linux/err.h>
++#include <linux/clk.h>
++#include <linux/io.h>
++#include <linux/slab.h>
++#include <linux/pm_runtime.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
++#include <linux/pinctrl/consumer.h>
++
++#include <linux/spi/spi.h>
++
++struct ti_qspi_regs {
++	u32 clkctrl;
++};
++
++struct ti_qspi {
++	struct completion       transfer_complete;
++
++	/* IRQ synchronization */
++	spinlock_t              lock;
++
++	struct spi_master	*master;
++	void __iomem            *base;
++	struct clk		*fclk;
++	struct device           *dev;
++
++	struct ti_qspi_regs     ctx_reg;
++
++	u32 spi_max_frequency;
++	u32 cmd;
++	u32 dc;
++};
++
++#define QSPI_PID			(0x0)
++#define QSPI_SYSCONFIG			(0x10)
++#define QSPI_INTR_STATUS_RAW_SET	(0x20)
++#define QSPI_INTR_STATUS_ENABLED_CLEAR	(0x24)
++#define QSPI_INTR_ENABLE_SET_REG	(0x28)
++#define QSPI_INTR_ENABLE_CLEAR_REG	(0x2c)
++#define QSPI_SPI_CLOCK_CNTRL_REG	(0x40)
++#define QSPI_SPI_DC_REG			(0x44)
++#define QSPI_SPI_CMD_REG		(0x48)
++#define QSPI_SPI_STATUS_REG		(0x4c)
++#define QSPI_SPI_DATA_REG		(0x50)
++#define QSPI_SPI_SETUP0_REG		(0x54)
++#define QSPI_SPI_SWITCH_REG		(0x64)
++#define QSPI_SPI_SETUP1_REG		(0x58)
++#define QSPI_SPI_SETUP2_REG		(0x5c)
++#define QSPI_SPI_SETUP3_REG		(0x60)
++#define QSPI_SPI_DATA_REG_1		(0x68)
++#define QSPI_SPI_DATA_REG_2		(0x6c)
++#define QSPI_SPI_DATA_REG_3		(0x70)
++
++#define QSPI_COMPLETION_TIMEOUT		msecs_to_jiffies(2000)
++
++#define QSPI_FCLK			192000000
++
++/* Clock Control */
++#define QSPI_CLK_EN			(1 << 31)
++#define QSPI_CLK_DIV_MAX		0xffff
++
++/* Command */
++#define QSPI_EN_CS(n)			(n << 28)
++#define QSPI_WLEN(n)			((n-1) << 19)
++#define QSPI_3_PIN			(1 << 18)
++#define QSPI_RD_SNGL			(1 << 16)
++#define QSPI_WR_SNGL			(2 << 16)
++#define QSPI_RD_DUAL			(3 << 16)
++#define QSPI_RD_QUAD			(7 << 16)
++#define QSPI_INVAL			(4 << 16)
++#define QSPI_WC_CMD_INT_EN			(1 << 14)
++#define QSPI_FLEN(n)			((n-1) << 0)
++
++/* INTERRUPT REGISTER */
++#define QSPI_WC_INT_EN				(1 << 1)
++#define QSPI_WC_INT_DISABLE			(1 << 1)
++
++/* Device Control */
++#define QSPI_DD(m, n)			(m << (3 + n*8))
++#define QSPI_CKPHA(n)			(1 << (2 + n*8))
++#define QSPI_CSPOL(n)			(1 << (1 + n*8))
++#define QSPI_CKPOL(n)			(1 << (n*8))
++
++#define	QSPI_FRAME_MAX			0xfff
++
++#define QSPI_AUTOSUSPEND_TIMEOUT         2000
++
++static inline unsigned long ti_qspi_read(struct ti_qspi *qspi,
++		unsigned long reg)
++{
++	return readl(qspi->base + reg);
++}
++
++static inline void ti_qspi_write(struct ti_qspi *qspi,
++		unsigned long val, unsigned long reg)
++{
++	writel(val, qspi->base + reg);
++}
++
++static inline void ti_qspi_read_data(struct ti_qspi *qspi,
++		unsigned long reg, int wlen, u8 **rxbuf)
++{
++	switch (wlen) {
++	case 8:
++		**rxbuf = readb(qspi->base + reg);
++		dev_vdbg(qspi->dev, "rx done, read %02x\n", *(*rxbuf));
++		*rxbuf += 1;
++		break;
++	case 16:
++		**rxbuf = readw(qspi->base + reg);
++		dev_vdbg(qspi->dev, "rx done, read %04x\n", *(*rxbuf));
++		*rxbuf += 2;
++		break;
++	case 32:
++		**rxbuf = readl(qspi->base + reg);
++		dev_vdbg(qspi->dev, "rx done, read %04x\n", *(*rxbuf));
++		*rxbuf += 4;
++	default:
++		dev_dbg(qspi->dev, "word length out of range");
++		break;
++	}
++}
++
++static inline void ti_qspi_write_data(struct ti_qspi *qspi, unsigned long val,
++			unsigned long reg, int wlen, const u8 **txbuf)
++{
++	switch (wlen) {
++	case 8:
++		writeb(val, qspi->base + reg);
++		*txbuf += 1;
++		break;
++	case 16:
++		writew(val, qspi->base + reg);
++		*txbuf += 2;
++		break;
++	case 32:
++		writel(val, qspi->base + reg);
++		*txbuf += 4;
++		break;
++	default:
++		dev_dbg(qspi->dev, "word length out of range");
++		break;
++	}
++}
++
++static int ti_qspi_setup(struct spi_device *spi)
++{
++	struct ti_qspi	*qspi = spi_master_get_devdata(spi->master);
++	struct ti_qspi_regs *ctx_reg = &qspi->ctx_reg;
++	int clk_div = 0, ret;
++	u32 clk_ctrl_reg, clk_rate, clk_mask;
++
++	clk_rate = clk_get_rate(qspi->fclk);
++
++	if (!qspi->spi_max_frequency) {
++		dev_err(qspi->dev, "spi max frequency not defined\n");
++		return -EINVAL;
++	}
++
++	clk_div = DIV_ROUND_UP(clk_rate, qspi->spi_max_frequency) - 1;
++
++	dev_dbg(qspi->dev, "%s: hz: %d, clock divider %d\n", __func__,
++			qspi->spi_max_frequency, clk_div);
++
++	ret = pm_runtime_get_sync(qspi->dev);
++	if (ret) {
++		dev_err(qspi->dev, "pm_runtime_get_sync() failed\n");
++		return ret;
++	}
++
++	clk_ctrl_reg = ti_qspi_read(qspi, QSPI_SPI_CLOCK_CNTRL_REG);
++
++	clk_ctrl_reg &= ~QSPI_CLK_EN;
++
++	if (spi->master->busy) {
++		dev_dbg(qspi->dev, "master busy doing other trasnfers\n");
++		return -EBUSY;
++	}
++
++	/* disable SCLK */
++	ti_qspi_write(qspi, clk_ctrl_reg, QSPI_SPI_CLOCK_CNTRL_REG);
++
++	if (clk_div < 0) {
++		dev_dbg(qspi->dev, "%s: clock divider < 0, using /1 divider\n",
++				__func__);
++		pm_runtime_put_sync(qspi->dev);
++		return -EINVAL;
++	}
++
++	if (clk_div > QSPI_CLK_DIV_MAX) {
++		dev_dbg(qspi->dev, "%s: clock divider >%d , using /%d divider\n",
++			__func__, QSPI_CLK_DIV_MAX, QSPI_CLK_DIV_MAX + 1);
++		pm_runtime_put_sync(qspi->dev);
++		return -EINVAL;
++	}
++
++	/* enable SCLK */
++	clk_mask = QSPI_CLK_EN | clk_div;
++	ti_qspi_write(qspi, clk_mask, QSPI_SPI_CLOCK_CNTRL_REG);
++	ctx_reg->clkctrl = clk_mask;
++
++	pm_runtime_mark_last_busy(qspi->dev);
++	ret = pm_runtime_put_autosuspend(qspi->dev);
++	if (ret < 0) {
++		dev_err(qspi->dev, "pm_runtime_get_sync() failed\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++static void ti_qspi_restore_ctx(struct ti_qspi *qspi)
++{
++	struct ti_qspi_regs *ctx_reg = &qspi->ctx_reg;
++
++	ti_qspi_write(qspi, ctx_reg->clkctrl, QSPI_SPI_CLOCK_CNTRL_REG);
++}
++
++static int qspi_write_msg(struct ti_qspi *qspi, struct spi_transfer *t)
++{
++	const u8 *txbuf;
++	int wlen, count, ret;
++
++	count = t->len;
++	txbuf = t->tx_buf;
++	wlen = t->bits_per_word;
++
++	while (count--) {
++		dev_dbg(qspi->dev, "tx cmd %08x dc %08x data %02x\n",
++			qspi->cmd | QSPI_WR_SNGL, qspi->dc, *txbuf);
++		ti_qspi_write_data(qspi, *txbuf, QSPI_SPI_DATA_REG,
++					wlen, &txbuf);
++		ti_qspi_write(qspi, qspi->dc, QSPI_SPI_DC_REG);
++		ti_qspi_write(qspi, qspi->cmd | QSPI_WR_SNGL,
++			QSPI_SPI_CMD_REG);
++		ret = wait_for_completion_timeout(&qspi->transfer_complete,
++				QSPI_COMPLETION_TIMEOUT);
++		if (ret == 0) {
++			dev_err(qspi->dev, "write timed out\n");
++			return -ETIMEDOUT;
++		}
++	}
++
++	return 0;
++}
++
++static int qspi_read_msg(struct ti_qspi *qspi, struct spi_transfer *t)
++{
++	u8 *rxbuf;
++	int wlen, count, ret;
++
++	count = t->len;
++	rxbuf = t->rx_buf;
++	wlen = t->bits_per_word;
++
++	while (count--) {
++		dev_dbg(qspi->dev, "rx cmd %08x dc %08x\n",
++			qspi->cmd | QSPI_RD_SNGL, qspi->dc);
++		ti_qspi_write(qspi, qspi->dc, QSPI_SPI_DC_REG);
++		ti_qspi_write(qspi, qspi->cmd | QSPI_RD_SNGL,
++			QSPI_SPI_CMD_REG);
++		ret = wait_for_completion_timeout(&qspi->transfer_complete,
++					QSPI_COMPLETION_TIMEOUT);
++		if (ret == 0) {
++			dev_err(qspi->dev, "read timed out\n");
++			return -ETIMEDOUT;
++		}
++		ti_qspi_read_data(qspi, QSPI_SPI_DATA_REG, wlen, &rxbuf);
++	}
++
++	return 0;
++}
++
++static int qspi_transfer_msg(struct ti_qspi *qspi, struct spi_transfer *t)
++{
++	int ret;
++
++	if (t->tx_buf) {
++		ret = qspi_write_msg(qspi, t);
++		if (ret) {
++			dev_dbg(qspi->dev, "Error while writing\n");
++			return -EINVAL;
++		}
++	}
++
++	if (t->rx_buf) {
++		ret = qspi_read_msg(qspi, t);
++		if (ret) {
++			dev_dbg(qspi->dev, "Error while writing\n");
++			return -EINVAL;
++		}
++	}
++
++	return 0;
++}
++
++static int ti_qspi_start_transfer_one(struct spi_master *master,
++		struct spi_message *m)
++{
++	struct ti_qspi *qspi = spi_master_get_devdata(master);
++	struct spi_device *spi = m->spi;
++	struct spi_transfer *t;
++	int status = 0, ret;
++	int frame_length;
++
++	/* setup device control reg */
++	qspi->dc = 0;
++
++	if (spi->mode & SPI_CPHA)
++		qspi->dc |= QSPI_CKPHA(spi->chip_select);
++	if (spi->mode & SPI_CPOL)
++		qspi->dc |= QSPI_CKPOL(spi->chip_select);
++	if (spi->mode & SPI_CS_HIGH)
++		qspi->dc |= QSPI_CSPOL(spi->chip_select);
++
++	frame_length = (m->frame_length << 3) / spi->bits_per_word;
++
++	frame_length = clamp(frame_length, 0, QSPI_FRAME_MAX);
++
++	/* setup command reg */
++	qspi->cmd = 0;
++	qspi->cmd |= QSPI_EN_CS(spi->chip_select);
++	qspi->cmd |= QSPI_FLEN(frame_length);
++	qspi->cmd |= QSPI_WC_CMD_INT_EN;
++
++	ti_qspi_write(qspi, QSPI_WC_INT_EN, QSPI_INTR_ENABLE_SET_REG);
++
++	list_for_each_entry(t, &m->transfers, transfer_list) {
++		qspi->cmd |= QSPI_WLEN(t->bits_per_word);
++
++		ret = qspi_transfer_msg(qspi, t);
++		if (ret) {
++			dev_dbg(qspi->dev, "transfer message failed\n");
++			return -EINVAL;
++		}
++
++		m->actual_length += t->len;
++	}
++
++	m->status = status;
++	spi_finalize_current_message(master);
++
++	ti_qspi_write(qspi, qspi->cmd | QSPI_INVAL, QSPI_SPI_CMD_REG);
++
++	return status;
++}
++
++static irqreturn_t ti_qspi_isr(int irq, void *dev_id)
++{
++	struct ti_qspi *qspi = dev_id;
++	u16 stat;
++
++	irqreturn_t ret = IRQ_HANDLED;
++
++	spin_lock(&qspi->lock);
++
++	stat = ti_qspi_read(qspi, QSPI_INTR_STATUS_ENABLED_CLEAR);
++
++	if (!stat) {
++		dev_dbg(qspi->dev, "No IRQ triggered\n");
++		return IRQ_NONE;
++	}
++
++	ret = IRQ_WAKE_THREAD;
++
++	ti_qspi_write(qspi, QSPI_WC_INT_DISABLE, QSPI_INTR_ENABLE_CLEAR_REG);
++	ti_qspi_write(qspi, QSPI_WC_INT_DISABLE,
++				QSPI_INTR_STATUS_ENABLED_CLEAR);
++
++	spin_unlock(&qspi->lock);
++
++	return ret;
++}
++
++static irqreturn_t ti_qspi_threaded_isr(int this_irq, void *dev_id)
++{
++	struct ti_qspi *qspi = dev_id;
++	unsigned long flags;
++
++	spin_lock_irqsave(&qspi->lock, flags);
++
++	complete(&qspi->transfer_complete);
++
++	spin_unlock_irqrestore(&qspi->lock, flags);
++
++	ti_qspi_write(qspi, QSPI_WC_INT_EN, QSPI_INTR_ENABLE_SET_REG);
++
++	return IRQ_HANDLED;
++}
++
++static int ti_qspi_runtime_resume(struct device *dev)
++{
++	struct ti_qspi      *qspi;
++	struct spi_master       *master;
++
++	master = dev_get_drvdata(dev);
++	qspi = spi_master_get_devdata(master);
++	ti_qspi_restore_ctx(qspi);
++
++	return 0;
++}
++
++static const struct of_device_id ti_qspi_match[] = {
++	{.compatible = "ti,dra7xxx-qspi" },
++	{},
++};
++MODULE_DEVICE_TABLE(of, dra7xxx_qspi_match);
++
++static int ti_qspi_probe(struct platform_device *pdev)
++{
++	struct  ti_qspi *qspi;
++	struct spi_master *master;
++	struct resource         *r;
++	struct device_node *np = pdev->dev.of_node;
++	u32 max_freq;
++	int ret = 0, num_cs, irq;
++
++	master = spi_alloc_master(&pdev->dev, sizeof(*qspi));
++	if (!master)
++		return -ENOMEM;
++
++	master->mode_bits = SPI_CPOL | SPI_CPHA;
++
++	master->bus_num = -1;
++	master->flags = SPI_MASTER_HALF_DUPLEX;
++	master->setup = ti_qspi_setup;
++	master->auto_runtime_pm = true;
++	master->transfer_one_message = ti_qspi_start_transfer_one;
++	master->dev.of_node = pdev->dev.of_node;
++	master->bits_per_word_mask = BIT(32 - 1) | BIT(16 - 1) | BIT(8 - 1);
++
++	if (!of_property_read_u32(np, "num-cs", &num_cs))
++		master->num_chipselect = num_cs;
++
++	platform_set_drvdata(pdev, master);
++
++	qspi = spi_master_get_devdata(master);
++	qspi->master = master;
++	qspi->dev = &pdev->dev;
++
++	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0) {
++		dev_err(&pdev->dev, "no irq resource?\n");
++		return irq;
++	}
++
++	spin_lock_init(&qspi->lock);
++
++	qspi->base = devm_ioremap_resource(&pdev->dev, r);
++	if (IS_ERR(qspi->base)) {
++		ret = PTR_ERR(qspi->base);
++		goto free_master;
++	}
++
++	ret = devm_request_threaded_irq(&pdev->dev, irq, ti_qspi_isr,
++			ti_qspi_threaded_isr, 0,
++			dev_name(&pdev->dev), qspi);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to register ISR for IRQ %d\n",
++				irq);
++		goto free_master;
++	}
++
++	qspi->fclk = devm_clk_get(&pdev->dev, "fck");
++	if (IS_ERR(qspi->fclk)) {
++		ret = PTR_ERR(qspi->fclk);
++		dev_err(&pdev->dev, "could not get clk: %d\n", ret);
++	}
++
++	init_completion(&qspi->transfer_complete);
++
++	pm_runtime_use_autosuspend(&pdev->dev);
++	pm_runtime_set_autosuspend_delay(&pdev->dev, QSPI_AUTOSUSPEND_TIMEOUT);
++	pm_runtime_enable(&pdev->dev);
++
++	if (!of_property_read_u32(np, "spi-max-frequency", &max_freq))
++		qspi->spi_max_frequency = max_freq;
++
++	ret = spi_register_master(master);
++	if (ret)
++		goto free_master;
++
++	return ret;
++
++free_master:
++	spi_master_put(master);
++	return ret;
++}
++
++static int ti_qspi_remove(struct platform_device *pdev)
++{
++	struct	ti_qspi *qspi = platform_get_drvdata(pdev);
++
++	spi_unregister_master(qspi->master);
++
++	return 0;
++}
++
++static const struct dev_pm_ops ti_qspi_pm_ops = {
++	.runtime_resume = ti_qspi_runtime_resume,
++};
++
++static struct platform_driver ti_qspi_driver = {
++	.probe	= ti_qspi_probe,
++	.remove	= ti_qspi_remove,
++	.driver = {
++		.name	= "ti,dra7xxx-qspi",
++		.owner	= THIS_MODULE,
++		.pm =   &ti_qspi_pm_ops,
++		.of_match_table = ti_qspi_match,
++	}
++};
++
++module_platform_driver(ti_qspi_driver);
++
++MODULE_AUTHOR("Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>");
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("TI QSPI controller driver");
+-- 
+1.7.1
 
 
 ------------------------------------------------------------------------------
