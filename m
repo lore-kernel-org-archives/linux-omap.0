@@ -1,179 +1,204 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 4/9] dma: edma: Find missed events and issue them
-Date: Wed, 31 Jul 2013 14:48:31 +0530
-Message-ID: <51F8D667.2040406@ti.com>
-References: <1375104595-16018-1-git-send-email-joelf@ti.com>
-	<1375104595-16018-5-git-send-email-joelf@ti.com>
-	<51F7659E.3040302@ti.com> <51F89763.1010102@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv7 1/2] drivers: spi: Add qspi flash controller
+Date: Wed, 31 Jul 2013 12:20:08 +0300
+Message-ID: <20130731092008.GC14517@radagast>
+References: <1375249673-2585-1-git-send-email-sourav.poddar@ti.com>
+ <1375249673-2585-2-git-send-email-sourav.poddar@ti.com>
+ <20130731074952.GA14517@radagast>
+ <51F8D49B.2090307@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <51F89763.1010102-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Cc: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Balaji TK <balajitk-l0cyMroinI0@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Santosh Shilimkar <santosh.shilim>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="m51xatjYGsM+13rf"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36055 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753905Ab3GaJU3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Jul 2013 05:20:29 -0400
+Content-Disposition: inline
+In-Reply-To: <51F8D49B.2090307@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: balbi@ti.com, broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, linux-omap@vger.kernel.org, rnayak@ti.com
 
-On Wednesday 31 July 2013 10:19 AM, Joel Fernandes wrote:
-> Hi Sekhar,
-> 
-> On 07/30/2013 02:05 AM, Sekhar Nori wrote:
->> On Monday 29 July 2013 06:59 PM, Joel Fernandes wrote:
->>> In an effort to move to using Scatter gather lists of any size with
->>> EDMA as discussed at [1] instead of placing limitations on the driver,
->>> we work through the limitations of the EDMAC hardware to find missed
->>> events and issue them.
->>>
->>> The sequence of events that require this are:
->>>
->>> For the scenario where MAX slots for an EDMA channel is 3:
->>>
->>> SG1 -> SG2 -> SG3 -> SG4 -> SG5 -> SG6 -> Null
->>>
->>> The above SG list will have to be DMA'd in 2 sets:
->>>
->>> (1) SG1 -> SG2 -> SG3 -> Null
->>> (2) SG4 -> SG5 -> SG6 -> Null
->>>
->>> After (1) is succesfully transferred, the events from the MMC controller
->>> donot stop coming and are missed by the time we have setup the transfer
->>> for (2). So here, we catch the events missed as an error condition and
->>> issue them manually.
->>
->> Are you sure there wont be any effect of these missed events on the
->> peripheral side. For example, wont McASP get into an underrun condition
->> when it encounters a null PaRAM set? Even UART has to transmit to a
-> 
-> But it will not encounter null PaRAM set because McASP uses contiguous
-> buffers for transfer which are not scattered across physical memory.
-> This can be accomplished with an SG of size 1. For such SGs, this patch
-> series leaves it linked Dummy and does not link to Null set. Null set is
-> only used for SG lists that are > MAX_NR_SG in size such as those
-> created for example by MMC and Crypto.
-> 
->> particular baud so I guess it cannot wait like the way MMC/SD can.
-> 
-> Existing driver have to wait anyway if they hit MAX SG limit today. If
-> they don't want to wait, they would have allocated a contiguous block of
-> memory and DMA that in one stretch so they don't lose any events, and in
-> such cases we are not linking to Null.
+--m51xatjYGsM+13rf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-As long as DMA driver can advertize its MAX SG limit, peripherals can
-always work around that by limiting the number of sync events they
-generate so as to not having any of the events getting missed. With this
-series, I am worried that EDMA drivers is advertizing that it can handle
-any length SG list while not taking care of missing any events while
-doing so. This will break the assumptions that driver writers make.
+Hi,
 
-> 
->> Also, wont this lead to under-utilization of the peripheral bandwith?
->> Meaning, MMC/SD is ready with data but cannot transfer because the DMA
->> is waiting to be set-up.
-> 
-> But it is waiting anyway even today. Currently based on MAX segs, MMC
-> driver/subsystem will make SG list of size max_segs. Between these
-> sessions of creating such smaller SG-lists, if for some reason the MMC
-> controller is sending events, these will be lost anyway.
+On Wed, Jul 31, 2013 at 02:40:51PM +0530, Sourav Poddar wrote:
+> >>+#define	QSPI_FRAME_MAX			0xfff
+> >Frame max is 4096, 0x1000, right ?
+> Yes,
+> this macro was used initially to fill the register bits, where 4095 =3D
+> 4096 words.
+> Will change it to now.
 
-But if MMC/SD driver knows how many events it should generate if it
-knows the MAX SG limit. So there should not be any missed events in
-current code. And I am not claiming that your solution is making matters
-worse. But its not making it much better as well.
+you can make this something like:
 
-> 
-> What will happen now with this patch series is we are simply accepting a
-> bigger list than this, and handling all the max_segs stuff within the
-> EDMA driver itself without outside world knowing. This is actually more
-> efficient as for long transfers, we are not going back and forth much
-> between the client and EDMA driver.
+#define QSPI_FRAME(n)		(((n) - 1) & 0xfff)
 
-Agreed, I am not debating that we need to handle SG lists of any length.
-The hardware is capable of handling them, and no reason kernel should not.
+> >>+static int qspi_write_msg(struct ti_qspi *qspi, struct spi_transfer *t)
+> >>+{
+> >>+	const u8 *txbuf;
+> >>+	int wlen, count, ret;
+> >>+
+> >>+	count =3D t->len;
+> >>+	txbuf =3D t->tx_buf;
+> >>+	wlen =3D t->bits_per_word;
+> >>+
+> >>+	while (count--) {
+> >you're decrementing count by one, but in some cases you write 4 bytes or
+> >2 bytes... This will blow up very soon. I can already see overflows
+> >happening...
+> we write 2 bytes and 4 bytes for 16 bits_per_word and 32 bits_per_word ca=
+se.
+> count is t->len, which is the total number of words to transfer. This
 
-> 
->> Did you consider a ping-pong scheme with say three PaRAM sets per
->> channel? That way you can keep a continuous transfer going on from the
->> peripheral over the complete SG list.
-> 
-> Do you mean ping-pong scheme as used in the davinci-pcm driver today?
+t->len is total number of bytes as you can see from the documentation in
+the header:
 
-No. AFAIR, thats a ping-pong between internal RAM and DDR for earlier
-audio ports which did not come with FIFO.
+* @len: size of rx and tx buffers (in bytes)
 
-> This can be used only for buffers that are contiguous in memory, not
-> those that are scattered across memory.
+As I said before, please read the documentation.
 
-I was hinting at using the linking facility of EDMA to achieve this.
-Each PaRAM set has full 32-bit source and destination pointers so I see
-no reason why non-contiguous case cannot be handled.
+> words can be of any length (1, 2 or 4) bytes. So, I think it should be
+> decremented by 1 only.
 
-Lets say you need to transfer SG[0..6] on channel C. Now, PaRAM sets are
-typically 4 times the number of channels. In this case we use one DMA
-PaRAM set and two Link PaRAM sets per channel. P0 is the DMA PaRAM set
-and P1 and P2 are the Link sets.
+this is wrong.
 
-Initial setup:
+> >>+static int qspi_transfer_msg(struct ti_qspi *qspi, struct spi_transfer=
+ *t)
+> >>+{
+> >>+	int ret;
+> >>+
+> >>+	if (t->tx_buf) {
+> >>+		ret =3D qspi_write_msg(qspi, t);
+> >>+		if (ret) {
+> >>+			dev_dbg(qspi->dev, "Error while writing\n");
+> >>+			return -EINVAL;
+> >why do you change the return value from qspi_write_msg() ?
+> >
+> I  was not sure about this, I thought I had signals an ETIMEOUT during
+> timeout, So signal a invalid transfer here.
+> Do you suggest keeping ETIMEOUT here also?
 
-SG0 -> SG1 -> SG2 -> SG3 -> SG4 -> SG5 -> SG6 -> NULL
- ^      ^      ^
- |      |      |
-P0  -> P1  -> P2  -> NULL
+yeah, so we tell whoever called us that the transfer timed out. If you
+return -EINVAL you're telling your clients they gave you an invalid
+spi_transfer, which is not the case.
 
-P[0..2].TCINTEN = 1, so get an interrupt after each SG element
-completion. On each completion interrupt, hardware automatically copies
-the linked PaRAM set into the DMA PaRAM set so after SG0 is transferred
-out, the state of hardware is:
+> >>+static int ti_qspi_start_transfer_one(struct spi_master *master,
+> >>+		struct spi_message *m)
+> >>+{
+> >>+	struct ti_qspi *qspi =3D spi_master_get_devdata(master);
+> >>+	struct spi_device *spi =3D m->spi;
+> >>+	struct spi_transfer *t;
+> >>+	int status =3D 0, ret;
+> >>+	int frame_length;
+> >>+
+> >>+	/* setup device control reg */
+> >>+	qspi->dc =3D 0;
+> >>+
+> >>+	if (spi->mode&  SPI_CPHA)
+> >>+		qspi->dc |=3D QSPI_CKPHA(spi->chip_select);
+> >>+	if (spi->mode&  SPI_CPOL)
+> >>+		qspi->dc |=3D QSPI_CKPOL(spi->chip_select);
+> >>+	if (spi->mode&  SPI_CS_HIGH)
+> >>+		qspi->dc |=3D QSPI_CSPOL(spi->chip_select);
+> >>+
+> >>+	frame_length =3D (m->frame_length<<  3) / spi->bits_per_word;
+> >>+
+> >>+	frame_length =3D clamp(frame_length, 0, QSPI_FRAME_MAX);
+> >>+
+> >>+	/* setup command reg */
+> >>+	qspi->cmd =3D 0;
+> >>+	qspi->cmd |=3D QSPI_EN_CS(spi->chip_select);
+> >>+	qspi->cmd |=3D QSPI_FLEN(frame_length);
+> >>+	qspi->cmd |=3D QSPI_WC_CMD_INT_EN;
+> >>+
+> >>+	ti_qspi_write(qspi, QSPI_WC_INT_EN, QSPI_INTR_ENABLE_SET_REG);
+> >>+
+> >>+	list_for_each_entry(t,&m->transfers, transfer_list) {
+> >no locking around list traversal ?
+> >
+> hmm..can put a spin_lock around "qspi_transfer_msg" ?
 
-SG1  -> SG2 -> SG3 -> SG3 -> SG6 -> NULL
- ^       ^
- |       |
-P0,1    P2  -> NULL
- |       ^
- |       |
- ---------
+no dude, you need to protect the access to the list. So it needs to be
+around list_for_each_entry().
 
-SG1 transfer has already started by the time the TC interrupt is
-handled. As you can see P1 is now redundant and ready to be recycled. So
-in the interrupt handler, software recycles P1. Thus:
+> >>+static irqreturn_t ti_qspi_isr(int irq, void *dev_id)
+> >>+{
+> >>+	struct ti_qspi *qspi =3D dev_id;
+> >>+	u16 stat;
+> >>+
+> >>+	irqreturn_t ret =3D IRQ_HANDLED;
+> >>+
+> >>+	spin_lock(&qspi->lock);
+> >>+
+> >>+	stat =3D ti_qspi_read(qspi, QSPI_INTR_STATUS_ENABLED_CLEAR);
+> >>+
+> >>+	if (!stat) {
+> >>+		dev_dbg(qspi->dev, "No IRQ triggered\n");
+> >>+		return IRQ_NONE;
+> >leaving lock held.
+> >
+> Will add a unlock before returning.
 
-SG1 -> SG2 -> SG3 -> SG4 -> SG5 -> SG6 -> NULL
- ^      ^      ^
- |      |      |
-P0  -> P2  -> P1  -> NULL
+there's a very nice C statement, goto, which you can use here.
 
-Now, on next interrupt, P2 gets copied and thus can get recycled.
-Hardware state:
+> >>+static irqreturn_t ti_qspi_threaded_isr(int this_irq, void *dev_id)
+> >>+{
+> >>+	struct ti_qspi *qspi =3D dev_id;
+> >>+	unsigned long flags;
+> >>+
+> >>+	spin_lock_irqsave(&qspi->lock, flags);
+> >>+
+> >>+	complete(&qspi->transfer_complete);
+> >you need to check if your word completion is actually set. Don't assume
+> >it's set because we might want to change the code later.
+> >
+> hmm..something like this.?
+>   if (ti_qspi_read(qspi, QSPI_SPI_STATUS_REG) & WC)
+>         complete(&qspi->transfer_complete);
 
-SG2  -> SG3 -> SG4 -> SG5 -> SG6 -> NULL
- ^       ^
- |       |
-P0,2    P1  -> NULL
- |       ^
- |       |
- ---------
+I rather:
 
-As part of TC completion interrupt handling:
+stat =3D ti_qspi_read(qspi, QSPI_SPI_STATUS_REG);
 
-SG2 -> SG3 -> SG4 -> SG5 -> SG6 -> NULL
- ^      ^      ^
- |      |      |
-P0  -> P1  -> P2  -> NULL
+if (stat & WC)
+	complete()
 
-This goes on until the SG list in exhausted. If you use more PaRAM sets,
-interrupt handler gets more time to recycle the PaRAM set. At no point
-we touch P0 as it is always under active transfer. Thus the peripheral
-is always kept busy.
+then, if we want to add frame interrupt handling later, we don't need to
+read status register again. In fact, to avoid reading the status
+register here, you could even cache the returned value you read in your
+hardirq handler inside your qspi struct.
 
-Do you see any reason why such a mechanism cannot be implemented?
+--=20
+balbi
 
-Thanks,
-Sekhar
+--m51xatjYGsM+13rf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR+NbIAAoJEIaOsuA1yqRE4/IP/jMZCvhdzOFVhnIFNlyYTsZM
+LbgI9XcQx2Y0Xbqd8zYK/c9C8wOT5fEtNCS63Xm/2wHgz+8s2ewwrs6gbuUBvxfC
+6Cc+KtwOq7Kyi7L/82QC7DMsSo2qu9kBHYyl65NAIAsuQM3sWeiAVkcYxhoPrH8P
+g/8lB2vDYrjw/PAx2bvWK0Szjaze+hM9rF5PnzDI5oHFu9X6UUUPIpMDrRD4JOE4
+Z6zgpgHQEEIkYf/kxHe+76IHDrsdUfLRLNu/c3zTv3eRJLQqZH/Fbf+G3l3+5vjN
+iJlGuqqStEmDQPm3g9UzcZfqLzL5q4p9yTcnTIIGR62kpjRLVwlTPx8tTsXmbeB5
+Lvei28iAJle0YU1UUh3HidEgesuuVpkbEa9aeJP06FJdTtgGPW/MTyzpLs6aNyKf
+RoBB70ydmEf9PivK8eic/SzL8Ir1Mwz0nIeAG0kT0sfyY9khMtmkbO++QWmzP+cx
+B5aVyh9Wjwt48Fdx37DZUFSBYuj3c5xemxrdDS/O0gGFzaljr5invnvRVVOGM5c8
+LU2GH8EbPWGBTgWXgW9zQyQKBFScKijMA8CunGkFeTtPTCo7ZSlP11Ybzt7zdtAD
+DRcAs/eDYbLga96obWZQ7UYQtBlAc3ZS6tDftB/dlZO5EEHEmGknfMm7raEVIGk3
+C0YUgSh/2JNMN7ydLw69
+=9TYU
+-----END PGP SIGNATURE-----
+
+--m51xatjYGsM+13rf--
