@@ -1,44 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv4 29/33] CLK: omap: add omap3 clock init file
-Date: Tue, 30 Jul 2013 23:35:13 -0700
-Message-ID: <20130731063512.GP7656@atomide.com>
-References: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
- <1374564028-11352-30-git-send-email-t-kristo@ti.com>
- <51F81FD7.2060707@ti.com>
+Subject: Re: [PATCH v2 1/8] ARM: DRA7: id: Add cpu detection support for
+ DRA7xx based SoCs'
+Date: Tue, 30 Jul 2013 23:42:01 -0700
+Message-ID: <20130731064201.GQ7656@atomide.com>
+References: <1375183546-12758-1-git-send-email-rnayak@ti.com>
+ <1375183546-12758-2-git-send-email-rnayak@ti.com>
+ <20130730131009.GA28162@radagast>
+ <51F7CB2F.6070705@ti.com>
+ <20130730142353.GL28162@radagast>
+ <51F7CF6F.6050702@ti.com>
+ <20130730153138.GA5978@radagast>
+ <51F807EF.6020809@ti.com>
+ <51F80939.7060403@ti.com>
+ <51F8A87A.9080002@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53103 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:13230 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751316Ab3GaGfR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Jul 2013 02:35:17 -0400
+	with ESMTP id S1751559Ab3GaGmF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Jul 2013 02:42:05 -0400
 Content-Disposition: inline
-In-Reply-To: <51F81FD7.2060707@ti.com>
+In-Reply-To: <51F8A87A.9080002@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, mturquette@linaro.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Sricharan R <r.sricharan@ti.com>, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.com, ambresh@ti.com, sourav.poddar@ti.com
 
-* Nishanth Menon <nm@ti.com> [130730 13:26]:
-> On 07/23/2013 02:20 AM, Tero Kristo wrote:
-> >clk-3xxx.c now contains the clock init functionality for omap3, including
-> >DT clock registration and adding of static clkdev entries.
-> >
-> >This patch also splits the OMAP3 clock registration code under mach-omap2
-> >to use OMAP3 subtype specific clk init functions.
-> >
-> >Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> >---
-> >  arch/arm/mach-omap2/Makefile          |    2 +-
-> >  arch/arm/mach-omap2/cclock3xxx_data.c | 3641 ---------------------------------
+* Rajendra Nayak <rnayak@ti.com> [130730 23:09]:
 > 
-> Tony and a lot of people is not going to like removing support for
-> non-dt boot for OMAP3 before "it's time is due" ;)
+> Tony, what do you suggest we do for this series? Since we have just an es1.0 and one board
+> at this point for dra7xx, things would be fine even if we do a dt based parsing to identify
+> the device, and I am fine with it if thats what we feel is the right way forward.
+> For the rest of the DT only platforms (omap4/5/am335x) anyway getting rid of these rev checks
+> from the kernel and depending on DT parsing needs to be a separate series anyway and I dont
+> plan to address those as part of this series.
 
-I think the only showstopper for that is that we need the
-pending pinctrl changes merged first to keep off-idle working.
-So the omap3 legacy code removal probably needs to wait until
-v3.13 merge window. For omap4 and am33xx we can do it now.
+Well I'd say there's no need to drop the hardware revision checks
+at this point at least for existing hardware. That's a very minimal
+piece of code and there are way bigger issues to tackle.
+
+For new SoCs, we could do it based on the compatible flag. If it
+helps booting newer hardware with older kernels, then that's a good
+reason to do it.
 
 Regards,
 
