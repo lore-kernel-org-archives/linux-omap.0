@@ -1,74 +1,119 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [RFC/PATCH 2/2] driver: spi: Add quad spi read support
-Date: Wed, 31 Jul 2013 11:17:53 +0530
-Message-ID: <1375249673-2585-3-git-send-email-sourav.poddar@ti.com>
-References: <1375249673-2585-1-git-send-email-sourav.poddar@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v2 1/8] ARM: DRA7: id: Add cpu detection support for DRA7xx
+ based SoCs'
+Date: Wed, 31 Jul 2013 11:32:34 +0530
+Message-ID: <51F8A87A.9080002@ti.com>
+References: <1375183546-12758-1-git-send-email-rnayak@ti.com>
+ <1375183546-12758-2-git-send-email-rnayak@ti.com>
+ <20130730131009.GA28162@radagast> <51F7CB2F.6070705@ti.com>
+ <20130730142353.GL28162@radagast> <51F7CF6F.6050702@ti.com>
+ <20130730153138.GA5978@radagast> <51F807EF.6020809@ti.com>
+ <51F80939.7060403@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33354 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754374Ab3GaFsO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Jul 2013 01:48:14 -0400
-In-Reply-To: <1375249673-2585-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51F80939.7060403@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>
+Cc: paul@pwsan.com, khilman@linaro.org, tony@atomide.com, benoit.cousson@gmail.com, balbi@ti.com, Sricharan R <r.sricharan@ti.com>, ambresh@ti.com, sourav.poddar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org
-Cc: linux-omap@vger.kernel.org, rnayak@ti.com, balbi@ti.com, Sourav Poddar <sourav.poddar@ti.com>
 
-Since, qspi controller uses quad read.
+On Wednesday 31 July 2013 12:13 AM, Nishanth Menon wrote:
+> On 07/30/2013 01:37 PM, Sricharan R wrote:
+>> Hi,
+>> On Tuesday 30 July 2013 09:02 PM, Felipe Balbi wrote:
+>>> Hi,
+>>>
+>>> On Tue, Jul 30, 2013 at 08:06:31PM +0530, Sricharan R wrote:
+>>>> On Tuesday 30 July 2013 07:53 PM, Felipe Balbi wrote:
+>>>>> Hi,
+>>>>>
+>>>>> On Tue, Jul 30, 2013 at 07:48:23PM +0530, Sricharan R wrote:
+>>>>>> On Tuesday 30 July 2013 06:40 PM, Felipe Balbi wrote:
+>>>>>>> Hi,
+>>>>>>>
+>>>>>>> On Tue, Jul 30, 2013 at 04:55:39PM +0530, Rajendra Nayak wrote:
+>>>>>>>> @@ -379,6 +407,13 @@ IS_OMAP_TYPE(3430, 0x3430)
+>>>>>>>>   # define soc_is_omap543x()        is_omap543x()
+>>>>>>>>   #endif
+>>>>>>>>
+>>>>>>>> +# if defined(CONFIG_SOC_DRA7XX)
+>>>>>>>> +# undef soc_is_dra7xx
+>>>>>>>> +# undef soc_is_dra75x
+>>>>>>>> +# define soc_is_dra7xx()        is_dra7xx()
+>>>>>>>> +# define soc_is_dra75x()        is_dra75x()
+>>>>>>> since this platform is DT-only, couldn't we just believe DT-data to be
+>>>>>>> correct of_machine_is_compatible() ? 2/3 of this patch would be removed.
+>>>>>>>
+>>>>>>> I patched this for OMAP5 (compile-tested only, no boards available) and
+>>>>>>> came out with the patch below (still needs to be split):
+>>>>>>>
+>>>>>>> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+>>>>>>> index 08b7267..b3136e5 100644
+>>>>>>> --- a/arch/arm/boot/dts/omap5-uevm.dts
+>>>>>>> +++ b/arch/arm/boot/dts/omap5-uevm.dts
+>>>>>>> @@ -13,7 +13,7 @@
+>>>>>>>
+>>>>>>>   / {
+>>>>>>>       model = "TI OMAP5 uEVM board";
+>>>>>>> -    compatible = "ti,omap5-uevm", "ti,omap5";
+>>>>>>> +    compatible = "ti,omap5-uevm", "ti,omap5432-es2.0", "ti,omap5";
+>>>>>>>
+>>>>>>   ok, nice and simpler way.
+>>>>>>   But would this make different revisions, to appear the same ?
+>>>>> well omap5-uevm is omap5432 es2.0 only, right ? If a new board comes up,
+>>>>> it should be treated as such, then you can pass a different string to
+>>>>> that new board's compatible attribute.
+>>>>> s
+>>>>   Yes for OMAP5. I was thinking in general about this approach.
+>>>>   For example, for OMAP4 we have same board and
+>>>>   different revisions can be socketed there.
+>>>>
+>>>>   For OMAP5, this is good.
+>>> do we really production socketed boards? Well, at least Blaze has such
+>>> thing. But do we have too many differences that need to be trated at
+>>> arch/arm or should/could those be handled by reading IP's revision
+>>> register (e.g. usb host erratas)
+>>>
+>>   OMAP4 SDP is socketed as well.
+> a) OMAP4SDP is not production device
+> b) OMAP4SDP uses SOM (System On Module)
+> c) Socketted SOMs were used only during initial days of SoC
+> d) almost all latest OMAP4 SDP switched to using soldered in SOM
+> e) we claim compatibility of OMAP4 SDP with Blaze.
+> 
+> So, I dont think this is a rational argument for keeping soc checks with dts.
 
-Configuring the command register, if the transfer of data needs
-dual or quad lines.
+What about OMAP4 pandas? I for instance, have an old 4430 panda and I have no idea
+if its a es2.1 or a es2.3 or something else. If we start relying on dt to pass the
+right revision check then (we need to create different dts files for these to begin with) I
+need to know exactly what silicon rev I am running on.
 
-This patch has been done on top of the following patch[1], which is just the
-basic idea of adding dual/quad support in spi framework.
-$subject patch will undergo changes once the ongoing discussion in the
-community is freezed.
+I know its good to completely get rid of all silicon rev checks and depend on IP revisions
+but we have had various IPs which do not have proper rev checks. We have I guess most often
+used these to identify PRCM differences.
 
-This patch is posted to demonstrate how patch 1 of the series will support
-quad read.
+Tony, what do you suggest we do for this series? Since we have just an es1.0 and one board
+at this point for dra7xx, things would be fine even if we do a dt based parsing to identify
+the device, and I am fine with it if thats what we feel is the right way forward.
+For the rest of the DT only platforms (omap4/5/am335x) anyway getting rid of these rev checks
+from the kernel and depending on DT parsing needs to be a separate series anyway and I dont
+plan to address those as part of this series.
 
-[1]: http://comments.gmane.org/gmane.linux.kernel.spi.devel/14047
-
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
----
- drivers/spi/spi-ti-qspi.c |   15 +++++++++++++--
- 1 files changed, 13 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
-index 02b67e9..a8c9587 100644
---- a/drivers/spi/spi-ti-qspi.c
-+++ b/drivers/spi/spi-ti-qspi.c
-@@ -273,6 +273,7 @@ static int qspi_read_msg(struct ti_qspi *qspi, struct spi_transfer *t)
- {
- 	u8 *rxbuf;
- 	int wlen, count, ret;
-+	unsigned cmd = qspi->cmd;
- 
- 	count = t->len;
- 	rxbuf = t->rx_buf;
-@@ -282,8 +283,18 @@ static int qspi_read_msg(struct ti_qspi *qspi, struct spi_transfer *t)
- 		dev_dbg(qspi->dev, "rx cmd %08x dc %08x\n",
- 			qspi->cmd | QSPI_RD_SNGL, qspi->dc);
- 		ti_qspi_write(qspi, qspi->dc, QSPI_SPI_DC_REG);
--		ti_qspi_write(qspi, qspi->cmd | QSPI_RD_SNGL,
--			QSPI_SPI_CMD_REG);
-+		switch (t->bitwidth) {
-+		case SPI_BITWIDTH_QUAD:
-+			cmd |= QSPI_RD_QUAD;
-+			break;
-+		case SPI_BITWIDTH_DUAL:
-+			cmd |= QSPI_RD_DUAL;
-+			break;
-+		case SPI_BITWIDTH_SINGLE:
-+		default:
-+			cmd |= QSPI_RD_SNGL;
-+		}
-+		ti_qspi_write(qspi, cmd, QSPI_SPI_CMD_REG);
- 		ret = wait_for_completion_timeout(&qspi->transfer_complete,
- 					QSPI_COMPLETION_TIMEOUT);
- 		if (ret == 0) {
--- 
-1.7.1
-
+> 
+>>   Ya, revision checks used only in few places and as you said
+>>   we handle them using IP revisions, but that we have to look and clean
+>>   up those places, if we really intend to do this for other socs.
+> 
+> I agree this is the right approach :).
+> 
+> 
