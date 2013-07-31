@@ -1,90 +1,156 @@
-From: "Fernandes, Joel" <joelf-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 3/9] ARM: edma: Add function to manually trigger an EDMA
-	channel
-Date: Wed, 31 Jul 2013 05:34:14 +0000
-Message-ID: <D8824BFD-347E-4544-9024-2BE52D68100D@ti.com>
-References: <1375104595-16018-1-git-send-email-joelf@ti.com>
-	<1375104595-16018-4-git-send-email-joelf@ti.com>
-	<51F74CAD.3040604@ti.com>
-	<51F892D2.4090805@ti.com>,<51F89F5E.2050605@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Wed, 31 Jul 2013 11:14:32 +0530
+Message-ID: <51F8A440.8010803@ti.com>
+References: <20130720220006.GA7977@kroah.com> <3839600.WiC1OLF35o@flatron> <51EBC0F5.70601@ti.com> <9748041.Qq1fWJBg6D@flatron> <20130721154653.GG16598@kroah.com> <20130730071106.GC16441@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <51F89F5E.2050605-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>
-Cc: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, "R,  Sricharan" <r.sricharan-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Vutla,  Lokesh" <lokeshvutla-l0cyMroinI0@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "Nayak,  Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20130730071106.GC16441@radagast>
+Sender: linux-doc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Greg KH <gregkh@linuxfoundation.org>, Tomasz Figa <tomasz.figa@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, kyungmin.park@samsung.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de, swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Jul 31, 2013, at 12:23 AM, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org> wrote:
+Hi,
 
-> On Wednesday 31 July 2013 10:00 AM, Joel Fernandes wrote:
->> On 07/30/2013 12:18 AM, Sekhar Nori wrote:
->>> On Monday 29 July 2013 06:59 PM, Joel Fernandes wrote:
->>>> Manual trigger for events missed as a result of splitting a
->>>> scatter gather list and DMA'ing it in batches. Add a helper
->>>> function to trigger a channel incase any such events are missed.
->>>> 
->>>> Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
->>>> ---
->>>> arch/arm/common/edma.c             |   21 +++++++++++++++++++++
->>>> include/linux/platform_data/edma.h |    2 ++
->>>> 2 files changed, 23 insertions(+)
->>>> 
->>>> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
->>>> index 3567ba1..10995b2 100644
->>>> --- a/arch/arm/common/edma.c
->>>> +++ b/arch/arm/common/edma.c
->>>> @@ -1236,6 +1236,27 @@ void edma_resume(unsigned channel)
->>>> }
->>>> EXPORT_SYMBOL(edma_resume);
->>>> 
->>>> +int edma_manual_trigger(unsigned channel)
->>> 
->>> edma_trigger_channel() maybe? Brings consistency with
->>> edma_alloc_channel() edma_free_channel() etc.
->> 
->> Ok, sure.
->> 
->>> 
->>>> +{
->>>> +    unsigned ctlr;
->>>> +    int j;
->>>> +    unsigned int mask;
->>>> +
->>>> +    ctlr = EDMA_CTLR(channel);
->>>> +    channel = EDMA_CHAN_SLOT(channel);
->>>> +    mask = BIT(channel & 0x1f);
->>>> +
->>>> +    j = channel >> 5;
->>>> +
->>>> +    /* EDMA channels without event association */
->>> 
->>> May be actually check for no-event association before you trigger in
->>> software? You can do that by looking at unused channel list, no?
->> 
->> But, we want to trigger whether there is event association or not in
->> this function. For ex, MMC has event associated but still this function
->> is used to trigger event for it.
+On Tuesday 30 July 2013 12:41 PM, Felipe Balbi wrote:
+> On Sun, Jul 21, 2013 at 08:46:53AM -0700, Greg KH wrote:
+>> On Sun, Jul 21, 2013 at 01:12:07PM +0200, Tomasz Figa wrote:
+>>> On Sunday 21 of July 2013 16:37:33 Kishon Vijay Abraham I wrote:
+>>>> Hi,
+>>>>
+>>>> On Sunday 21 July 2013 04:01 PM, Tomasz Figa wrote:
+>>>>> Hi,
+>>>>>
+>>>>> On Saturday 20 of July 2013 19:59:10 Greg KH wrote:
+>>>>>> On Sat, Jul 20, 2013 at 10:32:26PM -0400, Alan Stern wrote:
+>>>>>>> On Sat, 20 Jul 2013, Greg KH wrote:
+>>>>>>>>>>> That should be passed using platform data.
+>>>>>>>>>>
+>>>>>>>>>> Ick, don't pass strings around, pass pointers.  If you have
+>>>>>>>>>> platform
+>>>>>>>>>> data you can get to, then put the pointer there, don't use a
+>>>>>>>>>> "name".
+>>>>>>>>>
+>>>>>>>>> I don't think I understood you here :-s We wont have phy pointer
+>>>>>>>>> when we create the device for the controller no?(it'll be done in
+>>>>>>>>> board file). Probably I'm missing something.
+>>>>>>>>
+>>>>>>>> Why will you not have that pointer?  You can't rely on the "name"
+>>>>>>>> as
+>>>>>>>> the device id will not match up, so you should be able to rely on
+>>>>>>>> the pointer being in the structure that the board sets up, right?
+>>>>>>>>
+>>>>>>>> Don't use names, especially as ids can, and will, change, that is
+>>>>>>>> going
+>>>>>>>> to cause big problems.  Use pointers, this is C, we are supposed to
+>>>>>>>> be
+>>>>>>>> doing that :)
+>>>>>>>
+>>>>>>> Kishon, I think what Greg means is this:  The name you are using
+>>>>>>> must
+>>>>>>> be stored somewhere in a data structure constructed by the board
+>>>>>>> file,
+>>>>>>> right?  Or at least, associated with some data structure somehow.
+>>>>>>> Otherwise the platform code wouldn't know which PHY hardware
+>>>>>>> corresponded to a particular name.
+>>>>>>>
+>>>>>>> Greg's suggestion is that you store the address of that data
+>>>>>>> structure
+>>>>>>> in the platform data instead of storing the name string.  Have the
+>>>>>>> consumer pass the data structure's address when it calls phy_create,
+>>>>>>> instead of passing the name.  Then you don't have to worry about two
+>>>>>>> PHYs accidentally ending up with the same name or any other similar
+>>>>>>> problems.
+>>>>>>
+>>>>>> Close, but the issue is that whatever returns from phy_create()
+>>>>>> should
+>>>>>> then be used, no need to call any "find" functions, as you can just
+>>>>>> use
+>>>>>> the pointer that phy_create() returns.  Much like all other class api
+>>>>>> functions in the kernel work.
+>>>>>
+>>>>> I think there is a confusion here about who registers the PHYs.
+>>>>>
+>>>>> All platform code does is registering a platform/i2c/whatever device,
+>>>>> which causes a driver (located in drivers/phy/) to be instantiated.
+>>>>> Such drivers call phy_create(), usually in their probe() callbacks,
+>>>>> so platform_code has no way (and should have no way, for the sake of
+>>>>> layering) to get what phy_create() returns.
+>>
+>> Why not put pointers in the platform data structure that can hold these
+>> pointers?  I thought that is why we created those structures in the
+>> first place.  If not, what are they there for?
 > 
-> Okay, just drop the misleading comment then.
-
-Ok, will do.
-
-Thanks,
-
--Joel
-
+> heh, IMO we shouldn't pass pointers of any kind through platform_data,
+> we want to pass data :-)
 > 
-> Regards,
-> Sekhar
+> Allowing to pass pointers through that, is one of the reasons which got
+> us in such a big mess in ARM land, well it was much easier for a
+> board-file/driver writer to pass a function pointer then to create a
+> generic framework :-)
+> 
+>>>>> IMHO we need a lookup method for PHYs, just like for clocks,
+>>>>> regulators, PWMs or even i2c busses because there are complex cases
+>>>>> when passing just a name using platform data will not work. I would
+>>>>> second what Stephen said [1] and define a structure doing things in a
+>>>>> DT-like way.
+>>>>>
+>>>>> Example;
+>>>>>
+>>>>> [platform code]
+>>>>>
+>>>>> static const struct phy_lookup my_phy_lookup[] = {
+>>>>>
+>>>>> 	PHY_LOOKUP("s3c-hsotg.0", "otg", "samsung-usbphy.1", "phy.2"),
+>>>>
+>>>> The only problem here is that if *PLATFORM_DEVID_AUTO* is used while
+>>>> creating the device, the ids in the device name would change and
+>>>> PHY_LOOKUP wont be useful.
+>>>
+>>> I don't think this is a problem. All the existing lookup methods already 
+>>> use ID to identify devices (see regulators, clkdev, PWMs, i2c, ...). You 
+>>> can simply add a requirement that the ID must be assigned manually, 
+>>> without using PLATFORM_DEVID_AUTO to use PHY lookup.
+>>
+>> And I'm saying that this idea, of using a specific name and id, is
+>> frought with fragility and will break in the future in various ways when
+>> devices get added to systems, making these strings constantly have to be
+>> kept up to date with different board configurations.
+>>
+>> People, NEVER, hardcode something like an id.  The fact that this
+>> happens today with the clock code, doesn't make it right, it makes the
+>> clock code wrong.  Others have already said that this is wrong there as
+>> well, as systems change and dynamic ids get used more and more.
+>>
+>> Let's not repeat the same mistakes of the past just because we refuse to
+>> learn from them...
+>>
+>> So again, the "find a phy by a string" functions should be removed, the
+>> device id should be automatically created by the phy core just to make
+>> things unique in sysfs, and no driver code should _ever_ be reliant on
+>> the number that is being created, and the pointer to the phy structure
+>> should be used everywhere instead.
+>>
+>> With those types of changes, I will consider merging this subsystem, but
+>> without them, sorry, I will not.
+> 
+> I'll agree with Greg here, the very fact that we see people trying to
+> add a requirement of *NOT* using PLATFORM_DEVID_AUTO already points to a
+> big problem in the framework.
+> 
+> The fact is that if we don't allow PLATFORM_DEVID_AUTO we will end up
+> adding similar infrastructure to the driver themselves to make sure we
+> don't end up with duplicate names in sysfs in case we have multiple
+> instances of the same IP in the SoC (or several of the same PCIe card).
+> I really don't want to go back to that.
+
+If we are using PLATFORM_DEVID_AUTO, then I dont see any way we can give the
+correct binding information to the PHY framework. I think we can drop having
+this non-dt support in PHY framework? I see only one platform (OMAP3) going to
+be needing this non-dt support and we can use the USB PHY library for it.
+
+Thanks
+Kishon
