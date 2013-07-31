@@ -1,68 +1,53 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [net-next PATCH 1/1] drivers: net: cpsw: Add support for new CPSW IP version
-Date: Wed, 31 Jul 2013 17:42:26 +0530
-Message-ID: <1375272746-24446-1-git-send-email-mugunthanvnm@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: Linux kernel for OMAP5432 uEVM
+Date: Wed, 31 Jul 2013 15:16:58 +0300
+Message-ID: <51F9003A.7080402@ti.com>
+References: <20130730033808.GA23486@cbz-workstation> <51F7387B.9060304@ti.com> <D890FDE7-B6AD-48E9-BE9C-3835F95E4457@gmail.com> <51F8CB7A.9070108@ti.com> <51F8F5A9.5080308@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, linux-omap@vger.kernel.org, balbi@ti.com, Mugunthan V N <mugunthanvnm@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43075 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751338Ab3GaMRB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Jul 2013 08:17:01 -0400
+In-Reply-To: <51F8F5A9.5080308@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Chen Baozi <baozich@gmail.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org
 
-The new IP version has a minor changes and the offsets are same as the previous
-version, so instead of adding CPSW version number in the driver, make the driver
-to fall through to the latest versions so that the new version of CPSW which has
-the same register offsets will work directly without patching the driver.
+Hi Chen,
 
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
----
- drivers/net/ethernet/ti/cpsw.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+On 07/31/2013 02:31 PM, Roger Quadros wrote:
+> On 07/31/2013 11:31 AM, Lokesh Vutla wrote:
+>> Hi Chen,
+>>
+>> On Wednesday 31 July 2013 01:19 PM, Chen Baozi wrote:
+>>>
+>>> On Jul 30, 2013, at 11:52 AM, Lokesh Vutla <lokeshvutla@ti.com> wrote:
+>>>
+>>>> You can also use Linus's kernel with the above clk data branch.( OMAP5 uEVM boots)
+>>>> Please let me know if you need more info.
+>>>
+>>> And the ethernet driver is not available by default?
+>> You need the following patch series recently posted by Roger:
+>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg92694.html
+>>
+> 
+> Those will work only if you proceed with Tero's clock data in DT approach.
+> 
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 05a1674..a6b9700 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -799,6 +799,7 @@ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
- 		slave_write(slave, TX_PRIORITY_MAPPING, CPSW1_TX_PRI_MAP);
- 		break;
- 	case CPSW_VERSION_2:
-+	default:
- 		slave_write(slave, TX_PRIORITY_MAPPING, CPSW2_TX_PRI_MAP);
- 		break;
- 	}
-@@ -1180,10 +1181,9 @@ static int cpsw_hwtstamp_ioctl(struct net_device *dev, struct ifreq *ifr)
- 		cpsw_hwtstamp_v1(priv);
- 		break;
- 	case CPSW_VERSION_2:
-+	default:
- 		cpsw_hwtstamp_v2(priv);
- 		break;
--	default:
--		return -ENOTSUPP;
- 	}
- 
- 	return copy_to_user(ifr->ifr_data, &cfg, sizeof(cfg)) ? -EFAULT : 0;
-@@ -1790,6 +1790,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 		dma_params.desc_mem_phys = 0;
- 		break;
- 	case CPSW_VERSION_2:
-+	default:
- 		priv->host_port_regs = ss_regs + CPSW2_HOST_PORT_OFFSET;
- 		priv->cpts->reg       = ss_regs + CPSW2_CPTS_OFFSET;
- 		dma_params.dmaregs   = ss_regs + CPSW2_CPDMA_OFFSET;
-@@ -1801,10 +1802,6 @@ static int cpsw_probe(struct platform_device *pdev)
- 		dma_params.desc_mem_phys =
- 			(u32 __force) priv->cpsw_res->start + CPSW2_BD_OFFSET;
- 		break;
--	default:
--		dev_err(priv->dev, "unknown version 0x%08x\n", priv->version);
--		ret = -ENODEV;
--		goto clean_cpsw_wr_iores_ret;
- 	}
- 	for (i = 0; i < priv->data.slaves; i++) {
- 		struct cpsw_slave *slave = &priv->slaves[i];
--- 
-1.8.4.rc0.11.g35f5eaa
+I've created a branch that contains all patches required to get ethernet working on 
+uEVM on top of Tero's DT clocks. I took the leisure of picking the baseport tree from
+Lokesh [1].
+
+You can get the necessary stuff from branch 
+	usbhost-uevm-3.11-rc3
+in git tree 
+	git://github.com/rogerq/linux.git
+
+cheers,
+-roger
+
+[1] - https://github.com/lokeshvutla/linux/tree/dra7-3.11-rc3-base
