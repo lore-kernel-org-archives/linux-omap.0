@@ -1,74 +1,74 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] ARM: Update SMP_ON_UP code to detect A9MPCore with 1 CPU devices
-Date: Thu, 1 Aug 2013 14:17:13 -0400
-Message-ID: <1375381033-13220-1-git-send-email-santosh.shilimkar@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [FAILURE] omap4430-sdp allnoconfig
+Date: Thu, 1 Aug 2013 19:27:07 +0100
+Message-ID: <20130801182707.GB23053@n2100.arm.linux.org.uk>
+References: <20130801175214.GA23053@n2100.arm.linux.org.uk> <51FAA4C6.10203@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54198 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752485Ab3HASR7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Aug 2013 14:17:59 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39596 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752286Ab3HAS1p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Aug 2013 14:27:45 -0400
+Content-Disposition: inline
+In-Reply-To: <51FAA4C6.10203@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Vaibhav Bedia <vaibhav.bedia@ti.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+On Thu, Aug 01, 2013 at 02:11:18PM -0400, Santosh Shilimkar wrote:
+> On Thursday 01 August 2013 01:52 PM, Russell King - ARM Linux wrote:
+> > My allnoconfig fails with this error:
+> > 
+> > arch/arm/mach-omap2/built-in.o: In function `omap4_local_timer_init':
+> > dss-common.c:(.init.text+0x1d90): undefined reference to `twd_local_timer_register'
+> > 
+> > Might be worth looking into whatever's missing?
+> 
+> Looks like coming from below snippet but am just wondering how ?
 
-The generic code is well equipped to differentiate between
-SMP and UP configurations.However, there are some devices which
-use Cortex-A9 MP core IP with 1 CPU as configuration. To let
-these SOCs to co-exist in a CONFIG_SMP=y build by leveraging
-the SMP_ON_UP support, we need to additionally check the
-number the cores in Cortex-A9 MPCore configuration. Without
-such a check in place, the startup code tries to execute
-ALT_SMP() set of instructions which lead to CPU faults.
+Well, looking at the config allnoconfig generated, it doesn't have SMP
+and therefore it doesn't have local timers.
 
-The issue was spotted on TI's Aegis device and this patch
-makes now the device work with omap2plus_defconfig which
-enables SMP by default. The change is kept limited to only
-Cortex-A9 MPCore detection code.
+The build tree has this in it:
 
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Russell King <linux@arm.linux.org.uk>
+#ifdef CONFIG_ARCH_OMAP4
+static DEFINE_TWD_LOCAL_TIMER(twd_local_timer, OMAP44XX_LOCAL_TWD_BASE, 29);
+void __init omap4_local_timer_init(void)
+{
+        omap4_sync32k_timer_init();
+        /* Local timers are not supprted on OMAP4430 ES1.0 */
+        if (omap_rev() != OMAP4430_REV_ES1_0) {
+                int err;
 
-Acked-by: Sricharan R <r.sricharan@ti.com>
-Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/kernel/head.S |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+                if (of_have_populated_dt()) {
+                        clocksource_of_init();
+                        return;
+                }
 
-diff --git a/arch/arm/kernel/head.S b/arch/arm/kernel/head.S
-index 9cf6063..4924b11 100644
---- a/arch/arm/kernel/head.S
-+++ b/arch/arm/kernel/head.S
-@@ -486,7 +486,23 @@ __fixup_smp:
- 	mrc	p15, 0, r0, c0, c0, 5	@ read MPIDR
- 	and	r0, r0, #0xc0000000	@ multiprocessing extensions and
- 	teq	r0, #0x80000000		@ not part of a uniprocessor system?
--	moveq	pc, lr			@ yes, assume SMP
-+	bne    __fixup_smp_on_up	@ no, assume UP
-+
-+	@ Core indicates it is SMP.  Check for Aegis SOC where a single
-+	@ Cortex-A9 CPU is present but SMP operations fault.
-+	mov	r4, #0x41000000
-+	orr	r4, r4, #0x0000c000
-+	orr	r4, r4, #0x00000090
-+	teq	r3, r4			@ Check for ARM Cortex-A9
-+	movne	pc, lr			@ Not ARM Cortex-A9,
-+
-+	mrc	p15, 4, r0, c15, c0	@ get SCU base address
-+	teq	r0, #0x0		@ '0' on actual UP A9 hardware
-+	beq	__fixup_smp_on_up	@ So its an A9 UP
-+	ldr	r0, [r0, #4]		@ read SCU Config
-+	and	r0, r0, #0x3		@ number of CPUs
-+	teq	r0, #0x0		@ is 1?
-+	movne	pc, lr
- 
- __fixup_smp_on_up:
- 	adr	r0, 1f
--- 
-1.7.9.5
+                err = twd_local_timer_register(&twd_local_timer);
+                if (err)
+                        pr_err("twd_local_timer_register failed %d\n", err);
+        }
+}
+#endif /* CONFIG_ARCH_OMAP4 */
 
+which is changed from your version thanks to this commit:
+
+commit ef3160cd2f0a400751f2cf6fd2811225fee1d5a7
+Author: Stephen Boyd <sboyd@codeaurora.org>
+Date:   Mon Mar 4 19:24:35 2013 -0800
+
+    ARM: OMAP2+: Divorce from local timer API
+    
+    Now that the TWD doesn't rely on the local timer API, OMAP can
+    stop selecting it in Kconfig and relying on the config option to
+    decide if it should call smp_twd functions.
+    
+    Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+    Acked-by: Tony Lindgren <tony@atomide.com>
+    Acked-by: Marc Zyngier <marc.zyngier@arm.com>
+    Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+
+So it seems LOCAL_TIMER is still actually required...
