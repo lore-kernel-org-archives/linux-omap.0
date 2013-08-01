@@ -1,82 +1,170 @@
-From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 4/9] dma: edma: Find missed events and issue them
-Date: Thu, 1 Aug 2013 15:48:57 -0500
-Message-ID: <51FAC9B9.3050903@ti.com>
-References: <1375104595-16018-1-git-send-email-joelf@ti.com>
-	<1375104595-16018-5-git-send-email-joelf@ti.com>
-	<51F7659E.3040302@ti.com> <51F89763.1010102@ti.com>
-	<51F8D667.2040406@ti.com> <51F9C793.2000001@ti.com>
-	<51F9FC87.3020706@ti.com> <51FAC50A.2020507@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v2] N900: add device tree
+Date: Fri, 2 Aug 2013 01:43:56 +0200
+Message-ID: <20130801234355.GA15611@amd.pavel.ucw.cz>
+References: <20130614055629.GM8164@atomide.com>
+ <20130614212816.GA31768@atrey.karlin.mff.cuni.cz>
+ <20130617111031.GQ20992@atomide.com>
+ <20130701211753.GC15318@amd.pavel.ucw.cz>
+ <20130704171939.GA27374@blackmetal.musicnaut.iki.fi>
+ <20130704202145.GB10752@amd.pavel.ucw.cz>
+ <20130704203256.GB27374@blackmetal.musicnaut.iki.fi>
+ <20130713121709.GC16473@amd.pavel.ucw.cz>
+ <20130714222819.GB3296@blackmetal.musicnaut.iki.fi>
+ <20130728134409.GB5382@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <51FAC50A.2020507-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: joelf-l0cyMroinI0@public.gmane.org
-Cc: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Balaji TK <balajitk-l0cyMroinI0@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Santosh Shilimkar <santosh.shilim>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130728134409.GB5382@amd.pavel.ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>, b-cousson@ti.com, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Just some corrections here..
+On Sun 2013-07-28 15:44:09, Pavel Machek wrote:
+> On Mon 2013-07-15 01:28:19, Aaro Koskinen wrote:
+> > Hi,
+> > 
+> > On Sat, Jul 13, 2013 at 02:17:09PM +0200, Pavel Machek wrote:
+> > > 
+> > > This adds device tree with neccessary support to boot with functional
+> > > video (on both emulator and real N900 device).
+> > > 
+> > > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > 
+> > You can also add:
+> > 
+> > Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> 
+> Benoit, could you apply this? Tony said you are doing dts changes, and
+> the patch seems to be ready.
 
-On 08/01/2013 03:28 PM, Joel Fernandes wrote:
-
->>> 2. If the interrupt handler for some reason doesn't complete or get
->>> service in time, we will end up DMA'ing incorrect data as events
->>> wouldn't stop coming in even if interrupt is not yet handled (in your
->>> example linked sets P1 or P2 would be old ones being repeated). Where as
->>> with my method, we are not doing any DMA once we finish the current
->>> MAX_NR_SG set even if events continue to come.
->>
->> Where is repetition and possibility of wrong data being transferred? We
->> have a linear list of PaRAM sets - not a loop. You would link the end to
->> PaRAM set chain to dummy PaRAM set which BTW will not cause missed
->> events. The more number of PaRAM sets you add to the chain, the more
-> 
-> There would have to be a loop, how else would you ensure continuity and
-> uninterrupted DMA?
-> 
-> Consider if you have 2 sets of linked sets:
-> L1 is the first set of Linked sets and L2 is the second.
-> 
-> When L1 is done, EDMA continues with L2 (due to the link) while
-> interrupt handler prepares L1. The continuity depends on L1 being linked
-> to L2. Only the absolute last break up of the MAX_NR_SG linked set will
-> be linked to Dummy.
-> 
-> So consider MAX_NR_SG=10, and sg_len = 35
-> 
-> L1 - L2 - L1 - L1 - Dummy
-
-Should be,
-L1 - L2 - L1 - L2 - Dummy
-
-> 
-> The split would be in number of slots,
-> 10 - 10 - 10 -  5 - Dummy
-> 
->> time CPU gets to intervene before DMA eventually stalls. This is a
->> tradeoff system designers can manage.
-> 
-> Consider what happens in the case where MAX_SG_NR=1 or 2. In that case,
-> there's a change we might not get enough time for the interrupt handler
-> to setup next series of linked set.
-> 
-> Some how this limitation has to be overcome by advising in comments than
-> MAX_SG_NR should always be greater than a certain number to ensure
-> proper operation.
-
-s/than/that/
-
+Tony, Benoit was apparently abducted by aliens or something. Is there
+chance you could take the patch?
 
 Thanks,
+									Pavel
 
--Joel
+> > > From v1: Aaro wants just GPLv2, so I did that. I re-enabled parts that
+> > > can be enabled on 3.10, and tested it on that kernel.
+> > > 
+> > > diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+> > > index f0895c5..1950aed 100644
+> > > --- a/arch/arm/boot/dts/Makefile
+> > > +++ b/arch/arm/boot/dts/Makefile
+> > > @@ -141,6 +141,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+> > >  	omap3-devkit8000.dtb \
+> > >  	omap3-beagle-xm.dtb \
+> > >  	omap3-evm.dtb \
+> > > +	omap3-n900.dtb \
+> > >  	omap3-tobi.dtb \
+> > >  	omap3-igep0020.dtb \
+> > >  	omap3-igep0030.dtb \
+> > > diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+> > > new file mode 100644
+> > > index 0000000..fb461bf
+> > > --- /dev/null
+> > > +++ b/arch/arm/boot/dts/omap3-n900.dts
+> > > @@ -0,0 +1,92 @@
+> > > +/*
+> > > + * Copyright (C) 2013 Pavel Machek <pavel@ucw.cz>
+> > > + * Copyright 2013 Aaro Koskinen <aaro.koskinen@iki.fi>
+> > > + *
+> > > + * This program is free software; you can redistribute it and/or modify
+> > > + * it under the terms of the GNU General Public License version 2 as
+> > > + * published by the Free Software Foundation.
+> > > + */
+> > > +
+> > > +/dts-v1/;
+> > > +
+> > > +/include/ "omap34xx.dtsi"
+> > > +
+> > > +/ {
+> > > +	model = "Nokia N900";
+> > > +	compatible = "nokia,omap3-n900", "ti,omap3";
+> > > +
+> > > +	cpus {
+> > > +		cpu@0 {
+> > > +			cpu0-supply = <&vcc>;
+> > > +		};
+> > > +	};
+> > > +
+> > > +	memory {
+> > > +		device_type = "memory";
+> > > +		reg = <0x80000000 0x10000000>; /* 256 MB */
+> > > +	};
+> > > +
+> > > +};
+> > > +
+> > > +&i2c1 {
+> > > +	clock-frequency = <2200000>;
+> > > +
+> > > +	twl: twl@48 {
+> > > +		reg = <0x48>;
+> > > +		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+> > > +		interrupt-parent = <&intc>;
+> > > +	};
+> > > +};
+> > > +
+> > > +/include/ "twl4030.dtsi"
+> > > +
+> > > +&twl_gpio {
+> > > +	ti,pullups	= <0x0>;
+> > > +	ti,pulldowns	= <0x03ff3f>; /* BIT(0..5) | BIT(8..17) */
+> > > +};
+> > > +
+> > > +&i2c2 {
+> > > +	clock-frequency = <400000>;
+> > > +};
+> > > +
+> > > +&i2c3 {
+> > > +	clock-frequency = <100000>;
+> > > +};
+> > > +
+> > > +&mmc1 {
+> > > +	status = "disabled";
+> > > +};
+> > > +
+> > > +&mmc2 {
+> > > +	status = "disabled";
+> > > +};
+> > > +
+> > > +&mmc3 {
+> > > +	status = "disabled";
+> > > +};
+> > > +
+> > > +&mcspi1 {
+> > > +	// For some reason, touchscreen is neccessary for screen to work at 
+> > > +	// all on real hw. It works well without it on emulator.
+> > > +	//
+> > > +	// Also... order in the device tree actually matters here.
+> > > +	tsc2005@0 {
+> > > +		compatible = "tsc2005";
+> > > +		spi-max-frequency = <6000000>;
+> > > +		reg = <0>;
+> > > +	};
+> > > +	mipid@2 {
+> > > +		compatible = "acx565akm";
+> > > +		spi-max-frequency = <6000000>;
+> > > +		reg = <2>;
+> > > +		// turbo_mode = 0,
+> > > +		// cs_per_word = 0
+> > > +	};
+> > > +};
+> > > +
+> > > +&usb_otg_hs {
+> > > +	interface-type = <0>;
+> > > +	usb-phy = <&usb2_phy>;
+> > > +	mode = <2>;
+> > > +	power = <50>;
+> > > +};
+> > > 
+> > > -- 
+> > > (english) http://www.livejournal.com/~pavelmachek
+> > > (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+> 
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
