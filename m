@@ -1,92 +1,61 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [Patch V2 4/4] ARM: dts: AM33XX: update rtc node compatibility
-Date: Thu, 1 Aug 2013 18:05:37 +0100
-Message-ID: <20130801170537.GF8095@e106331-lin.cambridge.arm.com>
-References: <1372841225-18813-1-git-send-email-gururaja.hebbar@ti.com>
- <1372841225-18813-5-git-send-email-gururaja.hebbar@ti.com>
- <51F749B0.7020802@ti.com>
- <20130730145501.GA29859@e106331-lin.cambridge.arm.com>
- <51F7E7FA.3080702@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [RFC/PATCH 0/3] arm: omap: patches from -rt
+Date: Thu, 1 Aug 2013 22:37:51 +0530
+Message-ID: <51FA95E7.6040602@ti.com>
+References: <1375359165-8411-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <51F7E7FA.3080702@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "tony@atomide.com" <tony@atomide.com>, "benoit.cousson@gmail.com" <benoit.cousson@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "vaibhav.bedia@ti.com" <vaibhav.bedia@ti.com>, Gururaja Hebbar <gururaja.hebbar@ti.com>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:51276 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756625Ab3HARIT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Aug 2013 13:08:19 -0400
+In-Reply-To: <1375359165-8411-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Jul 30, 2013 at 05:21:14PM +0100, Sekhar Nori wrote:
-> On 7/30/2013 8:25 PM, Mark Rutland wrote:
-> > On Tue, Jul 30, 2013 at 06:05:52AM +0100, Gururaja Hebbar wrote:
-> >> Hi,
-> >>
-> >> On 7/3/2013 2:17 PM, Hebbar Gururaja wrote:
-> >>> Since AM33xx  RTC IP has RTC_IRQWAKEEN to support Alarm Wake-up.
-> >>>
-> >>> Update the rtc compatible property to "ti,am3352-rtc" to enable handling
-> >>> of this feature inside rtc-omap driver.
-> >>
-> >> The other 2 rtc driver related patches have been pulled up. If you have 
-> >> no comments, can you please pull this up.
-> >>
-> >> Regards
-> >> Gururaja
-> >>
-> >>>
-> >>> Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
-> >>> ---
-> >>> :100644 100644 77aa1b0... dde180a... M	arch/arm/boot/dts/am33xx.dtsi
-> >>>   arch/arm/boot/dts/am33xx.dtsi |    2 +-
-> >>>   1 file changed, 1 insertion(+), 1 deletion(-)
-> >>>
-> >>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> >>> index 77aa1b0..dde180a 100644
-> >>> --- a/arch/arm/boot/dts/am33xx.dtsi
-> >>> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> >>> @@ -297,7 +297,7 @@
-> >>>   		};
-> >>>
-> >>>   		rtc@44e3e000 {
-> >>> -			compatible = "ti,da830-rtc";
-> >>> +			compatible = "ti,am3352-rtc";
-> > 
-> > Given that this is backwards compatible with the old binding, it would
-> > be nicer to have this as:
-> > 
-> > 	compatible = "ti,am3352-rtc", "ti,da830-rtc";
-> > 
-> > We must get into the habit of changing dts files in a
-> > backwards-compatible fashion.
-> 
-> Right, I suggested this when v1 was posted. It turns out the current
-> kernel does not handle the compatilble list correctly and the string
-> selected actually depends on the order in which it appears in match
-> table in driver instead.
-> 
-> I saw there were patches being discussed to fix this issue, but until
-> that is fixed, we cannot really use what you (and I before) suggested.
+On Thursday 01 August 2013 05:42 PM, Felipe Balbi wrote:
+> Hi,
+>
+> the next three patches were taken from v3.10.4-rt1 patchset.
+>
+> I don't have any boards available to test them, so I'd suggest
+> testing in as many platforms as possible before pushing
+> upstream.
+>
+> By pushing these patches upstream, we help decrease the amount
+> of out-of-tree changes rt folks need to carry.
+>
+> Frank Rowand (1):
+>    arm: omap: convert omap boot_lock to raw
+>
+> Sebastian Andrzej Siewior (1):
+>    i2c/omap: drop the lock hard irq context
+>
+> Thomas Gleixner (1):
+>    serial: omap: fix omap lock crap
+>
+>   arch/arm/mach-omap2/omap-smp.c   | 10 +++++-----
+>   drivers/i2c/busses/i2c-omap.c    |  5 +----
+>   drivers/tty/serial/omap-serial.c | 12 ++++--------
+>   3 files changed, 10 insertions(+), 17 deletions(-)
+>
+Tested this series on
 
-A temporary solution would be to list the "ti,am3352-rtc" first in the
-of_match_table kernel-side. That way you can keep the old compatible
-string in the dts compatible list, and maintain backwards compatibilty
-with older kernels.
+omap4-sdp:
+  - Boot tested .
+  - run i2c dump on buses where devices were present.
+  - check wakeup from suspend.
 
-Later if the way Linux matches compatible strings is changed, this
-shouldn't break the probe order, and the of_match_table order could be
-changed.
+omap5-uevm:
+- Boot tested.
+- Tested this series on buses where devices are present.
 
-Have I missed something?
+dra7-evm:
+  - Boot tested.
+  - run i2c dump on buses where devices are present.
 
-Thanks,
-Mark.
+Tested-by: Sourav Poddar <sourav.poddar@ti.com>
