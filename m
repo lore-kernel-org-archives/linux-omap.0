@@ -1,36 +1,28 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: [FAILURE] omap4430-sdp allnoconfig
-Date: Thu, 1 Aug 2013 15:01:09 -0400
-Message-ID: <51FAB075.4020807@ti.com>
-References: <20130801175214.GA23053@n2100.arm.linux.org.uk>
- <51FAA4C6.10203@ti.com> <20130801182707.GB23053@n2100.arm.linux.org.uk>
- <51FAA985.3000809@ti.com> <51FAAA31.6020903@codeaurora.org>
- <51FAAAFD.6000706@codeaurora.org> <51FAAD73.3030103@ti.com>
- <20130801185956.GK8868@codeaurora.org>
+Date: Thu, 1 Aug 2013 20:02:27 +0100
+Message-ID: <20130801190227.GC23053@n2100.arm.linux.org.uk>
+References: <20130801175214.GA23053@n2100.arm.linux.org.uk> <51FAA4C6.10203@ti.com> <20130801182707.GB23053@n2100.arm.linux.org.uk> <51FAA985.3000809@ti.com> <51FAAA31.6020903@codeaurora.org> <51FAAAFD.6000706@codeaurora.org> <51FAAD73.3030103@ti.com> <20130801185956.GK8868@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39599 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756069Ab3HATCk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Aug 2013 15:02:40 -0400
+Content-Disposition: inline
 In-Reply-To: <20130801185956.GK8868@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, arm@kernel.org
 
-On Thursday 01 August 2013 02:59 PM, Stephen Boyd wrote:
+On Thu, Aug 01, 2013 at 11:59:56AM -0700, Stephen Boyd wrote:
 > On 08/01, Santosh Shilimkar wrote:
->> This one looks fine for me. Can you send above in
->> a proper patch ? Let me know if you want me to
->> send it.
->>
+> > This one looks fine for me. Can you send above in
+> > a proper patch ? Let me know if you want me to
+> > send it.
+> > 
 > 
 > Here's a proper patch. Olof, can you please apply this on top of
 > the merge (and maybe you can fix the merge again to handle the
@@ -50,8 +42,9 @@ On Thursday 01 August 2013 02:59 PM, Stephen Boyd wrote:
 > `twd_local_timer_register'
 > 
 > Reported-by: Russell King - ARM Linux <linux@arm.linux.org.uk>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-> ---
-Thanks Stephen
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+
+Please change this to be:
+
+Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+
+Thanks.
