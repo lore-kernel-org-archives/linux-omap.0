@@ -1,43 +1,38 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [RESEND PATCH v10 1/8] drivers: phy: add generic PHY framework
-Date: Wed, 31 Jul 2013 18:40:24 -0700
-Message-ID: <20130801014024.GA6941@kroah.com>
-References: <1374842963-13545-1-git-send-email-kishon@ti.com>
- <1374842963-13545-2-git-send-email-kishon@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCHv4 03/33] CLK: OMAP4: Add DPLL clock support
+Date: Thu, 1 Aug 2013 13:59:49 +0530
+Message-ID: <51FA1C7D.5060403@ti.com>
+References: <1374564028-11352-1-git-send-email-t-kristo@ti.com> <1374564028-11352-4-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41732 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751108Ab3HAHao (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Aug 2013 03:30:44 -0400
-Content-Disposition: inline
-In-Reply-To: <1374842963-13545-2-git-send-email-kishon@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:54303 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751744Ab3HAIa0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Aug 2013 04:30:26 -0400
+In-Reply-To: <1374564028-11352-4-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, stern@rowland.harvard.edu, broonie@kernel.org, tomasz.figa@gmail.com, arnd@arndb.de, grant.likely@linaro.org, tony@atomide.com, swarren@nvidia.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com, linux@arm.linux.org.uk, Tomasz Figa <t.figa@samsung.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, tony@atomide.com, mturquette@linaro.org, nm@ti.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-On Fri, Jul 26, 2013 at 06:19:16PM +0530, Kishon Vijay Abraham I wrote:
-> +static int phy_get_id(void)
-> +{
-> +	int ret;
-> +	int id;
+Tero,
+
+On Tuesday 23 July 2013 12:49 PM, Tero Kristo wrote:
+> +	dd->control_reg = of_iomap(node, 0);
+> +	dd->idlest_reg = of_iomap(node, 1);
+> +	dd->autoidle_reg = of_iomap(node, 2);
+> +	dd->mult_div1_reg = of_iomap(node, 3);
 > +
-> +	ret = ida_pre_get(&phy_ida, GFP_KERNEL);
-> +	if (!ret)
-> +		return -ENOMEM;
-> +
-> +	ret = ida_get_new(&phy_ida, &id);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return id;
-> +}
+[]...
+> +	reg = of_iomap(node, 0);
 
-ida_simple_get() instead?  And if you do that, you can get rid of this
-function entirely.
+Doing an of_iomap() for every single clock register seems like an overkill
+and might have performance penalties at boot.
 
-thanks,
+regards,
+Rajendra
 
-greg k-h
+
+
