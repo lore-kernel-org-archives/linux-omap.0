@@ -1,60 +1,49 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 2/3] serial: omap: fix omap lock crap
-Date: Thu, 1 Aug 2013 15:12:44 +0300
-Message-ID: <1375359165-8411-3-git-send-email-balbi@ti.com>
-References: <1375359165-8411-1-git-send-email-balbi@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC/PATCH 3/3] arm: omap: convert omap boot_lock to raw
+Date: Thu, 1 Aug 2013 14:37:37 +0100
+Message-ID: <20130801133737.GG21614@n2100.arm.linux.org.uk>
+References: <1375359165-8411-1-git-send-email-balbi@ti.com> <1375359165-8411-4-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51360 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754903Ab3HAMOM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Aug 2013 08:14:12 -0400
-In-Reply-To: <1375359165-8411-1-git-send-email-balbi@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39564 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755177Ab3HANhu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Aug 2013 09:37:50 -0400
+Content-Disposition: inline
+In-Reply-To: <1375359165-8411-4-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
-Cc: Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <balbi@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Frank Rowand <frank.rowand@am.sony.com>, Thomas Gleixner <tglx@linutronix.de>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-From: Thomas Gleixner <tglx@linutronix.de>
+On Thu, Aug 01, 2013 at 03:12:45PM +0300, Felipe Balbi wrote:
+> From: Frank Rowand <frank.rowand@am.sony.com>
+> 
+> The omap boot_lock is used by the secondary processor startup code.  The locking
+> task is the idle thread, which has idle->sched_class == &idle_sched_class.
+> idle_sched_class->enqueue_task == NULL, so if the idle task blocks on the
+> lock, the attempt to wake it when the lock becomes available will fail:
+> 
+> try_to_wake_up()
+>    ...
+>       activate_task()
+>          enqueue_task()
+>             p->sched_class->enqueue_task(rq, p, flags)
+> 
+> Fix by converting boot_lock to a raw spin lock.
+> 
+> [ balbi@ti.com: taken from RT v3.10.4-rt1 patchset ]
+> 
+> Signed-off-by: Frank Rowand <frank.rowand@am.sony.com>
+> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/tty/serial/omap-serial.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+There's a whole bunch of these, OMAP is not the only one.  If someone's
+going to fix one case, the rest should also be fixed.  See:
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index b6d1728..7882d25 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -1170,13 +1170,10 @@ serial_omap_console_write(struct console *co, const char *s,
- 
- 	pm_runtime_get_sync(up->dev);
- 
--	local_irq_save(flags);
--	if (up->port.sysrq)
--		locked = 0;
--	else if (oops_in_progress)
--		locked = spin_trylock(&up->port.lock);
-+	if (up->port.sysrq || oops_in_progress)
-+		locked = spin_trylock_irqsave(&up->port.lock, flags);
- 	else
--		spin_lock(&up->port.lock);
-+		spin_lock_irqsave(&up->port.lock, flags);
- 
- 	/*
- 	 * First save the IER then disable the interrupts
-@@ -1205,8 +1202,7 @@ serial_omap_console_write(struct console *co, const char *s,
- 	pm_runtime_mark_last_busy(up->dev);
- 	pm_runtime_put_autosuspend(up->dev);
- 	if (locked)
--		spin_unlock(&up->port.lock);
--	local_irq_restore(flags);
-+		spin_unlock_irqrestore(&up->port.lock, flags);
- }
- 
- static int __init
--- 
-1.8.3.4.840.g6a90778
-
+arch/arm/mach-exynos/platsmp.c
+arch/arm/mach-msm/platsmp.c
+arch/arm/mach-prima2/platsmp.c
+arch/arm/mach-spear/platsmp.c
+arch/arm/mach-sti/platsmp.c
+arch/arm/mach-ux500/platsmp.c
