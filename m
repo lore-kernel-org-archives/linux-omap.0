@@ -1,37 +1,27 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [net-next PATCH 1/1] drivers: net: cpsw: Add support for new
- CPSW IP version
-Date: Wed, 31 Jul 2013 16:55:30 -0700 (PDT)
-Message-ID: <20130731.165530.1374328962435203697.davem@davemloft.net>
-References: <1375272746-24446-1-git-send-email-mugunthanvnm@ti.com>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [PATCH 0/4] crypto: omap-sham: Add support for SHA384/SHA512 for
+ OMAP5/AM43xx Soc's
+Date: Thu, 1 Aug 2013 11:47:41 +1000
+Message-ID: <20130801014741.GE24286@gondor.apana.org.au>
+References: <1374821957-30141-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:35738 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750856Ab3GaXzb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Jul 2013 19:55:31 -0400
-In-Reply-To: <1375272746-24446-1-git-send-email-mugunthanvnm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1374821957-30141-1-git-send-email-lokeshvutla@ti.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, davem@davemloft.net, rnayak@ti.com, nsekhar@ti.com, joelf@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: mugunthanvnm@ti.com
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com
 
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Date: Wed, 31 Jul 2013 17:42:26 +0530
+On Fri, Jul 26, 2013 at 12:29:13PM +0530, Lokesh Vutla wrote:
+> This patch series adds support for SHA348 and SHA512 in addition to MD5,
+> SHA1, SHA224 SHA256 that the omap sha module supports. Also adding the pdata
+> for OMAP5 and AM43xx Soc's.
+> And using devm_* calls to make cleanup paths simpler.
 
-> The new IP version has a minor changes and the offsets are same as the previous
-> version, so instead of adding CPSW version number in the driver, make the driver
-> to fall through to the latest versions so that the new version of CPSW which has
-> the same register offsets will work directly without patching the driver.
-> 
-> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
-
-Like others, I really think you should check the version explicitly.
-
-Please respin this patch so that it supports new IP versions in that
-way.
-
-Thanks.
+All applied.  Thanks!
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
