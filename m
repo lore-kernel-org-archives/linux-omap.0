@@ -1,43 +1,117 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv4 03/33] CLK: OMAP4: Add DPLL clock support
-Date: Thu, 1 Aug 2013 10:13:56 -0500
-Message-ID: <CAGo_u6oSUMN0LRCg+6MGpWQQKQ7qBPGkgZuffadH5wHmw-H-Cw@mail.gmail.com>
-References: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
-	<1374564028-11352-4-git-send-email-t-kristo@ti.com>
-	<51F7E883.7000000@ti.com>
-	<51F8DCF8.2040309@ti.com>
-	<51FA69E8.8000000@ti.com>
-	<51FA79E0.2070605@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv4 05/33] CLK: omap: add DT duplicate clock registration
+ mechanism
+Date: Thu, 1 Aug 2013 18:18:17 +0300
+Message-ID: <51FA7C39.8090100@ti.com>
+References: <1374564028-11352-1-git-send-email-t-kristo@ti.com> <1374564028-11352-6-git-send-email-t-kristo@ti.com> <51F808A8.6000503@ti.com> <51F8E1F5.20706@ti.com> <51FA6FCA.3050900@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f169.google.com ([74.125.82.169]:56332 "EHLO
-	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755365Ab3HAPN6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Aug 2013 11:13:58 -0400
-Received: by mail-we0-f169.google.com with SMTP id n5so1843075wev.28
-        for <linux-omap@vger.kernel.org>; Thu, 01 Aug 2013 08:13:56 -0700 (PDT)
-In-Reply-To: <51FA79E0.2070605@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:45833 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755700Ab3HAPSq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Aug 2013 11:18:46 -0400
+In-Reply-To: <51FA6FCA.3050900@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
+To: Nishanth Menon <nm@ti.com>
 Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, tony@atomide.com, mturquette@linaro.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-On Thu, Aug 1, 2013 at 10:08 AM, Tero Kristo <t-kristo@ti.com> wrote:
->> We should move the functions to this file instead and empty out
->> mach-omap2 gradually, omap_dpll.h should be exported and used by
->> mach-omap2, rather than the other way around.
+On 08/01/2013 05:25 PM, Nishanth Menon wrote:
+> On 07/31/2013 05:07 AM, Tero Kristo wrote:
+>> On 07/30/2013 09:40 PM, Nishanth Menon wrote:
+>>> On 07/23/2013 02:20 AM, Tero Kristo wrote:
+>>>> Some devices require their clocks to be available with a specific
+>>>> dev-id con-id mapping. With DT, the clocks can be found by default
+>>>> only with their name, or alternatively through the device node of
+>>>> the consumer. With drivers, that don't support DT fully yet, add
+>>>> mechanism to register specific clock names.
+>>>>
+>>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>>
+>>> with this, should it not be enough to add clocks=<&phandle>
+>>
+>> Don't know, I am not an expert on DT. :)
+>
+> That is the usage -
+> Documentation/devicetree/bindings/clock/clock-bindings.txt
+>
+>>
+>>>
+>>> I am not sure I understand what specific drivers should need to carry
+>>> this "old hack" forward. More importantly, why is it preferable to carry
+>>> the hack forward rather than fixing the drivers.
+>>
+>> At least the GP timer seems to need this, and I don't want to touch /
+>> verify all the potential drivers touched by this so it is easier to
+>> provide a (semi) temporary tweak.
+>
+> I see that GP timer nodes seem to be already device tree converted, at
+> least I see the nodes in SoC.dtsi
+
+Even if those exist, they don't seem to work. The kernel crashes without 
+the alias nodes as of now.
+
+>
+> Do we know what is going on for these that need these temporary devices?
+> can we do a special node property for these?
+>
+> I think the entire problem is coz of
+> timer->fclk = clk_get(NULL, omap_hwmod_get_main_clk(oh)); in case of
+> even of_populated.
+
+I guess so, clk_get tries to look for improper clk which does not exist. 
+Might be a bug with hwmod data.
+
+>
+> if we can get rid of usage of omap_hwmod_get_main_clk by catching them
+> with [1], then we can force the drivers to pick up based on device node
+> clocks= property.
+>
+> It might be easier to fix 1 driver - timer, rather than introduce am33x,
+> omap4, omap5 dra7 specific "SoC clk driver".
+>
+> with that this entire patch becomes redundant.
+
+It is not that simple. Looking at the architectures this set supports, I 
+see clock alias nodes at least for following drivers:
+
+- GPT timer
+- USB
+- DCAN
+- EMAC
+- VPFE
+- UART
+- SSI
+- DSS
+- security
+- MMC
+- MCBSP
+- MCSPI
+
+I am _not_ going to fix all of these during the initial phase. :P
+
+But yes, eventually these should go away.
+
 >
 >
-> Yeah, the clock stuff should evolve and move here. I just need to start from
-> somewhere.
+> [1]
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c
+> b/arch/arm/mach-omap2/omap_hwmod.c
+> index da26659..2e90ab4 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -4153,5 +4153,10 @@ const char *omap_hwmod_get_main_clk(struct
+> omap_hwmod *oh)
+>       if (!oh)
+>           return NULL;
+>
+> +    if (!of_have_populated_dt()) {
+> +        WARN(1, "%s hwmod clk node read with OF?:FIXME!\n",
+> +             oh->name);
+> +    }
+> +
+>       return oh->main_clk;
+>   }
 
-yep, this step is good and as part of this step, moving the used
-functions from mach-omap2 to dpll.c is indeed the right step for us to
-do proper cleanup.
-
-it is a question of what we bring into drivers/clk and ensuring what
-we bring in is clean as well.
-
-Regards,
-Nishanth Menon
