@@ -1,40 +1,92 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv4 09/33] CLK: omap: add omap4 clock init file
-Date: Thu, 1 Aug 2013 11:10:55 -0500
-Message-ID: <CAGo_u6qze7SaCdTrqhby0guKu03DcRVchkV-qmT4uz2PgJMYHQ@mail.gmail.com>
-References: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
-	<1374564028-11352-10-git-send-email-t-kristo@ti.com>
-	<51F81516.3050302@ti.com>
-	<51F924CA.6000803@ti.com>
-	<51FA7341.7040303@ti.com>
-	<51FA7FFB.8000309@ti.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [Patch V2 4/4] ARM: dts: AM33XX: update rtc node compatibility
+Date: Thu, 1 Aug 2013 18:05:37 +0100
+Message-ID: <20130801170537.GF8095@e106331-lin.cambridge.arm.com>
+References: <1372841225-18813-1-git-send-email-gururaja.hebbar@ti.com>
+ <1372841225-18813-5-git-send-email-gururaja.hebbar@ti.com>
+ <51F749B0.7020802@ti.com>
+ <20130730145501.GA29859@e106331-lin.cambridge.arm.com>
+ <51F7E7FA.3080702@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:39859 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755957Ab3HAQK5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Aug 2013 12:10:57 -0400
-In-Reply-To: <51FA7FFB.8000309@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <51F7E7FA.3080702@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "tony@atomide.com" <tony@atomide.com>, "benoit.cousson@gmail.com" <benoit.cousson@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "vaibhav.bedia@ti.com" <vaibhav.bedia@ti.com>, Gururaja Hebbar <gururaja.hebbar@ti.com>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, paul@pwsan.com, khilman@linaro.org, mturquette@linaro.org, tony@atomide.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Aug 1, 2013 at 10:34 AM, Tero Kristo <t-kristo@ti.com> wrote:
->>
->> I think you already dealt with (c). in the same vein, we can do (a) and
->> (b). Dont think anyone else has gone about this to the extent we are
->> attempting to do till date, so as pioneers, we might as well suggest
->> with a patch :D ?
->
->
-> Yea, for c I have a patch as that is clearly required. For a/b, we can
-> currently workaround. Again, I don't want to implement everything in this
-> set at once, as the result would be a huge behemoth (this is complicated
-> enough as is imo.)
-this series will be smaller if you do it, not larger. you would just
-need to introduce those parameters and not have to deal with SoC
-specific "hacky drivers".
-Regards,
-NM
+On Tue, Jul 30, 2013 at 05:21:14PM +0100, Sekhar Nori wrote:
+> On 7/30/2013 8:25 PM, Mark Rutland wrote:
+> > On Tue, Jul 30, 2013 at 06:05:52AM +0100, Gururaja Hebbar wrote:
+> >> Hi,
+> >>
+> >> On 7/3/2013 2:17 PM, Hebbar Gururaja wrote:
+> >>> Since AM33xx  RTC IP has RTC_IRQWAKEEN to support Alarm Wake-up.
+> >>>
+> >>> Update the rtc compatible property to "ti,am3352-rtc" to enable handling
+> >>> of this feature inside rtc-omap driver.
+> >>
+> >> The other 2 rtc driver related patches have been pulled up. If you have 
+> >> no comments, can you please pull this up.
+> >>
+> >> Regards
+> >> Gururaja
+> >>
+> >>>
+> >>> Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
+> >>> ---
+> >>> :100644 100644 77aa1b0... dde180a... M	arch/arm/boot/dts/am33xx.dtsi
+> >>>   arch/arm/boot/dts/am33xx.dtsi |    2 +-
+> >>>   1 file changed, 1 insertion(+), 1 deletion(-)
+> >>>
+> >>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> >>> index 77aa1b0..dde180a 100644
+> >>> --- a/arch/arm/boot/dts/am33xx.dtsi
+> >>> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> >>> @@ -297,7 +297,7 @@
+> >>>   		};
+> >>>
+> >>>   		rtc@44e3e000 {
+> >>> -			compatible = "ti,da830-rtc";
+> >>> +			compatible = "ti,am3352-rtc";
+> > 
+> > Given that this is backwards compatible with the old binding, it would
+> > be nicer to have this as:
+> > 
+> > 	compatible = "ti,am3352-rtc", "ti,da830-rtc";
+> > 
+> > We must get into the habit of changing dts files in a
+> > backwards-compatible fashion.
+> 
+> Right, I suggested this when v1 was posted. It turns out the current
+> kernel does not handle the compatilble list correctly and the string
+> selected actually depends on the order in which it appears in match
+> table in driver instead.
+> 
+> I saw there were patches being discussed to fix this issue, but until
+> that is fixed, we cannot really use what you (and I before) suggested.
+
+A temporary solution would be to list the "ti,am3352-rtc" first in the
+of_match_table kernel-side. That way you can keep the old compatible
+string in the dts compatible list, and maintain backwards compatibilty
+with older kernels.
+
+Later if the way Linux matches compatible strings is changed, this
+shouldn't break the probe order, and the of_match_table order could be
+changed.
+
+Have I missed something?
+
+Thanks,
+Mark.
