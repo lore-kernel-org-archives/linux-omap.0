@@ -1,49 +1,97 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC/PATCH 3/3] arm: omap: convert omap boot_lock to raw
-Date: Thu, 1 Aug 2013 14:37:37 +0100
-Message-ID: <20130801133737.GG21614@n2100.arm.linux.org.uk>
-References: <1375359165-8411-1-git-send-email-balbi@ti.com> <1375359165-8411-4-git-send-email-balbi@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCHv4 02/33] clk: omap: introduce clock driver
+Date: Thu, 1 Aug 2013 08:44:30 -0500
+Message-ID: <51FA663E.3070109@ti.com>
+References: <1374564028-11352-1-git-send-email-t-kristo@ti.com> <1374564028-11352-3-git-send-email-t-kristo@ti.com> <51F7DA0D.7060709@ti.com> <51F8D1E3.2@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39564 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755177Ab3HANhu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Aug 2013 09:37:50 -0400
-Content-Disposition: inline
-In-Reply-To: <1375359165-8411-4-git-send-email-balbi@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56464 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755414Ab3HANpA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Aug 2013 09:45:00 -0400
+In-Reply-To: <51F8D1E3.2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Frank Rowand <frank.rowand@am.sony.com>, Thomas Gleixner <tglx@linutronix.de>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, tony@atomide.com, mturquette@linaro.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-On Thu, Aug 01, 2013 at 03:12:45PM +0300, Felipe Balbi wrote:
-> From: Frank Rowand <frank.rowand@am.sony.com>
-> 
-> The omap boot_lock is used by the secondary processor startup code.  The locking
-> task is the idle thread, which has idle->sched_class == &idle_sched_class.
-> idle_sched_class->enqueue_task == NULL, so if the idle task blocks on the
-> lock, the attempt to wake it when the lock becomes available will fail:
-> 
-> try_to_wake_up()
->    ...
->       activate_task()
->          enqueue_task()
->             p->sched_class->enqueue_task(rq, p, flags)
-> 
-> Fix by converting boot_lock to a raw spin lock.
-> 
-> [ balbi@ti.com: taken from RT v3.10.4-rt1 patchset ]
-> 
-> Signed-off-by: Frank Rowand <frank.rowand@am.sony.com>
-> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+On 07/31/2013 03:59 AM, Tero Kristo wrote:
+> On 07/30/2013 06:21 PM, Nishanth Menon wrote:
+>> On 07/23/2013 02:19 AM, Tero Kristo wrote:
+>>> Parses OMAP clock data from DT and registers those clocks with the clock
+>>> framework.  dt_omap_clk_init must be called early during boot for timer
+>>> initialization so it is exported and called from the existing clock code
+>>> instead of probing like a real driver. Based on initial work done by
+>>> Mike Turquette.
+>>>
+>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>> Cc: Mike Turquette <mturquette@linaro.org>
+>>> ---
+>>>   drivers/clk/Makefile      |    1 +
+>>>   drivers/clk/omap/Makefile |    1 +
+>>>   drivers/clk/omap/clk.c    |   39
+>>> +++++++++++++++++++++++++++++++++++++++
+>>
+>> Minor suggestion - should we just start drivers/clk/ti/ instead of
+>> clk/omap?
+>>
+>> AM335x/DRA7 are not "strictly OMAP".. might also allow for some reuse
+>> for other TI platforms..
+>
+> Not sure, this idea has been bounced around a bit. samsung has its own
+> directory under drivers/clk/ so maybe. I can change this if there is a
+> strong wish for this.
 
-There's a whole bunch of these, OMAP is not the only one.  If someone's
-going to fix one case, the rest should also be fixed.  See:
+just my 2 cents - if we use drivers/clk/ti, we can then move required 
+stuff from arch/arm/mach-davinci or arch/arm/mach-keystone to a ti 
+generic location allowing us to reuse things as needed.
 
-arch/arm/mach-exynos/platsmp.c
-arch/arm/mach-msm/platsmp.c
-arch/arm/mach-prima2/platsmp.c
-arch/arm/mach-spear/platsmp.c
-arch/arm/mach-sti/platsmp.c
-arch/arm/mach-ux500/platsmp.c
+>
+>>
+>>>   include/linux/clk/omap.h  |   24 ++++++++++++++++++++++++
+>>>   4 files changed, 65 insertions(+)
+>>>   create mode 100644 drivers/clk/omap/Makefile
+>>>   create mode 100644 drivers/clk/omap/clk.c
+>>>   create mode 100644 include/linux/clk/omap.h
+>>>
+>>> diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
+>>> index 4038c2b..d3c3733 100644
+>>> --- a/drivers/clk/Makefile
+>>> +++ b/drivers/clk/Makefile
+>>> @@ -32,6 +32,7 @@ obj-$(CONFIG_ARCH_VT8500)    += clk-vt8500.o
+>>>   obj-$(CONFIG_ARCH_ZYNQ)        += zynq/
+>>>   obj-$(CONFIG_ARCH_TEGRA)    += tegra/
+>>>   obj-$(CONFIG_PLAT_SAMSUNG)    += samsung/
+>>> +obj-$(CONFIG_ARCH_OMAP)        += omap/
+>>>
+>>>   obj-$(CONFIG_X86)        += x86/
+>>>
+>>> diff --git a/drivers/clk/omap/Makefile b/drivers/clk/omap/Makefile
+>>> new file mode 100644
+>>> index 0000000..8195931
+>>> --- /dev/null
+>>> +++ b/drivers/clk/omap/Makefile
+>>> @@ -0,0 +1 @@
+>>> +obj-y                    += clk.o
+>>> diff --git a/drivers/clk/omap/clk.c b/drivers/clk/omap/clk.c
+>>> new file mode 100644
+>>> index 0000000..4bf1929
+>>> --- /dev/null
+>>> +++ b/drivers/clk/omap/clk.c
+>>> @@ -0,0 +1,39 @@
+>>> +/*
+>>> + * OMAP PRCM clock driver
+>>
+>> maybe then prcm-clk.c ?
+>
+> Maybe remove the PRCM part. We have some clocks behind i2c for example,
+> and we might want to add support for them here.
+
+I think we can actually drop this file in it's entirety if we stick with 
+of_clk_init(NULL) and depend solely of CLK_OF_DECLARE from relevant drivers.
+
+-- 
+Regards,
+Nishanth Menon
