@@ -1,56 +1,176 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 0/4] ARM: DRA7-evm: USB host adaptation
-Date: Thu, 1 Aug 2013 17:58:50 +0300
-Message-ID: <1375369134-26398-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH 2/4] ARM: dts: dra7: Add USB related nodes
+Date: Thu, 1 Aug 2013 17:58:52 +0300
+Message-ID: <1375369134-26398-3-git-send-email-rogerq@ti.com>
+References: <1375369134-26398-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:44642 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756168Ab3HAO7F (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Aug 2013 10:59:05 -0400
+In-Reply-To: <1375369134-26398-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, rnayak@ti.com
 Cc: benoit.cousson@linaro.org, balbi@ti.com, george.cherian@ti.com, kishon@ti.com, dmurphy@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Add nodes for the Super Speed USB controllers, omap-control-usb,
+USB2 PHY and USB3 PHY devices.
 
-These patches adds support for USB host on the DRA7-evm board.
-The USB host port (USB2) is tested and works fine.
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ arch/arm/boot/dts/dra7.dtsi |  136 +++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 136 insertions(+), 0 deletions(-)
 
-The USB OTG port (USB1) is still not functional in OTG mode as it is missing
-ID pin routing and mailbox write. However, you can get just the host mode to
-work by explicitely setting this port to "host" mode.
-
-Patches are based on v3.11-rc3 dra7 baseport tree [1], with balbi/next
-merged on top and the control-usb multiple instance support [2].
-
-NOTE: It also needs a patch [3] which allows us to operate at lower then
-Super Speed mode. This patch is still in transition.
-
-Patches in this series can be obtained from branch
- usbhost-dra7-3.11-rc3
-in git tree
- git://github.com/rogerq/linux.git
-
-cheers,
--roger
-
-[1] - dra7 base tree
-	https://github.com/lokeshvutla/linux/tree/dra7-3.11-rc3-base
-[2] - multiple control-usb instances
-	https://github.com/rogerq/linux/tree/usb-control-module
-[3] - usb: dwc3: core: make USB3 PHY optional
-	https://github.com/rogerq/linux/commit/290955f6b4d1f2d6d466732c6ec92d009500fb67
-
-Roger Quadros (4):
-  CLK: ti: dra7: Initialize USB_DPLL
-  ARM: dts: dra7: Add USB related nodes
-  dts: dra7-evm: add USB support
-  ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
-
- arch/arm/boot/dts/dra7-evm.dts            |   22 +++++
- arch/arm/boot/dts/dra7.dtsi               |  136 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   12 +++
- drivers/clk/omap/clk-7xx.c                |   11 +++
- 4 files changed, 181 insertions(+), 0 deletions(-)
-
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index ce9a0f0..3a2e55e 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -484,6 +484,142 @@
+ 			dmas = <&sdma 70>, <&sdma 71>;
+ 			dma-names = "tx0", "rx0";
+ 		};
++
++		omap_control_usb2phy1: omap-control-usb@4a002300 {
++			compatible = "ti,omap-control-usb";
++			reg = <0x4a002300 0x4>;
++			reg-names = "power";
++			ti,type = <2>;
++		};
++
++		omap_control_usb3phy1: omap-control-usb@4a002370 {
++			compatible = "ti,omap-control-usb";
++			reg = <0x4a002370 0x4>;
++			reg-names = "power";
++			ti,type = <3>;
++		};
++
++		omap_control_usb2phy2: omap-control-usb@0x4a002e74 {
++			compatible = "ti,omap-control-usb";
++			reg = <0x4a002e74 0x4>, <0x4a0086c0 0x4>;
++			reg-names = "power", "power_aux";
++			ti,type = <4>;
++		};
++
++		ocp2scp {
++			compatible = "ti,omap-ocp2scp";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
++			ti,hwmods = "ocp2scp1";
++
++			usb2_phy1: usb2phy1@4a084000 {
++				compatible = "ti,omap-usb2";
++				reg = <0x4a084000 0x400>;
++				ctrl-module = <&omap_control_usb2phy1>;
++				clocks = <&usb_otg_ss1_refclk960m>, <&usb_phy1_always_on_clk32k>;
++				clock-names = "usb_otg_ss_refclk960m", "usb_phy_cm_clk32k";
++			};
++
++			usb2_phy2: usb2phy2@4a085000 {
++				compatible = "ti,omap-usb2";
++				reg = <0x4a085000 0x400>;
++				ctrl-module = <&omap_control_usb2phy2>;
++				clocks = <&usb_otg_ss2_refclk960m>, <&usb_phy2_always_on_clk32k>;
++				clock-names = "usb_otg_ss_refclk960m", "usb_phy_cm_clk32k";
++			};
++
++			usb3_phy1: usb3phy@4a084400 {
++				compatible = "ti,omap-usb3";
++				reg = <0x4a084400 0x80>,
++				      <0x4a084800 0x64>,
++				      <0x4a084c00 0x40>;
++				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
++				ctrl-module = <&omap_control_usb3phy1>;
++				clocks = <&usb_otg_ss1_refclk960m>, <&usb_phy3_always_on_clk32k>;
++				clock-names = "usb_otg_ss_refclk960m", "usb_phy_cm_clk32k";
++			};
++		};
++
++		omap_dwc3_1@48880000 {
++			compatible = "ti,dwc3";
++			ti,hwmods = "usb_otg_ss1";
++			reg = <0x48880000 0x10000>;
++			interrupts = <0 77 4>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			utmi-mode = <2>;
++			ranges;
++			dwc3_1: dwc3@48890000 {
++				compatible = "synopsys,dwc3";
++				reg = <0x48890000 0x17000>;
++				interrupts = <0 76 4>;
++				usb-phy = <&usb2_phy1>, <&usb3_phy1>;
++				tx-fifo-resize;
++				maximum-speed = "super-speed";
++				dr_mode = "otg";
++			};
++		};
++
++		omap_dwc3_2@488c0000 {
++			compatible = "ti,dwc3";
++			ti,hwmods = "usb_otg_ss2";
++			reg = <0x488c0000 0x10000>;
++			interrupts = <0 92 4>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			utmi-mode = <2>;
++			ranges;
++			dwc3_2: dwc3@488d0000 {
++				compatible = "synopsys,dwc3";
++				reg = <0x488d0000 0x17000>;
++				interrupts = <0 78 4>;
++				usb-phy = <&usb2_phy2>;
++				tx-fifo-resize;
++				maximum-speed = "high-speed";
++				dr_mode = "otg";
++			};
++		};
++
++		/* IRQ for DWC3_3 and DWC3_4 need IRQ crossbar */
++		omap_dwc3_3@48900000 {
++			compatible = "ti,dwc3";
++			ti,hwmods = "usb_otg_ss3";
++			reg = <0x48900000 0x10000>;
++		/*	interrupts = <0 TBD 4>; */
++			#address-cells = <1>;
++			#size-cells = <1>;
++			utmi-mode = <2>;
++			ranges;
++			dwc3_3: dwc3@48910000 {
++				compatible = "synopsys,dwc3";
++				reg = <0x48910000 0x17000>;
++		/*		interrupts = <0 93 4>; */
++				tx-fifo-resize;
++				maximum-speed = "high-speed";
++				dr_mode = "otg";
++			};
++		};
++
++		omap_dwc3_4@48940000 {
++			compatible = "ti,dwc3";
++			ti,hwmods = "usb_otg_ss4";
++			reg = <0x48940000 0x10000>;
++		/*	interrupts = <0 TBD 4>; */
++			#address-cells = <1>;
++			#size-cells = <1>;
++			utmi-mode = <2>;
++			ranges;
++			dwc3_4: dwc3@48950000 {
++				compatible = "synopsys,dwc3";
++				reg = <0x48950000 0x17000>;
++		/*		interrupts = <0 TBD 4>; */
++				tx-fifo-resize;
++				maximum-speed = "high-speed";
++				dr_mode = "otg";
++			};
++		};
++
+ 	};
+ 
+ 	clocks {
 -- 
 1.7.4.1
+
