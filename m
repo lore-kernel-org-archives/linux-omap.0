@@ -1,97 +1,354 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv4 02/33] clk: omap: introduce clock driver
-Date: Thu, 1 Aug 2013 08:44:30 -0500
-Message-ID: <51FA663E.3070109@ti.com>
-References: <1374564028-11352-1-git-send-email-t-kristo@ti.com> <1374564028-11352-3-git-send-email-t-kristo@ti.com> <51F7DA0D.7060709@ti.com> <51F8D1E3.2@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [RFC/PATCH v2] arm: convert arm boot_lock to raw
+Date: Thu, 1 Aug 2013 16:48:18 +0300
+Message-ID: <1375364898-8699-1-git-send-email-balbi@ti.com>
+References: <20130801133737.GG21614@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56464 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56662 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755414Ab3HANpA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Aug 2013 09:45:00 -0400
-In-Reply-To: <51F8D1E3.2@ti.com>
+	id S1755379Ab3HANtL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Aug 2013 09:49:11 -0400
+In-Reply-To: <20130801133737.GG21614@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, tony@atomide.com, mturquette@linaro.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Frank Rowand <frank.rowand@am.sony.com>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <balbi@ti.com>
 
-On 07/31/2013 03:59 AM, Tero Kristo wrote:
-> On 07/30/2013 06:21 PM, Nishanth Menon wrote:
->> On 07/23/2013 02:19 AM, Tero Kristo wrote:
->>> Parses OMAP clock data from DT and registers those clocks with the clock
->>> framework.  dt_omap_clk_init must be called early during boot for timer
->>> initialization so it is exported and called from the existing clock code
->>> instead of probing like a real driver. Based on initial work done by
->>> Mike Turquette.
->>>
->>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>> Cc: Mike Turquette <mturquette@linaro.org>
->>> ---
->>>   drivers/clk/Makefile      |    1 +
->>>   drivers/clk/omap/Makefile |    1 +
->>>   drivers/clk/omap/clk.c    |   39
->>> +++++++++++++++++++++++++++++++++++++++
->>
->> Minor suggestion - should we just start drivers/clk/ti/ instead of
->> clk/omap?
->>
->> AM335x/DRA7 are not "strictly OMAP".. might also allow for some reuse
->> for other TI platforms..
->
-> Not sure, this idea has been bounced around a bit. samsung has its own
-> directory under drivers/clk/ so maybe. I can change this if there is a
-> strong wish for this.
+From: Frank Rowand <frank.rowand@am.sony.com>
 
-just my 2 cents - if we use drivers/clk/ti, we can then move required 
-stuff from arch/arm/mach-davinci or arch/arm/mach-keystone to a ti 
-generic location allowing us to reuse things as needed.
+The arm boot_lock is used by the secondary processor startup code.  The locking
+task is the idle thread, which has idle->sched_class == &idle_sched_class.
+idle_sched_class->enqueue_task == NULL, so if the idle task blocks on the
+lock, the attempt to wake it when the lock becomes available will fail:
 
->
->>
->>>   include/linux/clk/omap.h  |   24 ++++++++++++++++++++++++
->>>   4 files changed, 65 insertions(+)
->>>   create mode 100644 drivers/clk/omap/Makefile
->>>   create mode 100644 drivers/clk/omap/clk.c
->>>   create mode 100644 include/linux/clk/omap.h
->>>
->>> diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
->>> index 4038c2b..d3c3733 100644
->>> --- a/drivers/clk/Makefile
->>> +++ b/drivers/clk/Makefile
->>> @@ -32,6 +32,7 @@ obj-$(CONFIG_ARCH_VT8500)    += clk-vt8500.o
->>>   obj-$(CONFIG_ARCH_ZYNQ)        += zynq/
->>>   obj-$(CONFIG_ARCH_TEGRA)    += tegra/
->>>   obj-$(CONFIG_PLAT_SAMSUNG)    += samsung/
->>> +obj-$(CONFIG_ARCH_OMAP)        += omap/
->>>
->>>   obj-$(CONFIG_X86)        += x86/
->>>
->>> diff --git a/drivers/clk/omap/Makefile b/drivers/clk/omap/Makefile
->>> new file mode 100644
->>> index 0000000..8195931
->>> --- /dev/null
->>> +++ b/drivers/clk/omap/Makefile
->>> @@ -0,0 +1 @@
->>> +obj-y                    += clk.o
->>> diff --git a/drivers/clk/omap/clk.c b/drivers/clk/omap/clk.c
->>> new file mode 100644
->>> index 0000000..4bf1929
->>> --- /dev/null
->>> +++ b/drivers/clk/omap/clk.c
->>> @@ -0,0 +1,39 @@
->>> +/*
->>> + * OMAP PRCM clock driver
->>
->> maybe then prcm-clk.c ?
->
-> Maybe remove the PRCM part. We have some clocks behind i2c for example,
-> and we might want to add support for them here.
+try_to_wake_up()
+   ...
+      activate_task()
+         enqueue_task()
+            p->sched_class->enqueue_task(rq, p, flags)
 
-I think we can actually drop this file in it's entirety if we stick with 
-of_clk_init(NULL) and depend solely of CLK_OF_DECLARE from relevant drivers.
+Fix by converting boot_lock to a raw spin lock.
 
+[ balbi@ti.com : fixes raw_spinlock_t definition for mach-spear ]
+
+Signed-off-by: Frank Rowand <frank.rowand@am.sony.com>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-exynos/platsmp.c    | 12 ++++++------
+ arch/arm/mach-msm/platsmp.c       | 10 +++++-----
+ arch/arm/mach-omap2/omap-smp.c    | 10 +++++-----
+ arch/arm/mach-prima2/platsmp.c    | 10 +++++-----
+ arch/arm/mach-spear/platsmp.c     | 10 +++++-----
+ arch/arm/mach-ux500/platsmp.c     | 10 +++++-----
+ arch/arm/plat-versatile/platsmp.c | 10 +++++-----
+ 7 files changed, 36 insertions(+), 36 deletions(-)
+
+diff --git a/arch/arm/mach-exynos/platsmp.c b/arch/arm/mach-exynos/platsmp.c
+index 58b43e6..f56f767 100644
+--- a/arch/arm/mach-exynos/platsmp.c
++++ b/arch/arm/mach-exynos/platsmp.c
+@@ -73,7 +73,7 @@ static void __iomem *scu_base_addr(void)
+ 	return (void __iomem *)(S5P_VA_SCU);
+ }
+ 
+-static DEFINE_SPINLOCK(boot_lock);
++static DEFINE_RAW_SPINLOCK(boot_lock);
+ 
+ static void exynos_secondary_init(unsigned int cpu)
+ {
+@@ -86,8 +86,8 @@ static void exynos_secondary_init(unsigned int cpu)
+ 	/*
+ 	 * Synchronise with the boot thread.
+ 	 */
+-	spin_lock(&boot_lock);
+-	spin_unlock(&boot_lock);
++	raw_spin_lock(&boot_lock);
++	raw_spin_unlock(&boot_lock);
+ }
+ 
+ static int exynos_boot_secondary(unsigned int cpu, struct task_struct *idle)
+@@ -99,7 +99,7 @@ static int exynos_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * Set synchronisation state between this boot processor
+ 	 * and the secondary one
+ 	 */
+-	spin_lock(&boot_lock);
++	raw_spin_lock(&boot_lock);
+ 
+ 	/*
+ 	 * The secondary processor is waiting to be released from
+@@ -128,7 +128,7 @@ static int exynos_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 
+ 		if (timeout == 0) {
+ 			printk(KERN_ERR "cpu1 power enable failed");
+-			spin_unlock(&boot_lock);
++			raw_spin_unlock(&boot_lock);
+ 			return -ETIMEDOUT;
+ 		}
+ 	}
+@@ -167,7 +167,7 @@ static int exynos_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * now the secondary core is starting up let it run its
+ 	 * calibrations, then wait for it to finish
+ 	 */
+-	spin_unlock(&boot_lock);
++	raw_spin_unlock(&boot_lock);
+ 
+ 	return pen_release != -1 ? -ENOSYS : 0;
+ }
+diff --git a/arch/arm/mach-msm/platsmp.c b/arch/arm/mach-msm/platsmp.c
+index 3f06edc..fc09a04 100644
+--- a/arch/arm/mach-msm/platsmp.c
++++ b/arch/arm/mach-msm/platsmp.c
+@@ -30,7 +30,7 @@
+ 
+ extern void msm_secondary_startup(void);
+ 
+-static DEFINE_SPINLOCK(boot_lock);
++static DEFINE_RAW_SPINLOCK(boot_lock);
+ 
+ static inline int get_core_count(void)
+ {
+@@ -50,8 +50,8 @@ static void msm_secondary_init(unsigned int cpu)
+ 	/*
+ 	 * Synchronise with the boot thread.
+ 	 */
+-	spin_lock(&boot_lock);
+-	spin_unlock(&boot_lock);
++	raw_spin_lock(&boot_lock);
++	raw_spin_unlock(&boot_lock);
+ }
+ 
+ static void prepare_cold_cpu(unsigned int cpu)
+@@ -88,7 +88,7 @@ static int msm_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * set synchronisation state between this boot processor
+ 	 * and the secondary one
+ 	 */
+-	spin_lock(&boot_lock);
++	raw_spin_lock(&boot_lock);
+ 
+ 	/*
+ 	 * The secondary processor is waiting to be released from
+@@ -122,7 +122,7 @@ static int msm_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * now the secondary core is starting up let it run its
+ 	 * calibrations, then wait for it to finish
+ 	 */
+-	spin_unlock(&boot_lock);
++	raw_spin_unlock(&boot_lock);
+ 
+ 	return pen_release != -1 ? -ENOSYS : 0;
+ }
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+index 8708b2a..c4caa18 100644
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -44,7 +44,7 @@ u16 pm44xx_errata;
+ /* SCU base address */
+ static void __iomem *scu_base;
+ 
+-static DEFINE_SPINLOCK(boot_lock);
++static DEFINE_RAW_SPINLOCK(boot_lock);
+ 
+ void __iomem *omap4_get_scu_base(void)
+ {
+@@ -68,8 +68,8 @@ static void omap4_secondary_init(unsigned int cpu)
+ 	/*
+ 	 * Synchronise with the boot thread.
+ 	 */
+-	spin_lock(&boot_lock);
+-	spin_unlock(&boot_lock);
++	raw_spin_lock(&boot_lock);
++	raw_spin_unlock(&boot_lock);
+ }
+ 
+ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
+@@ -83,7 +83,7 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * Set synchronisation state between this boot processor
+ 	 * and the secondary one
+ 	 */
+-	spin_lock(&boot_lock);
++	raw_spin_lock(&boot_lock);
+ 
+ 	/*
+ 	 * Update the AuxCoreBoot0 with boot state for secondary core.
+@@ -160,7 +160,7 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * Now the secondary core is starting up let it run its
+ 	 * calibrations, then wait for it to finish
+ 	 */
+-	spin_unlock(&boot_lock);
++	raw_spin_unlock(&boot_lock);
+ 
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-prima2/platsmp.c b/arch/arm/mach-prima2/platsmp.c
+index 3dbcb1a..42837dc4 100644
+--- a/arch/arm/mach-prima2/platsmp.c
++++ b/arch/arm/mach-prima2/platsmp.c
+@@ -23,7 +23,7 @@
+ static void __iomem *scu_base;
+ static void __iomem *rsc_base;
+ 
+-static DEFINE_SPINLOCK(boot_lock);
++static DEFINE_RAW_SPINLOCK(boot_lock);
+ 
+ static struct map_desc scu_io_desc __initdata = {
+ 	.length		= SZ_4K,
+@@ -56,8 +56,8 @@ static void sirfsoc_secondary_init(unsigned int cpu)
+ 	/*
+ 	 * Synchronise with the boot thread.
+ 	 */
+-	spin_lock(&boot_lock);
+-	spin_unlock(&boot_lock);
++	raw_spin_lock(&boot_lock);
++	raw_spin_unlock(&boot_lock);
+ }
+ 
+ static struct of_device_id rsc_ids[]  = {
+@@ -95,7 +95,7 @@ static int sirfsoc_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	/* make sure write buffer is drained */
+ 	mb();
+ 
+-	spin_lock(&boot_lock);
++	raw_spin_lock(&boot_lock);
+ 
+ 	/*
+ 	 * The secondary processor is waiting to be released from
+@@ -128,7 +128,7 @@ static int sirfsoc_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * now the secondary core is starting up let it run its
+ 	 * calibrations, then wait for it to finish
+ 	 */
+-	spin_unlock(&boot_lock);
++	raw_spin_unlock(&boot_lock);
+ 
+ 	return pen_release != -1 ? -ENOSYS : 0;
+ }
+diff --git a/arch/arm/mach-spear/platsmp.c b/arch/arm/mach-spear/platsmp.c
+index 5c4a198..33dc270 100644
+--- a/arch/arm/mach-spear/platsmp.c
++++ b/arch/arm/mach-spear/platsmp.c
+@@ -20,7 +20,7 @@
+ #include <mach/spear.h>
+ #include "generic.h"
+ 
+-static DEFINE_SPINLOCK(boot_lock);
++static DEFINE_RAW_SPINLOCK(boot_lock);
+ 
+ static void __iomem *scu_base = IOMEM(VA_SCU_BASE);
+ 
+@@ -36,8 +36,8 @@ static void spear13xx_secondary_init(unsigned int cpu)
+ 	/*
+ 	 * Synchronise with the boot thread.
+ 	 */
+-	spin_lock(&boot_lock);
+-	spin_unlock(&boot_lock);
++	raw_spin_lock(&boot_lock);
++	raw_spin_unlock(&boot_lock);
+ }
+ 
+ static int spear13xx_boot_secondary(unsigned int cpu, struct task_struct *idle)
+@@ -48,7 +48,7 @@ static int spear13xx_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * set synchronisation state between this boot processor
+ 	 * and the secondary one
+ 	 */
+-	spin_lock(&boot_lock);
++	raw_spin_lock(&boot_lock);
+ 
+ 	/*
+ 	 * The secondary processor is waiting to be released from
+@@ -75,7 +75,7 @@ static int spear13xx_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * now the secondary core is starting up let it run its
+ 	 * calibrations, then wait for it to finish
+ 	 */
+-	spin_unlock(&boot_lock);
++	raw_spin_unlock(&boot_lock);
+ 
+ 	return pen_release != -1 ? -ENOSYS : 0;
+ }
+diff --git a/arch/arm/mach-ux500/platsmp.c b/arch/arm/mach-ux500/platsmp.c
+index 1f296e7..eeb5916 100644
+--- a/arch/arm/mach-ux500/platsmp.c
++++ b/arch/arm/mach-ux500/platsmp.c
+@@ -52,7 +52,7 @@ static void __iomem *scu_base_addr(void)
+ 	return NULL;
+ }
+ 
+-static DEFINE_SPINLOCK(boot_lock);
++static DEFINE_RAW_SPINLOCK(boot_lock);
+ 
+ static void ux500_secondary_init(unsigned int cpu)
+ {
+@@ -65,8 +65,8 @@ static void ux500_secondary_init(unsigned int cpu)
+ 	/*
+ 	 * Synchronise with the boot thread.
+ 	 */
+-	spin_lock(&boot_lock);
+-	spin_unlock(&boot_lock);
++	raw_spin_lock(&boot_lock);
++	raw_spin_unlock(&boot_lock);
+ }
+ 
+ static int ux500_boot_secondary(unsigned int cpu, struct task_struct *idle)
+@@ -77,7 +77,7 @@ static int ux500_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * set synchronisation state between this boot processor
+ 	 * and the secondary one
+ 	 */
+-	spin_lock(&boot_lock);
++	raw_spin_lock(&boot_lock);
+ 
+ 	/*
+ 	 * The secondary processor is waiting to be released from
+@@ -98,7 +98,7 @@ static int ux500_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * now the secondary core is starting up let it run its
+ 	 * calibrations, then wait for it to finish
+ 	 */
+-	spin_unlock(&boot_lock);
++	raw_spin_unlock(&boot_lock);
+ 
+ 	return pen_release != -1 ? -ENOSYS : 0;
+ }
+diff --git a/arch/arm/plat-versatile/platsmp.c b/arch/arm/plat-versatile/platsmp.c
+index 39895d8..b2e0858 100644
+--- a/arch/arm/plat-versatile/platsmp.c
++++ b/arch/arm/plat-versatile/platsmp.c
+@@ -31,7 +31,7 @@ static void write_pen_release(int val)
+ 	outer_clean_range(__pa(&pen_release), __pa(&pen_release + 1));
+ }
+ 
+-static DEFINE_SPINLOCK(boot_lock);
++static DEFINE_RAW_SPINLOCK(boot_lock);
+ 
+ void versatile_secondary_init(unsigned int cpu)
+ {
+@@ -44,8 +44,8 @@ void versatile_secondary_init(unsigned int cpu)
+ 	/*
+ 	 * Synchronise with the boot thread.
+ 	 */
+-	spin_lock(&boot_lock);
+-	spin_unlock(&boot_lock);
++	raw_spin_lock(&boot_lock);
++	raw_spin_unlock(&boot_lock);
+ }
+ 
+ int versatile_boot_secondary(unsigned int cpu, struct task_struct *idle)
+@@ -56,7 +56,7 @@ int versatile_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * Set synchronisation state between this boot processor
+ 	 * and the secondary one
+ 	 */
+-	spin_lock(&boot_lock);
++	raw_spin_lock(&boot_lock);
+ 
+ 	/*
+ 	 * This is really belt and braces; we hold unintended secondary
+@@ -86,7 +86,7 @@ int versatile_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * now the secondary core is starting up let it run its
+ 	 * calibrations, then wait for it to finish
+ 	 */
+-	spin_unlock(&boot_lock);
++	raw_spin_unlock(&boot_lock);
+ 
+ 	return pen_release != -1 ? -ENOSYS : 0;
+ }
 -- 
-Regards,
-Nishanth Menon
+1.8.3.4.840.g6a90778
+
