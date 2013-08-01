@@ -1,102 +1,69 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 06/33] CLK: omap: add autoidle support
-Date: Thu, 1 Aug 2013 18:22:05 +0300
-Message-ID: <51FA7D1D.6060301@ti.com>
-References: <1374564028-11352-1-git-send-email-t-kristo@ti.com> <1374564028-11352-7-git-send-email-t-kristo@ti.com> <51F80C77.9020109@ti.com> <51F8E365.8080604@ti.com> <51FA6C9C.7030800@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCHv4 05/33] CLK: omap: add DT duplicate clock registration
+ mechanism
+Date: Thu, 1 Aug 2013 10:24:38 -0500
+Message-ID: <51FA7DB6.3060002@ti.com>
+References: <1374564028-11352-1-git-send-email-t-kristo@ti.com> <1374564028-11352-6-git-send-email-t-kristo@ti.com> <51F808A8.6000503@ti.com> <51F8E1F5.20706@ti.com> <51FA6FCA.3050900@ti.com> <51FA7C39.8090100@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52991 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755725Ab3HAPWe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Aug 2013 11:22:34 -0400
-In-Reply-To: <51FA6C9C.7030800@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33465 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755365Ab3HAPZL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Aug 2013 11:25:11 -0400
+In-Reply-To: <51FA7C39.8090100@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, tony@atomide.com, mturquette@linaro.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, tony@atomide.com, mturquette@linaro.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-On 08/01/2013 05:11 PM, Nishanth Menon wrote:
-> On 07/31/2013 05:13 AM, Tero Kristo wrote:
->> On 07/30/2013 09:56 PM, Nishanth Menon wrote:
->>> On 07/23/2013 02:20 AM, Tero Kristo wrote:
->>>> OMAP clk driver now routes some of the basic clocks through own
->>>> registration routine to allow autoidle support. This routine just
->>>> checks a couple of device node properties and adds autoidle support
->>>> if required, and just passes the registration forward to basic clocks.
->>>
->>> why not extend standard framework to support autoidle capable clocks OR
->>> introduce our own clk node which depends on basic clocks?
+On 08/01/2013 10:18 AM, Tero Kristo wrote:
+> On 08/01/2013 05:25 PM, Nishanth Menon wrote:
+>> On 07/31/2013 05:07 AM, Tero Kristo wrote:
+>>> On 07/30/2013 09:40 PM, Nishanth Menon wrote:
+>>>> On 07/23/2013 02:20 AM, Tero Kristo wrote:
+[..]
+>> if we can get rid of usage of omap_hwmod_get_main_clk by catching them
+>> with [1], then we can force the drivers to pick up based on device node
+>> clocks= property.
 >>
->> Was kind of easier this way.
->
-> We never liked taking the easy road :) if we can extend standard
-> drivers, that will be the first preference - else we will need to
-> explain precisely why it cant be extended.
->
->>>> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
->>>> index 0c38ca9..669d4c4 100644
->>>> --- a/arch/arm/mach-omap2/clock.c
->>>> +++ b/arch/arm/mach-omap2/clock.c
->>> Not sure why, at this point in time we are going to calling drivers/clk
->>> code.
->>>
->>>> @@ -520,6 +520,9 @@ int omap2_clk_enable_autoidle_all(void)
->>>>       list_for_each_entry(c, &clk_hw_omap_clocks, node)
->>>>           if (c->ops && c->ops->allow_idle)
->>>>               c->ops->allow_idle(c);
->>>> +
->>>> +    of_omap_clk_allow_autoidle_all();
->>>> +
->>>>       return 0;
->>>>   }
->>>>
->>>> @@ -539,6 +542,9 @@ int omap2_clk_disable_autoidle_all(void)
->>>>       list_for_each_entry(c, &clk_hw_omap_clocks, node)
->>>>           if (c->ops && c->ops->deny_idle)
->>>>               c->ops->deny_idle(c);
->>>> +
->>>> +    of_omap_clk_deny_autoidle_all();
->>>> +
->>>
->>> these are defined for CONFIG_OF.. anyways, without dt nodes (OMAP3 is
->>> supposed to support non-DT boot even now), this would not work, would
->>> it?
+>> It might be easier to fix 1 driver - timer, rather than introduce am33x,
+>> omap4, omap5 dra7 specific "SoC clk driver".
 >>
->> The lists are empty so the funcs do nothing. However, dropping CONFIG_OF
->> would break these of course. Will figure out a fix for this.
->>
->> The calls are needed for the transition phase until we can move more clk
->> stuff from mach-omap2 to drivers.
+>> with that this entire patch becomes redundant.
 >
-> yes please. for ones like these, we can try to maintain a rule of
-> mach-omap2 calling drivers/clk rather than drivers/clk -> mach-omap2.
-> This will allow us to move out of mach-omap2 eventually by just deleting
-> call points in mach-omap2.
+> It is not that simple. Looking at the architectures this set supports, I
+> see clock alias nodes at least for following drivers:
 >
-> [...]
->>>>
->>>>   #endif
->>>>
->>>
->>> I personally dont prefer the fact that divider-clock and
->>> fixed-rate-clock now has double meaning - building a multi-arch kernel
->>> for example, this can wreak havoc. standard definitions should not be
->>> monkeyed around with thus if avoidable, and in this case, very much
->>> avoidable.
->>>
->>> just my 2 cents.
->>
->> Yea, as described before, I'll change the code not to make a global
->> override, instead, just make omap specific override which parses the
->> extra params. That sound better or still see some issues with that?
+> - GPT timer
+> - USB
+> - DCAN
+> - EMAC
+> - VPFE
+> - UART
+> - SSI
+> - DSS
+> - security
+> - MMC
+> - MCBSP
+> - MCSPI
 >
-> I think described above - if we can introduce these into standard
-> drivers, it is the best, else introduce it with ti, prefix to indicate a
-> TI variant. keeps everyone happy.
+> I am _not_ going to fix all of these during the initial phase. :P
+>
+> But yes, eventually these should go away.
 
-Going with TI variant for now, I don't think other architectures have 
-exactly similar need right now.
+How many of these are needed to boot? what functionality do we expect 
+with the series -> we can constraint saying that remaining drivers 
+should fix themselves the right way, else dont have the feature - 
+example cpufreq- fix it the right way, or wont see the feature enabled.
 
--Tero
+introducing a "way out" for all of these just invites more guys to screw 
+around claiming "it was done before - see here"..
+
+lets just fix the darned basic ones, refuse to provide "way out" and let 
+the others fix themselves.
+
+-- 
+Regards,
+Nishanth Menon
