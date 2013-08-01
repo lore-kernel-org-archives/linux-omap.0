@@ -1,54 +1,54 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 4/4] ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
-Date: Thu, 1 Aug 2013 17:58:54 +0300
-Message-ID: <1375369134-26398-5-git-send-email-rogerq@ti.com>
+Subject: [PATCH 1/4] CLK: ti: dra7: Initialize USB_DPLL
+Date: Thu, 1 Aug 2013 17:58:51 +0300
+Message-ID: <1375369134-26398-2-git-send-email-rogerq@ti.com>
 References: <1375369134-26398-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44658 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756168Ab3HAO7L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Aug 2013 10:59:11 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1375369134-26398-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, rnayak@ti.com
 Cc: benoit.cousson@linaro.org, balbi@ti.com, george.cherian@ti.com, kishon@ti.com, dmurphy@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Add the sysconfig class bits for the Super Speed USB
-controllers
+USB_DPLL must be initialized and locked at boot so that
+USB modules can work.
+
+Also program USB_DLL_M2 output to half rate.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+ drivers/clk/omap/clk-7xx.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index f647998b..e8d9f38 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1732,8 +1732,20 @@ static struct omap_hwmod dra7xx_uart6_hwmod = {
-  *
-  */
+diff --git a/drivers/clk/omap/clk-7xx.c b/drivers/clk/omap/clk-7xx.c
+index ddb39dd..f444513 100644
+--- a/drivers/clk/omap/clk-7xx.c
++++ b/drivers/clk/omap/clk-7xx.c
+@@ -19,6 +19,7 @@
  
-+static struct omap_hwmod_class_sysconfig dra7xx_usb_otg_ss_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.sysc_flags	= (SYSC_HAS_DMADISABLE | SYSC_HAS_MIDLEMODE |
-+			   SYSC_HAS_SIDLEMODE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
-+			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
-+	.sysc_fields	= &omap_hwmod_sysc_type2,
-+};
+ #define DRA7_DPLL_ABE_DEFFREQ				361267200
+ #define DRA7_DPLL_GMAC_DEFFREQ				1000000000
++#define DRA7_DPLL_USB_DEFFREQ				960000000
+ 
+ 
+ static struct omap_dt_clk dra7xx_clks[] = {
+@@ -63,5 +64,15 @@ int __init dra7xx_clk_init(void)
+ 	if (rc)
+ 		pr_err("%s: failed to configure GMAC DPLL!\n", __func__);
+ 
++	dpll_ck = clk_get_sys(NULL, "dpll_usb_ck");
++	rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ);
++	if (rc)
++		pr_err("%s: failed to configure USB DPLL!\n", __func__);
 +
- static struct omap_hwmod_class dra7xx_usb_otg_ss_hwmod_class = {
- 	.name	= "usb_otg_ss",
-+	.sysc	= &dra7xx_usb_otg_ss_sysc,
- };
- 
- /* usb_otg_ss1 */
++	dpll_ck = clk_get_sys(NULL, "dpll_usb_m2_ck");
++	rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ/2);
++	if (rc)
++		pr_err("%s: failed to set USB_DPLL M2 OUT\n", __func__);
++
+ 	return rc;
+ }
 -- 
 1.7.4.1
-
