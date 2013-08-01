@@ -1,66 +1,100 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 0/7] phy: omap-usb: Support multiple instances and new types
-Date: Thu, 1 Aug 2013 17:05:08 +0300
-Message-ID: <1375365915-21380-1-git-send-email-rogerq@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCHv4 06/33] CLK: omap: add autoidle support
+Date: Thu, 1 Aug 2013 09:11:40 -0500
+Message-ID: <51FA6C9C.7030800@ti.com>
+References: <1374564028-11352-1-git-send-email-t-kristo@ti.com> <1374564028-11352-7-git-send-email-t-kristo@ti.com> <51F80C77.9020109@ti.com> <51F8E365.8080604@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: tony@atomide.com, kishon@ti.com, george.cherian@ti.com, dmurphy@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:57354 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755359Ab3HAOMF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Aug 2013 10:12:05 -0400
+In-Reply-To: <51F8E365.8080604@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, tony@atomide.com, mturquette@linaro.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-Hi,
+On 07/31/2013 05:13 AM, Tero Kristo wrote:
+> On 07/30/2013 09:56 PM, Nishanth Menon wrote:
+>> On 07/23/2013 02:20 AM, Tero Kristo wrote:
+>>> OMAP clk driver now routes some of the basic clocks through own
+>>> registration routine to allow autoidle support. This routine just
+>>> checks a couple of device node properties and adds autoidle support
+>>> if required, and just passes the registration forward to basic clocks.
+>>
+>> why not extend standard framework to support autoidle capable clocks OR
+>> introduce our own clk node which depends on basic clocks?
+>
+> Was kind of easier this way.
 
-This patchset does the following:
+We never liked taking the easy road :) if we can extend standard 
+drivers, that will be the first preference - else we will need to 
+explain precisely why it cant be extended.
 
-* Restructure and add support for new PHY types. We now support the follwing
-four types
+>>> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+>>> index 0c38ca9..669d4c4 100644
+>>> --- a/arch/arm/mach-omap2/clock.c
+>>> +++ b/arch/arm/mach-omap2/clock.c
+>> Not sure why, at this point in time we are going to calling drivers/clk
+>> code.
+>>
+>>> @@ -520,6 +520,9 @@ int omap2_clk_enable_autoidle_all(void)
+>>>       list_for_each_entry(c, &clk_hw_omap_clocks, node)
+>>>           if (c->ops && c->ops->allow_idle)
+>>>               c->ops->allow_idle(c);
+>>> +
+>>> +    of_omap_clk_allow_autoidle_all();
+>>> +
+>>>       return 0;
+>>>   }
+>>>
+>>> @@ -539,6 +542,9 @@ int omap2_clk_disable_autoidle_all(void)
+>>>       list_for_each_entry(c, &clk_hw_omap_clocks, node)
+>>>           if (c->ops && c->ops->deny_idle)
+>>>               c->ops->deny_idle(c);
+>>> +
+>>> +    of_omap_clk_deny_autoidle_all();
+>>> +
+>>
+>> these are defined for CONFIG_OF.. anyways, without dt nodes (OMAP3 is
+>> supposed to support non-DT boot even now), this would not work, would it?
+>
+> The lists are empty so the funcs do nothing. However, dropping CONFIG_OF
+> would break these of course. Will figure out a fix for this.
+>
+> The calls are needed for the transition phase until we can move more clk
+> stuff from mach-omap2 to drivers.
 
- TYPE1 - if it has otghs_control mailbox register (e.g. on OMAP4)
- TYPE2 - if it has Power down bit in control_dev_conf register. e.g. USB2 PHY
- TYPE3 - if it has DPLL and individual Rx & Tx power control. e.g. USB3 PHY or SATA PHY
- TYPE4 - if it has both power down and power aux registers. e.g. USB2 PHY on DRA7
+yes please. for ones like these, we can try to maintain a rule of 
+mach-omap2 calling drivers/clk rather than drivers/clk -> mach-omap2. 
+This will allow us to move out of mach-omap2 eventually by just deleting 
+call points in mach-omap2.
 
-* Have only one power control API "omap_control_usb_phy_power()" instead of a
-different one for each PHY type.
+[...]
+>>>
+>>>   #endif
+>>>
+>>
+>> I personally dont prefer the fact that divider-clock and
+>> fixed-rate-clock now has double meaning - building a multi-arch kernel
+>> for example, this can wreak havoc. standard definitions should not be
+>> monkeyed around with thus if avoidable, and in this case, very much
+>> avoidable.
+>>
+>> just my 2 cents.
+>
+> Yea, as described before, I'll change the code not to make a global
+> override, instead, just make omap specific override which parses the
+> extra params. That sound better or still see some issues with that?
 
-* Get rid of omap_get_control_dev() so that we can support multiple instances
-of the control device. We take advantage of the fact that omap control USB device
-is only present on OMAP4 onwards and hence only supports DT boot. The users
-of control USB device can get a reference to it from the device node's phandle.
+I think described above - if we can introduce these into standard 
+drivers, it is the best, else introduce it with ti, prefix to indicate a 
+TI variant. keeps everyone happy.
 
-Patches are based on top of v3.11-rc3 with balbi/next on top.
-
-Smoke tested on OMAP4 panda with MUSB in gadget mode (g_zero).
-
-You can find the patches in branch
- usb-control-module
-in git tree
- git://github.com/rogerq/linux.git
-
-cheers,
--roger
-
-Roger Quadros (7):
-  usb: phy: omap: Add new PHY types and remove
-    omap_control_usb3_phy_power()
-  usb: phy: omap-usb2: Don't use omap_get_control_dev()
-  usb: phy: omap-usb3: Don't use omap_get_control_dev()
-  usb: musb: omap2430: Don't use omap_get_control_dev()
-  usb: phy: omap: get rid of omap_get_control_dev()
-  ARM: dts: omap4: update omap-control-usb nodes
-  ARM: dts: omap5: update omap-control-usb node
-
- Documentation/devicetree/bindings/usb/omap-usb.txt |   23 ++--
- arch/arm/boot/dts/omap4.dtsi                       |   17 ++-
- arch/arm/boot/dts/omap5.dtsi                       |   18 ++-
- drivers/usb/musb/omap2430.c                        |   22 +++-
- drivers/usb/phy/phy-omap-control.c                 |  160 ++++++++++---------
- drivers/usb/phy/phy-omap-usb2.c                    |   20 ++-
- drivers/usb/phy/phy-omap-usb3.c                    |   26 +++-
- include/linux/usb/omap_control_usb.h               |   23 +--
- 8 files changed, 182 insertions(+), 127 deletions(-)
 
 -- 
-1.7.4.1
+Regards,
+Nishanth Menon
