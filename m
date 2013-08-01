@@ -1,89 +1,145 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv4 05/33] CLK: omap: add DT duplicate clock registration
- mechanism
-Date: Thu, 1 Aug 2013 09:25:14 -0500
-Message-ID: <51FA6FCA.3050900@ti.com>
-References: <1374564028-11352-1-git-send-email-t-kristo@ti.com> <1374564028-11352-6-git-send-email-t-kristo@ti.com> <51F808A8.6000503@ti.com> <51F8E1F5.20706@ti.com>
+Subject: Re: [PATCHv4 07/33] CLK: omap: add support for OMAP gate clock
+Date: Thu, 1 Aug 2013 09:33:38 -0500
+Message-ID: <51FA71C2.8090806@ti.com>
+References: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
+ <1374564028-11352-8-git-send-email-t-kristo@ti.com> <51F81148.4080203@ti.com>
+ <51F9230D.4020708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58122 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753884Ab3HAOZp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Aug 2013 10:25:45 -0400
-In-Reply-To: <51F8E1F5.20706@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51F9230D.4020708@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, tony@atomide.com, mturquette@linaro.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, paul@pwsan.com, khilman@linaro.org, mturquette@linaro.org, tony@atomide.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-On 07/31/2013 05:07 AM, Tero Kristo wrote:
-> On 07/30/2013 09:40 PM, Nishanth Menon wrote:
+On 07/31/2013 09:45 AM, Tero Kristo wrote:
+> On 07/30/2013 10:17 PM, Nishanth Menon wrote:
 >> On 07/23/2013 02:20 AM, Tero Kristo wrote:
->>> Some devices require their clocks to be available with a specific
->>> dev-id con-id mapping. With DT, the clocks can be found by default
->>> only with their name, or alternatively through the device node of
->>> the consumer. With drivers, that don't support DT fully yet, add
->>> mechanism to register specific clock names.
+>>> This node adds support for a clock node which allows control to the
+>>> clockdomain enable / disable.
+>>
+>> Dont we have clkdm_enable/disable for the same? should we model
+>> clockdomain as a clock node?
+>
+> There was some discussion about having clockdomain code under
+> drivers/clk while back, but Mike turned this idea down.
+
+then why are we doing this?
+
+ >>> +    .init        = &omap2_init_clk_clkdm,
+ >>> +    .enable        = &omap2_clkops_enable_clkdm,
+ >>> +    .disable    = &omap2_clkops_disable_clkdm,
+
+is practically doing this in a round about way, no? If Mike no likey 
+clkdm going in here, introducing a "pseudo" clk node has no chance of 
+going in either.. dont you think so? should we not just try to have our 
+clocks first available before we try low power scenarios as next stage?
+
+
+>
+>>
 >>>
 >>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>> ---
+>>>   drivers/clk/omap/Makefile |    2 +-
+>>>   drivers/clk/omap/clk.c    |    1 +
+>>>   drivers/clk/omap/gate.c   |   88
+>>> +++++++++++++++++++++++++++++++++++++++++++++
+>>>   include/linux/clk/omap.h  |    1 +
+>>>   4 files changed, 91 insertions(+), 1 deletion(-)
+>>>   create mode 100644 drivers/clk/omap/gate.c
+>>>
 >>
->> with this, should it not be enough to add clocks=<&phandle>
->
-> Don't know, I am not an expert on DT. :)
-
-That is the usage - 
-Documentation/devicetree/bindings/clock/clock-bindings.txt
-
->
+>> my usual crib: device tree binding documentation is missing
 >>
->> I am not sure I understand what specific drivers should need to carry
->> this "old hack" forward. More importantly, why is it preferable to carry
->> the hack forward rather than fixing the drivers.
+>>> diff --git a/drivers/clk/omap/Makefile b/drivers/clk/omap/Makefile
+>>> index ca56700..3d3ca30f 100644
+>>> --- a/drivers/clk/omap/Makefile
+>>> +++ b/drivers/clk/omap/Makefile
+>>> @@ -1 +1 @@
+>>> -obj-y                    += clk.o dpll.o autoidle.o
+>>> +obj-y                    += clk.o dpll.o autoidle.o gate.o
+>>> diff --git a/drivers/clk/omap/clk.c b/drivers/clk/omap/clk.c
+>>> index c149097..8c89714 100644
+>>> --- a/drivers/clk/omap/clk.c
+>>> +++ b/drivers/clk/omap/clk.c
+>>> @@ -29,6 +29,7 @@ static const struct of_device_id clk_match[] = {
+>>>       {.compatible = "divider-clock", .data = of_omap_divider_setup, },
+>>>       {.compatible = "gate-clock", .data = of_gate_clk_setup, },
+>>>       {.compatible = "ti,omap4-dpll-clock", .data =
+>>> of_omap4_dpll_setup, },
+>>> +    {.compatible = "ti,gate-clock", .data = of_omap_gate_clk_setup, },
+>>
+>> I am a little lost - is there any SoC dts that actually uses this? at
+>> least this series does not seem to introduce any node that uses this
+>> compatibility as per git grep :(
 >
-> At least the GP timer seems to need this, and I don't want to touch /
-> verify all the potential drivers touched by this so it is easier to
-> provide a (semi) temporary tweak.
+> There is, see patch 08/33 or 28/33.
 
-I see that GP timer nodes seem to be already device tree converted, at 
-least I see the nodes in SoC.dtsi
-
-Do we know what is going on for these that need these temporary devices? 
-can we do a special node property for these?
-
-I think the entire problem is coz of
-timer->fclk = clk_get(NULL, omap_hwmod_get_main_clk(oh)); in case of 
-even of_populated.
-
-if we can get rid of usage of omap_hwmod_get_main_clk by catching them 
-with [1], then we can force the drivers to pick up based on device node 
-clocks= property.
-
-It might be easier to fix 1 driver - timer, rather than introduce am33x, 
-omap4, omap5 dra7 specific "SoC clk driver".
-
-with that this entire patch becomes redundant.
+yes indeed, my bad, looks like my eyesight is no longer what it used to 
+be :P.. time for those binocular glasses and a hammer on top of my head 
+to remind myself :D
 
 
-[1]
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c 
-b/arch/arm/mach-omap2/omap_hwmod.c
-index da26659..2e90ab4 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -4153,5 +4153,10 @@ const char *omap_hwmod_get_main_clk(struct 
-omap_hwmod *oh)
-  	if (!oh)
-  		return NULL;
+>>> +    of_property_read_string(node, "clock-output-names", &clk_name);
+>>> +    of_property_read_string(node, "ti,clkdm-name",
+>>> &clk_hw->clkdm_name);
+>>> +
+>>> +    init.name = clk_name;
+>>> +    init.ops = &omap_gate_clk_ops;
+>>> +
+>>> +    num_parents = of_clk_get_parent_count(node);
+>>> +    if (num_parents < 1) {
+>>> +        pr_err("%s: omap trace_clk %s must have parent(s)\n",
+>>> +            __func__, node->name);
+>> CHECK: Alignment should match open parenthesis
+>
+> I still wonder which version of checkpatch you are using.
 
-+	if (!of_have_populated_dt()) {
-+		WARN(1, "%s hwmod clk node read with OF?:FIXME!\n",
-+		     oh->name);
-+	}
-+
-  	return oh->main_clk;
-  }
+hehe, makes me look hawkeyed :P.. no magic here obviously ;)
+
+./scripts/checkpatch.pl --strict
+
+revision: git describe
+v3.11-rc3-47-g72195e0
+(with all the patches applied).
+
+[...]
+>>> +    kfree(clk_hw);
+>>> +}
+>>> +EXPORT_SYMBOL(of_omap_gate_clk_setup);
+>>> +CLK_OF_DECLARE(omap_gate_clk, "ti,omap-gate-clock",
+>>> of_omap_gate_clk_setup);
+>>> +#endif
+>>> diff --git a/include/linux/clk/omap.h b/include/linux/clk/omap.h
+>>> index 904bdad..58ebb80 100644
+>>> --- a/include/linux/clk/omap.h
+>>> +++ b/include/linux/clk/omap.h
+>>> @@ -194,6 +194,7 @@ extern void omap_dt_clocks_register(struct
+>>> omap_dt_clk *oclks, int cnt);
+>>>   void of_omap4_dpll_setup(struct device_node *node);
+>>>   void of_omap_fixed_factor_setup(struct device_node *node);
+>>>   void of_omap_divider_setup(struct device_node *node);
+>>> +void of_omap_gate_clk_setup(struct device_node *node);
+>> dont need to export I think if we use strategy mentioned previously.
+>
+> So, we actually had an offline chat with Nishanth, and I will modify the
+> init setup like previously suggested by him.
+>
+yes, thanks.
+
+
 -- 
 Regards,
 Nishanth Menon
