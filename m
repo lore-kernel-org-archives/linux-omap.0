@@ -1,77 +1,88 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 05/33] CLK: omap: add DT duplicate clock registration
- mechanism
-Date: Thu, 1 Aug 2013 18:30:26 +0300
-Message-ID: <51FA7F12.6010407@ti.com>
-References: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
- <1374564028-11352-6-git-send-email-t-kristo@ti.com> <51F808A8.6000503@ti.com>
- <51F8E1F5.20706@ti.com> <51FA6FCA.3050900@ti.com> <51FA7C39.8090100@ti.com>
- <51FA7DB6.3060002@ti.com>
+Subject: Re: [PATCHv4 09/33] CLK: omap: add omap4 clock init file
+Date: Thu, 1 Aug 2013 18:34:19 +0300
+Message-ID: <51FA7FFB.8000309@ti.com>
+References: <1374564028-11352-1-git-send-email-t-kristo@ti.com> <1374564028-11352-10-git-send-email-t-kristo@ti.com> <51F81516.3050302@ti.com> <51F924CA.6000803@ti.com> <51FA7341.7040303@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51FA7DB6.3060002@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nishanth Menon <nm@ti.com>
-Cc: paul@pwsan.com, khilman@linaro.org, mturquette@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:46705 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753450Ab3HAPer (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Aug 2013 11:34:47 -0400
+In-Reply-To: <51FA7341.7040303@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, tony@atomide.com, mturquette@linaro.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-On 08/01/2013 06:24 PM, Nishanth Menon wrote:
-> On 08/01/2013 10:18 AM, Tero Kristo wrote:
->> On 08/01/2013 05:25 PM, Nishanth Menon wrote:
->>> On 07/31/2013 05:07 AM, Tero Kristo wrote:
->>>> On 07/30/2013 09:40 PM, Nishanth Menon wrote:
->>>>> On 07/23/2013 02:20 AM, Tero Kristo wrote:
-> [..]
->>> if we can get rid of usage of omap_hwmod_get_main_clk by catching them
->>> with [1], then we can force the drivers to pick up based on device node
->>> clocks= property.
+On 08/01/2013 05:40 PM, Nishanth Menon wrote:
+> On 07/31/2013 09:52 AM, Tero Kristo wrote:
+>> On 07/30/2013 10:33 PM, Nishanth Menon wrote:
+> [...]
+>
 >>>
->>> It might be easier to fix 1 driver - timer, rather than introduce am33x,
->>> omap4, omap5 dra7 specific "SoC clk driver".
->>>
->>> with that this entire patch becomes redundant.
+>>>> +    DT_CLK(NULL,    "cpufreq_ck",    "dpll_mpu_ck"),
+>>> please remove cpufreq.
 >>
->> It is not that simple. Looking at the architectures this set supports, I
->> see clock alias nodes at least for following drivers:
+>> Hmm why?
 >>
->> - GPT timer
->> - USB
->> - DCAN
->> - EMAC
->> - VPFE
->> - UART
->> - SSI
->> - DSS
->> - security
->> - MMC
->> - MCBSP
->> - MCSPI
->>
->> I am _not_ going to fix all of these during the initial phase. :P
->>
->> But yes, eventually these should go away.
+>> Because cpufreq is completely broken now and your current work on it? :)
 >
-> How many of these are needed to boot? what functionality do we expect
-> with the series -> we can constraint saying that remaining drivers
-> should fix themselves the right way, else dont have the feature -
-> example cpufreq- fix it the right way, or wont see the feature enabled.
+> cpufreq fixing can be done separately and has abillity to pick up clock
+> nodes by describing clocks=<&dpll_mpu_ck> in cpu0 node. absolutely no
+> need to carry on this hack - See my comment on [1]
 >
-> introducing a "way out" for all of these just invites more guys to screw
-> around claiming "it was done before - see here"..
->
-> lets just fix the darned basic ones, refuse to provide "way out" and let
-> the others fix themselves.
->
+> yes, I know I will have to redo my cpufreq series, but thanks to your
+> work, it is a 10 min job to enable them back online :) dont worry about
+> the broken cpufreq, we will fix it properly and it is not even needed
+> for basic boot to shell (example omap2plus_defconfig does not even
+> enable CONFIG_CPU_FREQ).
 
-Yea, that would be one way. I guess someone like Tony should comment on 
-this.
+Ok, I'll drop the cpufreq one out at least. :)
+
+>
+>
+>>>
+>>>> +    abe_dpll_ref = clk_get_sys(NULL, "abe_dpll_refclk_mux_ck");
+>>>> +    sys_32k_ck = clk_get_sys(NULL, "sys_32k_ck");
+>>>> +    rc = clk_set_parent(abe_dpll_ref, sys_32k_ck);
+>>>> +    abe_dpll = clk_get_sys(NULL, "dpll_abe_ck");
+>>>> +    if (!rc)
+>>>> +        rc = clk_set_rate(abe_dpll, OMAP4_DPLL_ABE_DEFFREQ);
+>>>> +    if (rc)
+>>>> +        pr_err("%s: failed to configure ABE DPLL!\n", __func__);
+>>>> +
+>>>> +    /*
+>>>> +     * Lock USB DPLL on OMAP4 devices so that the L3INIT power
+>>>> +     * domain can transition to retention state when not in use.
+>>>> +     */
+>>>> +    usb_dpll = clk_get_sys(NULL, "dpll_usb_ck");
+>>>> +    rc = clk_set_rate(usb_dpll, OMAP4_DPLL_USB_DEFFREQ);
+>>>> +    if (rc)
+>>>> +        pr_err("%s: failed to configure USB DPLL!\n", __func__);
+>>>
+>>> ^^^^ why cant we have a generic property that does this "automagically"
+>>> from dts property to the node?
+>>> a) be able to select a parent
+>>> b) be able to set a frequency.
+>>> c) how do we ensure that CLK_SET_RATE_PARENT are setup for the clock
+>>> nodes defined by dt?
+>>
+>> This is probably for Mike to answer, currently such mechanism does not
+>> exist.
+>
+> I think you already dealt with (c). in the same vein, we can do (a) and
+> (b). Dont think anyone else has gone about this to the extent we are
+> attempting to do till date, so as pioneers, we might as well suggest
+> with a patch :D ?
+
+Yea, for c I have a patch as that is clearly required. For a/b, we can 
+currently workaround. Again, I don't want to implement everything in 
+this set at once, as the result would be a huge behemoth (this is 
+complicated enough as is imo.)
+
+>
+> [1] http://marc.info/?l=linux-omap&m=137536714605620&w=2
+
