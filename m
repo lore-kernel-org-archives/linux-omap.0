@@ -1,86 +1,60 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 3/3] arm: omap: convert omap boot_lock to raw
-Date: Thu, 1 Aug 2013 15:12:45 +0300
-Message-ID: <1375359165-8411-4-git-send-email-balbi@ti.com>
+Subject: [RFC/PATCH 2/3] serial: omap: fix omap lock crap
+Date: Thu, 1 Aug 2013 15:12:44 +0300
+Message-ID: <1375359165-8411-3-git-send-email-balbi@ti.com>
 References: <1375359165-8411-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51362 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51360 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754641Ab3HAMOM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754903Ab3HAMOM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 1 Aug 2013 08:14:12 -0400
 In-Reply-To: <1375359165-8411-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
-Cc: Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Frank Rowand <frank.rowand@am.sony.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <balbi@ti.com>
 
-From: Frank Rowand <frank.rowand@am.sony.com>
+From: Thomas Gleixner <tglx@linutronix.de>
 
-The omap boot_lock is used by the secondary processor startup code.  The locking
-task is the idle thread, which has idle->sched_class == &idle_sched_class.
-idle_sched_class->enqueue_task == NULL, so if the idle task blocks on the
-lock, the attempt to wake it when the lock becomes available will fail:
-
-try_to_wake_up()
-   ...
-      activate_task()
-         enqueue_task()
-            p->sched_class->enqueue_task(rq, p, flags)
-
-Fix by converting boot_lock to a raw spin lock.
-
-[ balbi@ti.com: taken from RT v3.10.4-rt1 patchset ]
-
-Signed-off-by: Frank Rowand <frank.rowand@am.sony.com>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/mach-omap2/omap-smp.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/tty/serial/omap-serial.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index 8708b2a..c4caa18 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -44,7 +44,7 @@ u16 pm44xx_errata;
- /* SCU base address */
- static void __iomem *scu_base;
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index b6d1728..7882d25 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -1170,13 +1170,10 @@ serial_omap_console_write(struct console *co, const char *s,
  
--static DEFINE_SPINLOCK(boot_lock);
-+static DEFINE_RAW_SPINLOCK(boot_lock);
+ 	pm_runtime_get_sync(up->dev);
  
- void __iomem *omap4_get_scu_base(void)
- {
-@@ -68,8 +68,8 @@ static void omap4_secondary_init(unsigned int cpu)
- 	/*
- 	 * Synchronise with the boot thread.
- 	 */
--	spin_lock(&boot_lock);
--	spin_unlock(&boot_lock);
-+	raw_spin_lock(&boot_lock);
-+	raw_spin_unlock(&boot_lock);
- }
- 
- static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
-@@ -83,7 +83,7 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
- 	 * Set synchronisation state between this boot processor
- 	 * and the secondary one
- 	 */
--	spin_lock(&boot_lock);
-+	raw_spin_lock(&boot_lock);
+-	local_irq_save(flags);
+-	if (up->port.sysrq)
+-		locked = 0;
+-	else if (oops_in_progress)
+-		locked = spin_trylock(&up->port.lock);
++	if (up->port.sysrq || oops_in_progress)
++		locked = spin_trylock_irqsave(&up->port.lock, flags);
+ 	else
+-		spin_lock(&up->port.lock);
++		spin_lock_irqsave(&up->port.lock, flags);
  
  	/*
- 	 * Update the AuxCoreBoot0 with boot state for secondary core.
-@@ -160,7 +160,7 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
- 	 * Now the secondary core is starting up let it run its
- 	 * calibrations, then wait for it to finish
- 	 */
--	spin_unlock(&boot_lock);
-+	raw_spin_unlock(&boot_lock);
- 
- 	return 0;
+ 	 * First save the IER then disable the interrupts
+@@ -1205,8 +1202,7 @@ serial_omap_console_write(struct console *co, const char *s,
+ 	pm_runtime_mark_last_busy(up->dev);
+ 	pm_runtime_put_autosuspend(up->dev);
+ 	if (locked)
+-		spin_unlock(&up->port.lock);
+-	local_irq_restore(flags);
++		spin_unlock_irqrestore(&up->port.lock, flags);
  }
+ 
+ static int __init
 -- 
 1.8.3.4.840.g6a90778
 
