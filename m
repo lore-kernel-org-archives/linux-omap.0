@@ -1,176 +1,108 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 2/4] ARM: dts: dra7: Add USB related nodes
-Date: Thu, 1 Aug 2013 17:58:52 +0300
-Message-ID: <1375369134-26398-3-git-send-email-rogerq@ti.com>
-References: <1375369134-26398-1-git-send-email-rogerq@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv4 02/33] clk: omap: introduce clock driver
+Date: Thu, 1 Aug 2013 17:59:46 +0300
+Message-ID: <51FA77E2.60104@ti.com>
+References: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
+ <1374564028-11352-3-git-send-email-t-kristo@ti.com> <51F7DA0D.7060709@ti.com>
+ <51F8D1E3.2@ti.com> <51FA663E.3070109@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44642 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756168Ab3HAO7F (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Aug 2013 10:59:05 -0400
-In-Reply-To: <1375369134-26398-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51FA663E.3070109@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>
+Cc: paul@pwsan.com, khilman@linaro.org, mturquette@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, rnayak@ti.com
-Cc: benoit.cousson@linaro.org, balbi@ti.com, george.cherian@ti.com, kishon@ti.com, dmurphy@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-Add nodes for the Super Speed USB controllers, omap-control-usb,
-USB2 PHY and USB3 PHY devices.
+On 08/01/2013 04:44 PM, Nishanth Menon wrote:
+> On 07/31/2013 03:59 AM, Tero Kristo wrote:
+>> On 07/30/2013 06:21 PM, Nishanth Menon wrote:
+>>> On 07/23/2013 02:19 AM, Tero Kristo wrote:
+>>>> Parses OMAP clock data from DT and registers those clocks with the
+>>>> clock
+>>>> framework.  dt_omap_clk_init must be called early during boot for timer
+>>>> initialization so it is exported and called from the existing clock
+>>>> code
+>>>> instead of probing like a real driver. Based on initial work done by
+>>>> Mike Turquette.
+>>>>
+>>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>>> Cc: Mike Turquette <mturquette@linaro.org>
+>>>> ---
+>>>>   drivers/clk/Makefile      |    1 +
+>>>>   drivers/clk/omap/Makefile |    1 +
+>>>>   drivers/clk/omap/clk.c    |   39
+>>>> +++++++++++++++++++++++++++++++++++++++
+>>>
+>>> Minor suggestion - should we just start drivers/clk/ti/ instead of
+>>> clk/omap?
+>>>
+>>> AM335x/DRA7 are not "strictly OMAP".. might also allow for some reuse
+>>> for other TI platforms..
+>>
+>> Not sure, this idea has been bounced around a bit. samsung has its own
+>> directory under drivers/clk/ so maybe. I can change this if there is a
+>> strong wish for this.
+>
+> just my 2 cents - if we use drivers/clk/ti, we can then move required
+> stuff from arch/arm/mach-davinci or arch/arm/mach-keystone to a ti
+> generic location allowing us to reuse things as needed.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/dra7.dtsi |  136 +++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 136 insertions(+), 0 deletions(-)
+Ok, I'll rename the dir.
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index ce9a0f0..3a2e55e 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -484,6 +484,142 @@
- 			dmas = <&sdma 70>, <&sdma 71>;
- 			dma-names = "tx0", "rx0";
- 		};
-+
-+		omap_control_usb2phy1: omap-control-usb@4a002300 {
-+			compatible = "ti,omap-control-usb";
-+			reg = <0x4a002300 0x4>;
-+			reg-names = "power";
-+			ti,type = <2>;
-+		};
-+
-+		omap_control_usb3phy1: omap-control-usb@4a002370 {
-+			compatible = "ti,omap-control-usb";
-+			reg = <0x4a002370 0x4>;
-+			reg-names = "power";
-+			ti,type = <3>;
-+		};
-+
-+		omap_control_usb2phy2: omap-control-usb@0x4a002e74 {
-+			compatible = "ti,omap-control-usb";
-+			reg = <0x4a002e74 0x4>, <0x4a0086c0 0x4>;
-+			reg-names = "power", "power_aux";
-+			ti,type = <4>;
-+		};
-+
-+		ocp2scp {
-+			compatible = "ti,omap-ocp2scp";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
-+			ti,hwmods = "ocp2scp1";
-+
-+			usb2_phy1: usb2phy1@4a084000 {
-+				compatible = "ti,omap-usb2";
-+				reg = <0x4a084000 0x400>;
-+				ctrl-module = <&omap_control_usb2phy1>;
-+				clocks = <&usb_otg_ss1_refclk960m>, <&usb_phy1_always_on_clk32k>;
-+				clock-names = "usb_otg_ss_refclk960m", "usb_phy_cm_clk32k";
-+			};
-+
-+			usb2_phy2: usb2phy2@4a085000 {
-+				compatible = "ti,omap-usb2";
-+				reg = <0x4a085000 0x400>;
-+				ctrl-module = <&omap_control_usb2phy2>;
-+				clocks = <&usb_otg_ss2_refclk960m>, <&usb_phy2_always_on_clk32k>;
-+				clock-names = "usb_otg_ss_refclk960m", "usb_phy_cm_clk32k";
-+			};
-+
-+			usb3_phy1: usb3phy@4a084400 {
-+				compatible = "ti,omap-usb3";
-+				reg = <0x4a084400 0x80>,
-+				      <0x4a084800 0x64>,
-+				      <0x4a084c00 0x40>;
-+				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
-+				ctrl-module = <&omap_control_usb3phy1>;
-+				clocks = <&usb_otg_ss1_refclk960m>, <&usb_phy3_always_on_clk32k>;
-+				clock-names = "usb_otg_ss_refclk960m", "usb_phy_cm_clk32k";
-+			};
-+		};
-+
-+		omap_dwc3_1@48880000 {
-+			compatible = "ti,dwc3";
-+			ti,hwmods = "usb_otg_ss1";
-+			reg = <0x48880000 0x10000>;
-+			interrupts = <0 77 4>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			utmi-mode = <2>;
-+			ranges;
-+			dwc3_1: dwc3@48890000 {
-+				compatible = "synopsys,dwc3";
-+				reg = <0x48890000 0x17000>;
-+				interrupts = <0 76 4>;
-+				usb-phy = <&usb2_phy1>, <&usb3_phy1>;
-+				tx-fifo-resize;
-+				maximum-speed = "super-speed";
-+				dr_mode = "otg";
-+			};
-+		};
-+
-+		omap_dwc3_2@488c0000 {
-+			compatible = "ti,dwc3";
-+			ti,hwmods = "usb_otg_ss2";
-+			reg = <0x488c0000 0x10000>;
-+			interrupts = <0 92 4>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			utmi-mode = <2>;
-+			ranges;
-+			dwc3_2: dwc3@488d0000 {
-+				compatible = "synopsys,dwc3";
-+				reg = <0x488d0000 0x17000>;
-+				interrupts = <0 78 4>;
-+				usb-phy = <&usb2_phy2>;
-+				tx-fifo-resize;
-+				maximum-speed = "high-speed";
-+				dr_mode = "otg";
-+			};
-+		};
-+
-+		/* IRQ for DWC3_3 and DWC3_4 need IRQ crossbar */
-+		omap_dwc3_3@48900000 {
-+			compatible = "ti,dwc3";
-+			ti,hwmods = "usb_otg_ss3";
-+			reg = <0x48900000 0x10000>;
-+		/*	interrupts = <0 TBD 4>; */
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			utmi-mode = <2>;
-+			ranges;
-+			dwc3_3: dwc3@48910000 {
-+				compatible = "synopsys,dwc3";
-+				reg = <0x48910000 0x17000>;
-+		/*		interrupts = <0 93 4>; */
-+				tx-fifo-resize;
-+				maximum-speed = "high-speed";
-+				dr_mode = "otg";
-+			};
-+		};
-+
-+		omap_dwc3_4@48940000 {
-+			compatible = "ti,dwc3";
-+			ti,hwmods = "usb_otg_ss4";
-+			reg = <0x48940000 0x10000>;
-+		/*	interrupts = <0 TBD 4>; */
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			utmi-mode = <2>;
-+			ranges;
-+			dwc3_4: dwc3@48950000 {
-+				compatible = "synopsys,dwc3";
-+				reg = <0x48950000 0x17000>;
-+		/*		interrupts = <0 TBD 4>; */
-+				tx-fifo-resize;
-+				maximum-speed = "high-speed";
-+				dr_mode = "otg";
-+			};
-+		};
-+
- 	};
- 
- 	clocks {
--- 
-1.7.4.1
+>
+>>
+>>>
+>>>>   include/linux/clk/omap.h  |   24 ++++++++++++++++++++++++
+>>>>   4 files changed, 65 insertions(+)
+>>>>   create mode 100644 drivers/clk/omap/Makefile
+>>>>   create mode 100644 drivers/clk/omap/clk.c
+>>>>   create mode 100644 include/linux/clk/omap.h
+>>>>
+>>>> diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
+>>>> index 4038c2b..d3c3733 100644
+>>>> --- a/drivers/clk/Makefile
+>>>> +++ b/drivers/clk/Makefile
+>>>> @@ -32,6 +32,7 @@ obj-$(CONFIG_ARCH_VT8500)    += clk-vt8500.o
+>>>>   obj-$(CONFIG_ARCH_ZYNQ)        += zynq/
+>>>>   obj-$(CONFIG_ARCH_TEGRA)    += tegra/
+>>>>   obj-$(CONFIG_PLAT_SAMSUNG)    += samsung/
+>>>> +obj-$(CONFIG_ARCH_OMAP)        += omap/
+>>>>
+>>>>   obj-$(CONFIG_X86)        += x86/
+>>>>
+>>>> diff --git a/drivers/clk/omap/Makefile b/drivers/clk/omap/Makefile
+>>>> new file mode 100644
+>>>> index 0000000..8195931
+>>>> --- /dev/null
+>>>> +++ b/drivers/clk/omap/Makefile
+>>>> @@ -0,0 +1 @@
+>>>> +obj-y                    += clk.o
+>>>> diff --git a/drivers/clk/omap/clk.c b/drivers/clk/omap/clk.c
+>>>> new file mode 100644
+>>>> index 0000000..4bf1929
+>>>> --- /dev/null
+>>>> +++ b/drivers/clk/omap/clk.c
+>>>> @@ -0,0 +1,39 @@
+>>>> +/*
+>>>> + * OMAP PRCM clock driver
+>>>
+>>> maybe then prcm-clk.c ?
+>>
+>> Maybe remove the PRCM part. We have some clocks behind i2c for example,
+>> and we might want to add support for them here.
+>
+> I think we can actually drop this file in it's entirety if we stick with
+> of_clk_init(NULL) and depend solely of CLK_OF_DECLARE from relevant
+> drivers.
 
+Yeah, I'll do this and drop the file.
