@@ -1,50 +1,34 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [FAILURE] omap4430-sdp allnoconfig
-Date: Thu, 1 Aug 2013 20:02:27 +0100
-Message-ID: <20130801190227.GC23053@n2100.arm.linux.org.uk>
-References: <20130801175214.GA23053@n2100.arm.linux.org.uk> <51FAA4C6.10203@ti.com> <20130801182707.GB23053@n2100.arm.linux.org.uk> <51FAA985.3000809@ti.com> <51FAAA31.6020903@codeaurora.org> <51FAAAFD.6000706@codeaurora.org> <51FAAD73.3030103@ti.com> <20130801185956.GK8868@codeaurora.org>
+Subject: [FAILURE] drivers/video/omap2/displays-new/connector-analog-tv.c
+Date: Thu, 1 Aug 2013 20:19:04 +0100
+Message-ID: <20130801191903.GC23006@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39599 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39606 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756069Ab3HATCk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Aug 2013 15:02:40 -0400
+	with ESMTP id S1755862Ab3HATTe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Aug 2013 15:19:34 -0400
 Content-Disposition: inline
-In-Reply-To: <20130801185956.GK8868@codeaurora.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, arm@kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Thu, Aug 01, 2013 at 11:59:56AM -0700, Stephen Boyd wrote:
-> On 08/01, Santosh Shilimkar wrote:
-> > This one looks fine for me. Can you send above in
-> > a proper patch ? Let me know if you want me to
-> > send it.
-> > 
-> 
-> Here's a proper patch. Olof, can you please apply this on top of
-> the merge (and maybe you can fix the merge again to handle the
-> HAVE_CAN problem I mentioned earlier).
-> 
-> ---8<---
-> Subject: [PATCH] ARM: OMAP2+: Fix fallout from localtimer divorce and SMP=n
-> 
-> A recent patch ef3160c (ARM: OMAP2+: Divorce from local timer
-> API, 2013-03-04) broke the omap build when SMP=n because the TWD
-> functions are only compiled on SMP=y builds. Stub out the TWD
-> calls when the TWD isn't built in to to keep everything building.
-> 
-> arch/arm/mach-omap2/built-in.o: In function
-> `omap4_local_timer_init':
-> dss-common.c:(.init.text+0x1d90): undefined reference to
-> `twd_local_timer_register'
-> 
-> Reported-by: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Last couple of 4430SDP randconfig build attempts had this error in
+common:
 
-Please change this to be:
+drivers/video/omap2/displays-new/connector-analog-tv.c: In function 'tvc_probe':
+drivers/video/omap2/displays-new/connector-analog-tv.c:215:19: error: 'omap_dss_pal_timings' undeclared (first use in this function)
 
-Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+#ifdef CONFIG_OMAP2_DSS_VENC
+/* Hardcoded timings for tv modes. Venc only uses these to
+ * identify the mode, and does not actually use the configs
+ * itself. However, the configs should be something that
+ * a normal monitor can also show */
+extern const struct omap_video_timings omap_dss_pal_timings;
+extern const struct omap_video_timings omap_dss_ntsc_timings;
+#endif
 
-Thanks.
+# CONFIG_OMAP2_DSS_VENC is not set
+
+Maybe some required dependencies are missing?
