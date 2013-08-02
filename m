@@ -1,39 +1,45 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH] ARM: Kconfig: NR_GPIO AM43x default
-Date: Fri, 2 Aug 2013 19:24:11 +0530
-Message-ID: <1375451651-27173-1-git-send-email-afzal@ti.com>
+From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Subject: Re: [PATCH] mtd: nand: omap2: Fix compilation warning
+Date: Fri, 02 Aug 2013 17:07:25 +0300
+Message-ID: <1375452445.14869.324.camel@sauron.fi.intel.com>
+References: <1374681392-6183-1-git-send-email-olof@lixom.net>
+	 <20980858CB6D3A4BAE95CA194937D5E73E9ED5F3@DBDE04.ent.ti.com>
+Reply-To: artem.bityutskiy@linux.intel.com
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42165 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752927Ab3HBNyl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Aug 2013 09:54:41 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73E9ED5F3@DBDE04.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: Olof Johansson <olof@lixom.net>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
 
-On an AM43x only config, currently default ARCH_NR_GPIO would be zero.
-Default it to that supported by the SoC.
+On Wed, 2013-07-24 at 17:48 +0000, Gupta, Pekon wrote:
+> Hi Olof,
+> 
+> > 
+> > fb1585bc13b (mtd: nand: omap2: clean-up BCHx_HW and BCHx_SW ECC
+> > configurations in device_probe) introduced a warning when the new option
+> > is disabled, i.e. with omap2plus_defconfig:
+> > 
+> > drivers/mtd/nand/omap2.c:1075:13: warning: 'omap3_enable_hwecc_bch'
+> > defined but not used [-Wunused-function]
+> > 
+> > Fix this by rescoping the ifdef. Also remove a redudant #endif/#ifdef
+> > pair.
+> > 
+> > Signed-off-by: Olof Johansson <olof@lixom.net>
+> > ---
+> 
+> Thanks much..
+> But just to remind, this commit fb1585b in linux-next needs to be reverted.
+> This patch is leftover by mistake because other dependent patches of 
+> this series were dropped. This will not only break omap2-nand driver,
+> but might also break the build.
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
----
- arch/arm/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+Just dropped it, thanks!
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 37c0f4e..c5356c5 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -1605,6 +1605,7 @@ config ARCH_NR_GPIO
- 	default 352 if ARCH_VT8500
- 	default 288 if ARCH_SUNXI
- 	default 264 if MACH_H4700
-+	default 192 if SOC_AM43XX
- 	default 0
- 	help
- 	  Maximum number of GPIOs in the system.
 -- 
-1.7.9.5
-
+Best Regards,
+Artem Bityutskiy
