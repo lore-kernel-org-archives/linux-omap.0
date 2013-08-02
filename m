@@ -1,160 +1,56 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [Patch V2 4/4] ARM: dts: AM33XX: update rtc node compatibility
-Date: Fri, 2 Aug 2013 13:40:33 +0100
-Message-ID: <20130802124033.GL2884@e106331-lin.cambridge.arm.com>
-References: <1372841225-18813-1-git-send-email-gururaja.hebbar@ti.com>
- <1372841225-18813-5-git-send-email-gururaja.hebbar@ti.com>
- <51F749B0.7020802@ti.com>
- <20130730145501.GA29859@e106331-lin.cambridge.arm.com>
- <51F7E7FA.3080702@ti.com>
- <20130801170537.GF8095@e106331-lin.cambridge.arm.com>
- <51FB92F8.9020801@ti.com>
- <20130802112018.GI2884@e106331-lin.cambridge.arm.com>
- <51FB9C77.3090202@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] OMAP: Panda DVI fix and a cleanup
+Date: Fri, 2 Aug 2013 05:46:12 -0700
+Message-ID: <20130802124611.GJ7656@atomide.com>
+References: <1374570405-8301-1-git-send-email-tomi.valkeinen@ti.com>
+ <51FB9EDB.8010600@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:55597 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751071Ab3HBMqO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Aug 2013 08:46:14 -0400
 Content-Disposition: inline
-In-Reply-To: <51FB9C77.3090202@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Gururaja Hebbar <gururaja.hebbar@ti.com>
-Cc: "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "tony@atomide.com" <tony@atomide.com>, "benoit.cousson@gmail.com" <benoit.cousson@gmail.com>, Sekhar Nori <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "vaibhav.bedia@ti.com" <vaibhav.bedia@ti.com>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <51FB9EDB.8010600@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Aug 02, 2013 at 12:48:07PM +0100, Gururaja Hebbar wrote:
-> On 8/2/2013 4:50 PM, Mark Rutland wrote:
-> > On Fri, Aug 02, 2013 at 12:07:36PM +0100, Gururaja Hebbar wrote:
-> >> On 8/1/2013 10:35 PM, Mark Rutland wrote:
-> >>> On Tue, Jul 30, 2013 at 05:21:14PM +0100, Sekhar Nori wrote:
-> >>>> On 7/30/2013 8:25 PM, Mark Rutland wrote:
-> >>>>> On Tue, Jul 30, 2013 at 06:05:52AM +0100, Gururaja Hebbar wrote:
-> >>>>>> Hi,
-> >>>>>>
-> >>>>>> On 7/3/2013 2:17 PM, Hebbar Gururaja wrote:
-> >>>>>>> Since AM33xx  RTC IP has RTC_IRQWAKEEN to support Alarm Wake-up.
-> >>>>>>>
-> >>>>>>> Update the rtc compatible property to "ti,am3352-rtc" to enable handling
-> >>>>>>> of this feature inside rtc-omap driver.
-> >>>>>>
-> >>>>>> The other 2 rtc driver related patches have been pulled up. If you have
-> >>>>>> no comments, can you please pull this up.
-> >>>>>>
-> >>>>>> Regards
-> >>>>>> Gururaja
-> >>>>>>
-> >>>>>>>
-> >>>>>>> Signed-off-by: Hebbar Gururaja <gururaja.hebbar@ti.com>
-> >>>>>>> ---
-> >>>>>>> :100644 100644 77aa1b0... dde180a... M	arch/arm/boot/dts/am33xx.dtsi
-> >>>>>>>     arch/arm/boot/dts/am33xx.dtsi |    2 +-
-> >>>>>>>     1 file changed, 1 insertion(+), 1 deletion(-)
-> >>>>>>>
-> >>>>>>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> >>>>>>> index 77aa1b0..dde180a 100644
-> >>>>>>> --- a/arch/arm/boot/dts/am33xx.dtsi
-> >>>>>>> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> >>>>>>> @@ -297,7 +297,7 @@
-> >>>>>>>     		};
-> >>>>>>>
-> >>>>>>>     		rtc@44e3e000 {
-> >>>>>>> -			compatible = "ti,da830-rtc";
-> >>>>>>> +			compatible = "ti,am3352-rtc";
-> >>>>>
-> >>>>> Given that this is backwards compatible with the old binding, it would
-> >>>>> be nicer to have this as:
-> >>>>>
-> >>>>> 	compatible = "ti,am3352-rtc", "ti,da830-rtc";
-> >>>>>
-> >>>>> We must get into the habit of changing dts files in a
-> >>>>> backwards-compatible fashion.
-> >>>>
-> >>>> Right, I suggested this when v1 was posted. It turns out the current
-> >>>> kernel does not handle the compatilble list correctly and the string
-> >>>> selected actually depends on the order in which it appears in match
-> >>>> table in driver instead.
-> >>>>
-> >>>> I saw there were patches being discussed to fix this issue, but until
-> >>>> that is fixed, we cannot really use what you (and I before) suggested.
-> >>>
-> >>> A temporary solution would be to list the "ti,am3352-rtc" first in the
-> >>> of_match_table kernel-side.
-> >>
-> >> If above method is followed, then it would cause trouble on davinci
-> >> platform because this rtc-omap driver is also used by Davinci platform.
-> >> On davinci Plaform the driver would match with "ti,am3352-rtc" for
-> >> compatible.
-> >
-> > Sorry, I don't follow. Does the davinci dt have "ti,am3352-rtc" in it's
-> > compatible string list?
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [130802 05:05]:
+> On 23/07/13 12:06, Tomi Valkeinen wrote:
+> > Hi Tony,
+> > 
+> > Here's a fix for 3.11 that makes EDID read for DVI work again.
+> > 
+> > I also included a cleanup patch that removes the non-DT support functions that
+> > are no longer called from anywhere. It's not a fix, but as we're in quite early
+> > rcs, I thought it would be nice to remove the dead code.
+> > 
+> > Up to you if you want to include that one for 3.11 or not. If not, I'll include
+> > it in a board file series for 3.12 that I'll send soon.
+> > 
+> >  Tomi
+> > 
+> > Tomi Valkeinen (2):
+> >   ARM: OMAP: dss-common: fix Panda's DVI DDC channel
+> >   ARM: OMAP2+: Remove legacy DSS initialization for omap4
+> > 
+> >  arch/arm/mach-omap2/dss-common.c | 49 +---------------------------------------
+> >  arch/arm/mach-omap2/dss-common.h |  2 --
+> >  2 files changed, 1 insertion(+), 50 deletions(-)
+> > 
 > 
-> no no. Davinci .dts uses "ti,da830-rtc".
+> Ping.
 
-Ok.
+Oops, sorry I was offline last week and still not caught up on mails..
+If you have other DSS fixes I suggest you also send these fixes:
 
-> 
-> I was saying if we reverse the order of "of_device_id" structure in 
-> rtc-omap driver, then it would work nicely for am335x but will cause 
-> trouble on davinci platform.
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-I don't understand. If we place "ti,am3352-rtc" first in the list, it
-won't be match the davinci dts compatible string, and the code will go
-over the of_device_id entires until it finds the "ti,da830-rtc" entry
-used by davinci.
+If not, let me know and I'll queue these.
 
-What problem would this cause, and why?
+Regards,
 
-Thanks,
-Mark.
-
-> 
-> >
-> > If so, and it's not compatible, the dts is wrong.
-> >
-> > If not, then we won't use the behaviour specific to "ti,am3352-rtc", and
-> > there's no problem.
-> >
-> > What trouble would this cause?
-> >
-> > Thanks,
-> > Mark.
-> >
-> >>
-> >> Regards
-> >> Gururaja
-> >>
-> >>> That way you can keep the old compatible
-> >>> string in the dts compatible list, and maintain backwards compatibilty
-> >>> with older kernels.
-> >>>
-> >>> Later if the way Linux matches compatible strings is changed, this
-> >>> shouldn't break the probe order, and the of_match_table order could be
-> >>> changed.
-> >>>
-> >>> Have I missed something?
-> >>>
-> >>> Thanks,
-> >>> Mark.
-> >>>
-> >>
-> >>
-> >> _______________________________________________
-> >> linux-arm-kernel mailing list
-> >> linux-arm-kernel@lists.infradead.org
-> >> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> >>
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
+Tony
