@@ -1,46 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: allow DEBUG_UNCOMPRESS for omap2plus
-Date: Fri, 2 Aug 2013 00:29:25 -0700
-Message-ID: <20130802072925.GX7656@atomide.com>
-References: <1375224558-8170-1-git-send-email-swarren@wwwdotorg.org>
- <20130730225233.GF21614@n2100.arm.linux.org.uk>
- <51F845C7.8020106@wwwdotorg.org>
- <20130731064634.GR7656@atomide.com>
- <51F94200.2060202@wwwdotorg.org>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 1/4] CLK: ti: dra7: Initialize USB_DPLL
+Date: Fri, 2 Aug 2013 10:30:47 +0300
+Message-ID: <51FB6027.6080808@ti.com>
+References: <1375369134-26398-1-git-send-email-rogerq@ti.com> <1375369134-26398-2-git-send-email-rogerq@ti.com> <51FA7976.8020707@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:48294 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755867Ab3HBH3d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Aug 2013 03:29:33 -0400
-Content-Disposition: inline
-In-Reply-To: <51F94200.2060202@wwwdotorg.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51FA7976.8020707@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: tony@atomide.com, rnayak@ti.com, benoit.cousson@linaro.org, balbi@ti.com, george.cherian@ti.com, kishon@ti.com, dmurphy@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, Shawn Guo <shawn.guo@linaro.org>
 
-* Stephen Warren <swarren@wwwdotorg.org> [130731 10:04]:
-> On 07/31/2013 12:46 AM, Tony Lindgren wrote:
-> > 
-> > I think we're best off removing the remaining uncompress code
-> > configured port detection features as the port properties are now
-> > defined in kconfig anyways. That simplifies the code quite a bit.
+Hi Nishant,
+
+On 08/01/2013 06:06 PM, Nishanth Menon wrote:
+> On 08/01/2013 09:58 AM, Roger Quadros wrote:
+>> USB_DPLL must be initialized and locked at boot so that
+>> USB modules can work.
+>>
+>> Also program USB_DLL_M2 output to half rate.
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>   drivers/clk/omap/clk-7xx.c |   11 +++++++++++
+>>   1 files changed, 11 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/clk/omap/clk-7xx.c b/drivers/clk/omap/clk-7xx.c
+>> index ddb39dd..f444513 100644
+>> --- a/drivers/clk/omap/clk-7xx.c
+>> +++ b/drivers/clk/omap/clk-7xx.c
+>> @@ -19,6 +19,7 @@
+>>
+>>   #define DRA7_DPLL_ABE_DEFFREQ                361267200
+>>   #define DRA7_DPLL_GMAC_DEFFREQ                1000000000
+>> +#define DRA7_DPLL_USB_DEFFREQ                960000000
+>>
+>>
+>>   static struct omap_dt_clk dra7xx_clks[] = {
+>> @@ -63,5 +64,15 @@ int __init dra7xx_clk_init(void)
+>>       if (rc)
+>>           pr_err("%s: failed to configure GMAC DPLL!\n", __func__);
+>>
+>> +    dpll_ck = clk_get_sys(NULL, "dpll_usb_ck");
+>> +    rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ);
+>> +    if (rc)
+>> +        pr_err("%s: failed to configure USB DPLL!\n", __func__);
+>> +
+>> +    dpll_ck = clk_get_sys(NULL, "dpll_usb_m2_ck");
+>> +    rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ/2);
+>> +    if (rc)
+>> +        pr_err("%s: failed to set USB_DPLL M2 OUT\n", __func__);
+>> +
+>>       return rc;
+>>   }
+>>
+> As I had mentioned on [1] - we are going to see similar needs keep popping up. there is no need to hack this up for even more peripherals :(
 > 
-> If you want to do that with OMAP, I'm happy to drop this patch.
+> http://marc.info/?l=linux-omap&m=137536803106017&w=2
+> 
+The DPLLs need to be initialized irrespective of whether peripheral drivers are present or not.
+We have seen cases where the SoC fails to enter RETention if the DPLLS are not correctly
+configured.
 
-Yes on my list of things to do..
- 
-> For Tegra, automatic determination of the DEBUG_LL UART is rather
-> useful, so I'm not going to give that up:-)
+But I agree with you that we should be able to initialize it by specifying the initial rate via Clock Data.
 
-For omaps there's just too many options to try to detect anything.
+This patch can be removed when the appropriate feature is added in OMAP clock core.
 
-It seems the best strategy seems to be to just init things later on
-so DEBUG_LL is only needed when booting breaks really early on
-during the boot process.
-
-Regards,
-
-Tony
+cheers,
+-roger
