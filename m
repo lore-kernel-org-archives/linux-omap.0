@@ -1,269 +1,180 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 05/31] CLK: TI: add support for OMAP gate clock
-Date: Fri, 2 Aug 2013 19:25:24 +0300
-Message-ID: <1375460751-23676-6-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 07/31] CLK: TI: add omap4 clock init file
+Date: Fri, 2 Aug 2013 19:25:26 +0300
+Message-ID: <1375460751-23676-8-git-send-email-t-kristo@ti.com>
 References: <1375460751-23676-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56708 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753002Ab3HBQ0q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Aug 2013 12:26:46 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:36744 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753835Ab3HBQ0u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Aug 2013 12:26:50 -0400
 In-Reply-To: <1375460751-23676-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-This node adds support for a clock node which allows control to the
-clockdomain enable / disable.
+clk-44xx.c now contains the clock init functionality for omap4, including
+DT clock registration and adding of static clkdev entries.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- .../devicetree/bindings/clock/ti/gate.txt          |   41 ++++++++
- arch/arm/mach-omap2/clock.h                        |    9 --
- drivers/clk/ti/Makefile                            |    2 +-
- drivers/clk/ti/gate.c                              |  106 ++++++++++++++++++++
- include/linux/clk/ti.h                             |    8 ++
- 5 files changed, 156 insertions(+), 10 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/clock/ti/gate.txt
- create mode 100644 drivers/clk/ti/gate.c
+ arch/arm/mach-omap2/clock.h |    1 -
+ drivers/clk/ti/clk-44xx.c   |  118 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/clk/ti.h      |    1 +
+ 3 files changed, 119 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/clk/ti/clk-44xx.c
 
-diff --git a/Documentation/devicetree/bindings/clock/ti/gate.txt b/Documentation/devicetree/bindings/clock/ti/gate.txt
-new file mode 100644
-index 0000000..620a73d
---- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/ti/gate.txt
-@@ -0,0 +1,41 @@
-+Binding for Texas Instruments gate clock.
-+
-+This binding uses the common clock binding[1]. This clock is
-+quite much similar to the basic gate-clock [2], however,
-+it supports a number of additional features. If no register
-+is provided for this clock, the code assumes that a clockdomain
-+will be controlled instead and the corresponding hw-ops for
-+that is used.
-+
-+[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-+[2] Documentation/devicetree/bindings/clock/gate-clock.txt
-+
-+Required properties:
-+- compatible : shall be "ti,gate-clock"
-+- #clock-cells : from common clock binding; shall be set to 0
-+- clocks : link to phandle of parent clock
-+
-+Optional properties:
-+- reg : base address for register controlling adjustable gate
-+- ti,enable-bit : bit shift for programming the clock gate
-+- ti,dss-clk : use DSS hardware OPS for the clock
-+- ti,am35xx-clk : use AM35xx hardware OPS for the clock
-+- ti,clkdm-name : clockdomain to control this gate
-+
-+Examples:
-+	trace_clk_div_ck: trace_clk_div_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,gate-clock";
-+		clocks = <&trace_clk_div_div_ck>;
-+		ti,clkdm-name = "emu_sys_clkdm";
-+	};
-+
-+	emac_ick: emac_ick@4800259c {
-+		#clock-cells = <0>;
-+		compatible = "ti,gate-clock";
-+		clocks = <&ipss_ick>;
-+		reg = <0x4800259c 0x4>;
-+		ti,clkdm-name = "core_l3_clkdm";
-+		ti,enable-bit = <1>;
-+		ti,am35xx-clk;
-+	};
 diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 079536a..1a8c41a 100644
+index 1a8c41a..f0ee28c 100644
 --- a/arch/arm/mach-omap2/clock.h
 +++ b/arch/arm/mach-omap2/clock.h
-@@ -260,9 +260,6 @@ extern void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk);
- 
- unsigned long omap2_get_dpll_rate(struct clk_hw_omap *clk);
- 
--int omap2_dflt_clk_enable(struct clk_hw *hw);
--void omap2_dflt_clk_disable(struct clk_hw *hw);
--int omap2_dflt_clk_is_enabled(struct clk_hw *hw);
- void omap2_clk_dflt_find_companion(struct clk_hw_omap *clk,
- 				   void __iomem **other_reg,
- 				   u8 *other_bit);
-@@ -292,15 +289,12 @@ extern const struct clksel_rate dsp_ick_rates[];
- extern struct clk dummy_ck;
- 
- extern const struct clk_hw_omap_ops clkhwops_iclk_wait;
--extern const struct clk_hw_omap_ops clkhwops_wait;
- extern const struct clk_hw_omap_ops clkhwops_iclk;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_ssi_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait;
--extern const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_dss_usbhost_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_hsotgusb_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_hsotgusb_wait;
--extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
- extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait;
- extern const struct clk_hw_omap_ops clkhwops_apll54;
- extern const struct clk_hw_omap_ops clkhwops_apll96;
-@@ -318,8 +312,5 @@ extern const struct clksel_rate div31_1to31_rates[];
- 
- extern int am33xx_clk_init(void);
- 
--extern int omap2_clkops_enable_clkdm(struct clk_hw *hw);
--extern void omap2_clkops_disable_clkdm(struct clk_hw *hw);
--
- extern void omap_clocks_register(struct omap_clk *oclks, int cnt);
- #endif
-diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index 533efb4..57bfbaa 100644
---- a/drivers/clk/ti/Makefile
-+++ b/drivers/clk/ti/Makefile
-@@ -1,3 +1,3 @@
- ifneq ($(CONFIG_OF),)
--obj-y					+= clk.o dpll.o autoidle.o
-+obj-y					+= clk.o dpll.o autoidle.o gate.o
- endif
-diff --git a/drivers/clk/ti/gate.c b/drivers/clk/ti/gate.c
+@@ -267,7 +267,6 @@ void omap2_clk_dflt_find_idlest(struct clk_hw_omap *clk,
+ 				void __iomem **idlest_reg,
+ 				u8 *idlest_bit, u8 *idlest_val);
+ int omap2_clk_enable_autoidle_all(void);
+-int omap2_clk_disable_autoidle_all(void);
+ void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks);
+ int omap2_clk_switch_mpurate_at_boot(const char *mpurate_ck_name);
+ void omap2_clk_print_new_rates(const char *hfclkin_ck_name,
+diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
 new file mode 100644
-index 0000000..2c68310
+index 0000000..2c2ec72
 --- /dev/null
-+++ b/drivers/clk/ti/gate.c
-@@ -0,0 +1,106 @@
++++ b/drivers/clk/ti/clk-44xx.c
+@@ -0,0 +1,118 @@
 +/*
-+ * OMAP gate clock support
++ * OMAP4 Clock data
 + *
-+ * Copyright (C) 2013 Texas Instruments, Inc.
++ * Copyright (C) 2009-2012 Texas Instruments, Inc.
++ * Copyright (C) 2009-2010 Nokia Corporation
 + *
-+ * Tero Kristo <t-kristo@ti.com>
++ * Paul Walmsley (paul@pwsan.com)
++ * Rajendra Nayak (rnayak@ti.com)
++ * Benoit Cousson (b-cousson@ti.com)
++ * Mike Turquette (mturquette@ti.com)
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
++ * XXX Some of the ES1 clocks have been removed/changed; once support
++ * is added for discriminating clocks by ES level, these should be added back
++ * in.
++ *
++ * XXX All of the remaining MODULEMODE clock nodes should be removed
++ * once the drivers are updated to use pm_runtime or to use the appropriate
++ * upstream clock node for rate/parent selection.
 + */
 +
-+#include <linux/clk-provider.h>
-+#include <linux/slab.h>
-+#include <linux/of.h>
-+#include <linux/of_address.h>
++#include <linux/kernel.h>
++#include <linux/list.h>
++#include <linux/clk-private.h>
++#include <linux/clkdev.h>
 +#include <linux/clk/ti.h>
 +
-+static const struct clk_ops omap_gate_clkdm_clk_ops = {
-+	.init		= &omap2_init_clk_clkdm,
-+	.enable		= &omap2_clkops_enable_clkdm,
-+	.disable	= &omap2_clkops_disable_clkdm,
++/*
++ * OMAP4 ABE DPLL default frequency. In OMAP4460 TRM version V, section
++ * "3.6.3.2.3 CM1_ABE Clock Generator" states that the "DPLL_ABE_X2_CLK
++ * must be set to 196.608 MHz" and hence, the DPLL locked frequency is
++ * half of this value.
++ */
++#define OMAP4_DPLL_ABE_DEFFREQ				98304000
++
++/*
++ * OMAP4 USB DPLL default frequency. In OMAP4430 TRM version V, section
++ * "3.6.3.9.5 DPLL_USB Preferred Settings" shows that the preferred
++ * locked frequency for the USB DPLL is 960MHz.
++ */
++#define OMAP4_DPLL_USB_DEFFREQ				960000000
++
++static struct omap_dt_clk omap44xx_clks[] = {
++	DT_CLK("smp_twd",	NULL,			"mpu_periphclk"),
++	DT_CLK("omapdss_dss", "ick", "dss_fck"),
++	DT_CLK("usbhs_omap", "fs_fck", "usb_host_fs_fck"),
++	DT_CLK("usbhs_omap", "hs_fck", "usb_host_hs_fck"),
++	DT_CLK("usbhs_omap", "usbtll_ick", "usb_tll_hs_ick"),
++	DT_CLK("usbhs_tll", "usbtll_ick", "usb_tll_hs_ick"),
++	DT_CLK(NULL,	"timer_32k_ck",	"sys_32k_ck"),
++	/* TODO: Remove "omap_timer.X" aliases once DT migration is complete */
++	DT_CLK("omap_timer.1",	"timer_sys_ck",	"sys_clkin_ck"),
++	DT_CLK("omap_timer.2",	"timer_sys_ck",	"sys_clkin_ck"),
++	DT_CLK("omap_timer.3",	"timer_sys_ck",	"sys_clkin_ck"),
++	DT_CLK("omap_timer.4",	"timer_sys_ck",	"sys_clkin_ck"),
++	DT_CLK("omap_timer.9",	"timer_sys_ck",	"sys_clkin_ck"),
++	DT_CLK("omap_timer.10",	"timer_sys_ck",	"sys_clkin_ck"),
++	DT_CLK("omap_timer.11",	"timer_sys_ck",	"sys_clkin_ck"),
++	DT_CLK("omap_timer.5",	"timer_sys_ck",	"syc_clk_div_ck"),
++	DT_CLK("omap_timer.6",	"timer_sys_ck",	"syc_clk_div_ck"),
++	DT_CLK("omap_timer.7",	"timer_sys_ck",	"syc_clk_div_ck"),
++	DT_CLK("omap_timer.8",	"timer_sys_ck",	"syc_clk_div_ck"),
++	DT_CLK("4a318000.timer",	"timer_sys_ck",	"sys_clkin_ck"),
++	DT_CLK("48032000.timer",	"timer_sys_ck",	"sys_clkin_ck"),
++	DT_CLK("48034000.timer",	"timer_sys_ck",	"sys_clkin_ck"),
++	DT_CLK("48036000.timer",	"timer_sys_ck",	"sys_clkin_ck"),
++	DT_CLK("4803e000.timer",	"timer_sys_ck",	"sys_clkin_ck"),
++	DT_CLK("48086000.timer",	"timer_sys_ck",	"sys_clkin_ck"),
++	DT_CLK("48088000.timer",	"timer_sys_ck",	"sys_clkin_ck"),
++	DT_CLK("40138000.timer",	"timer_sys_ck",	"syc_clk_div_ck"),
++	DT_CLK("4013a000.timer",	"timer_sys_ck",	"syc_clk_div_ck"),
++	DT_CLK("4013c000.timer",	"timer_sys_ck",	"syc_clk_div_ck"),
++	DT_CLK("4013e000.timer",	"timer_sys_ck",	"syc_clk_div_ck"),
++	DT_CLK(NULL,	"cpufreq_ck",	"dpll_mpu_ck"),
++	{ NULL },
 +};
 +
-+static const struct clk_ops omap_gate_clk_ops = {
-+	.init		= &omap2_init_clk_clkdm,
-+	.enable		= &omap2_dflt_clk_enable,
-+	.disable	= &omap2_dflt_clk_disable,
-+	.is_enabled	= &omap2_dflt_clk_is_enabled,
-+};
-+
-+void __init of_omap_gate_clk_setup(struct device_node *node)
++int __init omap4xxx_clk_init(void)
 +{
-+	struct clk *clk;
-+	struct clk_init_data init = { 0 };
-+	struct clk_hw_omap *clk_hw;
-+	const char *clk_name = node->name;
-+	int num_parents;
-+	const char **parent_names = NULL;
-+	int i;
-+	u32 val;
++	int rc;
++	struct clk *abe_dpll_ref, *abe_dpll, *sys_32k_ck, *usb_dpll;
 +
-+	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
-+	if (!clk_hw) {
-+		pr_err("%s: could not allocate clk_hw_omap\n", __func__);
-+		return;
-+	}
++	/* FIXME register clocks from DT first */
++	of_clk_init(NULL);
 +
-+	clk_hw->hw.init = &init;
++	omap_dt_clocks_register(omap44xx_clks);
 +
-+	of_property_read_string(node, "clock-output-names", &clk_name);
-+	of_property_read_string(node, "ti,clkdm-name", &clk_hw->clkdm_name);
++	omap2_clk_disable_autoidle_all();
 +
-+	init.name = clk_name;
-+	init.flags = 0;
++	/*
++	 * On OMAP4460 the ABE DPLL fails to turn on if in idle low-power
++	 * state when turning the ABE clock domain. Workaround this by
++	 * locking the ABE DPLL on boot.
++	 * Lock the ABE DPLL in any case to avoid issues with audio.
++	 */
++	abe_dpll_ref = clk_get_sys(NULL, "abe_dpll_refclk_mux_ck");
++	sys_32k_ck = clk_get_sys(NULL, "sys_32k_ck");
++	rc = clk_set_parent(abe_dpll_ref, sys_32k_ck);
++	abe_dpll = clk_get_sys(NULL, "dpll_abe_ck");
++	if (!rc)
++		rc = clk_set_rate(abe_dpll, OMAP4_DPLL_ABE_DEFFREQ);
++	if (rc)
++		pr_err("%s: failed to configure ABE DPLL!\n", __func__);
 +
-+	if (of_property_read_u32_index(node, "reg", 0, &val)) {
-+		/* No register, clkdm control only */
-+		init.ops = &omap_gate_clkdm_clk_ops;
-+	} else {
-+		init.ops = &omap_gate_clk_ops;
-+		clk_hw->enable_reg = of_iomap(node, 0);
-+		of_property_read_u32(node, "ti,enable-bit", &val);
-+		clk_hw->enable_bit = val;
++	/*
++	 * Lock USB DPLL on OMAP4 devices so that the L3INIT power
++	 * domain can transition to retention state when not in use.
++	 */
++	usb_dpll = clk_get_sys(NULL, "dpll_usb_ck");
++	rc = clk_set_rate(usb_dpll, OMAP4_DPLL_USB_DEFFREQ);
++	if (rc)
++		pr_err("%s: failed to configure USB DPLL!\n", __func__);
 +
-+		clk_hw->ops = &clkhwops_wait;
-+
-+		if (of_property_read_bool(node, "ti,dss-clk"))
-+			clk_hw->ops = &clkhwops_omap3430es2_dss_usbhost_wait;
-+
-+		if (of_property_read_bool(node, "ti,am35xx-clk"))
-+			clk_hw->ops = &clkhwops_am35xx_ipss_module_wait;
-+	}
-+
-+	num_parents = of_clk_get_parent_count(node);
-+	if (num_parents < 1) {
-+		pr_err("%s: omap trace_clk %s must have parent(s)\n",
-+		       __func__, node->name);
-+		goto cleanup;
-+	}
-+
-+	parent_names = kzalloc(sizeof(char *) * num_parents, GFP_KERNEL);
-+
-+	for (i = 0; i < num_parents; i++)
-+		parent_names[i] = of_clk_get_parent_name(node, i);
-+
-+	init.num_parents = num_parents;
-+	init.parent_names = parent_names;
-+
-+	clk = clk_register(NULL, &clk_hw->hw);
-+
-+	if (!IS_ERR(clk)) {
-+		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-+		return;
-+	}
-+
-+cleanup:
-+	kfree(parent_names);
-+	kfree(clk_hw);
++	return 0;
 +}
-+CLK_OF_DECLARE(omap_gate_clk, "ti,gate-clock", of_omap_gate_clk_setup);
 diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 781ef23..eec4973 100644
+index eec4973..c4f0c1b 100644
 --- a/include/linux/clk/ti.h
 +++ b/include/linux/clk/ti.h
-@@ -176,8 +176,13 @@ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
- void omap2_init_clk_clkdm(struct clk_hw *clk);
- unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
+@@ -178,6 +178,7 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
  				    unsigned long parent_rate);
-+int omap2_clkops_enable_clkdm(struct clk_hw *hw);
-+void omap2_clkops_disable_clkdm(struct clk_hw *hw);
+ int omap2_clkops_enable_clkdm(struct clk_hw *hw);
+ void omap2_clkops_disable_clkdm(struct clk_hw *hw);
++int omap2_clk_disable_autoidle_all(void);
  int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
  			 unsigned long parent_rate);
-+int omap2_dflt_clk_enable(struct clk_hw *hw);
-+void omap2_dflt_clk_disable(struct clk_hw *hw);
-+int omap2_dflt_clk_is_enabled(struct clk_hw *hw);
- 
- void omap_dt_clocks_register(struct omap_dt_clk *oclks);
- #ifdef CONFIG_OF
-@@ -190,5 +195,8 @@ static inline void of_omap_clk_deny_autoidle_all(void) { }
- 
- extern const struct clk_hw_omap_ops clkhwops_omap3_dpll;
- extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
-+extern const struct clk_hw_omap_ops clkhwops_wait;
-+extern const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait;
-+extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
- 
- #endif
+ int omap2_dflt_clk_enable(struct clk_hw *hw);
 -- 
 1.7.9.5
 
