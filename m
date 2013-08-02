@@ -1,85 +1,86 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCH] drivers: mtd: devices: make m25p80 dt adapted.
-Date: Fri, 2 Aug 2013 12:22:09 +0530
-Message-ID: <51FB5719.7050209@ti.com>
-References: <1375426170-31609-1-git-send-email-sourav.poddar@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv4 05/33] CLK: omap: add DT duplicate clock registration
+ mechanism
+Date: Fri, 2 Aug 2013 00:22:21 -0700
+Message-ID: <20130802072220.GV7656@atomide.com>
+References: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
+ <1374564028-11352-6-git-send-email-t-kristo@ti.com>
+ <51F808A8.6000503@ti.com>
+ <51F8E1F5.20706@ti.com>
+ <51FA6FCA.3050900@ti.com>
+ <51FA7C39.8090100@ti.com>
+ <51FA7DB6.3060002@ti.com>
+ <51FA7F12.6010407@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37538 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754751Ab3HBGwg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Aug 2013 02:52:36 -0400
-In-Reply-To: <1375426170-31609-1-git-send-email-sourav.poddar@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:36197 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754466Ab3HBHWZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Aug 2013 03:22:25 -0400
+Content-Disposition: inline
+In-Reply-To: <51FA7F12.6010407@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: dwmw2@infradead.org, artem.bityutskiy@linux.intel.com, linux-mtd@lists.infradead.org, devicetree@vger.kernel.org, balbi@ti.com, pekon@ti.com, linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, mturquette@linaro.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-+ correct device tree mailing list
-On Friday 02 August 2013 12:19 PM, Sourav Poddar wrote:
-> This patch helps gettimg m25p80 probed through dt.
-> To get the id of the exact flash type supported for dt case,
-> data->type is getting parsed from dt entry.
->
-> Signed-off-by: Sourav Poddar<sourav.poddar@ti.com>
-> ---
->   drivers/mtd/devices/m25p80.c |   22 +++++++++++++++++++++-
->   1 files changed, 21 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/mtd/devices/m25p80.c b/drivers/mtd/devices/m25p80.c
-> index 33098bf..cbfb9b3 100644
-> --- a/drivers/mtd/devices/m25p80.c
-> +++ b/drivers/mtd/devices/m25p80.c
-> @@ -855,6 +855,13 @@ static const struct spi_device_id m25p_ids[] = {
->   };
->   MODULE_DEVICE_TABLE(spi, m25p_ids);
->
-> +#ifdef CONFIG_OF
-> +static const struct of_device_id m25p_dt_ids[] = {
-> +	{ .compatible = "m25p80", },
-> +	{ /* sentinel */ }
-> +};
-> +#endif
-> +
->   static const struct spi_device_id *jedec_probe(struct spi_device *spi)
->   {
->   	int			tmp;
-> @@ -909,6 +916,7 @@ static int m25p_probe(struct spi_device *spi)
->   	unsigned			i;
->   	struct mtd_part_parser_data	ppdata;
->   	struct device_node __maybe_unused *np = spi->dev.of_node;
-> +	int len;
->
->   #ifdef CONFIG_MTD_OF_PARTS
->   	if (!of_device_is_available(np))
-> @@ -920,7 +928,18 @@ static int m25p_probe(struct spi_device *spi)
->   	 * a chip ID, try the JEDEC id commands; they'll work for most
->   	 * newer chips, even if we don't recognize the particular chip.
->   	 */
-> -	data = spi->dev.platform_data;
-> +	if (!np) {
-> +		data = spi->dev.platform_data;
-> +	} else {
-> +		data = devm_kzalloc(&spi->dev, sizeof(*data), GFP_KERNEL);
-> +		if (!data)
-> +			return -ENOMEM;
-> +
-> +		data->type = (char *) of_get_property(np, "type",&len);
-> +		if (!data->type || strlen(data->type)>  len)
-> +			return -ENODEV;
-> +	}
-> +
->   	if (data&&  data->type) {
->   		const struct spi_device_id *plat_id;
->
-> @@ -1098,6 +1117,7 @@ static struct spi_driver m25p80_driver = {
->   	.driver = {
->   		.name	= "m25p80",
->   		.owner	= THIS_MODULE,
-> +		.of_match_table = of_match_ptr(m25p_dt_ids),
->   	},
->   	.id_table	= m25p_ids,
->   	.probe	= m25p_probe,
+* Tero Kristo <t-kristo@ti.com> [130801 08:37]:
+> On 08/01/2013 06:24 PM, Nishanth Menon wrote:
+> >On 08/01/2013 10:18 AM, Tero Kristo wrote:
+> >>On 08/01/2013 05:25 PM, Nishanth Menon wrote:
+> >>>On 07/31/2013 05:07 AM, Tero Kristo wrote:
+> >>>>On 07/30/2013 09:40 PM, Nishanth Menon wrote:
+> >>>>>On 07/23/2013 02:20 AM, Tero Kristo wrote:
+> >[..]
+> >>>if we can get rid of usage of omap_hwmod_get_main_clk by catching them
+> >>>with [1], then we can force the drivers to pick up based on device node
+> >>>clocks= property.
+> >>>
+> >>>It might be easier to fix 1 driver - timer, rather than introduce am33x,
+> >>>omap4, omap5 dra7 specific "SoC clk driver".
+> >>>
+> >>>with that this entire patch becomes redundant.
+> >>
+> >>It is not that simple. Looking at the architectures this set supports, I
+> >>see clock alias nodes at least for following drivers:
+> >>
+> >>- GPT timer
+> >>- USB
+> >>- DCAN
+> >>- EMAC
+> >>- VPFE
+> >>- UART
+> >>- SSI
+> >>- DSS
+> >>- security
+> >>- MMC
+> >>- MCBSP
+> >>- MCSPI
+> >>
+> >>I am _not_ going to fix all of these during the initial phase. :P
+> >>
+> >>But yes, eventually these should go away.
+> >
+> >How many of these are needed to boot? what functionality do we expect
+> >with the series -> we can constraint saying that remaining drivers
+> >should fix themselves the right way, else dont have the feature -
+> >example cpufreq- fix it the right way, or wont see the feature enabled.
+> >
+> >introducing a "way out" for all of these just invites more guys to screw
+> >around claiming "it was done before - see here"..
+> >
+> >lets just fix the darned basic ones, refuse to provide "way out" and let
+> >the others fix themselves.
+> >
+> 
+> Yea, that would be one way. I guess someone like Tony should comment
+> on this.
 
+Well how about add some dev_warns so we can keep things working and
+know which ones to fix? Otherwise it seems that things will not work
+properly for many devices.
+
+Regards,
+
+Tony
