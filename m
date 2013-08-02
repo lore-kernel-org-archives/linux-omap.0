@@ -1,118 +1,59 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: Re: [PATCH 2/4] ARM: dts: dra7: Add USB related nodes
-Date: Fri, 2 Aug 2013 20:32:40 +0530
-Message-ID: <51FBCA10.9070806@ti.com>
-References: <1375369134-26398-1-git-send-email-rogerq@ti.com> <1375369134-26398-3-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH 3/4] dts: dra7-evm: add USB support
+Date: Fri, 2 Aug 2013 20:34:15 +0530
+Message-ID: <51FBCA6F.9030503@ti.com>
+References: <1375369134-26398-1-git-send-email-rogerq@ti.com> <1375369134-26398-4-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1375369134-26398-3-git-send-email-rogerq@ti.com>
+In-Reply-To: <1375369134-26398-4-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
 Cc: tony@atomide.com, rnayak@ti.com, benoit.cousson@linaro.org, balbi@ti.com, kishon@ti.com, dmurphy@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 On 8/1/2013 8:28 PM, Roger Quadros wrote:
-> Add nodes for the Super Speed USB controllers, omap-control-usb,
-> USB2 PHY and USB3 PHY devices.
+> Add USB drv_vbus pinctrl information and USB mode
+> for the USB controller.
 >
 > Signed-off-by: Roger Quadros <rogerq@ti.com>
 > ---
->   arch/arm/boot/dts/dra7.dtsi |  136 +++++++++++++++++++++++++++++++++++++++++++
->   1 files changed, 136 insertions(+), 0 deletions(-)
+>   arch/arm/boot/dts/dra7-evm.dts |   22 ++++++++++++++++++++++
+>   1 files changed, 22 insertions(+), 0 deletions(-)
 >
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index ce9a0f0..3a2e55e 100644
-
-<snip>
-
-> +		omap_dwc3_1@48880000 {
-
-How about usb1: omap_dwc3@48880000 {
-           usb2: omap_dwc3@488c0000 { etc.
-
-> +			compatible = "ti,dwc3";
-> +			ti,hwmods = "usb_otg_ss1";
-> +			reg = <0x48880000 0x10000>;
-> +			interrupts = <0 77 4>;
-> +			#address-cells = <1>;
-> +			#size-cells = <1>;
-> +			utmi-mode = <2>;
-> +			ranges;
-> +			dwc3_1: dwc3@48890000 {
-> +				compatible = "synopsys,dwc3";
-> +				reg = <0x48890000 0x17000>;
-> +				interrupts = <0 76 4>;
-> +				usb-phy = <&usb2_phy1>, <&usb3_phy1>;
-> +				tx-fifo-resize;
-> +				maximum-speed = "super-speed";
-> +				dr_mode = "otg";
-> +			};
-> +		};
-> +
-> +		omap_dwc3_2@488c0000 {
-> +			compatible = "ti,dwc3";
-> +			ti,hwmods = "usb_otg_ss2";
-> +			reg = <0x488c0000 0x10000>;
-> +			interrupts = <0 92 4>;
-> +			#address-cells = <1>;
-> +			#size-cells = <1>;
-> +			utmi-mode = <2>;
-> +			ranges;
-> +			dwc3_2: dwc3@488d0000 {
-> +				compatible = "synopsys,dwc3";
-> +				reg = <0x488d0000 0x17000>;
-> +				interrupts = <0 78 4>;
-> +				usb-phy = <&usb2_phy2>;
-> +				tx-fifo-resize;
-> +				maximum-speed = "high-speed";
-> +				dr_mode = "otg";
-> +			};
-> +		};
-> +
-> +		/* IRQ for DWC3_3 and DWC3_4 need IRQ crossbar */
-> +		omap_dwc3_3@48900000 {
-> +			compatible = "ti,dwc3";
-> +			ti,hwmods = "usb_otg_ss3";
-> +			reg = <0x48900000 0x10000>;
-> +		/*	interrupts = <0 TBD 4>; */
-> +			#address-cells = <1>;
-> +			#size-cells = <1>;
-> +			utmi-mode = <2>;
-> +			ranges;
-> +			dwc3_3: dwc3@48910000 {
-> +				compatible = "synopsys,dwc3";
-> +				reg = <0x48910000 0x17000>;
-> +		/*		interrupts = <0 93 4>; */
-> +				tx-fifo-resize;
-> +				maximum-speed = "high-speed";
-> +				dr_mode = "otg";
-> +			};
-> +		};
-> +
-> +		omap_dwc3_4@48940000 {
-> +			compatible = "ti,dwc3";
-> +			ti,hwmods = "usb_otg_ss4";
-> +			reg = <0x48940000 0x10000>;
-> +		/*	interrupts = <0 TBD 4>; */
-> +			#address-cells = <1>;
-> +			#size-cells = <1>;
-> +			utmi-mode = <2>;
-> +			ranges;
-> +			dwc3_4: dwc3@48950000 {
-> +				compatible = "synopsys,dwc3";
-> +				reg = <0x48950000 0x17000>;
-> +		/*		interrupts = <0 TBD 4>; */
-> +				tx-fifo-resize;
-> +				maximum-speed = "high-speed";
-> +				dr_mode = "otg";
-> +			};
-> +		};
-> +
+> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+> index cb0703c..acd3c09 100644
+> --- a/arch/arm/boot/dts/dra7-evm.dts
+> +++ b/arch/arm/boot/dts/dra7-evm.dts
+> @@ -18,3 +18,25 @@
+>   		reg = <0x80000000 0x60000000>; /* 1536 MB */
 >   	};
->   
->   	clocks {
+>   };
+> +
+> +&dra7_pmx_core {
+> +        pinctrl-names = "default";
+> +        pinctrl-0 = <
+> +		&usb_pins
+> +	>;
+> +
+> +	usb_pins: pinmux_usb_pins {
+> +                pinctrl-single,pins = <
+> +			0x280	0xc0000	/* usb1_drvvbus, SLOW_SLEW | PULLUPEN | MODE0 */
+> +			0x284	0xc0000 /* usb2_drvvbus, SLOW_SLEW | PULLUPEN | MODE0 */
+> +                >;
+> +        };
+> +};
+> +
+> +&dwc3_1 {
+> +	dr_mode = "otg";
+
+otg???
+> +};
+> +
+> +&dwc3_2 {
+> +	dr_mode = "host";
+> +};
 
 
 -- 
