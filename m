@@ -1,79 +1,104 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 1/4] CLK: ti: dra7: Initialize USB_DPLL
-Date: Fri, 2 Aug 2013 13:57:25 +0300
-Message-ID: <51FB9095.8030200@ti.com>
-References: <1375369134-26398-1-git-send-email-rogerq@ti.com> <1375369134-26398-2-git-send-email-rogerq@ti.com> <51FA7976.8020707@ti.com> <51FB6027.6080808@ti.com>
+From: Gururaja Hebbar <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [Patch V2 4/4] ARM: dts: AM33XX: update rtc node compatibility
+Date: Fri, 2 Aug 2013 16:37:36 +0530
+Message-ID: <51FB92F8.9020801@ti.com>
+References: <1372841225-18813-1-git-send-email-gururaja.hebbar@ti.com>
+	<1372841225-18813-5-git-send-email-gururaja.hebbar@ti.com>
+	<51F749B0.7020802@ti.com>
+	<20130730145501.GA29859@e106331-lin.cambridge.arm.com>
+	<51F7E7FA.3080702@ti.com>
+	<20130801170537.GF8095@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33281 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755985Ab3HBK5a (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Aug 2013 06:57:30 -0400
-In-Reply-To: <51FB6027.6080808@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20130801170537.GF8095-NuALmloUBlrZROr8t4l/smS4ubULX0JqMm0uRHvK7Nw@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Cc: "davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org" <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "benoit.cousson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <benoit.cousson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "vaibhav.bedia-l0cyMroinI0@public.gmane.org" <vaibhav.bedia-l0cyMroinI0@public.gmane.org>, "benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, tony@atomide.com, rnayak@ti.com, benoit.cousson@linaro.org, balbi@ti.com, george.cherian@ti.com, kishon@ti.com, dmurphy@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 08/02/2013 10:30 AM, Roger Quadros wrote:
-> Hi Nishant,
->
-> On 08/01/2013 06:06 PM, Nishanth Menon wrote:
->> On 08/01/2013 09:58 AM, Roger Quadros wrote:
->>> USB_DPLL must be initialized and locked at boot so that
->>> USB modules can work.
+On 8/1/2013 10:35 PM, Mark Rutland wrote:
+> On Tue, Jul 30, 2013 at 05:21:14PM +0100, Sekhar Nori wrote:
+>> On 7/30/2013 8:25 PM, Mark Rutland wrote:
+>>> On Tue, Jul 30, 2013 at 06:05:52AM +0100, Gururaja Hebbar wrote:
+>>>> Hi,
+>>>>
+>>>> On 7/3/2013 2:17 PM, Hebbar Gururaja wrote:
+>>>>> Since AM33xx  RTC IP has RTC_IRQWAKEEN to support Alarm Wake-up.
+>>>>>
+>>>>> Update the rtc compatible property to "ti,am3352-rtc" to enable handling
+>>>>> of this feature inside rtc-omap driver.
+>>>>
+>>>> The other 2 rtc driver related patches have been pulled up. If you have
+>>>> no comments, can you please pull this up.
+>>>>
+>>>> Regards
+>>>> Gururaja
+>>>>
+>>>>>
+>>>>> Signed-off-by: Hebbar Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+>>>>> ---
+>>>>> :100644 100644 77aa1b0... dde180a... M	arch/arm/boot/dts/am33xx.dtsi
+>>>>>    arch/arm/boot/dts/am33xx.dtsi |    2 +-
+>>>>>    1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>>
+>>>>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+>>>>> index 77aa1b0..dde180a 100644
+>>>>> --- a/arch/arm/boot/dts/am33xx.dtsi
+>>>>> +++ b/arch/arm/boot/dts/am33xx.dtsi
+>>>>> @@ -297,7 +297,7 @@
+>>>>>    		};
+>>>>>
+>>>>>    		rtc@44e3e000 {
+>>>>> -			compatible = "ti,da830-rtc";
+>>>>> +			compatible = "ti,am3352-rtc";
 >>>
->>> Also program USB_DLL_M2 output to half rate.
+>>> Given that this is backwards compatible with the old binding, it would
+>>> be nicer to have this as:
 >>>
->>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>> ---
->>>    drivers/clk/omap/clk-7xx.c |   11 +++++++++++
->>>    1 files changed, 11 insertions(+), 0 deletions(-)
+>>> 	compatible = "ti,am3352-rtc", "ti,da830-rtc";
 >>>
->>> diff --git a/drivers/clk/omap/clk-7xx.c b/drivers/clk/omap/clk-7xx.c
->>> index ddb39dd..f444513 100644
->>> --- a/drivers/clk/omap/clk-7xx.c
->>> +++ b/drivers/clk/omap/clk-7xx.c
->>> @@ -19,6 +19,7 @@
->>>
->>>    #define DRA7_DPLL_ABE_DEFFREQ                361267200
->>>    #define DRA7_DPLL_GMAC_DEFFREQ                1000000000
->>> +#define DRA7_DPLL_USB_DEFFREQ                960000000
->>>
->>>
->>>    static struct omap_dt_clk dra7xx_clks[] = {
->>> @@ -63,5 +64,15 @@ int __init dra7xx_clk_init(void)
->>>        if (rc)
->>>            pr_err("%s: failed to configure GMAC DPLL!\n", __func__);
->>>
->>> +    dpll_ck = clk_get_sys(NULL, "dpll_usb_ck");
->>> +    rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ);
->>> +    if (rc)
->>> +        pr_err("%s: failed to configure USB DPLL!\n", __func__);
->>> +
->>> +    dpll_ck = clk_get_sys(NULL, "dpll_usb_m2_ck");
->>> +    rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ/2);
->>> +    if (rc)
->>> +        pr_err("%s: failed to set USB_DPLL M2 OUT\n", __func__);
->>> +
->>>        return rc;
->>>    }
->>>
->> As I had mentioned on [1] - we are going to see similar needs keep popping up. there is no need to hack this up for even more peripherals :(
+>>> We must get into the habit of changing dts files in a
+>>> backwards-compatible fashion.
 >>
->> http://marc.info/?l=linux-omap&m=137536803106017&w=2
+>> Right, I suggested this when v1 was posted. It turns out the current
+>> kernel does not handle the compatilble list correctly and the string
+>> selected actually depends on the order in which it appears in match
+>> table in driver instead.
 >>
-> The DPLLs need to be initialized irrespective of whether peripheral drivers are present or not.
-> We have seen cases where the SoC fails to enter RETention if the DPLLS are not correctly
-> configured.
+>> I saw there were patches being discussed to fix this issue, but until
+>> that is fixed, we cannot really use what you (and I before) suggested.
 >
-> But I agree with you that we should be able to initialize it by specifying the initial rate via Clock Data.
+> A temporary solution would be to list the "ti,am3352-rtc" first in the
+> of_match_table kernel-side.
+
+If above method is followed, then it would cause trouble on davinci 
+platform because this rtc-omap driver is also used by Davinci platform.
+On davinci Plaform the driver would match with "ti,am3352-rtc" for 
+compatible.
+
+Regards
+Gururaja
+
+> That way you can keep the old compatible
+> string in the dts compatible list, and maintain backwards compatibilty
+> with older kernels.
 >
-> This patch can be removed when the appropriate feature is added in OMAP clock core.
-
-... not OMAP clock core, I would say clock core. This is again a feature 
-we can work with once we have initial support in place.
-
--Tero
+> Later if the way Linux matches compatible strings is changed, this
+> shouldn't break the probe order, and the of_match_table order could be
+> changed.
+>
+> Have I missed something?
+>
+> Thanks,
+> Mark.
+>
