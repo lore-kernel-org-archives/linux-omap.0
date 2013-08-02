@@ -1,25 +1,74 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: allow DEBUG_UNCOMPRESS for omap2plus
-Date: Fri, 2 Aug 2013 10:03:47 +0100
-Message-ID: <20130802090347.GD23053@n2100.arm.linux.org.uk>
-References: <1375224558-8170-1-git-send-email-swarren@wwwdotorg.org> <20130730225233.GF21614@n2100.arm.linux.org.uk> <51F845C7.8020106@wwwdotorg.org> <20130731064634.GR7656@atomide.com> <51F94200.2060202@wwwdotorg.org> <20130802072925.GX7656@atomide.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH] ARM: Update SMP_ON_UP code to detect A9MPCore with 1 CPU
+ devices
+Date: Fri, 2 Aug 2013 10:53:50 +0100
+Message-ID: <20130802095350.GI2465@mudshark.cambridge.arm.com>
+References: <1375381033-13220-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39894 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754442Ab3HBJFe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Aug 2013 05:05:34 -0400
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:61592 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758167Ab3HBJy0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Aug 2013 05:54:26 -0400
 Content-Disposition: inline
-In-Reply-To: <20130802072925.GX7656@atomide.com>
+In-Reply-To: <1375381033-13220-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, Shawn Guo <shawn.guo@linaro.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Russell King <linux@arm.linux.org.uk>
 
-On Fri, Aug 02, 2013 at 12:29:25AM -0700, Tony Lindgren wrote:
-> It seems the best strategy seems to be to just init things later on
-> so DEBUG_LL is only needed when booting breaks really early on
-> during the boot process.
+On Thu, Aug 01, 2013 at 07:17:13PM +0100, Santosh Shilimkar wrote:
+> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> 
+> The generic code is well equipped to differentiate between
+> SMP and UP configurations.However, there are some devices which
+> use Cortex-A9 MP core IP with 1 CPU as configuration. To let
+> these SOCs to co-exist in a CONFIG_SMP=y build by leveraging
+> the SMP_ON_UP support, we need to additionally check the
+> number the cores in Cortex-A9 MPCore configuration. Without
+> such a check in place, the startup code tries to execute
+> ALT_SMP() set of instructions which lead to CPU faults.
+> 
+> The issue was spotted on TI's Aegis device and this patch
+> makes now the device work with omap2plus_defconfig which
+> enables SMP by default. The change is kept limited to only
+> Cortex-A9 MPCore detection code.
+> 
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> 
+> Acked-by: Sricharan R <r.sricharan@ti.com>
+> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/kernel/head.S |   18 +++++++++++++++++-
+>  1 file changed, 17 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/kernel/head.S b/arch/arm/kernel/head.S
+> index 9cf6063..4924b11 100644
+> --- a/arch/arm/kernel/head.S
+> +++ b/arch/arm/kernel/head.S
+> @@ -486,7 +486,23 @@ __fixup_smp:
+>  	mrc	p15, 0, r0, c0, c0, 5	@ read MPIDR
+>  	and	r0, r0, #0xc0000000	@ multiprocessing extensions and
+>  	teq	r0, #0x80000000		@ not part of a uniprocessor system?
+> -	moveq	pc, lr			@ yes, assume SMP
+> +	bne    __fixup_smp_on_up	@ no, assume UP
+> +
+> +	@ Core indicates it is SMP.  Check for Aegis SOC where a single
+> +	@ Cortex-A9 CPU is present but SMP operations fault.
+> +	mov	r4, #0x41000000
+> +	orr	r4, r4, #0x0000c000
+> +	orr	r4, r4, #0x00000090
+> +	teq	r3, r4			@ Check for ARM Cortex-A9
+> +	movne	pc, lr			@ Not ARM Cortex-A9,
+> +
+> +	mrc	p15, 4, r0, c15, c0	@ get SCU base address
+> +	teq	r0, #0x0		@ '0' on actual UP A9 hardware
+> +	beq	__fixup_smp_on_up	@ So its an A9 UP
 
-... which is exactly the whole point and use case of DEBUG_LL. :)
+What if somebody builds an MP A9 with the private peripheral base address at
+0x0?
+
+Will
