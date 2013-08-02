@@ -1,52 +1,132 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 03/31] CLK: TI: add DT alias clock registration mechanism
-Date: Fri, 2 Aug 2013 19:25:22 +0300
-Message-ID: <1375460751-23676-4-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 04/31] CLK: TI: add autoidle support
+Date: Fri, 2 Aug 2013 19:25:23 +0300
+Message-ID: <1375460751-23676-5-git-send-email-t-kristo@ti.com>
 References: <1375460751-23676-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40729 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40734 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752868Ab3HBQ0i (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Aug 2013 12:26:38 -0400
+	id S1753732Ab3HBQ0m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Aug 2013 12:26:42 -0400
 In-Reply-To: <1375460751-23676-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Some devices require their clocks to be available with a specific
-dev-id con-id mapping. With DT, the clocks can be found by default
-only with their name, or alternatively through the device node of
-the consumer. With drivers, that don't support DT fully yet, add
-mechanism to register specific clock names.
+TI clk driver now routes some of the basic clocks through own
+registration routine to allow autoidle support. This routine just
+checks a couple of device node properties and adds autoidle support
+if required, and just passes the registration forward to basic clocks.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/Makefile |    2 +-
- drivers/clk/ti/clk.c    |   37 +++++++++++++++++++++++++++++++++++++
- include/linux/clk/ti.h  |   23 +++++++++++++++++++++++
- 3 files changed, 61 insertions(+), 1 deletion(-)
- create mode 100644 drivers/clk/ti/clk.c
+ .../devicetree/bindings/clock/ti/autoidle.txt      |   48 ++++++++
+ arch/arm/mach-omap2/clock.c                        |    6 +
+ drivers/clk/ti/Makefile                            |    2 +-
+ drivers/clk/ti/autoidle.c                          |  121 ++++++++++++++++++++
+ include/linux/clk/ti.h                             |    7 ++
+ 5 files changed, 183 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/clock/ti/autoidle.txt
+ create mode 100644 drivers/clk/ti/autoidle.c
 
+diff --git a/Documentation/devicetree/bindings/clock/ti/autoidle.txt b/Documentation/devicetree/bindings/clock/ti/autoidle.txt
+new file mode 100644
+index 0000000..cc09910
+--- /dev/null
++++ b/Documentation/devicetree/bindings/clock/ti/autoidle.txt
+@@ -0,0 +1,48 @@
++Binding for Texas Instruments autoidling clock.
++
++This binding uses the common clock binding[1]. Autoidle clocks
++are inherited clocks from basic divider-clock [2] or
++fixed-factor-clock [3] and just add autoidle support on top of
++this. Autoidle is an OMAP clock feature, which allows the clock
++to gate autonomously by hardware when they are no longer needed.
++The autoidle feature must be enabled manually for these clocks.
++Otherwise the clocks behave exactly as their base clock type.
++
++[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
++[2] Documentation/devicetree/bindings/clock/divider-clock.txt
++[3] Documentation/devicetree/bindings/clock/fixed-factor-clock.txt
++
++Required properties:
++- compatible : shall be one of:
++		"ti,divider-clock",
++		"ti,fixed-factor-clock"
++- ti,autoidle-shift : bit shift of the autoidle enable bit for the clock
++- reg : base address for the control register of this clock
++
++Optional properties:
++- ti,autoidle-low : autoidle is enabled by setting the bit to 0
++
++Other properties as per the base clock type.
++
++Examples:
++	dpll_abe_m2x2_ck: dpll_abe_m2x2_ck@4a0051f0 {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&dpll_abe_x2_ck>;
++		ti,autoidle-shift = <8>;
++		reg = <0x4a0051f0 0x4>;
++		bit-mask = <0x1f>;
++		index-starts-at-one;
++		ti,autoidle-low;
++	};
++
++	dpll_usb_clkdcoldo_ck: dpll_usb_clkdcoldo_ck@4a0081b4 {
++		#clock-cells = <0>;
++		compatible = "ti,fixed-factor-clock";
++		clocks = <&dpll_usb_ck>;
++		ti,autoidle-shift = <8>;
++		clock-div = <1>;
++		reg = <0x4a0081b4 0x4>;
++		clock-mult = <1>;
++		ti,autoidle-low;
++	};
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 0c38ca9..669d4c4 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -520,6 +520,9 @@ int omap2_clk_enable_autoidle_all(void)
+ 	list_for_each_entry(c, &clk_hw_omap_clocks, node)
+ 		if (c->ops && c->ops->allow_idle)
+ 			c->ops->allow_idle(c);
++
++	of_omap_clk_allow_autoidle_all();
++
+ 	return 0;
+ }
+ 
+@@ -539,6 +542,9 @@ int omap2_clk_disable_autoidle_all(void)
+ 	list_for_each_entry(c, &clk_hw_omap_clocks, node)
+ 		if (c->ops && c->ops->deny_idle)
+ 			c->ops->deny_idle(c);
++
++	of_omap_clk_deny_autoidle_all();
++
+ 	return 0;
+ }
+ 
 diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index 93177987..05af5d8 100644
+index 05af5d8..533efb4 100644
 --- a/drivers/clk/ti/Makefile
 +++ b/drivers/clk/ti/Makefile
 @@ -1,3 +1,3 @@
  ifneq ($(CONFIG_OF),)
--obj-y					+= dpll.o
-+obj-y					+= clk.o dpll.o
+-obj-y					+= clk.o dpll.o
++obj-y					+= clk.o dpll.o autoidle.o
  endif
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
 new file mode 100644
-index 0000000..b6eb756
+index 0000000..a52a42b
 --- /dev/null
-+++ b/drivers/clk/ti/clk.c
-@@ -0,0 +1,37 @@
++++ b/drivers/clk/ti/autoidle.c
+@@ -0,0 +1,121 @@
 +/*
-+ * TI clock support
++ * OMAP clock autoidle support
 + *
 + * Copyright (C) 2013 Texas Instruments, Inc.
 + *
@@ -63,73 +143,127 @@ index 0000000..b6eb756
 + */
 +
 +#include <linux/clk-provider.h>
-+#include <linux/clkdev.h>
-+#include <linux/clk/ti.h>
++#include <linux/slab.h>
++#include <linux/io.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
 +
-+/**
-+ * omap_dt_clocks_register - register DT duplicate clocks during boot
-+ * @oclks: list of clocks to register
-+ *
-+ * Register duplicate or non-standard DT clock entries during boot. By
-+ * default, DT clocks are found based on their node name. If any
-+ * additional con-id / dev-id -> clock mapping is required, use this
-+ * function to list these.
-+ */
-+void __init omap_dt_clocks_register(struct omap_dt_clk oclks[])
-+{
-+	struct omap_dt_clk *c;
-+
-+	for (c = oclks; c->node_name != NULL; c++)
-+		clk_add_alias(c->con_id, c->dev_id, c->node_name, NULL);
-+}
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 385384a..dee3234 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -15,6 +15,8 @@
- #ifndef __LINUX_CLK_TI_H__
- #define __LINUX_CLK_TI_H__
- 
-+#include <linux/clkdev.h>
-+
- /**
-  * struct dpll_data - DPLL registers and integration data
-  * @mult_div1_reg: register containing the DPLL M and N bitfields
-@@ -138,6 +140,25 @@ struct clk_hw_omap {
- /* DPLL Type and DCO Selection Flags */
- #define DPLL_J_TYPE		0x1
- 
-+/**
-+ * struct omap_dt_clk - OMAP DT clock alias declarations
-+ * @dev_id: alias device ID
-+ * @conn_id: alias connection ID
-+ * @node_name: clock DT node to map to
-+ */
-+struct omap_dt_clk {
-+	const char			*dev_id;
-+	const char			*con_id;
-+	char				*node_name;
++struct clk_omap_autoidle {
++	void __iomem		*reg;
++	u8			shift;
++	u8			flags;
++	const char		*name;
++	struct list_head	node;
 +};
 +
-+#define DT_CLK(dev, con, name)		\
-+	{				\
-+		.dev_id = dev,		\
-+		.con_id = con,		\
-+		.node_name = name,	\
++#define AUTOIDLE_LOW		0x1
++
++static LIST_HEAD(autoidle_clks);
++
++static void omap_allow_autoidle(struct clk_omap_autoidle *clk)
++{
++	u32 val;
++
++	val = readl(clk->reg);
++
++	if (clk->flags & AUTOIDLE_LOW)
++		val &= ~(1 << clk->shift);
++	else
++		val |= (1 << clk->shift);
++
++	writel(val, clk->reg);
++}
++
++static void omap_deny_autoidle(struct clk_omap_autoidle *clk)
++{
++	u32 val;
++
++	val = readl(clk->reg);
++
++	if (clk->flags & AUTOIDLE_LOW)
++		val |= (1 << clk->shift);
++	else
++		val &= ~(1 << clk->shift);
++
++	writel(val, clk->reg);
++}
++
++void of_omap_clk_allow_autoidle_all(void)
++{
++	struct clk_omap_autoidle *c;
++
++	list_for_each_entry(c, &autoidle_clks, node)
++		omap_allow_autoidle(c);
++}
++
++void of_omap_clk_deny_autoidle_all(void)
++{
++	struct clk_omap_autoidle *c;
++
++	list_for_each_entry(c, &autoidle_clks, node)
++		omap_deny_autoidle(c);
++}
++
++static void __init of_omap_autoidle_setup(struct device_node *node)
++{
++	u32 shift;
++	void __iomem *reg;
++	struct clk_omap_autoidle *clk;
++
++	if (of_property_read_u32(node, "ti,autoidle-shift", &shift))
++		return;
++
++	reg = of_iomap(node, 0);
++
++	clk = kzalloc(sizeof(*clk), GFP_KERNEL);
++
++	if (!clk) {
++		pr_err("%s: kzalloc failed\n", __func__);
++		return;
 +	}
 +
- void omap2_init_clk_hw_omap_clocks(struct clk *clk);
- int omap3_noncore_dpll_enable(struct clk_hw *hw);
- void omap3_noncore_dpll_disable(struct clk_hw *hw);
-@@ -158,6 +179,8 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
- int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
++	clk->shift = shift;
++	clk->name = node->name;
++	clk->reg = reg;
++
++	if (of_property_read_bool(node, "ti,autoidle-low"))
++		clk->flags |= AUTOIDLE_LOW;
++
++	list_add(&clk->node, &autoidle_clks);
++}
++
++static void __init of_omap_divider_setup(struct device_node *node)
++{
++	of_divider_clk_setup(node);
++	of_omap_autoidle_setup(node);
++}
++CLK_OF_DECLARE(omap_divider_clock, "ti,divider-clock", of_omap_divider_setup);
++
++static void __init of_omap_fixed_factor_setup(struct device_node *node)
++{
++	of_fixed_factor_clk_setup(node);
++	of_omap_autoidle_setup(node);
++}
++CLK_OF_DECLARE(omap_fixed_factor_clock, "ti,fixed-factor-clock",
++	       of_omap_fixed_factor_setup);
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index dee3234..781ef23 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -180,6 +180,13 @@ int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
  			 unsigned long parent_rate);
  
-+void omap_dt_clocks_register(struct omap_dt_clk *oclks);
-+
+ void omap_dt_clocks_register(struct omap_dt_clk *oclks);
++#ifdef CONFIG_OF
++void of_omap_clk_allow_autoidle_all(void);
++void of_omap_clk_deny_autoidle_all(void);
++#else
++static inline void of_omap_clk_allow_autoidle_all(void) { }
++static inline void of_omap_clk_deny_autoidle_all(void) { }
++#endif
+ 
  extern const struct clk_hw_omap_ops clkhwops_omap3_dpll;
  extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
- 
 -- 
 1.7.9.5
 
