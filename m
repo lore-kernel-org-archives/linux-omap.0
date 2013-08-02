@@ -1,25 +1,25 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Subject: Re: [PATCH] ARM: Update SMP_ON_UP code to detect A9MPCore with 1
  CPU devices
-Date: Fri, 2 Aug 2013 11:18:08 -0400
-Message-ID: <51FBCDB0.4070401@ti.com>
-References: <1375381033-13220-1-git-send-email-santosh.shilimkar@ti.com> <20130802141828.GC2361@localhost.localdomain>
+Date: Fri, 2 Aug 2013 11:22:43 -0400
+Message-ID: <51FBCEC3.4030207@ti.com>
+References: <1375381033-13220-1-git-send-email-santosh.shilimkar@ti.com> <51FBC610.9030900@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53295 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751428Ab3HBPSn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Aug 2013 11:18:43 -0400
-In-Reply-To: <20130802141828.GC2361@localhost.localdomain>
+Received: from devils.ext.ti.com ([198.47.26.153]:33524 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751989Ab3HBPXP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Aug 2013 11:23:15 -0400
+In-Reply-To: <51FBC610.9030900@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <Dave.Martin@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
+To: Sudeep KarkadaNagesha <Sudeep.KarkadaNagesha@arm.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Will Deacon <Will.Deacon@arm.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-On Friday 02 August 2013 10:18 AM, Dave Martin wrote:
-> On Thu, Aug 01, 2013 at 02:17:13PM -0400, Santosh Shilimkar wrote:
+On Friday 02 August 2013 10:45 AM, Sudeep KarkadaNagesha wrote:
+> On 01/08/13 19:17, Santosh Shilimkar wrote:
 >> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
 >>
 >> The generic code is well equipped to differentiate between
@@ -35,16 +35,47 @@ On Friday 02 August 2013 10:18 AM, Dave Martin wrote:
 >> makes now the device work with omap2plus_defconfig which
 >> enables SMP by default. The change is kept limited to only
 >> Cortex-A9 MPCore detection code.
+>>
+>> Cc: Will Deacon <will.deacon@arm.com>
+>> Cc: Russell King <linux@arm.linux.org.uk>
+>>
+>> Acked-by: Sricharan R <r.sricharan@ti.com>
+>> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> ---
+>>  arch/arm/kernel/head.S |   18 +++++++++++++++++-
+>>  1 file changed, 17 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm/kernel/head.S b/arch/arm/kernel/head.S
+>> index 9cf6063..4924b11 100644
+>> --- a/arch/arm/kernel/head.S
+>> +++ b/arch/arm/kernel/head.S
+>> @@ -486,7 +486,23 @@ __fixup_smp:
+>>  	mrc	p15, 0, r0, c0, c0, 5	@ read MPIDR
+>>  	and	r0, r0, #0xc0000000	@ multiprocessing extensions and
+>>  	teq	r0, #0x80000000		@ not part of a uniprocessor system?
+>> -	moveq	pc, lr			@ yes, assume SMP
+>> +	bne    __fixup_smp_on_up	@ no, assume UP
+>> +
+>> +	@ Core indicates it is SMP.  Check for Aegis SOC where a single
+>> +	@ Cortex-A9 CPU is present but SMP operations fault.
+>> +	mov	r4, #0x41000000
+>> +	orr	r4, r4, #0x0000c000
+>> +	orr	r4, r4, #0x00000090
+>> +	teq	r3, r4			@ Check for ARM Cortex-A9
+>> +	movne	pc, lr			@ Not ARM Cortex-A9,
+>> +
+>> +	mrc	p15, 4, r0, c15, c0	@ get SCU base address
+> Correct me if I am interpreting this wrong, but CRn=15 here which is
+> IMPLEMENTATION DEFINED registers.
+>
+> If not, then I wonder why few platform have to read SCU base from DT or
+> some header, why not this way ?
 > 
-> Is there a specific reason why this can't happen for other processors
-> such as A5/7/15?
-> 
-The basic reason behind limiting to A9 was the SCU carrying
-the no. of CPU information is specific to A9. A7/A15 have
-that information encoded in L2 control register. Since
-same code won't work for the other ARM versions and we
-don't wanted to pollute the code much without need of it
-those versions are not considered.
+I don't know if there is Cortex-A9 based SOC which don't implement SCU
+CP15 base address register, so can't comment really why not always use
+CP15 based method. I am not even sure if there are other reasons behind
+DT usage.
 
 Regards,
 Santosh
