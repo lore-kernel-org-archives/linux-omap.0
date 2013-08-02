@@ -1,86 +1,56 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/4] CLK: ti: dra7: Initialize USB_DPLL
-Date: Fri, 2 Aug 2013 07:52:48 -0500
-Message-ID: <51FBABA0.1030608@ti.com>
-References: <1375369134-26398-1-git-send-email-rogerq@ti.com> <1375369134-26398-2-git-send-email-rogerq@ti.com> <51FA7976.8020707@ti.com> <51FB6027.6080808@ti.com> <51FB9095.8030200@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: dss-common: fix Panda's DVI DDC channel
+Date: Fri, 2 Aug 2013 07:54:57 -0500
+Message-ID: <51FBAC21.2040609@ti.com>
+References: <1374570405-8301-1-git-send-email-tomi.valkeinen@ti.com> <1374570405-8301-2-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51FB9095.8030200@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, tony@atomide.com, rnayak@ti.com, benoit.cousson@linaro.org, balbi@ti.com, george.cherian@ti.com, kishon@ti.com, dmurphy@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:38878 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751680Ab3HBMzX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Aug 2013 08:55:23 -0400
+In-Reply-To: <1374570405-8301-2-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 08/02/2013 05:57 AM, Tero Kristo wrote:
-> On 08/02/2013 10:30 AM, Roger Quadros wrote:
->> Hi Nishant,
->>
->> On 08/01/2013 06:06 PM, Nishanth Menon wrote:
->>> On 08/01/2013 09:58 AM, Roger Quadros wrote:
->>>> USB_DPLL must be initialized and locked at boot so that
->>>> USB modules can work.
->>>>
->>>> Also program USB_DLL_M2 output to half rate.
->>>>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>> ---
->>>>    drivers/clk/omap/clk-7xx.c |   11 +++++++++++
->>>>    1 files changed, 11 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/drivers/clk/omap/clk-7xx.c b/drivers/clk/omap/clk-7xx.c
->>>> index ddb39dd..f444513 100644
->>>> --- a/drivers/clk/omap/clk-7xx.c
->>>> +++ b/drivers/clk/omap/clk-7xx.c
->>>> @@ -19,6 +19,7 @@
->>>>
->>>>    #define DRA7_DPLL_ABE_DEFFREQ                361267200
->>>>    #define DRA7_DPLL_GMAC_DEFFREQ                1000000000
->>>> +#define DRA7_DPLL_USB_DEFFREQ                960000000
->>>>
->>>>
->>>>    static struct omap_dt_clk dra7xx_clks[] = {
->>>> @@ -63,5 +64,15 @@ int __init dra7xx_clk_init(void)
->>>>        if (rc)
->>>>            pr_err("%s: failed to configure GMAC DPLL!\n", __func__);
->>>>
->>>> +    dpll_ck = clk_get_sys(NULL, "dpll_usb_ck");
->>>> +    rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ);
->>>> +    if (rc)
->>>> +        pr_err("%s: failed to configure USB DPLL!\n", __func__);
->>>> +
->>>> +    dpll_ck = clk_get_sys(NULL, "dpll_usb_m2_ck");
->>>> +    rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ/2);
->>>> +    if (rc)
->>>> +        pr_err("%s: failed to set USB_DPLL M2 OUT\n", __func__);
->>>> +
->>>>        return rc;
->>>>    }
->>>>
->>> As I had mentioned on [1] - we are going to see similar needs keep
->>> popping up. there is no need to hack this up for even more
->>> peripherals :(
->>>
->>> http://marc.info/?l=linux-omap&m=137536803106017&w=2
->>>
->> The DPLLs need to be initialized irrespective of whether peripheral
->> drivers are present or not.
->> We have seen cases where the SoC fails to enter RETention if the DPLLS
->> are not correctly
->> configured.
->>
->> But I agree with you that we should be able to initialize it by
->> specifying the initial rate via Clock Data.
->>
->> This patch can be removed when the appropriate feature is added in
->> OMAP clock core.
+On 07/23/2013 04:06 AM, Tomi Valkeinen wrote:
+> Panda's DVI connector's DDC pins are connected to OMAP's third i2c bus.
+> With non-DT, the bus number was 3, and that is what is used in the
+> dss-common.c which contains the platform data for Panda's DVI.
 >
-> ... not OMAP clock core, I would say clock core. This is again a feature
-> we can work with once we have initial support in place.
+> However, with DT, the bus number is 2. As we now only have DT boot for
+> Panda, we have to change the bus number to make DVI EDID read
+> operational.
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>   arch/arm/mach-omap2/dss-common.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
+> index 393aeef..043e570 100644
+> --- a/arch/arm/mach-omap2/dss-common.c
+> +++ b/arch/arm/mach-omap2/dss-common.c
+> @@ -42,7 +42,7 @@
+>
+>   /* Using generic display panel */
+>   static struct tfp410_platform_data omap4_dvi_panel = {
+> -	.i2c_bus_num		= 3,
+> +	.i2c_bus_num		= 2,
+>   	.power_down_gpio	= PANDA_DVI_TFP410_POWER_DOWN_GPIO,
+>   };
+>
+>
+completely dumb question :) :
+why cant we have dts support for this instead of having to renumber 
+every time?
 
-OK. /me gives up for now. but please squash this into your set.
-
+Example: if -EPROBEDEFER is incurred due to some unexpected dependency, 
+we'd have to redo the numbering in the kernel yet again.
 
 -- 
 Regards,
