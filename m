@@ -1,14 +1,15 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] DMA: let filter functions of of_dma_simple_xlate possible
- check of_node
-Date: Fri, 2 Aug 2013 08:06:19 -0400
-Message-ID: <51FBA0BB.6080408@ti.com>
-References: <1375408800-11789-1-git-send-email-rizhao@nvidia.com>
+Subject: Re: [PATCH] ARM: Update SMP_ON_UP code to detect A9MPCore with 1
+ CPU devices
+Date: Fri, 2 Aug 2013 08:32:02 -0400
+Message-ID: <51FBA6C2.5090702@ti.com>
+References: <1375381033-13220-1-git-send-email-santosh.shilimkar@ti.com>
+ <20130802095350.GI2465@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1375408800-11789-1-git-send-email-rizhao@nvidia.com>
+In-Reply-To: <20130802095350.GI2465@mudshark.cambridge.arm.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,99 +19,67 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Richard Zhao <rizhao@nvidia.com>
-Cc: swarren@wwwdotorg.org, vinod.koul@intel.com, linux-kernel@vger.kernel.org, djbw@fb.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Vaibhav Bedia <vaibhav.bedia@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 01 August 2013 10:00 PM, Richard Zhao wrote:
-> pass of_phandle_args dma_spec to dma_request_channel in of_dma_simple_xlate,
-> so the filter function could access of_node in of_phandle_args.
->
-Am just curious the reasoning behind doing so. Can you please expand
-above bit more with why you need to change it.
- 
-> It also remove restriction of #dma-cells has to be one.
+On Friday 02 August 2013 05:53 AM, Will Deacon wrote:
+> On Thu, Aug 01, 2013 at 07:17:13PM +0100, Santosh Shilimkar wrote:
+>> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>>
+>> The generic code is well equipped to differentiate between
+>> SMP and UP configurations.However, there are some devices which
+>> use Cortex-A9 MP core IP with 1 CPU as configuration. To let
+>> these SOCs to co-exist in a CONFIG_SMP=y build by leveraging
+>> the SMP_ON_UP support, we need to additionally check the
+>> number the cores in Cortex-A9 MPCore configuration. Without
+>> such a check in place, the startup code tries to execute
+>> ALT_SMP() set of instructions which lead to CPU faults.
+>>
+>> The issue was spotted on TI's Aegis device and this patch
+>> makes now the device work with omap2plus_defconfig which
+>> enables SMP by default. The change is kept limited to only
+>> Cortex-A9 MPCore detection code.
+>>
+>> Cc: Will Deacon <will.deacon@arm.com>
+>> Cc: Russell King <linux@arm.linux.org.uk>
+>>
+>> Acked-by: Sricharan R <r.sricharan@ti.com>
+>> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> ---
+>>  arch/arm/kernel/head.S |   18 +++++++++++++++++-
+>>  1 file changed, 17 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm/kernel/head.S b/arch/arm/kernel/head.S
+>> index 9cf6063..4924b11 100644
+>> --- a/arch/arm/kernel/head.S
+>> +++ b/arch/arm/kernel/head.S
+>> @@ -486,7 +486,23 @@ __fixup_smp:
+>>  	mrc	p15, 0, r0, c0, c0, 5	@ read MPIDR
+>>  	and	r0, r0, #0xc0000000	@ multiprocessing extensions and
+>>  	teq	r0, #0x80000000		@ not part of a uniprocessor system?
+>> -	moveq	pc, lr			@ yes, assume SMP
+>> +	bne    __fixup_smp_on_up	@ no, assume UP
+>> +
+>> +	@ Core indicates it is SMP.  Check for Aegis SOC where a single
+>> +	@ Cortex-A9 CPU is present but SMP operations fault.
+>> +	mov	r4, #0x41000000
+>> +	orr	r4, r4, #0x0000c000
+>> +	orr	r4, r4, #0x00000090
+>> +	teq	r3, r4			@ Check for ARM Cortex-A9
+>> +	movne	pc, lr			@ Not ARM Cortex-A9,
+>> +
+>> +	mrc	p15, 4, r0, c15, c0	@ get SCU base address
+>> +	teq	r0, #0x0		@ '0' on actual UP A9 hardware
+>> +	beq	__fixup_smp_on_up	@ So its an A9 UP
 > 
-> Signed-off-by: Richard Zhao <rizhao@nvidia.com>
-> ---
->  drivers/dma/edma.c     |  7 +++++--
->  drivers/dma/of-dma.c   | 10 ++++------
->  drivers/dma/omap-dma.c |  6 ++++--
->  3 files changed, 13 insertions(+), 10 deletions(-)
+> What if somebody builds an MP A9 with the private peripheral base address at
+> 0x0?
 > 
-> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-> index 4f6d87b..54582fd 100644
-> --- a/drivers/dma/edma.c
-> +++ b/drivers/dma/edma.c
-> @@ -23,6 +23,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/slab.h>
->  #include <linux/spinlock.h>
-> +#include <linux/of_dma.h>
->  
->  #include <linux/platform_data/edma.h>
->  
-> @@ -604,9 +605,11 @@ static struct platform_driver edma_driver = {
->  
->  bool edma_filter_fn(struct dma_chan *chan, void *param)
->  {
-> -	if (chan->device->dev->driver == &edma_driver.driver) {
-> +	struct of_phandle_args *dma_spec = param;
-> +	if (chan->device->dev->driver == &edma_driver.driver &&
-> +			dma_spec->np == chan->device->dev->of_node) {
->  		struct edma_chan *echan = to_edma_chan(chan);
-> -		unsigned ch_req = *(unsigned *)param;
-> +		unsigned ch_req = dma_spec->args[0];
->  		return ch_req == echan->ch_num;
->  	}
->  	return false;
-> diff --git a/drivers/dma/of-dma.c b/drivers/dma/of-dma.c
-> index 75334bd..e1c4d3b 100644
-> --- a/drivers/dma/of-dma.c
-> +++ b/drivers/dma/of-dma.c
-> @@ -192,11 +192,9 @@ struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
->   * @dma_spec:	pointer to DMA specifier as found in the device tree
->   * @of_dma:	pointer to DMA controller data
->   *
-> - * A simple translation function for devices that use a 32-bit value for the
-> + * A simple translation function for devices that use dma_spec for the
->   * filter_param when calling the DMA engine dma_request_channel() function.
-> - * Note that this translation function requires that #dma-cells is equal to 1
-> - * and the argument of the dma specifier is the 32-bit filter_param. Returns
-> - * pointer to appropriate dma channel on success or NULL on error.
-> + * Returns pointer to appropriate dma channel on success or NULL on error.
->   */
->  struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_spec,
->  						struct of_dma *ofdma)
-> @@ -207,10 +205,10 @@ struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_spec,
->  	if (!info || !info->filter_fn)
->  		return NULL;
->  
-> -	if (count != 1)
-> +	if (count < 1)
->  		return NULL;
->  
->  	return dma_request_channel(info->dma_cap, info->filter_fn,
-> -			&dma_spec->args[0]);
-> +			dma_spec);
->  }
->  EXPORT_SYMBOL_GPL(of_dma_simple_xlate);
-> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-> index ec3fc4f..32547ec 100644
-> --- a/drivers/dma/omap-dma.c
-> +++ b/drivers/dma/omap-dma.c
-> @@ -693,9 +693,11 @@ static struct platform_driver omap_dma_driver = {
->  
->  bool omap_dma_filter_fn(struct dma_chan *chan, void *param)
->  {
-> -	if (chan->device->dev->driver == &omap_dma_driver.driver) {
-> +	struct of_phandle_args *dma_spec = param;
-> +	if (chan->device->dev->driver == &omap_dma_driver.driver &&
-> +			dma_spec->np == chan->device->dev->of_node) {
->  		struct omap_chan *c = to_omap_dma_chan(chan);
-> -		unsigned req = *(unsigned *)param;
-> +		unsigned req = dma_spec->args[0];
->  
->  		return req == c->dma_sig;
->  	}
-> 
+Good point though we at least haven't seen one yet on the kernel lists.
+Any other way to avoid A9 UP case proceeding to the actual address 0
+read which might be anything on a SOC.
+
+Regards,
+Santosh
