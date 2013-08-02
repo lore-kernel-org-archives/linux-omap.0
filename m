@@ -1,197 +1,191 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v2 07/13] ARM: OMAP2+: PM: AM43x powerdomain data
-Date: Fri, 2 Aug 2013 19:07:36 +0530
-Message-ID: <8ff0cca7b787364ff72302ba51264d9e56012b67.1375443858.git.afzal@ti.com>
+Subject: [PATCH v2 09/13] ARM: OMAP2+: hwmod: AMx3: runtime AM43x handling
+Date: Fri, 2 Aug 2013 19:07:55 +0530
+Message-ID: <902ee30659df556bab116ed28acfd294596b5215.1375443858.git.afzal@ti.com>
 References: <cover.1375443858.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48092 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:41275 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752552Ab3HBNiI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Aug 2013 09:38:08 -0400
+	id S1752661Ab3HBNiT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Aug 2013 09:38:19 -0400
 In-Reply-To: <cover.1375443858.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <benoit.cousson@linaro.org>, benoit.cousson@gmail.com, Ambresh K <ambresh@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <benoit.cousson@linaro.org>, benoit.cousson@gmail.com
 
-From: Ambresh K <ambresh@ti.com>
+Update AM43x CLKCTRL, RSTCTRL, RSTST offsets, clockdomain & ocpif clk
+that differ with AM335x at runtime. This helps in reusing much of the
+AM335x hwmod data's for AM43x.
 
-Add the data file to describe all power domains in AM43x SoC.
-OMAP4 powerdomain operations is being reused here.
-
-Signed-off-by: Ambresh K <ambresh@ti.com>
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/powerdomain.h           |    1 +
- arch/arm/mach-omap2/powerdomains43xx_data.c |  145 +++++++++++++++++++++++++++
- 2 files changed, 146 insertions(+)
- create mode 100644 arch/arm/mach-omap2/powerdomains43xx_data.c
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c |  110 ++++++++++++++++++++++++++++
+ 1 file changed, 110 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index e4d7bd6..56ad9f5 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -254,6 +254,7 @@ extern void omap242x_powerdomains_init(void);
- extern void omap243x_powerdomains_init(void);
- extern void omap3xxx_powerdomains_init(void);
- extern void am33xx_powerdomains_init(void);
-+extern void am43xx_powerdomains_init(void);
- extern void omap44xx_powerdomains_init(void);
- extern void omap54xx_powerdomains_init(void);
- 
-diff --git a/arch/arm/mach-omap2/powerdomains43xx_data.c b/arch/arm/mach-omap2/powerdomains43xx_data.c
-new file mode 100644
-index 0000000..45e4363
---- /dev/null
-+++ b/arch/arm/mach-omap2/powerdomains43xx_data.c
-@@ -0,0 +1,145 @@
-+/*
-+ * AM43xx Power domains framework
-+ *
-+ * Copyright (C) 2013 Texas Instruments, Inc.
-+ *
-+ * This file is made by modifying the file generated automatically
-+ * from the OMAP hardware databases.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+
-+#include "powerdomain.h"
-+
-+#include "prcm-common.h"
-+#include "prcm44xx.h"
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+index a61032d..7897fec 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -26,6 +26,7 @@
+ #include "cm33xx.h"
+ #include "prm33xx.h"
+ #include "prm-regbits-33xx.h"
 +#include "prcm43xx.h"
-+
-+static struct powerdomain gfx_43xx_pwrdm = {
-+	.name		  = "gfx_pwrdm",
-+	.voltdm		  = { .name = "core" },
-+	.prcm_offs	  = AM43XX_PRM_GFX_INST,
-+	.prcm_partition	  = AM43XX_PRM_PARTITION,
-+	.pwrsts		  = PWRSTS_OFF_ON,
-+	.banks		  = 1,
-+	.pwrsts_mem_ret	= {
-+		[0] = PWRSTS_OFF_RET,	/* gfx_mem */
-+	},
-+	.pwrsts_mem_on	= {
-+		[0] = PWRSTS_ON,	/* gfx_mem */
-+	},
-+	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
-+};
-+
-+static struct powerdomain mpu_43xx_pwrdm = {
-+	.name		  = "mpu_pwrdm",
-+	.voltdm		  = { .name = "mpu" },
-+	.prcm_offs	  = AM43XX_PRM_MPU_INST,
-+	.prcm_partition	  = AM43XX_PRM_PARTITION,
-+	.pwrsts		  = PWRSTS_OFF_RET_ON,
-+	.pwrsts_logic_ret = PWRSTS_OFF_RET,
-+	.banks		  = 3,
-+	.pwrsts_mem_ret	= {
-+		[0] = PWRSTS_OFF_RET,	/* mpu_l1 */
-+		[1] = PWRSTS_OFF_RET,	/* mpu_l2 */
-+		[2] = PWRSTS_OFF_RET,	/* mpu_ram */
-+	},
-+	.pwrsts_mem_on	= {
-+		[0] = PWRSTS_ON,	/* mpu_l1 */
-+		[1] = PWRSTS_ON,	/* mpu_l2 */
-+		[2] = PWRSTS_ON,	/* mpu_ram */
-+	},
-+	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
-+};
-+
-+static struct powerdomain rtc_43xx_pwrdm = {
-+	.name		  = "rtc_pwrdm",
-+	.voltdm		  = { .name = "rtc" },
-+	.prcm_offs	  = AM43XX_PRM_RTC_INST,
-+	.prcm_partition	  = AM43XX_PRM_PARTITION,
-+	.pwrsts		  = PWRSTS_ON,
-+};
-+
-+static struct powerdomain wkup_43xx_pwrdm = {
-+	.name		  = "wkup_pwrdm",
-+	.voltdm		  = { .name = "core" },
-+	.prcm_offs	  = AM43XX_PRM_WKUP_INST,
-+	.prcm_partition	  = AM43XX_PRM_PARTITION,
-+	.pwrsts		  = PWRSTS_ON,
-+	.banks		  = 1,
-+	.pwrsts_mem_ret	= {
-+		[0] = PWRSTS_OFF,	/* debugss_mem */
-+	},
-+	.pwrsts_mem_on	= {
-+		[0] = PWRSTS_ON,	/* debugss_mem */
-+	},
-+};
-+
-+static struct powerdomain tamper_43xx_pwrdm = {
-+	.name		  = "tamper_pwrdm",
-+	.voltdm		  = { .name = "tamper" },
-+	.prcm_offs	  = AM43XX_PRM_TAMPER_INST,
-+	.prcm_partition	  = AM43XX_PRM_PARTITION,
-+	.pwrsts		  = PWRSTS_ON,
-+};
-+
-+static struct powerdomain cefuse_43xx_pwrdm = {
-+	.name		  = "cefuse_pwrdm",
-+	.voltdm		  = { .name = "core" },
-+	.prcm_offs	  = AM43XX_PRM_CEFUSE_INST,
-+	.prcm_partition	  = AM43XX_PRM_PARTITION,
-+	.pwrsts		  = PWRSTS_OFF_ON,
-+	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
-+};
-+
-+static struct powerdomain per_43xx_pwrdm = {
-+	.name		  = "per_pwrdm",
-+	.voltdm		  = { .name = "core" },
-+	.prcm_offs	  = AM43XX_PRM_PER_INST,
-+	.prcm_partition	  = AM43XX_PRM_PARTITION,
-+	.pwrsts		  = PWRSTS_OFF_RET_ON,
-+	.pwrsts_logic_ret = PWRSTS_OFF_RET,
-+	.banks		  = 4,
-+	.pwrsts_mem_ret	= {
-+		[0] = PWRSTS_OFF_RET,	/* icss_mem */
-+		[1] = PWRSTS_OFF_RET,	/* per_mem */
-+		[2] = PWRSTS_OFF_RET,	/* ram1_mem */
-+		[3] = PWRSTS_OFF_RET,	/* ram2_mem */
-+	},
-+	.pwrsts_mem_on	= {
-+		[0] = PWRSTS_OFF_RET,	/* icss_mem */
-+		[1] = PWRSTS_ON,	/* per_mem */
-+		[2] = PWRSTS_OFF_RET,	/* ram1_mem */
-+		[3] = PWRSTS_OFF_RET,	/* ram2_mem */
-+	},
-+	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
-+};
-+
-+static struct powerdomain *powerdomains_am43xx[] __initdata = {
-+	&gfx_43xx_pwrdm,
-+	&mpu_43xx_pwrdm,
-+	&rtc_43xx_pwrdm,
-+	&wkup_43xx_pwrdm,
-+	&tamper_43xx_pwrdm,
-+	&cefuse_43xx_pwrdm,
-+	&per_43xx_pwrdm,
-+	NULL
-+};
-+
-+static int am43xx_check_vcvp(void)
+ #include "i2c.h"
+ #include "mmc.h"
+ #include "wd_timer.h"
+@@ -2380,6 +2381,71 @@ static struct omap_hwmod_ocp_if am33xx_l3_main__aes0 = {
+ 
+ #define CLKCTRL(oh, clkctrl) ((oh).prcm.omap4.clkctrl_offs = (clkctrl))
+ 
++static void am43xx_hwmod_clkctrl(void)
 +{
-+	return 0;
++	CLKCTRL(am33xx_uart2_hwmod, AM43XX_CM_PER_UART1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_uart3_hwmod, AM43XX_CM_PER_UART2_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_uart4_hwmod, AM43XX_CM_PER_UART3_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_uart5_hwmod, AM43XX_CM_PER_UART4_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_uart6_hwmod, AM43XX_CM_PER_UART5_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_dcan0_hwmod, AM43XX_CM_PER_DCAN0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_dcan1_hwmod, AM43XX_CM_PER_DCAN1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_elm_hwmod, AM43XX_CM_PER_ELM_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_epwmss0_hwmod, AM43XX_CM_PER_EPWMSS0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_epwmss1_hwmod, AM43XX_CM_PER_EPWMSS1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_epwmss2_hwmod, AM43XX_CM_PER_EPWMSS2_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_gpio1_hwmod, AM43XX_CM_PER_GPIO1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_gpio2_hwmod, AM43XX_CM_PER_GPIO2_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_gpio3_hwmod, AM43XX_CM_PER_GPIO3_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_i2c2_hwmod, AM43XX_CM_PER_I2C1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_i2c3_hwmod, AM43XX_CM_PER_I2C2_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_mailbox_hwmod, AM43XX_CM_PER_MAILBOX0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_mmc0_hwmod, AM43XX_CM_PER_MMC0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_mmc1_hwmod, AM43XX_CM_PER_MMC1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_spi0_hwmod, AM43XX_CM_PER_SPI0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_spi1_hwmod, AM43XX_CM_PER_SPI1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_spinlock_hwmod, AM43XX_CM_PER_SPINLOCK_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_timer2_hwmod, AM43XX_CM_PER_TIMER2_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_timer3_hwmod, AM43XX_CM_PER_TIMER3_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_timer4_hwmod, AM43XX_CM_PER_TIMER4_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_timer5_hwmod, AM43XX_CM_PER_TIMER5_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_timer6_hwmod, AM43XX_CM_PER_TIMER6_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_timer7_hwmod, AM43XX_CM_PER_TIMER7_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_wkup_m3_hwmod, AM43XX_CM_WKUP_WKUP_M3_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_control_hwmod, AM43XX_CM_WKUP_CONTROL_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_smartreflex0_hwmod,
++		AM43XX_CM_WKUP_SMARTREFLEX0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_smartreflex1_hwmod,
++		AM43XX_CM_WKUP_SMARTREFLEX1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_uart1_hwmod, AM43XX_CM_WKUP_UART0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_timer1_hwmod, AM43XX_CM_WKUP_TIMER1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_i2c1_hwmod, AM43XX_CM_WKUP_I2C0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_gpio0_hwmod, AM43XX_CM_WKUP_GPIO0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_adc_tsc_hwmod, AM43XX_CM_WKUP_ADC_TSC_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_wd_timer1_hwmod, AM43XX_CM_WKUP_WDT1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_l4_wkup_hwmod, AM43XX_CM_WKUP_L4WKUP_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_rtc_hwmod, AM43XX_CM_RTC_RTC_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_mmc2_hwmod, AM43XX_CM_PER_MMC2_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_gpmc_hwmod, AM43XX_CM_PER_GPMC_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_mcasp0_hwmod, AM43XX_CM_PER_MCASP0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_mcasp1_hwmod, AM43XX_CM_PER_MCASP1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_l4_ls_hwmod, AM43XX_CM_PER_L4LS_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_l3_main_hwmod, AM43XX_CM_PER_L3_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_tpcc_hwmod, AM43XX_CM_PER_TPCC_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_tptc0_hwmod, AM43XX_CM_PER_TPTC0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_tptc1_hwmod, AM43XX_CM_PER_TPTC1_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_tptc2_hwmod, AM43XX_CM_PER_TPTC2_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_cpgmac0_hwmod, AM43XX_CM_PER_CPGMAC0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_pruss_hwmod, AM43XX_CM_PER_PRUSS_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_gfx_hwmod, AM43XX_CM_GFX_GFX_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_l4_hs_hwmod, AM43XX_CM_PER_L4HS_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_mpu_hwmod , AM43XX_CM_MPU_MPU_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_l3_instr_hwmod , AM43XX_CM_PER_L3_INSTR_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_ocmcram_hwmod , AM43XX_CM_PER_OCMCRAM_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_sha0_hwmod , AM43XX_CM_PER_SHA0_CLKCTRL_OFFSET);
++	CLKCTRL(am33xx_aes0_hwmod , AM43XX_CM_PER_AES0_CLKCTRL_OFFSET);
 +}
 +
-+void __init am43xx_powerdomains_init(void)
+ static void am33xx_hwmod_clkctrl(void)
+ {
+ 	CLKCTRL(am33xx_uart2_hwmod, AM33XX_CM_PER_UART1_CLKCTRL_OFFSET);
+@@ -2447,6 +2513,13 @@ static void am33xx_hwmod_clkctrl(void)
+ 
+ #define RSTCTRL(oh, rstctrl) ((oh).prcm.omap4.rstctrl_offs = (rstctrl))
+ 
++static void am43xx_hwmod_rstctrl(void)
 +{
-+	omap4_pwrdm_operations.pwrdm_has_voltdm = am43xx_check_vcvp;
-+	pwrdm_register_platform_funcs(&omap4_pwrdm_operations);
-+	pwrdm_register_pwrdms(powerdomains_am43xx);
-+	pwrdm_complete_init();
++	RSTCTRL(am33xx_pruss_hwmod, AM43XX_RM_PER_RSTCTRL_OFFSET);
++	RSTCTRL(am33xx_gfx_hwmod, AM43XX_RM_GFX_RSTCTRL_OFFSET);
++	RSTCTRL(am33xx_wkup_m3_hwmod, AM43XX_RM_WKUP_RSTCTRL_OFFSET);
 +}
++
+ static void am33xx_hwmod_rstctrl(void)
+ {
+ 	RSTCTRL(am33xx_pruss_hwmod, AM33XX_RM_PER_RSTCTRL_OFFSET);
+@@ -2456,18 +2529,49 @@ static void am33xx_hwmod_rstctrl(void)
+ 
+ #define RSTST(oh, rstst) ((oh).prcm.omap4.rstst_offs = (rstst))
+ 
++static void am43xx_hwmod_rstst(void)
++{
++	RSTST(am33xx_gfx_hwmod, AM43XX_RM_GFX_RSTST_OFFSET);
++	RSTST(am33xx_wkup_m3_hwmod, AM43XX_RM_WKUP_RSTST_OFFSET);
++}
++
+ static void am33xx_hwmod_rstst(void)
+ {
+ 	RSTST(am33xx_gfx_hwmod, AM33XX_RM_GFX_RSTST_OFFSET);
+ 	RSTST(am33xx_wkup_m3_hwmod, AM33XX_RM_WKUP_RSTST_OFFSET);
+ }
+ 
++static void am43xx_hwmod_clockdomain(void)
++{
++	am33xx_l4_hs_hwmod.clkdm_name = "l3_clkdm";
++	am33xx_adc_tsc_hwmod.clkdm_name = "l3s_tsc_clkdm";
++}
++
+ static void am33xx_hwmod_clockdomain(void)
+ {
+ 	am33xx_l4_hs_hwmod.clkdm_name = "l4hs_clkdm";
+ 	am33xx_adc_tsc_hwmod.clkdm_name = "l4_wkup_clkdm";
+ }
+ 
++#define AM43XX_L4_WKUP_OCPIF_CLK "sys_clkin_ck"
++
++static void am43xx_hwmod_ocpif_clk(void)
++{
++	am33xx_l4_wkup__wkup_m3.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_l4_wkup__control.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_l4_wkup__smartreflex0.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_l4_wkup__smartreflex1.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_l4_wkup__uart1.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_l4_wkup__timer1.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_l4_wkup__i2c1.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_l4_wkup__gpio0.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_l4_wkup__wd_timer1.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_wkup_m3__l4_wkup.clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_wkup_m3_hwmod.main_clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_control_hwmod.main_clk = AM43XX_L4_WKUP_OCPIF_CLK;
++	am33xx_gpio0_hwmod.main_clk = AM43XX_L4_WKUP_OCPIF_CLK;
++}
++
+ #define AM33XX_L4_WKUP_OCPIF_CLK "dpll_core_m4_div2_ck"
+ 
+ static void am33xx_hwmod_ocpif_clk(void)
+@@ -2584,6 +2688,12 @@ int __init am33xx_hwmod_init(void)
+ 		am33xx_hwmod_rstst();
+ 		am33xx_hwmod_clockdomain();
+ 		am33xx_hwmod_ocpif_clk();
++	} else {
++		am43xx_hwmod_clkctrl();
++		am43xx_hwmod_rstctrl();
++		am43xx_hwmod_rstst();
++		am43xx_hwmod_clockdomain();
++		am43xx_hwmod_ocpif_clk();
+ 	}
+ 
+ 	ret = omap_hwmod_register_links(amx3xx_hwmod_ocp_ifs);
 -- 
 1.7.9.5
 
