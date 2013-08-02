@@ -1,150 +1,922 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP: dss-common: fix Panda's DVI DDC channel
-Date: Fri, 2 Aug 2013 17:22:56 +0300
-Message-ID: <51FBC0C0.2060207@ti.com>
-References: <1374570405-8301-1-git-send-email-tomi.valkeinen@ti.com> <1374570405-8301-2-git-send-email-tomi.valkeinen@ti.com> <51FBAC21.2040609@ti.com> <51FBAD64.5090600@ti.com> <51FBB461.7010209@ti.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 3/6] v4l: ti-vpe: Add VPE mem to mem driver
+Date: Fri, 02 Aug 2013 16:36:25 +0200
+Message-ID: <51FBC3E9.4030703@xs4all.nl>
+References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-4-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="BFfMxPopW4FMOqALAHjvEn4TCOgnuEASw"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43666 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753481Ab3HBOXW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Aug 2013 10:23:22 -0400
-In-Reply-To: <51FBB461.7010209@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-
---BFfMxPopW4FMOqALAHjvEn4TCOgnuEASw
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1375452223-30524-4-git-send-email-archit@ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, dagriego@biglakesoftware.com, dale@farnsworth.org, pawel@osciak.com, m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com, tomi.valkeinen@ti.com
+List-Id: linux-omap@vger.kernel.org
 
-On 02/08/13 16:30, Nishanth Menon wrote:
-> On 08/02/2013 08:00 AM, Tomi Valkeinen wrote:
+Hi Archit,
 
->> Feel free to help me develop the DT support for DSS =3D). When that's
->> done, we can remove all this code.
->=20
-> suggesting here - but it will be nice we have some steps towards this
-> direction - is there anything you'd suggest we do first?
+I've got a few comments:
 
-I do have a DSS-DT branch, which works. I've had such a branch for
-almost a year, although I've been refining it all the time. But I'm
-still not happy with the DT bindings I have there, and I haven't had any
-clear ideas how to solve those issues. And, as the DT bindings are an
-external API, I've been very cautious with it.
+On 08/02/2013 04:03 PM, Archit Taneja wrote:
+> VPE is a block which consists of a single memory to memory path which can
+> perform chrominance up/down sampling, de-interlacing, scaling, and color space
+> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
+> interleaved video formats.
+> 
+> We create a mem2mem driver based primarily on the mem2mem-testdev example.
+> The de-interlacer, scaler and color space converter are all bypassed for now
+> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
+> conversion beteen different YUV formats is possible.
+> 
+> Each mem2mem context allocates a buffer for VPE MMR values which it will use
+> when it gets access to the VPE HW via the mem2mem queue, it also allocates
+> a VPDMA descriptor list to which configuration and data descriptors are added.
+> 
+> Based on the information received via v4l2 ioctls for the source and
+> destination queues, the driver configures the values for the MMRs, and stores
+> them in the buffer. There are also some VPDMA parameters like frame start and
+> line mode which needs to be configured, these are configured by direct register
+> writes via the VPDMA helper functions.
+> 
+> The driver's device_run() mem2mem op will add each descriptor based on how the
+> source and destination queues are set up for the given ctx, once the list is
+> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
+> upload MMR registers, start DMA of video buffers on the various input and output
+> clients/ports.
+> 
+> When the list is parsed completely(and the DMAs on all the output ports done),
+> an interrupt is generated which we use to notify that the source and destination
+> buffers are done.
+> 
+> The rest of the driver is quite similar to other mem2mem drivers, we use the
+> multiplane v4l2 ioctls as the HW support coplanar formats.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+>  drivers/media/platform/Kconfig           |   10 +
+>  drivers/media/platform/Makefile          |    2 +
+>  drivers/media/platform/ti-vpe/vpe.c      | 1763 ++++++++++++++++++++++++++++++
+>  drivers/media/platform/ti-vpe/vpe_regs.h |  496 +++++++++
+>  4 files changed, 2271 insertions(+)
+>  create mode 100644 drivers/media/platform/ti-vpe/vpe.c
+>  create mode 100644 drivers/media/platform/ti-vpe/vpe_regs.h
+> 
 
-I'm currently cleaning the branch up, and I hope I can send the series
-next week. Hopefully I'll receive some ideas for the problematic parts.
-I'll cc you =3D).
+...
 
->>> Example: if -EPROBEDEFER is incurred due to some unexpected dependenc=
-y,
->>> we'd have to redo the numbering in the kernel yet again.
->>
->> Hmm, sorry? Do you mean that the i2c bus numbers can change "randomly"=
-?
->>
->> With board files they were numbered 1, 2, 3, 4, but with DT boot they
->> seem to be 0, 1, 2, 3. And as we have the current situation where omap=
-4
->> boots with DT, but DSS does not have DT support, we add the DSS relate=
-d
->> devices in a board-file-like-fashion.
->=20
-> Aah we are then depending on the following
-> i2c-omap.c:
->  adap->nr =3D pdev->id;
->  r =3D i2c_add_numbered_adapter(adap);
->=20
-> mach-omapx/i2c.c:
-> .. i2c_bus_register..
-> pdev->id =3D bus_id
-> platform_device_register(pdev);
->=20
->=20
-> I dont seem to see any similar numbering enforced in dtsi - if I reorde=
-r
-> the i2c entries in SoC dtsi, i'd have an issue as well, no?
+> +/*
+> + * video ioctls
+> + */
+> +static int vpe_querycap(struct file *file, void *priv,
+> +			struct v4l2_capability *cap)
+> +{
+> +	strncpy(cap->driver, VPE_MODULE_NAME, sizeof(cap->driver) - 1);
+> +	strncpy(cap->card, VPE_MODULE_NAME, sizeof(cap->card) - 1);
+> +	strlcpy(cap->bus_info, VPE_MODULE_NAME, sizeof(cap->bus_info));
+> +	cap->device_caps  = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING |
+> +				V4L2_CAP_VIDEO_CAPTURE_MPLANE |
+> +				V4L2_CAP_VIDEO_OUTPUT_MPLANE;
 
-I don't know, but yes, possibly. But you probably won't reorder them, as
-they are in the HW I2C ID module order.
+That should be: V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
 
-> probe deferral could create problems as well.. not saying it can change=
+No CAPTURE/OUTPUT_MPLANE.
 
-> random order on a given kernel between boots, but am saying that when
-> new changes come in, deferral mechanism ensures proper ordering
-> dynamically, which kind of messes up with expected device numbers. I ha=
-d
-> an issue with mmc sometime back where probe deferal on mmc1 made it
-> registered as second device as the dependency was not present on the mm=
-c2.
+> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+> +	return 0;
+> +}
+> +
+> +static int __enum_fmt(struct v4l2_fmtdesc *f, u32 type)
+> +{
+> +	int i, index;
+> +	struct vpe_fmt *fmt = NULL;
+> +
+> +	index = 0;
+> +	for (i = 0; i < ARRAY_SIZE(vpe_formats); ++i) {
+> +		if (vpe_formats[i].types & type) {
+> +			if (index == f->index) {
+> +				fmt = &vpe_formats[i];
+> +				break;
+> +			}
+> +			index++;
+> +		}
+> +	}
+> +
+> +	if (!fmt)
+> +		return -EINVAL;
+> +
+> +	strncpy(f->description, fmt->name, sizeof(f->description) - 1);
+> +	f->pixelformat = fmt->fourcc;
+> +	return 0;
+> +}
+> +
+> +static int vpe_enum_fmt(struct file *file, void *priv,
+> +				struct v4l2_fmtdesc *f)
+> +{
+> +	if (V4L2_TYPE_IS_OUTPUT(f->type))
+> +		return __enum_fmt(f, VPE_FMT_TYPE_OUTPUT);
+> +	else
+> +		return __enum_fmt(f, VPE_FMT_TYPE_CAPTURE);
+> +}
+> +
+> +static int vpe_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+> +{
+> +	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
+> +	struct vpe_ctx *ctx = file2ctx(file);
+> +	struct vb2_queue *vq;
+> +	struct vpe_q_data *q_data;
+> +	int i;
+> +
+> +	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
+> +	if (!vq)
+> +		return -EINVAL;
+> +
+> +	q_data = get_q_data(ctx, f->type);
+> +
+> +	pix->width = q_data->width;
+> +	pix->height = q_data->height;
+> +	pix->pixelformat = q_data->fmt->fourcc;
+> +	pix->colorspace = q_data->colorspace;
+> +	pix->num_planes = q_data->fmt->coplanar ? 2 : 1;
+> +
+> +	for (i = 0; i < pix->num_planes; i++) {
+> +		pix->plane_fmt[i].bytesperline = q_data->bytesperline[i];
+> +		pix->plane_fmt[i].sizeimage = q_data->sizeimage[i];
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
+> +		       struct vpe_fmt *fmt, int type)
+> +{
+> +	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
+> +	struct v4l2_plane_pix_format *plane_fmt;
+> +	int i;
+> +
+> +	if (!fmt || !(fmt->types & type)) {
+> +		vpe_err(ctx->dev, "Fourcc format (0x%08x) invalid.\n",
+> +			pix->pixelformat);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (pix->field == V4L2_FIELD_ANY)
+> +		pix->field = V4L2_FIELD_NONE;
+> +	else if (V4L2_FIELD_NONE != pix->field)
+> +		return -EINVAL;
 
-Yes, interesting point. If I got you right, you're saying that if a
-single i2c device gets deferred, but the others not, the ID numbering
-could change?
+No, TRY_FMT should map field to a valid field type. In this case it is simple:
+just set field to V4L2_FIELD_NONE.
 
-I don't if it's possible to get only single i2c device deferred. Maybe.
+> +
+> +	v4l_bound_align_image(&pix->width, MIN_W, MAX_W, W_ALIGN,
+> +			      &pix->height, MIN_H, MAX_H, H_ALIGN,
+> +			      S_ALIGN);
+> +
+> +	pix->num_planes = fmt->coplanar ? 2 : 1;
+> +	pix->pixelformat = fmt->fourcc;
+> +	pix->colorspace = fmt->fourcc == V4L2_PIX_FMT_RGB24 ?
+> +			V4L2_COLORSPACE_SRGB : V4L2_COLORSPACE_SMPTE170M;
+> +
+> +
+> +	for (i = 0; i < pix->num_planes; i++) {
+> +		int depth;
+> +
+> +		plane_fmt = &pix->plane_fmt[i];
+> +		depth = fmt->vpdma_fmt[i]->depth;
+> +
+> +		if (i == VPE_LUMA)
+> +			plane_fmt->bytesperline =
+> +					round_up((pix->width * depth) >> 3,
+> +						1 << L_ALIGN);
+> +		else
+> +			plane_fmt->bytesperline = pix->width;
+> +
+> +		plane_fmt->sizeimage =
+> +				(pix->height * pix->width * depth) >> 3;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int vpe_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+> +{
+> +	struct vpe_ctx *ctx = file2ctx(file);
+> +	struct vpe_fmt *fmt = find_format(f);
+> +
+> +	if (V4L2_TYPE_IS_OUTPUT(f->type))
+> +		return __vpe_try_fmt(ctx, f, fmt, VPE_FMT_TYPE_OUTPUT);
+> +	else
+> +		return __vpe_try_fmt(ctx, f, fmt, VPE_FMT_TYPE_CAPTURE);
+> +}
+> +
+> +static int __vpe_s_fmt(struct vpe_ctx *ctx, struct v4l2_format *f)
+> +{
+> +	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
+> +	struct v4l2_plane_pix_format *plane_fmt;
+> +	struct vpe_q_data *q_data;
+> +	struct vb2_queue *vq;
+> +	int i;
+> +
+> +	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
+> +	if (!vq)
+> +		return -EINVAL;
+> +
+> +	if (vb2_is_busy(vq)) {
+> +		vpe_err(ctx->dev, "queue busy\n");
+> +		return -EBUSY;
+> +	}
+> +
+> +	q_data = get_q_data(ctx, f->type);
+> +	if (!q_data)
+> +		return -EINVAL;
+> +
+> +	q_data->fmt		= find_format(f);
+> +	q_data->width		= pix->width;
+> +	q_data->height		= pix->height;
+> +	q_data->colorspace	= pix->colorspace;
+> +
+> +	for (i = 0; i < pix->num_planes; i++) {
+> +		plane_fmt = &pix->plane_fmt[i];
+> +
+> +		q_data->bytesperline[i]	= plane_fmt->bytesperline;
+> +		q_data->sizeimage[i]	= plane_fmt->sizeimage;
+> +	}
+> +
+> +	q_data->c_rect.left	= 0;
+> +	q_data->c_rect.top	= 0;
+> +	q_data->c_rect.width	= q_data->width;
+> +	q_data->c_rect.height	= q_data->height;
+> +
+> +	vpe_dbg(ctx->dev, "Setting format for type %d, wxh: %dx%d, fmt: %d bpl_y %d",
+> +		f->type, q_data->width, q_data->height, q_data->fmt->fourcc,
+> +		q_data->bytesperline[VPE_LUMA]);
+> +	if (q_data->fmt->coplanar)
+> +		vpe_dbg(ctx->dev, " bpl_uv %d\n",
+> +			q_data->bytesperline[VPE_CHROMA]);
+> +
+> +	return 0;
+> +}
+> +
+> +static int vpe_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+> +{
+> +	int ret;
+> +	struct vpe_ctx *ctx = file2ctx(file);
+> +
+> +	ret = vpe_try_fmt(file, priv, f);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = __vpe_s_fmt(ctx, f);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (V4L2_TYPE_IS_OUTPUT(f->type))
+> +		set_src_registers(ctx);
+> +	else
+> +		set_dst_registers(ctx);
+> +
+> +	return set_srcdst_params(ctx);
+> +}
+> +
+> +static int vpe_reqbufs(struct file *file, void *priv,
+> +		       struct v4l2_requestbuffers *reqbufs)
+> +{
+> +	struct vpe_ctx *ctx = file2ctx(file);
+> +
+> +	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
+> +}
+> +
+> +static int vpe_querybuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+> +{
+> +	struct vpe_ctx *ctx = file2ctx(file);
+> +
+> +	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
+> +}
+> +
+> +static int vpe_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+> +{
+> +	struct vpe_ctx *ctx = file2ctx(file);
+> +
+> +	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
+> +}
+> +
+> +static int vpe_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+> +{
+> +	struct vpe_ctx *ctx = file2ctx(file);
+> +
+> +	return v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
+> +}
+> +
+> +static int vpe_streamon(struct file *file, void *priv, enum v4l2_buf_type type)
+> +{
+> +	struct vpe_ctx *ctx = file2ctx(file);
+> +
+> +	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
+> +}
+> +
+> +static int vpe_streamoff(struct file *file, void *priv, enum v4l2_buf_type type)
+> +{
+> +	struct vpe_ctx *ctx = file2ctx(file);
+> +
+> +	vpe_dump_regs(ctx->dev);
+> +	vpdma_dump_regs(ctx->dev->vpdma);
+> +
+> +	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
+> +}
+> +
+> +#define V4L2_CID_TRANS_NUM_BUFS		(V4L2_CID_USER_BASE)
+> +
+> +static int vpe_s_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct vpe_ctx *ctx =
+> +		container_of(ctrl->handler, struct vpe_ctx, hdl);
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_TRANS_NUM_BUFS:
+> +		ctx->bufs_per_job = ctrl->val;
+> +		break;
+> +
+> +	default:
+> +		vpe_err(ctx->dev, "Invalid control\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_ctrl_ops vpe_ctrl_ops = {
+> +	.s_ctrl = vpe_s_ctrl,
+> +};
+> +
+> +static const struct v4l2_ioctl_ops vpe_ioctl_ops = {
+> +	.vidioc_querycap	= vpe_querycap,
+> +
+> +	.vidioc_enum_fmt_vid_cap_mplane = vpe_enum_fmt,
+> +	.vidioc_g_fmt_vid_cap_mplane	= vpe_g_fmt,
+> +	.vidioc_try_fmt_vid_cap_mplane	= vpe_try_fmt,
+> +	.vidioc_s_fmt_vid_cap_mplane	= vpe_s_fmt,
+> +
+> +	.vidioc_enum_fmt_vid_out_mplane = vpe_enum_fmt,
+> +	.vidioc_g_fmt_vid_out_mplane	= vpe_g_fmt,
+> +	.vidioc_try_fmt_vid_out_mplane	= vpe_try_fmt,
+> +	.vidioc_s_fmt_vid_out_mplane	= vpe_s_fmt,
+> +
+> +	.vidioc_reqbufs		= vpe_reqbufs,
+> +	.vidioc_querybuf	= vpe_querybuf,
+> +
+> +	.vidioc_qbuf		= vpe_qbuf,
+> +	.vidioc_dqbuf		= vpe_dqbuf,
+> +
+> +	.vidioc_streamon	= vpe_streamon,
+> +	.vidioc_streamoff	= vpe_streamoff,
+> +	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+> +	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+> +};
+> +
+> +/*
+> + * Queue operations
+> + */
+> +static int vpe_queue_setup(struct vb2_queue *vq,
+> +			   const struct v4l2_format *fmt,
+> +			   unsigned int *nbuffers, unsigned int *nplanes,
+> +			   unsigned int sizes[], void *alloc_ctxs[])
+> +{
+> +	int i;
+> +	struct vpe_ctx *ctx = vb2_get_drv_priv(vq);
+> +	struct vpe_q_data *q_data;
+> +
+> +	q_data = get_q_data(ctx, vq->type);
+> +
+> +	*nplanes = q_data->fmt->coplanar ? 2 : 1;
+> +
+> +	for (i = 0; i < *nplanes; i++) {
+> +		sizes[i] = q_data->sizeimage[i];
+> +		alloc_ctxs[i] = ctx->dev->alloc_ctx;
+> +	}
+> +
+> +	vpe_dbg(ctx->dev, "get %d buffer(s) of size %d", *nbuffers,
+> +		sizes[VPE_LUMA]);
+> +	if (q_data->fmt->coplanar)
+> +		vpe_dbg(ctx->dev, " and %d\n", sizes[VPE_CHROMA]);
+> +
+> +	return 0;
+> +}
+> +
+> +static int vpe_buf_prepare(struct vb2_buffer *vb)
+> +{
+> +	struct vpe_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct vpe_q_data *q_data;
+> +	int i, num_planes;
+> +
+> +	vpe_dbg(ctx->dev, "type: %d\n", vb->vb2_queue->type);
+> +
+> +	q_data = get_q_data(ctx, vb->vb2_queue->type);
+> +	num_planes = q_data->fmt->coplanar ? 2 : 1;
+> +
+> +	for (i = 0; i < num_planes; i++) {
+> +		if (vb2_plane_size(vb, i) < q_data->sizeimage[i]) {
+> +			vpe_err(ctx->dev,
+> +				"data will not fit into plane (%lu < %lu)\n",
+> +				vb2_plane_size(vb, i),
+> +				(long) q_data->sizeimage[i]);
+> +			return -EINVAL;
+> +		}
+> +	}
+> +
+> +	for (i = 0; i < num_planes; i++)
+> +		vb2_set_plane_payload(vb, i, q_data->sizeimage[i]);
+> +
+> +	return 0;
+> +}
+> +
+> +static void vpe_buf_queue(struct vb2_buffer *vb)
+> +{
+> +	struct vpe_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
+> +	v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
+> +}
+> +
+> +static void vpe_wait_prepare(struct vb2_queue *q)
+> +{
+> +	struct vpe_ctx *ctx = vb2_get_drv_priv(q);
+> +	vpe_unlock(ctx);
+> +}
+> +
+> +static void vpe_wait_finish(struct vb2_queue *q)
+> +{
+> +	struct vpe_ctx *ctx = vb2_get_drv_priv(q);
+> +	vpe_lock(ctx);
+> +}
+> +
+> +static struct vb2_ops vpe_qops = {
+> +	.queue_setup	 = vpe_queue_setup,
+> +	.buf_prepare	 = vpe_buf_prepare,
+> +	.buf_queue	 = vpe_buf_queue,
+> +	.wait_prepare	 = vpe_wait_prepare,
+> +	.wait_finish	 = vpe_wait_finish,
+> +};
+> +
+> +static int queue_init(void *priv, struct vb2_queue *src_vq,
+> +		      struct vb2_queue *dst_vq)
+> +{
+> +	struct vpe_ctx *ctx = priv;
+> +	int ret;
+> +
+> +	memset(src_vq, 0, sizeof(*src_vq));
+> +	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+> +	src_vq->io_modes = VB2_MMAP;
+> +	src_vq->drv_priv = ctx;
+> +	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+> +	src_vq->ops = &vpe_qops;
+> +	src_vq->mem_ops = &vb2_dma_contig_memops;
+> +	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> +
+> +	ret = vb2_queue_init(src_vq);
+> +	if (ret)
+> +		return ret;
+> +
+> +	memset(dst_vq, 0, sizeof(*dst_vq));
+> +	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+> +	dst_vq->io_modes = VB2_MMAP;
+> +	dst_vq->drv_priv = ctx;
+> +	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+> +	dst_vq->ops = &vpe_qops;
+> +	dst_vq->mem_ops = &vb2_dma_contig_memops;
+> +	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> +
+> +	return vb2_queue_init(dst_vq);
+> +}
+> +
+> +static const struct v4l2_ctrl_config vpe_bufs_per_job = {
+> +	.ops = &vpe_ctrl_ops,
+> +	.id = V4L2_CID_TRANS_NUM_BUFS,
+> +	.name = "Buffers Per Transaction",
+> +	.type = V4L2_CTRL_TYPE_INTEGER,
+> +	.def = VPE_DEF_BUFS_PER_JOB,
+> +	.min = 1,
+> +	.max = VIDEO_MAX_FRAME,
+> +	.step = 1,
+> +};
+> +
+> +/*
+> + * File operations
+> + */
+> +static int vpe_open(struct file *file)
+> +{
+> +	struct vpe_dev *dev = video_drvdata(file);
+> +	struct vpe_ctx *ctx = NULL;
+> +	struct vpe_q_data *s_q_data;
+> +	struct v4l2_ctrl_handler *hdl;
+> +	int ret;
+> +
+> +	vpe_dbg(dev, "vpe_open\n");
+> +
+> +	if (!dev->vpdma->ready) {
+> +		vpe_err(dev, "vpdma firmware not loaded\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+> +	if (!ctx)
+> +		return -ENOMEM;
+> +
+> +	ctx->dev = dev;
+> +
+> +	if (mutex_lock_interruptible(&dev->dev_mutex)) {
+> +		ret = -ERESTARTSYS;
+> +		goto free_ctx;
+> +	}
+> +
+> +	ret = vpdma_create_desc_list(&ctx->desc_list, VPE_DESC_LIST_SIZE,
+> +			VPDMA_LIST_TYPE_NORMAL);
+> +	if (ret != 0)
+> +		goto unlock;
+> +
+> +	ret = vpdma_buf_alloc(&ctx->mmr_adb, sizeof(struct vpe_mmr_adb));
+> +	if (ret != 0)
+> +		goto free_desc_list;
+> +
+> +	init_adb_hdrs(ctx);
+> +
+> +	v4l2_fh_init(&ctx->fh, video_devdata(file));
+> +	file->private_data = &ctx->fh;
+> +
+> +	hdl = &ctx->hdl;
+> +	v4l2_ctrl_handler_init(hdl, 1);
+> +	v4l2_ctrl_new_custom(hdl, &vpe_bufs_per_job, NULL);
+> +	if (hdl->error) {
+> +		ret = hdl->error;
+> +		goto exit_fh;
+> +	}
 
-Anyway, we need some way to fix this for 3.11. As far as I understand,
-it's rather unlikely that the bus number would change, so I think this
-fix is the best I can do.
+I would expect to see a:
 
-> No reason this cannot happen on other busses as well. To solve this on
-> i2c dts, the usual convention is as follows (from omap3-beagle):
-> &i2c1 {
->         clock-frequency =3D <2600000>;
->=20
->         twl: twl@48 {
->                 reg =3D <0x48>;
->                 interrupts =3D <7>; /* SYS_NIRQ cascaded to intc */
->                 interrupt-parent =3D <&intc>;
->         };
-> };
->=20
-> this ensures that probe success order is made independent of device
-> expectation of i2c bus numbering or the order in which it was defined i=
-n
-> dts.
+	ctx->fh.ctrl_handler = hdl;
 
-With dts, this is not a problem, it's handle with phandles. Although not
-as you show above, because we don't really have an i2c device on the boar=
-d.
+here, otherwise the handler will never be seen by the v4l2 framework.
 
-The i2c in question goes through the DVI connector to the monitor. So
-the monitor is the i2c device. Thus we just get a handle to the i2c bus
-going to the monitor, and send messages to it directly, without having a
-linux i2c device.
+> +
+> +	s_q_data = &ctx->q_data[Q_DATA_SRC];
+> +	s_q_data->fmt = &vpe_formats[2];
+> +	s_q_data->width = 1920;
+> +	s_q_data->height = 1080;
+> +	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->width * s_q_data->height *
+> +			s_q_data->fmt->vpdma_fmt[VPE_LUMA]->depth) >> 3;
+> +	s_q_data->colorspace = V4L2_COLORSPACE_SMPTE240M;
+> +	s_q_data->c_rect.left = 0;
+> +	s_q_data->c_rect.top = 0;
+> +	s_q_data->c_rect.width = s_q_data->width;
+> +	s_q_data->c_rect.height = s_q_data->height;
+> +	s_q_data->flags = 0;
+> +
+> +	ctx->q_data[Q_DATA_DST] = *s_q_data;
+> +
+> +	set_src_registers(ctx);
+> +	set_dst_registers(ctx);
+> +	ret = set_srcdst_params(ctx);
+> +	if (ret)
+> +		goto exit_fh;
+> +
+> +	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx, &queue_init);
+> +
+> +	if (IS_ERR(ctx->m2m_ctx)) {
+> +		ret = PTR_ERR(ctx->m2m_ctx);
+> +		goto exit_fh;
+> +	}
+> +
+> +	v4l2_fh_add(&ctx->fh);
+> +
+> +	/*
+> +	 * for now, just report the creation of the first instance, we can later
+> +	 * optimize the driver to enable or disable clocks when the first
+> +	 * instance is created or the last instance released
+> +	 */
+> +	if (atomic_inc_return(&dev->num_instances) == 1)
+> +		vpe_dbg(dev, "first instance created\n");
+> +
+> +	ctx->bufs_per_job = VPE_DEF_BUFS_PER_JOB;
+> +
+> +	ctx->load_mmrs = true;
+> +
+> +	vpe_dbg(dev, "created instance %p, m2m_ctx: %p\n",
+> +		ctx, ctx->m2m_ctx);
+> +
+> +	mutex_unlock(&dev->dev_mutex);
+> +
+> +	return 0;
+> +exit_fh:
+> +	v4l2_ctrl_handler_free(hdl);
+> +	v4l2_fh_exit(&ctx->fh);
+> +	vpdma_buf_free(&ctx->mmr_adb);
+> +free_desc_list:
+> +	vpdma_free_desc_list(&ctx->desc_list);
+> +unlock:
+> +	mutex_unlock(&dev->dev_mutex);
+> +free_ctx:
+> +	kfree(ctx);
+> +	return ret;
+> +}
+> +
+> +static int vpe_release(struct file *file)
+> +{
+> +	struct vpe_dev *dev = video_drvdata(file);
+> +	struct vpe_ctx *ctx = file2ctx(file);
+> +
+> +	vpe_dbg(dev, "releasing instance %p\n", ctx);
+> +
+> +	mutex_lock(&dev->dev_mutex);
+> +	vpdma_free_desc_list(&ctx->desc_list);
+> +	vpdma_buf_free(&ctx->mmr_adb);
 
- Tomi
+I'm missing a v4l2_ctrl_handler_free() in this release function.
 
+> +
+> +	v4l2_fh_del(&ctx->fh);
+> +	v4l2_fh_exit(&ctx->fh);
+> +	v4l2_m2m_ctx_release(ctx->m2m_ctx);
+> +
+> +	kfree(ctx);
+> +
+> +	/*
+> +	 * for now, just report the release of the last instance, we can later
+> +	 * optimize the driver to enable or disable clocks when the first
+> +	 * instance is created or the last instance released
+> +	 */
+> +	if (atomic_dec_return(&dev->num_instances) == 0)
+> +		vpe_dbg(dev, "last instance released\n");
+> +
+> +	mutex_unlock(&dev->dev_mutex);
+> +
+> +	return 0;
+> +}
+> +
+> +static unsigned int vpe_poll(struct file *file,
+> +			     struct poll_table_struct *wait)
+> +{
+> +	struct vpe_ctx *ctx = file2ctx(file);
+> +	struct vpe_dev *dev = ctx->dev;
+> +	int ret;
+> +
+> +	mutex_lock(&dev->dev_mutex);
+> +	ret = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
+> +	mutex_unlock(&dev->dev_mutex);
+> +	return ret;
+> +}
+> +
+> +static int vpe_mmap(struct file *file, struct vm_area_struct *vma)
+> +{
+> +	struct vpe_ctx *ctx = file2ctx(file);
+> +	struct vpe_dev *dev = ctx->dev;
+> +	int ret;
+> +
+> +	if (mutex_lock_interruptible(&dev->dev_mutex))
+> +		return -ERESTARTSYS;
+> +	ret = v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
+> +	mutex_unlock(&dev->dev_mutex);
+> +	return ret;
+> +}
+> +
+> +static const struct v4l2_file_operations vpe_fops = {
+> +	.owner		= THIS_MODULE,
+> +	.open		= vpe_open,
+> +	.release	= vpe_release,
+> +	.poll		= vpe_poll,
+> +	.unlocked_ioctl	= video_ioctl2,
+> +	.mmap		= vpe_mmap,
+> +};
+> +
+> +static struct video_device vpe_videodev = {
+> +	.name		= VPE_MODULE_NAME,
+> +	.fops		= &vpe_fops,
+> +	.ioctl_ops	= &vpe_ioctl_ops,
+> +	.minor		= -1,
+> +	.release	= video_device_release,
+> +	.vfl_dir	= VFL_DIR_M2M,
+> +};
+> +
+> +static struct v4l2_m2m_ops m2m_ops = {
+> +	.device_run	= device_run,
+> +	.job_ready	= job_ready,
+> +	.job_abort	= job_abort,
+> +	.lock		= vpe_lock,
+> +	.unlock		= vpe_unlock,
+> +};
+> +
+> +static int vpe_runtime_get(struct platform_device *pdev)
+> +{
+> +	int r;
+> +
+> +	dev_dbg(&pdev->dev, "vpe_runtime_get\n");
+> +
+> +	r = pm_runtime_get_sync(&pdev->dev);
+> +	WARN_ON(r < 0);
+> +	return r < 0 ? r : 0;
+> +}
+> +
+> +static void vpe_runtime_put(struct platform_device *pdev)
+> +{
+> +
+> +	int r;
+> +
+> +	dev_dbg(&pdev->dev, "vpe_runtime_put\n");
+> +
+> +	r = pm_runtime_put_sync(&pdev->dev);
+> +	WARN_ON(r < 0 && r != -ENOSYS);
+> +}
+> +
+> +static int vpe_probe(struct platform_device *pdev)
+> +{
+> +	struct vpe_dev *dev;
+> +	struct video_device *vfd;
+> +	struct resource *res;
+> +	int ret, irq, func;
+> +
+> +	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
+> +	if (!dev)
+> +		return -ENOMEM;
+> +
+> +	spin_lock_init(&dev->lock);
+> +
+> +	pm_runtime_enable(&pdev->dev);
+> +
+> +	ret = vpe_runtime_get(pdev);
+> +	if (ret)
+> +		goto err_runtime_get;
+> +
+> +	irq = platform_get_irq(pdev, 0);
+> +	if (irq < 0) {
+> +		dev_err(&pdev->dev, "missing irq data\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "vpe");
+> +	if (res == NULL) {
+> +		dev_err(&pdev->dev, "missing platform resources data\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+> +	if (ret)
+> +		return ret;
+> +
+> +	atomic_set(&dev->num_instances, 0);
+> +	mutex_init(&dev->dev_mutex);
+> +
+> +	vfd = video_device_alloc();
 
+In general I prefer to see the struct video_device embedded in struct vpe_dev. If
+nothing else it saves you from the NULL test below.
 
---BFfMxPopW4FMOqALAHjvEn4TCOgnuEASw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+> +	if (!vfd) {
+> +		vpe_err(dev, "Failed to allocate video device\n");
+> +		ret = -ENOMEM;
+> +		goto dev_unreg;
+> +	}
+> +
+> +	*vfd = vpe_videodev;
+> +	vfd->lock = &dev->dev_mutex;
+> +	vfd->v4l2_dev = &dev->v4l2_dev;
+> +
+> +	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+This should be done as the very last thing: once the device is registered apps can
+immediately use it, and if the internal state is not yet fully ready, that can
+cause major problems.
 
-iQIcBAEBAgAGBQJR+8DAAAoJEPo9qoy8lh71a6cQAIiuvTb/ao6EivZPgDgtozhk
-iVS3xRjqeBIzRnZEZK0FExDhC9CqBvFnRy31kiKEDXhQzh8cf2N6XMEW8CkFjI2N
-0XGUo0kCfkUcHIscoqC3CqROIHZ29BrhYQKDIvdyWIZTfJDbHUBcBezhlwa0csiy
-FHZjvaeGYUQnRKlz6vTZQaAlKkQDYDBnhfBi6BcPNDDw8BN+PdrlcUsY0g638mXS
-jpqA1pU74Ttw9czgXCj2TbnKgN/yTVMagE6E5KUxeE1H7srwtRWpTVLiKRj4VpBt
-pqeJLW7CZ00BhWoiYFDtw6kM0iCC8hR9fcSwQr0zPgavFymqvVlbgLseK8UVXygo
-Uhoy5BVg/LVxsecjenH7onUFc0z5+M6thYWmdvyOx/39xRZ7vJWlNHQvuIn+ZwmI
-dBp3wQev9pTEOvWbmOVBsjJxFprAh8t9issRi+E9CvCbd3Hrk2t/iqYu4hOF5n61
-i1dShAT6XDMxuHU2CBW0uojLm9wgzeJ1thBFCRW+1G40BixhaZybvNmTsIXNR+RA
-SIBOCxDhQvv0wuBhyIRdSRmqoWaeCoF+iXkQzOhdjrkOkOmp9QqFPlavHIJltFdA
-uBs85kBB5vL5J3XdZ1PJb97Qcy554N13GynRncbsAj5zyTup+7q5IFNhhrV4h7AV
-xOlIATTJy+f0NhRFlhjx
-=GOl7
------END PGP SIGNATURE-----
+Remember that udev daemons can open devices as soon as they appear, so this is not
+a theoretical race condition. The best way to avoid problems is to call this as the
+very last thing.
 
---BFfMxPopW4FMOqALAHjvEn4TCOgnuEASw--
+> +	if (ret) {
+> +		vpe_err(dev, "Failed to register video device\n");
+> +		goto rel_vdev;
+> +	}
+> +
+> +	video_set_drvdata(vfd, dev);
+> +	snprintf(vfd->name, sizeof(vfd->name), "%s", vpe_videodev.name);
+> +	dev->vfd = vfd;
+> +	dev_info(dev->v4l2_dev.dev, "Device registered as /dev/video%d\n",
+> +		vfd->num);
+> +
+> +	platform_set_drvdata(pdev, dev);
+> +
+> +	dev->base = devm_ioremap(&pdev->dev, res->start, SZ_128K);
+> +	if (!dev->base) {
+> +		ret = -ENOMEM;
+> +		goto vid_unreg_dev;
+> +	}
+> +
+> +	/* Perform clk enable followed by reset */
+> +	vpe_set_clock_enable(dev, 1);
+> +
+> +	vpe_top_reset(dev);
+> +
+> +	func = get_field_reg(dev, VPE_PID, VPE_PID_FUNC_MASK,
+> +		VPE_PID_FUNC_SHIFT);
+> +	vpe_dbg(dev, "VPE PID function %x\n", func);
+> +
+> +	if (devm_request_irq(&pdev->dev, irq, vpe_irq, 0, VPE_MODULE_NAME,
+> +			dev) < 0) {
+> +		ret = -ENOMEM;
+> +		goto vid_unreg_dev;
+> +	}
+> +
+> +	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+> +	if (IS_ERR(dev->alloc_ctx)) {
+> +		vpe_err(dev, "Failed to alloc vb2 context\n");
+> +		ret = PTR_ERR(dev->alloc_ctx);
+> +		goto vid_unreg_dev;
+> +	}
+> +
+> +	dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
+> +	if (IS_ERR(dev->m2m_dev)) {
+> +		vpe_err(dev, "Failed to init mem2mem device\n");
+> +		ret = PTR_ERR(dev->m2m_dev);
+> +		goto rel_ctx;
+> +	}
+> +
+> +	vpe_top_vpdma_reset(dev);
+> +
+> +	ret = vpdma_init(pdev, &dev->vpdma);
+> +	if (ret < 0)
+> +		goto rel_m2m;
+> +
+> +	return 0;
+> +
+> +rel_m2m:
+> +	v4l2_m2m_release(dev->m2m_dev);
+> +rel_ctx:
+> +	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+> +vid_unreg_dev:
+> +	video_unregister_device(vfd);
+> +rel_vdev:
+> +	video_device_release(vfd);
+> +dev_unreg:
+> +	v4l2_device_unregister(&dev->v4l2_dev);
+> +err_runtime_get:
+> +	pm_runtime_disable(&pdev->dev);
+> +
+> +	return ret;
+> +}
+> +
+> +static int vpe_remove(struct platform_device *pdev)
+> +{
+> +	struct vpe_dev *dev =
+> +		(struct vpe_dev *) platform_get_drvdata(pdev);
+> +
+> +	v4l2_info(&dev->v4l2_dev, "Removing " VPE_MODULE_NAME);
+> +
+> +	v4l2_m2m_release(dev->m2m_dev);
+> +	video_unregister_device(dev->vfd);
+> +	v4l2_device_unregister(&dev->v4l2_dev);
+> +	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+> +
+> +	vpe_set_clock_enable(dev, 0);
+> +	vpe_runtime_put(pdev);
+> +	pm_runtime_disable(&pdev->dev);
+> +
+> +	return 0;
+> +}
+> +
+> +#if defined(CONFIG_OF)
+> +static const struct of_device_id vpe_of_match[] = {
+> +	{
+> +		.compatible = "ti,vpe",
+> +	},
+> +	{},
+> +};
+> +#else
+> +#define vpe_of_match NULL
+> +#endif
+> +
+> +static struct platform_driver vpe_pdrv = {
+> +	.probe		= vpe_probe,
+> +	.remove		= vpe_remove,
+> +	.driver		= {
+> +		.name	= VPE_MODULE_NAME,
+> +		.owner	= THIS_MODULE,
+> +		.of_match_table = vpe_of_match,
+> +	},
+> +};
+> +
+> +static void __exit vpe_exit(void)
+> +{
+> +	platform_driver_unregister(&vpe_pdrv);
+> +}
+> +
+> +static int __init vpe_init(void)
+> +{
+> +	return platform_driver_register(&vpe_pdrv);
+> +}
+> +
+> +module_init(vpe_init);
+> +module_exit(vpe_exit);
+> +
+> +MODULE_DESCRIPTION("TI VPE driver");
+> +MODULE_AUTHOR("Dale Farnsworth, <dale@farnsworth.org>");
+> +MODULE_LICENSE("GPL");
+
+Overall it looks pretty good!
+
+Regards,
+
+	Hans
