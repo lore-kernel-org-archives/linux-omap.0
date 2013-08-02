@@ -1,117 +1,105 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: Remove legacy DSS initialization for
- omap4
-Date: Fri, 2 Aug 2013 07:56:49 -0500
-Message-ID: <51FBAC91.8040401@ti.com>
-References: <1374570405-8301-1-git-send-email-tomi.valkeinen@ti.com> <1374570405-8301-3-git-send-email-tomi.valkeinen@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: dss-common: fix Panda's DVI DDC channel
+Date: Fri, 2 Aug 2013 16:00:20 +0300
+Message-ID: <51FBAD64.5090600@ti.com>
+References: <1374570405-8301-1-git-send-email-tomi.valkeinen@ti.com> <1374570405-8301-2-git-send-email-tomi.valkeinen@ti.com> <51FBAC21.2040609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="lltjpSplSCVKqBnQ5hTSV8NhpPOXEgAXK"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38966 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59040 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751590Ab3HBM5L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Aug 2013 08:57:11 -0400
-In-Reply-To: <1374570405-8301-3-git-send-email-tomi.valkeinen@ti.com>
+	id S1750904Ab3HBNAo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Aug 2013 09:00:44 -0400
+In-Reply-To: <51FBAC21.2040609@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Nishanth Menon <nm@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 07/23/2013 04:06 AM, Tomi Valkeinen wrote:
-> This is no longer needed as omap4 is now booted using device tree.
->
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->   arch/arm/mach-omap2/dss-common.c | 47 ----------------------------------------
->   arch/arm/mach-omap2/dss-common.h |  2 --
->   2 files changed, 49 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
-> index 043e570..00c0492 100644
-> --- a/arch/arm/mach-omap2/dss-common.c
-> +++ b/arch/arm/mach-omap2/dss-common.c
-> @@ -80,24 +80,6 @@ static struct omap_dss_board_info omap4_panda_dss_data = {
->   	.default_device	= &omap4_panda_dvi_device,
->   };
->
-> -void __init omap4_panda_display_init(void)
-> -{
-> -	omap_display_init(&omap4_panda_dss_data);
-> -
-> -	/*
-> -	 * OMAP4460SDP/Blaze and OMAP4430 ES2.3 SDP/Blaze boards and
-> -	 * later have external pull up on the HDMI I2C lines
-> -	 */
-> -	if (cpu_is_omap446x() || omap_rev() > OMAP4430_REV_ES2_2)
-> -		omap_hdmi_init(OMAP_HDMI_SDA_SCL_EXTERNAL_PULLUP);
-> -	else
-> -		omap_hdmi_init(0);
-> -
-> -	omap_mux_init_gpio(HDMI_GPIO_LS_OE, OMAP_PIN_OUTPUT);
-> -	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
-> -	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
-> -}
-> -
->   void __init omap4_panda_display_init_of(void)
->   {
->   	omap_display_init(&omap4_panda_dss_data);
-> @@ -204,35 +186,6 @@ static struct omap_dss_board_info sdp4430_dss_data = {
->    * used by picodlp on the 4430sdp platform. Keep this gpio disabled as LCD2 is
->    * selected by default
->    */
-> -void __init omap_4430sdp_display_init(void)
-> -{
-> -	int r;
-> -
-> -	r = gpio_request_one(DISPLAY_SEL_GPIO, GPIOF_OUT_INIT_HIGH,
-> -			"display_sel");
-> -	if (r)
-> -		pr_err("%s: Could not get display_sel GPIO\n", __func__);
-> -
-> -	r = gpio_request_one(DLP_POWER_ON_GPIO, GPIOF_OUT_INIT_LOW,
-> -		"DLP POWER ON");
-> -	if (r)
-> -		pr_err("%s: Could not get DLP POWER ON GPIO\n", __func__);
-> -
-> -	omap_display_init(&sdp4430_dss_data);
-> -	/*
-> -	 * OMAP4460SDP/Blaze and OMAP4430 ES2.3 SDP/Blaze boards and
-> -	 * later have external pull up on the HDMI I2C lines
-> -	 */
-> -	if (cpu_is_omap446x() || omap_rev() > OMAP4430_REV_ES2_2)
-> -		omap_hdmi_init(OMAP_HDMI_SDA_SCL_EXTERNAL_PULLUP);
-> -	else
-> -		omap_hdmi_init(0);
-> -
-> -	omap_mux_init_gpio(HDMI_GPIO_LS_OE, OMAP_PIN_OUTPUT);
-> -	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
-> -	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
-> -}
-> -
->   void __init omap_4430sdp_display_init_of(void)
->   {
->   	int r;
-> diff --git a/arch/arm/mach-omap2/dss-common.h b/arch/arm/mach-omap2/dss-common.h
-> index 915f6ff..c28fe3c 100644
-> --- a/arch/arm/mach-omap2/dss-common.h
-> +++ b/arch/arm/mach-omap2/dss-common.h
-> @@ -6,9 +6,7 @@
->    * This file will be removed when DSS supports DT.
->    */
->
-> -void __init omap4_panda_display_init(void);
->   void __init omap4_panda_display_init_of(void);
-> -void __init omap_4430sdp_display_init(void);
->   void __init omap_4430sdp_display_init_of(void);
->
->   #endif
->
+--lltjpSplSCVKqBnQ5hTSV8NhpPOXEgAXK
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Am I missing some series which introduces dts entries for the pinctrl 
-and gpios for omap4 support?
+On 02/08/13 15:54, Nishanth Menon wrote:
+> On 07/23/2013 04:06 AM, Tomi Valkeinen wrote:
+>> Panda's DVI connector's DDC pins are connected to OMAP's third i2c bus=
+=2E
+>> With non-DT, the bus number was 3, and that is what is used in the
+>> dss-common.c which contains the platform data for Panda's DVI.
+>>
+>> However, with DT, the bus number is 2. As we now only have DT boot for=
+
+>> Panda, we have to change the bus number to make DVI EDID read
+>> operational.
+>>
+>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/dss-common.c | 2 +-
+>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/dss-common.c
+>> b/arch/arm/mach-omap2/dss-common.c
+>> index 393aeef..043e570 100644
+>> --- a/arch/arm/mach-omap2/dss-common.c
+>> +++ b/arch/arm/mach-omap2/dss-common.c
+>> @@ -42,7 +42,7 @@
+>>
+>>   /* Using generic display panel */
+>>   static struct tfp410_platform_data omap4_dvi_panel =3D {
+>> -    .i2c_bus_num        =3D 3,
+>> +    .i2c_bus_num        =3D 2,
+>>       .power_down_gpio    =3D PANDA_DVI_TFP410_POWER_DOWN_GPIO,
+>>   };
+>>
+>>
+> completely dumb question :) :
+> why cant we have dts support for this instead of having to renumber
+> every time?
+
+What do you mean "every time"?
+
+Feel free to help me develop the DT support for DSS =3D). When that's
+done, we can remove all this code.
+
+> Example: if -EPROBEDEFER is incurred due to some unexpected dependency,=
+
+> we'd have to redo the numbering in the kernel yet again.
+
+Hmm, sorry? Do you mean that the i2c bus numbers can change "randomly"?
+
+With board files they were numbered 1, 2, 3, 4, but with DT boot they
+seem to be 0, 1, 2, 3. And as we have the current situation where omap4
+boots with DT, but DSS does not have DT support, we add the DSS related
+devices in a board-file-like-fashion.
+
+ Tomi
 
 
--- 
-Regards,
-Nishanth Menon
+
+--lltjpSplSCVKqBnQ5hTSV8NhpPOXEgAXK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJR+61kAAoJEPo9qoy8lh71XycQAIbTDm0XHdLiaoWi8fh47KA8
+kWqxk7m/t+pYg0HmwvWAEm//Evl7WvlcAMs7u5S4aZETz7QSCIcPsik/LC0K0Z3B
+vntaAAUsCS69UBypDIlT7dHLP0U0o9WCenaSpHF45XtMfsYdXfdQxp0POw6lZQPp
+Oz/70FBtu36wwQLR+NwDbA2JUQyWglwRQ6MVWl67wMoI8hZYs1cSmKAOj47ybdXd
+m9Co0nM/Sh4hmPnmr2gCkE5PLw4dDmpmJL6u/D7aZ0CtqLM51DzKeSMVrs85/wVg
+n3JwOAAhnqKNwcR9/J6DdUOrKpFjBdhJE+5yDhQu0EY9LFRAlyPQiFWwEe6M/5Iz
+aEnxR2OLQWu3DOAud8ag8TxMQDR7+2jQ54PmrdxHtUA7WUoLx4eJw3fiDx1qs/qf
+jJhkOOXEpgB0AiNumAHSedk8k8O/i8WQp2khtiCeiQvu0WH1SWXLjZK41BlEROMs
+KMAtFh8ZYrFbnr3h5D4WxRtdX/Xm8fLBuWDv+BFc0SlmAUpVvYvk9E50Wg8T7BCy
+EY+SsCqgOVXyOfKJ1bnXmmqi4Hqt8sQKcFC2iyKL2ij2LTzQB8qT2xfdm+uuCECa
+wGlyopF422GBwk0aSvgMB+XPMvz6OZvQGBLZodoUBDoCWKc6EcnUFDVSWav0Rf8v
+0R07cxbRp5D5/LgB7OSF
+=svrI
+-----END PGP SIGNATURE-----
+
+--lltjpSplSCVKqBnQ5hTSV8NhpPOXEgAXK--
