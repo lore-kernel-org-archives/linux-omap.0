@@ -1,101 +1,91 @@
-From: Richard Zhao <rizhao@nvidia.com>
-Subject: [PATCH] DMA: let filter functions of of_dma_simple_xlate possible check of_node
-Date: Fri, 2 Aug 2013 10:00:00 +0800
-Message-ID: <1375408800-11789-1-git-send-email-rizhao@nvidia.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCH] drivers: mtd: devices: make m25p80 dt adapted.
+Date: Fri, 2 Aug 2013 12:19:30 +0530
+Message-ID: <1375426170-31609-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: vinod.koul@intel.com, djbw@fb.com, swarren@wwwdotorg.org, Richard Zhao <rizhao@nvidia.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: dwmw2@infradead.org, artem.bityutskiy@linux.intel.com, linux-mtd@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+Cc: Sourav Poddar <sourav.poddar@ti.com>, linux-omap@vger.kernel.org, pekon@ti.com, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-pass of_phandle_args dma_spec to dma_request_channel in of_dma_simple_xlate,
-so the filter function could access of_node in of_phandle_args.
+This patch helps gettimg m25p80 probed through dt.
+To get the id of the exact flash type supported for dt case,
+data->type is getting parsed from dt entry.
 
-It also remove restriction of #dma-cells has to be one.
-
-Signed-off-by: Richard Zhao <rizhao@nvidia.com>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 ---
- drivers/dma/edma.c     |  7 +++++--
- drivers/dma/of-dma.c   | 10 ++++------
- drivers/dma/omap-dma.c |  6 ++++--
- 3 files changed, 13 insertions(+), 10 deletions(-)
+ drivers/mtd/devices/m25p80.c |   22 +++++++++++++++++++++-
+ 1 files changed, 21 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 4f6d87b..54582fd 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -23,6 +23,7 @@
- #include <linux/platform_device.h>
- #include <linux/slab.h>
- #include <linux/spinlock.h>
-+#include <linux/of_dma.h>
+diff --git a/drivers/mtd/devices/m25p80.c b/drivers/mtd/devices/m25p80.c
+index 33098bf..cbfb9b3 100644
+--- a/drivers/mtd/devices/m25p80.c
++++ b/drivers/mtd/devices/m25p80.c
+@@ -855,6 +855,13 @@ static const struct spi_device_id m25p_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(spi, m25p_ids);
  
- #include <linux/platform_data/edma.h>
- 
-@@ -604,9 +605,11 @@ static struct platform_driver edma_driver = {
- 
- bool edma_filter_fn(struct dma_chan *chan, void *param)
++#ifdef CONFIG_OF
++static const struct of_device_id m25p_dt_ids[] = {
++	{ .compatible = "m25p80", },
++	{ /* sentinel */ }
++};
++#endif
++
+ static const struct spi_device_id *jedec_probe(struct spi_device *spi)
  {
--	if (chan->device->dev->driver == &edma_driver.driver) {
-+	struct of_phandle_args *dma_spec = param;
-+	if (chan->device->dev->driver == &edma_driver.driver &&
-+			dma_spec->np == chan->device->dev->of_node) {
- 		struct edma_chan *echan = to_edma_chan(chan);
--		unsigned ch_req = *(unsigned *)param;
-+		unsigned ch_req = dma_spec->args[0];
- 		return ch_req == echan->ch_num;
- 	}
- 	return false;
-diff --git a/drivers/dma/of-dma.c b/drivers/dma/of-dma.c
-index 75334bd..e1c4d3b 100644
---- a/drivers/dma/of-dma.c
-+++ b/drivers/dma/of-dma.c
-@@ -192,11 +192,9 @@ struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
-  * @dma_spec:	pointer to DMA specifier as found in the device tree
-  * @of_dma:	pointer to DMA controller data
-  *
-- * A simple translation function for devices that use a 32-bit value for the
-+ * A simple translation function for devices that use dma_spec for the
-  * filter_param when calling the DMA engine dma_request_channel() function.
-- * Note that this translation function requires that #dma-cells is equal to 1
-- * and the argument of the dma specifier is the 32-bit filter_param. Returns
-- * pointer to appropriate dma channel on success or NULL on error.
-+ * Returns pointer to appropriate dma channel on success or NULL on error.
-  */
- struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_spec,
- 						struct of_dma *ofdma)
-@@ -207,10 +205,10 @@ struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_spec,
- 	if (!info || !info->filter_fn)
- 		return NULL;
+ 	int			tmp;
+@@ -909,6 +916,7 @@ static int m25p_probe(struct spi_device *spi)
+ 	unsigned			i;
+ 	struct mtd_part_parser_data	ppdata;
+ 	struct device_node __maybe_unused *np = spi->dev.of_node;
++	int len;
  
--	if (count != 1)
-+	if (count < 1)
- 		return NULL;
+ #ifdef CONFIG_MTD_OF_PARTS
+ 	if (!of_device_is_available(np))
+@@ -920,7 +928,18 @@ static int m25p_probe(struct spi_device *spi)
+ 	 * a chip ID, try the JEDEC id commands; they'll work for most
+ 	 * newer chips, even if we don't recognize the particular chip.
+ 	 */
+-	data = spi->dev.platform_data;
++	if (!np) {
++		data = spi->dev.platform_data;
++	} else {
++		data = devm_kzalloc(&spi->dev, sizeof(*data), GFP_KERNEL);
++		if (!data)
++			return -ENOMEM;
++
++		data->type = (char *) of_get_property(np, "type", &len);
++		if (!data->type || strlen(data->type) > len)
++			return -ENODEV;
++	}
++
+ 	if (data && data->type) {
+ 		const struct spi_device_id *plat_id;
  
- 	return dma_request_channel(info->dma_cap, info->filter_fn,
--			&dma_spec->args[0]);
-+			dma_spec);
- }
- EXPORT_SYMBOL_GPL(of_dma_simple_xlate);
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index ec3fc4f..32547ec 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -693,9 +693,11 @@ static struct platform_driver omap_dma_driver = {
- 
- bool omap_dma_filter_fn(struct dma_chan *chan, void *param)
- {
--	if (chan->device->dev->driver == &omap_dma_driver.driver) {
-+	struct of_phandle_args *dma_spec = param;
-+	if (chan->device->dev->driver == &omap_dma_driver.driver &&
-+			dma_spec->np == chan->device->dev->of_node) {
- 		struct omap_chan *c = to_omap_dma_chan(chan);
--		unsigned req = *(unsigned *)param;
-+		unsigned req = dma_spec->args[0];
- 
- 		return req == c->dma_sig;
- 	}
+@@ -1098,6 +1117,7 @@ static struct spi_driver m25p80_driver = {
+ 	.driver = {
+ 		.name	= "m25p80",
+ 		.owner	= THIS_MODULE,
++		.of_match_table = of_match_ptr(m25p_dt_ids),
+ 	},
+ 	.id_table	= m25p_ids,
+ 	.probe	= m25p_probe,
 -- 
-1.8.1.5
+1.7.1
+
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
