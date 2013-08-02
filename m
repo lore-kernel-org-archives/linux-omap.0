@@ -1,170 +1,101 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH v2] N900: add device tree
-Date: Fri, 2 Aug 2013 01:43:56 +0200
-Message-ID: <20130801234355.GA15611@amd.pavel.ucw.cz>
-References: <20130614055629.GM8164@atomide.com>
- <20130614212816.GA31768@atrey.karlin.mff.cuni.cz>
- <20130617111031.GQ20992@atomide.com>
- <20130701211753.GC15318@amd.pavel.ucw.cz>
- <20130704171939.GA27374@blackmetal.musicnaut.iki.fi>
- <20130704202145.GB10752@amd.pavel.ucw.cz>
- <20130704203256.GB27374@blackmetal.musicnaut.iki.fi>
- <20130713121709.GC16473@amd.pavel.ucw.cz>
- <20130714222819.GB3296@blackmetal.musicnaut.iki.fi>
- <20130728134409.GB5382@amd.pavel.ucw.cz>
+From: Richard Zhao <rizhao@nvidia.com>
+Subject: [PATCH] DMA: let filter functions of of_dma_simple_xlate possible check of_node
+Date: Fri, 2 Aug 2013 10:00:00 +0800
+Message-ID: <1375408800-11789-1-git-send-email-rizhao@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130728134409.GB5382@amd.pavel.ucw.cz>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, b-cousson@ti.com, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: vinod.koul@intel.com, djbw@fb.com, swarren@wwwdotorg.org, Richard Zhao <rizhao@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun 2013-07-28 15:44:09, Pavel Machek wrote:
-> On Mon 2013-07-15 01:28:19, Aaro Koskinen wrote:
-> > Hi,
-> > 
-> > On Sat, Jul 13, 2013 at 02:17:09PM +0200, Pavel Machek wrote:
-> > > 
-> > > This adds device tree with neccessary support to boot with functional
-> > > video (on both emulator and real N900 device).
-> > > 
-> > > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> > 
-> > You can also add:
-> > 
-> > Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> 
-> Benoit, could you apply this? Tony said you are doing dts changes, and
-> the patch seems to be ready.
+pass of_phandle_args dma_spec to dma_request_channel in of_dma_simple_xlate,
+so the filter function could access of_node in of_phandle_args.
 
-Tony, Benoit was apparently abducted by aliens or something. Is there
-chance you could take the patch?
+It also remove restriction of #dma-cells has to be one.
 
-Thanks,
-									Pavel
+Signed-off-by: Richard Zhao <rizhao@nvidia.com>
+---
+ drivers/dma/edma.c     |  7 +++++--
+ drivers/dma/of-dma.c   | 10 ++++------
+ drivers/dma/omap-dma.c |  6 ++++--
+ 3 files changed, 13 insertions(+), 10 deletions(-)
 
-> > > From v1: Aaro wants just GPLv2, so I did that. I re-enabled parts that
-> > > can be enabled on 3.10, and tested it on that kernel.
-> > > 
-> > > diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> > > index f0895c5..1950aed 100644
-> > > --- a/arch/arm/boot/dts/Makefile
-> > > +++ b/arch/arm/boot/dts/Makefile
-> > > @@ -141,6 +141,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
-> > >  	omap3-devkit8000.dtb \
-> > >  	omap3-beagle-xm.dtb \
-> > >  	omap3-evm.dtb \
-> > > +	omap3-n900.dtb \
-> > >  	omap3-tobi.dtb \
-> > >  	omap3-igep0020.dtb \
-> > >  	omap3-igep0030.dtb \
-> > > diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-> > > new file mode 100644
-> > > index 0000000..fb461bf
-> > > --- /dev/null
-> > > +++ b/arch/arm/boot/dts/omap3-n900.dts
-> > > @@ -0,0 +1,92 @@
-> > > +/*
-> > > + * Copyright (C) 2013 Pavel Machek <pavel@ucw.cz>
-> > > + * Copyright 2013 Aaro Koskinen <aaro.koskinen@iki.fi>
-> > > + *
-> > > + * This program is free software; you can redistribute it and/or modify
-> > > + * it under the terms of the GNU General Public License version 2 as
-> > > + * published by the Free Software Foundation.
-> > > + */
-> > > +
-> > > +/dts-v1/;
-> > > +
-> > > +/include/ "omap34xx.dtsi"
-> > > +
-> > > +/ {
-> > > +	model = "Nokia N900";
-> > > +	compatible = "nokia,omap3-n900", "ti,omap3";
-> > > +
-> > > +	cpus {
-> > > +		cpu@0 {
-> > > +			cpu0-supply = <&vcc>;
-> > > +		};
-> > > +	};
-> > > +
-> > > +	memory {
-> > > +		device_type = "memory";
-> > > +		reg = <0x80000000 0x10000000>; /* 256 MB */
-> > > +	};
-> > > +
-> > > +};
-> > > +
-> > > +&i2c1 {
-> > > +	clock-frequency = <2200000>;
-> > > +
-> > > +	twl: twl@48 {
-> > > +		reg = <0x48>;
-> > > +		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-> > > +		interrupt-parent = <&intc>;
-> > > +	};
-> > > +};
-> > > +
-> > > +/include/ "twl4030.dtsi"
-> > > +
-> > > +&twl_gpio {
-> > > +	ti,pullups	= <0x0>;
-> > > +	ti,pulldowns	= <0x03ff3f>; /* BIT(0..5) | BIT(8..17) */
-> > > +};
-> > > +
-> > > +&i2c2 {
-> > > +	clock-frequency = <400000>;
-> > > +};
-> > > +
-> > > +&i2c3 {
-> > > +	clock-frequency = <100000>;
-> > > +};
-> > > +
-> > > +&mmc1 {
-> > > +	status = "disabled";
-> > > +};
-> > > +
-> > > +&mmc2 {
-> > > +	status = "disabled";
-> > > +};
-> > > +
-> > > +&mmc3 {
-> > > +	status = "disabled";
-> > > +};
-> > > +
-> > > +&mcspi1 {
-> > > +	// For some reason, touchscreen is neccessary for screen to work at 
-> > > +	// all on real hw. It works well without it on emulator.
-> > > +	//
-> > > +	// Also... order in the device tree actually matters here.
-> > > +	tsc2005@0 {
-> > > +		compatible = "tsc2005";
-> > > +		spi-max-frequency = <6000000>;
-> > > +		reg = <0>;
-> > > +	};
-> > > +	mipid@2 {
-> > > +		compatible = "acx565akm";
-> > > +		spi-max-frequency = <6000000>;
-> > > +		reg = <2>;
-> > > +		// turbo_mode = 0,
-> > > +		// cs_per_word = 0
-> > > +	};
-> > > +};
-> > > +
-> > > +&usb_otg_hs {
-> > > +	interface-type = <0>;
-> > > +	usb-phy = <&usb2_phy>;
-> > > +	mode = <2>;
-> > > +	power = <50>;
-> > > +};
-> > > 
-> > > -- 
-> > > (english) http://www.livejournal.com/~pavelmachek
-> > > (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
-> 
-
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 4f6d87b..54582fd 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -23,6 +23,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
++#include <linux/of_dma.h>
+ 
+ #include <linux/platform_data/edma.h>
+ 
+@@ -604,9 +605,11 @@ static struct platform_driver edma_driver = {
+ 
+ bool edma_filter_fn(struct dma_chan *chan, void *param)
+ {
+-	if (chan->device->dev->driver == &edma_driver.driver) {
++	struct of_phandle_args *dma_spec = param;
++	if (chan->device->dev->driver == &edma_driver.driver &&
++			dma_spec->np == chan->device->dev->of_node) {
+ 		struct edma_chan *echan = to_edma_chan(chan);
+-		unsigned ch_req = *(unsigned *)param;
++		unsigned ch_req = dma_spec->args[0];
+ 		return ch_req == echan->ch_num;
+ 	}
+ 	return false;
+diff --git a/drivers/dma/of-dma.c b/drivers/dma/of-dma.c
+index 75334bd..e1c4d3b 100644
+--- a/drivers/dma/of-dma.c
++++ b/drivers/dma/of-dma.c
+@@ -192,11 +192,9 @@ struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
+  * @dma_spec:	pointer to DMA specifier as found in the device tree
+  * @of_dma:	pointer to DMA controller data
+  *
+- * A simple translation function for devices that use a 32-bit value for the
++ * A simple translation function for devices that use dma_spec for the
+  * filter_param when calling the DMA engine dma_request_channel() function.
+- * Note that this translation function requires that #dma-cells is equal to 1
+- * and the argument of the dma specifier is the 32-bit filter_param. Returns
+- * pointer to appropriate dma channel on success or NULL on error.
++ * Returns pointer to appropriate dma channel on success or NULL on error.
+  */
+ struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_spec,
+ 						struct of_dma *ofdma)
+@@ -207,10 +205,10 @@ struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_spec,
+ 	if (!info || !info->filter_fn)
+ 		return NULL;
+ 
+-	if (count != 1)
++	if (count < 1)
+ 		return NULL;
+ 
+ 	return dma_request_channel(info->dma_cap, info->filter_fn,
+-			&dma_spec->args[0]);
++			dma_spec);
+ }
+ EXPORT_SYMBOL_GPL(of_dma_simple_xlate);
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index ec3fc4f..32547ec 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -693,9 +693,11 @@ static struct platform_driver omap_dma_driver = {
+ 
+ bool omap_dma_filter_fn(struct dma_chan *chan, void *param)
+ {
+-	if (chan->device->dev->driver == &omap_dma_driver.driver) {
++	struct of_phandle_args *dma_spec = param;
++	if (chan->device->dev->driver == &omap_dma_driver.driver &&
++			dma_spec->np == chan->device->dev->of_node) {
+ 		struct omap_chan *c = to_omap_dma_chan(chan);
+-		unsigned req = *(unsigned *)param;
++		unsigned req = dma_spec->args[0];
+ 
+ 		return req == c->dma_sig;
+ 	}
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.8.1.5
