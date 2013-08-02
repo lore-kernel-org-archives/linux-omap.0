@@ -1,71 +1,79 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: [PATCH 5/5] usb: musb: dsps: use proper child nodes
-Date: Fri, 02 Aug 2013 12:29:40 +0200
-Message-ID: <51FB8A14.8040008@linutronix.de>
-References: <1375215401-19729-1-git-send-email-bigeasy@linutronix.de> <1375215401-19729-6-git-send-email-bigeasy@linutronix.de> <51F9F10A.4000908@ti.com> <51FA3DD9.9080207@linutronix.de> <51FA46C3.9000101@linutronix.de>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 1/4] CLK: ti: dra7: Initialize USB_DPLL
+Date: Fri, 2 Aug 2013 13:57:25 +0300
+Message-ID: <51FB9095.8030200@ti.com>
+References: <1375369134-26398-1-git-send-email-rogerq@ti.com> <1375369134-26398-2-git-send-email-rogerq@ti.com> <51FA7976.8020707@ti.com> <51FB6027.6080808@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51FA46C3.9000101-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:33281 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755985Ab3HBK5a (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Aug 2013 06:57:30 -0400
+In-Reply-To: <51FB6027.6080808@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, tony@atomide.com, rnayak@ti.com, benoit.cousson@linaro.org, balbi@ti.com, george.cherian@ti.com, kishon@ti.com, dmurphy@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 08/01/2013 01:30 PM, Sebastian Andrzej Siewior wrote:
-> On 08/01/2013 12:52 PM, Sebastian Andrzej Siewior wrote:
->> On 08/01/2013 07:24 AM, George Cherian wrote:
->>>> b/arch/arm/boot/dts/am33xx.dtsi
->>>> index 38b446b..0f756ca 100644
->>>> --- a/arch/arm/boot/dts/am33xx.dtsi
->>>> +++ b/arch/arm/boot/dts/am33xx.dtsi
->>>> @@ -333,21 +337,85 @@
->>>>               status = "disabled";
->>>>           };
->>>>   -        usb@47400000 {
->>>> -            compatible = "ti,musb-am33xx";
->>>> -            reg = <0x47400000 0x1000    /* usbss */
->>>> -                   0x47401000 0x800        /* musb instance 0 */
->>>> -                   0x47401800 0x800>;    /* musb instance 1 */
->>>> -            interrupts = <17        /* usbss */
->>>> -                      18        /* musb instance 0 */
->>>> -                      19>;        /* musb instance 1 */
->>>> -            multipoint = <1>;
->>>> -            num-eps = <16>;
->>>> -            ram-bits = <12>;
->>>> -            port0-mode = <3>;
->>>> -            port1-mode = <3>;
->>>> -            power = <250>;
->>>> +        usb: usb@47400000 {
->>>> +            compatible = "ti,am33xx-usb";
->>>> +            reg = <0x47400000 0x1000>;
->>>> +            ranges;
->>>> +            #address-cells = <1>;
->>>> +            #size-cells = <1>;
->>>>               ti,hwmods = "usb_otg_hs";
->>>> +            status = "disabled";
->>>> +
->>>> +            ctrl_mod: control@44e10000 {
->>>> +                compatible = "ti,am335x-ctrl-module";
->>>> +                reg = <0x44e10000 0x650>;
+On 08/02/2013 10:30 AM, Roger Quadros wrote:
+> Hi Nishant,
+>
+> On 08/01/2013 06:06 PM, Nishanth Menon wrote:
+>> On 08/01/2013 09:58 AM, Roger Quadros wrote:
+>>> USB_DPLL must be initialized and locked at boot so that
+>>> USB modules can work.
 >>>
->>> Do you really need to map Control Module base to 0x650? If some other
->>> driver does this mapping
+>>> Also program USB_DLL_M2 output to half rate.
+>>>
+>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>> ---
+>>>    drivers/clk/omap/clk-7xx.c |   11 +++++++++++
+>>>    1 files changed, 11 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/drivers/clk/omap/clk-7xx.c b/drivers/clk/omap/clk-7xx.c
+>>> index ddb39dd..f444513 100644
+>>> --- a/drivers/clk/omap/clk-7xx.c
+>>> +++ b/drivers/clk/omap/clk-7xx.c
+>>> @@ -19,6 +19,7 @@
+>>>
+>>>    #define DRA7_DPLL_ABE_DEFFREQ                361267200
+>>>    #define DRA7_DPLL_GMAC_DEFFREQ                1000000000
+>>> +#define DRA7_DPLL_USB_DEFFREQ                960000000
+>>>
+>>>
+>>>    static struct omap_dt_clk dra7xx_clks[] = {
+>>> @@ -63,5 +64,15 @@ int __init dra7xx_clk_init(void)
+>>>        if (rc)
+>>>            pr_err("%s: failed to configure GMAC DPLL!\n", __func__);
+>>>
+>>> +    dpll_ck = clk_get_sys(NULL, "dpll_usb_ck");
+>>> +    rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ);
+>>> +    if (rc)
+>>> +        pr_err("%s: failed to configure USB DPLL!\n", __func__);
+>>> +
+>>> +    dpll_ck = clk_get_sys(NULL, "dpll_usb_m2_ck");
+>>> +    rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ/2);
+>>> +    if (rc)
+>>> +        pr_err("%s: failed to set USB_DPLL M2 OUT\n", __func__);
+>>> +
+>>>        return rc;
+>>>    }
+>>>
+>> As I had mentioned on [1] - we are going to see similar needs keep popping up. there is no need to hack this up for even more peripherals :(
 >>
->> This is what I cam currently not sure about. Either we minimize the
->> register window and introduce two (the other wakeup) or we keep using
->> the same reset driver for other devices.
-> 
-> I mean drivers/reset or something like that.
+>> http://marc.info/?l=linux-omap&m=137536803106017&w=2
+>>
+> The DPLLs need to be initialized irrespective of whether peripheral drivers are present or not.
+> We have seen cases where the SoC fails to enter RETention if the DPLLS are not correctly
+> configured.
+>
+> But I agree with you that we should be able to initialize it by specifying the initial rate via Clock Data.
+>
+> This patch can be removed when the appropriate feature is added in OMAP clock core.
 
-If there are no further comments / preferences on this I'm going to
-shrink to registers and make usb only.
+... not OMAP clock core, I would say clock core. This is again a feature 
+we can work with once we have initial support in place.
 
-> 
-Sebastian
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Tero
