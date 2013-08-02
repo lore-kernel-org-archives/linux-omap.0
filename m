@@ -1,91 +1,442 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v2 11/13] ARM: OMAP2+: AM43x: PRCM kbuild
-Date: Fri, 2 Aug 2013 19:08:14 +0530
-Message-ID: <51118b72f815bdd6e563e64192ec6788e9e45505.1375443858.git.afzal@ti.com>
+Subject: [PATCH v2 13/13] ARM: OMAP2+: hwmod: AM43x: new w.r.t AM335x
+Date: Fri, 2 Aug 2013 19:08:32 +0530
+Message-ID: <6c3b2ee2a2f15ece31e96730ddb21a72d338ccb7.1375443858.git.afzal@ti.com>
 References: <cover.1375443858.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60847 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:41311 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752661Ab3HBNio (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Aug 2013 09:38:44 -0400
+	id S1752661Ab3HBNjC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Aug 2013 09:39:02 -0400
 In-Reply-To: <cover.1375443858.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <benoit.cousson@linaro.org>, benoit.cousson@gmail.com
 
-Build AM43x power domain, clock domain and hwmod data.
+Add hwmod support for IP's that are present in AM43x, but not in
+AM335x. AM43x additional ones added here are,
+1. synctimer
+2. timer8-11
+3. ehrpwm3-5
+4. spi2-4
+5. gpio4-5
 
-Many of AM43x IP's and interconnects are similar as that in AM335x,
-hence AM335x hwmod data is being reused with necessary changes.
+Also AM43x pruss interconnect is different asc compared to AM335x.
 
-Earlier the plan was to reuse AM335x specific PRCM code, but as AM43x
-PRCM is much similar to OMAP4/5, AM335x PRCM is divorced and instead
-married with OMAP4/5 PRCM for AM43x.
+Update hwmod with the above details and register 'ocpif' if platform
+being run is AM43x.
+
+AM43x also has IP's like qspi, hdq1w, vpfe, des, rng, usb, dss. These
+are not handled here due to either of following two reasons,
+1. To avoid churn; most of them don't have DT bindings, which would
+   necessitate adding address space in hwmod, which any way would have
+   to be removed once DT bindings happen with driver support.
+2. patches would come in from sources other than the author
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/Makefile |    5 ++++-
- arch/arm/mach-omap2/cm33xx.h |    2 +-
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c |  366 +++++++++++++++++++++++++++-
+ 1 file changed, 364 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index d4f6715..bfc1eb7 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -108,12 +108,12 @@ obj-$(CONFIG_ARCH_OMAP2)		+= prm2xxx_3xxx.o prm2xxx.o cm2xxx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= prm2xxx_3xxx.o prm3xxx.o cm3xxx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= vc3xxx_data.o vp3xxx_data.o
- obj-$(CONFIG_SOC_AM33XX)		+= prm33xx.o cm33xx.o
--obj-$(CONFIG_SOC_AM43XX)		+= prm33xx.o cm33xx.o
- omap-prcm-4-5-common			=  cminst44xx.o cm44xx.o prm44xx.o \
- 					   prcm_mpu44xx.o prminst44xx.o \
- 					   vc44xx_data.o vp44xx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-prcm-4-5-common)
- obj-$(CONFIG_SOC_OMAP5)			+= $(omap-prcm-4-5-common)
-+obj-$(CONFIG_SOC_AM43XX)		+= $(omap-prcm-4-5-common)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+index 7897fec..0efafd8 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -1595,6 +1595,228 @@ static struct omap_hwmod am33xx_usbss_hwmod = {
+ 	},
+ };
  
- # OMAP voltage domains
- voltagedomain-common			:= voltage.o vc.o vp.o
-@@ -141,6 +141,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= powerdomains44xx_data.o
- obj-$(CONFIG_SOC_AM33XX)		+= $(powerdomain-common)
- obj-$(CONFIG_SOC_AM33XX)		+= powerdomains33xx_data.o
- obj-$(CONFIG_SOC_AM43XX)		+= $(powerdomain-common)
-+obj-$(CONFIG_SOC_AM43XX)		+= powerdomains43xx_data.o
- obj-$(CONFIG_SOC_OMAP5)			+= $(powerdomain-common)
- obj-$(CONFIG_SOC_OMAP5)			+= powerdomains54xx_data.o
++static struct omap_hwmod_class_sysconfig am43xx_synctimer_sysc = {
++	.rev_offs	= 0x0,
++	.sysc_offs	= 0x4,
++	.sysc_flags	= SYSC_HAS_SIDLEMODE,
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class am43xx_synctimer_hwmod_class = {
++	.name	= "synctimer",
++	.sysc	= &am43xx_synctimer_sysc,
++};
++
++static struct omap_hwmod am43xx_synctimer_hwmod = {
++	.name		= "counter_32k",
++	.class		= &am43xx_synctimer_hwmod_class,
++	.clkdm_name	= "l4_wkup_aon_clkdm",
++	.flags		= HWMOD_SWSUP_SIDLE,
++	.main_clk	= "synctimer_32kclk",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = AM43XX_CM_WKUP_SYNCTIMER_CLKCTRL_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++static struct omap_hwmod am43xx_timer8_hwmod = {
++	.name		= "timer8",
++	.class		= &am33xx_timer_hwmod_class,
++	.clkdm_name	= "l4ls_clkdm",
++	.main_clk	= "timer8_fck",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs	= AM43XX_CM_PER_TIMER8_CLKCTRL_OFFSET,
++			.modulemode	= MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++static struct omap_hwmod am43xx_timer9_hwmod = {
++	.name		= "timer9",
++	.class		= &am33xx_timer_hwmod_class,
++	.clkdm_name	= "l4ls_clkdm",
++	.main_clk	= "timer9_fck",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs	= AM43XX_CM_PER_TIMER9_CLKCTRL_OFFSET,
++			.modulemode	= MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++static struct omap_hwmod am43xx_timer10_hwmod = {
++	.name		= "timer10",
++	.class		= &am33xx_timer_hwmod_class,
++	.clkdm_name	= "l4ls_clkdm",
++	.main_clk	= "timer10_fck",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs	= AM43XX_CM_PER_TIMER10_CLKCTRL_OFFSET,
++			.modulemode	= MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++static struct omap_hwmod am43xx_timer11_hwmod = {
++	.name		= "timer11",
++	.class		= &am33xx_timer_hwmod_class,
++	.clkdm_name	= "l4ls_clkdm",
++	.main_clk	= "timer11_fck",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs	= AM43XX_CM_PER_TIMER11_CLKCTRL_OFFSET,
++			.modulemode	= MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++static struct omap_hwmod am43xx_epwmss3_hwmod = {
++	.name		= "epwmss3",
++	.class		= &am33xx_epwmss_hwmod_class,
++	.clkdm_name	= "l4ls_clkdm",
++	.main_clk	= "l4ls_gclk",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs = AM43XX_CM_PER_EPWMSS3_CLKCTRL_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++static struct omap_hwmod am43xx_ehrpwm3_hwmod = {
++	.name		= "ehrpwm3",
++	.class		= &am33xx_ehrpwm_hwmod_class,
++	.clkdm_name	= "l4ls_clkdm",
++	.main_clk	= "l4ls_gclk",
++};
++
++static struct omap_hwmod am43xx_epwmss4_hwmod = {
++	.name		= "epwmss4",
++	.class		= &am33xx_epwmss_hwmod_class,
++	.clkdm_name	= "l4ls_clkdm",
++	.main_clk	= "l4ls_gclk",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs = AM43XX_CM_PER_EPWMSS4_CLKCTRL_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++static struct omap_hwmod am43xx_ehrpwm4_hwmod = {
++	.name		= "ehrpwm4",
++	.class		= &am33xx_ehrpwm_hwmod_class,
++	.clkdm_name	= "l4ls_clkdm",
++	.main_clk	= "l4ls_gclk",
++};
++
++static struct omap_hwmod am43xx_epwmss5_hwmod = {
++	.name		= "epwmss5",
++	.class		= &am33xx_epwmss_hwmod_class,
++	.clkdm_name	= "l4ls_clkdm",
++	.main_clk	= "l4ls_gclk",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs = AM43XX_CM_PER_EPWMSS5_CLKCTRL_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++static struct omap_hwmod am43xx_ehrpwm5_hwmod = {
++	.name		= "ehrpwm5",
++	.class		= &am33xx_ehrpwm_hwmod_class,
++	.clkdm_name	= "l4ls_clkdm",
++	.main_clk	= "l4ls_gclk",
++};
++
++static struct omap_hwmod am43xx_spi2_hwmod = {
++	.name		= "spi2",
++	.class		= &am33xx_spi_hwmod_class,
++	.clkdm_name	= "l4ls_clkdm",
++	.main_clk	= "dpll_per_m2_div4_ck",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs = AM43XX_CM_PER_SPI2_CLKCTRL_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++	.dev_attr	= &mcspi_attrib,
++};
++
++static struct omap_hwmod am43xx_spi3_hwmod = {
++	.name		= "spi3",
++	.class		= &am33xx_spi_hwmod_class,
++	.clkdm_name	= "l4ls_clkdm",
++	.main_clk	= "dpll_per_m2_div4_ck",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs = AM43XX_CM_PER_SPI3_CLKCTRL_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++	.dev_attr	= &mcspi_attrib,
++};
++
++static struct omap_hwmod am43xx_spi4_hwmod = {
++	.name		= "spi4",
++	.class		= &am33xx_spi_hwmod_class,
++	.clkdm_name	= "l4ls_clkdm",
++	.main_clk	= "dpll_per_m2_div4_ck",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs = AM43XX_CM_PER_SPI4_CLKCTRL_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++	.dev_attr	= &mcspi_attrib,
++};
++
++static struct omap_hwmod_opt_clk gpio4_opt_clks[] = {
++	{ .role = "dbclk", .clk = "gpio4_dbclk" },
++};
++
++static struct omap_hwmod am43xx_gpio4_hwmod = {
++	.name		= "gpio5",
++	.class		= &am33xx_gpio_hwmod_class,
++	.clkdm_name	= "l4ls_clkdm",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
++	.main_clk	= "l4ls_gclk",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs = AM43XX_CM_PER_GPIO4_CLKCTRL_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++	.opt_clks	= gpio4_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(gpio4_opt_clks),
++	.dev_attr	= &gpio_dev_attr,
++};
++
++static struct omap_hwmod_opt_clk gpio5_opt_clks[] = {
++	{ .role = "dbclk", .clk = "gpio5_dbclk" },
++};
++
++static struct omap_hwmod am43xx_gpio5_hwmod = {
++	.name		= "gpio6",
++	.class		= &am33xx_gpio_hwmod_class,
++	.clkdm_name	= "l4ls_clkdm",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
++	.main_clk	= "l4ls_gclk",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs = AM43XX_CM_PER_GPIO5_CLKCTRL_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++	.opt_clks	= gpio5_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(gpio5_opt_clks),
++	.dev_attr	= &gpio_dev_attr,
++};
  
-@@ -158,6 +159,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= clockdomains44xx_data.o
- obj-$(CONFIG_SOC_AM33XX)		+= $(clockdomain-common)
- obj-$(CONFIG_SOC_AM33XX)		+= clockdomains33xx_data.o
- obj-$(CONFIG_SOC_AM43XX)		+= $(clockdomain-common)
-+obj-$(CONFIG_SOC_AM43XX)		+= clockdomains43xx_data.o
- obj-$(CONFIG_SOC_OMAP5)			+= $(clockdomain-common)
- obj-$(CONFIG_SOC_OMAP5)			+= clockdomains54xx_data.o
+ /*
+  * Interfaces
+@@ -2379,6 +2601,125 @@ static struct omap_hwmod_ocp_if am33xx_l3_main__aes0 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
  
-@@ -201,6 +203,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_2xxx_3xxx_ipblock_data.o
- obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_2xxx_3xxx_interconnect_data.o
- obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_3xxx_data.o
- obj-$(CONFIG_SOC_AM33XX)		+= omap_hwmod_33xx_data.o
-+obj-$(CONFIG_SOC_AM43XX)		+= omap_hwmod_33xx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
- obj-$(CONFIG_SOC_OMAP5)			+= omap_hwmod_54xx_data.o
++static struct omap_hwmod_ocp_if am33xx_l4_wkup__synctimer = {
++	.master		= &am33xx_l4_wkup_hwmod,
++	.slave		= &am43xx_synctimer_hwmod,
++	.clk		= "sys_clkin_ck",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_ocp_if am43xx_l4_ls__timer8 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_timer8_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_ocp_if am43xx_l4_ls__timer9 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_timer9_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_ocp_if am43xx_l4_ls__timer10 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_timer10_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_ocp_if am43xx_l4_ls__timer11 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_timer11_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_ocp_if am43xx_l4_ls__epwmss3 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_epwmss3_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_ocp_if am43xx_epwmss3__ehrpwm3 = {
++	.master		= &am43xx_epwmss3_hwmod,
++	.slave		= &am43xx_ehrpwm3_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_ocp_if am43xx_l4_ls__epwmss4 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_epwmss4_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_ocp_if am43xx_epwmss4__ehrpwm4 = {
++	.master		= &am43xx_epwmss4_hwmod,
++	.slave		= &am43xx_ehrpwm4_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_ocp_if am43xx_l4_ls__epwmss5 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_epwmss5_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_ocp_if am43xx_epwmss5__ehrpwm5 = {
++	.master		= &am43xx_epwmss5_hwmod,
++	.slave		= &am43xx_ehrpwm5_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_ocp_if am43xx_l4_ls__mcspi2 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_spi2_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_ocp_if am43xx_l4_ls__mcspi3 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_spi3_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_ocp_if am43xx_l4_ls__mcspi4 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_spi4_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_ocp_if am43xx_l4_ls__gpio4 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_gpio4_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_ocp_if am43xx_l4_ls__gpio5 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_gpio5_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_ocp_if am43xx_l3_main__pruss = {
++	.master		= &am33xx_l3_main_hwmod,
++	.slave		= &am33xx_pruss_hwmod,
++	.clk		= "dpll_core_m4_ck",
++	.user		= OCP_USER_MPU,
++};
++
+ #define CLKCTRL(oh, clkctrl) ((oh).prcm.omap4.clkctrl_offs = (clkctrl))
  
-diff --git a/arch/arm/mach-omap2/cm33xx.h b/arch/arm/mach-omap2/cm33xx.h
-index 201e507..757b9a1 100644
---- a/arch/arm/mach-omap2/cm33xx.h
-+++ b/arch/arm/mach-omap2/cm33xx.h
-@@ -383,7 +383,7 @@ extern void am33xx_cm_clkdm_disable_hwsup(u16 inst, u16 cdoffs);
- extern void am33xx_cm_clkdm_force_sleep(u16 inst, u16 cdoffs);
- extern void am33xx_cm_clkdm_force_wakeup(u16 inst, u16 cdoffs);
+ static void am43xx_hwmod_clkctrl(void)
+@@ -2591,6 +2932,27 @@ static void am33xx_hwmod_ocpif_clk(void)
+ 	am33xx_gpio0_hwmod.main_clk = AM33XX_L4_WKUP_OCPIF_CLK;
+ }
  
--#if defined(CONFIG_SOC_AM33XX) || defined(CONFIG_SOC_AM43XX)
-+#ifdef CONFIG_SOC_AM33XX
- extern int am33xx_cm_wait_module_idle(u16 inst, u16 cdoffs,
- 					u16 clkctrl_offs);
- extern void am33xx_cm_module_enable(u8 mode, u16 inst, u16 cdoffs,
++static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
++	&am33xx_l4_wkup__synctimer,
++	&am43xx_l4_ls__timer8,
++	&am43xx_l4_ls__timer9,
++	&am43xx_l4_ls__timer10,
++	&am43xx_l4_ls__timer11,
++	&am43xx_l4_ls__epwmss3,
++	&am43xx_epwmss3__ehrpwm3,
++	&am43xx_l4_ls__epwmss4,
++	&am43xx_epwmss4__ehrpwm4,
++	&am43xx_l4_ls__epwmss5,
++	&am43xx_epwmss5__ehrpwm5,
++	&am43xx_l4_ls__mcspi2,
++	&am43xx_l4_ls__mcspi3,
++	&am43xx_l4_ls__mcspi4,
++	&am43xx_l4_ls__gpio4,
++	&am43xx_l4_ls__gpio5,
++	&am43xx_l3_main__pruss,
++	NULL,
++};
++
+ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l3_main__emif,
+ 	&am33xx_l4_hs__pruss,
+@@ -2702,6 +3064,6 @@ int __init am33xx_hwmod_init(void)
+ 
+ 	if (soc_is_am33xx())
+ 		return omap_hwmod_register_links(am33xx_hwmod_ocp_ifs);
+-
+-	return 0;
++	else
++		return omap_hwmod_register_links(am43xx_hwmod_ocp_ifs);
+ }
 -- 
 1.7.9.5
 
