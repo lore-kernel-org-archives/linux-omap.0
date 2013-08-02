@@ -1,91 +1,150 @@
-From: Dave Martin <Dave.Martin@arm.com>
-Subject: Re: [PATCH] ARM: Update SMP_ON_UP code to detect A9MPCore with 1 CPU
- devices
-Date: Fri, 2 Aug 2013 15:18:28 +0100
-Message-ID: <20130802141828.GC2361@localhost.localdomain>
-References: <1375381033-13220-1-git-send-email-santosh.shilimkar@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: dss-common: fix Panda's DVI DDC channel
+Date: Fri, 2 Aug 2013 17:22:56 +0300
+Message-ID: <51FBC0C0.2060207@ti.com>
+References: <1374570405-8301-1-git-send-email-tomi.valkeinen@ti.com> <1374570405-8301-2-git-send-email-tomi.valkeinen@ti.com> <51FBAC21.2040609@ti.com> <51FBAD64.5090600@ti.com> <51FBB461.7010209@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="BFfMxPopW4FMOqALAHjvEn4TCOgnuEASw"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fw-tnat.cambridge.arm.com ([217.140.96.21]:49895 "EHLO
-	cam-smtp0.cambridge.arm.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753452Ab3HBOTG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Aug 2013 10:19:06 -0400
-Content-Disposition: inline
-In-Reply-To: <1375381033-13220-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:43666 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753481Ab3HBOXW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Aug 2013 10:23:22 -0400
+In-Reply-To: <51FBB461.7010209@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Aug 01, 2013 at 02:17:13PM -0400, Santosh Shilimkar wrote:
-> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
-> 
-> The generic code is well equipped to differentiate between
-> SMP and UP configurations.However, there are some devices which
-> use Cortex-A9 MP core IP with 1 CPU as configuration. To let
-> these SOCs to co-exist in a CONFIG_SMP=y build by leveraging
-> the SMP_ON_UP support, we need to additionally check the
-> number the cores in Cortex-A9 MPCore configuration. Without
-> such a check in place, the startup code tries to execute
-> ALT_SMP() set of instructions which lead to CPU faults.
-> 
-> The issue was spotted on TI's Aegis device and this patch
-> makes now the device work with omap2plus_defconfig which
-> enables SMP by default. The change is kept limited to only
-> Cortex-A9 MPCore detection code.
+--BFfMxPopW4FMOqALAHjvEn4TCOgnuEASw
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Is there a specific reason why this can't happen for other processors
-such as A5/7/15?
+On 02/08/13 16:30, Nishanth Menon wrote:
+> On 08/02/2013 08:00 AM, Tomi Valkeinen wrote:
 
-Cheers
----Dave
+>> Feel free to help me develop the DT support for DSS =3D). When that's
+>> done, we can remove all this code.
+>=20
+> suggesting here - but it will be nice we have some steps towards this
+> direction - is there anything you'd suggest we do first?
 
-> 
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> 
-> Acked-by: Sricharan R <r.sricharan@ti.com>
-> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/kernel/head.S |   18 +++++++++++++++++-
->  1 file changed, 17 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/kernel/head.S b/arch/arm/kernel/head.S
-> index 9cf6063..4924b11 100644
-> --- a/arch/arm/kernel/head.S
-> +++ b/arch/arm/kernel/head.S
-> @@ -486,7 +486,23 @@ __fixup_smp:
->  	mrc	p15, 0, r0, c0, c0, 5	@ read MPIDR
->  	and	r0, r0, #0xc0000000	@ multiprocessing extensions and
->  	teq	r0, #0x80000000		@ not part of a uniprocessor system?
-> -	moveq	pc, lr			@ yes, assume SMP
-> +	bne    __fixup_smp_on_up	@ no, assume UP
-> +
-> +	@ Core indicates it is SMP.  Check for Aegis SOC where a single
-> +	@ Cortex-A9 CPU is present but SMP operations fault.
-> +	mov	r4, #0x41000000
-> +	orr	r4, r4, #0x0000c000
-> +	orr	r4, r4, #0x00000090
-> +	teq	r3, r4			@ Check for ARM Cortex-A9
-> +	movne	pc, lr			@ Not ARM Cortex-A9,
-> +
-> +	mrc	p15, 4, r0, c15, c0	@ get SCU base address
-> +	teq	r0, #0x0		@ '0' on actual UP A9 hardware
-> +	beq	__fixup_smp_on_up	@ So its an A9 UP
-> +	ldr	r0, [r0, #4]		@ read SCU Config
-> +	and	r0, r0, #0x3		@ number of CPUs
-> +	teq	r0, #0x0		@ is 1?
-> +	movne	pc, lr
->  
->  __fixup_smp_on_up:
->  	adr	r0, 1f
-> -- 
-> 1.7.9.5
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+I do have a DSS-DT branch, which works. I've had such a branch for
+almost a year, although I've been refining it all the time. But I'm
+still not happy with the DT bindings I have there, and I haven't had any
+clear ideas how to solve those issues. And, as the DT bindings are an
+external API, I've been very cautious with it.
+
+I'm currently cleaning the branch up, and I hope I can send the series
+next week. Hopefully I'll receive some ideas for the problematic parts.
+I'll cc you =3D).
+
+>>> Example: if -EPROBEDEFER is incurred due to some unexpected dependenc=
+y,
+>>> we'd have to redo the numbering in the kernel yet again.
+>>
+>> Hmm, sorry? Do you mean that the i2c bus numbers can change "randomly"=
+?
+>>
+>> With board files they were numbered 1, 2, 3, 4, but with DT boot they
+>> seem to be 0, 1, 2, 3. And as we have the current situation where omap=
+4
+>> boots with DT, but DSS does not have DT support, we add the DSS relate=
+d
+>> devices in a board-file-like-fashion.
+>=20
+> Aah we are then depending on the following
+> i2c-omap.c:
+>  adap->nr =3D pdev->id;
+>  r =3D i2c_add_numbered_adapter(adap);
+>=20
+> mach-omapx/i2c.c:
+> .. i2c_bus_register..
+> pdev->id =3D bus_id
+> platform_device_register(pdev);
+>=20
+>=20
+> I dont seem to see any similar numbering enforced in dtsi - if I reorde=
+r
+> the i2c entries in SoC dtsi, i'd have an issue as well, no?
+
+I don't know, but yes, possibly. But you probably won't reorder them, as
+they are in the HW I2C ID module order.
+
+> probe deferral could create problems as well.. not saying it can change=
+
+> random order on a given kernel between boots, but am saying that when
+> new changes come in, deferral mechanism ensures proper ordering
+> dynamically, which kind of messes up with expected device numbers. I ha=
+d
+> an issue with mmc sometime back where probe deferal on mmc1 made it
+> registered as second device as the dependency was not present on the mm=
+c2.
+
+Yes, interesting point. If I got you right, you're saying that if a
+single i2c device gets deferred, but the others not, the ID numbering
+could change?
+
+I don't if it's possible to get only single i2c device deferred. Maybe.
+
+Anyway, we need some way to fix this for 3.11. As far as I understand,
+it's rather unlikely that the bus number would change, so I think this
+fix is the best I can do.
+
+> No reason this cannot happen on other busses as well. To solve this on
+> i2c dts, the usual convention is as follows (from omap3-beagle):
+> &i2c1 {
+>         clock-frequency =3D <2600000>;
+>=20
+>         twl: twl@48 {
+>                 reg =3D <0x48>;
+>                 interrupts =3D <7>; /* SYS_NIRQ cascaded to intc */
+>                 interrupt-parent =3D <&intc>;
+>         };
+> };
+>=20
+> this ensures that probe success order is made independent of device
+> expectation of i2c bus numbering or the order in which it was defined i=
+n
+> dts.
+
+With dts, this is not a problem, it's handle with phandles. Although not
+as you show above, because we don't really have an i2c device on the boar=
+d.
+
+The i2c in question goes through the DVI connector to the monitor. So
+the monitor is the i2c device. Thus we just get a handle to the i2c bus
+going to the monitor, and send messages to it directly, without having a
+linux i2c device.
+
+ Tomi
+
+
+
+--BFfMxPopW4FMOqALAHjvEn4TCOgnuEASw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJR+8DAAAoJEPo9qoy8lh71a6cQAIiuvTb/ao6EivZPgDgtozhk
+iVS3xRjqeBIzRnZEZK0FExDhC9CqBvFnRy31kiKEDXhQzh8cf2N6XMEW8CkFjI2N
+0XGUo0kCfkUcHIscoqC3CqROIHZ29BrhYQKDIvdyWIZTfJDbHUBcBezhlwa0csiy
+FHZjvaeGYUQnRKlz6vTZQaAlKkQDYDBnhfBi6BcPNDDw8BN+PdrlcUsY0g638mXS
+jpqA1pU74Ttw9czgXCj2TbnKgN/yTVMagE6E5KUxeE1H7srwtRWpTVLiKRj4VpBt
+pqeJLW7CZ00BhWoiYFDtw6kM0iCC8hR9fcSwQr0zPgavFymqvVlbgLseK8UVXygo
+Uhoy5BVg/LVxsecjenH7onUFc0z5+M6thYWmdvyOx/39xRZ7vJWlNHQvuIn+ZwmI
+dBp3wQev9pTEOvWbmOVBsjJxFprAh8t9issRi+E9CvCbd3Hrk2t/iqYu4hOF5n61
+i1dShAT6XDMxuHU2CBW0uojLm9wgzeJ1thBFCRW+1G40BixhaZybvNmTsIXNR+RA
+SIBOCxDhQvv0wuBhyIRdSRmqoWaeCoF+iXkQzOhdjrkOkOmp9QqFPlavHIJltFdA
+uBs85kBB5vL5J3XdZ1PJb97Qcy554N13GynRncbsAj5zyTup+7q5IFNhhrV4h7AV
+xOlIATTJy+f0NhRFlhjx
+=GOl7
+-----END PGP SIGNATURE-----
+
+--BFfMxPopW4FMOqALAHjvEn4TCOgnuEASw--
