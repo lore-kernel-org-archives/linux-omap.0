@@ -1,44 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv4 29/33] CLK: omap: add omap3 clock init file
-Date: Fri, 2 Aug 2013 00:24:16 -0700
-Message-ID: <20130802072415.GW7656@atomide.com>
-References: <1374564028-11352-1-git-send-email-t-kristo@ti.com>
- <1374564028-11352-30-git-send-email-t-kristo@ti.com>
- <51F81FD7.2060707@ti.com>
- <20130731063512.GP7656@atomide.com>
- <51F928E8.9020806@ti.com>
+Subject: Re: [PATCH] ARM: allow DEBUG_UNCOMPRESS for omap2plus
+Date: Fri, 2 Aug 2013 00:29:25 -0700
+Message-ID: <20130802072925.GX7656@atomide.com>
+References: <1375224558-8170-1-git-send-email-swarren@wwwdotorg.org>
+ <20130730225233.GF21614@n2100.arm.linux.org.uk>
+ <51F845C7.8020106@wwwdotorg.org>
+ <20130731064634.GR7656@atomide.com>
+ <51F94200.2060202@wwwdotorg.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62243 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755631Ab3HBHYU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Aug 2013 03:24:20 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:48294 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755867Ab3HBH3d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Aug 2013 03:29:33 -0400
 Content-Disposition: inline
-In-Reply-To: <51F928E8.9020806@ti.com>
+In-Reply-To: <51F94200.2060202@wwwdotorg.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, khilman@linaro.org, mturquette@linaro.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, Shawn Guo <shawn.guo@linaro.org>
 
-* Tero Kristo <t-kristo@ti.com> [130731 08:17]:
-> On 07/31/2013 09:35 AM, Tony Lindgren wrote:
-> >* Nishanth Menon <nm@ti.com> [130730 13:26]:
-> >>
-> >>Tony and a lot of people is not going to like removing support for
-> >>non-dt boot for OMAP3 before "it's time is due" ;)
-> >
-> >I think the only showstopper for that is that we need the
-> >pending pinctrl changes merged first to keep off-idle working.
-> >So the omap3 legacy code removal probably needs to wait until
-> >v3.13 merge window. For omap4 and am33xx we can do it now.
+* Stephen Warren <swarren@wwwdotorg.org> [130731 10:04]:
+> On 07/31/2013 12:46 AM, Tony Lindgren wrote:
+> > 
+> > I think we're best off removing the remaining uncompress code
+> > configured port detection features as the port properties are now
+> > defined in kconfig anyways. That simplifies the code quite a bit.
 > 
-> I'll modify the series in such way that OMAP3 retains the legacy
-> clock data within the kernel for now, and will use either DT or
-> kernel data based on init type. Kernel data can then be removed when
-> time is ripe for it.
+> If you want to do that with OMAP, I'm happy to drop this patch.
 
-OK thanks sounds good to me.
+Yes on my list of things to do..
+ 
+> For Tegra, automatic determination of the DEBUG_LL UART is rather
+> useful, so I'm not going to give that up:-)
+
+For omaps there's just too many options to try to detect anything.
+
+It seems the best strategy seems to be to just init things later on
+so DEBUG_LL is only needed when booting breaks really early on
+during the boot process.
 
 Regards,
 
