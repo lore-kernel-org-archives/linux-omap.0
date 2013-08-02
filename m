@@ -1,99 +1,87 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/2] OMAP: Panda DVI fix and a cleanup
-Date: Fri, 2 Aug 2013 15:52:02 +0300
-Message-ID: <51FBAB72.9020108@ti.com>
-References: <1374570405-8301-1-git-send-email-tomi.valkeinen@ti.com> <51FB9EDB.8010600@ti.com> <20130802124611.GJ7656@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/4] CLK: ti: dra7: Initialize USB_DPLL
+Date: Fri, 2 Aug 2013 07:52:48 -0500
+Message-ID: <51FBABA0.1030608@ti.com>
+References: <1375369134-26398-1-git-send-email-rogerq@ti.com> <1375369134-26398-2-git-send-email-rogerq@ti.com> <51FA7976.8020707@ti.com> <51FB6027.6080808@ti.com> <51FB9095.8030200@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="x74nWHAQb7pXJQkaO2KUGFev5AJCoImGa"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58691 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751402Ab3HBMwa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Aug 2013 08:52:30 -0400
-In-Reply-To: <20130802124611.GJ7656@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51FB9095.8030200@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, tony@atomide.com, rnayak@ti.com, benoit.cousson@linaro.org, balbi@ti.com, george.cherian@ti.com, kishon@ti.com, dmurphy@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---x74nWHAQb7pXJQkaO2KUGFev5AJCoImGa
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 02/08/13 15:46, Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [130802 05:05]:
->> On 23/07/13 12:06, Tomi Valkeinen wrote:
->>> Hi Tony,
->>>
->>> Here's a fix for 3.11 that makes EDID read for DVI work again.
->>>
->>> I also included a cleanup patch that removes the non-DT support funct=
-ions that
->>> are no longer called from anywhere. It's not a fix, but as we're in q=
-uite early
->>> rcs, I thought it would be nice to remove the dead code.
->>>
->>> Up to you if you want to include that one for 3.11 or not. If not, I'=
-ll include
->>> it in a board file series for 3.12 that I'll send soon.
->>>
->>>  Tomi
->>>
->>> Tomi Valkeinen (2):
->>>   ARM: OMAP: dss-common: fix Panda's DVI DDC channel
->>>   ARM: OMAP2+: Remove legacy DSS initialization for omap4
->>>
->>>  arch/arm/mach-omap2/dss-common.c | 49 +-----------------------------=
-----------
->>>  arch/arm/mach-omap2/dss-common.h |  2 --
->>>  2 files changed, 1 insertion(+), 50 deletions(-)
->>>
+On 08/02/2013 05:57 AM, Tero Kristo wrote:
+> On 08/02/2013 10:30 AM, Roger Quadros wrote:
+>> Hi Nishant,
 >>
->> Ping.
->=20
-> Oops, sorry I was offline last week and still not caught up on mails..
+>> On 08/01/2013 06:06 PM, Nishanth Menon wrote:
+>>> On 08/01/2013 09:58 AM, Roger Quadros wrote:
+>>>> USB_DPLL must be initialized and locked at boot so that
+>>>> USB modules can work.
+>>>>
+>>>> Also program USB_DLL_M2 output to half rate.
+>>>>
+>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>> ---
+>>>>    drivers/clk/omap/clk-7xx.c |   11 +++++++++++
+>>>>    1 files changed, 11 insertions(+), 0 deletions(-)
+>>>>
+>>>> diff --git a/drivers/clk/omap/clk-7xx.c b/drivers/clk/omap/clk-7xx.c
+>>>> index ddb39dd..f444513 100644
+>>>> --- a/drivers/clk/omap/clk-7xx.c
+>>>> +++ b/drivers/clk/omap/clk-7xx.c
+>>>> @@ -19,6 +19,7 @@
+>>>>
+>>>>    #define DRA7_DPLL_ABE_DEFFREQ                361267200
+>>>>    #define DRA7_DPLL_GMAC_DEFFREQ                1000000000
+>>>> +#define DRA7_DPLL_USB_DEFFREQ                960000000
+>>>>
+>>>>
+>>>>    static struct omap_dt_clk dra7xx_clks[] = {
+>>>> @@ -63,5 +64,15 @@ int __init dra7xx_clk_init(void)
+>>>>        if (rc)
+>>>>            pr_err("%s: failed to configure GMAC DPLL!\n", __func__);
+>>>>
+>>>> +    dpll_ck = clk_get_sys(NULL, "dpll_usb_ck");
+>>>> +    rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ);
+>>>> +    if (rc)
+>>>> +        pr_err("%s: failed to configure USB DPLL!\n", __func__);
+>>>> +
+>>>> +    dpll_ck = clk_get_sys(NULL, "dpll_usb_m2_ck");
+>>>> +    rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ/2);
+>>>> +    if (rc)
+>>>> +        pr_err("%s: failed to set USB_DPLL M2 OUT\n", __func__);
+>>>> +
+>>>>        return rc;
+>>>>    }
+>>>>
+>>> As I had mentioned on [1] - we are going to see similar needs keep
+>>> popping up. there is no need to hack this up for even more
+>>> peripherals :(
+>>>
+>>> http://marc.info/?l=linux-omap&m=137536803106017&w=2
+>>>
+>> The DPLLs need to be initialized irrespective of whether peripheral
+>> drivers are present or not.
+>> We have seen cases where the SoC fails to enter RETention if the DPLLS
+>> are not correctly
+>> configured.
+>>
+>> But I agree with you that we should be able to initialize it by
+>> specifying the initial rate via Clock Data.
+>>
+>> This patch can be removed when the appropriate feature is added in
+>> OMAP clock core.
+>
+> ... not OMAP clock core, I would say clock core. This is again a feature
+> we can work with once we have initial support in place.
 
-Ok, no prob. There's the "ARM: OMAP2+: use new display drivers" series
-also waiting for you, but that's for 3.12 =3D).
-
-> If you have other DSS fixes I suggest you also send these fixes:
->=20
-> Acked-by: Tony Lindgren <tony@atomide.com>
->=20
-> If not, let me know and I'll queue these.
-
-I've got a few fbdev fixes, I can apply the fix to that branch. I'll
-leave the second patch for 3.12 as it's really a cleanup (it's actually
-also included in the "use new display drivers" series).
-
- Tomi
+OK. /me gives up for now. but please squash this into your set.
 
 
-
---x74nWHAQb7pXJQkaO2KUGFev5AJCoImGa
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJR+6tyAAoJEPo9qoy8lh71VeMP/RUV3hO0D92A3k0cWwXlWMA3
-0SYErq0oOb7jLyH9n8z26KBTapc9jYsNX06s8HGT0cowia0CMI4vOehBxseZvmMo
-WHrpaY6Y6eM38l0+OikSdAzTC3KIENXdrEwlMQ9NfKjQ1wMLT88tzUJSRjXq5qUo
-8mzgGPgkeD9H+zXLZ/M+HE6p6DuzESkhQFczvJbUNC55a26QZz+Pzq/1pJjgsqRD
-S90a21Ey515GNlQWBANCuZvC18kGPkElAa51cV/h0m5DmoMlsvDLZcaaJwjI9KDJ
-DTb3BSL7VSxXG/D0feDynrUTgWMOJJ8+sgHsGwtjaxI2sCWUHCV2c93/u6djESaj
-TJC5IpS+e8kiDTR6D1fSOkiQ9XEcEl9+5OOqF8+76Xdt7SuOOvCBy37Jz+G3wkoq
-jt8FtmvsP4cefLYZL+D9E0nwXTps9kgTiEtdUUqO+aMRU3ZuoC84sbin7frekb/Q
-GhTtK1PFabX0xL4V6LT1a7DXGcKY4lyf8Ow628jH4aRU69f33PhwN+d1FrE/8+fv
-Y5JbrSchBVlvL6LHWp+xhv/6jDWkp/OMbu9o1gxDLsgCRObYj43/7GTs5B4pBKan
-RNLQmjgAimgudMPNFPBb/T6fNxHnfh8CXOMSkWnqWddbaSlpcsI8zav++Q98oNlp
-wQFvAme14/5RWG/NXceg
-=aKar
------END PGP SIGNATURE-----
-
---x74nWHAQb7pXJQkaO2KUGFev5AJCoImGa--
+-- 
+Regards,
+Nishanth Menon
