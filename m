@@ -1,154 +1,126 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 4/6] v4l: ti-vpe: Add de-interlacer support in VPE
-Date: Fri, 02 Aug 2013 16:40:23 +0200
-Message-ID: <51FBC4D7.2010802@xs4all.nl>
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-5-git-send-email-archit@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: dss-common: fix Panda's DVI DDC channel
+Date: Fri, 2 Aug 2013 09:43:36 -0500
+Message-ID: <51FBC598.50601@ti.com>
+References: <1374570405-8301-1-git-send-email-tomi.valkeinen@ti.com> <1374570405-8301-2-git-send-email-tomi.valkeinen@ti.com> <51FBAC21.2040609@ti.com> <51FBAD64.5090600@ti.com> <51FBB461.7010209@ti.com> <51FBC0C0.2060207@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3360 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613Ab3HBOkr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Aug 2013 10:40:47 -0400
-In-Reply-To: <1375452223-30524-5-git-send-email-archit@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:51433 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751357Ab3HBOoB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Aug 2013 10:44:01 -0400
+In-Reply-To: <51FBC0C0.2060207@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, dagriego@biglakesoftware.com, dale@farnsworth.org, pawel@osciak.com, m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com, tomi.valkeinen@ti.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-More comments...
+On 08/02/2013 09:22 AM, Tomi Valkeinen wrote:
+> On 02/08/13 16:30, Nishanth Menon wrote:
+>> On 08/02/2013 08:00 AM, Tomi Valkeinen wrote:
+>
+>>> Feel free to help me develop the DT support for DSS =). When that's
+>>> done, we can remove all this code.
+>>
+>> suggesting here - but it will be nice we have some steps towards this
+>> direction - is there anything you'd suggest we do first?
+>
+> I do have a DSS-DT branch, which works. I've had such a branch for
+> almost a year, although I've been refining it all the time. But I'm
+> still not happy with the DT bindings I have there, and I haven't had any
+> clear ideas how to solve those issues. And, as the DT bindings are an
+> external API, I've been very cautious with it.
+>
+> I'm currently cleaning the branch up, and I hope I can send the series
+> next week. Hopefully I'll receive some ideas for the problematic parts.
+> I'll cc you =).
 
-On 08/02/2013 04:03 PM, Archit Taneja wrote:
-> Add support for the de-interlacer block in VPE.
-> 
-> For de-interlacer to work, we need to enable 2 more sets of VPE input ports
-> which fetch data from the 'last' and 'last to last' fields of the interlaced
-> video. Apart from that, we need to enable the Motion vector output and input
-> ports, and also allocate DMA buffers for them.
-> 
-> We need to make sure that two most recent fields in the source queue are
-> available and in the 'READY' state. Once a mem2mem context gets access to the
-> VPE HW(in device_run), it extracts the addresses of the 3 buffers, and provides
-> it to the data descriptors for the 3 sets of input ports((LUMA1, CHROMA1),
-> (LUMA2, CHROMA2), and (LUMA3, CHROMA3)) respectively for the 3 consecutive
-> fields. The motion vector and output port descriptors are configured and the
-> list is submitted to VPDMA.
-> 
-> Once the transaction is done, the v4l2 buffer corresponding to the oldest
-> field(the 3rd one) is changed to the state 'DONE', and the buffers corresponding
-> to 1st and 2nd fields become the 2nd and 3rd field for the next de-interlace
-> operation. This way, for each deinterlace operation, we have the 3 most recent
-> fields. After each transaction, we also swap the motion vector buffers, the new
-> input motion vector buffer contains the resultant motion information of all the
-> previous frames, and the new output motion vector buffer will be used to hold
-> the updated motion vector to capture the motion changes in the next field.
-> 
-> The de-interlacer is removed from bypass mode, it requires some extra default
-> configurations which are now added. The chrominance upsampler coefficients are
-> added for interlaced frames. Some VPDMA parameters like frame start event and
-> line mode are configured for the 2 extra sets of input ports.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/media/platform/ti-vpe/vpe.c | 372 ++++++++++++++++++++++++++++++++----
->  1 file changed, 337 insertions(+), 35 deletions(-)
-> 
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-> index 14a292b..5b1410c 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
+Awesome, given that there is work in progress to do this properly and 
+the current solution is meant for 3.11 transition, I dont have any 
+objections.
 
-...
 
-> @@ -1035,7 +1310,8 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
->  
->  	if (pix->field == V4L2_FIELD_ANY)
->  		pix->field = V4L2_FIELD_NONE;
-> -	else if (V4L2_FIELD_NONE != pix->field)
-> +	else if (V4L2_FIELD_NONE != pix->field &&
-> +			V4L2_FIELD_ALTERNATE != pix->field)
->  		return -EINVAL;
+>
+>>>> Example: if -EPROBEDEFER is incurred due to some unexpected dependency,
+>>>> we'd have to redo the numbering in the kernel yet again.
+>>>
+>>> Hmm, sorry? Do you mean that the i2c bus numbers can change "randomly"?
+>>>
+>>> With board files they were numbered 1, 2, 3, 4, but with DT boot they
+>>> seem to be 0, 1, 2, 3. And as we have the current situation where omap4
+>>> boots with DT, but DSS does not have DT support, we add the DSS related
+>>> devices in a board-file-like-fashion.
+>>
+>> Aah we are then depending on the following
+>> i2c-omap.c:
+>>   adap->nr = pdev->id;
+>>   r = i2c_add_numbered_adapter(adap);
+>>
+>> mach-omapx/i2c.c:
+>> .. i2c_bus_register..
+>> pdev->id = bus_id
+>> platform_device_register(pdev);
+>>
+>>
+>> I dont seem to see any similar numbering enforced in dtsi - if I reorder
+>> the i2c entries in SoC dtsi, i'd have an issue as well, no?
+>
+> I don't know, but yes, possibly. But you probably won't reorder them, as
+> they are in the HW I2C ID module order.
 
-As mentioned before, this shouldn't result in an error, but map to a valid
-field format.
+we dont want to depend on ordering of anything usually.. anyways, 
+besides the point, I guess.
 
-For a deinterlacer I would expect NONE for the output of the deinterlacer (or
-capture buffer type) and ALTERNATE for the input of the deinterlacer (or output
-buffer type).
+>
+>> probe deferral could create problems as well.. not saying it can change
+>> random order on a given kernel between boots, but am saying that when
+>> new changes come in, deferral mechanism ensures proper ordering
+>> dynamically, which kind of messes up with expected device numbers. I had
+>> an issue with mmc sometime back where probe deferal on mmc1 made it
+>> registered as second device as the dependency was not present on the mmc2.
+>
+> Yes, interesting point. If I got you right, you're saying that if a
+> single i2c device gets deferred, but the others not, the ID numbering
+> could change?
+>
+> I don't if it's possible to get only single i2c device deferred. Maybe.
+>
+> Anyway, we need some way to fix this for 3.11. As far as I understand,
+> it's rather unlikely that the bus number would change, so I think this
+> fix is the best I can do.
+>
+>> No reason this cannot happen on other busses as well. To solve this on
+>> i2c dts, the usual convention is as follows (from omap3-beagle):
+>> &i2c1 {
+>>          clock-frequency = <2600000>;
+>>
+>>          twl: twl@48 {
+>>                  reg = <0x48>;
+>>                  interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+>>                  interrupt-parent = <&intc>;
+>>          };
+>> };
+>>
+>> this ensures that probe success order is made independent of device
+>> expectation of i2c bus numbering or the order in which it was defined in
+>> dts.
+>
+> With dts, this is not a problem, it's handle with phandles. Although not
+> as you show above, because we don't really have an i2c device on the board.
+>
+> The i2c in question goes through the DVI connector to the monitor. So
+> the monitor is the i2c device. Thus we just get a handle to the i2c bus
+> going to the monitor, and send messages to it directly, without having a
+> linux i2c device.
 
->  
->  	v4l_bound_align_image(&pix->width, MIN_W, MAX_W, W_ALIGN,
-> @@ -1104,6 +1380,7 @@ static int __vpe_s_fmt(struct vpe_ctx *ctx, struct v4l2_format *f)
->  	q_data->width		= pix->width;
->  	q_data->height		= pix->height;
->  	q_data->colorspace	= pix->colorspace;
-> +	q_data->field		= pix->field;
->  
->  	for (i = 0; i < pix->num_planes; i++) {
->  		plane_fmt = &pix->plane_fmt[i];
-> @@ -1117,6 +1394,11 @@ static int __vpe_s_fmt(struct vpe_ctx *ctx, struct v4l2_format *f)
->  	q_data->c_rect.width	= q_data->width;
->  	q_data->c_rect.height	= q_data->height;
->  
-> +	if (q_data->field == V4L2_FIELD_ALTERNATE)
-> +		q_data->flags |= Q_DATA_INTERLACED;
-> +	else
-> +		q_data->flags &= ~Q_DATA_INTERLACED;
-> +
->  	vpe_dbg(ctx->dev, "Setting format for type %d, wxh: %dx%d, fmt: %d bpl_y %d",
->  		f->type, q_data->width, q_data->height, q_data->fmt->fourcc,
->  		q_data->bytesperline[VPE_LUMA]);
-> @@ -1194,6 +1476,22 @@ static int vpe_streamoff(struct file *file, void *priv, enum v4l2_buf_type type)
->  	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
->  }
->  
-> +static void set_dei_shadow_registers(struct vpe_ctx *ctx)
-> +{
-> +	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
-> +	u32 *dei_mmr = &mmr_adb->dei_regs[0];
-> +	struct vpe_dei_regs *cur = &dei_regs;
-> +
-> +	dei_mmr[2]  = cur->mdt_spacial_freq_thr_reg;
-> +	dei_mmr[3]  = cur->edi_config_reg;
-> +	dei_mmr[4]  = cur->edi_lut_reg0;
-> +	dei_mmr[5]  = cur->edi_lut_reg1;
-> +	dei_mmr[6]  = cur->edi_lut_reg2;
-> +	dei_mmr[7]  = cur->edi_lut_reg3;
-> +
-> +	ctx->load_mmrs = true;
-> +}
-> +
->  #define V4L2_CID_TRANS_NUM_BUFS		(V4L2_CID_USER_BASE)
->  
->  static int vpe_s_ctrl(struct v4l2_ctrl *ctrl)
-> @@ -1425,6 +1723,7 @@ static int vpe_open(struct file *file)
->  	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->width * s_q_data->height *
->  			s_q_data->fmt->vpdma_fmt[VPE_LUMA]->depth) >> 3;
->  	s_q_data->colorspace = V4L2_COLORSPACE_SMPTE240M;
-> +	s_q_data->field = V4L2_FIELD_NONE;
->  	s_q_data->c_rect.left = 0;
->  	s_q_data->c_rect.top = 0;
->  	s_q_data->c_rect.width = s_q_data->width;
-> @@ -1433,6 +1732,7 @@ static int vpe_open(struct file *file)
->  
->  	ctx->q_data[Q_DATA_DST] = *s_q_data;
->  
-> +	set_dei_shadow_registers(ctx);
->  	set_src_registers(ctx);
->  	set_dst_registers(ctx);
->  	ret = set_srcdst_params(ctx);
-> @@ -1487,6 +1787,8 @@ static int vpe_release(struct file *file)
->  	vpe_dbg(dev, "releasing instance %p\n", ctx);
->  
->  	mutex_lock(&dev->dev_mutex);
-> +	free_vbs(ctx);
-> +	free_mv_buffers(ctx);
->  	vpdma_free_desc_list(&ctx->desc_list);
->  	vpdma_buf_free(&ctx->mmr_adb);
->  
-> 
+I think we should take this as part of your series next week :). I could 
+argue that the device on remote display which communicates over DCC is 
+an real i2c device and communicates using real i2c protocol? when we 
+read it, how the gates to EDID information is opened up is upto the driver.
 
+
+-- 
 Regards,
-
-	Hans
+Nishanth Menon
