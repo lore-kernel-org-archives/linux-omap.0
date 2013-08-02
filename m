@@ -1,72 +1,35 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 1/4] CLK: ti: dra7: Initialize USB_DPLL
-Date: Fri, 2 Aug 2013 10:30:47 +0300
-Message-ID: <51FB6027.6080808@ti.com>
-References: <1375369134-26398-1-git-send-email-rogerq@ti.com> <1375369134-26398-2-git-send-email-rogerq@ti.com> <51FA7976.8020707@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] net: ethernet: cpsw: drop IRQF_DISABLED
+Date: Fri, 2 Aug 2013 10:44:10 +0300
+Message-ID: <1375429450-25454-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51FA7976.8020707@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: tony@atomide.com, rnayak@ti.com, benoit.cousson@linaro.org, balbi@ti.com, george.cherian@ti.com, kishon@ti.com, dmurphy@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: davem@davemloft.net, netdev@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Nishant,
+IRQF_DISABLED is a no-op by now and should be
+removed.
 
-On 08/01/2013 06:06 PM, Nishanth Menon wrote:
-> On 08/01/2013 09:58 AM, Roger Quadros wrote:
->> USB_DPLL must be initialized and locked at boot so that
->> USB modules can work.
->>
->> Also program USB_DLL_M2 output to half rate.
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>   drivers/clk/omap/clk-7xx.c |   11 +++++++++++
->>   1 files changed, 11 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/clk/omap/clk-7xx.c b/drivers/clk/omap/clk-7xx.c
->> index ddb39dd..f444513 100644
->> --- a/drivers/clk/omap/clk-7xx.c
->> +++ b/drivers/clk/omap/clk-7xx.c
->> @@ -19,6 +19,7 @@
->>
->>   #define DRA7_DPLL_ABE_DEFFREQ                361267200
->>   #define DRA7_DPLL_GMAC_DEFFREQ                1000000000
->> +#define DRA7_DPLL_USB_DEFFREQ                960000000
->>
->>
->>   static struct omap_dt_clk dra7xx_clks[] = {
->> @@ -63,5 +64,15 @@ int __init dra7xx_clk_init(void)
->>       if (rc)
->>           pr_err("%s: failed to configure GMAC DPLL!\n", __func__);
->>
->> +    dpll_ck = clk_get_sys(NULL, "dpll_usb_ck");
->> +    rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ);
->> +    if (rc)
->> +        pr_err("%s: failed to configure USB DPLL!\n", __func__);
->> +
->> +    dpll_ck = clk_get_sys(NULL, "dpll_usb_m2_ck");
->> +    rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ/2);
->> +    if (rc)
->> +        pr_err("%s: failed to set USB_DPLL M2 OUT\n", __func__);
->> +
->>       return rc;
->>   }
->>
-> As I had mentioned on [1] - we are going to see similar needs keep popping up. there is no need to hack this up for even more peripherals :(
-> 
-> http://marc.info/?l=linux-omap&m=137536803106017&w=2
-> 
-The DPLLs need to be initialized irrespective of whether peripheral drivers are present or not.
-We have seen cases where the SoC fails to enter RETention if the DPLLS are not correctly
-configured.
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-But I agree with you that we should be able to initialize it by specifying the initial rate via Clock Data.
-
-This patch can be removed when the appropriate feature is added in OMAP clock core.
-
-cheers,
--roger
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 05a1674..22a7a43 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1867,7 +1867,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 
+ 	while ((res = platform_get_resource(priv->pdev, IORESOURCE_IRQ, k))) {
+ 		for (i = res->start; i <= res->end; i++) {
+-			if (request_irq(i, cpsw_interrupt, IRQF_DISABLED,
++			if (request_irq(i, cpsw_interrupt, 0,
+ 					dev_name(&pdev->dev), priv)) {
+ 				dev_err(priv->dev, "error attaching irq\n");
+ 				goto clean_ale_ret;
+-- 
+1.8.3.4.840.g6a90778
