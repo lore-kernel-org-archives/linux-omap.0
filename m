@@ -1,49 +1,33 @@
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Subject: [PATCH] ARM: DTS: AM33XX: Add PMU support
-Date: Sat,  3 Aug 2013 20:00:54 +0200
-Message-ID: <1375552854-8468-1-git-send-email-alexandre.belloni@free-electrons.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCHv5 01/31] CLK: clkdev: add support for looking up clocks
+	from DT
+Date: Sat, 3 Aug 2013 19:31:43 +0100
+Message-ID: <20130803183143.GE23053@n2100.arm.linux.org.uk>
+References: <1375460751-23676-1-git-send-email-t-kristo@ti.com> <1375460751-23676-2-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benoit Cousson <benoit.cousson@linaro.org>
-Cc: devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40114 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752208Ab3HCSbz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Aug 2013 14:31:55 -0400
+Content-Disposition: inline
+In-Reply-To: <1375460751-23676-2-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-ARM Performance Monitor Units are available on the am33xx, add the support in
-the dtsi.
+On Fri, Aug 02, 2013 at 07:25:20PM +0300, Tero Kristo wrote:
+> +
+> +	if (cl)
+> +		return cl;
+> +
+> +	/* If clock was not found, attempt to look-up from DT */
+> +	node = of_find_node_by_name(NULL, con_id);
 
-Tested with perf and oprofile on a regular beaglebone.
+This is utterly broken if you're looking up purely by a connection ID.
+Please, go back and read clk_get()'s documentation in linux/clk.h.
+It's spelt out very plainly there.
 
-Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
----
- arch/arm/boot/dts/am33xx.dtsi | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 38b446b..cfeac96 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -53,6 +53,11 @@
- 		};
- 	};
- 
-+	pmu {
-+		compatible = "arm,cortex-a8-pmu";
-+		interrupts = <3>;
-+	};
-+
- 	/*
- 	 * The soc node represents the soc top level view. It is uses for IPs
- 	 * that are not memory mapped in the MPU view or for the MPU itself.
--- 
-1.8.1.2
+NAK.
