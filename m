@@ -1,15 +1,15 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v3 2/9] ARM: DRA7: Reuse io tables and add a new .init_early
-Date: Sun, 4 Aug 2013 21:57:30 +0530
-Message-ID: <1375633657-6835-3-git-send-email-rnayak@ti.com>
+Subject: [PATCH v3 3/9] ARM: DRA7: Resue the clocksource, clockevent support
+Date: Sun, 4 Aug 2013 21:57:31 +0530
+Message-ID: <1375633657-6835-4-git-send-email-rnayak@ti.com>
 References: <1375633657-6835-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35943 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753629Ab3HDQ21 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 4 Aug 2013 12:28:27 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:47592 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753653Ab3HDQ2c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Aug 2013 12:28:32 -0400
 In-Reply-To: <1375633657-6835-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,88 +18,44 @@ Cc: tony@atomide.com, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.c
 
 From: R Sricharan <r.sricharan@ti.com>
 
-The IO descriptor tables for DRA7 are a complete reuse from OMAP5.
-A new dra7xx_init_early() does the base address inits.
+All of OMAP5 timer support for clocksource and clockevent is completely
+reused across DRA7.
 
 Signed-off-by: R Sricharan <r.sricharan@ti.com>
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/common.h   |    1 +
- arch/arm/mach-omap2/io.c       |   20 ++++++++++++++++++--
- arch/arm/mach-omap2/omap54xx.h |    4 ++++
- 3 files changed, 23 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/Kconfig |    2 +-
+ arch/arm/mach-omap2/timer.c |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index dfcc182..4a5684b 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -110,6 +110,7 @@ void omap3630_init_late(void);
- void am35xx_init_late(void);
- void ti81xx_init_late(void);
- int omap2_common_pm_late_init(void);
-+void dra7xx_init_early(void);
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 3eed000..fc6ec23 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -132,7 +132,7 @@ config SOC_HAS_OMAP2_SDRC
  
- #ifdef CONFIG_SOC_BUS
- void omap_soc_device_init(void);
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 4a3f06f..3656b80 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -251,7 +251,7 @@ static struct map_desc omap44xx_io_desc[] __initdata = {
- };
+ config SOC_HAS_REALTIME_COUNTER
+ 	bool "Real time free running counter"
+-	depends on SOC_OMAP5
++	depends on SOC_OMAP5 || SOC_DRA7XX
+ 	default y
+ 
+ comment "OMAP Core Type"
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index b37e1fc..1e77f11 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -594,7 +594,8 @@ OMAP_SYS_GP_TIMER_INIT(3, 2, "timer_sys_ck", NULL,
+ 		       1, "timer_sys_ck", "ti,timer-alwon");
  #endif
  
--#ifdef	CONFIG_SOC_OMAP5
-+#if defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX)
- static struct map_desc omap54xx_io_desc[] __initdata = {
- 	{
- 		.virtual	= L3_54XX_VIRT,
-@@ -333,7 +333,7 @@ void __init omap4_map_io(void)
- }
+-#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
++#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
++	defined(CONFIG_SOC_DRA7XX)
+ static OMAP_SYS_32K_TIMER_INIT(4, 1, "timer_32k_ck", "ti,timer-alwon",
+ 			       2, "sys_clkin_ck", NULL);
  #endif
- 
--#ifdef CONFIG_SOC_OMAP5
-+#if defined(CONFIG_SOC_OMAP5) ||  defined(CONFIG_SOC_DRA7XX)
- void __init omap5_map_io(void)
- {
- 	iotable_init(omap54xx_io_desc, ARRAY_SIZE(omap54xx_io_desc));
-@@ -653,6 +653,22 @@ void __init omap5_init_early(void)
- }
- #endif
- 
-+#ifdef CONFIG_SOC_DRA7XX
-+void __init dra7xx_init_early(void)
-+{
-+	omap2_set_globals_tap(-1, OMAP2_L4_IO_ADDRESS(DRA7XX_TAP_BASE));
-+	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE),
-+				  OMAP2_L4_IO_ADDRESS(DRA7XX_CTRL_BASE));
-+	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRM_BASE));
-+	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(DRA7XX_CM_CORE_AON_BASE),
-+			     OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_BASE));
-+	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
-+	omap_prm_base_init();
-+	omap_cm_base_init();
-+}
-+#endif
-+
-+
- void __init omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
- 				      struct omap_sdrc_params *sdrc_cs1)
- {
-diff --git a/arch/arm/mach-omap2/omap54xx.h b/arch/arm/mach-omap2/omap54xx.h
-index a086ba1..2d35c57 100644
---- a/arch/arm/mach-omap2/omap54xx.h
-+++ b/arch/arm/mach-omap2/omap54xx.h
-@@ -30,4 +30,8 @@
- #define OMAP54XX_CTRL_BASE		0x4a002800
- #define OMAP54XX_SAR_RAM_BASE		0x4ae26000
- 
-+#define DRA7XX_CM_CORE_AON_BASE		0x4a005000
-+#define DRA7XX_CTRL_BASE		0x4a003400
-+#define DRA7XX_TAP_BASE			0x4ae0c000
-+
- #endif /* __ASM_SOC_OMAP555554XX_H */
 -- 
 1.7.9.5
 
