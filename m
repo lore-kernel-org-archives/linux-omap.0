@@ -1,15 +1,15 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v3 3/9] ARM: DRA7: Resue the clocksource, clockevent support
-Date: Sun, 4 Aug 2013 21:57:31 +0530
-Message-ID: <1375633657-6835-4-git-send-email-rnayak@ti.com>
+Subject: [PATCH v3 4/9] ARM: DRA7: board-generic: Add basic DT support
+Date: Sun, 4 Aug 2013 21:57:32 +0530
+Message-ID: <1375633657-6835-5-git-send-email-rnayak@ti.com>
 References: <1375633657-6835-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47592 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753653Ab3HDQ2c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Aug 2013 12:28:32 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:54079 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753663Ab3HDQ2l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 4 Aug 2013 12:28:41 -0400
 In-Reply-To: <1375633657-6835-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,44 +18,56 @@ Cc: tony@atomide.com, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.c
 
 From: R Sricharan <r.sricharan@ti.com>
 
-All of OMAP5 timer support for clocksource and clockevent is completely
-reused across DRA7.
+Describe minimal DT boot machine details for DRA7xx based SoC's. DRA7xx
+family is based on dual core ARM CORTEX A15 using GIC as the interrupt controller.
+The PRCM and timer infrastructure is reused from OMAP5 and so are the io
+descriptor tables.
 
 Signed-off-by: R Sricharan <r.sricharan@ti.com>
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/Kconfig |    2 +-
- arch/arm/mach-omap2/timer.c |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ .../devicetree/bindings/arm/omap/omap.txt          |    3 +++
+ arch/arm/mach-omap2/board-generic.c                |   18 ++++++++++++++++++
+ 2 files changed, 21 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 3eed000..fc6ec23 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -132,7 +132,7 @@ config SOC_HAS_OMAP2_SDRC
+diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+index 6d498c7..91b7049 100644
+--- a/Documentation/devicetree/bindings/arm/omap/omap.txt
++++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+@@ -59,3 +59,6 @@ Boards:
  
- config SOC_HAS_REALTIME_COUNTER
- 	bool "Real time free running counter"
--	depends on SOC_OMAP5
-+	depends on SOC_OMAP5 || SOC_DRA7XX
- 	default y
- 
- comment "OMAP Core Type"
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index b37e1fc..1e77f11 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -594,7 +594,8 @@ OMAP_SYS_GP_TIMER_INIT(3, 2, "timer_sys_ck", NULL,
- 		       1, "timer_sys_ck", "ti,timer-alwon");
+ - AM43x EPOS EVM
+   compatible = "ti,am43x-epos-evm", "ti,am4372", "ti,am43"
++
++- DRA7 EVM:  Software Developement Board for DRA7XX
++  compatible = "ti,dra7-evm", "ti,dra7"
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index be5d005..b89e55b 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -222,3 +222,21 @@ DT_MACHINE_START(AM43_DT, "Generic AM43 (Flattened Device Tree)")
+ 	.dt_compat	= am43_boards_compat,
+ MACHINE_END
  #endif
- 
--#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
-+#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
-+	defined(CONFIG_SOC_DRA7XX)
- static OMAP_SYS_32K_TIMER_INIT(4, 1, "timer_32k_ck", "ti,timer-alwon",
- 			       2, "sys_clkin_ck", NULL);
- #endif
++
++#ifdef CONFIG_SOC_DRA7XX
++static const char *dra7xx_boards_compat[] __initdata = {
++	"ti,dra7",
++	NULL,
++};
++
++DT_MACHINE_START(DRA7XX_DT, "Generic DRA7XX (Flattened Device Tree)")
++	.reserve	= omap_reserve,
++	.smp		= smp_ops(omap4_smp_ops),
++	.map_io		= omap5_map_io,
++	.init_early	= dra7xx_init_early,
++	.init_irq	= omap_gic_of_init,
++	.init_machine	= omap_generic_init,
++	.init_time	= omap5_realtime_timer_init,
++	.dt_compat	= dra7xx_boards_compat,
++MACHINE_END
++#endif
 -- 
 1.7.9.5
 
