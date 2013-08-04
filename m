@@ -1,76 +1,129 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH 2/2] ARM: dts: AM4372: add few nodes
-Date: Mon, 5 Aug 2013 11:36:07 +0530
-Message-ID: <51FF40CF.4000008@ti.com>
-References: <ffa2f76fcac54bfe76c234ffce0394fd2c25fe52.1375450395.git.afzal@ti.com>
- <6f0f838176ab93aac8dab4c3ab9d9f95a3027ff7.1375450395.git.afzal@ti.com>
- <51FCEE60.7080809@ti.com> <51FF335D.4050803@ti.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH] omapfb: In omapfb_probe return -EPROBE_DEFER when display driver is not loaded yet
+Date: Sun, 4 Aug 2013 10:36:11 +0200
+Message-ID: <201308041036.12471@pali>
+References: <1373461739-10168-1-git-send-email-pali.rohar@gmail.com> <20130713182733.GA25019@amd.pavel.ucw.cz> <51EE5483.7000201@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed;
+  boundary="nextPart39307278.AbkrUebWic";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51FF335D.4050803@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Russell King <linux@arm.linux.org.uk>, Ian Campbell <ian.campbell@citrix.com>, Pawel Moll <pawel.moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, benoit.cousson@gmail.com, Rob Herring <rob.herring@calxeda.com>, Benoit Cousson <benoit.cousson@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:55263 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752383Ab3HEGpy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Aug 2013 02:45:54 -0400
+In-Reply-To: <51EE5483.7000201@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>
 
-On Monday 05 August 2013 10:38 AM, Afzal Mohammed wrote:
-> Hi Muguthan,
->
-> On Saturday 03 August 2013 05:19 PM, Mugunthan V N wrote:
->> On 8/2/2013 7:16 PM, Afzal Mohammed wrote:
->
->>> +        mac: ethernet@4a100000 {
->>> +            compatible = "ti,am4372-cpsw","ti,cpsw";
->
->> compatibility "ti,am4372-cpsw" is not needed as driver has only
->> "ti,cpsw"
->> compatibility
->
-> No, please read device tree documentation [1].
->
-> DT is a pure hardware description, it does not depend on driver,
-> dependency is only vice versa.
+--nextPart39307278.AbkrUebWic
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for the clarification
+Hello,
 
->
->>> +            reg = <0x4a100000 0x800
->>> +                   0x4a101200 0x100>;
->>> +            interrupts = <GIC_SPI 40 IRQ_TYPE_LEVEL_HIGH
->>> +                      GIC_SPI 41 IRQ_TYPE_LEVEL_HIGH
->>> +                      GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH
->>> +                      GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH>;
->>> +            ti,hwmods = "cpgmac0";
->>> +            status = "disabled";
->>> +        };
->
->> There are many other parameters which are missed here.
->
-> Reason has been mentioned in the commit message, quoting relevant here
-> again,
->
-> >> For i2c, spi, cpsw & pwm - only the properties that were sure to be
-> >> correct has been added (main intention is to make hwmod happy and
-> >> avoid any later modification to here added properties).
->
-> I really wanted to avoid a later patch that has a line starting with
-> minus on DTS.
->
-> Since you are working on cpsw support, can you help here with a patch
-> for other properties.
+On Tuesday 23 July 2013 12:01:39 Tomi Valkeinen wrote:
+> On 13/07/13 21:27, Pavel Machek wrote:
+> > On Wed 2013-07-10 15:08:59, Pali Roh=C3=A1r wrote:
+> >> * On RX-51 probing for acx565akm driver is later then for
+> >> omapfb which cause that omapfb probe fail and framebuffer
+> >> is not working * EPROBE_DEFER causing that kernel try to
+> >> probe for omapfb later again which fixing this problem
+> >>=20
+> >> * Without this patch display on Nokia RX-51 (N900) phone
+> >> not working
+> >>=20
+> >> Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> >=20
+> > Tested-by: Pavel Machek <pavel@ucw.cz>
+>=20
+> Which kernel version is this? Does it have
+> dfbc32316c6991010328c21e6046b05bac57eb84 (OMAPFB: defer probe
+> if no displays)?
+>=20
 
-Sure I can help you to add more DT entries which will not change
-according to hardware
+Kernel 3.10, so it have above commit.
 
-Regards
-Mugunthan V N
+> Then again, rx51 has tv-output, which probably gets probed
+> early. So omapfb does see one functional display, and starts,
+> even if the LCD is not available yet.
+>=20
+> > (Actually, do we know which commit broke the ordering? We
+> > may want to simply revert that one...)
+>=20
+> Well, my understand that this is how it's supposed to work.
+> There's no defined order with the driver probes, and the
+> drivers just have to deal with their dependencies not being
+> there yet.
+>=20
+> I don't have a perfect solution for this problem for omapfb.
+> omapfb doesn't support dynamically adding displays, so all
+> the displays it uses have to be probed before omapfb. And
+> omapfb doesn't know which displays will be probed.
+>=20
+> The patch below was added for 3.11. Does it fix the issue for
+> you? Perhaps it should be added for 3.10 also.
+>=20
+>  Tomi
+>=20
+
+I tested patch below and it fixing our problem too. So it could be=20
+added to 3.10.
+
+> commit e9f322b4913e5d3e5c5d21dc462ca6f8a86e1df1
+> Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Date:   Thu May 23 16:41:25 2013 +0300
+>=20
+>     OMAPFB: use EPROBE_DEFER if default display is not present
+>=20
+>     Currently omapfb returns EPROBE_DEFER if no displays have
+> been probed at the time omapfb is probed. However, sometimes
+> some of the displays have been probed at that time, but not
+> all. We can't return EPROBE_DEFER in that case, because then
+> one missing driver would cause omapfb to defer always,
+> preventing any display from working.
+>=20
+>     However, if the user has defined a default display, we can
+> presume that the driver for that display is eventually
+> loaded. Thus, this patch changes omapfb to return
+> EPROBE_DEFER in case default display is not found.
+>=20
+>     Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>=20
+> diff --git a/drivers/video/omap2/omapfb/omapfb-main.c
+> b/drivers/video/omap2/omapfb/omapfb-main.c index
+> 528e453..27d6905 100644
+> --- a/drivers/video/omap2/omapfb/omapfb-main.c
+> +++ b/drivers/video/omap2/omapfb/omapfb-main.c
+> @@ -2503,7 +2503,7 @@ static int omapfb_probe(struct
+> platform_device *pdev)
+>=20
+>         if (def_display =3D=3D NULL) {
+>                 dev_err(fbdev->dev, "failed to find default
+> display\n"); -               r =3D -EINVAL;
+> +               r =3D -EPROBE_DEFER;
+>                 goto cleanup;
+>         }
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart39307278.AbkrUebWic
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlH+EnwACgkQi/DJPQPkQ1KKVQCdEP5e/YUZhlXs3iDd03EKjRAz
+U6UAn1WHoj1Lbz2ZFLPRYCY7ohw1OfPU
+=1bAz
+-----END PGP SIGNATURE-----
+
+--nextPart39307278.AbkrUebWic--
