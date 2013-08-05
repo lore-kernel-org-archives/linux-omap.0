@@ -1,78 +1,162 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
-Date: Mon, 5 Aug 2013 15:26:29 +0300
-Message-ID: <51FF99F5.6060509@ti.com>
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-2-git-send-email-archit@ti.com> <51FF5EB4.8090007@ti.com> <51FF8BF6.3060900@ti.com>
+Subject: Re: [PATCH 2/6] v4l: ti-vpe: Add helpers for creating VPDMA descriptors
+Date: Mon, 5 Aug 2013 16:03:45 +0300
+Message-ID: <51FFA2B1.1050809@ti.com>
+References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-3-git-send-email-archit@ti.com> <51FF6C4D.2030306@ti.com> <51FF9517.6000406@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="55g68llJ0KsxvediU4Jfbafig9VJPa5jx"
+	boundary="CGWEWjkHSbj3p5R9HEfANwduVbSOelhXk"
 Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <51FF8BF6.3060900@ti.com>
+In-Reply-To: <51FF9517.6000406@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 To: Archit Taneja <archit@ti.com>
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, dagriego@biglakesoftware.com, dale@farnsworth.org, pawel@osciak.com, m.szyprowski@samsung.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
 List-Id: linux-omap@vger.kernel.org
 
---55g68llJ0KsxvediU4Jfbafig9VJPa5jx
+--CGWEWjkHSbj3p5R9HEfANwduVbSOelhXk
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 05/08/13 14:26, Archit Taneja wrote:
-> On Monday 05 August 2013 01:43 PM, Tomi Valkeinen wrote:
+On 05/08/13 15:05, Archit Taneja wrote:
+> On Monday 05 August 2013 02:41 PM, Tomi Valkeinen wrote:
+
+>> There's quite a bit of code in these dump functions, and they are alwa=
+ys
+>> called. I'm sure getting that data is good for debugging, but I presum=
+e
+>> they are quite useless for normal use. So I think they should be
+>> compiled in only if some Kconfig option is selected.
+>=20
+> Won't pr_debug() functions actually print something only when
+> CONFIG_DYNAMIC_DEBUG is selected or if the DEBUG is defined? They will
+
+If DEBUG is defined, they are always printed. If dynamic debug is in
+use, the user has to enable debug prints for VPE for the dumps to be
+printed.
+
+> still consume a lot of code, but it would just end up in dummy printk
+> calls, right?
+
+Yes.
+
+Well, I don't know VPE, so I can't really say how much those prints are
+needed or not. They just looked very verbose to me.
+
+I think we should have "normal" level debugging messages compiled in by
+default, and for "verbose" there should be a separate compile options.
+With verbose I mean something that may be useful if you are changing the
+code and want to verify it or debugging some very odd bug. I.e. for the
+developer of the driver.
+
+And with normal something that would be used when, say, somebody uses
+VPE for in his app, but things don't seem to be quite right, and there's
+need to get some info on what is going on. I.e. for "normal" user.
+
+But that's just my opinion, and it's obviously difficult to define those
+clearly =3D). To be honest, I don't know how much overhead very verbose
+kernel debug prints even cause. Maybe it's negligible.
 
 >>> +/*
->>> + * submit a list of DMA descriptors to the VPE VPDMA, do not wait
->>> for completion
+>>> + * data transfer descriptor
+>>> + *
+>>> + * All fields are 32 bits to make them endian neutral
+>>
+>> What does that mean? Why would 32bit fields make it endian neutral?
+>=20
+>=20
+> Each 32 bit field describes one word of the data descriptor. Each
+> descriptor has a number of parameters.
+>=20
+> If we look at the word 'xfer_length_height'. It's composed of height
+> (from bits 15:0) and width(from bits 31:16). If the word was expressed
+> using bit fields, we can describe the word(in big endian) as:
+>=20
+> struct vpdma_dtd {
+>     ...
+>     unsigned int    xfer_width:16;
+>     unsigned int    xfer_height:16;
+>     ...
+>     ...
+> };
+>=20
+> and in little endian as:
+>=20
+> struct vpdma_dtd {
+>     ...
+>     unsigned int    xfer_height:16;
+>     unsigned int    xfer_width:16;
+>     ...
+>     ...
+> };
+>=20
+> So this representation makes it endian dependent. Maybe the comment
+> should be improved saying that usage of u32 words instead of bit fields=
+
+> prevents endian issues.
+
+No, I don't think that's correct. Endianness is about bytes, not 16 bit
+words. The above text doesn't make much sense to me.
+
+I haven't really worked with endiannes issues, but maybe __le32 and
+others should be used in the struct, if that struct is read by the HW.
+And use cpu_to_le32() & others to write those. But googling will
+probably give more info (I should read also =3D).
+
 >>> + */
->>> +int vpdma_submit_descs(struct vpdma_data *vpdma, struct
->>> vpdma_desc_list *list)
->>> +{
->>> +    /* we always use the first list */
->>> +    int list_num =3D 0;
->>> +    int list_size;
->>> +
->>> +    if (vpdma_list_busy(vpdma, list_num))
->>> +        return -EBUSY;
->>> +
->>> +    /* 16-byte granularity */
->>> +    list_size =3D (list->next - list->buf.addr) >> 4;
->>> +
->>> +    write_reg(vpdma, VPDMA_LIST_ADDR, (u32) list->buf.dma_addr);
->>> +    wmb();
+>>> +struct vpdma_dtd {
+>>> +    u32            type_ctl_stride;
+>>> +    union {
+>>> +        u32        xfer_length_height;
+>>> +        u32        w1;
+>>> +    };
+>>> +    dma_addr_t        start_addr;
+>>> +    u32            pkt_ctl;
+>>> +    union {
+>>> +        u32        frame_width_height;    /* inbound */
+>>> +        dma_addr_t    desc_write_addr;    /* outbound */
 >>
->> What is the wmb() for?
+>> Are you sure dma_addr_t is always 32 bit?
 >=20
-> VPDMA_LIST_ADDR needs to be written before VPDMA_LIST_ATTR, otherwise
-> VPDMA doesn't work. wmb() ensures the ordering.
+> I am not sure about this.
 
-Are you sure it's needed? Here's an interesting thread about writing and
-reading to registers: http://marc.info/?t=3D130588594900002&r=3D1&w=3D2
+Is this struct directly read by the HW, or written to HW? If so, I
+believe using dma_addr_t is very wrong here. Having a typedef like
+dma_addr_t hides the actual type used for it. So even if it currently
+would always be 32bit, there's no guarantee.
 
->>> +
->>> +    for (i =3D 0; i < 100; i++) {        /* max 1 second */
->>> +        msleep_interruptible(10);
 >>
->> You call interruptible version here, but you don't handle the
->> interrupted case. I believe the loop will just continue looping, even =
-if
->> the user interrupted.
->=20
-> Okay. I think I don't understand the interruptible version correctly. W=
+>>> +    };
+>>> +    union {
+>>> +        u32        start_h_v;        /* inbound */
+>>> +        u32        max_width_height;    /* outbound */
+>>> +    };
+>>> +    u32            client_attr0;
+>>> +    u32            client_attr1;
+>>> +};
+>>
+>> I'm not sure if I understand the struct right, but presuming this one
+>> struct is used for both writing and reading, and certain set of fields=
+
+>> is used for writes and other set for reads, would it make sense to hav=
 e
-> don't need to msleep_interruptible here, we aren't waiting on any wake
-> up event, we just want to wait till a bit gets set.
+>> two different structs, instead of using unions? Although they do have
+>> many common fields, and the unions are a bit scattered there, so I don=
+'t
+>> know if that would be cleaner...
+>=20
+> It helps in a having a common debug function, I don't see much benefit
+> apart from that. I'll see if it's better to have them as separate struc=
+ts.
 
-Well, I think the interruptible versions should be used when the user
-(wel, userspace program) initiates the action. The user should have the
-option to interrupt a possibly long running operation, which is what
-msleep_interruptible() makes possible.
+Ok. Does the struct have any bit or such that tells us if the current
+data is inbound or outbound?
 
  Tomi
 
 
 
---55g68llJ0KsxvediU4Jfbafig9VJPa5jx
+--CGWEWjkHSbj3p5R9HEfANwduVbSOelhXk
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -81,19 +165,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.12 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJR/5n1AAoJEPo9qoy8lh71E2YP/2fGVCZX+aqzOrxbsUwOpBdp
-9fsr3Lbtwgsg6M60rcMl6nd0XgNhCZ/5VdiK1g8IisCcx4YxSHMwwbfWzTsMwQrb
-oTpJ58Tr/K/P959wj7afxx2/EB04T1rCsB3NdVNJ8nsi4H0R44/n1IAC3Nnudcfu
-qiEioNPXAN9wFWndbNWtK9P2VmTFWAcse2I7R2gec2v5QbI/p/1d233k42fCxRNc
-Sk2AFvXoprejb23HRp/XFirGsgCavH+Q4CUnkwKgorFuDvwtYJaWuI1ed0rWv6Bl
-iBsYNmudh1GaQI7Sf3hbR1shihG9Wv9PIqsH+rKcRMlYPzIgJuGYxY/FuPb8YY4e
-NYux03imXFi4XMpHNfTXzP21w1o2s3Aune/TqjXVJufUbHHT2qh51X2K3yZemuac
-m8TfLXXl/dIXzarSIydZ9jyLOF3uf/BEDIE/oWqQmFL4zVhzkQxGrhbjYaaeT9kk
-7JJJw0iu/2g8oIRYnADoT4i5MS9cFTl5lWi9oj7aBiyAqqsBCMMtXtfEz53+s53B
-n6HmXyBQKWxoexYk6sLDdUNIV1TMd2h3CyEOZp7d3jzlrcQoSYahxZkvKAafnahK
-J3SyXe1Nx13azWP4dOUFk6o9LZPTj20kjIrsAXdYUNYeg3yjZyzrLse6rekb2PZA
-2ri5QytywH4ax44tTHrN
-=6Tgt
+iQIcBAEBAgAGBQJR/6KxAAoJEPo9qoy8lh71j8oP/RJg7xux9QWotOGKMl26SdOY
+aSigh6wg4HmJqWkjEZBVUf9Ey12L/yxvtSCPzDxRWNOmbmDhjCiSWMJxzx/pEDpw
+sf5Vg0z1lpqI4Pj+5zdXkeUNEFhYCnGF+8xaH0qeul5jAeE1LwvflDDP6z4PFeWA
+rCxrDOy8GpYCEhQwrWjL0XY4vysIWodXY2erru0grGrSBXhMEbWrOumuZUGt5b+X
+xwx6B62Fc0f94ajFSp6/MSEhqkdVHQeNl6gJf8gGHzCGK74fgFFDHgN3AfxZW99Z
+MDFrtlXEaPCSyNwTVRB27dML3ijc2sArY59bHaWRpy/cUDvGEz+muj/nOSLre+cK
+dZ+2gGJNwdIOjJi/NCdI1V9dkhAgmB5MQcFgPwjTnyDPr8/4xU74bUd0iTIPQ7IL
+aAwNR+W9eV9OGOiDhuBm68NANmAGcG9Ywp9o5PcCBUeZpUPvuEZX1VCo2224SCSf
+yc69gUXW3ox//gR0MsDjukaMrQeWZuDBx4ixy4Cy0DPDKivAydewyO3E5+ghM6p9
+x4lqgtZS25ml6+IltMjjKwCDPrekH3dGMC2Ot22/dZeJ7WiLfwBxPX/zCgz4TzCE
+9yowmwWj+SK2CIaCHFYrRYd5ExICvggXuSJROmmzjDRD8EVMxquVFsMeuZlXbBg1
+djalJWYNhywAqgAcaN4j
+=pNLN
 -----END PGP SIGNATURE-----
 
---55g68llJ0KsxvediU4Jfbafig9VJPa5jx--
+--CGWEWjkHSbj3p5R9HEfANwduVbSOelhXk--
