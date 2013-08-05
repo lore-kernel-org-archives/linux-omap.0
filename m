@@ -1,29 +1,52 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH v1 0/2] PM / AVS: interrupt handling fixes
-Date: Mon, 05 Aug 2013 09:24:13 -0700
-Message-ID: <87y58ggl76.fsf@linaro.org>
-References: <1373637123-1152-1-git-send-email-andrii.tseglytskyi@ti.com>
+Subject: Re: [PATCH RESEND] PM / AVS: SmartReflex: remove redundant dev_err call in omap_sr_probe()
+Date: Mon, 05 Aug 2013 09:25:04 -0700
+Message-ID: <87r4e8gl5r.fsf@linaro.org>
+References: <CAPgLHd_K37Uf420FRiEkiCZQiL9bAdiE2_qG4dp7WmQRaCnDqQ@mail.gmail.com>
+	<20130626130641.GA26920@kahuna> <877gh8nbpm.fsf@linaro.org>
+	<CAPgLHd-toHh8DcooiVz7222kiE-F+xsj1nai2hNEHo95X-3+Ow@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1373637123-1152-1-git-send-email-andrii.tseglytskyi@ti.com>
-	(Andrii Tseglytskyi's message of "Fri, 12 Jul 2013 16:52:01 +0300")
+In-Reply-To: <CAPgLHd-toHh8DcooiVz7222kiE-F+xsj1nai2hNEHo95X-3+Ow@mail.gmail.com>
+	(Wei Yongjun's message of "Fri, 12 Jul 2013 12:59:40 +0800")
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrii Tseglytskyi <andrii.tseglytskyi@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: nm@ti.com, anton@enomsg.org, dwmw2@infradead.org, andrii.tseglytskyi@ti.com, jean.pihet@newoldbits.com, tony@atomide.com, yongjun_wei@trendmicro.com.cn, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Andrii Tseglytskyi <andrii.tseglytskyi@ti.com> writes:
+Wei Yongjun <weiyj.lk@gmail.com> writes:
 
-> Hi Kevin,
+> There is a error message within devm_ioremap_resource
+> already, so remove the dev_err call to avoid redundant
+> error message.
 >
-> Could you please take a look to the following patch series.
-> It consists of two patches, which are needed for proper
-> SmartReflex Interrupt handling.
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> Acked-by: Nishanth Menon <nm@ti.com>
+> ---
+> cc to linux-pm with Nishanth Menon's ACK
 
-Thanks.
+Thanks, queued for v3.12.
 
-It doesn't appear that these are regression fixes, so I'm queuing for
-v3.12.  
+Kevin
 
-Kevin (apologies for the major lag, just returning from some time off...)
+> ---
+>  drivers/power/avs/smartreflex.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+>
+> diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
+> index db9973b..c26acfc 100644
+> --- a/drivers/power/avs/smartreflex.c
+> +++ b/drivers/power/avs/smartreflex.c
+> @@ -871,10 +871,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+>  
+>  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	sr_info->base = devm_ioremap_resource(&pdev->dev, mem);
+> -	if (IS_ERR(sr_info->base)) {
+> -		dev_err(&pdev->dev, "%s: ioremap fail\n", __func__);
+> +	if (IS_ERR(sr_info->base))
+>  		return PTR_ERR(sr_info->base);
+> -	}
+>  
+>  	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+>  
