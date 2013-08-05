@@ -1,104 +1,82 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH v3 1/2] ARM: OMAP: Add secure function omap_smc3() which calling instruction smc #1
-Date: Sun, 4 Aug 2013 10:45:00 +0200
-Message-ID: <201308041045.00698@pali>
-References: <531356997.66774.1373571839852.JavaMail.apache@mail81.abv.bg> <51DF0D7A.4090008@ti.com> <20130712102430.GA3249@localhost.localdomain>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv5 07/31] CLK: TI: add omap4 clock init file
+Date: Mon, 5 Aug 2013 00:27:04 -0700
+Message-ID: <20130805072704.GS7656@atomide.com>
+References: <1375460751-23676-1-git-send-email-t-kristo@ti.com>
+ <1375460751-23676-8-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart152849368.3vpqrtV2oc";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130712102430.GA3249@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: Dave Martin <Dave.Martin@arm.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, =?utf-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE?= =?utf-8?q?_=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, nm@ti.com, linux@arm.linux.org.uk, aaro.koskinen@iki.fi, pdeschrijver@nvidia.com, linux-kernel@vger.kernel.org, pavel@ucw.cz, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47970 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754295Ab3HEH1H (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Aug 2013 03:27:07 -0400
+Content-Disposition: inline
+In-Reply-To: <1375460751-23676-8-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, rnayak@ti.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
---nextPart152849368.3vpqrtV2oc
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+* Tero Kristo <t-kristo@ti.com> [130802 09:33]:
+> clk-44xx.c now contains the clock init functionality for omap4, including
+> DT clock registration and adding of static clkdev entries.
 
-Here is new version (v3) of omap secure part patch:
+Few comments below from "boot new hardware with old kernels" point of
+view that seems to be pretty close for clocks.
+ 
+> --- /dev/null
+> +++ b/drivers/clk/ti/clk-44xx.c
+...
 
-Other secure functions omap_smc1() and omap_smc2() calling instruction smc =
-#0
-but Nokia RX-51 board needs to call smc #1 for PPA access.
+> +int __init omap4xxx_clk_init(void)
+> +{
+> +	int rc;
+> +	struct clk *abe_dpll_ref, *abe_dpll, *sys_32k_ck, *usb_dpll;
+> +
+> +	/* FIXME register clocks from DT first */
+> +	of_clk_init(NULL);
+> +
+> +	omap_dt_clocks_register(omap44xx_clks);
+> +
+> +	omap2_clk_disable_autoidle_all();
+> +
+> +	/*
+> +	 * On OMAP4460 the ABE DPLL fails to turn on if in idle low-power
+> +	 * state when turning the ABE clock domain. Workaround this by
+> +	 * locking the ABE DPLL on boot.
+> +	 * Lock the ABE DPLL in any case to avoid issues with audio.
+> +	 */
+> +	abe_dpll_ref = clk_get_sys(NULL, "abe_dpll_refclk_mux_ck");
+> +	sys_32k_ck = clk_get_sys(NULL, "sys_32k_ck");
+> +	rc = clk_set_parent(abe_dpll_ref, sys_32k_ck);
+> +	abe_dpll = clk_get_sys(NULL, "dpll_abe_ck");
+> +	if (!rc)
+> +		rc = clk_set_rate(abe_dpll, OMAP4_DPLL_ABE_DEFFREQ);
+> +	if (rc)
+> +		pr_err("%s: failed to configure ABE DPLL!\n", __func__);
+> +
+> +	/*
+> +	 * Lock USB DPLL on OMAP4 devices so that the L3INIT power
+> +	 * domain can transition to retention state when not in use.
+> +	 */
+> +	usb_dpll = clk_get_sys(NULL, "dpll_usb_ck");
+> +	rc = clk_set_rate(usb_dpll, OMAP4_DPLL_USB_DEFFREQ);
+> +	if (rc)
+> +		pr_err("%s: failed to configure USB DPLL!\n", __func__);
+> +
+> +	return 0;
+> +}
 
-Signed-off-by: Ivaylo Dimitrov <freemangordon@abv.bg>
-Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-=2D--
-diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-s=
-ecure.h
-index 0e72917..c4586f4 100644
-=2D-- a/arch/arm/mach-omap2/omap-secure.h
-+++ b/arch/arm/mach-omap2/omap-secure.h
-@@ -51,6 +51,7 @@
- extern u32 omap_secure_dispatcher(u32 idx, u32 flag, u32 nargs,
- 				u32 arg1, u32 arg2, u32 arg3, u32 arg4);
- extern u32 omap_smc2(u32 id, u32 falg, u32 pargs);
-+extern u32 omap_smc3(u32 id, u32 process, u32 flag, u32 pargs);
- extern phys_addr_t omap_secure_ram_mempool_base(void);
- extern int omap_secure_ram_reserve_memblock(void);
-=20
-diff --git a/arch/arm/mach-omap2/omap-smc.S b/arch/arm/mach-omap2/omap-smc.S
-index f6441c1..7bbc043 100644
-=2D-- a/arch/arm/mach-omap2/omap-smc.S
-+++ b/arch/arm/mach-omap2/omap-smc.S
-@@ -1,9 +1,11 @@
- /*
-=2D * OMAP44xx secure APIs file.
-+ * OMAP34xx and OMAP44xx secure APIs file.
-  *
-  * Copyright (C) 2010 Texas Instruments, Inc.
-  * Written by Santosh Shilimkar <santosh.shilimkar@ti.com>
-  *
-+ * Copyright (C) 2012 Ivaylo Dimitrov <freemangordon@abv.bg>
-+ * Copyright (C) 2013 Pali Roh=C3=A1r <pali.rohar@gmail.com>
-  *
-  * This program is free software,you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -54,6 +56,23 @@ ENTRY(omap_smc2)
- 	ldmfd   sp!, {r4-r12, pc}
- ENDPROC(omap_smc2)
-=20
-+/**
-+ * u32 omap_smc3(u32 service_id, u32 process_id, u32 flag, u32 pargs)
-+ * Low level common routine for secure HAL and PPA APIs via smc #1
-+ * r0 - @service_id: Secure Service ID
-+ * r1 - @process_id: Process ID
-+ * r2 - @flag: Flag to indicate the criticality of operation
-+ * r3 - @pargs: Physical address of parameter list
-+ */
-+ENTRY(omap_smc3)
-+	stmfd	sp!, {r4-r11, lr}
-+	mov	r12, r0		@ Copy the secure service ID
-+	mov	r6, #0xff	@ Indicate new Task call
-+	dsb			@ Memory Barrier
-+	smc	#1		@ Call PPA service
-+	ldmfd	sp!, {r4-r11, pc}
-+ENDPROC(omap_smc3)
-+
- ENTRY(omap_modify_auxcoreboot0)
- 	stmfd   sp!, {r1-r12, lr}
- 	ldr	r12, =3D0x104
+Maybe try to have a generic init function, then have SoC specific
+quirk function pointers set up based on the DT compatible property?
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Grep for varioius _of_match[] examples in the drivers.
 
---nextPart152849368.3vpqrtV2oc
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+That way you might be able to make clocks work for some new similar
+hardware with just .dts change and patching in the quirks later on
+as needed ;)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Regards,
 
-iEYEABECAAYFAlH+FIwACgkQi/DJPQPkQ1LddQCfQOtYEB3h1A48robnsLPTZWdr
-gpcAoMaBEyDUB7QaPANQIo0LRWzu+ySU
-=o1MU
------END PGP SIGNATURE-----
-
---nextPart152849368.3vpqrtV2oc--
+Tony
