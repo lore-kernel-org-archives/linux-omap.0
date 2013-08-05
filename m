@@ -1,52 +1,30 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH RESEND] PM / AVS: SmartReflex: remove redundant dev_err call in omap_sr_probe()
-Date: Mon, 05 Aug 2013 09:25:04 -0700
-Message-ID: <87r4e8gl5r.fsf@linaro.org>
-References: <CAPgLHd_K37Uf420FRiEkiCZQiL9bAdiE2_qG4dp7WmQRaCnDqQ@mail.gmail.com>
-	<20130626130641.GA26920@kahuna> <877gh8nbpm.fsf@linaro.org>
-	<CAPgLHd-toHh8DcooiVz7222kiE-F+xsj1nai2hNEHo95X-3+Ow@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [net-next PATCH v2 1/1] drivers: net: cpsw: Add support for
+ new CPSW IP version
+Date: Mon, 05 Aug 2013 12:22:02 -0700 (PDT)
+Message-ID: <20130805.122202.126903931013785003.davem@davemloft.net>
+References: <1375704005-3856-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPgLHd-toHh8DcooiVz7222kiE-F+xsj1nai2hNEHo95X-3+Ow@mail.gmail.com>
-	(Wei Yongjun's message of "Fri, 12 Jul 2013 12:59:40 +0800")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wei Yongjun <weiyj.lk@gmail.com>
-Cc: nm@ti.com, anton@enomsg.org, dwmw2@infradead.org, andrii.tseglytskyi@ti.com, jean.pihet@newoldbits.com, tony@atomide.com, yongjun_wei@trendmicro.com.cn, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:48395 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754613Ab3HETWD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Aug 2013 15:22:03 -0400
+In-Reply-To: <1375704005-3856-1-git-send-email-mugunthanvnm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: mugunthanvnm@ti.com
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com
 
-Wei Yongjun <weiyj.lk@gmail.com> writes:
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Date: Mon, 5 Aug 2013 17:30:05 +0530
 
-> There is a error message within devm_ioremap_resource
-> already, so remove the dev_err call to avoid redundant
-> error message.
->
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> Acked-by: Nishanth Menon <nm@ti.com>
-> ---
-> cc to linux-pm with Nishanth Menon's ACK
+> The new IP version has a minor changes and the offsets are same as the
+> previous version, so adding new IP version support in the driver.
+> 
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+> Reviewed-by: Felipe Balbi <balbi@ti.com>
 
-Thanks, queued for v3.12.
-
-Kevin
-
-> ---
->  drivers/power/avs/smartreflex.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
->
-> diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
-> index db9973b..c26acfc 100644
-> --- a/drivers/power/avs/smartreflex.c
-> +++ b/drivers/power/avs/smartreflex.c
-> @@ -871,10 +871,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
->  
->  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  	sr_info->base = devm_ioremap_resource(&pdev->dev, mem);
-> -	if (IS_ERR(sr_info->base)) {
-> -		dev_err(&pdev->dev, "%s: ioremap fail\n", __func__);
-> +	if (IS_ERR(sr_info->base))
->  		return PTR_ERR(sr_info->base);
-> -	}
->  
->  	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
->  
+Applied.
