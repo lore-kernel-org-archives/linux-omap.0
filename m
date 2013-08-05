@@ -1,82 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv5 07/31] CLK: TI: add omap4 clock init file
-Date: Mon, 5 Aug 2013 00:27:04 -0700
-Message-ID: <20130805072704.GS7656@atomide.com>
-References: <1375460751-23676-1-git-send-email-t-kristo@ti.com>
- <1375460751-23676-8-git-send-email-t-kristo@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 2/4] ARM: dts: dra7: Add USB related nodes
+Date: Mon, 5 Aug 2013 10:52:20 +0300
+Message-ID: <51FF59B4.8060108@ti.com>
+References: <1375369134-26398-1-git-send-email-rogerq@ti.com> <1375369134-26398-3-git-send-email-rogerq@ti.com> <51FBCA10.9070806@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47970 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754295Ab3HEH1H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Aug 2013 03:27:07 -0400
-Content-Disposition: inline
-In-Reply-To: <1375460751-23676-8-git-send-email-t-kristo@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:58208 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754941Ab3HEHwZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Aug 2013 03:52:25 -0400
+In-Reply-To: <51FBCA10.9070806@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, rnayak@ti.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: tony@atomide.com, rnayak@ti.com, benoit.cousson@linaro.org, balbi@ti.com, kishon@ti.com, dmurphy@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [130802 09:33]:
-> clk-44xx.c now contains the clock init functionality for omap4, including
-> DT clock registration and adding of static clkdev entries.
+On 08/02/2013 06:02 PM, George Cherian wrote:
+> On 8/1/2013 8:28 PM, Roger Quadros wrote:
+>> Add nodes for the Super Speed USB controllers, omap-control-usb,
+>> USB2 PHY and USB3 PHY devices.
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>   arch/arm/boot/dts/dra7.dtsi |  136 +++++++++++++++++++++++++++++++++++++++++++
+>>   1 files changed, 136 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>> index ce9a0f0..3a2e55e 100644
+> 
+> <snip>
+> 
+>> +        omap_dwc3_1@48880000 {
+> 
+> How about usb1: omap_dwc3@48880000 {
+>           usb2: omap_dwc3@488c0000 { etc.
+> 
 
-Few comments below from "boot new hardware with old kernels" point of
-view that seems to be pretty close for clocks.
- 
-> --- /dev/null
-> +++ b/drivers/clk/ti/clk-44xx.c
-...
+Yes. will update it in next revision.
 
-> +int __init omap4xxx_clk_init(void)
-> +{
-> +	int rc;
-> +	struct clk *abe_dpll_ref, *abe_dpll, *sys_32k_ck, *usb_dpll;
-> +
-> +	/* FIXME register clocks from DT first */
-> +	of_clk_init(NULL);
-> +
-> +	omap_dt_clocks_register(omap44xx_clks);
-> +
-> +	omap2_clk_disable_autoidle_all();
-> +
-> +	/*
-> +	 * On OMAP4460 the ABE DPLL fails to turn on if in idle low-power
-> +	 * state when turning the ABE clock domain. Workaround this by
-> +	 * locking the ABE DPLL on boot.
-> +	 * Lock the ABE DPLL in any case to avoid issues with audio.
-> +	 */
-> +	abe_dpll_ref = clk_get_sys(NULL, "abe_dpll_refclk_mux_ck");
-> +	sys_32k_ck = clk_get_sys(NULL, "sys_32k_ck");
-> +	rc = clk_set_parent(abe_dpll_ref, sys_32k_ck);
-> +	abe_dpll = clk_get_sys(NULL, "dpll_abe_ck");
-> +	if (!rc)
-> +		rc = clk_set_rate(abe_dpll, OMAP4_DPLL_ABE_DEFFREQ);
-> +	if (rc)
-> +		pr_err("%s: failed to configure ABE DPLL!\n", __func__);
-> +
-> +	/*
-> +	 * Lock USB DPLL on OMAP4 devices so that the L3INIT power
-> +	 * domain can transition to retention state when not in use.
-> +	 */
-> +	usb_dpll = clk_get_sys(NULL, "dpll_usb_ck");
-> +	rc = clk_set_rate(usb_dpll, OMAP4_DPLL_USB_DEFFREQ);
-> +	if (rc)
-> +		pr_err("%s: failed to configure USB DPLL!\n", __func__);
-> +
-> +	return 0;
-> +}
-
-Maybe try to have a generic init function, then have SoC specific
-quirk function pointers set up based on the DT compatible property?
-
-Grep for varioius _of_match[] examples in the drivers.
-
-That way you might be able to make clocks work for some new similar
-hardware with just .dts change and patching in the quirks later on
-as needed ;)
-
-Regards,
-
-Tony
+cheers,
+-roger
