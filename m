@@ -1,44 +1,76 @@
-From: ujhelyi.m@gmail.com
-Subject: [PATCH] am33xx-restart: trigger warm reset on omap2+ boards
-Date: Mon,  5 Aug 2013 12:02:24 +0200
-Message-ID: <1375696944-13380-1-git-send-email-ujhelyi.m@gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 3/4] dts: dra7-evm: add USB support
+Date: Mon, 5 Aug 2013 13:23:40 +0300
+Message-ID: <51FF7D2C.1090107@ti.com>
+References: <1375369134-26398-1-git-send-email-rogerq@ti.com> <1375369134-26398-4-git-send-email-rogerq@ti.com> <51FBCA6F.9030503@ti.com> <51FF5A69.7040604@ti.com> <51FF6A45.3060702@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f51.google.com ([209.85.214.51]:38545 "EHLO
-	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754068Ab3HEKCq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Aug 2013 06:02:46 -0400
-Received: by mail-bk0-f51.google.com with SMTP id ji2so883228bkc.38
-        for <linux-omap@vger.kernel.org>; Mon, 05 Aug 2013 03:02:45 -0700 (PDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:58840 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752909Ab3HEKXp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Aug 2013 06:23:45 -0400
+In-Reply-To: <51FF6A45.3060702@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux@arm.linux.org.uk
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, ujhelyi.m@gmail.com
+To: George Cherian <george.cherian@ti.com>
+Cc: tony@atomide.com, rnayak@ti.com, benoit.cousson@linaro.org, balbi@ti.com, kishon@ti.com, dmurphy@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Matus Ujhelyi <ujhelyi.m@gmail.com>
+On 08/05/2013 12:03 PM, George Cherian wrote:
+> On 8/5/2013 1:25 PM, Roger Quadros wrote:
+>> On 08/02/2013 06:04 PM, George Cherian wrote:
+>>> On 8/1/2013 8:28 PM, Roger Quadros wrote:
+>>>> Add USB drv_vbus pinctrl information and USB mode
+>>>> for the USB controller.
+>>>>
+>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>> ---
+>>>>    arch/arm/boot/dts/dra7-evm.dts |   22 ++++++++++++++++++++++
+>>>>    1 files changed, 22 insertions(+), 0 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+>>>> index cb0703c..acd3c09 100644
+>>>> --- a/arch/arm/boot/dts/dra7-evm.dts
+>>>> +++ b/arch/arm/boot/dts/dra7-evm.dts
+>>>> @@ -18,3 +18,25 @@
+>>>>            reg = <0x80000000 0x60000000>; /* 1536 MB */
+>>>>        };
+>>>>    };
+>>>> +
+>>>> +&dra7_pmx_core {
+>>>> +        pinctrl-names = "default";
+>>>> +        pinctrl-0 = <
+>>>> +        &usb_pins
+>>>> +    >;
+>>>> +
+>>>> +    usb_pins: pinmux_usb_pins {
+>>>> +                pinctrl-single,pins = <
+>>>> +            0x280    0xc0000    /* usb1_drvvbus, SLOW_SLEW | PULLUPEN | MODE0 */
+>>>> +            0x284    0xc0000 /* usb2_drvvbus, SLOW_SLEW | PULLUPEN | MODE0 */
+>>>> +                >;
+>>>> +        };
+>>>> +};
+>>>> +
+>>>> +&dwc3_1 {
+>>>> +    dr_mode = "otg";
+>>> otg???
+>> What's wrong there?
+>> please see
+>> Documentation/devicetree/bindings/usb/generic.txt
+>>
+>> we want it to operate in dual role mode and hence "otg"
+> 
+> Am sorry for not being clear with my earlier comment.
+> I meant whether we have otg/ DRD working. Till then shouldnt we put either peripheral/host?
 
-Currently the cold reset was triggered. It happened due to oposite offsets
-of cold/warm flags in PRM_RSTST and PRM_RSTCTRL registers.
+Setting it to peripheral did not work and I don't think it is meant to be used as host port at all
+so no point in setting it has host. Users needing host support can always use usb2 port.
+The kit comes supplied with host adapter only for the usb2 (mini) port.
 
-Signed-off-by: Matus Ujhelyi <ujhelyi.m@gmail.com>
----
- arch/arm/mach-omap2/am33xx-restart.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+So I think we should just leave usb1 port OTG, and get it to work somehow, at least in peripheral mode
+first.
 
-diff --git a/arch/arm/mach-omap2/am33xx-restart.c b/arch/arm/mach-omap2/am33xx-restart.c
-index 1eae962..c88d8df7 100644
---- a/arch/arm/mach-omap2/am33xx-restart.c
-+++ b/arch/arm/mach-omap2/am33xx-restart.c
-@@ -24,8 +24,8 @@ void am33xx_restart(enum reboot_mode mode, const char *cmd)
- {
- 	/* TODO: Handle mode and cmd if necessary */
- 
--	am33xx_prm_rmw_reg_bits(AM33XX_GLOBAL_WARM_SW_RST_MASK,
--				AM33XX_GLOBAL_WARM_SW_RST_MASK,
-+	am33xx_prm_rmw_reg_bits(AM33XX_RST_GLOBAL_WARM_SW_MASK,
-+				AM33XX_RST_GLOBAL_WARM_SW_MASK,
- 				AM33XX_PRM_DEVICE_MOD,
- 				AM33XX_PRM_RSTCTRL_OFFSET);
- 
--- 
-1.7.9.5
+cheers,
+-roger
 
