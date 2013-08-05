@@ -1,35 +1,67 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH 4/4] ARM: OMAP2+: Sync hwmod state with the pm_runtime and omap_device state
-Date: Mon, 05 Aug 2013 08:43:22 -0700
-Message-ID: <87iozkkusl.fsf@linaro.org>
-References: <1374487277-26099-1-git-send-email-rnayak@ti.com>
-	<1374487277-26099-5-git-send-email-rnayak@ti.com>
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 00/12] edma: Add support for SG lists of any length
+Date: Mon, 5 Aug 2013 11:14:45 -0500
+Message-ID: <1375719297-12871-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:44466 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753644Ab3HEPn0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Aug 2013 11:43:26 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rq2so3506654pbb.5
-        for <linux-omap@vger.kernel.org>; Mon, 05 Aug 2013 08:43:25 -0700 (PDT)
-In-Reply-To: <1374487277-26099-5-git-send-email-rnayak@ti.com> (Rajendra
-	Nayak's message of "Mon, 22 Jul 2013 15:31:17 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Matt Porter <matt-agtwNxEcTQJWk0Htik3J/w@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Benoit Cousson <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Balaji TK <balajitk-l0cyMroinI0@public.gmane.org>, Gururaja Hebbar <gururaja.hebbar-l0cyMroinI0@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, paul@pwsan.com, balbi@ti.com, mpfj-list@newflow.co.uk, vaibhav.bedia@ti.com, sourav.poddar@ti.com, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, linux-serial@vger.kernel.org, grygorii.strashko@ti.com
 
-Rajendra Nayak <rnayak@ti.com> writes:
+Here is a more improved approach for DMA support of SG lists of any length
+in the EDMA DMA Engine driver.
 
-> Some hwmods which are marked with HWMOD_INIT_NO_IDLE are left in enabled
-> state post setup(). When a omap_device gets created for such hwmods
-> make sure the omap_device and pm_runtime states are also in sync for such
-> hwmods by doing a omap_device_enable() and pm_runtime_set_active() for the
-> device.
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+In the previous approach [1] we depended on error interrupts to detect
+missed events and manually retrigger them, however as discussed in [2],
+there are concerns this can be trouble some for high speed peripherals
+which may need a more real-time response from the DMA controller.
 
-This looks like the right fix to me.
+In this approach, we divide the total no of MAX slots per channel, into
+2 linked sets which are cyclically linked to each other (the cyclic
+link between the 2 sets make sure that the DMA is continuous till the whole
+SG list has exhausted). We then enable completion interrupts on both linked
+sets which results in recyling/preparing respective linked set with the
+next set of SG entries. The interrupt handler executes in parallel while
+the EDMA controller DMA's the next list. This results in no interruption.
 
-Acked-by: Kevin Hilman <khilman@linaro.org>
+Special handling is done for first linked set (as we set up both linked
+sets initially before starting with the DMA), and last one where the cyclic
+link has to be broken and a link to the Dummy slot has to be created.
+Also we keep track of whether all pending DMA operations have completed
+before we can mark it as complete.
+
+[1] https://lkml.org/lkml/2013/7/29/312
+[2] https://lkml.org/lkml/2013/7/30/54
+
+Joel Fernandes (12):
+  dma: edma: Setup parameters to DMA MAX_NR_SG at a time
+  ARM: edma: Don't clear EMR of channel in edma_stop
+  dma: edma: remove limits on number of slots
+  dma: edma: Write out and handle MAX_NR_SG at a given time
+  ARM: edma: Add function to enable interrupt for a PaRAM slot
+  ARM: edma: Add pr_debug in edma_link
+  dma: edma: Add function to dump a PaRAM set from PaRAM
+  dma: edma: Add one more required slot to MAX slots
+  dma: edma: Implement multiple linked sets for continuity
+  dma: edma: Check if MAX_NR_SG is even in prep function
+  dma: edma: Keep tracking of Pending interrupts (pending_acks)
+  dma: edma: Return if nothing left todo in edma_execute
+
+ arch/arm/common/edma.c             |   18 ++-
+ drivers/dma/edma.c                 |  279 +++++++++++++++++++++++++++++-------
+ include/linux/platform_data/edma.h |    1 +
+ 3 files changed, 243 insertions(+), 55 deletions(-)
+
+-- 
+1.7.9.5
