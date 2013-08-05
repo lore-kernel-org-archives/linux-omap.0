@@ -1,145 +1,154 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
-Date: Mon, 5 Aug 2013 16:56:46 +0530
-Message-ID: <51FF8BF6.3060900@ti.com>
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-2-git-send-email-archit@ti.com> <51FF5EB4.8090007@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH v3 7/9] ARM: DRA7: id: Add cpu detection support for DRA7xx
+ based SoCs'
+Date: Mon, 5 Aug 2013 14:44:37 +0300
+Message-ID: <51FF9025.6040401@ti.com>
+References: <1375633657-6835-1-git-send-email-rnayak@ti.com> <1375633657-6835-8-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38021 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751981Ab3HEL1y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Aug 2013 07:27:54 -0400
-In-Reply-To: <51FF5EB4.8090007@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51587 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752362Ab3HELrG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Aug 2013 07:47:06 -0400
+In-Reply-To: <1375633657-6835-8-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, dagriego@biglakesoftware.com, dale@farnsworth.org, pawel@osciak.com, m.szyprowski@samsung.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.com, r.sricharan@ti.com, ambresh@ti.com, sourav.poddar@ti.com, santosh.shilimkar@ti.com, nm@ti.com, balbi@ti.com
 
-On Monday 05 August 2013 01:43 PM, Tomi Valkeinen wrote:
-> Hi,
+On 08/04/2013 07:27 PM, Rajendra Nayak wrote:
+> From: R Sricharan <r.sricharan@ti.com>
 >
-> On 02/08/13 17:03, Archit Taneja wrote:
+> The DRA7xx is a high-performance, infotainment application device,
+> based on enhanced OMAP architecture integrated on a 28-nm technology.
 >
->> +struct vpdma_data_format vpdma_yuv_fmts[] = {
->> +	[VPDMA_DATA_FMT_Y444] = {
->> +		.data_type	= DATA_TYPE_Y444,
->> +		.depth		= 8,
->> +	},
+> Since DRA7 is a platform supported only using DT, the cpu detection
+> is based on the compatibles passed from DT blobs as suggested here
+> http://lists.infradead.org/pipermail/linux-arm-kernel/2013-July/187712.html
 >
-> This, and all the other tables, should probably be consts?
+> Suggested-by: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: R Sricharan <r.sricharan@ti.com>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>   arch/arm/mach-omap1/include/mach/soc.h |    1 +
+>   arch/arm/mach-omap2/id.c               |    4 ++--
+>   arch/arm/mach-omap2/soc.h              |   17 +++++++++++++++++
+>   3 files changed, 20 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap1/include/mach/soc.h b/arch/arm/mach-omap1/include/mach/soc.h
+> index 6cf9c1c..612bd1c 100644
+> --- a/arch/arm/mach-omap1/include/mach/soc.h
+> +++ b/arch/arm/mach-omap1/include/mach/soc.h
+> @@ -195,6 +195,7 @@ IS_OMAP_TYPE(1710, 0x1710)
+>   #define cpu_is_omap34xx()		0
+>   #define cpu_is_omap44xx()		0
+>   #define soc_is_omap54xx()		0
+> +#define soc_is_dra7xx()			0
+>   #define soc_is_am33xx()			0
+>   #define cpu_class_is_omap1()		1
+>   #define cpu_class_is_omap2()		0
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index 2dc62a2..0289adc 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -61,7 +61,7 @@ int omap_type(void)
+>   		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
+>   	} else if (cpu_is_omap44xx()) {
+>   		val = omap_ctrl_readl(OMAP4_CTRL_MODULE_CORE_STATUS);
+> -	} else if (soc_is_omap54xx()) {
+> +	} else if (soc_is_omap54xx() || soc_is_dra7xx()) {
+>   		val = omap_ctrl_readl(OMAP5XXX_CONTROL_STATUS);
+>   		val &= OMAP5_DEVICETYPE_MASK;
+>   		val >>= 6;
+> @@ -116,7 +116,7 @@ static u16 tap_prod_id;
+>
+>   void omap_get_die_id(struct omap_die_id *odi)
+>   {
+> -	if (cpu_is_omap44xx() || soc_is_omap54xx()) {
+> +	if (cpu_is_omap44xx() || soc_is_omap54xx() || soc_is_dra7xx()) {
+>   		odi->id_0 = read_tap_reg(OMAP_TAP_DIE_ID_44XX_0);
+>   		odi->id_1 = read_tap_reg(OMAP_TAP_DIE_ID_44XX_1);
+>   		odi->id_2 = read_tap_reg(OMAP_TAP_DIE_ID_44XX_2);
+> diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
+> index 8c616e4..4588df1 100644
+> --- a/arch/arm/mach-omap2/soc.h
+> +++ b/arch/arm/mach-omap2/soc.h
+> @@ -8,6 +8,7 @@
+>    * Written by Tony Lindgren <tony.lindgren@nokia.com>
+>    *
+>    * Added OMAP4/5 specific defines - Santosh Shilimkar<santosh.shilimkar@ti.com>
+> + * Added DRA7xxx specific defines - Sricharan R<r.sricharan@ti.com>
+>    *
+>    * This program is free software; you can redistribute it and/or modify
+>    * it under the terms of the GNU General Public License as published by
+> @@ -35,6 +36,7 @@
+>   #ifndef __ASSEMBLY__
+>
+>   #include <linux/bitops.h>
+> +#include <linux/of.h>
+>
+>   /*
+>    * Test if multicore OMAP support is needed
+> @@ -105,6 +107,15 @@
+>   # endif
+>   #endif
+>
+> +#ifdef CONFIG_SOC_DRA7XX
+> +# ifdef OMAP_NAME
+> +#  undef MULTI_OMAP2
+> +#  define MULTI_OMAP2
+> +# else
+> +#  define OMAP_NAME DRA7XX
+> +# endif
+> +#endif
+> +
+>   /*
+>    * Omap device type i.e. EMU/HS/TST/GP/BAD
+>    */
+> @@ -233,6 +244,7 @@ IS_AM_SUBCLASS(437x, 0x437)
+>   #define cpu_is_omap447x()		0
+>   #define soc_is_omap54xx()		0
+>   #define soc_is_omap543x()		0
+> +#define soc_is_dra7xx()			0
+>
+>   #if defined(MULTI_OMAP2)
+>   # if defined(CONFIG_ARCH_OMAP2)
+> @@ -379,6 +391,11 @@ IS_OMAP_TYPE(3430, 0x3430)
+>   # define soc_is_omap543x()		is_omap543x()
+>   #endif
+>
+> +#if defined(CONFIG_SOC_DRA7XX)
+> +#undef soc_is_dra7xx
+> +#define soc_is_dra7xx()	(of_machine_is_compatible("ti,dra7"))
 
-That's true, I'll fix those.
+Wouldn't that be too expensive to call of_machine_is_compatible every
+time for DRA7 detection?
 
+May be static variable can be used to store DRA7 presence status,
+smth. like this:
+
+static inline int is_dra7xx(void)
+{
+static int is_dra7 = -1;
+
+if (is_dra7 < 0)
+  is_dra7 = of_machine_is_compatible("ti,dra7");
+
+return !!is_dra7;
+}
+
+(it's just an idea, not verified)
+
+> +#endif
+> +
+>   /* Various silicon revisions for omap2 */
+>   #define OMAP242X_CLASS		0x24200024
+>   #define OMAP2420_REV_ES1_0	OMAP242X_CLASS
 >
->> +static void insert_field(u32 *valp, u32 field, u32 mask, int shift)
->> +{
->> +	u32 val = *valp;
->> +
->> +	val &= ~(mask << shift);
->> +	val |= (field & mask) << shift;
->> +	*valp = val;
->> +}
->
-> I think "insert" normally means, well, inserting a thing in between
-> something. What you do here is overwriting.
->
-> Why not just call it "write_field"?
 
-sure, will change it.
 
->
->> + * Allocate a DMA buffer
->> + */
->> +int vpdma_buf_alloc(struct vpdma_buf *buf, size_t size)
->> +{
->> +	buf->size = size;
->> +	buf->mapped = 0;
->
-> Maybe true/false is clearer here that 0/1.
-
-okay.
-
->
->> +/*
->> + * submit a list of DMA descriptors to the VPE VPDMA, do not wait for completion
->> + */
->> +int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list *list)
->> +{
->> +	/* we always use the first list */
->> +	int list_num = 0;
->> +	int list_size;
->> +
->> +	if (vpdma_list_busy(vpdma, list_num))
->> +		return -EBUSY;
->> +
->> +	/* 16-byte granularity */
->> +	list_size = (list->next - list->buf.addr) >> 4;
->> +
->> +	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) list->buf.dma_addr);
->> +	wmb();
->
-> What is the wmb() for?
-
-VPDMA_LIST_ADDR needs to be written before VPDMA_LIST_ATTR, otherwise 
-VPDMA doesn't work. wmb() ensures the ordering.
-
->
->> +	write_reg(vpdma, VPDMA_LIST_ATTR,
->> +			(list_num << VPDMA_LIST_NUM_SHFT) |
->> +			(list->type << VPDMA_LIST_TYPE_SHFT) |
->> +			list_size);
->> +
->> +	return 0;
->> +}
->
->> +static void vpdma_firmware_cb(const struct firmware *f, void *context)
->> +{
->> +	struct vpdma_data *vpdma = context;
->> +	struct vpdma_buf fw_dma_buf;
->> +	int i, r;
->> +
->> +	dev_dbg(&vpdma->pdev->dev, "firmware callback\n");
->> +
->> +	if (!f || !f->data) {
->> +		dev_err(&vpdma->pdev->dev, "couldn't get firmware\n");
->> +		return;
->> +	}
->> +
->> +	/* already initialized */
->> +	if (get_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
->> +			VPDMA_LIST_RDY_SHFT)) {
->> +		vpdma->ready = true;
->> +		return;
->> +	}
->> +
->> +	r = vpdma_buf_alloc(&fw_dma_buf, f->size);
->> +	if (r) {
->> +		dev_err(&vpdma->pdev->dev,
->> +			"failed to allocate dma buffer for firmware\n");
->> +		goto rel_fw;
->> +	}
->> +
->> +	memcpy(fw_dma_buf.addr, f->data, f->size);
->> +
->> +	vpdma_buf_map(vpdma, &fw_dma_buf);
->> +
->> +	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) fw_dma_buf.dma_addr);
->> +
->> +	for (i = 0; i < 100; i++) {		/* max 1 second */
->> +		msleep_interruptible(10);
->
-> You call interruptible version here, but you don't handle the
-> interrupted case. I believe the loop will just continue looping, even if
-> the user interrupted.
-
-Okay. I think I don't understand the interruptible version correctly. We 
-don't need to msleep_interruptible here, we aren't waiting on any wake 
-up event, we just want to wait till a bit gets set.
-
-I am thinking of implementing something similar to wait_for_bit_change() 
-in 'drivers/video/omap2/dss/dsi.c'
-
-Archit
-
+Regards,
+-grygorii
