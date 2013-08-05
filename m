@@ -1,76 +1,145 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 3/4] dts: dra7-evm: add USB support
-Date: Mon, 5 Aug 2013 13:23:40 +0300
-Message-ID: <51FF7D2C.1090107@ti.com>
-References: <1375369134-26398-1-git-send-email-rogerq@ti.com> <1375369134-26398-4-git-send-email-rogerq@ti.com> <51FBCA6F.9030503@ti.com> <51FF5A69.7040604@ti.com> <51FF6A45.3060702@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
+Date: Mon, 5 Aug 2013 16:56:46 +0530
+Message-ID: <51FF8BF6.3060900@ti.com>
+References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-2-git-send-email-archit@ti.com> <51FF5EB4.8090007@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58840 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752909Ab3HEKXp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Aug 2013 06:23:45 -0400
-In-Reply-To: <51FF6A45.3060702@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:38021 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751981Ab3HEL1y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Aug 2013 07:27:54 -0400
+In-Reply-To: <51FF5EB4.8090007@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: tony@atomide.com, rnayak@ti.com, benoit.cousson@linaro.org, balbi@ti.com, kishon@ti.com, dmurphy@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, dagriego@biglakesoftware.com, dale@farnsworth.org, pawel@osciak.com, m.szyprowski@samsung.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
 
-On 08/05/2013 12:03 PM, George Cherian wrote:
-> On 8/5/2013 1:25 PM, Roger Quadros wrote:
->> On 08/02/2013 06:04 PM, George Cherian wrote:
->>> On 8/1/2013 8:28 PM, Roger Quadros wrote:
->>>> Add USB drv_vbus pinctrl information and USB mode
->>>> for the USB controller.
->>>>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>> ---
->>>>    arch/arm/boot/dts/dra7-evm.dts |   22 ++++++++++++++++++++++
->>>>    1 files changed, 22 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
->>>> index cb0703c..acd3c09 100644
->>>> --- a/arch/arm/boot/dts/dra7-evm.dts
->>>> +++ b/arch/arm/boot/dts/dra7-evm.dts
->>>> @@ -18,3 +18,25 @@
->>>>            reg = <0x80000000 0x60000000>; /* 1536 MB */
->>>>        };
->>>>    };
->>>> +
->>>> +&dra7_pmx_core {
->>>> +        pinctrl-names = "default";
->>>> +        pinctrl-0 = <
->>>> +        &usb_pins
->>>> +    >;
->>>> +
->>>> +    usb_pins: pinmux_usb_pins {
->>>> +                pinctrl-single,pins = <
->>>> +            0x280    0xc0000    /* usb1_drvvbus, SLOW_SLEW | PULLUPEN | MODE0 */
->>>> +            0x284    0xc0000 /* usb2_drvvbus, SLOW_SLEW | PULLUPEN | MODE0 */
->>>> +                >;
->>>> +        };
->>>> +};
->>>> +
->>>> +&dwc3_1 {
->>>> +    dr_mode = "otg";
->>> otg???
->> What's wrong there?
->> please see
->> Documentation/devicetree/bindings/usb/generic.txt
->>
->> we want it to operate in dual role mode and hence "otg"
-> 
-> Am sorry for not being clear with my earlier comment.
-> I meant whether we have otg/ DRD working. Till then shouldnt we put either peripheral/host?
+On Monday 05 August 2013 01:43 PM, Tomi Valkeinen wrote:
+> Hi,
+>
+> On 02/08/13 17:03, Archit Taneja wrote:
+>
+>> +struct vpdma_data_format vpdma_yuv_fmts[] = {
+>> +	[VPDMA_DATA_FMT_Y444] = {
+>> +		.data_type	= DATA_TYPE_Y444,
+>> +		.depth		= 8,
+>> +	},
+>
+> This, and all the other tables, should probably be consts?
 
-Setting it to peripheral did not work and I don't think it is meant to be used as host port at all
-so no point in setting it has host. Users needing host support can always use usb2 port.
-The kit comes supplied with host adapter only for the usb2 (mini) port.
+That's true, I'll fix those.
 
-So I think we should just leave usb1 port OTG, and get it to work somehow, at least in peripheral mode
-first.
+>
+>> +static void insert_field(u32 *valp, u32 field, u32 mask, int shift)
+>> +{
+>> +	u32 val = *valp;
+>> +
+>> +	val &= ~(mask << shift);
+>> +	val |= (field & mask) << shift;
+>> +	*valp = val;
+>> +}
+>
+> I think "insert" normally means, well, inserting a thing in between
+> something. What you do here is overwriting.
+>
+> Why not just call it "write_field"?
 
-cheers,
--roger
+sure, will change it.
+
+>
+>> + * Allocate a DMA buffer
+>> + */
+>> +int vpdma_buf_alloc(struct vpdma_buf *buf, size_t size)
+>> +{
+>> +	buf->size = size;
+>> +	buf->mapped = 0;
+>
+> Maybe true/false is clearer here that 0/1.
+
+okay.
+
+>
+>> +/*
+>> + * submit a list of DMA descriptors to the VPE VPDMA, do not wait for completion
+>> + */
+>> +int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list *list)
+>> +{
+>> +	/* we always use the first list */
+>> +	int list_num = 0;
+>> +	int list_size;
+>> +
+>> +	if (vpdma_list_busy(vpdma, list_num))
+>> +		return -EBUSY;
+>> +
+>> +	/* 16-byte granularity */
+>> +	list_size = (list->next - list->buf.addr) >> 4;
+>> +
+>> +	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) list->buf.dma_addr);
+>> +	wmb();
+>
+> What is the wmb() for?
+
+VPDMA_LIST_ADDR needs to be written before VPDMA_LIST_ATTR, otherwise 
+VPDMA doesn't work. wmb() ensures the ordering.
+
+>
+>> +	write_reg(vpdma, VPDMA_LIST_ATTR,
+>> +			(list_num << VPDMA_LIST_NUM_SHFT) |
+>> +			(list->type << VPDMA_LIST_TYPE_SHFT) |
+>> +			list_size);
+>> +
+>> +	return 0;
+>> +}
+>
+>> +static void vpdma_firmware_cb(const struct firmware *f, void *context)
+>> +{
+>> +	struct vpdma_data *vpdma = context;
+>> +	struct vpdma_buf fw_dma_buf;
+>> +	int i, r;
+>> +
+>> +	dev_dbg(&vpdma->pdev->dev, "firmware callback\n");
+>> +
+>> +	if (!f || !f->data) {
+>> +		dev_err(&vpdma->pdev->dev, "couldn't get firmware\n");
+>> +		return;
+>> +	}
+>> +
+>> +	/* already initialized */
+>> +	if (get_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
+>> +			VPDMA_LIST_RDY_SHFT)) {
+>> +		vpdma->ready = true;
+>> +		return;
+>> +	}
+>> +
+>> +	r = vpdma_buf_alloc(&fw_dma_buf, f->size);
+>> +	if (r) {
+>> +		dev_err(&vpdma->pdev->dev,
+>> +			"failed to allocate dma buffer for firmware\n");
+>> +		goto rel_fw;
+>> +	}
+>> +
+>> +	memcpy(fw_dma_buf.addr, f->data, f->size);
+>> +
+>> +	vpdma_buf_map(vpdma, &fw_dma_buf);
+>> +
+>> +	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) fw_dma_buf.dma_addr);
+>> +
+>> +	for (i = 0; i < 100; i++) {		/* max 1 second */
+>> +		msleep_interruptible(10);
+>
+> You call interruptible version here, but you don't handle the
+> interrupted case. I believe the loop will just continue looping, even if
+> the user interrupted.
+
+Okay. I think I don't understand the interruptible version correctly. We 
+don't need to msleep_interruptible here, we aren't waiting on any wake 
+up event, we just want to wait till a bit gets set.
+
+I am thinking of implementing something similar to wait_for_bit_change() 
+in 'drivers/video/omap2/dss/dsi.c'
+
+Archit
 
