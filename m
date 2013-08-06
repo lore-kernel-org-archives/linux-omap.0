@@ -1,40 +1,41 @@
-From: Pawel Moll <pawel.moll@arm.com>
-Subject: Re: [RFC 2/2] usb: dwc3: Add Qualcomm DWC3 glue layer driver
-Date: Tue, 06 Aug 2013 16:15:12 +0100
-Message-ID: <1375802112.12043.62.camel@hornet>
-References: <1375789991-30041-1-git-send-email-iivanov@mm-sol.com>
-	 <1375789991-30041-3-git-send-email-iivanov@mm-sol.com>
-	 <1375791698.12043.53.camel@hornet>
-	 <1375796793.2027.20.camel@iivanov-dev.int.mm-sol.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1375796793.2027.20.camel@iivanov-dev.int.mm-sol.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-Cc: "balbi@ti.com" <balbi@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Mark Rutland <Mark.Rutland@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob@landley.net" <rob@landley.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: [PATCH] usb: dwc3-pci: Ensure system sleep PM ops are defined only when used
+Date: Tue,  6 Aug 2013 16:49:26 +0100
+Message-ID: <1375804166-3205-1-git-send-email-broonie@kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:44729 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755113Ab3HFPtz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Aug 2013 11:49:55 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, linaro-kernel@lists.linaro.org, linux-omap@vger.kernel.org, Andy Green <andy.green@linaro.org>, Mark Brown <broonie@linaro.org>
 
-On Tue, 2013-08-06 at 14:46 +0100, Ivan T. Ivanov wrote:
-> > > +			reg =3D <0xf9200000 0xcd00>;
-> > > +			interrupts =3D <0 131 0>;
-> > > +			interrupt-names =3D "irq";
-> > > +			usb-phy =3D <&dwc3_usb2>, <&dwc3_usb3>;
-> > > +			tx-fifo-resize;
-> > > +		};
-> > > +	};
-> >=20
-> > And now I'm really confused... Maybe it's just lack of documentatio=
-n...
-> >=20
-> > How does the "qcom,dwc-usb3-msm" relate to "qcom,dwc-usb3"?
->=20
-> Not sure from where you get this "qcom,dwc-usb3", but now I think
-> that "qcom,dwc-usb3" should be enough for compatible. =20
+From: Andy Green <andy.green@linaro.org>
 
-The other patch introduces "qcom,dwc3-usb3" compatible value...
+You might have CONFIG_PM, but you might not have CONFIG_SUSPEND, in which
+case these are unused.
 
-Pawe=C5=82
+Signed-off-by: Andy Green <andy.green@linaro.org>
+Signed-off-by: Mark Brown <broonie@linaro.org>
+---
+ drivers/usb/dwc3/dwc3-pci.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/usb/dwc3/dwc3-pci.c b/drivers/usb/dwc3/dwc3-pci.c
+index 5d746e5..4902021 100644
+--- a/drivers/usb/dwc3/dwc3-pci.c
++++ b/drivers/usb/dwc3/dwc3-pci.c
+@@ -191,7 +191,7 @@ static DEFINE_PCI_DEVICE_TABLE(dwc3_pci_id_table) = {
+ };
+ MODULE_DEVICE_TABLE(pci, dwc3_pci_id_table);
+ 
+-#ifdef CONFIG_PM
++#ifdef CONFIG_SUSPEND
+ static int dwc3_pci_suspend(struct device *dev)
+ {
+ 	struct pci_dev	*pci = to_pci_dev(dev);
+-- 
+1.8.4.rc1
 
