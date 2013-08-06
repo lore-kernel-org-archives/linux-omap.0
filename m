@@ -1,170 +1,109 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v3 7/9] ARM: DRA7: id: Add cpu detection support for DRA7xx
- based SoCs'
-Date: Tue, 6 Aug 2013 14:59:41 +0300
-Message-ID: <5200E52D.4020909@ti.com>
-References: <1375633657-6835-1-git-send-email-rnayak@ti.com> <1375633657-6835-8-git-send-email-rnayak@ti.com> <51FF9025.6040401@ti.com> <5200AFC0.9030303@ti.com>
+From: Pawel Moll <pawel.moll@arm.com>
+Subject: Re: [RFC 1/2] usb: phy: Add Qualcomm SS-USB and HS-USB drivers for
+ DWC3 core
+Date: Tue, 06 Aug 2013 13:12:25 +0100
+Message-ID: <1375791145.12043.47.camel@hornet>
+References: <1375789991-30041-1-git-send-email-iivanov@mm-sol.com>
+	 <1375789991-30041-2-git-send-email-iivanov@mm-sol.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36054 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755963Ab3HFMCQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Aug 2013 08:02:16 -0400
-In-Reply-To: <5200AFC0.9030303@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1375789991-30041-2-git-send-email-iivanov@mm-sol.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Cc: "balbi@ti.com" <balbi@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Mark Rutland <Mark.Rutland@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob@landley.net" <rob@landley.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, paul@pwsan.com, khilman@linaro.org, benoit.cousson@gmail.com, r.sricharan@ti.com, ambresh@ti.com, sourav.poddar@ti.com, santosh.shilimkar@ti.com, nm@ti.com, balbi@ti.com
 
-On 08/06/2013 11:11 AM, Rajendra Nayak wrote:
-> Hi Grygorii,
->
-> On Monday 05 August 2013 05:14 PM, Grygorii Strashko wrote:
->> On 08/04/2013 07:27 PM, Rajendra Nayak wrote:
->>> From: R Sricharan <r.sricharan@ti.com>
->>>
->>> The DRA7xx is a high-performance, infotainment application device,
->>> based on enhanced OMAP architecture integrated on a 28-nm technology.
->>>
->>> Since DRA7 is a platform supported only using DT, the cpu detection
->>> is based on the compatibles passed from DT blobs as suggested here
->>> http://lists.infradead.org/pipermail/linux-arm-kernel/2013-July/187712.html
->>>
->>> Suggested-by: Felipe Balbi <balbi@ti.com>
->>> Signed-off-by: R Sricharan <r.sricharan@ti.com>
->>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->>> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> ---
->>>    arch/arm/mach-omap1/include/mach/soc.h |    1 +
->>>    arch/arm/mach-omap2/id.c               |    4 ++--
->>>    arch/arm/mach-omap2/soc.h              |   17 +++++++++++++++++
->>>    3 files changed, 20 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap1/include/mach/soc.h b/arch/arm/mach-omap1/include/mach/soc.h
->>> index 6cf9c1c..612bd1c 100644
->>> --- a/arch/arm/mach-omap1/include/mach/soc.h
->>> +++ b/arch/arm/mach-omap1/include/mach/soc.h
->>> @@ -195,6 +195,7 @@ IS_OMAP_TYPE(1710, 0x1710)
->>>    #define cpu_is_omap34xx()        0
->>>    #define cpu_is_omap44xx()        0
->>>    #define soc_is_omap54xx()        0
->>> +#define soc_is_dra7xx()            0
->>>    #define soc_is_am33xx()            0
->>>    #define cpu_class_is_omap1()        1
->>>    #define cpu_class_is_omap2()        0
->>> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
->>> index 2dc62a2..0289adc 100644
->>> --- a/arch/arm/mach-omap2/id.c
->>> +++ b/arch/arm/mach-omap2/id.c
->>> @@ -61,7 +61,7 @@ int omap_type(void)
->>>            val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
->>>        } else if (cpu_is_omap44xx()) {
->>>            val = omap_ctrl_readl(OMAP4_CTRL_MODULE_CORE_STATUS);
->>> -    } else if (soc_is_omap54xx()) {
->>> +    } else if (soc_is_omap54xx() || soc_is_dra7xx()) {
->>>            val = omap_ctrl_readl(OMAP5XXX_CONTROL_STATUS);
->>>            val &= OMAP5_DEVICETYPE_MASK;
->>>            val >>= 6;
->>> @@ -116,7 +116,7 @@ static u16 tap_prod_id;
->>>
->>>    void omap_get_die_id(struct omap_die_id *odi)
->>>    {
->>> -    if (cpu_is_omap44xx() || soc_is_omap54xx()) {
->>> +    if (cpu_is_omap44xx() || soc_is_omap54xx() || soc_is_dra7xx()) {
->>>            odi->id_0 = read_tap_reg(OMAP_TAP_DIE_ID_44XX_0);
->>>            odi->id_1 = read_tap_reg(OMAP_TAP_DIE_ID_44XX_1);
->>>            odi->id_2 = read_tap_reg(OMAP_TAP_DIE_ID_44XX_2);
->>> diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
->>> index 8c616e4..4588df1 100644
->>> --- a/arch/arm/mach-omap2/soc.h
->>> +++ b/arch/arm/mach-omap2/soc.h
->>> @@ -8,6 +8,7 @@
->>>     * Written by Tony Lindgren <tony.lindgren@nokia.com>
->>>     *
->>>     * Added OMAP4/5 specific defines - Santosh Shilimkar<santosh.shilimkar@ti.com>
->>> + * Added DRA7xxx specific defines - Sricharan R<r.sricharan@ti.com>
->>>     *
->>>     * This program is free software; you can redistribute it and/or modify
->>>     * it under the terms of the GNU General Public License as published by
->>> @@ -35,6 +36,7 @@
->>>    #ifndef __ASSEMBLY__
->>>
->>>    #include <linux/bitops.h>
->>> +#include <linux/of.h>
->>>
->>>    /*
->>>     * Test if multicore OMAP support is needed
->>> @@ -105,6 +107,15 @@
->>>    # endif
->>>    #endif
->>>
->>> +#ifdef CONFIG_SOC_DRA7XX
->>> +# ifdef OMAP_NAME
->>> +#  undef MULTI_OMAP2
->>> +#  define MULTI_OMAP2
->>> +# else
->>> +#  define OMAP_NAME DRA7XX
->>> +# endif
->>> +#endif
->>> +
->>>    /*
->>>     * Omap device type i.e. EMU/HS/TST/GP/BAD
->>>     */
->>> @@ -233,6 +244,7 @@ IS_AM_SUBCLASS(437x, 0x437)
->>>    #define cpu_is_omap447x()        0
->>>    #define soc_is_omap54xx()        0
->>>    #define soc_is_omap543x()        0
->>> +#define soc_is_dra7xx()            0
->>>
->>>    #if defined(MULTI_OMAP2)
->>>    # if defined(CONFIG_ARCH_OMAP2)
->>> @@ -379,6 +391,11 @@ IS_OMAP_TYPE(3430, 0x3430)
->>>    # define soc_is_omap543x()        is_omap543x()
->>>    #endif
->>>
->>> +#if defined(CONFIG_SOC_DRA7XX)
->>> +#undef soc_is_dra7xx
->>> +#define soc_is_dra7xx()    (of_machine_is_compatible("ti,dra7"))
->>
->> Wouldn't that be too expensive to call of_machine_is_compatible every
->> time for DRA7 detection?
->
-> Ideally these soc checks should happen only once at init (see PATCH 8/9 in the
-> series for instance) so there should not be a 'every time' penalty.
+On Tue, 2013-08-06 at 12:53 +0100, Ivan T. Ivanov wrote:
+> From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+> 
+> Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
 
-Ok, Agreed then.
+I am sure that the information in the subject is more than enough for
+you, but would you care to give some more background for the commit log?
+Where can we find such controllers? What is DWC3 core? Is it
+Qualcomm-specific block, or does it come from one of the IP providers
+like Synopsys or Cadence?
 
+>  .../devicetree/bindings/usb/msm-ssusb.txt          |   49 +++
+>  drivers/usb/phy/Kconfig                            |   11 +
+>  drivers/usb/phy/Makefile                           |    2 +
+>  drivers/usb/phy/phy-msm-dwc3-usb2.c                |  342 +++++++++++++++++
+>  drivers/usb/phy/phy-msm-dwc3-usb3.c                |  389 ++++++++++++++++++++
+>  5 files changed, 793 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/usb/msm-ssusb.txt
+>  create mode 100644 drivers/usb/phy/phy-msm-dwc3-usb2.c
+>  create mode 100644 drivers/usb/phy/phy-msm-dwc3-usb3.c
+> 
+> diff --git a/Documentation/devicetree/bindings/usb/msm-ssusb.txt b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
+> new file mode 100644
+> index 0000000..550b496
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
+> @@ -0,0 +1,49 @@
+> +MSM SuperSpeed USB3.0 SoC controllers
+
+I understand that the device always come in doublets? As in: are nodes
+for both USB2 and 3 always required?
+
+> +Required properities :
+> +- compatible sould be "qcom,dwc3-usb2";
+> +- reg : offset and length of the register set in the memory map
+> +- clocks: <&cxo>, <&usb2a_phy_sleep_cxc>;
+> +- clock-names: "xo", "sleep_a_clk";
+> +<supply-name>-supply: phandle to the regulator device tree node
+> +Required "supply-name" examples are:
+
+So required or examples? ;-)
+
+> +       "v1p8" : 1.8v supply for HSPHY
+> +       "v3p3" : 3.3v supply for HSPHY
+> +       "vbus" : vbus supply for host mode
+> +       "vddcx" : vdd supply for HS-PHY digital circuit operation
 >
-> regards,
-> Rajendra
->
->>
->> May be static variable can be used to store DRA7 presence status,
->> smth. like this:
->>
->> static inline int is_dra7xx(void)
->> {
->> static int is_dra7 = -1;
->>
->> if (is_dra7 < 0)
->>   is_dra7 = of_machine_is_compatible("ti,dra7");
->>
->> return !!is_dra7;
->> }
->>
->> (it's just an idea, not verified)
->>
->>> +#endif
->>> +
->>>    /* Various silicon revisions for omap2 */
->>>    #define OMAP242X_CLASS        0x24200024
->>>    #define OMAP2420_REV_ES1_0    OMAP242X_CLASS
->>>
->>
->>
->> Regards,
->> -grygorii
->
+> +Required properities :
+> +- compatible sould be "qcom,dwc3-usb3";
+> +- reg : offset and length of the register set in the memory map
+> +- clocks: <&cxo>, <&usb30_mock_utmi_cxc>;
+> +- clock-names: "xo", "ref_clk";
+> +<supply-name>-supply: phandle to the regulator device tree node
+> +Required "supply-name" examples are:
+> +       "v1p8" : 1.8v supply for SS-PHY
+> +       "vddcx" : vdd supply for SS-PHY digital circuit operation
+> +
+> +Example device nodes:
+> +
+> +       dwc3_usb2: phy@f92f8800 {
+> +               compatible = "qcom,dwc3-usb2";
+> +               reg = <0xf92f8800 0x30>;
+> +
+> +               clocks = <&cxo>, <&usb2a_phy_sleep_cxc>;
+> +               clock-names = "xo", "sleep_a_clk";
+> +
+> +               vbus-supply = <&supply>;
+> +               vddcx-supply = <&supply>;
+> +               v1p8-supply = <&supply>;
+> +               v3p3-supply = <&supply>;
+> +       };
+> +
+> +       dwc3_usb3: phy@f92f8830 {
+> +               compatible = "qcom,dwc3-usb3";
+> +               reg = <0xf92f8830 0x30>;
+> +
+> +               clocks = <&cxo>, <&usb30_mock_utmi_cxc>;
+> +               clock-names = "xo", "ref_clk";
+> +
+> +               vddcx-supply = <&supply>;
+> +               v1p8-supply = <&supply>;
+> +       };
+
+Note that I had a look at the bindings only - I don't feel competent to
+review the drivers/usb part of the patch...
+
+Thanks!
+
+Pawel
+
+
 
