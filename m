@@ -1,69 +1,105 @@
-From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Subject: [PATCH 1/2] ARM: omap2: fix musb usage for n8x0
-Date: Tue,  6 Aug 2013 20:06:15 +0300
-Message-ID: <1375808776-14975-2-git-send-email-aaro.koskinen@iki.fi>
-References: <1375808776-14975-1-git-send-email-aaro.koskinen@iki.fi>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1375808776-14975-1-git-send-email-aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCHv3 0/9] ARM: OMAP2+: AM33XX: Add suspend-resume support
+Date: Tue, 6 Aug 2013 12:49:27 -0500
+Message-ID: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:56282 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755861Ab3HFRuT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Aug 2013 13:50:19 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Dave Gerlach <d-gerlach@ti.com>
 
-From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Hi,
 
-Commit b7e2e75a8c ("usb: gadget: drop unused USB_GADGET_MUSB_HDRC")
-dropped a config symbol that was unused by the musb core, but it turns
-out that board support code still had references to it.
+This is the third version of the patch series for adding basic suspend-resume
+support for AM33XX, previously submitted by Vaibhav Bedia. This patchset 
+is based on 3.11-rc4 and depends on a forthcoming patchset from Suman Anna
+that adds mailbox support for the wkup_m3. The patches at [1], [2], and [3] are 
+required for the pm code to properly suspend and resume.
 
-As the core now handles both dual role and host-only modes, we can just
-pass MUSB_OTG as mode from board files.
+The PM code uses the firmware interface and expects the userspace to load 
+the WKUP_M3 binary before the suspend-resume functionality is made available.
+The binary file (and the source-code for WKUP_M3) can be obtained from the 
+'next2' branch at [4]. The WKUP_M3 binary can either be loaded post bootup 
+via the sysfs entry './sys/devices/ocp.2/wkup_m3.4/firmware' or it can be 
+included in the kernel image as part of the build process.
 
-Signed-off-by: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Tested-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
----
- arch/arm/mach-omap2/board-n8x0.c | 4 ----
- arch/arm/mach-omap2/usb-musb.c   | 5 +----
- 2 files changed, 1 insertion(+), 8 deletions(-)
+Suspend to mem is tested on am335x-bone and am335x-evm.
 
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index f6eeb87..827d150 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -122,11 +122,7 @@ static struct musb_hdrc_config musb_config = {
- };
- 
- static struct musb_hdrc_platform_data tusb_data = {
--#ifdef CONFIG_USB_GADGET_MUSB_HDRC
- 	.mode		= MUSB_OTG,
--#else
--	.mode		= MUSB_HOST,
--#endif
- 	.set_power	= tusb_set_power,
- 	.min_power	= 25,	/* x2 = 50 mA drawn from VBUS as peripheral */
- 	.power		= 100,	/* Max 100 mA VBUS for host mode */
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 8c4de27..bc89723 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -38,11 +38,8 @@ static struct musb_hdrc_config musb_config = {
- };
- 
- static struct musb_hdrc_platform_data musb_plat = {
--#ifdef CONFIG_USB_GADGET_MUSB_HDRC
- 	.mode		= MUSB_OTG,
--#else
--	.mode		= MUSB_HOST,
--#endif
-+
- 	/* .clock is set dynamically */
- 	.config		= &musb_config,
- 
+More details on AM335x suspend-resume are provided within the commit logs
+for each patch.
+
+Changes in v3:
+- Moved wkup_m3 code into separate driver
+- Split up ti_emif header move
+- Addressed clean-up comments
+- Removed mailbox patches
+- v2-v3 Discussion:
+http://marc.info/?l=linux-arm-kernel&m=135698501821090&w=4
+
+Changes in v2:
+- Broke patches up to isolate assembly code and build hookup.
+- Moved control module code to separate module
+- v1->v2 Discussion:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2012-November/129508.html
+
+Regards,
+Dave
+
+[1] http://marc.info/?l=linux-arm-kernel&m=137303736714638&w=4
+[2] http://marc.info/?l=linux-omap&m=137303723114610&w=4
+[3] http://marc.info/?l=linux-omap&m=137401384611934&w=4
+[4] http://arago-project.org/git/projects/?p=am33x-cm3.git;a=shortlog;h=refs/heads/next2
+
+
+Dave Gerlach (1):
+  memory: emif: Move EMIF register defines to include/linux/
+
+Vaibhav Bedia (8):
+  ARM: OMAP2+: AM33XX: control: Add some control module registers and
+    APIs
+  ARM: OMAP: DTB: Update IRQ data for WKUP_M3
+  ARM: OMAP2+: AM33XX: Reserve memory to comply with EMIF spec
+  ARM: OMAP2+: AM33XX: Add assembly code for PM operations
+  ARM: OMAP2+: timer: Add suspend-resume callbacks for clkevent device
+  ARM: OMAP: omap_device: Add APIs to enable and idle hwmods
+  ARM: OMAP2+: AM33XX: Basic suspend resume support
+  ARM: OMAP2+: AM33XX: Hookup AM33XX PM code into OMAP builds
+
+ arch/arm/boot/dts/am33xx.dtsi       |    1 +
+ arch/arm/mach-omap2/Kconfig         |    7 +-
+ arch/arm/mach-omap2/Makefile        |    2 +
+ arch/arm/mach-omap2/board-generic.c |    3 +-
+ arch/arm/mach-omap2/common.c        |   28 ++
+ arch/arm/mach-omap2/common.h        |   14 +
+ arch/arm/mach-omap2/control.c       |   57 ++++
+ arch/arm/mach-omap2/control.h       |   54 ++++
+ arch/arm/mach-omap2/io.c            |    6 +
+ arch/arm/mach-omap2/omap_device.c   |    8 +
+ arch/arm/mach-omap2/omap_device.h   |    2 +
+ arch/arm/mach-omap2/pm.c            |    3 +-
+ arch/arm/mach-omap2/pm.h            |    5 +
+ arch/arm/mach-omap2/pm33xx.c        |  474 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm33xx.h        |   77 +++++
+ arch/arm/mach-omap2/sleep33xx.S     |  350 ++++++++++++++++++++++
+ arch/arm/mach-omap2/sram.c          |   10 +-
+ arch/arm/mach-omap2/sram.h          |    2 +
+ arch/arm/mach-omap2/timer.c         |   32 ++
+ arch/arm/mach-omap2/wkup_m3.c       |  183 ++++++++++++
+ drivers/memory/emif.h               |  543 +---------------------------------
+ include/linux/ti_emif.h             |  558 +++++++++++++++++++++++++++++++++++
+ 22 files changed, 1872 insertions(+), 547 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/pm33xx.c
+ create mode 100644 arch/arm/mach-omap2/pm33xx.h
+ create mode 100644 arch/arm/mach-omap2/sleep33xx.S
+ create mode 100644 arch/arm/mach-omap2/wkup_m3.c
+ create mode 100644 include/linux/ti_emif.h
+
 -- 
-1.8.3.2
+1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
