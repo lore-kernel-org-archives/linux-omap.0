@@ -1,161 +1,52 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCHv3 7/8] mailbox/omap: add code to support the wkupm3 operations
-Date: Tue, 6 Aug 2013 16:40:38 -0500
-Message-ID: <1375825238-18299-1-git-send-email-s-anna@ti.com>
+Subject: [PATCHv3 8/8] ARM: dts: AM33xx: Add mailbox node
+Date: Tue, 6 Aug 2013 16:40:41 -0500
+Message-ID: <1375825241-18335-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39769 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39772 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756731Ab3HFVrX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Aug 2013 17:47:23 -0400
+	id S1756718Ab3HFVrZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Aug 2013 17:47:25 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>
+To: Benoit Cousson <benoit.cousson@linaro.org>, Tony Lindgren <tony@atomide.com>
 Cc: Paul Walmsley <paul@pwsan.com>, Ohad Ben-Cohen <ohad@wizery.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-The WkupM3 mailbox used for triggering PM operations such as suspend
-and resume on AM33x/AM43x is special in that the M3 processor cannot
-access the mailbox registers. However, an interrupt is needed to be
-sent to request the M3 to perform a desired PM operation. This patch
-adds the support for this special mailbox through separate ops for
-this mailbox. These ops are designed to have the WkupM3's Rx interrupt
-programmed within the driver, during transmission of a message. The
-message is immediately read back and the internal mailbox interrupt
-acknowledged as well to avoid triggering any spurious interrupts to
-the M3.
+The mailbox DT node data has been added for AM33xx device, with
+information added currently for communicating with WkupM3
+processor. The usr_id value in the DT node reflects the value
+used for MPU like the rest of the SoCs. The driver logic will
+be adjusted to account for the WkupM3 usr_id within the code.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/mailbox/mailbox-omap2.c | 87 ++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 86 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/am33xx.dtsi | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/mailbox/mailbox-omap2.c b/drivers/mailbox/mailbox-omap2.c
-index fef18f4..00ac2a2 100644
---- a/drivers/mailbox/mailbox-omap2.c
-+++ b/drivers/mailbox/mailbox-omap2.c
-@@ -36,6 +36,8 @@
- #define MAILBOX_IRQ_NEWMSG(m)		(1 << (2 * (m)))
- #define MAILBOX_IRQ_NOTFULL(m)		(1 << (2 * (m) + 1))
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 38b446b..413dfa56 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -249,6 +249,17 @@
+ 			status = "disabled";
+ 		};
  
-+#define AM33X_MBOX_WKUPM3_USR		3
++		mailbox: mailbox@480C8000 {
++			compatible = "ti,omap4-mailbox";
++			reg = <0x480C8000 0x200>;
++			interrupts = <77>;
++			ti,hwmods = "mailbox";
++			ti,mbox-num-users = <4>;
++			ti,mbox-num-fifos = <8>;
++			ti,mbox-names = "wkup_m3";
++			ti,mbox-data = <0 0 0 0>;
++		};
 +
- #define MBOX_REG_SIZE			0x120
- 
- #define OMAP4_MBOX_REG_SIZE		0x130
-@@ -179,6 +181,57 @@ static int omap2_mbox_is_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
- 	return (int)(enable & status & bit);
- }
- 
-+static void wkupm3_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
-+{
-+	struct omap_mbox2_priv *p = mbox->priv;
-+	u32 l, bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
-+	unsigned long irqenable = ((irq == IRQ_RX) ?
-+		OMAP4_MAILBOX_IRQENABLE(AM33X_MBOX_WKUPM3_USR) : p->irqenable);
-+
-+	l = mbox_read_reg(mbox->parent, irqenable);
-+	l |= bit;
-+	mbox_write_reg(mbox->parent, l, irqenable);
-+}
-+
-+static void wkupm3_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
-+{
-+	struct omap_mbox2_priv *p = mbox->priv;
-+	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
-+	unsigned long irqdisable = ((irq == IRQ_RX) ?
-+	    OMAP4_MAILBOX_IRQENABLE_CLR(AM33X_MBOX_WKUPM3_USR) : p->irqdisable);
-+
-+	mbox_write_reg(mbox->parent, bit, irqdisable);
-+}
-+
-+static void wkupm3_mbox_ack_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
-+{
-+	struct omap_mbox2_priv *p = mbox->priv;
-+	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
-+	unsigned long irqstatus = ((irq == IRQ_RX) ?
-+		OMAP4_MAILBOX_IRQSTATUS(AM33X_MBOX_WKUPM3_USR) : p->irqstatus);
-+
-+	mbox_write_reg(mbox->parent, bit, irqstatus);
-+
-+	/* Flush posted write for irq status to avoid spurious interrupts */
-+	mbox_read_reg(mbox->parent, irqstatus);
-+}
-+
-+static int wkupm3_mbox_is_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
-+{
-+	struct omap_mbox2_priv *p = mbox->priv;
-+	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
-+	u32 enable, status;
-+
-+	/* WkupM3 mailbox does not use a receive queue */
-+	if (irq == IRQ_RX)
-+		return 0;
-+
-+	enable = mbox_read_reg(mbox->parent, p->irqenable);
-+	status = mbox_read_reg(mbox->parent, p->irqstatus);
-+
-+	return (int)(enable & status & bit);
-+}
-+
- static void omap2_mbox_save_ctx(struct omap_mbox *mbox)
- {
- 	int i;
-@@ -215,6 +268,20 @@ static void omap2_mbox_restore_ctx(struct omap_mbox *mbox)
- 	}
- }
- 
-+static void wkupm3_mbox_send_data(struct omap_mbox *mbox, mbox_msg_t msg)
-+{
-+	mbox_msg_t rmsg;
-+
-+	/* enable the mbox Rx interrupt for WkupM3 only briefly */
-+	wkupm3_mbox_enable_irq(mbox, IRQ_RX);
-+	omap2_mbox_fifo_write(mbox, msg);
-+	wkupm3_mbox_disable_irq(mbox, IRQ_RX);
-+
-+	/* read back the message and ack the interrupt on behalf of WkupM3 */
-+	rmsg = omap2_mbox_fifo_read(mbox);
-+	wkupm3_mbox_ack_irq(mbox, IRQ_RX);
-+}
-+
- static struct omap_mbox_ops omap2_mbox_ops = {
- 	.startup	= omap2_mbox_startup,
- 	.shutdown	= omap2_mbox_shutdown,
-@@ -230,6 +297,21 @@ static struct omap_mbox_ops omap2_mbox_ops = {
- 	.restore_ctx	= omap2_mbox_restore_ctx,
- };
- 
-+static struct omap_mbox_ops wkupm3_mbox_ops = {
-+	.startup	= omap2_mbox_startup,
-+	.shutdown	= omap2_mbox_shutdown,
-+	.fifo_read	= omap2_mbox_fifo_read,
-+	.fifo_write	= wkupm3_mbox_send_data,
-+	.fifo_empty	= omap2_mbox_fifo_empty,
-+	.poll_for_space	= omap2_mbox_poll_for_space,
-+	.enable_irq	= wkupm3_mbox_enable_irq,
-+	.disable_irq	= wkupm3_mbox_disable_irq,
-+	.ack_irq	= wkupm3_mbox_ack_irq,
-+	.is_irq		= wkupm3_mbox_is_irq,
-+	.save_ctx	= omap2_mbox_save_ctx,
-+	.restore_ctx	= omap2_mbox_restore_ctx,
-+};
-+
- static const struct of_device_id omap_mailbox_of_match[] = {
- 	{
- 		.compatible	= "ti,omap2-mailbox",
-@@ -387,7 +469,10 @@ static int omap2_mbox_probe(struct platform_device *pdev)
- 		mbox->priv = priv;
- 		mbox->parent = mdev;
- 		mbox->name = info->name;
--		mbox->ops = &omap2_mbox_ops;
-+		if (!strcmp(mbox->name, "wkup_m3"))
-+			mbox->ops = &wkupm3_mbox_ops;
-+		else
-+			mbox->ops = &omap2_mbox_ops;
- 		mbox->irq = platform_get_irq(pdev, info->irq_id);
- 		if (mbox->irq < 0) {
- 			ret = mbox->irq;
+ 		timer1: timer@44e31000 {
+ 			compatible = "ti,am335x-timer-1ms";
+ 			reg = <0x44e31000 0x400>;
 -- 
 1.8.3.3
 
