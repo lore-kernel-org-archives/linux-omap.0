@@ -1,105 +1,171 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCHv3 0/9] ARM: OMAP2+: AM33XX: Add suspend-resume support
-Date: Tue, 6 Aug 2013 12:49:27 -0500
-Message-ID: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+Subject: [PATCHv3 2/9] ARM: OMAP2+: AM33XX: control: Add some control module registers and APIs
+Date: Tue, 6 Aug 2013 12:49:29 -0500
+Message-ID: <1375811376-49985-3-git-send-email-d-gerlach@ti.com>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56282 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56297 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755861Ab3HFRuT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Aug 2013 13:50:19 -0400
+	id S1755861Ab3HFRuX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Aug 2013 13:50:23 -0400
+In-Reply-To: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Dave Gerlach <d-gerlach@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Dave Gerlach <d-gerlach@ti.com>
 
-Hi,
+From: Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-This is the third version of the patch series for adding basic suspend-resume
-support for AM33XX, previously submitted by Vaibhav Bedia. This patchset 
-is based on 3.11-rc4 and depends on a forthcoming patchset from Suman Anna
-that adds mailbox support for the wkup_m3. The patches at [1], [2], and [3] are 
-required for the pm code to properly suspend and resume.
+Interacting with WKUP-M3 requires some more control
+module register writes. Add the register offsets and
+APIs to write to these.
 
-The PM code uses the firmware interface and expects the userspace to load 
-the WKUP_M3 binary before the suspend-resume functionality is made available.
-The binary file (and the source-code for WKUP_M3) can be obtained from the 
-'next2' branch at [4]. The WKUP_M3 binary can either be loaded post bootup 
-via the sysfs entry './sys/devices/ocp.2/wkup_m3.4/firmware' or it can be 
-included in the kernel image as part of the build process.
+Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+ arch/arm/mach-omap2/control.c |   57 +++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/control.h |   54 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 111 insertions(+)
 
-Suspend to mem is tested on am335x-bone and am335x-evm.
-
-More details on AM335x suspend-resume are provided within the commit logs
-for each patch.
-
-Changes in v3:
-- Moved wkup_m3 code into separate driver
-- Split up ti_emif header move
-- Addressed clean-up comments
-- Removed mailbox patches
-- v2-v3 Discussion:
-http://marc.info/?l=linux-arm-kernel&m=135698501821090&w=4
-
-Changes in v2:
-- Broke patches up to isolate assembly code and build hookup.
-- Moved control module code to separate module
-- v1->v2 Discussion:
-http://lists.infradead.org/pipermail/linux-arm-kernel/2012-November/129508.html
-
-Regards,
-Dave
-
-[1] http://marc.info/?l=linux-arm-kernel&m=137303736714638&w=4
-[2] http://marc.info/?l=linux-omap&m=137303723114610&w=4
-[3] http://marc.info/?l=linux-omap&m=137401384611934&w=4
-[4] http://arago-project.org/git/projects/?p=am33x-cm3.git;a=shortlog;h=refs/heads/next2
-
-
-Dave Gerlach (1):
-  memory: emif: Move EMIF register defines to include/linux/
-
-Vaibhav Bedia (8):
-  ARM: OMAP2+: AM33XX: control: Add some control module registers and
-    APIs
-  ARM: OMAP: DTB: Update IRQ data for WKUP_M3
-  ARM: OMAP2+: AM33XX: Reserve memory to comply with EMIF spec
-  ARM: OMAP2+: AM33XX: Add assembly code for PM operations
-  ARM: OMAP2+: timer: Add suspend-resume callbacks for clkevent device
-  ARM: OMAP: omap_device: Add APIs to enable and idle hwmods
-  ARM: OMAP2+: AM33XX: Basic suspend resume support
-  ARM: OMAP2+: AM33XX: Hookup AM33XX PM code into OMAP builds
-
- arch/arm/boot/dts/am33xx.dtsi       |    1 +
- arch/arm/mach-omap2/Kconfig         |    7 +-
- arch/arm/mach-omap2/Makefile        |    2 +
- arch/arm/mach-omap2/board-generic.c |    3 +-
- arch/arm/mach-omap2/common.c        |   28 ++
- arch/arm/mach-omap2/common.h        |   14 +
- arch/arm/mach-omap2/control.c       |   57 ++++
- arch/arm/mach-omap2/control.h       |   54 ++++
- arch/arm/mach-omap2/io.c            |    6 +
- arch/arm/mach-omap2/omap_device.c   |    8 +
- arch/arm/mach-omap2/omap_device.h   |    2 +
- arch/arm/mach-omap2/pm.c            |    3 +-
- arch/arm/mach-omap2/pm.h            |    5 +
- arch/arm/mach-omap2/pm33xx.c        |  474 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm33xx.h        |   77 +++++
- arch/arm/mach-omap2/sleep33xx.S     |  350 ++++++++++++++++++++++
- arch/arm/mach-omap2/sram.c          |   10 +-
- arch/arm/mach-omap2/sram.h          |    2 +
- arch/arm/mach-omap2/timer.c         |   32 ++
- arch/arm/mach-omap2/wkup_m3.c       |  183 ++++++++++++
- drivers/memory/emif.h               |  543 +---------------------------------
- include/linux/ti_emif.h             |  558 +++++++++++++++++++++++++++++++++++
- 22 files changed, 1872 insertions(+), 547 deletions(-)
- create mode 100644 arch/arm/mach-omap2/pm33xx.c
- create mode 100644 arch/arm/mach-omap2/pm33xx.h
- create mode 100644 arch/arm/mach-omap2/sleep33xx.S
- create mode 100644 arch/arm/mach-omap2/wkup_m3.c
- create mode 100644 include/linux/ti_emif.h
-
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 31e0dfe..934041a 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -605,3 +605,60 @@ int omap3_ctrl_save_padconf(void)
+ }
+ 
+ #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
++
++#if defined(CONFIG_SOC_AM33XX) && defined(CONFIG_PM)
++void am33xx_txev_eoi(void)
++{
++	omap_ctrl_writel(AM33XX_M3_TXEV_ACK, AM33XX_CONTROL_M3_TXEV_EOI);
++}
++
++void am33xx_txev_enable(void)
++{
++	omap_ctrl_writel(AM33XX_M3_TXEV_ENABLE, AM33XX_CONTROL_M3_TXEV_EOI);
++}
++
++/*
++ * Invalidate M3 firmware version before hardreset.
++ * Write invalid version in lower 4 nibbles of parameter
++ * register (ipc_regs + 0x8).
++ */
++void am33xx_pm_version_clear(void)
++{
++	omap_ctrl_writel(0xffff0000, AM33XX_CONTROL_IPC_MSG_REG2);
++}
++
++int am33xx_pm_version_get(void)
++{
++	return omap_ctrl_readl(AM33XX_CONTROL_IPC_MSG_REG2) & M3_VERSION_MASK;
++}
++
++void am33xx_pm_ipc_cmd(struct am33xx_ipc_data *data)
++{
++	omap_ctrl_writel(data->resume_addr, AM33XX_CONTROL_IPC_MSG_REG0);
++	omap_ctrl_writel(data->sleep_mode, AM33XX_CONTROL_IPC_MSG_REG1);
++	omap_ctrl_writel(data->param1, AM33XX_CONTROL_IPC_MSG_REG2);
++	omap_ctrl_writel(data->param2, AM33XX_CONTROL_IPC_MSG_REG3);
++	omap_ctrl_writel(data->param3, AM33XX_CONTROL_IPC_MSG_REG4);
++}
++
++int am33xx_pm_status(void)
++{
++	int i;
++
++	i = omap_ctrl_readl(AM33XX_CONTROL_IPC_MSG_REG1);
++	i &= IPC_RESP_MASK;
++	i >>= __ffs(IPC_RESP_MASK);
++
++	return i;
++}
++
++int am33xx_pm_wake_src(void)
++{
++	int i;
++
++	i = omap_ctrl_readl(AM33XX_CONTROL_IPC_MSG_REG6);
++	i &= 0xff;
++
++	return i;
++}
++#endif /* CONFIG_SOC_AM33XX && CONFIG_PM */
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index f7d7c2e..9be587c 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -370,6 +370,22 @@
+ #define AM33XX_DEV_FEATURE		0x604
+ #define AM33XX_SGX_MASK			BIT(29)
+ 
++/* AM33XX M3_TXEV_EOI register */
++#define AM33XX_CONTROL_M3_TXEV_EOI	0x1324
++
++#define AM33XX_M3_TXEV_ACK		(0x1 << 0)
++#define AM33XX_M3_TXEV_ENABLE		(0x0 << 0)
++
++/* AM33XX IPC message registers */
++#define AM33XX_CONTROL_IPC_MSG_REG0	0x1328
++#define AM33XX_CONTROL_IPC_MSG_REG1	0x132C
++#define AM33XX_CONTROL_IPC_MSG_REG2	0x1330
++#define AM33XX_CONTROL_IPC_MSG_REG3	0x1334
++#define AM33XX_CONTROL_IPC_MSG_REG4	0x1338
++#define AM33XX_CONTROL_IPC_MSG_REG5	0x133C
++#define AM33XX_CONTROL_IPC_MSG_REG6	0x1340
++#define AM33XX_CONTROL_IPC_MSG_REG7	0x1344
++
+ /* CONTROL OMAP STATUS register to identify OMAP3 features */
+ #define OMAP3_CONTROL_OMAP_STATUS	0x044c
+ 
+@@ -429,6 +445,44 @@ extern void omap3630_ctrl_disable_rta(void);
+ extern int omap3_ctrl_save_padconf(void);
+ extern void omap2_set_globals_control(void __iomem *ctrl,
+ 				      void __iomem *ctrl_pad);
++struct am33xx_ipc_data {
++	u32 resume_addr;
++	u32 sleep_mode;
++	u32 param1;
++	u32 param2;
++	u32 param3;
++	u32 param4;
++	u32 param5;
++	u32 param6;
++};
++
++#define IPC_RESP_SHIFT			16
++#define IPC_RESP_MASK			(0xffff << 16)
++
++#define M3_VERSION_SHIFT		0
++#define M3_VERSION_MASK			(0xffff << 0)
++
++/*
++ * 9-4 = VTT GPIO PIN (6 Bits)
++ *   3 = VTT Status (1 Bit)
++ * 2-0 = Memory Type (2 Bits)
++*/
++#define MEM_TYPE_SHIFT		(0x0)
++#define MEM_TYPE_MASK		(0x7 << 0)
++#define VTT_STAT_SHIFT		(0x3)
++#define VTT_STAT_MASK		(0x1 << 3)
++#define VTT_GPIO_PIN_SHIFT	(0x4)
++#define VTT_GPIO_PIN_MASK	(0x2f << 4)
++
++extern void am33xx_wkup_m3_ipc_cmd(struct am33xx_ipc_data *data);
++extern void am33xx_txev_eoi(void);
++extern void am33xx_txev_enable(void);
++extern void am33xx_pm_version_clear(void);
++extern int am33xx_pm_version_get(void);
++extern void am33xx_pm_ipc_cmd(struct am33xx_ipc_data *data);
++extern int am33xx_pm_status(void);
++extern int am33xx_pm_wake_src(void);
++
+ #else
+ #define omap_ctrl_base_get()		0
+ #define omap_ctrl_readb(x)		0
 -- 
 1.7.9.5
 
