@@ -1,15 +1,15 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCHv3 6/9] ARM: OMAP2+: timer: Add suspend-resume callbacks for clkevent device
-Date: Tue, 6 Aug 2013 12:49:33 -0500
-Message-ID: <1375811376-49985-7-git-send-email-d-gerlach@ti.com>
+Subject: [PATCHv3 7/9] ARM: OMAP: omap_device: Add APIs to enable and idle hwmods
+Date: Tue, 6 Aug 2013 12:49:34 -0500
+Message-ID: <1375811376-49985-8-git-send-email-d-gerlach@ti.com>
 References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56302 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756130Ab3HFRub (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Aug 2013 13:50:31 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:57904 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755861Ab3HFRub (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Aug 2013 13:50:31 -0400
 In-Reply-To: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,72 +18,56 @@ Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Vaibhav B
 
 From: Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-OMAP timer code registers two timers - one as clocksource
-and one as clockevent. Since AM33XX has only one usable timer
-in the WKUP domain one of the timers needs suspend-resume
-support to restore the configuration to pre-suspend state.
-
-commit adc78e6 (timekeeping: Add suspend and resume
-of clock event devices) introduced .suspend and .resume
-callbacks for clock event devices. Leverages these
-callbacks to have AM33XX clockevent timer which is
-in not in WKUP domain to behave properly across system
-suspend.
+Needed to let the AM335x PM handle the IPs which need forced
+standby transition during every suspend-resume cycle when
+the corresponding driver is not compiled into the kernel.
 
 Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
- arch/arm/mach-omap2/timer.c |   32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+ arch/arm/mach-omap2/omap_device.c |    8 ++++++++
+ arch/arm/mach-omap2/omap_device.h |    2 ++
+ 2 files changed, 10 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index b37e1fc..cce5d39 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -118,11 +118,43 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
- 	}
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index 5cc9287..8cf63f6 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -219,6 +219,10 @@ static int _omap_device_enable_hwmods(struct omap_device *od)
+ 	return 0;
  }
  
-+static void omap_clkevt_suspend(struct clock_event_device *unused)
++int omap_device_enable_hwmods(struct omap_device *od)
 +{
-+	char name[10];
-+	struct omap_hwmod *oh;
-+
-+	sprintf(name, "timer%d", clkev.id);
-+	oh = omap_hwmod_lookup(name);
-+	if (!oh)
-+		return;
-+
-+	__omap_dm_timer_stop(&clkev, 1, clkev.rate);
-+	omap_hwmod_idle(oh);
++	return _omap_device_enable_hwmods(od);
 +}
-+
-+static void omap_clkevt_resume(struct clock_event_device *unused)
-+{
-+	char name[10];
-+	struct omap_hwmod *oh;
-+
-+	sprintf(name, "timer%d", clkev.id);
-+	oh = omap_hwmod_lookup(name);
-+	if (!oh)
-+		return;
-+
-+	omap_hwmod_enable(oh);
-+	__omap_dm_timer_load_start(&clkev,
-+			OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0, 1);
-+	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
-+}
-+
- static struct clock_event_device clockevent_gpt = {
- 	.features       = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
- 	.rating		= 300,
- 	.set_next_event	= omap2_gp_timer_set_next_event,
- 	.set_mode	= omap2_gp_timer_set_mode,
-+	.suspend	= omap_clkevt_suspend,
-+	.resume		= omap_clkevt_resume,
- };
+ /**
+  * _omap_device_idle_hwmods - call omap_hwmod_idle() on all hwmods
+  * @od: struct omap_device *od
+@@ -236,6 +240,10 @@ static int _omap_device_idle_hwmods(struct omap_device *od)
+ 	return 0;
+ }
  
- static struct property device_disabled = {
++int omap_device_idle_hwmods(struct omap_device *od)
++{
++	return _omap_device_idle_hwmods(od);
++}
+ /* Public functions for use by core code */
+ 
+ /**
+diff --git a/arch/arm/mach-omap2/omap_device.h b/arch/arm/mach-omap2/omap_device.h
+index 17ca1ae..655ec35 100644
+--- a/arch/arm/mach-omap2/omap_device.h
++++ b/arch/arm/mach-omap2/omap_device.h
+@@ -87,6 +87,8 @@ struct device *omap_device_get_by_hwmod_name(const char *oh_name);
+ 
+ /* OMAP PM interface */
+ int omap_device_get_context_loss_count(struct platform_device *pdev);
++int omap_device_enable_hwmods(struct omap_device *od);
++int omap_device_idle_hwmods(struct omap_device *od);
+ 
+ /* Other */
+ 
 -- 
 1.7.9.5
 
