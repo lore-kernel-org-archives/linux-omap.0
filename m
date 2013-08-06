@@ -1,51 +1,71 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [RFC 2/2] usb: dwc3: Add Qualcomm DWC3 glue layer driver
-Date: Tue, 6 Aug 2013 15:07:10 +0100
-Message-ID: <20130806140710.GF25383@e106331-lin.cambridge.arm.com>
-References: <1375789991-30041-1-git-send-email-iivanov@mm-sol.com>
- <1375789991-30041-3-git-send-email-iivanov@mm-sol.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: Reg: USB: ehci-omap: Suspend the controller during idle.
+Date: Tue, 6 Aug 2013 17:27:17 +0300
+Message-ID: <520107C5.20803@ti.com>
+References: <8D86EEFC18AF0D43A2B8E0ABFA8B88A17B16B9455E@EXGMBX01.sasken.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1375789991-30041-3-git-send-email-iivanov@mm-sol.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-Cc: "balbi@ti.com" <balbi@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob@landley.net" <rob@landley.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:42884 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752963Ab3HFO1b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Aug 2013 10:27:31 -0400
+In-Reply-To: <8D86EEFC18AF0D43A2B8E0ABFA8B88A17B16B9455E@EXGMBX01.sasken.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Bharathraj Nagaraju <bharathraj.nagaraju@sasken.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>
 
-On Tue, Aug 06, 2013 at 12:53:11PM +0100, Ivan T. Ivanov wrote:
-> From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Hi,
 
-What does the "glue layer" do? Is it an actual piece of hardware, or
-just some platform-specific code?
-
+On 08/06/2013 03:55 PM, Bharathraj Nagaraju wrote:
+>   Dear All,
 > 
-> Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
-> ---
->  .../devicetree/bindings/usb/msm-ssusb.txt          |   39 +++++
->  drivers/usb/dwc3/Kconfig                           |    8 +
->  drivers/usb/dwc3/Makefile                          |    1 +
->  drivers/usb/dwc3/dwc3-msm.c                        |  175 ++++++++++++++++++++
->  4 files changed, 223 insertions(+)
->  create mode 100644 drivers/usb/dwc3/dwc3-msm.c
+>   We are working on omap4470 based device,kernel-3.0.31 is running on this.
+>   In our device modem is connected to OMAP4470 using USB EHCI.
 > 
-> diff --git a/Documentation/devicetree/bindings/usb/msm-ssusb.txt b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
-> index 550b496..313ae0d 100644
-> --- a/Documentation/devicetree/bindings/usb/msm-ssusb.txt
-> +++ b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
-> @@ -22,6 +22,23 @@ Required "supply-name" examples are:
->  	"v1p8" : 1.8v supply for SS-PHY
->  	"vddcx" : vdd supply for SS-PHY digital circuit operation
->  
-> +Required properties :
-> +- compatible : should be "qcom,dwc-usb3-msm"
-> +- reg : offset and length of the register set in the memory map
-> +	offset and length of the TCSR register for routing USB
-> +	signals to either picoPHY0 or picoPHY1.
-> +- clocks = <&usb30_master_cxc>, <&sys_noc_usb3_axi_cxc>, <&usb30_sleep_cxc>, <&usb30_mock_utmi_cxc>;
+>   In our current kernel code, clocks are enabled when ports get connected
+>   and disabled during disconnect.Due to this current consumption is more in idle use case.
+> 
+>   I have tried to put the host in smart idle/standby mode,due to erratas around Host doesn't allow us
+>   use smart idle/standby capabilities.
+> 
+>   1) i571: USB host EHCI may stall when entering smart-standby mode
+>   2) i660: USBHOST Configured In Smart-Idle Can Lead To a Deadlock
+> 
+>   we are thinking to implement USB EHCI runtime suspend/resume feature.
+> 
+>   In kernel-3.0.31 architecture the usbcore driver is parent of ehci and ohci drivers.
+>   The ehci and ohci drivers call the pm_runtime_get_sync and pm_runtime_put_sync of parent device usbhs core.
+> 
+>   From the ehci-omap driver what i can see only partial implementation of runtime PM.
+>   what i mean is that runtime PM methods are used only during the normal suspend path
+>   and when nothing is connected to ports(modem disconnected in our case).
+> 
+>   I am thinking to change the ehci driver code, could claver enough to use runtime PM
+>   to disable the hardware when modem is connected and the system is in idle state.
+> 
+>   Kindly guide me how can i go about this.
+> 
+>   Let me know if you need further clarification from me on this.
+> 
+>   Thanks for spending your valuable time .......:)
 
-Similarly to my comment on patch 1, these need to be described better.
 
-Thanks,
-Mark.
+The problem with OMAP EHCI controller is that it needs to rely on IO Daisy chain mechanism
+to wake up when it is suspended. Without that, we can't really put the controller in to runtime
+suspend, else we will not be able to detect a new device connect.
+
+IO daisy chaining is still not supported in mainline. One approach had been posted [1] and it works
+but it is still in transition.
+
+I've made some patches [2] which implement USB runtime suspend with remote wakeup working
+for OMAP3 beagle-xm board. This depends on [1]. It shouldn't be hard to get it working on OMAP4.
+
+[1] http://article.gmane.org/gmane.linux.ports.arm.omap/101105
+[2] http://article.gmane.org/gmane.linux.ports.arm.kernel/251250
+
+cheers,
+-roger
+
