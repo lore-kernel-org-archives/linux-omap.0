@@ -1,71 +1,130 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: Reg: USB: ehci-omap: Suspend the controller during idle.
-Date: Tue, 6 Aug 2013 17:27:17 +0300
-Message-ID: <520107C5.20803@ti.com>
-References: <8D86EEFC18AF0D43A2B8E0ABFA8B88A17B16B9455E@EXGMBX01.sasken.com>
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Subject: Re: [RFC 1/2] usb: phy: Add Qualcomm SS-USB and HS-USB drivers for
+ DWC3 core
+Date: Tue, 06 Aug 2013 17:36:33 +0300
+Message-ID: <1375799793.2027.30.camel@iivanov-dev.int.mm-sol.com>
+References: <1375789991-30041-1-git-send-email-iivanov@mm-sol.com>
+	 <1375789991-30041-2-git-send-email-iivanov@mm-sol.com>
+	 <20130806140301.GE25383@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42884 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752963Ab3HFO1b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Aug 2013 10:27:31 -0400
-In-Reply-To: <8D86EEFC18AF0D43A2B8E0ABFA8B88A17B16B9455E@EXGMBX01.sasken.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130806140301.GE25383@e106331-lin.cambridge.arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "balbi@ti.com" <balbi@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob@landley.net" <rob@landley.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Bharathraj Nagaraju <bharathraj.nagaraju@sasken.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>
 
 Hi,
 
-On 08/06/2013 03:55 PM, Bharathraj Nagaraju wrote:
->   Dear All,
+On Tue, 2013-08-06 at 15:03 +0100, Mark Rutland wrote:
+> On Tue, Aug 06, 2013 at 12:53:10PM +0100, Ivan T. Ivanov wrote:
+> > From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+> >
+> > Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
+> > ---
+> >  .../devicetree/bindings/usb/msm-ssusb.txt          |   49 +++
+> >  drivers/usb/phy/Kconfig                            |   11 +
+> >  drivers/usb/phy/Makefile                           |    2 +
+> >  drivers/usb/phy/phy-msm-dwc3-usb2.c                |  342 +++++++++++++++++
+> >  drivers/usb/phy/phy-msm-dwc3-usb3.c                |  389 ++++++++++++++++++++
+> >  5 files changed, 793 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/usb/msm-ssusb.txt
+> >  create mode 100644 drivers/usb/phy/phy-msm-dwc3-usb2.c
+> >  create mode 100644 drivers/usb/phy/phy-msm-dwc3-usb3.c
+> >
+> > diff --git a/Documentation/devicetree/bindings/usb/msm-ssusb.txt b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
+> > new file mode 100644
+> > index 0000000..550b496
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
+> > @@ -0,0 +1,49 @@
+> > +MSM SuperSpeed USB3.0 SoC controllers
+> > +
+> > +Required properities :
+> > +- compatible sould be "qcom,dwc3-usb2";
+> > +- reg : offset and length of the register set in the memory map
+> > +- clocks: <&cxo>, <&usb2a_phy_sleep_cxc>;
 > 
->   We are working on omap4470 based device,kernel-3.0.31 is running on this.
->   In our device modem is connected to OMAP4470 using USB EHCI.
+> Huh? That doesn't describe what these are. These would be better
+> explained with a reference to clock-names and a basic description as to
+> what the input's called, what it drives, etc, as you've done done for
+> the *-supply properties.
+
+Ok, I will fix this.
+
 > 
->   In our current kernel code, clocks are enabled when ports get connected
->   and disabled during disconnect.Due to this current consumption is more in idle use case.
+> > +- clock-names: "xo", "sleep_a_clk";
+> > +<supply-name>-supply: phandle to the regulator device tree node
+> > +Required "supply-name" examples are:
+> > +       "v1p8" : 1.8v supply for HSPHY
+> > +       "v3p3" : 3.3v supply for HSPHY
+> > +       "vbus" : vbus supply for host mode
+> > +       "vddcx" : vdd supply for HS-PHY digital circuit operation
+> > +
+> > +Required properities :
+> > +- compatible sould be "qcom,dwc3-usb3";
+> > +- reg : offset and length of the register set in the memory map
+> > +- clocks: <&cxo>, <&usb30_mock_utmi_cxc>;
 > 
->   I have tried to put the host in smart idle/standby mode,due to erratas around Host doesn't allow us
->   use smart idle/standby capabilities.
+> Similarly, this doesn't describe what the clocks are.
+
+Understood.
+
 > 
->   1) i571: USB host EHCI may stall when entering smart-standby mode
->   2) i660: USBHOST Configured In Smart-Idle Can Lead To a Deadlock
+> > +- clock-names: "xo", "ref_clk";
+> > +<supply-name>-supply: phandle to the regulator device tree node
+> > +Required "supply-name" examples are:
+> > +       "v1p8" : 1.8v supply for SS-PHY
+> > +       "vddcx" : vdd supply for SS-PHY digital circuit operation
+> > +
+> > +Example device nodes:
+> > +
+> > +       dwc3_usb2: phy@f92f8800 {
+> > +               compatible = "qcom,dwc3-usb2";
+> > +               reg = <0xf92f8800 0x30>;
+> > +
+> > +               clocks = <&cxo>, <&usb2a_phy_sleep_cxc>;
+> > +               clock-names = "xo", "sleep_a_clk";
+> > +
+> > +               vbus-supply = <&supply>;
+> > +               vddcx-supply = <&supply>;
+> > +               v1p8-supply = <&supply>;
+> > +               v3p3-supply = <&supply>;
+> > +       };
+> > +
+> > +       dwc3_usb3: phy@f92f8830 {
+> > +               compatible = "qcom,dwc3-usb3";
+> > +               reg = <0xf92f8830 0x30>;
+> > +
+> > +               clocks = <&cxo>, <&usb30_mock_utmi_cxc>;
+> > +               clock-names = "xo", "ref_clk";
+> > +
+> > +               vddcx-supply = <&supply>;
+> > +               v1p8-supply = <&supply>;
+> > +       };
 > 
->   we are thinking to implement USB EHCI runtime suspend/resume feature.
 > 
->   In kernel-3.0.31 architecture the usbcore driver is parent of ehci and ohci drivers.
->   The ehci and ohci drivers call the pm_runtime_get_sync and pm_runtime_put_sync of parent device usbhs core.
+> Those regster banks look suspiciously close. Are these the same IP
+> block? Can they ever appear separately?
 > 
->   From the ehci-omap driver what i can see only partial implementation of runtime PM.
->   what i mean is that runtime PM methods are used only during the normal suspend path
->   and when nothing is connected to ports(modem disconnected in our case).
+
+They are part of the wrapper Qualcomm logic around Synopsys USB3 core.
+In this sense they are part of the one IP, I believe. Manage them from
+separate drivers simplify code.
+
+> Do the drivers not trample each other when messing with shared clocks
+> and regulators?
 > 
->   I am thinking to change the ehci driver code, could claver enough to use runtime PM
->   to disable the hardware when modem is connected and the system is in idle state.
-> 
->   Kindly guide me how can i go about this.
-> 
->   Let me know if you need further clarification from me on this.
-> 
->   Thanks for spending your valuable time .......:)
+
+Regulators and clocks have reference counting, right?, so this should
+be safe. Even if they are part of the one driver, clocks and regulators
+could be switched off only if both PHY's do not use them.
+
+Thanks, 
+Ivan
 
 
-The problem with OMAP EHCI controller is that it needs to rely on IO Daisy chain mechanism
-to wake up when it is suspended. Without that, we can't really put the controller in to runtime
-suspend, else we will not be able to detect a new device connect.
-
-IO daisy chaining is still not supported in mainline. One approach had been posted [1] and it works
-but it is still in transition.
-
-I've made some patches [2] which implement USB runtime suspend with remote wakeup working
-for OMAP3 beagle-xm board. This depends on [1]. It shouldn't be hard to get it working on OMAP4.
-
-[1] http://article.gmane.org/gmane.linux.ports.arm.omap/101105
-[2] http://article.gmane.org/gmane.linux.ports.arm.kernel/251250
-
-cheers,
--roger
-
+> Thanks,
+> Mark.
