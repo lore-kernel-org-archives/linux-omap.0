@@ -1,109 +1,50 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 5/7] usb: phy: omap: get rid of omap_get_control_dev()
-Date: Tue, 6 Aug 2013 17:22:32 +0530
-Message-ID: <5200E380.6030005@ti.com>
-References: <1375365915-21380-1-git-send-email-rogerq@ti.com> <1375365915-21380-6-git-send-email-rogerq@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1375365915-21380-6-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: balbi@ti.com, tony@atomide.com, george.cherian@ti.com, dmurphy@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Subject: [RFC 0/2] DWC3 USB support for Qualcomm platform
+Date: Tue,  6 Aug 2013 14:53:09 +0300
+Message-ID: <1375789991-30041-1-git-send-email-iivanov@mm-sol.com>
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, "Ivan T. Ivanov" <iivanov@mm-sol.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 01 August 2013 07:35 PM, Roger Quadros wrote:
-> This function was preventing us from supporting multiple
-> instances. Get rid of it. Since we support DT boots only,
-> users can get the control device phandle from the DT node.
->
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
 
-Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->   drivers/usb/phy/phy-omap-control.c   |   31 ++++++++++---------------------
->   include/linux/usb/omap_control_usb.h |    5 -----
->   2 files changed, 10 insertions(+), 26 deletions(-)
->
-> diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
-> index cf93c5a..015eeef 100644
-> --- a/drivers/usb/phy/phy-omap-control.c
-> +++ b/drivers/usb/phy/phy-omap-control.c
-> @@ -25,26 +25,6 @@
->   #include <linux/clk.h>
->   #include <linux/usb/omap_control_usb.h>
->
-> -static struct omap_control_usb *control_usb;
-> -
-> -/**
-> - * omap_get_control_dev - returns the device pointer for this control device
-> - *
-> - * This API should be called to get the device pointer for this control
-> - * module device. This device pointer should be used for called other
-> - * exported API's in this driver.
-> - *
-> - * To be used by PHY driver and glue driver.
-> - */
-> -struct device *omap_get_control_dev(void)
-> -{
-> -	if (!control_usb)
-> -		return ERR_PTR(-ENODEV);
-> -
-> -	return control_usb->dev;
-> -}
-> -EXPORT_SYMBOL_GPL(omap_get_control_dev);
-> -
->   /**
->    * omap_control_usb_phy_power - power on/off the phy using control module reg
->    * @dev: the control module device
-> @@ -187,11 +167,19 @@ void omap_control_usb_set_mode(struct device *dev,
->   {
->   	struct omap_control_usb	*ctrl_usb;
->
-> -	if (IS_ERR(dev) || control_usb->type != OMAP_CTRL_DEV_TYPE1)
-> +	if (IS_ERR(dev) || !dev)
->   		return;
->
->   	ctrl_usb = dev_get_drvdata(dev);
->
-> +	if (!ctrl_usb) {
-> +		dev_err(dev, "Invalid control usb device\n");
-> +		return;
-> +	}
-> +
-> +	if (ctrl_usb->type != OMAP_CTRL_DEV_TYPE1)
-> +		return;
-> +
->   	switch (mode) {
->   	case USB_MODE_HOST:
->   		omap_control_usb_host_mode(ctrl_usb);
-> @@ -214,6 +202,7 @@ static int omap_control_usb_probe(struct platform_device *pdev)
->   	struct device_node *np = pdev->dev.of_node;
->   	struct omap_control_usb_platform_data *pdata =
->   			dev_get_platdata(&pdev->dev);
-> +	struct omap_control_usb *control_usb;
->
->   	control_usb = devm_kzalloc(&pdev->dev, sizeof(*control_usb),
->   		GFP_KERNEL);
-> diff --git a/include/linux/usb/omap_control_usb.h b/include/linux/usb/omap_control_usb.h
-> index 7f027d3..8b48584 100644
-> --- a/include/linux/usb/omap_control_usb.h
-> +++ b/include/linux/usb/omap_control_usb.h
-> @@ -67,15 +67,10 @@ enum omap_control_usb_mode {
->   #define OMAP_CTRL_USB2_PHY_PD		BIT(28)
->
->   #if IS_ENABLED(CONFIG_OMAP_CONTROL_USB)
-> -extern struct device *omap_get_control_dev(void);
->   extern void omap_control_usb_phy_power(struct device *dev, int on);
->   extern void omap_control_usb_set_mode(struct device *dev,
->   	enum omap_control_usb_mode mode);
->   #else
-> -static inline struct device *omap_get_control_dev(void)
-> -{
-> -	return ERR_PTR(-ENODEV);
-> -}
->
->   static inline void omap_control_usb_phy_power(struct device *dev, int on)
->   {
->
+Hi, 
+
+These patches add basic support for USB3.0 controllers found on
+MSM platforms. First patch add 2 USB PHY drivers and second one
+add support for Qualcomm wrapper IP over DWC3 controller. Patches 
+are just skeletons, no power management. 
+
+DWC3 IP in MSM also support OTG but right now I am not sure how to
+add support for it. Probably OTG have to be instantiated from core 
+dwc3 driver, but usually PHY drivers are those which create OTG
+instance.
+
+Generated on top of Felipe 'testing' branch.
+
+Regards,
+Ivan
+
+Ivan T. Ivanov (2):
+  usb: phy: Add Qualcomm SS-USB and HS-USB drivers for DWC3 core
+  usb: dwc3: Add Qualcomm DWC3 glue layer driver
+
+ .../devicetree/bindings/usb/msm-ssusb.txt          |   88 +++++
+ drivers/usb/dwc3/Kconfig                           |    8 +
+ drivers/usb/dwc3/Makefile                          |    1 +
+ drivers/usb/dwc3/dwc3-msm.c                        |  175 +++++++++
+ drivers/usb/phy/Kconfig                            |   11 +
+ drivers/usb/phy/Makefile                           |    2 +
+ drivers/usb/phy/phy-msm-dwc3-usb2.c                |  342 +++++++++++++++++
+ drivers/usb/phy/phy-msm-dwc3-usb3.c                |  389 ++++++++++++++++++++
+ 8 files changed, 1016 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/usb/msm-ssusb.txt
+ create mode 100644 drivers/usb/dwc3/dwc3-msm.c
+ create mode 100644 drivers/usb/phy/phy-msm-dwc3-usb2.c
+ create mode 100644 drivers/usb/phy/phy-msm-dwc3-usb3.c
+
+-- 
+1.7.9.5
+
