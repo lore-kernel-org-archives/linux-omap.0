@@ -1,844 +1,1160 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCHv3 8/9] ARM: OMAP2+: AM33XX: Basic suspend resume support
-Date: Tue, 6 Aug 2013 12:49:35 -0500
-Message-ID: <1375811376-49985-9-git-send-email-d-gerlach@ti.com>
+Subject: [PATCHv3 1/9] memory: emif: Move EMIF register defines to include/linux/
+Date: Tue, 6 Aug 2013 12:49:28 -0500
+Message-ID: <1375811376-49985-2-git-send-email-d-gerlach@ti.com>
 References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60831 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756343Ab3HFRux (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Aug 2013 13:50:53 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:57925 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756008Ab3HFRux (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Aug 2013 13:50:53 -0400
 In-Reply-To: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Tony Lingren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <benoit.cousson@linaro.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <benoit.cousson@linaro.org>, Aneesh V <aneesh@ti.com>
 
-From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+OMAP4 and AM33XX share the same EMIF controller IP. Although there
+are significant differences in the IP integration due to which
+AM33XX can't reuse the EMIF driver DVFS similar to OMAP4,
+it can definitely benefit by reusing the EMIF related macros
+defined in drivers/memory/emif.h.
 
-AM335x supports various low power modes as documented
-in section 8.1.4.3 of the AM335x TRM which is available
-@ http://www.ti.com/litv/pdf/spruh73f
+In the current OMAP PM framework the PM code resides under
+arch/arm/mach-omap2/. To enable reuse of the register defines move
+the register defines in the emif header file to include/linux so that
+both the EMIF driver and the AM33XX PM code can benefit.
 
-DeepSleep0 mode offers the lowest power mode with limited
-wakeup sources without a system reboot and is mapped as
-the suspend state in the kernel. In this state, MPU and
-PER domains are turned off with the internal RAM held in
-retention to facilitate resume process. As part of the boot
-process, the assembly code is copied over to OCMCRAM using
-the OMAP SRAM code.
-
-AM335x has a Cortex-M3 (WKUP_M3) which assists the MPU
-in DeepSleep0 entry and exit. WKUP_M3 takes care of the
-clockdomain and powerdomain transitions based on the
-intended low power state. MPU needs to load the appropriate
-WKUP_M3 binary onto the WKUP_M3 memory space before it can
-leverage any of the PM features like DeepSleep.
-
-The IPC mechanism between MPU and WKUP_M3 uses a mailbox
-sub-module and 8 IPC registers in the Control module. MPU
-uses the assigned Mailbox for issuing an interrupt to
-WKUP_M3 which then goes and checks the IPC registers for
-the payload. WKUP_M3 has the ability to trigger on interrupt
-to MPU by executing the "sev" instruction.
-
-In the current implementation when the suspend process
-is initiated MPU interrupts the WKUP_M3 to let it know about
-the intent of entering DeepSleep0 and waits for an ACK. When
-the ACK is received MPU continues with its suspend process
-to suspend all the drivers and then jumps to assembly in
-OCMC RAM. The assembly code puts the PLLs in bypass, puts the
-external RAM in self-refresh mode and then finally execute the
-WFI instruction. Execution of the WFI instruction triggers another
-interrupt to the WKUP_M3 which then continues wiht the power down
-sequence wherein the clockdomain and powerdomain transition takes
-place. As part of the sleep sequence, WKUP_M3 unmasks the interrupt
-lines for the wakeup sources. WFI execution on WKUP_M3 causes the
-hardware to disable the main oscillator of the SoC.
-
-When a wakeup event occurs, WKUP_M3 starts the power-up
-sequence by switching on the power domains and finally
-enabling the clock to MPU. Since the MPU gets powered down
-as part of the sleep sequence in the resume path ROM code
-starts executing. The ROM code detects a wakeup from sleep
-and then jumps to the resume location in OCMC which was
-populated in one of the IPC registers as part of the suspend
-sequence.
-
-The low level code in OCMC relocks the PLLs, enables access
-to external RAM and then jumps to the cpu_resume code of
-the kernel to finish the resume process.
-
-Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-Cc: Tony Lingren <tony@atomide.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Benoit Cousson <benoit.cousson@linaro.org>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@linaro.org>
+Cc: Aneesh V <aneesh@ti.com>
 ---
- arch/arm/mach-omap2/pm33xx.c  |  474 +++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm33xx.h  |   77 +++++++
- arch/arm/mach-omap2/wkup_m3.c |  183 ++++++++++++++++
- 3 files changed, 734 insertions(+)
- create mode 100644 arch/arm/mach-omap2/pm33xx.c
- create mode 100644 arch/arm/mach-omap2/pm33xx.h
- create mode 100644 arch/arm/mach-omap2/wkup_m3.c
+ drivers/memory/emif.h   |  543 +--------------------------------------------
+ include/linux/ti_emif.h |  558 +++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 559 insertions(+), 542 deletions(-)
+ create mode 100644 include/linux/ti_emif.h
 
-diff --git a/arch/arm/mach-omap2/pm33xx.c b/arch/arm/mach-omap2/pm33xx.c
-new file mode 100644
-index 0000000..d291c76
---- /dev/null
-+++ b/arch/arm/mach-omap2/pm33xx.c
-@@ -0,0 +1,474 @@
-+/*
-+ * AM33XX Power Management Routines
-+ *
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ * Vaibhav Bedia <vaibhav.bedia@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/cpu.h>
-+#include <linux/err.h>
-+#include <linux/firmware.h>
-+#include <linux/io.h>
-+#include <linux/platform_device.h>
-+#include <linux/sched.h>
-+#include <linux/suspend.h>
-+#include <linux/completion.h>
-+#include <linux/module.h>
-+#include <linux/interrupt.h>
+diff --git a/drivers/memory/emif.h b/drivers/memory/emif.h
+index bfe08ba..8214f07 100644
+--- a/drivers/memory/emif.h
++++ b/drivers/memory/emif.h
+@@ -12,548 +12,7 @@
+ #ifndef __EMIF_H
+ #define __EMIF_H
+ 
+-/*
+- * Maximum number of different frequencies supported by EMIF driver
+- * Determines the number of entries in the pointer array for register
+- * cache
+- */
+-#define EMIF_MAX_NUM_FREQUENCIES			6
+-
+-/* State of the core voltage */
+-#define DDR_VOLTAGE_STABLE				0
+-#define DDR_VOLTAGE_RAMPING				1
+-
+-/* Defines for timing De-rating */
+-#define EMIF_NORMAL_TIMINGS				0
+-#define EMIF_DERATED_TIMINGS				1
+-
+-/* Length of the forced read idle period in terms of cycles */
+-#define EMIF_READ_IDLE_LEN_VAL				5
+-
+-/*
+- * forced read idle interval to be used when voltage
+- * is changed as part of DVFS/DPS - 1ms
+- */
+-#define READ_IDLE_INTERVAL_DVFS				(1*1000000)
+-
+-/*
+- * Forced read idle interval to be used when voltage is stable
+- * 50us - or maximum value will do
+- */
+-#define READ_IDLE_INTERVAL_NORMAL			(50*1000000)
+-
+-/* DLL calibration interval when voltage is NOT stable - 1us */
+-#define DLL_CALIB_INTERVAL_DVFS				(1*1000000)
+-
+-#define DLL_CALIB_ACK_WAIT_VAL				5
+-
+-/* Interval between ZQCS commands - hw team recommended value */
+-#define EMIF_ZQCS_INTERVAL_US				(50*1000)
+-/* Enable ZQ Calibration on exiting Self-refresh */
+-#define ZQ_SFEXITEN_ENABLE				1
+-/*
+- * ZQ Calibration simultaneously on both chip-selects:
+- * Needs one calibration resistor per CS
+- */
+-#define	ZQ_DUALCALEN_DISABLE				0
+-#define	ZQ_DUALCALEN_ENABLE				1
+-
+-#define T_ZQCS_DEFAULT_NS				90
+-#define T_ZQCL_DEFAULT_NS				360
+-#define T_ZQINIT_DEFAULT_NS				1000
+-
+-/* DPD_EN */
+-#define DPD_DISABLE					0
+-#define DPD_ENABLE					1
+-
+-/*
+- * Default values for the low-power entry to be used if not provided by user.
+- * OMAP4/5 has a hw bug(i735) due to which this value can not be less than 512
+- * Timeout values are in DDR clock 'cycles' and frequency threshold in Hz
+- */
+-#define EMIF_LP_MODE_TIMEOUT_PERFORMANCE		2048
+-#define EMIF_LP_MODE_TIMEOUT_POWER			512
+-#define EMIF_LP_MODE_FREQ_THRESHOLD			400000000
+-
+-/* DDR_PHY_CTRL_1 values for EMIF4D - ATTILA PHY combination */
+-#define EMIF_DDR_PHY_CTRL_1_BASE_VAL_ATTILAPHY		0x049FF000
+-#define EMIF_DLL_SLAVE_DLY_CTRL_400_MHZ_ATTILAPHY	0x41
+-#define EMIF_DLL_SLAVE_DLY_CTRL_200_MHZ_ATTILAPHY	0x80
+-#define EMIF_DLL_SLAVE_DLY_CTRL_100_MHZ_AND_LESS_ATTILAPHY 0xFF
+-
+-/* DDR_PHY_CTRL_1 values for EMIF4D5 INTELLIPHY combination */
+-#define EMIF_DDR_PHY_CTRL_1_BASE_VAL_INTELLIPHY		0x0E084200
+-#define EMIF_PHY_TOTAL_READ_LATENCY_INTELLIPHY_PS	10000
+-
+-/* TEMP_ALERT_CONFIG - corresponding to temp gradient 5 C/s */
+-#define TEMP_ALERT_POLL_INTERVAL_DEFAULT_MS		360
+-
+-#define EMIF_T_CSTA					3
+-#define EMIF_T_PDLL_UL					128
+-
+-/* External PHY control registers magic values */
+-#define EMIF_EXT_PHY_CTRL_1_VAL				0x04020080
+-#define EMIF_EXT_PHY_CTRL_5_VAL				0x04010040
+-#define EMIF_EXT_PHY_CTRL_6_VAL				0x01004010
+-#define EMIF_EXT_PHY_CTRL_7_VAL				0x00001004
+-#define EMIF_EXT_PHY_CTRL_8_VAL				0x04010040
+-#define EMIF_EXT_PHY_CTRL_9_VAL				0x01004010
+-#define EMIF_EXT_PHY_CTRL_10_VAL			0x00001004
+-#define EMIF_EXT_PHY_CTRL_11_VAL			0x00000000
+-#define EMIF_EXT_PHY_CTRL_12_VAL			0x00000000
+-#define EMIF_EXT_PHY_CTRL_13_VAL			0x00000000
+-#define EMIF_EXT_PHY_CTRL_14_VAL			0x80080080
+-#define EMIF_EXT_PHY_CTRL_15_VAL			0x00800800
+-#define EMIF_EXT_PHY_CTRL_16_VAL			0x08102040
+-#define EMIF_EXT_PHY_CTRL_17_VAL			0x00000001
+-#define EMIF_EXT_PHY_CTRL_18_VAL			0x540A8150
+-#define EMIF_EXT_PHY_CTRL_19_VAL			0xA81502A0
+-#define EMIF_EXT_PHY_CTRL_20_VAL			0x002A0540
+-#define EMIF_EXT_PHY_CTRL_21_VAL			0x00000000
+-#define EMIF_EXT_PHY_CTRL_22_VAL			0x00000000
+-#define EMIF_EXT_PHY_CTRL_23_VAL			0x00000000
+-#define EMIF_EXT_PHY_CTRL_24_VAL			0x00000077
+-
+-#define EMIF_INTELLI_PHY_DQS_GATE_OPENING_DELAY_PS	1200
+-
+-/* Registers offset */
+-#define EMIF_MODULE_ID_AND_REVISION			0x0000
+-#define EMIF_STATUS					0x0004
+-#define EMIF_SDRAM_CONFIG				0x0008
+-#define EMIF_SDRAM_CONFIG_2				0x000c
+-#define EMIF_SDRAM_REFRESH_CONTROL			0x0010
+-#define EMIF_SDRAM_REFRESH_CTRL_SHDW			0x0014
+-#define EMIF_SDRAM_TIMING_1				0x0018
+-#define EMIF_SDRAM_TIMING_1_SHDW			0x001c
+-#define EMIF_SDRAM_TIMING_2				0x0020
+-#define EMIF_SDRAM_TIMING_2_SHDW			0x0024
+-#define EMIF_SDRAM_TIMING_3				0x0028
+-#define EMIF_SDRAM_TIMING_3_SHDW			0x002c
+-#define EMIF_LPDDR2_NVM_TIMING				0x0030
+-#define EMIF_LPDDR2_NVM_TIMING_SHDW			0x0034
+-#define EMIF_POWER_MANAGEMENT_CONTROL			0x0038
+-#define EMIF_POWER_MANAGEMENT_CTRL_SHDW			0x003c
+-#define EMIF_LPDDR2_MODE_REG_DATA			0x0040
+-#define EMIF_LPDDR2_MODE_REG_CONFIG			0x0050
+-#define EMIF_OCP_CONFIG					0x0054
+-#define EMIF_OCP_CONFIG_VALUE_1				0x0058
+-#define EMIF_OCP_CONFIG_VALUE_2				0x005c
+-#define EMIF_IODFT_TEST_LOGIC_GLOBAL_CONTROL		0x0060
+-#define EMIF_IODFT_TEST_LOGIC_CTRL_MISR_RESULT		0x0064
+-#define EMIF_IODFT_TEST_LOGIC_ADDRESS_MISR_RESULT	0x0068
+-#define EMIF_IODFT_TEST_LOGIC_DATA_MISR_RESULT_1	0x006c
+-#define EMIF_IODFT_TEST_LOGIC_DATA_MISR_RESULT_2	0x0070
+-#define EMIF_IODFT_TEST_LOGIC_DATA_MISR_RESULT_3	0x0074
+-#define EMIF_PERFORMANCE_COUNTER_1			0x0080
+-#define EMIF_PERFORMANCE_COUNTER_2			0x0084
+-#define EMIF_PERFORMANCE_COUNTER_CONFIG			0x0088
+-#define EMIF_PERFORMANCE_COUNTER_MASTER_REGION_SELECT	0x008c
+-#define EMIF_PERFORMANCE_COUNTER_TIME			0x0090
+-#define EMIF_MISC_REG					0x0094
+-#define EMIF_DLL_CALIB_CTRL				0x0098
+-#define EMIF_DLL_CALIB_CTRL_SHDW			0x009c
+-#define EMIF_END_OF_INTERRUPT				0x00a0
+-#define EMIF_SYSTEM_OCP_INTERRUPT_RAW_STATUS		0x00a4
+-#define EMIF_LL_OCP_INTERRUPT_RAW_STATUS		0x00a8
+-#define EMIF_SYSTEM_OCP_INTERRUPT_STATUS		0x00ac
+-#define EMIF_LL_OCP_INTERRUPT_STATUS			0x00b0
+-#define EMIF_SYSTEM_OCP_INTERRUPT_ENABLE_SET		0x00b4
+-#define EMIF_LL_OCP_INTERRUPT_ENABLE_SET		0x00b8
+-#define EMIF_SYSTEM_OCP_INTERRUPT_ENABLE_CLEAR		0x00bc
+-#define EMIF_LL_OCP_INTERRUPT_ENABLE_CLEAR		0x00c0
+-#define EMIF_SDRAM_OUTPUT_IMPEDANCE_CALIBRATION_CONFIG	0x00c8
+-#define EMIF_TEMPERATURE_ALERT_CONFIG			0x00cc
+-#define EMIF_OCP_ERROR_LOG				0x00d0
+-#define EMIF_READ_WRITE_LEVELING_RAMP_WINDOW		0x00d4
+-#define EMIF_READ_WRITE_LEVELING_RAMP_CONTROL		0x00d8
+-#define EMIF_READ_WRITE_LEVELING_CONTROL		0x00dc
+-#define EMIF_DDR_PHY_CTRL_1				0x00e4
+-#define EMIF_DDR_PHY_CTRL_1_SHDW			0x00e8
+-#define EMIF_DDR_PHY_CTRL_2				0x00ec
+-#define EMIF_PRIORITY_TO_CLASS_OF_SERVICE_MAPPING	0x0100
+-#define EMIF_CONNECTION_ID_TO_CLASS_OF_SERVICE_1_MAPPING 0x0104
+-#define EMIF_CONNECTION_ID_TO_CLASS_OF_SERVICE_2_MAPPING 0x0108
+-#define EMIF_READ_WRITE_EXECUTION_THRESHOLD		0x0120
+-#define EMIF_COS_CONFIG					0x0124
+-#define EMIF_PHY_STATUS_1				0x0140
+-#define EMIF_PHY_STATUS_2				0x0144
+-#define EMIF_PHY_STATUS_3				0x0148
+-#define EMIF_PHY_STATUS_4				0x014c
+-#define EMIF_PHY_STATUS_5				0x0150
+-#define EMIF_PHY_STATUS_6				0x0154
+-#define EMIF_PHY_STATUS_7				0x0158
+-#define EMIF_PHY_STATUS_8				0x015c
+-#define EMIF_PHY_STATUS_9				0x0160
+-#define EMIF_PHY_STATUS_10				0x0164
+-#define EMIF_PHY_STATUS_11				0x0168
+-#define EMIF_PHY_STATUS_12				0x016c
+-#define EMIF_PHY_STATUS_13				0x0170
+-#define EMIF_PHY_STATUS_14				0x0174
+-#define EMIF_PHY_STATUS_15				0x0178
+-#define EMIF_PHY_STATUS_16				0x017c
+-#define EMIF_PHY_STATUS_17				0x0180
+-#define EMIF_PHY_STATUS_18				0x0184
+-#define EMIF_PHY_STATUS_19				0x0188
+-#define EMIF_PHY_STATUS_20				0x018c
+-#define EMIF_PHY_STATUS_21				0x0190
+-#define EMIF_EXT_PHY_CTRL_1				0x0200
+-#define EMIF_EXT_PHY_CTRL_1_SHDW			0x0204
+-#define EMIF_EXT_PHY_CTRL_2				0x0208
+-#define EMIF_EXT_PHY_CTRL_2_SHDW			0x020c
+-#define EMIF_EXT_PHY_CTRL_3				0x0210
+-#define EMIF_EXT_PHY_CTRL_3_SHDW			0x0214
+-#define EMIF_EXT_PHY_CTRL_4				0x0218
+-#define EMIF_EXT_PHY_CTRL_4_SHDW			0x021c
+-#define EMIF_EXT_PHY_CTRL_5				0x0220
+-#define EMIF_EXT_PHY_CTRL_5_SHDW			0x0224
+-#define EMIF_EXT_PHY_CTRL_6				0x0228
+-#define EMIF_EXT_PHY_CTRL_6_SHDW			0x022c
+-#define EMIF_EXT_PHY_CTRL_7				0x0230
+-#define EMIF_EXT_PHY_CTRL_7_SHDW			0x0234
+-#define EMIF_EXT_PHY_CTRL_8				0x0238
+-#define EMIF_EXT_PHY_CTRL_8_SHDW			0x023c
+-#define EMIF_EXT_PHY_CTRL_9				0x0240
+-#define EMIF_EXT_PHY_CTRL_9_SHDW			0x0244
+-#define EMIF_EXT_PHY_CTRL_10				0x0248
+-#define EMIF_EXT_PHY_CTRL_10_SHDW			0x024c
+-#define EMIF_EXT_PHY_CTRL_11				0x0250
+-#define EMIF_EXT_PHY_CTRL_11_SHDW			0x0254
+-#define EMIF_EXT_PHY_CTRL_12				0x0258
+-#define EMIF_EXT_PHY_CTRL_12_SHDW			0x025c
+-#define EMIF_EXT_PHY_CTRL_13				0x0260
+-#define EMIF_EXT_PHY_CTRL_13_SHDW			0x0264
+-#define EMIF_EXT_PHY_CTRL_14				0x0268
+-#define EMIF_EXT_PHY_CTRL_14_SHDW			0x026c
+-#define EMIF_EXT_PHY_CTRL_15				0x0270
+-#define EMIF_EXT_PHY_CTRL_15_SHDW			0x0274
+-#define EMIF_EXT_PHY_CTRL_16				0x0278
+-#define EMIF_EXT_PHY_CTRL_16_SHDW			0x027c
+-#define EMIF_EXT_PHY_CTRL_17				0x0280
+-#define EMIF_EXT_PHY_CTRL_17_SHDW			0x0284
+-#define EMIF_EXT_PHY_CTRL_18				0x0288
+-#define EMIF_EXT_PHY_CTRL_18_SHDW			0x028c
+-#define EMIF_EXT_PHY_CTRL_19				0x0290
+-#define EMIF_EXT_PHY_CTRL_19_SHDW			0x0294
+-#define EMIF_EXT_PHY_CTRL_20				0x0298
+-#define EMIF_EXT_PHY_CTRL_20_SHDW			0x029c
+-#define EMIF_EXT_PHY_CTRL_21				0x02a0
+-#define EMIF_EXT_PHY_CTRL_21_SHDW			0x02a4
+-#define EMIF_EXT_PHY_CTRL_22				0x02a8
+-#define EMIF_EXT_PHY_CTRL_22_SHDW			0x02ac
+-#define EMIF_EXT_PHY_CTRL_23				0x02b0
+-#define EMIF_EXT_PHY_CTRL_23_SHDW			0x02b4
+-#define EMIF_EXT_PHY_CTRL_24				0x02b8
+-#define EMIF_EXT_PHY_CTRL_24_SHDW			0x02bc
+-#define EMIF_EXT_PHY_CTRL_25				0x02c0
+-#define EMIF_EXT_PHY_CTRL_25_SHDW			0x02c4
+-#define EMIF_EXT_PHY_CTRL_26				0x02c8
+-#define EMIF_EXT_PHY_CTRL_26_SHDW			0x02cc
+-#define EMIF_EXT_PHY_CTRL_27				0x02d0
+-#define EMIF_EXT_PHY_CTRL_27_SHDW			0x02d4
+-#define EMIF_EXT_PHY_CTRL_28				0x02d8
+-#define EMIF_EXT_PHY_CTRL_28_SHDW			0x02dc
+-#define EMIF_EXT_PHY_CTRL_29				0x02e0
+-#define EMIF_EXT_PHY_CTRL_29_SHDW			0x02e4
+-#define EMIF_EXT_PHY_CTRL_30				0x02e8
+-#define EMIF_EXT_PHY_CTRL_30_SHDW			0x02ec
+-
+-/* Registers shifts and masks */
+-
+-/* EMIF_MODULE_ID_AND_REVISION */
+-#define SCHEME_SHIFT					30
+-#define SCHEME_MASK					(0x3 << 30)
+-#define MODULE_ID_SHIFT					16
+-#define MODULE_ID_MASK					(0xfff << 16)
+-#define RTL_VERSION_SHIFT				11
+-#define RTL_VERSION_MASK				(0x1f << 11)
+-#define MAJOR_REVISION_SHIFT				8
+-#define MAJOR_REVISION_MASK				(0x7 << 8)
+-#define MINOR_REVISION_SHIFT				0
+-#define MINOR_REVISION_MASK				(0x3f << 0)
+-
+-/* STATUS */
+-#define BE_SHIFT					31
+-#define BE_MASK						(1 << 31)
+-#define DUAL_CLK_MODE_SHIFT				30
+-#define DUAL_CLK_MODE_MASK				(1 << 30)
+-#define FAST_INIT_SHIFT					29
+-#define FAST_INIT_MASK					(1 << 29)
+-#define RDLVLGATETO_SHIFT				6
+-#define RDLVLGATETO_MASK				(1 << 6)
+-#define RDLVLTO_SHIFT					5
+-#define RDLVLTO_MASK					(1 << 5)
+-#define WRLVLTO_SHIFT					4
+-#define WRLVLTO_MASK					(1 << 4)
+-#define PHY_DLL_READY_SHIFT				2
+-#define PHY_DLL_READY_MASK				(1 << 2)
+-
+-/* SDRAM_CONFIG */
+-#define SDRAM_TYPE_SHIFT				29
+-#define SDRAM_TYPE_MASK					(0x7 << 29)
+-#define IBANK_POS_SHIFT					27
+-#define IBANK_POS_MASK					(0x3 << 27)
+-#define DDR_TERM_SHIFT					24
+-#define DDR_TERM_MASK					(0x7 << 24)
+-#define DDR2_DDQS_SHIFT					23
+-#define DDR2_DDQS_MASK					(1 << 23)
+-#define DYN_ODT_SHIFT					21
+-#define DYN_ODT_MASK					(0x3 << 21)
+-#define DDR_DISABLE_DLL_SHIFT				20
+-#define DDR_DISABLE_DLL_MASK				(1 << 20)
+-#define SDRAM_DRIVE_SHIFT				18
+-#define SDRAM_DRIVE_MASK				(0x3 << 18)
+-#define CWL_SHIFT					16
+-#define CWL_MASK					(0x3 << 16)
+-#define NARROW_MODE_SHIFT				14
+-#define NARROW_MODE_MASK				(0x3 << 14)
+-#define CL_SHIFT					10
+-#define CL_MASK						(0xf << 10)
+-#define ROWSIZE_SHIFT					7
+-#define ROWSIZE_MASK					(0x7 << 7)
+-#define IBANK_SHIFT					4
+-#define IBANK_MASK					(0x7 << 4)
+-#define EBANK_SHIFT					3
+-#define EBANK_MASK					(1 << 3)
+-#define PAGESIZE_SHIFT					0
+-#define PAGESIZE_MASK					(0x7 << 0)
+-
+-/* SDRAM_CONFIG_2 */
+-#define CS1NVMEN_SHIFT					30
+-#define CS1NVMEN_MASK					(1 << 30)
+-#define EBANK_POS_SHIFT					27
+-#define EBANK_POS_MASK					(1 << 27)
+-#define RDBNUM_SHIFT					4
+-#define RDBNUM_MASK					(0x3 << 4)
+-#define RDBSIZE_SHIFT					0
+-#define RDBSIZE_MASK					(0x7 << 0)
+-
+-/* SDRAM_REFRESH_CONTROL */
+-#define INITREF_DIS_SHIFT				31
+-#define INITREF_DIS_MASK				(1 << 31)
+-#define SRT_SHIFT					29
+-#define SRT_MASK					(1 << 29)
+-#define ASR_SHIFT					28
+-#define ASR_MASK					(1 << 28)
+-#define PASR_SHIFT					24
+-#define PASR_MASK					(0x7 << 24)
+-#define REFRESH_RATE_SHIFT				0
+-#define REFRESH_RATE_MASK				(0xffff << 0)
+-
+-/* SDRAM_TIMING_1 */
+-#define T_RTW_SHIFT					29
+-#define T_RTW_MASK					(0x7 << 29)
+-#define T_RP_SHIFT					25
+-#define T_RP_MASK					(0xf << 25)
+-#define T_RCD_SHIFT					21
+-#define T_RCD_MASK					(0xf << 21)
+-#define T_WR_SHIFT					17
+-#define T_WR_MASK					(0xf << 17)
+-#define T_RAS_SHIFT					12
+-#define T_RAS_MASK					(0x1f << 12)
+-#define T_RC_SHIFT					6
+-#define T_RC_MASK					(0x3f << 6)
+-#define T_RRD_SHIFT					3
+-#define T_RRD_MASK					(0x7 << 3)
+-#define T_WTR_SHIFT					0
+-#define T_WTR_MASK					(0x7 << 0)
+-
+-/* SDRAM_TIMING_2 */
+-#define T_XP_SHIFT					28
+-#define T_XP_MASK					(0x7 << 28)
+-#define T_ODT_SHIFT					25
+-#define T_ODT_MASK					(0x7 << 25)
+-#define T_XSNR_SHIFT					16
+-#define T_XSNR_MASK					(0x1ff << 16)
+-#define T_XSRD_SHIFT					6
+-#define T_XSRD_MASK					(0x3ff << 6)
+-#define T_RTP_SHIFT					3
+-#define T_RTP_MASK					(0x7 << 3)
+-#define T_CKE_SHIFT					0
+-#define T_CKE_MASK					(0x7 << 0)
+-
+-/* SDRAM_TIMING_3 */
+-#define T_PDLL_UL_SHIFT					28
+-#define T_PDLL_UL_MASK					(0xf << 28)
+-#define T_CSTA_SHIFT					24
+-#define T_CSTA_MASK					(0xf << 24)
+-#define T_CKESR_SHIFT					21
+-#define T_CKESR_MASK					(0x7 << 21)
+-#define ZQ_ZQCS_SHIFT					15
+-#define ZQ_ZQCS_MASK					(0x3f << 15)
+-#define T_TDQSCKMAX_SHIFT				13
+-#define T_TDQSCKMAX_MASK				(0x3 << 13)
+-#define T_RFC_SHIFT					4
+-#define T_RFC_MASK					(0x1ff << 4)
+-#define T_RAS_MAX_SHIFT					0
+-#define T_RAS_MAX_MASK					(0xf << 0)
+-
+-/* POWER_MANAGEMENT_CONTROL */
+-#define PD_TIM_SHIFT					12
+-#define PD_TIM_MASK					(0xf << 12)
+-#define DPD_EN_SHIFT					11
+-#define DPD_EN_MASK					(1 << 11)
+-#define LP_MODE_SHIFT					8
+-#define LP_MODE_MASK					(0x7 << 8)
+-#define SR_TIM_SHIFT					4
+-#define SR_TIM_MASK					(0xf << 4)
+-#define CS_TIM_SHIFT					0
+-#define CS_TIM_MASK					(0xf << 0)
+-
+-/* LPDDR2_MODE_REG_DATA */
+-#define VALUE_0_SHIFT					0
+-#define VALUE_0_MASK					(0x7f << 0)
+-
+-/* LPDDR2_MODE_REG_CONFIG */
+-#define CS_SHIFT					31
+-#define CS_MASK						(1 << 31)
+-#define REFRESH_EN_SHIFT				30
+-#define REFRESH_EN_MASK					(1 << 30)
+-#define ADDRESS_SHIFT					0
+-#define ADDRESS_MASK					(0xff << 0)
+-
+-/* OCP_CONFIG */
+-#define SYS_THRESH_MAX_SHIFT				24
+-#define SYS_THRESH_MAX_MASK				(0xf << 24)
+-#define MPU_THRESH_MAX_SHIFT				20
+-#define MPU_THRESH_MAX_MASK				(0xf << 20)
+-#define LL_THRESH_MAX_SHIFT				16
+-#define LL_THRESH_MAX_MASK				(0xf << 16)
+-
+-/* PERFORMANCE_COUNTER_1 */
+-#define COUNTER1_SHIFT					0
+-#define COUNTER1_MASK					(0xffffffff << 0)
+-
+-/* PERFORMANCE_COUNTER_2 */
+-#define COUNTER2_SHIFT					0
+-#define COUNTER2_MASK					(0xffffffff << 0)
+-
+-/* PERFORMANCE_COUNTER_CONFIG */
+-#define CNTR2_MCONNID_EN_SHIFT				31
+-#define CNTR2_MCONNID_EN_MASK				(1 << 31)
+-#define CNTR2_REGION_EN_SHIFT				30
+-#define CNTR2_REGION_EN_MASK				(1 << 30)
+-#define CNTR2_CFG_SHIFT					16
+-#define CNTR2_CFG_MASK					(0xf << 16)
+-#define CNTR1_MCONNID_EN_SHIFT				15
+-#define CNTR1_MCONNID_EN_MASK				(1 << 15)
+-#define CNTR1_REGION_EN_SHIFT				14
+-#define CNTR1_REGION_EN_MASK				(1 << 14)
+-#define CNTR1_CFG_SHIFT					0
+-#define CNTR1_CFG_MASK					(0xf << 0)
+-
+-/* PERFORMANCE_COUNTER_MASTER_REGION_SELECT */
+-#define MCONNID2_SHIFT					24
+-#define MCONNID2_MASK					(0xff << 24)
+-#define REGION_SEL2_SHIFT				16
+-#define REGION_SEL2_MASK				(0x3 << 16)
+-#define MCONNID1_SHIFT					8
+-#define MCONNID1_MASK					(0xff << 8)
+-#define REGION_SEL1_SHIFT				0
+-#define REGION_SEL1_MASK				(0x3 << 0)
+-
+-/* PERFORMANCE_COUNTER_TIME */
+-#define TOTAL_TIME_SHIFT				0
+-#define TOTAL_TIME_MASK					(0xffffffff << 0)
+-
+-/* DLL_CALIB_CTRL */
+-#define ACK_WAIT_SHIFT					16
+-#define ACK_WAIT_MASK					(0xf << 16)
+-#define DLL_CALIB_INTERVAL_SHIFT			0
+-#define DLL_CALIB_INTERVAL_MASK				(0x1ff << 0)
+-
+-/* END_OF_INTERRUPT */
+-#define EOI_SHIFT					0
+-#define EOI_MASK					(1 << 0)
+-
+-/* SYSTEM_OCP_INTERRUPT_RAW_STATUS */
+-#define DNV_SYS_SHIFT					2
+-#define DNV_SYS_MASK					(1 << 2)
+-#define TA_SYS_SHIFT					1
+-#define TA_SYS_MASK					(1 << 1)
+-#define ERR_SYS_SHIFT					0
+-#define ERR_SYS_MASK					(1 << 0)
+-
+-/* LOW_LATENCY_OCP_INTERRUPT_RAW_STATUS */
+-#define DNV_LL_SHIFT					2
+-#define DNV_LL_MASK					(1 << 2)
+-#define TA_LL_SHIFT					1
+-#define TA_LL_MASK					(1 << 1)
+-#define ERR_LL_SHIFT					0
+-#define ERR_LL_MASK					(1 << 0)
+-
+-/* SYSTEM_OCP_INTERRUPT_ENABLE_SET */
+-#define EN_DNV_SYS_SHIFT				2
+-#define EN_DNV_SYS_MASK					(1 << 2)
+-#define EN_TA_SYS_SHIFT					1
+-#define EN_TA_SYS_MASK					(1 << 1)
+-#define EN_ERR_SYS_SHIFT					0
+-#define EN_ERR_SYS_MASK					(1 << 0)
+-
+-/* LOW_LATENCY_OCP_INTERRUPT_ENABLE_SET */
+-#define EN_DNV_LL_SHIFT					2
+-#define EN_DNV_LL_MASK					(1 << 2)
+-#define EN_TA_LL_SHIFT					1
+-#define EN_TA_LL_MASK					(1 << 1)
+-#define EN_ERR_LL_SHIFT					0
+-#define EN_ERR_LL_MASK					(1 << 0)
+-
+-/* SDRAM_OUTPUT_IMPEDANCE_CALIBRATION_CONFIG */
+-#define ZQ_CS1EN_SHIFT					31
+-#define ZQ_CS1EN_MASK					(1 << 31)
+-#define ZQ_CS0EN_SHIFT					30
+-#define ZQ_CS0EN_MASK					(1 << 30)
+-#define ZQ_DUALCALEN_SHIFT				29
+-#define ZQ_DUALCALEN_MASK				(1 << 29)
+-#define ZQ_SFEXITEN_SHIFT				28
+-#define ZQ_SFEXITEN_MASK				(1 << 28)
+-#define ZQ_ZQINIT_MULT_SHIFT				18
+-#define ZQ_ZQINIT_MULT_MASK				(0x3 << 18)
+-#define ZQ_ZQCL_MULT_SHIFT				16
+-#define ZQ_ZQCL_MULT_MASK				(0x3 << 16)
+-#define ZQ_REFINTERVAL_SHIFT				0
+-#define ZQ_REFINTERVAL_MASK				(0xffff << 0)
+-
+-/* TEMPERATURE_ALERT_CONFIG */
+-#define TA_CS1EN_SHIFT					31
+-#define TA_CS1EN_MASK					(1 << 31)
+-#define TA_CS0EN_SHIFT					30
+-#define TA_CS0EN_MASK					(1 << 30)
+-#define TA_SFEXITEN_SHIFT				28
+-#define TA_SFEXITEN_MASK				(1 << 28)
+-#define TA_DEVWDT_SHIFT					26
+-#define TA_DEVWDT_MASK					(0x3 << 26)
+-#define TA_DEVCNT_SHIFT					24
+-#define TA_DEVCNT_MASK					(0x3 << 24)
+-#define TA_REFINTERVAL_SHIFT				0
+-#define TA_REFINTERVAL_MASK				(0x3fffff << 0)
+-
+-/* OCP_ERROR_LOG */
+-#define MADDRSPACE_SHIFT				14
+-#define MADDRSPACE_MASK					(0x3 << 14)
+-#define MBURSTSEQ_SHIFT					11
+-#define MBURSTSEQ_MASK					(0x7 << 11)
+-#define MCMD_SHIFT					8
+-#define MCMD_MASK					(0x7 << 8)
+-#define MCONNID_SHIFT					0
+-#define MCONNID_MASK					(0xff << 0)
+-
+-/* DDR_PHY_CTRL_1 - EMIF4D */
+-#define DLL_SLAVE_DLY_CTRL_SHIFT_4D			4
+-#define DLL_SLAVE_DLY_CTRL_MASK_4D			(0xFF << 4)
+-#define READ_LATENCY_SHIFT_4D				0
+-#define READ_LATENCY_MASK_4D				(0xf << 0)
+-
+-/* DDR_PHY_CTRL_1 - EMIF4D5 */
+-#define DLL_HALF_DELAY_SHIFT_4D5			21
+-#define DLL_HALF_DELAY_MASK_4D5				(1 << 21)
+-#define READ_LATENCY_SHIFT_4D5				0
+-#define READ_LATENCY_MASK_4D5				(0x1f << 0)
+-
+-/* DDR_PHY_CTRL_1_SHDW */
+-#define DDR_PHY_CTRL_1_SHDW_SHIFT			5
+-#define DDR_PHY_CTRL_1_SHDW_MASK			(0x7ffffff << 5)
+-#define READ_LATENCY_SHDW_SHIFT				0
+-#define READ_LATENCY_SHDW_MASK				(0x1f << 0)
 +#include <linux/ti_emif.h>
-+#include <linux/omap-mailbox.h>
-+
-+#include <asm/suspend.h>
-+#include <asm/proc-fns.h>
-+#include <asm/sizes.h>
-+#include <asm/fncpy.h>
-+#include <asm/system_misc.h>
-+
-+#include "pm.h"
-+#include "cm33xx.h"
-+#include "pm33xx.h"
-+#include "control.h"
-+#include "common.h"
-+#include "clockdomain.h"
-+#include "powerdomain.h"
-+#include "omap_hwmod.h"
-+#include "omap_device.h"
-+#include "soc.h"
-+#include "sram.h"
-+
-+static void __iomem *am33xx_emif_base;
-+static struct powerdomain *cefuse_pwrdm, *gfx_pwrdm, *per_pwrdm, *mpu_pwrdm;
-+static struct clockdomain *gfx_l4ls_clkdm;
-+
-+struct wakeup_src wakeups[] = {
-+	{.irq_nr = 35,	.src = "USB0_PHY"},
-+	{.irq_nr = 36,	.src = "USB1_PHY"},
-+	{.irq_nr = 40,	.src = "I2C0"},
-+	{.irq_nr = 41,	.src = "RTC Timer"},
-+	{.irq_nr = 42,	.src = "RTC Alarm"},
-+	{.irq_nr = 43,	.src = "Timer0"},
-+	{.irq_nr = 44,	.src = "Timer1"},
-+	{.irq_nr = 45,	.src = "UART"},
-+	{.irq_nr = 46,	.src = "GPIO0"},
-+	{.irq_nr = 48,	.src = "MPU_WAKE"},
-+	{.irq_nr = 49,	.src = "WDT0"},
-+	{.irq_nr = 50,	.src = "WDT1"},
-+	{.irq_nr = 51,	.src = "ADC_TSC"},
-+};
-+
-+struct forced_standby_module am33xx_mod[] = {
-+	{.oh_name = "usb_otg_hs"},
-+	{.oh_name = "tptc0"},
-+	{.oh_name = "tptc1"},
-+	{.oh_name = "tptc2"},
-+	{.oh_name = "cpgmac0"},
-+};
-+
-+static struct am33xx_pm_context *am33xx_pm;
-+
-+static DECLARE_COMPLETION(am33xx_pm_sync);
-+
-+static void (*am33xx_do_wfi_sram)(struct am33xx_suspend_params *);
-+
-+static struct am33xx_suspend_params susp_params;
-+
-+#ifdef CONFIG_SUSPEND
-+
-+static int am33xx_do_sram_idle(long unsigned int unused)
-+{
-+	am33xx_do_wfi_sram(&susp_params);
-+	return 0;
-+}
-+
-+static int am33xx_pm_suspend(void)
-+{
-+	int i, j, ret = 0;
-+
-+	int status = 0;
-+	struct platform_device *pdev;
-+	struct omap_device *od;
-+
-+	/*
-+	 * By default the following IPs do not have MSTANDBY asserted
-+	 * which is necessary for PER domain transition. If the drivers
-+	 * are not compiled into the kernel HWMOD code will not change the
-+	 * state of the IPs if the IP was not never enabled. To ensure
-+	 * that there no issues with or without the drivers being compiled
-+	 * in the kernel, we forcefully put these IPs to idle.
-+	 */
-+	for (i = 0; i < ARRAY_SIZE(am33xx_mod); i++) {
-+		pdev = to_platform_device(am33xx_mod[i].dev);
-+		od = to_omap_device(pdev);
-+		if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER) {
-+			omap_device_enable_hwmods(od);
-+			omap_device_idle_hwmods(od);
-+		}
-+	}
-+
-+	/* Try to put GFX to sleep */
-+	omap_set_pwrdm_state(gfx_pwrdm, PWRDM_POWER_OFF);
-+	ret = cpu_suspend(0, am33xx_do_sram_idle);
-+
-+	status = pwrdm_read_prev_pwrst(gfx_pwrdm);
-+	if (status != PWRDM_POWER_OFF)
-+		pr_err("PM: GFX domain did not transition\n");
-+	else
-+		pr_info("PM: GFX domain entered low power state\n");
-+
-+	/*
-+	 * BUG: GFX_L4LS clock domain needs to be woken up to
-+	 * ensure thet L4LS clock domain does not get stuck in transition
-+	 * If that happens L3 module does not get disabled, thereby leading
-+	 * to PER power domain transition failing
-+	 */
-+	clkdm_wakeup(gfx_l4ls_clkdm);
-+	clkdm_sleep(gfx_l4ls_clkdm);
-+
-+	if (ret) {
-+		pr_err("PM: Kernel suspend failure\n");
-+	} else {
-+		i = am33xx_pm_status();
-+		switch (i) {
-+		case 0:
-+			pr_info("PM: Successfully put all powerdomains to target state\n");
-+
-+			/*
-+			 * The PRCM registers on AM335x do not contain previous state
-+			 * information like those present on OMAP4 so we must manually
-+			 * indicate transition so state counters are properly incremented
-+			 */
-+			pwrdm_post_transition(mpu_pwrdm);
-+			pwrdm_post_transition(per_pwrdm);
-+			break;
-+		case 1:
-+			pr_err("PM: Could not transition all powerdomains to target state\n");
-+			ret = -1;
-+			break;
-+		default:
-+			pr_err("PM: CM3 returned unknown result :(\nStatus = %d\n", i);
-+			ret = -1;
-+		}
-+
-+		/* print the wakeup reason */
-+		i = am33xx_pm_wake_src();
-+		for (j = 0; j < ARRAY_SIZE(wakeups); j++) {
-+			if (wakeups[j].irq_nr == i) {
-+				pr_info("PM: Wakeup source %s\n", wakeups[j].src);
-+				break;
-+			}
-+		}
-+
-+		if (j == ARRAY_SIZE(wakeups))
-+			pr_info("PM: Unknown wakeup source %d!\n", i);
-+	}
-+
-+	return ret;
-+}
-+
-+static int am33xx_pm_enter(suspend_state_t suspend_state)
-+{
-+	int ret = 0;
-+
-+	switch (suspend_state) {
-+	case PM_SUSPEND_STANDBY:
-+	case PM_SUSPEND_MEM:
-+		ret = am33xx_pm_suspend();
-+		break;
-+	default:
-+		ret = -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
-+/* returns the error code from msg_send - 0 for success, failure otherwise */
-+static int am33xx_ping_wkup_m3(void)
-+{
-+	int ret = 0;
-+
-+	/*
-+	 * Write a dummy message to the mailbox in order to trigger the RX
-+	 * interrupt to alert the M3 that data is available in the IPC
-+	 * registers.
-+	 */
-+	ret = omap_mbox_msg_send(am33xx_pm->mbox, 0xABCDABCD);
-+
-+	return ret;
-+}
-+
-+static void am33xx_m3_state_machine_reset(void)
-+{
-+	int i;
-+
-+	am33xx_pm->ipc.sleep_mode = IPC_CMD_RESET;
-+
-+	am33xx_pm_ipc_cmd(&am33xx_pm->ipc);
-+
-+	am33xx_pm->state = M3_STATE_MSG_FOR_RESET;
-+
-+	pr_info("PM: Sending message for resetting M3 state machine\n");
-+
-+	if (!am33xx_ping_wkup_m3()) {
-+		i = wait_for_completion_timeout(&am33xx_pm_sync,
-+					msecs_to_jiffies(500));
-+		if (WARN(i == 0, "PM: MPU<->CM3 sync failure\n"))
-+			am33xx_pm->state = M3_STATE_UNKNOWN;
-+	} else {
-+		pr_warn("PM: Unable to ping CM3\n");
-+	}
-+}
-+
-+static int am33xx_pm_begin(suspend_state_t state)
-+{
-+	int i;
-+
-+	cpu_idle_poll_ctrl(true);
-+
-+	am33xx_pm->ipc.sleep_mode	= IPC_CMD_DS0;
-+	am33xx_pm->ipc.param1		= DS_IPC_DEFAULT;
-+	am33xx_pm->ipc.param2		= DS_IPC_DEFAULT;
-+
-+	am33xx_pm_ipc_cmd(&am33xx_pm->ipc);
-+
-+	am33xx_pm->state = M3_STATE_MSG_FOR_LP;
-+
-+	pr_info("PM: Sending message for entering DeepSleep mode\n");
-+
-+	if (!am33xx_ping_wkup_m3()) {
-+		i = wait_for_completion_timeout(&am33xx_pm_sync,
-+					msecs_to_jiffies(500));
-+		if (WARN(i == 0, "PM: MPU<->CM3 sync failure\n"))
-+			return -1;
-+	} else {
-+		pr_warn("PM: Unable to ping CM3\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static void am33xx_pm_end(void)
-+{
-+	am33xx_m3_state_machine_reset();
-+
-+	cpu_idle_poll_ctrl(false);
-+
-+	return;
-+}
-+
-+static struct platform_suspend_ops am33xx_pm_ops = {
-+	.begin		= am33xx_pm_begin,
-+	.end		= am33xx_pm_end,
-+	.enter		= am33xx_pm_enter,
-+};
-+
-+/*
-+ * Dummy notifier for the mailbox
-+ */
-+
-+static int wkup_mbox_msg(struct notifier_block *self, unsigned long len,
-+		void *msg)
-+{
-+	return 0;
-+}
-+
-+static struct notifier_block wkup_mbox_notifier = {
-+	.notifier_call = wkup_mbox_msg,
-+};
-+
-+void am33xx_txev_handler(void)
-+{
-+	switch (am33xx_pm->state) {
-+	case M3_STATE_RESET:
-+		am33xx_pm->state = M3_STATE_INITED;
-+		am33xx_pm->ver = am33xx_pm_version_get();
-+		if (am33xx_pm->ver == M3_VERSION_UNKNOWN ||
-+			am33xx_pm->ver < M3_BASELINE_VERSION) {
-+			pr_warn("PM: CM3 Firmware Version %x not supported\n",
-+						am33xx_pm->ver);
-+		} else {
-+			pr_info("PM: CM3 Firmware Version = 0x%x\n",
-+						am33xx_pm->ver);
-+			am33xx_pm_ops.valid = suspend_valid_only_mem;
-+		}
-+		break;
-+	case M3_STATE_MSG_FOR_RESET:
-+		am33xx_pm->state = M3_STATE_INITED;
-+		complete(&am33xx_pm_sync);
-+		break;
-+	case M3_STATE_MSG_FOR_LP:
-+		complete(&am33xx_pm_sync);
-+		break;
-+	case M3_STATE_UNKNOWN:
-+		pr_warn("PM: Unknown CM3 State\n");
-+	}
-+
-+	return;
-+}
-+
-+static void am33xx_pm_firmware_cb(const struct firmware *fw, void *context)
-+{
-+	struct am33xx_pm_context *am33xx_pm = context;
-+	int ret = 0;
-+
-+	/* no firmware found */
-+	if (!fw) {
-+		pr_err("PM: request_firmware failed\n");
-+		return;
-+	}
-+
-+	wkup_m3_copy_code(fw->data, fw->size);
-+
-+	wkup_m3_register_txev_handler(am33xx_txev_handler);
-+
-+	pr_info("PM: Copied the M3 firmware to UMEM\n");
-+
-+	/*
-+	 * Invalidate M3 firmware version before hardreset.
-+	 * Write invalid version in lower 4 nibbles of parameter
-+	 * register (ipc_regs + 0x8).
-+	 */
-+	am33xx_pm_version_clear();
-+
-+	am33xx_pm->state = M3_STATE_RESET;
-+
-+	ret = wkup_m3_prepare();
-+	if (ret) {
-+		pr_err("PM: Could not prepare WKUP_M3\n");
-+		return;
-+	}
-+
-+	/* Physical resume address to be used by ROM code */
-+	am33xx_pm->ipc.resume_addr = (AM33XX_OCMC_END -
-+		am33xx_do_wfi_sz + am33xx_resume_offset + 0x4);
-+
-+	am33xx_pm->mbox = omap_mbox_get("wkup_m3", &wkup_mbox_notifier);
-+
-+	if (IS_ERR(am33xx_pm->mbox)) {
-+		ret = -EBUSY;
-+		pr_err("PM: IPC Request for A8->M3 Channel failed!\n");
-+		return;
-+	} else {
-+		suspend_set_ops(&am33xx_pm_ops);
-+	}
-+
-+	return;
-+}
-+
-+#endif /* CONFIG_SUSPEND */
-+
-+/*
-+ * Push the minimal suspend-resume code to SRAM
-+ */
-+void am33xx_push_sram_idle(void)
-+{
-+	am33xx_do_wfi_sram = (void *)omap_sram_push
-+					(am33xx_do_wfi, am33xx_do_wfi_sz);
-+}
-+
-+static int __init am33xx_map_emif(void)
-+{
-+	am33xx_emif_base = ioremap(AM33XX_EMIF_BASE, SZ_32K);
-+
-+	if (!am33xx_emif_base)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
-+int __init am33xx_pm_init(void)
-+{
-+	int ret;
-+	u32 temp;
-+	struct device_node *np;
-+	int i;
-+
-+	if (!soc_is_am33xx())
-+		return -ENODEV;
-+
-+	pr_info("Power Management for AM33XX family\n");
-+
-+	/*
-+	 * By default the following IPs do not have MSTANDBY asserted
-+	 * which is necessary for PER domain transition. If the drivers
-+	 * are not compiled into the kernel HWMOD code will not change the
-+	 * state of the IPs if the IP was not never enabled
-+	 */
-+	for (i = 0; i < ARRAY_SIZE(am33xx_mod); i++)
-+		am33xx_mod[i].dev = omap_device_get_by_hwmod_name(am33xx_mod[i].oh_name);
-+
-+	gfx_pwrdm = pwrdm_lookup("gfx_pwrdm");
-+	per_pwrdm = pwrdm_lookup("per_pwrdm");
-+	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
-+
-+	gfx_l4ls_clkdm = clkdm_lookup("gfx_l4ls_gfx_clkdm");
-+
-+	if ((!gfx_pwrdm) || (!per_pwrdm) || (!mpu_pwrdm) || (!gfx_l4ls_clkdm)) {
-+		ret = -ENODEV;
-+		goto err;
-+	}
-+
-+	am33xx_pm = kzalloc(sizeof(*am33xx_pm), GFP_KERNEL);
-+	if (!am33xx_pm) {
-+		pr_err("Memory allocation failed\n");
-+		ret = -ENOMEM;
-+		goto err;
-+	}
-+
-+	ret = am33xx_map_emif();
-+	if (ret) {
-+		pr_err("PM: Could not ioremap EMIF\n");
-+		goto err;
-+	}
-+	/* Determine Memory Type */
-+	temp = readl(am33xx_emif_base + EMIF_SDRAM_CONFIG);
-+	temp = (temp & SDRAM_TYPE_MASK) >> SDRAM_TYPE_SHIFT;
-+	/* Parameters to pass to aseembly code */
-+	susp_params.emif_addr_virt = am33xx_emif_base;
-+	susp_params.dram_sync = am33xx_dram_sync;
-+	susp_params.mem_type = temp;
-+	am33xx_pm->ipc.param3 = temp;
-+
-+	np = of_find_compatible_node(NULL, NULL, "ti,am3353-wkup-m3");
-+	if (np) {
-+		if (of_find_property(np, "ti,needs_vtt_toggle", NULL) &&
-+		    (!(of_property_read_u32(np, "vtt-gpio-pin",
-+							&temp)))) {
-+			if (temp >= 0 && temp <= 31)
-+				am33xx_pm->ipc.param3 |=
-+					((1 << VTT_STAT_SHIFT) |
-+					(temp << VTT_GPIO_PIN_SHIFT));
-+		}
-+	}
-+
-+	(void) clkdm_for_each(omap_pm_clkdms_setup, NULL);
-+
-+	/* CEFUSE domain can be turned off post bootup */
-+	cefuse_pwrdm = pwrdm_lookup("cefuse_pwrdm");
-+	if (cefuse_pwrdm)
-+		omap_set_pwrdm_state(cefuse_pwrdm, PWRDM_POWER_OFF);
-+	else
-+		pr_err("PM: Failed to get cefuse_pwrdm\n");
-+
-+#ifdef CONFIG_SUSPEND
-+	pr_info("PM: Trying to load am335x-pm-firmware.bin");
-+
-+	/* We don't want to delay boot */
-+	request_firmware_nowait(THIS_MODULE, 0, "am335x-pm-firmware.bin",
-+				NULL, GFP_KERNEL, am33xx_pm,
-+				am33xx_pm_firmware_cb);
-+#endif /* CONFIG_SUSPEND */
-+
-+err:
-+	return ret;
-+}
-diff --git a/arch/arm/mach-omap2/pm33xx.h b/arch/arm/mach-omap2/pm33xx.h
+ 
+ #ifndef __ASSEMBLY__
+ /*
+diff --git a/include/linux/ti_emif.h b/include/linux/ti_emif.h
 new file mode 100644
-index 0000000..befdd11
+index 0000000..be26e7f
 --- /dev/null
-+++ b/arch/arm/mach-omap2/pm33xx.h
-@@ -0,0 +1,77 @@
++++ b/include/linux/ti_emif.h
+@@ -0,0 +1,558 @@
 +/*
-+ * AM33XX Power Management Routines
++ * Register defines for the EMIF driver
 + *
-+ * Copyright (C) 2012 Texas Instruments Inc.
-+ * Vaibhav Bedia <vaibhav.bedia@ti.com>
++ * Copyright (C) 2012 Texas Instruments, Inc.
 + *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
++ * Benoit Cousson (b-cousson@ti.com)
 + *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
-+#ifndef __ARCH_ARM_MACH_OMAP2_PM33XX_H
-+#define __ARCH_ARM_MACH_OMAP2_PM33XX_H
-+
-+#include "control.h"
-+
-+#ifndef __ASSEMBLER__
-+
-+struct am33xx_pm_context {
-+	struct am33xx_ipc_data	ipc;
-+	struct firmware		*firmware;
-+	struct omap_mbox	*mbox;
-+	u8			state;
-+	u32			ver;
-+};
++#ifndef __TI_EMIF_H
++#define __TI_EMIF_H
 +
 +/*
-+ * Params passed to suspend routine
-+ *
-+ * Since these are used to load into registers by suspend code,
-+ * entries here must always be in sync with the suspend code
-+ * in arm/mach-omap2/sleep33xx.S
++ * Maximum number of different frequencies supported by EMIF driver
++ * Determines the number of entries in the pointer array for register
++ * cache
 + */
-+struct am33xx_suspend_params {
-+	void __iomem *emif_addr_virt;
-+	u32 mem_type;
-+	void __iomem *dram_sync;
-+};
++#define EMIF_MAX_NUM_FREQUENCIES			6
 +
-+struct wakeup_src {
-+	int irq_nr;
-+	char src[10];
-+};
++/* State of the core voltage */
++#define DDR_VOLTAGE_STABLE				0
++#define DDR_VOLTAGE_RAMPING				1
 +
-+struct forced_standby_module {
-+	char oh_name[15];
-+	struct device *dev;
-+};
++/* Defines for timing De-rating */
++#define EMIF_NORMAL_TIMINGS				0
++#define EMIF_DERATED_TIMINGS				1
 +
-+int wkup_m3_copy_code(const u8 *data, size_t size);
-+int wkup_m3_prepare(void);
-+void wkup_m3_register_txev_handler(void (*txev_handler)(void));
++/* Length of the forced read idle period in terms of cycles */
++#define EMIF_READ_IDLE_LEN_VAL				5
 +
-+#endif
-+
-+#define	IPC_CMD_DS0			0x3
-+#define IPC_CMD_RESET                   0xe
-+#define DS_IPC_DEFAULT			0xffffffff
-+#define M3_VERSION_UNKNOWN		0x0000ffff
-+#define M3_BASELINE_VERSION		0x21
-+
-+#define M3_STATE_UNKNOWN		0
-+#define M3_STATE_RESET			1
-+#define M3_STATE_INITED			2
-+#define M3_STATE_MSG_FOR_LP		3
-+#define M3_STATE_MSG_FOR_RESET		4
-+
-+#define AM33XX_OCMC_END			0x40310000
-+#define AM33XX_EMIF_BASE		0x4C000000
-+
-+#define MEM_TYPE_DDR2		2
-+
-+#endif
-diff --git a/arch/arm/mach-omap2/wkup_m3.c b/arch/arm/mach-omap2/wkup_m3.c
-new file mode 100644
-index 0000000..8eaa7f3
---- /dev/null
-+++ b/arch/arm/mach-omap2/wkup_m3.c
-@@ -0,0 +1,183 @@
 +/*
-+ * AM33XX Power Management Routines
-+ *
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ * Vaibhav Bedia <vaibhav.bedia@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
++ * forced read idle interval to be used when voltage
++ * is changed as part of DVFS/DPS - 1ms
 + */
++#define READ_IDLE_INTERVAL_DVFS				(1*1000000)
 +
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/cpu.h>
-+#include <linux/err.h>
-+#include <linux/firmware.h>
-+#include <linux/io.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/module.h>
-+#include <linux/interrupt.h>
-+#include <linux/of.h>
++/*
++ * Forced read idle interval to be used when voltage is stable
++ * 50us - or maximum value will do
++ */
++#define READ_IDLE_INTERVAL_NORMAL			(50*1000000)
 +
-+#include "pm33xx.h"
-+#include "control.h"
-+#include "omap_device.h"
-+#include "soc.h"
++/* DLL calibration interval when voltage is NOT stable - 1us */
++#define DLL_CALIB_INTERVAL_DVFS				(1*1000000)
 +
-+struct wkup_m3_context {
-+	struct device	*dev;
-+	void __iomem	*code;
-+	void (*txev_handler)(void);
-+};
++#define DLL_CALIB_ACK_WAIT_VAL				5
 +
-+struct wkup_m3_context *wkup_m3;
++/* Interval between ZQCS commands - hw team recommended value */
++#define EMIF_ZQCS_INTERVAL_US				(50*1000)
++/* Enable ZQ Calibration on exiting Self-refresh */
++#define ZQ_SFEXITEN_ENABLE				1
++/*
++ * ZQ Calibration simultaneously on both chip-selects:
++ * Needs one calibration resistor per CS
++ */
++#define	ZQ_DUALCALEN_DISABLE				0
++#define	ZQ_DUALCALEN_ENABLE				1
 +
-+int wkup_m3_copy_code(const u8 *data, size_t size)
-+{
-+	if (size > SZ_16K)
-+		return -ENOMEM;
++#define T_ZQCS_DEFAULT_NS				90
++#define T_ZQCL_DEFAULT_NS				360
++#define T_ZQINIT_DEFAULT_NS				1000
 +
-+	memcpy_toio(wkup_m3->code, data, size);
++/* DPD_EN */
++#define DPD_DISABLE					0
++#define DPD_ENABLE					1
 +
-+	return 0;
-+}
++/*
++ * Default values for the low-power entry to be used if not provided by user.
++ * OMAP4/5 has a hw bug(i735) due to which this value can not be less than 512
++ * Timeout values are in DDR clock 'cycles' and frequency threshold in Hz
++ */
++#define EMIF_LP_MODE_TIMEOUT_PERFORMANCE		2048
++#define EMIF_LP_MODE_TIMEOUT_POWER			512
++#define EMIF_LP_MODE_FREQ_THRESHOLD			400000000
 +
++/* DDR_PHY_CTRL_1 values for EMIF4D - ATTILA PHY combination */
++#define EMIF_DDR_PHY_CTRL_1_BASE_VAL_ATTILAPHY		0x049FF000
++#define EMIF_DLL_SLAVE_DLY_CTRL_400_MHZ_ATTILAPHY	0x41
++#define EMIF_DLL_SLAVE_DLY_CTRL_200_MHZ_ATTILAPHY	0x80
++#define EMIF_DLL_SLAVE_DLY_CTRL_100_MHZ_AND_LESS_ATTILAPHY 0xFF
 +
-+void wkup_m3_register_txev_handler(void (*txev_handler)(void))
-+{
-+	wkup_m3->txev_handler = txev_handler;
-+}
++/* DDR_PHY_CTRL_1 values for EMIF4D5 INTELLIPHY combination */
++#define EMIF_DDR_PHY_CTRL_1_BASE_VAL_INTELLIPHY		0x0E084200
++#define EMIF_PHY_TOTAL_READ_LATENCY_INTELLIPHY_PS	10000
 +
-+/* have platforms do what they want in atomic context over here? */
-+static irqreturn_t wkup_m3_txev_handler(int irq, void *unused)
-+{
-+	am33xx_txev_eoi();
++/* TEMP_ALERT_CONFIG - corresponding to temp gradient 5 C/s */
++#define TEMP_ALERT_POLL_INTERVAL_DEFAULT_MS		360
 +
-+	/* callback to be executed in atomic context */
-+	/* return 0 implies IRQ_HANDLED else IRQ_NONE */
-+	wkup_m3->txev_handler();
++#define EMIF_T_CSTA					3
++#define EMIF_T_PDLL_UL					128
 +
-+	am33xx_txev_enable();
++/* External PHY control registers magic values */
++#define EMIF_EXT_PHY_CTRL_1_VAL				0x04020080
++#define EMIF_EXT_PHY_CTRL_5_VAL				0x04010040
++#define EMIF_EXT_PHY_CTRL_6_VAL				0x01004010
++#define EMIF_EXT_PHY_CTRL_7_VAL				0x00001004
++#define EMIF_EXT_PHY_CTRL_8_VAL				0x04010040
++#define EMIF_EXT_PHY_CTRL_9_VAL				0x01004010
++#define EMIF_EXT_PHY_CTRL_10_VAL			0x00001004
++#define EMIF_EXT_PHY_CTRL_11_VAL			0x00000000
++#define EMIF_EXT_PHY_CTRL_12_VAL			0x00000000
++#define EMIF_EXT_PHY_CTRL_13_VAL			0x00000000
++#define EMIF_EXT_PHY_CTRL_14_VAL			0x80080080
++#define EMIF_EXT_PHY_CTRL_15_VAL			0x00800800
++#define EMIF_EXT_PHY_CTRL_16_VAL			0x08102040
++#define EMIF_EXT_PHY_CTRL_17_VAL			0x00000001
++#define EMIF_EXT_PHY_CTRL_18_VAL			0x540A8150
++#define EMIF_EXT_PHY_CTRL_19_VAL			0xA81502A0
++#define EMIF_EXT_PHY_CTRL_20_VAL			0x002A0540
++#define EMIF_EXT_PHY_CTRL_21_VAL			0x00000000
++#define EMIF_EXT_PHY_CTRL_22_VAL			0x00000000
++#define EMIF_EXT_PHY_CTRL_23_VAL			0x00000000
++#define EMIF_EXT_PHY_CTRL_24_VAL			0x00000077
 +
-+	return IRQ_HANDLED;
-+}
++#define EMIF_INTELLI_PHY_DQS_GATE_OPENING_DELAY_PS	1200
 +
-+int wkup_m3_prepare(void)
-+{
-+	struct platform_device *pdev = to_platform_device(wkup_m3->dev);
++/* Registers offset */
++#define EMIF_MODULE_ID_AND_REVISION			0x0000
++#define EMIF_STATUS					0x0004
++#define EMIF_SDRAM_CONFIG				0x0008
++#define EMIF_SDRAM_CONFIG_2				0x000c
++#define EMIF_SDRAM_REFRESH_CONTROL			0x0010
++#define EMIF_SDRAM_REFRESH_CTRL_SHDW			0x0014
++#define EMIF_SDRAM_TIMING_1				0x0018
++#define EMIF_SDRAM_TIMING_1_SHDW			0x001c
++#define EMIF_SDRAM_TIMING_2				0x0020
++#define EMIF_SDRAM_TIMING_2_SHDW			0x0024
++#define EMIF_SDRAM_TIMING_3				0x0028
++#define EMIF_SDRAM_TIMING_3_SHDW			0x002c
++#define EMIF_LPDDR2_NVM_TIMING				0x0030
++#define EMIF_LPDDR2_NVM_TIMING_SHDW			0x0034
++#define EMIF_POWER_MANAGEMENT_CONTROL			0x0038
++#define EMIF_POWER_MANAGEMENT_CTRL_SHDW			0x003c
++#define EMIF_LPDDR2_MODE_REG_DATA			0x0040
++#define EMIF_LPDDR2_MODE_REG_CONFIG			0x0050
++#define EMIF_OCP_CONFIG					0x0054
++#define EMIF_OCP_CONFIG_VALUE_1				0x0058
++#define EMIF_OCP_CONFIG_VALUE_2				0x005c
++#define EMIF_IODFT_TEST_LOGIC_GLOBAL_CONTROL		0x0060
++#define EMIF_IODFT_TEST_LOGIC_CTRL_MISR_RESULT		0x0064
++#define EMIF_IODFT_TEST_LOGIC_ADDRESS_MISR_RESULT	0x0068
++#define EMIF_IODFT_TEST_LOGIC_DATA_MISR_RESULT_1	0x006c
++#define EMIF_IODFT_TEST_LOGIC_DATA_MISR_RESULT_2	0x0070
++#define EMIF_IODFT_TEST_LOGIC_DATA_MISR_RESULT_3	0x0074
++#define EMIF_PERFORMANCE_COUNTER_1			0x0080
++#define EMIF_PERFORMANCE_COUNTER_2			0x0084
++#define EMIF_PERFORMANCE_COUNTER_CONFIG			0x0088
++#define EMIF_PERFORMANCE_COUNTER_MASTER_REGION_SELECT	0x008c
++#define EMIF_PERFORMANCE_COUNTER_TIME			0x0090
++#define EMIF_MISC_REG					0x0094
++#define EMIF_DLL_CALIB_CTRL				0x0098
++#define EMIF_DLL_CALIB_CTRL_SHDW			0x009c
++#define EMIF_END_OF_INTERRUPT				0x00a0
++#define EMIF_SYSTEM_OCP_INTERRUPT_RAW_STATUS		0x00a4
++#define EMIF_LL_OCP_INTERRUPT_RAW_STATUS		0x00a8
++#define EMIF_SYSTEM_OCP_INTERRUPT_STATUS		0x00ac
++#define EMIF_LL_OCP_INTERRUPT_STATUS			0x00b0
++#define EMIF_SYSTEM_OCP_INTERRUPT_ENABLE_SET		0x00b4
++#define EMIF_LL_OCP_INTERRUPT_ENABLE_SET		0x00b8
++#define EMIF_SYSTEM_OCP_INTERRUPT_ENABLE_CLEAR		0x00bc
++#define EMIF_LL_OCP_INTERRUPT_ENABLE_CLEAR		0x00c0
++#define EMIF_SDRAM_OUTPUT_IMPEDANCE_CALIBRATION_CONFIG	0x00c8
++#define EMIF_TEMPERATURE_ALERT_CONFIG			0x00cc
++#define EMIF_OCP_ERROR_LOG				0x00d0
++#define EMIF_READ_WRITE_LEVELING_RAMP_WINDOW		0x00d4
++#define EMIF_READ_WRITE_LEVELING_RAMP_CONTROL		0x00d8
++#define EMIF_READ_WRITE_LEVELING_CONTROL		0x00dc
++#define EMIF_DDR_PHY_CTRL_1				0x00e4
++#define EMIF_DDR_PHY_CTRL_1_SHDW			0x00e8
++#define EMIF_DDR_PHY_CTRL_2				0x00ec
++#define EMIF_PRIORITY_TO_CLASS_OF_SERVICE_MAPPING	0x0100
++#define EMIF_CONNECTION_ID_TO_CLASS_OF_SERVICE_1_MAPPING 0x0104
++#define EMIF_CONNECTION_ID_TO_CLASS_OF_SERVICE_2_MAPPING 0x0108
++#define EMIF_READ_WRITE_EXECUTION_THRESHOLD		0x0120
++#define EMIF_COS_CONFIG					0x0124
++#define EMIF_PHY_STATUS_1				0x0140
++#define EMIF_PHY_STATUS_2				0x0144
++#define EMIF_PHY_STATUS_3				0x0148
++#define EMIF_PHY_STATUS_4				0x014c
++#define EMIF_PHY_STATUS_5				0x0150
++#define EMIF_PHY_STATUS_6				0x0154
++#define EMIF_PHY_STATUS_7				0x0158
++#define EMIF_PHY_STATUS_8				0x015c
++#define EMIF_PHY_STATUS_9				0x0160
++#define EMIF_PHY_STATUS_10				0x0164
++#define EMIF_PHY_STATUS_11				0x0168
++#define EMIF_PHY_STATUS_12				0x016c
++#define EMIF_PHY_STATUS_13				0x0170
++#define EMIF_PHY_STATUS_14				0x0174
++#define EMIF_PHY_STATUS_15				0x0178
++#define EMIF_PHY_STATUS_16				0x017c
++#define EMIF_PHY_STATUS_17				0x0180
++#define EMIF_PHY_STATUS_18				0x0184
++#define EMIF_PHY_STATUS_19				0x0188
++#define EMIF_PHY_STATUS_20				0x018c
++#define EMIF_PHY_STATUS_21				0x0190
++#define EMIF_EXT_PHY_CTRL_1				0x0200
++#define EMIF_EXT_PHY_CTRL_1_SHDW			0x0204
++#define EMIF_EXT_PHY_CTRL_2				0x0208
++#define EMIF_EXT_PHY_CTRL_2_SHDW			0x020c
++#define EMIF_EXT_PHY_CTRL_3				0x0210
++#define EMIF_EXT_PHY_CTRL_3_SHDW			0x0214
++#define EMIF_EXT_PHY_CTRL_4				0x0218
++#define EMIF_EXT_PHY_CTRL_4_SHDW			0x021c
++#define EMIF_EXT_PHY_CTRL_5				0x0220
++#define EMIF_EXT_PHY_CTRL_5_SHDW			0x0224
++#define EMIF_EXT_PHY_CTRL_6				0x0228
++#define EMIF_EXT_PHY_CTRL_6_SHDW			0x022c
++#define EMIF_EXT_PHY_CTRL_7				0x0230
++#define EMIF_EXT_PHY_CTRL_7_SHDW			0x0234
++#define EMIF_EXT_PHY_CTRL_8				0x0238
++#define EMIF_EXT_PHY_CTRL_8_SHDW			0x023c
++#define EMIF_EXT_PHY_CTRL_9				0x0240
++#define EMIF_EXT_PHY_CTRL_9_SHDW			0x0244
++#define EMIF_EXT_PHY_CTRL_10				0x0248
++#define EMIF_EXT_PHY_CTRL_10_SHDW			0x024c
++#define EMIF_EXT_PHY_CTRL_11				0x0250
++#define EMIF_EXT_PHY_CTRL_11_SHDW			0x0254
++#define EMIF_EXT_PHY_CTRL_12				0x0258
++#define EMIF_EXT_PHY_CTRL_12_SHDW			0x025c
++#define EMIF_EXT_PHY_CTRL_13				0x0260
++#define EMIF_EXT_PHY_CTRL_13_SHDW			0x0264
++#define EMIF_EXT_PHY_CTRL_14				0x0268
++#define EMIF_EXT_PHY_CTRL_14_SHDW			0x026c
++#define EMIF_EXT_PHY_CTRL_15				0x0270
++#define EMIF_EXT_PHY_CTRL_15_SHDW			0x0274
++#define EMIF_EXT_PHY_CTRL_16				0x0278
++#define EMIF_EXT_PHY_CTRL_16_SHDW			0x027c
++#define EMIF_EXT_PHY_CTRL_17				0x0280
++#define EMIF_EXT_PHY_CTRL_17_SHDW			0x0284
++#define EMIF_EXT_PHY_CTRL_18				0x0288
++#define EMIF_EXT_PHY_CTRL_18_SHDW			0x028c
++#define EMIF_EXT_PHY_CTRL_19				0x0290
++#define EMIF_EXT_PHY_CTRL_19_SHDW			0x0294
++#define EMIF_EXT_PHY_CTRL_20				0x0298
++#define EMIF_EXT_PHY_CTRL_20_SHDW			0x029c
++#define EMIF_EXT_PHY_CTRL_21				0x02a0
++#define EMIF_EXT_PHY_CTRL_21_SHDW			0x02a4
++#define EMIF_EXT_PHY_CTRL_22				0x02a8
++#define EMIF_EXT_PHY_CTRL_22_SHDW			0x02ac
++#define EMIF_EXT_PHY_CTRL_23				0x02b0
++#define EMIF_EXT_PHY_CTRL_23_SHDW			0x02b4
++#define EMIF_EXT_PHY_CTRL_24				0x02b8
++#define EMIF_EXT_PHY_CTRL_24_SHDW			0x02bc
++#define EMIF_EXT_PHY_CTRL_25				0x02c0
++#define EMIF_EXT_PHY_CTRL_25_SHDW			0x02c4
++#define EMIF_EXT_PHY_CTRL_26				0x02c8
++#define EMIF_EXT_PHY_CTRL_26_SHDW			0x02cc
++#define EMIF_EXT_PHY_CTRL_27				0x02d0
++#define EMIF_EXT_PHY_CTRL_27_SHDW			0x02d4
++#define EMIF_EXT_PHY_CTRL_28				0x02d8
++#define EMIF_EXT_PHY_CTRL_28_SHDW			0x02dc
++#define EMIF_EXT_PHY_CTRL_29				0x02e0
++#define EMIF_EXT_PHY_CTRL_29_SHDW			0x02e4
++#define EMIF_EXT_PHY_CTRL_30				0x02e8
++#define EMIF_EXT_PHY_CTRL_30_SHDW			0x02ec
 +
-+	/* check that the code is loaded */
-+	omap_device_deassert_hardreset(pdev, "wkup_m3");
++/* Registers shifts and masks */
 +
-+	return 0;
-+}
++/* EMIF_MODULE_ID_AND_REVISION */
++#define SCHEME_SHIFT					30
++#define SCHEME_MASK					(0x3 << 30)
++#define MODULE_ID_SHIFT					16
++#define MODULE_ID_MASK					(0xfff << 16)
++#define RTL_VERSION_SHIFT				11
++#define RTL_VERSION_MASK				(0x1f << 11)
++#define MAJOR_REVISION_SHIFT				8
++#define MAJOR_REVISION_MASK				(0x7 << 8)
++#define MINOR_REVISION_SHIFT				0
++#define MINOR_REVISION_MASK				(0x3f << 0)
 +
-+static int wkup_m3_probe(struct platform_device *pdev)
-+{
-+	int irq, ret = 0;
-+	struct resource *mem;
++/* STATUS */
++#define BE_SHIFT					31
++#define BE_MASK						(1 << 31)
++#define DUAL_CLK_MODE_SHIFT				30
++#define DUAL_CLK_MODE_MASK				(1 << 30)
++#define FAST_INIT_SHIFT					29
++#define FAST_INIT_MASK					(1 << 29)
++#define RDLVLGATETO_SHIFT				6
++#define RDLVLGATETO_MASK				(1 << 6)
++#define RDLVLTO_SHIFT					5
++#define RDLVLTO_MASK					(1 << 5)
++#define WRLVLTO_SHIFT					4
++#define WRLVLTO_MASK					(1 << 4)
++#define PHY_DLL_READY_SHIFT				2
++#define PHY_DLL_READY_MASK				(1 << 2)
 +
-+	pm_runtime_enable(&pdev->dev);
++/* SDRAM_CONFIG */
++#define SDRAM_TYPE_SHIFT				29
++#define SDRAM_TYPE_MASK					(0x7 << 29)
++#define IBANK_POS_SHIFT					27
++#define IBANK_POS_MASK					(0x3 << 27)
++#define DDR_TERM_SHIFT					24
++#define DDR_TERM_MASK					(0x7 << 24)
++#define DDR2_DDQS_SHIFT					23
++#define DDR2_DDQS_MASK					(1 << 23)
++#define DYN_ODT_SHIFT					21
++#define DYN_ODT_MASK					(0x3 << 21)
++#define DDR_DISABLE_DLL_SHIFT				20
++#define DDR_DISABLE_DLL_MASK				(1 << 20)
++#define SDRAM_DRIVE_SHIFT				18
++#define SDRAM_DRIVE_MASK				(0x3 << 18)
++#define CWL_SHIFT					16
++#define CWL_MASK					(0x3 << 16)
++#define NARROW_MODE_SHIFT				14
++#define NARROW_MODE_MASK				(0x3 << 14)
++#define CL_SHIFT					10
++#define CL_MASK						(0xf << 10)
++#define ROWSIZE_SHIFT					7
++#define ROWSIZE_MASK					(0x7 << 7)
++#define IBANK_SHIFT					4
++#define IBANK_MASK					(0x7 << 4)
++#define EBANK_SHIFT					3
++#define EBANK_MASK					(1 << 3)
++#define PAGESIZE_SHIFT					0
++#define PAGESIZE_MASK					(0x7 << 0)
 +
-+	ret = pm_runtime_get_sync(&pdev->dev);
-+	if (IS_ERR_VALUE(ret)) {
-+		dev_err(&pdev->dev, "pm_runtime_get_sync() failed\n");
-+		return ret;
-+	}
++/* SDRAM_CONFIG_2 */
++#define CS1NVMEN_SHIFT					30
++#define CS1NVMEN_MASK					(1 << 30)
++#define EBANK_POS_SHIFT					27
++#define EBANK_POS_MASK					(1 << 27)
++#define RDBNUM_SHIFT					4
++#define RDBNUM_MASK					(0x3 << 4)
++#define RDBSIZE_SHIFT					0
++#define RDBSIZE_MASK					(0x7 << 0)
 +
-+	irq = platform_get_irq(pdev, 0);
-+	if (!irq) {
-+		dev_err(wkup_m3->dev, "no irq resource\n");
-+		ret = -ENXIO;
-+		goto err;
-+	}
++/* SDRAM_REFRESH_CONTROL */
++#define INITREF_DIS_SHIFT				31
++#define INITREF_DIS_MASK				(1 << 31)
++#define SRT_SHIFT					29
++#define SRT_MASK					(1 << 29)
++#define ASR_SHIFT					28
++#define ASR_MASK					(1 << 28)
++#define PASR_SHIFT					24
++#define PASR_MASK					(0x7 << 24)
++#define REFRESH_RATE_SHIFT				0
++#define REFRESH_RATE_MASK				(0xffff << 0)
 +
-+	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!mem) {
-+		dev_err(wkup_m3->dev, "no memory resource\n");
-+		ret = -ENXIO;
-+		goto err;
-+	}
++/* SDRAM_TIMING_1 */
++#define T_RTW_SHIFT					29
++#define T_RTW_MASK					(0x7 << 29)
++#define T_RP_SHIFT					25
++#define T_RP_MASK					(0xf << 25)
++#define T_RCD_SHIFT					21
++#define T_RCD_MASK					(0xf << 21)
++#define T_WR_SHIFT					17
++#define T_WR_MASK					(0xf << 17)
++#define T_RAS_SHIFT					12
++#define T_RAS_MASK					(0x1f << 12)
++#define T_RC_SHIFT					6
++#define T_RC_MASK					(0x3f << 6)
++#define T_RRD_SHIFT					3
++#define T_RRD_MASK					(0x7 << 3)
++#define T_WTR_SHIFT					0
++#define T_WTR_MASK					(0x7 << 0)
 +
-+	wkup_m3 = kzalloc(sizeof(*wkup_m3), GFP_KERNEL);
-+	if (!wkup_m3) {
-+		pr_err("Memory allocation failed\n");
-+		ret = -ENOMEM;
-+		goto err;
-+	}
++/* SDRAM_TIMING_2 */
++#define T_XP_SHIFT					28
++#define T_XP_MASK					(0x7 << 28)
++#define T_ODT_SHIFT					25
++#define T_ODT_MASK					(0x7 << 25)
++#define T_XSNR_SHIFT					16
++#define T_XSNR_MASK					(0x1ff << 16)
++#define T_XSRD_SHIFT					6
++#define T_XSRD_MASK					(0x3ff << 6)
++#define T_RTP_SHIFT					3
++#define T_RTP_MASK					(0x7 << 3)
++#define T_CKE_SHIFT					0
++#define T_CKE_MASK					(0x7 << 0)
 +
-+	wkup_m3->dev = &pdev->dev;
++/* SDRAM_TIMING_3 */
++#define T_PDLL_UL_SHIFT					28
++#define T_PDLL_UL_MASK					(0xf << 28)
++#define T_CSTA_SHIFT					24
++#define T_CSTA_MASK					(0xf << 24)
++#define T_CKESR_SHIFT					21
++#define T_CKESR_MASK					(0x7 << 21)
++#define ZQ_ZQCS_SHIFT					15
++#define ZQ_ZQCS_MASK					(0x3f << 15)
++#define T_TDQSCKMAX_SHIFT				13
++#define T_TDQSCKMAX_MASK				(0x3 << 13)
++#define T_RFC_SHIFT					4
++#define T_RFC_MASK					(0x1ff << 4)
++#define T_RAS_MAX_SHIFT					0
++#define T_RAS_MAX_MASK					(0xf << 0)
 +
-+	wkup_m3->code = devm_request_and_ioremap(wkup_m3->dev, mem);
-+	if (!wkup_m3->code) {
-+		dev_err(wkup_m3->dev, "could not ioremap\n");
-+		ret = -EADDRNOTAVAIL;
-+		goto err;
-+	}
++/* POWER_MANAGEMENT_CONTROL */
++#define PD_TIM_SHIFT					12
++#define PD_TIM_MASK					(0xf << 12)
++#define DPD_EN_SHIFT					11
++#define DPD_EN_MASK					(1 << 11)
++#define LP_MODE_SHIFT					8
++#define LP_MODE_MASK					(0x7 << 8)
++#define SR_TIM_SHIFT					4
++#define SR_TIM_MASK					(0xf << 4)
++#define CS_TIM_SHIFT					0
++#define CS_TIM_MASK					(0xf << 0)
 +
-+	ret = devm_request_irq(wkup_m3->dev, irq, wkup_m3_txev_handler,
-+		  IRQF_DISABLED, "wkup_m3_txev", NULL);
-+	if (ret) {
-+		dev_err(wkup_m3->dev, "request_irq failed\n");
-+		goto err;
-+	}
++/* LPDDR2_MODE_REG_DATA */
++#define VALUE_0_SHIFT					0
++#define VALUE_0_MASK					(0x7f << 0)
 +
-+err:
-+	return ret;
-+}
++/* LPDDR2_MODE_REG_CONFIG */
++#define CS_SHIFT					31
++#define CS_MASK						(1 << 31)
++#define REFRESH_EN_SHIFT				30
++#define REFRESH_EN_MASK					(1 << 30)
++#define ADDRESS_SHIFT					0
++#define ADDRESS_MASK					(0xff << 0)
 +
-+static int wkup_m3_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
++/* OCP_CONFIG */
++#define SYS_THRESH_MAX_SHIFT				24
++#define SYS_THRESH_MAX_MASK				(0xf << 24)
++#define MPU_THRESH_MAX_SHIFT				20
++#define MPU_THRESH_MAX_MASK				(0xf << 20)
++#define LL_THRESH_MAX_SHIFT				16
++#define LL_THRESH_MAX_MASK				(0xf << 16)
 +
-+static struct of_device_id wkup_m3_dt_ids[] = {
-+	{ .compatible = "ti,am3353-wkup-m3" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, wkup_m3_dt_ids);
++/* PERFORMANCE_COUNTER_1 */
++#define COUNTER1_SHIFT					0
++#define COUNTER1_MASK					(0xffffffff << 0)
 +
-+static int wkup_m3_rpm_suspend(struct device *dev)
-+{
-+	return -EBUSY;
-+}
++/* PERFORMANCE_COUNTER_2 */
++#define COUNTER2_SHIFT					0
++#define COUNTER2_MASK					(0xffffffff << 0)
 +
-+static int wkup_m3_rpm_resume(struct device *dev)
-+{
-+	return 0;
-+}
++/* PERFORMANCE_COUNTER_CONFIG */
++#define CNTR2_MCONNID_EN_SHIFT				31
++#define CNTR2_MCONNID_EN_MASK				(1 << 31)
++#define CNTR2_REGION_EN_SHIFT				30
++#define CNTR2_REGION_EN_MASK				(1 << 30)
++#define CNTR2_CFG_SHIFT					16
++#define CNTR2_CFG_MASK					(0xf << 16)
++#define CNTR1_MCONNID_EN_SHIFT				15
++#define CNTR1_MCONNID_EN_MASK				(1 << 15)
++#define CNTR1_REGION_EN_SHIFT				14
++#define CNTR1_REGION_EN_MASK				(1 << 14)
++#define CNTR1_CFG_SHIFT					0
++#define CNTR1_CFG_MASK					(0xf << 0)
 +
-+static const struct dev_pm_ops wkup_m3_ops = {
-+	SET_RUNTIME_PM_OPS(wkup_m3_rpm_suspend, wkup_m3_rpm_resume, NULL)
-+};
++/* PERFORMANCE_COUNTER_MASTER_REGION_SELECT */
++#define MCONNID2_SHIFT					24
++#define MCONNID2_MASK					(0xff << 24)
++#define REGION_SEL2_SHIFT				16
++#define REGION_SEL2_MASK				(0x3 << 16)
++#define MCONNID1_SHIFT					8
++#define MCONNID1_MASK					(0xff << 8)
++#define REGION_SEL1_SHIFT				0
++#define REGION_SEL1_MASK				(0x3 << 0)
 +
-+static struct platform_driver wkup_m3_driver = {
-+	.probe		= wkup_m3_probe,
-+	.remove		= wkup_m3_remove,
-+	.driver		= {
-+		.name	= "wkup_m3",
-+		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(wkup_m3_dt_ids),
-+		.pm	= &wkup_m3_ops,
-+	},
-+};
++/* PERFORMANCE_COUNTER_TIME */
++#define TOTAL_TIME_SHIFT				0
++#define TOTAL_TIME_MASK					(0xffffffff << 0)
 +
-+static __init int wkup_m3_init(void)
-+{
-+	return platform_driver_register(&wkup_m3_driver);
-+}
++/* DLL_CALIB_CTRL */
++#define ACK_WAIT_SHIFT					16
++#define ACK_WAIT_MASK					(0xf << 16)
++#define DLL_CALIB_INTERVAL_SHIFT			0
++#define DLL_CALIB_INTERVAL_MASK				(0x1ff << 0)
 +
-+static __exit void wkup_m3_exit(void)
-+{
-+	platform_driver_unregister(&wkup_m3_driver);
-+}
-+omap_postcore_initcall(wkup_m3_init);
-+module_exit(wkup_m3_exit);
++/* END_OF_INTERRUPT */
++#define EOI_SHIFT					0
++#define EOI_MASK					(1 << 0)
++
++/* SYSTEM_OCP_INTERRUPT_RAW_STATUS */
++#define DNV_SYS_SHIFT					2
++#define DNV_SYS_MASK					(1 << 2)
++#define TA_SYS_SHIFT					1
++#define TA_SYS_MASK					(1 << 1)
++#define ERR_SYS_SHIFT					0
++#define ERR_SYS_MASK					(1 << 0)
++
++/* LOW_LATENCY_OCP_INTERRUPT_RAW_STATUS */
++#define DNV_LL_SHIFT					2
++#define DNV_LL_MASK					(1 << 2)
++#define TA_LL_SHIFT					1
++#define TA_LL_MASK					(1 << 1)
++#define ERR_LL_SHIFT					0
++#define ERR_LL_MASK					(1 << 0)
++
++/* SYSTEM_OCP_INTERRUPT_ENABLE_SET */
++#define EN_DNV_SYS_SHIFT				2
++#define EN_DNV_SYS_MASK					(1 << 2)
++#define EN_TA_SYS_SHIFT					1
++#define EN_TA_SYS_MASK					(1 << 1)
++#define EN_ERR_SYS_SHIFT					0
++#define EN_ERR_SYS_MASK					(1 << 0)
++
++/* LOW_LATENCY_OCP_INTERRUPT_ENABLE_SET */
++#define EN_DNV_LL_SHIFT					2
++#define EN_DNV_LL_MASK					(1 << 2)
++#define EN_TA_LL_SHIFT					1
++#define EN_TA_LL_MASK					(1 << 1)
++#define EN_ERR_LL_SHIFT					0
++#define EN_ERR_LL_MASK					(1 << 0)
++
++/* SDRAM_OUTPUT_IMPEDANCE_CALIBRATION_CONFIG */
++#define ZQ_CS1EN_SHIFT					31
++#define ZQ_CS1EN_MASK					(1 << 31)
++#define ZQ_CS0EN_SHIFT					30
++#define ZQ_CS0EN_MASK					(1 << 30)
++#define ZQ_DUALCALEN_SHIFT				29
++#define ZQ_DUALCALEN_MASK				(1 << 29)
++#define ZQ_SFEXITEN_SHIFT				28
++#define ZQ_SFEXITEN_MASK				(1 << 28)
++#define ZQ_ZQINIT_MULT_SHIFT				18
++#define ZQ_ZQINIT_MULT_MASK				(0x3 << 18)
++#define ZQ_ZQCL_MULT_SHIFT				16
++#define ZQ_ZQCL_MULT_MASK				(0x3 << 16)
++#define ZQ_REFINTERVAL_SHIFT				0
++#define ZQ_REFINTERVAL_MASK				(0xffff << 0)
++
++/* TEMPERATURE_ALERT_CONFIG */
++#define TA_CS1EN_SHIFT					31
++#define TA_CS1EN_MASK					(1 << 31)
++#define TA_CS0EN_SHIFT					30
++#define TA_CS0EN_MASK					(1 << 30)
++#define TA_SFEXITEN_SHIFT				28
++#define TA_SFEXITEN_MASK				(1 << 28)
++#define TA_DEVWDT_SHIFT					26
++#define TA_DEVWDT_MASK					(0x3 << 26)
++#define TA_DEVCNT_SHIFT					24
++#define TA_DEVCNT_MASK					(0x3 << 24)
++#define TA_REFINTERVAL_SHIFT				0
++#define TA_REFINTERVAL_MASK				(0x3fffff << 0)
++
++/* OCP_ERROR_LOG */
++#define MADDRSPACE_SHIFT				14
++#define MADDRSPACE_MASK					(0x3 << 14)
++#define MBURSTSEQ_SHIFT					11
++#define MBURSTSEQ_MASK					(0x7 << 11)
++#define MCMD_SHIFT					8
++#define MCMD_MASK					(0x7 << 8)
++#define MCONNID_SHIFT					0
++#define MCONNID_MASK					(0xff << 0)
++
++/* DDR_PHY_CTRL_1 - EMIF4D */
++#define DLL_SLAVE_DLY_CTRL_SHIFT_4D			4
++#define DLL_SLAVE_DLY_CTRL_MASK_4D			(0xFF << 4)
++#define READ_LATENCY_SHIFT_4D				0
++#define READ_LATENCY_MASK_4D				(0xf << 0)
++
++/* DDR_PHY_CTRL_1 - EMIF4D5 */
++#define DLL_HALF_DELAY_SHIFT_4D5			21
++#define DLL_HALF_DELAY_MASK_4D5				(1 << 21)
++#define READ_LATENCY_SHIFT_4D5				0
++#define READ_LATENCY_MASK_4D5				(0x1f << 0)
++
++/* DDR_PHY_CTRL_1_SHDW */
++#define DDR_PHY_CTRL_1_SHDW_SHIFT			5
++#define DDR_PHY_CTRL_1_SHDW_MASK			(0x7ffffff << 5)
++#define READ_LATENCY_SHDW_SHIFT				0
++#define READ_LATENCY_SHDW_MASK				(0x1f << 0)
++
++#endif /* __TI_EMIF_H */
 -- 
 1.7.9.5
 
