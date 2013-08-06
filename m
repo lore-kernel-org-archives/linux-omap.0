@@ -1,75 +1,33 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: [PATCH 1/5] pdev: Fix platform device resource linking
-Date: Tue, 6 Aug 2013 18:15:27 +0800
-Message-ID: <20130806101527.GB29283@kroah.com>
-References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com>
- <1375775624-12250-2-git-send-email-panto@antoniou-consulting.com>
- <20130806093601.GB27889@kroah.com>
- <311C42C3-6544-4058-ABE9-F9FAE72DD5CA@antoniou-consulting.com>
+Date: Tue, 6 Aug 2013 11:19:14 +0100
+Message-ID: <20130806101914.GH23053@n2100.arm.linux.org.uk>
+References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com> <1375775624-12250-2-git-send-email-panto@antoniou-consulting.com> <20130806093601.GB27889@kroah.com> <311C42C3-6544-4058-ABE9-F9FAE72DD5CA@antoniou-consulting.com> <20130806101527.GB29283@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49030 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755643Ab3HFKOJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Aug 2013 06:14:09 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40584 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754884Ab3HFKTg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Aug 2013 06:19:36 -0400
 Content-Disposition: inline
-In-Reply-To: <311C42C3-6544-4058-ABE9-F9FAE72DD5CA@antoniou-consulting.com>
+In-Reply-To: <20130806101527.GB29283@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?iso-8859-1?Q?Beno=EEt?= Coussno <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Coussno <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Aug 06, 2013 at 12:45:42PM +0300, Pantelis Antoniou wrote:
-> Hi Greg,
+On Tue, Aug 06, 2013 at 06:15:27PM +0800, Greg Kroah-Hartman wrote:
+> On Tue, Aug 06, 2013 at 12:45:42PM +0300, Pantelis Antoniou wrote:
+> > What would it take to move all this into driver core?
 > 
-> On Aug 6, 2013, at 12:36 PM, Greg Kroah-Hartman wrote:
-> 
-> > On Tue, Aug 06, 2013 at 10:53:40AM +0300, Pantelis Antoniou wrote:
-> >> Platform device removal uncovered a number of problems with
-> >> the way resources are handled in the core platform code.
-> >> 
-> >> Resources now form child/parent linkages and this requires
-> >> proper linking of the resources. On top of that the OF core
-> >> directly creates it's own platform devices. Simplify things
-> >> by providing helper functions that manage the linking properly.
-> > 
-> > Ugh, the OF core shouldn't be creating platform devices.  Well, yes, I
-> > know it does that today, but ick, ick, ick.
-> > 
-> 
-> Yep, ick, ick, ick is the correct form.
-> 
-> >> Two functions are provided:
-> >> 
-> >> platform_device_link_resources(), which links all the
-> >> linkable resources (if not already linked).
-> >> 
-> >> and platform_device_unlink_resources(), which unlinks all the
-> >> resources.
-> > 
-> > Why would anyone need to call this?  I'm getting the feeling that OF
-> > should just have it's own bus of devices to handle this type of mess.
-> > ACPI is going through the same rewrite for this same type of problem
-> > (they did things differently.)  I suggest you work with the ACPI
-> > developers to so the same thing they are, to solve it correctly for
-> > everyone.
-> > 
-> 
-> It's the same problem really. Another bus type might not fly well.
-> The same device driver should be (in theory) be made to work unchanged
-> either on an OF/ACPI/Fex( :) ) setup.
+> What specifically would you move into there?
 
-No, that's not quite true, a driver needs to know how to talk to the
-bus, as that is how it communicates to the hardware.  It can be done for
-different types of busses (see the OHCI USB controller for one example
-of this), but a driver will have to know what type of bus it is on in
-order to work properly.
+A variable to hold the streaming dma_mask, so that its in struct device
+rather than having to be separate.  Yes, we can keep the pointer in there
+too, because that appears to convey meaning in the kernel today - whether
+the device can do DMA or not.
 
-> What would it take to move all this into driver core?
-
-What specifically would you move into there?
-
-thanks,
-
-greg k-h
+A NULL dma_mask pointer already means it can't and dma_set_mask() always
+fails.  A non-NULL dma_mask pointer means the driver can use
+dma_set_mask() to set an appropriate mask.
