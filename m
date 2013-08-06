@@ -1,41 +1,41 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: [PATCH] usb: dwc3-pci: Ensure system sleep PM ops are defined only when used
-Date: Tue,  6 Aug 2013 16:49:26 +0100
-Message-ID: <1375804166-3205-1-git-send-email-broonie@kernel.org>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH 2/2] ARM: OMAP: rx51: change musb mode to OTG
+Date: Tue,  6 Aug 2013 20:06:16 +0300
+Message-ID: <1375808776-14975-3-git-send-email-aaro.koskinen@iki.fi>
+References: <1375808776-14975-1-git-send-email-aaro.koskinen@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:44729 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755113Ab3HFPtz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Aug 2013 11:49:55 -0400
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:48693 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756082Ab3HFRG2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Aug 2013 13:06:28 -0400
+In-Reply-To: <1375808776-14975-1-git-send-email-aaro.koskinen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, linaro-kernel@lists.linaro.org, linux-omap@vger.kernel.org, Andy Green <andy.green@linaro.org>, Mark Brown <broonie@linaro.org>
+To: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-From: Andy Green <andy.green@linaro.org>
+Peripheral-only mode got broken in v3.11-rc1 because of unknown reasons.
+Change the mode to OTG, in practice that should work equally well even
+when/if the regression gets fixed.
 
-You might have CONFIG_PM, but you might not have CONFIG_SUSPEND, in which
-case these are unused.
-
-Signed-off-by: Andy Green <andy.green@linaro.org>
-Signed-off-by: Mark Brown <broonie@linaro.org>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
- drivers/usb/dwc3/dwc3-pci.c | 2 +-
+ arch/arm/mach-omap2/board-rx51.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/usb/dwc3/dwc3-pci.c b/drivers/usb/dwc3/dwc3-pci.c
-index 5d746e5..4902021 100644
---- a/drivers/usb/dwc3/dwc3-pci.c
-+++ b/drivers/usb/dwc3/dwc3-pci.c
-@@ -191,7 +191,7 @@ static DEFINE_PCI_DEVICE_TABLE(dwc3_pci_id_table) = {
- };
- MODULE_DEVICE_TABLE(pci, dwc3_pci_id_table);
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index d2ea68e..773510556 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -85,7 +85,7 @@ static struct omap_board_mux board_mux[] __initdata = {
  
--#ifdef CONFIG_PM
-+#ifdef CONFIG_SUSPEND
- static int dwc3_pci_suspend(struct device *dev)
- {
- 	struct pci_dev	*pci = to_pci_dev(dev);
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_ULPI,
+-	.mode			= MUSB_PERIPHERAL,
++	.mode			= MUSB_OTG,
+ 	.power			= 0,
+ };
+ 
 -- 
-1.8.4.rc1
+1.8.3.2
 
