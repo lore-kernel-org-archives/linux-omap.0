@@ -1,113 +1,72 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH 1/5] pdev: Fix platform device resource linking
-Date: Tue, 6 Aug 2013 13:27:35 +0300
-Message-ID: <A7E5F769-6238-430C-AEE5-94598C334D5E@antoniou-consulting.com>
-References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com> <1375775624-12250-2-git-send-email-panto@antoniou-consulting.com> <20130806093601.GB27889@kroah.com> <311C42C3-6544-4058-ABE9-F9FAE72DD5CA@antoniou-consulting.com> <20130806101527.GB29283@kroah.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 1/7] usb: phy: omap: Add new PHY types and remove omap_control_usb3_phy_power()
+Date: Tue, 6 Aug 2013 17:15:31 +0530
+Message-ID: <5200E1DB.8040006@ti.com>
+References: <1375365915-21380-1-git-send-email-rogerq@ti.com> <1375365915-21380-2-git-send-email-rogerq@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130806101527.GB29283@kroah.com>
+In-Reply-To: <1375365915-21380-2-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?iso-8859-1?Q?Beno=EEt_Coussno?= <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, tony@atomide.com, george.cherian@ti.com, dmurphy@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Greg,
+Hi,
 
-On Aug 6, 2013, at 1:15 PM, Greg Kroah-Hartman wrote:
+On Thursday 01 August 2013 07:35 PM, Roger Quadros wrote:
+> TYPE2 meaning has changed. It is now a USB2 phy with Power down bit in
+> control_dev_conf register.
+>
+> Introduce TYPE3 and TYPE4 PHY. TYPE3 is USB3 phy with DPLL and individual
+> TX/RX power control. TYPE4 is USB2 phy with power aux register.
+>
+> Update DT binding information to reflect these changes.
+>
+> Also get rid of omap_control_usb3_phy_power(). Just one function
+> i.e. omap_control_usb_phy_power() will now take care of all PHY types.
+>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 
-> On Tue, Aug 06, 2013 at 12:45:42PM +0300, Pantelis Antoniou wrote:
->> Hi Greg,
->> 
->> On Aug 6, 2013, at 12:36 PM, Greg Kroah-Hartman wrote:
->> 
->>> On Tue, Aug 06, 2013 at 10:53:40AM +0300, Pantelis Antoniou wrote:
->>>> Platform device removal uncovered a number of problems with
->>>> the way resources are handled in the core platform code.
->>>> 
->>>> Resources now form child/parent linkages and this requires
->>>> proper linking of the resources. On top of that the OF core
->>>> directly creates it's own platform devices. Simplify things
->>>> by providing helper functions that manage the linking properly.
->>> 
->>> Ugh, the OF core shouldn't be creating platform devices.  Well, yes, I
->>> know it does that today, but ick, ick, ick.
->>> 
->> 
->> Yep, ick, ick, ick is the correct form.
->> 
->>>> Two functions are provided:
->>>> 
->>>> platform_device_link_resources(), which links all the
->>>> linkable resources (if not already linked).
->>>> 
->>>> and platform_device_unlink_resources(), which unlinks all the
->>>> resources.
->>> 
->>> Why would anyone need to call this?  I'm getting the feeling that OF
->>> should just have it's own bus of devices to handle this type of mess.
->>> ACPI is going through the same rewrite for this same type of problem
->>> (they did things differently.)  I suggest you work with the ACPI
->>> developers to so the same thing they are, to solve it correctly for
->>> everyone.
->>> 
->> 
->> It's the same problem really. Another bus type might not fly well.
->> The same device driver should be (in theory) be made to work unchanged
->> either on an OF/ACPI/Fex( :) ) setup.
-> 
-> No, that's not quite true, a driver needs to know how to talk to the
-> bus, as that is how it communicates to the hardware.  It can be done for
-> different types of busses (see the OHCI USB controller for one example
-> of this), but a driver will have to know what type of bus it is on in
-> order to work properly.
-> 
+Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
+but one minor comment below.
+> ---
+>   Documentation/devicetree/bindings/usb/omap-usb.txt |   23 ++--
+>   drivers/usb/phy/phy-omap-control.c                 |  129 +++++++++++---------
+>   drivers/usb/phy/phy-omap-usb2.c                    |    4 +
+>   drivers/usb/phy/phy-omap-usb3.c                    |    6 +-
+>   include/linux/usb/omap_control_usb.h               |   18 ++--
+>   5 files changed, 100 insertions(+), 80 deletions(-)
+>
+.
+.
+<snip>
+.
+.
 
-In the case of OF & ACPI there is no 'bus'. The device is probably integrated
-in the SoC's silicon, but there is absolutely no way to 'probe' for it's existence;
-you have to use a-priori knowledge of the SoC's topology in order to configure it
-(along with any per-board specific information if there is any kind of shared 
-resource configuration - i.e. pinmuxing or something else).
+> +	omap_control_usb_phy_power(phy->control_dev, 0);
+>   	usb_add_phy_dev(&phy->phy);
+>
+>   	platform_set_drvdata(pdev, phy);
+> diff --git a/include/linux/usb/omap_control_usb.h b/include/linux/usb/omap_control_usb.h
+> index 27b5b8c..7f027d3 100644
+> --- a/include/linux/usb/omap_control_usb.h
+> +++ b/include/linux/usb/omap_control_usb.h
+> @@ -22,9 +22,9 @@
 
-There are the 3 well known methods to do so in the Linux kernel right now:
+>   struct omap_control_usb {
+>   	struct device *dev;
+>
+> -	u32 __iomem *dev_conf;
+>   	u32 __iomem *otghs_control;
+> -	u32 __iomem *phy_power;
+> +	u32 __iomem *power;
+> +	u32 __iomem *power_aux;
+>
+>   	struct clk *sys_clk;
+>
+you can remove omap_control_usb_platform_data from here.
 
-1) Board files in which the configuration information is stored in the per-board
-platform file encoded in platform data structures.
-
-2) OF, in which case the information is provided via the flat device tree blob
-the bootloader provides.
-
-3) ACPI in which case the information is provided via the firmware's ACPI tables
-(I'm not overly familiar with ACPI, so there might be some more nuance here).
-
-The device driver for all these cases is absolutely the same; the only place where
-it differs it's in the way it uses to retrieve that configuration information.
-
-The board file method is pretty much no-go due to the need to support multiple
-boards from a single kernel; that leaves OF and ACPI.
-
->From what I can tell what ACPI supports is a very small subset of what OF can support right now;
-that is both number of device drivers, as well as what you can do with device driver
-functionality (see things like gpios etc, how much easier is to use with OF).
-
-Since we're in the let's make a wish stage, what I wish for is a board-file & ACPI
-translator stage to OF data, and depreciating everything else gradually.
-That would kill platform_device and ACPI specific data and move everything
-to a common device structure supporting OF for configuration.
- 
->> What would it take to move all this into driver core?
-> 
-> What specifically would you move into there?
-> 
-
-Pretty much everything that's in the union of platform_device & whatever 
-acpi uses to hold it's configuration info.
-
-> thanks,
-> 
-> greg k-h
-
-Regards
-
--- Pantelis
+Thanks
+Kishon
