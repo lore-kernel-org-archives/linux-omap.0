@@ -1,128 +1,80 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: Re: [PATCH 3/3] ARM: dts: AM33xx: Add RNG node
-Date: Tue, 6 Aug 2013 11:17:18 -0700
-Message-ID: <CA+Bv8XZ0SqtCJQszrpVcRuksJU+GNBoJD7FaP+NuQrbshnnBpg@mail.gmail.com>
-References: <1375777984-6267-1-git-send-email-lokeshvutla@ti.com>
-	<1375777984-6267-4-git-send-email-lokeshvutla@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCHv3 0/8] omap mailbox dt
+Date: Tue, 6 Aug 2013 16:39:53 -0500
+Message-ID: <1375825193-18046-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:50969 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756139Ab3HFSRT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Aug 2013 14:17:19 -0400
-In-Reply-To: <1375777984-6267-4-git-send-email-lokeshvutla@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, devicetree@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Suman Anna <s-anna@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, paul@pwsan.com, devicetree@vger.kernel.org, rob@landley.net, rnayak@ti.com, benoit.cousson@linaro.org
 
-On Tue, Aug 6, 2013 at 1:33 AM, Lokesh Vutla <lokeshvutla@ti.com> wrote:
-> Add the generic AM33xx RNG module's device tree data and
-> enable it for the am335x-evm, am335x-evmsk, and am335x-bone
-> platforms.  Also add Documentation file describing the data
-> for the RNG module.
->
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> ---
->  .../devicetree/bindings/hwrng/omap_rng.txt         |   22 ++++++++++++++++++++
->  arch/arm/boot/dts/am335x-bone.dts                  |    4 ++++
->  arch/arm/boot/dts/am335x-evm.dts                   |    4 ++++
->  arch/arm/boot/dts/am335x-evmsk.dts                 |    4 ++++
->  arch/arm/boot/dts/am33xx.dtsi                      |    8 +++++++
->  5 files changed, 42 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/hwrng/omap_rng.txt
->
-> diff --git a/Documentation/devicetree/bindings/hwrng/omap_rng.txt b/Documentation/devicetree/bindings/hwrng/omap_rng.txt
-> new file mode 100644
-> index 0000000..6a62acd
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/hwrng/omap_rng.txt
-> @@ -0,0 +1,22 @@
-> +OMAP SoC HWRNG Module
-> +
-> +Required properties:
-> +
-> +- compatible : Should contain entries for this and backward compatible
-> +  RNG versions:
-> +  - "ti,omap2-rng" for OMAP2.
-> +  - "ti,omap4-rng" for OMAP4, OMAP5 and AM33XX.
-> +  Note that these two versions are incompatible.
-> +- ti,hwmods: Name of the hwmod associated with the RNG module
-> +- reg : Offset and length of the register set for the module
-> +- interrupts : the interrupt number for the RNG module.
-> +               Only used for "ti,omap4-rng".
-> +
-> +Example:
-> +/* AM335x */
-> +rng: rng@48310000 {
-> +       compatible = "ti,omap4-rng";
-> +       ti,hwmods = "rng";
-> +       reg = <0x48310000 0x2000>;
-> +       interrupts = <111>;
-> +};
-> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-> index 444b4ed..46a3887 100644
-> --- a/arch/arm/boot/dts/am335x-bone.dts
-> +++ b/arch/arm/boot/dts/am335x-bone.dts
-> @@ -234,3 +234,7 @@
->         pinctrl-0 = <&davinci_mdio_default>;
->         pinctrl-1 = <&davinci_mdio_sleep>;
->  };
-> +
-> +&rng {
-> +       status = "okay";
-> +};
-> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> index 3aee1a4..ebfbebe1 100644
-> --- a/arch/arm/boot/dts/am335x-evm.dts
-> +++ b/arch/arm/boot/dts/am335x-evm.dts
-> @@ -488,3 +488,7 @@
->                 ti,adc-channels = <4 5 6 7>;
->         };
->  };
-> +
-> +&rng {
-> +       status = "okay";
-> +};
-> diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-> index 0c8ad17..6610a05 100644
-> --- a/arch/arm/boot/dts/am335x-evmsk.dts
-> +++ b/arch/arm/boot/dts/am335x-evmsk.dts
-> @@ -402,3 +402,7 @@
->         phy_id = <&davinci_mdio>, <1>;
->         phy-mode = "rgmii-txid";
->  };
-> +
-> +&rng {
-> +       status = "okay";
-> +};
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 38b446b..b1e6205 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -530,5 +530,13 @@
->                         #size-cells = <1>;
->                         status = "disabled";
->                 };
-> +
-> +               rng: rng@48310000 {
-> +                       compatible = "ti,omap4-rng";
-> +                       ti,hwmods = "rng";
-> +                       reg = <0x48310000 0x2000>;
-> +                       interrupts = <111>;
-> +                       status = "disabled";
+Hi,
 
-Is there any point in making this default to "disabled"? Are there any
-am335x platforms where the trng doesn't function?
+This is an updated series for adding the device tree support to
+the OMAP mailbox driver. The series is based on 3.11-rc4 and now
+includes the support for AM335 WkupM3 mailbox.
 
-> +               };
->         };
->  };
-> --
-> 1.7.9.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The support for WkupM3 mailbox is essential for achieving the PM
+Suspend on AM335 devices, and this series is a dependency for
+the AM335 suspend/resume series [1]. The AM335 support patches
+required the mailbox DT patches posted previously, so I have
+refreshed all of them together.
+
+Tested this on Beagle-XM, Panda4 and OMAP5 uEVM (with
+out-of-tree clock patches).
+
+v3:
+- Includes 3 new patches on top of the unchanged patches in v2.
+- Patches 7 and 8 adds the driver support and DT node for AM335.
+- Patch6 is a minor cleanup patch removing omap_mbox_type_t from
+  mbox ops.
+
+v2:
+- Removed the #ti,mbox-data-cells from DT bindings and node data
+- Includes 2 new patches that adds the data for OMAP5.
+http://marc.info/?l=linux-omap&m=137452880325361&w=2
+
+v1:
+http://marc.info/?l=linux-omap&m=137159523405468&w=2
+
+[1] http://marc.info/?l=linux-omap&m=137581142013093&w=2
+
+Suman Anna (8):
+  mailbox/omap: add a parent structure common to all mboxes
+  mailbox/omap: add support for parsing dt devices
+  ARM: dts: OMAP2+: Add mailbox nodes
+  ARM: OMAP5: hwmod data: Add mailbox data
+  ARM: dts: OMAP5: Add mailbox dt node
+  mailbox/omap: remove omap_mbox_type_t from mailbox ops
+  mailbox/omap: add code to support the wkupm3 operations
+  ARM: dts: AM33xx: Add mailbox node
+
+ .../devicetree/bindings/mailbox/omap-mailbox.txt   |  43 +++
+ arch/arm/boot/dts/am33xx.dtsi                      |  11 +
+ arch/arm/boot/dts/omap2420.dtsi                    |  12 +
+ arch/arm/boot/dts/omap2430.dtsi                    |  11 +
+ arch/arm/boot/dts/omap3.dtsi                       |  11 +
+ arch/arm/boot/dts/omap4.dtsi                       |  11 +
+ arch/arm/boot/dts/omap5.dtsi                       |  11 +
+ arch/arm/mach-omap2/devices.c                      |   2 +-
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  42 +++
+ drivers/mailbox/mailbox-omap1.c                    |  54 +++-
+ drivers/mailbox/mailbox-omap2.c                    | 315 +++++++++++++++++----
+ drivers/mailbox/omap-mailbox.c                     |  58 ++--
+ drivers/mailbox/omap-mbox.h                        |  17 +-
+ 13 files changed, 490 insertions(+), 108 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
+
+-- 
+1.8.3.3
