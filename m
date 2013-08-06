@@ -1,57 +1,75 @@
-From: Bharathraj Nagaraju <bharathraj.nagaraju-Ut8ZLSGP1ULQT0dZR+AlfA@public.gmane.org>
-Subject: Reg: USB: ehci-omap: Suspend the controller during idle.
-Date: Tue, 6 Aug 2013 18:25:32 +0530
-Message-ID: <8D86EEFC18AF0D43A2B8E0ABFA8B88A17B16B9455E@EXGMBX01.sasken.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 1/7] usb: phy: omap: Add new PHY types and remove omap_control_usb3_phy_power()
+Date: Tue, 6 Aug 2013 16:26:52 +0300
+Message-ID: <5200F99C.8010200@ti.com>
+References: <1375365915-21380-1-git-send-email-rogerq@ti.com> <1375365915-21380-2-git-send-email-rogerq@ti.com> <5200E1DB.8040006@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "keshava_mgowda-l0cyMroinI0@public.gmane.org" <keshava_mgowda-l0cyMroinI0@public.gmane.org>, "khilman-l0cyMroinI0@public.gmane.org" <khilman-l0cyMroinI0@public.gmane.org>
-Cc: "rogerq-l0cyMroinI0@public.gmane.org" <rogerq-l0cyMroinI0@public.gmane.org>, Bharathraj Nagaraju <bharathraj.nagaraju-Ut8ZLSGP1ULQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5200E1DB.8040006@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, tony@atomide.com, george.cherian@ti.com, dmurphy@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-  Dear All,
+On 08/06/2013 02:45 PM, Kishon Vijay Abraham I wrote:
+> Hi,
+> 
+> On Thursday 01 August 2013 07:35 PM, Roger Quadros wrote:
+>> TYPE2 meaning has changed. It is now a USB2 phy with Power down bit in
+>> control_dev_conf register.
+>>
+>> Introduce TYPE3 and TYPE4 PHY. TYPE3 is USB3 phy with DPLL and individual
+>> TX/RX power control. TYPE4 is USB2 phy with power aux register.
+>>
+>> Update DT binding information to reflect these changes.
+>>
+>> Also get rid of omap_control_usb3_phy_power(). Just one function
+>> i.e. omap_control_usb_phy_power() will now take care of all PHY types.
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> 
+> Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
+> but one minor comment below.
+>> ---
+>>   Documentation/devicetree/bindings/usb/omap-usb.txt |   23 ++--
+>>   drivers/usb/phy/phy-omap-control.c                 |  129 +++++++++++---------
+>>   drivers/usb/phy/phy-omap-usb2.c                    |    4 +
+>>   drivers/usb/phy/phy-omap-usb3.c                    |    6 +-
+>>   include/linux/usb/omap_control_usb.h               |   18 ++--
+>>   5 files changed, 100 insertions(+), 80 deletions(-)
+>>
+> .
+> .
+> <snip>
+> .
+> .
+> 
+>> +    omap_control_usb_phy_power(phy->control_dev, 0);
+>>       usb_add_phy_dev(&phy->phy);
+>>
+>>       platform_set_drvdata(pdev, phy);
+>> diff --git a/include/linux/usb/omap_control_usb.h b/include/linux/usb/omap_control_usb.h
+>> index 27b5b8c..7f027d3 100644
+>> --- a/include/linux/usb/omap_control_usb.h
+>> +++ b/include/linux/usb/omap_control_usb.h
+>> @@ -22,9 +22,9 @@
+> 
+>>   struct omap_control_usb {
+>>       struct device *dev;
+>>
+>> -    u32 __iomem *dev_conf;
+>>       u32 __iomem *otghs_control;
+>> -    u32 __iomem *phy_power;
+>> +    u32 __iomem *power;
+>> +    u32 __iomem *power_aux;
+>>
+>>       struct clk *sys_clk;
+>>
+> you can remove omap_control_usb_platform_data from here.
+> 
+OK.
 
-  We are working on omap4470 based device,kernel-3.0.31 is running on this.
-  In our device modem is connected to OMAP4470 using USB EHCI.
-
-  In our current kernel code, clocks are enabled when ports get connected
-  and disabled during disconnect.Due to this current consumption is more in idle use case.
-
-  I have tried to put the host in smart idle/standby mode,due to erratas around Host doesn't allow us
-  use smart idle/standby capabilities.
-
-  1) i571: USB host EHCI may stall when entering smart-standby mode
-  2) i660: USBHOST Configured In Smart-Idle Can Lead To a Deadlock
-
-  we are thinking to implement USB EHCI runtime suspend/resume feature.
-
-  In kernel-3.0.31 architecture the usbcore driver is parent of ehci and ohci drivers.
-  The ehci and ohci drivers call the pm_runtime_get_sync and pm_runtime_put_sync of parent device usbhs core.
-
-  From the ehci-omap driver what i can see only partial implementation of runtime PM.
-  what i mean is that runtime PM methods are used only during the normal suspend path
-  and when nothing is connected to ports(modem disconnected in our case).
-
-  I am thinking to change the ehci driver code, could claver enough to use runtime PM
-  to disable the hardware when modem is connected and the system is in idle state.
-
-  Kindly guide me how can i go about this.
-
-  Let me know if you need further clarification from me on this.
-
-  Thanks for spending your valuable time .......:)
-
-
-  Cheers
-  Bharath
-
-SASKEN BUSINESS DISCLAIMER: This message may contain confidential, proprietary or legally privileged information. In case you are not the original intended Recipient of the message, you must not, directly or indirectly, use, disclose, distribute, print, or copy any part of this message and you are requested to delete it and inform the sender. Any views expressed in this message are those of the individual sender unless otherwise stated. Nothing contained in this message shall be construed as an offer or acceptance of any offer by Sasken Communication Technologies Limited ("Sasken") unless sent with that express intent and with due authority of Sasken. Sasken has taken enough precautions to prevent the spread of viruses. However the company accepts no liability for any damage caused by any 
- virus transmitted by this email.
-Read Disclaimer at http://www.sasken.com/extras/mail_disclaimer.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cheers,
+-roger
