@@ -1,13 +1,13 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 2/7] usb: phy: omap-usb2: Don't use omap_get_control_dev()
-Date: Tue, 6 Aug 2013 17:17:44 +0530
-Message-ID: <5200E260.3030205@ti.com>
-References: <1375365915-21380-1-git-send-email-rogerq@ti.com> <1375365915-21380-3-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH 3/7] usb: phy: omap-usb3: Don't use omap_get_control_dev()
+Date: Tue, 6 Aug 2013 17:18:22 +0530
+Message-ID: <5200E286.8050303@ti.com>
+References: <1375365915-21380-1-git-send-email-rogerq@ti.com> <1375365915-21380-4-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1375365915-21380-3-git-send-email-rogerq@ti.com>
+In-Reply-To: <1375365915-21380-4-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
 Cc: balbi@ti.com, tony@atomide.com, george.cherian@ti.com, dmurphy@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
@@ -23,35 +23,42 @@ On Thursday 01 August 2013 07:35 PM, Roger Quadros wrote:
 > if device node is not present.
 >
 > Signed-off-by: Roger Quadros <rogerq@ti.com>
+
 Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
+
+
 > ---
->   drivers/usb/phy/phy-omap-usb2.c |   16 +++++++++++++---
->   1 files changed, 13 insertions(+), 3 deletions(-)
+>   drivers/usb/phy/phy-omap-usb3.c |   20 +++++++++++++++++---
+>   1 files changed, 17 insertions(+), 3 deletions(-)
 >
-> diff --git a/drivers/usb/phy/phy-omap-usb2.c b/drivers/usb/phy/phy-omap-usb2.c
-> index 376b367..77e0cf4 100644
-> --- a/drivers/usb/phy/phy-omap-usb2.c
-> +++ b/drivers/usb/phy/phy-omap-usb2.c
-> @@ -28,6 +28,7 @@
+> diff --git a/drivers/usb/phy/phy-omap-usb3.c b/drivers/usb/phy/phy-omap-usb3.c
+> index 4a7f27c..bad032e 100644
+> --- a/drivers/usb/phy/phy-omap-usb3.c
+> +++ b/drivers/usb/phy/phy-omap-usb3.c
+> @@ -26,6 +26,7 @@
 >   #include <linux/pm_runtime.h>
 >   #include <linux/delay.h>
 >   #include <linux/usb/omap_control_usb.h>
 > +#include <linux/of_platform.h>
 >
->   /**
->    * omap_usb2_set_comparator - links the comparator present in the sytem with
-> @@ -124,6 +125,8 @@ static int omap_usb2_probe(struct platform_device *pdev)
+>   #define	PLL_STATUS		0x00000004
+>   #define	PLL_GO			0x00000008
+> @@ -198,6 +199,12 @@ static int omap_usb3_probe(struct platform_device *pdev)
+>   {
 >   	struct omap_usb			*phy;
->   	struct usb_otg			*otg;
->   	struct device_node *node = pdev->dev.of_node;
+>   	struct resource			*res;
+> +	struct device_node *node = pdev->dev.of_node;
 > +	struct device_node *control_node;
 > +	struct platform_device *control_pdev;
+> +
+> +	if (!node)
+> +		return -ENODEV;
 >
->   	if (!node)
->   		return -ENODEV;
-> @@ -148,11 +151,18 @@ static int omap_usb2_probe(struct platform_device *pdev)
->   	phy->phy.otg		= otg;
->   	phy->phy.type		= USB_PHY_TYPE_USB2;
+>   	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
+>   	if (!phy) {
+> @@ -239,11 +246,18 @@ static int omap_usb3_probe(struct platform_device *pdev)
+>   		return -EINVAL;
+>   	}
 >
 > -	phy->control_dev = omap_get_control_dev();
 > -	if (IS_ERR(phy->control_dev)) {
@@ -69,6 +76,6 @@ Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
 > +
 > +	phy->control_dev = &control_pdev->dev;
 >
->   	phy->is_suspended	= 1;
 >   	omap_control_usb_phy_power(phy->control_dev, 0);
+>   	usb_add_phy_dev(&phy->phy);
 >
