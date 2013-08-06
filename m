@@ -1,17 +1,19 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 3/7] usb: phy: omap-usb3: Don't use omap_get_control_dev()
-Date: Tue, 6 Aug 2013 17:18:22 +0530
-Message-ID: <5200E286.8050303@ti.com>
-References: <1375365915-21380-1-git-send-email-rogerq@ti.com> <1375365915-21380-4-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH 4/7] usb: musb: omap2430: Don't use omap_get_control_dev()
+Date: Tue, 6 Aug 2013 17:21:52 +0530
+Message-ID: <5200E358.9010505@ti.com>
+References: <1375365915-21380-1-git-send-email-rogerq@ti.com> <1375365915-21380-5-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1375365915-21380-4-git-send-email-rogerq@ti.com>
+In-Reply-To: <1375365915-21380-5-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
 Cc: balbi@ti.com, tony@atomide.com, george.cherian@ti.com, dmurphy@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+
+Hi,
 
 On Thursday 01 August 2013 07:35 PM, Roger Quadros wrote:
 > omap_get_control_dev() is being deprecated as it doesn't support
@@ -19,63 +21,30 @@ On Thursday 01 August 2013 07:35 PM, Roger Quadros wrote:
 > onwards which supports DT only, we use phandles to get the
 > reference to the control device.
 >
-> As we don't support non-DT boot, we just bail out on probe
-> if device node is not present.
->
 > Signed-off-by: Roger Quadros <rogerq@ti.com>
-
-Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
-
-
 > ---
->   drivers/usb/phy/phy-omap-usb3.c |   20 +++++++++++++++++---
->   1 files changed, 17 insertions(+), 3 deletions(-)
+>   drivers/usb/musb/omap2430.c |   22 ++++++++++++++++++----
+>   1 files changed, 18 insertions(+), 4 deletions(-)
 >
-> diff --git a/drivers/usb/phy/phy-omap-usb3.c b/drivers/usb/phy/phy-omap-usb3.c
-> index 4a7f27c..bad032e 100644
-> --- a/drivers/usb/phy/phy-omap-usb3.c
-> +++ b/drivers/usb/phy/phy-omap-usb3.c
-> @@ -26,6 +26,7 @@
->   #include <linux/pm_runtime.h>
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index ebb46ec..1db9588 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -38,6 +38,7 @@
 >   #include <linux/delay.h>
+>   #include <linux/usb/musb-omap.h>
 >   #include <linux/usb/omap_control_usb.h>
 > +#include <linux/of_platform.h>
 >
->   #define	PLL_STATUS		0x00000004
->   #define	PLL_GO			0x00000008
-> @@ -198,6 +199,12 @@ static int omap_usb3_probe(struct platform_device *pdev)
->   {
->   	struct omap_usb			*phy;
->   	struct resource			*res;
-> +	struct device_node *node = pdev->dev.of_node;
-> +	struct device_node *control_node;
-> +	struct platform_device *control_pdev;
-> +
-> +	if (!node)
-> +		return -ENODEV;
->
->   	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
->   	if (!phy) {
-> @@ -239,11 +246,18 @@ static int omap_usb3_probe(struct platform_device *pdev)
->   		return -EINVAL;
+>   #include "musb_core.h"
+>   #include "omap2430.h"
+> @@ -547,12 +548,25 @@ static int omap2430_probe(struct platform_device *pdev)
 >   	}
 >
-> -	phy->control_dev = omap_get_control_dev();
-> -	if (IS_ERR(phy->control_dev)) {
-> -		dev_dbg(&pdev->dev, "Failed to get control device\n");
-> +	control_node = of_parse_phandle(node, "ctrl-module", 0);
-> +	if (!control_node) {
-> +		dev_err(&pdev->dev, "Failed to get control device phandle\n");
->   		return -ENODEV;
->   	}
-> +	control_pdev = of_find_device_by_node(control_node);
-> +	if (!control_pdev) {
-> +		dev_err(&pdev->dev, "Failed to get control device\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	phy->control_dev = &control_pdev->dev;
->
->   	omap_control_usb_phy_power(phy->control_dev, 0);
->   	usb_add_phy_dev(&phy->phy);
->
+>   	if (pdata->has_mailbox) {
+
+I think you can remove this this check all together. Mailbox is present 
+only from OMAP4 so it can be dt only.
+
+Thanks
+Kishon
