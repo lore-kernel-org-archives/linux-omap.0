@@ -1,13 +1,13 @@
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH 5/5] arm: omap: Proper cleanups for omap_device
-Date: Tue, 6 Aug 2013 12:37:25 +0300
-Message-ID: <8C31ED90-E9EF-4264-858A-17CC2536B552@antoniou-consulting.com>
-References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com> <1375775624-12250-6-git-send-email-panto@antoniou-consulting.com> <20130806093356.GA27889@kroah.com>
+Subject: Re: [PATCH 1/5] pdev: Fix platform device resource linking
+Date: Tue, 6 Aug 2013 12:45:42 +0300
+Message-ID: <311C42C3-6544-4058-ABE9-F9FAE72DD5CA@antoniou-consulting.com>
+References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com> <1375775624-12250-2-git-send-email-panto@antoniou-consulting.com> <20130806093601.GB27889@kroah.com>
 Mime-Version: 1.0 (Apple Message framework v1085)
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130806093356.GA27889@kroah.com>
+In-Reply-To: <20130806093601.GB27889@kroah.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?iso-8859-1?Q?Beno=EEt_Coussno?= <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
@@ -15,98 +15,47 @@ List-Id: linux-omap@vger.kernel.org
 
 Hi Greg,
 
-On Aug 6, 2013, at 12:33 PM, Greg Kroah-Hartman wrote:
+On Aug 6, 2013, at 12:36 PM, Greg Kroah-Hartman wrote:
 
-> On Tue, Aug 06, 2013 at 10:53:44AM +0300, Pantelis Antoniou wrote:
->> Removing any omap device always resulted in a crash; turns out
->> BUS_NOTIFY_DEL_DEVICE is not the last notifier event sent in the
->> course of removing the device, the correct event is
->> BUS_NOTIFY_UNBOUND_DRIVER, which still is not the right place to
->> perform the cleanup. A device callback handles that properly, as
->> well as making sure the hwmods of the device are shutdown.
+> On Tue, Aug 06, 2013 at 10:53:40AM +0300, Pantelis Antoniou wrote:
+>> Platform device removal uncovered a number of problems with
+>> the way resources are handled in the core platform code.
 >> 
->> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
->> ---
->> arch/arm/mach-omap2/omap_device.c | 34 ++++++++++++++++++++++++++++++++--
->> 1 file changed, 32 insertions(+), 2 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
->> index f33b40c..6dec521 100644
->> --- a/arch/arm/mach-omap2/omap_device.c
->> +++ b/arch/arm/mach-omap2/omap_device.c
->> @@ -178,6 +178,32 @@ odbfd_exit:
->> 	return ret;
->> }
->> 
->> +static void _omap_device_cleanup(struct device *dev)
->> +{
->> +	struct platform_device *pdev = to_platform_device(dev);
->> +	struct omap_device *od;
->> +	struct omap_hwmod *oh;
->> +	int i;
->> +
->> +	od = pdev->archdata.od;
->> +	if (!od)
->> +		return;
->> +
->> +	for (i = 0; i < od->hwmods_cnt; i++) {
->> +
->> +		oh = od->hwmods[i];
->> +
->> +		/* shutdown hwmods */
->> +		omap_hwmod_shutdown(oh);
->> +
->> +		/* we don't remove clocks cause there's no API to do so */
->> +		/* no harm done, since they will not be created next time */
->> +	}
->> +
->> +	/* cleanup the structure now */
->> +	omap_device_delete(od);
->> +}
->> +
->> static int _omap_device_notifier_call(struct notifier_block *nb,
->> 				      unsigned long event, void *dev)
->> {
->> @@ -185,9 +211,13 @@ static int _omap_device_notifier_call(struct notifier_block *nb,
->> 	struct omap_device *od;
->> 
->> 	switch (event) {
->> -	case BUS_NOTIFY_DEL_DEVICE:
->> +	case BUS_NOTIFY_UNBOUND_DRIVER:
->> +		/* NOTIFY_DEL_DEVICE is not the right call...
->> +		 * we use a callback here, to make sure no-one is going to
->> +		 * try to use the omap_device data after they're deleted
->> +		 */
->> 		if (pdev->archdata.od)
->> -			omap_device_delete(pdev->archdata.od);
->> +			device_schedule_callback(dev, _omap_device_cleanup);
+>> Resources now form child/parent linkages and this requires
+>> proper linking of the resources. On top of that the OF core
+>> directly creates it's own platform devices. Simplify things
+>> by providing helper functions that manage the linking properly.
 > 
-> Really?  This is one sign that you are totally using the driver core
-> incorrectly.  You shouldn't have to rely on notifier callbacks to handle
-> device removals, your bus code should do that for you directly.
-> 
-> I don't like this at all, sorry.
+> Ugh, the OF core shouldn't be creating platform devices.  Well, yes, I
+> know it does that today, but ick, ick, ick.
 > 
 
-Don't shoot the messenger please...
+Yep, ick, ick, ick is the correct form.
 
-This is all about fixing a crash without messing too many things.
-
-> And I was waiting for the day when people started to finally remove
-> platform devices from the system, I always thought it would never work
-> properly.  Good luck with this, I think you have a lot of work ahead of
-> yourself...
+>> Two functions are provided:
+>> 
+>> platform_device_link_resources(), which links all the
+>> linkable resources (if not already linked).
+>> 
+>> and platform_device_unlink_resources(), which unlinks all the
+>> resources.
+> 
+> Why would anyone need to call this?  I'm getting the feeling that OF
+> should just have it's own bus of devices to handle this type of mess.
+> ACPI is going through the same rewrite for this same type of problem
+> (they did things differently.)  I suggest you work with the ACPI
+> developers to so the same thing they are, to solve it correctly for
+> everyone.
 > 
 
-I know.
+It's the same problem really. Another bus type might not fly well.
+The same device driver should be (in theory) be made to work unchanged
+either on an OF/ACPI/Fex( :) ) setup.
 
-Platform device removal is the wild-wild west...
+What would it take to move all this into driver core?
 
-If I had to make a wish, would be to kill platform_device completely and
-integrate all it's functionality in the the vanilla device.
-
-What exactly is a platform device anyway?
-
+> thanks,
+> 
 > greg k-h
 
 Regards
