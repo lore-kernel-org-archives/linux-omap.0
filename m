@@ -1,41 +1,130 @@
-From: Alexander Holler <holler@ahsoftware.de>
-Subject: Re: [PATCH 5/5] arm: omap: Proper cleanups for omap_device
-Date: Tue, 06 Aug 2013 15:37:13 +0200
-Message-ID: <5200FC09.7080108@ahsoftware.de>
-References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com> <1375775624-12250-6-git-send-email-panto@antoniou-consulting.com> <20130806093356.GA27889@kroah.com> <8C31ED90-E9EF-4264-858A-17CC2536B552@antoniou-consulting.com> <20130806101421.GA29283@kroah.com>
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Subject: Re: [RFC 2/2] usb: dwc3: Add Qualcomm DWC3 glue layer driver
+Date: Tue, 06 Aug 2013 16:46:33 +0300
+Message-ID: <1375796793.2027.20.camel@iivanov-dev.int.mm-sol.com>
+References: <1375789991-30041-1-git-send-email-iivanov@mm-sol.com>
+	 <1375789991-30041-3-git-send-email-iivanov@mm-sol.com>
+	 <1375791698.12043.53.camel@hornet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from h1446028.stratoserver.net ([85.214.92.142]:40259 "EHLO
-	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753492Ab3HFNib (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Aug 2013 09:38:31 -0400
-In-Reply-To: <20130806101421.GA29283@kroah.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1375791698.12043.53.camel@hornet>
+Sender: linux-doc-owner@vger.kernel.org
+To: Pawel Moll <pawel.moll@arm.com>
+Cc: "balbi@ti.com" <balbi@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Mark Rutland <Mark.Rutland@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob@landley.net" <rob@landley.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?UTF-8?B?QmVub8OudCBDb3Vzc25v?= <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Am 06.08.2013 12:14, schrieb Greg Kroah-Hartman:
+On Tue, 2013-08-06 at 13:21 +0100, Pawel Moll wrote:
+> On Tue, 2013-08-06 at 12:53 +0100, Ivan T. Ivanov wrote:
+> > From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+> >=20
+> > Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
+>=20
+> The same comment as for the RFC 1/2 here...
 
->> What exactly is a platform device anyway?
-> 
-> Originally it was a "something that wasn't connected to a bus, but just
-> had memory-mapped i/o."  Like the PS2 keyboard controller.
-> 
-> Embedded systems got ahold of this and went to town, and made everything
-> a platform device because they could, and no one was paying attention.
-> 
-> Then OF came along and used it as well, and you know the rest...
-> 
-> I think we need to get the ACPI and OF people, and me, in a room
-> together at the kernel summit and not let us out until we have this all
-> worked out.
+Will fix this.
 
-MFD uses platform devices too.
+>=20
+> >  .../devicetree/bindings/usb/msm-ssusb.txt          |   39 +++++
+> >  drivers/usb/dwc3/Kconfig                           |    8 +
+> >  drivers/usb/dwc3/Makefile                          |    1 +
+> >  drivers/usb/dwc3/dwc3-msm.c                        |  175 ++++++++=
+++++++++++++
+> >  4 files changed, 223 insertions(+)
+> >  create mode 100644 drivers/usb/dwc3/dwc3-msm.c
+> >=20
+> > diff --git a/Documentation/devicetree/bindings/usb/msm-ssusb.txt b/=
+Documentation/devicetree/bindings/usb/msm-ssusb.txt
+> > index 550b496..313ae0d 100644
+> > --- a/Documentation/devicetree/bindings/usb/msm-ssusb.txt
+> > +++ b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
+> > @@ -22,6 +22,23 @@ Required "supply-name" examples are:
+> >  	"v1p8" : 1.8v supply for SS-PHY
+> >  	"vddcx" : vdd supply for SS-PHY digital circuit operation
+> > =20
+> > +Required properties :
+> > +- compatible : should be "qcom,dwc-usb3-msm"
+> > +- reg : offset and length of the register set in the memory map
+> > +	offset and length of the TCSR register for routing USB
+> > +	signals to either picoPHY0 or picoPHY1.
+> > +- clocks =3D <&usb30_master_cxc>, <&sys_noc_usb3_axi_cxc>, <&usb30=
+_sleep_cxc>, <&usb30_mock_utmi_cxc>;
+> > +- clock-names =3D "core_clk", "iface_clk", "sleep_clk", "utmi_clk"=
+;
+> > +
+> > +Optional properties :
+> > +- gdsc-supply : phandle to the globally distributed switch control=
+ler
+> > +  regulator node to the USB controller.
+> > +
+> > +Sub nodes:
+> > +- Sub node for "DWC3- USB3 controller".
+> > +  This sub node is required property for device node. The properti=
+es of this subnode
+> > +  are specified in dwc3.txt.
+>=20
+> Ah, this answers one of my questions - DWC3 comes from Synopsys.
 
-Regards,
+Yes, sorry.
 
-Alexander Holler
+>=20
+> >  Example device nodes:
+> > =20
+> >  	dwc3_usb2: phy@f92f8800 {
+> > @@ -47,3 +64,25 @@ Example device nodes:
+> >  		vddcx-supply =3D <&supply>;
+> >  		v1p8-supply =3D <&supply>;
+> >  	};
+> > +
+> > +	usb@fd4ab000 {
+> > +		compatible =3D "qcom,dwc-usb3-msm";
+> > +		#address-cells =3D <1>;
+> > +		#size-cells =3D <1>;
+> > +		reg =3D <0xfd4ab000 0x4>;
+> > +
+> > +		clocks =3D <&usb30_master_cxc>, <&sys_noc_usb3_axi_cxc>, <&usb30=
+_sleep_cxc>, <&usb30_mock_utmi_cxc>;
+> > +		clock-names =3D "core_clk", "iface_clk", "sleep_clk", "utmi_clk"=
+;
+> > +
+> > +		gdsc-supply =3D <&supply>;
+> > +		ranges;
+> > +
+> > +		dwc3@f9200000 {
+> > +			compatible =3D "snps,dwc3";
+>=20
+> Note that the Documentation/devicetree/bindings/usb/dwc3.txt is
+> mentioning "synopsys,dwc3" (which is clearly in opposition to the
+> vendor-prefixes.txt file) and this compatible value is used in the
+> drivers/usb/dwc3/core.c and omap5.dtsi. Unless it has been already fi=
+xed
+> recently, could you take care of that?
+
+Yes, it is fixed already. Patch is in linux-next=20
+"usb: dwc3: core: switch to snps,dwc3"
+
+>=20
+> > +			reg =3D <0xf9200000 0xcd00>;
+> > +			interrupts =3D <0 131 0>;
+> > +			interrupt-names =3D "irq";
+> > +			usb-phy =3D <&dwc3_usb2>, <&dwc3_usb3>;
+> > +			tx-fifo-resize;
+> > +		};
+> > +	};
+>=20
+> And now I'm really confused... Maybe it's just lack of documentation.=
+=2E.
+>=20
+> How does the "qcom,dwc-usb3-msm" relate to "qcom,dwc-usb3"?
+
+Not sure from where you get this "qcom,dwc-usb3", but now I think
+that "qcom,dwc-usb3" should be enough for compatible. =20
+
+Thanks,=20
+Ivan
+
+>=20
+> Pawe=C5=82
+
 
