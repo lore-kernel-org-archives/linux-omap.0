@@ -1,76 +1,88 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv3 8/9] ARM: OMAP2+: AM33XX: Basic suspend resume support
-Date: Wed, 7 Aug 2013 11:22:17 -0500
-Message-ID: <52027439.7080206@ti.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
- <1375811376-49985-9-git-send-email-d-gerlach@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1375811376-49985-9-git-send-email-d-gerlach@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tony Lingren <tony@atomide.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <benoit.cousson@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: Re: [PATCH 5/5] arm: omap: Proper cleanups for omap_device
+Date: Wed, 7 Aug 2013 19:23:59 +0300
+Message-ID: <4B64047B-505F-4D54-871B-8F1B5315B613@antoniou-consulting.com>
+References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com> <1375775624-12250-6-git-send-email-panto@antoniou-consulting.com> <20130806093356.GA27889@kroah.com> <8C31ED90-E9EF-4264-858A-17CC2536B552@antoniou-consulting.com> <20130807161557.GO7656@atomide.com>
+Mime-Version: 1.0 (Apple Message framework v1085)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130807161557.GO7656@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, =?iso-8859-1?Q?Beno=EEt_Coussno?= <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/06/2013 12:49 PM, Dave Gerlach wrote:
-[...]
+Hi Tony,
 
-> +
-> +struct forced_standby_module am33xx_mod[] = {
-> +	{.oh_name = "usb_otg_hs"},
-> +	{.oh_name = "tptc0"},
-> +	{.oh_name = "tptc1"},
-> +	{.oh_name = "tptc2"},
-> +	{.oh_name = "cpgmac0"},
-> +};
-> +
-[...]
-> +
-> +static int am33xx_pm_suspend(void)
-> +{
-> +	int i, j, ret = 0;
-> +
-> +	int status = 0;
-> +	struct platform_device *pdev;
-> +	struct omap_device *od;
-> +
-> +	/*
-> +	 * By default the following IPs do not have MSTANDBY asserted
-> +	 * which is necessary for PER domain transition. If the drivers
-> +	 * are not compiled into the kernel HWMOD code will not change the
-> +	 * state of the IPs if the IP was not never enabled. To ensure
-> +	 * that there no issues with or without the drivers being compiled
-> +	 * in the kernel, we forcefully put these IPs to idle.
-> +	 */
-> +	for (i = 0; i < ARRAY_SIZE(am33xx_mod); i++) {
-> +		pdev = to_platform_device(am33xx_mod[i].dev);
-> +		od = to_omap_device(pdev);
-> +		if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER) {
-> +			omap_device_enable_hwmods(od);
-> +			omap_device_idle_hwmods(od);
-> +		}
-> +	}
+On Aug 7, 2013, at 7:15 PM, Tony Lindgren wrote:
 
-Sorry, I dont like this one bit. this is the job of the suspend / resume 
-handler dealing with the specific device. I recollect having a similar 
-issue on OMAP5 where without USB driver, USB wont idle, hence we cant 
-suspend either. is the solution to do a custom handling for specific 
-nodes as above? is it even necessary - considering that in multiple 
-suspend-resume iterations, do we need to "enable and idle" multiple 
-times? Cant we do it just in hwmod/omap_device level where unbound 
-devices are disabled? Is there absolutely no possible way to do this in 
-a generic manner?
+> * Pantelis Antoniou <panto@antoniou-consulting.com> [130806 02:44]:
+>> On Aug 6, 2013, at 12:33 PM, Greg Kroah-Hartman wrote:
+>>> On Tue, Aug 06, 2013 at 10:53:44AM +0300, Pantelis Antoniou wrote:
+>>>> +
+>>>> static int _omap_device_notifier_call(struct notifier_block *nb,
+>>>> 				      unsigned long event, void *dev)
+>>>> {
+>>>> @@ -185,9 +211,13 @@ static int _omap_device_notifier_call(struct notifier_block *nb,
+>>>> 	struct omap_device *od;
+>>>> 
+>>>> 	switch (event) {
+>>>> -	case BUS_NOTIFY_DEL_DEVICE:
+>>>> +	case BUS_NOTIFY_UNBOUND_DRIVER:
+>>>> +		/* NOTIFY_DEL_DEVICE is not the right call...
+>>>> +		 * we use a callback here, to make sure no-one is going to
+>>>> +		 * try to use the omap_device data after they're deleted
+>>>> +		 */
+>>>> 		if (pdev->archdata.od)
+>>>> -			omap_device_delete(pdev->archdata.od);
+>>>> +			device_schedule_callback(dev, _omap_device_cleanup);
+>>> 
+>>> Really?  This is one sign that you are totally using the driver core
+>>> incorrectly.  You shouldn't have to rely on notifier callbacks to handle
+>>> device removals, your bus code should do that for you directly.
+>>> 
+>>> I don't like this at all, sorry.
+>>> 
+>> 
+>> Don't shoot the messenger please...
+> 
+> As you're inititalizing capebus with DT, let's figure out what if
+> anything you actually need from omap_device. I'd much rather remove
+> dependencies than add more.
+> 
 
--- 
-Regards,
-Nishanth Menon
+There is no such thing as capebus anymore. This is just the path of
+removing a platform device, which happens to also be an omap_device.
+
+> If you need omap_device for the clocks, there are patches pending to
+> make them DT only for omaps. And we already have DT based solution for
+> pins, regulators and DMA.
+> 
+> So what else remains? The pieces needed for runtime PM?
+> 
+
+What happens here is that the omap_device data are freed prematurely and then end up 
+used again during the teardown of the platform device.
+
+
+>> This is all about fixing a crash without messing too many things.
+> 
+> It seems this fix is only needed for supporting out-of-tree code?
+> These features with omap_device we may not even want to support in
+> the mainline tree as is being discussed..
+> 
+
+What out of tree code? The only thing this patch does is make sure we
+don't crash when a perfectly valid call to platform_device_unregister() happens.
+
+Drivers that don't use omap_device work just fine.
+
+> Regards,
+> 
+> Tony
+> 
+
+Regards
+
+-- Pantelis
