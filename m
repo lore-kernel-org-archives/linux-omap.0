@@ -1,38 +1,35 @@
-From: Chen Baozi <baozich@gmail.com>
-Subject: [PATCH] ARM: fix wrong address when loading PRM_FRAC_INCREMENTOR_DENUMERATOR_RELOAD
-Date: Wed,  7 Aug 2013 22:05:21 +0800
-Message-ID: <1375884321-30489-1-git-send-email-baozich@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: Chen Baozi <baozich@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: [PATCH] ARM: dts: omap3-beagle-xm: fix string error in compatible property
+Date: Wed,  7 Aug 2013 09:14:15 -0500
+Message-ID: <1375884855-19414-1-git-send-email-robertcnelson@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ve0-f181.google.com ([209.85.128.181]:39160 "EHLO
+	mail-ve0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752237Ab3HGOO1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Aug 2013 10:14:27 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, benoit.cousson@linaro.org
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Robert Nelson <robertcnelson@gmail.com>
 
-The denominator should be load from INCREMENTOR_DENUMERATOR_RELOAD_OFFSET
-rather than INCREMENTER_NUMERATOR_OFFSET.
-
-This is more likely a typo, since INCREMENTER_DENUMERATOR_RELOAD[23:17] is
-reserved. It seems that it won't make much trouble without this fix, because
-the useful [11:0] bits are mask and set the right value. Anyway, reading
-from a right address is better choice.
-
-Signed-off-by: Chen Baozi <baozich@gmail.com>
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
- arch/arm/mach-omap2/timer.c | 2 +-
+ arch/arm/boot/dts/omap3-beagle-xm.dts |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 1e77f11..ccc5c72 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -537,7 +537,7 @@ static void __init realtime_counter_init(void)
- 	reg |= num;
- 	__raw_writel(reg, base + INCREMENTER_NUMERATOR_OFFSET);
+diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
+index afdb164..0c514dc 100644
+--- a/arch/arm/boot/dts/omap3-beagle-xm.dts
++++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+@@ -11,7 +11,7 @@
  
--	reg = __raw_readl(base + INCREMENTER_NUMERATOR_OFFSET) &
-+	reg = __raw_readl(base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET) &
- 			NUMERATOR_DENUMERATOR_MASK;
- 	reg |= den;
- 	__raw_writel(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
+ / {
+ 	model = "TI OMAP3 BeagleBoard xM";
+-	compatible = "ti,omap3-beagle-xm, ti,omap3-beagle", "ti,omap3";
++	compatible = "ti,omap3-beagle-xm", "ti,omap3-beagle", "ti,omap3";
+ 
+ 	cpus {
+ 		cpu@0 {
 -- 
-1.8.1.4
+1.7.10.4
+
