@@ -1,122 +1,123 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCHv3 2/8] mailbox/omap: add support for parsing dt devices
-Date: Wed, 7 Aug 2013 11:59:08 -0500
-Message-ID: <52027CDC.8080205@ti.com>
-References: <1375825216-18119-1-git-send-email-s-anna@ti.com> <BB39592C-0DAC-49A4-A782-583D7EB858AF@codeaurora.org>
+From: Matt Porter <matt.porter@linaro.org>
+Subject: Re: [PATCH 1/5] pdev: Fix platform device resource linking
+Date: Wed, 7 Aug 2013 13:13:48 -0400
+Message-ID: <20130807171345.GA30831@ohporter.com>
+References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com>
+ <1375775624-12250-2-git-send-email-panto@antoniou-consulting.com>
+ <20130806093601.GB27889@kroah.com>
+ <311C42C3-6544-4058-ABE9-F9FAE72DD5CA@antoniou-consulting.com>
+ <20130806101527.GB29283@kroah.com>
+ <A7E5F769-6238-430C-AEE5-94598C334D5E@antoniou-consulting.com>
+ <20130807055630.GC5304@kroah.com>
+ <29EDB4A0-B6EF-4795-AD14-A35D9415EFE2@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35615 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756621Ab3HGRFx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Aug 2013 13:05:53 -0400
-In-Reply-To: <BB39592C-0DAC-49A4-A782-583D7EB858AF@codeaurora.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <29EDB4A0-B6EF-4795-AD14-A35D9415EFE2@antoniou-consulting.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?iso-8859-1?Q?Beno=EEt?= Coussno <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kumar Gala <galak@codeaurora.org>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>, Paul Walmsley <paul@pwsan.com>, Ohad Ben-Cohen <ohad@wizery.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Kumar,
+[trimmed my old email]
 
->> Logic has been added to the OMAP2+ mailbox code to
->> parse the mailbox dt nodes and construct the different
->> mailboxes associated with the instance. The design is
->> based on gathering the same information that was being
->> passed previously through the platform data, except for
->> the interrupt type configuration information.
->>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> ---
->> .../devicetree/bindings/mailbox/omap-mailbox.txt   |  43 +++++++
->> drivers/mailbox/mailbox-omap2.c                    | 130 ++++++++++++++++++---
->> 2 files changed, 158 insertions(+), 15 deletions(-)
->> create mode 100644 Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
->>
->> diff --git a/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt b/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
->> new file mode 100644
->> index 0000000..8ffb08a
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
->> @@ -0,0 +1,43 @@
->> +OMAP2+ Mailbox Driver
->> +
->> +Required properties:
->> +- compatible:		Should be one of the following,
->> +			    "ti,omap2-mailbox" for
->> +				OMAP2420, OMAP2430, OMAP3430, OMAP3630 SoCs
->> +			    "ti,omap4-mailbox" for
->> +				OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
->> +- reg:			Contains the mailbox register address range (base address
->> +			and length)
->> +- interrupts: 		Contains the interrupt information for the mailbox
->> +			device. The format is dependent on which interrupt
->> +			controller the OMAP device uses
->> +- ti,hwmods:		Name of the hwmod associated with the mailbox
->> +- ti,mbox-num-users:	Number of targets (processor devices) that the mailbox device
->> +			can interrupt
->> +- ti,mbox-num-fifos:	Number of h/w fifos within the mailbox device
+On Wed, Aug 07, 2013 at 10:37:17AM +0300, Pantelis Antoniou wrote:
+> Hi Greg,
 > 
-> Isn't "ti,mbox-num-users", "ti,mbox-num-fifos" this SoC specific, why do we need to encode in the device tree.  Can we not have a more SoC specific compatiable and encode such info in the driver as part of the .data field in of_device_id ?
-
-They are IP design parameters for the number of h/w fifos and interrupts
-coming out of the IP block, with the functionality identical. This
-information could not be read from any registers. Until OMAP5, we always
-had a single IP in the SoC and so these could been encoded in the
-driver. But in DRA7xx, a new SoC, we have 13 mailboxes which have
-differing number of these properties even though the functional IP block
-is same.
-
+> On Aug 7, 2013, at 8:56 AM, Greg Kroah-Hartman wrote:
 > 
->> +- ti,mbox-names:	Array of the names of the mailboxes
->> +- ti,mbox-data:		Mailbox descriptor data private to each mailbox. The 4
->> +			cells represent the following data,
->> +			  Cell #1 (tx_id) - mailbox fifo id used for
->> +						transmitting messages
->> +			  Cell #2 (rx_id) - mailbox fifo id on which messages
->> +						are received
->> +			  Cell #3 (irq_id) - irq identifier index number to use
->> +						from the interrupts data
->> +			  Cell #4 (usr_id) - mailbox user id for identifying the
->> +						interrupt into the MPU interrupt
->> +						controller.
->> +
+> > On Tue, Aug 06, 2013 at 01:27:35PM +0300, Pantelis Antoniou wrote:
+> >> Hi Greg,
+> >> 
+> >> On Aug 6, 2013, at 1:15 PM, Greg Kroah-Hartman wrote:
+> >> 
+> >>> On Tue, Aug 06, 2013 at 12:45:42PM +0300, Pantelis Antoniou wrote:
+> >>>> Hi Greg,
+> >>>> 
+> >>>> On Aug 6, 2013, at 12:36 PM, Greg Kroah-Hartman wrote:
+> >>>> 
+> >>>>> On Tue, Aug 06, 2013 at 10:53:40AM +0300, Pantelis Antoniou wrote:
+> >>>>>> Platform device removal uncovered a number of problems with
+> >>>>>> the way resources are handled in the core platform code.
+> >>>>>> 
+> >>>>>> Resources now form child/parent linkages and this requires
+> >>>>>> proper linking of the resources. On top of that the OF core
+> >>>>>> directly creates it's own platform devices. Simplify things
+> >>>>>> by providing helper functions that manage the linking properly.
+> >>>>> 
+> >>>>> Ugh, the OF core shouldn't be creating platform devices.  Well, yes, I
+> >>>>> know it does that today, but ick, ick, ick.
+> >>>>> 
+> >>>> 
+> >>>> Yep, ick, ick, ick is the correct form.
+> >>>> 
+> >>>>>> Two functions are provided:
+> >>>>>> 
+> >>>>>> platform_device_link_resources(), which links all the
+> >>>>>> linkable resources (if not already linked).
+> >>>>>> 
+> >>>>>> and platform_device_unlink_resources(), which unlinks all the
+> >>>>>> resources.
+> >>>>> 
+> >>>>> Why would anyone need to call this?  I'm getting the feeling that OF
+> >>>>> should just have it's own bus of devices to handle this type of mess.
+> >>>>> ACPI is going through the same rewrite for this same type of problem
+> >>>>> (they did things differently.)  I suggest you work with the ACPI
+> >>>>> developers to so the same thing they are, to solve it correctly for
+> >>>>> everyone.
+> >>>>> 
+> >>>> 
+> >>>> It's the same problem really. Another bus type might not fly well.
+> >>>> The same device driver should be (in theory) be made to work unchanged
+> >>>> either on an OF/ACPI/Fex( :) ) setup.
+> >>> 
+> >>> No, that's not quite true, a driver needs to know how to talk to the
+> >>> bus, as that is how it communicates to the hardware.  It can be done for
+> >>> different types of busses (see the OHCI USB controller for one example
+> >>> of this), but a driver will have to know what type of bus it is on in
+> >>> order to work properly.
+> >>> 
+> >> 
+> >> In the case of OF & ACPI there is no 'bus'. The device is probably integrated
+> >> in the SoC's silicon, but there is absolutely no way to 'probe' for it's existence;
+> >> you have to use a-priori knowledge of the SoC's topology in order to configure it
+> >> (along with any per-board specific information if there is any kind of shared 
+> >> resource configuration - i.e. pinmuxing or something else).
+> > 
+> > Not all busses need to have the aiblity to "probe" for new devices,
+> > that's not a requirement at all.  Some of them just "know" where the
+> > devices are at in the driver model, and create the devices for the bus
+> > just fine.
+> > 
+> > So don't think that just because of that lack of probing, they should be
+> > on the "platform" bus at all.  Platform is for the "oh crap, I have no
+> > way to bind this to anything else, make it a platform device then."
+> > 
 > 
-> ti,mbox-data really seems like it should be encoded in the driver and not in the device tree.  Is it specific to the SoC?
+> I'm not sure if you remember, but a long time ago when OF started getting
+> into the kernel, there actually was an OCP (On Chip Peripheral) bus, 
+> and the switch to platform devices was mandated by kernel people, by their
+> insistance that platform devices would cover every case.
+> 
+> See here:
+> 
+> http://lkml.indiana.edu/hypermail/linux/kernel/0405.1/0930.html
+> 
+> I'm sure Matt Porter can shed some light on the exchange that led to the 
+> abandonment of the ocp bus concept.
 
-The mbox-data represents the assignment of h/w fifos between a pair of
-processors on an SoC, so it is specific to a mailbox IP instance in an
-SoC. Also, this assignment makes it flexible for anyone wishing to use
-their own firmware/stack on the remote processor side if using different
-h/w fifo combination.
+Heh, that OCP support looks a bit antiquated by today's standards. If it
+helps, http://lkml.indiana.edu/hypermail/linux/kernel/0501.2/0696.html
+is the posting where Kumar starts taking arch/ppc away from using
+drivers/ocp/. I can't find any public discussion that led to this, but I
+recall the common advice was "just use platform devices". This was,
+incidentally, just before the move to arch/powerpc (and DT for all)
+began.
 
-So, a single SoC-specific compatible string would not be enough to
-identify either of the above data in the driver.
+Keep in mind that this is 8ish years ago before embedded was
+fashionable since we didn't all have Linux machines in our pockets.
+I suspect that advice was given because nobody cared about
+platform_device removal and it worked for the use cases at the time.
 
-regards
-Suman
-
-> 
->> +Example:
->> +
->> +/* OMAP4 */
->> +mailbox: mailbox@4a0f4000 {
->> +	compatible = "ti,omap4-mailbox";
->> +	reg = <0x4a0f4000 0x200>;
->> +	interrupts = <GIC_SPI 47 IRQ_TYPE_LEVEL_HIGH>;
->> +	ti,hwmods = "mailbox";
->> +	ti,mbox-num-users = <3>;
->> +	ti,mbox-num-fifos = <8>;
->> +	ti,mbox-names = "mbox-ipu", "mbox-dsp";
->> +	ti,mbox-data = <0 1 0 0>, <3 2 0 0>;
->> +};
-> 
-> [snip]
-> 
-> - k
-> 
-> --
-> Employee of Qualcomm Innovation Center, Inc.
-> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
-> 
-
+-Matt
