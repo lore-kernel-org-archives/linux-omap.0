@@ -1,104 +1,46 @@
-From: Lars Poeschel <poeschel@lemonage.de>
-Subject: Re: [PATCH] ARM: dts: am33xx: Correct gpio #interrupt-cells property
-Date: Wed, 7 Aug 2013 17:11:00 +0200
-Message-ID: <201308071711.00449.poeschel@lemonage.de>
-References: <1375873592-26881-1-git-send-email-larsi@wh2.tu-dresden.de> <20130807145309.GG28558@e106331-lin.cambridge.arm.com>
+From: Alexander Holler <holler@ahsoftware.de>
+Subject: Re: [PATCH 5/5] arm: omap: Proper cleanups for omap_device
+Date: Wed, 07 Aug 2013 17:22:29 +0200
+Message-ID: <52026635.1010602@ahsoftware.de>
+References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com> <1375775624-12250-6-git-send-email-panto@antoniou-consulting.com> <20130806093356.GA27889@kroah.com> <8C31ED90-E9EF-4264-858A-17CC2536B552@antoniou-consulting.com> <20130806101421.GA29283@kroah.com> <5200FC09.7080108@ahsoftware.de> <20130807055227.GB5304@kroah.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130807145309.GG28558@e106331-lin.cambridge.arm.com>
+In-Reply-To: <20130807055227.GB5304@kroah.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Lars Poeschel <larsi@wh2.tu-dresden.de>, "b-cousson@ti.com" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?UTF-8?B?QmVub8OudCBDb3Vzc25v?= <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 07 August 2013 at 16:53:09, Mark Rutland wrote:
-> On Wed, Aug 07, 2013 at 12:06:32PM +0100, Lars Poeschel wrote:
-> > From: Lars Poeschel <poeschel@lemonage.de>
-> > 
-> > Following commit ff5c9059 and therefore other omap platforms using
-> > the gpio-omap driver correct the #interrupt-cells property on am33xx
-> > too. The omap gpio binding documentaion also states that
-> > the #interrupt-cells property should be 2.
-> 
-> I take it there are no device nodes for which any of these nodes are an
-> interrupt parent (which would need to be updated)?
+Am 07.08.2013 07:52, schrieb Greg Kroah-Hartman:
+> On Tue, Aug 06, 2013 at 03:37:13PM +0200, Alexander Holler wrote:
+>> Am 06.08.2013 12:14, schrieb Greg Kroah-Hartman:
+>>
+>>>> What exactly is a platform device anyway?
+>>>
+>>> Originally it was a "something that wasn't connected to a bus, but just
+>>> had memory-mapped i/o."  Like the PS2 keyboard controller.
+>>>
+>>> Embedded systems got ahold of this and went to town, and made everything
+>>> a platform device because they could, and no one was paying attention.
+>>>
+>>> Then OF came along and used it as well, and you know the rest...
+>>>
+>>> I think we need to get the ACPI and OF people, and me, in a room
+>>> together at the kernel summit and not let us out until we have this all
+>>> worked out.
+>>
+>> MFD uses platform devices too.
+>
+> Ugh, I've been avoiding looking at mfd for a long time now, and really
+> don't want to start now...
+>
 
-As far as I know: No.
+I've just mentioned it to suggest that platform devices seem to be used 
+all over the kernel as the generic (minimal) form of a device driver. At 
+least that is the impression I've got.
 
-Lars
+Regards,
 
-> If so:
-> 
-> Acked-by: Mark Rutland <mark.rutland@arm.com>
-> 
-> Thanks,
-> Mark.
-> 
-> > Signed-off-by: Lars Poeschel <poeschel@lemonage.de>
-> > ---
-> > 
-> >  arch/arm/boot/dts/am33xx.dtsi |    8 ++++----
-> >  1 file changed, 4 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/arch/arm/boot/dts/am33xx.dtsi
-> > b/arch/arm/boot/dts/am33xx.dtsi index 38b446b..033c5dd 100644
-> > --- a/arch/arm/boot/dts/am33xx.dtsi
-> > +++ b/arch/arm/boot/dts/am33xx.dtsi
-> > @@ -102,7 +102,7 @@
-> > 
-> >  			gpio-controller;
-> >  			#gpio-cells = <2>;
-> >  			interrupt-controller;
-> > 
-> > -			#interrupt-cells = <1>;
-> > +			#interrupt-cells = <2>;
-> > 
-> >  			reg = <0x44e07000 0x1000>;
-> >  			interrupts = <96>;
-> >  		
-> >  		};
-> > 
-> > @@ -113,7 +113,7 @@
-> > 
-> >  			gpio-controller;
-> >  			#gpio-cells = <2>;
-> >  			interrupt-controller;
-> > 
-> > -			#interrupt-cells = <1>;
-> > +			#interrupt-cells = <2>;
-> > 
-> >  			reg = <0x4804c000 0x1000>;
-> >  			interrupts = <98>;
-> >  		
-> >  		};
-> > 
-> > @@ -124,7 +124,7 @@
-> > 
-> >  			gpio-controller;
-> >  			#gpio-cells = <2>;
-> >  			interrupt-controller;
-> > 
-> > -			#interrupt-cells = <1>;
-> > +			#interrupt-cells = <2>;
-> > 
-> >  			reg = <0x481ac000 0x1000>;
-> >  			interrupts = <32>;
-> >  		
-> >  		};
-> > 
-> > @@ -135,7 +135,7 @@
-> > 
-> >  			gpio-controller;
-> >  			#gpio-cells = <2>;
-> >  			interrupt-controller;
-> > 
-> > -			#interrupt-cells = <1>;
-> > +			#interrupt-cells = <2>;
-> > 
-> >  			reg = <0x481ae000 0x1000>;
-> >  			interrupts = <62>;
-> >  		
-> >  		};
+Alexander Holler
