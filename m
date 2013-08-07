@@ -1,35 +1,93 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: [PATCH] ARM: dts: omap3-beagle-xm: fix string error in compatible property
-Date: Wed,  7 Aug 2013 09:14:15 -0500
-Message-ID: <1375884855-19414-1-git-send-email-robertcnelson@gmail.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH] ARM: dts: am33xx: Correct gpio #interrupt-cells
+ property
+Date: Wed, 7 Aug 2013 15:53:09 +0100
+Message-ID: <20130807145309.GG28558@e106331-lin.cambridge.arm.com>
+References: <1375873592-26881-1-git-send-email-larsi@wh2.tu-dresden.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ve0-f181.google.com ([209.85.128.181]:39160 "EHLO
-	mail-ve0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752237Ab3HGOO1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Aug 2013 10:14:27 -0400
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:41634 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756650Ab3HGOx5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Aug 2013 10:53:57 -0400
+Content-Disposition: inline
+In-Reply-To: <1375873592-26881-1-git-send-email-larsi@wh2.tu-dresden.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, benoit.cousson@linaro.org
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Robert Nelson <robertcnelson@gmail.com>
+To: Lars Poeschel <larsi@wh2.tu-dresden.de>
+Cc: "poeschel@lemonage.de" <poeschel@lemonage.de>, "b-cousson@ti.com" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
----
- arch/arm/boot/dts/omap3-beagle-xm.dts |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Wed, Aug 07, 2013 at 12:06:32PM +0100, Lars Poeschel wrote:
+> From: Lars Poeschel <poeschel@lemonage.de>
+> 
+> Following commit ff5c9059 and therefore other omap platforms using
+> the gpio-omap driver correct the #interrupt-cells property on am33xx
+> too. The omap gpio binding documentaion also states that
+> the #interrupt-cells property should be 2.
 
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index afdb164..0c514dc 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -11,7 +11,7 @@
- 
- / {
- 	model = "TI OMAP3 BeagleBoard xM";
--	compatible = "ti,omap3-beagle-xm, ti,omap3-beagle", "ti,omap3";
-+	compatible = "ti,omap3-beagle-xm", "ti,omap3-beagle", "ti,omap3";
- 
- 	cpus {
- 		cpu@0 {
--- 
-1.7.10.4
+I take it there are no device nodes for which any of these nodes are an
+interrupt parent (which would need to be updated)?
 
+If so:
+
+Acked-by: Mark Rutland <mark.rutland@arm.com>
+
+Thanks,
+Mark.
+
+> 
+> Signed-off-by: Lars Poeschel <poeschel@lemonage.de>
+> ---
+>  arch/arm/boot/dts/am33xx.dtsi |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 38b446b..033c5dd 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -102,7 +102,7 @@
+>  			gpio-controller;
+>  			#gpio-cells = <2>;
+>  			interrupt-controller;
+> -			#interrupt-cells = <1>;
+> +			#interrupt-cells = <2>;
+>  			reg = <0x44e07000 0x1000>;
+>  			interrupts = <96>;
+>  		};
+> @@ -113,7 +113,7 @@
+>  			gpio-controller;
+>  			#gpio-cells = <2>;
+>  			interrupt-controller;
+> -			#interrupt-cells = <1>;
+> +			#interrupt-cells = <2>;
+>  			reg = <0x4804c000 0x1000>;
+>  			interrupts = <98>;
+>  		};
+> @@ -124,7 +124,7 @@
+>  			gpio-controller;
+>  			#gpio-cells = <2>;
+>  			interrupt-controller;
+> -			#interrupt-cells = <1>;
+> +			#interrupt-cells = <2>;
+>  			reg = <0x481ac000 0x1000>;
+>  			interrupts = <32>;
+>  		};
+> @@ -135,7 +135,7 @@
+>  			gpio-controller;
+>  			#gpio-cells = <2>;
+>  			interrupt-controller;
+> -			#interrupt-cells = <1>;
+> +			#interrupt-cells = <2>;
+>  			reg = <0x481ae000 0x1000>;
+>  			interrupts = <62>;
+>  		};
+> -- 
+> 1.7.10.4
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
