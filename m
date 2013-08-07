@@ -1,35 +1,51 @@
-From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/2] ARM: OMAP: rx51: change musb mode to OTG
-Date: Wed, 07 Aug 2013 09:43:19 +0200
-Message-ID: <5201FA97.2060702@gmail.com>
-References: <1375808776-14975-1-git-send-email-aaro.koskinen@iki.fi> <1375808776-14975-3-git-send-email-aaro.koskinen@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: Re: [PATCH 5/5] arm: omap: Proper cleanups for omap_device
+Date: Wed, 7 Aug 2013 10:44:22 +0300
+Message-ID: <84B0EA3D-B6D7-4071-AEA6-019B771985B4@antoniou-consulting.com>
+References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com> <1375775624-12250-6-git-send-email-panto@antoniou-consulting.com> <20130806093356.GA27889@kroah.com> <8C31ED90-E9EF-4264-858A-17CC2536B552@antoniou-consulting.com> <20130806101421.GA29283@kroah.com>
+Mime-Version: 1.0 (Apple Message framework v1085)
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1375808776-14975-3-git-send-email-aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from li42-95.members.linode.com ([209.123.162.95]:60485 "EHLO
+	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932125Ab3HGHo1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Aug 2013 03:44:27 -0400
+In-Reply-To: <20130806101421.GA29283@kroah.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?iso-8859-1?Q?Beno=EEt_Coussno?= <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Aaro,
+Hi Greg,
 
-On 06.08.2013 19:06, Aaro Koskinen wrote:
-> Peripheral-only mode got broken in v3.11-rc1 because of unknown reasons.
+On Aug 6, 2013, at 1:14 PM, Greg Kroah-Hartman wrote:
 
-Given that you have a board that is affected, could you investigate a
-little maybe? I would have done it a long time ago, but I don't have
-access to such hardware unfortunately.
+> On Tue, Aug 06, 2013 at 12:37:25PM +0300, Pantelis Antoniou wrote:
+>>> I don't like this at all, sorry.
+>>> 
+>> 
 
-Not saying that your patch shouldn't go in, but at some point, we need a
-sane explanation why this has happened.
+[snip]
 
+>> Don't shoot the messenger please...
+>> 
+>> This is all about fixing a crash without messing too many things.
+> 
+> I understand, it's not your fault at all.
 
-Thanks,
-Daniel
+Let's start talking about the patchset again.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I know all of this code is rather distasteful but it's only purpose
+is to fix a bunch of crashes in a code path that was supposed to be working,
+namely the removal of a platform device, in the supposedly well supported
+ARM OMAP arch.
+
+Can we agree to at least not crashing until we get to a consensus about
+fixing the whole mess properly? This will take at least a few minor
+kernel revisions while in the meantime users get crashes everyday.
+
+Regards
+
+-- Pantelis
+
