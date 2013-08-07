@@ -1,51 +1,42 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH 5/5] arm: omap: Proper cleanups for omap_device
-Date: Wed, 7 Aug 2013 10:44:22 +0300
-Message-ID: <84B0EA3D-B6D7-4071-AEA6-019B771985B4@antoniou-consulting.com>
-References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com> <1375775624-12250-6-git-send-email-panto@antoniou-consulting.com> <20130806093356.GA27889@kroah.com> <8C31ED90-E9EF-4264-858A-17CC2536B552@antoniou-consulting.com> <20130806101421.GA29283@kroah.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/5] pdev: Fix platform device resource linking
+Date: Wed, 7 Aug 2013 09:27:24 +0100
+Message-ID: <20130807082723.GI23053@n2100.arm.linux.org.uk>
+References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com> <1375775624-12250-2-git-send-email-panto@antoniou-consulting.com> <20130806093601.GB27889@kroah.com> <311C42C3-6544-4058-ABE9-F9FAE72DD5CA@antoniou-consulting.com> <20130806101527.GB29283@kroah.com> <20130806101914.GH23053@n2100.arm.linux.org.uk> <20130807055700.GD5304@kroah.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from li42-95.members.linode.com ([209.123.162.95]:60485 "EHLO
-	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932125Ab3HGHo1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Aug 2013 03:44:27 -0400
-In-Reply-To: <20130806101421.GA29283@kroah.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40658 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751139Ab3HGI1n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Aug 2013 04:27:43 -0400
+Content-Disposition: inline
+In-Reply-To: <20130807055700.GD5304@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?iso-8859-1?Q?Beno=EEt_Coussno?= <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Coussno <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Greg,
-
-On Aug 6, 2013, at 1:14 PM, Greg Kroah-Hartman wrote:
-
-> On Tue, Aug 06, 2013 at 12:37:25PM +0300, Pantelis Antoniou wrote:
->>> I don't like this at all, sorry.
->>> 
->> 
-
-[snip]
-
->> Don't shoot the messenger please...
->> 
->> This is all about fixing a crash without messing too many things.
+On Wed, Aug 07, 2013 at 02:57:00PM +0900, Greg Kroah-Hartman wrote:
+> On Tue, Aug 06, 2013 at 11:19:14AM +0100, Russell King - ARM Linux wrote:
+> > On Tue, Aug 06, 2013 at 06:15:27PM +0800, Greg Kroah-Hartman wrote:
+> > > On Tue, Aug 06, 2013 at 12:45:42PM +0300, Pantelis Antoniou wrote:
+> > > > What would it take to move all this into driver core?
+> > > 
+> > > What specifically would you move into there?
+> > 
+> > A variable to hold the streaming dma_mask, so that its in struct device
+> > rather than having to be separate.  Yes, we can keep the pointer in there
+> > too, because that appears to convey meaning in the kernel today - whether
+> > the device can do DMA or not.
+> > 
+> > A NULL dma_mask pointer already means it can't and dma_set_mask() always
+> > fails.  A non-NULL dma_mask pointer means the driver can use
+> > dma_set_mask() to set an appropriate mask.
 > 
-> I understand, it's not your fault at all.
+> Ok, that sounds fine to me, for some reason I thought I said yes to this
+> a long time ago, did no one ever send me a patch for it?
 
-Let's start talking about the patchset again.
-
-I know all of this code is rather distasteful but it's only purpose
-is to fix a bunch of crashes in a code path that was supposed to be working,
-namely the removal of a platform device, in the supposedly well supported
-ARM OMAP arch.
-
-Can we agree to at least not crashing until we get to a consensus about
-fixing the whole mess properly? This will take at least a few minor
-kernel revisions while in the meantime users get crashes everyday.
-
-Regards
-
--- Pantelis
-
+Apparantly not.  I'll see what I can do, and I'll add it to my dma-masks
+series, probably below most of the existing patches that are already
+there.
