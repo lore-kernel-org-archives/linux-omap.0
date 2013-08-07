@@ -1,42 +1,64 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/5] pdev: Fix platform device resource linking
-Date: Wed, 7 Aug 2013 09:27:24 +0100
-Message-ID: <20130807082723.GI23053@n2100.arm.linux.org.uk>
-References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com> <1375775624-12250-2-git-send-email-panto@antoniou-consulting.com> <20130806093601.GB27889@kroah.com> <311C42C3-6544-4058-ABE9-F9FAE72DD5CA@antoniou-consulting.com> <20130806101527.GB29283@kroah.com> <20130806101914.GH23053@n2100.arm.linux.org.uk> <20130807055700.GD5304@kroah.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] usb: dwc3-pci: Ensure system sleep PM ops are defined
+ only when used
+Date: Wed, 7 Aug 2013 10:34:07 +0100
+Message-ID: <20130807093407.GT6427@sirena.org.uk>
+References: <1375804166-3205-1-git-send-email-broonie@kernel.org>
+ <CAOMZO5A_M3u4A3j7pFcooZ6jVi5LikERM4CVjL4bB2z5YVeTXQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="lpUp1egui7PDlNtH"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40658 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751139Ab3HGI1n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Aug 2013 04:27:43 -0400
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:38532 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932296Ab3HGJeg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Aug 2013 05:34:36 -0400
 Content-Disposition: inline
-In-Reply-To: <20130807055700.GD5304@kroah.com>
+In-Reply-To: <CAOMZO5A_M3u4A3j7pFcooZ6jVi5LikERM4CVjL4bB2z5YVeTXQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Coussno <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linaro-kernel@lists.linaro.org, linux-omap@vger.kernel.org, Andy Green <andy.green@linaro.org>
 
-On Wed, Aug 07, 2013 at 02:57:00PM +0900, Greg Kroah-Hartman wrote:
-> On Tue, Aug 06, 2013 at 11:19:14AM +0100, Russell King - ARM Linux wrote:
-> > On Tue, Aug 06, 2013 at 06:15:27PM +0800, Greg Kroah-Hartman wrote:
-> > > On Tue, Aug 06, 2013 at 12:45:42PM +0300, Pantelis Antoniou wrote:
-> > > > What would it take to move all this into driver core?
-> > > 
-> > > What specifically would you move into there?
-> > 
-> > A variable to hold the streaming dma_mask, so that its in struct device
-> > rather than having to be separate.  Yes, we can keep the pointer in there
-> > too, because that appears to convey meaning in the kernel today - whether
-> > the device can do DMA or not.
-> > 
-> > A NULL dma_mask pointer already means it can't and dma_set_mask() always
-> > fails.  A non-NULL dma_mask pointer means the driver can use
-> > dma_set_mask() to set an appropriate mask.
-> 
-> Ok, that sounds fine to me, for some reason I thought I said yes to this
-> a long time ago, did no one ever send me a patch for it?
 
-Apparantly not.  I'll see what I can do, and I'll add it to my dma-masks
-series, probably below most of the existing patches that are already
-there.
+--lpUp1egui7PDlNtH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Aug 06, 2013 at 10:35:52PM -0300, Fabio Estevam wrote:
+> On Tue, Aug 6, 2013 at 12:49 PM, Mark Brown <broonie@kernel.org> wrote:
+> > From: Andy Green <andy.green@linaro.org>
+> >
+> > You might have CONFIG_PM, but you might not have CONFIG_SUSPEND, in which
+> > case these are unused.
+> >
+> > Signed-off-by: Andy Green <andy.green@linaro.org>
+> > Signed-off-by: Mark Brown <broonie@linaro.org>
+
+> What about doing this instead?
+
+Makes sense to me - Andy?
+
+--lpUp1egui7PDlNtH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSAhSMAAoJELSic+t+oim9oXQP/RIlQmsS484KN4b9RJvQVS7G
+IMMwLqtu6ktJqDIV3P4lSaR+1vV223lstiD79RWIQXEPhOUlXKcdDX/PGF1NTgS7
+8l0x7OrtI32z9McGvRkzqdELEOPZLBINRlv/+lP5NmXplXisN1sA0ong/c71LE/y
+/WNwnH3tGiNtgrwdeOLvnB+AD0H+gHzhcywhEto2MBjblHFz9rkweBwFnXKy6JiO
+ldbDv/jO8RqwM6e4n89WZ4IRziPfzC73ZSqQozLtk5tzAP9BvkeBp3uIc6TaFPCL
+s9DP31LcIwn3tKiN2d/tM7P7FgoUTpA98C4GskNsOSCxMu77t8K/C5IUwUB7voXA
+Ix4BNEZMq3GUrKZcbyNfsUylSybNkZG2Zzh/wusIN64tDWT3pRrdGGbBAx1pIAIJ
+ENCSM1fdU/SS5jpii3A4usdkvhIizN74WKIQMIDM6Xg/UVAPPAQCnf2QBnpxeS6i
+Cohj6j31m9MX7ZeY1cXqjeX5wfSQ/7rdtE8uLBFobYPseuqEMs5gPOZNGgmlFxY3
+MStbTGaxOF+/wADrvQ34ppZz4mSoJeB9ayOGsFK/xiMruzttTlJSvqzR9awikvmV
+YijrcD8VnRC+IoLo8FQbrmUR6DbEcjQjhhE6pwvASHjMR8XPenKvkWsYUbABr4M0
+0ibQp7WXlJEL1xmOH1RF
+=7Y/U
+-----END PGP SIGNATURE-----
+
+--lpUp1egui7PDlNtH--
