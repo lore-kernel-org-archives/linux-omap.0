@@ -1,41 +1,69 @@
-From: Andy Green <andy.green@linaro.org>
-Subject: Re: [PATCH] usb: dwc3-pci: Ensure system sleep PM ops are defined
- only when used
-Date: Wed, 7 Aug 2013 18:01:00 +0800
-Message-ID: <CAAfg0W5fWdvX7aU8y29op70SFod=xqrr9kpxUUi=NKy71Y89Wg@mail.gmail.com>
-References: <1375804166-3205-1-git-send-email-broonie@kernel.org>
-	<CAOMZO5A_M3u4A3j7pFcooZ6jVi5LikERM4CVjL4bB2z5YVeTXQ@mail.gmail.com>
-	<20130807093407.GT6427@sirena.org.uk>
+From: majianpeng <majianpeng@gmail.com>
+Subject: [PATCH V2] mmc: omap_hsmmc: Fix sleep too long in ISR context.
+Date: Wed, 7 Aug 2013 18:05:08 +0800
+Message-ID: <201308071805022428282@gmail.com>
+Reply-To: majianpeng <majianpeng@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f172.google.com ([209.85.216.172]:56214 "EHLO
-	mail-qc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932258Ab3HGKBB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Aug 2013 06:01:01 -0400
-Received: by mail-qc0-f172.google.com with SMTP id a1so790890qcx.3
-        for <linux-omap@vger.kernel.org>; Wed, 07 Aug 2013 03:01:00 -0700 (PDT)
-In-Reply-To: <20130807093407.GT6427@sirena.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: balajitk <balajitk@ti.com>, cjb <cjb@laptop.org>
+Cc: linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, mayuzheng <mayuzheng@kedacom.com>, Hein Tibosch <hein_tibosch@yahoo.es>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Fabio Estevam <festevam@gmail.com>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linaro-kernel <linaro-kernel@lists.linaro.org>, linux-omap@vger.kernel.org
 
-On 7 August 2013 17:34, Mark Brown <broonie@kernel.org> wrote:
-> On Tue, Aug 06, 2013 at 10:35:52PM -0300, Fabio Estevam wrote:
->> On Tue, Aug 6, 2013 at 12:49 PM, Mark Brown <broonie@kernel.org> wrote:
->> > From: Andy Green <andy.green@linaro.org>
->> >
->> > You might have CONFIG_PM, but you might not have CONFIG_SUSPEND, in which
->> > case these are unused.
->> >
->> > Signed-off-by: Andy Green <andy.green@linaro.org>
->> > Signed-off-by: Mark Brown <broonie@linaro.org>
->
->> What about doing this instead?
->
-> Makes sense to me - Andy?
+VjI6IA0KCWNsZWFuIHVwIGNvZGUuDQpWMToNCgl3d3cubWFpbC1hcmNoaXZlLmNvbS9saW51eC1v
+bWFwQHZnZXIuLi4vbXNnOTMyMzkuaHRtbOKAjg0KDQoNCldlIGZvdW5kIGEgcHJvYmxlbSB3aGVu
+IHdlIHJlbW92ZWQgYSB3b3JraW5nIHNkIGNhcmQgdGhhdCB0aGUgaXJxYWN0aW9uDQpvZiBvbWFw
+X2hzbW1jIGNhbiBzbGVlcCB0byAzLjZzLiBUaGlzIGNhdXNlIG91ciB3YXRjaGRvZyB0byB3b3Jr
+Lg0KSW4gZnVuYyBvbWFwX2hzbW1jX3Jlc2V0X2NvbnRyb2xsZXJfZnNtLCBpdCBzaG91bGQgd2F0
+Y2ggYSAwLT4xDQp0cmFuc2l0aW9uLkJ1dCBhdm9pZGluZyBlbmRsZXNzIHdhaXRpbmcsIGl0IHVz
+ZWQgbG9vcHNfcGVyX2ppZmZ5IGFzIHRoZSB0aW1lci4NClRoZSBjb2RlIGlzOg0KPiB3aGlsZSAo
+KCEoT01BUF9IU01NQ19SRUFEKGhvc3QtPmJhc2UsIFNZU0NUTCkgJiBiaXQpKQ0KPiAgICAgICAg
+ICAgICAgICAmJiAoaSsrIDwgbGltaXQpKQ0KPiAgICAgICAgICAgICAgICAgICAgICAgIGNwdV9y
+ZWxheCgpOw0KDQpCdXQgZ2VuZXJhbmx5IGxvb3BzX3Blcl9qaWZmeSBhcyBhIHRpbWVyLGl0IHNo
+b3VsZCBsaWtlOg0KPiAgd2hpbGUoaSsrIDwgbGltaXQpDQo+IGNwdV9yZWxheCgpOw0KDQpJIGZv
+dW5kIGZvciB0aGUgbG9uZyB0aW1lIGNhc2UsIHRoZSB3aGlsZS1vcGVhdGlvbiBzdG9wZWQgYmVj
+YXVzZSAnaSA9PSBsaW1pdCcuDQpCZWNhdXNlIGFkZGVkIHNvbWUgY29kZSwgc28gdGhlIGR1cmF0
+aW9uIGJlY2FtZSB0b28gbG9uZ2VyIHRoYW4NCk1NQ19USU1FT1VfVVMoMjBtcykuDQoNClRoZSBz
+b2Z0d2FyZSBjYW4ndCBtb25pdG9yIHRoZSB0cmFuc2l0aW9uIG9mIGhhcmR3YXJlIGZvciB0aGkg
+Y2FzZS4NCg0KQmVjYXN1ZSB0aG9zZSBjb2RlcyBpbiBJU1IgY29udGV4dCwgaXQgY2FuJ3QgdXNl
+IHRpbWVyX2JlZm9yZS9hZnRlci4NCkkgZGl2aXZlZCB0aGUgdGltZSBpbnRvIDFtcyBhbmQgdXNl
+ZCB1ZGVsYXkoMSkgdG8gaW5zdGVhZC4NCkl0IHdpbGwgY2F1c2UgZG8gYWRkaXRpb25hbCB1ZGVs
+YXkoMSkuQnV0IGZyb20gbXkgdGVzdCxpdCBsb29rcyBnb29kLg0KDQpSZXBvcnRlZC1ieTogWXV6
+aGVuZyBNYSA8bWF5dXpoZW5nQGtlZGFjb20uY29tPg0KVGVzdGVkLWJ5OiBZdXpoZW5nIE1hIDxt
+YXl1emhlbmdAa2VkYWNvbS5jb20+DQpSZXZpZXdlZC1ieTogSGVpbiBUaWJvc2NoIDxoZWluX3Rp
+Ym9zY2hAeWFob28uZXM+DQpTaWduZWQtb2ZmLWJ5OiBKaWFucGVuZyBNYSA8bWFqaWFucGVuZ0Bn
+bWFpbC5jb20+DQotLS0NCiBkcml2ZXJzL21tYy9ob3N0L29tYXBfaHNtbWMuYyB8IDI1ICsrKysr
+KysrKysrLS0tLS0tLS0tLS0tLS0NCiAxIGZpbGUgY2hhbmdlZCwgMTEgaW5zZXJ0aW9ucygrKSwg
+MTQgZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL21tYy9ob3N0L29tYXBfaHNt
+bWMuYyBiL2RyaXZlcnMvbW1jL2hvc3Qvb21hcF9oc21tYy5jDQppbmRleCAxODY1MzIxLi5iYmRh
+NWVkIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9tbWMvaG9zdC9vbWFwX2hzbW1jLmMNCisrKyBiL2Ry
+aXZlcnMvbW1jL2hvc3Qvb21hcF9oc21tYy5jDQpAQCAtOTczLDkgKzk3Myw4IEBAIHN0YXRpYyBp
+bmxpbmUgdm9pZCBvbWFwX2hzbW1jX2RiZ19yZXBvcnRfaXJxKHN0cnVjdCBvbWFwX2hzbW1jX2hv
+c3QgKmhvc3QsDQogc3RhdGljIGlubGluZSB2b2lkIG9tYXBfaHNtbWNfcmVzZXRfY29udHJvbGxl
+cl9mc20oc3RydWN0IG9tYXBfaHNtbWNfaG9zdCAqaG9zdCwNCiAJCQkJCQkgICB1bnNpZ25lZCBs
+b25nIGJpdCkNCiB7DQotCXVuc2lnbmVkIGxvbmcgaSA9IDA7DQotCXVuc2lnbmVkIGxvbmcgbGlt
+aXQgPSAobG9vcHNfcGVyX2ppZmZ5ICoNCi0JCQkJbXNlY3NfdG9famlmZmllcyhNTUNfVElNRU9V
+VF9NUykpOw0KKwkvKmNoYW5nZSB0byAxbXMsc28gd2UgY2FuIHVzZSB1ZGVsYXkoMSkqLw0KKwl1
+bnNpZ25lZCBsb25nIGxpbWl0ID0gTU1DX1RJTUVPVVRfTVMgKiAxMDAwOw0KIA0KIAlPTUFQX0hT
+TU1DX1dSSVRFKGhvc3QtPmJhc2UsIFNZU0NUTCwNCiAJCQkgT01BUF9IU01NQ19SRUFEKGhvc3Qt
+PmJhc2UsIFNZU0NUTCkgfCBiaXQpOw0KQEAgLTk4NCwxNyArOTgzLDE1IEBAIHN0YXRpYyBpbmxp
+bmUgdm9pZCBvbWFwX2hzbW1jX3Jlc2V0X2NvbnRyb2xsZXJfZnNtKHN0cnVjdCBvbWFwX2hzbW1j
+X2hvc3QgKmhvc3QsDQogCSAqIE9NQVA0IEVTMiBhbmQgZ3JlYXRlciBoYXMgYW4gdXBkYXRlZCBy
+ZXNldCBsb2dpYy4NCiAJICogTW9uaXRvciBhIDAtPjEgdHJhbnNpdGlvbiBmaXJzdA0KIAkgKi8N
+Ci0JaWYgKG1tY19zbG90KGhvc3QpLmZlYXR1cmVzICYgSFNNTUNfSEFTX1VQREFURURfUkVTRVQp
+IHsNCi0JCXdoaWxlICgoIShPTUFQX0hTTU1DX1JFQUQoaG9zdC0+YmFzZSwgU1lTQ1RMKSAmIGJp
+dCkpDQotCQkJCQkmJiAoaSsrIDwgbGltaXQpKQ0KLQkJCWNwdV9yZWxheCgpOw0KLQl9DQotCWkg
+PSAwOw0KLQ0KLQl3aGlsZSAoKE9NQVBfSFNNTUNfUkVBRChob3N0LT5iYXNlLCBTWVNDVEwpICYg
+Yml0KSAmJg0KLQkJKGkrKyA8IGxpbWl0KSkNCi0JCWNwdV9yZWxheCgpOw0KLQ0KKwlpZiAobW1j
+X3Nsb3QoaG9zdCkuZmVhdHVyZXMgJiBIU01NQ19IQVNfVVBEQVRFRF9SRVNFVCkNCisJCXdoaWxl
+ICghKE9NQVBfSFNNTUNfUkVBRChob3N0LT5iYXNlLCBTWVNDVEwpICYgYml0KQ0KKwkJCSYmIGxp
+bWl0LS0pDQorCQkJdWRlbGF5KDEpOw0KKw0KKwlsaW1pdCA9IE1NQ19USU1FT1VUX01TICogMTAw
+MDsNCisJd2hpbGUgKChPTUFQX0hTTU1DX1JFQUQoaG9zdC0+YmFzZSwgU1lTQ1RMKSAmIGJpdCkg
+JiYgbGltaXQtLSkNCisJCXVkZWxheSgxKTsNCisNCiAJaWYgKE9NQVBfSFNNTUNfUkVBRChob3N0
+LT5iYXNlLCBTWVNDVEwpICYgYml0KQ0KIAkJZGV2X2VycihtbWNfZGV2KGhvc3QtPm1tYyksDQog
+CQkJIlRpbWVvdXQgd2FpdGluZyBvbiBjb250cm9sbGVyIHJlc2V0IGluICVzXG4iLA0KLS0gDQox
+LjguMS4yDQo=
 
-Sure, it seems a much more complete solution.
-
--Andy
