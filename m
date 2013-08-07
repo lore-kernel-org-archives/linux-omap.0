@@ -1,46 +1,59 @@
-From: Alexander Holler <holler@ahsoftware.de>
-Subject: Re: [PATCH 5/5] arm: omap: Proper cleanups for omap_device
-Date: Wed, 07 Aug 2013 17:22:29 +0200
-Message-ID: <52026635.1010602@ahsoftware.de>
-References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com> <1375775624-12250-6-git-send-email-panto@antoniou-consulting.com> <20130806093356.GA27889@kroah.com> <8C31ED90-E9EF-4264-858A-17CC2536B552@antoniou-consulting.com> <20130806101421.GA29283@kroah.com> <5200FC09.7080108@ahsoftware.de> <20130807055227.GB5304@kroah.com>
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [PATCH 02/12] drivers/i2c/busses: don't use
+ devm_pinctrl_get_select_default() in probe
+Date: Wed, 7 Aug 2013 17:37:09 +0200
+Message-ID: <20130807153708.GJ2978@katana>
+References: <1373471889-18107-1-git-send-email-wsa@the-dreams.de>
+ <1373471889-18107-2-git-send-email-wsa@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130807055227.GB5304@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?UTF-8?B?QmVub8OudCBDb3Vzc25v?= <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tAmVnWIZ6lqEAvSf"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1373471889-18107-2-git-send-email-wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Am 07.08.2013 07:52, schrieb Greg Kroah-Hartman:
-> On Tue, Aug 06, 2013 at 03:37:13PM +0200, Alexander Holler wrote:
->> Am 06.08.2013 12:14, schrieb Greg Kroah-Hartman:
->>
->>>> What exactly is a platform device anyway?
->>>
->>> Originally it was a "something that wasn't connected to a bus, but just
->>> had memory-mapped i/o."  Like the PS2 keyboard controller.
->>>
->>> Embedded systems got ahold of this and went to town, and made everything
->>> a platform device because they could, and no one was paying attention.
->>>
->>> Then OF came along and used it as well, and you know the rest...
->>>
->>> I think we need to get the ACPI and OF people, and me, in a room
->>> together at the kernel summit and not let us out until we have this all
->>> worked out.
->>
->> MFD uses platform devices too.
->
-> Ugh, I've been avoiding looking at mfd for a long time now, and really
-> don't want to start now...
->
 
-I've just mentioned it to suggest that platform devices seem to be used 
-all over the kernel as the generic (minimal) form of a device driver. At 
-least that is the impression I've got.
+--tAmVnWIZ6lqEAvSf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+On Wed, Jul 10, 2013 at 04:57:37PM +0100, Wolfram Sang wrote:
+> Since commit ab78029 (drivers/pinctrl: grab default handles from device c=
+ore),
+> we can rely on device core for setting the default pins. Compile tested o=
+nly.
+>=20
+> Acked-by: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> (personally at LCE13)
+> Signed-off-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
 
-Alexander Holler
+Applied to for-next, thanks!
+
+
+--tAmVnWIZ6lqEAvSf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSAmmkAAoJEBQN5MwUoCm2bHoP/iNtk37KWc2nWQT+dGhISokW
+xdgW6SKAkGMd+8RNb8l+HHeaOsbRvGIYwvHvJMt1p0lLIVIcI/HfFdE+2wfD3ACd
+5Cx0Mq9UJQdctFefyEBwjhCQCkUsKQnLjlj/Q52FWpmBTQDBmMA8lpCG/S9FrLji
+gupFMxxTulPVZaf9EYxzWt/M28SOOgpoJdCkeR6g6eYaqG4NSiRRAfQl++oNb7CO
+CM8e/g84LD7wdA5n9vEeg2nudUiPZ0z+R77PmGxM815SsA8dYx1cbFECtCy3vybz
+Y1/7jY4OlexBlG0qsXcqpF3QMIGiI+eYflqSb37bz3yARYmRr44R6Ti0rX2hF0aq
+qYfcbyEEkX9Ilv3jsA/E2kQy3xbPSFgHN/v64MiIHVmwyEn11uz0vuSJgrarJs5k
+h6ftDt4PUN57xkuGrMuoux/A9LaWPkSZ8jqYkZd+ezvBr6uz4ukXEie2zg6bxhJ6
+nv/vO/zibdq0gz3i00TKXlcZRqnioef9IcoeSf9lSvP2M/Jb5gMJ97wxuEIOCW1t
+MO4tW6w5MJ5CW7i3MzCyDu4nJwZtVzBDJ/NeLQDaC44U2gxIJwPkdYxF4i0Hk7+X
+BFaGMlzzKkDsYMygsGftl0m0iJELFjOTRLKBG53KfFixLQ+N/FGnfiMQWjkIBZD4
+bvNdL3UBgFXN8mn9c2NK
+=zKOz
+-----END PGP SIGNATURE-----
+
+--tAmVnWIZ6lqEAvSf--
