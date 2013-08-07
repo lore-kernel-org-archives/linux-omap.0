@@ -1,55 +1,73 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: fix wrong address when loading
- PRM_FRAC_INCREMENTOR_DENUMERATOR_RELOAD
-Date: Wed, 7 Aug 2013 04:09:45 -0700
-Message-ID: <20130807110945.GL7656@atomide.com>
-References: <1375356474-24203-1-git-send-email-baozich@gmail.com>
- <C635EF21-CD18-4633-AA39-16209F8EE231@gmail.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH] ARM: dts: am33xx: Correct gpio #interrupt-cells property
+Date: Wed, 7 Aug 2013 13:27:45 +0200
+Message-ID: <CABxcv==8Y7WasGBMByXPybzbP2ZA7jAnwpdiz4mnrtx_hHgr6Q@mail.gmail.com>
+References: <1375873592-26881-1-git-send-email-larsi@wh2.tu-dresden.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <C635EF21-CD18-4633-AA39-16209F8EE231@gmail.com>
+In-Reply-To: <1375873592-26881-1-git-send-email-larsi@wh2.tu-dresden.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Chen Baozi <baozich@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Lars Poeschel <larsi@wh2.tu-dresden.de>
+Cc: poeschel@lemonage.de, b-cousson@ti.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Chen Baozi <baozich@gmail.com> [130805 08:33]:
-> ping?
-> 
-> On Aug 1, 2013, at 7:27 PM, Chen Baozi <baozich@gmail.com> wrote:
-> 
-> > The denominator should be load from INCREMENTOR_DENUMERATOR_RELOAD_OFFSET
-> > rather than INCREMENTER_NUMERATOR_OFFSET.
+On Wed, Aug 7, 2013 at 1:06 PM, Lars Poeschel <larsi@wh2.tu-dresden.de> wrote:
+> From: Lars Poeschel <poeschel@lemonage.de>
+>
+> Following commit ff5c9059 and therefore other omap platforms using
+> the gpio-omap driver correct the #interrupt-cells property on am33xx
+> too. The omap gpio binding documentaion also states that
+> the #interrupt-cells property should be 2.
+>
+> Signed-off-by: Lars Poeschel <poeschel@lemonage.de>
+> ---
+>  arch/arm/boot/dts/am33xx.dtsi |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 38b446b..033c5dd 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -102,7 +102,7 @@
+>                         gpio-controller;
+>                         #gpio-cells = <2>;
+>                         interrupt-controller;
+> -                       #interrupt-cells = <1>;
+> +                       #interrupt-cells = <2>;
+>                         reg = <0x44e07000 0x1000>;
+>                         interrupts = <96>;
+>                 };
+> @@ -113,7 +113,7 @@
+>                         gpio-controller;
+>                         #gpio-cells = <2>;
+>                         interrupt-controller;
+> -                       #interrupt-cells = <1>;
+> +                       #interrupt-cells = <2>;
+>                         reg = <0x4804c000 0x1000>;
+>                         interrupts = <98>;
+>                 };
+> @@ -124,7 +124,7 @@
+>                         gpio-controller;
+>                         #gpio-cells = <2>;
+>                         interrupt-controller;
+> -                       #interrupt-cells = <1>;
+> +                       #interrupt-cells = <2>;
+>                         reg = <0x481ac000 0x1000>;
+>                         interrupts = <32>;
+>                 };
+> @@ -135,7 +135,7 @@
+>                         gpio-controller;
+>                         #gpio-cells = <2>;
+>                         interrupt-controller;
+> -                       #interrupt-cells = <1>;
+> +                       #interrupt-cells = <2>;
+>                         reg = <0x481ae000 0x1000>;
+>                         interrupts = <62>;
+>                 };
+> --
+> 1.7.10.4
+>
+>
 
-Maybe describe what exactly happens without this fix?
-
-Also we should get few acks for this for the -rc series.
-
-Regards,
-
-Tony
-
-> > Signed-off-by: Chen Baozi <baozich@gmail.com>
-> > ---
-> > arch/arm/mach-omap2/timer.c | 2 +-
-> > 1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> > index b37e1fc..9265e03 100644
-> > --- a/arch/arm/mach-omap2/timer.c
-> > +++ b/arch/arm/mach-omap2/timer.c
-> > @@ -537,7 +537,7 @@ static void __init realtime_counter_init(void)
-> > 	reg |= num;
-> > 	__raw_writel(reg, base + INCREMENTER_NUMERATOR_OFFSET);
-> > 
-> > -	reg = __raw_readl(base + INCREMENTER_NUMERATOR_OFFSET) &
-> > +	reg = __raw_readl(base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET) &
-> > 			NUMERATOR_DENUMERATOR_MASK;
-> > 	reg |= den;
-> > 	__raw_writel(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
-> > -- 
-> > 1.8.1.4
-> > 
-> 
+Reviewed-by: Javier Martinez Canillas <javier@dowhile0.org>
