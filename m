@@ -1,18 +1,18 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCHv3 6/9] ARM: OMAP2+: timer: Add suspend-resume callbacks
- for clkevent device
-Date: Thu, 8 Aug 2013 10:23:36 -0400
-Message-ID: <5203A9E8.2090901@ti.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <1375811376-49985-7-git-send-email-d-gerlach@ti.com>
+Subject: Re: [PATCHv3 7/9] ARM: OMAP: omap_device: Add APIs to enable and
+ idle hwmods
+Date: Thu, 8 Aug 2013 10:26:12 -0400
+Message-ID: <5203AA84.4080404@ti.com>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <1375811376-49985-8-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37433 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:37606 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965190Ab3HHOYA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Aug 2013 10:24:00 -0400
-In-Reply-To: <1375811376-49985-7-git-send-email-d-gerlach@ti.com>
+	with ESMTP id S965190Ab3HHO0g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Aug 2013 10:26:36 -0400
+In-Reply-To: <1375811376-49985-8-git-send-email-d-gerlach@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Dave Gerlach <d-gerlach@ti.com>
@@ -21,81 +21,22 @@ Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walms
 On Tuesday 06 August 2013 01:49 PM, Dave Gerlach wrote:
 > From: Vaibhav Bedia <vaibhav.bedia@ti.com>
 > 
-> OMAP timer code registers two timers - one as clocksource
-> and one as clockevent. Since AM33XX has only one usable timer
-> in the WKUP domain one of the timers needs suspend-resume
-> support to restore the configuration to pre-suspend state.
-> 
-> commit adc78e6 (timekeeping: Add suspend and resume
-> of clock event devices) introduced .suspend and .resume
-> callbacks for clock event devices. Leverages these
-> callbacks to have AM33XX clockevent timer which is
-> in not in WKUP domain to behave properly across system
-> suspend.
+> Needed to let the AM335x PM handle the IPs which need forced
+> standby transition during every suspend-resume cycle when
+> the corresponding driver is not compiled into the kernel.
 > 
 > Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 > Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 > ---
-NAK
-
-This patch doesn't addressed previous comments.
-- The issue is specific to AM33XX and hence you
-need to take care of that. These callbacks will happen on
-all OMAP machines where the problem doesn't exist.
-
-- Don't use hwmod APIs directly. At least abstract it
-at omap_device layer and use that one instead.
-
->  arch/arm/mach-omap2/timer.c |   32 ++++++++++++++++++++++++++++++++
->  1 file changed, 32 insertions(+)
+>  arch/arm/mach-omap2/omap_device.c |    8 ++++++++
+>  arch/arm/mach-omap2/omap_device.h |    2 ++
+>  2 files changed, 10 insertions(+)
 > 
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index b37e1fc..cce5d39 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -118,11 +118,43 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
->  	}
->  }
->  
-> +static void omap_clkevt_suspend(struct clock_event_device *unused)
-> +{
-> +	char name[10];
-> +	struct omap_hwmod *oh;
-> +
-> +	sprintf(name, "timer%d", clkev.id);
-> +	oh = omap_hwmod_lookup(name);
-> +	if (!oh)
-> +		return;
-> +
-> +	__omap_dm_timer_stop(&clkev, 1, clkev.rate);
-> +	omap_hwmod_idle(oh);
-> +}
-> +
-> +static void omap_clkevt_resume(struct clock_event_device *unused)
-> +{
-> +	char name[10];
-> +	struct omap_hwmod *oh;
-> +
-> +	sprintf(name, "timer%d", clkev.id);
-> +	oh = omap_hwmod_lookup(name);
-> +	if (!oh)
-> +		return;
-> +
-> +	omap_hwmod_enable(oh);
-> +	__omap_dm_timer_load_start(&clkev,
-> +			OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0, 1);
-> +	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
-> +}
-> +
->  static struct clock_event_device clockevent_gpt = {
->  	.features       = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
->  	.rating		= 300,
->  	.set_next_event	= omap2_gp_timer_set_next_event,
->  	.set_mode	= omap2_gp_timer_set_mode,
-> +	.suspend	= omap_clkevt_suspend,
-> +	.resume		= omap_clkevt_resume,
->  };
->  
->  static struct property device_disabled = {
-> 
+The interface might be sane but the need of force standby
+is just non-sense. Why can't we take care of this in
+firmware itself. Linux doesn't need to know about it.
+More comments on this in other patch where it is being used.
+
+Regards,
+Santosh
 
