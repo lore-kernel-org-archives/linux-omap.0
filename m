@@ -1,42 +1,90 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCHv3 7/9] ARM: OMAP: omap_device: Add APIs to enable and
- idle hwmods
-Date: Thu, 8 Aug 2013 10:26:12 -0400
-Message-ID: <5203AA84.4080404@ti.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <1375811376-49985-8-git-send-email-d-gerlach@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Kumar Gala <galak@codeaurora.org>
+Subject: Re: [PATCHv3 2/8] mailbox/omap: add support for parsing dt devices
+Date: Thu, 8 Aug 2013 09:34:37 -0500
+Message-ID: <CE2B6412-870F-4B43-9466-BE291E4E7210@codeaurora.org>
+References: <1375825216-18119-1-git-send-email-s-anna@ti.com> <BB39592C-0DAC-49A4-A782-583D7EB858AF@codeaurora.org> <52027CDC.8080205@ti.com> <FF52B913-A5AB-4516-BDA6-ED0BCFFBD4D1@codeaurora.org> <5202A927.4030708@ti.com>
+Mime-Version: 1.0 (Apple Message framework v1283)
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37606 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965190Ab3HHO0g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Aug 2013 10:26:36 -0400
-In-Reply-To: <1375811376-49985-8-git-send-email-d-gerlach@ti.com>
+Received: from smtp.codeaurora.org ([198.145.11.231]:46956 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965239Ab3HHOek convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Aug 2013 10:34:40 -0400
+In-Reply-To: <5202A927.4030708@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>
+To: Suman Anna <s-anna@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>, Paul Walmsley <paul@pwsan.com>, Ohad Ben-Cohen <ohad@wizery.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On Tuesday 06 August 2013 01:49 PM, Dave Gerlach wrote:
-> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
-> 
-> Needed to let the AM335x PM handle the IPs which need forced
-> standby transition during every suspend-resume cycle when
-> the corresponding driver is not compiled into the kernel.
-> 
-> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_device.c |    8 ++++++++
->  arch/arm/mach-omap2/omap_device.h |    2 ++
->  2 files changed, 10 insertions(+)
-> 
-The interface might be sane but the need of force standby
-is just non-sense. Why can't we take care of this in
-firmware itself. Linux doesn't need to know about it.
-More comments on this in other patch where it is being used.
 
-Regards,
-Santosh
+On Aug 7, 2013, at 3:08 PM, Suman Anna wrote:
+
+> On 08/07/2013 12:41 PM, Kumar Gala wrote:
+>> 
+>> On Aug 7, 2013, at 11:59 AM, Suman Anna wrote:
+>> 
+>>> Kumar,
+>>> 
+>>>>> Logic has been added to the OMAP2+ mailbox code to
+>>>>> parse the mailbox dt nodes and construct the different
+>>>>> mailboxes associated with the instance. The design is
+>>>>> based on gathering the same information that was being
+>>>>> passed previously through the platform data, except for
+>>>>> the interrupt type configuration information.
+>>>>> 
+>>>>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>>>>> ---
+>>>>> .../devicetree/bindings/mailbox/omap-mailbox.txt   |  43 +++++++
+>>>>> drivers/mailbox/mailbox-omap2.c                    | 130 ++++++++++++++++++---
+>>>>> 2 files changed, 158 insertions(+), 15 deletions(-)
+>>>>> create mode 100644 Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
+>>>>> 
+>>>>> diff --git a/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt b/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
+>>>>> new file mode 100644
+>>>>> index 0000000..8ffb08a
+>>>>> --- /dev/null
+>>>>> +++ b/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
+>>>>> @@ -0,0 +1,43 @@
+>>>>> +OMAP2+ Mailbox Driver
+>>>>> +
+>>>>> +Required properties:
+>>>>> +- compatible:		Should be one of the following,
+>>>>> +			    "ti,omap2-mailbox" for
+>>>>> +				OMAP2420, OMAP2430, OMAP3430, OMAP3630 SoCs
+>>>>> +			    "ti,omap4-mailbox" for
+>>>>> +				OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
+>>>>> +- reg:			Contains the mailbox register address range (base address
+>>>>> +			and length)
+>>>>> +- interrupts: 		Contains the interrupt information for the mailbox
+>>>>> +			device. The format is dependent on which interrupt
+>>>>> +			controller the OMAP device uses
+>>>>> +- ti,hwmods:		Name of the hwmod associated with the mailbox
+>>>>> +- ti,mbox-num-users:	Number of targets (processor devices) that the mailbox device
+>>>>> +			can interrupt
+>>>>> +- ti,mbox-num-fifos:	Number of h/w fifos within the mailbox device
+>>>> 
+>>>> Isn't "ti,mbox-num-users", "ti,mbox-num-fifos" this SoC specific, why do we need to encode in the device tree.  Can we not have a more SoC specific compatiable and encode such info in the driver as part of the .data field in of_device_id ?
+>>> 
+>>> They are IP design parameters for the number of h/w fifos and interrupts
+>>> coming out of the IP block, with the functionality identical. This
+>>> information could not be read from any registers. Until OMAP5, we always
+>>> had a single IP in the SoC and so these could been encoded in the
+>>> driver. But in DRA7xx, a new SoC, we have 13 mailboxes which have
+>>> differing number of these properties even though the functional IP block
+>>> is same.
+>> 
+>> Ah, I see.  Since you've got examples of the same IP with different design params in a given SoC than this makes sense.
+>> 
+>> Is that true of ti,mbox-num-users?
+> 
+> Yes, it is true of both "ti,mbox-num-users" and "ti,mbox-num-fifos".
+
+So I think it would be good to update the binding to convey that SoCs might have multiple mbox units w/different design pararms (maybe a short blurb as part of the intro).
+
+- k
+
+--
+Employee of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
 
