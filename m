@@ -1,47 +1,42 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCHv3 9/9] ARM: OMAP2+: AM33XX: Hookup AM33XX PM code into
- OMAP builds
-Date: Thu, 8 Aug 2013 10:53:45 -0400
-Message-ID: <5203B0F9.9090603@ti.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <1375811376-49985-10-git-send-email-d-gerlach@ti.com>
+Subject: Re: [PATCHv3 8/9] ARM: OMAP2+: AM33XX: Basic suspend resume support
+Date: Thu, 8 Aug 2013 11:03:18 -0400
+Message-ID: <5203B336.90102@ti.com>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+ <1375811376-49985-9-git-send-email-d-gerlach@ti.com>
+ <CA+Bv8XbK+=pvG+bbvfCtS2Rtg-YoAhuUbWjSro9m4xWjw=Cr8A@mail.gmail.com>
+ <52038E88.2050604@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33115 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934262Ab3HHOyR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Aug 2013 10:54:17 -0400
-In-Reply-To: <1375811376-49985-10-git-send-email-d-gerlach@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <52038E88.2050604@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, Russ Dill <russ.dill@gmail.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Tony Lingren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-On Tuesday 06 August 2013 01:49 PM, Dave Gerlach wrote:
-> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
-> 
-> With all the requisite changes in place we can now
-> enable the basic PM support for AM335x. This patch
-> updates the various OMAP files to enable suspend-resume
-> on AM335x.
-> 
-> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-> ---
->  arch/arm/mach-omap2/Kconfig         |    7 +++++--
->  arch/arm/mach-omap2/Makefile        |    2 ++
->  arch/arm/mach-omap2/board-generic.c |    1 +
->  arch/arm/mach-omap2/common.h        |   10 ++++++++++
->  arch/arm/mach-omap2/io.c            |    5 +++++
->  arch/arm/mach-omap2/pm.c            |    3 ++-
->  arch/arm/mach-omap2/pm.h            |    5 +++++
->  arch/arm/mach-omap2/sram.c          |   10 +++++++++-
->  arch/arm/mach-omap2/sram.h          |    2 ++
->  9 files changed, 41 insertions(+), 4 deletions(-)
-> 
-The patch looks fine but too many changes in one patch
-than my liking. No strong preference though.
+$subject and patch don't match.
 
-Acked-by: Santosh Shilikar<santosh.shilimkar@ti.com>
+On Thursday 08 August 2013 08:26 AM, Nishanth Menon wrote:
+> On 08/08/2013 03:45 AM, Russ Dill wrote:
+>>   In reference to
+>> the M3 handling it, the M3 wouldn't know which devices have a driver
+>> bound and which don't.
+> Does it need to? M3 firmware can pretty much define "I will force the device into low power state, and if the drivers dont handle things properly, fix the darned driver". M3 behavior should be considered as a "hardware" as far as Linux running on MPU is concerned, and firmware helps change the behavior by accounting for SoC quirks. *if* we have ability to handle this in the firmware, there is no need to carry this in Linux.
+> 
+I agree with Nishant. I don't like this patch and IIRC, I gave same
+comment in the last version. Linux need not know about all such firmware
+quirks. Also all these M3 specific stuff, should be done somewhere
+else. Probably having a small M3 driver won't be a bad idea.
 
+Regards,
+Santosh
