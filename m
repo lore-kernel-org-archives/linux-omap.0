@@ -1,138 +1,114 @@
-From: Russ Dill <russ.dill@gmail.com>
-Subject: Re: [PATCHv3 4/9] ARM: OMAP2+: AM33XX: Reserve memory to comply with
- EMIF spec
-Date: Wed, 7 Aug 2013 19:30:13 -0700
-Message-ID: <CA+Bv8XaGf=BGNX1=DKLQTwiFkisvkt3H-J3Wjy5dhqb1z9NtVw@mail.gmail.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
-	<1375811376-49985-5-git-send-email-d-gerlach@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: OMAP2430 SDP boot broken after Linus' rmk merge
+Date: Thu, 8 Aug 2013 11:07:39 +0530
+Message-ID: <52032EA3.90106@ti.com>
+References: <alpine.DEB.2.02.1307221801110.10891@utopia.booyaka.com> <20130722184325.GA21614@n2100.arm.linux.org.uk> <alpine.DEB.2.02.1307222005370.26048@utopia.booyaka.com> <51EE2AA7.5060503@ti.com> <alpine.DEB.2.02.1307230705000.27017@utopia.booyaka.com> <51EE474D.5070804@ti.com> <alpine.DEB.2.02.1308071807240.28993@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qe0-f41.google.com ([209.85.128.41]:48076 "EHLO
-	mail-qe0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932405Ab3HHCaO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Aug 2013 22:30:14 -0400
-Received: by mail-qe0-f41.google.com with SMTP id a11so1446897qen.28
-        for <linux-omap@vger.kernel.org>; Wed, 07 Aug 2013 19:30:13 -0700 (PDT)
-In-Reply-To: <1375811376-49985-5-git-send-email-d-gerlach@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:40250 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752815Ab3HHFiM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Aug 2013 01:38:12 -0400
+In-Reply-To: <alpine.DEB.2.02.1308071807240.28993@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Aug 6, 2013 at 10:49 AM, Dave Gerlach <d-gerlach@ti.com> wrote:
-> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
->
-> SDRAM controller on AM33XX requires that a modification of certain
-> bit-fields in PWR_MGMT_CTRL register (ref. section 7.3.5.13 in
-> AM335x-Rev H) is followed by a dummy read access to SDRAM. This
-> scenario arises when entering a low power state like DeepSleep.
-> To ensure that the read is not from a cached region we reserve
-> some memory during bootup using the arm_memblock_steal() API.
->
-> A subsequent patch will pass along the location of the reserved
-> memory location to the AM335x suspend handler which modifies the
-> PWR_MGMT_CTRL register in the EMIF.
->
-> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+On Wednesday 07 August 2013 11:39 PM, Paul Walmsley wrote:
+> Hi Rajendra,
+> 
+> On Tue, 23 Jul 2013, Rajendra Nayak wrote:
+> 
+>> So I tried commit 'fb2af00' on the 4430SDP and it did boot fine, though I see
+>> the below errors. (I am using the mainline bootloaders which do not lock any
+>> additional DPLLs like USB)
+> 
+> Could you please send patches to fix these problems, or ensure that 
+> someone else from TI fixes them?  Let's see if we can deal with the 
+> remaining bootloader dependencies here.
 
-Reviewed-by: Russ Dill <russ.dill@ti.com>
+Sure Paul, I'll take a look at this.
 
-> ---
->  arch/arm/mach-omap2/board-generic.c |    2 +-
->  arch/arm/mach-omap2/common.c        |   28 ++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/common.h        |    4 ++++
->  arch/arm/mach-omap2/io.c            |    1 +
->  4 files changed, 34 insertions(+), 1 deletion(-)
->
-> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> index be5d005..aed750c 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -156,7 +156,7 @@ static const char *am33xx_boards_compat[] __initdata = {
->  };
->
->  DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
-> -       .reserve        = omap_reserve,
-> +       .reserve        = am33xx_reserve,
->         .map_io         = am33xx_map_io,
->         .init_early     = am33xx_init_early,
->         .init_irq       = omap_intc_of_init,
-> diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
-> index 2dabb9e..756586f 100644
-> --- a/arch/arm/mach-omap2/common.c
-> +++ b/arch/arm/mach-omap2/common.c
-> @@ -15,6 +15,8 @@
->  #include <linux/kernel.h>
->  #include <linux/init.h>
->  #include <linux/platform_data/dsp-omap.h>
-> +#include <asm/memblock.h>
-> +#include <asm/mach/map.h>
->
->  #include "common.h"
->  #include "omap-secure.h"
-> @@ -34,3 +36,29 @@ void __init omap_reserve(void)
->         omap_secure_ram_reserve_memblock();
->         omap_barrier_reserve_memblock();
->  }
-> +
-> +static phys_addr_t am33xx_paddr;
-> +static u32 am33xx_size;
-> +
-> +/* Steal one page physical memory for uncached read DeepSleep */
-> +void __init am33xx_reserve(void)
-> +{
-> +       am33xx_size = ALIGN(PAGE_SIZE, SZ_1M);
-> +       am33xx_paddr = arm_memblock_steal(am33xx_size, SZ_1M);
-> +}
-> +
-> +void __iomem *am33xx_dram_sync;
-> +
-> +void __init am33xx_dram_sync_init(void)
-> +{
-> +       struct map_desc dram_io_desc[1];
-> +
-> +       dram_io_desc[0].virtual = __phys_to_virt(am33xx_paddr);
-> +       dram_io_desc[0].pfn = __phys_to_pfn(am33xx_paddr);
-> +       dram_io_desc[0].length = am33xx_size;
-> +       dram_io_desc[0].type = MT_MEMORY_SO;
-> +
-> +       iotable_init(dram_io_desc, ARRAY_SIZE(dram_io_desc));
-> +
-> +       am33xx_dram_sync = (void __iomem *) dram_io_desc[0].virtual;
-> +}
-> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-> index dfcc182..6b8ef74 100644
-> --- a/arch/arm/mach-omap2/common.h
-> +++ b/arch/arm/mach-omap2/common.h
-> @@ -294,6 +294,10 @@ struct omap2_hsmmc_info;
->  extern int omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers);
->  extern void omap_reserve(void);
->
-> +extern void am33xx_reserve(void);
-> +extern void am33xx_dram_sync_init(void);
-> +extern void __iomem *am33xx_dram_sync;
-> +
->  struct omap_hwmod;
->  extern int omap_dss_reset(struct omap_hwmod *);
->
-> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> index 4a3f06f..3ad7543 100644
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -322,6 +322,7 @@ void __init ti81xx_map_io(void)
->  void __init am33xx_map_io(void)
->  {
->         iotable_init(omapam33xx_io_desc, ARRAY_SIZE(omapam33xx_io_desc));
-> +       am33xx_dram_sync_init();
->  }
->  #endif
->
-> --
-> 1.7.9.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> thanks
+> 
+> 
+> - Paul
+> 
+>>
+>> [    0.000000] clock: dpll_usb_ck failed transition to 'locked'
+>> [    0.000000] Division by zero in kernel.
+>> [    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+>> [    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+>> [    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+>> [    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+>> [    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+>> [    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+>> [    0.000000] Division by zero in kernel.
+>> [    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+>> [    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+>> [    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+>> [    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+>> [    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+>> [    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+>> [    0.000000] Division by zero in kernel.
+>> [    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+>> [    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+>> [    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+>> [    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+>> [    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+>> [    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+>> [    0.000000] Division by zero in kernel.
+>> [    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+>> [    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+>> [    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+>> [    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+>> [    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+>> [    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+>> [    0.000000] Division by zero in kernel.
+>> [    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+>> [    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+>> [    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+>> [    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+>> [    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+>> [    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+>> [    0.000000] Division by zero in kernel.
+>> [    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+>> [    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+>> [    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+>> [    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+>> [    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+>> [    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+>> [    0.000000] clock: trace_clk_div_ck: could not find divisor for target rate 0 for parent pmd_trace_clk_mux_ck
+>> [    0.000000] Division by zero in kernel.
+>> [    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+>> [    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+>> [    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+>> [    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+>> [    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+>> [    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+>> [    0.000000] Division by zero in kernel.
+>> [    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+>> [    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+>> [    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+>> [    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+>> [    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+>> [    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+>> [    0.000000] clock: dpll_per_m7x2_ck: could not find divisor for target rate 0 for parent dpll_per_x2_ck
+>> [    0.000000] clock: dpll_per_m6x2_ck: could not find divisor for target rate 0 for parent dpll_per_x2_ck
+>> [    0.000000] clock: dpll_per_m5x2_ck: could not find divisor for target rate 0 for parent dpll_per_x2_ck
+>> [    0.000000] clock: dpll_per_m4x2_ck: could not find divisor for target rate 0 for parent dpll_per_x2_ck
+>>
+>>>
+>>>
+>>> - Paul
+>>>
+>>
+> 
+> 
+> - Paul
+> 
+
