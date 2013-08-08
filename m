@@ -1,44 +1,39 @@
-From: Mark Jackson <mpfj-list@newflow.co.uk>
-Subject: ARM: AM335x: Reboot broken in 3.11
-Date: Thu, 08 Aug 2013 14:50:18 +0100
-Message-ID: <5203A21A.4060806@newflow.co.uk>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCHv3 4/9] ARM: OMAP2+: AM33XX: Reserve memory to comply with
+ EMIF spec
+Date: Thu, 8 Aug 2013 10:19:54 -0400
+Message-ID: <5203A90A.8090008@ti.com>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <1375811376-49985-5-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: lkml <linux-kernel@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:37281 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965190Ab3HHOUR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Aug 2013 10:20:17 -0400
+In-Reply-To: <1375811376-49985-5-git-send-email-d-gerlach@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-Rebooting appears to have broken in 3.11 (at some point before rc1).
+On Tuesday 06 August 2013 01:49 PM, Dave Gerlach wrote:
+> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> 
+> SDRAM controller on AM33XX requires that a modification of certain
+> bit-fields in PWR_MGMT_CTRL register (ref. section 7.3.5.13 in
+> AM335x-Rev H) is followed by a dummy read access to SDRAM. This
+> scenario arises when entering a low power state like DeepSleep.
+> To ensure that the read is not from a cached region we reserve
+> some memory during bootup using the arm_memblock_steal() API.
+> 
+> A subsequent patch will pass along the location of the reserved
+> memory location to the AM335x suspend handler which modifies the
+> PWR_MGMT_CTRL register in the EMIF.
+> 
+> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> ---
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Here is the console output:-
-
-[    0.000000] Booting Linux on physical CPU 0x0
-[    0.000000] Linux version 3.11.0-rc1-00006-gf550793 (mpfj@mpfj-nanobone) (gcc version 4.6.3 (Buildroot 2013.02-dirty) ) #328 Thu Aug 8 14:36:16 BST 2013
-...
-Welcome to Buildroot
-nanobone login: root
-Password:
-# reboot
-#
-[   23.867076] UBIFS: background thread "ubifs_bgt0_0" stops
-The system is going down NOW!
-Sent SIGTERM to all processes
-Sent SIGKILL to all processes
-Requesting system reboot
-[   25.924496] reboot: Restarting system
-
-... and at this point the CPU seems to just freeze.
-
-In 3v10, the board would reboot correctly back into uboot, etc.
-
-I've also noticed that some of the output LEDs light up dim when the kernel
-is booting on, and they come on full brightness at the reboot "freeze" point.
-There are 4 LEDs affected and they are all connected to UART transmit pins.
-
-Before I start bisecting, does anyone have any ideas ?
-
-Cheers
-Mark J.
