@@ -1,72 +1,143 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH 4/5] omap: Avoid crashes in the case of hwmod misconfiguration
-Date: Thu, 8 Aug 2013 12:29:00 +0300
-Message-ID: <AB1CC181-58F8-4C58-9789-71A9A90B2E17@antoniou-consulting.com>
-References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com> <1375775624-12250-5-git-send-email-panto@antoniou-consulting.com> <87siyl19uk.fsf@linaro.org>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH] ARM: OMAP4: clock: Lock PLLs in the right sequence
+Date: Thu, 8 Aug 2013 15:44:11 +0530
+Message-ID: <1375956851-842-1-git-send-email-rnayak@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from li42-95.members.linode.com ([209.123.162.95]:55368 "EHLO
-	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934118Ab3HHJ3G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Aug 2013 05:29:06 -0400
-In-Reply-To: <87siyl19uk.fsf@linaro.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:49140 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934178Ab3HHKOt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Aug 2013 06:14:49 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?iso-8859-1?Q?Beno=EEt_Coussno?= <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: paul@pwsan.com, mturquette@linaro.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Hi Kevin,
+On OMAP4 we have clk_set_rate()s being done for a few
+DPLL clock nodes, as part of the clock init code, since
+the bootloaders no longer locks these DPLLs.
 
-On Aug 8, 2013, at 12:15 AM, Kevin Hilman wrote:
+So we have a clk_set_rate() done for a ABE DPLL node (which
+inturn locks it) followed by a clk_set_rate() for the USB DPLL.
 
-> Pantelis Antoniou <panto@antoniou-consulting.com> writes:
-> 
->> omap hwmod is really sensitive to hwmod misconfiguration.
->> Getting a minor clock wrong always ended up in a crash.
->> Attempt to be more resilient by not assigning variables with
->> error codes and then attempting to use them.
->> 
->> Without this patch, missing a clock ends up with something like this:
->> omap_hwmod: ehrpwm0: cannot clk_get opt_clk ehrpwm0_tbclk!
-> 
-> Definitely agree we should not be crashing when given bad data.
-> 
-> nit Re: "missing clock".  I don't think there will be any crash if a
-> clock is missing.  This looks to me more like the clock name is wrong
-> (tbclk instead of dbclk?), not missing.
-> 
+With USB DPLL being in bypass, we have this parent->child
+relationship thats formed while the clocks get registered.
 
-Yes, I'll rephrase.
+dpll_abe_ck
+    |
+    V
+dpll_abe_x2_ck
+    |
+    V
+dpll_abe_m3x2_ck
+    |
+    V
+usb_hs_clk_div_ck
+    |
+    V
+dpll_usb_ck
 
-> [...]
-> 
->> index 7341eff..42cb7d4 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->> @@ -784,7 +784,9 @@ static int _init_interface_clks(struct omap_hwmod *oh)
->> 		if (IS_ERR(c)) {
->> 			pr_warning("omap_hwmod: %s: cannot clk_get interface_clk %s\n",
->> 				   oh->name, os->clk);
->> -			ret = -EINVAL;
->> +			if (ret == 0)
->> +				ret = -EINVAL;
->> +			continue;
-> 
-> the 'if (ret == 0)' adds confusion IMO.  If we don't care additional
-> failures, errors, then just add a 'break' instead of these 3 lines.
-> 
-> [...]
-> 
+This is because usb_hs_clk_div_ck is bypass clock for dpll_usb_ck.
 
+So with this parent->child relationship in place, a clk_set_rate()
+on ABE DPLL results eventually in a clk_set_rate() call on USB DPLL,
+because CCF does a clk_change_rate() (as part of clk_set_rate()) on
+all downstream clocks resulting from a rate change on the top clock.
 
-I tried to carry on as much as possible even on the presence of errors.
-The remaining clocks won't be initialized, but that might be OK.
+So its important that we lock USB DPLL before we lock ABE DPLL.
+Without which we see these error logs at boot.
+[These error logs will not be seen if using a bootloader that locks
+USB DPLL]
 
-> Kevin
+[    0.000000] clock: dpll_usb_ck failed transition to 'locked'
+[    0.000000] Division by zero in kernel.
+[    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+[    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+[    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+[    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+[    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+[    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+[    0.000000] Division by zero in kernel.
+[    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+[    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+[    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+[    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+[    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+[    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+[    0.000000] Division by zero in kernel.
+[    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+[    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+[    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+[    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+[    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+[    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+[    0.000000] Division by zero in kernel.
+[    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+[    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+[    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+[    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+[    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+[    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+[    0.000000] Division by zero in kernel.
+[    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+[    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+[    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+[    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+[    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+[    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+[    0.000000] Division by zero in kernel.
+[    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.10.0-03445-gfb2af00-dirty #7
+[    0.000000] [<c001bfe8>] (unwind_backtrace+0x0/0xf4) from [<c001868c>] (show_stack+0x10/0x14)
+[    0.000000] [<c001868c>] (show_stack+0x10/0x14) from [<c02deb28>] (Ldiv0+0x8/0x10)
+[    0.000000] [<c02deb28>] (Ldiv0+0x8/0x10) from [<c0477030>] (clk_divider_set_rate+0x10/0x114)
+[    0.000000] [<c0477030>] (clk_divider_set_rate+0x10/0x114) from [<c0476ef4>] (clk_change_rate+0x38/0xb8)
+[    0.000000] [<c0476ef4>] (clk_change_rate+0x38/0xb8) from [<c0476f5c>] (clk_change_rate+0xa0/0xb8)
+[    0.000000] clock: trace_clk_div_ck: could not find divisor for target rate 0 for parent pmd_trace_clk_mux_ck
+[    0.000000] Division by zero in kernel.
 
-Regards
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/cclock44xx_data.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
--- Pantelis
+diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
+index 88e37a4..1d5b529 100644
+--- a/arch/arm/mach-omap2/cclock44xx_data.c
++++ b/arch/arm/mach-omap2/cclock44xx_data.c
+@@ -1707,6 +1707,18 @@ int __init omap4xxx_clk_init(void)
+ 	omap2_clk_disable_autoidle_all();
+ 
+ 	/*
++	 * A set rate of ABE DPLL inturn triggers a set rate of USB DPLL
++	 * when its in bypass. So always lock USB before ABE DPLL.
++	 */
++	/*
++	 * Lock USB DPLL on OMAP4 devices so that the L3INIT power
++	 * domain can transition to retention state when not in use.
++	 */
++	rc = clk_set_rate(&dpll_usb_ck, OMAP4_DPLL_USB_DEFFREQ);
++	if (rc)
++		pr_err("%s: failed to configure USB DPLL!\n", __func__);
++
++	/*
+ 	 * On OMAP4460 the ABE DPLL fails to turn on if in idle low-power
+ 	 * state when turning the ABE clock domain. Workaround this by
+ 	 * locking the ABE DPLL on boot.
+@@ -1718,13 +1730,5 @@ int __init omap4xxx_clk_init(void)
+ 	if (rc)
+ 		pr_err("%s: failed to configure ABE DPLL!\n", __func__);
+ 
+-	/*
+-	 * Lock USB DPLL on OMAP4 devices so that the L3INIT power
+-	 * domain can transition to retention state when not in use.
+-	 */
+-	rc = clk_set_rate(&dpll_usb_ck, OMAP4_DPLL_USB_DEFFREQ);
+-	if (rc)
+-		pr_err("%s: failed to configure USB DPLL!\n", __func__);
+-
+ 	return 0;
+ }
+-- 
+1.7.9.5
 
