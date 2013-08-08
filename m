@@ -1,54 +1,74 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCHv3 4/9] ARM: OMAP2+: AM33XX: Reserve memory to comply with
- EMIF spec
-Date: Thu, 8 Aug 2013 16:11:01 -0400
-Message-ID: <5203FB55.6000300@ti.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <1375811376-49985-5-git-send-email-d-gerlach@ti.com> <87fvukhwtv.fsf@kernel.org> <5203F21F.3010801@ti.com> <87vc3ggd8s.fsf@kernel.org>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: v3.11-rc4: OMAP1/Amstrad Delta (E3) crash
+Date: Fri, 9 Aug 2013 00:11:15 +0300
+Message-ID: <20130808211114.GF15014@blackmetal.musicnaut.iki.fi>
+References: <20130806232609.GB15014@blackmetal.musicnaut.iki.fi>
+ <20130808110108.GK23053@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53996 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966246Ab3HHUL2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Aug 2013 16:11:28 -0400
-In-Reply-To: <87vc3ggd8s.fsf@kernel.org>
+Received: from filtteri1.pp.htv.fi ([213.243.153.184]:41557 "EHLO
+	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966575Ab3HHVLZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Aug 2013 17:11:25 -0400
+Content-Disposition: inline
+In-Reply-To: <20130808110108.GK23053@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Thursday 08 August 2013 04:05 PM, Kevin Hilman wrote:
-> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
-> 
->> On Thursday 08 August 2013 02:16 PM, Kevin Hilman wrote:
->>> Dave Gerlach <d-gerlach@ti.com> writes:
->>>
->>>> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
->>>>
->>>> SDRAM controller on AM33XX requires that a modification of certain
->>>> bit-fields in PWR_MGMT_CTRL register (ref. section 7.3.5.13 in
->>>> AM335x-Rev H) is followed by a dummy read access to SDRAM. This
->>>> scenario arises when entering a low power state like DeepSleep.
->>>> To ensure that the read is not from a cached region we reserve
->>>> some memory during bootup using the arm_memblock_steal() API.
->>>
->>> Hmm, sounds to me an awful lot like the existing omap_bus_sync() ?
->>>
->> All the credit of that awful omap_bus_sync() goes to me since 
->> I introduced it. And I keep beating the hardware guys
->> who have not left a choice but to introduce the ugly work
->> around in software. ;-)
-> 
-> Agreed, but what's even more awful than the current version is
-> duplicating it in a slightly different way using yet another whole page
-> mapping for a single read/write location.
-> 
-The real issue is limitation of the kernel memory steal(memblock) API which
-won't let you still less than 1 MB. It would have been ok for page allocation
-because that is any way what you will get minimum on standard non-cached
-allocations.
+Hi,
 
-Regards,
-Santosh
+On Thu, Aug 08, 2013 at 12:01:08PM +0100, Russell King - ARM Linux wrote:
+> On Wed, Aug 07, 2013 at 02:26:09AM +0300, Aaro Koskinen wrote:
+> > [    0.258589] [ffff1224] *pgd=00000000, *pte=11fff0cb000001f1, *ppte=11fff00a00000000
+> 
+> BTW, your oops dump is interesting for another reason - the above.
+> You seem to have 64-bit page table entries above.
 
+Yes, this is worrying...
+
+> Now, this is totally legal C:
+> 
+> 	unsigned int val = 0x12345678;
+> 
+> 	printk("%08llx\n", (long long)val);
+> 
+> and it should produce "12345678" but I'm willing to bet with your compiler
+> it produces "12345678xxxxxxxx" where xxxxxxxx is just what happens to be
+> sitting in some register.  IOW, I think you have a compiler bug here.  Can
+> you investigate what's going on with this yourself please?
+
+I made a quick check and added that to the fault handler, and yes,
+the result is crap:
+
++unsigned int test_bar = 0x12345678;
+ void show_pte(struct mm_struct *mm, unsigned long addr)
+ {
+        pgd_t *pgd;
+ 
++       printk(KERN_INFO "%d\n", 0);
++       printk(KERN_INFO "%llx\n", (long long)test_bar);
++       printk(KERN_INFO "%d %llx\n", 1, (long long)test_bar);
+[...]
+[    0.261788] 0
+[    0.263849] 1234567800000000
+[    0.267201] 1 0
+
+However, addings similar prints to early boot produces correct results:
+
++unsigned int test_foo = 0x12345678;
+ void __init smp_setup_processor_id(void)
+[...]
+        printk(KERN_INFO "Booting Linux on physical CPU 0x%x\n", mpidr);
++       printk(KERN_INFO "%llx\n", (long long)test_foo);
++       printk(KERN_INFO "%d %llx\n", 1, (long long)test_foo);
+[...]
+[    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] 12345678
+[    0.000000] 1 12345678
+
+So I'm pretty confused. Anyway, I'll continue investigating this next week...
+
+A.
