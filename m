@@ -1,64 +1,41 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv3 8/9] ARM: OMAP2+: AM33XX: Basic suspend resume support
-Date: Thu, 8 Aug 2013 11:22:02 -0500
-Message-ID: <5203C5AA.9020507@ti.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <1375811376-49985-9-git-send-email-d-gerlach@ti.com> <CA+Bv8XbK+=pvG+bbvfCtS2Rtg-YoAhuUbWjSro9m4xWjw=Cr8A@mail.gmail.com> <52038E88.2050604@ti.com> <5203B336.90102@ti.com> <5203C211.7040207@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCHv3 4/9] ARM: OMAP2+: AM33XX: Reserve memory to comply with EMIF spec
+Date: Thu, 08 Aug 2013 11:16:44 -0700
+Message-ID: <87fvukhwtv.fsf@kernel.org>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+	<1375811376-49985-5-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44089 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965879Ab3HHQWl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Aug 2013 12:22:41 -0400
-In-Reply-To: <5203C211.7040207@ti.com>
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:53100 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758083Ab3HHSQs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Aug 2013 14:16:48 -0400
+Received: by mail-pb0-f41.google.com with SMTP id rp2so3653056pbb.28
+        for <linux-omap@vger.kernel.org>; Thu, 08 Aug 2013 11:16:48 -0700 (PDT)
+In-Reply-To: <1375811376-49985-5-git-send-email-d-gerlach@ti.com> (Dave
+	Gerlach's message of "Tue, 6 Aug 2013 12:49:31 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Dave Gerlach <d-gerlach@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Russ Dill <russ.dill@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Tony Lingren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-On 08/08/2013 11:06 AM, Dave Gerlach wrote:
-> On 08/08/2013 10:03 AM, Santosh Shilimkar wrote:
->> $subject and patch don't match.
->>
->> On Thursday 08 August 2013 08:26 AM, Nishanth Menon wrote:
->>> On 08/08/2013 03:45 AM, Russ Dill wrote:
->>>>    In reference to
->>>> the M3 handling it, the M3 wouldn't know which devices have a driver
->>>> bound and which don't.
->>> Does it need to? M3 firmware can pretty much define "I will force the
->>> device into low power state, and if the drivers dont handle things
->>> properly, fix the darned driver". M3 behavior should be considered as
->>> a "hardware" as far as Linux running on MPU is concerned, and
->>> firmware helps change the behavior by accounting for SoC quirks. *if*
->>> we have ability to handle this in the firmware, there is no need to
->>> carry this in Linux.
->>>
->> I agree with Nishant. I don't like this patch and IIRC, I gave same
->> comment in the last version. Linux need not know about all such firmware
->> quirks. Also all these M3 specific stuff, should be done somewhere
->> else. Probably having a small M3 driver won't be a bad idea.
->>
->> Regards,
->> Santosh
->>
+Dave Gerlach <d-gerlach@ti.com> writes:
+
+> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
 >
-> I am not opposed to doing it this way and letting the M3 firmware handle
-> idling these modules, however the one concern raised in the last series
-> is that an approach that does not acknowledge drivers will hide driver
-> PM bugs. I suppose as long as I make sure to document that the devices
-> are being idled by the M3 firmware this may not be an issue. I will look
-> into implementing this.
+> SDRAM controller on AM33XX requires that a modification of certain
+> bit-fields in PWR_MGMT_CTRL register (ref. section 7.3.5.13 in
+> AM335x-Rev H) is followed by a dummy read access to SDRAM. This
+> scenario arises when entering a low power state like DeepSleep.
+> To ensure that the read is not from a cached region we reserve
+> some memory during bootup using the arm_memblock_steal() API.
 
-yes, but doing it in M3 will ensure it is a "hardware behavior" - from 
-debug perspective, you could make M3 firmware "release mode" - which it 
-is stringent in terms of forcing all down to target state, OR "debug" 
-where it does nothing - thus helping pick up driver bugs. With M3 in the 
-picture, we now have an awesome flexibility of "defining what the 
-hardware behavior should be" - that allows us to have lesser code to 
-carry in kernel- especially ones(like quirks) that does not really add 
-value from power saving strategies.
+Hmm, sounds to me an awful lot like the existing omap_bus_sync() ?
 
--- 
-Regards,
-Nishanth Menon
+However, you remove that feature when you remove omap_reserve() here
+becasue omap_reserve() ss not called from your new reserve function.
+Are you *really* sure you don't need the functions called there?  This
+is a pretty big change that's not mentioned anywhere in the changelog.
+
+Kevin
