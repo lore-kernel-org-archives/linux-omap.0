@@ -1,74 +1,87 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: v3.11-rc4: OMAP1/Amstrad Delta (E3) crash
-Date: Fri, 9 Aug 2013 00:11:15 +0300
-Message-ID: <20130808211114.GF15014@blackmetal.musicnaut.iki.fi>
-References: <20130806232609.GB15014@blackmetal.musicnaut.iki.fi>
- <20130808110108.GK23053@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCHv3 8/9] ARM: OMAP2+: AM33XX: Basic suspend resume support
+Date: Thu, 08 Aug 2013 14:14:06 -0700
+Message-ID: <87iozfga1t.fsf@kernel.org>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+	<1375811376-49985-9-git-send-email-d-gerlach@ti.com>
+	<CA+Bv8XbK+=pvG+bbvfCtS2Rtg-YoAhuUbWjSro9m4xWjw=Cr8A@mail.gmail.com>
+	<52038E88.2050604@ti.com> <5203B336.90102@ti.com>
+	<5203C211.7040207@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri1.pp.htv.fi ([213.243.153.184]:41557 "EHLO
-	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966575Ab3HHVLZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Aug 2013 17:11:25 -0400
-Content-Disposition: inline
-In-Reply-To: <20130808110108.GK23053@n2100.arm.linux.org.uk>
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:47563 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966575Ab3HHVOM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Aug 2013 17:14:12 -0400
+Received: by mail-pb0-f49.google.com with SMTP id xb4so3876864pbc.22
+        for <linux-omap@vger.kernel.org>; Thu, 08 Aug 2013 14:14:12 -0700 (PDT)
+In-Reply-To: <5203C211.7040207@ti.com> (Dave Gerlach's message of "Thu, 8 Aug
+	2013 11:06:41 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Tony Lingren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>
 
-Hi,
+Dave Gerlach <d-gerlach@ti.com> writes:
 
-On Thu, Aug 08, 2013 at 12:01:08PM +0100, Russell King - ARM Linux wrote:
-> On Wed, Aug 07, 2013 at 02:26:09AM +0300, Aaro Koskinen wrote:
-> > [    0.258589] [ffff1224] *pgd=00000000, *pte=11fff0cb000001f1, *ppte=11fff00a00000000
-> 
-> BTW, your oops dump is interesting for another reason - the above.
-> You seem to have 64-bit page table entries above.
+> On 08/08/2013 10:03 AM, Santosh Shilimkar wrote:
+>> $subject and patch don't match.
+>>
+>> On Thursday 08 August 2013 08:26 AM, Nishanth Menon wrote:
+>>> On 08/08/2013 03:45 AM, Russ Dill wrote:
+>>>>    In reference to
+>>>> the M3 handling it, the M3 wouldn't know which devices have a driver
+>>>> bound and which don't.
+>>> Does it need to? M3 firmware can pretty much define "I will force
+>>> the device into low power state, and if the drivers dont handle
+>>> things properly, fix the darned driver". M3 behavior should be
+>>> considered as a "hardware" as far as Linux running on MPU is
+>>> concerned, and firmware helps change the behavior by accounting for
+>>> SoC quirks. *if* we have ability to handle this in the firmware,
+>>> there is no need to carry this in Linux.
+>>>
+>> I agree with Nishant. I don't like this patch and IIRC, I gave same
+>> comment in the last version. Linux need not know about all such firmware
+>> quirks. Also all these M3 specific stuff, should be done somewhere
+>> else. Probably having a small M3 driver won't be a bad idea.
+>>
+>> Regards,
+>> Santosh
+>>
+>
+> I am not opposed to doing it this way and letting the M3 firmware
+> handle idling these modules, however the one concern raised in the
+> last series is that an approach that does not acknowledge drivers will
+> hide driver PM bugs. I suppose as long as I make sure to document that
+> the devices are being idled by the M3 firmware this may not be an
+> issue. I will look into implementing this.
 
-Yes, this is worrying...
+No, please don't start idling devices in firmware that are otherwise
+managed by Linux.  Keep the firmware simple and dumb.  Linux is managing
+these devices, it should manage their bugs too.
 
-> Now, this is totally legal C:
-> 
-> 	unsigned int val = 0x12345678;
-> 
-> 	printk("%08llx\n", (long long)val);
-> 
-> and it should produce "12345678" but I'm willing to bet with your compiler
-> it produces "12345678xxxxxxxx" where xxxxxxxx is just what happens to be
-> sitting in some register.  IOW, I think you have a compiler bug here.  Can
-> you investigate what's going on with this yourself please?
+This is not just about idling devices.  This is about handling broken IP
+blocks whose power-on reset state does not allow the the powerdomain to
+reach its target state.  That's just bad hardware design.  
 
-I made a quick check and added that to the fault handler, and yes,
-the result is crap:
+That being said, IMO, the kernel (specifically omap_device) should
+handle this, and it should be rather easy to do in the omap_device layer
+and keep the SoC suspend/resume core code simple and ignorant of these
+"quirks."
 
-+unsigned int test_bar = 0x12345678;
- void show_pte(struct mm_struct *mm, unsigned long addr)
- {
-        pgd_t *pgd;
- 
-+       printk(KERN_INFO "%d\n", 0);
-+       printk(KERN_INFO "%llx\n", (long long)test_bar);
-+       printk(KERN_INFO "%d %llx\n", 1, (long long)test_bar);
-[...]
-[    0.261788] 0
-[    0.263849] 1234567800000000
-[    0.267201] 1 0
+AFAICT, there's no reason these quirks need to be dealt with immediatly
+on suspend.  A slight delay should be fine, as long as it's before the
+next suspend/idle attempt, right?  
 
-However, addings similar prints to early boot produces correct results:
+Given that, what we need to do (and by we, I mean you) is to flag all
+broken IP blocks, and let omap_device handle them in a suspend/resume
+notifier (c.f. register_pm_notifier() and PM_POST_SUSPEND.)
 
-+unsigned int test_foo = 0x12345678;
- void __init smp_setup_processor_id(void)
-[...]
-        printk(KERN_INFO "Booting Linux on physical CPU 0x%x\n", mpidr);
-+       printk(KERN_INFO "%llx\n", (long long)test_foo);
-+       printk(KERN_INFO "%d %llx\n", 1, (long long)test_foo);
-[...]
-[    0.000000] Booting Linux on physical CPU 0x0
-[    0.000000] 12345678
-[    0.000000] 1 12345678
+That will keep things contained to the omap_device/hwmod level and allow
+flexiblity for future broken SoCs where the list of broken IP blocks is
+different.  Though surely this broken hardware doesn't exist in AM4xxx
+because someone noticed this early on and pointed out that it should be
+fixed in hardware, right?  ;)
 
-So I'm pretty confused. Anyway, I'll continue investigating this next week...
-
-A.
+Kevin
