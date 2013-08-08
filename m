@@ -1,34 +1,53 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv3 8/9] ARM: OMAP2+: AM33XX: Basic suspend resume support
-Date: Thu, 8 Aug 2013 07:26:48 -0500
-Message-ID: <52038E88.2050604@ti.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <1375811376-49985-9-git-send-email-d-gerlach@ti.com> <CA+Bv8XbK+=pvG+bbvfCtS2Rtg-YoAhuUbWjSro9m4xWjw=Cr8A@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCHv3 0/9] ARM: OMAP2+: AM33XX: Add suspend-resume support
+Date: Thu, 8 Aug 2013 09:31:04 -0400
+Message-ID: <52039D98.8080309@ti.com>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54446 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60446 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752515Ab3HHM1R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Aug 2013 08:27:17 -0400
-In-Reply-To: <CA+Bv8XbK+=pvG+bbvfCtS2Rtg-YoAhuUbWjSro9m4xWjw=Cr8A@mail.gmail.com>
+	id S964954Ab3HHNba (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Aug 2013 09:31:30 -0400
+In-Reply-To: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <russ.dill@gmail.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Tony Lingren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <benoit.cousson@linaro.org>
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>
 
-On 08/08/2013 03:45 AM, Russ Dill wrote:
->   In reference to
-> the M3 handling it, the M3 wouldn't know which devices have a driver
-> bound and which don't.
-Does it need to? M3 firmware can pretty much define "I will force the 
-device into low power state, and if the drivers dont handle things 
-properly, fix the darned driver". M3 behavior should be considered as a 
-"hardware" as far as Linux running on MPU is concerned, and firmware 
-helps change the behavior by accounting for SoC quirks. *if* we have 
-ability to handle this in the firmware, there is no need to carry this 
-in Linux.
+On Tuesday 06 August 2013 01:49 PM, Dave Gerlach wrote:
+> Hi,
+> 
+> This is the third version of the patch series for adding basic suspend-resume
+> support for AM33XX, previously submitted by Vaibhav Bedia. This patchset 
+> is based on 3.11-rc4 and depends on a forthcoming patchset from Suman Anna
+> that adds mailbox support for the wkup_m3. The patches at [1], [2], and [3] are 
+> required for the pm code to properly suspend and resume.
+> 
+> The PM code uses the firmware interface and expects the userspace to load 
+> the WKUP_M3 binary before the suspend-resume functionality is made available.
+> The binary file (and the source-code for WKUP_M3) can be obtained from the 
+> 'next2' branch at [4]. The WKUP_M3 binary can either be loaded post bootup 
+> via the sysfs entry './sys/devices/ocp.2/wkup_m3.4/firmware' or it can be 
+> included in the kernel image as part of the build process.
+> 
+> Suspend to mem is tested on am335x-bone and am335x-evm.
+> 
+> More details on AM335x suspend-resume are provided within the commit logs
+> for each patch.
+> 
+> Changes in v3:
+> - Moved wkup_m3 code into separate driver
+> - Split up ti_emif header move
+> - Addressed clean-up comments
+> - Removed mailbox patches
+> - v2-v3 Discussion:
+> http://marc.info/?l=linux-arm-kernel&m=135698501821090&w=4
+> 
+Please CC people who have at least reviewed the last version of
+the series. Couple of patches I was CC'ed o.w I would missed this series.
 
--- 
 Regards,
-Nishanth Menon
+Santosh
