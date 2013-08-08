@@ -1,30 +1,44 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCHv3 3/9] ARM: OMAP: DTB: Update IRQ data for WKUP_M3
-Date: Thu, 8 Aug 2013 09:46:50 -0400
-Message-ID: <5203A14A.8060305@ti.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <1375811376-49985-4-git-send-email-d-gerlach@ti.com>
+From: Mark Jackson <mpfj-list@newflow.co.uk>
+Subject: ARM: AM335x: Reboot broken in 3.11
+Date: Thu, 08 Aug 2013 14:50:18 +0100
+Message-ID: <5203A21A.4060806@newflow.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35665 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757839Ab3HHNrO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Aug 2013 09:47:14 -0400
-In-Reply-To: <1375811376-49985-4-git-send-email-d-gerlach@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Benoit Cousson <benoit.cousson@linaro.org>
 
-On Tuesday 06 August 2013 01:49 PM, Dave Gerlach wrote:
-> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
-> 
-> Allow interrupt for wkup_m3 to be set from DT.
-> 
-> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-> Cc: Benoit Cousson <benoit.cousson@linaro.org>
-> ---
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Rebooting appears to have broken in 3.11 (at some point before rc1).
 
+Here is the console output:-
+
+[    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] Linux version 3.11.0-rc1-00006-gf550793 (mpfj@mpfj-nanobone) (gcc version 4.6.3 (Buildroot 2013.02-dirty) ) #328 Thu Aug 8 14:36:16 BST 2013
+...
+Welcome to Buildroot
+nanobone login: root
+Password:
+# reboot
+#
+[   23.867076] UBIFS: background thread "ubifs_bgt0_0" stops
+The system is going down NOW!
+Sent SIGTERM to all processes
+Sent SIGKILL to all processes
+Requesting system reboot
+[   25.924496] reboot: Restarting system
+
+... and at this point the CPU seems to just freeze.
+
+In 3v10, the board would reboot correctly back into uboot, etc.
+
+I've also noticed that some of the output LEDs light up dim when the kernel
+is booting on, and they come on full brightness at the reboot "freeze" point.
+There are 4 LEDs affected and they are all connected to UART transmit pins.
+
+Before I start bisecting, does anyone have any ideas ?
+
+Cheers
+Mark J.
