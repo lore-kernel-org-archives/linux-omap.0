@@ -1,84 +1,82 @@
-From: Russ Dill <russ.dill@gmail.com>
-Subject: Re: [PATCHv3 7/9] ARM: OMAP: omap_device: Add APIs to enable and idle hwmods
-Date: Thu, 8 Aug 2013 00:05:01 -0700
-Message-ID: <CA+Bv8XYJPp3h0KiSO_harin+3XTjpOHFE9xz9ZvAFZnnZntV1Q@mail.gmail.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
-	<1375811376-49985-8-git-send-email-d-gerlach@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 5/5] arm: omap: Proper cleanups for omap_device
+Date: Thu, 8 Aug 2013 00:25:14 -0700
+Message-ID: <20130808072513.GY7656@atomide.com>
+References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com>
+ <1375775624-12250-6-git-send-email-panto@antoniou-consulting.com>
+ <20130806093356.GA27889@kroah.com>
+ <8C31ED90-E9EF-4264-858A-17CC2536B552@antoniou-consulting.com>
+ <20130807161557.GO7656@atomide.com>
+ <4B64047B-505F-4D54-871B-8F1B5315B613@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f180.google.com ([209.85.216.180]:51145 "EHLO
-	mail-qc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933461Ab3HHHFD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Aug 2013 03:05:03 -0400
-Received: by mail-qc0-f180.google.com with SMTP id j10so1395795qcx.11
-        for <linux-omap@vger.kernel.org>; Thu, 08 Aug 2013 00:05:02 -0700 (PDT)
-In-Reply-To: <1375811376-49985-8-git-send-email-d-gerlach@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4B64047B-505F-4D54-871B-8F1B5315B613@antoniou-consulting.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, =?utf-8?Q?Beno=C3=AEt?= Coussno <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-On Tue, Aug 6, 2013 at 10:49 AM, Dave Gerlach <d-gerlach@ti.com> wrote:
-> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
->
-> Needed to let the AM335x PM handle the IPs which need forced
-> standby transition during every suspend-resume cycle when
-> the corresponding driver is not compiled into the kernel.
->
-> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+* Pantelis Antoniou <panto@antoniou-consulting.com> [130807 09:31]:
+> Hi Tony,
+> 
+> On Aug 7, 2013, at 7:15 PM, Tony Lindgren wrote:
+> 
+> > * Pantelis Antoniou <panto@antoniou-consulting.com> [130806 02:44]:
+> >> On Aug 6, 2013, at 12:33 PM, Greg Kroah-Hartman wrote:
+> >>> On Tue, Aug 06, 2013 at 10:53:44AM +0300, Pantelis Antoniou wrote:
+> >>>> +
+> >>>> static int _omap_device_notifier_call(struct notifier_block *nb,
+> >>>> 				      unsigned long event, void *dev)
+> >>>> {
+> >>>> @@ -185,9 +211,13 @@ static int _omap_device_notifier_call(struct notifier_block *nb,
+> >>>> 	struct omap_device *od;
+> >>>> 
+> >>>> 	switch (event) {
+> >>>> -	case BUS_NOTIFY_DEL_DEVICE:
+> >>>> +	case BUS_NOTIFY_UNBOUND_DRIVER:
+> >>>> +		/* NOTIFY_DEL_DEVICE is not the right call...
+> >>>> +		 * we use a callback here, to make sure no-one is going to
+> >>>> +		 * try to use the omap_device data after they're deleted
+> >>>> +		 */
+> >>>> 		if (pdev->archdata.od)
+> >>>> -			omap_device_delete(pdev->archdata.od);
+> >>>> +			device_schedule_callback(dev, _omap_device_cleanup);
+> >>> 
+> >>> Really?  This is one sign that you are totally using the driver core
+> >>> incorrectly.  You shouldn't have to rely on notifier callbacks to handle
+> >>> device removals, your bus code should do that for you directly.
+> >>> 
+> >>> I don't like this at all, sorry.
+> >>> 
+> >> 
+> >> Don't shoot the messenger please...
+> > 
+> > As you're inititalizing capebus with DT, let's figure out what if
+> > anything you actually need from omap_device. I'd much rather remove
+> > dependencies than add more.
+> > 
+> 
+> There is no such thing as capebus anymore. This is just the path of
+> removing a platform device, which happens to also be an omap_device.
 
-Reviewed-by: Russ Dill <russ.dill@ti.com>
+OK, so let's figure out the minimal fixes needed.
+ 
+> >> This is all about fixing a crash without messing too many things.
+> > 
+> > It seems this fix is only needed for supporting out-of-tree code?
+> > These features with omap_device we may not even want to support in
+> > the mainline tree as is being discussed..
+> > 
+> 
+> What out of tree code? The only thing this patch does is make sure we
+> don't crash when a perfectly valid call to platform_device_unregister() happens.
+> 
+> Drivers that don't use omap_device work just fine.
 
-> ---
->  arch/arm/mach-omap2/omap_device.c |    8 ++++++++
->  arch/arm/mach-omap2/omap_device.h |    2 ++
->  2 files changed, 10 insertions(+)
->
-> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-> index 5cc9287..8cf63f6 100644
-> --- a/arch/arm/mach-omap2/omap_device.c
-> +++ b/arch/arm/mach-omap2/omap_device.c
-> @@ -219,6 +219,10 @@ static int _omap_device_enable_hwmods(struct omap_device *od)
->         return 0;
->  }
->
-> +int omap_device_enable_hwmods(struct omap_device *od)
-> +{
-> +       return _omap_device_enable_hwmods(od);
-> +}
->  /**
->   * _omap_device_idle_hwmods - call omap_hwmod_idle() on all hwmods
->   * @od: struct omap_device *od
-> @@ -236,6 +240,10 @@ static int _omap_device_idle_hwmods(struct omap_device *od)
->         return 0;
->  }
->
-> +int omap_device_idle_hwmods(struct omap_device *od)
-> +{
-> +       return _omap_device_idle_hwmods(od);
-> +}
->  /* Public functions for use by core code */
->
->  /**
-> diff --git a/arch/arm/mach-omap2/omap_device.h b/arch/arm/mach-omap2/omap_device.h
-> index 17ca1ae..655ec35 100644
-> --- a/arch/arm/mach-omap2/omap_device.h
-> +++ b/arch/arm/mach-omap2/omap_device.h
-> @@ -87,6 +87,8 @@ struct device *omap_device_get_by_hwmod_name(const char *oh_name);
->
->  /* OMAP PM interface */
->  int omap_device_get_context_loss_count(struct platform_device *pdev);
-> +int omap_device_enable_hwmods(struct omap_device *od);
-> +int omap_device_idle_hwmods(struct omap_device *od);
->
->  /* Other */
->
-> --
-> 1.7.9.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So what's the minimal set of fixes then?
+
+Regards,
+
+Tony
