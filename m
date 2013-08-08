@@ -1,81 +1,49 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCHv3 6/9] ARM: OMAP2+: timer: Add suspend-resume callbacks
- for clkevent device
-Date: Thu, 8 Aug 2013 14:49:49 -0500
-Message-ID: <5203F65D.9030501@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCHv3 4/9] ARM: OMAP2+: AM33XX: Reserve memory to comply with EMIF spec
+Date: Thu, 08 Aug 2013 13:05:07 -0700
+Message-ID: <87vc3ggd8s.fsf@kernel.org>
 References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
- <1375811376-49985-7-git-send-email-d-gerlach@ti.com>
- <8738qkhwey.fsf@kernel.org>
+	<1375811376-49985-5-git-send-email-d-gerlach@ti.com>
+	<87fvukhwtv.fsf@kernel.org> <5203F21F.3010801@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <8738qkhwey.fsf@kernel.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Vaibhav Bedia <vaibhav.bedia@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:42161 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966063Ab3HHUFN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Aug 2013 16:05:13 -0400
+Received: by mail-pa0-f46.google.com with SMTP id fa1so3975324pad.19
+        for <linux-omap@vger.kernel.org>; Thu, 08 Aug 2013 13:05:12 -0700 (PDT)
+In-Reply-To: <5203F21F.3010801@ti.com> (Santosh Shilimkar's message of "Thu, 8
+	Aug 2013 15:31:43 -0400")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-On 08/08/2013 01:25 PM, Kevin Hilman wrote:
-> Dave Gerlach <d-gerlach@ti.com> writes:
->
->> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
->>
->> OMAP timer code registers two timers - one as clocksource
->> and one as clockevent. Since AM33XX has only one usable timer
->> in the WKUP domain one of the timers needs suspend-resume
->> support to restore the configuration to pre-suspend state.
->>
->> commit adc78e6 (timekeeping: Add suspend and resume
->> of clock event devices) introduced .suspend and .resume
->> callbacks for clock event devices. Leverages these
->> callbacks to have AM33XX clockevent timer which is
->> in not in WKUP domain to behave properly across system
->> suspend.
->>
->> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
->> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
->> ---
->>   arch/arm/mach-omap2/timer.c |   32 ++++++++++++++++++++++++++++++++
->>   1 file changed, 32 insertions(+)
->>
->> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
->> index b37e1fc..cce5d39 100644
->> --- a/arch/arm/mach-omap2/timer.c
->> +++ b/arch/arm/mach-omap2/timer.c
->> @@ -118,11 +118,43 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
->>   	}
->>   }
->>
->> +static void omap_clkevt_suspend(struct clock_event_device *unused)
->> +{
->> +	char name[10];
->> +	struct omap_hwmod *oh;
->> +
->> +	sprintf(name, "timer%d", clkev.id);
->> +	oh = omap_hwmod_lookup(name);
->
-> /me stops reviewing here.  This should be a one-time thing.
->
-> Seeing things *again* in patches that I've already reviewed (multiple
-> times) is very frustrating.  It also increases the likelihood of future
-> patches to be "filtered."  (in this case, you get a pass since you seem
-> to have inherited Vaibhav's code, but please take care to address all
-> reviewer comments, or at least explain why you didn'.)
->
-> Kevin
->
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-Sorry for missing this. Seems I missed this patch completely when taking 
-over. I'll make sure it's addressed in the next version.
+> On Thursday 08 August 2013 02:16 PM, Kevin Hilman wrote:
+>> Dave Gerlach <d-gerlach@ti.com> writes:
+>> 
+>>> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>>>
+>>> SDRAM controller on AM33XX requires that a modification of certain
+>>> bit-fields in PWR_MGMT_CTRL register (ref. section 7.3.5.13 in
+>>> AM335x-Rev H) is followed by a dummy read access to SDRAM. This
+>>> scenario arises when entering a low power state like DeepSleep.
+>>> To ensure that the read is not from a cached region we reserve
+>>> some memory during bootup using the arm_memblock_steal() API.
+>> 
+>> Hmm, sounds to me an awful lot like the existing omap_bus_sync() ?
+>>
+> All the credit of that awful omap_bus_sync() goes to me since 
+> I introduced it. And I keep beating the hardware guys
+> who have not left a choice but to introduce the ugly work
+> around in software. ;-)
 
-Regards,
-Dave
+Agreed, but what's even more awful than the current version is
+duplicating it in a slightly different way using yet another whole page
+mapping for a single read/write location.
+
+Kevin
