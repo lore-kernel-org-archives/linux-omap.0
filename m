@@ -1,134 +1,149 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH 3/5] omap: Properly handle resources for omap_devices
-Date: Fri, 09 Aug 2013 09:35:30 -0700
-Message-ID: <87ioze7rfx.fsf@kernel.org>
-References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com>
-	<1375775624-12250-4-git-send-email-panto@antoniou-consulting.com>
-	<87a9kt2vd8.fsf@linaro.org>
-	<A4346403-362E-4E74-9C5E-07509CBC0BF4@antoniou-consulting.com>
-	<87mwoqao95.fsf@kernel.org>
-	<B929744A-C23A-41F6-A9AC-C18571A1F39B@antoniou-consulting.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCHv3 8/9] ARM: OMAP2+: AM33XX: Basic suspend resume support
+Date: Fri, 9 Aug 2013 11:36:43 -0500
+Message-ID: <52051A9B.1060606@ti.com>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <1375811376-49985-9-git-send-email-d-gerlach@ti.com> <CA+Bv8XbK+=pvG+bbvfCtS2Rtg-YoAhuUbWjSro9m4xWjw=Cr8A@mail.gmail.com> <52038E88.2050604@ti.com> <5203B336.90102@ti.com> <5203C211.7040207@ti.com> <87iozfga1t.fsf@kernel.org> <52040E67.4050402@ti.com> <87pptndbtj.fsf@kernel.org> <520506B6.7060806@ti.com> <87wqnu9720.fsf@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f54.google.com ([209.85.160.54]:56574 "EHLO
-	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S968090Ab3HIQfd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Aug 2013 12:35:33 -0400
-Received: by mail-pb0-f54.google.com with SMTP id ro12so4745937pbb.13
-        for <linux-omap@vger.kernel.org>; Fri, 09 Aug 2013 09:35:33 -0700 (PDT)
-In-Reply-To: <B929744A-C23A-41F6-A9AC-C18571A1F39B@antoniou-consulting.com>
-	(Pantelis Antoniou's message of "Fri, 9 Aug 2013 18:32:30 +0300")
+Received: from devils.ext.ti.com ([198.47.26.153]:49991 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S968090Ab3HIQhO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Aug 2013 12:37:14 -0400
+In-Reply-To: <87wqnu9720.fsf@kernel.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?utf-8?Q?Beno=C3=AEt?= Cousson <benoit.cousson@gmail.com>, Paul Walmsley <paul@pwsan.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Dave Gerlach <d-gerlach@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russ Dill <russ.dill@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Tony Lingren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>
 
-Pantelis Antoniou <panto@antoniou-consulting.com> writes:
-
-> Hi
-> On Aug 9, 2013, at 6:16 PM, Kevin Hilman wrote:
+On 08/09/2013 11:12 AM, Kevin Hilman wrote:
+> Nishanth Menon <nm@ti.com> writes:
 >
->> Pantelis Antoniou <panto@antoniou-consulting.com> writes:
->> 
->>> Hi Kevin,
->>> 
->>> On Aug 7, 2013, at 9:45 PM, Kevin Hilman wrote:
->>> 
->>>> [fixing address for Benoit]
->>>> 
->>>> Pantelis Antoniou <panto@antoniou-consulting.com> writes:
->>>> 
->>>>> omap_device relies on the platform notifier callbacks managing resources
->>>>> behind the scenes. The resources were not properly linked causing crashes
->>>>> when removing the device.
->>>>> 
->>>>> Rework the resource modification code so that linking is performed properly,
->>>>> and make sure that no resources that have no parent (which can happen for DMA
->>>>> & IRQ resources) are ever left for cleanup by the core resource layer.
->>>>> 
->>>>> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
->>>> 
->>>> This one failed my "took more than 15 minutes to understand" test.  The
->>>> changelog is rather vague (especially about what "properly" means), and
->>>> the combination of moving code and changing it makes the patch rather
->>>> clunky to read, so I remain a bit confused about what the actual problem
->>>> is.  Please elaborate.
->>>> 
->>>> Also, could you share a crash dump as well as details about how to
->>>> reproduce this problem?
->>>> 
->>>> Thanks,
->>>> 
->>>> Kevin
->>> 
->>> It's the full patchset that fixes the problem:
->>> 
->>> Let me illustrate:
->>> 
->>> The kernel I use is located at:
->>> 
->>> git@github.com:pantoniou/linux-beagle-track-mainline.git
->>> branch: merge-20130806 (there are topic branches for other stuff too)
->> 
->> Sorry, I don't have the time to go through a bunch of out of tree
->> branches to figure this out.  Can you create a simpler test case to
->> reproduce this?  e.g. Does this happen when building the serial driver
->> as a module and then removing it?  If not, why not?
+>> On 08/08/2013 06:04 PM, Kevin Hilman wrote:
+>>> Nishanth Menon <nm@ti.com> writes:
+>>>
+>>>> On 08/08/2013 04:14 PM, Kevin Hilman wrote:
+>>>>> Dave Gerlach <d-gerlach@ti.com> writes:
+>>>>>
+>>>>>> On 08/08/2013 10:03 AM, Santosh Shilimkar wrote:
+>>>>>>> $subject and patch don't match.
+>>>>>>>
+>>>>>>> On Thursday 08 August 2013 08:26 AM, Nishanth Menon wrote:
+>>>>>>>> On 08/08/2013 03:45 AM, Russ Dill wrote:
+>>>>>>>>>       In reference to
+>>>>>>>>> the M3 handling it, the M3 wouldn't know which devices have a driver
+>>>>>>>>> bound and which don't.
+>>>>>>>> Does it need to? M3 firmware can pretty much define "I will force
+>>>>>>>> the device into low power state, and if the drivers dont handle
+>>>>>>>> things properly, fix the darned driver". M3 behavior should be
+>>>>>>>> considered as a "hardware" as far as Linux running on MPU is
+>>>>>>>> concerned, and firmware helps change the behavior by accounting for
+>>>>>>>> SoC quirks. *if* we have ability to handle this in the firmware,
+>>>>>>>> there is no need to carry this in Linux.
+>>>>>>>>
+>>>>>>> I agree with Nishant. I don't like this patch and IIRC, I gave same
+>>>>>>> comment in the last version. Linux need not know about all such firmware
+>>>>>>> quirks. Also all these M3 specific stuff, should be done somewhere
+>>>>>>> else. Probably having a small M3 driver won't be a bad idea.
+>>>>>>
+>>>>>> I am not opposed to doing it this way and letting the M3 firmware
+>>>>>> handle idling these modules, however the one concern raised in the
+>>>>>> last series is that an approach that does not acknowledge drivers will
+>>>>>> hide driver PM bugs. I suppose as long as I make sure to document that
+>>>>>> the devices are being idled by the M3 firmware this may not be an
+>>>>>> issue. I will look into implementing this.
+>>>>>
+>>>>> No, please don't start idling devices in firmware that are otherwise
+>>>>> managed by Linux.  Keep the firmware simple and dumb.  Linux is managing
+>>>>> these devices, it should manage their bugs too.
+>>>>
+>>>>>
+>>>>> This is not just about idling devices.  This is about handling broken IP
+>>>>> blocks whose power-on reset state does not allow the the powerdomain to
+>>>>> reach its target state.  That's just bad hardware design.
+>>>>
+>>>> Right, this is where M3 can help -> provide a consistent state for
+>>>> linux kernel to work with. by the fact that we want to keep majority
+>>>> of the power code inside master CPU, we are just letting M3 help us
+>>>> with nothing major at all..
+>>>
+>>> heh, I would say HW design bugs like this are more than "nothing major
+>>> at all." :)
+>>>
+>>>> tiny stuff like these can help "fix" the hardware design quirks by
+>>>> hiding it behind the firmware and modifying the hardware behavior.
+>>>
+>>> I disagree here.  I'm a firmware minimalist, and hiding bugs like this
+>>> in the firmware is wrong when Linux is otherwise managing these devices.
+>>> It also imposes criteria on the firmware of future SoCs that doesn't
+>>> belong there either.  IMO, the only stuff the firmware should do is what
+>>> Linux *cannot* do.
+>>>
+>>> Remember, this only needs to happen when there isn't a driver for these
+>>> devices.  Should we communicate to the firmware that the OS has no
+>>> driver, so please enable the hack?  I think not.
+>>
+>> My view is that the M3 should *ignore* the presence/existence of MPU's
+>> drivers. M3 will do whatever to force the system to go to suspend once
+>> notified - this saves us the prehistoric perpetual trouble when
+>> drivers have bugs (which get exposed in weird usage scenarios) in
+>> production systems, we dont get any hardware help to fix them up while
+>> attempting low power states and system never really hits low power
+>> state. This was always because OMAP and it's derivatives have been
+>> "democratic" in power management - if every hardware block achieves
+>> proper state, then we achieve a system-wide low power state.
+>>
+>>>
+>>>> I know it breaks the purity of role, but as the
+>>>> next evolution, we might want to consider M3 something like an
+>>>> "accelerator" for power management activity.. (not saying it is that
+>>>> fast.. but conceptually).
+>>>
+>>> Yes, it breaks the purity of role, and makes it hard to maintain and
+>>> extend to future SoCs.  As a maintainer, that's a red flag.  IMO, the
+>>> roles need to be kept clear.  The M3 manages some devices and the
+>>> interconnect that MPU/Linux cannot, the rest are managed by Linux.
+>>
+>> suspend is a very controlled state as against cpuidle where driver
+>> knowledge is necessary and in fact mandatory. drivers are supposed to
+>> release their resources - and even though we test the hell out of
+>> them, we do have paths untrodden when it comes to production systems.
 >
-> What 'bunch of out of tree branches'? There is a single merge branch against
-> current mainline. 
-
-And That branch contains multiple other branches (as you stated yourself
-above), many of which look to be out of tree:
-
-$ git log --oneline --merges  panto/master..panto/merge-20130806
-031297e Merge branch 'lcdc-fixes' into merge-20130806
-44cf018 Merge branch 'usb-fixes' into merge-20130806
-3cc739b Merge branch 'tscadc' into merge-20130806
-f0ec35d Merge branch 'capemgr' into merge-20130806
-4d87712 Merge branch 'general-fixes' into merge-20130806
-04535fb Merge branch 'pinctrl-fixes' into merge-20130806
-5115b55 Merge branch 'i2c-fixes' into merge-20130806
-e96edf5 Merge branch 'capes' into merge-20130806
-1eb1779 Merge branch 'dts-fixes' into merge-20130806
-ca12149 Merge branch 'mmc-fixes' into merge-20130806
-41ed7a0 Merge branch 'pdev-fixes' into merge-20130806
-2ba9995 Merge branch 'of-fixes' into merge-20130806
-38b5cb4 Merge branch 'dtc-overlays' into merge-20130806
-167648d Merge branch 'dtc-fixes' into merge-20130806
-2f7de02 Merge branch 'reset' into merge-20130806
-
-$ git log --oneline --no-merges panto/master..panto/merge-20130806 |wc -l
-85
-
-> And no you don't trigger this by removing a module.
+> Since folks don't seem to care about idle for AM33xx (starting with the
+> hw designers, from what I can tell), you have the luxury of thinking
+> only about suspend, where firmware can be heavy handed and force things
+> into submission.  Unfortunately, with cpuidle, life is not that easy and
+> you have to have cooperation of the device drivers.  Coordinating that
+> with firmware is not so simple, to put it mildly.
 >
-> platform_driver_unregister() != platform_device_register().
->
-> I'll try to figure out something simpler, but it's pretty damn obvious that
-> something is not right there. 
+> Any SW/firmware design that does not account for *both* static PM
+> (suspend/resume) and dynamic PM (runtime PM + CPUidle) is not long-term
+> maintainable, and thus ready for mainline IMO.  (BTW, this is another
+> theme from previous reviews of this series.)
 
-I agree something does not seem right, and never said otherwise.  I'm
-simply looking for an easy way to reproduce it with mainline.  
+I completely agree with you. But is'nt the specific suspend state we are 
+attempting to achieve on AM335x just tooo expensive latency wise for 
+being even considered for cpuidle? I am sure you recollect the latencies 
+involved in OMAP3 OFF mode Vs OMAP4+ OFF mode - which basically kicked 
+out OFF mode from OMAP4 cpuidle C states? - it was practically useless
 
-Since it's so "damn obvious", I'll accept the insult and agree to being
-a moron.  Please educate me by making it even more obvious with a way to
-reproduce it against mainline.
+in this *specific* power state we are attempting, we do a bunch of i2c 
+operations, etc, in short something that cannot even be considered for 
+cpuidle.
 
-> Do you think fixing problems in that part of platform device removal
-> was something I did because I didn't have other things to do?
+Considering this, we can consider the same only for suspend path - hence 
+allowing firmware to do more here.
 
-Settle down, I said nothing of the sort.
 
-On the contrary, I assumed you were being a generous citizen of the
-community and contributing back your fixes, and as a developer of this
-part of the kernel, I'm trying to help.  If I didn't care, I wouldn't
-have responded in the first place.
+This does not conflict with cpuidle (which controls MPU) or runtime PM 
+(which kicks in once you have drivers active, but if drivers get active, 
+we dont need to deal with this crap).
 
-> It is broken and I'm trying to get it fixed. Are you?
+Dont you think this helps the specific case to move this into firmware 
+rather than into omap_device?
+[...]
 
-I was, but your accusatory tone is reducing my motivation to help.
-
-Kevin
-
+-- 
+Regards,
+Nishanth Menon
