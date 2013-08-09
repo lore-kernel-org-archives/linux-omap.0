@@ -1,78 +1,64 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: dwc3-pci: Ensure system sleep PM ops are defined
- only when used
-Date: Fri, 9 Aug 2013 16:26:15 +0300
-Message-ID: <20130809132615.GE12041@radagast>
-References: <1375804166-3205-1-git-send-email-broonie@kernel.org>
- <CAOMZO5A_M3u4A3j7pFcooZ6jVi5LikERM4CVjL4bB2z5YVeTXQ@mail.gmail.com>
- <20130807093407.GT6427@sirena.org.uk>
- <CAAfg0W5fWdvX7aU8y29op70SFod=xqrr9kpxUUi=NKy71Y89Wg@mail.gmail.com>
+Subject: Re: [RFC PATCH v2 3/3] usb: dwc3: Add Qualcomm DWC3 glue layer driver
+Date: Fri, 9 Aug 2013 16:32:13 +0300
+Message-ID: <20130809133213.GJ12041@radagast>
+References: <1376042027-9798-1-git-send-email-iivanov@mm-sol.com>
+ <1376042027-9798-4-git-send-email-iivanov@mm-sol.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6Vw0j8UKbyX0bfpA"
+	protocol="application/pgp-signature"; boundary="liqSWPDvh3eyfZ9k"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58312 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966041Ab3HIN03 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Aug 2013 09:26:29 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:40505 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S967587Ab3HINce (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Aug 2013 09:32:34 -0400
 Content-Disposition: inline
-In-Reply-To: <CAAfg0W5fWdvX7aU8y29op70SFod=xqrr9kpxUUi=NKy71Y89Wg@mail.gmail.com>
+In-Reply-To: <1376042027-9798-4-git-send-email-iivanov@mm-sol.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andy Green <andy.green@linaro.org>
-Cc: Mark Brown <broonie@kernel.org>, Fabio Estevam <festevam@gmail.com>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linaro-kernel <linaro-kernel@lists.linaro.org>, linux-omap@vger.kernel.org
+To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Cc: balbi@ti.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org
 
---6Vw0j8UKbyX0bfpA
+--liqSWPDvh3eyfZ9k
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Aug 07, 2013 at 06:01:00PM +0800, Andy Green wrote:
-> On 7 August 2013 17:34, Mark Brown <broonie@kernel.org> wrote:
-> > On Tue, Aug 06, 2013 at 10:35:52PM -0300, Fabio Estevam wrote:
-> >> On Tue, Aug 6, 2013 at 12:49 PM, Mark Brown <broonie@kernel.org> wrote:
-> >> > From: Andy Green <andy.green@linaro.org>
-> >> >
-> >> > You might have CONFIG_PM, but you might not have CONFIG_SUSPEND, in =
-which
-> >> > case these are unused.
-> >> >
-> >> > Signed-off-by: Andy Green <andy.green@linaro.org>
-> >> > Signed-off-by: Mark Brown <broonie@linaro.org>
-> >
-> >> What about doing this instead?
-> >
-> > Makes sense to me - Andy?
+On Fri, Aug 09, 2013 at 12:53:47PM +0300, Ivan T. Ivanov wrote:
+> From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
 >=20
-> Sure, it seems a much more complete solution.
+> DWC3 glue layer is hardware layer around Synopsys DesignWare
+> USB3 core. Its purpose is to supply Synopsys IP with required
+> clocks, voltages and interface it with the rest of the SoC.
+>=20
+> Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
 
-looks good to me too, please send it as a real patch (if you already
-have, sorry about that, catching up with my inbox now).
+same comments from previous version.
 
 --=20
 balbi
 
---6Vw0j8UKbyX0bfpA
+--liqSWPDvh3eyfZ9k
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSBO33AAoJEIaOsuA1yqREdLEP/0NTN8hhjVZri80gejJrcgzS
-OaeL1lZHa3T1YAWM53n7DSAgrjVshT1YePaKn2LqYtzEmhjQN/cyKpfrScmWk/Jk
-IQFYlpmexd7aYSzm3YS6jW/dQxLYYHbljPXwHBp/qIOGKYVIMn3Tf2EjTckSFcHt
-/jelk7ME2XI30gbyuHTgNbfjko2gGbT0thfsdHQUftqRzNOc5zb0LRAZ2lmhvQHM
-P0TlluQg5tZxvPfhMjxpLe8ykkM/vxWqU1u+gVvv5q4aja2rXGnHydPge3MKf1ki
-Ts4c4q2MQNZgOz8VysvahelncczD5vvnnPkMS+lT0JmvRfuAB1s9b1Zlcz1SXCCA
-nJqyg1LEfKkWkg/WgatfzRNfxbrTWQ0qJYhtdbw1dZaxCsrQDS5YdTaRkq229WMW
-s85EkAaZIlTGSB0nIw7ZbZBbcDsNxT+sfAYQC6gYOuonrf73ZR3Zrx1Sxi35nuuP
-30N/hy6dQjPsgx7CDili/NwIluK8i74JhbrOBrV5Tx9DaJbbiH1wOG8In2gw1B9l
-f5BpLtU5hENmoncMh/A4s05SS9KVUlofHMpcNN4a5yy7PgqKbzFoqPN+y2E4eqZA
-3P1Hax/kiRbyfVt8xhr6PwQS51k/j8WUPPw8LcQ1bSiNEcbKEqtW9621I+LLP4PX
-BuSkkzVGEfqP0jqXYv2N
-=q+vv
+iQIcBAEBAgAGBQJSBO9dAAoJEIaOsuA1yqREA5kP/26Un/6Qx06IuL2gpD2oTArR
+qPGX3Ydweg/+my/XkO22FazWCqD/yUCjGZdAACr9nAmJM96F3ToTxNKFe9ZJ1ZOU
+oagvIQoe/DjWZ91uEKif5PiFuRzsFyry4ukNP6J5WMToWuD1N4i+5Y/dup9QxGTo
+lYpNdOAfbKGxpu0W/OzVkw2C90CIhJE8kh6IoalkxPwzPzjM3R7ehQzhdnmR4Rfv
+sQt3JCmGmcBLTuZ5fNoRSXyaheBqxGD9AhooLMhC38nU7jqLybVPxxGe4icWQ8o/
+hJDFQ8Eg6wI397H6E0p4oVwGKTHygdsyTBdc+91taXygyzGEwxVfQgv9N7eMxNJU
+e3fFpQf1pJb2EjM2grAne3kHsNWDT3+8W/xIVC2J4S4HrfDcyXbza9bZu1/h0ibV
+qAgtruO9Ejc1Iqd9h1nqIzm5WkJfXL5cBM3PLsCnLCG4gWqxvSu1kQjQVWhoL0WK
+YPxf5RMz0cGoCWrgSce8lBzNgoykL/X6/kKGqwc8p7ZomiWLn52ywvV/s9+a62In
+pGvLs4/O2U1wlNgZyY5Tz7/CQdTjACEtc6g9ukAJR5sZ0S4sEORlybgymTeOjCRx
+gwxk/weuQYzqOf3FcAthZ5rY1/JBli7pB/qHHvCiIuFon57F09FIDP98YZ0RSqtZ
+zbqxVJ4MUohhd+akh6Uy
+=mSk0
 -----END PGP SIGNATURE-----
 
---6Vw0j8UKbyX0bfpA--
+--liqSWPDvh3eyfZ9k--
