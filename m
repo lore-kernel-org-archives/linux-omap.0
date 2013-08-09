@@ -1,15 +1,15 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [RFC 21/22] OMAPDSS: panel-dpi: Add DT support
-Date: Fri, 9 Aug 2013 11:39:06 +0300
-Message-ID: <1376037547-10859-22-git-send-email-tomi.valkeinen@ti.com>
+Subject: [RFC 22/22] OMAPDSS: connector-analog-tv: Add DT support
+Date: Fri, 9 Aug 2013 11:39:07 +0300
+Message-ID: <1376037547-10859-23-git-send-email-tomi.valkeinen@ti.com>
 References: <1376037547-10859-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48282 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030544Ab3HIIkN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Aug 2013 04:40:13 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:57774 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030691Ab3HIIkP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Aug 2013 04:40:15 -0400
 In-Reply-To: <1376037547-10859-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,40 +18,45 @@ Cc: Archit Taneja <archit@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboa
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/displays-new/panel-dpi.c | 75 ++++++++++++++++++++++++++++
- 1 file changed, 75 insertions(+)
+ .../video/omap2/displays-new/connector-analog-tv.c | 70 ++++++++++++++++++++++
+ 1 file changed, 70 insertions(+)
 
-diff --git a/drivers/video/omap2/displays-new/panel-dpi.c b/drivers/video/omap2/displays-new/panel-dpi.c
-index 5f8f7e7..31bd184 100644
---- a/drivers/video/omap2/displays-new/panel-dpi.c
-+++ b/drivers/video/omap2/displays-new/panel-dpi.c
-@@ -13,9 +13,12 @@
+diff --git a/drivers/video/omap2/displays-new/connector-analog-tv.c b/drivers/video/omap2/displays-new/connector-analog-tv.c
+index 5338f36..b4fb74b 100644
+--- a/drivers/video/omap2/displays-new/connector-analog-tv.c
++++ b/drivers/video/omap2/displays-new/connector-analog-tv.c
+@@ -12,6 +12,7 @@
+ #include <linux/slab.h>
  #include <linux/module.h>
  #include <linux/platform_device.h>
- #include <linux/slab.h>
 +#include <linux/of.h>
-+#include <linux/of_gpio.h>
  
  #include <video/omapdss.h>
  #include <video/omap-panel-data.h>
-+#include <video/of_display_timing.h>
+@@ -28,6 +29,12 @@ struct panel_drv_data {
+ 	bool invert_polarity;
+ };
  
- struct panel_drv_data {
- 	struct omap_dss_device dssdev;
-@@ -182,6 +185,66 @@ static int panel_dpi_probe_pdata(struct platform_device *pdev)
++static const struct of_device_id tvc_of_match[];
++
++struct tvc_of_data {
++	enum omap_dss_venc_type connector_type;
++};
++
+ #define to_panel_data(x) container_of(x, struct panel_drv_data, dssdev)
+ 
+ static int tvc_connect(struct omap_dss_device *dssdev)
+@@ -191,6 +198,36 @@ static int tvc_probe_pdata(struct platform_device *pdev)
  	return 0;
  }
  
-+static int panel_dpi_probe_of(struct platform_device *pdev)
++static int tvc_probe_of(struct platform_device *pdev,
++		const struct tvc_of_data *data)
 +{
 +	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
 +	struct device_node *node = pdev->dev.of_node;
 +	struct omap_dss_device *in;
 +	struct device_node *src_node;
-+	int r, datalines;
-+	struct display_timing timing;
-+	struct videomode vm;
-+	int gpio;
 +
 +	src_node = of_parse_phandle(node, "video-source", 0);
 +	if (!src_node) {
@@ -66,74 +71,68 @@ index 5f8f7e7..31bd184 100644
 +	}
 +	ddata->in = in;
 +
-+	r = of_property_read_u32(node, "data-lines", &datalines);
-+	if (r) {
-+		dev_err(&pdev->dev, "failed to parse datalines\n");
-+		return r;
-+	}
++	ddata->connector_type = data->connector_type;
 +
-+	ddata->data_lines = datalines;
-+
-+	gpio = of_get_gpio(node, 0);
-+	if (gpio_is_valid(gpio) || gpio == -ENOENT) {
-+		ddata->enable_gpio = gpio;
-+	} else {
-+		dev_err(&pdev->dev, "failed to parse enable gpio\n");
-+		return gpio;
-+	}
-+
-+	gpio = of_get_gpio(node, 1);
-+	if (gpio_is_valid(gpio) || gpio == -ENOENT) {
-+		ddata->backlight_gpio = gpio;
-+	} else {
-+		dev_err(&pdev->dev, "failed to parse backlight gpio\n");
-+		return gpio;
-+	}
-+
-+	r = of_get_display_timing(node, "panel-timing", &timing);
-+	if (r) {
-+		dev_err(&pdev->dev, "failed to get video timing\n");
-+		return r;
-+	}
-+
-+	videomode_from_timing(&timing, &vm);
-+	videomode_to_omap_video_timings(&vm, &ddata->videomode);
++	ddata->invert_polarity =
++		of_property_read_bool(node, "invert-polarity");
 +
 +	return 0;
 +}
 +
- static int panel_dpi_probe(struct platform_device *pdev)
++
+ static int tvc_probe(struct platform_device *pdev)
  {
  	struct panel_drv_data *ddata;
-@@ -198,6 +261,10 @@ static int panel_dpi_probe(struct platform_device *pdev)
- 		r = panel_dpi_probe_pdata(pdev);
+@@ -208,6 +245,18 @@ static int tvc_probe(struct platform_device *pdev)
+ 		r = tvc_probe_pdata(pdev);
  		if (r)
  			return r;
 +	} else if (pdev->dev.of_node) {
-+		r = panel_dpi_probe_of(pdev);
++		const struct of_device_id *match;
++
++		match = of_match_node(tvc_of_match, pdev->dev.of_node);
++		if (!match) {
++			dev_err(&pdev->dev, "unsupported device\n");
++			return -ENODEV;
++		}
++
++		r = tvc_probe_of(pdev, match->data);
 +		if (r)
 +			return r;
  	} else {
  		return -ENODEV;
  	}
-@@ -254,12 +321,20 @@ static int __exit panel_dpi_remove(struct platform_device *pdev)
+@@ -249,12 +298,33 @@ static int __exit tvc_remove(struct platform_device *pdev)
  	return 0;
  }
  
-+static const struct of_device_id panel_dpi_of_match[] = {
-+	{ .compatible = "panel-dpi", },
++static const struct tvc_of_data tv_svideo_data = {
++	.connector_type = OMAP_DSS_VENC_TYPE_SVIDEO,
++};
++
++static const struct tvc_of_data tv_composite_video_data = {
++	.connector_type = OMAP_DSS_VENC_TYPE_COMPOSITE,
++};
++
++static const struct of_device_id tvc_of_match[] = {
++	{
++		.compatible = "ti,svideo-connector",
++		.data = &tv_svideo_data,
++	},
++	{
++		.compatible = "ti,composite-video-connector",
++		.data = &tv_composite_video_data,
++	},
 +	{},
 +};
 +
-+MODULE_DEVICE_TABLE(of, panel_dpi_of_match);
-+
- static struct platform_driver panel_dpi_driver = {
- 	.probe = panel_dpi_probe,
- 	.remove = __exit_p(panel_dpi_remove),
- 	.driver = {
- 		.name = "panel-dpi",
- 		.owner = THIS_MODULE,
-+		.of_match_table = panel_dpi_of_match,
+ static struct platform_driver tvc_connector_driver = {
+ 	.probe	= tvc_probe,
+ 	.remove	= __exit_p(tvc_remove),
+ 	.driver	= {
+ 		.name	= "connector-analog-tv",
+ 		.owner	= THIS_MODULE,
++		.of_match_table = tvc_of_match,
  	},
  };
  
