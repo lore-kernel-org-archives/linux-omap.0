@@ -1,109 +1,79 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [RFC 03/22] ARM: OMAP2+: add omapdss_init_of()
-Date: Fri, 9 Aug 2013 11:38:48 +0300
-Message-ID: <1376037547-10859-4-git-send-email-tomi.valkeinen@ti.com>
+Subject: [RFC 10/22] ARM: omap3.dtsi: add omapdss information
+Date: Fri, 9 Aug 2013 11:38:55 +0300
+Message-ID: <1376037547-10859-11-git-send-email-tomi.valkeinen@ti.com>
 References: <1376037547-10859-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51324 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48260 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030596Ab3HIIjc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Aug 2013 04:39:32 -0400
+	id S1030596Ab3HIIjs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Aug 2013 04:39:48 -0400
 In-Reply-To: <1376037547-10859-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-omapdss driver uses a omapdss platform device to pass platform specific
-function pointers and DSS hardware version from the arch code to the
-driver. This device is needed also when booting with DT.
-
-This patch adds omapdss_init_of() function, called from board-generic at
-init time, which creates the omapdss device.
-
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/board-generic.c |  2 ++
- arch/arm/mach-omap2/common.h        |  2 ++
- arch/arm/mach-omap2/display.c       | 34 ++++++++++++++++++++++++++++++++++
- 3 files changed, 38 insertions(+)
+ arch/arm/boot/dts/omap3.dtsi | 43 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index d388d33..aaf1125 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -61,6 +61,8 @@ static void __init omap_generic_init(void)
- 		legacy_init_ehci_clk("auxclk3_ck");
- 	else if (of_machine_is_compatible("ti,omap5-uevm"))
- 		legacy_init_ehci_clk("auxclk1_ck");
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 7d95cda..3308b3f 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -532,5 +532,48 @@
+ 			num-eps = <16>;
+ 			ram-bits = <12>;
+ 		};
 +
-+	omapdss_init_of();
- }
- 
- #ifdef CONFIG_SOC_OMAP2420
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index dfcc182..377900c 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -300,5 +300,7 @@ extern int omap_dss_reset(struct omap_hwmod *);
- /* SoC specific clock initializer */
- extern int (*omap_clk_init)(void);
- 
-+int __init omapdss_init_of(void);
++		dss@48050000 {
++			compatible = "ti,omap3-dss", "simple-bus";
++			reg = <0x48050000 0x200>;
++			ti,hwmods = "dss_core";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
 +
- #endif /* __ASSEMBLER__ */
- #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index ff37be1..c62aee0 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -23,6 +23,8 @@
- #include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/delay.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
- 
- #include <video/omapdss.h>
- #include "omap_hwmod.h"
-@@ -564,3 +566,35 @@ int omap_dss_reset(struct omap_hwmod *oh)
- 
- 	return r;
- }
++			dispc@48050400 {
++				compatible = "ti,omap3-dispc";
++				reg = <0x48050400 0x400>;
++				interrupts = <25>;
++				ti,hwmods = "dss_dispc";
++			};
 +
-+int __init omapdss_init_of(void)
-+{
-+	int r;
-+	enum omapdss_version ver;
++			dpi: encoder@0 {
++				compatible = "ti,omap3-dpi";
++			};
 +
-+	static struct omap_dss_board_info board_data = {
-+		.dsi_enable_pads = omap_dsi_enable_pads,
-+		.dsi_disable_pads = omap_dsi_disable_pads,
-+		.get_context_loss_count = omap_pm_get_dev_context_loss_count,
-+		.set_min_bus_tput = omap_dss_set_min_bus_tput,
-+	};
++			sdi: encoder@1 {
++				compatible = "ti,omap3-sdi";
++			};
 +
-+	ver = omap_display_get_version();
++			dsi: encoder@4804fc00 {
++				compatible = "ti,omap3-dsi";
++				reg = <0x4804fc00 0x400>;
++				interrupts = <25>;
++				ti,hwmods = "dss_dsi1";
++			};
 +
-+	if (ver == OMAPDSS_VER_UNKNOWN) {
-+		pr_err("DSS not supported on this SoC\n");
-+		return -ENODEV;
-+	}
++			rfbi: encoder@48050800 {
++				compatible = "ti,omap3-rfbi";
++				reg = <0x48050800 0x100>;
++				ti,hwmods = "dss_rfbi";
++			};
 +
-+	board_data.version = ver;
-+
-+	omap_display_device.dev.platform_data = &board_data;
-+
-+	r = platform_device_register(&omap_display_device);
-+	if (r < 0) {
-+		pr_err("Unable to register omapdss device\n");
-+		return r;
-+	}
-+
-+	return 0;
-+}
++			venc: encoder@48050c00 {
++				compatible = "ti,omap3-venc";
++				reg = <0x48050c00 0x100>;
++				ti,hwmods = "dss_venc";
++			};
++		};
+ 	};
+ };
 -- 
 1.8.1.2
 
