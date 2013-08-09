@@ -1,141 +1,73 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [RFC 09/22] OMAPDSS: Add DT support to DSI
-Date: Fri, 9 Aug 2013 11:38:54 +0300
-Message-ID: <1376037547-10859-10-git-send-email-tomi.valkeinen@ti.com>
+Subject: [RFC 14/22] ARM: omap3-tobi.dts: add lcd (TEST)
+Date: Fri, 9 Aug 2013 11:38:59 +0300
+Message-ID: <1376037547-10859-15-git-send-email-tomi.valkeinen@ti.com>
 References: <1376037547-10859-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55637 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51341 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030657Ab3HIIjq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Aug 2013 04:39:46 -0400
+	id S1030657Ab3HIIj5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Aug 2013 04:39:57 -0400
 In-Reply-To: <1376037547-10859-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add the code to make the DSI driver work with device tree on OMAP3 and
-OMAP4.
+This is a test for Overo with Palo43 expansion, _not_ Tobi. Palo43
+doesn't have a dts, but seems to work ok with omap3-tobi.dts, so I used
+it as a test.
 
-A minor hack is needed at the moment in the DSI driver: the DSS driver
-needs to know the ID number of a DSI device, as clocks are routed in
-different ways to the DSI devices. At the moment we don't have any
-proper way to manage this, so this patchs adds a simple lookup table
-that is used to deduce the ID from the DSI device's base address.
+Not to be merged.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dsi.c | 53 ++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 52 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/omap3-tobi.dts | 33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 0c8bd1f..bccf5fc 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -38,6 +38,7 @@
- #include <linux/slab.h>
- #include <linux/debugfs.h>
- #include <linux/pm_runtime.h>
-+#include <linux/of.h>
- 
- #include <video/omapdss.h>
- #include <video/mipi_display.h>
-@@ -371,6 +372,13 @@ struct dsi_packet_sent_handler_data {
- 	struct completion *completion;
+diff --git a/arch/arm/boot/dts/omap3-tobi.dts b/arch/arm/boot/dts/omap3-tobi.dts
+index 7e4ad2a..0d136d8 100644
+--- a/arch/arm/boot/dts/omap3-tobi.dts
++++ b/arch/arm/boot/dts/omap3-tobi.dts
+@@ -81,3 +81,36 @@
+ &mmc3 {
+ 	status = "disabled";
  };
- 
-+struct dsi_module_id_data {
-+	u32 address;
-+	int id;
++
++&dpi {
++	vdds_dsi-supply = <&vpll2>;
 +};
 +
-+static const struct of_device_id dsi_of_match[];
++/ {
++	aliases {
++		display0 = &lcd0;
++	};
 +
- #ifdef DEBUG
- static bool dsi_perf;
- module_param(dsi_perf, bool, 0644);
-@@ -5537,7 +5545,6 @@ static int omap_dsihw_probe(struct platform_device *dsidev)
- 	if (!dsi)
- 		return -ENOMEM;
- 
--	dsi->module_id = dsidev->id;
- 	dsi->pdev = dsidev;
- 	dev_set_drvdata(&dsidev->dev, dsi);
- 
-@@ -5587,6 +5594,31 @@ static int omap_dsihw_probe(struct platform_device *dsidev)
- 		return r;
- 	}
- 
-+	if (dsidev->dev.of_node) {
-+		const struct of_device_id *match;
-+		const struct dsi_module_id_data *d;
++	lcd0: display@0 {
++		compatible = "samsung,lte430wq-f0c", "panel-dpi";
++		video-source = <&dpi>;
++		data-lines = <24>;
 +
-+		match = of_match_node(dsi_of_match, dsidev->dev.of_node);
-+		if (!match) {
-+			DSSERR("unsupported DSI module\n");
-+			return -ENODEV;
-+		}
++		panel-timing {
++			clock-frequency = <9200000>;
++			hactive = <480>;
++			vactive = <272>;
++			hfront-porch = <8>;
++			hback-porch = <4>;
++			hsync-len = <41>;
++			vback-porch = <2>;
++			vfront-porch = <4>;
++			vsync-len = <10>;
 +
-+		d = match->data;
-+
-+		while (d->address != 0 && d->address != dsi_mem->start)
-+			d++;
-+
-+		if (d->address == 0) {
-+			DSSERR("unsupported DSI module\n");
-+			return -ENODEV;
-+		}
-+
-+		dsi->module_id = d->id;
-+	} else {
-+		dsi->module_id = dsidev->id;
-+	}
-+
- 	/* DSI VCs initialization */
- 	for (i = 0; i < ARRAY_SIZE(dsi->vc); i++) {
- 		dsi->vc[i].source = DSI_VC_SOURCE_L4;
-@@ -5641,6 +5673,7 @@ static int omap_dsihw_probe(struct platform_device *dsidev)
- 	else if (dsi->module_id == 1)
- 		dss_debugfs_create_file("dsi2_irqs", dsi2_dump_irqs);
- #endif
-+
- 	return 0;
- 
- err_probe:
-@@ -5694,6 +5727,23 @@ static const struct dev_pm_ops dsi_pm_ops = {
- 	.runtime_resume = dsi_runtime_resume,
- };
- 
-+static const struct dsi_module_id_data dsi_of_data_omap3[] = {
-+	{ .address = 0x4804fc00, .id = 0, },
-+	{ },
++			hsync-active = <0>;
++			vsync-active = <0>;
++			de-active = <1>;
++			pixelclk-active = <1>;
++		};
++	};
 +};
-+
-+static const struct dsi_module_id_data dsi_of_data_omap4[] = {
-+	{ .address = 0x58004000, .id = 0, },
-+	{ .address = 0x58005000, .id = 1, },
-+	{ },
-+};
-+
-+static const struct of_device_id dsi_of_match[] = {
-+	{ .compatible = "ti,omap3-dsi", .data = dsi_of_data_omap3, },
-+	{ .compatible = "ti,omap4-dsi", .data = dsi_of_data_omap4, },
-+	{},
-+};
-+
- static struct platform_driver omap_dsihw_driver = {
- 	.probe		= omap_dsihw_probe,
- 	.remove         = __exit_p(omap_dsihw_remove),
-@@ -5701,6 +5751,7 @@ static struct platform_driver omap_dsihw_driver = {
- 		.name   = "omapdss_dsi",
- 		.owner  = THIS_MODULE,
- 		.pm	= &dsi_pm_ops,
-+		.of_match_table = dsi_of_match,
- 	},
- };
- 
 -- 
 1.8.1.2
 
