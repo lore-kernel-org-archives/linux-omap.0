@@ -1,129 +1,79 @@
 From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [RFC 2/2] usb: dwc3: Add Qualcomm DWC3 glue layer driver
-Date: Fri, 9 Aug 2013 16:23:49 +0300
-Message-ID: <20130809132349.GC12041@radagast>
+Date: Fri, 9 Aug 2013 16:24:59 +0300
+Message-ID: <20130809132459.GD12041@radagast>
 References: <1375789991-30041-1-git-send-email-iivanov@mm-sol.com>
  <1375789991-30041-3-git-send-email-iivanov@mm-sol.com>
+ <1375791698.12043.53.camel@hornet>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="sHrvAb52M6C8blB9"
+	protocol="application/pgp-signature"; boundary="rqzD5py0kzyFAOWN"
 Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1375789991-30041-3-git-send-email-iivanov@mm-sol.com>
+In-Reply-To: <1375791698.12043.53.camel@hornet>
 Sender: linux-doc-owner@vger.kernel.org
-To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-Cc: balbi@ti.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: Pawel Moll <pawel.moll@arm.com>
+Cc: "Ivan T. Ivanov" <iivanov@mm-sol.com>, "balbi@ti.com" <balbi@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Mark Rutland <Mark.Rutland@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob@landley.net" <rob@landley.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
---sHrvAb52M6C8blB9
+--rqzD5py0kzyFAOWN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Tue, Aug 06, 2013 at 02:53:11PM +0300, Ivan T. Ivanov wrote:
-> diff --git a/drivers/usb/dwc3/dwc3-msm.c b/drivers/usb/dwc3/dwc3-msm.c
-> new file mode 100644
-> index 0000000..e509abc
-> --- /dev/null
-> +++ b/drivers/usb/dwc3/dwc3-msm.c
-> @@ -0,0 +1,175 @@
-> +#undef CONFIG_REGULATOR
+On Tue, Aug 06, 2013 at 01:21:38PM +0100, Pawel Moll wrote:
+> > @@ -47,3 +64,25 @@ Example device nodes:
+> >  		vddcx-supply =3D <&supply>;
+> >  		v1p8-supply =3D <&supply>;
+> >  	};
+> > +
+> > +	usb@fd4ab000 {
+> > +		compatible =3D "qcom,dwc-usb3-msm";
+> > +		#address-cells =3D <1>;
+> > +		#size-cells =3D <1>;
+> > +		reg =3D <0xfd4ab000 0x4>;
+> > +
+> > +		clocks =3D <&usb30_master_cxc>, <&sys_noc_usb3_axi_cxc>, <&usb30_sle=
+ep_cxc>, <&usb30_mock_utmi_cxc>;
+> > +		clock-names =3D "core_clk", "iface_clk", "sleep_clk", "utmi_clk";
+> > +
+> > +		gdsc-supply =3D <&supply>;
+> > +		ranges;
+> > +
+> > +		dwc3@f9200000 {
+> > +			compatible =3D "snps,dwc3";
+>=20
+> Note that the Documentation/devicetree/bindings/usb/dwc3.txt is
+> mentioning "synopsys,dwc3" (which is clearly in opposition to the
 
-why ??????
-
-> +static int dwc3_msm_probe(struct platform_device *pdev)
-> +{
-> +	struct device_node *node =3D pdev->dev.of_node;
-> +	struct dwc3_msm *mdwc;
-> +	struct resource *res;
-> +	void __iomem *tcsr;
-> +	int ret =3D 0;
-> +
-> +	dev_info(&pdev->dev, "MSM DWC3\n");
-
-please don't. This is hardly necessary.
-
-> +	mdwc =3D devm_kzalloc(&pdev->dev, sizeof(*mdwc), GFP_KERNEL);
-> +	if (!mdwc) {
-> +		dev_err(&pdev->dev, "not enough memory\n");
-
-this message isn't needed either
-
-> +	/*
-> +	 * DWC3 Core requires its CORE CLK (aka master / bus clk) to
-> +	 * run at 125Mhz in SSUSB mode and >60MHZ for HSUSB mode.
-> +	 */
-> +	clk_set_rate(mdwc->core_clk, 125000000);
-
-if this is dwc3's core clock, why don't we teach dwc3.ko about this
-requirement ? Just make sure to have it optional, since x86 and OMAP
-wouldn't need direct fiddling with the clocks.
-
-> +	clk_prepare_enable(mdwc->core_clk);
-> +	clk_prepare_enable(mdwc->iface_clk);
-> +	clk_prepare_enable(mdwc->sleep_clk);
-> +	clk_prepare_enable(mdwc->utmi_clk);
-
-do you really need to enable your clocks here ? Why don't you enable
-them on runtime_resume and disable on runtime_suspend ?
-
-> +	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	tcsr =3D devm_ioremap_resource(&pdev->dev, res);
-> +	if (!tcsr) {
-> +		dev_dbg(&pdev->dev, "tcsr ioremap failed\n");
-
-no need to ioremap, also you're likely leaking clocks and regulators
-enabled here.
-
-Make sure to have something like:
-
-	if (!tcsr)
-		goto err_disable_clocks;
-
-	/* TODO This has to be revised */\
-
-	[...]
-
-> +	} else {
-> +		/* TODO: This has to be revised */
-> +
-> +		/* Enable USB3 on the primary USB port. */
-> +		writel_relaxed(0x1, tcsr);
-> +		/*
-> +		 * Ensure that TCSR write is completed before
-> +		 * USB registers initialization.
-> +		 */
-> +		mb();
-
-why don't you use writel() instead. It will add the memory barrier for
-you.
+I have a patch converting to snps,dwc3.
 
 --=20
 balbi
 
---sHrvAb52M6C8blB9
+--rqzD5py0kzyFAOWN
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSBO1lAAoJEIaOsuA1yqRElAwP/iaRFtjQxSosL4XQPDRdyvRS
-YQ82mdk+7vG8rX9jqAJXmEWIFrEaxamuqZ6kMMh+xzEludsXHsSSJnUhntNybCnY
-9MFKNac7MoT7m7FA5bTXecye/1VE46Z0YimvMiUT/leWXRIn+zgzBWc3B3bJ7v0s
-HoUwLbK0wKsUxmGp5WyI1bCt731ge0l8nEtEBi3egkODs/K9xBo/JkoS4KOr0SkJ
-0lvcvu+3O4zy5fqGlKfVSf7XAZuQjTMqn/qBmBvMOklEzlfxuXA322garVNXSVt0
-KCs0LwDulSWvQsdDNgeetlC+nB92K2jgyGq/iPVupzeVCWuxkPpUMYl5oqOjceR4
-qCYapyS1GhO0zbPlIcqHNPO1N9Q3UM5mVy+KC9QcHE0b1mZwX6NApSysuAt4KRzf
-n288O7vKZpKmsDVp0iX0RGrb91Z+UAGXRh9jjuJExP6WYXVJiuufpzP0MpzO3iti
-/YNpolUrMykHRRFDzx4MJSMicM6LDUy0XMgDCiKfRW0OSzGLZ+J83i7JvkY+7HLj
-zOD0a0aygzYWAIQGRzbdljItff25ehLg43ww+o/UTiIDzMeW6Ef9D24iEe3wVUtD
-eFTfycFRVXMDH87Fm7sEL6af4IU8m8mMkgYqfuqjLnq/C2rbA7JviyjGZeSu6q9R
-jXHo1Wiq0u2LhTeBC1ph
-=8LTb
+iQIcBAEBAgAGBQJSBO2rAAoJEIaOsuA1yqREjykP/03Zs/oOvj3EgagOJc8Z18L5
+OF+pZpJFrSuSfZGTPTCdRHPSLKuPMSHF1o4yBZzX3Fpx4QKL6gXGlEA1qD954wsw
+3MI2g+dvjbugFx9IalMqvx60jwwtBqUiY+75ekiamCzr6kXiyhRcOJ7+2FWKMNMb
+1bETiTaInaPtrMQfVTUIVsl+JvqoyxfDAtjkSCptR6FQdH7lW1nNolgruDvX2e4E
+oQA/nvumsCJwSkJfGgx83d+EwGp/zsUdiA6eWXkyziMfSsEjdAYyPAHlZxF2pRCY
+UPypSraAW0jsHWFuEhJtJGh7yUeVlmxnwUhFHSEQLyAQfkXLh02z0ks21gqCbIuL
+B+eTPmv3Tvyu12tCPdvfSqUIiM19LxrWjExwvlC32sqDhTSVwlvjddNd1t9MNu7Y
+5TofABmJcgrsSK1AyUz6VuQYlCsJs5YKJR3a7pSsn+7bapHWkRe3XX277tQDJ/lT
+l+laR1AVTLp79JMT0HYRp5iVJ2dchMnHkQmYP73Al2hF63k13sKP1HHd53P0f36W
+tV3aG1UeJmW7raoqlEM3cL7xk8kcsmH3p30tGOsH7Nua2FJ2dv24GCLDZIk74BxE
+H/B0V1zizQ3X3BO5oRjGZAj6QTi0UmszTPZfAkaW5Gtws/aoWXGfuBd5kulQGKVP
+kKamDfPwPIF/MsxuVUXR
+=qAyD
 -----END PGP SIGNATURE-----
 
---sHrvAb52M6C8blB9--
+--rqzD5py0kzyFAOWN--
