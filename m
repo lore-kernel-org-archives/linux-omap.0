@@ -1,108 +1,109 @@
-From: Lars Poeschel <poeschel@lemonage.de>
-Subject: Re: ARM: AM335x: Reboot broken in 3.11
-Date: Fri, 9 Aug 2013 10:04:11 +0200
-Message-ID: <201308091004.11463.poeschel@lemonage.de>
-References: <5203A21A.4060806@newflow.co.uk>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [RFC 01/22] ARM: OMAP: remove DSS DT hack
+Date: Fri, 9 Aug 2013 11:38:46 +0300
+Message-ID: <1376037547-10859-2-git-send-email-tomi.valkeinen@ti.com>
+References: <1376037547-10859-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1-1.goneo.de ([212.90.139.81]:59536 "EHLO smtp1-1.goneo.de"
+Received: from bear.ext.ti.com ([192.94.94.41]:51313 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030545Ab3HIIET convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Aug 2013 04:04:19 -0400
-In-Reply-To: <5203A21A.4060806@newflow.co.uk>
+	id S1030596Ab3HIIj1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Aug 2013 04:39:27 -0400
+In-Reply-To: <1376037547-10859-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Jackson <mpfj-list@newflow.co.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Archit Taneja <archit@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Am Donnerstag, 8. August 2013, 15:50:18 schrieb Mark Jackson:
-> Rebooting appears to have broken in 3.11 (at some point before rc1).
->=20
-> Here is the console output:-
->=20
-> [    0.000000] Booting Linux on physical CPU 0x0
-> [    0.000000] Linux version 3.11.0-rc1-00006-gf550793
-> (mpfj@mpfj-nanobone) (gcc version 4.6.3 (Buildroot 2013.02-dirty) )
-> #328 Thu Aug 8 14:36:16 BST 2013 ...
-> Welcome to Buildroot
-> nanobone login: root
-> Password:
-> # reboot
-> #
-> [   23.867076] UBIFS: background thread "ubifs_bgt0_0" stops
-> The system is going down NOW!
-> Sent SIGTERM to all processes
-> Sent SIGKILL to all processes
-> Requesting system reboot
-> [   25.924496] reboot: Restarting system
->=20
-> ... and at this point the CPU seems to just freeze.
->=20
-> In 3v10, the board would reboot correctly back into uboot, etc.
->=20
-> I've also noticed that some of the output LEDs light up dim when the
-> kernel is booting on, and they come on full brightness at the reboot
-> "freeze" point. There are 4 LEDs affected and they are all connected =
-to
-> UART transmit pins.
->=20
-> Before I start bisecting, does anyone have any ideas ?
+As a temporary solution to enable DSS for selected boards when booting
+with DT, a hack was added to board-generic.c in
+63d5fc0c2f748e20f38a0a0ec1c8494bddf5c288 (OMAP: board-generic: enable
+DSS for panda & sdp boards).
 
-No problem here - at least not at -rc4:
+We're now adding proper DT support, so the hack can be removed.
 
-Starting kernel ...
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ arch/arm/mach-omap2/board-generic.c | 11 +----------
+ arch/arm/mach-omap2/dss-common.c    | 23 -----------------------
+ arch/arm/mach-omap2/dss-common.h    |  2 --
+ 3 files changed, 1 insertion(+), 35 deletions(-)
 
-[    0.000000] Booting Linux on physical CPU 0x0
-[    0.000000] Initializing cgroup subsys cpu
-[    0.000000] Initializing cgroup subsys cpuacct
-[    0.000000] Linux version 3.11.0-rc4-00019-g7c4368e-dirty (larsi@lem=
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index be5d005..d388d33 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -57,17 +57,8 @@ static void __init omap_generic_init(void)
+ 
+ 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
+ 
+-	/*
+-	 * HACK: call display setup code for selected boards to enable omapdss.
+-	 * This will be removed when omapdss supports DT.
+-	 */
+-	if (of_machine_is_compatible("ti,omap4-panda")) {
+-		omap4_panda_display_init_of();
++	if (of_machine_is_compatible("ti,omap4-panda"))
+ 		legacy_init_ehci_clk("auxclk3_ck");
 -
-wkst-02) (gcc version 4.4.3 (GCC) ) #90 PREEMPT Thu Aug 8 16:42:06 CEST=
-=20
-2013
-[    0.000000] Machine: Generic AM33XX (Flattened Device Tree), ....
-=2E...
-bboxv3 login: root
-root@bboxv3:~# reboot
+-	}
+-	else if (of_machine_is_compatible("ti,omap4-sdp"))
+-		omap_4430sdp_display_init_of();
+ 	else if (of_machine_is_compatible("ti,omap5-uevm"))
+ 		legacy_init_ehci_clk("auxclk1_ck");
+ }
+diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
+index 043e570..f3282ac 100644
+--- a/arch/arm/mach-omap2/dss-common.c
++++ b/arch/arm/mach-omap2/dss-common.c
+@@ -98,12 +98,6 @@ void __init omap4_panda_display_init(void)
+ 	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
+ }
+ 
+-void __init omap4_panda_display_init_of(void)
+-{
+-	omap_display_init(&omap4_panda_dss_data);
+-}
+-
+-
+ /* OMAP4 Blaze display data */
+ 
+ #define DISPLAY_SEL_GPIO	59	/* LCD2/PicoDLP switch */
+@@ -232,20 +226,3 @@ void __init omap_4430sdp_display_init(void)
+ 	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
+ 	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
+ }
+-
+-void __init omap_4430sdp_display_init_of(void)
+-{
+-	int r;
+-
+-	r = gpio_request_one(DISPLAY_SEL_GPIO, GPIOF_OUT_INIT_HIGH,
+-			"display_sel");
+-	if (r)
+-		pr_err("%s: Could not get display_sel GPIO\n", __func__);
+-
+-	r = gpio_request_one(DLP_POWER_ON_GPIO, GPIOF_OUT_INIT_LOW,
+-		"DLP POWER ON");
+-	if (r)
+-		pr_err("%s: Could not get DLP POWER ON GPIO\n", __func__);
+-
+-	omap_display_init(&sdp4430_dss_data);
+-}
+diff --git a/arch/arm/mach-omap2/dss-common.h b/arch/arm/mach-omap2/dss-common.h
+index 915f6ff..611b341 100644
+--- a/arch/arm/mach-omap2/dss-common.h
++++ b/arch/arm/mach-omap2/dss-common.h
+@@ -7,8 +7,6 @@
+  */
+ 
+ void __init omap4_panda_display_init(void);
+-void __init omap4_panda_display_init_of(void);
+ void __init omap_4430sdp_display_init(void);
+-void __init omap_4430sdp_display_init_of(void);
+ 
+ #endif
+-- 
+1.8.1.2
 
-Broadcast message from root@bboxv3 (ttyO2) (=E9=88=AChu May 16 16:59:11=
- 2013):
-
-INIT: Sending processes the TERM signal
-INIT: SenStopping OpenBSD Secure Shell server: sshdstopped /usr/sbin/ss=
-hd=20
-(pid 416)
-=2E
-Stopping system message bus: Stopping syslogd/klogd: stopped syslogd (p=
-id=20
-423)
-stopped klogd (pid 425)
-done
-Stopping tcf-agent: OK
-Stopping internet superserver: xinetd.
-not deconfiguring network interfaces: network file systems still mounte=
-d.
-Stopping Linux NFC daemon
-Stopping Lighttpd Web Server: stopped /usr/sbin/lighttpd (pid 440)
-lighttpd.
-Sending all processes the TERM signal...
-Sending all processes the KILL signal...
-Unmounting remote filesystems...
-Deactivating swap...
-Unmounting local filesystems...
-Rebooting... [   38.285126] reboot: Restarting system
-
-U-Boot SPL 2013.04-rc2-00063-gcd27ec7-dirty (May 21 2013 - 15:14:45)
-OMAP SD/MMC: 0
-reading u-boot.img
-reading u-boot.img
-
-Regards,
-Lars
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
