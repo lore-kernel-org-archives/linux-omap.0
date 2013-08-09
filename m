@@ -1,65 +1,134 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCHv3 4/9] ARM: OMAP2+: AM33XX: Reserve memory to comply with
- EMIF spec
-Date: Fri, 9 Aug 2013 11:25:20 -0500
-Message-ID: <520517F0.1080500@ti.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <1375811376-49985-5-git-send-email-d-gerlach@ti.com> <87fvukhwtv.fsf@kernel.org> <5203F21F.3010801@ti.com> <87vc3ggd8s.fsf@kernel.org> <5203FB55.6000300@ti.com> <87vc3eaogk.fsf@kernel.org>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH 3/5] omap: Properly handle resources for omap_devices
+Date: Fri, 09 Aug 2013 09:35:30 -0700
+Message-ID: <87ioze7rfx.fsf@kernel.org>
+References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com>
+	<1375775624-12250-4-git-send-email-panto@antoniou-consulting.com>
+	<87a9kt2vd8.fsf@linaro.org>
+	<A4346403-362E-4E74-9C5E-07509CBC0BF4@antoniou-consulting.com>
+	<87mwoqao95.fsf@kernel.org>
+	<B929744A-C23A-41F6-A9AC-C18571A1F39B@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38608 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934409Ab3HIQZp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Aug 2013 12:25:45 -0400
-In-Reply-To: <87vc3eaogk.fsf@kernel.org>
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:56574 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S968090Ab3HIQfd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Aug 2013 12:35:33 -0400
+Received: by mail-pb0-f54.google.com with SMTP id ro12so4745937pbb.13
+        for <linux-omap@vger.kernel.org>; Fri, 09 Aug 2013 09:35:33 -0700 (PDT)
+In-Reply-To: <B929744A-C23A-41F6-A9AC-C18571A1F39B@antoniou-consulting.com>
+	(Pantelis Antoniou's message of "Fri, 9 Aug 2013 18:32:30 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?utf-8?Q?Beno=C3=AEt?= Cousson <benoit.cousson@gmail.com>, Paul Walmsley <paul@pwsan.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 08/09/2013 10:11 AM, Kevin Hilman wrote:
-> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->
->> On Thursday 08 August 2013 04:05 PM, Kevin Hilman wrote:
->>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->>>
->>>> On Thursday 08 August 2013 02:16 PM, Kevin Hilman wrote:
->>>>> Dave Gerlach <d-gerlach@ti.com> writes:
->>>>>
->>>>>> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
->>>>>>
->>>>>> SDRAM controller on AM33XX requires that a modification of certain
->>>>>> bit-fields in PWR_MGMT_CTRL register (ref. section 7.3.5.13 in
->>>>>> AM335x-Rev H) is followed by a dummy read access to SDRAM. This
->>>>>> scenario arises when entering a low power state like DeepSleep.
->>>>>> To ensure that the read is not from a cached region we reserve
->>>>>> some memory during bootup using the arm_memblock_steal() API.
->>>>>
->>>>> Hmm, sounds to me an awful lot like the existing omap_bus_sync() ?
->>>>>
->>>> All the credit of that awful omap_bus_sync() goes to me since
->>>> I introduced it. And I keep beating the hardware guys
->>>> who have not left a choice but to introduce the ugly work
->>>> around in software. ;-)
->>>
->>> Agreed, but what's even more awful than the current version is
->>> duplicating it in a slightly different way using yet another whole page
->>> mapping for a single read/write location.
->>>
->> The real issue is limitation of the kernel memory steal(memblock) API which
->> won't let you still less than 1 MB. It would have been ok for page allocation
->> because that is any way what you will get minimum on standard non-cached
->> allocations.
->
-> All the more reason that the omap_bus_sync() should be refactored
-> slightly in a way that would be reusable for AM33xx.
->
-> Kevin
->
+Pantelis Antoniou <panto@antoniou-consulting.com> writes:
 
-I will look in to doing it this way. I do not know if there was any 
-specific reason for doing it the way it was done.
+> Hi
+> On Aug 9, 2013, at 6:16 PM, Kevin Hilman wrote:
+>
+>> Pantelis Antoniou <panto@antoniou-consulting.com> writes:
+>> 
+>>> Hi Kevin,
+>>> 
+>>> On Aug 7, 2013, at 9:45 PM, Kevin Hilman wrote:
+>>> 
+>>>> [fixing address for Benoit]
+>>>> 
+>>>> Pantelis Antoniou <panto@antoniou-consulting.com> writes:
+>>>> 
+>>>>> omap_device relies on the platform notifier callbacks managing resources
+>>>>> behind the scenes. The resources were not properly linked causing crashes
+>>>>> when removing the device.
+>>>>> 
+>>>>> Rework the resource modification code so that linking is performed properly,
+>>>>> and make sure that no resources that have no parent (which can happen for DMA
+>>>>> & IRQ resources) are ever left for cleanup by the core resource layer.
+>>>>> 
+>>>>> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+>>>> 
+>>>> This one failed my "took more than 15 minutes to understand" test.  The
+>>>> changelog is rather vague (especially about what "properly" means), and
+>>>> the combination of moving code and changing it makes the patch rather
+>>>> clunky to read, so I remain a bit confused about what the actual problem
+>>>> is.  Please elaborate.
+>>>> 
+>>>> Also, could you share a crash dump as well as details about how to
+>>>> reproduce this problem?
+>>>> 
+>>>> Thanks,
+>>>> 
+>>>> Kevin
+>>> 
+>>> It's the full patchset that fixes the problem:
+>>> 
+>>> Let me illustrate:
+>>> 
+>>> The kernel I use is located at:
+>>> 
+>>> git@github.com:pantoniou/linux-beagle-track-mainline.git
+>>> branch: merge-20130806 (there are topic branches for other stuff too)
+>> 
+>> Sorry, I don't have the time to go through a bunch of out of tree
+>> branches to figure this out.  Can you create a simpler test case to
+>> reproduce this?  e.g. Does this happen when building the serial driver
+>> as a module and then removing it?  If not, why not?
+>
+> What 'bunch of out of tree branches'? There is a single merge branch against
+> current mainline. 
 
-Dave
+And That branch contains multiple other branches (as you stated yourself
+above), many of which look to be out of tree:
+
+$ git log --oneline --merges  panto/master..panto/merge-20130806
+031297e Merge branch 'lcdc-fixes' into merge-20130806
+44cf018 Merge branch 'usb-fixes' into merge-20130806
+3cc739b Merge branch 'tscadc' into merge-20130806
+f0ec35d Merge branch 'capemgr' into merge-20130806
+4d87712 Merge branch 'general-fixes' into merge-20130806
+04535fb Merge branch 'pinctrl-fixes' into merge-20130806
+5115b55 Merge branch 'i2c-fixes' into merge-20130806
+e96edf5 Merge branch 'capes' into merge-20130806
+1eb1779 Merge branch 'dts-fixes' into merge-20130806
+ca12149 Merge branch 'mmc-fixes' into merge-20130806
+41ed7a0 Merge branch 'pdev-fixes' into merge-20130806
+2ba9995 Merge branch 'of-fixes' into merge-20130806
+38b5cb4 Merge branch 'dtc-overlays' into merge-20130806
+167648d Merge branch 'dtc-fixes' into merge-20130806
+2f7de02 Merge branch 'reset' into merge-20130806
+
+$ git log --oneline --no-merges panto/master..panto/merge-20130806 |wc -l
+85
+
+> And no you don't trigger this by removing a module.
+>
+> platform_driver_unregister() != platform_device_register().
+>
+> I'll try to figure out something simpler, but it's pretty damn obvious that
+> something is not right there. 
+
+I agree something does not seem right, and never said otherwise.  I'm
+simply looking for an easy way to reproduce it with mainline.  
+
+Since it's so "damn obvious", I'll accept the insult and agree to being
+a moron.  Please educate me by making it even more obvious with a way to
+reproduce it against mainline.
+
+> Do you think fixing problems in that part of platform device removal
+> was something I did because I didn't have other things to do?
+
+Settle down, I said nothing of the sort.
+
+On the contrary, I assumed you were being a generous citizen of the
+community and contributing back your fixes, and as a developer of this
+part of the kernel, I'm trying to help.  If I didn't care, I wouldn't
+have responded in the first place.
+
+> It is broken and I'm trying to get it fixed. Are you?
+
+I was, but your accusatory tone is reducing my motivation to help.
+
+Kevin
 
