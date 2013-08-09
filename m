@@ -1,23 +1,36 @@
-From: Nishanth Menon <nm@ti.com>
+From: Russ Dill <russ.dill@gmail.com>
 Subject: Re: [PATCHv3 8/9] ARM: OMAP2+: AM33XX: Basic suspend resume support
-Date: Fri, 9 Aug 2013 16:35:41 -0500
-Message-ID: <520560AD.6030000@ti.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <1375811376-49985-9-git-send-email-d-gerlach@ti.com> <CA+Bv8XbK+=pvG+bbvfCtS2Rtg-YoAhuUbWjSro9m4xWjw=Cr8A@mail.gmail.com> <52038E88.2050604@ti.com> <5203B336.90102@ti.com> <5203C211.7040207@ti.com> <87iozfga1t.fsf@kernel.org> <52040E67.4050402@ti.com> <87pptndbtj.fsf@kernel.org> <520506B6.7060806@ti.com> <87wqnu9720.fsf@kernel.org> <52051A9B.1060606@ti.com> <87bo5661sv.fsf@kernel.org>
+Date: Fri, 9 Aug 2013 15:28:37 -0700
+Message-ID: <CA+Bv8XabqNkQzjD93kQZvjdozxjAntNRkY3uCOv0n05UzJ=Zug@mail.gmail.com>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+	<1375811376-49985-9-git-send-email-d-gerlach@ti.com>
+	<CA+Bv8XbK+=pvG+bbvfCtS2Rtg-YoAhuUbWjSro9m4xWjw=Cr8A@mail.gmail.com>
+	<52038E88.2050604@ti.com>
+	<5203B336.90102@ti.com>
+	<5203C211.7040207@ti.com>
+	<87iozfga1t.fsf@kernel.org>
+	<52040E67.4050402@ti.com>
+	<87pptndbtj.fsf@kernel.org>
+	<520506B6.7060806@ti.com>
+	<87wqnu9720.fsf@kernel.org>
+	<52051A9B.1060606@ti.com>
+	<87bo5661sv.fsf@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34342 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031121Ab3HIVgG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Aug 2013 17:36:06 -0400
+Received: from mail-qe0-f43.google.com ([209.85.128.43]:47504 "EHLO
+	mail-qe0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031336Ab3HIW2i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Aug 2013 18:28:38 -0400
+Received: by mail-qe0-f43.google.com with SMTP id k5so2621999qej.2
+        for <linux-omap@vger.kernel.org>; Fri, 09 Aug 2013 15:28:37 -0700 (PDT)
 In-Reply-To: <87bo5661sv.fsf@kernel.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@linaro.org>
-Cc: Dave Gerlach <d-gerlach@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russ Dill <russ.dill@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Tony Lingren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Tony Lingren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>
 
-On 08/09/2013 03:34 PM, Kevin Hilman wrote:
+On Fri, Aug 9, 2013 at 1:34 PM, Kevin Hilman <khilman@linaro.org> wrote:
 > Nishanth Menon <nm@ti.com> writes:
 >
 >> On 08/09/2013 11:12 AM, Kevin Hilman wrote:
@@ -34,7 +47,7 @@ On 08/09/2013 03:34 PM, Kevin Hilman wrote:
 >>>>>>>>>
 >>>>>>>>> On Thursday 08 August 2013 08:26 AM, Nishanth Menon wrote:
 >>>>>>>>>> On 08/08/2013 03:45 AM, Russ Dill wrote:
->>>>>>>>>>>        In reference to
+>>>>>>>>>>>       In reference to
 >>>>>>>>>>> the M3 handling it, the M3 wouldn't know which devices have a driver
 >>>>>>>>>>> bound and which don't.
 >>>>>>>>>> Does it need to? M3 firmware can pretty much define "I will force
@@ -153,11 +166,20 @@ On 08/09/2013 03:34 PM, Kevin Hilman wrote:
 > That means the firmware design is based on several assumptions about
 > what Linux can and can't do in idle, and then imposing that on future
 > Linux designs as well.  I dont' buy it.
+>
+> Kevin
 
-OK, I back out my proposal. Will let Dave try out a generic solution in 
-kernel and comment back.
+I was taking a look at this situation, figuring that the
+suspend/resume callbacks in omap_device might be the right place to do
+it, and came across this:
 
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=72bb6f9b51c82c820ddef892455a85b115460904
 
--- 
-Regards,
-Nishanth Menon
+Under what situations would the driver callbacks be present if probe
+fails? I'm looking at really_probe in drivers/base/dd.c, and if probe
+fails, dev->driver is set to NULL. What was the condition this was
+protecting against?
+
+Also, by modifying _od_suspend_noirq, can we force idle unbound omap
+device? Would we need a new omap_hwmod flag to check which devices
+should be force idled if no driver is bound?
