@@ -1,104 +1,153 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [RFC 13/22] ARM: omap4-sdp.dts: add display information
-Date: Fri, 9 Aug 2013 11:38:58 +0300
-Message-ID: <1376037547-10859-14-git-send-email-tomi.valkeinen@ti.com>
+Subject: [RFC 16/22] OMAPDSS: panel-dsi-cm: Add DT support
+Date: Fri, 9 Aug 2013 11:39:01 +0300
+Message-ID: <1376037547-10859-17-git-send-email-tomi.valkeinen@ti.com>
 References: <1376037547-10859-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57754 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:57761 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030674Ab3HIIj6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Aug 2013 04:39:58 -0400
+	with ESMTP id S1030682Ab3HIIkB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Aug 2013 04:40:01 -0400
 In-Reply-To: <1376037547-10859-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
+XXX ULPS and backlight missing.
+
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/boot/dts/omap4-sdp.dts | 70 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 70 insertions(+)
+ drivers/video/omap2/displays-new/panel-dsi-cm.c | 87 +++++++++++++++++++++++++
+ 1 file changed, 87 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 7951b4e..49f98b1 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -532,3 +532,73 @@
- 	mode = <3>;
- 	power = <50>;
+diff --git a/drivers/video/omap2/displays-new/panel-dsi-cm.c b/drivers/video/omap2/displays-new/panel-dsi-cm.c
+index aaaea64..f65ea4d 100644
+--- a/drivers/video/omap2/displays-new/panel-dsi-cm.c
++++ b/drivers/video/omap2/displays-new/panel-dsi-cm.c
+@@ -22,6 +22,8 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/workqueue.h>
++#include <linux/of_device.h>
++#include <linux/of_gpio.h>
+ 
+ #include <video/omapdss.h>
+ #include <video/omap-panel-data.h>
+@@ -1156,6 +1158,79 @@ static int dsicm_probe_pdata(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static int dsicm_probe_of(struct platform_device *pdev)
++{
++	struct device_node *node = pdev->dev.of_node;
++	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
++	struct omap_dss_device *in;
++	struct property *prop;
++	struct device_node *src_node;
++	u32 lane_arr[10];
++	int gpio, len, num_pins;
++	int r, i;
++
++	src_node = of_parse_phandle(node, "video-source", 0);
++	if (!src_node) {
++		dev_err(&pdev->dev, "failed to parse video source\n");
++		return -ENODEV;
++	}
++
++	in = omap_dss_find_output_by_node(src_node);
++	if (in == NULL) {
++		dev_err(&pdev->dev, "failed to find video source\n");
++		return -EPROBE_DEFER;
++	}
++	ddata->in = in;
++
++	gpio = of_get_gpio(node, 0);
++	if (!gpio_is_valid(gpio)) {
++		dev_err(&pdev->dev, "failed to parse reset gpio\n");
++		return gpio;
++	}
++	ddata->reset_gpio = gpio;
++
++	if (of_gpio_count(node) > 1) {
++		gpio = of_get_gpio(node, 1);
++
++		if (gpio_is_valid(gpio) || gpio == -ENOENT) {
++			ddata->ext_te_gpio = gpio;
++		} else {
++			dev_err(&pdev->dev, "failed to parse TE gpio\n");
++			return gpio;
++		}
++	} else {
++		ddata->ext_te_gpio = -1;
++	}
++
++	prop = of_find_property(node, "lanes", &len);
++	if (prop == NULL) {
++		dev_err(&pdev->dev, "failed to find lane data\n");
++		return -EINVAL;
++	}
++
++	num_pins = len / sizeof(u32);
++
++	if (num_pins < 4 || num_pins % 2 != 0
++			|| num_pins > ARRAY_SIZE(lane_arr)) {
++		dev_err(&pdev->dev, "bad number of lanes\n");
++		return -EINVAL;
++	}
++
++	r = of_property_read_u32_array(node, "lanes", lane_arr, num_pins);
++	if (r) {
++		dev_err(&pdev->dev, "failed to read lane data\n");
++		return r;
++	}
++
++	ddata->pin_config.num_pins = num_pins;
++	for (i = 0; i < num_pins; ++i)
++		ddata->pin_config.pins[i] = (int)lane_arr[i];
++
++	/* TODO: ulps, backlight */
++
++	return 0;
++}
++
+ static int dsicm_probe(struct platform_device *pdev)
+ {
+ 	struct backlight_properties props;
+@@ -1178,6 +1253,10 @@ static int dsicm_probe(struct platform_device *pdev)
+ 		r = dsicm_probe_pdata(pdev);
+ 		if (r)
+ 			return r;
++	} else if (pdev->dev.of_node) {
++		r = dsicm_probe_of(pdev);
++		if (r)
++			return r;
+ 	} else {
+ 		return -ENODEV;
+ 	}
+@@ -1320,12 +1399,20 @@ static int __exit dsicm_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct of_device_id dsicm_of_match[] = {
++	{ .compatible = "panel-dsi-cm", },
++	{},
++};
++
++MODULE_DEVICE_TABLE(of, dsicm_of_match);
++
+ static struct platform_driver dsicm_driver = {
+ 	.probe = dsicm_probe,
+ 	.remove = __exit_p(dsicm_remove),
+ 	.driver = {
+ 		.name = "panel-dsi-cm",
+ 		.owner = THIS_MODULE,
++		.of_match_table = dsicm_of_match,
+ 	},
  };
-+
-+&dsi1 {
-+	vdds_dsi-supply = <&vcxio>;
-+};
-+
-+&dsi2 {
-+	vdds_dsi-supply = <&vcxio>;
-+};
-+
-+&hdmi {
-+	vdda_hdmi_dac-supply = <&vdac>;
-+};
-+
-+/ {
-+	aliases {
-+		display0 = &lcd0;
-+		display1 = &lcd1;
-+		display2 = &hdmi0;
-+	};
-+
-+	lcd0: display@0 {
-+		compatible = "tpo,taal", "panel-dsi-cm";
-+
-+		video-source = <&dsi1>;
-+
-+		lanes = <
-+			0       /* clk + */
-+			1       /* clk - */
-+			2       /* data1 + */
-+			3       /* data1 - */
-+			4       /* data2 + */
-+			5       /* data2 - */
-+		>;
-+
-+		gpios = <&gpio4 6 0>;	/* 102, reset */
-+	};
-+
-+	lcd1: display@1 {
-+		compatible = "tpo,taal", "panel-dsi-cm";
-+
-+		video-source = <&dsi2>;
-+
-+		lanes = <
-+			0       /* clk + */
-+			1       /* clk - */
-+			2       /* data1 + */
-+			3       /* data1 - */
-+			4       /* data2 + */
-+			5       /* data2 - */
-+		>;
-+
-+		gpios = <&gpio4 8 0>;	/* 104, reset */
-+	};
-+
-+	tpd12s015: encoder@0 {
-+		compatible = "ti,tpd12s015";
-+
-+		video-source = <&hdmi>;
-+
-+		gpios = <&gpio2 28 0>,	/* 60, CT CP HPD */
-+			<&gpio2 9 0>,	/* 41, LS OE */
-+			<&gpio2 31 0>;	/* 63, HPD */
-+	};
-+
-+	hdmi0: connector@0 {
-+		compatible = "ti,hdmi_connector";
-+
-+		video-source = <&tpd12s015>;
-+	};
-+};
+ 
 -- 
 1.8.1.2
 
