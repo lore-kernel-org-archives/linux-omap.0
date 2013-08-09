@@ -1,87 +1,127 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH 3/5] omap: Properly handle resources for omap_devices
-Date: Fri, 9 Aug 2013 18:32:30 +0300
-Message-ID: <B929744A-C23A-41F6-A9AC-C18571A1F39B@antoniou-consulting.com>
-References: <1375775624-12250-1-git-send-email-panto@antoniou-consulting.com> <1375775624-12250-4-git-send-email-panto@antoniou-consulting.com> <87a9kt2vd8.fsf@linaro.org> <A4346403-362E-4E74-9C5E-07509CBC0BF4@antoniou-consulting.com> <87mwoqao95.fsf@kernel.org>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from li42-95.members.linode.com ([209.123.162.95]:51762 "EHLO
-	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964963Ab3HIPct convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Aug 2013 11:32:49 -0400
-In-Reply-To: <87mwoqao95.fsf@kernel.org>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Subject: Re: [RFC 2/2] usb: dwc3: Add Qualcomm DWC3 glue layer driver
+Date: Fri, 09 Aug 2013 19:09:18 +0300
+Message-ID: <1376064558.7709.31.camel@iivanov-dev.int.mm-sol.com>
+References: <1375789991-30041-1-git-send-email-iivanov@mm-sol.com>
+	 <1375789991-30041-3-git-send-email-iivanov@mm-sol.com>
+	 <20130809132349.GC12041@radagast>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20130809132349.GC12041@radagast>
+Sender: linux-doc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?iso-8859-1?Q?Beno=EEt_Cousson?= <benoit.cousson@gmail.com>, Paul Walmsley <paul@pwsan.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi
-On Aug 9, 2013, at 6:16 PM, Kevin Hilman wrote:
+Hi, 
 
-> Pantelis Antoniou <panto@antoniou-consulting.com> writes:
+On Fri, 2013-08-09 at 16:23 +0300, Felipe Balbi wrote:
+> Hi,
 > 
->> Hi Kevin,
->> 
->> On Aug 7, 2013, at 9:45 PM, Kevin Hilman wrote:
->> 
->>> [fixing address for Benoit]
->>> 
->>> Pantelis Antoniou <panto@antoniou-consulting.com> writes:
->>> 
->>>> omap_device relies on the platform notifier callbacks managing resources
->>>> behind the scenes. The resources were not properly linked causing crashes
->>>> when removing the device.
->>>> 
->>>> Rework the resource modification code so that linking is performed properly,
->>>> and make sure that no resources that have no parent (which can happen for DMA
->>>> & IRQ resources) are ever left for cleanup by the core resource layer.
->>>> 
->>>> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
->>> 
->>> This one failed my "took more than 15 minutes to understand" test.  The
->>> changelog is rather vague (especially about what "properly" means), and
->>> the combination of moving code and changing it makes the patch rather
->>> clunky to read, so I remain a bit confused about what the actual problem
->>> is.  Please elaborate.
->>> 
->>> Also, could you share a crash dump as well as details about how to
->>> reproduce this problem?
->>> 
->>> Thanks,
->>> 
->>> Kevin
->> 
->> It's the full patchset that fixes the problem:
->> 
->> Let me illustrate:
->> 
->> The kernel I use is located at:
->> 
->> git@github.com:pantoniou/linux-beagle-track-mainline.git
->> branch: merge-20130806 (there are topic branches for other stuff too)
+> On Tue, Aug 06, 2013 at 02:53:11PM +0300, Ivan T. Ivanov wrote:
+> > diff --git a/drivers/usb/dwc3/dwc3-msm.c b/drivers/usb/dwc3/dwc3-msm.c
+> > new file mode 100644
+> > index 0000000..e509abc
+> > --- /dev/null
+> > +++ b/drivers/usb/dwc3/dwc3-msm.c
+> > @@ -0,0 +1,175 @@
+> > +#undef CONFIG_REGULATOR
 > 
-> Sorry, I don't have the time to go through a bunch of out of tree
-> branches to figure this out.  Can you create a simpler test case to
-> reproduce this?  e.g. Does this happen when building the serial driver
-> as a module and then removing it?  If not, why not?
+> why ??????
+> 
 
-What 'bunch of out of tree branches'? There is a single merge branch against
-current mainline. And no you don't trigger this by removing a module.
+1. This shows that driver is still not fully tested 
+   Regulators support is still missing in the MSM
+2. Helps me to load driver successfully. 
 
-platform_driver_unregister() != platform_device_register().
+> > +static int dwc3_msm_probe(struct platform_device *pdev)
+> > +{
+> > +	struct device_node *node = pdev->dev.of_node;
+> > +	struct dwc3_msm *mdwc;
+> > +	struct resource *res;
+> > +	void __iomem *tcsr;
+> > +	int ret = 0;
+> > +
+> > +	dev_info(&pdev->dev, "MSM DWC3\n");
+> 
+> please don't. This is hardly necessary.
 
-I'll try to figure out something simpler, but it's pretty damn obvious that
-something is not right there. Do you think fixing problems in that part
-of platform device removal was something I did because I didn't have other
-things to do?
-
-It is broken and I'm trying to get it fixed. Are you?
+Sure, this will be removed.
 
 > 
-> Kevin
+> > +	mdwc = devm_kzalloc(&pdev->dev, sizeof(*mdwc), GFP_KERNEL);
+> > +	if (!mdwc) {
+> > +		dev_err(&pdev->dev, "not enough memory\n");
+> 
+> this message isn't needed either
 
--- Pantelis
+ok.
+
+> 
+> > +	/*
+> > +	 * DWC3 Core requires its CORE CLK (aka master / bus clk) to
+> > +	 * run at 125Mhz in SSUSB mode and >60MHZ for HSUSB mode.
+> > +	 */
+> > +	clk_set_rate(mdwc->core_clk, 125000000);
+> 
+> if this is dwc3's core clock, why don't we teach dwc3.ko about this
+> requirement ? Just make sure to have it optional, since x86 and OMAP
+> wouldn't need direct fiddling with the clocks.
+
+I have to check whether DWC3 core or Qcom wrapper requires this clock.
+
+> 
+> > +	clk_prepare_enable(mdwc->core_clk);
+> > +	clk_prepare_enable(mdwc->iface_clk);
+> > +	clk_prepare_enable(mdwc->sleep_clk);
+> > +	clk_prepare_enable(mdwc->utmi_clk);
+> 
+> do you really need to enable your clocks here ? Why don't you enable
+> them on runtime_resume and disable on runtime_suspend ?
+
+I will like to make it working first and then will improve
+power management.
+
+> 
+> > +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> > +	tcsr = devm_ioremap_resource(&pdev->dev, res);
+> > +	if (!tcsr) {
+> > +		dev_dbg(&pdev->dev, "tcsr ioremap failed\n");
+> 
+> no need to ioremap, also you're likely leaking clocks and regulators
+> enabled here.
+> 
+> Make sure to have something like:
+> 
+> 	if (!tcsr)
+> 		goto err_disable_clocks;
+> 
+> 	/* TODO This has to be revised */\
+> 
+> 	[...]
+> 
+
+Sure.
+
+> > +	} else {
+> > +		/* TODO: This has to be revised */
+> > +
+> > +		/* Enable USB3 on the primary USB port. */
+> > +		writel_relaxed(0x1, tcsr);
+> > +		/*
+> > +		 * Ensure that TCSR write is completed before
+> > +		 * USB registers initialization.
+> > +		 */
+> > +		mb();
+> 
+> why don't you use writel() instead. It will add the memory barrier for
+> you.
+
+Ok.
+
+Thanks
+Ivan
+
 
