@@ -1,77 +1,141 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [RFC 07/22] OMAPFB: search for default display with DT alias
-Date: Fri, 9 Aug 2013 11:38:52 +0300
-Message-ID: <1376037547-10859-8-git-send-email-tomi.valkeinen@ti.com>
+Subject: [RFC 09/22] OMAPDSS: Add DT support to DSI
+Date: Fri, 9 Aug 2013 11:38:54 +0300
+Message-ID: <1376037547-10859-10-git-send-email-tomi.valkeinen@ti.com>
 References: <1376037547-10859-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48250 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:55637 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030622Ab3HIIjl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Aug 2013 04:39:41 -0400
+	id S1030657Ab3HIIjq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Aug 2013 04:39:46 -0400
 In-Reply-To: <1376037547-10859-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Improve the search for the default display in two ways:
-* compare the given display name to the display's alias
-* if no display name is given, look for "display0" DT alias
+Add the code to make the DSI driver work with device tree on OMAP3 and
+OMAP4.
+
+A minor hack is needed at the moment in the DSI driver: the DSS driver
+needs to know the ID number of a DSI device, as clocks are routed in
+different ways to the DSI devices. At the moment we don't have any
+proper way to manage this, so this patchs adds a simple lookup table
+that is used to deduce the ID from the DSI device's base address.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/omapfb/omapfb-main.c | 23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+ drivers/video/omap2/dss/dsi.c | 53 ++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 52 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
-index 8bfe973..961c5c2 100644
---- a/drivers/video/omap2/omapfb/omapfb-main.c
-+++ b/drivers/video/omap2/omapfb/omapfb-main.c
-@@ -2413,7 +2413,10 @@ omapfb_find_default_display(struct omapfb2_device *fbdev)
- 	const char *def_name;
- 	int i;
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index 0c8bd1f..bccf5fc 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -38,6 +38,7 @@
+ #include <linux/slab.h>
+ #include <linux/debugfs.h>
+ #include <linux/pm_runtime.h>
++#include <linux/of.h>
  
--	/* search with the display name from the user or the board file */
-+	/*
-+	 * Search with the display name from the user or the board file,
-+	 * comparing to display names and aliases
-+	 */
+ #include <video/omapdss.h>
+ #include <video/mipi_display.h>
+@@ -371,6 +372,13 @@ struct dsi_packet_sent_handler_data {
+ 	struct completion *completion;
+ };
  
- 	def_name = omapdss_get_default_display_name();
- 
-@@ -2425,12 +2428,30 @@ omapfb_find_default_display(struct omapfb2_device *fbdev)
- 
- 			if (dssdev->name && strcmp(def_name, dssdev->name) == 0)
- 				return dssdev;
++struct dsi_module_id_data {
++	u32 address;
++	int id;
++};
 +
-+			if (strcmp(def_name, dssdev->alias) == 0)
-+				return dssdev;
- 		}
++static const struct of_device_id dsi_of_match[];
++
+ #ifdef DEBUG
+ static bool dsi_perf;
+ module_param(dsi_perf, bool, 0644);
+@@ -5537,7 +5545,6 @@ static int omap_dsihw_probe(struct platform_device *dsidev)
+ 	if (!dsi)
+ 		return -ENOMEM;
  
- 		/* def_name given but not found */
- 		return NULL;
+-	dsi->module_id = dsidev->id;
+ 	dsi->pdev = dsidev;
+ 	dev_set_drvdata(&dsidev->dev, dsi);
+ 
+@@ -5587,6 +5594,31 @@ static int omap_dsihw_probe(struct platform_device *dsidev)
+ 		return r;
  	}
  
-+	/* then look for DT alias display0 */
-+	for (i = 0; i < fbdev->num_displays; ++i) {
-+		struct omap_dss_device *dssdev;
-+		int id;
++	if (dsidev->dev.of_node) {
++		const struct of_device_id *match;
++		const struct dsi_module_id_data *d;
 +
-+		dssdev = fbdev->displays[i].dssdev;
++		match = of_match_node(dsi_of_match, dsidev->dev.of_node);
++		if (!match) {
++			DSSERR("unsupported DSI module\n");
++			return -ENODEV;
++		}
 +
-+		if (dssdev->dev->of_node == NULL)
-+			continue;
++		d = match->data;
 +
-+		id = of_alias_get_id(dssdev->dev->of_node, "display");
-+		if (id == 0)
-+			return dssdev;
++		while (d->address != 0 && d->address != dsi_mem->start)
++			d++;
++
++		if (d->address == 0) {
++			DSSERR("unsupported DSI module\n");
++			return -ENODEV;
++		}
++
++		dsi->module_id = d->id;
++	} else {
++		dsi->module_id = dsidev->id;
 +	}
 +
- 	/* return the first display we have in the list */
- 	return fbdev->displays[0].dssdev;
- }
+ 	/* DSI VCs initialization */
+ 	for (i = 0; i < ARRAY_SIZE(dsi->vc); i++) {
+ 		dsi->vc[i].source = DSI_VC_SOURCE_L4;
+@@ -5641,6 +5673,7 @@ static int omap_dsihw_probe(struct platform_device *dsidev)
+ 	else if (dsi->module_id == 1)
+ 		dss_debugfs_create_file("dsi2_irqs", dsi2_dump_irqs);
+ #endif
++
+ 	return 0;
+ 
+ err_probe:
+@@ -5694,6 +5727,23 @@ static const struct dev_pm_ops dsi_pm_ops = {
+ 	.runtime_resume = dsi_runtime_resume,
+ };
+ 
++static const struct dsi_module_id_data dsi_of_data_omap3[] = {
++	{ .address = 0x4804fc00, .id = 0, },
++	{ },
++};
++
++static const struct dsi_module_id_data dsi_of_data_omap4[] = {
++	{ .address = 0x58004000, .id = 0, },
++	{ .address = 0x58005000, .id = 1, },
++	{ },
++};
++
++static const struct of_device_id dsi_of_match[] = {
++	{ .compatible = "ti,omap3-dsi", .data = dsi_of_data_omap3, },
++	{ .compatible = "ti,omap4-dsi", .data = dsi_of_data_omap4, },
++	{},
++};
++
+ static struct platform_driver omap_dsihw_driver = {
+ 	.probe		= omap_dsihw_probe,
+ 	.remove         = __exit_p(omap_dsihw_remove),
+@@ -5701,6 +5751,7 @@ static struct platform_driver omap_dsihw_driver = {
+ 		.name   = "omapdss_dsi",
+ 		.owner  = THIS_MODULE,
+ 		.pm	= &dsi_pm_ops,
++		.of_match_table = dsi_of_match,
+ 	},
+ };
+ 
 -- 
 1.8.1.2
 
