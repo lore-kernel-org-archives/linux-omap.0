@@ -1,52 +1,142 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH v2 0/4] Add phy support for AM335X platform using Generic
- PHy framework
-Date: Sat, 10 Aug 2013 08:59:38 -0300
-Message-ID: <20130810115936.GA2365@localhost>
-References: <1374237277-17769-1-git-send-email-george.cherian@ti.com>
+From: Mark Jackson <mpfj-list@newflow.co.uk>
+Subject: [RFC] OMAP: allow GPIO pin to enable/disable external UART driver
+ chip.
+Date: Sat, 10 Aug 2013 14:58:08 +0100
+Message-ID: <520646F0.9010801@newflow.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1374237277-17769-1-git-send-email-george.cherian@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-usb@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, kishon@ti.com, bigeasy@linutronix.de
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jul 19, 2013 at 06:04:33PM +0530, George Cherian wrote:
-> This patch series adds phy support for AM335X platform.
-> This patch series is based on Generic PHY framework [1].
->=20
->=20
-> This series has
->         - adds dual musb instances support for am335x platform=20
->         - adds phy-amxxxx-usb driver used in AMxxxx platforms
-> 	- adds OTG callbacks
-> 	- adds PHY wakeup enable/disable
->         - adds dt  bindings for the phys
->         - removes usb-phy and replaced with generic phy apis in glue =
-layer
->=20
-> All these changes are avilable at [2]
->=20
-> [1] - http://marc.info/?l=3Dlinux-usb&m=3D137224750928570&w=3D2
-> [2] - git://git.ti.com/~georgecherian/ti-linux-kernel/georgec-connect=
-ivity-linux-feature-tree.git
->         am335x-phy-driver-v2
->=20
-> George Cherian (4):
->   usb: phy: phy-omap-control: Add API to power and wakeup
->   phy: phy-amxxxx-usb: Add PHY driver for amxxxx platform
->   arm: dts: Add USB phy nodes for AM33XX
+When a UART transmitter is connected to (eg) a RS485 driver, it is
+necessary to turn the driver on/off as quickly as possible.  This is
+best achieved in the serial driver itself (rather than in userspace
+where the latency can be quite large).
 
-Is there any reason why there's no DT binding patch to this
-series? (aka Documentation/devicetree/... + sent to devicetree list)
+This patch allows the GPIO pin to be defined (via DT) that controls
+the enabling of the driver at the start of a message, and disables
+the driver when the message has been completed.
 
-(sorry if this has been already explained somewhere...)
+Still to do:-
+Allow userspace to turn this feature on/off
+Do the same for the receiver (useful for 2 wire RS485)
 
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
+Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
+---
+ drivers/tty/serial/omap-serial.c |   57 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
+
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index b6d1728..1d3d117 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -40,9 +40,12 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/of.h>
+ #include <linux/gpio.h>
++#include <linux/of_gpio.h>
+ #include <linux/pinctrl/consumer.h>
+ #include <linux/platform_data/serial-omap.h>
+ 
++#include <dt-bindings/gpio/gpio.h>
++
+ #define OMAP_MAX_HSUART_PORTS	6
+ 
+ #define UART_BUILD_REVISION(x, y)	(((x) << 8) | (y))
+@@ -156,6 +159,10 @@ struct uart_omap_port {
+ 	int			DTR_inverted;
+ 	int			DTR_active;
+ 
++	int			txen_gpio;
++	int			txen_inverted;
++	int			txen_active;
++
+ 	struct pm_qos_request	pm_qos_request;
+ 	u32			latency;
+ 	u32			calc_latency;
+@@ -272,8 +279,25 @@ static void serial_omap_enable_ms(struct uart_port *port)
+ static void serial_omap_stop_tx(struct uart_port *port)
+ {
+ 	struct uart_omap_port *up = to_uart_omap_port(port);
++	struct circ_buf *xmit = &up->port.state->xmit;
+ 
+ 	pm_runtime_get_sync(up->dev);
++
++	// if txen currently active
++	if (up->txen_active) {
++		// do nothing if current tx not yet completed
++		int res = serial_in(up, UART_LSR) & UART_LSR_TEMT;
++		if (!res)
++			return;
++
++		// if there's no more data to send, turn off txen
++		if (uart_circ_empty(xmit)) {
++			gpio_set_value(up->txen_gpio,
++					   up->txen_active == up->txen_inverted);
++			up->txen_active = 0;
++		}
++	}
++
+ 	if (up->ier & UART_IER_THRI) {
+ 		up->ier &= ~UART_IER_THRI;
+ 		serial_out(up, UART_IER, up->ier);
+@@ -300,6 +324,16 @@ static void transmit_chars(struct uart_omap_port *up, unsigned int lsr)
+ 	struct circ_buf *xmit = &up->port.state->xmit;
+ 	int count;
+ 
++	// if txen in use
++	if (gpio_is_valid(up->txen_gpio)) {
++		// turn on txen ?
++		if (!uart_circ_empty(xmit) && (!up->txen_active)) {
++			gpio_set_value(up->txen_gpio,
++				       up->txen_active == up->txen_inverted);
++			up->txen_active = 1;
++		}
++	}
++
+ 	if (up->port.x_char) {
+ 		serial_out(up, UART_TX, up->port.x_char);
+ 		up->port.icount.tx++;
+@@ -1468,6 +1502,28 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 		goto err_port_line;
+ 	}
+ 
++	// init tx enable signal
++	up->txen_gpio = -EINVAL;
++	up->txen_inverted = 0;
++	up->txen_active = 0;
++	if (pdev->dev.of_node)
++	{
++		enum of_gpio_flags flags;
++		up->txen_gpio = of_get_named_gpio_flags(pdev->dev.of_node,
++							"txen-gpio", 0, &flags);
++		up->txen_inverted = (flags == GPIO_ACTIVE_LOW);
++		if (gpio_is_valid(up->txen_gpio)) {
++			ret = gpio_request(up->txen_gpio, "omap-serial");
++			if (ret < 0)
++				goto err_txen;
++			ret = gpio_direction_output(up->txen_gpio,
++						    up->txen_inverted);
++			if (ret < 0)
++				goto err_txen;
++		} else
++			up->txen_gpio = -EINVAL;
++	}
++
+ 	up->pins = devm_pinctrl_get_select_default(&pdev->dev);
+ 	if (IS_ERR(up->pins)) {
+ 		dev_warn(&pdev->dev, "did not get pins for uart%i error: %li\n",
+@@ -1529,6 +1585,7 @@ err_add_port:
+ 	pm_runtime_put(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+ err_ioremap:
++err_txen:
+ err_port_line:
+ 	dev_err(&pdev->dev, "[UART%d]: failure [%s]: %d\n",
+ 				pdev->id, __func__, ret);
+-- 
+1.7.9.5
