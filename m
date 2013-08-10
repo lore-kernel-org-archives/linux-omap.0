@@ -1,85 +1,71 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH 2/2] ARM: dts: AM4372: add few nodes
-Date: Sat, 10 Aug 2013 15:23:17 +0100
-Message-ID: <20130810142317.GE18085@e106331-lin.cambridge.arm.com>
-References: <ffa2f76fcac54bfe76c234ffce0394fd2c25fe52.1375450395.git.afzal@ti.com>
- <6f0f838176ab93aac8dab4c3ab9d9f95a3027ff7.1375450395.git.afzal@ti.com>
- <51FCEE60.7080809@ti.com>
- <51FF335D.4050803@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:42689 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933861Ab3HJOXU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 10 Aug 2013 10:23:20 -0400
-Content-Disposition: inline
-In-Reply-To: <51FF335D.4050803@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Shuah Khan <shuah.kh@samsung.com>
+Subject: [PATCH] mmc:omap change driver to use dev_pm_ops infrastructure
+Date: Sat, 10 Aug 2013 09:39:41 -0600
+Message-ID: <1376149181-2761-1-git-send-email-shuah.kh@samsung.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: jarkko.lavinen@nokia.com, cjb@laptop.org
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, shuahkhan@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ian.campbell@citrix.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <benoit.cousson@linaro.org>, "benoit.cousson@gmail.com" <benoit.cousson@gmail.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-On Mon, Aug 05, 2013 at 06:08:45AM +0100, Afzal Mohammed wrote:
-> Hi Muguthan,
-> 
-> On Saturday 03 August 2013 05:19 PM, Mugunthan V N wrote:
-> > On 8/2/2013 7:16 PM, Afzal Mohammed wrote:
-> 
-> >> +		mac: ethernet@4a100000 {
-> >> +			compatible = "ti,am4372-cpsw","ti,cpsw";
-> 
-> > compatibility "ti,am4372-cpsw" is not needed as driver has only "ti,cpsw"
-> > compatibility
-> 
-> No, please read device tree documentation [1].
-> 
-> DT is a pure hardware description, it does not depend on driver, 
-> dependency is only vice versa.
+Change mmc_omap platform driver to register pm ops using dev_pm_ops instead of
+legacy pm_ops infrastructure.
 
-One point worth mentioning is that the "ti,am4372-cpsw" string isn't
-documented. Will the "ti,am4372-cpsw" binding definitely be a superset
-of the "ti,cpsw" binding, and if you were to take the DT as of this
-patch, and attempt to use it with a future kernel, can you guarantee
-it'll work? 
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+---
+ drivers/mmc/host/omap.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-> 
-> >> +			reg = <0x4a100000 0x800
-> >> +			       0x4a101200 0x100>;
-> >> +			interrupts = <GIC_SPI 40 IRQ_TYPE_LEVEL_HIGH
-> >> +				      GIC_SPI 41 IRQ_TYPE_LEVEL_HIGH
-> >> +				      GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH
-> >> +				      GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH>;
-> >> +			ti,hwmods = "cpgmac0";
-> >> +			status = "disabled";
-> >> +		};
-> 
-> > There are many other parameters which are missed here.
-> 
-> Reason has been mentioned in the commit message, quoting relevant here 
-> again,
-
-Actually, as you've marked the nodes disabled, it's probably fine. But
-worth considering as properties are added...
-
-Thanks,
-Mark.
-
-> 
->  >> For i2c, spi, cpsw & pwm - only the properties that were sure to be
->  >> correct has been added (main intention is to make hwmod happy and
->  >> avoid any later modification to here added properties).
-> 
-> I really wanted to avoid a later patch that has a line starting with 
-> minus on DTS.
-> 
-> Since you are working on cpsw support, can you help here with a patch 
-> for other properties.
-> 
-> Regards
-> Afzal
-> 
-> [1] 
-> http://devicetree.org/Device_Tree_Usage#Understanding_the_compatible_Property
-> 
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index b94f38e..3251df2 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -1514,10 +1514,11 @@ static int mmc_omap_remove(struct platform_device *pdev)
+ }
+ 
+ #ifdef CONFIG_PM
+-static int mmc_omap_suspend(struct platform_device *pdev, pm_message_t mesg)
++static int mmc_omap_suspend(struct device *dev)
+ {
+ 	int i, ret = 0;
+-	struct mmc_omap_host *host = platform_get_drvdata(pdev);
++	struct mmc_omap_host *host = platform_get_drvdata(to_platform_device(
++							  dev));
+ 
+ 	if (host == NULL || host->suspended)
+ 		return 0;
+@@ -1539,10 +1540,11 @@ static int mmc_omap_suspend(struct platform_device *pdev, pm_message_t mesg)
+ 	return 0;
+ }
+ 
+-static int mmc_omap_resume(struct platform_device *pdev)
++static int mmc_omap_resume(struct device *dev)
+ {
+ 	int i, ret = 0;
+-	struct mmc_omap_host *host = platform_get_drvdata(pdev);
++	struct mmc_omap_host *host = platform_get_drvdata(to_platform_device(
++							  dev));
+ 
+ 	if (host == NULL || !host->suspended)
+ 		return 0;
+@@ -1563,14 +1565,16 @@ static int mmc_omap_resume(struct platform_device *pdev)
+ #define mmc_omap_resume		NULL
+ #endif
+ 
++static SIMPLE_DEV_PM_OPS(mmc_omap_dev_pm_ops, mmc_omap_suspend,
++			 mmc_omap_resume);
++
+ static struct platform_driver mmc_omap_driver = {
+ 	.probe		= mmc_omap_probe,
+ 	.remove		= mmc_omap_remove,
+-	.suspend	= mmc_omap_suspend,
+-	.resume		= mmc_omap_resume,
+ 	.driver		= {
+ 		.name	= DRIVER_NAME,
+ 		.owner	= THIS_MODULE,
++		.pm	= &mmc_omap_dev_pm_ops,
+ 	},
+ };
+ 
+-- 
+1.7.10.4
