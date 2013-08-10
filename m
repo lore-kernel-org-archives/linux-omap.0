@@ -1,71 +1,62 @@
-From: Shuah Khan <shuah.kh@samsung.com>
-Subject: [PATCH] mmc:omap change driver to use dev_pm_ops infrastructure
-Date: Sat, 10 Aug 2013 09:39:41 -0600
-Message-ID: <1376149181-2761-1-git-send-email-shuah.kh@samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: jarkko.lavinen@nokia.com, cjb@laptop.org
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, shuahkhan@gmail.com
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 1/5] drivers/gpio/gpio-omap.c: convert comma to semicolon
+Date: Sat, 10 Aug 2013 17:40:21 +0200
+Message-ID: <1376149225-3997-2-git-send-email-Julia.Lawall@lip6.fr>
+References: <1376149225-3997-1-git-send-email-Julia.Lawall@lip6.fr>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <1376149225-3997-1-git-send-email-Julia.Lawall@lip6.fr>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: kernel-janitors@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Change mmc_omap platform driver to register pm ops using dev_pm_ops instead of
-legacy pm_ops infrastructure.
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+Replace a comma between expression statements by a semicolon.
+
+A simplified version of the semantic patch that performs this
+transformation is as follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+@r@
+expression e1,e2,e;
+type T;
+identifier i;
+@@
+
+ e1
+-,
++;
+ e2;
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
 ---
- drivers/mmc/host/omap.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+I can't tell if the assignment to ct->regs.mask is really intended to be
+under the if.  The proposed patch preserves the current semantics, but not
+the current indentation.
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index b94f38e..3251df2 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -1514,10 +1514,11 @@ static int mmc_omap_remove(struct platform_device *pdev)
+ drivers/gpio/gpio-omap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index dfeb3a3..db80880 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1029,10 +1029,10 @@ omap_mpuio_alloc_gc(struct gpio_bank *bank, unsigned int irq_start,
+ 	ct->chip.irq_unmask = irq_gc_mask_clr_bit;
+ 	ct->chip.irq_set_type = gpio_irq_type;
+ 
+-	if (bank->regs->wkup_en)
+-		ct->chip.irq_set_wake = gpio_wake_enable,
+-
+-	ct->regs.mask = OMAP_MPUIO_GPIO_INT / bank->stride;
++	if (bank->regs->wkup_en) {
++		ct->chip.irq_set_wake = gpio_wake_enable;
++		ct->regs.mask = OMAP_MPUIO_GPIO_INT / bank->stride;
++	}
+ 	irq_setup_generic_chip(gc, IRQ_MSK(num), IRQ_GC_INIT_MASK_CACHE,
+ 			       IRQ_NOREQUEST | IRQ_NOPROBE, 0);
  }
- 
- #ifdef CONFIG_PM
--static int mmc_omap_suspend(struct platform_device *pdev, pm_message_t mesg)
-+static int mmc_omap_suspend(struct device *dev)
- {
- 	int i, ret = 0;
--	struct mmc_omap_host *host = platform_get_drvdata(pdev);
-+	struct mmc_omap_host *host = platform_get_drvdata(to_platform_device(
-+							  dev));
- 
- 	if (host == NULL || host->suspended)
- 		return 0;
-@@ -1539,10 +1540,11 @@ static int mmc_omap_suspend(struct platform_device *pdev, pm_message_t mesg)
- 	return 0;
- }
- 
--static int mmc_omap_resume(struct platform_device *pdev)
-+static int mmc_omap_resume(struct device *dev)
- {
- 	int i, ret = 0;
--	struct mmc_omap_host *host = platform_get_drvdata(pdev);
-+	struct mmc_omap_host *host = platform_get_drvdata(to_platform_device(
-+							  dev));
- 
- 	if (host == NULL || !host->suspended)
- 		return 0;
-@@ -1563,14 +1565,16 @@ static int mmc_omap_resume(struct platform_device *pdev)
- #define mmc_omap_resume		NULL
- #endif
- 
-+static SIMPLE_DEV_PM_OPS(mmc_omap_dev_pm_ops, mmc_omap_suspend,
-+			 mmc_omap_resume);
-+
- static struct platform_driver mmc_omap_driver = {
- 	.probe		= mmc_omap_probe,
- 	.remove		= mmc_omap_remove,
--	.suspend	= mmc_omap_suspend,
--	.resume		= mmc_omap_resume,
- 	.driver		= {
- 		.name	= DRIVER_NAME,
- 		.owner	= THIS_MODULE,
-+		.pm	= &mmc_omap_dev_pm_ops,
- 	},
- };
- 
--- 
-1.7.10.4
+
