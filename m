@@ -1,222 +1,88 @@
 From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 1/2] ARM: dts: AM33XX: use pinmux node defined in included file
-Date: Sat, 10 Aug 2013 19:05:10 +0200
-Message-ID: <1376154311-10184-2-git-send-email-javier.martinez@collabora.co.uk>
+Subject: [PATCH 2/2] ARM: dts: AM33XX: don't redefine OCP bus and device nodes
+Date: Sat, 10 Aug 2013 19:05:11 +0200
+Message-ID: <1376154311-10184-3-git-send-email-javier.martinez@collabora.co.uk>
 References: <1376154311-10184-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:55066 "EHLO
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:55073 "EHLO
 	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966850Ab3HJRFb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 Aug 2013 13:05:31 -0400
+	with ESMTP id S966879Ab3HJRFc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 Aug 2013 13:05:32 -0400
 In-Reply-To: <1376154311-10184-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Benoit Cousson <benoit.cousson@linaro.org>
 Cc: Tony Lindgren <tony@atomide.com>, Enric Balletbo <eballetbo@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-am33xx boards DTS include the am33xx.dtsi Device Tree
-source file that already define a pinmux device node for
-the AM33XX SoC Pin Multiplex.
+The On Chip Peripherals (OCP) device node is a simplified
+representation of the AM33XX SoC interconnect. An OCP dev
+node is already defined in the am33xx.dtsi Device Tree
+source file included by am33xx based boards so there is
+no need to redefe this on each board DT file.
 
-Redefining this for each board makes the Device Tree files
-harder to modify and maintain so let's just use what is
-already defined in the included .dtsi file.
+Also, the OCP and IP modules directly connected to it are SoC
+internal details that is better to keep outside of board files.
 
 Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 ---
- arch/arm/boot/dts/am335x-bone.dts  |  176 ++++++++++++------------
- arch/arm/boot/dts/am335x-evm.dts   |  254 ++++++++++++++++++------------------
- arch/arm/boot/dts/am335x-evmsk.dts |  258 ++++++++++++++++++------------------
- 3 files changed, 344 insertions(+), 344 deletions(-)
+ arch/arm/boot/dts/am335x-bone.dts  |   41 ++---
+ arch/arm/boot/dts/am335x-evm.dts   |  322 ++++++++++++++++++------------------
+ arch/arm/boot/dts/am335x-evmsk.dts |  116 +++++++-------
+ 3 files changed, 236 insertions(+), 243 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 04feaf8..f0d53fe 100644
+index f0d53fe..721cad2 100644
 --- a/arch/arm/boot/dts/am335x-bone.dts
 +++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -24,94 +24,6 @@
+@@ -24,28 +24,6 @@
  		reg = <0x80000000 0x10000000>; /* 256 MB */
  	};
  
--	am33xx_pinmux: pinmux@44e10800 {
--		pinctrl-names = "default";
--		pinctrl-0 = <&clkout2_pin>;
+-	ocp {
+-		uart0: serial@44e09000 {
+-			pinctrl-names = "default";
+-			pinctrl-0 = <&uart0_pins>;
 -
--		user_leds_s0: user_leds_s0 {
--			pinctrl-single,pins = <
--				0x54 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a5.gpio1_21 */
--				0x58 (PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_a6.gpio1_22 */
--				0x5c (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a7.gpio1_23 */
--				0x60 (PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_a8.gpio1_24 */
--			>;
+-			status = "okay";
 -		};
 -
--		i2c0_pins: pinmux_i2c0_pins {
--			pinctrl-single,pins = <
--				0x188 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
--				0x18c (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
--			>;
--		};
+-		i2c0: i2c@44e0b000 {
+-			pinctrl-names = "default";
+-			pinctrl-0 = <&i2c0_pins>;
 -
--		uart0_pins: pinmux_uart0_pins {
--			pinctrl-single,pins = <
--				0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
--				0x174 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart0_txd.uart0_txd */
--			>;
--		};
+-			status = "okay";
+-			clock-frequency = <400000>;
 -
--		clkout2_pin: pinmux_clkout2_pin {
--			pinctrl-single,pins = <
--				0x1b4 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr1.clkout2 */
--			>;
--		};
+-			tps: tps@24 {
+-				reg = <0x24>;
+-			};
 -
--		cpsw_default: cpsw_default {
--			pinctrl-single,pins = <
--				/* Slave 1 */
--				0x110 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxerr.mii1_rxerr */
--				0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txen.mii1_txen */
--				0x118 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxdv.mii1_rxdv */
--				0x11c (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd3.mii1_txd3 */
--				0x120 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd2.mii1_txd2 */
--				0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd1.mii1_txd1 */
--				0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd0.mii1_txd0 */
--				0x12c (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_txclk.mii1_txclk */
--				0x130 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxclk.mii1_rxclk */
--				0x134 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd3.mii1_rxd3 */
--				0x138 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd2.mii1_rxd2 */
--				0x13c (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd1.mii1_rxd1 */
--				0x140 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd0.mii1_rxd0 */
--			>;
--		};
--
--		cpsw_sleep: cpsw_sleep {
--			pinctrl-single,pins = <
--				/* Slave 1 reset value */
--				0x110 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x118 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x11c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x120 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x124 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x128 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x12c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x130 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x134 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x138 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			>;
--		};
--
--		davinci_mdio_default: davinci_mdio_default {
--			pinctrl-single,pins = <
--				/* MDIO */
--				0x148 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
--				0x14c (PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
--			>;
--		};
--
--		davinci_mdio_sleep: davinci_mdio_sleep {
--			pinctrl-single,pins = <
--				/* MDIO reset value */
--				0x148 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			>;
 -		};
 -	};
 -
- 	ocp {
- 		uart0: serial@44e09000 {
- 			pinctrl-names = "default";
-@@ -168,6 +80,94 @@
+ 	leds {
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&user_leds_s0>;
+@@ -168,6 +146,25 @@
  	};
  };
  
-+&am33xx_pinmux {
++&uart0 {
 +	pinctrl-names = "default";
-+	pinctrl-0 = <&clkout2_pin>;
++	pinctrl-0 = <&uart0_pins>;
 +
-+	user_leds_s0: user_leds_s0 {
-+		pinctrl-single,pins = <
-+			0x54 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a5.gpio1_21 */
-+			0x58 (PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_a6.gpio1_22 */
-+			0x5c (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a7.gpio1_23 */
-+			0x60 (PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_a8.gpio1_24 */
-+		>;
-+	};
++	status = "okay";
++};
 +
-+	i2c0_pins: pinmux_i2c0_pins {
-+		pinctrl-single,pins = <
-+			0x188 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
-+			0x18c (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
-+		>;
-+	};
++&i2c0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c0_pins>;
 +
-+	uart0_pins: pinmux_uart0_pins {
-+		pinctrl-single,pins = <
-+			0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
-+			0x174 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart0_txd.uart0_txd */
-+		>;
-+	};
++	status = "okay";
++	clock-frequency = <400000>;
 +
-+	clkout2_pin: pinmux_clkout2_pin {
-+		pinctrl-single,pins = <
-+			0x1b4 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr1.clkout2 */
-+		>;
-+	};
-+
-+	cpsw_default: cpsw_default {
-+		pinctrl-single,pins = <
-+			/* Slave 1 */
-+			0x110 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxerr.mii1_rxerr */
-+			0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txen.mii1_txen */
-+			0x118 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxdv.mii1_rxdv */
-+			0x11c (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd3.mii1_txd3 */
-+			0x120 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd2.mii1_txd2 */
-+			0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd1.mii1_txd1 */
-+			0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd0.mii1_txd0 */
-+			0x12c (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_txclk.mii1_txclk */
-+			0x130 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxclk.mii1_rxclk */
-+			0x134 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd3.mii1_rxd3 */
-+			0x138 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd2.mii1_rxd2 */
-+			0x13c (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd1.mii1_rxd1 */
-+			0x140 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd0.mii1_rxd0 */
-+		>;
-+	};
-+
-+	cpsw_sleep: cpsw_sleep {
-+		pinctrl-single,pins = <
-+			/* Slave 1 reset value */
-+			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x11c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x120 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x124 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x128 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x12c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+		>;
-+	};
-+
-+	davinci_mdio_default: davinci_mdio_default {
-+		pinctrl-single,pins = <
-+			/* MDIO */
-+			0x148 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
-+			0x14c (PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
-+		>;
-+	};
-+
-+	davinci_mdio_sleep: davinci_mdio_sleep {
-+		pinctrl-single,pins = <
-+			/* MDIO reset value */
-+			0x148 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+		>;
++	tps: tps@24 {
++		reg = <0x24>;
 +	};
 +};
 +
@@ -224,271 +90,339 @@ index 04feaf8..f0d53fe 100644
  
  &tps {
 diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index a16bb96..565b15c 100644
+index 565b15c..a7b1dbd 100644
 --- a/arch/arm/boot/dts/am335x-evm.dts
 +++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -24,133 +24,6 @@
+@@ -24,168 +24,6 @@
  		reg = <0x80000000 0x10000000>; /* 256 MB */
  	};
  
--	am33xx_pinmux: pinmux@44e10800 {
--		pinctrl-names = "default";
--		pinctrl-0 = <&matrix_keypad_s0 &volume_keys_s0 &clkout2_pin>;
+-	ocp {
+-		uart0: serial@44e09000 {
+-			pinctrl-names = "default";
+-			pinctrl-0 = <&uart0_pins>;
 -
--		matrix_keypad_s0: matrix_keypad_s0 {
--			pinctrl-single,pins = <
--				0x54 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a5.gpio1_21 */
--				0x58 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a6.gpio1_22 */
--				0x64 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a9.gpio1_25 */
--				0x68 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a10.gpio1_26 */
--				0x6c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a11.gpio1_27 */
--			>;
+-			status = "okay";
 -		};
 -
--		volume_keys_s0: volume_keys_s0 {
--			pinctrl-single,pins = <
--				0x150 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* spi0_sclk.gpio0_2 */
--				0x154 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* spi0_d0.gpio0_3 */
--			>;
+-		i2c0: i2c@44e0b000 {
+-			pinctrl-names = "default";
+-			pinctrl-0 = <&i2c0_pins>;
+-
+-			status = "okay";
+-			clock-frequency = <400000>;
+-
+-			tps: tps@2d {
+-				reg = <0x2d>;
+-			};
 -		};
 -
--		i2c0_pins: pinmux_i2c0_pins {
--			pinctrl-single,pins = <
--				0x188 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
--				0x18c (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
--			>;
+-		i2c1: i2c@4802a000 {
+-			pinctrl-names = "default";
+-			pinctrl-0 = <&i2c1_pins>;
+-
+-			status = "okay";
+-			clock-frequency = <100000>;
+-
+-			lis331dlh: lis331dlh@18 {
+-				compatible = "st,lis331dlh", "st,lis3lv02d";
+-				reg = <0x18>;
+-				Vdd-supply = <&lis3_reg>;
+-				Vdd_IO-supply = <&lis3_reg>;
+-
+-				st,click-single-x;
+-				st,click-single-y;
+-				st,click-single-z;
+-				st,click-thresh-x = <10>;
+-				st,click-thresh-y = <10>;
+-				st,click-thresh-z = <10>;
+-				st,irq1-click;
+-				st,irq2-click;
+-				st,wakeup-x-lo;
+-				st,wakeup-x-hi;
+-				st,wakeup-y-lo;
+-				st,wakeup-y-hi;
+-				st,wakeup-z-lo;
+-				st,wakeup-z-hi;
+-				st,min-limit-x = <120>;
+-				st,min-limit-y = <120>;
+-				st,min-limit-z = <140>;
+-				st,max-limit-x = <550>;
+-				st,max-limit-y = <550>;
+-				st,max-limit-z = <750>;
+-			};
+-
+-			tsl2550: tsl2550@39 {
+-				compatible = "taos,tsl2550";
+-				reg = <0x39>;
+-			};
+-
+-			tmp275: tmp275@48 {
+-				compatible = "ti,tmp275";
+-				reg = <0x48>;
+-			};
 -		};
 -
--		i2c1_pins: pinmux_i2c1_pins {
--			pinctrl-single,pins = <
--				0x158 (PIN_INPUT_PULLUP | MUX_MODE2)	/* spi0_d1.i2c1_sda */
--				0x15c (PIN_INPUT_PULLUP | MUX_MODE2)	/* spi0_cs0.i2c1_scl */
--			>;
+-		elm: elm@48080000 {
+-			status = "okay";
 -		};
 -
--		uart0_pins: pinmux_uart0_pins {
--			pinctrl-single,pins = <
--				0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
--				0x174 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart0_txd.uart0_txd */
--			>;
+-		epwmss0: epwmss@48300000 {
+-			status = "okay";
+-
+-			ecap0: ecap@48300100 {
+-				status = "okay";
+-				pinctrl-names = "default";
+-				pinctrl-0 = <&ecap0_pins>;
+-			};
 -		};
 -
--		clkout2_pin: pinmux_clkout2_pin {
--			pinctrl-single,pins = <
--				0x1b4 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr1.clkout2 */
--			>;
--		};
+-		gpmc: gpmc@50000000 {
+-			status = "okay";
+-			pinctrl-names = "default";
+-			pinctrl-0 = <&nandflash_pins_s0>;
+-			ranges = <0 0 0x08000000 0x10000000>;	/* CS0: NAND */
+-			nand@0,0 {
+-				reg = <0 0 0>; /* CS0, offset 0 */
+-				nand-bus-width = <8>;
+-				ti,nand-ecc-opt = "bch8";
+-				gpmc,device-nand = "true";
+-				gpmc,device-width = <1>;
+-				gpmc,sync-clk-ps = <0>;
+-				gpmc,cs-on-ns = <0>;
+-				gpmc,cs-rd-off-ns = <44>;
+-				gpmc,cs-wr-off-ns = <44>;
+-				gpmc,adv-on-ns = <6>;
+-				gpmc,adv-rd-off-ns = <34>;
+-				gpmc,adv-wr-off-ns = <44>;
+-				gpmc,we-on-ns = <0>;
+-				gpmc,we-off-ns = <40>;
+-				gpmc,oe-on-ns = <0>;
+-				gpmc,oe-off-ns = <54>;
+-				gpmc,access-ns = <64>;
+-				gpmc,rd-cycle-ns = <82>;
+-				gpmc,wr-cycle-ns = <82>;
+-				gpmc,wait-on-read = "true";
+-				gpmc,wait-on-write = "true";
+-				gpmc,bus-turnaround-ns = <0>;
+-				gpmc,cycle2cycle-delay-ns = <0>;
+-				gpmc,clk-activation-ns = <0>;
+-				gpmc,wait-monitoring-ns = <0>;
+-				gpmc,wr-access-ns = <40>;
+-				gpmc,wr-data-mux-bus-ns = <0>;
 -
--		nandflash_pins_s0: nandflash_pins_s0 {
--			pinctrl-single,pins = <
--				0x0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */
--				0x4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad1.gpmc_ad1 */
--				0x8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad2.gpmc_ad2 */
--				0xc (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad3.gpmc_ad3 */
--				0x10 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad4.gpmc_ad4 */
--				0x14 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad5.gpmc_ad5 */
--				0x18 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad6.gpmc_ad6 */
--				0x1c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad7.gpmc_ad7 */
--				0x70 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_wait0.gpmc_wait0 */
--				0x74 (PIN_INPUT_PULLUP | MUX_MODE7)	/* gpmc_wpn.gpio0_30 */
--				0x7c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn0.gpmc_csn0  */
--				0x90 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_advn_ale.gpmc_advn_ale */
--				0x94 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_oen_ren.gpmc_oen_ren */
--				0x98 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_wen.gpmc_wen */
--				0x9c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_be0n_cle.gpmc_be0n_cle */
--			>;
--		};
+-				#address-cells = <1>;
+-				#size-cells = <1>;
+-				elm_id = <&elm>;
 -
--		ecap0_pins: backlight_pins {
--			pinctrl-single,pins = <
--				0x164 0x0	/* eCAP0_in_PWM0_out.eCAP0_in_PWM0_out MODE0 */
--			>;
--		};
+-				/* MTD partition table */
+-				partition@0 {
+-					label = "SPL1";
+-					reg = <0x00000000 0x000020000>;
+-				};
 -
--		cpsw_default: cpsw_default {
--			pinctrl-single,pins = <
--				/* Slave 1 */
--				0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txen.rgmii1_tctl */
--				0x118 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxdv.rgmii1_rctl */
--				0x11c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd3.rgmii1_td3 */
--				0x120 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd2.rgmii1_td2 */
--				0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd1.rgmii1_td1 */
--				0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd0.rgmii1_td0 */
--				0x12c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txclk.rgmii1_tclk */
--				0x130 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxclk.rgmii1_rclk */
--				0x134 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd3.rgmii1_rd3 */
--				0x138 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd2.rgmii1_rd2 */
--				0x13c (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd1.rgmii1_rd1 */
--				0x140 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd0.rgmii1_rd0 */
--			>;
--		};
+-				partition@1 {
+-					label = "SPL2";
+-					reg = <0x00020000 0x00020000>;
+-				};
 -
--		cpsw_sleep: cpsw_sleep {
--			pinctrl-single,pins = <
--				/* Slave 1 reset value */
--				0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x118 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x11c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x120 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x124 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x128 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x12c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x130 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x134 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x138 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			>;
--		};
+-				partition@2 {
+-					label = "SPL3";
+-					reg = <0x00040000 0x00020000>;
+-				};
 -
--		davinci_mdio_default: davinci_mdio_default {
--			pinctrl-single,pins = <
--				/* MDIO */
--				0x148 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
--				0x14c (PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
--			>;
--		};
+-				partition@3 {
+-					label = "SPL4";
+-					reg = <0x00060000 0x00020000>;
+-				};
 -
--		davinci_mdio_sleep: davinci_mdio_sleep {
--			pinctrl-single,pins = <
--				/* MDIO reset value */
--				0x148 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			>;
+-				partition@4 {
+-					label = "U-boot";
+-					reg = <0x00080000 0x001e0000>;
+-				};
+-
+-				partition@5 {
+-					label = "environment";
+-					reg = <0x00260000 0x00020000>;
+-				};
+-
+-				partition@6 {
+-					label = "Kernel";
+-					reg = <0x00280000 0x00500000>;
+-				};
+-
+-				partition@7 {
+-					label = "File-System";
+-					reg = <0x00780000 0x0F880000>;
+-				};
+-			};
 -		};
 -	};
 -
- 	ocp {
- 		uart0: serial@44e09000 {
- 			pinctrl-names = "default";
-@@ -376,6 +249,133 @@
+ 	vbat: fixedregulator@0 {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vbat";
+@@ -376,6 +214,166 @@
  	};
  };
  
-+&am33xx_pinmux {
++&uart0 {
 +	pinctrl-names = "default";
-+	pinctrl-0 = <&matrix_keypad_s0 &volume_keys_s0 &clkout2_pin>;
++	pinctrl-0 = <&uart0_pins>;
 +
-+	matrix_keypad_s0: matrix_keypad_s0 {
-+		pinctrl-single,pins = <
-+			0x54 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a5.gpio1_21 */
-+			0x58 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a6.gpio1_22 */
-+			0x64 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a9.gpio1_25 */
-+			0x68 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a10.gpio1_26 */
-+			0x6c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a11.gpio1_27 */
-+		>;
++	status = "okay";
++};
++
++&i2c0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c0_pins>;
++
++	status = "okay";
++	clock-frequency = <400000>;
++
++	tps: tps@2d {
++		reg = <0x2d>;
++	};
++};
++
++&i2c1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
++
++	status = "okay";
++	clock-frequency = <100000>;
++
++	lis331dlh: lis331dlh@18 {
++		compatible = "st,lis331dlh", "st,lis3lv02d";
++		reg = <0x18>;
++		Vdd-supply = <&lis3_reg>;
++		Vdd_IO-supply = <&lis3_reg>;
++
++		st,click-single-x;
++		st,click-single-y;
++		st,click-single-z;
++		st,click-thresh-x = <10>;
++		st,click-thresh-y = <10>;
++		st,click-thresh-z = <10>;
++		st,irq1-click;
++		st,irq2-click;
++		st,wakeup-x-lo;
++		st,wakeup-x-hi;
++		st,wakeup-y-lo;
++		st,wakeup-y-hi;
++		st,wakeup-z-lo;
++		st,wakeup-z-hi;
++		st,min-limit-x = <120>;
++		st,min-limit-y = <120>;
++		st,min-limit-z = <140>;
++		st,max-limit-x = <550>;
++		st,max-limit-y = <550>;
++		st,max-limit-z = <750>;
 +	};
 +
-+	volume_keys_s0: volume_keys_s0 {
-+		pinctrl-single,pins = <
-+			0x150 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* spi0_sclk.gpio0_2 */
-+			0x154 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* spi0_d0.gpio0_3 */
-+		>;
++	tsl2550: tsl2550@39 {
++		compatible = "taos,tsl2550";
++		reg = <0x39>;
 +	};
 +
-+	i2c0_pins: pinmux_i2c0_pins {
-+		pinctrl-single,pins = <
-+			0x188 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
-+			0x18c (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
-+		>;
++	tmp275: tmp275@48 {
++		compatible = "ti,tmp275";
++		reg = <0x48>;
 +	};
++};
 +
-+	i2c1_pins: pinmux_i2c1_pins {
-+		pinctrl-single,pins = <
-+			0x158 (PIN_INPUT_PULLUP | MUX_MODE2)	/* spi0_d1.i2c1_sda */
-+			0x15c (PIN_INPUT_PULLUP | MUX_MODE2)	/* spi0_cs0.i2c1_scl */
-+		>;
++&elm {
++	status = "okay";
++};
++
++&epwmss0 {
++	status = "okay";
++
++	ecap0: ecap@48300100 {
++		status = "okay";
++		pinctrl-names = "default";
++		pinctrl-0 = <&ecap0_pins>;
 +	};
++};
 +
-+	uart0_pins: pinmux_uart0_pins {
-+		pinctrl-single,pins = <
-+			0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
-+			0x174 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart0_txd.uart0_txd */
-+		>;
-+	};
++&gpmc {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&nandflash_pins_s0>;
++	ranges = <0 0 0x08000000 0x10000000>;	/* CS0: NAND */
++	nand@0,0 {
++		reg = <0 0 0>; /* CS0, offset 0 */
++		nand-bus-width = <8>;
++		ti,nand-ecc-opt = "bch8";
++		gpmc,device-nand = "true";
++		gpmc,device-width = <1>;
++		gpmc,sync-clk-ps = <0>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <44>;
++		gpmc,cs-wr-off-ns = <44>;
++		gpmc,adv-on-ns = <6>;
++		gpmc,adv-rd-off-ns = <34>;
++		gpmc,adv-wr-off-ns = <44>;
++		gpmc,we-on-ns = <0>;
++		gpmc,we-off-ns = <40>;
++		gpmc,oe-on-ns = <0>;
++		gpmc,oe-off-ns = <54>;
++		gpmc,access-ns = <64>;
++		gpmc,rd-cycle-ns = <82>;
++		gpmc,wr-cycle-ns = <82>;
++		gpmc,wait-on-read = "true";
++		gpmc,wait-on-write = "true";
++		gpmc,bus-turnaround-ns = <0>;
++		gpmc,cycle2cycle-delay-ns = <0>;
++		gpmc,clk-activation-ns = <0>;
++		gpmc,wait-monitoring-ns = <0>;
++		gpmc,wr-access-ns = <40>;
++		gpmc,wr-data-mux-bus-ns = <0>;
 +
-+	clkout2_pin: pinmux_clkout2_pin {
-+		pinctrl-single,pins = <
-+			0x1b4 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr1.clkout2 */
-+		>;
-+	};
++		#address-cells = <1>;
++		#size-cells = <1>;
++		elm_id = <&elm>;
 +
-+	nandflash_pins_s0: nandflash_pins_s0 {
-+		pinctrl-single,pins = <
-+			0x0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */
-+			0x4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad1.gpmc_ad1 */
-+			0x8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad2.gpmc_ad2 */
-+			0xc (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad3.gpmc_ad3 */
-+			0x10 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad4.gpmc_ad4 */
-+			0x14 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad5.gpmc_ad5 */
-+			0x18 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad6.gpmc_ad6 */
-+			0x1c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad7.gpmc_ad7 */
-+			0x70 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_wait0.gpmc_wait0 */
-+			0x74 (PIN_INPUT_PULLUP | MUX_MODE7)	/* gpmc_wpn.gpio0_30 */
-+			0x7c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn0.gpmc_csn0  */
-+			0x90 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_advn_ale.gpmc_advn_ale */
-+			0x94 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_oen_ren.gpmc_oen_ren */
-+			0x98 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_wen.gpmc_wen */
-+			0x9c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_be0n_cle.gpmc_be0n_cle */
-+		>;
-+	};
++		/* MTD partition table */
++		partition@0 {
++			label = "SPL1";
++			reg = <0x00000000 0x000020000>;
++		};
 +
-+	ecap0_pins: backlight_pins {
-+		pinctrl-single,pins = <
-+			0x164 0x0	/* eCAP0_in_PWM0_out.eCAP0_in_PWM0_out MODE0 */
-+		>;
-+	};
++		partition@1 {
++			label = "SPL2";
++			reg = <0x00020000 0x00020000>;
++		};
 +
-+	cpsw_default: cpsw_default {
-+		pinctrl-single,pins = <
-+			/* Slave 1 */
-+			0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txen.rgmii1_tctl */
-+			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxdv.rgmii1_rctl */
-+			0x11c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd3.rgmii1_td3 */
-+			0x120 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd2.rgmii1_td2 */
-+			0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd1.rgmii1_td1 */
-+			0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd0.rgmii1_td0 */
-+			0x12c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txclk.rgmii1_tclk */
-+			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxclk.rgmii1_rclk */
-+			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd3.rgmii1_rd3 */
-+			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd2.rgmii1_rd2 */
-+			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd1.rgmii1_rd1 */
-+			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd0.rgmii1_rd0 */
-+		>;
-+	};
++		partition@2 {
++			label = "SPL3";
++			reg = <0x00040000 0x00020000>;
++		};
 +
-+	cpsw_sleep: cpsw_sleep {
-+		pinctrl-single,pins = <
-+			/* Slave 1 reset value */
-+			0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x11c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x120 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x124 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x128 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x12c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+		>;
-+	};
++		partition@3 {
++			label = "SPL4";
++			reg = <0x00060000 0x00020000>;
++		};
 +
-+	davinci_mdio_default: davinci_mdio_default {
-+		pinctrl-single,pins = <
-+			/* MDIO */
-+			0x148 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
-+			0x14c (PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
-+		>;
-+	};
++		partition@4 {
++			label = "U-boot";
++			reg = <0x00080000 0x001e0000>;
++		};
 +
-+	davinci_mdio_sleep: davinci_mdio_sleep {
-+		pinctrl-single,pins = <
-+			/* MDIO reset value */
-+			0x148 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+		>;
++		partition@5 {
++			label = "environment";
++			reg = <0x00260000 0x00020000>;
++		};
++
++		partition@6 {
++			label = "Kernel";
++			reg = <0x00280000 0x00500000>;
++		};
++
++		partition@7 {
++			label = "File-System";
++			reg = <0x00780000 0x0F880000>;
++		};
 +	};
 +};
 +
@@ -496,275 +430,133 @@ index a16bb96..565b15c 100644
  
  &tps {
 diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index 9e00eef..a0afb10 100644
+index a0afb10..d3e8ed2 100644
 --- a/arch/arm/boot/dts/am335x-evmsk.dts
 +++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -30,135 +30,6 @@
+@@ -30,65 +30,6 @@
  		reg = <0x80000000 0x10000000>; /* 256 MB */
  	};
  
--	am33xx_pinmux: pinmux@44e10800 {
--		pinctrl-names = "default";
--		pinctrl-0 = <&gpio_keys_s0 &clkout2_pin>;
+-	ocp {
+-		uart0: serial@44e09000 {
+-			pinctrl-names = "default";
+-			pinctrl-0 = <&uart0_pins>;
 -
--		user_leds_s0: user_leds_s0 {
--			pinctrl-single,pins = <
--				0x10 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad4.gpio1_4 */
--				0x14 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad5.gpio1_5 */
--				0x18 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad6.gpio1_6 */
--				0x1c (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad7.gpio1_7 */
--			>;
+-			status = "okay";
 -		};
 -
--		gpio_keys_s0: gpio_keys_s0 {
--			pinctrl-single,pins = <
--				0x94 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_oen_ren.gpio2_3 */
--				0x90 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_advn_ale.gpio2_2 */
--				0x70 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_wait0.gpio0_30 */
--				0x9c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ben0_cle.gpio2_5 */
--			>;
+-		i2c0: i2c@44e0b000 {
+-			pinctrl-names = "default";
+-			pinctrl-0 = <&i2c0_pins>;
+-
+-			status = "okay";
+-			clock-frequency = <400000>;
+-
+-			tps: tps@2d {
+-				reg = <0x2d>;
+-			};
+-
+-			lis331dlh: lis331dlh@18 {
+-				compatible = "st,lis331dlh", "st,lis3lv02d";
+-				reg = <0x18>;
+-				Vdd-supply = <&lis3_reg>;
+-				Vdd_IO-supply = <&lis3_reg>;
+-
+-				st,click-single-x;
+-				st,click-single-y;
+-				st,click-single-z;
+-				st,click-thresh-x = <10>;
+-				st,click-thresh-y = <10>;
+-				st,click-thresh-z = <10>;
+-				st,irq1-click;
+-				st,irq2-click;
+-				st,wakeup-x-lo;
+-				st,wakeup-x-hi;
+-				st,wakeup-y-lo;
+-				st,wakeup-y-hi;
+-				st,wakeup-z-lo;
+-				st,wakeup-z-hi;
+-				st,min-limit-x = <120>;
+-				st,min-limit-y = <120>;
+-				st,min-limit-z = <140>;
+-				st,max-limit-x = <550>;
+-				st,max-limit-y = <550>;
+-				st,max-limit-z = <750>;
+-			};
 -		};
 -
--		i2c0_pins: pinmux_i2c0_pins {
--			pinctrl-single,pins = <
--				0x188 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
--				0x18c (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
--			>;
--		};
+-		epwmss2: epwmss@48304000 {
+-			status = "okay";
 -
--		uart0_pins: pinmux_uart0_pins {
--			pinctrl-single,pins = <
--				0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
--				0x174 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)		/* uart0_txd.uart0_txd */
--			>;
--		};
--
--		clkout2_pin: pinmux_clkout2_pin {
--			pinctrl-single,pins = <
--				0x1b4 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)		/* xdma_event_intr1.clkout2 */
--			>;
--		};
--
--		ecap2_pins: backlight_pins {
--			pinctrl-single,pins = <
--				0x19c 0x4	/* mcasp0_ahclkr.ecap2_in_pwm2_out MODE4 */
--			>;
--		};
--
--		cpsw_default: cpsw_default {
--			pinctrl-single,pins = <
--				/* Slave 1 */
--				0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txen.rgmii1_tctl */
--				0x118 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxdv.rgmii1_rctl */
--				0x11c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd3.rgmii1_td3 */
--				0x120 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd2.rgmii1_td2 */
--				0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd1.rgmii1_td1 */
--				0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd0.rgmii1_td0 */
--				0x12c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txclk.rgmii1_tclk */
--				0x130 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxclk.rgmii1_rclk */
--				0x134 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd3.rgmii1_rd3 */
--				0x138 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd2.rgmii1_rd2 */
--				0x13c (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd1.rgmii1_rd1 */
--				0x140 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd0.rgmii1_rd0 */
--
--				/* Slave 2 */
--				0x40 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a0.rgmii2_tctl */
--				0x44 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a1.rgmii2_rctl */
--				0x48 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a2.rgmii2_td3 */
--				0x4c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a3.rgmii2_td2 */
--				0x50 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a4.rgmii2_td1 */
--				0x54 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a5.rgmii2_td0 */
--				0x58 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a6.rgmii2_tclk */
--				0x5c (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a7.rgmii2_rclk */
--				0x60 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a8.rgmii2_rd3 */
--				0x64 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a9.rgmii2_rd2 */
--				0x68 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a10.rgmii2_rd1 */
--				0x6c (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a11.rgmii2_rd0 */
--			>;
--		};
--
--		cpsw_sleep: cpsw_sleep {
--			pinctrl-single,pins = <
--				/* Slave 1 reset value */
--				0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x118 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x11c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x120 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x124 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x128 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x12c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x130 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x134 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x138 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--
--				/* Slave 2 reset value*/
--				0x40 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x44 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x48 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x4c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x50 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x54 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x58 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x5c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x60 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x64 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x68 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x6c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			>;
--		};
--
--		davinci_mdio_default: davinci_mdio_default {
--			pinctrl-single,pins = <
--				/* MDIO */
--				0x148 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
--				0x14c (PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
--			>;
--		};
--
--		davinci_mdio_sleep: davinci_mdio_sleep {
--			pinctrl-single,pins = <
--				/* MDIO reset value */
--				0x148 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--				0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			>;
+-			ecap2: ecap@48304100 {
+-				status = "okay";
+-				pinctrl-names = "default";
+-				pinctrl-0 = <&ecap2_pins>;
+-			};
 -		};
 -	};
 -
- 	ocp {
- 		uart0: serial@44e09000 {
- 			pinctrl-names = "default";
-@@ -304,6 +175,135 @@
+ 	vbat: fixedregulator@0 {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vbat";
+@@ -304,6 +245,63 @@
  	};
  };
  
-+&am33xx_pinmux {
++&uart0 {
 +	pinctrl-names = "default";
-+	pinctrl-0 = <&gpio_keys_s0 &clkout2_pin>;
++	pinctrl-0 = <&uart0_pins>;
 +
-+	user_leds_s0: user_leds_s0 {
-+		pinctrl-single,pins = <
-+			0x10 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad4.gpio1_4 */
-+			0x14 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad5.gpio1_5 */
-+			0x18 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad6.gpio1_6 */
-+			0x1c (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ad7.gpio1_7 */
-+		>;
++	status = "okay";
++};
++
++&i2c0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c0_pins>;
++
++	status = "okay";
++	clock-frequency = <400000>;
++
++	tps: tps@2d {
++		reg = <0x2d>;
 +	};
 +
-+	gpio_keys_s0: gpio_keys_s0 {
-+		pinctrl-single,pins = <
-+			0x94 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_oen_ren.gpio2_3 */
-+			0x90 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_advn_ale.gpio2_2 */
-+			0x70 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_wait0.gpio0_30 */
-+			0x9c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_ben0_cle.gpio2_5 */
-+		>;
++	lis331dlh: lis331dlh@18 {
++		compatible = "st,lis331dlh", "st,lis3lv02d";
++		reg = <0x18>;
++		Vdd-supply = <&lis3_reg>;
++		Vdd_IO-supply = <&lis3_reg>;
++
++		st,click-single-x;
++		st,click-single-y;
++		st,click-single-z;
++		st,click-thresh-x = <10>;
++		st,click-thresh-y = <10>;
++		st,click-thresh-z = <10>;
++		st,irq1-click;
++		st,irq2-click;
++		st,wakeup-x-lo;
++		st,wakeup-x-hi;
++		st,wakeup-y-lo;
++		st,wakeup-y-hi;
++		st,wakeup-z-lo;
++		st,wakeup-z-hi;
++		st,min-limit-x = <120>;
++		st,min-limit-y = <120>;
++		st,min-limit-z = <140>;
++		st,max-limit-x = <550>;
++		st,max-limit-y = <550>;
++		st,max-limit-z = <750>;
 +	};
++};
 +
-+	i2c0_pins: pinmux_i2c0_pins {
-+		pinctrl-single,pins = <
-+			0x188 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
-+			0x18c (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
-+		>;
-+	};
++&epwmss2 {
++	status = "okay";
 +
-+	uart0_pins: pinmux_uart0_pins {
-+		pinctrl-single,pins = <
-+			0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
-+			0x174 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)		/* uart0_txd.uart0_txd */
-+		>;
-+	};
-+
-+	clkout2_pin: pinmux_clkout2_pin {
-+		pinctrl-single,pins = <
-+			0x1b4 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)		/* xdma_event_intr1.clkout2 */
-+		>;
-+	};
-+
-+	ecap2_pins: backlight_pins {
-+		pinctrl-single,pins = <
-+			0x19c 0x4	/* mcasp0_ahclkr.ecap2_in_pwm2_out MODE4 */
-+		>;
-+	};
-+
-+	cpsw_default: cpsw_default {
-+		pinctrl-single,pins = <
-+			/* Slave 1 */
-+			0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txen.rgmii1_tctl */
-+			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxdv.rgmii1_rctl */
-+			0x11c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd3.rgmii1_td3 */
-+			0x120 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd2.rgmii1_td2 */
-+			0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd1.rgmii1_td1 */
-+			0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd0.rgmii1_td0 */
-+			0x12c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txclk.rgmii1_tclk */
-+			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxclk.rgmii1_rclk */
-+			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd3.rgmii1_rd3 */
-+			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd2.rgmii1_rd2 */
-+			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd1.rgmii1_rd1 */
-+			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd0.rgmii1_rd0 */
-+
-+			/* Slave 2 */
-+			0x40 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a0.rgmii2_tctl */
-+			0x44 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a1.rgmii2_rctl */
-+			0x48 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a2.rgmii2_td3 */
-+			0x4c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a3.rgmii2_td2 */
-+			0x50 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a4.rgmii2_td1 */
-+			0x54 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a5.rgmii2_td0 */
-+			0x58 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a6.rgmii2_tclk */
-+			0x5c (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a7.rgmii2_rclk */
-+			0x60 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a8.rgmii2_rd3 */
-+			0x64 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a9.rgmii2_rd2 */
-+			0x68 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a10.rgmii2_rd1 */
-+			0x6c (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a11.rgmii2_rd0 */
-+		>;
-+	};
-+
-+	cpsw_sleep: cpsw_sleep {
-+		pinctrl-single,pins = <
-+			/* Slave 1 reset value */
-+			0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x11c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x120 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x124 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x128 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x12c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+
-+			/* Slave 2 reset value*/
-+			0x40 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x44 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x48 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x4c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x50 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x54 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x58 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x5c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x60 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x64 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x68 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x6c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+		>;
-+	};
-+
-+	davinci_mdio_default: davinci_mdio_default {
-+		pinctrl-single,pins = <
-+			/* MDIO */
-+			0x148 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
-+			0x14c (PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
-+		>;
-+	};
-+
-+	davinci_mdio_sleep: davinci_mdio_sleep {
-+		pinctrl-single,pins = <
-+			/* MDIO reset value */
-+			0x148 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+		>;
++	ecap2: ecap@48304100 {
++		status = "okay";
++		pinctrl-names = "default";
++		pinctrl-0 = <&ecap2_pins>;
 +	};
 +};
 +
