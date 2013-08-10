@@ -1,65 +1,43 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 1/5] drivers/gpio/gpio-omap.c: convert comma to semicolon
-Date: Sat, 10 Aug 2013 09:13:51 -0700
-Message-ID: <1376151231.2083.32.camel@joe-AO722>
-References: <1376149225-3997-1-git-send-email-Julia.Lawall@lip6.fr>
-	 <1376149225-3997-2-git-send-email-Julia.Lawall@lip6.fr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1376149225-3997-2-git-send-email-Julia.Lawall@lip6.fr>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, kernel-janitors@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH 0/2] ARM: dts: AM33XX: node definition cleanups
+Date: Sat, 10 Aug 2013 19:05:09 +0200
+Message-ID: <1376154311-10184-1-git-send-email-javier.martinez@collabora.co.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:55061 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966850Ab3HJRFa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 Aug 2013 13:05:30 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <benoit.cousson@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Enric Balletbo <eballetbo@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Sat, 2013-08-10 at 17:40 +0200, Julia Lawall wrote:
-> From: Julia Lawall <Julia.Lawall@lip6.fr>
-> Replace a comma between expression statements by a semicolon.
-[]
-> I can't tell if the assignment to ct->regs.mask is really intended to be
-> under the if.  The proposed patch preserves the current semantics, but not
-> the current indentation.
+Hi,
 
-I'd suspect more that the indentation is correct
-and the comma use incorrect.
+While reviewing the submission of a DT file for a new board
+based on the am3352 SoC, I noticed that am33xx*.dts files needed
+some cleanups. All am33xx based board files redefine device nodes
+that are already defined in the included am33xx.dtsi file.
 
-It also looks more like a copy/paste error from
-commit f8b46b583 when the code was restructured
-a bit.
+This not only makes the DTS harder to maintain without any benefit
+but also leaks SoC internal details to board files such as how the
+OCP interconnect is modeled (currently just a flat representation)
+and the addresses of some IP modules that are part of the SoC and
+are not going to change from board to board.
 
-Kevin?
+This patch-set cleans these board files and is composed of the
+following patches:
 
---------------------
+[PATCH 1/2] ARM: dts: AM33XX: use pinmux node defined in included
+[PATCH 2/2] ARM: dts: AM33XX: don't redefine OCP bus and device
 
--#ifdef CONFIG_ARCH_OMAP16XX
--       /* REVISIT: assuming only 16xx supports MPUIO wake events */
--       .irq_set_wake   = gpio_wake_enable,
--#endif
--};
+NOTE: I don't own any of these am33xx based boards so I was only
+able to build test the changes. However I compared the generated
+dtb before and after the changes and the disassembled DTS with
+dtc -I dtb -O dts foo.dtb > bar.dts are identical.
 
---------------------
+Even though the binary dtb is the same and there shouldn't be
+any visible changes, boot testing will be highly appreciated.
 
-+       /* REVISIT: assuming only 16xx supports MPUIO wake events */
-+       if (cpu_is_omap16xx())
-+               ct->chip.irq_set_wake = gpio_wake_enable,
-
---------------------
-
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-[]
-> @@ -1029,10 +1029,10 @@ omap_mpuio_alloc_gc(struct gpio_bank *bank, unsigned int irq_start,
->  	ct->chip.irq_unmask = irq_gc_mask_clr_bit;
->  	ct->chip.irq_set_type = gpio_irq_type;
->  
-> -	if (bank->regs->wkup_en)
-> -		ct->chip.irq_set_wake = gpio_wake_enable,
-> -
-> -	ct->regs.mask = OMAP_MPUIO_GPIO_INT / bank->stride;
-> +	if (bank->regs->wkup_en) {
-> +		ct->chip.irq_set_wake = gpio_wake_enable;
-> +		ct->regs.mask = OMAP_MPUIO_GPIO_INT / bank->stride;
-> +	}
-
-
+Thanks a lot and best regards,
+Javier
