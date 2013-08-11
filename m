@@ -1,86 +1,55 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: OMAP device tree maintainance (was Re: [PATCH v2] N900: add device
- tree)
-Date: Sun, 11 Aug 2013 02:55:07 +0200
-Message-ID: <20130811005507.GA29513@amd.pavel.ucw.cz>
-References: <20130704171939.GA27374@blackmetal.musicnaut.iki.fi>
- <20130704202145.GB10752@amd.pavel.ucw.cz>
- <20130704203256.GB27374@blackmetal.musicnaut.iki.fi>
- <20130713121709.GC16473@amd.pavel.ucw.cz>
- <20130714222819.GB3296@blackmetal.musicnaut.iki.fi>
- <20130728134409.GB5382@amd.pavel.ucw.cz>
- <20130801234355.GA15611@amd.pavel.ucw.cz>
- <20130810110955.GA11437@amd.pavel.ucw.cz>
- <CAAfyv34w1e+sAuB==-+Pj2gOO1auVNQgawcNC1Z4QfeqchRh3g@mail.gmail.com>
- <alpine.LNX.2.00.1308102226220.32627@pobox.suse.cz>
+From: Mark Jackson <mpfj-list@newflow.co.uk>
+Subject: Re: [PATCH] Add support for Newflow NanoBone board
+Date: Sun, 11 Aug 2013 09:27:22 +0100
+Message-ID: <52074AEA.4070205@newflow.co.uk>
+References: <51DB0B85.7000102@newflow.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.00.1308102226220.32627@pobox.suse.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiri Kosina <jkosina@suse.cz>
-Cc: Belisko Marek <marek.belisko@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Andrew Morton <akpm@osdl.org>, Tony Lindgren <tony@atomide.com>, b-cousson@ti.com, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 217-155-41-104.dsl.in-addr.zen.co.uk ([217.155.41.104]:54154
+	"EHLO centos1.newflow.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752316Ab3HKI1Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 11 Aug 2013 04:27:24 -0400
+In-Reply-To: <51DB0B85.7000102@newflow.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hi!
+On 08/07/13 19:57, Mark Jackson wrote:
+> NanoBone Specification:
+> -----------------------
+> CPU:
+>   TI AM335x @ 720MHz
+> 
+> Memory:
+>   256MB DDR3
+>   128MB NOR flash
+>   128KB FRAM
+> 
+> Ethernet:
+>   2 x 10/100 connected to SMSC LAN8710 PHY
+> 
+> USB:
+>   1 x USB2.0 Type A
+> 
+> I2C:
+>   2Kbit EEPROM (Microchip 24AA02)
+>   RTC (Maxim DS1338)
+>   GPIO Expander (Microchip MCP23017)
+> 
+> Expansion connector:
+>   6 x UART
+>   1 x MMC/SD
+>   1 x USB2.0
+> 
+> Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
+> ---
+>  MAINTAINERS                       |    6 +
+>  arch/arm/boot/dts/Makefile        |    1 +
+>  arch/arm/boot/dts/am335x-nano.dts |  388 +++++++++++++++++++++++++++++++++++++
+>  3 files changed, 395 insertions(+)
+>  create mode 100644 arch/arm/boot/dts/am335x-nano.dts
 
-> > [I wonder if this is clean-enough cause for "trivial in resubmit
-> > mode?]
->=20
-> On Sat, 10 Aug 2013, Belisko Marek wrote:
->=20
-> > Same for gta04 (omap3 based device) [1].
-> > It was send upstream 2 times and second time there is no reply from=
- 1.3.2013.
->=20
-> Hi guys,
->=20
-> once I am able to match signoffs in the patches to MAINTAINERS, I can=
- take=20
-> those through trivial.git in "re-transmission mode" (or feeeding thos=
-e=20
-> thgough akpm si an option as well).
->=20
-> Please just send the patches to me in a new thread properly with all =
-the=20
-> Acks/Signoffs, and mark those appropriately (i.e. maintainer that wou=
-ld=20
-> normally push this upstream desurfaced).
-
-Mail sent (just to you, to keep mail volume down).
-
-I noticed two non-delivery reports in my INBOX; seems Benoit
-disappeared rather permanently:
-
-=2E..
-If you do so, please include this problem report. You can
-delete your own text from the attached returned message.
-=20
-                   The mail system
-=20
-<b-cousson@ti.com>: host cluster5.us.messagelabs.com[216.82.250.99]
-said: 550  =20
-    Invalid recipient <b-cousson@ti.com> (#5.1.1) (in reply to RCPT TO
-    command)
-=20
-
-=2E..so maybe MAINTAINERS file will need fixing?
-
-OMAP DEVICE TREE SUPPORT
-M:      Beno=EEt Cousson <b-cousson@ti.com>
-M:      Tony Lindgren <tony@atomide.com>
-L:      linux-omap@vger.kernel.org
-L:      devicetree@vger.kernel.org
-S:      Maintained
-=46:      arch/arm/boot/dts/*omap*
-=46:      arch/arm/boot/dts/*am3*
-
-:-(. Thanks,
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
+Any comments on this new board file ?
