@@ -1,45 +1,50 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCHv3 0/9] ARM: OMAP2+: AM33XX: Add suspend-resume support
-Date: Sun, 11 Aug 2013 13:53:10 +0200
-Message-ID: <52077B26.1010103@gmail.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH 1/1] =?UTF-8?q?MAINTAINERS:=20update=20Beno=C3=AEt=20Cousson?= =?UTF-8?q?=20email=20address?=
+Date: Sun, 11 Aug 2013 13:58:24 +0200
+Message-ID: <1376222304-13025-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:64621 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753197Ab3HKLxO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Aug 2013 07:53:14 -0400
-Received: by mail-ee0-f44.google.com with SMTP id b47so2987153eek.31
-        for <linux-omap@vger.kernel.org>; Sun, 11 Aug 2013 04:53:13 -0700 (PDT)
-In-Reply-To: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:55750 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753198Ab3HKL6y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Aug 2013 07:58:54 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <benoit.cousson@linaro.org>, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, Belisko Marek <marek.belisko@gmail.com>, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-Hi Dave,
+Using the email address listed on MAINTAINERS I keep
+getting SMTP 550 Invalid recipient errors.
 
-Thanks a lot for your work on this.
+Update with what seems to be current Beno=C3=AEt's email
+address to make get_maintainer.pl stop lying.
 
-On 06.08.2013 19:49, Dave Gerlach wrote:
-> This is the third version of the patch series for adding basic suspend-resume
-> support for AM33XX, previously submitted by Vaibhav Bedia. This patchset 
-> is based on 3.11-rc4 and depends on a forthcoming patchset from Suman Anna
-> that adds mailbox support for the wkup_m3. The patches at [1], [2], and [3] are 
-> required for the pm code to properly suspend and resume.
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.u=
+k>
+---
+ MAINTAINERS |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I applied your set and the one from Suman Anna, and with musb disabled
-and the firmware built from the sources you referenced, I'm able to put
-a custom AM33xx based board to suspend.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index e626794..87578c6 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5802,7 +5802,7 @@ F:	drivers/i2c/busses/i2c-omap.c
+ F:	include/linux/i2c-omap.h
+=20
+ OMAP DEVICE TREE SUPPORT
+-M:	Beno=C3=AEt Cousson <b-cousson@ti.com>
++M:	Beno=C3=AEt Cousson <benoit.cousson@linaro.org>
+ M:	Tony Lindgren <tony@atomide.com>
+ L:	linux-omap@vger.kernel.org
+ L:	devicetree-discuss@lists.ozlabs.org (moderated for non-subscribers)
+--=20
+1.7.7.6
 
-The problem I currently face is that I can't make the board resume, as
-neither UART0 nor GPIO0 seem to work as wakeup source.
-
-Which wakeup source did you use in your tests?
-
-
-Thanks,
-Daniel
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
