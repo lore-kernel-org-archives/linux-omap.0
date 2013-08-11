@@ -1,297 +1,503 @@
 From: Mark Jackson <mpfj-list@newflow.co.uk>
-Subject: [RFC] OMAP: add RS485 support
-Date: Sun, 11 Aug 2013 13:56:54 +0100
-Message-ID: <52078A16.7010907@newflow.co.uk>
+Subject: [PATCH v2] Add support for Newflow NanoBone board
+Date: Sun, 11 Aug 2013 14:25:31 +0100
+Message-ID: <520790CB.2040905@newflow.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 217-155-41-104.dsl.in-addr.zen.co.uk ([217.155.41.104]:54381
+Received: from 217-155-41-104.dsl.in-addr.zen.co.uk ([217.155.41.104]:54441
 	"EHLO centos1.newflow.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753425Ab3HKM44 (ORCPT
+	by vger.kernel.org with ESMTP id S1753462Ab3HKNZd (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 11 Aug 2013 08:56:56 -0400
+	Sun, 11 Aug 2013 09:25:33 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, gregkh@linuxfoundation.org, Tony Lindgren <tony@atomide.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: martinez.javier@gmail.com, Tony Lindgren <tony@atomide.com>, benoit.cousson@linaro.org
 
-This patch adds RS485 support to the OMAP serial driver, as
-defined in:-
+NanoBone Specification:
+-----------------------
+CPU:
+  TI AM335x
 
-Documentation/devicetree/bindings/serial/rs485.txt
+Memory:
+  256MB DDR3
+  128MB NOR flash
+  128KB FRAM
 
-When a UART transmitter is connected to (eg) a RS485 driver, it is
-necessary to turn the driver on/off as quickly as possible.  This is
-best achieved in the serial driver itself (rather than in userspace
-where the latency can be quite large).
+Ethernet:
+  2 x 10/100 connected to SMSC LAN8710 PHY
 
-This patch allows a GPIO pin to be defined (via DT) that controls
-the enabling of the driver at the start of a message, and disables
-the driver when the message has been completed.
+USB:
+  1 x USB2.0 Type A
 
-When RS485 is disabled, the RTS pin is set to on.
+I2C:
+  2Kbit EEPROM (Microchip 24AA02)
+  RTC (Maxim DS1338)
+  GPIO Expander (Microchip MCP23017)
+
+Expansion connector:
+  6 x UART
+  1 x MMC/SD
+  1 x USB2.0
 
 Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
+Reviewed-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 ---
- drivers/tty/serial/omap-serial.c |  177 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 177 insertions(+)
+Changes in v2:
+- Reworked to use existing device nodes as suggested by Javier
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index b6d1728..a1d8d47 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -40,9 +40,12 @@
- #include <linux/pm_runtime.h>
- #include <linux/of.h>
- #include <linux/gpio.h>
-+#include <linux/of_gpio.h>
- #include <linux/pinctrl/consumer.h>
- #include <linux/platform_data/serial-omap.h>
- 
-+#include <dt-bindings/gpio/gpio.h>
+ MAINTAINERS                       |    6 +
+ arch/arm/boot/dts/Makefile        |    1 +
+ arch/arm/boot/dts/am335x-nano.dts |  401 +++++++++++++++++++++++++++++=
+++++++++
+ 3 files changed, 408 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-nano.dts
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 9705318..7549e99 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5998,6 +5998,12 @@ L:	linux-omap@vger.kernel.org
+ S:	Maintained
+ F:	drivers/gpio/gpio-omap.c
+=20
++OMAP/NEWFLOW NANOBONE MACHINE SUPPORT
++M:	Mark Jackson <mpfj@newflow.co.uk>
++L:	linux-omap@vger.kernel.org
++S:	Maintained
++F:	arch/arm/boot/dts/am335x-nano.dts
 +
- #define OMAP_MAX_HSUART_PORTS	6
- 
- #define UART_BUILD_REVISION(x, y)	(((x) << 8) | (y))
-@@ -156,6 +159,9 @@ struct uart_omap_port {
- 	int			DTR_inverted;
- 	int			DTR_active;
- 
-+	struct serial_rs485	rs485;
-+	int			rts_gpio;
+ OMFS FILESYSTEM
+ M:	Bob Copeland <me@bobcopeland.com>
+ L:	linux-karma-devel@lists.sourceforge.net
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 641b3c9..0d99a55 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -171,6 +171,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) +=3D omap2420-h4.dtb \
+ 	am335x-evm.dtb \
+ 	am335x-evmsk.dtb \
+ 	am335x-bone.dtb \
++	am335x-nano.dtb \
+ 	am3517-evm.dtb \
+ 	am3517_mt_ventoux.dtb \
+ 	am43x-epos-evm.dtb
+diff --git a/arch/arm/boot/dts/am335x-nano.dts b/arch/arm/boot/dts/am33=
+5x-nano.dts
+new file mode 100644
+index 0000000..a8014ee
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-nano.dts
+@@ -0,0 +1,401 @@
++/*
++ * Copyright (C) 2013 Newflow Ltd - http://www.newflow.co.uk/
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
 +
- 	struct pm_qos_request	pm_qos_request;
- 	u32			latency;
- 	u32			calc_latency;
-@@ -272,13 +278,42 @@ static void serial_omap_enable_ms(struct uart_port *port)
- static void serial_omap_stop_tx(struct uart_port *port)
- {
- 	struct uart_omap_port *up = to_uart_omap_port(port);
-+	struct circ_buf *xmit = &up->port.state->xmit;
-+	int res;
- 
- 	pm_runtime_get_sync(up->dev);
++#include "am33xx.dtsi"
 +
-+	/* handle rs485 */
-+	if (up->rs485.flags & SER_RS485_ENABLED) {
-+		/* do nothing if current tx not yet completed */
-+		res = serial_in(up, UART_LSR) & UART_LSR_TEMT;
-+		if (!res)
-+			return;
++/ {
++	model =3D "Newflow AM335x NanoBone";
++	compatible =3D "ti,am33xx";
 +
-+		/* if there's no more data to send, turn off rts */
-+		if (uart_circ_empty(xmit)) {
-+			/* if rts not already disabled */
-+			res = (up->rs485.flags & SER_RS485_RTS_AFTER_SEND) ? 1 : 0;
-+			if (gpio_get_value(up->rts_gpio) != res) {
-+				if (up->rs485.delay_rts_after_send > 0) {
-+					mdelay(up->rs485.delay_rts_after_send);
-+				}
-+				gpio_set_value(up->rts_gpio, res);
-+			}
-+		}
-+	}
++	cpus {
++		cpu@0 {
++			cpu0-supply =3D <&dcdc2_reg>;
++		};
++	};
 +
- 	if (up->ier & UART_IER_THRI) {
- 		up->ier &= ~UART_IER_THRI;
- 		serial_out(up, UART_IER, up->ier);
- 	}
- 
-+	if ((up->rs485.flags & SER_RS485_ENABLED) &&
-+	    !(up->rs485.flags & SER_RS485_RX_DURING_TX)) {
-+		up->ier = UART_IER_RLSI | UART_IER_RDI;
-+		serial_out(up, UART_IER, up->ier);
-+	}
++	memory {
++		device_type =3D "memory";
++		reg =3D <0x80000000 0x10000000>; /* 256 MB */
++	};
 +
- 	pm_runtime_mark_last_busy(up->dev);
- 	pm_runtime_put_autosuspend(up->dev);
- }
-@@ -340,8 +375,26 @@ static inline void serial_omap_enable_ier_thri(struct uart_omap_port *up)
- static void serial_omap_start_tx(struct uart_port *port)
- {
- 	struct uart_omap_port *up = to_uart_omap_port(port);
-+	int res;
- 
- 	pm_runtime_get_sync(up->dev);
++	leds {
++		compatible =3D "gpio-leds";
 +
-+	/* handle rs485 */
-+	if (up->rs485.flags & SER_RS485_ENABLED) {
-+		/* if rts not already enabled */
-+		res = (up->rs485.flags & SER_RS485_RTS_ON_SEND) ? 1 : 0;
-+		if (gpio_get_value(up->rts_gpio) != res) {
-+			gpio_set_value(up->rts_gpio, res);
-+			if (up->rs485.delay_rts_before_send > 0) {
-+				mdelay(up->rs485.delay_rts_before_send);
-+			}
-+		}
-+	}
++		led@0 {
++			label =3D "nanobone:green:usr1";
++			gpios =3D <&gpio1 5 0>;
++			default-state =3D "off";
++		};
++	};
++};
 +
-+	if ((up->rs485.flags & SER_RS485_ENABLED) &&
-+	    !(up->rs485.flags & SER_RS485_RX_DURING_TX))
-+		serial_omap_stop_rx(port);
++&am33xx_pinmux {
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&misc_pins>;
 +
- 	serial_omap_enable_ier_thri(up);
- 	pm_runtime_mark_last_busy(up->dev);
- 	pm_runtime_put_autosuspend(up->dev);
-@@ -1254,6 +1307,77 @@ static inline void serial_omap_add_console_port(struct uart_omap_port *up)
- 
- #endif
- 
-+/* Enable or disable the rs485 support */
-+static void
-+serial_omap_config_rs485(struct uart_port *port, struct serial_rs485 *rs485conf)
-+{
-+	struct uart_omap_port *up = to_uart_omap_port(port);
-+	unsigned long flags;
-+	unsigned int mode;
-+	int val;
++	misc_pins: misc_pins {
++		pinctrl-single,pins =3D <
++			0x15c (PIN_OUTPUT | MUX_MODE7)	/* spi0_cs0.gpio0_5 */
++		>;
++	};
 +
-+	pm_runtime_get_sync(up->dev);
-+	spin_lock_irqsave(&up->port.lock, flags);
++	gpmc_pins: gpmc_pins {
++		pinctrl-single,pins =3D <
++			0x0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */
++			0x4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad1.gpmc_ad1 */
++			0x8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad2.gpmc_ad2 */
++			0xc (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad3.gpmc_ad3 */
++			0x10 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad4.gpmc_ad4 */
++			0x14 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad5.gpmc_ad5 */
++			0x18 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad6.gpmc_ad6 */
++			0x1c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad7.gpmc_ad7 */
++			0x20 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad8.gpmc_ad8 */
++			0x24 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad9.gpmc_ad9 */
++			0x28 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad10.gpmc_ad10 */
++			0x2c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad11.gpmc_ad11 */
++			0x30 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad12.gpmc_ad12 */
++			0x34 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad13.gpmc_ad13 */
++			0x38 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad14.gpmc_ad14 */
++			0x3c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad15.gpmc_ad15 */
 +
-+	up->ier &= ~(UART_IER_RLSI | UART_IER_RDI);
-+	serial_out(up, UART_IER, up->ier);
++			0x70 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_wait0.gpmc_wait0 */
++			0x7c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn0.gpmc_csn0 */
++			0x80 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn1.gpmc_csn1 */
++			0x84 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn2.gpmc_csn2 */
++			0x88 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn3.gpmc_csn3 */
 +
-+	/* Disable interrupts from this port */
-+	mode = up->ier;
-+	up->ier = 0;
-+	serial_out(up, UART_IER, 0);
++			0x90 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_advn_ale.gpmc_advn_ale */
++			0x94 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_oen_ren.gpmc_oen_ren */
++			0x98 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_wen.gpmc_wen */
++			0x9c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_ben0_cle.gpmc_ben0_cle */
 +
-+	/* store new config */
-+	up->rs485 = *rs485conf;
++			0xa4 (PIN_OUTPUT | MUX_MODE1)		/* lcd_data1.gpmc_a1 */
++			0xa8 (PIN_OUTPUT | MUX_MODE1)		/* lcd_data2.gpmc_a2 */
++			0xac (PIN_OUTPUT | MUX_MODE1)		/* lcd_data3.gpmc_a3 */
++			0xb0 (PIN_OUTPUT | MUX_MODE1)		/* lcd_data4.gpmc_a4 */
++			0xb4 (PIN_OUTPUT | MUX_MODE1)		/* lcd_data5.gpmc_a5 */
++			0xb8 (PIN_OUTPUT | MUX_MODE1)		/* lcd_data6.gpmc_a6 */
++			0xbc (PIN_OUTPUT | MUX_MODE1)		/* lcd_data7.gpmc_a7 */
 +
-+	/*
-+	 * Just as a precaution, only allow rs485
-+	 * to be enabled if the gpio pin is valid
-+	 */
-+	if (!gpio_is_valid(up->rts_gpio))
-+		up->rs485.flags &= ~SER_RS485_ENABLED;
++			0xe0 (PIN_OUTPUT | MUX_MODE1)		/* lcd_vsync.gpmc_a8 */
++			0xe4 (PIN_OUTPUT | MUX_MODE1)		/* lcd_hsync.gpmc_a9 */
++			0xe8 (PIN_OUTPUT | MUX_MODE1)		/* lcd_pclk.gpmc_a10 */
++		>;
++	};
 +
-+	/* enable / disable rts */
-+	val = (up->rs485.flags & SER_RS485_ENABLED) ?
-+		SER_RS485_RTS_ON_SEND : SER_RS485_RTS_AFTER_SEND;
-+	gpio_set_value(up->rts_gpio, val);
++	i2c0_pins: i2c0_pins {
++		pinctrl-single,pins =3D <
++			0x188 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
++			0x18c (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
++		>;
++	};
 +
-+	/* Enable interrupts */
-+	up->ier = mode;
-+	serial_out(up, UART_IER, up->ier);
++	uart0_pins: uart0_pins {
++		pinctrl-single,pins =3D <
++			0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
++			0x174 (PIN_OUTPUT | MUX_MODE0)		/* uart0_txd.uart0_txd */
++		>;
++	};
 +
-+	spin_unlock_irqrestore(&up->port.lock, flags);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
-+}
++	uart1_pins: uart1_pins {
++		pinctrl-single,pins =3D <
++			0x178 (PIN_OUTPUT | MUX_MODE7)		/* uart1_ctsn.uart1_ctsn */
++			0x17c (PIN_OUTPUT | MUX_MODE7)		/* uart1_rtsn.uart1_rtsn */
++			0x180 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart1_rxd.uart1_rxd */
++			0x184 (PIN_OUTPUT | MUX_MODE0)		/* uart1_txd.uart1_txd */
++		>;
++	};
 +
-+static int
-+serial_omap_ioctl(struct uart_port *port, unsigned int cmd, unsigned long arg)
-+{
-+	struct serial_rs485 rs485conf;
++	uart2_pins: uart2_pins {
++		pinctrl-single,pins =3D <
++			0xc0 (PIN_INPUT_PULLUP | MUX_MODE7)	/* lcd_data8.gpio2[14] */
++			0xc4 (PIN_OUTPUT | MUX_MODE7)		/* lcd_data9.gpio2[15] */
++			0x150 (PIN_INPUT | MUX_MODE1)		/* spi0_sclk.uart2_rxd */
++			0x154 (PIN_OUTPUT | MUX_MODE1)		/* spi0_d0.uart2_txd */
++		>;
++	};
 +
-+	switch (cmd) {
-+	case TIOCSRS485:
-+		if (copy_from_user(&rs485conf, (struct serial_rs485 *) arg,
-+					sizeof(rs485conf)))
-+			return -EFAULT;
++	uart3_pins: uart3_pins {
++		pinctrl-single,pins =3D <
++			0xc8 (PIN_INPUT_PULLUP | MUX_MODE6)	/* lcd_data10.uart3_ctsn */
++			0xcc (PIN_OUTPUT | MUX_MODE6)		/* lcd_data11.uart3_rtsn */
++			0x160 (PIN_INPUT | MUX_MODE1)		/* spi0_cs1.uart3_rxd */
++			0x164 (PIN_OUTPUT | MUX_MODE1)		/* ecap0_in_pwm0_out.uart3_txd */
++		>;
++	};
 +
-+		serial_omap_config_rs485(port, &rs485conf);
-+		break;
++	uart4_pins: uart4_pins {
++		pinctrl-single,pins =3D <
++			0xd0 (PIN_INPUT_PULLUP | MUX_MODE6)	/* lcd_data12.uart4_ctsn */
++			0xd4 (PIN_OUTPUT | MUX_MODE6)		/* lcd_data13.uart4_rtsn */
++			0x168 (PIN_INPUT | MUX_MODE1)		/* uart0_ctsn.uart4_rxd */
++			0x16c (PIN_OUTPUT | MUX_MODE1)		/* uart0_rtsn.uart4_txd */
++		>;
++	};
 +
-+	case TIOCGRS485:
-+		if (copy_to_user((struct serial_rs485 *) arg,
-+					&(to_uart_omap_port(port)->rs485),
-+					sizeof(rs485conf)))
-+			return -EFAULT;
-+		break;
++	uart5_pins: uart5_pins {
++		pinctrl-single,pins =3D <
++			0xd8 (PIN_INPUT | MUX_MODE4)		/* lcd_data14.uart5_rxd */
++			0x144 (PIN_OUTPUT | MUX_MODE3)		/* rmiii1_refclk.uart5_txd */
++		>;
++	};
 +
-+	default:
-+		return -ENOIOCTLCMD;
-+	}
-+	return 0;
-+}
++	mmc1_pins: mmc1_pins {
++		pinctrl-single,pins =3D <
++			0xf0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat0.mmc0_dat0 */
++			0xf4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat1.mmc0_dat1 */
++			0xf8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat2.mmc0_dat2 */
++			0xfc (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat3.mmc0_dat3 */
++			0x100 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_clk.mmc0_clk */
++			0x104 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_cmd.mmc0_cmd */
++		>;
++	};
++};
 +
- static struct uart_ops serial_omap_pops = {
- 	.tx_empty	= serial_omap_tx_empty,
- 	.set_mctrl	= serial_omap_set_mctrl,
-@@ -1275,6 +1399,7 @@ static struct uart_ops serial_omap_pops = {
- 	.request_port	= serial_omap_request_port,
- 	.config_port	= serial_omap_config_port,
- 	.verify_port	= serial_omap_verify_port,
-+	.ioctl		= serial_omap_ioctl,
- #ifdef CONFIG_CONSOLE_POLL
- 	.poll_put_char  = serial_omap_poll_put_char,
- 	.poll_get_char  = serial_omap_poll_get_char,
-@@ -1395,6 +1520,53 @@ static struct omap_uart_port_info *of_get_uart_port_info(struct device *dev)
- 	return omap_up_info;
- }
- 
-+static int serial_omap_probe_rs485(struct uart_omap_port *up,
-+				   struct device_node *np)
-+{
-+	struct serial_rs485 *rs485conf = &up->rs485;
-+	u32 rs485_delay[2];
-+	enum of_gpio_flags flags;
-+	int ret;
++&uart0 {
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&uart0_pins>;
++	status =3D "okay";
++};
 +
-+	rs485conf->flags = 0;
-+	up->rts_gpio = -EINVAL;
++&uart1 {
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&uart1_pins>;
++	status =3D "okay";
++	rts-gpio =3D <&gpio0 13 GPIO_ACTIVE_HIGH>;
++	rs485-rts-active-high;
++	rs485-rx-during-tx;
++	rs485-rts-delay =3D <1 1>;
++	linux,rs485-enabled-at-boot-time;
++};
 +
-+	if (!np)
-+		return 0;
++&uart2 {
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&uart2_pins>;
++	status =3D "okay";
++	rts-gpio =3D <&gpio2 15 GPIO_ACTIVE_HIGH>;
++	rs485-rts-active-high;
++	rs485-rts-delay =3D <1 1>;
++	linux,rs485-enabled-at-boot-time;
++};
 +
-+	if (of_property_read_bool(np, "rs485-rts-active-high"))
-+		rs485conf->flags |= SER_RS485_RTS_ON_SEND;
-+	else
-+		rs485conf->flags |= SER_RS485_RTS_AFTER_SEND;
++&uart3 {
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&uart3_pins>;
++	status =3D "okay";
++};
 +
-+	/* check for tx enable gpio */
-+	up->rts_gpio = of_get_named_gpio_flags(np, "rts-gpio", 0, &flags);
-+	if (gpio_is_valid(up->rts_gpio)) {
-+		ret = gpio_request(up->rts_gpio, "omap-serial");
-+		if (ret < 0)
-+			return ret;
-+		ret = gpio_direction_output(up->rts_gpio,
-+					    flags & SER_RS485_RTS_AFTER_SEND);
-+		if (ret < 0)
-+			return ret;
-+	} else
-+		up->rts_gpio = -EINVAL;
++&uart4 {
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&uart4_pins>;
++	status =3D "okay";
++};
 +
-+	if (of_property_read_u32_array(np, "rs485-rts-delay",
-+				    rs485_delay, 2) == 0) {
-+		rs485conf->delay_rts_before_send = rs485_delay[0];
-+		rs485conf->delay_rts_after_send = rs485_delay[1];
-+	}
++&uart5 {
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&uart5_pins>;
++	status =3D "okay";
++};
 +
-+	if (of_property_read_bool(np, "rs485-rx-during-tx"))
-+		rs485conf->flags |= SER_RS485_RX_DURING_TX;
++&i2c0 {
++	status =3D "okay";
++	pinctrl-names =3D "default";
++	clock-frequency =3D <400000>;
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&i2c0_pins>;
 +
-+	if (of_property_read_bool(np, "linux,rs485-enabled-at-boot-time"))
-+		rs485conf->flags |= SER_RS485_ENABLED;
++	gpio@20 {
++		compatible =3D "mcp,mcp23017";
++		reg =3D <0x20>;
++	};
 +
-+	return 0;
-+}
++	tps: tps@24 {
++		reg =3D <0x24>;
++	};
 +
- static int serial_omap_probe(struct platform_device *pdev)
- {
- 	struct uart_omap_port	*up;
-@@ -1468,6 +1640,10 @@ static int serial_omap_probe(struct platform_device *pdev)
- 		goto err_port_line;
- 	}
- 
-+	ret = serial_omap_probe_rs485(up, pdev->dev.of_node);
-+	if (ret < 0)
-+		goto err_rs485;
++	eeprom@53 {
++		compatible =3D "mcp,24c02";
++		reg =3D <0x53>;
++		pagesize =3D <8>;
++	};
 +
- 	up->pins = devm_pinctrl_get_select_default(&pdev->dev);
- 	if (IS_ERR(up->pins)) {
- 		dev_warn(&pdev->dev, "did not get pins for uart%i error: %li\n",
-@@ -1529,6 +1705,7 @@ err_add_port:
- 	pm_runtime_put(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
- err_ioremap:
-+err_rs485:
- err_port_line:
- 	dev_err(&pdev->dev, "[UART%d]: failure [%s]: %d\n",
- 				pdev->id, __func__, ret);
--- 
++	rtc@68 {
++		compatible =3D "dallas,ds1307";
++		reg =3D <0x68>;
++	};
++};
++
++&elm {
++	status =3D "okay";
++};
++
++&gpmc {
++	compatible =3D "ti,am3352-gpmc";
++	ti,hwmods =3D "gpmc";
++	status =3D "okay";
++	gpmc,num-waitpins =3D <2>;
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&gpmc_pins>;
++
++	#address-cells =3D <2>;
++	#size-cells =3D <1>;
++	ranges =3D <0 0 0x08000000 0x08000000>;	/* CS0: NOR 128M */
++		=20
++	nor@0,0 {
++		reg =3D <0 0x00000000 0x08000000>;
++		compatible =3D "cfi-flash";
++		linux,mtd-name =3D "spansion,s29gl010p11t";
++		bank-width =3D <2>;
++
++		gpmc,mux-add-data =3D <2>;
++
++		gpmc,sync-clk-ps =3D <0>;
++		gpmc,cs-on-ns =3D <0>;
++		gpmc,cs-rd-off-ns =3D <160>;
++		gpmc,cs-wr-off-ns =3D <160>;
++		gpmc,adv-on-ns =3D <10>;
++		gpmc,adv-rd-off-ns =3D <30>;
++		gpmc,adv-wr-off-ns =3D <30>;
++		gpmc,oe-on-ns =3D <40>;
++		gpmc,oe-off-ns =3D <160>;
++		gpmc,we-on-ns =3D <40>;
++		gpmc,we-off-ns =3D <160>;
++		gpmc,rd-cycle-ns =3D <160>;
++		gpmc,wr-cycle-ns =3D <160>;
++		gpmc,access-ns =3D <150>;
++		gpmc,page-burst-access-ns =3D <10>;
++		gpmc,cycle2cycle-samecsen;
++		gpmc,cycle2cycle-delay-ns =3D <20>;
++		gpmc,wr-data-mux-bus-ns =3D <70>;
++		gpmc,wr-access-ns =3D <80>;
++
++		#address-cells =3D <1>;
++		#size-cells =3D <1>;
++
++		/*
++		MTD partition table
++		=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
++		+------------+-->0x00000000-> U-Boot start
++		|            |
++		|            |-->0x000BFFFF-> U-Boot end
++		|            |-->0x000C0000-> ENV1 start
++		|            |
++		|            |-->0x000DFFFF-> ENV1 end
++		|            |-->0x000E0000-> ENV2 start
++		|            |
++		|            |-->0x000FFFFF-> ENV2 end
++		|            |-->0x00100000-> Kernel start
++		|            |
++		|            |-->0x004FFFFF-> Kernel end
++		|            |-->0x00500000-> File system start
++		|            |
++		|            |-->0x014FFFFF-> File system end
++		|            |-->0x01500000-> User data start
++		|            |
++		|            |-->0x03FFFFFF-> User data end
++		|            |-->0x04000000-> Data storage start
++		|            |
++		+------------+-->0x08000000-> NOR end (Free end)
++		*/
++		partition@0 {
++			label =3D "boot";
++			reg =3D <0x00000000 0x000c0000>; /* 768KB */
++		};
++
++		partition@1 {
++			label =3D "env1";
++			reg =3D <0x000c0000 0x00020000>; /* 128KB */
++		};
++
++		partition@2 {
++			label =3D "env2";
++			reg =3D <0x000e0000 0x00020000>; /* 128KB */
++		};
++
++		partition@3 {
++			label =3D "kernel";
++			reg =3D <0x00100000 0x00400000>; /* 4MB */
++		};
++
++		partition@4 {
++			label =3D "rootfs";
++			reg =3D <0x00500000 0x01000000>; /* 16MB */
++		};
++
++		partition@5 {
++			label =3D "user";
++			reg =3D <0x01500000 0x02b00000>; /* 43MB */
++		};
++
++		partition@6 {
++			label =3D "data";
++			reg =3D <0x04000000 0x04000000>; /* 64MB */
++		};
++	};
++};
++
++&mac {
++	dual_emac =3D <1>;
++};
++
++&cpsw_emac0 {
++	phy_id =3D <&davinci_mdio>, <0>;
++	dual_emac_res_vlan =3D <1>;
++};
++
++&cpsw_emac1 {
++	phy_id =3D <&davinci_mdio>, <1>;
++	dual_emac_res_vlan =3D <2>;
++};
++
++#include "tps65217.dtsi"
++
++&tps {
++	regulators {
++		dcdc1_reg: regulator@0 {
++			regulator-always-on;
++		};
++
++		dcdc2_reg: regulator@1 {
++			/* VDD_MPU voltage limits 0.95V - 1.26V with =C2=B14% tolerance */
++			regulator-name =3D "vdd_mpu";
++			regulator-min-microvolt =3D <925000>;
++			regulator-max-microvolt =3D <1325000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		dcdc3_reg: regulator@2 {
++			/* VDD_CORE voltage limits 0.95V - 1.1V with =C2=B14% tolerance */
++			regulator-name =3D "vdd_core";
++			regulator-min-microvolt =3D <925000>;
++			regulator-max-microvolt =3D <1150000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		ldo1_reg: regulator@3 {
++			regulator-always-on;
++		};
++
++		ldo2_reg: regulator@4 {
++			regulator-always-on;
++		};
++
++		ldo3_reg: regulator@5 {
++			regulator-min-microvolt =3D <1800000>;
++			regulator-max-microvolt =3D <3300000>;
++			regulator-always-on;
++		};
++
++		ldo4_reg: regulator@6 {
++			regulator-always-on;
++		};
++	};
++};
+--=20
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
