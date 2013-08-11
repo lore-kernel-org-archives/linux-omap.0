@@ -1,81 +1,61 @@
 From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH] Add support for Newflow NanoBone board
-Date: Sun, 11 Aug 2013 13:35:26 +0200
-Message-ID: <CAAwP0s2xHVNOBayEx-WnjB-XVbXco14tW5nOt17ZuLCuQ_qH1A@mail.gmail.com>
-References: <51DB0B85.7000102@newflow.co.uk> <52074AEA.4070205@newflow.co.uk>
+Subject: Re: [PATCH v2] N900: add device tree
+Date: Sun, 11 Aug 2013 13:50:24 +0200
+Message-ID: <CAAwP0s3uNQ0Mp_QDdPuu4ThQW+cT3F6x62gkU1ku9fWUAtXLHg@mail.gmail.com>
+References: <20130614212816.GA31768@atrey.karlin.mff.cuni.cz>
+ <20130617111031.GQ20992@atomide.com> <20130701211753.GC15318@amd.pavel.ucw.cz>
+ <20130704171939.GA27374@blackmetal.musicnaut.iki.fi> <20130704202145.GB10752@amd.pavel.ucw.cz>
+ <20130704203256.GB27374@blackmetal.musicnaut.iki.fi> <20130713121709.GC16473@amd.pavel.ucw.cz>
+ <20130714222819.GB3296@blackmetal.musicnaut.iki.fi> <20130728134409.GB5382@amd.pavel.ucw.cz>
+ <20130801234355.GA15611@amd.pavel.ucw.cz> <20130810110955.GA11437@amd.pavel.ucw.cz>
+ <CAAfyv34w1e+sAuB==-+Pj2gOO1auVNQgawcNC1Z4QfeqchRh3g@mail.gmail.com> <alpine.LNX.2.00.1308102226220.32627@pobox.suse.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:62483 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753194Ab3HKLfr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Aug 2013 07:35:47 -0400
-Received: by mail-vc0-f174.google.com with SMTP id gd11so2095089vcb.5
-        for <linux-omap@vger.kernel.org>; Sun, 11 Aug 2013 04:35:46 -0700 (PDT)
-In-Reply-To: <52074AEA.4070205@newflow.co.uk>
+Received: from mail-ve0-f170.google.com ([209.85.128.170]:37250 "EHLO
+	mail-ve0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753198Ab3HKLup (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Aug 2013 07:50:45 -0400
+In-Reply-To: <alpine.LNX.2.00.1308102226220.32627@pobox.suse.cz>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Jackson <mpfj-list@newflow.co.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: Pavel Machek <pavel@ucw.cz>, Belisko Marek <marek.belisko@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Andrew Morton <akpm@osdl.org>, Tony Lindgren <tony@atomide.com>, b-cousson@ti.com, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sun, Aug 11, 2013 at 10:27 AM, Mark Jackson <mpfj-list@newflow.co.uk> wrote:
-> On 08/07/13 19:57, Mark Jackson wrote:
->> NanoBone Specification:
->> -----------------------
->> CPU:
->>   TI AM335x @ 720MHz
->>
->> Memory:
->>   256MB DDR3
->>   128MB NOR flash
->>   128KB FRAM
->>
->> Ethernet:
->>   2 x 10/100 connected to SMSC LAN8710 PHY
->>
->> USB:
->>   1 x USB2.0 Type A
->>
->> I2C:
->>   2Kbit EEPROM (Microchip 24AA02)
->>   RTC (Maxim DS1338)
->>   GPIO Expander (Microchip MCP23017)
->>
->> Expansion connector:
->>   6 x UART
->>   1 x MMC/SD
->>   1 x USB2.0
->>
->> Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
->> ---
->>  MAINTAINERS                       |    6 +
->>  arch/arm/boot/dts/Makefile        |    1 +
->>  arch/arm/boot/dts/am335x-nano.dts |  388 +++++++++++++++++++++++++++++++++++++
->>  3 files changed, 395 insertions(+)
->>  create mode 100644 arch/arm/boot/dts/am335x-nano.dts
+On Sat, Aug 10, 2013 at 10:29 PM, Jiri Kosina <jkosina@suse.cz> wrote:
+> On Sat, 10 Aug 2013, Pavel Machek wrote:
 >
-> Any comments on this new board file ?
+>> [I wonder if this is clean-enough cause for "trivial in resubmit
+>> mode?]
+>
+> On Sat, 10 Aug 2013, Belisko Marek wrote:
+>
+>> Same for gta04 (omap3 based device) [1].
+>> It was send upstream 2 times and second time there is no reply from 1.3.2013.
+>
+> Hi guys,
+>
+> once I am able to match signoffs in the patches to MAINTAINERS, I can take
+> those through trivial.git in "re-transmission mode" (or feeeding those
+> thgough akpm si an option as well).
+>
+> Please just send the patches to me in a new thread properly with all the
+> Acks/Signoffs, and mark those appropriately (i.e. maintainer that would
+> normally push this upstream desurfaced).
+>
 
-Hi Mark,
+Hi folks,
 
-Overall it looks very good to me, I just have one small comment.
-Please don't redefine device nodes that are already defined in the
-included am33xx.dtsi file (pinmux, ocp, gpmc, etc). You should just
-use what is defined there instead of defining it again in your board
-DT file.
+I noticed that you are using Benoit older emails address
+(b-cousson@ti.com) which no longer exists instead of his new email
+address (benoit.cousson@linaro.org). So, it may be possible that
+Benoit have not even been getting your patches.
 
-Also these are IP modules that are internal details of the SoC so is
-better to keep them outside of board DT files definition.
+I'll send a patch to MAINTAINERS updating Benoit's email address so
+get_maintainer.pl will stop lying.
 
-Please take a look to my am33xx cleanups series [1] to see how it
-should be defined. Once you have made that changes feel free to add
-my:
-
-Reviewed-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-
-Benoit seems to be on holidays so please be patient with him taking your patch.
-
-[1]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg93738.html
+Jiri, is ok if I send this patch to you? I guess this falls into the
+trivial group.
 
 Thanks a lot and best regards,
 Javier
