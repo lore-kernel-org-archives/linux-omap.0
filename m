@@ -1,61 +1,163 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: RX51: kernel message spam from CPUfreq driver
-Date: Sun, 11 Aug 2013 16:13:39 +0200
-Message-ID: <20130811141336.GA24034@earth.universe>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH v2] N900: add device tree
+Date: Sun, 11 Aug 2013 17:02:42 +0200
+Message-ID: <CAAwP0s18PNn10q5qrzgi4Vz9t31AYuwBSthjE=rSdRb0FG0CFQ@mail.gmail.com>
+References: <20130613155240.GB3775@amd.pavel.ucw.cz> <20130613161418.GJ8164@atomide.com>
+ <20130613230808.GA14876@amd.pavel.ucw.cz> <20130614055629.GM8164@atomide.com>
+ <20130614212816.GA31768@atrey.karlin.mff.cuni.cz> <20130617111031.GQ20992@atomide.com>
+ <20130701211753.GC15318@amd.pavel.ucw.cz> <20130704171939.GA27374@blackmetal.musicnaut.iki.fi>
+ <20130704202145.GB10752@amd.pavel.ucw.cz> <20130704203256.GB27374@blackmetal.musicnaut.iki.fi>
+ <20130713121709.GC16473@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:44210 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753796Ab3HKOn6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 11 Aug 2013 10:43:58 -0400
-Content-Disposition: inline
+Received: from mail-ve0-f169.google.com ([209.85.128.169]:33932 "EHLO
+	mail-ve0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753826Ab3HKPDF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Aug 2013 11:03:05 -0400
+In-Reply-To: <20130713121709.GC16473@amd.pavel.ucw.cz>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, b-cousson@ti.com, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 
+Hi Pavel,
 
---pf9I7BMVVzbSWLtt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+some minor comments about your patch below
 
-Hi,
+On Sat, Jul 13, 2013 at 2:17 PM, Pavel Machek <pavel@ucw.cz> wrote:
+>
+> This adds device tree with neccessary support to boot with functional
+> video (on both emulator and real N900 device).
+>
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+>
+> ---
+>
+> From v1: Aaro wants just GPLv2, so I did that. I re-enabled parts that
+> can be enabled on 3.10, and tested it on that kernel.
+>
+> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+> index f0895c5..1950aed 100644
+> --- a/arch/arm/boot/dts/Makefile
+> +++ b/arch/arm/boot/dts/Makefile
+> @@ -141,6 +141,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+>         omap3-devkit8000.dtb \
+>         omap3-beagle-xm.dtb \
+>         omap3-evm.dtb \
+> +       omap3-n900.dtb \
+>         omap3-tobi.dtb \
+>         omap3-igep0020.dtb \
+>         omap3-igep0030.dtb \
+> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+> new file mode 100644
+> index 0000000..fb461bf
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/omap3-n900.dts
+> @@ -0,0 +1,92 @@
+> +/*
+> + * Copyright (C) 2013 Pavel Machek <pavel@ucw.cz>
+> + * Copyright 2013 Aaro Koskinen <aaro.koskinen@iki.fi>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +/dts-v1/;
+> +
+> +/include/ "omap34xx.dtsi"
+> +
 
-On RX-51 (Nokia N900) the (mainline) kernel constantly outputs the
-following message about 2-3x per second since some releases:
+The current trend is to use #include "omap34xx.dtsi" instead /include/
+in order to use the C pre-processor and the macros defined in
+include/dt-bindings.
 
-[ 1038.314514] cpu cpu0: CPUfreq: Cannot find matching frequency for 125000000
+> +/ {
+> +       model = "Nokia N900";
+> +       compatible = "nokia,omap3-n900", "ti,omap3";
+> +
+> +       cpus {
+> +               cpu@0 {
+> +                       cpu0-supply = <&vcc>;
+> +               };
+> +       };
+> +
+> +       memory {
+> +               device_type = "memory";
+> +               reg = <0x80000000 0x10000000>; /* 256 MB */
+> +       };
+> +
+> +};
+> +
+> +&i2c1 {
+> +       clock-frequency = <2200000>;
+> +
+> +       twl: twl@48 {
+> +               reg = <0x48>;
+> +               interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+> +               interrupt-parent = <&intc>;
+> +       };
+> +};
+> +
+> +/include/ "twl4030.dtsi"
+> +
+> +&twl_gpio {
+> +       ti,pullups      = <0x0>;
+> +       ti,pulldowns    = <0x03ff3f>; /* BIT(0..5) | BIT(8..17) */
+> +};
+> +
+> +&i2c2 {
+> +       clock-frequency = <400000>;
+> +};
+> +
+> +&i2c3 {
+> +       clock-frequency = <100000>;
+> +};
+> +
+> +&mmc1 {
+> +       status = "disabled";
+> +};
+> +
+> +&mmc2 {
+> +       status = "disabled";
+> +};
+> +
+> +&mmc3 {
+> +       status = "disabled";
+> +};
+> +
+> +&mcspi1 {
+> +       // For some reason, touchscreen is neccessary for screen to work at
+> +       // all on real hw. It works well without it on emulator.
+> +       //
+> +       // Also... order in the device tree actually matters here.
+> +       tsc2005@0 {
+> +               compatible = "tsc2005";
+> +               spi-max-frequency = <6000000>;
+> +               reg = <0>;
+> +       };
+> +       mipid@2 {
+> +               compatible = "acx565akm";
+> +               spi-max-frequency = <6000000>;
+> +               reg = <2>;
+> +               // turbo_mode = 0,
+> +               // cs_per_word = 0
+> +       };
+> +};
 
-(The message is from drivers/cpufreq/omap-cpufreq.c, line 100)
+You should remove these properties if they are not being used instead
+of keeping them as commented.
 
-This is really annoying and makes debug output without a "grep -v"
-basically useless. Can you give me some hints how to solve the
-problem?
+> +
+> +&usb_otg_hs {
+> +       interface-type = <0>;
+> +       usb-phy = <&usb2_phy>;
+> +       mode = <2>;
+> +       power = <50>;
+> +};
+>
+> --
 
--- Sebastian
-
---pf9I7BMVVzbSWLtt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSB5wQAAoJENju1/PIO/qaJJcP+wYP45JphRHymF1AwBlZnyPb
-GEu+BEh551/QRMvmX3yTybWwVYGmObBYQZHVYsMxWdhDBEBt67vCiXtEqXQXcsEV
-9VbWpyPLp8VK767rJJa8RvP555EC7K5K1IN4BCgzYahJYXSu2feG8PfArVj2ykYr
-wAaVtxWoOxXVgNtXkWHupSyc0OmXeH9I+jegCSvvzrMZroxx4kurJgF3qWYIv1La
-pJxwkElhCnv7/m/Yry1lovTUhb7ZyT7szBHanE5cbpXDLvpnG7rwczWEA4fepb76
-wV/kIzKR32P7z72qoPf2mKjHSG6dCPd6zy7FDGYog+YCOYlsVldqghr0lvc8+y2u
-+IB4i9Wsic5gAyy+nClyybxCOTXuepcL75ii80kHcayDAN+5v96DfuGIOcaf1rBy
-3rAf/H6TQDJejI0RSG6JJd9Oq/kCBdoeHkLf/TfiknEbaxO3AyJYIS2+kY5eDXZ2
-WxAfloTdTtMgZhbn6iKiJsRd/GsrZAwv8EARLeIR46oyucLKF4D0PprH5s9TW2He
-shC7jFvRRetPB9E+7HV2CfSn/zzPHsFSgC5YfOOBukrfkrjzf5BZnAKXdTtTqkzM
-Rs+Y4wrtZhbJogfsXCezuu+yhnZv8nUvRqIWS7S5tkM1BKAhTtXl9KRqLvM4R1vC
-6QS5HxY3VPR7xyJFB+VV
-=RvoJ
------END PGP SIGNATURE-----
-
---pf9I7BMVVzbSWLtt--
+Thanks a lot and best regards,
+Javier
