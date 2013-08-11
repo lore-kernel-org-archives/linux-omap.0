@@ -1,39 +1,86 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [PATCH v2] N900: add device tree
-Date: Sat, 10 Aug 2013 22:29:17 +0200 (CEST)
-Message-ID: <alpine.LNX.2.00.1308102226220.32627@pobox.suse.cz>
-References: <20130614212816.GA31768@atrey.karlin.mff.cuni.cz> <20130617111031.GQ20992@atomide.com> <20130701211753.GC15318@amd.pavel.ucw.cz> <20130704171939.GA27374@blackmetal.musicnaut.iki.fi> <20130704202145.GB10752@amd.pavel.ucw.cz>
- <20130704203256.GB27374@blackmetal.musicnaut.iki.fi> <20130713121709.GC16473@amd.pavel.ucw.cz> <20130714222819.GB3296@blackmetal.musicnaut.iki.fi> <20130728134409.GB5382@amd.pavel.ucw.cz> <20130801234355.GA15611@amd.pavel.ucw.cz> <20130810110955.GA11437@amd.pavel.ucw.cz>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: OMAP device tree maintainance (was Re: [PATCH v2] N900: add device
+ tree)
+Date: Sun, 11 Aug 2013 02:55:07 +0200
+Message-ID: <20130811005507.GA29513@amd.pavel.ucw.cz>
+References: <20130704171939.GA27374@blackmetal.musicnaut.iki.fi>
+ <20130704202145.GB10752@amd.pavel.ucw.cz>
+ <20130704203256.GB27374@blackmetal.musicnaut.iki.fi>
+ <20130713121709.GC16473@amd.pavel.ucw.cz>
+ <20130714222819.GB3296@blackmetal.musicnaut.iki.fi>
+ <20130728134409.GB5382@amd.pavel.ucw.cz>
+ <20130801234355.GA15611@amd.pavel.ucw.cz>
+ <20130810110955.GA11437@amd.pavel.ucw.cz>
  <CAAfyv34w1e+sAuB==-+Pj2gOO1auVNQgawcNC1Z4QfeqchRh3g@mail.gmail.com>
+ <alpine.LNX.2.00.1308102226220.32627@pobox.suse.cz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAAfyv34w1e+sAuB==-+Pj2gOO1auVNQgawcNC1Z4QfeqchRh3g@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.00.1308102226220.32627@pobox.suse.cz>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, Belisko Marek <marek.belisko@gmail.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Andrew Morton <akpm@osdl.org>, Tony Lindgren <tony@atomide.com>, b-cousson@ti.com, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: Belisko Marek <marek.belisko@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Andrew Morton <akpm@osdl.org>, Tony Lindgren <tony@atomide.com>, b-cousson@ti.com, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, 10 Aug 2013, Pavel Machek wrote:
+Hi!
 
-> [I wonder if this is clean-enough cause for "trivial in resubmit
-> mode?]
+> > [I wonder if this is clean-enough cause for "trivial in resubmit
+> > mode?]
+>=20
+> On Sat, 10 Aug 2013, Belisko Marek wrote:
+>=20
+> > Same for gta04 (omap3 based device) [1].
+> > It was send upstream 2 times and second time there is no reply from=
+ 1.3.2013.
+>=20
+> Hi guys,
+>=20
+> once I am able to match signoffs in the patches to MAINTAINERS, I can=
+ take=20
+> those through trivial.git in "re-transmission mode" (or feeeding thos=
+e=20
+> thgough akpm si an option as well).
+>=20
+> Please just send the patches to me in a new thread properly with all =
+the=20
+> Acks/Signoffs, and mark those appropriately (i.e. maintainer that wou=
+ld=20
+> normally push this upstream desurfaced).
 
-On Sat, 10 Aug 2013, Belisko Marek wrote:
+Mail sent (just to you, to keep mail volume down).
 
-> Same for gta04 (omap3 based device) [1].
-> It was send upstream 2 times and second time there is no reply from 1.3.2013.
+I noticed two non-delivery reports in my INBOX; seems Benoit
+disappeared rather permanently:
 
-Hi guys,
+=2E..
+If you do so, please include this problem report. You can
+delete your own text from the attached returned message.
+=20
+                   The mail system
+=20
+<b-cousson@ti.com>: host cluster5.us.messagelabs.com[216.82.250.99]
+said: 550  =20
+    Invalid recipient <b-cousson@ti.com> (#5.1.1) (in reply to RCPT TO
+    command)
+=20
 
-once I am able to match signoffs in the patches to MAINTAINERS, I can take 
-those through trivial.git in "re-transmission mode" (or feeeding those 
-thgough akpm si an option as well).
+=2E..so maybe MAINTAINERS file will need fixing?
 
-Please just send the patches to me in a new thread properly with all the 
-Acks/Signoffs, and mark those appropriately (i.e. maintainer that would 
-normally push this upstream desurfaced).
+OMAP DEVICE TREE SUPPORT
+M:      Beno=EEt Cousson <b-cousson@ti.com>
+M:      Tony Lindgren <tony@atomide.com>
+L:      linux-omap@vger.kernel.org
+L:      devicetree@vger.kernel.org
+S:      Maintained
+=46:      arch/arm/boot/dts/*omap*
+=46:      arch/arm/boot/dts/*am3*
 
--- 
-Jiri Kosina
-SUSE Labs
+:-(. Thanks,
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
