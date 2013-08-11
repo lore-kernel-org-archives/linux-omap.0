@@ -1,14 +1,15 @@
 From: Sebastian Reichel <sre@debian.org>
-Subject: [PATCH 1/3] ARM: OMAP2+: hwmod-data: Add SSI information
-Date: Sun, 11 Aug 2013 18:17:55 +0200
-Message-ID: <1376237877-1740-1-git-send-email-sre@debian.org>
+Subject: [PATCH 3/3] ARM: OMAP2+: Add SSI driver configuration
+Date: Sun, 11 Aug 2013 18:17:57 +0200
+Message-ID: <1376237877-1740-3-git-send-email-sre@debian.org>
 References: <1376237628-1077-1-git-send-email-sre@debian.org>
+ <1376237877-1740-1-git-send-email-sre@debian.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:44556 "EHLO smtp.ring0.de"
+Received: from ring0.de ([91.143.88.219]:44562 "EHLO smtp.ring0.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754185Ab3HKQSh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 11 Aug 2013 12:18:37 -0400
-In-Reply-To: <1376237628-1077-1-git-send-email-sre@debian.org>
+	id S1754195Ab3HKQSm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 11 Aug 2013 12:18:42 -0400
+In-Reply-To: <1376237877-1740-1-git-send-email-sre@debian.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-kernel@vger.kernel.org
@@ -16,134 +17,159 @@ Cc: linux-omap@vger.kernel.org, linus.walleij@linaro.org, Kevin Hilman <khilman@
 
 From: Sebastian Reichel <sre@ring0.de>
 
-This patch adds Synchronous Serial Interface (SSI) hwmod support for
-OMAP34xx SoCs.
+This patch configures and activates the OMAP SSI driver on the RX-51.
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  104 ++++++++++++++++++++++++++++
- 1 file changed, 104 insertions(+)
+ arch/arm/mach-omap2/Makefile                 |    4 ++
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   10 +++-
+ arch/arm/mach-omap2/ssi.c                    |   82 ++++++++++++++++++++++++++
+ 3 files changed, 95 insertions(+), 1 deletion(-)
+ create mode 100644 arch/arm/mach-omap2/ssi.c
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 0c3a427..74006c4 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -3693,6 +3693,109 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_core__aes = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index d4f6715..ace860d 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -222,6 +222,10 @@ ifneq ($(CONFIG_DRM_OMAP),)
+ obj-y					+= drm.o
+ endif
+ 
++# Synchronous Serial Interface (SSI)
++omap-ssi-$(CONFIG_OMAP_SSI)		:= ssi.o
++obj-y					+= $(omap-ssi-m) $(omap-ssi-y)
++
+ # Specific board support
+ obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+ obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 9c2dd10..e2ca155 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -27,6 +27,7 @@
+ #include <linux/power/isp1704_charger.h>
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ #include <linux/platform_data/mtd-onenand-omap2.h>
++#include <linux/platform_data/hsi-omap-ssi.h>
+ 
+ #include <asm/system_info.h>
+ 
+@@ -73,6 +74,8 @@
+ #define LIS302_IRQ1_GPIO 181
+ #define LIS302_IRQ2_GPIO 180  /* Not yet in use */
+ 
++#define RX51_CAWAKE_GPIO 151
++
+ /* List all SPI devices here. Note that the list/probe order seems to matter! */
+ enum {
+ 	RX51_SPI_WL1251,
+@@ -265,6 +268,11 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
+ 	},
  };
  
++static struct omap_ssi_board_config ssi_board_config = {
++	.num_ports = 1,
++	.cawake_gpio = { RX51_CAWAKE_GPIO },
++};
++
+ static struct platform_device rx51_battery_device = {
+ 	.name	= "rx51-battery",
+ 	.id	= -1,
+@@ -1295,7 +1303,7 @@ void __init rx51_peripherals_init(void)
+ 	if (partition)
+ 		omap_hsmmc_init(mmc);
+ 
++	omap_ssi_config(&ssi_board_config);
+ 	rx51_charger_init();
+ 	rx51_init_twl4030_hwmon();
+ }
+-
+diff --git a/arch/arm/mach-omap2/ssi.c b/arch/arm/mach-omap2/ssi.c
+new file mode 100644
+index 0000000..a9d6eee
+--- /dev/null
++++ b/arch/arm/mach-omap2/ssi.c
+@@ -0,0 +1,82 @@
 +/*
-+ * 'ssi' class
-+ * synchronous serial interface (multichannel and full-duplex serial if)
++ * linux/arch/arm/mach-omap2/ssi.c
++ *
++ * Copyright (C) 2010 Nokia Corporation. All rights reserved.
++ *
++ * Contact: Carlos Chinea <carlos.chinea@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
 + */
 +
-+static struct omap_hwmod_class_sysconfig omap34xx_ssi_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_EMUFREE |
-+			   SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
-+			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/err.h>
++#include <linux/gpio.h>
++#include <linux/platform_device.h>
++#include <linux/platform_data/hsi-omap-ssi.h>
++#include "omap_hwmod.h"
++#include "omap_device.h"
++#include "omap-pm.h"
++
++static struct omap_ssi_platform_data ssi_pdata = {
++	.num_ports      = SSI_NUM_PORTS,
++	.cawake_gpio    = {0},
++	.get_dev_context_loss_count  = omap_pm_get_dev_context_loss_count,
 +};
 +
-+static struct omap_hwmod_class omap34xx_ssi_hwmod_class = {
-+	.name	= "ssi",
-+	.sysc	= &omap34xx_ssi_sysc,
-+};
++int __init omap_ssi_config(struct omap_ssi_board_config *ssi_config)
++{
++	unsigned int port, offset, cawake_gpio;
++	int err;
 +
-+static struct omap_hwmod_irq_info omap34xx_ssi_irqs[] = {
-+	{ .name = "ssi_p1_mpu_irq0", .irq = 67 },
-+	{ .name = "ssi_p1_mpu_irq1", .irq = 68 },
-+	{ .name = "ssi_p2_mpu_irq0", .irq = 69 },
-+	{ .name = "ssi_p2_mpu_irq1", .irq = 70 },
-+	{ .name = "ssi_gdd_mpu",     .irq = 71 },
-+	{ .irq = -1 },
-+};
++	ssi_pdata.num_ports = ssi_config->num_ports;
 +
-+static struct omap_hwmod_addr_space omap34xx_ssi_addrs[] = {
-+	{
-+		.name		= "sys",
-+		.pa_start	= 0x48058000,
-+		.pa_end		= 0x48058fff,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+	{
-+		/* generic distributed DMA */
-+		.name		= "gdd",
-+		.pa_start	= 0x48059000,
-+		.pa_end		= 0x48059fff,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+	{
-+		/* port 1: synchronous serial transmitter */
-+		.name		= "p1_sst",
-+		.pa_start	= 0x4805a000,
-+		.pa_end		= 0x4805a7ff,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+	{
-+		/* port 1: synchronous serial receiver */
-+		.name		= "p1_ssr",
-+		.pa_start	= 0x4805a800,
-+		.pa_end		= 0x4805afff,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+	{
-+		/* port 2: synchronous serial transmitter */
-+		.name		= "p2_sst",
-+		.pa_start	= 0x4805b000,
-+		.pa_end		= 0x4805b7ff,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+	{
-+		/* port 2: synchronous serial receiver */
-+		.name		= "p2_ssr",
-+		.pa_start	= 0x4805b800,
-+		.pa_end		= 0x4805bfff,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+	{}
-+};
++	for (port = 0, offset = 7; port < ssi_config->num_ports; port++, offset += 5) {
++		cawake_gpio = ssi_config->cawake_gpio[port];
++		if (!cawake_gpio)
++			continue; /* Nothing to do */
++		err = gpio_request(cawake_gpio, "cawake");
++		if (err < 0)
++			goto rback;
++		gpio_direction_input(cawake_gpio);
 +
-+static struct omap_hwmod omap34xx_ssi_hwmod = {
-+	.name		= "ssi",
-+	.class		= &omap34xx_ssi_hwmod_class,
-+	.clkdm_name	= "l3_init_clkdm",
-+	.mpu_irqs	= omap34xx_ssi_irqs,
-+	.main_clk	= "ssi_ssr_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id		= 1,
-+			.module_bit		= OMAP3430_EN_SSI_SHIFT,
-+			.module_offs		= WKUP_MOD,
-+			.idlest_reg_id		= 1,
-+			.idlest_idle_bit	= OMAP3430ES2_ST_SSI_IDLE_SHIFT,
-+		},
-+	},
-+};
++		ssi_pdata.cawake_gpio[port] = ssi_config->cawake_gpio[port];
++	}
 +
-+/* SSI -> l3 */
-+static struct omap_hwmod_ocp_if omap34xx_l3__ssi = {
-+	.master		= &omap3xxx_l3_main_hwmod,
-+	.slave		= &omap34xx_ssi_hwmod,
-+	.clk		= "ssi_ick",
-+	.addr		= omap34xx_ssi_addrs,
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
++	return 0;
 +
- static struct omap_hwmod_ocp_if *omap3xxx_hwmod_ocp_ifs[] __initdata = {
- 	&omap3xxx_l3_main__l4_core,
- 	&omap3xxx_l3_main__l4_per,
-@@ -3818,6 +3921,7 @@ static struct omap_hwmod_ocp_if *omap34xx_hwmod_ocp_ifs[] __initdata = {
- #ifdef CONFIG_OMAP_IOMMU_IVA2
- 	&omap3xxx_l3_main__mmu_iva,
- #endif
-+	&omap34xx_l3__ssi,
- 	NULL
- };
- 
++rback:
++	pr_err("omap-ssi: Request cawake (gpio%d) failed\n", cawake_gpio);
++	while (port > 0)
++		gpio_free(ssi_config->cawake_gpio[--port]);
++
++	return err;
++}
++
++static int __init omap_ssi_init(void)
++{
++	struct omap_hwmod *oh;
++	struct platform_device *pdev;
++
++	oh = omap_hwmod_lookup("ssi");
++	if (!oh)
++		return -EINVAL;
++
++	pdev = omap_device_build("omap_ssi", 0, oh, &ssi_pdata, sizeof(struct omap_ssi_platform_data));
++	WARN(IS_ERR(pdev), "Can't build omap_device for omap_ssi\n");
++
++	return 0;
++}
++subsys_initcall(omap_ssi_init);
 -- 
 1.7.10.4
 
