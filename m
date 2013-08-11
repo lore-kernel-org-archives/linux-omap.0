@@ -1,75 +1,63 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH v2 1/1] =?UTF-8?q?MAINTAINERS:=20update=20Beno=C3=AEt=20Cousson?= =?UTF-8?q?=20email=20address?=
-Date: Sun, 11 Aug 2013 17:21:05 +0200
-Message-ID: <1376234465-15476-1-git-send-email-javier.martinez@collabora.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Sebastian Reichel <sre@debian.org>
+Subject: [RFC PATCH 0/3] OMAP SSI driver
+Date: Sun, 11 Aug 2013 18:13:45 +0200
+Message-ID: <1376237628-1077-1-git-send-email-sre@debian.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:55871 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753832Ab3HKPVN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Aug 2013 11:21:13 -0400
+Received: from ring0.de ([91.143.88.219]:44532 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754132Ab3HKQPd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 11 Aug 2013 12:15:33 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jiri Kosina <jkosina@suse.cz>
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <benoit.cousson@linaro.org>, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, Belisko Marek <marek.belisko@gmail.com>, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: linux-kernel@vger.kernel.org
+Cc: Sebastian Reichel <sre@debian.org>, linux-omap@vger.kernel.org, linus.walleij@linaro.org, Kevin Hilman <khilman@deeprootsystems.com>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>
 
-Using the email address listed on MAINTAINERS I keep
-getting SMTP 550 Invalid recipient errors.
+Hi !
 
-Update with what seems to be current Beno=C3=AEt's email
-address to make get_maintainer.pl to stop lying.
+This patchset adds an OMAP SSI driver to the HSI framework.
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.u=
-k>
----
+After leaving Nokia Carlos Chinea had no more time to work on this patchset;
+Thus I tried updating the driver to fix the mentioned issues.
 
-Patch on top of Linus's commit c095ba72 ("Linux 3.11-rc4").
+I applied the following changes to the last patch from Carlos:
 
-Changes since v1:
- - I mostly send DT patches to Beno=C3=AEt but now I noticed that
-   he also maintains other subsystems. Update the patch to
-   change all his MAINTAINERS entries.
+ * convert driver to use hwmod and add SSI information to hwmod database
+ * convert driver to use runtime_pm
+ * change platform data, so that it forwards the wake_gpio to avoid irq_to_gpio
+ * move the ssi.h and rename to hsi-omap-ssi.h (multiplatform support)
 
- MAINTAINERS |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+The code compiles and is initialized on the RX51. I also verified, that it
+does not break the boot on my Pandaboard.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index defc053..3466423 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -5879,7 +5879,7 @@ F:	drivers/i2c/busses/i2c-omap.c
- F:	include/linux/i2c-omap.h
-=20
- OMAP DEVICE TREE SUPPORT
--M:	Beno=C3=AEt Cousson <b-cousson@ti.com>
-+M:	Beno=C3=AEt Cousson <benoit.cousson@linaro.org>
- M:	Tony Lindgren <tony@atomide.com>
- L:	linux-omap@vger.kernel.org
- L:	devicetree@vger.kernel.org
-@@ -5959,14 +5959,14 @@ S:	Maintained
- F:	drivers/char/hw_random/omap-rng.c
-=20
- OMAP HWMOD SUPPORT
--M:	Beno=C3=AEt Cousson <b-cousson@ti.com>
-+M:	Beno=C3=AEt Cousson <benoit.cousson@linaro.org>
- M:	Paul Walmsley <paul@pwsan.com>
- L:	linux-omap@vger.kernel.org
- S:	Maintained
- F:	arch/arm/mach-omap2/omap_hwmod.*
-=20
- OMAP HWMOD DATA FOR OMAP4-BASED DEVICES
--M:	Beno=C3=AEt Cousson <b-cousson@ti.com>
-+M:	Beno=C3=AEt Cousson <benoit.cousson@linaro.org>
- L:	linux-omap@vger.kernel.org
- S:	Maintained
- F:	arch/arm/mach-omap2/omap_hwmod_44xx_data.c
---=20
-1.7.7.6
+The driver has been written by Carlos Chinea and has already been sent for
+public review as part of the HSI framework RFC before:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ https://lkml.org/lkml/2011/6/10/280
+
+-- Sebastian
+
+Sebastian Reichel (3):
+  ARM: OMAP2+: hwmod-data: Add SSI information
+  ARM: OMAP2+: HSI: Introduce OMAP SSI driver
+  ARM: OMAP2+: Add SSI driver configuration
+
+ arch/arm/mach-omap2/Makefile                 |    4 +
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   10 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |  104 ++
+ arch/arm/mach-omap2/ssi.c                    |   82 ++
+ drivers/hsi/Kconfig                          |    1 +
+ drivers/hsi/Makefile                         |    1 +
+ drivers/hsi/controllers/Kconfig              |   23 +
+ drivers/hsi/controllers/Makefile             |    5 +
+ drivers/hsi/controllers/omap_ssi.c           | 1879 ++++++++++++++++++++++++++
+ include/linux/platform_data/hsi-omap-ssi.h   |  202 +++
+ 10 files changed, 2310 insertions(+), 1 deletion(-)
+ create mode 100644 arch/arm/mach-omap2/ssi.c
+ create mode 100644 drivers/hsi/controllers/Kconfig
+ create mode 100644 drivers/hsi/controllers/Makefile
+ create mode 100644 drivers/hsi/controllers/omap_ssi.c
+ create mode 100644 include/linux/platform_data/hsi-omap-ssi.h
+
+-- 
+1.7.10.4
+
