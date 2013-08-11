@@ -1,106 +1,62 @@
-From: =?UTF-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?=
-	<freemangordon@abv.bg>
-Subject: Re: [PATCH v3 1/2] ARM: OMAP: Add secure function omap_smc3() which calling instruction smc #1
-Date: Sun, 11 Aug 2013 21:36:40 +0300 (EEST)
-Message-ID: <2121638991.49538.1376246200421.JavaMail.apache@mail81.abv.bg>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] drop unused omap defines for v3.12 merge window
+Date: Sun, 11 Aug 2013 16:39:10 -0700
+Message-ID: <20130811233910.GG26757@quad.lixom.net>
+References: <20130807110812.GK7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Martin <Dave.Martin@arm.com>
-Cc: pali.rohar@gmail.com, tony@atomide.com, nm@ti.com, linux@arm.linux.org.uk, aaro.koskinen@iki.fi, pdeschrijver@nvidia.com, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, pavel@ucw.cz, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:54707 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755149Ab3HKXjy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Aug 2013 19:39:54 -0400
+Received: by mail-pb0-f52.google.com with SMTP id wz12so6194878pbc.25
+        for <linux-omap@vger.kernel.org>; Sun, 11 Aug 2013 16:39:54 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20130807110812.GK7656@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@linaro.org
 
-  >-------- =D0=9E=D1=80=D0=B8=D0=B3=D0=B8=D0=BD=D0=B0=D0=BB=D0=BD=D0=BE=
- =D0=BF=D0=B8=D1=81=D0=BC=D0=BE --------
- >=D0=9E=D1=82:  Dave Martin=20
- >=D0=9E=D1=82=D0=BD=D0=BE=D1=81=D0=BD=D0=BE: Re: [PATCH v3 1/2] ARM: O=
-MAP: Add secure function omap_smc3() which
- calling instruction smc #1
- >=D0=94=D0=BE: Pali Roh=C3=A1r=20
- >=D0=98=D0=B7=D0=BF=D1=80=D0=B0=D1=82=D0=B5=D0=BD=D0=BE =D0=BD=D0=B0: =
-=D0=9F=D0=BE=D0=BD=D0=B5=D0=B4=D0=B5=D0=BB=D0=BD=D0=B8=D0=BA, 2013, =D0=
-=90=D0=B2=D0=B3=D1=83=D1=81=D1=82 5 16:29:44 EEST
- >
- >
- >On Sun, Aug 04, 2013 at 10:45:00AM +0200, Pali Roh=C3=A1r wrote:
- >> Here is new version (v3) of omap secure part patch:
- >>=20
- >> Other secure functions omap_smc1() and omap_smc2() calling instruct=
-ion smc #0
- >> but Nokia RX-51 board needs to call smc #1 for PPA access.
- >>=20
- >> Signed-off-by: Ivaylo Dimitrov=20
- >> Signed-off-by: Pali Roh=C3=A1r=20
- >> ---
- >> diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap=
-2/omap-secure.h
- >> index 0e72917..c4586f4 100644
- >> --- a/arch/arm/mach-omap2/omap-secure.h
- >> +++ b/arch/arm/mach-omap2/omap-secure.h
- >> @@ -51,6 +51,7 @@
- >>  extern u32 omap_secure_dispatcher(u32 idx, u32 flag, u32 nargs,
- >>  				u32 arg1, u32 arg2, u32 arg3, u32 arg4);
- >>  extern u32 omap_smc2(u32 id, u32 falg, u32 pargs);
- >> +extern u32 omap_smc3(u32 id, u32 process, u32 flag, u32 pargs);
- >>  extern phys_addr_t omap_secure_ram_mempool_base(void);
- >>  extern int omap_secure_ram_reserve_memblock(void);
- >> =20
- >> diff --git a/arch/arm/mach-omap2/omap-smc.S b/arch/arm/mach-omap2/o=
-map-smc.S
- >> index f6441c1..7bbc043 100644
- >> --- a/arch/arm/mach-omap2/omap-smc.S
- >> +++ b/arch/arm/mach-omap2/omap-smc.S
- >> @@ -1,9 +1,11 @@
- >>  /*
- >> - * OMAP44xx secure APIs file.
- >> + * OMAP34xx and OMAP44xx secure APIs file.
- >>   *
- >>   * Copyright (C) 2010 Texas Instruments, Inc.
- >>   * Written by Santosh Shilimkar=20
- >>   *
- >> + * Copyright (C) 2012 Ivaylo Dimitrov=20
- >> + * Copyright (C) 2013 Pali Roh=C3=A1r=20
- >>   *
- >>   * This program is free software,you can redistribute it and/or mo=
-dify
- >>   * it under the terms of the GNU General Public License version 2 =
-as
- >> @@ -54,6 +56,23 @@ ENTRY(omap_smc2)
- >>  	ldmfd   sp!, {r4-r12, pc}
- >>  ENDPROC(omap_smc2)
- >> =20
- >> +/**
- >> + * u32 omap_smc3(u32 service_id, u32 process_id, u32 flag, u32 par=
-gs)
- >> + * Low level common routine for secure HAL and PPA APIs via smc #1
- >> + * r0 - @service_id: Secure Service ID
- >> + * r1 - @process_id: Process ID
- >> + * r2 - @flag: Flag to indicate the criticality of operation
- >> + * r3 - @pargs: Physical address of parameter list
- >> + */
- >> +ENTRY(omap_smc3)
- >> +	stmfd	sp!, {r4-r11, lr}
- >> +	mov	r12, r0		@ Copy the secure service ID
- >> +	mov	r6, #0xff	@ Indicate new Task call
- >> +	dsb			@ Memory Barrier
- >
- >Can you explain _why_ the barrier is there?  The reader doesn't need =
-to
- >be told that a barrier instruction is a barrier instruction.
- >
- >Cheers
- >---Dave
- >
-Hi Dave,
+[+khilman]
 
-Would quoting Santosh's explanation "DSBs were needed on OMAP for power=
- sequencing." do the job?
-Something like "@ Needed on OMAP for power sequencing" instead of "@ Me=
-mory Barrier".
+Since Kevin is stepping up and helping out with arm-soc, please restart
+sending these to arm@kernel.org. I probably don't favor that behavior
+by handling the pull requests in my inbox first though...
 
-I want to be sure I correctly understand your requirement.
 
-Regards,
-Ivo
+On Wed, Aug 07, 2013 at 04:08:12AM -0700, Tony Lindgren wrote:
+> The following changes since commit 3b2f64d00c46e1e4e9bd0bb9bb12619adac27a4b:
+> 
+>   Linux 3.11-rc2 (2013-07-21 12:05:29 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.12/cleanup-unused-defines
+> 
+> for you to fetch changes up to dc46c79043a85624c78993919615abf743565ff5:
+> 
+>   Merge tag 'for-v3.11-rc/omap-fixes-a' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.12/cleanup (2013-07-31 01:12:49 -0700)
+
+[...]
+
+> So, for the few, the masochistic, out there who wish to continue
+> developing TI PRCM code, I would ask that you resurrect any
+> additionally-needed macros from these commits, rather than writing
+> them manually.  Purely for the sake of a pleasant atavism, perhaps; the
+> way one appreciates a used bookstore, or a video rental store...
+
+Betamax or Video 2000?
+
+But yes, very much available as a revert or in older checkouts if needed
+in the future.
+
+>  12 files changed, 10853 deletions(-)
+
+beer_credit++;
+
+Nice cleanup. Pulled.
+
+
+-Olof
