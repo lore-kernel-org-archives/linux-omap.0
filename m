@@ -1,94 +1,121 @@
-From: Benoit Cousson <benoit.cousson@gmail.com>
-Subject: Re: [PATCH v2 8/8] ARM: DRA7: dts: Add the dts files for dra7 SoC
- and dra7-evm board
-Date: Mon, 12 Aug 2013 15:46:42 +0200
-Message-ID: <5208E742.4030702@gmail.com>
-References: <1375183546-12758-1-git-send-email-rnayak@ti.com> <1375183546-12758-9-git-send-email-rnayak@ti.com> <51F7B1E0.4060800@ti.com> <51F7B477.9010701@ti.com> <51F7B59D.5080607@ti.com> <51F7B80F.8090202@ti.com> <51F7B8CA.9050707@ti.com> <51F7B926.20602@ti.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: =?UTF-8?Q?Re=3A_=5BPATCH_v2_1=2F1=5D_MAINTAINERS=3A_update_Beno=C3=AEt_Couss?=
+	=?UTF-8?Q?on_email_address?=
+Date: Mon, 12 Aug 2013 16:03:15 +0200
+Message-ID: <CAAwP0s3PXJ7r7UspZbff3ymvn_Z3ySoeTGD_84_trV3gethD9Q@mail.gmail.com>
+References: <1376234465-15476-1-git-send-email-javier.martinez@collabora.co.uk>
+ <20130812075556.GH7656@atomide.com> <CAAwP0s3bt3EiA60UPL3StcRuFHF2pgD6A7DpEkoFkud59tNzEA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f182.google.com ([74.125.82.182]:43527 "EHLO
-	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756311Ab3HLNqq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Aug 2013 09:46:46 -0400
-Received: by mail-we0-f182.google.com with SMTP id u55so5590365wes.13
-        for <linux-omap@vger.kernel.org>; Mon, 12 Aug 2013 06:46:44 -0700 (PDT)
-In-Reply-To: <51F7B926.20602@ti.com>
+Received: from mail-vb0-f45.google.com ([209.85.212.45]:33768 "EHLO
+	mail-vb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756238Ab3HLODg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Aug 2013 10:03:36 -0400
+Received: by mail-vb0-f45.google.com with SMTP id e15so5765006vbg.32
+        for <linux-omap@vger.kernel.org>; Mon, 12 Aug 2013 07:03:36 -0700 (PDT)
+In-Reply-To: <CAAwP0s3bt3EiA60UPL3StcRuFHF2pgD6A7DpEkoFkud59tNzEA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, paul@pwsan.com, khilman@linaro.org, r.sricharan@ti.com, ambresh@ti.com, sourav.poddar@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jiri Kosina <jkosina@suse.cz>, benoit.cousson@gmail.com, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <benoit.cousson@linaro.org>, Pavel Machek <pavel@ucw.cz>, Belisko Marek <marek.belisko@gmail.com>, linux-omap@vger.kernel.org
 
-Hi Rajendra,
-
-On 30/07/2013 15:01, Rajendra Nayak wrote:
-> On Tuesday 30 July 2013 06:29 PM, Nishanth Menon wrote:
->> On 07/30/2013 07:56 AM, Rajendra Nayak wrote:
->>> On Tuesday 30 July 2013 06:16 PM, Nishanth Menon wrote:
->>>> On 07/30/2013 07:41 AM, Rajendra Nayak wrote:
->>>>> On Tuesday 30 July 2013 06:00 PM, Nishanth Menon wrote:
->>>>>> On 07/30/2013 06:25 AM, Rajendra Nayak wrote:
->>>>>>> From: R Sricharan <r.sricharan@ti.com>
->>>> [...]
->>>>>>> +        mcspi4: spi@480ba000 {
->>>>>>> +            compatible = "ti,omap4-mcspi";
->>>>>>> +            reg = <0x480ba000 0x200>;
->>>>>>> +            interrupts = <0 48 0x4>;
->>>>>>> +            #address-cells = <1>;
->>>>>>> +            #size-cells = <0>;
->>>>>>> +            ti,hwmods = "mcspi4";
->>>>>>> +            ti,spi-num-cs = <1>;
->>>>>>> +            dmas = <&sdma 70>, <&sdma 71>;
->>>>>>> +            dma-names = "tx0", "rx0";
->>>>>>> +        };
->>>>>>> +    };
->>>>>>> +};
->>>>>>>
->>>>>> ref: [1], we discussed that we should now be able to introduce all instances of h/w blocks into the dra7.dts. Further, considering [2]
->>>>> hmm, thats a long discussion on crossbar driver that [1] points to. Do you want to summarize what you mean by 'introduce all instances of h/w blocks'
->>>> I recommend reading the last few emails on the thread about how we could do this with pinctrl. unfortunately, this patch is not informative enough to indicate that not all instances of the potential IP blocks are listed here.
->>>>
->>>>>> would you not want to follow "status = disabled" for all modules by default and enable required modules in board file, so that we dont have to respin this yet again?
->>>>> Well, I was just following the convention of whats already followed on existing OMAPs. See [3] for some views on these.
->>>> DRA7 case, I would not think it makes sense due to the number of product variants being done, not all will use the same set. Further, rationale for DRA7 and my suggestion for Grant's option (1) is mainly because the product variants will require more dtsis rather than board files using the product variants use just the necessary modules from a common dtsi. Makes support of variants like OMAP57xx etc trivial and constrainted to board file usage, rather than spinning off new dtsis.
->>> Makes sense with the different product variants for DRA7, AM335x already does it this way, but the rest of OMAP3/4/5 are doing it the other way.
->>> I think its just too confusing to follow different conventions for different SoCs. We should stick to just one, either this way or that.
+On Mon, Aug 12, 2013 at 11:09 AM, Javier Martinez Canillas
+<martinez.javier@gmail.com> wrote:
+> Hi Tony,
+>
+> On Mon, Aug 12, 2013 at 9:55 AM, Tony Lindgren <tony@atomide.com> wro=
+te:
+>> * Javier Martinez Canillas <javier.martinez@collabora.co.uk> [130811=
+ 08:28]:
+>>> Using the email address listed on MAINTAINERS I keep
+>>> getting SMTP 550 Invalid recipient errors.
 >>>
->> I think bucketing DRA7(with multitude of SoC variants) with OMAP family(usually with <5 variants) will be a wrong approach. we should choose the approach appropriate for the SoC. hence, OMAPx having all default enabled makes sense (as the delta is usually trivial), but on DRA7, the variants are larger :(
+>>> Update with what seems to be current Beno=C3=AEt's email
+>>> address to make get_maintainer.pl to stop lying.
+>>>
+>>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.=
+co.uk>
 >>
->> just my 2 cents.
-> I can respin with the changes, but before I do so, Benoit do you agree with the rationale for these and fine with the approach?
+>> Is the linaro.org address still valid? We should probably
+>> wait for Benoit to confirm this to avoid more confusion.
+>>
 >
+> It seems so, at least I don't get SMTP 550 errors with it. But I agre=
+e
+> that is best to wait for Benoit to confirm what is his current
+> address. I just wanted to help...
 >
 
-Sorry for the very late reply. I've just seen it because Mark's answer 
-put in again in my gmail box.
+I see that Benoit also has a gmail address. I'm cc'ing him in this
+thread so he can confirm what is his current email address and
+MAINTAINERS can be updated so people can send OMAP DT patches to the
+correct address.
 
-I'm not sure to understand what Nishanth and you are arguing for :-)
+Thanks a lot and best regards,
+Javier
 
-If this is about the default status state, I think that this flag is 
-anyway confusing because you cannot know if we are considering an IP 
-that does not exist at all in a variant or an IP that is not used on a 
-certain board...
-
-This potential issue we can have with the second case is that the IP 
-might be enabled by the boot loader and never disabled because 
-status="disabled" prevent DT to create the device, and thus prevent the 
-driver to properly idle the device.
-
-That's why I did not like the usage of status="disabled" by default, 
-because the way DT core handle that might not be appropriate for an IP 
-that is there but not use.
-
-For a variant that does not contain physically the IP, that flag can be 
-relevant.
-Regarding which default status is the best, I guess as soon as it is 
-consistant across a chip family, both are fine to me.
-
-Not necessarily related to your discussion, but I still think that DT is 
-missing a flag to make the difference between the two cases.
-
-Regards,
-Benoit
-
+>> Regards,
+>>
+>> Tony
+>>
+>
+> Best regards,
+> Javier
+>
+>>> ---
+>>>
+>>> Patch on top of Linus's commit c095ba72 ("Linux 3.11-rc4").
+>>>
+>>> Changes since v1:
+>>>  - I mostly send DT patches to Beno=C3=AEt but now I noticed that
+>>>    he also maintains other subsystems. Update the patch to
+>>>    change all his MAINTAINERS entries.
+>>>
+>>>  MAINTAINERS |    6 +++---
+>>>  1 files changed, 3 insertions(+), 3 deletions(-)
+>>>
+>>> diff --git a/MAINTAINERS b/MAINTAINERS
+>>> index defc053..3466423 100644
+>>> --- a/MAINTAINERS
+>>> +++ b/MAINTAINERS
+>>> @@ -5879,7 +5879,7 @@ F:      drivers/i2c/busses/i2c-omap.c
+>>>  F:   include/linux/i2c-omap.h
+>>>
+>>>  OMAP DEVICE TREE SUPPORT
+>>> -M:   Beno=C3=AEt Cousson <b-cousson@ti.com>
+>>> +M:   Beno=C3=AEt Cousson <benoit.cousson@linaro.org>
+>>>  M:   Tony Lindgren <tony@atomide.com>
+>>>  L:   linux-omap@vger.kernel.org
+>>>  L:   devicetree@vger.kernel.org
+>>> @@ -5959,14 +5959,14 @@ S:    Maintained
+>>>  F:   drivers/char/hw_random/omap-rng.c
+>>>
+>>>  OMAP HWMOD SUPPORT
+>>> -M:   Beno=C3=AEt Cousson <b-cousson@ti.com>
+>>> +M:   Beno=C3=AEt Cousson <benoit.cousson@linaro.org>
+>>>  M:   Paul Walmsley <paul@pwsan.com>
+>>>  L:   linux-omap@vger.kernel.org
+>>>  S:   Maintained
+>>>  F:   arch/arm/mach-omap2/omap_hwmod.*
+>>>
+>>>  OMAP HWMOD DATA FOR OMAP4-BASED DEVICES
+>>> -M:   Beno=C3=AEt Cousson <b-cousson@ti.com>
+>>> +M:   Beno=C3=AEt Cousson <benoit.cousson@linaro.org>
+>>>  L:   linux-omap@vger.kernel.org
+>>>  S:   Maintained
+>>>  F:   arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>>> --
+>>> 1.7.7.6
+>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
