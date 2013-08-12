@@ -1,79 +1,60 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCHv3 2/9] ARM: OMAP2+: AM33XX: control: Add some control module registers and APIs
-Date: Mon, 12 Aug 2013 12:17:57 -0700
-Message-ID: <87y586pvkq.fsf@kernel.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCHv3 1/9] memory: emif: Move EMIF register defines to
+ include/linux/
+Date: Mon, 12 Aug 2013 12:32:41 -0700
+Message-ID: <20130812193241.GA18547@kroah.com>
 References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
-	<1375811376-49985-3-git-send-email-d-gerlach@ti.com>
-	<5203A0BC.8060205@ti.com> <5203C457.80301@ti.com>
-	<20130809051146.GB7656@atomide.com> <52055733.70808@ti.com>
+ <1375811376-49985-2-git-send-email-d-gerlach@ti.com>
+ <52039EB2.5070508@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:37344 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751756Ab3HLTSB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Aug 2013 15:18:01 -0400
-Received: by mail-pa0-f50.google.com with SMTP id fb10so7830538pad.23
-        for <linux-omap@vger.kernel.org>; Mon, 12 Aug 2013 12:18:00 -0700 (PDT)
-In-Reply-To: <52055733.70808@ti.com> (Dave Gerlach's message of "Fri, 9 Aug
-	2013 15:55:15 -0500")
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55996 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751973Ab3HLTcm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Aug 2013 15:32:42 -0400
+Content-Disposition: inline
+In-Reply-To: <52039EB2.5070508@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Benoit Cousson <benoit.cousson@linaro.org>, Aneesh V <aneesh@ti.com>
 
-Dave Gerlach <d-gerlach@ti.com> writes:
+On Thu, Aug 08, 2013 at 09:35:46AM -0400, Santosh Shilimkar wrote:
+> (You have not CC'ed Greg, Looping him)
+> 
+> On Tuesday 06 August 2013 01:49 PM, Dave Gerlach wrote:
+> > OMAP4 and AM33XX share the same EMIF controller IP. Although there
+> > are significant differences in the IP integration due to which
+> > AM33XX can't reuse the EMIF driver DVFS similar to OMAP4,
+> > it can definitely benefit by reusing the EMIF related macros
+> > defined in drivers/memory/emif.h.
+> > 
+> > In the current OMAP PM framework the PM code resides under
+> > arch/arm/mach-omap2/. To enable reuse of the register defines move
+> > the register defines in the emif header file to include/linux so that
+> > both the EMIF driver and the AM33XX PM code can benefit.
+> > 
+> > Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Cc: Benoit Cousson <benoit.cousson@linaro.org>
+> > Cc: Aneesh V <aneesh@ti.com>
+> > ---
+> >  drivers/memory/emif.h   |  543 +--------------------------------------------
+> >  include/linux/ti_emif.h |  558 +++++++++++++++++++++++++++++++++++++++++++++++
+> >  2 files changed, 559 insertions(+), 542 deletions(-)
+> >  create mode 100644 include/linux/ti_emif.h
+> > 
+> For file movement or some part of file movement, while formating
+> patch, use "git format-patch -C" so that only delta change will
+> appear in the patch.
+> 
+> The patch as such is fine by me.
+> Acked-by: Santosh Shililmar <santosh.shilimkar@ti.com>
+> 
+> Greg,
+> Your ack is needed on this patch so that it can go
+> along with the series. Subsequent patch from this series
+> use the register defines from this patch.
 
-> On 08/09/2013 12:11 AM, Tony Lindgren wrote:
->> * Dave Gerlach <d-gerlach@ti.com> [130808 09:23]:
->>> On 08/08/2013 08:44 AM, Santosh Shilimkar wrote:
->>>> Lets address the above better. I don't see a need of 8 functions
->>>> exported doing one or 2 register writes.
->>>>
->>>> Look M3 based handling is going to be there on future SOCs
->>>> as well and this kind of handling of IPC is very short cited.
->>>>
->>>
->>> The idea here was to move all control module register accesses into
->>> one file in planning of implementing a driver for the control module
->>> itself in the future.
->>>
->>>> Probably we should have a separate driver for M3 in linux which
->>>> can have all this local code instead of all these exports.
->>>
->>> The wkup_m3 code has been moved to a small driver found in patch 8
->>> of this series, would it better to move this code there rather than
->>> with the rest of the control module code?
->>
->> Please make everything you can into regular device drivers.
->>
->> We still have some dependencies to mach-omap2 code for PRCM
->> for example, but we're trying to get all that to live in
->> drivers.
->>
->> So for new pieces, let's not add further dependencies to
->> complicate moving things to drivers.
->>
->> Regards,
->>
->> Tony
->>
->
-> Ok I will go ahead and pull the control module code that handles IPC
-> into the wkup_m3 driver. 
-
-Any control module register access still needs to stay in control.c.
-
-> The wkup_m3.c file is still present in mach-omap2 as the right
-> location for it wasn't decided in the last RFC. Any thoughts on a good
-> location for it?
-
-I raised this also in earlier reviews, but don't remember the if it was
-answered... 
-
-Why can't we handle the wkup_m3 using remoteproc/rpmsg instead of
-creating another little driver that duplicates communication with the
-M3.  Note also that the firmware load part would also be provided by
-remoteproc/rpmsg.
-
-Kevin
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
