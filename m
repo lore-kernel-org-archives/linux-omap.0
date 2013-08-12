@@ -1,53 +1,79 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCHv3 0/9] ARM: OMAP2+: AM33XX: Add suspend-resume support
-Date: Mon, 12 Aug 2013 13:59:11 -0500
-Message-ID: <5209307F.9000701@ti.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <52077B26.1010103@gmail.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCHv3 2/9] ARM: OMAP2+: AM33XX: control: Add some control module registers and APIs
+Date: Mon, 12 Aug 2013 12:17:57 -0700
+Message-ID: <87y586pvkq.fsf@kernel.org>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+	<1375811376-49985-3-git-send-email-d-gerlach@ti.com>
+	<5203A0BC.8060205@ti.com> <5203C457.80301@ti.com>
+	<20130809051146.GB7656@atomide.com> <52055733.70808@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54530 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751106Ab3HLS7i (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Aug 2013 14:59:38 -0400
-In-Reply-To: <52077B26.1010103@gmail.com>
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:37344 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751756Ab3HLTSB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Aug 2013 15:18:01 -0400
+Received: by mail-pa0-f50.google.com with SMTP id fb10so7830538pad.23
+        for <linux-omap@vger.kernel.org>; Mon, 12 Aug 2013 12:18:00 -0700 (PDT)
+In-Reply-To: <52055733.70808@ti.com> (Dave Gerlach's message of "Fri, 9 Aug
+	2013 15:55:15 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-On 08/11/2013 06:53 AM, Daniel Mack wrote:
-> Hi Dave,
->
-> Thanks a lot for your work on this.
->
-> On 06.08.2013 19:49, Dave Gerlach wrote:
->> This is the third version of the patch series for adding basic suspend-resume
->> support for AM33XX, previously submitted by Vaibhav Bedia. This patchset
->> is based on 3.11-rc4 and depends on a forthcoming patchset from Suman Anna
->> that adds mailbox support for the wkup_m3. The patches at [1], [2], and [3] are
->> required for the pm code to properly suspend and resume.
->
-> I applied your set and the one from Suman Anna, and with musb disabled
-> and the firmware built from the sources you referenced, I'm able to put
-> a custom AM33xx based board to suspend.
->
-> The problem I currently face is that I can't make the board resume, as
-> neither UART0 nor GPIO0 seem to work as wakeup source.
+Dave Gerlach <d-gerlach@ti.com> writes:
 
-Did you apply the other patches that are mentioned besides Suman's 
-series? The board will hang while suspending without these.
-
+> On 08/09/2013 12:11 AM, Tony Lindgren wrote:
+>> * Dave Gerlach <d-gerlach@ti.com> [130808 09:23]:
+>>> On 08/08/2013 08:44 AM, Santosh Shilimkar wrote:
+>>>> Lets address the above better. I don't see a need of 8 functions
+>>>> exported doing one or 2 register writes.
+>>>>
+>>>> Look M3 based handling is going to be there on future SOCs
+>>>> as well and this kind of handling of IPC is very short cited.
+>>>>
+>>>
+>>> The idea here was to move all control module register accesses into
+>>> one file in planning of implementing a driver for the control module
+>>> itself in the future.
+>>>
+>>>> Probably we should have a separate driver for M3 in linux which
+>>>> can have all this local code instead of all these exports.
+>>>
+>>> The wkup_m3 code has been moved to a small driver found in patch 8
+>>> of this series, would it better to move this code there rather than
+>>> with the rest of the control module code?
+>>
+>> Please make everything you can into regular device drivers.
+>>
+>> We still have some dependencies to mach-omap2 code for PRCM
+>> for example, but we're trying to get all that to live in
+>> drivers.
+>>
+>> So for new pieces, let's not add further dependencies to
+>> complicate moving things to drivers.
+>>
+>> Regards,
+>>
+>> Tony
+>>
 >
-> Which wakeup source did you use in your tests?
->
+> Ok I will go ahead and pull the control module code that handles IPC
+> into the wkup_m3 driver. 
 
-Most of my verification was done with UART wakeup.
+Any control module register access still needs to stay in control.c.
 
->
-> Thanks,
-> Daniel
->
+> The wkup_m3.c file is still present in mach-omap2 as the right
+> location for it wasn't decided in the last RFC. Any thoughts on a good
+> location for it?
 
+I raised this also in earlier reviews, but don't remember the if it was
+answered... 
 
+Why can't we handle the wkup_m3 using remoteproc/rpmsg instead of
+creating another little driver that duplicates communication with the
+M3.  Note also that the firmware load part would also be provided by
+remoteproc/rpmsg.
+
+Kevin
