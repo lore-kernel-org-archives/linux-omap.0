@@ -1,111 +1,66 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC 2/2] usb: dwc3: Add Qualcomm DWC3 glue layer driver
-Date: Mon, 12 Aug 2013 13:24:39 -0500
-Message-ID: <20130812182439.GG27954@radagast>
-References: <1375789991-30041-1-git-send-email-iivanov@mm-sol.com>
- <1375789991-30041-3-git-send-email-iivanov@mm-sol.com>
- <20130809132349.GC12041@radagast>
- <1376064558.7709.31.camel@iivanov-dev.int.mm-sol.com>
-Reply-To: <balbi@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: Update SMP_ON_UP code to detect A9MPCore with 1
+ CPU devices
+Date: Mon, 12 Aug 2013 14:34:13 -0400
+Message-ID: <52092AA5.3090005@ti.com>
+References: <1375381033-13220-1-git-send-email-santosh.shilimkar@ti.com> <51FBC610.9030900@arm.com> <51FBCEC3.4030207@ti.com> <51FBD42A.9040901@arm.com> <20130802154857.GD5292@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="/i8j2F0k9BYX4qLc"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1376064558.7709.31.camel@iivanov-dev.int.mm-sol.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-Cc: balbi@ti.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:55856 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751973Ab3HLSeo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Aug 2013 14:34:44 -0400
+In-Reply-To: <20130802154857.GD5292@mudshark.cambridge.arm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: Sudeep KarkadaNagesha <Sudeep.KarkadaNagesha@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
---/i8j2F0k9BYX4qLc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Will,
 
-On Fri, Aug 09, 2013 at 07:09:18PM +0300, Ivan T. Ivanov wrote:
-> Hi,=20
->=20
-> On Fri, 2013-08-09 at 16:23 +0300, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Tue, Aug 06, 2013 at 02:53:11PM +0300, Ivan T. Ivanov wrote:
-> > > diff --git a/drivers/usb/dwc3/dwc3-msm.c b/drivers/usb/dwc3/dwc3-msm.c
-> > > new file mode 100644
-> > > index 0000000..e509abc
-> > > --- /dev/null
-> > > +++ b/drivers/usb/dwc3/dwc3-msm.c
-> > > @@ -0,0 +1,175 @@
-> > > +#undef CONFIG_REGULATOR
-> >=20
-> > why ??????
-> >=20
->=20
-> 1. This shows that driver is still not fully tested=20
->    Regulators support is still missing in the MSM
-> 2. Helps me to load driver successfully.=20
+On Friday 02 August 2013 11:48 AM, Will Deacon wrote:
+> On Fri, Aug 02, 2013 at 04:45:46PM +0100, Sudeep KarkadaNagesha wrote:
+>> On 02/08/13 16:22, Santosh Shilimkar wrote:
+>>>>> +	@ Core indicates it is SMP.  Check for Aegis SOC where a single
+>>>>> +	@ Cortex-A9 CPU is present but SMP operations fault.
+>>>>> +	mov	r4, #0x41000000
+>>>>> +	orr	r4, r4, #0x0000c000
+>>>>> +	orr	r4, r4, #0x00000090
+>>>>> +	teq	r3, r4			@ Check for ARM Cortex-A9
+>>>>> +	movne	pc, lr			@ Not ARM Cortex-A9,
+>>>>> +
+>>>>> +	mrc	p15, 4, r0, c15, c0	@ get SCU base address
+>>>> Correct me if I am interpreting this wrong, but CRn=15 here which is
+>>>> IMPLEMENTATION DEFINED registers.
+>>>>
+>>>> If not, then I wonder why few platform have to read SCU base from DT or
+>>>> some header, why not this way ?
+>>>>
+>>> I don't know if there is Cortex-A9 based SOC which don't implement SCU
+>>> CP15 base address register, so can't comment really why not always use
+>>> CP15 based method. I am not even sure if there are other reasons behind
+>>> DT usage.
+>>>
+>> I may be wrong, but it's just my understanding as I see that ARM ARM
+>> clearly states CRn=15 space is IMPLEMENTATION DEFINED registers and we
+>> can't expect it to work on all IMPLEMENTATIONS.
+>>
+>> I just had a glance at all the usage of CR15 space of CP15 register, its
+>> either platform specific or under specific errata/condition.
+>>
+>> Will/Dave/Russell can confirm if it's safe to access these registers on
+>> any implementation or you may need to make it conditional.
+> 
+> I think this an A9-specific register, which reads as 0 on UP A9 and reads as
+> some form of PERIPH_BASE for SMP parts. The issue I have is when PERIPH_BASE
+> is zero.
+> 
+What do we do here ? Should we document this in the code and proceed ?
+Mostly there is no platform with PERIPH_BASE = 0, so its should be fine but
+I am open for any other alternative.
 
-Then remove all the regulator-related code from this.
+Regards,
+Santosh
 
-> > > +	clk_prepare_enable(mdwc->core_clk);
-> > > +	clk_prepare_enable(mdwc->iface_clk);
-> > > +	clk_prepare_enable(mdwc->sleep_clk);
-> > > +	clk_prepare_enable(mdwc->utmi_clk);
-> >=20
-> > do you really need to enable your clocks here ? Why don't you enable
-> > them on runtime_resume and disable on runtime_suspend ?
->=20
-> I will like to make it working first and then will improve
-> power management.
-
-alright, makes sense.
-
-> > > +	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> > > +	tcsr =3D devm_ioremap_resource(&pdev->dev, res);
-> > > +	if (!tcsr) {
-> > > +		dev_dbg(&pdev->dev, "tcsr ioremap failed\n");
-> >=20
-> > no need to ioremap, also you're likely leaking clocks and regulators
-> > enabled here.
-> >=20
-> > Make sure to have something like:
-> >=20
-> > 	if (!tcsr)
-> > 		goto err_disable_clocks;
-> >=20
-> > 	/* TODO This has to be revised */\
-> >=20
-> > 	[...]
-> >=20
->=20
-> Sure.
-
-just to make it clear, I meant to say that you don't need to print the
-error message :-)
-
---=20
-balbi
-
---/i8j2F0k9BYX4qLc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSCShnAAoJEIaOsuA1yqREvsYP/3POPDG+3Xt/Jm9+ntvZwRpe
-q0I8EVHQrw/UpcnJdjLkwCW0Z8ieHBbmmECMGuzQ+f6ZIUPGEQt9NM96qqEweMwd
-jQA6Sjm1CkMNFv6OU/yKr7LpjS/mc7xv3pCkTka9PKRJSqmoh2qF9Me0fO9WT/fY
-Sg1K2O8YBri2pqlKS/7fT4lTh+wUnz87f+NE+CfW+K4samgTZDNEDz02xMIOS85Y
-gF0jT3y1hmJWbkfobFihlR+KqBZPmzgZpYaVLiOwwNGrZE/o0aS9mbEjtKeh11Cf
-Zbx7h9CHBbff731xTFZn5gj6HWRGyFN97DYsat0Yn2e+bqCOTCqeNM/FgkMncl6I
-U2nAnYL1YlHDkID2H6okLljgnjoo1/zcY1hRVKY+cFYJH1G3ewz7CuGD17U0k06w
-oWWM7erXoE/GZ+qvOOCQ48Q2seOY+WUyE/Emjx0qcsZJsrcreo92ybo6OA2miMLJ
-/7qkOYs55kqYASpsL7maW67S4A6JOj5qapesrH39R9iEwnHZz2PR0GDDI+7lRpXC
-OZTKJLKNScxDaUantdWWqSJ5y9Kmimx7SWJgiShfBe9TeLMQYKZY8BoFqsqodyJz
-ocuzAC+T+XCcIquQANoO4Ry9244QkuxhMgMHqqJLJXogZbE4DBcisVwCSZpaoS72
-0bBxwdVmgdnrYs/gpmuz
-=HJ44
------END PGP SIGNATURE-----
-
---/i8j2F0k9BYX4qLc--
