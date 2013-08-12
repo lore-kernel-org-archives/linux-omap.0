@@ -1,79 +1,125 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH 1/5] drivers/gpio/gpio-omap.c: convert comma to semicolon
-Date: Mon, 12 Aug 2013 09:15:10 -0700
-Message-ID: <87ob92rilt.fsf@kernel.org>
-References: <1376149225-3997-1-git-send-email-Julia.Lawall@lip6.fr>
-	<1376149225-3997-2-git-send-email-Julia.Lawall@lip6.fr>
-	<1376151231.2083.32.camel@joe-AO722>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC PATCH v2 1/3] usb: dwc3: msm: Add device tree binding
+ information
+Date: Mon, 12 Aug 2013 13:04:38 -0500
+Message-ID: <20130812180438.GC27954@radagast>
+References: <1376042027-9798-1-git-send-email-iivanov@mm-sol.com>
+ <1376042027-9798-2-git-send-email-iivanov@mm-sol.com>
+ <169628C9-00BA-4E58-BF65-7B180E6BE4ED@codeaurora.org>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1376151231.2083.32.camel@joe-AO722> (Joe Perches's message of
-	"Sat, 10 Aug 2013 09:13:51 -0700")
-Sender: linux-gpio-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Julia Lawall <Julia.Lawall@lip6.fr>, Santosh Shilimkar <santosh.shilimkar@ti.com>, kernel-janitors@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="t0UkRYy7tHLRMCai"
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <169628C9-00BA-4E58-BF65-7B180E6BE4ED@codeaurora.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kumar Gala <galak@codeaurora.org>
+Cc: "Ivan T. Ivanov" <iivanov@mm-sol.com>, balbi@ti.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Joe Perches <joe@perches.com> writes:
+--t0UkRYy7tHLRMCai
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> On Sat, 2013-08-10 at 17:40 +0200, Julia Lawall wrote:
->> From: Julia Lawall <Julia.Lawall@lip6.fr>
->> Replace a comma between expression statements by a semicolon.
-> []
->> I can't tell if the assignment to ct->regs.mask is really intended to be
->> under the if.  The proposed patch preserves the current semantics, but not
->> the current indentation.
->
-> I'd suspect more that the indentation is correct
-> and the comma use incorrect.
->
-> It also looks more like a copy/paste error from
-> commit f8b46b583 when the code was restructured
-> a bit.
->
-> Kevin?
+On Fri, Aug 09, 2013 at 10:31:58AM -0500, Kumar Gala wrote:
+>=20
+> On Aug 9, 2013, at 4:53 AM, Ivan T. Ivanov wrote:
+>=20
+> > From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+> >=20
+> > MSM USB3.0 core wrapper consist of USB3.0 IP (SNPS)
+>=20
+> probably good to spell out Synopsys rather than SNPS
 
-Yes, looks like a copy/paste error.  The comma should simply be replaced
-by a semi-colon.
+Synopsys (the company) has always used snps in their bindings though.
 
-Kevin
+> > +Required properities :
+> > +- compatible : sould be "qcom,dwc3-hsphy";
+> > +- reg : offset and length of the register set in the memory map
+> > +- clocks : phandles to clock instances of the device tree nodes
+> > +- clock-names :
+> > +	"xo" : External reference clock 19 MHz
+> > +	"sleep_a_clk" : Sleep clock, used when USB3 core goes into low
+> > +	power mode (U3).
+> > +<supply-name>-supply : phandle to the regulator device tree node
+> > +Required "supply-name" are:
+> > +	"v1p8" : 1.8v supply for HSPHY
+> > +	"v3p3" : 3.3v supply for HSPHY
+> > +	"vbus" : vbus supply for host mode
+> > +	"vddcx" : vdd supply for HS-PHY digital circuit operation
 
+I believe these regulators belong to the PHY, not DWC3. Please write a
+PHY driver.
 
-> --------------------
->
-> -#ifdef CONFIG_ARCH_OMAP16XX
-> -       /* REVISIT: assuming only 16xx supports MPUIO wake events */
-> -       .irq_set_wake   = gpio_wake_enable,
-> -#endif
-> -};
->
-> --------------------
->
-> +       /* REVISIT: assuming only 16xx supports MPUIO wake events */
-> +       if (cpu_is_omap16xx())
-> +               ct->chip.irq_set_wake = gpio_wake_enable,
->
-> --------------------
->
->> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> []
->> @@ -1029,10 +1029,10 @@ omap_mpuio_alloc_gc(struct gpio_bank *bank, unsigned int irq_start,
->>  	ct->chip.irq_unmask = irq_gc_mask_clr_bit;
->>  	ct->chip.irq_set_type = gpio_irq_type;
->>  
->> -	if (bank->regs->wkup_en)
->> -		ct->chip.irq_set_wake = gpio_wake_enable,
->> -
->> -	ct->regs.mask = OMAP_MPUIO_GPIO_INT / bank->stride;
->> +	if (bank->regs->wkup_en) {
->> +		ct->chip.irq_set_wake = gpio_wake_enable;
->> +		ct->regs.mask = OMAP_MPUIO_GPIO_INT / bank->stride;
->> +	}
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+> > +Required properities :
+> > +- compatible : sould be "qcom,dwc3-ssphy";
+> > +- reg : offset and length of the register set in the memory map
+> > +- clocks : phandles to clock instances of the device tree nodes
+> > +- clock-names :
+> > +	"xo" : External reference clock 19 MHz
+> > +	"ref_clk" : Reference clock - used in host mode.
+> > +<supply-name>-supply : phandle to the regulator device tree node
+> > +Required "supply-name" are:
+> > +	"v1p8" : 1.8v supply for SS-PHY
+> > +	"vddcx" : vdd supply for SS-PHY digital circuit operation
+
+likewise, these regulators should be moved to the PHY driver.
+
+> > +Required properties :
+> > +- compatible : should be "qcom,dwc3"
+> > +- reg : offset and length of the register set in the memory map
+> > +	offset and length of the TCSR register for routing USB
+> > +	signals to either picoPHY0 or picoPHY1.
+> > +- clocks : phandles to clock instances of the device tree nodes
+> > +- clock-names :
+> > +	"core_clk" : Master/Core clock, have to be >=3D 125 MHz for SS
+> > +	operation and >=3D 60MHz for HS operation
+> > +	"iface_clk" : System bus AXI clock
+> > +	"sleep_clk" : Sleep clock, used when USB3 core goes into low
+> > +	power mode (U3).
+> > +	"utmi_clk" : Generated by HS-PHY. Used to clock the low power
+> > +	parts of thr HS Link layer.
+> > +
+> > +Optional properties :
+> > +- gdsc-supply : phandle to the globally distributed switch controller
+> > +  regulator node to the USB controller.
+> > +
+> > +Sub nodes:
+> > +- Sub node for "DWC3 USB3 controller".
+> > +  This sub node is required property for device node. The properties
+> > +  of this subnode are specified in dwc3.txt.
+>=20
+> Is tx-fifo-resize required for qcom,dwc3? if so we should call that
+> out in the binding.
+
+AFAICT that's only needed for OMAP5 ES1.0. Unless Qualcomm also screwed
+up default TX FIFO sizes :-p
+
+--=20
+balbi
+
+--t0UkRYy7tHLRMCai
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSCSO2AAoJEIaOsuA1yqREWxMP/3jiFI/Oy1xBYu8O8bTH98FH
+Wi1iBx5FToWYCUd74Yvk4xOJB2/0o1/JnoYvSJmILGirUAs2aRn/uIxpxMaCeg2v
+V4MR9vVLgEvFtg8jEwpDX/cgHWagSDSKGUX0zs+YKPLa8smn09LEOYVPPiDZIu7m
+8Rl6Rgak4WEYLvbImS1FY/gE/ih9bg/Ehrk/xgyyW8FI88dyTQkH2wNrsDSp/Sy5
+7D6cXFlGXqQdgbib4nj2KZ/H/megS2NQ8YXOv4YveDIKL8uIspgUldCWA4J4YCTg
+64nXHbuRS8/5uKzvIrxav08XR+9zk7N3/K6Y2pJSbTG/5K0v1VNLEwtgeDna9Zj7
+epwzq5BqVGJ7juEntKFyEbQak0KZUiABoJeL0ZqL5jxtja/BkLGbgOHcagm/aL/t
+owKTGEnfvySO+zjEJUBYUoc7ZFrqOYwV0eVnIosw2FHsirzjKIR5Umwffqf4ihyo
+oyw0DJs7d8ykn5d8wcBPv2QLRJDh+pCk7SDxWz6pbII6JZyYb3qkS8InEpkjt/9F
+Tfj/9N/X9YFbJ3PDHZEP0XFlfLtRlwYYCqEfg0EVU1SWIj8th8AX+q+0ctCBEnQu
+/tCzMKSt3ARqsiWLaM4BTqSnRGZkddMDRB5MpYTcECtEJnSDQTBT+wV6SQY+f4Df
+UF2kGRqNpfFzhqF98Jmo
+=OEER
+-----END PGP SIGNATURE-----
+
+--t0UkRYy7tHLRMCai--
