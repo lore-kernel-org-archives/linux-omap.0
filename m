@@ -1,71 +1,51 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [GIT PULL] DRA7xx core support
-Date: Mon, 12 Aug 2013 17:04:10 +0530
-Message-ID: <5208C832.2060007@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [net-next PATCH 1/1] drivers: net: cpsw: Add support for new CPSW IP version present in AM43xx SoC
+Date: Mon, 12 Aug 2013 17:11:15 +0530
+Message-ID: <1376307675-11501-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56695 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755019Ab3HLLel (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Aug 2013 07:34:41 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Tony,
+The new IP version which is present in AM43xx SoC has a minor changes and the
+offsets are same as the previous version, so adding new IP version support in
+the driver.
 
-Heres the pull request for the dra7xx core support patches.
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-The following changes since commit d4e4ab86bcba5a72779c43dc1459f71fea3d89c8:
-
-  Linux 3.11-rc5 (2013-08-11 18:04:20 -0700)
-
-are available in the git repository at:
-
-  git://github.com/rrnayak/linux.git tags/dra7-core-support-v3
-
-for you to fetch changes up to 41f2119b3037e50482cb14eaa39e6b5c52113fb5:
-
-  ARM: DRA7: Add the build support in omap2plus (2013-08-12 15:25:38 +0530)
-
-----------------------------------------------------------------
-DRA7xx based SoC core support
-
-----------------------------------------------------------------
-R Sricharan (8):
-      ARM: DRA7: Reuse all of PRCM and MPUSS SMP infra
-      ARM: DRA7: Reuse io tables and add a new .init_early
-      ARM: DRA7: Resue the clocksource, clockevent support
-      ARM: DRA7: board-generic: Add basic DT support
-      ARM: DRA7: Kconfig: Make ARCH_NR_GPIO default to 512
-      ARM: DRA7: dts: Add the dts files for dra7 SoC and dra7-evm board
-      ARM: DRA7: id: Add cpu detection support for DRA7xx based SoCs'
-      ARM: DRA7: Add the build support in omap2plus
-
-Rajendra Nayak (1):
-      ARM: DRA7: hwmod: Reuse the soc_ops used for OMAP4/5
-
- .../devicetree/bindings/arm/omap/omap.txt          |    3 +
- arch/arm/Kconfig                                   |    2 +-
- arch/arm/boot/dts/Makefile                         |    3 +-
- arch/arm/boot/dts/dra7-evm.dts                     |  140 +++++
- arch/arm/boot/dts/dra7.dtsi                        |  567 ++++++++++++++++++++
- arch/arm/configs/omap2plus_defconfig               |    1 +
- arch/arm/mach-omap1/include/mach/soc.h             |    1 +
- arch/arm/mach-omap2/Kconfig                        |   12 +-
- arch/arm/mach-omap2/Makefile                       |    6 +
- arch/arm/mach-omap2/board-generic.c                |   18 +
- arch/arm/mach-omap2/common.h                       |    1 +
- arch/arm/mach-omap2/id.c                           |    4 +-
- arch/arm/mach-omap2/io.c                           |   20 +-
- arch/arm/mach-omap2/omap54xx.h                     |    4 +
- arch/arm/mach-omap2/omap_hwmod.c                   |    2 +-
- arch/arm/mach-omap2/soc.h                          |   17 +
- arch/arm/mach-omap2/timer.c                        |    3 +-
- arch/arm/plat-omap/Kconfig                         |    2 +-
- 18 files changed, 795 insertions(+), 11 deletions(-)
- create mode 100644 arch/arm/boot/dts/dra7-evm.dts
- create mode 100644 arch/arm/boot/dts/dra7.dtsi
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index cd95671..0fcf212 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -83,6 +83,7 @@ do {								\
+ #define CPSW_VERSION_1		0x19010a
+ #define CPSW_VERSION_2		0x19010c
+ #define CPSW_VERSION_3		0x19010f
++#define CPSW_VERSION_4		0x190112
+ 
+ #define HOST_PORT_NUM		0
+ #define SLIVER_SIZE		0x40
+@@ -993,6 +994,7 @@ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
+ 		break;
+ 	case CPSW_VERSION_2:
+ 	case CPSW_VERSION_3:
++	case CPSW_VERSION_4:
+ 		slave_write(slave, TX_PRIORITY_MAPPING, CPSW2_TX_PRI_MAP);
+ 		break;
+ 	}
+@@ -2018,6 +2020,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 		break;
+ 	case CPSW_VERSION_2:
+ 	case CPSW_VERSION_3:
++	case CPSW_VERSION_4:
+ 		priv->host_port_regs = ss_regs + CPSW2_HOST_PORT_OFFSET;
+ 		priv->cpts->reg      = ss_regs + CPSW2_CPTS_OFFSET;
+ 		priv->hw_stats	     = ss_regs + CPSW2_HW_STATS;
+-- 
+1.8.4.rc1.21.gfb56570
