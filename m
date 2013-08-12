@@ -1,54 +1,89 @@
-From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 08/12] dma: edma: Add one more required slot to MAX
-	slots
-Date: Mon, 12 Aug 2013 13:19:18 -0500
-Message-ID: <52092726.7030505@ti.com>
-References: <1375719297-12871-1-git-send-email-joelf@ti.com>
-	<1375719297-12871-9-git-send-email-joelf@ti.com>
-	<52087921.8040101@ti.com> <20130812133111.GZ6427@sirena.org.uk>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCHv3 2/9] ARM: OMAP2+: AM33XX: control: Add some control
+ module registers and APIs
+Date: Mon, 12 Aug 2013 16:40:44 -0500
+Message-ID: <5209565C.7090508@ti.com>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <1375811376-49985-3-git-send-email-d-gerlach@ti.com> <5203A0BC.8060205@ti.com> <5203C457.80301@ti.com> <20130809051146.GB7656@atomide.com> <52055733.70808@ti.com> <87y586pvkq.fsf@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <20130812133111.GZ6427-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Balaji TK <balajitk-l0cyMroinI0@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Dan
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:36893 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754354Ab3HLVlJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Aug 2013 17:41:09 -0400
+In-Reply-To: <87y586pvkq.fsf@kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Suman Anna <s-anna@ti.com>
 
-On 08/12/2013 08:31 AM, Mark Brown wrote:
-> On Mon, Aug 12, 2013 at 11:26:49AM +0530, Sekhar Nori wrote:
-> 
->> No need for a separate patch for this, just do this in the patch where
->> you include the two linked sets.
-> 
-> Can you guys please think about the CC lists you're using for these
-> patch serieses?  I've certainly no interest in random patches to the
-> DaVinci DMA controllers, and I suspect the same is true for most of the
-> people on the CC list.
-> 
+On 08/12/2013 02:17 PM, Kevin Hilman wrote:
+> Dave Gerlach <d-gerlach@ti.com> writes:
+>
+>> On 08/09/2013 12:11 AM, Tony Lindgren wrote:
+>>> * Dave Gerlach <d-gerlach@ti.com> [130808 09:23]:
+>>>> On 08/08/2013 08:44 AM, Santosh Shilimkar wrote:
+>>>>> Lets address the above better. I don't see a need of 8 functions
+>>>>> exported doing one or 2 register writes.
+>>>>>
+>>>>> Look M3 based handling is going to be there on future SOCs
+>>>>> as well and this kind of handling of IPC is very short cited.
+>>>>>
+>>>>
+>>>> The idea here was to move all control module register accesses into
+>>>> one file in planning of implementing a driver for the control module
+>>>> itself in the future.
+>>>>
+>>>>> Probably we should have a separate driver for M3 in linux which
+>>>>> can have all this local code instead of all these exports.
+>>>>
+>>>> The wkup_m3 code has been moved to a small driver found in patch 8
+>>>> of this series, would it better to move this code there rather than
+>>>> with the rest of the control module code?
+>>>
+>>> Please make everything you can into regular device drivers.
+>>>
+>>> We still have some dependencies to mach-omap2 code for PRCM
+>>> for example, but we're trying to get all that to live in
+>>> drivers.
+>>>
+>>> So for new pieces, let's not add further dependencies to
+>>> complicate moving things to drivers.
+>>>
+>>> Regards,
+>>>
+>>> Tony
+>>>
+>>
+>> Ok I will go ahead and pull the control module code that handles IPC
+>> into the wkup_m3 driver.
+>
+> Any control module register access still needs to stay in control.c.
+>
+>> The wkup_m3.c file is still present in mach-omap2 as the right
+>> location for it wasn't decided in the last RFC. Any thoughts on a good
+>> location for it?
+>
+> I raised this also in earlier reviews, but don't remember the if it was
+> answered...
+>
+> Why can't we handle the wkup_m3 using remoteproc/rpmsg instead of
+> creating another little driver that duplicates communication with the
+> M3.  Note also that the firmware load part would also be provided by
+> remoteproc/rpmsg.
 
-Sorry. I was actually getting a sense of this. What I did initially was
-I copied the CC list from last years work on the same series hoping that
-it would be a complete mail chain. Bad judgement on my part.
-I should have paid more attention to Mark's rants about his inbox
-getting spammed with this series in those old threads ;)
+Looping Suman Anna who handled the IPC patches this patch set is based 
+on top of...
 
-I guess moving forward I will use get_maintainer.pl and refine my
-git-send scripts with only interested folks. Any words of advice on when
-to and when not to CC someone remotely connected to a series is welcome.
+For the wkup_m3, the mailbox isn't used in a traditional manner. It's 
+only used with a dummy write to trigger an interrupt from the A8 to the 
+M3 and then communication happens in IPC registers within the control 
+module. No messages are actually sent through the mailbox in either 
+direction so that's why it was done this way rather than bring in full 
+support for the mailbox.
 
-@Sekhar, let's keep only linux-omap, linux-davinci and few other
-interested folks on the CC chain for the rest of review on the series.
+>
+> Kevin
+>
 
-Thanks,
-
--Joel
