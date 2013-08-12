@@ -1,189 +1,109 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP2+: Add SSI driver configuration
-Date: Mon, 12 Aug 2013 01:30:51 -0700
-Message-ID: <20130812083051.GL7656@atomide.com>
-References: <1376237628-1077-1-git-send-email-sre@debian.org>
- <1376237877-1740-1-git-send-email-sre@debian.org>
- <1376237877-1740-3-git-send-email-sre@debian.org>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: =?UTF-8?Q?Re=3A_=5BPATCH_v2_1=2F1=5D_MAINTAINERS=3A_update_Beno=C3=AEt_Couss?=
+	=?UTF-8?Q?on_email_address?=
+Date: Mon, 12 Aug 2013 11:09:41 +0200
+Message-ID: <CAAwP0s3bt3EiA60UPL3StcRuFHF2pgD6A7DpEkoFkud59tNzEA@mail.gmail.com>
+References: <1376234465-15476-1-git-send-email-javier.martinez@collabora.co.uk>
+ <20130812075556.GH7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1376237877-1740-3-git-send-email-sre@debian.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, Kevin Hilman <khilman@deeprootsystems.com>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Sebastian Reichel <sre@ring0.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vb0-f51.google.com ([209.85.212.51]:59845 "EHLO
+	mail-vb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750840Ab3HLJKC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Aug 2013 05:10:02 -0400
+Received: by mail-vb0-f51.google.com with SMTP id x16so5550239vbf.10
+        for <linux-omap@vger.kernel.org>; Mon, 12 Aug 2013 02:10:01 -0700 (PDT)
+In-Reply-To: <20130812075556.GH7656@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jiri Kosina <jkosina@suse.cz>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <benoit.cousson@linaro.org>, Pavel Machek <pavel@ucw.cz>, Belisko Marek <marek.belisko@gmail.com>, linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@debian.org> [130811 09:25]:
-> From: Sebastian Reichel <sre@ring0.de>
-> 
-> This patch configures and activates the OMAP SSI driver on the RX-51.
+Hi Tony,
 
-Hmm, I'd rather see this be DT only driver at this point. We're pretty
-close to flipping omap3 to be DT only, and I'd rather not add new
-platform code at this point. With DT, none of this patch is needed,
-you can do all this in the driver probe based on the .dts configuration.
+On Mon, Aug 12, 2013 at 9:55 AM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> * Javier Martinez Canillas <javier.martinez@collabora.co.uk> [130811 =
+08:28]:
+>> Using the email address listed on MAINTAINERS I keep
+>> getting SMTP 550 Invalid recipient errors.
+>>
+>> Update with what seems to be current Beno=C3=AEt's email
+>> address to make get_maintainer.pl to stop lying.
+>>
+>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.c=
+o.uk>
+>
+> Is the linaro.org address still valid? We should probably
+> wait for Benoit to confirm this to avoid more confusion.
+>
 
-Regards,
+It seems so, at least I don't the SMTP 550 errors with it. But I agree
+that is best to wait for Benoit to confirm what is his current
+address. I just wanted to help...
 
-Tony
+> Regards,
+>
+> Tony
+>
 
->  arch/arm/mach-omap2/Makefile                 |    4 ++
->  arch/arm/mach-omap2/board-rx51-peripherals.c |   10 +++-
->  arch/arm/mach-omap2/ssi.c                    |   82 ++++++++++++++++++++++++++
->  3 files changed, 95 insertions(+), 1 deletion(-)
->  create mode 100644 arch/arm/mach-omap2/ssi.c
-> 
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index d4f6715..ace860d 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -222,6 +222,10 @@ ifneq ($(CONFIG_DRM_OMAP),)
->  obj-y					+= drm.o
->  endif
->  
-> +# Synchronous Serial Interface (SSI)
-> +omap-ssi-$(CONFIG_OMAP_SSI)		:= ssi.o
-> +obj-y					+= $(omap-ssi-m) $(omap-ssi-y)
-> +
->  # Specific board support
->  obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
->  obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
-> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> index 9c2dd10..e2ca155 100644
-> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> @@ -27,6 +27,7 @@
->  #include <linux/power/isp1704_charger.h>
->  #include <linux/platform_data/spi-omap2-mcspi.h>
->  #include <linux/platform_data/mtd-onenand-omap2.h>
-> +#include <linux/platform_data/hsi-omap-ssi.h>
->  
->  #include <asm/system_info.h>
->  
-> @@ -73,6 +74,8 @@
->  #define LIS302_IRQ1_GPIO 181
->  #define LIS302_IRQ2_GPIO 180  /* Not yet in use */
->  
-> +#define RX51_CAWAKE_GPIO 151
-> +
->  /* List all SPI devices here. Note that the list/probe order seems to matter! */
->  enum {
->  	RX51_SPI_WL1251,
-> @@ -265,6 +268,11 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
->  	},
->  };
->  
-> +static struct omap_ssi_board_config ssi_board_config = {
-> +	.num_ports = 1,
-> +	.cawake_gpio = { RX51_CAWAKE_GPIO },
-> +};
-> +
->  static struct platform_device rx51_battery_device = {
->  	.name	= "rx51-battery",
->  	.id	= -1,
-> @@ -1295,7 +1303,7 @@ void __init rx51_peripherals_init(void)
->  	if (partition)
->  		omap_hsmmc_init(mmc);
->  
-> +	omap_ssi_config(&ssi_board_config);
->  	rx51_charger_init();
->  	rx51_init_twl4030_hwmon();
->  }
-> -
-> diff --git a/arch/arm/mach-omap2/ssi.c b/arch/arm/mach-omap2/ssi.c
-> new file mode 100644
-> index 0000000..a9d6eee
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/ssi.c
-> @@ -0,0 +1,82 @@
-> +/*
-> + * linux/arch/arm/mach-omap2/ssi.c
-> + *
-> + * Copyright (C) 2010 Nokia Corporation. All rights reserved.
-> + *
-> + * Contact: Carlos Chinea <carlos.chinea@nokia.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/init.h>
-> +#include <linux/err.h>
-> +#include <linux/gpio.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/platform_data/hsi-omap-ssi.h>
-> +#include "omap_hwmod.h"
-> +#include "omap_device.h"
-> +#include "omap-pm.h"
-> +
-> +static struct omap_ssi_platform_data ssi_pdata = {
-> +	.num_ports      = SSI_NUM_PORTS,
-> +	.cawake_gpio    = {0},
-> +	.get_dev_context_loss_count  = omap_pm_get_dev_context_loss_count,
-> +};
-> +
-> +int __init omap_ssi_config(struct omap_ssi_board_config *ssi_config)
-> +{
-> +	unsigned int port, offset, cawake_gpio;
-> +	int err;
-> +
-> +	ssi_pdata.num_ports = ssi_config->num_ports;
-> +
-> +	for (port = 0, offset = 7; port < ssi_config->num_ports; port++, offset += 5) {
-> +		cawake_gpio = ssi_config->cawake_gpio[port];
-> +		if (!cawake_gpio)
-> +			continue; /* Nothing to do */
-> +		err = gpio_request(cawake_gpio, "cawake");
-> +		if (err < 0)
-> +			goto rback;
-> +		gpio_direction_input(cawake_gpio);
-> +
-> +		ssi_pdata.cawake_gpio[port] = ssi_config->cawake_gpio[port];
-> +	}
-> +
-> +	return 0;
-> +
-> +rback:
-> +	pr_err("omap-ssi: Request cawake (gpio%d) failed\n", cawake_gpio);
-> +	while (port > 0)
-> +		gpio_free(ssi_config->cawake_gpio[--port]);
-> +
-> +	return err;
-> +}
-> +
-> +static int __init omap_ssi_init(void)
-> +{
-> +	struct omap_hwmod *oh;
-> +	struct platform_device *pdev;
-> +
-> +	oh = omap_hwmod_lookup("ssi");
-> +	if (!oh)
-> +		return -EINVAL;
-> +
-> +	pdev = omap_device_build("omap_ssi", 0, oh, &ssi_pdata, sizeof(struct omap_ssi_platform_data));
-> +	WARN(IS_ERR(pdev), "Can't build omap_device for omap_ssi\n");
-> +
-> +	return 0;
-> +}
-> +subsys_initcall(omap_ssi_init);
-> -- 
-> 1.7.10.4
-> 
+Best regards,
+Javier
+
+>> ---
+>>
+>> Patch on top of Linus's commit c095ba72 ("Linux 3.11-rc4").
+>>
+>> Changes since v1:
+>>  - I mostly send DT patches to Beno=C3=AEt but now I noticed that
+>>    he also maintains other subsystems. Update the patch to
+>>    change all his MAINTAINERS entries.
+>>
+>>  MAINTAINERS |    6 +++---
+>>  1 files changed, 3 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/MAINTAINERS b/MAINTAINERS
+>> index defc053..3466423 100644
+>> --- a/MAINTAINERS
+>> +++ b/MAINTAINERS
+>> @@ -5879,7 +5879,7 @@ F:      drivers/i2c/busses/i2c-omap.c
+>>  F:   include/linux/i2c-omap.h
+>>
+>>  OMAP DEVICE TREE SUPPORT
+>> -M:   Beno=C3=AEt Cousson <b-cousson@ti.com>
+>> +M:   Beno=C3=AEt Cousson <benoit.cousson@linaro.org>
+>>  M:   Tony Lindgren <tony@atomide.com>
+>>  L:   linux-omap@vger.kernel.org
+>>  L:   devicetree@vger.kernel.org
+>> @@ -5959,14 +5959,14 @@ S:    Maintained
+>>  F:   drivers/char/hw_random/omap-rng.c
+>>
+>>  OMAP HWMOD SUPPORT
+>> -M:   Beno=C3=AEt Cousson <b-cousson@ti.com>
+>> +M:   Beno=C3=AEt Cousson <benoit.cousson@linaro.org>
+>>  M:   Paul Walmsley <paul@pwsan.com>
+>>  L:   linux-omap@vger.kernel.org
+>>  S:   Maintained
+>>  F:   arch/arm/mach-omap2/omap_hwmod.*
+>>
+>>  OMAP HWMOD DATA FOR OMAP4-BASED DEVICES
+>> -M:   Beno=C3=AEt Cousson <b-cousson@ti.com>
+>> +M:   Beno=C3=AEt Cousson <benoit.cousson@linaro.org>
+>>  L:   linux-omap@vger.kernel.org
+>>  S:   Maintained
+>>  F:   arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> --
+>> 1.7.7.6
+>>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
