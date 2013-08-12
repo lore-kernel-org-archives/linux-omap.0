@@ -1,37 +1,80 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH v3] arm: omap5: dts: add palmas-usb node
-Date: Mon, 12 Aug 2013 17:09:54 -0600
-Message-ID: <52096B42.60500@wwwdotorg.org>
-References: <1373979037-27587-1-git-send-email-balbi@ti.com> <1376302675-15795-1-git-send-email-kishon@ti.com>
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 01/12] dma: edma: Setup parameters to DMA MAX_NR_SG
+	at a time
+Date: Mon, 12 Aug 2013 18:55:48 -0500
+Message-ID: <52097604.7010503@ti.com>
+References: <1375719297-12871-1-git-send-email-joelf@ti.com>
+	<1375719297-12871-2-git-send-email-joelf@ti.com>
+	<52088B8B.9040000@ti.com>
+Reply-To: <joelf-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1376302675-15795-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: benoit.cousson@linaro.org, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, balbi@ti.com
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <52088B8B.9040000-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/12/2013 04:17 AM, Kishon Vijay Abraham I wrote:
-> From: Felipe Balbi <balbi@ti.com>
+Dropped quite a few from the CC list...
+
+On 08/12/2013 02:15 AM, Sekhar Nori wrote:
+> On Monday 05 August 2013 09:44 PM, Joel Fernandes wrote:
+>> Changes are made here for configuring existing parameters to support
+>> DMA'ing them out in batches as needed.
+>>
+>> Also allocate as many as slots as needed by the SG list, but not more
+>> than MAX_NR_SG. Then these slots will be reused accordingly.
+>> For ex, if MAX_NR_SG=10, and number of SG entries is 40, still only
+>> 10 slots will be allocated to DMA the entire SG list of size 40.
+>>
+>> Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  drivers/dma/edma.c |   14 +++++++++++---
+>>  1 file changed, 11 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+>> index 5f3e532..7b0853c 100644
+>> --- a/drivers/dma/edma.c
+>> +++ b/drivers/dma/edma.c
+>> @@ -222,9 +222,9 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
+>>  	enum dma_slave_buswidth dev_width;
+>>  	u32 burst;
+>>  	struct scatterlist *sg;
+>> -	int i;
+>>  	int acnt, bcnt, ccnt, src, dst, cidx;
+>>  	int src_bidx, dst_bidx, src_cidx, dst_cidx;
+>> +	int i, num_slots_needed;
 > 
-> Without this node, there will be no palmas
-> driver to notify dwc3 that a cable has
-> been connected and, without that, dwc3
-> will never initialize.
+> 'nslots' is more to my liking. Better keep variable names short.
+> 
+>>  
+>>  	if (unlikely(!echan || !sgl || !sg_len))
+>>  		return NULL;
+>> @@ -262,8 +262,11 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
+>>  
+>>  	edesc->pset_nr = sg_len;
+>>  
+>> -	for_each_sg(sgl, sg, sg_len, i) {
+>> -		/* Allocate a PaRAM slot, if needed */
+>> +	/* Allocate a PaRAM slot, if needed */
+>> +
+>> +	num_slots_needed = sg_len > MAX_NR_SG ? MAX_NR_SG : sg_len;
+> 
+> nslots = min(MAX_NR_SG, sg_len);
 
-> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+I agree the original naming was quite long. I would rather using
+something more descriptive though than nslots. How does slots_needed sound?
 
->  		interrupt-controller;
->  		#interrupt-cells = <2>;
->  
-> +		extcon_usb3: palmas_usb {
-> +			compatible = "ti,palmas-usb";
+Thanks,
 
-This isn't so much a comment on this patch as the Palmas binding:
-
-Presumably, the Palmas device contains a USB VID detector, not a whole
-USB controller. I'd expect the compatible value to indicate this more
-directly, i.e. be something like ti,palmas-usb-vid or
-ti,palmas-usb-vid-detector.
+-Joel
