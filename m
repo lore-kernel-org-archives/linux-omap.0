@@ -1,91 +1,133 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3] arm: omap5: dts: add palmas-usb node
-Date: Mon, 12 Aug 2013 15:47:55 +0530
-Message-ID: <1376302675-15795-1-git-send-email-kishon@ti.com>
-References: <1373979037-27587-1-git-send-email-balbi@ti.com>
+From: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Subject: =?ISO-8859-1?Q?Re=3A_=5BPATCH_v2_1=2F1=5D_MAINTAINERS=3A_update_Beno=EEt_Couss?=
+	=?ISO-8859-1?Q?on_email_address?=
+Date: Mon, 12 Aug 2013 13:21:31 +0300
+Message-ID: <CAB=otbQ5k2JSSTBs-y73-W2Fn4PYCt-hY2QsZRwMPxY9V_BHmQ@mail.gmail.com>
+References: <1376234465-15476-1-git-send-email-javier.martinez@collabora.co.uk>
+	<20130812075556.GH7656@atomide.com>
+	<CAAwP0s3bt3EiA60UPL3StcRuFHF2pgD6A7DpEkoFkud59tNzEA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1373979037-27587-1-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: benoit.cousson@linaro.org, tony@atomide.com
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, ian.campbell@citrix.com, pawel.moll@arm.com, swarren@wwwdotorg.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, kishon@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f172.google.com ([74.125.82.172]:55490 "EHLO
+	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754663Ab3HLKVc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Aug 2013 06:21:32 -0400
+Received: by mail-we0-f172.google.com with SMTP id t61so5388825wes.31
+        for <linux-omap@vger.kernel.org>; Mon, 12 Aug 2013 03:21:31 -0700 (PDT)
+In-Reply-To: <CAAwP0s3bt3EiA60UPL3StcRuFHF2pgD6A7DpEkoFkud59tNzEA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jiri Kosina <jkosina@suse.cz>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <benoit.cousson@linaro.org>, Pavel Machek <pavel@ucw.cz>, Belisko Marek <marek.belisko@gmail.com>, linux-omap@vger.kernel.org
 
-From: Felipe Balbi <balbi@ti.com>
+Hi,
 
-Without this node, there will be no palmas
-driver to notify dwc3 that a cable has
-been connected and, without that, dwc3
-will never initialize.
+Looking into Benoit's tree
+https://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git=
+/
+we can see that last change there was made two months ago...
+So yes wee need to have at least confirmation from Benoit that he is
+going to maintain the tree.
+Also looks like OMAP devicetree-related patches hung in mailing lists
+at least for last 2 months...
 
-[ kishon@ti.com : fix vbus-supply value after SMPS10 is modeled as 2 regulators]
+--=20
+Best regards,
+Ruslan Bilvol
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
-Change from v2:
-fix vbus-supply value after SMPS10 is modeled as 2 regulators. This is needed
-after SMPS10 is modeled as 2 regulators.
-[1] models SMPS10 as 2 regulators.
-[2] splits the SMPS10 node into two to represent the 2 regulators.
-
-[1] -> http://comments.gmane.org/gmane.linux.kernel/1542521
-[2] -> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg93779.html
-
- arch/arm/boot/dts/omap5-uevm.dts |   10 ++++++++++
- arch/arm/boot/dts/omap5.dtsi     |    2 +-
- 2 files changed, 11 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 08b7267..51a4acc 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -272,6 +272,11 @@
- 		interrupt-controller;
- 		#interrupt-cells = <2>;
- 
-+		extcon_usb3: palmas_usb {
-+			compatible = "ti,palmas-usb";
-+			ti,wakeup;
-+		};
-+
- 		palmas_pmic {
- 			compatible = "ti,palmas-pmic";
- 			interrupt-parent = <&palmas>;
-@@ -450,6 +455,11 @@
- 	phys = <0 &hsusb2_phy &hsusb3_phy>;
- };
- 
-+&usb3 {
-+	extcon = <&extcon_usb3>;
-+	vbus-supply = <&smps10_out1_reg>;
-+};
-+
- &mcspi1 {
- 
- };
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 4e41409..1659246 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -634,7 +634,7 @@
- 			ti,type = <2>;
- 		};
- 
--		omap_dwc3@4a020000 {
-+		usb3: omap_dwc3@4a020000 {
- 			compatible = "ti,dwc3";
- 			ti,hwmods = "usb_otg_ss";
- 			reg = <0x4a020000 0x10000>;
--- 
-1.7.10.4
+On Mon, Aug 12, 2013 at 12:09 PM, Javier Martinez Canillas
+<martinez.javier@gmail.com> wrote:
+> Hi Tony,
+>
+> On Mon, Aug 12, 2013 at 9:55 AM, Tony Lindgren <tony@atomide.com> wro=
+te:
+>> * Javier Martinez Canillas <javier.martinez@collabora.co.uk> [130811=
+ 08:28]:
+>>> Using the email address listed on MAINTAINERS I keep
+>>> getting SMTP 550 Invalid recipient errors.
+>>>
+>>> Update with what seems to be current Beno=EEt's email
+>>> address to make get_maintainer.pl to stop lying.
+>>>
+>>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.=
+co.uk>
+>>
+>> Is the linaro.org address still valid? We should probably
+>> wait for Benoit to confirm this to avoid more confusion.
+>>
+>
+> It seems so, at least I don't the SMTP 550 errors with it. But I agre=
+e
+> that is best to wait for Benoit to confirm what is his current
+> address. I just wanted to help...
+>
+>> Regards,
+>>
+>> Tony
+>>
+>
+> Best regards,
+> Javier
+>
+>>> ---
+>>>
+>>> Patch on top of Linus's commit c095ba72 ("Linux 3.11-rc4").
+>>>
+>>> Changes since v1:
+>>>  - I mostly send DT patches to Beno=EEt but now I noticed that
+>>>    he also maintains other subsystems. Update the patch to
+>>>    change all his MAINTAINERS entries.
+>>>
+>>>  MAINTAINERS |    6 +++---
+>>>  1 files changed, 3 insertions(+), 3 deletions(-)
+>>>
+>>> diff --git a/MAINTAINERS b/MAINTAINERS
+>>> index defc053..3466423 100644
+>>> --- a/MAINTAINERS
+>>> +++ b/MAINTAINERS
+>>> @@ -5879,7 +5879,7 @@ F:      drivers/i2c/busses/i2c-omap.c
+>>>  F:   include/linux/i2c-omap.h
+>>>
+>>>  OMAP DEVICE TREE SUPPORT
+>>> -M:   Beno=EEt Cousson <b-cousson@ti.com>
+>>> +M:   Beno=EEt Cousson <benoit.cousson@linaro.org>
+>>>  M:   Tony Lindgren <tony@atomide.com>
+>>>  L:   linux-omap@vger.kernel.org
+>>>  L:   devicetree@vger.kernel.org
+>>> @@ -5959,14 +5959,14 @@ S:    Maintained
+>>>  F:   drivers/char/hw_random/omap-rng.c
+>>>
+>>>  OMAP HWMOD SUPPORT
+>>> -M:   Beno=EEt Cousson <b-cousson@ti.com>
+>>> +M:   Beno=EEt Cousson <benoit.cousson@linaro.org>
+>>>  M:   Paul Walmsley <paul@pwsan.com>
+>>>  L:   linux-omap@vger.kernel.org
+>>>  S:   Maintained
+>>>  F:   arch/arm/mach-omap2/omap_hwmod.*
+>>>
+>>>  OMAP HWMOD DATA FOR OMAP4-BASED DEVICES
+>>> -M:   Beno=EEt Cousson <b-cousson@ti.com>
+>>> +M:   Beno=EEt Cousson <benoit.cousson@linaro.org>
+>>>  L:   linux-omap@vger.kernel.org
+>>>  S:   Maintained
+>>>  F:   arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>>> --
+>>> 1.7.7.6
+>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
