@@ -1,38 +1,53 @@
-From: Kumar Gala <galak@codeaurora.org>
-Subject: Re: [RFC PATCH v2 1/3] usb: dwc3: msm: Add device tree binding information
-Date: Mon, 12 Aug 2013 13:49:07 -0500
-Message-ID: <EA9DC11E-0A4A-4B03-8337-320C1F6D80D3@codeaurora.org>
-References: <1376042027-9798-1-git-send-email-iivanov@mm-sol.com> <1376042027-9798-2-git-send-email-iivanov@mm-sol.com> <169628C9-00BA-4E58-BF65-7B180E6BE4ED@codeaurora.org> <20130812180438.GC27954@radagast>
-Mime-Version: 1.0 (Apple Message framework v1283)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130812180438.GC27954@radagast>
-Sender: linux-doc-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: "Ivan T. Ivanov" <iivanov@mm-sol.com>, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCHv3 0/9] ARM: OMAP2+: AM33XX: Add suspend-resume support
+Date: Mon, 12 Aug 2013 13:59:11 -0500
+Message-ID: <5209307F.9000701@ti.com>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <52077B26.1010103@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54530 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751106Ab3HLS7i (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Aug 2013 14:59:38 -0400
+In-Reply-To: <52077B26.1010103@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>
 
+On 08/11/2013 06:53 AM, Daniel Mack wrote:
+> Hi Dave,
+>
+> Thanks a lot for your work on this.
+>
+> On 06.08.2013 19:49, Dave Gerlach wrote:
+>> This is the third version of the patch series for adding basic suspend-resume
+>> support for AM33XX, previously submitted by Vaibhav Bedia. This patchset
+>> is based on 3.11-rc4 and depends on a forthcoming patchset from Suman Anna
+>> that adds mailbox support for the wkup_m3. The patches at [1], [2], and [3] are
+>> required for the pm code to properly suspend and resume.
+>
+> I applied your set and the one from Suman Anna, and with musb disabled
+> and the firmware built from the sources you referenced, I'm able to put
+> a custom AM33xx based board to suspend.
+>
+> The problem I currently face is that I can't make the board resume, as
+> neither UART0 nor GPIO0 seem to work as wakeup source.
 
-On Aug 12, 2013, at 1:04 PM, Felipe Balbi wrote:
+Did you apply the other patches that are mentioned besides Suman's 
+series? The board will hang while suspending without these.
 
-> On Fri, Aug 09, 2013 at 10:31:58AM -0500, Kumar Gala wrote:
->> 
->> On Aug 9, 2013, at 4:53 AM, Ivan T. Ivanov wrote:
->> 
->>> From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
->>> 
->>> MSM USB3.0 core wrapper consist of USB3.0 IP (SNPS)
->> 
->> probably good to spell out Synopsys rather than SNPS
-> 
-> Synopsys (the company) has always used snps in their bindings though.
+>
+> Which wakeup source did you use in your tests?
+>
 
-I just meant in the commit message as SNPS wasn't obvious to me and I think when someone comes back and looks the commit message doing "Synopsys (SNPS)" is a little more readable.
+Most of my verification was done with UART wakeup.
 
-- k
+>
+> Thanks,
+> Daniel
+>
 
---
-Employee of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
 
