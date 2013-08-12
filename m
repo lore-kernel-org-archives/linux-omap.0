@@ -1,65 +1,71 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v3 08/12] dma: edma: Add one more required slot to MAX
- slots
-Date: Mon, 12 Aug 2013 11:26:49 +0530
-Message-ID: <52087921.8040101@ti.com>
-References: <1375719297-12871-1-git-send-email-joelf@ti.com>
- <1375719297-12871-9-git-send-email-joelf@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [GIT PULL] DRA7xx core support
+Date: Mon, 12 Aug 2013 17:04:10 +0530
+Message-ID: <5208C832.2060007@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1375719297-12871-9-git-send-email-joelf@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Mark Brown <broonie@linaro.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Sricharan R <r.sricharan@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Lokesh Vutla <lokeshvutla@ti.com>, Chris Ball <cjb@laptop.org>, Arnd Bergmann <arnd@arndb.de>, Rajendra Nayak <rnayak@ti.com>, Rob Herring <rob.herring@calxeda.com>, Jason Kridner <jkridner@beagleboard.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Balaji TK <balajitk@ti.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Gururaja Hebbar <gururaja.hebbar@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Dan Williams <djbw@fb.com>, Olof Johansson <olof@lixom>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:56695 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755019Ab3HLLel (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Aug 2013 07:34:41 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Monday 05 August 2013 09:44 PM, Joel Fernandes wrote:
-> We'd now need a separate slot just for the channel and separate
-> ones for the 2 linked sets, so we make adjustments to allocate
-> an extra channel accordingly.
-> 
-> Signed-off-by: Joel Fernandes <joelf@ti.com>
+Hi Tony,
 
-No need for a separate patch for this, just do this in the patch where
-you include the two linked sets.
+Heres the pull request for the dra7xx core support patches.
 
-> ---
->  drivers/dma/edma.c |    5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-> index a242269..df50a04 100644
-> --- a/drivers/dma/edma.c
-> +++ b/drivers/dma/edma.c
-> @@ -48,7 +48,7 @@
->  
->  /* Max of 16 segments per channel to conserve PaRAM slots */
->  #define MAX_NR_SG		16
-> -#define EDMA_MAX_SLOTS		MAX_NR_SG
-> +#define EDMA_MAX_SLOTS		(MAX_NR_SG+1)
->  #define EDMA_DESCRIPTORS	16
->  
->  struct edma_desc {
-> @@ -311,6 +311,9 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
->  
->  	num_slots_needed = sg_len > MAX_NR_SG ? MAX_NR_SG : sg_len;
->  
-> +	/* Allocate one extra to account for the channel itself */
-> +	num_slots_needed++;
+The following changes since commit d4e4ab86bcba5a72779c43dc1459f71fea3d89c8:
 
-You can do:
+  Linux 3.11-rc5 (2013-08-11 18:04:20 -0700)
 
-	nslots = min(MAX_NR_SG, sg_len) + 1;
+are available in the git repository at:
 
-Thanks,
-Sekhar
+  git://github.com/rrnayak/linux.git tags/dra7-core-support-v3
+
+for you to fetch changes up to 41f2119b3037e50482cb14eaa39e6b5c52113fb5:
+
+  ARM: DRA7: Add the build support in omap2plus (2013-08-12 15:25:38 +0530)
+
+----------------------------------------------------------------
+DRA7xx based SoC core support
+
+----------------------------------------------------------------
+R Sricharan (8):
+      ARM: DRA7: Reuse all of PRCM and MPUSS SMP infra
+      ARM: DRA7: Reuse io tables and add a new .init_early
+      ARM: DRA7: Resue the clocksource, clockevent support
+      ARM: DRA7: board-generic: Add basic DT support
+      ARM: DRA7: Kconfig: Make ARCH_NR_GPIO default to 512
+      ARM: DRA7: dts: Add the dts files for dra7 SoC and dra7-evm board
+      ARM: DRA7: id: Add cpu detection support for DRA7xx based SoCs'
+      ARM: DRA7: Add the build support in omap2plus
+
+Rajendra Nayak (1):
+      ARM: DRA7: hwmod: Reuse the soc_ops used for OMAP4/5
+
+ .../devicetree/bindings/arm/omap/omap.txt          |    3 +
+ arch/arm/Kconfig                                   |    2 +-
+ arch/arm/boot/dts/Makefile                         |    3 +-
+ arch/arm/boot/dts/dra7-evm.dts                     |  140 +++++
+ arch/arm/boot/dts/dra7.dtsi                        |  567 ++++++++++++++++++++
+ arch/arm/configs/omap2plus_defconfig               |    1 +
+ arch/arm/mach-omap1/include/mach/soc.h             |    1 +
+ arch/arm/mach-omap2/Kconfig                        |   12 +-
+ arch/arm/mach-omap2/Makefile                       |    6 +
+ arch/arm/mach-omap2/board-generic.c                |   18 +
+ arch/arm/mach-omap2/common.h                       |    1 +
+ arch/arm/mach-omap2/id.c                           |    4 +-
+ arch/arm/mach-omap2/io.c                           |   20 +-
+ arch/arm/mach-omap2/omap54xx.h                     |    4 +
+ arch/arm/mach-omap2/omap_hwmod.c                   |    2 +-
+ arch/arm/mach-omap2/soc.h                          |   17 +
+ arch/arm/mach-omap2/timer.c                        |    3 +-
+ arch/arm/plat-omap/Kconfig                         |    2 +-
+ 18 files changed, 795 insertions(+), 11 deletions(-)
+ create mode 100644 arch/arm/boot/dts/dra7-evm.dts
+ create mode 100644 arch/arm/boot/dts/dra7.dtsi
