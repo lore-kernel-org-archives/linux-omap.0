@@ -1,62 +1,81 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] drop unused omap defines for v3.12 merge window
-Date: Sun, 11 Aug 2013 16:39:10 -0700
-Message-ID: <20130811233910.GG26757@quad.lixom.net>
-References: <20130807110812.GK7656@atomide.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 02/12] ARM: edma: Don't clear EMR of channel in
+	edma_stop
+Date: Mon, 12 Aug 2013 09:55:03 +0530
+Message-ID: <5208639F.8070406@ti.com>
+References: <1375719297-12871-1-git-send-email-joelf@ti.com>
+	<1375719297-12871-3-git-send-email-joelf@ti.com>
+	<520385D3.1060408@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f52.google.com ([209.85.160.52]:54707 "EHLO
-	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755149Ab3HKXjy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Aug 2013 19:39:54 -0400
-Received: by mail-pb0-f52.google.com with SMTP id wz12so6194878pbc.25
-        for <linux-omap@vger.kernel.org>; Sun, 11 Aug 2013 16:39:54 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20130807110812.GK7656@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <520385D3.1060408-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Cc: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Balaji TK <balajitk-l0cyMroinI0@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Santosh Shilimkar <santosh.shilim>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@linaro.org
 
-[+khilman]
-
-Since Kevin is stepping up and helping out with arm-soc, please restart
-sending these to arm@kernel.org. I probably don't favor that behavior
-by handling the pull requests in my inbox first though...
-
-
-On Wed, Aug 07, 2013 at 04:08:12AM -0700, Tony Lindgren wrote:
-> The following changes since commit 3b2f64d00c46e1e4e9bd0bb9bb12619adac27a4b:
+On 8/8/2013 5:19 PM, Sekhar Nori wrote:
+> On Monday 05 August 2013 09:44 PM, Joel Fernandes wrote:
+>> We certainly don't want error conditions to be cleared any other
+>> place but the EDMA error handler, as this will make us 'forget'
+>> about missed events we might need to know errors have occurred.
+>>
+>> This fixes a race condition where the EMR was being cleared
+>> by the transfer completion interrupt handler.
+>>
+>> Basically, what was happening was:
+>>
+>>             Missed event
+>>              |
+>>              |
+>>              V
+>> SG1-SG2-SG3-Null
+>>          \
+>>           \__TC Interrupt (Almost same time as ARM is executing
+>> TC interrupt handler, an event got missed and also forgotten
+>> by clearing the EMR).
+>>
+>> This causes the following  problems:
+>>
+>> 1.
+>> If error interrupt is also pending and TC interrupt clears the EMR
+>> by calling edma_stop as has been observed in the edma_callback function,
+>> the ARM will execute the error interrupt even though the EMR is clear.
+>> As a result, the  dma_ccerr_handler returns IRQ_NONE. If this happens
+>> enough number of times, IRQ subsystem disables the interrupt thinking
+>> its spurious which makes error handler never execute again.
+>>
+>> 2.
+>> Also even if error handler doesn't return IRQ_NONE, the removing of EMR
+>> removes the knowledge about which channel had a missed event, and thus
+>> a manual trigger on such channels cannot be performed.
+>>
+>> The EMR is ultimately being cleared by the Error interrupt handler
+>> once it is handled so we remove code that does it in edma_stop and
+>> allow it to happen there.
+>>
+>> Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
 > 
->   Linux 3.11-rc2 (2013-07-21 12:05:29 -0700)
+> Queuing this for v3.11 fixes. While committing, I changed the headline
+> to remove capitalization and made it more readable by removing register
+> level details. The new headline is:
 > 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.12/cleanup-unused-defines
-> 
-> for you to fetch changes up to dc46c79043a85624c78993919615abf743565ff5:
-> 
->   Merge tag 'for-v3.11-rc/omap-fixes-a' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.12/cleanup (2013-07-31 01:12:49 -0700)
+> ARM: edma: don't clear missed events in edma_stop()
 
-[...]
+Forgot to ask, should this be tagged for stable? IOW, how serious is
+this race in current kernel (without the entire series applied)? I have
+never observed it myself - so please provide details how easy/difficult
+it is to hit this condition.
 
-> So, for the few, the masochistic, out there who wish to continue
-> developing TI PRCM code, I would ask that you resurrect any
-> additionally-needed macros from these commits, rather than writing
-> them manually.  Purely for the sake of a pleasant atavism, perhaps; the
-> way one appreciates a used bookstore, or a video rental store...
-
-Betamax or Video 2000?
-
-But yes, very much available as a revert or in older checkouts if needed
-in the future.
-
->  12 files changed, 10853 deletions(-)
-
-beer_credit++;
-
-Nice cleanup. Pulled.
-
-
--Olof
+Thanks,
+Sekhar
