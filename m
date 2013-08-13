@@ -1,70 +1,71 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: RX51: kernel message spam from CPUfreq driver
-Date: Tue, 13 Aug 2013 14:25:51 +0200
-Message-ID: <20130813122551.GA10082@earth.universe>
-References: <20130811141336.GA24034@earth.universe>
- <520880C8.1040907@ti.com>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCHv3 0/9] ARM: OMAP2+: AM33XX: Add suspend-resume support
+Date: Tue, 13 Aug 2013 14:39:01 +0200
+Message-ID: <520A28E5.9030304@gmail.com>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <52077B26.1010103@gmail.com> <5209307F.9000701@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="BXVAT5kNtrzKuDFl"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:53337 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757351Ab3HMMZ4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Aug 2013 08:25:56 -0400
-Content-Disposition: inline
-In-Reply-To: <520880C8.1040907@ti.com>
+Received: from mail-bk0-f42.google.com ([209.85.214.42]:65199 "EHLO
+	mail-bk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756770Ab3HMMjF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Aug 2013 08:39:05 -0400
+Received: by mail-bk0-f42.google.com with SMTP id my10so2317697bkb.15
+        for <linux-omap@vger.kernel.org>; Tue, 13 Aug 2013 05:39:04 -0700 (PDT)
+In-Reply-To: <5209307F.9000701@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>
+
+Hi Dave,
+
+On 12.08.2013 20:59, Dave Gerlach wrote:
+> On 08/11/2013 06:53 AM, Daniel Mack wrote:
+
+>> The problem I currently face is that I can't make the board resume, as
+>> neither UART0 nor GPIO0 seem to work as wakeup source.
+> 
+> Did you apply the other patches that are mentioned besides Suman's 
+> series? The board will hang while suspending without these.
+
+Yes. However, just to make sure you referenced the correct patches - on
+top of yours an Suman's set, I have:
+
+  [PATCH 1/2] ARM: OMAP2+: hwmod: rt address space index for DT
+  [PATCH 2/2] ARM: OMAP2+: hwmod: AM335x: fix cpgmac address space
+  [PATCH 1/2] ARM: dts: add AM33XX EDMA support
+
+The last one seems somewhat unrelated though.
+
+However, I see an issue with the musb dsps glue. With the usb controller
+disabled in DT, I also had to remove the usb_otg_hs entry from
+am33xx_mod[] (pm33xx.c). When the usb controller is _enabled_, I get an
+instant NULL pointer exception due to a rather obvious bug. I'll send
+out a patch right now.
+
+When I send the board to suspend (with USB disabled), the power
+consumption drops significantly, and the output is:
+
+# echo mem > /sys/power/state
+[   93.001937] PM: Syncing filesystems ... done.
+[   93.033591] Freezing user space processes ... (elapsed 0.002 seconds)
+done.
+[   93.048532] Freezing remaining freezable tasks ... (elapsed 0.002
+seconds) done.
+[   93.059277] PM: Sending message for entering DeepSleep mode
+[   93.085368] PM: suspend of devices complete after 15.070 msecs
+[   93.096671] PM: late suspend of devices complete after 5.122 msecs
+[   93.108853] PM: noirq suspend of devices complete after 5.647 msecs
 
 
---BXVAT5kNtrzKuDFl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+... but traffic on UART0 won't cause a resume.
 
-Hi,
 
-On Mon, Aug 12, 2013 at 11:59:28AM +0530, Rajendra Nayak wrote:
-> Whats the system clock frequency used on RX-51? I guess omap2_dpll_round_=
-rate()
-> for some reason thinks that with the given sys clock its not possible to
-> lock the DPLL at 125Mhz. If you can send the debug logs from omap2_dpll_r=
-ound_rate()
-> that should probably help know whats going wrong.
+I'll dig a little deeper now, but if you have any idea, please let me know.
 
-It's also not possible to lock the DPLL at other frequencies. During
-the boot process at least 125MHz, 250MHz and 550MHz cannot be locked.
 
-I uploaded a full serial dump from the n900 with debug output from=20
-omap2_dpll_round_rate to the following url:
+Thanks,
+Daniel
 
-http://paste.debian.net/24628/
-
--- Sebastian
-
---BXVAT5kNtrzKuDFl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSCiXOAAoJENju1/PIO/qadrUQAICF+98rWyGo96Z/spZr1Ky0
-BD0N8qhWdc1USD5XrR8OIQRogrJlVVVmisx9JNS3H56xGaK7JK4CpskicHqY8Kl9
-Rna7EvWFuQSUMJwRvNTtLqzfRqQvxZOpFuw9v3v7Nvn/OTT/mEVRda6YrLDtarG0
-3QczqWZCTUqypx+UtDpSaVNh2CNyE9b5TZA3vTjK+vjJP/NG6qHezLNeAfYRki4O
-J/d6HgOekWvGXtBZBEiDRbRnqg6MqfqJM05DAqXiiUDXhrEqqV9/Kl2/d5ZHDiPQ
-paEPCfIwNdgmH1h1PsZHgcDN9xDfctLH2Fm8gpjqY1jw+uVR9WfCoDGFNDD2dcDH
-u80d+AVsKMx4/BXpOkEIzoQxsS/PP50xwb3ot8D8UoxyDukD03bVnAOWMxLgik57
-L82zJUAJhodY+L58xCtUT+HudDVEGNP+KUuZjqqto6ETsAnYl+glKGIvuq3QMUGb
-8mkp4AwJc7KpHwPs4HKP2oIV/xlq0xyFPl9mULOF1NDvnl4vr9vo4LVkeJnR9VRN
-qXrsFtOnwyoecfxU1ErVtosk30+ZwpEhcD3VR2APuIPkYH0sNGOIuMFB8U6FjsVW
-J+IK7Ig+n3lRiVTV3jdGBD4oCPRTCAlzMPK9c2R+uTIXGG0SqFuldwWc6Ea546ua
-HjpTY0EDDrA2V79KRB3n
-=85Vn
------END PGP SIGNATURE-----
-
---BXVAT5kNtrzKuDFl--
