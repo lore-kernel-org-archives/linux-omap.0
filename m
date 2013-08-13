@@ -1,40 +1,66 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH] arm: omap5: dts: split SMPS10 dt node
-Date: Tue, 13 Aug 2013 16:48:47 +0200
-Message-ID: <520A474F.9080500@baylibre.com>
-References: <1376300221-15172-1-git-send-email-kishon@ti.com> <520A32CF.1010701@baylibre.com> <520A4685.7050503@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCHv3 8/9] ARM: OMAP2+: AM33XX: Basic suspend resume support
+Date: Tue, 13 Aug 2013 07:59:39 -0700
+Message-ID: <87zjslocv8.fsf@kernel.org>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+	<1375811376-49985-9-git-send-email-d-gerlach@ti.com>
+	<CA+Bv8Xb8cy-=ESE4nWOCub=aw7KFrOgEgzfdGUd1TqDJ0ZR_Gg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <520A4685.7050503@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, balbi@ti.com
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:45602 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756870Ab3HMO7n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Aug 2013 10:59:43 -0400
+Received: by mail-pa0-f45.google.com with SMTP id bg4so8974277pad.4
+        for <linux-omap@vger.kernel.org>; Tue, 13 Aug 2013 07:59:43 -0700 (PDT)
+In-Reply-To: <CA+Bv8Xb8cy-=ESE4nWOCub=aw7KFrOgEgzfdGUd1TqDJ0ZR_Gg@mail.gmail.com>
+	(Russ Dill's message of "Tue, 13 Aug 2013 00:43:09 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russ Dill <russ.dill@gmail.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Tony Lingren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <benoit.cousson@linaro.org>
 
-On 13/08/2013 16:45, Kishon Vijay Abraham I wrote:
-> Hi,
+Russ Dill <russ.dill@gmail.com> writes:
+
+> On Tue, Aug 6, 2013 at 10:49 AM, Dave Gerlach <d-gerlach@ti.com> wrote:
+
+[...]
+
+>> +static int wkup_m3_probe(struct platform_device *pdev)
+>> +{
+>> +       int irq, ret = 0;
+>> +       struct resource *mem;
+>> +
+>> +       pm_runtime_enable(&pdev->dev);
+>> +
+>> +       ret = pm_runtime_get_sync(&pdev->dev);
+>> +       if (IS_ERR_VALUE(ret)) {
+>> +               dev_err(&pdev->dev, "pm_runtime_get_sync() failed\n");
+>> +               return ret;
+>> +       }
+>> +
+>> +       irq = platform_get_irq(pdev, 0);
+>> +       if (!irq) {
+>> +               dev_err(wkup_m3->dev, "no irq resource\n");
 >
-> On Tuesday 13 August 2013 06:51 PM, Benoit Cousson wrote:
->> Hi Kishon,
->>
->> On 12/08/2013 11:37, Kishon Vijay Abraham I wrote:
->>> SMPS10 has two outputs OUT1 and OUT2. Hence SMPS10 is modeled as
->>> two regulators. The dt node is split to reflect it.
->>
->> Mmm, I'm curious. How is it supposed to work?
->>
->> Do you have dedicated control on each output?
+> &pdev->dev
 >
-> Yes. It can be controlled by setting different values to the same bit fields.
-> You can refer [1] where we actually implement SMPS10 as two different regulators.
+>> +               ret = -ENXIO;
+>> +               goto err;
+>> +       }
+>> +
+>> +       mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>> +       if (!mem) {
+>> +               dev_err(wkup_m3->dev, "no memory resource\n");
 >
-> [1] -> http://permalink.gmane.org/gmane.linux.kernel/1542521
+> &pdev->dev
 
-Great, thanks.
+For future reference, when reviewing, please trim to only relevant
+content/context, especially on large patches so maintainers/reviewers do
+not have to find 2 one-line comments in a huge amount of irrelevant
+context.
 
-Can we merge that one safely if the driver changed are not done yet?
+Thanks,
 
-Regards,
-Benoit
+Kevin
