@@ -1,68 +1,106 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: Pandaboard: DT Boot fails when initramfs is loaded
-Date: Tue, 13 Aug 2013 12:32:35 +0200
-Message-ID: <20130813103232.GA2979@earth.universe>
-References: <20130811133119.GA15024@earth.universe>
- <5208D243.6080309@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Tue, 13 Aug 2013 16:14:44 +0530
+Message-ID: <520A0E1C.5000306@ti.com>
+References: <20130720220006.GA7977@kroah.com> <3839600.WiC1OLF35o@flatron>
+ <51EBC0F5.70601@ti.com> <9748041.Qq1fWJBg6D@flatron>
+ <20130721154653.GG16598@kroah.com> <20130730071106.GC16441@radagast>
+ <51F8A440.8010803@ti.com> <20130731061538.GC13289@radagast>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="82I3+IH0IqGh5yIs"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:52868 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756294Ab3HMKcj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Aug 2013 06:32:39 -0400
-Content-Disposition: inline
-In-Reply-To: <5208D243.6080309@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130731061538.GC13289@radagast>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: balbi@ti.com
+Cc: linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, Tomasz Figa <tomasz.figa@gmail.com>, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, Alan Stern <stern@rowland.harvard.edu>, grant.likely@linaro.org, linux-media@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, devicetree-discuss@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, Greg KH <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, kyungmin.park@samsung.com, akpm@linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: linux-omap@vger.kernel.org
 
+Hi,
 
---82I3+IH0IqGh5yIs
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Wednesday 31 July 2013 11:45 AM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Wed, Jul 31, 2013 at 11:14:32AM +0530, Kishon Vijay Abraham I wrote:
+>>>>>>> IMHO we need a lookup method for PHYs, just like for clocks,
+>>>>>>> regulators, PWMs or even i2c busses because there are complex cases
+>>>>>>> when passing just a name using platform data will not work. I would
+>>>>>>> second what Stephen said [1] and define a structure doing things in a
+>>>>>>> DT-like way.
+>>>>>>>
+>>>>>>> Example;
+>>>>>>>
+>>>>>>> [platform code]
+>>>>>>>
+>>>>>>> static const struct phy_lookup my_phy_lookup[] = {
+>>>>>>>
+>>>>>>> 	PHY_LOOKUP("s3c-hsotg.0", "otg", "samsung-usbphy.1", "phy.2"),
+>>>>>>
+>>>>>> The only problem here is that if *PLATFORM_DEVID_AUTO* is used while
+>>>>>> creating the device, the ids in the device name would change and
+>>>>>> PHY_LOOKUP wont be useful.
+>>>>>
+>>>>> I don't think this is a problem. All the existing lookup methods already 
+>>>>> use ID to identify devices (see regulators, clkdev, PWMs, i2c, ...). You 
+>>>>> can simply add a requirement that the ID must be assigned manually, 
+>>>>> without using PLATFORM_DEVID_AUTO to use PHY lookup.
+>>>>
+>>>> And I'm saying that this idea, of using a specific name and id, is
+>>>> frought with fragility and will break in the future in various ways when
+>>>> devices get added to systems, making these strings constantly have to be
+>>>> kept up to date with different board configurations.
+>>>>
+>>>> People, NEVER, hardcode something like an id.  The fact that this
+>>>> happens today with the clock code, doesn't make it right, it makes the
+>>>> clock code wrong.  Others have already said that this is wrong there as
+>>>> well, as systems change and dynamic ids get used more and more.
+>>>>
+>>>> Let's not repeat the same mistakes of the past just because we refuse to
+>>>> learn from them...
+>>>>
+>>>> So again, the "find a phy by a string" functions should be removed, the
+>>>> device id should be automatically created by the phy core just to make
+>>>> things unique in sysfs, and no driver code should _ever_ be reliant on
+>>>> the number that is being created, and the pointer to the phy structure
+>>>> should be used everywhere instead.
+>>>>
+>>>> With those types of changes, I will consider merging this subsystem, but
+>>>> without them, sorry, I will not.
+>>>
+>>> I'll agree with Greg here, the very fact that we see people trying to
+>>> add a requirement of *NOT* using PLATFORM_DEVID_AUTO already points to a
+>>> big problem in the framework.
+>>>
+>>> The fact is that if we don't allow PLATFORM_DEVID_AUTO we will end up
+>>> adding similar infrastructure to the driver themselves to make sure we
+>>> don't end up with duplicate names in sysfs in case we have multiple
+>>> instances of the same IP in the SoC (or several of the same PCIe card).
+>>> I really don't want to go back to that.
+>>
+>> If we are using PLATFORM_DEVID_AUTO, then I dont see any way we can give the
+>> correct binding information to the PHY framework. I think we can drop having
+>> this non-dt support in PHY framework? I see only one platform (OMAP3) going to
+>> be needing this non-dt support and we can use the USB PHY library for it.
+> 
+> you shouldn't drop support for non-DT platform, in any case we lived
+> without DT (and still do) for years. Gotta find a better way ;-)
 
-On Mon, Aug 12, 2013 at 03:17:07PM +0300, Roger Quadros wrote:
-> What is the size of your uImage and uInitrd? Are you sure the load addresses
-> are far apart to not cause overwrite?
+hmm..
 
-There should be about 23M space for the uImage (0x81600000-0x80000000) and
-ca. 245MB for the uInitrd (0x90000000 - 0x81600000). The actual files
-are much smaller than that:
+how about passing the device names of PHY in platform data of the controller?
+It should be deterministic as the PHY framework assigns its own id and we
+*don't* want to add any requirement that the ID must be assigned manually
+without using PLATFORM_DEVID_AUTO. We can get rid of *phy_init_data* in the v10
+patch series.
 
--rw-r--r-- 1 root root 2.7M Mai 25 17:59 uImage-3.10.0-rc1+
--rw-r--r-- 1 root root 4.9M Mai 25 18:00 uInitrd-3.10.0-rc1+
--rw-r--r-- 1 root root 2.8M Aug 11 13:27 uImage-3.11.0-rc4+
--rw-r--r-- 1 root root 4.9M Aug 11 13:27 uInitrd-3.11.0-rc4+
--rw-r--r-- 1 root root  18K Aug 11 13:01 omap4-panda.dtb
-
-Apart from that I was able to boot the 3.10 kernel without using the
-device tree information.
-
--- Sebastian
-
---82I3+IH0IqGh5yIs
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSCgtAAAoJENju1/PIO/qab94P/0nMQeiV+GhnmX+CW35vjh2m
-AgxEJsKin6DWZoXmrSQLeQO8Fu6lre9viP4MOlP7dpvjGW7zM3XXoJMYkswj+lzD
-OCNNoNt8WRHD7/VsuhTijXMbWdMxnUxT6EqFNJM9BYJ1sWjzuxCW2tqFl7w0jSQu
-57y5gQhVZGnLq74LBXLFwBr9mvUHpcDJneOerwHfZLBtRwOWWyU5OZ8AaJ+6mMEz
-+ibiBVBUIR1hBWHH0owgEwFXoqVx99l0KMBG68lFUZbqwtPetL17rpxUgDAKitMo
-SnjDOOXSlmQx7Cq9GBjDJiYog8An25EVtJrCxW2+M7BwgMfWGcVWibs2IqyMkFc0
-pghcNkUUbLXiaWyxhRaQYdOf6Lv7hc1YlSfBC+K1FDQS3mYPTSy6iLbE61S06yID
-zcbwQETHsQMmVLL1YhYcaJIzqe1FaosOP5sfuaUTFDyn9qH4TVgkEAieJ59KaqY4
-D59wBDXoPllgSo2Viz1KqyetqjUagLod3dOOopg4yYT21xNuERwSi9WTZNcV49eY
-2BnF6qgJ2n1IGELM0oQcgi3KE7oKDDbsbt4WgWQPX6RfWcj0W+9sCYX4FwBzH/iH
-5/IDl5oN0cKWrrWjlX8zcUgVM6FFm1o5LdXHzfzt868thHtW9t2a+3r4/HXzQTBI
-68V5Ip8EzYU/kjCuW5+F
-=Agt3
------END PGP SIGNATURE-----
-
---82I3+IH0IqGh5yIs--
+Thanks
+Kishon
+> 
