@@ -1,69 +1,47 @@
 From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH] arm: omap5: dts: split SMPS10 dt node
-Date: Tue, 13 Aug 2013 15:21:19 +0200
-Message-ID: <520A32CF.1010701@baylibre.com>
-References: <1376300221-15172-1-git-send-email-kishon@ti.com>
+Subject: Re: [PATCH] ARM: dts: am33xx: Correct gpio #interrupt-cells property
+Date: Tue, 13 Aug 2013 15:25:42 +0200
+Message-ID: <520A33D6.5070700@baylibre.com>
+References: <1375873592-26881-1-git-send-email-larsi@wh2.tu-dresden.de> <20130807145309.GG28558@e106331-lin.cambridge.arm.com> <201308071711.00449.poeschel@lemonage.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:58472 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757778Ab3HMNVY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Aug 2013 09:21:24 -0400
-Received: by mail-wg0-f44.google.com with SMTP id l18so6580398wgh.35
-        for <linux-omap@vger.kernel.org>; Tue, 13 Aug 2013 06:21:22 -0700 (PDT)
-In-Reply-To: <1376300221-15172-1-git-send-email-kishon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201308071711.00449.poeschel@lemonage.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lars Poeschel <poeschel@lemonage.de>
+Cc: Mark Rutland <mark.rutland@arm.com>, Lars Poeschel <larsi@wh2.tu-dresden.de>, "b-cousson@ti.com" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: benoit.cousson@linaro.org, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, balbi@ti.com
 
-Hi Kishon,
+Hi lars,
 
-On 12/08/2013 11:37, Kishon Vijay Abraham I wrote:
-> SMPS10 has two outputs OUT1 and OUT2. Hence SMPS10 is modeled as
-> two regulators. The dt node is split to reflect it.
+On 07/08/2013 17:11, Lars Poeschel wrote:
+> On Wednesday 07 August 2013 at 16:53:09, Mark Rutland wrote:
+>> On Wed, Aug 07, 2013 at 12:06:32PM +0100, Lars Poeschel wrote:
+>>> From: Lars Poeschel <poeschel@lemonage.de>
+>>>
+>>> Following commit ff5c9059 and therefore other omap platforms using
+>>> the gpio-omap driver correct the #interrupt-cells property on am33xx
+>>> too. The omap gpio binding documentaion also states that
+>>> the #interrupt-cells property should be 2.
+>>
+>> I take it there are no device nodes for which any of these nodes are an
+>> interrupt parent (which would need to be updated)?
+>
+> As far as I know: No.
+>
+> Lars
+>
+>> If so:
+>>
+>> Acked-by: Mark Rutland <mark.rutland@arm.com>
+>>
+>> Thanks,
+>> Mark.
+>>
+>>> Signed-off-by: Lars Poeschel <poeschel@lemonage.de>
 
-Mmm, I'm curious. How is it supposed to work?
+Thank, applied with Mark and Javier A-By / R-By.
 
-Do you have dedicated control on each output?
-
-Otherwise, it should be seen as one output with two potential consumers.
-
-Regards,
+Thanks,
 Benoit
-
->
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->   arch/arm/boot/dts/omap5-uevm.dts |   13 +++++++++++--
->   1 file changed, 11 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-> index 65d7b60..05b9b12 100644
-> --- a/arch/arm/boot/dts/omap5-uevm.dts
-> +++ b/arch/arm/boot/dts/omap5-uevm.dts
-> @@ -334,9 +334,18 @@
->   					ti,smps-range = <0x80>;
->   				};
->
-> -				smps10_reg: smps10 {
-> +				smps10_out2_reg: smps10_out2 {
->   					/* VBUS_5V_OTG */
-> -					regulator-name = "smps10";
-> +					regulator-name = "smps10_out2";
-> +					regulator-min-microvolt = <5000000>;
-> +					regulator-max-microvolt = <5000000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				smps10_out1_reg: smps10_out1 {
-> +					/* VBUS_5V_OTG */
-> +					regulator-name = "smps10_out1";
->   					regulator-min-microvolt = <5000000>;
->   					regulator-max-microvolt = <5000000>;
->   					regulator-always-on;
->
-
