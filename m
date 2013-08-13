@@ -1,55 +1,187 @@
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 1/5 v2] drivers/gpio/gpio-omap.c: convert comma to semicolon
-Date: Tue, 13 Aug 2013 09:16:56 +0200
-Message-ID: <1376378216-18473-1-git-send-email-Julia.Lawall@lip6.fr>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: kernel-janitors@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Subject: Re: [RFC PATCH v2 1/3] usb: dwc3: msm: Add device tree binding
+ information
+Date: Tue, 13 Aug 2013 10:21:20 +0300
+Message-ID: <1376378480.2208.3.camel@iivanov-dev.int.mm-sol.com>
+References: <1376042027-9798-1-git-send-email-iivanov@mm-sol.com>
+	 <1376042027-9798-2-git-send-email-iivanov@mm-sol.com>
+	 <169628C9-00BA-4E58-BF65-7B180E6BE4ED@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <169628C9-00BA-4E58-BF65-7B180E6BE4ED@codeaurora.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kumar Gala <galak@codeaurora.org>
+Cc: balbi@ti.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Replace a comma between expression statements by a semicolon.  This changes
-the semantics of the code, but given the current indentation appears to be
-what is intended.
+Hi, 
 
-A simplified version of the semantic patch that performs this
-transformation is as follows: (http://coccinelle.lip6.fr/)
+On Fri, 2013-08-09 at 10:31 -0500, Kumar Gala wrote: 
+> On Aug 9, 2013, at 4:53 AM, Ivan T. Ivanov wrote:
+> 
+> > From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+> > 
+> > MSM USB3.0 core wrapper consist of USB3.0 IP (SNPS)
+> 
+> probably good to spell out Synopsys rather than SNPS
 
-// <smpl>
-@r@
-expression e1,e2,e;
-type T;
-identifier i;
-@@
+I could make it look like this? Synopsys (SNPS)
 
- e1
--,
-+;
- e2;
-// </smpl>
+> 
+> > and HS, SS PHY's controll and configuration registers.
+> > 
+> > It could operate in device mode (SS, HS, FS) and host
+> > mode (SS, HS, FS, LS).
+> > 
+> > Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
+> > ---
+> > .../devicetree/bindings/usb/msm-ssusb.txt          |  101 ++++++++++++++++++++
+> > 1 file changed, 101 insertions(+)
+> > create mode 100644 Documentation/devicetree/bindings/usb/msm-ssusb.txt
+> > 
+> > diff --git a/Documentation/devicetree/bindings/usb/msm-ssusb.txt b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
+> > new file mode 100644
+> > index 0000000..7a97163
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
+> > @@ -0,0 +1,101 @@
+> > +MSM SuperSpeed DWC3 USB SoC controller
+> > +
+> 
+> We should have a heading here like:
+> 
+> DWC3 Highspeed USB PHY
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Ok, I will add these headings.
 
----
-Not tested.  The first version did a different transformation to avoid
-changing the semantics.  This one leaves the layout as it is, but changes
-the semantics.
+> 
+> > +Required properities :
+> > +- compatible : sould be "qcom,dwc3-hsphy";
+> > +- reg : offset and length of the register set in the memory map
+> > +- clocks : phandles to clock instances of the device tree nodes
+> > +- clock-names :
+> > +	"xo" : External reference clock 19 MHz
+> > +	"sleep_a_clk" : Sleep clock, used when USB3 core goes into low
+> > +	power mode (U3).
+> > +<supply-name>-supply : phandle to the regulator device tree node
+> > +Required "supply-name" are:
+> > +	"v1p8" : 1.8v supply for HSPHY
+> > +	"v3p3" : 3.3v supply for HSPHY
+> > +	"vbus" : vbus supply for host mode
+> > +	"vddcx" : vdd supply for HS-PHY digital circuit operation
+> > +
+> 
+> DWC3 Superspeed USB PHY
+> 
+> > +Required properities :
+> > +- compatible : sould be "qcom,dwc3-ssphy";
+> > +- reg : offset and length of the register set in the memory map
+> > +- clocks : phandles to clock instances of the device tree nodes
+> > +- clock-names :
+> > +	"xo" : External reference clock 19 MHz
+> > +	"ref_clk" : Reference clock - used in host mode.
+> > +<supply-name>-supply : phandle to the regulator device tree node
+> > +Required "supply-name" are:
+> > +	"v1p8" : 1.8v supply for SS-PHY
+> > +	"vddcx" : vdd supply for SS-PHY digital circuit operation
+> > +
+> 
+> DWC3 controller
+> 
+> > +Required properties :
+> > +- compatible : should be "qcom,dwc3"
+> > +- reg : offset and length of the register set in the memory map
+> > +	offset and length of the TCSR register for routing USB
+> > +	signals to either picoPHY0 or picoPHY1.
+> > +- clocks : phandles to clock instances of the device tree nodes
+> > +- clock-names :
+> > +	"core_clk" : Master/Core clock, have to be >= 125 MHz for SS
+> > +	operation and >= 60MHz for HS operation
+> > +	"iface_clk" : System bus AXI clock
+> > +	"sleep_clk" : Sleep clock, used when USB3 core goes into low
+> > +	power mode (U3).
+> > +	"utmi_clk" : Generated by HS-PHY. Used to clock the low power
+> > +	parts of thr HS Link layer.
+> > +
+> > +Optional properties :
+> > +- gdsc-supply : phandle to the globally distributed switch controller
+> > +  regulator node to the USB controller.
+> > +
+> > +Sub nodes:
+> > +- Sub node for "DWC3 USB3 controller".
+> > +  This sub node is required property for device node. The properties
+> > +  of this subnode are specified in dwc3.txt.
+> 
+> Is tx-fifo-resize required for qcom,dwc3? if so we should call that out in the binding.
 
- drivers/gpio/gpio-omap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+It looks like this is used in apq8084.dtsi (codeaurora repo)
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index dfeb3a3..9f19ec9 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1030,7 +1030,7 @@ omap_mpuio_alloc_gc(struct gpio_bank *bank, unsigned int irq_start,
- 	ct->chip.irq_set_type = gpio_irq_type;
- 
- 	if (bank->regs->wkup_en)
--		ct->chip.irq_set_wake = gpio_wake_enable,
-+		ct->chip.irq_set_wake = gpio_wake_enable;
- 
- 	ct->regs.mask = OMAP_MPUIO_GPIO_INT / bank->stride;
- 	irq_setup_generic_chip(gc, IRQ_MSK(num), IRQ_GC_INIT_MASK_CACHE,
+> 
+> > +
+> > +Example device nodes:
+> > +
+> > +	dwc3_hsphy: phy@f92f8800 {
+> > +		compatible = "qcom,dwc3-hsphy";
+> > +		reg = <0xf92f8800 0x30>;
+> > +
+> > +		clocks = <&cxo>, <&usb2a_phy_sleep_cxc>;
+> > +		clock-names = "xo", "sleep_a_clk";
+> > +
+> > +		vbus-supply = <&supply>;
+> > +		vddcx-supply = <&supply>;
+> > +		v1p8-supply = <&supply>;
+> > +		v3p3-supply = <&supply>;
+> > +	};
+> > +
+> > +	dwc3_ssphy: phy@f92f8830 {
+> > +		compatible = "qcom,dwc3-ssphy";
+> > +		reg = <0xf92f8830 0x30>;
+> > +
+> > +		clocks = <&cxo>, <&usb30_mock_utmi_cxc>;
+> > +		clock-names = "xo", "ref_clk";
+> > +
+> > +		vddcx-supply = <&supply>;
+> > +		v1p8-supply = <&supply>;
+> > +	};
+> > +
+> > +	usb@fd4ab000 {
+> > +		compatible = "qcom,dwc3";
+> > +		#address-cells = <1>;
+> > +		#size-cells = <1>;
+> > +		reg = <0xfd4ab000 0x4>;
+> > +
+> > +		clocks = <&usb30_master_cxc>, <&sys_noc_usb3_axi_cxc>,
+> > +				<&usb30_sleep_cxc>, <&usb30_mock_utmi_cxc>;
+> > +		clock-names = "core_clk", "iface_clk", "sleep_clk", "utmi_clk";
+> > +
+> > +		gdsc-supply = <&supply>;
+> > +		ranges;
+> > +
+> > +		dwc3@f9200000 {
+> > +			compatible = "snps,dwc3";
+> > +			reg = <0xf9200000 0xcd00>;
+> > +			interrupts = <0 131 0>;
+> > +			interrupt-names = "irq";
+> 
+> I'd drop interrupt-names since its not terribly meaningful w/a single IRQ
+
+Ok.
+
+Thanks, 
+Ivan
+
+> 
+> > +			usb-phy = <&dwc3_hsphy>, <&dwc3_ssphy>;
+> > +			tx-fifo-resize;
+> > +		};
+> > +	};
+> > -- 
+> > 1.7.9.5
+> > 
+
+> 
+
+
