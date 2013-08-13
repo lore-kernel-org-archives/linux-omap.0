@@ -1,62 +1,95 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] misc: Add crossbar driver
-Date: Tue, 13 Aug 2013 01:10:03 -0700
-Message-ID: <20130813081003.GU7656@atomide.com>
-References: <51E83A4F.5080904@ti.com>
- <CACRpkdY3nQaWimTwB-Zt-8+Q_KZr8a0rpB1SUQq=AuoG4bAYnQ@mail.gmail.com>
- <51ED2385.60108@ti.com>
- <51ED5C66.1010407@ti.com>
- <51EFFBE1.4090505@ti.com>
- <51F0031B.1050307@ti.com>
- <51F00530.9090703@ti.com>
- <51F02069.3050207@ti.com>
- <51F0223E.4050008@ti.com>
- <51F0240F.3050507@ti.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v2 8/8] ARM: DRA7: dts: Add the dts files for dra7 SoC
+ and dra7-evm board
+Date: Tue, 13 Aug 2013 10:46:29 +0100
+Message-ID: <20130813094629.GH27165@e106331-lin.cambridge.arm.com>
+References: <1375183546-12758-1-git-send-email-rnayak@ti.com>
+ <1375183546-12758-9-git-send-email-rnayak@ti.com>
+ <20130812114402.GB6616@e106331-lin.cambridge.arm.com>
+ <5209DF2F.5040409@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:33651 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755784Ab3HMJrH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Aug 2013 05:47:07 -0400
 Content-Disposition: inline
-In-Reply-To: <51F0240F.3050507@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, Sricharan R <r.sricharan@ti.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@secretlab.ca>
+In-Reply-To: <5209DF2F.5040409@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "khilman@linaro.org" <khilman@linaro.org>, "tony@atomide.com" <tony@atomide.com>, "benoit.cousson@gmail.com" <benoit.cousson@gmail.com>, "r.sricharan@ti.com" <r.sricharan@ti.com>, "ambresh@ti.com" <ambresh@ti.com>, "sourav.poddar@ti.com" <sourav.poddar@ti.com>, marc.zyngier@arm.com
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [130724 12:06]:
-> On Wednesday 24 July 2013 02:51 PM, Nishanth Menon wrote:
-> > On 07/24/2013 01:43 PM, Sricharan R wrote:
-> >> On Wednesday 24 July 2013 10:17 PM, Nishanth Menon wrote:
-> >>> On 07/24/2013 11:38 AM, Santosh Shilimkar wrote:
-> >>>> On Wednesday 24 July 2013 12:08 PM, Nishanth Menon wrote:
-> >>>>> That said, maybe a intermediate pinctrl approach might be more pragmatic and less theoretically flexible.
-> >>>>> an option might be to "statically allocate" default number of interrupts to a domain - example:
-> >>>>> * GIC IRQ 72->78 allotted to UARTs
-> >>>>> * pinctrl mapping provided for those but only 6 can be used (rest are marked status="disabled" as default) at any given time (choice of pinctrl option determines GIC interrupt line to use)
-> >>>>> * All modules will have a pinctrl definition to have a mapping - to avoid bootloader overriding default cross bar setting in ways un-expected by kernel.
-> >>>>>
-> >>>>> Does that sound fair trade off?
-> >>>> This sounds better. That way we can get all the devices in the DT at least.
-> >>>
-> >>> Fair enough - if Linus and Tony are still ok with this approach to the problem, seeing a patch series with the effect would be beneficial.
-> >>>
-> >>   Ok, i will use this idea of certain number interrupts to groups.
-> >> Yes on DRA7XX, we have about 160 gic lines and 320 irq crossbar device inputs contending for it.
-> >> 1:2 and fully arbitrary.  But will we be really exhausting them ?
-> >>
-> > Depends on how we allocate :). The default arbitary allocation can be made more logical in your series ofcourse :).
-> > 
-> I would just most logical peripherals rather than providing every single
-> IP connected to cross bar. Otherwise we will end up wth hwmod like
-> scenario where now started removing the unused stuff because of
-> maintenance and loc issues ;-)
+[Adding Marc to Cc]
 
-Sorry for the delay on this, I think the best way to set this up
-is as a separate drivers/irqchip controller. Then just map the
-configured interrupts for the board with interrupt-map and
-interrupt-map-mask binding. No need to stuff all the SoC specific
-maps to the .dts, just the ones used for the board.
+On Tue, Aug 13, 2013 at 08:24:31AM +0100, Rajendra Nayak wrote:
+> []..
+> 
+> >> +
+> >> +       cpus {
+> >> +               cpu@0 {
+> >> +                       compatible = "arm,cortex-a15";
+> >> +                       timer {
+> >> +                               compatible = "arm,armv7-timer";
+> >> +                               /*
+> >> +                                * PPI secure/nonsecure IRQ,
+> >> +                                * active low level-sensitive
+> >> +                                */
+> >> +                               interrupts = <1 13 0x308>,
+> >> +                                            <1 14 0x308>;
+> >> +                               clock-frequency = <6144000>;
+> >> +                       };
+> >> +               };
+> >
+> > The cpu nodes should have a reg matching their unit-address, and a
+> > device_type = "cpu".
+> >
+> > The timer nodes should *not* be under the CPU nodes. They should be
+> > under under the root node. I realise that it makes intuitive sense to
+> > describe per-cpu resources this way, but that's not the way the bindings
+> > are intended to be used (does thei DT even work?).
+> >
+> > No virtual/hypervisor interrupts?
+> 
+> Mark, all valid points. I just updated the patch to include all the missing
+> interrupts and registers for timer and gic and moved the timer node out as
+> its supposed to be.
 
-Regards,
+Great!
 
-Tony
- 
+> 
+> >
+> > Do you really need the clock-frequency property? It's far preferrable to
+> > have your bootloader do the right thing and program CNTFRQ with the
+> > correct value.
+> 
+> I kept the clock-frequency property since our bootloader does not handle this
+> and I am not sure if its a good idea to have the dependency on bootloader
+> to do this.
+
+There is precedent for handling it this way, but it would be far nicer
+to fix the bootloader to set CNTFRQ. For one thing it's only writeable
+from the secure side, so a host os can't fix it up for guests that might
+depend on it rather than dt. I realise it's not necessarily as simple as
+it sounds to fix that up, however.
+
+[...]
+
+> +       timer {
+> +               compatible = "arm,armv7-timer";
+> +               /* PPI secure/nonsecure IRQ */
+
+The comment's now stale, and I don't think it's necessary - the binding
+defines the order these are in.
+
+> +               interrupts = <GIC_PPI 13 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>,
+> +                            <GIC_PPI 14 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>,
+> +                            <GIC_PPI 11 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>,
+> +                            <GIC_PPI 10 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>;
+> +               clock-frequency = <6144000>;
+> +       };
+
+Thanks,
+Mark.
