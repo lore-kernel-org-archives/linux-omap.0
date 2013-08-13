@@ -1,97 +1,141 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH v2] serial: OMAP: add RS485 support
-Date: Tue, 13 Aug 2013 23:16:49 +0200
-Message-ID: <CAAwP0s2B_UkCGdvK1ZiYgM4w+u+nwNAtZuo=nzmP7nsrTV2rGA@mail.gmail.com>
-References: <52079822.9020103@newflow.co.uk> <20130812225638.GA30919@kroah.com>
- <520A08FE.5070804@newflow.co.uk> <CAAwP0s1QyNjQb+0zhK_UeHraTW+R6Mefq1E4HyV-XJ4fV42w+g@mail.gmail.com>
- <20130813185036.GB8909@kroah.com>
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Wed, 14 Aug 2013 00:19:28 +0200
+Message-ID: <520AB0F0.8010106@gmail.com>
+References: <20130720220006.GA7977@kroah.com> <20130731061538.GC13289@radagast> <520A0E1C.5000306@ti.com> <2034985.S0danJZqk4@amdc1227> <520A2100.6000709@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20130813185036.GB8909@kroah.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Mark Jackson <mpfj-list@newflow.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-serial@vger.kernel.org, jslaby@suse.cz
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <520A2100.6000709@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Tomasz Figa <t.figa@samsung.com>, linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, Tomasz Figa <tomasz.figa@gmail.com>, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, Alan Stern <stern@rowland.harvard.edu>, grant.likely@linaro.org, linux-media@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, devicetree-discuss@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, Greg KH <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.park@samsung.com, akpm@linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 13, 2013 at 8:50 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
->
-> On Tue, Aug 13, 2013 at 12:54:47PM +0200, Javier Martinez Canillas wrote:
-> > On Tue, Aug 13, 2013 at 12:22 PM, Mark Jackson <mpfj-list@newflow.co.uk> wrote:
-> > > On 12/08/13 23:56, Greg KH wrote:
-> > >> On Sun, Aug 11, 2013 at 02:56:50PM +0100, Mark Jackson wrote:
-> > >>> This patch adds RS485 support to the OMAP serial driver, as
-> > >>> defined in:-
-> > >>>
-> > >>> Documentation/devicetree/bindings/serial/rs485.txt
-> > >>>
-> > >>> When a UART transmitter is connected to (eg) a RS485 driver, it is
-> > >>> necessary to turn the driver on/off as quickly as possible.  This is
-> > >>> best achieved in the serial driver itself (rather than in userspace
-> > >>> where the latency can be quite large).
-> > >>>
-> > >>> This patch allows a GPIO pin to be defined (via DT) that controls
-> > >>> the enabling of the driver at the start of a message, and disables
-> > >>> the driver when the message has been completed.
-> > >>>
-> > >>> When RS485 is disabled, the RTS pin is set to on.
-> > >>>
-> > >>> Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
-> > >>> ---
-> > >>> Changes in v2:
-> > >>> - Fix incorrect logic in serial_omap_config_rs485()
-> > >>>
-> > >>>  drivers/tty/serial/omap-serial.c |  178 ++++++++++++++++++++++++++++++++++++++
-> > >>>  1 file changed, 178 insertions(+)
-> > >>
-> > >> This doesn't apply to my tty-next branch:
-> > >>       checking file drivers/tty/serial/omap-serial.c
-> > >>       Hunk #1 FAILED at 40.
-> > >>       Hunk #2 succeeded at 162 (offset 6 lines).
-> > >>       Hunk #3 succeeded at 280 (offset 5 lines).
-> > >>       Hunk #4 succeeded at 378 (offset 6 lines).
-> > >>       Hunk #5 succeeded at 1312 (offset 8 lines).
-> > >>       Hunk #6 succeeded at 1405 (offset 8 lines).
-> > >>       Hunk #7 succeeded at 1528 (offset 10 lines).
-> > >>       Hunk #8 FAILED at 1638.
-> > >>       Hunk #9 succeeded at 1705 (offset 6 lines).
-> > >>       2 out of 9 hunks FAILED
-> > >>
-> > >> so I can't apply it, sorry.
-> > >
-> > > It was applied on top of Linus' tree, if that makes any difference.
-> > >
-> > > I'll rebase onto yours and re-post the patch.
-> > > --
-> >
-> > Hi Mark,
-> >
-> > I've seen several attempts to add RS485 support to the omap serial
-> > driver and it is always nack-ed. There seems to be concerns about
-> > controlling the RTS by software when RS485 is not supported by the
-> > UART hardware. Please refer to [1] and [2] for more information.
->
-> Hm, but we do support RS485 now in the kernel, look at
-> Documentation/serial/serial-rs485.txt.  Why can't this driver support it
-> as well if the serial core already does?
->
+W dniu 2013-08-13 14:05, Kishon Vijay Abraham I pisze:
+> On Tuesday 13 August 2013 05:07 PM, Tomasz Figa wrote:
+>> On Tuesday 13 of August 2013 16:14:44 Kishon Vijay Abraham I wrote:
+>>> On Wednesday 31 July 2013 11:45 AM, Felipe Balbi wrote:
+>>>> On Wed, Jul 31, 2013 at 11:14:32AM +0530, Kishon Vijay Abraham I wrote:
+>>>>>>>>>> IMHO we need a lookup method for PHYs, just like for clocks,
+>>>>>>>>>> regulators, PWMs or even i2c busses because there are complex
+>>>>>>>>>> cases
+>>>>>>>>>> when passing just a name using platform data will not work. I
+>>>>>>>>>> would
+>>>>>>>>>> second what Stephen said [1] and define a structure doing things
+>>>>>>>>>> in a
+>>>>>>>>>> DT-like way.
+>>>>>>>>>>
+>>>>>>>>>> Example;
+>>>>>>>>>>
+>>>>>>>>>> [platform code]
+>>>>>>>>>>
+>>>>>>>>>> static const struct phy_lookup my_phy_lookup[] = {
+>>>>>>>>>>
+>>>>>>>>>> 	PHY_LOOKUP("s3c-hsotg.0", "otg", "samsung-usbphy.1", "phy.2"),
+>>>>>>>>>
+>>>>>>>>> The only problem here is that if *PLATFORM_DEVID_AUTO* is used
+>>>>>>>>> while
+>>>>>>>>> creating the device, the ids in the device name would change and
+>>>>>>>>> PHY_LOOKUP wont be useful.
+>>>>>>>>
+>>>>>>>> I don't think this is a problem. All the existing lookup methods
+>>>>>>>> already
+>>>>>>>> use ID to identify devices (see regulators, clkdev, PWMs, i2c,
+>>>>>>>> ...). You
+>>>>>>>> can simply add a requirement that the ID must be assigned manually,
+>>>>>>>> without using PLATFORM_DEVID_AUTO to use PHY lookup.
+>>>>>>>
+>>>>>>> And I'm saying that this idea, of using a specific name and id, is
+>>>>>>> frought with fragility and will break in the future in various ways
+>>>>>>> when
+>>>>>>> devices get added to systems, making these strings constantly have
+>>>>>>> to be
+>>>>>>> kept up to date with different board configurations.
+>>>>>>>
+>>>>>>> People, NEVER, hardcode something like an id.  The fact that this
+>>>>>>> happens today with the clock code, doesn't make it right, it makes
+>>>>>>> the
+>>>>>>> clock code wrong.  Others have already said that this is wrong there
+>>>>>>> as
+>>>>>>> well, as systems change and dynamic ids get used more and more.
+>>>>>>>
+>>>>>>> Let's not repeat the same mistakes of the past just because we
+>>>>>>> refuse to
+>>>>>>> learn from them...
+>>>>>>>
+>>>>>>> So again, the "find a phy by a string" functions should be removed,
+>>>>>>> the
+>>>>>>> device id should be automatically created by the phy core just to
+>>>>>>> make
+>>>>>>> things unique in sysfs, and no driver code should _ever_ be reliant
+>>>>>>> on
+>>>>>>> the number that is being created, and the pointer to the phy
+>>>>>>> structure
+>>>>>>> should be used everywhere instead.
+>>>>>>>
+>>>>>>> With those types of changes, I will consider merging this subsystem,
+>>>>>>> but
+>>>>>>> without them, sorry, I will not.
+>>>>>>
+>>>>>> I'll agree with Greg here, the very fact that we see people trying to
+>>>>>> add a requirement of *NOT* using PLATFORM_DEVID_AUTO already points
+>>>>>> to a big problem in the framework.
+>>>>>>
+>>>>>> The fact is that if we don't allow PLATFORM_DEVID_AUTO we will end up
+>>>>>> adding similar infrastructure to the driver themselves to make sure
+>>>>>> we
+>>>>>> don't end up with duplicate names in sysfs in case we have multiple
+>>>>>> instances of the same IP in the SoC (or several of the same PCIe
+>>>>>> card).
+>>>>>> I really don't want to go back to that.
+>>>>>
+>>>>> If we are using PLATFORM_DEVID_AUTO, then I dont see any way we can
+>>>>> give the correct binding information to the PHY framework. I think we
+>>>>> can drop having this non-dt support in PHY framework? I see only one
+>>>>> platform (OMAP3) going to be needing this non-dt support and we can
+>>>>> use the USB PHY library for it.>
+>>>> you shouldn't drop support for non-DT platform, in any case we lived
+>>>> without DT (and still do) for years. Gotta find a better way ;-)
+>>>
+>>> hmm..
+>>>
+>>> how about passing the device names of PHY in platform data of the
+>>> controller? It should be deterministic as the PHY framework assigns its
+>>> own id and we *don't* want to add any requirement that the ID must be
+>>> assigned manually without using PLATFORM_DEVID_AUTO. We can get rid of
+>>> *phy_init_data* in the v10 patch series.
 
-Hi Greg,
+OK, so the PHY device name would have a fixed part, passed as
+platform data of the controller and a variable part appended
+by the PHY core, depending on the number of registered PHYs ?
 
-Please don't shoot the messenger :-)
+Then same PHY names would be passed as the PHY provider driver's
+platform data ?
 
-In fact I was one of those who needed RS485 support in the OMAP serial
-driver a couple of years ago and we were told that "software RS485 is
-not mainlinable" [1].
+Then if there are 2 instances of the above (same names in platform
+data) how would be determined which PHY controller is linked to
+which PHY supplier ?
 
-I just wanted to warn Mark that he could be losing time pushing this
-but I'm glad to learn that this seems not to be true anymore.
+I guess you want each device instance to have different PHY device
+names already in platform data ? That might work. We probably will
+be focused mostly on DT anyway. It seem without DT we are trying
+to find some layer that would allow us to couple relevant devices
+and overcome driver core inconvenience that it provides to means
+to identify specific devices in advance. :) Your proposal sounds
+reasonable, however I might be missing some details or corner cases.
 
-> thanks,
->
-> greg k-h
+>> What about slightly altering the concept of v9 to pass a pointer to struct
+>> device instead of device name inside phy_init_data?
 
-Thanks a lot and best regards,
-Javier
+As Felipe said, we don't want to pass pointers in platform_data
+to/from random subsystems. We pass data, passing pointers would
+be a total mess IMHO.
 
-[1]: http://comments.gmane.org/gmane.linux.serial/6770
+> The problem is device might be created very late. (For example in omap4, usb2
+> phy device gets created when ocp2scp bus is probed). And we have to pass the
+> init data in board file.
+
+Regards,
+Sylwester
