@@ -1,31 +1,46 @@
-From: Mark Jackson <mpfj-list@newflow.co.uk>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
 Subject: Re: [PATCH v2] serial: OMAP: add RS485 support
-Date: Tue, 13 Aug 2013 12:07:01 +0100
-Message-ID: <520A1355.1050301@newflow.co.uk>
-References: <52079822.9020103@newflow.co.uk> <20130812225638.GA30919@kroah.com> <520A08FE.5070804@newflow.co.uk> <CAAwP0s1QyNjQb+0zhK_UeHraTW+R6Mefq1E4HyV-XJ4fV42w+g@mail.gmail.com>
+Date: Tue, 13 Aug 2013 13:14:42 +0200
+Message-ID: <CAAwP0s3ie8=spaV9TP7O5MMySXhjKo=-0_1NnSUNy4S7=ZJEFA@mail.gmail.com>
+References: <52079822.9020103@newflow.co.uk> <20130812225638.GA30919@kroah.com>
+ <520A08FE.5070804@newflow.co.uk> <CAAwP0s1QyNjQb+0zhK_UeHraTW+R6Mefq1E4HyV-XJ4fV42w+g@mail.gmail.com>
+ <520A1355.1050301@newflow.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <CAAwP0s1QyNjQb+0zhK_UeHraTW+R6Mefq1E4HyV-XJ4fV42w+g@mail.gmail.com>
+In-Reply-To: <520A1355.1050301@newflow.co.uk>
 Sender: linux-serial-owner@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
+To: Mark Jackson <mpfj-list@newflow.co.uk>
 Cc: Greg KH <gregkh@linuxfoundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-serial@vger.kernel.org, jslaby@suse.cz
 List-Id: linux-omap@vger.kernel.org
 
-On 13/08/13 11:54, Javier Martinez Canillas wrote:
+On Tue, Aug 13, 2013 at 1:07 PM, Mark Jackson <mpfj-list@newflow.co.uk> wrote:
+> On 13/08/13 11:54, Javier Martinez Canillas wrote:
+>
+> <snip>
+>
+>>
+>> Hi Mark,
+>>
+>> I've seen several attempts to add RS485 support to the omap serial
+>> driver and it is always nack-ed. There seems to be concerns about
+>> controlling the RTS by software when RS485 is not supported by the
+>> UART hardware. Please refer to [1] and [2] for more information.
+>
+> Hmmmm ... okay, I guess I'll just have to maintain our own code (as
+> did the OP in [1]).
+>
 
-<snip>
+Yes, back then we had to do the same using Ilya Yanok's OMAP RS485
+patches [1] on a vendor tree :(
 
-> 
-> Hi Mark,
-> 
-> I've seen several attempts to add RS485 support to the omap serial
-> driver and it is always nack-ed. There seems to be concerns about
-> controlling the RTS by software when RS485 is not supported by the
-> UART hardware. Please refer to [1] and [2] for more information.
+> Thanks for the info.
 
-Hmmmm ... okay, I guess I'll just have to maintain our own code (as
-did the OP in [1]).
+I just wanted to avoid you wasting more time on this, unless the
+mindset has changed in which case it would be really great to have
+RS485 support for OMAP serial.
 
-Thanks for the info.
+Thanks a lot and best regards,
+Javier
+
+[1]: http://comments.gmane.org/gmane.linux.serial/6770
