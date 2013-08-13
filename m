@@ -1,75 +1,69 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCHv3 0/9] ARM: OMAP2+: AM33XX: Add suspend-resume support
-Date: Tue, 13 Aug 2013 10:33:04 -0500
-Message-ID: <520A51B0.3010805@ti.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <52077B26.1010103@gmail.com> <5209307F.9000701@ti.com> <520A28E5.9030304@gmail.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 18/22] ARM: dts: Remove '0x's from OMAP5 DTS file
+Date: Tue, 13 Aug 2013 16:41:48 +0100
+Message-ID: <20130813154148.GB15278@lee--X1>
+References: <1374490361-25769-1-git-send-email-lee.jones@linaro.org>
+ <1374490361-25769-18-git-send-email-lee.jones@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50917 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757619Ab3HMPda (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Aug 2013 11:33:30 -0400
-In-Reply-To: <520A28E5.9030304@gmail.com>
+Received: from mail-ea0-f172.google.com ([209.85.215.172]:49547 "EHLO
+	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758133Ab3HMPl4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Aug 2013 11:41:56 -0400
+Received: by mail-ea0-f172.google.com with SMTP id r16so4190696ead.17
+        for <linux-omap@vger.kernel.org>; Tue, 13 Aug 2013 08:41:55 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1374490361-25769-18-git-send-email-lee.jones@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: arnd@arndb.de, linus.walleij@stericsson.com, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On 08/13/2013 07:39 AM, Daniel Mack wrote:
-> Hi Dave,
->
-> On 12.08.2013 20:59, Dave Gerlach wrote:
->> On 08/11/2013 06:53 AM, Daniel Mack wrote:
->
->>> The problem I currently face is that I can't make the board resume, as
->>> neither UART0 nor GPIO0 seem to work as wakeup source.
->>
->> Did you apply the other patches that are mentioned besides Suman's
->> series? The board will hang while suspending without these.
->
-> Yes. However, just to make sure you referenced the correct patches - on
-> top of yours an Suman's set, I have:
->
->    [PATCH 1/2] ARM: OMAP2+: hwmod: rt address space index for DT
->    [PATCH 2/2] ARM: OMAP2+: hwmod: AM335x: fix cpgmac address space
->    [PATCH 1/2] ARM: dts: add AM33XX EDMA support
->
-> The last one seems somewhat unrelated though.
->
-> However, I see an issue with the musb dsps glue. With the usb controller
-> disabled in DT, I also had to remove the usb_otg_hs entry from
-> am33xx_mod[] (pm33xx.c). When the usb controller is _enabled_, I get an
-> instant NULL pointer exception due to a rather obvious bug. I'll send
-> out a patch right now.
->
-> When I send the board to suspend (with USB disabled), the power
-> consumption drops significantly, and the output is:
->
-> # echo mem > /sys/power/state
-> [   93.001937] PM: Syncing filesystems ... done.
-> [   93.033591] Freezing user space processes ... (elapsed 0.002 seconds)
-> done.
-> [   93.048532] Freezing remaining freezable tasks ... (elapsed 0.002
-> seconds) done.
-> [   93.059277] PM: Sending message for entering DeepSleep mode
-> [   93.085368] PM: suspend of devices complete after 15.070 msecs
-> [   93.096671] PM: late suspend of devices complete after 5.122 msecs
-> [   93.108853] PM: noirq suspend of devices complete after 5.647 msecs
->
->
-> ... but traffic on UART0 won't cause a resume.
->
+Tony, Benoit,
 
-It looks like you are using no_console_suspend? UART0 does not work as a 
-wakeup source with this option set.
+Poke
 
->
-> I'll dig a little deeper now, but if you have any idea, please let me know.
->
->
-> Thanks,
-> Daniel
->
+> Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: linux-omap@vger.kernel.org
+> Signed-off-by: Lee Jones <lee.jones@linaro.org>
+> ---
+>  arch/arm/boot/dts/omap5.dtsi | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.d=
+tsi
+> index e643620..be58604 100644
+> --- a/arch/arm/boot/dts/omap5.dtsi
+> +++ b/arch/arm/boot/dts/omap5.dtsi
+> @@ -604,7 +604,7 @@
+>  			ti,hwmods =3D "wd_timer2";
+>  		};
+> =20
+> -		emif1: emif@0x4c000000 {
+> +		emif1: emif@4c000000 {
+>  			compatible	=3D "ti,emif-4d5";
+>  			ti,hwmods	=3D "emif1";
+>  			phy-type	=3D <2>; /* DDR PHY type: Intelli PHY */
+> @@ -615,7 +615,7 @@
+>  			hw-caps-temp-alert;
+>  		};
+> =20
+> -		emif2: emif@0x4d000000 {
+> +		emif2: emif@4d000000 {
+>  			compatible	=3D "ti,emif-4d5";
+>  			ti,hwmods	=3D "emif2";
+>  			phy-type	=3D <2>; /* DDR PHY type: Intelli PHY */
 
+--=20
+Lee Jones
+Linaro ST-Ericsson Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
