@@ -1,123 +1,62 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 00/13] ARM: OMAP2+: AM43x PRCM support
-Date: Tue, 13 Aug 2013 01:01:59 -0700
-Message-ID: <20130813080159.GT7656@atomide.com>
-References: <cover.1375443858.git.afzal@ti.com>
+Subject: Re: [PATCH 1/3] misc: Add crossbar driver
+Date: Tue, 13 Aug 2013 01:10:03 -0700
+Message-ID: <20130813081003.GU7656@atomide.com>
+References: <51E83A4F.5080904@ti.com>
+ <CACRpkdY3nQaWimTwB-Zt-8+Q_KZr8a0rpB1SUQq=AuoG4bAYnQ@mail.gmail.com>
+ <51ED2385.60108@ti.com>
+ <51ED5C66.1010407@ti.com>
+ <51EFFBE1.4090505@ti.com>
+ <51F0031B.1050307@ti.com>
+ <51F00530.9090703@ti.com>
+ <51F02069.3050207@ti.com>
+ <51F0223E.4050008@ti.com>
+ <51F0240F.3050507@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:42061 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750929Ab3HMICD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Aug 2013 04:02:03 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <cover.1375443858.git.afzal@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <51F0240F.3050507@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Sricharan R <r.sricharan@ti.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>
 
-Hi Paul & Benoit,
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [130724 12:06]:
+> On Wednesday 24 July 2013 02:51 PM, Nishanth Menon wrote:
+> > On 07/24/2013 01:43 PM, Sricharan R wrote:
+> >> On Wednesday 24 July 2013 10:17 PM, Nishanth Menon wrote:
+> >>> On 07/24/2013 11:38 AM, Santosh Shilimkar wrote:
+> >>>> On Wednesday 24 July 2013 12:08 PM, Nishanth Menon wrote:
+> >>>>> That said, maybe a intermediate pinctrl approach might be more pragmatic and less theoretically flexible.
+> >>>>> an option might be to "statically allocate" default number of interrupts to a domain - example:
+> >>>>> * GIC IRQ 72->78 allotted to UARTs
+> >>>>> * pinctrl mapping provided for those but only 6 can be used (rest are marked status="disabled" as default) at any given time (choice of pinctrl option determines GIC interrupt line to use)
+> >>>>> * All modules will have a pinctrl definition to have a mapping - to avoid bootloader overriding default cross bar setting in ways un-expected by kernel.
+> >>>>>
+> >>>>> Does that sound fair trade off?
+> >>>> This sounds better. That way we can get all the devices in the DT at least.
+> >>>
+> >>> Fair enough - if Linus and Tony are still ok with this approach to the problem, seeing a patch series with the effect would be beneficial.
+> >>>
+> >>   Ok, i will use this idea of certain number interrupts to groups.
+> >> Yes on DRA7XX, we have about 160 gic lines and 320 irq crossbar device inputs contending for it.
+> >> 1:2 and fully arbitrary.  But will we be really exhausting them ?
+> >>
+> > Depends on how we allocate :). The default arbitary allocation can be made more logical in your series ofcourse :).
+> > 
+> I would just most logical peripherals rather than providing every single
+> IP connected to cross bar. Otherwise we will end up wth hwmod like
+> scenario where now started removing the unused stuff because of
+> maintenance and loc issues ;-)
 
-Does this series look OK to you guys to queue or ack?
+Sorry for the delay on this, I think the best way to set this up
+is as a separate drivers/irqchip controller. Then just map the
+configured interrupts for the board with interrupt-map and
+interrupt-map-mask binding. No need to stuff all the SoC specific
+maps to the .dts, just the ones used for the board.
 
-* Afzal Mohammed <afzal@ti.com> [130802 06:42]:
-> Hi,
-> 
-> AM43x PRCM support (excluding clock tree) is being added with this
-> series. AM43x reuses most of the IP's from AM335x, as that is the
-> case, much of the AM335x hwmod data is reused.
-> 
-> I am aware that this series adds around +1K lines to platform. We in
-> TI, here are making efforts to clean platform code gradually and keep
-> to minumum the code being added to support new SoC's. Please note that
-> this SoC support series has positive diffstat of just above 1K only.
-> This compared to last SoC that was supported in OMAP family during
-> last merge window is way less (this is only around 1/8th postive
-> diffstat of it). Clock data is not added in this series, instead
-> directly clock tree in DT with driver would be used, this is a work in
-> progress. And as seen from recent OMAP clock tree DT conversion
-> series, there are serious efforts ongoing to that end. Also we will
-> start working on moving hwmod away from platform folders. In addition,
-> recently there was a PRCM cleanup by Rajendra Nayak that removed near
-> to 11K lines.
-> 
-> Considering the above facts, I request the maintainers to consider
-> this series for the next merge window.
-> 
-> Currently there is no public TRM available for AM43x.
-> 
-> Hwmod database of AM335x is reused by moving common elements to a new
-> array (most of AM335x IP's are present in AM43x) and keeping separate
-> arrays for elements that are specific only to either one of AM335x or
-> AM43x. And in the cases where relevant IP is present in both that has
-> difference in details like CLKCTRL register offsets, it is being
-> updated at runtime based on the SoC detected.
-> 
-> Powerdomain & Clockdomain data has been added separately as it was not
-> giving much advantage reusing AM335x ones (runtime updates required
-> was getting too ugly). But as AM43x PRCM functionality is similar to
-> OMAP4, power domain, clock domain & hwmod operations are reused from
-> OMAP4.
-> 
-> A single header file has been added to provide all AM43x PRCM defines.
-> 
-> Here sequencewise, initially AM335x hwmod is modified to have it's
-> fields get updated at runtime (wherever element is shared and has
-> some difference with AM43x). Then power domain, clock domain for AM43x
-> is added and finally AM335x hwmod database is updated with AM43x
-> specifics.
-> 
-> This series is being developed with additional clock tree changes that
-> are being DT'fied.
-> 
-> Additional DTS changes (posted separate from this series) are also
-> required for hwmod to get register target address space as most of
-> AM335x hwmod address space details has been recently cleaned up and
-> moved to DTS.
-> 
-> Regards
-> Afzal
-> 
-> Afzal Mohammed (8):
->   ARM: OMAP2+: hwmod: AM335x: prepare for AM43x reuse
->   ARM: OMAP2+: hwmod: AMx3: runtime AM335x handling
->   ARM: OMAP2+: hwmod: AMx3: remove common static fields
->   ARM: OMAP2+: PRCM: AM43x definitions
->   ARM: OMAP2+: hwmod: AMx3: runtime AM43x handling
->   ARM: OMAP2+: hwmod: AM43x operations
->   ARM: OMAP2+: AM43x: PRCM kbuild
->   ARM: OMAP2+: hwmod: AM43x: new w.r.t AM335x
-> 
-> Ambresh K (3):
->   ARM: OMAP2+: PM: AM43x powerdomain data
->   ARM: OMAP2+: CM: AM43x clockdomain data
->   ARM: OMAP2+: AM43x PRCM init
-> 
-> Ankur Kishore (1):
->   ARM: OMAP2+: CM: cm_inst offset s16->u16
-> 
-> Vaibhav Bedia (1):
->   ARM: OMAP2+: CM: reintroduce SW_SLEEP for OMAP4
-> 
->  arch/arm/mach-omap2/Makefile                |    5 +-
->  arch/arm/mach-omap2/clockdomain.h           |    4 +-
->  arch/arm/mach-omap2/clockdomains43xx_data.c |  199 ++++++++
->  arch/arm/mach-omap2/cm33xx.c                |   30 +-
->  arch/arm/mach-omap2/cm33xx.h                |   28 +-
->  arch/arm/mach-omap2/cminst44xx.c            |   58 ++-
->  arch/arm/mach-omap2/cminst44xx.h            |   25 +-
->  arch/arm/mach-omap2/io.c                    |    6 +
->  arch/arm/mach-omap2/omap_hwmod.c            |    8 +
->  arch/arm/mach-omap2/omap_hwmod_33xx_data.c  |  691 +++++++++++++++++++++++----
->  arch/arm/mach-omap2/powerdomain.h           |    1 +
->  arch/arm/mach-omap2/powerdomains43xx_data.c |  145 ++++++
->  arch/arm/mach-omap2/prcm43xx.h              |  141 ++++++
->  13 files changed, 1198 insertions(+), 143 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/clockdomains43xx_data.c
->  create mode 100644 arch/arm/mach-omap2/powerdomains43xx_data.c
->  create mode 100644 arch/arm/mach-omap2/prcm43xx.h
-> 
-> -- 
-> 1.7.9.5
-> 
+Regards,
+
+Tony
+ 
