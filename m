@@ -1,47 +1,176 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: Update SMP_ON_UP code to detect A9MPCore with 1
- CPU devices
-Date: Tue, 13 Aug 2013 09:31:04 -0400
-Message-ID: <520A3518.3030301@ti.com>
-References: <1375381033-13220-1-git-send-email-santosh.shilimkar@ti.com>
- <51FBC610.9030900@arm.com> <51FBCEC3.4030207@ti.com>
- <51FBD42A.9040901@arm.com> <20130802154857.GD5292@mudshark.cambridge.arm.com>
- <52092AA5.3090005@ti.com> <20130813111943.GE30280@mudshark.cambridge.arm.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: [PATCH v3] N900: add device tree
+Date: Tue, 13 Aug 2013 15:36:36 +0200
+Message-ID: <20130813133636.GA12364@amd.pavel.ucw.cz>
+References: <20130614055629.GM8164@atomide.com>
+ <20130614212816.GA31768@atrey.karlin.mff.cuni.cz>
+ <20130617111031.GQ20992@atomide.com>
+ <20130701211753.GC15318@amd.pavel.ucw.cz>
+ <20130704171939.GA27374@blackmetal.musicnaut.iki.fi>
+ <20130704202145.GB10752@amd.pavel.ucw.cz>
+ <20130704203256.GB27374@blackmetal.musicnaut.iki.fi>
+ <20130713121709.GC16473@amd.pavel.ucw.cz>
+ <CAAwP0s18PNn10q5qrzgi4Vz9t31AYuwBSthjE=rSdRb0FG0CFQ@mail.gmail.com>
+ <520A0F5B.5080502@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130813111943.GE30280@mudshark.cambridge.arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Sudeep KarkadaNagesha <Sudeep.KarkadaNagesha@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Vaibhav Bedia <vaibhav.bedia@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <520A0F5B.5080502@baylibre.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, b-cousson@ti.com, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 13 August 2013 07:19 AM, Will Deacon wrote:
-> On Mon, Aug 12, 2013 at 07:34:13PM +0100, Santosh Shilimkar wrote:
->> On Friday 02 August 2013 11:48 AM, Will Deacon wrote:
->>> I think this an A9-specific register, which reads as 0 on UP A9 and reads as
->>> some form of PERIPH_BASE for SMP parts. The issue I have is when PERIPH_BASE
->>> is zero.
->>>
->> What do we do here ? Should we document this in the code and proceed ?
->> Mostly there is no platform with PERIPH_BASE = 0, so its should be fine but
->> I am open for any other alternative.
-> 
-> The only other alternative I can think of is forcing people to have
-> CONFIG_SMP=n, but that blows away single zImage for your platform.
-> 
-Yep which surely we don't want considering after so much effort we
-have it working first place. How about going ahead with assumption
-that PERIPH_BASE = 0 case doesn't work.
+Hi!
 
-Regards,
-Santosh
+> I finally got released by the aliens. It took longer than expected
+> and beside a small scar on the back of my neck, I feel pretty OK.
+
+Scars on neck sound scary...
+
+> The order should not matter at all in DT, it should be a static
+> representation of the HW, so there is probably something wrong in
+> the code that make the device creation order important.
+
+I understand that there's something wrong with the code, but it turned
+out not to be easy to debug. Yes, it will have to be debugged some
+day, but it happens with old code, too, so it is actually orthogonal
+to device tree.
+
+> Beside my comments and the ones from Javier, it looks good.
+> If you can repost ASAP, I'll take it right after.
+> It will be the first one in the list.
+
+Thanks, here you go.
+								Pavel
+
+---
+
+This adds device tree with neccessary support to boot with functional
+video (on both emulator and real N900 device).
+
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+
+---
+
+>From v1: Aaro wants just GPLv2, so I did that. I re-enabled parts that
+can be enabled on 3.10, and tested it on that kernel.
+
+>From v2: spelling, improved comments. Tested on 3.11-rc (0ed4402).
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index a0f2365..c48b1ef 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -162,6 +162,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+ 	omap3-devkit8000.dtb \
+ 	omap3-beagle-xm.dtb \
+ 	omap3-evm.dtb \
++	omap3-n900.dtb \
+ 	omap3-tobi.dtb \
+ 	omap3-igep0020.dtb \
+ 	omap3-igep0030.dtb \
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+new file mode 100644
+index 0000000..7ff90f8
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -0,0 +1,92 @@
++/*
++ * Copyright (C) 2013 Pavel Machek <pavel@ucw.cz>
++ * Copyright 2013 Aaro Koskinen <aaro.koskinen@iki.fi>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 (or later) as
++ * published by the Free Software Foundation.
++ */
++
++/dts-v1/;
++
++#include "omap34xx.dtsi"
++
++/ {
++	model = "Nokia N900";
++	compatible = "nokia,omap3-n900", "ti,omap3";
++
++	cpus {
++		cpu@0 {
++			cpu0-supply = <&vcc>;
++		};
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x10000000>; /* 256 MB */
++	};
++
++};
++
++&i2c1 {
++	clock-frequency = <2200000>;
++
++	twl: twl@48 {
++		reg = <0x48>;
++		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
++		interrupt-parent = <&intc>;
++	};
++};
++
++#include "twl4030.dtsi"
++
++&twl_gpio {
++	ti,pullups	= <0x0>;
++	ti,pulldowns	= <0x03ff3f>; /* BIT(0..5) | BIT(8..17) */
++};
++
++&i2c2 {
++	clock-frequency = <400000>;
++};
++
++&i2c3 {
++	clock-frequency = <100000>;
++};
++
++&mmc1 {
++	status = "disabled";
++};
++
++&mmc2 {
++	status = "disabled";
++};
++
++&mmc3 {
++	status = "disabled";
++};
++
++&mcspi1 {
++	/*
++	 * For some reason, touchscreen is necessary for screen to work at 
++	 * all on real hw. It works well without it on emulator.
++	 *
++	 * Also... order in the device tree actually matters here.
++	 */
++	tsc2005@0 {
++		compatible = "tsc2005";
++		spi-max-frequency = <6000000>;
++		reg = <0>;
++	};
++	mipid@2 {
++		compatible = "acx565akm";
++		spi-max-frequency = <6000000>;
++		reg = <2>;
++	};
++};
++
++&usb_otg_hs {
++	interface-type = <0>;
++	usb-phy = <&usb2_phy>;
++	mode = <2>;
++	power = <50>;
++};
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
