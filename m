@@ -1,47 +1,59 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH] ARM: dts: am33xx: Correct gpio #interrupt-cells property
-Date: Tue, 13 Aug 2013 15:25:42 +0200
-Message-ID: <520A33D6.5070700@baylibre.com>
-References: <1375873592-26881-1-git-send-email-larsi@wh2.tu-dresden.de> <20130807145309.GG28558@e106331-lin.cambridge.arm.com> <201308071711.00449.poeschel@lemonage.de>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 1/3] misc: Add crossbar driver
+Date: Tue, 13 Aug 2013 09:28:04 -0400
+Message-ID: <520A3464.10406@ti.com>
+References: <51E83A4F.5080904@ti.com> <CACRpkdY3nQaWimTwB-Zt-8+Q_KZr8a0rpB1SUQq=AuoG4bAYnQ@mail.gmail.com> <51ED2385.60108@ti.com> <51ED5C66.1010407@ti.com> <51EFFBE1.4090505@ti.com> <51F0031B.1050307@ti.com> <51F00530.9090703@ti.com> <51F02069.3050207@ti.com> <51F0223E.4050008@ti.com> <51F0240F.3050507@ti.com> <20130813081003.GU7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201308071711.00449.poeschel@lemonage.de>
+In-Reply-To: <20130813081003.GU7656@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lars Poeschel <poeschel@lemonage.de>
-Cc: Mark Rutland <mark.rutland@arm.com>, Lars Poeschel <larsi@wh2.tu-dresden.de>, "b-cousson@ti.com" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Sricharan R <r.sricharan@ti.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
 
-Hi lars,
-
-On 07/08/2013 17:11, Lars Poeschel wrote:
-> On Wednesday 07 August 2013 at 16:53:09, Mark Rutland wrote:
->> On Wed, Aug 07, 2013 at 12:06:32PM +0100, Lars Poeschel wrote:
->>> From: Lars Poeschel <poeschel@lemonage.de>
+On Tuesday 13 August 2013 04:10 AM, Tony Lindgren wrote:
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [130724 12:06]:
+>> On Wednesday 24 July 2013 02:51 PM, Nishanth Menon wrote:
+>>> On 07/24/2013 01:43 PM, Sricharan R wrote:
+>>>> On Wednesday 24 July 2013 10:17 PM, Nishanth Menon wrote:
+>>>>> On 07/24/2013 11:38 AM, Santosh Shilimkar wrote:
+>>>>>> On Wednesday 24 July 2013 12:08 PM, Nishanth Menon wrote:
+>>>>>>> That said, maybe a intermediate pinctrl approach might be more pragmatic and less theoretically flexible.
+>>>>>>> an option might be to "statically allocate" default number of interrupts to a domain - example:
+>>>>>>> * GIC IRQ 72->78 allotted to UARTs
+>>>>>>> * pinctrl mapping provided for those but only 6 can be used (rest are marked status="disabled" as default) at any given time (choice of pinctrl option determines GIC interrupt line to use)
+>>>>>>> * All modules will have a pinctrl definition to have a mapping - to avoid bootloader overriding default cross bar setting in ways un-expected by kernel.
+>>>>>>>
+>>>>>>> Does that sound fair trade off?
+>>>>>> This sounds better. That way we can get all the devices in the DT at least.
+>>>>>
+>>>>> Fair enough - if Linus and Tony are still ok with this approach to the problem, seeing a patch series with the effect would be beneficial.
+>>>>>
+>>>>   Ok, i will use this idea of certain number interrupts to groups.
+>>>> Yes on DRA7XX, we have about 160 gic lines and 320 irq crossbar device inputs contending for it.
+>>>> 1:2 and fully arbitrary.  But will we be really exhausting them ?
+>>>>
+>>> Depends on how we allocate :). The default arbitary allocation can be made more logical in your series ofcourse :).
 >>>
->>> Following commit ff5c9059 and therefore other omap platforms using
->>> the gpio-omap driver correct the #interrupt-cells property on am33xx
->>> too. The omap gpio binding documentaion also states that
->>> the #interrupt-cells property should be 2.
->>
->> I take it there are no device nodes for which any of these nodes are an
->> interrupt parent (which would need to be updated)?
->
-> As far as I know: No.
->
-> Lars
->
->> If so:
->>
->> Acked-by: Mark Rutland <mark.rutland@arm.com>
->>
->> Thanks,
->> Mark.
->>
->>> Signed-off-by: Lars Poeschel <poeschel@lemonage.de>
+>> I would just most logical peripherals rather than providing every single
+>> IP connected to cross bar. Otherwise we will end up wth hwmod like
+>> scenario where now started removing the unused stuff because of
+>> maintenance and loc issues ;-)
+> 
+> Sorry for the delay on this, I think the best way to set this up
+> is as a separate drivers/irqchip controller. Then just map the
+> configured interrupts for the board with interrupt-map and
+> interrupt-map-mask binding. No need to stuff all the SoC specific
+> maps to the .dts, just the ones used for the board.
+> 
+Interrupt mask/unmask, really ? Thats like abusing those irqchip
+hooks completely. Your point is to just setup events which we need
+and thats what I also suggested. But the use of irqchip hooks is
+certainly not the right idea since they are for masking/unmasking
+interrupts in running system and not for joining the interrupt
+line which needs to happen once during probe.
 
-Thank, applied with Mark and Javier A-By / R-By.
-
-Thanks,
-Benoit
+Regards,
+Santosh
