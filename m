@@ -1,15 +1,15 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 15/22] ARM: dts: Remove '0x's from OMAP3 DTS file
-Date: Tue, 13 Aug 2013 16:43:05 +0100
-Message-ID: <20130813154305.GE15278@lee--X1>
+Subject: Re: [PATCH 14/22] ARM: dts: Remove '0x's from OMAP3 IGEP0030 DTS file
+Date: Tue, 13 Aug 2013 16:43:31 +0100
+Message-ID: <20130813154331.GF15278@lee--X1>
 References: <1374490361-25769-1-git-send-email-lee.jones@linaro.org>
- <1374490361-25769-15-git-send-email-lee.jones@linaro.org>
+ <1374490361-25769-14-git-send-email-lee.jones@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1374490361-25769-15-git-send-email-lee.jones@linaro.org>
+In-Reply-To: <1374490361-25769-14-git-send-email-lee.jones@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 Cc: arnd@arndb.de, linus.walleij@stericsson.com, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
@@ -26,23 +26,38 @@ On Mon, 22 Jul 2013, Lee Jones wrote:
 > Cc: linux-omap@vger.kernel.org
 > Signed-off-by: Lee Jones <lee.jones@linaro.org>
 > ---
->  arch/arm/boot/dts/omap3.dtsi | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  arch/arm/boot/dts/omap3-igep0030.dts | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
 >=20
-> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.d=
-tsi
-> index 7d95cda..16420ae 100644
-> --- a/arch/arm/boot/dts/omap3.dtsi
-> +++ b/arch/arm/boot/dts/omap3.dtsi
-> @@ -111,7 +111,7 @@
->  			pinctrl-single,function-mask =3D <0x7f1f>;
+> diff --git a/arch/arm/boot/dts/omap3-igep0030.dts b/arch/arm/boot/dts=
+/omap3-igep0030.dts
+> index 644d0538..f628200 100644
+> --- a/arch/arm/boot/dts/omap3-igep0030.dts
+> +++ b/arch/arm/boot/dts/omap3-igep0030.dts
+> @@ -74,19 +74,19 @@
+>  			label =3D "SPL";
+>  			reg =3D <0 0x100000>;
 >  		};
-> =20
-> -		omap3_pmx_wkup: pinmux@0x48002a00 {
-> +		omap3_pmx_wkup: pinmux@48002a00 {
->  			compatible =3D "ti,omap3-padconf", "pinctrl-single";
->  			reg =3D <0x48002a00 0x5c>;
->  			#address-cells =3D <1>;
+> -		partition@0x80000 {
+> +		partition@80000 {
+>  			label =3D "U-Boot";
+>  			reg =3D <0x100000 0x180000>;
+>  		};
+> -		partition@0x1c0000 {
+> +		partition@1c0000 {
+>  			label =3D "Environment";
+>  			reg =3D <0x280000 0x100000>;
+>  		};
+> -		partition@0x280000 {
+> +		partition@280000 {
+>  			label =3D "Kernel";
+>  			reg =3D <0x380000 0x300000>;
+>  		};
+> -		partition@0x780000 {
+> +		partition@780000 {
+>  			label =3D "Filesystem";
+>  			reg =3D <0x680000 0x1f980000>;
+>  		};
 
 --=20
 Lee Jones
