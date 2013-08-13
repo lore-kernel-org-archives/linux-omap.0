@@ -1,7 +1,7 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Subject: Re: [PATCH] staging: Platform device tester - Allow removal
-Date: Tue, 13 Aug 2013 11:20:12 -0700
-Message-ID: <20130813182012.GE7740@kroah.com>
+Date: Tue, 13 Aug 2013 11:22:28 -0700
+Message-ID: <20130813182228.GF7740@kroah.com>
 References: <1376386470-27328-1-git-send-email-panto@antoniou-consulting.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -14,18 +14,31 @@ Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?i
 List-Id: linux-omap@vger.kernel.org
 
 On Tue, Aug 13, 2013 at 12:34:30PM +0300, Pantelis Antoniou wrote:
-> This is a very simple device that allows testing of the removal path
-> for platform devices.
-> 
-> The only interface is a single writeable sysfs attribute (action).
+> +/*
+> + * pdevtest.c
+> + *
+> + * Tester of platform device's operation.
+> + *
+> + * Copyright (C) 2013, Pantelis Antoniou <panto@antoniou-consulting.com>
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
 
-Why not use the existing "unbind/bind" sysfs files that all busses
-support?  That's what userspace is expecting to use for adding and
-removing devices from drivers from userspace.
+Minor legal nit, for the future, you don't actually say what the license
+is for this file.  You imply it by using the GPL paragraphs about
+warranties, and the totally-useless office address information (do you
+really want to track the office movements of the FSF for the next 40
+years?), but it's not specified.
 
-This is a per-driver flag that the function platform_driver_probe() sets
-for all platform drivers in the first line of that function.  Remove
-that line and see what happens :)
+In the future, you can drop these two paragraphs, and just add a
+sentance about the file being released under the GPLv2 instead.
 
 thanks,
 
