@@ -1,21 +1,21 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 18/22] ARM: dts: Remove '0x's from OMAP5 DTS file
-Date: Tue, 13 Aug 2013 16:41:48 +0100
-Message-ID: <20130813154148.GB15278@lee--X1>
+Subject: Re: [PATCH 17/22] ARM: dts: Remove '0x's from OMAP4 DTS file
+Date: Tue, 13 Aug 2013 16:42:29 +0100
+Message-ID: <20130813154229.GC15278@lee--X1>
 References: <1374490361-25769-1-git-send-email-lee.jones@linaro.org>
- <1374490361-25769-18-git-send-email-lee.jones@linaro.org>
+ <1374490361-25769-17-git-send-email-lee.jones@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f172.google.com ([209.85.215.172]:49547 "EHLO
-	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758133Ab3HMPl4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Aug 2013 11:41:56 -0400
-Received: by mail-ea0-f172.google.com with SMTP id r16so4190696ead.17
-        for <linux-omap@vger.kernel.org>; Tue, 13 Aug 2013 08:41:55 -0700 (PDT)
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:39745 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758233Ab3HMPmg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Aug 2013 11:42:36 -0400
+Received: by mail-ee0-f43.google.com with SMTP id e52so4243856eek.16
+        for <linux-omap@vger.kernel.org>; Tue, 13 Aug 2013 08:42:35 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1374490361-25769-18-git-send-email-lee.jones@linaro.org>
+In-Reply-To: <1374490361-25769-17-git-send-email-lee.jones@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
@@ -25,37 +25,31 @@ Tony, Benoit,
 
 Poke
 
+On Mon, 22 Jul 2013, Lee Jones wrote:
+
 > Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
 > Cc: Tony Lindgren <tony@atomide.com>
 > Cc: linux-omap@vger.kernel.org
 > Signed-off-by: Lee Jones <lee.jones@linaro.org>
 > ---
->  arch/arm/boot/dts/omap5.dtsi | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  arch/arm/boot/dts/omap4.dtsi | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >=20
-> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.d=
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.d=
 tsi
-> index e643620..be58604 100644
-> --- a/arch/arm/boot/dts/omap5.dtsi
-> +++ b/arch/arm/boot/dts/omap5.dtsi
-> @@ -604,7 +604,7 @@
->  			ti,hwmods =3D "wd_timer2";
->  		};
+> index 22d9f2b..45708e1 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -56,7 +56,7 @@
+>  		cache-level =3D <2>;
+>  	};
 > =20
-> -		emif1: emif@0x4c000000 {
-> +		emif1: emif@4c000000 {
->  			compatible	=3D "ti,emif-4d5";
->  			ti,hwmods	=3D "emif1";
->  			phy-type	=3D <2>; /* DDR PHY type: Intelli PHY */
-> @@ -615,7 +615,7 @@
->  			hw-caps-temp-alert;
->  		};
-> =20
-> -		emif2: emif@0x4d000000 {
-> +		emif2: emif@4d000000 {
->  			compatible	=3D "ti,emif-4d5";
->  			ti,hwmods	=3D "emif2";
->  			phy-type	=3D <2>; /* DDR PHY type: Intelli PHY */
+> -	local-timer@0x48240600 {
+> +	local-timer@48240600 {
+>  		compatible =3D "arm,cortex-a9-twd-timer";
+>  		reg =3D <0x48240600 0x20>;
+>  		interrupts =3D <GIC_PPI 13 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_H=
+IGH)>;
 
 --=20
 Lee Jones
