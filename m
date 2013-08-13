@@ -1,81 +1,86 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCHv5 22/31] CLK: TI: add interface clock support for OMAP3
-Date: Tue, 13 Aug 2013 12:30:11 +0100
-Message-ID: <20130813113010.GN27165@e106331-lin.cambridge.arm.com>
-References: <1375460751-23676-1-git-send-email-t-kristo@ti.com>
- <1375460751-23676-23-git-send-email-t-kristo@ti.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH 1/3] ARM: dts: omap3-igep: add pinmux node for GPIO LED configuration
+Date: Tue, 13 Aug 2013 13:35:49 +0200
+Message-ID: <CAAwP0s3WWMXY-VNDSwU_H-P2X9mMf01yT20tnAgTFR4zzJ8dgA@mail.gmail.com>
+References: <1371739352-19670-1-git-send-email-javier.martinez@collabora.co.uk>
+ <CAAwP0s0BqsWqhi4vRxLHjDWdaVhPy2TL6syydV-=+vAYioi6ig@mail.gmail.com> <520A1685.10508@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1375460751-23676-23-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: "nm@ti.com" <nm@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "mturquette@linaro.org" <mturquette@linaro.org>, "tony@atomide.com" <tony@atomide.com>, "rnayak@ti.com" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ve0-f172.google.com ([209.85.128.172]:44079 "EHLO
+	mail-ve0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755564Ab3HMLgK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Aug 2013 07:36:10 -0400
+Received: by mail-ve0-f172.google.com with SMTP id oz10so6641803veb.3
+        for <linux-omap@vger.kernel.org>; Tue, 13 Aug 2013 04:36:09 -0700 (PDT)
+In-Reply-To: <520A1685.10508@baylibre.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, benoit.cousson@linaro.org, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, linux-omap@vger.kernel.org
 
-On Fri, Aug 02, 2013 at 05:25:41PM +0100, Tero Kristo wrote:
-> OMAP3 has interface clocks in addition to functional clocks, which
-> require special handling for the autoidle and idle status register
-> offsets mainly.
-> 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
->  .../devicetree/bindings/clock/ti/interface.txt     |   45 +++++++++
->  arch/arm/mach-omap2/clock.h                        |    6 --
->  drivers/clk/ti/Makefile                            |    2 +-
->  drivers/clk/ti/interface.c                         |  105 ++++++++++++++++++++
->  include/linux/clk/ti.h                             |    7 ++
->  5 files changed, 158 insertions(+), 7 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/clock/ti/interface.txt
->  create mode 100644 drivers/clk/ti/interface.c
-> 
-> diff --git a/Documentation/devicetree/bindings/clock/ti/interface.txt b/Documentation/devicetree/bindings/clock/ti/interface.txt
-> new file mode 100644
-> index 0000000..8b09ae7
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/clock/ti/interface.txt
-> @@ -0,0 +1,45 @@
-> +Binding for Texas Instruments interface clock.
-> +
-> +This binding uses the common clock binding[1]. This clock is
-> +quite much similar to the basic gate-clock [2], however,
-> +it supports a number of additional features, including
-> +companion clock finding (match corresponding functional gate
-> +clock) and hardware autoidle enable / disable.
-> +
-> +[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-> +[2] Documentation/devicetree/bindings/clock/gate-clock.txt
-> +
-> +Required properties:
-> +- compatible : shall be "ti,interface-clock"
+On Tue, Aug 13, 2013 at 1:20 PM, Benoit Cousson <bcousson@baylibre.com> wrote:
+> Hi Javier,
+>
+>
+> On 03/08/2013 21:11, Javier Martinez Canillas wrote:
+>>
+>> On Thu, Jun 20, 2013 at 4:42 PM, Javier Martinez Canillas
+>> <javier.martinez@collabora.co.uk> wrote:
+>>>
+>>> IGEP boards have a number of LED connected to OMAP or TWL GPIO
+>>> lines. The actual wiring is different on each board so each board
+>>> DT has need to configure the mux correctly.
+>>>
+>>> Even though it works with the current DT, the kernel complains with:
+>>>
+>>> [2.305023] leds-gpio leds.18: pins are not configured from the driver
+>>>
+>>> Add an empty pinmux_leds_pins pinctrl child node so boards can
+>>> override with the correct mux configuration and not depend on
+>>> default values for the GPIO LEDs to work.
+>>>
+>>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+>>> ---
+>>>   arch/arm/boot/dts/omap3-igep.dtsi |    2 ++
+>>>   1 files changed, 2 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi
+>>> b/arch/arm/boot/dts/omap3-igep.dtsi
+>>> index bc48b11..55f9f61 100644
+>>> --- a/arch/arm/boot/dts/omap3-igep.dtsi
+>>> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
+>>> @@ -68,6 +68,8 @@
+>>>                          0x1a2 (PIN_INPUT | MUX_MODE4)           /*
+>>> mcspi1_cs2.gpio_176 */
+>>>                  >;
+>>>          };
+>>> +
+>>> +       leds_pins: pinmux_leds_pins { };
+>
+>
+> I'm just wondering what will happen if you do not override it with the board
+> file?
+>
+> Will we still have the warning? Because the warning is there to notify you
+> that the pin config is missing so we should not prevent that to work.
+>
 
-It might make sense to be more specific: "ti,omap3-interface-clock".
+If you don't override on the board file you will just get the warning.
 
-> +- #clock-cells : from common clock binding; shall be set to 0
-> +- clocks : link to phandle of parent clock
-> +- reg : base address for the control register
-> +
-> +Optional properties:
-> +- ti,enable-bit : bit shift for the bit enabling/disabling the clock
-> +		  (default 0)
-> +- ti,iclk-no-wait : flag for selecting non-waiting hw-ops
-> +- ti,iclk-hsotgusb : flag for selecting hsotgusb hw-ops
-> +- ti,iclk-dss : flag for selecting DSS interface clock hw-ops
-> +- ti,iclk-ssi : flag for selecting SSI interface clock hw-ops
-> +- ti,am35xx-clk : flag for selecting AM35xx interface clock hw-ops
+Once when I send this patches the gpio-leds driver was indeed failing
+to probe because of this. I noticed this because the LED stop working
+and didn't appear in /sys/class/leds/ and setting the pin mux
+correctly solved the issue.
 
-I think these should be selected based on the compatible string. They're
-mutually exclusive, and incompatible.
+Now I just see a warning so it seems this got fixed in the meantime.
 
-Thanks,
-Mark.
+So since is not a regression probably this is v3.12 material and there
+is no need to send it on the -rc series.
+
+> Regards,
+> Benoit
+>
+
+Thanks a lot and best regards,
+Javier
