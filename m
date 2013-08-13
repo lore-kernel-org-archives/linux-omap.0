@@ -1,111 +1,32 @@
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-Subject: Re: [RFC PATCH v2 1/3] usb: dwc3: msm: Add device tree binding
- information
-Date: Tue, 13 Aug 2013 10:32:08 +0300
-Message-ID: <1376379128.2208.9.camel@iivanov-dev.int.mm-sol.com>
-References: <1376042027-9798-1-git-send-email-iivanov@mm-sol.com>
-	 <1376042027-9798-2-git-send-email-iivanov@mm-sol.com>
-	 <169628C9-00BA-4E58-BF65-7B180E6BE4ED@codeaurora.org>
-	 <20130812180438.GC27954@radagast>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] DRA7xx core support
+Date: Tue, 13 Aug 2013 00:40:44 -0700
+Message-ID: <20130813074044.GQ7656@atomide.com>
+References: <5208C832.2060007@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130812180438.GC27954@radagast>
-Sender: linux-doc-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Kumar Gala <galak@codeaurora.org>, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62469 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750998Ab3HMHkr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Aug 2013 03:40:47 -0400
+Content-Disposition: inline
+In-Reply-To: <5208C832.2060007@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
+* Rajendra Nayak <rnayak@ti.com> [130812 04:41]:
+>       ARM: DRA7: dts: Add the dts files for dra7 SoC and dra7-evm board
 
-Hi, 
+Looks like you just updated the dts patch based on the comments
+from Mark?
 
-On Mon, 2013-08-12 at 13:04 -0500, Felipe Balbi wrote: 
-> On Fri, Aug 09, 2013 at 10:31:58AM -0500, Kumar Gala wrote:
-> > 
-> > On Aug 9, 2013, at 4:53 AM, Ivan T. Ivanov wrote:
-> > 
-> > > From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-> > > 
-> > > MSM USB3.0 core wrapper consist of USB3.0 IP (SNPS)
-> > 
-> > probably good to spell out Synopsys rather than SNPS
-> 
-> Synopsys (the company) has always used snps in their bindings though.
-> 
-> > > +Required properities :
-> > > +- compatible : sould be "qcom,dwc3-hsphy";
-> > > +- reg : offset and length of the register set in the memory map
-> > > +- clocks : phandles to clock instances of the device tree nodes
-> > > +- clock-names :
-> > > +	"xo" : External reference clock 19 MHz
-> > > +	"sleep_a_clk" : Sleep clock, used when USB3 core goes into low
-> > > +	power mode (U3).
-> > > +<supply-name>-supply : phandle to the regulator device tree node
-> > > +Required "supply-name" are:
-> > > +	"v1p8" : 1.8v supply for HSPHY
-> > > +	"v3p3" : 3.3v supply for HSPHY
-> > > +	"vbus" : vbus supply for host mode
-> > > +	"vddcx" : vdd supply for HS-PHY digital circuit operation
-> 
-> I believe these regulators belong to the PHY, not DWC3. Please write a
-> PHY driver.
-> 
+Actually can you please just drop the .dts patch from this series so it
+can be queued separately by Benoit and then reply with an updated
+pull request.
 
-There is already usb phy drivers for these?? 
+Regards,
 
-[PATCH v2 2/3] usb: phy: Add Qualcomm SS-USB and HS-USB drivers for DWC3 core
-
-> > > +Required properities :
-> > > +- compatible : sould be "qcom,dwc3-ssphy";
-> > > +- reg : offset and length of the register set in the memory map
-> > > +- clocks : phandles to clock instances of the device tree nodes
-> > > +- clock-names :
-> > > +	"xo" : External reference clock 19 MHz
-> > > +	"ref_clk" : Reference clock - used in host mode.
-> > > +<supply-name>-supply : phandle to the regulator device tree node
-> > > +Required "supply-name" are:
-> > > +	"v1p8" : 1.8v supply for SS-PHY
-> > > +	"vddcx" : vdd supply for SS-PHY digital circuit operation
-> 
-> likewise, these regulators should be moved to the PHY driver.
-> 
-> > > +Required properties :
-> > > +- compatible : should be "qcom,dwc3"
-> > > +- reg : offset and length of the register set in the memory map
-> > > +	offset and length of the TCSR register for routing USB
-> > > +	signals to either picoPHY0 or picoPHY1.
-> > > +- clocks : phandles to clock instances of the device tree nodes
-> > > +- clock-names :
-> > > +	"core_clk" : Master/Core clock, have to be >= 125 MHz for SS
-> > > +	operation and >= 60MHz for HS operation
-> > > +	"iface_clk" : System bus AXI clock
-> > > +	"sleep_clk" : Sleep clock, used when USB3 core goes into low
-> > > +	power mode (U3).
-> > > +	"utmi_clk" : Generated by HS-PHY. Used to clock the low power
-> > > +	parts of thr HS Link layer.
-> > > +
-> > > +Optional properties :
-> > > +- gdsc-supply : phandle to the globally distributed switch controller
-> > > +  regulator node to the USB controller.
-> > > +
-> > > +Sub nodes:
-> > > +- Sub node for "DWC3 USB3 controller".
-> > > +  This sub node is required property for device node. The properties
-> > > +  of this subnode are specified in dwc3.txt.
-> > 
-> > Is tx-fifo-resize required for qcom,dwc3? if so we should call that
-> > out in the binding.
-> 
-> AFAICT that's only needed for OMAP5 ES1.0. Unless Qualcomm also screwed
-> up default TX FIFO sizes :-p
-
-Or it is intentional? :-) Look at [1] dwc3@f9200000
-
-Ivan
-
-[1] https://www.codeaurora.org/cgit/quic/la/kernel/msm/tree/arch/arm/boot/dts/apq8084.dtsi?h=msm-3.4
-
-> 
-
-
+Tony
