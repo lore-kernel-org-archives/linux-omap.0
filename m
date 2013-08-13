@@ -1,66 +1,72 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCHv3 8/9] ARM: OMAP2+: AM33XX: Basic suspend resume support
-Date: Tue, 13 Aug 2013 07:59:39 -0700
-Message-ID: <87zjslocv8.fsf@kernel.org>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
-	<1375811376-49985-9-git-send-email-d-gerlach@ti.com>
-	<CA+Bv8Xb8cy-=ESE4nWOCub=aw7KFrOgEgzfdGUd1TqDJ0ZR_Gg@mail.gmail.com>
+Subject: Re: [PATCH 1/5 v2] drivers/gpio/gpio-omap.c: convert comma to semicolon
+Date: Tue, 13 Aug 2013 08:07:46 -0700
+Message-ID: <87txitochp.fsf@kernel.org>
+References: <1376378216-18473-1-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:45602 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756870Ab3HMO7n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Aug 2013 10:59:43 -0400
-Received: by mail-pa0-f45.google.com with SMTP id bg4so8974277pad.4
-        for <linux-omap@vger.kernel.org>; Tue, 13 Aug 2013 07:59:43 -0700 (PDT)
-In-Reply-To: <CA+Bv8Xb8cy-=ESE4nWOCub=aw7KFrOgEgzfdGUd1TqDJ0ZR_Gg@mail.gmail.com>
-	(Russ Dill's message of "Tue, 13 Aug 2013 00:43:09 -0700")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1376378216-18473-1-git-send-email-Julia.Lawall@lip6.fr> (Julia
+	Lawall's message of "Tue, 13 Aug 2013 09:16:56 +0200")
+Sender: linux-gpio-owner@vger.kernel.org
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, kernel-janitors@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <russ.dill@gmail.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Tony Lingren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <benoit.cousson@linaro.org>
 
-Russ Dill <russ.dill@gmail.com> writes:
+Julia Lawall <Julia.Lawall@lip6.fr> writes:
 
-> On Tue, Aug 6, 2013 at 10:49 AM, Dave Gerlach <d-gerlach@ti.com> wrote:
-
-[...]
-
->> +static int wkup_m3_probe(struct platform_device *pdev)
->> +{
->> +       int irq, ret = 0;
->> +       struct resource *mem;
->> +
->> +       pm_runtime_enable(&pdev->dev);
->> +
->> +       ret = pm_runtime_get_sync(&pdev->dev);
->> +       if (IS_ERR_VALUE(ret)) {
->> +               dev_err(&pdev->dev, "pm_runtime_get_sync() failed\n");
->> +               return ret;
->> +       }
->> +
->> +       irq = platform_get_irq(pdev, 0);
->> +       if (!irq) {
->> +               dev_err(wkup_m3->dev, "no irq resource\n");
+> From: Julia Lawall <Julia.Lawall@lip6.fr>
 >
-> &pdev->dev
+> Replace a comma between expression statements by a semicolon.  This changes
+> the semantics of the code, but given the current indentation appears to be
+> what is intended.
 >
->> +               ret = -ENXIO;
->> +               goto err;
->> +       }
->> +
->> +       mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> +       if (!mem) {
->> +               dev_err(wkup_m3->dev, "no memory resource\n");
+> A simplified version of the semantic patch that performs this
+> transformation is as follows: (http://coccinelle.lip6.fr/)
 >
-> &pdev->dev
+> // <smpl>
+> @r@
+> expression e1,e2,e;
+> type T;
+> identifier i;
+> @@
+>
+>  e1
+> -,
+> +;
+>  e2;
+> // </smpl>
+>
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+>
+> ---
+> Not tested.  The first version did a different transformation to avoid
+> changing the semantics.  This one leaves the layout as it is, but changes
+> the semantics.
 
-For future reference, when reviewing, please trim to only relevant
-content/context, especially on large patches so maintainers/reviewers do
-not have to find 2 one-line comments in a huge amount of irrelevant
-context.
+This is the right one, the previous semantics were wrong due to a
+copy/paste error.
 
-Thanks,
+Acked-by: Kevin Hilman <khilman@linaro.org>
 
-Kevin
+>  drivers/gpio/gpio-omap.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index dfeb3a3..9f19ec9 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -1030,7 +1030,7 @@ omap_mpuio_alloc_gc(struct gpio_bank *bank, unsigned int irq_start,
+>  	ct->chip.irq_set_type = gpio_irq_type;
+>  
+>  	if (bank->regs->wkup_en)
+> -		ct->chip.irq_set_wake = gpio_wake_enable,
+> +		ct->chip.irq_set_wake = gpio_wake_enable;
+>  
+>  	ct->regs.mask = OMAP_MPUIO_GPIO_INT / bank->stride;
+>  	irq_setup_generic_chip(gc, IRQ_MSK(num), IRQ_GC_INIT_MASK_CACHE,
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
