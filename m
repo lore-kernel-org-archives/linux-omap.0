@@ -1,179 +1,101 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH v3] N900: add device tree
-Date: Tue, 13 Aug 2013 16:06:15 +0200
-Message-ID: <520A3D57.1020906@baylibre.com>
-References: <20130614055629.GM8164@atomide.com> <20130614212816.GA31768@atrey.karlin.mff.cuni.cz> <20130617111031.GQ20992@atomide.com> <20130701211753.GC15318@amd.pavel.ucw.cz> <20130704171939.GA27374@blackmetal.musicnaut.iki.fi> <20130704202145.GB10752@amd.pavel.ucw.cz> <20130704203256.GB27374@blackmetal.musicnaut.iki.fi> <20130713121709.GC16473@amd.pavel.ucw.cz> <CAAwP0s18PNn10q5qrzgi4Vz9t31AYuwBSthjE=rSdRb0FG0CFQ@mail.gmail.com> <520A0F5B.5080502@baylibre.com> <20130813133636.GA12364@amd.pavel.ucw.cz>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCHv3 2/9] ARM: OMAP2+: AM33XX: control: Add some control module registers and APIs
+Date: Tue, 13 Aug 2013 07:29:26 -0700
+Message-ID: <87d2phpsu1.fsf@kernel.org>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+	<1375811376-49985-3-git-send-email-d-gerlach@ti.com>
+	<5203A0BC.8060205@ti.com> <5203C457.80301@ti.com>
+	<20130809051146.GB7656@atomide.com> <52055733.70808@ti.com>
+	<87y586pvkq.fsf@kernel.org> <5209565C.7090508@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:52119 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751466Ab3HMOGT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Aug 2013 10:06:19 -0400
-Received: by mail-we0-f179.google.com with SMTP id t57so6511533wes.24
-        for <linux-omap@vger.kernel.org>; Tue, 13 Aug 2013 07:06:18 -0700 (PDT)
-In-Reply-To: <20130813133636.GA12364@amd.pavel.ucw.cz>
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:48657 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756543Ab3HMO3b (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Aug 2013 10:29:31 -0400
+Received: by mail-pb0-f54.google.com with SMTP id ro12so8092824pbb.27
+        for <linux-omap@vger.kernel.org>; Tue, 13 Aug 2013 07:29:30 -0700 (PDT)
+In-Reply-To: <5209565C.7090508@ti.com> (Dave Gerlach's message of "Mon, 12 Aug
+	2013 16:40:44 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Suman Anna <s-anna@ti.com>
 
-On 13/08/2013 15:36, Pavel Machek wrote:
-> Hi!
->
->> I finally got released by the aliens. It took longer than expected
->> and beside a small scar on the back of my neck, I feel pretty OK.
->
-> Scars on neck sound scary...
->
->> The order should not matter at all in DT, it should be a static
->> representation of the HW, so there is probably something wrong in
->> the code that make the device creation order important.
->
-> I understand that there's something wrong with the code, but it turned
-> out not to be easy to debug. Yes, it will have to be debugged some
-> day, but it happens with old code, too, so it is actually orthogonal
-> to device tree.
->
->> Beside my comments and the ones from Javier, it looks good.
->> If you can repost ASAP, I'll take it right after.
->> It will be the first one in the list.
->
-> Thanks, here you go.
+Dave Gerlach <d-gerlach@ti.com> writes:
 
-Thanks. I've just applied it after adding the prefix "ARM: dts:" to the 
-subject.
+> On 08/12/2013 02:17 PM, Kevin Hilman wrote:
+>> Dave Gerlach <d-gerlach@ti.com> writes:
+>>
+>>> On 08/09/2013 12:11 AM, Tony Lindgren wrote:
+>>>> * Dave Gerlach <d-gerlach@ti.com> [130808 09:23]:
+>>>>> On 08/08/2013 08:44 AM, Santosh Shilimkar wrote:
+>>>>>> Lets address the above better. I don't see a need of 8 functions
+>>>>>> exported doing one or 2 register writes.
+>>>>>>
+>>>>>> Look M3 based handling is going to be there on future SOCs
+>>>>>> as well and this kind of handling of IPC is very short cited.
+>>>>>>
+>>>>>
+>>>>> The idea here was to move all control module register accesses into
+>>>>> one file in planning of implementing a driver for the control module
+>>>>> itself in the future.
+>>>>>
+>>>>>> Probably we should have a separate driver for M3 in linux which
+>>>>>> can have all this local code instead of all these exports.
+>>>>>
+>>>>> The wkup_m3 code has been moved to a small driver found in patch 8
+>>>>> of this series, would it better to move this code there rather than
+>>>>> with the rest of the control module code?
+>>>>
+>>>> Please make everything you can into regular device drivers.
+>>>>
+>>>> We still have some dependencies to mach-omap2 code for PRCM
+>>>> for example, but we're trying to get all that to live in
+>>>> drivers.
+>>>>
+>>>> So for new pieces, let's not add further dependencies to
+>>>> complicate moving things to drivers.
+>>>>
+>>>> Regards,
+>>>>
+>>>> Tony
+>>>>
+>>>
+>>> Ok I will go ahead and pull the control module code that handles IPC
+>>> into the wkup_m3 driver.
+>>
+>> Any control module register access still needs to stay in control.c.
+>>
+>>> The wkup_m3.c file is still present in mach-omap2 as the right
+>>> location for it wasn't decided in the last RFC. Any thoughts on a good
+>>> location for it?
+>>
+>> I raised this also in earlier reviews, but don't remember the if it was
+>> answered...
+>>
+>> Why can't we handle the wkup_m3 using remoteproc/rpmsg instead of
+>> creating another little driver that duplicates communication with the
+>> M3.  Note also that the firmware load part would also be provided by
+>> remoteproc/rpmsg.
+>
+> Looping Suman Anna who handled the IPC patches this patch set is based
+> on top of...
+>
+> For the wkup_m3, the mailbox isn't used in a traditional manner. It's
+> only used with a dummy write to trigger an interrupt from the A8 to
+> the M3 and then communication happens in IPC registers within the
+> control module. No messages are actually sent through the mailbox in
+> either direction so that's why it was done this way rather than bring
+> in full support for the mailbox.
 
-Regards,
-Benoit
+I don't believe remoteproc/rpmsg forces you to use the mailbox for
+communication, and can use other IPC mechanisms.  This still sounds
+cleaner than reinventing remoteproc/rpmsg because of slight variations.
 
-> 								Pavel
->
-> ---
->
-> This adds device tree with neccessary support to boot with functional
-> video (on both emulator and real N900 device).
->
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
->
-> ---
->
->  From v1: Aaro wants just GPLv2, so I did that. I re-enabled parts that
-> can be enabled on 3.10, and tested it on that kernel.
->
->  From v2: spelling, improved comments. Tested on 3.11-rc (0ed4402).
->
-> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> index a0f2365..c48b1ef 100644
-> --- a/arch/arm/boot/dts/Makefile
-> +++ b/arch/arm/boot/dts/Makefile
-> @@ -162,6 +162,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
->   	omap3-devkit8000.dtb \
->   	omap3-beagle-xm.dtb \
->   	omap3-evm.dtb \
-> +	omap3-n900.dtb \
->   	omap3-tobi.dtb \
->   	omap3-igep0020.dtb \
->   	omap3-igep0030.dtb \
-> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-> new file mode 100644
-> index 0000000..7ff90f8
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap3-n900.dts
-> @@ -0,0 +1,92 @@
-> +/*
-> + * Copyright (C) 2013 Pavel Machek <pavel@ucw.cz>
-> + * Copyright 2013 Aaro Koskinen <aaro.koskinen@iki.fi>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 (or later) as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +/dts-v1/;
-> +
-> +#include "omap34xx.dtsi"
-> +
-> +/ {
-> +	model = "Nokia N900";
-> +	compatible = "nokia,omap3-n900", "ti,omap3";
-> +
-> +	cpus {
-> +		cpu@0 {
-> +			cpu0-supply = <&vcc>;
-> +		};
-> +	};
-> +
-> +	memory {
-> +		device_type = "memory";
-> +		reg = <0x80000000 0x10000000>; /* 256 MB */
-> +	};
-> +
-> +};
-> +
-> +&i2c1 {
-> +	clock-frequency = <2200000>;
-> +
-> +	twl: twl@48 {
-> +		reg = <0x48>;
-> +		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-> +		interrupt-parent = <&intc>;
-> +	};
-> +};
-> +
-> +#include "twl4030.dtsi"
-> +
-> +&twl_gpio {
-> +	ti,pullups	= <0x0>;
-> +	ti,pulldowns	= <0x03ff3f>; /* BIT(0..5) | BIT(8..17) */
-> +};
-> +
-> +&i2c2 {
-> +	clock-frequency = <400000>;
-> +};
-> +
-> +&i2c3 {
-> +	clock-frequency = <100000>;
-> +};
-> +
-> +&mmc1 {
-> +	status = "disabled";
-> +};
-> +
-> +&mmc2 {
-> +	status = "disabled";
-> +};
-> +
-> +&mmc3 {
-> +	status = "disabled";
-> +};
-> +
-> +&mcspi1 {
-> +	/*
-> +	 * For some reason, touchscreen is necessary for screen to work at
-> +	 * all on real hw. It works well without it on emulator.
-> +	 *
-> +	 * Also... order in the device tree actually matters here.
-> +	 */
-> +	tsc2005@0 {
-> +		compatible = "tsc2005";
-> +		spi-max-frequency = <6000000>;
-> +		reg = <0>;
-> +	};
-> +	mipid@2 {
-> +		compatible = "acx565akm";
-> +		spi-max-frequency = <6000000>;
-> +		reg = <2>;
-> +	};
-> +};
-> +
-> +&usb_otg_hs {
-> +	interface-type = <0>;
-> +	usb-phy = <&usb2_phy>;
-> +	mode = <2>;
-> +	power = <50>;
-> +};
->
+The linux way is to use and extend what is already there, and if it's
+extended to the breaking point, then make a case for why something new
+is needed.
 
+Kevin
