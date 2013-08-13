@@ -1,64 +1,166 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH 1/3] ARM: dts: omap3-igep: add pinmux node for GPIO LED
- configuration
-Date: Tue, 13 Aug 2013 13:20:37 +0200
-Message-ID: <520A1685.10508@baylibre.com>
-References: <1371739352-19670-1-git-send-email-javier.martinez@collabora.co.uk> <CAAwP0s0BqsWqhi4vRxLHjDWdaVhPy2TL6syydV-=+vAYioi6ig@mail.gmail.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCHv5 18/31] CLK: DT: add support for set-rate-parent flag
+Date: Tue, 13 Aug 2013 12:25:49 +0100
+Message-ID: <20130813112548.GM27165@e106331-lin.cambridge.arm.com>
+References: <1375460751-23676-1-git-send-email-t-kristo@ti.com>
+ <1375460751-23676-19-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:53844 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757287Ab3HMLUk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Aug 2013 07:20:40 -0400
-Received: by mail-wi0-f177.google.com with SMTP id hq12so473632wib.10
-        for <linux-omap@vger.kernel.org>; Tue, 13 Aug 2013 04:20:39 -0700 (PDT)
-In-Reply-To: <CAAwP0s0BqsWqhi4vRxLHjDWdaVhPy2TL6syydV-=+vAYioi6ig@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1375460751-23676-19-git-send-email-t-kristo@ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>, "mturquette@linaro.org" <mturquette@linaro.org>
+Cc: "nm@ti.com" <nm@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "rnayak@ti.com" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, benoit.cousson@linaro.org, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, linux-omap@vger.kernel.org
 
-Hi Javier,
+On Fri, Aug 02, 2013 at 05:25:37PM +0100, Tero Kristo wrote:
+> Adding set-rate-parent to clock node now allows a node to forward
+> clk_set_rate request to its parent clock.
 
-On 03/08/2013 21:11, Javier Martinez Canillas wrote:
-> On Thu, Jun 20, 2013 at 4:42 PM, Javier Martinez Canillas
-> <javier.martinez@collabora.co.uk> wrote:
->> IGEP boards have a number of LED connected to OMAP or TWL GPIO
->> lines. The actual wiring is different on each board so each board
->> DT has need to configure the mux correctly.
->>
->> Even though it works with the current DT, the kernel complains with:
->>
->> [2.305023] leds-gpio leds.18: pins are not configured from the driver
->>
->> Add an empty pinmux_leds_pins pinctrl child node so boards can
->> override with the correct mux configuration and not depend on
->> default values for the GPIO LEDs to work.
->>
->> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
->> ---
->>   arch/arm/boot/dts/omap3-igep.dtsi |    2 ++
->>   1 files changed, 2 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
->> index bc48b11..55f9f61 100644
->> --- a/arch/arm/boot/dts/omap3-igep.dtsi
->> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
->> @@ -68,6 +68,8 @@
->>                          0x1a2 (PIN_INPUT | MUX_MODE4)           /* mcspi1_cs2.gpio_176 */
->>                  >;
->>          };
->> +
->> +       leds_pins: pinmux_leds_pins { };
+Why do you need this?
 
-I'm just wondering what will happen if you do not override it with the 
-board file?
+Is this a description of the hardware, or configuration for Linux?
+It feels like the latter, which shouldn't really be in DT.
 
-Will we still have the warning? Because the warning is there to notify 
-you that the pin config is missing so we should not prevent that to work.
+I'm not that familiar with the internals of the clock framework, and
+don't understand the implications of this.
 
-Regards,
-Benoit
+If this is necessary, the bindings need to be updated.
 
+Mike, thoughts?
+
+Mark.
+
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  drivers/clk/clk-divider.c      |    6 +++++-
+>  drivers/clk/clk-fixed-factor.c |    6 +++++-
+>  drivers/clk/clk-gate.c         |    8 ++++++--
+>  drivers/clk/clk-mux.c          |    6 +++++-
+>  4 files changed, 21 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
+> index ff24ec2..01d967f 100644
+> --- a/drivers/clk/clk-divider.c
+> +++ b/drivers/clk/clk-divider.c
+> @@ -388,6 +388,7 @@ void of_divider_clk_setup(struct device_node *node)
+>  	u32 mask = 0;
+>  	u32 shift = 0;
+>  	struct clk_div_table *table;
+> +	u32 flags = 0;
+>  
+>  	of_property_read_string(node, "clock-output-names", &clk_name);
+>  
+> @@ -418,12 +419,15 @@ void of_divider_clk_setup(struct device_node *node)
+>  	if (of_property_read_bool(node, "hiword-mask"))
+>  		clk_divider_flags |= CLK_DIVIDER_HIWORD_MASK;
+>  
+> +	if (of_property_read_bool(node, "set-rate-parent"))
+> +		flags |= CLK_SET_RATE_PARENT;
+> +
+>  	table = of_clk_get_div_table(node);
+>  	if (IS_ERR(table))
+>  		return;
+>  
+>  	clk = _register_divider(NULL, clk_name,
+> -			parent_name, 0,
+> +			parent_name, flags,
+>  			reg, (u8) shift, mask,
+>  			clk_divider_flags, table,
+>  			NULL);
+> diff --git a/drivers/clk/clk-fixed-factor.c b/drivers/clk/clk-fixed-factor.c
+> index 9ff7d51..30aa121 100644
+> --- a/drivers/clk/clk-fixed-factor.c
+> +++ b/drivers/clk/clk-fixed-factor.c
+> @@ -107,6 +107,7 @@ void __init of_fixed_factor_clk_setup(struct device_node *node)
+>  	const char *clk_name = node->name;
+>  	const char *parent_name;
+>  	u32 div, mult;
+> +	u32 flags = 0;
+>  
+>  	if (of_property_read_u32(node, "clock-div", &div)) {
+>  		pr_err("%s Fixed factor clock <%s> must have a clock-div property\n",
+> @@ -123,7 +124,10 @@ void __init of_fixed_factor_clk_setup(struct device_node *node)
+>  	of_property_read_string(node, "clock-output-names", &clk_name);
+>  	parent_name = of_clk_get_parent_name(node, 0);
+>  
+> -	clk = clk_register_fixed_factor(NULL, clk_name, parent_name, 0,
+> +	if (of_property_read_bool(node, "set-rate-parent"))
+> +		flags |= CLK_SET_RATE_PARENT;
+> +
+> +	clk = clk_register_fixed_factor(NULL, clk_name, parent_name, flags,
+>  					mult, div);
+>  	if (!IS_ERR(clk))
+>  		of_clk_add_provider(node, of_clk_src_simple_get, clk);
+> diff --git a/drivers/clk/clk-gate.c b/drivers/clk/clk-gate.c
+> index cd595ec..0be25b9 100644
+> --- a/drivers/clk/clk-gate.c
+> +++ b/drivers/clk/clk-gate.c
+> @@ -176,6 +176,7 @@ void of_gate_clk_setup(struct device_node *node)
+>  	const char *parent_name;
+>  	u8 clk_gate_flags = 0;
+>  	u32 bit_idx = 0;
+> +	u32 flags = 0;
+>  
+>  	of_property_read_string(node, "clock-output-names", &clk_name);
+>  
+> @@ -195,8 +196,11 @@ void of_gate_clk_setup(struct device_node *node)
+>  	if (of_property_read_bool(node, "hiword-mask"))
+>  		clk_gate_flags |= CLK_GATE_HIWORD_MASK;
+>  
+> -	clk = clk_register_gate(NULL, clk_name, parent_name, 0, reg, (u8) bit_idx,
+> -			clk_gate_flags, NULL);
+> +	if (of_property_read_bool(node, "set-rate-parent"))
+> +		flags |= CLK_SET_RATE_PARENT;
+> +
+> +	clk = clk_register_gate(NULL, clk_name, parent_name, flags, reg,
+> +			(u8) bit_idx, clk_gate_flags, NULL);
+>  
+>  	if (!IS_ERR(clk))
+>  		of_clk_add_provider(node, of_clk_src_simple_get, clk);
+> diff --git a/drivers/clk/clk-mux.c b/drivers/clk/clk-mux.c
+> index 4751bce..890ddbf 100644
+> --- a/drivers/clk/clk-mux.c
+> +++ b/drivers/clk/clk-mux.c
+> @@ -184,6 +184,7 @@ void of_mux_clk_setup(struct device_node *node)
+>  	u8 clk_mux_flags = 0;
+>  	u32 mask = 0;
+>  	u32 shift = 0;
+> +	u32 flags = 0;
+>  
+>  	of_property_read_string(node, "clock-output-names", &clk_name);
+>  
+> @@ -219,8 +220,11 @@ void of_mux_clk_setup(struct device_node *node)
+>  	if (of_property_read_bool(node, "hiword-mask"))
+>  		clk_mux_flags |= CLK_MUX_HIWORD_MASK;
+>  
+> +	if (of_property_read_bool(node, "set-rate-parent"))
+> +		flags |= CLK_SET_RATE_PARENT;
+> +
+>  	clk = clk_register_mux_table(NULL, clk_name, parent_names, num_parents,
+> -			0, reg, (u8) shift, mask, clk_mux_flags,
+> +			flags, reg, (u8) shift, mask, clk_mux_flags,
+>  			NULL, NULL);
+>  
+>  	if (!IS_ERR(clk))
+> -- 
+> 1.7.9.5
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
