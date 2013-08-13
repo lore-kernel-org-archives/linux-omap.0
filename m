@@ -1,12 +1,15 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2] extcon: palmas: Added a new compatible type *ti,
- palmas-usb-vid*
-Date: Tue, 13 Aug 2013 16:56:51 +0530
-Message-ID: <1376393211-23145-1-git-send-email-kishon@ti.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCHv5 22/31] CLK: TI: add interface clock support for OMAP3
+Date: Tue, 13 Aug 2013 12:30:11 +0100
+Message-ID: <20130813113010.GN27165@e106331-lin.cambridge.arm.com>
+References: <1375460751-23676-1-git-send-email-t-kristo@ti.com>
+ <1375460751-23676-23-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1375460751-23676-23-git-send-email-t-kristo@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,48 +19,63 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: benoit.cousson@linaro.org, tony@atomide.com, swarren@wwwdotorg.org, myungjoo.ham@samsung.com, cw00.choi@samsung.com
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, george.cherian@ti.com, linux@arm.linux.org.uk, ian.campbell@citrix.com, pawel.moll@arm.com, linux-doc@vger.kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, kishon@ti.com, balbi@ti.com, rob@landley.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: "nm@ti.com" <nm@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "mturquette@linaro.org" <mturquette@linaro.org>, "tony@atomide.com" <tony@atomide.com>, "rnayak@ti.com" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-The Palmas device contains only a USB VID detector, so added a
-compatible type *ti,palmas-usb-vid*. Dint remove the existing compatible
-types for backward compatibility.
+On Fri, Aug 02, 2013 at 05:25:41PM +0100, Tero Kristo wrote:
+> OMAP3 has interface clocks in addition to functional clocks, which
+> require special handling for the autoidle and idle status register
+> offsets mainly.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  .../devicetree/bindings/clock/ti/interface.txt     |   45 +++++++++
+>  arch/arm/mach-omap2/clock.h                        |    6 --
+>  drivers/clk/ti/Makefile                            |    2 +-
+>  drivers/clk/ti/interface.c                         |  105 ++++++++++++++++++++
+>  include/linux/clk/ti.h                             |    7 ++
+>  5 files changed, 158 insertions(+), 7 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/clock/ti/interface.txt
+>  create mode 100644 drivers/clk/ti/interface.c
+> 
+> diff --git a/Documentation/devicetree/bindings/clock/ti/interface.txt b/Documentation/devicetree/bindings/clock/ti/interface.txt
+> new file mode 100644
+> index 0000000..8b09ae7
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/clock/ti/interface.txt
+> @@ -0,0 +1,45 @@
+> +Binding for Texas Instruments interface clock.
+> +
+> +This binding uses the common clock binding[1]. This clock is
+> +quite much similar to the basic gate-clock [2], however,
+> +it supports a number of additional features, including
+> +companion clock finding (match corresponding functional gate
+> +clock) and hardware autoidle enable / disable.
+> +
+> +[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
+> +[2] Documentation/devicetree/bindings/clock/gate-clock.txt
+> +
+> +Required properties:
+> +- compatible : shall be "ti,interface-clock"
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
-Changes from v1:
-rebased on extcon-next
+It might make sense to be more specific: "ti,omap3-interface-clock".
 
- Documentation/devicetree/bindings/extcon/extcon-palmas.txt |    3 ++-
- drivers/extcon/extcon-palmas.c                             |    1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+> +- #clock-cells : from common clock binding; shall be set to 0
+> +- clocks : link to phandle of parent clock
+> +- reg : base address for the control register
+> +
+> +Optional properties:
+> +- ti,enable-bit : bit shift for the bit enabling/disabling the clock
+> +		  (default 0)
+> +- ti,iclk-no-wait : flag for selecting non-waiting hw-ops
+> +- ti,iclk-hsotgusb : flag for selecting hsotgusb hw-ops
+> +- ti,iclk-dss : flag for selecting DSS interface clock hw-ops
+> +- ti,iclk-ssi : flag for selecting SSI interface clock hw-ops
+> +- ti,am35xx-clk : flag for selecting AM35xx interface clock hw-ops
 
-diff --git a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
-index 7dab6a8..dc5fab3 100644
---- a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
-+++ b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
-@@ -2,7 +2,8 @@ EXTCON FOR PALMAS/TWL CHIPS
- 
- PALMAS USB COMPARATOR
- Required Properties:
-- - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb"
-+ - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb" or
-+   "ti,palmas-usb-vid".
- 
- Optional Properties:
-  - ti,wakeup : To enable the wakeup comparator in probe
-diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
-index 89fdd05..9672f31 100644
---- a/drivers/extcon/extcon-palmas.c
-+++ b/drivers/extcon/extcon-palmas.c
-@@ -268,6 +268,7 @@ static const struct dev_pm_ops palmas_pm_ops = {
- 
- static struct of_device_id of_palmas_match_tbl[] = {
- 	{ .compatible = "ti,palmas-usb", },
-+	{ .compatible = "ti,palmas-usb-vid", },
- 	{ .compatible = "ti,twl6035-usb", },
- 	{ /* end */ }
- };
--- 
-1.7.10.4
+I think these should be selected based on the compatible string. They're
+mutually exclusive, and incompatible.
+
+Thanks,
+Mark.
