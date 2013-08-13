@@ -1,86 +1,55 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 2/2] arm: omap5: dts: add palmas-usb node
-Date: Tue, 13 Aug 2013 11:07:21 +0530
-Message-ID: <1376372241-15573-2-git-send-email-kishon@ti.com>
-References: <1376302675-15795-1-git-send-email-kishon@ti.com>
- <1376372241-15573-1-git-send-email-kishon@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 1/5 v2] drivers/gpio/gpio-omap.c: convert comma to semicolon
+Date: Tue, 13 Aug 2013 09:16:56 +0200
+Message-ID: <1376378216-18473-1-git-send-email-Julia.Lawall@lip6.fr>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1376372241-15573-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: benoit.cousson@linaro.org, tony@atomide.com, swarren@wwwdotorg.org, myungjoo.ham@samsung.com, cw00.choi@samsung.com
-Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob@landley.net, george.cherian@ti.com, gregkh@linuxfoundation.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, kishon@ti.com, balbi@ti.com
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: kernel-janitors@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Felipe Balbi <balbi@ti.com>
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Without this node, there will be no palmas
-driver to notify dwc3 that a cable has
-been connected and, without that, dwc3
-will never initialize.
+Replace a comma between expression statements by a semicolon.  This changes
+the semantics of the code, but given the current indentation appears to be
+what is intended.
 
-[ kishon@ti.com : fix vbus-supply value after SMPS10 is modeled as 2 regulators]
+A simplified version of the semantic patch that performs this
+transformation is as follows: (http://coccinelle.lip6.fr/)
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+// <smpl>
+@r@
+expression e1,e2,e;
+type T;
+identifier i;
+@@
+
+ e1
+-,
++;
+ e2;
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
 ---
-Changes from v3:
-* Changed the compatible type to ti,palmas-usb-vid
+Not tested.  The first version did a different transformation to avoid
+changing the semantics.  This one leaves the layout as it is, but changes
+the semantics.
 
-Changes from v2:
-fix vbus-supply value after SMPS10 is modeled as 2 regulators. This is needed
-after SMPS10 is modeled as 2 regulators.
-[1] models SMPS10 as 2 regulators.
-[2] splits the SMPS10 node into two to represent the 2 regulators.
+ drivers/gpio/gpio-omap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-[1] -> http://comments.gmane.org/gmane.linux.kernel/1542521
-[2] -> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg93779.html
-
- arch/arm/boot/dts/omap5-uevm.dts |   10 ++++++++++
- arch/arm/boot/dts/omap5.dtsi     |    2 +-
- 2 files changed, 11 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index e8704bc..c18ea50 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -272,6 +272,11 @@
- 		interrupt-controller;
- 		#interrupt-cells = <2>;
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index dfeb3a3..9f19ec9 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1030,7 +1030,7 @@ omap_mpuio_alloc_gc(struct gpio_bank *bank, unsigned int irq_start,
+ 	ct->chip.irq_set_type = gpio_irq_type;
  
-+		extcon_usb3: palmas_usb {
-+			compatible = "ti,palmas-usb-vid";
-+			ti,wakeup;
-+		};
-+
- 		palmas_pmic {
- 			compatible = "ti,palmas-pmic";
- 			interrupt-parent = <&palmas>;
-@@ -460,6 +465,11 @@
- 	phys = <0 &hsusb2_phy &hsusb3_phy>;
- };
+ 	if (bank->regs->wkup_en)
+-		ct->chip.irq_set_wake = gpio_wake_enable,
++		ct->chip.irq_set_wake = gpio_wake_enable;
  
-+&usb3 {
-+	extcon = <&extcon_usb3>;
-+	vbus-supply = <&smps10_out1_reg>;
-+};
-+
- &mcspi1 {
- 
- };
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 4e41409..1659246 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -634,7 +634,7 @@
- 			ti,type = <2>;
- 		};
- 
--		omap_dwc3@4a020000 {
-+		usb3: omap_dwc3@4a020000 {
- 			compatible = "ti,dwc3";
- 			ti,hwmods = "usb_otg_ss";
- 			reg = <0x4a020000 0x10000>;
--- 
-1.7.10.4
+ 	ct->regs.mask = OMAP_MPUIO_GPIO_INT / bank->stride;
+ 	irq_setup_generic_chip(gc, IRQ_MSK(num), IRQ_GC_INIT_MASK_CACHE,
