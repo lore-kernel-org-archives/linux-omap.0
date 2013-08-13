@@ -1,34 +1,27 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH 1/2] extcon: palmas: Added a new compatible type *ti,palmas-usb-vid*
-Date: Tue, 13 Aug 2013 13:13:25 -0600
-Message-ID: <520A8555.10401@wwwdotorg.org>
-References: <1376302675-15795-1-git-send-email-kishon@ti.com> <1376372241-15573-1-git-send-email-kishon@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH] staging: Platform device tester - Allow removal
+Date: Tue, 13 Aug 2013 12:25:29 -0700
+Message-ID: <87siydieae.fsf@kernel.org>
+References: <1376386470-27328-1-git-send-email-panto@antoniou-consulting.com>
+	<20130813182012.GE7740@kroah.com>
+	<70F17005-652E-4C04-B6EC-51E16EE237C3@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:49312 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757824Ab3HMTNb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Aug 2013 15:13:31 -0400
-In-Reply-To: <1376372241-15573-1-git-send-email-kishon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <70F17005-652E-4C04-B6EC-51E16EE237C3@antoniou-consulting.com>
+	(Pantelis Antoniou's message of "Tue, 13 Aug 2013 21:42:27 +0300")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?utf-8?Q?Be?= =?utf-8?Q?no=C3=AEt?= Coussno <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: benoit.cousson@linaro.org, tony@atomide.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob@landley.net, george.cherian@ti.com, gregkh@linuxfoundation.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, balbi@ti.com
 
-On 08/12/2013 11:37 PM, Kishon Vijay Abraham I wrote:
-> The Palmas device contains only a USB VID detector, so added a
-> compatible type *ti,palmas-usb-vid*. Dint remove the existing compatible
+Hi Pantelis,
 
-s/Dint/Didn't/
+For some reason, with both this patch and the earlier versions, I don't
+see the patch until Greg (or someone else) responds.  Nor do I find the
+originals in the linux-omap or LKML archives.
 
-> diff --git a/Documentation/devicetree/bindings/extcon/extcon-twl.txt b/Documentation/devicetree/bindings/extcon/extcon-twl.txt
+Something's going on with your mail so that the first ones don't make it
+to the lists, so I don't have the original patches.
 
->  PALMAS USB COMPARATOR
->  Required Properties:
-> - - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb"
-> + - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb" or
-> +   "ti,palmas-usb-vid".
-
-So are ti,palmas-usb and ti,twl6035-usb full EHCI controllers then?
+Kevin
