@@ -1,178 +1,168 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH v2] N900: add device tree
-Date: Tue, 13 Aug 2013 12:50:03 +0200
-Message-ID: <520A0F5B.5080502@baylibre.com>
-References: <20130613155240.GB3775@amd.pavel.ucw.cz> <20130613161418.GJ8164@atomide.com> <20130613230808.GA14876@amd.pavel.ucw.cz> <20130614055629.GM8164@atomide.com> <20130614212816.GA31768@atrey.karlin.mff.cuni.cz> <20130617111031.GQ20992@atomide.com> <20130701211753.GC15318@amd.pavel.ucw.cz> <20130704171939.GA27374@blackmetal.musicnaut.iki.fi> <20130704202145.GB10752@amd.pavel.ucw.cz> <20130704203256.GB27374@blackmetal.musicnaut.iki.fi> <20130713121709.GC16473@amd.pavel.ucw.cz> <CAAwP0s18PNn10q5qrzgi4Vz9t31AYuwBSthjE=rSdRb0FG0CFQ@mail.gmail.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCHv5 02/31] CLK: TI: Add DPLL clock support
+Date: Tue, 13 Aug 2013 11:50:42 +0100
+Message-ID: <20130813105042.GJ27165@e106331-lin.cambridge.arm.com>
+References: <1375460751-23676-1-git-send-email-t-kristo@ti.com>
+ <1375460751-23676-3-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAAwP0s18PNn10q5qrzgi4Vz9t31AYuwBSthjE=rSdRb0FG0CFQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>, Pavel Machek <pavel@ucw.cz>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, b-cousson@ti.com, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:35059 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757240Ab3HMKvQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Aug 2013 06:51:16 -0400
+Content-Disposition: inline
+In-Reply-To: <1375460751-23676-3-git-send-email-t-kristo@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "nm@ti.com" <nm@ti.com>, "rnayak@ti.com" <rnayak@ti.com>, "mturquette@linaro.org" <mturquette@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Pavel,
+Hi,
 
-I finally got released by the aliens. It took longer than expected and 
-beside a small scar on the back of my neck, I feel pretty OK.
-
-I just have few cosmetic comments on top of Javier's ones.
-
-On 11/08/2013 17:02, Javier Martinez Canillas wrote:
-> Hi Pavel,
+On Fri, Aug 02, 2013 at 05:25:21PM +0100, Tero Kristo wrote:
+> The OMAP clock driver now supports DPLL clock type. This patch also
+> adds support for DT DPLL nodes.
 >
-> some minor comments about your patch below
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  .../devicetree/bindings/clock/ti/dpll.txt          |   70 +++
+>  arch/arm/mach-omap2/clock.h                        |  144 +-----
+>  arch/arm/mach-omap2/clock3xxx.h                    |    2 -
+>  drivers/clk/Makefile                               |    1 +
+>  drivers/clk/ti/Makefile                            |    3 +
+>  drivers/clk/ti/dpll.c                              |  488 ++++++++++++++++++++
+>  include/linux/clk/ti.h                             |  164 +++++++
+>  7 files changed, 727 insertions(+), 145 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/clock/ti/dpll.txt
+>  create mode 100644 drivers/clk/ti/Makefile
+>  create mode 100644 drivers/clk/ti/dpll.c
+>  create mode 100644 include/linux/clk/ti.h
 >
-> On Sat, Jul 13, 2013 at 2:17 PM, Pavel Machek <pavel@ucw.cz> wrote:
->>
->> This adds device tree with neccessary support to boot with functional
+> diff --git a/Documentation/devicetree/bindings/clock/ti/dpll.txt b/Documentation/devicetree/bindings/clock/ti/dpll.txt
+> new file mode 100644
+> index 0000000..dcd6e63
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/clock/ti/dpll.txt
+> @@ -0,0 +1,70 @@
+> +Binding for Texas Instruments DPLL clock.
+> +
+> +This binding uses the common clock binding[1].  It assumes a
+> +register-mapped DPLL with usually two selectable input clocks
+> +(reference clock and bypass clock), with digital phase locked
+> +loop logic for multiplying the input clock to a desired output
+> +clock. This clock also typically supports different operation
+> +modes (locked, low power stop etc.) This binding has several
+> +sub-types, which effectively result in slightly different setup
+> +for the actual DPLL clock.
+> +
+> +[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
+> +
+> +Required properties:
+> +- compatible : shall be one of:
+> +               "ti,omap4-dpll-x2-clock",
+> +               "ti,omap3-dpll-clock",
+> +               "ti,omap3-dpll-core-clock",
+> +               "ti,omap3-dpll-per-clock",
+> +               "ti,omap3-dpll-per-j-type-clock",
+> +               "ti,omap4-dpll-clock",
+> +               "ti,omap4-dpll-core-clock",
+> +               "ti,omap4-dpll-m4xen-clock",
+> +               "ti,omap4-dpll-j-type-clock",
+> +               "ti,omap4-dpll-no-gate-clock",
+> +               "ti,omap4-dpll-no-gate-j-type-clock",
+> +
+> +- #clock-cells : from common clock binding; shall be set to 0.
+> +- clocks : link phandles of parent clocks (clk-ref and clk-bypass)
 
-Typo----------------------------^
+It might be a good idea to use clock-names to clarify which clocks are
+present (I notice your examples contain only one clock input).
 
->> video (on both emulator and real N900 device).
->>
->> Signed-off-by: Pavel Machek <pavel@ucw.cz>
->>
->> ---
->>
->>  From v1: Aaro wants just GPLv2, so I did that. I re-enabled parts that
->> can be enabled on 3.10, and tested it on that kernel.
->>
->> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
->> index f0895c5..1950aed 100644
->> --- a/arch/arm/boot/dts/Makefile
->> +++ b/arch/arm/boot/dts/Makefile
->> @@ -141,6 +141,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
->>          omap3-devkit8000.dtb \
->>          omap3-beagle-xm.dtb \
->>          omap3-evm.dtb \
->> +       omap3-n900.dtb \
->>          omap3-tobi.dtb \
->>          omap3-igep0020.dtb \
->>          omap3-igep0030.dtb \
->> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
->> new file mode 100644
->> index 0000000..fb461bf
->> --- /dev/null
->> +++ b/arch/arm/boot/dts/omap3-n900.dts
->> @@ -0,0 +1,92 @@
->> +/*
->> + * Copyright (C) 2013 Pavel Machek <pavel@ucw.cz>
->> + * Copyright 2013 Aaro Koskinen <aaro.koskinen@iki.fi>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + */
->> +
->> +/dts-v1/;
->> +
->> +/include/ "omap34xx.dtsi"
->> +
->
-> The current trend is to use #include "omap34xx.dtsi" instead /include/
-> in order to use the C pre-processor and the macros defined in
-> include/dt-bindings.
->
->> +/ {
->> +       model = "Nokia N900";
->> +       compatible = "nokia,omap3-n900", "ti,omap3";
->> +
->> +       cpus {
->> +               cpu@0 {
->> +                       cpu0-supply = <&vcc>;
->> +               };
->> +       };
->> +
->> +       memory {
->> +               device_type = "memory";
->> +               reg = <0x80000000 0x10000000>; /* 256 MB */
->> +       };
->> +
->> +};
->> +
->> +&i2c1 {
->> +       clock-frequency = <2200000>;
->> +
->> +       twl: twl@48 {
->> +               reg = <0x48>;
->> +               interrupts = <7>; /* SYS_NIRQ cascaded to intc */
->> +               interrupt-parent = <&intc>;
->> +       };
->> +};
->> +
->> +/include/ "twl4030.dtsi"
->> +
->> +&twl_gpio {
->> +       ti,pullups      = <0x0>;
->> +       ti,pulldowns    = <0x03ff3f>; /* BIT(0..5) | BIT(8..17) */
->> +};
->> +
->> +&i2c2 {
->> +       clock-frequency = <400000>;
->> +};
->> +
->> +&i2c3 {
->> +       clock-frequency = <100000>;
->> +};
->> +
->> +&mmc1 {
->> +       status = "disabled";
->> +};
->> +
->> +&mmc2 {
->> +       status = "disabled";
->> +};
->> +
->> +&mmc3 {
->> +       status = "disabled";
->> +};
->> +
->> +&mcspi1 {
->> +       // For some reason, touchscreen is neccessary for screen to work at
+> +- reg : array of register base addresses for controlling the DPLL (some
+> +  of these can also be left as NULL):
+> +       reg[0] = control register
+> +       reg[1] = idle status register
+> +       reg[2] = autoidle register
+> +       reg[3] = multiplier / divider set register
 
-Same typo than before---------------------------^
+Are all of these always present? Using reg-names seems sensible here.
 
->> +       // all on real hw. It works well without it on emulator.
->> +       //
->> +       // Also... order in the device tree actually matters here.
+> +- ti,clk-ref : link phandle for the reference clock
+> +- ti,clk-bypass : link phandle for the bypass clock
 
-Nit: Please use the regular Linux style comment.
+You already have these in clocks, why do you need them again here?
 
-The order should not matter at all in DT, it should be a static 
-representation of the HW, so there is probably something wrong in the 
-code that make the device creation order important.
+> +
+> +Optional properties:
+> +- ti,modes : available modes for the DPLL
 
->> +       tsc2005@0 {
->> +               compatible = "tsc2005";
->> +               spi-max-frequency = <6000000>;
->> +               reg = <0>;
->> +       };
->> +       mipid@2 {
->> +               compatible = "acx565akm";
->> +               spi-max-frequency = <6000000>;
->> +               reg = <2>;
->> +               // turbo_mode = 0,
->> +               // cs_per_word = 0
->> +       };
->> +};
->
-> You should remove these properties if they are not being used instead
-> of keeping them as commented.
->
->> +
->> +&usb_otg_hs {
->> +       interface-type = <0>;
->> +       usb-phy = <&usb2_phy>;
->> +       mode = <2>;
->> +       power = <50>;
->> +};
+Huh? What type is that property? What does it mean?
 
-Beside my comments and the ones from Javier, it looks good.
-If you can repost ASAP, I'll take it right after.
-It will be the first one in the list.
+> +- ti,recal-en-bit : recalibration enable bit
+> +- ti,recal-st-bit : recalibration status bit
+> +- ti,auto-recal-bit : auto recalibration enable bit
+
+These seem rather low-level, but I see other clock bindings are doing
+similar things. When are these needed, and why? What type are they?
+
+> +- ti,clkdm-name : clockdomain name for the DPLL
+
+Could you elaborate on what this is for? What constitutes a valid name?
+
+I'm not sure a string is the best way to define the linkage of several
+elements to a domain...
+
+> +
+> +Examples:
+> +       dpll_core_ck: dpll_core_ck@44e00490 {
+> +               #clock-cells = <0>;
+> +               compatible = "ti,omap4-dpll-core-clock";
+> +               clocks = <&sys_clkin_ck>;
+> +               reg = <0x44e00490 0x4>, <0x44e0045c 0x4>, <0x0 0x4>,
+> +                               <0x44e00468 0x4>;
+> +               ti,clk-ref = <&sys_clkin_ck>;
+> +               ti,clk-bypass = <&sys_clkin_ck>;
+
+Huh? Why aren't these both in the clocks property?
+
+[...]
+
+> +static inline void __iomem *get_dt_register(struct device_node *node,
+> +                                           int index)
+> +{
+> +       u32 val;
+> +
+> +       of_property_read_u32_index(node, "reg", 2 * index, &val);
+> +       if (val)
+> +               return of_iomap(node, index);
+> +       else
+> +               return NULL;
+
+NAK. Use reg-names to handle registers being optional.
+
+[...]
+
+> +       clkspec.np = of_parse_phandle(node, "ti,clk-ref", 0);
+> +       dd->clk_ref = of_clk_get_from_provider(&clkspec);
+> +       if (IS_ERR(dd->clk_ref)) {
+> +               pr_err("%s: ti,clk-ref for %s not found\n", __func__,
+> +                      clk_name);
+> +               goto cleanup;
+> +       }
+> +
+> +       clkspec.np = of_parse_phandle(node, "ti,clk-bypass", 0);
+> +       dd->clk_bypass = of_clk_get_from_provider(&clkspec);
+> +       if (IS_ERR(dd->clk_bypass)) {
+> +               pr_err("%s: ti,clk-bypass for %s not found\n", __func__,
+> +                      clk_name);
+> +               goto cleanup;
+> +       }
+
+You can get these from the standard clocks property. Don't do this.
+
+Look at of_clk_get_by_name().
 
 Thanks,
-Benoit
+Mark.
