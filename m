@@ -1,375 +1,182 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: [PATCH v4 1/4] ARM: OMAP2+: AM33XX: I2C Sleep/wake sequence support
-Date: Tue, 13 Aug 2013 15:20:09 -0700
-Message-ID: <1376432412-8509-2-git-send-email-Russ.Dill@ti.com>
-References: <1376432412-8509-1-git-send-email-Russ.Dill@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f177.google.com ([209.85.214.177]:36760 "EHLO
-	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759296Ab3HMWUR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Aug 2013 18:20:17 -0400
-In-Reply-To: <1376432412-8509-1-git-send-email-Russ.Dill@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Tomasz Figa <tomasz.figa@gmail.com>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Wed, 14 Aug 2013 01:04:21 +0200
+Message-ID: <2128883.KpgODjXPJQ@flatron>
+References: <20130720220006.GA7977@kroah.com> <520A2100.6000709@ti.com> <520AB0F0.8010106@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <520AB0F0.8010106@gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Tomasz Figa <t.figa@samsung.com>, linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, Alan Stern <stern@rowland.harvard.edu>, grant.likely@linaro.org, linux-media@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, devicetree-discuss@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, Greg KH <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.park@samsung.com, akpm@linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: devicetree@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Changes since v1:
-* Rebased onto new am335x PM branch
-* Changed to use 5th param register
+On Wednesday 14 of August 2013 00:19:28 Sylwester Nawrocki wrote:
+> W dniu 2013-08-13 14:05, Kishon Vijay Abraham I pisze:
+> > On Tuesday 13 August 2013 05:07 PM, Tomasz Figa wrote:
+> >> On Tuesday 13 of August 2013 16:14:44 Kishon Vijay Abraham I wrote:
+> >>> On Wednesday 31 July 2013 11:45 AM, Felipe Balbi wrote:
+> >>>> On Wed, Jul 31, 2013 at 11:14:32AM +0530, Kishon Vijay Abraham I 
+wrote:
+> >>>>>>>>>> IMHO we need a lookup method for PHYs, just like for clocks,
+> >>>>>>>>>> regulators, PWMs or even i2c busses because there are complex
+> >>>>>>>>>> cases
+> >>>>>>>>>> when passing just a name using platform data will not work. I
+> >>>>>>>>>> would
+> >>>>>>>>>> second what Stephen said [1] and define a structure doing
+> >>>>>>>>>> things
+> >>>>>>>>>> in a
+> >>>>>>>>>> DT-like way.
+> >>>>>>>>>> 
+> >>>>>>>>>> Example;
+> >>>>>>>>>> 
+> >>>>>>>>>> [platform code]
+> >>>>>>>>>> 
+> >>>>>>>>>> static const struct phy_lookup my_phy_lookup[] = {
+> >>>>>>>>>> 
+> >>>>>>>>>> 	PHY_LOOKUP("s3c-hsotg.0", "otg", "samsung-usbphy.1",
+> >>>>>>>>>> 	"phy.2"),
+> >>>>>>>>> 
+> >>>>>>>>> The only problem here is that if *PLATFORM_DEVID_AUTO* is used
+> >>>>>>>>> while
+> >>>>>>>>> creating the device, the ids in the device name would change
+> >>>>>>>>> and
+> >>>>>>>>> PHY_LOOKUP wont be useful.
+> >>>>>>>> 
+> >>>>>>>> I don't think this is a problem. All the existing lookup
+> >>>>>>>> methods
+> >>>>>>>> already
+> >>>>>>>> use ID to identify devices (see regulators, clkdev, PWMs, i2c,
+> >>>>>>>> ...). You
+> >>>>>>>> can simply add a requirement that the ID must be assigned
+> >>>>>>>> manually,
+> >>>>>>>> without using PLATFORM_DEVID_AUTO to use PHY lookup.
+> >>>>>>> 
+> >>>>>>> And I'm saying that this idea, of using a specific name and id,
+> >>>>>>> is
+> >>>>>>> frought with fragility and will break in the future in various
+> >>>>>>> ways
+> >>>>>>> when
+> >>>>>>> devices get added to systems, making these strings constantly
+> >>>>>>> have
+> >>>>>>> to be
+> >>>>>>> kept up to date with different board configurations.
+> >>>>>>> 
+> >>>>>>> People, NEVER, hardcode something like an id.  The fact that
+> >>>>>>> this
+> >>>>>>> happens today with the clock code, doesn't make it right, it
+> >>>>>>> makes
+> >>>>>>> the
+> >>>>>>> clock code wrong.  Others have already said that this is wrong
+> >>>>>>> there
+> >>>>>>> as
+> >>>>>>> well, as systems change and dynamic ids get used more and more.
+> >>>>>>> 
+> >>>>>>> Let's not repeat the same mistakes of the past just because we
+> >>>>>>> refuse to
+> >>>>>>> learn from them...
+> >>>>>>> 
+> >>>>>>> So again, the "find a phy by a string" functions should be
+> >>>>>>> removed,
+> >>>>>>> the
+> >>>>>>> device id should be automatically created by the phy core just
+> >>>>>>> to
+> >>>>>>> make
+> >>>>>>> things unique in sysfs, and no driver code should _ever_ be
+> >>>>>>> reliant
+> >>>>>>> on
+> >>>>>>> the number that is being created, and the pointer to the phy
+> >>>>>>> structure
+> >>>>>>> should be used everywhere instead.
+> >>>>>>> 
+> >>>>>>> With those types of changes, I will consider merging this
+> >>>>>>> subsystem,
+> >>>>>>> but
+> >>>>>>> without them, sorry, I will not.
+> >>>>>> 
+> >>>>>> I'll agree with Greg here, the very fact that we see people
+> >>>>>> trying to
+> >>>>>> add a requirement of *NOT* using PLATFORM_DEVID_AUTO already
+> >>>>>> points
+> >>>>>> to a big problem in the framework.
+> >>>>>> 
+> >>>>>> The fact is that if we don't allow PLATFORM_DEVID_AUTO we will
+> >>>>>> end up
+> >>>>>> adding similar infrastructure to the driver themselves to make
+> >>>>>> sure
+> >>>>>> we
+> >>>>>> don't end up with duplicate names in sysfs in case we have
+> >>>>>> multiple
+> >>>>>> instances of the same IP in the SoC (or several of the same PCIe
+> >>>>>> card).
+> >>>>>> I really don't want to go back to that.
+> >>>>> 
+> >>>>> If we are using PLATFORM_DEVID_AUTO, then I dont see any way we
+> >>>>> can
+> >>>>> give the correct binding information to the PHY framework. I think
+> >>>>> we
+> >>>>> can drop having this non-dt support in PHY framework? I see only
+> >>>>> one
+> >>>>> platform (OMAP3) going to be needing this non-dt support and we
+> >>>>> can
+> >>>>> use the USB PHY library for it.>
+> >>>> 
+> >>>> you shouldn't drop support for non-DT platform, in any case we
+> >>>> lived
+> >>>> without DT (and still do) for years. Gotta find a better way ;-)
+> >>> 
+> >>> hmm..
+> >>> 
+> >>> how about passing the device names of PHY in platform data of the
+> >>> controller? It should be deterministic as the PHY framework assigns
+> >>> its
+> >>> own id and we *don't* want to add any requirement that the ID must
+> >>> be
+> >>> assigned manually without using PLATFORM_DEVID_AUTO. We can get rid
+> >>> of
+> >>> *phy_init_data* in the v10 patch series.
+> 
+> OK, so the PHY device name would have a fixed part, passed as
+> platform data of the controller and a variable part appended
+> by the PHY core, depending on the number of registered PHYs ?
+> 
+> Then same PHY names would be passed as the PHY provider driver's
+> platform data ?
+> 
+> Then if there are 2 instances of the above (same names in platform
+> data) how would be determined which PHY controller is linked to
+> which PHY supplier ?
+> 
+> I guess you want each device instance to have different PHY device
+> names already in platform data ? That might work. We probably will
+> be focused mostly on DT anyway. It seem without DT we are trying
+> to find some layer that would allow us to couple relevant devices
+> and overcome driver core inconvenience that it provides to means
+> to identify specific devices in advance. :) Your proposal sounds
+> reasonable, however I might be missing some details or corner cases.
+> 
+> >> What about slightly altering the concept of v9 to pass a pointer to
+> >> struct device instead of device name inside phy_init_data?
+> 
+> As Felipe said, we don't want to pass pointers in platform_data
+> to/from random subsystems. We pass data, passing pointers would
+> be a total mess IMHO.
 
-Changes since v2:
-* Passes I2C bus speed in kHz to M3 firmware
+Well, this is a total mess anyway... I don't really get the point of using 
+PLATFORM_DEVID_AUTO. The only thing that comes to my mind is that you can 
+use it if you don't care about the ID and so it can be assigned 
+automatically.
 
-Changes since v3:
-* Rebased to 3.11-rc3, moves some functionality to wkup_m3.c
-* Additional comments
-* Added device-tree binding documentation
+However my understanding of the device ID is that it was supposed to 
+provide a way to identify multiple instances of identical devices in a 
+reliable way, to solve problems like the one we are trying to solve 
+here...
 
-This patch adds the ability to pass an I2C sleep sequence and wake sequence
-to the Cortex-M3. This is useful for adjusting voltages during sleep that
-cannot be lowered while SDRAM is active. A modified M3 firmware with I2C
-support is required.
+So maybe let's stop solving an already solved problem and just state that 
+you need to explicitly assign device ID to use this framework?
 
-Each sequence is a series of I2C transfers in the form:
-
-u8 length | u8 chip address | u8 byte0/reg address | u8 byte 1 | u8 byte n ...
-
-The length indicates the number of bytes to transfer, including the register
-address. The length of each transfer is limited by the I2C buffer size of
-32 bytes.
-
-The sequences are taken from the i2c1 node in the device tree. The property
-name for the sleep sequence is "sleep_sequence" and the property name for
-the wake sequence is "wake_sequence". Each property should be an array of
-bytes.
-
-No actions are performed if the properties are not present in the device
-tree.
-
-Signed-off-by: Russ Dill <Russ.Dill@ti.com>
----
- .../devicetree/bindings/i2c/i2c-suspend-resume.txt | 44 +++++++++++
- arch/arm/mach-omap2/control.c                      |  1 +
- arch/arm/mach-omap2/pm33xx.c                       | 89 ++++++++++++++++++++++
- arch/arm/mach-omap2/pm33xx.h                       |  2 +
- arch/arm/mach-omap2/wkup_m3.c                      | 57 ++++++++++++--
- 5 files changed, 186 insertions(+), 7 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/i2c/i2c-suspend-resume.txt
-
-diff --git a/Documentation/devicetree/bindings/i2c/i2c-suspend-resume.txt b/Documentation/devicetree/bindings/i2c/i2c-suspend-resume.txt
-new file mode 100644
-index 0000000..af19372
---- /dev/null
-+++ b/Documentation/devicetree/bindings/i2c/i2c-suspend-resume.txt
-@@ -0,0 +1,44 @@
-+I2C suspend/resume sequences
-+
-+This provides the ability for a simple I2C sequence to be written at
-+suspend time and resume time. This is for sequences that cannot be written
-+by the I2C bus driver for reasons such as needing to be run from SRAM
-+or needing to be written by firmware.
-+
-+The sequence is composed of messages. Each message contains a length byte,
-+an address byte, and then the message.
-+
-+Optional properties:
-+- sleep_sequence
-+	I2C sequence to write during suspend
-+
-+- wake_sequence
-+	I2C sequence to write during wake
-+
-+Examples :
-+
-+i2c0: i2c@0 {
-+	/* Set OPP50 (0.95V) for VDD core */
-+	sleep_sequence = /bits/ 8 <
-+		0x02 0x24 0x0b 0x6d /* Password unlock 1 */
-+		0x02 0x24 0x10 0x02 /* Set DCDC3 to 0.95V */
-+		0x02 0x24 0x0b 0x6d /* Password unlock 2 */
-+		0x02 0x24 0x10 0x02 /* Set DCDC3 to 0.95V */
-+		0x02 0x24 0x0b 0x6c /* Password unlock 1 */
-+		0x02 0x24 0x11 0x86 /* Apply DCDC changes */
-+		0x02 0x24 0x0b 0x6c /* Password unlock 2 */
-+		0x02 0x24 0x11 0x86 /* Apply DCDC changes */
-+	>;
-+
-+	/* Set OPP100 (1.10V) for VDD core */
-+	wake_sequence = /bits/ 8 <
-+		0x02 0x24 0x0b 0x6d /* Password unlock 1 */
-+		0x02 0x24 0x10 0x08 /* Set DCDC3 to 1.1V */
-+		0x02 0x24 0x0b 0x6d /* Password unlock 2 */
-+		0x02 0x24 0x10 0x08 /* Set DCDC3 to 1.1V */
-+		0x02 0x24 0x0b 0x6c /* Password unlock 1 */
-+		0x02 0x24 0x11 0x86 /* Apply DCDC changes */
-+		0x02 0x24 0x0b 0x6c /* Password unlock 2 */
-+		0x02 0x24 0x11 0x86 /* Apply DCDC changes */
-+	>;
-+}
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 934041a..dfbd5f0 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -639,6 +639,7 @@ void am33xx_pm_ipc_cmd(struct am33xx_ipc_data *data)
- 	omap_ctrl_writel(data->param1, AM33XX_CONTROL_IPC_MSG_REG2);
- 	omap_ctrl_writel(data->param2, AM33XX_CONTROL_IPC_MSG_REG3);
- 	omap_ctrl_writel(data->param3, AM33XX_CONTROL_IPC_MSG_REG4);
-+	omap_ctrl_writel(data->param4, AM33XX_CONTROL_IPC_MSG_REG5);
- }
- 
- int am33xx_pm_status(void)
-diff --git a/arch/arm/mach-omap2/pm33xx.c b/arch/arm/mach-omap2/pm33xx.c
-index d291c76..8880da3 100644
---- a/arch/arm/mach-omap2/pm33xx.c
-+++ b/arch/arm/mach-omap2/pm33xx.c
-@@ -29,6 +29,7 @@
- #include <linux/ti_emif.h>
- #include <linux/omap-mailbox.h>
- 
-+#include <asm/unaligned.h>
- #include <asm/suspend.h>
- #include <asm/proc-fns.h>
- #include <asm/sizes.h>
-@@ -50,6 +51,10 @@
- static void __iomem *am33xx_emif_base;
- static struct powerdomain *cefuse_pwrdm, *gfx_pwrdm, *per_pwrdm, *mpu_pwrdm;
- static struct clockdomain *gfx_l4ls_clkdm;
-+static char *am33xx_i2c_sleep_sequence;
-+static char *am33xx_i2c_wake_sequence;
-+static size_t i2c_sleep_sequence_sz;
-+static size_t i2c_wake_sequence_sz;
- 
- struct wakeup_src wakeups[] = {
- 	{.irq_nr = 35,	.src = "USB0_PHY"},
-@@ -232,12 +237,34 @@ static void am33xx_m3_state_machine_reset(void)
- static int am33xx_pm_begin(suspend_state_t state)
- {
- 	int i;
-+	unsigned long param4;
-+	int pos;
- 
- 	cpu_idle_poll_ctrl(true);
- 
-+	param4 = DS_IPC_DEFAULT;
-+
-+	wkup_m3_reset_data_pos();
-+	if (am33xx_i2c_sleep_sequence) {
-+		pos = wkup_m3_copy_data(am33xx_i2c_sleep_sequence,
-+						i2c_sleep_sequence_sz);
-+		/* Lower 16 bits stores offset to sleep sequence */
-+		param4 &= ~0xffff;
-+		param4 |= pos;
-+	}
-+
-+	if (am33xx_i2c_wake_sequence) {
-+		pos = wkup_m3_copy_data(am33xx_i2c_wake_sequence,
-+						i2c_wake_sequence_sz);
-+		/* Upper 16 bits stores offset to wake sequence */
-+		param4 &= ~0xffff0000;
-+		param4 |= pos << 16;
-+	}
-+
- 	am33xx_pm->ipc.sleep_mode	= IPC_CMD_DS0;
- 	am33xx_pm->ipc.param1		= DS_IPC_DEFAULT;
- 	am33xx_pm->ipc.param2		= DS_IPC_DEFAULT;
-+	am33xx_pm->ipc.param4		= param4;
- 
- 	am33xx_pm_ipc_cmd(&am33xx_pm->ipc);
- 
-@@ -386,6 +413,62 @@ static int __init am33xx_map_emif(void)
- 	return 0;
- }
- 
-+static int __init am33xx_setup_sleep_sequence(void)
-+{
-+	int ret;
-+	int sz;
-+	const void *prop;
-+	struct device *dev;
-+	u32 freq_hz = 100000;
-+	unsigned short freq_khz;
-+
-+	/*
-+	 * We put the device tree node in the I2C controller that will
-+	 * be sending the sequence. i2c1 is the only controller that can
-+	 * be accessed by the firmware as it is the only controller in the
-+	 * WKUP domain.
-+	 */
-+	dev = omap_device_get_by_hwmod_name("i2c1");
-+	if (IS_ERR(dev))
-+		return PTR_ERR(dev);
-+
-+	of_property_read_u32(dev->of_node, "clock-frequency", &freq_hz);
-+	freq_khz = freq_hz / 1000;
-+
-+	prop = of_get_property(dev->of_node, "sleep_sequence", &sz);
-+	if (prop) {
-+		/*
-+		 * Length is sequence length + 2 bytes for freq_khz, and 1
-+		 * byte for terminator.
-+		 */
-+		am33xx_i2c_sleep_sequence = kzalloc(sz + 3, GFP_KERNEL);
-+		if (!am33xx_i2c_sleep_sequence)
-+			return -ENOMEM;
-+		put_unaligned_le16(freq_khz, am33xx_i2c_sleep_sequence);
-+		memcpy(am33xx_i2c_sleep_sequence + 2, prop, sz);
-+		i2c_sleep_sequence_sz = sz + 3;
-+	}
-+
-+	prop = of_get_property(dev->of_node, "wake_sequence", &sz);
-+	if (prop) {
-+		am33xx_i2c_wake_sequence = kzalloc(sz + 3, GFP_KERNEL);
-+		if (!am33xx_i2c_wake_sequence) {
-+			ret = -ENOMEM;
-+			goto cleanup_sleep;
-+		}
-+		put_unaligned_le16(freq_khz, am33xx_i2c_sleep_sequence);
-+		memcpy(am33xx_i2c_wake_sequence + 2, prop, sz);
-+		i2c_wake_sequence_sz = sz + 3;
-+	}
-+
-+	return 0;
-+
-+cleanup_sleep:
-+	kfree(am33xx_i2c_sleep_sequence);
-+	am33xx_i2c_sleep_sequence = NULL;
-+	return ret;
-+}
-+
- int __init am33xx_pm_init(void)
- {
- 	int ret;
-@@ -451,6 +534,12 @@ int __init am33xx_pm_init(void)
- 		}
- 	}
- 
-+	ret = am33xx_setup_sleep_sequence();
-+	if (ret) {
-+		pr_err("Error fetching I2C sleep/wake sequence\n");
-+		goto err;
-+	}
-+
- 	(void) clkdm_for_each(omap_pm_clkdms_setup, NULL);
- 
- 	/* CEFUSE domain can be turned off post bootup */
-diff --git a/arch/arm/mach-omap2/pm33xx.h b/arch/arm/mach-omap2/pm33xx.h
-index befdd11..d0f08a5 100644
---- a/arch/arm/mach-omap2/pm33xx.h
-+++ b/arch/arm/mach-omap2/pm33xx.h
-@@ -52,6 +52,8 @@ struct forced_standby_module {
- };
- 
- int wkup_m3_copy_code(const u8 *data, size_t size);
-+void wkup_m3_reset_data_pos(void);
-+int wkup_m3_copy_data(const u8 *data, size_t size);
- int wkup_m3_prepare(void);
- void wkup_m3_register_txev_handler(void (*txev_handler)(void));
- 
-diff --git a/arch/arm/mach-omap2/wkup_m3.c b/arch/arm/mach-omap2/wkup_m3.c
-index 8eaa7f3..a541de9 100644
---- a/arch/arm/mach-omap2/wkup_m3.c
-+++ b/arch/arm/mach-omap2/wkup_m3.c
-@@ -35,6 +35,9 @@
- struct wkup_m3_context {
- 	struct device	*dev;
- 	void __iomem	*code;
-+	void __iomem	*data;
-+	void __iomem	*data_end;
-+	size_t		data_size;
- 	void (*txev_handler)(void);
- };
- 
-@@ -50,6 +53,30 @@ int wkup_m3_copy_code(const u8 *data, size_t size)
- 	return 0;
- }
- 
-+/*
-+ * This pair of functions allows data to be stuffed into the end of the
-+ * CM3 data memory. This is currently used for passing the I2C sleep/wake
-+ * sequences to the firmware.
-+ */
-+
-+/* Clear out the pointer for data stored at the end of DMEM */
-+void wkup_m3_reset_data_pos(void)
-+{
-+	wkup_m3->data_end = wkup_m3->data + wkup_m3->data_size;
-+}
-+
-+/*
-+ * Store a block of data at the end of DMEM, return the offset within DMEM
-+ * that the data is stored at, or -ENOMEM if the data did not fit
-+ */
-+int wkup_m3_copy_data(const u8 *data, size_t size)
-+{
-+	if (wkup_m3->data + size > wkup_m3->data_end)
-+		return -ENOMEM;
-+	wkup_m3->data_end -= size;
-+	memcpy_toio(wkup_m3->data_end, data, size);
-+	return wkup_m3->data_end - wkup_m3->data;
-+}
- 
- void wkup_m3_register_txev_handler(void (*txev_handler)(void))
- {
-@@ -83,7 +110,7 @@ int wkup_m3_prepare(void)
- static int wkup_m3_probe(struct platform_device *pdev)
- {
- 	int irq, ret = 0;
--	struct resource *mem;
-+	struct resource *umem, *dmem;
- 
- 	pm_runtime_enable(&pdev->dev);
- 
-@@ -95,14 +122,21 @@ static int wkup_m3_probe(struct platform_device *pdev)
- 
- 	irq = platform_get_irq(pdev, 0);
- 	if (!irq) {
--		dev_err(wkup_m3->dev, "no irq resource\n");
-+		dev_err(&pdev->dev, "no irq resource\n");
-+		ret = -ENXIO;
-+		goto err;
-+	}
-+
-+	umem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!umem) {
-+		dev_err(&pdev->dev, "no UMEM resource\n");
- 		ret = -ENXIO;
- 		goto err;
- 	}
- 
--	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!mem) {
--		dev_err(wkup_m3->dev, "no memory resource\n");
-+	dmem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	if (!dmem) {
-+		dev_err(&pdev->dev, "no DMEM resource\n");
- 		ret = -ENXIO;
- 		goto err;
- 	}
-@@ -116,12 +150,21 @@ static int wkup_m3_probe(struct platform_device *pdev)
- 
- 	wkup_m3->dev = &pdev->dev;
- 
--	wkup_m3->code = devm_request_and_ioremap(wkup_m3->dev, mem);
-+	wkup_m3->code = devm_request_and_ioremap(wkup_m3->dev, umem);
-+	if (!wkup_m3->code) {
-+		dev_err(wkup_m3->dev, "could not ioremap UMEM\n");
-+		ret = -EADDRNOTAVAIL;
-+		goto err;
-+	}
-+
-+	wkup_m3->data = devm_request_and_ioremap(wkup_m3->dev, dmem);
- 	if (!wkup_m3->code) {
--		dev_err(wkup_m3->dev, "could not ioremap\n");
-+		dev_err(wkup_m3->dev, "could not ioremap DMEM\n");
- 		ret = -EADDRNOTAVAIL;
- 		goto err;
- 	}
-+	wkup_m3->data_size = resource_size(dmem);
-+	wkup_m3_reset_data_pos();
- 
- 	ret = devm_request_irq(wkup_m3->dev, irq, wkup_m3_txev_handler,
- 		  IRQF_DISABLED, "wkup_m3_txev", NULL);
--- 
-1.8.3.2
+Best regards,
+Tomasz
 
