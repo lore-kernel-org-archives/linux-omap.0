@@ -1,44 +1,63 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [GIT PULL] DRA7xx core support
-Date: Tue, 13 Aug 2013 16:56:42 +0530
-Message-ID: <520A17F2.2050008@ti.com>
-References: <5208C832.2060007@ti.com> <20130813074044.GQ7656@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2] extcon: palmas: Added a new compatible type *ti,
+ palmas-usb-vid*
+Date: Tue, 13 Aug 2013 16:56:51 +0530
+Message-ID: <1376393211-23145-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55723 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757504Ab3HML1J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Aug 2013 07:27:09 -0400
-In-Reply-To: <20130813074044.GQ7656@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: benoit.cousson@linaro.org, tony@atomide.com, swarren@wwwdotorg.org, myungjoo.ham@samsung.com, cw00.choi@samsung.com
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, george.cherian@ti.com, linux@arm.linux.org.uk, ian.campbell@citrix.com, pawel.moll@arm.com, linux-doc@vger.kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, kishon@ti.com, balbi@ti.com, rob@landley.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Tuesday 13 August 2013 01:10 PM, Tony Lindgren wrote:
-> * Rajendra Nayak <rnayak@ti.com> [130812 04:41]:
->>       ARM: DRA7: dts: Add the dts files for dra7 SoC and dra7-evm board
-> 
-> Looks like you just updated the dts patch based on the comments
-> from Mark?
+The Palmas device contains only a USB VID detector, so added a
+compatible type *ti,palmas-usb-vid*. Dint remove the existing compatible
+types for backward compatibility.
 
-Yeah, I was about to send you an updated pull with the fixes.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+Changes from v1:
+rebased on extcon-next
 
-> 
-> Actually can you please just drop the .dts patch from this series so it
-> can be queued separately by Benoit and then reply with an updated
-> pull request.
+ Documentation/devicetree/bindings/extcon/extcon-palmas.txt |    3 ++-
+ drivers/extcon/extcon-palmas.c                             |    1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-ok, I'll drop the dts changes and send an updated pull and repost the
-latest dts patch so Benoit can pick it up.
-
-regards,
-Rajendra 
-> 
-> Regards,
-> 
-> Tony
-> 
-
+diff --git a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
+index 7dab6a8..dc5fab3 100644
+--- a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
++++ b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
+@@ -2,7 +2,8 @@ EXTCON FOR PALMAS/TWL CHIPS
+ 
+ PALMAS USB COMPARATOR
+ Required Properties:
+- - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb"
++ - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb" or
++   "ti,palmas-usb-vid".
+ 
+ Optional Properties:
+  - ti,wakeup : To enable the wakeup comparator in probe
+diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
+index 89fdd05..9672f31 100644
+--- a/drivers/extcon/extcon-palmas.c
++++ b/drivers/extcon/extcon-palmas.c
+@@ -268,6 +268,7 @@ static const struct dev_pm_ops palmas_pm_ops = {
+ 
+ static struct of_device_id of_palmas_match_tbl[] = {
+ 	{ .compatible = "ti,palmas-usb", },
++	{ .compatible = "ti,palmas-usb-vid", },
+ 	{ .compatible = "ti,twl6035-usb", },
+ 	{ /* end */ }
+ };
+-- 
+1.7.10.4
