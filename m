@@ -1,57 +1,54 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] staging: Platform device tester - Allow removal
-Date: Tue, 13 Aug 2013 12:33:21 -0700
-Message-ID: <87ioz9idxa.fsf@kernel.org>
-References: <1376386470-27328-1-git-send-email-panto@antoniou-consulting.com>
-	<20130813182012.GE7740@kroah.com>
-	<70F17005-652E-4C04-B6EC-51E16EE237C3@antoniou-consulting.com>
-	<20130813185512.GA25647@n2100.arm.linux.org.uk>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [RFC PATCH v2 1/3] usb: dwc3: msm: Add device tree binding information
+Date: Tue, 13 Aug 2013 13:57:29 -0600
+Message-ID: <520A8FA9.2080603@wwwdotorg.org>
+References: <1376042027-9798-1-git-send-email-iivanov@mm-sol.com> <1376042027-9798-2-git-send-email-iivanov@mm-sol.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130813185512.GA25647@n2100.arm.linux.org.uk> (Russell King's
-	message of "Tue, 13 Aug 2013 19:55:12 +0100")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, =?utf-8?Q?Beno=C3=AEt?= Coussno <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1376042027-9798-2-git-send-email-iivanov@mm-sol.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Cc: balbi@ti.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+On 08/09/2013 03:53 AM, Ivan T. Ivanov wrote:
+> From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+> 
+> MSM USB3.0 core wrapper consist of USB3.0 IP (SNPS)
+> and HS, SS PHY's controll and configuration registers.
 
-> On Tue, Aug 13, 2013 at 09:42:27PM +0300, Pantelis Antoniou wrote:
->> But creation just crashes.
->> 
->> > root@beaglebone:/sys/bus/platform/drivers/omap_i2c# echo 4819c000.i2c >bind   
->> > [  145.053929] Unable to handle kernel NULL pointer dereference at virtual address 00000001
->> > [  145.062651] pgd = ca8c0000
->> > [  145.065507] [00000001] *pgd=8f437831, *pte=00000000, *ppte=00000000
->> > [  145.072163] Internal error: Oops: 17 [#1] SMP ARM
->> > [  145.077105] Modules linked in: ipv6 autofs4
->> > [  145.081537] CPU: 0 PID: 301 Comm: sh Not tainted 3.11.0-rc5-00125-g3b988fb #146
->> > [  145.089222] task: cf5b5580 ti: cf464000 task.ti: cf464000
->> > [  145.094918] PC is at omap_i2c_runtime_suspend+0x10/0xb4
->> > [  145.100408] LR is at omap_i2c_runtime_suspend+0x8/0xb4
->
-> Well then, what you have here is a bug in the way that OMAP re-uses the
-> platform device stuff - and that _does_ need fixing somehow.
->
-> The problem is that i2c_dev->regs is NULL at the point where
-> pm_runtime_set_autosuspend_delay() is called, which as autosuspend
-> is still set from the time that the device was unbound, it means that
-> this triggers an immediate suspend.
->
-> I suspect that:
->
->         pm_runtime_set_autosuspend_delay(dev->dev, OMAP_I2C_PM_TIMEOUT);
->         pm_runtime_use_autosuspend(dev->dev);
->
-> should be moved later in the probe function, after the switch (scheme)
-> block.
+s/controll/control/
 
-That's correct.  
+> It could operate in device mode (SS, HS, FS) and host
+> mode (SS, HS, FS, LS).
 
-At a minimum, it should be after the _get_sync() call.  Without any
-users (callers of pm_runtime_get*) the _set_autosuspend_delay() call
-will try to rpm_idle().
+> diff --git a/Documentation/devicetree/bindings/usb/msm-ssusb.txt b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
 
-Kevin
+> +MSM SuperSpeed DWC3 USB SoC controller
+> +
+> +Required properities :
+> +- compatible : sould be "qcom,dwc3-hsphy";
+...
+> +Required properities :
+> +- compatible : sould be "qcom,dwc3-ssphy";
+
+I would expect different compatible values to be documented in different
+files.
+
+> +Optional properties :
+> +- gdsc-supply : phandle to the globally distributed switch controller
+> +  regulator node to the USB controller.
+
+Which of the 3 compatible values that were described above is that
+property optional for?
+
+> +Sub nodes:
+> +- Sub node for "DWC3 USB3 controller".
+> +  This sub node is required property for device node. The properties
+> +  of this subnode are specified in dwc3.txt.
+
+Why not represent the PHY and USB controller as separate top-level
+nodes? They can point at each-other with phandles if they need to know
+each-others' identity.
