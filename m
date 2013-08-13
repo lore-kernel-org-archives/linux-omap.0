@@ -1,39 +1,70 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH] staging: Platform device tester - Allow removal
-Date: Tue, 13 Aug 2013 22:04:36 +0300
-Message-ID: <B2F211B9-E02D-4B02-8813-2DCE511CE48C@antoniou-consulting.com>
-References: <1376386470-27328-1-git-send-email-panto@antoniou-consulting.com> <20130813182012.GE7740@kroah.com> <70F17005-652E-4C04-B6EC-51E16EE237C3@antoniou-consulting.com> <20130813185521.GA9483@kroah.com> <DB915540-70CB-4600-BF8D-734107B1FE29@antoniou-consulting.com> <20130813190233.GB25647@n2100.arm.linux.org.uk>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130813190233.GB25647@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt_Coussno?= <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sourav Poddar <sourav.poddar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Koen Kooi <koen@circuitco.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCHv3 2/9] ARM: OMAP2+: AM33XX: control: Add some control module registers and APIs
+Date: Tue, 13 Aug 2013 12:11:05 -0700
+Message-ID: <87bo51jtiu.fsf@kernel.org>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+	<1375811376-49985-3-git-send-email-d-gerlach@ti.com>
+	<5203A0BC.8060205@ti.com> <5203C457.80301@ti.com>
+	<20130809051146.GB7656@atomide.com> <52055733.70808@ti.com>
+	<87y586pvkq.fsf@kernel.org> <5209565C.7090508@ti.com>
+	<87d2phpsu1.fsf@kernel.org> <520A4BE7.7090603@ti.com>
+	<87wqnplg1n.fsf@kernel.org> <520A785C.3000304@ti.com>
+	<CA+Bv8Xbg9v4zRy-EJPsxwCdwpSy50V8SjwQfmAvVxiCR=6mYBw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:48783 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757387Ab3HMTLK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Aug 2013 15:11:10 -0400
+Received: by mail-pa0-f41.google.com with SMTP id bj1so9288906pad.14
+        for <linux-omap@vger.kernel.org>; Tue, 13 Aug 2013 12:11:09 -0700 (PDT)
+In-Reply-To: <CA+Bv8Xbg9v4zRy-EJPsxwCdwpSy50V8SjwQfmAvVxiCR=6mYBw@mail.gmail.com>
+	(Russ Dill's message of "Tue, 13 Aug 2013 11:30:40 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russ Dill <russ.dill@gmail.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, Suman Anna <s-anna@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Russell,
+Russ Dill <russ.dill@gmail.com> writes:
 
-On Aug 13, 2013, at 10:02 PM, Russell King - ARM Linux wrote:
+>>>> ARM world is also moving towards that by standardizing some of these
+>>>> through (read PSCI) and thats the way to go in general.
+>>>
+>>> Agreed, but I'm not sure (yet) about enforcing PSCI on legacy platforms
+>>> that don't support it natively.  Are you saying that the AM33xx firmware
+>>> should be converted to be PSCI compliant?  Admittedly, I haven't read
+>>> the PSCI spec closely, but I'm wondering if the current role splitting
+>>> between MPU and M3 fits well with PSCI.
+>>>
+>> I didn't mean for the AM3XXX specifically because its current job is rather
+>> very limited. i.e suspend. My concern is that IPC is not viewed as
+>> an option for power management controllers like M3 which can abstract
+>> all the hardware gory details and export a simpled interface for OS
+>> in form of PSCI/ACPI.
+>
+> The IPC between the M3 and the A8 on the am335x is just a pair of
+> notification mechanisms (one from the A8, mailbox, and one from the
+> M3, sev) and a set of 8 32 bit registers. The 8 32 bit registers are
+> just a scratchpad and have no access rules or functionality beyond
+> being a scratchpad. How complicated do we want to make this?
 
-> On Tue, Aug 13, 2013 at 09:59:03PM +0300, Pantelis Antoniou wrote:
->> Hi Greg,
->> 
->> Just to make sure we're on the same page this is with my platform device
->> removal patchset applied.
->> 
->> Without it you get the original crash I've posted in the pdevtest patch with
->> the unbind method.
-> 
-> Yes, congratulations, you've found a bug in the way OMAP uses the runtime
-> PM stuff in this driver.  That bug needs to be fixed irrespective of
-> anything else.
+The OMAP IPC between the MPU and DSP (read: any other remote processor)
+is just a mailbox and some shared memory.  No complicated, and works
+with remoteproc/rpmsg.
 
-Not just OMAP. And not just PM stuff. 
-There are crashes occurring due to the way resources are handled by
-platform devices created via OF.
+What's more complicated? reusing existing frameworks or re-inventing
+them?  Don't forget that "simple" drivers rarely stay that way.
 
-Regards
+Also, this is not a hard stance on my part.  I just need to be
+convinced.  
 
--- Pantelis
+The fact is that there are existing frameworks for doing what is being
+proposed here.  Either use the existing frameworks, or make a technical
+argument based on why those frameworks are not a good fit (ideally,
+after having tried to use those frameworks.)
+
+Once again, I'm pretty sure I mentioned this in earlier reviews of this
+series.
+
+Kevin
