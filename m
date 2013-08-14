@@ -1,41 +1,56 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH 1/2] extcon: palmas: Added a new compatible type *ti,palmas-usb-vid*
-Date: Wed, 14 Aug 2013 10:08:25 -0600
-Message-ID: <520BAB79.3000202@wwwdotorg.org>
-References: <1376302675-15795-1-git-send-email-kishon@ti.com> <1376372241-15573-1-git-send-email-kishon@ti.com> <520A8555.10401@wwwdotorg.org> <520B14A1.8030809@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 3/4] pinctrl: Add support for additional dynamic states
+Date: Wed, 14 Aug 2013 18:41:09 +0200
+Message-ID: <CACRpkdZXFv4JFek9SV1n=7gw0sLAeA_xxC1D+_OMLQyLYtXLvA@mail.gmail.com>
+References: <20130716090310.5541.36777.stgit@localhost>
+	<20130716090536.5541.36289.stgit@localhost>
+	<51E70953.1000601@wwwdotorg.org>
+	<20130718072034.GO7656@atomide.com>
+	<51E8401E.8040705@wwwdotorg.org>
+	<20130719072927.GY7656@atomide.com>
+	<51E98AEC.5000802@wwwdotorg.org>
+	<20130729090524.GY7656@atomide.com>
+	<51F6E657.2060802@wwwdotorg.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <520B14A1.8030809@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: benoit.cousson@linaro.org, tony@atomide.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob@landley.net, george.cherian@ti.com, gregkh@linuxfoundation.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, balbi@ti.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51F6E657.2060802@wwwdotorg.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/13/2013 11:24 PM, Kishon Vijay Abraham I wrote:
-> Hi,
-> 
-> On Wednesday 14 August 2013 12:43 AM, Stephen Warren wrote:
->> On 08/12/2013 11:37 PM, Kishon Vijay Abraham I wrote:
->>> The Palmas device contains only a USB VID detector, so added a
->>> compatible type *ti,palmas-usb-vid*. Dint remove the existing compatible
->>
->> s/Dint/Didn't/
->>
->>> diff --git a/Documentation/devicetree/bindings/extcon/extcon-twl.txt b/Documentation/devicetree/bindings/extcon/extcon-twl.txt
->>
->>>  PALMAS USB COMPARATOR
->>>  Required Properties:
->>> - - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb"
->>> + - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb" or
->>> +   "ti,palmas-usb-vid".
->>
->> So are ti,palmas-usb and ti,twl6035-usb full EHCI controllers then?
-> 
-> No. I thought I shouldn't remove those if someone is already using those
-> compatible value.
+On Tue, Jul 30, 2013 at 12:01 AM, Stephen Warren <swarren@wwwdotorg.org> wrote:
 
-Sigh. Perhaps it's best to be consistent with the existing bad naming
-then:-(
+> I was thinking more about people writing the device trees that define
+> these states; they need to explicitly make the choice re: overlapping
+> states or independent states. We should not plan to obsolete any current
+> usage of overlapping states since that will mean an incompatible change
+> to the DT ABI (deprecate yes so that no more usage is added, but the
+> kernel should still support the old way).
 
+This is another reason to not group and encode explicitly the pins
+that remain unchanged during state transitions.
+
+I prefer that either:
+
+- when we build up the state containers in the subsystem,
+ we identify overlapping pins and encode them in the state
+ container somehow
+
+or:
+
+- when transitioning from state A -> state B we identify
+ ovelapping pins or groups of pins and do not touch them
+ by making calls down to the driver ->free() and ->request()
+ callback pair.
+
+or:
+
+the pinctrl-single.c driver in it's callbacks like ->enable()
+->disable(), ->request(), ->free() internally short cuts from
+its knowledge of such pin shortcuts and no other drivers
+are affected (nor helped) by this optimization.
+
+Yours,
+Linus Walleij
