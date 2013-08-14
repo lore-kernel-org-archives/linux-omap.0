@@ -1,176 +1,52 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 2/9] usb: phy: nop: Don't use regulator framework for RESET line
-Date: Wed, 14 Aug 2013 16:58:06 +0300
-Message-ID: <1376488693-31659-3-git-send-email-rogerq@ti.com>
-References: <1376488693-31659-1-git-send-email-rogerq@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 2/3] ARM: OMAP2+: Add support to parse optional clk
+	info from DT
+Date: Wed, 14 Aug 2013 14:57:55 +0100
+Message-ID: <20130814135755.GC25647@n2100.arm.linux.org.uk>
+References: <1374560679-14666-1-git-send-email-rnayak@ti.com> <1374560679-14666-3-git-send-email-rnayak@ti.com> <CAGo_u6rfXpU1Wzn+oXqpAezNNtFb9pk=9RZxodGtBbZXVy+yJA@mail.gmail.com> <520B8409.5000708@ti.com> <520B88A0.6080806@ti.com> <20130814134904.GC13141@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35732 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932352Ab3HNN7b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Aug 2013 09:59:31 -0400
-In-Reply-To: <1376488693-31659-1-git-send-email-rogerq@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41590 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932352Ab3HNN7h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Aug 2013 09:59:37 -0400
+Content-Disposition: inline
+In-Reply-To: <20130814134904.GC13141@e106331-lin.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, tony@atomide.com, bcousson@baylibre.com
-Cc: p.zabel@pengutronix.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, mturquette@linaro.org, ian.campbell@citrix.com, pawel.moll@arm.com, swarren@wwwdotorg.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <benoit.cousson@gmail.com>, Rajendra Nayak <rnayak@ti.com>, tomasz.figa@gmail.com, rob.herring@calxeda.com, Tero Kristo <t-kristo@ti.com>, galak@codeaurora.org, grant.likely@linaro.org, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Modelling the RESET line as a regulator supply wasn't a good idea
-as it kind of abuses the regulator framework and also makes adaptation
-code more complex.
+On Wed, Aug 14, 2013 at 02:49:04PM +0100, Mark Rutland wrote:
+> [Adding Mike Turquette and dt maintainers]
+> 
+> On Wed, Aug 14, 2013 at 02:39:44PM +0100, Nishanth Menon wrote:
+> > yes. the idea being, we now have a meaning to the clock name - there are 
+> > two types of clocks here.. functional and optional, we *might* have 
+> > facility to add interface clock(we dont know interface clock handling 
+> > yet, but something in the future).. we might increase the support for 
+> > number of functional clocks.. it might help to keep the format such that 
+> > it is a "bit extendable".
+> 
+> I completely disagree. The only things that should appear in clock-names
+> are the names of the clock inputs that appear in the manual for the
+> device. The driver should know which ones are optional, as that's a
+> fixed property of the IP and the way the driver uses it.
+> 
+> You should not be embedding additional semantics in name properties.
 
-Instead, manage the RESET gpio line directly in the driver. Update
-the device tree binding information.
+Agreed.  I've been on at people about this for years, and every time they
+go off and do something else, it ultimately ends up coming back to bite
+them.  Clock names _are_ the clock input names as far as device drivers
+are concerned, and nothing else.
 
-This also makes us easy to migrate to a dedicated GPIO RESET controller
-whenever it becomes available.
+If there are optional clocks, then the driver should be doing as Mark
+says - the driver should try to get them, and if it fails to get them
+then they're quite simply not provided by the platform.  If there are
+optional clocks which the device driver does not know about (or even
+need to know about) then that too should not be a problem - the driver
+just doesn't have to touch them.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- .../devicetree/bindings/usb/usb-nop-xceiv.txt      |    7 +--
- drivers/usb/phy/phy-nop.c                          |   48 ++++++++++++--------
- 2 files changed, 32 insertions(+), 23 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
-index d7e2726..5535f3b 100644
---- a/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
-+++ b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
-@@ -15,7 +15,7 @@ Optional properties:
- 
- - vcc-supply: phandle to the regulator that provides RESET to the PHY.
- 
--- reset-supply: phandle to the regulator that provides power to the PHY.
-+- reset-gpios: Should specify the GPIO for reset.
- 
- Example:
- 
-@@ -25,10 +25,9 @@ Example:
- 		clocks = <&osc 0>;
- 		clock-names = "main_clk";
- 		vcc-supply = <&hsusb1_vcc_regulator>;
--		reset-supply = <&hsusb1_reset_regulator>;
-+		reset-gpios = <&gpio1 7>;
- 	};
- 
- hsusb1_phy is a NOP USB PHY device that gets its clock from an oscillator
- and expects that clock to be configured to 19.2MHz by the NOP PHY driver.
--hsusb1_vcc_regulator provides power to the PHY and hsusb1_reset_regulator
--controls RESET.
-+hsusb1_vcc_regulator provides power to the PHY and GPIO 7 controls RESET.
-diff --git a/drivers/usb/phy/phy-nop.c b/drivers/usb/phy/phy-nop.c
-index 55445e5d..af5e1a6 100644
---- a/drivers/usb/phy/phy-nop.c
-+++ b/drivers/usb/phy/phy-nop.c
-@@ -35,6 +35,9 @@
- #include <linux/clk.h>
- #include <linux/regulator/consumer.h>
- #include <linux/of.h>
-+#include <linux/of_gpio.h>
-+#include <linux/gpio.h>
-+#include <linux/delay.h>
- 
- struct nop_usb_xceiv {
- 	struct usb_phy phy;
-@@ -42,6 +45,7 @@ struct nop_usb_xceiv {
- 	struct clk *clk;
- 	struct regulator *vcc;
- 	struct regulator *reset;
-+	int gpio_reset;
- };
- 
- static struct platform_device *pd;
-@@ -70,6 +74,15 @@ static int nop_set_suspend(struct usb_phy *x, int suspend)
- 	return 0;
- }
- 
-+static void nop_gpio_reset(int gpio, int state)
-+{
-+	if (gpio_is_valid(gpio))
-+		gpio_set_value(gpio, state);
-+
-+	if (state)
-+		usleep_range(10000, 20000);
-+}
-+
- static int nop_init(struct usb_phy *phy)
- {
- 	struct nop_usb_xceiv *nop = dev_get_drvdata(phy->dev);
-@@ -82,11 +95,8 @@ static int nop_init(struct usb_phy *phy)
- 	if (!IS_ERR(nop->clk))
- 		clk_enable(nop->clk);
- 
--	if (!IS_ERR(nop->reset)) {
--		/* De-assert RESET */
--		if (regulator_enable(nop->reset))
--			dev_err(phy->dev, "Failed to de-assert reset\n");
--	}
-+	/* De-assert RESET */
-+	nop_gpio_reset(nop->gpio_reset, 1);
- 
- 	return 0;
- }
-@@ -95,11 +105,8 @@ static void nop_shutdown(struct usb_phy *phy)
- {
- 	struct nop_usb_xceiv *nop = dev_get_drvdata(phy->dev);
- 
--	if (!IS_ERR(nop->reset)) {
--		/* Assert RESET */
--		if (regulator_disable(nop->reset))
--			dev_err(phy->dev, "Failed to assert reset\n");
--	}
-+	/* Assert RESET */
-+	nop_gpio_reset(nop->gpio_reset, 0);
- 
- 	if (!IS_ERR(nop->clk))
- 		clk_disable(nop->clk);
-@@ -148,7 +155,6 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
- 	int err;
- 	u32 clk_rate = 0;
- 	bool needs_vcc = false;
--	bool needs_reset = false;
- 
- 	nop = devm_kzalloc(&pdev->dev, sizeof(*nop), GFP_KERNEL);
- 	if (!nop)
-@@ -166,13 +172,15 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
- 			clk_rate = 0;
- 
- 		needs_vcc = of_property_read_bool(node, "vcc-supply");
--		needs_reset = of_property_read_bool(node, "reset-supply");
-+		nop->gpio_reset = of_get_named_gpio(node, "reset-gpios", 0);
-+		if (nop->gpio_reset == -EPROBE_DEFER)
-+			return -EPROBE_DEFER;
- 
- 	} else if (pdata) {
- 		type = pdata->type;
- 		clk_rate = pdata->clk_rate;
- 		needs_vcc = pdata->needs_vcc;
--		needs_reset = pdata->needs_reset;
-+		nop->gpio_reset = pdata->gpio_reset;
- 	}
- 
- 	nop->clk = devm_clk_get(&pdev->dev, "main_clk");
-@@ -205,12 +213,14 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
- 			return -EPROBE_DEFER;
- 	}
- 
--	nop->reset = devm_regulator_get(&pdev->dev, "reset");
--	if (IS_ERR(nop->reset)) {
--		dev_dbg(&pdev->dev, "Error getting reset regulator: %ld\n",
--					PTR_ERR(nop->reset));
--		if (needs_reset)
--			return -EPROBE_DEFER;
-+	if (gpio_is_valid(nop->gpio_reset)) {
-+		err = devm_gpio_request_one(dev, nop->gpio_reset,
-+					    GPIOF_OUT_INIT_HIGH, dev_name(dev));
-+		if (err) {
-+			dev_err(dev, "Error requesting RESET GPIO %d\n",
-+					nop->gpio_reset);
-+			return err;
-+		}
- 	}
- 
- 	nop->dev		= &pdev->dev;
--- 
-1.7.4.1
-
+If they're optional, but required for the device to function, then the
+driver should get them and control them as necessary.
