@@ -1,13 +1,17 @@
-From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>
-Subject: Re: [PATCH v4 0/4] ARM: OMAP2+: AM33XX: VDD CORE OPP50 support
-Date: Wed, 14 Aug 2013 15:38:00 +0200
-Message-ID: <1376487480.3889.64.camel@coredoba.hi.pengutronix.de>
-References: <1376432412-8509-1-git-send-email-Russ.Dill@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 2/3] ARM: OMAP2+: Add support to parse optional clk info
+ from DT
+Date: Wed, 14 Aug 2013 08:39:44 -0500
+Message-ID: <520B88A0.6080806@ti.com>
+References: <1374560679-14666-1-git-send-email-rnayak@ti.com>
+ <1374560679-14666-3-git-send-email-rnayak@ti.com>
+ <CAGo_u6rfXpU1Wzn+oXqpAezNNtFb9pk=9RZxodGtBbZXVy+yJA@mail.gmail.com>
+ <520B8409.5000708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1376432412-8509-1-git-send-email-Russ.Dill@ti.com>
+In-Reply-To: <520B8409.5000708@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,50 +21,73 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, devicetree@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <benoit.cousson@gmail.com>, Tero Kristo <t-kristo@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2013-08-13 at 15:20 -0700, Russ Dill wrote:
-> The purpose and method of executing these sequences is left up to each
-> platform. In the case of the am33xx, the CM3 firmware writes out the
-> simple I2C sequences.
-> 
-> Each sequence is a series of I2C write commands. The first byte is the
-> length of the write, the second byte the I2C device to address, and
-> the following bytes are the message.
+On 08/14/2013 08:20 AM, Rajendra Nayak wrote:
+> On Wednesday 14 August 2013 06:18 PM, Nishanth Menon wrote:
+>> Hi Rajendra,
+>>
+>> On Tue, Jul 23, 2013 at 1:24 AM, Rajendra Nayak <rnayak@ti.com> wrote:
+>> [..]
+>>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+>>> index 12fa589..e5c804b 100644
+>>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>>> @@ -805,6 +805,65 @@ static int _init_interface_clks(struct omap_hwmod *oh)
+>>>          return ret;
+>>>   }
+>>>
+>>> +static const char **_parse_opt_clks_dt(struct omap_hwmod *oh,
+>>> +                                      struct device_node *np,
+>>> +                                      int *opt_clks_cnt)
+>>> +{
+>>> +       int i, clks_cnt;
+>>> +       const char *clk_name;
+>>> +       const char **opt_clk_names;
+>>> +
+>>> +       clks_cnt = of_property_count_strings(np, "clock-names");
+>>> +       if (!clks_cnt)
+>>> +               return NULL;
+>>> +
+>>> +       opt_clk_names = kzalloc(sizeof(char *)*clks_cnt, GFP_KERNEL);
+>>> +       if (!opt_clk_names)
+>>> +               return NULL;
+>>> +
+>>> +       for (i = 0; i < clks_cnt; i++) {
+>>> +               of_property_read_string_index(np, "clock-names", i, &clk_name);
+>>> +               if (!strcmp(clk_name, "fck"))
+>>
+>> Could we instead parse for names that are "optional,role_name" instead
+>> of assuming anything other than fck is optional clocks?
+>
+> you mean look for anything with optional,*? because the role names would change.
+>
 
->         /* Set OPP100 (1.10V) for VDD core */
->         wake_sequence = /bits/ 8 <
->                 0x02 0x2d 0x25 0x2b /* Set VDD2 to 1.1V */
->         >;
-> 
->         tps: tps@2d {
->                 reg = <0x2d>;
->         };
+yes. the idea being, we now have a meaning to the clock name - there are 
+two types of clocks here.. functional and optional, we *might* have 
+facility to add interface clock(we dont know interface clock handling 
+yet, but something in the future).. we might increase the support for 
+number of functional clocks.. it might help to keep the format such that 
+it is a "bit extendable".
 
-> In the above example, the sequence "0x25 0x1f" is written to the I2C
-> device at address 0x2d (the TPS65910 PMIC). The PMIC interprets that
-> as a write to a register at address 0x25.
+>>
+>>> +                       continue;
+>>> +               opt_clks_cnt++;
+>>> +               opt_clk_names[i] = clk_name;
+>>> +       }
+>>> +       return opt_clk_names;
+>>> +}
+>>> +
+>> [...]
+>> --
+>> Regards,
+>> Nishanth Menon
+>>
+>
 
-> I'd really like to get some feedback on the devicetree bindings. 
 
-Shouldn't the TPS driver know how to generate this sequence? It seems
-fragile to do voltage adjustments behind the back of the regulator
-framework and the TPS driver. The wake-sequence values should match the
-(in-memory) regulator configuration on resume (which may have been
-changed by DVFS).
-
-The CM3 driver needs to figure out where the core regulator is connected
-using using either DT or the regulator framework and ask the TPS (via a
-new interface) for register writes for sleep/wake sequences. Then those
-sequences will actually match the correct voltages configured using
-DT/DVFS.
-
-Regards,
-Jan
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Regards,
+Nishanth Menon
