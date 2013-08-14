@@ -1,118 +1,102 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH v3] Documentation: dt: bindings: TI WiLink modules
-Date: Wed, 14 Aug 2013 16:43:12 +0200
-Message-ID: <520B9780.5000007@baylibre.com>
-References: <1375215668-29171-1-git-send-email-coelho@ti.com>
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Subject: Re: [PATCH v3 2/3] usb: phy: Add Qualcomm SS-USB and HS-USB drivers
+ for DWC3 core
+Date: Wed, 14 Aug 2013 17:54:38 +0300
+Message-ID: <1376492078.7311.6.camel@iivanov-dev.int.mm-sol.com>
+References: <1376485183-2664-1-git-send-email-iivanov@mm-sol.com>
+	 <1376485183-2664-3-git-send-email-iivanov@mm-sol.com>
+	 <20130814142056.GB2673@joshc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1375215668-29171-1-git-send-email-coelho@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Luciano Coelho <coelho@ti.com>
-Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, mturquette@linaro.org, mark.rutland@arm.com, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-wireless@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, nm@ti.com, laurent.pinchart@ideasonboard.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130814142056.GB2673@joshc>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Josh Cartwright <joshc@codeaurora.org>
+Cc: balbi@ti.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Luca,
 
-On 30/07/2013 22:21, Luciano Coelho wrote:
-> Add device tree bindings documentation for the TI WiLink modules.
-> Currently only the WLAN part of the WiLink6, WiLink7 and WiLink8
-> modules is supported.
->
-> Signed-off-by: Luciano Coelho <coelho@ti.com>
-> ---
->
-> In v3, use IRQ_TYPE_LEVEL_HIGH in the example, as suggested by Laurent.
->
->   .../devicetree/bindings/net/wireless/ti-wilink.txt | 68 ++++++++++++++++++++++
->   1 file changed, 68 insertions(+)
->   create mode 100644 Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
->
-> diff --git a/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt b/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
-> new file mode 100644
-> index 0000000..aafebb1
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/net/wireless/ti-wilink.txt
-> @@ -0,0 +1,68 @@
-> +TI WiLink Wireless Modules Device Tree Bindings
-> +===============================================
-> +
-> +The WiLink modules provide wireless connectivity, such as WLAN,
-> +Bluetooth, FM and NFC.
-> +
-> +There are several different modules available, which can be grouped by
-> +their generation: WiLink6, WiLink7 and WiLink8.  WiLink4 is not
-> +currently supported with device tree.
-> +
-> +Currently, only the WLAN portion of the modules is supported with
-> +device tree.
-> +
-> +Required properties:
-> +--------------------
-> +
-> +- compatible: should be "ti,wilink6", "ti,wilink7" or "ti,wilink8"
-> +- interrupt-parent: the interrupt controller
-> +- interrupts: out-of-band WLAN interrupt
-> +	See the interrupt controller's bindings documentation for
-> +	detailed definition.
-> +
-> +Optional properties:
-> +--------------------
-> +
-> +- clocks: list of clocks needed by the chip as follows:
-> +
-> +  refclock: the internal WLAN reference clock frequency (required for
-> +	WiLink6 and WiLink7; not used for WiLink8).
-> +
-> +  tcxoclock: the internal WLAN TCXO clock frequency (required for
-> +	WiLink7 not used for WiLink6 and WiLink8).
-> +
-> +  The clocks must be defined and named accordingly.  For example:
-> +
-> +  clocks = <&refclock>
-> +  clock-names = "refclock";
-> +
-> +  refclock: refclock {
-> +		     compatible = "ti,wilink-clock";
-> +		     #clock-cells = <0>;
-> +		     clock-frequency = <38400000>;
-> +	};
-> +
-> +  Some modules that contain the WiLink chip provide clocks in the
-> +  module itself.  In this case, we define a "ti,wilink-clock" as shown
-> +  above.  But any other clock could in theory be used, so the proper
-> +  clock definition should be used.
-> +
-> +
-> +Example:
-> +--------
-> +
-> +Example definition that can be used in OMAP4 Panda:
-> +
-> +wlan {
-> +	compatible = "ti,wilink6";
-> +	interrupt-parent = <&gpio2>;
-> +	interrupts = <21 IRQ_TYPE_LEVEL_HIGH>;	/* gpio line 53 */
-> +	clocks = <&refclock>;
-> +	clock-names = "refclock";
-> +
-> +	refclock: refclock {
-> +		compatible = "ti,wilink-clock";
-> +		#clock-cells = <0>;
-> +		clock-frequency = <38400000>;
-> +	};
-> +};
+Hi, 
 
-Everything looks good beside the location of the wlan node...
+On Wed, 2013-08-14 at 09:20 -0500, Josh Cartwright wrote: 
+> On Wed, Aug 14, 2013 at 03:59:42PM +0300, Ivan T. Ivanov wrote:
+> > From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+> > 
+> > These drivers handles control and configuration of the HS
+> > and SS USB PHY transceivers. They are part of the driver
+> > which manage Synopsys DesignWare USB3 controller stack
+> > inside Qualcomm SoC's.
+> > 
+> > Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
+> > ---
+> [..]
+> > diff --git a/drivers/usb/phy/phy-msm-dwc3-hs.c b/drivers/usb/phy/phy-msm-dwc3-hs.c
+> > new file mode 100644
+> > index 0000000..465a8f5
+> > --- /dev/null
+> > +++ b/drivers/usb/phy/phy-msm-dwc3-hs.c
+> [..]
+> > +
+> > +struct msm_dwc3_hs_phy {
+> > +	struct usb_phy		phy;
+> > +	void __iomem		*base;
+> > +	struct device		*dev;
+> > +
+> > +	struct clk		*xo_clk;
+> > +	struct clk		*sleep_a_clk;
+> > +
+> > +	struct regulator	*v3p3;
+> > +	struct regulator	*v1p8;
+> > +	struct regulator	*vddcx;
+> > +	struct regulator	*vbus;
+> > +};
+> > +
+> > +#define	phy_to_dwc3_phy(x)	container_of((x), struct msm_dwc3_hs_phy, phy)
+> > +
+> > +
+> > +/**
+> > + *
+> > + * Write register with debug info.
+> 
+> what debug info?
 
-It should not float at the root of the device tree. It is physically 
-attached to a SDIO bus and thus must be a child of the MMC controller 
-for a proper HW representation. That's moreover the best way to handle 
-properly the dependency between the MMC controller and the wilink driver.
+Will fix this. It was left from the earliest versions of the functions. 
 
-Please note that this is easier do say than to do :-)
+> 
+> > + *
+> > + * @base - DWC3 base virtual address.
+> > + * @offset - register offset.
+> > + * @val - value to write.
+> > + *
+> > + */
+> > +static inline void msm_dwc3_hs_write(void *base, u32 offset, u32 val)
+> 
+> You've dropped __iomem here; have you run through sparse?
 
-Regards,
-Benoit
+Obviously not :-). Thanks for noticing this.
 
+> 
+> > +{
+> > +	iowrite32(val, base + offset);
+> > +}
+> > +
+> > +/**
+> > + * Write register and read back masked value to confirm it is written
+> > + *
+> > + * @base - DWC3 base virtual address.
+> > + * @offset - register offset.
+> > + * @mask - register bitmask specifying what should be updated
+> > + * @val - value to write.
+> > + *
+> > + */
+> > +static inline void msm_dwc3_hs_write_readback(void *base, u32 offset,
+> > +					    const u32 mask, u32 val)
+> > +{
+> 
+> Same comment here.
+
+Will be fixed in next version.
+
+Thanks,
+Ivan
