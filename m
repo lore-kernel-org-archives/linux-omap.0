@@ -1,54 +1,93 @@
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 0/29] simplify use of devm_ioremap_resource
-Date: Wed, 14 Aug 2013 11:11:04 +0200
-Message-ID: <1376471493-22215-1-git-send-email-Julia.Lawall@lip6.fr>
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Subject: Re: [RFC 2/2] usb: dwc3: Add Qualcomm DWC3 glue layer driver
+Date: Wed, 14 Aug 2013 12:28:17 +0300
+Message-ID: <1376472497.2132.6.camel@iivanov-dev.int.mm-sol.com>
+References: <1375789991-30041-1-git-send-email-iivanov@mm-sol.com>
+	 <1375789991-30041-3-git-send-email-iivanov@mm-sol.com>
+	 <20130809132349.GC12041@radagast>
+	 <1376064558.7709.31.camel@iivanov-dev.int.mm-sol.com>
+	 <20130812182439.GG27954@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: dri-devel@lists.freedesktop.org
-Cc: alsa-devel@alsa-project.org, kernel-janitors@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-ide@vger.kernel.org, linux-mtd@lists.infradead.org, linux-i2c@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-serial@vger.kernel.org, linux-input@vger.kernel.org, linux-media@vger.kernel.org, linux-pwm@vger.kernel.org, linux-watchdog@vger.kernel.org, rtc-linux@googlegroups.com, linux-pm@vger.kernel.org, linux-gpio@vger.kernel.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130812182439.GG27954@radagast>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-devm_ioremap_resource often uses the result of a call to
-platform_get_resource as its last argument.  devm_ioremap_resource does
-appropriate error handling on this argument, so error handling can be
-removed from the call site.  To make the connection between the call to
-platform_get_resource and the call to devm_ioremap_resource more clear, the
-former is also moved down to be adjacent to the latter.
 
-In many cases, this patch changes the specific error value that is
-returned on failure of platform_get_resource.
+Hi, 
 
-The semantic patch that makes this change is as follows:
-(http://coccinelle.lip6.fr/)
+On Mon, 2013-08-12 at 13:24 -0500, Felipe Balbi wrote: 
+> On Fri, Aug 09, 2013 at 07:09:18PM +0300, Ivan T. Ivanov wrote:
+> > Hi, 
+> > 
+> > On Fri, 2013-08-09 at 16:23 +0300, Felipe Balbi wrote:
+> > > Hi,
+> > > 
+> > > On Tue, Aug 06, 2013 at 02:53:11PM +0300, Ivan T. Ivanov wrote:
+> > > > diff --git a/drivers/usb/dwc3/dwc3-msm.c b/drivers/usb/dwc3/dwc3-msm.c
+> > > > new file mode 100644
+> > > > index 0000000..e509abc
+> > > > --- /dev/null
+> > > > +++ b/drivers/usb/dwc3/dwc3-msm.c
+> > > > @@ -0,0 +1,175 @@
+> > > > +#undef CONFIG_REGULATOR
+> > > 
+> > > why ??????
+> > > 
+> > 
+> > 1. This shows that driver is still not fully tested 
+> >    Regulators support is still missing in the MSM
+> > 2. Helps me to load driver successfully. 
+> 
+> Then remove all the regulator-related code from this.
 
-// <smpl>
-@@
-expression pdev,res,n,e,e1;
-expression ret != 0;
-identifier l;
-@@
+I would like to keep them. I will just remove #undef line. 
+Code will continue to build fine. And once regulators drivers 
+are upstreamed this driver 'will not' require further
+modifications.
 
-(
-  res = platform_get_resource(pdev, IORESOURCE_MEM, n);
-- if (res == NULL) { ... \(goto l;\|return ret;\) }
-  e = devm_ioremap_resource(e1, res);
-|
-- res = platform_get_resource(pdev, IORESOURCE_MEM, n);
-  ... when != res
-- if (res == NULL) { ... \(goto l;\|return ret;\) }
-  ... when != res
-+ res = platform_get_resource(pdev, IORESOURCE_MEM, n);
-  e = devm_ioremap_resource(e1, res);
-)
-// </smpl>
+> 
+> > > > +	clk_prepare_enable(mdwc->core_clk);
+> > > > +	clk_prepare_enable(mdwc->iface_clk);
+> > > > +	clk_prepare_enable(mdwc->sleep_clk);
+> > > > +	clk_prepare_enable(mdwc->utmi_clk);
+> > > 
+> > > do you really need to enable your clocks here ? Why don't you enable
+> > > them on runtime_resume and disable on runtime_suspend ?
+> > 
+> > I will like to make it working first and then will improve
+> > power management.
+> 
+> alright, makes sense.
+> 
+> > > > +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> > > > +	tcsr = devm_ioremap_resource(&pdev->dev, res);
+> > > > +	if (!tcsr) {
+> > > > +		dev_dbg(&pdev->dev, "tcsr ioremap failed\n");
+> > > 
+> > > no need to ioremap, also you're likely leaking clocks and regulators
+> > > enabled here.
+> > > 
+> > > Make sure to have something like:
+> > > 
+> > > 	if (!tcsr)
+> > > 		goto err_disable_clocks;
+> > > 
+> > > 	/* TODO This has to be revised */\
+> > > 
+> > > 	[...]
+> > > 
+> > 
+> > Sure.
+> 
+> just to make it clear, I meant to say that you don't need to print the
+> error message :-)
+
+Yes. I got it.
+
+Regards,
+Ivan
