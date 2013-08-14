@@ -1,58 +1,57 @@
-From: Mark Jackson <mpfj-list@newflow.co.uk>
-Subject: Re: [RFC] OMAP: allow GPIO pin to enable/disable external UART driver
- chip.
-Date: Wed, 14 Aug 2013 10:06:31 +0100
-Message-ID: <520B4897.30803@newflow.co.uk>
-References: <520646F0.9010801@newflow.co.uk> <20130813201254.GA14631@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 29/29] usb: dwc3: omap: simplify use of devm_ioremap_resource
+Date: Wed, 14 Aug 2013 11:11:33 +0200
+Message-ID: <1376471493-22215-30-git-send-email-Julia.Lawall@lip6.fr>
+References: <1376471493-22215-1-git-send-email-Julia.Lawall@lip6.fr>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130813201254.GA14631@gmail.com>
+In-Reply-To: <1376471493-22215-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-kernel-owner@vger.kernel.org
-To: andy@aeruder.net
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: kernel-janitors@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 13/08/13 21:12, Andrew Ruder wrote:
-> Sorry for the late reply, I've been thinking about this for some time
-> and was sad to see it didn't really evoke any sort of discussion :(.
-> 
-> On Sat, Aug 10, 2013 at 02:58:08PM +0100, Mark Jackson wrote:
->> When a UART transmitter is connected to (eg) a RS485 driver, it is
->> necessary to turn the driver on/off as quickly as possible.  This is
->> best achieved in the serial driver itself (rather than in userspace
->> where the latency can be quite large).
->>
->> This patch allows the GPIO pin to be defined (via DT) that controls
->> the enabling of the driver at the start of a message, and disables
->> the driver when the message has been completed.
->>
->> Still to do:-
->> Allow userspace to turn this feature on/off
->> Do the same for the receiver (useful for 2 wire RS485)
-> 
-> I've been wondering about this as well but I have a slightly different
-> situation.  On my board the RTS line controls the RS485 transmit/receive
-> direction.
-> 
-> I don't know if you've found the Documentation/serial/serial-rs485.txt
-> file but it describes, at the very least, a standard API For controlling
-> several parameters related to RS485 including configurable delay between
-> rts->start of data/end of data->rts.  Unfortunately it seems like only
-> one driver really implements the full API (Atmel AT91) and I guess it
-> needs to be bolted onto each serial driver individually (although it
-> seems like a fairly general concept that could be handled at another
-> level).
-> 
-> That being said, maybe this patch would better be rethought as a way to
-> specify a GPIO for the RTS line (I don't know enough about OMAP and
-> whether or not it already provides for hardware flow control in its
-> builtin UARTs and you just aren't using it for RS485 flow control?) and
-> then in a separate patch implement this already documented user->kernel
-> API?
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-I've actually submitted a newer version that does support the documented
-API.  See http://permalink.gmane.org/gmane.linux.ports.arm.omap/102765
+Remove unneeded error handling on the result of a call to
+platform_get_resource when the value is passed to devm_ioremap_resource.
 
-Does this address some of your questions ?
+A simplified version of the semantic patch that makes this change is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression pdev,res,n,e,e1;
+expression ret != 0;
+identifier l;
+@@
+
+- res = platform_get_resource(pdev, IORESOURCE_MEM, n);
+  ... when != res
+- if (res == NULL) { ... \(goto l;\|return ret;\) }
+  ... when != res
++ res = platform_get_resource(pdev, IORESOURCE_MEM, n);
+  e = devm_ioremap_resource(e1, res);
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
+---
+ drivers/usb/dwc3/dwc3-omap.c |    5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index 7f7ea62..cbcd972 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -432,11 +432,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res) {
+-		dev_err(dev, "missing memory base resource\n");
+-		return -EINVAL;
+-	}
+-
+ 	base = devm_ioremap_resource(dev, res);
+ 	if (IS_ERR(base))
+ 		return PTR_ERR(base);
