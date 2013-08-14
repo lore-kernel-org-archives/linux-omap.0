@@ -1,94 +1,83 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH 12/22] ARM: dts: Remove '0x's from OMAP2420 H4 DTS file
-Date: Wed, 14 Aug 2013 09:43:59 +0200
-Message-ID: <520B353F.40106@baylibre.com>
-References: <1374490361-25769-1-git-send-email-lee.jones@linaro.org> <1374490361-25769-12-git-send-email-lee.jones@linaro.org> <20130813154425.GH15278@lee--X1> <20130814073000.GW7656@atomide.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 0/7] phy: omap-usb: Support multiple instances and new
+ types
+Date: Wed, 14 Aug 2013 10:44:32 +0300
+Message-ID: <520B3560.7020004@ti.com>
+References: <1375365915-21380-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130814073000.GW7656@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, arnd@arndb.de, linus.walleij@stericsson.com, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1375365915-21380-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, dmurphy-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Lee,
++Benoit
 
-Thanks for that cleanup.
+Hi Felipe,
 
-On 14/08/2013 09:30, Tony Lindgren wrote:
-> * Lee Jones <lee.jones@linaro.org> [130813 08:51]:
->> Tony, Benoit,
->>
->> Poke
->
-> Looks like Benoit's new email address is bcousson@baylibre.com.
-> Probably best for Benoit to pick these to avoid merge conflicts.
+Any comments on this series?
 
-I've just applied the 7 following patches. Let me know if I missed=20
-something.
+cheers,
+-roger
 
-6b9fa1b ARM: dts: Remove '0x's from OMAP5 DTS file
-79390b8 ARM: dts: Remove '0x's from OMAP4 DTS file
-dd60fef ARM: dts: Remove '0x's from OMAP3430 SDP DTS file
-bfef1cb ARM: dts: Remove '0x's from OMAP3 DTS file
-5f547ac ARM: dts: Remove '0x's from OMAP3 IGEP0030 DTS file
-27939fc ARM: dts: Remove '0x's from OMAP3 IGEP0020 DTS file
-62eb4d1 ARM: dts: Remove '0x's from OMAP2420 H4 DTS file
+On 08/01/2013 05:05 PM, Roger Quadros wrote:
+> Hi,
+> 
+> This patchset does the following:
+> 
+> * Restructure and add support for new PHY types. We now support the follwing
+> four types
+> 
+>  TYPE1 - if it has otghs_control mailbox register (e.g. on OMAP4)
+>  TYPE2 - if it has Power down bit in control_dev_conf register. e.g. USB2 PHY
+>  TYPE3 - if it has DPLL and individual Rx & Tx power control. e.g. USB3 PHY or SATA PHY
+>  TYPE4 - if it has both power down and power aux registers. e.g. USB2 PHY on DRA7
+> 
+> * Have only one power control API "omap_control_usb_phy_power()" instead of a
+> different one for each PHY type.
+> 
+> * Get rid of omap_get_control_dev() so that we can support multiple instances
+> of the control device. We take advantage of the fact that omap control USB device
+> is only present on OMAP4 onwards and hence only supports DT boot. The users
+> of control USB device can get a reference to it from the device node's phandle.
+> 
+> Patches are based on top of v3.11-rc3 with balbi/next on top.
+> 
+> Smoke tested on OMAP4 panda with MUSB in gadget mode (g_zero).
+> 
+> You can find the patches in branch
+>  usb-control-module
+> in git tree
+>  git://github.com/rogerq/linux.git
+> 
+> cheers,
+> -roger
+> 
+> Roger Quadros (7):
+>   usb: phy: omap: Add new PHY types and remove
+>     omap_control_usb3_phy_power()
+>   usb: phy: omap-usb2: Don't use omap_get_control_dev()
+>   usb: phy: omap-usb3: Don't use omap_get_control_dev()
+>   usb: musb: omap2430: Don't use omap_get_control_dev()
+>   usb: phy: omap: get rid of omap_get_control_dev()
+>   ARM: dts: omap4: update omap-control-usb nodes
+>   ARM: dts: omap5: update omap-control-usb node
+> 
+>  Documentation/devicetree/bindings/usb/omap-usb.txt |   23 ++--
+>  arch/arm/boot/dts/omap4.dtsi                       |   17 ++-
+>  arch/arm/boot/dts/omap5.dtsi                       |   18 ++-
+>  drivers/usb/musb/omap2430.c                        |   22 +++-
+>  drivers/usb/phy/phy-omap-control.c                 |  160 ++++++++++---------
+>  drivers/usb/phy/phy-omap-usb2.c                    |   20 ++-
+>  drivers/usb/phy/phy-omap-usb3.c                    |   26 +++-
+>  include/linux/usb/omap_control_usb.h               |   23 +--
+>  8 files changed, 182 insertions(+), 127 deletions(-)
+> 
 
-Regards,
-Benoit
-
->
-> Regards,
->
-> Tony
->
->> On Mon, 22 Jul 2013, Lee Jones wrote:
->>
->>> Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
->>> Cc: Tony Lindgren <tony@atomide.com>
->>> Cc: linux-omap@vger.kernel.org
->>> Signed-off-by: Lee Jones <lee.jones@linaro.org>
->>> ---
->>>   arch/arm/boot/dts/omap2420-h4.dts | 6 +++---
->>>   1 file changed, 3 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/arch/arm/boot/dts/omap2420-h4.dts b/arch/arm/boot/dts/=
-omap2420-h4.dts
->>> index 224c08f..34cdecb 100644
->>> --- a/arch/arm/boot/dts/omap2420-h4.dts
->>> +++ b/arch/arm/boot/dts/omap2420-h4.dts
->>> @@ -50,15 +50,15 @@
->>>   			label =3D "bootloader";
->>>   			reg =3D <0 0x20000>;
->>>   		};
->>> -		partition@0x20000 {
->>> +		partition@20000 {
->>>   			label =3D "params";
->>>   			reg =3D <0x20000 0x20000>;
->>>   		};
->>> -		partition@0x40000 {
->>> +		partition@40000 {
->>>   			label =3D "kernel";
->>>   			reg =3D <0x40000 0x200000>;
->>>   		};
->>> -		partition@0x240000 {
->>> +		partition@240000 {
->>>   			label =3D "file-system";
->>>   			reg =3D <0x240000 0x3dc0000>;
->>>   		};
->>
->> --
->> Lee Jones
->> Linaro ST-Ericsson Landing Team Lead
->> Linaro.org =E2=94=82 Open source software for ARM SoCs
->> Follow Linaro: Facebook | Twitter | Blog
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
