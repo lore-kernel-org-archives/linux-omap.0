@@ -1,93 +1,57 @@
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-Subject: Re: [RFC 2/2] usb: dwc3: Add Qualcomm DWC3 glue layer driver
-Date: Wed, 14 Aug 2013 12:28:17 +0300
-Message-ID: <1376472497.2132.6.camel@iivanov-dev.int.mm-sol.com>
-References: <1375789991-30041-1-git-send-email-iivanov@mm-sol.com>
-	 <1375789991-30041-3-git-send-email-iivanov@mm-sol.com>
-	 <20130809132349.GC12041@radagast>
-	 <1376064558.7709.31.camel@iivanov-dev.int.mm-sol.com>
-	 <20130812182439.GG27954@radagast>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 1/6] usb: phy-nop: Use RESET Controller for managing the
+ reset line
+Date: Wed, 14 Aug 2013 12:31:29 +0300
+Message-ID: <520B4E71.9000907@ti.com>
+References: <1374137590-17865-1-git-send-email-rogerq@ti.com>
+ <1374137590-17865-2-git-send-email-rogerq@ti.com>
+ <20130725172855.GJ25415@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130812182439.GG27954@radagast>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130725172855.GJ25415@radagast>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: balbi@ti.com
-Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, p.zabel@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Felipe,
 
-Hi, 
-
-On Mon, 2013-08-12 at 13:24 -0500, Felipe Balbi wrote: 
-> On Fri, Aug 09, 2013 at 07:09:18PM +0300, Ivan T. Ivanov wrote:
-> > Hi, 
-> > 
-> > On Fri, 2013-08-09 at 16:23 +0300, Felipe Balbi wrote:
-> > > Hi,
-> > > 
-> > > On Tue, Aug 06, 2013 at 02:53:11PM +0300, Ivan T. Ivanov wrote:
-> > > > diff --git a/drivers/usb/dwc3/dwc3-msm.c b/drivers/usb/dwc3/dwc3-msm.c
-> > > > new file mode 100644
-> > > > index 0000000..e509abc
-> > > > --- /dev/null
-> > > > +++ b/drivers/usb/dwc3/dwc3-msm.c
-> > > > @@ -0,0 +1,175 @@
-> > > > +#undef CONFIG_REGULATOR
-> > > 
-> > > why ??????
-> > > 
-> > 
-> > 1. This shows that driver is still not fully tested 
-> >    Regulators support is still missing in the MSM
-> > 2. Helps me to load driver successfully. 
+On 07/25/2013 08:28 PM, Felipe Balbi wrote:
+> On Thu, Jul 18, 2013 at 11:53:05AM +0300, Roger Quadros wrote:
+>> Till now we were modelling the RESET line as a voltage regulator and
+>> using the regulator framework to manage it.
+>>
+>> [1] introduces a GPIO based reset controller driver. We use that
+>> to manage the PHY reset line, at least for DT boots. For legacy boots,
+>> will still need to use the regulator framework for reset lines.
+>>
+>> [1] - http://thread.gmane.org/gmane.linux.drivers.devicetree/41348
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
 > 
-> Then remove all the regulator-related code from this.
-
-I would like to keep them. I will just remove #undef line. 
-Code will continue to build fine. And once regulators drivers 
-are upstreamed this driver 'will not' require further
-modifications.
-
+> that's not in mainline yet, right ? Is it guaranteed that it will hit
+> v3.12 merge window ?
 > 
-> > > > +	clk_prepare_enable(mdwc->core_clk);
-> > > > +	clk_prepare_enable(mdwc->iface_clk);
-> > > > +	clk_prepare_enable(mdwc->sleep_clk);
-> > > > +	clk_prepare_enable(mdwc->utmi_clk);
-> > > 
-> > > do you really need to enable your clocks here ? Why don't you enable
-> > > them on runtime_resume and disable on runtime_suspend ?
-> > 
-> > I will like to make it working first and then will improve
-> > power management.
-> 
-> alright, makes sense.
-> 
-> > > > +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> > > > +	tcsr = devm_ioremap_resource(&pdev->dev, res);
-> > > > +	if (!tcsr) {
-> > > > +		dev_dbg(&pdev->dev, "tcsr ioremap failed\n");
-> > > 
-> > > no need to ioremap, also you're likely leaking clocks and regulators
-> > > enabled here.
-> > > 
-> > > Make sure to have something like:
-> > > 
-> > > 	if (!tcsr)
-> > > 		goto err_disable_clocks;
-> > > 
-> > > 	/* TODO This has to be revised */\
-> > > 
-> > > 	[...]
-> > > 
-> > 
-> > Sure.
-> 
-> just to make it clear, I meant to say that you don't need to print the
-> error message :-)
 
-Yes. I got it.
+Looks like the gpio reset driver might not make it into 3.12.
 
-Regards,
-Ivan
+Now we have two options. 
+
+1) leave the nop-phy driver as it is
+2) get rid of using regulator framework for reset line and handle the reset
+gpio directly in the nop-phy driver.
+
+Is it already too late to get (2) into 3.12 if I send the patches in a day or 2?
+
+cheers,
+-roger
