@@ -1,27 +1,116 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP2+: Add support to parse optional clk info
- from DT
-Date: Wed, 14 Aug 2013 19:43:10 +0530
-Message-ID: <520B9076.2090702@ti.com>
-References: <1374560679-14666-1-git-send-email-rnayak@ti.com> <1374560679-14666-3-git-send-email-rnayak@ti.com> <CAGo_u6rfXpU1Wzn+oXqpAezNNtFb9pk=9RZxodGtBbZXVy+yJA@mail.gmail.com> <520B8409.5000708@ti.com> <520B88A0.6080806@ti.com> <20130814134904.GC13141@e106331-lin.cambridge.arm.com> <520B8D01.1040205@ti.com> <20130814140807.GE13141@e106331-lin.cambridge.arm.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: [PATCH v3] arm: dts: AM43x: Add usb DT nodes for AM4372
+Date: Wed, 14 Aug 2013 19:46:36 +0530
+Message-ID: <520B9144.5000701@ti.com>
+References: <1373444082-4169-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36485 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932164Ab3HNONt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Aug 2013 10:13:49 -0400
-In-Reply-To: <20130814140807.GE13141@e106331-lin.cambridge.arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1373444082-4169-1-git-send-email-george.cherian@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, benoit.cousson@linaro.org, a-kishore@ti.com, afzal@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <benoit.cousson@gmail.com>, Tero Kristo <t-kristo@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Pawel Moll <Pawel.Moll@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "tomasz.figa@gmail.com" <tomasz.figa@gmail.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "galak@codeaurora.org" <galak@codeaurora.org>, "mturquette@linaro.org" <mturquette@linaro.org>
 
-[]..
-> 
-> From the sounds of your other reply, the issue is that you're poking
-> clocks for arbitrary devices, without knowing the semantics of those
-> clocks, because you're doing it form outside the driver.
++Benoit
+  If you dont have any comments, can you take this for 3.12?
 
-Thats right.
+Regards
+-George
+
+On 7/10/2013 1:44 PM, George Cherian wrote:
+
+> This patch adds
+> 	- HS USB nodes
+> 	- phy nodes
+> 	- usb control module nodes.
+>
+> Signed-off-by: George Cherian <george.cherian@ti.com>
+> ---
+>
+> changes from v2
+> change synopsis to snps
+> use simple node names
+> add both USB and PHY instances
+> add usbctrl node
+>
+> changes from v1
+> renamed synopsis to snps
+> removed flag tx-fifo-resize
+>
+>   arch/arm/boot/dts/am4372.dtsi | 58 +++++++++++++++++++++++++++++++++++++++++++
+>   1 file changed, 58 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+> index ddc1df7..37f196f 100644
+> --- a/arch/arm/boot/dts/am4372.dtsi
+> +++ b/arch/arm/boot/dts/am4372.dtsi
+> @@ -64,5 +64,63 @@
+>   			compatible = "ti,am4372-counter32k","ti,omap-counter32k";
+>   			reg = <0x44e86000 0x40>;
+>   		};
+> +
+> +		phy1: usbphy1 {
+> +			compatible = "ti,am4372-usb2";
+> +			#phy-cells = <0>;
+> +			id = <0>;
+> +			status = "disabled";
+> +		};
+> +
+> +		phy2: usbphy2 {
+> +			compatible = "ti,am4372-usb2";
+> +			#phy-cells = <0>;
+> +			id = <1>;
+> +			status = "disabled";
+> +		};
+> +
+> +		usbctrl: omap-control-usb@44e10620 {
+> +			compatible = "ti,omap-control-usb";
+> +			reg = <0x44e10620 0x10>;
+> +			reg-names = "control_dev_conf";
+> +			ti,type = <3>;
+> +			status = "disabled";
+> +		};
+> +
+> +		usb1: am4372_dwc3@48380000 {
+> +			status = "disabled";
+> +			compatible = "ti,am4372-dwc3";
+> +			reg = <0x48380000 0x200>;
+> +			interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +			utmi-mode = <1>;
+> +			ranges;
+> +			dwc3@48390000 {
+> +				compatible = "snps,dwc3";
+> +				reg = <0x48390000 0xd000>;
+> +				interrupts = <GIC_SPI  168 IRQ_TYPE_LEVEL_HIGH>;
+> +				phys = <&phy1>;
+> +				phy-names = "am4372-usb1";
+> +			};
+> +		};
+> +
+> +		usb2: am4372_dwc3@483c0000 {
+> +			status = "disabled";
+> +			compatible = "ti,am4372-dwc3";
+> +			reg = <0x483c0000 0x200>;
+> +			interrupts = <GIC_SPI 178 IRQ_TYPE_LEVEL_HIGH>;
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +			utmi-mode = <1>;
+> +			ranges;
+> +			dwc3@483d0000 {
+> +				compatible = "snps,dwc3";
+> +				reg = <0x483d0000 0xd000>;
+> +				interrupts = <GIC_SPI  174 IRQ_TYPE_LEVEL_HIGH>;
+> +				phys = <&phy2>;
+> +				phy-names = "am4372-usb2";
+> +			};
+> +		};
+>   	};
+>   };
+
+
+-- 
+-George
