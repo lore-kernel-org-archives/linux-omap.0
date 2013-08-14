@@ -1,44 +1,58 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/9] usb: phy: nop: Add gpio_reset to platform data
-Date: Wed, 14 Aug 2013 16:58:05 +0300
-Message-ID: <1376488693-31659-2-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 4/9] ARM: OMAP2+: usb-host: Adapt to USB phy-nop RESET line changes
+Date: Wed, 14 Aug 2013 16:58:08 +0300
+Message-ID: <1376488693-31659-5-git-send-email-rogerq@ti.com>
 References: <1376488693-31659-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1376488693-31659-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
-Cc: p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:56394 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759961Ab3HNN7T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Aug 2013 09:59:19 -0400
+In-Reply-To: <1376488693-31659-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com, tony@atomide.com, bcousson@baylibre.com
+Cc: p.zabel@pengutronix.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-The GPIO number of the RESET line can be passed to the
-driver using the gpio_reset member.
+The USB phy-nop nop driver expects the RESET line information
+to be sent as a GPIO number via platform data. Adapt to that.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- include/linux/usb/nop-usb-xceiv.h |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/usb-host.c |   11 +----------
+ 1 files changed, 1 insertions(+), 10 deletions(-)
 
-diff --git a/include/linux/usb/nop-usb-xceiv.h b/include/linux/usb/nop-usb-xceiv.h
-index 148d351..1e57acb 100644
---- a/include/linux/usb/nop-usb-xceiv.h
-+++ b/include/linux/usb/nop-usb-xceiv.h
-@@ -9,7 +9,9 @@ struct nop_usb_xceiv_platform_data {
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index 1626801..4528b40 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -460,8 +460,7 @@ int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
+ 		memset(&nop_pdata, 0, sizeof(nop_pdata));
+ 		if (gpio_is_valid(phy->vcc_gpio))
+ 			nop_pdata.needs_vcc = true;
+-		if (gpio_is_valid(phy->reset_gpio))
+-			nop_pdata.needs_reset = true;
++		nop_pdata.gpio_reset = phy->reset_gpio;
+ 		nop_pdata.type = USB_PHY_TYPE_USB2;
  
- 	/* if set fails with -EPROBE_DEFER if can't get regulator */
- 	unsigned int needs_vcc:1;
--	unsigned int needs_reset:1;
-+	unsigned int needs_reset:1; /* Deprecated */
-+
-+	int gpio_reset;
- };
+ 		/* create a NOP PHY device */
+@@ -483,14 +482,6 @@ int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
  
- #if defined(CONFIG_NOP_USB_XCEIV) || (defined(CONFIG_NOP_USB_XCEIV_MODULE) && defined(MODULE))
+ 		usb_bind_phy("ehci-omap.0", phy->port - 1, phy_id);
+ 
+-		/* Do we need RESET regulator ? */
+-		if (gpio_is_valid(phy->reset_gpio)) {
+-			scnprintf(rail_name, MAX_STR,
+-					"hsusb%d_reset", phy->port);
+-			usbhs_add_regulator(rail_name, phy_id, "reset",
+-						phy->reset_gpio, 1);
+-		}
+-
+ 		/* Do we need VCC regulator ? */
+ 		if (gpio_is_valid(phy->vcc_gpio)) {
+ 			scnprintf(rail_name, MAX_STR, "hsusb%d_vcc", phy->port);
 -- 
 1.7.4.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
