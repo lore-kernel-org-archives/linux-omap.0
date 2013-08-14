@@ -1,116 +1,94 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: Re: [PATCH v3] arm: dts: AM43x: Add usb DT nodes for AM4372
-Date: Wed, 14 Aug 2013 19:46:36 +0530
-Message-ID: <520B9144.5000701@ti.com>
-References: <1373444082-4169-1-git-send-email-george.cherian@ti.com>
+From: Josh Cartwright <joshc@codeaurora.org>
+Subject: Re: [PATCH v3 2/3] usb: phy: Add Qualcomm SS-USB and HS-USB drivers
+ for DWC3 core
+Date: Wed, 14 Aug 2013 09:20:56 -0500
+Message-ID: <20130814142056.GB2673@joshc>
+References: <1376485183-2664-1-git-send-email-iivanov@mm-sol.com>
+ <1376485183-2664-3-git-send-email-iivanov@mm-sol.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1373444082-4169-1-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, benoit.cousson@linaro.org, a-kishore@ti.com, afzal@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, bcousson@baylibre.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.11.231]:37755 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757587Ab3HNOVE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Aug 2013 10:21:04 -0400
+Content-Disposition: inline
+In-Reply-To: <1376485183-2664-3-git-send-email-iivanov@mm-sol.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Cc: balbi@ti.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org
 
-+Benoit
-  If you dont have any comments, can you take this for 3.12?
-
-Regards
--George
-
-On 7/10/2013 1:44 PM, George Cherian wrote:
-
-> This patch adds
-> 	- HS USB nodes
-> 	- phy nodes
-> 	- usb control module nodes.
->
-> Signed-off-by: George Cherian <george.cherian@ti.com>
+On Wed, Aug 14, 2013 at 03:59:42PM +0300, Ivan T. Ivanov wrote:
+> From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+> 
+> These drivers handles control and configuration of the HS
+> and SS USB PHY transceivers. They are part of the driver
+> which manage Synopsys DesignWare USB3 controller stack
+> inside Qualcomm SoC's.
+> 
+> Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
 > ---
->
-> changes from v2
-> change synopsis to snps
-> use simple node names
-> add both USB and PHY instances
-> add usbctrl node
->
-> changes from v1
-> renamed synopsis to snps
-> removed flag tx-fifo-resize
->
->   arch/arm/boot/dts/am4372.dtsi | 58 +++++++++++++++++++++++++++++++++++++++++++
->   1 file changed, 58 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-> index ddc1df7..37f196f 100644
-> --- a/arch/arm/boot/dts/am4372.dtsi
-> +++ b/arch/arm/boot/dts/am4372.dtsi
-> @@ -64,5 +64,63 @@
->   			compatible = "ti,am4372-counter32k","ti,omap-counter32k";
->   			reg = <0x44e86000 0x40>;
->   		};
+[..]
+> diff --git a/drivers/usb/phy/phy-msm-dwc3-hs.c b/drivers/usb/phy/phy-msm-dwc3-hs.c
+> new file mode 100644
+> index 0000000..465a8f5
+> --- /dev/null
+> +++ b/drivers/usb/phy/phy-msm-dwc3-hs.c
+[..]
 > +
-> +		phy1: usbphy1 {
-> +			compatible = "ti,am4372-usb2";
-> +			#phy-cells = <0>;
-> +			id = <0>;
-> +			status = "disabled";
-> +		};
+> +struct msm_dwc3_hs_phy {
+> +	struct usb_phy		phy;
+> +	void __iomem		*base;
+> +	struct device		*dev;
 > +
-> +		phy2: usbphy2 {
-> +			compatible = "ti,am4372-usb2";
-> +			#phy-cells = <0>;
-> +			id = <1>;
-> +			status = "disabled";
-> +		};
+> +	struct clk		*xo_clk;
+> +	struct clk		*sleep_a_clk;
 > +
-> +		usbctrl: omap-control-usb@44e10620 {
-> +			compatible = "ti,omap-control-usb";
-> +			reg = <0x44e10620 0x10>;
-> +			reg-names = "control_dev_conf";
-> +			ti,type = <3>;
-> +			status = "disabled";
-> +		};
+> +	struct regulator	*v3p3;
+> +	struct regulator	*v1p8;
+> +	struct regulator	*vddcx;
+> +	struct regulator	*vbus;
+> +};
 > +
-> +		usb1: am4372_dwc3@48380000 {
-> +			status = "disabled";
-> +			compatible = "ti,am4372-dwc3";
-> +			reg = <0x48380000 0x200>;
-> +			interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
-> +			#address-cells = <1>;
-> +			#size-cells = <1>;
-> +			utmi-mode = <1>;
-> +			ranges;
-> +			dwc3@48390000 {
-> +				compatible = "snps,dwc3";
-> +				reg = <0x48390000 0xd000>;
-> +				interrupts = <GIC_SPI  168 IRQ_TYPE_LEVEL_HIGH>;
-> +				phys = <&phy1>;
-> +				phy-names = "am4372-usb1";
-> +			};
-> +		};
+> +#define	phy_to_dwc3_phy(x)	container_of((x), struct msm_dwc3_hs_phy, phy)
 > +
-> +		usb2: am4372_dwc3@483c0000 {
-> +			status = "disabled";
-> +			compatible = "ti,am4372-dwc3";
-> +			reg = <0x483c0000 0x200>;
-> +			interrupts = <GIC_SPI 178 IRQ_TYPE_LEVEL_HIGH>;
-> +			#address-cells = <1>;
-> +			#size-cells = <1>;
-> +			utmi-mode = <1>;
-> +			ranges;
-> +			dwc3@483d0000 {
-> +				compatible = "snps,dwc3";
-> +				reg = <0x483d0000 0xd000>;
-> +				interrupts = <GIC_SPI  174 IRQ_TYPE_LEVEL_HIGH>;
-> +				phys = <&phy2>;
-> +				phy-names = "am4372-usb2";
-> +			};
-> +		};
->   	};
->   };
+> +
+> +/**
+> + *
+> + * Write register with debug info.
 
+what debug info?
+
+> + *
+> + * @base - DWC3 base virtual address.
+> + * @offset - register offset.
+> + * @val - value to write.
+> + *
+> + */
+> +static inline void msm_dwc3_hs_write(void *base, u32 offset, u32 val)
+
+You've dropped __iomem here; have you run through sparse?
+
+> +{
+> +	iowrite32(val, base + offset);
+> +}
+> +
+> +/**
+> + * Write register and read back masked value to confirm it is written
+> + *
+> + * @base - DWC3 base virtual address.
+> + * @offset - register offset.
+> + * @mask - register bitmask specifying what should be updated
+> + * @val - value to write.
+> + *
+> + */
+> +static inline void msm_dwc3_hs_write_readback(void *base, u32 offset,
+> +					    const u32 mask, u32 val)
+> +{
+
+Same comment here.
 
 -- 
--George
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+hosted by The Linux Foundation
