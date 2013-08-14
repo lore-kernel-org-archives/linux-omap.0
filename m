@@ -1,122 +1,165 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP2+: Add support to parse optional clk info
- from DT
-Date: Wed, 14 Aug 2013 19:50:38 +0530
-Message-ID: <520B9236.2090205@ti.com>
-References: <1374560679-14666-1-git-send-email-rnayak@ti.com>
- <1374560679-14666-3-git-send-email-rnayak@ti.com>
- <CAGo_u6rfXpU1Wzn+oXqpAezNNtFb9pk=9RZxodGtBbZXVy+yJA@mail.gmail.com>
- <520B8409.5000708@ti.com> <520B88A0.6080806@ti.com>
- <20130814134904.GC13141@e106331-lin.cambridge.arm.com>
- <520B8D01.1040205@ti.com> <520B8EA5.5090400@ti.com>
- <20130814141319.GF13141@e106331-lin.cambridge.arm.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH v3] arm: dts: AM43x: Add usb DT nodes for AM4372
+Date: Wed, 14 Aug 2013 16:34:51 +0200
+Message-ID: <520B958B.1000900@baylibre.com>
+References: <1373444082-4169-1-git-send-email-george.cherian@ti.com> <520B9144.5000701@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130814141319.GF13141@e106331-lin.cambridge.arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, "mturquette@linaro.org" <mturquette@linaro.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, Pawel Moll <Pawel.Moll@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <benoit.cousson@gmail.com>, "tomasz.figa@gmail.com" <tomasz.figa@gmail.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Tero Kristo <t-kristo@ti.com>, "galak@codeaurora.org" <galak@codeaurora.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <520B9144.5000701@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, a-kishore@ti.com, afzal@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 14 August 2013 07:43 PM, Mark Rutland wrote:
-> On Wed, Aug 14, 2013 at 03:05:25PM +0100, Rajendra Nayak wrote:
->> On Wednesday 14 August 2013 07:28 PM, Nishanth Menon wrote:
->>> On 08/14/2013 08:49 AM, Mark Rutland wrote:
->>>> [Adding Mike Turquette and dt maintainers]
->>>>
->>>> On Wed, Aug 14, 2013 at 02:39:44PM +0100, Nishanth Menon wrote:
->>>>> On 08/14/2013 08:20 AM, Rajendra Nayak wrote:
->>>>>> On Wednesday 14 August 2013 06:18 PM, Nishanth Menon wrote:
->>>>>>> Hi Rajendra,
->>>>>>>
->>>>>>> On Tue, Jul 23, 2013 at 1:24 AM, Rajendra Nayak <rnayak@ti.com> wrote:
->>>>>>> [..]
->>>>>>>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->>>>>>>> index 12fa589..e5c804b 100644
->>>>>>>> --- a/arch/arm/mach-omap2/omap_hwmod.c
->>>>>>>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->>>>>>>> @@ -805,6 +805,65 @@ static int _init_interface_clks(struct omap_hwmod *oh)
->>>>>>>>           return ret;
->>>>>>>>    }
->>>>>>>>
->>>>>>>> +static const char **_parse_opt_clks_dt(struct omap_hwmod *oh,
->>>>>>>> +                                      struct device_node *np,
->>>>>>>> +                                      int *opt_clks_cnt)
->>>>>>>> +{
->>>>>>>> +       int i, clks_cnt;
->>>>>>>> +       const char *clk_name;
->>>>>>>> +       const char **opt_clk_names;
->>>>>>>> +
->>>>>>>> +       clks_cnt = of_property_count_strings(np, "clock-names");
->>>>>>>> +       if (!clks_cnt)
->>>>>>>> +               return NULL;
->>>>>>>> +
->>>>>>>> +       opt_clk_names = kzalloc(sizeof(char *)*clks_cnt, GFP_KERNEL);
->>>>>>>> +       if (!opt_clk_names)
->>>>>>>> +               return NULL;
->>>>>>>> +
->>>>>>>> +       for (i = 0; i < clks_cnt; i++) {
->>>>>>>> +               of_property_read_string_index(np, "clock-names", i, &clk_name);
->>>>>>>> +               if (!strcmp(clk_name, "fck"))
->>>>>>>
->>>>>>> Could we instead parse for names that are "optional,role_name" instead
->>>>>>> of assuming anything other than fck is optional clocks?
->>>>>>
->>>>>> you mean look for anything with optional,*? because the role names would change.
->>>>>>
->>>>>
->>>>> yes. the idea being, we now have a meaning to the clock name - there are
->>>>> two types of clocks here.. functional and optional, we *might* have
->>>>> facility to add interface clock(we dont know interface clock handling
->>>>> yet, but something in the future).. we might increase the support for
->>>>> number of functional clocks.. it might help to keep the format such that
->>>>> it is a "bit extendable".
->>>>
->>>> I completely disagree. The only things that should appear in clock-names
->>>> are the names of the clock inputs that appear in the manual for the
->>>> device. The driver should know which ones are optional, as that's a
->>>> fixed property of the IP and the way the driver uses it.
->>>>
->>>> You should not be embedding additional semantics in name properties.
->>>
->>> we use an level of abstraction called omap_device and hwmod to allow devices to use a generic pm_runtime. drivers for specific blocks dont normally need to know about the clocks to deal with. This allows maximum reuse consider concept is generic enough.
++ Roger
+
+Hi George,
+
+Yes, I had some comment about the "ti'type" in Roger's series that will 
+be applicable here as well.
+
+
+On 14/08/2013 16:16, George Cherian wrote:
+> +Benoit
+>   If you dont have any comments, can you take this for 3.12?
+>
+> Regards
+> -George
+>
+> On 7/10/2013 1:44 PM, George Cherian wrote:
+>
+>> This patch adds
+>>     - HS USB nodes
+>>     - phy nodes
+>>     - usb control module nodes.
 >>
->> They do know about the optional clocks though and request and release them when needed. The need for hwmod to know about optional clocks
->> (and enable all) arises from the fact that some of these devices need *some* optional clocks for a successful reset.
->> And given hmwod has no knowledge about which optional ones (if at all) will be needed, it goes ahead and enables all before doing a reset.
->> This is something done only at init time and *not* something thats done every time the device is enabled by the driver using pm_runtime.
-> 
-> To clarify:
-> 
-> I was initially confused as to the purpose of the code. I'm not against
-> a one-off clock initialisation to put everything into a sane state. If
-> we can't trust the bootloaders, that seems like a necessary evil. I'll
-> leave Mike to comment on whether and how that should be done.
-> 
-> I do not think we should be embedding clock semantics in clock-names.
-> That's not the way the property is intended to be used, it breaks
-> uniformity, and it's an abuse of the system that may come back to bite
-> us later.
+>> Signed-off-by: George Cherian <george.cherian@ti.com>
+>> ---
+>>
+>> changes from v2
+>> change synopsis to snps
+>> use simple node names
+>> add both USB and PHY instances
+>> add usbctrl node
+>>
+>> changes from v1
+>> renamed synopsis to snps
+>> removed flag tx-fifo-resize
+>>
+>>   arch/arm/boot/dts/am4372.dtsi | 58
+>> +++++++++++++++++++++++++++++++++++++++++++
+>>   1 file changed, 58 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/am4372.dtsi
+>> b/arch/arm/boot/dts/am4372.dtsi
+>> index ddc1df7..37f196f 100644
+>> --- a/arch/arm/boot/dts/am4372.dtsi
+>> +++ b/arch/arm/boot/dts/am4372.dtsi
+>> @@ -64,5 +64,63 @@
+>>               compatible = "ti,am4372-counter32k","ti,omap-counter32k";
+>>               reg = <0x44e86000 0x40>;
+>>           };
+>> +
+>> +        phy1: usbphy1 {
+>> +            compatible = "ti,am4372-usb2";
 
-Mark, that makes sense.
+That's not a very good name for a phy? It looks like a usb module.
 
-Nishanth, thinking some more of this, the 'optional,role-name' also won't work
-for the simple reason that drivers who do clk_get(node, 'role-name') would
-then simply fail.
+The bindings specify only ti,omap-usb2 or ti,omap-usb3 for USB2 or USB3.
+I guess it should be one of them and potentially the binding should be 
+updated with ti,omap-usb2-phy and ti,omap-usb3-phy names while we can 
+still do it.
 
-So I guess we need to figure out a better way to handle this.
+>> +            #phy-cells = <0>;
+>> +            id = <0>;
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        phy2: usbphy2 {
 
-> 
-> Thanks,
-> Mark.
-> 
+Why do you need a different node name here? It should be a generic name 
+to identify the function, so usbphy or usb-phy seems good enough.
+
+>> +            compatible = "ti,am4372-usb2";
+>> +            #phy-cells = <0>;
+>> +            id = <1>;
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        usbctrl: omap-control-usb@44e10620 {
+>> +            compatible = "ti,omap-control-usb";
+>> +            reg = <0x44e10620 0x10>;
+>> +            reg-names = "control_dev_conf";
+>> +            ti,type = <3>;
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        usb1: am4372_dwc3@48380000 {
+>> +            status = "disabled";
+>> +            compatible = "ti,am4372-dwc3";
+>> +            reg = <0x48380000 0x200>;
+>> +            interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
+>> +            #address-cells = <1>;
+>> +            #size-cells = <1>;
+>> +            utmi-mode = <1>;
+>> +            ranges;
+
+A blank line here will be nice.
+
+>> +            dwc3@48390000 {
+>> +                compatible = "snps,dwc3";
+>> +                reg = <0x48390000 0xd000>;
+>> +                interrupts = <GIC_SPI  168 IRQ_TYPE_LEVEL_HIGH>;
+>> +                phys = <&phy1>;
+>> +                phy-names = "am4372-usb1";
+
+What is the purpose of the phy-names? Is it relevant to add the SoC name 
+in something that usually, at least for the clocks and IRQs, is IP specific?
+
+The current documentation does not explain it and does not support phys 
+property either.
+
+   synopsys DWC3 CORE
+
+   DWC3- USB3 CONTROLLER
+
+   Required properties:
+    - compatible: must be "synopsys,dwc3"
+    - reg : Address and length of the register set for the device
+    - interrupts: Interrupts used by the dwc3 controller.
+    - usb-phy : array of phandle for the PHY device
+
+Is there some binding update ongoing for 3.12?
+
+>> +            };
+>> +        };
+>> +
+>> +        usb2: am4372_dwc3@483c0000 {
+>> +            status = "disabled";
+>> +            compatible = "ti,am4372-dwc3";
+>> +            reg = <0x483c0000 0x200>;
+>> +            interrupts = <GIC_SPI 178 IRQ_TYPE_LEVEL_HIGH>;
+>> +            #address-cells = <1>;
+>> +            #size-cells = <1>;
+>> +            utmi-mode = <1>;
+>> +            ranges;
+
+A blank line here will be nice.
+
+>> +            dwc3@483d0000 {
+>> +                compatible = "snps,dwc3";
+>> +                reg = <0x483d0000 0xd000>;
+>> +                interrupts = <GIC_SPI  174 IRQ_TYPE_LEVEL_HIGH>;
+>> +                phys = <&phy2>;
+>> +                phy-names = "am4372-usb2";
+>> +            };
+>> +        };
+>>       };
+>>   };
+>
+>
+
+Regards,
+Benoit
