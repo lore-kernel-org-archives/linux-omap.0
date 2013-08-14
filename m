@@ -1,798 +1,833 @@
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-Subject: [PATCH v3 2/3] usb: phy: Add Qualcomm SS-USB and HS-USB drivers for DWC3 core
-Date: Wed, 14 Aug 2013 15:59:42 +0300
-Message-ID: <1376485183-2664-3-git-send-email-iivanov@mm-sol.com>
-References: <1376485183-2664-1-git-send-email-iivanov@mm-sol.com>
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1376485183-2664-1-git-send-email-iivanov@mm-sol.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org, "Ivan T. Ivanov" <iivanov@mm-sol.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v2] ARM: DRA7: dts: Add the dts files for dra7 SoC and
+ dra7-evm board
+Date: Wed, 14 Aug 2013 18:48:40 +0530
+Message-ID: <520B83B0.1010707@ti.com>
+References: <1376482244-7550-1-git-send-email-rnayak@ti.com> <520B7961.1080907@baylibre.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:36204 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932357Ab3HNNTY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Aug 2013 09:19:24 -0400
+In-Reply-To: <520B7961.1080907@baylibre.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, marc.zyngier@arm.com, mark.rutland@arm.com, paul@pwsan.com, khilman@linaro.org, nm@ti.com, santosh.shilimkar@ti.com, R Sricharan <r.sricharan@ti.com>, Sourav Poddar <sourav.poddar@ti.com>
 
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+On Wednesday 14 August 2013 06:04 PM, Benoit Cousson wrote:
+> Hi Rajendra,
+> 
+> On 14/08/2013 14:10, Rajendra Nayak wrote:
+>> From: R Sricharan <r.sricharan@ti.com>
+>>
+>> Add minimal device tree source needed for DRA7 based SoCs.
+>> Also add a board dts file for the dra7-evm (based on dra752)
+>> which contains 1.5G of memory with 1G interleaved and 512MB
+>> non-interleaved. Also added in the board file are pin configuration
+>> details for i2c, mcspi and uart devices on board.
+>>
+>> Signed-off-by: R Sricharan <r.sricharan@ti.com>
+>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+>> ---
+>> Benoit, I am reposting the dts files for dra so you can pick it up
+>> for 3.12.
+> 
+> OK, I'll do. I just have few minor nits.
+> 
+>> Rest of the core support is already pulled in by Tony.
+>>
+>>   arch/arm/boot/dts/Makefile        |    3 +-
+>>   arch/arm/boot/dts/dra7-evm.dts    |  140 +++++++++
+>>   arch/arm/boot/dts/dra7.dtsi       |  575 +++++++++++++++++++++++++++++++++++++
+>>   include/dt-bindings/pinctrl/dra.h |   45 +++
+>>   4 files changed, 762 insertions(+), 1 deletion(-)
+>>   create mode 100644 arch/arm/boot/dts/dra7-evm.dts
+>>   create mode 100644 arch/arm/boot/dts/dra7.dtsi
+>>   create mode 100644 include/dt-bindings/pinctrl/dra.h
+>>
+>> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+>> index 641b3c9..e2f8566 100644
+>> --- a/arch/arm/boot/dts/Makefile
+>> +++ b/arch/arm/boot/dts/Makefile
+>> @@ -173,7 +173,8 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+>>       am335x-bone.dtb \
+>>       am3517-evm.dtb \
+>>       am3517_mt_ventoux.dtb \
+>> -    am43x-epos-evm.dtb
+>> +    am43x-epos-evm.dtb \
+>> +    dra7-evm.dtb
+>>   dtb-$(CONFIG_ARCH_ORION5X) += orion5x-lacie-ethernet-disk-mini-v2.dtb
+>>   dtb-$(CONFIG_ARCH_PRIMA2) += prima2-evb.dtb
+>>   dtb-$(CONFIG_ARCH_U8500) += snowball.dtb \
+>> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+>> new file mode 100644
+>> index 0000000..dae33d0
+>> --- /dev/null
+>> +++ b/arch/arm/boot/dts/dra7-evm.dts
+>> @@ -0,0 +1,140 @@
+>> +/*
+>> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +/dts-v1/;
+>> +
+>> +#include "dra7.dtsi"
+>> +
+>> +/ {
+>> +    model = "TI DRA7";
+>> +    compatible = "ti,dra7-evm", "ti,dra752", "ti,dra7";
+>> +
+>> +    memory {
+>> +        device_type = "memory";
+>> +        reg = <0x80000000 0x60000000>; /* 1536 MB */
+>> +    };
+>> +};
+>> +
+>> +&dra7_pmx_core {
+>> +    i2c1_pins: pinmux_i2c1_pins {
+>> +        pinctrl-single,pins = <
+>> +            0x400 (PIN_INPUT | MUX_MODE0) /* i2c1_sda */
+>> +            0x404 (PIN_INPUT | MUX_MODE0) /* i2c1_scl */
+>> +        >;
+>> +    };
+>> +
+>> +    i2c2_pins: pinmux_i2c2_pins {
+>> +        pinctrl-single,pins = <
+>> +            0x408 (PIN_INPUT | MUX_MODE0) /* i2c2_sda */
+>> +            0x40c (PIN_INPUT | MUX_MODE0) /* i2c2_scl */
+>> +        >;
+>> +    };
+>> +
+>> +    i2c3_pins: pinmux_i2c3_pins {
+>> +        pinctrl-single,pins = <
+>> +            0x410 (PIN_INPUT | MUX_MODE0) /* i2c3_sda */
+>> +            0x414 (PIN_INPUT | MUX_MODE0) /* i2c3_scl */
+>> +        >;
+>> +    };
+>> +
+>> +    mcspi1_pins: pinmux_mcspi1_pins {
+>> +        pinctrl-single,pins = <
+>> +            0x3a4 (PIN_INPUT | MUX_MODE0) /* spi2_clk */
+>> +            0x3a8 (PIN_INPUT | MUX_MODE0) /* spi2_d1 */
+>> +            0x3ac (PIN_INPUT | MUX_MODE0) /* spi2_d0 */
+>> +            0x3b0 (PIN_INPUT_SLEW | MUX_MODE0) /* spi2_cs0 */
+>> +            0x3b4 (PIN_INPUT_SLEW | MUX_MODE0) /* spi2_cs1 */
+>> +            0x3b8 (PIN_INPUT_SLEW | MUX_MODE6) /* spi2_cs2 */
+>> +            0x3bc (PIN_INPUT_SLEW | MUX_MODE6) /* spi2_cs3 */
+>> +        >;
+>> +    };
+>> +
+>> +    mcspi2_pins: pinmux_mcspi2_pins {
+>> +        pinctrl-single,pins = <
+>> +            0x3c0 (PIN_INPUT | MUX_MODE0) /* spi2_sclk */
+>> +            0x3c4 (PIN_INPUT_SLEW | MUX_MODE0) /* spi2_d1 */
+>> +            0x3c8 (PIN_INPUT_SLEW | MUX_MODE0) /* spi2_d1 */
+>> +            0x3cc (PIN_INPUT_SLEW | MUX_MODE0) /* spi2_cs0 */
+>> +        >;
+>> +    };
+>> +
+>> +    uart1_pins: pinmux_uart1_pins {
+>> +        pinctrl-single,pins = <
+>> +            0x3e0 (PIN_INPUT_SLEW | MUX_MODE0) /* uart1_rxd */
+>> +            0x3e4 (PIN_INPUT_SLEW | MUX_MODE0) /* uart1_txd */
+>> +            0x3e8 (PIN_INPUT | MUX_MODE3) /* uart1_ctsn */
+>> +            0x3ec (PIN_INPUT | MUX_MODE3) /* uart1_rtsn */
+>> +        >;
+>> +    };
+>> +
+>> +    uart2_pins: pinmux_uart2_pins {
+>> +        pinctrl-single,pins = <
+>> +            0x3f0 (PIN_INPUT | MUX_MODE0) /* uart2_rxd */
+>> +            0x3f4 (PIN_INPUT | MUX_MODE0) /* uart2_txd */
+>> +            0x3f8 (PIN_INPUT | MUX_MODE0) /* uart2_ctsn */
+>> +            0x3fc (PIN_INPUT | MUX_MODE0) /* uart2_rtsn */
+>> +        >;
+>> +    };
+>> +
+>> +    uart3_pins: pinmux_uart3_pins {
+>> +        pinctrl-single,pins = <
+>> +            0x248 (PIN_INPUT_SLEW | MUX_MODE0) /* uart3_rxd */
+>> +            0x24c (PIN_INPUT_SLEW | MUX_MODE0) /* uart3_txd */
+>> +        >;
+>> +    };
+>> +};
+>> +
+>> +&i2c1 {
+>> +    status = "okay";
+>> +    pinctrl-names = "default";
+>> +    pinctrl-0 = <&i2c1_pins>;
+>> +    clock-frequency = <400000>;
+>> +};
+>> +
+>> +&i2c2 {
+>> +    status = "okay";
+>> +    pinctrl-names = "default";
+>> +    pinctrl-0 = <&i2c2_pins>;
+>> +    clock-frequency = <400000>;
+>> +};
+>> +
+>> +&i2c3 {
+>> +    status = "okay";
+>> +    pinctrl-names = "default";
+>> +    pinctrl-0 = <&i2c3_pins>;
+>> +    clock-frequency = <3400000>;
+>> +};
+>> +
+>> +&mcspi1 {
+>> +        status = "okay";
+> 
+> Nit: You seems to have indentation issue here and for the 2 next ones.
 
-These drivers handles control and configuration of the HS
-and SS USB PHY transceivers. They are part of the driver
-which manage Synopsys DesignWare USB3 controller stack
-inside Qualcomm SoC's.
+ah, will fix.
 
-Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
----
- drivers/usb/phy/Kconfig           |   11 ++
- drivers/usb/phy/Makefile          |    2 +
- drivers/usb/phy/phy-msm-dwc3-hs.c |  336 ++++++++++++++++++++++++++++++++
- drivers/usb/phy/phy-msm-dwc3-ss.c |  383 +++++++++++++++++++++++++++++++++++++
- 4 files changed, 732 insertions(+)
- create mode 100644 drivers/usb/phy/phy-msm-dwc3-hs.c
- create mode 100644 drivers/usb/phy/phy-msm-dwc3-ss.c
+> 
+>> +    pinctrl-names = "default";
+>> +    pinctrl-0 = <&mcspi1_pins>;
+>> +};
+>> +
+>> +&mcspi2 {
+>> +        status = "okay";
+>> +    pinctrl-names = "default";
+>> +    pinctrl-0 = <&mcspi2_pins>;
+>> +};
+>> +
+>> +&uart1 {
+>> +    status = "okay";
+>> +        pinctrl-names = "default";
+>> +        pinctrl-0 = <&uart1_pins>;
+>> +};
+>> +
+>> +&uart2 {
+>> +        status = "okay";
+>> +        pinctrl-names = "default";
+>> +        pinctrl-0 = <&uart2_pins>;
+>> +};
+>> +
+>> +&uart3 {
+>> +        status = "okay";
+>> +        pinctrl-names = "default";
+>> +        pinctrl-0 = <&uart3_pins>;
+>> +};
+>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>> new file mode 100644
+>> index 0000000..c01ef76
+>> --- /dev/null
+>> +++ b/arch/arm/boot/dts/dra7.dtsi
+>> @@ -0,0 +1,575 @@
+>> +/*
+>> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + * Based on "omap4.dtsi"
+>> + */
+>> +
+>> +#include <dt-bindings/interrupt-controller/arm-gic.h>
+>> +#include <dt-bindings/pinctrl/dra.h>
+>> +
+>> +#include "skeleton.dtsi"
+>> +
+>> +/ {
+>> +    #address-cells = <1>;
+>> +    #size-cells = <1>;
+>> +
+>> +    compatible = "ti,dra7xx";
+>> +    interrupt-parent = <&gic>;
+>> +
+>> +    aliases {
+>> +        serial0 = &uart1;
+>> +        serial1 = &uart2;
+>> +        serial2 = &uart3;
+>> +        serial3 = &uart4;
+>> +        serial4 = &uart5;
+>> +        serial5 = &uart6;
+>> +    };
+>> +
+>> +    cpus {
+>> +        #address-cells = <1>;
+>> +        #size-cells = <0>;
+>> +
+>> +        cpu@0 {
+>> +            device_type = "cpu";
+>> +            compatible = "arm,cortex-a15";
+>> +            reg = <0>;
+>> +        };
+>> +        cpu@1 {
+>> +            device_type = "cpu";
+>> +            compatible = "arm,cortex-a15";
+>> +            reg = <1>;
+>> +        };
+>> +    };
+>> +
+>> +    timer {
+>> +        compatible = "arm,armv7-timer";
+>> +        interrupts = <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_LOW)>,
+>> +                 <GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_LOW)>,
+>> +                 <GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_LOW)>,
+>> +                 <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_LOW)>;
+>> +    };
+>> +
+>> +    gic: interrupt-controller@48211000 {
+>> +        compatible = "arm,cortex-a15-gic";
+>> +        interrupt-controller;
+>> +        #interrupt-cells = <3>;
+>> +        reg = <0x48211000 0x1000>,
+>> +              <0x48212000 0x1000>,
+>> +              <0x48214000 0x2000>,
+>> +              <0x48216000 0x2000>;
+>> +        interrupts = <GIC_PPI 9 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_HIGH)>;
+>> +    };
+>> +
+>> +    /*
+>> +     * The soc node represents the soc top level view. It is uses for IPs
+>> +     * that are not memory mapped in the MPU view or for the MPU itself.
+>> +     */
+>> +    soc {
+>> +        compatible = "ti,omap-infra";
+>> +        mpu {
+>> +            compatible = "ti,omap5-mpu";
+>> +            ti,hwmods = "mpu";
+>> +        };
+>> +    };
+>> +
+>> +    /*
+>> +     * XXX: Use a flat representation of the SOC interconnect.
+>> +     * The real OMAP interconnect network is quite complex.
+>> +     * Since that will not bring real advantage to represent that in DT for
+>> +     * the moment, just use a fake OCP bus entry to represent the whole bus
+>> +     * hierarchy.
+>> +     */
+>> +    ocp {
+>> +        compatible = "ti,omap4-l3-noc", "simple-bus";
+>> +        #address-cells = <1>;
+>> +        #size-cells = <1>;
+>> +        ranges;
+>> +        ti,hwmods = "l3_main_1", "l3_main_2";
+>> +        reg = <0x44000000 0x2000>,
+>> +              <0x44800000 0x3000>;
+>> +        interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
+>> +                 <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
+>> +
+>> +        counter32k: counter@4ae04000 {
+>> +            compatible = "ti,omap-counter32k";
+>> +            reg = <0x4ae04000 0x40>;
+>> +            ti,hwmods = "counter_32k";
+>> +        };
+>> +
+>> +        dra7_pmx_core: pinmux@4a003400 {
+>> +            compatible = "pinctrl-single";
+>> +            reg = <0x4a003400 0x0464>;
+>> +            #address-cells = <1>;
+>> +            #size-cells = <0>;
+>> +            pinctrl-single,register-width = <32>;
+>> +            pinctrl-single,function-mask = <0x3fffffff>;
+>> +        };
+>> +
+>> +        sdma: dma-controller@4a056000 {
+>> +            compatible = "ti,omap4430-sdma";
+>> +            reg = <0x4a056000 0x1000>;
+>> +            interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>,
+>> +                     <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>,
+>> +                     <GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>,
+>> +                     <GIC_SPI 15 IRQ_TYPE_LEVEL_HIGH>;
+>> +            #dma-cells = <1>;
+>> +            #dma-channels = <32>;
+>> +            #dma-requests = <127>;
+>> +        };
+>> +
+>> +        gpio1: gpio@4ae10000 {
+>> +            compatible = "ti,omap4-gpio";
+>> +            reg = <0x4ae10000 0x200>;
+>> +            interrupts = <GIC_SPI 29 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "gpio1";
+>> +            gpio-controller;
+>> +            #gpio-cells = <2>;
+>> +            interrupt-controller;
+>> +            #interrupt-cells = <1>;
+>> +        };
+>> +
+>> +        gpio2: gpio@48055000 {
+>> +            compatible = "ti,omap4-gpio";
+>> +            reg = <0x48055000 0x200>;
+>> +            interrupts = <GIC_SPI 30 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "gpio2";
+>> +            gpio-controller;
+>> +            #gpio-cells = <2>;
+>> +            interrupt-controller;
+>> +            #interrupt-cells = <1>;
+>> +        };
+>> +
+>> +        gpio3: gpio@48057000 {
+>> +            compatible = "ti,omap4-gpio";
+>> +            reg = <0x48057000 0x200>;
+>> +            interrupts = <GIC_SPI 31 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "gpio3";
+>> +            gpio-controller;
+>> +            #gpio-cells = <2>;
+>> +            interrupt-controller;
+>> +            #interrupt-cells = <1>;
+>> +        };
+>> +
+>> +        gpio4: gpio@48059000 {
+>> +            compatible = "ti,omap4-gpio";
+>> +            reg = <0x48059000 0x200>;
+>> +            interrupts = <GIC_SPI 32 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "gpio4";
+>> +            gpio-controller;
+>> +            #gpio-cells = <2>;
+>> +            interrupt-controller;
+>> +            #interrupt-cells = <1>;
+>> +        };
+>> +
+>> +        gpio5: gpio@4805b000 {
+>> +            compatible = "ti,omap4-gpio";
+>> +            reg = <0x4805b000 0x200>;
+>> +            interrupts = <GIC_SPI 33 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "gpio5";
+>> +            gpio-controller;
+>> +            #gpio-cells = <2>;
+>> +            interrupt-controller;
+>> +            #interrupt-cells = <1>;
+>> +        };
+>> +
+>> +        gpio6: gpio@4805d000 {
+>> +            compatible = "ti,omap4-gpio";
+>> +            reg = <0x4805d000 0x200>;
+>> +            interrupts = <GIC_SPI 34 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "gpio6";
+>> +            gpio-controller;
+>> +            #gpio-cells = <2>;
+>> +            interrupt-controller;
+>> +            #interrupt-cells = <1>;
+>> +        };
+>> +
+>> +        gpio7: gpio@48051000 {
+>> +            compatible = "ti,omap4-gpio";
+>> +            reg = <0x48051000 0x200>;
+>> +            interrupts = <GIC_SPI 35 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "gpio7";
+>> +            gpio-controller;
+>> +            #gpio-cells = <2>;
+>> +            interrupt-controller;
+>> +            #interrupt-cells = <1>;
+>> +        };
+>> +
+>> +        gpio8: gpio@48053000 {
+>> +            compatible = "ti,omap4-gpio";
+>> +            reg = <0x48053000 0x200>;
+>> +            interrupts = <GIC_SPI 121 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "gpio8";
+>> +            gpio-controller;
+>> +            #gpio-cells = <2>;
+>> +            interrupt-controller;
+>> +            #interrupt-cells = <1>;
+>> +        };
+>> +
+>> +        uart1: serial@4806a000 {
+>> +            compatible = "ti,omap4-uart";
+>> +            reg = <0x4806a000 0x100>;
+>> +            interrupts = <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "uart1";
+>> +            clock-frequency = <48000000>;
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        uart2: serial@4806c000 {
+>> +            compatible = "ti,omap4-uart";
+>> +            reg = <0x4806c000 0x100>;
+>> +            interrupts = <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "uart2";
+>> +            clock-frequency = <48000000>;
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        uart3: serial@48020000 {
+>> +            compatible = "ti,omap4-uart";
+>> +            reg = <0x48020000 0x100>;
+>> +            interrupts = <GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "uart3";
+>> +            clock-frequency = <48000000>;
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        uart4: serial@4806e000 {
+>> +            compatible = "ti,omap4-uart";
+>> +            reg = <0x4806e000 0x100>;
+>> +            interrupts = <GIC_SPI 70 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "uart4";
+>> +            clock-frequency = <48000000>;
+>> +                        status = "disabled";
+>> +        };
+>> +
+>> +        uart5: serial@48066000 {
+>> +            compatible = "ti,omap4-uart";
+>> +            reg = <0x48066000 0x100>;
+>> +            interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "uart5";
+>> +            clock-frequency = <48000000>;
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        uart6: serial@48068000 {
+>> +            compatible = "ti,omap4-uart";
+>> +            reg = <0x48068000 0x100>;
+>> +            interrupts = <GIC_SPI 106 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "uart6";
+>> +            clock-frequency = <48000000>;
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        uart7: serial@48420000 {
+>> +            compatible = "ti,omap4-uart";
+>> +            reg = <0x48420000 0x100>;
+>> +            ti,hwmods = "uart7";
+>> +            clock-frequency = <48000000>;
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        uart8: serial@48422000 {
+>> +            compatible = "ti,omap4-uart";
+>> +            reg = <0x48422000 0x100>;
+>> +            ti,hwmods = "uart8";
+>> +            clock-frequency = <48000000>;
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        uart9: serial@48424000 {
+>> +            compatible = "ti,omap4-uart";
+>> +            reg = <0x48424000 0x100>;
+>> +            ti,hwmods = "uart9";
+>> +            clock-frequency = <48000000>;
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        uart10: serial@4ae2b000 {
+>> +            compatible = "ti,omap4-uart";
+>> +            reg = <0x4ae2b000 0x100>;
+>> +            ti,hwmods = "uart10";
+>> +            clock-frequency = <48000000>;
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        timer1: timer@4ae18000 {
+>> +            compatible = "ti,omap5430-timer";
+>> +            reg = <0x4ae18000 0x80>;
+>> +            interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "timer1";
+>> +            ti,timer-alwon;
+>> +        };
+>> +
+>> +        timer2: timer@48032000 {
+>> +            compatible = "ti,omap5430-timer";
+>> +            reg = <0x48032000 0x80>;
+>> +            interrupts = <GIC_SPI 38 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "timer2";
+>> +        };
+>> +
+>> +        timer3: timer@48034000 {
+>> +            compatible = "ti,omap5430-timer";
+>> +            reg = <0x48034000 0x80>;
+>> +            interrupts = <GIC_SPI 39 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "timer3";
+>> +        };
+>> +
+>> +        timer4: timer@48036000 {
+>> +            compatible = "ti,omap5430-timer";
+>> +            reg = <0x48036000 0x80>;
+>> +            interrupts = <GIC_SPI 40 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "timer4";
+>> +        };
+>> +
+>> +        timer5: timer@48820000 {
+>> +            compatible = "ti,omap5430-timer";
+>> +            reg = <0x48820000 0x80>;
+>> +            interrupts = <GIC_SPI 41 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "timer5";
+>> +            ti,timer-dsp;
+>> +        };
+>> +
+>> +        timer6: timer@48822000 {
+>> +            compatible = "ti,omap5430-timer";
+>> +            reg = <0x48822000 0x80>;
+>> +            interrupts = <GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "timer6";
+>> +            ti,timer-dsp;
+>> +            ti,timer-pwm;
+>> +        };
+>> +
+>> +        timer7: timer@48824000 {
+>> +            compatible = "ti,omap5430-timer";
+>> +            reg = <0x48824000 0x80>;
+>> +            interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "timer7";
+>> +            ti,timer-dsp;
+>> +        };
+>> +
+>> +        timer8: timer@48826000 {
+>> +            compatible = "ti,omap5430-timer";
+>> +            reg = <0x48826000 0x80>;
+>> +            interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "timer8";
+>> +            ti,timer-dsp;
+>> +            ti,timer-pwm;
+>> +        };
+>> +
+>> +        timer9: timer@4803e000 {
+>> +            compatible = "ti,omap5430-timer";
+>> +            reg = <0x4803e000 0x80>;
+>> +            interrupts = <GIC_SPI 45 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "timer9";
+>> +        };
+>> +
+>> +        timer10: timer@48086000 {
+>> +            compatible = "ti,omap5430-timer";
+>> +            reg = <0x48086000 0x80>;
+>> +            interrupts = <GIC_SPI 46 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "timer10";
+>> +        };
+>> +
+>> +        timer11: timer@48088000 {
+>> +            compatible = "ti,omap5430-timer";
+>> +            reg = <0x48088000 0x80>;
+>> +            interrupts = <GIC_SPI 47 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "timer11";
+>> +            ti,timer-pwm;
+>> +        };
+>> +
+>> +        timer13: timer@48828000 {
+>> +            compatible = "ti,omap5430-timer";
+>> +            reg = <0x48828000 0x80>;
+>> +            ti,hwmods = "timer13";
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        timer14: timer@4882a000 {
+>> +            compatible = "ti,omap5430-timer";
+>> +            reg = <0x4882a000 0x80>;
+>> +            ti,hwmods = "timer14";
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        timer15: timer@4882c000 {
+>> +            compatible = "ti,omap5430-timer";
+>> +            reg = <0x4882c000 0x80>;
+>> +            ti,hwmods = "timer15";
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        timer16: timer@4882e000 {
+>> +            compatible = "ti,omap5430-timer";
+>> +            reg = <0x4882e000 0x80>;
+>> +            ti,hwmods = "timer16";
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        wdt2: wdt@4ae14000 {
+>> +            compatible = "ti,omap4-wdt";
+>> +            reg = <0x4ae14000 0x80>;
+>> +            interrupts = <GIC_SPI 80 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "wd_timer2";
+>> +        };
+>> +
+>> +        i2c1: i2c@48070000 {
+>> +            compatible = "ti,omap4-i2c";
+>> +            reg = <0x48070000 0x100>;
+>> +            interrupts = <GIC_SPI 56 IRQ_TYPE_LEVEL_HIGH>;
+>> +            #address-cells = <1>;
+>> +            #size-cells = <0>;
+>> +            ti,hwmods = "i2c1";
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        i2c2: i2c@48072000 {
+>> +            compatible = "ti,omap4-i2c";
+>> +            reg = <0x48072000 0x100>;
+>> +            interrupts = <GIC_SPI 57 IRQ_TYPE_LEVEL_HIGH>;
+>> +            #address-cells = <1>;
+>> +            #size-cells = <0>;
+>> +            ti,hwmods = "i2c2";
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        i2c3: i2c@48060000 {
+>> +            compatible = "ti,omap4-i2c";
+>> +            reg = <0x48060000 0x100>;
+>> +            interrupts = <GIC_SPI 61 IRQ_TYPE_LEVEL_HIGH>;
+>> +            #address-cells = <1>;
+>> +            #size-cells = <0>;
+>> +            ti,hwmods = "i2c3";
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        i2c4: i2c@4807a000 {
+>> +            compatible = "ti,omap4-i2c";
+>> +            reg = <0x4807a000 0x100>;
+>> +            interrupts = <GIC_SPI 62 IRQ_TYPE_LEVEL_HIGH>;
+>> +            #address-cells = <1>;
+>> +            #size-cells = <0>;
+>> +            ti,hwmods = "i2c4";
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        i2c5: i2c@4807c000 {
+>> +            compatible = "ti,omap4-i2c";
+>> +            reg = <0x4807c000 0x100>;
+>> +            interrupts = <GIC_SPI 60 IRQ_TYPE_LEVEL_HIGH>;
+>> +            #address-cells = <1>;
+>> +            #size-cells = <0>;
+>> +            ti,hwmods = "i2c5";
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        mmc1: mmc@4809c000 {
+>> +            compatible = "ti,omap4-hsmmc";
+>> +            reg = <0x4809c000 0x400>;
+>> +            interrupts = <GIC_SPI 83 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "mmc1";
+>> +            ti,dual-volt;
+>> +            ti,needs-special-reset;
+>> +            dmas = <&sdma 61>, <&sdma 62>;
+>> +            dma-names = "tx", "rx";
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        mmc2: mmc@480b4000 {
+>> +            compatible = "ti,omap4-hsmmc";
+>> +            reg = <0x480b4000 0x400>;
+>> +            interrupts = <GIC_SPI 86 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "mmc2";
+>> +            ti,needs-special-reset;
+>> +            dmas = <&sdma 47>, <&sdma 48>;
+>> +            dma-names = "tx", "rx";
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        mmc3: mmc@480ad000 {
+>> +            compatible = "ti,omap4-hsmmc";
+>> +            reg = <0x480ad000 0x400>;
+>> +            interrupts = <GIC_SPI 94 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "mmc3";
+>> +            ti,needs-special-reset;
+>> +            dmas = <&sdma 77>, <&sdma 78>;
+>> +            dma-names = "tx", "rx";
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        mmc4: mmc@480d1000 {
+>> +            compatible = "ti,omap4-hsmmc";
+>> +            reg = <0x480d1000 0x400>;
+>> +            interrupts = <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH>;
+>> +            ti,hwmods = "mmc4";
+>> +            ti,needs-special-reset;
+>> +            dmas = <&sdma 57>, <&sdma 58>;
+>> +            dma-names = "tx", "rx";
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        mcspi1: spi@48098000 {
+>> +            compatible = "ti,omap4-mcspi";
+>> +            reg = <0x48098000 0x200>;
+>> +            interrupts = <GIC_SPI 65 IRQ_TYPE_LEVEL_HIGH>;
+>> +            #address-cells = <1>;
+>> +            #size-cells = <0>;
+>> +            ti,hwmods = "mcspi1";
+>> +            ti,spi-num-cs = <4>;
+>> +            dmas = <&sdma 35>,
+>> +                   <&sdma 36>,
+>> +                   <&sdma 37>,
+>> +                   <&sdma 38>,
+>> +                   <&sdma 39>,
+>> +                   <&sdma 40>,
+>> +                   <&sdma 41>,
+>> +                   <&sdma 42>;
+>> +            dma-names = "tx0", "rx0", "tx1", "rx1",
+>> +                    "tx2", "rx2", "tx3", "rx3";
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        mcspi2: spi@4809a000 {
+>> +            compatible = "ti,omap4-mcspi";
+>> +            reg = <0x4809a000 0x200>;
+>> +            interrupts = <GIC_SPI 66 IRQ_TYPE_LEVEL_HIGH>;
+>> +            #address-cells = <1>;
+>> +            #size-cells = <0>;
+>> +            ti,hwmods = "mcspi2";
+>> +            ti,spi-num-cs = <2>;
+>> +            dmas = <&sdma 43>,
+>> +                   <&sdma 44>,
+>> +                   <&sdma 45>,
+>> +                   <&sdma 46>;
+>> +            dma-names = "tx0", "rx0", "tx1", "rx1";
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        mcspi3: spi@480b8000 {
+>> +            compatible = "ti,omap4-mcspi";
+>> +            reg = <0x480b8000 0x200>;
+>> +            interrupts = <GIC_SPI 91 IRQ_TYPE_LEVEL_HIGH>;
+>> +            #address-cells = <1>;
+>> +            #size-cells = <0>;
+>> +            ti,hwmods = "mcspi3";
+>> +            ti,spi-num-cs = <2>;
+>> +            dmas = <&sdma 15>, <&sdma 16>;
+>> +            dma-names = "tx0", "rx0";
+>> +            status = "disabled";
+>> +        };
+>> +
+>> +        mcspi4: spi@480ba000 {
+>> +            compatible = "ti,omap4-mcspi";
+>> +            reg = <0x480ba000 0x200>;
+>> +            interrupts = <GIC_SPI 48 IRQ_TYPE_LEVEL_HIGH>;
+>> +            #address-cells = <1>;
+>> +            #size-cells = <0>;
+>> +            ti,hwmods = "mcspi4";
+>> +            ti,spi-num-cs = <1>;
+>> +            dmas = <&sdma 70>, <&sdma 71>;
+>> +            dma-names = "tx0", "rx0";
+>> +            status = "disabled";
+>> +        };
+>> +    };
+>> +};
+>> diff --git a/include/dt-bindings/pinctrl/dra.h b/include/dt-bindings/pinctrl/dra.h
+>> new file mode 100644
+>> index 0000000..d0ad97b
+>> --- /dev/null
+>> +++ b/include/dt-bindings/pinctrl/dra.h
+>> @@ -0,0 +1,45 @@
+>> +/*
+>> + * This header provides constants for DRA pinctrl bindings.
+>> + *
+>> + * Copyright (C) 2013 Texas Instruments
+> 
+> Nit: You don't have the regular GPLv2 text.
 
-diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
-index 5443958..40e83b5 100644
---- a/drivers/usb/phy/Kconfig
-+++ b/drivers/usb/phy/Kconfig
-@@ -202,6 +202,17 @@ config USB_RCAR_PHY
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called phy-rcar-usb.
- 
-+config USB_MSM_DWC3_PHYS
-+	tristate "Qualcomm DWC3 USB controller PHY's support"
-+	depends on (USB || USB_GADGET) && ARCH_MSM
-+	select USB_PHY
-+	help
-+	  Enable this to support the USB PHY transceivers on MSM chips with
-+	  DWC3 USB core. It handles PHY initialization, clock management
-+	  required after resetting the hardware and power management.
-+	  This driver is required even for peripheral only or host only
-+	  mode configurations.
-+
- config USB_ULPI
- 	bool "Generic ULPI Transceiver Driver"
- 	depends on ARM
-diff --git a/drivers/usb/phy/Makefile b/drivers/usb/phy/Makefile
-index 98730ca..ddaa11c 100644
---- a/drivers/usb/phy/Makefile
-+++ b/drivers/usb/phy/Makefile
-@@ -24,6 +24,8 @@ obj-$(CONFIG_USB_EHCI_TEGRA)		+= phy-tegra-usb.o
- obj-$(CONFIG_USB_GPIO_VBUS)		+= phy-gpio-vbus-usb.o
- obj-$(CONFIG_USB_ISP1301)		+= phy-isp1301.o
- obj-$(CONFIG_USB_MSM_OTG)		+= phy-msm-usb.o
-+obj-$(CONFIG_USB_MSM_DWC3_PHYS)		+= phy-msm-dwc3-hs.o
-+obj-$(CONFIG_USB_MSM_DWC3_PHYS)		+= phy-msm-dwc3-ss.o
- obj-$(CONFIG_USB_MV_OTG)		+= phy-mv-usb.o
- obj-$(CONFIG_USB_MXS_PHY)		+= phy-mxs-usb.o
- obj-$(CONFIG_USB_RCAR_PHY)		+= phy-rcar-usb.o
-diff --git a/drivers/usb/phy/phy-msm-dwc3-hs.c b/drivers/usb/phy/phy-msm-dwc3-hs.c
-new file mode 100644
-index 0000000..465a8f5
---- /dev/null
-+++ b/drivers/usb/phy/phy-msm-dwc3-hs.c
-@@ -0,0 +1,336 @@
-+/* Copyright (c) 2013, Code Aurora Forum. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-+ * 02110-1301, USA.
-+ *
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
-+#include <linux/regulator/consumer.h>
-+#include <linux/usb/phy.h>
-+
-+/**
-+ *  USB QSCRATCH Hardware registers
-+ */
-+#define QSCRATCH_CTRL_REG		(0x04)
-+#define QSCRATCH_GENERAL_CFG		(0x08)
-+#define PHY_CTRL_REG			(0x10)
-+#define PARAMETER_OVERRIDE_X_REG	(0x14)
-+#define CHARGING_DET_CTRL_REG		(0x18)
-+#define CHARGING_DET_OUTPUT_REG		(0x1c)
-+#define ALT_INTERRUPT_EN_REG		(0x20)
-+#define PHY_IRQ_STAT_REG		(0x24)
-+#define CGCTL_REG			(0x28)
-+
-+#define PHY_3P3_VOL_MIN			3050000 /* uV */
-+#define PHY_3P3_VOL_MAX			3300000 /* uV */
-+#define PHY_3P3_HPM_LOAD		16000	/* uA */
-+
-+#define PHY_1P8_VOL_MIN			1800000 /* uV */
-+#define PHY_1P8_VOL_MAX			1800000 /* uV */
-+#define PHY_1P8_HPM_LOAD		19000	/* uA */
-+
-+/* TODO: these are suspicious */
-+#define USB_VDDCX_NO			1	/* uV */
-+#define USB_VDDCX_MIN			5	/* uV */
-+#define USB_VDDCX_MAX			7	/* uV */
-+
-+struct msm_dwc3_hs_phy {
-+	struct usb_phy		phy;
-+	void __iomem		*base;
-+	struct device		*dev;
-+
-+	struct clk		*xo_clk;
-+	struct clk		*sleep_a_clk;
-+
-+	struct regulator	*v3p3;
-+	struct regulator	*v1p8;
-+	struct regulator	*vddcx;
-+	struct regulator	*vbus;
-+};
-+
-+#define	phy_to_dwc3_phy(x)	container_of((x), struct msm_dwc3_hs_phy, phy)
-+
-+
-+/**
-+ *
-+ * Write register with debug info.
-+ *
-+ * @base - DWC3 base virtual address.
-+ * @offset - register offset.
-+ * @val - value to write.
-+ *
-+ */
-+static inline void msm_dwc3_hs_write(void *base, u32 offset, u32 val)
-+{
-+	iowrite32(val, base + offset);
-+}
-+
-+/**
-+ * Write register and read back masked value to confirm it is written
-+ *
-+ * @base - DWC3 base virtual address.
-+ * @offset - register offset.
-+ * @mask - register bitmask specifying what should be updated
-+ * @val - value to write.
-+ *
-+ */
-+static inline void msm_dwc3_hs_write_readback(void *base, u32 offset,
-+					    const u32 mask, u32 val)
-+{
-+	u32 write_val, tmp = ioread32(base + offset);
-+
-+	tmp &= ~mask;		/* retain other bits */
-+	write_val = tmp | val;
-+
-+	iowrite32(write_val, base + offset);
-+
-+	/* Read back to see if val was written */
-+	tmp = ioread32(base + offset);
-+	tmp &= mask;		/* clear other bits */
-+
-+	if (tmp != val)
-+		pr_err("write: %x to QSCRATCH: %x FAILED\n", val, offset);
-+}
-+
-+static void msm_dwc3_hs_phy_shutdown(struct usb_phy *x)
-+{
-+	struct msm_dwc3_hs_phy *phy = phy_to_dwc3_phy(x);
-+	int ret;
-+
-+	ret = regulator_set_voltage(phy->v3p3, 0, PHY_3P3_VOL_MAX);
-+	if (ret)
-+		dev_err(phy->dev, "unable to set voltage for v3p3\n");
-+
-+	ret = regulator_set_voltage(phy->v1p8, 0, PHY_1P8_VOL_MAX);
-+	if (ret)
-+		dev_err(phy->dev, "unable to set voltage for v1p8\n");
-+
-+	ret = regulator_disable(phy->v1p8);
-+	if (ret)
-+		dev_err(phy->dev, "cannot disable v1p8\n");
-+
-+	ret = regulator_disable(phy->v3p3);
-+	if (ret)
-+		dev_err(phy->dev, "cannot disable v3p3\n");
-+
-+	ret = regulator_set_voltage(phy->vddcx, USB_VDDCX_NO, USB_VDDCX_MAX);
-+	if (ret)
-+		dev_err(phy->dev, "unable to set voltage for vddcx\n");
-+
-+	ret = regulator_disable(phy->vddcx);
-+	if (ret)
-+		dev_err(phy->dev, "unable to enable the vddcx\n");
-+
-+	clk_disable_unprepare(phy->sleep_a_clk);
-+}
-+
-+static int msm_dwc3_hs_phy_init(struct usb_phy *x)
-+{
-+	struct msm_dwc3_hs_phy	*phy = phy_to_dwc3_phy(x);
-+	int ret;
-+
-+	clk_prepare_enable(phy->sleep_a_clk);
-+
-+	ret = regulator_set_voltage(phy->vddcx, USB_VDDCX_MIN, USB_VDDCX_MAX);
-+	if (ret) {
-+		dev_err(phy->dev, "unable to set voltage for vddcx\n");
-+		return ret;
-+	}
-+
-+	ret = regulator_enable(phy->vddcx);
-+	if (ret) {
-+		dev_err(phy->dev, "unable to enable the vddcx\n");
-+		return ret;
-+	}
-+
-+	ret = regulator_set_voltage(phy->v3p3, PHY_3P3_VOL_MIN,
-+				    PHY_3P3_VOL_MAX);
-+	if (ret) {
-+		dev_err(phy->dev, "unable to set voltage for v3p3\n");
-+		return ret;
-+	}
-+
-+	ret = regulator_set_voltage(phy->v1p8, PHY_1P8_VOL_MIN,
-+				    PHY_1P8_VOL_MAX);
-+	if (ret) {
-+		dev_err(phy->dev, "unable to set voltage for v1p8\n");
-+		return ret;
-+	}
-+
-+	ret = regulator_set_optimum_mode(phy->v1p8, PHY_1P8_HPM_LOAD);
-+	if (ret < 0) {
-+		dev_err(phy->dev, "unable to set HPM of regulator v1p8\n");
-+		return ret;
-+	}
-+
-+	ret = regulator_enable(phy->v1p8);
-+	if (ret) {
-+		dev_err(phy->dev, "unable to enable v1p8\n");
-+		return ret;
-+	}
-+
-+	ret = regulator_set_optimum_mode(phy->v3p3, PHY_3P3_HPM_LOAD);
-+	if (ret < 0) {
-+		dev_err(phy->dev, "unable to set HPM of regulator v3p3\n");
-+		return ret;
-+	}
-+
-+	ret = regulator_enable(phy->v3p3);
-+	if (ret) {
-+		dev_err(phy->dev, "unable to enable v3p3\n");
-+		return ret;
-+	}
-+
-+	/*
-+	 * HSPHY Initialization: Enable UTMI clock and clamp enable HVINTs,
-+	 * and disable RETENTION (power-on default is ENABLED)
-+	 */
-+	msm_dwc3_hs_write(phy->base, PHY_CTRL_REG, 0x5220bb2);
-+	usleep_range(2000, 2200);
-+
-+	/*
-+	 * write HSPHY init value to QSCRATCH reg to set HSPHY parameters like
-+	 * VBUS valid threshold, disconnect valid threshold, DC voltage level,
-+	 * preempasis and rise/fall time.
-+	 */
-+	msm_dwc3_hs_write_readback(phy->base, PARAMETER_OVERRIDE_X_REG,
-+				0x03ffffff, 0x00d191a4);
-+
-+	/* Disable (bypass) VBUS and ID filters */
-+	msm_dwc3_hs_write(phy->base, QSCRATCH_GENERAL_CFG, 0x78);
-+
-+	return 0;
-+}
-+
-+static int msm_dwc3_hs_phy_set_vbus(struct usb_phy *x, int on)
-+{
-+	struct msm_dwc3_hs_phy	*phy = phy_to_dwc3_phy(x);
-+	int ret;
-+
-+	if (on)
-+		ret = regulator_enable(phy->vbus);
-+	else
-+		ret = regulator_disable(phy->vbus);
-+
-+	if (ret)
-+		dev_err(x->dev, "Cannot %s Vbus\n", on ? "set" : "off");
-+	return ret;
-+}
-+
-+static int msm_dwc3_hs_probe(struct platform_device *pdev)
-+{
-+	struct msm_dwc3_hs_phy	*phy;
-+	struct resource		*res;
-+	void __iomem		*base;
-+
-+	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
-+	if (!phy)
-+		return -ENOMEM;
-+
-+	platform_set_drvdata(pdev, phy);
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	base = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(base))
-+		return PTR_ERR(base);
-+
-+	phy->vddcx = devm_regulator_get(&pdev->dev, "vddcx");
-+	if (IS_ERR(phy->vddcx)) {
-+		dev_err(&pdev->dev, "unable to get vddcx\n");
-+		return  PTR_ERR(phy->vddcx);
-+	}
-+
-+	phy->v3p3 = devm_regulator_get(phy->dev, "v3p3");
-+	if (IS_ERR(phy->v3p3)) {
-+		dev_err(phy->dev, "unable to get v3p3\n");
-+		return PTR_ERR(phy->v3p3);
-+	}
-+
-+	phy->v1p8 = devm_regulator_get(phy->dev, "v1p8");
-+	if (IS_ERR(phy->v1p8)) {
-+		dev_err(phy->dev, "unable to get v1p8\n");
-+		return PTR_ERR(phy->v1p8);
-+	}
-+
-+	phy->vbus = devm_regulator_get(&pdev->dev, "vbus");
-+	if (IS_ERR(phy->vbus)) {
-+		dev_err(phy->dev, "Failed to get vbus\n");
-+		return PTR_ERR(phy->vbus);
-+	}
-+
-+	phy->xo_clk = devm_clk_get(&pdev->dev, "xo");
-+	if (IS_ERR(phy->xo_clk)) {
-+		dev_err(&pdev->dev, "unable to get TCXO buffer handle\n");
-+		return PTR_ERR(phy->xo_clk);
-+	}
-+
-+	phy->sleep_a_clk = devm_clk_get(&pdev->dev, "sleep_a_clk");
-+	if (IS_ERR(phy->sleep_a_clk)) {
-+		dev_err(&pdev->dev, "failed to get sleep_a_clk\n");
-+		return PTR_ERR(phy->sleep_a_clk);
-+	}
-+
-+	clk_prepare_enable(phy->xo_clk);
-+
-+	phy->dev		= &pdev->dev;
-+	phy->base		= base;
-+	phy->phy.dev		= phy->dev;
-+	phy->phy.label		= "msm-dwc3-hsphy";
-+	phy->phy.init		= msm_dwc3_hs_phy_init;
-+	phy->phy.shutdown	= msm_dwc3_hs_phy_shutdown;
-+	phy->phy.set_vbus	= msm_dwc3_hs_phy_set_vbus;
-+	phy->phy.type		= USB_PHY_TYPE_USB2;
-+	phy->phy.state          = OTG_STATE_UNDEFINED;
-+
-+	usb_add_phy_dev(&phy->phy);
-+
-+	return 0;
-+}
-+
-+static int msm_dwc3_hs_remove(struct platform_device *pdev)
-+{
-+	struct msm_dwc3_hs_phy *phy = platform_get_drvdata(pdev);
-+
-+	clk_disable_unprepare(phy->xo_clk);
-+	usb_remove_phy(&phy->phy);
-+	return 0;
-+}
-+
-+static const struct of_device_id msm_dwc3_hs_id_table[] = {
-+	{ .compatible = "qcom,dwc3-hsphy" },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, msm_dwc3_hs_id_table);
-+
-+static struct platform_driver msm_dwc3_hs_driver = {
-+	.probe		= msm_dwc3_hs_probe,
-+	.remove		= msm_dwc3_hs_remove,
-+	.driver		= {
-+		.name	= "msm-dwc3-hsphy",
-+		.owner	= THIS_MODULE,
-+		.of_match_table = msm_dwc3_hs_id_table,
-+	},
-+};
-+
-+module_platform_driver(msm_dwc3_hs_driver);
-+
-+MODULE_ALIAS("platform:msm_dwc3_hsphy");
-+MODULE_LICENSE("GPL v2");
-+MODULE_DESCRIPTION("DesignWare USB3 MSM HS-PHY driver");
-diff --git a/drivers/usb/phy/phy-msm-dwc3-ss.c b/drivers/usb/phy/phy-msm-dwc3-ss.c
-new file mode 100644
-index 0000000..b2f9266
---- /dev/null
-+++ b/drivers/usb/phy/phy-msm-dwc3-ss.c
-@@ -0,0 +1,383 @@
-+/* Copyright (c) 2013, Code Aurora Forum. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-+ * 02110-1301, USA.
-+ *
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
-+#include <linux/regulator/consumer.h>
-+#include <linux/usb/phy.h>
-+
-+/**
-+ *  USB QSCRATCH Hardware registers
-+ */
-+#define PHY_CTRL_REG			(0x00)
-+#define PHY_PARAM_CTRL_1		(0x04)
-+#define PHY_PARAM_CTRL_2		(0x08)
-+#define CR_PROTOCOL_DATA_IN_REG		(0x0c)
-+#define CR_PROTOCOL_DATA_OUT_REG	(0x10)
-+#define CR_PROTOCOL_CAP_ADDR_REG	(0x14)
-+#define CR_PROTOCOL_CAP_DATA_REG	(0x18)
-+#define CR_PROTOCOL_READ_REG		(0x1c)
-+#define CR_PROTOCOL_WRITE_REG		(0x20)
-+
-+#define PHY_1P8_VOL_MIN			1800000 /* uV */
-+#define PHY_1P8_VOL_MAX			1800000 /* uV */
-+#define PHY_1P8_HPM_LOAD		23000	/* uA */
-+
-+/* TODO: these are suspicious */
-+#define USB_VDDCX_NO			1	/* uV */
-+#define USB_VDDCX_MIN			5	/* uV */
-+#define USB_VDDCX_MAX			7	/* uV */
-+
-+struct msm_dwc3_ss_phy {
-+	struct usb_phy		phy;
-+	void __iomem		*base;
-+	struct device		*dev;
-+
-+	struct regulator	*v1p8;
-+	struct regulator	*vddcx;
-+
-+	struct clk		*xo_clk;
-+	struct clk		*ref_clk;
-+};
-+
-+#define	phy_to_dwc3_phy(x)	container_of((x), struct msm_dwc3_ss_phy, phy)
-+
-+
-+/**
-+ *
-+ * Write register with debug info.
-+ *
-+ * @base - DWC3 base virtual address.
-+ * @offset - register offset.
-+ * @val - value to write.
-+ *
-+ */
-+static inline void msm_dwc3_ss_write(void *base, u32 offset, u32 val)
-+{
-+	iowrite32(val, base + offset);
-+}
-+
-+/**
-+ * Write register and read back masked value to confirm it is written
-+ *
-+ * @base - DWC3 base virtual address.
-+ * @offset - register offset.
-+ * @mask - register bitmask specifying what should be updated
-+ * @val - value to write.
-+ *
-+ */
-+static inline void msm_dwc3_ss_write_readback(void *base, u32 offset,
-+					    const u32 mask, u32 val)
-+{
-+	u32 write_val, tmp = ioread32(base + offset);
-+
-+	tmp &= ~mask;		/* retain other bits */
-+	write_val = tmp | val;
-+
-+	iowrite32(write_val, base + offset);
-+
-+	/* Read back to see if val was written */
-+	tmp = ioread32(base + offset);
-+	tmp &= mask;		/* clear other bits */
-+
-+	if (tmp != val)
-+		pr_err("write: %x to QSCRATCH: %x FAILED\n", val, offset);
-+}
-+
-+/**
-+ *
-+ * Write SSPHY register with debug info.
-+ *
-+ * @base - DWC3 base virtual address.
-+ * @addr - SSPHY address to write.
-+ * @val - value to write.
-+ *
-+ */
-+static void msm_dwc3_ss_write_phycreg(void *base, u32 addr, u32 val)
-+{
-+	iowrite32(addr, base + CR_PROTOCOL_DATA_IN_REG);
-+	iowrite32(0x1, base + CR_PROTOCOL_CAP_ADDR_REG);
-+	while (ioread32(base + CR_PROTOCOL_CAP_ADDR_REG))
-+		cpu_relax();
-+
-+	iowrite32(val, base + CR_PROTOCOL_DATA_IN_REG);
-+	iowrite32(0x1, base + CR_PROTOCOL_CAP_DATA_REG);
-+	while (ioread32(base + CR_PROTOCOL_CAP_DATA_REG))
-+		cpu_relax();
-+
-+	iowrite32(0x1, base + CR_PROTOCOL_WRITE_REG);
-+	while (ioread32(base + CR_PROTOCOL_WRITE_REG))
-+		cpu_relax();
-+}
-+
-+/**
-+ *
-+ * Read SSPHY register with debug info.
-+ *
-+ * @base - DWC3 base virtual address.
-+ * @addr - SSPHY address to read.
-+ *
-+ */
-+static u32 msm_dwc3_ss_read_phycreg(void *base, u32 addr)
-+{
-+	bool first_read = true;
-+
-+	iowrite32(addr, base + CR_PROTOCOL_DATA_IN_REG);
-+	iowrite32(0x1, base + CR_PROTOCOL_CAP_ADDR_REG);
-+	while (ioread32(base + CR_PROTOCOL_CAP_ADDR_REG))
-+		cpu_relax();
-+
-+	/*
-+	 * Due to hardware bug, first read of SSPHY register might be
-+	 * incorrect. Hence as workaround, SW should perform SSPHY register
-+	 * read twice, but use only second read and ignore first read.
-+	 */
-+retry:
-+	iowrite32(0x1, base + CR_PROTOCOL_READ_REG);
-+	while (ioread32(base + CR_PROTOCOL_READ_REG))
-+		cpu_relax();
-+
-+	if (first_read) {
-+		ioread32(base + CR_PROTOCOL_DATA_OUT_REG);
-+		first_read = false;
-+		goto retry;
-+	}
-+
-+	return ioread32(base + CR_PROTOCOL_DATA_OUT_REG);
-+}
-+
-+static void msm_dwc3_ss_phy_shutdown(struct usb_phy *x)
-+{
-+	struct msm_dwc3_ss_phy *phy = phy_to_dwc3_phy(x);
-+	int ret;
-+
-+	/* Sequence to put SSPHY in low power state:
-+	 * 1. Clear REF_PHY_EN in PHY_CTRL_REG
-+	 * 2. Clear REF_USE_PAD in PHY_CTRL_REG
-+	 * 3. Set TEST_POWERED_DOWN in PHY_CTRL_REG to enable PHY retention
-+	 * 4. Disable SSPHY ref clk
-+	 */
-+	msm_dwc3_ss_write_readback(phy->base, PHY_CTRL_REG, (1 << 8), 0x0);
-+	msm_dwc3_ss_write_readback(phy->base, PHY_CTRL_REG, (1 << 28), 0x0);
-+	msm_dwc3_ss_write_readback(phy->base, PHY_CTRL_REG,
-+				    (1 << 26), (1 << 26));
-+
-+	usleep_range(1000, 1200);
-+	clk_disable_unprepare(phy->ref_clk);
-+
-+	ret = regulator_set_voltage(phy->vddcx, USB_VDDCX_NO, USB_VDDCX_MAX);
-+	if (ret)
-+		dev_err(phy->dev, "unable to set voltage for vddcx\n");
-+
-+	regulator_disable(phy->vddcx);
-+
-+	ret = regulator_set_voltage(phy->v1p8, 0, PHY_1P8_VOL_MAX);
-+	if (ret)
-+		dev_err(phy->dev, "unable to set v1p8\n");
-+
-+	regulator_disable(phy->v1p8);
-+}
-+
-+static int msm_dwc3_ss_phy_init(struct usb_phy *x)
-+{
-+	struct msm_dwc3_ss_phy *phy = phy_to_dwc3_phy(x);
-+	u32 data = 0;
-+	int ret;
-+
-+	ret = regulator_set_voltage(phy->vddcx, USB_VDDCX_MIN, USB_VDDCX_MAX);
-+	if (ret) {
-+		dev_err(phy->dev, "unable to set voltage for vddcx\n");
-+		return ret;
-+	}
-+
-+	ret = regulator_enable(phy->vddcx);
-+	if (ret) {
-+		dev_err(phy->dev, "cannot enable the vddcx\n");
-+		return ret;
-+	}
-+
-+	ret = regulator_set_voltage(phy->v1p8, PHY_1P8_VOL_MIN,
-+				    PHY_1P8_VOL_MAX);
-+	if (ret) {
-+		regulator_disable(phy->vddcx);
-+		dev_err(phy->dev, "unable to set v1p8\n");
-+		return ret;
-+	}
-+
-+	ret = regulator_enable(phy->v1p8);
-+	if (ret) {
-+		regulator_disable(phy->vddcx);
-+		dev_err(phy->dev, "cannot enable the v1p8\n");
-+		return ret;
-+	}
-+
-+	clk_prepare_enable(phy->ref_clk);
-+	usleep_range(1000, 1200);
-+
-+	/* SSPHY Initialization: Use ref_clk from pads and set its parameters */
-+	msm_dwc3_ss_write(phy->base, PHY_CTRL_REG, 0x10210002);
-+	msleep(30);
-+	/* Assert SSPHY reset */
-+	msm_dwc3_ss_write(phy->base, PHY_CTRL_REG, 0x10210082);
-+	usleep_range(2000, 2200);
-+	/* De-assert SSPHY reset - power and ref_clock must be ON */
-+	msm_dwc3_ss_write(phy->base, PHY_CTRL_REG, 0x10210002);
-+	usleep_range(2000, 2200);
-+	/* Ref clock must be stable now, enable ref clock for HS mode */
-+	msm_dwc3_ss_write(phy->base, PHY_CTRL_REG, 0x10210102);
-+	usleep_range(2000, 2200);
-+
-+	/*
-+	 * WORKAROUND: There is SSPHY suspend bug due to which USB enumerates
-+	 * in HS mode instead of SS mode. Workaround it by asserting
-+	 * LANE0.TX_ALT_BLOCK.EN_ALT_BUS to enable TX to use alt bus mode
-+	 */
-+	data = msm_dwc3_ss_read_phycreg(phy->base, 0x102d);
-+	data |= (1 << 7);
-+	msm_dwc3_ss_write_phycreg(phy->base, 0x102D, data);
-+
-+	data = msm_dwc3_ss_read_phycreg(phy->base, 0x1010);
-+	data &= ~0xff0;
-+	data |= 0x20;
-+	msm_dwc3_ss_write_phycreg(phy->base, 0x1010, data);
-+
-+	/*
-+	 * Fix RX Equalization setting as follows
-+	 * LANE0.RX_OVRD_IN_HI. RX_EQ_EN set to 0
-+	 * LANE0.RX_OVRD_IN_HI.RX_EQ_EN_OVRD set to 1
-+	 * LANE0.RX_OVRD_IN_HI.RX_EQ set to 3
-+	 * LANE0.RX_OVRD_IN_HI.RX_EQ_OVRD set to 1
-+	 */
-+	data = msm_dwc3_ss_read_phycreg(phy->base, 0x1006);
-+	data &= ~(1 << 6);
-+	data |= (1 << 7);
-+	data &= ~(0x7 << 8);
-+	data |= (0x3 << 8);
-+	data |= (0x1 << 11);
-+	msm_dwc3_ss_write_phycreg(phy->base, 0x1006, data);
-+
-+	/*
-+	 * Set EQ and TX launch amplitudes as follows
-+	 * LANE0.TX_OVRD_DRV_LO.PREEMPH set to 22
-+	 * LANE0.TX_OVRD_DRV_LO.AMPLITUDE set to 127
-+	 * LANE0.TX_OVRD_DRV_LO.EN set to 1.
-+	 */
-+	data = msm_dwc3_ss_read_phycreg(phy->base, 0x1002);
-+	data &= ~0x3f80;
-+	data |= (0x16 << 7);
-+	data &= ~0x7f;
-+	data |= (0x7f | (1 << 14));
-+	msm_dwc3_ss_write_phycreg(phy->base, 0x1002, data);
-+
-+	/*
-+	 * Set the QSCRATCH PHY_PARAM_CTRL1 parameters as follows
-+	 * TX_FULL_SWING [26:20] amplitude to 127
-+	 * TX_DEEMPH_3_5DB [13:8] to 22
-+	 * LOS_BIAS [2:0] to 0x5
-+	 */
-+	msm_dwc3_ss_write_readback(phy->base, PHY_PARAM_CTRL_1,
-+				0x07f03f07, 0x07f01605);
-+	return 0;
-+}
-+
-+static int msm_dwc3_ss_probe(struct platform_device *pdev)
-+{
-+	struct msm_dwc3_ss_phy	*phy;
-+	struct resource		*res;
-+	void __iomem		*base;
-+
-+	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
-+	if (!phy)
-+		return -ENOMEM;
-+
-+	platform_set_drvdata(pdev, phy);
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	base = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(base))
-+		return PTR_ERR(base);
-+
-+	phy->vddcx = devm_regulator_get(phy->dev, "vddcx");
-+	if (IS_ERR(phy->vddcx))
-+		return -EPROBE_DEFER;
-+
-+	phy->v1p8 = devm_regulator_get(phy->dev, "v1p8");
-+	if (IS_ERR(phy->v1p8))
-+		return -EPROBE_DEFER;
-+
-+	phy->xo_clk = devm_clk_get(&pdev->dev, "xo");
-+	if (IS_ERR(phy->xo_clk)) {
-+		dev_err(&pdev->dev, "unable to get TCXO buffer handle\n");
-+		return PTR_ERR(phy->xo_clk);
-+	}
-+
-+	phy->ref_clk = devm_clk_get(&pdev->dev, "ref_clk");
-+	if (IS_ERR(phy->ref_clk)) {
-+		dev_err(&pdev->dev, "unable to get ref_clk handle\n");
-+		return PTR_ERR(phy->ref_clk);
-+	}
-+
-+	clk_prepare_enable(phy->xo_clk);
-+
-+	phy->dev		= &pdev->dev;
-+	phy->base		= base;
-+	phy->phy.dev		= phy->dev;
-+	phy->phy.label		= "msm-dwc3-ssphy";
-+	phy->phy.init		= msm_dwc3_ss_phy_init;
-+	phy->phy.shutdown       = msm_dwc3_ss_phy_shutdown;
-+	phy->phy.type		= USB_PHY_TYPE_USB3;
-+
-+	usb_add_phy_dev(&phy->phy);
-+
-+	return 0;
-+}
-+
-+static int msm_dwc3_ss_remove(struct platform_device *pdev)
-+{
-+	struct msm_dwc3_ss_phy *phy = platform_get_drvdata(pdev);
-+
-+	clk_disable_unprepare(phy->xo_clk);
-+	usb_remove_phy(&phy->phy);
-+	return 0;
-+}
-+
-+static const struct of_device_id msm_dwc3_ss_id_table[] = {
-+	{ .compatible = "qcom,dwc3-ssphy" },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, msm_dwc3_ss_id_table);
-+
-+static struct platform_driver msm_dwc3_ss_driver = {
-+	.probe		= msm_dwc3_ss_probe,
-+	.remove		= msm_dwc3_ss_remove,
-+	.driver		= {
-+		.name	= "msm-dwc3-ssphy",
-+		.owner	= THIS_MODULE,
-+		.of_match_table = msm_dwc3_ss_id_table,
-+	},
-+};
-+
-+module_platform_driver(msm_dwc3_ss_driver);
-+
-+MODULE_ALIAS("platform:msm_dwc3_ssphy");
-+MODULE_LICENSE("GPL v2");
-+MODULE_DESCRIPTION("DesignWare USB3 MSM SS-PHY driver");
--- 
-1.7.9.5
+I think I just picked this up from pinctrl/omap.h :)
+will add the right header.
+
+> 
+>> + */
+>> +
+>> +#ifndef _DT_BINDINGS_PINCTRL_DRA_H
+>> +#define _DT_BINDINGS_PINCTRL_DRA_H
+>> +
+>> +/* DRA7 mux mode options for each pin. See TRM for options */
+> 
+> Do you have a public link for this TRM?
+> If so, it might be good to add the link in the dra7.dtsi header.
+
+We don't have the public TRMs available yet :(
+
+> 
+> Regards,
+> Benoit
+> 
 
