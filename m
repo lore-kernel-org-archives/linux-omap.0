@@ -1,80 +1,54 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 7/7] ARM: dts: omap5: update omap-control-usb node
-Date: Wed, 14 Aug 2013 10:45:49 +0300
-Message-ID: <520B35AD.7070607@ti.com>
-References: <1375365915-21380-1-git-send-email-rogerq@ti.com> <1375365915-21380-8-git-send-email-rogerq@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 12/22] ARM: dts: Remove '0x's from OMAP2420 H4 DTS file
+Date: Wed, 14 Aug 2013 09:00:26 +0100
+Message-ID: <20130814080026.GA4046@lee--X1>
+References: <1374490361-25769-1-git-send-email-lee.jones@linaro.org>
+ <1374490361-25769-12-git-send-email-lee.jones@linaro.org>
+ <20130813154425.GH15278@lee--X1>
+ <20130814073000.GW7656@atomide.com>
+ <520B353F.40106@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47184 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759393Ab3HNHpz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Aug 2013 03:45:55 -0400
-In-Reply-To: <1375365915-21380-8-git-send-email-rogerq@ti.com>
+Received: from mail-ea0-f169.google.com ([209.85.215.169]:42448 "EHLO
+	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757917Ab3HNIAe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Aug 2013 04:00:34 -0400
+Received: by mail-ea0-f169.google.com with SMTP id z7so4600170eaf.14
+        for <linux-omap@vger.kernel.org>; Wed, 14 Aug 2013 01:00:33 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <520B353F.40106@baylibre.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: bcousson@baylibre.com
-Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, tony@atomide.com, kishon@ti.com, george.cherian@ti.com, dmurphy@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, arnd@arndb.de, linus.walleij@stericsson.com, linux-omap@vger.kernel.org
 
-+Benoit
+> >Looks like Benoit's new email address is bcousson@baylibre.com.
+> >Probably best for Benoit to pick these to avoid merge conflicts.
 
-On 08/01/2013 05:05 PM, Roger Quadros wrote:
-> Split USB2 PHY and USB3 PHY into separate omap-control-usb
-> nodes. Update ti,mode property.
-> 
-> CC: Benoit Cousson <benoit.cousson@linaro.org>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  arch/arm/boot/dts/omap5.dtsi |   18 ++++++++++++------
->  1 files changed, 12 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> index 07be2cd..af8ef77 100644
-> --- a/arch/arm/boot/dts/omap5.dtsi
-> +++ b/arch/arm/boot/dts/omap5.dtsi
-> @@ -626,14 +626,20 @@
->  			hw-caps-temp-alert;
->  		};
->  
-> -		omap_control_usb: omap-control-usb@4a002300 {
-> +		omap_control_usb2phy: omap-control-usb@4a002300 {
->  			compatible = "ti,omap-control-usb";
-> -			reg = <0x4a002300 0x4>,
-> -			      <0x4a002370 0x4>;
-> -			reg-names = "control_dev_conf", "phy_power_usb";
-> +			reg = <0x4a002300 0x4>;
-> +			reg-names = "power";
->  			ti,type = <2>;
->  		};
->  
-> +		omap_control_usb3phy: omap-control-usb@0x4a002370 {
-> +			compatible = "ti,omap-control-usb";
-> +			reg = <0x4a002370 0x4>;
-> +			reg-names = "power";
-> +			ti,type = <3>;
-> +		};
-> +
->  		omap_dwc3@4a020000 {
->  			compatible = "ti,dwc3";
->  			ti,hwmods = "usb_otg_ss";
-> @@ -661,7 +667,7 @@
->  			usb2_phy: usb2phy@4a084000 {
->  				compatible = "ti,omap-usb2";
->  				reg = <0x4a084000 0x7c>;
-> -				ctrl-module = <&omap_control_usb>;
-> +				ctrl-module = <&omap_control_usb2phy>;
->  			};
->  
->  			usb3_phy: usb3phy@4a084400 {
-> @@ -670,7 +676,7 @@
->  				      <0x4a084800 0x64>,
->  				      <0x4a084c00 0x40>;
->  				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
-> -				ctrl-module = <&omap_control_usb>;
-> +				ctrl-module = <&omap_control_usb3phy>;
->  			};
->  		};
->  
-> 
+Ah nice, thanks Tony.
 
+> I've just applied the 7 following patches. Let me know if I missed
+> something.
+>=20
+> 6b9fa1b ARM: dts: Remove '0x's from OMAP5 DTS file
+> 79390b8 ARM: dts: Remove '0x's from OMAP4 DTS file
+> dd60fef ARM: dts: Remove '0x's from OMAP3430 SDP DTS file
+> bfef1cb ARM: dts: Remove '0x's from OMAP3 DTS file
+> 5f547ac ARM: dts: Remove '0x's from OMAP3 IGEP0030 DTS file
+> 27939fc ARM: dts: Remove '0x's from OMAP3 IGEP0020 DTS file
+> 62eb4d1 ARM: dts: Remove '0x's from OMAP2420 H4 DTS file
+
+Nope, looks good. Thanks Benoit.
+
+--=20
+Lee Jones
+Linaro ST-Ericsson Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
