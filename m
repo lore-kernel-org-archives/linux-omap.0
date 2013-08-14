@@ -1,142 +1,59 @@
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-Subject: [PATCH v3 1/3] usb: dwc3: msm: Add device tree binding information
-Date: Wed, 14 Aug 2013 15:59:41 +0300
-Message-ID: <1376485183-2664-2-git-send-email-iivanov@mm-sol.com>
-References: <1376485183-2664-1-git-send-email-iivanov@mm-sol.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1376485183-2664-1-git-send-email-iivanov@mm-sol.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org, "Ivan T. Ivanov" <iivanov@mm-sol.com>
+From: "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 0/3] DWC3 USB support for Qualcomm platform
+Date: Wed, 14 Aug 2013 15:59:40 +0300
+Message-ID: <1376485183-2664-1-git-send-email-iivanov@mm-sol.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, idos-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mgautam-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+From: "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
 
-MSM USB3.0 core wrapper consist of USB3.0 IP from Synopsys
-(SNPS) and HS, SS PHY's control and configuration registers.
+Hi,
 
-It could operate in device mode (SS, HS, FS) and host
-mode (SS, HS, FS, LS).
+These patches add basic support for USB3.0 controllers found
+on MSM platforms. USB3.0 core is based on Synopsys DesignWare 
+SuperSpeed IP. 
 
-Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
----
- .../devicetree/bindings/usb/msm-ssusb.txt          |  108 ++++++++++++++++++++
- 1 file changed, 108 insertions(+)
+Changes since v2:
+* Several improvements in devicetree bindings description
+* Disable regulators in glue layer if there is error during 
+  ioremap.
+
+Changes since first version:
+* Split devicetree bindings description file to separate patch
+* Address comments for device bindings description
+* Fix typo in 'gdsc' requlator name.
+
+Generated on top of Felipe 'testing' branch.
+
+Regards,
+Ivan
+
+Ivan T. Ivanov (3):
+  usb: dwc3: msm: Add device tree binding information
+  usb: phy: Add Qualcomm SS-USB and HS-USB drivers for DWC3 core
+  usb: dwc3: Add Qualcomm DWC3 glue layer driver
+
+ .../devicetree/bindings/usb/msm-ssusb.txt          |  108 ++++++
+ drivers/usb/dwc3/Kconfig                           |    8 +
+ drivers/usb/dwc3/Makefile                          |    1 +
+ drivers/usb/dwc3/dwc3-msm.c                        |  169 +++++++++
+ drivers/usb/phy/Kconfig                            |   11 +
+ drivers/usb/phy/Makefile                           |    2 +
+ drivers/usb/phy/phy-msm-dwc3-hs.c                  |  336 +++++++++++++++++
+ drivers/usb/phy/phy-msm-dwc3-ss.c                  |  383 ++++++++++++++++++++
+ 8 files changed, 1018 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/usb/msm-ssusb.txt
+ create mode 100644 drivers/usb/dwc3/dwc3-msm.c
+ create mode 100644 drivers/usb/phy/phy-msm-dwc3-hs.c
+ create mode 100644 drivers/usb/phy/phy-msm-dwc3-ss.c
 
-diff --git a/Documentation/devicetree/bindings/usb/msm-ssusb.txt b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
-new file mode 100644
-index 0000000..43c73d8
---- /dev/null
-+++ b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
-@@ -0,0 +1,108 @@
-+MSM SuperSpeed DWC3 USB SoC controller
-+
-+
-+DWC3 Highspeed USB PHY
-+======================
-+Required properities :
-+- compatible : sould be "qcom,dwc3-hsphy";
-+- reg : offset and length of the register set in the memory map
-+- clocks : phandles to clock instances of the device tree nodes
-+- clock-names :
-+	"xo" : External reference clock 19 MHz
-+	"sleep_a_clk" : Sleep clock, used when USB3 core goes into low
-+	power mode (U3).
-+<supply-name>-supply : phandle to the regulator device tree node
-+Required "supply-name" are:
-+	"v1p8" : 1.8v supply for HSPHY
-+	"v3p3" : 3.3v supply for HSPHY
-+	"vbus" : vbus supply for host mode
-+	"vddcx" : vdd supply for HS-PHY digital circuit operation
-+
-+DWC3 Superspeed USB PHY
-+=======================
-+Required properities :
-+- compatible : sould be "qcom,dwc3-ssphy";
-+- reg : offset and length of the register set in the memory map
-+- clocks : phandles to clock instances of the device tree nodes
-+- clock-names :
-+	"xo" : External reference clock 19 MHz
-+	"ref_clk" : Reference clock - used in host mode.
-+<supply-name>-supply : phandle to the regulator device tree node
-+Required "supply-name" are:
-+	"v1p8" : 1.8v supply for SS-PHY
-+	"vddcx" : vdd supply for SS-PHY digital circuit operation
-+
-+DWC3 controller wrapper
-+=======================
-+Required properties :
-+- compatible : should be "qcom,dwc3"
-+- reg : offset and length of the register set in the memory map
-+	offset and length of the TCSR register for routing USB
-+	signals to either picoPHY0 or picoPHY1.
-+- clocks : phandles to clock instances of the device tree nodes
-+- clock-names :
-+	"core_clk" : Master/Core clock, have to be >= 125 MHz for SS
-+	operation and >= 60MHz for HS operation
-+	"iface_clk" : System bus AXI clock
-+	"sleep_clk" : Sleep clock, used when USB3 core goes into low
-+	power mode (U3).
-+	"utmi_clk" : Generated by HS-PHY. Used to clock the low power
-+	parts of thr HS Link layer.
-+Optional properties :
-+- gdsc-supply : phandle to the globally distributed switch controller
-+  regulator node to the USB controller.
-+
-+
-+Sub nodes:
-+==========
-+- Sub node for "DWC3 USB3 controller".
-+  This sub node is required property for device node. The properties
-+  of this subnode are specified in dwc3.txt.
-+
-+Example device nodes:
-+
-+	dwc3_hsphy: phy@f92f8800 {
-+		compatible = "qcom,dwc3-hsphy";
-+		reg = <0xf92f8800 0x30>;
-+
-+		clocks = <&cxo>, <&usb2a_phy_sleep_cxc>;
-+		clock-names = "xo", "sleep_a_clk";
-+
-+		vbus-supply = <&supply>;
-+		vddcx-supply = <&supply>;
-+		v1p8-supply = <&supply>;
-+		v3p3-supply = <&supply>;
-+	};
-+
-+	dwc3_ssphy: phy@f92f8830 {
-+		compatible = "qcom,dwc3-ssphy";
-+		reg = <0xf92f8830 0x30>;
-+
-+		clocks = <&cxo>, <&usb30_mock_utmi_cxc>;
-+		clock-names = "xo", "ref_clk";
-+
-+		vddcx-supply = <&supply>;
-+		v1p8-supply = <&supply>;
-+	};
-+
-+	usb@fd4ab000 {
-+		compatible = "qcom,dwc3";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		reg = <0xfd4ab000 0x4>;
-+
-+		clocks = <&usb30_master_cxc>, <&sys_noc_usb3_axi_cxc>,
-+				<&usb30_sleep_cxc>, <&usb30_mock_utmi_cxc>;
-+		clock-names = "core_clk", "iface_clk", "sleep_clk", "utmi_clk";
-+
-+		gdsc-supply = <&supply>;
-+
-+		ranges;
-+		dwc3@f9200000 {
-+			compatible = "snps,dwc3";
-+			reg = <0xf9200000 0xcd00>;
-+			interrupts = <0 131 0>;
-+			usb-phy = <&dwc3_hsphy>, <&dwc3_ssphy>;
-+			tx-fifo-resize;
-+		};
-+	};
 -- 
 1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
