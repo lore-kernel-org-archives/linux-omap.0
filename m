@@ -1,197 +1,195 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Wed, 14 Aug 2013 20:35:02 +0530
-Message-ID: <520B9C9E.8010002@ti.com>
-References: <20130720220006.GA7977@kroah.com> <520A2100.6000709@ti.com>
- <520AB0F0.8010106@gmail.com> <2128883.KpgODjXPJQ@flatron>
+From: Philipp Zabel <p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCH 2/9] usb: phy: nop: Don't use regulator framework for
+ RESET line
+Date: Wed, 14 Aug 2013 17:27:15 +0200
+Message-ID: <1376494035.3994.24.camel@pizza.hi.pengutronix.de>
+References: <1376488693-31659-1-git-send-email-rogerq@ti.com>
+	 <1376488693-31659-3-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <2128883.KpgODjXPJQ@flatron>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tomasz Figa <tomasz.figa@gmail.com>, balbi@ti.com
-Cc: linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, Tomasz Figa <t.figa@samsung.com>, nsekhar@ti.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, Alan Stern <stern@rowland.harvard.edu>, grant.likely@linaro.org, linux-media@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, devicetree-discuss@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, Greg KH <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, kyungmin.park@samsung.com, akpm@linux-foundation.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1376488693-31659-3-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Roger,
 
-On Wednesday 14 August 2013 04:34 AM, Tomasz Figa wrote:
-> On Wednesday 14 of August 2013 00:19:28 Sylwester Nawrocki wrote:
->> W dniu 2013-08-13 14:05, Kishon Vijay Abraham I pisze:
->>> On Tuesday 13 August 2013 05:07 PM, Tomasz Figa wrote:
->>>> On Tuesday 13 of August 2013 16:14:44 Kishon Vijay Abraham I wrote:
->>>>> On Wednesday 31 July 2013 11:45 AM, Felipe Balbi wrote:
->>>>>> On Wed, Jul 31, 2013 at 11:14:32AM +0530, Kishon Vijay Abraham I 
-> wrote:
->>>>>>>>>>>> IMHO we need a lookup method for PHYs, just like for clocks,
->>>>>>>>>>>> regulators, PWMs or even i2c busses because there are complex
->>>>>>>>>>>> cases
->>>>>>>>>>>> when passing just a name using platform data will not work. I
->>>>>>>>>>>> would
->>>>>>>>>>>> second what Stephen said [1] and define a structure doing
->>>>>>>>>>>> things
->>>>>>>>>>>> in a
->>>>>>>>>>>> DT-like way.
->>>>>>>>>>>>
->>>>>>>>>>>> Example;
->>>>>>>>>>>>
->>>>>>>>>>>> [platform code]
->>>>>>>>>>>>
->>>>>>>>>>>> static const struct phy_lookup my_phy_lookup[] = {
->>>>>>>>>>>>
->>>>>>>>>>>> 	PHY_LOOKUP("s3c-hsotg.0", "otg", "samsung-usbphy.1",
->>>>>>>>>>>> 	"phy.2"),
->>>>>>>>>>>
->>>>>>>>>>> The only problem here is that if *PLATFORM_DEVID_AUTO* is used
->>>>>>>>>>> while
->>>>>>>>>>> creating the device, the ids in the device name would change
->>>>>>>>>>> and
->>>>>>>>>>> PHY_LOOKUP wont be useful.
->>>>>>>>>>
->>>>>>>>>> I don't think this is a problem. All the existing lookup
->>>>>>>>>> methods
->>>>>>>>>> already
->>>>>>>>>> use ID to identify devices (see regulators, clkdev, PWMs, i2c,
->>>>>>>>>> ...). You
->>>>>>>>>> can simply add a requirement that the ID must be assigned
->>>>>>>>>> manually,
->>>>>>>>>> without using PLATFORM_DEVID_AUTO to use PHY lookup.
->>>>>>>>>
->>>>>>>>> And I'm saying that this idea, of using a specific name and id,
->>>>>>>>> is
->>>>>>>>> frought with fragility and will break in the future in various
->>>>>>>>> ways
->>>>>>>>> when
->>>>>>>>> devices get added to systems, making these strings constantly
->>>>>>>>> have
->>>>>>>>> to be
->>>>>>>>> kept up to date with different board configurations.
->>>>>>>>>
->>>>>>>>> People, NEVER, hardcode something like an id.  The fact that
->>>>>>>>> this
->>>>>>>>> happens today with the clock code, doesn't make it right, it
->>>>>>>>> makes
->>>>>>>>> the
->>>>>>>>> clock code wrong.  Others have already said that this is wrong
->>>>>>>>> there
->>>>>>>>> as
->>>>>>>>> well, as systems change and dynamic ids get used more and more.
->>>>>>>>>
->>>>>>>>> Let's not repeat the same mistakes of the past just because we
->>>>>>>>> refuse to
->>>>>>>>> learn from them...
->>>>>>>>>
->>>>>>>>> So again, the "find a phy by a string" functions should be
->>>>>>>>> removed,
->>>>>>>>> the
->>>>>>>>> device id should be automatically created by the phy core just
->>>>>>>>> to
->>>>>>>>> make
->>>>>>>>> things unique in sysfs, and no driver code should _ever_ be
->>>>>>>>> reliant
->>>>>>>>> on
->>>>>>>>> the number that is being created, and the pointer to the phy
->>>>>>>>> structure
->>>>>>>>> should be used everywhere instead.
->>>>>>>>>
->>>>>>>>> With those types of changes, I will consider merging this
->>>>>>>>> subsystem,
->>>>>>>>> but
->>>>>>>>> without them, sorry, I will not.
->>>>>>>>
->>>>>>>> I'll agree with Greg here, the very fact that we see people
->>>>>>>> trying to
->>>>>>>> add a requirement of *NOT* using PLATFORM_DEVID_AUTO already
->>>>>>>> points
->>>>>>>> to a big problem in the framework.
->>>>>>>>
->>>>>>>> The fact is that if we don't allow PLATFORM_DEVID_AUTO we will
->>>>>>>> end up
->>>>>>>> adding similar infrastructure to the driver themselves to make
->>>>>>>> sure
->>>>>>>> we
->>>>>>>> don't end up with duplicate names in sysfs in case we have
->>>>>>>> multiple
->>>>>>>> instances of the same IP in the SoC (or several of the same PCIe
->>>>>>>> card).
->>>>>>>> I really don't want to go back to that.
->>>>>>>
->>>>>>> If we are using PLATFORM_DEVID_AUTO, then I dont see any way we
->>>>>>> can
->>>>>>> give the correct binding information to the PHY framework. I think
->>>>>>> we
->>>>>>> can drop having this non-dt support in PHY framework? I see only
->>>>>>> one
->>>>>>> platform (OMAP3) going to be needing this non-dt support and we
->>>>>>> can
->>>>>>> use the USB PHY library for it.>
->>>>>>
->>>>>> you shouldn't drop support for non-DT platform, in any case we
->>>>>> lived
->>>>>> without DT (and still do) for years. Gotta find a better way ;-)
->>>>>
->>>>> hmm..
->>>>>
->>>>> how about passing the device names of PHY in platform data of the
->>>>> controller? It should be deterministic as the PHY framework assigns
->>>>> its
->>>>> own id and we *don't* want to add any requirement that the ID must
->>>>> be
->>>>> assigned manually without using PLATFORM_DEVID_AUTO. We can get rid
->>>>> of
->>>>> *phy_init_data* in the v10 patch series.
->>
->> OK, so the PHY device name would have a fixed part, passed as
->> platform data of the controller and a variable part appended
->> by the PHY core, depending on the number of registered PHYs ?
->>
->> Then same PHY names would be passed as the PHY provider driver's
->> platform data ?
->>
->> Then if there are 2 instances of the above (same names in platform
->> data) how would be determined which PHY controller is linked to
->> which PHY supplier ?
->>
->> I guess you want each device instance to have different PHY device
->> names already in platform data ? That might work. We probably will
->> be focused mostly on DT anyway. It seem without DT we are trying
->> to find some layer that would allow us to couple relevant devices
->> and overcome driver core inconvenience that it provides to means
->> to identify specific devices in advance. :) Your proposal sounds
->> reasonable, however I might be missing some details or corner cases.
->>
->>>> What about slightly altering the concept of v9 to pass a pointer to
->>>> struct device instead of device name inside phy_init_data?
->>
->> As Felipe said, we don't want to pass pointers in platform_data
->> to/from random subsystems. We pass data, passing pointers would
->> be a total mess IMHO.
+Am Mittwoch, den 14.08.2013, 16:58 +0300 schrieb Roger Quadros:
+> Modelling the RESET line as a regulator supply wasn't a good idea
+> as it kind of abuses the regulator framework and also makes adaptation
+> code more complex.
 > 
-> Well, this is a total mess anyway... I don't really get the point of using 
-> PLATFORM_DEVID_AUTO. The only thing that comes to my mind is that you can 
-> use it if you don't care about the ID and so it can be assigned 
-> automatically.
+> Instead, manage the RESET gpio line directly in the driver. Update
+> the device tree binding information.
 > 
-> However my understanding of the device ID is that it was supposed to 
-> provide a way to identify multiple instances of identical devices in a 
-> reliable way, to solve problems like the one we are trying to solve 
-> here...
+> This also makes us easy to migrate to a dedicated GPIO RESET controller
+> whenever it becomes available.
 > 
-> So maybe let's stop solving an already solved problem and just state that 
-> you need to explicitly assign device ID to use this framework?
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 
-Felipe,
-Can we have it the way I had in my v10 patch series till we find a better way?
-I think this *non-dt* stuff shouldn't be blocking as most of the users are dt only?
+using the reset-gpios property
+Acked-by: Philipp Zabel <p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 
-Thanks
-Kishon
+> ---
+>  .../devicetree/bindings/usb/usb-nop-xceiv.txt      |    7 +--
+>  drivers/usb/phy/phy-nop.c                          |   48 ++++++++++++--------
+>  2 files changed, 32 insertions(+), 23 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
+> index d7e2726..5535f3b 100644
+> --- a/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
+> +++ b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
+> @@ -15,7 +15,7 @@ Optional properties:
+>  
+>  - vcc-supply: phandle to the regulator that provides RESET to the PHY.
+>  
+> -- reset-supply: phandle to the regulator that provides power to the PHY.
+> +- reset-gpios: Should specify the GPIO for reset.
+>
+>  Example:
+>  
+> @@ -25,10 +25,9 @@ Example:
+>  		clocks = <&osc 0>;
+>  		clock-names = "main_clk";
+>  		vcc-supply = <&hsusb1_vcc_regulator>;
+> -		reset-supply = <&hsusb1_reset_regulator>;
+> +		reset-gpios = <&gpio1 7>;
+
+Yes, although the example should probably include GPIO_ACTIVE_LOW or
+GPIO_ACTIVE_HIGH flags.
+
+>  	};
+>  
+>  hsusb1_phy is a NOP USB PHY device that gets its clock from an oscillator
+>  and expects that clock to be configured to 19.2MHz by the NOP PHY driver.
+> -hsusb1_vcc_regulator provides power to the PHY and hsusb1_reset_regulator
+> -controls RESET.
+> +hsusb1_vcc_regulator provides power to the PHY and GPIO 7 controls RESET.
+> diff --git a/drivers/usb/phy/phy-nop.c b/drivers/usb/phy/phy-nop.c
+> index 55445e5d..af5e1a6 100644
+> --- a/drivers/usb/phy/phy-nop.c
+> +++ b/drivers/usb/phy/phy-nop.c
+> @@ -35,6 +35,9 @@
+>  #include <linux/clk.h>
+>  #include <linux/regulator/consumer.h>
+>  #include <linux/of.h>
+> +#include <linux/of_gpio.h>
+> +#include <linux/gpio.h>
+> +#include <linux/delay.h>
+>  
+>  struct nop_usb_xceiv {
+>  	struct usb_phy phy;
+> @@ -42,6 +45,7 @@ struct nop_usb_xceiv {
+>  	struct clk *clk;
+>  	struct regulator *vcc;
+>  	struct regulator *reset;
+> +	int gpio_reset;
+>  };
+>  
+>  static struct platform_device *pd;
+> @@ -70,6 +74,15 @@ static int nop_set_suspend(struct usb_phy *x, int suspend)
+>  	return 0;
+>  }
+>  
+> +static void nop_gpio_reset(int gpio, int state)
+> +{
+> +	if (gpio_is_valid(gpio))
+> +		gpio_set_value(gpio, state);
+> +
+> +	if (state)
+> +		usleep_range(10000, 20000);
+> +}
+> +
+>  static int nop_init(struct usb_phy *phy)
+>  {
+>  	struct nop_usb_xceiv *nop = dev_get_drvdata(phy->dev);
+> @@ -82,11 +95,8 @@ static int nop_init(struct usb_phy *phy)
+>  	if (!IS_ERR(nop->clk))
+>  		clk_enable(nop->clk);
+>  
+> -	if (!IS_ERR(nop->reset)) {
+> -		/* De-assert RESET */
+> -		if (regulator_enable(nop->reset))
+> -			dev_err(phy->dev, "Failed to de-assert reset\n");
+> -	}
+> +	/* De-assert RESET */
+> +	nop_gpio_reset(nop->gpio_reset, 1);
+>  
+>  	return 0;
+>  }
+> @@ -95,11 +105,8 @@ static void nop_shutdown(struct usb_phy *phy)
+>  {
+>  	struct nop_usb_xceiv *nop = dev_get_drvdata(phy->dev);
+>  
+> -	if (!IS_ERR(nop->reset)) {
+> -		/* Assert RESET */
+> -		if (regulator_disable(nop->reset))
+> -			dev_err(phy->dev, "Failed to assert reset\n");
+> -	}
+> +	/* Assert RESET */
+> +	nop_gpio_reset(nop->gpio_reset, 0);
+>  
+>  	if (!IS_ERR(nop->clk))
+>  		clk_disable(nop->clk);
+> @@ -148,7 +155,6 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
+>  	int err;
+>  	u32 clk_rate = 0;
+>  	bool needs_vcc = false;
+> -	bool needs_reset = false;
+>  
+>  	nop = devm_kzalloc(&pdev->dev, sizeof(*nop), GFP_KERNEL);
+>  	if (!nop)
+> @@ -166,13 +172,15 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
+>  			clk_rate = 0;
+>  
+>  		needs_vcc = of_property_read_bool(node, "vcc-supply");
+> -		needs_reset = of_property_read_bool(node, "reset-supply");
+> +		nop->gpio_reset = of_get_named_gpio(node, "reset-gpios", 0);
+
+I'd suggest to use of_get_named_gpio_flags to also obtain the polarity
+from the flags.
+
+> +		if (nop->gpio_reset == -EPROBE_DEFER)
+> +			return -EPROBE_DEFER;
+>  
+>  	} else if (pdata) {
+>  		type = pdata->type;
+>  		clk_rate = pdata->clk_rate;
+>  		needs_vcc = pdata->needs_vcc;
+> -		needs_reset = pdata->needs_reset;
+> +		nop->gpio_reset = pdata->gpio_reset;
+>  	}
+>  
+>  	nop->clk = devm_clk_get(&pdev->dev, "main_clk");
+> @@ -205,12 +213,14 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
+>  			return -EPROBE_DEFER;
+>  	}
+>  
+> -	nop->reset = devm_regulator_get(&pdev->dev, "reset");
+> -	if (IS_ERR(nop->reset)) {
+> -		dev_dbg(&pdev->dev, "Error getting reset regulator: %ld\n",
+> -					PTR_ERR(nop->reset));
+> -		if (needs_reset)
+> -			return -EPROBE_DEFER;
+> +	if (gpio_is_valid(nop->gpio_reset)) {
+> +		err = devm_gpio_request_one(dev, nop->gpio_reset,
+> +					    GPIOF_OUT_INIT_HIGH, dev_name(dev));
+> +		if (err) {
+> +			dev_err(dev, "Error requesting RESET GPIO %d\n",
+> +					nop->gpio_reset);
+> +			return err;
+> +		}
+>  	}
+>  
+>  	nop->dev		= &pdev->dev;
+
+regards
+Philipp
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
