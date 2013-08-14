@@ -1,77 +1,101 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 0/9] USB: phy: phy-nop: Manage RESET GPIO in the driver
-Date: Wed, 14 Aug 2013 16:58:04 +0300
-Message-ID: <1376488693-31659-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH 3/9] ARM: OMAP2+: omap-usb-host: Get rid of platform_data from struct usbhs_phy_data
+Date: Wed, 14 Aug 2013 16:58:07 +0300
+Message-ID: <1376488693-31659-4-git-send-email-rogerq@ti.com>
+References: <1376488693-31659-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38524 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38538 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755752Ab3HNN6s (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Aug 2013 09:58:48 -0400
+	id S1758291Ab3HNN66 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Aug 2013 09:58:58 -0400
+In-Reply-To: <1376488693-31659-1-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: balbi@ti.com, tony@atomide.com, bcousson@baylibre.com
 Cc: p.zabel@pengutronix.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-Hi,
+The platform data bits can be inferred from the other members of
+struct usbhs_phy_data. So get rid of the platform_data member.
 
-Modelling the RESET line as a regulator supply wasn't a good idea
-as it abuses the regulator framework and makes adaptation
-code/data more complex.
+Build the platform data for the PHY device in usbhs_init_phys() instead.
 
-Instead, manage the RESET gpio line directly in the driver.
-
-This also makes us easy to migrate to a dedicated GPIO RESET controller
-whenever it becomes available. As of now, it doesn't seem to be making
-it into 3.12.
-
-*NOTE:* As there are changes to platform data, Patch 1 needs to be shared
-between the arm-soc tree and usb tree.
-
-Patch 1 is available at repo
-	git://github.com/rogerq/linux.git
-in branch
-	phy-reset-common
-
-Patch 2 contains the phy-nop driver changes
-Patches 3 and 4 adapt legacy boot code to the phy-nop driver changes.
-Patches 5, 6 and 7 adapt DT data to the binding changes.
-Patch 8 is cleanup of omap3-beagle DT.
-Patch 9 adds USB host support to omap3-beagle-xm using the new binding.
-
-Patches are based on v3.11-rc5.
-Tested leacy boot on omap3-beagle and omap3-beagle-xm
-Tested DT boot on omap3-beagle, omap3-beagle-xm and omap4-panda-es
-
-cheers,
--roger
-
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
-Roger Quadros (9):
-  usb: phy: nop: Add gpio_reset to platform data
-  usb: phy: nop: Don't use regulator framework for RESET line
-  ARM: OMAP2+: omap-usb-host: Get rid of platform_data from struct
-    usbhs_phy_data
-  ARM: OMAP2+: usb-host: Adapt to USB phy-nop RESET line changes
-  ARM: dts: omap3-beagle: Use reset-gpios for hsusb2_reset
-  ARM: dts: omap4-panda: Use reset-gpios for hsusb1_reset
-  ARM: dts: omap5-uevm: Use reset-gpios for hsusb2_reset
-  ARM: dts: omap3-beagle: Make USB host pin naming consistent
-  ARM: dts: omap3-beagle-xm: Add USB Host support
+ arch/arm/mach-omap2/board-omap3beagle.c |    6 ------
+ arch/arm/mach-omap2/usb-host.c          |   11 ++++++++++-
+ arch/arm/mach-omap2/usb.h               |    1 -
+ 3 files changed, 10 insertions(+), 8 deletions(-)
 
- .../devicetree/bindings/usb/usb-nop-xceiv.txt      |    7 +-
- arch/arm/boot/dts/omap3-beagle-xm.dts              |   65 +++++++++++++++++---
- arch/arm/boot/dts/omap3-beagle.dts                 |   37 ++++-------
- arch/arm/boot/dts/omap4-panda-common.dtsi          |   18 +-----
- arch/arm/boot/dts/omap5-uevm.dts                   |   13 +----
- arch/arm/mach-omap2/board-omap3beagle.c            |    6 --
- arch/arm/mach-omap2/usb-host.c                     |   18 +++---
- arch/arm/mach-omap2/usb.h                          |    1 -
- drivers/usb/phy/phy-nop.c                          |   48 +++++++++------
- include/linux/usb/nop-usb-xceiv.h                  |    4 +-
- 10 files changed, 115 insertions(+), 102 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 04c1165..47bca8f 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -278,18 +278,12 @@ static struct regulator_consumer_supply beagle_vsim_supply[] = {
+ 
+ static struct gpio_led gpio_leds[];
+ 
+-/* PHY's VCC regulator might be added later, so flag that we need it */
+-static struct nop_usb_xceiv_platform_data hsusb2_phy_data = {
+-	.needs_vcc = true,
+-};
+-
+ static struct usbhs_phy_data phy_data[] = {
+ 	{
+ 		.port = 2,
+ 		.reset_gpio = 147,
+ 		.vcc_gpio = -1,		/* updated in beagle_twl_gpio_setup */
+ 		.vcc_polarity = 1,	/* updated in beagle_twl_gpio_setup */
+-		.platform_data = &hsusb2_phy_data,
+ 	},
+ };
+ 
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index 2eb19d4..1626801 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -435,6 +435,7 @@ int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
+ 	struct platform_device *pdev;
+ 	char *phy_id;
+ 	struct platform_device_info pdevinfo;
++	struct nop_usb_xceiv_platform_data nop_pdata;
+ 
+ 	for (i = 0; i < num_phys; i++) {
+ 
+@@ -455,11 +456,19 @@ int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
+ 			return -ENOMEM;
+ 		}
+ 
++		/* set platform data */
++		memset(&nop_pdata, 0, sizeof(nop_pdata));
++		if (gpio_is_valid(phy->vcc_gpio))
++			nop_pdata.needs_vcc = true;
++		if (gpio_is_valid(phy->reset_gpio))
++			nop_pdata.needs_reset = true;
++		nop_pdata.type = USB_PHY_TYPE_USB2;
++
+ 		/* create a NOP PHY device */
+ 		memset(&pdevinfo, 0, sizeof(pdevinfo));
+ 		pdevinfo.name = nop_name;
+ 		pdevinfo.id = phy->port;
+-		pdevinfo.data = phy->platform_data;
++		pdevinfo.data = &nop_pdata;
+ 		pdevinfo.size_data = sizeof(struct nop_usb_xceiv_platform_data);
+ 
+ 		scnprintf(phy_id, MAX_STR, "nop_usb_xceiv.%d",
+diff --git a/arch/arm/mach-omap2/usb.h b/arch/arm/mach-omap2/usb.h
+index e7261eb..4ba2ae7 100644
+--- a/arch/arm/mach-omap2/usb.h
++++ b/arch/arm/mach-omap2/usb.h
+@@ -58,7 +58,6 @@ struct usbhs_phy_data {
+ 	int reset_gpio;
+ 	int vcc_gpio;
+ 	bool vcc_polarity;	/* 1 active high, 0 active low */
+-	void *platform_data;
+ };
+ 
+ extern void usb_musb_init(struct omap_musb_board_data *board_data);
 -- 
 1.7.4.1
 
