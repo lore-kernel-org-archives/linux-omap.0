@@ -1,14 +1,11 @@
-From: Jonathan Cameron <jic23@kernel.org>
-Subject: Re: [PATCH v8 0/2] TWL6030, TWL6032 GPADC driver
-Date: Thu, 15 Aug 2013 12:03:02 +0100
-Message-ID: <520CB566.2050201@kernel.org>
-References: <1374758813-6539-1-git-send-email-oleksandr.kozaruk@ti.com>
- <20130815091216.GB28366@e106331-lin.cambridge.arm.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v2 0/9] USB: phy: phy-nop: Manage RESET GPIO in the driver
+Date: Thu, 15 Aug 2013 13:18:20 +0300
+Message-ID: <1376561909-4406-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130815091216.GB28366@e106331-lin.cambridge.arm.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,26 +15,71 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "milo.kim@ti.com" <milo.kim@ti.com>, "lars@metafoo.de" <lars@metafoo.de>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "poeschel@lemonage.de" <poeschel@lemonage.de>, "rnayak@ti.com" <rnayak@ti.com>, Oleksandr Kozaruk <oleksandr.kozaruk@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "kishon@ti.com" <kishon@ti.com>, "peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>, "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "jic23@cam.ac.uk" <jic23@cam.ac.uk>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, "ch.naveen@samsung.com" <ch.n>
+To: balbi@ti.com, tony@atomide.com, bcousson@baylibre.com
+Cc: devicetree@vger.kernel.org, linux-usb@vger.kernel.org, broonie@kernel.org, p.zabel@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
->> The changes to the original driver:
->> - device tree adaptation;
-> 
-> I couldn't see a binding document in this series or in mainline. Have I
-> looked in the wrong places?
+Modelling the RESET line as a regulator supply wasn't a good idea
+as it abuses the regulator framework and makes adaptation
+code/data more complex.
 
-Nothing explicit supplied, but does it need one given it is doing only
-iio bindings (bindings/iio/iio-bindings.txt)
-plus twl child bindings
-(bindings/mfd/twl-family.txt)
+Instead, manage the RESET gpio line directly in the driver.
 
-If it does, I guess absolutely everything does, then fair enough!
-I guess that would make sense as there is no way for someone writing
-a device tree to know that there is nothing else to be specified.
+This also makes us easy to migrate to a dedicated GPIO RESET controller
+whenever it becomes available. As of now, it doesn't seem to be making
+it into 3.12.
 
-Thanks,
+*NOTE:* As there are changes to platform data, Patch 1 needs to be shared
+between the arm-soc tree and usb tree.
 
-Jonathan
+Patch 1 is available at repo
+	git://github.com/rogerq/linux.git
+in branch
+	phy-reset-common
+
+Patch 2 contains the phy-nop driver changes
+Patches 3 and 4 adapt legacy boot code to the phy-nop driver changes.
+Patches 5, 6 and 7 adapt DT data to the binding changes.
+Patch 8 is cleanup of omap3-beagle DT.
+Patch 9 adds USB host support to omap3-beagle-xm using the new binding.
+
+Patches are based on v3.11-rc5.
+Tested leacy boot on omap3-beagle and omap3-beagle-xm
+Tested DT boot on omap3-beagle, omap3-beagle-xm and omap4-panda-es
+
+v2:
+- Added RESET GPIO polarity feature
+- Changed to gpio_set_value_cansleep()
+
+cheers,
+-roger
+
+---
+Roger Quadros (9):
+  usb: phy: nop: Add gpio_reset to platform data
+  usb: phy: nop: Don't use regulator framework for RESET line
+  ARM: OMAP2+: omap-usb-host: Get rid of platform_data from struct
+    usbhs_phy_data
+  ARM: OMAP2+: usb-host: Adapt to USB phy-nop RESET line changes
+  ARM: dts: omap3-beagle: Use reset-gpios for hsusb2_reset
+  ARM: dts: omap4-panda: Use reset-gpios for hsusb1_reset
+  ARM: dts: omap5-uevm: Use reset-gpios for hsusb2_reset
+  ARM: dts: omap3-beagle: Make USB host pin naming consistent
+  ARM: dts: omap3-beagle-xm: Add USB Host support
+
+ .../devicetree/bindings/usb/usb-nop-xceiv.txt      |    7 +-
+ arch/arm/boot/dts/omap3-beagle-xm.dts              |   65 +++++++++++++++---
+ arch/arm/boot/dts/omap3-beagle.dts                 |   37 ++++-------
+ arch/arm/boot/dts/omap4-panda-common.dtsi          |   18 +-----
+ arch/arm/boot/dts/omap5-uevm.dts                   |   13 +---
+ arch/arm/mach-omap2/board-omap3beagle.c            |    6 --
+ arch/arm/mach-omap2/usb-host.c                     |   18 +++---
+ arch/arm/mach-omap2/usb.h                          |    1 -
+ drivers/usb/phy/phy-nop.c                          |   71 ++++++++++++++-----
+ include/linux/usb/nop-usb-xceiv.h                  |    4 +-
+ 10 files changed, 138 insertions(+), 102 deletions(-)
+
+-- 
+1.7.4.1
