@@ -1,48 +1,43 @@
-From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Subject: Re: [PATCH 0/2] ARM: OMAP: fix USB regression on Nokia boards
-Date: Thu, 15 Aug 2013 22:18:08 +0300
-Message-ID: <20130815191808.GA3067@blackmetal.musicnaut.iki.fi>
-References: <1375808776-14975-1-git-send-email-aaro.koskinen@iki.fi>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/3] misc: Add crossbar driver
+Date: Thu, 15 Aug 2013 22:01:20 +0200
+Message-ID: <CACRpkda+m82PYJsExLM6JLsLa8-bVhdvy_r_+-uKfVT2NG7Cbg@mail.gmail.com>
+References: <51E83A4F.5080904@ti.com>
+	<CACRpkdY3nQaWimTwB-Zt-8+Q_KZr8a0rpB1SUQq=AuoG4bAYnQ@mail.gmail.com>
+	<51ED2385.60108@ti.com>
+	<51ED5C66.1010407@ti.com>
+	<51EFFBE1.4090505@ti.com>
+	<51F0031B.1050307@ti.com>
+	<51F00530.9090703@ti.com>
+	<51F02069.3050207@ti.com>
+	<51F0223E.4050008@ti.com>
+	<51F0240F.3050507@ti.com>
+	<20130813081003.GU7656@atomide.com>
+	<520A02BA.4090805@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1375808776-14975-1-git-send-email-aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <520A02BA.4090805@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Tue, Aug 13, 2013 at 11:56 AM, Sricharan R <r.sricharan@ti.com> wrote:
 
-On Tue, Aug 06, 2013 at 08:06:14PM +0300, Aaro Koskinen wrote:
-> USB subsystem changes broke the USB peripheral/gadget on N800, N810 and
-> RX-51/N900 during the merge window. We need to fix this in board files. I
-> tested all these with 3.11-rc4 + g_ether + ssh.
+>  Initially irqchip was discussed, but we also have a DMA crossbar
+>  to map the dma-requests. Since both irq/dma crossbars should be handled,
+>  pinctrl was suggested as the appropriate place to handle this.
 
-Ping?
+I think it is better to use irqchip.
 
-A.
+For DMA there is already an arbiter mechanism for arbitration of
+virtual channels over physical channels, this is not much different,
+the DMA might need some different tweaking but should be solved
+in that subsystem I think.
 
-> Aaro Koskinen (1):
->   ARM: OMAP: rx51: change musb mode to OTG
-> 
-> Daniel Mack (1):
->   ARM: omap2: fix musb usage for n8x0
-> 
->  arch/arm/mach-omap2/board-n8x0.c | 4 ----
->  arch/arm/mach-omap2/board-rx51.c | 2 +-
->  arch/arm/mach-omap2/usb-musb.c   | 5 +----
->  3 files changed, 2 insertions(+), 9 deletions(-)
-> 
-> -- 
-> 1.8.3.2
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I don't see any way to really abstract this pretty simple crossbar
+for reuse across subsystems.
+
+Yours,
+Linus Walleij
