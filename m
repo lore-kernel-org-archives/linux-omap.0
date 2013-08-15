@@ -1,56 +1,101 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 7/9] ARM: dts: omap5-uevm: Use reset-gpios for hsusb2_reset
-Date: Thu, 15 Aug 2013 13:18:27 +0300
-Message-ID: <1376561909-4406-8-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 3/9] ARM: OMAP2+: omap-usb-host: Get rid of platform_data from struct usbhs_phy_data
+Date: Thu, 15 Aug 2013 13:18:23 +0300
+Message-ID: <1376561909-4406-4-git-send-email-rogerq@ti.com>
 References: <1376561909-4406-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39993 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754858Ab3HOKTZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Aug 2013 06:19:25 -0400
-In-Reply-To: <1376561909-4406-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1376561909-4406-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Cc: p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, tony@atomide.com, bcousson@baylibre.com
-Cc: p.zabel@pengutronix.de, broonie@kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-We no longer need to model the RESET line as a regulator since
-the USB phy-nop driver accepts "reset-gpios" property.
+The platform data bits can be inferred from the other members of
+struct usbhs_phy_data. So get rid of the platform_data member.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Build the platform data for the PHY device in usbhs_init_phys() instead.
+
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap5-uevm.dts |   13 +------------
- 1 files changed, 1 insertions(+), 12 deletions(-)
+ arch/arm/mach-omap2/board-omap3beagle.c |    6 ------
+ arch/arm/mach-omap2/usb-host.c          |   11 ++++++++++-
+ arch/arm/mach-omap2/usb.h               |    1 -
+ 3 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 65d7b60..c087762 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -27,21 +27,10 @@
- 		regulator-max-microvolt = <3000000>;
- 	};
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 04c1165..47bca8f 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -278,18 +278,12 @@ static struct regulator_consumer_supply beagle_vsim_supply[] = {
  
--	/* HS USB Port 2 RESET */
--	hsusb2_reset: hsusb2_reset_reg {
--		compatible = "regulator-fixed";
--		regulator-name = "hsusb2_reset";
--		regulator-min-microvolt = <3300000>;
--		regulator-max-microvolt = <3300000>;
--		gpio = <&gpio3 16 GPIO_ACTIVE_HIGH>; /* gpio3_80 HUB_NRESET */
--		startup-delay-us = <70000>;
--		enable-active-high;
--	};
+ static struct gpio_led gpio_leds[];
+ 
+-/* PHY's VCC regulator might be added later, so flag that we need it */
+-static struct nop_usb_xceiv_platform_data hsusb2_phy_data = {
+-	.needs_vcc = true,
+-};
 -
- 	/* HS USB Host PHY on PORT 2 */
- 	hsusb2_phy: hsusb2_phy {
- 		compatible = "usb-nop-xceiv";
--		reset-supply = <&hsusb2_reset>;
-+		reset-gpios = <&gpio3 16 GPIO_ACTIVE_LOW>; /* gpio3_80 HUB_NRESET */
- 	/**
- 	  * FIXME
- 	  * Put the right clock phandle here when available
+ static struct usbhs_phy_data phy_data[] = {
+ 	{
+ 		.port = 2,
+ 		.reset_gpio = 147,
+ 		.vcc_gpio = -1,		/* updated in beagle_twl_gpio_setup */
+ 		.vcc_polarity = 1,	/* updated in beagle_twl_gpio_setup */
+-		.platform_data = &hsusb2_phy_data,
+ 	},
+ };
+ 
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index 2eb19d4..1626801 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -435,6 +435,7 @@ int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
+ 	struct platform_device *pdev;
+ 	char *phy_id;
+ 	struct platform_device_info pdevinfo;
++	struct nop_usb_xceiv_platform_data nop_pdata;
+ 
+ 	for (i = 0; i < num_phys; i++) {
+ 
+@@ -455,11 +456,19 @@ int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
+ 			return -ENOMEM;
+ 		}
+ 
++		/* set platform data */
++		memset(&nop_pdata, 0, sizeof(nop_pdata));
++		if (gpio_is_valid(phy->vcc_gpio))
++			nop_pdata.needs_vcc = true;
++		if (gpio_is_valid(phy->reset_gpio))
++			nop_pdata.needs_reset = true;
++		nop_pdata.type = USB_PHY_TYPE_USB2;
++
+ 		/* create a NOP PHY device */
+ 		memset(&pdevinfo, 0, sizeof(pdevinfo));
+ 		pdevinfo.name = nop_name;
+ 		pdevinfo.id = phy->port;
+-		pdevinfo.data = phy->platform_data;
++		pdevinfo.data = &nop_pdata;
+ 		pdevinfo.size_data = sizeof(struct nop_usb_xceiv_platform_data);
+ 
+ 		scnprintf(phy_id, MAX_STR, "nop_usb_xceiv.%d",
+diff --git a/arch/arm/mach-omap2/usb.h b/arch/arm/mach-omap2/usb.h
+index e7261eb..4ba2ae7 100644
+--- a/arch/arm/mach-omap2/usb.h
++++ b/arch/arm/mach-omap2/usb.h
+@@ -58,7 +58,6 @@ struct usbhs_phy_data {
+ 	int reset_gpio;
+ 	int vcc_gpio;
+ 	bool vcc_polarity;	/* 1 active high, 0 active low */
+-	void *platform_data;
+ };
+ 
+ extern void usb_musb_init(struct omap_musb_board_data *board_data);
 -- 
 1.7.4.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
