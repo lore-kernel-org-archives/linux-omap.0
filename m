@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 6/8] usb: phy: omap: get rid of omap_get_control_dev()
-Date: Thu, 15 Aug 2013 16:15:10 +0300
-Message-ID: <1376572512-9561-7-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 4/8] usb: phy: omap-usb3: Don't use omap_get_control_dev()
+Date: Thu, 15 Aug 2013 16:15:08 +0300
+Message-ID: <1376572512-9561-5-git-send-email-rogerq@ti.com>
 References: <1376572512-9561-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,96 +12,66 @@ To: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.g
 Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, dmurphy-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This function was preventing us from supporting multiple
-instances. Get rid of it. Since we support DT boots only,
-users can get the control device phandle from the DT node.
+omap_get_control_dev() is being deprecated as it doesn't support
+multiple instances. As control device is present only from OMAP4
+onwards which supports DT only, we use phandles to get the
+reference to the control device.
+
+As we don't support non-DT boot, we just bail out on probe
+if device node is not present.
 
 Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/phy/phy-omap-control.c   |   31 ++++++++++---------------------
- include/linux/usb/omap_control_usb.h |    5 -----
- 2 files changed, 10 insertions(+), 26 deletions(-)
+ drivers/usb/phy/phy-omap-usb3.c |   20 +++++++++++++++++---
+ 1 files changed, 17 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
-index 078c46f..d144c14 100644
---- a/drivers/usb/phy/phy-omap-control.c
-+++ b/drivers/usb/phy/phy-omap-control.c
-@@ -25,26 +25,6 @@
- #include <linux/clk.h>
+diff --git a/drivers/usb/phy/phy-omap-usb3.c b/drivers/usb/phy/phy-omap-usb3.c
+index 4a7f27c..bad032e 100644
+--- a/drivers/usb/phy/phy-omap-usb3.c
++++ b/drivers/usb/phy/phy-omap-usb3.c
+@@ -26,6 +26,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/delay.h>
  #include <linux/usb/omap_control_usb.h>
++#include <linux/of_platform.h>
  
--static struct omap_control_usb *control_usb;
--
--/**
-- * omap_get_control_dev - returns the device pointer for this control device
-- *
-- * This API should be called to get the device pointer for this control
-- * module device. This device pointer should be used for called other
-- * exported API's in this driver.
-- *
-- * To be used by PHY driver and glue driver.
-- */
--struct device *omap_get_control_dev(void)
--{
--	if (!control_usb)
--		return ERR_PTR(-ENODEV);
--
--	return control_usb->dev;
--}
--EXPORT_SYMBOL_GPL(omap_get_control_dev);
--
- /**
-  * omap_control_usb_phy_power - power on/off the phy using control module reg
-  * @dev: the control module device
-@@ -187,11 +167,19 @@ void omap_control_usb_set_mode(struct device *dev,
+ #define	PLL_STATUS		0x00000004
+ #define	PLL_GO			0x00000008
+@@ -198,6 +199,12 @@ static int omap_usb3_probe(struct platform_device *pdev)
  {
- 	struct omap_control_usb	*ctrl_usb;
+ 	struct omap_usb			*phy;
+ 	struct resource			*res;
++	struct device_node *node = pdev->dev.of_node;
++	struct device_node *control_node;
++	struct platform_device *control_pdev;
++
++	if (!node)
++		return -ENODEV;
  
--	if (IS_ERR(dev) || control_usb->type != OMAP_CTRL_TYPE_OMAP)
-+	if (IS_ERR(dev) || !dev)
- 		return;
+ 	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
+ 	if (!phy) {
+@@ -239,11 +246,18 @@ static int omap_usb3_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
  
- 	ctrl_usb = dev_get_drvdata(dev);
- 
-+	if (!ctrl_usb) {
-+		dev_err(dev, "Invalid control usb device\n");
-+		return;
+-	phy->control_dev = omap_get_control_dev();
+-	if (IS_ERR(phy->control_dev)) {
+-		dev_dbg(&pdev->dev, "Failed to get control device\n");
++	control_node = of_parse_phandle(node, "ctrl-module", 0);
++	if (!control_node) {
++		dev_err(&pdev->dev, "Failed to get control device phandle\n");
+ 		return -ENODEV;
+ 	}
++	control_pdev = of_find_device_by_node(control_node);
++	if (!control_pdev) {
++		dev_err(&pdev->dev, "Failed to get control device\n");
++		return -ENODEV;
 +	}
 +
-+	if (ctrl_usb->type != OMAP_CTRL_TYPE_OMAP)
-+		return;
-+
- 	switch (mode) {
- 	case USB_MODE_HOST:
- 		omap_control_usb_host_mode(ctrl_usb);
-@@ -212,6 +200,7 @@ static int omap_control_usb_probe(struct platform_device *pdev)
- {
- 	struct resource	*res;
- 	struct device_node *np = pdev->dev.of_node;
-+	struct omap_control_usb *control_usb;
++	phy->control_dev = &control_pdev->dev;
  
- 	if (!np) {
- 		/* We only support DT boot */
-diff --git a/include/linux/usb/omap_control_usb.h b/include/linux/usb/omap_control_usb.h
-index 9eb6f9ca..aa41bd5 100644
---- a/include/linux/usb/omap_control_usb.h
-+++ b/include/linux/usb/omap_control_usb.h
-@@ -65,15 +65,10 @@ enum omap_control_usb_mode {
- #define OMAP_CTRL_USB2_PHY_PD		BIT(28)
- 
- #if IS_ENABLED(CONFIG_OMAP_CONTROL_USB)
--extern struct device *omap_get_control_dev(void);
- extern void omap_control_usb_phy_power(struct device *dev, int on);
- extern void omap_control_usb_set_mode(struct device *dev,
- 	enum omap_control_usb_mode mode);
- #else
--static inline struct device *omap_get_control_dev(void)
--{
--	return ERR_PTR(-ENODEV);
--}
- 
- static inline void omap_control_usb_phy_power(struct device *dev, int on)
- {
+ 	omap_control_usb_phy_power(phy->control_dev, 0);
+ 	usb_add_phy_dev(&phy->phy);
 -- 
 1.7.4.1
 
