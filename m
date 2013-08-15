@@ -1,60 +1,44 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 5/9] ARM: dts: omap3-beagle: Use reset-gpios for hsusb2_reset
-Date: Thu, 15 Aug 2013 13:18:25 +0300
-Message-ID: <1376561909-4406-6-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 1/9] usb: phy: nop: Add gpio_reset to platform data
+Date: Thu, 15 Aug 2013 13:18:21 +0300
+Message-ID: <1376561909-4406-2-git-send-email-rogerq@ti.com>
 References: <1376561909-4406-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39515 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754186Ab3HOKTT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Aug 2013 06:19:19 -0400
-In-Reply-To: <1376561909-4406-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1376561909-4406-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Cc: p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, tony@atomide.com, bcousson@baylibre.com
-Cc: p.zabel@pengutronix.de, broonie@kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-We no longer need to model the RESET line as a regulator since
-the USB phy-nop driver accepts "reset-gpios" property.
+The GPIO number of the RESET line can be passed to the
+driver using the gpio_reset member.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap3-beagle.dts |   13 +------------
- 1 files changed, 1 insertions(+), 12 deletions(-)
+ include/linux/usb/nop-usb-xceiv.h |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index dfd8310..71bde47 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -44,17 +44,6 @@
- 		};
- 	};
+diff --git a/include/linux/usb/nop-usb-xceiv.h b/include/linux/usb/nop-usb-xceiv.h
+index 148d351..1e57acb 100644
+--- a/include/linux/usb/nop-usb-xceiv.h
++++ b/include/linux/usb/nop-usb-xceiv.h
+@@ -9,7 +9,9 @@ struct nop_usb_xceiv_platform_data {
  
--	/* HS USB Port 2 RESET */
--	hsusb2_reset: hsusb2_reset_reg {
--		compatible = "regulator-fixed";
--		regulator-name = "hsusb2_reset";
--		regulator-min-microvolt = <3300000>;
--		regulator-max-microvolt = <3300000>;
--		gpio = <&gpio5 19 0>;	/* gpio_147 */
--		startup-delay-us = <70000>;
--		enable-active-high;
--	};
--
- 	/* HS USB Port 2 Power */
- 	hsusb2_power: hsusb2_power_reg {
- 		compatible = "regulator-fixed";
-@@ -68,7 +57,7 @@
- 	/* HS USB Host PHY on PORT 2 */
- 	hsusb2_phy: hsusb2_phy {
- 		compatible = "usb-nop-xceiv";
--		reset-supply = <&hsusb2_reset>;
-+		reset-gpios = <&gpio5 19 GPIO_ACTIVE_LOW>;	/* gpio_147 */
- 		vcc-supply = <&hsusb2_power>;
- 	};
+ 	/* if set fails with -EPROBE_DEFER if can't get regulator */
+ 	unsigned int needs_vcc:1;
+-	unsigned int needs_reset:1;
++	unsigned int needs_reset:1; /* Deprecated */
++
++	int gpio_reset;
+ };
  
+ #if defined(CONFIG_NOP_USB_XCEIV) || (defined(CONFIG_NOP_USB_XCEIV_MODULE) && defined(MODULE))
 -- 
 1.7.4.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
