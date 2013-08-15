@@ -1,69 +1,49 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: dma_unmap causing issues with __get_free_pages
-Date: Thu, 15 Aug 2013 10:43:37 -0500
-Message-ID: <520CF729.3030704@ti.com>
-References: <520C84DF.5050707@ti.com> <20130815115545.GD25647@n2100.arm.linux.org.uk>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH 1/2] extcon: palmas: Added a new compatible type *ti,
+ palmas-usb-vid*
+Date: Thu, 15 Aug 2013 18:09:54 +0200
+Message-ID: <520CFD52.4060103@baylibre.com>
+References: <1376302675-15795-1-git-send-email-kishon@ti.com> <1376372241-15573-1-git-send-email-kishon@ti.com> <520A8555.10401@wwwdotorg.org> <520B14A1.8030809@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54427 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756277Ab3HOPoM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Aug 2013 11:44:12 -0400
-In-Reply-To: <20130815115545.GD25647@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <520B14A1.8030809@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>, mark.rutland@arm.com, devicetree@vger.kernel.org, george.cherian@ti.com, linux@arm.linux.org.uk, ian.campbell@citrix.com, pawel.moll@arm.com, linux-doc@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, cw00.choi@samsung.com, myungjoo.ham@samsung.com, balbi@ti.com, rob@landley.net, benoit.cousson@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Russell,
+Hi Kishon,
 
-On 08/15/2013 06:55 AM, Russell King - ARM Linux wrote:
-> On Thu, Aug 15, 2013 at 02:35:59AM -0500, Joel Fernandes wrote:
->> Hi,
+On 14/08/2013 07:24, Kishon Vijay Abraham I wrote:
+> Hi,
+>
+> On Wednesday 14 August 2013 12:43 AM, Stephen Warren wrote:
+>> On 08/12/2013 11:37 PM, Kishon Vijay Abraham I wrote:
+>>> The Palmas device contains only a USB VID detector, so added a
+>>> compatible type *ti,palmas-usb-vid*. Dint remove the existing compatible
 >>
->> I'm having some trouble with using the dma_map/unmap API.
+>> s/Dint/Didn't/
 >>
->> On unmapping a particular page using dma_unmap, it seems that the
->> PG_dcache_clean flag is set in the page->flags. This is set by the
->> following statement in __dma_page_dev_to_cpu function in
->> arch/arm/mm/dma-mapping.c
->>                 set_bit(PG_dcache_clean, &page->flags);
+>>> diff --git a/Documentation/devicetree/bindings/extcon/extcon-twl.txt b/Documentation/devicetree/bindings/extcon/extcon-twl.txt
 >>
->> Due to this, on any subsequent page allocations using __get_free_pages,
->> the following BUG gets triggered.
-> 
-> Are you calling dma_unmap() after the page has been freed?
-> 
->> What is correct way to fix this? Why does the page allocator think its a
->> BAD page descriptor after the unmap?
-> 
-> Well, on free, this is done:
-> 
->         if (page->flags & PAGE_FLAGS_CHECK_AT_PREP)
->                 page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
-> 
-> which clears PG_arch_1.  On allocation:
-> 
->         if (unlikely(page_mapcount(page) |
->                 (page->mapping != NULL)  |
->                 (atomic_read(&page->_count) != 0)  |
->                 (page->flags & PAGE_FLAGS_CHECK_AT_PREP) |
->                 (mem_cgroup_bad_page_check(page)))) {
->                 bad_page(page);
->                 return 1;
->         }
-> 
-> As PG_arch_1 is part of the PAGE_FLAGS_CHECK_AT_PREP mask, this means that
-> when a page is freed, it has PG_arch_1 cleared.  Therefore, if on allocation
-> the page now has this bit set, it means that something touched the page
-> after it was freed.  Quite simply, the page was freed while still being
-> in use.  That's very bad and needs fixing.
-> 
+>>>   PALMAS USB COMPARATOR
+>>>   Required Properties:
+>>> - - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb"
+>>> + - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb" or
+>>> +   "ti,palmas-usb-vid".
+>>
+>> So are ti,palmas-usb and ti,twl6035-usb full EHCI controllers then?
+>
+> No. I thought I shouldn't remove those if someone is already using those
+> compatible value.
 
-Absolutely you nailed it! I was doing alloc, map, free, unmap, changed
-this to alloc, map, unmap, free and its working fine now and I learnt a
-thing or 2 about page->flags. Thanks!
+Well, I think we still have a short period of time where we can clean 
+some badly defined bindings before it is really too late.
 
--Joel
+Both kernel and DTS are still in sync for the moment, so changing both 
+at the same time should be safe.
+
+Regards,
+Benoit
