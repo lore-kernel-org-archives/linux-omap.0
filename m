@@ -1,49 +1,70 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH 1/2] extcon: palmas: Added a new compatible type *ti,
- palmas-usb-vid*
-Date: Thu, 15 Aug 2013 18:09:54 +0200
-Message-ID: <520CFD52.4060103@baylibre.com>
-References: <1376302675-15795-1-git-send-email-kishon@ti.com> <1376372241-15573-1-git-send-email-kishon@ti.com> <520A8555.10401@wwwdotorg.org> <520B14A1.8030809@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH v2 1/8] usb: phy: omap-control: Get rid of platform data
+Date: Thu, 15 Aug 2013 18:22:29 +0200
+Message-ID: <20130815162229.GA10982@linutronix.de>
+References: <1376572512-9561-1-git-send-email-rogerq@ti.com>
+ <1376572512-9561-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <520B14A1.8030809@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, mark.rutland@arm.com, devicetree@vger.kernel.org, george.cherian@ti.com, linux@arm.linux.org.uk, ian.campbell@citrix.com, pawel.moll@arm.com, linux-doc@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, cw00.choi@samsung.com, myungjoo.ham@samsung.com, balbi@ti.com, rob@landley.net, benoit.cousson@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:35463 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757381Ab3HOQWd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Aug 2013 12:22:33 -0400
+Content-Disposition: inline
+In-Reply-To: <1376572512-9561-2-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, bcousson@baylibre.com, tony@atomide.com, kishon@ti.com, george.cherian@ti.com, dmurphy@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Hi Kishon,
+* Roger Quadros | 2013-08-15 16:15:05 [+0300]:
 
-On 14/08/2013 07:24, Kishon Vijay Abraham I wrote:
-> Hi,
->
-> On Wednesday 14 August 2013 12:43 AM, Stephen Warren wrote:
->> On 08/12/2013 11:37 PM, Kishon Vijay Abraham I wrote:
->>> The Palmas device contains only a USB VID detector, so added a
->>> compatible type *ti,palmas-usb-vid*. Dint remove the existing compatible
->>
->> s/Dint/Didn't/
->>
->>> diff --git a/Documentation/devicetree/bindings/extcon/extcon-twl.txt b/Documentation/devicetree/bindings/extcon/extcon-twl.txt
->>
->>>   PALMAS USB COMPARATOR
->>>   Required Properties:
->>> - - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb"
->>> + - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb" or
->>> +   "ti,palmas-usb-vid".
->>
->> So are ti,palmas-usb and ti,twl6035-usb full EHCI controllers then?
->
-> No. I thought I shouldn't remove those if someone is already using those
-> compatible value.
+>diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
+>index a4dda8e..3b9ee83 100644
+>--- a/drivers/usb/phy/phy-omap-control.c
+>+++ b/drivers/usb/phy/phy-omap-control.c
+>@@ -197,8 +197,13 @@ static int omap_control_usb_probe(struct platform_device *pdev)
+> {
+> 	struct resource	*res;
+> 	struct device_node *np = pdev->dev.of_node;
+>-	struct omap_control_usb_platform_data *pdata =
+>-			dev_get_platdata(&pdev->dev);
+>+
+>+	if (np) {
+>+		of_property_read_u32(np, "ti,type", &control_usb->type);
+>+	} else {
+>+		/* We only support DT boot */
+>+		return -ENODEV;
+>+	}
 
-Well, I think we still have a short period of time where we can clean 
-some badly defined bindings before it is really too late.
+what about
+    if (!nop)
+        return -EINVAL;
 
-Both kernel and DTS are still in sync for the moment, so changing both 
-at the same time should be safe.
+> 	control_usb = devm_kzalloc(&pdev->dev, sizeof(*control_usb),
+> 		GFP_KERNEL);
+>@@ -207,15 +212,6 @@ static int omap_control_usb_probe(struct platform_device *pdev)
+> 		return -ENOMEM;
+> 	}
+> 
+>-	if (np) {
+>-		of_property_read_u32(np, "ti,type", &control_usb->type);
 
-Regards,
-Benoit
+and here you shift the property to the left and remove the other lines.
+But then you wanted to remove that ti,type thingy but I guess this will
+be part of another patch then. Since you can't do everything in one
+patch, it is okay.
+
+>-	} else if (pdata) {
+>-		control_usb->type = pdata->type;
+>-	} else {
+>-		dev_err(&pdev->dev, "no pdata present\n");
+>-		return -EINVAL;
+>-	}
+>-
+> 	control_usb->dev	= &pdev->dev;
+> 
+> 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+
+Sebastian
