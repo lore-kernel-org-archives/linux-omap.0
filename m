@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 9/9] ARM: dts: omap3-beagle-xm: Add USB Host support
-Date: Thu, 15 Aug 2013 13:18:29 +0300
-Message-ID: <1376561909-4406-10-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 4/9] ARM: OMAP2+: usb-host: Adapt to USB phy-nop RESET line changes
+Date: Thu, 15 Aug 2013 13:18:24 +0300
+Message-ID: <1376561909-4406-5-git-send-email-rogerq@ti.com>
 References: <1376561909-4406-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,93 +12,36 @@ To: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane
 Cc: p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Provide RESET GPIO and Power regulator for the USB PHY,
-the USB Host port mode and the PHY device for the controller.
-Also provide pin multiplexer information for USB host pins.
-
-We also relocate omap3_pmx_core pin definations so that they
-are close to omap3_pmx_wkup pin definations.
+The USB phy-nop nop driver expects the RESET line information
+to be sent as a GPIO number via platform data. Adapt to that.
 
 Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap3-beagle-xm.dts |   65 ++++++++++++++++++++++++++++-----
- 1 files changed, 56 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/usb-host.c |   11 +----------
+ 1 files changed, 1 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index afdb164..b081f5a 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -69,6 +69,23 @@
- 		};
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index 1626801..4528b40 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -460,8 +460,7 @@ int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
+ 		memset(&nop_pdata, 0, sizeof(nop_pdata));
+ 		if (gpio_is_valid(phy->vcc_gpio))
+ 			nop_pdata.needs_vcc = true;
+-		if (gpio_is_valid(phy->reset_gpio))
+-			nop_pdata.needs_reset = true;
++		nop_pdata.gpio_reset = phy->reset_gpio;
+ 		nop_pdata.type = USB_PHY_TYPE_USB2;
  
- 	};
-+
-+	/* HS USB Port 2 Power */
-+	hsusb2_power: hsusb2_power_reg {
-+		compatible = "regulator-fixed";
-+		regulator-name = "hsusb2_vbus";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		gpio = <&twl_gpio 18 0>;	/* GPIO LEDA */
-+		startup-delay-us = <70000>;
-+	};
-+
-+	/* HS USB Host PHY on PORT 2 */
-+	hsusb2_phy: hsusb2_phy {
-+		compatible = "usb-nop-xceiv";
-+		reset-gpios = <&gpio5 19 GPIO_ACTIVE_LOW>; /* gpio_147 */
-+		vcc-supply = <&hsusb2_power>;
-+	};
- };
+ 		/* create a NOP PHY device */
+@@ -483,14 +482,6 @@ int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
  
- &omap3_pmx_wkup {
-@@ -79,6 +96,37 @@
- 	};
- };
+ 		usb_bind_phy("ehci-omap.0", phy->port - 1, phy_id);
  
-+&omap3_pmx_core {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+			&hsusbb2_pins
-+	>;
-+
-+	uart3_pins: pinmux_uart3_pins {
-+		pinctrl-single,pins = <
-+			0x16e (PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0) /* uart3_rx_irrx.uart3_rx_irrx */
-+			0x170 (PIN_OUTPUT | MUX_MODE0) /* uart3_tx_irtx.uart3_tx_irtx OUTPUT | MODE0 */
-+		>;
-+	};
-+
-+	hsusbb2_pins: pinmux_hsusbb2_pins {
-+		pinctrl-single,pins = <
-+			0x5c0 (PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
-+			0x5c2 (PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
-+			0x5c4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
-+			0x5c6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
-+			0x5c8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
-+			0x5cA (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
-+			0x1a4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
-+			0x1a6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
-+			0x1a8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
-+			0x1aa (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_somi.hsusb2_data5 */
-+			0x1ac (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs0.hsusb2_data6 */
-+			0x1ae (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs1.hsusb2_data3 */
-+		>;
-+	};
-+};
-+
- &i2c1 {
- 	clock-frequency = <2600000>;
- 
-@@ -148,15 +196,6 @@
- 	power = <50>;
- };
- 
--&omap3_pmx_core {
--	uart3_pins: pinmux_uart3_pins {
--		pinctrl-single,pins = <
--			0x16e (PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0) /* uart3_rx_irrx.uart3_rx_irrx */
--			0x170 (PIN_OUTPUT | MUX_MODE0) /* uart3_tx_irtx.uart3_tx_irtx OUTPUT | MODE0 */
--		>;
--	};
--};
+-		/* Do we need RESET regulator ? */
+-		if (gpio_is_valid(phy->reset_gpio)) {
+-			scnprintf(rail_name, MAX_STR,
+-					"hsusb%d_reset", phy->port);
+-			usbhs_add_regulator(rail_name, phy_id, "reset",
+-						phy->reset_gpio, 1);
+-		}
