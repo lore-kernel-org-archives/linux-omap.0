@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 3/9] ARM: OMAP2+: omap-usb-host: Get rid of platform_data from struct usbhs_phy_data
-Date: Thu, 15 Aug 2013 13:18:23 +0300
-Message-ID: <1376561909-4406-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 9/9] ARM: dts: omap3-beagle-xm: Add USB Host support
+Date: Thu, 15 Aug 2013 13:18:29 +0300
+Message-ID: <1376561909-4406-10-git-send-email-rogerq@ti.com>
 References: <1376561909-4406-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,90 +12,93 @@ To: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane
 Cc: p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The platform data bits can be inferred from the other members of
-struct usbhs_phy_data. So get rid of the platform_data member.
+Provide RESET GPIO and Power regulator for the USB PHY,
+the USB Host port mode and the PHY device for the controller.
+Also provide pin multiplexer information for USB host pins.
 
-Build the platform data for the PHY device in usbhs_init_phys() instead.
+We also relocate omap3_pmx_core pin definations so that they
+are close to omap3_pmx_wkup pin definations.
 
 Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c |    6 ------
- arch/arm/mach-omap2/usb-host.c          |   11 ++++++++++-
- arch/arm/mach-omap2/usb.h               |    1 -
- 3 files changed, 10 insertions(+), 8 deletions(-)
+ arch/arm/boot/dts/omap3-beagle-xm.dts |   65 ++++++++++++++++++++++++++++-----
+ 1 files changed, 56 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 04c1165..47bca8f 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -278,18 +278,12 @@ static struct regulator_consumer_supply beagle_vsim_supply[] = {
+diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
+index afdb164..b081f5a 100644
+--- a/arch/arm/boot/dts/omap3-beagle-xm.dts
++++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+@@ -69,6 +69,23 @@
+ 		};
  
- static struct gpio_led gpio_leds[];
- 
--/* PHY's VCC regulator might be added later, so flag that we need it */
--static struct nop_usb_xceiv_platform_data hsusb2_phy_data = {
--	.needs_vcc = true,
--};
--
- static struct usbhs_phy_data phy_data[] = {
- 	{
- 		.port = 2,
- 		.reset_gpio = 147,
- 		.vcc_gpio = -1,		/* updated in beagle_twl_gpio_setup */
- 		.vcc_polarity = 1,	/* updated in beagle_twl_gpio_setup */
--		.platform_data = &hsusb2_phy_data,
- 	},
- };
- 
-diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
-index 2eb19d4..1626801 100644
---- a/arch/arm/mach-omap2/usb-host.c
-+++ b/arch/arm/mach-omap2/usb-host.c
-@@ -435,6 +435,7 @@ int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
- 	struct platform_device *pdev;
- 	char *phy_id;
- 	struct platform_device_info pdevinfo;
-+	struct nop_usb_xceiv_platform_data nop_pdata;
- 
- 	for (i = 0; i < num_phys; i++) {
- 
-@@ -455,11 +456,19 @@ int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
- 			return -ENOMEM;
- 		}
- 
-+		/* set platform data */
-+		memset(&nop_pdata, 0, sizeof(nop_pdata));
-+		if (gpio_is_valid(phy->vcc_gpio))
-+			nop_pdata.needs_vcc = true;
-+		if (gpio_is_valid(phy->reset_gpio))
-+			nop_pdata.needs_reset = true;
-+		nop_pdata.type = USB_PHY_TYPE_USB2;
+ 	};
 +
- 		/* create a NOP PHY device */
- 		memset(&pdevinfo, 0, sizeof(pdevinfo));
- 		pdevinfo.name = nop_name;
- 		pdevinfo.id = phy->port;
--		pdevinfo.data = phy->platform_data;
-+		pdevinfo.data = &nop_pdata;
- 		pdevinfo.size_data = sizeof(struct nop_usb_xceiv_platform_data);
- 
- 		scnprintf(phy_id, MAX_STR, "nop_usb_xceiv.%d",
-diff --git a/arch/arm/mach-omap2/usb.h b/arch/arm/mach-omap2/usb.h
-index e7261eb..4ba2ae7 100644
---- a/arch/arm/mach-omap2/usb.h
-+++ b/arch/arm/mach-omap2/usb.h
-@@ -58,7 +58,6 @@ struct usbhs_phy_data {
- 	int reset_gpio;
- 	int vcc_gpio;
- 	bool vcc_polarity;	/* 1 active high, 0 active low */
--	void *platform_data;
++	/* HS USB Port 2 Power */
++	hsusb2_power: hsusb2_power_reg {
++		compatible = "regulator-fixed";
++		regulator-name = "hsusb2_vbus";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		gpio = <&twl_gpio 18 0>;	/* GPIO LEDA */
++		startup-delay-us = <70000>;
++	};
++
++	/* HS USB Host PHY on PORT 2 */
++	hsusb2_phy: hsusb2_phy {
++		compatible = "usb-nop-xceiv";
++		reset-gpios = <&gpio5 19 GPIO_ACTIVE_LOW>; /* gpio_147 */
++		vcc-supply = <&hsusb2_power>;
++	};
  };
  
- extern void usb_musb_init(struct omap_musb_board_data *board_data);
--- 
-1.7.4.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ &omap3_pmx_wkup {
+@@ -79,6 +96,37 @@
+ 	};
+ };
+ 
++&omap3_pmx_core {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++			&hsusbb2_pins
++	>;
++
++	uart3_pins: pinmux_uart3_pins {
++		pinctrl-single,pins = <
++			0x16e (PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0) /* uart3_rx_irrx.uart3_rx_irrx */
++			0x170 (PIN_OUTPUT | MUX_MODE0) /* uart3_tx_irtx.uart3_tx_irtx OUTPUT | MODE0 */
++		>;
++	};
++
++	hsusbb2_pins: pinmux_hsusbb2_pins {
++		pinctrl-single,pins = <
++			0x5c0 (PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
++			0x5c2 (PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
++			0x5c4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
++			0x5c6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
++			0x5c8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
++			0x5cA (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
++			0x1a4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
++			0x1a6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
++			0x1a8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
++			0x1aa (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_somi.hsusb2_data5 */
++			0x1ac (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs0.hsusb2_data6 */
++			0x1ae (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs1.hsusb2_data3 */
++		>;
++	};
++};
++
+ &i2c1 {
+ 	clock-frequency = <2600000>;
+ 
+@@ -148,15 +196,6 @@
+ 	power = <50>;
+ };
+ 
+-&omap3_pmx_core {
+-	uart3_pins: pinmux_uart3_pins {
+-		pinctrl-single,pins = <
+-			0x16e (PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0) /* uart3_rx_irrx.uart3_rx_irrx */
+-			0x170 (PIN_OUTPUT | MUX_MODE0) /* uart3_tx_irtx.uart3_tx_irtx OUTPUT | MODE0 */
+-		>;
+-	};
+-};
