@@ -1,64 +1,59 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 8/9] ARM: dts: omap3-beagle: Make USB host pin naming consistent
-Date: Thu, 15 Aug 2013 13:18:28 +0300
-Message-ID: <1376561909-4406-9-git-send-email-rogerq@ti.com>
-References: <1376561909-4406-1-git-send-email-rogerq@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: dma_unmap causing issues with __get_free_pages
+Date: Thu, 15 Aug 2013 12:55:45 +0100
+Message-ID: <20130815115545.GD25647@n2100.arm.linux.org.uk>
+References: <520C84DF.5050707@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39530 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755679Ab3HOKTt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Aug 2013 06:19:49 -0400
-In-Reply-To: <1376561909-4406-1-git-send-email-rogerq@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41729 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753005Ab3HOLz4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Aug 2013 07:55:56 -0400
+Content-Disposition: inline
+In-Reply-To: <520C84DF.5050707@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, tony@atomide.com, bcousson@baylibre.com
-Cc: p.zabel@pengutronix.de, broonie@kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Joel Fernandes <joelf@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Use a common naming scheme "mode0name.modename flags" for the
-USB host pins to be consistent.
+On Thu, Aug 15, 2013 at 02:35:59AM -0500, Joel Fernandes wrote:
+> Hi,
+> 
+> I'm having some trouble with using the dma_map/unmap API.
+> 
+> On unmapping a particular page using dma_unmap, it seems that the
+> PG_dcache_clean flag is set in the page->flags. This is set by the
+> following statement in __dma_page_dev_to_cpu function in
+> arch/arm/mm/dma-mapping.c
+>                 set_bit(PG_dcache_clean, &page->flags);
+> 
+> Due to this, on any subsequent page allocations using __get_free_pages,
+> the following BUG gets triggered.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/omap3-beagle.dts |   24 ++++++++++++------------
- 1 files changed, 12 insertions(+), 12 deletions(-)
+Are you calling dma_unmap() after the page has been freed?
 
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index 71bde47..1237822 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -90,18 +90,18 @@
- 
- 	hsusbb2_pins: pinmux_hsusbb2_pins {
- 		pinctrl-single,pins = <
--			0x5c0 (PIN_OUTPUT | MUX_MODE3)		/* usbb2_ulpitll_clk.usbb1_ulpiphy_clk */
--			0x5c2 (PIN_OUTPUT | MUX_MODE3)		/* usbb2_ulpitll_clk.usbb1_ulpiphy_stp */
--			0x5c4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dir */
--			0x5c6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_nxt */
--			0x5c8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat0 */
--			0x5cA (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat1 */
--			0x1a4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat2 */
--			0x1a6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat3 */
--			0x1a8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat4 */
--			0x1aa (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat5 */
--			0x1ac (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat6 */
--			0x1ae (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* usbb2_ulpitll_clk.usbb1_ulpiphy_dat7 */
-+			0x5c0 (PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
-+			0x5c2 (PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
-+			0x5c4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
-+			0x5c6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
-+			0x5c8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
-+			0x5cA (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
-+			0x1a4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
-+			0x1a6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
-+			0x1a8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
-+			0x1aa (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_somi.hsusb2_data5 */
-+			0x1ac (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs0.hsusb2_data6 */
-+			0x1ae (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs1.hsusb2_data3 */
- 		>;
- 	};
- 
--- 
-1.7.4.1
+> What is correct way to fix this? Why does the page allocator think its a
+> BAD page descriptor after the unmap?
 
+Well, on free, this is done:
+
+        if (page->flags & PAGE_FLAGS_CHECK_AT_PREP)
+                page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+
+which clears PG_arch_1.  On allocation:
+
+        if (unlikely(page_mapcount(page) |
+                (page->mapping != NULL)  |
+                (atomic_read(&page->_count) != 0)  |
+                (page->flags & PAGE_FLAGS_CHECK_AT_PREP) |
+                (mem_cgroup_bad_page_check(page)))) {
+                bad_page(page);
+                return 1;
+        }
+
+As PG_arch_1 is part of the PAGE_FLAGS_CHECK_AT_PREP mask, this means that
+when a page is freed, it has PG_arch_1 cleared.  Therefore, if on allocation
+the page now has this bit set, it means that something touched the page
+after it was freed.  Quite simply, the page was freed while still being
+in use.  That's very bad and needs fixing.
