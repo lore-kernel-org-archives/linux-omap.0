@@ -1,58 +1,212 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/3] misc: Add crossbar driver
-Date: Thu, 15 Aug 2013 16:26:53 -0400
-Message-ID: <520D398D.9040806@ti.com>
-References: <51E83A4F.5080904@ti.com> <CACRpkdY3nQaWimTwB-Zt-8+Q_KZr8a0rpB1SUQq=AuoG4bAYnQ@mail.gmail.com> <51ED2385.60108@ti.com> <51ED5C66.1010407@ti.com> <51EFFBE1.4090505@ti.com> <51F0031B.1050307@ti.com> <51F00530.9090703@ti.com> <51F02069.3050207@ti.com> <51F0223E.4050008@ti.com> <51F0240F.3050507@ti.com> <20130813081003.GU7656@atomide.com> <520A02BA.4090805@ti.com> <CACRpkda+m82PYJsExLM6JLsLa8-bVhdvy_r_+-uKfVT2NG7Cbg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CACRpkda+m82PYJsExLM6JLsLa8-bVhdvy_r_+-uKfVT2NG7Cbg@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Sricharan R <r.sricharan@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@secretlab.ca>
+From: Marek Belisko <marek@goldelico.com>
+Subject: [PATCH] ARM:dts: Add devicetree for gta04 board.
+Date: Thu, 15 Aug 2013 22:43:05 +0200
+Message-ID: <1376599385-1697-1-git-send-email-marek@goldelico.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bcousson@baylibre.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, linux@arm.linux.org.uk, tony@atomide.com
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Marek Belisko <marek@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 15 August 2013 04:01 PM, Linus Walleij wrote:
-> On Tue, Aug 13, 2013 at 11:56 AM, Sricharan R <r.sricharan@ti.com> wrote:
-> 
->>  Initially irqchip was discussed, but we also have a DMA crossbar
->>  to map the dma-requests. Since both irq/dma crossbars should be handled,
->>  pinctrl was suggested as the appropriate place to handle this.
-> 
-> I think it is better to use irqchip.
->
-Did you happen to read the thread why irqchip is in-appropriate
-for such an IP. As I said earlier, an IRQ-chip always need a
-real IRQ link (even for the chained one) to the primary irqchip.
+This adds devicetree for gta04 (Openmoko next generation board) with necessary
+support for mmc, usb, leds and button.
 
-This IP is just dummy IP makes the connections for the primary
-irqchip(read GIC). And its use only limited to make the
-connection between the peripheral IRQ event to the GIC IRQ line.
+Signed-off-by: Marek Belisko <marek@goldelico.com>
+---
 
-I don't see how you can make this happen with an irqchip
-infrastructure.
+This is resurrection of patch sent in March https://lkml.org/lkml/2013/1/24/419
+when I got no reply from maintainer. Patch is updated and based on linux-next (20130807)
 
-If you have a idea to make that work, we can go with that
-since for time being we can ignore the DMA event related need
-of this IP.
- 
-> For DMA there is already an arbiter mechanism for arbitration of
-> virtual channels over physical channels, this is not much different,
-> the DMA might need some different tweaking but should be solved
-> in that subsystem I think.
->
-Sure. The IP won't be limited to DMA and IRQ lines but any other events
-like gpio etc in future.
- 
-> I don't see any way to really abstract this pretty simple crossbar
-> for reuse across subsystems.
-> 
-This exactly the reason, i am against idea of over-engineering the
-simple IP whose only job is to make the physical wire connection
-in software where as this is generally done in RTL by default on
-most of the SOCs.
+ arch/arm/boot/dts/Makefile        |   1 +
+ arch/arm/boot/dts/omap3-gta04.dts | 168 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 169 insertions(+)
+ create mode 100644 arch/arm/boot/dts/omap3-gta04.dts
 
-Regards,
-Santosh
-
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index ada589c..f091c50 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -171,6 +171,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+ 	omap3-beagle-xm.dtb \
+ 	omap3-evm.dtb \
+ 	omap3-tobi.dtb \
++	omap3-gta04.dtb \
+ 	omap3-igep0020.dtb \
+ 	omap3-igep0030.dtb \
+ 	omap4-panda.dtb \
+diff --git a/arch/arm/boot/dts/omap3-gta04.dts b/arch/arm/boot/dts/omap3-gta04.dts
+new file mode 100644
+index 0000000..0987f76
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-gta04.dts
+@@ -0,0 +1,168 @@
++/*
++ * Copyright (C) 2013 Marek Belisko <marek@goldelico.com>
++ *
++ * Based on omap3-beagle-xm.dts
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "omap36xx.dtsi"
++
++/ {
++	model = "OMAP3 GTA04";
++	compatible = "ti,omap3-gta04", "ti,omap3";
++
++	cpus {
++		cpu@0 {
++			cpu0-supply = <&vcc>;
++		};
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x20000000>; /* 512 MB */
++	};
++
++	gpio-keys {
++		compatible = "gpio-keys";
++
++		aux-button {
++			label = "aux";
++			linux,code = <169>;
++			gpios = <&gpio1 7 GPIO_ACTIVE_LOW>;
++			gpio-key,wakeup;
++		};
++	};
++};
++
++&omap3_pmx_core {
++	uart1_pins: pinmux_uart1_pins {
++		pinctrl-single,pins = <
++			0x152 (PIN_INPUT | MUX_MODE0)		/* uart1_rx.uart1_rx */
++			0x14c (PIN_OUTPUT |MUX_MODE0)		/* uart1_tx.uart1_tx */
++		>;
++	};
++
++	uart2_pins: pinmux_uart2_pins {
++		pinctrl-single,pins = <
++			0x14a (PIN_INPUT | MUX_MODE0)		/* uart2_rx.uart2_rx */
++			0x148 (PIN_OUTPUT | MUX_MODE0)		/* uart2_tx.uart2_tx */
++		>;
++	};
++
++	uart3_pins: pinmux_uart3_pins {
++		pinctrl-single,pins = <
++			0x16e (PIN_INPUT | MUX_MODE0)		/* uart3_rx.uart3_rx */
++			0x170 (PIN_OUTPUT | MUX_MODE0)		/* uart3_tx.uart3_tx */
++		>;
++	};
++
++	mmc1_pins: pinmux_mmc1_pins {
++		pinctrl-single,pins = <
++			0x114 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_clk.sdmmc1_clk */
++			0x116 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_cmd.sdmmc1_cmd */
++			0x118 (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat0.sdmmc1_dat0 */
++			0x11a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat1.sdmmc1_dat1 */
++			0x11c (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat2.sdmmc1_dat2 */
++			0x11e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat3.sdmmc1_dat3 */
++		>;
++	};
++};
++
++&i2c1 {
++	clock-frequency = <2600000>;
++
++	twl: twl@48 {
++		reg = <0x48>;
++		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
++		interrupt-parent = <&intc>;
++	};
++};
++
++#include "twl4030.dtsi"
++#include "twl4030_omap3.dtsi"
++
++&i2c2 {
++	clock-frequency = <400000>;
++
++	/* pressure sensor */
++	bmp085@77 {
++		compatible = "bosch,bmp085";
++		reg = <0x77>;
++	};
++
++	/* leds */
++	tca6507@45 {
++		compatible = "ti,tca6507";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reg = <0x45>;
++
++		gta04_led0: red_aux@0 {
++			label = "gta04:red:aux";
++			reg = <0x0>;
++		};
++
++		gta04_led1: green_aux@1 {
++			label = "gta04:green:aux";
++			reg = <0x1>;
++		};
++
++		gta04_led3: red_power@3 {
++			label = "gta04:red:power";
++			reg = <0x3>;
++			linux,default-trigger = "default-on";
++		};
++
++		gta04_led4: green_power@4 {
++			label = "gta04:green:power";
++			reg = <0x4>;
++		};
++	};
++};
++
++&i2c3 {
++	clock-frequency = <100000>;
++};
++
++&usb_otg_hs {
++	interface-type = <0>;
++	usb-phy = <&usb2_phy>;
++	mode = <3>;
++	power = <50>;
++};
++
++&mmc1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc1_pins>;
++	vmmc-supply = <&vmmc1>;
++	vmmc_aux-supply = <&vsim>;
++	bus-width = <4>;
++};
++
++&mmc2 {
++	status = "disabled";
++};
++
++&mmc3 {
++	status = "disabled";
++};
++
++&uart1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart1_pins>;
++};
++
++&uart2 {
++       pinctrl-names = "default";
++       pinctrl-0 = <&uart2_pins>;
++};
++
++&uart3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart3_pins>;
++};
++
+-- 
+1.8.1.2
