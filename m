@@ -1,82 +1,80 @@
-From: Roger Quadros <rogerq-mWibgAyQ9RI@public.gmane.org>
-Subject: [PATCH v3 4/8] usb: phy: omap-usb3: Don't use omap_get_control_dev()
-Date: Fri, 16 Aug 2013 16:09:27 +0300
-Message-ID: <1376658571-20992-5-git-send-email-rogerq@ti.com>
-References: <1376658571-20992-1-git-send-email-rogerq@ti.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH v2 0/2] omap4/twl6030: typical connection to omap4 as
+ a separate dtsi file
+Date: Fri, 16 Aug 2013 15:17:06 +0200
+Message-ID: <520E2652.4090103@baylibre.com>
+References: <1376469348-10797-1-git-send-email-ruslan.bilovol@ti.com> <520B8B45.1010300@baylibre.com> <CAB=otbTUk68CLmgQsEoefMMFTAnZCAMbZa-yiYmn1b3F1X8BiQ@mail.gmail.com> <CAHooxd7Sg8B-MM38F2ce=vR5ftO6ye2byrXH1-iFous=_AvTLg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1376658571-20992-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-mWibgAyQ9RI@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-mWibgAyQ9RI@public.gmane.org, kishon-mWibgAyQ9RI@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-mWibgAyQ9RI@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f171.google.com ([74.125.82.171]:48137 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752155Ab3HPNRJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Aug 2013 09:17:09 -0400
+Received: by mail-we0-f171.google.com with SMTP id q55so1638817wes.30
+        for <linux-omap@vger.kernel.org>; Fri, 16 Aug 2013 06:17:08 -0700 (PDT)
+In-Reply-To: <CAHooxd7Sg8B-MM38F2ce=vR5ftO6ye2byrXH1-iFous=_AvTLg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Uri Yosef <uri.y@variscite.com>
+Cc: Ruslan Bilovol <ruslan.bilovol@ti.com>, linux-omap <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Nishanth Menon <nm@ti.com>
 
-omap_get_control_dev() is being deprecated as it doesn't support
-multiple instances. As control device is present only from OMAP4
-onwards which supports DT only, we use phandles to get the
-reference to the control device.
+Hi Uri,
 
-As we don't support non-DT boot, we just bail out on probe
-if device node is not present.
+On 16/08/2013 14:30, Uri Yosef wrote:
+> Hi,
+>
+> I am on vacation until Aug 25th, I will test it when I back.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
----
- drivers/usb/phy/phy-omap-usb3.c |   22 ++++++++++++++++++----
- 1 files changed, 18 insertions(+), 4 deletions(-)
+OK, but it will be too late for this merge window. I'll drop it for 3.12 
+then.
 
-diff --git a/drivers/usb/phy/phy-omap-usb3.c b/drivers/usb/phy/phy-omap-usb3.c
-index 4a7f27c..981313e 100644
---- a/drivers/usb/phy/phy-omap-usb3.c
-+++ b/drivers/usb/phy/phy-omap-usb3.c
-@@ -26,6 +26,7 @@
- #include <linux/pm_runtime.h>
- #include <linux/delay.h>
- #include <linux/usb/omap_control_usb.h>
-+#include <linux/of_platform.h>
- 
- #define	PLL_STATUS		0x00000004
- #define	PLL_GO			0x00000008
-@@ -198,6 +199,12 @@ static int omap_usb3_probe(struct platform_device *pdev)
- {
- 	struct omap_usb			*phy;
- 	struct resource			*res;
-+	struct device_node *node = pdev->dev.of_node;
-+	struct device_node *control_node;
-+	struct platform_device *control_pdev;
-+
-+	if (!node)
-+		return -EINVAL;
- 
- 	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
- 	if (!phy) {
-@@ -239,11 +246,18 @@ static int omap_usb3_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
--	phy->control_dev = omap_get_control_dev();
--	if (IS_ERR(phy->control_dev)) {
--		dev_dbg(&pdev->dev, "Failed to get control device\n");
--		return -ENODEV;
-+	control_node = of_parse_phandle(node, "ctrl-module", 0);
-+	if (!control_node) {
-+		dev_err(&pdev->dev, "Failed to get control device phandle\n");
-+		return -EINVAL;
- 	}
-+	control_pdev = of_find_device_by_node(control_node);
-+	if (!control_pdev) {
-+		dev_err(&pdev->dev, "Failed to get control device\n");
-+		return -EINVAL;
-+	}
-+
-+	phy->control_dev = &control_pdev->dev;
- 
- 	omap_control_usb_phy_power(phy->control_dev, 0);
- 	usb_add_phy_dev(&phy->phy);
--- 
-1.7.4.1
+Thanks,
+Benoit
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Regards,
+> Uri Yosef
+>
+>
+> On Fri, Aug 16, 2013 at 3:04 PM, Ruslan Bilovol <ruslan.bilovol@ti.com
+> <mailto:ruslan.bilovol@ti.com>> wrote:
+>
+>     Hi Benoit,
+>
+>     On Wed, Aug 14, 2013 <tel:2013> at 4:51 PM, Benoit Cousson
+>     <bcousson@baylibre.com <mailto:bcousson@baylibre.com>> wrote:
+>      > Hi Ruslan,
+>      >
+>      > On 14/08/2013 10:35, Ruslan Bilovol wrote:
+>      >>
+>      >> Hello,
+>      >>
+>      >> There is no functional changes between v1 and v2 - just
+>      >> added the patch for omap4-var-som - Uri Yosef confirmed
+>      >> this board have the same connection of OMAP4<->TWL6030 as
+>      >> SDP4430 board
+>      >
+>      >
+>      > The series looks good to me, but it will be good to have a test
+>     for Panda
+>      > and Variscite boards before merging it.
+>
+>     Okay, so I just verified this patch series on PandaBoard ES2. Should I
+>     resubmit this series with
+>     fixed commit message?
+>     However I cannot verify the patch for Variscite board because I do not
+>     own any such board so
+>     you can drop that patch. But maybe Uri Yosef can verify it. Uri?
+>
+>      >
+>      > Regards,
+>      > Benoit
+>
+>     --
+>     Best regards,
+>     Ruslan Bilvol
+>
+>
+
