@@ -1,48 +1,59 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 0/2] ARM: dts: AM33XX: node definition cleanups
-Date: Fri, 16 Aug 2013 14:55:11 +0530
-Message-ID: <520DEFF7.2010809@ti.com>
-References: <1376154311-10184-1-git-send-email-javier.martinez@collabora.co.uk> <520A1C52.7070401@baylibre.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: [PATCH 0/2] Enable USB ID pin detection using extcon for DRA7xx
+Date: Fri, 16 Aug 2013 15:43:47 +0530
+Message-ID: <1376648029-30659-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40020 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754444Ab3HPJZq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Aug 2013 05:25:46 -0400
-In-Reply-To: <520A1C52.7070401@baylibre.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: balbi@ti.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com
+Cc: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, grant.likely@linaro.org, rob@landley.net, ian.campbell@citrix.com, swarren@wwwdotorg.org, mark.rutland@arm.com, pawel.moll@arm.com, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, bcousson@baylibre.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Ezequiel Garcia <elezegarcia@gmail.com>, Tony Lindgren <tony@atomide.com>, Afzal Mohammed <afzal@ti.com>, Enric Balletbo <eballetbo@gmail.com>, Lokesh Vutla <lokeshvutla@ti.com>, Benoit Cousson <benoit.cousson@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tuesday 13 August 2013 05:15 PM, Benoit Cousson wrote:
-> + Few TI folks to review and test.
-> 
-> On 10/08/2013 19:05, Javier Martinez Canillas wrote:
->> Hi,
-[]..
+Hi,
 
->>
->> Even though the binary dtb is the same and there shouldn't be
->> any visible changes, boot testing will be highly appreciated.
+These patches add support for USB ID pin detection using extcon framework. 
+The ID pin on DRA7xx is connected via the gpio expander pcf8575. 
+The interrupt line of the same is connected to the gpio 11 of bank 6. 
+The following driver relies on  the  gpio interrupt to notify the actual 
+ID pin values by which the dwc3 driver determines the HOST/Peripheral roles.
 
-I just boot tested these on my BoneBlack and it boots just fine [1]
-Feel free to add,
-Tested-by: Rajendra Nayak <rnayak@ti.com>
+Optionally a polling method is also available if the gpio interrupts 
+are not used on boards.
 
-[1] http://pastebin.com/Z2j6pymp
+These patches are on top of following merges.
+v3.11-rc3 dra7 baseport tree [1] , with balbi/next ,control-usb multi instance support [2],
+chanwoo/extcon-next, roger's patches for USB host adaptation[3] and Archit's patch to 
+Enable pcf857x GPIO expander for Device Tree[4].
 
-> 
-> Thanks it looks good to me.
-> 
-> Regards,
-> Benoit
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Patches are available at 
+extcon_dra7xx-v2
+in git tree
+git://git.ti.com/~georgecherian/ti-linux-kernel/georgec-connectivity-linux-feature-tree.git 
+
+[1] - dra7 base tree
+	https://github.com/lokeshvutla/linux/tree/dra7-3.11-rc3-base
+[2] - multiple control-usb instances
+	https://github.com/rogerq/linux/tree/usb-control-module
+[3] - [PATCH 0/4] ARM: DRA7-evm: USB host adaptation
+	https://lkml.org/lkml/2013/8/1/335
+[4] - [PATCH] gpio: Enable pcf857x GPIO expander for Device Tree
+ 	https://lkml.org/lkml/2013/6/6/333
+
+
+George Cherian (2):
+  extcon: extcon-dra7xx: Add extcon driver for USB ID detection
+  arm: dts: dra7-evm: Add extcon dt nodes for USB ID detection
+
+ .../devicetree/bindings/extcon/extcon-dra7xx.txt   |  19 ++
+ arch/arm/boot/dts/dra7-evm.dts                     |  42 +++-
+ drivers/extcon/Kconfig                             |   7 +
+ drivers/extcon/Makefile                            |   1 +
+ drivers/extcon/extcon-dra7xx.c                     | 234 +++++++++++++++++++++
+ 5 files changed, 302 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/extcon/extcon-dra7xx.txt
+ create mode 100644 drivers/extcon/extcon-dra7xx.c
+
+-- 
+1.8.1.4
 
