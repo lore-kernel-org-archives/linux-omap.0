@@ -1,86 +1,59 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 1/2] rtc: omap: update of_device_id to reflect latest
-	ip revisions
-Date: Fri, 16 Aug 2013 21:11:30 +0530
-Message-ID: <520E482A.1070504@ti.com>
-References: <1376653017-21935-1-git-send-email-gururaja.hebbar@ti.com>
-	<1376653017-21935-2-git-send-email-gururaja.hebbar@ti.com>
-	<520E341D.4080206@baylibre.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: fix dependency on indirect header inclusion
+Date: Fri, 16 Aug 2013 21:59:54 +0530
+Message-ID: <520E5382.1090408@ti.com>
+References: <1373548145-3833-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <520E341D.4080206-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:43537 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751424Ab3HPQaD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Aug 2013 12:30:03 -0400
+In-Reply-To: <1373548145-3833-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: cjb@laptop.org, linux-mmc@vger.kernel.org
+Cc: Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, a-bindra@ti.com, Tony Lindgren <tony@atomide.com>, ezequiel.garcia@free-electrons.com, nm@ti.com
 
+On Thursday 11 July 2013 06:39 PM, Felipe Balbi wrote:
+> omap_hsmmc.c depends on <linux/sizes.h> being
+> included indirectly by another header. Once we
+> enable COMPILE_TEST for this driver, we might
+> compile under architectures which won't include
+> <linux/sizes.h> for us. In fact, one such case
+> is x86.
+>
+> In order to prevent compile breakages, let's
+> explicitly include <linux/sizes.h>
+>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>
+> This should be applied before http://marc.info/?l=linux-omap&m=137347241524118&w=2
+> in order to maintain bisectability.
+Thanks Felipe
 
-On 8/16/2013 7:45 PM, Benoit Cousson wrote:
-> Hi Gururaja,
-> 
-> On 16/08/2013 13:36, Hebbar, Gururaja wrote:
->> The syntax of compatible property in DT is to mention the Most specific
->> match to most generic match.
->>
->> Since AM335x is the platform with latest IP revision, add it 1st in
->> the device id table.
-> 
-> I don't understand why? The order should not matter at all.
+Acked-by: Balaji T K <balajitk@ti.com>
 
-Yes, it should not. We are trying to work around a bug in the kernel
-where the compatible order is not honored (instead the order in
-of_match[] array matters). There were patches being discussed to fix this.
+>
+> cheers
+>
+>   drivers/mmc/host/omap_hsmmc.c | 1 +
+>   1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 1865321..c937ffc 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -21,6 +21,7 @@
+>   #include <linux/debugfs.h>
+>   #include <linux/dmaengine.h>
+>   #include <linux/seq_file.h>
+> +#include <linux/sizes.h>
+>   #include <linux/interrupt.h>
+>   #include <linux/delay.h>
+>   #include <linux/dma-mapping.h>
+>
 
-> 
-> I've tried to follow the thread you had with Mark on the v2, but AFAIK,
-> you've never answered to his latest question.
-> 
-> Moreover, checking the differences between the Davinci and the am3352
-> RTC IP, I would not claim that both are compatible.
-> 
-> Sure you can use the am3352 with the Davinci driver, but you will lose
-> the wakeup functionality without even being notify about that.
-
-When the kernel is fixed for the bug pointed out above, this should not
-happen with properly defined compatible property.
-
-> 
-> For my point of view, compatible mean that the HW will still be fully
-> functional with both versions of the driver, which is not the case here.
-
-I do not think that's the interpretation of compatible. Its goes from
-most specific to most generic per the ePAPR spec. That in itself says
-that 100% functionality is not expected if you don't find a match for
-the more specific property.
-
-> 
-> am3352 DTS must use the ti,am3352-rtc to have the expected behavior.
-
-Yes, that's what patch 2/2 does.
-
-> Using the ti,da830-rtc version will not make the board working as
-> expected. So we cannot claim the compatibility.
-
-Ideally, the DT file was *always* written as
-
-	compatible = "ti,am3352-rtc", "ti,da830-rtc";
-
-even when there was no kernel support for AM3352 RTC.
-
-That way, there is no need to update the .dts[i] file. As kernel gains
-functionality, more features (like rtc wake) is available to users.
-Otherwise they get plain RTC functionality - but at least they get
-something instead of no RTC.
-
-Thanks,
-Sekhar
