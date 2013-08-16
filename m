@@ -1,11 +1,14 @@
 From: "Hebbar, Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 0/2] rtc: omap: update AM335x rtc ip revision
-Date: Fri, 16 Aug 2013 17:51:52 +0530
-Message-ID: <1376655714-28947-1-git-send-email-gururaja.hebbar@ti.com>
+Subject: [PATCH v4 1/2] rtc: omap: update of_device_id to reflect latest ip
+	revisions
+Date: Fri, 16 Aug 2013 17:51:53 +0530
+Message-ID: <1376655714-28947-2-git-send-email-gururaja.hebbar@ti.com>
+References: <1376655714-28947-1-git-send-email-gururaja.hebbar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1376655714-28947-1-git-send-email-gururaja.hebbar-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
 	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
@@ -31,44 +34,39 @@ compatible string for backwards compatibility.
 ex:
 	compatible = "ti,am3352-rtc", "ti,da830-rtc";
 
-Also, update am335x .dtsi file (am33xx.dtsi) as above.
-
-Note:
-This is a part of previously submitted patch-set [1]. Out of 4 patches,
-3 was accepted and 1 got an acceptable NAK. Hence resubmitting only the
-rejected + updated changes.
-
+Signed-off-by: Hebbar, Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+CC: mark.rutland-5wv7dgnIgG8@public.gmane.org
+---
 Changes in V4:
 	- Rebased on latest linux-next (as on 160813).
 	- Correct a type AM335X --> AM3352
 
-Changes in V3:
-	- As per Mark Rutland's suggestion [2], maintain old compatible
-	  string and add the new matching string as the 1st compatible.
+Changes in v3:
+	- new patch
 
-Changes in V2:
-	- Coding style corrections (remove extra space, use lower case
-	  for hex numbers
-	- use prefix ARM: for commit subject keeping with arch/arm
-	  convention)
-	- use "[AM/am]3352" instead of "[AM/am]335x" to keep the all
-	  usages in sync.
-	- Use index defined for struct members so they remain in sync
-	- Add new compatible to existing one so that when driver
-	  supports enhanced features of hardware, they are available
-	  to the user else the basic functionality still works
+:100644 100644 dc62cc3... 2f0968c... M	drivers/rtc/rtc-omap.c
+ drivers/rtc/rtc-omap.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-[2]
-https://lkml.org/lkml/2013/7/3/74
-[1]
-https://lkml.org/lkml/2013/8/1/442
-
-Hebbar Gururaja (1):
-  ARM: dts: AM33XX: update rtc node compatibility
-
-Hebbar, Gururaja (1):
-  rtc: omap: update of_device_id to reflect latest ip revisions
-
- arch/arm/boot/dts/am33xx.dtsi |    2 +-
- drivers/rtc/rtc-omap.c        |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+index dc62cc3..2f0968c 100644
+--- a/drivers/rtc/rtc-omap.c
++++ b/drivers/rtc/rtc-omap.c
+@@ -330,12 +330,12 @@ static struct platform_device_id omap_rtc_devtype[] = {
+ MODULE_DEVICE_TABLE(platform, omap_rtc_devtype);
+ 
+ static const struct of_device_id omap_rtc_of_match[] = {
+-	{	.compatible	= "ti,da830-rtc",
+-		.data		= &omap_rtc_devtype[OMAP_RTC_DATA_DA830_IDX],
+-	},
+ 	{	.compatible	= "ti,am3352-rtc",
+ 		.data		= &omap_rtc_devtype[OMAP_RTC_DATA_AM3352_IDX],
+ 	},
++	{	.compatible	= "ti,da830-rtc",
++		.data		= &omap_rtc_devtype[OMAP_RTC_DATA_DA830_IDX],
++	},
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, omap_rtc_of_match);
+-- 
+1.7.0.4
