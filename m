@@ -1,66 +1,72 @@
 From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH v3 1/3] usb: dwc3: msm: Add device tree binding information
-Date: Fri, 16 Aug 2013 16:44:11 -0600
-Message-ID: <520EAB3B.9030607@wwwdotorg.org>
-References: <1376485183-2664-1-git-send-email-iivanov@mm-sol.com> <1376485183-2664-2-git-send-email-iivanov@mm-sol.com>
+Subject: Re: [PATCH 2/2] ARM: dts: AM4372: add few nodes
+Date: Fri, 16 Aug 2013 17:11:27 -0600
+Message-ID: <520EB19F.1010005@wwwdotorg.org>
+References: <ffa2f76fcac54bfe76c234ffce0394fd2c25fe52.1375450395.git.afzal@ti.com>
+ <6f0f838176ab93aac8dab4c3ab9d9f95a3027ff7.1375450395.git.afzal@ti.com>
+ <51FCEE60.7080809@ti.com> <51FF335D.4050803@ti.com>
+ <20130810142317.GE18085@e106331-lin.cambridge.arm.com>
+ <52088526.90004@ti.com> <520DFC37.3080601@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1376485183-2664-2-git-send-email-iivanov@mm-sol.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-Cc: balbi@ti.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <520DFC37.3080601@baylibre.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Mugunthan V N <mugunthanvnm@ti.com>, Afzal Mohammed <afzal@ti.com>, Russell King <linux@arm.linux.org.uk>, Ian Campbell <ian.campbell@citrix.com>, Pawel Moll <Pawel.Moll@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/14/2013 06:59 AM, Ivan T. Ivanov wrote:
-> From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+On 08/16/2013 04:17 AM, Benoit Cousson wrote:
+> Hi Afzal,
 > 
-> MSM USB3.0 core wrapper consist of USB3.0 IP from Synopsys
-> (SNPS) and HS, SS PHY's control and configuration registers.
+> On 12/08/2013 08:48, Afzal Mohammed wrote:
+>> Hi Mark,
+>>
+>> On Saturday 10 August 2013 07:53 PM, Mark Rutland wrote:
+>>
+>>>>>> +        mac: ethernet@4a100000 {
+>>>>>> +            compatible = "ti,am4372-cpsw","ti,cpsw";
+>>
+>>> One point worth mentioning is that the "ti,am4372-cpsw" string isn't
+>>> documented. Will the "ti,am4372-cpsw" binding definitely be a superset
+>>> of the "ti,cpsw" binding, and if you were to take the DT as of this
+>>> patch, and attempt to use it with a future kernel, can you guarantee
+>>> it'll work?
+>>
+>> "ti,am4372-cpsw" was not documented as OMAP DT maintainer didn't prefer
+>> documenting only for a new compatible.
 > 
-> It could operate in device mode (SS, HS, FS) and host
-> mode (SS, HS, FS, LS).
+> My point was more that creating a new compatible for the exact same
+> version of the IP is pointeless and could lead to tons of compatible
+> strings that would never be used since this is always the exact same IP.
 
-> diff --git a/Documentation/devicetree/bindings/usb/msm-ssusb.txt b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
+Well, there are two aspects: Version of the IP block, and the
+integration into the SoC. We need an entry in compatible for any/all of
+these. If the IP block doesn't have some standalone versioning scheme
+because the design flow isn't IP-block-centric, the SoC name makes a
+reasonable substitute.
 
-> +- clock-names :
 ...
-> +	"sleep_a_clk" : Sleep clock, used when USB3 core goes into low
-...
-> +	"ref_clk" : Reference clock - used in host mode.
-...
-> +	"core_clk" : Master/Core clock, have to be >= 125 MHz for SS
-...
-> +	"iface_clk" : System bus AXI clock
-> +	"sleep_clk" : Sleep clock, used when USB3 core goes into low
-...
-> +	"utmi_clk" : Generated by HS-PHY. Used to clock the low power
+> My second point is, even if we want to differentiate the IPs in various
+> SoCs, using the name of the SoC in the IP compatible string is not a
+> very good practice anyway.
 
-I think it makes sense to remove "_clk" from all those names, unless the
-HW documentation really talks about a clock named e.g. iface_clk yet
-some other clock names in the documentation don't have the "_clk"
-suffix, e.g. the "xo I didn't quote.
+There may be integration-specific issues, so even if SoC A and B use the
+exact same IP block version, there should still be compatible values for
+the SoC as well as the IP block version, so you can quirk on those later.
 
-> +Sub nodes:
-> +==========
-
-That section title is the same style as all the other section title, so
-it's no obvious that this is a sub-node for the controller wrapper.
-Instead, I would suggest something more like:
-
-Required child nodes:
-
-> +- Sub node for "DWC3 USB3 controller".
-
-Then you can drop that since it's obvious.
-
-> +  This sub node is required property for device node. The properties
-> +  of this subnode are specified in dwc3.txt.
-
-That doesn't really say much. How about.
-
-----------
-A child node must exist to represent the core DWC3 IP block. The name of
-the node is not important. The content of the node is defined in dwc3.txt.
-----------
+... although I suppose it might not be too bad if the IP block
+compatible value only contained the IP block version, and if any
+integration-specific quirks were needed, they could be triggered off
+entries in the top-level node's compatible value? That only works for
+on-Soc modules, and not complex MFD-like modules, unless you have an
+easy way to find the DT node for the top-level of the MFD...
