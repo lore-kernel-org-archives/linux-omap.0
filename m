@@ -1,172 +1,200 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH v3] arm: dts: AM43x: Add usb DT nodes for AM4372
-Date: Fri, 16 Aug 2013 11:08:01 +0200
-Message-ID: <520DEBF1.6070605@baylibre.com>
-References: <1373444082-4169-1-git-send-email-george.cherian@ti.com> <520B9144.5000701@ti.com> <520B958B.1000900@baylibre.com> <520D9A3E.1040903@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 2/8] usb: phy: omap: Add new device types and remove
+ omap_control_usb3_phy_power()
+Date: Fri, 16 Aug 2013 12:09:13 +0300
+Message-ID: <520DEC39.1000804@ti.com>
+References: <1376572512-9561-1-git-send-email-rogerq@ti.com>
+ <1376572512-9561-3-git-send-email-rogerq@ti.com>
+ <520CDEA1.7060804@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f169.google.com ([74.125.82.169]:43599 "EHLO
-	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754056Ab3HPJIG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Aug 2013 05:08:06 -0400
-Received: by mail-we0-f169.google.com with SMTP id n5so1427784wev.14
-        for <linux-omap@vger.kernel.org>; Fri, 16 Aug 2013 02:08:04 -0700 (PDT)
-In-Reply-To: <520D9A3E.1040903@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <520CDEA1.7060804@baylibre.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: devicetree@vger.kernel.org, george.cherian@ti.com, tony@atomide.com, bigeasy@linutronix.de, linux-usb@vger.kernel.org, balbi@ti.com, kishon@ti.com, dmurphy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, a-kishore@ti.com, afzal@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, Roger Quadros <rogerq@ti.com>
 
-On 16/08/2013 05:19, George Cherian wrote:
-> Hi Benoit ,
->
-> Thanks for your review.
->
-> On 8/14/2013 8:04 PM, Benoit Cousson wrote:
->> + Roger
+Hi Benoit,
+
+On 08/15/2013 04:58 PM, Benoit Cousson wrote:
+> Hi Roger,
+> 
+> On 15/08/2013 15:15, Roger Quadros wrote:
+>> Add support for new device types and in the process rid of "ti,type"
+>> device tree property. The correct type of device will be determined
+>> from the compatible string instead.
 >>
->> Hi George,
+>> Introduce a compatible string for each device type. At the moment
+>> we support 4 types Mailbox, USB2, USB3 and DRA7.
 >>
->> Yes, I had some comment about the "ti'type" in Roger's series that
->> will be applicable here as well.
+>> Update DT binding information to reflect these changes.
 >>
->
->
+>> Also get rid of omap_control_usb3_phy_power(). Just one function
+>> i.e. omap_control_usb_phy_power() will now take care of all PHY types.
 >>
->> On 14/08/2013 16:16, George Cherian wrote:
->>> +Benoit
->>>   If you dont have any comments, can you take this for 3.12?
->>>
->>> Regards
->>> -George
->>>
->>> On 7/10/2013 1:44 PM, George Cherian wrote:
->>>
->>>> This patch adds
->>>>     - HS USB nodes
->>>>     - phy nodes
->>>>     - usb control module nodes.
->>>>
->>>> Signed-off-by: George Cherian <george.cherian@ti.com>
->>>> ---
->>>>
->>>> changes from v2
->>>> change synopsis to snps
->>>> use simple node names
->>>> add both USB and PHY instances
->>>> add usbctrl node
->>>>
->>>> changes from v1
->>>> renamed synopsis to snps
->>>> removed flag tx-fifo-resize
->>>>
->>>>   arch/arm/boot/dts/am4372.dtsi | 58
->>>> +++++++++++++++++++++++++++++++++++++++++++
->>>>   1 file changed, 58 insertions(+)
->>>>
->>>> diff --git a/arch/arm/boot/dts/am4372.dtsi
->>>> b/arch/arm/boot/dts/am4372.dtsi
->>>> index ddc1df7..37f196f 100644
->>>> --- a/arch/arm/boot/dts/am4372.dtsi
->>>> +++ b/arch/arm/boot/dts/am4372.dtsi
->>>> @@ -64,5 +64,63 @@
->>>>               compatible = "ti,am4372-counter32k","ti,omap-counter32k";
->>>>               reg = <0x44e86000 0x40>;
->>>>           };
->>>> +
->>>> +        phy1: usbphy1 {
->>>> +            compatible = "ti,am4372-usb2";
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>   Documentation/devicetree/bindings/usb/omap-usb.txt |   29 ++--
+>>   drivers/usb/phy/phy-omap-control.c                 |  148 ++++++++++++--------
+>>   drivers/usb/phy/phy-omap-usb2.c                    |    4 +
+>>   drivers/usb/phy/phy-omap-usb3.c                    |    6 +-
+>>   include/linux/usb/omap_control_usb.h               |   24 ++--
+>>   5 files changed, 122 insertions(+), 89 deletions(-)
 >>
->> That's not a very good name for a phy? It looks like a usb module.
->>
->> The bindings specify only ti,omap-usb2 or ti,omap-usb3 for USB2 or USB3.
->> I guess it should be one of them and potentially the binding should be
->> updated with ti,omap-usb2-phy and ti,omap-usb3-phy names while we can
->> still do it.
->>
->>>> +            #phy-cells = <0>;
->>>> +            id = <0>;
->>>> +            status = "disabled";
->>>> +        };
->>>> +
->>>> +        phy2: usbphy2 {
->>
->> Why do you need a different node name here? It should be a generic
->> name to identify the function, so usbphy or usb-phy seems good enough.
->
-> There are 2 instances of usb controllers and these instances for those 2
-> phys, which essentially dont have any reg property. So I named it as
-> usbphy1 and usbphy2.
->>
->>>> +            compatible = "ti,am4372-usb2";
->>>> +            #phy-cells = <0>;
->>>> +            id = <1>;
->>>> +            status = "disabled";
->>>> +        };
->>>> +
->>>> +        usbctrl: omap-control-usb@44e10620 {
->>>> +            compatible = "ti,omap-control-usb";
->>>> +            reg = <0x44e10620 0x10>;
->>>> +            reg-names = "control_dev_conf";
->>>> +            ti,type = <3>;
->>>> +            status = "disabled";
->>>> +        };
->>>> +
->>>> +        usb1: am4372_dwc3@48380000 {
->>>> +            status = "disabled";
->>>> +            compatible = "ti,am4372-dwc3";
->>>> +            reg = <0x48380000 0x200>;
->>>> +            interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
->>>> +            #address-cells = <1>;
->>>> +            #size-cells = <1>;
->>>> +            utmi-mode = <1>;
->>>> +            ranges;
->>
->> A blank line here will be nice.
->
-> okay
->>
->>>> +            dwc3@48390000 {
->>>> +                compatible = "snps,dwc3";
->>>> +                reg = <0x48390000 0xd000>;
->>>> +                interrupts = <GIC_SPI  168 IRQ_TYPE_LEVEL_HIGH>;
->>>> +                phys = <&phy1>;
->>>> +                phy-names = "am4372-usb1";
->>
->> What is the purpose of the phy-names? Is it relevant to add the SoC
->> name in something that usually, at least for the clocks and IRQs, is
->> IP specific?
->>
->> The current documentation does not explain it and does not support
->> phys property either.
->>
->>   synopsys DWC3 CORE
->>
->>   DWC3- USB3 CONTROLLER
+>> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
+>> index 57e71f6..1c6b54a 100644
+>> --- a/Documentation/devicetree/bindings/usb/omap-usb.txt
+>> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
+>> @@ -73,22 +73,23 @@ omap_dwc3 {
+>>   OMAP CONTROL USB
 >>
 >>   Required properties:
->>    - compatible: must be "synopsys,dwc3"
->>    - reg : Address and length of the register set for the device
->>    - interrupts: Interrupts used by the dwc3 controller.
->>    - usb-phy : array of phandle for the PHY device
+>> - - compatible: Should be "ti,omap-control-usb"
+>> + - compatible: Should be one of
+>> + "ti,omap-control-usb" - if it has otghs_control mailbox register
+>> +            e.g. on OMAP4.
+> 
+> How generic is that one? I mean if this is applicable for OMAP4 only, you'd better name it omap4-control-usb.
+> 
+AFAIK it is OMAP4 only so i'll change it to omap4-control-usb.
+
+>> + "ti,usb2-control-usb" - if it has Power down bit in control_dev_conf register
+>> +            e.g. USB2_PHY on OMAP5.
+>> + "ti,usb3-control-usb" - if it has DPLL and individual Rx & Tx power control
+>> +            e.g. USB3 PHY and SATA PHY on OMAP5.
+>> + "ti,dra7-control-usb" - if it has both power down and power aux registers
+>> +            e.g. USB2 PHY on DRA7 platform.
+>> +
+>>    - reg : Address and length of the register set for the device. It contains
+>> -   the address of "control_dev_conf" and "otghs_control" or "phy_power_usb"
+>> -   depending upon omap4 or omap5.
+>> - - reg-names: The names of the register addresses corresponding to the registers
+>> -   filled in "reg".
+>> - - ti,type: This is used to differentiate whether the control module has
+>> -   usb mailbox or usb3 phy power. omap4 has usb mailbox in control module to
+>> -   notify events to the musb core and omap5 has usb3 phy power register to
+>> -   power on usb3 phy. Should be "1" if it has mailbox and "2" if it has usb3
+>> -   phy power.
+>> +   the address of "otghs_control" for type 1 or "power" register for other types.
+>> +   For type 4, it must also contain "power_aux" register.
+>> + - reg-names: should be otghs_control for type 1 and "power" for other types.
+> 
+> type1 and 4 are less obvious now that you have name, you should be more explicit and name them directly.
+
+OK, I'll fix it.
+> 
 >>
->> Is there some binding update ongoing for 3.12?
->
-> The phy part, especially was added with the generic phy framework in
-> mind. The generic phy framework uses phys and phy-names instead of usb-phy.
-> Also all synopsys  references for compatible are being replaced with snps.
+>>   omap_control_usb: omap-control-usb@4a002300 {
+>>       compatible = "ti,omap-control-usb";
+>> -    reg = <0x4a002300 0x4>,
+>> -          <0x4a00233c 0x4>;
+>> -    reg-names = "control_dev_conf", "otghs_control";
+>> -    ti,type = <1>;
+>> +    reg = <0x4a00233c 0x4>;
+>> +    reg-names = "otghs_control";
+>>   };
+>> diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
+>> index 3b9ee83..078c46f 100644
+>> --- a/drivers/usb/phy/phy-omap-control.c
+>> +++ b/drivers/usb/phy/phy-omap-control.c
+>> @@ -46,61 +46,76 @@ struct device *omap_get_control_dev(void)
+>>   EXPORT_SYMBOL_GPL(omap_get_control_dev);
+>>
+...
 
-That's fine, but that was not my question. Is there any already bindings 
-that defined phys and phy-names in the kernel?
+>>
+>> -    control_usb->dev    = &pdev->dev;
+>> +    control_usb->dev = &pdev->dev;
+>> +    control_usb->type = OMAP_CTRL_TYPE_OMAP;
+>>
+>> -    res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+>> -        "control_dev_conf");
+>> -    control_usb->dev_conf = devm_ioremap_resource(&pdev->dev, res);
+>> -    if (IS_ERR(control_usb->dev_conf))
+>> -        return PTR_ERR(control_usb->dev_conf);
+>> +    if (of_device_is_compatible(np, "ti,usb2-control-usb"))
+>> +        control_usb->type = OMAP_CTRL_TYPE_USB2;
+>> +    else if (of_device_is_compatible(np, "ti,usb3-control-usb"))
+>> +        control_usb->type = OMAP_CTRL_TYPE_USB3;
+>> +    else if (of_device_is_compatible(np, "ti,dra7-control-usb"))
+>> +        control_usb->type = OMAP_CTRL_TYPE_DRA7;
+> 
+> You can avoid that by adding the type directly in the data field of the omap_control_usb_id_table.
+> It will be more readable and scalable.
+> 
+> This how it was done on gpio-omap for example.
 
-I couldn't find them in 3.11-rc5.
+OK. Thanks for the hint.
+> 
+>>
+>> -    if (control_usb->type == OMAP_CTRL_DEV_TYPE1) {
+>> +    if (control_usb->type == OMAP_CTRL_TYPE_OMAP) {
+>>           res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+>>               "otghs_control");
+>>           control_usb->otghs_control = devm_ioremap_resource(
+>>               &pdev->dev, res);
+>>           if (IS_ERR(control_usb->otghs_control))
+>>               return PTR_ERR(control_usb->otghs_control);
+>> -    }
+>> -
+>> -    if (control_usb->type == OMAP_CTRL_DEV_TYPE2) {
+>> +    } else {
+>>           res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+>> -            "phy_power_usb");
+>> -        control_usb->phy_power = devm_ioremap_resource(
+>> -            &pdev->dev, res);
+>> -        if (IS_ERR(control_usb->phy_power))
+>> -            return PTR_ERR(control_usb->phy_power);
+>> +                "power");
+>> +        control_usb->power = devm_ioremap_resource(&pdev->dev, res);
+>> +        if (IS_ERR(control_usb->power)) {
+>> +            dev_err(&pdev->dev, "Couldn't get power register\n");
+>> +            return PTR_ERR(control_usb->power);
+>> +        }
+>> +    }
+>>
+>> +    if (control_usb->type == OMAP_CTRL_TYPE_USB3) {
+>>           control_usb->sys_clk = devm_clk_get(control_usb->dev,
+>>               "sys_clkin");
+>>           if (IS_ERR(control_usb->sys_clk)) {
+>> @@ -245,6 +261,15 @@ static int omap_control_usb_probe(struct platform_device *pdev)
+>>           }
+>>       }
+>>
+>> +    if (control_usb->type == OMAP_CTRL_TYPE_DRA7) {
+>> +        res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+>> +                "power_aux");
+>> +        control_usb->power_aux = devm_ioremap_resource(&pdev->dev, res);
+>> +        if (IS_ERR(control_usb->power_aux)) {
+>> +            dev_err(&pdev->dev, "Couldn't get power_aux register\n");
+>> +            return PTR_ERR(control_usb->power_aux);
+>> +        }
+>> +    }
+>>
+>>       dev_set_drvdata(control_usb->dev, control_usb);
+>>
+>> @@ -254,6 +279,9 @@ static int omap_control_usb_probe(struct platform_device *pdev)
+>>   #ifdef CONFIG_OF
+>>   static const struct of_device_id omap_control_usb_id_table[] = {
+>>       { .compatible = "ti,omap-control-usb" },
+>> +    { .compatible = "ti,usb2-control-usb" },
+>> +    { .compatible = "ti,usb3-control-usb" },
+>> +    { .compatible = "ti,dra7-control-usb" },
+>>       {}
+> 
+> In that table you can add a data field with the proper type enum.
 
-And anyway the current bindings for dwc3 is not aligned with what you 
-are doing here.
-So you have to change the binding before using it in this DTS.
+got it.
 
-Regards,
-Benoit
-
+cheers,
+-roger
