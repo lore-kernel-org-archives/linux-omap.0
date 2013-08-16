@@ -1,39 +1,172 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: [PATCH v2 6/8] usb: phy: omap: get rid of omap_get_control_dev()
-Date: Fri, 16 Aug 2013 11:07:27 +0200
-Message-ID: <520DEBCF.4@linutronix.de>
-References: <1376572512-9561-1-git-send-email-rogerq@ti.com> <1376572512-9561-7-git-send-email-rogerq@ti.com> <20130815165152.GB10982@linutronix.de> <520DEA2B.5030608@ti.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH v3] arm: dts: AM43x: Add usb DT nodes for AM4372
+Date: Fri, 16 Aug 2013 11:08:01 +0200
+Message-ID: <520DEBF1.6070605@baylibre.com>
+References: <1373444082-4169-1-git-send-email-george.cherian@ti.com> <520B9144.5000701@ti.com> <520B958B.1000900@baylibre.com> <520D9A3E.1040903@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <520DEA2B.5030608-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, dmurphy-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f169.google.com ([74.125.82.169]:43599 "EHLO
+	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754056Ab3HPJIG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Aug 2013 05:08:06 -0400
+Received: by mail-we0-f169.google.com with SMTP id n5so1427784wev.14
+        for <linux-omap@vger.kernel.org>; Fri, 16 Aug 2013 02:08:04 -0700 (PDT)
+In-Reply-To: <520D9A3E.1040903@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, a-kishore@ti.com, afzal@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, Roger Quadros <rogerq@ti.com>
 
-On 08/16/2013 11:00 AM, Roger Quadros wrote:
->> I don't like that part where you can call this function even before the
->> driver probed the device. This shouldn't happen since you have hard module
->> dependency and the proper compatible string in your device. But this
->> kind of thing won't happen in the am335x reset driver.
-> 
-> I don't like that part either, but omap_control_usb_set_mode is being called
-> from outside this driver (e.g. musb) and we are not making any changes to that behaviour
-> in this patch.
-> 
-> I think the issue you mentioned is being fixed by Kishon's extcon migration series.
+On 16/08/2013 05:19, George Cherian wrote:
+> Hi Benoit ,
+>
+> Thanks for your review.
+>
+> On 8/14/2013 8:04 PM, Benoit Cousson wrote:
+>> + Roger
+>>
+>> Hi George,
+>>
+>> Yes, I had some comment about the "ti'type" in Roger's series that
+>> will be applicable here as well.
+>>
+>
+>
+>>
+>> On 14/08/2013 16:16, George Cherian wrote:
+>>> +Benoit
+>>>   If you dont have any comments, can you take this for 3.12?
+>>>
+>>> Regards
+>>> -George
+>>>
+>>> On 7/10/2013 1:44 PM, George Cherian wrote:
+>>>
+>>>> This patch adds
+>>>>     - HS USB nodes
+>>>>     - phy nodes
+>>>>     - usb control module nodes.
+>>>>
+>>>> Signed-off-by: George Cherian <george.cherian@ti.com>
+>>>> ---
+>>>>
+>>>> changes from v2
+>>>> change synopsis to snps
+>>>> use simple node names
+>>>> add both USB and PHY instances
+>>>> add usbctrl node
+>>>>
+>>>> changes from v1
+>>>> renamed synopsis to snps
+>>>> removed flag tx-fifo-resize
+>>>>
+>>>>   arch/arm/boot/dts/am4372.dtsi | 58
+>>>> +++++++++++++++++++++++++++++++++++++++++++
+>>>>   1 file changed, 58 insertions(+)
+>>>>
+>>>> diff --git a/arch/arm/boot/dts/am4372.dtsi
+>>>> b/arch/arm/boot/dts/am4372.dtsi
+>>>> index ddc1df7..37f196f 100644
+>>>> --- a/arch/arm/boot/dts/am4372.dtsi
+>>>> +++ b/arch/arm/boot/dts/am4372.dtsi
+>>>> @@ -64,5 +64,63 @@
+>>>>               compatible = "ti,am4372-counter32k","ti,omap-counter32k";
+>>>>               reg = <0x44e86000 0x40>;
+>>>>           };
+>>>> +
+>>>> +        phy1: usbphy1 {
+>>>> +            compatible = "ti,am4372-usb2";
+>>
+>> That's not a very good name for a phy? It looks like a usb module.
+>>
+>> The bindings specify only ti,omap-usb2 or ti,omap-usb3 for USB2 or USB3.
+>> I guess it should be one of them and potentially the binding should be
+>> updated with ti,omap-usb2-phy and ti,omap-usb3-phy names while we can
+>> still do it.
+>>
+>>>> +            #phy-cells = <0>;
+>>>> +            id = <0>;
+>>>> +            status = "disabled";
+>>>> +        };
+>>>> +
+>>>> +        phy2: usbphy2 {
+>>
+>> Why do you need a different node name here? It should be a generic
+>> name to identify the function, so usbphy or usb-phy seems good enough.
+>
+> There are 2 instances of usb controllers and these instances for those 2
+> phys, which essentially dont have any reg property. So I named it as
+> usbphy1 and usbphy2.
+>>
+>>>> +            compatible = "ti,am4372-usb2";
+>>>> +            #phy-cells = <0>;
+>>>> +            id = <1>;
+>>>> +            status = "disabled";
+>>>> +        };
+>>>> +
+>>>> +        usbctrl: omap-control-usb@44e10620 {
+>>>> +            compatible = "ti,omap-control-usb";
+>>>> +            reg = <0x44e10620 0x10>;
+>>>> +            reg-names = "control_dev_conf";
+>>>> +            ti,type = <3>;
+>>>> +            status = "disabled";
+>>>> +        };
+>>>> +
+>>>> +        usb1: am4372_dwc3@48380000 {
+>>>> +            status = "disabled";
+>>>> +            compatible = "ti,am4372-dwc3";
+>>>> +            reg = <0x48380000 0x200>;
+>>>> +            interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
+>>>> +            #address-cells = <1>;
+>>>> +            #size-cells = <1>;
+>>>> +            utmi-mode = <1>;
+>>>> +            ranges;
+>>
+>> A blank line here will be nice.
+>
+> okay
+>>
+>>>> +            dwc3@48390000 {
+>>>> +                compatible = "snps,dwc3";
+>>>> +                reg = <0x48390000 0xd000>;
+>>>> +                interrupts = <GIC_SPI  168 IRQ_TYPE_LEVEL_HIGH>;
+>>>> +                phys = <&phy1>;
+>>>> +                phy-names = "am4372-usb1";
+>>
+>> What is the purpose of the phy-names? Is it relevant to add the SoC
+>> name in something that usually, at least for the clocks and IRQs, is
+>> IP specific?
+>>
+>> The current documentation does not explain it and does not support
+>> phys property either.
+>>
+>>   synopsys DWC3 CORE
+>>
+>>   DWC3- USB3 CONTROLLER
+>>
+>>   Required properties:
+>>    - compatible: must be "synopsys,dwc3"
+>>    - reg : Address and length of the register set for the device
+>>    - interrupts: Interrupts used by the dwc3 controller.
+>>    - usb-phy : array of phandle for the PHY device
+>>
+>> Is there some binding update ongoing for 3.12?
+>
+> The phy part, especially was added with the generic phy framework in
+> mind. The generic phy framework uses phys and phy-names instead of usb-phy.
+> Also all synopsys  references for compatible are being replaced with snps.
 
-Okay then.
+That's fine, but that was not my question. Is there any already bindings 
+that defined phys and phy-names in the kernel?
 
-> 
-> cheers,
-> -roger
-> 
+I couldn't find them in 3.11-rc5.
 
-Sebastian
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+And anyway the current bindings for dwc3 is not aligned with what you 
+are doing here.
+So you have to change the binding before using it in this DTS.
+
+Regards,
+Benoit
+
