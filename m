@@ -1,80 +1,70 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH v2 0/9] USB: phy: phy-nop: Manage RESET GPIO in the driver
-Date: Fri, 16 Aug 2013 12:52:17 +0200
-Message-ID: <520E0461.70305@baylibre.com>
-References: <1376561909-4406-1-git-send-email-rogerq@ti.com>
+From: "Hebbar, Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 0/2] rtc: omap: update AM335x rtc ip revision
+Date: Fri, 16 Aug 2013 17:06:55 +0530
+Message-ID: <1376653017-21935-1-git-send-email-gururaja.hebbar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:32845 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524Ab3HPKwU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Aug 2013 06:52:20 -0400
-Received: by mail-wi0-f171.google.com with SMTP id hr7so662767wib.10
-        for <linux-omap@vger.kernel.org>; Fri, 16 Aug 2013 03:52:19 -0700 (PDT)
-In-Reply-To: <1376561909-4406-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: balbi@ti.com, tony@atomide.com, p.zabel@pengutronix.de, broonie@kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Hi Roger,
+The syntax of compatible property in DT is to mention the Most specific
+match to most generic match.
 
-On 15/08/2013 12:18, Roger Quadros wrote:
-> Hi,
->
-> Modelling the RESET line as a regulator supply wasn't a good idea
-> as it abuses the regulator framework and makes adaptation
-> code/data more complex.
->
-> Instead, manage the RESET gpio line directly in the driver.
->
-> This also makes us easy to migrate to a dedicated GPIO RESET controller
-> whenever it becomes available. As of now, it doesn't seem to be making
-> it into 3.12.
->
-> *NOTE:* As there are changes to platform data, Patch 1 needs to be shared
-> between the arm-soc tree and usb tree.
->
-> Patch 1 is available at repo
-> 	git://github.com/rogerq/linux.git
-> in branch
-> 	phy-reset-common
->
-> Patch 2 contains the phy-nop driver changes
-> Patches 3 and 4 adapt legacy boot code to the phy-nop driver changes.
-> Patches 5, 6 and 7 adapt DT data to the binding changes.
-> Patch 8 is cleanup of omap3-beagle DT.
-> Patch 9 adds USB host support to omap3-beagle-xm using the new binding.
->
-> Patches are based on v3.11-rc5.
-> Tested leacy boot on omap3-beagle and omap3-beagle-xm
-> Tested DT boot on omap3-beagle, omap3-beagle-xm and omap4-panda-es
->
-> v2:
-> - Added RESET GPIO polarity feature
-> - Changed to gpio_set_value_cansleep()
->
-> cheers,
-> -roger
->
-> ---
-> Roger Quadros (9):
->    usb: phy: nop: Add gpio_reset to platform data
->    usb: phy: nop: Don't use regulator framework for RESET line
->    ARM: OMAP2+: omap-usb-host: Get rid of platform_data from struct
->      usbhs_phy_data
->    ARM: OMAP2+: usb-host: Adapt to USB phy-nop RESET line changes
->    ARM: dts: omap3-beagle: Use reset-gpios for hsusb2_reset
->    ARM: dts: omap4-panda: Use reset-gpios for hsusb1_reset
->    ARM: dts: omap5-uevm: Use reset-gpios for hsusb2_reset
->    ARM: dts: omap3-beagle: Make USB host pin naming consistent
->    ARM: dts: omap3-beagle-xm: Add USB Host support
+Since AM335x is the platform with latest IP revision, add it 1st in
+the device id table.
 
-The 5 DTS patches looks good to me, and I can apply them, but you need 
-to be sure that the driver will be merged for 3.12 as well.
+This way, we can add new matching compatible as 1st and maintain old
+compatible string for backwards compatibility.
 
-Regards,
-Benoit
+ex:
+	compatible = "ti,am3352-rtc", "ti,da830-rtc";
 
+Also, update am335x .dtsi file (am33xx.dtsi) as above.
+
+Note:
+This is a part of previously submitted patch-set [1]. Out of 4 patches,
+3 was accepted and 1 got an acceptable NAK. Hence resubmitting only the
+rejected + updated changes.
+
+Changes in V3:
+	- As per Mark Rutland's suggestion [2], maintain old compatible
+	  string and add the new matching string as the 1st compatible.
+
+Changes in V2:
+	- Coding style corrections (remove extra space, use lower case
+	  for hex numbers
+	- use prefix ARM: for commit subject keeping with arch/arm
+	  convention)
+	- use "[AM/am]3352" instead of "[AM/am]335x" to keep the all
+	  usages in sync.
+	- Use index defined for struct members so they remain in sync
+	- Add new compatible to existing one so that when driver
+	  supports enhanced features of hardware, they are available
+	  to the user else the basic functionality still works
+
+[2]
+https://lkml.org/lkml/2013/7/3/74
+[1]
+https://lkml.org/lkml/2013/8/1/442
+
+Hebbar Gururaja (1):
+  ARM: dts: AM33XX: update rtc node compatibility
+
+Hebbar, Gururaja (1):
+  rtc: omap: update of_device_id to reflect latest ip revisions
+
+ arch/arm/boot/dts/am33xx.dtsi |    2 +-
+ drivers/rtc/rtc-omap.c        |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
