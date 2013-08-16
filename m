@@ -1,73 +1,85 @@
 From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH v2 0/2] omap4/twl6030: typical connection to omap4 as
- a separate dtsi file
-Date: Fri, 16 Aug 2013 15:20:38 +0200
-Message-ID: <520E2726.304@baylibre.com>
-References: <1376469348-10797-1-git-send-email-ruslan.bilovol@ti.com> <520B8B45.1010300@baylibre.com> <CAB=otbTUk68CLmgQsEoefMMFTAnZCAMbZa-yiYmn1b3F1X8BiQ@mail.gmail.com>
+Subject: Re: [PATCH v3 1/2] rtc: omap: update of_device_id to reflect latest
+ ip revisions
+Date: Fri, 16 Aug 2013 16:15:57 +0200
+Message-ID: <520E341D.4080206@baylibre.com>
+References: <1376653017-21935-1-git-send-email-gururaja.hebbar@ti.com> <1376653017-21935-2-git-send-email-gururaja.hebbar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAB=otbTUk68CLmgQsEoefMMFTAnZCAMbZa-yiYmn1b3F1X8BiQ@mail.gmail.com>
+In-Reply-To: <1376653017-21935-2-git-send-email-gururaja.hebbar@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, uri.y@variscite.com, Nishanth Menon <nm@ti.com>
+To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Cc: akpm@linux-foundation.org, khilman@linaro.org, tony@atomide.com, rob.herring@calxeda.com, mark.rutland@arm.com, a.zummo@towertech.it, rob@landley.net, grant.likely@linaro.org, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, davinci-linux-open-source@linux.davincidsp.com, sudhakar.raj@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ruslan,
+Hi Gururaja,
 
-On 16/08/2013 14:04, Ruslan Bilovol wrote:
-> Hi Benoit,
-> 
-> On Wed, Aug 14, 2013 at 4:51 PM, Benoit Cousson <bcousson@baylibre.com> wrote:
->> Hi Ruslan,
->>
->> On 14/08/2013 10:35, Ruslan Bilovol wrote:
->>>
->>> Hello,
->>>
->>> There is no functional changes between v1 and v2 - just
->>> added the patch for omap4-var-som - Uri Yosef confirmed
->>> this board have the same connection of OMAP4<->TWL6030 as
->>> SDP4430 board
->>
->>
->> The series looks good to me, but it will be good to have a test for Panda
->> and Variscite boards before merging it.
-> 
-> Okay, so I just verified this patch series on PandaBoard ES2. Should I
-> resubmit this series with
-> fixed commit message?
+On 16/08/2013 13:36, Hebbar, Gururaja wrote:
+> The syntax of compatible property in DT is to mention the Most specific
+> match to most generic match.
+>
+> Since AM335x is the platform with latest IP revision, add it 1st in
+> the device id table.
 
-No, that's fine, I already applied it and fixed the subject and the changelog.
+I don't understand why? The order should not matter at all.
 
-Here it is:
+I've tried to follow the thread you had with Mark on the v2, but AFAIK, 
+you've never answered to his latest question.
 
-commit 2e25df1e5a4af906a9b25332719ace000063eb0d
-Author: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Date:   Wed Aug 14 11:35:47 2013 +0300
+Moreover, checking the differences between the Davinci and the am3352 
+RTC IP, I would not claim that both are compatible.
 
-    ARM: dts: twl6030: Move common configuration for OMAP4 boards in a separate dtsi file
-    
-    The OMAP4 SoC family uses specially-designed PMIC (power management IC)
-    companion chip for power management needs: TWL6030/TWL6032.
-    Therefore there is a typical connection of PMIC to OMAP4 so we can
-    move it into separate .dtsi file and do not duplicate over
-    board-specific files.
-    
-    Tested on OMAP4 SDP board and compile-tested for Panda board
-    
-    Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
-    Signed-off-by: Benoit Cousson <bcousson@baylibre.com>
+Sure you can use the am3352 with the Davinci driver, but you will lose 
+the wakeup functionality without even being notify about that.
 
+For my point of view, compatible mean that the HW will still be fully 
+functional with both versions of the driver, which is not the case here.
 
-Just let me know if you are OK with the updated version.
+am3352 DTS must use the ti,am3352-rtc to have the expected behavior. 
+Using the ti,da830-rtc version will not make the board working as 
+expected. So we cannot claim the compatibility.
 
-> However I cannot verify the patch for Variscite board because I do not
-> own any such board so
-> you can drop that patch. But maybe Uri Yosef can verify it. Uri?
+> This way, we can add new matching compatible as 1st and maintain old
+> compatible string for backwards compatibility.
+>
+> ex:
+> 	compatible = "ti,am3352-rtc", "ti,da830-rtc";
+>
+> Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
+> CC: mark.rutland@arm.com
+> ---
+> Changes in v3:
+> 	- new patch
+>
+> :100644 100644 dc62cc3... 2f0968c... M	drivers/rtc/rtc-omap.c
+>   drivers/rtc/rtc-omap.c |    6 +++---
+>   1 files changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+> index dc62cc3..2f0968c 100644
+> --- a/drivers/rtc/rtc-omap.c
+> +++ b/drivers/rtc/rtc-omap.c
+> @@ -330,12 +330,12 @@ static struct platform_device_id omap_rtc_devtype[] = {
+>   MODULE_DEVICE_TABLE(platform, omap_rtc_devtype);
+>
+>   static const struct of_device_id omap_rtc_of_match[] = {
+> -	{	.compatible	= "ti,da830-rtc",
+> -		.data		= &omap_rtc_devtype[OMAP_RTC_DATA_DA830_IDX],
+> -	},
+>   	{	.compatible	= "ti,am3352-rtc",
+>   		.data		= &omap_rtc_devtype[OMAP_RTC_DATA_AM335X_IDX],
+>   	},
+> +	{	.compatible	= "ti,da830-rtc",
+> +		.data		= &omap_rtc_devtype[OMAP_RTC_DATA_DA830_IDX],
+> +	},
+>   	{},
+>   };
+>   MODULE_DEVICE_TABLE(of, omap_rtc_of_match);
 
-It seems that Uri cannot test it right now, so I will have to drop that one.
+Bottom-line, if you get rid of the old compatible entry, you will not 
+have to play some trick with the entries order.
 
-Thanks,
+Regards,
 Benoit
