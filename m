@@ -1,99 +1,46 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH v3 1/2] rtc: omap: update of_device_id to reflect latest
- ip revisions
-Date: Fri, 16 Aug 2013 20:12:46 +0200
-Message-ID: <520E6B9E.5080706@baylibre.com>
-References: <1376653017-21935-1-git-send-email-gururaja.hebbar@ti.com> <1376653017-21935-2-git-send-email-gururaja.hebbar@ti.com> <520E341D.4080206@baylibre.com> <20130816172022.GA3719@e106331-lin.cambridge.arm.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap fixes against v3.11-rc5
+Date: Fri, 16 Aug 2013 14:58:37 -0700
+Message-ID: <CAOesGMiQBajdyW5AFJx6ASh1pHmdDPrh6Gy3o2HOBtFc9-g_Ag@mail.gmail.com>
+References: <20130816071958.GB7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:50819 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753076Ab3HPSMu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Aug 2013 14:12:50 -0400
-Received: by mail-we0-f170.google.com with SMTP id w60so1965928wes.29
-        for <linux-omap@vger.kernel.org>; Fri, 16 Aug 2013 11:12:49 -0700 (PDT)
-In-Reply-To: <20130816172022.GA3719@e106331-lin.cambridge.arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130816071958.GB7656@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "arm@kernel.org" <arm@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "khilman@linaro.org" <khilman@linaro.org>, "tony@atomide.com" <tony@atomide.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "a.zummo@towertech.it" <a.zummo@towertech.it>, "rob@landley.net" <rob@landley.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rtc-linux@googlegroups.com" <rtc-linux@googlegroups.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "sudhakar.raj@ti.com" <sudhakar.raj@ti.com>
 
-Hi Mark,
+Hi,
 
-On 16/08/2013 19:20, Mark Rutland wrote:
-> Hi Benoit,
+
+
+On Fri, Aug 16, 2013 at 12:19 AM, Tony Lindgren <tony@atomide.com> wrote:
+> The following changes since commit d4e4ab86bcba5a72779c43dc1459f71fea3d89c8:
 >
-> On Fri, Aug 16, 2013 at 03:15:57PM +0100, Benoit Cousson wrote:
->> Hi Gururaja,
->>
->> On 16/08/2013 13:36, Hebbar, Gururaja wrote:
->>> The syntax of compatible property in DT is to mention the Most specific
->>> match to most generic match.
->>>
->>> Since AM335x is the platform with latest IP revision, add it 1st in
->>> the device id table.
->>
->> I don't understand why? The order should not matter at all.
->>
->> I've tried to follow the thread you had with Mark on the v2, but AFAIK,
->> you've never answered to his latest question.
->>
->> Moreover, checking the differences between the Davinci and the am3352
->> RTC IP, I would not claim that both are compatible.
->>
->> Sure you can use the am3352 with the Davinci driver, but you will lose
->> the wakeup functionality without even being notify about that.
+>   Linux 3.11-rc5 (2013-08-11 18:04:20 -0700)
 >
-> Could you describe the wakeup functionality, and how it differs between
-> the am3352-rtc and the da830-rtc?
-
-AFAIK, da830-rtc does not have that functionality at all. This is 
-something that was added to the am3352-rtc.
-
-> As I understand it, the am3352 functionality is a superset of the da830
-> functionality. You can use the old driver, and get some functionality,
-> or use the new driver and get it all.
-
-Mmm, what your are saying now seems to make sense to me as well. So I'm 
-even more confused :-)
-
-> That means that am3352-rtc is compatible with da830. As long as the
-> kernel first checks for am3352-rtc, there will be *no* loss of
-> functionality. All this does is enable older kernels to use the hardware
-> in some fashion, and given the older kernel didn't have support for the
-> am3352-rtc features, this is a *gain* in functionality, not a loss.
+> are available in the git repository at:
 >
->>
->> For my point of view, compatible mean that the HW will still be fully
->> functional with both versions of the driver, which is not the case here.
->
-> What? A driver for any entry in the compatible list should be able to
-> drive the hardware to *some* level of functionality. We list from
-> most-specific to most-general to allow a graceful degradation from fully
-> supported to bare minimum functionality.
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.11/fixes-against-rc5
 
-OK, but where is it written in the DT spec that this is what the 
-compatible is supposed to mean?
+Our current fixes branch is based on -rc4, and I didn't see any of
+these commits in linux-next, so I took the liberty to rebase them back
+onto our current branch.
 
-I'm quoting it again:
-"
-The compatible property value consists of one or more strings that 
-define the specific programming model for the device. This list of 
-strings should be used by a client program for device driver selection. 
-The property value consists of a concatenated list of null terminated
-strings, from most specific to most general. They allow a device to 
-express its compatibility with a family of similar devices, potentially 
-allowing a single device driver to match against several devices.
-"
+I.e. pulled, but rebased.
 
-The graceful degradation or the loss of functionality is not something 
-that I really understand in that text.
 
-Anyway, I'm probably too tired... I'll go back home, and think about 
-that after the week-end.
+Thanks,
 
-Regards,
-Benoit
-
+-Olof
