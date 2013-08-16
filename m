@@ -1,90 +1,91 @@
-From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 00/12] edma: Add support for SG lists of any length
-Date: Fri, 16 Aug 2013 00:57:34 -0500
-Message-ID: <520DBF4E.2060101@ti.com>
-References: <1375719297-12871-1-git-send-email-joelf@ti.com>
-Reply-To: <joelf-l0cyMroinI0@public.gmane.org>
+From: "Kozaruk, Oleksandr" <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v8 0/2] TWL6030, TWL6032 GPADC driver
+Date: Fri, 16 Aug 2013 06:39:35 +0000
+Message-ID: <2A7ABDFCE21540479A5AEB0244A684D5E3EE9C@DNCE04.ent.ti.com>
+References: <1374758813-6539-1-git-send-email-oleksandr.kozaruk@ti.com>
+ <20130815091216.GB28366@e106331-lin.cambridge.arm.com>
+ <520CB566.2050201@kernel.org>
+ <20130815125906.GA32421@e106331-lin.cambridge.arm.com>,<520D16EC.90604@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1375719297-12871-1-git-send-email-joelf-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Matt Porter <matt-agtwNxEcTQJWk0Htik3J/w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <520D16EC.90604-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Language: en-US
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Cc: "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>, "Ujfalusi, Peter" <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>, "jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org" <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org" <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <ch.naveen-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org" <poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org>, "Kim, Milo" <Milo.Kim-l0cyMroinI0@public.gmane.org>, "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>, "gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org" <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, "linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kerne>
 List-Id: linux-omap@vger.kernel.org
 
-Following offline discussions with Sekhar, we discussed some ideas to
-change a few things in this patch series to make it fail-safe. As such,
-the only changes we are making for v4 will be to not cyclically link
-immediately but doing so only once the ISR has finished setup (apart
-from other style cleanups).
+>On 08/15/13 13:59, Mark Rutland wrote:
+>> On Thu, Aug 15, 2013 at 12:03:02PM +0100, Jonathan Cameron wrote:
+>>>
+>>>>> The changes to the original driver:
+>>>>> - device tree adaptation;
+>>>>
+>>>> I couldn't see a binding document in this series or in mainline. Have I
+>>>> looked in the wrong places?
+>>>
+>>> Nothing explicit supplied, but does it need one given it is doing only
+>>> iio bindings (bindings/iio/iio-bindings.txt)
+>>> plus twl child bindings
+>>> (bindings/mfd/twl-family.txt)
+>>
+>> Every binding needs to be documented.
+>>
+>>>
+>>> If it does, I guess absolutely everything does, then fair enough!
+>>> I guess that would make sense as there is no way for someone writing
+>>> a device tree to know that there is nothing else to be specified.
+>>
+>> Yup, that's why. Also, Linux isn't necessarily the only consumer, and
+>> other consumers shouldn't need to read Linux code to figure out how a
+>> particular binding is supposed to look.
+>>
+>Fair enough. Thanks for clearing that up.
+>
+>Oleksandr, could you send a follow up patch adding the required documentation?
+>(mostly a cut and paste job from similar elements by the look of it).
+>
 
-Any conditions where we are not able to modify the link in time (due to
-heavily loaded system) will be detected and reported by the use of
-linking to a NULL set.
+Hello,
 
-The new approach will be fast because of no requirement to stall or
-wait, and any DMA issues with heavily loaded systems can be detected as
-error conditions.
+Is this good enough?
 
-This should architecturally be the final version of the patch series to
-add DMA support for SG lists of any length.
+>From 211e81ff4a146d9ec27443696a429e795c58dc30 Mon Sep 17 00:00:00 2001
+From: Oleksandr Kozaruk <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
+Date: Thu, 15 Aug 2013 16:14:11 +0300
+Subject: [PATCH] iio: adc: Add bindigs documentation for twl6030 GPADC
 
-Thanks,
+Add required documentation for twl6030 GPADC device tree
+bindings.
 
--Joel
+Signed-off-by: Oleksandr Kozaruk <oleksandr.kozaruk-l0cyMroinI0@public.gmane.org>
+---
+ .../devicetree/bindings/iio/adc/twl6030-gpadc.txt          | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/iio/adc/twl6030-gpadc.txt
 
-On 08/05/2013 11:14 AM, Joel Fernandes wrote:
-> Here is a more improved approach for DMA support of SG lists of any length
-> in the EDMA DMA Engine driver.
-> 
-> In the previous approach [1] we depended on error interrupts to detect
-> missed events and manually retrigger them, however as discussed in [2],
-> there are concerns this can be trouble some for high speed peripherals
-> which may need a more real-time response from the DMA controller.
-> 
-> In this approach, we divide the total no of MAX slots per channel, into
-> 2 linked sets which are cyclically linked to each other (the cyclic
-> link between the 2 sets make sure that the DMA is continuous till the whole
-> SG list has exhausted). We then enable completion interrupts on both linked
-> sets which results in recyling/preparing respective linked set with the
-> next set of SG entries. The interrupt handler executes in parallel while
-> the EDMA controller DMA's the next list. This results in no interruption.
-> 
-> Special handling is done for first linked set (as we set up both linked
-> sets initially before starting with the DMA), and last one where the cyclic
-> link has to be broken and a link to the Dummy slot has to be created.
-> Also we keep track of whether all pending DMA operations have completed
-> before we can mark it as complete.
-> 
-> [1] https://lkml.org/lkml/2013/7/29/312
-> [2] https://lkml.org/lkml/2013/7/30/54
-> 
-> Joel Fernandes (12):
->   dma: edma: Setup parameters to DMA MAX_NR_SG at a time
->   ARM: edma: Don't clear EMR of channel in edma_stop
->   dma: edma: remove limits on number of slots
->   dma: edma: Write out and handle MAX_NR_SG at a given time
->   ARM: edma: Add function to enable interrupt for a PaRAM slot
->   ARM: edma: Add pr_debug in edma_link
->   dma: edma: Add function to dump a PaRAM set from PaRAM
->   dma: edma: Add one more required slot to MAX slots
->   dma: edma: Implement multiple linked sets for continuity
->   dma: edma: Check if MAX_NR_SG is even in prep function
->   dma: edma: Keep tracking of Pending interrupts (pending_acks)
->   dma: edma: Return if nothing left todo in edma_execute
-> 
->  arch/arm/common/edma.c             |   18 ++-
->  drivers/dma/edma.c                 |  279 +++++++++++++++++++++++++++++-------
->  include/linux/platform_data/edma.h |    1 +
->  3 files changed, 243 insertions(+), 55 deletions(-)
-> 
+diff --git a/Documentation/devicetree/bindings/iio/adc/twl6030-gpadc.txt b/Documentation/devicetree/bindings/iio/adc/twl6030-gpadc.txt
+new file mode 100644
+index 0000000..6829420
+--- /dev/null
++++ b/Documentation/devicetree/bindings/iio/adc/twl6030-gpadc.txt
+@@ -0,0 +1,14 @@
++Texas Instruments twl6030/twl6032 GPADC device driver
++
++Required properties:
++       - compatible: must be "ti,twl6030-gpadc" for TWL6030 or
++         "ti,twl6032-gpadc" for TWL6032
++       - interrupts: interrupt number associated with it
++       - #io-channel-cells: must be <1> - multiple IIO outputs
++
++Example:
++       adc {
++               compatible = "ti,twl6030-gpadc";
++               interrupts = <3>;
++               #io-channel-cells = <1>;
++       };
+
+-- 
+1.8.1.2
