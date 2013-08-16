@@ -1,12 +1,15 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2] extcon: palmas: Modified the compatible type to *ti,
- palmas-usb-vid*
-Date: Fri, 16 Aug 2013 15:50:48 +0530
-Message-ID: <1376648448-27447-1-git-send-email-kishon@ti.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: [PATCH v3] arm: dts: AM43x: Add usb DT nodes for AM4372
+Date: Fri, 16 Aug 2013 15:51:09 +0530
+Message-ID: <520DFD15.9060900@ti.com>
+References: <1373444082-4169-1-git-send-email-george.cherian@ti.com>
+ <520B9144.5000701@ti.com> <520B958B.1000900@baylibre.com>
+ <520D9A3E.1040903@ti.com> <520DEBF1.6070605@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <520DEBF1.6070605@baylibre.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,56 +19,27 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: bcousson@baylibre.com, swarren@wwwdotorg.org, tony@atomide.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, george.cherian@ti.com, linux@arm.linux.org.uk, ian.campbell@citrix.com, pawel.moll@arm.com, linux-doc@vger.kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, kishon@ti.com, balbi@ti.com, rob@landley.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: afzal@ti.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, balbi@ti.com, a-kishore@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The Palmas device contains only a USB VID detector, so modified the
-compatible type to *ti,palmas-usb-vid*.
+On 8/16/2013 2:38 PM, Benoit Cousson wrote:
+> That's fine, but that was not my question. Is there any already bindings
+> that defined phys and phy-names in the kernel?
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
-Changes from v1:
-* removed the existing compatible types and changed it to *ti,palmas-usb-vid*
+No
+>
+> I couldn't find them in 3.11-rc5.
 
- Documentation/devicetree/bindings/extcon/extcon-palmas.txt |    4 ++--
- drivers/extcon/extcon-palmas.c                             |    3 +--
- 2 files changed, 3 insertions(+), 4 deletions(-)
+I will drop the phy reference and send an updated patch adding dwc nodes.
 
-diff --git a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
-index 7dab6a8..00859f6 100644
---- a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
-+++ b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
-@@ -2,7 +2,7 @@ EXTCON FOR PALMAS/TWL CHIPS
- 
- PALMAS USB COMPARATOR
- Required Properties:
-- - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb"
-+ - compatible : Should be "ti,palmas-usb-vid".
- 
- Optional Properties:
-  - ti,wakeup : To enable the wakeup comparator in probe
-@@ -10,6 +10,6 @@ Optional Properties:
-  - ti,enable-vbus-detection: Perform VBUS detection.
- 
- palmas-usb {
--       compatible = "ti,twl6035-usb", "ti,palmas-usb";
-+       compatible = "ti,palmas-usb-vid";
-        ti,wakeup;
- };
-diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
-index 89fdd05..f3ed2d7 100644
---- a/drivers/extcon/extcon-palmas.c
-+++ b/drivers/extcon/extcon-palmas.c
-@@ -267,8 +267,7 @@ static const struct dev_pm_ops palmas_pm_ops = {
- };
- 
- static struct of_device_id of_palmas_match_tbl[] = {
--	{ .compatible = "ti,palmas-usb", },
--	{ .compatible = "ti,twl6035-usb", },
-+	{ .compatible = "ti,palmas-usb-vid", },
- 	{ /* end */ }
- };
- 
+> And anyway the current bindings for dwc3 is not aligned with what you
+> are doing here.
+> So you have to change the binding before using it in this DTS.
+>
+> Regards,
+> Benoit
+
+
 -- 
-1.7.10.4
+-George
