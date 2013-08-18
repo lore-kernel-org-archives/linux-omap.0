@@ -1,72 +1,67 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH 2/2] ARM: dts: AM4372: add few nodes
-Date: Fri, 16 Aug 2013 17:11:27 -0600
-Message-ID: <520EB19F.1010005@wwwdotorg.org>
-References: <ffa2f76fcac54bfe76c234ffce0394fd2c25fe52.1375450395.git.afzal@ti.com>
- <6f0f838176ab93aac8dab4c3ab9d9f95a3027ff7.1375450395.git.afzal@ti.com>
- <51FCEE60.7080809@ti.com> <51FF335D.4050803@ti.com>
- <20130810142317.GE18085@e106331-lin.cambridge.arm.com>
- <52088526.90004@ti.com> <520DFC37.3080601@baylibre.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: [PATCH v2 01/14] crypto: scatterwalk:  Add support for calculating number of SG elements
+Date: Sat, 17 Aug 2013 21:42:22 -0500
+Message-ID: <1376793755-30478-2-git-send-email-joelf@ti.com>
+References: <1376793755-30478-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <520DFC37.3080601@baylibre.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Mugunthan V N <mugunthanvnm@ti.com>, Afzal Mohammed <afzal@ti.com>, Russell King <linux@arm.linux.org.uk>, Ian Campbell <ian.campbell@citrix.com>, Pawel Moll <Pawel.Moll@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <1376793755-30478-1-git-send-email-joelf@ti.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Herbert Xu <herbert@gondor.hengli.com.au>, "David S. Miller" <davem@davemloft.net>, Mark Greer <mgreer@animalcreek.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, Joel Fernandes <joelf@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/16/2013 04:17 AM, Benoit Cousson wrote:
-> Hi Afzal,
-> 
-> On 12/08/2013 08:48, Afzal Mohammed wrote:
->> Hi Mark,
->>
->> On Saturday 10 August 2013 07:53 PM, Mark Rutland wrote:
->>
->>>>>> +        mac: ethernet@4a100000 {
->>>>>> +            compatible = "ti,am4372-cpsw","ti,cpsw";
->>
->>> One point worth mentioning is that the "ti,am4372-cpsw" string isn't
->>> documented. Will the "ti,am4372-cpsw" binding definitely be a superset
->>> of the "ti,cpsw" binding, and if you were to take the DT as of this
->>> patch, and attempt to use it with a future kernel, can you guarantee
->>> it'll work?
->>
->> "ti,am4372-cpsw" was not documented as OMAP DT maintainer didn't prefer
->> documenting only for a new compatible.
-> 
-> My point was more that creating a new compatible for the exact same
-> version of the IP is pointeless and could lead to tons of compatible
-> strings that would never be used since this is always the exact same IP.
+Crypto layer only passes nbytes to encrypt but in omap-aes driver we need to
+know number of SG elements to pass to dmaengine slave API.  We add function for
+the same to scatterwalk library.
 
-Well, there are two aspects: Version of the IP block, and the
-integration into the SoC. We need an entry in compatible for any/all of
-these. If the IP block doesn't have some standalone versioning scheme
-because the design flow isn't IP-block-centric, the SoC name makes a
-reasonable substitute.
+Signed-off-by: Joel Fernandes <joelf@ti.com>
+---
+ crypto/scatterwalk.c         |   22 ++++++++++++++++++++++
+ include/crypto/scatterwalk.h |    2 ++
+ 2 files changed, 24 insertions(+)
 
-...
-> My second point is, even if we want to differentiate the IPs in various
-> SoCs, using the name of the SoC in the IP compatible string is not a
-> very good practice anyway.
-
-There may be integration-specific issues, so even if SoC A and B use the
-exact same IP block version, there should still be compatible values for
-the SoC as well as the IP block version, so you can quirk on those later.
-
-... although I suppose it might not be too bad if the IP block
-compatible value only contained the IP block version, and if any
-integration-specific quirks were needed, they could be triggered off
-entries in the top-level node's compatible value? That only works for
-on-Soc modules, and not complex MFD-like modules, unless you have an
-easy way to find the DT node for the top-level of the MFD...
+diff --git a/crypto/scatterwalk.c b/crypto/scatterwalk.c
+index 7281b8a..79ca227 100644
+--- a/crypto/scatterwalk.c
++++ b/crypto/scatterwalk.c
+@@ -124,3 +124,25 @@ void scatterwalk_map_and_copy(void *buf, struct scatterlist *sg,
+ 	scatterwalk_done(&walk, out, 0);
+ }
+ EXPORT_SYMBOL_GPL(scatterwalk_map_and_copy);
++
++int scatterwalk_bytes_sglen(struct scatterlist *sg, int num_bytes)
++{
++	int offset = 0, n = 0;
++
++	/* num_bytes is too small */
++	if (num_bytes < sg->length)
++		return -1;
++
++	do {
++		offset += sg->length;
++		n++;
++		sg = scatterwalk_sg_next(sg);
++
++		/* num_bytes is too large */
++		if (unlikely(!sg && (num_bytes < offset)))
++			return -1;
++	} while (sg && (num_bytes > offset));
++
++	return n;
++}
++EXPORT_SYMBOL_GPL(scatterwalk_bytes_sglen);
+diff --git a/include/crypto/scatterwalk.h b/include/crypto/scatterwalk.h
+index 3744d2a..13621cc 100644
+--- a/include/crypto/scatterwalk.h
++++ b/include/crypto/scatterwalk.h
+@@ -113,4 +113,6 @@ void scatterwalk_done(struct scatter_walk *walk, int out, int more);
+ void scatterwalk_map_and_copy(void *buf, struct scatterlist *sg,
+ 			      unsigned int start, unsigned int nbytes, int out);
+ 
++int scatterwalk_bytes_sglen(struct scatterlist *sg, int num_bytes);
++
+ #endif  /* _CRYPTO_SCATTERWALK_H */
+-- 
+1.7.9.5
