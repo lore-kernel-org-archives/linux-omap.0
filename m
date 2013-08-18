@@ -1,7 +1,7 @@
 From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH v2 01/14] crypto: scatterwalk:  Add support for calculating number of SG elements
-Date: Sat, 17 Aug 2013 21:42:22 -0500
-Message-ID: <1376793755-30478-2-git-send-email-joelf@ti.com>
+Subject: [PATCH v2 13/14] crypto: omap-aes: Convert request_irq to devm_request_irq
+Date: Sat, 17 Aug 2013 21:42:34 -0500
+Message-ID: <1376793755-30478-14-git-send-email-joelf@ti.com>
 References: <1376793755-30478-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,56 +12,37 @@ To: Herbert Xu <herbert@gondor.hengli.com.au>, "David S. Miller" <davem@davemlof
 Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, Joel Fernandes <joelf@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Crypto layer only passes nbytes to encrypt but in omap-aes driver we need to
-know number of SG elements to pass to dmaengine slave API.  We add function for
-the same to scatterwalk library.
+Keeps request_irq exit/error code paths simpler.
 
+Suggested-by: Lokesh Vutla <lokeshvutla@ti.com>
 Signed-off-by: Joel Fernandes <joelf@ti.com>
 ---
- crypto/scatterwalk.c         |   22 ++++++++++++++++++++++
- include/crypto/scatterwalk.h |    2 ++
- 2 files changed, 24 insertions(+)
+ drivers/crypto/omap-aes.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/crypto/scatterwalk.c b/crypto/scatterwalk.c
-index 7281b8a..79ca227 100644
---- a/crypto/scatterwalk.c
-+++ b/crypto/scatterwalk.c
-@@ -124,3 +124,25 @@ void scatterwalk_map_and_copy(void *buf, struct scatterlist *sg,
- 	scatterwalk_done(&walk, out, 0);
- }
- EXPORT_SYMBOL_GPL(scatterwalk_map_and_copy);
-+
-+int scatterwalk_bytes_sglen(struct scatterlist *sg, int num_bytes)
-+{
-+	int offset = 0, n = 0;
-+
-+	/* num_bytes is too small */
-+	if (num_bytes < sg->length)
-+		return -1;
-+
-+	do {
-+		offset += sg->length;
-+		n++;
-+		sg = scatterwalk_sg_next(sg);
-+
-+		/* num_bytes is too large */
-+		if (unlikely(!sg && (num_bytes < offset)))
-+			return -1;
-+	} while (sg && (num_bytes > offset));
-+
-+	return n;
-+}
-+EXPORT_SYMBOL_GPL(scatterwalk_bytes_sglen);
-diff --git a/include/crypto/scatterwalk.h b/include/crypto/scatterwalk.h
-index 3744d2a..13621cc 100644
---- a/include/crypto/scatterwalk.h
-+++ b/include/crypto/scatterwalk.h
-@@ -113,4 +113,6 @@ void scatterwalk_done(struct scatter_walk *walk, int out, int more);
- void scatterwalk_map_and_copy(void *buf, struct scatterlist *sg,
- 			      unsigned int start, unsigned int nbytes, int out);
+diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
+index 6a4ac4a..ab449b5 100644
+--- a/drivers/crypto/omap-aes.c
++++ b/drivers/crypto/omap-aes.c
+@@ -1197,7 +1197,7 @@ static int omap_aes_probe(struct platform_device *pdev)
+ 			goto err_irq;
+ 		}
  
-+int scatterwalk_bytes_sglen(struct scatterlist *sg, int num_bytes);
-+
- #endif  /* _CRYPTO_SCATTERWALK_H */
+-		err = request_irq(irq, omap_aes_irq, 0,
++		err = devm_request_irq(dev, irq, omap_aes_irq, 0,
+ 				dev_name(dev), dd);
+ 		if (err) {
+ 			dev_err(dev, "Unable to grab omap-aes IRQ\n");
+@@ -1232,9 +1232,7 @@ err_algs:
+ 		for (j = dd->pdata->algs_info[i].registered - 1; j >= 0; j--)
+ 			crypto_unregister_alg(
+ 					&dd->pdata->algs_info[i].algs_list[j]);
+-	if (dd->pio_only)
+-		free_irq(irq, dd);
+-	else
++	if (!dd->pio_only)
+ 		omap_aes_dma_cleanup(dd);
+ err_irq:
+ 	tasklet_kill(&dd->done_task);
 -- 
 1.7.9.5
