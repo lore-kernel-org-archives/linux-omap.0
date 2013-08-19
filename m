@@ -1,156 +1,127 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv5 02/31] CLK: TI: Add DPLL clock support
-Date: Mon, 19 Aug 2013 20:06:39 +0300
-Message-ID: <5212509F.9030608@ti.com>
-References: <1375460751-23676-1-git-send-email-t-kristo@ti.com> <1375460751-23676-3-git-send-email-t-kristo@ti.com> <20130813105042.GJ27165@e106331-lin.cambridge.arm.com> <52121EF5.9040706@ti.com> <20130819141803.GO3719@e106331-lin.cambridge.arm.com> <52123531.4060608@ti.com> <20130819162450.GS3719@e106331-lin.cambridge.arm.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCHv3 0/9] ARM: OMAP2+: AM33XX: Add suspend-resume support
+Date: Mon, 19 Aug 2013 12:47:37 -0500
+Message-ID: <52125A39.3010008@ti.com>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+ <5211E3F6.6090108@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42163 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750861Ab3HSRHP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Aug 2013 13:07:15 -0400
-In-Reply-To: <20130819162450.GS3719@e106331-lin.cambridge.arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5211E3F6.6090108@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Gururaja Hebbar <gururaja.hebbar@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "nm@ti.com" <nm@ti.com>, "rnayak@ti.com" <rnayak@ti.com>, "mturquette@linaro.org" <mturquette@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 08/19/2013 07:24 PM, Mark Rutland wrote:
-> On Mon, Aug 19, 2013 at 04:09:37PM +0100, Tero Kristo wrote:
->> On 08/19/2013 05:18 PM, Mark Rutland wrote:
->>> On Mon, Aug 19, 2013 at 02:34:45PM +0100, Tero Kristo wrote:
->>>> On 08/13/2013 01:50 PM, Mark Rutland wrote:
->>>>> Hi,
->>>>>
->>>>> On Fri, Aug 02, 2013 at 05:25:21PM +0100, Tero Kristo wrote:
->>>>>> The OMAP clock driver now supports DPLL clock type. This patch also
->>>>>> adds support for DT DPLL nodes.
->>>>>>
->>>>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>>>>> ---
->>>>>>     .../devicetree/bindings/clock/ti/dpll.txt          |   70 +++
->>>>>>     arch/arm/mach-omap2/clock.h                        |  144 +-----
->>>>>>     arch/arm/mach-omap2/clock3xxx.h                    |    2 -
->>>>>>     drivers/clk/Makefile                               |    1 +
->>>>>>     drivers/clk/ti/Makefile                            |    3 +
->>>>>>     drivers/clk/ti/dpll.c                              |  488 ++++++++++++++++++++
->>>>>>     include/linux/clk/ti.h                             |  164 +++++++
->>>>>>     7 files changed, 727 insertions(+), 145 deletions(-)
->>>>>>     create mode 100644 Documentation/devicetree/bindings/clock/ti/dpll.txt
->>>>>>     create mode 100644 drivers/clk/ti/Makefile
->>>>>>     create mode 100644 drivers/clk/ti/dpll.c
->>>>>>     create mode 100644 include/linux/clk/ti.h
->>>>>>
->>>>>> diff --git a/Documentation/devicetree/bindings/clock/ti/dpll.txt b/Documentation/devicetree/bindings/clock/ti/dpll.txt
->>>>>> new file mode 100644
->>>>>> index 0000000..dcd6e63
->>>>>> --- /dev/null
->>>>>> +++ b/Documentation/devicetree/bindings/clock/ti/dpll.txt
->>>>>> @@ -0,0 +1,70 @@
->>>>>> +Binding for Texas Instruments DPLL clock.
->>>>>> +
->>>>>> +This binding uses the common clock binding[1].  It assumes a
->>>>>> +register-mapped DPLL with usually two selectable input clocks
->>>>>> +(reference clock and bypass clock), with digital phase locked
->>>>>> +loop logic for multiplying the input clock to a desired output
->>>>>> +clock. This clock also typically supports different operation
->>>>>> +modes (locked, low power stop etc.) This binding has several
->>>>>> +sub-types, which effectively result in slightly different setup
->>>>>> +for the actual DPLL clock.
->>>>>> +
->>>>>> +[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
->>>>>> +
->>>>>> +Required properties:
->>>>>> +- compatible : shall be one of:
->>>>>> +               "ti,omap4-dpll-x2-clock",
->>>>>> +               "ti,omap3-dpll-clock",
->>>>>> +               "ti,omap3-dpll-core-clock",
->>>>>> +               "ti,omap3-dpll-per-clock",
->>>>>> +               "ti,omap3-dpll-per-j-type-clock",
->>>>>> +               "ti,omap4-dpll-clock",
->>>>>> +               "ti,omap4-dpll-core-clock",
->>>>>> +               "ti,omap4-dpll-m4xen-clock",
->>>>>> +               "ti,omap4-dpll-j-type-clock",
->>>>>> +               "ti,omap4-dpll-no-gate-clock",
->>>>>> +               "ti,omap4-dpll-no-gate-j-type-clock",
->>>>>> +
->>>>>> +- #clock-cells : from common clock binding; shall be set to 0.
->>>>>> +- clocks : link phandles of parent clocks (clk-ref and clk-bypass)
->>>>>
->>>>> It might be a good idea to use clock-names to clarify which clocks are
->>>>> present (I notice your examples contain only one clock input).
->>>>
->>>> All DPLLs have both bypass and reference clocks, but these can be the
->>>> same. Is it better to just list both always (and hence drop
->>>> clock-names), or provide clock-names always?
->>>
->>> If they're separate inputs, it's worth listing both (even if they're fed
->>> by the same provider). If it's possible one input might not be wired up,
->>> use clock-names.
+On 08/19/2013 04:23 AM, Gururaja Hebbar wrote:
+> On 8/6/2013 11:19 PM, Dave Gerlach wrote:
+>> Hi,
 >>
->> Ref and bypass clocks are used currently by all DPLLs (also the APLL) so
->> I guess I just enforce both to be specified.
->
-> Ok. It's always possible to add clock-names later if a platform doesn't
-> wire an input. We lose the possibility of future compatibility, but
-> backwards compatibility is easy enough to maintain.
->
->>>>>> +- ti,clkdm-name : clockdomain name for the DPLL
->>>>>
->>>>> Could you elaborate on what this is for? What constitutes a valid name?
->>>>>
->>>>> I'm not sure a string is the best way to define the linkage of several
->>>>> elements to a domain...
->>>>
->>>> Well, I am not sure if we can do this any better at this point, we don't
->>>> have DT nodes for clockdomain at the moment (I am not sure if we will
->>>> have those either as there are only a handful of those per SoC) but I'll
->>>> add some more documentation for this.
->>>
->>> I'll have to see the documentation, but I'd be very wary of putting that
->>> in as-is. Does having the clock domain string link this up to domains in
->>> platform data?
->>>
->>> I'm not sure how well we'll be able to maintain support for that in
->>> future if it requires other platform code to use now, and we're not sure
->>> how the domains themselves will be represented in dt.
+>> This is the third version of the patch series for adding basic suspend-resume
+>> support for AM33XX, previously submitted by Vaibhav Bedia. This patchset
+>> is based on 3.11-rc4 and depends on a forthcoming patchset from Suman Anna
+>> that adds mailbox support for the wkup_m3. The patches at [1], [2], and [3] are
+>> required for the pm code to properly suspend and resume.
 >>
->> Hmm so, should I add a stub representation for the clockdomains to the
->> DT then for now or how should this be handled? The stubs could then be
->> mapped to the actual clock domains based on their node names.
+>> The PM code uses the firmware interface and expects the userspace to load
+>> the WKUP_M3 binary before the suspend-resume functionality is made available.
+>> The binary file (and the source-code for WKUP_M3) can be obtained from the
+>> 'next2' branch at [4]. The WKUP_M3 binary can either be loaded post bootup
+>> via the sysfs entry './sys/devices/ocp.2/wkup_m3.4/firmware' or it can be
+>> included in the kernel image as part of the build process.
+>>
+>> Suspend to mem is tested on am335x-bone and am335x-evm.
+>>
+>> More details on AM335x suspend-resume are provided within the commit logs
+>> for each patch.
+>
+> can you share the working repo which has all these patches applied?
+>
+> Thanks & Regards
+> Gururaja
+>
+
+The working repo for this version of the patch series can be found here:
+
+git://github.com/dgerlach/linux-pm.git am335x-3.11rc4-suspend-resume
+
+Regards,
+Dave
+
+>>
+>> Changes in v3:
+>> - Moved wkup_m3 code into separate driver
+>> - Split up ti_emif header move
+>> - Addressed clean-up comments
+>> - Removed mailbox patches
+>> - v2-v3 Discussion:
+>> http://marc.info/?l=linux-arm-kernel&m=135698501821090&w=4
+>>
+>> Changes in v2:
+>> - Broke patches up to isolate assembly code and build hookup.
+>> - Moved control module code to separate module
+>> - v1->v2 Discussion:
+>> http://lists.infradead.org/pipermail/linux-arm-kernel/2012-November/129508.html
+>>
+>> Regards,
+>> Dave
+>>
+>> [1] http://marc.info/?l=linux-arm-kernel&m=137303736714638&w=4
+>> [2] http://marc.info/?l=linux-omap&m=137303723114610&w=4
+>> [3] http://marc.info/?l=linux-omap&m=137401384611934&w=4
+>> [4] http://arago-project.org/git/projects/?p=am33x-cm3.git;a=shortlog;h=refs/heads/next2
+>>
+>>
+>> Dave Gerlach (1):
+>>    memory: emif: Move EMIF register defines to include/linux/
+>>
+>> Vaibhav Bedia (8):
+>>    ARM: OMAP2+: AM33XX: control: Add some control module registers and
+>>      APIs
+>>    ARM: OMAP: DTB: Update IRQ data for WKUP_M3
+>>    ARM: OMAP2+: AM33XX: Reserve memory to comply with EMIF spec
+>>    ARM: OMAP2+: AM33XX: Add assembly code for PM operations
+>>    ARM: OMAP2+: timer: Add suspend-resume callbacks for clkevent device
+>>    ARM: OMAP: omap_device: Add APIs to enable and idle hwmods
+>>    ARM: OMAP2+: AM33XX: Basic suspend resume support
+>>    ARM: OMAP2+: AM33XX: Hookup AM33XX PM code into OMAP builds
+>>
+>>   arch/arm/boot/dts/am33xx.dtsi       |    1 +
+>>   arch/arm/mach-omap2/Kconfig         |    7 +-
+>>   arch/arm/mach-omap2/Makefile        |    2 +
+>>   arch/arm/mach-omap2/board-generic.c |    3 +-
+>>   arch/arm/mach-omap2/common.c        |   28 ++
+>>   arch/arm/mach-omap2/common.h        |   14 +
+>>   arch/arm/mach-omap2/control.c       |   57 ++++
+>>   arch/arm/mach-omap2/control.h       |   54 ++++
+>>   arch/arm/mach-omap2/io.c            |    6 +
+>>   arch/arm/mach-omap2/omap_device.c   |    8 +
+>>   arch/arm/mach-omap2/omap_device.h   |    2 +
+>>   arch/arm/mach-omap2/pm.c            |    3 +-
+>>   arch/arm/mach-omap2/pm.h            |    5 +
+>>   arch/arm/mach-omap2/pm33xx.c        |  474 +++++++++++++++++++++++++++++
+>>   arch/arm/mach-omap2/pm33xx.h        |   77 +++++
+>>   arch/arm/mach-omap2/sleep33xx.S     |  350 ++++++++++++++++++++++
+>>   arch/arm/mach-omap2/sram.c          |   10 +-
+>>   arch/arm/mach-omap2/sram.h          |    2 +
+>>   arch/arm/mach-omap2/timer.c         |   32 ++
+>>   arch/arm/mach-omap2/wkup_m3.c       |  183 ++++++++++++
+>>   drivers/memory/emif.h               |  543 +---------------------------------
+>>   include/linux/ti_emif.h             |  558 +++++++++++++++++++++++++++++++++++
+>>   22 files changed, 1872 insertions(+), 547 deletions(-)
+>>   create mode 100644 arch/arm/mach-omap2/pm33xx.c
+>>   create mode 100644 arch/arm/mach-omap2/pm33xx.h
+>>   create mode 100644 arch/arm/mach-omap2/sleep33xx.S
+>>   create mode 100644 arch/arm/mach-omap2/wkup_m3.c
+>>   create mode 100644 include/linux/ti_emif.h
 >>
 >
-> I unfortunately don't have a good answer here, because I'm not that
-> familiar with how we handle clockdomains for power management purposes.
->
-> As I understand it, each clock domain is essentially a clock gate
-> controlling multiple clock signals, so it's possible to describe that
-> with the common clock bindings, with a domain's clocks all coming from a
-> "domain-gate-clock" node (or something like that). That would make the
-> wiring of clocks to a domain explicit and in line with the rest of the
-> common clock bindings. But perhaps I've simplified things a bit too
-> far.
-
-You got it basically right, but maybe oversimplified it a bit. The 
-root/parent clocks can still cross clockdomain boundaries, so mapping 
-everything under a simple clockdomain gate would not work. Basically 
-each clock has a mapping on the SoC for both its parent clock signal and 
-the clockdomain association, kind of having two parents at the same 
-time. In OMAP case, most of the clockdomains support hardware autoidle 
-type functionality, which puts the domain to idle once all the clocks on 
-it are disabled.
-
--Tero
-
-> I'm not sure how easy it would be to use that information for power
-> management. I don't know what the kernel logic for clock domain power
-> management needs to know about consumers of the clocks and how it would
-> need to poke those consumers.
-
->
-> Cheers,
-> Mark.
->
-
