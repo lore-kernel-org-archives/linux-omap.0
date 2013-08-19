@@ -1,75 +1,86 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 8/8] ARM: dts: omap5: update omap-control-usb node
-Date: Mon, 19 Aug 2013 13:37:47 +0300
-Message-ID: <1376908667-14974-9-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v4 3/8] usb: phy: omap-usb2: Don't use omap_get_control_dev()
+Date: Mon, 19 Aug 2013 13:37:42 +0300
+Message-ID: <1376908667-14974-4-git-send-email-rogerq@ti.com>
 References: <1376908667-14974-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58279 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751158Ab3HSKiq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Aug 2013 06:38:46 -0400
-In-Reply-To: <1376908667-14974-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1376908667-14974-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, bcousson@baylibre.com
-Cc: tony@atomide.com, george.cherian@ti.com, kishon@ti.com, bigeasy@linutronix.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-Split USB2 PHY and USB3 PHY into separate omap-control-usb
-nodes. Get rid of "ti,type" property.
+omap_get_control_dev() is being deprecated as it doesn't support
+multiple instances. As control device is present only from OMAP4
+onwards which supports DT only, we use phandles to get the
+reference to the control device.
 
-CC: Benoit Cousson <bcousson@baylibre.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+As we don't support non-DT boot, we just bail out on probe
+if device node is not present.
+
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap5.dtsi |   20 ++++++++++++--------
- 1 files changed, 12 insertions(+), 8 deletions(-)
+ drivers/usb/phy/phy-omap-usb2.c |   26 ++++++++++++++++++++------
+ 1 files changed, 20 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 07be2cd..7cda18b 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -626,12 +626,16 @@
- 			hw-caps-temp-alert;
- 		};
+diff --git a/drivers/usb/phy/phy-omap-usb2.c b/drivers/usb/phy/phy-omap-usb2.c
+index 844ab68..e278a3d 100644
+--- a/drivers/usb/phy/phy-omap-usb2.c
++++ b/drivers/usb/phy/phy-omap-usb2.c
+@@ -28,6 +28,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/delay.h>
+ #include <linux/usb/omap_control_usb.h>
++#include <linux/of_platform.h>
  
--		omap_control_usb: omap-control-usb@4a002300 {
--			compatible = "ti,omap-control-usb";
--			reg = <0x4a002300 0x4>,
--			      <0x4a002370 0x4>;
--			reg-names = "control_dev_conf", "phy_power_usb";
--			ti,type = <2>;
-+		omap_control_usb2phy: omap-control-usb@4a002300 {
-+			compatible = "ti,usb2-control-usb";
-+			reg = <0x4a002300 0x4>;
-+			reg-names = "power";
-+		};
+ /**
+  * omap_usb2_set_comparator - links the comparator present in the sytem with
+@@ -121,8 +122,14 @@ static int omap_usb2_suspend(struct usb_phy *x, int suspend)
+ 
+ static int omap_usb2_probe(struct platform_device *pdev)
+ {
+-	struct omap_usb			*phy;
+-	struct usb_otg			*otg;
++	struct omap_usb	*phy;
++	struct usb_otg *otg;
++	struct device_node *node = pdev->dev.of_node;
++	struct device_node *control_node;
++	struct platform_device *control_pdev;
 +
-+		omap_control_usb3phy: omap-control-usb@0x4a002370 {
-+			compatible = "ti,usb3-control-usb";
-+			reg = <0x4a002370 0x4>;
-+			reg-names = "power";
- 		};
++	if (!node)
++		return -EINVAL;
  
- 		omap_dwc3@4a020000 {
-@@ -661,7 +665,7 @@
- 			usb2_phy: usb2phy@4a084000 {
- 				compatible = "ti,omap-usb2";
- 				reg = <0x4a084000 0x7c>;
--				ctrl-module = <&omap_control_usb>;
-+				ctrl-module = <&omap_control_usb2phy>;
- 			};
+ 	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
+ 	if (!phy) {
+@@ -144,11 +151,18 @@ static int omap_usb2_probe(struct platform_device *pdev)
+ 	phy->phy.otg		= otg;
+ 	phy->phy.type		= USB_PHY_TYPE_USB2;
  
- 			usb3_phy: usb3phy@4a084400 {
-@@ -670,7 +674,7 @@
- 				      <0x4a084800 0x64>,
- 				      <0x4a084c00 0x40>;
- 				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
--				ctrl-module = <&omap_control_usb>;
-+				ctrl-module = <&omap_control_usb3phy>;
- 			};
- 		};
+-	phy->control_dev = omap_get_control_dev();
+-	if (IS_ERR(phy->control_dev)) {
+-		dev_dbg(&pdev->dev, "Failed to get control device\n");
+-		return -ENODEV;
++	control_node = of_parse_phandle(node, "ctrl-module", 0);
++	if (!control_node) {
++		dev_err(&pdev->dev, "Failed to get control device phandle\n");
++		return -EINVAL;
+ 	}
++	control_pdev = of_find_device_by_node(control_node);
++	if (!control_pdev) {
++		dev_err(&pdev->dev, "Failed to get control device\n");
++		return -EINVAL;
++	}
++
++	phy->control_dev = &control_pdev->dev;
  
+ 	phy->is_suspended	= 1;
+ 	omap_control_usb_phy_power(phy->control_dev, 0);
 -- 
 1.7.4.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
