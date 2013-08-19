@@ -1,65 +1,91 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2] extcon: palmas: Modified the compatible type to *ti,
- palmas-usb-vid*
-Date: Mon, 19 Aug 2013 14:59:07 +0530
-Message-ID: <5211E563.6080200@ti.com>
-References: <1376648448-27447-1-git-send-email-kishon@ti.com>
- <520EA5D6.3040409@wwwdotorg.org> <5211A7B3.4040906@ti.com>
- <5211DBB4.6090508@ti.com> <5211E45B.1010109@samsung.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH v2 0/2] omap4/twl6030: typical connection to omap4 as
+ a separate dtsi file
+Date: Mon, 19 Aug 2013 12:04:30 +0200
+Message-ID: <5211EDAE.1090407@baylibre.com>
+References: <1376469348-10797-1-git-send-email-ruslan.bilovol@ti.com> <520B8B45.1010300@baylibre.com> <CAB=otbTUk68CLmgQsEoefMMFTAnZCAMbZa-yiYmn1b3F1X8BiQ@mail.gmail.com> <520E2726.304@baylibre.com> <CAB=otbRLea7V6_4Rhfr=ApNV=+2sQXnY=JW9-vy6V+hbt336wg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5211E45B.1010109@samsung.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, george.cherian@ti.com, linux@arm.linux.org.uk, ian.campbell@citrix.com, pawel.moll@arm.com, Stephen Warren <swarren@wwwdotorg.org>, tony@atomide.com, gregkh@linuxfoundation.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, myungjoo.ham@samsung.com, balbi@ti.com, rob@landley.net, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAB=otbRLea7V6_4Rhfr=ApNV=+2sQXnY=JW9-vy6V+hbt336wg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, uri.y@variscite.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 19 August 2013 02:54 PM, Chanwoo Choi wrote:
-> On 08/19/2013 05:47 PM, Kishon Vijay Abraham I wrote:
->> On Monday 19 August 2013 10:35 AM, Kishon Vijay Abraham I wrote:
->>> Hi,
->>>
->>> On Saturday 17 August 2013 03:51 AM, Stephen Warren wrote:
->>>> On 08/16/2013 04:20 AM, Kishon Vijay Abraham I wrote:
->>>>> The Palmas device contains only a USB VID detector, so modified the
->>>>> compatible type to *ti,palmas-usb-vid*.
->>>>
->>>>> diff --git a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
->>>>
->>>>>  PALMAS USB COMPARATOR
->>>>>  Required Properties:
->>>>> - - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb"
->>>>> + - compatible : Should be "ti,palmas-usb-vid".
->>>>
->>>> Has the old value been published in a release kernel? If so, it makes
->>>
->>> No. This was merged only in 3.11-rc1. So I think we should take this version?
->>> Chanwoo can you take this patch?
+Hi Ruslan,
+
+On 19/08/2013 08:14, Ruslan Bilovol wrote:
+> Hi Benoit,
+>
+> On Fri, Aug 16, 2013 at 4:20 PM, Benoit Cousson <bcousson@baylibre.com> wrote:
+>> Hi Ruslan,
 >>
->> Ah.. the old values will be part of 3.11 kernel. So should we retain the old
->> values?
-> 
-> What is the meaning of old value? previous value related to extcon-twl.txt?
+>> On 16/08/2013 14:04, Ruslan Bilovol wrote:
+>>> Hi Benoit,
+>>>
+>>> On Wed, Aug 14, 2013 at 4:51 PM, Benoit Cousson <bcousson@baylibre.com> wrote:
+>>>> Hi Ruslan,
+>>>>
+>>>> On 14/08/2013 10:35, Ruslan Bilovol wrote:
+>>>>>
+>>>>> Hello,
+>>>>>
+>>>>> There is no functional changes between v1 and v2 - just
+>>>>> added the patch for omap4-var-som - Uri Yosef confirmed
+>>>>> this board have the same connection of OMAP4<->TWL6030 as
+>>>>> SDP4430 board
+>>>>
+>>>>
+>>>> The series looks good to me, but it will be good to have a test for Panda
+>>>> and Variscite boards before merging it.
+>>>
+>>> Okay, so I just verified this patch series on PandaBoard ES2. Should I
+>>> resubmit this series with
+>>> fixed commit message?
+>>
+>> No, that's fine, I already applied it and fixed the subject and the changelog.
+>>
+>> Here it is:
+>>
+>> commit 2e25df1e5a4af906a9b25332719ace000063eb0d
+>> Author: Ruslan Bilovol <ruslan.bilovol@ti.com>
+>> Date:   Wed Aug 14 11:35:47 2013 +0300
+>>
+>>      ARM: dts: twl6030: Move common configuration for OMAP4 boards in a separate dtsi file
+>>
+>>      The OMAP4 SoC family uses specially-designed PMIC (power management IC)
+>>      companion chip for power management needs: TWL6030/TWL6032.
+>>      Therefore there is a typical connection of PMIC to OMAP4 so we can
+>>      move it into separate .dtsi file and do not duplicate over
+>>      board-specific files.
+>>
+>>      Tested on OMAP4 SDP board and compile-tested for Panda board
+>
+> Just for archives: I've successfully tested it on PandaBoard ES2 last
+> week as well.
 
-We were discussing on whether to have "ti,palmas-usb" or "ti,twl6035-usb" in
-compatible value in addition to "ti,palmas-usb-vid". Stephen wanted the old
-values ("ti,palmas-usb" or "ti,twl6035-usb") if it has been published in a
-release kernel.
-> 
-> The extcon-twl.txt was included in 3.11 kernel
+Great, I'll update the changelog before pushing it.
 
-Right. Since it's part of 3.11 kernel, I think we should retain the old
-compatible values.
+>>      Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
+>>      Signed-off-by: Benoit Cousson <bcousson@baylibre.com>
+>>
+>>
+>> Just let me know if you are OK with the updated version.
+>
+> Yes, this version looks good to me. Thanks for picking it up!
+>
+>>
+>>> However I cannot verify the patch for Variscite board because I do not
+>>> own any such board so
+>>> you can drop that patch. But maybe Uri Yosef can verify it. Uri?
+>>
+>> It seems that Uri cannot test it right now, so I will have to drop that one.
+>
+> Okay, let's wait for Uri's verification.
 
-Thanks
-Kishon
+I'll keep it for 3.13.
+
+Thanks,
+Benoit
