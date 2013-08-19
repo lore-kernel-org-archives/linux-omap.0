@@ -1,57 +1,209 @@
-From: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
-Subject: [PATCH] ARM: OMAP: TI81XX: add always-on powerdomain for TI81XX
-Date: Mon, 19 Aug 2013 18:56:38 +0400
-Message-ID: <1376924198-22678-1-git-send-email-aida.mynzhasova@skitlab.ru>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv5 02/31] CLK: TI: Add DPLL clock support
+Date: Mon, 19 Aug 2013 18:09:37 +0300
+Message-ID: <52123531.4060608@ti.com>
+References: <1375460751-23676-1-git-send-email-t-kristo@ti.com> <1375460751-23676-3-git-send-email-t-kristo@ti.com> <20130813105042.GJ27165@e106331-lin.cambridge.arm.com> <52121EF5.9040706@ti.com> <20130819141803.GO3719@e106331-lin.cambridge.arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:44109 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750954Ab3HSPKK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Aug 2013 11:10:10 -0400
+In-Reply-To: <20130819141803.GO3719@e106331-lin.cambridge.arm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "nm@ti.com" <nm@ti.com>, "rnayak@ti.com" <rnayak@ti.com>, "mturquette@linaro.org" <mturquette@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-This patch adds alwon powerdomain support for TI81XX, which is required
-for stable functioning of a big number of TI81XX subsystems.
----
- arch/arm/mach-omap2/powerdomains3xxx_data.c | 8 ++++++++
- arch/arm/mach-omap2/prcm-common.h           | 1 +
- 2 files changed, 9 insertions(+)
+On 08/19/2013 05:18 PM, Mark Rutland wrote:
+> On Mon, Aug 19, 2013 at 02:34:45PM +0100, Tero Kristo wrote:
+>> On 08/13/2013 01:50 PM, Mark Rutland wrote:
+>>> Hi,
+>>>
+>>> On Fri, Aug 02, 2013 at 05:25:21PM +0100, Tero Kristo wrote:
+>>>> The OMAP clock driver now supports DPLL clock type. This patch also
+>>>> adds support for DT DPLL nodes.
+>>>>
+>>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>>> ---
+>>>>    .../devicetree/bindings/clock/ti/dpll.txt          |   70 +++
+>>>>    arch/arm/mach-omap2/clock.h                        |  144 +-----
+>>>>    arch/arm/mach-omap2/clock3xxx.h                    |    2 -
+>>>>    drivers/clk/Makefile                               |    1 +
+>>>>    drivers/clk/ti/Makefile                            |    3 +
+>>>>    drivers/clk/ti/dpll.c                              |  488 ++++++++++++++++++++
+>>>>    include/linux/clk/ti.h                             |  164 +++++++
+>>>>    7 files changed, 727 insertions(+), 145 deletions(-)
+>>>>    create mode 100644 Documentation/devicetree/bindings/clock/ti/dpll.txt
+>>>>    create mode 100644 drivers/clk/ti/Makefile
+>>>>    create mode 100644 drivers/clk/ti/dpll.c
+>>>>    create mode 100644 include/linux/clk/ti.h
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/clock/ti/dpll.txt b/Documentation/devicetree/bindings/clock/ti/dpll.txt
+>>>> new file mode 100644
+>>>> index 0000000..dcd6e63
+>>>> --- /dev/null
+>>>> +++ b/Documentation/devicetree/bindings/clock/ti/dpll.txt
+>>>> @@ -0,0 +1,70 @@
+>>>> +Binding for Texas Instruments DPLL clock.
+>>>> +
+>>>> +This binding uses the common clock binding[1].  It assumes a
+>>>> +register-mapped DPLL with usually two selectable input clocks
+>>>> +(reference clock and bypass clock), with digital phase locked
+>>>> +loop logic for multiplying the input clock to a desired output
+>>>> +clock. This clock also typically supports different operation
+>>>> +modes (locked, low power stop etc.) This binding has several
+>>>> +sub-types, which effectively result in slightly different setup
+>>>> +for the actual DPLL clock.
+>>>> +
+>>>> +[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
+>>>> +
+>>>> +Required properties:
+>>>> +- compatible : shall be one of:
+>>>> +               "ti,omap4-dpll-x2-clock",
+>>>> +               "ti,omap3-dpll-clock",
+>>>> +               "ti,omap3-dpll-core-clock",
+>>>> +               "ti,omap3-dpll-per-clock",
+>>>> +               "ti,omap3-dpll-per-j-type-clock",
+>>>> +               "ti,omap4-dpll-clock",
+>>>> +               "ti,omap4-dpll-core-clock",
+>>>> +               "ti,omap4-dpll-m4xen-clock",
+>>>> +               "ti,omap4-dpll-j-type-clock",
+>>>> +               "ti,omap4-dpll-no-gate-clock",
+>>>> +               "ti,omap4-dpll-no-gate-j-type-clock",
+>>>> +
+>>>> +- #clock-cells : from common clock binding; shall be set to 0.
+>>>> +- clocks : link phandles of parent clocks (clk-ref and clk-bypass)
+>>>
+>>> It might be a good idea to use clock-names to clarify which clocks are
+>>> present (I notice your examples contain only one clock input).
+>>
+>> All DPLLs have both bypass and reference clocks, but these can be the
+>> same. Is it better to just list both always (and hence drop
+>> clock-names), or provide clock-names always?
+>
+> If they're separate inputs, it's worth listing both (even if they're fed
+> by the same provider). If it's possible one input might not be wired up,
+> use clock-names.
 
-diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-index e2d4bd8..328c103 100644
---- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-@@ -336,6 +336,13 @@ static struct powerdomain dpll5_pwrdm = {
- 	.voltdm		  = { .name = "core" },
- };
- 
-+static struct powerdomain alwon_81xx_pwrdm = {
-+	.name		  = "alwon_pwrdm",
-+	.prcm_offs	  = TI81XX_PRM_ALWON_MOD,
-+	.pwrsts		  = PWRSTS_OFF_ON,
-+	.voltdm		  = { .name = "core" },
-+};
-+
- static struct powerdomain device_81xx_pwrdm = {
- 	.name		  = "device_pwrdm",
- 	.prcm_offs	  = TI81XX_PRM_DEVICE_MOD,
-@@ -442,6 +449,7 @@ static struct powerdomain *powerdomains_am35x[] __initdata = {
- };
- 
- static struct powerdomain *powerdomains_ti81xx[] __initdata = {
-+	&alwon_81xx_pwrdm,
- 	&device_81xx_pwrdm,
- 	&active_816x_pwrdm,
- 	&default_816x_pwrdm,
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index ff1ac4a..0e841fd 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -58,6 +58,7 @@
- #define TI816X_PRM_IVAHD1_MOD			0x0d00
- #define TI816X_PRM_IVAHD2_MOD			0x0e00
- #define TI816X_PRM_SGX_MOD				0x0f00
-+#define TI81XX_PRM_ALWON_MOD			0x1800
- 
- /* 24XX register bits shared between CM & PRM registers */
- 
--- 
-1.8.1.2
+Ref and bypass clocks are used currently by all DPLLs (also the APLL) so 
+I guess I just enforce both to be specified.
+
+>
+>>
+>>>
+>>>> +- reg : array of register base addresses for controlling the DPLL (some
+>>>> +  of these can also be left as NULL):
+>>>> +       reg[0] = control register
+>>>> +       reg[1] = idle status register
+>>>> +       reg[2] = autoidle register
+>>>> +       reg[3] = multiplier / divider set register
+>>>
+>>> Are all of these always present? Using reg-names seems sensible here.
+>>
+>> Not always, I'll change the code. I am quite new to DT and didn't
+>> actually know of the existence of reg-names prop.
+>
+> Ok. :)
+>
+>>>
+>>>> +- ti,recal-en-bit : recalibration enable bit
+>>>> +- ti,recal-st-bit : recalibration status bit
+>>>> +- ti,auto-recal-bit : auto recalibration enable bit
+>>>
+>>> These seem rather low-level, but I see other clock bindings are doing
+>>> similar things. When are these needed, and why? What type are they?
+>>
+>> Bit shift values for the auto recalibration feature. HOWEVER, it seems
+>> these are actually legacy, kernel does not have support for these
+>> anymore if it ever had.... I think I can just drop these for now as they
+>> are unused by the support code even.
+>
+> Ok.
+>
+>>
+>>>
+>>>> +- ti,clkdm-name : clockdomain name for the DPLL
+>>>
+>>> Could you elaborate on what this is for? What constitutes a valid name?
+>>>
+>>> I'm not sure a string is the best way to define the linkage of several
+>>> elements to a domain...
+>>
+>> Well, I am not sure if we can do this any better at this point, we don't
+>> have DT nodes for clockdomain at the moment (I am not sure if we will
+>> have those either as there are only a handful of those per SoC) but I'll
+>> add some more documentation for this.
+>
+> I'll have to see the documentation, but I'd be very wary of putting that
+> in as-is. Does having the clock domain string link this up to domains in
+> platform data?
+>
+> I'm not sure how well we'll be able to maintain support for that in
+> future if it requires other platform code to use now, and we're not sure
+> how the domains themselves will be represented in dt.
+
+Hmm so, should I add a stub representation for the clockdomains to the 
+DT then for now or how should this be handled? The stubs could then be 
+mapped to the actual clock domains based on their node names.
+
+>
+>>>
+>>> [...]
+>>>
+>>>> +static inline void __iomem *get_dt_register(struct device_node *node,
+>>>> +                                           int index)
+>>>> +{
+>>>> +       u32 val;
+>>>> +
+>>>> +       of_property_read_u32_index(node, "reg", 2 * index, &val);
+>>>> +       if (val)
+>>>> +               return of_iomap(node, index);
+>>>> +       else
+>>>> +               return NULL;
+>>>
+>>> NAK. Use reg-names to handle registers being optional.
+>>
+>> Yea will change this.
+>
+> Cheers.
+>
+>>
+>>>
+>>> [...]
+>>>
+>>>> +       clkspec.np = of_parse_phandle(node, "ti,clk-ref", 0);
+>>>> +       dd->clk_ref = of_clk_get_from_provider(&clkspec);
+>>>> +       if (IS_ERR(dd->clk_ref)) {
+>>>> +               pr_err("%s: ti,clk-ref for %s not found\n", __func__,
+>>>> +                      clk_name);
+>>>> +               goto cleanup;
+>>>> +       }
+>>>> +
+>>>> +       clkspec.np = of_parse_phandle(node, "ti,clk-bypass", 0);
+>>>> +       dd->clk_bypass = of_clk_get_from_provider(&clkspec);
+>>>> +       if (IS_ERR(dd->clk_bypass)) {
+>>>> +               pr_err("%s: ti,clk-bypass for %s not found\n", __func__,
+>>>> +                      clk_name);
+>>>> +               goto cleanup;
+>>>> +       }
+>>>
+>>> You can get these from the standard clocks property. Don't do this.
+>>>
+>>> Look at of_clk_get_by_name().
+>>
+>> Or of_clk_get(node, index), which would be better?
+>
+> If you know you always have both clocks, then yes.
+
+Ok, will do it this way then.
+
+-Tero
+
+>
+> Cheers,
+> Mark.
+>
+
