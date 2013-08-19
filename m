@@ -1,40 +1,93 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2] extcon: palmas: Modified the compatible type to *ti,palmas-usb-vid*
-Date: Mon, 19 Aug 2013 15:56:18 +0530
-Message-ID: <5211F2CA.8090206@ti.com>
-References: <1376648448-27447-1-git-send-email-kishon@ti.com> <520EA5D6.3040409@wwwdotorg.org> <5211A7B3.4040906@ti.com> <5211DBB4.6090508@ti.com> <5211E45B.1010109@samsung.com> <5211E563.6080200@ti.com> <5211F191.7010303@baylibre.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v4 0/8] phy: omap-usb: Support multiple instances and new types
+Date: Mon, 19 Aug 2013 13:37:39 +0300
+Message-ID: <1376908667-14974-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <5211F191.7010303@baylibre.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, tony@atomide.com, myungjoo.ham@samsung.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob@landley.net, george.cherian@ti.com, gregkh@linuxfoundation.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, balbi@ti.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: balbi@ti.com, bcousson@baylibre.com
+Cc: devicetree@vger.kernel.org, george.cherian@ti.com, tony@atomide.com, bigeasy@linutronix.de, linux-usb@vger.kernel.org, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 19 August 2013 03:51 PM, Benoit Cousson wrote:
-> Hi Kishon,
-> 
-> On 19/08/2013 11:29, Kishon Vijay Abraham I wrote:
->> On Monday 19 August 2013 02:54 PM, Chanwoo Choi wrote:
->>> On 08/19/2013 05:47 PM, Kishon Vijay Abraham I wrote:
->>>> On Monday 19 August 2013 10:35 AM, Kishon Vijay Abraham I wrote:
->>>>> Hi,
->>>>>
->>>>> On Saturday 17 August 2013 03:51 AM, Stephen Warren wrote:
->>>>>> On 08/16/2013 04:20 AM, Kishon Vijay Abraham I wrote:
->>>>>>> The Palmas device contains only a USB VID detector, so modified the
->>>>>>> compatible type to *ti,palmas-usb-vid*.
->>>>>>
->>>>>>> diff --git a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
->>>>>>> b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
-> 
-> That file is not yet in 3.11. Only the twl is there.
-> Is this one a rename of the twl one?
+Hi,
 
-yes Benoit. This is the commit
-http://git.kernel.org/cgit/linux/kernel/git/chanwoo/extcon.git/commit/?h=extcon-next&id=80d644b297dc26c5126858555044edef76f4ffe8
+This patchset does the following:
 
-Thanks
-Kishon
+* Get rid of omap_control_usb platform data as we support DT only.
+
+* Restructure and add support for new PHY types. We now support the follwing
+four types
+
+ TYPE_OMAP - if it has otghs_control mailbox register (e.g. on OMAP4)
+ TYPE_USB2 - if it has Power down bit in control_dev_conf register. e.g. USB2 PHY
+ TYPE_USB3 - if it has DPLL and individual Rx & Tx power control. e.g. USB3 PHY or SATA PHY
+ TYPE_DRA7 - if it has both power down and power aux registers. e.g. USB2 PHY on DRA7
+
+* Get rid of "ti,type" DT property and introduce compatible strings for each type.
+
+* Have only one power control API "omap_control_usb_phy_power()" instead of a
+different one for each PHY type.
+
+* Get rid of omap_get_control_dev() so that we can support multiple instances
+of the control device. We take advantage of the fact that omap control USB device
+is only present on OMAP4 onwards and hence only supports DT boot. The users
+of control USB device can get a reference to it from the device node's phandle.
+
+Patches are based on balbi/next.
+
+Smoke tested on OMAP4 panda with MUSB in gadget mode (g_zero).
+
+You can find the patches in branch
+ usb-control-module
+in git tree
+ git://github.com/rogerq/linux.git
+
+v4:
+- removed "ti,has-mailbox" from omap-usb binding document example.
+
+v3:
+- return -EINVAL instead of -ENODEV on probe failure.
+- pass device type data through of_device_id table.
+- get rid of "ti,mailbox" property and "has_mailbox" from musb platform data.
+
+v2:
+- get rid of "ti,type" property and introduce compatible strings for each device type.
+
+cheers,
+-roger
+
+---
+Roger Quadros (8):
+  usb: phy: omap-control: Get rid of platform data
+  usb: phy: omap: Add new device types and remove
+    omap_control_usb3_phy_power()
+  usb: phy: omap-usb2: Don't use omap_get_control_dev()
+  usb: phy: omap-usb3: Don't use omap_get_control_dev()
+  usb: musb: omap2430: Don't use omap_get_control_dev()
+  usb: phy: omap: get rid of omap_get_control_dev()
+  ARM: dts: omap4: update omap-control-usb nodes
+  ARM: dts: omap5: update omap-control-usb node
+
+ Documentation/devicetree/bindings/usb/omap-usb.txt |   33 ++--
+ arch/arm/boot/dts/omap4.dtsi                       |   20 ++-
+ arch/arm/boot/dts/omap5.dtsi                       |   20 ++-
+ drivers/usb/musb/omap2430.c                        |   25 ++-
+ drivers/usb/phy/phy-omap-control.c                 |  210 +++++++++++---------
+ drivers/usb/phy/phy-omap-usb2.c                    |   26 ++-
+ drivers/usb/phy/phy-omap-usb3.c                    |   28 ++-
+ include/linux/usb/musb.h                           |    2 -
+ include/linux/usb/omap_control_usb.h               |   33 ++--
+ 9 files changed, 224 insertions(+), 173 deletions(-)
+
+-- 
+1.7.4.1
