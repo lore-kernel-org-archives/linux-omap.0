@@ -1,21 +1,29 @@
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH v2] extcon: palmas: Modified the compatible type to
- *ti,palmas-usb-vid*
-Date: Mon, 19 Aug 2013 17:33:47 +0900
-Message-ID: <5211D86B.9020700@samsung.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v2] extcon: palmas: Modified the compatible type to *ti,
+ palmas-usb-vid*
+Date: Mon, 19 Aug 2013 14:17:48 +0530
+Message-ID: <5211DBB4.6090508@ti.com>
 References: <1376648448-27447-1-git-send-email-kishon@ti.com>
  <520EA5D6.3040409@wwwdotorg.org> <5211A7B3.4040906@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-reply-to: <5211A7B3.4040906@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, bcousson@baylibre.com, tony@atomide.com, myungjoo.ham@samsung.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob@landley.net, george.cherian@ti.com, gregkh@linuxfoundation.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, balbi@ti.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5211A7B3.4040906@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Stephen Warren <swarren@wwwdotorg.org>, cw00.choi@samsung.com, bcousson@baylibre.com
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, george.cherian@ti.com, linux@arm.linux.org.uk, ian.campbell@citrix.com, pawel.moll@arm.com, linux-doc@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, myungjoo.ham@samsung.com, balbi@ti.com, rob@landley.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/19/2013 02:05 PM, Kishon Vijay Abraham I wrote:
+On Monday 19 August 2013 10:35 AM, Kishon Vijay Abraham I wrote:
 > Hi,
 > 
 > On Saturday 17 August 2013 03:51 AM, Stephen Warren wrote:
@@ -34,11 +42,8 @@ On 08/19/2013 02:05 PM, Kishon Vijay Abraham I wrote:
 > 
 > No. This was merged only in 3.11-rc1. So I think we should take this version?
 > Chanwoo can you take this patch?
-> 
 
-This patch will be included in 3.12-rc* after 3.12-rc1.
-and this patch is applied on extcon-linus branch.
+Ah.. the old values will be part of 3.11 kernel. So should we retain the old
+values?
 
-Thanks,
-Chanwoo Choi
-
+-Kishon
