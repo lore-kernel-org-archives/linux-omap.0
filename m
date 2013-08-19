@@ -1,74 +1,57 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv9 1/2] drivers: spi: Add qspi flash controller
-Date: Mon, 19 Aug 2013 13:55:01 -0500
-Message-ID: <20130819185501.GL26587@radagast>
-References: <1375606690-834-1-git-send-email-sourav.poddar@ti.com>
- <1375606690-834-2-git-send-email-sourav.poddar@ti.com>
- <20130813152624.GG27954@radagast>
- <521244DC.9080600@ti.com>
-Reply-To: <balbi@ti.com>
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [PATCH RESEND] i2c: move of helpers into the core
+Date: Mon, 19 Aug 2013 20:56:33 +0200
+Message-ID: <20130819185633.GA12011@katana>
+References: <1376918361-7014-1-git-send-email-wsa@the-dreams.de>
+ <1376935183-11218-1-git-send-email-wsa@the-dreams.de>
+ <5212624D.5090708@samsung.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UeXZ3FjlYZvuln/G"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49628 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751122Ab3HSSzk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Aug 2013 14:55:40 -0400
+	protocol="application/pgp-signature"; boundary="9jxsPFA5p3P2qPhR"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <521244DC.9080600@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <5212624D.5090708-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: balbi@ti.com, broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, rnayak@ti.com, linux-omap@vger.kernel.org
 
---UeXZ3FjlYZvuln/G
+
+--9jxsPFA5p3P2qPhR
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi,
 
-On Mon, Aug 19, 2013 at 09:46:28PM +0530, Sourav Poddar wrote:
-> >>+	} else if (wlen =3D=3D 32) {
-> >if else if else if else if .... this looks like a switch to me. I know
-> >someone else commented that switch wasn't the best construct, but to my
-> >eyes, switch looks a lot cleaner.
-> >
-> My previous switch implementation was implemented as a seperate
-> function, as a result of which there was the need to pass pointers, other
-> variables, then collect it as a double pointer, making things a bit untid=
-y.
->=20
-> What I can do is to convert these portion into switch here itself,
-> which will
-> make the code a lot more cleaner. ?
+> However this patch fails to apply onto either v3.11-rc4 or v3.11-rc6:
 
-perhaps, at least to me it looks cleaner.
+Argh, did not drop the MPC patch before rebasing :( So either pick the
+patch "i2c: powermac: fix return path on error" before, pull the branch
+[1], or force me to resend ;)
 
---=20
-balbi
+Thanks!
 
---UeXZ3FjlYZvuln/G
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git i2c/core-with-of
+
+--9jxsPFA5p3P2qPhR
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSEmoFAAoJEIaOsuA1yqREQAEP/3V7Uq5eklq3oq3I7m/GL3jI
-P+bnklWvucKlK2vjx+acI9JKqY62oqfmfWPb4Y3a5LMosAlZ+mMKzPfW1Sysp5XE
-Pk2x7oL0CY3MJmjiqMHiY8F4RPBPUe9H40X6j1D1+u+uRebQ7To++DuppZF6iK8g
-W9NUYnTB+WL4SVIkOPLtmqualbuUNoPEoPi4mVHQTqB96H2K1DoGFxFZy7TFyMeG
-d2JeJEQy7HpsoXeC+wNKwNiLbiA1J6UuGWTLjceIaru/rPy522Zpfw0B5BR0VR+C
-wQW149JTWjrFQzAlFOBuRS9m/iHY22TlnTg2WVANB44VMLloKpooFdWwt9tTFiTY
-r0S9LYPal8E8e5prI2TZKWJT5SUXDmsy5Ar5kdSUEvSpFuiI1+U19A1ThdphpCai
-tMMo2iWcoEspJawMdvEjJM/p7lNKHgzIXt17MRSUyNJxBF5D817t9IACv5Sx3xxC
-P5QUzJ6TaEWJ9+vRrI/1NqCqJIyT327cO43QGLQrek7v6DWYWZddiyZwsk/+oG41
-X3vEn0w++LO3KQVGl/2GWD5L66xfWg8M0zi2LwVRgSQ2mUfUdj6iKNnt9X9Fz2R5
-cHMqw0AxHG+UxnGwRqPbpJXCElp/GZVyHpzTE13zHZl6it4hcqDVR46xH7GYUp7P
-BnSytaEBTs1fEr9Gsi1b
-=8pXZ
+iQIcBAEBAgAGBQJSEmphAAoJEBQN5MwUoCm2oSMQALA/vPFqMuszNie+wpNeFLTx
+ndq9K7tvwvyV6ix/QtfrneDKM17i0G/OljSqOXMuO3YddSvGKIvs956j6te7Tor0
+INyTIzc59ycgiF10Zt6egrZOa4CTwka0IyozuU9tiue9VIIL2u4SnTkS7aEOH7rI
+rSFgyaDAFjvcMLAVrw/nsTcM5GRLVsFwZJklQ4m5m6ntXOs8cVDsEhkFUbMabLEA
+ITNMspH4KtEQr3v5ij+tl6rhUGJzWu8IARf4C7f8Gxas3y8NuADXlXgFjtd5xccR
+6Qgex4Wuv9yOLK9oCiXHrg3J7iXR46po/VM5BEHxT013Wxde8784u8Hv8FaPxC9r
+r1FkkadCnWaJWe0nIq2eFTU6pECwuSBT3Bu5d4kOrhr4S3a9Z+3s4KpmWZEmaNkz
+nN5hBURGFQIdLY7BzGJWiBRLqa7kq97ATfMr9N9Pg7Rpqa9TezMDF2Sm5DP2p0Ha
+fR764qsVds2fPT8+DIEnNiwfgBFJYcXhV0yv5T5pkncE5C6x6RQoK+RmRXMPO8hx
+l3xL9yV9GHVITzzgah/uaCKHCh7dboPYlKoiEqwHb0GxGbaEq3kMqaJ0D99mIss+
+k9sAe3Nfq02mwMN+2pGEZX7Rzs3d4CD84Yi0NC/csPSzkAHuC0qD1qdEw9nGrw4v
+ptWWV5ABSl7wqbZKZ0Rc
+=96ic
 -----END PGP SIGNATURE-----
 
---UeXZ3FjlYZvuln/G--
+--9jxsPFA5p3P2qPhR--
