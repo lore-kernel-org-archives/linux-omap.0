@@ -1,49 +1,49 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2] extcon: palmas: Modified the compatible type to *ti,
- palmas-usb-vid*
-Date: Mon, 19 Aug 2013 14:17:48 +0530
-Message-ID: <5211DBB4.6090508@ti.com>
-References: <1376648448-27447-1-git-send-email-kishon@ti.com>
- <520EA5D6.3040409@wwwdotorg.org> <5211A7B3.4040906@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5211A7B3.4040906@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Stephen Warren <swarren@wwwdotorg.org>, cw00.choi@samsung.com, bcousson@baylibre.com
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, george.cherian@ti.com, linux@arm.linux.org.uk, ian.campbell@citrix.com, pawel.moll@arm.com, linux-doc@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, myungjoo.ham@samsung.com, balbi@ti.com, rob@landley.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
+Subject: [PATCH 0/6] simplify platform_get_resource_byname/devm_ioremap_resource
+Date: Mon, 19 Aug 2013 10:51:50 +0200
+Message-ID: <1376902316-18520-1-git-send-email-Julia.Lawall@lip6.fr>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 19 August 2013 10:35 AM, Kishon Vijay Abraham I wrote:
-> Hi,
-> 
-> On Saturday 17 August 2013 03:51 AM, Stephen Warren wrote:
->> On 08/16/2013 04:20 AM, Kishon Vijay Abraham I wrote:
->>> The Palmas device contains only a USB VID detector, so modified the
->>> compatible type to *ti,palmas-usb-vid*.
->>
->>> diff --git a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
->>
->>>  PALMAS USB COMPARATOR
->>>  Required Properties:
->>> - - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb"
->>> + - compatible : Should be "ti,palmas-usb-vid".
->>
->> Has the old value been published in a release kernel? If so, it makes
-> 
-> No. This was merged only in 3.11-rc1. So I think we should take this version?
-> Chanwoo can you take this patch?
+devm_ioremap_resource often uses the result of a call to
+platform_get_resource_byname as its last argument.  devm_ioremap_resource
+does appropriate error handling on this argument, so error handling can be
+removed from the call to platform_get_resource_byname.
 
-Ah.. the old values will be part of 3.11 kernel. So should we retain the old
-values?
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
 
--Kishon
+// <smpl>
+@@
+expression pdev,res,n,e,e1;
+expression ret != 0;
+identifier l,f;
+expression list es;
+@@
+
+(
+  res = f(...);
+- if (res == NULL) { ... \(goto l;\|return ret;\) }
+  e = devm_ioremap_resource(e1, res);
+|
+- res = f(es);
+  ... when != res
+- if (res == NULL) { ... \(goto l;\|return ret;\) }
+  ... when != res
++ res = f(es);
+  e = devm_ioremap_resource(e1, res);
+)
+// </smpl>
+
+In practice, f is always platform_get_resource_byname (or
+platform_get_resource, which was handled by a previous patch series).  And
+the call to platform_get_resource_byname always immediately precedes the
+call to devm_ioremap_resource.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
