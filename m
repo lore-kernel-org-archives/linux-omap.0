@@ -1,69 +1,81 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH 1/2] extcon: extcon-dra7xx: Add extcon driver for USB
- ID detection
-Date: Mon, 19 Aug 2013 13:31:16 -0600
-Message-ID: <52127284.6030506@wwwdotorg.org>
-References: <1376648029-30659-1-git-send-email-george.cherian@ti.com> <1376648029-30659-2-git-send-email-george.cherian@ti.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH RESEND] i2c: move of helpers into the core
+Date: Mon, 19 Aug 2013 21:46:04 +0200
+Message-ID: <20130819194603.GC4961@mithrandir>
+References: <1376918361-7014-1-git-send-email-wsa@the-dreams.de>
+ <1376935183-11218-1-git-send-email-wsa@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1376648029-30659-2-git-send-email-george.cherian@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: balbi@ti.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, grant.likely@linaro.org, rob@landley.net, ian.campbell@citrix.com, mark.rutland@arm.com, pawel.moll@arm.com, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, bcousson@baylibre.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="TYecfFk8j8mZq+dy"
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1376935183-11218-1-git-send-email-wsa@the-dreams.de>
+Sender: linux-media-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, davinci-linux-open-source@linux.davincidsp.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/16/2013 04:13 AM, George Cherian wrote:
-> Adding extcon driver for USB ID detection to dynamically
-> configure USB Host/Peripheral mode.
 
-> diff --git a/Documentation/devicetree/bindings/extcon/extcon-dra7xx.txt b/Documentation/devicetree/bindings/extcon/extcon-dra7xx.txt
+--TYecfFk8j8mZq+dy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> +EXTCON FOR DRA7xx
-> +
-> +Required Properties:
+On Mon, Aug 19, 2013 at 07:59:40PM +0200, Wolfram Sang wrote:
+[...]
+> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+[...]
+> +#if IS_ENABLED(CONFIG_OF)
+> +static void of_i2c_register_devices(struct i2c_adapter *adap)
+> +{
+[...]
+> +}
+[...]
+> +#endif /* CONFIG_OF */
 
-Please at lest explain what a DRA7xxx is, and the purpose of the HW
-module this binding describes.
+Isn't this missing the dummy implementation for !OF.
 
-> + - compatible : Should be "ti,dra7xx-usb"
+>  static int i2c_do_add_adapter(struct i2c_driver *driver,
+>  			      struct i2c_adapter *adap)
+>  {
+> @@ -1058,6 +1160,8 @@ static int i2c_register_adapter(struct i2c_adapter =
+*adap)
+> =20
+>  exit_recovery:
+>  	/* create pre-declared device nodes */
+> +	of_i2c_register_devices(adap);
 
-If this is a USB VID detector rather than a full USB host controller,
-then "usb" in the binding is a bit over-reaching. Perhaps "-usb-vid" or
-"-usb-vid-detector" would be more accurate.
+Alternatively you could remove the of_i2c_register_devices() from the
+"#ifdef CONFIG_OF" block so that it will always be compiled. You could
+turn the above into
 
-> + - gpios : phandle to ID pin and interrupt gpio.
+	if (IS_ENABLED(CONFIG_OF))
+		of_i2c_register_devices(adap);
 
-This isn't just a phandle; it's phandle+args, or a GPIO specifier. Some
-reference should be made to ../gpio/gpio.txt for the format.
+and let the compiler throw the static function away if it sees that the
+condition is always false.
 
-Why does the interrupt line need to be included in a list of GPIOs?
+Thierry
 
-If the DRA7xxx is a VID detector, why does it even need/have any GPIOs
-associated with it; surely it has a dedicated VID input pin. Can you
-provide more details re: how the HW is structured.
+--TYecfFk8j8mZq+dy
+Content-Type: application/pgp-signature
 
-> +Optional Properties:
-> +  - interrupt-parent : interrupt controller phandle
-> +  - interrupts : interrupt number
-> +
-> +
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
 
-It's typical insert the following between those two blank lines:
+iQIcBAEBAgAGBQJSEnX7AAoJEN0jrNd/PrOhtxEP/2Ulur33dk711CAHb3j6OaCw
+JZ633M09rA84w4ngGfFM/2IfZFUBeqoyQ7wDnrtW7N89A+COpTqCAOpqo1LQ4WdU
+aehQXm1JyGXPiKb9hvgNXfL9Xz5U1VALvivFJs4kroXVIUlceGmoBZ/ywXYp8SH3
+0C9ClEkxCyvzaIBVmuwDVYZrr42pQduXnbTa/AwwIDlYcUfhELm8a3vfxteP3d9d
+pjrqsxmhTgGHoVp2EvGKXacaf2ISiwMe/FUK1dSrbRf69TU9KTVnUh8eIPlBCJ8s
+bjolz/LfRakgSmQpnzru+3apNnpkPOqApQhWd15E2o2ZUM0XRQx1ratt+meZEbbZ
+GWZj4jPeXWSDWkxtQwFgtPlltyMzJ11AvMxpgs93hjNmdDsjH5uPbrC5Cvz2S2MC
+UB5QOBMRb+DcdQhb72cg4GSiSv08loIFwRQb3lPuDQe2CzbcinHvTUANlzQXKmnF
+R8ZZ2UL1akR3zULh7CmzvQzNHplLOuS4T/J1gu9V7EhOJs2I7xWcoHqCVsqhfIk7
+MGSyYf7te7elOJKNomD/v22ojmbcmPapAf1yn1GBr74mk2t8SdH/QszRMem27oh5
+iL1yw/CIktcr6/EhOlQjIePBum4yQNAxnbtfbFc9ZBkLpR9YsDOw/CE7gEDQargW
+H56h2el3+6kiSlao+UmT
+=ukb7
+-----END PGP SIGNATURE-----
 
-Example:
-
-... or delete one of the blank lines.
-
-> +dra7x_extcon1 {
-> +		compatible = "ti,dra7xx-usb";
-> +		gpios = <&pcf_usb 1 0>,
-> +			<&gpio6 11 2>;
-> +		interrupt-parent = <&gpio6>;
-> +		interrupts = <11>;
-> +	};
-> +
-
-No need for that trailing blank line.
-
+--TYecfFk8j8mZq+dy--
