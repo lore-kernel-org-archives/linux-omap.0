@@ -1,78 +1,41 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 7/8] ARM: dts: omap4: update omap-control-usb nodes
-Date: Mon, 19 Aug 2013 13:37:46 +0300
-Message-ID: <1376908667-14974-8-git-send-email-rogerq@ti.com>
-References: <1376908667-14974-1-git-send-email-rogerq@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: AM335x, early printk
+Date: Mon, 19 Aug 2013 13:21:07 +0200
+Message-ID: <5211FFA3.6060407@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38202 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751105Ab3HSKit (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Aug 2013 06:38:49 -0400
-In-Reply-To: <1376908667-14974-1-git-send-email-rogerq@ti.com>
+Received: from www.linutronix.de ([62.245.132.108]:48070 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751436Ab3HSLVI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Aug 2013 07:21:08 -0400
+Received: from localhost ([127.0.0.1] helo=[172.123.10.21])
+	by Galois.linutronix.de with esmtp (Exim 4.72)
+	(envelope-from <bigeasy@linutronix.de>)
+	id 1VBNWF-0005RN-Rd
+	for linux-omap@vger.kernel.org; Mon, 19 Aug 2013 13:21:07 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, bcousson@baylibre.com
-Cc: tony@atomide.com, george.cherian@ti.com, kishon@ti.com, bigeasy@linutronix.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Split otghs_ctrl and USB2 PHY power down into separate
-omap-control-usb nodes. Get rid of "ti,type" property.
+Hi,
 
-Also get rid of "ti,has-mailbox" property from usb_otg_hs
-node and provide the ctrl-module phandle.
+I activated:
+[*] Kernel low-level debugging functions
+     Kernel low-level debugging port (Kernel low-level debugging
+      messages via OMAP2PLUS UART)
+     Low-level debug console UART (AM33XX UART1)
+[*] Early printk
 
-CC: Benoit Cousson <bcousson@baylibre.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/omap4.dtsi |   20 ++++++++++++--------
- 1 files changed, 12 insertions(+), 8 deletions(-)
+and booted my am335x-evm.
+I haven't seen any "early" output in the decompressor or during the
+kernel boot. I believe that all I saw is just regular ttyO0 output.
+I saw also:
+|44e09000.serial: ttyO0 at MMIO 0x44e09000 (irq = 88) is a OMAP UART0
+|console [ttyO0] enabled
+and I would also except the bootconsole (if any) to be deactivated here.
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 22d9f2b..a77dd0a 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -519,7 +519,7 @@
- 			usb2_phy: usb2phy@4a0ad080 {
- 				compatible = "ti,omap-usb2";
- 				reg = <0x4a0ad080 0x58>;
--				ctrl-module = <&omap_control_usb>;
-+				ctrl-module = <&omap_control_usb2phy>;
- 			};
- 		};
- 
-@@ -643,12 +643,16 @@
- 			};
- 		};
- 
--		omap_control_usb: omap-control-usb@4a002300 {
--			compatible = "ti,omap-control-usb";
--			reg = <0x4a002300 0x4>,
--			      <0x4a00233c 0x4>;
--			reg-names = "control_dev_conf", "otghs_control";
--			ti,type = <1>;
-+		omap_control_usb2phy: omap-control-usb@4a002300 {
-+			compatible = "ti,usb2-control-usb";
-+			reg = <0x4a002300 0x4>;
-+			reg-names = "power";
-+		};
-+
-+		omap_control_usbotg: omap-control-usb@4a00233c {
-+			compatible = "ti,omap4-control-usb";
-+			reg = <0x4a00233c 0x4>;
-+			reg-names = "otghs_control";
- 		};
- 
- 		usb_otg_hs: usb_otg_hs@4a0ab000 {
-@@ -661,7 +665,7 @@
- 			multipoint = <1>;
- 			num-eps = <16>;
- 			ram-bits = <12>;
--			ti,has-mailbox;
-+			ctrl-module = <&omap_control_usbotg>;
- 		};
- 	};
- };
--- 
-1.7.4.1
+What am I missing?
 
+Sebastian
