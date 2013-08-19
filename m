@@ -1,170 +1,312 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv5 05/31] CLK: TI: add support for OMAP gate clock
-Date: Mon, 19 Aug 2013 16:42:05 +0300
-Message-ID: <521220AD.4070308@ti.com>
-References: <1375460751-23676-1-git-send-email-t-kristo@ti.com> <1375460751-23676-6-git-send-email-t-kristo@ti.com> <20130813110437.GK27165@e106331-lin.cambridge.arm.com>
+Subject: Re: [PATCHv5 06/31] ARM: dts: omap4 clock data
+Date: Mon, 19 Aug 2013 16:43:56 +0300
+Message-ID: <5212211C.3050407@ti.com>
+References: <1375460751-23676-1-git-send-email-t-kristo@ti.com> <1375460751-23676-7-git-send-email-t-kristo@ti.com> <4452066.ogQpVHnZLL@flatron>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46948 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49165 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750707Ab3HSNmm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Aug 2013 09:42:42 -0400
-In-Reply-To: <20130813110437.GK27165@e106331-lin.cambridge.arm.com>
+	id S1750724Ab3HSNog (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Aug 2013 09:44:36 -0400
+In-Reply-To: <4452066.ogQpVHnZLL@flatron>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "nm@ti.com" <nm@ti.com>, "rnayak@ti.com" <rnayak@ti.com>, "mturquette@linaro.org" <mturquette@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tomasz Figa <tomasz.figa@gmail.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 08/13/2013 02:04 PM, Mark Rutland wrote:
-> On Fri, Aug 02, 2013 at 05:25:24PM +0100, Tero Kristo wrote:
->> This node adds support for a clock node which allows control to the
->> clockdomain enable / disable.
+On 08/03/2013 05:16 PM, Tomasz Figa wrote:
+> On Friday 02 of August 2013 19:25:25 Tero Kristo wrote:
+>> This patch creates a unique node for each clock in the OMAP4 power,
+>> reset and clock manager (PRCM). OMAP443x and OMAP446x have slightly
+>> different clock tree which is taken into account in the data.
 >>
 >> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 >> ---
->>   .../devicetree/bindings/clock/ti/gate.txt          |   41 ++++++++
->>   arch/arm/mach-omap2/clock.h                        |    9 --
->>   drivers/clk/ti/Makefile                            |    2 +-
->>   drivers/clk/ti/gate.c                              |  106 ++++++++++++++++++++
->>   include/linux/clk/ti.h                             |    8 ++
->>   5 files changed, 156 insertions(+), 10 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/clock/ti/gate.txt
->>   create mode 100644 drivers/clk/ti/gate.c
+>>   arch/arm/boot/dts/omap443x-clocks.dtsi |   17 +
+>>   arch/arm/boot/dts/omap443x.dtsi        |    8 +
+>>   arch/arm/boot/dts/omap4460.dtsi        |    8 +
+>>   arch/arm/boot/dts/omap446x-clocks.dtsi |   27 +
+>>   arch/arm/boot/dts/omap44xx-clocks.dtsi | 1648
+>> ++++++++++++++++++++++++++++++++ 5 files changed, 1708 insertions(+)
+>>   create mode 100644 arch/arm/boot/dts/omap443x-clocks.dtsi
+>>   create mode 100644 arch/arm/boot/dts/omap446x-clocks.dtsi
+>>   create mode 100644 arch/arm/boot/dts/omap44xx-clocks.dtsi
 >>
->> diff --git a/Documentation/devicetree/bindings/clock/ti/gate.txt b/Documentation/devicetree/bindings/clock/ti/gate.txt
->> new file mode 100644
->> index 0000000..620a73d
+>> diff --git a/arch/arm/boot/dts/omap443x-clocks.dtsi
+>> b/arch/arm/boot/dts/omap443x-clocks.dtsi new file mode 100644
+>> index 0000000..2bd82b2
 >> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/clock/ti/gate.txt
->> @@ -0,0 +1,41 @@
->> +Binding for Texas Instruments gate clock.
+>> +++ b/arch/arm/boot/dts/omap443x-clocks.dtsi
+>> @@ -0,0 +1,17 @@
+>> +/*
+>> + * Device Tree Source for OMAP443x clock data
+>> + *
+>> + * Copyright (C) 2013 Texas Instruments, Inc.
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as +
+>> * published by the Free Software Foundation.
+>> + */
 >> +
->> +This binding uses the common clock binding[1]. This clock is
->> +quite much similar to the basic gate-clock [2], however,
->> +it supports a number of additional features. If no register
->> +is provided for this clock, the code assumes that a clockdomain
->> +will be controlled instead and the corresponding hw-ops for
->> +that is used.
+>> +bandgap_fclk: bandgap_fclk@4a307888 {
+>> +	#clock-cells = <0>;
+>> +	compatible = "gate-clock";
+>> +	clocks = <&sys_32k_ck>;
+>> +	bit-shift = <8>;
+>> +	reg = <0x4a307888 0x4>;
+>> +};
+>> diff --git a/arch/arm/boot/dts/omap443x.dtsi
+>> b/arch/arm/boot/dts/omap443x.dtsi index bcf455e..dfd648c 100644
+>> --- a/arch/arm/boot/dts/omap443x.dtsi
+>> +++ b/arch/arm/boot/dts/omap443x.dtsi
+>> @@ -30,4 +30,12 @@
+>>   		       0x4a00232C 0x4>;
+>>   		compatible = "ti,omap4430-bandgap";
+>>   	};
 >> +
->> +[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
->> +[2] Documentation/devicetree/bindings/clock/gate-clock.txt
+>> +	clocks {
+>> +		#address-cells = <1>;
+>> +		#size-cells = <1>;
+>> +		ranges;
+>> +		/include/ "omap44xx-clocks.dtsi"
+>> +		/include/ "omap443x-clocks.dtsi"
+>> +	};
+>>   };
+>> diff --git a/arch/arm/boot/dts/omap4460.dtsi
+>> b/arch/arm/boot/dts/omap4460.dtsi index c2f0f39..d9d00b2 100644
+>> --- a/arch/arm/boot/dts/omap4460.dtsi
+>> +++ b/arch/arm/boot/dts/omap4460.dtsi
+>> @@ -38,4 +38,12 @@
+>>   		interrupts = <0 126 IRQ_TYPE_LEVEL_HIGH>; /* talert */
+>>   		gpios = <&gpio3 22 0>; /* tshut */
+>>   	};
 >> +
->> +Required properties:
->> +- compatible : shall be "ti,gate-clock"
->> +- #clock-cells : from common clock binding; shall be set to 0
->> +- clocks : link to phandle of parent clock
+>> +	clocks {
+>> +		#address-cells = <1>;
+>> +		#size-cells = <1>;
+>> +		ranges;
+>> +		/include/ "omap44xx-clocks.dtsi"
+>> +		/include/ "omap446x-clocks.dtsi"
+>> +	};
+>>   };
+>> diff --git a/arch/arm/boot/dts/omap446x-clocks.dtsi
+>> b/arch/arm/boot/dts/omap446x-clocks.dtsi new file mode 100644
+>> index 0000000..86d0805
+>> --- /dev/null
+>> +++ b/arch/arm/boot/dts/omap446x-clocks.dtsi
+>> @@ -0,0 +1,27 @@
+>> +/*
+>> + * Device Tree Source for OMAP446x clock data
+>> + *
+>> + * Copyright (C) 2013 Texas Instruments, Inc.
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as +
+>> * published by the Free Software Foundation.
+>> + */
 >> +
->> +Optional properties:
->> +- reg : base address for register controlling adjustable gate
->
-> Optional? That's odd. If I have a clock with registers, but don't
-> specify the register, will it still work? i.e. are registerless clocks
-> really compatible with clocks with registers?.
-
-I think I implemented this in somewhat confusing manner. This could be 
-split to:
-
-ti,gate-clock:
-   requires reg and ti,enable-bit info
-ti,clkdm-clock:
-   requires ti,clkdm-name
-
-clkdm clock is kind of a master clock for clockdomain, the clock is 
-provided always if the clockdomain is active.
-
->
->> +- ti,enable-bit : bit shift for programming the clock gate
->
-> Why is this needed? Does the hardware vary wildly, or are several clocks
-> sharing the same register(s)?
-
-Yea, same register is shared.
-
->
->> +- ti,dss-clk : use DSS hardware OPS for the clock
->> +- ti,am35xx-clk : use AM35xx hardware OPS for the clock
->
-> Those last two sounds like the kind of thing that should be derived from
-> the compatible string (e.g. ti,am35xx-gate-clock).
-
-Hmm yea, I think I can change this and add some sub-types.
-
->
->> +- ti,clkdm-name : clockdomain to control this gate
->
-> As previously mentioned, I'm not a fan of this property. It would make
-> more sense to describe the domain and have an explicit link to it
-> (either nodes being children of the domain or having a phandle).
-
-Same comments as with patch #2.
-
->
-> [...]
->
->> +void __init of_omap_gate_clk_setup(struct device_node *node)
->> +{
->> +       struct clk *clk;
->> +       struct clk_init_data init = { 0 };
->> +       struct clk_hw_omap *clk_hw;
->> +       const char *clk_name = node->name;
->> +       int num_parents;
->> +       const char **parent_names = NULL;
->> +       int i;
->> +       u32 val;
+>> +div_ts_ck: div_ts_ck@4a307888 {
+>> +	#clock-cells = <0>;
+>> +	compatible = "divider-clock";
+>> +	clocks = <&l4_wkup_clk_mux_ck>;
+>> +	bit-shift = <24>;
+>> +	reg = <0x4a307888 0x4>;
+>> +	table = < 8 0 >, < 16 1 >, < 32 2 >;
+>> +	bit-mask = <0x3>;
+>> +};
 >> +
->> +       clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
->> +       if (!clk_hw) {
->> +               pr_err("%s: could not allocate clk_hw_omap\n", __func__);
->> +               return;
->> +       }
+>> +bandgap_ts_fclk: bandgap_ts_fclk@4a307888 {
+>> +	#clock-cells = <0>;
+>> +	compatible = "gate-clock";
+>> +	clocks = <&div_ts_ck>;
+>> +	bit-shift = <8>;
+>> +	reg = <0x4a307888 0x4>;
+>> +};
+>> diff --git a/arch/arm/boot/dts/omap44xx-clocks.dtsi
+>> b/arch/arm/boot/dts/omap44xx-clocks.dtsi new file mode 100644
+>> index 0000000..23f623c
+>> --- /dev/null
+>> +++ b/arch/arm/boot/dts/omap44xx-clocks.dtsi
+>> @@ -0,0 +1,1648 @@
+>> +/*
+>> + * Device Tree Source for OMAP4 clock data
+>> + *
+>> + * Copyright (C) 2013 Texas Instruments, Inc.
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as +
+>> * published by the Free Software Foundation.
+>> + */
 >> +
->> +       clk_hw->hw.init = &init;
+>> +extalt_clkin_ck: extalt_clkin_ck {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <59000000>;
+>> +};
 >> +
->> +       of_property_read_string(node, "clock-output-names", &clk_name);
->> +       of_property_read_string(node, "ti,clkdm-name", &clk_hw->clkdm_name);
+>> +pad_clks_src_ck: pad_clks_src_ck {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <12000000>;
+>> +};
 >> +
->> +       init.name = clk_name;
->> +       init.flags = 0;
+>> +pad_clks_ck: pad_clks_ck@4a004108 {
+>> +	#clock-cells = <0>;
+>> +	compatible = "gate-clock";
+>> +	clocks = <&pad_clks_src_ck>;
+>> +	bit-shift = <8>;
+>> +	reg = <0x4a004108 0x4>;
+>> +};
 >> +
->> +       if (of_property_read_u32_index(node, "reg", 0, &val)) {
->> +               /* No register, clkdm control only */
->> +               init.ops = &omap_gate_clkdm_clk_ops;
+>> +pad_slimbus_core_clks_ck: pad_slimbus_core_clks_ck {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <12000000>;
+>> +};
+>> +
+>> +secure_32k_clk_src_ck: secure_32k_clk_src_ck {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <32768>;
+>> +};
+>> +
+>> +slimbus_src_clk: slimbus_src_clk {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <12000000>;
+>> +};
+>> +
+>> +slimbus_clk: slimbus_clk@4a004108 {
+>> +	#clock-cells = <0>;
+>> +	compatible = "gate-clock";
+>> +	clocks = <&slimbus_src_clk>;
+>> +	bit-shift = <10>;
+>> +	reg = <0x4a004108 0x4>;
+>> +};
+>> +
+>> +sys_32k_ck: sys_32k_ck {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <32768>;
+>> +};
+>> +
+>> +virt_12000000_ck: virt_12000000_ck {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <12000000>;
+>> +};
+>> +
+>> +virt_13000000_ck: virt_13000000_ck {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <13000000>;
+>> +};
+>> +
+>> +virt_16800000_ck: virt_16800000_ck {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <16800000>;
+>> +};
+>> +
+>> +virt_19200000_ck: virt_19200000_ck {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <19200000>;
+>> +};
+>> +
+>> +virt_26000000_ck: virt_26000000_ck {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <26000000>;
+>> +};
+>> +
+>> +virt_27000000_ck: virt_27000000_ck {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <27000000>;
+>> +};
+>> +
+>> +virt_38400000_ck: virt_38400000_ck {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <38400000>;
+>> +};
+>> +
+>> +sys_clkin_ck: sys_clkin_ck@4a306110 {
+>> +	#clock-cells = <0>;
+>> +	compatible = "mux-clock";
+>> +	clocks = <&virt_12000000_ck>, <&virt_13000000_ck>,
+>> <&virt_16800000_ck>, <&virt_19200000_ck>, <&virt_26000000_ck>,
+>> <&virt_27000000_ck>, <&virt_38400000_ck>; +	reg = <0x4a306110 0x4>;
+>> +	bit-mask = <0x7>;
+>> +	index-starts-at-one;
+>> +};
+>> +
+>> +tie_low_clock_ck: tie_low_clock_ck {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <0>;
+>> +};
+>> +
+>> +utmi_phy_clkout_ck: utmi_phy_clkout_ck {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <60000000>;
+>> +};
+>> +
+>> +xclk60mhsp1_ck: xclk60mhsp1_ck {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <60000000>;
+>> +};
+>> +
+>> +xclk60mhsp2_ck: xclk60mhsp2_ck {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <60000000>;
+>> +};
+>> +
+>> +xclk60motg_ck: xclk60motg_ck {
+>> +	#clock-cells = <0>;
+>> +	compatible = "fixed-clock";
+>> +	clock-frequency = <60000000>;
+>> +};
+>> +
+>> +abe_dpll_bypass_clk_mux_ck: abe_dpll_bypass_clk_mux_ck@4a306108 {
+>> +	#clock-cells = <0>;
+>> +	compatible = "mux-clock";
+>> +	clocks = <&sys_clkin_ck>, <&sys_32k_ck>;
+>> +	bit-shift = <24>;
+>> +	reg = <0x4a306108 0x4>;
+>> +	bit-mask = <0x1>;
+>> +};
+>> +
+>> +abe_dpll_refclk_mux_ck: abe_dpll_refclk_mux_ck@4a30610c {
+>> +	#clock-cells = <0>;
+>> +	compatible = "mux-clock";
+>> +	clocks = <&sys_clkin_ck>, <&sys_32k_ck>;
+>> +	reg = <0x4a30610c 0x4>;
+>> +	bit-mask = <0x1>;
+>> +};
+>> +
+>> +dpll_abe_ck: dpll_abe_ck@4a0041e0 {
+>> +	#clock-cells = <0>;
+>> +	compatible = "ti,omap4-dpll-m4xen-clock";
+>> +	clocks = <&abe_dpll_refclk_mux_ck>, <&abe_dpll_bypass_clk_mux_ck>;
+>> +	reg = <0x4a0041e0 0x4>, <0x4a0041e4 0x4>, <0x4a0041e8 0x4>,
+>> <0x4a0041ec 0x4>; +	ti,clk-ref = <&abe_dpll_refclk_mux_ck>;
+>> +	ti,clk-bypass = <&abe_dpll_bypass_clk_mux_ck>;
 >
-> If they're truly compatible, you can just see if you can of_iomap, and
-> if not, continue. Your reg values might be wider than 32 bits, and usig
-> of_property_read_u32 to read this feels wrong.
-
-I'll split this to two separate supported types.
-
+> Hmm, why do you need to pass references to other clocks using private
+> properties? Is there a reason you can't use the clocks and clock-names
+> properties defined by standard clock bindings?
 >
->> +       } else {
->> +               init.ops = &omap_gate_clk_ops;
->> +               clk_hw->enable_reg = of_iomap(node, 0);
->> +               of_property_read_u32(node, "ti,enable-bit", &val);
->> +               clk_hw->enable_bit = val;
->
-> What if of_property_read_u32 failed to read the "ti,enable-bit"
-> property? One might not be present, it's marked as optional in the
-> binding description.
+> The same for other PLLs defined in this patch.
 
-I'll make sure this is present in case it is needed.
-
->
->> +
->> +               clk_hw->ops = &clkhwops_wait;
->> +
->> +               if (of_property_read_bool(node, "ti,dss-clk"))
->> +                       clk_hw->ops = &clkhwops_omap3430es2_dss_usbhost_wait;
->> +
->> +               if (of_property_read_bool(node, "ti,am35xx-clk"))
->> +                       clk_hw->ops = &clkhwops_am35xx_ipss_module_wait;
->
-> I really don't like this. I think this should be done based on the
-> compatible string.
-
-Yea, will change.
+Will be changed for next rev, clk-bypass / clk-ref will be populated 
+from clocks property directly.
 
 -Tero
-
