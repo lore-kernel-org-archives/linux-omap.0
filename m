@@ -1,93 +1,140 @@
-From: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Subject: Re: [PATCH v2 0/2] omap4/twl6030: typical connection to omap4 as a
- separate dtsi file
-Date: Mon, 19 Aug 2013 09:14:29 +0300
-Message-ID: <CAB=otbRLea7V6_4Rhfr=ApNV=+2sQXnY=JW9-vy6V+hbt336wg@mail.gmail.com>
-References: <1376469348-10797-1-git-send-email-ruslan.bilovol@ti.com>
-	<520B8B45.1010300@baylibre.com>
-	<CAB=otbTUk68CLmgQsEoefMMFTAnZCAMbZa-yiYmn1b3F1X8BiQ@mail.gmail.com>
-	<520E2726.304@baylibre.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: Re: [PATCH v2 00/13] ARM: OMAP2+: AM43x PRCM support
+Date: Mon, 19 Aug 2013 12:06:55 +0530
+Message-ID: <5211BD07.9090309@ti.com>
+References: <cover.1375443858.git.afzal@ti.com> <20130813080159.GT7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <520E2726.304@baylibre.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, uri.y@variscite.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:60499 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750976Ab3HSGhY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Aug 2013 02:37:24 -0400
+In-Reply-To: <20130813080159.GT7656@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>
 
-Hi Benoit,
+Hi Tony,
 
-On Fri, Aug 16, 2013 at 4:20 PM, Benoit Cousson <bcousson@baylibre.com> wrote:
-> Hi Ruslan,
->
-> On 16/08/2013 14:04, Ruslan Bilovol wrote:
->> Hi Benoit,
+On Tuesday 13 August 2013 01:31 PM, Tony Lindgren wrote:
+
+> Hi Paul & Benoit,
+> 
+> Does this series look OK to you guys to queue or ack?
+
+
+Can you please consider queuing this series for the coming merge window
+as we are getting closer to the merge window.
+
+If Paul or Benoit has any comments on this, we can have patches to fix
+it up on top of this as required or these patches be reverted in the
+worst case.
+
+Regards
+Afzal
+
+> 
+> * Afzal Mohammed <afzal@ti.com> [130802 06:42]:
+>> Hi,
 >>
->> On Wed, Aug 14, 2013 at 4:51 PM, Benoit Cousson <bcousson@baylibre.com> wrote:
->>> Hi Ruslan,
->>>
->>> On 14/08/2013 10:35, Ruslan Bilovol wrote:
->>>>
->>>> Hello,
->>>>
->>>> There is no functional changes between v1 and v2 - just
->>>> added the patch for omap4-var-som - Uri Yosef confirmed
->>>> this board have the same connection of OMAP4<->TWL6030 as
->>>> SDP4430 board
->>>
->>>
->>> The series looks good to me, but it will be good to have a test for Panda
->>> and Variscite boards before merging it.
+>> AM43x PRCM support (excluding clock tree) is being added with this
+>> series. AM43x reuses most of the IP's from AM335x, as that is the
+>> case, much of the AM335x hwmod data is reused.
 >>
->> Okay, so I just verified this patch series on PandaBoard ES2. Should I
->> resubmit this series with
->> fixed commit message?
->
-> No, that's fine, I already applied it and fixed the subject and the changelog.
->
-> Here it is:
->
-> commit 2e25df1e5a4af906a9b25332719ace000063eb0d
-> Author: Ruslan Bilovol <ruslan.bilovol@ti.com>
-> Date:   Wed Aug 14 11:35:47 2013 +0300
->
->     ARM: dts: twl6030: Move common configuration for OMAP4 boards in a separate dtsi file
->
->     The OMAP4 SoC family uses specially-designed PMIC (power management IC)
->     companion chip for power management needs: TWL6030/TWL6032.
->     Therefore there is a typical connection of PMIC to OMAP4 so we can
->     move it into separate .dtsi file and do not duplicate over
->     board-specific files.
->
->     Tested on OMAP4 SDP board and compile-tested for Panda board
+>> I am aware that this series adds around +1K lines to platform. We in
+>> TI, here are making efforts to clean platform code gradually and keep
+>> to minumum the code being added to support new SoC's. Please note that
+>> this SoC support series has positive diffstat of just above 1K only.
+>> This compared to last SoC that was supported in OMAP family during
+>> last merge window is way less (this is only around 1/8th postive
+>> diffstat of it). Clock data is not added in this series, instead
+>> directly clock tree in DT with driver would be used, this is a work in
+>> progress. And as seen from recent OMAP clock tree DT conversion
+>> series, there are serious efforts ongoing to that end. Also we will
+>> start working on moving hwmod away from platform folders. In addition,
+>> recently there was a PRCM cleanup by Rajendra Nayak that removed near
+>> to 11K lines.
+>>
+>> Considering the above facts, I request the maintainers to consider
+>> this series for the next merge window.
+>>
+>> Currently there is no public TRM available for AM43x.
+>>
+>> Hwmod database of AM335x is reused by moving common elements to a new
+>> array (most of AM335x IP's are present in AM43x) and keeping separate
+>> arrays for elements that are specific only to either one of AM335x or
+>> AM43x. And in the cases where relevant IP is present in both that has
+>> difference in details like CLKCTRL register offsets, it is being
+>> updated at runtime based on the SoC detected.
+>>
+>> Powerdomain & Clockdomain data has been added separately as it was not
+>> giving much advantage reusing AM335x ones (runtime updates required
+>> was getting too ugly). But as AM43x PRCM functionality is similar to
+>> OMAP4, power domain, clock domain & hwmod operations are reused from
+>> OMAP4.
+>>
+>> A single header file has been added to provide all AM43x PRCM defines.
+>>
+>> Here sequencewise, initially AM335x hwmod is modified to have it's
+>> fields get updated at runtime (wherever element is shared and has
+>> some difference with AM43x). Then power domain, clock domain for AM43x
+>> is added and finally AM335x hwmod database is updated with AM43x
+>> specifics.
+>>
+>> This series is being developed with additional clock tree changes that
+>> are being DT'fied.
+>>
+>> Additional DTS changes (posted separate from this series) are also
+>> required for hwmod to get register target address space as most of
+>> AM335x hwmod address space details has been recently cleaned up and
+>> moved to DTS.
+>>
+>> Regards
+>> Afzal
+>>
+>> Afzal Mohammed (8):
+>>   ARM: OMAP2+: hwmod: AM335x: prepare for AM43x reuse
+>>   ARM: OMAP2+: hwmod: AMx3: runtime AM335x handling
+>>   ARM: OMAP2+: hwmod: AMx3: remove common static fields
+>>   ARM: OMAP2+: PRCM: AM43x definitions
+>>   ARM: OMAP2+: hwmod: AMx3: runtime AM43x handling
+>>   ARM: OMAP2+: hwmod: AM43x operations
+>>   ARM: OMAP2+: AM43x: PRCM kbuild
+>>   ARM: OMAP2+: hwmod: AM43x: new w.r.t AM335x
+>>
+>> Ambresh K (3):
+>>   ARM: OMAP2+: PM: AM43x powerdomain data
+>>   ARM: OMAP2+: CM: AM43x clockdomain data
+>>   ARM: OMAP2+: AM43x PRCM init
+>>
+>> Ankur Kishore (1):
+>>   ARM: OMAP2+: CM: cm_inst offset s16->u16
+>>
+>> Vaibhav Bedia (1):
+>>   ARM: OMAP2+: CM: reintroduce SW_SLEEP for OMAP4
+>>
+>>  arch/arm/mach-omap2/Makefile                |    5 +-
+>>  arch/arm/mach-omap2/clockdomain.h           |    4 +-
+>>  arch/arm/mach-omap2/clockdomains43xx_data.c |  199 ++++++++
+>>  arch/arm/mach-omap2/cm33xx.c                |   30 +-
+>>  arch/arm/mach-omap2/cm33xx.h                |   28 +-
+>>  arch/arm/mach-omap2/cminst44xx.c            |   58 ++-
+>>  arch/arm/mach-omap2/cminst44xx.h            |   25 +-
+>>  arch/arm/mach-omap2/io.c                    |    6 +
+>>  arch/arm/mach-omap2/omap_hwmod.c            |    8 +
+>>  arch/arm/mach-omap2/omap_hwmod_33xx_data.c  |  691 +++++++++++++++++++++++----
+>>  arch/arm/mach-omap2/powerdomain.h           |    1 +
+>>  arch/arm/mach-omap2/powerdomains43xx_data.c |  145 ++++++
+>>  arch/arm/mach-omap2/prcm43xx.h              |  141 ++++++
+>>  13 files changed, 1198 insertions(+), 143 deletions(-)
+>>  create mode 100644 arch/arm/mach-omap2/clockdomains43xx_data.c
+>>  create mode 100644 arch/arm/mach-omap2/powerdomains43xx_data.c
+>>  create mode 100644 arch/arm/mach-omap2/prcm43xx.h
+>>
+>> -- 
+>> 1.7.9.5
+>>
 
-Just for archives: I've successfully tested it on PandaBoard ES2 last
-week as well.
-
->
->     Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
->     Signed-off-by: Benoit Cousson <bcousson@baylibre.com>
->
->
-> Just let me know if you are OK with the updated version.
-
-Yes, this version looks good to me. Thanks for picking it up!
-
->
->> However I cannot verify the patch for Variscite board because I do not
->> own any such board so
->> you can drop that patch. But maybe Uri Yosef can verify it. Uri?
->
-> It seems that Uri cannot test it right now, so I will have to drop that one.
-
-Okay, let's wait for Uri's verification.
-
-Best regards,
-Ruslan
-
->
-> Thanks,
-> Benoit
->
->
