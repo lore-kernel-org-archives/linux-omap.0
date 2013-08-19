@@ -1,113 +1,46 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH v2 02/14] crypto: omap-aes: Add useful debug macros
-Date: Sun, 18 Aug 2013 00:56:11 -0500
-Message-ID: <521061FB.2030504@ti.com>
-References: <1376793755-30478-1-git-send-email-joelf@ti.com>  <1376793755-30478-3-git-send-email-joelf@ti.com> <1376799747.2027.11.camel@joe-AO722>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v2] extcon: palmas: Modified the compatible type to *ti,
+ palmas-usb-vid*
+Date: Mon, 19 Aug 2013 10:35:55 +0530
+Message-ID: <5211A7B3.4040906@ti.com>
+References: <1376648448-27447-1-git-send-email-kishon@ti.com>
+ <520EA5D6.3040409@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <1376799747.2027.11.camel@joe-AO722>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Herbert Xu <herbert@gondor.hengli.com.au>, "David S. Miller" <davem@davemloft.net>, Mark Greer <mgreer@animalcreek.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Crypto Mailing List <linux-crypto@vger.kernel.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <520EA5D6.3040409@wwwdotorg.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Stephen Warren <swarren@wwwdotorg.org>, cw00.choi@samsung.com
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, george.cherian@ti.com, linux@arm.linux.org.uk, ian.campbell@citrix.com, pawel.moll@arm.com, linux-doc@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, myungjoo.ham@samsung.com, balbi@ti.com, rob@landley.net, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/17/2013 11:22 PM, Joe Perches wrote:
-> On Sat, 2013-08-17 at 21:42 -0500, Joel Fernandes wrote:
->> When DEBUG is enabled, these macros can be used to print variables in integer
->> and hex format, and clearly display which registers, offsets and values are
->> being read/written , including printing the names of the offsets and their values.
->>
->> Note:
->> This patch results in a checkpatch error that cannot be fixed.
->> ERROR: Macros with multiple statements should be enclosed in a do - while loop
->> +#define omap_aes_read(dd, offset)                                      \
->> +       __raw_readl(dd->io_base + offset);                              \
->> +       pr_debug("omap_aes_read(" #offset ")\n");
->>
->> Using do-while loop will break a lot of code such as:
->> ret = omap_aes_read(..);
+Hi,
+
+On Saturday 17 August 2013 03:51 AM, Stephen Warren wrote:
+> On 08/16/2013 04:20 AM, Kishon Vijay Abraham I wrote:
+>> The Palmas device contains only a USB VID detector, so modified the
+>> compatible type to *ti,palmas-usb-vid*.
 > 
-> That's where you use a statement expression macro
+>> diff --git a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
 > 
-> #define omap_aes_read(dd, offset)					\
-> ({									\
-> 	pr_debug("omap_aes_read("omap_aes_read(" #offset ")\n");	\
-> 	__raw_readl((dd)->iobase + offset);				\
-> })
+>>  PALMAS USB COMPARATOR
+>>  Required Properties:
+>> - - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb"
+>> + - compatible : Should be "ti,palmas-usb-vid".
 > 
+> Has the old value been published in a release kernel? If so, it makes
 
-That made things a lot simpler, thanks. Re-spinning just this patch as below:
+No. This was merged only in 3.11-rc1. So I think we should take this version?
+Chanwoo can you take this patch?
 
---->8---
-
-From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH] crypto: omap-aes: Add useful debug macros
-
-When DEBUG is enabled, these macros can be used to print variables in integer
-and hex format, and clearly display which registers, offsets and values are
-being read/written , including printing the names of the offsets and their values.
-
-Using statement expression macros in read path as,
-Suggested-by: Joe Perches <joe@perches.com>
-
-Signed-off-by: Joel Fernandes <joelf@ti.com>
----
- drivers/crypto/omap-aes.c |   24 +++++++++++++++++++++++-
- 1 file changed, 23 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-index ee15b0f..e26d4d4 100644
---- a/drivers/crypto/omap-aes.c
-+++ b/drivers/crypto/omap-aes.c
-@@ -13,7 +13,9 @@
-  *
-  */
-
--#define pr_fmt(fmt) "%s: " fmt, __func__
-+#define pr_fmt(fmt) "%20s: " fmt, __func__
-+#define prn(num) pr_debug(#num "=%d\n", num)
-+#define prx(num) pr_debug(#num "=%x\n", num)
-
- #include <linux/err.h>
- #include <linux/module.h>
-@@ -172,16 +174,36 @@ struct omap_aes_dev {
- static LIST_HEAD(dev_list);
- static DEFINE_SPINLOCK(list_lock);
-
-+#ifdef DEBUG
-+#define omap_aes_read(dd, offset)				\
-+({								\
-+	int _read_ret;						\
-+	_read_ret = __raw_readl(dd->io_base + offset);		\
-+	pr_debug("omap_aes_read(" #offset "=%#x)= %#x\n",	\
-+		 offset, _read_ret);				\
-+	_read_ret;						\
-+})
-+#else
- static inline u32 omap_aes_read(struct omap_aes_dev *dd, u32 offset)
- {
- 	return __raw_readl(dd->io_base + offset);
- }
-+#endif
-
-+#ifdef DEBUG
-+#define omap_aes_write(dd, offset, value)				\
-+	do {								\
-+		pr_debug("omap_aes_write(" #offset "=%#x) value=%#x\n",	\
-+			 offset, value);				\
-+		__raw_writel(value, dd->io_base + offset);		\
-+	} while (0)
-+#else
- static inline void omap_aes_write(struct omap_aes_dev *dd, u32 offset,
- 				  u32 value)
- {
- 	__raw_writel(value, dd->io_base + offset);
- }
-+#endif
-
- static inline void omap_aes_write_mask(struct omap_aes_dev *dd, u32 offset,
- 					u32 value, u32 mask)
--- 
-1.7.9.5
+Thanks
+Kishon
