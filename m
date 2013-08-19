@@ -1,173 +1,84 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv5 16/31] CLK: TI: DRA7: Add APLL support
-Date: Mon, 19 Aug 2013 16:52:00 +0300
-Message-ID: <52122300.4040606@ti.com>
-References: <1375460751-23676-1-git-send-email-t-kristo@ti.com> <1375460751-23676-17-git-send-email-t-kristo@ti.com> <20130813111449.GL27165@e106331-lin.cambridge.arm.com>
+Subject: Re: [PATCHv5 22/31] CLK: TI: add interface clock support for OMAP3
+Date: Mon, 19 Aug 2013 16:54:28 +0300
+Message-ID: <52122394.9040904@ti.com>
+References: <1375460751-23676-1-git-send-email-t-kristo@ti.com> <1375460751-23676-23-git-send-email-t-kristo@ti.com> <20130813113010.GN27165@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50702 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750736Ab3HSNwe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Aug 2013 09:52:34 -0400
-In-Reply-To: <20130813111449.GL27165@e106331-lin.cambridge.arm.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:51934 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750736Ab3HSNy7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Aug 2013 09:54:59 -0400
+In-Reply-To: <20130813113010.GN27165@e106331-lin.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Mark Rutland <mark.rutland@arm.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "nm@ti.com" <nm@ti.com>, "rnayak@ti.com" <rnayak@ti.com>, "mturquette@linaro.org" <mturquette@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Keerthy <j-keerthy@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "nm@ti.com" <nm@ti.com>, "rnayak@ti.com" <rnayak@ti.com>, "mturquette@linaro.org" <mturquette@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 08/13/2013 02:14 PM, Mark Rutland wrote:
-> On Fri, Aug 02, 2013 at 05:25:35PM +0100, Tero Kristo wrote:
->> From: Keerthy <j-keerthy@ti.com>
+On 08/13/2013 02:30 PM, Mark Rutland wrote:
+> On Fri, Aug 02, 2013 at 05:25:41PM +0100, Tero Kristo wrote:
+>> OMAP3 has interface clocks in addition to functional clocks, which
+>> require special handling for the autoidle and idle status register
+>> offsets mainly.
 >>
->> The patch adds support for DRA7 PCIe APLL. The APLL
->> sources the optional functional clocks for PCIe module.
->>
->> APLL stands for Analog PLL. This is different when comapred
->> with DPLL meaning Digital PLL, the phase detection is done
->> using an analog circuit.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
 >> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 >> ---
->>   .../devicetree/bindings/clock/ti/apll.txt          |   32 +++
->>   arch/arm/mach-omap2/clock.h                        |    1 -
+>>   .../devicetree/bindings/clock/ti/interface.txt     |   45 +++++++++
+>>   arch/arm/mach-omap2/clock.h                        |    6 --
 >>   drivers/clk/ti/Makefile                            |    2 +-
->>   drivers/clk/ti/apll.c                              |  209 ++++++++++++++++++++
->>   include/linux/clk/ti.h                             |    2 +
->>   5 files changed, 244 insertions(+), 2 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/clock/ti/apll.txt
->>   create mode 100644 drivers/clk/ti/apll.c
+>>   drivers/clk/ti/interface.c                         |  105 ++++++++++++++++++++
+>>   include/linux/clk/ti.h                             |    7 ++
+>>   5 files changed, 158 insertions(+), 7 deletions(-)
+>>   create mode 100644 Documentation/devicetree/bindings/clock/ti/interface.txt
+>>   create mode 100644 drivers/clk/ti/interface.c
 >>
->> diff --git a/Documentation/devicetree/bindings/clock/ti/apll.txt b/Documentation/devicetree/bindings/clock/ti/apll.txt
+>> diff --git a/Documentation/devicetree/bindings/clock/ti/interface.txt b/Documentation/devicetree/bindings/clock/ti/interface.txt
 >> new file mode 100644
->> index 0000000..f7a82e9
+>> index 0000000..8b09ae7
 >> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/clock/ti/apll.txt
->> @@ -0,0 +1,32 @@
->> +Binding for Texas Instruments APLL clock.
+>> +++ b/Documentation/devicetree/bindings/clock/ti/interface.txt
+>> @@ -0,0 +1,45 @@
+>> +Binding for Texas Instruments interface clock.
 >> +
->> +This binding uses the common clock binding[1].  It assumes a
->> +register-mapped APLL with usually two selectable input clocks
->> +(reference clock and bypass clock), with analog phase locked
->> +loop logic for multiplying the input clock to a desired output
->> +clock. This clock also typically supports different operation
->> +modes (locked, low power stop etc.) APLL mostly behaves like
->> +a subtype of a DPLL [2], although a simplified one at that.
+>> +This binding uses the common clock binding[1]. This clock is
+>> +quite much similar to the basic gate-clock [2], however,
+>> +it supports a number of additional features, including
+>> +companion clock finding (match corresponding functional gate
+>> +clock) and hardware autoidle enable / disable.
 >> +
 >> +[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
->> +[2] Documentation/devicetree/bindings/clock/ti/dpll.txt
+>> +[2] Documentation/devicetree/bindings/clock/gate-clock.txt
 >> +
 >> +Required properties:
->> +- compatible : shall be "ti,dra7-apll-clock"
->> +- #clock-cells : from common clock binding; shall be set to 0.
->> +- clocks : link phandles of parent clocks (clk-ref and clk-bypass)
->> +- reg : array of register base addresses for controlling the APLL:
->> +       reg[0] = control register
->> +       reg[1] = idle status register
+>> +- compatible : shall be "ti,interface-clock"
 >
-> Using reg-names is likely a good idea here.
+> It might make sense to be more specific: "ti,omap3-interface-clock".
 
-I'll change these for next rev to be similar to what was discussed in 
-the DPLL part.
+Ok.
 
 >
->> +- ti,clk-ref : link phandle for the reference clock
->> +- ti,clk-bypass : link phandle for the bypass clock
+>> +- #clock-cells : from common clock binding; shall be set to 0
+>> +- clocks : link to phandle of parent clock
+>> +- reg : base address for the control register
+>> +
+>> +Optional properties:
+>> +- ti,enable-bit : bit shift for the bit enabling/disabling the clock
+>> +		  (default 0)
+>> +- ti,iclk-no-wait : flag for selecting non-waiting hw-ops
+>> +- ti,iclk-hsotgusb : flag for selecting hsotgusb hw-ops
+>> +- ti,iclk-dss : flag for selecting DSS interface clock hw-ops
+>> +- ti,iclk-ssi : flag for selecting SSI interface clock hw-ops
+>> +- ti,am35xx-clk : flag for selecting AM35xx interface clock hw-ops
 >
-> You don't need this. Use the clocks and clock-names properties.
+> I think these should be selected based on the compatible string. They're
+> mutually exclusive, and incompatible.
 
-Ditto.
+Ok, I'll change this for next rev so that each has its own compatible 
+string.
 
->
-> [...]
->
->> +static int dra7_apll_enable(struct clk_hw *hw)
->> +{
->> +       struct clk_hw_omap *clk = to_clk_hw_omap(hw);
->> +       int r = 0, i = 0;
->> +       struct dpll_data *ad;
->> +       const char *clk_name;
->> +       u8 state = 1;
->> +       u32 v;
->> +
->> +       ad = clk->dpll_data;
->> +       if (!ad)
->> +               return -EINVAL;
->> +
->> +       clk_name = __clk_get_name(clk->hw.clk);
->> +
->> +       state <<= __ffs(ad->idlest_mask);
->> +
->> +       /* Check is already locked */
->> +       if ((__raw_readl(ad->idlest_reg) & ad->idlest_mask) == state)
->> +               return r;
->
-> Why __raw_readl rather than raw_readl?
-
-Hmm not sure, Keerthy, do you have any comment on this as the patch was 
-originally written by you? :)
-
->
->> +
->> +       v = __raw_readl(ad->control_reg);
->> +       v &= ~ad->enable_mask;
->> +       v |= APLL_FORCE_LOCK << __ffs(ad->enable_mask);
->> +       __raw_writel(v, ad->control_reg);
->
-> Why not raw_writel? Do you not need the rmb() provided by writel, here
-> or anywhere else?
-
-Same, Keerthy? Probably just legacy copy paste from omap2 code and can 
-be updated based on your comment. Some of these might actually be some 
-old optimizations, but the APLL enable/disable should be called so 
-seldom it shouldn't matter. If no objections, I'll just change these all 
-for next rev.
-
->
-> [...]
->
->> +void __init of_dra7_apll_setup(struct device_node *node)
->> +{
->> +       const struct clk_ops *ops;
->> +       struct clk *clk;
->> +       const char *clk_name = node->name;
->> +       int num_parents;
->> +       const char **parent_names = NULL;
->> +       struct of_phandle_args clkspec;
->> +       u8 apll_flags = 0;
->> +       struct dpll_data *ad;
->> +       u32 idlest_mask = 0x1;
->> +       u32 autoidle_mask = 0x3;
->> +       int i;
->> +
->> +       ops = &apll_ck_ops;
->> +       ad = kzalloc(sizeof(*ad), GFP_KERNEL);
->> +       if (!ad) {
->> +               pr_err("%s: could not allocate dpll_data\n", __func__);
->> +               return;
->> +       }
->> +
->> +       of_property_read_string(node, "clock-output-names", &clk_name);
->> +
->> +       num_parents = of_clk_get_parent_count(node);
->> +       if (num_parents < 1) {
->> +               pr_err("%s: omap dpll %s must have parent(s)\n",
->> +                      __func__, node->name);
->> +               goto cleanup;
->> +       }
->> +
->> +       parent_names = kzalloc(sizeof(char *) * num_parents, GFP_KERNEL);
->> +
->> +       for (i = 0; i < num_parents; i++)
->> +               parent_names[i] = of_clk_get_parent_name(node, i);
->> +
->> +       clkspec.np = of_parse_phandle(node, "ti,clk-ref", 0);
->> +       ad->clk_ref = of_clk_get_from_provider(&clkspec);
->
-> Use clocks, clock-names, and of_clk_get_by_name().
-
-Yea, will change.
+Thanks for your comments Mark.
 
 -Tero
+
