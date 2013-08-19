@@ -1,91 +1,112 @@
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 1/6] ASoC: omap: simplify
-	platform_get_resource_byname/devm_ioremap_resource
-Date: Mon, 19 Aug 2013 10:51:51 +0200
-Message-ID: <1376902316-18520-2-git-send-email-Julia.Lawall@lip6.fr>
-References: <1376902316-18520-1-git-send-email-Julia.Lawall@lip6.fr>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv5 01/31] CLK: clkdev: add support for looking up clocks
+ from DT
+Date: Mon, 19 Aug 2013 12:12:48 +0300
+Message-ID: <5211E190.1060604@ti.com>
+References: <1375460751-23676-1-git-send-email-t-kristo@ti.com> <1948861.Oxa8mV2HuC@flatron> <20130803184805.GG23053@n2100.arm.linux.org.uk> <6776624.q5Zt0hTc0G@flatron>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1376902316-18520-1-git-send-email-Julia.Lawall@lip6.fr>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34191 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750958Ab3HSJN1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Aug 2013 05:13:27 -0400
+In-Reply-To: <6776624.q5Zt0hTc0G@flatron>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomasz Figa <tomasz.figa@gmail.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Stephen Warren <swarren@wwwdotorg.org>, Mark Rutland <Mark.Rutland@arm.com>, Ian Campbell <ian.campbell@citrix.com>, Pawel Moll <pawel.moll@arm.com>
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+Hey,
 
-Remove unneeded error handling on the result of a call to
-platform_get_resource_byname when the value is passed to devm_ioremap_resource.
+(Sorry was out for a short vacation, thus late reply.)
 
-In the case of omap-dmic.c, the error-handling code of
-devm_ioremap_resource is also corrected to include releasing the clock.
+On 08/03/2013 10:04 PM, Tomasz Figa wrote:
+> On Saturday 03 of August 2013 19:48:05 Russell King - ARM Linux wrote:
+>> On Sat, Aug 03, 2013 at 08:39:34PM +0200, Tomasz Figa wrote:
+>>> Hi Russell,
+>>>
+>>> On Saturday 03 of August 2013 19:35:43 Russell King - ARM Linux wrote:
+>>>> On Sat, Aug 03, 2013 at 04:02:36PM +0200, Tomasz Figa wrote:
+>>>>>> +	if (cl)
+>>>>>> +		return cl;
+>>>>>> +
+>>>>>> +	/* If clock was not found, attempt to look-up from DT */
+>>>>>> +	node = of_find_node_by_name(NULL, con_id);
+>>>>>
+>>>>> Why are we introducing the "lookup by name" brokenness to the yet
+>>>>> (mostly) sane DT world?
+>>>>>
+>>>>> We already have a good way of binding things together in DT, which
+>>>>> is
+>>>>> using phandles.
+>>>>>
+>>>>> Not even saying that this (or something this patch relies on)
+>>>>> breaks
+>>>>> the ePAPR recommendation about node naming, which states that node
+>>>>> names should not be used to convey platform-specific data, but
+>>>>> instead should be as generic as possible to show what kind of
+>>>>> hardware is represented by the node.
+>>>>
+>>>> Tell me this: many devices name their clock inputs.  You can find
+>>>> these
+>>>> input names in data sheets and the like.  These are the names
+>>>> defined
+>>>> by the hardware.  What is wrong about using those names in DT?
+>>>
+>>> Yes, clock inputs. But this is about lookup by clock name, not clock
+>>> input name, as far as I can tell from the patch, based on looking for
+>>> a node with given name over the whole DT.
+>>
+>> "con_id" is supposed to be the clock input name when the clock API is
+>> used correctly.
+>
+> Right. Still, the code is looking for a node with the same name as the
+> supposed input name, which seems strange to me, because clock input names
+> are supposed to be defined in consumer's node, inside clock-names
+> property.
+>
+>>>> Remember that the second argument to clk_get() is the _clock_
+>>>> _input_
+>>>> _name_ on the _device_ passed in the first argument.  It is not
+>>>> *ever*
+>>>> some random name of the clock producer unless someone's fscked up
+>>>> their
+>>>> use of this API (in which case they're the ones with the problem.)
+>>>
+>>> This is perfectly fine and this is how the generic common clock
+>>> framework DT bindings work - clock-names property is a list of clock
+>>> input names and clocks property contain specifiers of respective
+>>> clocks.
+>>
+>> There seems to be a some pressure to do clk_get()->of_clk_get()
+>> conversions, and also to find ways to lookup clocks.
+>
+> I don't really see any need for this kind of conversion. clk_get() already
+> handles lookup using DT correctly and from drivers perspective nothing
+> changes.
+>
+>> It seems to me
+>> that no one understands how DT handles clocks.  Maybe that's where the
+>> problem is - lack of documentation about how DT clocks are handled.
+>
+> Hmm, there is pretty much of description and examples in
+>
+> Documentation/devicetree/bindings/clock/clock-bindings.txt
+>
+> For me it was enough to learn how DT based clock lookup works, but I'm
+> quite used to DT, so I'm not a good test sample.
+>
+> Best regards,
+> Tomasz
+>
 
-A simplified version of the semantic patch that makes this change is as
-follows: (http://coccinelle.lip6.fr/)
+I think based on these comments this patch needs to go away, I will have 
+to find another way to map the devices in and to avoid supporting the 
+legacy mappings (hwmod depends on this heavily atm, but Rajendra posted 
+some patches to address this.) I'll see what I can do for next rev. I 
+might implement some tweak inside the OMAP codebase for this.
 
-// <smpl>
-@@
-expression pdev,res,e,e1;
-expression ret != 0;
-identifier l;
-@@
+-Tero
 
-  res = platform_get_resource_byname(...);
-- if (res == NULL) { ... \(goto l;\|return ret;\) }
-  e = devm_ioremap_resource(e1, res);
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
----
- sound/soc/omap/omap-dmic.c  |    9 +++------
- sound/soc/omap/omap-mcpdm.c |    3 ---
- 2 files changed, 3 insertions(+), 9 deletions(-)
-
-diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
-index 4db1f8e..12e566b 100644
---- a/sound/soc/omap/omap-dmic.c
-+++ b/sound/soc/omap/omap-dmic.c
-@@ -480,15 +480,12 @@ static int asoc_dmic_probe(struct platform_device *pdev)
- 	dmic->dma_data.filter_data = "up_link";
- 
- 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mpu");
--	if (!res) {
--		dev_err(dmic->dev, "invalid memory resource\n");
--		ret = -ENODEV;
-+	dmic->io_base = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(dmic->io_base)) {
-+		ret = PTR_ERR(dmic->io_base);
- 		goto err_put_clk;
- 	}
- 
--	dmic->io_base = devm_ioremap_resource(&pdev->dev, res);
--	if (IS_ERR(dmic->io_base))
--		return PTR_ERR(dmic->io_base);
- 
- 	ret = snd_soc_register_component(&pdev->dev, &omap_dmic_component,
- 					 &omap_dmic_dai, 1);
-diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
-index a49dc52..90d2a7c 100644
---- a/sound/soc/omap/omap-mcpdm.c
-+++ b/sound/soc/omap/omap-mcpdm.c
-@@ -480,9 +480,6 @@ static int asoc_mcpdm_probe(struct platform_device *pdev)
- 	mcpdm->dma_data[1].filter_data = "up_link";
- 
- 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mpu");
--	if (res == NULL)
--		return -ENOMEM;
--
- 	mcpdm->io_base = devm_ioremap_resource(&pdev->dev, res);
- 	if (IS_ERR(mcpdm->io_base))
- 		return PTR_ERR(mcpdm->io_base);
