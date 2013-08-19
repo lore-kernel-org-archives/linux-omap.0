@@ -1,84 +1,76 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv5 22/31] CLK: TI: add interface clock support for OMAP3
-Date: Mon, 19 Aug 2013 16:54:28 +0300
-Message-ID: <52122394.9040904@ti.com>
-References: <1375460751-23676-1-git-send-email-t-kristo@ti.com> <1375460751-23676-23-git-send-email-t-kristo@ti.com> <20130813113010.GN27165@e106331-lin.cambridge.arm.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] i2c-omap: always send stop after nack
+Date: Mon, 19 Aug 2013 08:57:02 -0500
+Message-ID: <20130819135702.GC26587@radagast>
+References: <51E50217.1000507@yahoo.es>
+ <20130716090300.GG8880@arwen.pp.htv.fi>
+ <51E5137B.7000302@yahoo.es>
+ <20130716094212.GL8880@arwen.pp.htv.fi>
+ <51E527F7.4080007@ti.com>
+ <20130716112746.GN8880@arwen.pp.htv.fi>
+ <51E537A4.40300@ti.com>
+ <20130716130058.GD15036@arwen.pp.htv.fi>
+ <51E57211.2040001@yahoo.es>
+ <20130819121123.GA4540@katana>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51934 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750736Ab3HSNy7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Aug 2013 09:54:59 -0400
-In-Reply-To: <20130813113010.GN27165@e106331-lin.cambridge.arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="w7PDEPdKQumQfZlR"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20130819121123.GA4540@katana>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Cc: Hein Tibosch <hein_tibosch-mRCrAkd8dF0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-i2c <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "nm@ti.com" <nm@ti.com>, "rnayak@ti.com" <rnayak@ti.com>, "mturquette@linaro.org" <mturquette@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 08/13/2013 02:30 PM, Mark Rutland wrote:
-> On Fri, Aug 02, 2013 at 05:25:41PM +0100, Tero Kristo wrote:
->> OMAP3 has interface clocks in addition to functional clocks, which
->> require special handling for the autoidle and idle status register
->> offsets mainly.
->>
->> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> ---
->>   .../devicetree/bindings/clock/ti/interface.txt     |   45 +++++++++
->>   arch/arm/mach-omap2/clock.h                        |    6 --
->>   drivers/clk/ti/Makefile                            |    2 +-
->>   drivers/clk/ti/interface.c                         |  105 ++++++++++++++++++++
->>   include/linux/clk/ti.h                             |    7 ++
->>   5 files changed, 158 insertions(+), 7 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/clock/ti/interface.txt
->>   create mode 100644 drivers/clk/ti/interface.c
->>
->> diff --git a/Documentation/devicetree/bindings/clock/ti/interface.txt b/Documentation/devicetree/bindings/clock/ti/interface.txt
->> new file mode 100644
->> index 0000000..8b09ae7
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/clock/ti/interface.txt
->> @@ -0,0 +1,45 @@
->> +Binding for Texas Instruments interface clock.
->> +
->> +This binding uses the common clock binding[1]. This clock is
->> +quite much similar to the basic gate-clock [2], however,
->> +it supports a number of additional features, including
->> +companion clock finding (match corresponding functional gate
->> +clock) and hardware autoidle enable / disable.
->> +
->> +[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
->> +[2] Documentation/devicetree/bindings/clock/gate-clock.txt
->> +
->> +Required properties:
->> +- compatible : shall be "ti,interface-clock"
->
-> It might make sense to be more specific: "ti,omap3-interface-clock".
+--w7PDEPdKQumQfZlR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Ok.
+On Mon, Aug 19, 2013 at 02:11:23PM +0200, Wolfram Sang wrote:
+> Hi,
+>=20
+> > > Which means your original patch starts to make a lot more sense. I
+> > > wonder is this is really what we should be doing though - breaking out
+> > > of the loop, I mean.
+>=20
+> Yup, that is fine. I applied the old patch with Acks from Hein and
+> Felipe to -next. Thanks!
+>=20
+> > It looks like TI's i2c-davinci will have the same problem as i2c-omap,
+> > and will need the same change.
+>=20
+> Somebody up for this?
 
->
->> +- #clock-cells : from common clock binding; shall be set to 0
->> +- clocks : link to phandle of parent clock
->> +- reg : base address for the control register
->> +
->> +Optional properties:
->> +- ti,enable-bit : bit shift for the bit enabling/disabling the clock
->> +		  (default 0)
->> +- ti,iclk-no-wait : flag for selecting non-waiting hw-ops
->> +- ti,iclk-hsotgusb : flag for selecting hsotgusb hw-ops
->> +- ti,iclk-dss : flag for selecting DSS interface clock hw-ops
->> +- ti,iclk-ssi : flag for selecting SSI interface clock hw-ops
->> +- ti,am35xx-clk : flag for selecting AM35xx interface clock hw-ops
->
-> I think these should be selected based on the compatible string. They're
-> mutually exclusive, and incompatible.
+I would suggest deleting i2c-davinci and making sure it can use
+i2c-omap. It's the same IP anyway. Just an older version which was used
+back in OMAP1 times.
 
-Ok, I'll change this for next rev so that each has its own compatible 
-string.
+--=20
+balbi
 
-Thanks for your comments Mark.
+--w7PDEPdKQumQfZlR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
--Tero
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
+iQIcBAEBAgAGBQJSEiQuAAoJEIaOsuA1yqREM4wQAIUuk/k+6QpJVhcEMMBlgeNl
+dKSyNUXSuqIxp+/jmTYGnoxYA1OQ0cyZjJTl8PltLzG4wszIlkaCJsN5h+zXQBwT
+x0k2vCWJL28fL81H0HGnU7gOoXeCjpQa+Ixkh/nFMVN9ieflXLa3OZyuSJAjiIfB
+boeRPmfJpzQywFsi4r5r8ZF0WeesQEHHSE9978NxiI/fY9Ly1Q8QbbhAPDMkBolB
+xb4pX4vxPkuhmqRpwsB8eVqVblZw+udMZUcz5miSKXYO982pVhutPlqBBz+LxIHd
+amp3T0fDDb3Cqu6vKzd+7kPF+RJQAvJyDmiuHIoo7W+zzEDpD7LBHf681CAvQnfB
++YwWTa6oOmlfK74+90mFDnJHnn6Sw6ThumUmNiZn5Xdy4IM4OKDxOjifhaaetAU7
+uZFMA5Gv4LBJlyX/x4SC2KqLCeXXMXUrvPBEdP5XPhz5W8v3jDXDJq6EcQ3WgDhH
+yyFxTgAFbkPx2g65yLPhNgHoFTksRxWKUvkBmmaA6sYBfmQK28NZrIS5/UKNGLpr
+eVUnhiVZiAl8if12zgkXOvsa7CnaPCkRq3LZsNNbOC+qXBkq5JgzMck8r5KJEr71
+Z7cOxGoTGbjLYtQZcYoo621R3F3481fkSNntJfr7ktv5X2gm2ZKbqpmpuW3UlD9l
+bwVQ3OA7aqMpn7tWRBEb
+=eJUg
+-----END PGP SIGNATURE-----
+
+--w7PDEPdKQumQfZlR--
