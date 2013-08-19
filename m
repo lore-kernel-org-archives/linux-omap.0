@@ -1,243 +1,116 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv5 05/31] CLK: TI: add support for OMAP gate clock
-Date: Mon, 19 Aug 2013 17:43:15 +0300
-Message-ID: <52122F03.5050602@ti.com>
-References: <1375460751-23676-1-git-send-email-t-kristo@ti.com> <1375460751-23676-6-git-send-email-t-kristo@ti.com> <20130813110437.GK27165@e106331-lin.cambridge.arm.com> <521220AD.4070308@ti.com> <20130819142959.GP3719@e106331-lin.cambridge.arm.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v3 1/2] rtc: omap: update of_device_id to reflect
+ latest ip revisions
+Date: Mon, 19 Aug 2013 15:45:37 +0100
+Message-ID: <20130819144537.GQ3719@e106331-lin.cambridge.arm.com>
+References: <1376653017-21935-1-git-send-email-gururaja.hebbar@ti.com>
+ <1376653017-21935-2-git-send-email-gururaja.hebbar@ti.com>
+ <520E341D.4080206@baylibre.com>
+ <20130816172022.GA3719@e106331-lin.cambridge.arm.com>
+ <520E6B9E.5080706@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50983 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751061Ab3HSOnv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Aug 2013 10:43:51 -0400
-In-Reply-To: <20130819142959.GP3719@e106331-lin.cambridge.arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <520E6B9E.5080706@baylibre.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "khilman@linaro.org" <khilman@linaro.org>, "tony@atomide.com" <tony@atomide.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "a.zummo@towertech.it" <a.zummo@towertech.it>, "rob@landley.net" <rob@landley.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rtc-linux@googlegroups.com" <rtc-linux@googlegroups.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "sudhakar.raj@ti.com" <sudhakar.raj@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "nm@ti.com" <nm@ti.com>, "rnayak@ti.com" <rnayak@ti.com>, "mturquette@linaro.org" <mturquette@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 08/19/2013 05:29 PM, Mark Rutland wrote:
-> On Mon, Aug 19, 2013 at 02:42:05PM +0100, Tero Kristo wrote:
->> On 08/13/2013 02:04 PM, Mark Rutland wrote:
->>> On Fri, Aug 02, 2013 at 05:25:24PM +0100, Tero Kristo wrote:
->>>> This node adds support for a clock node which allows control to the
->>>> clockdomain enable / disable.
->>>>
->>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>>> ---
->>>>    .../devicetree/bindings/clock/ti/gate.txt          |   41 ++++++++
->>>>    arch/arm/mach-omap2/clock.h                        |    9 --
->>>>    drivers/clk/ti/Makefile                            |    2 +-
->>>>    drivers/clk/ti/gate.c                              |  106 ++++++++++++++++++++
->>>>    include/linux/clk/ti.h                             |    8 ++
->>>>    5 files changed, 156 insertions(+), 10 deletions(-)
->>>>    create mode 100644 Documentation/devicetree/bindings/clock/ti/gate.txt
->>>>    create mode 100644 drivers/clk/ti/gate.c
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/clock/ti/gate.txt b/Documentation/devicetree/bindings/clock/ti/gate.txt
->>>> new file mode 100644
->>>> index 0000000..620a73d
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/bindings/clock/ti/gate.txt
->>>> @@ -0,0 +1,41 @@
->>>> +Binding for Texas Instruments gate clock.
->>>> +
->>>> +This binding uses the common clock binding[1]. This clock is
->>>> +quite much similar to the basic gate-clock [2], however,
->>>> +it supports a number of additional features. If no register
->>>> +is provided for this clock, the code assumes that a clockdomain
->>>> +will be controlled instead and the corresponding hw-ops for
->>>> +that is used.
->>>> +
->>>> +[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
->>>> +[2] Documentation/devicetree/bindings/clock/gate-clock.txt
->>>> +
->>>> +Required properties:
->>>> +- compatible : shall be "ti,gate-clock"
->>>> +- #clock-cells : from common clock binding; shall be set to 0
->>>> +- clocks : link to phandle of parent clock
->>>> +
->>>> +Optional properties:
->>>> +- reg : base address for register controlling adjustable gate
->>>
->>> Optional? That's odd. If I have a clock with registers, but don't
->>> specify the register, will it still work? i.e. are registerless clocks
->>> really compatible with clocks with registers?.
->>
->> I think I implemented this in somewhat confusing manner. This could be
->> split to:
->>
->> ti,gate-clock:
->>     requires reg and ti,enable-bit info
->> ti,clkdm-clock:
->>     requires ti,clkdm-name
->>
->> clkdm clock is kind of a master clock for clockdomain, the clock is
->> provided always if the clockdomain is active.
->
-> Ok.
->
->>
->>>
->>>> +- ti,enable-bit : bit shift for programming the clock gate
->>>
->>> Why is this needed? Does the hardware vary wildly, or are several clocks
->>> sharing the same register(s)?
->>
->> Yea, same register is shared.
->
-> Ok. Are those gate clocks are part of a larger "gate clocks" block, with
-> the register that controls them? or are they really independent? Does
-> the register control other items too?
+On Fri, Aug 16, 2013 at 07:12:46PM +0100, Benoit Cousson wrote:
+> Hi Mark,
+> 
+> On 16/08/2013 19:20, Mark Rutland wrote:
+> > Hi Benoit,
+> >
+> > On Fri, Aug 16, 2013 at 03:15:57PM +0100, Benoit Cousson wrote:
+> >> Hi Gururaja,
+> >>
+> >> On 16/08/2013 13:36, Hebbar, Gururaja wrote:
+> >>> The syntax of compatible property in DT is to mention the Most specific
+> >>> match to most generic match.
+> >>>
+> >>> Since AM335x is the platform with latest IP revision, add it 1st in
+> >>> the device id table.
+> >>
+> >> I don't understand why? The order should not matter at all.
+> >>
+> >> I've tried to follow the thread you had with Mark on the v2, but AFAIK,
+> >> you've never answered to his latest question.
+> >>
+> >> Moreover, checking the differences between the Davinci and the am3352
+> >> RTC IP, I would not claim that both are compatible.
+> >>
+> >> Sure you can use the am3352 with the Davinci driver, but you will lose
+> >> the wakeup functionality without even being notify about that.
+> >
+> > Could you describe the wakeup functionality, and how it differs between
+> > the am3352-rtc and the da830-rtc?
+> 
+> AFAIK, da830-rtc does not have that functionality at all. This is 
+> something that was added to the am3352-rtc.
 
-Not really. Typically they only have the clockdomain in common, and the 
-individual clocks are mostly controlled independently from each other. 
-For example on omap3 we have following register:
+Ok. So the am3352-rtc can be driven with the full functionality of the
+da830-rtc (ie. it's compatible with the da830-rtc programming model), or
+it can be driven as an am3352-rtc, for the OS to gain wakeup
+functionality in addition to the da830-rtc features. :)
 
-CM_FCLKEN_PER
-Physical Address 0x4800 5000
-BIT31:19 RESERVED Write 0s for future compatibility. Read returns 0.
-BIT18 EN_UART4 UART4 functional clock control.
-BIT17 EN_GPIO6 GPIO6 functional clock control.
-BIT16 EN_GPIO5 GPIO5 functional clock control.
-BIT15 EN_GPIO4 GPIO4 functional clock control.
-BIT14 EN_GPIO3 GPIO3 functional clock control.
-BIT13 EN_GPIO2 GPIO2 functional clock control.
-BIT12 EN_WDT3 WDT3 functional clock control.
-BIT11 EN_UART3 Type UART3 functional clock control.
-BIT10 EN_GPT9 GPTIMER 9 functional clock control.
-BIT9 EN_GPT8 GPTIMER 8 functional clock control.
-BIT8 EN_GPT7 GPTIMER 7 functional clock control.
-BIT7 EN_GPT6 GPTIMER 6 functional clock control.
-BIT6 EN_GPT5 GPTIMER 5 functional clock control.
-BIT5 EN_GPT4 GPTIMER 4 functional clock control.
-BIT4 EN_GPT3GPTIMER 3 functional clock control.
-BIT3 EN_GPT2 GPTIMER 2 functional clock control.
-BIT2 EN_MCBSP4 McBSP 4 functional clock control.
-BIT1 EN_MCBSP3 McBSP3 functional clock control.
-BIT0 EN_MCBSP2 McBSP 2 functional clock control.
+> 
+> > As I understand it, the am3352 functionality is a superset of the da830
+> > functionality. You can use the old driver, and get some functionality,
+> > or use the new driver and get it all.
+> 
+> Mmm, what your are saying now seems to make sense to me as well. So I'm 
+> even more confused :-)
 
-So multiple drivers will be using this register for example.
+I'll convince you yet :)
 
-> If they were part of some bigger unit, it might be possible to have a
-> binding like the following (though maybe not):
->
-> gate_clks: gate_clks {
-> 	compatible = "ti,gate-clocks-block";
-> 	reg = <0x4003a000 0x1000>;
->
-> 	#clock-cells = <1>;
-> 	/*
-> 	 * has 4 gate clocks at bit shifts 0,1,2,3,
-> 	 * corresponding to input clocks 0,1,2,3
-> 	 */
-> 	clocks = <&clk1 0 23>,
-> 		 <&clk1 0 4>,
-> 		 <&clk3 2>,
-> 		 <&clk3 5>;
-> };
->
-> device {
-> 	compatible = "vendor,some-device";
-> 	clocks = <&gate_clks 1>; /* gate clock with bitshift 1*/
-> };
->
->>
->>>
->>>> +- ti,dss-clk : use DSS hardware OPS for the clock
->>>> +- ti,am35xx-clk : use AM35xx hardware OPS for the clock
->>>
->>> Those last two sounds like the kind of thing that should be derived from
->>> the compatible string (e.g. ti,am35xx-gate-clock).
->>
->> Hmm yea, I think I can change this and add some sub-types.
->>
->>>
->>>> +- ti,clkdm-name : clockdomain to control this gate
->>>
->>> As previously mentioned, I'm not a fan of this property. It would make
->>> more sense to describe the domain and have an explicit link to it
->>> (either nodes being children of the domain or having a phandle).
->>
->> Same comments as with patch #2.
->
-> Same reply as to patch #2 :)
+> 
+> > That means that am3352-rtc is compatible with da830. As long as the
+> > kernel first checks for am3352-rtc, there will be *no* loss of
+> > functionality. All this does is enable older kernels to use the hardware
+> > in some fashion, and given the older kernel didn't have support for the
+> > am3352-rtc features, this is a *gain* in functionality, not a loss.
+> >
+> >>
+> >> For my point of view, compatible mean that the HW will still be fully
+> >> functional with both versions of the driver, which is not the case here.
+> >
+> > What? A driver for any entry in the compatible list should be able to
+> > drive the hardware to *some* level of functionality. We list from
+> > most-specific to most-general to allow a graceful degradation from fully
+> > supported to bare minimum functionality.
+> 
+> OK, but where is it written in the DT spec that this is what the 
+> compatible is supposed to mean?
+> 
+> I'm quoting it again:
+> "
+> The compatible property value consists of one or more strings that 
+> define the specific programming model for the device. This list of 
+> strings should be used by a client program for device driver selection. 
+> The property value consists of a concatenated list of null terminated
+> strings, from most specific to most general. They allow a device to 
+> express its compatibility with a family of similar devices, potentially 
+> allowing a single device driver to match against several devices.
+> "
+> 
+> The graceful degradation or the loss of functionality is not something 
+> that I really understand in that text.
 
-I'll think of a proper reply there. :)
+I think it's implicit in the example that follows, where a failure to
+match against a specific device results in the OS falling back to a
+"more general" device. The "more general" device may not have all the
+features of a more specific device (conversely, the more general device
+may have more optional features that a more specific device is known not
+to implement).
 
--Tero
+> 
+> Anyway, I'm probably too tired... I'll go back home, and think about 
+> that after the week-end.
 
->
->>
->>>
->>> [...]
->>>
->>>> +void __init of_omap_gate_clk_setup(struct device_node *node)
->>>> +{
->>>> +       struct clk *clk;
->>>> +       struct clk_init_data init = { 0 };
->>>> +       struct clk_hw_omap *clk_hw;
->>>> +       const char *clk_name = node->name;
->>>> +       int num_parents;
->>>> +       const char **parent_names = NULL;
->>>> +       int i;
->>>> +       u32 val;
->>>> +
->>>> +       clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
->>>> +       if (!clk_hw) {
->>>> +               pr_err("%s: could not allocate clk_hw_omap\n", __func__);
->>>> +               return;
->>>> +       }
->>>> +
->>>> +       clk_hw->hw.init = &init;
->>>> +
->>>> +       of_property_read_string(node, "clock-output-names", &clk_name);
->>>> +       of_property_read_string(node, "ti,clkdm-name", &clk_hw->clkdm_name);
->>>> +
->>>> +       init.name = clk_name;
->>>> +       init.flags = 0;
->>>> +
->>>> +       if (of_property_read_u32_index(node, "reg", 0, &val)) {
->>>> +               /* No register, clkdm control only */
->>>> +               init.ops = &omap_gate_clkdm_clk_ops;
->>>
->>> If they're truly compatible, you can just see if you can of_iomap, and
->>> if not, continue. Your reg values might be wider than 32 bits, and usig
->>> of_property_read_u32 to read this feels wrong.
->>
->> I'll split this to two separate supported types.
->>
->>>
->>>> +       } else {
->>>> +               init.ops = &omap_gate_clk_ops;
->>>> +               clk_hw->enable_reg = of_iomap(node, 0);
->>>> +               of_property_read_u32(node, "ti,enable-bit", &val);
->>>> +               clk_hw->enable_bit = val;
->>>
->>> What if of_property_read_u32 failed to read the "ti,enable-bit"
->>> property? One might not be present, it's marked as optional in the
->>> binding description.
->>
->> I'll make sure this is present in case it is needed.
->>
->>>
->>>> +
->>>> +               clk_hw->ops = &clkhwops_wait;
->>>> +
->>>> +               if (of_property_read_bool(node, "ti,dss-clk"))
->>>> +                       clk_hw->ops = &clkhwops_omap3430es2_dss_usbhost_wait;
->>>> +
->>>> +               if (of_property_read_bool(node, "ti,am35xx-clk"))
->>>> +                       clk_hw->ops = &clkhwops_am35xx_ipss_module_wait;
->>>
->>> I really don't like this. I think this should be done based on the
->>> compatible string.
->>
->> Yea, will change.
->
-> Cheers!
->
-> Mark.
->
+Ok, let me know what you think. :)
 
+Thanks,
+Mark.
