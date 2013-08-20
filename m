@@ -1,71 +1,57 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v4 2/3] usb: phy: Add Qualcomm SS-USB and HS-USB drivers
- for DWC3 core
-Date: Tue, 20 Aug 2013 07:29:07 -0500
-Message-ID: <20130820122907.GU26587@radagast>
-References: <1376992565-22292-1-git-send-email-iivanov@mm-sol.com>
- <1376992565-22292-3-git-send-email-iivanov@mm-sol.com>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap fixes against v3.11-rc5
+Date: Tue, 20 Aug 2013 05:32:32 -0700
+Message-ID: <20130820123232.GN7656@atomide.com>
+References: <20130816071958.GB7656@atomide.com>
+ <CAOesGMiQBajdyW5AFJx6ASh1pHmdDPrh6Gy3o2HOBtFc9-g_Ag@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="o3Y+93sjbn8Tp8J9"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1376992565-22292-3-git-send-email-iivanov@mm-sol.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-Cc: balbi@ti.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-
---o3Y+93sjbn8Tp8J9
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32670 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750974Ab3HTMcm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 08:32:42 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <CAOesGMiQBajdyW5AFJx6ASh1pHmdDPrh6Gy3o2HOBtFc9-g_Ag@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: "arm@kernel.org" <arm@kernel.org>, Kevin Hilman <khilman@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi,
+* Olof Johansson <olof@lixom.net> [130816 15:05]:
+> 
+> Our current fixes branch is based on -rc4, and I didn't see any of
+> these commits in linux-next, so I took the liberty to rebase them back
+> onto our current branch.
+> 
+> I.e. pulled, but rebased.
 
-On Tue, Aug 20, 2013 at 12:56:04PM +0300, Ivan T. Ivanov wrote:
-> From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
->=20
-> These drivers handles control and configuration of the HS
-> and SS USB PHY transceivers. They are part of the driver
-> which manage Synopsys DesignWare USB3 controller stack
-> inside Qualcomm SoC's.
->=20
-> Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
-> ---
->  drivers/usb/phy/Kconfig           |   11 ++
->  drivers/usb/phy/Makefile          |    2 +
->  drivers/usb/phy/phy-msm-dwc3-hs.c |  327 ++++++++++++++++++++++++++++++++
->  drivers/usb/phy/phy-msm-dwc3-ss.c |  374 +++++++++++++++++++++++++++++++=
-++++++
+Thanks no problem at my end. But to avoid future confusion, what's
+the reasoning for rebasing? AFAIK, pulling this in would have just
+automatically updated your branch to -rc5, no?
 
-please rename these PHY drivers, they have nothing to do with DWC3. PHYs
-don't care about the USB controller.
+The only time where pulling in a branch based on a later mainline
+commit would cause problems is if your branch is based on another
+series of patches you want to send separately as then you'd get
+all the commits between -rc4 and -rc5 when doing the pull request.
 
---=20
-balbi
+Probably nothing new in this for your, but FYI, you can use pulling
+or merging branches as a way of updating your publick branches without
+rebasing or adding extra merge commits while keeping the branch
+pullable.
 
---o3Y+93sjbn8Tp8J9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Let's assume you have arm-soc/fixes based on -rc4, and -rc5
+comes out:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+$ git checkout -b my-fixes-of-the-week v3.11-rc5
+# apply pending patches
+...
+$ git checkout arm-soc/fixes
+$ git merge my-fixes-of-the-week
 
-iQIcBAEBAgAGBQJSE2ESAAoJEIaOsuA1yqREIL4P/1cob1PswOBmMq65gFAxvk9z
-PFIjvP3IMG7iTwt74CC9QEHMinZCkTQ+XMII0ubsZG7EIxayknJt8igTG2rY/KHH
-7uWPYwuI89sDmGl3tCfq46rNqTvaZu3A9KRxmwBCDJFkaYF482KcIlFh6cdW8Cmq
-R3VgpM2fnDYcgHp9TcpZVktMuynl2fYfOETvirFd9Sevvu5GGSG/HP7RWW0jhD8u
-SYXVo+Et+MVRjqt0fcH1p9AxEz1iov0zTqubNkwjdgMN2teElP2hpt4VEMuKubnL
-2OphTzPd7HmuTh5pMe/elOI9EfJfOufFTBrS7WiVzHwEjPzMfgjJRRjkf3BzNlqL
-jDSimDF6hrQJm2DjTG0iwFxWtZX1FPeuERc4h+CgA2ED+1iipwNXvjdUrg/eOxj6
-sBlYp0d3mjTa02Y7xXybTOooqADsn7ffUiMSWpkNXnzwEqXi3jnYtxoYxlY0lIGI
-07O13LrJ+RhXcRIv6jmAPFVBfo91xbA/TJ5TkChCSixDQsFFeQZ1wJGeYEAIN1XH
-8VWDTkjUiJiLDKLfUdzmzPgO/MN80SwFu46ojDBr8J48wXrMt/+x+4com4Wc7MN7
-DvNx3BZfdOv+gKuemPlufE7n+OLER5XVPZyNR4vMd5AOW8yYbAjrfcTJ+7oVVRHH
-OW0WfohqKLIyQtZhLxGS
-=Py2d
------END PGP SIGNATURE-----
+And then you have essentially fast forwarded your arm-soc/fixes to
+-rc5 and it stays pullable ;)
 
---o3Y+93sjbn8Tp8J9--
+Regards,
+
+Tony
