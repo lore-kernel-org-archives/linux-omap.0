@@ -1,80 +1,60 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv10] drivers: spi: Add qspi flash controller
-Date: Tue, 20 Aug 2013 08:14:29 -0500
-Message-ID: <20130820131429.GB26587@radagast>
-References: <1377003925-6284-1-git-send-email-sourav.poddar@ti.com>
-Reply-To: <balbi@ti.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
+Date: Tue, 20 Aug 2013 18:46:38 +0530
+Message-ID: <52136C36.1090605@ti.com>
+References: <1375452223-30524-1-git-send-email-archit@ti.com> <7062944.SGK3kvnN1v@avalon> <520B62B5.8080000@ti.com> <1436822.NCo0PqzB8p@avalon>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3T9UM0G5oz8hnqz/"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59541 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:59612 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750907Ab3HTNPL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Aug 2013 09:15:11 -0400
-Content-Disposition: inline
-In-Reply-To: <1377003925-6284-1-git-send-email-sourav.poddar@ti.com>
+	id S1750991Ab3HTNQx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Aug 2013 09:16:53 -0400
+In-Reply-To: <1436822.NCo0PqzB8p@avalon>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: broonie@kernel.org, spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, balbi@ti.com, linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Archit Taneja <archit@ti.com>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, dagriego@biglakesoftware.com, dale@farnsworth.org, pawel@osciak.com, m.szyprowski@samsung.com, hverkuil@xs4all.nl, tomi.valkeinen@ti.com
 
---3T9UM0G5oz8hnqz/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Laurent,
 
-Hi,
+On Tuesday 20 August 2013 05:09 PM, Laurent Pinchart wrote:
 
-On Tue, Aug 20, 2013 at 06:35:25PM +0530, Sourav Poddar wrote:
-> +static int qspi_transfer_msg(struct ti_qspi *qspi, struct spi_transfer *=
-t)
-> +{
-> +	int ret;
-> +
-> +	if (t->tx_buf) {
-> +		ret =3D qspi_write_msg(qspi, t);
-> +		if (ret) {
-> +			dev_dbg(qspi->dev, "Error while writing\n");
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	if (t->rx_buf) {
-> +		ret =3D qspi_read_msg(qspi, t);
-> +		if (ret) {
-> +			dev_dbg(qspi->dev, "Error while writing\n");
+<snip>
 
-*READING*
+>>>> +static int vpdma_load_firmware(struct vpdma_data *vpdma)
+>>>> +{
+>>>> +	int r;
+>>>> +	struct device *dev = &vpdma->pdev->dev;
+>>>> +
+>>>> +	r = request_firmware_nowait(THIS_MODULE, 1,
+>>>> +		(const char *) VPDMA_FIRMWARE, dev, GFP_KERNEL, vpdma,
+>>>> +		vpdma_firmware_cb);
+>>>
+>>> Is there a reason not to use the synchronous interface ? That would
+>>> simplify both this code and the callers, as they won't have to check
+>>> whether the firmware has been correctly loaded.
+>>
+>> I'm not clear what you mean by that, the firmware would be stored in the
+>> filesystem. If the driver is built-in, then the synchronous interface
+>> wouldn't work unless the firmware is appended to the kernel image. Am I
+>> missing something here? I'm not very aware of the firmware api.
+>
+> request_firmware() would just sleep (with a 30 seconds timeout if I'm not
+> mistaken) until userspace provides the firmware. As devices are probed
+> asynchronously (in kernel threads) the system will just boot normally, and the
+> request_firmware() call will return when the firmware is available.
 
-other than that:
+Sorry, I sent the previous mail bit too early.
 
-Acked-by: Felipe Balbi <balbi@ti.com>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
+With request_firmware() and the driver built-in, I see that the kernel 
+stalls for 10 seconds at the driver's probe, and the firware loading 
+fails since we didn't enter userspace where the file is.
 
---=20
-balbi
+The probing of devices asynchronously with kernel threads makes sense, 
+so it's possible that I'm doing something wrong here. I'll give it a try 
+again
 
---3T9UM0G5oz8hnqz/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Archit
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSE2u1AAoJEIaOsuA1yqREd4sP/j0l4Lo3LiauKccCpGXQEhkD
-aHtR7ktLopqGkXPhOxPhPiz0l4bkoqtQGDLhsSvU2Q+rFc2MrlbpUzryVKWex60K
-l8WUBEIscQXH8VE3VMILyc/YyS1cJCKIwrRLOPlZMdovi+qBdgtLJ7s21Ow6toiB
-HEBbcYII210Ail9WGXxdRo9xRNMzl35aA1zlQTlQgGyKwAkg+Frq1AsEVU/L1ixk
-mj3iNB++VsCtPelvBWqnq7Zj+KE39XPbQ9z2B0EWq8Y9wr9MyUzm7Cvq+mIl+t/L
-iDTbn71FP6rvrBzI5RWel7eJewlKmwJlJSQQL77+ym08T8RVPmIlnVzqzVOucocd
-eHtISCqY/zLnd+bWqdFsBU2i2r84cmCQ8fEm4wGgG1XRoUcnfRzyxhfcpKGdU9az
-Zeg6StL+Diu5jii0639G3j6T3rqymVWj2G1wJgLG7qUc5NVuXvUtbyCZoUPAsrpS
-5fHduE1GJCto10+DeAvbwtzhLQLtDpyUvjh0ZXeVwEI31CMfCISbTn+AOdk2594q
-BYX/hl4Fr1fxiY66JvS9jhPGGBPPOpBcch7NlZD451bRZJihy8bbYQBf7zUwoq+4
-DSzFA3H29EtRsAUhdMrljEFxI4koOTo3ngtU+u+C2a3gu0wseWKtaM6Xsyhk0Sx4
-OI7+SoHA24qtaOlUsDlT
-=QBj/
------END PGP SIGNATURE-----
-
---3T9UM0G5oz8hnqz/--
