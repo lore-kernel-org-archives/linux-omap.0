@@ -1,153 +1,268 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
-Date: Tue, 20 Aug 2013 18:21:52 +0530
-Message-ID: <52136668.8020405@ti.com>
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <7062944.SGK3kvnN1v@avalon> <520B62B5.8080000@ti.com> <1436822.NCo0PqzB8p@avalon>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH v2 04/14] crypto: omap-aes: Simplify DMA usage by using
+ direct SGs
+Date: Tue, 20 Aug 2013 18:27:24 +0530
+Message-ID: <521367B4.2020203@ti.com>
+References: <1376793755-30478-1-git-send-email-joelf@ti.com> <1376793755-30478-5-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1436822.NCo0PqzB8p@avalon>
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, dagriego@biglakesoftware.com, dale@farnsworth.org, pawel@osciak.com, m.szyprowski@samsung.com, hverkuil@xs4all.nl, tomi.valkeinen@ti.com
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <1376793755-30478-5-git-send-email-joelf@ti.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: Herbert Xu <herbert@gondor.hengli.com.au>, "David S. Miller" <davem@davemloft.net>, Mark Greer <mgreer@animalcreek.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Crypto Mailing List <linux-crypto@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 20 August 2013 05:09 PM, Laurent Pinchart wrote:
-> Hi Archit,
->
-> On Wednesday 14 August 2013 16:27:57 Archit Taneja wrote:
->> On Friday 09 August 2013 03:34 AM, Laurent Pinchart wrote:
->>> On Friday 02 August 2013 19:33:38 Archit Taneja wrote:
->>>> The primary function of VPDMA is to move data between external memory and
->>>> internal processing modules(in our case, VPE) that source or sink data.
->>>> VPDMA is capable of buffering this data and then delivering the data as
->>>> demanded to the modules as programmed. The modules that source or sink
->>>> data are referred to as clients or ports. A channel is setup inside the
->>>> VPDMA to connect a specific memory buffer to a specific client. The VPDMA
->>>> centralizes the DMA control functions and buffering required to allow all
->>>> the clients to minimize the effect of long latency times.
->>>>
->>>> Add the following to the VPDMA helper:
->>>>
->>>> - A data struct which describe VPDMA channels. For now, these channels
->>>> are the ones used only by VPE, the list of channels will increase when
->>>> VIP(Video Input Port) also uses the VPDMA library. This channel
->>>> information will be used to populate fields required by data descriptors.
->>>>
->>>> - Data structs which describe the different data types supported by
->>>> VPDMA. This data type information will be used to populate fields
->>>> required by data descriptors and used by the VPE driver to map a V4L2
->>>> format to the corresponding VPDMA data type.
->>>>
->>>> - Provide VPDMA register offset definitions, functions to read, write and
->>>> modify VPDMA registers.
->>>>
->>>> - Functions to create and submit a VPDMA list. A list is a group of
->>>> descriptors that makes up a set of DMA transfers that need to be
->>>> completed. Each descriptor will either perform a DMA transaction to fetch
->>>> input buffers and write to output buffers(data descriptors), or configure
->>>> the MMRs of sub blocks of VPE(configuration descriptors), or provide
->>>> control information to VPDMA (control descriptors).
->>>>
->>>> - Functions to allocate, map and unmap buffers needed for the descriptor
->>>> list, payloads containing MMR values and motion vector buffers. These use
->>>> the DMA mapping APIs to ensure exclusive access to VPDMA.
->>>>
->>>> - Functions to enable VPDMA interrupts. VPDMA can trigger an interrupt on
->>>> the VPE interrupt line when a descriptor list is parsed completely and
->>>> the DMA transactions are completed. This requires masking the events in
->>>> VPDMA registers and configuring some top level VPE interrupt registers.
->>>>
->>>> - Enable some VPDMA specific parameters: frame start event(when to start
->>>> DMA for a client) and line mode(whether each line fetched should be
->>>> mirrored or not).
->>>>
->>>> - Function to load firmware required by VPDMA. VPDMA requires a firmware
->>>> for it's internal list manager. We add the required request_firmware
->>>> apis to fetch this firmware from user space.
->>>>
->>>> - Function to dump VPDMA registers.
->>>>
->>>> - A function to initialize VPDMA, this will be called by the VPE driver
->>>> with it's platform device pointer, this function will take care of
->>>> loading VPDMA firmware and returning a handle back to the VPE driver.
->>>> The VIP driver will also call the same init function to initialize it's
->>>> own VPDMA instance.
->>>>
->>>> Signed-off-by: Archit Taneja <archit@ti.com>
->
-> [snip]
->
->>>> +/*
->>>> + * Allocate a DMA buffer
->>>> + */
->>>> +int vpdma_buf_alloc(struct vpdma_buf *buf, size_t size)
->>>> +{
->>>> +	buf->size = size;
->>>> +	buf->mapped = 0;
->>>> +	buf->addr = kzalloc(size, GFP_KERNEL);
->>>
->>> You should use the dma allocation API (depending on your needs,
->>> dma_alloc_coherent for instance) to allocate DMA-able buffers.
->>
->> I'm not sure about this, dma_map_single() api works fine on kzalloc'd
->> buffers. The above function is used to allocate small contiguous buffers
->> (never more than 1024 bytes) needed for descriptors for the DMA IP. I
->> thought of using DMA pool, but that creates small buffers of the same size.
->> So I finally went with kzalloc.
->
-> OK, I mistakenly thought it would allocate larger buffers as well. If it's
-> used to allocate descriptors only, would it be better to rename it to
-> vpdma_desc_alloc() (or something similar) ?
+Hi Joel,
 
-Actually, I just thought about this again. We use this api to allocate a 
-motion vector buffer for the de-interlacer, that's a buffer which is 
-proportional to the size of the frame, it takes up 4 bits per pixel. So 
-for a 1080i frame(our limit), it would take around 51 kilobytes for it. 
-I should probably use dma_alloc_coherent there.
+On Sunday 18 August 2013 08:12 AM, Joel Fernandes wrote:
+> In early version of this driver, assumptions were made such as DMA layer
+> requires contiguous buffers etc. Due to this, new buffers were allocated,
+> mapped and used for DMA. These assumptions are no longer true and DMAEngine
+> scatter-gather DMA doesn't have such requirements. We simply the DMA operations
+> by directly using the scatter-gather buffers provided by the crypto layer
+> instead of creating our own.
+> 
+> Lot of logic that handled DMA'ing only X number of bytes of the total, or as
+> much as fitted into a 3rd party buffer is removed and is no longer required.
+> 
+> Also, good performance improvement of atleast ~20% seen with encrypting a
+> buffer size of 8K (1800 ops/sec vs 1400 ops/sec).  Improvement will be higher
+> for much larger blocks though such benchmarking is left as an exercise for the
+> reader.  Also DMA usage is much more simplified and coherent with rest of the
+> code.
+> 
+> Signed-off-by: Joel Fernandes <joelf@ti.com>
+> ---
+>  drivers/crypto/omap-aes.c |  147 ++++++++-------------------------------------
+>  1 file changed, 25 insertions(+), 122 deletions(-)
+> 
+> diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
+> index e369e6e..64dd5c1 100644
+> --- a/drivers/crypto/omap-aes.c
+> +++ b/drivers/crypto/omap-aes.c
+> @@ -480,22 +480,14 @@ static int sg_copy(struct scatterlist **sg, size_t *offset, void *buf,
+>  }
+>  
+>  static int omap_aes_crypt_dma(struct crypto_tfm *tfm,
+> -		struct scatterlist *in_sg, struct scatterlist *out_sg)
+> +		struct scatterlist *in_sg, struct scatterlist *out_sg,
+> +		int in_sg_len, int out_sg_len)
+>  {
+>  	struct omap_aes_ctx *ctx = crypto_tfm_ctx(tfm);
+>  	struct omap_aes_dev *dd = ctx->dd;
+>  	struct dma_async_tx_descriptor *tx_in, *tx_out;
+>  	struct dma_slave_config cfg;
+> -	dma_addr_t dma_addr_in = sg_dma_address(in_sg);
+> -	int ret, length = sg_dma_len(in_sg);
+> -
+> -	pr_debug("len: %d\n", length);
+> -
+> -	dd->dma_size = length;
+> -
+> -	if (!(dd->flags & FLAGS_FAST))
+> -		dma_sync_single_for_device(dd->dev, dma_addr_in, length,
+> -					   DMA_TO_DEVICE);
+> +	int ret;
+By this change FLAGS_FAST is unsed, it can be cleaned right?
+or Am I missing something?
 
->
->>>> +	if (!buf->addr)
->>>> +		return -ENOMEM;
->>>> +
->>>> +	WARN_ON((u32) buf->addr & VPDMA_DESC_ALIGN);
->>>> +
->>>> +	return 0;
->>>> +}
->
-> [snip]
->
->>>> +static int vpdma_load_firmware(struct vpdma_data *vpdma)
->>>> +{
->>>> +	int r;
->>>> +	struct device *dev = &vpdma->pdev->dev;
->>>> +
->>>> +	r = request_firmware_nowait(THIS_MODULE, 1,
->>>> +		(const char *) VPDMA_FIRMWARE, dev, GFP_KERNEL, vpdma,
->>>> +		vpdma_firmware_cb);
->>>
->>> Is there a reason not to use the synchronous interface ? That would
->>> simplify both this code and the callers, as they won't have to check
->>> whether the firmware has been correctly loaded.
->>
->> I'm not clear what you mean by that, the firmware would be stored in the
->> filesystem. If the driver is built-in, then the synchronous interface
->> wouldn't work unless the firmware is appended to the kernel image. Am I
->> missing something here? I'm not very aware of the firmware api.
->
-> request_firmware() would just sleep (with a 30 seconds timeout if I'm not
-> mistaken) until userspace provides the firmware. As devices are probed
-> asynchronously (in kernel threads) the system will just boot normally, and the
-> request_firmware() call will return when the firmware is available.
->
->>>> +	if (r) {
->>>> +		dev_err(dev, "firmware not available %s\n", VPDMA_FIRMWARE);
->>>> +		return r;
->>>> +	} else {
->>>> +		dev_info(dev, "loading firmware %s\n", VPDMA_FIRMWARE);
->>>> +	}
->>>> +
->>>> +	return 0;
->>>> +}
->
+Thanks and regards,
+Lokesh
+>  
+>  	memset(&cfg, 0, sizeof(cfg));
+>  
+> @@ -514,7 +506,7 @@ static int omap_aes_crypt_dma(struct crypto_tfm *tfm,
+>  		return ret;
+>  	}
+>  
+> -	tx_in = dmaengine_prep_slave_sg(dd->dma_lch_in, in_sg, 1,
+> +	tx_in = dmaengine_prep_slave_sg(dd->dma_lch_in, in_sg, in_sg_len,
+>  					DMA_MEM_TO_DEV,
+>  					DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+>  	if (!tx_in) {
+> @@ -533,7 +525,7 @@ static int omap_aes_crypt_dma(struct crypto_tfm *tfm,
+>  		return ret;
+>  	}
+>  
+> -	tx_out = dmaengine_prep_slave_sg(dd->dma_lch_out, out_sg, 1,
+> +	tx_out = dmaengine_prep_slave_sg(dd->dma_lch_out, out_sg, out_sg_len,
+>  					DMA_DEV_TO_MEM,
+>  					DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+>  	if (!tx_out) {
+> @@ -551,7 +543,7 @@ static int omap_aes_crypt_dma(struct crypto_tfm *tfm,
+>  	dma_async_issue_pending(dd->dma_lch_out);
+>  
+>  	/* start DMA */
+> -	dd->pdata->trigger(dd, length);
+> +	dd->pdata->trigger(dd, dd->total);
+>  
+>  	return 0;
+>  }
+> @@ -560,93 +552,28 @@ static int omap_aes_crypt_dma_start(struct omap_aes_dev *dd)
+>  {
+>  	struct crypto_tfm *tfm = crypto_ablkcipher_tfm(
+>  					crypto_ablkcipher_reqtfm(dd->req));
+> -	int err, fast = 0, in, out;
+> -	size_t count;
+> -	dma_addr_t addr_in, addr_out;
+> -	struct scatterlist *in_sg, *out_sg;
+> -	int len32;
+> +	int err;
+>  
+>  	pr_debug("total: %d\n", dd->total);
+>  
+> -	if (sg_is_last(dd->in_sg) && sg_is_last(dd->out_sg)) {
+> -		/* check for alignment */
+> -		in = IS_ALIGNED((u32)dd->in_sg->offset, sizeof(u32));
+> -		out = IS_ALIGNED((u32)dd->out_sg->offset, sizeof(u32));
+> -
+> -		fast = in && out;
+> +	err = dma_map_sg(dd->dev, dd->in_sg, dd->in_sg_len, DMA_TO_DEVICE);
+> +	if (!err) {
+> +		dev_err(dd->dev, "dma_map_sg() error\n");
+> +		return -EINVAL;
+>  	}
+>  
+> -	if (fast)  {
+> -		count = min(dd->total, sg_dma_len(dd->in_sg));
+> -		count = min(count, sg_dma_len(dd->out_sg));
+> -
+> -		if (count != dd->total) {
+> -			pr_err("request length != buffer length\n");
+> -			return -EINVAL;
+> -		}
+> -
+> -		pr_debug("fast\n");
+> -
+> -		err = dma_map_sg(dd->dev, dd->in_sg, 1, DMA_TO_DEVICE);
+> -		if (!err) {
+> -			dev_err(dd->dev, "dma_map_sg() error\n");
+> -			return -EINVAL;
+> -		}
+> -
+> -		err = dma_map_sg(dd->dev, dd->out_sg, 1, DMA_FROM_DEVICE);
+> -		if (!err) {
+> -			dev_err(dd->dev, "dma_map_sg() error\n");
+> -			dma_unmap_sg(dd->dev, dd->in_sg, 1, DMA_TO_DEVICE);
+> -			return -EINVAL;
+> -		}
+> -
+> -		addr_in = sg_dma_address(dd->in_sg);
+> -		addr_out = sg_dma_address(dd->out_sg);
+> -
+> -		in_sg = dd->in_sg;
+> -		out_sg = dd->out_sg;
+> -
+> -		dd->flags |= FLAGS_FAST;
+> -
+> -	} else {
+> -		/* use cache buffers */
+> -		count = sg_copy(&dd->in_sg, &dd->in_offset, dd->buf_in,
+> -				 dd->buflen, dd->total, 0);
+> -
+> -		len32 = DIV_ROUND_UP(count, DMA_MIN) * DMA_MIN;
+> -
+> -		/*
+> -		 * The data going into the AES module has been copied
+> -		 * to a local buffer and the data coming out will go
+> -		 * into a local buffer so set up local SG entries for
+> -		 * both.
+> -		 */
+> -		sg_init_table(&dd->in_sgl, 1);
+> -		dd->in_sgl.offset = dd->in_offset;
+> -		sg_dma_len(&dd->in_sgl) = len32;
+> -		sg_dma_address(&dd->in_sgl) = dd->dma_addr_in;
+> -
+> -		sg_init_table(&dd->out_sgl, 1);
+> -		dd->out_sgl.offset = dd->out_offset;
+> -		sg_dma_len(&dd->out_sgl) = len32;
+> -		sg_dma_address(&dd->out_sgl) = dd->dma_addr_out;
+> -
+> -		in_sg = &dd->in_sgl;
+> -		out_sg = &dd->out_sgl;
+> -
+> -		addr_in = dd->dma_addr_in;
+> -		addr_out = dd->dma_addr_out;
+> -
+> -		dd->flags &= ~FLAGS_FAST;
+> -
+> +	err = dma_map_sg(dd->dev, dd->out_sg, dd->out_sg_len, DMA_FROM_DEVICE);
+> +	if (!err) {
+> +		dev_err(dd->dev, "dma_map_sg() error\n");
+> +		return -EINVAL;
+>  	}
+>  
+> -	dd->total -= count;
+> -
+> -	err = omap_aes_crypt_dma(tfm, in_sg, out_sg);
+> +	err = omap_aes_crypt_dma(tfm, dd->in_sg, dd->out_sg, dd->in_sg_len,
+> +				 dd->out_sg_len);
+>  	if (err) {
+> -		dma_unmap_sg(dd->dev, dd->in_sg, 1, DMA_TO_DEVICE);
+> -		dma_unmap_sg(dd->dev, dd->out_sg, 1, DMA_TO_DEVICE);
+> +		dma_unmap_sg(dd->dev, dd->in_sg, dd->in_sg_len, DMA_TO_DEVICE);
+> +		dma_unmap_sg(dd->dev, dd->out_sg, dd->out_sg_len,
+> +			     DMA_FROM_DEVICE);
+>  	}
+>  
+>  	return err;
+> @@ -667,7 +594,6 @@ static void omap_aes_finish_req(struct omap_aes_dev *dd, int err)
+>  static int omap_aes_crypt_dma_stop(struct omap_aes_dev *dd)
+>  {
+>  	int err = 0;
+> -	size_t count;
+>  
+>  	pr_debug("total: %d\n", dd->total);
+>  
+> @@ -676,21 +602,8 @@ static int omap_aes_crypt_dma_stop(struct omap_aes_dev *dd)
+>  	dmaengine_terminate_all(dd->dma_lch_in);
+>  	dmaengine_terminate_all(dd->dma_lch_out);
+>  
+> -	if (dd->flags & FLAGS_FAST) {
+> -		dma_unmap_sg(dd->dev, dd->out_sg, 1, DMA_FROM_DEVICE);
+> -		dma_unmap_sg(dd->dev, dd->in_sg, 1, DMA_TO_DEVICE);
+> -	} else {
+> -		dma_sync_single_for_device(dd->dev, dd->dma_addr_out,
+> -					   dd->dma_size, DMA_FROM_DEVICE);
+> -
+> -		/* copy data */
+> -		count = sg_copy(&dd->out_sg, &dd->out_offset, dd->buf_out,
+> -				 dd->buflen, dd->dma_size, 1);
+> -		if (count != dd->dma_size) {
+> -			err = -EINVAL;
+> -			pr_err("not all data converted: %u\n", count);
+> -		}
+> -	}
+> +	dma_unmap_sg(dd->dev, dd->in_sg, dd->in_sg_len, DMA_TO_DEVICE);
+> +	dma_unmap_sg(dd->dev, dd->out_sg, dd->out_sg_len, DMA_FROM_DEVICE);
+>  
+>  	return err;
+>  }
+> @@ -760,21 +673,11 @@ static int omap_aes_handle_queue(struct omap_aes_dev *dd,
+>  static void omap_aes_done_task(unsigned long data)
+>  {
+>  	struct omap_aes_dev *dd = (struct omap_aes_dev *)data;
+> -	int err;
+> -
+> -	pr_debug("enter\n");
+>  
+> -	err = omap_aes_crypt_dma_stop(dd);
+> -
+> -	err = dd->err ? : err;
+> -
+> -	if (dd->total && !err) {
+> -		err = omap_aes_crypt_dma_start(dd);
+> -		if (!err)
+> -			return; /* DMA started. Not fininishing. */
+> -	}
+> +	pr_debug("enter done_task\n");
+>  
+> -	omap_aes_finish_req(dd, err);
+> +	omap_aes_crypt_dma_stop(dd);
+> +	omap_aes_finish_req(dd, 0);
+>  	omap_aes_handle_queue(dd, NULL);
+>  
+>  	pr_debug("exit\n");
+> 
