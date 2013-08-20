@@ -1,177 +1,37 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: [PATCH] hwrng: reorder OMAP TRNG driver code
-Date: Tue, 20 Aug 2013 11:07:53 -0700
-Message-ID: <1377022073-28198-1-git-send-email-olof@lixom.net>
+From: Brian Norris <computersforpeace@gmail.com>
+Subject: Re: [PATCH v5 0/4] mtd:nand:omap2: clean-up of supported ECC schemes
+Date: Tue, 20 Aug 2013 11:17:34 -0700
+Message-ID: <CAN8TOE9ET+PYkxpcN6idMj+jYD=qE7GxLfuGjdzjmer-q8yXQw@mail.gmail.com>
+References: <1373748891-7779-1-git-send-email-pekon@ti.com>
+	<20980858CB6D3A4BAE95CA194937D5E73E9F781B@DBDE04.ent.ti.com>
+	<1377007349.2089.566.camel@sauron.fi.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:43959 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751266Ab3HTSHb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 14:07:31 -0400
-Received: by mail-pa0-f41.google.com with SMTP id bj1so1019070pad.14
-        for <linux-omap@vger.kernel.org>; Tue, 20 Aug 2013 11:07:30 -0700 (PDT)
+Received: from mail-ve0-f177.google.com ([209.85.128.177]:61773 "EHLO
+	mail-ve0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751001Ab3HTSRf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 14:17:35 -0400
+Received: by mail-ve0-f177.google.com with SMTP id cz11so603892veb.22
+        for <linux-omap@vger.kernel.org>; Tue, 20 Aug 2013 11:17:34 -0700 (PDT)
+In-Reply-To: <1377007349.2089.566.camel@sauron.fi.intel.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: herbert@gondor.hengli.com.au
-Cc: linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>, Lokesh Vutla <lokeshvutla@ti.com>
+To: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: "Gupta, Pekon" <pekon@ti.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "arnd@arndb.de" <arnd@arndb.de>, "olof@lixom.net" <olof@lixom.net>, "tony@atomide.com" <tony@atomide.com>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-The newly added omap4 support in the driver was added without
-consideration for building older configs. When building omap1_defconfig,
-it resulted in:
+On Tue, Aug 20, 2013 at 7:02 AM, Artem Bityutskiy <dedekind1@gmail.com> wrote:
+> On Tue, 2013-08-20 at 13:20 +0000, Gupta, Pekon wrote:
+>> Hi Artem, Brian,
+>
+> I'll try to go through old e-mails now, and especially ubi/ubifs ones,
+> including yours, and I'll let Brian handle your patches, if I can? :-)
 
-drivers/char/hw_random/omap-rng.c:190:12: warning: 'omap4_rng_init' defined but not used [-Wunused-function]
-drivers/char/hw_random/omap-rng.c:215:13: warning: 'omap4_rng_cleanup' defined but not used [-Wunused-function]
-drivers/char/hw_random/omap-rng.c:251:20: warning: 'omap4_rng_irq' defined but not used [-Wunused-function]
+Yes, these are on my radar, but I haven't spent any time on them yet.
+I will handle them soon.
 
-Move the code around so it is grouped with its operations struct, which
-for the omap4 case means also under the #ifdef CONFIG_OF, where it needs
-to be.
+> I checked them, and they looked good to me:
+>
+> Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
-Signed-off-by: Olof Johansson <olof@lixom.net>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>
----
- drivers/char/hw_random/omap-rng.c |  108 ++++++++++++++++++-------------------
- 1 file changed, 54 insertions(+), 54 deletions(-)
-
-diff --git a/drivers/char/hw_random/omap-rng.c b/drivers/char/hw_random/omap-rng.c
-index f3f7142..9b89ff4 100644
---- a/drivers/char/hw_random/omap-rng.c
-+++ b/drivers/char/hw_random/omap-rng.c
-@@ -140,16 +140,6 @@ static inline void omap_rng_write(struct omap_rng_dev *priv, u16 reg,
- 	__raw_writel(val, priv->base + priv->pdata->regs[reg]);
- }
- 
--static inline u32 omap2_rng_data_present(struct omap_rng_dev *priv)
--{
--	return omap_rng_read(priv, RNG_STATUS_REG) ? 0 : 1;
--}
--
--static inline u32 omap4_rng_data_present(struct omap_rng_dev *priv)
--{
--	return omap_rng_read(priv, RNG_STATUS_REG) & RNG_REG_STATUS_RDY;
--}
--
- static int omap_rng_data_present(struct hwrng *rng, int wait)
- {
- 	struct omap_rng_dev *priv;
-@@ -187,6 +177,60 @@ static int omap_rng_data_read(struct hwrng *rng, u32 *data)
- 	return data_size;
- }
- 
-+static int omap_rng_init(struct hwrng *rng)
-+{
-+	struct omap_rng_dev *priv;
-+
-+	priv = (struct omap_rng_dev *)rng->priv;
-+	return priv->pdata->init(priv);
-+}
-+
-+static void omap_rng_cleanup(struct hwrng *rng)
-+{
-+	struct omap_rng_dev *priv;
-+
-+	priv = (struct omap_rng_dev *)rng->priv;
-+	priv->pdata->cleanup(priv);
-+}
-+
-+static struct hwrng omap_rng_ops = {
-+	.name		= "omap",
-+	.data_present	= omap_rng_data_present,
-+	.data_read	= omap_rng_data_read,
-+	.init		= omap_rng_init,
-+	.cleanup	= omap_rng_cleanup,
-+};
-+
-+static inline u32 omap2_rng_data_present(struct omap_rng_dev *priv)
-+{
-+	return omap_rng_read(priv, RNG_STATUS_REG) ? 0 : 1;
-+}
-+
-+static int omap2_rng_init(struct omap_rng_dev *priv)
-+{
-+	omap_rng_write(priv, RNG_SYSCONFIG_REG, 0x1);
-+	return 0;
-+}
-+
-+static void omap2_rng_cleanup(struct omap_rng_dev *priv)
-+{
-+	omap_rng_write(priv, RNG_SYSCONFIG_REG, 0x0);
-+}
-+
-+static struct omap_rng_pdata omap2_rng_pdata = {
-+	.regs		= (u16 *)reg_map_omap2,
-+	.data_size	= OMAP2_RNG_OUTPUT_SIZE,
-+	.data_present	= omap2_rng_data_present,
-+	.init		= omap2_rng_init,
-+	.cleanup	= omap2_rng_cleanup,
-+};
-+
-+#if defined(CONFIG_OF)
-+static inline u32 omap4_rng_data_present(struct omap_rng_dev *priv)
-+{
-+	return omap_rng_read(priv, RNG_STATUS_REG) & RNG_REG_STATUS_RDY;
-+}
-+
- static int omap4_rng_init(struct omap_rng_dev *priv)
- {
- 	u32 val;
-@@ -221,33 +265,6 @@ static void omap4_rng_cleanup(struct omap_rng_dev *priv)
- 	omap_rng_write(priv, RNG_CONFIG_REG, val);
- }
- 
--static int omap2_rng_init(struct omap_rng_dev *priv)
--{
--	omap_rng_write(priv, RNG_SYSCONFIG_REG, 0x1);
--	return 0;
--}
--
--static void omap2_rng_cleanup(struct omap_rng_dev *priv)
--{
--	omap_rng_write(priv, RNG_SYSCONFIG_REG, 0x0);
--}
--
--static int omap_rng_init(struct hwrng *rng)
--{
--	struct omap_rng_dev *priv;
--
--	priv = (struct omap_rng_dev *)rng->priv;
--	return priv->pdata->init(priv);
--}
--
--static void omap_rng_cleanup(struct hwrng *rng)
--{
--	struct omap_rng_dev *priv;
--
--	priv = (struct omap_rng_dev *)rng->priv;
--	priv->pdata->cleanup(priv);
--}
--
- static irqreturn_t omap4_rng_irq(int irq, void *dev_id)
- {
- 	struct omap_rng_dev *priv = dev_id;
-@@ -275,23 +292,6 @@ static irqreturn_t omap4_rng_irq(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
--static struct hwrng omap_rng_ops = {
--	.name		= "omap",
--	.data_present	= omap_rng_data_present,
--	.data_read	= omap_rng_data_read,
--	.init		= omap_rng_init,
--	.cleanup	= omap_rng_cleanup,
--};
--
--static struct omap_rng_pdata omap2_rng_pdata = {
--	.regs		= (u16 *)reg_map_omap2,
--	.data_size	= OMAP2_RNG_OUTPUT_SIZE,
--	.data_present	= omap2_rng_data_present,
--	.init		= omap2_rng_init,
--	.cleanup	= omap2_rng_cleanup,
--};
--
--#if defined(CONFIG_OF)
- static struct omap_rng_pdata omap4_rng_pdata = {
- 	.regs		= (u16 *)reg_map_omap4,
- 	.data_size	= OMAP4_RNG_OUTPUT_SIZE,
--- 
-1.7.10.4
-
+Brian
