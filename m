@@ -1,43 +1,181 @@
-From: Graeme Gregory <gg@slimlogic.co.uk>
-Subject: Re: [PATCH v2 0/5] mfd: twl6030-irq: rework and add twl6032 support
-Date: Tue, 20 Aug 2013 08:13:54 +0100
-Message-ID: <52131732.2060306@slimlogic.co.uk>
-References: <1374758151-12097-1-git-send-email-grygorii.strashko@ti.com> <20130820010154.GB13324@zurbaran>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 1/3] ARM: OMAP2+: hwmod: cleanup HWMOD_INIT_NO_RESET usage
+Date: Tue, 20 Aug 2013 13:02:44 +0530
+Message-ID: <1376983966-16490-2-git-send-email-rnayak@ti.com>
+References: <1376983966-16490-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130820010154.GB13324@zurbaran>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Lee Jones <lee.jones@linaro.org>, Kevin Hilman <khilman@linaro.org>, linux-omap@vger.kernel.org, Ruslan Bilovol <ruslan.bilovol@ti.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1376983966-16490-1-git-send-email-rnayak@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 20/08/13 02:01, Samuel Ortiz wrote:
-> Hi Grygorii,
->
-> On Thu, Jul 25, 2013 at 04:15:46PM +0300, Grygorii Strashko wrote:
->> This patch series intorduces twl6030-irq module rework to use Threaded IRQ and
->> linear irq_domain, and adds support for PMIC TWL6032 IRQs.
->>
->> After this patch series TWL6030/6032 IRQs will be supported only for DT boot mode.
->>
->> Changes since v1:
->> - Added new patch "mfd: twl6030-irq: create struct twl6030_irq"
->>    which introduces "struct twl6030_irq" to store all local variables inside it.
->> - Patch "mfd: twl6030-irq: migrate to IRQ threaded handler":
->>    Minor comments applied; fixed twl6030_exit_irq();
->>    The Parent IRQ has been set for each nested IRQ.
->> - Patch "mfd: twl6030-irq: convert to use linear irq_domain":
->>    The irq_find_mapping() is used in twl6030_mmc_card_detect_config()
->>    to get virtual IRQ number.
-> This looks good to me. Kevin, Graeme, any further comments/ACKs ?
->
-> Cheers,
-> Samuel.
->
-Yes, it looked good to me as well.
+For modules/IPs/hwmods which do not have
+-1- sys->class->reset()
+and
+-2- hardreset lines
+and
+-3- No way to do an ocp reset (no sysc control)
+the flag 'HWMOD_INIT_NO_RESET' is not much useful.
 
-Acked-by: Graeme Gregory <gg@slimlogic.co.uk>
+Cleanup all such instances across various hwmod data files.
 
-G
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   18 +++++++++---------
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    6 +++---
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c |    6 +++---
+ 3 files changed, 15 insertions(+), 15 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+index eb2f3b9..d4f0531 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -52,7 +52,7 @@ static struct omap_hwmod am33xx_emif_hwmod = {
+ 	.name		= "emif",
+ 	.class		= &am33xx_emif_hwmod_class,
+ 	.clkdm_name	= "l3_clkdm",
+-	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.main_clk	= "dpll_ddr_m2_div2_ck",
+ 	.prcm		= {
+ 		.omap4	= {
+@@ -74,7 +74,7 @@ static struct omap_hwmod am33xx_l3_main_hwmod = {
+ 	.name		= "l3_main",
+ 	.class		= &am33xx_l3_hwmod_class,
+ 	.clkdm_name	= "l3_clkdm",
+-	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.main_clk	= "l3_gclk",
+ 	.prcm		= {
+ 		.omap4	= {
+@@ -96,7 +96,7 @@ static struct omap_hwmod am33xx_l3_instr_hwmod = {
+ 	.name		= "l3_instr",
+ 	.class		= &am33xx_l3_hwmod_class,
+ 	.clkdm_name	= "l3_clkdm",
+-	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.main_clk	= "l3_gclk",
+ 	.prcm		= {
+ 		.omap4	= {
+@@ -119,7 +119,7 @@ static struct omap_hwmod am33xx_l4_ls_hwmod = {
+ 	.name		= "l4_ls",
+ 	.class		= &am33xx_l4_hwmod_class,
+ 	.clkdm_name	= "l4ls_clkdm",
+-	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.main_clk	= "l4ls_gclk",
+ 	.prcm		= {
+ 		.omap4	= {
+@@ -134,7 +134,7 @@ static struct omap_hwmod am33xx_l4_hs_hwmod = {
+ 	.name		= "l4_hs",
+ 	.class		= &am33xx_l4_hwmod_class,
+ 	.clkdm_name	= "l4hs_clkdm",
+-	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.main_clk	= "l4hs_gclk",
+ 	.prcm		= {
+ 		.omap4	= {
+@@ -150,7 +150,7 @@ static struct omap_hwmod am33xx_l4_wkup_hwmod = {
+ 	.name		= "l4_wkup",
+ 	.class		= &am33xx_l4_hwmod_class,
+ 	.clkdm_name	= "l4_wkup_clkdm",
+-	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.prcm		= {
+ 		.omap4	= {
+ 			.clkctrl_offs	= AM33XX_CM_WKUP_L4WKUP_CLKCTRL_OFFSET,
+@@ -170,7 +170,7 @@ static struct omap_hwmod am33xx_mpu_hwmod = {
+ 	.name		= "mpu",
+ 	.class		= &am33xx_mpu_hwmod_class,
+ 	.clkdm_name	= "mpu_clkdm",
+-	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.main_clk	= "dpll_mpu_m2_ck",
+ 	.prcm		= {
+ 		.omap4	= {
+@@ -472,7 +472,7 @@ static struct omap_hwmod am33xx_ocmcram_hwmod = {
+ 	.name		= "ocmcram",
+ 	.class		= &am33xx_ocmcram_hwmod_class,
+ 	.clkdm_name	= "l3_clkdm",
+-	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.main_clk	= "l3_gclk",
+ 	.prcm		= {
+ 		.omap4	= {
+@@ -526,7 +526,7 @@ static struct omap_hwmod am33xx_control_hwmod = {
+ 	.name		= "control",
+ 	.class		= &am33xx_control_hwmod_class,
+ 	.clkdm_name	= "l4_wkup_clkdm",
+-	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.main_clk	= "dpll_core_m4_div2_ck",
+ 	.prcm		= {
+ 		.omap4	= {
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 9c3b504..1e5b12c 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -914,7 +914,7 @@ static struct omap_hwmod omap44xx_emif1_hwmod = {
+ 	.name		= "emif1",
+ 	.class		= &omap44xx_emif_hwmod_class,
+ 	.clkdm_name	= "l3_emif_clkdm",
+-	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.main_clk	= "ddrphy_ck",
+ 	.prcm = {
+ 		.omap4 = {
+@@ -930,7 +930,7 @@ static struct omap_hwmod omap44xx_emif2_hwmod = {
+ 	.name		= "emif2",
+ 	.class		= &omap44xx_emif_hwmod_class,
+ 	.clkdm_name	= "l3_emif_clkdm",
+-	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.main_clk	= "ddrphy_ck",
+ 	.prcm = {
+ 		.omap4 = {
+@@ -2193,7 +2193,7 @@ static struct omap_hwmod omap44xx_mpu_hwmod = {
+ 	.name		= "mpu",
+ 	.class		= &omap44xx_mpu_hwmod_class,
+ 	.clkdm_name	= "mpuss_clkdm",
+-	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.main_clk	= "dpll_mpu_m2_ck",
+ 	.prcm = {
+ 		.omap4 = {
+diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+index 3c70f5c..5483c6d 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+@@ -353,7 +353,7 @@ static struct omap_hwmod omap54xx_emif1_hwmod = {
+ 	.name		= "emif1",
+ 	.class		= &omap54xx_emif_hwmod_class,
+ 	.clkdm_name	= "emif_clkdm",
+-	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.main_clk	= "dpll_core_h11x2_ck",
+ 	.prcm = {
+ 		.omap4 = {
+@@ -369,7 +369,7 @@ static struct omap_hwmod omap54xx_emif2_hwmod = {
+ 	.name		= "emif2",
+ 	.class		= &omap54xx_emif_hwmod_class,
+ 	.clkdm_name	= "emif_clkdm",
+-	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.main_clk	= "dpll_core_h11x2_ck",
+ 	.prcm = {
+ 		.omap4 = {
+@@ -1103,7 +1103,7 @@ static struct omap_hwmod omap54xx_mpu_hwmod = {
+ 	.name		= "mpu",
+ 	.class		= &omap54xx_mpu_hwmod_class,
+ 	.clkdm_name	= "mpu_clkdm",
+-	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
++	.flags		= HWMOD_INIT_NO_IDLE,
+ 	.main_clk	= "dpll_mpu_m2_ck",
+ 	.prcm = {
+ 		.omap4 = {
+-- 
+1.7.9.5
+
