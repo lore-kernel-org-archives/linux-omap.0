@@ -1,65 +1,53 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: Re: [PATCH v4 1/4] ARM: OMAP2+: AM33XX: I2C Sleep/wake sequence support
-Date: Tue, 20 Aug 2013 09:33:19 -0700
-Message-ID: <CA+Bv8XaPU6N3KztAPFZb8OMMg8Tc+Kv5hf1Utz7QS=NCRdO3Rg@mail.gmail.com>
-References: <1376432412-8509-1-git-send-email-Russ.Dill@ti.com>
-	<1376432412-8509-2-git-send-email-Russ.Dill@ti.com>
-	<520B595F.2040207@ti.com>
-	<CA+Bv8XZ-QGhVV1mK=rRekOZzaTDN-Y9YkWYYoEc8EtvP0JouEA@mail.gmail.com>
-	<5211B201.2000401@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH v2 0/5] mfd: twl6030-irq: rework and add twl6032 support
+Date: Tue, 20 Aug 2013 19:39:16 +0300
+Message-ID: <52139BB4.9000604@ti.com>
+References: <1374758151-12097-1-git-send-email-grygorii.strashko@ti.com> <20130820010154.GB13324@zurbaran> <52131732.2060306@slimlogic.co.uk> <20130820081824.GA7994@zurbaran>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qe0-f50.google.com ([209.85.128.50]:47181 "EHLO
-	mail-qe0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751129Ab3HTQdU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 12:33:20 -0400
-In-Reply-To: <5211B201.2000401@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130820081824.GA7994@zurbaran>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Graeme Gregory <gg@slimlogic.co.uk>, Lee Jones <lee.jones@linaro.org>, Kevin Hilman <khilman@linaro.org>, linux-omap@vger.kernel.org, Ruslan Bilovol <ruslan.bilovol@ti.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gururaja Hebbar <gururaja.hebbar@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, devicetree@vger.kernel.org, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-On Sun, Aug 18, 2013 at 10:49 PM, Gururaja Hebbar
-<gururaja.hebbar@ti.com> wrote:
+On 08/20/2013 11:18 AM, Samuel Ortiz wrote:
+> On Tue, Aug 20, 2013 at 08:13:54AM +0100, Graeme Gregory wrote:
+>> On 20/08/13 02:01, Samuel Ortiz wrote:
+>>> Hi Grygorii,
+>>>
+>>> On Thu, Jul 25, 2013 at 04:15:46PM +0300, Grygorii Strashko wrote:
+>>>> This patch series intorduces twl6030-irq module rework to use Threaded IRQ and
+>>>> linear irq_domain, and adds support for PMIC TWL6032 IRQs.
+>>>>
+>>>> After this patch series TWL6030/6032 IRQs will be supported only for DT boot mode.
+>>>>
+>>>> Changes since v1:
+>>>> - Added new patch "mfd: twl6030-irq: create struct twl6030_irq"
+>>>>    which introduces "struct twl6030_irq" to store all local variables inside it.
+>>>> - Patch "mfd: twl6030-irq: migrate to IRQ threaded handler":
+>>>>    Minor comments applied; fixed twl6030_exit_irq();
+>>>>    The Parent IRQ has been set for each nested IRQ.
+>>>> - Patch "mfd: twl6030-irq: convert to use linear irq_domain":
+>>>>    The irq_find_mapping() is used in twl6030_mmc_card_detect_config()
+>>>>    to get virtual IRQ number.
+>>> This looks good to me. Kevin, Graeme, any further comments/ACKs ?
+>>>
+>>> Cheers,
+>>> Samuel.
+>>>
+>> Yes, it looked good to me as well.
+>>
+>> Acked-by: Graeme Gregory <gg@slimlogic.co.uk>
+> Thanks. All 5 patches applied to mfd-next.
 >
-> On 8/15/2013 4:04 AM, Russ Dill wrote:
-> > On Wed, Aug 14, 2013 at 3:18 AM, Gururaja Hebbar <gururaja.hebbar@ti.com> wrote:
-> >> On 8/14/2013 3:50 AM, Russ Dill wrote:
-> >>> Changes since v1:
-> >>> * Rebased onto new am335x PM branch
-> >>> * Changed to use 5th param register
->
-> >>
->
-> [snip]
-> [snip]
->
-> >>> +
-> >>> +     wkup_m3_reset_data_pos();
-> >>> +     if (am33xx_i2c_sleep_sequence) {
-> >>> +             pos = wkup_m3_copy_data(am33xx_i2c_sleep_sequence,
-> >>> +                                             i2c_sleep_sequence_sz);
-> >>
-> >> Why do we need to copy this data (same constant data) on every iteration?
-> >
-> > Because the CM3 firmware is reset after each suspend/resume cycle. The
-> > firmware reset handler reinitializes the DMEM.
->
-> Well in that why can't the i2c payload be copied to UMEM?
->
-> Thanks & regards
-> Gururaja
+> Cheers,
+> Samuel.
 >
 
-I've given this some thought, and gone back and forth a bit. UMEM is a
-bit more complicated because the linker decides what should go where.
-Also, it may be that in the future, either the PM for am335x or am43xx
-will be writing different sequences depending on the suspend
-mode/options.
+Thanks.
 
-Is there a specific aspect of copying the data each suspend cycle that
-you are trying to fix? Is it just that the data could only be copied
-once? Or is it the latency of the copy?
-
-Thanks!
+Regards,
+-grygorii
