@@ -1,52 +1,96 @@
-From: <thomas.langer@lantiq.com>
-Subject: RE: [PATCH v5 1/8] usb: phy: omap-control: Get rid of platform data
-Date: Tue, 20 Aug 2013 15:04:44 +0000
-Message-ID: <593AEF6C47F46446852B067021A273D6D982D30B@MUCSE039.lantiq.com>
-References: <1377010577-19355-1-git-send-email-rogerq@ti.com>
- <1377010577-19355-2-git-send-email-rogerq@ti.com>
+From: Pawel Moll <pawel.moll@arm.com>
+Subject: Re: [PATCH v4 2/3] usb: phy: Add Qualcomm SS-USB and HS-USB drivers
+ for DWC3 core
+Date: Tue, 20 Aug 2013 16:06:03 +0100
+Message-ID: <1377011163.31445.30.camel@hornet>
+References: <1376992565-22292-1-git-send-email-iivanov@mm-sol.com>
+	 <1376992565-22292-3-git-send-email-iivanov@mm-sol.com>
+	 <20130820122907.GU26587@radagast>
+	 <1377005543.26268.22.camel@iivanov-dev.int.mm-sol.com>
+	 <20130820133712.GC26587@radagast>
+	 <1377007751.26268.27.camel@iivanov-dev.int.mm-sol.com>
+	 <20130820143319.GG26587@radagast>
+	 <1377010458.26268.30.camel@iivanov-dev.int.mm-sol.com>
+	 <8691FDFE-326E-4198-838A-202D9EC988E1@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1377010577-19355-2-git-send-email-rogerq@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: rogerq@ti.com, balbi@ti.com, bcousson@baylibre.com
-Cc: devicetree@vger.kernel.org, george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, tony@atomide.com, bigeasy@linutronix.de, linux-usb@vger.kernel.org, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <8691FDFE-326E-4198-838A-202D9EC988E1@codeaurora.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kumar Gala <galak@codeaurora.org>
+Cc: "Ivan T. Ivanov" <iivanov@mm-sol.com>, "balbi@ti.com" <balbi@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Mark Rutland <Mark.Rutland@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob@landley.net" <rob@landley.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "idos@codeaurora.org" <idos@codeaurora.org>, "mgautam@codeaurora.org" <mgautam@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Paul
 List-Id: linux-omap@vger.kernel.org
 
-Hello Roger,
+On Tue, 2013-08-20 at 16:01 +0100, Kumar Gala wrote:
+> On Aug 20, 2013, at 9:54 AM, Ivan T. Ivanov wrote:
+>=20
+> >=20
+> > Hi,=20
+> >=20
+> > On Tue, 2013-08-20 at 09:33 -0500, Felipe Balbi wrote:=20
+> >> On Tue, Aug 20, 2013 at 05:09:11PM +0300, Ivan T. Ivanov wrote:
+> >>> Hi,
+> >>>=20
+> >>> On Tue, 2013-08-20 at 08:37 -0500, Felipe Balbi wrote:=20
+> >>>> Hi,
+> >>>>=20
+> >>>> On Tue, Aug 20, 2013 at 04:32:23PM +0300, Ivan T. Ivanov wrote:
+> >>>>>> On Tue, Aug 20, 2013 at 12:56:04PM +0300, Ivan T. Ivanov wrote=
+:
+> >>>>>>> From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+> >>>>>>>=20
+> >>>>>>> These drivers handles control and configuration of the HS
+> >>>>>>> and SS USB PHY transceivers. They are part of the driver
+> >>>>>>> which manage Synopsys DesignWare USB3 controller stack
+> >>>>>>> inside Qualcomm SoC's.
+> >>>>>>>=20
+> >>>>>>> Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
+> >>>>>>> ---
+> >>>>>>> drivers/usb/phy/Kconfig           |   11 ++
+> >>>>>>> drivers/usb/phy/Makefile          |    2 +
+> >>>>>>> drivers/usb/phy/phy-msm-dwc3-hs.c |  327 ++++++++++++++++++++=
+++++++++++++
+> >>>>>>> drivers/usb/phy/phy-msm-dwc3-ss.c |  374 ++++++++++++++++++++=
++++++++++++++++++
+> >>>>>>=20
+> >>>>>> please rename these PHY drivers, they have nothing to do with =
+DWC3. PHYs
+> >>>>>> don't care about the USB controller.
+> >>>>>=20
+> >>>>> I think they are SNPS DesignWare PHY's, additionally
+> >>>>> wrapped with Qualcomm logic. I could substitute "dwc3"
+> >>>>> with just "dw", which will be more correct.
+> >>>>=20
+> >>>> alright, thank you. Let's add Paul to the loop since he might ha=
+ve very
+> >>>> good insight in the synopsys PHYs.
+> >>>>=20
+> >>>> mental note: if any other platform shows up with Synopsys PHY, a=
+sk them
+> >>>> to use this driver instead :-)
+> >>>=20
+> >>> I really doubt that this will bi possible. Control of the PHY's i=
+s
+> >>> not directly trough ULPI, UTMI or PIPE3 interfaces, but trough
+> >>> QSCRATCH registers, which of course is highly Qualcomm specific.
+> >>=20
+> >> isn't it a memory mapped IP ? doesn't synopsys provide their own s=
+et of
+> >> registers ?
+> >=20
+> > From what I see it is not directly mapped. How QSCRATCH write and
+> > reads transactions are translated to DW IP is unclear to me.
+>=20
+>=20
+> I think the question is how does SW access them?
 
-this will not work!
+I afraid the answer may be: "it depends on the SOC". In my past I had t=
+o
+initialize a (SATA) PHY by implementing a software JTAG state machine,
+as the PHY's registers were not memory mapped *at all*. And the IP
+itself came from Synopsys, Cadence or yet another EDA company...
 
-Roger Quadros wrote on=A02013-08-20:
+Pawe=C5=82
 
-> -	struct omap_control_usb_platform_data *pdata =3D
-> -			dev_get_platdata(&pdev->dev);
-> +
-> +	if (np) {
-> +		of_property_read_u32(np, "ti,type", &control_usb->type);
 
-here you are dereferencing control_usb
-
-> +	} else {
-> +		/* We only support DT boot */
-> +		return -EINVAL;
-> +	}
-> =
-
->  	control_usb =3D devm_kzalloc(&pdev->dev, sizeof(*control_usb),
->  		GFP_KERNEL);
-
-and here it is allocated!
-
-Best Regards,
-Thomas
