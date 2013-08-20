@@ -1,37 +1,133 @@
-From: Brian Norris <computersforpeace@gmail.com>
-Subject: Re: [PATCH v5 0/4] mtd:nand:omap2: clean-up of supported ECC schemes
-Date: Tue, 20 Aug 2013 11:17:34 -0700
-Message-ID: <CAN8TOE9ET+PYkxpcN6idMj+jYD=qE7GxLfuGjdzjmer-q8yXQw@mail.gmail.com>
-References: <1373748891-7779-1-git-send-email-pekon@ti.com>
-	<20980858CB6D3A4BAE95CA194937D5E73E9F781B@DBDE04.ent.ti.com>
-	<1377007349.2089.566.camel@sauron.fi.intel.com>
+From: Hein Tibosch <hein_tibosch@yahoo.es>
+Subject: Re: [PATCH V2] mmc: omap_hsmmc: Fix sleep too long in ISR context.
+Date: Wed, 21 Aug 2013 02:52:00 +0800
+Message-ID: <5213BAD0.8030406@yahoo.es>
+References: <201308071805022428282@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ve0-f177.google.com ([209.85.128.177]:61773 "EHLO
-	mail-ve0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751001Ab3HTSRf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 14:17:35 -0400
-Received: by mail-ve0-f177.google.com with SMTP id cz11so603892veb.22
-        for <linux-omap@vger.kernel.org>; Tue, 20 Aug 2013 11:17:34 -0700 (PDT)
-In-Reply-To: <1377007349.2089.566.camel@sauron.fi.intel.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <201308071805022428282@gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: cjb <cjb@laptop.org>, Felipe Balbi <balbi@ti.com>
+Cc: majianpeng <majianpeng@gmail.com>, balajitk <balajitk@ti.com>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, mayuzheng <mayuzheng@kedacom.com>, Matt Porter <mporter@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Syed Mohammed Khasim <x0khasim@ti.com>, Madhusudhan <madhu.cr@ti.com>, Mohit Jalori <mjalori@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: "Gupta, Pekon" <pekon@ti.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "arnd@arndb.de" <arnd@arndb.de>, "olof@lixom.net" <olof@lixom.net>, "tony@atomide.com" <tony@atomide.com>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-On Tue, Aug 20, 2013 at 7:02 AM, Artem Bityutskiy <dedekind1@gmail.com> wrote:
-> On Tue, 2013-08-20 at 13:20 +0000, Gupta, Pekon wrote:
->> Hi Artem, Brian,
+Hi,
+
+[ added some people from TI ]
+
+On 8/7/2013 6:05 PM, majianpeng wrote:
+> V2:=20
+> 	clean up code.
+> V1:
+> 	www.mail-archive.com/linux-omap@vger.../msg93239.html=E2=80=8E
 >
-> I'll try to go through old e-mails now, and especially ubi/ubifs ones,
-> including yours, and I'll let Brian handle your patches, if I can? :-)
-
-Yes, these are on my radar, but I haven't spent any time on them yet.
-I will handle them soon.
-
-> I checked them, and they looked good to me:
 >
-> Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+> We found a problem when we removed a working sd card that the irqacti=
+on
+> of omap_hsmmc can sleep to 3.6s. This cause our watchdog to work.
+> In func omap_hsmmc_reset_controller_fsm, it should watch a 0->1
+> transition.But avoiding endless waiting, it used loops_per_jiffy as t=
+he timer.
 
-Brian
+Tried on a OMAP4460:
+This can easily be replicated: just withdraw an SD-card and the kernel
+will get blocked during more than 3 seconds.
+Calling OMAP_HSMMC_READ() in this loop makes it last so long.
+
+The function waits for a 0=3D>1, followed by a 1=3D>0 transition.
+The value of 1 always comes, but in most cases the code is just too
+slow to detect it. The first loop will only stop when (i =3D=3D limit)
+
+> The code is:
+>> while ((!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit))
+>>                && (i++ < limit))
+>>                        cpu_relax();
+> But generanly loops_per_jiffy as a timer,it should like:
+>>  while(i++ < limit)
+>> cpu_relax();
+> I found for the long time case, the while-opeation stoped because 'i =
+=3D=3D limit'.
+> Because added some code, so the duration became too longer than
+> MMC_TIMEOU_US(20ms).
+>
+> The software can't monitor the transition of hardware for thi case.
+>
+> Becasue those codes in ISR context, it can't use timer_before/after.
+> I divived the time into 1ms and used udelay(1) to instead.
+> It will cause do additional udelay(1).But from my test,it looks good.
+>
+> Reported-by: Yuzheng Ma <mayuzheng@kedacom.com>
+> Tested-by: Yuzheng Ma <mayuzheng@kedacom.com>
+> Reviewed-by: Hein Tibosch <hein_tibosch@yahoo.es>
+> Signed-off-by: Jianpeng Ma <majianpeng@gmail.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c | 25 +++++++++++--------------
+>  1 file changed, 11 insertions(+), 14 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hs=
+mmc.c
+> index 1865321..bbda5ed 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -973,9 +973,8 @@ static inline void omap_hsmmc_dbg_report_irq(stru=
+ct omap_hsmmc_host *host,
+>  static inline void omap_hsmmc_reset_controller_fsm(struct omap_hsmmc=
+_host *host,
+>  						   unsigned long bit)
+>  {
+> -	unsigned long i =3D 0;
+> -	unsigned long limit =3D (loops_per_jiffy *
+> -				msecs_to_jiffies(MMC_TIMEOUT_MS));
+> +	/*change to 1ms,so we can use udelay(1)*/
+> +	unsigned long limit =3D MMC_TIMEOUT_MS * 1000;
+> =20
+>  	OMAP_HSMMC_WRITE(host->base, SYSCTL,
+>  			 OMAP_HSMMC_READ(host->base, SYSCTL) | bit);
+
+Checked here: the SRC-bit indeed becomes high.
+After the test 'features & HSMMC_HAS_UPDATED_RESET', the bit has
+become low again already.
+Changing to order of statements worked for me, but for Jianpeng Ma
+this didn't work (timings are 'on the edge').
+
+This reset function is also called while mounting a card and then 'SRC'
+will be high long enough (more than 100 loops). It is after withdrawing
+the card that the reset is performed extremely fast.
+
+> @@ -984,17 +983,15 @@ static inline void omap_hsmmc_reset_controller_=
+fsm(struct omap_hsmmc_host *host,
+>  	 * OMAP4 ES2 and greater has an updated reset logic.
+>  	 * Monitor a 0->1 transition first
+>  	 */
+> -	if (mmc_slot(host).features & HSMMC_HAS_UPDATED_RESET) {
+> -		while ((!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit))
+> -					&& (i++ < limit))
+> -			cpu_relax();
+> -	}
+> -	i =3D 0;
+> -
+> -	while ((OMAP_HSMMC_READ(host->base, SYSCTL) & bit) &&
+> -		(i++ < limit))
+> -		cpu_relax();
+> -
+> +	if (mmc_slot(host).features & HSMMC_HAS_UPDATED_RESET)
+> +		while (!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit)
+> +			&& limit--)
+> +			udelay(1);
+
+In this way, the loop will only last about 'MMC_TIMEOUT_MS' ms
+and my WDT doesn't get triggered :-)
+
+> +	limit =3D MMC_TIMEOUT_MS * 1000;
+> +	while ((OMAP_HSMMC_READ(host->base, SYSCTL) & bit) && limit--)
+> +		udelay(1);
+> +
+>  	if (OMAP_HSMMC_READ(host->base, SYSCTL) & bit)
+>  		dev_err(mmc_dev(host->mmc),
+>  			"Timeout waiting on controller reset in %s\n",
+
+Anybody an opinion on this?
+
+Thanks, Hein
