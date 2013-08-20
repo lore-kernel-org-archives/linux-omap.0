@@ -1,188 +1,56 @@
-From: Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/2] extcon: extcon-dra7xx: Add extcon driver for USB ID
- detection
-Date: Tue, 20 Aug 2013 19:29:39 +0900
-Message-ID: <52134513.1060304@samsung.com>
-References: <1376648029-30659-1-git-send-email-george.cherian@ti.com>
- <1376648029-30659-2-git-send-email-george.cherian@ti.com>
- <5212B740.2000000@samsung.com> <521338B7.7040208@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 1/6] ASoC: omap: simplify
+ platform_get_resource_byname/devm_ioremap_resource
+Date: Tue, 20 Aug 2013 11:51:39 +0100
+Message-ID: <20130820105139.GL30073@sirena.org.uk>
+References: <1376902316-18520-1-git-send-email-Julia.Lawall@lip6.fr>
+ <1376902316-18520-2-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <521338B7.7040208-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="KjG/elEj40fDqMBW"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1376902316-18520-2-git-send-email-Julia.Lawall@lip6.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, kernel-janitors@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi George,
 
->>> diff --git a/Documentation/devicetree/bindings/extcon/extcon-dra7xx.txt b/Documentation/devicetree/bindings/extcon/extcon-dra7xx.txt
->>> new file mode 100644
->>> index 0000000..37e4c22
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/extcon/extcon-dra7xx.txt
->>> @@ -0,0 +1,19 @@
->>> +EXTCON FOR DRA7xx
->>> +
->>> +Required Properties:
->>> + - compatible : Should be "ti,dra7xx-usb"
->>> + - gpios : phandle to ID pin and interrupt gpio.
->>> +
->>> +Optional Properties:
->>> +  - interrupt-parent : interrupt controller phandle
->>> +  - interrupts : interrupt number
->>> +
->>> +
->>> +dra7x_extcon1 {
->> You used 'dra7xx-usb' device name. Why did you use 'dra7x_extcon1' name?
->> What is meaning 'dra7x_extcon1'?
-> 
-> I will rename it to  dra7xx_extcon.
+--KjG/elEj40fDqMBW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-extcon naming means various external connector device. e.g., usb, jack, etc...
-So, I prefer 'dra7xx_usb' instead of 'dra7xx_extcon'. I have plan to divide
-extcon device driver according to the kind of device.
+On Mon, Aug 19, 2013 at 10:51:51AM +0200, Julia Lawall wrote:
+> From: Julia Lawall <Julia.Lawall@lip6.fr>
+>=20
+> Remove unneeded error handling on the result of a call to
+> platform_get_resource_byname when the value is passed to devm_ioremap_res=
+ource.
 
+Applied, thanks.
 
->>> +static int id_poll_func(void *data)
->>> +{
->>> +    struct dra7xx_usb *dra7xx_usb = (struct dra7xx_usb *) data;
->>> +
->>> +    allow_signal(SIGINT);
->>> +    allow_signal(SIGTERM);
->>> +    allow_signal(SIGKILL);
->>> +    allow_signal(SIGUSR1);
->>> +
->>> +    set_freezable();
->>> +
->>> +    while (!kthread_should_stop()) {
->>> +        dra7xx_usb->id_current = gpio_get_value_cansleep
->>> +                        (dra7xx_usb->id_gpio);
->>> +        if (dra7xx_usb->id_current == dra7xx_usb->id_prev) {
->>> +            schedule_timeout_interruptible
->>> +                        (msecs_to_jiffies(2*1000));
->>> +            continue;
->>> +        } else if (dra7xx_usb->id_current == 0) {
->>> +            extcon_set_cable_state(&dra7xx_usb->edev, "USB", false);
->>> +            extcon_set_cable_state(&dra7xx_usb->edev,
->>> +                        "USB-HOST", true);
->>> +        } else {
->>> +            extcon_set_cable_state(&dra7xx_usb->edev,
->>> +                        "USB-HOST", false);
->>> +            extcon_set_cable_state(&dra7xx_usb->edev, "USB", true);
->>> +        }
->> Should dra7xx_usb keep always connected state with either USB or USB-HOST cable?
->> I don't understand. So please explain detailed operation method of dra7xx_usb device.
-> 
-> In dra7xx only ID pin is connected to the SoC gpio. There is no way, currently to detect the VBUS on/off.
-> So I always default to either HOST/DEVICE mode solely depending on the ID pin value.
-OK.
+--KjG/elEj40fDqMBW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-But I don't want to use kthread with polling method.
-I recommend that you use interrupt method for cable detection.
-All of extcon device driver have only used interrupt method without polling.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
 
-> 
->>
->>> +        dra7xx_usb->id_prev = dra7xx_usb->id_current;
->>> +    }
->>> +
->>> +    return 0;
->>> +}
->>> +
->>> +static irqreturn_t id_irq_handler(int irq, void *data)
->>> +{
->>> +    struct dra7xx_usb *dra7xx_usb = (struct dra7xx_usb *) data;
->>> +
->>> +    dra7xx_usb->id_current = gpio_get_value_cansleep(dra7xx_usb->id_gpio);
->>> +
->>> +    if (dra7xx_usb->id_current == dra7xx_usb->id_prev) {
->>> +        return IRQ_NONE;
->>> +    } else if (dra7xx_usb->id_current == 0) {
+iQIcBAEBAgAGBQJSE0o4AAoJELSic+t+oim946UP/2FUpnHZ4XPlWCG8ipTV91x/
+sr/qCKcgLUZpuRe+xxXWn5Atk/5CYkwPtRiy471ah+QVLNN070vAh6I/fyOdDaLc
++X4AR898rv3mDfwoWQFPmiETM/jmqHfRuSjjNCvWljsCNOlYYPQ+lgpOJwcUQPae
+gFCECXEd+t61AyYOhWstNUcEvq/I4Fj1FSbr08ThTHKGp6BHfcgbYUad/Yc0a1Ky
+rXNyKToj7g9PBu/6VdFrakYJg4X1ygJQLvDKEu9hPYBSQjWpiQCYM6OTljeEuzCB
+pNPvf4CdqPCOEW1ThPsRIuvQhCzysc5jjeqcxIxQ4tQc7wEULYQKeEP2x7ajHTk1
+fIiBWjjaHZXHMdfhkZZt6zYe5YuJO2Yx5I1vJ9llY90OXMfiEIBu4fKr6Cc6TxOd
+NVrsTvH08dS0BE8tIzokxQqzX0AbPuuZ0gnCVekoo20J6IJmPhJ2AGVMpMbqXgJk
+S4U94frGXZw5Ws3JsHioaJnomWOB28QMkvH4O93U+9MRIIqBUXaxPxwGN36i3zQA
+w5T9S4JNQ4wf3kigk8k5nSh7ZSelw51zg+sxDMdHu5+b2xBegs25mqnZbG+CGTex
+Bgj5udIFzHhnNfcUewFpjatOEGCH9idQ5EmwJlHqPpOOfvSy+LQ5HOnyeDC/gtP0
+OBrFsZYJgCsItMvacK4x
+=Fgtl
+-----END PGP SIGNATURE-----
 
-You should define some constant variable to clarify '0' meaning instead of using '0' directly.
-
-
->>> +    dra7xx_usb = devm_kzalloc(&pdev->dev, sizeof(*dra7xx_usb), GFP_KERNEL);
->>> +    if (!dra7xx_usb)
->>> +        return -ENOMEM;
->> You have to add error message with dev_err().
-> 
-> devm_kzalloc itself should give some message.
-
-ok.
-
-
->>> +    status = extcon_dev_register(&dra7xx_usb->edev, dra7xx_usb->dev);
->>> +    if (status) {
->>> +        dev_err(&pdev->dev, "failed to register extcon device\n");
->>> +        return status;
->> You should restore previous operation about dra7xx_usb->irq_gpio.
-> 
-> okay
->>
->>> +    }
->>> +
->>> +    dra7xx_usb->id_prev = gpio_get_value_cansleep(dra7xx_usb->id_gpio);
->>> +    if (dra7xx_usb->id_prev) {
-
-ditto.
-You should define some constant variable to clarify 'dra7xx_usb->id_prev' meaning.
-
->>> +        extcon_set_cable_state(&dra7xx_usb->edev, "USB-HOST", false);
->>> +        extcon_set_cable_state(&dra7xx_usb->edev, "USB", true);
->>> +    } else {
->>> +        extcon_set_cable_state(&dra7xx_usb->edev, "USB", false);
->>> +        extcon_set_cable_state(&dra7xx_usb->edev, "USB-HOST", true);
->>> +    }
->> why did you do keep always connected state?
-> 
-> There is no way, currently to detect the VBUS on/off.
-> So I always default to either HOST/DEVICE mode solely depending on the ID pin value.
-> 
->>> +
->>> +    if (dra7xx_usb->irq_gpio) {
->>> +        status = devm_request_threaded_irq(dra7xx_usb->dev, irq_num,
->>> +                NULL, id_irq_handler, IRQF_SHARED |
->>> +                IRQF_ONESHOT | IRQF_TRIGGER_FALLING,
->>> +                dev_name(&pdev->dev), (void *) dra7xx_usb);
->>> +        if (status)
->>> +            dev_err(dra7xx_usb->dev, "failed to request irq #%d\n",
->>> +                        irq_num);
->> If devm_request_threaded_irq() return fail state, why did not you do add error exception?
-> 
-> If interrupt fails I fallback to polling thread.
->>> +        else
->>> +            return 0;
->> If devm_request_threaded_irq() return success state, why did you directly call 'return'?
->> kthread_create operation isn't necessary?
-> 
-> Yes kthread is optional. Some boards doenot have the ID pin hooked onto the GPIO.
-> In such cases we will run the kthread and poll on the ID pin values.
->>
->>> +    }
->>> +
->>> +    dra7xx_usb->thread_task = kthread_create(id_poll_func, dra7xx_usb,
->>> +                         dev_name(&pdev->dev));
->> Should you use polling method with kthread? I think it isn't proper method.
->> You did get the irq number by using DT helper function and register irq handler
->> with devm_request_threaded_irq(). I prefer interrupt method for detection of cable state.
-> 
-> I also prefer interrupt method. If any implementation does not have ID pin connected to GPIOs then still
-> it could use the driver in polling mode.
-
-As I mentioned above, I don't prefer interrupt method for cable detection.
-Polling method for detection isn't appropriate for extcon device driver.
-
-Instead, I will consider whether to support polling method or not on extcon core.
-
-Thanks,
-Chanwoo Choi
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--KjG/elEj40fDqMBW--
