@@ -1,75 +1,109 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH 1/2] extcon: extcon-dra7xx: Add extcon driver for USB
- ID detection
-Date: Tue, 20 Aug 2013 10:53:35 -0600
-Message-ID: <52139F0F.6090507@wwwdotorg.org>
-References: <1376648029-30659-1-git-send-email-george.cherian@ti.com> <1376648029-30659-2-git-send-email-george.cherian@ti.com> <52127284.6030506@wwwdotorg.org> <521312CC.8060003@ti.com>
+From: Pawel Moll <pawel.moll@arm.com>
+Subject: Re: [PATCH v4 2/3] usb: phy: Add Qualcomm SS-USB and HS-USB drivers
+ for DWC3 core
+Date: Tue, 20 Aug 2013 18:01:32 +0100
+Message-ID: <1377018092.31445.42.camel@hornet>
+References: <1376992565-22292-1-git-send-email-iivanov@mm-sol.com>
+	 <1376992565-22292-3-git-send-email-iivanov@mm-sol.com>
+	 <20130820122907.GU26587@radagast>
+	 <1377005543.26268.22.camel@iivanov-dev.int.mm-sol.com>
+	 <20130820133712.GC26587@radagast>
+	 <1377007751.26268.27.camel@iivanov-dev.int.mm-sol.com>
+	 <20130820143319.GG26587@radagast>
+	 <1377010458.26268.30.camel@iivanov-dev.int.mm-sol.com>
+	 <8691FDFE-326E-4198-838A-202D9EC988E1@codeaurora.org>
+	 <1377011163.31445.30.camel@hornet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:37198 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751345Ab3HTQxk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 12:53:40 -0400
-In-Reply-To: <521312CC.8060003@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1377011163.31445.30.camel@hornet>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kumar Gala <galak@codeaurora.org>
+Cc: "Ivan T. Ivanov" <iivanov@mm-sol.com>, "balbi@ti.com" <balbi@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Mark Rutland <Mark.Rutland@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob@landley.net" <rob@landley.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "idos@codeaurora.org" <idos@codeaurora.org>, "mgautam@codeaurora.org" <mgautam@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Paul
 List-Id: linux-omap@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: balbi@ti.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, grant.likely@linaro.org, rob@landley.net, ian.campbell@citrix.com, mark.rutland@arm.com, pawel.moll@arm.com, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, bcousson@baylibre.com
 
-On 08/20/2013 12:55 AM, George Cherian wrote:
-> Hi Stephen,
-> 
-> Thanks for your review.
-> 
-> On 8/20/2013 1:01 AM, Stephen Warren wrote:
-> 
->> On 08/16/2013 04:13 AM, George Cherian wrote:
->>> Adding extcon driver for USB ID detection to dynamically
->>> configure USB Host/Peripheral mode.
->>> diff --git
->>> a/Documentation/devicetree/bindings/extcon/extcon-dra7xx.txt
->>> b/Documentation/devicetree/bindings/extcon/extcon-dra7xx.txt
->>> +EXTCON FOR DRA7xx
->>> +
->>> +Required Properties:
->> Please at lest explain what a DRA7xxx is, and the purpose of the HW
->> module this binding describes.
-> 
-> DRA7xx is the SoC name and the USB VID  detection is implemented via gpio's
-> Basically it does only ID detection via GPIO and there is no VBUS
-> detection in h/w.
+On Tue, 2013-08-20 at 16:06 +0100, Pawel Moll wrote:
+> On Tue, 2013-08-20 at 16:01 +0100, Kumar Gala wrote:
+> > On Aug 20, 2013, at 9:54 AM, Ivan T. Ivanov wrote:
+> >=20
+> > >=20
+> > > Hi,=20
+> > >=20
+> > > On Tue, 2013-08-20 at 09:33 -0500, Felipe Balbi wrote:=20
+> > >> On Tue, Aug 20, 2013 at 05:09:11PM +0300, Ivan T. Ivanov wrote:
+> > >>> Hi,
+> > >>>=20
+> > >>> On Tue, 2013-08-20 at 08:37 -0500, Felipe Balbi wrote:=20
+> > >>>> Hi,
+> > >>>>=20
+> > >>>> On Tue, Aug 20, 2013 at 04:32:23PM +0300, Ivan T. Ivanov wrote=
+:
+> > >>>>>> On Tue, Aug 20, 2013 at 12:56:04PM +0300, Ivan T. Ivanov wro=
+te:
+> > >>>>>>> From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+> > >>>>>>>=20
+> > >>>>>>> These drivers handles control and configuration of the HS
+> > >>>>>>> and SS USB PHY transceivers. They are part of the driver
+> > >>>>>>> which manage Synopsys DesignWare USB3 controller stack
+> > >>>>>>> inside Qualcomm SoC's.
+> > >>>>>>>=20
+> > >>>>>>> Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
+> > >>>>>>> ---
+> > >>>>>>> drivers/usb/phy/Kconfig           |   11 ++
+> > >>>>>>> drivers/usb/phy/Makefile          |    2 +
+> > >>>>>>> drivers/usb/phy/phy-msm-dwc3-hs.c |  327 ++++++++++++++++++=
+++++++++++++++
+> > >>>>>>> drivers/usb/phy/phy-msm-dwc3-ss.c |  374 ++++++++++++++++++=
++++++++++++++++++++
+> > >>>>>>=20
+> > >>>>>> please rename these PHY drivers, they have nothing to do wit=
+h DWC3. PHYs
+> > >>>>>> don't care about the USB controller.
+> > >>>>>=20
+> > >>>>> I think they are SNPS DesignWare PHY's, additionally
+> > >>>>> wrapped with Qualcomm logic. I could substitute "dwc3"
+> > >>>>> with just "dw", which will be more correct.
+> > >>>>=20
+> > >>>> alright, thank you. Let's add Paul to the loop since he might =
+have very
+> > >>>> good insight in the synopsys PHYs.
+> > >>>>=20
+> > >>>> mental note: if any other platform shows up with Synopsys PHY,=
+ ask them
+> > >>>> to use this driver instead :-)
+> > >>>=20
+> > >>> I really doubt that this will bi possible. Control of the PHY's=
+ is
+> > >>> not directly trough ULPI, UTMI or PIPE3 interfaces, but trough
+> > >>> QSCRATCH registers, which of course is highly Qualcomm specific=
+=2E
+> > >>=20
+> > >> isn't it a memory mapped IP ? doesn't synopsys provide their own=
+ set of
+> > >> registers ?
+> > >=20
+> > > From what I see it is not directly mapped. How QSCRATCH write and
+> > > reads transactions are translated to DW IP is unclear to me.
+> >=20
+> >=20
+> > I think the question is how does SW access them?
+>=20
+> I afraid the answer may be: "it depends on the SOC". In my past I had=
+ to
+> initialize a (SATA) PHY by implementing a software JTAG state machine=
+,
+> as the PHY's registers were not memory mapped *at all*. And the IP
+> itself came from Synopsys, Cadence or yet another EDA company...
 
-If there's no SoC-specific HW, then the binding has nothing to do with
-the SoC; it's entirely generic.
+Having said all that... If the PHY's spec at least defined layout of th=
+e
+registers in question and driver was using regmap API to talk to the
+device (initially regmap-mmio), it has some chances to become universal=
+=2E
+The SOCs designed like "my" one would have to provide a custom regmap
+implementation.
 
-I think instead, you need to define a generic "gpio-usb-vid" binding
-instead.
+Pawe=C5=82
 
-Otherwise, ever SoC that doesn't have explicit USB VID detection HW is
-going to re-invent the exact same binding, with pointless differences,
-rather than using a single generic binding.
 
->>> + - compatible : Should be "ti,dra7xx-usb"
->>
->> If this is a USB VID detector rather than a full USB host controller,
->> then "usb" in the binding is a bit over-reaching. Perhaps "-usb-vid" or
->> "-usb-vid-detector" would be more accurate.
-> 
-> This will be renamed to dra7xx-extcon.
-
-So no, that rename doesn't sound correct.
-
->>> + - gpios : phandle to ID pin and interrupt gpio.
->>
->> Why does the interrupt line need to be included in a list of GPIOs?
-> 
-> ID pins are connected to pcf8575, and the pcf8575's interrupt line is
-> inturn connected to
-> gpio bank6 pin 11, we use this gpio interrupt to detect the ID pin change.
-
-In that case, the PCF8575 node needs to be a GPIO controller and an IRQ
-controller, as does the driver for the PCF8575. This binding should have
-a single entry in the gpios property, and the driver can call
-gpio_to_irq() on that so it knows which IRQ to request.
