@@ -1,16 +1,20 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v5 3/8] usb: phy: omap-usb2: Don't use omap_get_control_dev()
-Date: Tue, 20 Aug 2013 17:56:12 +0300
-Message-ID: <1377010577-19355-4-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v5 4/8] usb: phy: omap-usb3: Don't use omap_get_control_dev()
+Date: Tue, 20 Aug 2013 17:56:13 +0300
+Message-ID: <1377010577-19355-5-git-send-email-rogerq@ti.com>
 References: <1377010577-19355-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1377010577-19355-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40411 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751111Ab3HTO5D (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Aug 2013 10:57:03 -0400
+In-Reply-To: <1377010577-19355-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com, bcousson@baylibre.com
+Cc: tony@atomide.com, george.cherian@ti.com, kishon@ti.com, bigeasy@linutronix.de, sergei.shtylyov@cogentembedded.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
 omap_get_control_dev() is being deprecated as it doesn't support
 multiple instances. As control device is present only from OMAP4
@@ -20,31 +24,31 @@ reference to the control device.
 As we don't support non-DT boot, we just bail out on probe
 if device node is not present.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/usb/phy/phy-omap-usb2.c |   26 ++++++++++++++++++++------
+ drivers/usb/phy/phy-omap-usb3.c |   26 ++++++++++++++++++++------
  1 files changed, 20 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/usb/phy/phy-omap-usb2.c b/drivers/usb/phy/phy-omap-usb2.c
-index 844ab68..e278a3d 100644
---- a/drivers/usb/phy/phy-omap-usb2.c
-+++ b/drivers/usb/phy/phy-omap-usb2.c
-@@ -28,6 +28,7 @@
+diff --git a/drivers/usb/phy/phy-omap-usb3.c b/drivers/usb/phy/phy-omap-usb3.c
+index 4a7f27c..4004f82 100644
+--- a/drivers/usb/phy/phy-omap-usb3.c
++++ b/drivers/usb/phy/phy-omap-usb3.c
+@@ -26,6 +26,7 @@
  #include <linux/pm_runtime.h>
  #include <linux/delay.h>
  #include <linux/usb/omap_control_usb.h>
 +#include <linux/of_platform.h>
  
- /**
-  * omap_usb2_set_comparator - links the comparator present in the sytem with
-@@ -121,8 +122,14 @@ static int omap_usb2_suspend(struct usb_phy *x, int suspend)
+ #define	PLL_STATUS		0x00000004
+ #define	PLL_GO			0x00000008
+@@ -196,8 +197,14 @@ static int omap_usb3_init(struct usb_phy *x)
  
- static int omap_usb2_probe(struct platform_device *pdev)
+ static int omap_usb3_probe(struct platform_device *pdev)
  {
 -	struct omap_usb			*phy;
--	struct usb_otg			*otg;
-+	struct omap_usb	*phy;
-+	struct usb_otg *otg;
+-	struct resource			*res;
++	struct omap_usb *phy;
++	struct resource *res;
 +	struct device_node *node = pdev->dev.of_node;
 +	struct device_node *control_node;
 +	struct platform_device *control_pdev;
@@ -54,9 +58,9 @@ index 844ab68..e278a3d 100644
  
  	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
  	if (!phy) {
-@@ -144,11 +151,18 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 	phy->phy.otg		= otg;
- 	phy->phy.type		= USB_PHY_TYPE_USB2;
+@@ -239,11 +246,18 @@ static int omap_usb3_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
  
 -	phy->control_dev = omap_get_control_dev();
 -	if (IS_ERR(phy->control_dev)) {
@@ -75,12 +79,8 @@ index 844ab68..e278a3d 100644
 +
 +	phy->control_dev = &control_pdev->dev;
  
- 	phy->is_suspended	= 1;
  	omap_control_usb_phy_power(phy->control_dev, 0);
+ 	usb_add_phy_dev(&phy->phy);
 -- 
 1.7.4.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
