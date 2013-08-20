@@ -1,59 +1,95 @@
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH 1/2] extcon: extcon-dra7xx: Add extcon driver for USB ID
- detection
-Date: Wed, 21 Aug 2013 08:07:23 +0900
-Message-ID: <5213F6AB.80307@samsung.com>
-References: <1376648029-30659-1-git-send-email-george.cherian@ti.com>
- <1376648029-30659-2-git-send-email-george.cherian@ti.com>
- <5212B740.2000000@samsung.com> <521338B7.7040208@ti.com>
- <52134513.1060304@samsung.com> <52136E1A.8020900@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv3 2/9] ARM: OMAP2+: AM33XX: control: Add some control
+ module registers and APIs
+Date: Tue, 20 Aug 2013 23:39:25 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1308202317490.6426@utopia.booyaka.com>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <1375811376-49985-3-git-send-email-d-gerlach@ti.com> <5203A0BC.8060205@ti.com> <5203C457.80301@ti.com> <20130809051146.GB7656@atomide.com> <52055733.70808@ti.com> <87y586pvkq.fsf@kernel.org>
+ <5209565C.7090508@ti.com> <87d2phpsu1.fsf@kernel.org> <520A4BE7.7090603@ti.com> <87wqnplg1n.fsf@kernel.org> <520A785C.3000304@ti.com> <CA+Bv8Xbg9v4zRy-EJPsxwCdwpSy50V8SjwQfmAvVxiCR=6mYBw@mail.gmail.com> <87bo51jtiu.fsf@kernel.org>
+ <520BBDF6.1070103@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:38749 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751249Ab3HTXHZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 19:07:25 -0400
-In-reply-to: <52136E1A.8020900@ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:45553 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751342Ab3HTXj0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 19:39:26 -0400
+In-Reply-To: <520BBDF6.1070103@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: balbi@ti.com, myungjoo.ham@samsung.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, grant.likely@linaro.org, rob@landley.net, ian.campbell@citrix.com, swarren@wwwdotorg.org, mark.rutland@arm.com, pawel.moll@arm.com, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, bcousson@baylibre.com
+To: Suman Anna <s-anna@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, Russ Dill <russ.dill@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
->>>>> +
->>>>> +    if (dra7xx_usb->irq_gpio) {
->>>>> +        status = devm_request_threaded_irq(dra7xx_usb->dev, irq_num,
->>>>> +                NULL, id_irq_handler, IRQF_SHARED |
->>>>> +                IRQF_ONESHOT | IRQF_TRIGGER_FALLING,
->>>>> +                dev_name(&pdev->dev), (void *) dra7xx_usb);
->>>>> +        if (status)
->>>>> +            dev_err(dra7xx_usb->dev, "failed to request irq #%d\n",
->>>>> +                        irq_num);
->>>> If devm_request_threaded_irq() return fail state, why did not you do add error exception?
->>> If interrupt fails I fallback to polling thread.
->>>>> +        else
->>>>> +            return 0;
->>>> If devm_request_threaded_irq() return success state, why did you directly call 'return'?
->>>> kthread_create operation isn't necessary?
->>> Yes kthread is optional. Some boards doenot have the ID pin hooked onto the GPIO.
->>> In such cases we will run the kthread and poll on the ID pin values.
->>>>> +    }
->>>>> +
->>>>> +    dra7xx_usb->thread_task = kthread_create(id_poll_func, dra7xx_usb,
->>>>> +                         dev_name(&pdev->dev));
->>>> Should you use polling method with kthread? I think it isn't proper method.
->>>> You did get the irq number by using DT helper function and register irq handler
->>>> with devm_request_threaded_irq(). I prefer interrupt method for detection of cable state.
->>> I also prefer interrupt method. If any implementation does not have ID pin connected to GPIOs then still
->>> it could use the driver in polling mode.
->> As I mentioned above, I don't prefer interrupt method for cable detection.
-> 
-> I hope you meant, you prefer interrupt method for cable detection over polling .
+Hi
 
-Right, my mistake. I prefer interrupt method.
+a few comments
 
-Thanks,
-Chanwoo CHoi
+On Wed, 14 Aug 2013, Suman Anna wrote:
+
+> The remoteproc infrastructure is currently tied closely with the
+> virtio/rpmsg framework, and the boot requires that there are virtio
+> devices present in the resource table from the firmware image.
+
+Using static channels is something that can be added to the existing code, 
+if you don't want to use dynamic channels.
+
+> The rpmsg shared memory buffers are currently kinda fixed (512 buffers 
+> of 512 bytes each) and requires 3 pages just for the vring structures 
+> for this many buffers. So, if there are restrictions on DDR access, then 
+> this pretty much rules out remoteproc/rpmsg infrastructure.
+
+It should be possible to patch that code to vary the size and count of the 
+memory buffers, based on the remote processor.  So no direct DDR access 
+should be required - for that reason, anyway.
+
+> If the DDR access is ok, then there are other challenges that needs to
+> be met. The current firmware definitely requires the addition of the
+> resource table and the lower level code for handling the virtio_ring
+> transport for receiving messages. It would also need its own remoteproc
+> driver for handling the firmware binary format 
+
+Hmm, could you explain this further?  Are you just referring to the 
+process of parsing out the dynamic channel data during initialization?
+
+> and the signalling required to trigger the rpmsg buffer processing. The 
+> firmware binary format needs to be adapted to something that this driver 
+> would understand.  It definitely doesn't look like ELF currently, so 
+> something on the lines of ste_modem_rproc needs to be done.
+
+Or just use ELF or static channels.
+
+> Also, the remoteproc/rpmsg infrastructure can support multiple vring 
+> transport channels between the processor, and depending on how many are 
+> supported, we either need to exchange the vq_id (like OMAP remoteproc), 
+> or process the known virtqueues always (like DA8xx remoteproc). The 
+> former requires that a message payload is used, and mandates the usage 
+> of the IPC data registers in the control module given that WkupM3 on 
+> AM335 cannot access any mailbox registers. Any usage of IPC data 
+> registers depends on where we do it. If all the accesses were to be done 
+> within mach-omap2/control.c, then there is no easy way for using this 
+> API from drivers/remoteproc, until we have the control module driver.
+
+Yep, real SCM drivers have been needed for some time now, for pretty much 
+all of the OMAP SoCs.  It should be pretty easy to prototype for your 
+purposes, though.
+
+> The current communication uses the IPC data registers, and sometimes
+> uses them as plain status registers. There's certain registers used for
+> sharing status, version etc which are shared by both the processors.
+> Using rpmsg would require communicating every single message, and if
+> there were to be some shared variables to be used simultaneously, then
+> this has to be exchanged through a new remoteproc resource type.
+
+I don't quite understand this last part - "shared variables to be used 
+simultaneously".  How does the existing code synchronize them?
+
+> One additional aspect is that the current remoteproc core does not have
+> the necessary runtime pm support, but in general the approach would be
+> to treat the remoteprocs as true slave devices. I would imagine the
+> driver core to put the remoteprocs into reset state, after asking them
+> to save their context during suspend.
+
+Why is runtime PM support needed in the remoteproc core?  Wouldn't that 
+only be needed in the remote processor's device driver?
 
 
+- Paul
