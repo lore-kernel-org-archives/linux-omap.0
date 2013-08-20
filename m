@@ -1,268 +1,687 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH v2 04/14] crypto: omap-aes: Simplify DMA usage by using
- direct SGs
-Date: Tue, 20 Aug 2013 18:27:24 +0530
-Message-ID: <521367B4.2020203@ti.com>
-References: <1376793755-30478-1-git-send-email-joelf@ti.com> <1376793755-30478-5-git-send-email-joelf@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCHv10] drivers: spi: Add qspi flash controller
+Date: Tue, 20 Aug 2013 18:35:25 +0530
+Message-ID: <1377003925-6284-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <1376793755-30478-5-git-send-email-joelf@ti.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Herbert Xu <herbert@gondor.hengli.com.au>, "David S. Miller" <davem@davemloft.net>, Mark Greer <mgreer@animalcreek.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Crypto Mailing List <linux-crypto@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:44049 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750962Ab3HTNFr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Aug 2013 09:05:47 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: broonie@kernel.org
+Cc: spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, balbi@ti.com, linux-omap@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>
 
-Hi Joel,
+The patch add basic support for the quad spi controller.
 
-On Sunday 18 August 2013 08:12 AM, Joel Fernandes wrote:
-> In early version of this driver, assumptions were made such as DMA layer
-> requires contiguous buffers etc. Due to this, new buffers were allocated,
-> mapped and used for DMA. These assumptions are no longer true and DMAEngine
-> scatter-gather DMA doesn't have such requirements. We simply the DMA operations
-> by directly using the scatter-gather buffers provided by the crypto layer
-> instead of creating our own.
-> 
-> Lot of logic that handled DMA'ing only X number of bytes of the total, or as
-> much as fitted into a 3rd party buffer is removed and is no longer required.
-> 
-> Also, good performance improvement of atleast ~20% seen with encrypting a
-> buffer size of 8K (1800 ops/sec vs 1400 ops/sec).  Improvement will be higher
-> for much larger blocks though such benchmarking is left as an exercise for the
-> reader.  Also DMA usage is much more simplified and coherent with rest of the
-> code.
-> 
-> Signed-off-by: Joel Fernandes <joelf@ti.com>
-> ---
->  drivers/crypto/omap-aes.c |  147 ++++++++-------------------------------------
->  1 file changed, 25 insertions(+), 122 deletions(-)
-> 
-> diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-> index e369e6e..64dd5c1 100644
-> --- a/drivers/crypto/omap-aes.c
-> +++ b/drivers/crypto/omap-aes.c
-> @@ -480,22 +480,14 @@ static int sg_copy(struct scatterlist **sg, size_t *offset, void *buf,
->  }
->  
->  static int omap_aes_crypt_dma(struct crypto_tfm *tfm,
-> -		struct scatterlist *in_sg, struct scatterlist *out_sg)
-> +		struct scatterlist *in_sg, struct scatterlist *out_sg,
-> +		int in_sg_len, int out_sg_len)
->  {
->  	struct omap_aes_ctx *ctx = crypto_tfm_ctx(tfm);
->  	struct omap_aes_dev *dd = ctx->dd;
->  	struct dma_async_tx_descriptor *tx_in, *tx_out;
->  	struct dma_slave_config cfg;
-> -	dma_addr_t dma_addr_in = sg_dma_address(in_sg);
-> -	int ret, length = sg_dma_len(in_sg);
-> -
-> -	pr_debug("len: %d\n", length);
-> -
-> -	dd->dma_size = length;
-> -
-> -	if (!(dd->flags & FLAGS_FAST))
-> -		dma_sync_single_for_device(dd->dev, dma_addr_in, length,
-> -					   DMA_TO_DEVICE);
-> +	int ret;
-By this change FLAGS_FAST is unsed, it can be cleaned right?
-or Am I missing something?
+QSPI is a kind of spi module that allows single,
+dual and quad read access to external spi devices. The module
+has a memory mapped interface which provide direct interface
+for accessing data form external spi devices.
 
-Thanks and regards,
-Lokesh
->  
->  	memset(&cfg, 0, sizeof(cfg));
->  
-> @@ -514,7 +506,7 @@ static int omap_aes_crypt_dma(struct crypto_tfm *tfm,
->  		return ret;
->  	}
->  
-> -	tx_in = dmaengine_prep_slave_sg(dd->dma_lch_in, in_sg, 1,
-> +	tx_in = dmaengine_prep_slave_sg(dd->dma_lch_in, in_sg, in_sg_len,
->  					DMA_MEM_TO_DEV,
->  					DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
->  	if (!tx_in) {
-> @@ -533,7 +525,7 @@ static int omap_aes_crypt_dma(struct crypto_tfm *tfm,
->  		return ret;
->  	}
->  
-> -	tx_out = dmaengine_prep_slave_sg(dd->dma_lch_out, out_sg, 1,
-> +	tx_out = dmaengine_prep_slave_sg(dd->dma_lch_out, out_sg, out_sg_len,
->  					DMA_DEV_TO_MEM,
->  					DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
->  	if (!tx_out) {
-> @@ -551,7 +543,7 @@ static int omap_aes_crypt_dma(struct crypto_tfm *tfm,
->  	dma_async_issue_pending(dd->dma_lch_out);
->  
->  	/* start DMA */
-> -	dd->pdata->trigger(dd, length);
-> +	dd->pdata->trigger(dd, dd->total);
->  
->  	return 0;
->  }
-> @@ -560,93 +552,28 @@ static int omap_aes_crypt_dma_start(struct omap_aes_dev *dd)
->  {
->  	struct crypto_tfm *tfm = crypto_ablkcipher_tfm(
->  					crypto_ablkcipher_reqtfm(dd->req));
-> -	int err, fast = 0, in, out;
-> -	size_t count;
-> -	dma_addr_t addr_in, addr_out;
-> -	struct scatterlist *in_sg, *out_sg;
-> -	int len32;
-> +	int err;
->  
->  	pr_debug("total: %d\n", dd->total);
->  
-> -	if (sg_is_last(dd->in_sg) && sg_is_last(dd->out_sg)) {
-> -		/* check for alignment */
-> -		in = IS_ALIGNED((u32)dd->in_sg->offset, sizeof(u32));
-> -		out = IS_ALIGNED((u32)dd->out_sg->offset, sizeof(u32));
-> -
-> -		fast = in && out;
-> +	err = dma_map_sg(dd->dev, dd->in_sg, dd->in_sg_len, DMA_TO_DEVICE);
-> +	if (!err) {
-> +		dev_err(dd->dev, "dma_map_sg() error\n");
-> +		return -EINVAL;
->  	}
->  
-> -	if (fast)  {
-> -		count = min(dd->total, sg_dma_len(dd->in_sg));
-> -		count = min(count, sg_dma_len(dd->out_sg));
-> -
-> -		if (count != dd->total) {
-> -			pr_err("request length != buffer length\n");
-> -			return -EINVAL;
-> -		}
-> -
-> -		pr_debug("fast\n");
-> -
-> -		err = dma_map_sg(dd->dev, dd->in_sg, 1, DMA_TO_DEVICE);
-> -		if (!err) {
-> -			dev_err(dd->dev, "dma_map_sg() error\n");
-> -			return -EINVAL;
-> -		}
-> -
-> -		err = dma_map_sg(dd->dev, dd->out_sg, 1, DMA_FROM_DEVICE);
-> -		if (!err) {
-> -			dev_err(dd->dev, "dma_map_sg() error\n");
-> -			dma_unmap_sg(dd->dev, dd->in_sg, 1, DMA_TO_DEVICE);
-> -			return -EINVAL;
-> -		}
-> -
-> -		addr_in = sg_dma_address(dd->in_sg);
-> -		addr_out = sg_dma_address(dd->out_sg);
-> -
-> -		in_sg = dd->in_sg;
-> -		out_sg = dd->out_sg;
-> -
-> -		dd->flags |= FLAGS_FAST;
-> -
-> -	} else {
-> -		/* use cache buffers */
-> -		count = sg_copy(&dd->in_sg, &dd->in_offset, dd->buf_in,
-> -				 dd->buflen, dd->total, 0);
-> -
-> -		len32 = DIV_ROUND_UP(count, DMA_MIN) * DMA_MIN;
-> -
-> -		/*
-> -		 * The data going into the AES module has been copied
-> -		 * to a local buffer and the data coming out will go
-> -		 * into a local buffer so set up local SG entries for
-> -		 * both.
-> -		 */
-> -		sg_init_table(&dd->in_sgl, 1);
-> -		dd->in_sgl.offset = dd->in_offset;
-> -		sg_dma_len(&dd->in_sgl) = len32;
-> -		sg_dma_address(&dd->in_sgl) = dd->dma_addr_in;
-> -
-> -		sg_init_table(&dd->out_sgl, 1);
-> -		dd->out_sgl.offset = dd->out_offset;
-> -		sg_dma_len(&dd->out_sgl) = len32;
-> -		sg_dma_address(&dd->out_sgl) = dd->dma_addr_out;
-> -
-> -		in_sg = &dd->in_sgl;
-> -		out_sg = &dd->out_sgl;
-> -
-> -		addr_in = dd->dma_addr_in;
-> -		addr_out = dd->dma_addr_out;
-> -
-> -		dd->flags &= ~FLAGS_FAST;
-> -
-> +	err = dma_map_sg(dd->dev, dd->out_sg, dd->out_sg_len, DMA_FROM_DEVICE);
-> +	if (!err) {
-> +		dev_err(dd->dev, "dma_map_sg() error\n");
-> +		return -EINVAL;
->  	}
->  
-> -	dd->total -= count;
-> -
-> -	err = omap_aes_crypt_dma(tfm, in_sg, out_sg);
-> +	err = omap_aes_crypt_dma(tfm, dd->in_sg, dd->out_sg, dd->in_sg_len,
-> +				 dd->out_sg_len);
->  	if (err) {
-> -		dma_unmap_sg(dd->dev, dd->in_sg, 1, DMA_TO_DEVICE);
-> -		dma_unmap_sg(dd->dev, dd->out_sg, 1, DMA_TO_DEVICE);
-> +		dma_unmap_sg(dd->dev, dd->in_sg, dd->in_sg_len, DMA_TO_DEVICE);
-> +		dma_unmap_sg(dd->dev, dd->out_sg, dd->out_sg_len,
-> +			     DMA_FROM_DEVICE);
->  	}
->  
->  	return err;
-> @@ -667,7 +594,6 @@ static void omap_aes_finish_req(struct omap_aes_dev *dd, int err)
->  static int omap_aes_crypt_dma_stop(struct omap_aes_dev *dd)
->  {
->  	int err = 0;
-> -	size_t count;
->  
->  	pr_debug("total: %d\n", dd->total);
->  
-> @@ -676,21 +602,8 @@ static int omap_aes_crypt_dma_stop(struct omap_aes_dev *dd)
->  	dmaengine_terminate_all(dd->dma_lch_in);
->  	dmaengine_terminate_all(dd->dma_lch_out);
->  
-> -	if (dd->flags & FLAGS_FAST) {
-> -		dma_unmap_sg(dd->dev, dd->out_sg, 1, DMA_FROM_DEVICE);
-> -		dma_unmap_sg(dd->dev, dd->in_sg, 1, DMA_TO_DEVICE);
-> -	} else {
-> -		dma_sync_single_for_device(dd->dev, dd->dma_addr_out,
-> -					   dd->dma_size, DMA_FROM_DEVICE);
-> -
-> -		/* copy data */
-> -		count = sg_copy(&dd->out_sg, &dd->out_offset, dd->buf_out,
-> -				 dd->buflen, dd->dma_size, 1);
-> -		if (count != dd->dma_size) {
-> -			err = -EINVAL;
-> -			pr_err("not all data converted: %u\n", count);
-> -		}
-> -	}
-> +	dma_unmap_sg(dd->dev, dd->in_sg, dd->in_sg_len, DMA_TO_DEVICE);
-> +	dma_unmap_sg(dd->dev, dd->out_sg, dd->out_sg_len, DMA_FROM_DEVICE);
->  
->  	return err;
->  }
-> @@ -760,21 +673,11 @@ static int omap_aes_handle_queue(struct omap_aes_dev *dd,
->  static void omap_aes_done_task(unsigned long data)
->  {
->  	struct omap_aes_dev *dd = (struct omap_aes_dev *)data;
-> -	int err;
-> -
-> -	pr_debug("enter\n");
->  
-> -	err = omap_aes_crypt_dma_stop(dd);
-> -
-> -	err = dd->err ? : err;
-> -
-> -	if (dd->total && !err) {
-> -		err = omap_aes_crypt_dma_start(dd);
-> -		if (!err)
-> -			return; /* DMA started. Not fininishing. */
-> -	}
-> +	pr_debug("enter done_task\n");
->  
-> -	omap_aes_finish_req(dd, err);
-> +	omap_aes_crypt_dma_stop(dd);
-> +	omap_aes_finish_req(dd, 0);
->  	omap_aes_handle_queue(dd, NULL);
->  
->  	pr_debug("exit\n");
-> 
+The patch will configure controller clocks, device control
+register and for defining low level transfer apis which
+will be used by the spi framework to transfer data to
+the slave spi device(flash in this case).
+
+Test details:
+-------------
+Tested this on dra7 board.
+Test1: Ran mtd_stesstest for 40000 iterations.
+   - All iterations went through without failure.
+Test2: Use mtd utilities:
+  - flash_erase to erase the flash device
+  - mtd_debug read to read data back.
+  - mtd_debug write to write to the data flash.
+ diff between the write and read data shows zero.
+
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+---
+v9->v10:
+- Few miscellaneous cleanup
+- Add switch instead of ifelse.
+
+Left 3 warnings(80 characters) for better readibilty of code.
+These was posted till now as a two patch series.
+Dropping the 2nd patch as of now, will add once the support
+for multiple data lines are added in SPI framework(the patch is
+under review).
+ Documentation/devicetree/bindings/spi/ti_qspi.txt |   22 +
+ drivers/spi/Kconfig                               |    8 +
+ drivers/spi/Makefile                              |    1 +
+ drivers/spi/spi-ti-qspi.c                         |  561 +++++++++++++++++++++
+ 4 files changed, 592 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/spi/ti_qspi.txt
+ create mode 100644 drivers/spi/spi-ti-qspi.c
+
+diff --git a/Documentation/devicetree/bindings/spi/ti_qspi.txt b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+new file mode 100644
+index 0000000..398ef59
+--- /dev/null
++++ b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+@@ -0,0 +1,22 @@
++TI QSPI controller.
++
++Required properties:
++- compatible : should be "ti,dra7xxx-qspi".
++- reg: Should contain QSPI registers location and length.
++- #address-cells, #size-cells : Must be present if the device has sub-nodes
++- ti,hwmods: Name of the hwmod associated to the QSPI
++
++Recommended properties:
++- spi-max-frequency: Definition as per
++                     Documentation/devicetree/bindings/spi/spi-bus.txt
++
++Example:
++
++qspi: qspi@4b300000 {
++	compatible = "ti,dra7xxx-qspi";
++	reg = <0x4b300000 0x100>;
++	#address-cells = <1>;
++	#size-cells = <0>;
++	spi-max-frequency = <25000000>;
++	ti,hwmods = "qspi";
++};
+diff --git a/drivers/spi/Kconfig b/drivers/spi/Kconfig
+index 92a9345..1c4e758 100644
+--- a/drivers/spi/Kconfig
++++ b/drivers/spi/Kconfig
+@@ -285,6 +285,14 @@ config SPI_OMAP24XX
+ 	  SPI master controller for OMAP24XX and later Multichannel SPI
+ 	  (McSPI) modules.
+ 
++config SPI_TI_QSPI
++	tristate "DRA7xxx QSPI controller support"
++	depends on ARCH_OMAP2PLUS || COMPILE_TEST
++	help
++	  QSPI master controller for DRA7xxx used for flash devices.
++	  This device supports single, dual and quad read support, while
++	  it only supports single write mode.
++
+ config SPI_OMAP_100K
+ 	tristate "OMAP SPI 100K"
+ 	depends on ARCH_OMAP850 || ARCH_OMAP730
+diff --git a/drivers/spi/Makefile b/drivers/spi/Makefile
+index 33f9c09..a174030 100644
+--- a/drivers/spi/Makefile
++++ b/drivers/spi/Makefile
+@@ -46,6 +46,7 @@ obj-$(CONFIG_SPI_OCTEON)		+= spi-octeon.o
+ obj-$(CONFIG_SPI_OMAP_UWIRE)		+= spi-omap-uwire.o
+ obj-$(CONFIG_SPI_OMAP_100K)		+= spi-omap-100k.o
+ obj-$(CONFIG_SPI_OMAP24XX)		+= spi-omap2-mcspi.o
++obj-$(CONFIG_SPI_TI_QSPI)		+= spi-ti-qspi.o
+ obj-$(CONFIG_SPI_ORION)			+= spi-orion.o
+ obj-$(CONFIG_SPI_PL022)			+= spi-pl022.o
+ obj-$(CONFIG_SPI_PPC4xx)		+= spi-ppc4xx.o
+diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
+new file mode 100644
+index 0000000..795cf02
+--- /dev/null
++++ b/drivers/spi/spi-ti-qspi.c
+@@ -0,0 +1,561 @@
++/*
++ * TI QSPI driver
++ *
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
++ * Author: Sourav Poddar <sourav.poddar@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GPLv2.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR /PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/module.h>
++#include <linux/device.h>
++#include <linux/delay.h>
++#include <linux/dma-mapping.h>
++#include <linux/dmaengine.h>
++#include <linux/omap-dma.h>
++#include <linux/platform_device.h>
++#include <linux/err.h>
++#include <linux/clk.h>
++#include <linux/io.h>
++#include <linux/slab.h>
++#include <linux/pm_runtime.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
++#include <linux/pinctrl/consumer.h>
++
++#include <linux/spi/spi.h>
++
++struct ti_qspi_regs {
++	u32 clkctrl;
++};
++
++struct ti_qspi {
++	struct completion       transfer_complete;
++
++	/* IRQ synchronization */
++	spinlock_t              lock;
++
++	/* list synchronization */
++	struct mutex            list_lock;
++
++	struct spi_master	*master;
++	void __iomem            *base;
++	struct clk		*fclk;
++	struct device           *dev;
++
++	struct ti_qspi_regs     ctx_reg;
++
++	u32 spi_max_frequency;
++	u32 cmd;
++	u32 dc;
++	u32 stat;
++};
++
++#define QSPI_PID			(0x0)
++#define QSPI_SYSCONFIG			(0x10)
++#define QSPI_INTR_STATUS_RAW_SET	(0x20)
++#define QSPI_INTR_STATUS_ENABLED_CLEAR	(0x24)
++#define QSPI_INTR_ENABLE_SET_REG	(0x28)
++#define QSPI_INTR_ENABLE_CLEAR_REG	(0x2c)
++#define QSPI_SPI_CLOCK_CNTRL_REG	(0x40)
++#define QSPI_SPI_DC_REG			(0x44)
++#define QSPI_SPI_CMD_REG		(0x48)
++#define QSPI_SPI_STATUS_REG		(0x4c)
++#define QSPI_SPI_DATA_REG		(0x50)
++#define QSPI_SPI_SETUP0_REG		(0x54)
++#define QSPI_SPI_SWITCH_REG		(0x64)
++#define QSPI_SPI_SETUP1_REG		(0x58)
++#define QSPI_SPI_SETUP2_REG		(0x5c)
++#define QSPI_SPI_SETUP3_REG		(0x60)
++#define QSPI_SPI_DATA_REG_1		(0x68)
++#define QSPI_SPI_DATA_REG_2		(0x6c)
++#define QSPI_SPI_DATA_REG_3		(0x70)
++
++#define QSPI_COMPLETION_TIMEOUT		msecs_to_jiffies(2000)
++
++#define QSPI_FCLK			192000000
++
++/* Clock Control */
++#define QSPI_CLK_EN			(1 << 31)
++#define QSPI_CLK_DIV_MAX		0xffff
++
++/* Command */
++#define QSPI_EN_CS(n)			(n << 28)
++#define QSPI_WLEN(n)			((n - 1) << 19)
++#define QSPI_3_PIN			(1 << 18)
++#define QSPI_RD_SNGL			(1 << 16)
++#define QSPI_WR_SNGL			(2 << 16)
++#define QSPI_RD_DUAL			(3 << 16)
++#define QSPI_RD_QUAD			(7 << 16)
++#define QSPI_INVAL			(4 << 16)
++#define QSPI_WC_CMD_INT_EN			(1 << 14)
++#define QSPI_FLEN(n)			((n - 1) << 0)
++
++/* STATUS REGISTER */
++#define WC				0x02
++
++/* INTERRUPT REGISTER */
++#define QSPI_WC_INT_EN				(1 << 1)
++#define QSPI_WC_INT_DISABLE			(1 << 1)
++
++/* Device Control */
++#define QSPI_DD(m, n)			(m << (3 + n * 8))
++#define QSPI_CKPHA(n)			(1 << (2 + n * 8))
++#define QSPI_CSPOL(n)			(1 << (1 + n * 8))
++#define QSPI_CKPOL(n)			(1 << (n * 8))
++
++#define	QSPI_FRAME			4096
++
++#define QSPI_AUTOSUSPEND_TIMEOUT         2000
++
++static inline unsigned long ti_qspi_read(struct ti_qspi *qspi,
++		unsigned long reg)
++{
++	return readl(qspi->base + reg);
++}
++
++static inline void ti_qspi_write(struct ti_qspi *qspi,
++		unsigned long val, unsigned long reg)
++{
++	writel(val, qspi->base + reg);
++}
++
++static int ti_qspi_setup(struct spi_device *spi)
++{
++	struct ti_qspi	*qspi = spi_master_get_devdata(spi->master);
++	struct ti_qspi_regs *ctx_reg = &qspi->ctx_reg;
++	int clk_div = 0, ret;
++	u32 clk_ctrl_reg, clk_rate, clk_mask;
++
++	if (spi->master->busy) {
++		dev_dbg(qspi->dev, "master busy doing other trasnfers\n");
++		return -EBUSY;
++	}
++
++	if (!qspi->spi_max_frequency) {
++		dev_err(qspi->dev, "spi max frequency not defined\n");
++		return -EINVAL;
++	}
++
++	clk_rate = clk_get_rate(qspi->fclk);
++
++	clk_div = DIV_ROUND_UP(clk_rate, qspi->spi_max_frequency) - 1;
++
++	if (clk_div < 0) {
++		dev_dbg(qspi->dev, "clock divider < 0, using /1 divider\n");
++		return -EINVAL;
++	}
++
++	if (clk_div > QSPI_CLK_DIV_MAX) {
++		dev_dbg(qspi->dev, "clock divider >%d , using /%d divider\n",
++				QSPI_CLK_DIV_MAX, QSPI_CLK_DIV_MAX + 1);
++		return -EINVAL;
++	}
++
++	dev_dbg(qspi->dev, "hz: %d, clock divider %d\n",
++			qspi->spi_max_frequency, clk_div);
++
++	ret = pm_runtime_get_sync(qspi->dev);
++	if (ret) {
++		dev_err(qspi->dev, "pm_runtime_get_sync() failed\n");
++		return ret;
++	}
++
++	clk_ctrl_reg = ti_qspi_read(qspi, QSPI_SPI_CLOCK_CNTRL_REG);
++
++	clk_ctrl_reg &= ~QSPI_CLK_EN;
++
++	/* disable SCLK */
++	ti_qspi_write(qspi, clk_ctrl_reg, QSPI_SPI_CLOCK_CNTRL_REG);
++
++	/* enable SCLK */
++	clk_mask = QSPI_CLK_EN | clk_div;
++	ti_qspi_write(qspi, clk_mask, QSPI_SPI_CLOCK_CNTRL_REG);
++	ctx_reg->clkctrl = clk_mask;
++
++	pm_runtime_mark_last_busy(qspi->dev);
++	ret = pm_runtime_put_autosuspend(qspi->dev);
++	if (ret < 0) {
++		dev_err(qspi->dev, "pm_runtime_put_autosuspend() failed\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++static void ti_qspi_restore_ctx(struct ti_qspi *qspi)
++{
++	struct ti_qspi_regs *ctx_reg = &qspi->ctx_reg;
++
++	ti_qspi_write(qspi, ctx_reg->clkctrl, QSPI_SPI_CLOCK_CNTRL_REG);
++}
++
++static int qspi_write_msg(struct ti_qspi *qspi, struct spi_transfer *t)
++{
++	int wlen, count, ret;
++	unsigned int cmd;
++	const u8 *txbuf;
++
++	txbuf = t->tx_buf;
++	cmd = qspi->cmd | QSPI_WR_SNGL;
++	count = t->len;
++	wlen = t->bits_per_word;
++
++	while (count) {
++		switch (wlen) {
++		case 8:
++			dev_dbg(qspi->dev, "tx cmd %08x dc %08x data %02x\n",
++					cmd, qspi->dc, *txbuf);
++			writeb(*txbuf, qspi->base + QSPI_SPI_DATA_REG);
++			ti_qspi_write(qspi, cmd, QSPI_SPI_CMD_REG);
++			ret = wait_for_completion_timeout(&qspi->transfer_complete,
++					QSPI_COMPLETION_TIMEOUT);
++			if (ret == 0) {
++				dev_err(qspi->dev, "write timed out\n");
++				return -ETIMEDOUT;
++			}
++			txbuf += 1;
++			count -= 1;
++			break;
++		case 16:
++			dev_dbg(qspi->dev, "tx cmd %08x dc %08x data %04x\n",
++					cmd, qspi->dc, *txbuf);
++			writew(*((u16 *)txbuf), qspi->base + QSPI_SPI_DATA_REG);
++			ti_qspi_write(qspi, cmd, QSPI_SPI_CMD_REG);
++			ret = wait_for_completion_timeout(&qspi->transfer_complete,
++				QSPI_COMPLETION_TIMEOUT);
++			if (ret == 0) {
++				dev_err(qspi->dev, "write timed out\n");
++				return -ETIMEDOUT;
++			}
++			txbuf += 2;
++			count -= 2;
++			break;
++		case 32:
++			dev_dbg(qspi->dev, "tx cmd %08x dc %08x data %08x\n",
++					cmd, qspi->dc, *txbuf);
++			writel(*((u32 *)txbuf), qspi->base + QSPI_SPI_DATA_REG);
++			ti_qspi_write(qspi, cmd, QSPI_SPI_CMD_REG);
++			ret = wait_for_completion_timeout(&qspi->transfer_complete,
++				QSPI_COMPLETION_TIMEOUT);
++			if (ret == 0) {
++				dev_err(qspi->dev, "write timed out\n");
++				return -ETIMEDOUT;
++			}
++			txbuf += 4;
++			count -= 4;
++			break;
++		}
++	}
++
++	return 0;
++}
++
++static int qspi_read_msg(struct ti_qspi *qspi, struct spi_transfer *t)
++{
++	int wlen, count, ret;
++	unsigned int cmd;
++	u8 *rxbuf;
++
++	rxbuf = t->rx_buf;
++	cmd = qspi->cmd | QSPI_RD_SNGL;
++	count = t->len;
++	wlen = t->bits_per_word;
++
++	while (count) {
++		dev_dbg(qspi->dev, "rx cmd %08x dc %08x\n", cmd, qspi->dc);
++		ti_qspi_write(qspi, cmd, QSPI_SPI_CMD_REG);
++		ret = wait_for_completion_timeout(&qspi->transfer_complete,
++				QSPI_COMPLETION_TIMEOUT);
++		if (ret == 0) {
++			dev_err(qspi->dev, "read timed out\n");
++			return -ETIMEDOUT;
++		}
++		switch (wlen) {
++		case 8:
++			*rxbuf = readb(qspi->base + QSPI_SPI_DATA_REG);
++			rxbuf += 1;
++			count -= 1;
++			break;
++		case 16:
++			*((u16 *)rxbuf) = readw(qspi->base + QSPI_SPI_DATA_REG);
++			rxbuf += 2;
++			count -= 2;
++			break;
++		case 32:
++			*((u32 *)rxbuf) = readl(qspi->base + QSPI_SPI_DATA_REG);
++			rxbuf += 4;
++			count -= 4;
++			break;
++		}
++	}
++
++	return 0;
++}
++
++static int qspi_transfer_msg(struct ti_qspi *qspi, struct spi_transfer *t)
++{
++	int ret;
++
++	if (t->tx_buf) {
++		ret = qspi_write_msg(qspi, t);
++		if (ret) {
++			dev_dbg(qspi->dev, "Error while writing\n");
++			return ret;
++		}
++	}
++
++	if (t->rx_buf) {
++		ret = qspi_read_msg(qspi, t);
++		if (ret) {
++			dev_dbg(qspi->dev, "Error while writing\n");
++			return ret;
++		}
++	}
++
++	return 0;
++}
++
++static int ti_qspi_start_transfer_one(struct spi_master *master,
++		struct spi_message *m)
++{
++	struct ti_qspi *qspi = spi_master_get_devdata(master);
++	struct spi_device *spi = m->spi;
++	struct spi_transfer *t;
++	int status = 0, ret;
++	int frame_length;
++
++	/* setup device control reg */
++	qspi->dc = 0;
++
++	if (spi->mode & SPI_CPHA)
++		qspi->dc |= QSPI_CKPHA(spi->chip_select);
++	if (spi->mode & SPI_CPOL)
++		qspi->dc |= QSPI_CKPOL(spi->chip_select);
++	if (spi->mode & SPI_CS_HIGH)
++		qspi->dc |= QSPI_CSPOL(spi->chip_select);
++
++	frame_length = (m->frame_length << 3) / spi->bits_per_word;
++
++	frame_length = clamp(frame_length, 0, QSPI_FRAME);
++
++	/* setup command reg */
++	qspi->cmd = 0;
++	qspi->cmd |= QSPI_EN_CS(spi->chip_select);
++	qspi->cmd |= QSPI_FLEN(frame_length);
++	qspi->cmd |= QSPI_WC_CMD_INT_EN;
++
++	ti_qspi_write(qspi, QSPI_WC_INT_EN, QSPI_INTR_ENABLE_SET_REG);
++	ti_qspi_write(qspi, qspi->dc, QSPI_SPI_DC_REG);
++
++	mutex_lock(&qspi->list_lock);
++
++	list_for_each_entry(t, &m->transfers, transfer_list) {
++		qspi->cmd |= QSPI_WLEN(t->bits_per_word);
++
++		ret = qspi_transfer_msg(qspi, t);
++		if (ret) {
++			dev_dbg(qspi->dev, "transfer message failed\n");
++			return -EINVAL;
++		}
++
++		m->actual_length += t->len;
++	}
++
++	mutex_unlock(&qspi->list_lock);
++
++	m->status = status;
++	spi_finalize_current_message(master);
++
++	ti_qspi_write(qspi, qspi->cmd | QSPI_INVAL, QSPI_SPI_CMD_REG);
++
++	return status;
++}
++
++static irqreturn_t ti_qspi_isr(int irq, void *dev_id)
++{
++	struct ti_qspi *qspi = dev_id;
++	u16 int_stat;
++
++	irqreturn_t ret = IRQ_HANDLED;
++
++	spin_lock(&qspi->lock);
++
++	int_stat = ti_qspi_read(qspi, QSPI_INTR_STATUS_ENABLED_CLEAR);
++	qspi->stat = ti_qspi_read(qspi, QSPI_SPI_STATUS_REG);
++
++	if (!int_stat) {
++		dev_dbg(qspi->dev, "No IRQ triggered\n");
++		ret = IRQ_NONE;
++		goto out;
++	}
++
++	ret = IRQ_WAKE_THREAD;
++
++	ti_qspi_write(qspi, QSPI_WC_INT_DISABLE, QSPI_INTR_ENABLE_CLEAR_REG);
++	ti_qspi_write(qspi, QSPI_WC_INT_DISABLE,
++				QSPI_INTR_STATUS_ENABLED_CLEAR);
++
++out:
++	spin_unlock(&qspi->lock);
++
++	return ret;
++}
++
++static irqreturn_t ti_qspi_threaded_isr(int this_irq, void *dev_id)
++{
++	struct ti_qspi *qspi = dev_id;
++	unsigned long flags;
++
++	spin_lock_irqsave(&qspi->lock, flags);
++
++	if (qspi->stat & WC)
++		complete(&qspi->transfer_complete);
++
++	spin_unlock_irqrestore(&qspi->lock, flags);
++
++	ti_qspi_write(qspi, QSPI_WC_INT_EN, QSPI_INTR_ENABLE_SET_REG);
++
++	return IRQ_HANDLED;
++}
++
++static int ti_qspi_runtime_resume(struct device *dev)
++{
++	struct ti_qspi      *qspi;
++	struct spi_master       *master;
++
++	master = dev_get_drvdata(dev);
++	qspi = spi_master_get_devdata(master);
++	ti_qspi_restore_ctx(qspi);
++
++	return 0;
++}
++
++static const struct of_device_id ti_qspi_match[] = {
++	{.compatible = "ti,dra7xxx-qspi" },
++	{},
++};
++MODULE_DEVICE_TABLE(of, dra7xxx_qspi_match);
++
++static int ti_qspi_probe(struct platform_device *pdev)
++{
++	struct  ti_qspi *qspi;
++	struct spi_master *master;
++	struct resource         *r;
++	struct device_node *np = pdev->dev.of_node;
++	u32 max_freq;
++	int ret = 0, num_cs, irq;
++
++	master = spi_alloc_master(&pdev->dev, sizeof(*qspi));
++	if (!master)
++		return -ENOMEM;
++
++	master->mode_bits = SPI_CPOL | SPI_CPHA;
++
++	master->bus_num = -1;
++	master->flags = SPI_MASTER_HALF_DUPLEX;
++	master->setup = ti_qspi_setup;
++	master->auto_runtime_pm = true;
++	master->transfer_one_message = ti_qspi_start_transfer_one;
++	master->dev.of_node = pdev->dev.of_node;
++	master->bits_per_word_mask = BIT(32 - 1) | BIT(16 - 1) | BIT(8 - 1);
++
++	if (!of_property_read_u32(np, "num-cs", &num_cs))
++		master->num_chipselect = num_cs;
++
++	platform_set_drvdata(pdev, master);
++
++	qspi = spi_master_get_devdata(master);
++	qspi->master = master;
++	qspi->dev = &pdev->dev;
++
++	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0) {
++		dev_err(&pdev->dev, "no irq resource?\n");
++		return irq;
++	}
++
++	spin_lock_init(&qspi->lock);
++	mutex_init(&qspi->list_lock);
++
++	qspi->base = devm_ioremap_resource(&pdev->dev, r);
++	if (IS_ERR(qspi->base)) {
++		ret = PTR_ERR(qspi->base);
++		goto free_master;
++	}
++
++	ret = devm_request_threaded_irq(&pdev->dev, irq, ti_qspi_isr,
++			ti_qspi_threaded_isr, 0,
++			dev_name(&pdev->dev), qspi);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to register ISR for IRQ %d\n",
++				irq);
++		goto free_master;
++	}
++
++	qspi->fclk = devm_clk_get(&pdev->dev, "fck");
++	if (IS_ERR(qspi->fclk)) {
++		ret = PTR_ERR(qspi->fclk);
++		dev_err(&pdev->dev, "could not get clk: %d\n", ret);
++	}
++
++	init_completion(&qspi->transfer_complete);
++
++	pm_runtime_use_autosuspend(&pdev->dev);
++	pm_runtime_set_autosuspend_delay(&pdev->dev, QSPI_AUTOSUSPEND_TIMEOUT);
++	pm_runtime_enable(&pdev->dev);
++
++	if (!of_property_read_u32(np, "spi-max-frequency", &max_freq))
++		qspi->spi_max_frequency = max_freq;
++
++	ret = spi_register_master(master);
++	if (ret)
++		goto free_master;
++
++	return 0;
++
++free_master:
++	spi_master_put(master);
++	return ret;
++}
++
++static int ti_qspi_remove(struct platform_device *pdev)
++{
++	struct	ti_qspi *qspi = platform_get_drvdata(pdev);
++
++	spi_unregister_master(qspi->master);
++
++	return 0;
++}
++
++static const struct dev_pm_ops ti_qspi_pm_ops = {
++	.runtime_resume = ti_qspi_runtime_resume,
++};
++
++static struct platform_driver ti_qspi_driver = {
++	.probe	= ti_qspi_probe,
++	.remove	= ti_qspi_remove,
++	.driver = {
++		.name	= "ti,dra7xxx-qspi",
++		.owner	= THIS_MODULE,
++		.pm =   &ti_qspi_pm_ops,
++		.of_match_table = ti_qspi_match,
++	}
++};
++
++module_platform_driver(ti_qspi_driver);
++
++MODULE_AUTHOR("Sourav Poddar <sourav.poddar@ti.com>");
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("TI QSPI controller driver");
+-- 
+1.7.1
+
