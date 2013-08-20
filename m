@@ -1,8 +1,8 @@
-From: Pawel Moll <pawel.moll@arm.com>
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
 Subject: Re: [PATCH v4 2/3] usb: phy: Add Qualcomm SS-USB and HS-USB drivers
  for DWC3 core
-Date: Tue, 20 Aug 2013 16:06:03 +0100
-Message-ID: <1377011163.31445.30.camel@hornet>
+Date: Tue, 20 Aug 2013 18:26:21 +0300
+Message-ID: <1377012381.26268.42.camel@iivanov-dev.int.mm-sol.com>
 References: <1376992565-22292-1-git-send-email-iivanov@mm-sol.com>
 	 <1376992565-22292-3-git-send-email-iivanov@mm-sol.com>
 	 <20130820122907.GU26587@radagast>
@@ -13,84 +13,75 @@ References: <1376992565-22292-1-git-send-email-iivanov@mm-sol.com>
 	 <1377010458.26268.30.camel@iivanov-dev.int.mm-sol.com>
 	 <8691FDFE-326E-4198-838A-202D9EC988E1@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
 In-Reply-To: <8691FDFE-326E-4198-838A-202D9EC988E1@codeaurora.org>
-Sender: linux-doc-owner@vger.kernel.org
+Sender: linux-arm-msm-owner@vger.kernel.org
 To: Kumar Gala <galak@codeaurora.org>
-Cc: "Ivan T. Ivanov" <iivanov@mm-sol.com>, "balbi@ti.com" <balbi@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Mark Rutland <Mark.Rutland@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob@landley.net" <rob@landley.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "idos@codeaurora.org" <idos@codeaurora.org>, "mgautam@codeaurora.org" <mgautam@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Paul
+Cc: balbi@ti.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org, Paul Zimmerman <paul.zimmerman@synopsys.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2013-08-20 at 16:01 +0100, Kumar Gala wrote:
+On Tue, 2013-08-20 at 10:01 -0500, Kumar Gala wrote: 
 > On Aug 20, 2013, at 9:54 AM, Ivan T. Ivanov wrote:
->=20
-> >=20
-> > Hi,=20
-> >=20
-> > On Tue, 2013-08-20 at 09:33 -0500, Felipe Balbi wrote:=20
+> 
+> > 
+> > Hi, 
+> > 
+> > On Tue, 2013-08-20 at 09:33 -0500, Felipe Balbi wrote: 
 > >> On Tue, Aug 20, 2013 at 05:09:11PM +0300, Ivan T. Ivanov wrote:
 > >>> Hi,
-> >>>=20
-> >>> On Tue, 2013-08-20 at 08:37 -0500, Felipe Balbi wrote:=20
+> >>> 
+> >>> On Tue, 2013-08-20 at 08:37 -0500, Felipe Balbi wrote: 
 > >>>> Hi,
-> >>>>=20
+> >>>> 
 > >>>> On Tue, Aug 20, 2013 at 04:32:23PM +0300, Ivan T. Ivanov wrote:
-> >>>>>> On Tue, Aug 20, 2013 at 12:56:04PM +0300, Ivan T. Ivanov wrote=
-:
+> >>>>>> On Tue, Aug 20, 2013 at 12:56:04PM +0300, Ivan T. Ivanov wrote:
 > >>>>>>> From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-> >>>>>>>=20
+> >>>>>>> 
 > >>>>>>> These drivers handles control and configuration of the HS
 > >>>>>>> and SS USB PHY transceivers. They are part of the driver
 > >>>>>>> which manage Synopsys DesignWare USB3 controller stack
 > >>>>>>> inside Qualcomm SoC's.
-> >>>>>>>=20
+> >>>>>>> 
 > >>>>>>> Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
 > >>>>>>> ---
 > >>>>>>> drivers/usb/phy/Kconfig           |   11 ++
 > >>>>>>> drivers/usb/phy/Makefile          |    2 +
-> >>>>>>> drivers/usb/phy/phy-msm-dwc3-hs.c |  327 ++++++++++++++++++++=
-++++++++++++
-> >>>>>>> drivers/usb/phy/phy-msm-dwc3-ss.c |  374 ++++++++++++++++++++=
-+++++++++++++++++
-> >>>>>>=20
-> >>>>>> please rename these PHY drivers, they have nothing to do with =
-DWC3. PHYs
+> >>>>>>> drivers/usb/phy/phy-msm-dwc3-hs.c |  327 ++++++++++++++++++++++++++++++++
+> >>>>>>> drivers/usb/phy/phy-msm-dwc3-ss.c |  374 +++++++++++++++++++++++++++++++++++++
+> >>>>>> 
+> >>>>>> please rename these PHY drivers, they have nothing to do with DWC3. PHYs
 > >>>>>> don't care about the USB controller.
-> >>>>>=20
+> >>>>> 
 > >>>>> I think they are SNPS DesignWare PHY's, additionally
 > >>>>> wrapped with Qualcomm logic. I could substitute "dwc3"
 > >>>>> with just "dw", which will be more correct.
-> >>>>=20
-> >>>> alright, thank you. Let's add Paul to the loop since he might ha=
-ve very
+> >>>> 
+> >>>> alright, thank you. Let's add Paul to the loop since he might have very
 > >>>> good insight in the synopsys PHYs.
-> >>>>=20
-> >>>> mental note: if any other platform shows up with Synopsys PHY, a=
-sk them
+> >>>> 
+> >>>> mental note: if any other platform shows up with Synopsys PHY, ask them
 > >>>> to use this driver instead :-)
-> >>>=20
-> >>> I really doubt that this will bi possible. Control of the PHY's i=
-s
+> >>> 
+> >>> I really doubt that this will bi possible. Control of the PHY's is
 > >>> not directly trough ULPI, UTMI or PIPE3 interfaces, but trough
 > >>> QSCRATCH registers, which of course is highly Qualcomm specific.
-> >>=20
-> >> isn't it a memory mapped IP ? doesn't synopsys provide their own s=
-et of
+> >> 
+> >> isn't it a memory mapped IP ? doesn't synopsys provide their own set of
 > >> registers ?
-> >=20
+> > 
 > > From what I see it is not directly mapped. How QSCRATCH write and
 > > reads transactions are translated to DW IP is unclear to me.
->=20
->=20
+> 
+> 
 > I think the question is how does SW access them?
 
-I afraid the answer may be: "it depends on the SOC". In my past I had t=
-o
-initialize a (SATA) PHY by implementing a software JTAG state machine,
-as the PHY's registers were not memory mapped *at all*. And the IP
-itself came from Synopsys, Cadence or yet another EDA company...
+"USB QSCRATCH Hardware registers" don't ask me what is this :-)
+or like Pawel says: "it depends on the SOC" .
 
-Pawe=C5=82
+Ivan
 
-
+> 
+> - k
+> 
