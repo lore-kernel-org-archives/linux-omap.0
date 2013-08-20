@@ -1,107 +1,68 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.11-rc6
-Date: Tue, 20 Aug 2013 22:00:20 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1308202156340.6426@utopia.booyaka.com>
+Subject: Re: [PATCHv3 8/9] ARM: OMAP2+: AM33XX: Basic suspend resume
+ support
+Date: Tue, 20 Aug 2013 22:48:27 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1308202244350.6426@utopia.booyaka.com>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <1375811376-49985-9-git-send-email-d-gerlach@ti.com> <CA+Bv8XbK+=pvG+bbvfCtS2Rtg-YoAhuUbWjSro9m4xWjw=Cr8A@mail.gmail.com> <52038E88.2050604@ti.com> <5203B336.90102@ti.com> <5203C211.7040207@ti.com>
+ <87iozfga1t.fsf@kernel.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:45187 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:45351 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751178Ab3HTWAV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 18:00:21 -0400
+	with ESMTP id S1751275Ab3HTWs2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 18:48:28 -0400
+In-Reply-To: <87iozfga1t.fsf@kernel.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vaibhav Bedia <vaibhav.bedia@ti.com>, Tony Lingren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>
 
 
-Here are some basic OMAP test results for Linux v3.11-rc6.
-Logs and other details at:
+Hi folks,
 
-    http://www.pwsan.com/omap/testlogs/test_v3.11-rc6/20130818180958/
+catching up on this thread.
 
+On 08/06/2013 12:49 PM, Dave Gerlach wrote:
 
-Test summary
-------------
+> +
+> +static int am33xx_pm_suspend(void)
+> +{
+> +     int i, j, ret = 0;
+> +
+> +     int status = 0;
+> +     struct platform_device *pdev;
+> +     struct omap_device *od;
+> +
+> +     /*
+> +      * By default the following IPs do not have MSTANDBY asserted
+> +      * which is necessary for PER domain transition. If the drivers
+> +      * are not compiled into the kernel HWMOD code will not change the
+> +      * state of the IPs if the IP was not never enabled. To ensure
+> +      * that there no issues with or without the drivers being compiled
+> +      * in the kernel, we forcefully put these IPs to idle.
+> +      */
+> +     for (i = 0; i < ARRAY_SIZE(am33xx_mod); i++) {
+> +             pdev = to_platform_device(am33xx_mod[i].dev);
+> +             od = to_omap_device(pdev);
+> +             if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER) {
+> +                     omap_device_enable_hwmods(od);
+> +                     omap_device_idle_hwmods(od);
+> +             }
+> +     }
 
-Build: uImage:
-    Pass (14/14): n800_multi_omap2xxx, n800_only_a, omap1_defconfig,
-                  omap1_defconfig_1510innovator_only,
-                  omap1_defconfig_5912osk_only, omap2plus_defconfig,
-                  omap2plus_defconfig_2430sdp_only,
-                  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-                  omap2plus_defconfig_omap2_4_only,
-                  omap2plus_defconfig_omap3_4_only,
-                  rmk_omap3430_ldp_allnoconfig,
-                  rmk_omap3430_ldp_oldconfig,
-                  rmk_omap4430_sdp_allnoconfig
+Does this have to be done for every suspend entry, or can it just be done 
+once during kernel initialization?
 
-Build: uImage+dtb:
-    Pass ( 3/ 3): am33xx_only/am335x-bone,
-                  omap2plus_defconfig/omap4-panda,
-                  omap2plus_defconfig/omap4-panda-es
+If the latter, shouldn't this be done by hwmod during the initial reset 
+and idle of all of these devices, based on a flag?  For example, we had 
+this flag for OMAP3630:
 
-Build: zImage:
-    Pass ( 1/ 1): omap2plus_defconfig
-
-Boot to userspace:
-    skip ( 1/ 1): 5912osk
-    Pass (10/10): 2430sdp, 3517evm, 3530es3beagle, 3730beaglexm,
-                  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
-                  am335xbonelt, cmt3517
-
-PM: chip retention via suspend:
-    FAIL ( 2/ 6): 2430sdp, 4430es2panda
-    Pass ( 4/ 6): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
-
-PM: chip retention via dynamic idle:
-    FAIL ( 3/ 6): 2430sdp, 4430es2panda, 4460pandaes
-    Pass ( 3/ 6): 3530es3beagle, 3730beaglexm, 37xxevm
-
-PM: chip off except CORE via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off except CORE via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    FAIL ( 2/ 4): 4430es2panda, 4460pandaes
-    Pass ( 2/ 4): 3530es3beagle, 37xxevm
-
-PM: chip off via dynamic idle:
-    FAIL ( 2/ 4): 4430es2panda, 4460pandaes
-    Pass ( 2/ 4): 3530es3beagle, 37xxevm
+ * HWMOD_FORCE_MSTANDBY: Always keep MIDLEMODE bits cleared so that device
+ *     is kept in force-standby mode. Failing to do so causes PM problems
+ *     with musb on OMAP3630 at least. Note that musb has a dedicated 
+register
+ *     to control MSTANDBY signal when MIDLEMODE is set to force-standby.
 
 
-vmlinux object size
-(delta in bytes from test_v3.11-rc5 
-(d4e4ab86bcba5a72779c43dc1459f71fea3d89c8)):
-   text     data      bss    total  kernel
-   +272        0        0     +272  n800_multi_omap2xxx
-   +272        0        0     +272  n800_only_a
-  +1000        0        0    +1000  omap1_defconfig
-  +1984        0        0    +1984  omap1_defconfig_1510innovator_only
-   +992        0        0     +992  omap1_defconfig_5912osk_only
-  +4880        0        0    +4880  omap2plus_defconfig
-   +712        0        0     +712  omap2plus_defconfig_2430sdp_only
-   +784        0        0     +784  omap2plus_defconfig_cpupm
-   +720        0        0     +720  omap2plus_defconfig_no_pm
-   +784        0        0     +784  omap2plus_defconfig_omap2_4_only
-   +784        0        0     +784  omap2plus_defconfig_omap3_4_only
-   +296        0      -32     +264  rmk_omap3430_ldp_allnoconfig
-   +448        0        0     +448  rmk_omap3430_ldp_oldconfig
-   +280        0      -16     +264  rmk_omap4430_sdp_allnoconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.11-rc5 
-(d4e4ab86bcba5a72779c43dc1459f71fea3d89c8))
-  avail  rsrvd   high  freed  board          kconfig
-    -8k     8k      .      .  2430sdp        omap2plus_defconfig
-    -8k     8k      .      .  3517evm        omap2plus_defconfig
-    -8k     8k      .      .  3530es3beagle  omap2plus_defconfig
-    -8k     8k      .      .  3730beaglexm   omap2plus_defconfig
-    -8k     8k      .      .  37xxevm        omap2plus_defconfig
-    -8k     8k      .      .  4430es2panda   omap2plus_defconfig
-    -8k     8k      .      .  4460pandaes    omap2plus_defconfig
-    -8k     8k      .      .  am335xbonelt   am33xx_only
-
+- Paul
