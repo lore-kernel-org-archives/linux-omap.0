@@ -1,71 +1,35 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
-Date: Tue, 20 Aug 2013 15:56:03 +0200
-Message-ID: <2009747.pxcYsmMib4@avalon>
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <1436822.NCo0PqzB8p@avalon> <52136C36.1090605@ti.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH v5 0/4] mtd:nand:omap2: clean-up of supported ECC schemes
+Date: Tue, 20 Aug 2013 17:02:29 +0300
+Message-ID: <1377007349.2089.566.camel@sauron.fi.intel.com>
+References: <1373748891-7779-1-git-send-email-pekon@ti.com>
+	 <20980858CB6D3A4BAE95CA194937D5E73E9F781B@DBDE04.ent.ti.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46518 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751416Ab3HTNyu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 09:54:50 -0400
-In-Reply-To: <52136C36.1090605@ti.com>
+Received: from mga14.intel.com ([143.182.124.37]:28856 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751012Ab3HTN4r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Aug 2013 09:56:47 -0400
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73E9F781B@DBDE04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <a0393947@ti.com>
-Cc: Archit Taneja <archit@ti.com>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, dagriego@biglakesoftware.com, dale@farnsworth.org, pawel@osciak.com, m.szyprowski@samsung.com, hverkuil@xs4all.nl, tomi.valkeinen@ti.com
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: "computersforpeace@gmail.com" <computersforpeace@gmail.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "arnd@arndb.de" <arnd@arndb.de>, "olof@lixom.net" <olof@lixom.net>, "tony@atomide.com" <tony@atomide.com>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-Hi Archit,
+On Tue, 2013-08-20 at 13:20 +0000, Gupta, Pekon wrote:
+> Hi Artem, Brian,
 
-On Tuesday 20 August 2013 18:46:38 Archit Taneja wrote:
-> On Tuesday 20 August 2013 05:09 PM, Laurent Pinchart wrote:
-> 
-> <snip>
-> 
-> >>>> +static int vpdma_load_firmware(struct vpdma_data *vpdma)
-> >>>> +{
-> >>>> +	int r;
-> >>>> +	struct device *dev = &vpdma->pdev->dev;
-> >>>> +
-> >>>> +	r = request_firmware_nowait(THIS_MODULE, 1,
-> >>>> +		(const char *) VPDMA_FIRMWARE, dev, GFP_KERNEL, vpdma,
-> >>>> +		vpdma_firmware_cb);
-> >>> 
-> >>> Is there a reason not to use the synchronous interface ? That would
-> >>> simplify both this code and the callers, as they won't have to check
-> >>> whether the firmware has been correctly loaded.
-> >> 
-> >> I'm not clear what you mean by that, the firmware would be stored in the
-> >> filesystem. If the driver is built-in, then the synchronous interface
-> >> wouldn't work unless the firmware is appended to the kernel image. Am I
-> >> missing something here? I'm not very aware of the firmware api.
-> > 
-> > request_firmware() would just sleep (with a 30 seconds timeout if I'm not
-> > mistaken) until userspace provides the firmware. As devices are probed
-> > asynchronously (in kernel threads) the system will just boot normally, and
-> > the request_firmware() call will return when the firmware is available.
->
-> Sorry, I sent the previous mail bit too early.
-> 
-> With request_firmware() and the driver built-in, I see that the kernel
-> stalls for 10 seconds at the driver's probe, and the firware loading fails
-> since we didn't enter userspace where the file is.
-> 
-> The probing of devices asynchronously with kernel threads makes sense, so
-> it's possible that I'm doing something wrong here. I'll give it a try again
+I'll try to go through old e-mails now, and especially ubi/ubifs ones,
+including yours, and I'll let Brian handle your patches, if I can? :-)
 
-I might have spoken too fast. It looks like module initcalls are not run in 
-threads. I've most probably mistaken that with asynchronous probing of hot-
-pluggable devices.
+I checked them, and they looked good to me:
 
-If your driver is built-in then it looks like the correct solution is to build 
-the firmware in the kernel image as well, or use the asynchronous API as you 
-did.
+Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
 -- 
-Regards,
-
-Laurent Pinchart
+Best Regards,
+Artem Bityutskiy
 
