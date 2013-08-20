@@ -1,50 +1,177 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v5 5/8] usb: musb: omap2430: Don't use omap_get_control_dev()
-Date: Tue, 20 Aug 2013 21:57:24 +0400
-Message-ID: <5213AE04.1070907@cogentembedded.com>
-References: <1377010577-19355-1-git-send-email-rogerq@ti.com> <1377010577-19355-6-git-send-email-rogerq@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1377010577-19355-6-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Olof Johansson <olof@lixom.net>
+Subject: [PATCH] hwrng: reorder OMAP TRNG driver code
+Date: Tue, 20 Aug 2013 11:07:53 -0700
+Message-ID: <1377022073-28198-1-git-send-email-olof@lixom.net>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:43959 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751266Ab3HTSHb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 14:07:31 -0400
+Received: by mail-pa0-f41.google.com with SMTP id bj1so1019070pad.14
+        for <linux-omap@vger.kernel.org>; Tue, 20 Aug 2013 11:07:30 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: herbert@gondor.hengli.com.au
+Cc: linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>, Lokesh Vutla <lokeshvutla@ti.com>
 
-Hello.
+The newly added omap4 support in the driver was added without
+consideration for building older configs. When building omap1_defconfig,
+it resulted in:
 
-On 08/20/2013 06:56 PM, Roger Quadros wrote:
+drivers/char/hw_random/omap-rng.c:190:12: warning: 'omap4_rng_init' defined but not used [-Wunused-function]
+drivers/char/hw_random/omap-rng.c:215:13: warning: 'omap4_rng_cleanup' defined but not used [-Wunused-function]
+drivers/char/hw_random/omap-rng.c:251:20: warning: 'omap4_rng_irq' defined but not used [-Wunused-function]
 
-> omap_get_control_dev() is being deprecated as it doesn't support
-> multiple instances. As control device is present only from OMAP4
-> onwards which supports DT only, we use phandles to get the
-> reference to the control device.
+Move the code around so it is grouped with its operations struct, which
+for the omap4 case means also under the #ifdef CONFIG_OF, where it needs
+to be.
 
-> Also get rid of "ti,has-mailbox" property as it is redundant and
-> we can determine that from whether "ctrl-module" property is present
-> or not. Get rid of has_mailbox from musb_hdrc_platform_data as well.
+Signed-off-by: Olof Johansson <olof@lixom.net>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>
+---
+ drivers/char/hw_random/omap-rng.c |  108 ++++++++++++++++++-------------------
+ 1 file changed, 54 insertions(+), 54 deletions(-)
 
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-[...]
+diff --git a/drivers/char/hw_random/omap-rng.c b/drivers/char/hw_random/omap-rng.c
+index f3f7142..9b89ff4 100644
+--- a/drivers/char/hw_random/omap-rng.c
++++ b/drivers/char/hw_random/omap-rng.c
+@@ -140,16 +140,6 @@ static inline void omap_rng_write(struct omap_rng_dev *priv, u16 reg,
+ 	__raw_writel(val, priv->base + priv->pdata->regs[reg]);
+ }
+ 
+-static inline u32 omap2_rng_data_present(struct omap_rng_dev *priv)
+-{
+-	return omap_rng_read(priv, RNG_STATUS_REG) ? 0 : 1;
+-}
+-
+-static inline u32 omap4_rng_data_present(struct omap_rng_dev *priv)
+-{
+-	return omap_rng_read(priv, RNG_STATUS_REG) & RNG_REG_STATUS_RDY;
+-}
+-
+ static int omap_rng_data_present(struct hwrng *rng, int wait)
+ {
+ 	struct omap_rng_dev *priv;
+@@ -187,6 +177,60 @@ static int omap_rng_data_read(struct hwrng *rng, u32 *data)
+ 	return data_size;
+ }
+ 
++static int omap_rng_init(struct hwrng *rng)
++{
++	struct omap_rng_dev *priv;
++
++	priv = (struct omap_rng_dev *)rng->priv;
++	return priv->pdata->init(priv);
++}
++
++static void omap_rng_cleanup(struct hwrng *rng)
++{
++	struct omap_rng_dev *priv;
++
++	priv = (struct omap_rng_dev *)rng->priv;
++	priv->pdata->cleanup(priv);
++}
++
++static struct hwrng omap_rng_ops = {
++	.name		= "omap",
++	.data_present	= omap_rng_data_present,
++	.data_read	= omap_rng_data_read,
++	.init		= omap_rng_init,
++	.cleanup	= omap_rng_cleanup,
++};
++
++static inline u32 omap2_rng_data_present(struct omap_rng_dev *priv)
++{
++	return omap_rng_read(priv, RNG_STATUS_REG) ? 0 : 1;
++}
++
++static int omap2_rng_init(struct omap_rng_dev *priv)
++{
++	omap_rng_write(priv, RNG_SYSCONFIG_REG, 0x1);
++	return 0;
++}
++
++static void omap2_rng_cleanup(struct omap_rng_dev *priv)
++{
++	omap_rng_write(priv, RNG_SYSCONFIG_REG, 0x0);
++}
++
++static struct omap_rng_pdata omap2_rng_pdata = {
++	.regs		= (u16 *)reg_map_omap2,
++	.data_size	= OMAP2_RNG_OUTPUT_SIZE,
++	.data_present	= omap2_rng_data_present,
++	.init		= omap2_rng_init,
++	.cleanup	= omap2_rng_cleanup,
++};
++
++#if defined(CONFIG_OF)
++static inline u32 omap4_rng_data_present(struct omap_rng_dev *priv)
++{
++	return omap_rng_read(priv, RNG_STATUS_REG) & RNG_REG_STATUS_RDY;
++}
++
+ static int omap4_rng_init(struct omap_rng_dev *priv)
+ {
+ 	u32 val;
+@@ -221,33 +265,6 @@ static void omap4_rng_cleanup(struct omap_rng_dev *priv)
+ 	omap_rng_write(priv, RNG_CONFIG_REG, val);
+ }
+ 
+-static int omap2_rng_init(struct omap_rng_dev *priv)
+-{
+-	omap_rng_write(priv, RNG_SYSCONFIG_REG, 0x1);
+-	return 0;
+-}
+-
+-static void omap2_rng_cleanup(struct omap_rng_dev *priv)
+-{
+-	omap_rng_write(priv, RNG_SYSCONFIG_REG, 0x0);
+-}
+-
+-static int omap_rng_init(struct hwrng *rng)
+-{
+-	struct omap_rng_dev *priv;
+-
+-	priv = (struct omap_rng_dev *)rng->priv;
+-	return priv->pdata->init(priv);
+-}
+-
+-static void omap_rng_cleanup(struct hwrng *rng)
+-{
+-	struct omap_rng_dev *priv;
+-
+-	priv = (struct omap_rng_dev *)rng->priv;
+-	priv->pdata->cleanup(priv);
+-}
+-
+ static irqreturn_t omap4_rng_irq(int irq, void *dev_id)
+ {
+ 	struct omap_rng_dev *priv = dev_id;
+@@ -275,23 +292,6 @@ static irqreturn_t omap4_rng_irq(int irq, void *dev_id)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static struct hwrng omap_rng_ops = {
+-	.name		= "omap",
+-	.data_present	= omap_rng_data_present,
+-	.data_read	= omap_rng_data_read,
+-	.init		= omap_rng_init,
+-	.cleanup	= omap_rng_cleanup,
+-};
+-
+-static struct omap_rng_pdata omap2_rng_pdata = {
+-	.regs		= (u16 *)reg_map_omap2,
+-	.data_size	= OMAP2_RNG_OUTPUT_SIZE,
+-	.data_present	= omap2_rng_data_present,
+-	.init		= omap2_rng_init,
+-	.cleanup	= omap2_rng_cleanup,
+-};
+-
+-#if defined(CONFIG_OF)
+ static struct omap_rng_pdata omap4_rng_pdata = {
+ 	.regs		= (u16 *)reg_map_omap4,
+ 	.data_size	= OMAP4_RNG_OUTPUT_SIZE,
+-- 
+1.7.10.4
 
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> index ebb46ec..516795b 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-[...]
-> @@ -509,8 +510,12 @@ static int omap2430_probe(struct platform_device *pdev)
->   	glue->dev			= &pdev->dev;
->   	glue->musb			= musb;
->   	glue->status			= OMAP_MUSB_UNKNOWN;
-> +	glue->control_otghs = ERR_PTR(-ENODEV);
-
-    Could you please align = with the others above?
-
-WBR, Sergei
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
