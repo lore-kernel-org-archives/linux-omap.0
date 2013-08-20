@@ -1,133 +1,107 @@
-From: Hein Tibosch <hein_tibosch@yahoo.es>
-Subject: Re: [PATCH V2] mmc: omap_hsmmc: Fix sleep too long in ISR context.
-Date: Wed, 21 Aug 2013 02:52:00 +0800
-Message-ID: <5213BAD0.8030406@yahoo.es>
-References: <201308071805022428282@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.11-rc6
+Date: Tue, 20 Aug 2013 22:00:20 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1308202156340.6426@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <201308071805022428282@gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: cjb <cjb@laptop.org>, Felipe Balbi <balbi@ti.com>
-Cc: majianpeng <majianpeng@gmail.com>, balajitk <balajitk@ti.com>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, mayuzheng <mayuzheng@kedacom.com>, Matt Porter <mporter@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Syed Mohammed Khasim <x0khasim@ti.com>, Madhusudhan <madhu.cr@ti.com>, Mohit Jalori <mjalori@ti.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:45187 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751178Ab3HTWAV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 18:00:21 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-Hi,
 
-[ added some people from TI ]
+Here are some basic OMAP test results for Linux v3.11-rc6.
+Logs and other details at:
 
-On 8/7/2013 6:05 PM, majianpeng wrote:
-> V2:=20
-> 	clean up code.
-> V1:
-> 	www.mail-archive.com/linux-omap@vger.../msg93239.html=E2=80=8E
->
->
-> We found a problem when we removed a working sd card that the irqacti=
-on
-> of omap_hsmmc can sleep to 3.6s. This cause our watchdog to work.
-> In func omap_hsmmc_reset_controller_fsm, it should watch a 0->1
-> transition.But avoiding endless waiting, it used loops_per_jiffy as t=
-he timer.
+    http://www.pwsan.com/omap/testlogs/test_v3.11-rc6/20130818180958/
 
-Tried on a OMAP4460:
-This can easily be replicated: just withdraw an SD-card and the kernel
-will get blocked during more than 3 seconds.
-Calling OMAP_HSMMC_READ() in this loop makes it last so long.
 
-The function waits for a 0=3D>1, followed by a 1=3D>0 transition.
-The value of 1 always comes, but in most cases the code is just too
-slow to detect it. The first loop will only stop when (i =3D=3D limit)
+Test summary
+------------
 
-> The code is:
->> while ((!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit))
->>                && (i++ < limit))
->>                        cpu_relax();
-> But generanly loops_per_jiffy as a timer,it should like:
->>  while(i++ < limit)
->> cpu_relax();
-> I found for the long time case, the while-opeation stoped because 'i =
-=3D=3D limit'.
-> Because added some code, so the duration became too longer than
-> MMC_TIMEOU_US(20ms).
->
-> The software can't monitor the transition of hardware for thi case.
->
-> Becasue those codes in ISR context, it can't use timer_before/after.
-> I divived the time into 1ms and used udelay(1) to instead.
-> It will cause do additional udelay(1).But from my test,it looks good.
->
-> Reported-by: Yuzheng Ma <mayuzheng@kedacom.com>
-> Tested-by: Yuzheng Ma <mayuzheng@kedacom.com>
-> Reviewed-by: Hein Tibosch <hein_tibosch@yahoo.es>
-> Signed-off-by: Jianpeng Ma <majianpeng@gmail.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c | 25 +++++++++++--------------
->  1 file changed, 11 insertions(+), 14 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hs=
-mmc.c
-> index 1865321..bbda5ed 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -973,9 +973,8 @@ static inline void omap_hsmmc_dbg_report_irq(stru=
-ct omap_hsmmc_host *host,
->  static inline void omap_hsmmc_reset_controller_fsm(struct omap_hsmmc=
-_host *host,
->  						   unsigned long bit)
->  {
-> -	unsigned long i =3D 0;
-> -	unsigned long limit =3D (loops_per_jiffy *
-> -				msecs_to_jiffies(MMC_TIMEOUT_MS));
-> +	/*change to 1ms,so we can use udelay(1)*/
-> +	unsigned long limit =3D MMC_TIMEOUT_MS * 1000;
-> =20
->  	OMAP_HSMMC_WRITE(host->base, SYSCTL,
->  			 OMAP_HSMMC_READ(host->base, SYSCTL) | bit);
+Build: uImage:
+    Pass (14/14): n800_multi_omap2xxx, n800_only_a, omap1_defconfig,
+                  omap1_defconfig_1510innovator_only,
+                  omap1_defconfig_5912osk_only, omap2plus_defconfig,
+                  omap2plus_defconfig_2430sdp_only,
+                  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+                  omap2plus_defconfig_omap2_4_only,
+                  omap2plus_defconfig_omap3_4_only,
+                  rmk_omap3430_ldp_allnoconfig,
+                  rmk_omap3430_ldp_oldconfig,
+                  rmk_omap4430_sdp_allnoconfig
 
-Checked here: the SRC-bit indeed becomes high.
-After the test 'features & HSMMC_HAS_UPDATED_RESET', the bit has
-become low again already.
-Changing to order of statements worked for me, but for Jianpeng Ma
-this didn't work (timings are 'on the edge').
+Build: uImage+dtb:
+    Pass ( 3/ 3): am33xx_only/am335x-bone,
+                  omap2plus_defconfig/omap4-panda,
+                  omap2plus_defconfig/omap4-panda-es
 
-This reset function is also called while mounting a card and then 'SRC'
-will be high long enough (more than 100 loops). It is after withdrawing
-the card that the reset is performed extremely fast.
+Build: zImage:
+    Pass ( 1/ 1): omap2plus_defconfig
 
-> @@ -984,17 +983,15 @@ static inline void omap_hsmmc_reset_controller_=
-fsm(struct omap_hsmmc_host *host,
->  	 * OMAP4 ES2 and greater has an updated reset logic.
->  	 * Monitor a 0->1 transition first
->  	 */
-> -	if (mmc_slot(host).features & HSMMC_HAS_UPDATED_RESET) {
-> -		while ((!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit))
-> -					&& (i++ < limit))
-> -			cpu_relax();
-> -	}
-> -	i =3D 0;
-> -
-> -	while ((OMAP_HSMMC_READ(host->base, SYSCTL) & bit) &&
-> -		(i++ < limit))
-> -		cpu_relax();
-> -
-> +	if (mmc_slot(host).features & HSMMC_HAS_UPDATED_RESET)
-> +		while (!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit)
-> +			&& limit--)
-> +			udelay(1);
+Boot to userspace:
+    skip ( 1/ 1): 5912osk
+    Pass (10/10): 2430sdp, 3517evm, 3530es3beagle, 3730beaglexm,
+                  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
+                  am335xbonelt, cmt3517
 
-In this way, the loop will only last about 'MMC_TIMEOUT_MS' ms
-and my WDT doesn't get triggered :-)
+PM: chip retention via suspend:
+    FAIL ( 2/ 6): 2430sdp, 4430es2panda
+    Pass ( 4/ 6): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
 
-> +	limit =3D MMC_TIMEOUT_MS * 1000;
-> +	while ((OMAP_HSMMC_READ(host->base, SYSCTL) & bit) && limit--)
-> +		udelay(1);
-> +
->  	if (OMAP_HSMMC_READ(host->base, SYSCTL) & bit)
->  		dev_err(mmc_dev(host->mmc),
->  			"Timeout waiting on controller reset in %s\n",
+PM: chip retention via dynamic idle:
+    FAIL ( 3/ 6): 2430sdp, 4430es2panda, 4460pandaes
+    Pass ( 3/ 6): 3530es3beagle, 3730beaglexm, 37xxevm
 
-Anybody an opinion on this?
+PM: chip off except CORE via suspend:
+    Pass ( 1/ 1): 3730beaglexm
 
-Thanks, Hein
+PM: chip off except CORE via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 2/ 4): 4430es2panda, 4460pandaes
+    Pass ( 2/ 4): 3530es3beagle, 37xxevm
+
+PM: chip off via dynamic idle:
+    FAIL ( 2/ 4): 4430es2panda, 4460pandaes
+    Pass ( 2/ 4): 3530es3beagle, 37xxevm
+
+
+vmlinux object size
+(delta in bytes from test_v3.11-rc5 
+(d4e4ab86bcba5a72779c43dc1459f71fea3d89c8)):
+   text     data      bss    total  kernel
+   +272        0        0     +272  n800_multi_omap2xxx
+   +272        0        0     +272  n800_only_a
+  +1000        0        0    +1000  omap1_defconfig
+  +1984        0        0    +1984  omap1_defconfig_1510innovator_only
+   +992        0        0     +992  omap1_defconfig_5912osk_only
+  +4880        0        0    +4880  omap2plus_defconfig
+   +712        0        0     +712  omap2plus_defconfig_2430sdp_only
+   +784        0        0     +784  omap2plus_defconfig_cpupm
+   +720        0        0     +720  omap2plus_defconfig_no_pm
+   +784        0        0     +784  omap2plus_defconfig_omap2_4_only
+   +784        0        0     +784  omap2plus_defconfig_omap3_4_only
+   +296        0      -32     +264  rmk_omap3430_ldp_allnoconfig
+   +448        0        0     +448  rmk_omap3430_ldp_oldconfig
+   +280        0      -16     +264  rmk_omap4430_sdp_allnoconfig
+
+Boot-time memory difference
+(delta in bytes from test_v3.11-rc5 
+(d4e4ab86bcba5a72779c43dc1459f71fea3d89c8))
+  avail  rsrvd   high  freed  board          kconfig
+    -8k     8k      .      .  2430sdp        omap2plus_defconfig
+    -8k     8k      .      .  3517evm        omap2plus_defconfig
+    -8k     8k      .      .  3530es3beagle  omap2plus_defconfig
+    -8k     8k      .      .  3730beaglexm   omap2plus_defconfig
+    -8k     8k      .      .  37xxevm        omap2plus_defconfig
+    -8k     8k      .      .  4430es2panda   omap2plus_defconfig
+    -8k     8k      .      .  4460pandaes    omap2plus_defconfig
+    -8k     8k      .      .  am335xbonelt   am33xx_only
+
