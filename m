@@ -1,111 +1,76 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v5 6/8] usb: phy: omap: get rid of omap_get_control_dev()
-Date: Tue, 20 Aug 2013 17:56:15 +0300
-Message-ID: <1377010577-19355-7-git-send-email-rogerq@ti.com>
-References: <1377010577-19355-1-git-send-email-rogerq@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1377010577-19355-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+From: Kumar Gala <galak@codeaurora.org>
+Subject: Re: [PATCH v4 2/3] usb: phy: Add Qualcomm SS-USB and HS-USB drivers for DWC3 core
+Date: Tue, 20 Aug 2013 10:01:10 -0500
+Message-ID: <8691FDFE-326E-4198-838A-202D9EC988E1@codeaurora.org>
+References: <1376992565-22292-1-git-send-email-iivanov@mm-sol.com> <1376992565-22292-3-git-send-email-iivanov@mm-sol.com> <20130820122907.GU26587@radagast> <1377005543.26268.22.camel@iivanov-dev.int.mm-sol.com> <20130820133712.GC26587@radagast> <1377007751.26268.27.camel@iivanov-dev.int.mm-sol.com> <20130820143319.GG26587@radagast> <1377010458.26268.30.camel@iivanov-dev.int.mm-sol.com>
+Mime-Version: 1.0 (Apple Message framework v1283)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1377010458.26268.30.camel@iivanov-dev.int.mm-sol.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Cc: balbi@ti.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org, Paul Zimmerman <paul.zimmerman@synopsys.com>
 List-Id: linux-omap@vger.kernel.org
 
-This function was preventing us from supporting multiple
-instances. Get rid of it. Since we support DT boots only,
-users can get the control device phandle from the DT node.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
----
- drivers/usb/phy/phy-omap-control.c   |   31 ++++++++++---------------------
- include/linux/usb/omap_control_usb.h |    5 -----
- 2 files changed, 10 insertions(+), 26 deletions(-)
+On Aug 20, 2013, at 9:54 AM, Ivan T. Ivanov wrote:
 
-diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
-index 4c4c85c..1a7e19a 100644
---- a/drivers/usb/phy/phy-omap-control.c
-+++ b/drivers/usb/phy/phy-omap-control.c
-@@ -26,26 +26,6 @@
- #include <linux/clk.h>
- #include <linux/usb/omap_control_usb.h>
- 
--static struct omap_control_usb *control_usb;
--
--/**
-- * omap_get_control_dev - returns the device pointer for this control device
-- *
-- * This API should be called to get the device pointer for this control
-- * module device. This device pointer should be used for called other
-- * exported API's in this driver.
-- *
-- * To be used by PHY driver and glue driver.
-- */
--struct device *omap_get_control_dev(void)
--{
--	if (!control_usb)
--		return ERR_PTR(-ENODEV);
--
--	return control_usb->dev;
--}
--EXPORT_SYMBOL_GPL(omap_get_control_dev);
--
- /**
-  * omap_control_usb_phy_power - power on/off the phy using control module reg
-  * @dev: the control module device
-@@ -188,11 +168,19 @@ void omap_control_usb_set_mode(struct device *dev,
- {
- 	struct omap_control_usb	*ctrl_usb;
- 
--	if (IS_ERR(dev) || control_usb->type != OMAP_CTRL_TYPE_OMAP4)
-+	if (IS_ERR(dev) || !dev)
- 		return;
- 
- 	ctrl_usb = dev_get_drvdata(dev);
- 
-+	if (!ctrl_usb) {
-+		dev_err(dev, "Invalid control usb device\n");
-+		return;
-+	}
-+
-+	if (ctrl_usb->type != OMAP_CTRL_TYPE_OMAP4)
-+		return;
-+
- 	switch (mode) {
- 	case USB_MODE_HOST:
- 		omap_control_usb_host_mode(ctrl_usb);
-@@ -215,6 +203,7 @@ static int omap_control_usb_probe(struct platform_device *pdev)
- {
- 	struct resource	*res;
- 	const struct of_device_id *of_id;
-+	struct omap_control_usb *control_usb;
- 
- 	of_id = of_match_device(omap_control_usb_id_table, &pdev->dev);
- 	if (!of_id)
-diff --git a/include/linux/usb/omap_control_usb.h b/include/linux/usb/omap_control_usb.h
-index 450b5c1..8008e8d 100644
---- a/include/linux/usb/omap_control_usb.h
-+++ b/include/linux/usb/omap_control_usb.h
-@@ -65,15 +65,10 @@ enum omap_control_usb_mode {
- #define OMAP_CTRL_USB2_PHY_PD		BIT(28)
- 
- #if IS_ENABLED(CONFIG_OMAP_CONTROL_USB)
--extern struct device *omap_get_control_dev(void);
- extern void omap_control_usb_phy_power(struct device *dev, int on);
- extern void omap_control_usb_set_mode(struct device *dev,
- 	enum omap_control_usb_mode mode);
- #else
--static inline struct device *omap_get_control_dev(void)
--{
--	return ERR_PTR(-ENODEV);
--}
- 
- static inline void omap_control_usb_phy_power(struct device *dev, int on)
- {
+> 
+> Hi, 
+> 
+> On Tue, 2013-08-20 at 09:33 -0500, Felipe Balbi wrote: 
+>> On Tue, Aug 20, 2013 at 05:09:11PM +0300, Ivan T. Ivanov wrote:
+>>> Hi,
+>>> 
+>>> On Tue, 2013-08-20 at 08:37 -0500, Felipe Balbi wrote: 
+>>>> Hi,
+>>>> 
+>>>> On Tue, Aug 20, 2013 at 04:32:23PM +0300, Ivan T. Ivanov wrote:
+>>>>>> On Tue, Aug 20, 2013 at 12:56:04PM +0300, Ivan T. Ivanov wrote:
+>>>>>>> From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+>>>>>>> 
+>>>>>>> These drivers handles control and configuration of the HS
+>>>>>>> and SS USB PHY transceivers. They are part of the driver
+>>>>>>> which manage Synopsys DesignWare USB3 controller stack
+>>>>>>> inside Qualcomm SoC's.
+>>>>>>> 
+>>>>>>> Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
+>>>>>>> ---
+>>>>>>> drivers/usb/phy/Kconfig           |   11 ++
+>>>>>>> drivers/usb/phy/Makefile          |    2 +
+>>>>>>> drivers/usb/phy/phy-msm-dwc3-hs.c |  327 ++++++++++++++++++++++++++++++++
+>>>>>>> drivers/usb/phy/phy-msm-dwc3-ss.c |  374 +++++++++++++++++++++++++++++++++++++
+>>>>>> 
+>>>>>> please rename these PHY drivers, they have nothing to do with DWC3. PHYs
+>>>>>> don't care about the USB controller.
+>>>>> 
+>>>>> I think they are SNPS DesignWare PHY's, additionally
+>>>>> wrapped with Qualcomm logic. I could substitute "dwc3"
+>>>>> with just "dw", which will be more correct.
+>>>> 
+>>>> alright, thank you. Let's add Paul to the loop since he might have very
+>>>> good insight in the synopsys PHYs.
+>>>> 
+>>>> mental note: if any other platform shows up with Synopsys PHY, ask them
+>>>> to use this driver instead :-)
+>>> 
+>>> I really doubt that this will bi possible. Control of the PHY's is
+>>> not directly trough ULPI, UTMI or PIPE3 interfaces, but trough
+>>> QSCRATCH registers, which of course is highly Qualcomm specific.
+>> 
+>> isn't it a memory mapped IP ? doesn't synopsys provide their own set of
+>> registers ?
+> 
+> From what I see it is not directly mapped. How QSCRATCH write and
+> reads transactions are translated to DW IP is unclear to me.
+
+
+I think the question is how does SW access them?
+
+- k
+
 -- 
-1.7.4.1
+Employee of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
