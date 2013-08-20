@@ -1,75 +1,52 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH 2/2] crypto: omap-sham: correct dma burst size
-Date: Tue, 20 Aug 2013 20:32:35 +0530
-Message-ID: <1377010955-5605-3-git-send-email-lokeshvutla@ti.com>
-References: <1377010955-5605-1-git-send-email-lokeshvutla@ti.com>
+From: <thomas.langer@lantiq.com>
+Subject: RE: [PATCH v5 1/8] usb: phy: omap-control: Get rid of platform data
+Date: Tue, 20 Aug 2013 15:04:44 +0000
+Message-ID: <593AEF6C47F46446852B067021A273D6D982D30B@MUCSE039.lantiq.com>
+References: <1377010577-19355-1-git-send-email-rogerq@ti.com>
+ <1377010577-19355-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <1377010955-5605-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: herbert@gondor.hengli.com.au
-Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org, rnayak@ti.com, nsekhar@ti.com, lokeshvutla@ti.com
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1377010577-19355-2-git-send-email-rogerq@ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: rogerq@ti.com, balbi@ti.com, bcousson@baylibre.com
+Cc: devicetree@vger.kernel.org, george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, tony@atomide.com, bigeasy@linutronix.de, linux-usb@vger.kernel.org, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Each cycle of SHA512 operates on 32 data words where as
-SHA256 operates on 16 data words. This needs to be updated
-while configuring DMA channels. Doing the same.
+Hello Roger,
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
----
- drivers/crypto/omap-sham.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+this will not work!
 
-diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-index 0a2bd16..8bdde57 100644
---- a/drivers/crypto/omap-sham.c
-+++ b/drivers/crypto/omap-sham.c
-@@ -46,9 +46,6 @@
- 
- #define MD5_DIGEST_SIZE			16
- 
--#define DST_MAXBURST			16
--#define DMA_MIN				(DST_MAXBURST * sizeof(u32))
--
- #define SHA_REG_IDIGEST(dd, x)		((dd)->pdata->idigest_ofs + ((x)*0x04))
- #define SHA_REG_DIN(dd, x)		((dd)->pdata->din_ofs + ((x) * 0x04))
- #define SHA_REG_DIGCNT(dd)		((dd)->pdata->digcnt_ofs)
-@@ -558,7 +555,7 @@ static int omap_sham_xmit_dma(struct omap_sham_dev *dd, dma_addr_t dma_addr,
- 	struct omap_sham_reqctx *ctx = ahash_request_ctx(dd->req);
- 	struct dma_async_tx_descriptor *tx;
- 	struct dma_slave_config cfg;
--	int len32, ret;
-+	int len32, ret, dma_min = get_block_size(ctx);
- 
- 	dev_dbg(dd->dev, "xmit_dma: digcnt: %d, length: %d, final: %d\n",
- 						ctx->digcnt, length, final);
-@@ -567,7 +564,7 @@ static int omap_sham_xmit_dma(struct omap_sham_dev *dd, dma_addr_t dma_addr,
- 
- 	cfg.dst_addr = dd->phys_base + SHA_REG_DIN(dd, 0);
- 	cfg.dst_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
--	cfg.dst_maxburst = DST_MAXBURST;
-+	cfg.dst_maxburst = dma_min / DMA_SLAVE_BUSWIDTH_4_BYTES;
- 
- 	ret = dmaengine_slave_config(dd->dma_lch, &cfg);
- 	if (ret) {
-@@ -575,7 +572,7 @@ static int omap_sham_xmit_dma(struct omap_sham_dev *dd, dma_addr_t dma_addr,
- 		return ret;
- 	}
- 
--	len32 = DIV_ROUND_UP(length, DMA_MIN) * DMA_MIN;
-+	len32 = DIV_ROUND_UP(length, dma_min) * dma_min;
- 
- 	if (is_sg) {
- 		/*
-@@ -729,7 +726,7 @@ static int omap_sham_update_dma_start(struct omap_sham_dev *dd)
- 	 * the dmaengine infrastructure will calculate that it needs
- 	 * to transfer 0 frames which ultimately fails.
- 	 */
--	if (ctx->total < (DST_MAXBURST * sizeof(u32)))
-+	if (ctx->total < get_block_size(ctx))
- 		return omap_sham_update_dma_slow(dd);
- 
- 	dev_dbg(dd->dev, "fast: digcnt: %d, bufcnt: %u, total: %u\n",
--- 
-1.7.9.5
+Roger Quadros wrote on=A02013-08-20:
+
+> -	struct omap_control_usb_platform_data *pdata =3D
+> -			dev_get_platdata(&pdev->dev);
+> +
+> +	if (np) {
+> +		of_property_read_u32(np, "ti,type", &control_usb->type);
+
+here you are dereferencing control_usb
+
+> +	} else {
+> +		/* We only support DT boot */
+> +		return -EINVAL;
+> +	}
+> =
+
+>  	control_usb =3D devm_kzalloc(&pdev->dev, sizeof(*control_usb),
+>  		GFP_KERNEL);
+
+and here it is allocated!
+
+Best Regards,
+Thomas
