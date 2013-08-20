@@ -1,59 +1,52 @@
-From: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
-Subject: [RESEND PATCH] ARM: OMAP: TI81XX: add always-on powerdomain for TI81XX
-Date: Tue, 20 Aug 2013 12:15:44 +0400
-Message-ID: <1376986544-26714-1-git-send-email-aida.mynzhasova@skitlab.ru>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH v2 0/5] mfd: twl6030-irq: rework and add twl6032 support
+Date: Tue, 20 Aug 2013 10:18:24 +0200
+Message-ID: <20130820081824.GA7994@zurbaran>
+References: <1374758151-12097-1-git-send-email-grygorii.strashko@ti.com>
+ <20130820010154.GB13324@zurbaran>
+ <52131732.2060306@slimlogic.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <52131732.2060306@slimlogic.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk
+To: Graeme Gregory <gg@slimlogic.co.uk>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Lee Jones <lee.jones@linaro.org>, Kevin Hilman <khilman@linaro.org>, linux-omap@vger.kernel.org, Ruslan Bilovol <ruslan.bilovol@ti.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch adds alwon powerdomain support for TI81XX, which is required
-for stable functioning of a big number of TI81XX subsystems.
+On Tue, Aug 20, 2013 at 08:13:54AM +0100, Graeme Gregory wrote:
+> On 20/08/13 02:01, Samuel Ortiz wrote:
+> >Hi Grygorii,
+> >
+> >On Thu, Jul 25, 2013 at 04:15:46PM +0300, Grygorii Strashko wrote:
+> >>This patch series intorduces twl6030-irq module rework to use Threaded IRQ and
+> >>linear irq_domain, and adds support for PMIC TWL6032 IRQs.
+> >>
+> >>After this patch series TWL6030/6032 IRQs will be supported only for DT boot mode.
+> >>
+> >>Changes since v1:
+> >>- Added new patch "mfd: twl6030-irq: create struct twl6030_irq"
+> >>   which introduces "struct twl6030_irq" to store all local variables inside it.
+> >>- Patch "mfd: twl6030-irq: migrate to IRQ threaded handler":
+> >>   Minor comments applied; fixed twl6030_exit_irq();
+> >>   The Parent IRQ has been set for each nested IRQ.
+> >>- Patch "mfd: twl6030-irq: convert to use linear irq_domain":
+> >>   The irq_find_mapping() is used in twl6030_mmc_card_detect_config()
+> >>   to get virtual IRQ number.
+> >This looks good to me. Kevin, Graeme, any further comments/ACKs ?
+> >
+> >Cheers,
+> >Samuel.
+> >
+> Yes, it looked good to me as well.
+> 
+> Acked-by: Graeme Gregory <gg@slimlogic.co.uk>
+Thanks. All 5 patches applied to mfd-next.
 
-Signed-off-by: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
----
- arch/arm/mach-omap2/powerdomains3xxx_data.c | 8 ++++++++
- arch/arm/mach-omap2/prcm-common.h           | 1 +
- 2 files changed, 9 insertions(+)
+Cheers,
+Samuel.
 
-diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-index e2d4bd8..328c103 100644
---- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-@@ -336,6 +336,13 @@ static struct powerdomain dpll5_pwrdm = {
- 	.voltdm		  = { .name = "core" },
- };
- 
-+static struct powerdomain alwon_81xx_pwrdm = {
-+	.name		  = "alwon_pwrdm",
-+	.prcm_offs	  = TI81XX_PRM_ALWON_MOD,
-+	.pwrsts		  = PWRSTS_OFF_ON,
-+	.voltdm		  = { .name = "core" },
-+};
-+
- static struct powerdomain device_81xx_pwrdm = {
- 	.name		  = "device_pwrdm",
- 	.prcm_offs	  = TI81XX_PRM_DEVICE_MOD,
-@@ -442,6 +449,7 @@ static struct powerdomain *powerdomains_am35x[] __initdata = {
- };
- 
- static struct powerdomain *powerdomains_ti81xx[] __initdata = {
-+	&alwon_81xx_pwrdm,
- 	&device_81xx_pwrdm,
- 	&active_816x_pwrdm,
- 	&default_816x_pwrdm,
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index ff1ac4a..0e841fd 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -58,6 +58,7 @@
- #define TI816X_PRM_IVAHD1_MOD			0x0d00
- #define TI816X_PRM_IVAHD2_MOD			0x0e00
- #define TI816X_PRM_SGX_MOD				0x0f00
-+#define TI81XX_PRM_ALWON_MOD			0x1800
- 
- /* 24XX register bits shared between CM & PRM registers */
- 
 -- 
-1.8.1.2
+Intel Open Source Technology Centre
+http://oss.intel.com/
