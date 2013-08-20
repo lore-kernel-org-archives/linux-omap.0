@@ -1,154 +1,99 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
-Date: Tue, 20 Aug 2013 13:39:34 +0200
-Message-ID: <1436822.NCo0PqzB8p@avalon>
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <7062944.SGK3kvnN1v@avalon> <520B62B5.8080000@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Tue, 20 Aug 2013 07:26:32 -0500
+Message-ID: <20130820122632.GS26587@radagast>
+References: <20130720220006.GA7977@kroah.com> <520A2100.6000709@ti.com>
+ <520AB0F0.8010106@gmail.com> <2128883.KpgODjXPJQ@flatron>
+ <520B9C9E.8010002@ti.com> <5211ACE9.3040302@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45743 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750907Ab3HTLiW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 07:38:22 -0400
-In-Reply-To: <520B62B5.8080000@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============6784016741301035164=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5211ACE9.3040302@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, Tomasz Figa <t.figa@samsung.com>, nsekhar@ti.com, Tomasz Figa <tomasz.figa@gmail.com>, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, Alan Stern <stern@rowland.harvard.edu>, grant.likely@linaro.org, linux-media@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, devicetree-discuss@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, Greg KH <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.park@samsung.com, akpm@linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, dagriego@biglakesoftware.com, dale@farnsworth.org, pawel@osciak.com, m.szyprowski@samsung.com, hverkuil@xs4all.nl, tomi.valkeinen@ti.com
 
-Hi Archit,
+--===============6784016741301035164==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="MET8MpPxp2u2c48q"
+Content-Disposition: inline
 
-On Wednesday 14 August 2013 16:27:57 Archit Taneja wrote:
-> On Friday 09 August 2013 03:34 AM, Laurent Pinchart wrote:
-> > On Friday 02 August 2013 19:33:38 Archit Taneja wrote:
-> >> The primary function of VPDMA is to move data between external memory and
-> >> internal processing modules(in our case, VPE) that source or sink data.
-> >> VPDMA is capable of buffering this data and then delivering the data as
-> >> demanded to the modules as programmed. The modules that source or sink
-> >> data are referred to as clients or ports. A channel is setup inside the
-> >> VPDMA to connect a specific memory buffer to a specific client. The VPDMA
-> >> centralizes the DMA control functions and buffering required to allow all
-> >> the clients to minimize the effect of long latency times.
-> >> 
-> >> Add the following to the VPDMA helper:
-> >> 
-> >> - A data struct which describe VPDMA channels. For now, these channels
-> >> are the ones used only by VPE, the list of channels will increase when
-> >> VIP(Video Input Port) also uses the VPDMA library. This channel
-> >> information will be used to populate fields required by data descriptors.
-> >> 
-> >> - Data structs which describe the different data types supported by
-> >> VPDMA. This data type information will be used to populate fields
-> >> required by data descriptors and used by the VPE driver to map a V4L2
-> >> format to the corresponding VPDMA data type.
-> >> 
-> >> - Provide VPDMA register offset definitions, functions to read, write and
-> >> modify VPDMA registers.
-> >> 
-> >> - Functions to create and submit a VPDMA list. A list is a group of
-> >> descriptors that makes up a set of DMA transfers that need to be
-> >> completed. Each descriptor will either perform a DMA transaction to fetch
-> >> input buffers and write to output buffers(data descriptors), or configure
-> >> the MMRs of sub blocks of VPE(configuration descriptors), or provide
-> >> control information to VPDMA (control descriptors).
-> >> 
-> >> - Functions to allocate, map and unmap buffers needed for the descriptor
-> >> list, payloads containing MMR values and motion vector buffers. These use
-> >> the DMA mapping APIs to ensure exclusive access to VPDMA.
-> >> 
-> >> - Functions to enable VPDMA interrupts. VPDMA can trigger an interrupt on
-> >> the VPE interrupt line when a descriptor list is parsed completely and
-> >> the DMA transactions are completed. This requires masking the events in
-> >> VPDMA registers and configuring some top level VPE interrupt registers.
-> >> 
-> >> - Enable some VPDMA specific parameters: frame start event(when to start
-> >> DMA for a client) and line mode(whether each line fetched should be
-> >> mirrored or not).
-> >> 
-> >> - Function to load firmware required by VPDMA. VPDMA requires a firmware
-> >> for it's internal list manager. We add the required request_firmware
-> >> apis to fetch this firmware from user space.
-> >> 
-> >> - Function to dump VPDMA registers.
-> >> 
-> >> - A function to initialize VPDMA, this will be called by the VPE driver
-> >> with it's platform device pointer, this function will take care of
-> >> loading VPDMA firmware and returning a handle back to the VPE driver.
-> >> The VIP driver will also call the same init function to initialize it's
-> >> own VPDMA instance.
-> >> 
-> >> Signed-off-by: Archit Taneja <archit@ti.com>
+--MET8MpPxp2u2c48q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-[snip]
+Hi,
 
-> >> +/*
-> >> + * Allocate a DMA buffer
-> >> + */
-> >> +int vpdma_buf_alloc(struct vpdma_buf *buf, size_t size)
-> >> +{
-> >> +	buf->size = size;
-> >> +	buf->mapped = 0;
-> >> +	buf->addr = kzalloc(size, GFP_KERNEL);
-> > 
-> > You should use the dma allocation API (depending on your needs,
-> > dma_alloc_coherent for instance) to allocate DMA-able buffers.
-> 
-> I'm not sure about this, dma_map_single() api works fine on kzalloc'd
-> buffers. The above function is used to allocate small contiguous buffers
-> (never more than 1024 bytes) needed for descriptors for the DMA IP. I
-> thought of using DMA pool, but that creates small buffers of the same size.
-> So I finally went with kzalloc.
+On Mon, Aug 19, 2013 at 10:58:09AM +0530, Kishon Vijay Abraham I wrote:
+> >> So maybe let's stop solving an already solved problem and just state t=
+hat=20
+> >> you need to explicitly assign device ID to use this framework?
+> >=20
+> > Felipe,
+> > Can we have it the way I had in my v10 patch series till we find a bett=
+er way?
+> > I think this *non-dt* stuff shouldn't be blocking as most of the users =
+are dt only?
 
-OK, I mistakenly thought it would allocate larger buffers as well. If it's 
-used to allocate descriptors only, would it be better to rename it to 
-vpdma_desc_alloc() (or something similar) ?
+I don't have a lot of things against it, but preventing driver authors
+to use PLATFORM_DEVID_AUTO just to use the framework is likely going to
+piss some people off.
 
-> >> +	if (!buf->addr)
-> >> +		return -ENOMEM;
-> >> +
-> >> +	WARN_ON((u32) buf->addr & VPDMA_DESC_ALIGN);
-> >> +
-> >> +	return 0;
-> >> +}
+Perhaps we can start with this approach and fix things later ? At least
+it ungates all the PHY drivers which are depending on this framework
+(quite a few already). If everybody agrees with this approach, I'd be ok
+with it too.
 
-[snip]
+cheers
 
-> >> +static int vpdma_load_firmware(struct vpdma_data *vpdma)
-> >> +{
-> >> +	int r;
-> >> +	struct device *dev = &vpdma->pdev->dev;
-> >> +
-> >> +	r = request_firmware_nowait(THIS_MODULE, 1,
-> >> +		(const char *) VPDMA_FIRMWARE, dev, GFP_KERNEL, vpdma,
-> >> +		vpdma_firmware_cb);
-> > 
-> > Is there a reason not to use the synchronous interface ? That would
-> > simplify both this code and the callers, as they won't have to check
-> > whether the firmware has been correctly loaded.
-> 
-> I'm not clear what you mean by that, the firmware would be stored in the
-> filesystem. If the driver is built-in, then the synchronous interface
-> wouldn't work unless the firmware is appended to the kernel image. Am I
-> missing something here? I'm not very aware of the firmware api.
+--=20
+balbi
 
-request_firmware() would just sleep (with a 30 seconds timeout if I'm not 
-mistaken) until userspace provides the firmware. As devices are probed 
-asynchronously (in kernel threads) the system will just boot normally, and the 
-request_firmware() call will return when the firmware is available.
+--MET8MpPxp2u2c48q
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> >> +	if (r) {
-> >> +		dev_err(dev, "firmware not available %s\n", VPDMA_FIRMWARE);
-> >> +		return r;
-> >> +	} else {
-> >> +		dev_info(dev, "loading firmware %s\n", VPDMA_FIRMWARE);
-> >> +	}
-> >> +
-> >> +	return 0;
-> >> +}
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
--- 
-Regards,
+iQIcBAEBAgAGBQJSE2B4AAoJEIaOsuA1yqREd3gP+wRMRCFi5PMZScsqh3zwf+14
+Cq/VFvWySbx+P+bh4TS9scGnTq+AaFlrrWjiYaPSWKy7teJcvSj+Y8+o+W3VVkeX
+9yzuhSbHnJzBjxqpyEzb1hqtfkiCTQc8HcH/YkIj/yoszIrr3HHz+NgTmXjpcum3
+szWpw9gPRo9AT9caOhaDU91bSc8PdZc9mBzPgw7WUfJrf008SfUmhKiOpzvNfht2
+nN/mp250zfFDZHHu5fRMWhfUH6+uVYEYM+P8IZMwA0Dvne0RYEuE7Pps8a0M9/dx
+E/RS7I7TDphIC/CtuNkaUFyHXZGg4CVSXJF42iAI0vFy9jIvoXtzgrVcxXPgGV7P
+FX0KHzGK/0k91zH/zRmVUgqXX5l7OrjzrFeh5UAYlkbhM98PoruwBmwAnDQ1z9Xy
+VWKS6N1qUOA/D3zL1HqQpQ6scXYSXmcNju4oVU6aLgxvnMK/8uLX9FwhrOeZhzdN
+HHJ7Va7l2VqYug3eq8uAvBaD/VeDnCdQem/tjQfew9P2J29pcrmVzqPRYxAylduZ
+hKs/bL5X5/Pzlj4Ox6dGYk/UKfN5ZgphUDd9TW9dagMGX/WGELPi86xsAgwXHu7R
+FPf4PeQbfkld1qj1KU+PWCFhspFVMqn/p2kb8NV/HPR/f42I82NUuGNjAFoYxbnf
+yQuryiSSHIxte8/C3LK/
+=iA/Q
+-----END PGP SIGNATURE-----
 
-Laurent Pinchart
+--MET8MpPxp2u2c48q--
 
+
+--===============6784016741301035164==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============6784016741301035164==--
