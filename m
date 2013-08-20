@@ -1,56 +1,83 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 1/6] ASoC: omap: simplify
- platform_get_resource_byname/devm_ioremap_resource
-Date: Tue, 20 Aug 2013 11:51:39 +0100
-Message-ID: <20130820105139.GL30073@sirena.org.uk>
-References: <1376902316-18520-1-git-send-email-Julia.Lawall@lip6.fr>
- <1376902316-18520-2-git-send-email-Julia.Lawall@lip6.fr>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH v2 0/6] v4l: VPE mem to mem driver
+Date: Tue, 20 Aug 2013 16:30:51 +0530
+Message-ID: <1376996457-17275-1-git-send-email-archit@ti.com>
+References: <1375452223-30524-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KjG/elEj40fDqMBW"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1376902316-18520-2-git-send-email-Julia.Lawall@lip6.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, kernel-janitors@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:37990 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750822Ab3HTLCP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Aug 2013 07:02:15 -0400
+In-Reply-To: <1375452223-30524-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+
+VPE(Video Processing Engine) is an IP found on DRA7xx, this series adds VPE as a
+mem to mem v4l2 driver, and VPDMA as a helper library.
+
+The previous revision of the series described VPE in detail, you can have a look
+at it here:
+
+http://www.spinics.net/lists/linux-media/msg66518.html
+
+There were a lot of useful suggestions made by Hans, Tomi and Laurent. This
+series incorporate these changes. There are few comments which I haven't been
+able to address, I've pointed those below too.
+
+Changes in v2:
+- Constify the structs that can be constified.
+- Remove the use of wmb() from vpdma_submit_descs().
+- Remove an unnecessary layer of helper macros used for creating or reading
+  VPDMA descriptors.
+- Create a CONFIG which enables/disables VPE debug prints.
+- Remove CAPTURE/OUTPUT_MPLANE from device_caps.
+- Fix the pix->field setting in TRY_FMT ioctl.
+- Fix a bug in the v4l2 control handler registration and release.
+- Move video_register_device() at the end of driver probe.
+- Improve some of the function names, remove unnecessary BUG_ONs etc, use
+  ERR_PTR() to return error codes correctly.
+
+Things still open in v2:
+- Tomi had a comment about the usage msleep_interruptible in the first patch. I
+  am not clear whether this is actually a problem and what's the right approach.
+- Laurent suggested using DMA allocation API for the VPDMA library, we currently
+  use kzalloc to allocate and dma_map/unmap_single api to map to VPDMA/CPU. DMA
+  pool api won't be a good replacement here.
+- There was a suggestion to use synchronous firmware interface. If I understand
+  right, synchronous interfaces forces us to have the firmware appended to the
+  kernel, that's not something we want.
 
 
---KjG/elEj40fDqMBW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Archit Taneja (6):
+  v4l: ti-vpe: Create a vpdma helper library
+  v4l: ti-vpe: Add helpers for creating VPDMA descriptors
+  v4l: ti-vpe: Add VPE mem to mem driver
+  v4l: ti-vpe: Add de-interlacer support in VPE
+  arm: dra7xx: hwmod data: add VPE hwmod data and ocp_if info
+  experimental: arm: dts: dra7xx: Add a DT node for VPE
 
-On Mon, Aug 19, 2013 at 10:51:51AM +0200, Julia Lawall wrote:
-> From: Julia Lawall <Julia.Lawall@lip6.fr>
->=20
-> Remove unneeded error handling on the result of a call to
-> platform_get_resource_byname when the value is passed to devm_ioremap_res=
-ource.
+ arch/arm/boot/dts/dra7.dtsi                |   11 +
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c  |   42 +
+ drivers/media/platform/Kconfig             |   16 +
+ drivers/media/platform/Makefile            |    2 +
+ drivers/media/platform/ti-vpe/Makefile     |    5 +
+ drivers/media/platform/ti-vpe/vpdma.c      |  846 ++++++++++++
+ drivers/media/platform/ti-vpe/vpdma.h      |  202 +++
+ drivers/media/platform/ti-vpe/vpdma_priv.h |  640 +++++++++
+ drivers/media/platform/ti-vpe/vpe.c        | 2042 ++++++++++++++++++++++++++++
+ drivers/media/platform/ti-vpe/vpe_regs.h   |  496 +++++++
+ 10 files changed, 4302 insertions(+)
+ create mode 100644 drivers/media/platform/ti-vpe/Makefile
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma.c
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma.h
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma_priv.h
+ create mode 100644 drivers/media/platform/ti-vpe/vpe.c
+ create mode 100644 drivers/media/platform/ti-vpe/vpe_regs.h
 
-Applied, thanks.
+-- 
+1.8.1.2
 
---KjG/elEj40fDqMBW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSE0o4AAoJELSic+t+oim946UP/2FUpnHZ4XPlWCG8ipTV91x/
-sr/qCKcgLUZpuRe+xxXWn5Atk/5CYkwPtRiy471ah+QVLNN070vAh6I/fyOdDaLc
-+X4AR898rv3mDfwoWQFPmiETM/jmqHfRuSjjNCvWljsCNOlYYPQ+lgpOJwcUQPae
-gFCECXEd+t61AyYOhWstNUcEvq/I4Fj1FSbr08ThTHKGp6BHfcgbYUad/Yc0a1Ky
-rXNyKToj7g9PBu/6VdFrakYJg4X1ygJQLvDKEu9hPYBSQjWpiQCYM6OTljeEuzCB
-pNPvf4CdqPCOEW1ThPsRIuvQhCzysc5jjeqcxIxQ4tQc7wEULYQKeEP2x7ajHTk1
-fIiBWjjaHZXHMdfhkZZt6zYe5YuJO2Yx5I1vJ9llY90OXMfiEIBu4fKr6Cc6TxOd
-NVrsTvH08dS0BE8tIzokxQqzX0AbPuuZ0gnCVekoo20J6IJmPhJ2AGVMpMbqXgJk
-S4U94frGXZw5Ws3JsHioaJnomWOB28QMkvH4O93U+9MRIIqBUXaxPxwGN36i3zQA
-w5T9S4JNQ4wf3kigk8k5nSh7ZSelw51zg+sxDMdHu5+b2xBegs25mqnZbG+CGTex
-Bgj5udIFzHhnNfcUewFpjatOEGCH9idQ5EmwJlHqPpOOfvSy+LQ5HOnyeDC/gtP0
-OBrFsZYJgCsItMvacK4x
-=Fgtl
------END PGP SIGNATURE-----
-
---KjG/elEj40fDqMBW--
