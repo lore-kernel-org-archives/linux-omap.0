@@ -1,65 +1,75 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH] ARM: omap2: Use a consistent AM33XX SoC option
- description
-Date: Tue, 20 Aug 2013 13:42:53 -0300
-Message-ID: <20130820164251.GC4889@localhost>
-References: <1375997528-396-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <CABxcv=keV2Jf4gDwF477a9Msk6b-RgDBcxK1QyhchWffbKAoXw@mail.gmail.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH 1/2] extcon: extcon-dra7xx: Add extcon driver for USB
+ ID detection
+Date: Tue, 20 Aug 2013 10:53:35 -0600
+Message-ID: <52139F0F.6090507@wwwdotorg.org>
+References: <1376648029-30659-1-git-send-email-george.cherian@ti.com> <1376648029-30659-2-git-send-email-george.cherian@ti.com> <52127284.6030506@wwwdotorg.org> <521312CC.8060003@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:33858 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751783Ab3HTQmv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 12:42:51 -0400
-Content-Disposition: inline
-In-Reply-To: <CABxcv=keV2Jf4gDwF477a9Msk6b-RgDBcxK1QyhchWffbKAoXw@mail.gmail.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:37198 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751345Ab3HTQxk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 12:53:40 -0400
+In-Reply-To: <521312CC.8060003@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: balbi@ti.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, grant.likely@linaro.org, rob@landley.net, ian.campbell@citrix.com, mark.rutland@arm.com, pawel.moll@arm.com, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, bcousson@baylibre.com
 
-On Fri, Aug 09, 2013 at 11:18:43AM +0200, Javier Martinez Canillas wrot=
-e:
-> On Thu, Aug 8, 2013 at 11:32 PM, Ezequiel Garcia
-> <ezequiel.garcia@free-electrons.com> wrote:
-> > Fix the option description to match the other TI SoCs.
-> > This is just a cosmetic change.
-> >
-> > Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-> > ---
-> >  arch/arm/mach-omap2/Kconfig | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kcon=
-fig
-> > index 76170dd..56021c6 100644
-> > --- a/arch/arm/mach-omap2/Kconfig
-> > +++ b/arch/arm/mach-omap2/Kconfig
-> > @@ -64,7 +64,7 @@ config SOC_OMAP5
-> >         select ARM_ERRATA_798181 if SMP
-> >
-> >  config SOC_AM33XX
-> > -       bool "AM33XX support"
-> > +       bool "TI AM33XX"
-> >         depends on ARCH_MULTI_V7
-> >         select ARCH_OMAP2PLUS
-> >         select ARM_CPU_SUSPEND if PM
-> > --
-> > 1.8.1.5
-> >
-> >
->=20
-> Reviewed-by: Javier Martinez Canillas <javier@dowhile0.org>
+On 08/20/2013 12:55 AM, George Cherian wrote:
+> Hi Stephen,
+> 
+> Thanks for your review.
+> 
+> On 8/20/2013 1:01 AM, Stephen Warren wrote:
+> 
+>> On 08/16/2013 04:13 AM, George Cherian wrote:
+>>> Adding extcon driver for USB ID detection to dynamically
+>>> configure USB Host/Peripheral mode.
+>>> diff --git
+>>> a/Documentation/devicetree/bindings/extcon/extcon-dra7xx.txt
+>>> b/Documentation/devicetree/bindings/extcon/extcon-dra7xx.txt
+>>> +EXTCON FOR DRA7xx
+>>> +
+>>> +Required Properties:
+>> Please at lest explain what a DRA7xxx is, and the purpose of the HW
+>> module this binding describes.
+> 
+> DRA7xx is the SoC name and the USB VID  detection is implemented via gpio's
+> Basically it does only ID detection via GPIO and there is no VBUS
+> detection in h/w.
 
-ping?
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If there's no SoC-specific HW, then the binding has nothing to do with
+the SoC; it's entirely generic.
+
+I think instead, you need to define a generic "gpio-usb-vid" binding
+instead.
+
+Otherwise, ever SoC that doesn't have explicit USB VID detection HW is
+going to re-invent the exact same binding, with pointless differences,
+rather than using a single generic binding.
+
+>>> + - compatible : Should be "ti,dra7xx-usb"
+>>
+>> If this is a USB VID detector rather than a full USB host controller,
+>> then "usb" in the binding is a bit over-reaching. Perhaps "-usb-vid" or
+>> "-usb-vid-detector" would be more accurate.
+> 
+> This will be renamed to dra7xx-extcon.
+
+So no, that rename doesn't sound correct.
+
+>>> + - gpios : phandle to ID pin and interrupt gpio.
+>>
+>> Why does the interrupt line need to be included in a list of GPIOs?
+> 
+> ID pins are connected to pcf8575, and the pcf8575's interrupt line is
+> inturn connected to
+> gpio bank6 pin 11, we use this gpio interrupt to detect the ID pin change.
+
+In that case, the PCF8575 node needs to be a GPIO controller and an IRQ
+controller, as does the driver for the PCF8575. This binding should have
+a single entry in the gpios property, and the driver can call
+gpio_to_irq() on that so it knows which IRQ to request.
