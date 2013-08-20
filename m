@@ -1,83 +1,180 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v5 0/4] mtd:nand:omap2: clean-up of supported ECC schemes
-Date: Tue, 20 Aug 2013 13:20:22 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73E9F781B@DBDE04.ent.ti.com>
-References: <1373748891-7779-1-git-send-email-pekon@ti.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: [PATCH 1/2] extcon: extcon-dra7xx: Add extcon driver for USB
+ ID detection
+Date: Tue, 20 Aug 2013 18:54:42 +0530
+Message-ID: <52136E1A.8020900@ti.com>
+References: <1376648029-30659-1-git-send-email-george.cherian@ti.com> <1376648029-30659-2-git-send-email-george.cherian@ti.com> <5212B740.2000000@samsung.com> <521338B7.7040208@ti.com> <52134513.1060304@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54822 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991Ab3HTNVO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 09:21:14 -0400
-In-Reply-To: <1373748891-7779-1-git-send-email-pekon@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <52134513.1060304@samsung.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Chanwoo Choi <cw00.choi@samsung.com>
+Cc: balbi@ti.com, myungjoo.ham@samsung.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, grant.likely@linaro.org, rob@landley.net, ian.campbell@citrix.com, swarren@wwwdotorg.org, mark.rutland@arm.com, pawel.moll@arm.com, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
-To: "dedekind1@gmail.com" <dedekind1@gmail.com>, "computersforpeace@gmail.com" <computersforpeace@gmail.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>
-Cc: "arnd@arndb.de" <arnd@arndb.de>, "olof@lixom.net" <olof@lixom.net>, "tony@atomide.com" <tony@atomide.com>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-SGkgQXJ0ZW0sIEJyaWFuLA0KDQo+IA0KPiBDaGFuZ2VzIHY0IC0+IHY1DQo+IC0gUmViYXNlZCB0
-byBsaW51eC1uZXh0DQo+IElNUE9SVEFOVDogTmVlZCB0byByZXZlcnQgY29tbWl0IGZiMTU4NWIs
-IFtQQVRDSCAyLzRdIHBhcnQgb2YgcHJldmlvdXMNCj4gdmVyc2lvbg0KPiAJaHR0cDovL2xpc3Rz
-LmluZnJhZGVhZC5vcmcvcGlwZXJtYWlsL2xpbnV4LW10ZC8yMDEzLUp1bHkvMDQ3NDQxLmh0bWwN
-Cj4gDQo+IC0gU3dhcHBlZCBQQVRDSC0xICYgUEFUQ0gtMiB0byBtYWludGFpbiBiaXNlY3RpYmls
-aXR5ICYgY29tcGlsYXRpb24NCj4gZGVwZW5kZW5jeQ0KPiAJaHR0cDovL2xpc3RzLmluZnJhZGVh
-ZC5vcmcvcGlwZXJtYWlsL2xpbnV4LW10ZC8yMDEzLUp1bHkvMDQ3NDYxLmh0bWwNCj4gDQo+IC0g
-UEFUQ0gtMjogcmUtb3JkZXJlZCBjYWxsIHRvIGlzX2VsbV9wcmVzZW50KCkgZm9yIGxhdGVyIHVw
-ZGF0ZXMgRUxNIGRyaXZlcg0KPiAJLSBkcm9wcGVkIGNoYW5nZXMgaW4gaW5jbHVkZS9saW51eC9w
-bGF0Zm9ybV9kYXRhL2VsbS5oIChub3QNCj4gbmVlZGVkKQ0KPiAtIFBBVENILTM6IHJlLW9yZGVy
-ZWQgY2FsbCB0byBpc19lbG1fcHJlc2VudCgpIGZvciBsYXRlciB1cGRhdGVzIEVMTSBkcml2ZXIN
-Cj4gLSBSZS1mb3JtYXRlZCBwYXRjaCBkZXNjcmlwdGlvbiAocmVwbGFjZWQgdGFicyB3aXRoIHdo
-aXRlLXNwYWNlcykNCj4gDQo+IA0KPiBDaGFuZ2VzIHYzIC0+IHY0DQo+IChSZXNlbnQgd2l0aCBD
-QzogZGV2aWNldHJlZS1kaXNjdXNzQGxpc3RzLm96bGFicy5vcmcpDQo+IC0gW1BhdGNoIDEvM10g
-cmVtb3ZlZCBNVERfTkFORF9PTUFQX0JDSDggJg0KPiBNVERfTkFORF9PTUFQX0JDSDQgZnJvbSBu
-YW5kL0tjb25maWcNCj4gCUVDQyBzY2hlbWUgc2VsZWN0YWJsZSB2aWEgbmFuZCBEVCAobmFuZC1l
-Y2Mtb3B0KS4NCj4gLSBbKl0gcmViYXNlZCBmb3IgbDItbXRkLmdpdA0KPiANCj4gDQo+IENoYW5n
-ZXMgdjIgLT4gdjMNCj4gKFJlc2VudCB3aXRoIEF1dGhvciBOYW1lIGZpeGVkKQ0KPiAtIFBBVENI
-LTE6IHJlLWFycmFuZ2VkIGNvZGUgdG8gcmVtb3ZlIHJlZHVuZGFuY3ksIGFkZGVkDQo+IE5BTkRf
-QlVTV0lEVEhfQVVUTw0KPiAtIFBBVENILTI6IHVwZGF0ZWQgbmFuZC1lY2Mtb3B0IERUIG1hcHBp
-bmcgYW5kIERvY3VtZW50YXRpb24NCj4gLSBQQVRDSC0zOiBjb2RlLWNsZWFuaW5nICsgY2hhbmdl
-cyB0byBtYXRjaCBQQVRDSC0xDQo+IC0gUEFUQ0gtNCA8RFJPUFBFRD4gdXBkYXRlIERUIGF0dHJp
-YnV0ZSBmb3IgdGksbmFuZC1lY2Mtb3B0DQo+IAktIHJlY2VpdmVkIGZlZWRiYWNrIHRvIGtlZXAg
-RFQgbWFwcGluZyBpbmRlcGVuZGVudCBvZiBsaW51eGlzbQ0KPiAtIFBBVENILTQ6PE5FVz4gOiBB
-Uk06IGR0czogQU0zM3h4OiB1cGRhdGVkIGRlZmF1bHQgRUNDIHNjaGVtZSBpbiBuYW5kLQ0KPiBl
-Y2Mtb3B0DQo+IAktIGluZGVwZW5kZW50IHBhdGNoIGZvciBBTTMzNXgtZXZtLmR0cyB1cGRhdGUg
-YmFzZWQgb24gUEFUQ0gtMg0KPiANCj4gDQo+IENoYW5nZXMgdjEgLT4gdjINCj4gCWFkZGVkIAlb
-UEFUQ0ggMy80XSBhbmQgW1BBVENIIDQvNF0NCj4gDQo+IA0KPiBQYXRjaGVzIGluIHRoaXMgc2Vy
-aWVzOg0KPiBbUEFUQ0ggMS80XS0+W1BBVENIIHY1IDIvNF06IGNsZWFuLXVwIGFuZCBvcHRpbWl6
-YXRpb24gZm9yIHN1cHBvcnRlZCBFQ0MNCj4gc2NoZW1lcy4NCj4gW1BBVENIIDIvNF0tPltQQVRD
-SCB2NSAxLzRdOiBhZGQgc2VwYXJhdGUgRFQgb3B0aW9ucyBlYWNoIHN1cHBvcnRlZCBFQ0MNCj4g
-c2NoZW1lLg0KPiBbUEFUQ0ggMy80XTogdXBkYXRlIEJDSDQgRUNDIGltcGxlbWVudGF0aW9uICh1
-c2luZyBFTE0gb3IgdXNpbmcgbGliL2JjaC5oKQ0KPiBbUEFUQ0ggNC80XTogQVJNOiBkdHM6IEFN
-MzN4eDogdXBkYXRlZCBkZWZhdWx0IEVDQyBzY2hlbWUgaW4gbmFuZC1lY2MtDQo+IG9wdA0KPiAN
-Cj4gQWZ0ZXIgdGhpcyBwYXRjaCBzZXJpZXMsIG9tYXAyLW5hbmQgZHJpdmVyIHdpbGwgc3VwcG9y
-dHMgZm9sbG93aW5nIEVDQw0KPiBzY2hlbWVzOg0KPiArLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLSstLS0tLS0tLS0tLS0tLS0rDQo+IHwgRUND
-IHNjaGVtZSAgICAgICAgICAgICAgICAgICAgICAgICAgICB8RUNDIGNhbGN1bGF0aW9ufEVycm9y
-IGRldGVjdGlvbnwNCj4gKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSst
-LS0tLS0tLS0tLS0tLS0rLS0tLS0tLS0tLS0tLS0tKw0KPiB8T01BUF9FQ0NfSEFNTUlOR19DT0RF
-X0RFRkFVTFQgICAgICAgICAgfFMvVyAgICAgICAgICAgIHxTL1cgICAgICAgICAgICB8DQo+IHxP
-TUFQX0VDQ19IQU1NSU5HX0NPREVfSFcgICAgICAgICAgICAgICB8SC9XIChHUE1DKSAgICAgfFMv
-VyAgICAgICAgICAgIHwNCj4gfE9NQVBfRUNDX0hBTU1JTkdfQ09ERV9IV19ST01DT0RFICAgICAg
-IHxIL1cgKEdQTUMpICAgICB8Uy9XDQo+IHwNCj4gKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLSstLS0tLS0tLS0tLS0tLS0rLS0tLS0tLS0tLS0tLS0tKw0KPiB8T01BUF9F
-Q0NfQkNINF9DT0RFX0hXX0RFVEVDVElPTl9TVyAgICAgfEgvVyAoR1BNQykgICAgIHxTL1cNCj4g
-KGxpYi9iY2guaCl8DQo+IHxPTUFQX0VDQ19CQ0g0X0NPREVfSFcgICAgICAgICAgICAgICAgICB8
-SC9XIChHUE1DKSAgICAgfEgvVyAoRUxNKSAgICAgIHwNCj4gKy0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLSstLS0tLS0tLS0tLS0tLS0rLS0tLS0tLS0tLS0tLS0tKw0KPiB8
-T01BUF9FQ0NfQkNIOF9DT0RFX0hXX0RFVEVDVElPTl9TVyAgICAgfEgvVyAoR1BNQykgICAgIHxT
-L1cNCj4gKGxpYi9iY2guaCl8DQo+IHxPTUFQX0VDQ19CQ0g4X0NPREVfSFcgICAgICAgICAgICAg
-ICAgICB8SC9XIChHUE1DKSAgICAgfEgvVyAoRUxNKSAgICAgIHwNCj4gKy0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSstLS0tLS0tLS0tLS0tLS0rLS0tLS0tLS0tLS0tLS0t
-Kw0KPiAtIFNlbGVjdGlvbiBvZiBPTUFQX0VDQ19CQ0h4X0NPREVfSFdfREVURUNUSU9OX1NXIHJl
-cXVpcmVzLA0KPiAJS2NvbmZpZzogQ09ORklHX01URF9OQU5EX0VDQ19CQ0g6IGVuYWJsZXMgUy9X
-IGJhc2VkIEJDSA0KPiBFQ0MgYWxnb3JpdGhtLg0KPiANCj4gLSBTZWxlY3Rpb24gb2YgT01BUF9F
-Q0NfQkNIeF9DT0RFX0hXIHJlcXVpcmVzLA0KPiAJS2NvbmZpZzogQ09ORklHX01URF9OQU5EX09N
-QVBfQkNIOiBlbmFibGVzIEVMTSBIL1cNCj4gbW9kdWxlLg0KPiANCg0KUmVxdWVzdCB0byBwbGVh
-c2UgcGljay11cCB0aGlzIHBhdGNoIHNlcmllcywgYXMgZm9sbG93aW5nIHR3byBtb3JlDQpwYXRj
-aCBzZXJpZXMgcXVldWVkIHVwIGRlcGVuZGluZyBvbiB0aGlzLg0KDQpodHRwOi8vbGlzdHMuaW5m
-cmFkZWFkLm9yZy9waXBlcm1haWwvbGludXgtbXRkLzIwMTMtSnVseS8wNDc1MzguaHRtbA0KDQpo
-dHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9waXBlcm1haWwvbGludXgtbXRkLzIwMTMtSnVseS8w
-NDc1NjIuaHRtbA0KDQoNCndpdGggcmVnYXJkcywgcGVrb24NCg==
+On 8/20/2013 3:59 PM, Chanwoo Choi wrote:
+> Hi George,
+>
+>>>> diff --git a/Documentation/devicetree/bindings/extcon/extcon-dra7xx.txt b/Documentation/devicetree/bindings/extcon/extcon-dra7xx.txt
+>>>> new file mode 100644
+>>>> index 0000000..37e4c22
+>>>> --- /dev/null
+>>>> +++ b/Documentation/devicetree/bindings/extcon/extcon-dra7xx.txt
+>>>> @@ -0,0 +1,19 @@
+>>>> +EXTCON FOR DRA7xx
+>>>> +
+>>>> +Required Properties:
+>>>> + - compatible : Should be "ti,dra7xx-usb"
+>>>> + - gpios : phandle to ID pin and interrupt gpio.
+>>>> +
+>>>> +Optional Properties:
+>>>> +  - interrupt-parent : interrupt controller phandle
+>>>> +  - interrupts : interrupt number
+>>>> +
+>>>> +
+>>>> +dra7x_extcon1 {
+>>> You used 'dra7xx-usb' device name. Why did you use 'dra7x_extcon1' name?
+>>> What is meaning 'dra7x_extcon1'?
+>> I will rename it to  dra7xx_extcon.
+> extcon naming means various external connector device. e.g., usb, jack, etc...
+> So, I prefer 'dra7xx_usb' instead of 'dra7xx_extcon'. I have plan to divide
+> extcon device driver according to the kind of device.
+
+okay will do it in v2
+>
+>
+>>>> +static int id_poll_func(void *data)
+>>>> +{
+>>>> +    struct dra7xx_usb *dra7xx_usb = (struct dra7xx_usb *) data;
+>>>> +
+>>>> +    allow_signal(SIGINT);
+>>>> +    allow_signal(SIGTERM);
+>>>> +    allow_signal(SIGKILL);
+>>>> +    allow_signal(SIGUSR1);
+>>>> +
+>>>> +    set_freezable();
+>>>> +
+>>>> +    while (!kthread_should_stop()) {
+>>>> +        dra7xx_usb->id_current = gpio_get_value_cansleep
+>>>> +                        (dra7xx_usb->id_gpio);
+>>>> +        if (dra7xx_usb->id_current == dra7xx_usb->id_prev) {
+>>>> +            schedule_timeout_interruptible
+>>>> +                        (msecs_to_jiffies(2*1000));
+>>>> +            continue;
+>>>> +        } else if (dra7xx_usb->id_current == 0) {
+>>>> +            extcon_set_cable_state(&dra7xx_usb->edev, "USB", false);
+>>>> +            extcon_set_cable_state(&dra7xx_usb->edev,
+>>>> +                        "USB-HOST", true);
+>>>> +        } else {
+>>>> +            extcon_set_cable_state(&dra7xx_usb->edev,
+>>>> +                        "USB-HOST", false);
+>>>> +            extcon_set_cable_state(&dra7xx_usb->edev, "USB", true);
+>>>> +        }
+>>> Should dra7xx_usb keep always connected state with either USB or USB-HOST cable?
+>>> I don't understand. So please explain detailed operation method of dra7xx_usb device.
+>> In dra7xx only ID pin is connected to the SoC gpio. There is no way, currently to detect the VBUS on/off.
+>> So I always default to either HOST/DEVICE mode solely depending on the ID pin value.
+> OK.
+>
+> But I don't want to use kthread with polling method.
+> I recommend that you use interrupt method for cable detection.
+> All of extcon device driver have only used interrupt method without polling.
+
+okay will remove the polling thread.
+>
+>>>> +        dra7xx_usb->id_prev = dra7xx_usb->id_current;
+>>>> +    }
+>>>> +
+>>>> +    return 0;
+>>>> +}
+>>>> +
+>>>> +static irqreturn_t id_irq_handler(int irq, void *data)
+>>>> +{
+>>>> +    struct dra7xx_usb *dra7xx_usb = (struct dra7xx_usb *) data;
+>>>> +
+>>>> +    dra7xx_usb->id_current = gpio_get_value_cansleep(dra7xx_usb->id_gpio);
+>>>> +
+>>>> +    if (dra7xx_usb->id_current == dra7xx_usb->id_prev) {
+>>>> +        return IRQ_NONE;
+>>>> +    } else if (dra7xx_usb->id_current == 0) {
+> You should define some constant variable to clarify '0' meaning instead of using '0' directly.
+
+okay
+>
+>>>> +    dra7xx_usb = devm_kzalloc(&pdev->dev, sizeof(*dra7xx_usb), GFP_KERNEL);
+>>>> +    if (!dra7xx_usb)
+>>>> +        return -ENOMEM;
+>>> You have to add error message with dev_err().
+>> devm_kzalloc itself should give some message.
+> ok.
+>
+>
+>>>> +    status = extcon_dev_register(&dra7xx_usb->edev, dra7xx_usb->dev);
+>>>> +    if (status) {
+>>>> +        dev_err(&pdev->dev, "failed to register extcon device\n");
+>>>> +        return status;
+>>> You should restore previous operation about dra7xx_usb->irq_gpio.
+>> okay
+>>>> +    }
+>>>> +
+>>>> +    dra7xx_usb->id_prev = gpio_get_value_cansleep(dra7xx_usb->id_gpio);
+>>>> +    if (dra7xx_usb->id_prev) {
+> ditto.
+> You should define some constant variable to clarify 'dra7xx_usb->id_prev' meaning.
+
+okay
+>
+>>>> +        extcon_set_cable_state(&dra7xx_usb->edev, "USB-HOST", false);
+>>>> +        extcon_set_cable_state(&dra7xx_usb->edev, "USB", true);
+>>>> +    } else {
+>>>> +        extcon_set_cable_state(&dra7xx_usb->edev, "USB", false);
+>>>> +        extcon_set_cable_state(&dra7xx_usb->edev, "USB-HOST", true);
+>>>> +    }
+>>> why did you do keep always connected state?
+>> There is no way, currently to detect the VBUS on/off.
+>> So I always default to either HOST/DEVICE mode solely depending on the ID pin value.
+>>
+>>>> +
+>>>> +    if (dra7xx_usb->irq_gpio) {
+>>>> +        status = devm_request_threaded_irq(dra7xx_usb->dev, irq_num,
+>>>> +                NULL, id_irq_handler, IRQF_SHARED |
+>>>> +                IRQF_ONESHOT | IRQF_TRIGGER_FALLING,
+>>>> +                dev_name(&pdev->dev), (void *) dra7xx_usb);
+>>>> +        if (status)
+>>>> +            dev_err(dra7xx_usb->dev, "failed to request irq #%d\n",
+>>>> +                        irq_num);
+>>> If devm_request_threaded_irq() return fail state, why did not you do add error exception?
+>> If interrupt fails I fallback to polling thread.
+>>>> +        else
+>>>> +            return 0;
+>>> If devm_request_threaded_irq() return success state, why did you directly call 'return'?
+>>> kthread_create operation isn't necessary?
+>> Yes kthread is optional. Some boards doenot have the ID pin hooked onto the GPIO.
+>> In such cases we will run the kthread and poll on the ID pin values.
+>>>> +    }
+>>>> +
+>>>> +    dra7xx_usb->thread_task = kthread_create(id_poll_func, dra7xx_usb,
+>>>> +                         dev_name(&pdev->dev));
+>>> Should you use polling method with kthread? I think it isn't proper method.
+>>> You did get the irq number by using DT helper function and register irq handler
+>>> with devm_request_threaded_irq(). I prefer interrupt method for detection of cable state.
+>> I also prefer interrupt method. If any implementation does not have ID pin connected to GPIOs then still
+>> it could use the driver in polling mode.
+> As I mentioned above, I don't prefer interrupt method for cable detection.
+
+I hope you meant, you prefer interrupt method for cable detection over 
+polling .
+> Polling method for detection isn't appropriate for extcon device driver.
+>
+> Instead, I will consider whether to support polling method or not on extcon core.
+>
+> Thanks,
+> Chanwoo Choi
+>
+>
+
+-- 
+-George
+
