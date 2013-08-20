@@ -1,36 +1,65 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] i2c-omap: always send stop after nack
-Date: Tue, 20 Aug 2013 19:39:31 +0300
-Message-ID: <52139BC3.8030907@ti.com>
-References: <51E50217.1000507@yahoo.es> <20130716090300.GG8880@arwen.pp.htv.fi> <51E5137B.7000302@yahoo.es> <20130716094212.GL8880@arwen.pp.htv.fi> <51E527F7.4080007@ti.com> <20130716112746.GN8880@arwen.pp.htv.fi> <51E537A4.40300@ti.com> <20130716130058.GD15036@arwen.pp.htv.fi> <51E57211.2040001@yahoo.es> <20130819121123.GA4540@katana>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [PATCH] ARM: omap2: Use a consistent AM33XX SoC option
+ description
+Date: Tue, 20 Aug 2013 13:42:53 -0300
+Message-ID: <20130820164251.GC4889@localhost>
+References: <1375997528-396-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <CABxcv=keV2Jf4gDwF477a9Msk6b-RgDBcxK1QyhchWffbKAoXw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130819121123.GA4540@katana>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Hein Tibosch <hein_tibosch@yahoo.es>, balbi@ti.com, Tony Lindgren <tony@atomide.com>, linux-i2c <linux-i2c@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from top.free-electrons.com ([176.31.233.9]:33858 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751783Ab3HTQmv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 12:42:51 -0400
+Content-Disposition: inline
+In-Reply-To: <CABxcv=keV2Jf4gDwF477a9Msk6b-RgDBcxK1QyhchWffbKAoXw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 08/19/2013 03:11 PM, Wolfram Sang wrote:
-> Hi,
->
->>> Which means your original patch starts to make a lot more sense. I
->>> wonder is this is really what we should be doing though - breaking out
->>> of the loop, I mean.
->
-> Yup, that is fine. I applied the old patch with Acks from Hein and
-> Felipe to -next. Thanks!
+On Fri, Aug 09, 2013 at 11:18:43AM +0200, Javier Martinez Canillas wrot=
+e:
+> On Thu, Aug 8, 2013 at 11:32 PM, Ezequiel Garcia
+> <ezequiel.garcia@free-electrons.com> wrote:
+> > Fix the option description to match the other TI SoCs.
+> > This is just a cosmetic change.
+> >
+> > Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+> > ---
+> >  arch/arm/mach-omap2/Kconfig | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kcon=
+fig
+> > index 76170dd..56021c6 100644
+> > --- a/arch/arm/mach-omap2/Kconfig
+> > +++ b/arch/arm/mach-omap2/Kconfig
+> > @@ -64,7 +64,7 @@ config SOC_OMAP5
+> >         select ARM_ERRATA_798181 if SMP
+> >
+> >  config SOC_AM33XX
+> > -       bool "AM33XX support"
+> > +       bool "TI AM33XX"
+> >         depends on ARCH_MULTI_V7
+> >         select ARCH_OMAP2PLUS
+> >         select ARM_CPU_SUSPEND if PM
+> > --
+> > 1.8.1.5
+> >
+> >
+>=20
+> Reviewed-by: Javier Martinez Canillas <javier@dowhile0.org>
 
-Thanks.
-
->
->> It looks like TI's i2c-davinci will have the same problem as i2c-omap,
->> and will need the same change.
->
-> Somebody up for this?
->
-
-Regards,
--grygorii
+ping?
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
