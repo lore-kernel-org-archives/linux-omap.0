@@ -1,82 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 5/5] arm: omap2plus_defconfig: enable dwc3 and
- dependencies
-Date: Wed, 21 Aug 2013 05:53:41 -0700
-Message-ID: <20130821125341.GK7656@atomide.com>
-References: <1373979037-27587-1-git-send-email-balbi@ti.com>
- <1373979037-27587-6-git-send-email-balbi@ti.com>
+Subject: Re: [PATCH] arm: omap5: hwmod: add missing ocp2scp hwmod data
+Date: Wed, 21 Aug 2013 05:54:28 -0700
+Message-ID: <20130821125427.GL7656@atomide.com>
+References: <1373642066-5235-1-git-send-email-balbi@ti.com>
+ <20130821074728.GV7656@atomide.com>
+ <52148C67.3080106@baylibre.com>
+ <CALpuT30YToRvgS3rgvpSZf8d1DZBK9y5mNUJL6qbHS22mL4k-g@mail.gmail.com>
+ <5214AE69.8010009@baylibre.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50380 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751519Ab3HUMya (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Aug 2013 08:54:30 -0400
 Content-Disposition: inline
-In-Reply-To: <1373979037-27587-6-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Benoit Cousson <benoit.cousson@linaro.org>, Kishon Vijay Abraham I <kishon@ti.com>
+In-Reply-To: <5214AE69.8010009@baylibre.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-* Felipe Balbi <balbi@ti.com> [130716 05:57]:
-> DWC3 enables USB3 functionality for OMAP5 boards,
-> it's safe to enable those drivers in omap2plus_defconfig.
+* Benoit Cousson <bcousson@baylibre.com> [130821 05:18]:
+> + Kishon and Roger
 > 
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-
-Looks like Benoit will take this, so:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-> ---
->  arch/arm/configs/omap2plus_defconfig | 9 +++++++++
->  1 file changed, 9 insertions(+)
+> Ok, so in fact that's a complete series now.
 > 
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> index 5339e6a..aed3cce 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -81,6 +81,7 @@ CONFIG_CMA=y
->  CONFIG_CONNECTOR=y
->  CONFIG_DEVTMPFS=y
->  CONFIG_DEVTMPFS_MOUNT=y
-> +CONFIG_OMAP_OCP2SCP=y
->  CONFIG_MTD=y
->  CONFIG_MTD_CMDLINE_PARTS=y
->  CONFIG_MTD_CHAR=y
-> @@ -167,9 +168,11 @@ CONFIG_THERMAL_GOV_USER_SPACE=y
->  CONFIG_CPU_THERMAL=y
->  CONFIG_OMAP_WATCHDOG=y
->  CONFIG_TWL4030_WATCHDOG=y
-> +CONFIG_MFD_PALMAS=y
->  CONFIG_MFD_TPS65217=y
->  CONFIG_MFD_TPS65910=y
->  CONFIG_TWL6040_CORE=y
-> +CONFIG_REGULATOR_PALMAS=y
->  CONFIG_REGULATOR_TWL4030=y
->  CONFIG_REGULATOR_TPS65023=y
->  CONFIG_REGULATOR_TPS6507X=y
-> @@ -222,10 +225,14 @@ CONFIG_USB_MON=y
->  CONFIG_USB_WDM=y
->  CONFIG_USB_STORAGE=y
->  CONFIG_USB_LIBUSUAL=y
-> +CONFIG_USB_DWC3=m
-> +CONFIG_USB_DWC3_OMAP=m
->  CONFIG_USB_TEST=y
->  CONFIG_USB_PHY=y
->  CONFIG_NOP_USB_XCEIV=y
->  CONFIG_USB_GADGET=y
-> +CONFIG_OMAP_USB2=y
-> +CONFIG_OMAP_USB3=y
->  CONFIG_USB_GADGET_DEBUG=y
->  CONFIG_USB_GADGET_DEBUG_FILES=y
->  CONFIG_USB_GADGET_DEBUG_FS=y
-> @@ -258,6 +265,8 @@ CONFIG_TI_THERMAL=y
->  CONFIG_OMAP4_THERMAL=y
->  CONFIG_OMAP5_THERMAL=y
->  CONFIG_DRA752_THERMAL=y
-> +CONFIG_EXTCON=y
-> +CONFIG_EXTCON_PALMAS=y
->  CONFIG_EXT2_FS=y
->  CONFIG_EXT3_FS=y
->  # CONFIG_EXT3_FS_XATTR is not set
-> -- 
-> 1.8.3.3.754.g9c3c367
+> [v2,1/5] arm: omap5: dts: fix reg property size
+> [v2,2/5] arm: omap5: dts: fix ocp2scp DTS data
+> [v2,3/5] arm: omap5: dts: add palmas-usb node
+> [v2,4/5] arm: omap5: hwmod: add missing ocp2scp hwmod data
+> [v2,5/5] arm: omap2plus_defconfig: enable dwc3 and dependencies
 > 
+> Moreover, it does not build because of the change in the palmas SMPS10 regulator name from Kishon I already pulled.
+> 
+> Kishon or Roger,
+> 
+> Could you resend that series ASAP after fixing, testing and changing my email address?
+> 
+> 
+> Tony,
+> 
+> I will need your ack for the omap2plus_defconfig patch. 
+
+OK, acked the v2 of the omap2plus_defconfig patch.
+
+Tony
