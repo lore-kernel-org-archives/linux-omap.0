@@ -1,84 +1,130 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 1/6] v4l: ti-vpe: Create a vpdma helper library
-Date: Wed, 21 Aug 2013 12:17:26 +0530
-Message-ID: <5214627E.30503@ti.com>
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <1436822.NCo0PqzB8p@avalon> <52136C36.1090605@ti.com> <2009747.pxcYsmMib4@avalon>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP: Device Tree for 3.12
+Date: Wed, 21 Aug 2013 00:13:34 -0700
+Message-ID: <20130821071334.GQ7656@atomide.com>
+References: <521384D5.1050607@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40063 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752434Ab3HUGsm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Aug 2013 02:48:42 -0400
-In-Reply-To: <2009747.pxcYsmMib4@avalon>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:44896 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752280Ab3HUHNj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Aug 2013 03:13:39 -0400
+Content-Disposition: inline
+In-Reply-To: <521384D5.1050607@baylibre.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, dagriego@biglakesoftware.com, dale@farnsworth.org, pawel@osciak.com, m.szyprowski@samsung.com, hverkuil@xs4all.nl, tomi.valkeinen@ti.com
+To: Kevin Hilman <khilman@linaro.org>, Olof Johansson <olof@lixom.net>
+Cc: arm@kernel.org, Benoit Cousson <bcousson@baylibre.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+Kevin & Olof,
 
-On Tuesday 20 August 2013 07:26 PM, Laurent Pinchart wrote:
-> Hi Archit,
->
-> On Tuesday 20 August 2013 18:46:38 Archit Taneja wrote:
->> On Tuesday 20 August 2013 05:09 PM, Laurent Pinchart wrote:
->>
->> <snip>
->>
->>>>>> +static int vpdma_load_firmware(struct vpdma_data *vpdma)
->>>>>> +{
->>>>>> +	int r;
->>>>>> +	struct device *dev = &vpdma->pdev->dev;
->>>>>> +
->>>>>> +	r = request_firmware_nowait(THIS_MODULE, 1,
->>>>>> +		(const char *) VPDMA_FIRMWARE, dev, GFP_KERNEL, vpdma,
->>>>>> +		vpdma_firmware_cb);
->>>>>
->>>>> Is there a reason not to use the synchronous interface ? That would
->>>>> simplify both this code and the callers, as they won't have to check
->>>>> whether the firmware has been correctly loaded.
->>>>
->>>> I'm not clear what you mean by that, the firmware would be stored in the
->>>> filesystem. If the driver is built-in, then the synchronous interface
->>>> wouldn't work unless the firmware is appended to the kernel image. Am I
->>>> missing something here? I'm not very aware of the firmware api.
->>>
->>> request_firmware() would just sleep (with a 30 seconds timeout if I'm not
->>> mistaken) until userspace provides the firmware. As devices are probed
->>> asynchronously (in kernel threads) the system will just boot normally, and
->>> the request_firmware() call will return when the firmware is available.
->>
->> Sorry, I sent the previous mail bit too early.
->>
->> With request_firmware() and the driver built-in, I see that the kernel
->> stalls for 10 seconds at the driver's probe, and the firware loading fails
->> since we didn't enter userspace where the file is.
->>
->> The probing of devices asynchronously with kernel threads makes sense, so
->> it's possible that I'm doing something wrong here. I'll give it a try again
->
-> I might have spoken too fast. It looks like module initcalls are not run in
-> threads. I've most probably mistaken that with asynchronous probing of hot-
-> pluggable devices.
->
-> If your driver is built-in then it looks like the correct solution is to build
-> the firmware in the kernel image as well, or use the asynchronous API as you
-> did.
+Care to pull the below .dts changes directly from Benoit?
 
-Okay, thanks for clarifying that.
-
-We could use the request_firmware synchronous version if we call it in 
-the open v4l2 file op.
-
-Maybe I could load the firmware when the device is opened the first 
-time(one instance).
-
-I'll have to see whether it slows things down, and if I'd need to load 
-firmware more often. But I'd probably leave this experiment for later.
-
-Archit
-
-
-
+* Benoit Cousson <bcousson@baylibre.com> [130820 08:08]:
+> 
+> Hi Tony,
+> 
+> Please pull the following commits for OMAP Device Tree for v3.12.
+> 
+> Thanks,
+> Benoit
+> 
+> ----------------------------------------------------------------
+> Add the minimal DTS support for DRA7xx based SoC core.
+> Add the initial support for N900 and gta04 phones.
+> Do a lot of various cleanups.
+> ----------------------------------------------------------------
+> 
+> The following changes since commit b36f4be3de1b123d8601de062e7dbfc904f305fb:
+> 
+>   Linux 3.11-rc6 (2013-08-18 14:36:53 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.12/dts
+> 
+> for you to fetch changes up to 9f311a2325905043718da9bf649e2344b8df8473:
+> 
+>   ARM: dts: omap3-beagle: Make USB host pin naming consistent (2013-08-20 14:30:07 +0200)
+> 
+> ----------------------------------------------------------------
+> Afzal Mohammed (2):
+>       ARM: dts: AM4372: cpu(s) node per latest binding
+>       ARM: dts: AM4372: add few nodes
+> 
+> Alexandre Belloni (1):
+>       ARM: dts: AM33XX: Add PMU support
+> 
+> Javier Martinez Canillas (5):
+>       ARM: dts: omap3-igep: add pinmux node for GPIO LED configuration
+>       ARM: dts: omap3-igep0020: add mux conf for GPIO LEDs
+>       ARM: dts: omap3-igep0030: add mux conf for GPIO LED
+>       ARM: dts: AM33XX: use pinmux node defined in included file
+>       ARM: dts: AM33XX: don't redefine OCP bus and device nodes
+> 
+> Kishon Vijay Abraham I (1):
+>       ARM: dts: omap5-uevm: Split SMPS10 in two nodes
+> 
+> Lars Poeschel (1):
+>       ARM: dts: AM33xx: Correct gpio #interrupt-cells property
+> 
+> Lee Jones (7):
+>       ARM: dts: Remove '0x's from OMAP2420 H4 DTS file
+>       ARM: dts: Remove '0x's from OMAP3 IGEP0020 DTS file
+>       ARM: dts: Remove '0x's from OMAP3 IGEP0030 DTS file
+>       ARM: dts: Remove '0x's from OMAP3 DTS file
+>       ARM: dts: Remove '0x's from OMAP3430 SDP DTS file
+>       ARM: dts: Remove '0x's from OMAP4 DTS file
+>       ARM: dts: Remove '0x's from OMAP5 DTS file
+> 
+> Marek Belisko (1):
+>       ARM: dts: Add devicetree for gta04 board.
+> 
+> Pavel Machek (1):
+>       ARM: dts: N900: Add device tree
+> 
+> R Sricharan (1):
+>       ARM: dts: DRA7: Add the dts files for dra7 SoC and dra7-evm board
+> 
+> Robert Nelson (1):
+>       ARM: dts: omap3-beagle-xm: fix string error in compatible property
+> 
+> Roger Quadros (1):
+>       ARM: dts: omap3-beagle: Make USB host pin naming consistent
+> 
+> Ruslan Bilovol (1):
+>       ARM: dts: twl6030: Move common configuration for OMAP4 boards in a separate dtsi file
+> 
+>  arch/arm/boot/dts/Makefile                |   5 +-
+>  arch/arm/boot/dts/am335x-bone.dts         | 217 ++++++-----
+>  arch/arm/boot/dts/am335x-evm.dts          | 576 +++++++++++++++---------------
+>  arch/arm/boot/dts/am335x-evmsk.dts        | 374 ++++++++++---------
+>  arch/arm/boot/dts/am33xx.dtsi             |  13 +-
+>  arch/arm/boot/dts/am4372.dtsi             | 347 ++++++++++++++++++
+>  arch/arm/boot/dts/dra7-evm.dts            | 140 ++++++++
+>  arch/arm/boot/dts/dra7.dtsi               | 575 +++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/omap2420-h4.dts         |   6 +-
+>  arch/arm/boot/dts/omap3-beagle-xm.dts     |   2 +-
+>  arch/arm/boot/dts/omap3-beagle.dts        |  24 +-
+>  arch/arm/boot/dts/omap3-gta04.dts         | 168 +++++++++
+>  arch/arm/boot/dts/omap3-igep.dtsi         |   2 +
+>  arch/arm/boot/dts/omap3-igep0020.dts      |  19 +-
+>  arch/arm/boot/dts/omap3-igep0030.dts      |  17 +-
+>  arch/arm/boot/dts/omap3-n900.dts          |  92 +++++
+>  arch/arm/boot/dts/omap3.dtsi              |   2 +-
+>  arch/arm/boot/dts/omap3430-sdp.dts        |  22 +-
+>  arch/arm/boot/dts/omap4-panda-common.dtsi |  21 +-
+>  arch/arm/boot/dts/omap4-sdp.dts           |  21 +-
+>  arch/arm/boot/dts/omap4.dtsi              |   2 +-
+>  arch/arm/boot/dts/omap5-uevm.dts          |  13 +-
+>  arch/arm/boot/dts/omap5.dtsi              |   4 +-
+>  arch/arm/boot/dts/twl6030_omap4.dtsi      |  38 ++
+>  include/dt-bindings/pinctrl/dra.h         |  50 +++
+>  25 files changed, 2077 insertions(+), 673 deletions(-)
+>  create mode 100644 arch/arm/boot/dts/dra7-evm.dts
+>  create mode 100644 arch/arm/boot/dts/dra7.dtsi
+>  create mode 100644 arch/arm/boot/dts/omap3-gta04.dts
+>  create mode 100644 arch/arm/boot/dts/omap3-n900.dts
+>  create mode 100644 arch/arm/boot/dts/twl6030_omap4.dtsi
+>  create mode 100644 include/dt-bindings/pinctrl/dra.h
