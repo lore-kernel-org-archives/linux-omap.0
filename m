@@ -1,71 +1,40 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP2+: Add new bindings for OMAP
-Date: Wed, 21 Aug 2013 17:19:52 +0530
-Message-ID: <5214A960.9010802@ti.com>
-References: <1376983966-16490-1-git-send-email-rnayak@ti.com> <1376983966-16490-3-git-send-email-rnayak@ti.com> <20130821074514.GU7656@atomide.com> <5214888C.8050205@baylibre.com>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [PATCH v2 00/14] crypto: omap-aes: Improve DMA, add PIO mode and
+ support for AM437x
+Date: Wed, 21 Aug 2013 21:50:52 +1000
+Message-ID: <20130821115051.GE23287@gondor.apana.org.au>
+References: <1376793755-30478-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <5214888C.8050205@baylibre.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1376793755-30478-1-git-send-email-joelf@ti.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, Mark Greer <mgreer@animalcreek.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Crypto Mailing List <linux-crypto@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 21 August 2013 02:59 PM, Benoit Cousson wrote:
-> On 21/08/2013 09:45, Tony Lindgren wrote:
->> * Rajendra Nayak <rnayak@ti.com> [130820 00:41]:
->>> On OMAP we have co-processor IPs, memory controllers,
->>> GPIOs which control regulators and power switches to
->>> PMIC, and SoC internal Bus IPs, some or most of which
->>> should either not be reset or idled or both. Have a
->>> way to pass this information from DT.
->>> (In some cases there are erratas which prevent an IPs
->>> from being reset)
->>>
->>> Also update omap_hwmod to extract this from DT.
->>>
->>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->>> ---
->>>   .../devicetree/bindings/arm/omap/omap.txt          |    3 ++-
->>>   arch/arm/mach-omap2/omap_hwmod.c                   |   22 +++++++++++++-------
->>>   2 files changed, 17 insertions(+), 8 deletions(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
->>> index 6d498c7..a08647e 100644
->>> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
->>> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
->>> @@ -21,7 +21,8 @@ Required properties:
->>>   Optional properties:
->>>   - ti,no_idle_on_suspend: When present, it prevents the PM to idle the module
->>>     during suspend.
->>> -
->>> +- ti,no-reset: When present, the module should not be reset
->>> +- ti,no-idle: When present, the module should not be idled
->>
->> This naming is a bit confusing as people may think that the
->> hardware has no reset support or no idle support. Let's try
->> to make this to describe the hardware a bit more instead.
+On Sat, Aug 17, 2013 at 09:42:21PM -0500, Joel Fernandes wrote:
+> Following patch series rewrites the DMA code to be cleaner and faster. Earlier,
+> only a single SG was used for DMA purpose, and the SG-list passed from the
+> crypto layer was being copied and DMA'd one entry at a time. This turns out to
+> be quite inefficient and lot of code, we replace it with much simpler approach
+> that directly passes the SG-list from crypto to the DMA layers for cases where
+> possible. For all cases where such a direct passing of SG list is not possible,
+> we create a new SG-list and do the copying. This is still better than before, as
+> we create an SG list as big as needed and not just 1-element list.
 > 
-> Yeah, I do agree here. That should look like a real HW property and nor a configuration.
+> We also add PIO mode support to the driver, and switch to it whenever the DMA
+> channel allocation is not available. This also has shown to give good performance
+> for small blocks as shown below.
 > 
->> Then ideally we'd not map individual bits of data to properties,
->> but describe few basic types of hardware instead and build
->> lists of things instead of tagging things. Or maybe we
->> can get this data from the bus hierarchy instead?
->>
->> If these options don't work, and the choice may be board
->> specific, then how about ti,skip-reset-on-init, and
->> ti,skip-idle-on-init?
+> Tests have been performed on AM335x, OMAP4 and AM437x SoCs.
 > 
-> It looks like a configuration as well :-).
-> I was thinking of something like "ti,do-not-support-reset-on-init", but that a little bit too long.
+> Below is a sample run on AM335x SoC (beaglebone board), showing
+> performance improvement (20% for 8K blocks):
 
-How about 'ti,no-reset-on-init' :) which is what I had initially which I then moved to 'ti,no-reset'
-
-> 
-> Regards,
-> Benoit
-> 
-
+All applied.  Thanks!
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
