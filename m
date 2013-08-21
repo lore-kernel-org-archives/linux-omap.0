@@ -1,97 +1,147 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 4/5] arm: omap5: hwmod: add missing ocp2scp hwmod data
-Date: Wed, 21 Aug 2013 20:01:33 +0530
-Message-ID: <1377095494-15380-5-git-send-email-kishon@ti.com>
-References: <1377095494-15380-1-git-send-email-kishon@ti.com>
+From: Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH V2] i2c: move of helpers into the core
+Date: Wed, 21 Aug 2013 16:46:48 +0200
+Message-ID: <5214D2D8.7010106@samsung.com>
+References: <1377092832-3417-1-git-send-email-wsa@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1377095494-15380-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com, balbi@ti.com
-Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, linux@arm.linux.org.uk, javier.martinez@collabora.co.uk, devicetree@vger.kernel.org, kishon@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <1377092832-3417-1-git-send-email-wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Benoit Cousson <bcousson@baylibre.com>
+On 08/21/2013 03:47 PM, Wolfram Sang wrote:
+> I2C of helpers used to live in of_i2c.c but experience (from SPI) shows
+> that it is much cleaner to have this in the core. This also removes a
+> circular dependency between the helpers and the core, and so we can
+> finally register child nodes in the core instead of doing this manually
+> in each driver. So, fix the drivers and documentation, too.
+> 
+> Acked-by: Sylwester Nawrocki <s.nawrocki-UaMK/Mspgf7QT0dZR+AlfA@public.gmane.org>
+> Acked-by: Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
+> Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
 
-without that hwmod data, USB3 will not in OMAP5 boards.
+With this patch there are still couple of of_i2c.h header file
+inclusions:
 
-Signed-off-by: Benoit Cousson <bcousson@baylibre.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c |   45 ++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+$ git grep of_i2c.h
+arch/powerpc/platforms/44x/warp.c:#include <linux/of_i2c.h>
+drivers/gpu/drm/tilcdc/tilcdc_slave.c:#include <linux/of_i2c.h>
+drivers/gpu/drm/tilcdc/tilcdc_tfp410.c:#include <linux/of_i2c.h>
+drivers/gpu/host1x/drm/output.c:#include <linux/of_i2c.h>
+drivers/media/platform/exynos4-is/fimc-is.c:#include <linux/of_i2c.h>
+drivers/media/platform/exynos4-is/media-dev.c:#include <linux/of_i2c.h>
+drivers/staging/imx-drm/imx-tve.c:#include <linux/of_i2c.h>
+sound/soc/fsl/imx-sgtl5000.c:#include <linux/of_i2c.h>
+sound/soc/fsl/imx-wm8962.c:#include <linux/of_i2c.h>
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-index 3c70f5c..33ae523 100644
---- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -1114,6 +1114,42 @@ static struct omap_hwmod omap54xx_mpu_hwmod = {
- };
- 
- /*
-+ * 'ocp2scp' class
-+ * bridge to transform ocp interface protocol to scp (serial control port)
-+ * protocol
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap54xx_ocp2scp_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
-+			SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap54xx_ocp2scp_hwmod_class = {
-+	.name	= "ocp2scp",
-+	.sysc	= &omap54xx_ocp2scp_sysc,
-+};
-+
-+/* ocp2scp1 */
-+static struct omap_hwmod omap54xx_ocp2scp1_hwmod = {
-+	.name		= "ocp2scp1",
-+	.class		= &omap54xx_ocp2scp_hwmod_class,
-+	.clkdm_name	= "l3init_clkdm",
-+	.main_clk	= "l4_root_clk_div",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = OMAP54XX_CM_L3INIT_OCP2SCP1_CLKCTRL_OFFSET,
-+			.context_offs = OMAP54XX_RM_L3INIT_OCP2SCP1_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_HWCTRL,
-+		},
-+	},
-+};
-+
-+/*
-  * 'timer' class
-  * general purpose timer module with accurate 1ms tick
-  * This class contains several variants: ['timer_1ms', 'timer']
-@@ -1920,6 +1956,14 @@ static struct omap_hwmod_ocp_if omap54xx_l4_cfg__mpu = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_cfg -> ocp2scp1 */
-+static struct omap_hwmod_ocp_if omap54xx_l4_cfg__ocp2scp1 = {
-+	.master		= &omap54xx_l4_cfg_hwmod,
-+	.slave		= &omap54xx_ocp2scp1_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* l4_wkup -> timer1 */
- static struct omap_hwmod_ocp_if omap54xx_l4_wkup__timer1 = {
- 	.master		= &omap54xx_l4_wkup_hwmod,
-@@ -2122,6 +2166,7 @@ static struct omap_hwmod_ocp_if *omap54xx_hwmod_ocp_ifs[] __initdata = {
- 	&omap54xx_l4_per__mmc4,
- 	&omap54xx_l4_per__mmc5,
- 	&omap54xx_l4_cfg__mpu,
-+	&omap54xx_l4_cfg__ocp2scp1,
- 	&omap54xx_l4_wkup__timer1,
- 	&omap54xx_l4_per__timer2,
- 	&omap54xx_l4_per__timer3,
--- 
-1.7.10.4
+
+Please include also this chunk, without it I'm getting build errors.
+
+--------------8<---------------------
+diff --git a/drivers/media/platform/exynos4-is/fimc-is-i2c.c
+b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
+index ca07b48..e38e9dc 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is-i2c.c
++++ b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
+@@ -11,6 +11,7 @@
+  */
+
+ #include <linux/clk.h>
++#include <linux/i2c.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c
+b/drivers/media/platform/exynos4-is/fimc-is.c
+index 6743ae3..63e4f1d 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -21,7 +21,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/of_i2c.h>
+ #include <linux/of_irq.h>
+ #include <linux/of_address.h>
+ #include <linux/of_platform.h>
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c
+b/drivers/media/platform/exynos4-is/media-dev.c
+index c10dee2..00e5f91 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -22,7 +22,6 @@
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
+ #include <linux/of_device.h>
+-#include <linux/of_i2c.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/types.h>
+--------------8<---------------------
+
+> ---
+> 
+> V1 -> V2: * Add #else branch to #if CONFIG_OF
+> 	  * EXPORT_SYMBOLs got attached to wrong functions
+> 	  * cosmetic change (of -> OF)
+> 	  * properly based on 3.11-rc4
+> 
+>  Documentation/acpi/enumeration.txt              |    1 -
+>  drivers/i2c/busses/i2c-at91.c                   |    3 -
+>  drivers/i2c/busses/i2c-cpm.c                    |    6 --
+>  drivers/i2c/busses/i2c-davinci.c                |    2 -
+>  drivers/i2c/busses/i2c-designware-platdrv.c     |    2 -
+>  drivers/i2c/busses/i2c-gpio.c                   |    3 -
+>  drivers/i2c/busses/i2c-i801.c                   |    2 -
+>  drivers/i2c/busses/i2c-ibm_iic.c                |    4 -
+>  drivers/i2c/busses/i2c-imx.c                    |    3 -
+>  drivers/i2c/busses/i2c-mpc.c                    |    2 -
+>  drivers/i2c/busses/i2c-mv64xxx.c                |    3 -
+>  drivers/i2c/busses/i2c-mxs.c                    |    3 -
+>  drivers/i2c/busses/i2c-nomadik.c                |    3 -
+>  drivers/i2c/busses/i2c-ocores.c                 |    3 -
+>  drivers/i2c/busses/i2c-octeon.c                 |    3 -
+>  drivers/i2c/busses/i2c-omap.c                   |    3 -
+>  drivers/i2c/busses/i2c-pnx.c                    |    3 -
+>  drivers/i2c/busses/i2c-powermac.c               |    9 +-
+>  drivers/i2c/busses/i2c-pxa.c                    |    2 -
+>  drivers/i2c/busses/i2c-s3c2410.c                |    2 -
+>  drivers/i2c/busses/i2c-sh_mobile.c              |    2 -
+>  drivers/i2c/busses/i2c-sirf.c                   |    3 -
+>  drivers/i2c/busses/i2c-stu300.c                 |    2 -
+>  drivers/i2c/busses/i2c-tegra.c                  |    3 -
+>  drivers/i2c/busses/i2c-versatile.c              |    2 -
+>  drivers/i2c/busses/i2c-wmt.c                    |    3 -
+>  drivers/i2c/busses/i2c-xiic.c                   |    3 -
+>  drivers/i2c/i2c-core.c                          |  109 +++++++++++++++++++++-
+>  drivers/i2c/i2c-mux.c                           |    3 -
+>  drivers/i2c/muxes/i2c-arb-gpio-challenge.c      |    1 -
+>  drivers/i2c/muxes/i2c-mux-gpio.c                |    1 -
+>  drivers/i2c/muxes/i2c-mux-pinctrl.c             |    1 -
+>  drivers/media/platform/exynos4-is/fimc-is-i2c.c |    3 -
+>  drivers/of/Kconfig                              |    6 --
+>  drivers/of/Makefile                             |    1 -
+>  drivers/of/of_i2c.c                             |  114 -----------------------
+>  include/linux/i2c.h                             |   20 ++++
+>  include/linux/of_i2c.h                          |   46 ---------
+>  38 files changed, 132 insertions(+), 253 deletions(-)
+>  delete mode 100644 drivers/of/of_i2c.c
+>  delete mode 100644 include/linux/of_i2c.h
+
+I've tested this patch on Exynos4412 SoC based board, so this covers
+i2c-s3c2410 and fimc-is-i2c. Compiled with CONFIG_OF enabled.
+
+I guess after removing all remaining occurrences of
+#include <linux/of_i2c.h> you could add:
+
+Tested-by: Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+
+--
+Thanks,
+Sylwester
