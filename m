@@ -1,51 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: Kconfig: NR_GPIO AM43x default
-Date: Wed, 21 Aug 2013 00:25:06 -0700
-Message-ID: <20130821072506.GS7656@atomide.com>
-References: <1375451651-27173-1-git-send-email-afzal@ti.com>
+Subject: Re: [PATCH 2/3] ARM: OMAP2+: Add new bindings for OMAP
+Date: Wed, 21 Aug 2013 00:45:14 -0700
+Message-ID: <20130821074514.GU7656@atomide.com>
+References: <1376983966-16490-1-git-send-email-rnayak@ti.com>
+ <1376983966-16490-3-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61224 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752232Ab3HUHZJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Aug 2013 03:25:09 -0400
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1375451651-27173-1-git-send-email-afzal@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1376983966-16490-3-git-send-email-rnayak@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: bcousson@baylibre.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>
 
-* Afzal Mohammed <afzal@ti.com> [130802 07:01]:
-> On an AM43x only config, currently default ARCH_NR_GPIO would be zero.
-> Default it to that supported by the SoC.
+* Rajendra Nayak <rnayak@ti.com> [130820 00:41]:
+> On OMAP we have co-processor IPs, memory controllers,
+> GPIOs which control regulators and power switches to
+> PMIC, and SoC internal Bus IPs, some or most of which
+> should either not be reset or idled or both. Have a
+> way to pass this information from DT.
+> (In some cases there are erratas which prevent an IPs
+> from being reset)
+> 
+> Also update omap_hwmod to extract this from DT.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  .../devicetree/bindings/arm/omap/omap.txt          |    3 ++-
+>  arch/arm/mach-omap2/omap_hwmod.c                   |   22 +++++++++++++-------
+>  2 files changed, 17 insertions(+), 8 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+> index 6d498c7..a08647e 100644
+> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
+> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+> @@ -21,7 +21,8 @@ Required properties:
+>  Optional properties:
+>  - ti,no_idle_on_suspend: When present, it prevents the PM to idle the module
+>    during suspend.
+> -
+> +- ti,no-reset: When present, the module should not be reset
+> +- ti,no-idle: When present, the module should not be idled
 
-Looks like this can wait a bit until the am43x patches have been
-reviewed and queued. When that's done, I suggest that Afzal
-puts this patch into Russell's patch tracking system.
+This naming is a bit confusing as people may think that the
+hardware has no reset support or no idle support. Let's try
+to make this to describe the hardware a bit more instead.
+
+Then ideally we'd not map individual bits of data to properties,
+but describe few basic types of hardware instead and build
+lists of things instead of tagging things. Or maybe we
+can get this data from the bus hierarchy instead?
+
+If these options don't work, and the choice may be board
+specific, then how about ti,skip-reset-on-init, and
+ti,skip-idle-on-init?
 
 Regards,
 
 Tony
- 
-> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> ---
->  arch/arm/Kconfig |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-> index 37c0f4e..c5356c5 100644
-> --- a/arch/arm/Kconfig
-> +++ b/arch/arm/Kconfig
-> @@ -1605,6 +1605,7 @@ config ARCH_NR_GPIO
->  	default 352 if ARCH_VT8500
->  	default 288 if ARCH_SUNXI
->  	default 264 if MACH_H4700
-> +	default 192 if SOC_AM43XX
->  	default 0
->  	help
->  	  Maximum number of GPIOs in the system.
-> -- 
-> 1.7.9.5
-> 
