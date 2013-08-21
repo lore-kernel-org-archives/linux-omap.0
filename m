@@ -1,13 +1,15 @@
-From: Chen Gang <gang.chen@asianux.com>
-Subject: [PATCH] ARM: OMAP2: remove useless variable 'ret'
-Date: Wed, 21 Aug 2013 16:31:02 +0800
-Message-ID: <52147AC6.9040300@asianux.com>
-References: <521479B4.8030604@asianux.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v2 02/13] ARM: OMAP2+: hwmod: AM335x: prepare for AM43x
+ reuse
+Date: Wed, 21 Aug 2013 14:07:28 +0530
+Message-ID: <52147C48.2070407@ti.com>
+References: <cover.1375443858.git.afzal@ti.com>
+ <5207ff755f653dd438b7717bab1d0d61d50d44b6.1375443858.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <521479B4.8030604@asianux.com>
+In-Reply-To: <5207ff755f653dd438b7717bab1d0d61d50d44b6.1375443858.git.afzal@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,36 +19,97 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Afzal Mohammed <afzal@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, benoit.cousson@gmail.com, Benoit Cousson <benoit.cousson@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Remove useless variable 'ret', the related warning:
+On Friday 02 August 2013 07:06 PM, Afzal Mohammed wrote:
+> AM335x & AM43x have most of the interconnects, IPs similar. Instead of
+> adding new hwmod data for AM43x, reuse AM335x hwmod data as much as
+> possible.
+> 
+> In the hwmod entries that could be reused on AM43x, major changes are
+> in register offsets and different ocpif clock for most of peripherals
+> that comes under l4_wkup interconnect.
+> 
+> To achieve reuse, as a first step, bring out ocpif's relevant for both
+> SoC's to a new array and handle appropriately.
+> 
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   22 ++++++++++++++++++----
+>  1 file changed, 18 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> index 7a9b492..b0a38f0 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> @@ -29,6 +29,7 @@
+>  #include "i2c.h"
+>  #include "mmc.h"
+>  #include "wd_timer.h"
+> +#include "soc.h"
+>  
+>  /*
+>   * IP blocks
+> @@ -2458,6 +2459,13 @@ static struct omap_hwmod_ocp_if am33xx_l3_main__aes0 = {
+>  
+>  static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+>  	&am33xx_l3_main__emif,
+> +	&am33xx_l4_hs__pruss,
+> +	&am33xx_l3_main__lcdc,
+> +	&am33xx_l3_s__usbss,
+> +	NULL,
+> +};
+> +
+> +static struct omap_hwmod_ocp_if *amx3xx_hwmod_ocp_ifs[] __initdata = {
 
-  arch/arm/mach-omap2/board-am3517crane.c:113:6: warning: unused variable =
-=91ret=92 [-Wunused-variable]
+It took me sometime to figure out what amx3xx was :)
 
+Did you take a look at how omap2420 and omap2430 reuse is done? you can still
+have just one am33xx specific and another am43xx specific ocp_if arrays.
 
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
----
- arch/arm/mach-omap2/board-am3517crane.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/=
-board-am3517crane.c
-index fc53911..0d499a1 100644
---- a/arch/arm/mach-omap2/board-am3517crane.c
-+++ b/arch/arm/mach-omap2/board-am3517crane.c
-@@ -110,8 +110,6 @@ static void __init am3517_crane_i2c_init(void)
- =
-
- static void __init am3517_crane_init(void)
- {
--	int ret;
--
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap_serial_init();
- 	omap_sdrc_init(NULL, NULL);
--- =
-
-1.7.7.6
+>  	&am33xx_mpu__l3_main,
+>  	&am33xx_mpu__prcm,
+>  	&am33xx_l3_s__l4_ls,
+> @@ -2481,7 +2489,6 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+>  	&am33xx_l4_wkup__gpio0,
+>  	&am33xx_l4_wkup__adc_tsc,
+>  	&am33xx_l4_wkup__wd_timer1,
+> -	&am33xx_l4_hs__pruss,
+>  	&am33xx_l4_per__dcan0,
+>  	&am33xx_l4_per__dcan1,
+>  	&am33xx_l4_per__gpio1,
+> @@ -2522,14 +2529,12 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+>  	&am33xx_epwmss2__eqep2,
+>  	&am33xx_epwmss2__ehrpwm2,
+>  	&am33xx_l3_s__gpmc,
+> -	&am33xx_l3_main__lcdc,
+>  	&am33xx_l4_ls__mcspi0,
+>  	&am33xx_l4_ls__mcspi1,
+>  	&am33xx_l3_main__tptc0,
+>  	&am33xx_l3_main__tptc1,
+>  	&am33xx_l3_main__tptc2,
+>  	&am33xx_l3_main__ocmc,
+> -	&am33xx_l3_s__usbss,
+>  	&am33xx_l4_hs__cpgmac0,
+>  	&am33xx_cpgmac0__mdio,
+>  	&am33xx_l3_main__sha0,
+> @@ -2539,6 +2544,15 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+>  
+>  int __init am33xx_hwmod_init(void)
+>  {
+> +	int ret;
+> +
+>  	omap_hwmod_init();
+> -	return omap_hwmod_register_links(am33xx_hwmod_ocp_ifs);
+> +	ret = omap_hwmod_register_links(amx3xx_hwmod_ocp_ifs);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	if (soc_is_am33xx())
+> +		return omap_hwmod_register_links(am33xx_hwmod_ocp_ifs);
+> +
+> +	return 0;
+>  }
+> 
