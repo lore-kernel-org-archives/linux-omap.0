@@ -1,155 +1,55 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH V2] mmc: omap_hsmmc: Fix sleep too long in ISR context.
-Date: Wed, 21 Aug 2013 22:44:06 +0530
-Message-ID: <5214F55E.6020408@ti.com>
-References: <201308071805022428282@gmail.com> <5213BAD0.8030406@yahoo.es>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH 1/2] extcon: extcon-dra7xx: Add extcon driver for USB
+ ID detection
+Date: Wed, 21 Aug 2013 11:35:32 -0600
+Message-ID: <5214FA64.3040902@wwwdotorg.org>
+References: <1376648029-30659-1-git-send-email-george.cherian@ti.com> <1376648029-30659-2-git-send-email-george.cherian@ti.com> <52127284.6030506@wwwdotorg.org> <521312CC.8060003@ti.com> <52139F0F.6090507@wwwdotorg.org> <5214BB6C.3060903@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60427 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751743Ab3HUROR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Aug 2013 13:14:17 -0400
-In-Reply-To: <5213BAD0.8030406@yahoo.es>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:41882 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752138Ab3HURff (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Aug 2013 13:35:35 -0400
+In-Reply-To: <5214BB6C.3060903@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hein Tibosch <hein_tibosch@yahoo.es>
-Cc: cjb <cjb@laptop.org>, Felipe Balbi <balbi@ti.com>, majianpeng <majianpeng@gmail.com>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, mayuzheng <mayuzheng@kedacom.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
+To: George Cherian <george.cherian@ti.com>
+Cc: balbi@ti.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, grant.likely@linaro.org, rob@landley.net, ian.campbell@citrix.com, mark.rutland@arm.com, pawel.moll@arm.com, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, bcousson@baylibre.com
 
-On Wednesday 21 August 2013 12:22 AM, Hein Tibosch wrote:
-> Hi,
->
-> [ added some people from TI ]
->
-> On 8/7/2013 6:05 PM, majianpeng wrote:
->> V2:
->> 	clean up code.
->> V1:
->> 	www.mail-archive.com/linux-omap@vger.../msg93239.html=E2=80=8E
->>
->>
->> We found a problem when we removed a working sd card that the irqact=
-ion
->> of omap_hsmmc can sleep to 3.6s. This cause our watchdog to work.
->> In func omap_hsmmc_reset_controller_fsm, it should watch a 0->1
->> transition.But avoiding endless waiting, it used loops_per_jiffy as =
-the timer.
->
-> Tried on a OMAP4460:
-> This can easily be replicated: just withdraw an SD-card and the kerne=
-l
-> will get blocked during more than 3 seconds.
-> Calling OMAP_HSMMC_READ() in this loop makes it last so long.
->
-> The function waits for a 0=3D>1, followed by a 1=3D>0 transition.
-> The value of 1 always comes, but in most cases the code is just too
-> slow to detect it. The first loop will only stop when (i =3D=3D limit=
-)
->
->> The code is:
->>> while ((!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit))
->>>                 && (i++ < limit))
->>>                         cpu_relax();
->> But generanly loops_per_jiffy as a timer,it should like:
->>>   while(i++ < limit)
->>> cpu_relax();
->> I found for the long time case, the while-opeation stoped because 'i=
- =3D=3D limit'.
->> Because added some code, so the duration became too longer than
->> MMC_TIMEOU_US(20ms).
->>
->> The software can't monitor the transition of hardware for thi case.
->>
->> Becasue those codes in ISR context, it can't use timer_before/after.
->> I divived the time into 1ms and used udelay(1) to instead.
->> It will cause do additional udelay(1).But from my test,it looks good=
-=2E
->>
->> Reported-by: Yuzheng Ma <mayuzheng@kedacom.com>
->> Tested-by: Yuzheng Ma <mayuzheng@kedacom.com>
->> Reviewed-by: Hein Tibosch <hein_tibosch@yahoo.es>
->> Signed-off-by: Jianpeng Ma <majianpeng@gmail.com>
->> ---
->>   drivers/mmc/host/omap_hsmmc.c | 25 +++++++++++--------------
->>   1 file changed, 11 insertions(+), 14 deletions(-)
->>
->> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_h=
-smmc.c
->> index 1865321..bbda5ed 100644
->> --- a/drivers/mmc/host/omap_hsmmc.c
->> +++ b/drivers/mmc/host/omap_hsmmc.c
->> @@ -973,9 +973,8 @@ static inline void omap_hsmmc_dbg_report_irq(str=
-uct omap_hsmmc_host *host,
->>   static inline void omap_hsmmc_reset_controller_fsm(struct omap_hsm=
-mc_host *host,
->>   						   unsigned long bit)
->>   {
->> -	unsigned long i =3D 0;
->> -	unsigned long limit =3D (loops_per_jiffy *
->> -				msecs_to_jiffies(MMC_TIMEOUT_MS));
->> +	/*change to 1ms,so we can use udelay(1)*/
->> +	unsigned long limit =3D MMC_TIMEOUT_MS * 1000;
->>
->>   	OMAP_HSMMC_WRITE(host->base, SYSCTL,
->>   			 OMAP_HSMMC_READ(host->base, SYSCTL) | bit);
->
-> Checked here: the SRC-bit indeed becomes high.
-> After the test 'features & HSMMC_HAS_UPDATED_RESET', the bit has
-> become low again already.
-> Changing to order of statements worked for me, but for Jianpeng Ma
-> this didn't work (timings are 'on the edge').
+On 08/21/2013 07:06 AM, George Cherian wrote:
+> Hi Stephen,
+> 
+> On 8/20/2013 10:23 PM, Stephen Warren wrote:
+>>> >ID pins are connected to pcf8575, and the pcf8575's interrupt line is
+>>> >inturn connected to
+>>> >gpio bank6 pin 11, we use this gpio interrupt to detect the ID pin
+>>> change.
+>> In that case, the PCF8575 node needs to be a GPIO controller and an IRQ
+>> controller, as does the driver for the PCF8575. This binding should have
+>> a single entry in the gpios property, and the driver can call
+>> gpio_to_irq() on that so it knows which IRQ to request.
+> 
+> You meant some thing like this?
+> 
+>        pcf_usb: pcf8575@21 {
+>                 compatible = "ti,pcf8575";
+>                 reg = <0x21>;
+>                 gpio-controller;
+>                 #gpio-cells = <2>;
+>                 interrupt-parent = <&gpio6>;
+>                 interrupts = <11 2>;
+>                 interrupt-controller;
+>                 #interrupt-cells = <2>;
+>      };
+> 
+>      usb_vid_gpio {
+>                 compatible = "ti,dra7xx-usb";
+>                 gpios = <&pcf_usb 1 0>;
+>      };
 
-I think 1->0 transition is missed sometimes and waiting until timeout,
-Jianpeng Ma, which SoC are you testing ?
+Yes.
 
->
-> This reset function is also called while mounting a card and then 'SR=
-C'
-> will be high long enough (more than 100 loops). It is after withdrawi=
-ng
-> the card that the reset is performed extremely fast.
->
->> @@ -984,17 +983,15 @@ static inline void omap_hsmmc_reset_controller=
-_fsm(struct omap_hsmmc_host *host,
->>   	 * OMAP4 ES2 and greater has an updated reset logic.
->>   	 * Monitor a 0->1 transition first
->>   	 */
->> -	if (mmc_slot(host).features & HSMMC_HAS_UPDATED_RESET) {
->> -		while ((!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit))
->> -					&& (i++ < limit))
->> -			cpu_relax();
->> -	}
->> -	i =3D 0;
->> -
->> -	while ((OMAP_HSMMC_READ(host->base, SYSCTL) & bit) &&
->> -		(i++ < limit))
->> -		cpu_relax();
->> -
->> +	if (mmc_slot(host).features & HSMMC_HAS_UPDATED_RESET)
->> +		while (!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit)
->> +			&& limit--)
->> +			udelay(1);
->
-> In this way, the loop will only last about 'MMC_TIMEOUT_MS' ms
-> and my WDT doesn't get triggered :-)
->
->> +	limit =3D MMC_TIMEOUT_MS * 1000;
->> +	while ((OMAP_HSMMC_READ(host->base, SYSCTL) & bit) && limit--)
->> +		udelay(1);
->> +
->>   	if (OMAP_HSMMC_READ(host->base, SYSCTL) & bit)
->>   		dev_err(mmc_dev(host->mmc),
->>   			"Timeout waiting on controller reset in %s\n",
->
-> Anybody an opinion on this?
->
-> Thanks, Hein
->
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Except that the compatible value for the usb_vid_gpio node still looks
+wrong, since I think that node isn't anything to do with any particular SoC.
