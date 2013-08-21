@@ -1,84 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP2+: Add new bindings for OMAP
-Date: Wed, 21 Aug 2013 01:53:31 -0700
-Message-ID: <20130821085330.GH7656@atomide.com>
-References: <1376983966-16490-1-git-send-email-rnayak@ti.com>
- <1376983966-16490-3-git-send-email-rnayak@ti.com>
- <20130821074514.GU7656@atomide.com>
- <52147E95.5000606@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 00/12] DRA7xx PRCM, hwmod and DT data
+Date: Wed, 21 Aug 2013 08:55:58 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1308210842400.6426@utopia.booyaka.com>
+References: <1373355139-12487-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <52147E95.5000606@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: bcousson@baylibre.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:47858 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751374Ab3HUIz7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Aug 2013 04:55:59 -0400
+In-Reply-To: <1373355139-12487-1-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, khilman@linaro.org, benoit.cousson@gmail.com, r.sricharan@ti.com, ambresh@ti.com
 
-* Rajendra Nayak <rnayak@ti.com> [130821 01:54]:
-> On Wednesday 21 August 2013 01:15 PM, Tony Lindgren wrote:
-> > * Rajendra Nayak <rnayak@ti.com> [130820 00:41]:
-> >> On OMAP we have co-processor IPs, memory controllers,
-> >> GPIOs which control regulators and power switches to
-> >> PMIC, and SoC internal Bus IPs, some or most of which
-> >> should either not be reset or idled or both. Have a
-> >> way to pass this information from DT.
-> >> (In some cases there are erratas which prevent an IPs
-> >> from being reset)
-> >>
-> >> Also update omap_hwmod to extract this from DT.
-> >>
-> >> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> >> ---
-> >>  .../devicetree/bindings/arm/omap/omap.txt          |    3 ++-
-> >>  arch/arm/mach-omap2/omap_hwmod.c                   |   22 +++++++++++++-------
-> >>  2 files changed, 17 insertions(+), 8 deletions(-)
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> >> index 6d498c7..a08647e 100644
-> >> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-> >> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> >> @@ -21,7 +21,8 @@ Required properties:
-> >>  Optional properties:
-> >>  - ti,no_idle_on_suspend: When present, it prevents the PM to idle the module
-> >>    during suspend.
-> >> -
-> >> +- ti,no-reset: When present, the module should not be reset
-> >> +- ti,no-idle: When present, the module should not be idled
-> > 
-> > This naming is a bit confusing as people may think that the
-> > hardware has no reset support or no idle support. Let's try
-> > to make this to describe the hardware a bit more instead.
-> > 
-> > Then ideally we'd not map individual bits of data to properties,
-> > but describe few basic types of hardware instead and build
-> > lists of things instead of tagging things. Or maybe we
-> > can get this data from the bus hierarchy instead?
+On Tue, 9 Jul 2013, Rajendra Nayak wrote:
+
+> This series adds the data files for DRA7xx devices for
+> PRCM, hwmod and DT. This is dependent on the core support [1]
+> patches for DRA7xx and leaves out the clock data since its
+> on its way to DT [2]
 > 
-> Yeah, I thought if I could do this without any new bindings.
-> For instance, never reset or idle something which is a "cpu" or an
-> "interrupt-controller" or a "memory-controller" or a "bus".
-> For some like memory-controllers though there are no bindings which
-> describe them as memory-controllers.
+> The regbit headers for prm and cm are cleaned up post the
+> autogeneration as 95% was seen to be currently unused
+> (prm-regbits-7xx.h was 100% unused and hence removed)
 > 
-> > 
-> > If these options don't work, and the choice may be board
-> > specific, then how about ti,skip-reset-on-init, and
-> > ti,skip-idle-on-init?
-> 
-> This looks fine too.
+> These patches along with the core support patches are available at:
+> git://github.com/rrnayak/linux.git for-3.12/dra-core-data
 
-Or you could also have various bus specific bindings for the ocp
-with lists of phandles?
+Have glanced through these patches.  The form looks okay to me.  But again 
+it's impossible to me to spot-check or verify almost anything in the data 
+here, until some documentation is available.  Nor can I verify that the 
+series works here, since I don't have a DRA7xx board.  It would be best 
+for TI and for upstream Linux if us maintainers outside TI could at least 
+test these patches, otherwise we are flying blind.
 
-ocp {
-	reg = <...>;
-	interrupts = <...>;
-	ti,reset-on-init = <&module1, &module2>;
-	...
-};
+One minor comment is that I think the credit information in the comments 
+of the data files needs to be qualified.  Instead of simply:
 
-Or something similar.
++ * Paul Walmsley (paul@pwsan.com)
++ * Rajendra Nayak (rnayak@ti.com)
++ * Benoit Cousson (b-cousson@ti.com)
 
-Tony
+it would be better if it read something like:
+
+* Generated by code originally written by:
+* Paul Walmsley (paul@pwsan.com)
+* Rajendra Nayak (rnayak@ti.com)
+* Benoit Cousson (b-cousson@ti.com)
+
+or something similar.  Same for the other generated data files.
+
+Are you fine with this change, or do you have some similar wording that 
+you think is better?    No need to repost, I'll update the patches here.
+
+
+- Paul
