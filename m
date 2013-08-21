@@ -1,75 +1,67 @@
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 1/3] misc: Add crossbar driver
-Date: Wed, 21 Aug 2013 23:10:14 +0200
-Message-ID: <CACRpkdagSHxzV3=427O9iftNxM+N=w9aPds=iDvGQPoG3H-cWw@mail.gmail.com>
-References: <51E83A4F.5080904@ti.com>
-	<CACRpkdY3nQaWimTwB-Zt-8+Q_KZr8a0rpB1SUQq=AuoG4bAYnQ@mail.gmail.com>
-	<51ED2385.60108@ti.com>
-	<51ED5C66.1010407@ti.com>
-	<51EFFBE1.4090505@ti.com>
-	<51F0031B.1050307@ti.com>
-	<51F00530.9090703@ti.com>
-	<51F02069.3050207@ti.com>
-	<51F0223E.4050008@ti.com>
-	<51F0240F.3050507@ti.com>
-	<20130813081003.GU7656@atomide.com>
-	<520A02BA.4090805@ti.com>
-	<CACRpkda+m82PYJsExLM6JLsLa8-bVhdvy_r_+-uKfVT2NG7Cbg@mail.gmail.com>
-	<520D398D.9040806@ti.com>
-	<CACRpkdYeo1y-HhftkRWgwyq8o-NVuJ978Uq+ON880LHhUxC=hg@mail.gmail.com>
-	<520D44C5.6080205@ti.com>
+Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
+Date: Thu, 22 Aug 2013 00:02:39 +0200
+Message-ID: <CACRpkdavR=fv+y1RCNfdgQypPuRbO6isOSwGsABDrYiGeMdyZw@mail.gmail.com>
+References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org>
+	<CACxGe6uNJNMdZ1HYGgCtLM2t2TWGCR6btjOHVmP=vDXXvvFfRg@mail.gmail.com>
+	<CACRpkdYjJL6FZwEbB7XLnb9QtjB=3LeE9Ny6KQ4PkM3zpdNqqg@mail.gmail.com>
+	<344239800.bDEkDg48ZQ@avalon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <520D44C5.6080205@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Sricharan R <r.sricharan@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@secretlab.ca>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:55247 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752403Ab3HUWCk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Aug 2013 18:02:40 -0400
+Received: by mail-oa0-f46.google.com with SMTP id j10so2063418oah.33
+        for <linux-omap@vger.kernel.org>; Wed, 21 Aug 2013 15:02:39 -0700 (PDT)
+In-Reply-To: <344239800.bDEkDg48ZQ@avalon>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Grant Likely <grant.likely@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Alexander Holler <holler@ahsoftware.de>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>
 
-On Thu, Aug 15, 2013 at 11:14 PM, Santosh Shilimkar
-<santosh.shilimkar@ti.com> wrote:
-> On Thursday 15 August 2013 04:51 PM, Linus Walleij wrote:
-(...)
->> Sorry I don't understand what thread that is... can you point me there?
->> My previous statement on this issue what this:
->> http://marc.info/?l=linux-kernel&m=137442541628641&w=2
-(...)
->>> I don't see how you can make this happen with an irqchip
->>> infrastructure.
->>
->> I think my post above describes this.
->>
-> Sorry for being dumb but I don't think cascaded irqchip examples
-> like GPIO and cross-bars are same. If you take an example of
-> GPIO irqchip, it always have a physical connection even if it
-> is 1 IRQ line for (32 logical/sparse IRQs). That goes with
-> other MFD examples too.
+On Tue, Aug 20, 2013 at 12:04 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> On Wednesday 31 July 2013 01:44:53 Linus Walleij wrote:
+
+>> I don't see how sharing works here, or how another user, i.e. another one
+>> than the user wanting to recieve the IRQ, can validly request such a line?
+>> What would the usecase for that valid request be?
 >
-> So may be I am still missing something in your proposal.
+> When the GPIO is wired to a status signal (such as an MMC card detect signal)
+> the driver might want to read the state of the signal independently of the
+> interrupt handler.
 
-Why does it matter if it is a GPIO or MFD or whatever?
-The point is that the IRQ line passes thru something else,
-and this we model as an irqdomain.
+That is true. But for such a complex usecase I think it's reasonable that
+we only specify the GPIO in the device tree, and the driver utilizing the
+IRQ need to take that and perform gpio_to_irq() on it, and then it still
+works to use it both ways.
 
-Anyway here is a silicon cascaded IRQ chip:
-arch/arm/mach-versatile/core.c
-See versatile_init_irq():
+>> Basically I believe these two things need to be exclusive in the DT world:
+>>
+>> A: request_irq(a resource passed from "interrupts");
+>>      -> core implicitly performs gpio_request()
+>>          gpio_direction_input()
+>>
+>> B: gpio_request(a resource passed from "gpios");
+>>      gpio_direction_input()
+>>      request_irq(gpio_to_irq())
+>>
+>> Never both. And IIUC that was what happened in the OMAP case.
+>
+> Isn't the core issue that we can translate a GPIO number to an IRQ number, but
+> not the other way around ? If that could be done, we could request the GPIO
+> and configure it as an input when the IRQ is requested.
 
-__vic_init(VA_VIC_BASE, IRQ_VIC_START, ~0, 0, np);
-(...)
-fpga_irq_init(VA_SIC_BASE, "SIC", IRQ_SIC_START,
-                IRQ_VICSOURCE31, PIC_VALID, np);
+That is true. It would be easier if all GPIO drivers has an irqchip and
+and irqdomain, then we could implement irq_to_gpio() properly in gpiolib
+and this would not be a problem. Alas, not all do.
 
-The VIC in the versatile has the SIC cascaded from one of
-its IRQ lines. Both the VIC and SIC (fpga IRQ) are
-using irqdomains so the SIC spawns a child irqdomain
-from IRQ 31 (last IRQ) of the VIC.
-
-The difference with a crossbar is that it can software-config
-which IRQ goes where, and does not have a callback
-to clear interrupts or anything like that, it just passes them
-thru. But it is best modeled as an irqdomain IMO.
+But I also think that the DT contains (as demonstrated by the patch)
+all information about what interrupts and GPIOs may conflict, so I
+also see this as something of a consistency check, but it could go
+in either way.
 
 Yours,
 Linus Walleij
