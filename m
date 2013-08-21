@@ -1,229 +1,155 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv5 02/31] CLK: TI: Add DPLL clock support
-Date: Wed, 21 Aug 2013 19:16:45 +0300
-Message-ID: <5214E7ED.80909@ti.com>
-References: <1375460751-23676-1-git-send-email-t-kristo@ti.com> <1375460751-23676-3-git-send-email-t-kristo@ti.com> <20130813105042.GJ27165@e106331-lin.cambridge.arm.com> <52121EF5.9040706@ti.com> <20130819141803.GO3719@e106331-lin.cambridge.arm.com> <52123531.4060608@ti.com> <20130819162450.GS3719@e106331-lin.cambridge.arm.com> <5212509F.9030608@ti.com> <20130819220006.4443.23042@quantum>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH V2] mmc: omap_hsmmc: Fix sleep too long in ISR context.
+Date: Wed, 21 Aug 2013 22:44:06 +0530
+Message-ID: <5214F55E.6020408@ti.com>
+References: <201308071805022428282@gmail.com> <5213BAD0.8030406@yahoo.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38669 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60427 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751537Ab3HUQR1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Aug 2013 12:17:27 -0400
-In-Reply-To: <20130819220006.4443.23042@quantum>
+	id S1751743Ab3HUROR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Aug 2013 13:14:17 -0400
+In-Reply-To: <5213BAD0.8030406@yahoo.es>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "nm@ti.com" <nm@ti.com>, "rnayak@ti.com" <rnayak@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Hein Tibosch <hein_tibosch@yahoo.es>
+Cc: cjb <cjb@laptop.org>, Felipe Balbi <balbi@ti.com>, majianpeng <majianpeng@gmail.com>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, mayuzheng <mayuzheng@kedacom.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On 08/20/2013 01:00 AM, Mike Turquette wrote:
-> Quoting Tero Kristo (2013-08-19 10:06:39)
->> On 08/19/2013 07:24 PM, Mark Rutland wrote:
->>> On Mon, Aug 19, 2013 at 04:09:37PM +0100, Tero Kristo wrote:
->>>> On 08/19/2013 05:18 PM, Mark Rutland wrote:
->>>>> On Mon, Aug 19, 2013 at 02:34:45PM +0100, Tero Kristo wrote:
->>>>>> On 08/13/2013 01:50 PM, Mark Rutland wrote:
->>>>>>> Hi,
->>>>>>>
->>>>>>> On Fri, Aug 02, 2013 at 05:25:21PM +0100, Tero Kristo wrote:
->>>>>>>> The OMAP clock driver now supports DPLL clock type. This patch also
->>>>>>>> adds support for DT DPLL nodes.
->>>>>>>>
->>>>>>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>>>>>>> ---
->>>>>>>>      .../devicetree/bindings/clock/ti/dpll.txt          |   70 +++
->>>>>>>>      arch/arm/mach-omap2/clock.h                        |  144 +-----
->>>>>>>>      arch/arm/mach-omap2/clock3xxx.h                    |    2 -
->>>>>>>>      drivers/clk/Makefile                               |    1 +
->>>>>>>>      drivers/clk/ti/Makefile                            |    3 +
->>>>>>>>      drivers/clk/ti/dpll.c                              |  488 ++++++++++++++++++++
->>>>>>>>      include/linux/clk/ti.h                             |  164 +++++++
->>>>>>>>      7 files changed, 727 insertions(+), 145 deletions(-)
->>>>>>>>      create mode 100644 Documentation/devicetree/bindings/clock/ti/dpll.txt
->>>>>>>>      create mode 100644 drivers/clk/ti/Makefile
->>>>>>>>      create mode 100644 drivers/clk/ti/dpll.c
->>>>>>>>      create mode 100644 include/linux/clk/ti.h
->>>>>>>>
->>>>>>>> diff --git a/Documentation/devicetree/bindings/clock/ti/dpll.txt b/Documentation/devicetree/bindings/clock/ti/dpll.txt
->>>>>>>> new file mode 100644
->>>>>>>> index 0000000..dcd6e63
->>>>>>>> --- /dev/null
->>>>>>>> +++ b/Documentation/devicetree/bindings/clock/ti/dpll.txt
->>>>>>>> @@ -0,0 +1,70 @@
->>>>>>>> +Binding for Texas Instruments DPLL clock.
->>>>>>>> +
->>>>>>>> +This binding uses the common clock binding[1].  It assumes a
->>>>>>>> +register-mapped DPLL with usually two selectable input clocks
->>>>>>>> +(reference clock and bypass clock), with digital phase locked
->>>>>>>> +loop logic for multiplying the input clock to a desired output
->>>>>>>> +clock. This clock also typically supports different operation
->>>>>>>> +modes (locked, low power stop etc.) This binding has several
->>>>>>>> +sub-types, which effectively result in slightly different setup
->>>>>>>> +for the actual DPLL clock.
->>>>>>>> +
->>>>>>>> +[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
->>>>>>>> +
->>>>>>>> +Required properties:
->>>>>>>> +- compatible : shall be one of:
->>>>>>>> +               "ti,omap4-dpll-x2-clock",
->>>>>>>> +               "ti,omap3-dpll-clock",
->>>>>>>> +               "ti,omap3-dpll-core-clock",
->>>>>>>> +               "ti,omap3-dpll-per-clock",
->>>>>>>> +               "ti,omap3-dpll-per-j-type-clock",
->>>>>>>> +               "ti,omap4-dpll-clock",
->>>>>>>> +               "ti,omap4-dpll-core-clock",
->>>>>>>> +               "ti,omap4-dpll-m4xen-clock",
->>>>>>>> +               "ti,omap4-dpll-j-type-clock",
->>>>>>>> +               "ti,omap4-dpll-no-gate-clock",
->>>>>>>> +               "ti,omap4-dpll-no-gate-j-type-clock",
->>>>>>>> +
->>>>>>>> +- #clock-cells : from common clock binding; shall be set to 0.
->>>>>>>> +- clocks : link phandles of parent clocks (clk-ref and clk-bypass)
->>>>>>>
->>>>>>> It might be a good idea to use clock-names to clarify which clocks are
->>>>>>> present (I notice your examples contain only one clock input).
->>>>>>
->>>>>> All DPLLs have both bypass and reference clocks, but these can be the
->>>>>> same. Is it better to just list both always (and hence drop
->>>>>> clock-names), or provide clock-names always?
->>>>>
->>>>> If they're separate inputs, it's worth listing both (even if they're fed
->>>>> by the same provider). If it's possible one input might not be wired up,
->>>>> use clock-names.
->>>>
->>>> Ref and bypass clocks are used currently by all DPLLs (also the APLL) so
->>>> I guess I just enforce both to be specified.
->>>
->>> Ok. It's always possible to add clock-names later if a platform doesn't
->>> wire an input. We lose the possibility of future compatibility, but
->>> backwards compatibility is easy enough to maintain.
->>>
->>>>>>>> +- ti,clkdm-name : clockdomain name for the DPLL
->>>>>>>
->>>>>>> Could you elaborate on what this is for? What constitutes a valid name?
->>>>>>>
->>>>>>> I'm not sure a string is the best way to define the linkage of several
->>>>>>> elements to a domain...
->>>>>>
->>>>>> Well, I am not sure if we can do this any better at this point, we don't
->>>>>> have DT nodes for clockdomain at the moment (I am not sure if we will
->>>>>> have those either as there are only a handful of those per SoC) but I'll
->>>>>> add some more documentation for this.
->>>>>
->>>>> I'll have to see the documentation, but I'd be very wary of putting that
->>>>> in as-is. Does having the clock domain string link this up to domains in
->>>>> platform data?
->>>>>
->>>>> I'm not sure how well we'll be able to maintain support for that in
->>>>> future if it requires other platform code to use now, and we're not sure
->>>>> how the domains themselves will be represented in dt.
->>>>
->>>> Hmm so, should I add a stub representation for the clockdomains to the
->>>> DT then for now or how should this be handled? The stubs could then be
->>>> mapped to the actual clock domains based on their node names.
+On Wednesday 21 August 2013 12:22 AM, Hein Tibosch wrote:
+> Hi,
 >
-> I'm not sure that this binding should know about the clock domain at
-> all. Maybe the clock domain binding should list the clocks that are
-> within the domain?
-
-Ok, I experimented with this stuff a bit to have a proper reply, and it 
-looks like I can get this done with a clockdomain mapping, which has its 
-own binding. Something like this:
-
-         clockdomains {
-                 usbhost_clkdm: usbhost_clkdm {
-                         compatible = "ti,clockdomain";
-                         clocks = <&usbhost_48m_fck>, <&usbhost_ick>;
-                 };
-	};
-
-Mike, what is your approach on this? Are you okay having the 
-implementation for this under drivers/clk? I recall you mentioned 
-earlier that you don't want clockdomain stuff under drivers/clk, hence I 
-am asking.
-
-Here is the initial implementation for the binding:
-
-void __init of_omap_clockdomain_setup(struct device_node *node)
-{
-         struct clk *clk;
-         struct clk_hw *clk_hw;
-         const char *clkdm_name = node->name;
-         int i;
-         int num_clks;
-
-         num_clks = of_count_phandle_with_args(node, "clocks", 
-"#clock-cells");
-
-         for (i = 0; i < num_clks; i++) {
-                 clk = of_clk_get(node, i);
-                 if (__clk_get_flags(clk) & CLK_IS_BASIC) {
-                         pr_warn("%s: can't setup clkdm for basic clk %s\n",
-                                 __func__, __clk_get_name(clk));
-                         continue;
-                 }
-                 clk_hw = __clk_get_hw(clk);
-                 to_clk_hw_omap(clk_hw)->clkdm_name = clkdm_name;
-                 omap2_init_clk_clkdm(clk_hw);
-         }
-}
-CLK_OF_DECLARE(omap_clockdomain, "ti,clockdomain", 
-of_omap_clockdomain_setup);
-
+> [ added some people from TI ]
 >
->>>>
->>>
->>> I unfortunately don't have a good answer here, because I'm not that
->>> familiar with how we handle clockdomains for power management purposes.
->>>
->>> As I understand it, each clock domain is essentially a clock gate
->>> controlling multiple clock signals, so it's possible to describe that
->>> with the common clock bindings, with a domain's clocks all coming from a
->>> "domain-gate-clock" node (or something like that). That would make the
->>> wiring of clocks to a domain explicit and in line with the rest of the
->>> common clock bindings. But perhaps I've simplified things a bit too
->>> far.
+> On 8/7/2013 6:05 PM, majianpeng wrote:
+>> V2:
+>> 	clean up code.
+>> V1:
+>> 	www.mail-archive.com/linux-omap@vger.../msg93239.html=E2=80=8E
 >>
->> You got it basically right, but maybe oversimplified it a bit. The
->> root/parent clocks can still cross clockdomain boundaries, so mapping
->> everything under a simple clockdomain gate would not work. Basically
->> each clock has a mapping on the SoC for both its parent clock signal and
->> the clockdomain association, kind of having two parents at the same
->> time. In OMAP case, most of the clockdomains support hardware autoidle
->> type functionality, which puts the domain to idle once all the clocks on
->> it are disabled.
->
-> I always thought that OMAP clock domains were poorly named. Seems to me
-> that they had more to do with the IP/module programming than clocks per
-> se.  Again, I'm not sure that putting clkdm data into this binding is
-> correct.
->
-> Is it because you want a call to clk_enable to program the clock domain
-> in the .enable callback? I always thought that this was better left to a
-> pm_runtime_get callback...
-
-My guess is that some clocks require the clockdomain itself to be forced 
-on before they are enabled, some of the DPLLs do this for example. I am 
-just trying not to cause any regressions with this set, thus attempting 
-to keep most of the implementation specifics intact.
-
--Tero
-
->
-> Regards,
-> Mike
->
 >>
->> -Tero
+>> We found a problem when we removed a working sd card that the irqact=
+ion
+>> of omap_hsmmc can sleep to 3.6s. This cause our watchdog to work.
+>> In func omap_hsmmc_reset_controller_fsm, it should watch a 0->1
+>> transition.But avoiding endless waiting, it used loops_per_jiffy as =
+the timer.
+>
+> Tried on a OMAP4460:
+> This can easily be replicated: just withdraw an SD-card and the kerne=
+l
+> will get blocked during more than 3 seconds.
+> Calling OMAP_HSMMC_READ() in this loop makes it last so long.
+>
+> The function waits for a 0=3D>1, followed by a 1=3D>0 transition.
+> The value of 1 always comes, but in most cases the code is just too
+> slow to detect it. The first loop will only stop when (i =3D=3D limit=
+)
+>
+>> The code is:
+>>> while ((!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit))
+>>>                 && (i++ < limit))
+>>>                         cpu_relax();
+>> But generanly loops_per_jiffy as a timer,it should like:
+>>>   while(i++ < limit)
+>>> cpu_relax();
+>> I found for the long time case, the while-opeation stoped because 'i=
+ =3D=3D limit'.
+>> Because added some code, so the duration became too longer than
+>> MMC_TIMEOU_US(20ms).
 >>
->>> I'm not sure how easy it would be to use that information for power
->>> management. I don't know what the kernel logic for clock domain power
->>> management needs to know about consumers of the clocks and how it would
->>> need to poke those consumers.
+>> The software can't monitor the transition of hardware for thi case.
 >>
->>>
->>> Cheers,
->>> Mark.
->>>
+>> Becasue those codes in ISR context, it can't use timer_before/after.
+>> I divived the time into 1ms and used udelay(1) to instead.
+>> It will cause do additional udelay(1).But from my test,it looks good=
+=2E
+>>
+>> Reported-by: Yuzheng Ma <mayuzheng@kedacom.com>
+>> Tested-by: Yuzheng Ma <mayuzheng@kedacom.com>
+>> Reviewed-by: Hein Tibosch <hein_tibosch@yahoo.es>
+>> Signed-off-by: Jianpeng Ma <majianpeng@gmail.com>
+>> ---
+>>   drivers/mmc/host/omap_hsmmc.c | 25 +++++++++++--------------
+>>   1 file changed, 11 insertions(+), 14 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_h=
+smmc.c
+>> index 1865321..bbda5ed 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -973,9 +973,8 @@ static inline void omap_hsmmc_dbg_report_irq(str=
+uct omap_hsmmc_host *host,
+>>   static inline void omap_hsmmc_reset_controller_fsm(struct omap_hsm=
+mc_host *host,
+>>   						   unsigned long bit)
+>>   {
+>> -	unsigned long i =3D 0;
+>> -	unsigned long limit =3D (loops_per_jiffy *
+>> -				msecs_to_jiffies(MMC_TIMEOUT_MS));
+>> +	/*change to 1ms,so we can use udelay(1)*/
+>> +	unsigned long limit =3D MMC_TIMEOUT_MS * 1000;
+>>
+>>   	OMAP_HSMMC_WRITE(host->base, SYSCTL,
+>>   			 OMAP_HSMMC_READ(host->base, SYSCTL) | bit);
+>
+> Checked here: the SRC-bit indeed becomes high.
+> After the test 'features & HSMMC_HAS_UPDATED_RESET', the bit has
+> become low again already.
+> Changing to order of statements worked for me, but for Jianpeng Ma
+> this didn't work (timings are 'on the edge').
 
+I think 1->0 transition is missed sometimes and waiting until timeout,
+Jianpeng Ma, which SoC are you testing ?
+
+>
+> This reset function is also called while mounting a card and then 'SR=
+C'
+> will be high long enough (more than 100 loops). It is after withdrawi=
+ng
+> the card that the reset is performed extremely fast.
+>
+>> @@ -984,17 +983,15 @@ static inline void omap_hsmmc_reset_controller=
+_fsm(struct omap_hsmmc_host *host,
+>>   	 * OMAP4 ES2 and greater has an updated reset logic.
+>>   	 * Monitor a 0->1 transition first
+>>   	 */
+>> -	if (mmc_slot(host).features & HSMMC_HAS_UPDATED_RESET) {
+>> -		while ((!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit))
+>> -					&& (i++ < limit))
+>> -			cpu_relax();
+>> -	}
+>> -	i =3D 0;
+>> -
+>> -	while ((OMAP_HSMMC_READ(host->base, SYSCTL) & bit) &&
+>> -		(i++ < limit))
+>> -		cpu_relax();
+>> -
+>> +	if (mmc_slot(host).features & HSMMC_HAS_UPDATED_RESET)
+>> +		while (!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit)
+>> +			&& limit--)
+>> +			udelay(1);
+>
+> In this way, the loop will only last about 'MMC_TIMEOUT_MS' ms
+> and my WDT doesn't get triggered :-)
+>
+>> +	limit =3D MMC_TIMEOUT_MS * 1000;
+>> +	while ((OMAP_HSMMC_READ(host->base, SYSCTL) & bit) && limit--)
+>> +		udelay(1);
+>> +
+>>   	if (OMAP_HSMMC_READ(host->base, SYSCTL) & bit)
+>>   		dev_err(mmc_dev(host->mmc),
+>>   			"Timeout waiting on controller reset in %s\n",
+>
+> Anybody an opinion on this?
+>
+> Thanks, Hein
+>
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
