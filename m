@@ -1,67 +1,60 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
-Date: Thu, 22 Aug 2013 00:02:39 +0200
-Message-ID: <CACRpkdavR=fv+y1RCNfdgQypPuRbO6isOSwGsABDrYiGeMdyZw@mail.gmail.com>
-References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org>
-	<CACxGe6uNJNMdZ1HYGgCtLM2t2TWGCR6btjOHVmP=vDXXvvFfRg@mail.gmail.com>
-	<CACRpkdYjJL6FZwEbB7XLnb9QtjB=3LeE9Ny6KQ4PkM3zpdNqqg@mail.gmail.com>
-	<344239800.bDEkDg48ZQ@avalon>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: trinity: kernel warning at
+	drivers/video/omap2/dss/manager-sysfs.c:290
+	manager_alpha_blending_enabled_show+0x3c/0x60()
+Date: Wed, 21 Aug 2013 23:33:40 +0100
+Message-ID: <20130821223340.GE25647@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:55247 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752403Ab3HUWCk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Aug 2013 18:02:40 -0400
-Received: by mail-oa0-f46.google.com with SMTP id j10so2063418oah.33
-        for <linux-omap@vger.kernel.org>; Wed, 21 Aug 2013 15:02:39 -0700 (PDT)
-In-Reply-To: <344239800.bDEkDg48ZQ@avalon>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42345 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752645Ab3HUWes (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Aug 2013 18:34:48 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Grant Likely <grant.likely@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Alexander Holler <holler@ahsoftware.de>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Tue, Aug 20, 2013 at 12:04 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Wednesday 31 July 2013 01:44:53 Linus Walleij wrote:
+Trinity found this error on OMAP4430SDP using 3.11-rc4:
 
->> I don't see how sharing works here, or how another user, i.e. another one
->> than the user wanting to recieve the IRQ, can validly request such a line?
->> What would the usecase for that valid request be?
->
-> When the GPIO is wired to a status signal (such as an MMC card detect signal)
-> the driver might want to read the state of the signal independently of the
-> interrupt handler.
+WARNING: CPU: 1 PID: 3395 at /home/rmk/git/linux-rmk/drivers/video/omap2/dss/manager-sysfs.c:290 manager_alpha_blending_enabled_show+0x3c/0x60()
+Modules linked in:
+CPU: 1 PID: 3395 Comm: trinity-child1 Not tainted 3.11.0-rc4+ #487
+Backtrace:
+[<c0016ca8>] (dump_backtrace+0x0/0x110) from [<c0016e44>] (show_stack+0x18/0x1c)
+ r6:c03dc0d4 r5:00000009 r4:00000000 r3:00400040
+[<c0016e2c>] (show_stack+0x0/0x1c) from [<c03949ec>] (dump_stack+0x74/0x90)
+[<c0394978>] (dump_stack+0x0/0x90) from [<c0037a68>] (warn_slowpath_common+0x6c/0x8c)
+ r4:00000000 r3:deaef800
+[<c00379fc>] (warn_slowpath_common+0x0/0x8c) from [<c0037aac>] (warn_slowpath_null+0x24/0x2c)
+ r8:dd4eb718 r7:c03dc2a0 r6:dd629f70 r5:dd4eb700 r4:dd4af000
+[<c0037a88>] (warn_slowpath_null+0x0/0x2c) from [<c01e4744>] (manager_alpha_blending_enabled_show+0x3c/0x60)
+[<c01e4708>] (manager_alpha_blending_enabled_show+0x0/0x60) from [<c01e41c0>] (manager_attr_show+0x20/0x2c)
+ r4:de090cd0
+[<c01e41a0>] (manager_attr_show+0x0/0x2c) from [<c0126ee4>] (sysfs_read_file+0xc4/0x14c)
+[<c0126e20>] (sysfs_read_file+0x0/0x14c) from [<c00cef2c>] (do_readv_writev+0x118/0x24c)
+[<c00cee14>] (do_readv_writev+0x0/0x24c) from [<c00cf140>] (vfs_readv+0x68/0x78)
+[<c00cf0d8>] (vfs_readv+0x0/0x78) from [<c00cf19c>] (SyS_readv+0x4c/0x74)
+ r5:00000000 r4:dd5b7700
+[<c00cf150>] (SyS_readv+0x0/0x74) from [<c0013340>] (ret_fast_syscall+0x0/0x48)
 
-That is true. But for such a complex usecase I think it's reasonable that
-we only specify the GPIO in the device tree, and the driver utilizing the
-IRQ need to take that and perform gpio_to_irq() on it, and then it still
-works to use it both ways.
+Looking at the code:
 
->> Basically I believe these two things need to be exclusive in the DT world:
->>
->> A: request_irq(a resource passed from "interrupts");
->>      -> core implicitly performs gpio_request()
->>          gpio_direction_input()
->>
->> B: gpio_request(a resource passed from "gpios");
->>      gpio_direction_input()
->>      request_irq(gpio_to_irq())
->>
->> Never both. And IIUC that was what happened in the OMAP case.
->
-> Isn't the core issue that we can translate a GPIO number to an IRQ number, but
-> not the other way around ? If that could be done, we could request the GPIO
-> and configure it as an input when the IRQ is requested.
+static ssize_t manager_alpha_blending_enabled_show(
+                struct omap_overlay_manager *mgr, char *buf)
+{
+        struct omap_overlay_manager_info info;
 
-That is true. It would be easier if all GPIO drivers has an irqchip and
-and irqdomain, then we could implement irq_to_gpio() properly in gpiolib
-and this would not be a problem. Alas, not all do.
+        mgr->get_manager_info(mgr, &info);
 
-But I also think that the DT contains (as demonstrated by the patch)
-all information about what interrupts and GPIOs may conflict, so I
-also see this as something of a consistency check, but it could go
-in either way.
+        WARN_ON(!dss_has_feature(FEAT_ALPHA_FIXED_ZORDER));
 
-Yours,
-Linus Walleij
+-rw-r--r-- 1 root root 4096 Jan  1 00:01 manager0/alpha_blending_enabled
+-rw-r--r-- 1 root root 4096 Jan  1 00:01 manager1/alpha_blending_enabled
+-rw-r--r-- 1 root root 4096 Jan  1 00:01 manager2/alpha_blending_enabled
+
+So, any program in userspace can open this sysfs file and on read cause
+the kernel to print a warning and taint itself if there is no ZORDER
+feature?  This is not good kernel programming guys.  Please audit your
+other sysfs files for this bug, thanks.
