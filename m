@@ -1,45 +1,68 @@
 From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH] ARM: dts: am33xx: Correct gpio #interrupt-cells property
-Date: Wed, 21 Aug 2013 11:25:55 +0200
-Message-ID: <521487A3.3020701@baylibre.com>
-References: <1375873592-26881-1-git-send-email-larsi@wh2.tu-dresden.de> <20130821075016.GW7656@atomide.com> <201308210957.01956.poeschel@lemonage.de> <20130821075939.GA7656@atomide.com>
+Subject: Re: [PATCH 2/3] ARM: OMAP2+: Add new bindings for OMAP
+Date: Wed, 21 Aug 2013 11:29:48 +0200
+Message-ID: <5214888C.8050205@baylibre.com>
+References: <1376983966-16490-1-git-send-email-rnayak@ti.com> <1376983966-16490-3-git-send-email-rnayak@ti.com> <20130821074514.GU7656@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f45.google.com ([74.125.83.45]:64085 "EHLO
-	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751657Ab3HUJZ7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Aug 2013 05:25:59 -0400
-Received: by mail-ee0-f45.google.com with SMTP id c50so100869eek.18
-        for <linux-omap@vger.kernel.org>; Wed, 21 Aug 2013 02:25:58 -0700 (PDT)
-In-Reply-To: <20130821075939.GA7656@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20130821074514.GU7656@atomide.com>
+Sender: linux-doc-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Lars Poeschel <poeschel@lemonage.de>, Lars Poeschel <larsi@wh2.tu-dresden.de>, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Rajendra Nayak <rnayak@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-On 21/08/2013 09:59, Tony Lindgren wrote:
-> * Lars Poeschel <poeschel@lemonage.de> [130821 01:04]:
->> Hi Tony!
+On 21/08/2013 09:45, Tony Lindgren wrote:
+> * Rajendra Nayak <rnayak@ti.com> [130820 00:41]:
+>> On OMAP we have co-processor IPs, memory controllers,
+>> GPIOs which control regulators and power switches to
+>> PMIC, and SoC internal Bus IPs, some or most of which
+>> should either not be reset or idled or both. Have a
+>> way to pass this information from DT.
+>> (In some cases there are erratas which prevent an IPs
+>> from being reset)
 >>
->> On Wednesday 21 August 2013 at 09:50:16, Tony Lindgren wrote:
->>> Benoit,
->>>
->>> Care to take a look at this too?
+>> Also update omap_hwmod to extract this from DT.
 >>
->> Benoit already applied this with Mark Rutlands Acked-By and Javier Martinez
->> Canillas Reviewed-by.
+>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>> ---
+>>   .../devicetree/bindings/arm/omap/omap.txt          |    3 ++-
+>>   arch/arm/mach-omap2/omap_hwmod.c                   |   22 +++++++++++++-------
+>>   2 files changed, 17 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+>> index 6d498c7..a08647e 100644
+>> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
+>> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+>> @@ -21,7 +21,8 @@ Required properties:
+>>   Optional properties:
+>>   - ti,no_idle_on_suspend: When present, it prevents the PM to idle the module
+>>     during suspend.
+>> -
+>> +- ti,no-reset: When present, the module should not be reset
+>> +- ti,no-idle: When present, the module should not be idled
 >
-> OK thanks for the update, I'm just trying to follow-up and clear
-> my inbox a bit.
+> This naming is a bit confusing as people may think that the
+> hardware has no reset support or no idle support. Let's try
+> to make this to describe the hardware a bit more instead.
 
-I've just checked, because I thought I missed it, and this is indeed in 
-my pull request I sent you yesterday.
+Yeah, I do agree here. That should look like a real HW property and nor 
+a configuration.
 
-Thanks,
+> Then ideally we'd not map individual bits of data to properties,
+> but describe few basic types of hardware instead and build
+> lists of things instead of tagging things. Or maybe we
+> can get this data from the bus hierarchy instead?
+>
+> If these options don't work, and the choice may be board
+> specific, then how about ti,skip-reset-on-init, and
+> ti,skip-idle-on-init?
+
+It looks like a configuration as well :-).
+I was thinking of something like "ti,do-not-support-reset-on-init", but 
+that a little bit too long.
+
+Regards,
 Benoit
-
 
