@@ -1,39 +1,28 @@
 From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH v2 00/14] crypto: omap-aes: Improve DMA, add PIO mode and
- support for AM437x
-Date: Wed, 21 Aug 2013 21:50:52 +1000
-Message-ID: <20130821115051.GE23287@gondor.apana.org.au>
-References: <1376793755-30478-1-git-send-email-joelf@ti.com>
+Subject: Re: [PATCH 0/2] crypto: omap-sham: Misc updates for driver
+Date: Wed, 21 Aug 2013 21:51:30 +1000
+Message-ID: <20130821115130.GH23287@gondor.apana.org.au>
+References: <1377010955-5605-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-crypto-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1376793755-30478-1-git-send-email-joelf@ti.com>
+In-Reply-To: <1377010955-5605-1-git-send-email-lokeshvutla@ti.com>
 Sender: linux-crypto-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Mark Greer <mgreer@animalcreek.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Crypto Mailing List <linux-crypto@vger.kernel.org>
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org, rnayak@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Aug 17, 2013 at 09:42:21PM -0500, Joel Fernandes wrote:
-> Following patch series rewrites the DMA code to be cleaner and faster. Earlier,
-> only a single SG was used for DMA purpose, and the SG-list passed from the
-> crypto layer was being copied and DMA'd one entry at a time. This turns out to
-> be quite inefficient and lot of code, we replace it with much simpler approach
-> that directly passes the SG-list from crypto to the DMA layers for cases where
-> possible. For all cases where such a direct passing of SG list is not possible,
-> we create a new SG-list and do the copying. This is still better than before, as
-> we create an SG list as big as needed and not just 1-element list.
+On Tue, Aug 20, 2013 at 08:32:33PM +0530, Lokesh Vutla wrote:
+> This patch series updates the following for the driver:
+> -> Enable polling mode if DMA fails.
+> -> Correct the DMA burst size.
 > 
-> We also add PIO mode support to the driver, and switch to it whenever the DMA
-> channel allocation is not available. This also has shown to give good performance
-> for small blocks as shown below.
-> 
-> Tests have been performed on AM335x, OMAP4 and AM437x SoCs.
-> 
-> Below is a sample run on AM335x SoC (beaglebone board), showing
-> performance improvement (20% for 8K blocks):
+> Lokesh Vutla (2):
+>   crypto: omap-sham: Enable Polling mode if DMA fails
+>   crypto: omap-sham: correct dma burst size
 
-All applied.  Thanks!
+Both patches applied.  Thanks.
 -- 
 Email: Herbert Xu <herbert@gondor.apana.org.au>
 Home Page: http://gondor.apana.org.au/~herbert/
